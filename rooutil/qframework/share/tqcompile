@@ -1,0 +1,210 @@
+#!/bin/bash
+
+rootexists=$(hash root-config 2>/dev/null; if [ $? -eq 0 ]; then echo true; fi)
+DEBUGFLAG=""
+
+if [ -z "$rootexists" ]; then
+	echo "sorry, tqcompile can only work when the root libraries are reachable."
+	echo "you don't seem to have a suitable root distribution active currently"
+	echo "please set a valid root version (5.34/02 or later) and try again"
+	exit;
+fi
+
+if [ -z "$TQPATH" ]; then
+    TQPATH=$(cd $(dirname "${0%/*}") && pwd )  # absolutized and normalized
+    echo "tqcompile is a g++ wrapper that automatically links with root libraries, libQFramework and libQStatistics"
+    echo "in order to work correctly, it needs the TQPATH environment variable set to the CAF trunk"
+    echo "you can achieve this by adding the following line to your shell init script (e.g. .bashrc)"
+    echo -e "\texport TQPATH=$TQPATH"
+    echo "afterwards, you can safely move the tqcompile script to any location in your file system"
+fi
+
+
+if [ -n $ROOTCOREBIN ]; then
+    QLIBPATH=$ROOTCOREBIN/lib/*
+else
+    QLIBPATH=$TQPATH/lib
+fi
+
+if [ ! -f $QLIBPATH/libQFramework.so ]; then
+    echo "you don't seem to have a compiled libQFramework.so"
+    echo "    in $QLIBPATH"
+    echo "please 'cd $TQPATH' and 'make'!"
+    exit;
+fi
+
+if [ -f $TQPATH/.libdirs ]; then
+	for line in $(sort -u $TQPATH/.libdirs); do
+		export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$line
+	done
+fi
+
+if [ -f $TQPATH/.thisroot ]; then
+	THISROOT=$(cat $TQPATH/.thisroot)
+	if [ -f $TQHISROOT ]; then
+		if [[ "$(root-config --bindir)/thisroot.sh" == "$THISROOT" ]]; then
+			echo "using current root version "$(root-config --version)
+		else
+			source $THISROOT
+			echo "using root version "$(root-config --version)
+		fi
+	fi
+fi
+
+CXXFLAGS="-I$TQPATH/include $(root-config --cflags)" $DEBUGFLAG
+LDFLAGS="-lQFramework  -L$QLIBPATH $(root-config --libs) -lTMVA -lxml2"
+RLIBFLAGS="-Wl,-rpath=$QLIBPATH $(for line in $(g++ --print-search-dirs | grep libraries | sed -e 's/:[ =]*/ /g'); do if [ -d $line ]; then cd $line; echo "-Wl,-rpath="$(pwd); fi; done | sort -u)"
+
+TSPATH="$(echo TQPATH | sed 's/QFramework/SFramework/g')"
+if [ -n $ROOTCOREBIN ]; then
+    SLIBPATH=$ROOTCOREBIN/lib/*
+else
+    SLIBPATH=$TSPATH/lib
+fi
+
+
+SOURCEFILES=()
+for arg in "$@"; do
+	if [ -f "$arg" ]; then
+		file -i "$arg" | grep -q 'text'
+		if [ $? -eq 0 ]; then
+			SOURCEFILES+="$arg "
+			if [ -z "$BINNAME" ]; then
+				BINNAME=${arg%.*}
+				BINFNAME=${BINNAME##*/}
+			fi
+		fi
+		if [[ -x "$arg" ]]; then
+			for file in "$arg.C" "$arg.cxx"; do
+				if [ -f "$file" ]; then
+					SOURCEFILES+="$file "
+					BINNAME="$arg"
+					BINFNAME=${BINNAME##*/}
+				fi
+			done
+		fi
+	else
+		recognized=false
+		if [[ $arg == -*s* ]]; then
+			if [ -f $TSPATH/lib/libQStatistics.so ]; then
+				USE_STATISTICS=true
+				CXXFLAGS=$CXXFLAGS" -I$TSPATH/include"
+				LDFLAGS=$LDFLAGS" -L$SLIBPATH -lQStatistics"
+				RLIBFLAGS=$RLIBFLAGS" -Wl,-rpath=$SLIBPATH"
+			else
+				echo "requestet to link with stats code, but no compiled stats library found!"
+				exit;
+			fi ;
+			recognized=true ;
+		fi
+		if [[ $arg == -*i* ]]; then
+			INCLUDE_HEADERS=true ; recognized=true ;
+		fi
+		if [[ $arg == -*l* ]]; then
+			INCLUDE_RPATH=true ; recognized=true ;
+		fi
+		if [[ $arg == -*x* ]]; then
+			EXECUTE=true ; recognized=true ;
+		fi
+		if [[ $arg == -*P* ]]; then
+			recognized=true ; CXXFLAGS=$CXXFLAGS" -g -D__PROFILING__ -pg" ;
+		fi
+		if [[ $arg == -*X* ]]; then
+			recognized=true ; VALGRIND=true; 
+		fi
+		if [[ $arg == -*v* ]]; then
+			VERBOSE=true ; recognized=true ;
+		fi
+		if [[ $arg == -*d* ]]; then
+			CXXFLAGS=$CXXFLAGS" -D_DEBUG_" ; recognized=true ;
+		fi
+		if [[ $arg == -* ]] && [ ! $recognized ]; then 
+			echo "unrecognized option: "$arg; 
+		fi  
+		if [[ $arg != -* ]]; then
+			echo "no such file or directory: "$arg 
+		fi
+	fi
+done 
+
+if [ -z "$SOURCEFILES" ]; then
+	echo "sorry, no valid source files listed"
+	exit
+fi
+
+if [ -z "$TMPDIR" ]; then
+	TMPDIR=/tmp
+fi
+
+CUSTOMSRC=$TMPDIR/${BINNAME##*/}_main.C
+
+egrep -q "[a-zA-Z][ ]+main[ ]*" $SOURCEFILES
+if [ $? -ne 0 ]; then
+	egrep -q "[a-zA-Z][ ]+$BINFNAME[ ]*" $SOURCEFILES
+	if [ $? -ne 0 ]; then
+		# this is an unnamed macro
+		echo "did not find any instance of main() -- wrapping unnamed macro in function call $BINFNAME()"
+		rm -f $CUSTOMSRC
+		echo -e '#include "'$BINFNAME'_hdr.h"' >> $CUSTOMSRC
+		echo -e 'void '$BINFNAME'()' >> $CUSTOMSRC
+        for srcfile in $SOURCEFILES; do
+			if [ -n "$srcfile" ]; then
+				sed $srcfile -e 's/gROOT->ProcessLine(".L[ ]*\([^"]*\)")[ ;]*/std::cout<<TQStringUtils::makeBoldYellow("WARNING: omitting linkage of \1")<<std::endl;/g' -e "s,[\t ]*//.*,,g" | sed '/^$/d' >> $CUSTOMSRC
+			fi
+		done
+		echo -e "int main(){\n "$BINFNAME"();\n return 0;\n}" >> $CUSTOMSRC
+		SOURCEFILES="$CUSTOMSRC "
+	else
+		# this is a named macro
+		echo "did not find any instance of main() -- auto-generating with macro call $BINFNAME()"
+		egrep "[a-zA-Z][ ]+"$BINFNAME"[ ]*" $SOURCEFILES | head -1 | sed -e "s/{.*/;/g"> $CUSTOMSRC
+		grep -q ";" $CUSTOMSRC
+		if [ $? -ne 0 ]; then echo ";" >> $CUSTOMSRC; fi
+		echo -e "int main(){\n $BINFNAME();\n return 0;\n}" >> $CUSTOMSRC
+		SOURCEFILES+=$CUSTOMSRC 
+	fi
+fi
+
+CUSTOMINCLUDE=$TMPDIR/${BINNAME##*/}_hdr.h
+
+if [ $INCLUDE_HEADERS ]; then
+	for hdrpath in $(find $TQPATH/include -name "TQ*.h" ! -name "*LinkDef.h"); do
+		hdr=${hdrpath##*/}
+		echo -e '#include "'$hdr'"' >> $CUSTOMINCLUDE
+	done
+	if [ $USE_STATISTICS ]; then
+		for hdrpath in $(find $TSPATH/include -name "TS*.h" ! -name "*LinkDef.h"); do
+			hdr=${hdrpath##*/}
+			echo -e '#include "'$hdr'"' >> $CUSTOMINCLUDE
+		done
+	fi
+	echo -e '#include "TROOT.h"'  >> $CUSTOMINCLUDE
+	echo -e '#include "TSystem.h"'  >> $CUSTOMINCLUDE
+	echo -e '#include "TStyle.h"' >> $CUSTOMINCLUDE
+	echo -e '#include <iostream>' >> $CUSTOMINCLUDE
+	echo -e 'using namespace std;' >> $CUSTOMINCLUDE
+	CUSTOMINCFLAGS="-include "${BINNAME##*/}"_hdr.h -I"$TMPDIR
+fi
+
+if [[ $INCLUDE_RPATH == "true" ]]; then
+	if [ $VERBOSE ]; then
+		echo g++ -o $BINNAME $CXXFLAGS $CUSTOMINCFLAGS $LDFLAGS $RLIBFLAGS $SOURCEFILES
+	fi
+	g++ -o $BINNAME $CXXFLAGS $CUSTOMINCFLAGS $LDFLAGS $RLIBFLAGS $SOURCEFILES
+else
+	if [ $VERBOSE ]; then
+		echo g++ -o $BINNAME $CXXFLAGS $CUSTOMINCFLAGS $LDFLAGS $SOURCEFILES
+	fi
+ 	g++ -o $BINNAME $CXXFLAGS $CUSTOMINCFLAGS $LDFLAGS $SOURCEFILES
+fi
+
+if [ $? -eq 0 ]; then
+	echo successfully compiled $BINNAME against root and CAF libraries 
+	if [ $VALGRIND ]; then
+		valgrind --leak-check=full --suppressions=$ROOTSYS/etc/valgrind-root.supp ./$BINNAME
+	elif [ $EXECUTE ]; then
+		./$BINNAME
+	fi
+fi
+			
+

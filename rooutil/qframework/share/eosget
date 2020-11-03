@@ -1,0 +1,89 @@
+#!/bin/bash
+
+EOS=/afs/cern.ch/project/eos/installation/atlas/bin/eos.select
+PREFIX=root://eosatlas/
+
+function geteostype(){
+    $EOS stat $1 | rev | cut -d ' ' -f 1 | rev
+}
+
+function geteossize(){
+    $EOS stat $1 | sed -e 's/^.*Size:[ ]*\([0-9]*\)[ ]*.*/\1/'
+}
+
+function getsize(){
+    stat -c "%s" $1
+}
+
+function eos_copy(){
+    if [[ $(geteostype $1) == "file" ]]; then
+	if [ -f $2 ]; then
+	    if [ $(getsize $2) -eq $(geteossize $1) ]; then
+		echo "file $2 is already present and identical - skipping"
+	    else
+		echo "file $2 is already present, but different - deleting"
+		rm $2
+	    fi
+	fi
+	if [ ! -f $2 ]; then
+	    echo copying $1
+	    xrdcp $PREFIX/$1 $2
+	fi
+    else 
+	mkdir -p $2
+	for entry in $($EOS ls $1); do
+	    eos_copy $1/$entry $2/$entry
+	done
+    fi
+}
+
+
+SOURCE=${1##/}
+
+if [ -z "$2" ]; then
+    if [[ $1 == "help" ]]; then
+	echo -e "$0 is an eos/xrdcp helper utility\n"
+	echo -e "it can be used to copy large directory structures from eos to a local disk"
+	echo -e "simply type '$0 eos/atlas/some/path my/local/target' to start copying"
+	echo -e "please note that"
+	echo -e "  - missing directories will be automatically created"
+	echo -e "  - files that are already present will be kept if identical to the version on eos, otherwise overwritten"
+	exit;
+    fi
+    echo "sorry, no target given - type '$0 help' for help!"
+    exit;
+fi
+
+SOURCE_EXISTS=$($EOS ls $SOURCE 2>&1 | grep "errc=2" | wc -l)
+if [[ $SOURCE_EXISTS -eq 1 ]]; then
+   echo "sorry, no such file on eos: $SOURCE"
+   exit
+fi
+
+if [ -d $2 ]; then
+    if [ $(geteostype $SOURCE) == "file" ]; then
+	TARGETDIR=$(cd $(dirname "${2%/*}") && pwd )  # absolutized and normalized
+	TARGETNAME=${SOURCE##*/}
+    else
+	TARGET=${2%/}
+	if [[ $TARGET == */* ]]; then
+	    TARGETDIR=${TARGET%/*}
+	else
+	    TARGETDIR=$(pwd)
+	fi
+	TARGETNAME=${TARGET##*/}
+    fi
+else
+    if [[ $2 == */* ]]; then
+	TARGETDIR=${2%/*}
+    else
+	TARGETDIR=$(pwd)
+    fi
+    TARGETNAME=${2##*/}
+fi
+
+if [ ! -d $TARGETDIR ]; then
+    mkdir -p $TARGETDIR
+fi
+
+eos_copy $SOURCE $TARGETDIR/$TARGETNAME

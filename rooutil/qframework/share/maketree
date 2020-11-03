@@ -1,0 +1,36 @@
+#!/bin/env python
+import sys
+import argparse
+
+
+from signal import signal, SIGPIPE, SIG_DFL
+signal(SIGPIPE,SIG_DFL) 
+
+def process(s):
+    return ROOT.gROOT.ProcessLine(s)
+
+def main(args):
+    locations = args.output.split(":")
+    if len(locations) <2:
+        locations.append("tree")
+    tfile = ROOT.TFile.Open(locations[0],"RECREATE")
+    ttree = ROOT.TTree(locations[1],locations[1])
+    if args.input == "-":
+        ttree.ReadStream(ROOT.cin,"",args.delimiter)
+    else:
+        ttree.ReadFile(args.input,"",args.delimiter)
+    print("read {0:d} entries".format(int(ttree.GetEntries())))
+    tfile.Write()
+    tfile.Close()    
+
+if __name__ == "__main__":
+    # parse the CLI arguments
+    parser = argparse.ArgumentParser(description='convert a csv file into a ROOT TTree')
+    parser.add_argument('--input', "-i", metavar='events.csv', type=str, required=True, help='input file')
+    parser.add_argument('--output', "-o", metavar='filename.root', type=str, required=True, help='name of the ROOT file')
+    parser.add_argument('--delimiter', "-d", metavar='del', type=str, default=' ',help='delimiter to be used for input')
+    args = parser.parse_args()
+    import ROOT
+    main(args);
+
+    

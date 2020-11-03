@@ -1,0 +1,1 @@
+#pragma read sourceClass="TQSampleFolder" version="[1]" targetClass="TQSampleFolder"  source="" target="" code="{ newObj->convertLegacyNFs(); }"

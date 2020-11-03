@@ -1,0 +1,2 @@
+  ClassDefOverride(ObsName, 1);
+

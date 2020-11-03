@@ -1,0 +1,18 @@
+# -*- Makefile -*-
+# Author: Carsten Burgard (cburgard@cern.ch)
+# this makefile also gets parsed by shell scripts
+# therefore it does not support full make syntax and features
+# edit with care
+
+# for full documentation check:
+# https://twiki.cern.ch/twiki/bin/viewauth/Atlas/RootCore#Package_Makefile
+
+PACKAGE          = QFramework
+PACKAGE_PRELOAD  = HistPainter
+PACKAGE_CXXFLAGS = -I/usr/include/libxml2 -Wno-unused-variable -Wno-unused-parameter -Wno-type-limits --std=c++11 -Wno-comment -Werror=return-type -Wno-misleading-indentation
+PACKAGE_BINFLAGS = -lxml2
+PACKAGE_TRYDEP   = xAODCore xAODRootAccess xAODTruth xAODBase xAODCutFlow
+PACKAGE_PEDANTIC = 1
+PACKAGE_CLEAN = Root/definitions.h Root/LinkDef.h
+
+include $(ROOTCOREDIR)/Makefile-common

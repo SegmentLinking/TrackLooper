@@ -1,0 +1,62 @@
+2016-05-17 Thomas Maier <tmaier@cern.ch>
+        * Fix shape systematics handling in TQSystematicsHandler.cxx
+
+2015-10-28 Thomas Maier <tmaier@cern.ch>
+
+        * TQSampleFolder: Fix TQSample handling in mergeAsSampleFolder
+
+2015-10-19  Valerio Dao  <valerio.dao@cern.ch>
+	* implementing unsigned int and int types for event observables
+
+2015-10-19  Carsten Burgard  <cburgard@cern.ch>
+
+	* TQTaggable: recursive tag replacement implemented, some comments
+	* TQObservable: recursive tag replacement used for aliases/tags
+	* TQFolder: tag replacements from parent folders when importing text files
+	* TQCut: better error handling
+	* TQMultiChannelAnalysisSampleVisitor: general debugging
+
+2015-10-13  Olivier Arnaez  <olivier.arnaez@cern.ch>
+
+	* Exposing TQObservable::Manager
+
+2015-10-12  Olivier Arnaez  <olivier.arnaez@cern.ch>
+
+	* QFramework/*/TQSGAuxElementDecorationObservable* and TQObservable.cxx: adding TQSGAuxElementDecorationObservable to read decorations from SG::AuxElement such as EventInfo
+
+2015-07-30 Thomas Maier <tmaier@cern.ch>
+	* TQSampleInitializerBase: Fix getTreeInformation to properly take xAOD input files with no events into account
+
+2015-07-20 Thomas Maier <tmaier@cern.ch>
+	* TQUtils: Changed xAODMakeEvent to use TFile rather than TTree
+	* TQUtils: Changed xAODMetaDataGetSumWeightsInitialFromCutBookkeeper and xAODMetaDataGetNEventsInitialFromCutBookkeeper to take TEvent rather than TTree
+	* TQSampleInitializerBase: Changes to comply with new TQUtils, removing md5sum calculation (replacing with file size instead)
+	* TQSampleListInitializer: Changes to comply with new TQUtils, added proper clean-up of open TFiles
+
+2014-11-19  Carsten Daniel Burgard  <cburgard@cern.ch>
+
+	* all: migration from HWWAnalysisCode to HSG3AnalysisCode
+
+2014-11-26  Carsten Daniel Burgard  <cburgard@cern.ch>
+
+	* TQSampleInitializer, TQSampleVisitor, TQAnalysisSampleVisitor: refactored message handling, added multi-sample functionality
+
+2015-01-06  Olivier Arnaez  <olivier.arnaez@cern.ch>
+
+	* QFramework/Root/TQFolder.cxx: leaving trailing '/' when using TQFolder::concatPaths() with an empty string
+	* TQSampleInitializer: adding readInputFilesList(TString path = "input.txt") function for grid usage
+
+2015-01-09  Carsten Daniel Burgard  <cburgard@pcfreiburg8.cern.ch>
+
+	* libQFramework.py: added "try ... except" wrapper round 'environ["TERM"]' statement to debug grid usage
+
+2015-01-12  Olivier Arnaez  <olivier.arnaez@cern.ch>
+
+	* QFramework/TQSampleInitializer.h: adding get/setExitOnFail() functions to leave the process if a file is not found
+	* Root/TQFolder.cxx: adding basepath to the filepath in case it's not null for individual samples
+	* Root/TQSampleInitializer.cxx: adding support for root:// (xrootd for instance) input filepaths
+	* share/runxAODAnalysisTest.py: adding possibility to use filepath input list
+
+2015-01-20  Olivier Arnaez  <olivier.arnaez@cern.ch>
+	* Root/TQConfigReader.cxx,share/runxAODAnalysisTest.py: allowing for
+	no configuration file to be given by user to create TEnv

@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+
+import os, sys
+import argparse
+import glob
+import ROOT as r
+
+def get_treename_from_file(tfile):
+    """
+    Given a tfile, this returns the name of the (only) ttree in the file, or
+    "Events" in the case of MINIAOD
+    """
+    f1 = r.TFile(tfile)
+    keys = f1.GetListOfKeys()
+    treenames = [key.GetName() for key in keys if key.ReadObj().InheritsFrom(r.TTree.Class())]
+    if len(treenames) > 1 and "Events" in treenames: treename = "Events"
+    else: treename = treenames[0]
+    return treename
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("fpatt", help="input file(s), quoted if there are wildcards")
+    parser.add_argument("-t", "--tree", help="tree name", default=None)
+    args = parser.parse_args()
+
+    tree_name = args.tree
+    fpatt = args.fpatt
+    if os.path.isdir(fpatt): fpatt += "/*.root"
+    if not tree_name:
+        if fpatt.startswith("/store/"):
+            tree_name = "Events"
+        else:
+            tree_name = get_treename_from_file(glob.glob(fpatt)[0])
+            print ">>> Found tree {}".format(tree_name)
+
+    if fpatt.startswith("/store/"):
+        fpatt = "root://cmsxrootd.fnal.gov//{}".format(fpatt)
+
+    ch = r.TChain(tree_name)
+    if ".root" in fpatt:
+        ch.Add(fpatt)
+    else:
+        ch.Add("{}/*.root".format(fpatt))
+
+    print ">>> Events:", ch.GetEntries()
+

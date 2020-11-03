@@ -1,0 +1,77 @@
+#!/bin/env python2
+
+import argparse
+import sys
+import sets
+
+def nameset(l):
+  retval = set()
+  if not l: return retval
+  for e in l:
+    retval.add(str(e.GetName()))
+  return retval
+  
+def isempty(s):
+  return (len(s)==0)
+
+def mkstr(s):
+  return ",".join(s)
+
+def compareTags(folder1,folder2):
+  keys1 = nameset(folder1.getListOfKeys())
+  keys2 = nameset(folder2.getListOfKeys())
+  for key in keys1.intersection(keys2):
+    val1 = folder1.getTagStringDefault(key,"")
+    val2 = folder2.getTagStringDefault(key,"")
+    if not val1 == val2:
+      print("in {:s} difference in tag '{:s}': '{:s}' vs. '{:s}'".format(folder1.getPath(),key,val1,val2))
+  missing1 = keys1.difference(keys2)
+  if not isempty(missing1): 
+    print("the following keys are missing in '{:s}':'{:s}': {:s}".format(folder1.getRoot().GetName(),folder1.getPath(),mkstr(missing1)))
+  missing2 = keys2.difference(keys1)
+  if not isempty(missing2): 
+    print("the following keys are missing in '{:s}':'{:s}': {:s}".format(folder2.getRoot().GetName(),folder2.getPath(),mkstr(missing2)))
+
+def compareFolders(folder1,folder2,ignore):
+  compareTags(folder1,folder2)
+  folders1 = nameset(folder1.getListOfFolders("?"))
+  folders2 = nameset(folder2.getListOfFolders("?"))
+  for f in folders1.intersection(folders2).difference(ignore):
+    compareFolders(folder1.getFolder(f),folder2.getFolder(f),ignore)
+  missing1 = folders1.difference(folders2).difference(ignore)
+  if not isempty(missing1): 
+    print("the following folders are missing in '{:s}':'{:s}': {:s}".format(folder2.getRoot().GetName(),folder2.getPath(),mkstr(missing1)))
+  missing2 = folders2.difference(folders1).difference(ignore)
+  if not isempty(missing2): 
+    print("the following folders are missing in '{:s}':'{:s}': {:s}".format(folder1.getRoot().GetName(),folder1.getPath(),mkstr(missing2)))
+    
+
+def main(args):
+  if ".root" in args.first:
+    folder1 = TQFolder.loadFolder(args.first)
+  else:
+    folder1 = TQFolder.loadFromTextFile(args.first,True)
+  if ".root" in args.second:
+    folder2 = TQFolder.loadFolder(args.second)
+  else:
+    folder2 = TQFolder.loadFromTextFile(args.second,True)
+  if folder1 and folder2:
+    folder1.SetName(args.first)
+    folder2.SetName(args.second)
+    compareFolders(folder1,folder2,set(args.ignore))
+  elif not folder1:
+    print("unable to open '{:s}'".format(args.first))
+  elif not folder2:
+    print("unable to open '{:s}'".format(args.second))
+           
+if __name__ == "__main__":
+  # parse the CLI arguments
+  parser = argparse.ArgumentParser(description='compare two folders for structure and tag content')
+  parser.add_argument("first", type=str, help='first sample folder')
+  parser.add_argument("second", type=str, help='second sample folder')
+  parser.add_argument("--ignore", nargs="*", default=[], type=str, help='list of folder names to ignore')
+  args = parser.parse_args()
+  sys.argv = []
+  from QFramework import *
+  from ROOT import *  
+  main(args);

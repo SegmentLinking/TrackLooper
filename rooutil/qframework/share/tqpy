@@ -1,0 +1,32 @@
+#!python -i
+# this is a -*- python -*- file
+
+import sys
+import re
+from os.path import isfile
+import ROOT
+import QFramework
+
+
+for argi in range(1,len(sys.argv)):
+    arg = sys.argv[argi]
+    if not isfile(arg):
+        print("no such file: {:s}".format(arg))
+        continue
+    if re.match("^.*\.root[.0-9]*",arg):
+        fileptr = ROOT.TFile.Open(arg,"READ")
+        for k in fileptr.GetListOfKeys():
+            if str(k.GetName()).startswith("--"): continue
+            if k.GetClassName() == "TQSampleFolder":
+                print("loading TQSampleFolder '{:s}'".format(k.GetName()))
+                globals()[str(k.GetName())] = k.ReadObj()
+            if k.GetClassName() == "TQFolder":
+                print("loading TQFolder '{:s}'".format(k.GetName()))
+                globals()[str(k.GetName())] = k.ReadObj()                
+    if re.match("^.*\.txt",arg):
+        f = QFramework.TQFolder.loadFromTextFile(arg)
+        name = str(QFramework.TQStringUtils.makeValidIdentifier(f.GetName(),QFramework.TQStringUtils.alphanum))
+        print("importing TQFolder '{:s}'".format(name))
+        globals()[name] = f
+        
+

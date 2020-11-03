@@ -1,0 +1,121 @@
+#!/usr/bin/env python2
+# -*- python -*-
+
+import argparse
+import re
+import sys
+import gc
+
+# sample folder created
+alias = "tqmerge"
+
+def main(args):
+  TQLibrary.getQLibrary().setApplicationName(alias);
+  exp = re.compile("^.*:[^/]+$")
+  sf = None
+  nMerged = 0
+  nToMerge = len(args.folders)
+  
+  for sflocation in args.folders:
+    if exp.match(sflocation):
+      sfpathname = TString(sflocation)
+    else:
+      sfpathname = TString(sflocation+":"+args.sfname)
+
+    warn = False
+    merge = sf
+    if not args.quiet:
+      if merge:
+        START("l","merging sample folder '{:s}'".format(sfpathname.Data()))
+      else:
+        START("l","loading sample folder '{:s}'".format(sfpathname.Data()))
+
+    newsf = TQSampleFolder.loadSampleFolder(sfpathname)
+
+    if not newsf:
+      if not args.quiet:
+        END(TQMessageStream.FAIL)
+      continue
+
+    if args.patch:
+      newsf.importFromTextFile(args.patch)
+
+    if args.downmerge:
+      newsf.generalizeObjects(args.downmerge)
+
+    if not merge:
+      sf = newsf
+      if not args.quiet:
+        END(TQMessageStream.OK)
+      nMerged+=1
+      continue
+
+    if sf.merge(newsf,args.traceid,args.sum,args.verbose):
+      if not args.quiet:
+        END(TQMessageStream.OK)
+    else:
+      warn = True
+      if not args.quiet:
+        END(TQMessageStream.WARN)
+    
+    #the python gc does not seem to remove the sample folders from memory after we don't need them anymore, so we do it explicitly
+    #note: when this was tested the last time, the gc actually claims to keep an eye on all those objects and never considers them "garbage" which it just doesn't know how to remove...
+    newsf.deleteAll()
+    
+    nMerged+=1
+    print ""
+    print "Merged "+str(nMerged)+"/"+str(nToMerge)+" files. Current memory usage: "+str(TQUtils.getCurrentRSS()/1024./1024.)
+
+  if warn and not args.quiet:
+    WARN("at least one input sample folder has no mergable contents for traceid '{:s}'.".format(args.traceid))
+    guess = None
+    tid = re.compile("^.([^.]+).visited$")
+    for somesf in sf.getListOfSampleFolders("*"):
+      if somesf and not guess:
+        for tagname in somesf.getListOfTagNames():
+          if not guess:
+            m = tid.match(str(tagname.GetName()))
+            if m:
+              guess = m.group(1)
+    if guess:
+      WARN("from investigating your sample folder, the traceid seems to be '{:s}'. please rerun with '-t {:s}'".format(guess,guess))
+    else:
+      WARN("unfortunately, your traceid couldn't be guessed by the code. please investigate your sample folder manually to identify it!")
+        
+  if args.name:
+    sf.setName(args.name)
+
+  if not args.quiet:
+    if sf:
+      if not TQUtils.ensureDirectoryForFile(args.file):
+        ERROR("failed to ensure directory for output file '{:s}'".format(args.file))
+      else:
+        INFO("saving merged folder as '{:s}:{:s}'".format(args.file,sf.getName()))
+        sf.writeToFile(args.file,True,args.depth)
+    else:
+      ERROR("unable to operate on sample folders!")
+
+if __name__ == "__main__":
+  # this 'black magic' is required to stop ROOT from interfering with the argument parsing
+  # parse the CLI arguments
+  parser = argparse.ArgumentParser(description='merge sample folders')
+  parser.add_argument('folders', metavar='FILE:FOLDERNAME', type=str, 
+                      nargs="+",
+                      help='list of folders to be merged')
+  parser.add_argument('-o', '--output', metavar='FILE', type=str, default='merged.root', dest="file", help='output folder path')
+  parser.add_argument('-n', '--name', metavar='NAME', type=str, dest="name", help='output folder name')
+  parser.add_argument('-t', '--traceid', metavar='TRACEID', type=str, dest="traceid", default="asv", help='trace ID of the analysis sample visitor')
+  parser.add_argument('-m', '--downmerge', metavar='DOWNMERGE', type=str, dest="downmerge", default=None, help='tag prefix to trigger downmerging')
+  parser.add_argument('-p', '--patch', metavar='style.txt', type=str, dest="patch", default=None, help='a patch style file to apply to every component')
+  parser.add_argument('-s', '--sfname', metavar='SFNAME', type=str, dest="sfname",default='samples', help='name of the sample folder being merged')
+  parser.add_argument('-d', '--depth', metavar='DEPTH', type=int, default=2, dest="depth", help='output folder split depth')
+  parser.add_argument('-noSum', dest='sum', action='store_false', help='sum elements in TQFolders (counters, histograms)')
+  parser.add_argument('-Sum', dest='sum', action='store_true', help='sum elements in TQFolders (counters, histograms)')
+  parser.set_defaults(sum=True)
+  parser.add_argument('-q', '--quiet', dest='quiet', action='store_true')
+  parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',default=False)
+  args = parser.parse_args()
+  sys.argv = []
+  from QFramework import *
+  from ROOT import *
+  main(args)

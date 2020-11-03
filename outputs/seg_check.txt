@@ -1,0 +1,421 @@
+=========================================================
+ Setting of the analysis job based on provided arguments 
+---------------------------------------------------------
+ ana.input_file_list_tstring: test_10_events.root
+ ana.output_tfile: debug.root
+ ana.n_events: 10
+ ana.run_eff_study: 0
+ ana.run_ineff_study: 0
+ ana.run_mtv_study: 0
+ ana.print_centroid: 0
+ ana.print_conn: 0
+ ana.print_boundary: 0
+ ana.ptbound_mode: 0
+ ana.nsplit_jobs: -1
+ ana.job_index: -1
+=========================================================
+>>> Hostname is lnx7188.classe.cornell.edu
+inputs : test_10_events.root
+                                                                                                    RooUtil:: Adding test_10_events.root
+                                                                                                    RooUtil:: Start EventLooping
+                                                                                                    RooUtil:: System info:
+lnx7188.classe.cornell.edu
+Linux lnx7188.classe.cornell.edu 3.10.0-1127.13.1.el7.x86_64 #1 SMP Tue Jun 23 10:32:27 CDT 2020 x86_64 x86_64 x86_64 GNU/Linux
+Tue Oct 27 14:18:04 EDT 2020
+mgr85
+/mnt/data1/mgr85/segmentLinking/TrackLooper
+                                                                                                    RooUtil::  _
+                                                                                                    RooUtil:: /\\
+                                                                                                    RooUtil:: \ \\  \__/ \__/
+                                                                                                    RooUtil::  \ \\ (oo) (oo)  Here we come!
+                                                                                                    RooUtil::   \_\\/~~\_/~~\_
+                                                                                                    RooUtil::  _.-~===========~-._
+                                                                                                    RooUtil:: (___________________)
+                                                                                                    RooUtil::       \_______/
+                                                                                                    RooUtil:: 
+                                                                                                    RooUtil::  Your friendly aliens
+                                                                                                    RooUtil::      Surf & Turf
+                                                                                                    RooUtil:: 
+                                                                                                    RooUtil:: Total Events in this Chain to process = 10
+                                                                                                    RooUtil:: Cut name|pass|weight|systs
+                                                                                                    RooUtil:: 
+                                                                                                    RooUtil:: Root| 0 | 0.000000|
+Number of modules = 26592
+number of lower modules = 13296
+                                                                                                    RooUtil:: TTreeCache enabled
+                                                                                                    RooUtil:: Looping test_10_events.root/TTree:tree
+ ana.looper.getCurrentEventIndex(): 0
+Summary of hits
+# of Hits: 229866
+# of Hits in layer 1: 36627
+# of Hits in layer 2: 27366
+# of Hits in layer 3: 19971
+# of Hits in layer 4: 15992
+# of Hits in layer 5: 10461
+# of Hits in layer 6: 5351
+Reco Mini-Doublet start
+Reco Mini-doublet processing time: 0.0541668 secs
+# of Mini-doublets produced: 31321
+# of Mini-doublets produced barrel layer 1: 5803
+# of Mini-doublets produced barrel layer 2: 3708
+# of Mini-doublets produced barrel layer 3: 2868
+# of Mini-doublets produced barrel layer 4: 3533
+# of Mini-doublets produced barrel layer 5: 2792
+# of Mini-doublets produced barrel layer 6: 1993
+Reco Segment start
+Reco Segment processing time: 0.0226519 secs
+# of Segments produced: 87682
+# of Segments produced layer 1-2: 24222
+# of Segments produced layer 2-3: 11931
+# of Segments produced layer 3-4: 11461
+# of Segments produced layer 4-5: 9762
+# of Segments produced layer 5-6: 6541
+Reco Tracklet start
+Reco Tracklet processing time: 0.181515 secs
+# of Tracklets produced: 262352
+# of Tracklets produced layer 1-2-3-4: 162129
+# of Tracklets produced layer 2-3-4-5: 63006
+# of Tracklets produced layer 3-4-5-6: 19085
+# of Tracklets produced layer 4: 1513
+# of Tracklets produced layer 5: 0
+# of Tracklets produced layer 6: 0
+Reco SDL end
+ ana.looper.getCurrentEventIndex(): 1
+Summary of hits
+# of Hits: 193589
+# of Hits in layer 1: 29720
+# of Hits in layer 2: 23108
+# of Hits in layer 3: 17629
+# of Hits in layer 4: 14161
+# of Hits in layer 5: 9825
+# of Hits in layer 6: 4758
+Reco Mini-Doublet start
+Reco Mini-doublet processing time: 0.0409882 secs
+# of Mini-doublets produced: 25595
+# of Mini-doublets produced barrel layer 1: 4331
+# of Mini-doublets produced barrel layer 2: 2961
+# of Mini-doublets produced barrel layer 3: 2423
+# of Mini-doublets produced barrel layer 4: 3122
+# of Mini-doublets produced barrel layer 5: 2859
+# of Mini-doublets produced barrel layer 6: 1490
+Reco Segment start
+Reco Segment processing time: 0.0172582 secs
+# of Segments produced: 59353
+# of Segments produced layer 1-2: 15205
+# of Segments produced layer 2-3: 7909
+# of Segments produced layer 3-4: 8242
+# of Segments produced layer 4-5: 8571
+# of Segments produced layer 5-6: 4672
+Reco Tracklet start
+Reco Tracklet processing time: 0.152607 secs
+# of Tracklets produced: 154253
+# of Tracklets produced layer 1-2-3-4: 95128
+# of Tracklets produced layer 2-3-4-5: 35062
+# of Tracklets produced layer 3-4-5-6: 12082
+# of Tracklets produced layer 4: 620
+# of Tracklets produced layer 5: 0
+# of Tracklets produced layer 6: 0
+Reco SDL end
+ ana.looper.getCurrentEventIndex(): 2
+Summary of hits
+# of Hits: 231511
+# of Hits in layer 1: 36074
+# of Hits in layer 2: 27532
+# of Hits in layer 3: 21133
+# of Hits in layer 4: 16887
+# of Hits in layer 5: 11615
+# of Hits in layer 6: 5991
+Reco Mini-Doublet start
+Reco Mini-doublet processing time: 0.0456669 secs
+# of Mini-doublets produced: 33155
+# of Mini-doublets produced barrel layer 1: 5934
+# of Mini-doublets produced barrel layer 2: 3796
+# of Mini-doublets produced barrel layer 3: 3121
+# of Mini-doublets produced barrel layer 4: 3706
+# of Mini-doublets produced barrel layer 5: 3332
+# of Mini-doublets produced barrel layer 6: 2236
+Reco Segment start
+Reco Segment processing time: 0.0196838 secs
+# of Segments produced: 95610
+# of Segments produced layer 1-2: 26739
+# of Segments produced layer 2-3: 13665
+# of Segments produced layer 3-4: 12346
+# of Segments produced layer 4-5: 11835
+# of Segments produced layer 5-6: 7044
+Reco Tracklet start
+Reco Tracklet processing time: 0.176258 secs
+# of Tracklets produced: 463833
+# of Tracklets produced layer 1-2-3-4: 240083
+# of Tracklets produced layer 2-3-4-5: 160019
+# of Tracklets produced layer 3-4-5-6: 45741
+# of Tracklets produced layer 4: 3135
+# of Tracklets produced layer 5: 0
+# of Tracklets produced layer 6: 0
+Reco SDL end
+ ana.looper.getCurrentEventIndex(): 3
+Summary of hits
+# of Hits: 224996
+# of Hits in layer 1: 35395
+# of Hits in layer 2: 27574
+# of Hits in layer 3: 19488
+# of Hits in layer 4: 15983
+# of Hits in layer 5: 10808
+# of Hits in layer 6: 5935
+Reco Mini-Doublet start
+Reco Mini-doublet processing time: 0.041811 secs
+# of Mini-doublets produced: 31587
+# of Mini-doublets produced barrel layer 1: 5580
+# of Mini-doublets produced barrel layer 2: 3838
+# of Mini-doublets produced barrel layer 3: 2799
+# of Mini-doublets produced barrel layer 4: 3541
+# of Mini-doublets produced barrel layer 5: 2889
+# of Mini-doublets produced barrel layer 6: 2346
+Reco Segment start
+Reco Segment processing time: 0.019083 secs
+# of Segments produced: 88918
+# of Segments produced layer 1-2: 25434
+# of Segments produced layer 2-3: 11515
+# of Segments produced layer 3-4: 11360
+# of Segments produced layer 4-5: 10522
+# of Segments produced layer 5-6: 6882
+Reco Tracklet start
+Reco Tracklet processing time: 0.174019 secs
+# of Tracklets produced: 279300
+# of Tracklets produced layer 1-2-3-4: 172496
+# of Tracklets produced layer 2-3-4-5: 67938
+# of Tracklets produced layer 3-4-5-6: 20816
+# of Tracklets produced layer 4: 1017
+# of Tracklets produced layer 5: 0
+# of Tracklets produced layer 6: 0
+Reco SDL end
+ ana.looper.getCurrentEventIndex(): 4
+Summary of hits
+# of Hits: 180454
+# of Hits in layer 1: 28282
+# of Hits in layer 2: 21660
+# of Hits in layer 3: 16417
+# of Hits in layer 4: 13843
+# of Hits in layer 5: 9160
+# of Hits in layer 6: 4922
+Reco Mini-Doublet start
+Reco Mini-doublet processing time: 0.0403509 secs
+# of Mini-doublets produced: 23551
+# of Mini-doublets produced barrel layer 1: 3971
+# of Mini-doublets produced barrel layer 2: 2783
+# of Mini-doublets produced barrel layer 3: 2303
+# of Mini-doublets produced barrel layer 4: 3060
+# of Mini-doublets produced barrel layer 5: 2254
+# of Mini-doublets produced barrel layer 6: 1732
+Reco Segment start
+Reco Segment processing time: 0.0168059 secs
+# of Segments produced: 49446
+# of Segments produced layer 1-2: 13508
+# of Segments produced layer 2-3: 6455
+# of Segments produced layer 3-4: 7622
+# of Segments produced layer 4-5: 6782
+# of Segments produced layer 5-6: 3353
+Reco Tracklet start
+Reco Tracklet processing time: 0.143985 secs
+# of Tracklets produced: 82675
+# of Tracklets produced layer 1-2-3-4: 49791
+# of Tracklets produced layer 2-3-4-5: 21272
+# of Tracklets produced layer 3-4-5-6: 6314
+# of Tracklets produced layer 4: 237
+# of Tracklets produced layer 5: 0
+# of Tracklets produced layer 6: 0
+Reco SDL end
+ ana.looper.getCurrentEventIndex(): 5
+Summary of hits
+# of Hits: 217509
+# of Hits in layer 1: 34135
+# of Hits in layer 2: 25257
+# of Hits in layer 3: 19272
+# of Hits in layer 4: 15954
+# of Hits in layer 5: 10953
+# of Hits in layer 6: 5762
+Reco Mini-Doublet start
+Reco Mini-doublet processing time: 0.0421391 secs
+# of Mini-doublets produced: 29860
+# of Mini-doublets produced barrel layer 1: 5275
+# of Mini-doublets produced barrel layer 2: 3246
+# of Mini-doublets produced barrel layer 3: 2741
+# of Mini-doublets produced barrel layer 4: 3583
+# of Mini-doublets produced barrel layer 5: 3035
+# of Mini-doublets produced barrel layer 6: 2230
+Reco Segment start
+Reco Segment processing time: 0.0184779 secs
+# of Segments produced: 75858
+# of Segments produced layer 1-2: 20042
+# of Segments produced layer 2-3: 9015
+# of Segments produced layer 3-4: 10628
+# of Segments produced layer 4-5: 10517
+# of Segments produced layer 5-6: 5334
+Reco Tracklet start
+Reco Tracklet processing time: 0.161361 secs
+# of Tracklets produced: 172151
+# of Tracklets produced layer 1-2-3-4: 108242
+# of Tracklets produced layer 2-3-4-5: 37782
+# of Tracklets produced layer 3-4-5-6: 14897
+# of Tracklets produced layer 4: 443
+# of Tracklets produced layer 5: 0
+# of Tracklets produced layer 6: 0
+Reco SDL end
+ ana.looper.getCurrentEventIndex(): 6
+Summary of hits
+# of Hits: 177029
+# of Hits in layer 1: 27289
+# of Hits in layer 2: 20807
+# of Hits in layer 3: 16094
+# of Hits in layer 4: 13636
+# of Hits in layer 5: 9299
+# of Hits in layer 6: 4353
+Reco Mini-Doublet start
+Reco Mini-doublet processing time: 0.040405 secs
+# of Mini-doublets produced: 22882
+# of Mini-doublets produced barrel layer 1: 3755
+# of Mini-doublets produced barrel layer 2: 2530
+# of Mini-doublets produced barrel layer 3: 2208
+# of Mini-doublets produced barrel layer 4: 2805
+# of Mini-doublets produced barrel layer 5: 2632
+# of Mini-doublets produced barrel layer 6: 1481
+Reco Segment start
+Reco Segment processing time: 0.0167658 secs
+# of Segments produced: 47739
+# of Segments produced layer 1-2: 11274
+# of Segments produced layer 2-3: 6299
+# of Segments produced layer 3-4: 6551
+# of Segments produced layer 4-5: 7745
+# of Segments produced layer 5-6: 3664
+Reco Tracklet start
+Reco Tracklet processing time: 0.147512 secs
+# of Tracklets produced: 83381
+# of Tracklets produced layer 1-2-3-4: 40294
+# of Tracklets produced layer 2-3-4-5: 25635
+# of Tracklets produced layer 3-4-5-6: 9974
+# of Tracklets produced layer 4: 474
+# of Tracklets produced layer 5: 0
+# of Tracklets produced layer 6: 0
+Reco SDL end
+ ana.looper.getCurrentEventIndex(): 7
+Summary of hits
+# of Hits: 204378
+# of Hits in layer 1: 31898
+# of Hits in layer 2: 24724
+# of Hits in layer 3: 18593
+# of Hits in layer 4: 14156
+# of Hits in layer 5: 9376
+# of Hits in layer 6: 5352
+Reco Mini-Doublet start
+Reco Mini-doublet processing time: 0.0416169 secs
+# of Mini-doublets produced: 28021
+# of Mini-doublets produced barrel layer 1: 4857
+# of Mini-doublets produced barrel layer 2: 3353
+# of Mini-doublets produced barrel layer 3: 2771
+# of Mini-doublets produced barrel layer 4: 3131
+# of Mini-doublets produced barrel layer 5: 2422
+# of Mini-doublets produced barrel layer 6: 1895
+Reco Segment start
+Reco Segment processing time: 0.0181339 secs
+# of Segments produced: 72272
+# of Segments produced layer 1-2: 19573
+# of Segments produced layer 2-3: 10031
+# of Segments produced layer 3-4: 9488
+# of Segments produced layer 4-5: 9363
+# of Segments produced layer 5-6: 4805
+Reco Tracklet start
+Reco Tracklet processing time: 0.162443 secs
+# of Tracklets produced: 231580
+# of Tracklets produced layer 1-2-3-4: 135079
+# of Tracklets produced layer 2-3-4-5: 62874
+# of Tracklets produced layer 3-4-5-6: 19183
+# of Tracklets produced layer 4: 1097
+# of Tracklets produced layer 5: 0
+# of Tracklets produced layer 6: 0
+Reco SDL end
+ ana.looper.getCurrentEventIndex(): 8
+Summary of hits
+# of Hits: 208749
+# of Hits in layer 1: 32405
+# of Hits in layer 2: 24443
+# of Hits in layer 3: 18478
+# of Hits in layer 4: 15038
+# of Hits in layer 5: 10565
+# of Hits in layer 6: 5729
+Reco Mini-Doublet start
+Reco Mini-doublet processing time: 0.053242 secs
+# of Mini-doublets produced: 28577
+# of Mini-doublets produced barrel layer 1: 4912
+# of Mini-doublets produced barrel layer 2: 3199
+# of Mini-doublets produced barrel layer 3: 2653
+# of Mini-doublets produced barrel layer 4: 3241
+# of Mini-doublets produced barrel layer 5: 2986
+# of Mini-doublets produced barrel layer 6: 2253
+Reco Segment start
+Reco Segment processing time: 0.0181029 secs
+# of Segments produced: 70232
+# of Segments produced layer 1-2: 18580
+# of Segments produced layer 2-3: 8647
+# of Segments produced layer 3-4: 9276
+# of Segments produced layer 4-5: 9631
+# of Segments produced layer 5-6: 5664
+Reco Tracklet start
+Reco Tracklet processing time: 0.169864 secs
+# of Tracklets produced: 214456
+# of Tracklets produced layer 1-2-3-4: 148579
+# of Tracklets produced layer 2-3-4-5: 37624
+# of Tracklets produced layer 3-4-5-6: 12221
+# of Tracklets produced layer 4: 688
+# of Tracklets produced layer 5: 0
+# of Tracklets produced layer 6: 0
+Reco SDL end
+ ana.looper.getCurrentEventIndex(): 9
+Summary of hits
+# of Hits: 198112
+# of Hits in layer 1: 30771
+# of Hits in layer 2: 23674
+# of Hits in layer 3: 17319
+# of Hits in layer 4: 13999
+# of Hits in layer 5: 9125
+# of Hits in layer 6: 4953
+Reco Mini-Doublet start
+Reco Mini-doublet processing time: 0.0413072 secs
+# of Mini-doublets produced: 26598
+# of Mini-doublets produced barrel layer 1: 4586
+# of Mini-doublets produced barrel layer 2: 3257
+# of Mini-doublets produced barrel layer 3: 2535
+# of Mini-doublets produced barrel layer 4: 3024
+# of Mini-doublets produced barrel layer 5: 2287
+# of Mini-doublets produced barrel layer 6: 1703
+Reco Segment start
+Reco Segment processing time: 0.0180171 secs
+# of Segments produced: 64084
+# of Segments produced layer 1-2: 18007
+# of Segments produced layer 2-3: 8074
+# of Segments produced layer 3-4: 7981
+# of Segments produced layer 4-5: 7763
+# of Segments produced layer 5-6: 3620
+Reco Tracklet start
+Reco Tracklet processing time: 0.156684 secs
+# of Tracklets produced: 155989
+# of Tracklets produced layer 1-2-3-4: 99436
+# of Tracklets produced layer 2-3-4-5: 33924
+# of Tracklets produced layer 3-4-5-6: 9410
+# of Tracklets produced layer 4: 403
+# of Tracklets produced layer 5: 0
+# of Tracklets produced layer 6: 0
+Reco SDL end
+                                                                                                    RooUtil:: Wrote output to debug.root
+                                                                                                    RooUtil:: 
+                                                                                                    RooUtil::    \__/    \__/
+                                                                                                    RooUtil::  S (oo)    (oo)
+                                                                                                    RooUtil:: (\//~~\\  //~~\\
+                                                                                                    RooUtil::  \/\__//  \\__//\T
+                                                                                                    RooUtil::    ||||    ||\\ Who cares!
+                                                                                                    RooUtil:: __ |||| __ |||| ___
+                                                                                                    RooUtil::   (_)(_)  (_)(_)
+                                                                                                    RooUtil:: 
+
+------------------------------
+CPU  Time:	54.1
+Real Time:	10.0
+

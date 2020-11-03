@@ -1,0 +1,66 @@
+#!/bin/env python2
+# -*- mode: python -*-
+
+import argparse
+import sys
+
+def main(args):
+  firstsf = TQSampleFolder.loadSampleFolder(args.first,args.lazy)
+  secondsf = TQSampleFolder.loadSampleFolder(args.second,args.lazy)
+  if firstsf and secondsf:
+    firstreader = TQSampleDataReader(firstsf)
+    secondreader = TQSampleDataReader(secondsf)
+    equal = True
+    n = 0
+    counters = firstreader.getListOfCounterNames(args.path)
+    if counters and not args.ignore_counters:
+      for cnt in counters:
+        first  = firstreader.getCounter(args.path,cnt.GetName(),args.options)
+        second = secondreader.getCounter(args.path,cnt.GetName(),args.options)
+        if not first:
+          INFO("counter {:s} doesn't exist for {:s}".format(cnt.GetName(),args.first,args.options))
+        elif not second:
+          INFO("counter {:s} doesn't exist for {:s}".format(cnt.GetName(),args.second,args.options))
+        elif second.getCounter() != 0:
+          discrepancy = abs(first.getCounter()/second.getCounter() - 1)
+          if discrepancy > args.tolerance:
+            equal = False 
+            WARN("discrepancy of {:g} detected for counter '{:s}': {:g} vs. {:g}".format(discrepancy,cnt.GetName(),first.getCounter(),second.getCounter()))
+          else:
+            if args.verbose:
+              INFO("comparing counter '{:s}': {:g} vs. {:g}".format(cnt.GetName(),first.getCounter(),second.getCounter()))
+            n = n+1
+    hists = firstreader.getListOfHistogramNames(args.path)
+    if hists and not args.ignore_histograms:
+      for hist in hists:
+        first  = firstreader.getHistogram(args.path,hist.GetName(),args.options)
+        second = firstreader.getHistogram(args.path,hist.GetName(),args.options)
+        if not first:
+          INFO("histogram {:s} doesn't exist for {:s}".format(hist.GetName(),args.first))
+        elif not second:
+          INFO("histogram {:s} doesn't exist for {:s}".format(hist.GetName(),args.second))
+        elif not TQHistogramUtils.areEqual(first,second,True,True,args.tolerance):
+          equal = False
+          WARN("discrepancy detected for histogram '{:s}'".format(hist.GetName()))
+        else:
+          n = n+1
+    if equal: INFO("no discrepancy beyond {:g} detected after comparing {:d} entries!".format(args.tolerance,n))
+           
+           
+if __name__ == "__main__":
+  # parse the CLI arguments
+  parser = argparse.ArgumentParser(description='compare to sample folders for their histograms and counters')
+  parser.add_argument("first", type=str, help='first sample folder')
+  parser.add_argument("second", type=str, help='second sample folder')
+  parser.add_argument("--tolerance", "-t", metavar="X", default=0.001, type=float, help='tolerance to allow for')
+  parser.add_argument('--ignore-histograms', dest='ignore_histograms', action='store_true')
+  parser.add_argument('--ignore-counters', dest='ignore_counters', action='store_true')
+  parser.add_argument('--lazy', dest='lazy', action='store_true')
+  parser.add_argument('--options', type=str, help='reader options to be used', default="")
+  parser.add_argument('--path', type=str, help='path to compare', default="")
+  parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',default=False)
+  args = parser.parse_args()
+  sys.argv = []
+  from QFramework import *
+  from ROOT import *  
+  main(args);

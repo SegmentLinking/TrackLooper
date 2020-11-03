@@ -1,0 +1,67 @@
+#!/bin/env python
+
+import argparse
+import sys
+
+def strip_end(text,suffix):
+    if not text.endswith(suffix):
+        return text
+    return text[:len(text)-len(suffix)]
+
+def main(args):
+    samplefolder = TQSampleFolder("samples")
+
+    colors=args.colors.split(",")
+    
+    pl = TQHWWPlotter(samplefolder)
+    pl.setTagBool("style.overrideTotalBkgRequirement",True)
+
+    i=0
+    for inputfile in args.inputfiles:
+        sname = strip_end(inputfile,".root")
+        s = samplefolder.getSample(sname+"+")
+        s.setTagString("sample",sname)
+        s.setTreeLocation(inputfile+":"+args.treename)
+        pl.addSignal(sname,"title='"+sname+"', color="+colors[i]+", histFillStyle=0, histLineWidth=2")
+        i = i+1
+
+    histos = TQHistoMakerAnalysisJob()
+    hist = "TH1F('hist','',{:d},{:f},{:f}) << ( ({:s}) : {:s} )".format(args.nBins,args.min,args.max,args.expression,args.title if args.title else args.expression)
+    if not histos.bookHistogram(hist):
+        ERROR("unable to book histogram \""+hist+"\"!")
+        exit(1)
+    cut = TQCut("cut","Base Cut",args.cut,"1.")
+    cut.addAnalysisJob(histos)
+
+    vis = TQAnalysisSampleVisitor(cut)
+    samplefolder.visitMe(vis)
+
+    pl.plotAndSaveAs("cut/hist",args.output)
+    return 0
+
+
+if __name__ == "__main__":
+    # parse the CLI arguments
+    parser = argparse.ArgumentParser(description='make a simple comparison plot of one variable in n samples')
+    parser.add_argument('inputfiles', type=str, nargs="+", help='path to the input files to be processed')
+    parser.add_argument('--output', default="plot.pdf", type=str, help="name of the output plot")
+    parser.add_argument('--expression', required=True, type=str, help="expression to plot")
+    parser.add_argument('--min', required=True, type=float, help="lower edge")
+    parser.add_argument('--max', required=True, type=float, help="upper edge")
+    parser.add_argument('--title', type=str, help="title of the plot")
+    parser.add_argument('--cut', default="1.", type=str, help="cut to be applied")
+    parser.add_argument('--colors', default="kRed,kBlue,kGreen,kBlack,kOrange", type=str, help="colors to be used")
+    parser.add_argument('--nBins', required=True, type=int, help="number of bins")
+    parser.add_argument('--treename', default="CollectionTree", type=str, help="name of the tree in the files")
+   
+    args = parser.parse_args()
+    #get rid of command line arguments since ROOT is very greedy here (and tends to choke from it!)
+    sys.argv = []
+    
+    from ROOT import *
+    from QFramework import *
+    TQLibrary.gQFramework.setApplicationName("plotcompare");
+    main(args)
+
+# usage example:
+# plot dressed.root undressed.root --expression "{ '\$(sample)' == 'dressed' ? [CPFD:H4eCands[0].part(0).part(0):pt_dressed] : [H4eCands[0].compPart(0).part(0).pt()]}/1000." --min=0 --max=250 --nBins=25 --cut "@H4eCands.size()>0" --title "Lepton pt [GeV]"

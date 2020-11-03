@@ -1,0 +1,24 @@
+#!/bin/env python2
+import sys
+import argparse
+
+def main(args):
+  inputname = args.input if ":" in args.input else args.input+":?"
+  samples = TQSampleFolder.loadSampleFolder(inputname)
+  if not samples:
+    BREAK("unable to load sample folder '{:s}'".format(inputname))
+  vis = TQSampleRevisitor(args.traceid)
+  vis.setVerbose(True)
+  samples.visitMe(vis)
+
+if __name__ == "__main__":
+  # this 'black magic' is required to stop ROOT from interfering with the argument parsing
+  # parse the CLI arguments
+  parser = argparse.ArgumentParser(description='merge sample folders')
+  parser.add_argument('input', metavar='FILE:FOLDERNAME', type=str, help='input sample folder')
+  parser.add_argument('-t', '--traceid', metavar='TRACEID', type=str, dest="traceid", default="asv", help='trace ID of the analysis sample visitor')
+  args = parser.parse_args()
+  sys.argv = []
+  from ROOT import *
+  from QFramework import *
+  main(args)

@@ -1,0 +1,41 @@
+#!/bin/env python2
+# -*- python -*-
+import argparse
+import sys
+import os
+
+def main(args):
+  samples = TQSampleFolder.newSampleFolder(args.name)
+  if not samples:
+    BREAK("unable to create sample folder with name {:s}".format(args.name))
+  for f in args.folders:
+    parts = f.split("@")
+    name = os.path.basename(parts[0]).replace("-","_")
+    if len(parts) > 1:
+      sf = samples.getSampleFolder(parts[1]+"+")
+      s = sf.getSample(name+"+")
+    else:
+      s = samples.getSample(name+"+")
+    if s:
+      s.setTreeLocation(parts[0]+":"+args.treename)
+    else:
+      ERROR("unable to create sample '{:s}'".format(name))
+  if args.verbose:
+    samples.printContents("rdt")
+  INFO("writing to file {:s}".format(args.output))
+  samples.writeToFile(args.output)
+  
+
+if __name__ == "__main__":
+  # parse the CLI arguments
+  parser = argparse.ArgumentParser(description='merge sample folders')
+  parser.add_argument('folders', metavar='FILE:FOLDERNAME', type=str,nargs="+",help='list of folders to be merged')
+  parser.add_argument('-o', '--output', metavar='FILE', type=str, default='samples.root', dest="output", help='output folder path')
+  parser.add_argument('-n', '--name', metavar='NAME', type=str, dest="name", default="samples", help='output folder name')
+  parser.add_argument('-t', '--tree', metavar='TREENAME', type=str, dest="treename", default="CollectionTree", help='name of the tree in the input file(s)')
+  parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',default=False)
+  args = parser.parse_args()
+  sys.argv = []
+  from QFramework import *
+  from ROOT import *
+  main(args);

@@ -1,0 +1,96 @@
+! Use a nice truetype font and size by default... 
+
+xterm*faceName: Droid Sans Mono
+xterm*faceSize: 11
+xterm*boldMode: false
+xterm*termName: xterm-color
+!
+xterm*toolBar: false
+xterm*rightScrollBar: false
+xterm*ScrollBar: false
+
+! Every shell is a login shell by default (for inclusion of all necessary environment variables)
+xterm*loginshell: true
+
+! I like a LOT of scrollback...
+xterm*savelines: 2000
+
+! double-click to select whole URLs :D
+xterm*charClass: 33:48,36-47:48,58-59:48,61:48,63-64:48,95:48,126:48
+
+! XTerm*Background: linen
+! XTerm*Foreground: black
+
+
+gnuplot*background:  white
+gnuplot*textColor:   black
+gnuplot*borderColor: black
+gnuplot*axisColor:   black
+gnuplot*line1Color:  red
+gnuplot*line2Color:  green
+gnuplot*line3Color:  blue
+gnuplot*line4Color:  magenta
+gnuplot*line5Color:  cyan
+gnuplot*line6Color:  sienna
+gnuplot*line7Color:  orange
+gnuplot*line8Color:  coral
+
+gnuplot*borderWidth: 2
+gnuplot*line1Width: 2
+gnuplot*pointsize: 2
+
+! ! jwr low contrast
+! 
+! !black
+! *color0: #222222
+! *color8: #454545
+! 
+! !red
+! *color1: #9E5641
+! *color9: #CC896D
+! !green
+! *color2: #6C7E55
+! *color10: #C4DF90
+! !yellow
+! *color3: #CAAF2B
+! *color11: #FFE080
+! !blue
+! *color4: #7FB8D8
+! *color12: #B8DDEA
+! !magenta
+! *color5: #956D9D
+! *color13: #C18FCB
+! !cyan
+! *color6: #4c8ea1
+! *color14: #6bc1d0
+! !white
+! *color7: #808080
+! *color15: #cdcdcd
+! black
+*color0            : #2E2E34343636
+*color8            : #555557575353
+! red
+*color1            : #CCCC00000000
+*color9            : #EFEF29292929
+! green
+*color2            : #4E4E9A9A0606
+*color10           : #8A8AE2E23434
+! yellow
+*color3            : #C4C4A0A00000
+*color11           : #FCFCE9E94F4F
+! blue
+*color4            : #34346565A4A4
+*color12           : #72729F9FCFCF
+! magenta
+*color5            : #757550507B7B
+*color13           : #ADAD7F7FA8A8
+! cyan
+*color6            : #060698209A9A
+*color14           : #3434E2E2E2E2
+! white
+*color7            : #D3D3D7D7CFCF
+*color15           : #EEEEEEEEECEC
+
+*borderColor: #1c1c1c
+*background: #1c1c1c
+*foreground: #ffffff

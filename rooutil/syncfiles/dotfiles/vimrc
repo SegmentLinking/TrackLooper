@@ -1,0 +1,518 @@
+scriptencoding utf-8
+set encoding=utf-8
+
+silent! call plug#begin('~/.vim/bundle')
+
+Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-jdaddy' " gjip
+Plug 'tpope/vim-vinegar'
+" Plug 'tpope/vim-apathy' " slow startup...
+Plug 'tpope/vim-repeat'
+Plug 'godlygeek/tabular', { 'on' : 'Tab' }
+Plug 'tommcdo/vim-lion' " gLip, or glip,
+Plug 'itchyny/lightline.vim'
+Plug 'Yggdroot/indentLine'
+Plug 'itchyny/vim-cursorword'
+" Plug 'w0rp/ale', { 'for': 'python' }
+Plug 'majutsushi/tagbar', { 'on': 'TagbarToggle' }
+Plug 'machakann/vim-swap'
+Plug 'romainl/vim-qlist' " [I
+Plug 'AndrewRadev/splitjoin.vim' " gJ, gS
+Plug 'adelarsq/vim-matchit'
+Plug 'aminnj/vim-lazytools', { 'for': 'cpp' }
+Plug 'chrisbra/vim-diff-enhanced'
+Plug 'ervandew/supertab'
+Plug 'google/yapf', { 'rtp': 'plugins/vim', 'for': 'python' }
+if executable('git')
+    Plug 'airblade/vim-gitgutter'
+    Plug 'tpope/vim-fugitive'
+endif
+
+
+call plug#end()
+
+" need one pair before pathogen, and this pair after it for uaf (idk why)
+scriptencoding utf-8
+set encoding=utf-8
+
+syntax on
+
+
+" ====== Theme {{{
+set background=dark
+" at some point, fix all the hex colors to look pretty/similar to cterm
+" colors, then enable the next line for 24 bit colors
+" set termguicolors
+colorscheme wombat256mod
+
+" Tweak to have more vivid error/warning/todo colors
+" especially for Ale
+" testing some modifications over wombat
+hi Error term=reverse ctermfg=160 ctermbg=none
+hi SpellBad term=reverse cterm=underline ctermfg=160 ctermbg=none gui=underline guifg=#E06C75
+hi SpellCap term=reverse ctermfg=173 ctermbg=220 guifg=#D19A66
+hi Todo  ctermfg=214  ctermbg=none  cterm=bold
+hi LineNr ctermbg=none guifg=#e3e0d7
+hi SignColumn term=standout ctermfg=14 ctermbg=none
+hi Search		ctermfg=176		ctermbg=none		cterm=bold,underline		guifg=#d787ff	guibg=#636066	gui=none
+hi IncSearch		cterm=reverse,bold,underline
+hi String		ctermfg=71		cterm=none		guifg=#95e454	gui=italic
+hi Number		ctermfg=173		cterm=none		guifg=#e5786d	gui=none
+hi Function		ctermfg=192		cterm=none		guifg=#cae982	gui=none
+hi Statement	ctermfg=117		cterm=none		guifg=#88b8f6	gui=none
+hi PreProc		ctermfg=173		cterm=none		guifg=#e5786d	gui=none
+" hi VertSplit	ctermfg=238		ctermbg=238		cterm=none		gui=none
+hi VertSplit	ctermfg=248		ctermbg=none		cterm=none		gui=none
+hi Comment		ctermfg=247		cterm=italic		guifg=#9c998e	gui=italic
+hi link SpellBad Error
+hi link ALEWarning SpellCap
+hi link ALEError SpellBad
+hi link ALEErrorSign Error
+
+hi GitGutterAdd ctermbg=none ctermfg=2
+hi GitGutterDelete ctermbg=none ctermfg=202
+hi GitGutterChange ctermbg=none
+hi GitGutterChangeDelete ctermbg=none
+
+hi DiffAdd  ctermbg=22
+hi DiffDelete term=bold ctermfg=9 ctermbg=none
+hi DiffChange cterm=none ctermfg=none ctermbg=0
+hi DiffText cterm=none ctermbg=251 ctermbg=124
+
+
+
+" invisible
+hi Empty ctermfg=234 ctermbg=none
+
+" }}}
+" ====== Settings {{{
+
+" fun cursor changing escape sequences in iTerm
+let &t_SI = "\<Esc>]1337;CursorShape=1\x7\<Esc>]1337;SetKeyLabel=status=✍️\x7"
+let &t_SR = "\<Esc>]1337;CursorShape=2\x7\<Esc>]1337;SetKeyLabel=status=🔥\x7"
+let &t_EI = "\<Esc>]1337;CursorShape=0\x7\<Esc>]1337;SetKeyLabel=status=🛑 \x7"
+
+" fix backspace in tmux->ssh->vim
+" if &term == "screen"
+if exists('$STY')
+    set term=screen-256color
+    set t_kb=
+    let &t_SI = ""
+    let &t_SR = ""
+    let &t_EI = ""
+endif
+
+if exists('$TMUX')
+    set term=screen-256color
+endif
+
+" if exists('$UCSD')
+"     set term=screen-256color
+" endif
+
+" fixes error syntax for $( ) in .sh files
+let g:is_posix = 1
+
+set t_Co=256
+set backupdir=~/.backup,.         " Backupdir (doesn't exist)
+set directory=~/.backup,.
+set nu                            " Line numbers ON
+set sidescroll=1                  " Columns to scroll horizontally when wrapping on
+set backspace=indent,eol,start    " Allow backspacing to move over various chars
+set hidden                        " Hides (not closes) buffers when :q
+set nowrap
+set wildmenu                      " Turn on wild menu for tab command completion
+set wildmode=list:longest,full
+set wildignorecase
+set wildignore=*.pyc,*.so,*.o,*.pkl
+set ruler                         " Turn ruler on to show position
+set splitbelow                    " Open new split panes to the bottom
+set splitright                    " ...and right, which is more natural
+set scrolloff=3                   " Keep at least 3 lines visible on either side of cursor
+set noerrorbells visualbell t_vb= " No alerts/bells
+set ttyfast                       " Smoother drawing
+set lazyredraw                    " Lazy redrawing for slow connections
+set mps+=<:>                      " Add match pairs for jumping with space
+set cursorline                    " Highlight current line
+set laststatus=2                  " Show the status line always
+set noshowmode                    " Because of lightline don't show mode at bottom
+set formatoptions+=cr             " Continue comment if in insert mode
+set formatoptions-=o              " ...but not when hitting o/O
+set formatoptions-=t              " Disable automatic wrapping of comments
+set autochdir                     " Cd into directory where file is
+set tabstop=4                     " Spaces only, and 4 spaces forever
+set shiftwidth=4
+set softtabstop=4
+set smarttab                      " Correct the wicked by converting tabs to spaces
+set expandtab
+set title                         " Set window title to current file
+set showmatch                     " When bracket inserted, briefly flash matching one
+set matchtime=2                   " Timing for above
+set incsearch                     " Search as characters are entered
+set hlsearch                      " Highlight search
+set ignorecase                    " Case-sensitive only if search contains an uppercase character
+set smartcase
+set noswapfile
+set diffopt+=vertical             " Vertical split for diff
+set viminfo=%,<800,'10,/50,:100,h,f0,n~/.vim/viminfo
+set updatetime=300
+set tags=tags;
+set undodir=~/.vim/undoinfo/ " where to save undo histories
+set undofile                " Save undos after file closes
+set undolevels=100         " How many undos
+set undoreload=10000        " number of lines to save for undo
+set fillchars+=vert:\│       " Smooth vertical bar
+set shortmess+=c " Hide match 1 of 2, back at original, etc.
+" set foldmethod=marker
+
+" zR to open all folds
+" zM to close them again
+
+
+" }}}
+
+" ====== Mapping {{{
+let mapleader = ","
+map <leader>vi :e ~/.vimrc<CR>
+map <leader>ww :set nowrap!<cr>
+map <leader>nn :set nu! <bar> set scl=no<cr>
+
+" table delimited by space for whole document
+map <leader>ts ggVG:Tab / <cr>:set nohl<cr>
+
+" table delimited by comma for whole document
+map <leader>tc ggVG:Tab /,<cr>
+
+" replace multiple spaces with single space
+map <leader>ss :%s/  \+/ /g<cr>
+vmap <leader>ss :s/  \+/ /g<cr>
+map <leader>st :call SpotifyToggle()<cr>
+map <leader>su :call SpotifyUpdate()<cr>
+map <leader>sp :call SpotifyPrevious()<cr>
+map <leader>sn :call SpotifyNext()<cr>
+
+" sets off header with #
+nnoremap <leader>h# :center 40<cr>hhv0r#A<space><esc>20A#<esc>d40<bar>YppVr#kk.
+
+" paste from system clipboard, but only locally
+nnoremap <leader>pp "+p
+
+" clear hl, fix syntax hl
+nnoremap <leader>l :nohlsearch<cr>:diffupdate<cr>:syntax sync fromstart<cr><c-l>
+
+" mash to escape
+inoremap kj <Esc>
+inoremap kJ <Esc>
+inoremap KJ <Esc>
+inoremap Kj <Esc>
+cnoremap kj <C-c>
+
+" mash to move
+noremap K 5<up>
+noremap J 5<down>
+
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-l> <C-w>l
+nnoremap <C-k> <C-w>k
+tnoremap <C-h> <C-w>h
+tnoremap <C-j> <C-w>j
+tnoremap <C-l> <C-w>l
+tnoremap <C-k> <C-w>k
+" to paste, but then this interferes with <C-p> of course
+" tnoremap <C-p> <C-w>"0
+
+
+" no 'nore' because I want to use matchit
+nmap <space> %
+
+" maintain line joining even though J remapped
+nnoremap <leader>j J
+
+
+" calculate quantity in Word
+nnoremap <leader>cc ciW<C-r>=<C-r>"<CR><Esc>
+nnoremap <leader><space> :noh<cr>:diffupdate<cr>:syntax sync fromstart<cr><c-l>
+nnoremap <leader>pt :set paste!<CR>
+nnoremap <leader>fv <C-w>F<C-w>L
+
+" copies a line and comments the old line
+nmap zz yygccp
+vmap zz V<Esc>gvygvgc`>p
+
+nnoremap <leader>an :ALENextWrap<CR>
+nnoremap <leader>ap :ALEPreviousWrap<CR>
+nnoremap <leader>at :ALEToggle<CR>
+
+" dot maps over visual line selection
+xnoremap . :norm .<CR>
+vnoremap . :norm .<CR>
+
+" remove all trailing whitespace
+nnoremap <leader>ws :let _s=@/<Bar>:%s/\s\+$//e<Bar>:let @/=_s<Bar><CR>
+
+" https://github.com/haya14busa/incsearch.vim
+map g/ <Plug>(incsearch-stay)
+map z/ <Plug>(incsearch-fuzzy-/)
+map z? <Plug>(incsearch-fuzzy-?)
+map zg/ <Plug>(incsearch-fuzzy-stay)
+
+" NERDTree
+map <leader>nt :NERDTreeToggle<CR>
+
+" tagbar
+map <leader>tt :TagbarToggle<cr>
+
+" spawn terminal in vertical split
+map <leader>te :vertical term ++close<cr>
+
+" go back into normal mode when in :term (:h terminal-mode)
+" to go back to term mode, go into insert mode via i/I or a/A
+tnoremap <leader>tn <C-w>N
+tnoremap kj <C-w>N
+
+" useful for re-executing .vimrc
+map <leader>so :w <bar> source %<cr>
+
+" remap arrow keys for long lines
+noremap <Down> gj
+noremap <Up> gk
+
+" select last pasted text
+nnoremap gp `[v`]
+
+" remap VIM 0 to first non-blank character
+map 0 ^
+
+" }}}
+
+" ====== Abbreviations {{{
+
+iab xdate <c-r>=strftime("%I:%M%p\ \%a\ %b\ %d,\ %Y")<cr>
+abbr ifnm if __name__ == "__main__":
+abbr impall import os<CR>import sys<CR>import numpy as np<CR>
+abbr coutline std::cout << __LINE__ << std::endl;
+inoreabbrev <expr> #!! "#!/usr/bin/env" . (empty(&filetype) ? '' : ' '.&filetype)
+
+" }}}
+
+" ====== Diff mode {{{
+" started In Diff-Mode set diffexpr (plugin not loaded yet)
+if &diff
+    let &diffexpr='EnhancedDiff#Diff("git diff", "--diff-algorithm=patience")'
+endif
+" }}}
+
+" ====== Misc plugin settings {{{
+
+" ====== Lightline {{{
+
+" Note that fugitive is slow on sshfs
+let g:lightline = {
+            \ 'colorscheme': 'wombat',
+            \ 'active': {
+            \   'left': [ [ 'mode', 'paste' ], [ 'readonly', 'cmsswver', 'spotify', 'filename', 'modified' ] ]
+            \ },
+            \ 'component': {
+            \   'filename': '%<%F',
+            \ },
+            \ 'component_function': {
+            \   'cmsswver': 'LightlineCMSSWver',
+            \   'spotify': 'GetSong',
+            \ },
+            \ 'separator': { 'left': "\ue0b0", 'right': "\ue0b2" },
+            \ 'subseparator': { 'left': "\ue0b1", 'right': "\ue0b3" },
+            \ }
+
+" }}}
+
+" ====== Gitgutter {{{
+
+let g:gitgutter_sign_added = '┃'
+let g:gitgutter_sign_modified = '┃'
+let g:gitgutter_sign_removed = '┃'
+let g:gitgutter_sign_removed_first_line = '┃'
+let g:gitgutter_sign_modified_removed = '┃'
+
+" }}}
+
+" ====== Lion {{{
+let g:lion_squeeze_spaces = 1
+" }}}
+
+" ====== Completion {{{
+" }}}
+
+" ====== Tags {{{
+" make tags with `ctags -R`
+map <leader>gf :vsp <CR>:exec("tag ".expand("<cword>"))<CR>
+" }}}
+
+" ====== Ale {{{
+let g:ale_sign_error = '❯❯'
+let g:ale_sign_warning = '•'
+" let g:ale_sign_error = '✖'
+" let g:ale_sign_warning = '▲'
+" let g:ale_lint_delay = 200
+let g:ale_lint_on_save = 0 " when I ,, lower chance of screwing up from linting -- trial run since i'm not sure this is correct
+let g:ale_sign_column_always = 1
+" let g:ale_set_signs = 0
+
+" below line ignores style issues (only displays errors!)
+" or can just switch to pyflakes which is faster and does just that
+let g:ale_python_flake8_options = '--select F'
+" let g:ale_linters = {
+" \   'python': ['flake8'],
+" \}
+let g:ale_linters = {
+\   'python': ['pyflakes'],
+\}
+
+" Disable Ale completely on sshfs mount
+let g:ale_pattern_options = {
+    \   '.*sandbox/uaf/.*$': {'ale_enabled': 0},
+\}
+
+" }}}
+
+" ====== Indentguides {{{
+
+let g:indentLine_char = '│'
+let g:indentLine_faster = 1
+let g:indentLine_concealcursor=0
+
+" }}}
+
+" }}}
+
+
+" ====== Autocommands {{{
+
+if has("autocmd")
+
+    augroup vimrc_todo
+        au!
+        au Syntax * syn keyword MyTodo TODO OPTIMIZE DONE NOTE
+                    \ containedin=.*Comment,vimCommentTitle contained
+    augroup END
+    hi def link MyTodo Todo
+
+    augroup Group1
+        autocmd!
+        filetype plugin indent on
+        " restore cursor position when opening a file
+        au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
+        autocmd BufNewFile,BufRead *.icc set filetype=cpp
+        autocmd BufEnter,BufNew *.txt set commentstring=\#\ %s
+        " close vim if only nerdtree is left
+        autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
+        autocmd InsertLeave * set nopaste
+        autocmd FileType crontab set nobackup nowritebackup
+        " hack? when hitting ,, ALE will try to 'run' again and this screws up colors, so disable and then re-enable
+        " autocmd FileType python nnoremap <buffer> <leader><leader> :ALEDisable <bar> w <bar> exec '!python '.shellescape('%') <bar>ALEEnable<CR>
+        autocmd FileType python nnoremap <buffer> <leader><leader> :w <bar> exec '!python '.shellescape('%') <CR>
+        autocmd FileType python nnoremap <leader>rr :w <bar> call Termrun("python ")<CR>
+        " why <buffer> ? with a .py file open, opening another file type will cause ,, to use the python ,, mapping to be overriden
+        " autocmd FileType cpp nnoremap <buffer> <leader><leader> :w <bar> exec '!root -b -q -l -n '.shellescape('%')<CR>
+        " bash : noop so that when we stick the filename afterwards, it gets ignored
+        autocmd FileType cpp nnoremap <buffer> <leader>rr :w <bar> call Termrun("rot doAll.C ; : ")<CR>
+        autocmd FileType cpp nnoremap <buffer> <leader><leader> :w <bar> exec '!g++ '.shellescape('%').' -std=c++11 && ./a.out'<CR>
+        autocmd FileType sh nnoremap <leader><leader> :w <bar> exec '!./'.shellescape('%')<CR>
+        autocmd FileType sh nnoremap <leader>rr :w <bar> call Termrun("sh ")<CR>
+        autocmd FileType vim nnoremap <leader><leader> :w <bar> source %<CR>
+        autocmd FileType c,cpp nnoremap <leader>cp :call lazytools#CoutTokens()<CR>
+        " vim-commentary
+        autocmd FileType c set commentstring=\/\/\ %s
+        autocmd FileType cpp set commentstring=\/\/\ %s
+        autocmd FileType text set commentstring=\#\ %s
+        autocmd FileType crontab set commentstring=\#\ %s
+
+    augroup END
+
+endif
+
+" }}}
+
+" ====== Misc functions {{{
+
+function! Termrun(prefix)
+    " find first buffer that is from :term
+    let l:bufnum = bufnr("!/bin/bash")
+    let l:cmd = a:prefix . expand("%:p") . "\<CR>"
+    if l:bufnum < 0
+        let l:bufnum = term_start("/bin/bash", {"term_finish": "close","vertical":1})
+    endif
+    call term_sendkeys(l:bufnum,l:cmd)
+endfunction
+
+" }}}
+
+" ====== CMSSW {{{
+if exists('$CMSSW_BASE')
+    " search CMS3 first, then local CMSSW, then central CMSSW
+    set path+=$CMSSW_BASE/src/CMS3/NtupleMaker/src
+    set path+=$CMSSW_BASE/src
+    set path+=$CMSSW_RELEASE_BASE/src
+    set path+=$ROOTSYS/include
+    " remove includes from autocomplete search list, otherwise slow
+    set complete-=i
+
+    function! LightlineCMSSWver()
+        return split($CMSSW_BASE,"CMSSW_")[1]
+    endfunction
+
+endif
+" }}}
+
+" ====== Spotify {{{
+let g:spotify_song=''
+function! SpotifyUpdate()
+    let artist = substitute(system("osascript -e 'tell application \"Spotify\" to artist of current track as string'"), '\n\+$','','')
+    let name = substitute(system("osascript -e 'tell application \"Spotify\" to name of current track as string'"), '\n\+$','','')
+    let g:spotify_song = '♪ ' . artist . ' - ' . name . ' ♪'
+endfunction
+function! SpotifyToggle()
+    if !exists('$UCSD')
+        :call system("osascript -e 'tell application \"Spotify\" to playpause'")
+        :call SpotifyUpdate()
+    else
+        " make a trigger for 'run command' in iterm with the concatenated
+        " below text and the osascript command to run
+        :echohl Empty | echo "SPOTIFY_"."TOGGLE" | echohl Normal
+    endif
+endfunction
+function! SpotifyNext()
+    if !exists('$UCSD')
+        :call system("osascript -e 'tell application \"Spotify\" to next track'")
+        :call SpotifyUpdate()
+    else
+        :echohl Empty | echo "SPOTIFY_"."NEXT" | echohl Normal
+    endif
+endfunction
+function! SpotifyPrevious()
+    if !exists('$UCSD')
+        :call system("osascript -e 'tell application \"Spotify\" to previous track'")
+        :call SpotifyUpdate()
+    else
+        :echohl Empty | echo "SPOTIFY_"."PREVIOUS" | echohl Normal
+    endif
+endfunction
+function! GetSong()
+    return g:spotify_song
+endfunction
+" }}}
+
+" ====== MacVim {{{
+if has('gui_running')
+    set background=dark
+    set guifont=Source\ Code\ Pro:h15
+    set guioptions-=r  " remove right-hand scroll bar
+    set guioptions-=l  " remove left-hand scroll bar
+    set guioptions-=L  " remove left-hand scroll bar
+    set macthinstrokes
+    " set transparency=5
+endif
+" }}}
+
