@@ -36,7 +36,7 @@ void SDL::createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, stru
 
 #ifdef Full_Explicit
     cudaMalloc(&trackletsInTemp.nTracklets,nLowerModules * sizeof(unsigned int));
-    cudaMemset(&(trackletsInTemp.nTracklets),0,nLowerModules*sizeof(unsigned int));
+//    cudaMemset(&(trackletsInTemp.nTracklets),0,nLowerModules*sizeof(unsigned int));
 #else
     cudaMallocManaged(&trackletsInTemp.nTracklets,nLowerModules * sizeof(unsigned int));
 #endif

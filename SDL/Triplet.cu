@@ -29,7 +29,7 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU,struct t
     cudaMalloc(&tripletsInTemp.lowerModuleIndices, 3 * maxTriplets * nLowerModules * sizeof(unsigned int));
 #ifdef Full_Explicit
     cudaMalloc(&tripletsInTemp.nTriplets, nLowerModules * sizeof(unsigned int));
-    cudaMemset(&(tripletsInTemp.nTriplets),0,nLowerModules * sizeof(unsigned int));
+//    cudaMemset(&(tripletsInTemp.nTriplets),0,nLowerModules * sizeof(unsigned int));
 #else
     cudaMallocManaged(&tripletsInTemp.nTriplets, nLowerModules * sizeof(unsigned int));
 #endif
