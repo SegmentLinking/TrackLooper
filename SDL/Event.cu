@@ -48,25 +48,25 @@ SDL::Event::~Event()
 
 #ifdef Explicit_MD
     mdsInTemp->freeMemory();
-//    cudaFree(mdsInTemp);
+    cudaFreeHost(mdsInTemp);
 #else
     mdsInGPU->freeMemory();
 #endif
 #ifdef Explicit_Seg
     segmentsInTemp->freeMemory(); 
-//    cudaFree(segmentsInTemp);
+    cudaFreeHost(segmentsInTemp);
 #else
     segmentsInGPU->freeMemory(); 
 #endif
 #ifdef Explicit_Tracklet 
     trackletsInTemp->freeMemory(); 
-//    cudaFree(trackletsInTemp);
+    cudaFreeHost(trackletsInTemp);
 #else
     trackletsInGPU->freeMemory();
 #endif
 #ifdef Explicit_Trips
     tripletsInTemp->freeMemory(); 
-//    cudaFree(tripletsInTemp);
+    cudaFreeHost(tripletsInTemp);
 #else
     tripletsInGPU->freeMemory();
 #endif

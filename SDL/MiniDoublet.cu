@@ -55,7 +55,7 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, struct miniDo
     cudaMalloc(&mdsInTemp.dphichanges, maxMDsPerModule * nModules * sizeof(float));
 #ifdef Full_Explicit
     cudaMalloc(&mdsInTemp.nMDs, nModules * sizeof(unsigned int)); //for full explicit
-//    cudaMemset(&mdsInTemp.nMDs,0,nModules *sizeof(unsigned int));
+    cudaMemset(mdsInTemp.nMDs,0,nModules *sizeof(unsigned int));
 #else
     cudaMallocManaged(&mdsInTemp.nMDs, nModules * sizeof(unsigned int)); // allows for transfer back
 #endif
