@@ -18,10 +18,10 @@ SDL::Event::Event()
     mdsInTemp = nullptr; //explicit
     segmentsInGPU = nullptr;
     segmentsInTemp = nullptr;
-    trackletsInGPU = nullptr; 
-    trackletsInTemp = nullptr; 
-    tripletsInGPU = nullptr; 
-    tripletsInTemp = nullptr; 
+    trackletsInGPU = nullptr;
+    trackletsInTemp = nullptr;
+    tripletsInGPU = nullptr;
+    tripletsInTemp = nullptr;
     //reset the arrays
     for(int i = 0; i<6; i++)
     {
@@ -53,19 +53,19 @@ SDL::Event::~Event()
     mdsInGPU->freeMemory();
 #endif
 #ifdef Explicit_Seg
-    segmentsInTemp->freeMemory(); 
+    segmentsInTemp->freeMemory();
     cudaFreeHost(segmentsInTemp);
 #else
-    segmentsInGPU->freeMemory(); 
+    segmentsInGPU->freeMemory();
 #endif
-#ifdef Explicit_Tracklet 
-    trackletsInTemp->freeMemory(); 
+#ifdef Explicit_Tracklet
+    trackletsInTemp->freeMemory();
     cudaFreeHost(trackletsInTemp);
 #else
     trackletsInGPU->freeMemory();
 #endif
 #ifdef Explicit_Trips
-    tripletsInTemp->freeMemory(); 
+    tripletsInTemp->freeMemory();
     cudaFreeHost(tripletsInTemp);
 #else
     tripletsInGPU->freeMemory();
@@ -86,6 +86,12 @@ void SDL::initModules()
         loadModulesFromFile(*modulesInGPU,nModules); //nModules gets filled here
     }
     resetObjectRanges(*modulesInGPU,nModules);
+}
+
+void SDL::cleanModules()
+{
+  freeModulesInUnifiedMemory(*modulesInGPU);
+  cudaFree(modulesInGPU);
 }
 
 void SDL::Event::resetObjectsInModule()
@@ -117,7 +123,7 @@ void SDL::Event::addHitToEvent(float x, float y, float z, unsigned int detId)
     else
     {
         n_hits_by_layer_endcap_[moduleLayer-1]++;
-    } 
+    }
 
 }
 
@@ -136,7 +142,7 @@ void SDL::Event::addMiniDoubletsToEvent()
         {
             modulesInGPU->mdRanges[idx * 2] = idx * N_MAX_MD_PER_MODULES;
             modulesInGPU->mdRanges[idx * 2 + 1] = (idx * N_MAX_MD_PER_MODULES) + mdsInGPU->nMDs[idx] - 1;
-    
+
             if(modulesInGPU->subdets[idx] == Barrel)
             {
                 n_minidoublets_by_layer_barrel_[modulesInGPU->layers[idx] -1] += mdsInGPU->nMDs[idx];
@@ -171,7 +177,7 @@ void SDL::Event::addSegmentsToEvent()
 
             if(modulesInGPU->subdets[idx] == Barrel)
             {
-  
+
                 n_segments_by_layer_barrel_[modulesInGPU->layers[idx] - 1] += segmentsInGPU->nSegments[idx];
             }
             else
@@ -229,9 +235,9 @@ void SDL::Event::createMiniDoublets()
 
     if(cudaerr != cudaSuccess)
     {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;    
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
     }
-    
+
 #if defined(AddObjects) && !defined(Full_Explicit)
     addMiniDoubletsToEvent();
 #endif
@@ -265,7 +271,7 @@ void SDL::Event::createSegmentsWithModuleMap()
 //    dim3 nThreads(1,16,16);
 //    dim3 nBlocks(((nLowerModules * MAX_CONNECTED_MODULES)  % nThreads.x == 0 ? (nLowerModules * MAX_CONNECTED_MODULES)/nThreads.x : (nLowerModules * MAX_CONNECTED_MODULES)/nThreads.x + 1),(N_MAX_MD_PER_MODULES % nThreads.y == 0 ? N_MAX_MD_PER_MODULES/nThreads.y : N_MAX_MD_PER_MODULES/nThreads.y + 1), (N_MAX_MD_PER_MODULES % nThreads.z == 0 ? N_MAX_MD_PER_MODULES/nThreads.z : N_MAX_MD_PER_MODULES/nThreads.z + 1));
 
-    unsigned int nThreads = 1;   
+    unsigned int nThreads = 1;
     unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads + 1;
 
     createSegmentsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU);
@@ -273,7 +279,7 @@ void SDL::Event::createSegmentsWithModuleMap()
     cudaError_t cudaerr = cudaDeviceSynchronize();
     if(cudaerr != cudaSuccess)
     {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;    
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
     }
 #if defined(AddObjects) && !defined(Full_Explicit)
     addSegmentsToEvent();
@@ -352,7 +358,7 @@ void SDL::Event::createTrackletsWithModuleMap()
     cudaError_t cudaerr = cudaDeviceSynchronize();
     if(cudaerr != cudaSuccess)
     {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;    
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
 
     }
     /*addTrackletsToEvent will be called in the createTrackletsWithAGapWithModuleMap function*/
@@ -396,7 +402,7 @@ void SDL::Event::createTrackletsWithAGapWithModuleMap()
     cudaError_t cudaerr = cudaDeviceSynchronize();
     if(cudaerr != cudaSuccess)
     {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;    
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
 
     }
 
@@ -424,8 +430,8 @@ void SDL::Event::addTrackletsToEvent()
             //{
             //    printTracklet(*trackletsInGPU, *segmentsInGPU, *mdsInGPU, *hitsInGPU, *modulesInGPU, i * N_MAX_TRACKLETS_PER_MODULE + jdx);
             //}
-            
- 
+
+
             if(modulesInGPU->subdets[idx] == Barrel)
             {
                 n_tracklets_by_layer_barrel_[modulesInGPU->layers[idx] - 1] += trackletsInGPU->nTracklets[i];
@@ -461,7 +467,7 @@ void SDL::Event::addTripletsToEvent()
         {
             modulesInGPU->tripletRanges[idx * 2] = idx * N_MAX_TRIPLETS_PER_MODULE;
             modulesInGPU->tripletRanges[idx * 2 + 1] = idx * N_MAX_TRIPLETS_PER_MODULE + tripletsInGPU->nTriplets[i] - 1;
- 
+
             if(modulesInGPU->subdets[idx] == Barrel)
             {
                 n_triplets_by_layer_barrel_[modulesInGPU->layers[idx] - 1] += tripletsInGPU->nTriplets[i];
@@ -497,7 +503,7 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
 
     float dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange;
     bool success = runMiniDoubletDefaultAlgo(modulesInGPU, hitsInGPU, lowerModuleIndex, lowerHitArrayIndex, upperHitArrayIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange);
-    
+
     if(success)
     {
         unsigned int mdModuleIndex = atomicAdd(&mdsInGPU.nMDs[lowerModuleIndex],1);
@@ -552,7 +558,7 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
 
     createMiniDoubletsFromLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, lowerModuleIndex, upperModuleIndex, nLowerHits, nUpperHits);
 
-  
+
 }*/
 
 /*__global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU)
@@ -563,7 +569,7 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
 
     int innerLowerModuleArrayIdx = xAxisIdx/MAX_CONNECTED_MODULES;
     int outerLowerModuleArrayIdx = xAxisIdx % MAX_CONNECTED_MODULES; //need this index from the connected module array
-    
+
     unsigned int innerLowerModuleIndex = modulesInGPU.lowerModuleIndices[innerLowerModuleArrayIdx];
 
     unsigned int nConnectedModules = modulesInGPU.nConnectedModules[innerLowerModuleIndex];
@@ -654,7 +660,7 @@ __global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SD
     dim3 nThreads(1,16,16);
     dim3 nBlocks((nConnectedModules % nThreads.x == 0 ? nConnectedModules/nThreads.x : nConnectedModules/nThreads.x + 1), (nInnerMDs % nThreads.y == 0 ? nInnerMDs/nThreads.y : nInnerMDs/nThreads.y + 1), (N_MAX_MD_PER_MODULES % nThreads.z == 0 ? N_MAX_MD_PER_MODULES/nThreads.z : N_MAX_MD_PER_MODULES/nThreads.z + 1));
     createSegmentsFromInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, innerLowerModuleIndex,nInnerMDs);
-   
+
 }
 
 
@@ -686,7 +692,7 @@ __global__ void createTrackletsFromInnerInnerLowerModule(struct SDL::modules& mo
     unsigned int outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex];
 
     //with both segment indices obtained, run the tracklet algorithm
-    
+
    float zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut;
 
    bool success = runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, innerOuterLowerModuleIndex, outerInnerLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut); //might want to send the other two module indices and the anchor hits also to save memory accesses
@@ -721,15 +727,15 @@ __global__ void createTrackletsWithAGapFromInnerInnerLowerModule(struct SDL::mod
     int xAxisIndex = blockIdx.x * blockDim.x + threadIdx.x;
     int innerSegmentArrayIndex =  blockIdx.y * blockDim.y + threadIdx.y;
     int outerSegmentArrayIndex = blockIdx.z * blockDim.z + threadIdx.z;
-    
+
     if(innerSegmentArrayIndex >= nInnerSegments) return;
 
     int middleLowerModuleArrayIndex = xAxisIndex / MAX_CONNECTED_MODULES;
     int outerInnerLowerModuleArrayIndex = xAxisIndex % MAX_CONNECTED_MODULES;
 
     unsigned int innerSegmentIndex = innerInnerLowerModuleIndex * N_MAX_SEGMENTS_PER_MODULE + innerSegmentArrayIndex;
-    unsigned int innerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[innerSegmentIndex]; 
-   
+    unsigned int innerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[innerSegmentIndex];
+
     //first check for middle modules
     unsigned int nMiddleLowerModules = modulesInGPU.nConnectedModules[innerOuterLowerModuleIndex];
     if(middleLowerModuleArrayIndex >= nMiddleLowerModules) return;
@@ -751,7 +757,7 @@ __global__ void createTrackletsWithAGapFromInnerInnerLowerModule(struct SDL::mod
     unsigned int outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex];
 
     //with both segment indices obtained, run the tracklet algorithm
-    
+
    float zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut;
 
    bool success = runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, innerOuterLowerModuleIndex, outerInnerLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut); //might want to send the other two module indices and the anchor hits also to save memory accesses
@@ -785,7 +791,7 @@ __global__ void createTrackletsWithAGapInGPU(struct SDL::modules& modulesInGPU, 
     //Inner kernel of Proposal 2 : Inner kernel does middle->outer modoule mapping
     int outerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
     int outerSegmentArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
-    
+
     //check for outerInnerLowerModules
     if(outerInnerLowerModuleArrayIndex >= nOuterInnerLowerModules) return;
 
@@ -801,7 +807,7 @@ __global__ void createTrackletsWithAGapInGPU(struct SDL::modules& modulesInGPU, 
     unsigned int outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex];
 
     //with both segment indices obtained, run the tracklet algorithm
-    
+
    float zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut;
 
    bool success = runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, innerOuterLowerModuleIndex, outerInnerLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut); //might want to send the other two module indices and the anchor hits also to save memory accesses
@@ -827,9 +833,9 @@ __global__ void createTrackletsWithAGapFromInnerInnerLowerModule(struct SDL::mod
     //middle lower module - modules that are connected to outer lower module of inner segment
     unsigned int innerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[innerSegmentIndex];
     unsigned int nMiddleLowerModules = modulesInGPU.nConnectedModules[innerOuterLowerModuleIndex];
- 
+
     if(middleLowerModuleArrayIndex >= nMiddleLowerModules) return;
- 
+
     unsigned int middleLowerModuleIndex = modulesInGPU.moduleMap[innerOuterLowerModuleIndex * MAX_CONNECTED_MODULES + middleLowerModuleArrayIndex];
 
     unsigned int nOuterInnerLowerModules = modulesInGPU.nConnectedModules[middleLowerModuleIndex];
@@ -854,7 +860,7 @@ __global__ void createTrackletsWithAGapInGPU(struct SDL::modules& modulesInGPU, 
 
     dim3 nThreads(1,1,1);
     dim3 nBlocks(MAX_CONNECTED_MODULES % nThreads.x  == 0 ? MAX_CONNECTED_MODULES / nThreads.x : MAX_CONNECTED_MODULES / nThreads.x + 1 , nInnerSegments % nThreads.y == 0 ? nInnerSegments/nThreads.y : nInnerSegments/nThreads.y + 1,1);
-    
+
     createTrackletsWithAGapFromInnerInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, trackletsInGPU, innerInnerLowerModuleIndex, nInnerSegments, innerInnerLowerModuleArrayIndex);
 
 }*/
@@ -885,7 +891,7 @@ __global__ void createTripletsFromInnerInnerLowerModule(struct SDL::modules& mod
         unsigned int tripletIndex = innerInnerLowerModuleArrayIndex * N_MAX_TRIPLETS_PER_MODULE + tripletModuleIndex;
 
         addTripletToMemory(tripletsInGPU, innerSegmentIndex, outerSegmentIndex, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, tripletIndex);
-    }   
+    }
 }
 
 __global__ void createTripletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU)
@@ -950,7 +956,7 @@ unsigned int SDL::Event::getNumberOfMiniDoublets()
     }
 
     return miniDoublets;
-   
+
 }
 
 unsigned int SDL::Event::getNumberOfMiniDoubletsByLayer(unsigned int layer)
@@ -958,7 +964,7 @@ unsigned int SDL::Event::getNumberOfMiniDoubletsByLayer(unsigned int layer)
      if(layer == 6)
         return n_minidoublets_by_layer_barrel_[layer];
     else
-        return n_minidoublets_by_layer_barrel_[layer] + n_minidoublets_by_layer_endcap_[layer];   
+        return n_minidoublets_by_layer_barrel_[layer] + n_minidoublets_by_layer_endcap_[layer];
 }
 
 unsigned int SDL::Event::getNumberOfMiniDoubletsByLayerBarrel(unsigned int layer)
@@ -984,7 +990,7 @@ unsigned int SDL::Event::getNumberOfSegments()
     }
 
     return segments;
-   
+
 }
 
 unsigned int SDL::Event::getNumberOfSegmentsByLayer(unsigned int layer)
@@ -992,7 +998,7 @@ unsigned int SDL::Event::getNumberOfSegmentsByLayer(unsigned int layer)
      if(layer == 6)
         return n_segments_by_layer_barrel_[layer];
     else
-        return n_segments_by_layer_barrel_[layer] + n_segments_by_layer_endcap_[layer];   
+        return n_segments_by_layer_barrel_[layer] + n_segments_by_layer_endcap_[layer];
 }
 
 unsigned int SDL::Event::getNumberOfSegmentsByLayerBarrel(unsigned int layer)
@@ -1018,7 +1024,7 @@ unsigned int SDL::Event::getNumberOfTracklets()
     }
 
     return tracklets;
-   
+
 }
 
 unsigned int SDL::Event::getNumberOfTrackletsByLayer(unsigned int layer)
@@ -1052,7 +1058,7 @@ unsigned int SDL::Event::getNumberOfTriplets()
     }
 
     return triplets;
-   
+
 }
 
 
