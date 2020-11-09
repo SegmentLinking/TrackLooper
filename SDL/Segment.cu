@@ -39,7 +39,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, struct 
     cudaMalloc(&segmentsInTemp.outerMiniDoubletAnchorHitIndices, maxSegments * nModules * sizeof(unsigned int));
 #ifdef Full_Explicit
     cudaMalloc(&segmentsInTemp.nSegments, nModules * sizeof(unsigned int));
-    cudaMemset(&(segmentsInTemp.nSegments),0,nModules * sizeof(unsigned int));
+    cudaMemset(segmentsInTemp.nSegments,0,nModules * sizeof(unsigned int));
 #else
     cudaMallocManaged(&segmentsInTemp.nSegments, nModules * sizeof(unsigned int));
 #endif
