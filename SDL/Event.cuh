@@ -108,6 +108,7 @@ namespace SDL
     extern struct modules* modulesInHost;
     extern unsigned int nModules;
     void initModules(); //read from file and init
+    void cleanModules();
     void initModulesHost(); //read from file and init
 
 }

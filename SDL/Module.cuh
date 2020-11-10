@@ -90,6 +90,7 @@ namespace SDL
 
     void createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules);
     void createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int nModules);
+    void freeModulesInUnifiedMemory(struct modules& modulesInGPU);
     void fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nModules);
     void setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side);
     void resetObjectRanges(struct modules& modulesInGPU, unsigned int nModules);
