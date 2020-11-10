@@ -40,13 +40,9 @@ namespace SDL
         //CUDA stuff
         struct hits* hitsInGPU;
         struct miniDoublets* mdsInGPU;
-        struct miniDoublets* mdsInTemp; //explicit
         struct segments* segmentsInGPU;
-        struct segments* segmentsInTemp;
         struct tracklets* trackletsInGPU;
-        struct tracklets* trackletsInTemp;
         struct triplets* tripletsInGPU;
-        struct triplets* tripletsInTemp;
 
     public:
         Event();
