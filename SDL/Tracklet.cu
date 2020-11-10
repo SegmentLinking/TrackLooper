@@ -59,6 +59,7 @@ void SDL::createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, stru
     trackletsInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_device(dev,maxTracklets * nLowerModules * sizeof(unsigned int) * 4,stream);//split up to avoid runtime error of exceeding max byte allocation at a time
 #ifdef Full_Explicit
     trackletsInGPU.nTracklets = (unsigned int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(unsigned int),stream);
+    cudaMemset(trackletsInGPU.nTracklets,0,nLowerModules * sizeof(unsigned int));
 #else
     trackletsInGPU.nTracklets = (unsigned int*)cms::cuda::allocate_managed(nLowerModules * sizeof(unsigned int),stream);
 #endif
@@ -128,20 +129,25 @@ SDL::tracklets::~tracklets()
 void SDL::tracklets::freeMemoryCache()
 {
 #ifdef CACHE_ALLOC
-#ifdef Explicit_Tracklet
-    int dev;
-    cudaGetDevice(&dev);
-    cms::cuda::free_device(dev,segmentIndices);
-    cms::cuda::free_device(dev,lowerModuleIndices);
-    cms::cuda::free_device(dev,zOut);
-    cms::cuda::free_device(dev,betaIn);
-#else
+//#ifdef Explicit_Tracklet
+//    int dev;
+//    cudaGetDevice(&dev);
+//    cms::cuda::free_device(dev,segmentIndices);
+//    cms::cuda::free_device(dev,lowerModuleIndices);
+//    cms::cuda::free_device(dev,zOut);
+//    cms::cuda::free_device(dev,betaIn);
+//    #ifdef Full_Explicit
+//    cms::cuda::free_device(dev,nTracklets);
+//    #else
+//    cms::cuda::free_managed(nTracklets);
+//    #endif
+//#else
     cms::cuda::free_managed(segmentIndices);
     cms::cuda::free_managed(lowerModuleIndices);
     cms::cuda::free_managed(zOut);
     cms::cuda::free_managed(betaIn);
-#endif
     cms::cuda::free_managed(nTracklets);
+//#endif
 #endif
 }
 void SDL::tracklets::freeMemory()

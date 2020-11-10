@@ -73,6 +73,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, struct 
     segmentsInGPU.outerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 5;
 #ifdef Full_Explicit
     segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_device(dev,nModules *sizeof(unsigned int),stream);
+    cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
 #else
     segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_managed(nModules *sizeof(unsigned int),stream);
 #endif
@@ -152,12 +153,17 @@ void SDL::segments::freeMemoryCache()
   cudaGetDevice(&dev);
   cms::cuda::free_device(dev,mdIndices);
   cms::cuda::free_device(dev,dPhis);
+  #ifdef Full_Explicit
+  cms::cuda::free_device(dev,nSegments);
+  #else
+  cms::cuda::free_managed(nSegments);
+  #endif
 #else
   cms::cuda::free_managed(mdIndices);
   cms::cuda::free_managed(dPhis);
+  cms::cuda::free_managed(nSegments);
 
 #endif
-  cms::cuda::free_managed(nSegments);
 #endif
 }
 void SDL::segments::freeMemory()

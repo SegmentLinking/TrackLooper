@@ -81,12 +81,11 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, struct miniDo
   mdsInGPU.moduleIndices = mdsInGPU.hitIndices + maxMDsPerModule * nModules * 2 ;
   mdsInGPU.pixelModuleFlag = (short*)cms::cuda::allocate_device(dev,maxMDsPerModule*nModules*sizeof(short),stream);
 #ifdef Full_Explicit
+  printf("cache full explicit\n");
   mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_device(dev,nModules*sizeof(unsigned int),stream);
-//    cudaMemset(mdsInTemp.nMDs,0,nModules *sizeof(unsigned int));
+    cudaMemset(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int));
 #else
   mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_managed(nModules*sizeof(unsigned int),stream);
-  //mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_device(dev,nModules*sizeof(unsigned int),stream);
-  //  cudaMallocManaged(&mdsInTemp.nMDs, nModules * sizeof(unsigned int)); // allows for transfer back
 #endif
   mdsInGPU.dphichanges = (float*)cms::cuda::allocate_device(dev,maxMDsPerModule*nModules*9*sizeof(float),stream);
   mdsInGPU.dzs  = mdsInGPU.dphichanges + maxMDsPerModule*nModules;
@@ -799,12 +798,17 @@ void SDL::miniDoublets::freeMemoryCache()
   cms::cuda::free_device(dev,hitIndices);
   cms::cuda::free_device(dev,pixelModuleFlag);
   cms::cuda::free_device(dev,dphichanges);
+  #ifdef Full_Explicit
+  cms::cuda::free_device(dev,nMDs);
+  #else
+  cms::cuda::free_managed(nMDs);
+  #endif
 #else
   cms::cuda::free_managed(hitIndices);
-//  cms::cuda::free_managed(pixelModuleFlag);
+  cms::cuda::free_managed(pixelModuleFlag);
   cms::cuda::free_managed(dphichanges);
-#endif
   cms::cuda::free_managed(nMDs);
+#endif
 #endif
 
 }

@@ -33,6 +33,33 @@ void SDL::createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int
 
 }
 
+void SDL::freeModulesInUnifiedMemory(struct modules& modulesInGPU)
+{
+  cudaFree(modulesInGPU.detIds);
+  cudaFree(modulesInGPU.moduleMap);
+  cudaFree(modulesInGPU.nConnectedModules);
+  cudaFree(modulesInGPU.drdzs);
+  cudaFree(modulesInGPU.slopes);
+  cudaFree(modulesInGPU.nModules);
+  cudaFree(modulesInGPU.nLowerModules);
+  cudaFree(modulesInGPU.layers);
+  cudaFree(modulesInGPU.rings);
+  cudaFree(modulesInGPU.modules);
+  cudaFree(modulesInGPU.rods);
+  cudaFree(modulesInGPU.subdets);
+  cudaFree(modulesInGPU.sides);
+  cudaFree(modulesInGPU.isInverted);
+  cudaFree(modulesInGPU.isLower);
+  cudaFree(modulesInGPU.hitRanges);
+  cudaFree(modulesInGPU.mdRanges);
+  cudaFree(modulesInGPU.segmentRanges);
+  cudaFree(modulesInGPU.trackletRanges);
+  cudaFree(modulesInGPU.tripletRanges);
+  cudaFree(modulesInGPU.moduleType);
+  cudaFree(modulesInGPU.moduleLayerType);
+  cudaFree(modulesInGPU.lowerModuleIndices);
+}
+
 void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules)
 {
     cudaMallocManaged(&modulesInGPU.lowerModuleIndices,nLowerModules * sizeof(unsigned int));
@@ -71,7 +98,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
         std::stringstream ss(line);
         std::string token;
         bool flag = 0;
-        
+
         while(std::getline(ss,token,','))
         {
             if(flag == 1) break;
@@ -88,10 +115,10 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     for(auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); it++)
     {
         unsigned int detId = it->first;
-        unsigned int index = it->second; 
+        unsigned int index = it->second;
         modulesInGPU.detIds[index] = detId;
         unsigned short layer,ring,rod,module,subdet,side;
-        setDerivedQuantities(detId,layer,ring,rod,module,subdet,side); 
+        setDerivedQuantities(detId,layer,ring,rod,module,subdet,side);
         modulesInGPU.layers[index] = layer;
         modulesInGPU.rings[index] = ring;
         modulesInGPU.rods[index] = rod;
@@ -115,7 +142,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     createLowerModuleIndexMap(modulesInGPU,lowerModuleCounter);
     fillConnectedModuleArray(modulesInGPU,nModules);
     resetObjectRanges(modulesInGPU,nModules);
-} 
+}
 
 void SDL::fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nModules)
 {
@@ -306,4 +333,3 @@ void SDL::resetObjectRanges(struct modules& modulesInGPU, unsigned int nModules)
     }
 
 }
-

@@ -50,6 +50,7 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU,struct t
     tripletsInGPU.lowerModuleIndices = tripletsInGPU.segmentIndices + nLowerModules * maxTriplets *2;
 #ifdef Full_Explicit
     tripletsInGPU.nTriplets = (unsigned int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(unsigned int),stream);
+    cudaMemset(tripletsInGPU.nTriplets,0,nLowerModules * sizeof(unsigned int));
 #else
     tripletsInGPU.nTriplets = (unsigned int*)cms::cuda::allocate_managed(nLowerModules * sizeof(unsigned int),stream);
 #endif
@@ -122,11 +123,16 @@ void SDL::triplets::freeMemoryCache()
     cudaGetDevice(&dev);
     cms::cuda::free_device(dev,segmentIndices);
     cms::cuda::free_device(dev,zOut);
+    #ifdef Full_Explicit
+    cms::cuda::free_device(dev,nTriplets);
+    #else
+    cms::cuda::free_managed(nTriplets);
+    #endif
 #else
     cms::cuda::free_managed(segmentIndices);
     cms::cuda::free_managed(zOut);
-#endif
     cms::cuda::free_managed(nTriplets);
+#endif
 #endif
 }
 void SDL::triplets::freeMemory()

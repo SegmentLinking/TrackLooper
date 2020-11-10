@@ -492,7 +492,7 @@ int main(int argc, char** argv)
         TStopwatch my_timer;
 
         // run_eff_study == 0 then run all the reconstruction
-      // 
+      //
         //if ((ana.run_eff_study == 0 and ana.run_ineff_study == 0) or ana.run_mtv_study)
         {
 
@@ -542,7 +542,7 @@ int main(int argc, char** argv)
             event.createMiniDoublets();
             // event.createPseudoMiniDoubletsFromAnchorModule(); // Useless.....
             float md_elapsed = my_timer.RealTime();
-            
+
             if (ana.verbose != 0) std::cout << "Reco Mini-doublet processing time: " << md_elapsed << " secs" << std::endl;
 
             if (ana.verbose != 0) std::cout << "# of Mini-doublets produced: " << event.getNumberOfMiniDoublets() << std::endl;
@@ -578,7 +578,7 @@ int main(int argc, char** argv)
             // ----------------
 
             // ----------------
-            // 
+            //
 
             if (ana.verbose != 0) std::cout << "Reco Segment start" << std::endl;
             my_timer.Start(kFALSE);
@@ -846,13 +846,13 @@ int main(int argc, char** argv)
                         {
 
                             int ihit = trk.simhit_hitIdx()[simhitidx][irecohit];
-                            
+
                             trackevent->addHitToEvent(
                                     // a hit
                                     trk.ph2_x()[ihit], trk.ph2_y()[ihit], trk.ph2_z()[ihit],
                                     // add to module with "detId"
                                     trk.ph2_detId()[ihit]);
-                                    
+
 
                         }
 
@@ -950,6 +950,8 @@ int main(int argc, char** argv)
 //        // <--------------------------
 //        // <--------------------------
     }
+
+    SDL::cleanModules();
 
     // Writing output file
     ana.cutflow.saveOutput();
@@ -1074,4 +1076,3 @@ int layer(int lay, int det)
 //     return has_good_pair_all_layer;
 
 // }
-

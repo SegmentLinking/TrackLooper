@@ -56,7 +56,7 @@ namespace cms::cuda::allocator {
                                                      minBin,
                                                      maxBin,
                                                      minCachedBytes(),
-                                                     false,  // do not skip cleanup
+                                                     true,  // do not skip cleanup
                                                      debug};
     return allocator;
   }
