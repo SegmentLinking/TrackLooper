@@ -41,6 +41,7 @@ namespace SDL
         triplets();
         ~triplets();
         void freeMemory();
+        void freeMemoryCache();
     };
 
     void createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, unsigned int nLowerModules);

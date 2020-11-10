@@ -2,21 +2,37 @@
 #define CUDA_CONST_VAR __device__
 #endif
 # include "Triplet.cuh"
+#ifdef CACHE_ALLOC
+#include "allocate.h"
+#endif
 
 void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, unsigned int nLowerModules)
 {
+#ifdef CACHE_ALLOC
+    printf("cache managed\n");
+    cudaStream_t stream=0;
+    tripletsInGPU.segmentIndices = (unsigned int*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(unsigned int) *5,stream);
+    tripletsInGPU.lowerModuleIndices = tripletsInGPU.segmentIndices + nLowerModules * maxTriplets *2;
+    tripletsInGPU.zOut = (float*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(float) *6,stream);
+    tripletsInGPU.rtOut = tripletsInGPU.zOut + nLowerModules * maxTriplets;
+    tripletsInGPU.deltaPhiPos = tripletsInGPU.zOut + nLowerModules * maxTriplets *2;
+    tripletsInGPU.deltaPhi = tripletsInGPU.zOut + nLowerModules * maxTriplets *3;
+    tripletsInGPU.betaIn = tripletsInGPU.zOut + nLowerModules * maxTriplets *4;
+    tripletsInGPU.betaOut = tripletsInGPU.zOut + nLowerModules * maxTriplets *5;
+    tripletsInGPU.nTriplets = (unsigned int*)cms::cuda::allocate_managed(nLowerModules * sizeof(unsigned int),stream);
+#else
     cudaMallocManaged(&tripletsInGPU.segmentIndices, 2 * maxTriplets * nLowerModules * sizeof(unsigned int));
     cudaMallocManaged(&tripletsInGPU.lowerModuleIndices, 3 * maxTriplets * nLowerModules * sizeof(unsigned int));
+
     cudaMallocManaged(&tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int));
+
     cudaMallocManaged(&tripletsInGPU.zOut, maxTriplets * nLowerModules * sizeof(unsigned int));
     cudaMallocManaged(&tripletsInGPU.rtOut, maxTriplets * nLowerModules * sizeof(unsigned int));
-
     cudaMallocManaged(&tripletsInGPU.deltaPhiPos, maxTriplets * nLowerModules * sizeof(unsigned int));
     cudaMallocManaged(&tripletsInGPU.deltaPhi, maxTriplets * nLowerModules * sizeof(unsigned int));
-
     cudaMallocManaged(&tripletsInGPU.betaIn, maxTriplets * nLowerModules * sizeof(unsigned int));
     cudaMallocManaged(&tripletsInGPU.betaOut, maxTriplets * nLowerModules * sizeof(unsigned int));
-
+#endif
 #pragma omp parallel for
     for(size_t i = 0; i<nLowerModules;i++)
     {
@@ -25,6 +41,26 @@ void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned
 }
 void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU,struct triplets& tripletsInTemp, unsigned int maxTriplets, unsigned int nLowerModules)
 {
+#ifdef CACHE_ALLOC
+    printf("cache explicit\n");
+    cudaStream_t stream=0;
+    int dev;
+    cudaGetDevice(&dev);
+    tripletsInGPU.segmentIndices = (unsigned int*)cms::cuda::allocate_device(dev,maxTriplets * nLowerModules * sizeof(unsigned int) *5,stream);
+    tripletsInGPU.lowerModuleIndices = tripletsInGPU.segmentIndices + nLowerModules * maxTriplets *2;
+#ifdef Full_Explicit
+    tripletsInGPU.nTriplets = (unsigned int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(unsigned int),stream);
+#else
+    tripletsInGPU.nTriplets = (unsigned int*)cms::cuda::allocate_managed(nLowerModules * sizeof(unsigned int),stream);
+#endif
+    tripletsInGPU.zOut = (float*)cms::cuda::allocate_device(dev,maxTriplets * nLowerModules * sizeof(float) *6,stream);
+    tripletsInGPU.rtOut = tripletsInGPU.zOut + nLowerModules * maxTriplets;
+    tripletsInGPU.deltaPhiPos = tripletsInGPU.zOut + nLowerModules * maxTriplets *2;
+    tripletsInGPU.deltaPhi = tripletsInGPU.zOut + nLowerModules * maxTriplets *3;
+    tripletsInGPU.betaIn = tripletsInGPU.zOut + nLowerModules * maxTriplets *4;
+    tripletsInGPU.betaOut = tripletsInGPU.zOut + nLowerModules * maxTriplets *5;
+
+#else
     cudaMalloc(&tripletsInTemp.segmentIndices, 2 * maxTriplets * nLowerModules * sizeof(unsigned int));
     cudaMalloc(&tripletsInTemp.lowerModuleIndices, 3 * maxTriplets * nLowerModules * sizeof(unsigned int));
 #ifdef Full_Explicit
@@ -35,15 +71,12 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU,struct t
 #endif
     cudaMalloc(&tripletsInTemp.zOut, maxTriplets * nLowerModules * sizeof(unsigned int));
     cudaMalloc(&tripletsInTemp.rtOut, maxTriplets * nLowerModules * sizeof(unsigned int));
-
     cudaMalloc(&tripletsInTemp.deltaPhiPos, maxTriplets * nLowerModules * sizeof(unsigned int));
     cudaMalloc(&tripletsInTemp.deltaPhi, maxTriplets * nLowerModules * sizeof(unsigned int));
-
     cudaMalloc(&tripletsInTemp.betaIn, maxTriplets * nLowerModules * sizeof(unsigned int));
     cudaMalloc(&tripletsInTemp.betaOut, maxTriplets * nLowerModules * sizeof(unsigned int));
-
     cudaMemcpy(&tripletsInGPU,&tripletsInTemp, sizeof(SDL::triplets),cudaMemcpyHostToDevice); 
-
+#endif
 
 }
 
@@ -81,6 +114,21 @@ SDL::triplets::~triplets()
 {
 }
 
+void SDL::triplets::freeMemoryCache()
+{
+#ifdef CACHE_ALLOC
+#ifdef Explicit_Trips
+    int dev;
+    cudaGetDevice(&dev);
+    cms::cuda::free_device(dev,segmentIndices);
+    cms::cuda::free_device(dev,zOut);
+#else
+    cms::cuda::free_managed(segmentIndices);
+    cms::cuda::free_managed(zOut);
+#endif
+    cms::cuda::free_managed(nTriplets);
+#endif
+}
 void SDL::triplets::freeMemory()
 {
     cudaFree(segmentIndices);

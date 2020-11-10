@@ -40,6 +40,7 @@ namespace SDL
         tracklets();
         ~tracklets();
         void freeMemory();
+        void freeMemoryCache();
     };
 
     void createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules);

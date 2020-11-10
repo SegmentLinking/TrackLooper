@@ -46,7 +46,13 @@ SDL::Event::Event()
 SDL::Event::~Event()
 {
 
-#ifdef Explicit_MD
+#ifdef CACHE_ALLOC
+//  mdsInGPU->freeMemoryCache();
+//  segmentsInGPU->freeMemoryCache();
+//  tripletsInGPU->freeMemoryCache();
+//  trackletsInGPU->freeMemoryCache();
+#endif
+#ifdef Explicit_MD 
     mdsInTemp->freeMemory();
     cudaFreeHost(mdsInTemp);
 #else
