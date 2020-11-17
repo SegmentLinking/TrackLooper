@@ -7,7 +7,7 @@ SOURCES=$(wildcard src/*.cc) $(wildcard src/AnalysisInterface/*.cc) #$(wildcard 
 OBJECTS=$(SOURCES:.cc=.o) $(wildcard SDL/sdl.so)
 HEADERS=$(SOURCES:.cc=.h)
 
-CC          = nvcc -lineinfo
+CC          = nvcc
 CXX         = nvcc
 CXXFLAGS    = -g -O2 --compiler-options -Wall --compiler-options -fPIC --compiler-options -Wshadow --compiler-options -Woverloaded-virtual
 LD          = g++
