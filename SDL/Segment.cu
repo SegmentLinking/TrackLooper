@@ -8,14 +8,18 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
 #ifdef CACHE_ALLOC
     cudaStream_t stream=0; 
     segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_managed(maxSegments*nModules*6 *sizeof(unsigned int),stream);
+    segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_managed(nModules *sizeof(unsigned int),stream);
+    segmentsInGPU.dPhis = (float*)cms::cuda::allocate_managed(maxSegments*nModules*13 *sizeof(float),stream);
+#else
+    cudaMallocManaged(&segmentsInGPU.mdIndices, maxSegments * nModules * 6 * sizeof(unsigned int));
+    cudaMallocManaged(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
+    cudaMallocManaged(&segmentsInGPU.dPhis, maxSegments * nModules * 13*sizeof(float));
+#endif
     segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 2;
     segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 3;
     segmentsInGPU.innerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 4;
     segmentsInGPU.outerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 5;
 
-    segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_managed(nModules *sizeof(unsigned int),stream);
-
-    segmentsInGPU.dPhis = (float*)cms::cuda::allocate_managed(maxSegments*nModules*13 *sizeof(float),stream);
     segmentsInGPU.dPhiMins = segmentsInGPU.dPhis + maxSegments *nModules;
     segmentsInGPU.dPhiMaxs = segmentsInGPU.dPhis + maxSegments *nModules * 2;
     segmentsInGPU.dPhiChanges = segmentsInGPU.dPhis + maxSegments *nModules * 3;
@@ -28,29 +32,6 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     segmentsInGPU.dAlphaInnerMDSegments = segmentsInGPU.dPhis + maxSegments *nModules * 10;
     segmentsInGPU.dAlphaOuterMDSegments = segmentsInGPU.dPhis + maxSegments *nModules * 11;
     segmentsInGPU.dAlphaInnerMDOuterMDs = segmentsInGPU.dPhis + maxSegments *nModules * 12;
-#else
-    cudaMallocManaged(&segmentsInGPU.mdIndices, maxSegments * nModules * 2 * sizeof(unsigned int));
-    cudaMallocManaged(&segmentsInGPU.innerLowerModuleIndices, maxSegments * nModules * sizeof(unsigned int));
-    cudaMallocManaged(&segmentsInGPU.outerLowerModuleIndices, maxSegments * nModules * sizeof(unsigned int));
-    cudaMallocManaged(&segmentsInGPU.innerMiniDoubletAnchorHitIndices, maxSegments * nModules *sizeof(unsigned int));
-    cudaMallocManaged(&segmentsInGPU.outerMiniDoubletAnchorHitIndices, maxSegments * nModules * sizeof(unsigned int));
-
-    cudaMallocManaged(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
-
-    cudaMallocManaged(&segmentsInGPU.dPhis, maxSegments * nModules * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.dPhiMins, maxSegments * nModules * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.dPhiMaxs, maxSegments * nModules * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.dPhiChanges, maxSegments * nModules * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.dPhiChangeMins, maxSegments * nModules * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.dPhiChangeMaxs, maxSegments * nModules * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.zIns, maxSegments * nModules * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.zOuts, maxSegments * nModules * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.rtIns, maxSegments * nModules * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.rtOuts, maxSegments * nModules * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.dAlphaInnerMDSegments, maxSegments * nModules * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.dAlphaOuterMDSegments, maxSegments * nModules * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.dAlphaInnerMDOuterMDs, maxSegments * nModules * sizeof(float));
-#endif
 #pragma omp parallel for default(shared)
     for(size_t i = 0; i < nModules; i++)
     {
@@ -65,17 +46,29 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     int dev;
     cudaGetDevice(&dev);
     segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_device(dev,maxSegments*nModules*6 *sizeof(unsigned int),stream);
-    segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 2;
-    segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 3;
-    segmentsInGPU.innerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 4;
-    segmentsInGPU.outerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 5;
+    segmentsInGPU.dPhis = (float*)cms::cuda::allocate_device(dev,maxSegments*nModules*13 *sizeof(float),stream);
   #ifdef Full_Explicit
     segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_device(dev,nModules *sizeof(unsigned int),stream);
     cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
   #else
     segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_managed(nModules *sizeof(unsigned int),stream);
   #endif
-    segmentsInGPU.dPhis = (float*)cms::cuda::allocate_device(dev,maxSegments*nModules*13 *sizeof(float),stream);
+
+#else
+    cudaMalloc(&segmentsInGPU.mdIndices, maxSegments * nModules * 6 * sizeof(unsigned int));
+    cudaMalloc(&segmentsInGPU.dPhis, maxSegments * nModules *13* sizeof(float));
+  #ifdef Full_Explicit
+    cudaMalloc(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
+    cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
+  #else
+    cudaMallocManaged(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
+  #endif
+#endif
+    segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 2;
+    segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 3;
+    segmentsInGPU.innerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 4;
+    segmentsInGPU.outerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 5;
+
     segmentsInGPU.dPhiMins = segmentsInGPU.dPhis + maxSegments *nModules;
     segmentsInGPU.dPhiMaxs = segmentsInGPU.dPhis + maxSegments *nModules * 2;
     segmentsInGPU.dPhiChanges = segmentsInGPU.dPhis + maxSegments *nModules * 3;
@@ -88,33 +81,6 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.dAlphaInnerMDSegments = segmentsInGPU.dPhis + maxSegments *nModules * 10;
     segmentsInGPU.dAlphaOuterMDSegments = segmentsInGPU.dPhis + maxSegments *nModules * 11;
     segmentsInGPU.dAlphaInnerMDOuterMDs = segmentsInGPU.dPhis + maxSegments *nModules * 12;
-
-#else
-    cudaMalloc(&segmentsInGPU.mdIndices, maxSegments * nModules * 2 * sizeof(unsigned int));
-    cudaMalloc(&segmentsInGPU.innerLowerModuleIndices, maxSegments * nModules * sizeof(unsigned int));
-    cudaMalloc(&segmentsInGPU.outerLowerModuleIndices, maxSegments * nModules * sizeof(unsigned int));
-    cudaMalloc(&segmentsInGPU.innerMiniDoubletAnchorHitIndices, maxSegments * nModules *sizeof(unsigned int));
-    cudaMalloc(&segmentsInGPU.outerMiniDoubletAnchorHitIndices, maxSegments * nModules * sizeof(unsigned int));
-  #ifdef Full_Explicit
-    cudaMalloc(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
-    cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
-  #else
-    cudaMallocManaged(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
-  #endif
-    cudaMalloc(&segmentsInGPU.dPhis, maxSegments * nModules * sizeof(float));
-    cudaMalloc(&segmentsInGPU.dPhiMins, maxSegments * nModules * sizeof(float));
-    cudaMalloc(&segmentsInGPU.dPhiMaxs, maxSegments * nModules * sizeof(float));
-    cudaMalloc(&segmentsInGPU.dPhiChanges, maxSegments * nModules * sizeof(float));
-    cudaMalloc(&segmentsInGPU.dPhiChangeMins, maxSegments * nModules * sizeof(float));
-    cudaMalloc(&segmentsInGPU.dPhiChangeMaxs, maxSegments * nModules * sizeof(float));
-    cudaMalloc(&segmentsInGPU.zIns, maxSegments * nModules * sizeof(float));
-    cudaMalloc(&segmentsInGPU.zOuts, maxSegments * nModules * sizeof(float));
-    cudaMalloc(&segmentsInGPU.rtIns, maxSegments * nModules * sizeof(float));
-    cudaMalloc(&segmentsInGPU.rtOuts, maxSegments * nModules * sizeof(float));
-    cudaMalloc(&segmentsInGPU.dAlphaInnerMDSegments, maxSegments * nModules * sizeof(float));
-    cudaMalloc(&segmentsInGPU.dAlphaOuterMDSegments, maxSegments * nModules * sizeof(float));
-    cudaMalloc(&segmentsInGPU.dAlphaInnerMDOuterMDs, maxSegments * nModules * sizeof(float));
-#endif
 }
 
 SDL::segments::segments()
@@ -163,27 +129,8 @@ void SDL::segments::freeMemoryCache()
 void SDL::segments::freeMemory()
 {
     cudaFree(mdIndices);
-    cudaFree(innerLowerModuleIndices);
-    cudaFree(outerLowerModuleIndices);
-    cudaFree(innerMiniDoubletAnchorHitIndices);
-    cudaFree(outerMiniDoubletAnchorHitIndices);
-
     cudaFree(nSegments);
     cudaFree(dPhis);
-    cudaFree(dPhiMins);
-    cudaFree(dPhiMaxs);
-    cudaFree(dPhiChanges);
-    cudaFree(dPhiChangeMins);
-    cudaFree(dPhiChangeMaxs);
-
-    cudaFree(zIns);
-    cudaFree(zOuts);
-    cudaFree(rtIns);
-    cudaFree(rtOuts);
-    cudaFree(dAlphaInnerMDSegments);
-    cudaFree(dAlphaOuterMDSegments);
-    cudaFree(dAlphaInnerMDOuterMDs);
-
 }
 
 __device__ void SDL::addSegmentToMemory(struct segments& segmentsInGPU, unsigned int lowerMDIndex, unsigned int upperMDIndex, unsigned int innerLowerModuleIndex, unsigned int outerLowerModuleIndex, unsigned int innerMDAnchorHitIndex, unsigned int outerMDAnchorHitIndex, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, float& zIn, float& zOut, float& rtIn, float& rtOut, float& dAlphaInnerMDSegment, float& dAlphaOuterMDSegment, float& dAlphaInnerMDOuterMD, unsigned int idx)

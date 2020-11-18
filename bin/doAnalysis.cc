@@ -402,6 +402,7 @@ int main(int argc, char** argv)
     //create them modules
     SDL::initModules();
 
+    float event_times[10][5];
     // Looping input file
     while (ana.looper.nextEvent())
     {
@@ -490,6 +491,7 @@ int main(int argc, char** argv)
         std::vector<std::tuple<unsigned int, SDL::EventForAnalysisInterface*>> simtrkeventsForAnalysisInterface;
 
         TStopwatch my_timer;
+        
 
         // run_eff_study == 0 then run all the reconstruction
       //
@@ -542,6 +544,7 @@ int main(int argc, char** argv)
             event.createMiniDoublets();
             // event.createPseudoMiniDoubletsFromAnchorModule(); // Useless.....
             float md_elapsed = my_timer.RealTime();
+            event_times[ana.looper.getCurrentEventIndex()][0] = md_elapsed;
 
             if (ana.verbose != 0) std::cout << "Reco Mini-doublet processing time: " << md_elapsed << " secs" << std::endl;
 
@@ -584,6 +587,7 @@ int main(int argc, char** argv)
             my_timer.Start(kFALSE);
             event.createSegmentsWithModuleMap();
             float sg_elapsed = my_timer.RealTime();
+            event_times[ana.looper.getCurrentEventIndex()][1] = sg_elapsed - md_elapsed;
             if (ana.verbose != 0) std::cout << "Reco Segment processing time: " << sg_elapsed - md_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "# of Segments produced: " << event.getNumberOfSegments() << std::endl;
             if (ana.verbose != 0) std::cout << "# of Segments produced layer 1-2: " << event.getNumberOfSegmentsByLayerBarrel(0) << std::endl;
@@ -653,6 +657,7 @@ int main(int argc, char** argv)
             my_timer.Start(kFALSE);
             event.createTriplets();
             float tp_elapsed = my_timer.RealTime();
+            event_times[ana.looper.getCurrentEventIndex()][2] = tp_elapsed - sg_elapsed;
             if (ana.verbose != 0) std::cout << "Reco Triplet processing time: " << tp_elapsed - sg_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "# of Triplets produced: " << event.getNumberOfTriplets() << std::endl;
             if (ana.verbose != 0) std::cout << "# of Triplets produced layer 1-2-3: " << event.getNumberOfTripletsByLayerBarrel(0) << std::endl;
@@ -681,6 +686,7 @@ int main(int argc, char** argv)
 //             event.createTrackletsWithAGapWithModuleMap();
             //event.createTrackletsViaNavigation();
             float tl_elapsed = my_timer.RealTime();
+            event_times[ana.looper.getCurrentEventIndex()][3] = tl_elapsed - sg_elapsed;
             if (ana.verbose != 0) std::cout << "Reco Tracklet processing time: " << tl_elapsed - sg_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "# of Tracklets produced: " << event.getNumberOfTracklets() << std::endl;
             if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 1-2-3-4: " << event.getNumberOfTrackletsByLayerBarrel(0) << std::endl;
@@ -949,6 +955,11 @@ int main(int argc, char** argv)
 //        // <--------------------------
 //        // <--------------------------
 //        // <--------------------------
+    }
+    std::cout<< "Timing summary"<<std::endl;
+    std::cout<< "events minidoublets segments triplets tracklets"<<std::endl;
+    for(int ev=0;ev<10;ev++){
+        std::cout<<ev <<" "<<event_times[ev][0] <<" "<<event_times[ev][1] <<" "<<event_times[ev][2] <<" "<<event_times[ev][3]/* <<" "<<event_times[ev][4]*/<<std::endl;
     }
 
     SDL::cleanModules();
