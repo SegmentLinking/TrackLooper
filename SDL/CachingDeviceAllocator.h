@@ -42,10 +42,10 @@
 #include <map>
 #include <set>
 
-//#include <cub/util_debug.cuh>
-//#include <cub/host/mutex.cuh>
-#include </mnt/data1/dsr/cub/cub/util_debug.cuh>
-#include </mnt/data1/dsr/cub/cub/host/mutex.cuh>
+#include <cub/util_debug.cuh>
+#include <cub/host/mutex.cuh>
+//#include </mnt/data1/dsr/cub/cub/util_debug.cuh>
+//#include </mnt/data1/dsr/cub/cub/host/mutex.cuh>
 
 /// CUB namespace
 namespace notcub {
