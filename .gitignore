@@ -1,5 +1,6 @@
 doAnalysis
 mtv
+sdl
 results/
 *.o
 debug.root
@@ -8,3 +9,5 @@ plots/
 plots_*/
 scripts/moduleconnection*.txt
 *.root
+
+
