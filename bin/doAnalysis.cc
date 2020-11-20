@@ -585,6 +585,7 @@ int main(int argc, char** argv)
 
             if (ana.verbose != 0) std::cout << "Reco Segment start" << std::endl;
             my_timer.Start(kFALSE);
+            //float sg_start = my_timer.RealTime();
             event.createSegmentsWithModuleMap();
             float sg_elapsed = my_timer.RealTime();
             event_times[ana.looper.getCurrentEventIndex()][1] = sg_elapsed - md_elapsed;
@@ -655,6 +656,7 @@ int main(int argc, char** argv)
             // ----------------
             if (ana.verbose != 0) std::cout << "Reco Triplet start" << std::endl;
             my_timer.Start(kFALSE);
+            //float tp_start = my_timer.RealTime();
             event.createTriplets();
             float tp_elapsed = my_timer.RealTime();
             event_times[ana.looper.getCurrentEventIndex()][2] = tp_elapsed - sg_elapsed;
@@ -682,12 +684,13 @@ int main(int argc, char** argv)
             if (ana.verbose != 0) std::cout << "Reco Tracklet start" << std::endl;
             my_timer.Start(kFALSE);
             // event.createTracklets();
+            //float tl_start = my_timer.RealTime();
              event.createTrackletsWithModuleMap();
 //             event.createTrackletsWithAGapWithModuleMap();
             //event.createTrackletsViaNavigation();
             float tl_elapsed = my_timer.RealTime();
-            event_times[ana.looper.getCurrentEventIndex()][3] = tl_elapsed - sg_elapsed;
-            if (ana.verbose != 0) std::cout << "Reco Tracklet processing time: " << tl_elapsed - sg_elapsed << " secs" << std::endl;
+            event_times[ana.looper.getCurrentEventIndex()][3] = tl_elapsed - tp_elapsed;
+            if (ana.verbose != 0) std::cout << "Reco Tracklet processing time: " << tl_elapsed - tp_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "# of Tracklets produced: " << event.getNumberOfTracklets() << std::endl;
             if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 1-2-3-4: " << event.getNumberOfTrackletsByLayerBarrel(0) << std::endl;
             if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 2-3-4-5: " << event.getNumberOfTrackletsByLayerBarrel(1) << std::endl;
