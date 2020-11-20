@@ -11,7 +11,7 @@ namespace cms::cuda::allocator {
   // Use caching or not
   constexpr bool useCaching = true;
   // Growth factor (bin_growth in cub::CachingDeviceAllocator
-  constexpr unsigned int binGrowth = 8;
+  constexpr unsigned int binGrowth = 9;
   // Smallest bin, corresponds to binGrowth^minBin bytes (min_bin in cub::CacingDeviceAllocator
   constexpr unsigned int minBin = 1;
   // Largest bin, corresponds to binGrowth^maxBin bytes (max_bin in cub::CachingDeviceAllocator). Note that unlike in cub, allocations larger than binGrowth^maxBin are set to fail.

@@ -25,6 +25,7 @@ void SDL::createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int
     cudaMallocManaged(&modulesInGPU.segmentRanges,nModules * 2 * sizeof(int));
     cudaMallocManaged(&modulesInGPU.trackletRanges,nModules * 2 * sizeof(int));
     cudaMallocManaged(&modulesInGPU.tripletRanges,nModules * 2 * sizeof(int));
+    cudaMallocManaged(&modulesInGPU.trackCandidateRanges, nModules * 2 * sizeof(int));
 
     cudaMallocManaged(&modulesInGPU.moduleType,nModules * sizeof(ModuleType));
     cudaMallocManaged(&modulesInGPU.moduleLayerType,nModules * sizeof(ModuleLayerType));
@@ -55,14 +56,18 @@ void SDL::freeModulesInUnifiedMemory(struct modules& modulesInGPU)
   cudaFree(modulesInGPU.segmentRanges);
   cudaFree(modulesInGPU.trackletRanges);
   cudaFree(modulesInGPU.tripletRanges);
+  cudaFree(modulesInGPU.trackCandidateRanges);
   cudaFree(modulesInGPU.moduleType);
   cudaFree(modulesInGPU.moduleLayerType);
   cudaFree(modulesInGPU.lowerModuleIndices);
+  cudaFree(modulesInGPU.reverseLookupLowerModuleIndices);
 }
 
-void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules)
+void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules)
 {
     cudaMallocManaged(&modulesInGPU.lowerModuleIndices,nLowerModules * sizeof(unsigned int));
+    cudaMallocManaged(&modulesInGPU.reverseLookupLowerModuleIndices,nModules * sizeof(int));
+
     unsigned int lowerModuleCounter = 0;
     for(auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); it++)
     {
@@ -71,7 +76,12 @@ void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int n
         if(modulesInGPU.isLower[index])
         {
             modulesInGPU.lowerModuleIndices[lowerModuleCounter] = index;
+            modulesInGPU.reverseLookupLowerModuleIndices[index] = lowerModuleCounter;
             lowerModuleCounter++;
+        }
+        else
+        {
+            modulesInGPU.reverseLookupLowerModuleIndices[index] = -1;
         }
     }
 }
@@ -139,7 +149,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
 
     *modulesInGPU.nLowerModules = lowerModuleCounter;
     std::cout<<"number of lower modules = "<<*modulesInGPU.nLowerModules<<std::endl;
-    createLowerModuleIndexMap(modulesInGPU,lowerModuleCounter);
+    createLowerModuleIndexMap(modulesInGPU,lowerModuleCounter, nModules);
     fillConnectedModuleArray(modulesInGPU,nModules);
     resetObjectRanges(modulesInGPU,nModules);
 }
@@ -330,6 +340,7 @@ void SDL::resetObjectRanges(struct modules& modulesInGPU, unsigned int nModules)
         modulesInGPU.segmentRanges[i] = -1;
         modulesInGPU.trackletRanges[i] = -1;
         modulesInGPU.tripletRanges[i] = -1;
+        modulesInGPU.trackCandidateRanges[i] = -1;
     }
 
 }

@@ -18,7 +18,7 @@ CXXFLAGS      =  -g --compiler-options -Wall --compiler-options -Wshadow --compi
 LD            = nvcc 
 #LDFLAGS       = -g -O2
 SOFLAGS       = -g -shared --compiler-options -fPIC --cudart shared -arch=compute_52
-#MEMFLAG       = -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips 
+MEMFLAG       = -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips 
 #MEMFLAG       += -DFull_Explicit
 PRINTFLAG     = -DAddObjects
 CACHEFLAG     = -DCACHE_ALLOC

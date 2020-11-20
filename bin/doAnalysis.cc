@@ -361,8 +361,8 @@ int main(int argc, char** argv)
     // SDL::endcapGeometry.load("scripts/endcap_orientation_data.txt");
     SDL::endcapGeometry.load("data/endcap_orientation_data_v2.txt"); // centroid values added to the map
     SDL::tiltedGeometry.load("data/tilted_orientation_data.txt");
-//    SDL::moduleConnectionMap.load("data/module_connection_combined_2020_0520_helixray.txt");
-    SDL::moduleConnectionMap.load("data/module_connection_map_data_10_e0_200_100_pt0p8_2p0_400_pt0p8_2p0_nolossers_dxy35cm_endcaplayer2.txt");
+    SDL::moduleConnectionMap.load("data/module_connection_combined_2020_0520_helixray.txt");
+//    SDL::moduleConnectionMap.load("data/module_connection_map_data_10_e0_200_100_pt0p8_2p0_400_pt0p8_2p0_nolossers_dxy35cm_endcaplayer2.txt");
 
 
 //    SDL::moduleConnectionMap.load("data/module_connection_2020_0429.txt");
@@ -704,68 +704,26 @@ int main(int argc, char** argv)
             if (ana.verbose != 0) std::cout << "# of Tracklets considered layer 3-4-5-6: " << event.getNumberOfTrackletCandidatesByLayerBarrel(2) << std::endl;
             // if (ana.verbose != 0) std::cout << "# of Tracklets considered layer 4: " << event.getNumberOfTrackletCandidatesByLayerBarrel(3) << std::endl;
             // if (ana.verbose != 0) std::cout << "# of Tracklets considered layer 5: " << event.getNumberOfTrackletCandidatesByLayerBarrel(4) << std::endl;
-            // if (ana.verbose != 0) std::cout << "# of Tracklets considered layer 6: " << event.getNumberOfTrackletCandidatesByLayerBarrel(5) << std::endl;
+            // if (ana.verbose != 0) std::cout << "# of Tracklets considered layer 6: " << event.getNumberOfTrackletCandidatesByLayerBarrel(5) << std::endl;*/
             // ----------------
 
-            // // ----------------
-            // multiplicities.clear();
-            // total_nmult = 0;
-            // for (auto& segmentPtr : event.getLayer(1, SDL::Layer::Barrel).getSegmentPtrs())
-            // {
-            //     int nmult = 0;
-            //     for (auto& tkl1 : segmentPtr->getListOfOutwardTrackletPtrs())
-            //     {
-            //         for (auto& tkl2 : tkl1->outerSegmentPtr()->getListOfOutwardTrackletPtrs())
-            //         {
-            //             nmult++;
-            //         }
-            //     }
-            //     multiplicities.push_back(nmult);
-            //     total_nmult += nmult;
-            // }
-            // std::cout <<  " total_nmult: " << total_nmult <<  std::endl;
-            // avg_mult = ((float) total_nmult) / ((float) multiplicities.size());
-            // std::cout <<  " avg_mult: " << avg_mult <<  std::endl;
-            // // ----------------
-
-            // // ----------------
-            // multiplicities.clear();
-            // total_nmult = 0;
-            // for (auto& segmentPtr : event.getLayer(5, SDL::Layer::Barrel).getSegmentPtrs())
-            // {
-            //     int nmult = 0;
-            //     for (auto& tkl1 : segmentPtr->getListOfInwardTrackletPtrs())
-            //     {
-            //         for (auto& tkl2 : tkl1->innerSegmentPtr()->getListOfInwardTrackletPtrs())
-            //         {
-            //             nmult++;
-            //         }
-            //     }
-            //     multiplicities.push_back(nmult);
-            //     total_nmult += nmult;
-            // }
-            // std::cout <<  " total_nmult: " << total_nmult <<  std::endl;
-            // avg_mult = ((float) total_nmult) / ((float) multiplicities.size());
-            // std::cout <<  " avg_mult: " << avg_mult <<  std::endl;
-            // // ----------------
-
-            // ----------------
             if (ana.verbose != 0) std::cout << "Reco TrackCandidate start" << std::endl;
             my_timer.Start(kFALSE);
             // event.createTrackCandidatesFromTriplets();
-            // event.createTrackCandidates();
-            event.createTrackCandidatesFromTracklets();
+            event.createTrackCandidates();
+            //event.createTrackCandidatesFromTracklets();
             float tc_elapsed = my_timer.RealTime();
+            event_times[ana.looper.getCurrentEventIndex()][4] = tc_elapsed - tl_elapsed;
             if (ana.verbose != 0) std::cout << "Reco TrackCandidate processing time: " << tc_elapsed - tl_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "# of TrackCandidates produced: " << event.getNumberOfTrackCandidates() << std::endl;
             if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 1-2-3-4-5-6: " << event.getNumberOfTrackCandidatesByLayerBarrel(0) << std::endl;
-            // if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 2: " << event.getNumberOfTrackCandidatesByLayerBarrel(1) << std::endl;
-            // if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 3: " << event.getNumberOfTrackCandidatesByLayerBarrel(2) << std::endl;
-            // if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 4: " << event.getNumberOfTrackCandidatesByLayerBarrel(3) << std::endl;
-            // if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 5: " << event.getNumberOfTrackCandidatesByLayerBarrel(4) << std::endl;
-            // if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 6: " << event.getNumberOfTrackCandidatesByLayerBarrel(5) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of TrackCandidates considered: " << event.getNumberOfTrackCandidateCandidates() << std::endl;
-            if (ana.verbose != 0) std::cout << "# of TrackCandidates considered layer 1-2-3-4-5-6: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(0) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 2: " << event.getNumberOfTrackCandidatesByLayerBarrel(1) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 3: " << event.getNumberOfTrackCandidatesByLayerBarrel(2) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 4: " << event.getNumberOfTrackCandidatesByLayerBarrel(3) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 5: " << event.getNumberOfTrackCandidatesByLayerBarrel(4) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 6: " << event.getNumberOfTrackCandidatesByLayerBarrel(5) << std::endl;
+            //if (ana.verbose != 0) std::cout << "# of TrackCandidates considered: " << event.getNumberOfTrackCandidateCandidates() << std::endl;
+            //if (ana.verbose != 0) std::cout << "# of TrackCandidates considered layer 1-2-3-4-5-6: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(0) << std::endl;
             // if (ana.verbose != 0) std::cout << "# of TrackCandidates considered layer 2: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(1) << std::endl;
             // if (ana.verbose != 0) std::cout << "# of TrackCandidates considered layer 3: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(2) << std::endl;
             // if (ana.verbose != 0) std::cout << "# of TrackCandidates considered layer 4: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(3) << std::endl;
@@ -777,163 +735,6 @@ int main(int argc, char** argv)
 
         }
         // If efficiency is to be calculated
-
-
-        if (ana.run_eff_study or ana.run_ineff_study or ana.run_mtv_study)
-        {
-
-            // *******************************************************
-            // Formation of mini-doublets "candidates" from sim-tracks
-            // *******************************************************
-
-            // Loop over sim-tracks and per sim-track aggregate good hits (i.e. matched with particle ID)
-            // and only use those hits, and run mini-doublet reco algorithm on the sim-track-matched-reco-hits
-            for (unsigned int isimtrk = 0; isimtrk < trk.sim_q().size(); ++isimtrk)
-            {
-
-                // Then select all charged particle
-                if (ana.pdg_id == 1)
-                {
-                    // Select only muon tracks
-                    if (abs(trk.sim_q()[isimtrk]) == 0)
-                        continue;
-                }
-                else
-                {
-                    // Select only muon tracks
-                    if (abs(trk.sim_pdgId()[isimtrk]) != ana.pdg_id)
-                        continue;
-                }
-
-                // // Select hard scatter only
-                // if (abs(trk.sim_event()[isimtrk]) != 0)
-                //     continue;
-
-                // Select in time only
-                if (abs(trk.sim_bunchCrossing()[isimtrk]) != 0)
-                    continue;
-
-                // // Select only muon with pt > 1 GeV
-                // if (trk.sim_pt()[isimtrk] < 1)
-                //     continue;
-
-                // if (not (hasAll12HitsWithNBarrel(isimtrk, 2)))
-                //     continue;
-                // if (not (hasAll12HitsWithNBarrelUsingModuleMap(isimtrk, 6) or hasAll12HitsWithNBarrelUsingModuleMap(isimtrk, 5)))
-                //     continue;
-                // if (not hasAll12HitsInBarrel(isimtrk))
-                //     continue;
-
-                // event just for this track
-                SDL::Event* trackevent = new SDL::Event();
-
-                // loop over the simulated hits
-                for (unsigned int ith_hit = 0; ith_hit < trk.sim_simHitIdx()[isimtrk].size(); ++ith_hit)
-                {
-
-                    // Retrieve the sim hit idx
-                    unsigned int simhitidx = trk.sim_simHitIdx()[isimtrk][ith_hit];
-
-                    // Select only the hits in the outer tracker
-                    // if (not (trk.simhit_subdet()[simhitidx] == 4 or trk.simhit_subdet()[simhitidx] == 5))
-                    //     continue;
-                    // if (not (trk.simhit_subdet()[simhitidx] == 5))
-                    //     continue;
-
-                    if (isMuonCurlingHit(isimtrk, ith_hit))
-                        break;
-
-                    // list of reco hit matched to this sim hit
-                    for (unsigned int irecohit = 0; irecohit < trk.simhit_hitIdx()[simhitidx].size(); ++irecohit)
-                    {
-
-                        // Get the recohit type
-                        int recohittype = trk.simhit_hitType()[simhitidx][irecohit];
-
-                        // Consider only ph2 hits (i.e. outer tracker hits)
-                        if (recohittype == 4)
-                        {
-
-                            int ihit = trk.simhit_hitIdx()[simhitidx][irecohit];
-
-                            trackevent->addHitToEvent(
-                                    // a hit
-                                    trk.ph2_x()[ihit], trk.ph2_y()[ihit], trk.ph2_z()[ihit],
-                                    // add to module with "detId"
-                                    trk.ph2_detId()[ihit]);
-
-
-                        }
-
-                    }
-
-                }
-
-                if (ana.run_ineff_study)
-                {
-/*                    switch (ana.mode_write_ineff_study_debug_ntuple)
-                    {
-                        case 0: // MD
-                            if (ana.verbose != 0) std::cout << "Sim Mini-Doublet start" << std::endl;
-                            trackevent->createMiniDoublets(SDL::AllComb_MDAlgo);
-                            break;
-                        case 1:
-                            if (ana.verbose != 0) std::cout << "Sim Mini-Doublet start" << std::endl;
-                            trackevent->createMiniDoublets();
-                            if (ana.verbose != 0) std::cout << "Sim Segment start" << std::endl;
-                            trackevent->createSegmentsWithModuleMap(SDL::AllComb_SGAlgo);
-                            break;
-                        case 2:
-                            if (ana.verbose != 0) std::cout << "Sim Mini-Doublet start" << std::endl;
-                            trackevent->createMiniDoublets();
-                            if (ana.verbose != 0) std::cout << "Sim Segment start" << std::endl;
-                            trackevent->createSegmentsWithModuleMap();
-                            if (ana.verbose != 0) std::cout << "Sim Tracklet start" << std::endl;
-                            trackevent->createTrackletsWithModuleMap(SDL::AllComb_TLAlgo);
-                            break;
-                        case 3:
-                            if (ana.verbose != 0) std::cout << "Sim Mini-Doublet start" << std::endl;
-                            trackevent->createMiniDoublets();
-                            if (ana.verbose != 0) std::cout << "Sim Segment start" << std::endl;
-                            trackevent->createSegmentsWithModuleMap();
-                            if (ana.verbose != 0) std::cout << "Sim Tracklet start" << std::endl;
-                            trackevent->createTrackletsWithModuleMap();
-                            if (ana.verbose != 0) std::cout << "Sim TrackCandidate start" << std::endl;
-                            trackevent->createTrackCandidatesFromTracklets(SDL::AllComb_TCAlgo);
-                            break;
-                        default:
-                            std::cout << options.help() << std::endl;
-                            std::cout << "ERROR: ana.mode_write_ineff_study_debug_ntuple not recognized! value = " << ana.mode_write_ineff_study_debug_ntuple << std::endl;
-                            exit(1);
-                            break;
-                    }*/
-                }
-                else
-                {
-                    if (ana.verbose != 0) std::cout << "Sim Mini-Doublet start" << std::endl;
-                    trackevent->createMiniDoublets();
-                    if (ana.verbose != 0) std::cout << "Sim Segment start" << std::endl;
-                    trackevent->createSegmentsWithModuleMap();
-                    if (ana.verbose != 0) std::cout << "Sim Tracklet start" << std::endl;
-                    // trackevent->createTrackletsWithModuleMap();
-                    trackevent->createTrackletsWithModuleMap();
-                    if (ana.verbose != 0) std::cout << "Sim Triplet start" << std::endl;
-//                    trackevent->createTriplets();
-                    if (ana.verbose != 0) std::cout << "Sim TrackCandidate start" << std::endl;
-//                    trackevent->createTrackCandidatesFromTracklets();
-                    if (ana.verbose != 0) std::cout << "Sim SDL end" << std::endl;
-                }
-
-
-                // Push to the vector so we have a data-base of per hit, mini-doublets
-                simtrkevents.push_back(std::make_tuple(isimtrk, trackevent));
-                SDL::EventForAnalysisInterface* trackeventForAnalysisInterface = new SDL::EventForAnalysisInterface(SDL::modulesInGPU, (trackevent->getHits()), (trackevent->getMiniDoublets()), (trackevent->getSegments()), (trackevent->getTracklets()), (trackevent->getTriplets()));
-                simtrkeventsForAnalysisInterface.push_back(std::make_tuple(isimtrk,trackeventForAnalysisInterface));
-
-            }
-
-        }
-
 
 
 //        // ********************************************************************************************
@@ -960,9 +761,9 @@ int main(int argc, char** argv)
 //        // <--------------------------
     }
     std::cout<< "Timing summary"<<std::endl;
-    std::cout<< "events minidoublets segments triplets tracklets"<<std::endl;
-    for(int ev=0;ev<10;ev++){
-        std::cout<<ev <<" "<<event_times[ev][0] <<" "<<event_times[ev][1] <<" "<<event_times[ev][2] <<" "<<event_times[ev][3]/* <<" "<<event_times[ev][4]*/<<std::endl;
+    std::cout<< "events minidoublets segments triplets tracklets tracks"<<std::endl;
+    for(int ev=0;ev<ana.n_events;ev++){
+        std::cout<<ev <<" "<<event_times[ev][0] <<" "<<event_times[ev][1] <<" "<<event_times[ev][2] <<" "<<event_times[ev][3] <<" "<<event_times[ev][4]<<std::endl;
     }
 
     SDL::cleanModules();
