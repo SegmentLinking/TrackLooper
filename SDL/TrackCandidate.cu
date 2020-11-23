@@ -55,6 +55,9 @@ void SDL::trackCandidates::freeMemory()
     cudaFree(trackCandidateType);
     cudaFree(objectIndices);
     cudaFree(nTrackCandidates);
+    cudaFree(nTrackCandidatesT4T4);
+    cudaFree(nTrackCandidatesT4T3);
+    cudaFree(nTrackCandidatesT3T4);
 }
 
 __device__ bool SDL::runTrackCandidateDefaultAlgoTrackletToTriplet(struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTripletIndex, short& trackCandidateType)

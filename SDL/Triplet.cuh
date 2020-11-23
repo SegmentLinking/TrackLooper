@@ -41,10 +41,11 @@ namespace SDL
         triplets();
         ~triplets();
         void freeMemory();
+        void freeMemoryCache();
     };
 
     void createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, unsigned int nLowerModules);
-    void createTripletsInExplicitMemory(struct triplets& tripletsInGPU, struct triplets& tripletsInTemp, unsigned int maxTriplets, unsigned int nLowerModules);
+    void createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, unsigned int nLowerModules);
     CUDA_DEV void addTripletToMemory(struct triplets& tripletsInGPU, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, unsigned int tripletIndex, float& betaInCut, float& betaOutCut, float& dBetaCut);
     CUDA_DEV void addTripletToMemory(struct triplets& tripletsInGPU, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, unsigned int tripletIndex);
 

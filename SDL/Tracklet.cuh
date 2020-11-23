@@ -40,10 +40,11 @@ namespace SDL
         tracklets();
         ~tracklets();
         void freeMemory();
+        void freeMemoryCache();
     };
 
     void createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules);
-    void createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, struct tracklets& trackletsInTemp, unsigned int maxTracklets, unsigned int nLowerModules);
+    void createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules);
 
     CUDA_DEV void addTrackletToMemory(struct tracklets& trackletsInGPU, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, unsigned int innerInnerLowerModuleIndex, unsigned int innerOuterLowerModuleIndex, unsigned int outerInnerLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, unsigned int trackletIndex);
 

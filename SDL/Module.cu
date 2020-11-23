@@ -56,9 +56,11 @@ void SDL::freeModulesInUnifiedMemory(struct modules& modulesInGPU)
   cudaFree(modulesInGPU.segmentRanges);
   cudaFree(modulesInGPU.trackletRanges);
   cudaFree(modulesInGPU.tripletRanges);
+  cudaFree(modulesInGPU.trackCandidateRanges);
   cudaFree(modulesInGPU.moduleType);
   cudaFree(modulesInGPU.moduleLayerType);
   cudaFree(modulesInGPU.lowerModuleIndices);
+  cudaFree(modulesInGPU.reverseLookupLowerModuleIndices);
 }
 
 void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules)
