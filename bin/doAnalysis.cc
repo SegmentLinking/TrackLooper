@@ -402,7 +402,7 @@ int main(int argc, char** argv)
     //create them modules
     SDL::initModules();
 
-    float event_times[10][5];
+    float event_times[10][6];
     // Looping input file
     while (ana.looper.nextEvent())
     {
@@ -498,29 +498,35 @@ int main(int argc, char** argv)
         //if ((ana.run_eff_study == 0 and ana.run_ineff_study == 0) or ana.run_mtv_study)
         {
 
+            if (ana.verbose != 0) std::cout << "load Hits start" << std::endl;
+            my_timer.Start();
             // Adding hits to modules
-            for (unsigned int ihit = 0; ihit < trk.ph2_x().size(); ++ihit)
-            {
+            event.addHitToEventGPU(trk.ph2_x(),trk.ph2_y(),trk.ph2_z(),trk.ph2_detId());
+//            for (unsigned int ihit = 0; ihit < trk.ph2_x().size(); ++ihit)
+//            {
+//
+//
+////                if (trk.ph2_subdet()[ihit] != 5)
+////                    continue;
+//
+//                // if (trk.ph2_subdet()[ihit] != 5)
+//                //     continue;
+//
+//                // if (trk.sim_pt()[trk.simhit_simTrkIdx()[trk.ph2_simHitIdx()[ihit][0]]] < 2.5)
+//                //     continue;
+//
+//                // Takes two arguments, SDL::Hit, and detId
+//                // SDL::Event internally will structure whether we already have the module instance or we need to create a new one.
+//                event.addHitToEvent(trk.ph2_x()[ihit], trk.ph2_y()[ihit], trk.ph2_z()[ihit],trk.ph2_detId()[ihit]);
+//
+//            }
 
-
-//                if (trk.ph2_subdet()[ihit] != 5)
-//                    continue;
-
-                // if (trk.ph2_subdet()[ihit] != 5)
-                //     continue;
-
-                // if (trk.sim_pt()[trk.simhit_simTrkIdx()[trk.ph2_simHitIdx()[ihit][0]]] < 2.5)
-                //     continue;
-
-                // Takes two arguments, SDL::Hit, and detId
-                // SDL::Event internally will structure whether we already have the module instance or we need to create a new one.
-                event.addHitToEvent(trk.ph2_x()[ihit], trk.ph2_y()[ihit], trk.ph2_z()[ihit],trk.ph2_detId()[ihit]);
-
-            }
-
+            float ht_elapsed = my_timer.RealTime();
+            event_times[ana.looper.getCurrentEventIndex()][5] = ht_elapsed;
             float elapsed = 0;
 
             // ----------------
+            if (ana.verbose != 0) std::cout << "Hits processing time: " << ht_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "Summary of hits" << std::endl;
             if (ana.verbose != 0) std::cout << "# of Hits: " << event.getNumberOfHits() << std::endl;
             if (ana.verbose != 0) std::cout << "# of Hits in layer 1: " << event.getNumberOfHitsByLayerBarrel(0) << std::endl;
@@ -540,13 +546,13 @@ int main(int argc, char** argv)
 
             // ----------------
             if (ana.verbose != 0) std::cout << "Reco Mini-Doublet start" << std::endl;
-            my_timer.Start();
+            my_timer.Start(kFALSE);
             event.createMiniDoublets();
             // event.createPseudoMiniDoubletsFromAnchorModule(); // Useless.....
             float md_elapsed = my_timer.RealTime();
-            event_times[ana.looper.getCurrentEventIndex()][0] = md_elapsed;
+            event_times[ana.looper.getCurrentEventIndex()][0] = md_elapsed-ht_elapsed;
 
-            if (ana.verbose != 0) std::cout << "Reco Mini-doublet processing time: " << md_elapsed << " secs" << std::endl;
+            if (ana.verbose != 0) std::cout << "Reco Mini-doublet processing time: " << md_elapsed-ht_elapsed << " secs" << std::endl;
 
             if (ana.verbose != 0) std::cout << "# of Mini-doublets produced: " << event.getNumberOfMiniDoublets() << std::endl;
             if (ana.verbose != 0) std::cout << "# of Mini-doublets produced barrel layer 1: " << event.getNumberOfMiniDoubletsByLayerBarrel(0) << std::endl;
@@ -761,9 +767,9 @@ int main(int argc, char** argv)
 //        // <--------------------------
     }
     std::cout<< "Timing summary"<<std::endl;
-    std::cout<< "events minidoublets segments triplets tracklets tracks"<<std::endl;
+    std::cout<< "event hits minidoublets segments triplets tracklets tracks"<<std::endl;
     for(int ev=0;ev<ana.n_events;ev++){
-        std::cout<<ev <<" "<<event_times[ev][0] <<" "<<event_times[ev][1] <<" "<<event_times[ev][2] <<" "<<event_times[ev][3] <<" "<<event_times[ev][4]<<std::endl;
+        std::cout<<ev <<" "<<event_times[ev][5] <<" "<<event_times[ev][0] <<" "<<event_times[ev][1] <<" "<<event_times[ev][2] <<" "<<event_times[ev][3] <<" "<<event_times[ev][4]<<std::endl;
     }
 
     SDL::cleanModules();

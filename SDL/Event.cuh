@@ -52,12 +52,12 @@ namespace SDL
         Event();
         ~Event();
 
+        void addHitToEventGPU(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId); //call the appropriate hit function, then increment the counter here
         void addHitToEvent(float x, float y, float z, unsigned int detId); //call the appropriate hit function, then increment the counter here
         void addPixelSegmentToEvent(std::vector<unsigned int> hitIndices, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr);
 
         /*functions that map the objects to the appropriate modules*/
         void addMiniDoubletsToEvent();
-        void transfertest(struct SDL::miniDoublets& mdsInGPU, struct SDL::miniDoublets& mdsInHost, unsigned int maxds, unsigned int nModules);
         void addSegmentsToEvent();
         void addTrackletsToEvent();
         void addTrackletsWithAGapToEvent();
