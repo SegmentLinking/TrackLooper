@@ -117,7 +117,7 @@ void SDL::Event::addHitToEventGPU(std::vector<float> x, std::vector<float> y, st
     float* dev_y;
     float* dev_z;
     float* dev_phi;
-    unsigned int* dev_detId;
+//    unsigned int* dev_detId;
     float* host_x = &x[0];
     float* host_y = &y[0];
     float* host_z = &z[0];
@@ -128,7 +128,7 @@ void SDL::Event::addHitToEventGPU(std::vector<float> x, std::vector<float> y, st
     cudaMalloc(&dev_x,loopsize*sizeof(float));
     cudaMalloc(&dev_y,loopsize*sizeof(float));
     cudaMalloc(&dev_z,loopsize*sizeof(float));
-    cudaMalloc(&dev_detId,loopsize*sizeof(unsigned int));
+//    cudaMalloc(&dev_detId,loopsize*sizeof(unsigned int));
     cudaMalloc(&dev_moduleIndex,sizeof(unsigned int)*loopsize);
     cudaMallocHost(&host_moduleIndex,sizeof(unsigned int)*loopsize);
     cudaMalloc(&dev_phi,sizeof(float)*loopsize);
@@ -151,11 +151,11 @@ void SDL::Event::addHitToEventGPU(std::vector<float> x, std::vector<float> y, st
     cudaMemcpy(dev_x,host_x,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
     cudaMemcpy(dev_y,host_y,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
     cudaMemcpy(dev_z,host_z,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
-    cudaMemcpy(dev_detId,host_detId,loopsize*sizeof(unsigned int),cudaMemcpyHostToDevice); 
+ //   cudaMemcpy(dev_detId,host_detId,loopsize*sizeof(unsigned int),cudaMemcpyHostToDevice); 
     cudaMemcpy(dev_moduleIndex,host_moduleIndex,loopsize*sizeof(unsigned int),cudaMemcpyHostToDevice); 
     cudaMemcpy(dev_phi,host_phi,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
     cudaDeviceSynchronize();
-    addHitToMemoryKernel<<<nBlocks,nThreads>>>(*hitsInGPU, *modulesInGPU, dev_x, dev_y, dev_z, dev_detId,dev_moduleIndex,dev_phi,loopsize);
+    addHitToMemoryKernel<<<nBlocks,nThreads>>>(*hitsInGPU, *modulesInGPU, dev_x, dev_y, dev_z, dev_moduleIndex,dev_phi,loopsize);
     cudaDeviceSynchronize();
 
 }

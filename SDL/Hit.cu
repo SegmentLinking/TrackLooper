@@ -106,7 +106,7 @@ void SDL::addHitToMemory(struct hits& hitsInCPU, struct modules& modulesInGPU, f
     modulesInGPU.hitRanges[moduleIndex * 2 + 1] = idx;
     (*hitsInCPU.nHits)++;
 }
-__global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules& modulesInGPU,const float* x,const  float* y,const  float* z, const unsigned int* detId, const unsigned int* moduleIndex,const float* phis, const int loopsize)
+__global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules& modulesInGPU,const float* x,const  float* y,const  float* z, const unsigned int* moduleIndex,const float* phis, const int loopsize)
 {
   for (unsigned int ihit = blockIdx.x*blockDim.x + threadIdx.x; ihit <loopsize; ihit += blockDim.x*gridDim.x)
   {
