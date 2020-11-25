@@ -1,6 +1,17 @@
 #include "doAnalysis.h"
 
 // ./process INPUTFILEPATH OUTPUTFILE [NEVENTS]
+
+TVector3 r3FromPCA(const TVector3& p3, const float dxy, const float dz){
+  const float pt = p3.Pt();
+  const float p = p3.Mag();
+  const float vz = dz*pt*pt/p/p;
+
+  const float vx = -dxy*p3.y()/pt - p3.x()/p*p3.z()/p*dz;
+  const float vy =  dxy*p3.x()/pt - p3.y()/p*p3.z()/p*dz;
+  return TVector3(vx, vy, vz);
+}
+
 void addPixelSegments(SDL::Event& event, int isimtrk)
 {
     for (auto&& [iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))

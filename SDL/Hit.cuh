@@ -25,6 +25,7 @@ namespace SDL
         float *zs;
 
         unsigned int* moduleIndices;
+        unsigned int* idxs;
         
         float *rts;
         float* phis;
@@ -42,7 +43,7 @@ namespace SDL
     };
 
     void createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int maxHits, unsigned int max2SHits);
-    void addHitToMemory(struct hits& hitsInGPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId);
+    void addHitToMemory(struct hits& hitsInGPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple);
     CUDA_HOSTDEV inline float phi(float x, float y, float z);
     CUDA_HOSTDEV inline float ATan2(float y, float x);
     CUDA_HOSTDEV float phi_mpi_pi(float phi);
