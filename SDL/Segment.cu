@@ -18,7 +18,7 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
 #else
     cudaMallocManaged(&segmentsInGPU.mdIndices, nMemoryLocations * 6 * sizeof(unsigned int));
     cudaMallocManaged(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
-    cudaMallocManaged(&segmentsInGPU.dPhis, nMemoryLocations * 13*sizeof(float));
+    cudaMallocManaged(&segmentsInGPU.dPhis, (nMemoryLocations * 13 + maxPixelSegments * 6)*sizeof(float));
 #endif
     segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 2;
     segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 3;

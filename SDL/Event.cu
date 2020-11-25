@@ -7,11 +7,12 @@ const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600; //WHY!
 const unsigned int MAX_CONNECTED_MODULES = 40;
 const unsigned int N_MAX_TRACKLETS_PER_MODULE = 8000;//temporary
 const unsigned int N_MAX_TRIPLETS_PER_MODULE = 5000;
-const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 5000;
+const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 50000;
 const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 100000;
 const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
-const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 2000000;
-const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 200000;
+const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 3000000;
+const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 2000000;
+
 
 struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::modules* SDL::modulesInHost = nullptr;//explicit
@@ -115,7 +116,7 @@ void SDL::Event::addHitToEvent(float x, float y, float z, unsigned int detId, un
     {
         n_hits_by_layer_barrel_[moduleLayer-1]++;
     }
-    else
+    else if(subdet == Endcap)
     {
         n_hits_by_layer_endcap_[moduleLayer-1]++;
     }
@@ -1312,6 +1313,9 @@ unsigned int SDL::Event::getNumberOfTrackCandidates()
     {
         trackCandidates += it;
     }
+
+    //hack - add pixel track candidate multiplicity
+    trackCandidates += trackCandidatesInGPU->nTrackCandidates[*(modulesInGPU->nLowerModules)];
 
     return trackCandidates;
    

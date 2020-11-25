@@ -806,10 +806,15 @@ int main(int argc, char** argv)
             // ----------------
 
             // ----------------
-            if(ana.verbose != 0) std::cout<<"Adding pixel segments!"<<std::endl;
+            if(ana.verbose != 0) std::cout<<"Adding Pixel Segments!"<<std::endl;
             addPixelSegments(event,-1);
    
-
+            if(ana.verbose != 0) std::cout<<" Reco Pixel Tracklet start"<<std::endl;
+            my_timer.Start(kFALSE);
+            event.createPixelTracklets();
+            float ptl_elapsed = my_timer.RealTime();
+            if (ana.verbose != 0) std::cout << "Reco Pixel Tracklet processing time: " << ptl_elapsed - tp_elapsed << " secs" << std::endl;
+ 
             if (ana.verbose != 0) std::cout << "Reco Tracklet start" << std::endl;
             my_timer.Start(kFALSE);
             // event.createTracklets();
@@ -819,7 +824,7 @@ int main(int argc, char** argv)
             //event.createTrackletsViaNavigation();
             float tl_elapsed = my_timer.RealTime();
             event_times[ana.looper.getCurrentEventIndex()][3] = tl_elapsed - tp_elapsed;
-            if (ana.verbose != 0) std::cout << "Reco Tracklet processing time: " << tl_elapsed - tp_elapsed << " secs" << std::endl;
+            if (ana.verbose != 0) std::cout << "Reco Tracklet processing time: " << tl_elapsed - ptl_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "# of Tracklets produced: " << event.getNumberOfTracklets() << std::endl;
             if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 1-2-3-4: " << event.getNumberOfTrackletsByLayerBarrel(0) << std::endl;
             if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 2-3-4-5: " << event.getNumberOfTrackletsByLayerBarrel(1) << std::endl;
