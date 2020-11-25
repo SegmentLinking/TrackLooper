@@ -65,7 +65,7 @@ void SDL::freeModulesInUnifiedMemory(struct modules& modulesInGPU)
 
 void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules)
 {
-    //FIXME:some hacks to get the pixel module in hte lower modules index without incrementing nLowerModules counter!
+    //FIXME:some hacks to get the pixel module in the lower modules index without incrementing nLowerModules counter!
     //Reproduce these hacks in the explicit memory for identical results (or come up with a better method)
     cudaMallocManaged(&modulesInGPU.lowerModuleIndices,(nLowerModules + 1) * sizeof(unsigned int));
     cudaMallocManaged(&modulesInGPU.reverseLookupLowerModuleIndices,nModules * sizeof(int));
@@ -123,7 +123,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
             counter++;
         }
     }
-    //MANUAL INSERTION OF PIXEL MODULE!
+    //FIXME:MANUAL INSERTION OF PIXEL MODULE!
     (*detIdToIndex)[1] = counter; //pixel module is the last module in the module list
     counter++;
     nModules = counter;
