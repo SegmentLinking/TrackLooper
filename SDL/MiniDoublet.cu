@@ -25,29 +25,31 @@ CUDA_CONST_VAR float SDL::deltaZLum = 15.0;
 CUDA_CONST_VAR float SDL::pixelPSZpitch = 0.15;
 CUDA_CONST_VAR float SDL::strip2SZpitch = 5.0;
 
-void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, unsigned int nModules)
+//FIXME:new memory locations for the pixel MDs
+void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, unsigned int nModules, unsigned int maxPixelMDs)
 {
+    unsigned int nMemoryLocations = maxMDsPerModule * (nModules - 1) + maxPixelMDs;
 #ifdef CACHE_ALLOC
     cudaStream_t stream=0;
-    mdsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_managed(maxMDsPerModule * nModules * 3 * sizeof(unsigned int), stream);
-    mdsInGPU.pixelModuleFlag = (short*)cms::cuda::allocate_managed(maxMDsPerModule*nModules*sizeof(short),stream);
-    mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_managed(nModules*sizeof(unsigned int),stream);
-    mdsInGPU.dphichanges = (float*)cms::cuda::allocate_managed(maxMDsPerModule*nModules*9*sizeof(float),stream);
+    mdsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * 3 * sizeof(unsigned int), stream);
+    mdsInGPU.pixelModuleFlag = (short*)cms::cuda::allocate_managed(nMemoryLocations*sizeof(short),stream);
+    mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations*sizeof(unsigned int),stream);
+    mdsInGPU.dphichanges = (float*)cms::cuda::allocate_managed(nMemoryLocations*9*sizeof(float),stream);
 #else
-    cudaMallocManaged(&mdsInGPU.hitIndices, maxMDsPerModule * nModules * 3 * sizeof(unsigned int));
-    cudaMallocManaged(&mdsInGPU.pixelModuleFlag, maxMDsPerModule * nModules * sizeof(short));
-    cudaMallocManaged(&mdsInGPU.dphichanges, maxMDsPerModule * nModules * 9 * sizeof(float));
+    cudaMallocManaged(&mdsInGPU.hitIndices, nMemoryLocations * 3 * sizeof(unsigned int));
+    cudaMallocManaged(&mdsInGPU.pixelModuleFlag, nMemoryLocations * sizeof(short));
+    cudaMallocManaged(&mdsInGPU.dphichanges, nMemoryLocations * 9 * sizeof(float));
     cudaMallocManaged(&mdsInGPU.nMDs, nModules * sizeof(unsigned int));
 #endif
-    mdsInGPU.moduleIndices = mdsInGPU.hitIndices + maxMDsPerModule * nModules * 2 ;
-    mdsInGPU.dzs  = mdsInGPU.dphichanges + maxMDsPerModule*nModules;
-    mdsInGPU.dphis  = mdsInGPU.dphichanges + 2*maxMDsPerModule*nModules;
-    mdsInGPU.shiftedXs  = mdsInGPU.dphichanges + 3*maxMDsPerModule*nModules;
-    mdsInGPU.shiftedYs  = mdsInGPU.dphichanges + 4*maxMDsPerModule*nModules;
-    mdsInGPU.shiftedZs  = mdsInGPU.dphichanges + 5*maxMDsPerModule*nModules;
-    mdsInGPU.noShiftedDzs  = mdsInGPU.dphichanges + 6*maxMDsPerModule*nModules;
-    mdsInGPU.noShiftedDphis  = mdsInGPU.dphichanges + 7*maxMDsPerModule*nModules;
-    mdsInGPU.noShiftedDphiChanges  = mdsInGPU.dphichanges + 8*maxMDsPerModule*nModules;
+    mdsInGPU.moduleIndices = mdsInGPU.hitIndices + nMemoryLocations * 2 ;
+    mdsInGPU.dzs  = mdsInGPU.dphichanges + nMemoryLocations;
+    mdsInGPU.dphis  = mdsInGPU.dphichanges + 2*nMemoryLocations;
+    mdsInGPU.shiftedXs  = mdsInGPU.dphichanges + 3*nMemoryLocations;
+    mdsInGPU.shiftedYs  = mdsInGPU.dphichanges + 4*nMemoryLocations;
+    mdsInGPU.shiftedZs  = mdsInGPU.dphichanges + 5*nMemoryLocations;
+    mdsInGPU.noShiftedDzs  = mdsInGPU.dphichanges + 6*nMemoryLocations;
+    mdsInGPU.noShiftedDphis  = mdsInGPU.dphichanges + 7*nMemoryLocations;
+    mdsInGPU.noShiftedDphiChanges  = mdsInGPU.dphichanges + 8*nMemoryLocations;
 #pragma omp parallel for default(shared)
     for(size_t i = 0; i< nModules; i++)
     {
@@ -55,6 +57,8 @@ void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int m
     }
 }
 
+
+//FIXME:Add memory locations for the pixel MDs here!
 void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, unsigned int nModules)
 {
 
@@ -95,7 +99,7 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
 
 }
 
-__device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, unsigned int lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
+__host__ __device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, unsigned int lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
 {
     //the index into which this MD needs to be written will be computed in the kernel
     //nMDs variable will be incremented in the kernel, no need to worry about that here
