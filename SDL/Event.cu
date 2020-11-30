@@ -56,7 +56,7 @@ SDL::Event::~Event()
     segmentsInGPU->freeMemoryCache();
     tripletsInGPU->freeMemoryCache();
     trackletsInGPU->freeMemoryCache();
-    trackCandidatesInGPU->freeMemory();
+    trackCandidatesInGPU->freeMemoryCache();
 #else
     mdsInGPU->freeMemory();
     segmentsInGPU->freeMemory();
@@ -161,7 +161,6 @@ cudaMemcpy(nMDsCPU,mdsInGPU->nMDs,nLowerModules*sizeof(unsigned int),cudaMemcpyD
     {
         idx = SDL::modulesInGPU->lowerModuleIndices[i];
         if(nMDsCPU[idx] == 0 or modulesInGPU->hitRanges[idx * 2] == -1)
-        //if(mdsInGPU->nMDs[idx] == 0 or modulesInGPU->hitRanges[idx * 2] == -1)
         {
             modulesInGPU->mdRanges[idx * 2] = -1;
             modulesInGPU->mdRanges[idx * 2 + 1] = -1;
@@ -170,17 +169,14 @@ cudaMemcpy(nMDsCPU,mdsInGPU->nMDs,nLowerModules*sizeof(unsigned int),cudaMemcpyD
         {
             modulesInGPU->mdRanges[idx * 2] = idx * N_MAX_MD_PER_MODULES;
             modulesInGPU->mdRanges[idx * 2 + 1] = (idx * N_MAX_MD_PER_MODULES) + nMDsCPU[idx] - 1;
-            //modulesInGPU->mdRanges[idx * 2 + 1] = (idx * N_MAX_MD_PER_MODULES) + mdsInGPU->nMDs[idx] - 1;
 
             if(modulesInGPU->subdets[idx] == Barrel)
             {
                 n_minidoublets_by_layer_barrel_[modulesInGPU->layers[idx] -1] += nMDsCPU[idx];
-                //n_minidoublets_by_layer_barrel_[modulesInGPU->layers[idx] -1] += mdsInGPU->nMDs[idx];
             }
             else
             {
                 n_minidoublets_by_layer_endcap_[modulesInGPU->layers[idx] - 1] += nMDsCPU[idx];
-                //n_minidoublets_by_layer_endcap_[modulesInGPU->layers[idx] - 1] += mdsInGPU->nMDs[idx];
             }
 
         }
@@ -230,7 +226,6 @@ cudaMemcpy(nSegmentsCPU,segmentsInGPU->nSegments,nLowerModules*sizeof(unsigned i
     {
         idx = SDL::modulesInGPU->lowerModuleIndices[i];
         if(nSegmentsCPU[idx] == 0)
-        //if(segmentsInGPU->nSegments[idx] == 0)
         {
             modulesInGPU->segmentRanges[idx * 2] = -1;
             modulesInGPU->segmentRanges[idx * 2 + 1] = -1;
@@ -239,7 +234,6 @@ cudaMemcpy(nSegmentsCPU,segmentsInGPU->nSegments,nLowerModules*sizeof(unsigned i
         {
             modulesInGPU->segmentRanges[idx * 2] = idx * N_MAX_SEGMENTS_PER_MODULE;
             modulesInGPU->segmentRanges[idx * 2 + 1] = idx * N_MAX_SEGMENTS_PER_MODULE + nSegmentsCPU[idx] - 1;
-            //modulesInGPU->segmentRanges[idx * 2 + 1] = idx * N_MAX_SEGMENTS_PER_MODULE + segmentsInGPU->nSegments[idx] - 1;
 
             //for(unsigned int jdx = 0; jdx < segmentsInGPU->nSegments[idx]; jdx++)
             //    printSegment(*segmentsInGPU, *mdsInGPU, *hitsInGPU, *modulesInGPU, idx * N_MAX_SEGMENTS_PER_MODULE + jdx);
@@ -248,12 +242,10 @@ cudaMemcpy(nSegmentsCPU,segmentsInGPU->nSegments,nLowerModules*sizeof(unsigned i
             {
 
                 n_segments_by_layer_barrel_[modulesInGPU->layers[idx] - 1] += nSegmentsCPU[idx];
-                //n_segments_by_layer_barrel_[modulesInGPU->layers[idx] - 1] += segmentsInGPU->nSegments[idx];
             }
             else
             {
                 n_segments_by_layer_endcap_[modulesInGPU->layers[idx] -1] += nSegmentsCPU[idx];
-                //n_segments_by_layer_endcap_[modulesInGPU->layers[idx] -1] += segmentsInGPU->nSegments[idx];
             }
         }
     }
@@ -430,7 +422,7 @@ void SDL::Event::createTrackletsWithModuleMap()
 
 void SDL::Event::createTrackCandidates()
 {
-    unsigned int nLowerModules = *modulesInGPU->nLowerModules + 1; //including the pixel module
+    unsigned int nLowerModules = *modulesInGPU->nLowerModules;// + 1; //including the pixel module
 
     if(trackCandidatesInGPU == nullptr)
     {
@@ -517,11 +509,6 @@ void SDL::Event::addTrackletsToEvent()
             modulesInGPU->trackletRanges[idx * 2] = idx * N_MAX_TRACKLETS_PER_MODULE;
             modulesInGPU->trackletRanges[idx * 2 + 1] = idx * N_MAX_TRACKLETS_PER_MODULE + trackletsInGPU->nTracklets[i] - 1;
 
-            //for(unsigned int jdx = 0; jdx < trackletsInGPU->nTracklets[i]; jdx++)
-            //{
-            //    printTracklet(*trackletsInGPU, *segmentsInGPU, *mdsInGPU, *hitsInGPU, *modulesInGPU, i * N_MAX_TRACKLETS_PER_MODULE + jdx);
-            //}
-
 
             if(modulesInGPU->subdets[idx] == Barrel)
             {
@@ -545,7 +532,6 @@ cudaMemcpy(nTrackletsCPU,trackletsInGPU->nTracklets,nLowerModules*sizeof(unsigne
     {
         idx = SDL::modulesInGPU->lowerModuleIndices[i];
         //tracklets run only on lower modules!!!!!!
-        //if(trackletsInGPU->nTracklets[i] == 0)
         if(nTrackletsCPU[i] == 0)
         {
             modulesInGPU->trackletRanges[idx * 2] = -1;
@@ -555,18 +541,15 @@ cudaMemcpy(nTrackletsCPU,trackletsInGPU->nTracklets,nLowerModules*sizeof(unsigne
         {
             modulesInGPU->trackletRanges[idx * 2] = idx * N_MAX_TRACKLETS_PER_MODULE;
             modulesInGPU->trackletRanges[idx * 2 + 1] = idx * N_MAX_TRACKLETS_PER_MODULE + nTrackletsCPU[i] - 1;
-            //modulesInGPU->trackletRanges[idx * 2 + 1] = idx * N_MAX_TRACKLETS_PER_MODULE + trackletsInGPU->nTracklets[i] - 1;
 
 
             if(modulesInGPU->subdets[idx] == Barrel)
             {
                 n_tracklets_by_layer_barrel_[modulesInGPU->layers[idx] - 1] += nTrackletsCPU[i];
-                //n_tracklets_by_layer_barrel_[modulesInGPU->layers[idx] - 1] += trackletsInGPU->nTracklets[i];
             }
             else
             {
                 n_tracklets_by_layer_endcap_[modulesInGPU->layers[idx] - 1] += nTrackletsCPU[i];
-                //n_tracklets_by_layer_endcap_[modulesInGPU->layers[idx] - 1] += trackletsInGPU->nTracklets[i];
             }
         }
     }
@@ -679,7 +662,6 @@ cudaMemcpy(nTripletsCPU,tripletsInGPU->nTriplets,nLowerModules*sizeof(unsigned i
     {
         idx = SDL::modulesInGPU->lowerModuleIndices[i];
         //tracklets run only on lower modules!!!!!!
-        //if(tripletsInGPU->nTriplets[i] == 0)
         if(nTripletsCPU[i] == 0)
         {
             modulesInGPU->tripletRanges[idx * 2] = -1;
@@ -688,18 +670,15 @@ cudaMemcpy(nTripletsCPU,tripletsInGPU->nTriplets,nLowerModules*sizeof(unsigned i
         else
         {
             modulesInGPU->tripletRanges[idx * 2] = idx * N_MAX_TRIPLETS_PER_MODULE;
-            //modulesInGPU->tripletRanges[idx * 2 + 1] = idx * N_MAX_TRIPLETS_PER_MODULE + tripletsInGPU->nTriplets[i] - 1;
             modulesInGPU->tripletRanges[idx * 2 + 1] = idx * N_MAX_TRIPLETS_PER_MODULE + nTripletsCPU[i] - 1;
 
             if(modulesInGPU->subdets[idx] == Barrel)
             {
                 n_triplets_by_layer_barrel_[modulesInGPU->layers[idx] - 1] += nTripletsCPU[i];
-                //n_triplets_by_layer_barrel_[modulesInGPU->layers[idx] - 1] += tripletsInGPU->nTriplets[i];
             }
             else
             {
                 n_triplets_by_layer_endcap_[modulesInGPU->layers[idx] - 1] += nTripletsCPU[i];
-                //n_triplets_by_layer_endcap_[modulesInGPU->layers[idx] - 1] += tripletsInGPU->nTriplets[i];
             }
         }
     }

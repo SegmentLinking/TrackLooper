@@ -65,23 +65,23 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     mdsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_device(dev,maxMDsPerModule * nModules * 3 * sizeof(unsigned int), stream);
     mdsInGPU.pixelModuleFlag = (short*)cms::cuda::allocate_device(dev,maxMDsPerModule*nModules*sizeof(short),stream);
     mdsInGPU.dphichanges = (float*)cms::cuda::allocate_device(dev,maxMDsPerModule*nModules*9*sizeof(float),stream);
-  #ifdef Full_Explicit
+//  #ifdef Full_Explicit
     mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_device(dev,nModules*sizeof(unsigned int),stream);
     cudaMemset(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int));
-  #else
-    mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_managed(nModules*sizeof(unsigned int),stream);
-  #endif
+//  #else
+//    mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_managed(nModules*sizeof(unsigned int),stream);
+//  #endif
 
 #else
     cudaMalloc(&mdsInGPU.hitIndices, maxMDsPerModule * nModules * 3 * sizeof(unsigned int));
     cudaMalloc(&mdsInGPU.pixelModuleFlag, maxMDsPerModule * nModules * sizeof(short));
     cudaMalloc(&mdsInGPU.dphichanges, maxMDsPerModule * nModules *9* sizeof(float));
-  #ifdef Full_Explicit
+//  #ifdef Full_Explicit
     cudaMalloc(&mdsInGPU.nMDs, nModules * sizeof(unsigned int)); //for full explicit
     cudaMemset(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int));
-  #else
-    cudaMallocManaged(&mdsInGPU.nMDs, nModules * sizeof(unsigned int)); // allows for transfer back
-  #endif
+//  #else
+//    cudaMallocManaged(&mdsInGPU.nMDs, nModules * sizeof(unsigned int)); // allows for transfer back
+//  #endif
 #endif
     mdsInGPU.moduleIndices = mdsInGPU.hitIndices + maxMDsPerModule * nModules * 2 ;
     mdsInGPU.dzs  = mdsInGPU.dphichanges + maxMDsPerModule*nModules;
@@ -772,11 +772,11 @@ void SDL::miniDoublets::freeMemoryCache()
     cms::cuda::free_device(dev,hitIndices);
     cms::cuda::free_device(dev,pixelModuleFlag);
     cms::cuda::free_device(dev,dphichanges);
-  #ifdef Full_Explicit
+//  #ifdef Full_Explicit
     cms::cuda::free_device(dev,nMDs);
-  #else
-    cms::cuda::free_managed(nMDs);
-  #endif
+//  #else
+//    cms::cuda::free_managed(nMDs);
+//  #endif
 #else
     cms::cuda::free_managed(hitIndices);
     cms::cuda::free_managed(pixelModuleFlag);

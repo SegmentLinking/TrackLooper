@@ -36,6 +36,7 @@ namespace SDL
         trackCandidates();
         ~trackCandidates();
         void freeMemory();
+        void freeMemoryCache();
     };
 
     void createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates, unsigned int maxPixelTrackCandidates, unsigned int nLowerModules);
