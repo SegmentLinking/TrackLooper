@@ -61,22 +61,22 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     cudaGetDevice(&dev);
     segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_device(dev,maxSegments*nModules*6 *sizeof(unsigned int),stream);
     segmentsInGPU.dPhis = (float*)cms::cuda::allocate_device(dev,maxSegments*nModules*13 *sizeof(float),stream);
-  #ifdef Full_Explicit
+//  #ifdef Full_Explicit
     segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_device(dev,nModules *sizeof(unsigned int),stream);
     cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
-  #else
-    segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_managed(nModules *sizeof(unsigned int),stream);
-  #endif
+//  #else
+//    segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_managed(nModules *sizeof(unsigned int),stream);
+//  #endif
 
 #else
     cudaMalloc(&segmentsInGPU.mdIndices, maxSegments * nModules * 6 * sizeof(unsigned int));
     cudaMalloc(&segmentsInGPU.dPhis, maxSegments * nModules *13* sizeof(float));
-  #ifdef Full_Explicit
+//  #ifdef Full_Explicit
     cudaMalloc(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
     cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
-  #else
-    cudaMallocManaged(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
-  #endif
+//  #else
+//    cudaMallocManaged(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
+//  #endif
 #endif
     segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 2;
     segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 3;
@@ -129,11 +129,11 @@ void SDL::segments::freeMemoryCache()
     cudaGetDevice(&dev);
     cms::cuda::free_device(dev,mdIndices);
     cms::cuda::free_device(dev,dPhis);
-  #ifdef Full_Explicit
+//  #ifdef Full_Explicit
     cms::cuda::free_device(dev,nSegments);
-  #else
-    cms::cuda::free_managed(nSegments);
-  #endif
+//  #else
+//    cms::cuda::free_managed(nSegments);
+//  #endif
 #else
     cms::cuda::free_managed(mdIndices);
     cms::cuda::free_managed(dPhis);

@@ -58,12 +58,17 @@ namespace SDL
 
         /*functions that map the objects to the appropriate modules*/
         void addMiniDoubletsToEvent();
-        void transfertest(struct SDL::miniDoublets& mdsInGPU, struct SDL::miniDoublets& mdsInHost, unsigned int maxds, unsigned int nModules);
         void addSegmentsToEvent();
         void addTrackletsToEvent();
         void addTrackletsWithAGapToEvent();
         void addTripletsToEvent();
         void addTrackCandidatesToEvent();
+        void addMiniDoubletsToEventExplicit();
+        void addSegmentsToEventExplicit();
+        void addTrackletsToEventExplicit();
+        void addTrackletsWithAGapToEventExplicit();
+        void addTripletsToEventExplicit();
+        void addTrackCandidatesToEventExplicit();
 
         void resetObjectsInModule();
 
