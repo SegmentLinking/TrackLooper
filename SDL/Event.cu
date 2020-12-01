@@ -1,6 +1,7 @@
 # include "Event.cuh"
 #include "allocate.h"
 
+
 unsigned int N_MAX_HITS_PER_MODULE = 100;
 const unsigned int N_MAX_MD_PER_MODULES = 100;
 const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600; //WHY!
@@ -123,26 +124,36 @@ void SDL::Event::addHitToEvent(float x, float y, float z, unsigned int detId, un
 
 }
 
+__global__ void /*SDL::Event::*/addPixelSegmentToEventKernel(unsigned int* hitIndices, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr,unsigned int pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU)
+{
+
+    //step 1 : Add pixel MDs
+    unsigned int innerMDIndex = pixelModuleIndex * N_MAX_MD_PER_MODULES + mdsInGPU.nMDs[pixelModuleIndex];
+
+    //FIXME:Fake Pixel MDs are being added to MD unified memory!
+    addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices[0], hitIndices[1], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,innerMDIndex);
+    mdsInGPU.nMDs[pixelModuleIndex]++;
+    unsigned int outerMDIndex = pixelModuleIndex * N_MAX_MD_PER_MODULES + mdsInGPU.nMDs[pixelModuleIndex];
+    addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices[2], hitIndices[3], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,outerMDIndex);
+    mdsInGPU.nMDs[pixelModuleIndex]++;
+
+    //step 2 : Add pixel segment
+    unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + segmentsInGPU.nSegments[pixelModuleIndex];
+    //FIXME:Fake Pixel Segment gets added to Segment unified memory in a convoluted fashion!
+    addPixelSegmentToMemory(segmentsInGPU, mdsInGPU, hitsInGPU, modulesInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hitIndices[0], hitIndices[2], dPhiChange, ptIn, ptErr, px, py, pz, etaErr, pixelSegmentIndex);
+    segmentsInGPU.nSegments[pixelModuleIndex]++;
+}
 void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr)
 {
     assert(hitIndices.size() == 4);
-    unsigned int pixelModuleIndex = (*detIdToIndex)[1];
+    unsigned int pixelModuleIndex = (*detIdToIndex)[1] -1; //double check the -1?
+  unsigned int* hitIndices_host = &hitIndices[0];
+  unsigned int * hitIndices_dev;
+  cudaMalloc(&hitIndices_dev,4*sizeof(unsigned int));
+  cudaMemcpy(hitIndices_dev,hitIndices_host,4*sizeof(unsigned int),cudaMemcpyHostToDevice);
 
-    //step 1 : Add pixel MDs
-    unsigned int innerMDIndex = pixelModuleIndex * N_MAX_MD_PER_MODULES + mdsInGPU->nMDs[pixelModuleIndex];
-
-    //FIXME:Fake Pixel MDs are being added to MD unified memory!
-    addMDToMemory(*mdsInGPU, *hitsInGPU, *modulesInGPU, hitIndices[0], hitIndices[1], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,innerMDIndex);
-    mdsInGPU->nMDs[pixelModuleIndex]++;
-    unsigned int outerMDIndex = pixelModuleIndex * N_MAX_MD_PER_MODULES + mdsInGPU->nMDs[pixelModuleIndex];
-    addMDToMemory(*mdsInGPU, *hitsInGPU, *modulesInGPU, hitIndices[2], hitIndices[3], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,outerMDIndex);
-    mdsInGPU->nMDs[pixelModuleIndex]++;
-
-    //step 2 : Add pixel segment
-    unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + segmentsInGPU->nSegments[pixelModuleIndex];
-    //FIXME:Fake Pixel Segment gets added to Segment unified memory in a convoluted fashion!
-    addPixelSegmentToMemory(*segmentsInGPU, *mdsInGPU, *hitsInGPU, *modulesInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hitIndices[0], hitIndices[2], dPhiChange, ptIn, ptErr, px, py, pz, etaErr, pixelSegmentIndex);
-    segmentsInGPU->nSegments[pixelModuleIndex]++;
+  addPixelSegmentToEventKernel<<<1,1>>>(hitIndices_dev,dPhiChange,ptIn,ptErr,px,py,pz,etaErr,pixelModuleIndex, *modulesInGPU,*hitsInGPU,*mdsInGPU,*segmentsInGPU);
+  cudaDeviceSynchronize();
 }
 
 void SDL::Event::addMiniDoubletsToEvent()
@@ -284,7 +295,7 @@ void SDL::Event::createMiniDoublets()
         cudaMallocHost(&mdsInGPU, sizeof(SDL::miniDoublets));
 #ifdef Explicit_MD
         //FIXME: Add memory locations for pixel MDs
-    	createMDsInExplicitMemory(*mdsInGPU, N_MAX_MD_PER_MODULES, nModules);
+    	createMDsInExplicitMemory(*mdsInGPU, N_MAX_MD_PER_MODULES, nModules, N_MAX_PIXEL_MD_PER_MODULES);
 #else
     	createMDsInUnifiedMemory(*mdsInGPU, N_MAX_MD_PER_MODULES, nModules, N_MAX_PIXEL_MD_PER_MODULES);
 #endif
@@ -337,7 +348,8 @@ void SDL::Event::createSegmentsWithModuleMap()
         cudaMallocHost(&segmentsInGPU, sizeof(SDL::segments));
 #ifdef Explicit_Seg
         //FIXME:Add memory locations for pixel segments
-        createSegmentsInExplicitMemory(*segmentsInGPU, N_MAX_SEGMENTS_PER_MODULE, nModules);
+        //createSegmentsInExplicitMemory(*segmentsInGPU, N_MAX_SEGMENTS_PER_MODULE, nModules);
+        createSegmentsInExplicitMemory(*segmentsInGPU, N_MAX_SEGMENTS_PER_MODULE, nModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
 #else
         createSegmentsInUnifiedMemory(*segmentsInGPU, N_MAX_SEGMENTS_PER_MODULE, nModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
 #endif
@@ -415,7 +427,8 @@ void SDL::Event::createTrackletsWithModuleMap()
         cudaMallocHost(&trackletsInGPU, sizeof(SDL::tracklets));
 #ifdef Explicit_Tracklet
         //FIXME:Add memory locations for pixel tracklets
-        createTrackletsInExplicitMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , nLowerModules);
+        //createTrackletsInExplicitMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , nLowerModules);
+        createTrackletsInExplicitMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , N_MAX_PIXEL_TRACKLETS_PER_MODULE, nLowerModules);
 #else
         createTrackletsInUnifiedMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , N_MAX_PIXEL_TRACKLETS_PER_MODULE, nLowerModules);
 #endif
@@ -453,8 +466,9 @@ void SDL::Event::createPixelTracklets()
     {
         cudaMallocHost(&trackletsInGPU, sizeof(SDL::tracklets));
 #ifdef Explicit_Tracklet
-        //FIXME:Change this to look like the unified allocator below after pixels have been incorporated!
-        createTrackletsInExplicitMemory(*trackletsInGPU,N_MAX_TRACKLETS_PER_MODULE, nLowerModules);
+//        //FIXME:Change this to look like the unified allocator below after pixels have been incorporated!
+        //createTrackletsInExplicitMemory(*trackletsInGPU,N_MAX_TRACKLETS_PER_MODULE, nLowerModules);
+        createTrackletsInExplicitMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , N_MAX_PIXEL_TRACKLETS_PER_MODULE, nLowerModules);
 #else
         createTrackletsInUnifiedMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , N_MAX_PIXEL_TRACKLETS_PER_MODULE, nLowerModules);
 #endif
@@ -470,15 +484,15 @@ void SDL::Event::createPixelTracklets()
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;    
 
     }
-#if defined(AddObjects) && !defined(Full_Explicit)
-    std::cout<<"Number of pixel tracklets = "<<trackletsInGPU->nTracklets[nLowerModules]<<std::endl;
-#endif
+//#if defined(AddObjects) && !defined(Full_Explicit)
+ //   std::cout<<"Number of pixel tracklets = "<<trackletsInGPU->nTracklets[nLowerModules]<<std::endl;
+//#endif
 
 }
 
 void SDL::Event::createTrackCandidates()
 {
-    unsigned int nLowerModules = *modulesInGPU->nLowerModules;// + 1; //including the pixel module
+    unsigned int nLowerModules = *modulesInGPU->nLowerModules + 1; //including the pixel module
 
     if(trackCandidatesInGPU == nullptr)
     {
@@ -524,7 +538,8 @@ void SDL::Event::createTrackletsWithAGapWithModuleMap()
     {
         cudaMallocHost(&trackletsInGPU, sizeof(SDL::tracklets));
 #ifdef Explicit_Tracklet
-        createTrackletsInExplicitMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , nLowerModules);
+        //createTrackletsInExplicitMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , nLowerModules);
+        createTrackletsInExplicitMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , N_MAX_PIXEL_TRACKLETS_PER_MODULE, nLowerModules);
 #else
         createTrackletsInUnifiedMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , N_MAX_PIXEL_TRACKLETS_PER_MODULE, nLowerModules);
 #endif
@@ -1500,7 +1515,16 @@ unsigned int SDL::Event::getNumberOfTrackCandidates()
     }
 
     //hack - add pixel track candidate multiplicity
+#ifdef Explicit_Track
+    unsigned int nLowerModules = *(SDL::modulesInGPU->nLowerModules);
+    unsigned int* nTrackCandidatesCPU;
+    cudaMallocHost(&nTrackCandidatesCPU, (nLowerModules+1) * sizeof(unsigned int));
+    cudaMemcpy(nTrackCandidatesCPU,trackCandidatesInGPU->nTrackCandidates,(1+nLowerModules)*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    trackCandidates += nTrackCandidatesCPU[nLowerModules];
+    cudaFreeHost(nTrackCandidatesCPU);
+#else
     trackCandidates += trackCandidatesInGPU->nTrackCandidates[*(modulesInGPU->nLowerModules)];
+#endif
 
     return trackCandidates;
    

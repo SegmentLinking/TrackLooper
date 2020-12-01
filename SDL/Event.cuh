@@ -21,7 +21,11 @@
 #include "TrackCandidate.cuh"
 
 #include "cuda_profiler_api.h"
-
+#ifdef __CUDACC__
+#define CUDA_G __global__
+#else
+#define CUDA_G
+#endif
 namespace SDL
 {
     class Event
@@ -55,6 +59,7 @@ namespace SDL
 
         void addHitToEvent(float x, float y, float z, unsigned int detId, unsigned int idx); //call the appropriate hit function, then increment the counter here
         void addPixelSegmentToEvent(std::vector<unsigned int> hitIndices, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr);
+        //CUDA_G void addPixelSegmentToEventKernel(std::vector<unsigned int> hitIndices, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr);
 
         /*functions that map the objects to the appropriate modules*/
         void addMiniDoubletsToEvent();

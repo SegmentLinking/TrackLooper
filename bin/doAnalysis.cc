@@ -823,7 +823,7 @@ int main(int argc, char** argv)
 //             event.createTrackletsWithAGapWithModuleMap();
             //event.createTrackletsViaNavigation();
             float tl_elapsed = my_timer.RealTime();
-            event_times[ana.looper.getCurrentEventIndex()][3] = tl_elapsed - tp_elapsed;
+            event_times[ana.looper.getCurrentEventIndex()][3] = tl_elapsed - ptl_elapsed;
             if (ana.verbose != 0) std::cout << "Reco Tracklet processing time: " << tl_elapsed - ptl_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "# of Tracklets produced: " << event.getNumberOfTracklets() << std::endl;
             if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 1-2-3-4: " << event.getNumberOfTrackletsByLayerBarrel(0) << std::endl;
@@ -896,8 +896,9 @@ int main(int argc, char** argv)
     }
     std::cout<< "Timing summary"<<std::endl;
     std::cout<< "events minidoublets segments triplets tracklets tracks"<<std::endl;
+    std::cout<<showpoint;
     for(int ev=0;ev<ana.n_events;ev++){
-        std::cout<<ev <<" "<<event_times[ev][0] <<" "<<event_times[ev][1] <<" "<<event_times[ev][2] <<" "<<event_times[ev][3] <<" "<<event_times[ev][4]<<std::endl;
+        std::cout<<ev <<"\t"<<event_times[ev][0] <<"   "<<event_times[ev][1] <<"   "<<event_times[ev][2] <<"   "<<event_times[ev][3] <<"   "<<event_times[ev][4]<<std::endl;
     }
 
     SDL::cleanModules();
