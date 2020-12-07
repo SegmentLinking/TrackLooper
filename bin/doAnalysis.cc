@@ -895,11 +895,15 @@ int main(int argc, char** argv)
 //        // <--------------------------
 //        // <--------------------------
     }
-    std::cout<< "Timing summary"<<std::endl;
-    std::cout<< "events minidoublets segments triplets pixels tracklets tracks"<<std::endl;
     std::cout<<showpoint;
+    std::cout<<fixed;
+    std::cout<<setprecision(2);
+//    std::cout<<setw(12);
+    std::cout<<right;
+    std::cout<< "Timing summary"<<std::endl;
+    std::cout<< "Evt    MD   Segments Triplets  Pixels  Tracklet  Tracks"<<std::endl;
     for(int ev=0;ev<ana.n_events;ev++){
-        std::cout<<ev <<"\t"<<event_times[ev][0] <<"   "<<event_times[ev][1] <<"   "<<event_times[ev][2] <<"   "<<event_times[ev][3] <<"   "<<event_times[ev][4]<<"   "<<event_times[ev][5]<<std::endl;
+        std::cout<<ev<<"   "<<setw(6)<<event_times[ev][0]*1000 <<"   "<<setw(6)<<event_times[ev][1]*1000 <<"   "<<setw(6)<<event_times[ev][2]*1000 <<"   "<<setw(6)<<event_times[ev][3]*1000 <<"   "<<setw(6)<<event_times[ev][4]*1000<<"   "<<setw(6)<<event_times[ev][5]*1000<<std::endl;
     }
 
     SDL::cleanModules();
