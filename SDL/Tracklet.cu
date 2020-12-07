@@ -834,6 +834,7 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
 
     deltaPhiPos = deltaPhi(hitsInGPU.xs[innerOuterAnchorHitIndex], hitsInGPU.ys[innerOuterAnchorHitIndex], hitsInGPU.zs[innerOuterAnchorHitIndex], hitsInGPU.xs[outerOuterAnchorHitIndex], hitsInGPU.ys[outerOuterAnchorHitIndex], hitsInGPU.zs[outerOuterAnchorHitIndex]);
 
+    // Cut #4: deltaPhi
     if(not(fabsf(deltaPhiPos) <= sdlCut))
     {
         pass = false;

@@ -331,11 +331,12 @@ void SDL::Event::createMiniDoublets()
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
     }
 
-//#if defined(AddObjects) && !defined(Full_Explicit)
+#if defined(AddObjects)
 #ifdef Explicit_MD
     addMiniDoubletsToEventExplicit();
 #else
     addMiniDoubletsToEvent();
+#endif
 #endif
 
 
@@ -372,11 +373,12 @@ void SDL::Event::createSegmentsWithModuleMap()
     {
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
     }
-//#if defined(AddObjects) && !defined(Full_Explicit)
+#if defined(AddObjects)
 #ifdef Explicit_Seg
     addSegmentsToEventExplicit();
 #else
     addSegmentsToEvent();
+#endif
 #endif
 
 }
@@ -408,11 +410,12 @@ void SDL::Event::createTriplets()
     {
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
     }
-//#if defined(AddObjects) && !defined(Full_Explicit)
+#if defined(AddObjects)
 #ifdef Explicit_Trips
     addTripletsToEventExplicit();
 #else
     addTripletsToEvent();
+#endif
 #endif
 }
 
@@ -451,10 +454,12 @@ void SDL::Event::createTrackletsWithModuleMap()
     /*addTrackletsToEvent will be called in the createTrackletsWithAGapWithModuleMap function*/
 //#if defined(AddObjects) && !defined(Full_Explicit)
 
+#if defined(AddObjects)
 #ifdef Explicit_Tracklet
     addTrackletsToEventExplicit();
 #else
     addTrackletsToEvent();
+#endif
 #endif
 
 }
@@ -520,10 +525,12 @@ void SDL::Event::createTrackCandidates()
     {
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
     }
+#if defined(AddObjects)
 #ifdef Explicit_Track
     addTrackCandidatesToEventExplicit();
 #else
     addTrackCandidatesToEvent();
+#endif
 #endif
 
 }

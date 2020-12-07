@@ -527,7 +527,7 @@ int main(int argc, char** argv)
     //create them modules
     SDL::initModules();
 
-    float event_times[10][5];
+    float event_times[10][6];
     // Looping input file
     while (ana.looper.nextEvent())
     {
@@ -813,6 +813,7 @@ int main(int argc, char** argv)
             my_timer.Start(kFALSE);
             event.createPixelTracklets();
             float ptl_elapsed = my_timer.RealTime();
+            event_times[ana.looper.getCurrentEventIndex()][3] = ptl_elapsed - tp_elapsed;
             if (ana.verbose != 0) std::cout << "Reco Pixel Tracklet processing time: " << ptl_elapsed - tp_elapsed << " secs" << std::endl;
  
             if (ana.verbose != 0) std::cout << "Reco Tracklet start" << std::endl;
@@ -823,7 +824,7 @@ int main(int argc, char** argv)
 //             event.createTrackletsWithAGapWithModuleMap();
             //event.createTrackletsViaNavigation();
             float tl_elapsed = my_timer.RealTime();
-            event_times[ana.looper.getCurrentEventIndex()][3] = tl_elapsed - ptl_elapsed;
+            event_times[ana.looper.getCurrentEventIndex()][4] = tl_elapsed - ptl_elapsed;
             if (ana.verbose != 0) std::cout << "Reco Tracklet processing time: " << tl_elapsed - ptl_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "# of Tracklets produced: " << event.getNumberOfTracklets() << std::endl;
             if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 1-2-3-4: " << event.getNumberOfTrackletsByLayerBarrel(0) << std::endl;
@@ -847,7 +848,7 @@ int main(int argc, char** argv)
             event.createTrackCandidates();
             //event.createTrackCandidatesFromTracklets();
             float tc_elapsed = my_timer.RealTime();
-            event_times[ana.looper.getCurrentEventIndex()][4] = tc_elapsed - tl_elapsed;
+            event_times[ana.looper.getCurrentEventIndex()][5] = tc_elapsed - tl_elapsed;
             if (ana.verbose != 0) std::cout << "Reco TrackCandidate processing time: " << tc_elapsed - tl_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "# of TrackCandidates produced: " << event.getNumberOfTrackCandidates() << std::endl;
             if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 1-2-3-4-5-6: " << event.getNumberOfTrackCandidatesByLayerBarrel(0) << std::endl;
@@ -895,10 +896,10 @@ int main(int argc, char** argv)
 //        // <--------------------------
     }
     std::cout<< "Timing summary"<<std::endl;
-    std::cout<< "events minidoublets segments triplets tracklets tracks"<<std::endl;
+    std::cout<< "events minidoublets segments triplets pixels tracklets tracks"<<std::endl;
     std::cout<<showpoint;
     for(int ev=0;ev<ana.n_events;ev++){
-        std::cout<<ev <<"\t"<<event_times[ev][0] <<"   "<<event_times[ev][1] <<"   "<<event_times[ev][2] <<"   "<<event_times[ev][3] <<"   "<<event_times[ev][4]<<std::endl;
+        std::cout<<ev <<"\t"<<event_times[ev][0] <<"   "<<event_times[ev][1] <<"   "<<event_times[ev][2] <<"   "<<event_times[ev][3] <<"   "<<event_times[ev][4]<<"   "<<event_times[ev][5]<<std::endl;
     }
 
     SDL::cleanModules();
