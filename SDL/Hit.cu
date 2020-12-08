@@ -60,10 +60,14 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
     cudaMalloc(&hitsInGPU.phis, nMaxHits * sizeof(float));
 
     cudaMalloc(&hitsInGPU.edge2SMap, nMaxHits * sizeof(int)); //hits to edge hits map. Signed int
-    cudaMalloc(&hitsInGPU.highEdgeXs, nMax2SHits * sizeof(float));
-    cudaMalloc(&hitsInGPU.highEdgeYs, nMax2SHits * sizeof(float));
-    cudaMalloc(&hitsInGPU.lowEdgeXs, nMax2SHits * sizeof(float));
-    cudaMalloc(&hitsInGPU.lowEdgeYs, nMax2SHits * sizeof(float));
+    //cudaMalloc(&hitsInGPU.highEdgeXs, nMax2SHits * sizeof(float));
+    //cudaMalloc(&hitsInGPU.highEdgeYs, nMax2SHits * sizeof(float));
+    //cudaMalloc(&hitsInGPU.lowEdgeXs, nMax2SHits * sizeof(float));
+    //cudaMalloc(&hitsInGPU.lowEdgeYs, nMax2SHits * sizeof(float));
+    cudaMalloc(&hitsInGPU.highEdgeXs, nMaxHits * sizeof(float));
+    cudaMalloc(&hitsInGPU.highEdgeYs, nMaxHits * sizeof(float));
+    cudaMalloc(&hitsInGPU.lowEdgeXs, nMaxHits * sizeof(float));
+    cudaMalloc(&hitsInGPU.lowEdgeYs, nMaxHits * sizeof(float));
 
     //counters
     cudaMallocManaged(&hitsInGPU.nHits, sizeof(unsigned int));
@@ -157,10 +161,14 @@ __global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules
           float xhigh, yhigh, xlow, ylow;
           getEdgeHitsK(phis[ihit],x[ihit],y[ihit],xhigh,yhigh,xlow,ylow);
           hitsInGPU.edge2SMap[idx] = idxEdge2S;
-          hitsInGPU.highEdgeXs[idxEdge2S] = xhigh;
-          hitsInGPU.highEdgeYs[idxEdge2S] = yhigh;
-          hitsInGPU.lowEdgeXs[idxEdge2S] = xlow;
-          hitsInGPU.lowEdgeYs[idxEdge2S] = ylow;
+          //hitsInGPU.highEdgeXs[idxEdge2S] = xhigh;
+          //hitsInGPU.highEdgeYs[idxEdge2S] = yhigh;
+          //hitsInGPU.lowEdgeXs[idxEdge2S] = xlow;
+          //hitsInGPU.lowEdgeYs[idxEdge2S] = ylow;
+          hitsInGPU.highEdgeXs[idx] = xhigh;
+          hitsInGPU.highEdgeYs[idx] = yhigh;
+          hitsInGPU.lowEdgeXs[idx] = xlow;
+          hitsInGPU.lowEdgeYs[idx] = ylow;
   
           (*hitsInGPU.n2SHits)++;
       }

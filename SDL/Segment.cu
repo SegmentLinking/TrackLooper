@@ -428,7 +428,8 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
     unsigned int outerEdgeIndex;
     if(outerLayerEndcapTwoS)
     {
-        outerEdgeIndex = hitsInGPU.edge2SMap[outerMiniDoubletAnchorHitIndex];
+        //outerEdgeIndex = hitsInGPU.edge2SMap[outerMiniDoubletAnchorHitIndex];
+        outerEdgeIndex = outerMiniDoubletAnchorHitIndex;
 
         float dPhiPos_high = deltaPhi(hitsInGPU.xs[innerMiniDoubletAnchorHitIndex], hitsInGPU.ys[innerMiniDoubletAnchorHitIndex], hitsInGPU.zs[innerMiniDoubletAnchorHitIndex], hitsInGPU.highEdgeXs[outerEdgeIndex], hitsInGPU.highEdgeYs[outerEdgeIndex], hitsInGPU.zs[outerMiniDoubletAnchorHitIndex]);
 
