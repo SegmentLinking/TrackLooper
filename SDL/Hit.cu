@@ -19,7 +19,7 @@ SDL::hits::hits()
     lowEdgeXs = nullptr;
     lowEdgeYs = nullptr;
 }
-
+//FIXME:New array!
 void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits,unsigned int nMax2SHits)
 {
     //nMaxHits and nMax2SHits are the maximum possible numbers
@@ -27,6 +27,9 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
     cudaMallocManaged(&hitsInGPU.ys, nMaxHits * sizeof(float));
     cudaMallocManaged(&hitsInGPU.zs, nMaxHits * sizeof(float));
     cudaMallocManaged(&hitsInGPU.moduleIndices, nMaxHits * sizeof(unsigned int));
+    //TODO:This dude (idxs) is not used in the GPU at all. It is only used for simhit matching to make efficiency plots
+    //We can even skip this one later
+    cudaMallocManaged(&hitsInGPU.idxs, nMaxHits * sizeof(unsigned int));
 
     cudaMallocManaged(&hitsInGPU.rts, nMaxHits * sizeof(float));
     cudaMallocManaged(&hitsInGPU.phis, nMaxHits * sizeof(float));
@@ -43,12 +46,15 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
     cudaMallocManaged(&hitsInGPU.n2SHits, sizeof(unsigned int));
     *hitsInGPU.n2SHits = 0;
 }
+//<<<<<<< HEAD
 void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHits,unsigned int nMax2SHits)
 {
     cudaMalloc(&hitsInGPU.xs, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.ys, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.zs, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.moduleIndices, nMaxHits * sizeof(unsigned int));
+
+    cudaMalloc(&hitsInGPU.idxs, nMaxHits * sizeof(unsigned int));
 
     cudaMalloc(&hitsInGPU.rts, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.phis, nMaxHits * sizeof(float));
@@ -66,7 +72,19 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
     *hitsInGPU.n2SHits = 0;
 }
 
-void SDL::addHitToMemory(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId)
+//void SDL::addHitToMemory(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId)
+//{
+//    unsigned int idx = *(hitsInCPU.nHits);
+//    unsigned int idxEdge2S = *(hitsInCPU.n2SHits);
+//
+//    hitsInCPU.xs[idx] = x;
+//    hitsInCPU.ys[idx] = y;
+//    hitsInCPU.zs[idx] = z;
+//    hitsInCPU.rts[idx] = sqrt(x*x + y*y);
+//    hitsInCPU.phis[idx] = phi(x,y,z);
+//=======
+////FIXME:New argument!
+void SDL::addHitToMemory(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple)
 {
     unsigned int idx = *(hitsInCPU.nHits);
     unsigned int idxEdge2S = *(hitsInCPU.n2SHits);
@@ -76,6 +94,20 @@ void SDL::addHitToMemory(struct hits& hitsInCPU, struct modules& modulesInGPU, f
     hitsInCPU.zs[idx] = z;
     hitsInCPU.rts[idx] = sqrt(x*x + y*y);
     hitsInCPU.phis[idx] = phi(x,y,z);
+    hitsInCPU.idxs[idx] = idxInNtuple;
+//>>>>>>> 9f36dfd72eaedcf7c7d01fc014b3561910c03d5f
+//void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple)
+//{
+//    unsigned int idx = *(hitsInGPU.nHits);
+//    unsigned int idxEdge2S = *(hitsInGPU.n2SHits);
+//
+//    hitsInGPU.xs[idx] = x;
+//    hitsInGPU.ys[idx] = y;
+//    hitsInGPU.zs[idx] = z;
+//    hitsInGPU.rts[idx] = sqrt(x*x + y*y);
+//    hitsInGPU.phis[idx] = phi(x,y,z);
+//    hitsInGPU.idxs[idx] = idxInNtuple;
+////>>>>>>> 9f36dfd72eaedcf7c7d01fc014b3561910c03d5f
     unsigned int moduleIndex = (*detIdToIndex)[detId];
     hitsInCPU.moduleIndices[idx] = moduleIndex;
     if(modulesInGPU.subdets[moduleIndex] == Endcap and modulesInGPU.moduleType[moduleIndex] == TwoS)
@@ -119,6 +151,7 @@ __global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules
       hitsInGPU.rts[idx] = sqrt(x[ihit]*x[ihit] + y[ihit]*y[ihit]);
       hitsInGPU.phis[idx] = phi(x[ihit],y[ihit],z[ihit]);
       hitsInGPU.moduleIndices[idx] = moduleIndex[ihit];
+      hitsInGPU.idxs[idx] = ihit;
       if(modulesInGPU.subdets[moduleIndex[ihit]] == Endcap and modulesInGPU.moduleType[moduleIndex[ihit]] == TwoS)
       {
           float xhigh, yhigh, xlow, ylow;
