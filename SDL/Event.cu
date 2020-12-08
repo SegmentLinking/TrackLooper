@@ -101,17 +101,18 @@ void SDL::Event::addHitToEventGPU(std::vector<float> x, std::vector<float> y, st
     const int HIT_MAX = 1000000;
     const int HIT_2S_MAX = 100000;
 
+    const int loopsize = x.size();
     if(hitsInGPU == nullptr)
     {
 
         cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
-    	  createHitsInExplicitMemory(*hitsInGPU, HIT_MAX,HIT_2S_MAX);
+    	  createHitsInExplicitMemory(*hitsInGPU, loopsize,HIT_2S_MAX);
+    	  //createHitsInExplicitMemory(*hitsInGPU, HIT_MAX,HIT_2S_MAX);
     }
 
     //calls the addHitToMemory function
     ////Explicit
-    const int loopsize = x.size();
-    unsigned int nThreads = 1;
+    unsigned int nThreads = 1;//256;
     //unsigned int nBlocks = HIT_MAX % nThreads == 0 ? HIT_MAX/nThreads : HIT_MAX/nThreads + 1;
     unsigned int nBlocks =  1;//loopsize % nThreads == 0 ? loopsize/nThreads : loopsize/nThreads + 1;
 
@@ -135,6 +136,7 @@ void SDL::Event::addHitToEventGPU(std::vector<float> x, std::vector<float> y, st
     cudaMallocHost(&host_moduleIndex,sizeof(unsigned int)*loopsize);
     cudaMalloc(&dev_phi,sizeof(float)*loopsize);
     cudaMallocHost(&host_phi,sizeof(float)*loopsize);
+#pragma omp parallel for
   for (int ihit=0; ihit<loopsize;ihit++){
     unsigned int moduleLayer = modulesInGPU->layers[(*detIdToIndex)[host_detId[ihit]]];
     unsigned int subdet = modulesInGPU->subdets[(*detIdToIndex)[host_detId[ihit]]];
@@ -158,7 +160,15 @@ void SDL::Event::addHitToEventGPU(std::vector<float> x, std::vector<float> y, st
     cudaMemcpy(dev_phi,host_phi,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
     cudaDeviceSynchronize();
     addHitToMemoryKernel<<<nBlocks,nThreads>>>(*hitsInGPU, *modulesInGPU, dev_x, dev_y, dev_z, dev_moduleIndex,dev_phi,loopsize);
+    *hitsInGPU->nHits = loopsize;
     cudaDeviceSynchronize();
+    //cudaError_t cudaerr = cudaDeviceSynchronize();
+    //if(cudaerr != cudaSuccess)
+   // {
+    //    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
+    //}
+    //checkHits<<<1,1>>>(*hitsInGPU,loopsize);
+    //cudaDeviceSynchronize();
 
 }
 void SDL::Event::addHitToEvent(float x, float y, float z, unsigned int detId, unsigned int idx)
@@ -1348,7 +1358,7 @@ __global__ void createTrackCandidatesInGPU(struct SDL::modules& modulesInGPU, st
     //inner tracklet/triplet inner segment inner MD lower module
     int innerInnerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
     //hack to include pixel detector
-    if(innerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules + 1) return; 
+    if(innerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules /*+ 1*/) return; 
 
     unsigned int nTracklets = trackletsInGPU.nTracklets[innerInnerInnerLowerModuleArrayIndex];
     unsigned int nTriplets = tripletsInGPU.nTriplets[innerInnerInnerLowerModuleArrayIndex]; // should be zero for the pixels
