@@ -25,7 +25,7 @@ namespace SDL
     struct hits
     {
         unsigned int *nHits; //single number
-        unsigned int *n2SHits;
+//        unsigned int *n2SHits;
         float *xs;
         float *ys;
         float *zs;
@@ -36,7 +36,7 @@ namespace SDL
         float *rts;
         float* phis;
 
-        int *edge2SMap;
+//        int *edge2SMap;
         float *highEdgeXs;
         float *highEdgeYs;
         float *lowEdgeXs;

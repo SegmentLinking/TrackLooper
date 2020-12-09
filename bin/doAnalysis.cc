@@ -626,7 +626,8 @@ int main(int argc, char** argv)
             if (ana.verbose != 0) std::cout << "load Hits start" << std::endl;
             my_timer.Start();
             // Adding hits to modules
-            event.addHitToEventGPU(trk.ph2_x(),trk.ph2_y(),trk.ph2_z(),trk.ph2_detId());
+//            event.addHitToEventGPU(trk.ph2_x(),trk.ph2_y(),trk.ph2_z(),trk.ph2_detId());
+            event.addHitToEventOMP(trk.ph2_x(),trk.ph2_y(),trk.ph2_z(),trk.ph2_detId()); // check if this runs with omp or serially before you start!
 //            for (unsigned int ihit = 0; ihit < trk.ph2_x().size(); ++ihit)
 //            {
 //                // Takes two arguments, SDL::Hit, and detId
