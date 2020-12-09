@@ -527,7 +527,7 @@ int main(int argc, char** argv)
     //create them modules
     SDL::initModules();
 
-    float event_times[10][7];
+    float event_times[10][8];
     // Looping input file
     while (ana.looper.nextEvent())
     {
@@ -627,13 +627,13 @@ int main(int argc, char** argv)
             my_timer.Start();
             // Adding hits to modules
 //            event.addHitToEventGPU(trk.ph2_x(),trk.ph2_y(),trk.ph2_z(),trk.ph2_detId());
-            event.addHitToEventOMP(trk.ph2_x(),trk.ph2_y(),trk.ph2_z(),trk.ph2_detId()); // check if this runs with omp or serially before you start!
-//            for (unsigned int ihit = 0; ihit < trk.ph2_x().size(); ++ihit)
-//            {
-//                // Takes two arguments, SDL::Hit, and detId
-//                // SDL::Event internally will structure whether we already have the module instance or we need to create a new one.
-//                event.addHitToEvent(trk.ph2_x()[ihit], trk.ph2_y()[ihit], trk.ph2_z()[ihit],trk.ph2_detId()[ihit], ihit);
-//            }
+//            event.addHitToEventOMP(trk.ph2_x(),trk.ph2_y(),trk.ph2_z(),trk.ph2_detId()); // check if this runs with omp or serially before you start!
+            for (unsigned int ihit = 0; ihit < trk.ph2_x().size(); ++ihit)
+            {
+                // Takes two arguments, SDL::Hit, and detId
+                // SDL::Event internally will structure whether we already have the module instance or we need to create a new one.
+                event.addHitToEvent(trk.ph2_x()[ihit], trk.ph2_y()[ihit], trk.ph2_z()[ihit],trk.ph2_detId()[ihit], ihit);
+            }
 
             float ht_elapsed = my_timer.RealTime();
             event_times[ana.looper.getCurrentEventIndex()][0] = ht_elapsed;
@@ -801,25 +801,27 @@ int main(int argc, char** argv)
             // ----------------
 
             // ----------------
-//            if(ana.verbose != 0) std::cout<<"Adding Pixel Segments!"<<std::endl;
-//            addPixelSegments(event,-1);
-//   
-//            if(ana.verbose != 0) std::cout<<" Reco Pixel Tracklet start"<<std::endl;
+            if(ana.verbose != 0) std::cout<<"Adding Pixel Segments!"<<std::endl;
             my_timer.Start(kFALSE);
-//            event.createPixelTracklets();
+            addPixelSegments(event,-1);
+            float pix_elapsed = my_timer.RealTime();
+            event_times[ana.looper.getCurrentEventIndex()][4] = pix_elapsed - tp_elapsed;
+   
+            if(ana.verbose != 0) std::cout<<" Reco Pixel Tracklet start"<<std::endl;
+            my_timer.Start(kFALSE);
+            event.createPixelTracklets();
             float ptl_elapsed = my_timer.RealTime();
-            event_times[ana.looper.getCurrentEventIndex()][4] = ptl_elapsed - tp_elapsed;
-//            if (ana.verbose != 0) std::cout << "Reco Pixel Tracklet processing time: " << ptl_elapsed - tp_elapsed << " secs" << std::endl;
+            event_times[ana.looper.getCurrentEventIndex()][5] = ptl_elapsed - pix_elapsed;
+            if (ana.verbose != 0) std::cout << "Reco Pixel Tracklet processing time: " << ptl_elapsed - pix_elapsed << " secs" << std::endl;
  
             if (ana.verbose != 0) std::cout << "Reco Tracklet start" << std::endl;
             my_timer.Start(kFALSE);
             // event.createTracklets();
-            //float tl_start = my_timer.RealTime();
              event.createTrackletsWithModuleMap();
 //             event.createTrackletsWithAGapWithModuleMap();
             //event.createTrackletsViaNavigation();
             float tl_elapsed = my_timer.RealTime();
-            event_times[ana.looper.getCurrentEventIndex()][5] = tl_elapsed - ptl_elapsed;
+            event_times[ana.looper.getCurrentEventIndex()][6] = tl_elapsed - ptl_elapsed;
             if (ana.verbose != 0) std::cout << "Reco Tracklet processing time: " << tl_elapsed - ptl_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "# of Tracklets produced: " << event.getNumberOfTracklets() << std::endl;
             if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 1-2-3-4: " << event.getNumberOfTrackletsByLayerBarrel(0) << std::endl;
@@ -843,7 +845,7 @@ int main(int argc, char** argv)
             event.createTrackCandidates();
             //event.createTrackCandidatesFromTracklets();
             float tc_elapsed = my_timer.RealTime();
-            event_times[ana.looper.getCurrentEventIndex()][6] = tc_elapsed - tl_elapsed;
+            event_times[ana.looper.getCurrentEventIndex()][7] = tc_elapsed - tl_elapsed;
             if (ana.verbose != 0) std::cout << "Reco TrackCandidate processing time: " << tc_elapsed - tl_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "# of TrackCandidates produced: " << event.getNumberOfTrackCandidates() << std::endl;
             if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 1-2-3-4-5-6: " << event.getNumberOfTrackCandidatesByLayerBarrel(0) << std::endl;
@@ -893,31 +895,35 @@ int main(int argc, char** argv)
     std::cout<<showpoint;
     std::cout<<fixed;
     std::cout<<setprecision(2);
-//    std::cout<<setw(12);
     std::cout<<right;
     std::cout<< "Timing summary"<<std::endl;
-    std::cout<< "Evt     Hits       MD   Segments Triplets  Pixels  Tracklet  Tracks    Total"<<std::endl;
+    std::cout<< "Evt     Hits       MD   Segments Triplets  Pixels  pTracklet  Tracklet  Tracks    Total  Total(no load)"<<std::endl;
     float avg_hit = 0.;
     float avg_md = 0.;
     float avg_seg = 0.;
     float avg_trip = 0.;
     float avg_pix = 0.;
+    float avg_plet = 0.;
     float avg_tlet = 0.;
     float avg_track = 0.;
     float avg_tot = 0.;
+    float avg_noload = 0.;
     for(int ev=0;ev<ana.n_events;ev++){
-        float total =event_times[ev][0]+event_times[ev][1] +event_times[ev][2]+event_times[ev][3]+event_times[ev][4]+ event_times[ev][5]+event_times[ev][6];
+        float total =event_times[ev][0]+event_times[ev][1] +event_times[ev][2]+event_times[ev][3]+event_times[ev][4]+ event_times[ev][5]+event_times[ev][6]+event_times[ev][7];
+        float no_load =event_times[ev][1] +event_times[ev][2]+event_times[ev][3]+ event_times[ev][5]+event_times[ev][6]+event_times[ev][7];
         avg_hit += event_times[ev][0]; 
         avg_md += event_times[ev][1]; 
         avg_seg += event_times[ev][2]; 
         avg_trip += event_times[ev][3]; 
         avg_pix += event_times[ev][4]; 
-        avg_tlet += event_times[ev][5]; 
-        avg_track += event_times[ev][6]; 
+        avg_plet += event_times[ev][5]; 
+        avg_tlet += event_times[ev][6]; 
+        avg_track += event_times[ev][7]; 
         avg_tot += total;
-        std::cout<<ev<<"      "<<setw(6)<<event_times[ev][0]*1000 <<"   "<<setw(6)<<event_times[ev][1]*1000 <<"   "<<setw(6)<<event_times[ev][2]*1000 <<"   "<<setw(6)<<event_times[ev][3]*1000 <<"   "<<setw(6)<<event_times[ev][4]*1000<<"   "<<setw(6)<<event_times[ev][5]*1000<<"   "<<setw(6)<<event_times[ev][6]*1000<<"   "<<setw(7)<<total*1000<<std::endl;
+        avg_noload += no_load;
+        std::cout<<ev<<"      "<<setw(6)<<event_times[ev][0]*1000 <<"   "<<setw(6)<<event_times[ev][1]*1000 <<"   "<<setw(6)<<event_times[ev][2]*1000 <<"   "<<setw(6)<<event_times[ev][3]*1000 <<"   "<<setw(7)<<event_times[ev][4]*1000 <<"   "<<setw(6)<<event_times[ev][5]*1000<<"   "<<setw(6)<<event_times[ev][6]*1000<<"   "<<setw(6)<<event_times[ev][7]*1000<<"   "<<setw(7)<<total*1000<<"   "<<setw(7)<<no_load*1000<<std::endl;
     }
-        std::cout<<"avg:   "<<setw(6)<<avg_hit*1000/ana.n_events <<"   "<<setw(6)<<avg_md*1000/ana.n_events <<"   "<<setw(6)<<avg_seg*1000/ana.n_events <<"   "<<setw(6)<<avg_trip*1000/ana.n_events <<"   "<<setw(6)<<avg_pix*1000/ana.n_events<<"   "<<setw(6)<<avg_tlet*1000/ana.n_events<<"   "<<setw(6)<<avg_track*1000/ana.n_events<<"   "<<setw(7)<<avg_tot*1000/ana.n_events<<std::endl;
+        std::cout<<"avg:   "<<setw(6)<<avg_hit*1000/ana.n_events <<"   "<<setw(6)<<avg_md*1000/ana.n_events <<"   "<<setw(6)<<avg_seg*1000/ana.n_events <<"   "<<setw(6)<<avg_trip*1000/ana.n_events <<"   "<<setw(7)<<avg_pix*1000/ana.n_events<<"   "<<setw(6)<<avg_plet*1000/ana.n_events<<"   "<<setw(6)<<avg_tlet*1000/ana.n_events<<"   "<<setw(6)<<avg_track*1000/ana.n_events<<"   "<<setw(7)<<avg_tot*1000/ana.n_events<<"   "<<setw(7)<<avg_noload*1000/ana.n_events<<std::endl;
 
     SDL::cleanModules();
 
