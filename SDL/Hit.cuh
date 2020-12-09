@@ -49,7 +49,7 @@ namespace SDL
     };
 
     void createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int maxHits, unsigned int max2SHits);
-    void createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int maxHits, unsigned int max2SHits);
+    void createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int maxHits);
     CUDA_G void addHitToMemoryKernel(struct hits& hitsInGPU,struct modules& modulesInGPU,const float* x,const float* y, const float* z,const unsigned int* moduelIndex,const float* phis, const int loopsize);
     CUDA_G void checkHits(struct hits& hitsInGPU, const int loopsize);
     void addHitToMemory(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple);

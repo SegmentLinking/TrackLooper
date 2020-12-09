@@ -47,7 +47,7 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
     *hitsInGPU.n2SHits = 0;
 }
 //<<<<<<< HEAD
-void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHits,unsigned int nMax2SHits)
+void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHits)
 {
     cudaMalloc(&hitsInGPU.xs, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.ys, nMaxHits * sizeof(float));
@@ -59,32 +59,26 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
     cudaMalloc(&hitsInGPU.rts, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.phis, nMaxHits * sizeof(float));
 
-    //cudaMalloc(&hitsInGPU.edge2SMap, nMaxHits * sizeof(int)); //hits to edge hits map. Signed int
-    //cudaMalloc(&hitsInGPU.highEdgeXs, nMax2SHits * sizeof(float));
-    //cudaMalloc(&hitsInGPU.highEdgeYs, nMax2SHits * sizeof(float));
-    //cudaMalloc(&hitsInGPU.lowEdgeXs, nMax2SHits * sizeof(float));
-    //cudaMalloc(&hitsInGPU.lowEdgeYs, nMax2SHits * sizeof(float));
     cudaMalloc(&hitsInGPU.highEdgeXs, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.highEdgeYs, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.lowEdgeXs, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.lowEdgeYs, nMaxHits * sizeof(float));
 
-    cudaMemset(hitsInGPU.xs,0,nMaxHits*sizeof(float));
-    cudaMemset(hitsInGPU.ys,0,nMaxHits*sizeof(float));
-    cudaMemset(hitsInGPU.zs,0,nMaxHits*sizeof(float));
-    cudaMemset(hitsInGPU.rts,0,nMaxHits*sizeof(float));
-    cudaMemset(hitsInGPU.phis,0,nMaxHits*sizeof(float));
-    cudaMemset(hitsInGPU.highEdgeXs,0,nMaxHits*sizeof(float));
-    cudaMemset(hitsInGPU.highEdgeYs,0,nMaxHits*sizeof(float));
-    cudaMemset(hitsInGPU.lowEdgeXs,0,nMaxHits*sizeof(float));
-    cudaMemset(hitsInGPU.lowEdgeYs,0,nMaxHits*sizeof(float));
-    cudaMemset(hitsInGPU.moduleIndices,0,nMaxHits*sizeof(unsigned int));
-    cudaMemset(hitsInGPU.idxs,0,nMaxHits*sizeof(unsigned int));
+//    cudaMemset(hitsInGPU.xs,0,nMaxHits*sizeof(float));
+//    cudaMemset(hitsInGPU.ys,0,nMaxHits*sizeof(float));
+//    cudaMemset(hitsInGPU.zs,0,nMaxHits*sizeof(float));
+//    cudaMemset(hitsInGPU.rts,0,nMaxHits*sizeof(float));
+//    cudaMemset(hitsInGPU.phis,0,nMaxHits*sizeof(float));
+//    cudaMemset(hitsInGPU.highEdgeXs,0,nMaxHits*sizeof(float));
+//    cudaMemset(hitsInGPU.highEdgeYs,0,nMaxHits*sizeof(float));
+//    cudaMemset(hitsInGPU.lowEdgeXs,0,nMaxHits*sizeof(float));
+//    cudaMemset(hitsInGPU.lowEdgeYs,0,nMaxHits*sizeof(float));
+//    cudaMemset(hitsInGPU.moduleIndices,0,nMaxHits*sizeof(unsigned int));
+//    cudaMemset(hitsInGPU.idxs,0,nMaxHits*sizeof(unsigned int));
     //counters
-    cudaMallocManaged(&hitsInGPU.nHits, sizeof(unsigned int));
-    *hitsInGPU.nHits = 0;
-//    cudaMallocManaged(&hitsInGPU.n2SHits, sizeof(unsigned int));
-//    *hitsInGPU.n2SHits = 0;
+    cudaMalloc(&hitsInGPU.nHits, sizeof(unsigned int));
+    cudaMemset(hitsInGPU.nHits,nMaxHits,nMaxHits*sizeof(unsigned int));
+//    *hitsInGPU.nHits = 0;
 }
 
 //void SDL::addHitToMemory(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId)
@@ -158,7 +152,7 @@ __global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules
   //unsigned int ihit = blockIdx.x*blockDim.x + threadIdx.x;
   //printf("test %u\n",ihit);
   //for (unsigned int ihit = blockIdx.x*blockDim.x + threadIdx.x; ihit <loopsize; ihit += blockDim.x*gridDim.x)
-  printf("t: %u %u %u, B: %u %u %u Dim: %u %u\n",threadIdx.x,threadIdx.y,threadIdx.z,blockIdx.x,blockIdx.y,blockIdx.z,blockDim.x,gridDim.x);
+//  printf("t: %u %u %u, B: %u %u %u Dim: %u %u\n",threadIdx.x,threadIdx.y,threadIdx.z,blockIdx.x,blockIdx.y,blockIdx.z,blockDim.x,gridDim.x);
   for (int ihit = threadIdx.x; ihit <loopsize; ihit += blockDim.x)
   //if(ihit < loopsize)
   {
@@ -200,7 +194,7 @@ __global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules
       modulesInGPU.hitRanges[moduleIndex[ihit] * 2 + 1] = idx;
   //    (*hitsInGPU.nHits)++;
       //(*hitsInGPU.nHits) = atomicAdd(hitsInGPU.nHits,1);
-__syncthreads();
+//__syncthreads();
   }
 }
 __global__ void SDL::checkHits(struct hits& hitsInGPU, const int loopsize){
