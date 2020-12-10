@@ -72,6 +72,52 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
     cudaMemset(hitsInGPU.nHits,nMaxHits,sizeof(unsigned int));
 }
 
+__global__ void SDL::addHitToMemoryGPU(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex,float phis)
+{
+    unsigned int idx = *(hitsInCPU.nHits);
+//    unsigned int idxEdge2S = *(hitsInCPU.n2SHits);
+
+    hitsInCPU.xs[idx] = x;
+    hitsInCPU.ys[idx] = y;
+    hitsInCPU.zs[idx] = z;
+    hitsInCPU.rts[idx] = sqrt(x*x + y*y);
+    hitsInCPU.phis[idx] = phi(x,y,z);
+    hitsInCPU.idxs[idx] = idxInNtuple;
+ //   unsigned int moduleIndex = (*detIdToIndex)[detId];
+    hitsInCPU.moduleIndices[idx] = moduleIndex;
+    if(modulesInGPU.subdets[moduleIndex] == Endcap and modulesInGPU.moduleType[moduleIndex] == TwoS)
+    {
+        float xhigh, yhigh, xlow, ylow;
+        //getEdgeHits(detId,x,y,xhigh,yhigh,xlow,ylow);
+        getEdgeHitsK(phis,x,y,xhigh,yhigh,xlow,ylow);
+        //hitsInCPU.edge2SMap[idx] = idxEdge2S;
+        //hitsInCPU.highEdgeXs[idxEdge2S] = xhigh; // due to changes to support the explicit version
+        //hitsInCPU.highEdgeYs[idxEdge2S] = yhigh; 
+        //hitsInCPU.lowEdgeXs[idxEdge2S] = xlow;
+        //hitsInCPU.lowEdgeYs[idxEdge2S] = ylow;
+        hitsInCPU.highEdgeXs[idx] = xhigh;
+        hitsInCPU.highEdgeYs[idx] = yhigh;
+        hitsInCPU.lowEdgeXs[idx] = xlow;
+        hitsInCPU.lowEdgeYs[idx] = ylow;
+
+        //(*hitsInCPU.n2SHits)++;
+    }
+//    else
+//    {
+//        hitsInCPU.edge2SMap[idx] = -1;
+//    }
+
+    //set the hit ranges appropriately in the modules struct
+
+    //start the index rolling if the module is encountered for the first time
+    if(modulesInGPU.hitRanges[moduleIndex * 2] == -1)
+    {
+        modulesInGPU.hitRanges[moduleIndex * 2] = idx;
+    }
+    //always update the end index
+    modulesInGPU.hitRanges[moduleIndex * 2 + 1] = idx;
+    (*hitsInCPU.nHits)++;
+}
 void SDL::addHitToMemory(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple)
 {
     unsigned int idx = *(hitsInCPU.nHits);

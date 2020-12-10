@@ -68,8 +68,8 @@ SDL::Event::~Event()
 #endif
     cudaFreeHost(mdsInGPU);
     cudaFreeHost(segmentsInGPU);
-    cudaFreeHost(trackletsInGPU);
     cudaFreeHost(tripletsInGPU);
+    cudaFreeHost(trackletsInGPU);
     cudaFreeHost(trackCandidatesInGPU);
     hitsInGPU->freeMemory();
     cudaFreeHost(hitsInGPU);
@@ -218,7 +218,8 @@ void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, st
     {
 
         cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
-    	  createHitsInExplicitMemory(*hitsInGPU, loopsize);
+    	  //createHitsInExplicitMemory(*hitsInGPU, loopsize);
+    	  createHitsInExplicitMemory(*hitsInGPU, 316653);
     }
 
 
@@ -344,6 +345,44 @@ void SDL::Event::addHitToEvent(float x, float y, float z, unsigned int detId, un
         n_hits_by_layer_endcap_[moduleLayer-1]++;
     }
 
+}
+void /*unsigned int*/ SDL::Event::addPixToEvent(float x, float y, float z, unsigned int detId, unsigned int idx)
+{
+    const int HIT_MAX = 1000000;
+    const int HIT_2S_MAX = 100000;
+
+    if(hitsInGPU == nullptr)
+    {
+
+        cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
+        //createHitsInUnifiedMemory(*hitsInGPU,HIT_MAX,HIT_2S_MAX);
+        createHitsInExplicitMemory(*hitsInGPU,229866);
+    }
+
+    //calls the addHitToMemory function
+    unsigned int moduleIndex = (*detIdToIndex)[detId];
+    float phis = phi(x,y,z);
+    addHitToMemoryGPU<<<1,1>>>(*hitsInGPU, *modulesInGPU, x, y, z, detId, idx, moduleIndex,phis);
+    //addHitToMemory(*hitsInGPU, *modulesInGPU, x, y, z, detId, idx);
+
+    unsigned int moduleLayer = modulesInGPU->layers[(*detIdToIndex)[detId]];
+    unsigned int subdet = modulesInGPU->subdets[(*detIdToIndex)[detId]];
+
+    if(subdet == Barrel)
+    {
+        n_hits_by_layer_barrel_[moduleLayer-1]++;
+    }
+    else if(subdet == Endcap)
+    {
+        n_hits_by_layer_endcap_[moduleLayer-1]++;
+    }
+//    unsigned int* hitIdx;
+//    cudaMallocHost(&hitIdx,sizeof(unsigned int));
+//    cudaMemcpy(&hitIdx,hitsInGPU->nHits,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+//    printf("hit %u\n",hitIdx[0]);
+//   // unsigned int dummy = *hitIdx;//so i can return the value and still free?
+//    //cudaFreeHost(hitIdx);
+//    return 0;
 }
 
 __global__ void /*SDL::Event::*/addPixelSegmentToEventKernel(unsigned int* hitIndices, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr,unsigned int pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU)
@@ -1468,7 +1507,7 @@ __global__ void createTrackCandidatesInGPU(struct SDL::modules& modulesInGPU, st
     //inner tracklet/triplet inner segment inner MD lower module
     int innerInnerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
     //hack to include pixel detector
-    if(innerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules /*+ 1*/) return; 
+    if(innerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules + 1) return; 
 
     unsigned int nTracklets = trackletsInGPU.nTracklets[innerInnerInnerLowerModuleArrayIndex];
     unsigned int nTriplets = tripletsInGPU.nTriplets[innerInnerInnerLowerModuleArrayIndex]; // should be zero for the pixels
