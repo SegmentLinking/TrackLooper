@@ -126,19 +126,19 @@ void addPixelSegments(SDL::Event& event, int isimtrk, const int hit_size)
 //            event.addPixelSegmentToEvent(hitIndices, pixelSegmentDeltaPhiChange, ptIn, ptErr, px, py, pz, etaErr);
       // new explicit hits version
 	          int hitIdx0InNtuple = trk.see_hitIdx()[iSeed][0];
-            /*unsigned int hitIdx0 = */event.addPixToEvent(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), 1, hitIdx0InNtuple);
-            unsigned int hitIdx0 = hit_size + count;//*(hitsInGPU->nHits) - 1; //last hit index
+            event.addPixToEvent(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), 1, hitIdx0InNtuple);
+            unsigned int hitIdx0 = hit_size + count;
             count++; // incrementing the counter after the hitIdx should take care for the -1 right?
      
             int hitIdx1InNtuple = trk.see_hitIdx()[iSeed][1];
-            /*unsigned int hitIdx1 = */event.addPixToEvent(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), 1, hitIdx1InNtuple);
-            unsigned int hitIdx1 = hit_size + count;//*(hitsInGPU->nHits) - 1;
+            event.addPixToEvent(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), 1, hitIdx1InNtuple);
+            unsigned int hitIdx1 = hit_size + count;
             count++;
 
             int hitIdx2InNtuple = trk.see_hitIdx()[iSeed][2];
 
-            /*unsigned int hitIdx2 = */event.addPixToEvent(r3LH.X(), r3LH.Y(), r3LH.Z(),1,hitIdx2InNtuple);
-            unsigned int hitIdx2 = hit_size + count;//*(hitsInGPU->nHits) - 1;
+            event.addPixToEvent(r3LH.X(), r3LH.Y(), r3LH.Z(),1,hitIdx2InNtuple);
+            unsigned int hitIdx2 = hit_size + count;
             count++;
 
             int hitIdx3InNtuple = trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]; // repeat last one if triplet
@@ -150,7 +150,7 @@ void addPixelSegments(SDL::Event& event, int isimtrk, const int hit_size)
             else
             {
                 event.addPixToEvent(r3LH.X(), r3LH.Y(), r3LH.Z(),1,hitIdx3InNtuple);
-                hitIdx3 = hit_size + count;//*(hitsInGPU->nHits) - 1;
+                hitIdx3 = hit_size + count;
                 count++;
             }
 
@@ -838,13 +838,13 @@ int main(int argc, char** argv)
             // ----------------
             if(ana.verbose != 0) std::cout<<"Adding Pixel Segments!"<<std::endl;
             my_timer.Start(kFALSE);
-//            addPixelSegments(event,-1,trk.ph2_x().size());
+            addPixelSegments(event,-1,trk.ph2_x().size());
             float pix_elapsed = my_timer.RealTime();
             event_times[ana.looper.getCurrentEventIndex()][4] = pix_elapsed - tp_elapsed;
    
             if(ana.verbose != 0) std::cout<<" Reco Pixel Tracklet start"<<std::endl;
             my_timer.Start(kFALSE);
-//            event.createPixelTracklets();
+            event.createPixelTracklets();
             float ptl_elapsed = my_timer.RealTime();
             event_times[ana.looper.getCurrentEventIndex()][5] = ptl_elapsed - pix_elapsed;
             if (ana.verbose != 0) std::cout << "Reco Pixel Tracklet processing time: " << ptl_elapsed - pix_elapsed << " secs" << std::endl;

@@ -106,7 +106,7 @@ void SDL::Event::addHitToEventGPU(std::vector<float> x, std::vector<float> y, st
     {
 
         cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
-    	  createHitsInExplicitMemory(*hitsInGPU, loopsize);
+    	  createHitsInExplicitMemory(*hitsInGPU, 2*loopsize);
     	  //createHitsInExplicitMemory(*hitsInGPU, HIT_MAX,HIT_2S_MAX);
     }
 
@@ -188,6 +188,7 @@ void SDL::Event::addHitToEventGPU(std::vector<float> x, std::vector<float> y, st
     cudaMemcpy(hitsInGPU->highEdgeYs,host_highEdgeYs,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
     cudaMemcpy(hitsInGPU->lowEdgeXs,host_lowEdgeXs,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
     cudaMemcpy(hitsInGPU->lowEdgeYs,host_lowEdgeYs,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
+    cudaMemcpy(hitsInGPU->nHits,&loopsize,sizeof(unsigned int),cudaMemcpyHostToDevice);// value can't correctly be set in hit allocation 
     cudaDeviceSynchronize();
     cudaFree(dev_x);
     cudaFree(dev_y);
@@ -218,8 +219,7 @@ void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, st
     {
 
         cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
-    	  //createHitsInExplicitMemory(*hitsInGPU, loopsize);
-    	  createHitsInExplicitMemory(*hitsInGPU, 316653);
+    	  createHitsInExplicitMemory(*hitsInGPU, 2*loopsize); //unclear why but this has to be 2*loopsize to avoid crashing later (reported in tracklet allocation). seems to do with nHits values as well. this allows nhits to be set to the correct value of loopsize to get correct results without crashing. still beats the "max hits" so i think this is fine.  
     }
 
 
@@ -289,7 +289,6 @@ void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, st
       //always update the end index
       modulesInGPU->hitRanges[this_index * 2 + 1] = ihit;
 
-
   }
 //simply copy the host arrays to the hitsInGPU struct
     cudaMemcpy(hitsInGPU->xs,host_x,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
@@ -302,11 +301,9 @@ void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, st
     cudaMemcpy(hitsInGPU->highEdgeYs,host_highEdgeYs,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
     cudaMemcpy(hitsInGPU->lowEdgeXs,host_lowEdgeXs,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
     cudaMemcpy(hitsInGPU->lowEdgeYs,host_lowEdgeYs,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
+    cudaMemcpy(hitsInGPU->nHits,&loopsize,sizeof(unsigned int),cudaMemcpyHostToDevice);// value can't correctly be set in hit allocation 
     cudaDeviceSynchronize(); //doesn't seem to make a difference
 
-    //cudaFreeHost(host_x);
-    //cudaFreeHost(host_y);
-    //cudaFreeHost(host_z);
     cudaFreeHost(host_rts);
     cudaFreeHost(host_idxs);
     cudaFreeHost(host_phis);
@@ -698,9 +695,6 @@ void SDL::Event::createTrackletsWithModuleMap()
         createTrackletsInUnifiedMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , N_MAX_PIXEL_TRACKLETS_PER_MODULE, nLowerModules);
 #endif
     }
-//#if defined(Explicit_Tracklet) && !defined(Full_Explicit)
-//    cudaMemset(trackletsInGPU->nTracklets,0,nLowerModules*sizeof(unsigned int));
-//#endif
 
     unsigned int nThreads = 1;
     unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads + 1;
@@ -714,7 +708,6 @@ void SDL::Event::createTrackletsWithModuleMap()
 
     }
     /*addTrackletsToEvent will be called in the createTrackletsWithAGapWithModuleMap function*/
-//#if defined(AddObjects) && !defined(Full_Explicit)
 
 #if defined(AddObjects)
 #ifdef Explicit_Tracklet

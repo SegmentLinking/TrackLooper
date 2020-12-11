@@ -47,6 +47,7 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
     //counters
     cudaMallocManaged(&hitsInGPU.nHits, sizeof(unsigned int));
     *hitsInGPU.nHits = 0;
+    //*hitsInGPU.nHits = nMaxHits/2;
 //    cudaMallocManaged(&hitsInGPU.n2SHits, sizeof(unsigned int));
 //    *hitsInGPU.n2SHits = 0;
 }
@@ -69,7 +70,8 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
 
     //counters
     cudaMalloc(&hitsInGPU.nHits, sizeof(unsigned int));
-    cudaMemset(hitsInGPU.nHits,nMaxHits,sizeof(unsigned int));
+    cudaMemset(hitsInGPU.nHits,0,sizeof(unsigned int));
+    //cudaMemset(hitsInGPU.nHits,nMaxHits/2,sizeof(unsigned int));
 }
 
 __global__ void SDL::addHitToMemoryGPU(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex,float phis)
