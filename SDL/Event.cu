@@ -95,11 +95,9 @@ void SDL::Event::resetObjectsInModule()
 {
     resetObjectRanges(*modulesInGPU,nModules);
 }
-// COMMENTED OUT add hits via kernel method. works serially (1 thread, 1 block) but not in parallel. run condition on the if statements?
+// add hits via kernel method. 
 void SDL::Event::addHitToEventGPU(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId)
 {
-//    const int HIT_MAX = 1000000;
-//    const int HIT_2S_MAX = 100000;
 
     const int loopsize = x.size();
     if(hitsInGPU == nullptr)
@@ -107,7 +105,6 @@ void SDL::Event::addHitToEventGPU(std::vector<float> x, std::vector<float> y, st
 
         cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
     	  createHitsInExplicitMemory(*hitsInGPU, 2*loopsize);
-    	  //createHitsInExplicitMemory(*hitsInGPU, HIT_MAX,HIT_2S_MAX);
     }
 
     //calls the addHitToMemory function
@@ -201,13 +198,6 @@ void SDL::Event::addHitToEventGPU(std::vector<float> x, std::vector<float> y, st
     cudaFreeHost(host_highEdgeYs);
     cudaFreeHost(host_lowEdgeXs);
     cudaFreeHost(host_lowEdgeYs);
-    //cudaError_t cudaerr = cudaDeviceSynchronize();
-    //if(cudaerr != cudaSuccess)
-   // {
-    //    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-    //}
-    //checkHits<<<1,1>>>(*hitsInGPU,loopsize);
-    //cudaDeviceSynchronize();
 
 }
 //explicit method using omp
@@ -352,8 +342,8 @@ void /*unsigned int*/ SDL::Event::addPixToEvent(float x, float y, float z, unsig
     {
 
         cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
-        //createHitsInUnifiedMemory(*hitsInGPU,HIT_MAX,HIT_2S_MAX);
-        createHitsInExplicitMemory(*hitsInGPU,229866);
+        createHitsInUnifiedMemory(*hitsInGPU,HIT_MAX,HIT_2S_MAX);
+        //createHitsInExplicitMemory(*hitsInGPU,229866);
     }
 
     //calls the addHitToMemory function

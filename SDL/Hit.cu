@@ -1,4 +1,5 @@
 # include "Hit.cuh"
+# include "allocate.h"
 #ifdef __CUDACC__
 #define CUDA_CONST_VAR __device__
 #endif
@@ -22,6 +23,25 @@ SDL::hits::hits()
 //FIXME:New array!
 void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits,unsigned int nMax2SHits)
 {
+#ifdef CACHE_ALLOC
+    cudaStream_t stream=0;
+    hitsInGPU.xs = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
+    hitsInGPU.ys = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
+    hitsInGPU.zs = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
+
+    hitsInGPU.rts = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
+    hitsInGPU.phis = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
+
+    hitsInGPU.moduleIndices = (unsigned int*)cms::cuda::allocate_managed(nMaxHits*sizeof(unsigned int),stream);
+    hitsInGPU.idxs = (unsigned int*)cms::cuda::allocate_managed(nMaxHits*sizeof(unsigned int),stream);
+
+    hitsInGPU.highEdgeXs = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
+    hitsInGPU.highEdgeYs = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
+    hitsInGPU.lowEdgeXs = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
+    hitsInGPU.lowEdgeYs = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
+
+    hitsInGPU.nHits = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
+#else
     //nMaxHits and nMax2SHits are the maximum possible numbers
     cudaMallocManaged(&hitsInGPU.xs, nMaxHits * sizeof(float));
     cudaMallocManaged(&hitsInGPU.ys, nMaxHits * sizeof(float));
@@ -46,18 +66,39 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
 
     //counters
     cudaMallocManaged(&hitsInGPU.nHits, sizeof(unsigned int));
+#endif
     *hitsInGPU.nHits = 0;
-    //*hitsInGPU.nHits = nMaxHits/2;
 //    cudaMallocManaged(&hitsInGPU.n2SHits, sizeof(unsigned int));
 //    *hitsInGPU.n2SHits = 0;
 }
 void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHits)
 {
+#ifdef CACHE_ALLOC
+    cudaStream_t stream=0;
+    int dev;
+    cudaGetDevice(&dev);
+    hitsInGPU.xs = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
+    hitsInGPU.ys = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
+    hitsInGPU.zs = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
+
+    hitsInGPU.rts = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
+    hitsInGPU.phis = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
+
+    hitsInGPU.moduleIndices = (unsigned int*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(unsigned int),stream);
+    hitsInGPU.idxs = (unsigned int*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(unsigned int),stream);
+
+    hitsInGPU.highEdgeXs = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
+    hitsInGPU.highEdgeYs = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
+    hitsInGPU.lowEdgeXs = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
+    hitsInGPU.lowEdgeYs = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
+
+    hitsInGPU.nHits = (unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
+#else
     cudaMalloc(&hitsInGPU.xs, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.ys, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.zs, nMaxHits * sizeof(float));
-    cudaMalloc(&hitsInGPU.moduleIndices, nMaxHits * sizeof(unsigned int));
 
+    cudaMalloc(&hitsInGPU.moduleIndices, nMaxHits * sizeof(unsigned int));
     cudaMalloc(&hitsInGPU.idxs, nMaxHits * sizeof(unsigned int));
 
     cudaMalloc(&hitsInGPU.rts, nMaxHits * sizeof(float));
@@ -70,8 +111,8 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
 
     //counters
     cudaMalloc(&hitsInGPU.nHits, sizeof(unsigned int));
+#endif
     cudaMemset(hitsInGPU.nHits,0,sizeof(unsigned int));
-    //cudaMemset(hitsInGPU.nHits,nMaxHits/2,sizeof(unsigned int));
 }
 
 __global__ void SDL::addHitToMemoryGPU(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex,float phis)
@@ -120,19 +161,19 @@ __global__ void SDL::addHitToMemoryGPU(struct hits& hitsInCPU, struct modules& m
     modulesInGPU.hitRanges[moduleIndex * 2 + 1] = idx;
     (*hitsInCPU.nHits)++;
 }
-void SDL::addHitToMemory(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple)
+void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple)
 {
-    unsigned int idx = *(hitsInCPU.nHits);
+    unsigned int idx = *(hitsInGPU.nHits);
 //    unsigned int idxEdge2S = *(hitsInCPU.n2SHits);
 
-    hitsInCPU.xs[idx] = x;
-    hitsInCPU.ys[idx] = y;
-    hitsInCPU.zs[idx] = z;
-    hitsInCPU.rts[idx] = sqrt(x*x + y*y);
-    hitsInCPU.phis[idx] = phi(x,y,z);
-    hitsInCPU.idxs[idx] = idxInNtuple;
+    hitsInGPU.xs[idx] = x;
+    hitsInGPU.ys[idx] = y;
+    hitsInGPU.zs[idx] = z;
+    hitsInGPU.rts[idx] = sqrt(x*x + y*y);
+    hitsInGPU.phis[idx] = phi(x,y,z);
+    hitsInGPU.idxs[idx] = idxInNtuple;
     unsigned int moduleIndex = (*detIdToIndex)[detId];
-    hitsInCPU.moduleIndices[idx] = moduleIndex;
+    hitsInGPU.moduleIndices[idx] = moduleIndex;
     if(modulesInGPU.subdets[moduleIndex] == Endcap and modulesInGPU.moduleType[moduleIndex] == TwoS)
     {
         float xhigh, yhigh, xlow, ylow;
@@ -142,10 +183,10 @@ void SDL::addHitToMemory(struct hits& hitsInCPU, struct modules& modulesInGPU, f
         //hitsInCPU.highEdgeYs[idxEdge2S] = yhigh; 
         //hitsInCPU.lowEdgeXs[idxEdge2S] = xlow;
         //hitsInCPU.lowEdgeYs[idxEdge2S] = ylow;
-        hitsInCPU.highEdgeXs[idx] = xhigh;
-        hitsInCPU.highEdgeYs[idx] = yhigh;
-        hitsInCPU.lowEdgeXs[idx] = xlow;
-        hitsInCPU.lowEdgeYs[idx] = ylow;
+        hitsInGPU.highEdgeXs[idx] = xhigh;
+        hitsInGPU.highEdgeYs[idx] = yhigh;
+        hitsInGPU.lowEdgeXs[idx] = xlow;
+        hitsInGPU.lowEdgeYs[idx] = ylow;
 
         //(*hitsInCPU.n2SHits)++;
     }
@@ -163,7 +204,7 @@ void SDL::addHitToMemory(struct hits& hitsInCPU, struct modules& modulesInGPU, f
     }
     //always update the end index
     modulesInGPU.hitRanges[moduleIndex * 2 + 1] = idx;
-    (*hitsInCPU.nHits)++;
+    (*hitsInGPU.nHits)++;
 }
 __global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules& modulesInGPU,const float* x,const  float* y,const  float* z, const unsigned int* moduleIndex,const float* phis, const int loopsize)
 {
@@ -207,13 +248,13 @@ __global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules
     //  modulesInGPU.hitRanges[moduleIndex[ihit] * 2 + 1] = idx;
   }
 }
-__global__ void SDL::checkHits(struct hits& hitsInGPU, const int loopsize){
-  //for (unsigned int ihit = blockIdx.x*blockDim.x + threadIdx.x; ihit <loopsize; ihit += blockDim.x*gridDim.x)
-  for (int ihit = 0; ihit <loopsize; ihit ++ )
-  {
-    printf("checkHits: %d %f %f %f %f %f %u %u %f %f %f %f\n",ihit,hitsInGPU.xs[ihit],hitsInGPU.ys[ihit],hitsInGPU.zs[ihit],hitsInGPU.rts[ihit],hitsInGPU.phis[ihit],hitsInGPU.moduleIndices[ihit],hitsInGPU.idxs[ihit],hitsInGPU.highEdgeXs[ihit],hitsInGPU.highEdgeYs[ihit],hitsInGPU.lowEdgeXs[ihit],hitsInGPU.lowEdgeYs[ihit]);
-  }
-}
+//__global__ void SDL::checkHits(struct hits& hitsInGPU, const int loopsize){
+//  //for (unsigned int ihit = blockIdx.x*blockDim.x + threadIdx.x; ihit <loopsize; ihit += blockDim.x*gridDim.x)
+//  for (int ihit = 0; ihit <loopsize; ihit ++ )
+//  {
+//    printf("checkHits: %d %f %f %f %f %f %u %u %f %f %f %f\n",ihit,hitsInGPU.xs[ihit],hitsInGPU.ys[ihit],hitsInGPU.zs[ihit],hitsInGPU.rts[ihit],hitsInGPU.phis[ihit],hitsInGPU.moduleIndices[ihit],hitsInGPU.idxs[ihit],hitsInGPU.highEdgeXs[ihit],hitsInGPU.highEdgeYs[ihit],hitsInGPU.lowEdgeXs[ihit],hitsInGPU.lowEdgeYs[ihit]);
+//  }
+//}
 inline float SDL::ATan2(float y, float x)
 {
     if (x != 0) return  atan2(y, x);
