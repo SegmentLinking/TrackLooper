@@ -65,7 +65,9 @@ void SDL::freeModulesInUnifiedMemory(struct modules& modulesInGPU)
 
 void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules)
 {
-    cudaMallocManaged(&modulesInGPU.lowerModuleIndices,nLowerModules * sizeof(unsigned int));
+    //FIXME:some hacks to get the pixel module in the lower modules index without incrementing nLowerModules counter!
+    //Reproduce these hacks in the explicit memory for identical results (or come up with a better method)
+    cudaMallocManaged(&modulesInGPU.lowerModuleIndices,(nLowerModules + 1) * sizeof(unsigned int));
     cudaMallocManaged(&modulesInGPU.reverseLookupLowerModuleIndices,nModules * sizeof(int));
 
     unsigned int lowerModuleCounter = 0;
@@ -84,6 +86,10 @@ void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int n
             modulesInGPU.reverseLookupLowerModuleIndices[index] = -1;
         }
     }
+    //hacky stuff "beyond the index" for the pixel module. nLowerModules will *NOT* cover the pixel module!
+    modulesInGPU.lowerModuleIndices[nLowerModules] = (*detIdToIndex)[1];
+    modulesInGPU.reverseLookupLowerModuleIndices[(*detIdToIndex)[1]] = nLowerModules;
+
 }
 
 void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModules)
@@ -117,6 +123,9 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
             counter++;
         }
     }
+    //FIXME:MANUAL INSERTION OF PIXEL MODULE!
+    (*detIdToIndex)[1] = counter; //pixel module is the last module in the module list
+    counter++;
     nModules = counter;
     std::cout<<"Number of modules = "<<nModules<<std::endl;
 
@@ -127,28 +136,46 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
         unsigned int detId = it->first;
         unsigned int index = it->second;
         modulesInGPU.detIds[index] = detId;
-        unsigned short layer,ring,rod,module,subdet,side;
-        setDerivedQuantities(detId,layer,ring,rod,module,subdet,side);
-        modulesInGPU.layers[index] = layer;
-        modulesInGPU.rings[index] = ring;
-        modulesInGPU.rods[index] = rod;
-        modulesInGPU.modules[index] = module;
-        modulesInGPU.subdets[index] = subdet;
-        modulesInGPU.sides[index] = side;
+        if(detId == 1)
+        {
+            modulesInGPU.layers[index] = 0;
+            modulesInGPU.rings[index] = 0;
+            modulesInGPU.rods[index] = 0;
+            modulesInGPU.modules[index] = 0;
+            modulesInGPU.subdets[index] = SDL::InnerPixel;
+            modulesInGPU.sides[index] = 0;
+            modulesInGPU.isInverted[index] = 0;
+            modulesInGPU.isLower[index] = false;
+            modulesInGPU.moduleType[index] = PixelModule;
+            modulesInGPU.moduleLayerType[index] = SDL::InnerPixelLayer;
+            modulesInGPU.slopes[index] = 0;
+            modulesInGPU.drdzs[index] = 0;
+        }
+        else
+        {
+            unsigned short layer,ring,rod,module,subdet,side;
+            setDerivedQuantities(detId,layer,ring,rod,module,subdet,side);
+            modulesInGPU.layers[index] = layer;
+            modulesInGPU.rings[index] = ring;
+            modulesInGPU.rods[index] = rod;
+            modulesInGPU.modules[index] = module;
+            modulesInGPU.subdets[index] = subdet;
+            modulesInGPU.sides[index] = side;
 
-        modulesInGPU.isInverted[index] = modulesInGPU.parseIsInverted(index);
-        modulesInGPU.isLower[index] = modulesInGPU.parseIsLower(index);
+            modulesInGPU.isInverted[index] = modulesInGPU.parseIsInverted(index);
+            modulesInGPU.isLower[index] = modulesInGPU.parseIsLower(index);
 
-        modulesInGPU.moduleType[index] = modulesInGPU.parseModuleType(index);
-        modulesInGPU.moduleLayerType[index] = modulesInGPU.parseModuleLayerType(index);
+            modulesInGPU.moduleType[index] = modulesInGPU.parseModuleType(index);
+            modulesInGPU.moduleLayerType[index] = modulesInGPU.parseModuleLayerType(index);
 
-        modulesInGPU.slopes[index] = (subdet == Endcap) ? endcapGeometry.getSlopeLower(detId) : tiltedGeometry.getSlope(detId);
-        modulesInGPU.drdzs[index] = (subdet == Barrel) ? tiltedGeometry.getDrDz(detId) : 0;
+            modulesInGPU.slopes[index] = (subdet == Endcap) ? endcapGeometry.getSlopeLower(detId) : tiltedGeometry.getSlope(detId);
+            modulesInGPU.drdzs[index] = (subdet == Barrel) ? tiltedGeometry.getDrDz(detId) : 0;
+        }
         if(modulesInGPU.isLower[index]) lowerModuleCounter++;
     }
 
     *modulesInGPU.nLowerModules = lowerModuleCounter;
-    std::cout<<"number of lower modules = "<<*modulesInGPU.nLowerModules<<std::endl;
+    std::cout<<"number of lower modules (without fake pixel module)= "<<*modulesInGPU.nLowerModules<<std::endl;
     createLowerModuleIndexMap(modulesInGPU,lowerModuleCounter, nModules);
     fillConnectedModuleArray(modulesInGPU,nModules);
     resetObjectRanges(modulesInGPU,nModules);

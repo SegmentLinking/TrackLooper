@@ -3,85 +3,143 @@
 #include "allocate.h"
 //#endif
 
-void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules)
+///FIXME:NOTICE THE NEW maxPixelSegments!
+
+void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments)
 {
+    //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide
+    //extra memory to the pixel segments
+    unsigned int nMemoryLocations = maxSegments * (nModules - 1) + maxPixelSegments;
 #ifdef CACHE_ALLOC
     cudaStream_t stream=0; 
-    segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_managed(maxSegments*nModules*6 *sizeof(unsigned int),stream);
+    segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations*6 *sizeof(unsigned int),stream);
     segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_managed(nModules *sizeof(unsigned int),stream);
-    segmentsInGPU.dPhis = (float*)cms::cuda::allocate_managed(maxSegments*nModules*13 *sizeof(float),stream);
+    segmentsInGPU.dPhis = (float*)cms::cuda::allocate_managed((nMemoryLocations*13 + maxPixelSegments * 6) *sizeof(float),stream);
 #else
-    cudaMallocManaged(&segmentsInGPU.mdIndices, maxSegments * nModules * 6 * sizeof(unsigned int));
+    cudaMallocManaged(&segmentsInGPU.mdIndices, nMemoryLocations * 6 * sizeof(unsigned int));
     cudaMallocManaged(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
-    cudaMallocManaged(&segmentsInGPU.dPhis, maxSegments * nModules * 13*sizeof(float));
+    cudaMallocManaged(&segmentsInGPU.dPhis, (nMemoryLocations * 13 + maxPixelSegments * 6)*sizeof(float));
 #endif
-    segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 2;
-    segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 3;
-    segmentsInGPU.innerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 4;
-    segmentsInGPU.outerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 5;
+    segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 2;
+    segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 3;
+    segmentsInGPU.innerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + nMemoryLocations * 4;
+    segmentsInGPU.outerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + nMemoryLocations * 5;
 
-    segmentsInGPU.dPhiMins = segmentsInGPU.dPhis + maxSegments *nModules;
-    segmentsInGPU.dPhiMaxs = segmentsInGPU.dPhis + maxSegments *nModules * 2;
-    segmentsInGPU.dPhiChanges = segmentsInGPU.dPhis + maxSegments *nModules * 3;
-    segmentsInGPU.dPhiChangeMins = segmentsInGPU.dPhis + maxSegments *nModules * 4;
-    segmentsInGPU.dPhiChangeMaxs = segmentsInGPU.dPhis + maxSegments *nModules * 5;
-    segmentsInGPU.zIns  = segmentsInGPU.dPhis + maxSegments *nModules * 6;
-    segmentsInGPU.zOuts = segmentsInGPU.dPhis + maxSegments *nModules * 7;
-    segmentsInGPU.rtIns = segmentsInGPU.dPhis + maxSegments *nModules * 8;
-    segmentsInGPU.rtOuts = segmentsInGPU.dPhis + maxSegments *nModules * 9;
-    segmentsInGPU.dAlphaInnerMDSegments = segmentsInGPU.dPhis + maxSegments *nModules * 10;
-    segmentsInGPU.dAlphaOuterMDSegments = segmentsInGPU.dPhis + maxSegments *nModules * 11;
-    segmentsInGPU.dAlphaInnerMDOuterMDs = segmentsInGPU.dPhis + maxSegments *nModules * 12;
+    segmentsInGPU.dPhiMins = segmentsInGPU.dPhis + nMemoryLocations;
+    segmentsInGPU.dPhiMaxs = segmentsInGPU.dPhis + nMemoryLocations * 2;
+    segmentsInGPU.dPhiChanges = segmentsInGPU.dPhis + nMemoryLocations * 3;
+    segmentsInGPU.dPhiChangeMins = segmentsInGPU.dPhis + nMemoryLocations * 4;
+    segmentsInGPU.dPhiChangeMaxs = segmentsInGPU.dPhis + nMemoryLocations * 5;
+    segmentsInGPU.zIns  = segmentsInGPU.dPhis + nMemoryLocations * 6;
+    segmentsInGPU.zOuts = segmentsInGPU.dPhis + nMemoryLocations * 7;
+    segmentsInGPU.rtIns = segmentsInGPU.dPhis + nMemoryLocations * 8;
+    segmentsInGPU.rtOuts = segmentsInGPU.dPhis + nMemoryLocations * 9;
+    segmentsInGPU.dAlphaInnerMDSegments = segmentsInGPU.dPhis + nMemoryLocations * 10;
+    segmentsInGPU.dAlphaOuterMDSegments = segmentsInGPU.dPhis + nMemoryLocations * 11;
+    segmentsInGPU.dAlphaInnerMDOuterMDs = segmentsInGPU.dPhis + nMemoryLocations * 12;
+
+    //FIXME:pixel dudes
+    segmentsInGPU.ptIn = segmentsInGPU.dPhis + nMemoryLocations * 13;
+    segmentsInGPU.ptErr = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments;
+    segmentsInGPU.px = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 2;
+    segmentsInGPU.py = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 3;
+    segmentsInGPU.pz = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 4;
+    segmentsInGPU.etaErr = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 5;
+
 #pragma omp parallel for default(shared)
     for(size_t i = 0; i < nModules; i++)
     {
         segmentsInGPU.nSegments[i] = 0;
     }
 }
-
-void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules)
+void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments)
 {
+    //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide
+    //extra memory to the pixel segments
+    unsigned int nMemoryLocations = maxSegments * (nModules - 1) + maxPixelSegments;
 #ifdef CACHE_ALLOC
     cudaStream_t stream=0; 
     int dev;
     cudaGetDevice(&dev);
-    segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_device(dev,maxSegments*nModules*6 *sizeof(unsigned int),stream);
-    segmentsInGPU.dPhis = (float*)cms::cuda::allocate_device(dev,maxSegments*nModules*13 *sizeof(float),stream);
-  #ifdef Full_Explicit
+    segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_device(dev,nMemoryLocations*6 *sizeof(unsigned int),stream);
     segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_device(dev,nModules *sizeof(unsigned int),stream);
-    cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
-  #else
-    segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_managed(nModules *sizeof(unsigned int),stream);
-  #endif
-
+    segmentsInGPU.dPhis = (float*)cms::cuda::allocate_device(dev,(nMemoryLocations*13 + maxPixelSegments * 6) *sizeof(float),stream);
 #else
-    cudaMalloc(&segmentsInGPU.mdIndices, maxSegments * nModules * 6 * sizeof(unsigned int));
-    cudaMalloc(&segmentsInGPU.dPhis, maxSegments * nModules *13* sizeof(float));
-  #ifdef Full_Explicit
+    cudaMalloc(&segmentsInGPU.mdIndices, nMemoryLocations * 6 * sizeof(unsigned int));
     cudaMalloc(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
-    cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
-  #else
-    cudaMallocManaged(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
-  #endif
+    cudaMalloc(&segmentsInGPU.dPhis, (nMemoryLocations * 13 + maxPixelSegments * 6)*sizeof(float));
 #endif
-    segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 2;
-    segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 3;
-    segmentsInGPU.innerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 4;
-    segmentsInGPU.outerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 5;
+    cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
 
-    segmentsInGPU.dPhiMins = segmentsInGPU.dPhis + maxSegments *nModules;
-    segmentsInGPU.dPhiMaxs = segmentsInGPU.dPhis + maxSegments *nModules * 2;
-    segmentsInGPU.dPhiChanges = segmentsInGPU.dPhis + maxSegments *nModules * 3;
-    segmentsInGPU.dPhiChangeMins = segmentsInGPU.dPhis + maxSegments *nModules * 4;
-    segmentsInGPU.dPhiChangeMaxs = segmentsInGPU.dPhis + maxSegments *nModules * 5;
-    segmentsInGPU.zIns  = segmentsInGPU.dPhis + maxSegments *nModules * 6;
-    segmentsInGPU.zOuts = segmentsInGPU.dPhis + maxSegments *nModules * 7;
-    segmentsInGPU.rtIns = segmentsInGPU.dPhis + maxSegments *nModules * 8;
-    segmentsInGPU.rtOuts = segmentsInGPU.dPhis + maxSegments *nModules * 9;
-    segmentsInGPU.dAlphaInnerMDSegments = segmentsInGPU.dPhis + maxSegments *nModules * 10;
-    segmentsInGPU.dAlphaOuterMDSegments = segmentsInGPU.dPhis + maxSegments *nModules * 11;
-    segmentsInGPU.dAlphaInnerMDOuterMDs = segmentsInGPU.dPhis + maxSegments *nModules * 12;
+    segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 2;
+    segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 3;
+    segmentsInGPU.innerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + nMemoryLocations * 4;
+    segmentsInGPU.outerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + nMemoryLocations * 5;
+
+    segmentsInGPU.dPhiMins = segmentsInGPU.dPhis + nMemoryLocations;
+    segmentsInGPU.dPhiMaxs = segmentsInGPU.dPhis + nMemoryLocations * 2;
+    segmentsInGPU.dPhiChanges = segmentsInGPU.dPhis + nMemoryLocations * 3;
+    segmentsInGPU.dPhiChangeMins = segmentsInGPU.dPhis + nMemoryLocations * 4;
+    segmentsInGPU.dPhiChangeMaxs = segmentsInGPU.dPhis + nMemoryLocations * 5;
+    segmentsInGPU.zIns  = segmentsInGPU.dPhis + nMemoryLocations * 6;
+    segmentsInGPU.zOuts = segmentsInGPU.dPhis + nMemoryLocations * 7;
+    segmentsInGPU.rtIns = segmentsInGPU.dPhis + nMemoryLocations * 8;
+    segmentsInGPU.rtOuts = segmentsInGPU.dPhis + nMemoryLocations * 9;
+    segmentsInGPU.dAlphaInnerMDSegments = segmentsInGPU.dPhis + nMemoryLocations * 10;
+    segmentsInGPU.dAlphaOuterMDSegments = segmentsInGPU.dPhis + nMemoryLocations * 11;
+    segmentsInGPU.dAlphaInnerMDOuterMDs = segmentsInGPU.dPhis + nMemoryLocations * 12;
+
+    //FIXME:pixel dudes
+    segmentsInGPU.ptIn = segmentsInGPU.dPhis + nMemoryLocations * 13;
+    segmentsInGPU.ptErr = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments;
+    segmentsInGPU.px = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 2;
+    segmentsInGPU.py = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 3;
+    segmentsInGPU.pz = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 4;
+    segmentsInGPU.etaErr = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 5;
 }
+//void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules)
+//{
+//#ifdef CACHE_ALLOC
+//    cudaStream_t stream=0; 
+//    int dev;
+//    cudaGetDevice(&dev);
+//    segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_device(dev,maxSegments*nModules*6 *sizeof(unsigned int),stream);
+//    segmentsInGPU.dPhis = (float*)cms::cuda::allocate_device(dev,maxSegments*nModules*13 *sizeof(float),stream);
+////  #ifdef Full_Explicit
+//    segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_device(dev,nModules *sizeof(unsigned int),stream);
+//    cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
+////  #else
+////    segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_managed(nModules *sizeof(unsigned int),stream);
+////  #endif
+//
+//#else
+//    cudaMalloc(&segmentsInGPU.mdIndices, maxSegments * nModules * 6 * sizeof(unsigned int));
+//    cudaMalloc(&segmentsInGPU.dPhis, maxSegments * nModules *13* sizeof(float));
+////  #ifdef Full_Explicit
+//    cudaMalloc(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
+//    cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
+////  #else
+////    cudaMallocManaged(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
+////  #endif
+//#endif
+//    segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 2;
+//    segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 3;
+//    segmentsInGPU.innerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 4;
+//    segmentsInGPU.outerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 5;
+//
+//    segmentsInGPU.dPhiMins = segmentsInGPU.dPhis + maxSegments *nModules;
+//    segmentsInGPU.dPhiMaxs = segmentsInGPU.dPhis + maxSegments *nModules * 2;
+//    segmentsInGPU.dPhiChanges = segmentsInGPU.dPhis + maxSegments *nModules * 3;
+//    segmentsInGPU.dPhiChangeMins = segmentsInGPU.dPhis + maxSegments *nModules * 4;
+//    segmentsInGPU.dPhiChangeMaxs = segmentsInGPU.dPhis + maxSegments *nModules * 5;
+//    segmentsInGPU.zIns  = segmentsInGPU.dPhis + maxSegments *nModules * 6;
+//    segmentsInGPU.zOuts = segmentsInGPU.dPhis + maxSegments *nModules * 7;
+//    segmentsInGPU.rtIns = segmentsInGPU.dPhis + maxSegments *nModules * 8;
+//    segmentsInGPU.rtOuts = segmentsInGPU.dPhis + maxSegments *nModules * 9;
+//    segmentsInGPU.dAlphaInnerMDSegments = segmentsInGPU.dPhis + maxSegments *nModules * 10;
+//    segmentsInGPU.dAlphaOuterMDSegments = segmentsInGPU.dPhis + maxSegments *nModules * 11;
+//    segmentsInGPU.dAlphaInnerMDOuterMDs = segmentsInGPU.dPhis + maxSegments *nModules * 12;
+//}
 
 SDL::segments::segments()
 {
@@ -115,11 +173,11 @@ void SDL::segments::freeMemoryCache()
     cudaGetDevice(&dev);
     cms::cuda::free_device(dev,mdIndices);
     cms::cuda::free_device(dev,dPhis);
-  #ifdef Full_Explicit
+//  #ifdef Full_Explicit
     cms::cuda::free_device(dev,nSegments);
-  #else
-    cms::cuda::free_managed(nSegments);
-  #endif
+//  #else
+//    cms::cuda::free_managed(nSegments);
+//  #endif
 #else
     cms::cuda::free_managed(mdIndices);
     cms::cuda::free_managed(dPhis);
@@ -160,6 +218,24 @@ __device__ void SDL::addSegmentToMemory(struct segments& segmentsInGPU, unsigned
     segmentsInGPU.dAlphaInnerMDSegments[idx] = dAlphaInnerMDSegment;
     segmentsInGPU.dAlphaOuterMDSegments[idx] = dAlphaOuterMDSegment;
     segmentsInGPU.dAlphaInnerMDOuterMDs[idx] = dAlphaInnerMDOuterMD;
+}
+
+__device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, unsigned int pixelModuleIndex, unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr, unsigned int idx)
+{
+    segmentsInGPU.mdIndices[idx * 2] = innerMDIndex;
+    segmentsInGPU.mdIndices[idx * 2 + 1] = outerMDIndex;
+    segmentsInGPU.innerLowerModuleIndices[idx] = pixelModuleIndex;
+    segmentsInGPU.outerLowerModuleIndices[idx] = pixelModuleIndex;
+    segmentsInGPU.innerMiniDoubletAnchorHitIndices[idx] = innerAnchorHitIndex;
+    segmentsInGPU.outerMiniDoubletAnchorHitIndices[idx] = outerAnchorHitIndex;
+    segmentsInGPU.dPhiChanges[idx] = dPhiChange;
+    unsigned int pixelSegmentArrayIndex = segmentsInGPU.nSegments[pixelModuleIndex]; //since the increment happens only after adding the segment to memory
+    segmentsInGPU.ptIn[pixelSegmentArrayIndex] = ptIn;
+    segmentsInGPU.ptErr[pixelSegmentArrayIndex] = ptErr;
+    segmentsInGPU.px[pixelSegmentArrayIndex] = px;
+    segmentsInGPU.py[pixelSegmentArrayIndex] = py;
+    segmentsInGPU.pz[pixelSegmentArrayIndex] = pz;
+    segmentsInGPU.etaErr[pixelSegmentArrayIndex] = etaErr;
 }
 
 __device__ void SDL::dAlphaThreshold(float* dAlphaThresholdValues, struct hits& hitsInGPU, struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, unsigned int& innerMiniDoubletAnchorHitIndex, unsigned int& outerMiniDoubletAnchorHitIndex, unsigned int& innerLowerModuleIndex, unsigned int& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex)
@@ -352,7 +428,8 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
     unsigned int outerEdgeIndex;
     if(outerLayerEndcapTwoS)
     {
-        outerEdgeIndex = hitsInGPU.edge2SMap[outerMiniDoubletAnchorHitIndex];
+        //outerEdgeIndex = hitsInGPU.edge2SMap[outerMiniDoubletAnchorHitIndex];
+        outerEdgeIndex = outerMiniDoubletAnchorHitIndex;
 
         float dPhiPos_high = deltaPhi(hitsInGPU.xs[innerMiniDoubletAnchorHitIndex], hitsInGPU.ys[innerMiniDoubletAnchorHitIndex], hitsInGPU.zs[innerMiniDoubletAnchorHitIndex], hitsInGPU.highEdgeXs[outerEdgeIndex], hitsInGPU.highEdgeYs[outerEdgeIndex], hitsInGPU.zs[outerMiniDoubletAnchorHitIndex]);
 

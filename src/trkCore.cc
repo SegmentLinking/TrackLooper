@@ -456,7 +456,7 @@ void addOuterTrackerHits(SDL::Event& event)
         // Takes two arguments, SDL::Hit, and detId
         // SDL::Event internally will structure whether we already have the module instance or we need to create a new one.
         //
-        event.addHitToEvent(x,y,z,detId);
+        event.addHitToEvent(x,y,z,detId, ihit);
 
     }
 }
