@@ -240,14 +240,14 @@ void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, st
     unsigned int subdet = modulesInGPU->subdets[(*detIdToIndex)[host_detId[ihit]]];
     host_moduleIndex[ihit] = (*detIdToIndex)[host_detId[ihit]];
 
-    if(subdet == Barrel)
-    {
-        n_hits_by_layer_barrel_[moduleLayer-1]++;
-    }
-    else
-    {
-        n_hits_by_layer_endcap_[moduleLayer-1]++;
-    }
+//    if(subdet == Barrel) // this doesn't seem useful anymore
+//    {
+//        n_hits_by_layer_barrel_[moduleLayer-1]++;
+//    }
+//    else
+//    {
+//        n_hits_by_layer_endcap_[moduleLayer-1]++;
+//    }
   
 
       host_rts[ihit] = sqrt(host_x[ihit]*host_x[ihit] + host_y[ihit]*host_y[ihit]);
@@ -404,6 +404,221 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices, fl
   cudaDeviceSynchronize();
   cudaFree(hitIndices_dev); // added by tres
 }
+__global__ void /*SDL::Event::*/addPixelSegmentToEventKernelV2(unsigned int* hitIndices0,unsigned int* hitIndices1,unsigned int* hitIndices2,unsigned int* hitIndices3, float* dPhiChange, float* ptIn, float* ptErr, float* px, float* py, float* pz, float* etaErr,unsigned int pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU,const int size)
+{
+
+    
+    const int init_nMD = mdsInGPU.nMDs[pixelModuleIndex];
+    const int init_nSeg = segmentsInGPU.nSegments[pixelModuleIndex];
+    for( int tid = blockIdx.x * blockDim.x + threadIdx.x; tid < size; tid += blockDim.x*gridDim.x)
+    {
+
+      if(tid==0){
+
+      mdsInGPU.nMDs[pixelModuleIndex] += 2*size;
+      segmentsInGPU.nSegments[pixelModuleIndex] += size;
+      }
+      //step 1 : Add pixel MDs
+      unsigned int innerMDIndex = pixelModuleIndex * N_MAX_MD_PER_MODULES + init_nMD + 2*(tid); //mdsInGPU.nMDs[pixelModuleIndex];
+      //FIXME:Fake Pixel MDs are being added to MD unified memory!
+      addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices0[tid], hitIndices1[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,innerMDIndex);
+      //mdsInGPU.nMDs[pixelModuleIndex]++;
+      unsigned int outerMDIndex = pixelModuleIndex * N_MAX_MD_PER_MODULES + init_nMD + 2*(tid) +1;//mdsInGPU.nMDs[pixelModuleIndex];
+      addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices2[tid], hitIndices3[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,outerMDIndex);
+      //mdsInGPU.nMDs[pixelModuleIndex]++;
+
+      //step 2 : Add pixel segment
+      unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + init_nSeg + tid;//segmentsInGPU.nSegments[pixelModuleIndex];
+      //FIXME:Fake Pixel Segment gets added to Segment unified memory in a convoluted fashion!
+      addPixelSegmentToMemory(segmentsInGPU, mdsInGPU, hitsInGPU, modulesInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hitIndices0[tid], hitIndices2[tid], dPhiChange[tid], ptIn[tid], ptErr[tid], px[tid], py[tid], pz[tid], etaErr[tid], pixelSegmentIndex);
+      //segmentsInGPU.nSegments[pixelModuleIndex]++;
+    }
+}
+void SDL::Event::addPixelSegmentToEventV2(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> etaErr)
+{
+//    assert(hitIndices.size() == 4);
+    if(mdsInGPU == nullptr)
+    {
+        cudaMallocHost(&mdsInGPU, sizeof(SDL::miniDoublets));
+#ifdef Explicit_MD
+        //FIXME: Add memory locations for pixel MDs
+    	createMDsInExplicitMemory(*mdsInGPU, N_MAX_MD_PER_MODULES, nModules, N_MAX_PIXEL_MD_PER_MODULES);
+#else
+    	createMDsInUnifiedMemory(*mdsInGPU, N_MAX_MD_PER_MODULES, nModules, N_MAX_PIXEL_MD_PER_MODULES);
+#endif
+    }
+    if(segmentsInGPU == nullptr)
+    {
+        cudaMallocHost(&segmentsInGPU, sizeof(SDL::segments));
+#ifdef Explicit_Seg
+        //FIXME:Add memory locations for pixel segments
+        //createSegmentsInExplicitMemory(*segmentsInGPU, N_MAX_SEGMENTS_PER_MODULE, nModules);
+        createSegmentsInExplicitMemory(*segmentsInGPU, N_MAX_SEGMENTS_PER_MODULE, nModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+#else
+        createSegmentsInUnifiedMemory(*segmentsInGPU, N_MAX_SEGMENTS_PER_MODULE, nModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+#endif
+    }
+    const int size = ptIn.size();
+    unsigned int pixelModuleIndex = (*detIdToIndex)[1] -1; //double check the -1?
+    unsigned int* hitIndices0_host = &hitIndices0[0];
+    unsigned int* hitIndices1_host = &hitIndices1[0];
+    unsigned int* hitIndices2_host = &hitIndices2[0];
+    unsigned int* hitIndices3_host = &hitIndices3[0];
+    float* dPhiChange_host = &dPhiChange[0];
+    float* ptIn_host = &ptIn[0];
+    float* ptErr_host = &ptErr[0];
+    float* px_host = &px[0];
+    float* py_host = &py[0];
+    float* pz_host = &pz[0];
+    float* etaErr_host = &etaErr[0];
+
+    unsigned int* hitIndices0_dev;
+    unsigned int* hitIndices1_dev;
+    unsigned int* hitIndices2_dev;
+    unsigned int* hitIndices3_dev;
+    float* dPhiChange_dev;
+    float* ptIn_dev;
+    float* ptErr_dev;
+    float* px_dev;
+    float* py_dev;
+    float* pz_dev;
+    float* etaErr_dev;
+
+    cudaMalloc(&hitIndices0_dev,size*sizeof(unsigned int));
+    cudaMalloc(&hitIndices1_dev,size*sizeof(unsigned int));
+    cudaMalloc(&hitIndices2_dev,size*sizeof(unsigned int));
+    cudaMalloc(&hitIndices3_dev,size*sizeof(unsigned int));
+    cudaMalloc(&dPhiChange_dev,size*sizeof(unsigned int));
+    cudaMalloc(&ptIn_dev,size*sizeof(unsigned int));
+    cudaMalloc(&ptErr_dev,size*sizeof(unsigned int));
+    cudaMalloc(&px_dev,size*sizeof(unsigned int));
+    cudaMalloc(&py_dev,size*sizeof(unsigned int));
+    cudaMalloc(&pz_dev,size*sizeof(unsigned int));
+    cudaMalloc(&etaErr_dev,size*sizeof(unsigned int));
+
+    cudaMemcpy(hitIndices0_dev,hitIndices0_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice);
+    cudaMemcpy(hitIndices1_dev,hitIndices1_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice);
+    cudaMemcpy(hitIndices2_dev,hitIndices2_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice);
+    cudaMemcpy(hitIndices3_dev,hitIndices3_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice);
+    cudaMemcpy(dPhiChange_dev,dPhiChange_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice);
+    cudaMemcpy(ptIn_dev,ptIn_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice);
+    cudaMemcpy(ptErr_dev,ptErr_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice);
+    cudaMemcpy(px_dev,px_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice);
+    cudaMemcpy(py_dev,py_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice);
+    cudaMemcpy(pz_dev,pz_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice);
+    cudaMemcpy(etaErr_dev,etaErr_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice);
+
+  addPixelSegmentToEventKernelV2<<<1,1>>>(hitIndices0_dev,hitIndices1_dev,hitIndices2_dev,hitIndices3_dev,dPhiChange_dev,ptIn_dev,ptErr_dev,px_dev,py_dev,pz_dev,etaErr_dev,pixelModuleIndex, *modulesInGPU,*hitsInGPU,*mdsInGPU,*segmentsInGPU,size);
+  cudaDeviceSynchronize();
+  cudaFree(hitIndices0_dev);
+  cudaFree(hitIndices1_dev);
+  cudaFree(hitIndices2_dev);
+  cudaFree(hitIndices3_dev);
+  cudaFree(dPhiChange_dev);
+  cudaFree(ptIn_dev);
+  cudaFree(ptErr_dev);
+  cudaFree(px_dev);
+  cudaFree(py_dev);
+  cudaFree(pz_dev);
+  cudaFree(etaErr_dev);
+}
+
+//void SDL::Event::addPixelSegmentToEventV2(std::vector<std::vector<float>> r3PCA, std::vector<std::vector<float>> r3LH, std::vector<std::vector<int>> hitIdxInNtuple,std::vector<std::vector<unsigned int>> hitIndicies, std::vector<std::vector<float>> pt){
+//
+//    const int loopsize = r3PCA.at(0).size() + r3LH.at(0).size();
+//
+//    float* r3PCA_X = &r3PCA.at(0);
+//    float* r3PCA_Y = &r3PCA.at(1);
+//    float* r3PCA_Z = &r3PCA.at(2);
+//    float* r3LH_X = &r3LH.at(0);
+//    float* r3LH_Y = &r3LH.at(1);
+//    float* r3LH_Z = &r3LH.at(2);
+//    int* hitIdxInNtuple0 = &hitIdxInNtuple.at(0);
+//    int* hitIdxInNtuple1 = &hitIdxInNtuple.at(1);
+//    int* hitIdxInNtuple2 = &hitIdxInNtuple.at(2);
+//    int* hitIdxInNtuple3 = &hitIdxInNtuple.at(3);
+//    unsigned int* hitIndices0 = &hitIndices.at(0);
+//    unsigned int* hitIndices1 = &hitIndices.at(1);
+//    unsigned int* hitIndices2 = &hitIndices.at(2);
+//    unsigned int* hitIndices3 = &hitIndices.at(3);
+//    float* ptIn = &pt.at(0);
+//    float* ptErr = &pt.at(1);
+//    float* etaErr = &pt.at(2);
+//    float* deltaPhi = &pt.at(3);
+//
+//    
+////#pragma omp parallel for  // this part can be run in parallel.
+//  for (int ihit=0; ihit<loopsize;ihit++){
+//    unsigned int moduleLayer = modulesInGPU->layers[(*detIdToIndex)[host_detId[ihit]]];
+//    unsigned int subdet = modulesInGPU->subdets[(*detIdToIndex)[host_detId[ihit]]];
+//    host_moduleIndex[ihit] = (*detIdToIndex)[host_detId[ihit]];
+//
+//    if(subdet == Barrel)
+//    {
+//        n_hits_by_layer_barrel_[moduleLayer-1]++;
+//    }
+//    else
+//    {
+//        n_hits_by_layer_endcap_[moduleLayer-1]++;
+//    }
+//  
+//
+//      host_rts[ihit] = sqrt(host_x[ihit]*host_x[ihit] + host_y[ihit]*host_y[ihit]);
+//      host_phis[ihit] = phi(host_x[ihit],host_y[ihit],host_z[ihit]);
+//      host_idxs[ihit] = ihit;
+////  }
+////// This part i think has a race condition. so this is not run in parallel. 
+//////#pragma omp parallel for
+////  for (int ihit=0; ihit<loopsize;ihit++){
+//      unsigned int this_index = host_moduleIndex[ihit];
+//      if(modulesInGPU->subdets[this_index] == Endcap && modulesInGPU->moduleType[this_index] == TwoS)
+//      {
+//          float xhigh, yhigh, xlow, ylow;
+//          getEdgeHits(host_detId[ihit],host_x[ihit],host_y[ihit],xhigh,yhigh,xlow,ylow);
+//          host_highEdgeXs[ihit] = xhigh;
+//          host_highEdgeYs[ihit] = yhigh;
+//          host_lowEdgeXs[ihit] = xlow;
+//          host_lowEdgeYs[ihit] = ylow;
+//
+//      }
+//
+//      //set the hit ranges appropriately in the modules struct
+//
+//      //start the index rolling if the module is encountered for the first time
+//      if(modulesInGPU->hitRanges[this_index * 2] == -1)
+//      {
+//          modulesInGPU->hitRanges[this_index * 2] = ihit;
+//      }
+//      //always update the end index
+//      modulesInGPU->hitRanges[this_index * 2 + 1] = ihit;
+//
+//  }
+////simply copy the host arrays to the hitsInGPU struct
+//    cudaMemcpy(hitsInGPU->xs,host_x,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
+//    cudaMemcpy(hitsInGPU->ys,host_y,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
+//    cudaMemcpy(hitsInGPU->zs,host_z,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
+//    cudaMemcpy(hitsInGPU->rts,host_rts,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
+//    cudaMemcpy(hitsInGPU->idxs,host_idxs,loopsize*sizeof(unsigned int),cudaMemcpyHostToDevice); 
+//    cudaMemcpy(hitsInGPU->moduleIndices,host_moduleIndex,loopsize*sizeof(unsigned int),cudaMemcpyHostToDevice); 
+//    cudaMemcpy(hitsInGPU->highEdgeXs,host_highEdgeXs,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
+//    cudaMemcpy(hitsInGPU->highEdgeYs,host_highEdgeYs,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
+//    cudaMemcpy(hitsInGPU->lowEdgeXs,host_lowEdgeXs,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
+//    cudaMemcpy(hitsInGPU->lowEdgeYs,host_lowEdgeYs,loopsize*sizeof(float),cudaMemcpyHostToDevice); 
+//    cudaMemcpy(hitsInGPU->nHits,&loopsize,sizeof(unsigned int),cudaMemcpyHostToDevice);// value can't correctly be set in hit allocation 
+//    cudaDeviceSynchronize(); //doesn't seem to make a difference
+//
+//    cudaFreeHost(host_rts);
+//    cudaFreeHost(host_idxs);
+//    cudaFreeHost(host_phis);
+//    cudaFreeHost(host_moduleIndex);
+//    cudaFreeHost(host_highEdgeXs);
+//    cudaFreeHost(host_highEdgeYs);
+//    cudaFreeHost(host_lowEdgeXs);
+//    cudaFreeHost(host_lowEdgeYs);
+//
+//
+//
+//}
 
 void SDL::Event::addMiniDoubletsToEvent()
 {
@@ -1490,7 +1705,7 @@ __global__ void createTrackCandidatesInGPU(struct SDL::modules& modulesInGPU, st
     //inner tracklet/triplet inner segment inner MD lower module
     int innerInnerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
     //hack to include pixel detector
-    if(innerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules + 1) return; 
+    if(innerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules /*+ 1*/) return; 
 
     unsigned int nTracklets = trackletsInGPU.nTracklets[innerInnerInnerLowerModuleArrayIndex];
     unsigned int nTriplets = tripletsInGPU.nTriplets[innerInnerInnerLowerModuleArrayIndex]; // should be zero for the pixels

@@ -12,9 +12,27 @@ TVector3 r3FromPCA(const TVector3& p3, const float dxy, const float dz){
   return TVector3(vx, vy, vz);
 }
 
-void addPixelSegments(SDL::Event& event, int isimtrk, const int hit_size)
+void addPixelSegments(SDL::Event& event, int isimtrk, std::vector<float> trkX, std::vector<float> trkY, std::vector<float> trkZ, std::vector<unsigned int> hitId)
 {
     unsigned int count = 0;
+    std::vector<float> px_vec;
+    std::vector<float> py_vec;
+    std::vector<float> pz_vec;
+    std::vector<float> vecX;
+    std::vector<float> vecY;
+    std::vector<float> vecZ;
+    std::vector<int> hitIdxInNtuple_vec0;
+    std::vector<int> hitIdxInNtuple_vec1;
+    std::vector<int> hitIdxInNtuple_vec2;
+    std::vector<int> hitIdxInNtuple_vec3;
+    std::vector<unsigned int> hitIndices_vec0;
+    std::vector<unsigned int> hitIndices_vec1;
+    std::vector<unsigned int> hitIndices_vec2;
+    std::vector<unsigned int> hitIndices_vec3;
+    std::vector<float> ptIn_vec;// (ptIn,ptErr,etaErr,pixelSegmentDeltaPhiChange)
+    std::vector<float> ptErr_vec;// (ptIn,ptErr,etaErr,pixelSegmentDeltaPhiChange)
+    std::vector<float> etaErr_vec;// (ptIn,ptErr,etaErr,pixelSegmentDeltaPhiChange)
+    std::vector<float> deltaPhi_vec;// (ptIn,ptErr,etaErr,pixelSegmentDeltaPhiChange)
     for (auto&& [iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
     {
 
@@ -91,7 +109,7 @@ void addPixelSegments(SDL::Event& event, int isimtrk, const int hit_size)
         float px = p3LH.X();
         float py = p3LH.Y();
         float pz = p3LH.Z();
-
+        const int hit_size = trkX.size();
         if ((ptIn > 0.7) and (fabs(p3LH.Eta()) < 3))
         {
       // old unified hits version
@@ -126,18 +144,18 @@ void addPixelSegments(SDL::Event& event, int isimtrk, const int hit_size)
 //            event.addPixelSegmentToEvent(hitIndices, pixelSegmentDeltaPhiChange, ptIn, ptErr, px, py, pz, etaErr);
       // new explicit hits version. Works for both explicit and unified hits. 
 	          int hitIdx0InNtuple = trk.see_hitIdx()[iSeed][0];
-            event.addPixToEvent(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), 1, hitIdx0InNtuple);
+//            event.addPixToEvent(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), 1, hitIdx0InNtuple);
             unsigned int hitIdx0 = hit_size + count;
             count++; // incrementing the counter after the hitIdx should take care for the -1 right?
      
             int hitIdx1InNtuple = trk.see_hitIdx()[iSeed][1];
-            event.addPixToEvent(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), 1, hitIdx1InNtuple);
+//            event.addPixToEvent(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), 1, hitIdx1InNtuple);
             unsigned int hitIdx1 = hit_size + count;
             count++;
 
             int hitIdx2InNtuple = trk.see_hitIdx()[iSeed][2];
 
-            event.addPixToEvent(r3LH.X(), r3LH.Y(), r3LH.Z(),1,hitIdx2InNtuple);
+//            event.addPixToEvent(r3LH.X(), r3LH.Y(), r3LH.Z(),1,hitIdx2InNtuple);
             unsigned int hitIdx2 = hit_size + count;
             count++;
 
@@ -149,17 +167,73 @@ void addPixelSegments(SDL::Event& event, int isimtrk, const int hit_size)
             }
             else
             {
-                event.addPixToEvent(r3LH.X(), r3LH.Y(), r3LH.Z(),1,hitIdx3InNtuple);
+//                event.addPixToEvent(r3LH.X(), r3LH.Y(), r3LH.Z(),1,hitIdx3InNtuple);
                 hitIdx3 = hit_size + count;
                 count++;
             }
 
             std::vector<unsigned int> hitIndices = {hitIdx0, hitIdx1, hitIdx2, hitIdx3}; 
 
-            event.addPixelSegmentToEvent(hitIndices, pixelSegmentDeltaPhiChange, ptIn, ptErr, px, py, pz, etaErr);
+//            event.addPixelSegmentToEvent(hitIndices, pixelSegmentDeltaPhiChange, ptIn, ptErr, px, py, pz, etaErr);
 //          printf("test: %u (%u,%u,%u,%u)\n",iSeed,hitIdx0,hitIdx1,hitIdx2,hitIdx3);
+//          NEWEST VERSION
+            trkX.push_back(r3PCA.X());
+            trkY.push_back(r3PCA.Y());
+            trkZ.push_back(r3PCA.Z());
+            trkX.push_back(r3PCA.X());
+            trkY.push_back(r3PCA.Y());
+            trkZ.push_back(r3PCA.Z());
+            trkX.push_back(r3LH.X());
+            trkY.push_back(r3LH.Y());
+            trkZ.push_back(r3LH.Z());
+            trkX.push_back(r3LH.X());
+            trkY.push_back(r3LH.Y());
+            trkZ.push_back(r3LH.Z());
+            hitId.push_back(1);
+            hitId.push_back(1);
+            hitId.push_back(1);
+            hitId.push_back(1);
+            px_vec.push_back(px);
+            py_vec.push_back(py);
+            pz_vec.push_back(pz);
+
+            //vecX.push_back(r3PCA.X());
+            //vecY.push_back(r3PCA.Y());
+            //vecZ.push_back(r3PCA.Z());
+            //vecX.push_back(r3PCA.X());
+            //vecY.push_back(r3PCA.Y());
+            //vecZ.push_back(r3PCA.Z());
+            //vecX.push_back(r3LH.X());
+            //vecY.push_back(r3LH.Y());
+            //vecZ.push_back(r3LH.Z());
+            //vecX.push_back(r3LH.X());
+            //vecY.push_back(r3LH.Y());
+            //vecZ.push_back(r3LH.Z());
+            //hitIndices_vec.push_back(1);
+            //hitIndices_vec.push_back(1);
+            //hitIndices_vec.push_back(1);
+            //hitIndices_vec.push_back(1);
+            hitIndices_vec0.push_back(hitIdx0);
+            hitIndices_vec1.push_back(hitIdx1);
+            hitIndices_vec2.push_back(hitIdx2);
+            hitIndices_vec3.push_back(hitIdx3);
+
+            hitIdxInNtuple_vec0.push_back(hitIdx0InNtuple);
+            hitIdxInNtuple_vec1.push_back(hitIdx1InNtuple);
+            hitIdxInNtuple_vec2.push_back(hitIdx2InNtuple);
+            hitIdxInNtuple_vec3.push_back(hitIdx3InNtuple);
+            ptIn_vec.push_back(ptIn);
+            ptErr_vec.push_back(ptErr);
+            etaErr_vec.push_back(etaErr);
+            deltaPhi_vec.push_back(pixelSegmentDeltaPhiChange);
        } 
     }
+//    trkX.insert(trkX.end(),vecX.begin(),vecX.end());
+//    trkY.insert(trkY.end(),vecY.begin(),vecY.end());
+//    trkZ.insert(trkZ.end(),vecZ.begin(),vecZ.end());
+//    hitId.insert(hitId.end(),hitIndices_vec.begin(),hitIndices_vec.end());
+    event.addHitToEventOMP(trkX,trkY,trkZ,hitId);
+//    event.addPixelSegmentToEventV2(hitIndices_vec0,hitIndices_vec1,hitIndices_vec2,hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, etaErr_vec);
 }
 
 int main(int argc, char** argv)
@@ -663,7 +737,8 @@ int main(int argc, char** argv)
             my_timer.Start();
             // Adding hits to modules
 //            event.addHitToEventGPU(trk.ph2_x(),trk.ph2_y(),trk.ph2_z(),trk.ph2_detId()); // adds explicit hits using a kernel approach. Slower than serial...
-            event.addHitToEventOMP(trk.ph2_x(),trk.ph2_y(),trk.ph2_z(),trk.ph2_detId()); //adds explicit hits using omp or serial approach.  check if this runs with omp or serially before you start!
+//            event.addHitToEventOMP(trk.ph2_x(),trk.ph2_y(),trk.ph2_z(),trk.ph2_detId(),0); //adds explicit hits using omp or serial approach.  check if this runs with omp or serially before you start!
+            addPixelSegments(event,-1,trk.ph2_x(),trk.ph2_y(),trk.ph2_z(),trk.ph2_detId()); //loads both pixels and hits at same time
             //old load hits method for unified memory
 //            for (unsigned int ihit = 0; ihit < trk.ph2_x().size(); ++ihit)
 //            {
@@ -744,13 +819,14 @@ int main(int argc, char** argv)
             // ----------------
             if(ana.verbose != 0) std::cout<<"Adding Pixel Segments!"<<std::endl;
             my_timer.Start(kFALSE);
-            addPixelSegments(event,-1,trk.ph2_x().size());
+//            addPixelSegments(event,-1,trk.ph2_x().size());
+//            addPixelSegments(event,-1,trk.ph2_x(),trk.ph2_y(),trk.ph2_z(),trk.ph2_detId()); //loads both pixels and hits at same time
             float pix_elapsed = my_timer.RealTime();
             event_times[ana.looper.getCurrentEventIndex()][4] = pix_elapsed - tp_elapsed;
    
             if(ana.verbose != 0) std::cout<<" Reco Pixel Tracklet start"<<std::endl;
             my_timer.Start(kFALSE);
-            event.createPixelTracklets();
+//            event.createPixelTracklets();
             float ptl_elapsed = my_timer.RealTime();
             event_times[ana.looper.getCurrentEventIndex()][5] = ptl_elapsed - pix_elapsed;
             if (ana.verbose != 0) std::cout << "Reco Pixel Tracklet processing time: " << ptl_elapsed - pix_elapsed << " secs" << std::endl;
