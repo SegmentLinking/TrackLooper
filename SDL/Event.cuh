@@ -4,7 +4,6 @@
 #include <vector>
 #include <list>
 #include <map>
-#include <cassert>
 #include <stdlib.h>
 #include <stdexcept>
 #include <iostream>
@@ -21,11 +20,7 @@
 #include "TrackCandidate.cuh"
 
 #include "cuda_profiler_api.h"
-#ifdef __CUDACC__
-#define CUDA_G __global__
-#else
-#define CUDA_G
-#endif
+
 namespace SDL
 {
     class Event
@@ -57,25 +52,17 @@ namespace SDL
         Event();
         ~Event();
 
-        void addHitToEventGPU(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId); //call the appropriate hit function, then increment the counter here
-        void addHitToEventOMP(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId); //call the appropriate hit function, then increment the counter here
-        void addHitToEvent(float x, float y, float z, unsigned int detId, unsigned int idx); //call the appropriate hit function, then increment the counter here
-        void /*unsigned int*/ addPixToEvent(float x, float y, float z, unsigned int detId, unsigned int idx); //call the appropriate hit function, then increment the counter here
+        void addHitToEvent(float x, float y, float z, unsigned int detId); //call the appropriate hit function, then increment the counter here
         void addPixelSegmentToEvent(std::vector<unsigned int> hitIndices, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr);
 
         /*functions that map the objects to the appropriate modules*/
         void addMiniDoubletsToEvent();
+        void transfertest(struct SDL::miniDoublets& mdsInGPU, struct SDL::miniDoublets& mdsInHost, unsigned int maxds, unsigned int nModules);
         void addSegmentsToEvent();
         void addTrackletsToEvent();
         void addTrackletsWithAGapToEvent();
         void addTripletsToEvent();
         void addTrackCandidatesToEvent();
-        void addMiniDoubletsToEventExplicit();
-        void addSegmentsToEventExplicit();
-        void addTrackletsToEventExplicit();
-        void addTrackletsWithAGapToEventExplicit();
-        void addTripletsToEventExplicit();
-        void addTrackCandidatesToEventExplicit();
 
         void resetObjectsInModule();
 
@@ -83,7 +70,6 @@ namespace SDL
         void createSegmentsWithModuleMap();
         void createTriplets();
         void createTrackletsWithModuleMap();
-        void createPixelTracklets();
         void createTrackletsWithAGapWithModuleMap();
         void createTrackCandidates();
 
@@ -147,12 +133,7 @@ __global__ void createTrackletsInGPU(struct SDL::modules& modulesInGPU, struct S
 
 __global__ void createTrackletsFromInnerInnerLowerModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int nInnerSegments, unsigned int innerInnerLowerModuleArrayIndex);
 
-__global__ void createPixelTrackletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU);
-
-__global__ void createPixelTrackletsFromOuterInnerLowerModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, unsigned int outerInnerLowerModuleIndex, unsigned int nInnerSegments, unsigned int nOuterSegments, unsigned int pixelModuleIndex, unsigned int pixelLowerModuleArrayIndex);
-
 __global__ void createTrackletsWithAGapInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU);
-
 
 __global__ void createTrackletsWithAGapFromInnerInnerLowerModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int nInnerSegments, unsigned int innerInnerLowerModuleArrayIndex);
 
