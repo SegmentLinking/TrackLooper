@@ -404,34 +404,23 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices, fl
   cudaDeviceSynchronize();
   cudaFree(hitIndices_dev); // added by tres
 }
-__global__ void /*SDL::Event::*/addPixelSegmentToEventKernelV2(unsigned int* hitIndices0,unsigned int* hitIndices1,unsigned int* hitIndices2,unsigned int* hitIndices3, float* dPhiChange, float* ptIn, float* ptErr, float* px, float* py, float* pz, float* etaErr,unsigned int pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU,const int size)
+__global__ void addPixelSegmentToEventKernelV2(unsigned int* hitIndices0,unsigned int* hitIndices1,unsigned int* hitIndices2,unsigned int* hitIndices3, float* dPhiChange, float* ptIn, float* ptErr, float* px, float* py, float* pz, float* etaErr,unsigned int pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU,const int size)
 {
 
     
-    const int init_nMD = mdsInGPU.nMDs[pixelModuleIndex];
-    const int init_nSeg = segmentsInGPU.nSegments[pixelModuleIndex];
+    //const int init_nMD = mdsInGPU.nMDs[pixelModuleIndex];
+    //const int init_nSeg = segmentsInGPU.nSegments[pixelModuleIndex];
+    //printf("Init test: %d %d\n",init_nMD,init_nSeg);
     for( int tid = blockIdx.x * blockDim.x + threadIdx.x; tid < size; tid += blockDim.x*gridDim.x)
     {
 
-      if(tid==0){
-
-      mdsInGPU.nMDs[pixelModuleIndex] += 2*size;
-      segmentsInGPU.nSegments[pixelModuleIndex] += size;
-      }
-      //step 1 : Add pixel MDs
-      unsigned int innerMDIndex = pixelModuleIndex * N_MAX_MD_PER_MODULES + init_nMD + 2*(tid); //mdsInGPU.nMDs[pixelModuleIndex];
-      //FIXME:Fake Pixel MDs are being added to MD unified memory!
+      unsigned int innerMDIndex = pixelModuleIndex * N_MAX_MD_PER_MODULES + /*init_nMD +*/ 2*(tid); //mdsInGPU.nMDs[pixelModuleIndex];
       addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices0[tid], hitIndices1[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,innerMDIndex);
-      //mdsInGPU.nMDs[pixelModuleIndex]++;
-      unsigned int outerMDIndex = pixelModuleIndex * N_MAX_MD_PER_MODULES + init_nMD + 2*(tid) +1;//mdsInGPU.nMDs[pixelModuleIndex];
+      unsigned int outerMDIndex = pixelModuleIndex * N_MAX_MD_PER_MODULES /*+ init_nMD*/ + 2*(tid) +1;//mdsInGPU.nMDs[pixelModuleIndex];
       addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices2[tid], hitIndices3[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,outerMDIndex);
-      //mdsInGPU.nMDs[pixelModuleIndex]++;
 
-      //step 2 : Add pixel segment
-      unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + init_nSeg + tid;//segmentsInGPU.nSegments[pixelModuleIndex];
-      //FIXME:Fake Pixel Segment gets added to Segment unified memory in a convoluted fashion!
+      unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE /*+ init_nSeg*/ + tid;//segmentsInGPU.nSegments[pixelModuleIndex];
       addPixelSegmentToMemory(segmentsInGPU, mdsInGPU, hitsInGPU, modulesInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hitIndices0[tid], hitIndices2[tid], dPhiChange[tid], ptIn[tid], ptErr[tid], px[tid], py[tid], pz[tid], etaErr[tid], pixelSegmentIndex);
-      //segmentsInGPU.nSegments[pixelModuleIndex]++;
     }
 }
 void SDL::Event::addPixelSegmentToEventV2(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> etaErr)
@@ -508,6 +497,8 @@ void SDL::Event::addPixelSegmentToEventV2(std::vector<unsigned int> hitIndices0,
     cudaMemcpy(pz_dev,pz_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice);
     cudaMemcpy(etaErr_dev,etaErr_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice);
 
+    unsigned int nThreads = 256;
+    unsigned int nBlocks =  size % nThreads == 0 ? size/nThreads : size/nThreads + 1;
   addPixelSegmentToEventKernelV2<<<1,1>>>(hitIndices0_dev,hitIndices1_dev,hitIndices2_dev,hitIndices3_dev,dPhiChange_dev,ptIn_dev,ptErr_dev,px_dev,py_dev,pz_dev,etaErr_dev,pixelModuleIndex, *modulesInGPU,*hitsInGPU,*mdsInGPU,*segmentsInGPU,size);
   cudaDeviceSynchronize();
   cudaFree(hitIndices0_dev);
