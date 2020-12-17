@@ -18,21 +18,21 @@ void addPixelSegments(SDL::Event& event, int isimtrk, std::vector<float> trkX, s
     std::vector<float> px_vec;
     std::vector<float> py_vec;
     std::vector<float> pz_vec;
-    std::vector<float> vecX;
-    std::vector<float> vecY;
-    std::vector<float> vecZ;
-    std::vector<int> hitIdxInNtuple_vec0;
-    std::vector<int> hitIdxInNtuple_vec1;
-    std::vector<int> hitIdxInNtuple_vec2;
-    std::vector<int> hitIdxInNtuple_vec3;
+//    std::vector<float> vecX;
+//    std::vector<float> vecY;
+//    std::vector<float> vecZ;
+//    std::vector<int> hitIdxInNtuple_vec0;
+//    std::vector<int> hitIdxInNtuple_vec1;
+//    std::vector<int> hitIdxInNtuple_vec2;
+//    std::vector<int> hitIdxInNtuple_vec3;
     std::vector<unsigned int> hitIndices_vec0;
     std::vector<unsigned int> hitIndices_vec1;
     std::vector<unsigned int> hitIndices_vec2;
     std::vector<unsigned int> hitIndices_vec3;
-    std::vector<float> ptIn_vec;// (ptIn,ptErr,etaErr,pixelSegmentDeltaPhiChange)
-    std::vector<float> ptErr_vec;// (ptIn,ptErr,etaErr,pixelSegmentDeltaPhiChange)
-    std::vector<float> etaErr_vec;// (ptIn,ptErr,etaErr,pixelSegmentDeltaPhiChange)
-    std::vector<float> deltaPhi_vec;// (ptIn,ptErr,etaErr,pixelSegmentDeltaPhiChange)
+    std::vector<float> ptIn_vec;
+    std::vector<float> ptErr_vec;
+    std::vector<float> etaErr_vec;
+    std::vector<float> deltaPhi_vec;
     for (auto&& [iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
     {
 
@@ -143,23 +143,23 @@ void addPixelSegments(SDL::Event& event, int isimtrk, std::vector<float> trkX, s
 //
 //            event.addPixelSegmentToEvent(hitIndices, pixelSegmentDeltaPhiChange, ptIn, ptErr, px, py, pz, etaErr);
       // new explicit hits version. Works for both explicit and unified hits. 
-	          int hitIdx0InNtuple = trk.see_hitIdx()[iSeed][0];
+//	          int hitIdx0InNtuple = trk.see_hitIdx()[iSeed][0];
 //            event.addPixToEvent(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), 1, hitIdx0InNtuple);
             unsigned int hitIdx0 = hit_size + count;
             count++; // incrementing the counter after the hitIdx should take care for the -1 right?
      
-            int hitIdx1InNtuple = trk.see_hitIdx()[iSeed][1];
+//            int hitIdx1InNtuple = trk.see_hitIdx()[iSeed][1];
 //            event.addPixToEvent(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), 1, hitIdx1InNtuple);
             unsigned int hitIdx1 = hit_size + count;
             count++;
 
-            int hitIdx2InNtuple = trk.see_hitIdx()[iSeed][2];
+//            int hitIdx2InNtuple = trk.see_hitIdx()[iSeed][2];
 
 //            event.addPixToEvent(r3LH.X(), r3LH.Y(), r3LH.Z(),1,hitIdx2InNtuple);
             unsigned int hitIdx2 = hit_size + count;
             count++;
 
-            int hitIdx3InNtuple = trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]; // repeat last one if triplet
+//            int hitIdx3InNtuple = trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]; // repeat last one if triplet
             unsigned int hitIdx3;
             if(trk.see_hitIdx()[iSeed].size() <= 3)
             {   
@@ -172,10 +172,10 @@ void addPixelSegments(SDL::Event& event, int isimtrk, std::vector<float> trkX, s
                 count++;
             }
 
-            std::vector<unsigned int> hitIndices = {hitIdx0, hitIdx1, hitIdx2, hitIdx3}; 
+//            std::vector<unsigned int> hitIndices = {hitIdx0, hitIdx1, hitIdx2, hitIdx3}; 
 
 //            event.addPixelSegmentToEvent(hitIndices, pixelSegmentDeltaPhiChange, ptIn, ptErr, px, py, pz, etaErr);
-//          printf("test: %u (%u,%u,%u,%u)\n",iSeed,hitIdx0,hitIdx1,hitIdx2,hitIdx3);
+
 //          NEWEST VERSION
             trkX.push_back(r3PCA.X());
             trkY.push_back(r3PCA.Y());
@@ -197,31 +197,10 @@ void addPixelSegments(SDL::Event& event, int isimtrk, std::vector<float> trkX, s
             py_vec.push_back(py);
             pz_vec.push_back(pz);
 
-            //vecX.push_back(r3PCA.X());
-            //vecY.push_back(r3PCA.Y());
-            //vecZ.push_back(r3PCA.Z());
-            //vecX.push_back(r3PCA.X());
-            //vecY.push_back(r3PCA.Y());
-            //vecZ.push_back(r3PCA.Z());
-            //vecX.push_back(r3LH.X());
-            //vecY.push_back(r3LH.Y());
-            //vecZ.push_back(r3LH.Z());
-            //vecX.push_back(r3LH.X());
-            //vecY.push_back(r3LH.Y());
-            //vecZ.push_back(r3LH.Z());
-            //hitIndices_vec.push_back(1);
-            //hitIndices_vec.push_back(1);
-            //hitIndices_vec.push_back(1);
-            //hitIndices_vec.push_back(1);
             hitIndices_vec0.push_back(hitIdx0);
             hitIndices_vec1.push_back(hitIdx1);
             hitIndices_vec2.push_back(hitIdx2);
             hitIndices_vec3.push_back(hitIdx3);
-
-            hitIdxInNtuple_vec0.push_back(hitIdx0InNtuple);
-            hitIdxInNtuple_vec1.push_back(hitIdx1InNtuple);
-            hitIdxInNtuple_vec2.push_back(hitIdx2InNtuple);
-            hitIdxInNtuple_vec3.push_back(hitIdx3InNtuple);
             ptIn_vec.push_back(ptIn);
             ptErr_vec.push_back(ptErr);
             etaErr_vec.push_back(etaErr);
