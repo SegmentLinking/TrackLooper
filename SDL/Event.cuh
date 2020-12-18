@@ -62,6 +62,7 @@ namespace SDL
         void addHitToEvent(float x, float y, float z, unsigned int detId, unsigned int idx); //call the appropriate hit function, then increment the counter here
         void /*unsigned int*/ addPixToEvent(float x, float y, float z, unsigned int detId, unsigned int idx); //call the appropriate hit function, then increment the counter here
         void addPixelSegmentToEvent(std::vector<unsigned int> hitIndices, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr);
+        void addPixelSegmentToEventV2(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> etaErr);
 
         /*functions that map the objects to the appropriate modules*/
         void addMiniDoubletsToEvent();
