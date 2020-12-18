@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <cmath>
+#include <memory>
 #include <cuda_runtime.h>
 #include <omp.h>
 #include <chrono>
@@ -118,11 +119,12 @@ namespace SDL
         unsigned int getNumberOfTrackCandidatesByLayerBarrel(unsigned int layer);
         unsigned int getNumberOfTrackCandidatesByLayerEndcap(unsigned int layer);
 
-        struct hits* getHits();
-        struct miniDoublets* getMiniDoublets();
-        struct segments* getSegments() ;
-        struct tracklets* getTracklets();
-        struct triplets* getTriplets();
+        std::shared_ptr<hits> getHits();
+        std::shared_ptr<miniDoublets> getMiniDoublets();
+        std::shared_ptr<segments> getSegments() ;
+        std::shared_ptr<tracklets> getTracklets();
+        std::shared_ptr<triplets> getTriplets();
+        std::shared_ptr<trackCandidates> getTrackCandidates();
 
     };
 
