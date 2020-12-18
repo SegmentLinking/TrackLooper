@@ -54,8 +54,8 @@ namespace SDL
     //CUDA_G void checkHits(struct hits& hitsInGPU, const int loopsize);
     void addHitToMemory(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple);
     CUDA_G void addHitToMemoryGPU(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex, float phis);
-    CUDA_HOSTDEV inline float phi(float x, float y, float z);
-    CUDA_HOSTDEV inline float ATan2(float y, float x);
+    CUDA_HOSTDEV float phi(float x, float y, float z);
+    CUDA_HOSTDEV float ATan2(float y, float x);
     CUDA_HOSTDEV float phi_mpi_pi(float phi);
     CUDA_HOSTDEV float deltaPhi(float x1, float y1, float z1, float x2, float y2, float z2);
     CUDA_HOSTDEV float deltaPhiChange(float x1, float y1, float z1, float x2, float y2, float z2);
