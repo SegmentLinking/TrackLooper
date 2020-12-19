@@ -54,6 +54,14 @@ namespace SDL
         struct triplets* tripletsInGPU;
         struct trackCandidates* trackCandidatesInGPU;
 
+        //CPU interface stuff
+        std::shared_ptr<hits> hitsInCPU;
+        std::shared_ptr<miniDoublets> mdsInCPU;
+        std::shared_ptr<segments> segmentsInCPU;
+        std::shared_ptr<tracklets> trackletsInCPU;
+        std::shared_ptr<triplets> tripletsInCPU;
+        std::shared_ptr<trackCandidates> trackCandidatesInCPU;
+
     public:
         Event();
         ~Event();

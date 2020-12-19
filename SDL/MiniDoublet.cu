@@ -760,6 +760,10 @@ SDL::miniDoublets::miniDoublets()
 
 }
 
+SDL::miniDoublets::~miniDoublets()
+{
+}
+
 void SDL::miniDoublets::freeMemoryCache()
 {
 #ifdef Explicit_MD

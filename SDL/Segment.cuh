@@ -56,8 +56,9 @@ namespace SDL
         float* etaErr;
 
         segments();
-	      void freeMemory();
-	      void freeMemoryCache();
+        ~segments();
+	void freeMemory();
+	void freeMemoryCache();
     };
 
     void createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments);

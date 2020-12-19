@@ -100,7 +100,7 @@ void addPixelSegments(SDL::Event& event, int isimtrk, std::vector<float> trkX, s
         float seedSD_dr = (r3LH - r3PCA).Pt();
         float seedSD_d = seedSD_rt - r3PCA.Pt();
         float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
-        struct SDL::hits* hitsInGPU = event.getHits();
+//        struct SDL::hits* hitsInGPU = event.getHits();
         // Inner most hit
         //FIXME:There is no SDL::Hit now!
    

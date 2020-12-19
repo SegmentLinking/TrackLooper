@@ -40,6 +40,7 @@ void runMiniDoublet(SDL::Event& event);
 void runSegment(SDL::Event& event);
 void runTracklet(SDL::Event& event);
 void runTriplet(SDL::Event& event);
+void runTrackCandidateTest_v2(SDL::Event& event);
 std::vector<float> getPtBounds();
 bool inTimeTrackWithPdgId(int isimtrk, int pdgid);
 std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes);
