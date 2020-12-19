@@ -33,6 +33,7 @@ SDL::Event::Event()
     mdsInCPU = nullptr;
     segmentsInCPU = nullptr;
     trackletsInCPU = nullptr;
+    tripletsInCPU = nullptr;
     trackCandidatesInCPU = nullptr;
     //reset the arrays
     for(int i = 0; i<6; i++)
