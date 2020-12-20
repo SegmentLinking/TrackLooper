@@ -14,6 +14,7 @@ void SDL::createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsig
 {
 
     unsigned int nMemoryLocations = maxTracklets * nLowerModules + maxPixelTracklets;
+    nLowerModules += 1;
 #ifdef CACHE_ALLOC
     cudaStream_t stream =0;
     trackletsInGPU.segmentIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(unsigned int) * 2,stream);
@@ -28,7 +29,7 @@ void SDL::createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsig
     cudaMallocManaged(&trackletsInGPU.zOut, nMemoryLocations *4* sizeof(float));
     cudaMallocManaged(&trackletsInGPU.betaIn, nMemoryLocations *2* sizeof(float));
 #endif
-    trackletsInGPU.rtOut = trackletsInGPU.zOut + maxTracklets * nLowerModules;
+    trackletsInGPU.rtOut = trackletsInGPU.zOut + nMemoryLocations;
     trackletsInGPU.deltaPhiPos = trackletsInGPU.zOut + nMemoryLocations * 2;
     trackletsInGPU.deltaPhi = trackletsInGPU.zOut + nMemoryLocations * 3;
     trackletsInGPU.betaOut = trackletsInGPU.betaIn + nMemoryLocations;
@@ -43,6 +44,7 @@ void SDL::createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, unsi
 {
 
     unsigned int nMemoryLocations = maxTracklets * nLowerModules + maxPixelTracklets;
+    nLowerModules += 1;
 #ifdef CACHE_ALLOC
     cudaStream_t stream =0;
     int dev;
@@ -60,7 +62,7 @@ void SDL::createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, unsi
     cudaMalloc(&trackletsInGPU.betaIn, nMemoryLocations *2* sizeof(float));
 #endif
     cudaMemset(trackletsInGPU.nTracklets,0,nLowerModules*sizeof(unsigned int));
-    trackletsInGPU.rtOut = trackletsInGPU.zOut + maxTracklets * nLowerModules;
+    trackletsInGPU.rtOut = trackletsInGPU.zOut + nMemoryLocations;
     trackletsInGPU.deltaPhiPos = trackletsInGPU.zOut + nMemoryLocations * 2;
     trackletsInGPU.deltaPhi = trackletsInGPU.zOut + nMemoryLocations * 3;
     trackletsInGPU.betaOut = trackletsInGPU.betaIn + nMemoryLocations;

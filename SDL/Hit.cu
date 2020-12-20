@@ -20,6 +20,10 @@ SDL::hits::hits()
     lowEdgeXs = nullptr;
     lowEdgeYs = nullptr;
 }
+
+SDL::hits::~hits()
+{
+}
 //FIXME:New array!
 void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits,unsigned int nMax2SHits)
 {
@@ -255,7 +259,7 @@ __global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules
 //    printf("checkHits: %d %f %f %f %f %f %u %u %f %f %f %f\n",ihit,hitsInGPU.xs[ihit],hitsInGPU.ys[ihit],hitsInGPU.zs[ihit],hitsInGPU.rts[ihit],hitsInGPU.phis[ihit],hitsInGPU.moduleIndices[ihit],hitsInGPU.idxs[ihit],hitsInGPU.highEdgeXs[ihit],hitsInGPU.highEdgeYs[ihit],hitsInGPU.lowEdgeXs[ihit],hitsInGPU.lowEdgeYs[ihit]);
 //  }
 //}
-inline float SDL::ATan2(float y, float x)
+float SDL::ATan2(float y, float x)
 {
     if (x != 0) return  atan2(y, x);
     if (y == 0) return  0;
@@ -264,7 +268,7 @@ inline float SDL::ATan2(float y, float x)
 }
 
 //TODO:Check if cuda atan2f will work here
-inline float SDL::phi(float x, float y, float z)
+float SDL::phi(float x, float y, float z)
 {
     return phi_mpi_pi(M_PI + ATan2(-y, -x)); 
 }
