@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 
     // Read the options
     options.add_options()
-        ("m,mode"           , "Run mode (0=build_module_map, 1=print_module_centroid, 2=mtv, 3=algo_eff, 4=tracklet, 5=write_sdl_ntuple, 6=pixel_tracklet_eff)", cxxopts::value<int>()->default_value("-1"))
+        ("m,mode"           , "Run mode (0=build_module_map, 1=print_module_centroid, 2=mtv, 3=algo_eff, 4=tracklet, 5=write_sdl_ntuple, 6=pixel_tracklet_eff)", cxxopts::value<int>()->default_value("5"))
         ("i,input"          , "Comma separated input file list OR if just a directory is provided it will glob all in the directory BUT must end with '/' for the path", cxxopts::value<std::string>()->default_value("Pt2GeV_STANDARD_SAMPLE"))
         ("t,tree"           , "Name of the tree in the root file to open and loop over"                                             , cxxopts::value<std::string>()->default_value("trackingNtuple/tree"))
         ("o,output"         , "Output file name"                                                                                    , cxxopts::value<std::string>())
