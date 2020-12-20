@@ -180,16 +180,7 @@ int main(int argc, char** argv)
 
     //_______________________________________________________________________________
     // --mode
-    if (result.count("mode"))
-    {
-        ana.mode = result["mode"].as<int>();
-    }
-    else
-    {
-        std::cout << options.help() << std::endl;
-        std::cout << "ERROR: --mode was not provided! Check your arguments." << std::endl;
-        exit(1);
-    }
+    ana.mode = result["mode"].as<int>();
 
     // Printing out the option settings overview
     std::cout <<  "=========================================================" << std::endl;
