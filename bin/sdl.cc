@@ -52,8 +52,14 @@ int main(int argc, char** argv)
     ana.input_file_list_tstring = result["input"].as<std::string>();
 
     // A default value one
-    if (ana.input_file_list_tstring.EqualTo("Pt2GeV_STANDARD_SAMPLE"))
-        ana.input_file_list_tstring = "/home/users/phchang/public_html/analysis/sdl/trackingNtuple/CMSSW_10_4_0/src/trackingNtuple_100_pt0p5_2p0.root";
+    if (ana.input_file_list_tstring.EqualTo("muonGun"))
+        ana.input_file_list_tstring = "/nfs-7/userdata/phchang/trackingNtuple/trackingNtuple_100_pt0p5_2p0.root";
+    else if (ana.input_file_list_tstring.EqualTo("muonGun_highE"))
+        ana.input_file_list_tstring = "/nfs-7/userdata/phchang/trackingNtuple/trackingNtuple_10MuGun.root";
+    else if (ana.input_file_list_tstring.EqualTo("pionGun"))
+        ana.input_file_list_tstring = "/nfs-7/userdata/phchang/trackingNtuple/trackingNtuple_1pion_10k_pt0p5_50p0.root";
+    else if (ana.input_file_list_tstring.EqualTo("PU200"))
+        ana.input_file_list_tstring = "/nfs-7/userdata/bsathian/SDL_trackingNtuple/ttbar_highPU/trackingNtuple_with_PUinfo_500_evts.root";
 
     //_______________________________________________________________________________
     // --tree
