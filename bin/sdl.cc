@@ -187,7 +187,7 @@ int main(int argc, char** argv)
     else
     {
         std::cout << options.help() << std::endl;
-        std::cout << "ERROR: --mode was not recognized! Check your arguments." << std::endl;
+        std::cout << "ERROR: --mode was not provided! Check your arguments." << std::endl;
         exit(1);
     }
 
@@ -228,7 +228,7 @@ int main(int argc, char** argv)
         //case 6: pixel_tracklet_eff(); break;
         default:
                 std::cout << options.help() << std::endl;
-                std::cout << "ERROR: --mode was not recognized! Check your arguments." << std::endl;
+                std::cout << "ERROR: --mode was not provided! Check your arguments." << std::endl;
                 exit(1);
                 break;
     }
