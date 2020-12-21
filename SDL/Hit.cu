@@ -20,6 +20,10 @@ SDL::hits::hits()
     lowEdgeXs = nullptr;
     lowEdgeYs = nullptr;
 }
+
+SDL::hits::~hits()
+{
+}
 //FIXME:New array!
 void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits,unsigned int nMax2SHits)
 {

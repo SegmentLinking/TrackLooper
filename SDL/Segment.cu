@@ -166,6 +166,10 @@ SDL::segments::segments()
     dAlphaInnerMDOuterMDs = nullptr;
 }
 
+SDL::segments::~segments()
+{
+}
+
 void SDL::segments::freeMemoryCache()
 {
 #ifdef Explicit_Seg

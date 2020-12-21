@@ -56,7 +56,7 @@ void write_sdl_ntuple()
 //        printTripletSummary(event);
 
         // Run TrackCandidate
-//        runTrackCandidateTest_v2(event);
+        runTrackCandidateTest_v2(event);
 //        printTrackCandidateSummary(event);
 
         // *********************************************************************
@@ -66,11 +66,11 @@ void write_sdl_ntuple()
         // Each SDL::Event object in simtrkevents will hold single sim-track related hits
         // It will be a vector of tuple of <sim_track_index, SDL::Event*>.
         std::vector<std::tuple<unsigned int, SDL::Event*>> simtrkevents;
-        std::vector<std::tuple<unsigned int, SDL::EventForAnalysisInterface*>> simtrkeventsForAnalysisInterface;
+//        std::vector<std::tuple<unsigned int, SDL::EventForAnalysisInterface*>> simtrkeventsForAnalysisInterface;
 
         // Loop over sim-tracks that is from in time (bx = 0) tracks with pdgid matching (against ana.pdg_id) and per sim-track aggregate reco hits
         // and only use those hits, and run SDL on them
-        for (auto&& isimtrk : iter::filter([&](int i) { return inTimeTrackWithPdgId(i, ana.pdg_id); }, iter::range(trk.sim_pt().size())))
+/*        for (auto&& isimtrk : iter::filter([&](int i) { return inTimeTrackWithPdgId(i, ana.pdg_id); }, iter::range(trk.sim_pt().size())))
         {
 
             // event just for this track
@@ -106,7 +106,7 @@ void write_sdl_ntuple()
         // ************************************************
 
         // Fill all the histograms
-        ana.cutflow.fill();
+        ana.cutflow.fill();*/
 
         // <--------------------------
         // <--------------------------
