@@ -2,26 +2,17 @@
 
 void write_sdl_ntuple()
 {
-    // List of studies to perform
-    std::vector<Study*> studies;
-
-    // pt_boundaries
-    std::vector<float> pt_boundaries = getPtBounds();
-
-    studies.push_back(new WriteSDLNtuplev2("WriteSDLNtuple"));
-
-    // book the studies
-    for (auto& study : studies)
-    {
-        study->bookStudy();
-    }
-
-    // Book Histograms
-    ana.cutflow.bookHistograms(ana.histograms); // if just want to book everywhere
 
     // Load various maps used in the SDL reconstruction
     loadMaps();
+
     SDL::initModules();
+
+    createOutputBranches();
+
+    // Timing average information
+    std::vector<std::vector<float>> timing_information;
+
     // Looping input file
     while (ana.looper.nextEvent())
     {
@@ -34,92 +25,267 @@ void write_sdl_ntuple()
         SDL::Event event;
 
         // Add hits to the event
-        addOuterTrackerHits(event);
-
-        // Add pixel segments
-        //addPixelSegments(event);
-
-        // Print hit summary
-//        printHitSummary(event);
+        float timing_input_loading = addInputsToLineSegmentTrackingUsingUnifiedMemory(event);
 
         // Run Mini-doublet
-        runMiniDoublet(event);
+        float timing_MD = runMiniDoublet(event);
 
         // Run Segment
-        runSegment(event);
+        float timing_LS = runSegment(event);
 
-        // Run Tracklet
-        runTracklet(event);
+        // Run T4
+        float timing_T4 = runT4(event);
 
-        // Run Triplet
-        runTriplet(event);
-//        printTripletSummary(event);
+        // Run T4x
+        float timing_T4x = runT4x(event);
 
-        // Run TrackCandidate
-        runTrackCandidateTest_v2(event);
-//        printTrackCandidateSummary(event);
+        // Run pT4
+        float timing_pT4 = runpT4(event);
 
-        // *********************************************************************
-        // SDL::Event from each sim track (using only hits from given sim track)
-        // *********************************************************************
+        // Run T3
+        float timing_T3 = runT3(event);
 
-        // Each SDL::Event object in simtrkevents will hold single sim-track related hits
-        // It will be a vector of tuple of <sim_track_index, SDL::Event*>.
-        std::vector<std::tuple<unsigned int, SDL::Event*>> simtrkevents;
-//        std::vector<std::tuple<unsigned int, SDL::EventForAnalysisInterface*>> simtrkeventsForAnalysisInterface;
+        // Run TC
+        float timing_TC = runTrackCandidate(event);
 
-        // Loop over sim-tracks that is from in time (bx = 0) tracks with pdgid matching (against ana.pdg_id) and per sim-track aggregate reco hits
-        // and only use those hits, and run SDL on them
-/*        for (auto&& isimtrk : iter::filter([&](int i) { return inTimeTrackWithPdgId(i, ana.pdg_id); }, iter::range(trk.sim_pt().size())))
-        {
+        timing_information.push_back({ timing_input_loading,
+                                       timing_MD,
+                                       timing_LS,
+                                       timing_T4,
+                                       timing_T4x,
+                                       timing_pT4,
+                                       timing_T3,
+                                       timing_TC});
+                
+        fillOutputBranches(event);
 
-            // event just for this track
-            SDL::Event* trackevent = new SDL::Event();
-
-            // // Add reco hits associated with the given sim track to the SDL::Event container
-            // addOuterTrackerHitsFromSimTrack((*trackevent), isimtrk);
-
-            // // Run SDL reconstruction on the event
-            // runSDL((*trackevent));
-
-            // Push to the vector so we have a data-base of per hit, mini-doublets
-            simtrkevents.push_back(std::make_tuple(isimtrk, trackevent));
-            SDL::EventForAnalysisInterface* trackeventForAnalysisInterface = new SDL::EventForAnalysisInterface(SDL::modulesInGPU, trackevent->getHits(), trackevent->getMiniDoublets(), trackevent->getSegments(), trackevent->getTracklets(), trackevent->getTriplets());
-            simtrkeventsForAnalysisInterface.push_back(std::make_tuple(isimtrk,trackeventForAnalysisInterface));
-
-        }
-
-
-        // ********************************************************************************************
-        // Perform various studies with reco events and sim-track-matched-reco-hits-based mini-doublets
-        // ********************************************************************************************
-        //analysis interface
-        SDL::EventForAnalysisInterface* eventForAnalysisInterface = new SDL::EventForAnalysisInterface(SDL::modulesInGPU, event.getHits(), event.getMiniDoublets(), event.getSegments(), event.getTracklets(), event.getTriplets());
-        for (auto& study : studies)
-        {
-            study->doStudy(*eventForAnalysisInterface, simtrkeventsForAnalysisInterface);
-        }
-
-
-        // ************************************************
-        // Now fill all the histograms booked by each study
-        // ************************************************
-
-        // Fill all the histograms
-        ana.cutflow.fill();*/
-
-        // <--------------------------
-        // <--------------------------
-        // <--------------------------
     }
 
-    // Writing output file
-    ana.cutflow.saveOutput();
+    // printTimingInformation(timing_information);
 
     // Writing ttree output to file
+    ana.output_tfile->cd();
     ana.output_ttree->Write();
 
     // The below can be sometimes crucial
     delete ana.output_tfile;
+
+}
+
+void createOutputBranches()
+{
+    // Setup output TTree
+    ana.tx->createBranch<vector<float>>("sim_pt");
+    ana.tx->createBranch<vector<float>>("sim_eta");
+    ana.tx->createBranch<vector<float>>("sim_phi");
+    ana.tx->createBranch<vector<float>>("sim_pca_dxy");
+    ana.tx->createBranch<vector<float>>("sim_pca_dz");
+    ana.tx->createBranch<vector<int>>("sim_q");
+    ana.tx->createBranch<vector<int>>("sim_event");
+    ana.tx->createBranch<vector<int>>("sim_pdgId");
+    ana.tx->createBranch<vector<int>>("sim_bunchCrossing");
+    ana.tx->createBranch<vector<int>>("sim_parentVtxIdx");
+
+    // Sim vertex
+    ana.tx->createBranch<vector<float>>("simvtx_x");
+    ana.tx->createBranch<vector<float>>("simvtx_y");
+    ana.tx->createBranch<vector<float>>("simvtx_z");
+
+    ana.tx->createBranch<vector<vector<int>>>("sim_tcIdx");
+
+    // Matched to track candidate
+    ana.tx->createBranch<vector<int>>("sim_TC_matched");
+
+}
+
+void fillOutputBranches(SDL::Event& event)
+{
+    // Sim tracks
+    ana.tx->setBranch<vector<float>>("sim_pt", trk.sim_pt());
+    ana.tx->setBranch<vector<float>>("sim_eta", trk.sim_eta());
+    ana.tx->setBranch<vector<float>>("sim_phi", trk.sim_phi());
+    ana.tx->setBranch<vector<float>>("sim_pca_dxy", trk.sim_pca_dxy());
+    ana.tx->setBranch<vector<float>>("sim_pca_dz", trk.sim_pca_dz());
+    ana.tx->setBranch<vector<int>>("sim_q", trk.sim_q());
+    ana.tx->setBranch<vector<int>>("sim_event", trk.sim_event());
+    ana.tx->setBranch<vector<int>>("sim_pdgId", trk.sim_pdgId());
+    ana.tx->setBranch<vector<int>>("sim_bunchCrossing", trk.sim_bunchCrossing());
+    ana.tx->setBranch<vector<int>>("sim_parentVtxIdx", trk.sim_parentVtxIdx());
+
+    // simvtx
+    ana.tx->setBranch<vector<float>>("simvtx_x", trk.simvtx_x());
+    ana.tx->setBranch<vector<float>>("simvtx_y", trk.simvtx_y());
+    ana.tx->setBranch<vector<float>>("simvtx_z", trk.simvtx_z());
+
+    SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates());
+    SDL::tracklets& trackletsInGPU = (*event.getTracklets());
+    SDL::triplets& tripletsInGPU = (*event.getTriplets());
+    SDL::segments& segmentsInGPU = (*event.getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event.getHits());
+
+    // Did it match to track candidate?
+    std::vector<int> sim_TC_matched(trk.sim_pt().size());
+
+    for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
+    {
+        for (unsigned int jdx = 0; jdx < trackCandidatesInGPU.nTrackCandidates[idx]; jdx++)
+        {
+            unsigned int trackCandidateIndex = idx * 50000/*_N_MAX_TRACK_CANDIDATES_PER_MODULE*/ + jdx;
+
+            short trackCandidateType = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
+
+            unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex];
+            unsigned int outerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1];
+
+            unsigned int innerTrackletInnerSegmentIndex = -1;
+            unsigned int innerTrackletOuterSegmentIndex = -1;
+            unsigned int outerTrackletOuterSegmentIndex = -1;
+
+            if (trackCandidateType == 0) // T4T4
+            {
+                innerTrackletInnerSegmentIndex = trackletsInGPU.segmentIndices[2 * innerTrackletIdx];
+                innerTrackletOuterSegmentIndex = trackletsInGPU.segmentIndices[2 * innerTrackletIdx + 1];
+                outerTrackletOuterSegmentIndex = trackletsInGPU.segmentIndices[2 * outerTrackletIdx + 1];
+            }
+            else if (trackCandidateType == 1) // T4T3
+            {
+                innerTrackletInnerSegmentIndex = trackletsInGPU.segmentIndices[2 * innerTrackletIdx];
+                innerTrackletOuterSegmentIndex = trackletsInGPU.segmentIndices[2 * innerTrackletIdx + 1];
+                outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTrackletIdx + 1];
+            }
+            else if (trackCandidateType == 2) // T3T4
+            {
+                innerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTrackletIdx];
+                innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTrackletIdx + 1];
+                outerTrackletOuterSegmentIndex = trackletsInGPU.segmentIndices[2 * outerTrackletIdx + 1];
+            }
+
+            unsigned int innerTrackletInnerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletInnerSegmentIndex];
+            unsigned int innerTrackletInnerSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletInnerSegmentIndex + 1];
+            unsigned int innerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletOuterSegmentIndex];
+            unsigned int innerTrackletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletOuterSegmentIndex + 1];
+            unsigned int outerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex];
+            unsigned int outerTrackletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex + 1];
+
+            unsigned int innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentInnerMiniDoubletIndex];
+            unsigned int innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentInnerMiniDoubletIndex + 1];
+            unsigned int innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentOuterMiniDoubletIndex];
+            unsigned int innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentOuterMiniDoubletIndex + 1];
+            unsigned int innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletOuterSegmentInnerMiniDoubletIndex];
+            unsigned int innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletOuterSegmentInnerMiniDoubletIndex + 1];
+            unsigned int innerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletOuterSegmentOuterMiniDoubletIndex];
+            unsigned int innerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletOuterSegmentOuterMiniDoubletIndex + 1];
+            unsigned int outerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentInnerMiniDoubletIndex];
+            unsigned int outerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentInnerMiniDoubletIndex + 1];
+            unsigned int outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentOuterMiniDoubletIndex];
+            unsigned int outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentOuterMiniDoubletIndex + 1];
+
+            std::vector<int> hit_idxs = {
+                (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex],
+                (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex],
+                (int) hitsInGPU.idxs[innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex],
+                (int) hitsInGPU.idxs[innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex],
+                (int) hitsInGPU.idxs[innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex],
+                (int) hitsInGPU.idxs[innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex],
+                (int) hitsInGPU.idxs[innerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex],
+                (int) hitsInGPU.idxs[innerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
+                (int) hitsInGPU.idxs[outerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex],
+                (int) hitsInGPU.idxs[outerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex],
+                (int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex],
+                (int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
+            };
+
+            std::vector<int> hit_types;
+            if (idx == *(SDL::modulesInGPU->nLowerModules)) // Then this means this track candidate is a pLS-based
+            {
+                hit_types.push_back(0);
+                hit_types.push_back(0);
+                hit_types.push_back(0);
+                hit_types.push_back(0);
+            }
+            else
+            {
+                hit_types.push_back(4);
+                hit_types.push_back(4);
+                hit_types.push_back(4);
+                hit_types.push_back(4);
+            }
+            hit_types.push_back(4);
+            hit_types.push_back(4);
+            hit_types.push_back(4);
+            hit_types.push_back(4);
+            hit_types.push_back(4);
+            hit_types.push_back(4);
+            hit_types.push_back(4);
+            hit_types.push_back(4);
+
+            // sim track matched index
+            std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
+
+            for (auto& isimtrk : matched_sim_trk_idxs)
+            {
+                sim_TC_matched[isimtrk]++;
+            }
+        }
+    }
+
+    ana.tx->setBranch<vector<int>>("sim_TC_matched", sim_TC_matched);
+
+    ana.tx->fill();
+    ana.tx->clear();
+
+}
+
+void printTimingInformation(std::vector<std::vector<float>> timing_information)
+{
+    std::cout << showpoint;
+    std::cout << fixed;
+    std::cout << setprecision(2);
+    std::cout << right;
+    std::cout << "Timing summary" << std::endl;
+    std::cout << "Evt     Hits  MD    LS    T4    T4x   pT4   T3    TC" << std::endl;
+    std::vector<float> timing_sum_information(7);
+    for (auto&& [ievt, timing] : iter::enumerate(timing_information))
+    {
+        std::cout << setw(6) << ievt;
+        std::cout << setw(6) << timing[0]; // Hits
+        std::cout << setw(6) << timing[1]; // MD
+        std::cout << setw(6) << timing[2]; // LS
+        std::cout << setw(6) << timing[3]; // T4
+        std::cout << setw(6) << timing[4]; // T4x
+        std::cout << setw(6) << timing[5]; // pT4
+        std::cout << setw(6) << timing[6]; // T3
+        std::cout << setw(6) << timing[7]; // TC
+        std::cout << std::endl;
+        timing_sum_information[0] += timing[0]; // Hits
+        timing_sum_information[1] += timing[1]; // MD
+        timing_sum_information[2] += timing[2]; // LS
+        timing_sum_information[3] += timing[3]; // T4
+        timing_sum_information[4] += timing[4]; // T4x
+        timing_sum_information[5] += timing[5]; // pT4
+        timing_sum_information[6] += timing[6]; // T3
+        timing_sum_information[7] += timing[7]; // TC
+    }
+    timing_sum_information[0] /= timing_information.size(); // Hits
+    timing_sum_information[1] /= timing_information.size(); // MD
+    timing_sum_information[2] /= timing_information.size(); // LS
+    timing_sum_information[3] /= timing_information.size(); // T4
+    timing_sum_information[4] /= timing_information.size(); // T4x
+    timing_sum_information[5] /= timing_information.size(); // pT4
+    timing_sum_information[6] /= timing_information.size(); // T3
+    timing_sum_information[7] /= timing_information.size(); // TC
+    std::cout << setw(6) << "avg";
+    std::cout << setw(6) << timing_sum_information[0]; // Hits
+    std::cout << setw(6) << timing_sum_information[1]; // MD
+    std::cout << setw(6) << timing_sum_information[2]; // LS
+    std::cout << setw(6) << timing_sum_information[3]; // T4
+    std::cout << setw(6) << timing_sum_information[4]; // T4x
+    std::cout << setw(6) << timing_sum_information[5]; // pT4
+    std::cout << setw(6) << timing_sum_information[6]; // T3
+    std::cout << setw(6) << timing_sum_information[7]; // T3
+    std::cout << std::endl;
+
+    std::cout << left;
 
 }

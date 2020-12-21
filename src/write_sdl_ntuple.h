@@ -11,5 +11,8 @@
 #include "trkCore.h"
 
 void write_sdl_ntuple();
+void createOutputBranches();
+void fillOutputBranches(SDL::Event& event);
+void printTimingInformation(std::vector<std::vector<float>> timing_information);
 
 #endif

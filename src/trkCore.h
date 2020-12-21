@@ -36,11 +36,14 @@ bool hasAll12HitsWithNBarrelUsingModuleMap(unsigned int isimtrk, int nbarrel, bo
 bool checkModuleConnectionsAreGood(std::array<std::vector<unsigned int>, 6>& layers_good_paired_modules);
 bool goodEvent();
 void addOuterTrackerHits(SDL::Event& event);
-void runMiniDoublet(SDL::Event& event);
-void runSegment(SDL::Event& event);
-void runTracklet(SDL::Event& event);
-void runTriplet(SDL::Event& event);
-void runTrackCandidateTest_v2(SDL::Event& event);
+float runMiniDoublet(SDL::Event& event);
+float runSegment(SDL::Event& event);
+float runT4(SDL::Event& event);
+float runT4x(SDL::Event& event);
+float runpT4(SDL::Event& event);
+float runT3(SDL::Event& event);
+float runTrackCandidate(SDL::Event& event);
+float runTrackCandidateTest_v2(SDL::Event& event);
 std::vector<float> getPtBounds();
 bool inTimeTrackWithPdgId(int isimtrk, int pdgid);
 std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes);
@@ -53,5 +56,11 @@ float drfracSimHitConsistentWithHelix(int isimtrk, int isimhitidx);
 float drfracSimHitConsistentWithHelix(SDLMath::Helix& helix, int isimhitidx);
 float distxySimHitConsistentWithHelix(int isimtrk, int isimhitidx);
 float distxySimHitConsistentWithHelix(SDLMath::Helix& helix, int isimhitidx);
+
+float addInputsToLineSegmentTrackingUsingUnifiedMemory(SDL::Event &event);
+float addInputsToLineSegmentTrackingUsingExplicitMemory(SDL::Event &event);
+float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP);
+
+TVector3 calculateR3FromPCA(const TVector3& p3, const float dxy, const float dz);
 
 #endif
