@@ -1914,6 +1914,7 @@ unsigned int SDL::Event::getNumberOfTrackCandidatesByLayerEndcap(unsigned int la
     return n_trackCandidates_by_layer_endcap_[layer];
 }
 
+#ifdef Explicit_Hit
 std::shared_ptr<SDL::hits> SDL::Event::getHits() //std::shared_ptr should take care of garbage collection
 {
     if(hitsInCPU == nullptr)
@@ -1925,8 +1926,15 @@ std::shared_ptr<SDL::hits> SDL::Event::getHits() //std::shared_ptr should take c
     }
     return hitsInCPU;
 }
+#else
+SDL::hits* SDL::Event::getHits() //std::shared_ptr should take care of garbage collection
+{
+    return hitsInGPU;
+}
+#endif
 
 
+#ifdef Explicit_MD
 std::shared_ptr<SDL::miniDoublets> SDL::Event::getMiniDoublets()
 {
     if(mdsInCPU == nullptr)
@@ -1937,8 +1945,15 @@ std::shared_ptr<SDL::miniDoublets> SDL::Event::getMiniDoublets()
     }
     return mdsInCPU;
 }
+#else
+SDL::miniDoublets* SDL::Event::getMiniDoublets()
+{
+    return mdsInGPU;
+}
+#endif
 
 
+#ifdef Explicit_Seg
 std::shared_ptr<SDL::segments> SDL::Event::getSegments()
 {
     if(segmentsInCPU == nullptr)
@@ -1949,7 +1964,14 @@ std::shared_ptr<SDL::segments> SDL::Event::getSegments()
     }
     return segmentsInCPU;
 }
+#else
+SDL::segments* SDL::Event::getSegments()
+{
+    return segmentsInGPU;
+}
+#endif
 
+#ifdef Explicit_Tracklet
 std::shared_ptr<SDL::tracklets> SDL::Event::getTracklets()
 {
     if(trackletsInCPU == nullptr)
@@ -1962,7 +1984,14 @@ std::shared_ptr<SDL::tracklets> SDL::Event::getTracklets()
     }
     return trackletsInCPU;
 }
+#else
+SDL::tracklets* SDL::Event::getTracklets()
+{
+    return trackletsInGPU;
+}
+#endif
 
+#ifdef Explicit_Trips
 std::shared_ptr<SDL::triplets> SDL::Event::getTriplets()
 {
     if(tripletsInCPU == nullptr)
@@ -1975,7 +2004,14 @@ std::shared_ptr<SDL::triplets> SDL::Event::getTriplets()
     }
     return tripletsInCPU;
 }
+#else
+SDL::triplets* SDL::Event::getTriplets()
+{
+    return tripletsInGPU;
+}
+#endif
 
+#ifdef Explicit_Track
 std::shared_ptr<SDL::trackCandidates> SDL::Event::getTrackCandidates()
 {
     if(trackCandidatesInCPU == nullptr)
@@ -1990,3 +2026,9 @@ std::shared_ptr<SDL::trackCandidates> SDL::Event::getTrackCandidates()
     }
     return trackCandidatesInCPU;
 }
+#else
+SDL::trackCandidates* SDL::Event::getTrackCandidates()
+{
+    return trackCandidatesInGPU;
+}
+#endif

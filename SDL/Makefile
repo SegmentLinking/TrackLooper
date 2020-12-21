@@ -41,10 +41,10 @@ CACHEFLAG     =
 $(LIB):$(CCOBJECTS) $(CUOBJECTS)
 	$(LD)  $(SOFLAGS) $^ -o $@
 
-explicit: MEMFLAG += -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips -DExplicit_Track 
+explicit: MEMFLAG += -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips -DExplicit_Track -DExplicit_Hit
 explicit: $(LIB)
 
-explicit_cache: MEMFLAG += -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips -DExplicit_Track 
+explicit_cache: MEMFLAG += -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips -DExplicit_Track -DExplicit_Hit
 explicit_cache: CACHEFLAG += -DCACHE_ALLOC
 explicit_cache: $(LIB)
 

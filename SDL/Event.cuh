@@ -127,12 +127,36 @@ namespace SDL
         unsigned int getNumberOfTrackCandidatesByLayerBarrel(unsigned int layer);
         unsigned int getNumberOfTrackCandidatesByLayerEndcap(unsigned int layer);
 
+        #ifdef Explicit_Hit
         std::shared_ptr<hits> getHits();
+        #else
+        hits* getHits();
+        #endif
+        #ifdef Explicit_MD
         std::shared_ptr<miniDoublets> getMiniDoublets();
+        #else
+        miniDoublets* getMiniDoublets();
+        #endif
+        #ifdef Explicit_Seg
         std::shared_ptr<segments> getSegments() ;
+        #else
+        segments* getSegments() ;
+        #endif
+        #ifdef Explicit_Tracklet
         std::shared_ptr<tracklets> getTracklets();
+        #else
+        tracklets* getTracklets();
+        #endif
+        #ifdef Explicit_Trips
         std::shared_ptr<triplets> getTriplets();
+        #else
+        triplets* getTriplets();
+        #endif
+        #ifdef Explicit_Track
         std::shared_ptr<trackCandidates> getTrackCandidates();
+        #else
+        trackCandidates* getTrackCandidates();
+        #endif
 
     };
 
