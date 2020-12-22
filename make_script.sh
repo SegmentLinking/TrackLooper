@@ -145,4 +145,7 @@ echo "" >> ${LOG}
 echo "Line Segment Tracking binaries compilation successful!" | tee -a ${LOG}
 echo "" | tee -a ${LOG}
 
-echo "Compilation is logged at ${LOG}" | tee -a ${LOG}
+echo "Compilation is logged at .make.log" | tee -a ${LOG}
+echo "Compilation log is backed up at ${LOG}" | tee -a ${LOG}
+cp ${LOG} make.log
+

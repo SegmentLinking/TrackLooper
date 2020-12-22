@@ -207,6 +207,25 @@ int main(int argc, char** argv)
     // Create TTreeX instance that will take care of the interface part of TTree
     ana.tx = new RooUtil::TTreeX(ana.output_ttree);
 
+    // Write out metadata of the code to the output_tfile
+    ana.output_tfile->cd();
+    gSystem->Exec("git status > gitversion.txt");
+    gSystem->Exec("git rev-parse HEAD >> gitversion.txt");
+    gSystem->Exec("git log >> gitversion.txt");
+    gSystem->Exec("git diff >> gitversion.txt");
+    std::ifstream t("gitversion.txt");
+    std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+    TString tstr = str.c_str();
+    TObjString tobjstr("code_tag_data");
+    tobjstr.SetString(tstr.Data());
+    ana.output_tfile->WriteObject(&tobjstr, "code_tag_data");
+    std::ifstream makelog("make.log");
+    std::string makestr((std::istreambuf_iterator<char>(makelog)), std::istreambuf_iterator<char>());
+    TString maketstr = makestr.c_str();
+    TObjString maketobjstr("make_log");
+    maketobjstr.SetString(maketstr.Data());
+    ana.output_tfile->WriteObject(&maketobjstr, "make_log");
+
     // Run depending on the mode
     switch (ana.mode)
     {
