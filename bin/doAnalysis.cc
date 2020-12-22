@@ -33,6 +33,8 @@ void addPixelSegments(SDL::Event& event, int isimtrk, std::vector<float> trkX, s
     std::vector<float> ptErr_vec;
     std::vector<float> etaErr_vec;
     std::vector<float> deltaPhi_vec;
+    const int hit_size = trkX.size();
+
     for (auto&& [iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
     {
 
@@ -98,7 +100,7 @@ void addPixelSegments(SDL::Event& event, int isimtrk, std::vector<float> trkX, s
         float seedSD_dr = (r3LH - r3PCA).Pt();
         float seedSD_d = seedSD_rt - r3PCA.Pt();
         float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
-        struct SDL::hits* hitsInGPU = event.getHits();
+//        struct SDL::hits* hitsInGPU = event.getHits();
         // Inner most hit
         //FIXME:There is no SDL::Hit now!
    
@@ -109,7 +111,6 @@ void addPixelSegments(SDL::Event& event, int isimtrk, std::vector<float> trkX, s
         float px = p3LH.X();
         float py = p3LH.Y();
         float pz = p3LH.Z();
-        const int hit_size = trkX.size();
         if ((ptIn > 0.7) and (fabs(p3LH.Eta()) < 3))
         {
       // old unified hits version
@@ -761,6 +762,13 @@ int main(int argc, char** argv)
             if (ana.verbose != 0) std::cout << "# of Mini-doublets produced barrel layer 4: " << event.getNumberOfMiniDoubletsByLayerBarrel(3) << std::endl;
             if (ana.verbose != 0) std::cout << "# of Mini-doublets produced barrel layer 5: " << event.getNumberOfMiniDoubletsByLayerBarrel(4) << std::endl;
             if (ana.verbose != 0) std::cout << "# of Mini-doublets produced barrel layer 6: " << event.getNumberOfMiniDoubletsByLayerBarrel(5) << std::endl;
+
+            if (ana.verbose != 0) std::cout << "# of Mini-doublets produced endcap layer 1: " << event.getNumberOfMiniDoubletsByLayerEndcap(0) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Mini-doublets produced endcap layer 2: " << event.getNumberOfMiniDoubletsByLayerEndcap(1) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Mini-doublets produced endcap layer 3: " << event.getNumberOfMiniDoubletsByLayerEndcap(2) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Mini-doublets produced endcap layer 4: " << event.getNumberOfMiniDoubletsByLayerEndcap(3) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Mini-doublets produced endcap layer 5: " << event.getNumberOfMiniDoubletsByLayerEndcap(4) << std::endl;
+
             // ----------------
 
             // ----------------
@@ -771,11 +779,18 @@ int main(int argc, char** argv)
             event_times[ana.looper.getCurrentEventIndex()][2] = sg_elapsed - md_elapsed;
             if (ana.verbose != 0) std::cout << "Reco Segment processing time: " << sg_elapsed - md_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "# of Segments produced: " << event.getNumberOfSegments() << std::endl;
-            if (ana.verbose != 0) std::cout << "# of Segments produced layer 1-2: " << event.getNumberOfSegmentsByLayerBarrel(0) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of Segments produced layer 2-3: " << event.getNumberOfSegmentsByLayerBarrel(1) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of Segments produced layer 3-4: " << event.getNumberOfSegmentsByLayerBarrel(2) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of Segments produced layer 4-5: " << event.getNumberOfSegmentsByLayerBarrel(3) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of Segments produced layer 5-6: " << event.getNumberOfSegmentsByLayerBarrel(4) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Segments produced barrel layer 1: " << event.getNumberOfSegmentsByLayerBarrel(0) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Segments produced barrel layer 2: " << event.getNumberOfSegmentsByLayerBarrel(1) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Segments produced barrel layer 3: " << event.getNumberOfSegmentsByLayerBarrel(2) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Segments produced barrel layer 4: " << event.getNumberOfSegmentsByLayerBarrel(3) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Segments produced barrel layer 5: " << event.getNumberOfSegmentsByLayerBarrel(4) << std::endl;
+
+            if (ana.verbose != 0) std::cout << "# of Segments produced endcap layer 1: " << event.getNumberOfSegmentsByLayerEndcap(0) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Segments produced endcap layer 2: " << event.getNumberOfSegmentsByLayerEndcap(1) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Segments produced endcap layer 3: " << event.getNumberOfSegmentsByLayerEndcap(2) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Segments produced endcap layer 4: " << event.getNumberOfSegmentsByLayerEndcap(3) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Segments produced endcap layer 5: " << event.getNumberOfSegmentsByLayerEndcap(4) << std::endl;
+
             // ----------------
 
             // ----------------
@@ -786,13 +801,20 @@ int main(int argc, char** argv)
             event_times[ana.looper.getCurrentEventIndex()][3] = tp_elapsed - sg_elapsed;
             if (ana.verbose != 0) std::cout << "Reco Triplet processing time: " << tp_elapsed - sg_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "# of Triplets produced: " << event.getNumberOfTriplets() << std::endl;
-            if (ana.verbose != 0) std::cout << "# of Triplets produced layer 1-2-3: " << event.getNumberOfTripletsByLayerBarrel(0) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of Triplets produced layer 2-3-4: " << event.getNumberOfTripletsByLayerBarrel(1) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of Triplets produced layer 3-4-5: " << event.getNumberOfTripletsByLayerBarrel(2) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of Triplets produced layer 4-5-6: " << event.getNumberOfTripletsByLayerBarrel(3) << std::endl;
-	          if (ana.verbose != 0) std::cout << "# of Triplets produced endcap layer 1-2-3: " << event.getNumberOfTripletsByLayerEndcap(0) << std::endl;
-	          if (ana.verbose != 0) std::cout << "# of Triplets produced endcap layer 2-3-4: " << event.getNumberOfTripletsByLayerEndcap(1) << std::endl;
-	          if (ana.verbose != 0) std::cout << "# of Triplets produced endcap layer 3-4-5: " << event.getNumberOfTripletsByLayerEndcap(2) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Triplets produced barrel layer 1: " << event.getNumberOfTripletsByLayerBarrel(0) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Triplets produced barrel layer 2: " << event.getNumberOfTripletsByLayerBarrel(1) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Triplets produced barrel layer 3: " << event.getNumberOfTripletsByLayerBarrel(2) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Triplets produced barrel layer 4: " << event.getNumberOfTripletsByLayerBarrel(3) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Triplets produced barrel layer 5: " << event.getNumberOfTripletsByLayerBarrel(4) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Triplets produced barrel layer 6: " << event.getNumberOfTripletsByLayerBarrel(5) << std::endl;
+
+
+	        if (ana.verbose != 0) std::cout << "# of Triplets produced endcap layer 1: " << event.getNumberOfTripletsByLayerEndcap(0) << std::endl;
+	        if (ana.verbose != 0) std::cout << "# of Triplets produced endcap layer 2: " << event.getNumberOfTripletsByLayerEndcap(1) << std::endl;
+	        if (ana.verbose != 0) std::cout << "# of Triplets produced endcap layer 3: " << event.getNumberOfTripletsByLayerEndcap(2) << std::endl;
+	        if (ana.verbose != 0) std::cout << "# of Triplets produced endcap layer 4: " << event.getNumberOfTripletsByLayerEndcap(3) << std::endl;
+	        if (ana.verbose != 0) std::cout << "# of Triplets produced endcap layer 5: " << event.getNumberOfTripletsByLayerEndcap(4) << std::endl;
+
             // ----------------
 
             // ----------------
@@ -820,13 +842,19 @@ int main(int argc, char** argv)
             event_times[ana.looper.getCurrentEventIndex()][5] = tl_elapsed - ptl_elapsed;
             if (ana.verbose != 0) std::cout << "Reco Tracklet processing time: " << tl_elapsed - ptl_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "# of Tracklets produced: " << event.getNumberOfTracklets() << std::endl;
-            if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 1-2-3-4: " << event.getNumberOfTrackletsByLayerBarrel(0) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 2-3-4-5: " << event.getNumberOfTrackletsByLayerBarrel(1) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 3-4-5-6: " << event.getNumberOfTrackletsByLayerBarrel(2) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 4: " << event.getNumberOfTrackletsByLayerBarrel(3) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 5: " << event.getNumberOfTrackletsByLayerBarrel(4) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 6: " << event.getNumberOfTrackletsByLayerBarrel(5) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Tracklets produced barrel layer 1: " << event.getNumberOfTrackletsByLayerBarrel(0) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Tracklets produced barrel layer 2: " << event.getNumberOfTrackletsByLayerBarrel(1) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Tracklets produced barrel layer 3: " << event.getNumberOfTrackletsByLayerBarrel(2) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Tracklets produced barrel layer 4: " << event.getNumberOfTrackletsByLayerBarrel(3) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Tracklets produced barrel layer 5: " << event.getNumberOfTrackletsByLayerBarrel(4) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Tracklets produced barrel layer 6: " << event.getNumberOfTrackletsByLayerBarrel(5) << std::endl;
             // ----------------
+            if (ana.verbose != 0) std::cout << "# of Tracklets produced endcap layer 1: " << event.getNumberOfTrackletsByLayerEndcap(0) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Tracklets produced endcap layer 2: " << event.getNumberOfTrackletsByLayerEndcap(1) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Tracklets produced endcap layer 3: " << event.getNumberOfTrackletsByLayerEndcap(2) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Tracklets produced endcap layer 4: " << event.getNumberOfTrackletsByLayerEndcap(3) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Tracklets produced endcap layer 5: " << event.getNumberOfTrackletsByLayerEndcap(4) << std::endl;
+
 
             if (ana.verbose != 0) std::cout << "Reco TrackCandidate start" << std::endl;
             my_timer.Start(kFALSE);
@@ -837,13 +865,20 @@ int main(int argc, char** argv)
             event_times[ana.looper.getCurrentEventIndex()][6] = tc_elapsed - tl_elapsed;
             if (ana.verbose != 0) std::cout << "Reco TrackCandidate processing time: " << tc_elapsed - tl_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "# of TrackCandidates produced: " << event.getNumberOfTrackCandidates() << std::endl;
-            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 1-2-3-4-5-6: " << event.getNumberOfTrackCandidatesByLayerBarrel(0) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 2: " << event.getNumberOfTrackCandidatesByLayerBarrel(1) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 3: " << event.getNumberOfTrackCandidatesByLayerBarrel(2) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 4: " << event.getNumberOfTrackCandidatesByLayerBarrel(3) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 5: " << event.getNumberOfTrackCandidatesByLayerBarrel(4) << std::endl;
-            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 6: " << event.getNumberOfTrackCandidatesByLayerBarrel(5) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Pixel TrackCandidates produced: "<< event.getNumberOfPixelTrackCandidates() << std::endl;
+            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced barrel layer 1: " << event.getNumberOfTrackCandidatesByLayerBarrel(0) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced barrel layer 2: " << event.getNumberOfTrackCandidatesByLayerBarrel(1) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced barrel layer 3: " << event.getNumberOfTrackCandidatesByLayerBarrel(2) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced barrel layer 4: " << event.getNumberOfTrackCandidatesByLayerBarrel(3) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced barrel layer 5: " << event.getNumberOfTrackCandidatesByLayerBarrel(4) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced barrel layer 6: " << event.getNumberOfTrackCandidatesByLayerBarrel(5) << std::endl;
             // ----------------*/
+
+            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced endcap layer 1: " << event.getNumberOfTrackCandidatesByLayerEndcap(0) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced endcap layer 2: " << event.getNumberOfTrackCandidatesByLayerEndcap(1) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced endcap layer 3: " << event.getNumberOfTrackCandidatesByLayerEndcap(2) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced endcap layer 4: " << event.getNumberOfTrackCandidatesByLayerEndcap(3) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of TrackCandidates produced endcap layer 5: " << event.getNumberOfTrackCandidatesByLayerEndcap(4) << std::endl;
 
             if (ana.verbose != 0) std::cout << "Reco SDL end" << std::endl;
 
@@ -892,7 +927,7 @@ int main(int argc, char** argv)
     float avg_noload = 0.;
     for(int ev=0;ev<ana.n_events;ev++){
         float total =event_times[ev][0]+event_times[ev][1] +event_times[ev][2]+event_times[ev][3]+event_times[ev][4]+ event_times[ev][5]+event_times[ev][6];//+event_times[ev][7];
-        float no_load =event_times[ev][1] +event_times[ev][2]+event_times[ev][3]+ event_times[ev][5]+event_times[ev][6];//+event_times[ev][7];
+        float no_load =event_times[ev][1] +event_times[ev][2]+event_times[ev][3]+ event_times[ev][4] + event_times[ev][5]+event_times[ev][6];//+event_times[ev][7];
         avg_hit += event_times[ev][0]; 
         avg_md += event_times[ev][1]; 
         avg_seg += event_times[ev][2]; 

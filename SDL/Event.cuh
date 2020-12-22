@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <cmath>
+#include <memory>
 #include <cuda_runtime.h>
 #include <omp.h>
 #include <chrono>
@@ -52,6 +53,14 @@ namespace SDL
         struct tracklets* trackletsInGPU;
         struct triplets* tripletsInGPU;
         struct trackCandidates* trackCandidatesInGPU;
+
+        //CPU interface stuff
+        std::shared_ptr<hits> hitsInCPU;
+        std::shared_ptr<miniDoublets> mdsInCPU;
+        std::shared_ptr<segments> segmentsInCPU;
+        std::shared_ptr<tracklets> trackletsInCPU;
+        std::shared_ptr<triplets> tripletsInCPU;
+        std::shared_ptr<trackCandidates> trackCandidatesInCPU;
 
     public:
         Event();
@@ -114,15 +123,17 @@ namespace SDL
         unsigned int getNumberOfTripletsByLayerEndcap(unsigned int layer);
 
         unsigned int getNumberOfTrackCandidates();
+        unsigned int getNumberOfPixelTrackCandidates();
         unsigned int getNumberOfTrackCandidatesByLayer(unsigned int layer);
         unsigned int getNumberOfTrackCandidatesByLayerBarrel(unsigned int layer);
         unsigned int getNumberOfTrackCandidatesByLayerEndcap(unsigned int layer);
 
-        struct hits* getHits();
-        struct miniDoublets* getMiniDoublets();
-        struct segments* getSegments() ;
-        struct tracklets* getTracklets();
-        struct triplets* getTriplets();
+        std::shared_ptr<hits> getHits();
+        std::shared_ptr<miniDoublets> getMiniDoublets();
+        std::shared_ptr<segments> getSegments() ;
+        std::shared_ptr<tracklets> getTracklets();
+        std::shared_ptr<triplets> getTriplets();
+        std::shared_ptr<trackCandidates> getTrackCandidates();
 
     };
 
