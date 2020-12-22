@@ -123,6 +123,7 @@ namespace SDL
         unsigned int getNumberOfTripletsByLayerEndcap(unsigned int layer);
 
         unsigned int getNumberOfTrackCandidates();
+        unsigned int getNumberOfPixelTrackCandidates();
         unsigned int getNumberOfTrackCandidatesByLayer(unsigned int layer);
         unsigned int getNumberOfTrackCandidatesByLayerBarrel(unsigned int layer);
         unsigned int getNumberOfTrackCandidatesByLayerEndcap(unsigned int layer);

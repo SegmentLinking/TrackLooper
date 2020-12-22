@@ -1879,23 +1879,26 @@ unsigned int SDL::Event::getNumberOfTrackCandidates()
     {
         trackCandidates += it;
     }
-
+    
     //hack - add pixel track candidate multiplicity
-#ifdef Explicit_Track
-    unsigned int nLowerModules = *(SDL::modulesInGPU->nLowerModules);
-    unsigned int nTrackCandidatesInPixelModule;
-    cudaMemcpy(&nTrackCandidatesInPixelModule,&trackCandidatesInGPU->nTrackCandidates[nLowerModules],sizeof(unsigned int),cudaMemcpyDeviceToHost);
-//    std::cout<<"number of pixel track candidates = "<<nTrackCandidatesInPixelModule<<std::endl;
-    trackCandidates += nTrackCandidatesInPixelModule;
-#else
-    trackCandidates += trackCandidatesInGPU->nTrackCandidates[*(modulesInGPU->nLowerModules)];
-#endif
+    trackCandidates += getNumberOfTrackCandidates();
 
     return trackCandidates;
    
 }
 
+unsigned int SDL::Event::getNumberOfPixelTrackCandidates()
+{
+#ifdef Explicit_Track
+    unsigned int nLowerModules = *(SDL::modulesInGPU->nLowerModules);
+    unsigned int nTrackCandidatesInPixelModule;
+    cudaMemcpy(&nTrackCandidatesInPixelModule,&trackCandidatesInGPU->nTrackCandidates[nLowerModules],sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    return nTrackCandidatesInPixelModule;
+#else
+    return trackCandidatesInGPU->nTrackCandidates[*(modulesInGPU->nLowerModules)];
+#endif
 
+}
 unsigned int SDL::Event::getNumberOfTrackCandidatesByLayer(unsigned int layer)
 {
     if(layer == 6)

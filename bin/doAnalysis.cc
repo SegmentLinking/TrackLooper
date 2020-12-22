@@ -805,10 +805,16 @@ int main(int argc, char** argv)
             if (ana.verbose != 0) std::cout << "# of Triplets produced barrel layer 2: " << event.getNumberOfTripletsByLayerBarrel(1) << std::endl;
             if (ana.verbose != 0) std::cout << "# of Triplets produced barrel layer 3: " << event.getNumberOfTripletsByLayerBarrel(2) << std::endl;
             if (ana.verbose != 0) std::cout << "# of Triplets produced barrel layer 4: " << event.getNumberOfTripletsByLayerBarrel(3) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Triplets produced barrel layer 5: " << event.getNumberOfTripletsByLayerBarrel(4) << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Triplets produced barrel layer 6: " << event.getNumberOfTripletsByLayerBarrel(5) << std::endl;
+
 
 	        if (ana.verbose != 0) std::cout << "# of Triplets produced endcap layer 1: " << event.getNumberOfTripletsByLayerEndcap(0) << std::endl;
 	        if (ana.verbose != 0) std::cout << "# of Triplets produced endcap layer 2: " << event.getNumberOfTripletsByLayerEndcap(1) << std::endl;
 	        if (ana.verbose != 0) std::cout << "# of Triplets produced endcap layer 3: " << event.getNumberOfTripletsByLayerEndcap(2) << std::endl;
+	        if (ana.verbose != 0) std::cout << "# of Triplets produced endcap layer 4: " << event.getNumberOfTripletsByLayerEndcap(3) << std::endl;
+	        if (ana.verbose != 0) std::cout << "# of Triplets produced endcap layer 5: " << event.getNumberOfTripletsByLayerEndcap(4) << std::endl;
+
             // ----------------
 
             // ----------------
@@ -859,6 +865,7 @@ int main(int argc, char** argv)
             event_times[ana.looper.getCurrentEventIndex()][6] = tc_elapsed - tl_elapsed;
             if (ana.verbose != 0) std::cout << "Reco TrackCandidate processing time: " << tc_elapsed - tl_elapsed << " secs" << std::endl;
             if (ana.verbose != 0) std::cout << "# of TrackCandidates produced: " << event.getNumberOfTrackCandidates() << std::endl;
+            if (ana.verbose != 0) std::cout << "# of Pixel TrackCandidates produced: "<< event.getNumberOfPixelTrackCandidates() << std::endl;
             if (ana.verbose != 0) std::cout << "# of TrackCandidates produced barrel layer 1: " << event.getNumberOfTrackCandidatesByLayerBarrel(0) << std::endl;
             if (ana.verbose != 0) std::cout << "# of TrackCandidates produced barrel layer 2: " << event.getNumberOfTrackCandidatesByLayerBarrel(1) << std::endl;
             if (ana.verbose != 0) std::cout << "# of TrackCandidates produced barrel layer 3: " << event.getNumberOfTrackCandidatesByLayerBarrel(2) << std::endl;
