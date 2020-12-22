@@ -548,7 +548,7 @@ float runpT4(SDL::Event& event)
     TStopwatch my_timer;
     if (ana.verbose != 0) std::cout << "Reco Quadruplet pT4 start" << std::endl;
     my_timer.Start();
-    event.createTrackletsWithAGapWithModuleMap();
+    event.createPixelTracklets();
     float pt4_elapsed = my_timer.RealTime();
     if (ana.verbose != 0) std::cout << "Reco pT4 processing time: " << pt4_elapsed << " secs" << std::endl;
 
@@ -710,8 +710,12 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
 
         if ( (*simHitIdxs).size() <= hitidx)
         {
-                std::cout << (*simHitIdxs).size() << " " << hittype << std::endl;
-                std::cout << hitidx << " " << hittype << std::endl;
+            std::cout << "ERROR" << std::endl;
+            std::cout <<  " hittype: " << hittype <<  std::endl;
+            std::cout <<  " trk.pix_simHitIdx().size(): " << trk.pix_simHitIdx().size() <<  std::endl;
+            std::cout <<  " trk.ph2_simHitIdx().size(): " << trk.ph2_simHitIdx().size() <<  std::endl;
+            std::cout << (*simHitIdxs).size() << " " << hittype << std::endl;
+            std::cout << hitidx << " " << hittype << std::endl;
         }
 
         for (auto& simhit_idx : (*simHitIdxs).at(hitidx))
@@ -1167,6 +1171,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
     std::vector<float> trkY = trk.ph2_y();
     std::vector<float> trkZ = trk.ph2_z();
     std::vector<unsigned int> hitId = trk.ph2_detId();
+    std::vector<unsigned int> hitIdxs(trk.ph2_detId().size());
+    std::iota(hitIdxs.begin(), hitIdxs.end(), 0);
     const int hit_size = trkX.size();
 
     for (auto &&[iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
@@ -1280,20 +1286,26 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             etaErr_vec.push_back(etaErr);
             deltaPhi_vec.push_back(pixelSegmentDeltaPhiChange);
 
+            // For matching with sim tracks
+            hitIdxs.push_back(trk.see_hitIdx()[iSeed][0]);
+            hitIdxs.push_back(trk.see_hitIdx()[iSeed][1]);
+            hitIdxs.push_back(trk.see_hitIdx()[iSeed][2]);
+            hitIdxs.push_back(trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]);
+
         }
 
     }
 
     if (useOMP)
     {
-        event.addHitToEventOMP(trkX, trkY, trkZ, hitId);
+        event.addHitToEventOMP(trkX, trkY, trkZ, hitId); // TODO : Need to fix the hitIdxs
     }
     else
     {
-        for (auto &&[ihit, data] : iter::enumerate(iter::zip(trkX, trkY, trkZ, hitId)))
+        for (auto &&[ihit, data] : iter::enumerate(iter::zip(trkX, trkY, trkZ, hitId, hitIdxs)))
         {
-            auto &&[x, y, z, detId] = data;
-            event.addHitToEvent(x, y, z, detId, ihit);
+            auto &&[x, y, z, detId, hitidx] = data;
+            event.addHitToEvent(x, y, z, detId, hitidx);
         }
     }
 

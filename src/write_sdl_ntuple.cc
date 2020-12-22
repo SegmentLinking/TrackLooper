@@ -29,18 +29,22 @@ void write_sdl_ntuple()
 
         // Run Mini-doublet
         float timing_MD = runMiniDoublet(event);
+        printMiniDoubletMultiplicities(event);
 
         // Run Segment
         float timing_LS = runSegment(event);
 
-        // Run T4
-        float timing_T4 = runT4(event);
+        // Run pT4
+        float timing_pT4 = runpT4(event);
+        printQuadrupletMultiplicities(event);
 
         // Run T4x
         float timing_T4x = runT4x(event);
+        printQuadrupletMultiplicities(event);
 
-        // Run pT4
-        float timing_pT4 = runpT4(event);
+        // Run T4
+        float timing_T4 = runT4(event);
+        printQuadrupletMultiplicities(event);
 
         // Run T3
         float timing_T3 = runT3(event);
@@ -61,7 +65,7 @@ void write_sdl_ntuple()
 
     }
 
-    // printTimingInformation(timing_information);
+    printTimingInformation(timing_information);
 
     // Writing ttree output to file
     ana.output_tfile->cd();
@@ -239,6 +243,10 @@ void fillOutputBranches(SDL::Event& event)
 
 void printTimingInformation(std::vector<std::vector<float>> timing_information)
 {
+
+    if (ana.verbose == 0)
+        return;
+
     std::cout << showpoint;
     std::cout << fixed;
     std::cout << setprecision(2);
@@ -288,4 +296,29 @@ void printTimingInformation(std::vector<std::vector<float>> timing_information)
 
     std::cout << left;
 
+}
+
+void printQuadrupletMultiplicities(SDL::Event& event)
+{
+    SDL::tracklets& trackletsInGPU = (*event.getTracklets());
+
+    int nTracklets = 0;
+    for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
+    {
+        nTracklets += trackletsInGPU.nTracklets[idx];
+    }
+    std::cout <<  " nTracklets: " << nTracklets <<  std::endl;
+}
+
+void printMiniDoubletMultiplicities(SDL::Event& event)
+{
+    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
+
+    int nMiniDoublets = 0;
+    for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
+    {
+        nMiniDoublets += miniDoubletsInGPU.nMDs[2 * idx];
+        nMiniDoublets += miniDoubletsInGPU.nMDs[2 * idx + 1];
+    }
+    std::cout <<  " nMiniDoublets: " << nMiniDoublets <<  std::endl;
 }

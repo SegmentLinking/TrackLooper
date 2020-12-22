@@ -10,6 +10,7 @@
 #include "SDLMath.h"
 #include "SDL/Event.cuh"
 #include <cppitertools/itertools.hpp>
+#include <numeric>
 
 enum TrackletType {
     BB1BB3 = 0,
