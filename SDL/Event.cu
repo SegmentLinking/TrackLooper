@@ -1881,7 +1881,7 @@ unsigned int SDL::Event::getNumberOfTrackCandidates()
     }
     
     //hack - add pixel track candidate multiplicity
-    trackCandidates += getNumberOfTrackCandidates();
+    trackCandidates += getNumberOfPixelTrackCandidates();
 
     return trackCandidates;
    
