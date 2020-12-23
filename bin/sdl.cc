@@ -235,6 +235,11 @@ int main(int argc, char** argv)
     input.SetString(result["input"].as<std::string>().c_str());
     ana.output_tfile->WriteObject(&input, "input");
 
+    // Write out whether it's GPU or CPU
+    TObjString version;
+    version.SetString("GPU");
+    ana.output_tfile->WriteObject(&version, "version");
+
     // Run depending on the mode
     switch (ana.mode)
     {

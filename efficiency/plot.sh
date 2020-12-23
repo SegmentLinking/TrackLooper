@@ -1,5 +1,4 @@
 mkdir -p plots/mtv_eff/
-mkdir -p plots/dump/
 cp index.php plots/mtv_eff/
 
 if [ -z $1 ];
