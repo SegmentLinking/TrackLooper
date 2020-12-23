@@ -21,14 +21,15 @@ SOFLAGS       = -g -shared --compiler-options -fPIC --cudart shared -arch=comput
 #MEMFLAG       = -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips -DExplicit_Track 
 PRINTFLAG     = -DAddObjects
 #CACHEFLAG     = -DCACHE_ALLOC
+CUDALAUNCHFLAG = -DNEWGRID_MD -DNEWGRID_Seg -DNEWGRID_Trips -DNEWGRID_Tracklet #-DNESTED_PARA 
 # how to make it 
 #
 
 %.o : %.cu %.cuh
-	$(LD) -x cu $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $< -o $@
+	$(LD) -x cu $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $< -o $@
 
 %.o : %.cc %.h
-	$(LD) $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $< -o $@
+	$(LD) $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $< -o $@
 
 
 
