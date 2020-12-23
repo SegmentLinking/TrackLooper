@@ -139,7 +139,7 @@ rm -rf ${OUTDIR}
 echo "Running efficiency...             (log: ${OUTDIR}/run.log)"
 
 # Run the efficiency histograms
-rm .jobs.txt
+rm -f .jobs.txt
 NJOBS=16
 
 rm -rf outputs/
