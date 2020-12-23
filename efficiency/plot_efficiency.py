@@ -101,7 +101,7 @@ def draw_eff(num, den, output_name, sample_name, version_tag):
     x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
     y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.01
     sample_name_label = "Sample: " + sample_name + "   Version tag:" + version_tag
-    t.DrawLatexNDC(x,y,"#scale[1.1]{#font[52]{%s}}" % sample_name_label)
+    t.DrawLatexNDC(x,y,"#scale[0.9]{#font[52]{%s}}" % sample_name_label)
     # Save
     c1.SetGrid()
     c1.SaveAs("{}".format(output_name.replace(".pdf", "_eff.pdf")))

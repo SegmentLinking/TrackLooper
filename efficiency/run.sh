@@ -103,5 +103,5 @@ SAMPLE=${FULLSTRSAMPLE//"TObjString = "/}
 
 echo ${TAG} ${SAMPLE}
 
-sh plot.sh ${SAMPLE} ${TAG}
+sh plot.sh $(basename ${SAMPLE}) ${TAG}
 
