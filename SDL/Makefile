@@ -24,9 +24,6 @@ SOFLAGS       = -g -shared --compiler-options -fPIC --cudart shared -arch=comput
 PRINTFLAG     = -DAddObjects
 MEMFLAG       = 
 CACHEFLAG     = 
-# MEMFLAG       = -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips -DExplicit_Track 
-# CACHEFLAG     = -DCACHE_ALLOC
-
 
 #
 # how to make it 
