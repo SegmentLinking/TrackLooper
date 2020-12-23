@@ -209,9 +209,13 @@ int main(int argc, char** argv)
 
     // Write out metadata of the code to the output_tfile
     ana.output_tfile->cd();
-    gSystem->Exec("git status > gitversion.txt");
+    gSystem->Exec("echo '' > gitversion.txt");
     gSystem->Exec("git rev-parse HEAD >> gitversion.txt");
+    gSystem->Exec("echo 'git status' >> gitversion.txt");
+    gSystem->Exec("git status >> gitversion.txt");
+    gSystem->Exec("echo 'git log' >> gitversion.txt");
     gSystem->Exec("git log >> gitversion.txt");
+    gSystem->Exec("echo 'git diff' >> gitversion.txt");
     gSystem->Exec("git diff >> gitversion.txt");
     std::ifstream t("gitversion.txt");
     std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
@@ -225,6 +229,11 @@ int main(int argc, char** argv)
     TObjString maketobjstr("make_log");
     maketobjstr.SetString(maketstr.Data());
     ana.output_tfile->WriteObject(&maketobjstr, "make_log");
+
+    // Write out input sample or file name
+    TObjString input;
+    input.SetString(result["input"].as<std::string>().c_str());
+    ana.output_tfile->WriteObject(&input, "input");
 
     // Run depending on the mode
     switch (ana.mode)
