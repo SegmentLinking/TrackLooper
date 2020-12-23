@@ -3,6 +3,8 @@
 
 EXES=bin/doAnalysis bin/sdl #bin/mtv bin/tracklet bin/sdl
 
+ROOUTIL=src/rooutil/
+
 SOURCES=$(wildcard src/*.cc) $(wildcard src/AnalysisInterface/*.cc) #$(wildcard SDL/*.cc)
 OBJECTS=$(SOURCES:.cc=.o) $(wildcard SDL/sdl.so)
 HEADERS=$(SOURCES:.cc=.h)
@@ -24,22 +26,28 @@ CFLAGS      = $(ROOTCFLAGS) --compiler-options -Wall --compiler-options -Wno-unu
 EXTRACFLAGS = $(shell rooutil-config)
 EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -L/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/lib64 -lcudart -fopenmp
 
-all: $(EXES)
+all: $(ROOUTIL) $(EXES)
 
 bin/doAnalysis: bin/doAnalysis.o $(OBJECTS)
-	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRAFLAGS) -o $@
+	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(EXTRAFLAGS) -o $@
 
 bin/mtv: bin/mtv.o $(OBJECTS)
-	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRAFLAGS) -o $@
+	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(EXTRAFLAGS) -o $@
 
 bin/tracklet: bin/tracklet.o $(OBJECTS)
-	$(LD)  $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRAFLAGS) -o $@
+	$(LD)  $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(EXTRAFLAGS) -o $@
 
 bin/sdl: bin/sdl.o $(OBJECTS)
-	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRAFLAGS) -o $@
+	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(EXTRAFLAGS) -o $@
 
 %.o: %.cc
 	$(CC) $(CFLAGS) $(EXTRACFLAGS) $< -dc -o $@
 
+$(ROOUTIL):
+	$(MAKE) -C src/rooutil/
+
 clean:
 	rm -f $(OBJECTS) bin/*.o $(EXES)
+	rm -f src/rooutil/*.so src/rooutil/*.o
+
+.PHONY: $(ROOUTIL)

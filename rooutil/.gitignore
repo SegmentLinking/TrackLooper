@@ -1,6 +1,0 @@
-*.o
-*.so
-*.d
-*.pcm
-*.pyc
-qframework/Root/*.h

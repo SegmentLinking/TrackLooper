@@ -1,7 +1,0 @@
-h1D_dRcone.pdf h1D_dRqq.pdf
-h1D_masses.pdf
-text h1D_njets.pdf
-text h1D_pt.pdf
-h1D_tau1.pdf h1D_tau2.pdf
-h1D_tau21.pdf h1D_tau32.pdf
-h1D_tau3.pdf

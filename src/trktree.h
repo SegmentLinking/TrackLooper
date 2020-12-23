@@ -1,7 +1,6 @@
 // -*- C++ -*-
 #ifndef trktree_H
 #define trktree_H
-#include "rooutil.h"
 #include "Math/LorentzVector.h"
 #include "Math/Point3D.h"
 #include "TMath.h"

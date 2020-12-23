@@ -1,5 +1,0 @@
-#include "RVersion.h"
-#pragma extra_include "TMVA/Factory.h";
-#if ROOT_VERSION_CODE >= ROOT_VERSION(6,07,00)
-#pragma extra_include "TMVA/DataSetInfo.h";
-#endif
