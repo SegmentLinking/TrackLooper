@@ -4,11 +4,11 @@
 #
 
 CCSOURCES=$(wildcard *.cc)
-CCOBJECTS=$(CCSOURCES:.cc=.o)
+CCOBJECTS=$(CCSOURCES:.cc=_cpu.o)
 CCHEADERS=$(CCSOURCES:.cc=.h)
 
 CUSOURCES=$(wildcard *.cu)
-CUOBJECTS=$(CUSOURCES:.cu=.o)
+CUOBJECTS=$(CUSOURCES:.cu=_cuda.o)
 CUHEADERS=$(CUSOURCES:.cu=.cuh)
 LIB=sdl.so
 
@@ -29,10 +29,10 @@ CACHEFLAG     =
 # how to make it 
 #
 
-%.o : %.cu %.cuh
+%_cuda.o : %.cu %.cuh
 	$(LD) -x cu $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $< -o $@
 
-%.o : %.cc %.h
+%_cpu.o : %.cc %.h
 	$(LD) $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $< -o $@
 
 $(LIB):$(CCOBJECTS) $(CUOBJECTS)
@@ -53,6 +53,7 @@ unified_cache: $(LIB)
 all: unified
 
 clean:
+	rm -f *.opp \
 	rm -f *.o \
 	rm -f *.d \
 	rm -f *.so \

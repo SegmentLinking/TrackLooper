@@ -843,7 +843,7 @@ float SDL::CPU::MiniDoublet::fabsdPhiPixelShift(const SDL::CPU::Hit& lowerHit, c
     // lowerModule
     // lowerHit
     // upperHit
-    // SDL::CPU::endcapGeometry
+    // SDL::endcapGeometry
 
     float xa; // "anchor" x (strip hit x)
     float ya; // "anchor" y (strip hit y)
@@ -873,11 +873,11 @@ float SDL::CPU::MiniDoublet::fabsdPhiPixelShift(const SDL::CPU::Hit& lowerHit, c
     float slope = 0;
     if (lowerModule.subdet() == SDL::CPU::Module::Endcap)
     {
-       slope = SDL::CPU::endcapGeometry.getSlopeLower(detid); // Only need one slope
+       slope = SDL::endcapGeometry.getSlopeLower(detid); // Only need one slope
     }
     if (lowerModule.subdet() == SDL::CPU::Module::Barrel)
     {
-       slope = SDL::CPU::tiltedGeometry.getSlope(detid); // Only need one slope
+       slope = SDL::tiltedGeometry.getSlope(detid); // Only need one slope
     }
 
     xn = (slope * xa + (1.f / slope) * xo - ya + yo) / (slope + (1.f / slope)); // new xn
@@ -932,7 +932,7 @@ float SDL::CPU::MiniDoublet::fabsdPhiStripShift(const SDL::CPU::Hit& lowerHit, c
     // lowerModule
     // lowerHit
     // upperHit
-    // SDL::CPU::endcapGeometry
+    // SDL::endcapGeometry
 
     float xa; // "anchor" x (strip hit x)
     float ya; // "anchor" y (strip hit y)
@@ -962,11 +962,11 @@ float SDL::CPU::MiniDoublet::fabsdPhiStripShift(const SDL::CPU::Hit& lowerHit, c
     float slope = 0;
     if (lowerModule.subdet() == SDL::CPU::Module::Endcap)
     {
-       slope = SDL::CPU::endcapGeometry.getSlopeLower(detid); // Only need one slope
+       slope = SDL::endcapGeometry.getSlopeLower(detid); // Only need one slope
     }
     if (lowerModule.subdet() == SDL::CPU::Module::Barrel)
     {
-       slope = SDL::CPU::tiltedGeometry.getSlope(detid); // Only need one slope
+       slope = SDL::tiltedGeometry.getSlope(detid); // Only need one slope
     }
 
     xn = (slope * xa + (1.f / slope) * xo - ya + yo) / (slope + (1.f / slope)); // new xn
@@ -1024,8 +1024,8 @@ std::tuple<float, float, float> SDL::CPU::MiniDoublet::shiftStripHits(const SDL:
     // lowerModule
     // lowerHit
     // upperHit
-    // SDL::CPU::endcapGeometry
-    // SDL::CPU::tiltedGeometry
+    // SDL::endcapGeometry
+    // SDL::tiltedGeometry
 
     // Some variables relevant to the function
     float xp; // pixel x (pixel hit x)
@@ -1120,11 +1120,11 @@ std::tuple<float, float, float> SDL::CPU::MiniDoublet::shiftStripHits(const SDL:
 
     if (lowerModule.subdet() == SDL::CPU::Module::Endcap)
     {
-        slope = SDL::CPU::endcapGeometry.getSlopeLower(detid); // Only need one slope
+        slope = SDL::endcapGeometry.getSlopeLower(detid); // Only need one slope
     }
     if (lowerModule.subdet() == SDL::CPU::Module::Barrel)
     {
-        slope = SDL::CPU::tiltedGeometry.getSlope(detid);
+        slope = SDL::tiltedGeometry.getSlope(detid);
     }
 
     // Compute arctan of the slope and take care of the slope = infinity case
