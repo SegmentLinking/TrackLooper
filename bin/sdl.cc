@@ -25,9 +25,10 @@ int main(int argc, char** argv)
         ("n,nevents"        , "N events to loop over"                                                                               , cxxopts::value<int>()->default_value("-1"))
         ("x,event_index"    , "specific event index to process"                                                                     , cxxopts::value<int>()->default_value("-1"))
         ("p,ptbound_mode"   , "Pt bound mode (i.e. 0 = default, 1 = pt~1, 2 = pt~0.95-1.5, 3 = pt~0.5-1.5, 4 = pt~0.5-2.0"          , cxxopts::value<int>()->default_value("0"))
-        ("g,pdg_id"         , "The simhit pdgId match option (default = 13)"                                                        , cxxopts::value<int>()->default_value("13"))
+        ("g,pdg_id"         , "The simhit pdgId match option (default = 0)"                                                         , cxxopts::value<int>()->default_value("0"))
         ("v,verbose"        , "Verbose mode"                                                                                        , cxxopts::value<int>()->default_value("0"))
         ("d,debug"          , "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")
+        ("c,cpu"            , "Run CPU version of the code.")
         ("j,nsplit_jobs"    , "Enable splitting jobs by N blocks (--job_index must be set)", cxxopts::value<int>())
         ("I,job_index"      , "job_index of split jobs (--nsplit_jobs must be set. index starts from 0. i.e. 0, 1, 2, 3, etc...)", cxxopts::value<int>())
         ("h,help"           , "Print help")
@@ -182,6 +183,17 @@ int main(int argc, char** argv)
     // --mode
     ana.mode = result["mode"].as<int>();
 
+    //_______________________________________________________________________________
+    // --cpu
+    if (result.count("cpu"))
+    {
+        ana.do_run_cpu = true;
+    }
+    else
+    {
+        ana.do_run_cpu = false;
+    }
+
     // Printing out the option settings overview
     std::cout <<  "=========================================================" << std::endl;
     std::cout <<  " Setting of the analysis job based on provided arguments " << std::endl;
@@ -237,7 +249,10 @@ int main(int argc, char** argv)
 
     // Write out whether it's GPU or CPU
     TObjString version;
-    version.SetString("GPU");
+    if (ana.do_run_cpu)
+        version.SetString("CPU");
+    else
+        version.SetString("GPU");
     ana.output_tfile->WriteObject(&version, "version");
 
     // Run depending on the mode

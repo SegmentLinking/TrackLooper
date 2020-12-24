@@ -1,5 +1,5 @@
-#ifndef Tracklet_h
-#define Tracklet_h
+#ifndef Tracklet_cuh
+#define Tracklet_cuh
 
 #ifdef __CUDACC__
 #define CUDA_HOSTDEV  __host__ __device__

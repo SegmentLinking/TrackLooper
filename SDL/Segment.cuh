@@ -1,5 +1,5 @@
-#ifndef Segment_h
-#define Segment_h
+#ifndef Segment_cuh
+#define Segment_cuh
 
 #ifdef __CUDACC__
 #define CUDA_HOSTDEV  __host__ __device__

@@ -4,7 +4,7 @@
 #include "SDL.h"
 #include "cxxopts.h"
 #include "rooutil.h"
-#include <../cppitertools/itertools.hpp>
+#include "../cppitertools/itertools.hpp"
 
 class AnalysisConfig {
 

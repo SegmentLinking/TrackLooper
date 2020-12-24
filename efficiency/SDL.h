@@ -761,5 +761,4 @@ namespace tas {
   const vector<vector<int> > &sim_tcIdx_isMTVmatch();
   const vector<int> &sim_TC_matched();
 }
-#include "rooutil.h"
 #endif

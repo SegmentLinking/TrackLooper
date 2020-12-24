@@ -1,5 +1,5 @@
-#ifndef MiniDoublet_h
-#define MiniDoublet_h
+#ifndef MiniDoublet_cuh
+#define MiniDoublet_cuh
 
 #ifdef __CUDACC__
 #define CUDA_HOSTDEV  __host__ __device__

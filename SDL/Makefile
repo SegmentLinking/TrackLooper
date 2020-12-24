@@ -33,7 +33,7 @@ CACHEFLAG     =
 	$(LD) -x cu $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $< -o $@
 
 %_cpu.o : %.cc %.h
-	$(LD) $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $< -o $@
+	$(LD) -O2 $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $< -o $@
 
 $(LIB):$(CCOBJECTS) $(CUOBJECTS)
 	$(LD)  $(SOFLAGS) $^ -o $@

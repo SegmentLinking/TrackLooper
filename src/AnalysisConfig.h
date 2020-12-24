@@ -99,6 +99,9 @@ public:
     std::map<int, int> modulePopulation;
 
     SDL::ModuleConnectionMap moduleConnectiongMapLoose;
+
+    // Boolean to trigger whether to run CPU or GPU
+    bool do_run_cpu;
 };
 
 extern AnalysisConfig ana;

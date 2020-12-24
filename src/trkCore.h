@@ -9,6 +9,7 @@
 #include "SDL/ModuleConnectionMap.h"
 #include "SDLMath.h"
 #include "SDL/Event.cuh"
+#include "SDL/Event.h"
 #include <cppitertools/itertools.hpp>
 #include <numeric>
 
@@ -36,7 +37,6 @@ bool hasAll12HitsWithNBarrel(unsigned int isimtrk, int nbarrel);
 bool hasAll12HitsWithNBarrelUsingModuleMap(unsigned int isimtrk, int nbarrel, bool usesimhits=false);
 bool checkModuleConnectionsAreGood(std::array<std::vector<unsigned int>, 6>& layers_good_paired_modules);
 bool goodEvent();
-void addOuterTrackerHits(SDL::Event& event);
 float runMiniDoublet(SDL::Event& event);
 float runSegment(SDL::Event& event);
 float runT4(SDL::Event& event);
@@ -63,5 +63,23 @@ float addInputsToLineSegmentTrackingUsingExplicitMemory(SDL::Event &event);
 float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP);
 
 TVector3 calculateR3FromPCA(const TVector3& p3, const float dxy, const float dz);
+
+float addOuterTrackerHits(SDL::CPU::Event& event);
+float addPixelSegments(SDL::CPU::Event& event, int isimtrk=-1);
+float runMiniDoublet_on_CPU(SDL::CPU::Event& event);
+float runSegment_on_CPU(SDL::CPU::Event& event);
+float runT4_on_CPU(SDL::CPU::Event& event);
+float runT4x_on_CPU(SDL::CPU::Event& event);
+float runpT4_on_CPU(SDL::CPU::Event& event);
+float runT3_on_CPU(SDL::CPU::Event& event);
+float runTrackCandidate_on_CPU(SDL::CPU::Event& event);
+
+// Printing SDL information
+void printHitSummary(SDL::CPU::Event& event);
+void printMiniDoubletSummary(SDL::CPU::Event& event);
+void printSegmentSummary(SDL::CPU::Event& event);
+void printTrackletSummary(SDL::CPU::Event& event);
+void printTripletSummary(SDL::CPU::Event& event);
+void printTrackCandidateSummary(SDL::CPU::Event& event);
 
 #endif

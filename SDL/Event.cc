@@ -309,7 +309,7 @@ void SDL::CPU::Event::createMiniDoublets(MDAlgo algo)
     // Loop over lower modules
     for (auto& lowerModulePtr : getLowerModulePtrs())
     {
-
+        lowerModulePtr->detId();
         // Create mini doublets
         createMiniDoubletsFromLowerModule(lowerModulePtr->detId(), algo);
 
@@ -1075,11 +1075,11 @@ void SDL::CPU::Event::createTrackletsViaNavigation(SDL::CPU::TLAlgo algo)
 }
 
 
-// Create tracklets with pixel to barrel
-void SDL::CPU::Event::createTrackletsWithPixelAndBarrel(TLAlgo algo)
+// Create tracklets with pixel line segments
+void SDL::CPU::Event::createTrackletsWithPixelLineSegments(TLAlgo algo)
 {
     if (logLevel_ == SDL::CPU::Log_Debug)
-        SDL::CPU::cout << "SDL::CPU::Event::createTrackletsWithPixelAndBarrel()" << std::endl;
+        SDL::CPU::cout << "SDL::CPU::Event::createTrackletsWithPixelLineSegments()" << std::endl;
 
     // Loop over lower modules
     int nModuleProcessed = 0;
@@ -1310,22 +1310,6 @@ void SDL::CPU::Event::createSegmentsFromTwoLayers(int innerLayerIdx, SDL::CPU::L
 
         }
     }
-}
-
-void SDL::CPU::Event::createTrackCandidates(TCAlgo algo)
-{
-    // TODO Implement some structure for Track Candidates
-    // for (auto& trackCandidate_compatible_layer_pair : SDL::CPU::Layer::getListOfTrackCandidateCompatibleLayerPairs())
-    // {
-    //     int innerLayerIdx = trackCandidate_compatible_layer_pair.first.first;
-    //     SDL::CPU::Layer::SubDet innerLayerSubDet = trackCandidate_compatible_layer_pair.first.second;
-    //     int outerLayerIdx = trackCandidate_compatible_layer_pair.second.first;
-    //     SDL::CPU::Layer::SubDet outerLayerSubDet = trackCandidate_compatible_layer_pair.second.second;
-    //     createTrackCandidatesFromTwoLayers(innerLayerIdx, innerLayerSubDet, outerLayerIdx, outerLayerSubDet, algo);
-    // }
-
-    createTrackCandidatesFromTwoLayers(1, SDL::CPU::Layer::Barrel, 3, SDL::CPU::Layer::Barrel, algo);
-
 }
 
 // Create trackCandidates from two layers (inefficient way)
@@ -2129,7 +2113,7 @@ void SDL::CPU::Event::createTrackCandidatesTest_v2(SDL::CPU::TCAlgo algo)
 
 }
 
-void SDL::CPU::Event::createTrackCandidatesTest_v3(SDL::CPU::TCAlgo algo)
+void SDL::CPU::Event::createTrackCandidates(SDL::CPU::TCAlgo algo)
 {
 
     // September 10, 2020 Consider ALL cases

@@ -1,5 +1,5 @@
-#ifndef Event_h
-#define Event_h
+#ifndef Event_cuh
+#define Event_cuh
 
 #include <vector>
 #include <list>

@@ -38,7 +38,7 @@ helper.o: helper.cc helper.h sdl_types.h
 	$(CC) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
 
 rooutil:
-	$(MAKE) -C ../rooutil
+	$(MAKE) -C ../src/rooutil
 
 clean:
 	rm -f $(OBJECTS) $(EXE)

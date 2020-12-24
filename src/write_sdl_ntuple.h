@@ -13,6 +13,7 @@
 void write_sdl_ntuple();
 void createOutputBranches();
 void fillOutputBranches(SDL::Event& event);
+void fillOutputBranches_for_CPU(SDL::CPU::Event& event);
 void printTimingInformation(std::vector<std::vector<float>> timing_information);
 void printQuadrupletMultiplicities(SDL::Event& event);
 void printMiniDoubletMultiplicities(SDL::Event& event);

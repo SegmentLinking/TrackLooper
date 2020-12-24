@@ -443,22 +443,37 @@ bool checkModuleConnectionsAreGood(std::array<std::vector<unsigned int>, 6>& lay
     return false;
 }
 
-void addOuterTrackerHits(SDL::Event& event)
+//__________________________________________________________________________________________
+float addOuterTrackerHits(SDL::CPU::Event& event)
 {
+
+    TStopwatch my_timer;
+    if (ana.verbose != 0) std::cout << "Loading Outer Tracker Hits for CPU...." << std::endl;
+    my_timer.Start();
+
+    // Adding hits to modules
     for (auto&& [ihit, data] : iter::enumerate(iter::zip(trk.ph2_x(), trk.ph2_y(), trk.ph2_z(), trk.ph2_subdet(), trk.ph2_detId())))
     {
 
-        auto&& [x, y, z, subdet, detId] = data;
+        auto&& [x, y, z, subdet, detid] = data;
 
         if (not (subdet == 5 or subdet == 4))
             continue;
 
         // Takes two arguments, SDL::Hit, and detId
         // SDL::Event internally will structure whether we already have the module instance or we need to create a new one.
-        //
-        event.addHitToEvent(x,y,z,detId, ihit);
+        event.addHitToModule(
+                // a hit
+                SDL::CPU::Hit(x, y, z, ihit),
+                // add to module with "detId"
+                detid
+                );
 
     }
+
+    float hit_loading_elapsed = my_timer.RealTime();
+    if (ana.verbose != 0) std::cout << "Loading outer tracker hits processing time: " << hit_loading_elapsed << " secs" << std::endl;
+    return hit_loading_elapsed;
 }
 
 float runMiniDoublet(SDL::Event& event)
@@ -852,8 +867,8 @@ bool isMTVMatch(unsigned int isimtrk, std::vector<unsigned int> hit_idxs, bool v
 
 void loadMaps()
 {
-    SDL::endcapGeometry.load("/home/users/phchang/public_html/analysis/sdl/TrackLooper_/scripts/endcap_orientation_data_v2.txt"); // centroid values added to the map
-    SDL::tiltedGeometry.load("/home/users/phchang/public_html/analysis/sdl/TrackLooper_/scripts/tilted_orientation_data.txt");
+    SDL::endcapGeometry.load("scripts/endcap_orientation_data_v2.txt"); // centroid values added to the map
+    SDL::tiltedGeometry.load("scripts/tilted_orientation_data.txt");
 
     SDL::moduleConnectionMap.load("data/module_connection_combined_2020_0520_helixray.txt");
     ana.moduleConnectiongMapLoose.load("data/module_connection_combined_2020_0520_helixray.txt");
@@ -1338,5 +1353,511 @@ TVector3 calculateR3FromPCA(const TVector3& p3, const float dxy, const float dz)
   const float vx = -dxy*p3.y()/pt - p3.x()/p*p3.z()/p*dz;
   const float vy =  dxy*p3.x()/pt - p3.y()/p*p3.z()/p*dz;
   return TVector3(vx, vy, vz);
+}
+
+//__________________________________________________________________________________________
+float addPixelSegments(SDL::CPU::Event& event, int isimtrk)
+{
+
+    TStopwatch my_timer;
+    if (ana.verbose != 0) std::cout << "Loading pixel line segments for CPU...." << std::endl;
+    my_timer.Start();
+
+    for (auto&& [iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
+    {
+
+        if (isimtrk >= 0)
+        {
+            bool match = false;
+            for (auto& seed_simtrkidx : trk.see_simTrkIdx()[iSeed])
+            {
+                if (seed_simtrkidx == isimtrk)
+                {
+                    match = true;
+                }
+            }
+            if (not match)
+                continue;
+        }
+
+        if (abs(ana.pdg_id) != 0)
+        {
+            bool match = false;
+            for (auto& seed_simtrkidx : trk.see_simTrkIdx()[iSeed])
+            {
+                if (abs(trk.sim_pdgId()[seed_simtrkidx]) == ana.pdg_id)
+                {
+                    match = true;
+                }
+            }
+            if (not match)
+                continue;
+        }
+
+        TVector3 p3LH(trk.see_stateTrajGlbPx()[iSeed], trk.see_stateTrajGlbPy()[iSeed], trk.see_stateTrajGlbPz()[iSeed]);
+        TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
+        TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
+        TVector3 r3PCA(calculateR3FromPCA(p3PCA, trk.see_dxy()[iSeed], trk.see_dz()[iSeed]));
+        auto const& seedHitsV = trk.see_hitIdx()[iSeed];
+        auto const& seedHitTypesV = trk.see_hitType()[iSeed];
+
+        // /// track algorithm; partial copy from TrackBase.h
+        // enum class TrackAlgorithm {
+        //     undefAlgorithm = 0,
+        //     ctf = 1,
+        //     duplicateMerge = 2,
+        //     cosmics = 3,
+        //     initialStep = 4,
+        //     lowPtTripletStep = 5,
+        //     pixelPairStep = 6,
+        //     detachedTripletStep = 7,
+        //     mixedTripletStep = 8,
+        //     pixelLessStep = 9,
+        //     tobTecStep = 10,
+        //     jetCoreRegionalStep = 11,
+        //     conversionStep = 12,
+        //     muonSeededStepInOut = 13,
+        //     muonSeededStepOutIn = 14,
+        //     outInEcalSeededConv = 15, inOutEcalSeededConv = 16,
+        //     nuclInter = 17,
+        //     standAloneMuon = 18, globalMuon = 19, cosmicStandAloneMuon = 20, cosmicGlobalMuon = 21,
+        //     // Phase1
+        //     highPtTripletStep = 22, lowPtQuadStep = 23, detachedQuadStep = 24,
+        //     reservedForUpgrades1 = 25, reservedForUpgrades2 = 26,
+        //     bTagGhostTracks = 27,
+        //     beamhalo = 28,
+        //     gsf = 29
+        // };
+        bool good_seed_type = false;
+        if (trk.see_algo()[iSeed] == 4) good_seed_type = true;
+        if (trk.see_algo()[iSeed] == 5) good_seed_type = true;
+        if (trk.see_algo()[iSeed] == 7) good_seed_type = true;
+        if (trk.see_algo()[iSeed] == 22) good_seed_type = true;
+        if (trk.see_algo()[iSeed] == 23) good_seed_type = true;
+        if (trk.see_algo()[iSeed] == 24) good_seed_type = true;
+        if (not good_seed_type)
+            continue;
+        // if (trk.see_algo()[iSeed] != 4 and trk.see_algo()[iSeed] != 5)
+        //     continue;
+        // if (trk.see_algo()[iSeed] < 4 and trk.see_algo()[iSeed] > 8)
+        //     continue;
+
+        int nHits = seedHitsV.size();
+
+        //assert(nHits == 4);
+        //for (int iH = 0; iH < nHits; ++iH){
+        //    //FIXME: make this configurable
+        //    assert(seedHitTypesV[iH] == 0);
+        //}
+
+        // float seedSD_mdRef_pixL = HitIndexWithType(trk.see_hitIdx()[iSeed][0], HitType(trk.see_hitType()[iSeed][0])).indexWithType;
+        // float seedSD_mdRef_pixU = HitIndexWithType(trk.see_hitIdx()[iSeed][1], HitType(trk.see_hitType()[iSeed][1])).indexWithType;
+        int seedSD_mdRef_pixL = trk.see_hitIdx()[iSeed][0];
+        int seedSD_mdRef_pixU = trk.see_hitIdx()[iSeed][1];
+        TVector3 seedSD_mdRef_r3 = r3PCA;
+        float seedSD_mdRef_rt = r3PCA.Pt();
+        float seedSD_mdRef_z = r3PCA.Z();
+        float seedSD_mdRef_r = r3PCA.Mag();
+        float seedSD_mdRef_phi = r3PCA.Phi();
+        float seedSD_mdRef_alpha = r3PCA.DeltaPhi(p3PCA);
+        // const int itpRL = simsPerHitAll(seedSD_mdRef_pixL); // TODO: best sim trk idx SO PERHAPS NOT NEEDED
+        // const int itpRU = simsPerHitAll(seedSD_mdRef_pixU); // TODO: best sim trk idx
+        // float seedSD_mdRef_itp = itpRL;
+        // float seedSD_mdRef_ntp = 1;
+        // float seedSD_mdRef_itpLL = itpRL;
+
+        // if (itpRL >= 0 && itpRU >= 0)
+        // {
+        //     if (itpRL == itpRU)
+        //     {
+        //         seedSD_mdRef_ntp = 2;
+        //     }
+        // }
+        // else if (itpRL == -1 && itpRU == -1)
+        // {
+        //     seedSD_mdRef_ntp = 0;
+        // }
+        // else if (itpRU >= 0)
+        // {
+        //     seedSD_mdRef_itp = itpRU;
+        // }
+
+        int seedSD_mdOut_pixL = trk.see_hitIdx()[iSeed][2];
+        int seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
+        // if (nPix >= 4)
+        //     seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
+        TVector3 seedSD_mdOut_r3 = r3LH;
+        float seedSD_mdOut_rt = r3LH.Pt();
+        float seedSD_mdOut_z = r3LH.Z();
+        float seedSD_mdOut_r = r3LH.Mag();
+        float seedSD_mdOut_phi = r3LH.Phi();
+        float seedSD_mdOut_alpha = r3LH.DeltaPhi(p3LH);
+        // const int itpOL = simsPerHitAll(seedSD_mdOut_pixL);
+        // const int itpOU = simsPerHitAll(seedSD_mdOut_pixU);
+        // float seedSD_mdOut_itp = itpOL;
+        // float seedSD_mdOut_ntp = 1;
+        // float seedSD_mdOut_itpLL = itpOL;
+        // if (itpOL >= 0 && itpOU >= 0)
+        // {
+        //     if (itpOL == itpOU)
+        //     {
+        //         seedSD_mdOut_ntp = 2;
+        //     }
+        // }
+        // else if (itpOL == -1 && itpOU == -1)
+        // {
+        //     seedSD_mdOut_ntp = 0;
+        // }
+        // else if (itpOU >= 0)
+        // {
+        //     seedSD_mdOut_itp = itpOU;
+        // }
+
+        float seedSD_iRef = iSeed;
+        float seedSD_iOut = iSeed;
+        TVector3 seedSD_r3 = r3LH;
+        float seedSD_rt = r3LH.Pt();
+        float seedSD_rtInv = 1.f / seedSD_rt;
+        float seedSD_z = seedSD_r3.Z();
+        TVector3 seedSD_p3 = p3LH;
+        float seedSD_alpha = r3LH.DeltaPhi(p3LH);
+        float seedSD_dr = (r3LH - r3PCA).Pt();
+        float seedSD_d = seedSD_rt - r3PCA.Pt();
+        float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
+
+        // std::map<int, int> tps;
+        // int seedSD_itp = -1;
+        // int seedSD_ntp = 0;
+        // tps[itpRL]++;
+        // tps[itpRU]++;
+        // tps[itpOL]++;
+        // tps[itpOU]++;
+
+        // for (auto m : tps)
+        // {
+        //     if (m.first >= 0 && m.second > seedSD_ntp)
+        //     {
+        //         seedSD_itp = m.first;
+        //         seedSD_ntp = m.second;
+        //     }
+        // }
+
+        // // LL indexing is not very useful for seeds; to it anyways for "full" coverage
+        // int seedSD_itpLL = -1;
+        // int seedSD_ntpLL = 0;
+        // tps.clear();
+        // tps[itpRL]++;
+        // tps[itpOL]++;
+        // for (auto m : tps)
+        // {
+        //     if (m.first >= 0 && m.second > seedSD_ntpLL)
+        //     {
+        //         seedSD_itpLL = m.first;
+        //         seedSD_ntpLL = m.second;
+        //     }
+        // }
+
+        // For this segment in this layer, I need to add this many
+        // I suppose for now... I can have a SDL::Module of ginormous size
+        // with a special detId of ... 1? (does this require Module.h modification?)
+        // SDL::Hit
+        // SDL::Hit
+        // SDL::MiniDoublet
+        // SDL::Hit
+        // SDL::Hit
+        // SDL::MiniDoublet
+        // SDL::Segment
+        // std::cout <<  " seedSD_mdRef_rt: " << seedSD_mdRef_rt <<  std::endl;
+        // std::cout <<  " seedSD_mdRef_z: " << seedSD_mdRef_z <<  std::endl;
+        // std::cout <<  " seedSD_mdRef_alpha: " << seedSD_mdRef_alpha <<  std::endl;
+        // std::cout <<  " seedSD_mdOut_rt: " << seedSD_mdOut_rt <<  std::endl;
+        // std::cout <<  " seedSD_mdOut_z: " << seedSD_mdOut_z <<  std::endl;
+        // std::cout <<  " seedSD_mdOut_alpha: " << seedSD_mdOut_alpha <<  std::endl;
+        // std::cout <<  " trk.pix_x()[trk.see_hitIdx()[iSeed][0]]: " << trk.pix_x()[trk.see_hitIdx()[iSeed][0]] <<  std::endl;
+        // std::cout <<  " trk.pix_y()[trk.see_hitIdx()[iSeed][0]]: " << trk.pix_y()[trk.see_hitIdx()[iSeed][0]] <<  std::endl;
+        // std::cout <<  " sqrt(pow(trk.pix_x()[trk.see_hitIdx()[iSeed][0]],2)+pow(trk.pix_y()[trk.see_hitIdx()[iSeed][0]],2)): " << sqrt(pow(trk.pix_x()[trk.see_hitIdx()[iSeed][0]],2)+pow(trk.pix_y()[trk.see_hitIdx()[iSeed][0]],2)) <<  std::endl;
+        // std::cout <<  " trk.pix_z()[trk.see_hitIdx()[iSeed][0]]: " << trk.pix_z()[trk.see_hitIdx()[iSeed][0]] <<  std::endl;
+        // std::cout <<  " trk.pix_x()[trk.see_hitIdx()[iSeed][1]]: " << trk.pix_x()[trk.see_hitIdx()[iSeed][1]] <<  std::endl;
+        // std::cout <<  " trk.pix_y()[trk.see_hitIdx()[iSeed][1]]: " << trk.pix_y()[trk.see_hitIdx()[iSeed][1]] <<  std::endl;
+        // std::cout <<  " sqrt(pow(trk.pix_x()[trk.see_hitIdx()[iSeed][1]],2)+pow(trk.pix_y()[trk.see_hitIdx()[iSeed][1]],2)): " << sqrt(pow(trk.pix_x()[trk.see_hitIdx()[iSeed][1]],2)+pow(trk.pix_y()[trk.see_hitIdx()[iSeed][1]],2)) <<  std::endl;
+        // std::cout <<  " trk.pix_z()[trk.see_hitIdx()[iSeed][1]]: " << trk.pix_z()[trk.see_hitIdx()[iSeed][1]] <<  std::endl;
+        // std::cout <<  " trk.pix_x()[trk.see_hitIdx()[iSeed][2]]: " << trk.pix_x()[trk.see_hitIdx()[iSeed][2]] <<  std::endl;
+        // std::cout <<  " trk.pix_y()[trk.see_hitIdx()[iSeed][2]]: " << trk.pix_y()[trk.see_hitIdx()[iSeed][2]] <<  std::endl;
+        // std::cout <<  " sqrt(pow(trk.pix_x()[trk.see_hitIdx()[iSeed][2]],2)+pow(trk.pix_y()[trk.see_hitIdx()[iSeed][2]],2)): " << sqrt(pow(trk.pix_x()[trk.see_hitIdx()[iSeed][2]],2)+pow(trk.pix_y()[trk.see_hitIdx()[iSeed][2]],2)) <<  std::endl;
+        // std::cout <<  " trk.pix_z()[trk.see_hitIdx()[iSeed][2]]: " << trk.pix_z()[trk.see_hitIdx()[iSeed][2]] <<  std::endl;
+        // std::cout <<  " trk.pix_x()[trk.see_hitIdx()[iSeed][3]]: " << trk.pix_x()[trk.see_hitIdx()[iSeed][3]] <<  std::endl;
+        // std::cout <<  " trk.pix_y()[trk.see_hitIdx()[iSeed][3]]: " << trk.pix_y()[trk.see_hitIdx()[iSeed][3]] <<  std::endl;
+        // std::cout <<  " sqrt(pow(trk.pix_x()[trk.see_hitIdx()[iSeed][3]],2)+pow(trk.pix_y()[trk.see_hitIdx()[iSeed][3]],2)): " << sqrt(pow(trk.pix_x()[trk.see_hitIdx()[iSeed][3]],2)+pow(trk.pix_y()[trk.see_hitIdx()[iSeed][3]],2)) <<  std::endl;
+        // std::cout <<  " trk.pix_z()[trk.see_hitIdx()[iSeed][3]]: " << trk.pix_z()[trk.see_hitIdx()[iSeed][3]] <<  std::endl;
+
+        // Inner most hit
+        std::vector<SDL::CPU::Hit> hits;
+        int hitidx0 = trk.see_hitIdx()[iSeed][0];
+        int hittype0 = trk.see_hitType()[iSeed][0];
+        // hits.push_back(SDL::CPU::Hit(trk.pix_x()[hitidx0], trk.pix_y()[hitidx0], trk.pix_z()[hitidx0], hitidx0));
+        hits.push_back(SDL::CPU::Hit(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), hitidx0));
+        int hitidx1 = trk.see_hitIdx()[iSeed][1];
+        int hittype1 = trk.see_hitType()[iSeed][1];
+        // hits.push_back(SDL::CPU::Hit(trk.pix_x()[hitidx1], trk.pix_y()[hitidx1], trk.pix_z()[hitidx1], hitidx1));
+        hits.push_back(SDL::CPU::Hit(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), hitidx1));
+        int hitidx2 = trk.see_hitIdx()[iSeed][2];
+        int hittype2 = trk.see_hitType()[iSeed][2];
+        // hits.push_back(SDL::CPU::Hit(trk.pix_x()[hitidx2], trk.pix_y()[hitidx2], trk.pix_z()[hitidx2], hitidx2));
+        hits.push_back(SDL::CPU::Hit(r3LH.X(), r3LH.Y(), r3LH.Z(), hitidx2));
+        int hitidx3 = trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]; // repeat last one if triplet
+        int hittype3 = trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitType()[iSeed][3] : trk.see_hitIdx()[iSeed][2]; // repeat last one if triplet
+        // hits.push_back(SDL::CPU::Hit(trk.pix_x()[hitidx3], trk.pix_y()[hitidx3], trk.pix_z()[hitidx3], hitidx3));
+        hits.push_back(SDL::CPU::Hit(r3LH.X(), r3LH.Y(), r3LH.Z(), hitidx3));
+
+        float pixelSegmentDeltaPhiChange = r3LH.DeltaPhi(p3LH);
+        float ptIn = p3LH.Pt();
+        float ptErr = trk.see_ptErr()[iSeed];
+        float etaErr = trk.see_etaErr()[iSeed];
+        float px = p3LH.X();
+        float py = p3LH.Y();
+        float pz = p3LH.Z();
+
+        if ((ptIn > 0.7) and (fabs(p3LH.Eta()) < 3))
+            event.addPixelSegmentsToEvent(hits, pixelSegmentDeltaPhiChange, ptIn, ptErr, px, py, pz, etaErr, iSeed);
+
+    }
+
+    float pls_loading_elapsed = my_timer.RealTime();
+    if (ana.verbose != 0) std::cout << "Loading pixel line segments processing time: " << pls_loading_elapsed << " secs" << std::endl;
+    return pls_loading_elapsed;
+}
+
+//__________________________________________________________________________________________
+float runMiniDoublet_on_CPU(SDL::CPU::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose != 0) std::cout << "Reco Mini-Doublet start" << std::endl;
+    my_timer.Start();
+    event.createMiniDoublets();
+    float md_elapsed = my_timer.RealTime();
+    if (ana.verbose != 0) std::cout << "Reco Mini-doublet processing time: " << md_elapsed << " secs" << std::endl;
+    return md_elapsed;
+}
+
+//__________________________________________________________________________________________
+float runSegment_on_CPU(SDL::CPU::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose != 0) std::cout << "Reco Segment start" << std::endl;
+    my_timer.Start();
+    event.createSegmentsWithModuleMap();
+    float sg_elapsed = my_timer.RealTime();
+    if (ana.verbose != 0) std::cout << "Reco Segment processing time: " << sg_elapsed << " secs" << std::endl;
+    return sg_elapsed;
+}
+
+//__________________________________________________________________________________________
+float runT4_on_CPU(SDL::CPU::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose != 0) std::cout << "Reco Quadruplet T4 start" << std::endl;
+    my_timer.Start();
+    event.createTrackletsWithModuleMap();
+    float t4_elapsed = my_timer.RealTime();
+    if (ana.verbose != 0) std::cout << "Reco T4 (just T4) processing time: " << t4_elapsed << " secs" << std::endl;
+    return t4_elapsed;
+}
+
+//__________________________________________________________________________________________
+float runT4x_on_CPU(SDL::CPU::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose != 0) std::cout << "Reco Quadruplet T4x start" << std::endl;
+    my_timer.Start();
+    event.createTrackletsWithAGapWithModuleMap();
+    float t4x_elapsed = my_timer.RealTime();
+    if (ana.verbose != 0) std::cout << "Reco T4x (just T4x) processing time: " << t4x_elapsed << " secs" << std::endl;
+    return t4x_elapsed;
+}
+
+//__________________________________________________________________________________________
+float runpT4_on_CPU(SDL::CPU::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose != 0) std::cout << "Reco Quadruplet pT4 start" << std::endl;
+    my_timer.Start();
+    event.createTrackletsWithPixelLineSegments();
+    float pt4_elapsed = my_timer.RealTime();
+    if (ana.verbose != 0) std::cout << "Reco pT4 processing time: " << pt4_elapsed << " secs" << std::endl;
+    return pt4_elapsed;
+}
+
+//__________________________________________________________________________________________
+float runT3_on_CPU(SDL::CPU::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose != 0) std::cout << "Reco T3 start" << std::endl;
+    my_timer.Start();
+    event.createTriplets();
+    float t3_elapsed = my_timer.RealTime();
+    if (ana.verbose != 0) std::cout << "Reco T3 processing time: " << t3_elapsed<< " secs" << std::endl;
+    return t3_elapsed;
+}
+
+//__________________________________________________________________________________________
+float runTrackCandidate_on_CPU(SDL::CPU::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose != 0) std::cout << "Reco TrackCandidate start" << std::endl;
+    my_timer.Start();
+    event.createTrackCandidates();
+    float tc_elapsed = my_timer.RealTime();
+    if (ana.verbose != 0) std::cout << "Reco TrackCandidate processing time: " << tc_elapsed << " secs" << std::endl;
+    return tc_elapsed;
+}
+
+//__________________________________________________________________________________________
+void printHitSummary(SDL::CPU::Event& event)
+{
+    if (ana.verbose != 0) std::cout << "Summary of hits" << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits: " << event.getNumberOfHits() << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits in barrel layer 1: " << event.getNumberOfHitsByLayerBarrel(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits in barrel layer 2: " << event.getNumberOfHitsByLayerBarrel(1) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits in barrel layer 3: " << event.getNumberOfHitsByLayerBarrel(2) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits in barrel layer 4: " << event.getNumberOfHitsByLayerBarrel(3) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits in barrel layer 5: " << event.getNumberOfHitsByLayerBarrel(4) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits in barrel layer 6: " << event.getNumberOfHitsByLayerBarrel(5) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits in endcap layer 1: " << event.getNumberOfHitsByLayerEndcap(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits in endcap layer 2: " << event.getNumberOfHitsByLayerEndcap(1) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits in endcap layer 3: " << event.getNumberOfHitsByLayerEndcap(2) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits in endcap layer 4: " << event.getNumberOfHitsByLayerEndcap(3) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits in endcap layer 5: " << event.getNumberOfHitsByLayerEndcap(4) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits Upper Module in layer 1: " << event.getNumberOfHitsByLayerBarrelUpperModule(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits Upper Module in layer 2: " << event.getNumberOfHitsByLayerBarrelUpperModule(1) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits Upper Module in layer 3: " << event.getNumberOfHitsByLayerBarrelUpperModule(2) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits Upper Module in layer 4: " << event.getNumberOfHitsByLayerBarrelUpperModule(3) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits Upper Module in layer 5: " << event.getNumberOfHitsByLayerBarrelUpperModule(4) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Hits Upper Module in layer 6: " << event.getNumberOfHitsByLayerBarrelUpperModule(5) << std::endl;
+}
+
+//__________________________________________________________________________________________
+void printMiniDoubletSummary(SDL::CPU::Event& event)
+{
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets produced: " << event.getNumberOfMiniDoublets() << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets produced barrel layer 1: " << event.getNumberOfMiniDoubletsByLayerBarrel(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets produced barrel layer 2: " << event.getNumberOfMiniDoubletsByLayerBarrel(1) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets produced barrel layer 3: " << event.getNumberOfMiniDoubletsByLayerBarrel(2) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets produced barrel layer 4: " << event.getNumberOfMiniDoubletsByLayerBarrel(3) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets produced barrel layer 5: " << event.getNumberOfMiniDoubletsByLayerBarrel(4) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets produced barrel layer 6: " << event.getNumberOfMiniDoubletsByLayerBarrel(5) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets produced endcap layer 1: " << event.getNumberOfMiniDoubletsByLayerEndcap(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets produced endcap layer 2: " << event.getNumberOfMiniDoubletsByLayerEndcap(1) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets produced endcap layer 3: " << event.getNumberOfMiniDoubletsByLayerEndcap(2) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets produced endcap layer 4: " << event.getNumberOfMiniDoubletsByLayerEndcap(3) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets produced endcap layer 5: " << event.getNumberOfMiniDoubletsByLayerEndcap(4) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets considered: " << event.getNumberOfMiniDoubletCandidates() << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets considered barrel layer 1: " << event.getNumberOfMiniDoubletCandidatesByLayerBarrel(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets considered barrel layer 2: " << event.getNumberOfMiniDoubletCandidatesByLayerBarrel(1) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets considered barrel layer 3: " << event.getNumberOfMiniDoubletCandidatesByLayerBarrel(2) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets considered barrel layer 4: " << event.getNumberOfMiniDoubletCandidatesByLayerBarrel(3) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets considered barrel layer 5: " << event.getNumberOfMiniDoubletCandidatesByLayerBarrel(4) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets considered barrel layer 6: " << event.getNumberOfMiniDoubletCandidatesByLayerBarrel(5) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets considered endcap layer 1: " << event.getNumberOfMiniDoubletCandidatesByLayerEndcap(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets considered endcap layer 2: " << event.getNumberOfMiniDoubletCandidatesByLayerEndcap(1) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets considered endcap layer 3: " << event.getNumberOfMiniDoubletCandidatesByLayerEndcap(2) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets considered endcap layer 4: " << event.getNumberOfMiniDoubletCandidatesByLayerEndcap(3) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Mini-doublets considered endcap layer 5: " << event.getNumberOfMiniDoubletCandidatesByLayerEndcap(4) << std::endl;
+}
+
+//__________________________________________________________________________________________
+void printSegmentSummary(SDL::CPU::Event& event)
+{
+    if (ana.verbose != 0) std::cout << "# of Pixel Segments: " << event.getPixelLayer().getSegmentPtrs().size() << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments produced: " << event.getNumberOfSegments() << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments produced barrel layer 1-2: " << event.getNumberOfSegmentsByLayerBarrel(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments produced barrel layer 2-3: " << event.getNumberOfSegmentsByLayerBarrel(1) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments produced barrel layer 3-4: " << event.getNumberOfSegmentsByLayerBarrel(2) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments produced barrel layer 4-5: " << event.getNumberOfSegmentsByLayerBarrel(3) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments produced barrel layer 5-6: " << event.getNumberOfSegmentsByLayerBarrel(4) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments produced endcap layer 1-2: " << event.getNumberOfSegmentsByLayerEndcap(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments produced endcap layer 2-3: " << event.getNumberOfSegmentsByLayerEndcap(1) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments produced endcap layer 3-4: " << event.getNumberOfSegmentsByLayerEndcap(2) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments produced endcap layer 4-5: " << event.getNumberOfSegmentsByLayerEndcap(3) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of Segments produced layer 6: " << event.getNumberOfSegmentsByLayerBarrel(5) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments considered: " << event.getNumberOfSegmentCandidates() << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments considered layer 1-2: " << event.getNumberOfSegmentCandidatesByLayerBarrel(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments considered layer 2-3: " << event.getNumberOfSegmentCandidatesByLayerBarrel(1) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments considered layer 3-4: " << event.getNumberOfSegmentCandidatesByLayerBarrel(2) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments considered layer 4-5: " << event.getNumberOfSegmentCandidatesByLayerBarrel(3) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments considered layer 5-6: " << event.getNumberOfSegmentCandidatesByLayerBarrel(4) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments considered layer 1-2: " << event.getNumberOfSegmentCandidatesByLayerEndcap(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments considered layer 2-3: " << event.getNumberOfSegmentCandidatesByLayerEndcap(1) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments considered layer 3-4: " << event.getNumberOfSegmentCandidatesByLayerEndcap(2) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Segments considered layer 4-5: " << event.getNumberOfSegmentCandidatesByLayerEndcap(3) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of Segments considered layer 6: " << event.getNumberOfSegmentCandidatesByLayerBarrel(5) << std::endl;
+}
+
+//__________________________________________________________________________________________
+void printTripletSummary(SDL::CPU::Event& event)
+{
+    // ----------------
+    if (ana.verbose != 0) std::cout << "# of Triplets produced: " << event.getNumberOfTriplets() << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Triplets produced layer 1-2-3: " << event.getNumberOfTripletsByLayerBarrel(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Triplets produced layer 2-3-4: " << event.getNumberOfTripletsByLayerBarrel(1) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Triplets produced layer 3-4-5: " << event.getNumberOfTripletsByLayerBarrel(2) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Triplets produced layer 4-5-6: " << event.getNumberOfTripletsByLayerBarrel(3) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of Triplets produced layer 5: " << event.getNumberOfTripletsByLayerBarrel(4) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of Triplets produced layer 6: " << event.getNumberOfTripletsByLayerBarrel(5) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Triplets considered: " << event.getNumberOfTripletCandidates() << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Triplets considered layer 1-2-3: " << event.getNumberOfTripletCandidatesByLayerBarrel(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Triplets considered layer 2-3-4: " << event.getNumberOfTripletCandidatesByLayerBarrel(1) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Triplets considered layer 3-4-5: " << event.getNumberOfTripletCandidatesByLayerBarrel(2) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Triplets considered layer 4-5-6: " << event.getNumberOfTripletCandidatesByLayerBarrel(3) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of Triplets considered layer 5: " << event.getNumberOfTripletCandidatesByLayerBarrel(4) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of Triplets considered layer 6: " << event.getNumberOfTripletCandidatesByLayerBarrel(5) << std::endl;
+    // ----------------
+}
+
+//__________________________________________________________________________________________
+void printTrackletSummary(SDL::CPU::Event& event)
+{
+    // ----------------
+    if (ana.verbose != 0) std::cout << "# of Tracklets produced with pixel segment: " << event.getPixelLayer().getTrackletPtrs().size() << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Tracklets produced: " << event.getNumberOfTracklets() << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 1-2-3-4: " << event.getNumberOfTrackletsByLayerBarrel(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 2-3-4-5: " << event.getNumberOfTrackletsByLayerBarrel(1) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 3-4-5-6: " << event.getNumberOfTrackletsByLayerBarrel(2) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 1-2-3-4: " << event.getNumberOfTrackletsByLayerEndcap(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 2-3-4-5: " << event.getNumberOfTrackletsByLayerEndcap(1) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 4: " << event.getNumberOfTrackletsByLayerBarrel(3) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 5: " << event.getNumberOfTrackletsByLayerBarrel(4) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of Tracklets produced layer 6: " << event.getNumberOfTrackletsByLayerBarrel(5) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Tracklets considered: " << event.getNumberOfTrackletCandidates() << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Tracklets considered layer 1-2-3-4: " << event.getNumberOfTrackletCandidatesByLayerBarrel(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Tracklets considered layer 2-3-4-5: " << event.getNumberOfTrackletCandidatesByLayerBarrel(1) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Tracklets considered layer 3-4-5-6: " << event.getNumberOfTrackletCandidatesByLayerBarrel(2) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Tracklets considered layer 1-2-3-4: " << event.getNumberOfTrackletCandidatesByLayerEndcap(0) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of Tracklets considered layer 2-3-4-5: " << event.getNumberOfTrackletCandidatesByLayerEndcap(1) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of Tracklets considered layer 4: " << event.getNumberOfTrackletCandidatesByLayerBarrel(3) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of Tracklets considered layer 5: " << event.getNumberOfTrackletCandidatesByLayerBarrel(4) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of Tracklets considered layer 6: " << event.getNumberOfTrackletCandidatesByLayerBarrel(5) << std::endl;
+    // ----------------
+}
+
+//__________________________________________________________________________________________
+void printTrackCandidateSummary(SDL::CPU::Event& event)
+{
+    // ----------------
+    if (ana.verbose != 0) std::cout << "# of TrackCandidates produced: " << event.getNumberOfTrackCandidates() << std::endl;
+    if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 1-2-3-4-5-6: " << event.getNumberOfTrackCandidatesByLayerBarrel(0) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 2: " << event.getNumberOfTrackCandidatesByLayerBarrel(1) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 3: " << event.getNumberOfTrackCandidatesByLayerBarrel(2) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 4: " << event.getNumberOfTrackCandidatesByLayerBarrel(3) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 5: " << event.getNumberOfTrackCandidatesByLayerBarrel(4) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of TrackCandidates produced layer 6: " << event.getNumberOfTrackCandidatesByLayerBarrel(5) << std::endl;
+    if (ana.verbose != 0) std::cout << "# of TrackCandidates considered: " << event.getNumberOfTrackCandidateCandidates() << std::endl;
+    if (ana.verbose != 0) std::cout << "# of TrackCandidates considered layer 1-2-3-4-5-6: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(0) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of TrackCandidates considered layer 2: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(1) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of TrackCandidates considered layer 3: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(2) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of TrackCandidates considered layer 4: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(3) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of TrackCandidates considered layer 5: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(4) << std::endl;
+    // if (ana.verbose != 0) std::cout << "# of TrackCandidates considered layer 6: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(5) << std::endl;
+    // ----------------
+
 }
 

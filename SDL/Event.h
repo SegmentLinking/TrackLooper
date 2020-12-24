@@ -30,7 +30,7 @@ namespace SDL
             private:
 
                 // map of modules (this holds the actual instances)
-                std::map<unsigned int, Module> modulesMapByDetId_;
+                std::map<unsigned int, SDL::CPU::Module> modulesMapByDetId_;
 
                 Layer pixelLayer_;
 
@@ -68,14 +68,14 @@ namespace SDL
                 std::list<TrackCandidate> trackcandidates_;
 
                 // list of module pointers (hold only the pointers to the actual instances)
-                std::vector<Module*> modulePtrs_;
+                std::vector<SDL::CPU::Module*> modulePtrs_;
 
                 // list of layer pointers (hold only the pointers to the actual instances)
                 std::vector<Layer*> layerPtrs_;
 
                 // list of lower module pointers (hold only the pointers to the actual instances)
                 // (lower means, the module that is closer to the luminous region)
-                std::vector<Module*> lowerModulePtrs_;
+                std::vector<SDL::CPU::Module*> lowerModulePtrs_;
 
                 // boolean to turn on debug mode
                 SDL::CPU::LogLevel logLevel_;
@@ -306,8 +306,8 @@ namespace SDL
                 // Create tracklets
                 void createTrackletsViaNavigation(TLAlgo algo=Default_TLAlgo);
 
-                // Create tracklets with pixel to barrel
-                void createTrackletsWithPixelAndBarrel(TLAlgo algo=Default_TLAlgo);
+                // Create tracklets with pixel line segments
+                void createTrackletsWithPixelLineSegments(TLAlgo algo=Default_TLAlgo);
 
                 // Create trackcandidates
                 void createTrackCandidates(TCAlgo algo=Default_TCAlgo);
@@ -336,7 +336,6 @@ namespace SDL
                 // Demonstration for create trackcandidates with multiple different types
                 void createTrackCandidatesTest_v1(TCAlgo algo=Default_TCAlgo);
                 void createTrackCandidatesTest_v2(TCAlgo algo=Default_TCAlgo);
-                void createTrackCandidatesTest_v3(TCAlgo algo=Default_TCAlgo);
 
                 // Multiplicity of Hits
                 unsigned int getNumberOfHits();
