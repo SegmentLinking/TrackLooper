@@ -139,6 +139,29 @@ void WriteSDLNtuplev2::createSegmentBranches()
     ana.tx->createBranch<vector<float>>("sg_sim_eta");
     ana.tx->createBranch<vector<float>>("sg_sim_phi");
 
+    ana.tx->createBranch<vector<float>>("sg_deltaPhi");
+    ana.tx->createBranch<vector<float>>("sg_deltaPhiMin");
+    ana.tx->createBranch<vector<float>>("sg_deltaPhiMax");
+    ana.tx->createBranch<vector<float>>("sg_deltaPhiChange");
+    ana.tx->createBranch<vector<float>>("sg_deltaPhiChangeMin");
+    ana.tx->createBranch<vector<float>>("sg_deltaPhiChangeMax");
+    ana.tx->createBranch<vector<float>>("sg_zIn");
+    ana.tx->createBranch<vector<float>>("sg_zOut");
+    ana.tx->createBranch<vector<float>>("sg_RtIn");
+    ana.tx->createBranch<vector<float>>("sg_RtOut");
+    ana.tx->createBranch<vector<float>>("sg_dAlphaInnerMDSegment");
+    ana.tx->createBranch<vector<float>>("sg_dAlphaOuterMDSegment");
+    ana.tx->createBranch<vector<float>>("sg_dAlphaInnerMDOuterMD");
+
+    ana.tx->createBranch<vector<float>>("sg_RtLo");
+    ana.tx->createBranch<vector<float>>("sg_RtHi");
+    ana.tx->createBranch<vector<float>>("sg_zLo");
+    ana.tx->createBranch<vector<float>>("sg_zHi");
+    ana.tx->createBranch<vector<float>>("sg_sdCut");
+    ana.tx->createBranch<vector<float>>("sg_dAlphaInnerMDSegmentThreshold");
+    ana.tx->createBranch<vector<float>>("sg_dAlphaOuterMDSegmentThreshold");
+    ana.tx->createBranch<vector<float>>("sg_dAlphaInnerMDOuterMDThreshold");
+
     // Sim track to Segment matching
     ana.tx->createBranch<vector<vector<int>>>("sim_sgIdx");
     ana.tx->createBranch<vector<vector<int>>>("sim_sgIdx_isMTVmatch");
@@ -164,6 +187,13 @@ void WriteSDLNtuplev2::createPixelSegmentBranches()
     // Sim track to Segment matching
     ana.tx->createBranch<vector<vector<int>>>("sim_psgIdx");
     ana.tx->createBranch<vector<vector<int>>>("sim_psgIdx_isMTVmatch");
+    
+    ana.tx->createBranch<vector<float>>("psg_ptIn");
+    ana.tx->createBranch<vector<float>>("psg_ptErr");
+    ana.tx->createBranch<vector<float>>("psg_px");
+    ana.tx->createBranch<vector<float>>("psg_py");
+    ana.tx->createBranch<vector<float>>("psg_pz");
+    ana.tx->createBranch<vector<float>>("psg_etaErr");
 }
 
 //____________________________________________________________________________________________
@@ -182,6 +212,27 @@ void WriteSDLNtuplev2::createTripletBranches()
     ana.tx->createBranch<vector<float>>("tp_sim_pt");
     ana.tx->createBranch<vector<float>>("tp_sim_eta");
     ana.tx->createBranch<vector<float>>("tp_sim_phi");
+
+    ana.tx->createBranch<vector<float>>("tp_zOut");
+    ana.tx->createBranch<vector<float>>("tp_RtOut");
+    ana.tx->createBranch<vector<float>>("tp_deltaPhiPos");
+    ana.tx->createBranch<vector<float>>("tp_deltaPhi");
+    ana.tx->createBranch<vector<float>>("tp_betaIn");
+    ana.tx->createBranch<vector<float>>("tp_betaOut");
+    ana.tx->createBranch<vector<float>>("tp_deltaBeta");
+
+    ana.tx->createBranch<vector<float>>("tp_zLo");
+    ana.tx->createBranch<vector<float>>("tp_zHi");
+    ana.tx->createBranch<vector<float>>("tp_RtLo");
+    ana.tx->createBranch<vector<float>>("tp_RtHi");
+    ana.tx->createBranch<vector<float>>("tp_kZ");
+    ana.tx->createBranch<vector<float>>("tp_zLoPointed");
+    ana.tx->createBranch<vector<float>>("tp_zHiPointed");
+    ana.tx->createBranch<vector<float>>("tp_sdlCut");
+    ana.tx->createBranch<vector<float>>("tp_betaInCut");
+    ana.tx->createBranch<vector<float>>("tp_betaOutCut");
+    ana.tx->createBranch<vector<float>>("tp_deltaBetaCut");
+
 
     // Sim track to Triplets matching
     ana.tx->createBranch<vector<vector<int>>>("sim_tpIdx");
@@ -208,6 +259,26 @@ void WriteSDLNtuplev2::createQuadrupletBranches()
     // Sim track to Quadruplets matching
     ana.tx->createBranch<vector<vector<int>>>("sim_qpIdx");
     ana.tx->createBranch<vector<vector<int>>>("sim_qpIdx_isMTVmatch");
+
+    ana.tx->createBranch<vector<float>>("qp_zOut");
+    ana.tx->createBranch<vector<float>>("qp_RtOut");
+    ana.tx->createBranch<vector<float>>("qp_deltaPhiPos");
+    ana.tx->createBranch<vector<float>>("qp_deltaPhi");
+    ana.tx->createBranch<vector<float>>("qp_betaIn");
+    ana.tx->createBranch<vector<float>>("qp_betaOut");
+    ana.tx->createBranch<vector<float>>("qp_deltaBeta");
+
+    ana.tx->createBranch<vector<float>>("qp_zLo");
+    ana.tx->createBranch<vector<float>>("qp_zHi");
+    ana.tx->createBranch<vector<float>>("qp_RtLo");
+    ana.tx->createBranch<vector<float>>("qp_RtHi");
+    ana.tx->createBranch<vector<float>>("qp_kZ");
+    ana.tx->createBranch<vector<float>>("qp_zLoPointed");
+    ana.tx->createBranch<vector<float>>("qp_zHiPointed");
+    ana.tx->createBranch<vector<float>>("qp_sdlCut");
+    ana.tx->createBranch<vector<float>>("qp_betaInCut");
+    ana.tx->createBranch<vector<float>>("qp_betaOutCut");
+    ana.tx->createBranch<vector<float>>("qp_deltaBetaCut");
 }
 
 //____________________________________________________________________________________________
@@ -230,6 +301,26 @@ void WriteSDLNtuplev2::createPixelQuadrupletBranches()
     // Sim track to Quadruplets matching
     ana.tx->createBranch<vector<vector<int>>>("sim_pqpIdx");
     ana.tx->createBranch<vector<vector<int>>>("sim_pqpIdx_isMTVmatch");
+
+    ana.tx->createBranch<vector<float>>("pqp_zOut");
+    ana.tx->createBranch<vector<float>>("pqp_RtOut");
+    ana.tx->createBranch<vector<float>>("pqp_deltaPhiPos");
+    ana.tx->createBranch<vector<float>>("pqp_deltaPhi");
+    ana.tx->createBranch<vector<float>>("pqp_betaIn");
+    ana.tx->createBranch<vector<float>>("pqp_betaOut");
+    ana.tx->createBranch<vector<float>>("pqp_deltaBeta");
+
+    ana.tx->createBranch<vector<float>>("pqp_zLo");
+    ana.tx->createBranch<vector<float>>("pqp_zHi");
+    ana.tx->createBranch<vector<float>>("pqp_RtLo");
+    ana.tx->createBranch<vector<float>>("pqp_RtHi");
+    ana.tx->createBranch<vector<float>>("pqp_kZ");
+    ana.tx->createBranch<vector<float>>("pqp_zLoPointed");
+    ana.tx->createBranch<vector<float>>("pqp_zHiPointed");
+    ana.tx->createBranch<vector<float>>("pqp_sdlCut");
+    ana.tx->createBranch<vector<float>>("pqp_betaOutCut");
+    ana.tx->createBranch<vector<float>>("pqp_deltaBetaCut");
+
 }
 
 //____________________________________________________________________________________________
@@ -255,17 +346,17 @@ void WriteSDLNtuplev2::createTrackCandidateBranches()
 }
 
 //____________________________________________________________________________________________
-void WriteSDLNtuplev2::doStudy(SDL::EventForAnalysisInterface& event, std::vector<std::tuple<unsigned int, SDL::EventForAnalysisInterface*>> simtrkevents)
+void WriteSDLNtuplev2::doStudy(SDL::EventForAnalysisInterface& event)//, std::vector<std::tuple<unsigned int, SDL::EventForAnalysisInterface*>> simtrkevents)
 {
     setHitsSimHitsSimTracksBranches();
-    //setPixelSeedBranches();
+    setPixelSeedBranches();
     setMiniDoubletBranches(event);
     setSegmentBranches(event);
-    //setPixelSegmentBranches(event);
+    setPixelSegmentBranches(event);
     setTripletBranches(event);
     setQuadrupletBranches(event);
-    //setPixelQuadrupletBranches(event);
-    //setTrackCandidateBranches(event);
+    setPixelQuadrupletBranches(event);
+    setTrackCandidateBranches(event);
     ana.tx->fill();
     ana.tx->clear();
 }
@@ -396,7 +487,7 @@ void WriteSDLNtuplev2::setHitsSimHitsSimTracksBranches()
 }
 
 //____________________________________________________________________________________________
-/*void WriteSDLNtuplev2::setPixelSeedBranches()
+void WriteSDLNtuplev2::setPixelSeedBranches()
 {
     // Reco pixel seeds
     ana.tx->setBranch<vector<float>>("see_stateTrajGlbPx", trk.see_stateTrajGlbPx());
@@ -416,14 +507,14 @@ void WriteSDLNtuplev2::setHitsSimHitsSimTracksBranches()
     ana.tx->setBranch<vector<vector<int>>>("see_hitType", trk.see_hitType());
     ana.tx->setBranch<vector<vector<int>>>("see_simTrkIdx", trk.see_simTrkIdx());
     ana.tx->setBranch<vector<unsigned int>>("see_algo", trk.see_algo());
-}*/
+}
 
 //____________________________________________________________________________________________
 void WriteSDLNtuplev2::setMiniDoubletBranches(SDL::EventForAnalysisInterface& event)
 {
 
     // get layer ptrs
-    const std::vector<SDL::Layer*> layerPtrs = event.getLayerPtrs();
+    auto layerPtrs = event.getLayerPtrs();
 
     // sim track to minidoublet matching
     std::vector<vector<int>> sim_mdIdx(trk.sim_pt().size());
@@ -437,7 +528,7 @@ void WriteSDLNtuplev2::setMiniDoubletBranches(SDL::EventForAnalysisInterface& ev
     {
 
         // MiniDoublet ptrs
-        const std::vector<SDL::MiniDoublet*>& minidoubletPtrs = layerPtr->getMiniDoubletPtrs();
+        const std::vector<std::shared_ptr<SDL::MiniDoublet>>& minidoubletPtrs = layerPtr->getMiniDoubletPtrs();
 
         // Loop over minidoublet ptrs
         for (auto& minidoubletPtr : minidoubletPtrs)
@@ -517,10 +608,10 @@ void WriteSDLNtuplev2::setMiniDoubletBranches(SDL::EventForAnalysisInterface& ev
             ana.tx->pushbackToBranch<float>("md_sim_phi", maxsimphi);
 
             float dz = minidoubletPtr->getDz();
-            float dzCut = 0;//minidoubletPtr->getRecoVar("dzCut");
-            float drt = 0;//minidoubletPtr->getRecoVar("drt");
-            float drtCut = 0;//minidoubletPtr->getRecoVar("drtCut");
-            float miniCut = 0;//minidoubletPtr->getRecoVar("miniCut");
+            float dzCut = minidoubletPtr->getDzCut();//minidoubletPtr->getRecoVar("dzCut");
+            float drt = minidoubletPtr->getDrt();//minidoubletPtr->getRecoVar("drt");
+            float drtCut = minidoubletPtr->getDrtCut();//minidoubletPtr->getRecoVar("drtCut");
+            float miniCut = minidoubletPtr->getMiniCut();//minidoubletPtr->getRecoVar("miniCut");
             float dphi = minidoubletPtr->getDeltaPhi();
             float dphichange = minidoubletPtr->getDeltaPhiChange();
             float type = 0;//minidoubletPtr->getRecoVar("type");
@@ -550,7 +641,7 @@ void WriteSDLNtuplev2::setSegmentBranches(SDL::EventForAnalysisInterface& event)
 {
 
     // get layer ptrs
-    const std::vector<SDL::Layer*> layerPtrs = event.getLayerPtrs();
+    auto layerPtrs = event.getLayerPtrs();
 
     // sim track to segment matching
     std::vector<vector<int>> sim_sgIdx(trk.sim_pt().size());
@@ -561,7 +652,7 @@ void WriteSDLNtuplev2::setSegmentBranches(SDL::EventForAnalysisInterface& event)
     {
 
         // Segment ptrs
-        const std::vector<SDL::Segment*>& segmentPtrs = layerPtr->getSegmentPtrs();
+        const std::vector<std::shared_ptr<SDL::Segment>>& segmentPtrs = layerPtr->getSegmentPtrs();
 
         // Loop over segment ptrs
         for (auto& segmentPtr : segmentPtrs)
@@ -638,8 +729,31 @@ void WriteSDLNtuplev2::setSegmentBranches(SDL::EventForAnalysisInterface& event)
             ana.tx->pushbackToBranch<float>("sg_sim_eta", maxsimeta);
             ana.tx->pushbackToBranch<float>("sg_sim_phi", maxsimphi);
 
-        }
+            ana.tx->pushbackToBranch<float>("sg_deltaPhi",segmentPtr->getDeltaPhi());
+            ana.tx->pushbackToBranch<float>("sg_deltaPhiMin",segmentPtr->getDeltaPhiMin());
+            ana.tx->pushbackToBranch<float>("sg_deltaPhiMax",segmentPtr->getDeltaPhiMax());
+            ana.tx->pushbackToBranch<float>("sg_deltaPhiChange",segmentPtr->getDeltaPhiChange());
+            ana.tx->pushbackToBranch<float>("sg_deltaPhiChangeMin",segmentPtr->getDeltaPhiMinChange());
+            ana.tx->pushbackToBranch<float>("sg_deltaPhiChangeMax",segmentPtr->getDeltaPhiMaxChange());
+            ana.tx->pushbackToBranch<float>("sg_zIn",segmentPtr->getZIn());
+            ana.tx->pushbackToBranch<float>("sg_zOut",segmentPtr->getZOut());
+            ana.tx->pushbackToBranch<float>("sg_RtIn",segmentPtr->getRtIn());
+            ana.tx->pushbackToBranch<float>("sg_RtOut",segmentPtr->getRtOut());
+            ana.tx->pushbackToBranch<float>("sg_dAlphaInnerMDSegment",segmentPtr->getDAlphaInnerMDSegment());
+            ana.tx->pushbackToBranch<float>("sg_dAlphaOuterMDSegment",segmentPtr->getDAlphaOuterMDSegment());
+            ana.tx->pushbackToBranch<float>("sg_dAlphaInnerMDOuterMD",segmentPtr->getDAlphaInnerMDOuterMD());
 
+            
+            ana.tx->pushbackToBranch<float>("sg_RtLo",segmentPtr->getRtLo());
+            ana.tx->pushbackToBranch<float>("sg_RtHi",segmentPtr->getRtHi());
+            ana.tx->pushbackToBranch<float>("sg_zLo",segmentPtr->getZLo());
+            ana.tx->pushbackToBranch<float>("sg_zHi",segmentPtr->getZHi());
+            ana.tx->pushbackToBranch<float>("sg_sdCut",segmentPtr->getSDCut());
+            ana.tx->pushbackToBranch<float>("sg_dAlphaInnerMDSegmentThreshold",segmentPtr->getDAlphaInnerMDSegmentThreshold());
+            ana.tx->pushbackToBranch<float>("sg_dAlphaOuterMDSegmentThreshold",segmentPtr->getDAlphaOuterMDSegmentThreshold());
+            ana.tx->pushbackToBranch<float>("sg_dAlphaInnerMDOuterMDThreshold",segmentPtr->getDAlphaInnerMDOuterMDThreshold());
+             
+        }
     }
 
     ana.tx->setBranch<vector<vector<int>>>("sim_sgIdx", sim_sgIdx);
@@ -648,18 +762,17 @@ void WriteSDLNtuplev2::setSegmentBranches(SDL::EventForAnalysisInterface& event)
 }
 
 //____________________________________________________________________________________________
-/*void WriteSDLNtuplev2::setPixelSegmentBranches(SDL::EventForAnalysisInterface& event)
+void WriteSDLNtuplev2::setPixelSegmentBranches(SDL::EventForAnalysisInterface& event)
 {
 
     // sim track to segment matching
     std::vector<vector<int>> sim_psgIdx(trk.sim_pt().size());
     std::vector<vector<int>> sim_psgIdx_isMTVmatch(trk.sim_pt().size());
 
-    SDL::Layer* layerPtr = &event.getPixelLayer();
+    std::shared_ptr<SDL::Layer> layerPtr = std::shared_ptr<SDL::Layer>(&event.getPixelLayer());
 
     // Segment ptrs
-    const std::vector<SDL::Segment*>& segmentPtrs = layerPtr->getSegmentPtrs();
-
+    const std::vector<std::shared_ptr<SDL::Segment>>& segmentPtrs = layerPtr->getSegmentPtrs();
     // Loop over segment ptrs
     for (auto& segmentPtr : segmentPtrs)
     {
@@ -735,20 +848,26 @@ void WriteSDLNtuplev2::setSegmentBranches(SDL::EventForAnalysisInterface& event)
         ana.tx->pushbackToBranch<float>("psg_sim_eta", maxsimeta);
         ana.tx->pushbackToBranch<float>("psg_sim_phi", maxsimphi);
 
+        ana.tx->pushbackToBranch<float>("psg_ptIn",segmentPtr->getPtIn());
+        ana.tx->pushbackToBranch<float>("psg_ptErr",segmentPtr->getPtErr());
+        ana.tx->pushbackToBranch<float>("psg_px",segmentPtr->getPx());
+        ana.tx->pushbackToBranch<float>("psg_py",segmentPtr->getPy());
+        ana.tx->pushbackToBranch<float>("psg_pz",segmentPtr->getPz());
+        ana.tx->pushbackToBranch<float>("psg_etaErr",segmentPtr->getEtaErr());
     }
 
 
     ana.tx->setBranch<vector<vector<int>>>("sim_psgIdx", sim_psgIdx);
     ana.tx->setBranch<vector<vector<int>>>("sim_psgIdx_isMTVmatch", sim_psgIdx_isMTVmatch);
 
-}*/
+}
 
 //____________________________________________________________________________________________
 void WriteSDLNtuplev2::setTripletBranches(SDL::EventForAnalysisInterface& event)
 {
 
     // get layer ptrs
-    const std::vector<SDL::Layer*> layerPtrs = event.getLayerPtrs();
+    auto layerPtrs = event.getLayerPtrs();
 
     // sim track to triplet matching
     std::vector<vector<int>> sim_tpIdx(trk.sim_pt().size());
@@ -759,7 +878,7 @@ void WriteSDLNtuplev2::setTripletBranches(SDL::EventForAnalysisInterface& event)
     {
 
         // Triplet ptrs
-        const std::vector<SDL::Triplet*>& tripletPtrs = layerPtr->getTripletPtrs();
+        const std::vector<std::shared_ptr<SDL::Triplet>>& tripletPtrs = layerPtr->getTripletPtrs();
 
         // Loop over triplet ptrs
         for (auto& tripletPtr : tripletPtrs)
@@ -842,6 +961,27 @@ void WriteSDLNtuplev2::setTripletBranches(SDL::EventForAnalysisInterface& event)
             ana.tx->pushbackToBranch<float>("tp_sim_eta", maxsimeta);
             ana.tx->pushbackToBranch<float>("tp_sim_phi", maxsimphi);
 
+            ana.tx->pushbackToBranch<float>("tp_zOut",tripletPtr->getZOut());
+            ana.tx->pushbackToBranch<float>("tp_RtOut",tripletPtr->getRtOut());
+            ana.tx->pushbackToBranch<float>("tp_deltaPhiPos",tripletPtr->getDeltaPhiPos());
+            ana.tx->pushbackToBranch<float>("tp_deltaPhi",tripletPtr->getDeltaPhi());
+            ana.tx->pushbackToBranch<float>("tp_betaIn",tripletPtr->getBetaIn());
+            ana.tx->pushbackToBranch<float>("tp_betaOut",tripletPtr->getBetaOut());
+            ana.tx->pushbackToBranch<float>("tp_deltaBeta",tripletPtr->getDeltaBeta());
+
+            
+            ana.tx->pushbackToBranch<float>("tp_zLo",tripletPtr->getZLo());
+            ana.tx->pushbackToBranch<float>("tp_zHi",tripletPtr->getZHi());
+            ana.tx->pushbackToBranch<float>("tp_RtLo",tripletPtr->getRtLo());
+            ana.tx->pushbackToBranch<float>("tp_RtHi",tripletPtr->getRtHi());
+            ana.tx->pushbackToBranch<float>("tp_kZ",tripletPtr->getKZ());
+            ana.tx->pushbackToBranch<float>("tp_zLoPointed",tripletPtr->getZLoPointed());
+            ana.tx->pushbackToBranch<float>("tp_zHiPointed",tripletPtr->getZHiPointed());
+            ana.tx->pushbackToBranch<float>("tp_sdlCut",tripletPtr->getSDLCut());
+            ana.tx->pushbackToBranch<float>("tp_betaInCut",tripletPtr->getBetaInCut());
+            ana.tx->pushbackToBranch<float>("tp_betaOutCut",tripletPtr->getBetaOutCut());
+            ana.tx->pushbackToBranch<float>("tp_deltaBetaCut",tripletPtr->getDeltaBetaCut());
+
         }
 
     }
@@ -856,7 +996,7 @@ void WriteSDLNtuplev2::setQuadrupletBranches(SDL::EventForAnalysisInterface& eve
 {
 
     // get layer ptrs
-    const std::vector<SDL::Layer*> layerPtrs = event.getLayerPtrs();
+    auto layerPtrs = event.getLayerPtrs();
 
     // sim track to tracklet matching
     std::vector<vector<int>> sim_qpIdx(trk.sim_pt().size());
@@ -867,7 +1007,7 @@ void WriteSDLNtuplev2::setQuadrupletBranches(SDL::EventForAnalysisInterface& eve
     {
 
         // Quadruplet ptrs
-        const std::vector<SDL::Tracklet*>& trackletPtrs = layerPtr->getTrackletPtrs();
+        const std::vector<std::shared_ptr<SDL::Tracklet>>& trackletPtrs = layerPtr->getTrackletPtrs();
 
         // Loop over tracklet ptrs
         for (auto& trackletPtr : trackletPtrs)
@@ -952,6 +1092,28 @@ void WriteSDLNtuplev2::setQuadrupletBranches(SDL::EventForAnalysisInterface& eve
             ana.tx->pushbackToBranch<float>("qp_sim_eta", maxsimeta);
             ana.tx->pushbackToBranch<float>("qp_sim_phi", maxsimphi);
 
+            ana.tx->pushbackToBranch<float>("qp_zOut",trackletPtr->getZOut());
+            ana.tx->pushbackToBranch<float>("qp_RtOut",trackletPtr->getRtOut());
+            ana.tx->pushbackToBranch<float>("qp_deltaPhiPos",trackletPtr->getDeltaPhiPos());
+            ana.tx->pushbackToBranch<float>("qp_deltaPhi",trackletPtr->getDeltaPhi());
+            ana.tx->pushbackToBranch<float>("qp_betaIn",trackletPtr->getBetaIn());
+            ana.tx->pushbackToBranch<float>("qp_betaOut",trackletPtr->getBetaOut());
+            ana.tx->pushbackToBranch<float>("qp_deltaBeta",trackletPtr->getDeltaBeta());
+
+            
+            ana.tx->pushbackToBranch<float>("qp_zLo",trackletPtr->getZLo());
+            ana.tx->pushbackToBranch<float>("qp_zHi",trackletPtr->getZHi());
+            ana.tx->pushbackToBranch<float>("qp_RtLo",trackletPtr->getRtLo());
+            ana.tx->pushbackToBranch<float>("qp_RtHi",trackletPtr->getRtHi());
+            ana.tx->pushbackToBranch<float>("qp_kZ",trackletPtr->getKZ());
+            ana.tx->pushbackToBranch<float>("qp_zLoPointed",trackletPtr->getZLoPointed());
+            ana.tx->pushbackToBranch<float>("qp_zHiPointed",trackletPtr->getZHiPointed());
+            ana.tx->pushbackToBranch<float>("qp_sdlCut",trackletPtr->getSDLCut());
+            ana.tx->pushbackToBranch<float>("qp_betaInCut",trackletPtr->getBetaInCut());
+            ana.tx->pushbackToBranch<float>("qp_betaOutCut",trackletPtr->getBetaOutCut());
+            ana.tx->pushbackToBranch<float>("qp_deltaBetaCut",trackletPtr->getDeltaBetaCut());
+             
+
         }
 
     }
@@ -967,7 +1129,7 @@ void WriteSDLNtuplev2::setQuadrupletBranches(SDL::EventForAnalysisInterface& eve
 }
 
 //____________________________________________________________________________________________
-/*void WriteSDLNtuplev2::setPixelQuadrupletBranches(SDL::EventForAnalysisInterface& event)
+void WriteSDLNtuplev2::setPixelQuadrupletBranches(SDL::EventForAnalysisInterface& event)
 {
 
     // get pixel layer ptrs
@@ -978,7 +1140,7 @@ void WriteSDLNtuplev2::setQuadrupletBranches(SDL::EventForAnalysisInterface& eve
     std::vector<vector<int>> sim_pqpIdx_isMTVmatch(trk.sim_pt().size());
 
     // Quadruplet ptrs
-    const std::vector<SDL::Tracklet*>& trackletPtrs = pixelLayer.getTrackletPtrs();
+    const std::vector<std::shared_ptr<SDL::Tracklet>>& trackletPtrs = pixelLayer.getTrackletPtrs();
 
     // Loop over tracklet ptrs
     for (auto& trackletPtr : trackletPtrs)
@@ -1063,6 +1225,26 @@ void WriteSDLNtuplev2::setQuadrupletBranches(SDL::EventForAnalysisInterface& eve
         ana.tx->pushbackToBranch<float>("pqp_sim_eta", maxsimeta);
         ana.tx->pushbackToBranch<float>("pqp_sim_phi", maxsimphi);
 
+        ana.tx->pushbackToBranch<float>("pqp_zOut",trackletPtr->getZOut());
+        ana.tx->pushbackToBranch<float>("pqp_RtOut",trackletPtr->getRtOut());
+        ana.tx->pushbackToBranch<float>("pqp_deltaPhiPos",trackletPtr->getDeltaPhiPos());
+        ana.tx->pushbackToBranch<float>("pqp_deltaPhi",trackletPtr->getDeltaPhi());
+        ana.tx->pushbackToBranch<float>("pqp_betaIn",trackletPtr->getBetaIn());
+        ana.tx->pushbackToBranch<float>("pqp_betaOut",trackletPtr->getBetaOut());
+        ana.tx->pushbackToBranch<float>("pqp_deltaBeta",trackletPtr->getDeltaBeta());
+
+       
+        ana.tx->pushbackToBranch<float>("pqp_zLo",trackletPtr->getZLo());
+        ana.tx->pushbackToBranch<float>("pqp_zHi",trackletPtr->getZHi());
+        ana.tx->pushbackToBranch<float>("pqp_RtLo",trackletPtr->getRtLo());
+        ana.tx->pushbackToBranch<float>("pqp_RtHi",trackletPtr->getRtHi());
+        ana.tx->pushbackToBranch<float>("pqp_kZ",trackletPtr->getKZ());
+        ana.tx->pushbackToBranch<float>("pqp_zLoPointed",trackletPtr->getZLoPointed());
+        ana.tx->pushbackToBranch<float>("pqp_zHiPointed",trackletPtr->getZHiPointed());
+        ana.tx->pushbackToBranch<float>("pqp_sdlCut",trackletPtr->getSDLCut());
+        ana.tx->pushbackToBranch<float>("pqp_betaOutCut",trackletPtr->getBetaOutCut());
+        ana.tx->pushbackToBranch<float>("pqp_deltaBetaCut",trackletPtr->getDeltaBetaCut());
+        
     }
 
 
@@ -1076,7 +1258,8 @@ void WriteSDLNtuplev2::setTrackCandidateBranches(SDL::EventForAnalysisInterface&
 {
 
     // get layer ptrs
-    const std::vector<SDL::Layer*> layerPtrs = event.getLayerPtrs();
+    auto layerPtrs = event.getLayerPtrs();
+    layerPtrs.push_back(std::shared_ptr<SDL::Layer>(&(event.getPixelLayer())));
 
     // sim track to track candidate matching
     std::vector<vector<int>> sim_tcIdx(trk.sim_pt().size());
@@ -1087,7 +1270,7 @@ void WriteSDLNtuplev2::setTrackCandidateBranches(SDL::EventForAnalysisInterface&
     {
 
         // Track Candidate ptrs
-        const std::vector<SDL::TrackCandidate*>& trackCandidatePtrs = layerPtr->getTrackCandidatePtrs();
+        const std::vector<std::shared_ptr<SDL::TrackCandidate>>& trackCandidatePtrs = layerPtr->getTrackCandidatePtrs();
 
         // Loop over trackCandidate ptrs
         for (auto& trackCandidatePtr : trackCandidatePtrs)
@@ -1109,11 +1292,21 @@ void WriteSDLNtuplev2::setTrackCandidateBranches(SDL::EventForAnalysisInterface&
             hit_idx.push_back(trackCandidatePtr->outerTrackletBasePtr()->outerSegmentPtr()->outerMiniDoubletPtr()->upperHitPtr()->idx());
             ana.tx->pushbackToBranch<vector<int>>("tc_hitIdx", hit_idx);
 
-            std::vector<int> hit_types;
-            hit_types.push_back(4);
-            hit_types.push_back(4);
-            hit_types.push_back(4);
-            hit_types.push_back(4);
+       std::vector<int> hit_types;
+       if (trackCandidatePtr->innerTrackletBasePtr()->innerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->getModule().detId() == 1)
+            {
+                hit_types.push_back(0);
+                hit_types.push_back(0);
+                hit_types.push_back(0);
+                hit_types.push_back(0);
+            }
+            else
+            {
+                hit_types.push_back(4);
+                hit_types.push_back(4);
+                hit_types.push_back(4);
+                hit_types.push_back(4);
+            }
             hit_types.push_back(4);
             hit_types.push_back(4);
             hit_types.push_back(4);
@@ -1189,4 +1382,4 @@ void WriteSDLNtuplev2::setTrackCandidateBranches(SDL::EventForAnalysisInterface&
     ana.tx->setBranch<vector<vector<int>>>("sim_tcIdx", sim_tcIdx);
     ana.tx->setBranch<vector<vector<int>>>("sim_tcIdx_isMTVmatch", sim_tcIdx_isMTVmatch);
 
-}*/
+}

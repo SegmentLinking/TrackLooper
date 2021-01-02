@@ -34,10 +34,9 @@ void write_sdl_ntuple()
         SDL::Event event;
 
         // Add hits to the event
-        addOuterTrackerHits(event);
+        addPixelSegments(event,-1,trk.ph2_x(),trk.ph2_y(),trk.ph2_z(),trk.ph2_detId()); //loads both pixels and hits at same time
 
-        // Add pixel segments
-        //addPixelSegments(event);
+
 
         // Print hit summary
 //        printHitSummary(event);
@@ -65,8 +64,8 @@ void write_sdl_ntuple()
 
         // Each SDL::Event object in simtrkevents will hold single sim-track related hits
         // It will be a vector of tuple of <sim_track_index, SDL::Event*>.
-        std::vector<std::tuple<unsigned int, SDL::Event*>> simtrkevents;
-//        std::vector<std::tuple<unsigned int, SDL::EventForAnalysisInterface*>> simtrkeventsForAnalysisInterface;
+//        std::vector<std::tuple<unsigned int, SDL::Event*>> simtrkevents;
+        std::vector<std::tuple<unsigned int, SDL::EventForAnalysisInterface*>> simtrkeventsForAnalysisInterface;
 
         // Loop over sim-tracks that is from in time (bx = 0) tracks with pdgid matching (against ana.pdg_id) and per sim-track aggregate reco hits
         // and only use those hits, and run SDL on them
@@ -83,11 +82,11 @@ void write_sdl_ntuple()
             // runSDL((*trackevent));
 
             // Push to the vector so we have a data-base of per hit, mini-doublets
-            simtrkevents.push_back(std::make_tuple(isimtrk, trackevent));
+//            simtrkevents.push_back(std::make_tuple(isimtrk, trackevent));
             SDL::EventForAnalysisInterface* trackeventForAnalysisInterface = new SDL::EventForAnalysisInterface(SDL::modulesInGPU, trackevent->getHits(), trackevent->getMiniDoublets(), trackevent->getSegments(), trackevent->getTracklets(), trackevent->getTriplets());
             simtrkeventsForAnalysisInterface.push_back(std::make_tuple(isimtrk,trackeventForAnalysisInterface));
 
-        }
+        }*/
 
 
         // ********************************************************************************************
@@ -97,7 +96,7 @@ void write_sdl_ntuple()
         SDL::EventForAnalysisInterface* eventForAnalysisInterface = new SDL::EventForAnalysisInterface(SDL::modulesInGPU, event.getHits(), event.getMiniDoublets(), event.getSegments(), event.getTracklets(), event.getTriplets());
         for (auto& study : studies)
         {
-            study->doStudy(*eventForAnalysisInterface, simtrkeventsForAnalysisInterface);
+            study->doStudy(*eventForAnalysisInterface);//, simtrkeventsForAnalysisInterface);
         }
 
 
@@ -106,7 +105,7 @@ void write_sdl_ntuple()
         // ************************************************
 
         // Fill all the histograms
-        ana.cutflow.fill();*/
+        ana.cutflow.fill();
 
         // <--------------------------
         // <--------------------------
