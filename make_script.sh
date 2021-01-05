@@ -21,6 +21,7 @@ usage()
   echo "  -h    Help                   (Display this message)"
   echo "  -x    explicit memory        (Make library with explicit memory enabled)"
   echo "  -c    cache                  (Make library with cache enabled)"
+  echo "  -g    new grid               (Make library with new grid approach enabled)"
   echo "  -s    show log               (Full compilation script to stdout)"
   echo "  -m    make clean binaries    (Make clean binaries before remake. e.g. when header files changed in SDL/*.cuh)"
   echo
@@ -28,10 +29,11 @@ usage()
 }
 
 # Parsing command-line opts
-while getopts ":cxsmh" OPTION; do
+while getopts ":cxgsmh" OPTION; do
   case $OPTION in
     c) MAKECACHE=true;;
     x) MAKEEXPLICIT=true;;
+    g) MAKENEWGRID=true;;
     s) SHOWLOG=true;;
     m) MAKECLEANBINARIES=true;;
     h) usage;;
@@ -42,6 +44,7 @@ done
 # If the command line options are not provided set it to default value of false
 if [ -z ${MAKECACHE} ]; then MAKECACHE=false; fi
 if [ -z ${MAKEEXPLICIT}  ]; then MAKEEXPLICIT=false; fi
+if [ -z ${MAKENEWGRID}  ]; then MAKENEWGRID=false; fi
 if [ -z ${SHOWLOG} ]; then SHOWLOG=false; fi
 if [ -z ${MAKECLEANBINARIES} ]; then MAKECLEANBINARIES=false; fi
 
@@ -60,6 +63,7 @@ echo "Compilation options set to..."                          | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
 echo "  MAKECACHE         : ${MAKECACHE}"                     | tee -a ${LOG}
 echo "  MAKEEXPLICIT      : ${MAKEEXPLICIT}"                  | tee -a ${LOG}
+echo "  MAKENEWGRID       : ${MAKENEWGRID}"                   | tee -a ${LOG}
 echo "  SHOWLOG           : ${SHOWLOG}"                       | tee -a ${LOG}
 echo "  MAKECLEANBINARIES : ${MAKECLEANBINARIES}"             | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
@@ -74,6 +78,9 @@ if $MAKEEXPLICIT; then MAKETARGET=explicit; fi
 
 # If make cache is true then make library with cache enabled
 if $MAKECACHE; then MAKETARGET=${MAKETARGET}_cache; fi
+
+# If make cache is true then make library with cache enabled
+if $MAKENEWGRID; then MAKETARGET=${MAKETARGET}_newgrid; fi
 
 # If make clean binaries are called then first make clean before making
 if $MAKECLEANBINARIES; then
