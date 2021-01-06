@@ -1281,16 +1281,19 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             trkX.push_back(r3LH.X());
             trkY.push_back(r3LH.Y());
             trkZ.push_back(r3LH.Z());
-            trkX.push_back(r3LH.X());
-            trkY.push_back(r3LH.Y());
-            trkZ.push_back(r3LH.Z());
-            hitId.push_back(1);
             hitId.push_back(1);
             hitId.push_back(1);
             hitId.push_back(1);
             px_vec.push_back(px);
             py_vec.push_back(py);
             pz_vec.push_back(pz);
+            if(trk.see_hitIdx()[iSeed].size() > 3)
+            {
+                trkX.push_back(r3LH.X());
+                trkY.push_back(r3LH.Y());
+                trkZ.push_back(r3LH.Z());
+                hitId.push_back(1);
+            }
 
             hitIndices_vec0.push_back(hitIdx0);
             hitIndices_vec1.push_back(hitIdx1);
