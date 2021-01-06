@@ -134,14 +134,14 @@ else
     make -j >> ${LOG} 2>&1 
 fi
 
-if [ ! -f bin/doAnalysis ]; then
-    echo "ERROR: bin/doAnalysis failed to compile!" | tee -a ${LOG}
+if [ ! -f doAnalysis ]; then
+    echo "ERROR: doAnalysis failed to compile!" | tee -a ${LOG}
     echo "See ${LOG} file for more detail..." | tee -a ${LOG}
     exit
 fi
 
-if [ ! -f bin/sdl ]; then
-    echo "ERROR: bin/sdl failed to compile!" | tee -a ${LOG}
+if [ ! -f sdl ]; then
+    echo "ERROR: sdl failed to compile!" | tee -a ${LOG}
     echo "See ${LOG} file for more detail..." | tee -a ${LOG}
     exit
 fi

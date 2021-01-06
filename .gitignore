@@ -1,6 +1,4 @@
-doAnalysis
 mtv
-sdl
 results/
 *.o
 debug.root
