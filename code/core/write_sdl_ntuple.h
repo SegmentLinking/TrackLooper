@@ -5,7 +5,7 @@
 #include "AnalysisConfig.h"
 #include "SDL/Event.cuh"
 #include "AnalysisInterface/EventForAnalysisInterface.h"
-#include <cppitertools/itertools.hpp>
+#include <cppitertools/enumerate.hpp>
 #include "Study.h"
 #include "WriteSDLNtuplev2.h"
 #include "trkCore.h"

@@ -1,5 +1,5 @@
 #include "process.h"
-#include "../src/SDLMath.h"
+#include "SDLMath.h"
 
 #include "sdl_types.h"
 

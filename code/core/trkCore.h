@@ -10,7 +10,8 @@
 #include "SDLMath.h"
 #include "SDL/Event.cuh"
 #include "SDL/Event.h"
-#include <cppitertools/itertools.hpp>
+#include <cppitertools/enumerate.hpp>
+#include <cppitertools/zip.hpp>
 #include <numeric>
 
 enum TrackletType {

@@ -21,7 +21,7 @@
 
 #include "AnalysisInterface/MathUtil.h"
 
-#include <cppitertools/itertools.hpp>
+#include <cppitertools/enumerate.hpp>
 
 class WriteSDLNtuplev2 : public Study
 {

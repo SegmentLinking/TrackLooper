@@ -145,6 +145,11 @@ NJOBS=16
 rm -rf outputs/
 mkdir -p outputs/
 
+if [ ! -f doAnalysis ]; then
+    echo "Need to make efficiency code first"
+    make clean; make -j
+fi
+
 for i in $(seq 0 $((NJOBS-1))); do
     echo "./doAnalysis -i ${INPUTFILE} -p ${PTBOUND} -g ${PDGID} -t tree -o outputs/output_${i}.root -j ${NJOBS} -I ${i} > outputs/output_${i}.log 2>&1" >> .jobs.txt
 done

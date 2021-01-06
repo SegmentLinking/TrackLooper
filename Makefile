@@ -1,7 +1,7 @@
 
 # Simple makefile
 
-EXES=doAnalysis sdl
+EXES=bin/doAnalysis bin/sdl
 
 ROOUTIL=code/rooutil/
 
@@ -28,10 +28,10 @@ EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVe
 
 all: $(ROOUTIL) $(EXES)
 
-doAnalysis: code/doAnalysis/doAnalysis.o $(OBJECTS)
+bin/doAnalysis: bin/doAnalysis.o $(OBJECTS)
 	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(EXTRAFLAGS) -o $@
 
-sdl: code/sdl/sdl.o $(OBJECTS)
+bin/sdl: bin/sdl.o $(OBJECTS)
 	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(EXTRAFLAGS) -o $@
 
 %.o: %.cc
@@ -43,8 +43,8 @@ $(ROOUTIL):
 clean:
 	rm -f $(OBJECTS) bin/*.o $(EXES)
 	rm -f code/rooutil/*.so code/rooutil/*.o
-	rm -f code/doAnalysis/doAnalysis.o
-	rm -f code/sdl/sdl.o
+	rm -f bin/doAnalysis.o
+	rm -f bin/sdl.o
 	rm -f SDL/*.o
 
 .PHONY: $(ROOUTIL)

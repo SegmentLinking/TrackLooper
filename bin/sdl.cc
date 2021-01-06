@@ -221,21 +221,21 @@ int main(int argc, char** argv)
 
     // Write out metadata of the code to the output_tfile
     ana.output_tfile->cd();
-    gSystem->Exec("echo '' > gitversion.txt");
-    gSystem->Exec("git rev-parse HEAD >> gitversion.txt");
-    gSystem->Exec("echo 'git status' >> gitversion.txt");
-    gSystem->Exec("git status >> gitversion.txt");
-    gSystem->Exec("echo 'git log' >> gitversion.txt");
-    gSystem->Exec("git log >> gitversion.txt");
-    gSystem->Exec("echo 'git diff' >> gitversion.txt");
-    gSystem->Exec("git diff >> gitversion.txt");
-    std::ifstream t("gitversion.txt");
+    gSystem->Exec("echo '' > .gitversion.txt");
+    gSystem->Exec("git rev-parse HEAD >> .gitversion.txt");
+    gSystem->Exec("echo 'git status' >> .gitversion.txt");
+    gSystem->Exec("git status >> .gitversion.txt");
+    gSystem->Exec("echo 'git log' >> .gitversion.txt");
+    gSystem->Exec("git log >> .gitversion.txt");
+    gSystem->Exec("echo 'git diff' >> .gitversion.txt");
+    gSystem->Exec("git diff >> .gitversion.txt");
+    std::ifstream t(".gitversion.txt");
     std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
     TString tstr = str.c_str();
     TObjString tobjstr("code_tag_data");
     tobjstr.SetString(tstr.Data());
     ana.output_tfile->WriteObject(&tobjstr, "code_tag_data");
-    std::ifstream makelog("make.log");
+    std::ifstream makelog(".make.log");
     std::string makestr((std::istreambuf_iterator<char>(makelog)), std::istreambuf_iterator<char>());
     TString maketstr = makestr.c_str();
     TObjString maketobjstr("make_log");
