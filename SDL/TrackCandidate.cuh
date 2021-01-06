@@ -1,5 +1,5 @@
-#ifndef TrackCandidate_h
-#define TrackCandidate_h
+#ifndef TrackCandidate_cuh
+#define TrackCandidate_cuh
 
 #ifdef __CUDACC__
 #define CUDA_HOSTDEV  __host__ __device__

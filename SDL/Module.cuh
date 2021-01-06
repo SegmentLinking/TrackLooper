@@ -1,5 +1,5 @@
-#ifndef Module_h
-#define Module_h
+#ifndef Module_cuh
+#define Module_cuh
 
 #ifdef __CUDACC__
 #define CUDA_HOSTDEV __host__ __device__

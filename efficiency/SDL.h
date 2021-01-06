@@ -1,6 +1,6 @@
 // -*- C++ -*-
 // This is a header file generated with the command:
-// makeCMS3ClassFiles("/home/users/phchang/public_html/analysis/sdl/TrackLooper/initial_seeds_only.root", "tree", "SDL", "tas", "sdl")
+// makeCMS3ClassFiles("/home/users/phchang/public_html/analysis/sdl/TrackLooper/results/write_sdl_ntuple/pion1_0p5_50_20201114_pion_debug/fulleff_pion1_0p5_50.root", "tree", "SDL", "tas", "sdl")
 
 #ifndef SDL_H
 #define SDL_H
@@ -43,6 +43,24 @@ class SDL {
   vector<int> *ph2_anchorLayer_;
   TBranch *ph2_anchorLayer_branch;
   bool     ph2_anchorLayer_isLoaded;
+  vector<float> *pix_x_;
+  TBranch *pix_x_branch;
+  bool     pix_x_isLoaded;
+  vector<float> *pix_y_;
+  TBranch *pix_y_branch;
+  bool     pix_y_isLoaded;
+  vector<float> *pix_z_;
+  TBranch *pix_z_branch;
+  bool     pix_z_isLoaded;
+  vector<unsigned int> *pix_detId_;
+  TBranch *pix_detId_branch;
+  bool     pix_detId_isLoaded;
+  vector<vector<int> > *pix_simHitIdx_;
+  TBranch *pix_simHitIdx_branch;
+  bool     pix_simHitIdx_isLoaded;
+  vector<unsigned int> *pix_simType_;
+  TBranch *pix_simType_branch;
+  bool     pix_simType_isLoaded;
   vector<float> *simhit_x_;
   TBranch *simhit_x_branch;
   bool     simhit_x_isLoaded;
@@ -97,6 +115,9 @@ class SDL {
   vector<int> *sim_bunchCrossing_;
   TBranch *sim_bunchCrossing_branch;
   bool     sim_bunchCrossing_isLoaded;
+  vector<int> *sim_parentVtxIdx_;
+  TBranch *sim_parentVtxIdx_branch;
+  bool     sim_parentVtxIdx_isLoaded;
   vector<int> *sim_hasAll12HitsInBarrel_;
   TBranch *sim_hasAll12HitsInBarrel_branch;
   bool     sim_hasAll12HitsInBarrel_isLoaded;
@@ -241,9 +262,6 @@ class SDL {
   vector<vector<int> > *sg_simTrkIdx_;
   TBranch *sg_simTrkIdx_branch;
   bool     sg_simTrkIdx_isLoaded;
-  vector<vector<int> > *sg_simTrkIdx_anchorMatching_;
-  TBranch *sg_simTrkIdx_anchorMatching_branch;
-  bool     sg_simTrkIdx_anchorMatching_isLoaded;
   vector<vector<int> > *sg_layer_;
   TBranch *sg_layer_branch;
   bool     sg_layer_isLoaded;
@@ -277,9 +295,6 @@ class SDL {
   vector<vector<int> > *psg_simTrkIdx_;
   TBranch *psg_simTrkIdx_branch;
   bool     psg_simTrkIdx_isLoaded;
-  vector<vector<int> > *psg_simTrkIdx_anchorMatching_;
-  TBranch *psg_simTrkIdx_anchorMatching_branch;
-  bool     psg_simTrkIdx_anchorMatching_isLoaded;
   vector<vector<int> > *psg_layer_;
   TBranch *psg_layer_branch;
   bool     psg_layer_isLoaded;
@@ -439,6 +454,9 @@ class SDL {
   vector<vector<int> > *sim_tcIdx_isMTVmatch_;
   TBranch *sim_tcIdx_isMTVmatch_branch;
   bool     sim_tcIdx_isMTVmatch_isLoaded;
+  vector<int> *sim_TC_matched_;
+  TBranch *sim_TC_matched_branch;
+  bool     sim_TC_matched_isLoaded;
 public: 
 void Init(TTree *tree);
 void GetEntry(unsigned int idx); 
@@ -450,6 +468,12 @@ void LoadAllBranches();
   const vector<vector<int> > &ph2_simHitIdx();
   const vector<unsigned int> &ph2_simType();
   const vector<int> &ph2_anchorLayer();
+  const vector<float> &pix_x();
+  const vector<float> &pix_y();
+  const vector<float> &pix_z();
+  const vector<unsigned int> &pix_detId();
+  const vector<vector<int> > &pix_simHitIdx();
+  const vector<unsigned int> &pix_simType();
   const vector<float> &simhit_x();
   const vector<float> &simhit_y();
   const vector<float> &simhit_z();
@@ -468,6 +492,7 @@ void LoadAllBranches();
   const vector<int> &sim_event();
   const vector<int> &sim_pdgId();
   const vector<int> &sim_bunchCrossing();
+  const vector<int> &sim_parentVtxIdx();
   const vector<int> &sim_hasAll12HitsInBarrel();
   const vector<vector<int> > &sim_simHitIdx();
   const vector<vector<int> > &sim_simHitLayer();
@@ -516,7 +541,6 @@ void LoadAllBranches();
   const vector<vector<int> > &ph2_mdIdx();
   const vector<vector<int> > &sg_hitIdx();
   const vector<vector<int> > &sg_simTrkIdx();
-  const vector<vector<int> > &sg_simTrkIdx_anchorMatching();
   const vector<vector<int> > &sg_layer();
   const vector<float> &sg_pt();
   const vector<float> &sg_eta();
@@ -528,7 +552,6 @@ void LoadAllBranches();
   const vector<vector<int> > &sim_sgIdx_isMTVmatch();
   const vector<vector<int> > &psg_hitIdx();
   const vector<vector<int> > &psg_simTrkIdx();
-  const vector<vector<int> > &psg_simTrkIdx_anchorMatching();
   const vector<vector<int> > &psg_layer();
   const vector<float> &psg_pt();
   const vector<float> &psg_eta();
@@ -582,6 +605,7 @@ void LoadAllBranches();
   const vector<float> &tc_sim_phi();
   const vector<vector<int> > &sim_tcIdx();
   const vector<vector<int> > &sim_tcIdx_isMTVmatch();
+  const vector<int> &sim_TC_matched();
 
   static void progress(int nEventsTotal, int nEventsChain);
 };
@@ -598,6 +622,12 @@ namespace tas {
   const vector<vector<int> > &ph2_simHitIdx();
   const vector<unsigned int> &ph2_simType();
   const vector<int> &ph2_anchorLayer();
+  const vector<float> &pix_x();
+  const vector<float> &pix_y();
+  const vector<float> &pix_z();
+  const vector<unsigned int> &pix_detId();
+  const vector<vector<int> > &pix_simHitIdx();
+  const vector<unsigned int> &pix_simType();
   const vector<float> &simhit_x();
   const vector<float> &simhit_y();
   const vector<float> &simhit_z();
@@ -616,6 +646,7 @@ namespace tas {
   const vector<int> &sim_event();
   const vector<int> &sim_pdgId();
   const vector<int> &sim_bunchCrossing();
+  const vector<int> &sim_parentVtxIdx();
   const vector<int> &sim_hasAll12HitsInBarrel();
   const vector<vector<int> > &sim_simHitIdx();
   const vector<vector<int> > &sim_simHitLayer();
@@ -664,7 +695,6 @@ namespace tas {
   const vector<vector<int> > &ph2_mdIdx();
   const vector<vector<int> > &sg_hitIdx();
   const vector<vector<int> > &sg_simTrkIdx();
-  const vector<vector<int> > &sg_simTrkIdx_anchorMatching();
   const vector<vector<int> > &sg_layer();
   const vector<float> &sg_pt();
   const vector<float> &sg_eta();
@@ -676,7 +706,6 @@ namespace tas {
   const vector<vector<int> > &sim_sgIdx_isMTVmatch();
   const vector<vector<int> > &psg_hitIdx();
   const vector<vector<int> > &psg_simTrkIdx();
-  const vector<vector<int> > &psg_simTrkIdx_anchorMatching();
   const vector<vector<int> > &psg_layer();
   const vector<float> &psg_pt();
   const vector<float> &psg_eta();
@@ -730,6 +759,6 @@ namespace tas {
   const vector<float> &tc_sim_phi();
   const vector<vector<int> > &sim_tcIdx();
   const vector<vector<int> > &sim_tcIdx_isMTVmatch();
+  const vector<int> &sim_TC_matched();
 }
-#include "rooutil.h"
 #endif

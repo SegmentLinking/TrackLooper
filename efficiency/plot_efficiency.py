@@ -5,6 +5,8 @@ from array import array
 import os
 import sys
 
+r.gROOT.SetBatch(True)
+
 def parse_plot_name(output_name):
     rtnstr = ["Efficiency of"]
     if "MD_" in output_name:
@@ -32,6 +34,14 @@ def parse_plot_name(output_name):
     return " ".join(rtnstr)
 
 def draw_eff(num, den, output_name, sample_name, version_tag):
+
+    if "scalar" in output_name and "ptscalar" not in output_name:
+        num.Rebin(180)
+        den.Rebin(180)
+
+    if "coarse" in output_name and "ptcoarse" not in output_name:
+        num.Rebin(6)
+        den.Rebin(6)
 
     teff = r.TEfficiency(num, den)
     eff = teff.CreateGraph()
@@ -91,7 +101,7 @@ def draw_eff(num, den, output_name, sample_name, version_tag):
     x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
     y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.01
     sample_name_label = "Sample: " + sample_name + "   Version tag:" + version_tag
-    t.DrawLatexNDC(x,y,"#scale[1.1]{#font[52]{%s}}" % sample_name_label)
+    t.DrawLatexNDC(x,y,"#scale[0.9]{#font[52]{%s}}" % sample_name_label)
     # Save
     c1.SetGrid()
     c1.SaveAs("{}".format(output_name.replace(".pdf", "_eff.pdf")))
@@ -111,10 +121,14 @@ if __name__ == "__main__":
     for key in f.GetListOfKeys():
         if "denom" in key.GetName():
             continue
-        # if "Set1" not in key.GetName():
+        # if "Set4" not in key.GetName():
         #     continue
-        if "Set3" not in key.GetName():
+        if "TC_All" not in key.GetName():
             continue
+        # if "pLS_P" not in key.GetName():
+        #     continue
+        # if "pix_P" not in key.GetName():
+        #     continue
         numer_name = key.GetName()
         denom_name = numer_name.replace("numer", "denom")
         nice_name = numer_name.replace("Root__", "")
@@ -126,5 +140,9 @@ if __name__ == "__main__":
         denom = f.Get(denom_histname)
         draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}.pdf".format(nice_name), sample_name, version_tag)
         draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}zoom.pdf".format(nice_name), sample_name, version_tag)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}zoomcoarse.pdf".format(nice_name), sample_name, version_tag)
         draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}maxzoom.pdf".format(nice_name), sample_name, version_tag)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}maxzoomcoarse.pdf".format(nice_name), sample_name, version_tag)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}scalar.pdf".format(nice_name), sample_name, version_tag)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}coarse.pdf".format(nice_name), sample_name, version_tag)
 

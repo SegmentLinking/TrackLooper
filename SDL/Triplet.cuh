@@ -1,5 +1,5 @@
-#ifndef Triplet_h
-#define Triplet_h
+#ifndef Triplet_cuh
+#define Triplet_cuh
 
 #ifdef __CUDACC__
 #define CUDA_HOSTDEV  __host__ __device__

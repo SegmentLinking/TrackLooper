@@ -1,5 +1,5 @@
-#ifndef Hit_h
-#define Hit_h
+#ifndef Hit_cuh
+#define Hit_cuh
 
 #ifdef __CUDACC__
 #define CUDA_HOSTDEV  __host__ __device__

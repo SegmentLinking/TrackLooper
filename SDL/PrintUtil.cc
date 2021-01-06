@@ -4,6 +4,13 @@ namespace SDL
 {
     // The following modified ostream will prefix "SDL::  " for every line
     oprefixstream cout("SDL::  ", std::cout);
+
+    namespace CPU
+    {
+        // The following modified ostream will prefix "SDL::CPU::  " for every line
+        oprefixstream cout("SDL::CPU::  ", std::cout);
+    }
+
 }
 
 int SDL::prefixbuf::sync()

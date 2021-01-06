@@ -4,6 +4,9 @@
 #include <vector>
 #include <map>
 #include <tuple>
+#include <string>
+#include <fstream>
+#include <streambuf>
 
 #include "trktree.h"
 #include "rooutil.h"
@@ -22,13 +25,9 @@
 #include "AnalysisConfig.h"
 
 #include "trkCore.h"
-
-//#include "src/print_module_centroid.h"
-//#include "src/build_module_map.h"
-//#include "src/mtv.h"
-//#include "src/tracklet.h"
-//#include "src/algo_eff.h"
-#include "src/write_sdl_ntuple.h"
+#include "write_sdl_ntuple.h"
 #include "AnalysisInterface/EventForAnalysisInterface.h"
+
+#include "TSystem.h"
 
 #endif

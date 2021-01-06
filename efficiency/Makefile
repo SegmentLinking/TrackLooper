@@ -18,25 +18,27 @@ ROOTLIBS    = $(shell root-config --libs)
 ROOTCFLAGS  = $(shell root-config --cflags)
 CXXFLAGS   += $(ROOTCFLAGS)
 CFLAGS      = $(ROOTCFLAGS) -Wall -Wno-unused-function -g -O2 -fPIC -fno-var-tracking
-EXTRACFLAGS = $(shell rooutil-config)
-EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer
+EXTRACFLAGS = $(shell rooutil-config) -I../code/core
+EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer $(shell rooutil-config)
 
-$(EXE): process.o SDL.o
-	$(LD) $(CXXFLAGS) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRAFLAGS) -o $@
+.PHONY: rooutil
 
-multiplicity: multiplicity.o SDL.o
-	$(LD) $(CXXFLAGS) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRAFLAGS) -o $@
+all: doAnalysis
+
+$(EXE): rooutil efficiency.o helper.o SDL.o
+	$(LD) $(CXXFLAGS) $(LDFLAGS) efficiency.o helper.o SDL.o $(ROOTLIBS) $(EXTRAFLAGS) -o $@
 
 SDL.o: SDL.cc SDL.h
 	$(CC) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
 
-process.o: process.cc process.h sdl_types.h
+efficiency.o: efficiency.cc efficiency.h sdl_types.h
 	$(CC) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
 
-multiplicity.o: multiplicity.cc multiplicity.h sdl_types.h
+helper.o: helper.cc helper.h sdl_types.h
 	$(CC) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
 
-all: doAnalysis multiplicity
+rooutil:
+	$(MAKE) -C ../code/rooutil
 
 clean:
 	rm -f $(OBJECTS) $(EXE)

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-source rooutil/thisrooutil.sh
-
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source $DIR/code/rooutil/thisrooutil.sh
 
 #echo "Setting up ROOT"
 # export SCRAM_ARCH=slc6_amd64_gcc530   # or whatever scram_arch you need for your desired CMSSW release

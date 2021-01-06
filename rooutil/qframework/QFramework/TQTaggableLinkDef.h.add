@@ -1,3 +1,0 @@
-#pragma read sourceClass="TQTaggable" version="[1]" targetClass="TQTaggable" \
- source="TList* fTags" target="fTags" \
- code="{ fTags = TQTaggable::makeListOfTags(onfile.fTags); }"

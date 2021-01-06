@@ -4,6 +4,15 @@
 int main(int argc, char** argv)
 {
 
+    // Write the command line used to run it
+    // N.B. This needs to be before the argument parsing as it will change some values
+    std::vector<std::string> allArgs(argv, argv + argc);
+    TString full_cmd_line;
+    for (auto& str : allArgs)
+    {
+        full_cmd_line += TString::Format(" %s", str.c_str());
+    }
+
 //********************************************************************************
 //
 // 1. Parsing options
@@ -17,17 +26,18 @@ int main(int argc, char** argv)
 
     // Read the options
     options.add_options()
-        ("m,mode"           , "Run mode (0=build_module_map, 1=print_module_centroid, 2=mtv, 3=algo_eff, 4=tracklet, 5=write_sdl_ntuple, 6=pixel_tracklet_eff)", cxxopts::value<int>()->default_value("-1"))
-        ("i,input"          , "Comma separated input file list OR if just a directory is provided it will glob all in the directory BUT must end with '/' for the path", cxxopts::value<std::string>()->default_value("Pt2GeV_STANDARD_SAMPLE"))
+        ("m,mode"           , "Run mode (0=build_module_map, 1=print_module_centroid, 2=mtv, 3=algo_eff, 4=tracklet, 5=write_sdl_ntuple, 6=pixel_tracklet_eff)", cxxopts::value<int>()->default_value("5"))
+        ("i,input"          , "Comma separated input file list OR if just a directory is provided it will glob all in the directory BUT must end with '/' for the path", cxxopts::value<std::string>()->default_value("muonGun"))
         ("t,tree"           , "Name of the tree in the root file to open and loop over"                                             , cxxopts::value<std::string>()->default_value("trackingNtuple/tree"))
         ("o,output"         , "Output file name"                                                                                    , cxxopts::value<std::string>())
         ("N,nmatch"         , "N match for MTV-like plots"                                                                          , cxxopts::value<int>()->default_value("9"))
         ("n,nevents"        , "N events to loop over"                                                                               , cxxopts::value<int>()->default_value("-1"))
         ("x,event_index"    , "specific event index to process"                                                                     , cxxopts::value<int>()->default_value("-1"))
         ("p,ptbound_mode"   , "Pt bound mode (i.e. 0 = default, 1 = pt~1, 2 = pt~0.95-1.5, 3 = pt~0.5-1.5, 4 = pt~0.5-2.0"          , cxxopts::value<int>()->default_value("0"))
-        ("g,pdg_id"         , "The simhit pdgId match option (default = 13)"                                                        , cxxopts::value<int>()->default_value("13"))
+        ("g,pdg_id"         , "The simhit pdgId match option (default = 0)"                                                         , cxxopts::value<int>()->default_value("0"))
         ("v,verbose"        , "Verbose mode"                                                                                        , cxxopts::value<int>()->default_value("0"))
         ("d,debug"          , "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")
+        ("c,cpu"            , "Run CPU version of the code.")
         ("j,nsplit_jobs"    , "Enable splitting jobs by N blocks (--job_index must be set)", cxxopts::value<int>())
         ("I,job_index"      , "job_index of split jobs (--nsplit_jobs must be set. index starts from 0. i.e. 0, 1, 2, 3, etc...)", cxxopts::value<int>())
         ("h,help"           , "Print help")
@@ -52,8 +62,14 @@ int main(int argc, char** argv)
     ana.input_file_list_tstring = result["input"].as<std::string>();
 
     // A default value one
-    if (ana.input_file_list_tstring.EqualTo("Pt2GeV_STANDARD_SAMPLE"))
-        ana.input_file_list_tstring = "/home/users/phchang/public_html/analysis/sdl/trackingNtuple/CMSSW_10_4_0/src/trackingNtuple_100_pt0p5_2p0.root";
+    if (ana.input_file_list_tstring.EqualTo("muonGun"))
+        ana.input_file_list_tstring = "/nfs-7/userdata/phchang/trackingNtuple/trackingNtuple_100_pt0p5_2p0.root";
+    else if (ana.input_file_list_tstring.EqualTo("muonGun_highE"))
+        ana.input_file_list_tstring = "/nfs-7/userdata/phchang/trackingNtuple/trackingNtuple_10MuGun.root";
+    else if (ana.input_file_list_tstring.EqualTo("pionGun"))
+        ana.input_file_list_tstring = "/nfs-7/userdata/phchang/trackingNtuple/trackingNtuple_1pion_10k_pt0p5_50p0.root";
+    else if (ana.input_file_list_tstring.EqualTo("PU200"))
+        ana.input_file_list_tstring = "/nfs-7/userdata/bsathian/SDL_trackingNtuple/ttbar_highPU/trackingNtuple_with_PUinfo_500_evts.root";
 
     //_______________________________________________________________________________
     // --tree
@@ -174,15 +190,17 @@ int main(int argc, char** argv)
 
     //_______________________________________________________________________________
     // --mode
-    if (result.count("mode"))
+    ana.mode = result["mode"].as<int>();
+
+    //_______________________________________________________________________________
+    // --cpu
+    if (result.count("cpu"))
     {
-        ana.mode = result["mode"].as<int>();
+        ana.do_run_cpu = true;
     }
     else
     {
-        std::cout << options.help() << std::endl;
-        std::cout << "ERROR: --mode was not recognized! Check your arguments." << std::endl;
-        exit(1);
+        ana.do_run_cpu = false;
     }
 
     // Printing out the option settings overview
@@ -210,6 +228,47 @@ int main(int argc, char** argv)
     // Create TTreeX instance that will take care of the interface part of TTree
     ana.tx = new RooUtil::TTreeX(ana.output_ttree);
 
+    // Write out metadata of the code to the output_tfile
+    ana.output_tfile->cd();
+    gSystem->Exec("echo '' > .gitversion.txt");
+    gSystem->Exec("git rev-parse HEAD >> .gitversion.txt");
+    gSystem->Exec("echo 'git status' >> .gitversion.txt");
+    gSystem->Exec("git status >> .gitversion.txt");
+    gSystem->Exec("echo 'git log' >> .gitversion.txt");
+    gSystem->Exec("git log >> .gitversion.txt");
+    gSystem->Exec("echo 'git diff' >> .gitversion.txt");
+    gSystem->Exec("git diff >> .gitversion.txt");
+    std::ifstream t(".gitversion.txt");
+    std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+    TString tstr = str.c_str();
+    TObjString tobjstr("code_tag_data");
+    tobjstr.SetString(tstr.Data());
+    ana.output_tfile->WriteObject(&tobjstr, "code_tag_data");
+    std::ifstream makelog(".make.log");
+    std::string makestr((std::istreambuf_iterator<char>(makelog)), std::istreambuf_iterator<char>());
+    TString maketstr = makestr.c_str();
+    TObjString maketobjstr("make_log");
+    maketobjstr.SetString(maketstr.Data());
+    ana.output_tfile->WriteObject(&maketobjstr, "make_log");
+
+    // Write out input sample or file name
+    TObjString input;
+    input.SetString(result["input"].as<std::string>().c_str());
+    ana.output_tfile->WriteObject(&input, "input");
+
+    // Write out whether it's GPU or CPU
+    TObjString version;
+    if (ana.do_run_cpu)
+        version.SetString("CPU");
+    else
+        version.SetString("GPU");
+    ana.output_tfile->WriteObject(&version, "version");
+
+    // Write the full command line used
+    TObjString full_cmd_line_to_be_written;
+    full_cmd_line_to_be_written.SetString(full_cmd_line.Data());
+    ana.output_tfile->WriteObject(&full_cmd_line_to_be_written, "full_cmd_line");
+
     // Run depending on the mode
     switch (ana.mode)
     {
@@ -222,7 +281,7 @@ int main(int argc, char** argv)
         //case 6: pixel_tracklet_eff(); break;
         default:
                 std::cout << options.help() << std::endl;
-                std::cout << "ERROR: --mode was not recognized! Check your arguments." << std::endl;
+                std::cout << "ERROR: --mode was not provided! Check your arguments." << std::endl;
                 exit(1);
                 break;
     }

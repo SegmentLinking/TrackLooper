@@ -1,6 +1,0 @@
-#pragma extra_include "TH1.h";
-#pragma extra_include "TH2.h";
-#pragma extra_include "TH3.h";
-#pragma link C++ class TQHistogramObservable<TH1>+;
-#pragma link C++ class TQHistogramObservable<TH2>+;
-#pragma link C++ class TQHistogramObservable<TH3>+;

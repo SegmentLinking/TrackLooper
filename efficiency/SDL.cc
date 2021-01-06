@@ -19,6 +19,18 @@ void SDL::Init(TTree *tree) {
   if (ph2_simType_branch) ph2_simType_branch->SetAddress(&ph2_simType_);
   ph2_anchorLayer_branch = tree->GetBranch("ph2_anchorLayer");
   if (ph2_anchorLayer_branch) ph2_anchorLayer_branch->SetAddress(&ph2_anchorLayer_);
+  pix_x_branch = tree->GetBranch("pix_x");
+  if (pix_x_branch) pix_x_branch->SetAddress(&pix_x_);
+  pix_y_branch = tree->GetBranch("pix_y");
+  if (pix_y_branch) pix_y_branch->SetAddress(&pix_y_);
+  pix_z_branch = tree->GetBranch("pix_z");
+  if (pix_z_branch) pix_z_branch->SetAddress(&pix_z_);
+  pix_detId_branch = tree->GetBranch("pix_detId");
+  if (pix_detId_branch) pix_detId_branch->SetAddress(&pix_detId_);
+  pix_simHitIdx_branch = tree->GetBranch("pix_simHitIdx");
+  if (pix_simHitIdx_branch) pix_simHitIdx_branch->SetAddress(&pix_simHitIdx_);
+  pix_simType_branch = tree->GetBranch("pix_simType");
+  if (pix_simType_branch) pix_simType_branch->SetAddress(&pix_simType_);
   simhit_x_branch = tree->GetBranch("simhit_x");
   if (simhit_x_branch) simhit_x_branch->SetAddress(&simhit_x_);
   simhit_y_branch = tree->GetBranch("simhit_y");
@@ -55,6 +67,8 @@ void SDL::Init(TTree *tree) {
   if (sim_pdgId_branch) sim_pdgId_branch->SetAddress(&sim_pdgId_);
   sim_bunchCrossing_branch = tree->GetBranch("sim_bunchCrossing");
   if (sim_bunchCrossing_branch) sim_bunchCrossing_branch->SetAddress(&sim_bunchCrossing_);
+  sim_parentVtxIdx_branch = tree->GetBranch("sim_parentVtxIdx");
+  if (sim_parentVtxIdx_branch) sim_parentVtxIdx_branch->SetAddress(&sim_parentVtxIdx_);
   sim_hasAll12HitsInBarrel_branch = tree->GetBranch("sim_hasAll12HitsInBarrel");
   if (sim_hasAll12HitsInBarrel_branch) sim_hasAll12HitsInBarrel_branch->SetAddress(&sim_hasAll12HitsInBarrel_);
   sim_simHitIdx_branch = tree->GetBranch("sim_simHitIdx");
@@ -151,8 +165,6 @@ void SDL::Init(TTree *tree) {
   if (sg_hitIdx_branch) sg_hitIdx_branch->SetAddress(&sg_hitIdx_);
   sg_simTrkIdx_branch = tree->GetBranch("sg_simTrkIdx");
   if (sg_simTrkIdx_branch) sg_simTrkIdx_branch->SetAddress(&sg_simTrkIdx_);
-  sg_simTrkIdx_anchorMatching_branch = tree->GetBranch("sg_simTrkIdx_anchorMatching");
-  if (sg_simTrkIdx_anchorMatching_branch) sg_simTrkIdx_anchorMatching_branch->SetAddress(&sg_simTrkIdx_anchorMatching_);
   sg_layer_branch = tree->GetBranch("sg_layer");
   if (sg_layer_branch) sg_layer_branch->SetAddress(&sg_layer_);
   sg_pt_branch = tree->GetBranch("sg_pt");
@@ -175,8 +187,6 @@ void SDL::Init(TTree *tree) {
   if (psg_hitIdx_branch) psg_hitIdx_branch->SetAddress(&psg_hitIdx_);
   psg_simTrkIdx_branch = tree->GetBranch("psg_simTrkIdx");
   if (psg_simTrkIdx_branch) psg_simTrkIdx_branch->SetAddress(&psg_simTrkIdx_);
-  psg_simTrkIdx_anchorMatching_branch = tree->GetBranch("psg_simTrkIdx_anchorMatching");
-  if (psg_simTrkIdx_anchorMatching_branch) psg_simTrkIdx_anchorMatching_branch->SetAddress(&psg_simTrkIdx_anchorMatching_);
   psg_layer_branch = tree->GetBranch("psg_layer");
   if (psg_layer_branch) psg_layer_branch->SetAddress(&psg_layer_);
   psg_pt_branch = tree->GetBranch("psg_pt");
@@ -283,6 +293,8 @@ void SDL::Init(TTree *tree) {
   if (sim_tcIdx_branch) sim_tcIdx_branch->SetAddress(&sim_tcIdx_);
   sim_tcIdx_isMTVmatch_branch = tree->GetBranch("sim_tcIdx_isMTVmatch");
   if (sim_tcIdx_isMTVmatch_branch) sim_tcIdx_isMTVmatch_branch->SetAddress(&sim_tcIdx_isMTVmatch_);
+  sim_TC_matched_branch = tree->GetBranch("sim_TC_matched");
+  if (sim_TC_matched_branch) sim_TC_matched_branch->SetAddress(&sim_TC_matched_);
 
   tree->SetMakeClass(0);
 }
@@ -297,6 +309,12 @@ void SDL::GetEntry(unsigned int idx) {
   ph2_simHitIdx_isLoaded = false;
   ph2_simType_isLoaded = false;
   ph2_anchorLayer_isLoaded = false;
+  pix_x_isLoaded = false;
+  pix_y_isLoaded = false;
+  pix_z_isLoaded = false;
+  pix_detId_isLoaded = false;
+  pix_simHitIdx_isLoaded = false;
+  pix_simType_isLoaded = false;
   simhit_x_isLoaded = false;
   simhit_y_isLoaded = false;
   simhit_z_isLoaded = false;
@@ -315,6 +333,7 @@ void SDL::GetEntry(unsigned int idx) {
   sim_event_isLoaded = false;
   sim_pdgId_isLoaded = false;
   sim_bunchCrossing_isLoaded = false;
+  sim_parentVtxIdx_isLoaded = false;
   sim_hasAll12HitsInBarrel_isLoaded = false;
   sim_simHitIdx_isLoaded = false;
   sim_simHitLayer_isLoaded = false;
@@ -363,7 +382,6 @@ void SDL::GetEntry(unsigned int idx) {
   ph2_mdIdx_isLoaded = false;
   sg_hitIdx_isLoaded = false;
   sg_simTrkIdx_isLoaded = false;
-  sg_simTrkIdx_anchorMatching_isLoaded = false;
   sg_layer_isLoaded = false;
   sg_pt_isLoaded = false;
   sg_eta_isLoaded = false;
@@ -375,7 +393,6 @@ void SDL::GetEntry(unsigned int idx) {
   sim_sgIdx_isMTVmatch_isLoaded = false;
   psg_hitIdx_isLoaded = false;
   psg_simTrkIdx_isLoaded = false;
-  psg_simTrkIdx_anchorMatching_isLoaded = false;
   psg_layer_isLoaded = false;
   psg_pt_isLoaded = false;
   psg_eta_isLoaded = false;
@@ -429,6 +446,7 @@ void SDL::GetEntry(unsigned int idx) {
   tc_sim_phi_isLoaded = false;
   sim_tcIdx_isLoaded = false;
   sim_tcIdx_isMTVmatch_isLoaded = false;
+  sim_TC_matched_isLoaded = false;
 }
 
 void SDL::LoadAllBranches() {
@@ -440,6 +458,12 @@ void SDL::LoadAllBranches() {
   if (ph2_simHitIdx_branch != 0) ph2_simHitIdx();
   if (ph2_simType_branch != 0) ph2_simType();
   if (ph2_anchorLayer_branch != 0) ph2_anchorLayer();
+  if (pix_x_branch != 0) pix_x();
+  if (pix_y_branch != 0) pix_y();
+  if (pix_z_branch != 0) pix_z();
+  if (pix_detId_branch != 0) pix_detId();
+  if (pix_simHitIdx_branch != 0) pix_simHitIdx();
+  if (pix_simType_branch != 0) pix_simType();
   if (simhit_x_branch != 0) simhit_x();
   if (simhit_y_branch != 0) simhit_y();
   if (simhit_z_branch != 0) simhit_z();
@@ -458,6 +482,7 @@ void SDL::LoadAllBranches() {
   if (sim_event_branch != 0) sim_event();
   if (sim_pdgId_branch != 0) sim_pdgId();
   if (sim_bunchCrossing_branch != 0) sim_bunchCrossing();
+  if (sim_parentVtxIdx_branch != 0) sim_parentVtxIdx();
   if (sim_hasAll12HitsInBarrel_branch != 0) sim_hasAll12HitsInBarrel();
   if (sim_simHitIdx_branch != 0) sim_simHitIdx();
   if (sim_simHitLayer_branch != 0) sim_simHitLayer();
@@ -506,7 +531,6 @@ void SDL::LoadAllBranches() {
   if (ph2_mdIdx_branch != 0) ph2_mdIdx();
   if (sg_hitIdx_branch != 0) sg_hitIdx();
   if (sg_simTrkIdx_branch != 0) sg_simTrkIdx();
-  if (sg_simTrkIdx_anchorMatching_branch != 0) sg_simTrkIdx_anchorMatching();
   if (sg_layer_branch != 0) sg_layer();
   if (sg_pt_branch != 0) sg_pt();
   if (sg_eta_branch != 0) sg_eta();
@@ -518,7 +542,6 @@ void SDL::LoadAllBranches() {
   if (sim_sgIdx_isMTVmatch_branch != 0) sim_sgIdx_isMTVmatch();
   if (psg_hitIdx_branch != 0) psg_hitIdx();
   if (psg_simTrkIdx_branch != 0) psg_simTrkIdx();
-  if (psg_simTrkIdx_anchorMatching_branch != 0) psg_simTrkIdx_anchorMatching();
   if (psg_layer_branch != 0) psg_layer();
   if (psg_pt_branch != 0) psg_pt();
   if (psg_eta_branch != 0) psg_eta();
@@ -572,6 +595,7 @@ void SDL::LoadAllBranches() {
   if (tc_sim_phi_branch != 0) tc_sim_phi();
   if (sim_tcIdx_branch != 0) sim_tcIdx();
   if (sim_tcIdx_isMTVmatch_branch != 0) sim_tcIdx_isMTVmatch();
+  if (sim_TC_matched_branch != 0) sim_TC_matched();
 }
 
 const vector<float> &SDL::ph2_x() {
@@ -663,6 +687,84 @@ const vector<int> &SDL::ph2_anchorLayer() {
     ph2_anchorLayer_isLoaded = true;
   }
   return *ph2_anchorLayer_;
+}
+
+const vector<float> &SDL::pix_x() {
+  if (not pix_x_isLoaded) {
+    if (pix_x_branch != 0) {
+      pix_x_branch->GetEntry(index);
+    } else {
+      printf("branch pix_x_branch does not exist!\n");
+      exit(1);
+    }
+    pix_x_isLoaded = true;
+  }
+  return *pix_x_;
+}
+
+const vector<float> &SDL::pix_y() {
+  if (not pix_y_isLoaded) {
+    if (pix_y_branch != 0) {
+      pix_y_branch->GetEntry(index);
+    } else {
+      printf("branch pix_y_branch does not exist!\n");
+      exit(1);
+    }
+    pix_y_isLoaded = true;
+  }
+  return *pix_y_;
+}
+
+const vector<float> &SDL::pix_z() {
+  if (not pix_z_isLoaded) {
+    if (pix_z_branch != 0) {
+      pix_z_branch->GetEntry(index);
+    } else {
+      printf("branch pix_z_branch does not exist!\n");
+      exit(1);
+    }
+    pix_z_isLoaded = true;
+  }
+  return *pix_z_;
+}
+
+const vector<unsigned int> &SDL::pix_detId() {
+  if (not pix_detId_isLoaded) {
+    if (pix_detId_branch != 0) {
+      pix_detId_branch->GetEntry(index);
+    } else {
+      printf("branch pix_detId_branch does not exist!\n");
+      exit(1);
+    }
+    pix_detId_isLoaded = true;
+  }
+  return *pix_detId_;
+}
+
+const vector<vector<int> > &SDL::pix_simHitIdx() {
+  if (not pix_simHitIdx_isLoaded) {
+    if (pix_simHitIdx_branch != 0) {
+      pix_simHitIdx_branch->GetEntry(index);
+    } else {
+      printf("branch pix_simHitIdx_branch does not exist!\n");
+      exit(1);
+    }
+    pix_simHitIdx_isLoaded = true;
+  }
+  return *pix_simHitIdx_;
+}
+
+const vector<unsigned int> &SDL::pix_simType() {
+  if (not pix_simType_isLoaded) {
+    if (pix_simType_branch != 0) {
+      pix_simType_branch->GetEntry(index);
+    } else {
+      printf("branch pix_simType_branch does not exist!\n");
+      exit(1);
+    }
+    pix_simType_isLoaded = true;
+  }
+  return *pix_simType_;
 }
 
 const vector<float> &SDL::simhit_x() {
@@ -897,6 +999,19 @@ const vector<int> &SDL::sim_bunchCrossing() {
     sim_bunchCrossing_isLoaded = true;
   }
   return *sim_bunchCrossing_;
+}
+
+const vector<int> &SDL::sim_parentVtxIdx() {
+  if (not sim_parentVtxIdx_isLoaded) {
+    if (sim_parentVtxIdx_branch != 0) {
+      sim_parentVtxIdx_branch->GetEntry(index);
+    } else {
+      printf("branch sim_parentVtxIdx_branch does not exist!\n");
+      exit(1);
+    }
+    sim_parentVtxIdx_isLoaded = true;
+  }
+  return *sim_parentVtxIdx_;
 }
 
 const vector<int> &SDL::sim_hasAll12HitsInBarrel() {
@@ -1523,19 +1638,6 @@ const vector<vector<int> > &SDL::sg_simTrkIdx() {
   return *sg_simTrkIdx_;
 }
 
-const vector<vector<int> > &SDL::sg_simTrkIdx_anchorMatching() {
-  if (not sg_simTrkIdx_anchorMatching_isLoaded) {
-    if (sg_simTrkIdx_anchorMatching_branch != 0) {
-      sg_simTrkIdx_anchorMatching_branch->GetEntry(index);
-    } else {
-      printf("branch sg_simTrkIdx_anchorMatching_branch does not exist!\n");
-      exit(1);
-    }
-    sg_simTrkIdx_anchorMatching_isLoaded = true;
-  }
-  return *sg_simTrkIdx_anchorMatching_;
-}
-
 const vector<vector<int> > &SDL::sg_layer() {
   if (not sg_layer_isLoaded) {
     if (sg_layer_branch != 0) {
@@ -1677,19 +1779,6 @@ const vector<vector<int> > &SDL::psg_simTrkIdx() {
     psg_simTrkIdx_isLoaded = true;
   }
   return *psg_simTrkIdx_;
-}
-
-const vector<vector<int> > &SDL::psg_simTrkIdx_anchorMatching() {
-  if (not psg_simTrkIdx_anchorMatching_isLoaded) {
-    if (psg_simTrkIdx_anchorMatching_branch != 0) {
-      psg_simTrkIdx_anchorMatching_branch->GetEntry(index);
-    } else {
-      printf("branch psg_simTrkIdx_anchorMatching_branch does not exist!\n");
-      exit(1);
-    }
-    psg_simTrkIdx_anchorMatching_isLoaded = true;
-  }
-  return *psg_simTrkIdx_anchorMatching_;
 }
 
 const vector<vector<int> > &SDL::psg_layer() {
@@ -2381,6 +2470,18 @@ const vector<vector<int> > &SDL::sim_tcIdx_isMTVmatch() {
   return *sim_tcIdx_isMTVmatch_;
 }
 
+const vector<int> &SDL::sim_TC_matched() {
+  if (not sim_TC_matched_isLoaded) {
+    if (sim_TC_matched_branch != 0) {
+      sim_TC_matched_branch->GetEntry(index);
+    } else {
+      printf("branch sim_TC_matched_branch does not exist!\n");
+      exit(1);
+    }
+    sim_TC_matched_isLoaded = true;
+  }
+  return *sim_TC_matched_;
+}
 
 void SDL::progress( int nEventsTotal, int nEventsChain ){
   int period = 1000;
@@ -2411,6 +2512,12 @@ const vector<unsigned int> &ph2_detId() { return sdl.ph2_detId(); }
 const vector<vector<int> > &ph2_simHitIdx() { return sdl.ph2_simHitIdx(); }
 const vector<unsigned int> &ph2_simType() { return sdl.ph2_simType(); }
 const vector<int> &ph2_anchorLayer() { return sdl.ph2_anchorLayer(); }
+const vector<float> &pix_x() { return sdl.pix_x(); }
+const vector<float> &pix_y() { return sdl.pix_y(); }
+const vector<float> &pix_z() { return sdl.pix_z(); }
+const vector<unsigned int> &pix_detId() { return sdl.pix_detId(); }
+const vector<vector<int> > &pix_simHitIdx() { return sdl.pix_simHitIdx(); }
+const vector<unsigned int> &pix_simType() { return sdl.pix_simType(); }
 const vector<float> &simhit_x() { return sdl.simhit_x(); }
 const vector<float> &simhit_y() { return sdl.simhit_y(); }
 const vector<float> &simhit_z() { return sdl.simhit_z(); }
@@ -2429,6 +2536,7 @@ const vector<int> &sim_q() { return sdl.sim_q(); }
 const vector<int> &sim_event() { return sdl.sim_event(); }
 const vector<int> &sim_pdgId() { return sdl.sim_pdgId(); }
 const vector<int> &sim_bunchCrossing() { return sdl.sim_bunchCrossing(); }
+const vector<int> &sim_parentVtxIdx() { return sdl.sim_parentVtxIdx(); }
 const vector<int> &sim_hasAll12HitsInBarrel() { return sdl.sim_hasAll12HitsInBarrel(); }
 const vector<vector<int> > &sim_simHitIdx() { return sdl.sim_simHitIdx(); }
 const vector<vector<int> > &sim_simHitLayer() { return sdl.sim_simHitLayer(); }
@@ -2477,7 +2585,6 @@ const vector<vector<int> > &sim_mdIdx_isMTVmatch() { return sdl.sim_mdIdx_isMTVm
 const vector<vector<int> > &ph2_mdIdx() { return sdl.ph2_mdIdx(); }
 const vector<vector<int> > &sg_hitIdx() { return sdl.sg_hitIdx(); }
 const vector<vector<int> > &sg_simTrkIdx() { return sdl.sg_simTrkIdx(); }
-const vector<vector<int> > &sg_simTrkIdx_anchorMatching() { return sdl.sg_simTrkIdx_anchorMatching(); }
 const vector<vector<int> > &sg_layer() { return sdl.sg_layer(); }
 const vector<float> &sg_pt() { return sdl.sg_pt(); }
 const vector<float> &sg_eta() { return sdl.sg_eta(); }
@@ -2489,7 +2596,6 @@ const vector<vector<int> > &sim_sgIdx() { return sdl.sim_sgIdx(); }
 const vector<vector<int> > &sim_sgIdx_isMTVmatch() { return sdl.sim_sgIdx_isMTVmatch(); }
 const vector<vector<int> > &psg_hitIdx() { return sdl.psg_hitIdx(); }
 const vector<vector<int> > &psg_simTrkIdx() { return sdl.psg_simTrkIdx(); }
-const vector<vector<int> > &psg_simTrkIdx_anchorMatching() { return sdl.psg_simTrkIdx_anchorMatching(); }
 const vector<vector<int> > &psg_layer() { return sdl.psg_layer(); }
 const vector<float> &psg_pt() { return sdl.psg_pt(); }
 const vector<float> &psg_eta() { return sdl.psg_eta(); }
@@ -2543,7 +2649,7 @@ const vector<float> &tc_sim_eta() { return sdl.tc_sim_eta(); }
 const vector<float> &tc_sim_phi() { return sdl.tc_sim_phi(); }
 const vector<vector<int> > &sim_tcIdx() { return sdl.sim_tcIdx(); }
 const vector<vector<int> > &sim_tcIdx_isMTVmatch() { return sdl.sim_tcIdx_isMTVmatch(); }
+const vector<int> &sim_TC_matched() { return sdl.sim_TC_matched(); }
 
 }
 
-#include "rooutil.cc"
