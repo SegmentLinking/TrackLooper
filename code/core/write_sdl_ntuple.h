@@ -17,5 +17,6 @@ void fillOutputBranches_for_CPU(SDL::CPU::Event& event);
 void printTimingInformation(std::vector<std::vector<float>> timing_information);
 void printQuadrupletMultiplicities(SDL::Event& event);
 void printMiniDoubletMultiplicities(SDL::Event& event);
+void printHitMultiplicities(SDL::Event& event);
 
 #endif

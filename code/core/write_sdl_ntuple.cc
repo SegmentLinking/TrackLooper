@@ -29,6 +29,7 @@ void write_sdl_ntuple()
 
             // Add hits to the event
             float timing_input_loading = addInputsToLineSegmentTrackingUsingUnifiedMemory(event);
+            printHitMultiplicities(event);
 
             // Run Mini-doublet
             float timing_MD = runMiniDoublet(event);
@@ -542,6 +543,19 @@ void printQuadrupletMultiplicities(SDL::Event& event)
         nTracklets += trackletsInGPU.nTracklets[idx];
     }
     std::cout <<  " nTracklets: " << nTracklets <<  std::endl;
+}
+
+void printHitMultiplicities(SDL::Event& event)
+{
+    SDL::hits& hitsInGPU = (*event.getHits());
+
+    int nHits = 0;
+    for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
+    {
+        nHits += hitsInGPU.nHits[2 * idx];
+        nHits += hitsInGPU.nHits[2 * idx + 1];
+    }
+    std::cout <<  " nHits: " << nHits <<  std::endl;
 }
 
 void printMiniDoubletMultiplicities(SDL::Event& event)
