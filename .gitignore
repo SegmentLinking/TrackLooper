@@ -12,4 +12,4 @@ bin/doAnalysis
 bin/sdl
 code/rooutil/librooutil.so
 code/rooutil/rooutil.so
-
+.gitversion.txt

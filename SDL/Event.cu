@@ -81,6 +81,56 @@ SDL::Event::~Event()
     cudaFreeHost(trackCandidatesInGPU);
     hitsInGPU->freeMemory();
     cudaFreeHost(hitsInGPU);
+
+#ifdef Explicit_Hit
+    if(hitsInCPU != nullptr)
+    {
+        delete[] hitsInCPU->idxs;
+        delete hitsInCPU->nHits;
+        delete hitsInCPU; 
+    }
+#endif
+#ifdef Explicit_MD
+    if(mdsInCPU != nullptr)
+    {
+        delete[] mdsInCPU->hitIndices;
+        delete[] mdsInCPU->nMDs;
+        delete mdsInCPU;
+    }
+#endif
+#ifdef Explicit_Seg
+    if(segmentsInCPU != nullptr)
+    {
+        delete[] segmentsInCPU->mdIndices;
+        delete[] segmentsInCPU->nSegments;
+        delete segmentsInCPU; 
+    }
+#endif
+#ifdef Explicit_Tracklet
+    if(trackletsInCPU != nullptr)
+    {
+        delete[] trackletsInCPU->segmentIndices;
+        delete[] trackletsInCPU->nTracklets;
+        delete trackletsInCPU;
+    }
+#endif
+#ifdef Explicit_Trips
+    if(tripletsInCPU != nullptr)
+    {
+        delete[] tripletsInCPU->segmentIndices;
+        delete[] tripletsInCPU->nTriplets;
+        delete tripletsInCPU;
+    }
+#endif
+#ifdef Explicit_Track
+    if(trackCandidatesInCPU != nullptr)
+    {
+        delete[] trackCandidatesInCPU->objectIndices;
+        delete[] trackCandidatesInCPU->trackCandidateType;
+        delete[] trackCandidatesInCPU->nTrackCandidates;
+        delete trackCandidatesInCPU;
+    }
+#endif
 }
 
 void SDL::initModules()
