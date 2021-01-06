@@ -113,6 +113,25 @@ END
 FULLSTRVERSION=$(python -c "$PYTHON_CODE")
 VERSION=${FULLSTRVERSION//"TObjString = "/}
 
+# Get full command line used to run the segment linking
+echo "Parsing command line used..."
+PYTHON_CODE=$(cat <<END
+# python code starts here
+import ROOT as r
+
+f = r.TFile("${INPUTFILE}")
+t = f.Get("full_cmd_line")
+t.Print("")
+
+# python code ends here
+END
+)
+
+FULLCMDLINE=$(python -c "$PYTHON_CODE")
+CMDLINE=${FULLCMDLINE//"TObjString = "/}
+
+echo ${CMDLINE} > cmdline.txt
+
 mkdir -p results/
 
 OUTDIR=results/eff_plots__${VERSION}_${TAG}_${SAMPLE}
@@ -131,6 +150,7 @@ echo ""
 echo "  TAG               : ${TAG}"
 echo "  SAMPLE            : ${SAMPLE}"
 echo "  VERSION           : ${VERSION}"
+echo "  CMDLINE           : ${CMDLINE}"
 echo ""
 
 # Delete the output if already existing
@@ -174,6 +194,7 @@ mv run.log ${OUTDIR}/
 mv hadd.log ${OUTDIR}/
 mv efficiency.root ${OUTDIR}/
 mv outputs ${OUTDIR}/
+mv cmdline.txt ${OUTDIR}/
 
 # Output
 echo "Done! Output is located at ${OUTDIR}/index.html"

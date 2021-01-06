@@ -4,6 +4,15 @@
 int main(int argc, char** argv)
 {
 
+    // Write the command line used to run it
+    // N.B. This needs to be before the argument parsing as it will change some values
+    std::vector<std::string> allArgs(argv, argv + argc);
+    TString full_cmd_line;
+    for (auto& str : allArgs)
+    {
+        full_cmd_line += TString::Format(" %s", str.c_str());
+    }
+
 //********************************************************************************
 //
 // 1. Parsing options
@@ -254,6 +263,11 @@ int main(int argc, char** argv)
     else
         version.SetString("GPU");
     ana.output_tfile->WriteObject(&version, "version");
+
+    // Write the full command line used
+    TObjString full_cmd_line_to_be_written;
+    full_cmd_line_to_be_written.SetString(full_cmd_line.Data());
+    ana.output_tfile->WriteObject(&full_cmd_line_to_be_written, "full_cmd_line");
 
     // Run depending on the mode
     switch (ana.mode)
