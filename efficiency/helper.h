@@ -4,7 +4,8 @@
 #include "SDL.h"
 #include "cxxopts.h"
 #include "rooutil.h"
-#include "../cppitertools/itertools.hpp"
+#include "../code/cppitertools/enumerate.hpp"
+#include "../code/cppitertools/zip.hpp"
 
 class AnalysisConfig {
 
