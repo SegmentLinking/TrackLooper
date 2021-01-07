@@ -40,11 +40,11 @@ void write_sdl_ntuple()
 
             // Run pT4
             float timing_pT4 = runpT4(event);
-            printQuadrupletMultiplicities(event);
+            //printQuadrupletMultiplicities(event);
 
             // Run T4x
             float timing_T4x = runT4x(event);
-            printQuadrupletMultiplicities(event);
+            //printQuadrupletMultiplicities(event);
 
             // Run T4
             float timing_T4 = runT4(event);
@@ -229,7 +229,6 @@ void fillOutputBranches(SDL::Event& event)
             unsigned int innerTrackletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletOuterSegmentIndex + 1];
             unsigned int outerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex];
             unsigned int outerTrackletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex + 1];
-
             unsigned int innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentInnerMiniDoubletIndex];
             unsigned int innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentInnerMiniDoubletIndex + 1];
             unsigned int innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentOuterMiniDoubletIndex];
@@ -552,8 +551,8 @@ void printHitMultiplicities(SDL::Event& event)
     int nHits = 0;
     for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
-        nHits += hitsInGPU.nHits[2 * idx];
-        nHits += hitsInGPU.nHits[2 * idx + 1];
+        nHits += SDL::modulesInGPU->hitRanges[4 * idx + 1] - SDL::modulesInGPU->hitRanges[4 * idx] + 1;       
+        nHits += SDL::modulesInGPU->hitRanges[4 * idx + 3] - SDL::modulesInGPU->hitRanges[4 * idx + 2] + 1;
     }
     std::cout <<  " nHits: " << nHits <<  std::endl;
 }
@@ -563,10 +562,9 @@ void printMiniDoubletMultiplicities(SDL::Event& event)
     SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
 
     int nMiniDoublets = 0;
-    for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
+    for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
-        nMiniDoublets += miniDoubletsInGPU.nMDs[2 * idx];
-        nMiniDoublets += miniDoubletsInGPU.nMDs[2 * idx + 1];
+        nMiniDoublets += miniDoubletsInGPU.nMDs[idx];
     }
     std::cout <<  " nMiniDoublets: " << nMiniDoublets <<  std::endl;
 }
