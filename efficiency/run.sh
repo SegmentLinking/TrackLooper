@@ -196,5 +196,8 @@ mv efficiency.root ${OUTDIR}/
 mv outputs ${OUTDIR}/
 mv cmdline.txt ${OUTDIR}/
 
+# clean up so that the next run would be spoiled
+rm -rf plots
+
 # Output
 echo "Done! Output is located at ${OUTDIR}/index.html"

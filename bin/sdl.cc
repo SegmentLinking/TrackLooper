@@ -251,6 +251,11 @@ int main(int argc, char** argv)
     maketobjstr.SetString(maketstr.Data());
     ana.output_tfile->WriteObject(&maketobjstr, "make_log");
 
+    // Parse from makestr the TARGET
+    TString rawstrdata = maketstr.ReplaceAll("MAKETARGET=", "%");
+    TString targetrawdata = RooUtil::StringUtil::rsplit(rawstrdata,"%")[1];
+    TString targetdata = RooUtil::StringUtil::split(targetrawdata)[0];
+
     // Write out input sample or file name
     TObjString input;
     input.SetString(result["input"].as<std::string>().c_str());
@@ -261,7 +266,7 @@ int main(int argc, char** argv)
     if (ana.do_run_cpu)
         version.SetString("CPU");
     else
-        version.SetString("GPU");
+        version.SetString(TString::Format("GPU_%s", targetdata.Data()));
     ana.output_tfile->WriteObject(&version, "version");
 
     // Write the full command line used
