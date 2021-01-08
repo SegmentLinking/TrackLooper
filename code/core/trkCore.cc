@@ -1284,9 +1284,6 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             hitId.push_back(1);
             hitId.push_back(1);
             hitId.push_back(1);
-            px_vec.push_back(px);
-            py_vec.push_back(py);
-            pz_vec.push_back(pz);
             if(trk.see_hitIdx()[iSeed].size() > 3)
             {
                 trkX.push_back(r3LH.X());
@@ -1294,6 +1291,9 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
                 trkZ.push_back(r3LH.Z());
                 hitId.push_back(1);
             }
+            px_vec.push_back(px);
+            py_vec.push_back(py);
+            pz_vec.push_back(pz);
 
             hitIndices_vec0.push_back(hitIdx0);
             hitIndices_vec1.push_back(hitIdx1);
@@ -1308,7 +1308,10 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][0]);
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][1]);
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][2]);
-            hitIdxs.push_back(trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]);
+            if(trk.see_hitIdx()[iSeed].size() > 3)
+            {
+                hitIdxs.push_back(trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]);
+            }
 
         }
 
