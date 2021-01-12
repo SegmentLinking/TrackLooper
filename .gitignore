@@ -8,3 +8,12 @@ plots_*/
 scripts/moduleconnection*.txt
 *.root
 .make.log*
+bin/doAnalysis
+bin/sdl
+code/rooutil/librooutil.so
+code/rooutil/rooutil.so
+.gitversion.txt
+efficiency/doAnalysis
+.jobs.txt
+efficiency/results*
+*.txt

@@ -85,6 +85,7 @@ if $MAKENEWGRID; then MAKETARGET=${MAKETARGET}_newgrid; fi
 # If make clean binaries are called then first make clean before making
 if $MAKECLEANBINARIES; then
     echo "First make cleaning all of TrackLooper objects and sdl.so" | tee -a ${LOG}
+    cd SDL;make clean >>${LOG} 2>&1;cd -;
     make clean >> ${LOG} 2>&1
 fi
 

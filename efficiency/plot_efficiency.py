@@ -33,7 +33,7 @@ def parse_plot_name(output_name):
     rtnstr.append(types)
     return " ".join(rtnstr)
 
-def draw_eff(num, den, output_name, sample_name, version_tag):
+def draw_eff(num, den, output_name, sample_name, version_tag, outputfile=None):
 
     if "scalar" in output_name and "ptscalar" not in output_name:
         num.Rebin(180)
@@ -107,15 +107,24 @@ def draw_eff(num, den, output_name, sample_name, version_tag):
     c1.SaveAs("{}".format(output_name.replace(".pdf", "_eff.pdf")))
     c1.SaveAs("{}".format(output_name.replace(".pdf", "_eff.png")))
     eff.SetName(output_name.replace(".png",""))
+    if outputfile:
+        outputfile.cd()
+        basename = os.path.basename(output_name)
+        outputname = basename.replace(".pdf","")
+        print(outputname)
+        eff.SetName(outputname)
+        eff.Write()
+        outputfile.ls()
     return eff
 
 if __name__ == "__main__":
 
-    root_file_name = "efficiency.root"
+    root_file_name = "num_den_histograms.root"
     sample_name = sys.argv[1]
     version_tag = sys.argv[2]
 
     f = r.TFile(root_file_name)
+    of = r.TFile("efficiencies.root", "RECREATE")
 
     num_den_pairs = []
     for key in f.GetListOfKeys():
@@ -138,11 +147,14 @@ if __name__ == "__main__":
     for numer_histname, denom_histname, nice_name in num_den_pairs:
         numer = f.Get(numer_histname)
         denom = f.Get(denom_histname)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}.pdf".format(nice_name), sample_name, version_tag)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}zoom.pdf".format(nice_name), sample_name, version_tag)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}zoomcoarse.pdf".format(nice_name), sample_name, version_tag)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}maxzoom.pdf".format(nice_name), sample_name, version_tag)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}maxzoomcoarse.pdf".format(nice_name), sample_name, version_tag)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}scalar.pdf".format(nice_name), sample_name, version_tag)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}coarse.pdf".format(nice_name), sample_name, version_tag)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}zoom.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}zoomcoarse.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}maxzoom.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}maxzoomcoarse.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}scalar.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
+
+    of.Write()
+    of.Close()
 
