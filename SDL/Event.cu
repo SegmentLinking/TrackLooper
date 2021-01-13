@@ -103,8 +103,11 @@ void SDL::initModules()
 
 void SDL::cleanModules()
 {
-  freeModulesInUnifiedMemory(*modulesInGPU);
-  //cudaFree(modulesInGPU);
+  #ifdef CACHE_ALLOC
+  freeModulesCache(*modulesInGPU);
+  #else
+  freeModules(*modulesInGPU);
+  #endif
   cudaFreeHost(modulesInGPU);
 }
 
