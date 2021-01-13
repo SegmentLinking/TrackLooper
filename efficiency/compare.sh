@@ -20,15 +20,17 @@ usage()
   echo "Options:"
   echo "  -h    Help                   (Display this message)"
   echo "  -f    force                  (Force re-run of the efficiency)"
-  echo "  -i    input eff ntuple       (e.g. -i /path/to/my/eff_ntuple.root)"
+  echo "  -i    input sample type      (e.g. -i muonGun)"
+  echo "  -t    git hash tag           (e.g. -t 78df188)"
   echo
   exit
 }
 
 # Parsing command-line opts
-while getopts ":i:fh" OPTION; do
+while getopts ":i:t:fh" OPTION; do
   case $OPTION in
-    i) INPUTFILE=${OPTARG};;
+    i) SAMPLE=${OPTARG};;
+    t) TAG=${OPTARG};;
     f) FORCE=true;;
     h) usage;;
     :) usage;;
@@ -36,67 +38,24 @@ while getopts ":i:fh" OPTION; do
 done
 
 # If the command line options are not provided set it to default value of false
-if [ -z ${INPUTFILE} ]; then usage; fi
+if [ -z ${SAMPLE} ]; then usage; fi
+if [ -z ${TAG} ]; then usage; fi
 if [ -z ${FORCE} ]; then FORCE=false; fi
 
 # Shift away the parsed options
 shift $(($OPTIND - 1))
 
-# Verbose
-echo "====================================================="
-echo "Validation Plot Maker Script                         "
-echo "====================================================="
-echo ""
-echo "  INPUTFILE         : ${INPUTFILE}"
-echo "  FORCE             : ${FORCE}"
-echo ""
-
-# Get tag from the efficiency file
-echo "Parsing repository git hash tag..."
-PYTHON_CODE=$(cat <<END
-# python code starts here
-import ROOT as r
-
-f = r.TFile("${INPUTFILE}")
-t = f.Get("code_tag_data")
-t.Print("")
-
-# python code ends here
-END
-)
-
-# Print full info on the source code
-python -c "$PYTHON_CODE" > gitversion.txt
-
-FULLTAG=$(cat gitversion.txt | head -n2 | tail -n1)
-TAG=${FULLTAG:0:7}
-
-# Get input sample from the efficiency file
-echo "Parsing input sample name..."
-PYTHON_CODE=$(cat <<END
-# python code starts here
-import ROOT as r
-
-f = r.TFile("${INPUTFILE}")
-t = f.Get("input")
-t.Print("")
-
-# python code ends here
-END
-)
-
-FULLSTRSAMPLE=$(python -c "$PYTHON_CODE")
-SAMPLE=${FULLSTRSAMPLE//"TObjString = "/}
-
+# Create output directory
 mkdir -p results/
 
+# Set output directory
 OUTDIR=results/eff_comparison_plots__${TAG}_${SAMPLE}
 
 if [ -d "${OUTDIR}" ]; then
     if $FORCE; then
         :
     else
-        echo "Already ran efficiency for TAG=${TAG} SAMPLE=${SAMPLE} VERSION=${VERSION} !!!"
+        echo "Already ran efficiency for TAG=${TAG} SAMPLE=${SAMPLE} !!!"
         echo "Are you sure you want to re-run and overwrite?  Add -f in the command line to overwrite."
         exit
     fi

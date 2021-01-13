@@ -11,8 +11,17 @@ githash = sys.argv[1]
 sample = sys.argv[2]
 
 # Get the files to be compared
-eff_file_cpu = glob.glob("results/*_CPU_*{}*/efficiencies.root".format(githash))
+cpu_benchmark_file_path = ""
+if sample == "muonGun":
+    cpu_benchmark_file_path = os.getenv("LATEST_CPU_BENCHMARK_EFF_MUONGUN")
+elif sample == "pionGun":
+    cpu_benchmark_file_path = os.getenv("LATEST_CPU_BENCHMARK_EFF_PIONGUN")
+else:
+    sys.exit("ERROR: Sample = {} does not have a corresponding CPU benchmark yet!".format(sample))
+print(cpu_benchmark_file_path)
+eff_file_cpu = glob.glob(cpu_benchmark_file_path) # Benchmark
 eff_files_gpu = glob.glob("results/*_GPU_*{}*/efficiencies.root".format(githash))
+print(eff_files_gpu)
 
 # Get cpu efficiency graph files
 cpu_file = r.TFile(eff_file_cpu[0])
@@ -43,7 +52,9 @@ for eff_file_gpu in eff_files_gpu:
     gpu_file = r.TFile(eff_file_gpu)
     gpu_tgraphs[configuration] = {}
     for key in keys:
-        gpu_tgraphs[configuration][key] = cpu_file.Get(key)
+        gpu_tgraphs[configuration][key] = gpu_file.Get(key)
+        if "GPU_unified" in eff_files_gpu and "TC_AllTypes__pt" in key:
+            print(gpu_tgraphs[configuration][key].Print())
 
 for key in keys:
 
