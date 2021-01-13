@@ -85,22 +85,32 @@ SDL::Event::~Event()
 
 void SDL::initModules()
 {
-    cudaMallocManaged(&modulesInGPU, sizeof(struct SDL::modules));
-    if((modulesInGPU->detIds) == nullptr) //check for nullptr and create memory
+    if(modulesInGPU == nullptr)
     {
+        cudaMallocHost(&modulesInGPU, sizeof(struct SDL::modules));
         loadModulesFromFile(*modulesInGPU,nModules); //nModules gets filled here
+
     }
+    ////cudaMallocManaged(&modulesInGPU, sizeof(struct SDL::modules));
+    //cudaMallocHost(&modulesInGPU, sizeof(struct SDL::modules));
+    //if((modulesInGPU->detIds) == nullptr) //check for nullptr and create memory
+    //{
+    //    loadModulesFromFile(*modulesInGPU,nModules); //nModules gets filled here
+    //}
+    //resetObjectRangesExplicit(*modulesInGPU,nModules);
     resetObjectRanges(*modulesInGPU,nModules);
 }
 
 void SDL::cleanModules()
 {
   freeModulesInUnifiedMemory(*modulesInGPU);
-  cudaFree(modulesInGPU);
+  //cudaFree(modulesInGPU);
+  cudaFreeHost(modulesInGPU);
 }
 
 void SDL::Event::resetObjectsInModule()
 {
+    //resetObjectRangesExplicit(*modulesInGPU,nModules);
     resetObjectRanges(*modulesInGPU,nModules);
 }
 // add hits via kernel method.
@@ -242,10 +252,27 @@ void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, st
     cudaMallocHost(&host_lowEdgeXs,sizeof(float)*loopsize);
     cudaMallocHost(&host_lowEdgeYs,sizeof(float)*loopsize);
 
+
+    short* module_layers;
+    short* module_subdet;
+    int* module_hitRanges;
+    ModuleType* module_moduleType;
+    cudaMallocHost(&module_layers,sizeof(short)*nModules);
+    cudaMallocHost(&module_subdet,sizeof(short)*nModules);
+    cudaMallocHost(&module_hitRanges,sizeof(int)*2*nModules);
+    cudaMallocHost(&module_moduleType,sizeof(ModuleType)*nModules);
+    cudaMemcpy(module_layers,modulesInGPU->layers,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+    cudaMemcpy(module_subdet,modulesInGPU->subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+    cudaMemcpy(module_hitRanges,modulesInGPU->hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost);
+    cudaMemcpy(module_moduleType,modulesInGPU->moduleType,nModules*sizeof(ModuleType),cudaMemcpyDeviceToHost);
+    
+
 //#pragma omp parallel for  // this part can be run in parallel.
   for (int ihit=0; ihit<loopsize;ihit++){
-    unsigned int moduleLayer = modulesInGPU->layers[(*detIdToIndex)[host_detId[ihit]]];
-    unsigned int subdet = modulesInGPU->subdets[(*detIdToIndex)[host_detId[ihit]]];
+    unsigned int moduleLayer = module_layers[(*detIdToIndex)[host_detId[ihit]]];
+    unsigned int subdet = module_subdet[(*detIdToIndex)[host_detId[ihit]]];
+    //unsigned int moduleLayer = modulesInGPU->layers[(*detIdToIndex)[host_detId[ihit]]];
+    //unsigned int subdet = modulesInGPU->subdets[(*detIdToIndex)[host_detId[ihit]]];
     host_moduleIndex[ihit] = (*detIdToIndex)[host_detId[ihit]];
 
 //    if(subdet == Barrel) // this doesn't seem useful anymore
@@ -266,7 +293,8 @@ void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, st
 ////#pragma omp parallel for
 //  for (int ihit=0; ihit<loopsize;ihit++){
       unsigned int this_index = host_moduleIndex[ihit];
-      if(modulesInGPU->subdets[this_index] == Endcap && modulesInGPU->moduleType[this_index] == TwoS)
+      //if(modulesInGPU->subdets[this_index] == Endcap && modulesInGPU->moduleType[this_index] == TwoS)
+      if(module_subdet[this_index] == Endcap && module_moduleType[this_index] == TwoS)
       {
           float xhigh, yhigh, xlow, ylow;
           getEdgeHits(host_detId[ihit],host_x[ihit],host_y[ihit],xhigh,yhigh,xlow,ylow);
@@ -279,13 +307,20 @@ void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, st
 
       //set the hit ranges appropriately in the modules struct
 
+      ////start the index rolling if the module is encountered for the first time
+      //if(modulesInGPU->hitRanges[this_index * 2] == -1)
+      //{
+      //    modulesInGPU->hitRanges[this_index * 2] = ihit;
+      //}
+      ////always update the end index
+      //modulesInGPU->hitRanges[this_index * 2 + 1] = ihit;
       //start the index rolling if the module is encountered for the first time
-      if(modulesInGPU->hitRanges[this_index * 2] == -1)
+      if(module_hitRanges[this_index * 2] == -1)
       {
-          modulesInGPU->hitRanges[this_index * 2] = ihit;
+          module_hitRanges[this_index * 2] = ihit;
       }
       //always update the end index
-      modulesInGPU->hitRanges[this_index * 2 + 1] = ihit;
+      module_hitRanges[this_index * 2 + 1] = ihit;
 
   }
 //simply copy the host arrays to the hitsInGPU struct
@@ -300,6 +335,7 @@ void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, st
     cudaMemcpy(hitsInGPU->lowEdgeXs,host_lowEdgeXs,loopsize*sizeof(float),cudaMemcpyHostToDevice);
     cudaMemcpy(hitsInGPU->lowEdgeYs,host_lowEdgeYs,loopsize*sizeof(float),cudaMemcpyHostToDevice);
     cudaMemcpy(hitsInGPU->nHits,&loopsize,sizeof(unsigned int),cudaMemcpyHostToDevice);// value can't correctly be set in hit allocation
+    cudaMemcpy(modulesInGPU->hitRanges,module_hitRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice);// value can't correctly be set in hit allocation
     cudaDeviceSynchronize(); //doesn't seem to make a difference
 
     cudaFreeHost(host_rts);
@@ -548,31 +584,54 @@ void SDL::Event::addMiniDoubletsToEvent()
 }
 void SDL::Event::addMiniDoubletsToEventExplicit()
 {
-unsigned int nLowerModules = *(SDL::modulesInGPU->nModules);
+unsigned int nLowerModules;// = *(SDL::modulesInGPU->nModules);
+cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
 unsigned int* nMDsCPU;
-cudaMallocHost(&nMDsCPU, nLowerModules * sizeof(unsigned int));
-cudaMemcpy(nMDsCPU,mdsInGPU->nMDs,nLowerModules*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+cudaMallocHost(&nMDsCPU, nModules * sizeof(unsigned int));
+cudaMemcpy(nMDsCPU,mdsInGPU->nMDs,nModules*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+
+short* module_subdets;
+cudaMallocHost(&module_subdets, nModules* sizeof(short));
+cudaMemcpy(module_subdets,modulesInGPU->subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+unsigned int* module_lowerModuleIndices;
+cudaMallocHost(&module_lowerModuleIndices, (nLowerModules +1)* sizeof(unsigned int));
+cudaMemcpy(module_lowerModuleIndices,modulesInGPU->lowerModuleIndices,(nLowerModules+1)*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+int* module_mdRanges;
+cudaMallocHost(&module_mdRanges, nModules* 2*sizeof(int));
+cudaMemcpy(module_mdRanges,modulesInGPU->mdRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost);
+short* module_layers;
+cudaMallocHost(&module_layers, nModules * sizeof(short));
+cudaMemcpy(module_layers,modulesInGPU->layers,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+int* module_hitRanges;
+cudaMallocHost(&module_hitRanges, nModules* 2*sizeof(int));
+cudaMemcpy(module_hitRanges,modulesInGPU->hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost);
+
+
+//unsigned int* modules_lowerModuleIndices;
+//int* modules_hitRanges;
+//int* modules_mdRanges;
+//short* modules_layers;
     unsigned int idx;
-    for(unsigned int i = 0; i<*(SDL::modulesInGPU->nLowerModules); i++)
+    for(unsigned int i = 0; i<nLowerModules; i++)
     {
-        idx = SDL::modulesInGPU->lowerModuleIndices[i];
-        if(nMDsCPU[idx] == 0 or modulesInGPU->hitRanges[idx * 2] == -1)
+        idx = module_lowerModuleIndices[i];
+        if(nMDsCPU[idx] == 0 or module_hitRanges[idx * 2] == -1)
         {
-            modulesInGPU->mdRanges[idx * 2] = -1;
-            modulesInGPU->mdRanges[idx * 2 + 1] = -1;
+            module_mdRanges[idx * 2] = -1;
+            module_mdRanges[idx * 2 + 1] = -1;
         }
         else
         {
-            modulesInGPU->mdRanges[idx * 2] = idx * N_MAX_MD_PER_MODULES;
-            modulesInGPU->mdRanges[idx * 2 + 1] = (idx * N_MAX_MD_PER_MODULES) + nMDsCPU[idx] - 1;
+            module_mdRanges[idx * 2] = idx * N_MAX_MD_PER_MODULES;
+            module_mdRanges[idx * 2 + 1] = (idx * N_MAX_MD_PER_MODULES) + nMDsCPU[idx] - 1;
 
-            if(modulesInGPU->subdets[idx] == Barrel)
+            if(module_subdets[idx] == Barrel)
             {
-                n_minidoublets_by_layer_barrel_[modulesInGPU->layers[idx] -1] += nMDsCPU[idx];
+                n_minidoublets_by_layer_barrel_[module_layers[idx] -1] += nMDsCPU[idx];
             }
             else
             {
-                n_minidoublets_by_layer_endcap_[modulesInGPU->layers[idx] - 1] += nMDsCPU[idx];
+                n_minidoublets_by_layer_endcap_[module_layers[idx] - 1] += nMDsCPU[idx];
             }
 
         }
@@ -613,35 +672,50 @@ void SDL::Event::addSegmentsToEvent()
 }
 void SDL::Event::addSegmentsToEventExplicit()
 {
-unsigned int nLowerModules = *(SDL::modulesInGPU->nModules);
+unsigned int nLowerModules;// = *(SDL::modulesInGPU->nModules);
+cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+
 unsigned int* nSegmentsCPU;
-cudaMallocHost(&nSegmentsCPU, nLowerModules * sizeof(unsigned int));
-cudaMemcpy(nSegmentsCPU,segmentsInGPU->nSegments,nLowerModules*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+cudaMallocHost(&nSegmentsCPU, nModules * sizeof(unsigned int));
+cudaMemcpy(nSegmentsCPU,segmentsInGPU->nSegments,nModules*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+
+short* module_subdets;
+cudaMallocHost(&module_subdets, nModules* sizeof(short));
+cudaMemcpy(module_subdets,modulesInGPU->subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+unsigned int* module_lowerModuleIndices;
+cudaMallocHost(&module_lowerModuleIndices, (nLowerModules +1)* sizeof(unsigned int));
+cudaMemcpy(module_lowerModuleIndices,modulesInGPU->lowerModuleIndices,(nLowerModules+1)*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+int* module_segmentRanges;
+cudaMallocHost(&module_segmentRanges, nModules* 2*sizeof(int));
+cudaMemcpy(module_segmentRanges,modulesInGPU->segmentRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost);
+short* module_layers;
+cudaMallocHost(&module_layers, nModules * sizeof(short));
+cudaMemcpy(module_layers,modulesInGPU->layers,nModules*sizeof(short),cudaMemcpyDeviceToHost);
     unsigned int idx;
-    for(unsigned int i = 0; i<*(SDL::modulesInGPU->nLowerModules); i++)
+    for(unsigned int i = 0; i<nLowerModules; i++)
     {
-        idx = SDL::modulesInGPU->lowerModuleIndices[i];
+        idx = module_lowerModuleIndices[i];
         if(nSegmentsCPU[idx] == 0)
         {
-            modulesInGPU->segmentRanges[idx * 2] = -1;
-            modulesInGPU->segmentRanges[idx * 2 + 1] = -1;
+            module_segmentRanges[idx * 2] = -1;
+            module_segmentRanges[idx * 2 + 1] = -1;
         }
         else
         {
-            modulesInGPU->segmentRanges[idx * 2] = idx * N_MAX_SEGMENTS_PER_MODULE;
-            modulesInGPU->segmentRanges[idx * 2 + 1] = idx * N_MAX_SEGMENTS_PER_MODULE + nSegmentsCPU[idx] - 1;
+            module_segmentRanges[idx * 2] = idx * N_MAX_SEGMENTS_PER_MODULE;
+            module_segmentRanges[idx * 2 + 1] = idx * N_MAX_SEGMENTS_PER_MODULE + nSegmentsCPU[idx] - 1;
 
             //for(unsigned int jdx = 0; jdx < segmentsInGPU->nSegments[idx]; jdx++)
             //    printSegment(*segmentsInGPU, *mdsInGPU, *hitsInGPU, *modulesInGPU, idx * N_MAX_SEGMENTS_PER_MODULE + jdx);
 
-            if(modulesInGPU->subdets[idx] == Barrel)
+            if(module_subdets[idx] == Barrel)
             {
 
-                n_segments_by_layer_barrel_[modulesInGPU->layers[idx] - 1] += nSegmentsCPU[idx];
+                n_segments_by_layer_barrel_[module_layers[idx] - 1] += nSegmentsCPU[idx];
             }
             else
             {
-                n_segments_by_layer_endcap_[modulesInGPU->layers[idx] -1] += nSegmentsCPU[idx];
+                n_segments_by_layer_endcap_[module_layers[idx] -1] += nSegmentsCPU[idx];
             }
         }
     }
@@ -669,7 +743,9 @@ void SDL::Event::createMiniDoublets()
     auto memStop = std::chrono::high_resolution_clock::now();
     auto memDuration = std::chrono::duration_cast<std::chrono::milliseconds>(memStop - memStart); //in milliseconds
 
-    unsigned int nLowerModules = *modulesInGPU->nLowerModules;
+    //unsigned int nLowerModules = *modulesInGPU->nLowerModules;
+    unsigned int nLowerModules;
+    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
 
 #ifdef NESTED_PARA
     int nThreads = 1;
@@ -740,7 +816,8 @@ void SDL::Event::createSegmentsWithModuleMap()
 //#if defined(Explicit_Seg) && !defined(Full_Explicit)
 //    cudaMemset(segmentsInGPU->nSegments,0,nModules*sizeof(unsigned int));
 //#endif
-    unsigned int nLowerModules = *modulesInGPU->nLowerModules;
+    unsigned int nLowerModules;// = *modulesInGPU->nLowerModules;
+    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
 
 #ifdef NESTED_PARA
     unsigned int nThreads = 1;
@@ -798,7 +875,8 @@ void SDL::Event::createSegmentsWithModuleMap()
 
 void SDL::Event::createTriplets()
 {
-    unsigned int nLowerModules = *modulesInGPU->nLowerModules;
+    unsigned int nLowerModules;// = *modulesInGPU->nLowerModules;
+    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
 
     if(tripletsInGPU == nullptr)
     {
@@ -881,7 +959,8 @@ void SDL::Event::createTriplets()
 
 void SDL::Event::createTrackletsWithModuleMap()
 {
-    unsigned int nLowerModules = *modulesInGPU->nLowerModules;
+    unsigned int nLowerModules;// = *modulesInGPU->nLowerModules;
+    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
 
     //TRCAKLETS - To conserve memory, we shall be only declaring nLowerModules amount of memory!!!!!!!
     if(trackletsInGPU == nullptr)
@@ -981,7 +1060,8 @@ void SDL::Event::createTrackletsWithModuleMap()
 
 void SDL::Event::createPixelTracklets()
 {
-    unsigned int nLowerModules = *modulesInGPU->nLowerModules;
+    unsigned int nLowerModules;// = *modulesInGPU->nLowerModules;
+    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
     if(trackletsInGPU == nullptr)
     {
         cudaMallocHost(&trackletsInGPU, sizeof(SDL::tracklets));
@@ -1014,7 +1094,9 @@ void SDL::Event::createPixelTracklets()
 
 void SDL::Event::createTrackCandidates()
 {
-    unsigned int nLowerModules = *modulesInGPU->nLowerModules + 1; //including the pixel module
+    unsigned int nLowerModules;// = *modulesInGPU->nLowerModules + 1; //including the pixel module
+    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    nLowerModules += 1;// include the pixel module
 
     if(trackCandidatesInGPU == nullptr)
     {
@@ -1055,7 +1137,8 @@ void SDL::Event::createTrackCandidates()
 void SDL::Event::createTrackletsWithAGapWithModuleMap()
 {
     //use the same trackletsInGPU as before if it exists
-    unsigned int nLowerModules = *modulesInGPU->nLowerModules;
+    unsigned int nLowerModules;// = *modulesInGPU->nLowerModules;
+    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
 
     //TRCAKLETS - To conserve memory, we shall be only declaring nLowerModules amount of memory!!!!!!!
     if(trackletsInGPU == nullptr)
@@ -1118,33 +1201,48 @@ void SDL::Event::addTrackletsToEvent()
 }
 void SDL::Event::addTrackletsToEventExplicit()
 {
-unsigned int nLowerModules = *(SDL::modulesInGPU->nLowerModules);
+unsigned int nLowerModules;// = *(SDL::modulesInGPU->nLowerModules);
+cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+
 unsigned int* nTrackletsCPU;
 cudaMallocHost(&nTrackletsCPU, nLowerModules * sizeof(unsigned int));
 cudaMemcpy(nTrackletsCPU,trackletsInGPU->nTracklets,nLowerModules*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+
+short* module_subdets;
+cudaMallocHost(&module_subdets, nModules* sizeof(short));
+cudaMemcpy(module_subdets,modulesInGPU->subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+unsigned int* module_lowerModuleIndices;
+cudaMallocHost(&module_lowerModuleIndices, (nLowerModules +1)* sizeof(unsigned int));
+cudaMemcpy(module_lowerModuleIndices,modulesInGPU->lowerModuleIndices,(nLowerModules+1)*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+int* module_trackletRanges;
+cudaMallocHost(&module_trackletRanges, nModules* 2*sizeof(int));
+cudaMemcpy(module_trackletRanges,modulesInGPU->trackletRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost);
+short* module_layers;
+cudaMallocHost(&module_layers, nModules * sizeof(short));
+cudaMemcpy(module_layers,modulesInGPU->layers,nModules*sizeof(short),cudaMemcpyDeviceToHost);
     unsigned int idx;
-    for(unsigned int i = 0; i<*(SDL::modulesInGPU->nLowerModules); i++)
+    for(unsigned int i = 0; i<nLowerModules; i++)
     {
-        idx = SDL::modulesInGPU->lowerModuleIndices[i];
+        idx = module_lowerModuleIndices[i];
         //tracklets run only on lower modules!!!!!!
         if(nTrackletsCPU[i] == 0)
         {
-            modulesInGPU->trackletRanges[idx * 2] = -1;
-            modulesInGPU->trackletRanges[idx * 2 + 1] = -1;
+            module_trackletRanges[idx * 2] = -1;
+            module_trackletRanges[idx * 2 + 1] = -1;
         }
         else
         {
-            modulesInGPU->trackletRanges[idx * 2] = idx * N_MAX_TRACKLETS_PER_MODULE;
-            modulesInGPU->trackletRanges[idx * 2 + 1] = idx * N_MAX_TRACKLETS_PER_MODULE + nTrackletsCPU[i] - 1;
+            module_trackletRanges[idx * 2] = idx * N_MAX_TRACKLETS_PER_MODULE;
+            module_trackletRanges[idx * 2 + 1] = idx * N_MAX_TRACKLETS_PER_MODULE + nTrackletsCPU[i] - 1;
 
 
-            if(modulesInGPU->subdets[idx] == Barrel)
+            if(module_subdets[idx] == Barrel)
             {
-                n_tracklets_by_layer_barrel_[modulesInGPU->layers[idx] - 1] += nTrackletsCPU[i];
+                n_tracklets_by_layer_barrel_[module_layers[idx] - 1] += nTrackletsCPU[i];
             }
             else
             {
-                n_tracklets_by_layer_endcap_[modulesInGPU->layers[idx] - 1] += nTrackletsCPU[i];
+                n_tracklets_by_layer_endcap_[module_layers[idx] - 1] += nTrackletsCPU[i];
             }
         }
     }
@@ -1153,34 +1251,49 @@ cudaFreeHost(nTrackletsCPU);
 
 void SDL::Event::addTrackCandidatesToEventExplicit()
 {
-unsigned int nLowerModules = *(SDL::modulesInGPU->nLowerModules);
+unsigned int nLowerModules;// = *(SDL::modulesInGPU->nLowerModules);
+cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+
 unsigned int* nTrackCandidatesCPU;
 cudaMallocHost(&nTrackCandidatesCPU, (nLowerModules )* sizeof(unsigned int));
 cudaMemcpy(nTrackCandidatesCPU,trackCandidatesInGPU->nTrackCandidates,(nLowerModules)*sizeof(unsigned int),cudaMemcpyDeviceToHost);
 
+unsigned int* module_lowerModuleIndices;
+cudaMallocHost(&module_lowerModuleIndices, (nLowerModules +1)* sizeof(unsigned int));
+cudaMemcpy(module_lowerModuleIndices,modulesInGPU->lowerModuleIndices,(nLowerModules+1)*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+int* module_trackCandidateRanges;
+cudaMallocHost(&module_trackCandidateRanges, nModules* 2*sizeof(int));
+cudaMemcpy(module_trackCandidateRanges,modulesInGPU->trackCandidateRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost);
+short* module_layers;
+cudaMallocHost(&module_layers, nModules * sizeof(short));
+cudaMemcpy(module_layers,modulesInGPU->layers,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+short* module_subdets;
+cudaMallocHost(&module_subdets, nModules* sizeof(short));
+cudaMemcpy(module_subdets,modulesInGPU->subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+
     unsigned int idx;
-    for(unsigned int i = 0; i<*(SDL::modulesInGPU->nLowerModules); i++)
+    for(unsigned int i = 0; i<nLowerModules; i++)
     {
-        idx = SDL::modulesInGPU->lowerModuleIndices[i];
+        idx = module_lowerModuleIndices[i];
 
 
         if(nTrackCandidatesCPU[i] == 0)
         {
-            modulesInGPU->trackCandidateRanges[idx * 2] = -1;
-            modulesInGPU->trackCandidateRanges[idx * 2 + 1] = -1;
+            module_trackCandidateRanges[idx * 2] = -1;
+            module_trackCandidateRanges[idx * 2 + 1] = -1;
         }
         else
         {
-            modulesInGPU->trackCandidateRanges[idx * 2] = idx * N_MAX_TRACK_CANDIDATES_PER_MODULE;
-            modulesInGPU->trackCandidateRanges[idx * 2 + 1] = idx * N_MAX_TRACK_CANDIDATES_PER_MODULE + nTrackCandidatesCPU[i] - 1;
+            module_trackCandidateRanges[idx * 2] = idx * N_MAX_TRACK_CANDIDATES_PER_MODULE;
+            module_trackCandidateRanges[idx * 2 + 1] = idx * N_MAX_TRACK_CANDIDATES_PER_MODULE + nTrackCandidatesCPU[i] - 1;
 
-            if(modulesInGPU->subdets[idx] == Barrel)
+            if(module_subdets[idx] == Barrel)
             {
-                n_trackCandidates_by_layer_barrel_[modulesInGPU->layers[idx] - 1] += nTrackCandidatesCPU[i];
+                n_trackCandidates_by_layer_barrel_[module_layers[idx] - 1] += nTrackCandidatesCPU[i];
             }
             else
             {
-                n_trackCandidates_by_layer_endcap_[modulesInGPU->layers[idx] - 1] += nTrackCandidatesCPU[i];
+                n_trackCandidates_by_layer_endcap_[module_layers[idx] - 1] += nTrackCandidatesCPU[i];
             }
         }
     }
@@ -1248,32 +1361,47 @@ void SDL::Event::addTripletsToEvent()
 }
 void SDL::Event::addTripletsToEventExplicit()
 {
-unsigned int nLowerModules = *(SDL::modulesInGPU->nLowerModules);
+unsigned int nLowerModules;// = *(SDL::modulesInGPU->nLowerModules);
+cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+
 unsigned int* nTripletsCPU;
 cudaMallocHost(&nTripletsCPU, nLowerModules * sizeof(unsigned int));
 cudaMemcpy(nTripletsCPU,tripletsInGPU->nTriplets,nLowerModules*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+
+short* module_subdets;
+cudaMallocHost(&module_subdets, nModules* sizeof(short));
+cudaMemcpy(module_subdets,modulesInGPU->subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+unsigned int* module_lowerModuleIndices;
+cudaMallocHost(&module_lowerModuleIndices, (nLowerModules +1)* sizeof(unsigned int));
+cudaMemcpy(module_lowerModuleIndices,modulesInGPU->lowerModuleIndices,(nLowerModules+1)*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+int* module_tripletRanges;
+cudaMallocHost(&module_tripletRanges, nModules* 2*sizeof(int));
+cudaMemcpy(module_tripletRanges,modulesInGPU->tripletRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost);
+short* module_layers;
+cudaMallocHost(&module_layers, nModules * sizeof(short));
+cudaMemcpy(module_layers,modulesInGPU->layers,nModules*sizeof(short),cudaMemcpyDeviceToHost);
     unsigned int idx;
-    for(unsigned int i = 0; i<*(SDL::modulesInGPU->nLowerModules); i++)
+    for(unsigned int i = 0; i<nLowerModules; i++)
     {
-        idx = SDL::modulesInGPU->lowerModuleIndices[i];
+        idx = module_lowerModuleIndices[i];
         //tracklets run only on lower modules!!!!!!
         if(nTripletsCPU[i] == 0)
         {
-            modulesInGPU->tripletRanges[idx * 2] = -1;
-            modulesInGPU->tripletRanges[idx * 2 + 1] = -1;
+            module_tripletRanges[idx * 2] = -1;
+            module_tripletRanges[idx * 2 + 1] = -1;
         }
         else
         {
-            modulesInGPU->tripletRanges[idx * 2] = idx * N_MAX_TRIPLETS_PER_MODULE;
-            modulesInGPU->tripletRanges[idx * 2 + 1] = idx * N_MAX_TRIPLETS_PER_MODULE + nTripletsCPU[i] - 1;
+            module_tripletRanges[idx * 2] = idx * N_MAX_TRIPLETS_PER_MODULE;
+            module_tripletRanges[idx * 2 + 1] = idx * N_MAX_TRIPLETS_PER_MODULE + nTripletsCPU[i] - 1;
 
-            if(modulesInGPU->subdets[idx] == Barrel)
+            if(module_subdets[idx] == Barrel)
             {
-                n_triplets_by_layer_barrel_[modulesInGPU->layers[idx] - 1] += nTripletsCPU[i];
+                n_triplets_by_layer_barrel_[module_layers[idx] - 1] += nTripletsCPU[i];
             }
             else
             {
-                n_triplets_by_layer_endcap_[modulesInGPU->layers[idx] - 1] += nTripletsCPU[i];
+                n_triplets_by_layer_endcap_[module_layers[idx] - 1] += nTripletsCPU[i];
             }
         }
     }
@@ -2166,7 +2294,8 @@ unsigned int SDL::Event::getNumberOfTrackCandidates()
 unsigned int SDL::Event::getNumberOfPixelTrackCandidates()
 {
 #ifdef Explicit_Track
-    unsigned int nLowerModules = *(SDL::modulesInGPU->nLowerModules);
+    unsigned int nLowerModules;// = *(SDL::modulesInGPU->nLowerModules);
+    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
     unsigned int nTrackCandidatesInPixelModule;
     cudaMemcpy(&nTrackCandidatesInPixelModule,&trackCandidatesInGPU->nTrackCandidates[nLowerModules],sizeof(unsigned int),cudaMemcpyDeviceToHost);
     return nTrackCandidatesInPixelModule;

@@ -73,10 +73,14 @@ namespace SDL
 //        CUDA_HOSTDEV bool isLower(unsigned int index);
         CUDA_HOSTDEV unsigned int partnerModuleIndex(unsigned int index);
         CUDA_HOSTDEV ModuleType parseModuleType(unsigned int index);
+        CUDA_HOSTDEV ModuleType parseModuleType(unsigned int index, short subdet, short layer, short ring);
         CUDA_HOSTDEV ModuleLayerType parseModuleLayerType(unsigned int index);
+        CUDA_HOSTDEV ModuleLayerType parseModuleLayerType(unsigned int index, ModuleType moduleType, bool isInvertedx, bool isLowerx);
 
         bool parseIsInverted(unsigned int index);
+        bool parseIsInverted(unsigned int index,short subdet, short side, short module, short layer);
         bool parseIsLower(unsigned int index);
+        bool parseIsLower(unsigned int index, bool isInvertedx,unsigned int detId);
 
         int* hitRanges;
         int* mdRanges;
@@ -95,11 +99,15 @@ namespace SDL
     void loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModules);
 
     void createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules);
+    void createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules, bool* isLower);
     void createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int nModules);
+    void createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned int nModules);
     void freeModulesInUnifiedMemory(struct modules& modulesInGPU);
+    void fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules);
     void fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nModules);
     void setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side);
     void resetObjectRanges(struct modules& modulesInGPU, unsigned int nModules);
+    void resetObjectRangesExplicit(struct modules& modulesInGPU, unsigned int nModules);
 }
 #endif
 
