@@ -32,17 +32,46 @@ run_gpu()
 {
     version=$1
     sample=$2
+    nevents=$3
+    shift
     shift
     shift
     # GPU unified
     sdl_make_tracklooper -m $*
     sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -i ${sample}
-    sdl_make_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 4 -f
+    sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 4 -f
 }
-export run_gpu
+export -f run_gpu
+
+validate_efficiency_usage() {
+    echo "ERROR - Usage:"
+    echo
+    echo "      sh $(basename $0) SAMPLETYPE [SPECIFICGPUVERISON] [NEVENTS]"
+    echo
+    echo "Arguments:"
+    echo "   SAMPLETYPE                          muonGun, PU200, or pionGun"
+    echo "   SPECIFICGPUVERSION (optional)       unified, unified_cache, ... , explicit, explicit_newgrid, ... , etc."
+    echo "   NEVENTS            (optional)       200, 10000, -1, etc."
+    echo ""
+    exit
+}
+
 
 # Function to validate segment linking
-sdl_validate_segment_linking() {
+sdl_validate_efficiency() {
+
+    if [ -z ${1} ]; then validate_efficiency_usage; fi
+
+    # Parsing command-line opts
+    while getopts ":h" OPTION; do
+      case $OPTION in
+        h) usage;;
+        :) usage;;
+      esac
+    done
+
+    # Shift away the parsed options
+    shift $(($OPTIND - 1))
 
     SAMPLE=${1}
     if [[ ${SAMPLE} == *"pionGun"* ]]; then
@@ -73,7 +102,7 @@ sdl_validate_segment_linking() {
     else
         DIRTY="DIRTY"
     fi
-    popd ${TRACKLOOPERDIR}
+    popd
     GITHASH=${GITHASH}${DIRTY}
 
     OUTDIR=outputs_${GITHASH}_${SAMPLE}
@@ -84,19 +113,19 @@ sdl_validate_segment_linking() {
 
     # Run different GPU configurations
     if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified" ]]; then
-        run_gpu unified ${SAMPLE}
+        run_gpu unified ${SAMPLE} ${NEVENTS}
     fi
     if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified_cache" ]]; then
-        run_gpu unified_cache ${SAMPLE} -c
+        run_gpu unified_cache ${SAMPLE} ${NEVENTS} -c
     fi
     if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified_cache_newgrid" ]]; then
-        run_gpu unified_cache_newgrid ${SAMPLE} -c -g
+        run_gpu unified_cache_newgrid ${SAMPLE} ${NEVENTS} -c -g
     fi
     if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified_newgrid" ]]; then
-        run_gpu unified_newgrid ${SAMPLE} -g
+        run_gpu unified_newgrid ${SAMPLE} ${NEVENTS} -g
     fi
     if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit" ]]; then
-        run_gpu explicit ${SAMPLE} -x
+        run_gpu explicit ${SAMPLE} ${NEVENTS} -x
     fi
     if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache" ]]; then
         # run_gpu explicit_cache ${SAMPLE} -x -c # Does not run on phi3
@@ -107,12 +136,12 @@ sdl_validate_segment_linking() {
         :
     fi
     if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_newgrid" ]]; then
-        run_gpu explicit_newgrid ${SAMPLE} -x -g
+        run_gpu explicit_newgrid ${SAMPLE} ${NEVENTS} -x -g
     fi
 
     sdl_compare_efficiencies -i ${SAMPLE} -t ${GITHASH} -f
 
 }
-export -f sdl_validate_segment_linking
+export -f sdl_validate_efficiency
 
 #eof

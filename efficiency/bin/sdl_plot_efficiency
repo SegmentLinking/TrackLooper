@@ -23,6 +23,13 @@ usage()
   echo "  -i    input eff ntuple       (e.g. -i /path/to/my/eff_ntuple.root (this is the output from sdl binary))"
   echo "  -p    pt boundaries          (Pt bin boundary settings see below for more detail)"
   echo "  -g    pdgid for denom tracks (e.g. -g 13 for muon or -g 0 for all charged particle)"
+  echo ""
+  echo " Use pt boundaries like as follow:"
+  echo " -p 0 : pt across 0 to 50 GeV"
+  echo " -p 1 : pt Zoomed into ~1 GeV"
+  echo " -p 2 : pt Zoomed into ~0.95-1.5 GeV"
+  echo " -p 3 : pt Zoomed into ~0.5-1.5 GeV"
+  echo " -p 4 : pt Zoomed into ~0.5-2.0 GeV"
   echo
   exit
 }
