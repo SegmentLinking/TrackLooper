@@ -37,7 +37,7 @@ run_gpu()
     # GPU unified
     make_tracklooper -m $*
     sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -i ${sample}
-    make_efficiency -i ../${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 4 -f
+    make_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 4 -f
 }
 export run_gpu
 
@@ -65,6 +65,14 @@ validate_segment_linking() {
     SPECIFICGPUVERSION=${3}
 
     GITHASH=$(git rev-parse --short HEAD)
+    DIRTY=$(cat gitversion.txt | tail -n2)
+    if [[ "git diff  " == "$(cat .gitversion.txt | tail -n2 | tr '\n' ' ')" ]]; then
+        DIRTY="";
+    else
+        DIRTY="DIRTY";
+    fi
+    GITHASH=${GITHASH}${DIRTY}
+
     OUTDIR=outputs_${GITHASH}_${SAMPLE}
 
     # Delete old run
