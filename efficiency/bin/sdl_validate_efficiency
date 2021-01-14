@@ -22,7 +22,8 @@ validate_efficiency_usage()
     echo
     echo "Arguments:"
     echo "   SAMPLETYPE                          muonGun, PU200, or pionGun"
-    echo "   SPECIFICGPUVERSION (optional)       unified, unified_cache, ... , explicit, explicit_newgrid, ... , etc."
+    echo "   SPECIFICGPUVERSION (optional)       Run only one of the unified, unified_cache, ... , explicit, explicit_newgrid, ... , etc."
+    echo "                                       If nothing provided, then it checks all possible tests."
     echo "   NEVENTS            (optional)       200, 10000, -1, etc."
     echo ""
     exit
@@ -74,6 +75,25 @@ popd
 GITHASH=${GITHASH}${DIRTY}
 
 OUTDIR=outputs_${GITHASH}_${SAMPLE}
+
+# Verbose
+echo "*****************************************************"
+echo ""
+echo ""
+echo "Efficiency Validation Program                        "
+echo ""
+echo ""
+echo "*****************************************************"
+echo ""
+echo "  GITHASH              : ${GITHASH}"
+echo "  SAMPLE               : ${SAMPLE}"
+echo "  NEVENTS              : ${NEVENTS}"
+if [ -n ${SPECIFICGPUVERSION} ]; then
+echo "  SPECIFICGPUVERSION   : Check ${SPECIFICGPUVERSION}"
+else
+echo "  SPECIFICGPUVERSION   : Check all configurations"
+fi
+echo ""
 
 # Delete old run
 rm -rf ${OUTDIR}
