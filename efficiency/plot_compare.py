@@ -16,12 +16,12 @@ if sample == "muonGun":
     cpu_benchmark_file_path = os.getenv("LATEST_CPU_BENCHMARK_EFF_MUONGUN")
 elif sample == "pionGun":
     cpu_benchmark_file_path = os.getenv("LATEST_CPU_BENCHMARK_EFF_PIONGUN")
+elif sample == "PU200":
+    cpu_benchmark_file_path = os.getenv("LATEST_CPU_BENCHMARK_EFF_PU200")
 else:
     sys.exit("ERROR: Sample = {} does not have a corresponding CPU benchmark yet!".format(sample))
-print(cpu_benchmark_file_path)
 eff_file_cpu = glob.glob(cpu_benchmark_file_path) # Benchmark
-eff_files_gpu = glob.glob("results/*_GPU_*{}*/efficiencies.root".format(githash))
-print(eff_files_gpu)
+eff_files_gpu = glob.glob("results/*_GPU_*{}*_{}/efficiencies.root".format(githash, sample))
 
 # Get cpu efficiency graph files
 cpu_file = r.TFile(eff_file_cpu[0])
