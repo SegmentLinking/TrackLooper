@@ -1,6 +1,6 @@
 # Simple makefile
 
-EXE=bin/doAnalysis
+EXE=bin/createEffNumDenPlots
 
 SOURCES=$(wildcard src/*.cc)
 OBJECTS=$(SOURCES:.cc=.o)
@@ -23,7 +23,7 @@ EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVe
 
 .PHONY: rooutil
 
-all: bin/doAnalysis
+all: $(EXE)
 
 $(EXE): rooutil src/efficiency.o src/helper.o src/SDL.o
 	$(LD) $(CXXFLAGS) $(LDFLAGS) src/efficiency.o src/helper.o src/SDL.o $(ROOTLIBS) $(EXTRAFLAGS) -o $@

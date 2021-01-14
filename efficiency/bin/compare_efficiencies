@@ -46,10 +46,10 @@ if [ -z ${FORCE} ]; then FORCE=false; fi
 shift $(($OPTIND - 1))
 
 # Create output directory
-mkdir -p results/
+mkdir -p efficiencies/
 
 # Set output directory
-OUTDIR=results/eff_comparison_plots__${TAG}_${SAMPLE}
+OUTDIR=efficiencies/eff_comparison_plots__${TAG}_${SAMPLE}
 
 if [ -d "${OUTDIR}" ]; then
     if $FORCE; then
@@ -60,7 +60,10 @@ if [ -d "${OUTDIR}" ]; then
         exit
     fi
 fi
-
+# Verbose
+echo "====================================================="
+echo "Validation Efficiency Comparison                     "
+echo "====================================================="
 echo ""
 echo "  TAG               : ${TAG}"
 echo "  SAMPLE            : ${SAMPLE}"
@@ -70,18 +73,20 @@ echo ""
 rm -rf ${OUTDIR}
 
 # Make plots
-mkdir plots
+mkdir -p plots
 echo "Making comparison plots...              (log: ${OUTDIR}/plots.log)"
-python plot_compare.py ${TAG} ${SAMPLE} > plots.log 2>&1
+
+echo "Available runs to cmompare...:"
+for i in $(ls -d efficiencies/*_GPU_*${TAG}_${SAMPLE}); do echo $i; done
+python $DIR/../python/plot_compare.py ${TAG} ${SAMPLE} > plots.log 2>&1
 
 # copy the plots
 echo "Copying plots..."
 cp -r plots ${OUTDIR}
 
 # copy the source code info
-mv gitversion.txt ${OUTDIR}/
 mv plots.log ${OUTDIR}/
-cp index.php ${OUTDIR}/
+cp $DIR/../misc/index.php ${OUTDIR}/
 
 # clean up so that the next run would be spoiled
 rm -rf plots

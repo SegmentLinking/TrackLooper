@@ -17,7 +17,7 @@ which root
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DIR
 export PATH=$PATH:$DIR/bin
-export PATH=$PATH:$DIR/efficiency
+export PATH=$PATH:$DIR/efficiency/bin
 export TRACKLOOPERDIR=$DIR
 
 ###########################################################################################################
@@ -36,10 +36,8 @@ run_gpu()
     shift
     # GPU unified
     sh make_script.sh -m $*
-    ./bin/sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -i ${sample}
-    cd efficiency/
-    sh run.sh -i ../${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 4 -f
-    cd ../
+    sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -i ${sample}
+    make_efficiency -i ../${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 4 -f
 }
 export run_gpu
 

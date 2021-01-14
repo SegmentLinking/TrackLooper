@@ -25,6 +25,7 @@ int main(int argc, char** argv)
     {
         RooUtil::error("TRACKLOOPERDIR is not set! Did you run $ source setup.sh from TrackLooper/ main repository directory?");
     }
+    RooUtil::print(TString::Format("TRACKLOOPERDIR=%s", TrackLooperDir.Data()));
 
 //********************************************************************************
 //
@@ -257,12 +258,22 @@ int main(int argc, char** argv)
     TObjString tobjstr("code_tag_data");
     tobjstr.SetString(tstr.Data());
     ana.output_tfile->WriteObject(&tobjstr, "code_tag_data");
-    std::ifstream makelog(".make.log");
+    TString make_log_path = TString::Format("%s/.make.log", TrackLooperDir.Data());
+    std::ifstream makelog(make_log_path.Data());
     std::string makestr((std::istreambuf_iterator<char>(makelog)), std::istreambuf_iterator<char>());
     TString maketstr = makestr.c_str();
     TObjString maketobjstr("make_log");
     maketobjstr.SetString(maketstr.Data());
     ana.output_tfile->WriteObject(&maketobjstr, "make_log");
+
+    // Write git diff output in a separate string to gauge the difference
+    gSystem->Exec("git diff > .gitdiff.txt");
+    std::ifstream gitdiff(".gitversion.txt");
+    std::string strgitdiff((std::istreambuf_iterator<char>(gitdiff)), std::istreambuf_iterator<char>());
+    TString tstrgitdiff = strgitdiff.c_str();
+    TObjString tobjstrgitdiff("gitdiff");
+    tobjstrgitdiff.SetString(tstrgitdiff.Data());
+    ana.output_tfile->WriteObject(&tobjstrgitdiff, "gitdiff");
 
     // Parse from makestr the TARGET
     TString rawstrdata = maketstr.ReplaceAll("MAKETARGET=", "%");

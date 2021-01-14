@@ -21,7 +21,7 @@ elif sample == "PU200":
 else:
     sys.exit("ERROR: Sample = {} does not have a corresponding CPU benchmark yet!".format(sample))
 eff_file_cpu = glob.glob(cpu_benchmark_file_path) # Benchmark
-eff_files_gpu = glob.glob("results/*_GPU_*{}*_{}/efficiencies.root".format(githash, sample))
+eff_files_gpu = glob.glob("efficiencies/*_GPU_*{}*_{}/efficiencies.root".format(githash, sample))
 
 # Get cpu efficiency graph files
 cpu_file = r.TFile(eff_file_cpu[0])
