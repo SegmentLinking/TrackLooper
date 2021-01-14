@@ -1,6 +1,6 @@
 # include "Hit.h"
 
-SDL::Hit::Hit(float x, float y, float z, float phi, float rt, int idx, Module* modulePtr)
+SDL::Hit::Hit(float x, float y, float z, float phi, float rt, int idx, std::shared_ptr<Module> modulePtr)
 {
     x_ = x;
     y_ = y;
@@ -60,12 +60,12 @@ SDL::Module& SDL::Hit::getModule() const
     return *modulePtr_;
 }
 
-const SDL::Hit* SDL::Hit::getHitHighEdgePtr() const
+const std::shared_ptr<SDL::Hit> SDL::Hit::getHitHighEdgePtr() const
 {
     return hit_high_edge_;
 }
 
-const SDL::Hit* SDL::Hit::getHitLowEdgePtr() const
+const std::shared_ptr<SDL::Hit> SDL::Hit::getHitLowEdgePtr() const
 {
     return hit_low_edge_;
 }
@@ -75,12 +75,12 @@ const float& SDL::Hit::eta() const
     return eta_;
 }
 
-void SDL::Hit::setHighEdgePtr(SDL::Hit* hitHighEdge)
+void SDL::Hit::setHighEdgePtr(std::shared_ptr<SDL::Hit> hitHighEdge)
 {
     hit_high_edge_ = hitHighEdge;
 }
 
-void SDL::Hit::setLowEdgePtr(SDL::Hit* hitLowEdge)
+void SDL::Hit::setLowEdgePtr(std::shared_ptr<SDL::Hit> hitLowEdge)
 {
     hit_low_edge_ = hitLowEdge;
 }
