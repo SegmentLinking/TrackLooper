@@ -298,6 +298,11 @@ int main(int argc, char** argv)
     full_cmd_line_to_be_written.SetString(full_cmd_line.Data());
     ana.output_tfile->WriteObject(&full_cmd_line_to_be_written, "full_cmd_line");
 
+    // Write the TRACKLOOPERDIR
+    TObjString tracklooperdirpath_to_be_written;
+    tracklooperdirpath_to_be_written.SetString(TrackLooperDir.Data());
+    ana.output_tfile->WriteObject(&tracklooperdirpath_to_be_written, "tracklooper_path");
+
     // Run depending on the mode
     switch (ana.mode)
     {
