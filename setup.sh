@@ -35,14 +35,14 @@ run_gpu()
     shift
     shift
     # GPU unified
-    make_tracklooper -m $*
+    sdl_make_tracklooper -m $*
     sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -i ${sample}
-    make_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 4 -f
+    sdl_make_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 4 -f
 }
 export run_gpu
 
 # Function to validate segment linking
-validate_segment_linking() {
+sdl_validate_segment_linking() {
 
     SAMPLE=${1}
     if [[ ${SAMPLE} == *"pionGun"* ]]; then
@@ -110,9 +110,9 @@ validate_segment_linking() {
         run_gpu explicit_newgrid ${SAMPLE} -x -g
     fi
 
-    compare_efficiencies -i ${SAMPLE} -t ${GITHASH} -f
+    sdl_compare_efficiencies -i ${SAMPLE} -t ${GITHASH} -f
 
 }
-export -f validate_segment_linking
+export -f sdl_validate_segment_linking
 
 #eof

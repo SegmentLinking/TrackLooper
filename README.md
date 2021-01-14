@@ -15,11 +15,11 @@ Go to your working directory
 
 Run the code
 
-    make_tracklooper -m
+    sdl_make_tracklooper -m
     sdl -i muonGun -o muonGun_200evt_gpu.root -n 200
     sdl -i muonGun -o muonGun_200evt_cpu.root -n 200 --cpu
-    make_efficiency -i ../muonGun_200evt_gpu.root -p 4 -g 13
-    make_efficiency -i ../muonGun_200evt_cpu.root -p 4 -g 13
+    sdl_plot_efficiency -i ../muonGun_200evt_gpu.root -p 4 -g 13
+    sdl_plot_efficiency -i ../muonGun_200evt_cpu.root -p 4 -g 13
 
 ## Validation
 
@@ -36,27 +36,27 @@ Go to your working directory
 
 Run the validation on muonGun sample for all 6 different configurations
 
-    validate_segment_linking muonGun
+    sdl_validate_segment_linking muonGun
 
 Run the validation on specific version of GPU implementation
 
-    validate_segment_linking muonGun unified
-    validate_segment_linking muonGun unified_cache
-    validate_segment_linking muonGun unified_newgrid
-    validate_segment_linking muonGun unified_cache_newgrid
-    validate_segment_linking muonGun explicit
-    validate_segment_linking muonGun explicit_newgrid
+    sdl_validate_segment_linking muonGun unified
+    sdl_validate_segment_linking muonGun unified_cache
+    sdl_validate_segment_linking muonGun unified_newgrid
+    sdl_validate_segment_linking muonGun unified_cache_newgrid
+    sdl_validate_segment_linking muonGun explicit
+    sdl_validate_segment_linking muonGun explicit_newgrid
 
 Run the validation on pionGun sample for all 6 different configurations
 
-    validate_segment_linking pionGun
+    sdl_validate_segment_linking pionGun
 
 Run the validation on specific version of GPU implementation
 
-    validate_segment_linking pionGun unified
+    sdl_validate_segment_linking pionGun unified
 
-    validate_segment_linking pionGun unified_cache
-    validate_segment_linking pionGun unified_newgrid
-    validate_segment_linking pionGun unified_cache_newgrid
-    validate_segment_linking pionGun explicit
-    validate_segment_linking pionGun explicit_newgrid
+    sdl_validate_segment_linking pionGun unified_cache
+    sdl_validate_segment_linking pionGun unified_newgrid
+    sdl_validate_segment_linking pionGun unified_cache_newgrid
+    sdl_validate_segment_linking pionGun explicit
+    sdl_validate_segment_linking pionGun explicit_newgrid

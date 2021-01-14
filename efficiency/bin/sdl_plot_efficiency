@@ -20,7 +20,7 @@ usage()
   echo "Options:"
   echo "  -h    Help                   (Display this message)"
   echo "  -f    force                  (Force re-run of the efficiency)"
-  echo "  -i    input eff ntuple       (e.g. -i /path/to/my/eff_ntuple.root)"
+  echo "  -i    input eff ntuple       (e.g. -i /path/to/my/eff_ntuple.root (this is the output from sdl binary))"
   echo "  -p    pt boundaries          (Pt bin boundary settings see below for more detail)"
   echo "  -g    pdgid for denom tracks (e.g. -g 13 for muon or -g 0 for all charged particle)"
   echo
