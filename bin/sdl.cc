@@ -234,7 +234,7 @@ int main(int argc, char** argv)
     gSystem->Exec("git rev-parse HEAD >> .gitversion.txt");
     gSystem->Exec("echo 'git status' >> .gitversion.txt");
     gSystem->Exec("git status >> .gitversion.txt");
-    gSystem->Exec("echo 'git log' >> .gitversion.txt");
+    gSystem->Exec("echo 'git log -n5' >> .gitversion.txt");
     gSystem->Exec("git log >> .gitversion.txt");
     gSystem->Exec("echo 'git diff' >> .gitversion.txt");
     gSystem->Exec("git diff >> .gitversion.txt");
