@@ -268,7 +268,7 @@ int main(int argc, char** argv)
 
     // Write git diff output in a separate string to gauge the difference
     gSystem->Exec("git diff > .gitdiff.txt");
-    std::ifstream gitdiff(".gitversion.txt");
+    std::ifstream gitdiff(".gitdiff.txt");
     std::string strgitdiff((std::istreambuf_iterator<char>(gitdiff)), std::istreambuf_iterator<char>());
     TString tstrgitdiff = strgitdiff.c_str();
     TObjString tobjstrgitdiff("gitdiff");
