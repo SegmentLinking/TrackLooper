@@ -65,11 +65,12 @@ validate_segment_linking() {
     fi
 
     GITHASH=$(git rev-parse --short HEAD)
-    DIRTY=$(cat gitversion.txt | tail -n2)
-    if [[ "git diff  " == "$(cat .gitversion.txt | tail -n2 | tr '\n' ' ')" ]]; then
-        DIRTY="";
+    DIRTY=""
+    DIFF=$(git diff)
+    if [ -z "${DIFF}" ]; then
+        DIRTY=""
     else
-        DIRTY="DIRTY";
+        DIRTY="DIRTY"
     fi
     GITHASH=${GITHASH}${DIRTY}
 

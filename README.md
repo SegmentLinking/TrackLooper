@@ -54,6 +54,7 @@ Run the validation on pionGun sample for all 6 different configurations
 Run the validation on specific version of GPU implementation
 
     validate_segment_linking pionGun unified
+
     validate_segment_linking pionGun unified_cache
     validate_segment_linking pionGun unified_newgrid
     validate_segment_linking pionGun unified_cache_newgrid
