@@ -64,6 +64,7 @@ validate_segment_linking() {
         NEVENTS=${3} # If provided set the NEVENTS
     fi
 
+    pushd ${TRACKLOOPERDIR}
     GITHASH=$(git rev-parse --short HEAD)
     DIRTY=""
     DIFF=$(git diff)
@@ -72,6 +73,7 @@ validate_segment_linking() {
     else
         DIRTY="DIRTY"
     fi
+    popd ${TRACKLOOPERDIR}
     GITHASH=${GITHASH}${DIRTY}
 
     OUTDIR=outputs_${GITHASH}_${SAMPLE}
