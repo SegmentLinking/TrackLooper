@@ -570,10 +570,6 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
         pass = false;
     }
 
-/*    if(modulesInGPU.detIds[innerLowerModuleIndex] == 420504594)
-    {
-        printf("rtLo = %f, rtHi = %f, rtOut = %f, dPhiChange = %f, dAlphaInnerMDSegment = %f, dAlphaThresholdInnerMDSegment = %f, dAlphaOuterMDSegment = %f, dAlphaThresholdOuterMDSegment = %f, dAlphaInnerMDOuterMD = %f alpha innerMD = %f, alpha outerMD = %f, dAlphaThresholdInnerMDOuterMD = %f\n", rtLo, rtHi, rtOut, dPhiChange,dAlphaInnerMDSegment, dAlphaThresholdValues[0], dAlphaOuterMDSegment, dAlphaThresholdValues[1], dAlphaInnerMDOuterMD, innerMDAlpha, outerMDAlpha, dAlphaThresholdValues[2]);
-    }*/ 
 
     return pass;
 }
@@ -730,9 +726,6 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
 {
     bool pass = true;
     
-//    unsigned int innerMiniDoubletAnchorHitIndex;
-//    unsigned int outerMiniDoubletAnchorHitIndex;
-
     if(mdsInGPU.pixelModuleFlag[innerMDIndex] >= 0)
     {
         if(mdsInGPU.pixelModuleFlag[innerMDIndex] == 0)
