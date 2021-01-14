@@ -35,7 +35,7 @@ run_gpu()
     shift
     shift
     # GPU unified
-    sh make_script.sh -m $*
+    make_tracklooper -m $*
     sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -i ${sample}
     make_efficiency -i ../${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 4 -f
 }
@@ -99,9 +99,7 @@ validate_segment_linking() {
         run_gpu explicit_newgrid ${SAMPLE} -x -g
     fi
 
-    cd efficiency/
-    sh compare.sh -i ${SAMPLE} -t ${GITHASH} -f
-    cd ../
+    compare_efficiencies -i ${SAMPLE} -t ${GITHASH} -f
 
 }
 export -f validate_segment_linking

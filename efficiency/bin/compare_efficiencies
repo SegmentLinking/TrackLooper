@@ -45,12 +45,6 @@ if [ -z ${FORCE} ]; then FORCE=false; fi
 # Shift away the parsed options
 shift $(($OPTIND - 1))
 
-# Create output directory
-mkdir -p efficiencies/
-
-# Set output directory
-OUTDIR=efficiencies/eff_comparison_plots__${TAG}_${SAMPLE}
-
 if [ -d "${OUTDIR}" ]; then
     if $FORCE; then
         :
@@ -60,6 +54,7 @@ if [ -d "${OUTDIR}" ]; then
         exit
     fi
 fi
+
 # Verbose
 echo "====================================================="
 echo "Validation Efficiency Comparison                     "
@@ -69,6 +64,19 @@ echo "  TAG               : ${TAG}"
 echo "  SAMPLE            : ${SAMPLE}"
 echo ""
 
+if [[ $(ls -d efficiencies/*_GPU_*${TAG}_${SAMPLE} 2> /dev/null) ]]; then
+    :
+else
+    echo "Nothing to compare! Have you run any efficiencies plots for the ones you requested?"
+    exit
+fi
+
+# Create output directory
+mkdir -p efficiencies/
+
+# Set output directory
+OUTDIR=efficiencies/eff_comparison_plots__${TAG}_${SAMPLE}
+
 # Delete the output if already existing
 rm -rf ${OUTDIR}
 
@@ -76,9 +84,11 @@ rm -rf ${OUTDIR}
 mkdir -p plots
 echo "Making comparison plots...              (log: ${OUTDIR}/plots.log)"
 
-echo "Available runs to cmompare...:"
+echo "Available runs to compare...:"
 for i in $(ls -d efficiencies/*_GPU_*${TAG}_${SAMPLE}); do echo $i; done
 python $DIR/../python/plot_compare.py ${TAG} ${SAMPLE} > plots.log 2>&1
+
+grep "VALIDATION FAILED" plots.log
 
 # copy the plots
 echo "Copying plots..."

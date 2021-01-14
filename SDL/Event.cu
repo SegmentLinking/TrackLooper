@@ -133,12 +133,12 @@ SDL::Event::~Event()
 #endif
 }
 
-void SDL::initModules()
+void SDL::initModules(const char* moduleMetaDataFilePath)
 {
     cudaMallocManaged(&modulesInGPU, sizeof(struct SDL::modules));
     if((modulesInGPU->detIds) == nullptr) //check for nullptr and create memory
     {
-        loadModulesFromFile(*modulesInGPU,nModules); //nModules gets filled here
+        loadModulesFromFile(*modulesInGPU,nModules,moduleMetaDataFilePath); //nModules gets filled here
     }
     resetObjectRanges(*modulesInGPU,nModules);
 }

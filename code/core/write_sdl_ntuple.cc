@@ -8,7 +8,7 @@ void write_sdl_ntuple()
     loadMaps();
 
     if (not ana.do_run_cpu)
-        SDL::initModules();
+        SDL::initModules(TString::Format("%s/data/centroid.txt", gSystem->Getenv("TRACKLOOPERDIR")));
 
     createOutputBranches();
 
