@@ -14,8 +14,11 @@ cd - > /dev/null
 echo "Setup following ROOT.  Make sure it's slc7 variant. Otherwise the looper won't compile."
 which root
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD
-export PATH=$PATH:$PWD/bin
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DIR
+export PATH=$PATH:$DIR/bin
+export PATH=$PATH:$DIR/efficiency
+export TRACKLOOPERDIR=$DIR
 
 ###########################################################################################################
 # Validation scripts

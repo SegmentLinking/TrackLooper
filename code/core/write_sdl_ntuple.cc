@@ -602,7 +602,7 @@ void printMiniDoubletMultiplicities(SDL::Event& event)
 }
 
 //________________________________________________________________________________________________________________________________
-void printAllObjects(SDL::Event event)
+void printAllObjects(SDL::Event& event)
 {
     printMDs(event);
     printLSs(event);
@@ -614,15 +614,15 @@ void printAllObjects(SDL::Event event)
 }
 
 //________________________________________________________________________________________________________________________________
-void printAllObjects_for_CPU(SDL::Event event)
+void printAllObjects_for_CPU(SDL::CPU::Event& event)
 {
-    printMDs(event);
-    printLSs(event);
-    printpLSs(event);
-    printT3s(event);
-    printT4s(event);
-    printpT4s(event);
-    printTCs(event);
+    printMDs_for_CPU(event);
+    printLSs_for_CPU(event);
+    printpLSs_for_CPU(event);
+    printT3s_for_CPU(event);
+    printT4s_for_CPU(event);
+    printpT4s_for_CPU(event);
+    printTCs_for_CPU(event);
 }
 
 //________________________________________________________________________________________________________________________________

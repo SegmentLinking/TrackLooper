@@ -4,6 +4,12 @@
 int main(int argc, char** argv)
 {
 
+//********************************************************************************
+//
+// 0. Preliminary operations
+//
+//********************************************************************************
+
     // Write the command line used to run it
     // N.B. This needs to be before the argument parsing as it will change some values
     std::vector<std::string> allArgs(argv, argv + argc);
@@ -11,6 +17,13 @@ int main(int argc, char** argv)
     for (auto& str : allArgs)
     {
         full_cmd_line += TString::Format(" %s", str.c_str());
+    }
+
+    // Checking the TRACKLOOPERDIR is set
+    TString TrackLooperDir = gSystem->Getenv("TRACKLOOPERDIR");
+    if (TrackLooperDir.IsNull())
+    {
+        RooUtil::error("TRACKLOOPERDIR is not set! Did you run $ source setup.sh from TrackLooper/ main repository directory?");
     }
 
 //********************************************************************************

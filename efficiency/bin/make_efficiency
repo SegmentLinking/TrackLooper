@@ -132,9 +132,9 @@ CMDLINE=${FULLCMDLINE//"TObjString = "/}
 
 echo ${CMDLINE} > cmdline.txt
 
-mkdir -p results/
+mkdir -p efficiencies/
 
-OUTDIR=results/eff_plots__${VERSION}_${TAG}_${SAMPLE}
+OUTDIR=efficiencies/eff_plots__${VERSION}_${TAG}_${SAMPLE}
 
 if [ -d "${OUTDIR}" ]; then
     if $FORCE; then
@@ -181,7 +181,7 @@ hadd -f num_den_histograms.root outputs/*.root > hadd.log 2>&1
 
 # Make plots
 echo "Making plots...                   (log: ${OUTDIR}/plots.log)"
-sh plot.sh $(basename ${SAMPLE}) ${TAG}_${VERSION} > plots.log 2>&1
+sh $DIR/plot_efficiencies.sh $(basename ${SAMPLE}) ${TAG}_${VERSION} > plots.log 2>&1
 
 # copy the plots
 echo "Copying plots..."
@@ -193,7 +193,7 @@ mv plots.log ${OUTDIR}/
 mv run.log ${OUTDIR}/
 mv hadd.log ${OUTDIR}/
 mv num_den_histograms.root ${OUTDIR}/
-cp efficiencies.root ${OUTDIR}/
+mv efficiencies.root ${OUTDIR}/
 mv outputs ${OUTDIR}/
 mv cmdline.txt ${OUTDIR}/
 
