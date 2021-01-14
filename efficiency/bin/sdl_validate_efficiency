@@ -89,9 +89,9 @@ echo "  GITHASH              : ${GITHASH}"
 echo "  SAMPLE               : ${SAMPLE}"
 echo "  NEVENTS              : ${NEVENTS}"
 if [ -n ${SPECIFICGPUVERSION} ]; then
-echo "  SPECIFICGPUVERSION   : Check ${SPECIFICGPUVERSION}"
+echo "  SPECIFICGPUVERSION   : ${SPECIFICGPUVERSION}"
 else
-echo "  SPECIFICGPUVERSION   : Check all configurations"
+echo "  SPECIFICGPUVERSION   : all configurations"
 fi
 echo ""
 
