@@ -11,8 +11,17 @@ githash = sys.argv[1]
 sample = sys.argv[2]
 
 # Get the files to be compared
-eff_file_cpu = glob.glob("results/*_CPU_*{}*/efficiencies.root".format(githash))
-eff_files_gpu = glob.glob("results/*_GPU_*{}*/efficiencies.root".format(githash))
+cpu_benchmark_file_path = ""
+if sample == "muonGun":
+    cpu_benchmark_file_path = os.getenv("LATEST_CPU_BENCHMARK_EFF_MUONGUN")
+elif sample == "pionGun":
+    cpu_benchmark_file_path = os.getenv("LATEST_CPU_BENCHMARK_EFF_PIONGUN")
+elif sample == "PU200":
+    cpu_benchmark_file_path = os.getenv("LATEST_CPU_BENCHMARK_EFF_PU200")
+else:
+    sys.exit("ERROR: Sample = {} does not have a corresponding CPU benchmark yet!".format(sample))
+eff_file_cpu = glob.glob(cpu_benchmark_file_path) # Benchmark
+eff_files_gpu = glob.glob("efficiencies/*_GPU_*{}_{}/efficiencies.root".format(githash, sample))
 
 # Get cpu efficiency graph files
 cpu_file = r.TFile(eff_file_cpu[0])
@@ -43,7 +52,9 @@ for eff_file_gpu in eff_files_gpu:
     gpu_file = r.TFile(eff_file_gpu)
     gpu_tgraphs[configuration] = {}
     for key in keys:
-        gpu_tgraphs[configuration][key] = cpu_file.Get(key)
+        gpu_tgraphs[configuration][key] = gpu_file.Get(key)
+        if "GPU_unified" in eff_files_gpu and "TC_AllTypes__pt" in key:
+            print(gpu_tgraphs[configuration][key].Print())
 
 for key in keys:
 
@@ -128,17 +139,29 @@ for key in keys:
 
     leg = r.TLegend(0.15, 0.15, 0.5, 0.4)
     gpu_ratio = []
+    good_comparisons = {}
     for ii, config in enumerate(configurations):
         gpu_ratio.append(gpu_graphs[ii].Clone())
+        good_comparison = True
         for ix in xrange(gpu_graphs[ii].GetN()):
             gpu_val = gpu_graphs[ii].GetPointY(ix)
             cpu_val = cpu_tgraphs[key].GetPointY(ix)
             ratio = 1
             if gpu_val != 0:
                 ratio = cpu_val / gpu_val
+            else:
+                if cpu_val == 0:
+                    ratio = 1
+                else:
+                    ratio = 0
+            if ratio != 1:
+                good_comparison = False
             gpu_ratio[-1].SetPointY(ix, ratio)
             gpu_ratio[-1].SetPointEYhigh(ix, 0)
             gpu_ratio[-1].SetPointEYlow(ix, 0)
+        if not good_comparison:
+            print("VALIDATION FAILED! :: Config = {} for output_name = {} failed to agree!".format(config, output_name))
+        good_comparisons[config] = good_comparison
         gpu_ratio[-1].SetMarkerStyle(ms[ii])
         gpu_ratio[-1].SetMarkerSize(1.2)
         gpu_ratio[-1].SetLineWidth(1)

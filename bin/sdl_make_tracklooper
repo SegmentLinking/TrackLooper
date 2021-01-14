@@ -51,8 +51,11 @@ if [ -z ${MAKECLEANBINARIES} ]; then MAKECLEANBINARIES=false; fi
 # Shift away the parsed options
 shift $(($OPTIND - 1))
 
+# Move to the TRACKLOOPERDIR
+pushd ${TRACKLOOPERDIR}
+
 # create log file
-LOG=.make.log.$(date +%s)
+LOG=${TRACKLOOPERDIR}/.make.log.$(date +%s)
 
 # Verbose
 date | tee -a ${LOG}
@@ -157,3 +160,5 @@ echo "Compilation is logged at .make.log" | tee -a ${LOG}
 echo "Compilation log is backed up at ${LOG}" | tee -a ${LOG}
 cp ${LOG} .make.log
 
+# Go back to where I was
+popd

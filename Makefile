@@ -6,7 +6,7 @@ EXES=bin/doAnalysis bin/sdl
 ROOUTIL=code/rooutil/
 
 SOURCES=$(wildcard code/core/*.cc) $(wildcard code/AnalysisInterface/*.cc) #$(wildcard SDL/*.cc)
-OBJECTS=$(SOURCES:.cc=.o) $(wildcard SDL/sdl.so)
+OBJECTS=$(SOURCES:.cc=.o) $(wildcard ${TRACKLOOPERDIR}/SDL/sdl.so)
 HEADERS=$(SOURCES:.cc=.h)
 
 CC          = nvcc
@@ -26,7 +26,7 @@ CFLAGS      = $(ROOTCFLAGS) --compiler-options -Wall --compiler-options -Wno-unu
 EXTRACFLAGS = $(shell rooutil-config)
 EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -L/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/lib64 -lcudart -fopenmp
 
-all: $(ROOUTIL) $(EXES)
+all: $(ROOUTIL) efficiency $(EXES)
 
 bin/doAnalysis: bin/doAnalysis.o $(OBJECTS)
 	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(EXTRAFLAGS) -o $@
@@ -40,11 +40,15 @@ bin/sdl: bin/sdl.o $(OBJECTS)
 $(ROOUTIL):
 	$(MAKE) -C code/rooutil/
 
+efficiency:
+	$(MAKE) -C efficiency/
+
 clean:
 	rm -f $(OBJECTS) bin/*.o $(EXES)
 	rm -f code/rooutil/*.so code/rooutil/*.o
 	rm -f bin/doAnalysis.o
 	rm -f bin/sdl.o
 	rm -f SDL/*.o
+	cd efficiency/ && make clean
 
-.PHONY: $(ROOUTIL)
+.PHONY: $(ROOUTIL) efficiency

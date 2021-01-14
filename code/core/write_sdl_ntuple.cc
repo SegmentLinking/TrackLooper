@@ -1,5 +1,6 @@
 #include "write_sdl_ntuple.h"
 
+//________________________________________________________________________________________________________________________________
 void write_sdl_ntuple()
 {
 
@@ -7,7 +8,7 @@ void write_sdl_ntuple()
     loadMaps();
 
     if (not ana.do_run_cpu)
-        SDL::initModules();
+        SDL::initModules(TString::Format("%s/data/centroid.txt", gSystem->Getenv("TRACKLOOPERDIR")));
 
     createOutputBranches();
 
@@ -17,6 +18,7 @@ void write_sdl_ntuple()
     // Looping input file
     while (ana.looper.nextEvent())
     {
+
         std::cout<<"event number = "<<ana.looper.getCurrentEventIndex()<<std::endl;
 
         if (not goodEvent())
@@ -24,6 +26,10 @@ void write_sdl_ntuple()
 
         if (not ana.do_run_cpu)
         {
+            //*******************************************************
+            // GPU VERSION RUN
+            //*******************************************************
+
             // Main instance that will hold modules, hits, minidoublets, etc. (i.e. main data structure)
             SDL::Event event;
 
@@ -65,21 +71,24 @@ void write_sdl_ntuple()
                     timing_T3,
                     timing_TC});
 
-            if (ana.verbose != 0)
+            if (ana.verbose == 4)
             {
-                printMDs(event);
-                printLSs(event);
-                printpLSs(event);
-                printT3s(event);
-                printT4s(event);
-                printpT4s(event);
-                printTCs(event);
+                printAllObjects(event);
+            }
+
+            if (ana.verbose == 5)
+            {
+                debugPrintOutlierMultiplicities(event);
             }
 
             fillOutputBranches(event);
         }
         else
         {
+            //*******************************************************
+            // CPU VERSION RUN
+            //*******************************************************
+
             // Main instance that will hold modules, hits, minidoublets, etc. (i.e. main data structure)
             SDL::CPU::Event event;
 
@@ -127,15 +136,9 @@ void write_sdl_ntuple()
                     timing_T3,
                     timing_TC});
 
-            if (ana.verbose != 0)
+            if (ana.verbose == 4)
             {
-                printMDs_for_CPU(event);
-                printLSs_for_CPU(event);
-                printpLSs_for_CPU(event);
-                printT3s_for_CPU(event);
-                printT4s_for_CPU(event);
-                printpT4s_for_CPU(event);
-                printTCs_for_CPU(event);
+                printAllObjects_for_CPU(event);
             }
 
             fillOutputBranches_for_CPU(event);
@@ -155,6 +158,7 @@ void write_sdl_ntuple()
 
 }
 
+//________________________________________________________________________________________________________________________________
 void createOutputBranches()
 {
     // Setup output TTree
@@ -182,6 +186,7 @@ void createOutputBranches()
     ana.tx->createBranch<vector<vector<int>>>("sim_TC_types");
 }
 
+//________________________________________________________________________________________________________________________________
 void fillOutputBranches(SDL::Event& event)
 {
     // Sim tracks
@@ -320,6 +325,7 @@ void fillOutputBranches(SDL::Event& event)
 
 }
 
+//________________________________________________________________________________________________________________________________
 void fillOutputBranches_for_CPU(SDL::CPU::Event& event)
 {
     // Sim tracks
@@ -497,6 +503,7 @@ void fillOutputBranches_for_CPU(SDL::CPU::Event& event)
 
 }
 
+//________________________________________________________________________________________________________________________________
 void printTimingInformation(std::vector<std::vector<float>> timing_information)
 {
 
@@ -554,6 +561,7 @@ void printTimingInformation(std::vector<std::vector<float>> timing_information)
 
 }
 
+//________________________________________________________________________________________________________________________________
 void printQuadrupletMultiplicities(SDL::Event& event)
 {
     SDL::tracklets& trackletsInGPU = (*event.getTracklets());
@@ -566,6 +574,7 @@ void printQuadrupletMultiplicities(SDL::Event& event)
     std::cout <<  " nTracklets: " << nTracklets <<  std::endl;
 }
 
+//________________________________________________________________________________________________________________________________
 void printHitMultiplicities(SDL::Event& event)
 {
     SDL::hits& hitsInGPU = (*event.getHits());
@@ -579,6 +588,7 @@ void printHitMultiplicities(SDL::Event& event)
     std::cout <<  " nHits: " << nHits <<  std::endl;
 }
 
+//________________________________________________________________________________________________________________________________
 void printMiniDoubletMultiplicities(SDL::Event& event)
 {
     SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
@@ -591,6 +601,31 @@ void printMiniDoubletMultiplicities(SDL::Event& event)
     std::cout <<  " nMiniDoublets: " << nMiniDoublets <<  std::endl;
 }
 
+//________________________________________________________________________________________________________________________________
+void printAllObjects(SDL::Event& event)
+{
+    printMDs(event);
+    printLSs(event);
+    printpLSs(event);
+    printT3s(event);
+    printT4s(event);
+    printpT4s(event);
+    printTCs(event);
+}
+
+//________________________________________________________________________________________________________________________________
+void printAllObjects_for_CPU(SDL::CPU::Event& event)
+{
+    printMDs_for_CPU(event);
+    printLSs_for_CPU(event);
+    printpLSs_for_CPU(event);
+    printT3s_for_CPU(event);
+    printT4s_for_CPU(event);
+    printpT4s_for_CPU(event);
+    printTCs_for_CPU(event);
+}
+
+//________________________________________________________________________________________________________________________________
 void printpT4s(SDL::Event& event)
 {
     SDL::tracklets& trackletsInGPU = (*event.getTracklets());
@@ -633,6 +668,7 @@ void printpT4s(SDL::Event& event)
     }
 }
 
+//________________________________________________________________________________________________________________________________
 void printpT4s_for_CPU(SDL::CPU::Event& event)
 {
     // pixelLayer
@@ -660,6 +696,7 @@ void printpT4s_for_CPU(SDL::CPU::Event& event)
     }
 }
 
+//________________________________________________________________________________________________________________________________
 void printMDs(SDL::Event& event)
 {
     SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
@@ -687,6 +724,7 @@ void printMDs(SDL::Event& event)
     }
 }
 
+//________________________________________________________________________________________________________________________________
 void printMDs_for_CPU(SDL::CPU::Event& event)
 {
     // get layer ptrs
@@ -715,6 +753,7 @@ void printMDs_for_CPU(SDL::CPU::Event& event)
 
 }
 
+//________________________________________________________________________________________________________________________________
 void printLSs(SDL::Event& event)
 {
     SDL::segments& segmentsInGPU = (*event.getSegments());
@@ -744,6 +783,7 @@ void printLSs(SDL::Event& event)
     std::cout <<  "VALIDATION nSegments: " << nSegments <<  std::endl;
 }
 
+//________________________________________________________________________________________________________________________________
 void printLSs_for_CPU(SDL::CPU::Event& event)
 {
     // get layer ptrs
@@ -774,6 +814,7 @@ void printLSs_for_CPU(SDL::CPU::Event& event)
 
 }
 
+//________________________________________________________________________________________________________________________________
 void printpLSs(SDL::Event& event)
 {
     SDL::segments& segmentsInGPU = (*event.getSegments());
@@ -800,6 +841,7 @@ void printpLSs(SDL::Event& event)
     std::cout <<  "VALIDATION npLS: " << npLS <<  std::endl;
 }
 
+//________________________________________________________________________________________________________________________________
 void printpLSs_for_CPU(SDL::CPU::Event& event)
 {
     // get layer ptr
@@ -828,6 +870,7 @@ void printpLSs_for_CPU(SDL::CPU::Event& event)
 
 }
 
+//________________________________________________________________________________________________________________________________
 void printT3s(SDL::Event& event)
 {
     SDL::triplets& tripletsInGPU = (*event.getTriplets());
@@ -868,6 +911,7 @@ void printT3s(SDL::Event& event)
     std::cout <<  "VALIDATION nTriplets: " << nTriplets <<  std::endl;
 }
 
+//________________________________________________________________________________________________________________________________
 void printT3s_for_CPU(SDL::CPU::Event& event)
 {
     // get layer ptrs
@@ -900,6 +944,7 @@ void printT3s_for_CPU(SDL::CPU::Event& event)
 
 }
 
+//________________________________________________________________________________________________________________________________
 void printT4s(SDL::Event& event)
 {
     SDL::tracklets& trackletsInGPU = (*event.getTracklets());
@@ -946,6 +991,7 @@ void printT4s(SDL::Event& event)
     std::cout <<  "VALIDATION nTracklets: " << nTracklets <<  std::endl;
 }
 
+//________________________________________________________________________________________________________________________________
 void printT4s_for_CPU(SDL::CPU::Event& event)
 {
     // get layer ptrs
@@ -980,6 +1026,7 @@ void printT4s_for_CPU(SDL::CPU::Event& event)
 
 }
 
+//________________________________________________________________________________________________________________________________
 void printTCs(SDL::Event& event)
 {
     SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates());
@@ -1061,6 +1108,7 @@ void printTCs(SDL::Event& event)
     }
 }
 
+//________________________________________________________________________________________________________________________________
 void printTCs_for_CPU(SDL::CPU::Event& event)
 {
     // get layer ptrs
@@ -1098,3 +1146,35 @@ void printTCs_for_CPU(SDL::CPU::Event& event)
     }
 
 }
+
+
+//________________________________________________________________________________________________________________________________
+void debugPrintOutlierMultiplicities(SDL::Event& event)
+{
+    SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates());
+    SDL::tracklets& trackletsInGPU = (*event.getTracklets());
+    SDL::triplets& tripletsInGPU = (*event.getTriplets());
+    SDL::segments& segmentsInGPU = (*event.getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event.getHits());
+    int nTrackCandidates = 0;
+    for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); ++idx)
+    {
+        if (trackCandidatesInGPU.nTrackCandidates[idx] > 50000)
+        {
+            std::cout <<  " SDL::modulesInGPU->detIds[SDL::modulesInGPU->lowerModuleIndices[idx]]: " << SDL::modulesInGPU->detIds[SDL::modulesInGPU->lowerModuleIndices[idx]] <<  std::endl;
+            std::cout <<  " idx: " << idx <<  " trackCandidatesInGPU.nTrackCandidates[idx]: " << trackCandidatesInGPU.nTrackCandidates[idx] <<  std::endl;
+            std::cout <<  " idx: " << idx <<  " trackletsInGPU.nTracklets[idx]: " << trackletsInGPU.nTracklets[idx] <<  std::endl;
+            std::cout <<  " idx: " << idx <<  " tripletsInGPU.nTriplets[idx]: " << tripletsInGPU.nTriplets[idx] <<  std::endl;
+            unsigned int i = SDL::modulesInGPU->lowerModuleIndices[idx];
+            std::cout <<  " idx: " << idx <<  " i: " << i <<  " segmentsInGPU.nSegments[i]: " << segmentsInGPU.nSegments[i] <<  std::endl;
+            int nMD = miniDoubletsInGPU.nMDs[2*idx]+miniDoubletsInGPU.nMDs[2*idx+1] ;
+            std::cout <<  " idx: " << idx <<  " nMD: " << nMD <<  std::endl;
+            int nHits = 0;
+            nHits += SDL::modulesInGPU->hitRanges[4*idx+1] - SDL::modulesInGPU->hitRanges[4*idx] + 1;       
+            nHits += SDL::modulesInGPU->hitRanges[4*idx+3] - SDL::modulesInGPU->hitRanges[4*idx+2] + 1;
+            std::cout <<  " idx: " << idx <<  " nHits: " << nHits <<  std::endl;
+        }
+    }
+}
+
