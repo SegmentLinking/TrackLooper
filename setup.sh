@@ -53,16 +53,16 @@ validate_segment_linking() {
         PDGID=0
     fi
 
-    if [ -z ${2} ]; then
+    SPECIFICGPUVERSION=${2}
+
+    if [ -z ${3} ]; then
         NEVENTS=200 # If no number of events provided, validate on first 200 events
         if [[ ${SAMPLE} == *"PU200"* ]]; then
             NEVENTS=30 # If PU200 then run 30 events
         fi
     else
-        NEVENTS=${2} # If provided set the NEVENTS
+        NEVENTS=${3} # If provided set the NEVENTS
     fi
-
-    SPECIFICGPUVERSION=${3}
 
     GITHASH=$(git rev-parse --short HEAD)
     DIRTY=$(cat gitversion.txt | tail -n2)
