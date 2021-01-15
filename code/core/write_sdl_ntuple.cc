@@ -215,15 +215,22 @@ void fillOutputBranches(SDL::Event& event)
 
     // Did it match to track candidate?
     std::vector<int> sim_TC_matched(trk.sim_pt().size());
-
     for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
-        for (unsigned int jdx = 0; jdx < trackCandidatesInGPU.nTrackCandidates[idx]; jdx++)
+        unsigned int nTrackCandidates = trackCandidatesInGPU.nTrackCandidates[idx];
+        if(idx == *SDL::modulesInGPU->nLowerModules and nTrackCandidates > 5000000)
+        {
+            nTrackCandidates = 5000000;
+        }
+        if(idx < *SDL::modulesInGPU->nLowerModules and nTrackCandidates > 50000)
+        {
+            nTrackCandidates = 50000;
+        }
+        for (unsigned int jdx = 0; jdx < nTrackCandidates; jdx++)
         {
             unsigned int trackCandidateIndex = idx * 50000/*_N_MAX_TRACK_CANDIDATES_PER_MODULE*/ + jdx;
 
             short trackCandidateType = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
-
             unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex];
             unsigned int outerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1];
 
