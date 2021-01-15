@@ -43,6 +43,7 @@ void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int m
 #ifdef CUT_VALUE_DEBUG
     cudaMallocManaged(&mdsInGPU.dzCuts, nMemoryLocations * sizeof(float));
     cudaMallocManaged(&mdsInGPU.drtCuts, nMemoryLocations * sizeof(float));
+    cudaMallocManaged(&mdsInGPU.drts, nMemoryLocations * sizeof(float));
     cudaMallocManaged(&mdsInGPU.miniCuts, nMemoryLocations * sizeof(float));
 #endif
 #endif

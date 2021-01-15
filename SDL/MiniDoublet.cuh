@@ -49,6 +49,7 @@ namespace SDL
         //CUT VALUES
         float* dzCuts;
         float* drtCuts;
+        float* drts;
         float* miniCuts;
 #endif
 

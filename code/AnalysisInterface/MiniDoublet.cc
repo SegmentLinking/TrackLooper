@@ -8,12 +8,12 @@ SDL::MiniDoublet::MiniDoublet(float dz, float drt, float dphi, float dphichange,
     dphichange_ = dphichange;
     dphinoshift_ = dphinoshift;
     dphichangenoshift_ = dphichangenoshift;
-    dzCut_  = dzCut;
-    drtCut_ = drtCut;
-    miniCut_ = miniCut;
     lowerHitPtr_ = lowerHitPtr;
     upperHitPtr_ = upperHitPtr;
-
+    dzCut_  = dzCut;
+    drtCut_ = drtCut;
+    drt_ = drt;
+    miniCut_ = miniCut;
     setAnchorHit();
 }
 
@@ -76,6 +76,7 @@ const float& SDL::MiniDoublet::getMiniCut() const
 {
     return miniCut_;
 }
+#endif
 
 void SDL::MiniDoublet::setAnchorHit()
 {

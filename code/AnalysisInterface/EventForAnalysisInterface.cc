@@ -79,8 +79,11 @@ void SDL::EventForAnalysisInterface::addMDsToAnalysisInterface(struct miniDouble
             unsigned int mdIndex = idx * N_MAX_MD_PER_MODULES + jdx;
             std::shared_ptr<Hit> lowerHitPtr = hits_[mdsInGPU.hitIndices[2 * mdIndex]];
             std::shared_ptr<Hit> upperHitPtr = hits_[mdsInGPU.hitIndices[2 * mdIndex + 1]];
-
+#ifdef CUT_VALUE_DEBUG
             miniDoublets_[mdIndex] = std::make_shared<SDL::MiniDoublet>(mdsInGPU.dzs[mdIndex], mdsInGPU.drts[mdIndex], mdsInGPU.dphis[mdIndex], mdsInGPU.dphichanges[mdIndex], mdsInGPU.noShiftedDphis[mdIndex], mdsInGPU.noShiftedDphiChanges[mdIndex], mdsInGPU.dzCuts[mdIndex], mdsInGPU.drtCuts[mdIndex], mdsInGPU.miniCuts[mdIndex], lowerHitPtr, upperHitPtr);
+#else
+            miniDoublets_[mdIndex] = std::make_shared<SDL::MiniDoublet>(mdsInGPU.dzs[mdIndex], 0, mdsInGPU.dphis[mdIndex], mdsInGPU.dphichanges[mdIndex], mdsInGPU.noShiftedDphis[mdIndex], mdsInGPU.noShiftedDphiChanges[mdIndex],0,0,0, lowerHitPtr, upperHitPtr);
+#endif
 
             mdPointers.push_back(miniDoublets_[mdIndex]);
             Module& lowerModule = lowerHitPtr->getModule();
@@ -111,9 +114,12 @@ void SDL::EventForAnalysisInterface::addSegmentsToAnalysisInterface(struct segme
             unsigned int segmentIndex = idx * N_MAX_SEGMENTS_PER_MODULE + jdx;
             std::shared_ptr<SDL::MiniDoublet> lowerMD =miniDoublets_[segmentsInGPU.mdIndices[segmentIndex * 2]];
             std::shared_ptr<SDL::MiniDoublet> upperMD = miniDoublets_[segmentsInGPU.mdIndices[segmentIndex * 2 + 1]];
-
+#ifdef CUT_VALUE_DEBUG
             segments_[segmentIndex] = std::make_shared<SDL::Segment>(segmentsInGPU.zIns[segmentIndex], segmentsInGPU.zOuts[segmentIndex], segmentsInGPU.rtIns[segmentIndex], segmentsInGPU.rtOuts[segmentIndex], segmentsInGPU.dPhis[segmentIndex], segmentsInGPU.dPhiMins[segmentIndex], segmentsInGPU.dPhiMaxs[segmentIndex], segmentsInGPU.dPhiChanges[segmentIndex], segmentsInGPU.dPhiChangeMins[segmentIndex], segmentsInGPU.dAlphaInnerMDSegments[segmentIndex], segmentsInGPU.dAlphaOuterMDSegments[segmentIndex], segmentsInGPU.dAlphaInnerMDOuterMDs[segmentIndex], segmentsInGPU.dPhiChangeMaxs[segmentIndex], segmentsInGPU.zLo[segmentIndex], segmentsInGPU.zHi[segmentIndex], segmentsInGPU.rtLo[segmentIndex], segmentsInGPU.rtHi[segmentIndex], segmentsInGPU.sdCut[segmentIndex], segmentsInGPU.dAlphaInnerMDSegmentThreshold[segmentIndex], segmentsInGPU.dAlphaOuterMDSegmentThreshold[segmentIndex], segmentsInGPU.dAlphaInnerMDOuterMDThreshold[segmentIndex], lowerMD, upperMD);
-            
+#else
+            segments_[segmentIndex] = std::make_shared<SDL::Segment>(segmentsInGPU.zIns[segmentIndex], segmentsInGPU.zOuts[segmentIndex], segmentsInGPU.rtIns[segmentIndex], segmentsInGPU.rtOuts[segmentIndex], segmentsInGPU.dPhis[segmentIndex], segmentsInGPU.dPhiMins[segmentIndex], segmentsInGPU.dPhiMaxs[segmentIndex], segmentsInGPU.dPhiChanges[segmentIndex], segmentsInGPU.dPhiChangeMins[segmentIndex], segmentsInGPU.dAlphaInnerMDSegments[segmentIndex], segmentsInGPU.dAlphaOuterMDSegments[segmentIndex], segmentsInGPU.dAlphaInnerMDOuterMDs[segmentIndex], segmentsInGPU.dPhiChangeMaxs[segmentIndex],0,0,0,0,0,0,0,0, lowerMD, upperMD);
+#endif
+
             segmentPointers.push_back(segments_[segmentIndex]);
             Module& innerLowerModule = (lowerMD->lowerHitPtr())->getModule();
             innerLowerModule.addSegment(segments_[segmentIndex]);
@@ -143,7 +149,12 @@ void SDL::EventForAnalysisInterface::addTrackletsToAnalysisInterface(struct trac
             unsigned int trackletIndex = idx * N_MAX_TRACKLETS_PER_MODULE + jdx;
             std::shared_ptr<Segment> innerSegment = segments_[trackletsInGPU.segmentIndices[2 * trackletIndex]];
             std::shared_ptr<Segment> outerSegment = segments_[trackletsInGPU.segmentIndices[2 * trackletIndex + 1]];
+
+#ifdef CUT_VALUE_DEBUG
             tracklets_[trackletIndex] = std::make_shared<SDL::Tracklet>(trackletsInGPU.zOut[trackletIndex], trackletsInGPU.rtOut[trackletIndex], trackletsInGPU.deltaPhiPos[trackletIndex], trackletsInGPU.deltaPhi[trackletIndex], trackletsInGPU.betaIn[trackletIndex], trackletsInGPU.betaOut[trackletIndex], trackletsInGPU.zLo[trackletIndex], trackletsInGPU.zHi[trackletIndex], trackletsInGPU.zLoPointed[trackletIndex], trackletsInGPU.zHiPointed[trackletIndex], trackletsInGPU.sdlCut[trackletIndex], trackletsInGPU.betaInCut[trackletIndex], trackletsInGPU.betaOutCut[trackletIndex], trackletsInGPU.deltaBetaCut[trackletIndex], trackletsInGPU.rtLo[trackletIndex], trackletsInGPU.rtHi[trackletIndex], trackletsInGPU.kZ[trackletIndex], innerSegment, outerSegment);
+#else
+            tracklets_[trackletIndex] = std::make_shared<SDL::Tracklet>(trackletsInGPU.zOut[trackletIndex], trackletsInGPU.rtOut[trackletIndex], trackletsInGPU.deltaPhiPos[trackletIndex], trackletsInGPU.deltaPhi[trackletIndex], trackletsInGPU.betaIn[trackletIndex], trackletsInGPU.betaOut[trackletIndex],0,0,0,0,0,0,0,0,0,0,0,innerSegment, outerSegment);
+#endif
 
             trackletPointers.push_back(tracklets_[trackletIndex]);
             Module& innerInnerLowerModule = ((innerSegment->innerMiniDoubletPtr())->lowerHitPtr())->getModule();
@@ -174,8 +185,11 @@ void SDL::EventForAnalysisInterface::addTripletsToAnalysisInterface(struct tripl
             unsigned int tripletIndex = idx * N_MAX_TRIPLETS_PER_MODULE + jdx;
             std::shared_ptr<Segment> innerSegment = segments_[tripletsInGPU.segmentIndices[2 * tripletIndex]];
             std::shared_ptr<Segment> outerSegment = segments_[tripletsInGPU.segmentIndices[2 * tripletIndex + 1]];
-
+#ifdef CUT_VALUE_DEBUG
             triplets_[tripletIndex] = std::make_shared<Triplet>(tripletsInGPU.zOut[tripletIndex], tripletsInGPU.rtOut[tripletIndex], tripletsInGPU.deltaPhiPos[tripletIndex], tripletsInGPU.deltaPhi[tripletIndex], tripletsInGPU.betaIn[tripletIndex], tripletsInGPU.betaOut[tripletIndex], tripletsInGPU.zLo[tripletIndex], tripletsInGPU.zHi[tripletIndex], tripletsInGPU.zLoPointed[tripletIndex], tripletsInGPU.zHiPointed[tripletIndex], tripletsInGPU.sdlCut[tripletIndex], tripletsInGPU.betaInCut[tripletIndex], tripletsInGPU.betaOutCut[tripletIndex], tripletsInGPU.deltaBetaCut[tripletIndex], tripletsInGPU.rtLo[tripletIndex], tripletsInGPU.rtHi[tripletIndex], tripletsInGPU.kZ[tripletIndex], innerSegment, outerSegment);
+#else
+            triplets_[tripletIndex] = std::make_shared<Triplet>(tripletsInGPU.zOut[tripletIndex], tripletsInGPU.rtOut[tripletIndex], tripletsInGPU.deltaPhiPos[tripletIndex], tripletsInGPU.deltaPhi[tripletIndex], tripletsInGPU.betaIn[tripletIndex], tripletsInGPU.betaOut[tripletIndex],0,0,0,0,0,0,0,0,0,0,0,innerSegment, outerSegment);
+#endif
 
             tripletPointers.push_back(triplets_[tripletIndex]);
             Module& innerInnerLowerModule = ((innerSegment->innerMiniDoubletPtr())->lowerHitPtr())->getModule();
