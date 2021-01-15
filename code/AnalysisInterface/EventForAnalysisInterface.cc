@@ -1,5 +1,6 @@
 #include "EventForAnalysisInterface.h"
 
+unsigned int N_MAX_HITS_PER_MODULE = 100;
 const unsigned int N_MAX_MD_PER_MODULES = 100;
 const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600; //WHY!
 const unsigned int MAX_CONNECTED_MODULES = 40;
@@ -9,8 +10,7 @@ const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 50000;
 const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 100000;
 const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
 const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 3000000;
-const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 2000000;
-
+const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 5000000;
 
 void SDL::EventForAnalysisInterface::addModulesToAnalysisInterface(struct modules& modulesInGPU, struct miniDoublets* mdsInGPU, struct segments* segmentsInGPU, struct tracklets* trackletsInGPU, struct triplets* tripletsInGPU, struct trackCandidates* trackCandidatesInGPU)
 {
@@ -349,7 +349,7 @@ SDL::EventForAnalysisInterface::EventForAnalysisInterface(struct modules* module
     }
     if(trackCandidatesInGPU != nullptr)
     {
-//        addTrackCandidatesToAnalysisInterface(*trackCandidatesInGPU);
+        addTrackCandidatesToAnalysisInterface(*trackCandidatesInGPU);
     }
 }
 

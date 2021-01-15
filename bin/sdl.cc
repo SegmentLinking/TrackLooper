@@ -312,6 +312,7 @@ int main(int argc, char** argv)
         //case 3: algo_eff(); break;
         //case 4: tracklet(); break;
         case 5: write_sdl_ntuple(); break;
+        case 6 : write_sdl_ntuple(true); break;
         //case 6: pixel_tracklet_eff(); break;
         default:
                 std::cout << options.help() << std::endl;
