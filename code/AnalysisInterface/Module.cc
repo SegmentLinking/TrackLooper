@@ -304,50 +304,65 @@ const SDL::Module::ModuleLayerType& SDL::Module::moduleLayerType() const
     return moduleLayerType_;
 }
 
-const std::vector<SDL::Hit*>& SDL::Module::getHitPtrs() const
+const std::vector<std::shared_ptr<SDL::Hit>>& SDL::Module::getHitPtrs() const
 {
     return hits_;
 }
 
-const std::vector<SDL::MiniDoublet*>& SDL::Module::getMiniDoubletPtrs() const
+const std::vector<std::shared_ptr<SDL::MiniDoublet>>& SDL::Module::getMiniDoubletPtrs() const
 {
     return miniDoublets_;
 }
 
-const std::vector<SDL::Segment*>& SDL::Module::getSegmentPtrs() const
+const std::vector<std::shared_ptr<SDL::Segment>>& SDL::Module::getSegmentPtrs() const
 {
     return segments_;
 }
 
-const std::vector<SDL::Tracklet*>& SDL::Module::getTrackletPtrs() const
+const std::vector<std::shared_ptr<SDL::Tracklet>>& SDL::Module::getTrackletPtrs() const
 {
     return tracklets_;
 }
 
-void SDL::Module::addHit(Hit* hit)
+const std::vector<std::shared_ptr<SDL::Triplet>>& SDL::Module::getTripletPtrs() const
+{
+    return triplets_;
+}
+
+const std::vector<std::shared_ptr<SDL::TrackCandidate>>& SDL::Module::getTrackCandidatePtrs() const
+{
+    return trackCandidates_;
+}
+
+void SDL::Module::addHit(std::shared_ptr<Hit> hit)
 {
     hits_.push_back(hit);
 }
 
-void SDL::Module::addMiniDoublet(MiniDoublet* md)
+void SDL::Module::addMiniDoublet(std::shared_ptr<MiniDoublet> md)
 {
     miniDoublets_.push_back(md);
 }
 
-void SDL::Module::addSegment(Segment* sg)
+void SDL::Module::addSegment(std::shared_ptr<Segment> sg)
 {
     segments_.push_back(sg);
 }
 
-void SDL::Module::addTracklet(Tracklet* tp)
+void SDL::Module::addTracklet(std::shared_ptr<Tracklet> tp)
 {
     tracklets_.push_back(tp);
 }
 
 
-void SDL::Module::addTriplet(Triplet* tp)
+void SDL::Module::addTriplet(std::shared_ptr<Triplet> tp)
 {
     triplets_.push_back(tp);
+}
+
+void SDL::Module::addTrackCandidate(std::shared_ptr<TrackCandidate> tc)
+{
+    trackCandidates_.push_back(tc);
 }
 
 const int SDL::Module::getNumberOfMiniDoublets() const
@@ -370,6 +385,26 @@ const int SDL::Module::getNumberOfTriplets() const
     return nTriplets_;
 }
 
+const int SDL::Module::getNumberOfTrackCandidatesT4T4() const
+{
+    return nTrackCandidatesT4T4_;
+}
+
+const int SDL::Module::getNumberOfTrackCandidatesT4T3() const
+{
+    return nTrackCandidatesT4T3_;
+}
+
+const int SDL::Module::getNumberOfTrackCandidatesT3T4() const
+{
+    return nTrackCandidatesT3T4_;
+}
+
+const int SDL::Module::getNumberOfTrackCandidates() const
+{
+    return nTrackCandidates_;
+}
+
 void SDL::Module::setNumberOfMiniDoublets(unsigned int nMiniDoublets)
 {
     nMiniDoublets_ = nMiniDoublets;
@@ -388,4 +423,24 @@ void SDL::Module::setNumberOfTracklets(unsigned int nTracklets)
 void SDL::Module::setNumberOfTriplets(unsigned int nTriplets)
 {
     nTriplets_ = nTriplets;
+}
+
+void SDL::Module::setNumberOfTrackCandidates(unsigned int nTrackCandidates)
+{
+    nTrackCandidates_ = nTrackCandidates;
+}
+
+void SDL::Module::setNumberOfTrackCandidatesT4T4(unsigned int nTrackCandidates)
+{
+    nTrackCandidatesT4T4_ = nTrackCandidates;
+}
+
+void SDL::Module::setNumberOfTrackCandidatesT4T3(unsigned int nTrackCandidates)
+{
+    nTrackCandidatesT4T3_ = nTrackCandidates;
+}
+
+void SDL::Module::setNumberOfTrackCandidatesT3T4(unsigned int nTrackCandidates)
+{
+    nTrackCandidatesT3T4_ = nTrackCandidates;
 }

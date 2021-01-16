@@ -4,12 +4,11 @@
 #include <vector>
 #include <map>
 #include <tuple>
+#include <memory>
 
 #include "Hit.h"
 #include "MiniDoublet.h"
 #include "Segment.h"
-#include "Tracklet.h"
-#include "Triplet.h"
 #include "SDL/Module.cuh"
 
 namespace SDL
@@ -19,6 +18,8 @@ namespace SDL
     class Segment;
     class Tracklet;
     class Triplet;
+    class TrackCandidate;
+
     class Module
     {
         private:
@@ -33,6 +34,7 @@ namespace SDL
         public:
             enum SubDet
             {
+                InnerPixel = 0,
                 Barrel = 5,
                 Endcap = 4
             };
@@ -42,7 +44,8 @@ namespace SDL
             enum ModuleType
             {
                 PS,
-                TwoS
+                TwoS,
+                PixelModule
             };
         private:
 
@@ -51,7 +54,8 @@ namespace SDL
             enum ModuleLayerType
             {
                 Pixel,
-                Strip
+                Strip,
+                InnerPixelLayer
             };
         private:
             ModuleLayerType moduleLayerType_;
@@ -65,16 +69,21 @@ namespace SDL
         private:
             Side side_;
 
-            std::vector<Hit*> hits_;
-            std::vector<MiniDoublet*> miniDoublets_;
-            std::vector<Segment*> segments_;
-            std::vector<Tracklet*> tracklets_;
-            std::vector<Triplet*> triplets_;
+            std::vector<std::shared_ptr<Hit>> hits_;
+            std::vector<std::shared_ptr<MiniDoublet>> miniDoublets_;
+            std::vector<std::shared_ptr<Segment>> segments_;
+            std::vector<std::shared_ptr<Tracklet>> tracklets_;
+            std::vector<std::shared_ptr<Triplet>> triplets_;
+            std::vector<std::shared_ptr<TrackCandidate>> trackCandidates_;
             //to accommodate the fact that we will overshoot existing array limits and need another way to count object multiplicities
             unsigned int nMiniDoublets_;
             unsigned int nSegments_;
             unsigned int nTracklets_;
             unsigned int nTriplets_;
+            unsigned int nTrackCandidates_;
+            unsigned int nTrackCandidatesT4T4_;
+            unsigned int nTrackCandidatesT4T3_;
+            unsigned int nTrackCandidatesT3T4_;
 
         public:
             Module();
@@ -95,20 +104,30 @@ namespace SDL
             const bool& isInverted() const;
             const ModuleType& moduleType() const;
             const ModuleLayerType& moduleLayerType() const;
-            const std::vector<Hit*>& getHitPtrs() const;
-            const std::vector<MiniDoublet*>& getMiniDoubletPtrs() const;
-            const std::vector<Segment*>& getSegmentPtrs() const;
-            const std::vector<Tracklet*>& getTrackletPtrs() const;
+            const std::vector<std::shared_ptr<Hit>>& getHitPtrs() const;
+            const std::vector<std::shared_ptr<MiniDoublet>>& getMiniDoubletPtrs() const;
+            const std::vector<std::shared_ptr<Segment>>& getSegmentPtrs() const;
+            const std::vector<std::shared_ptr<Tracklet>>& getTrackletPtrs() const;
+            const std::vector<std::shared_ptr<Triplet>>& getTripletPtrs() const;
+            const std::vector<std::shared_ptr<TrackCandidate>>& getTrackCandidatePtrs() const;
 
             const int getNumberOfMiniDoublets() const;
             const int getNumberOfSegments() const;
             const int getNumberOfTracklets() const;
             const int getNumberOfTriplets() const;
+            const int getNumberOfTrackCandidates() const;
+            const int getNumberOfTrackCandidatesT4T4() const;
+            const int getNumberOfTrackCandidatesT4T3() const;
+            const int getNumberOfTrackCandidatesT3T4() const;
 
             void setNumberOfMiniDoublets(unsigned int);
             void setNumberOfSegments(unsigned int);
             void setNumberOfTracklets(unsigned int);
             void setNumberOfTriplets(unsigned int);
+            void setNumberOfTrackCandidates(unsigned int);
+            void setNumberOfTrackCandidatesT4T4(unsigned int);
+            void setNumberOfTrackCandidatesT4T3(unsigned int);
+            void setNumberOfTrackCandidatesT3T4(unsigned int);
 
 
             // static functions to parse detId
@@ -126,11 +145,12 @@ namespace SDL
             void setDerivedQuantities();
 
 
-            void addHit(Hit* hit);
-            void addMiniDoublet(MiniDoublet* md);
-            void addSegment(Segment* sg);
-            void addTracklet(Tracklet* tp);
-            void addTriplet(Triplet* tp);
+            void addHit(std::shared_ptr<Hit> hit);
+            void addMiniDoublet(std::shared_ptr<MiniDoublet> md);
+            void addSegment(std::shared_ptr<Segment> sg);
+            void addTracklet(std::shared_ptr<Tracklet> tp);
+            void addTriplet(std::shared_ptr<Triplet> tp);
+            void addTrackCandidate(std::shared_ptr<TrackCandidate> tc);
     };
 
 }
