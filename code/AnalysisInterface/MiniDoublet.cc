@@ -1,6 +1,6 @@
 # include "MiniDoublet.h"
 
-SDL::MiniDoublet::MiniDoublet(float dz, float drt, float dphi, float dphichange, float dphinoshift, float dphichangenoshift, float dzCut, float drtCut, float miniCut, std::shared_ptr<SDL::Hit> lowerHitPtr, std::shared_ptr<SDL::Hit> upperHitPtr)
+SDL::MiniDoublet::MiniDoublet(float dz, float drt, float dphi, float dphichange, float dphinoshift, float dphichangenoshift, float dzCut, float drtCut, float miniCut, std::shared_ptr<SDL::Hit>& lowerHitPtr, std::shared_ptr<SDL::Hit>& upperHitPtr)
 {
     dz_ = dz;
     drt_ = drt;
@@ -17,17 +17,17 @@ SDL::MiniDoublet::MiniDoublet(float dz, float drt, float dphi, float dphichange,
     setAnchorHit();
 }
 
-std::shared_ptr<SDL::Hit> SDL::MiniDoublet::lowerHitPtr() const
+const std::shared_ptr<SDL::Hit>& SDL::MiniDoublet::lowerHitPtr() const
 {
     return lowerHitPtr_;
 }
 
-std::shared_ptr<SDL::Hit> SDL::MiniDoublet::upperHitPtr() const
+const std::shared_ptr<SDL::Hit>& SDL::MiniDoublet::upperHitPtr() const
 {
     return upperHitPtr_;
 }
 
-std::shared_ptr<SDL::Hit> SDL::MiniDoublet::anchorHitPtr() const
+const std::shared_ptr<SDL::Hit>& SDL::MiniDoublet::anchorHitPtr() const
 {
     return anchorHitPtr_;
 }
@@ -76,7 +76,6 @@ const float& SDL::MiniDoublet::getMiniCut() const
 {
     return miniCut_;
 }
-#endif
 
 void SDL::MiniDoublet::setAnchorHit()
 {

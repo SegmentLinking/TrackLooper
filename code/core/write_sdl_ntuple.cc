@@ -18,6 +18,7 @@ void write_sdl_ntuple(bool cut_value_ntuple)
     {
         //call the function from WriteSDLNtuplev2.cc
         study = new WriteSDLNtuplev2("WriteSDLNtuple");
+        study->bookStudy();
         ana.cutflow.bookHistograms(ana.histograms);
     }
 

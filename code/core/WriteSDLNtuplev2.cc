@@ -769,7 +769,7 @@ void WriteSDLNtuplev2::setPixelSegmentBranches(SDL::EventForAnalysisInterface& e
     std::vector<vector<int>> sim_psgIdx(trk.sim_pt().size());
     std::vector<vector<int>> sim_psgIdx_isMTVmatch(trk.sim_pt().size());
 
-    std::shared_ptr<SDL::Layer> layerPtr = std::shared_ptr<SDL::Layer>(&event.getPixelLayer());
+    auto layerPtr = event.getPixelLayer();
 
     // Segment ptrs
     const std::vector<std::shared_ptr<SDL::Segment>>& segmentPtrs = layerPtr->getSegmentPtrs();
@@ -1133,14 +1133,14 @@ void WriteSDLNtuplev2::setPixelQuadrupletBranches(SDL::EventForAnalysisInterface
 {
 
     // get pixel layer ptrs
-    const SDL::Layer& pixelLayer = event.getPixelLayer();
+    auto pixelLayer = event.getPixelLayer();
 
     // sim track to tracklet matching
     std::vector<vector<int>> sim_pqpIdx(trk.sim_pt().size());
     std::vector<vector<int>> sim_pqpIdx_isMTVmatch(trk.sim_pt().size());
 
     // Quadruplet ptrs
-    const std::vector<std::shared_ptr<SDL::Tracklet>>& trackletPtrs = pixelLayer.getTrackletPtrs();
+    const std::vector<std::shared_ptr<SDL::Tracklet>>& trackletPtrs = pixelLayer->getTrackletPtrs();
 
     // Loop over tracklet ptrs
     for (auto& trackletPtr : trackletPtrs)
@@ -1259,7 +1259,7 @@ void WriteSDLNtuplev2::setTrackCandidateBranches(SDL::EventForAnalysisInterface&
 
     // get layer ptrs
     auto layerPtrs = event.getLayerPtrs();
-    layerPtrs.push_back(std::shared_ptr<SDL::Layer>(&(event.getPixelLayer())));
+    layerPtrs.push_back(event.getPixelLayer());
 
     // sim track to track candidate matching
     std::vector<vector<int>> sim_tcIdx(trk.sim_pt().size());

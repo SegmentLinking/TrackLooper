@@ -43,7 +43,7 @@ namespace SDL
 
 
         public:
-            Triplet(float zOut, float rtOut, float dPhiPos, float dPhi, float betaIn, float betaOut, float zLo, float zHi, float zLoPointed, float zHiPointed, float sdlCut, float betaInCut, float betaOutCut, float deltaBetaCut, float rtLo, float rtHi, float kZ, std::shared_ptr<Segment> innerSegment, std::shared_ptr<Segment> outerSegment);
+            Triplet(float zOut, float rtOut, float dPhiPos, float dPhi, float betaIn, float betaOut, float zLo, float zHi, float zLoPointed, float zHiPointed, float sdlCut, float betaInCut, float betaOutCut, float deltaBetaCut, float rtLo, float rtHi, float kZ, std::shared_ptr<Segment>& innerSegment, std::shared_ptr<Segment>& outerSegment);
             ~Triplet();
     
  	    const float& getZOut() const;

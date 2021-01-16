@@ -24,18 +24,20 @@ usage()
   echo "  -g    new grid               (Make library with new grid approach enabled)"
   echo "  -s    show log               (Full compilation script to stdout)"
   echo "  -m    make clean binaries    (Make clean binaries before remake. e.g. when header files changed in SDL/*.cuh)"
+  echo "  -d    cut value ntuple       (With extra variables in a debug ntuple file)"
   echo
   exit
 }
 
 # Parsing command-line opts
-while getopts ":cxgsmh" OPTION; do
+while getopts ":cxgsmdh" OPTION; do
   case $OPTION in
     c) MAKECACHE=true;;
     x) MAKEEXPLICIT=true;;
     g) MAKENEWGRID=true;;
     s) SHOWLOG=true;;
     m) MAKECLEANBINARIES=true;;
+    d) MAKECUTVALUES=true;;
     h) usage;;
     :) usage;;
   esac
@@ -47,6 +49,7 @@ if [ -z ${MAKEEXPLICIT}  ]; then MAKEEXPLICIT=false; fi
 if [ -z ${MAKENEWGRID}  ]; then MAKENEWGRID=false; fi
 if [ -z ${SHOWLOG} ]; then SHOWLOG=false; fi
 if [ -z ${MAKECLEANBINARIES} ]; then MAKECLEANBINARIES=false; fi
+if [ -z ${MAKECUTVALUES} ]; then MAKECUTVALUES=false; fi
 
 # Shift away the parsed options
 shift $(($OPTIND - 1))
@@ -69,13 +72,14 @@ echo "  MAKEEXPLICIT      : ${MAKEEXPLICIT}"                  | tee -a ${LOG}
 echo "  MAKENEWGRID       : ${MAKENEWGRID}"                   | tee -a ${LOG}
 echo "  SHOWLOG           : ${SHOWLOG}"                       | tee -a ${LOG}
 echo "  MAKECLEANBINARIES : ${MAKECLEANBINARIES}"             | tee -a ${LOG}
+echo "  MAKECUTVALUES     : ${MAKECUTVALUES}"                 | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
 echo "  (cf. Run > sh $(basename $0) -h to see all options)"  | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
 
 # Target to make default is unified
 MAKETARGET=unified
-
+TRACKLOOPERTARGET=
 # If make explicit is true then make library with explicit memory on GPU
 if $MAKEEXPLICIT; then MAKETARGET=explicit; fi
 
@@ -90,6 +94,13 @@ if $MAKECLEANBINARIES; then
     echo "First make cleaning all of TrackLooper objects and sdl.so" | tee -a ${LOG}
     cd SDL;make clean >>${LOG} 2>&1;cd -;
     make clean >> ${LOG} 2>&1
+fi
+#if make cut value is called then cut value ntuple making is done
+if $MAKECUTVALUES; then
+    echo " Making cut value ntuple" | tee -a ${LOG}
+    MAKETARGET=${MAKETARGET}_cutvalue;
+    TRACKLOOPERTARGET=cutvalue 
+    echo "debug : MAKETARGET=${MAKETARGET}"
 fi
 
 ###
@@ -133,9 +144,9 @@ echo "--------------------------------------------------------------------------
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 if $SHOWLOG; then
-    make -j 2>&1 | tee -a ${LOG}
+    make ${TRACKLOOPERTARGET}-j 2>&1 | tee -a ${LOG}
 else
-    make -j >> ${LOG} 2>&1 
+    make ${TRACKLOOPERTARGET} -j >> ${LOG} 2>&1 
 fi
 
 if [ ! -f bin/doAnalysis ]; then

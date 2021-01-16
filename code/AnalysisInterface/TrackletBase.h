@@ -28,11 +28,11 @@ namespace SDL
 
         public:
             TrackletBase();
-            TrackletBase(std::shared_ptr<Segment> innerSegmentPtr, std::shared_ptr<Segment> outerSegmentPtr);
+            TrackletBase(std::shared_ptr<Segment>& innerSegmentPtr, std::shared_ptr<Segment>& outerSegmentPtr);
             virtual ~TrackletBase();
 
-            std::shared_ptr<Segment> innerSegmentPtr() const;
-            std::shared_ptr<Segment> outerSegmentPtr() const;
+            const std::shared_ptr<Segment>& innerSegmentPtr() const;
+            const std::shared_ptr<Segment>& outerSegmentPtr() const;
     };
 }
 #endif

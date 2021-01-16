@@ -62,7 +62,6 @@ void SDL::EventForAnalysisInterface::addHitsToAnalysisInterface(struct hits&  hi
     for(unsigned int idx = 0; idx < *(hitsInGPU.nHits); idx++)
     {
         std::shared_ptr<Module> lowerModule = moduleMapByIndex_[hitsInGPU.moduleIndices[idx]];
-
         hits_[idx] = std::make_shared<SDL::Hit>(hitsInGPU.xs[idx],hitsInGPU.ys[idx],hitsInGPU.zs[idx],hitsInGPU.rts[idx],hitsInGPU.phis[idx], hitsInGPU.idxs[idx], lowerModule);
         hitPointers.push_back(hits_[idx]);
         lowerModule->addHit(hits_[idx]);
@@ -84,7 +83,6 @@ void SDL::EventForAnalysisInterface::addMDsToAnalysisInterface(struct miniDouble
 #else
             miniDoublets_[mdIndex] = std::make_shared<SDL::MiniDoublet>(mdsInGPU.dzs[mdIndex], 0, mdsInGPU.dphis[mdIndex], mdsInGPU.dphichanges[mdIndex], mdsInGPU.noShiftedDphis[mdIndex], mdsInGPU.noShiftedDphiChanges[mdIndex],0,0,0, lowerHitPtr, upperHitPtr);
 #endif
-
             mdPointers.push_back(miniDoublets_[mdIndex]);
             Module& lowerModule = lowerHitPtr->getModule();
             lowerModule.addMiniDoublet(miniDoublets_[mdIndex]);
@@ -98,7 +96,7 @@ void SDL::EventForAnalysisInterface::addMDsToAnalysisInterface(struct miniDouble
             }
             else
             {
-                getPixelLayer().addMiniDoublet(miniDoublets_[mdIndex]);
+                getPixelLayer()->addMiniDoublet(miniDoublets_[mdIndex]);
             }
 
         }
@@ -119,7 +117,6 @@ void SDL::EventForAnalysisInterface::addSegmentsToAnalysisInterface(struct segme
 #else
             segments_[segmentIndex] = std::make_shared<SDL::Segment>(segmentsInGPU.zIns[segmentIndex], segmentsInGPU.zOuts[segmentIndex], segmentsInGPU.rtIns[segmentIndex], segmentsInGPU.rtOuts[segmentIndex], segmentsInGPU.dPhis[segmentIndex], segmentsInGPU.dPhiMins[segmentIndex], segmentsInGPU.dPhiMaxs[segmentIndex], segmentsInGPU.dPhiChanges[segmentIndex], segmentsInGPU.dPhiChangeMins[segmentIndex], segmentsInGPU.dAlphaInnerMDSegments[segmentIndex], segmentsInGPU.dAlphaOuterMDSegments[segmentIndex], segmentsInGPU.dAlphaInnerMDOuterMDs[segmentIndex], segmentsInGPU.dPhiChangeMaxs[segmentIndex],0,0,0,0,0,0,0,0, lowerMD, upperMD);
 #endif
-
             segmentPointers.push_back(segments_[segmentIndex]);
             Module& innerLowerModule = (lowerMD->lowerHitPtr())->getModule();
             innerLowerModule.addSegment(segments_[segmentIndex]);
@@ -133,7 +130,7 @@ void SDL::EventForAnalysisInterface::addSegmentsToAnalysisInterface(struct segme
             }
             else
             {
-                getPixelLayer().addSegment(segments_[segmentIndex]);
+                getPixelLayer()->addSegment(segments_[segmentIndex]);
                 segments_[segmentIndex]->setPixelVariables(segmentsInGPU.ptIn[jdx],segmentsInGPU.ptErr[jdx], segmentsInGPU.px[jdx], segmentsInGPU.py[jdx], segmentsInGPU.pz[jdx], segmentsInGPU.etaErr[jdx]);
             }
         }
@@ -170,7 +167,7 @@ void SDL::EventForAnalysisInterface::addTrackletsToAnalysisInterface(struct trac
             }
             else
             {
-                getPixelLayer().addTracklet(tracklets_[trackletIndex]);
+                getPixelLayer()->addTracklet(tracklets_[trackletIndex]);
             }
         }
     }
@@ -255,7 +252,7 @@ void SDL::EventForAnalysisInterface::addTrackCandidatesToAnalysisInterface(struc
             }
             else
             {
-                getPixelLayer().addTrackCandidate(trackCandidates_[trackCandidateIndex]);
+                getPixelLayer()->addTrackCandidate(trackCandidates_[trackCandidateIndex]);
             }
 
             //printTrackCandidateLayers(trackCandidates_[trackCandidateIndex]);    
@@ -377,8 +374,12 @@ const std::vector<std::shared_ptr<SDL::Module>> SDL::EventForAnalysisInterface::
     return lowerModulePointers;
 }
 
-SDL::Layer& SDL::EventForAnalysisInterface::getPixelLayer()
+const std::shared_ptr<SDL::Layer>& SDL::EventForAnalysisInterface::getPixelLayer()
 {
+    if(pixelLayer_ == nullptr)
+    {
+        pixelLayer_ = std::make_shared<SDL::Layer>();
+    }
     return pixelLayer_;
 }
 

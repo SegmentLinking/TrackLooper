@@ -31,12 +31,12 @@ namespace SDL
             std::shared_ptr<Hit> upperHitPtr_;
             std::shared_ptr<Hit> anchorHitPtr_;
         public:
-            MiniDoublet(float dz, float drt, float dphi, float dphichange, float dphinoshift, float dphichangenoshift, float dzCut, float drtCut, float miniCut, std::shared_ptr<Hit> lowerHitPtr, std::shared_ptr<Hit> upperHitPtr);
+            MiniDoublet(float dz, float drt, float dphi, float dphichange, float dphinoshift, float dphichangenoshift, float dzCut, float drtCut, float miniCut, std::shared_ptr<Hit>& lowerHitPtr, std::shared_ptr<Hit>& upperHitPtr);
             void setAnchorHit();
             ~MiniDoublet();
-            std::shared_ptr<Hit> lowerHitPtr() const;
-            std::shared_ptr<Hit> upperHitPtr() const;
-            std::shared_ptr<Hit> anchorHitPtr() const;
+            const std::shared_ptr<Hit>& lowerHitPtr() const;
+            const std::shared_ptr<Hit>& upperHitPtr() const;
+            const std::shared_ptr<Hit>& anchorHitPtr() const;
             const float& getDz() const;
             const float& getDrt() const;
             const float& getDeltaPhi() const;

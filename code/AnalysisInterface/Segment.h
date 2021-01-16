@@ -53,10 +53,10 @@ namespace SDL
             std::shared_ptr<MiniDoublet> outerMDPtr_;
 
         public:
-            Segment(float zIn, float zOut, float rtIn, float rtOut, float dphi, float dphiMin, float dphiMax, float dphichange, float dphichangeMin, float dphichangeMax, float dAlphaInnerMDSegment, float dAlphaOuterMDSegment, float dAlphaInnerMDOuterMD, float zLo, float zHi, float rtLo, float rtHi, float sdCut, float dAlphaInnerMDSegmentThreshold,float dAlphaOuterMDSegmentThreshold, float dAlphaInnerMDOuterMDThreshold, std::shared_ptr<MiniDoublet> innerMDPtr, std::shared_ptr<MiniDoublet> outerMDPtr);
+            Segment(float zIn, float zOut, float rtIn, float rtOut, float dphi, float dphiMin, float dphiMax, float dphichange, float dphichangeMin, float dphichangeMax, float dAlphaInnerMDSegment, float dAlphaOuterMDSegment, float dAlphaInnerMDOuterMD, float zLo, float zHi, float rtLo, float rtHi, float sdCut, float dAlphaInnerMDSegmentThreshold,float dAlphaOuterMDSegmentThreshold, float dAlphaInnerMDOuterMDThreshold, std::shared_ptr<MiniDoublet>& innerMDPtr, std::shared_ptr<MiniDoublet>& outerMDPtr);
             ~Segment();
-            std::shared_ptr<MiniDoublet> innerMiniDoubletPtr() const;
-            std::shared_ptr<MiniDoublet> outerMiniDoubletPtr() const;
+            const std::shared_ptr<MiniDoublet>& innerMiniDoubletPtr() const;
+            const std::shared_ptr<MiniDoublet>& outerMiniDoubletPtr() const;
             const float& getRtOut() const;
             const float& getRtIn() const;
             const float& getDeltaPhi() const;

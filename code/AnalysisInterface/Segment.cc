@@ -1,6 +1,6 @@
 #include "Segment.h"
 
-SDL::Segment::Segment(float zIn, float zOut, float rtIn, float rtOut, float dphi, float dphiMin, float dphiMax, float dphichange, float dphichangeMin, float dphichangeMax, float dAlphaInnerMDSegment, float dAlphaOuterMDSegment, float dAlphaInnerMDOuterMD, float zLo, float zHi, float rtLo, float rtHi, float sdCut, float dAlphaInnerMDSegmentThreshold, float dAlphaOuterMDSegmentThreshold, float dAlphaInnerMDOuterMDThreshold, std::shared_ptr<SDL::MiniDoublet> innerMDPtr, std::shared_ptr<SDL::MiniDoublet> outerMDPtr)
+SDL::Segment::Segment(float zIn, float zOut, float rtIn, float rtOut, float dphi, float dphiMin, float dphiMax, float dphichange, float dphichangeMin, float dphichangeMax, float dAlphaInnerMDSegment, float dAlphaOuterMDSegment, float dAlphaInnerMDOuterMD, float zLo, float zHi, float rtLo, float rtHi, float sdCut, float dAlphaInnerMDSegmentThreshold, float dAlphaOuterMDSegmentThreshold, float dAlphaInnerMDOuterMDThreshold, std::shared_ptr<SDL::MiniDoublet>& innerMDPtr, std::shared_ptr<SDL::MiniDoublet>& outerMDPtr)
 {
     zOut_ = zOut;
     zIn_ = zIn;
@@ -27,12 +27,12 @@ SDL::Segment::Segment(float zIn, float zOut, float rtIn, float rtOut, float dphi
 }
 
 
-std::shared_ptr<SDL::MiniDoublet> SDL::Segment::innerMiniDoubletPtr() const
+const std::shared_ptr<SDL::MiniDoublet>& SDL::Segment::innerMiniDoubletPtr() const
 {
     return innerMDPtr_;
 }
 
-std::shared_ptr<SDL::MiniDoublet> SDL::Segment::outerMiniDoubletPtr() const
+const std::shared_ptr<SDL::MiniDoublet>& SDL::Segment::outerMiniDoubletPtr() const
 {
     return outerMDPtr_;
 }
