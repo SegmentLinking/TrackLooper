@@ -1433,6 +1433,8 @@ __global__ void createMiniDoubletsFromLowerModule(struct SDL::modules& modulesIn
 
     if(success)
     {
+        unsigned int mdModuleIndex = atomicAdd(&mdsInGPU.nMDs[lowerModuleIndex],1);
+
         if(mdModuleIndex >= N_MAX_MD_PER_MODULES)
         {
             if(mdModuleIndex == N_MAX_MD_PER_MODULES)
@@ -1440,7 +1442,7 @@ __global__ void createMiniDoubletsFromLowerModule(struct SDL::modules& modulesIn
         }
         else
         {
-            unsigned int mdIndex = lowerModuleIndex * N_MAX_MD_PER_MODULES + mdModuleIdx;
+            unsigned int mdIndex = lowerModuleIndex * N_MAX_MD_PER_MODULES + mdModuleIndex;
 #ifdef CUT_VALUE_DEBUG
             addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz,drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, dzCut, drtCut, miniCut, mdIndex);
 #else
