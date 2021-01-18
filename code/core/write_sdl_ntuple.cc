@@ -1,16 +1,26 @@
 #include "write_sdl_ntuple.h"
 
 //________________________________________________________________________________________________________________________________
-void write_sdl_ntuple()
+void write_sdl_ntuple(bool cut_value_ntuple)
 {
 
     // Load various maps used in the SDL reconstruction
     loadMaps();
+    Study* study;
 
     if (not ana.do_run_cpu)
         SDL::initModules(TString::Format("%s/data/centroid.txt", gSystem->Getenv("TRACKLOOPERDIR")));
-
-    createOutputBranches();
+    if((not cut_value_ntuple) or ana.do_run_cpu)
+    {
+        createOutputBranches();
+    }
+    else
+    {
+        //call the function from WriteSDLNtuplev2.cc
+        study = new WriteSDLNtuplev2("WriteSDLNtuple");
+        study->bookStudy();
+        ana.cutflow.bookHistograms(ana.histograms);
+    }
 
     // Timing average information
     std::vector<std::vector<float>> timing_information;
@@ -81,7 +91,19 @@ void write_sdl_ntuple()
                 debugPrintOutlierMultiplicities(event);
             }
 
-            fillOutputBranches(event);
+            if(not cut_value_ntuple)
+            {
+                fillOutputBranches(event);
+            }
+            else
+            {
+                //call the function from WriteSDLNtupleV2.cc
+                SDL::EventForAnalysisInterface* eventForAnalysisInterface = new SDL::EventForAnalysisInterface(SDL::modulesInGPU, event.getHits(), event.getMiniDoublets(), event.getSegments(), event.getTracklets(), event.getTriplets(), event.getTrackCandidates());
+
+                study->doStudy(*eventForAnalysisInterface);
+                ana.cutflow.fill();
+            }
+
         }
         else
         {
@@ -151,6 +173,11 @@ void write_sdl_ntuple()
 
     // Writing ttree output to file
     ana.output_tfile->cd();
+    if(not cut_value_ntuple)
+    {
+        ana.cutflow.saveOutput();
+    }
+
     ana.output_ttree->Write();
 
     // The below can be sometimes crucial
@@ -215,15 +242,22 @@ void fillOutputBranches(SDL::Event& event)
 
     // Did it match to track candidate?
     std::vector<int> sim_TC_matched(trk.sim_pt().size());
-
     for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
-        for (unsigned int jdx = 0; jdx < trackCandidatesInGPU.nTrackCandidates[idx]; jdx++)
+        unsigned int nTrackCandidates = trackCandidatesInGPU.nTrackCandidates[idx];
+        if(idx == *SDL::modulesInGPU->nLowerModules and nTrackCandidates > 5000000)
+        {
+            nTrackCandidates = 5000000;
+        }
+        if(idx < *SDL::modulesInGPU->nLowerModules and nTrackCandidates > 50000)
+        {
+            nTrackCandidates = 50000;
+        }
+        for (unsigned int jdx = 0; jdx < nTrackCandidates; jdx++)
         {
             unsigned int trackCandidateIndex = idx * 50000/*_N_MAX_TRACK_CANDIDATES_PER_MODULE*/ + jdx;
 
             short trackCandidateType = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
-
             unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex];
             unsigned int outerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1];
 
@@ -596,7 +630,10 @@ void printMiniDoubletMultiplicities(SDL::Event& event)
     int nMiniDoublets = 0;
     for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
-        nMiniDoublets += miniDoubletsInGPU.nMDs[idx];
+        if(SDL::modulesInGPU->isLower[idx])
+        {
+            nMiniDoublets += miniDoubletsInGPU.nMDs[idx];
+        }
     }
     std::cout <<  " nMiniDoublets: " << nMiniDoublets <<  std::endl;
 }

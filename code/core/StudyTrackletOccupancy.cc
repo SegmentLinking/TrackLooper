@@ -47,7 +47,7 @@ void StudyTrackletOccupancy::bookStudy()
 
 void StudyTrackletOccupancy::doStudy(SDL::EventForAnalysisInterface&event, std::vector<std::tuple<unsigned int, SDL::EventForAnalysisInterface*>> simtrkevents)
 {
-    std::vector<SDL::Module*> moduleList = event.getLowerModulePtrs();
+    std::vector<std::shared_ptr<SDL::Module>> moduleList = event.getLowerModulePtrs();
 
     averageOccupancyInBarrel = 0;
     averageOccupancyInEndcap = 0;
