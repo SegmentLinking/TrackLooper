@@ -16,4 +16,6 @@ code/rooutil/rooutil.so
 efficiency/doAnalysis
 .jobs.txt
 efficiency/results*
+efficiencies/
 *.txt
+*.pyc

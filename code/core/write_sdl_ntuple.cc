@@ -630,7 +630,10 @@ void printMiniDoubletMultiplicities(SDL::Event& event)
     int nMiniDoublets = 0;
     for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
-        nMiniDoublets += miniDoubletsInGPU.nMDs[idx];
+        if(SDL::modulesInGPU->isLower[idx])
+        {
+            nMiniDoublets += miniDoubletsInGPU.nMDs[idx];
+        }
     }
     std::cout <<  " nMiniDoublets: " << nMiniDoublets <<  std::endl;
 }
