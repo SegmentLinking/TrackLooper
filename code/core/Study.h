@@ -13,7 +13,8 @@ public:
 
     virtual void bookStudy();
     virtual void doStudy(SDL::EventForAnalysisInterface& recoevent, std::vector<std::tuple<unsigned int, SDL::EventForAnalysisInterface*>> simtrkevents);
-
+    virtual void doStudy(SDL::EventForAnalysisInterface& recoevent);//, std::vector<std::tuple<unsigned int, SDL::EventForAnalysisInterface*>> simtrkevents);
+    
 };
 
 

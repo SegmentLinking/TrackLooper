@@ -867,11 +867,12 @@ bool isMTVMatch(unsigned int isimtrk, std::vector<unsigned int> hit_idxs, bool v
 
 void loadMaps()
 {
-    SDL::endcapGeometry.load("data/endcap_orientation_data_v2.txt"); // centroid values added to the map
-    SDL::tiltedGeometry.load("data/tilted_orientation_data.txt");
+    TString TrackLooperDir = gSystem->Getenv("TRACKLOOPERDIR");
+    SDL::endcapGeometry.load(TString::Format("%s/data/endcap_orientation_data_v2.txt", TrackLooperDir.Data()).Data()); // centroid values added to the map
+    SDL::tiltedGeometry.load(TString::Format("%s/data/tilted_orientation_data.txt", TrackLooperDir.Data()).Data());
 
-    SDL::moduleConnectionMap.load("data/module_connection_combined_2020_0520_helixray.txt");
-    ana.moduleConnectiongMapLoose.load("data/module_connection_combined_2020_0520_helixray.txt");
+    SDL::moduleConnectionMap.load(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
+    ana.moduleConnectiongMapLoose.load(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
 
     // SDL::moduleConnectionMap.load("/home/users/phchang/public_html/analysis/sdl/TrackLooper_/scripts/module_connection_map_data_10_e0_200_100_pt0p8_2p0_400_pt0p8_2p0_nolossers_dxy35cm_endcaplayer2.txt");
     // ana.moduleConnectiongMapLoose.load("/home/users/phchang/public_html/analysis/sdl/TrackLooper_/scripts/module_connection_map_data_10_e0_200_100_pt0p8_2p0_400_pt0p8_2p0_nolossers_dxy35cm_endcaplayer2.txt");
@@ -1284,9 +1285,6 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             hitId.push_back(1);
             hitId.push_back(1);
             hitId.push_back(1);
-            px_vec.push_back(px);
-            py_vec.push_back(py);
-            pz_vec.push_back(pz);
             if(trk.see_hitIdx()[iSeed].size() > 3)
             {
                 trkX.push_back(r3LH.X());
@@ -1294,6 +1292,9 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
                 trkZ.push_back(r3LH.Z());
                 hitId.push_back(1);
             }
+            px_vec.push_back(px);
+            py_vec.push_back(py);
+            pz_vec.push_back(pz);
 
             hitIndices_vec0.push_back(hitIdx0);
             hitIndices_vec1.push_back(hitIdx1);
@@ -1308,7 +1309,10 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][0]);
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][1]);
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][2]);
-            hitIdxs.push_back(trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]);
+            if(trk.see_hitIdx()[iSeed].size() > 3)
+            {
+                hitIdxs.push_back(trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]);
+            }
 
         }
 

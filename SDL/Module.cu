@@ -294,7 +294,7 @@ void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int n
 
 }
 
-void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModules)
+void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModules, const char* moduleMetaDataFilePath)
 {
     detIdToIndex = new std::map<unsigned int, unsigned int>;
 
@@ -302,7 +302,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     /* Load the whole text file into the unordered_map first*/
 
     std::ifstream ifile;
-    ifile.open("data/centroid.txt");
+    ifile.open(moduleMetaDataFilePath);
     if(!ifile.is_open())
     {
         std::cout<<"ERROR! module list file not present!"<<std::endl;
@@ -329,8 +329,10 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     counter++;
     nModules = counter;
     std::cout<<"Number of modules = "<<nModules<<std::endl;
+    createModulesInUnifiedMemory(modulesInGPU,nModules);
 #ifdef Explicit_Module
     createModulesInExplicitMemory(modulesInGPU,nModules);
+    //createModulesInUnifiedMemory(modulesInGPU,nModules);
     unsigned int* lowerModuleCounter;// = 0;
     cudaMallocHost(&lowerModuleCounter,sizeof(unsigned int));
 

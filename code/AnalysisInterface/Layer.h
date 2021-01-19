@@ -64,19 +64,19 @@ namespace SDL
             unsigned short subdet_;
 
             // vector of mini-doublets
-            std::vector<MiniDoublet*> minidoublets_;
+            std::vector<std::shared_ptr<MiniDoublet>> minidoublets_;
 
             // vector of segments (This is used for the inefficient approach of looping over all segements in each layer)
-            std::vector<Segment*> segments_;
+            std::vector<std::shared_ptr<Segment>> segments_;
 
             // vector of triplets
-            std::vector<Triplet*> triplets_;
+            std::vector<std::shared_ptr<Triplet>> triplets_;
 
             // vector of tracklets
-            std::vector<Tracklet*> tracklets_;
+            std::vector<std::shared_ptr<Tracklet>> tracklets_;
 
             // vector of trackcandidates
-//            std::vector<TrackCandidate*> trackcandidates_;
+            std::vector<std::shared_ptr<TrackCandidate>> trackcandidates_;
 
         private:
 
@@ -97,22 +97,22 @@ namespace SDL
             // accessor
             const unsigned short& subdet() const;
             const int& layerIdx() const;
-            const std::vector<MiniDoublet*>& getMiniDoubletPtrs() const;
-            const std::vector<Segment*>& getSegmentPtrs() const;
-            const std::vector<Triplet*>& getTripletPtrs() const;
-            const std::vector<Tracklet*>& getTrackletPtrs() const;
-  //          const std::vector<TrackCandidate*>& getTrackCandidatePtrs() const;
+            const std::vector<std::shared_ptr<MiniDoublet>>& getMiniDoubletPtrs() const;
+            const std::vector<std::shared_ptr<Segment>>& getSegmentPtrs() const;
+            const std::vector<std::shared_ptr<Triplet>>& getTripletPtrs() const;
+            const std::vector<std::shared_ptr<Tracklet>>& getTrackletPtrs() const;
+            const std::vector<std::shared_ptr<TrackCandidate>>& getTrackCandidatePtrs() const;
             static const std::vector<std::pair<std::pair<int, SubDet>, std::pair<int, SubDet>>>& getListOfTrackletCompatibleLayerPairs();
             static const std::vector<std::pair<std::pair<int, SubDet>, std::pair<int, SubDet>>>& getListOfSegmentCompatibleLayerPairs();
 
             // modifier
             void setLayerIdx(int lidx);
             void setSubDet(SubDet subdet);
-            void addMiniDoublet(MiniDoublet* md);
-            void addSegment(Segment* sg);
-            void addTriplet(Triplet* tp);
-            void addTracklet(Tracklet* tl);
-    //        void addTrackCandidate(TrackCandidate* tl);
+            void addMiniDoublet(std::shared_ptr<MiniDoublet> md);
+            void addSegment(std::shared_ptr<Segment> sg);
+            void addTriplet(std::shared_ptr<Triplet> tp);
+            void addTracklet(std::shared_ptr<Tracklet> tl);
+            void addTrackCandidate(std::shared_ptr<TrackCandidate> tl);
 
             // printing
             friend std::ostream& operator<<(std::ostream& os, const Layer& layer);

@@ -1,15 +1,26 @@
 #include "write_sdl_ntuple.h"
 
-void write_sdl_ntuple()
+//________________________________________________________________________________________________________________________________
+void write_sdl_ntuple(bool cut_value_ntuple)
 {
 
     // Load various maps used in the SDL reconstruction
     loadMaps();
+    Study* study;
 
     if (not ana.do_run_cpu)
-        SDL::initModules();
-
-    createOutputBranches();
+        SDL::initModules(TString::Format("%s/data/centroid.txt", gSystem->Getenv("TRACKLOOPERDIR")));
+    if((not cut_value_ntuple) or ana.do_run_cpu)
+    {
+        createOutputBranches();
+    }
+    else
+    {
+        //call the function from WriteSDLNtuplev2.cc
+        study = new WriteSDLNtuplev2("WriteSDLNtuple");
+        study->bookStudy();
+        ana.cutflow.bookHistograms(ana.histograms);
+    }
 
     // Timing average information
     std::vector<std::vector<float>> timing_information;
@@ -17,6 +28,7 @@ void write_sdl_ntuple()
     // Looping input file
     while (ana.looper.nextEvent())
     {
+
         std::cout<<"event number = "<<ana.looper.getCurrentEventIndex()<<std::endl;
 
         if (not goodEvent())
@@ -24,6 +36,10 @@ void write_sdl_ntuple()
 
         if (not ana.do_run_cpu)
         {
+            //*******************************************************
+            // GPU VERSION RUN
+            //*******************************************************
+
             // Main instance that will hold modules, hits, minidoublets, etc. (i.e. main data structure)
             SDL::Event event;
 
@@ -40,11 +56,11 @@ void write_sdl_ntuple()
 
             // Run pT4
             float timing_pT4 = runpT4(event);
-            printQuadrupletMultiplicities(event);
+            //printQuadrupletMultiplicities(event);
 
             // Run T4x
             float timing_T4x = runT4x(event);
-            printQuadrupletMultiplicities(event);
+            //printQuadrupletMultiplicities(event);
 
             // Run T4
             float timing_T4 = runT4(event);
@@ -65,10 +81,36 @@ void write_sdl_ntuple()
                     timing_T3,
                     timing_TC});
 
-            fillOutputBranches(event);
+            if (ana.verbose == 4)
+            {
+                printAllObjects(event);
+            }
+
+            if (ana.verbose == 5)
+            {
+                debugPrintOutlierMultiplicities(event);
+            }
+
+            if(not cut_value_ntuple)
+            {
+                fillOutputBranches(event);
+            }
+            else
+            {
+                //call the function from WriteSDLNtupleV2.cc
+                SDL::EventForAnalysisInterface* eventForAnalysisInterface = new SDL::EventForAnalysisInterface(SDL::modulesInGPU, event.getHits(), event.getMiniDoublets(), event.getSegments(), event.getTracklets(), event.getTriplets(), event.getTrackCandidates());
+
+                study->doStudy(*eventForAnalysisInterface);
+                ana.cutflow.fill();
+            }
+
         }
         else
         {
+            //*******************************************************
+            // CPU VERSION RUN
+            //*******************************************************
+
             // Main instance that will hold modules, hits, minidoublets, etc. (i.e. main data structure)
             SDL::CPU::Event event;
 
@@ -116,6 +158,11 @@ void write_sdl_ntuple()
                     timing_T3,
                     timing_TC});
 
+            if (ana.verbose == 4)
+            {
+                printAllObjects_for_CPU(event);
+            }
+
             fillOutputBranches_for_CPU(event);
 
         }
@@ -126,6 +173,11 @@ void write_sdl_ntuple()
 
     // Writing ttree output to file
     ana.output_tfile->cd();
+    if(not cut_value_ntuple)
+    {
+        ana.cutflow.saveOutput();
+    }
+
     ana.output_ttree->Write();
 
     // The below can be sometimes crucial
@@ -133,6 +185,7 @@ void write_sdl_ntuple()
 
 }
 
+//________________________________________________________________________________________________________________________________
 void createOutputBranches()
 {
     // Setup output TTree
@@ -160,6 +213,7 @@ void createOutputBranches()
     ana.tx->createBranch<vector<vector<int>>>("sim_TC_types");
 }
 
+//________________________________________________________________________________________________________________________________
 void fillOutputBranches(SDL::Event& event)
 {
     // Sim tracks
@@ -188,15 +242,22 @@ void fillOutputBranches(SDL::Event& event)
 
     // Did it match to track candidate?
     std::vector<int> sim_TC_matched(trk.sim_pt().size());
-
     for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
-        for (unsigned int jdx = 0; jdx < trackCandidatesInGPU.nTrackCandidates[idx]; jdx++)
+        unsigned int nTrackCandidates = trackCandidatesInGPU.nTrackCandidates[idx];
+        if(idx == *SDL::modulesInGPU->nLowerModules and nTrackCandidates > 5000000)
+        {
+            nTrackCandidates = 5000000;
+        }
+        if(idx < *SDL::modulesInGPU->nLowerModules and nTrackCandidates > 50000)
+        {
+            nTrackCandidates = 50000;
+        }
+        for (unsigned int jdx = 0; jdx < nTrackCandidates; jdx++)
         {
             unsigned int trackCandidateIndex = idx * 50000/*_N_MAX_TRACK_CANDIDATES_PER_MODULE*/ + jdx;
 
             short trackCandidateType = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
-
             unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex];
             unsigned int outerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1];
 
@@ -229,7 +290,6 @@ void fillOutputBranches(SDL::Event& event)
             unsigned int innerTrackletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletOuterSegmentIndex + 1];
             unsigned int outerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex];
             unsigned int outerTrackletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex + 1];
-
             unsigned int innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentInnerMiniDoubletIndex];
             unsigned int innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentInnerMiniDoubletIndex + 1];
             unsigned int innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentOuterMiniDoubletIndex];
@@ -299,6 +359,7 @@ void fillOutputBranches(SDL::Event& event)
 
 }
 
+//________________________________________________________________________________________________________________________________
 void fillOutputBranches_for_CPU(SDL::CPU::Event& event)
 {
     // Sim tracks
@@ -476,6 +537,7 @@ void fillOutputBranches_for_CPU(SDL::CPU::Event& event)
 
 }
 
+//________________________________________________________________________________________________________________________________
 void printTimingInformation(std::vector<std::vector<float>> timing_information)
 {
 
@@ -533,6 +595,7 @@ void printTimingInformation(std::vector<std::vector<float>> timing_information)
 
 }
 
+//________________________________________________________________________________________________________________________________
 void printQuadrupletMultiplicities(SDL::Event& event)
 {
     SDL::tracklets& trackletsInGPU = (*event.getTracklets());
@@ -545,6 +608,7 @@ void printQuadrupletMultiplicities(SDL::Event& event)
     std::cout <<  " nTracklets: " << nTracklets <<  std::endl;
 }
 
+//________________________________________________________________________________________________________________________________
 void printHitMultiplicities(SDL::Event& event)
 {
     SDL::hits& hitsInGPU = (*event.getHits());
@@ -552,21 +616,602 @@ void printHitMultiplicities(SDL::Event& event)
     int nHits = 0;
     for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
-        nHits += hitsInGPU.nHits[2 * idx];
-        nHits += hitsInGPU.nHits[2 * idx + 1];
+        nHits += SDL::modulesInGPU->hitRanges[4 * idx + 1] - SDL::modulesInGPU->hitRanges[4 * idx] + 1;       
+        nHits += SDL::modulesInGPU->hitRanges[4 * idx + 3] - SDL::modulesInGPU->hitRanges[4 * idx + 2] + 1;
     }
     std::cout <<  " nHits: " << nHits <<  std::endl;
 }
 
+//________________________________________________________________________________________________________________________________
 void printMiniDoubletMultiplicities(SDL::Event& event)
 {
     SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
 
     int nMiniDoublets = 0;
-    for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
+    for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
-        nMiniDoublets += miniDoubletsInGPU.nMDs[2 * idx];
-        nMiniDoublets += miniDoubletsInGPU.nMDs[2 * idx + 1];
+        if(SDL::modulesInGPU->isLower[idx])
+        {
+            nMiniDoublets += miniDoubletsInGPU.nMDs[idx];
+        }
     }
     std::cout <<  " nMiniDoublets: " << nMiniDoublets <<  std::endl;
 }
+
+//________________________________________________________________________________________________________________________________
+void printAllObjects(SDL::Event& event)
+{
+    printMDs(event);
+    printLSs(event);
+    printpLSs(event);
+    printT3s(event);
+    printT4s(event);
+    printpT4s(event);
+    printTCs(event);
+}
+
+//________________________________________________________________________________________________________________________________
+void printAllObjects_for_CPU(SDL::CPU::Event& event)
+{
+    printMDs_for_CPU(event);
+    printLSs_for_CPU(event);
+    printpLSs_for_CPU(event);
+    printT3s_for_CPU(event);
+    printT4s_for_CPU(event);
+    printpT4s_for_CPU(event);
+    printTCs_for_CPU(event);
+}
+
+//________________________________________________________________________________________________________________________________
+void printpT4s(SDL::Event& event)
+{
+    SDL::tracklets& trackletsInGPU = (*event.getTracklets());
+    SDL::triplets& tripletsInGPU = (*event.getTriplets());
+    SDL::segments& segmentsInGPU = (*event.getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event.getHits());
+    for (unsigned int itl = 0; itl < trackletsInGPU.nTracklets[*(SDL::modulesInGPU->nLowerModules)]; ++itl)
+    {
+
+        unsigned int trackletIndex = (*(SDL::modulesInGPU->nLowerModules)) * 8000/*_N_MAX_TRACK_CANDIDATES_PER_MODULE*/ + itl;
+        unsigned int InnerSegmentIndex = trackletsInGPU.segmentIndices[2 * trackletIndex];
+        unsigned int OuterSegmentIndex = trackletsInGPU.segmentIndices[2 * trackletIndex + 1];
+
+        unsigned int InnerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * InnerSegmentIndex];
+        unsigned int InnerSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * InnerSegmentIndex + 1];
+        unsigned int OuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * OuterSegmentIndex];
+        unsigned int OuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * OuterSegmentIndex + 1];
+
+        unsigned int InnerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * InnerSegmentInnerMiniDoubletIndex];
+        unsigned int InnerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * InnerSegmentInnerMiniDoubletIndex + 1];
+        unsigned int InnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * InnerSegmentOuterMiniDoubletIndex];
+        unsigned int InnerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * InnerSegmentOuterMiniDoubletIndex + 1];
+        unsigned int OuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * OuterSegmentInnerMiniDoubletIndex];
+        unsigned int OuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * OuterSegmentInnerMiniDoubletIndex + 1];
+        unsigned int OuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * OuterSegmentOuterMiniDoubletIndex];
+        unsigned int OuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * OuterSegmentOuterMiniDoubletIndex + 1];
+
+        unsigned int hit0 = hitsInGPU.idxs[InnerSegmentInnerMiniDoubletLowerHitIndex];
+        unsigned int hit1 = hitsInGPU.idxs[InnerSegmentInnerMiniDoubletUpperHitIndex];
+        unsigned int hit2 = hitsInGPU.idxs[InnerSegmentOuterMiniDoubletLowerHitIndex];
+        unsigned int hit3 = hitsInGPU.idxs[InnerSegmentOuterMiniDoubletUpperHitIndex];
+        unsigned int hit4 = hitsInGPU.idxs[OuterSegmentInnerMiniDoubletLowerHitIndex];
+        unsigned int hit5 = hitsInGPU.idxs[OuterSegmentInnerMiniDoubletUpperHitIndex];
+        unsigned int hit6 = hitsInGPU.idxs[OuterSegmentOuterMiniDoubletLowerHitIndex];
+        unsigned int hit7 = hitsInGPU.idxs[OuterSegmentOuterMiniDoubletUpperHitIndex];
+
+        std::cout <<  "VALIDATION 'pT4': " << "pT4" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  " hit2: " << hit2 <<  " hit3: " << hit3 <<  " hit4: " << hit4 <<  " hit5: " << hit5 <<  " hit6: " << hit6 <<  " hit7: " << hit7 <<  std::endl;
+
+    }
+}
+
+//________________________________________________________________________________________________________________________________
+void printpT4s_for_CPU(SDL::CPU::Event& event)
+{
+    // pixelLayer
+    const SDL::CPU::Layer& pixelLayer = event.getPixelLayer();
+
+    // Quadruplet ptrs
+    const std::vector<SDL::CPU::Tracklet*>& trackletPtrs = pixelLayer.getTrackletPtrs();
+
+    // Loop over tracklet ptrs
+    for (auto& trackletPtr : trackletPtrs)
+    {
+
+        // hit idx
+        unsigned int hit0 = trackletPtr->innerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->idx();
+        unsigned int hit1 = trackletPtr->innerSegmentPtr()->innerMiniDoubletPtr()->upperHitPtr()->idx();
+        unsigned int hit2 = trackletPtr->innerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->idx();
+        unsigned int hit3 = trackletPtr->innerSegmentPtr()->outerMiniDoubletPtr()->upperHitPtr()->idx();
+        unsigned int hit4 = trackletPtr->outerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->idx();
+        unsigned int hit5 = trackletPtr->outerSegmentPtr()->innerMiniDoubletPtr()->upperHitPtr()->idx();
+        unsigned int hit6 = trackletPtr->outerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->idx();
+        unsigned int hit7 = trackletPtr->outerSegmentPtr()->outerMiniDoubletPtr()->upperHitPtr()->idx();
+
+        std::cout <<  "VALIDATION 'pT4': " << "pT4" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  " hit2: " << hit2 <<  " hit3: " << hit3 <<  " hit4: " << hit4 <<  " hit5: " << hit5 <<  " hit6: " << hit6 <<  " hit7: " << hit7 <<  std::endl;
+
+    }
+}
+
+//________________________________________________________________________________________________________________________________
+void printMDs(SDL::Event& event)
+{
+    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event.getHits());
+    for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); ++idx)
+    {
+        for (unsigned int jdx = 0; jdx < miniDoubletsInGPU.nMDs[2*idx]; jdx++)
+        {
+            unsigned int mdIdx = (2*idx) * 100 + jdx;
+            unsigned int LowerHitIndex = miniDoubletsInGPU.hitIndices[2 * mdIdx];
+            unsigned int UpperHitIndex = miniDoubletsInGPU.hitIndices[2 * mdIdx + 1];
+            unsigned int hit0 = hitsInGPU.idxs[LowerHitIndex];
+            unsigned int hit1 = hitsInGPU.idxs[UpperHitIndex];
+            std::cout <<  "VALIDATION 'MD': " << "MD" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  std::endl;
+        }
+        for (unsigned int jdx = 0; jdx < miniDoubletsInGPU.nMDs[2*idx+1]; jdx++)
+        {
+            unsigned int mdIdx = (2*idx+1) * 100 + jdx;
+            unsigned int LowerHitIndex = miniDoubletsInGPU.hitIndices[2 * mdIdx];
+            unsigned int UpperHitIndex = miniDoubletsInGPU.hitIndices[2 * mdIdx + 1];
+            unsigned int hit0 = hitsInGPU.idxs[LowerHitIndex];
+            unsigned int hit1 = hitsInGPU.idxs[UpperHitIndex];
+            std::cout <<  "VALIDATION 'MD': " << "MD" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  std::endl;
+        }
+    }
+}
+
+//________________________________________________________________________________________________________________________________
+void printMDs_for_CPU(SDL::CPU::Event& event)
+{
+    // get layer ptrs
+    const std::vector<SDL::CPU::Layer*> layerPtrs = event.getLayerPtrs();
+
+    // Loop over layers and access minidoublets
+    for (auto& layerPtr : layerPtrs)
+    {
+
+        // MiniDoublet ptrs
+        const std::vector<SDL::CPU::MiniDoublet*>& minidoubletPtrs = layerPtr->getMiniDoubletPtrs();
+
+        // Loop over minidoublet ptrs
+        for (auto& minidoubletPtr : minidoubletPtrs)
+        {
+
+            // hit idx
+            unsigned int hit0 = minidoubletPtr->lowerHitPtr()->idx();
+            unsigned int hit1 = minidoubletPtr->upperHitPtr()->idx();
+
+            std::cout <<  "VALIDATION 'MD': " << "MD" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  std::endl;
+
+        }
+
+    }
+
+}
+
+//________________________________________________________________________________________________________________________________
+void printLSs(SDL::Event& event)
+{
+    SDL::segments& segmentsInGPU = (*event.getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event.getHits());
+    int nSegments = 0;
+    for (unsigned int i = 0; i <  *(SDL::modulesInGPU->nLowerModules); ++i)
+    {
+        unsigned int idx = SDL::modulesInGPU->lowerModuleIndices[i];
+        nSegments += segmentsInGPU.nSegments[idx];
+        for (unsigned int jdx = 0; jdx < segmentsInGPU.nSegments[idx]; jdx++)
+        {
+            unsigned int sgIdx = idx * 600 + jdx;
+            unsigned int InnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * sgIdx];
+            unsigned int OuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * sgIdx + 1];
+            unsigned int InnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * InnerMiniDoubletIndex];
+            unsigned int InnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * InnerMiniDoubletIndex + 1];
+            unsigned int OuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * OuterMiniDoubletIndex];
+            unsigned int OuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * OuterMiniDoubletIndex + 1];
+            unsigned int hit0 = hitsInGPU.idxs[InnerMiniDoubletLowerHitIndex];
+            unsigned int hit1 = hitsInGPU.idxs[InnerMiniDoubletUpperHitIndex];
+            unsigned int hit2 = hitsInGPU.idxs[OuterMiniDoubletLowerHitIndex];
+            unsigned int hit3 = hitsInGPU.idxs[OuterMiniDoubletUpperHitIndex];
+            std::cout <<  "VALIDATION 'LS': " << "LS" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  " hit2: " << hit2 <<  " hit3: " << hit3 <<  std::endl;
+        }
+    }
+    std::cout <<  "VALIDATION nSegments: " << nSegments <<  std::endl;
+}
+
+//________________________________________________________________________________________________________________________________
+void printLSs_for_CPU(SDL::CPU::Event& event)
+{
+    // get layer ptrs
+    const std::vector<SDL::CPU::Layer*> layerPtrs = event.getLayerPtrs();
+
+    // Loop over layers and access segments
+    for (auto& layerPtr : layerPtrs)
+    {
+
+        // MiniDoublet ptrs
+        const std::vector<SDL::CPU::Segment*>& segmentPtrs = layerPtr->getSegmentPtrs();
+
+        // Loop over segment ptrs
+        for (auto& segmentPtr : segmentPtrs)
+        {
+
+            // hit idx
+            unsigned int hit0 = segmentPtr->innerMiniDoubletPtr()->lowerHitPtr()->idx();
+            unsigned int hit1 = segmentPtr->innerMiniDoubletPtr()->upperHitPtr()->idx();
+            unsigned int hit2 = segmentPtr->outerMiniDoubletPtr()->lowerHitPtr()->idx();
+            unsigned int hit3 = segmentPtr->outerMiniDoubletPtr()->upperHitPtr()->idx();
+
+            std::cout <<  "VALIDATION 'LS': " << "LS" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  " hit2: " << hit2 <<  " hit3: " << hit3 <<  std::endl;
+
+        }
+
+    }
+
+}
+
+//________________________________________________________________________________________________________________________________
+void printpLSs(SDL::Event& event)
+{
+    SDL::segments& segmentsInGPU = (*event.getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event.getHits());
+    unsigned int i = *(SDL::modulesInGPU->nLowerModules);
+    unsigned int idx = SDL::modulesInGPU->lowerModuleIndices[i];
+    int npLS = segmentsInGPU.nSegments[idx];
+    for (unsigned int jdx = 0; jdx < segmentsInGPU.nSegments[idx]; jdx++)
+    {
+        unsigned int sgIdx = idx * 600 + jdx;
+        unsigned int InnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * sgIdx];
+        unsigned int OuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * sgIdx + 1];
+        unsigned int InnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * InnerMiniDoubletIndex];
+        unsigned int InnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * InnerMiniDoubletIndex + 1];
+        unsigned int OuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * OuterMiniDoubletIndex];
+        unsigned int OuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * OuterMiniDoubletIndex + 1];
+        unsigned int hit0 = hitsInGPU.idxs[InnerMiniDoubletLowerHitIndex];
+        unsigned int hit1 = hitsInGPU.idxs[InnerMiniDoubletUpperHitIndex];
+        unsigned int hit2 = hitsInGPU.idxs[OuterMiniDoubletLowerHitIndex];
+        unsigned int hit3 = hitsInGPU.idxs[OuterMiniDoubletUpperHitIndex];
+        std::cout <<  "VALIDATION 'pLS': " << "pLS" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  " hit2: " << hit2 <<  " hit3: " << hit3 <<  std::endl;
+    }
+    std::cout <<  "VALIDATION npLS: " << npLS <<  std::endl;
+}
+
+//________________________________________________________________________________________________________________________________
+void printpLSs_for_CPU(SDL::CPU::Event& event)
+{
+    // get layer ptr
+    SDL::CPU::Layer* layerPtr = &(event.getPixelLayer());
+
+    // MiniDoublet ptrs
+    const std::vector<SDL::CPU::Segment*>& segmentPtrs = layerPtr->getSegmentPtrs();
+
+    // Number of pLS
+    int npLS = segmentPtrs.size();
+
+    // Loop over segment ptrs
+    for (auto& segmentPtr : segmentPtrs)
+    {
+
+        // hit idx
+        unsigned int hit0 = segmentPtr->innerMiniDoubletPtr()->lowerHitPtr()->idx();
+        unsigned int hit1 = segmentPtr->innerMiniDoubletPtr()->upperHitPtr()->idx();
+        unsigned int hit2 = segmentPtr->outerMiniDoubletPtr()->lowerHitPtr()->idx();
+        unsigned int hit3 = segmentPtr->outerMiniDoubletPtr()->upperHitPtr()->idx();
+
+        std::cout <<  "VALIDATION 'pLS': " << "pLS" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  " hit2: " << hit2 <<  " hit3: " << hit3 <<  std::endl;
+
+    }
+    std::cout <<  "VALIDATION npLS: " << npLS <<  std::endl;
+
+}
+
+//________________________________________________________________________________________________________________________________
+void printT3s(SDL::Event& event)
+{
+    SDL::triplets& tripletsInGPU = (*event.getTriplets());
+    SDL::segments& segmentsInGPU = (*event.getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event.getHits());
+    int nTriplets = 0;
+    for (unsigned int i = 0; i <  *(SDL::modulesInGPU->nLowerModules); ++i)
+    {
+        // unsigned int idx = SDL::modulesInGPU->lowerModuleIndices[i];
+        nTriplets += tripletsInGPU.nTriplets[i];
+        unsigned int idx = i;
+        for (unsigned int jdx = 0; jdx < tripletsInGPU.nTriplets[idx]; jdx++)
+        {
+            unsigned int tpIdx = idx * 5000 + jdx;
+            unsigned int InnerSegmentIndex = tripletsInGPU.segmentIndices[2 * tpIdx];
+            unsigned int OuterSegmentIndex = tripletsInGPU.segmentIndices[2 * tpIdx + 1];
+            unsigned int InnerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * InnerSegmentIndex];
+            unsigned int InnerSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * InnerSegmentIndex + 1];
+            unsigned int OuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * OuterSegmentIndex + 1];
+
+            unsigned int hit_idx0 = miniDoubletsInGPU.hitIndices[2 * InnerSegmentInnerMiniDoubletIndex];
+            unsigned int hit_idx1 = miniDoubletsInGPU.hitIndices[2 * InnerSegmentInnerMiniDoubletIndex + 1];
+            unsigned int hit_idx2 = miniDoubletsInGPU.hitIndices[2 * InnerSegmentOuterMiniDoubletIndex];
+            unsigned int hit_idx3 = miniDoubletsInGPU.hitIndices[2 * InnerSegmentOuterMiniDoubletIndex + 1];
+            unsigned int hit_idx4 = miniDoubletsInGPU.hitIndices[2 * OuterSegmentOuterMiniDoubletIndex];
+            unsigned int hit_idx5 = miniDoubletsInGPU.hitIndices[2 * OuterSegmentOuterMiniDoubletIndex + 1];
+
+            unsigned int hit0 = hitsInGPU.idxs[hit_idx0];
+            unsigned int hit1 = hitsInGPU.idxs[hit_idx1];
+            unsigned int hit2 = hitsInGPU.idxs[hit_idx2];
+            unsigned int hit3 = hitsInGPU.idxs[hit_idx3];
+            unsigned int hit4 = hitsInGPU.idxs[hit_idx4];
+            unsigned int hit5 = hitsInGPU.idxs[hit_idx5];
+            std::cout <<  "VALIDATION 'T3': " << "T3" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  " hit2: " << hit2 <<  " hit3: " << hit3 <<  " hit4: " << hit4 <<  " hit5: " << hit5 <<  std::endl;
+        }
+    }
+    std::cout <<  "VALIDATION nTriplets: " << nTriplets <<  std::endl;
+}
+
+//________________________________________________________________________________________________________________________________
+void printT3s_for_CPU(SDL::CPU::Event& event)
+{
+    // get layer ptrs
+    const std::vector<SDL::CPU::Layer*> layerPtrs = event.getLayerPtrs();
+
+    // Loop over layers and access triplets
+    for (auto& layerPtr : layerPtrs)
+    {
+
+        // MiniDoublet ptrs
+        const std::vector<SDL::CPU::Triplet*>& tripletPtrs = layerPtr->getTripletPtrs();
+
+        // Loop over triplet ptrs
+        for (auto& tripletPtr : tripletPtrs)
+        {
+
+            // hit idx
+            unsigned int hit0 = tripletPtr->innerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->idx();
+            unsigned int hit1 = tripletPtr->innerSegmentPtr()->innerMiniDoubletPtr()->upperHitPtr()->idx();
+            unsigned int hit2 = tripletPtr->innerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->idx();
+            unsigned int hit3 = tripletPtr->innerSegmentPtr()->outerMiniDoubletPtr()->upperHitPtr()->idx();
+            unsigned int hit4 = tripletPtr->outerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->idx();
+            unsigned int hit5 = tripletPtr->outerSegmentPtr()->outerMiniDoubletPtr()->upperHitPtr()->idx();
+
+            std::cout <<  "VALIDATION 'T3': " << "T3" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  " hit2: " << hit2 <<  " hit3: " << hit3 <<  " hit4: " << hit4 <<  " hit5: " << hit5 <<  std::endl;
+
+        }
+
+    }
+
+}
+
+//________________________________________________________________________________________________________________________________
+void printT4s(SDL::Event& event)
+{
+    SDL::tracklets& trackletsInGPU = (*event.getTracklets());
+    SDL::segments& segmentsInGPU = (*event.getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event.getHits());
+    int nTracklets = 0;
+    for (unsigned int i = 0; i <  *(SDL::modulesInGPU->nLowerModules); ++i)
+    {
+        // unsigned int idx = SDL::modulesInGPU->lowerModuleIndices[i];
+        // nTracklets += trackletsInGPU.nTracklets[idx];
+        nTracklets += trackletsInGPU.nTracklets[i];
+        unsigned int idx = i;
+        for (unsigned int jdx = 0; jdx < trackletsInGPU.nTracklets[idx]; jdx++)
+        {
+            unsigned int tlIdx = idx * 8000 + jdx;
+            unsigned int InnerSegmentIndex = trackletsInGPU.segmentIndices[2 * tlIdx];
+            unsigned int OuterSegmentIndex = trackletsInGPU.segmentIndices[2 * tlIdx + 1];
+            unsigned int InnerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * InnerSegmentIndex];
+            unsigned int InnerSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * InnerSegmentIndex + 1];
+            unsigned int OuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * OuterSegmentIndex];
+            unsigned int OuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * OuterSegmentIndex + 1];
+
+            unsigned int hit_idx0 = miniDoubletsInGPU.hitIndices[2 * InnerSegmentInnerMiniDoubletIndex];
+            unsigned int hit_idx1 = miniDoubletsInGPU.hitIndices[2 * InnerSegmentInnerMiniDoubletIndex + 1];
+            unsigned int hit_idx2 = miniDoubletsInGPU.hitIndices[2 * InnerSegmentOuterMiniDoubletIndex];
+            unsigned int hit_idx3 = miniDoubletsInGPU.hitIndices[2 * InnerSegmentOuterMiniDoubletIndex + 1];
+            unsigned int hit_idx4 = miniDoubletsInGPU.hitIndices[2 * OuterSegmentInnerMiniDoubletIndex];
+            unsigned int hit_idx5 = miniDoubletsInGPU.hitIndices[2 * OuterSegmentInnerMiniDoubletIndex + 1];
+            unsigned int hit_idx6 = miniDoubletsInGPU.hitIndices[2 * OuterSegmentOuterMiniDoubletIndex];
+            unsigned int hit_idx7 = miniDoubletsInGPU.hitIndices[2 * OuterSegmentOuterMiniDoubletIndex + 1];
+
+            unsigned int hit0 = hitsInGPU.idxs[hit_idx0];
+            unsigned int hit1 = hitsInGPU.idxs[hit_idx1];
+            unsigned int hit2 = hitsInGPU.idxs[hit_idx2];
+            unsigned int hit3 = hitsInGPU.idxs[hit_idx3];
+            unsigned int hit4 = hitsInGPU.idxs[hit_idx4];
+            unsigned int hit5 = hitsInGPU.idxs[hit_idx5];
+            unsigned int hit6 = hitsInGPU.idxs[hit_idx6];
+            unsigned int hit7 = hitsInGPU.idxs[hit_idx7];
+            std::cout <<  "VALIDATION 'T4': " << "T4" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  " hit2: " << hit2 <<  " hit3: " << hit3 <<  " hit4: " << hit4 <<  " hit5: " << hit5 <<  " hit6: " << hit6 <<  " hit7: " << hit7 <<  std::endl;
+        }
+    }
+    std::cout <<  "VALIDATION nTracklets: " << nTracklets <<  std::endl;
+}
+
+//________________________________________________________________________________________________________________________________
+void printT4s_for_CPU(SDL::CPU::Event& event)
+{
+    // get layer ptrs
+    const std::vector<SDL::CPU::Layer*> layerPtrs = event.getLayerPtrs();
+
+    // Loop over layers and access tracklets
+    for (auto& layerPtr : layerPtrs)
+    {
+
+        // MiniDoublet ptrs
+        const std::vector<SDL::CPU::Tracklet*>& trackletPtrs = layerPtr->getTrackletPtrs();
+
+        // Loop over tracklet ptrs
+        for (auto& trackletPtr : trackletPtrs)
+        {
+
+            // hit idx
+            unsigned int hit0 = trackletPtr->innerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->idx();
+            unsigned int hit1 = trackletPtr->innerSegmentPtr()->innerMiniDoubletPtr()->upperHitPtr()->idx();
+            unsigned int hit2 = trackletPtr->innerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->idx();
+            unsigned int hit3 = trackletPtr->innerSegmentPtr()->outerMiniDoubletPtr()->upperHitPtr()->idx();
+            unsigned int hit4 = trackletPtr->outerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->idx();
+            unsigned int hit5 = trackletPtr->outerSegmentPtr()->innerMiniDoubletPtr()->upperHitPtr()->idx();
+            unsigned int hit6 = trackletPtr->outerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->idx();
+            unsigned int hit7 = trackletPtr->outerSegmentPtr()->outerMiniDoubletPtr()->upperHitPtr()->idx();
+
+            std::cout <<  "VALIDATION 'T4': " << "T4" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  " hit2: " << hit2 <<  " hit3: " << hit3 <<  " hit4: " << hit4 <<  " hit5: " << hit5 <<  " hit6: " << hit6 <<  " hit7: " << hit7 <<  std::endl;
+
+        }
+
+    }
+
+}
+
+//________________________________________________________________________________________________________________________________
+void printTCs(SDL::Event& event)
+{
+    SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates());
+    SDL::tracklets& trackletsInGPU = (*event.getTracklets());
+    SDL::triplets& tripletsInGPU = (*event.getTriplets());
+    SDL::segments& segmentsInGPU = (*event.getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event.getHits());
+    int nTrackCandidates = 0;
+    for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); ++idx)
+    {
+        for (unsigned int jdx = 0; jdx < trackCandidatesInGPU.nTrackCandidates[idx]; jdx++)
+        {
+            unsigned int trackCandidateIndex = idx * 50000/*_N_MAX_TRACK_CANDIDATES_PER_MODULE*/ + jdx;
+
+            short trackCandidateType = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
+
+            unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex];
+            unsigned int outerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1];
+
+            unsigned int innerTrackletInnerSegmentIndex = -1;
+            unsigned int innerTrackletOuterSegmentIndex = -1;
+            unsigned int outerTrackletOuterSegmentIndex = -1;
+
+            if (trackCandidateType == 0) // T4T4
+            {
+                innerTrackletInnerSegmentIndex = trackletsInGPU.segmentIndices[2 * innerTrackletIdx];
+                innerTrackletOuterSegmentIndex = trackletsInGPU.segmentIndices[2 * innerTrackletIdx + 1];
+                outerTrackletOuterSegmentIndex = trackletsInGPU.segmentIndices[2 * outerTrackletIdx + 1];
+            }
+            else if (trackCandidateType == 1) // T4T3
+            {
+                innerTrackletInnerSegmentIndex = trackletsInGPU.segmentIndices[2 * innerTrackletIdx];
+                innerTrackletOuterSegmentIndex = trackletsInGPU.segmentIndices[2 * innerTrackletIdx + 1];
+                outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTrackletIdx + 1];
+            }
+            else if (trackCandidateType == 2) // T3T4
+            {
+                innerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTrackletIdx];
+                innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTrackletIdx + 1];
+                outerTrackletOuterSegmentIndex = trackletsInGPU.segmentIndices[2 * outerTrackletIdx + 1];
+            }
+
+            unsigned int innerTrackletInnerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletInnerSegmentIndex];
+            unsigned int innerTrackletInnerSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletInnerSegmentIndex + 1];
+            unsigned int innerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletOuterSegmentIndex];
+            unsigned int innerTrackletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletOuterSegmentIndex + 1];
+            unsigned int outerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex];
+            unsigned int outerTrackletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex + 1];
+
+            unsigned int innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentInnerMiniDoubletIndex];
+            unsigned int innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentInnerMiniDoubletIndex + 1];
+            unsigned int innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentOuterMiniDoubletIndex];
+            unsigned int innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentOuterMiniDoubletIndex + 1];
+            unsigned int innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletOuterSegmentInnerMiniDoubletIndex];
+            unsigned int innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletOuterSegmentInnerMiniDoubletIndex + 1];
+            unsigned int innerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletOuterSegmentOuterMiniDoubletIndex];
+            unsigned int innerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletOuterSegmentOuterMiniDoubletIndex + 1];
+            unsigned int outerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentInnerMiniDoubletIndex];
+            unsigned int outerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentInnerMiniDoubletIndex + 1];
+            unsigned int outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentOuterMiniDoubletIndex];
+            unsigned int outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentOuterMiniDoubletIndex + 1];
+
+            unsigned int hit0 = hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex];
+            unsigned int hit1 = hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex];
+            unsigned int hit2 = hitsInGPU.idxs[innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex];
+            unsigned int hit3 = hitsInGPU.idxs[innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex];
+            unsigned int hit4 = hitsInGPU.idxs[innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex];
+            unsigned int hit5 = hitsInGPU.idxs[innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex];
+            unsigned int hit6 = hitsInGPU.idxs[innerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex];
+            unsigned int hit7 = hitsInGPU.idxs[innerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex];
+            unsigned int hit8 = hitsInGPU.idxs[outerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex];
+            unsigned int hit9 = hitsInGPU.idxs[outerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex];
+            unsigned int hit10 = hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex];
+            unsigned int hit11 = hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex];
+
+            std::cout <<  "VALIDATION 'TC': " << "TC" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  " hit2: " << hit2 <<  " hit3: " << hit3 <<  " hit4: " << hit4 <<  " hit5: " << hit5 <<  " hit6: " << hit6 <<  " hit7: " << hit7 <<  " hit8: " << hit8 <<  " hit9: " << hit9 <<  " hit10: " << hit10 <<  " hit11: " << hit11 <<  std::endl;
+        }
+    }
+}
+
+//________________________________________________________________________________________________________________________________
+void printTCs_for_CPU(SDL::CPU::Event& event)
+{
+    // get layer ptrs
+    std::vector<SDL::CPU::Layer*> layerPtrs = event.getLayerPtrs();
+    layerPtrs.push_back(&(event.getPixelLayer()));
+
+    // Loop over layers and access track candidates
+    for (auto& layerPtr : layerPtrs)
+    {
+
+        // Track Candidate ptrs
+        const std::vector<SDL::CPU::TrackCandidate*>& trackCandidatePtrs = layerPtr->getTrackCandidatePtrs();
+
+
+        // Loop over trackCandidate ptrs
+        for (auto& trackCandidatePtr : trackCandidatePtrs)
+        {
+            // hit idx
+            unsigned int hit0 = trackCandidatePtr->innerTrackletBasePtr()->innerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->idx();
+            unsigned int hit1 = trackCandidatePtr->innerTrackletBasePtr()->innerSegmentPtr()->innerMiniDoubletPtr()->upperHitPtr()->idx();
+            unsigned int hit2 = trackCandidatePtr->innerTrackletBasePtr()->innerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->idx();
+            unsigned int hit3 = trackCandidatePtr->innerTrackletBasePtr()->innerSegmentPtr()->outerMiniDoubletPtr()->upperHitPtr()->idx();
+            unsigned int hit4 = trackCandidatePtr->innerTrackletBasePtr()->outerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->idx();
+            unsigned int hit5 = trackCandidatePtr->innerTrackletBasePtr()->outerSegmentPtr()->innerMiniDoubletPtr()->upperHitPtr()->idx();
+            unsigned int hit6 = trackCandidatePtr->innerTrackletBasePtr()->outerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->idx();
+            unsigned int hit7 = trackCandidatePtr->innerTrackletBasePtr()->outerSegmentPtr()->outerMiniDoubletPtr()->upperHitPtr()->idx();
+            unsigned int hit8 = trackCandidatePtr->outerTrackletBasePtr()->outerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->idx();
+            unsigned int hit9 = trackCandidatePtr->outerTrackletBasePtr()->outerSegmentPtr()->innerMiniDoubletPtr()->upperHitPtr()->idx();
+            unsigned int hit10 = trackCandidatePtr->outerTrackletBasePtr()->outerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->idx();
+            unsigned int hit11 = trackCandidatePtr->outerTrackletBasePtr()->outerSegmentPtr()->outerMiniDoubletPtr()->upperHitPtr()->idx();
+
+            std::cout <<  "VALIDATION 'TC': " << "TC" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  " hit2: " << hit2 <<  " hit3: " << hit3 <<  " hit4: " << hit4 <<  " hit5: " << hit5 <<  " hit6: " << hit6 <<  " hit7: " << hit7 <<  " hit8: " << hit8 <<  " hit9: " << hit9 <<  " hit10: " << hit10 <<  " hit11: " << hit11 <<  std::endl;
+        }
+
+    }
+
+}
+
+
+//________________________________________________________________________________________________________________________________
+void debugPrintOutlierMultiplicities(SDL::Event& event)
+{
+    SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates());
+    SDL::tracklets& trackletsInGPU = (*event.getTracklets());
+    SDL::triplets& tripletsInGPU = (*event.getTriplets());
+    SDL::segments& segmentsInGPU = (*event.getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event.getHits());
+    int nTrackCandidates = 0;
+    for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); ++idx)
+    {
+        if (trackCandidatesInGPU.nTrackCandidates[idx] > 50000)
+        {
+            std::cout <<  " SDL::modulesInGPU->detIds[SDL::modulesInGPU->lowerModuleIndices[idx]]: " << SDL::modulesInGPU->detIds[SDL::modulesInGPU->lowerModuleIndices[idx]] <<  std::endl;
+            std::cout <<  " idx: " << idx <<  " trackCandidatesInGPU.nTrackCandidates[idx]: " << trackCandidatesInGPU.nTrackCandidates[idx] <<  std::endl;
+            std::cout <<  " idx: " << idx <<  " trackletsInGPU.nTracklets[idx]: " << trackletsInGPU.nTracklets[idx] <<  std::endl;
+            std::cout <<  " idx: " << idx <<  " tripletsInGPU.nTriplets[idx]: " << tripletsInGPU.nTriplets[idx] <<  std::endl;
+            unsigned int i = SDL::modulesInGPU->lowerModuleIndices[idx];
+            std::cout <<  " idx: " << idx <<  " i: " << i <<  " segmentsInGPU.nSegments[i]: " << segmentsInGPU.nSegments[i] <<  std::endl;
+            int nMD = miniDoubletsInGPU.nMDs[2*idx]+miniDoubletsInGPU.nMDs[2*idx+1] ;
+            std::cout <<  " idx: " << idx <<  " nMD: " << nMD <<  std::endl;
+            int nHits = 0;
+            nHits += SDL::modulesInGPU->hitRanges[4*idx+1] - SDL::modulesInGPU->hitRanges[4*idx] + 1;       
+            nHits += SDL::modulesInGPU->hitRanges[4*idx+3] - SDL::modulesInGPU->hitRanges[4*idx+2] + 1;
+            std::cout <<  " idx: " << idx <<  " nHits: " << nHits <<  std::endl;
+        }
+    }
+}
+

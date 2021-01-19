@@ -25,16 +25,17 @@ PRINTFLAG            = -DAddObjects
 MEMFLAG              =
 CACHEFLAG            =
 CUDALAUNCHFLAG       = -DNESTED_PARA
-MEMFLAG_FLAGS        = -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips -DExplicit_Track -DExplicit_Hit -DExplicit_Module
+MEMFLAG_FLAGS        = -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips -DExplicit_Track -DExplicit_Hit #-DExplicit_Module
 CACHEFLAG_FLAGS      = -DCACHE_ALLOC
 CUDALAUNCHFLAG_FLAGS = -DNEWGRID_MD -DNEWGRID_Seg -DNEWGRID_Trips -DNEWGRID_Tracklet
 
 #
 # how to make it 
 #
-
+CUTVALUEFLAG = 
+CUTVALUEFLAG_FLAGS = -DCUT_VALUE_DEBUG
 %_cuda.o : %.cu %.cuh
-	$(LD) -x cu $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $< -o $@
+	$(LD) -x cu $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $(CUTVALUEFLAG) $< -o $@
 
 %_cpu.o : %.cc %.h
 	$(LD) -O2 $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $< -o $@
@@ -42,10 +43,13 @@ CUDALAUNCHFLAG_FLAGS = -DNEWGRID_MD -DNEWGRID_Seg -DNEWGRID_Trips -DNEWGRID_Trac
 $(LIB):$(CCOBJECTS) $(CUOBJECTS)
 	$(LD)  $(SOFLAGS) $^ -o $@
 
+unified_cutvalue: CUTVALUEFLAG = $(CUTVALUEFLAG_FLAGS)
+unified_cutvalue: $(LIB) 
 unified: $(LIB)
 
 unified_newgrid: CUDALAUNCHFLAG = $(CUDALAUNCHFLAG_FLAGS)
 unified_newgrid: $(LIB)
+
 
 unified_cache: CACHEFLAG += $(CACHEFLAG_FLAGS)
 unified_cache: $(LIB)

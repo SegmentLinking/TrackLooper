@@ -55,12 +55,12 @@ namespace SDL
         struct trackCandidates* trackCandidatesInGPU;
 
         //CPU interface stuff
-        std::shared_ptr<hits> hitsInCPU;
-        std::shared_ptr<miniDoublets> mdsInCPU;
-        std::shared_ptr<segments> segmentsInCPU;
-        std::shared_ptr<tracklets> trackletsInCPU;
-        std::shared_ptr<triplets> tripletsInCPU;
-        std::shared_ptr<trackCandidates> trackCandidatesInCPU;
+        hits* hitsInCPU;
+        miniDoublets* mdsInCPU;
+        segments* segmentsInCPU;
+        tracklets* trackletsInCPU;
+        triplets* tripletsInCPU;
+        trackCandidates* trackCandidatesInCPU;
 
     public:
         Event();
@@ -128,36 +128,12 @@ namespace SDL
         unsigned int getNumberOfTrackCandidatesByLayerBarrel(unsigned int layer);
         unsigned int getNumberOfTrackCandidatesByLayerEndcap(unsigned int layer);
 
-        #ifdef Explicit_Hit
-        std::shared_ptr<hits> getHits();
-        #else
         hits* getHits();
-        #endif
-        #ifdef Explicit_MD
-        std::shared_ptr<miniDoublets> getMiniDoublets();
-        #else
         miniDoublets* getMiniDoublets();
-        #endif
-        #ifdef Explicit_Seg
-        std::shared_ptr<segments> getSegments() ;
-        #else
         segments* getSegments() ;
-        #endif
-        #ifdef Explicit_Tracklet
-        std::shared_ptr<tracklets> getTracklets();
-        #else
         tracklets* getTracklets();
-        #endif
-        #ifdef Explicit_Trips
-        std::shared_ptr<triplets> getTriplets();
-        #else
         triplets* getTriplets();
-        #endif
-        #ifdef Explicit_Track
-        std::shared_ptr<trackCandidates> getTrackCandidates();
-        #else
         trackCandidates* getTrackCandidates();
-        #endif
 
     };
 
@@ -166,7 +142,7 @@ namespace SDL
     extern struct modules* modulesInGPU;
     extern struct modules* modulesInHost;
     extern unsigned int nModules;
-    void initModules(); //read from file and init
+    void initModules(const char* moduleMetaDataFilePath="data/centroid.txt"); //read from file and init
     void cleanModules();
     void initModulesHost(); //read from file and init
 

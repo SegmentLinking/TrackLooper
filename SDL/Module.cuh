@@ -97,7 +97,7 @@ namespace SDL
 
 
     //functions
-    void loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModules);
+    void loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModules, const char* moduleMetaDataFilePath="data/centroid.txt");
 
     void createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules);
     void createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules, bool* isLower);

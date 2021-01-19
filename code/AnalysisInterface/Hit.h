@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <tuple>
+#include <memory>
 
 #include "Module.h"
 
@@ -21,12 +22,12 @@ namespace SDL
             float rt_;
             float r3_;
             float eta_;
-            Hit* hit_high_edge_;
-            Hit* hit_low_edge_;
-            Module* modulePtr_;
+            std::shared_ptr<Hit> hit_high_edge_;
+            std::shared_ptr<Hit> hit_low_edge_;
+            std::shared_ptr<Module> modulePtr_;
 
         public:
-            Hit(float x, float y, float z, float phi, float rt, int idx, Module* modulePtr);
+            Hit(float x, float y, float z, float phi, float rt, int idx, std::shared_ptr<Module> modulePtr);
             Hit(float x, float y, float z);
             ~Hit();
             // accessor functions
@@ -40,10 +41,10 @@ namespace SDL
             Module& getModule() const;
 
             // Set the boundary hits where the hits are shifted
-            const Hit* getHitHighEdgePtr() const;
-            const Hit* getHitLowEdgePtr() const;
-            void setHighEdgePtr(Hit* hitHighEdge);
-            void setLowEdgePtr(Hit* hitLowEdge);
+            const std::shared_ptr<Hit> getHitHighEdgePtr() const;
+            const std::shared_ptr<Hit> getHitLowEdgePtr() const;
+            void setHighEdgePtr(std::shared_ptr<Hit> hitHighEdge);
+            void setLowEdgePtr(std::shared_ptr<Hit> hitLowEdge);
     };
 
 }
