@@ -2,9 +2,34 @@
 
 #include "allocate.h"
 
-void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates, unsigned int maxPixelTrackCandidates, unsigned int nLowerModules)
+
+void SDL::createEligibleModulesListForTrackCandidates(struct modules& modulesInGPU, unsigned int nEligibleModules, unsigned int maxTrackCandidates)
 {
-    unsigned int nMemoryLocations = maxTrackCandidates * nLowerModules + maxPixelTrackCandidates;
+    //an extra array in the modulesInGPU struct that will provide us with starting indices for the memory locations. If a
+    //module is not supposed to have any memory, it gets a -1
+
+    //the array will be filled in createTrackCandidatesInUnfiedMemory
+
+    unsigned int nLowerModules = *modulesInGPU.nLowerModules;
+    cudaMemset(modulesInGPU.trackCandidateModuleIndices, -1, sizeof(int) * (nLowerModules + 1));
+
+    //start filling
+    for(size_t idx = 0; idx <= nLowerModules; idx++)
+    {
+        //condition for a track candidate to exist for a module
+        //TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap
+        if((modulesInGPU.subdets[idx] == SDL::Barrel and modulesInGPU.layers[idx] < 5) or (modulesInGPU.subdets[idx] == SDL::Endcap and modulesInGPU.layers[idx] == 1) or modulesInGPU.subdets[idx] == SDL::InnerPixel)
+        {
+            modulesInGPU.trackCandidateModuleIndices[idx] = nEligibleModules * maxTrackCandidates;
+            nEligibleModules++;
+        }
+    }
+}
+
+
+void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates, unsigned int maxPixelTrackCandidates, unsigned int nLowerModules, unsigned int nEligibleModules)
+{
+    unsigned int nMemoryLocations = maxTrackCandidates * nEligibleModules + maxPixelTrackCandidates;
 #ifdef CACHE_ALLOC
     cudaStream_t stream=0;
     trackCandidatesInGPU.trackCandidateType = (short*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(short),stream);
@@ -32,9 +57,9 @@ void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCand
         trackCandidatesInGPU.nTrackCandidatesT3T4[i] = 0;
     }
 }
-void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates, unsigned int maxPixelTrackCandidates, unsigned int nLowerModules)
+void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates, unsigned int maxPixelTrackCandidates, unsigned int nLowerModules ,unsigned int nEligibleModules)
 {
-    unsigned int nMemoryLocations = maxTrackCandidates * nLowerModules + maxPixelTrackCandidates;
+    unsigned int nMemoryLocations = maxTrackCandidates * nEligibleModules + maxPixelTrackCandidates;
 #ifdef CACHE_ALLOC
     cudaStream_t stream=0;
     int dev;

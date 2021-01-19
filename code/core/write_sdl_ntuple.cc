@@ -1075,9 +1075,12 @@ void printTCs(SDL::Event& event)
     int nTrackCandidates = 0;
     for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); ++idx)
     {
+            if(SDL::modulesInGPU.trackCandidateModuleIndices[idx] == -1)
+                continue;
         for (unsigned int jdx = 0; jdx < trackCandidatesInGPU.nTrackCandidates[idx]; jdx++)
         {
-            unsigned int trackCandidateIndex = idx * 50000/*_N_MAX_TRACK_CANDIDATES_PER_MODULE*/ + jdx;
+            //unsigned int trackCandidateIndex = idx * 50000/*_N_MAX_TRACK_CANDIDATES_PER_MODULE*/ + jdx;
+            unsigned int trackCandidateIndex = SDL::modulesInGPU.trakCandidateModuleIndices[idx] + jdx;
 
             short trackCandidateType = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
 

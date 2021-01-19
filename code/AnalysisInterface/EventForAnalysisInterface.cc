@@ -211,9 +211,13 @@ void SDL::EventForAnalysisInterface::addTrackCandidatesToAnalysisInterface(struc
 {
     for(unsigned int idx = 0; idx <= lowerModulePointers.size(); idx++) //cheating to include pixel track candidate lower module
     {
+        if(SDL::modulesInGPU.trackCandidateModuleIndices[idx] == -1)
+            continue;
+
         for(unsigned int jdx = 0; jdx < trackCandidatesInGPU.nTrackCandidates[idx]; jdx++)
         {
-            unsigned int trackCandidateIndex = idx * N_MAX_TRACK_CANDIDATES_PER_MODULE + jdx;
+//            unsigned int trackCandidateIndex = idx * N_MAX_TRACK_CANDIDATES_PER_MODULE + jdx;
+            unsigned int trackCandidateIndex = SDL::modulesInGPU.trackCandidateModuleIndices[idx] + jdx;
             short trackCandidateType = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
             std::shared_ptr<TrackletBase> innerTrackletPtr = nullptr;
             std::shared_ptr<TrackletBase> outerTrackletPtr = nullptr;
