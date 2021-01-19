@@ -709,6 +709,7 @@ cudaMemcpy(module_hitRanges,modulesInGPU->hitRanges,nModules*2*sizeof(int),cudaM
 
         }
     }
+cudaMemcpy(modulesInGPU->mdRanges,module_mdRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice);
 cudaFreeHost(nMDsCPU);
 }
 
