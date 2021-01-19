@@ -664,6 +664,19 @@ bool SDL::modules::parseIsLower(unsigned int index)
     return (isInverted[index]) ? !(detIds[index] & 1) : (detIds[index] & 1);
 }
 
+unsigned int SDL::modules::partnerModuleIndexExplicit(unsigned int index, bool isLowerx, bool isInvertedx)
+{
+    /*We need to ensure modules with successive det Ids are right next to each other
+    or we're dead*/
+    if(isLowerx)
+    {
+        return (isInvertedx ? index - 1: index + 1);
+    }
+    else
+    {
+        return (isInvertedx ? index + 1 : index - 1);
+    }
+}
 unsigned int SDL::modules::partnerModuleIndex(unsigned int index)
 {
     /*We need to ensure modules with successive det Ids are right next to each other

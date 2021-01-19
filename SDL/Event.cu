@@ -756,6 +756,33 @@ void SDL::Event::createMiniDoublets()
 #else
 #ifdef NEWGRID_MD
     int maxThreadsPerModule=0;
+    #ifdef Explicit_Module
+    unsigned int* module_lowerModuleIndices;
+    cudaMallocHost(&module_lowerModuleIndices, (nLowerModules +1)* sizeof(unsigned int));
+    cudaMemcpy(module_lowerModuleIndices,modulesInGPU->lowerModuleIndices,(nLowerModules+1)*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    int* module_hitRanges;
+    cudaMallocHost(&module_hitRanges, nModules* 2*sizeof(int));
+    cudaMemcpy(module_hitRanges,modulesInGPU->hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost);
+    bool* module_isLower;
+    cudaMallocHost(&module_isLower, nModules*sizeof(bool));
+    cudaMemcpy(module_isLower,modulesInGPU->isLower,nModules*sizeof(bool),cudaMemcpyDeviceToHost);
+    bool* module_isInverted;
+    cudaMallocHost(&module_isInverted, nModules*sizeof(bool));
+    cudaMemcpy(module_isInverted,modulesInGPU->isInverted,nModules*sizeof(bool),cudaMemcpyDeviceToHost);
+
+    for (int i=0; i<nLowerModules; i++) {
+      int lowerModuleIndex = module_lowerModuleIndices[i];
+      int upperModuleIndex = modulesInGPU->partnerModuleIndexExplicit(lowerModuleIndex,module_isLower[lowerModuleIndex],module_isInverted[lowerModuleIndex]);
+      int lowerHitRanges = module_hitRanges[lowerModuleIndex*2];
+      int upperHitRanges = module_hitRanges[upperModuleIndex*2];
+      if(lowerHitRanges!=-1&&upperHitRanges!=-1) {
+        unsigned int nLowerHits = module_hitRanges[lowerModuleIndex * 2 + 1] - lowerHitRanges + 1;
+        unsigned int nUpperHits = module_hitRanges[upperModuleIndex * 2 + 1] - upperHitRanges + 1;
+        maxThreadsPerModule = maxThreadsPerModule > (nLowerHits*nUpperHits) ? maxThreadsPerModule : nLowerHits*nUpperHits;
+      }
+    }
+    #else
+    //int maxThreadsPerModule=0;
     for (int i=0; i<nLowerModules; i++) {
       int lowerModuleIndex = modulesInGPU->lowerModuleIndices[i];
       int upperModuleIndex = modulesInGPU->partnerModuleIndex(lowerModuleIndex);
@@ -767,6 +794,7 @@ void SDL::Event::createMiniDoublets()
         maxThreadsPerModule = maxThreadsPerModule > (nLowerHits*nUpperHits) ? maxThreadsPerModule : nLowerHits*nUpperHits;
       }
     }
+    #endif
     printf("maxThreadsPerModule=%d\n", maxThreadsPerModule);
     dim3 nThreads(1,128);
     dim3 nBlocks((nLowerModules % nThreads.x == 0 ? nLowerModules/nThreads.x : nLowerModules/nThreads.x + 1), (maxThreadsPerModule % nThreads.y == 0 ? maxThreadsPerModule/nThreads.y : maxThreadsPerModule/nThreads.y + 1));
@@ -830,6 +858,42 @@ void SDL::Event::createSegmentsWithModuleMap()
     int max_cModules=0;
     int sq_max_nMDs = 0;
     int nonZeroModules = 0;
+  #ifdef Explicit_Module
+    //unsigned int nModules = *modulesInGPU->nModules;
+    unsigned int nModules;// = *modulesInGPU->nLowerModules;
+    cudaMemcpy(&nModules,modulesInGPU->nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    unsigned int* nMDs = (unsigned int*)malloc(nModules*sizeof(unsigned int));
+    cudaMemcpy((void *)nMDs, mdsInGPU->nMDs, nModules*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+    unsigned int* module_lowerModuleIndices;
+    cudaMallocHost(&module_lowerModuleIndices, (nLowerModules +1)* sizeof(unsigned int));
+    cudaMemcpy(module_lowerModuleIndices,modulesInGPU->lowerModuleIndices,(nLowerModules+1)*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    unsigned int* module_nConnectedModules;
+    cudaMallocHost(&module_nConnectedModules, nModules* sizeof(unsigned int));
+    cudaMemcpy(module_nConnectedModules,modulesInGPU->nConnectedModules,nModules*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    unsigned int* module_moduleMap;
+    cudaMallocHost(&module_moduleMap, nModules*40* sizeof(unsigned int));
+    cudaMemcpy(module_moduleMap,modulesInGPU->moduleMap,nModules*40*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+
+    for (int i=0; i<nLowerModules; i++) {
+      unsigned int innerLowerModuleIndex = module_lowerModuleIndices[i];
+      unsigned int nConnectedModules = module_nConnectedModules[innerLowerModuleIndex];
+      unsigned int nInnerMDs = nMDs[innerLowerModuleIndex];
+      max_cModules = max_cModules > nConnectedModules ? max_cModules : nConnectedModules;
+      int limit_local = 0;
+      if (nConnectedModules!=0) nonZeroModules++;
+      for (int j=0; j<nConnectedModules; j++) {
+        int outerLowerModuleIndex = module_moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + j];
+        int nOuterMDs = nMDs[outerLowerModuleIndex];
+        int total = nInnerMDs*nOuterMDs;
+        limit_local = limit_local > total ? limit_local : total;
+      }
+      sq_max_nMDs = sq_max_nMDs > limit_local ? sq_max_nMDs : limit_local;
+    }
+  #else
+    //int max_cModules=0;
+    //int sq_max_nMDs = 0;
+    //int nonZeroModules = 0;
     unsigned int nModules = *modulesInGPU->nModules;
     unsigned int* nMDs = (unsigned int*)malloc(nModules*sizeof(unsigned int));
     cudaMemcpy((void *)nMDs, mdsInGPU->nMDs, nModules*sizeof(unsigned int), cudaMemcpyDeviceToHost);
@@ -848,6 +912,7 @@ void SDL::Event::createSegmentsWithModuleMap()
       }
       sq_max_nMDs = sq_max_nMDs > limit_local ? sq_max_nMDs : limit_local;
     }
+  #endif
     printf("max nConnectedModules=%d nonZeroModules=%d max sq_max_nMDs=%d\n", max_cModules, nonZeroModules, sq_max_nMDs);
     dim3 nThreads(256,1,1);
     dim3 nBlocks((sq_max_nMDs%nThreads.x==0 ? sq_max_nMDs/nThreads.x : sq_max_nMDs/nThreads.x + 1), (max_cModules%nThreads.y==0 ? max_cModules/nThreads.y : max_cModules/nThreads.y + 1), (nLowerModules%nThreads.z==0 ? nLowerModules/nThreads.z : nLowerModules/nThreads.z + 1));
@@ -906,6 +971,32 @@ void SDL::Event::createTriplets()
       }
 #else
 #ifdef NEWGRID_Trips
+  #ifdef Explicit_Module
+    unsigned int nonZeroModules=0;
+    unsigned int max_InnerSeg=0;
+    unsigned int *index = (unsigned int*)malloc(nLowerModules*sizeof(unsigned int));
+    unsigned int *index_gpu;
+    cudaMalloc((void **)&index_gpu, nLowerModules*sizeof(unsigned int));
+    //unsigned int nModules = *modulesInGPU->nModules;
+    unsigned int *nSegments = (unsigned int*)malloc(nModules*sizeof(unsigned int));
+    cudaMemcpy((void *)nSegments, segmentsInGPU->nSegments, nModules*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    unsigned int* module_lowerModuleIndices;
+    cudaMallocHost(&module_lowerModuleIndices, (nLowerModules +1)* sizeof(unsigned int));
+    cudaMemcpy(module_lowerModuleIndices,modulesInGPU->lowerModuleIndices,(nLowerModules+1)*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    unsigned int* module_nConnectedModules;
+    cudaMallocHost(&module_nConnectedModules, nModules* sizeof(unsigned int));
+    cudaMemcpy(module_nConnectedModules,modulesInGPU->nConnectedModules,nModules*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    for (int i=0; i<nLowerModules; i++) {
+      unsigned int innerLowerModuleIndex = module_lowerModuleIndices[i];
+      unsigned int nConnectedModules = module_nConnectedModules[innerLowerModuleIndex];
+      unsigned int nInnerSegments = nSegments[innerLowerModuleIndex];
+      if (nConnectedModules!=0&&nInnerSegments!=0) {
+        index[nonZeroModules] = i;
+        nonZeroModules++;
+      }
+      max_InnerSeg = max_InnerSeg > nInnerSegments ? max_InnerSeg : nInnerSegments;
+    }
+  #else
     unsigned int nonZeroModules=0;
     unsigned int max_InnerSeg=0;
     unsigned int *index = (unsigned int*)malloc(nLowerModules*sizeof(unsigned int));
@@ -924,6 +1015,7 @@ void SDL::Event::createTriplets()
       }
       max_InnerSeg = max_InnerSeg > nInnerSegments ? max_InnerSeg : nInnerSegments;
     }
+  #endif
     cudaMemcpy(index_gpu, index, nonZeroModules*sizeof(unsigned int), cudaMemcpyHostToDevice);
     int max_OuterSeg = 0;
     /*
@@ -991,6 +1083,51 @@ void SDL::Event::createTrackletsWithModuleMap()
       }
 #else
 #ifdef NEWGRID_Tracklet
+  #ifdef Explicit_Module
+    //unsigned int nModules = *modulesInGPU->nModules;
+    unsigned int *outerLowerModuleIndices = (unsigned int*)malloc(nModules*N_MAX_SEGMENTS_PER_MODULE*sizeof(unsigned int));
+    cudaMemcpy((void *)outerLowerModuleIndices, segmentsInGPU->outerLowerModuleIndices, nModules*N_MAX_SEGMENTS_PER_MODULE*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    unsigned int *nSegments = (unsigned int*)malloc(nModules*sizeof(unsigned int));
+    cudaMemcpy((void *)nSegments, segmentsInGPU->nSegments, nModules*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    unsigned int *index = (unsigned int*)malloc(nLowerModules*sizeof(unsigned int));
+    unsigned int *index_gpu;
+    cudaMalloc((void **)&index_gpu, nLowerModules*sizeof(unsigned int));
+    int max_cModules = 0;
+    int sq_max_segments = 0;
+    int nonZeroSegModules = 0;
+    int inner_max_segments = 0;
+    int outer_max_segments = 0;
+    unsigned int* module_lowerModuleIndices;
+    cudaMallocHost(&module_lowerModuleIndices, (nLowerModules +1)* sizeof(unsigned int));
+    cudaMemcpy(module_lowerModuleIndices,modulesInGPU->lowerModuleIndices,(nLowerModules+1)*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    unsigned int* module_nConnectedModules;
+    cudaMallocHost(&module_nConnectedModules, nModules* sizeof(unsigned int));
+    cudaMemcpy(module_nConnectedModules,modulesInGPU->nConnectedModules,nModules*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    unsigned int* module_moduleMap;
+    cudaMallocHost(&module_moduleMap, nModules*40* sizeof(unsigned int));
+    cudaMemcpy(module_moduleMap,modulesInGPU->moduleMap,nModules*40*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    for (int i=0; i<nLowerModules; i++) {
+      unsigned int innerInnerLowerModuleIndex = module_lowerModuleIndices[i];
+      unsigned int nInnerSegments = nSegments[innerInnerLowerModuleIndex];
+      if (nInnerSegments!=0) {
+        index[nonZeroSegModules] = i;
+        nonZeroSegModules++;
+      }
+      inner_max_segments = inner_max_segments > nInnerSegments ? inner_max_segments : nInnerSegments;
+
+      for (int j=0; j<nInnerSegments; j++) {
+        unsigned int innerSegmentIndex = innerInnerLowerModuleIndex * N_MAX_SEGMENTS_PER_MODULE + j;
+        unsigned int innerOuterLowerModuleIndex = outerLowerModuleIndices[innerSegmentIndex];
+        unsigned int nOuterInnerLowerModules = module_nConnectedModules[innerOuterLowerModuleIndex];
+        max_cModules = max_cModules > nOuterInnerLowerModules ? max_cModules : nOuterInnerLowerModules;
+        for (int k=0; k<nOuterInnerLowerModules; k++) {
+          unsigned int outerInnerLowerModuleIndex = module_moduleMap[innerOuterLowerModuleIndex * MAX_CONNECTED_MODULES + k];
+          unsigned int nOuterSegments = nSegments[outerInnerLowerModuleIndex];
+          sq_max_segments = sq_max_segments > nInnerSegments*nOuterSegments ? sq_max_segments : nInnerSegments*nOuterSegments;
+        }
+      }
+    }
+  #else
     unsigned int nModules = *modulesInGPU->nModules;
     unsigned int *outerLowerModuleIndices = (unsigned int*)malloc(nModules*N_MAX_SEGMENTS_PER_MODULE*sizeof(unsigned int));
     cudaMemcpy((void *)outerLowerModuleIndices, segmentsInGPU->outerLowerModuleIndices, nModules*N_MAX_SEGMENTS_PER_MODULE*sizeof(unsigned int), cudaMemcpyDeviceToHost);
@@ -1025,7 +1162,7 @@ void SDL::Event::createTrackletsWithModuleMap()
         }
       }
     }
-
+  #endif
     cudaMemcpy(index_gpu, index, nonZeroSegModules*sizeof(unsigned int), cudaMemcpyHostToDevice);
     printf("max_cModules=%d sq_max_segments=%d nonZeroSegModules=%d\n", max_cModules, sq_max_segments, nonZeroSegModules);
 
@@ -1549,9 +1686,11 @@ __global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SD
     dPhiMax = 0;
     dPhiChangeMin = 0;
     dPhiChangeMax = 0;
-
+//printf("TEST 1 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
+//printf("TEST 4 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX %u %u %u\n",innerLowerModuleIndex,outerLowerModuleIndex, outerLowerModuleArrayIdx);
     bool success = runSegmentDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex);
 
+//printf("TEST 2 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
     if(success)
     {
         unsigned int segmentModuleIdx = atomicAdd(&segmentsInGPU.nSegments[innerLowerModuleIndex],1);
@@ -1559,6 +1698,7 @@ __global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SD
 
         addSegmentToMemory(segmentsInGPU,innerMDIndex, outerMDIndex,innerLowerModuleIndex, outerLowerModuleIndex, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, zIn, zOut, rtIn, rtOut, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD,segmentIdx);
     }
+//printf("TEST 3 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 
 
 }
@@ -1588,6 +1728,7 @@ __global__ void createSegmentsFromInnerLowerModule(struct SDL::modules&modulesIn
     dPhiChangeMin = 0;
     dPhiChangeMax = 0;
 
+printf("TEST 4 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX %u %u\n",innerLowerModuleIndex,outerLowerModuleIndex);
     bool success = runSegmentDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex);
 
     if(success)
