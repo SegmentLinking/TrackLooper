@@ -61,7 +61,8 @@ void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCand
 }
 void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates, unsigned int maxPixelTrackCandidates, unsigned int nLowerModules ,unsigned int nEligibleModules)
 {
-    unsigned int nMemoryLocations = maxTrackCandidates * nEligibleModules + maxPixelTrackCandidates;
+    unsigned int nMemoryLocations = maxTrackCandidates * (nEligibleModules-1) + maxPixelTrackCandidates;
+    std::cout<<"Number of eligible modules = "<<nEligibleModules<<std::endl;
 #ifdef CACHE_ALLOC
     cudaStream_t stream=0;
     int dev;
