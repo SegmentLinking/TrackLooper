@@ -3,7 +3,7 @@
 #include "allocate.h"
 
 
-void SDL::createEligibleModulesListForTrackCandidates(struct modules& modulesInGPU, unsigned int nEligibleModules, unsigned int maxTrackCandidates)
+void SDL::createEligibleModulesListForTrackCandidates(struct modules& modulesInGPU, unsigned int& nEligibleModules, unsigned int maxTrackCandidates)
 {
     //an extra array in the modulesInGPU struct that will provide us with starting indices for the memory locations. If a
     //module is not supposed to have any memory, it gets a -1
@@ -14,13 +14,14 @@ void SDL::createEligibleModulesListForTrackCandidates(struct modules& modulesInG
     cudaMemset(modulesInGPU.trackCandidateModuleIndices, -1, sizeof(int) * (nLowerModules + 1));
 
     //start filling
-    for(size_t idx = 0; idx <= nLowerModules; idx++)
+    for(size_t i = 0; i <= nLowerModules; i++)
     {
         //condition for a track candidate to exist for a module
         //TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap
+        unsigned int idx = modulesInGPU.lowerModuleIndices[i];
         if((modulesInGPU.subdets[idx] == SDL::Barrel and modulesInGPU.layers[idx] < 5) or (modulesInGPU.subdets[idx] == SDL::Endcap and modulesInGPU.layers[idx] == 1) or modulesInGPU.subdets[idx] == SDL::InnerPixel)
         {
-            modulesInGPU.trackCandidateModuleIndices[idx] = nEligibleModules * maxTrackCandidates;
+            modulesInGPU.trackCandidateModuleIndices[i] = nEligibleModules * maxTrackCandidates;
             nEligibleModules++;
         }
     }
@@ -29,7 +30,8 @@ void SDL::createEligibleModulesListForTrackCandidates(struct modules& modulesInG
 
 void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates, unsigned int maxPixelTrackCandidates, unsigned int nLowerModules, unsigned int nEligibleModules)
 {
-    unsigned int nMemoryLocations = maxTrackCandidates * nEligibleModules + maxPixelTrackCandidates;
+    unsigned int nMemoryLocations = maxTrackCandidates * (nEligibleModules-1) + maxPixelTrackCandidates;
+    std::cout<<"Number of eligible modules = "<<nEligibleModules<<std::endl;
 #ifdef CACHE_ALLOC
     cudaStream_t stream=0;
     trackCandidatesInGPU.trackCandidateType = (short*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(short),stream);

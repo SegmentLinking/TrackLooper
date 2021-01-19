@@ -72,7 +72,7 @@ namespace SDL
             void addSegmentsToAnalysisInterface(struct segments& segmentsInGPU);
             void addTrackletsToAnalysisInterface(struct tracklets& trackletsInGPU);
             void addTripletsToAnalysisInterface(struct triplets& tripletsInGPU);
-            void addTrackCandidatesToAnalysisInterface(struct trackCandidates& trackCandidatesInGPU);
+            void addTrackCandidatesToAnalysisInterface(struct trackCandidates& trackCandidatesInGPU, struct modules& modulesInGPU);
             void printTrackCandidateLayers(std::shared_ptr<TrackCandidate> tc);
 
         //add the get list of functions here

@@ -39,9 +39,9 @@ namespace SDL
         void freeMemoryCache();
     };
 
-    void createEligibleModulesListForTrackCandidates(struct modules& modulesInGPU, unsigned int nEligibleModules, unsigned int maxTrackCandidates);
+    void createEligibleModulesListForTrackCandidates(struct modules& modulesInGPU, unsigned int& nEligibleModules, unsigned int maxTrackCandidates);
 
-    void createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates, unsigned int maxPixelTrackCandidates, unsigned int nLowerModules, unsigned int neligibleModules);
+    void createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates, unsigned int maxPixelTrackCandidates, unsigned int nLowerModules, unsigned int nEligibleModules);
 
     void createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates, unsigned int maxPixelTrackCandidates, unsigned int nLowerModules, unsigned int nEligibleModules);
     

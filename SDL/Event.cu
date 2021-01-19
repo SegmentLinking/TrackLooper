@@ -2213,9 +2213,18 @@ __global__ void createTrackCandidatesFromInnerInnerInnerLowerModule(struct SDL::
                 }
                 else
                 {
-		    unsigned int trackCandidateIdx = innerInnerInnerLowerModuleArrayIndex * N_MAX_TRACK_CANDIDATES_PER_MODULE + trackCandidateModuleIdx;
+//		    unsigned int trackCandidateIdx = innerInnerInnerLowerModuleArrayIndex * N_MAX_TRACK_CANDIDATES_PER_MODULE + trackCandidateModuleIdx;
+                    if(modulesInGPU.trackCandidateModuleIndices[innerInnerInnerLowerModuleArrayIndex] == -1)
+                    {
+                       printf("Track candidates: no memory for module at module index = %d\n",innerInnerInnerLowerModuleArrayIndex);
 
-                    addTrackCandidateToMemory(trackCandidatesInGPU, trackCandidateType, innerObjectIndex, outerObjectIndex, trackCandidateIdx);
+                    }
+                    else
+                   {
+                        unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[innerInnerInnerLowerModuleArrayIndex] + trackCandidateModuleIdx;
+                        addTrackCandidateToMemory(trackCandidatesInGPU, trackCandidateType, innerObjectIndex, outerObjectIndex, trackCandidateIdx);
+                    }
+
                 }
             }
 
@@ -2242,9 +2251,17 @@ __global__ void createTrackCandidatesFromInnerInnerInnerLowerModule(struct SDL::
                 else
                 {
  
-                    unsigned int trackCandidateIdx = innerInnerInnerLowerModuleArrayIndex * N_MAX_TRACK_CANDIDATES_PER_MODULE + trackCandidateModuleIdx;
-
-                    addTrackCandidateToMemory(trackCandidatesInGPU, trackCandidateType, innerObjectIndex, outerObjectIndex, trackCandidateIdx);
+//                    unsigned int trackCandidateIdx = innerInnerInnerLowerModuleArrayIndex * N_MAX_TRACK_CANDIDATES_PER_MODULE + trackCandidateModuleIdx;
+                    if(modulesInGPU.trackCandidateModuleIndices[innerInnerInnerLowerModuleArrayIndex] == -1)
+                    {
+                        printf("Track candidates: no memory for module at module index = %d\n",innerInnerInnerLowerModuleArrayIndex);
+                    }
+                    else
+                    {
+                        unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[innerInnerInnerLowerModuleArrayIndex] + trackCandidateModuleIdx;
+ 
+                        addTrackCandidateToMemory(trackCandidatesInGPU, trackCandidateType, innerObjectIndex, outerObjectIndex, trackCandidateIdx);
+                    }
                 }
             }
 
@@ -2275,7 +2292,7 @@ __global__ void createTrackCandidatesFromInnerInnerInnerLowerModule(struct SDL::
 //              	    unsigned int trackCandidateIdx = innerInnerInnerLowerModuleArrayIndex * N_MAX_TRACK_CANDIDATES_PER_MODULE + trackCandidateModuleIdx;
                     if(modulesInGPU.trackCandidateModuleIndices[innerInnerInnerLowerModuleArrayIndex] == -1)
                     {
-                        printf("Track candidates: no memory for module at module index = %d\n",innerInnerInnerLowerModuleArrayIndex);
+                        printf("Track candidates: no memory for module at module index = %d, outer T4 module index = %d\n",innerInnerInnerLowerModuleArrayIndex, outerInnerInnerLowerModuleIndex);
                     }
                     else
                     {
