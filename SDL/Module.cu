@@ -66,7 +66,6 @@ void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned in
 {
     /* modules stucture object will be created in Event.cu*/
 #ifdef CACHE_ALLOC
-    printf("cache\n");
     cudaStream_t stream=0; 
     int dev;
     cudaGetDevice(&dev);
@@ -124,9 +123,6 @@ void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned in
 #endif
 
     cudaMemcpy(modulesInGPU.nModules,&nModules,sizeof(unsigned int),cudaMemcpyHostToDevice);
-    //cudaMemset(modulesInGPU.nModules,nModules,sizeof(unsigned int));
-    //*modulesInGPU.nModules = nModules;
-    //*modulesInGPU.nModules = nModules;
 }
 
 void SDL::freeModulesCache(struct modules& modulesInGPU)
@@ -257,7 +253,8 @@ void SDL::createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsign
     cudaMemcpy(modulesInGPU.lowerModuleIndices,lowerModuleIndices,sizeof(unsigned int)*(nLowerModules+1),cudaMemcpyHostToDevice);
     cudaMemcpy(modulesInGPU.reverseLookupLowerModuleIndices,reverseLookupLowerModuleIndices,sizeof(int)*nModules,cudaMemcpyHostToDevice);
    
-
+    cudaFreeHost(lowerModuleIndices);
+    cudaFreeHost(reverseLookupLowerModuleIndices);
 }
 void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules)
 {
@@ -329,10 +326,8 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     counter++;
     nModules = counter;
     std::cout<<"Number of modules = "<<nModules<<std::endl;
-    createModulesInUnifiedMemory(modulesInGPU,nModules);
 #ifdef Explicit_Module
     createModulesInExplicitMemory(modulesInGPU,nModules);
-    //createModulesInUnifiedMemory(modulesInGPU,nModules);
     unsigned int* lowerModuleCounter;// = 0;
     cudaMallocHost(&lowerModuleCounter,sizeof(unsigned int));
 
@@ -405,7 +400,6 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
           lowerModuleCounter[0] += host_isLower[index];
     }
 
-//    cudaMemset(modulesInGPU.nLowerModules,lowerModuleCounter,sizeof(unsigned int));
     cudaMemcpy(modulesInGPU.nLowerModules,lowerModuleCounter,sizeof(unsigned int),cudaMemcpyHostToDevice);
     cudaMemcpy(modulesInGPU.detIds,host_detIds,nModules*sizeof(unsigned int),cudaMemcpyHostToDevice);
     cudaMemcpy(modulesInGPU.layers,host_layers,nModules*sizeof(short),cudaMemcpyHostToDevice);
@@ -420,18 +414,20 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     cudaMemcpy(modulesInGPU.moduleLayerType,host_moduleLayerType,sizeof(ModuleLayerType)*nModules,cudaMemcpyHostToDevice);
     cudaMemcpy(modulesInGPU.slopes,host_slopes,sizeof(float)*nModules,cudaMemcpyHostToDevice);
     cudaMemcpy(modulesInGPU.drdzs,host_drdzs,sizeof(float)*nModules,cudaMemcpyHostToDevice);
-//    cudaFreeHost(host_layers);
-//    cudaFreeHost(host_rings);
-//    cudaFreeHost(host_rods);
-//    cudaFreeHost(host_modules);
-//    cudaFreeHost(host_subdets);
-//    cudaFreeHost(host_sides);
-//    cudaFreeHost(host_isInverted);
-//    cudaFreeHost(host_isLower);
-//    cudaFreeHost(host_moduleType);
-//    cudaFreeHost(host_moduleLayerType);
-//    cudaFreeHost(host_slopes);
-//    cudaFreeHost(host_drdzs);
+    cudaFreeHost(host_detIds);
+    cudaFreeHost(host_layers);
+    cudaFreeHost(host_rings);
+    cudaFreeHost(host_rods);
+    cudaFreeHost(host_modules);
+    cudaFreeHost(host_subdets);
+    cudaFreeHost(host_sides);
+    cudaFreeHost(host_isInverted);
+    cudaFreeHost(host_isLower);
+    cudaFreeHost(host_moduleType);
+    cudaFreeHost(host_moduleLayerType);
+    cudaFreeHost(host_slopes);
+    cudaFreeHost(host_drdzs);
+    cudaFreeHost(lowerModuleCounter);
     std::cout<<"number of lower modules (without fake pixel module)= "<<lowerModuleCounter[0]<<std::endl;
     createLowerModuleIndexMapExplicit(modulesInGPU,lowerModuleCounter[0], nModules,host_isLower);
     fillConnectedModuleArrayExplicit(modulesInGPU,nModules);
@@ -445,7 +441,6 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
         unsigned int detId = it->first;
         unsigned int index = it->second;
         modulesInGPU.detIds[index] = detId;
-//        printf("detId %u\n",detId);
         if(detId == 1)
         {
             modulesInGPU.layers[index] = 0;
@@ -481,7 +476,6 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
             modulesInGPU.slopes[index] = (subdet == Endcap) ? endcapGeometry.getSlopeLower(detId) : tiltedGeometry.getSlope(detId);
             modulesInGPU.drdzs[index] = (subdet == Barrel) ? tiltedGeometry.getDrDz(detId) : 0;
         }
-     // printf("lower(%d): %d\n",index,modulesInGPU.isLower[index]);
         if(modulesInGPU.isLower[index]) lowerModuleCounter++;
     }
     *modulesInGPU.nLowerModules = lowerModuleCounter;
@@ -511,6 +505,8 @@ void SDL::fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigne
     }
     cudaMemcpy(modulesInGPU.moduleMap,moduleMap,nModules*40*sizeof(unsigned int),cudaMemcpyHostToDevice);
     cudaMemcpy(modulesInGPU.nConnectedModules,nConnectedModules,nModules*sizeof(unsigned int),cudaMemcpyHostToDevice);
+    cudaFreeHost(moduleMap);
+    cudaFreeHost(nConnectedModules);
 }
 void SDL::fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nModules)
 {
