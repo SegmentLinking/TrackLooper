@@ -41,7 +41,7 @@ void SDL::createEligibleModulesListForTrackCandidates(struct modules& modulesInG
             nEligibleModules++;
         }
     }
-    cudaMemcpy(modulesInGPU.trackCandidateModuleIndices,module_trackCandidateModuleIndices,nLowerModules*sizeof(int),cudaMemcpyHostToDevice);
+    cudaMemcpy(modulesInGPU.trackCandidateModuleIndices,module_trackCandidateModuleIndices,(nLowerModules+1)*sizeof(int),cudaMemcpyHostToDevice);
     cudaFreeHost(module_subdets);
     cudaFreeHost(module_lowerModuleIndices);
     cudaFreeHost(module_layers);
