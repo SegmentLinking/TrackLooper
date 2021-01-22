@@ -60,6 +60,7 @@ void SDL::createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int
     cudaMallocManaged(&modulesInGPU.moduleLayerType,nModules * sizeof(ModuleLayerType));
 #endif
 
+
     *modulesInGPU.nModules = nModules;
 }
 void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned int nModules)
@@ -210,6 +211,7 @@ void SDL::freeModules(struct modules& modulesInGPU)
   cudaFree(modulesInGPU.moduleLayerType);
   cudaFree(modulesInGPU.lowerModuleIndices);
   cudaFree(modulesInGPU.reverseLookupLowerModuleIndices);
+  cudaFree(modulesInGPU.trackCandidateModuleIndices);
 }
 
 void SDL::createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules,bool* isLower)
@@ -268,6 +270,10 @@ void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int n
     cudaMallocManaged(&modulesInGPU.lowerModuleIndices,(nLowerModules + 1) * sizeof(unsigned int));
     cudaMallocManaged(&modulesInGPU.reverseLookupLowerModuleIndices,nModules * sizeof(int));
     #endif
+
+    //new kid in the block - trackCandidateModuleIndices
+    cudaMallocManaged(&modulesInGPU.trackCandidateModuleIndices, (nLowerModules + 1) * sizeof(int));
+
 
     unsigned int lowerModuleCounter = 0;
     for(auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); it++)

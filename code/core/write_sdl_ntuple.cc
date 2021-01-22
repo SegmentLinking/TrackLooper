@@ -246,6 +246,8 @@ void fillOutputBranches(SDL::Event& event)
     //for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
+        if(SDL::modulesInGPU->trackCandidateModuleIndices[idx] == -1)
+            continue;
         unsigned int nTrackCandidates = trackCandidatesInGPU.nTrackCandidates[idx];
         if(idx == *modulesInGPU.nLowerModules and nTrackCandidates > 5000000)
         //if(idx == *SDL::modulesInGPU->nLowerModules and nTrackCandidates > 5000000)
@@ -259,7 +261,8 @@ void fillOutputBranches(SDL::Event& event)
         }
         for (unsigned int jdx = 0; jdx < nTrackCandidates; jdx++)
         {
-            unsigned int trackCandidateIndex = idx * 50000/*_N_MAX_TRACK_CANDIDATES_PER_MODULE*/ + jdx;
+//            unsigned int trackCandidateIndex = idx * 50000/*_N_MAX_TRACK_CANDIDATES_PER_MODULE*/ + jdx;
+            unsigned int trackCandidateIndex = SDL::modulesInGPU->trackCandidateModuleIndices[idx] + jdx;            
 
             short trackCandidateType = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
             unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex];
@@ -1091,9 +1094,12 @@ void printTCs(SDL::Event& event)
     int nTrackCandidates = 0;
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); ++idx)
     {
+            if(SDL::modulesInGPU->trackCandidateModuleIndices[idx] == -1)
+                continue;
         for (unsigned int jdx = 0; jdx < trackCandidatesInGPU.nTrackCandidates[idx]; jdx++)
         {
-            unsigned int trackCandidateIndex = idx * 50000/*_N_MAX_TRACK_CANDIDATES_PER_MODULE*/ + jdx;
+            //unsigned int trackCandidateIndex = idx * 50000/*_N_MAX_TRACK_CANDIDATES_PER_MODULE*/ + jdx;
+            unsigned int trackCandidateIndex = SDL::modulesInGPU->trackCandidateModuleIndices[idx] + jdx;
 
             short trackCandidateType = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
 
