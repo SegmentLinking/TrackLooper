@@ -207,13 +207,17 @@ void SDL::EventForAnalysisInterface::addTripletsToAnalysisInterface(struct tripl
 }
 
 
-void SDL::EventForAnalysisInterface::addTrackCandidatesToAnalysisInterface(struct trackCandidates& trackCandidatesInGPU)
+void SDL::EventForAnalysisInterface::addTrackCandidatesToAnalysisInterface(struct trackCandidates& trackCandidatesInGPU, struct modules& modulesInGPU)
 {
     for(unsigned int idx = 0; idx <= lowerModulePointers.size(); idx++) //cheating to include pixel track candidate lower module
     {
+        if(modulesInGPU.trackCandidateModuleIndices[idx] == -1)
+            continue;
+
         for(unsigned int jdx = 0; jdx < trackCandidatesInGPU.nTrackCandidates[idx]; jdx++)
         {
-            unsigned int trackCandidateIndex = idx * N_MAX_TRACK_CANDIDATES_PER_MODULE + jdx;
+//            unsigned int trackCandidateIndex = idx * N_MAX_TRACK_CANDIDATES_PER_MODULE + jdx;
+            unsigned int trackCandidateIndex = modulesInGPU.trackCandidateModuleIndices[idx] + jdx;
             short trackCandidateType = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
             std::shared_ptr<TrackletBase> innerTrackletPtr = nullptr;
             std::shared_ptr<TrackletBase> outerTrackletPtr = nullptr;
@@ -360,7 +364,7 @@ SDL::EventForAnalysisInterface::EventForAnalysisInterface(struct modules* module
     }
     if(trackCandidatesInGPU != nullptr)
     {
-        addTrackCandidatesToAnalysisInterface(*trackCandidatesInGPU);
+        addTrackCandidatesToAnalysisInterface(*trackCandidatesInGPU, *modulesInGPU);
     }
 }
 

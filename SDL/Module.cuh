@@ -57,6 +57,8 @@ namespace SDL
         unsigned int *lowerModuleIndices;
         int *reverseLookupLowerModuleIndices; //module index to lower module index reverse lookup
 
+        int *trackCandidateModuleIndices;
+
         
         short* layers;
         short* rings;
