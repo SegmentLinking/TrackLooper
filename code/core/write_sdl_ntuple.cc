@@ -44,7 +44,7 @@ void write_sdl_ntuple(bool cut_value_ntuple)
             SDL::Event event;
 
             // Add hits to the event
-            float timing_input_loading = addInputsToLineSegmentTrackingUsingUnifiedMemory(event);
+            float timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
             printHitMultiplicities(event);
 
             // Run Mini-doublet
@@ -246,7 +246,7 @@ void fillOutputBranches(SDL::Event& event)
     //for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
-        if(SDL::modulesInGPU->trackCandidateModuleIndices[idx] == -1)
+        if(modulesInGPU.trackCandidateModuleIndices[idx] == -1)
             continue;
         unsigned int nTrackCandidates = trackCandidatesInGPU.nTrackCandidates[idx];
         if(idx == *modulesInGPU.nLowerModules and nTrackCandidates > 5000000)
@@ -262,7 +262,7 @@ void fillOutputBranches(SDL::Event& event)
         for (unsigned int jdx = 0; jdx < nTrackCandidates; jdx++)
         {
 //            unsigned int trackCandidateIndex = idx * 50000/*_N_MAX_TRACK_CANDIDATES_PER_MODULE*/ + jdx;
-            unsigned int trackCandidateIndex = SDL::modulesInGPU->trackCandidateModuleIndices[idx] + jdx;            
+            unsigned int trackCandidateIndex = modulesInGPU.trackCandidateModuleIndices[idx] + jdx;            
 
             short trackCandidateType = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
             unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex];
@@ -557,28 +557,38 @@ void printTimingInformation(std::vector<std::vector<float>> timing_information)
     std::cout << setprecision(2);
     std::cout << right;
     std::cout << "Timing summary" << std::endl;
-    std::cout << "Evt     Hits  MD    LS    T4    T4x   pT4   T3    TC" << std::endl;
+    std::cout << "Evt     Hits         MD       LS      T4      T4x       pT4        T3       TC       Total" << std::endl;
     std::vector<float> timing_sum_information(7);
     for (auto&& [ievt, timing] : iter::enumerate(timing_information))
     {
+        float timing_total = 0.f;
+        timing_total += timing[0]*1000; // Hits
+        timing_total += timing[1]*1000; // MD
+        timing_total += timing[2]*1000; // LS
+        timing_total += timing[3]*1000; // T4
+        timing_total += timing[4]*1000; // T4x
+        timing_total += timing[5]*1000; // pT4
+        timing_total += timing[6]*1000; // T3
+        timing_total += timing[7]*1000; // TC
         std::cout << setw(6) << ievt;
-        std::cout << setw(6) << timing[0]; // Hits
-        std::cout << setw(6) << timing[1]; // MD
-        std::cout << setw(6) << timing[2]; // LS
-        std::cout << setw(6) << timing[3]; // T4
-        std::cout << setw(6) << timing[4]; // T4x
-        std::cout << setw(6) << timing[5]; // pT4
-        std::cout << setw(6) << timing[6]; // T3
-        std::cout << setw(6) << timing[7]; // TC
+        std::cout << "   "<<setw(6) << timing[0]*1000; // Hits
+        std::cout << "   "<<setw(6) << timing[1]*1000; // MD
+        std::cout << "   "<<setw(6) << timing[2]*1000; // LS
+        std::cout << "   "<<setw(6) << timing[3]*1000; // T4
+        std::cout << "   "<<setw(6) << timing[4]*1000; // T4x
+        std::cout << "   "<<setw(6) << timing[5]*1000; // pT4
+        std::cout << "   "<<setw(6) << timing[6]*1000; // T3
+        std::cout << "   "<<setw(6) << timing[7]*1000; // TC
+        std::cout << "   "<<setw(7) << timing_total; // Total time
         std::cout << std::endl;
-        timing_sum_information[0] += timing[0]; // Hits
-        timing_sum_information[1] += timing[1]; // MD
-        timing_sum_information[2] += timing[2]; // LS
-        timing_sum_information[3] += timing[3]; // T4
-        timing_sum_information[4] += timing[4]; // T4x
-        timing_sum_information[5] += timing[5]; // pT4
-        timing_sum_information[6] += timing[6]; // T3
-        timing_sum_information[7] += timing[7]; // TC
+        timing_sum_information[0] += timing[0]*1000; // Hits
+        timing_sum_information[1] += timing[1]*1000; // MD
+        timing_sum_information[2] += timing[2]*1000; // LS
+        timing_sum_information[3] += timing[3]*1000; // T4
+        timing_sum_information[4] += timing[4]*1000; // T4x
+        timing_sum_information[5] += timing[5]*1000; // pT4
+        timing_sum_information[6] += timing[6]*1000; // T3
+        timing_sum_information[7] += timing[7]*1000; // TC
     }
     timing_sum_information[0] /= timing_information.size(); // Hits
     timing_sum_information[1] /= timing_information.size(); // MD
@@ -588,15 +598,25 @@ void printTimingInformation(std::vector<std::vector<float>> timing_information)
     timing_sum_information[5] /= timing_information.size(); // pT4
     timing_sum_information[6] /= timing_information.size(); // T3
     timing_sum_information[7] /= timing_information.size(); // TC
+    float timing_total_avg = 0.f;
+    timing_total_avg += timing_sum_information[0]; // Hits
+    timing_total_avg += timing_sum_information[1]; // MD
+    timing_total_avg += timing_sum_information[2]; // LS
+    timing_total_avg += timing_sum_information[3]; // T4
+    timing_total_avg += timing_sum_information[4]; // T4x
+    timing_total_avg += timing_sum_information[5]; // pT4
+    timing_total_avg += timing_sum_information[6]; // T3
+    timing_total_avg += timing_sum_information[7]; // T3
     std::cout << setw(6) << "avg";
-    std::cout << setw(6) << timing_sum_information[0]; // Hits
-    std::cout << setw(6) << timing_sum_information[1]; // MD
-    std::cout << setw(6) << timing_sum_information[2]; // LS
-    std::cout << setw(6) << timing_sum_information[3]; // T4
-    std::cout << setw(6) << timing_sum_information[4]; // T4x
-    std::cout << setw(6) << timing_sum_information[5]; // pT4
-    std::cout << setw(6) << timing_sum_information[6]; // T3
-    std::cout << setw(6) << timing_sum_information[7]; // T3
+    std::cout << "   "<<setw(6) << timing_sum_information[0]; // Hits
+    std::cout << "   "<<setw(6) << timing_sum_information[1]; // MD
+    std::cout << "   "<<setw(6) << timing_sum_information[2]; // LS
+    std::cout << "   "<<setw(6) << timing_sum_information[3]; // T4
+    std::cout << "   "<<setw(6) << timing_sum_information[4]; // T4x
+    std::cout << "   "<<setw(6) << timing_sum_information[5]; // pT4
+    std::cout << "   "<<setw(6) << timing_sum_information[6]; // T3
+    std::cout << "   "<<setw(6) << timing_sum_information[7]; // T3
+    std::cout << "   "<<setw(7) << timing_total_avg; // Average total time
     std::cout << std::endl;
 
     std::cout << left;
@@ -1094,12 +1114,12 @@ void printTCs(SDL::Event& event)
     int nTrackCandidates = 0;
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); ++idx)
     {
-            if(SDL::modulesInGPU->trackCandidateModuleIndices[idx] == -1)
+            if(modulesInGPU.trackCandidateModuleIndices[idx] == -1)
                 continue;
         for (unsigned int jdx = 0; jdx < trackCandidatesInGPU.nTrackCandidates[idx]; jdx++)
         {
             //unsigned int trackCandidateIndex = idx * 50000/*_N_MAX_TRACK_CANDIDATES_PER_MODULE*/ + jdx;
-            unsigned int trackCandidateIndex = SDL::modulesInGPU->trackCandidateModuleIndices[idx] + jdx;
+            unsigned int trackCandidateIndex = modulesInGPU.trackCandidateModuleIndices[idx] + jdx;
 
             short trackCandidateType = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
 

@@ -275,7 +275,7 @@ void SDL::Event::addHitToEventGPU(std::vector<float> x, std::vector<float> y, st
 
 }
 //explicit method using omp
-void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId)
+void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple)
 {
     const int loopsize = x.size();// use the actual number of hits instead of a "max"
 
@@ -283,7 +283,11 @@ void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, st
     {
 
         cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
+        #ifdef Explicit_hits
     	  createHitsInExplicitMemory(*hitsInGPU, 2*loopsize); //unclear why but this has to be 2*loopsize to avoid crashing later (reported in tracklet allocation). seems to do with nHits values as well. this allows nhits to be set to the correct value of loopsize to get correct results without crashing. still beats the "max hits" so i think this is fine.
+        #else
+        createHitsInUnifiedMemory(*hitsInGPU,2*loopsize,0);
+        #endif
     }
 
 
@@ -292,9 +296,10 @@ void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, st
     float* host_z = &z[0];
     float* host_phis;
     unsigned int* host_detId = &detId[0];
+    unsigned int* host_idxs = &idxInNtuple[0];
     unsigned int* host_moduleIndex;
     float* host_rts;
-    float* host_idxs;
+    //float* host_idxs;
     float* host_highEdgeXs;
     float* host_highEdgeYs;
     float* host_lowEdgeXs;
@@ -302,7 +307,7 @@ void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, st
     cudaMallocHost(&host_moduleIndex,sizeof(unsigned int)*loopsize);
     cudaMallocHost(&host_phis,sizeof(float)*loopsize);
     cudaMallocHost(&host_rts,sizeof(float)*loopsize);
-    cudaMallocHost(&host_idxs,sizeof(unsigned int)*loopsize);
+    //cudaMallocHost(&host_idxs,sizeof(unsigned int)*loopsize);
     cudaMallocHost(&host_highEdgeXs,sizeof(float)*loopsize);
     cudaMallocHost(&host_highEdgeYs,sizeof(float)*loopsize);
     cudaMallocHost(&host_lowEdgeXs,sizeof(float)*loopsize);
@@ -343,7 +348,7 @@ void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, st
 
       host_rts[ihit] = sqrt(host_x[ihit]*host_x[ihit] + host_y[ihit]*host_y[ihit]);
       host_phis[ihit] = phi(host_x[ihit],host_y[ihit],host_z[ihit]);
-      host_idxs[ihit] = ihit;
+      //host_idxs[ihit] = ihit;
 //  }
 //// This part i think has a race condition. so this is not run in parallel.
 ////#pragma omp parallel for
@@ -395,7 +400,7 @@ void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, st
     cudaDeviceSynchronize(); //doesn't seem to make a difference
 
     cudaFreeHost(host_rts);
-    cudaFreeHost(host_idxs);
+    //cudaFreeHost(host_idxs);
     cudaFreeHost(host_phis);
     cudaFreeHost(host_moduleIndex);
     cudaFreeHost(host_highEdgeXs);
@@ -2991,13 +2996,15 @@ SDL::modules* SDL::Event::getModules()
         modulesInCPU->detIds = new unsigned int[nModules];
         modulesInCPU->hitRanges = new int[2*nModules];
         modulesInCPU->isLower = new bool[nModules];
+        modulesInCPU->trackCandidateModuleIndices = new int[nLowerModules+1];
 
         cudaMemcpy(modulesInCPU->nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
         cudaMemcpy(modulesInCPU->nModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        cudaMemcpy(modulesInCPU->lowerModuleIndices, modulesInGPU->lowerModuleIndices, nLowerModules+1 * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(modulesInCPU->lowerModuleIndices, modulesInGPU->lowerModuleIndices, (nLowerModules+1) * sizeof(unsigned int), cudaMemcpyDeviceToHost);
         cudaMemcpy(modulesInCPU->detIds, modulesInGPU->detIds, nModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
         cudaMemcpy(modulesInCPU->hitRanges, modulesInGPU->hitRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost);
         cudaMemcpy(modulesInCPU->isLower, modulesInGPU->isLower, nModules * sizeof(bool), cudaMemcpyDeviceToHost);
+        cudaMemcpy(modulesInCPU->trackCandidateModuleIndices, modulesInGPU->trackCandidateModuleIndices, (nLowerModules+1) * sizeof(int), cudaMemcpyDeviceToHost);
     }
     return modulesInCPU;
 }

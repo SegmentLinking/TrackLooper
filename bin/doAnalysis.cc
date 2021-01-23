@@ -215,7 +215,7 @@ void addPixelSegments(SDL::Event& event, int isimtrk, std::vector<float> trkX, s
 //    trkY.insert(trkY.end(),vecY.begin(),vecY.end());
 //    trkZ.insert(trkZ.end(),vecZ.begin(),vecZ.end());
 //    hitId.insert(hitId.end(),hitIndices_vec.begin(),hitIndices_vec.end());
-    event.addHitToEventOMP(trkX,trkY,trkZ,hitId);
+    event.addHitToEventOMP(trkX,trkY,trkZ,hitId,hitId); // last value added for omp change for sdl (used for validation. this current value is incorrect but doAnalysis will be obsolete soon)
     event.addPixelSegmentToEventV2(hitIndices_vec0,hitIndices_vec1,hitIndices_vec2,hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, etaErr_vec);
 }
 
