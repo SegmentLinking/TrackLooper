@@ -19,3 +19,4 @@ efficiency/results*
 efficiencies/
 *.txt
 *.pyc
+output*
