@@ -54,6 +54,7 @@ namespace SDL
         float* slopes;
         unsigned int *nModules; //single number
         unsigned int *nLowerModules;
+        unsigned int *nEligibleModules;
         unsigned int *lowerModuleIndices;
         int *reverseLookupLowerModuleIndices; //module index to lower module index reverse lookup
 

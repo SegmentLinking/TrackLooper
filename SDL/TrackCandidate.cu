@@ -42,6 +42,7 @@ void SDL::createEligibleModulesListForTrackCandidates(struct modules& modulesInG
         }
     }
     cudaMemcpy(modulesInGPU.trackCandidateModuleIndices,module_trackCandidateModuleIndices,(nLowerModules+1)*sizeof(int),cudaMemcpyHostToDevice);
+    cudaMemcpy(modulesInGPU.nEligibleModules,&nEligibleModules,sizeof(unsigned int),cudaMemcpyHostToDevice);
     cudaFreeHost(module_subdets);
     cudaFreeHost(module_lowerModuleIndices);
     cudaFreeHost(module_layers);
@@ -98,12 +99,12 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     trackCandidatesInGPU.nTrackCandidatesT3T4= (unsigned int*)cms::cuda::allocate_device(dev, nLowerModules * sizeof(unsigned int),stream);
 
 #else
-    cudaMalloc(&trackCandidatesInGPU.trackCandidateType, nMemoryLocations * sizeof(short));
-    cudaMalloc(&trackCandidatesInGPU.objectIndices, 2 * nMemoryLocations * sizeof(unsigned int));
-    cudaMalloc(&trackCandidatesInGPU.nTrackCandidates, nLowerModules * sizeof(unsigned int));
-    cudaMalloc(&trackCandidatesInGPU.nTrackCandidatesT4T4, nLowerModules * sizeof(unsigned int));
-    cudaMalloc(&trackCandidatesInGPU.nTrackCandidatesT4T3, nLowerModules * sizeof(unsigned int));
-    cudaMalloc(&trackCandidatesInGPU.nTrackCandidatesT3T4, nLowerModules * sizeof(unsigned int));
+    cudaMallocManaged(&trackCandidatesInGPU.trackCandidateType, nMemoryLocations * sizeof(short));
+    cudaMallocManaged(&trackCandidatesInGPU.objectIndices, 2 * nMemoryLocations * sizeof(unsigned int));
+    cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidates, nLowerModules * sizeof(unsigned int));
+    cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidatesT4T4, nLowerModules * sizeof(unsigned int));
+    cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidatesT4T3, nLowerModules * sizeof(unsigned int));
+    cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidatesT3T4, nLowerModules * sizeof(unsigned int));
 #endif
     cudaMemset(trackCandidatesInGPU.nTrackCandidates,0, nLowerModules * sizeof(unsigned int));
     cudaMemset(trackCandidatesInGPU.nTrackCandidatesT4T4,0, nLowerModules * sizeof(unsigned int));
@@ -146,23 +147,23 @@ void SDL::trackCandidates::freeMemoryCache()
 #ifdef Explicit_Track
     int dev;
     cudaGetDevice(&dev);
-    //cms::cuda::free_device(dev,trackCandidateType);
-    cudaFree(trackCandidateType);
-    //cms::cuda::free_device(dev,objectIndices);
+    cms::cuda::free_device(dev,trackCandidateType);
+    //cudaFree(trackCandidateType);
+    cms::cuda::free_device(dev,objectIndices);
     cms::cuda::free_device(dev,nTrackCandidates);
     cms::cuda::free_device(dev,nTrackCandidatesT4T4);
     cms::cuda::free_device(dev,nTrackCandidatesT4T3);
     cms::cuda::free_device(dev,nTrackCandidatesT3T4);
 #else
     cms::cuda::free_managed(trackCandidateType);
-    //cms::cuda::free_managed(objectIndices);
+    cms::cuda::free_managed(objectIndices);
     cms::cuda::free_managed(nTrackCandidates);
     cms::cuda::free_managed(nTrackCandidatesT4T4);
     cms::cuda::free_managed(nTrackCandidatesT4T3);
     cms::cuda::free_managed(nTrackCandidatesT3T4);
 
 #endif
-    cudaFree(objectIndices);
+    //cudaFree(objectIndices);
 
 }
 void SDL::trackCandidates::freeMemory()

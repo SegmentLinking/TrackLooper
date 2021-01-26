@@ -838,9 +838,6 @@ void SDL::Event::createMiniDoublets()
     	createMDsInUnifiedMemory(*mdsInGPU, N_MAX_MD_PER_MODULES, nModules, N_MAX_PIXEL_MD_PER_MODULES);
 #endif
     }
-//#if defined(Explicit_MD) && !defined(Full_Explicit)
-//    cudaMemset(mdsInGPU->nMDs,0,nModules*sizeof(unsigned int));
-//#endif
     cudaDeviceSynchronize();
     auto memStop = std::chrono::high_resolution_clock::now();
     auto memDuration = std::chrono::duration_cast<std::chrono::milliseconds>(memStop - memStart); //in milliseconds
@@ -946,9 +943,6 @@ void SDL::Event::createSegmentsWithModuleMap()
         createSegmentsInUnifiedMemory(*segmentsInGPU, N_MAX_SEGMENTS_PER_MODULE, nModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
 #endif
     }
-//#if defined(Explicit_Seg) && !defined(Full_Explicit)
-//    cudaMemset(segmentsInGPU->nSegments,0,nModules*sizeof(unsigned int));
-//#endif
     unsigned int nLowerModules;
     cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
 
@@ -1059,9 +1053,6 @@ void SDL::Event::createTriplets()
         createTripletsInUnifiedMemory(*tripletsInGPU, N_MAX_TRIPLETS_PER_MODULE, nLowerModules);
 #endif
     }
-//#if defined(Explicit_Trips) && !defined(Full_Explicit)
-//    cudaMemset(tripletsInGPU->nTriplets,0,nLowerModules*sizeof(unsigned int));
-//#endif
 
 #ifdef NESTED_PARA
     unsigned int nThreads = 1;
@@ -1169,7 +1160,6 @@ void SDL::Event::createTrackletsWithModuleMap()
         cudaMallocHost(&trackletsInGPU, sizeof(SDL::tracklets));
 #ifdef Explicit_Tracklet
         //FIXME:Add memory locations for pixel tracklets
-        //createTrackletsInExplicitMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , nLowerModules);
         createTrackletsInExplicitMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , N_MAX_PIXEL_TRACKLETS_PER_MODULE, nLowerModules);
 #else
         createTrackletsInUnifiedMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , N_MAX_PIXEL_TRACKLETS_PER_MODULE, nLowerModules);
@@ -1360,12 +1350,6 @@ void SDL::Event::createTrackCandidates()
         createTrackCandidatesInUnifiedMemory(*trackCandidatesInGPU, N_MAX_TRACK_CANDIDATES_PER_MODULE, N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE, nLowerModules, nEligibleModules);
 #endif
     }
-//#if defined(Explicit_Track) //&& !defined(Full_Explicit)
-//    cudaMemset(trackCandidatesInGPU->nTrackCandidates,0,nLowerModules*sizeof(unsigned int));
-//    cudaMemset(trackCandidatesInGPU->nTrackCandidatesT4T4,0,nLowerModules*sizeof(unsigned int));
-//    cudaMemset(trackCandidatesInGPU->nTrackCandidatesT4T3,0,nLowerModules*sizeof(unsigned int));
-//    cudaMemset(trackCandidatesInGPU->nTrackCandidatesT3T4,0,nLowerModules*sizeof(unsigned int));
-//#endif
 
     unsigned int nThreads = 1;
     unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads + 1;
@@ -1381,7 +1365,8 @@ void SDL::Event::createTrackCandidates()
 #ifdef Explicit_Track
     addTrackCandidatesToEventExplicit();
 #else
-    addTrackCandidatesToEvent();
+    //addTrackCandidatesToEvent();
+    addTrackCandidatesToEventExplicit();
 #endif
 #endif
 
@@ -1404,9 +1389,6 @@ void SDL::Event::createTrackletsWithAGapWithModuleMap()
         createTrackletsInUnifiedMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , N_MAX_PIXEL_TRACKLETS_PER_MODULE, nLowerModules);
 #endif
     }
-//#if defined(Explicit_Tracklet) && !defined(Full_Explicit)
-//    cudaMemset(trackletsInGPU->nTracklets,0,nLowerModules*sizeof(unsigned int));
-//#endif
 
     unsigned int nThreads = 1;
     unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads + 1;
@@ -2961,14 +2943,16 @@ SDL::trackCandidates* SDL::Event::getTrackCandidates()
 {
     if(trackCandidatesInCPU == nullptr)
     {
-        unsigned int nLowerModules;
         trackCandidatesInCPU = new SDL::trackCandidates;
+        unsigned int nLowerModules;
         cudaMemcpy(&nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        unsigned int nMemoryLocations = (N_MAX_TRACK_CANDIDATES_PER_MODULE) * (nLowerModules ) + (N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE);
+        unsigned int nEligibleModules;
+        cudaMemcpy(&nEligibleModules, modulesInGPU->nEligibleModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        unsigned int nMemoryLocations = (N_MAX_TRACK_CANDIDATES_PER_MODULE) * (nEligibleModules -1) + (N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE);
 
         trackCandidatesInCPU->objectIndices = new unsigned int[2 * nMemoryLocations];
         trackCandidatesInCPU->trackCandidateType = new short[nMemoryLocations];
-        trackCandidatesInCPU->nTrackCandidates = new unsigned int[nLowerModules];
+        trackCandidatesInCPU->nTrackCandidates = new unsigned int[nLowerModules+1];
         cudaMemcpy(trackCandidatesInCPU->objectIndices, trackCandidatesInGPU->objectIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost);
         cudaMemcpy(trackCandidatesInCPU->trackCandidateType, trackCandidatesInGPU->trackCandidateType, nMemoryLocations * sizeof(short), cudaMemcpyDeviceToHost);
         cudaMemcpy(trackCandidatesInCPU->nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyDeviceToHost);
