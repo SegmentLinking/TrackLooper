@@ -20,3 +20,4 @@ efficiencies/
 *.txt
 *.pyc
 output*
+movetoweb.sh
