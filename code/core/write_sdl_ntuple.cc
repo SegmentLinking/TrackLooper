@@ -171,6 +171,8 @@ void write_sdl_ntuple(bool cut_value_ntuple)
 
     printTimingInformation(timing_information);
 
+    SDL::cleanModules();
+
     // Writing ttree output to file
     ana.output_tfile->cd();
     if(not cut_value_ntuple)

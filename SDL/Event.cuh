@@ -62,6 +62,7 @@ namespace SDL
         triplets* tripletsInCPU;
         trackCandidates* trackCandidatesInCPU;
         modules* modulesInCPU;
+        modules* modulesInCPUFull;
 
     public:
         Event();
@@ -136,7 +137,6 @@ namespace SDL
         triplets* getTriplets();
         trackCandidates* getTrackCandidates();
         modules* getModules();
-        modules* getModulesX();
         modules* getFullModules();
 
     };
