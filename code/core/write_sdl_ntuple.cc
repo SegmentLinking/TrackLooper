@@ -98,7 +98,7 @@ void write_sdl_ntuple(bool cut_value_ntuple)
             else
             {
                 //call the function from WriteSDLNtupleV2.cc
-                SDL::EventForAnalysisInterface* eventForAnalysisInterface = new SDL::EventForAnalysisInterface(SDL::modulesInGPU, event.getHits(), event.getMiniDoublets(), event.getSegments(), event.getTracklets(), event.getTriplets(), event.getTrackCandidates());
+                SDL::EventForAnalysisInterface* eventForAnalysisInterface = new SDL::EventForAnalysisInterface(event.getFullModules(), event.getHits(), event.getMiniDoublets(), event.getSegments(), event.getTracklets(), event.getTriplets(), event.getTrackCandidates());
 
                 study->doStudy(*eventForAnalysisInterface);
                 ana.cutflow.fill();
@@ -240,21 +240,25 @@ void fillOutputBranches(SDL::Event& event)
     SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
     SDL::hits& hitsInGPU = (*event.getHits());
     SDL::modules& modulesInGPU = (*event.getModules());
+    //printf("nLowerModules~ %u\n", *(modulesInGPU.nLowerModules)); 
 
     // Did it match to track candidate?
     std::vector<int> sim_TC_matched(trk.sim_pt().size());
     //for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
-        if(modulesInGPU.trackCandidateModuleIndices[idx] == -1)
+        if(modulesInGPU.trackCandidateModuleIndices[idx] == -1){
+        //if(SDL::modulesInGPU->trackCandidateModuleIndices[idx] == -1){
             continue;
+        }
+        //printf("track Cand Modules~ %d\n", modulesInGPU.trackCandidateModuleIndices[idx]); 
         unsigned int nTrackCandidates = trackCandidatesInGPU.nTrackCandidates[idx];
-        if(idx == *modulesInGPU.nLowerModules and nTrackCandidates > 5000000)
+        if(idx == *(modulesInGPU.nLowerModules) and nTrackCandidates > 5000000)
         //if(idx == *SDL::modulesInGPU->nLowerModules and nTrackCandidates > 5000000)
         {
             nTrackCandidates = 5000000;
         }
-        if(idx < *modulesInGPU.nLowerModules and nTrackCandidates > 50000)
+        if(idx < *(modulesInGPU.nLowerModules) and nTrackCandidates > 50000)
         //if(idx < *SDL::modulesInGPU->nLowerModules and nTrackCandidates > 50000)
         {
             nTrackCandidates = 50000;
@@ -262,8 +266,11 @@ void fillOutputBranches(SDL::Event& event)
         for (unsigned int jdx = 0; jdx < nTrackCandidates; jdx++)
         {
 //            unsigned int trackCandidateIndex = idx * 50000/*_N_MAX_TRACK_CANDIDATES_PER_MODULE*/ + jdx;
-            unsigned int trackCandidateIndex = modulesInGPU.trackCandidateModuleIndices[idx] + jdx;            
-
+            //unsigned int trackCandidateIndex = SDL::modulesInGPU->trackCandidateModuleIndices[idx] + jdx;            
+            unsigned int trackCandidateIndex = modulesInGPU.trackCandidateModuleIndices[idx] + jdx; // this line causes the issue
+            //if (modulesInGPU.trackCandidateModuleIndices[idx] + jdx != SDL::modulesInGPU->trackCandidateModuleIndices[idx] + jdx){
+            //  printf("track cand %u %u %u %u %u\n",idx, jdx,modulesInGPU.trackCandidateModuleIndices[idx], trackCandidateIndex, SDL::modulesInGPU->trackCandidateModuleIndices[idx] + jdx);
+           // }
             short trackCandidateType = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
             unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex];
             unsigned int outerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1];

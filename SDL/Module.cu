@@ -257,21 +257,17 @@ void SDL::createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsign
     cudaGetDevice(&dev);
     modulesInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_device(dev,(nLowerModules + 1) * sizeof(unsigned int),stream);
     modulesInGPU.reverseLookupLowerModuleIndices = (int*)cms::cuda::allocate_device(dev,nModules * sizeof(int),stream);
-    //new kid in the block - trackCandidateModuleIndices
     modulesInGPU.trackCandidateModuleIndices = (int*)cms::cuda::allocate_device(dev,(nLowerModules + 1) * sizeof(int),stream);
     #else
     cudaMalloc(&modulesInGPU.lowerModuleIndices,(nLowerModules + 1) * sizeof(unsigned int));
     cudaMalloc(&modulesInGPU.reverseLookupLowerModuleIndices,nModules * sizeof(int));
-    //new kid in the block - trackCandidateModuleIndices
     cudaMalloc(&modulesInGPU.trackCandidateModuleIndices, (nLowerModules + 1) * sizeof(int));
     #endif
     cudaMemcpy(modulesInGPU.lowerModuleIndices,lowerModuleIndices,sizeof(unsigned int)*(nLowerModules+1),cudaMemcpyHostToDevice);
     cudaMemcpy(modulesInGPU.reverseLookupLowerModuleIndices,reverseLookupLowerModuleIndices,sizeof(int)*nModules,cudaMemcpyHostToDevice);
-    //cudaMemcpy(modulesInGPU.trackCandidateModuleIndices,lowerModuleIndices,sizeof(unsigned int)*(nLowerModules+1),cudaMemcpyHostToDevice);
    
     cudaFreeHost(lowerModuleIndices);
     cudaFreeHost(reverseLookupLowerModuleIndices);
-    //cudaFreeHost(trackCandidateModuleIndices);
 }
 void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules)
 {
@@ -281,12 +277,10 @@ void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int n
     cudaStream_t stream =0;
     modulesInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_managed((nLowerModules + 1) * sizeof(unsigned int),stream);
     modulesInGPU.reverseLookupLowerModuleIndices = (int*)cms::cuda::allocate_managed(nModules * sizeof(int),stream);
-    //new kid in the block - trackCandidateModuleIndices
     modulesInGPU.trackCandidateModuleIndices = (int*)cms::cuda::allocate_managed((nLowerModules + 1) * sizeof(int),stream);
     #else
     cudaMallocManaged(&modulesInGPU.lowerModuleIndices,(nLowerModules + 1) * sizeof(unsigned int));
     cudaMallocManaged(&modulesInGPU.reverseLookupLowerModuleIndices,nModules * sizeof(int));
-    //new kid in the block - trackCandidateModuleIndices
     cudaMallocManaged(&modulesInGPU.trackCandidateModuleIndices, (nLowerModules + 1) * sizeof(int));
     #endif
 

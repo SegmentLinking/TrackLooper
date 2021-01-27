@@ -30,7 +30,7 @@ void SDL::createEligibleModulesListForTrackCandidates(struct modules& modulesInG
     cudaMemcpy(module_trackCandidateModuleIndices,modulesInGPU.trackCandidateModuleIndices,(nLowerModules+1)*sizeof(int),cudaMemcpyDeviceToHost);
 
     //start filling
-    for(size_t i = 0; i <= nLowerModules; i++)
+    for(unsigned int i = 0; i <= nLowerModules; i++)
     {
         //condition for a track candidate to exist for a module
         //TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap
@@ -38,6 +38,7 @@ void SDL::createEligibleModulesListForTrackCandidates(struct modules& modulesInG
         if((module_subdets[idx] == SDL::Barrel and module_layers[idx] < 5) or (module_subdets[idx] == SDL::Endcap and module_layers[idx] == 1) or module_subdets[idx] == SDL::InnerPixel)
         {
             module_trackCandidateModuleIndices[i] = nEligibleModules * maxTrackCandidates;
+    //        printf("pass %u %u %u %u %u\n",i,idx,nEligibleModules,maxTrackCandidates,module_trackCandidateModuleIndices[i]);
             nEligibleModules++;
         }
     }

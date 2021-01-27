@@ -136,6 +136,8 @@ namespace SDL
         triplets* getTriplets();
         trackCandidates* getTrackCandidates();
         modules* getModules();
+        modules* getModulesX();
+        modules* getFullModules();
 
     };
 

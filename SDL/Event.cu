@@ -140,6 +140,7 @@ SDL::Event::~Event()
         delete[] modulesInCPU->detIds;
         delete[] modulesInCPU->hitRanges;
         delete[] modulesInCPU->isLower;
+        delete[] modulesInCPU->trackCandidateModuleIndices;
         delete[] modulesInCPU;
     }
 #endif
@@ -2965,11 +2966,95 @@ SDL::trackCandidates* SDL::Event::getTrackCandidates()
     return trackCandidatesInGPU;
 }
 #endif
-#ifdef Explicit_Module
-SDL::modules* SDL::Event::getModules()
+SDL::modules* SDL::Event::getFullModules()
 {
     if(modulesInCPU == nullptr)
     {
+        modulesInCPU = new SDL::modules;
+        unsigned int nLowerModules;
+        cudaMemcpy(&nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+        //modulesInCPU->nLowerModules = new unsigned int[1];
+        //modulesInCPU->nModules = new unsigned int[1];
+        //modulesInCPU->lowerModuleIndices = new unsigned int[nLowerModules+1];
+        //modulesInCPU->detIds = new unsigned int[nModules];
+        //modulesInCPU->hitRanges = new int[2*nModules];
+        //modulesInCPU->isLower = new bool[nModules];
+        //modulesInCPU->trackCandidateModuleIndices = new int[nLowerModules+1];
+
+        //cudaMemcpy(modulesInCPU->nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        //cudaMemcpy(modulesInCPU->nModules, modulesInGPU->nModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        //cudaMemcpy(modulesInCPU->lowerModuleIndices, modulesInGPU->lowerModuleIndices, (nLowerModules+1) * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        //cudaMemcpy(modulesInCPU->detIds, modulesInGPU->detIds, nModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        //cudaMemcpy(modulesInCPU->hitRanges, modulesInGPU->hitRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost);
+        //cudaMemcpy(modulesInCPU->isLower, modulesInGPU->isLower, nModules * sizeof(bool), cudaMemcpyDeviceToHost);
+        //cudaMemcpy(modulesInCPU->trackCandidateModuleIndices, modulesInGPU->trackCandidateModuleIndices, (nLowerModules+1) * sizeof(int), cudaMemcpyDeviceToHost);
+    modulesInCPU->detIds = new unsigned int[nModules];
+    modulesInCPU->moduleMap = new unsigned int[40*nModules];
+    modulesInCPU->nConnectedModules = new unsigned int[nModules];
+    modulesInCPU->drdzs = new float[nModules];
+    modulesInCPU->slopes = new float[nModules];
+    modulesInCPU->nModules = new unsigned int[1];
+    modulesInCPU->nLowerModules = new unsigned int[1];
+    modulesInCPU->layers = new short[nModules];
+    modulesInCPU->rings = new short[nModules];
+    modulesInCPU->modules = new short[nModules];
+    modulesInCPU->rods = new short[nModules];
+    modulesInCPU->subdets = new short[nModules];
+    modulesInCPU->sides = new short[nModules];
+    modulesInCPU->isInverted = new bool[nModules];
+    modulesInCPU->isLower = new bool[nModules];
+
+    modulesInCPU->hitRanges = new int[2*nModules];
+    modulesInCPU->mdRanges = new int[2*nModules];
+    modulesInCPU->segmentRanges = new int[2*nModules];
+    modulesInCPU->trackletRanges = new int[2*nModules];
+    modulesInCPU->tripletRanges = new int[2*nModules];
+    modulesInCPU->trackCandidateRanges = new int[2*nModules];
+
+    modulesInCPU->moduleType = new ModuleType[nModules];
+    modulesInCPU->moduleLayerType = new ModuleLayerType[nModules];
+
+    modulesInCPU->lowerModuleIndices = new unsigned int[nLowerModules+1];
+    modulesInCPU->reverseLookupLowerModuleIndices = new int[nModules];
+    modulesInCPU->trackCandidateModuleIndices = new int[nLowerModules+1];
+
+    cudaMemcpy(modulesInCPU->detIds,modulesInGPU->detIds,nModules*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->moduleMap,modulesInGPU->moduleMap,40*nModules*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->nConnectedModules,modulesInGPU->nConnectedModules,nModules*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->drdzs,modulesInGPU->drdzs,sizeof(float)*nModules,cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->slopes,modulesInGPU->slopes,sizeof(float)*nModules,cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->layers,modulesInGPU->layers,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->rings,modulesInGPU->rings,sizeof(short)*nModules,cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->modules,modulesInGPU->modules,sizeof(short)*nModules,cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->rods,modulesInGPU->rods,sizeof(short)*nModules,cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->subdets,modulesInGPU->subdets,sizeof(short)*nModules,cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->sides,modulesInGPU->sides,sizeof(short)*nModules,cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->isInverted,modulesInGPU->isInverted,sizeof(bool)*nModules,cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->isLower,modulesInGPU->isLower,sizeof(bool)*nModules,cudaMemcpyDeviceToHost);
+
+    cudaMemcpy(modulesInCPU->hitRanges, modulesInGPU->hitRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->mdRanges, modulesInGPU->mdRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->segmentRanges, modulesInGPU->segmentRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->trackletRanges, modulesInGPU->trackletRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->tripletRanges, modulesInGPU->tripletRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->trackCandidateRanges, modulesInGPU->trackCandidateRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost);
+
+    cudaMemcpy(modulesInCPU->reverseLookupLowerModuleIndices, modulesInGPU->reverseLookupLowerModuleIndices, nModules * sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->lowerModuleIndices, modulesInGPU->lowerModuleIndices, (nLowerModules+1) * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInCPU->trackCandidateModuleIndices, modulesInGPU->trackCandidateModuleIndices, (nLowerModules+1) * sizeof(int), cudaMemcpyDeviceToHost);
+
+    cudaMemcpy(modulesInGPU->moduleType,modulesInGPU->moduleType,sizeof(ModuleType)*nModules,cudaMemcpyDeviceToHost);
+    cudaMemcpy(modulesInGPU->moduleLayerType,modulesInGPU->moduleLayerType,sizeof(ModuleLayerType)*nModules,cudaMemcpyDeviceToHost);
+    }
+    return modulesInCPU;
+}
+#ifdef Explicit_Module
+SDL::modules* SDL::Event::getModules()
+{
+    //if(modulesInCPU == nullptr)
+    //{
         modulesInCPU = new SDL::modules;
         unsigned int nLowerModules;
         cudaMemcpy(&nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
@@ -2983,13 +3068,13 @@ SDL::modules* SDL::Event::getModules()
         modulesInCPU->trackCandidateModuleIndices = new int[nLowerModules+1];
 
         cudaMemcpy(modulesInCPU->nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        cudaMemcpy(modulesInCPU->nModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(modulesInCPU->nModules, modulesInGPU->nModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
         cudaMemcpy(modulesInCPU->lowerModuleIndices, modulesInGPU->lowerModuleIndices, (nLowerModules+1) * sizeof(unsigned int), cudaMemcpyDeviceToHost);
         cudaMemcpy(modulesInCPU->detIds, modulesInGPU->detIds, nModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
         cudaMemcpy(modulesInCPU->hitRanges, modulesInGPU->hitRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost);
         cudaMemcpy(modulesInCPU->isLower, modulesInGPU->isLower, nModules * sizeof(bool), cudaMemcpyDeviceToHost);
         cudaMemcpy(modulesInCPU->trackCandidateModuleIndices, modulesInGPU->trackCandidateModuleIndices, (nLowerModules+1) * sizeof(int), cudaMemcpyDeviceToHost);
-    }
+    //}
     return modulesInCPU;
 }
 #else
@@ -2998,3 +3083,7 @@ SDL::modules* SDL::Event::getModules()
     return modulesInGPU;
 }
 #endif
+SDL::modules* SDL::Event::getModulesX()
+{
+    return modulesInGPU;
+}
