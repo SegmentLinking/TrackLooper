@@ -17,5 +17,6 @@ efficiency/doAnalysis
 .jobs.txt
 efficiency/results*
 efficiencies/
+efficiency/bin/createEffNumDenPlots
 *.txt
 *.pyc
