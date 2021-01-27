@@ -38,7 +38,6 @@ void SDL::createEligibleModulesListForTrackCandidates(struct modules& modulesInG
         if((module_subdets[idx] == SDL::Barrel and module_layers[idx] < 5) or (module_subdets[idx] == SDL::Endcap and module_layers[idx] == 1) or module_subdets[idx] == SDL::InnerPixel)
         {
             module_trackCandidateModuleIndices[i] = nEligibleModules * maxTrackCandidates;
-    //        printf("pass %u %u %u %u %u\n",i,idx,nEligibleModules,maxTrackCandidates,module_trackCandidateModuleIndices[i]);
             nEligibleModules++;
         }
     }
@@ -90,6 +89,7 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     cudaStream_t stream=0;
     int dev;
     cudaGetDevice(&dev);
+    //TODO 
     //trackCandidatesInGPU.trackCandidateType = (short*)cms::cuda::allocate_device(dev,nMemoryLocations * sizeof(short),stream);
     cudaMalloc(&trackCandidatesInGPU.trackCandidateType, nMemoryLocations * sizeof(short));
     //trackCandidatesInGPU.objectIndices = (unsigned int*)cms::cuda::allocate_device(dev,2 * nMemoryLocations * sizeof(unsigned int),stream); // too big to cache
@@ -149,7 +149,6 @@ void SDL::trackCandidates::freeMemoryCache()
     int dev;
     cudaGetDevice(&dev);
     cms::cuda::free_device(dev,trackCandidateType);
-    //cudaFree(trackCandidateType);
     cms::cuda::free_device(dev,objectIndices);
     cms::cuda::free_device(dev,nTrackCandidates);
     cms::cuda::free_device(dev,nTrackCandidatesT4T4);
@@ -164,7 +163,6 @@ void SDL::trackCandidates::freeMemoryCache()
     cms::cuda::free_managed(nTrackCandidatesT3T4);
 
 #endif
-    //cudaFree(objectIndices);
 
 }
 void SDL::trackCandidates::freeMemory()

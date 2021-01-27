@@ -48,7 +48,7 @@ SDL::Event::Event()
         {
             n_hits_by_layer_endcap_[i] = 0;
             n_minidoublets_by_layer_endcap_[i] = 0;
-      	    n_segments_by_layer_endcap_[i] = 0;
+            n_segments_by_layer_endcap_[i] = 0;
             n_tracklets_by_layer_endcap_[i] = 0;
             n_triplets_by_layer_endcap_[i] = 0;
             n_trackCandidates_by_layer_endcap_[i] = 0;
@@ -284,7 +284,7 @@ void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, st
     {
 
         cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
-        #ifdef Explicit_hits
+        #ifdef Explicit_Hit
     	  createHitsInExplicitMemory(*hitsInGPU, 2*loopsize); //unclear why but this has to be 2*loopsize to avoid crashing later (reported in tracklet allocation). seems to do with nHits values as well. this allows nhits to be set to the correct value of loopsize to get correct results without crashing. still beats the "max hits" so i think this is fine.
         #else
         createHitsInUnifiedMemory(*hitsInGPU,2*loopsize,0);
@@ -424,7 +424,7 @@ void SDL::Event::addHitToEvent(float x, float y, float z, unsigned int detId, un
     {
 
         cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
-        #ifdef Explicit_hits
+        #ifdef Explicit_Hit
         createHitsInExplicitMemory(*hitsInGPU,HIT_MAX,HIT_2S_MAX);
         #else
         createHitsInUnifiedMemory(*hitsInGPU,HIT_MAX,HIT_2S_MAX);
@@ -462,7 +462,7 @@ void /*unsigned int*/ SDL::Event::addPixToEvent(float x, float y, float z, unsig
     {
 
         cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
-        #ifdef Explicit_hits
+        #ifdef Explicit_Hit
         createHitsInExplicitMemory(*hitsInGPU,HIT_MAX,HIT_2S_MAX);
         #else
         createHitsInUnifiedMemory(*hitsInGPU,HIT_MAX,HIT_2S_MAX);

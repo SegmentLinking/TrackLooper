@@ -251,7 +251,6 @@ void fillOutputBranches(SDL::Event& event)
         //if(SDL::modulesInGPU->trackCandidateModuleIndices[idx] == -1){
             continue;
         }
-        //printf("track Cand Modules~ %d\n", modulesInGPU.trackCandidateModuleIndices[idx]); 
         unsigned int nTrackCandidates = trackCandidatesInGPU.nTrackCandidates[idx];
         if(idx == *(modulesInGPU.nLowerModules) and nTrackCandidates > 5000000)
         //if(idx == *SDL::modulesInGPU->nLowerModules and nTrackCandidates > 5000000)
@@ -268,9 +267,6 @@ void fillOutputBranches(SDL::Event& event)
 //            unsigned int trackCandidateIndex = idx * 50000/*_N_MAX_TRACK_CANDIDATES_PER_MODULE*/ + jdx;
             //unsigned int trackCandidateIndex = SDL::modulesInGPU->trackCandidateModuleIndices[idx] + jdx;            
             unsigned int trackCandidateIndex = modulesInGPU.trackCandidateModuleIndices[idx] + jdx; // this line causes the issue
-            //if (modulesInGPU.trackCandidateModuleIndices[idx] + jdx != SDL::modulesInGPU->trackCandidateModuleIndices[idx] + jdx){
-            //  printf("track cand %u %u %u %u %u\n",idx, jdx,modulesInGPU.trackCandidateModuleIndices[idx], trackCandidateIndex, SDL::modulesInGPU->trackCandidateModuleIndices[idx] + jdx);
-           // }
             short trackCandidateType = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
             unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex];
             unsigned int outerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1];
