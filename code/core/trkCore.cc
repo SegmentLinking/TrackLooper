@@ -1288,7 +1288,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         float py = p3LH.Y();
         float pz = p3LH.Z();
 
-        if ((ptIn > 0.7) and (fabs(p3LH.Eta()) < 3))
+        if ((ptIn > 0.99) and (fabs(p3LH.Eta()) < 3))
         {
 
             unsigned int hitIdx0 = hit_size + count;
