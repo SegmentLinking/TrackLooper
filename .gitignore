@@ -17,6 +17,8 @@ efficiency/doAnalysis
 .jobs.txt
 efficiency/results*
 efficiencies/
+efficiency/bin/createEffNumDenPlots
 *.txt
 *.pyc
-efficiency/bin/createEffNumDenPlots
+output*
+movetoweb.sh

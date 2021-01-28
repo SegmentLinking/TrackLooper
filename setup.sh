@@ -25,7 +25,7 @@ export TRACKLOOPERDIR=$DIR
 ###########################################################################################################
 
 # List of benchmark efficiencies are set as an environment variable
-export LATEST_CPU_BENCHMARK_EFF_MUONGUN="/nfs-7/userdata/phchang/segmentlinking/benchmarks/7d8f188/eff_plots__CPU_7d8f188_muonGun/efficiencies.root"
-export LATEST_CPU_BENCHMARK_EFF_PU200="/nfs-7/userdata/phchang/segmentlinking/benchmarks/3bb6b6b/PU200/eff_plots__CPU_3bb6b6b_PU200/efficiencies.root"
+export LATEST_CPU_BENCHMARK_EFF_MUONGUN="/data2/segmentlinking/muonGun_cpu_efficiencies.root"
+export LATEST_CPU_BENCHMARK_EFF_PU200="/data2/segmentlinking/pu200_cpu_efficiencies.root"
 
 #eof

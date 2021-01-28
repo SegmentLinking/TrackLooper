@@ -1359,7 +1359,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
 
     if (useOMP)
     {
-        event.addHitToEventOMP(trkX, trkY, trkZ, hitId); // TODO : Need to fix the hitIdxs
+        event.addHitToEventOMP(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
+        //event.addHitToEventOMP(trkX, trkY, trkZ, hitId); // TODO : Need to fix the hitIdxs
     }
     else
     {
