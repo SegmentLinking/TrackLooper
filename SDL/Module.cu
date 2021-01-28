@@ -347,7 +347,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     createModulesInExplicitMemory(modulesInGPU,nModules);
     unsigned int* lowerModuleCounter;// = 0;
     cudaMallocHost(&lowerModuleCounter,sizeof(unsigned int));
-
+    cudaMemset(lowerModuleCounter,0,sizeof(unsigned int));
     unsigned int* host_detIds;
     short* host_layers;
     short* host_rings;
