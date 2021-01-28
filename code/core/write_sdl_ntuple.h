@@ -11,7 +11,7 @@
 #include "trkCore.h"
 
 // Main code
-void write_sdl_ntuple(bool cut_value_ntuple = false);
+void write_sdl_ntuple(bool cut_value_ntuple = false,bool validate = false);
 void createOutputBranches();
 void fillOutputBranches(SDL::Event& event);
 void fillOutputBranches_for_CPU(SDL::CPU::Event& event);

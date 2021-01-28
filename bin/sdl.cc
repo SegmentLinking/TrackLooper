@@ -311,8 +311,9 @@ int main(int argc, char** argv)
         //case 2: mtv(); break;
         //case 3: algo_eff(); break;
         //case 4: tracklet(); break;
-        case 5: write_sdl_ntuple(); break;
-        case 6 : write_sdl_ntuple(true); break;
+        case 5: write_sdl_ntuple(false,true); break;
+        case 6 : write_sdl_ntuple(true,true); break;
+        case 7 : write_sdl_ntuple(false,false); break; // quick run, not validation
         //case 6: pixel_tracklet_eff(); break;
         default:
                 std::cout << options.help() << std::endl;

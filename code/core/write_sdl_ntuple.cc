@@ -1,7 +1,7 @@
 #include "write_sdl_ntuple.h"
 
 //________________________________________________________________________________________________________________________________
-void write_sdl_ntuple(bool cut_value_ntuple)
+void write_sdl_ntuple(bool cut_value_ntuple,bool validate)
 {
 
     // Load various maps used in the SDL reconstruction
@@ -45,11 +45,11 @@ void write_sdl_ntuple(bool cut_value_ntuple)
 
             // Add hits to the event
             float timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
-            printHitMultiplicities(event);
+            //printHitMultiplicities(event);
 
             // Run Mini-doublet
             float timing_MD = runMiniDoublet(event);
-            printMiniDoubletMultiplicities(event);
+            //printMiniDoubletMultiplicities(event);
 
             // Run Segment
             float timing_LS = runSegment(event);
@@ -64,7 +64,7 @@ void write_sdl_ntuple(bool cut_value_ntuple)
 
             // Run T4
             float timing_T4 = runT4(event);
-            printQuadrupletMultiplicities(event);
+            //printQuadrupletMultiplicities(event);
 
             // Run T3
             float timing_T3 = runT3(event);
@@ -91,17 +91,19 @@ void write_sdl_ntuple(bool cut_value_ntuple)
                 debugPrintOutlierMultiplicities(event);
             }
 
-            if(not cut_value_ntuple)
-            {
-                fillOutputBranches(event);
-            }
-            else
-            {
-                //call the function from WriteSDLNtupleV2.cc
-                SDL::EventForAnalysisInterface* eventForAnalysisInterface = new SDL::EventForAnalysisInterface(event.getFullModules(), event.getHits(), event.getMiniDoublets(), event.getSegments(), event.getTracklets(), event.getTriplets(), event.getTrackCandidates());
+            if(validate){
+              if(not cut_value_ntuple)
+              {
+                  fillOutputBranches(event);
+              }
+              else
+              {
+                  //call the function from WriteSDLNtupleV2.cc
+                  SDL::EventForAnalysisInterface* eventForAnalysisInterface = new SDL::EventForAnalysisInterface(event.getFullModules(), event.getHits(), event.getMiniDoublets(), event.getSegments(), event.getTracklets(), event.getTriplets(), event.getTrackCandidates());
 
-                study->doStudy(*eventForAnalysisInterface);
-                ana.cutflow.fill();
+                  study->doStudy(*eventForAnalysisInterface);
+                  ana.cutflow.fill();
+              }
             }
 
         }
@@ -554,7 +556,7 @@ void fillOutputBranches_for_CPU(SDL::CPU::Event& event)
 void printTimingInformation(std::vector<std::vector<float>> timing_information)
 {
 
-    if (ana.verbose == 0)
+    if (ana.verbose != 2 and ana.verbose != 1)
         return;
 
     std::cout << showpoint;
