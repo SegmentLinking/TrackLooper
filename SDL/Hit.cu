@@ -178,7 +178,21 @@ void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, f
     hitsInGPU.idxs[idx] = idxInNtuple;
     unsigned int moduleIndex = (*detIdToIndex)[detId];
     hitsInGPU.moduleIndices[idx] = moduleIndex;
-    if(modulesInGPU.subdets[moduleIndex] == Endcap and modulesInGPU.moduleType[moduleIndex] == TwoS)
+    
+    unsigned int nModules;
+    cudaMemcpy(&nModules,modulesInGPU.nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    
+    ModuleType* module_moduleType;
+    cudaMallocHost(&module_moduleType, nModules* sizeof(ModuleType));
+    cudaMemcpy(module_moduleType,modulesInGPU.moduleType,nModules*sizeof(ModuleType),cudaMemcpyDeviceToHost);
+    short* module_subdets;
+    cudaMallocHost(&module_subdets, nModules* sizeof(short));
+    cudaMemcpy(module_subdets,modulesInGPU.subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+    int* module_hitRanges;
+    cudaMallocHost(&module_hitRanges, nModules* 2*sizeof(int));
+    cudaMemcpy(module_hitRanges,modulesInGPU.hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost);
+
+    if(module_subdets[moduleIndex] == Endcap and module_moduleType[moduleIndex] == TwoS)
     {
         float xhigh, yhigh, xlow, ylow;
         getEdgeHits(detId,x,y,xhigh,yhigh,xlow,ylow);
@@ -202,13 +216,17 @@ void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, f
     //set the hit ranges appropriately in the modules struct
 
     //start the index rolling if the module is encountered for the first time
-    if(modulesInGPU.hitRanges[moduleIndex * 2] == -1)
+    if(module_hitRanges[moduleIndex * 2] == -1)
     {
-        modulesInGPU.hitRanges[moduleIndex * 2] = idx;
+        module_hitRanges[moduleIndex * 2] = idx;
     }
     //always update the end index
-    modulesInGPU.hitRanges[moduleIndex * 2 + 1] = idx;
-    (*hitsInGPU.nHits)++;
+    module_hitRanges[moduleIndex * 2 + 1] = idx;
+    cudaMemcpy(modulesInGPU.hitRanges,module_hitRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice); 
+    cudaFreeHost(module_moduleType);
+    cudaFreeHost(module_subdets);
+    cudaFreeHost(module_hitRanges);
+   (*hitsInGPU.nHits)++;
 }
 __global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules& modulesInGPU,const float* x,const  float* y,const  float* z, const unsigned int* moduleIndex,const float* phis, const int loopsize)
 {
