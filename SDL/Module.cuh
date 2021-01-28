@@ -54,6 +54,7 @@ namespace SDL
         float* slopes;
         unsigned int *nModules; //single number
         unsigned int *nLowerModules;
+        unsigned int *nEligibleModules;
         unsigned int *lowerModuleIndices;
         int *reverseLookupLowerModuleIndices; //module index to lower module index reverse lookup
 
@@ -74,11 +75,16 @@ namespace SDL
 //        CUDA_HOSTDEV bool isInverted(unsigned int index);
 //        CUDA_HOSTDEV bool isLower(unsigned int index);
         CUDA_HOSTDEV unsigned int partnerModuleIndex(unsigned int index);
+        CUDA_HOSTDEV unsigned int partnerModuleIndexExplicit(unsigned int index,bool isLowerx, bool isInvertedx);
         CUDA_HOSTDEV ModuleType parseModuleType(unsigned int index);
+        CUDA_HOSTDEV ModuleType parseModuleType(unsigned int index, short subdet, short layer, short ring);
         CUDA_HOSTDEV ModuleLayerType parseModuleLayerType(unsigned int index);
+        CUDA_HOSTDEV ModuleLayerType parseModuleLayerType(unsigned int index, ModuleType moduleType, bool isInvertedx, bool isLowerx);
 
         bool parseIsInverted(unsigned int index);
+        bool parseIsInverted(unsigned int index,short subdet, short side, short module, short layer);
         bool parseIsLower(unsigned int index);
+        bool parseIsLower(unsigned int index, bool isInvertedx,unsigned int detId);
 
         int* hitRanges;
         int* mdRanges;
@@ -97,11 +103,16 @@ namespace SDL
     void loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModules, const char* moduleMetaDataFilePath="data/centroid.txt");
 
     void createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules);
+    void createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules, bool* isLower);
     void createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int nModules);
-    void freeModulesInUnifiedMemory(struct modules& modulesInGPU);
+    void createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned int nModules);
+    void freeModules(struct modules& modulesInGPU);
+    void freeModulesCache(struct modules& modulesInGPU);
+    void fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules);
     void fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nModules);
     void setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side);
     void resetObjectRanges(struct modules& modulesInGPU, unsigned int nModules);
+    void resetObjectRangesExplicit(struct modules& modulesInGPU, unsigned int nModules);
 }
 #endif
 

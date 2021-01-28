@@ -61,13 +61,15 @@ namespace SDL
         tracklets* trackletsInCPU;
         triplets* tripletsInCPU;
         trackCandidates* trackCandidatesInCPU;
+        modules* modulesInCPU;
+        modules* modulesInCPUFull;
 
     public:
         Event();
         ~Event();
 
         void addHitToEventGPU(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId); //call the appropriate hit function, then increment the counter here
-        void addHitToEventOMP(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId); //call the appropriate hit function, then increment the counter here
+        void addHitToEventOMP(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple); //call the appropriate hit function, then increment the counter here
         void addHitToEvent(float x, float y, float z, unsigned int detId, unsigned int idx); //call the appropriate hit function, then increment the counter here
         void /*unsigned int*/ addPixToEvent(float x, float y, float z, unsigned int detId, unsigned int idx); //call the appropriate hit function, then increment the counter here
         void addPixelSegmentToEvent(std::vector<unsigned int> hitIndices, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr);
@@ -134,6 +136,8 @@ namespace SDL
         tracklets* getTracklets();
         triplets* getTriplets();
         trackCandidates* getTrackCandidates();
+        modules* getModules();
+        modules* getFullModules();
 
     };
 
