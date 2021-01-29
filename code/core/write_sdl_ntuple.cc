@@ -1,7 +1,7 @@
 #include "write_sdl_ntuple.h"
 
 //________________________________________________________________________________________________________________________________
-void write_sdl_ntuple(bool cut_value_ntuple,bool validate)
+void write_sdl_ntuple(bool cut_value_ntuple,bool validate, std::string targetData)
 {
 
     // Load various maps used in the SDL reconstruction
@@ -171,7 +171,7 @@ void write_sdl_ntuple(bool cut_value_ntuple,bool validate)
 
     }
 
-    printTimingInformation(timing_information);
+    printTimingInformation(timing_information,targetData);
 
     SDL::cleanModules();
 
@@ -553,7 +553,7 @@ void fillOutputBranches_for_CPU(SDL::CPU::Event& event)
 }
 
 //________________________________________________________________________________________________________________________________
-void printTimingInformation(std::vector<std::vector<float>> timing_information)
+void printTimingInformation(std::vector<std::vector<float>> timing_information, std::string targetData)
 {
 
     if (ana.verbose != 2 and ana.verbose != 1)
@@ -614,6 +614,7 @@ void printTimingInformation(std::vector<std::vector<float>> timing_information)
     timing_total_avg += timing_sum_information[5]; // pT4
     timing_total_avg += timing_sum_information[6]; // T3
     timing_total_avg += timing_sum_information[7]; // T3
+    std::cout << setprecision(0);
     std::cout << setw(6) << "avg";
     std::cout << "   "<<setw(6) << timing_sum_information[0]; // Hits
     std::cout << "   "<<setw(6) << timing_sum_information[1]; // MD
@@ -624,6 +625,7 @@ void printTimingInformation(std::vector<std::vector<float>> timing_information)
     std::cout << "   "<<setw(6) << timing_sum_information[6]; // T3
     std::cout << "   "<<setw(6) << timing_sum_information[7]; // T3
     std::cout << "   "<<setw(7) << timing_total_avg; // Average total time
+    std::cout << "    "<<targetData;
     std::cout << std::endl;
 
     std::cout << left;

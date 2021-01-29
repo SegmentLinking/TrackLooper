@@ -10,7 +10,7 @@ run_gpu()
     shift
     # GPU unified
     sdl_make_tracklooper -m $*
-    sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -v 2 -m 7 -i ${sample}
+    sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -v 2 -m 7 -i ${sample} | tee -a timing_temp.txt
 }
 
 validate_efficiency_usage()
@@ -97,6 +97,7 @@ echo ""
 ## Delete old run
 rm -rf ${OUTDIR}
 mkdir -p ${OUTDIR}
+rm timing_temp.txt
 
 # Run different GPU configurations
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified" ]]; then
@@ -131,4 +132,7 @@ if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_newgr
     run_gpu explicit_newgrid ${SAMPLE} ${NEVENTS} -x -g
 fi
 
+echo "Total Timing Summary"
+echo "Evt     Hits         MD       LS      T4      T4x       pT4        T3       TC       Total"
+grep -hr "avg " timing_temp.txt # space is needed to not get certain bad lines 
 #sdl_compare_efficiencies -i ${SAMPLE} -t ${GITHASH} -f
