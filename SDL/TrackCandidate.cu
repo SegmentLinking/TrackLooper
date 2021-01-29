@@ -53,7 +53,7 @@ void SDL::createEligibleModulesListForTrackCandidates(struct modules& modulesInG
 void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates, unsigned int maxPixelTrackCandidates, unsigned int nLowerModules, unsigned int nEligibleModules)
 {
     unsigned int nMemoryLocations = maxTrackCandidates * (nEligibleModules-1) + maxPixelTrackCandidates;
-    std::cout<<"Number of eligible modules = "<<nEligibleModules<<std::endl;
+    //std::cout<<"Number of eligible modules = "<<nEligibleModules<<std::endl;
 #ifdef CACHE_ALLOC
     cudaStream_t stream=0;
     trackCandidatesInGPU.trackCandidateType = (short*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(short),stream);
@@ -84,7 +84,7 @@ void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCand
 void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates, unsigned int maxPixelTrackCandidates, unsigned int nLowerModules ,unsigned int nEligibleModules)
 {
     unsigned int nMemoryLocations = maxTrackCandidates * (nEligibleModules-1) + maxPixelTrackCandidates;
-    std::cout<<"Number of eligible modules = "<<nEligibleModules<<std::endl;
+    //std::cout<<"Number of eligible modules = "<<nEligibleModules<<std::endl;
 #ifdef CACHE_ALLOC
     cudaStream_t stream=0;
     int dev;
