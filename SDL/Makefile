@@ -24,10 +24,10 @@ SOFLAGS              = -g -shared --compiler-options -fPIC --cudart shared -arch
 PRINTFLAG            = -DAddObjects
 MEMFLAG              =
 CACHEFLAG            =
-#CUDALAUNCHFLAG       = -DNESTED_PARA
+CUDALAUNCHFLAG       = -DNESTED_PARA
 MEMFLAG_FLAGS        = -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips -DExplicit_Hit -DExplicit_Track -DExplicit_Module 
 CACHEFLAG_FLAGS      = -DCACHE_ALLOC
-CUDALAUNCHFLAG = -DNEWGRID_MD -DNEWGRID_Seg -DNEWGRID_Trips -DNEWGRID_Tracklet
+#CUDALAUNCHFLAG = -DNEWGRID_MD -DNEWGRID_Seg -DNEWGRID_Trips -DNEWGRID_Tracklet -DNEWGRID_Pixel -DNEWGRID_Track
 
 #
 # how to make it 
