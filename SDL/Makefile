@@ -21,7 +21,7 @@ CXX                  = nvcc
 CXXFLAGS             =  -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared -arch=compute_52 -I/mnt/data1/dsr/cub #--maxrregcount=64
 LD                   = nvcc 
 SOFLAGS              = -g -shared --compiler-options -fPIC --cudart shared -arch=compute_52
-PRINTFLAG            = -DAddObjects
+PRINTFLAG            = -DAddObjects #-DWarnings
 MEMFLAG              =
 CACHEFLAG            =
 #CUDALAUNCHFLAG       = -DNESTED_PARA
