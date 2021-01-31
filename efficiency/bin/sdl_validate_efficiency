@@ -10,6 +10,11 @@ run_gpu()
     shift
     # GPU unified
     sdl_make_tracklooper -m $*
+    if ! command -v sdl &> /dev/null
+    then
+        echo "sdl could not be found! Compilation probably failed! Check the compilation."
+        exit
+    fi
     sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -i ${sample}
     sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 4 -f
 }

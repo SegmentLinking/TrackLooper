@@ -2,23 +2,25 @@
 #define write_sdl_ntuple_h
 
 #include <iostream>
-#include "AnalysisConfig.h"
-#include "SDL/Event.cuh"
-#include "SDL/MathUtil.h"
-#include "AnalysisInterface/EventForAnalysisInterface.h"
 #include <cppitertools/enumerate.hpp>
-#include "Study.h"
-#include "WriteSDLNtuplev2.h"
-#include "trkCore.h"
 
-// Main code
-void write_sdl_ntuple(bool cut_value_ntuple = false,bool validate = false, std::string targetData="");
+#include "SDL/MathUtil.h"
+#include "SDL/Event.cuh"
+
+// Efficiency study modules
+#include "Study.h"
+#include "constants.h"
+#include "AnalysisConfig.h"
+#include "trkCore.h"
+#include "WriteSDLNtuplev2.h"
+#include "AnalysisInterface/EventForAnalysisInterface.h"
+
 void createOutputBranches();
 void fillOutputBranches(SDL::Event& event);
 void fillOutputBranches_for_CPU(SDL::CPU::Event& event);
 
 // Timing
-void printTimingInformation(std::vector<std::vector<float>> timing_information, std::string targetData="");
+void printTimingInformation(std::vector<std::vector<float>> timing_information);
 
 // Print multiplicities
 void printQuadrupletMultiplicities(SDL::Event& event);

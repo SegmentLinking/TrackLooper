@@ -1,195 +1,6 @@
 #include "write_sdl_ntuple.h"
 
 //________________________________________________________________________________________________________________________________
-void write_sdl_ntuple(bool cut_value_ntuple,bool validate, std::string targetData)
-{
-
-    // Load various maps used in the SDL reconstruction
-    loadMaps();
-    Study* study;
-
-    if (not ana.do_run_cpu)
-        SDL::initModules(TString::Format("%s/data/centroid.txt", gSystem->Getenv("TRACKLOOPERDIR")));
-    if((not cut_value_ntuple) or ana.do_run_cpu)
-    {
-        createOutputBranches();
-    }
-    else
-    {
-        //call the function from WriteSDLNtuplev2.cc
-        study = new WriteSDLNtuplev2("WriteSDLNtuple");
-        study->bookStudy();
-        ana.cutflow.bookHistograms(ana.histograms);
-    }
-
-    // Timing average information
-    std::vector<std::vector<float>> timing_information;
-
-    // Looping input file
-    while (ana.looper.nextEvent())
-    {
-
-        std::cout<<"event number = "<<ana.looper.getCurrentEventIndex()<<std::endl;
-
-        if (not goodEvent())
-            continue;
-
-        if (not ana.do_run_cpu)
-        {
-            //*******************************************************
-            // GPU VERSION RUN
-            //*******************************************************
-
-            // Main instance that will hold modules, hits, minidoublets, etc. (i.e. main data structure)
-            SDL::Event event;
-
-            // Add hits to the event
-            float timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
-            //printHitMultiplicities(event);
-
-            // Run Mini-doublet
-            float timing_MD = runMiniDoublet(event);
-            //printMiniDoubletMultiplicities(event);
-
-            // Run Segment
-            float timing_LS = runSegment(event);
-
-            // Run pT4
-            float timing_pT4 = runpT4(event);
-            //printQuadrupletMultiplicities(event);
-
-            // Run T4x
-            float timing_T4x = runT4x(event);
-            //printQuadrupletMultiplicities(event);
-
-            // Run T4
-            float timing_T4 = runT4(event);
-            //printQuadrupletMultiplicities(event);
-
-            // Run T3
-            float timing_T3 = runT3(event);
-
-            // Run TC
-            float timing_TC = runTrackCandidate(event);
-
-            timing_information.push_back({ timing_input_loading,
-                    timing_MD,
-                    timing_LS,
-                    timing_T4,
-                    timing_T4x,
-                    timing_pT4,
-                    timing_T3,
-                    timing_TC});
-
-            if (ana.verbose == 4)
-            {
-                printAllObjects(event);
-            }
-
-            if (ana.verbose == 5)
-            {
-                debugPrintOutlierMultiplicities(event);
-            }
-
-            if(validate){
-              if(not cut_value_ntuple)
-              {
-                  fillOutputBranches(event);
-              }
-              else
-              {
-                  //call the function from WriteSDLNtupleV2.cc
-                  SDL::EventForAnalysisInterface* eventForAnalysisInterface = new SDL::EventForAnalysisInterface(event.getFullModules(), event.getHits(), event.getMiniDoublets(), event.getSegments(), event.getTracklets(), event.getTriplets(), event.getTrackCandidates());
-
-                  study->doStudy(*eventForAnalysisInterface);
-                  ana.cutflow.fill();
-              }
-            }
-
-        }
-        else
-        {
-            //*******************************************************
-            // CPU VERSION RUN
-            //*******************************************************
-
-            // Main instance that will hold modules, hits, minidoublets, etc. (i.e. main data structure)
-            SDL::CPU::Event event;
-
-            // event.setLogLevel(SDL::CPU::Log_Debug3);
-
-            // Add hits to the event
-            float timing_input_loading = addOuterTrackerHits(event);
-
-            // Add pixel segments
-            timing_input_loading += addPixelSegments(event);
-
-            // Print hit summary
-            printHitSummary(event);
-
-            // Run Mini-doublet
-            float timing_MD = runMiniDoublet_on_CPU(event);
-            printMiniDoubletSummary(event);
-
-            // Run Segment
-            float timing_LS = runSegment_on_CPU(event);
-            printSegmentSummary(event);
-
-            // Run Tracklet
-            float timing_T4 = runT4_on_CPU(event);
-            printTrackletSummary(event);
-            float timing_T4x = runT4x_on_CPU(event);
-            printTrackletSummary(event);
-            float timing_pT4 = runpT4_on_CPU(event);
-            printTrackletSummary(event);
-
-            // Run Triplet
-            float timing_T3 = runT3_on_CPU(event);
-            printTripletSummary(event);
-
-            // Run TrackCandidate
-            float timing_TC = runTrackCandidate_on_CPU(event);
-            printTrackCandidateSummary(event);
-
-            timing_information.push_back({ timing_input_loading,
-                    timing_MD,
-                    timing_LS,
-                    timing_T4,
-                    timing_T4x,
-                    timing_pT4,
-                    timing_T3,
-                    timing_TC});
-
-            if (ana.verbose == 4)
-            {
-                printAllObjects_for_CPU(event);
-            }
-
-            fillOutputBranches_for_CPU(event);
-
-        }
-
-    }
-
-    printTimingInformation(timing_information,targetData);
-
-    SDL::cleanModules();
-
-    // Writing ttree output to file
-    ana.output_tfile->cd();
-    if(not cut_value_ntuple)
-    {
-        ana.cutflow.saveOutput();
-    }
-
-    ana.output_ttree->Write();
-
-    // The below can be sometimes crucial
-    delete ana.output_tfile;
-
-}
-
-//________________________________________________________________________________________________________________________________
 void createOutputBranches()
 {
     // Setup output TTree
@@ -680,10 +491,10 @@ void fillOutputBranches_for_CPU(SDL::CPU::Event& event)
 }
 
 //________________________________________________________________________________________________________________________________
-void printTimingInformation(std::vector<std::vector<float>> timing_information, std::string targetData)
+void printTimingInformation(std::vector<std::vector<float>> timing_information)
 {
 
-    if (ana.verbose != 2 and ana.verbose != 1)
+    if (ana.verbose == 0)
         return;
 
     std::cout << showpoint;
@@ -752,7 +563,7 @@ void printTimingInformation(std::vector<std::vector<float>> timing_information, 
     std::cout << "   "<<setw(6) << timing_sum_information[6]; // T3
     std::cout << "   "<<setw(6) << timing_sum_information[7]; // T3
     std::cout << "   "<<setw(7) << timing_total_avg; // Average total time
-    std::cout << "    "<<targetData;
+    std::cout << "    "<<ana.compilation_target;
     std::cout << std::endl;
 
     std::cout << left;
@@ -1393,4 +1204,3 @@ void debugPrintOutlierMultiplicities(SDL::Event& event)
         }
     }
 }
-
