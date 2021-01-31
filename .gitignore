@@ -20,3 +20,5 @@ efficiencies/
 efficiency/bin/createEffNumDenPlots
 *.txt
 *.pyc
+output*
+movetoweb.sh

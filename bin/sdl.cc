@@ -77,13 +77,13 @@ int main(int argc, char** argv)
 
     // A default value one
     if (ana.input_file_list_tstring.EqualTo("muonGun"))
-        ana.input_file_list_tstring = "/nfs-7/userdata/phchang/trackingNtuple/trackingNtuple_100_pt0p5_2p0.root";
+        ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_100_pt0p5_2p0.root";
     else if (ana.input_file_list_tstring.EqualTo("muonGun_highE"))
-        ana.input_file_list_tstring = "/nfs-7/userdata/phchang/trackingNtuple/trackingNtuple_10MuGun.root";
+        ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_10MuGun.root";
     else if (ana.input_file_list_tstring.EqualTo("pionGun"))
-        ana.input_file_list_tstring = "/nfs-7/userdata/phchang/trackingNtuple/trackingNtuple_1pion_10k_pt0p5_50p0.root";
+        ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_1pion_10k_pt0p5_50p0.root";
     else if (ana.input_file_list_tstring.EqualTo("PU200"))
-        ana.input_file_list_tstring = "/nfs-7/userdata/bsathian/SDL_trackingNtuple/ttbar_highPU/trackingNtuple_with_PUinfo_500_evts.root";
+        ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_with_PUinfo_500_evts.root";
 
     //_______________________________________________________________________________
     // --tree
@@ -311,8 +311,9 @@ int main(int argc, char** argv)
         //case 2: mtv(); break;
         //case 3: algo_eff(); break;
         //case 4: tracklet(); break;
-        case 5: write_sdl_ntuple(); break;
-        case 6 : write_sdl_ntuple(true); break;
+        case 5: write_sdl_ntuple(false,true); break;
+        case 6 : write_sdl_ntuple(true,true); break;
+        case 7 : write_sdl_ntuple(false,false,targetdata.Data()); break; // quick run, not validation
         //case 6: pixel_tracklet_eff(); break;
         default:
                 std::cout << options.help() << std::endl;

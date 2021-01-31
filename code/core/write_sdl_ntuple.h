@@ -12,13 +12,13 @@
 #include "trkCore.h"
 
 // Main code
-void write_sdl_ntuple(bool cut_value_ntuple = false);
+void write_sdl_ntuple(bool cut_value_ntuple = false,bool validate = false, std::string targetData="");
 void createOutputBranches();
 void fillOutputBranches(SDL::Event& event);
 void fillOutputBranches_for_CPU(SDL::CPU::Event& event);
 
 // Timing
-void printTimingInformation(std::vector<std::vector<float>> timing_information);
+void printTimingInformation(std::vector<std::vector<float>> timing_information, std::string targetData="");
 
 // Print multiplicities
 void printQuadrupletMultiplicities(SDL::Event& event);
