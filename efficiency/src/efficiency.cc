@@ -1,4 +1,4 @@
-#include "process.h"
+#include "efficiency.h"
 #include "SDLMath.h"
 
 #include "sdl_types.h"
@@ -23,6 +23,20 @@ int main(int argc, char** argv)
 
     bookEfficiencySets(list_effSetDef);
 
+    // creating a set of fake rate plots
+    std::vector<FakeRateSetDefinition> list_FRSetDef;
+
+    list_FRSetDef.push_back(FakeRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isFake()[itc] > 0;}));
+
+    bookFakeRateSets(list_FRSetDef);
+
+    // creating a set of fake rate plots
+    std::vector<DuplicateRateSetDefinition> list_DLSetDef;
+
+    list_DLSetDef.push_back(DuplicateRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isDuplicate()[itc] > 0;}));
+
+    bookDuplicateRateSets(list_DLSetDef);
+
     ana.cutflow.bookCutflows();
 
     // Book Histograms
@@ -45,6 +59,8 @@ int main(int argc, char** argv)
         setSDLVariables();
 
         fillEfficiencySets(list_effSetDef);
+        fillFakeRateSets(list_FRSetDef);
+        fillDuplicateRateSets(list_DLSetDef);
 
         //Do what you need to do in for each event here
         //To save use the following function
@@ -117,9 +133,9 @@ void bookEfficiencySet(EfficiencySetDefinition& effset)
 
 void fillEfficiencySets(std::vector<EfficiencySetDefinition>& effsets)
 {
-    for (unsigned int isimtrk = 0; isimtrk < sdl.sim_pt().size(); ++isimtrk)
+    for (auto& effset : effsets)
     {
-        for (auto& effset : effsets)
+        for (unsigned int isimtrk = 0; isimtrk < sdl.sim_pt().size(); ++isimtrk)
         {
             fillEfficiencySet(isimtrk, effset);
         }
@@ -185,6 +201,146 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset)
             ana.tx.pushbackToBranch<float>(category_name + "_numer_dxy", dxy);
         if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_perp) < vtx_perp_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_numer_dz", dz);
+    }
+}
+
+void bookFakeRateSets(std::vector<FakeRateSetDefinition>& FRsets)
+{
+    for (auto& FRset : FRsets)
+        bookFakeRateSet(FRset);
+}
+
+void bookFakeRateSet(FakeRateSetDefinition& FRset)
+{
+
+    std::vector<float> pt_boundaries = getPtBounds();
+
+    TString category_name = FRset.set_name;
+
+    // Denominator tracks' quantities
+    ana.tx.createBranch<vector<float>>(category_name + "_fakerate_denom_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakerate_denom_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakerate_denom_phi");
+
+    // Numerator tracks' quantities
+    ana.tx.createBranch<vector<float>>(category_name + "_fakerate_numer_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakerate_numer_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakerate_numer_phi");
+
+    // Histogram utility object that is used to define the histograms
+    ana.histograms.addVecHistogram(category_name + "_h_fakerate_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakerate_denom_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_fakerate_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakerate_numer_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_fakerate_denom_eta" , 180 , -2.5  , 2.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakerate_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_fakerate_numer_eta" , 180 , -2.5  , 2.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakerate_numer_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_fakerate_denom_phi" , 180 , -M_PI , M_PI , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakerate_denom_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_fakerate_numer_phi" , 180 , -M_PI , M_PI , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakerate_numer_phi"); } );
+
+}
+
+void fillFakeRateSets(std::vector<FakeRateSetDefinition>& FRsets)
+{
+    for (auto& FRset : FRsets)
+    {
+        for (unsigned int itc = 0; itc < sdl.tc_pt().size(); ++itc)
+        {
+            fillFakeRateSet(itc, FRset);
+        }
+    }
+}
+
+void fillFakeRateSet(int itc, FakeRateSetDefinition& FRset)
+{
+    const float& pt = sdl.tc_pt()[itc];
+    const float& eta = sdl.tc_eta()[itc];
+    const float& phi = sdl.tc_phi()[itc];
+
+    TString category_name = FRset.set_name;
+
+    if (pt > 1.5)
+        ana.tx.pushbackToBranch<float>(category_name + "_fakerate_denom_eta", eta);
+    if (abs(eta) < 2.4)
+        ana.tx.pushbackToBranch<float>(category_name + "_fakerate_denom_pt", pt);
+    if (abs(eta) < 2.4 and pt > 1.5)
+        ana.tx.pushbackToBranch<float>(category_name + "_fakerate_denom_phi", phi);
+
+    if (FRset.pass(itc))
+    {
+        if (pt > 1.5)
+            ana.tx.pushbackToBranch<float>(category_name + "_fakerate_numer_eta", eta);
+        if (abs(eta) < 2.4)
+            ana.tx.pushbackToBranch<float>(category_name + "_fakerate_numer_pt", pt);
+        if (abs(eta) < 2.4 and pt > 1.5)
+            ana.tx.pushbackToBranch<float>(category_name + "_fakerate_numer_phi", phi);
+    }
+}
+
+void bookDuplicateRateSets(std::vector<DuplicateRateSetDefinition>& DLsets)
+{
+    for (auto& DLset : DLsets)
+        bookDuplicateRateSet(DLset);
+}
+
+void bookDuplicateRateSet(DuplicateRateSetDefinition& DLset)
+{
+
+    std::vector<float> pt_boundaries = getPtBounds();
+
+    TString category_name = DLset.set_name;
+
+    // Denominator tracks' quantities
+    ana.tx.createBranch<vector<float>>(category_name + "_duplrate_denom_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_duplrate_denom_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_duplrate_denom_phi");
+
+    // Numerator tracks' quantities
+    ana.tx.createBranch<vector<float>>(category_name + "_duplrate_numer_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_duplrate_numer_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_duplrate_numer_phi");
+
+    // Histogram utility object that is used to define the histograms
+    ana.histograms.addVecHistogram(category_name + "_h_duplrate_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_duplrate_denom_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_duplrate_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_duplrate_numer_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_duplrate_denom_eta" , 180 , -2.5  , 2.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_duplrate_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_duplrate_numer_eta" , 180 , -2.5  , 2.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_duplrate_numer_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_duplrate_denom_phi" , 180 , -M_PI , M_PI , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_duplrate_denom_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_duplrate_numer_phi" , 180 , -M_PI , M_PI , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_duplrate_numer_phi"); } );
+
+}
+
+void fillDuplicateRateSets(std::vector<DuplicateRateSetDefinition>& DLsets)
+{
+    for (auto& DLset : DLsets)
+    {
+        for (unsigned int itc = 0; itc < sdl.tc_pt().size(); ++itc)
+        {
+            fillDuplicateRateSet(itc, DLset);
+        }
+    }
+}
+
+void fillDuplicateRateSet(int itc, DuplicateRateSetDefinition& DLset)
+{
+    const float& pt = sdl.tc_pt()[itc];
+    const float& eta = sdl.tc_eta()[itc];
+    const float& phi = sdl.tc_phi()[itc];
+
+    TString category_name = DLset.set_name;
+
+    if (pt > 1.5)
+        ana.tx.pushbackToBranch<float>(category_name + "_duplrate_denom_eta", eta);
+    if (abs(eta) < 2.4)
+        ana.tx.pushbackToBranch<float>(category_name + "_duplrate_denom_pt", pt);
+    if (abs(eta) < 2.4 and pt > 1.5)
+        ana.tx.pushbackToBranch<float>(category_name + "_duplrate_denom_phi", phi);
+
+    if (DLset.pass(itc))
+    {
+        if (pt > 1.5)
+            ana.tx.pushbackToBranch<float>(category_name + "_duplrate_numer_eta", eta);
+        if (abs(eta) < 2.4)
+            ana.tx.pushbackToBranch<float>(category_name + "_duplrate_numer_pt", pt);
+        if (abs(eta) < 2.4 and pt > 1.5)
+            ana.tx.pushbackToBranch<float>(category_name + "_duplrate_numer_phi", phi);
     }
 }
 

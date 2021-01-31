@@ -199,6 +199,20 @@ EfficiencySetDefinition::EfficiencySetDefinition(TString set_name_, int pdgid_, 
     pass = pass_;
 }
 
+FakeRateSetDefinition::FakeRateSetDefinition(TString set_name_, int pdgid_, std::function<bool(int)> pass_)
+{
+    set_name = set_name_;
+    pdgid = pdgid_;
+    pass = pass_;
+}
+
+DuplicateRateSetDefinition::DuplicateRateSetDefinition(TString set_name_, int pdgid_, std::function<bool(int)> pass_)
+{
+    set_name = set_name_;
+    pdgid = pdgid_;
+    pass = pass_;
+}
+
 void initializeInputsAndOutputs()
 {
     // Create the TChain that holds the TTree's of the baby ntuples

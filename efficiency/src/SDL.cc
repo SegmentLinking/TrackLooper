@@ -283,6 +283,10 @@ void SDL::Init(TTree *tree) {
   if (tc_eta_branch) tc_eta_branch->SetAddress(&tc_eta_);
   tc_phi_branch = tree->GetBranch("tc_phi");
   if (tc_phi_branch) tc_phi_branch->SetAddress(&tc_phi_);
+  tc_isFake_branch = tree->GetBranch("tc_isFake");
+  if (tc_isFake_branch) tc_isFake_branch->SetAddress(&tc_isFake_);
+  tc_isDuplicate_branch = tree->GetBranch("tc_isDuplicate");
+  if (tc_isDuplicate_branch) tc_isDuplicate_branch->SetAddress(&tc_isDuplicate_);
   tc_sim_pt_branch = tree->GetBranch("tc_sim_pt");
   if (tc_sim_pt_branch) tc_sim_pt_branch->SetAddress(&tc_sim_pt_);
   tc_sim_eta_branch = tree->GetBranch("tc_sim_eta");
@@ -441,6 +445,8 @@ void SDL::GetEntry(unsigned int idx) {
   tc_pt_isLoaded = false;
   tc_eta_isLoaded = false;
   tc_phi_isLoaded = false;
+  tc_isFake_isLoaded = false;
+  tc_isDuplicate_isLoaded = false;
   tc_sim_pt_isLoaded = false;
   tc_sim_eta_isLoaded = false;
   tc_sim_phi_isLoaded = false;
@@ -590,6 +596,8 @@ void SDL::LoadAllBranches() {
   if (tc_pt_branch != 0) tc_pt();
   if (tc_eta_branch != 0) tc_eta();
   if (tc_phi_branch != 0) tc_phi();
+  if (tc_isFake_branch != 0) tc_isFake();
+  if (tc_isDuplicate_branch != 0) tc_isDuplicate();
   if (tc_sim_pt_branch != 0) tc_sim_pt();
   if (tc_sim_eta_branch != 0) tc_sim_eta();
   if (tc_sim_phi_branch != 0) tc_sim_phi();
@@ -2405,6 +2413,32 @@ const vector<float> &SDL::tc_phi() {
   return *tc_phi_;
 }
 
+const vector<int> &SDL::tc_isFake() {
+  if (not tc_isFake_isLoaded) {
+    if (tc_isFake_branch != 0) {
+      tc_isFake_branch->GetEntry(index);
+    } else {
+      printf("branch tc_isFake_branch does not exist!\n");
+      exit(1);
+    }
+    tc_isFake_isLoaded = true;
+  }
+  return *tc_isFake_;
+}
+
+const vector<int> &SDL::tc_isDuplicate() {
+  if (not tc_isDuplicate_isLoaded) {
+    if (tc_isDuplicate_branch != 0) {
+      tc_isDuplicate_branch->GetEntry(index);
+    } else {
+      printf("branch tc_isDuplicate_branch does not exist!\n");
+      exit(1);
+    }
+    tc_isDuplicate_isLoaded = true;
+  }
+  return *tc_isDuplicate_;
+}
+
 const vector<float> &SDL::tc_sim_pt() {
   if (not tc_sim_pt_isLoaded) {
     if (tc_sim_pt_branch != 0) {
@@ -2644,6 +2678,8 @@ const vector<vector<int> > &tc_layer() { return sdl.tc_layer(); }
 const vector<float> &tc_pt() { return sdl.tc_pt(); }
 const vector<float> &tc_eta() { return sdl.tc_eta(); }
 const vector<float> &tc_phi() { return sdl.tc_phi(); }
+const vector<int> &tc_isFake() { return sdl.tc_isFake(); }
+const vector<int> &tc_isDuplicate() { return sdl.tc_isDuplicate(); }
 const vector<float> &tc_sim_pt() { return sdl.tc_sim_pt(); }
 const vector<float> &tc_sim_eta() { return sdl.tc_sim_eta(); }
 const vector<float> &tc_sim_phi() { return sdl.tc_sim_phi(); }

@@ -4,6 +4,7 @@
 #include <iostream>
 #include "AnalysisConfig.h"
 #include "SDL/Event.cuh"
+#include "SDL/MathUtil.h"
 #include "AnalysisInterface/EventForAnalysisInterface.h"
 #include <cppitertools/enumerate.hpp>
 #include "Study.h"

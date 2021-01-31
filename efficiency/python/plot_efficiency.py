@@ -8,7 +8,12 @@ import sys
 r.gROOT.SetBatch(True)
 
 def parse_plot_name(output_name):
-    rtnstr = ["Efficiency of"]
+    if "fakerate" in output_name:
+        rtnstr = ["Fake Rate of"]
+    elif "duplrate" in output_name:
+        rtnstr = ["Duplicate Rate of"]
+    else:
+        rtnstr = ["Efficiency of"]
     if "MD_" in output_name:
         rtnstr.append("Mini-Doublet")
     elif "LS_" in output_name:
@@ -67,7 +72,12 @@ def draw_eff(num, den, output_name, sample_name, version_tag, outputfile=None):
     else:
         title = "#eta"
     eff.GetXaxis().SetTitle(title)
-    eff.GetYaxis().SetTitle("Efficiency")
+    if "fakerate" in output_name:
+        eff.GetYaxis().SetTitle("Fake Rate")
+    elif "duplrate" in output_name:
+        eff.GetYaxis().SetTitle("Duplicate Rate")
+    else:
+        eff.GetYaxis().SetTitle("Efficiency")
     eff.GetXaxis().SetTitleSize(0.05)
     eff.GetYaxis().SetTitleSize(0.05)
     eff.GetXaxis().SetLabelSize(0.05)

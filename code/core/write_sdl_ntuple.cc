@@ -211,6 +211,13 @@ void createOutputBranches()
     ana.tx->createBranch<vector<int>>("sim_TC_matched");
 
     ana.tx->createBranch<vector<vector<int>>>("sim_TC_types");
+
+    // Track candidates
+    ana.tx->createBranch<vector<float>>("tc_pt");
+    ana.tx->createBranch<vector<float>>("tc_eta");
+    ana.tx->createBranch<vector<float>>("tc_phi");
+    ana.tx->createBranch<vector<int>>("tc_isFake");
+    ana.tx->createBranch<vector<int>>("tc_isDuplicate");
 }
 
 //________________________________________________________________________________________________________________________________
@@ -242,6 +249,11 @@ void fillOutputBranches(SDL::Event& event)
 
     // Did it match to track candidate?
     std::vector<int> sim_TC_matched(trk.sim_pt().size());
+    std::vector<int> tc_isFake;
+    std::vector<vector<int>> tc_matched_simIdx;
+    std::vector<float> tc_pt;
+    std::vector<float> tc_eta;
+    std::vector<float> tc_phi;
     for (unsigned int idx = 0; idx <= *(SDL::modulesInGPU->nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
         if(SDL::modulesInGPU->trackCandidateModuleIndices[idx] == -1)
@@ -352,10 +364,65 @@ void fillOutputBranches(SDL::Event& event)
             {
                 sim_TC_matched[isimtrk]++;
             }
+
+            // Compute pt, eta, phi of TC
+            float pt = -999;
+            float eta = -999;
+            float phi = -999;
+            if (hit_types[0] == 4)
+            {
+                SDL::CPU::Hit hitA(trk.ph2_x()[hit_idxs[0]], trk.ph2_y()[hit_idxs[0]], trk.ph2_z()[hit_idxs[0]]);
+                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idxs[11]], trk.ph2_y()[hit_idxs[11]], trk.ph2_z()[hit_idxs[11]]);
+                SDL::CPU::Hit hitC(0, 0, 0);
+                SDL::CPU::Hit center = SDL::CPU::MathUtil::getCenterFromThreePoints(hitA, hitB, hitC);
+                float radius = center.rt();
+                pt = SDL::CPU::MathUtil::ptEstimateFromRadius(radius);
+                eta = hitB.eta();
+                phi = hitA.phi();
+            }
+            else
+            {
+                SDL::CPU::Hit hitA(trk.pix_x()[hit_idxs[0]], trk.pix_y()[hit_idxs[0]], trk.pix_z()[hit_idxs[0]]);
+                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idxs[11]], trk.ph2_y()[hit_idxs[11]], trk.ph2_z()[hit_idxs[11]]);
+                SDL::CPU::Hit hitC(0, 0, 0);
+                SDL::CPU::Hit center = SDL::CPU::MathUtil::getCenterFromThreePoints(hitA, hitB, hitC);
+                float radius = center.rt();
+                pt = SDL::CPU::MathUtil::ptEstimateFromRadius(radius);
+                eta = hitB.eta();
+                phi = hitA.phi();
+            }
+
+            tc_isFake.push_back(matched_sim_trk_idxs.size() == 0);
+            tc_pt.push_back(pt);
+            tc_eta.push_back(eta);
+            tc_phi.push_back(phi);
+            tc_matched_simIdx.push_back(matched_sim_trk_idxs);
+
         }
     }
 
     ana.tx->setBranch<vector<int>>("sim_TC_matched", sim_TC_matched);
+
+    vector<int> tc_isDuplicate(tc_matched_simIdx.size());
+
+    for (unsigned int i = 0; i < tc_matched_simIdx.size(); ++i)
+    {
+        bool isDuplicate = false;
+        for (unsigned int isim = 0; isim < tc_matched_simIdx[i].size(); ++isim)
+        {
+            if (sim_TC_matched[tc_matched_simIdx[i][isim]] > 1)
+            {
+                isDuplicate = true;
+            }
+        }
+        tc_isDuplicate[i] = isDuplicate;
+    }
+
+    ana.tx->setBranch<vector<float>>("tc_pt", tc_pt);
+    ana.tx->setBranch<vector<float>>("tc_eta", tc_eta);
+    ana.tx->setBranch<vector<float>>("tc_phi", tc_phi);
+    ana.tx->setBranch<vector<int>>("tc_isFake", tc_isFake);
+    ana.tx->setBranch<vector<int>>("tc_isDuplicate", tc_isDuplicate);
 
     ana.tx->fill();
     ana.tx->clear();
@@ -389,6 +456,12 @@ void fillOutputBranches_for_CPU(SDL::CPU::Event& event)
     // get layer ptrs
     std::vector<SDL::CPU::Layer*> layerPtrs = event.getLayerPtrs();
     layerPtrs.push_back(&(event.getPixelLayer()));
+
+    std::vector<int> tc_isFake;
+    std::vector<vector<int>> tc_matched_simIdx;
+    std::vector<float> tc_pt;
+    std::vector<float> tc_eta;
+    std::vector<float> tc_phi;
 
     // Loop over layers and access track candidates
     for (auto& layerPtr : layerPtrs)
@@ -528,12 +601,66 @@ void fillOutputBranches_for_CPU(SDL::CPU::Event& event)
                 sim_TC_types[isimtrk].push_back(layer_binary);
             }
 
+            // Compute pt, eta, phi of TC
+            float pt = -999;
+            float eta = -999;
+            float phi = -999;
+            if (hit_types[0] == 4)
+            {
+                SDL::CPU::Hit hitA(trk.ph2_x()[hit_idx[0]], trk.ph2_y()[hit_idx[0]], trk.ph2_z()[hit_idx[0]]);
+                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[11]], trk.ph2_y()[hit_idx[11]], trk.ph2_z()[hit_idx[11]]);
+                SDL::CPU::Hit hitC(0, 0, 0);
+                SDL::CPU::Hit center = SDL::CPU::MathUtil::getCenterFromThreePoints(hitA, hitB, hitC);
+                float radius = center.rt();
+                pt = SDL::CPU::MathUtil::ptEstimateFromRadius(radius);
+                eta = hitB.eta();
+                phi = hitA.phi();
+            }
+            else
+            {
+                SDL::CPU::Hit hitA(trk.pix_x()[hit_idx[0]], trk.pix_y()[hit_idx[0]], trk.pix_z()[hit_idx[0]]);
+                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[11]], trk.ph2_y()[hit_idx[11]], trk.ph2_z()[hit_idx[11]]);
+                SDL::CPU::Hit hitC(0, 0, 0);
+                SDL::CPU::Hit center = SDL::CPU::MathUtil::getCenterFromThreePoints(hitA, hitB, hitC);
+                float radius = center.rt();
+                pt = SDL::CPU::MathUtil::ptEstimateFromRadius(radius);
+                eta = hitB.eta();
+                phi = hitA.phi();
+            }
+
+            tc_isFake.push_back(matched_sim_trk_idxs.size() == 0);
+            tc_pt.push_back(pt);
+            tc_eta.push_back(eta);
+            tc_phi.push_back(phi);
+            tc_matched_simIdx.push_back(matched_sim_trk_idxs);
+
         }
 
     }
 
     ana.tx->setBranch<vector<int>>("sim_TC_matched", sim_TC_matched);
     ana.tx->setBranch<vector<vector<int>>>("sim_TC_types", sim_TC_types);
+
+    vector<int> tc_isDuplicate(tc_matched_simIdx.size());
+
+    for (unsigned int i = 0; i < tc_matched_simIdx.size(); ++i)
+    {
+        bool isDuplicate = false;
+        for (unsigned int isim = 0; isim < tc_matched_simIdx[i].size(); ++isim)
+        {
+            if (sim_TC_matched[tc_matched_simIdx[i][isim]] > 1)
+            {
+                isDuplicate = true;
+            }
+        }
+        tc_isDuplicate[i] = isDuplicate;
+    }
+
+    ana.tx->setBranch<vector<float>>("tc_pt", tc_pt);
+    ana.tx->setBranch<vector<float>>("tc_eta", tc_eta);
+    ana.tx->setBranch<vector<float>>("tc_phi", tc_phi);
+    ana.tx->setBranch<vector<int>>("tc_isFake", tc_isFake);
+    ana.tx->setBranch<vector<int>>("tc_isDuplicate", tc_isDuplicate);
 
     ana.tx->fill();
     ana.tx->clear();
