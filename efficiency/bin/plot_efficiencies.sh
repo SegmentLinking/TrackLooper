@@ -1,7 +1,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-mkdir -p plots/mtv_eff/
-cp $DIR/../misc/index.php plots/mtv_eff/
+mkdir -p plots/mtv/
+cp $DIR/../misc/index.php plots/mtv/
 
 if [ -z $1 ];
 then

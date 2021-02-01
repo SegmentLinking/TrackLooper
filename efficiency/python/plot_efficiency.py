@@ -53,7 +53,7 @@ def draw_eff(num, den, output_name, sample_name, version_tag, outputfile=None):
     c1 = r.TCanvas()
     c1.SetBottomMargin(0.15)
     c1.SetLeftMargin(0.15)
-    c1.SetTopMargin(0.15)
+    c1.SetTopMargin(0.22)
     c1.SetRightMargin(0.15)
     if "_pt" in output_name:
         c1.SetLogx()
@@ -109,9 +109,33 @@ def draw_eff(num, den, output_name, sample_name, version_tag, outputfile=None):
     t.SetTextColor(r.kBlack)
     t.SetTextSize(0.04)
     x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
-    y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.01
+    y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.09 + 0.03
     sample_name_label = "Sample: " + sample_name + "   Version tag:" + version_tag
-    t.DrawLatexNDC(x,y,"#scale[0.9]{#font[52]{%s}}" % sample_name_label)
+    t.DrawLatexNDC(x,y,"#scale[0.9]{#font[42]{%s}}" % sample_name_label)
+    x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
+    y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.045 + 0.03
+    if "_pt" in output_name:
+        fiducial_label = "|#eta| < 2.4, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+    elif "_eta" in output_name:
+        fiducial_label = "p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+    elif "_dz" in output_name:
+        fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{xy}| < 2.5 cm"
+    elif "_dxy" in output_name:
+        fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm"
+    else:
+        fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+    if "fakerate" in output_name or "duplrate" in output_name:
+        if "_pt" in output_name:
+            fiducial_label = "|#eta| < 2.4"
+        elif "_eta" in output_name:
+            fiducial_label = "p_{T} > 1.5 GeV"
+        else:
+            fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV"
+    t.DrawLatexNDC(x,y,"#scale[0.9]{#font[42]{%s}}" % fiducial_label)
+    cms_label = "Simulation"
+    x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
+    y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.005
+    t.DrawLatexNDC(x,y,"#scale[1.25]{#font[61]{CMS}} #scale[1.1]{#font[52]{%s}}" % cms_label)
     # Save
     c1.SetGrid()
     c1.SaveAs("{}".format(output_name.replace(".pdf", "_eff.pdf")))
@@ -157,13 +181,13 @@ if __name__ == "__main__":
     for numer_histname, denom_histname, nice_name in num_den_pairs:
         numer = f.Get(numer_histname)
         denom = f.Get(denom_histname)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}.pdf".format(nice_name), sample_name, version_tag, of)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}zoom.pdf".format(nice_name), sample_name, version_tag, of)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}zoomcoarse.pdf".format(nice_name), sample_name, version_tag, of)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}maxzoom.pdf".format(nice_name), sample_name, version_tag, of)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}maxzoomcoarse.pdf".format(nice_name), sample_name, version_tag, of)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}scalar.pdf".format(nice_name), sample_name, version_tag, of)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv_eff/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv/{}.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv/{}zoom.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv/{}zoomcoarse.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv/{}maxzoom.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv/{}maxzoomcoarse.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv/{}scalar.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
 
     of.Write()
     of.Close()

@@ -16,6 +16,7 @@
 #include "AnalysisInterface/EventForAnalysisInterface.h"
 
 void createOutputBranches();
+void createLowerLevelOutputBranches();
 void fillOutputBranches(SDL::Event& event);
 void fillOutputBranches_for_CPU(SDL::CPU::Event& event);
 
