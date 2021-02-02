@@ -4,7 +4,7 @@ import os
 import sys
 import glob
 import ROOT as r
-from plot_efficiency import parse_plot_name
+from plot_performance import parse_plot_name
 
 # Get the git hash to compare
 githash = sys.argv[1]

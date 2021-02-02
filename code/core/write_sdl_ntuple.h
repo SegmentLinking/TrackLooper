@@ -18,6 +18,11 @@
 void createOutputBranches();
 void createLowerLevelOutputBranches();
 void fillOutputBranches(SDL::Event& event);
+void fillSimTrackOutputBranches();
+void fillTrackCandidateOutputBranches(SDL::Event& event);
+void fillLowerLevelOutputBranches(SDL::Event& event);
+void fillQuadrupletOutputBranches(SDL::Event& event);
+void fillTripletOutputBranches(SDL::Event& event);
 void fillOutputBranches_for_CPU(SDL::CPU::Event& event);
 
 // Timing

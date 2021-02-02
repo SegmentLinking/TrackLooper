@@ -38,7 +38,7 @@ def parse_plot_name(output_name):
     rtnstr.append(types)
     return " ".join(rtnstr)
 
-def draw_eff(num, den, output_name, sample_name, version_tag, outputfile=None):
+def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None):
 
     if "scalar" in output_name and "ptscalar" not in output_name:
         num.Rebin(180)
@@ -166,7 +166,7 @@ if __name__ == "__main__":
             continue
         # if "Set4" not in key.GetName():
         #     continue
-        if "TC_All" not in key.GetName():
+        if "TC_All" not in key.GetName() and "T4s_All" not in key.GetName() and "T3_All" not in key.GetName():
             continue
         # if "pLS_P" not in key.GetName():
         #     continue
@@ -181,13 +181,13 @@ if __name__ == "__main__":
     for numer_histname, denom_histname, nice_name in num_den_pairs:
         numer = f.Get(numer_histname)
         denom = f.Get(denom_histname)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv/{}.pdf".format(nice_name), sample_name, version_tag, of)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv/{}zoom.pdf".format(nice_name), sample_name, version_tag, of)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv/{}zoomcoarse.pdf".format(nice_name), sample_name, version_tag, of)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv/{}maxzoom.pdf".format(nice_name), sample_name, version_tag, of)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv/{}maxzoomcoarse.pdf".format(nice_name), sample_name, version_tag, of)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv/{}scalar.pdf".format(nice_name), sample_name, version_tag, of)
-        draw_eff(numer.Clone(), denom.Clone(), "plots/mtv/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_ratio(numer.Clone(), denom.Clone(), "plots/mtv/{}.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_ratio(numer.Clone(), denom.Clone(), "plots/mtv/{}zoom.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_ratio(numer.Clone(), denom.Clone(), "plots/mtv/{}zoomcoarse.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_ratio(numer.Clone(), denom.Clone(), "plots/mtv/{}maxzoom.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_ratio(numer.Clone(), denom.Clone(), "plots/mtv/{}maxzoomcoarse.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_ratio(numer.Clone(), denom.Clone(), "plots/mtv/{}scalar.pdf".format(nice_name), sample_name, version_tag, of)
+        draw_ratio(numer.Clone(), denom.Clone(), "plots/mtv/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
 
     of.Write()
     of.Close()

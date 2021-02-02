@@ -20,6 +20,8 @@ int main(int argc, char** argv)
     std::vector<EfficiencySetDefinition> list_effSetDef;
 
     list_effSetDef.push_back(EfficiencySetDefinition("TC_AllTypes", 13, [&](int isim) {return sdl.sim_TC_matched()[isim] > 0;}));
+    list_effSetDef.push_back(EfficiencySetDefinition("T4s_AllTypes", 13, [&](int isim) {return sdl.sim_T4_matched()[isim] > 0;}));
+    list_effSetDef.push_back(EfficiencySetDefinition("T3_AllTypes", 13, [&](int isim) {return sdl.sim_T3_matched()[isim] > 0;}));
 
     bookEfficiencySets(list_effSetDef);
 
@@ -27,6 +29,8 @@ int main(int argc, char** argv)
     std::vector<FakeRateSetDefinition> list_FRSetDef;
 
     list_FRSetDef.push_back(FakeRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isFake()[itc] > 0;}));
+    list_FRSetDef.push_back(FakeRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isFake()[it4] > 0;}));
+    list_FRSetDef.push_back(FakeRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isFake()[it3] > 0;}));
 
     bookFakeRateSets(list_FRSetDef);
 
@@ -34,6 +38,8 @@ int main(int argc, char** argv)
     std::vector<DuplicateRateSetDefinition> list_DLSetDef;
 
     list_DLSetDef.push_back(DuplicateRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isDuplicate()[itc] > 0;}));
+    list_DLSetDef.push_back(DuplicateRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isDuplicate()[it4] > 0;}));
+    list_DLSetDef.push_back(DuplicateRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isDuplicate()[it3] > 0;}));
 
     bookDuplicateRateSets(list_DLSetDef);
 
