@@ -1369,7 +1369,7 @@ void SDL::Event::createPixelTracklets()
     cudaMemcpy((void *)nSegments, segmentsInGPU->nSegments, nModules*sizeof(unsigned int), cudaMemcpyDeviceToHost);
     unsigned int pixelModuleIndex = nModules - 1;
     unsigned int pixelLowerModuleArrayIndex;
-    cudaMemcpy(&pixelLowerModuleArrayIndex, modulesInGPU->reverseLookupLowerModuleIndices+pixelModuleIndex-1; sizeof(unsigned int), cudaMemcpyDeviceHost);
+    cudaMemcpy((void *)&pixelLowerModuleArrayIndex, modulesInGPU->reverseLookupLowerModuleIndices+pixelModuleIndex-1, sizeof(unsigned int), cudaMemcpyDeviceToHost);
     unsigned int nonZeroModules=0;
     unsigned int *index = (unsigned int*)malloc(nLowerModules*sizeof(unsigned int));
     unsigned int *index_gpu;
@@ -2889,7 +2889,7 @@ __global__ void createTrackCandidatesFromInnerInnerInnerLowerModule(struct SDL::
                 {
                     #ifdef Warnings
                     if((innerInnerInnerLowerModuleArrayIndex < *modulesInGPU.nLowerModules  && trackCandidateModuleIdx == N_MAX_TRACK_CANDIDATES_PER_MODULE) || (innerInnerInnerLowerModuleArrayIndex == *modulesInGPU.nLowerModules && trackCandidateModuleIdx == N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE))
-                        printf("Track Candidate excess alert! lower Module array index = %d\n",innerInnerInnerLowerModuleArrayIndex); 
+                        printf("Track Candidate excess alert! lower Module array index = %d\n",innerInnerInnerLowerModuleArrayIndex);
                     #endif
                 }
                 else
@@ -2930,7 +2930,7 @@ __global__ void createTrackCandidatesFromInnerInnerInnerLowerModule(struct SDL::
                 {
                     #ifdef Warnings
                     if((innerInnerInnerLowerModuleArrayIndex < *modulesInGPU.nLowerModules  && trackCandidateModuleIdx == N_MAX_TRACK_CANDIDATES_PER_MODULE) || (innerInnerInnerLowerModuleArrayIndex == *modulesInGPU.nLowerModules && trackCandidateModuleIdx == N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE))
-                        printf("Track Candidate excess alert! lower Module array index = %d\n",innerInnerInnerLowerModuleArrayIndex); 
+                        printf("Track Candidate excess alert! lower Module array index = %d\n",innerInnerInnerLowerModuleArrayIndex);
                     #endif
 
                 }
