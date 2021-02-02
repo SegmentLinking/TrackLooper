@@ -61,27 +61,33 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
     eff.SetMarkerStyle(19)
     eff.SetMarkerSize(1.2)
     eff.SetLineWidth(2)
-    if "phi" in output_name:
-        title = "#phi"
-    elif "_dz" in output_name:
-        title = "z [cm]"
-    elif "_dxy" in output_name:
-        title = "d0 [cm]"
-    elif "_pt" in output_name:
-        title = "p_{T} [GeV]"
-    else:
-        title = "#eta"
-    eff.GetXaxis().SetTitle(title)
-    if "fakerate" in output_name:
-        eff.GetYaxis().SetTitle("Fake Rate")
-    elif "duplrate" in output_name:
-        eff.GetYaxis().SetTitle("Duplicate Rate")
-    else:
-        eff.GetYaxis().SetTitle("Efficiency")
-    eff.GetXaxis().SetTitleSize(0.05)
-    eff.GetYaxis().SetTitleSize(0.05)
-    eff.GetXaxis().SetLabelSize(0.05)
-    eff.GetYaxis().SetLabelSize(0.05)
+
+    def set_label(eff, raw_number):
+        if "phi" in output_name:
+            title = "#phi"
+        elif "_dz" in output_name:
+            title = "z [cm]"
+        elif "_dxy" in output_name:
+            title = "d0 [cm]"
+        elif "_pt" in output_name:
+            title = "p_{T} [GeV]"
+        else:
+            title = "#eta"
+        eff.GetXaxis().SetTitle(title)
+        if "fakerate" in output_name:
+            eff.GetYaxis().SetTitle("Fake Rate")
+        elif "duplrate" in output_name:
+            eff.GetYaxis().SetTitle("Duplicate Rate")
+        else:
+            eff.GetYaxis().SetTitle("Efficiency")
+        if raw_number:
+            eff.GetYaxis().SetTitle("# of objects of interest")
+        eff.GetXaxis().SetTitleSize(0.05)
+        eff.GetYaxis().SetTitleSize(0.05)
+        eff.GetXaxis().SetLabelSize(0.05)
+        eff.GetYaxis().SetLabelSize(0.05)
+    set_label(eff, raw_number=False)
+
     yaxis_max = 0
     for i in xrange(0, eff.GetN()):
         if yaxis_max < eff.GetY()[i]:
@@ -103,39 +109,40 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
     if "etamaxzoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
     eff.SetTitle(parse_plot_name(output_name))
-    # Label
-    t = r.TLatex()
-    t.SetTextAlign(11) # align bottom left corner of text
-    t.SetTextColor(r.kBlack)
-    t.SetTextSize(0.04)
-    x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
-    y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.09 + 0.03
-    sample_name_label = "Sample: " + sample_name + "   Version tag:" + version_tag
-    t.DrawLatexNDC(x,y,"#scale[0.9]{#font[42]{%s}}" % sample_name_label)
-    x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
-    y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.045 + 0.03
-    if "_pt" in output_name:
-        fiducial_label = "|#eta| < 2.4, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
-    elif "_eta" in output_name:
-        fiducial_label = "p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
-    elif "_dz" in output_name:
-        fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{xy}| < 2.5 cm"
-    elif "_dxy" in output_name:
-        fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm"
-    else:
-        fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
-    if "fakerate" in output_name or "duplrate" in output_name:
+    def draw_label():
+        # Label
+        t = r.TLatex()
+        t.SetTextAlign(11) # align bottom left corner of text
+        t.SetTextColor(r.kBlack)
+        t.SetTextSize(0.04)
+        x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
+        y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.09 + 0.03
+        sample_name_label = "Sample: " + sample_name + "   Version tag:" + version_tag
+        t.DrawLatexNDC(x,y,"#scale[0.9]{#font[42]{%s}}" % sample_name_label)
+        x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
+        y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.045 + 0.03
         if "_pt" in output_name:
-            fiducial_label = "|#eta| < 2.4"
+            fiducial_label = "|#eta| < 2.4, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
         elif "_eta" in output_name:
-            fiducial_label = "p_{T} > 1.5 GeV"
+            fiducial_label = "p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+        elif "_dz" in output_name:
+            fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{xy}| < 2.5 cm"
+        elif "_dxy" in output_name:
+            fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm"
         else:
-            fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV"
-    t.DrawLatexNDC(x,y,"#scale[0.9]{#font[42]{%s}}" % fiducial_label)
-    cms_label = "Simulation"
-    x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
-    y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.005
-    t.DrawLatexNDC(x,y,"#scale[1.25]{#font[61]{CMS}} #scale[1.1]{#font[52]{%s}}" % cms_label)
+            fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+        if "fakerate" in output_name or "duplrate" in output_name:
+            if "_pt" in output_name:
+                fiducial_label = "|#eta| < 2.4"
+            elif "_eta" in output_name:
+                fiducial_label = "p_{T} > 1.5 GeV"
+            else:
+                fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV"
+        t.DrawLatexNDC(x,y,"#scale[0.9]{#font[42]{%s}}" % fiducial_label)
+        cms_label = "Simulation"
+        x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
+        y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.005
+        t.DrawLatexNDC(x,y,"#scale[1.25]{#font[61]{CMS}} #scale[1.1]{#font[52]{%s}}" % cms_label)
     # Save
     c1.SetGrid()
     c1.SaveAs("{}".format(output_name.replace(".pdf", "_eff.pdf")))
@@ -149,6 +156,19 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
         eff.SetName(outputname)
         eff.Write()
         outputfile.ls()
+
+    set_label(num, raw_number=True)
+    num.Draw("hist")
+    draw_label()
+    c1.SaveAs("{}".format(output_name.replace(".pdf", "_num.pdf")))
+    c1.SaveAs("{}".format(output_name.replace(".pdf", "_num.png")))
+
+    set_label(den, raw_number=True)
+    den.Draw("hist")
+    draw_label()
+    c1.SaveAs("{}".format(output_name.replace(".pdf", "_den.pdf")))
+    c1.SaveAs("{}".format(output_name.replace(".pdf", "_den.png")))
+
     return eff
 
 if __name__ == "__main__":
