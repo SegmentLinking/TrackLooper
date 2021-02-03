@@ -59,7 +59,7 @@ void write_sdl_ntuple(bool cut_value_ntuple,bool validate, std::string targetDat
             //printQuadrupletMultiplicities(event);
 
             // Run T4x
-            float timing_T4x = runT4x(event);
+            float timing_T4x = 0;
             //printQuadrupletMultiplicities(event);
 
             // Run T4
