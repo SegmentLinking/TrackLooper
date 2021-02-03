@@ -55,6 +55,7 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     segmentsInGPU.py = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 3;
     segmentsInGPU.pz = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 4;
     segmentsInGPU.etaErr = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 5;
+    segmentsInGPU.eta = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 6;
 
 #pragma omp parallel for default(shared)
     for(size_t i = 0; i < nModules; i++)
@@ -106,6 +107,8 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.py = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 3;
     segmentsInGPU.pz = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 4;
     segmentsInGPU.etaErr = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 5;
+    segmentsInGPU.eta = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 6;
+
 }
 //void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules)
 //{
@@ -298,7 +301,7 @@ __device__ void SDL::addSegmentToMemory(struct segments& segmentsInGPU, unsigned
 }
 #endif
 
-__device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, unsigned int pixelModuleIndex, unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr, unsigned int idx, unsigned int pixelSegmentArrayIndex)
+__device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, unsigned int pixelModuleIndex, unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr, float eta, unsigned int idx, unsigned int pixelSegmentArrayIndex)
 {
     segmentsInGPU.mdIndices[idx * 2] = innerMDIndex;
     segmentsInGPU.mdIndices[idx * 2 + 1] = outerMDIndex;
@@ -314,6 +317,7 @@ __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, str
     segmentsInGPU.py[pixelSegmentArrayIndex] = py;
     segmentsInGPU.pz[pixelSegmentArrayIndex] = pz;
     segmentsInGPU.etaErr[pixelSegmentArrayIndex] = etaErr;
+    segmentsInGPU.eta[pixelSegmentArrayIndex] = eta;
 }
 
 __device__ void SDL::dAlphaThreshold(float* dAlphaThresholdValues, struct hits& hitsInGPU, struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, unsigned int& innerMiniDoubletAnchorHitIndex, unsigned int& outerMiniDoubletAnchorHitIndex, unsigned int& innerLowerModuleIndex, unsigned int& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex)
