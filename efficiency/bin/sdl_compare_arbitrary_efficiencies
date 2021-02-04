@@ -22,7 +22,8 @@ usage()
   echo "  -h    Help                   (Display this message)"
   echo "  -f    force                  (Force re-run of the efficiency)"
   echo "  -i    input sample type      (e.g. -i muonGun)"
-  echo "  -t    git hash tag           (e.g. -t 78df188)"
+  echo "  -t    git hash tag           (e.g. -t 78df188DIRTY)"
+  echo "  -T    reference git hash tag (e.g. -t 78df188)"
   echo
   exit
 }
@@ -64,11 +65,11 @@ echo "Validation Efficiency Comparison                     "
 echo "====================================================="
 echo ""
 echo "  TAG               : ${TAG}"
-echo "  ``:wSECONDTAG(REFERENCE): ${SECONDTAG}"
+echo "  SECONDTAG(REFERENCE): ${SECONDTAG}"
 echo "  SAMPLE            : ${SAMPLE}"
 echo ""
 
-if [[ $(ls -d efficiencies/*_GPU_*${TAG}_${SECONDTAG}_${SAMPLE} 2> /dev/null) ]]; then
+if [ $(ls -d efficiencies/*_GPU_*${TAG}_${SAMPLE} 2> /dev/null) ] && [ $(ls -d efficiencies/*_GPU_unified_${SECONDTAG}_${SAMPLE} 2> /dev/null) ]; then
     :
 else
     echo "Nothing to compare! Have you run any efficiencies plots for the ones you requested?"

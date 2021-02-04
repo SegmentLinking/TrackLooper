@@ -12,9 +12,9 @@ refgithash = sys.argv[2]
 sample = sys.argv[3]
 
 # Get the files to be compared
-eff_file_cpu = "efficiencies/*_GPU_unified_{}_{}/efficiencies.root".format(refgithash, sample))
+eff_file_cpu = glob.glob("efficiencies/eff_plots__GPU_unified_{}_{}/efficiencies.root".format(refgithash, sample))
 
-eff_files_gpu = glob.glob("efficiencies/*_GPU_*{}_{}/efficiencies.root".format(githash, sample))
+eff_files_gpu = glob.glob("efficiencies/eff_plots__GPU_*{}_{}/efficiencies.root".format(githash, sample))
 
 # Get cpu efficiency graph files
 cpu_file = r.TFile(eff_file_cpu[0])
