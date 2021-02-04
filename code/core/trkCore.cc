@@ -117,7 +117,7 @@ bool isMuonCurlingHit(unsigned int isimtrk, unsigned int ith_hit)
         return true;
 
     // If it reaches this point again, we're not sure what this hit is
-    // So we return false 
+    // So we return false
     return false;
 
 }
@@ -483,7 +483,7 @@ float runMiniDoublet(SDL::Event& event)
     my_timer.Start();
     event.createMiniDoublets();
     float md_elapsed = my_timer.RealTime();
-            
+
     if (ana.verbose >= 1) std::cout << "Reco Mini-doublet processing time: " << md_elapsed << " secs" << std::endl;
 
     if (ana.verbose >= 1) std::cout << "# of Mini-doublets produced: " << event.getNumberOfMiniDoublets() << std::endl;
@@ -1288,7 +1288,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         float py = p3LH.Y();
         float pz = p3LH.Z();
         //extra bit
-	
+
         if ((ptIn > 1 - 2 * ptErr) and (fabs(p3LH.Eta()) < 3))
         {
 
@@ -1664,7 +1664,7 @@ float addPixelSegments(SDL::CPU::Event& event, int isimtrk)
         float py = p3LH.Y();
         float pz = p3LH.Z();
 
-        if ((ptIn > 0.7) and (fabs(p3LH.Eta()) < 3))
+        if ((ptIn > 1 - 2 * ptErr) and (fabs(p3LH.Eta()) < 3))
             event.addPixelSegmentsToEvent(hits, pixelSegmentDeltaPhiChange, ptIn, ptErr, px, py, pz, etaErr, iSeed);
 
     }

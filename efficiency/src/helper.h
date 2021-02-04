@@ -54,6 +54,9 @@ public:
     // pdgid
     int pdgid;
 
+    // do lower level
+    bool do_lower_level;
+
     AnalysisConfig();
 
 };

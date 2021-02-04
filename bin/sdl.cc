@@ -322,8 +322,11 @@ void run_sdl()
             SDL::Event event;
 
             // Add hits to the event
-            float timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
-            //printHitMultiplicities(event);
+            float timing_input_loading = 0;
+            if (ana.compilation_target.find("explicit") != std::string::npos)
+                timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
+            else
+                timing_input_loading = addInputsToLineSegmentTrackingUsingUnifiedMemory(event);
 
             // Run Mini-doublet
             float timing_MD = runMiniDoublet(event);
@@ -335,7 +338,7 @@ void run_sdl()
             float timing_pT4 = runpT4(event);
 
             // Run T4x
-            float timing_T4x = runT4x(event);
+            float timing_T4x = 0; // runT4x(event);
 
             // Run T4
             float timing_T4 = runT4(event);
@@ -413,7 +416,7 @@ void run_sdl()
             // Run Tracklet
             float timing_T4 = runT4_on_CPU(event);
             printTrackletSummary(event);
-            float timing_T4x = runT4x_on_CPU(event);
+            float timing_T4x = 0; // runT4x_on_CPU(event);
             printTrackletSummary(event);
             float timing_pT4 = runpT4_on_CPU(event);
             printTrackletSummary(event);
@@ -451,7 +454,8 @@ void run_sdl()
 
     printTimingInformation(timing_information);
 
-    SDL::cleanModules();
+    if (not ana.do_run_cpu)
+        SDL::cleanModules();
 
     // Writing ttree output to file
     ana.output_tfile->cd();

@@ -143,6 +143,7 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
         x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
         y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.005
         t.DrawLatexNDC(x,y,"#scale[1.25]{#font[61]{CMS}} #scale[1.1]{#font[52]{%s}}" % cms_label)
+    draw_label()
     # Save
     c1.SetGrid()
     c1.SaveAs("{}".format(output_name.replace(".pdf", "_eff.pdf")))

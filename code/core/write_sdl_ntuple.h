@@ -15,15 +15,23 @@
 #include "WriteSDLNtuplev2.h"
 #include "AnalysisInterface/EventForAnalysisInterface.h"
 
+// Common
 void createOutputBranches();
 void createLowerLevelOutputBranches();
-void fillOutputBranches(SDL::Event& event);
+// Common
 void fillSimTrackOutputBranches();
+// GPU
+void fillOutputBranches(SDL::Event& event);
 void fillTrackCandidateOutputBranches(SDL::Event& event);
 void fillLowerLevelOutputBranches(SDL::Event& event);
 void fillQuadrupletOutputBranches(SDL::Event& event);
 void fillTripletOutputBranches(SDL::Event& event);
+// CPU
 void fillOutputBranches_for_CPU(SDL::CPU::Event& event);
+void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event);
+void fillLowerLevelOutputBranches_for_CPU(SDL::CPU::Event& event);
+void fillQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event);
+void fillTripletOutputBranches_for_CPU(SDL::CPU::Event& event);
 
 // Timing
 void printTimingInformation(std::vector<std::vector<float>> timing_information);
