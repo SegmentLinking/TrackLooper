@@ -546,6 +546,7 @@ void fillQuadrupletOutputBranches(SDL::Event& event)
             SDL::CPU::Hit hitB(trk.ph2_x()[hit_idxs[7]], trk.ph2_y()[hit_idxs[7]], trk.ph2_z()[hit_idxs[7]]);
             eta = hitB.eta();
             phi = hitA.phi();
+            std::cout <<  " hit_idx[0]: " << hit_idxs[0] <<  " hit_idx[1]: " << hit_idxs[1] <<  " hit_idx[2]: " << hit_idxs[2] <<  " hit_idx[3]: " << hit_idxs[3] <<  " hit_idx[4]: " << hit_idxs[4] <<  " hit_idx[5]: " << hit_idxs[5] <<  " hit_idx[6]: " << hit_idxs[6] <<  " hit_idx[7]: " << hit_idxs[7] <<  " betaIn: " << betaIn <<  " betaOut: " << betaOut <<  " dr: " << dr <<  std::endl;
 
             t4_isFake.push_back(matched_sim_trk_idxs.size() == 0);
             t4_pt.push_back(pt);
@@ -1059,8 +1060,10 @@ void fillQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event)
             }
 
             // Compute pt, eta, phi of T4
-            const float betaIn = trackletPtr->getBetaIn();
-            const float betaOut = trackletPtr->getBetaOut();
+            // const float betaIn = trackletPtr->getBetaIn();
+            // const float betaOut = trackletPtr->getBetaOut();
+            const float betaIn = trackletPtr->getRecoVar("betaIn_2nd");
+            const float betaOut = trackletPtr->getRecoVar("betaOut_2nd");
             const SDL::CPU::Hit& in = (*trackletPtr->innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr());
             const SDL::CPU::Hit& out = (*trackletPtr->outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr());
             const float dr = (out - in).rt();
@@ -1068,6 +1071,7 @@ void fillQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event)
             const float k2Rinv1GeVf = kRinv1GeVf / 2.;
             const float ptAv = dr * k2Rinv1GeVf / sin((betaIn + betaOut) / 2.);
             const float pt = ptAv;
+            std::cout <<  " hit_idx[0]: " << hit_idx[0] <<  " hit_idx[1]: " << hit_idx[1] <<  " hit_idx[2]: " << hit_idx[2] <<  " hit_idx[3]: " << hit_idx[3] <<  " hit_idx[4]: " << hit_idx[4] <<  " hit_idx[5]: " << hit_idx[5] <<  " hit_idx[6]: " << hit_idx[6] <<  " hit_idx[7]: " << hit_idx[7] <<  " betaIn: " << betaIn <<  " betaOut: " << betaOut <<  " dr: " << dr <<  std::endl;
             float eta = -999;
             float phi = -999;
             SDL::CPU::Hit hitA(trk.ph2_x()[hit_idx[0]], trk.ph2_y()[hit_idx[0]], trk.ph2_z()[hit_idx[0]]);
