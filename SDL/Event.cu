@@ -560,7 +560,7 @@ __global__ void /*SDL::Event::*/addPixelSegmentToEventKernel(unsigned int* hitIn
 #endif
     segmentsInGPU.nSegments[pixelModuleIndex]++;
 }
-void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr)
+void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr, float eta)
 {
     assert(hitIndices.size() == 4);
     unsigned int pixelModuleIndex = (*detIdToIndex)[1] -1; 
@@ -569,7 +569,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices, fl
   cudaMalloc(&hitIndices_dev,4*sizeof(unsigned int));
   cudaMemcpy(hitIndices_dev,hitIndices_host,4*sizeof(unsigned int),cudaMemcpyHostToDevice);
 
-  addPixelSegmentToEventKernel<<<1,1>>>(hitIndices_dev,dPhiChange,ptIn,ptErr,px,py,pz,etaErr,pixelModuleIndex, *modulesInGPU,*hitsInGPU,*mdsInGPU,*segmentsInGPU);
+  addPixelSegmentToEventKernel<<<1,1>>>(hitIndices_dev,dPhiChange,ptIn,ptErr,px,py,pz,etaErr,eta,pixelModuleIndex, *modulesInGPU,*hitsInGPU,*mdsInGPU,*segmentsInGPU);
   cudaDeviceSynchronize();
   cudaFree(hitIndices_dev); 
 }

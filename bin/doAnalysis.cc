@@ -32,6 +32,7 @@ void addPixelSegments(SDL::Event& event, int isimtrk, std::vector<float> trkX, s
     std::vector<float> ptIn_vec;
     std::vector<float> ptErr_vec;
     std::vector<float> etaErr_vec;
+    std::vector<float> eta_vec;
     std::vector<float> deltaPhi_vec;
     const int hit_size = trkX.size();
 
@@ -208,6 +209,7 @@ void addPixelSegments(SDL::Event& event, int isimtrk, std::vector<float> trkX, s
             ptIn_vec.push_back(ptIn);
             ptErr_vec.push_back(ptErr);
             etaErr_vec.push_back(etaErr);
+            eta_vec.push_back(p3LH.Eta());
             deltaPhi_vec.push_back(pixelSegmentDeltaPhiChange);
        } 
     }
@@ -216,7 +218,7 @@ void addPixelSegments(SDL::Event& event, int isimtrk, std::vector<float> trkX, s
 //    trkZ.insert(trkZ.end(),vecZ.begin(),vecZ.end());
 //    hitId.insert(hitId.end(),hitIndices_vec.begin(),hitIndices_vec.end());
     event.addHitToEventOMP(trkX,trkY,trkZ,hitId,hitId); // last value added for omp change for sdl (used for validation. this current value is incorrect but doAnalysis will be obsolete soon)
-    event.addPixelSegmentToEventV2(hitIndices_vec0,hitIndices_vec1,hitIndices_vec2,hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, etaErr_vec);
+    event.addPixelSegmentToEventV2(hitIndices_vec0,hitIndices_vec1,hitIndices_vec2,hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, etaErr_vec, eta_vec);
 }
 
 int main(int argc, char** argv)

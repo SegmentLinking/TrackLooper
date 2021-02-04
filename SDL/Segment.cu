@@ -14,11 +14,11 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     cudaStream_t stream=0; 
     segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations*6 *sizeof(unsigned int),stream);
     segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_managed(nModules *sizeof(unsigned int),stream);
-    segmentsInGPU.dPhis = (float*)cms::cuda::allocate_managed((nMemoryLocations*13 + maxPixelSegments * 6) *sizeof(float),stream);
+    segmentsInGPU.dPhis = (float*)cms::cuda::allocate_managed((nMemoryLocations*13 + maxPixelSegments * 7) *sizeof(float),stream);
 #else
     cudaMallocManaged(&segmentsInGPU.mdIndices, nMemoryLocations * 6 * sizeof(unsigned int));
     cudaMallocManaged(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
-    cudaMallocManaged(&segmentsInGPU.dPhis, (nMemoryLocations * 13 + maxPixelSegments * 6)*sizeof(float));
+    cudaMallocManaged(&segmentsInGPU.dPhis, (nMemoryLocations * 13 + maxPixelSegments * 7)*sizeof(float));
 #ifdef CUT_VALUE_DEBUG
     cudaMallocManaged(&segmentsInGPU.zLo, nMemoryLocations * sizeof(float));
     cudaMallocManaged(&segmentsInGPU.zHi, nMemoryLocations * sizeof(float));
@@ -74,11 +74,11 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     cudaGetDevice(&dev);
     segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_device(dev,nMemoryLocations*6 *sizeof(unsigned int),stream);
     segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_device(dev,nModules *sizeof(unsigned int),stream);
-    segmentsInGPU.dPhis = (float*)cms::cuda::allocate_device(dev,(nMemoryLocations*13 + maxPixelSegments * 6) *sizeof(float),stream);
+    segmentsInGPU.dPhis = (float*)cms::cuda::allocate_device(dev,(nMemoryLocations*13 + maxPixelSegments * 7) *sizeof(float),stream);
 #else
     cudaMalloc(&segmentsInGPU.mdIndices, nMemoryLocations * 6 * sizeof(unsigned int));
     cudaMalloc(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
-    cudaMalloc(&segmentsInGPU.dPhis, (nMemoryLocations * 13 + maxPixelSegments * 6)*sizeof(float));
+    cudaMalloc(&segmentsInGPU.dPhis, (nMemoryLocations * 13 + maxPixelSegments * 7)*sizeof(float));
 #endif
     cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
 
