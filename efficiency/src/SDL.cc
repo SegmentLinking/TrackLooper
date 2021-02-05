@@ -283,6 +283,30 @@ void SDL::Init(TTree *tree) {
   if (tc_eta_branch) tc_eta_branch->SetAddress(&tc_eta_);
   tc_phi_branch = tree->GetBranch("tc_phi");
   if (tc_phi_branch) tc_phi_branch->SetAddress(&tc_phi_);
+  tc_isFake_branch = tree->GetBranch("tc_isFake");
+  if (tc_isFake_branch) tc_isFake_branch->SetAddress(&tc_isFake_);
+  tc_isDuplicate_branch = tree->GetBranch("tc_isDuplicate");
+  if (tc_isDuplicate_branch) tc_isDuplicate_branch->SetAddress(&tc_isDuplicate_);
+  t4_pt_branch = tree->GetBranch("t4_pt");
+  if (t4_pt_branch) t4_pt_branch->SetAddress(&t4_pt_);
+  t4_eta_branch = tree->GetBranch("t4_eta");
+  if (t4_eta_branch) t4_eta_branch->SetAddress(&t4_eta_);
+  t4_phi_branch = tree->GetBranch("t4_phi");
+  if (t4_phi_branch) t4_phi_branch->SetAddress(&t4_phi_);
+  t4_isFake_branch = tree->GetBranch("t4_isFake");
+  if (t4_isFake_branch) t4_isFake_branch->SetAddress(&t4_isFake_);
+  t4_isDuplicate_branch = tree->GetBranch("t4_isDuplicate");
+  if (t4_isDuplicate_branch) t4_isDuplicate_branch->SetAddress(&t4_isDuplicate_);
+  t3_pt_branch = tree->GetBranch("t3_pt");
+  if (t3_pt_branch) t3_pt_branch->SetAddress(&t3_pt_);
+  t3_eta_branch = tree->GetBranch("t3_eta");
+  if (t3_eta_branch) t3_eta_branch->SetAddress(&t3_eta_);
+  t3_phi_branch = tree->GetBranch("t3_phi");
+  if (t3_phi_branch) t3_phi_branch->SetAddress(&t3_phi_);
+  t3_isFake_branch = tree->GetBranch("t3_isFake");
+  if (t3_isFake_branch) t3_isFake_branch->SetAddress(&t3_isFake_);
+  t3_isDuplicate_branch = tree->GetBranch("t3_isDuplicate");
+  if (t3_isDuplicate_branch) t3_isDuplicate_branch->SetAddress(&t3_isDuplicate_);
   tc_sim_pt_branch = tree->GetBranch("tc_sim_pt");
   if (tc_sim_pt_branch) tc_sim_pt_branch->SetAddress(&tc_sim_pt_);
   tc_sim_eta_branch = tree->GetBranch("tc_sim_eta");
@@ -295,6 +319,10 @@ void SDL::Init(TTree *tree) {
   if (sim_tcIdx_isMTVmatch_branch) sim_tcIdx_isMTVmatch_branch->SetAddress(&sim_tcIdx_isMTVmatch_);
   sim_TC_matched_branch = tree->GetBranch("sim_TC_matched");
   if (sim_TC_matched_branch) sim_TC_matched_branch->SetAddress(&sim_TC_matched_);
+  sim_T4_matched_branch = tree->GetBranch("sim_T4_matched");
+  if (sim_T4_matched_branch) sim_T4_matched_branch->SetAddress(&sim_T4_matched_);
+  sim_T3_matched_branch = tree->GetBranch("sim_T3_matched");
+  if (sim_T3_matched_branch) sim_T3_matched_branch->SetAddress(&sim_T3_matched_);
 
   tree->SetMakeClass(0);
 }
@@ -441,12 +469,26 @@ void SDL::GetEntry(unsigned int idx) {
   tc_pt_isLoaded = false;
   tc_eta_isLoaded = false;
   tc_phi_isLoaded = false;
+  tc_isFake_isLoaded = false;
+  tc_isDuplicate_isLoaded = false;
+  t4_pt_isLoaded = false;
+  t4_eta_isLoaded = false;
+  t4_phi_isLoaded = false;
+  t4_isFake_isLoaded = false;
+  t4_isDuplicate_isLoaded = false;
+  t3_pt_isLoaded = false;
+  t3_eta_isLoaded = false;
+  t3_phi_isLoaded = false;
+  t3_isFake_isLoaded = false;
+  t3_isDuplicate_isLoaded = false;
   tc_sim_pt_isLoaded = false;
   tc_sim_eta_isLoaded = false;
   tc_sim_phi_isLoaded = false;
   sim_tcIdx_isLoaded = false;
   sim_tcIdx_isMTVmatch_isLoaded = false;
   sim_TC_matched_isLoaded = false;
+  sim_T4_matched_isLoaded = false;
+  sim_T3_matched_isLoaded = false;
 }
 
 void SDL::LoadAllBranches() {
@@ -590,12 +632,26 @@ void SDL::LoadAllBranches() {
   if (tc_pt_branch != 0) tc_pt();
   if (tc_eta_branch != 0) tc_eta();
   if (tc_phi_branch != 0) tc_phi();
+  if (tc_isFake_branch != 0) tc_isFake();
+  if (tc_isDuplicate_branch != 0) tc_isDuplicate();
+  if (t4_pt_branch != 0) t4_pt();
+  if (t4_eta_branch != 0) t4_eta();
+  if (t4_phi_branch != 0) t4_phi();
+  if (t4_isFake_branch != 0) t4_isFake();
+  if (t4_isDuplicate_branch != 0) t4_isDuplicate();
+  if (t3_pt_branch != 0) t3_pt();
+  if (t3_eta_branch != 0) t3_eta();
+  if (t3_phi_branch != 0) t3_phi();
+  if (t3_isFake_branch != 0) t3_isFake();
+  if (t3_isDuplicate_branch != 0) t3_isDuplicate();
   if (tc_sim_pt_branch != 0) tc_sim_pt();
   if (tc_sim_eta_branch != 0) tc_sim_eta();
   if (tc_sim_phi_branch != 0) tc_sim_phi();
   if (sim_tcIdx_branch != 0) sim_tcIdx();
   if (sim_tcIdx_isMTVmatch_branch != 0) sim_tcIdx_isMTVmatch();
   if (sim_TC_matched_branch != 0) sim_TC_matched();
+  if (sim_T4_matched_branch != 0) sim_T4_matched();
+  if (sim_T3_matched_branch != 0) sim_T3_matched();
 }
 
 const vector<float> &SDL::ph2_x() {
@@ -2405,6 +2461,162 @@ const vector<float> &SDL::tc_phi() {
   return *tc_phi_;
 }
 
+const vector<int> &SDL::tc_isFake() {
+  if (not tc_isFake_isLoaded) {
+    if (tc_isFake_branch != 0) {
+      tc_isFake_branch->GetEntry(index);
+    } else {
+      printf("branch tc_isFake_branch does not exist!\n");
+      exit(1);
+    }
+    tc_isFake_isLoaded = true;
+  }
+  return *tc_isFake_;
+}
+
+const vector<int> &SDL::tc_isDuplicate() {
+  if (not tc_isDuplicate_isLoaded) {
+    if (tc_isDuplicate_branch != 0) {
+      tc_isDuplicate_branch->GetEntry(index);
+    } else {
+      printf("branch tc_isDuplicate_branch does not exist!\n");
+      exit(1);
+    }
+    tc_isDuplicate_isLoaded = true;
+  }
+  return *tc_isDuplicate_;
+}
+
+const vector<float> &SDL::t4_pt() {
+  if (not t4_pt_isLoaded) {
+    if (t4_pt_branch != 0) {
+      t4_pt_branch->GetEntry(index);
+    } else {
+      printf("branch t4_pt_branch does not exist!\n");
+      exit(1);
+    }
+    t4_pt_isLoaded = true;
+  }
+  return *t4_pt_;
+}
+
+const vector<float> &SDL::t4_eta() {
+  if (not t4_eta_isLoaded) {
+    if (t4_eta_branch != 0) {
+      t4_eta_branch->GetEntry(index);
+    } else {
+      printf("branch t4_eta_branch does not exist!\n");
+      exit(1);
+    }
+    t4_eta_isLoaded = true;
+  }
+  return *t4_eta_;
+}
+
+const vector<float> &SDL::t4_phi() {
+  if (not t4_phi_isLoaded) {
+    if (t4_phi_branch != 0) {
+      t4_phi_branch->GetEntry(index);
+    } else {
+      printf("branch t4_phi_branch does not exist!\n");
+      exit(1);
+    }
+    t4_phi_isLoaded = true;
+  }
+  return *t4_phi_;
+}
+
+const vector<int> &SDL::t4_isFake() {
+  if (not t4_isFake_isLoaded) {
+    if (t4_isFake_branch != 0) {
+      t4_isFake_branch->GetEntry(index);
+    } else {
+      printf("branch t4_isFake_branch does not exist!\n");
+      exit(1);
+    }
+    t4_isFake_isLoaded = true;
+  }
+  return *t4_isFake_;
+}
+
+const vector<int> &SDL::t4_isDuplicate() {
+  if (not t4_isDuplicate_isLoaded) {
+    if (t4_isDuplicate_branch != 0) {
+      t4_isDuplicate_branch->GetEntry(index);
+    } else {
+      printf("branch t4_isDuplicate_branch does not exist!\n");
+      exit(1);
+    }
+    t4_isDuplicate_isLoaded = true;
+  }
+  return *t4_isDuplicate_;
+}
+
+const vector<float> &SDL::t3_pt() {
+  if (not t3_pt_isLoaded) {
+    if (t3_pt_branch != 0) {
+      t3_pt_branch->GetEntry(index);
+    } else {
+      printf("branch t3_pt_branch does not exist!\n");
+      exit(1);
+    }
+    t3_pt_isLoaded = true;
+  }
+  return *t3_pt_;
+}
+
+const vector<float> &SDL::t3_eta() {
+  if (not t3_eta_isLoaded) {
+    if (t3_eta_branch != 0) {
+      t3_eta_branch->GetEntry(index);
+    } else {
+      printf("branch t3_eta_branch does not exist!\n");
+      exit(1);
+    }
+    t3_eta_isLoaded = true;
+  }
+  return *t3_eta_;
+}
+
+const vector<float> &SDL::t3_phi() {
+  if (not t3_phi_isLoaded) {
+    if (t3_phi_branch != 0) {
+      t3_phi_branch->GetEntry(index);
+    } else {
+      printf("branch t3_phi_branch does not exist!\n");
+      exit(1);
+    }
+    t3_phi_isLoaded = true;
+  }
+  return *t3_phi_;
+}
+
+const vector<int> &SDL::t3_isFake() {
+  if (not t3_isFake_isLoaded) {
+    if (t3_isFake_branch != 0) {
+      t3_isFake_branch->GetEntry(index);
+    } else {
+      printf("branch t3_isFake_branch does not exist!\n");
+      exit(1);
+    }
+    t3_isFake_isLoaded = true;
+  }
+  return *t3_isFake_;
+}
+
+const vector<int> &SDL::t3_isDuplicate() {
+  if (not t3_isDuplicate_isLoaded) {
+    if (t3_isDuplicate_branch != 0) {
+      t3_isDuplicate_branch->GetEntry(index);
+    } else {
+      printf("branch t3_isDuplicate_branch does not exist!\n");
+      exit(1);
+    }
+    t3_isDuplicate_isLoaded = true;
+  }
+  return *t3_isDuplicate_;
+}
+
 const vector<float> &SDL::tc_sim_pt() {
   if (not tc_sim_pt_isLoaded) {
     if (tc_sim_pt_branch != 0) {
@@ -2481,6 +2693,32 @@ const vector<int> &SDL::sim_TC_matched() {
     sim_TC_matched_isLoaded = true;
   }
   return *sim_TC_matched_;
+}
+
+const vector<int> &SDL::sim_T4_matched() {
+  if (not sim_T4_matched_isLoaded) {
+    if (sim_T4_matched_branch != 0) {
+      sim_T4_matched_branch->GetEntry(index);
+    } else {
+      printf("branch sim_T4_matched_branch does not exist!\n");
+      exit(1);
+    }
+    sim_T4_matched_isLoaded = true;
+  }
+  return *sim_T4_matched_;
+}
+
+const vector<int> &SDL::sim_T3_matched() {
+  if (not sim_T3_matched_isLoaded) {
+    if (sim_T3_matched_branch != 0) {
+      sim_T3_matched_branch->GetEntry(index);
+    } else {
+      printf("branch sim_T3_matched_branch does not exist!\n");
+      exit(1);
+    }
+    sim_T3_matched_isLoaded = true;
+  }
+  return *sim_T3_matched_;
 }
 
 void SDL::progress( int nEventsTotal, int nEventsChain ){
@@ -2644,12 +2882,26 @@ const vector<vector<int> > &tc_layer() { return sdl.tc_layer(); }
 const vector<float> &tc_pt() { return sdl.tc_pt(); }
 const vector<float> &tc_eta() { return sdl.tc_eta(); }
 const vector<float> &tc_phi() { return sdl.tc_phi(); }
+const vector<int> &tc_isFake() { return sdl.tc_isFake(); }
+const vector<int> &tc_isDuplicate() { return sdl.tc_isDuplicate(); }
+const vector<float> &t4_pt() { return sdl.t4_pt(); }
+const vector<float> &t4_eta() { return sdl.t4_eta(); }
+const vector<float> &t4_phi() { return sdl.t4_phi(); }
+const vector<int> &t4_isFake() { return sdl.t4_isFake(); }
+const vector<int> &t4_isDuplicate() { return sdl.t4_isDuplicate(); }
+const vector<float> &t3_pt() { return sdl.t3_pt(); }
+const vector<float> &t3_eta() { return sdl.t3_eta(); }
+const vector<float> &t3_phi() { return sdl.t3_phi(); }
+const vector<int> &t3_isFake() { return sdl.t3_isFake(); }
+const vector<int> &t3_isDuplicate() { return sdl.t3_isDuplicate(); }
 const vector<float> &tc_sim_pt() { return sdl.tc_sim_pt(); }
 const vector<float> &tc_sim_eta() { return sdl.tc_sim_eta(); }
 const vector<float> &tc_sim_phi() { return sdl.tc_sim_phi(); }
 const vector<vector<int> > &sim_tcIdx() { return sdl.sim_tcIdx(); }
 const vector<vector<int> > &sim_tcIdx_isMTVmatch() { return sdl.sim_tcIdx_isMTVmatch(); }
 const vector<int> &sim_TC_matched() { return sdl.sim_TC_matched(); }
+const vector<int> &sim_T4_matched() { return sdl.sim_T4_matched(); }
+const vector<int> &sim_T3_matched() { return sdl.sim_T3_matched(); }
 
 }
 

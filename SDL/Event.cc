@@ -1108,8 +1108,8 @@ void SDL::CPU::Event::createTrackletsWithPixelLineSegments(TLAlgo algo)
             if (lowerModulePtr->getSegmentPtrs().size() == 0)
                 continue;
 
-            // if (lowerModulePtr->moduleType() != SDL::CPU::Module::PS)
-            //     continue;
+            if (lowerModulePtr->moduleType() != SDL::CPU::Module::PS)
+                continue;
 
             // if (logLevel_ == SDL::CPU::Log_Debug)
             //     if (nModuleProcessed % 1000 == 0)
@@ -1128,6 +1128,9 @@ void SDL::CPU::Event::createTrackletsWithPixelLineSegments(TLAlgo algo)
             // Loop over outer lower module mini-doublets
             for (auto& outerSegmentPtr : outerLowerModule.getSegmentPtrs())
             {
+
+                if (outerSegmentPtr->outerMiniDoubletPtr()->anchorHitPtr()->getModule().moduleType() != SDL::CPU::Module::PS)
+                    continue;
 
                 // // Count the # of tlCands considered by layer
                 // incrementNumberOfTrackletCandidates(innerLowerModule);

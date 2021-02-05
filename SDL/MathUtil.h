@@ -1,5 +1,5 @@
-#ifndef MathUtil_h
-#define MathUtil_h
+#ifndef SDL_MathUtil_h
+#define SDL_MathUtil_h
 
 #include <iostream>
 #include <cmath>

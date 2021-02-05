@@ -14,6 +14,9 @@ public:
     // Analysis run mode
     int mode;
 
+    // TString that holds the input option provided
+    TString input_raw_string;
+
     // TString that holds the input file list (comma separated)
     TString input_file_list_tstring;
 
@@ -102,6 +105,24 @@ public:
 
     // Boolean to trigger whether to run CPU or GPU
     bool do_run_cpu;
+
+    // Boolean to trigger whether to run cut_value_ntupling
+    bool do_cut_value_ntuple;
+
+    // Boolean to trigger whether to write ntuple or not
+    bool do_write_ntuple;
+
+    // Boolean to write lower level objects
+    bool do_lower_level;
+
+    // String to hold the MAKETARGET setting from compile
+    std::string compilation_target;
+
+    // Path to the TrackLooper code directory
+    TString track_looper_dir_path;
+
+    // Path to the TrackLooper code directory
+    TString full_cmd_line;
 };
 
 extern AnalysisConfig ana;
