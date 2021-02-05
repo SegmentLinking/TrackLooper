@@ -1368,7 +1368,7 @@ void SDL::Event::createPixelTracklets()
 //#endif
     unsigned int nPixelTracklets;
     cudaMemcpy(&nPixelTracklets, &(trackletsInGPU->nTracklets[nLowerModules]), sizeof(unsigned int), cudaMemcpyDeviceToHost);
-    //std::cout<<"number of pixel tracklets = "<<nPixelTracklets<<std::endl;
+    std::cout<<"number of pixel tracklets = "<<nPixelTracklets<<std::endl;
 }
 
 void SDL::Event::createTrackCandidates()
