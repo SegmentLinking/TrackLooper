@@ -1979,6 +1979,7 @@ void SDL::CPU::Tracklet::runTrackletDefaultAlgoBarrelBarrelEndcapEndcap(SDL::CPU
     const float dBeta = betaIn - betaOut;
     // const float dZeta = sdIn.zeta - sdOut.zeta;
 
+    setRecoVars("pt_beta", pt_beta);
     setDeltaBeta(dBeta);
 
     if (not (dBeta * dBeta <= dBetaCut2))

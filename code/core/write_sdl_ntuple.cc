@@ -208,7 +208,7 @@ void fillTrackCandidateOutputBranches(SDL::Event& event)
             unsigned int outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentOuterMiniDoubletIndex];
             unsigned int outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentOuterMiniDoubletIndex + 1];
 
-            std::vector<int> hit_idxs = {
+            std::vector<int> hit_idx = {
                 (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex],
                 (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex],
                 (int) hitsInGPU.idxs[innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex],
@@ -223,18 +223,41 @@ void fillTrackCandidateOutputBranches(SDL::Event& event)
                 (int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
             };
 
-            unsigned int iiia_idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[innerTrackletInnerSegmentIndex];
-            unsigned int iooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerTrackletOuterSegmentIndex];
-            unsigned int oiia_idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[innerTrackletOuterSegmentIndex];
-            unsigned int oooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[outerTrackletOuterSegmentIndex];
+            unsigned int iiia_idx = -1;
+            unsigned int iooa_idx = -1;
+            unsigned int oiia_idx = -1;
+            unsigned int oooa_idx = -1;
+
+            if (idx == *(modulesInGPU.nLowerModules))
+            {
+                iiia_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerTrackletInnerSegmentIndex]; // for pLS the innerSegment outerMiniDoublet
+                iooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerTrackletOuterSegmentIndex];
+                oiia_idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[innerTrackletOuterSegmentIndex];
+                oooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[outerTrackletOuterSegmentIndex];
+            }
+            else
+            {
+                iiia_idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[innerTrackletInnerSegmentIndex];
+                iooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerTrackletOuterSegmentIndex];
+                oiia_idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[innerTrackletOuterSegmentIndex];
+                oooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[outerTrackletOuterSegmentIndex];
+            }
 
             const float dr_in = sqrt(pow(hitsInGPU.xs[iiia_idx] - hitsInGPU.xs[iooa_idx], 2) + pow(hitsInGPU.ys[iiia_idx] - hitsInGPU.ys[iooa_idx], 2));
             const float dr_out = sqrt(pow(hitsInGPU.xs[oiia_idx] - hitsInGPU.xs[oooa_idx], 2) + pow(hitsInGPU.ys[oiia_idx] - hitsInGPU.ys[oooa_idx], 2));
             const float kRinv1GeVf = (2.99792458e-3 * 3.8);
             const float k2Rinv1GeVf = kRinv1GeVf / 2.;
-            const float ptAv_in = dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.);
+            const float ptAv_in = (idx == *(modulesInGPU.nLowerModules)) ? segmentsInGPU.ptIn[innerTrackletInnerSegmentIndex-((*(modulesInGPU.nModules))-1)*600] : dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.);
             const float ptAv_out = dr_out * k2Rinv1GeVf / sin((betaIn_out + betaOut_out) / 2.);
             const float ptAv = (ptAv_in + ptAv_out) / 2.;
+
+            // const float ptBetaIn_in = dr_in * k2Rinv1GeVf / sin(betaIn_in);
+            // const float ptBetaOut_in = dr_in * k2Rinv1GeVf / sin(betaOut_in);
+
+            // if (idx == *(modulesInGPU.nLowerModules))
+            // {
+            //     std::cout << " " << (idx == *(modulesInGPU.nLowerModules)) <<  " " << hit_idx[0] <<  " " << hit_idx[1] <<  " " << hit_idx[2] <<  " " << hit_idx[3] <<  " " << hit_idx[4] <<  " " << hit_idx[5] <<  " " << hit_idx[6] <<  " " << hit_idx[7] <<  " " << hit_idx[8] <<  " " << hit_idx[9] <<  " " << hit_idx[10] <<  " " << hit_idx[11] <<  " pt_in: " << ptAv_in <<  " pt_out: " << ptAv_out <<  " ptBetaIn_in: " << ptBetaIn_in <<  " ptBetaOut_in: " << ptBetaOut_in <<  " dr_in: " << dr_in << std::endl;
+            // }
 
             std::vector<int> hit_types;
             if (idx == *(modulesInGPU.nLowerModules)) // Then this means this track candidate is a pLS-based
@@ -337,7 +360,7 @@ void fillTrackCandidateOutputBranches(SDL::Event& event)
             layer_binary |= (1 << logicallayer10);
 
             // sim track matched index
-            std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
+            std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idx, hit_types);
 
             for (auto &isimtrk : matched_sim_trk_idxs)
             {
@@ -355,15 +378,15 @@ void fillTrackCandidateOutputBranches(SDL::Event& event)
             float phi = -999;
             if (hit_types[0] == 4)
             {
-                SDL::CPU::Hit hitA(trk.ph2_x()[hit_idxs[0]], trk.ph2_y()[hit_idxs[0]], trk.ph2_z()[hit_idxs[0]]);
-                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idxs[11]], trk.ph2_y()[hit_idxs[11]], trk.ph2_z()[hit_idxs[11]]);
+                SDL::CPU::Hit hitA(trk.ph2_x()[hit_idx[0]], trk.ph2_y()[hit_idx[0]], trk.ph2_z()[hit_idx[0]]);
+                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[11]], trk.ph2_y()[hit_idx[11]], trk.ph2_z()[hit_idx[11]]);
                 eta = hitB.eta();
                 phi = hitA.phi();
             }
             else
             {
-                SDL::CPU::Hit hitA(trk.pix_x()[hit_idxs[0]], trk.pix_y()[hit_idxs[0]], trk.pix_z()[hit_idxs[0]]);
-                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idxs[11]], trk.ph2_y()[hit_idxs[11]], trk.ph2_z()[hit_idxs[11]]);
+                SDL::CPU::Hit hitA(trk.pix_x()[hit_idx[0]], trk.pix_y()[hit_idx[0]], trk.pix_z()[hit_idx[0]]);
+                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[11]], trk.ph2_y()[hit_idx[11]], trk.ph2_z()[hit_idx[11]]);
                 eta = hitB.eta();
                 phi = hitA.phi();
             }
@@ -546,7 +569,7 @@ void fillQuadrupletOutputBranches(SDL::Event& event)
             SDL::CPU::Hit hitB(trk.ph2_x()[hit_idxs[7]], trk.ph2_y()[hit_idxs[7]], trk.ph2_z()[hit_idxs[7]]);
             eta = hitB.eta();
             phi = hitA.phi();
-            std::cout <<  " hit_idx[0]: " << hit_idxs[0] <<  " hit_idx[1]: " << hit_idxs[1] <<  " hit_idx[2]: " << hit_idxs[2] <<  " hit_idx[3]: " << hit_idxs[3] <<  " hit_idx[4]: " << hit_idxs[4] <<  " hit_idx[5]: " << hit_idxs[5] <<  " hit_idx[6]: " << hit_idxs[6] <<  " hit_idx[7]: " << hit_idxs[7] <<  " betaIn: " << betaIn <<  " betaOut: " << betaOut <<  " dr: " << dr <<  std::endl;
+            // std::cout <<  " hit_idx[0]: " << hit_idxs[0] <<  " hit_idx[1]: " << hit_idxs[1] <<  " hit_idx[2]: " << hit_idxs[2] <<  " hit_idx[3]: " << hit_idxs[3] <<  " hit_idx[4]: " << hit_idxs[4] <<  " hit_idx[5]: " << hit_idxs[5] <<  " hit_idx[6]: " << hit_idxs[6] <<  " hit_idx[7]: " << hit_idxs[7] <<  " betaIn: " << betaIn <<  " betaOut: " << betaOut <<  " dr: " << dr <<  std::endl;
 
             t4_isFake.push_back(matched_sim_trk_idxs.size() == 0);
             t4_pt.push_back(pt);
@@ -896,17 +919,26 @@ void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event)
             }
 
             // Compute pt, eta, phi of TC
-            float pt = -999;
             float eta = -999;
             float phi = -999;
+
+            bool isInnerTrackletTriplet = (hit_idx[2] == hit_idx[4] and hit_idx[3] == hit_idx[5]);
+            bool isOuterTrackletTriplet = (hit_idx[6] == hit_idx[8] and hit_idx[7] == hit_idx[9]);
+
+            float pt_in  = isInnerTrackletTriplet ? ((SDL::CPU::Triplet*) trackCandidatePtr->innerTrackletBasePtr())->tlCand.getRecoVar("pt_beta") : trackCandidatePtr->innerTrackletBasePtr()->getRecoVar("pt_beta");
+            float pt_out = isOuterTrackletTriplet ? ((SDL::CPU::Triplet*) trackCandidatePtr->outerTrackletBasePtr())->tlCand.getRecoVar("pt_beta") : trackCandidatePtr->outerTrackletBasePtr()->getRecoVar("pt_beta");
+            float pt = (pt_in + pt_out) / 2.;
+
+            // float ptBetaIn_in = isInnerTrackletTriplet ? ((SDL::CPU::Triplet*) trackCandidatePtr->innerTrackletBasePtr())->tlCand.getRecoVar("pt_betaIn") : trackCandidatePtr->innerTrackletBasePtr()->getRecoVar("pt_betaIn");
+            // float ptBetaOut_in = isInnerTrackletTriplet ? ((SDL::CPU::Triplet*) trackCandidatePtr->innerTrackletBasePtr())->tlCand.getRecoVar("pt_betaOut") : trackCandidatePtr->innerTrackletBasePtr()->getRecoVar("pt_betaOut");
+
+            // if ((trackCandidatePtr->innerTrackletBasePtr()->innerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->getModule().detId() == 1))
+            //     std::cout << " " << (trackCandidatePtr->innerTrackletBasePtr()->innerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->getModule().detId() == 1) <<  " " << hit_idx[0] <<  " " << hit_idx[1] <<  " " << hit_idx[2] <<  " " << hit_idx[3] <<  " " << hit_idx[4] <<  " " << hit_idx[5] <<  " " << hit_idx[6] <<  " " << hit_idx[7] <<  " " << hit_idx[8] <<  " " << hit_idx[9] <<  " " << hit_idx[10] <<  " " << hit_idx[11] <<  " pt_in: " << pt_in <<  " pt_out: " << pt_out <<  " ptBetaIn_in: " << ptBetaIn_in <<  " ptBetaOut_in: " << ptBetaOut_in << std::endl;
+
             if (hit_types[0] == 4)
             {
                 SDL::CPU::Hit hitA(trk.ph2_x()[hit_idx[0]], trk.ph2_y()[hit_idx[0]], trk.ph2_z()[hit_idx[0]]);
                 SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[11]], trk.ph2_y()[hit_idx[11]], trk.ph2_z()[hit_idx[11]]);
-                SDL::CPU::Hit hitC(0, 0, 0);
-                SDL::CPU::Hit center = SDL::CPU::MathUtil::getCenterFromThreePoints(hitA, hitB, hitC);
-                float radius = center.rt();
-                pt = SDL::CPU::MathUtil::ptEstimateFromRadius(radius);
                 eta = hitB.eta();
                 phi = hitA.phi();
             }
@@ -914,10 +946,6 @@ void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event)
             {
                 SDL::CPU::Hit hitA(trk.pix_x()[hit_idx[0]], trk.pix_y()[hit_idx[0]], trk.pix_z()[hit_idx[0]]);
                 SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[11]], trk.ph2_y()[hit_idx[11]], trk.ph2_z()[hit_idx[11]]);
-                SDL::CPU::Hit hitC(0, 0, 0);
-                SDL::CPU::Hit center = SDL::CPU::MathUtil::getCenterFromThreePoints(hitA, hitB, hitC);
-                float radius = center.rt();
-                pt = SDL::CPU::MathUtil::ptEstimateFromRadius(radius);
                 eta = hitB.eta();
                 phi = hitA.phi();
             }
@@ -1060,18 +1088,7 @@ void fillQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event)
             }
 
             // Compute pt, eta, phi of T4
-            // const float betaIn = trackletPtr->getBetaIn();
-            // const float betaOut = trackletPtr->getBetaOut();
-            const float betaIn = trackletPtr->getRecoVar("betaIn_2nd");
-            const float betaOut = trackletPtr->getRecoVar("betaOut_2nd");
-            const SDL::CPU::Hit& in = (*trackletPtr->innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr());
-            const SDL::CPU::Hit& out = (*trackletPtr->outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr());
-            const float dr = (out - in).rt();
-            const float kRinv1GeVf = (2.99792458e-3 * 3.8);
-            const float k2Rinv1GeVf = kRinv1GeVf / 2.;
-            const float ptAv = dr * k2Rinv1GeVf / sin((betaIn + betaOut) / 2.);
-            const float pt = ptAv;
-            std::cout <<  " hit_idx[0]: " << hit_idx[0] <<  " hit_idx[1]: " << hit_idx[1] <<  " hit_idx[2]: " << hit_idx[2] <<  " hit_idx[3]: " << hit_idx[3] <<  " hit_idx[4]: " << hit_idx[4] <<  " hit_idx[5]: " << hit_idx[5] <<  " hit_idx[6]: " << hit_idx[6] <<  " hit_idx[7]: " << hit_idx[7] <<  " betaIn: " << betaIn <<  " betaOut: " << betaOut <<  " dr: " << dr <<  std::endl;
+            const float pt = trackletPtr->getRecoVar("betaPt_2nd");
             float eta = -999;
             float phi = -999;
             SDL::CPU::Hit hitA(trk.ph2_x()[hit_idx[0]], trk.ph2_y()[hit_idx[0]], trk.ph2_z()[hit_idx[0]]);
@@ -1210,15 +1227,7 @@ void fillTripletOutputBranches_for_CPU(SDL::CPU::Event& event)
             }
 
             // Compute pt, eta, phi of T3
-            const float betaIn = tripletPtr->tlCand.getBetaIn();
-            const float betaOut = tripletPtr->tlCand.getBetaOut();
-            const SDL::CPU::Hit& in = (*tripletPtr->innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr());
-            const SDL::CPU::Hit& out = (*tripletPtr->outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr());
-            const float dr = (out - in).rt();
-            const float kRinv1GeVf = (2.99792458e-3 * 3.8);
-            const float k2Rinv1GeVf = kRinv1GeVf / 2.;
-            const float ptAv = dr * k2Rinv1GeVf / sin((betaIn + betaOut) / 2.);
-            const float pt = ptAv;
+            const float pt = tripletPtr->tlCand.getRecoVar("betaPt_2nd");
             float eta = -999;
             float phi = -999;
             SDL::CPU::Hit hitA(trk.ph2_x()[hit_idx[0]], trk.ph2_y()[hit_idx[0]], trk.ph2_z()[hit_idx[0]]);
