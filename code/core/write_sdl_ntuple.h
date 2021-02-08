@@ -18,8 +18,10 @@
 // Common
 void createOutputBranches();
 void createLowerLevelOutputBranches();
-void createQuadrupletCutVAlueBranches();
+void createQuadrupletCutValueBranches();
 void createTripletCutValueBranches();
+void createSegmentCutValueBranches();
+void createMiniDoubletCutValueBranches();
 // Common
 void fillSimTrackOutputBranches();
 // GPU

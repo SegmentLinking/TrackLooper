@@ -76,7 +76,7 @@ void createLowerLevelOutputBranches()
 void createQuadrupletCutValueBranches()
 {
     ana.tx->createBranch<vector<float>>("t4_zOut");
-    ana.tx->createBranch<vector<float>>("t4_RtOut");
+    ana.tx->createBranch<vector<float>>("t4_rtOut");
     ana.tx->createBranch<vector<float>>("t4_deltaPhiPos");
     ana.tx->createBranch<vector<float>>("t4_deltaPhi");
     ana.tx->createBranch<vector<float>>("t4_betaIn");
@@ -85,8 +85,8 @@ void createQuadrupletCutValueBranches()
 
     ana.tx->createBranch<vector<float>>("t4_zLo");
     ana.tx->createBranch<vector<float>>("t4_zHi");
-    ana.tx->createBranch<vector<float>>("t4_RtLo");
-    ana.tx->createBranch<vector<float>>("t4_RtHi");
+    ana.tx->createBranch<vector<float>>("t4_rtLo");
+    ana.tx->createBranch<vector<float>>("t4_rtHi");
     ana.tx->createBranch<vector<float>>("t4_kZ");
     ana.tx->createBranch<vector<float>>("t4_zLoPointed");
     ana.tx->createBranch<vector<float>>("t4_zHiPointed");
@@ -95,14 +95,14 @@ void createQuadrupletCutValueBranches()
     ana.tx->createBranch<vector<float>>("t4_betaOutCut");
     ana.tx->createBranch<vector<float>>("t4_deltaBetaCut");
     ana.tx->createBranch<vector<int>>("t4_layer_binary");
-    ana.tx->createBranchVector<vector<int>>("t4_moduleType_binary");
+    ana.tx->createBranch<vector<int>>("t4_moduleType_binary");
 
 }
 
 void createTripletCutValueBranches()
 {
     ana.tx->createBranch<vector<float>>("t3_zOut");
-    ana.tx->createBranch<vector<float>>("t3_RtOut");
+    ana.tx->createBranch<vector<float>>("t3_rtOut");
     ana.tx->createBranch<vector<float>>("t3_deltaPhiPos");
     ana.tx->createBranch<vector<float>>("t3_deltaPhi");
     ana.tx->createBranch<vector<float>>("t3_betaIn");
@@ -111,8 +111,8 @@ void createTripletCutValueBranches()
 
     ana.tx->createBranch<vector<float>>("t3_zLo");
     ana.tx->createBranch<vector<float>>("t3_zHi");
-    ana.tx->createBranch<vector<float>>("t3_RtLo");
-    ana.tx->createBranch<vector<float>>("t3_RtHi");
+    ana.tx->createBranch<vector<float>>("t3_rtLo");
+    ana.tx->createBranch<vector<float>>("t3_rtHi");
     ana.tx->createBranch<vector<float>>("t3_kZ");
     ana.tx->createBranch<vector<float>>("t3_zLoPointed");
     ana.tx->createBranch<vector<float>>("t3_zHiPointed");
@@ -121,7 +121,7 @@ void createTripletCutValueBranches()
     ana.tx->createBranch<vector<float>>("t3_betaOutCut");
     ana.tx->createBranch<vector<float>>("t3_deltaBetaCut");
     ana.tx->createBranch<vector<int>>("t3_layer_binary");
-    ana.tx->createBranchVector<vector<int>>("t3_moduleType_binary");
+    ana.tx->createBranch<vector<int>>("t3_moduleType_binary");
 
 }
 
@@ -540,6 +540,8 @@ void fillQuadrupletOutputBranches(SDL::Event& event)
     std::vector<float> t4_betaInCut;
     std::vector<float> t4_betaOutCut;
     std::vector<float> t4_deltaBetaCut;
+    std::vector<int> layer_binaries;
+    std::vector<int> moduleType_binaries;
 #endif
 
     const int MAX_NTRACKLET_PER_MODULE = 8000;
@@ -641,13 +643,11 @@ void fillQuadrupletOutputBranches(SDL::Event& event)
             layer_binary |= (1 << logicallayer6);
 #ifdef CUT_VALUE_DEBUG
             int moduleType_binary = 0;
-            std::vector<int> layer_binaries;
-            std::vector<int> moduleType_binaries;
 
-            int moduleType0 = modulesInGPU.moduleTypes[module_idxs[0]];
-            int moduleType2 = modulesInGPU.moduleTypes[module_idxs[2]];
-            int moduleType4 = modulesInGPU.moduleTypes[module_idxs[4]];
-            int moduleType6 = modulesInGPU.moduleTypes[module_idxs[6]];
+            int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
+            int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
+            int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
+            int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
             
             moduleType_binary |= (moduleType0 << 0);
             moduleType_binary |= (moduleType2 << 2);
@@ -766,8 +766,8 @@ void fillQuadrupletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("t4_rtLo",t4_RtLo);
     ana.tx->setBranch<vector<float>>("t4_rtHi",t4_RtHi);
     ana.tx->setBranch<vector<float>>("t4_kZ",t4_kZ);
-    ana.tx->setBranch<vector<float>>("t4_zLoPointed",t4_zLoPointed);
-    ana.tx->setBranch<vector<float>>("t4_zHiPointed",t4_zHiPointed);
+    ana.tx->setBranch<vector<float>>("t4_zLoPointed",t4_ZLoPointed);
+    ana.tx->setBranch<vector<float>>("t4_zHiPointed",t4_ZHiPointed);
     ana.tx->setBranch<vector<float>>("t4_sdlCut",t4_sdlCut);
     ana.tx->setBranch<vector<float>>("t4_betaInCut",t4_betaInCut);
     ana.tx->setBranch<vector<float>>("t4_betaOutCut",t4_betaOutCut);
@@ -814,6 +814,8 @@ void fillTripletOutputBranches(SDL::Event& event)
     std::vector<float> t3_betaInCut;
     std::vector<float> t3_betaOutCut;
     std::vector<float> t3_deltaBetaCut;
+    std::vector<int> layer_binaries;
+    std::vector<int> moduleType_binaries;
 #endif
 
     const int MAX_NTRIPLET_PER_MODULE = 5000;
@@ -915,13 +917,10 @@ void fillTripletOutputBranches(SDL::Event& event)
 
 #ifdef CUT_VALUE_DEBUG
             int moduleType_binary = 0;
-            std::vector<int> layer_binaries;
-            std::vector<int> moduleType_binaries;
-
-            int moduleType0 = modulesInGPU.moduleTypes[module_idxs[0]];
-            int moduleType2 = modulesInGPU.moduleTypes[module_idxs[2]];
-            int moduleType4 = modulesInGPU.moduleTypes[module_idxs[4]];
-            int moduleType6 = modulesInGPU.moduleTypes[module_idxs[6]];
+            int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
+            int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
+            int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
+            int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
             
             moduleType_binary |= (moduleType0 << 0);
             moduleType_binary |= (moduleType2 << 2);
@@ -973,7 +972,7 @@ void fillTripletOutputBranches(SDL::Event& event)
             float zHi = tripletsInGPU.zHi[tripletIndex];
             float rtLo = tripletsInGPU.rtLo[tripletIndex];
             float rtHi = tripletsInGPU.rtHi[tripletIndex];
-            float kZ = tripkletsInGPU.kZ[tripletIndex];
+            float kZ = tripletsInGPU.kZ[tripletIndex];
             float zLoPointed = tripletsInGPU.zLoPointed[tripletIndex];
             float zHiPointed = tripletsInGPU.zHiPointed[tripletIndex];
             float sdlCut = tripletsInGPU.sdlCut[tripletIndex];
@@ -1043,14 +1042,14 @@ void fillTripletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("t3_rtLo",t3_RtLo);
     ana.tx->setBranch<vector<float>>("t3_rtHi",t3_RtHi);
     ana.tx->setBranch<vector<float>>("t3_kZ",t3_kZ);
-    ana.tx->setBranch<vector<float>>("t3_zLoPointed",t3_zLoPointed);
-    ana.tx->setBranch<vector<float>>("t3_zHiPointed",t3_zHiPointed);
+    ana.tx->setBranch<vector<float>>("t3_zLoPointed",t3_ZLoPointed);
+    ana.tx->setBranch<vector<float>>("t3_zHiPointed",t3_ZHiPointed);
     ana.tx->setBranch<vector<float>>("t3_sdlCut",t3_sdlCut);
     ana.tx->setBranch<vector<float>>("t3_betaInCut",t3_betaInCut);
     ana.tx->setBranch<vector<float>>("t3_betaOutCut",t3_betaOutCut);
     ana.tx->setBranch<vector<float>>("t3_deltaBetaCut",t3_deltaBetaCut);
-    ana.tx->setBranch<vector<int>>("t4_layer_binary",layer_binaries);
-    ana.tx->setBranch<vector<int>>("t4_moduleType_binary",moduleType_binaries);
+    ana.tx->setBranch<vector<int>>("t3_layer_binary",layer_binaries);
+    ana.tx->setBranch<vector<int>>("t3_moduleType_binary",moduleType_binaries);
 #endif
 
 }
