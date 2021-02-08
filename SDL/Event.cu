@@ -2170,8 +2170,6 @@ __global__ void createPixelTrackletsFromOuterInnerLowerModule(struct SDL::module
     int outerSegmentArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
     if(innerSegmentArrayIndex >= nInnerSegments) return;
     if(outerSegmentArrayIndex >= nOuterSegments) return;
-    //eta restriction
-    if(fabsf(segmentsInGPU.eta[innerSegmentArrayIndex]) > 2.4) return;
 
     unsigned int innerSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + innerSegmentArrayIndex;
     unsigned int outerSegmentIndex = outerInnerLowerModuleIndex * N_MAX_SEGMENTS_PER_MODULE + outerSegmentArrayIndex;
