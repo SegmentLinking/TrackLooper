@@ -694,12 +694,14 @@ void fillQuadrupletOutputBranches(SDL::Event& event)
             float deltaPhiPos = trackletsInGPU.deltaPhiPos[trackletIndex];
             float deltaPhi = trackletsInGPU.deltaPhi[trackletIndex];
             //betaIn and betaOut already defined!
+            float deltaBeta = betaIn - betaOut;
             float zLo = trackletsInGPU.zLo[trackletIndex];
             float zHi = trackletsInGPU.zHi[trackletIndex];
             float rtLo = trackletsInGPU.rtLo[trackletIndex];
             float rtHi = trackletsInGPU.rtHi[trackletIndex];
             float kZ = trackletsInGPU.kZ[trackletIndex];
             float zLoPointed = trackletsInGPU.zLoPointed[trackletIndex];
+            float zHiPointed = trackletsInGPU.zHiPointed[trackletIndex];
             float sdlCut = trackletsInGPU.sdlCut[trackletIndex];
             float betaInCut = trackletsInGPU.betaInCut[trackletIndex];
             float betaOutCut = trackletsInGPU.betaOutCut[trackletIndex];
@@ -966,12 +968,14 @@ void fillTripletOutputBranches(SDL::Event& event)
             float deltaPhiPos = tripletsInGPU.deltaPhiPos[tripletIndex];
             float deltaPhi = tripletsInGPU.deltaPhi[tripletIndex];
             //betaIn and betaOut already defined!
+            float deltaBeta = betaIn - betaOut;
             float zLo = tripletsInGPU.zLo[tripletIndex];
             float zHi = tripletsInGPU.zHi[tripletIndex];
             float rtLo = tripletsInGPU.rtLo[tripletIndex];
             float rtHi = tripletsInGPU.rtHi[tripletIndex];
             float kZ = tripkletsInGPU.kZ[tripletIndex];
             float zLoPointed = tripletsInGPU.zLoPointed[tripletIndex];
+            float zHiPointed = tripletsInGPU.zHiPointed[tripletIndex];
             float sdlCut = tripletsInGPU.sdlCut[tripletIndex];
             float betaInCut = tripletsInGPU.betaInCut[tripletIndex];
             float betaOutCut = tripletsInGPU.betaOutCut[tripletIndex];
