@@ -199,6 +199,20 @@ EfficiencySetDefinition::EfficiencySetDefinition(TString set_name_, int pdgid_, 
     pass = pass_;
 }
 
+FakeRateSetDefinition::FakeRateSetDefinition(TString set_name_, int pdgid_, std::function<bool(int)> pass_)
+{
+    set_name = set_name_;
+    pdgid = pdgid_;
+    pass = pass_;
+}
+
+DuplicateRateSetDefinition::DuplicateRateSetDefinition(TString set_name_, int pdgid_, std::function<bool(int)> pass_)
+{
+    set_name = set_name_;
+    pdgid = pdgid_;
+    pass = pass_;
+}
+
 void initializeInputsAndOutputs()
 {
     // Create the TChain that holds the TTree's of the baby ntuples
@@ -209,6 +223,16 @@ void initializeInputsAndOutputs()
 
     // Set the cutflow object output file
     ana.cutflow.setTFile(ana.output_tfile);
+
+    // Determine whether the sample being run over is a EFT sample or not by checking whether a branch exist with the name "LHEWeight_mg_reweighting"
+    ana.do_lower_level = false; // default is false
+    TObjArray* brobjArray = ana.events_tchain->GetListOfBranches();
+    for (unsigned int ibr = 0; ibr < (unsigned int) brobjArray->GetEntries(); ++ibr)
+    {
+        TString brname = brobjArray->At(ibr)->GetName();
+        if (brname.EqualTo("sim_T4_matched"))
+            ana.do_lower_level = true; // if it has the branch it is set to true
+    }
 }
 
 

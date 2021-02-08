@@ -10,10 +10,10 @@ run_gpu()
     shift
     # GPU unified
     sdl_make_tracklooper -m $*
-    sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -v 2 -m 7 -i ${sample} | tee -a timing_temp.txt
+    sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -v 2 -w 0 -i ${sample} | tee -a timing_temp.txt
 }
 
-validate_efficiency_usage()
+run_timing_test_usage()
 {
     echo "ERROR - Usage:"
     echo
@@ -39,7 +39,7 @@ done
 # Shift away the parsed options
 shift $(($OPTIND - 1))
 
-if [ -z ${1} ]; then validate_efficiency_usage; fi
+if [ -z ${1} ]; then run_timing_test_usage; fi
 
 SAMPLE=${1}
 if [[ ${SAMPLE} == *"pionGun"* ]]; then
@@ -79,7 +79,7 @@ OUTDIR=output/outputs_${GITHASH}_${SAMPLE}
 echo "*****************************************************"
 echo ""
 echo ""
-echo "Efficiency Validation Program                        "
+echo "Run LST Timing Program                               "
 echo ""
 echo ""
 echo "*****************************************************"
@@ -97,7 +97,7 @@ echo ""
 ## Delete old run
 rm -rf ${OUTDIR}
 mkdir -p ${OUTDIR}
-rm timing_temp.txt
+rm -f timing_temp.txt
 
 # Run different GPU configurations
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified" ]]; then
@@ -135,4 +135,3 @@ fi
 echo "Total Timing Summary"
 echo "Evt     Hits         MD       LS      T4      T4x       pT4        T3       TC       Total"
 grep -hr "avg " timing_temp.txt # space is needed to not get certain bad lines 
-#sdl_compare_efficiencies -i ${SAMPLE} -t ${GITHASH} -f

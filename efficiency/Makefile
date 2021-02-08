@@ -21,11 +21,9 @@ CFLAGS      = $(ROOTCFLAGS) -Wall -Wno-unused-function -g -O2 -fPIC -fno-var-tra
 EXTRACFLAGS = $(shell rooutil-config) -I../code/core -I../code/cppitertools
 EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer $(shell rooutil-config)
 
-.PHONY: rooutil
+all: rooutil $(EXE)
 
-all: $(EXE)
-
-$(EXE): rooutil src/efficiency.o src/helper.o src/SDL.o
+$(EXE): src/efficiency.o src/helper.o src/SDL.o
 	$(LD) $(CXXFLAGS) $(LDFLAGS) src/efficiency.o src/helper.o src/SDL.o $(ROOTLIBS) $(EXTRAFLAGS) -o $@
 
 src/SDL.o: src/SDL.cc src/SDL.h
@@ -42,3 +40,5 @@ rooutil:
 
 clean:
 	rm -f $(OBJECTS) $(EXE)
+
+.PHONY: all clean rooutil

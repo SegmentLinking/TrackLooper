@@ -54,6 +54,9 @@ public:
     // pdgid
     int pdgid;
 
+    // do lower level
+    bool do_lower_level;
+
     AnalysisConfig();
 
 };
@@ -66,6 +69,22 @@ public:
     int pdgid;
     std::function<bool(int)> pass;
     EfficiencySetDefinition(TString, int, std::function<bool(int)>);
+};
+
+class FakeRateSetDefinition {
+public:
+    TString set_name;
+    int pdgid;
+    std::function<bool(int)> pass;
+    FakeRateSetDefinition(TString, int, std::function<bool(int)>);
+};
+
+class DuplicateRateSetDefinition {
+public:
+    TString set_name;
+    int pdgid;
+    std::function<bool(int)> pass;
+    DuplicateRateSetDefinition(TString, int, std::function<bool(int)>);
 };
 
 

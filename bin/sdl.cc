@@ -1,6 +1,7 @@
 #include "sdl.h"
 
 // ./process INPUTFILEPATH OUTPUTFILE [NEVENTS]
+//_______________________________________________________________________________
 int main(int argc, char** argv)
 {
 
@@ -10,22 +11,22 @@ int main(int argc, char** argv)
 //
 //********************************************************************************
 
-    // Write the command line used to run it
-    // N.B. This needs to be before the argument parsing as it will change some values
-    std::vector<std::string> allArgs(argv, argv + argc);
-    TString full_cmd_line;
-    for (auto& str : allArgs)
-    {
-        full_cmd_line += TString::Format(" %s", str.c_str());
-    }
-
     // Checking the TRACKLOOPERDIR is set
-    TString TrackLooperDir = gSystem->Getenv("TRACKLOOPERDIR");
-    if (TrackLooperDir.IsNull())
+    ana.track_looper_dir_path = gSystem->Getenv("TRACKLOOPERDIR");
+    if (ana.track_looper_dir_path.IsNull())
     {
         RooUtil::error("TRACKLOOPERDIR is not set! Did you run $ source setup.sh from TrackLooper/ main repository directory?");
     }
-    RooUtil::print(TString::Format("TRACKLOOPERDIR=%s", TrackLooperDir.Data()));
+    RooUtil::print(TString::Format("TRACKLOOPERDIR=%s", ana.track_looper_dir_path.Data()));
+
+    // Write the command line used to run it
+    // N.B. This needs to be before the argument parsing as it will change some values
+    std::vector<std::string> allArgs(argv, argv + argc);
+    ana.full_cmd_line = "";
+    for (auto& str : allArgs)
+    {
+        ana.full_cmd_line += TString::Format(" %s", str.c_str());
+    }
 
 //********************************************************************************
 //
@@ -36,22 +37,24 @@ int main(int argc, char** argv)
     // cxxopts is just a tool to parse argc, and argv easily
 
     // Grand option setting
-    cxxopts::Options options("\n  $ doAnalysis",  "\n         **********************\n         *                    *\n         *       Looper       *\n         *                    *\n         **********************\n");
+    cxxopts::Options options("\n  $ sdl",  "\n         **********************\n         *                    *\n         *       Looper       *\n         *                    *\n         **********************\n");
 
     // Read the options
     options.add_options()
-        ("m,mode"           , "Run mode (0=build_module_map, 1=print_module_centroid, 2=mtv, 3=algo_eff, 4=tracklet, 5=write_sdl_ntuple, 6=pixel_tracklet_eff)", cxxopts::value<int>()->default_value("5"))
+        ("m,mode"           , "Run mode (NOT DEFINED)", cxxopts::value<int>()->default_value("5"))
         ("i,input"          , "Comma separated input file list OR if just a directory is provided it will glob all in the directory BUT must end with '/' for the path", cxxopts::value<std::string>()->default_value("muonGun"))
         ("t,tree"           , "Name of the tree in the root file to open and loop over"                                             , cxxopts::value<std::string>()->default_value("trackingNtuple/tree"))
         ("o,output"         , "Output file name"                                                                                    , cxxopts::value<std::string>())
-        ("N,nmatch"         , "N match for MTV-like plots"                                                                          , cxxopts::value<int>()->default_value("9"))
+        ("N,nmatch"         , "N match for MTV-like matching"                                                                       , cxxopts::value<int>()->default_value("9"))
         ("n,nevents"        , "N events to loop over"                                                                               , cxxopts::value<int>()->default_value("-1"))
         ("x,event_index"    , "specific event index to process"                                                                     , cxxopts::value<int>()->default_value("-1"))
-        ("p,ptbound_mode"   , "Pt bound mode (i.e. 0 = default, 1 = pt~1, 2 = pt~0.95-1.5, 3 = pt~0.5-1.5, 4 = pt~0.5-2.0"          , cxxopts::value<int>()->default_value("0"))
         ("g,pdg_id"         , "The simhit pdgId match option (default = 0)"                                                         , cxxopts::value<int>()->default_value("0"))
         ("v,verbose"        , "Verbose mode"                                                                                        , cxxopts::value<int>()->default_value("0"))
+        ("w,write_ntuple"   , "Write Ntuple"                                                                                        , cxxopts::value<int>()->default_value("1"))
         ("d,debug"          , "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")
         ("c,cpu"            , "Run CPU version of the code.")
+        ("p,optimization"   , "write cut optimization ntuple")
+        ("l,lower_level"    , "write lower level objects ntuple results")
         ("j,nsplit_jobs"    , "Enable splitting jobs by N blocks (--job_index must be set)", cxxopts::value<int>())
         ("I,job_index"      , "job_index of split jobs (--nsplit_jobs must be set. index starts from 0. i.e. 0, 1, 2, 3, etc...)", cxxopts::value<int>())
         ("h,help"           , "Print help")
@@ -73,17 +76,19 @@ int main(int argc, char** argv)
 
     //_______________________________________________________________________________
     // --input
-    ana.input_file_list_tstring = result["input"].as<std::string>();
+    ana.input_raw_string = result["input"].as<std::string>();
 
     // A default value one
-    if (ana.input_file_list_tstring.EqualTo("muonGun"))
+    if (ana.input_raw_string.EqualTo("muonGun"))
         ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_100_pt0p5_2p0.root";
-    else if (ana.input_file_list_tstring.EqualTo("muonGun_highE"))
+    else if (ana.input_raw_string.EqualTo("muonGun_highE"))
         ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_10MuGun.root";
-    else if (ana.input_file_list_tstring.EqualTo("pionGun"))
+    else if (ana.input_raw_string.EqualTo("pionGun"))
         ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_1pion_10k_pt0p5_50p0.root";
-    else if (ana.input_file_list_tstring.EqualTo("PU200"))
+    else if (ana.input_raw_string.EqualTo("PU200"))
         ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_with_PUinfo_500_evts.root";
+    else
+        ana.input_file_list_tstring = ana.input_raw_string;
 
     //_______________________________________________________________________________
     // --tree
@@ -124,17 +129,6 @@ int main(int argc, char** argv)
     // --nevents
     ana.n_events = result["nevents"].as<int>();
     ana.specific_event_index = result["event_index"].as<int>();
-
-    // -1 upto mini-doublet is all-comb
-    // -2 upto segment is all-comb
-    // -3 upto tracklet is all-comb NOTE: MEMORY WILL BLOW UP FOR HIGH PU
-    // -4 upto trackcandidate is all-comb NOTE: MEMORY WILL BLOW UP FOR HIGH PU
-    //  0 nothing
-    //  1 upto mini-doublet is all-comb
-    //  2 upto mini-doublet is default segment is all-comb
-    //  3 upto segment is default tracklet is all-comb
-    //  4 upto tracklet is default trackcandidate is all-comb
-    ana.ptbound_mode = result["ptbound_mode"].as<int>();
 
     //_______________________________________________________________________________
     // --pdg_id
@@ -207,6 +201,10 @@ int main(int argc, char** argv)
     ana.mode = result["mode"].as<int>();
 
     //_______________________________________________________________________________
+    // --write_ntuple
+    ana.do_write_ntuple = result["write_ntuple"].as<int>();
+
+    //_______________________________________________________________________________
     // --cpu
     if (result.count("cpu"))
     {
@@ -217,6 +215,32 @@ int main(int argc, char** argv)
         ana.do_run_cpu = false;
     }
 
+    //_______________________________________________________________________________
+    // --optimization
+    if (result.count("optimization"))
+    {
+        ana.do_cut_value_ntuple = true;
+    }
+    else
+    {
+        ana.do_cut_value_ntuple = false;
+    }
+
+    //_______________________________________________________________________________
+    // --lower_level
+#ifdef CUT_VALUE_DEBUG
+    ana.do_lower_level = true;
+#else
+    if (result.count("lower_level"))
+    {
+        ana.do_lower_level = true;
+    }
+    else
+    {
+        ana.do_lower_level = false;
+    }
+#endif
+
     // Printing out the option settings overview
     std::cout <<  "=========================================================" << std::endl;
     std::cout <<  " Setting of the analysis job based on provided arguments " << std::endl;
@@ -224,9 +248,15 @@ int main(int argc, char** argv)
     std::cout <<  " ana.input_file_list_tstring: " << ana.input_file_list_tstring <<  std::endl;
     std::cout <<  " ana.output_tfile: " << ana.output_tfile->GetName() <<  std::endl;
     std::cout <<  " ana.n_events: " << ana.n_events <<  std::endl;
-    std::cout <<  " ana.ptbound_mode: " << ana.ptbound_mode <<  std::endl;
     std::cout <<  " ana.nsplit_jobs: " << ana.nsplit_jobs <<  std::endl;
     std::cout <<  " ana.job_index: " << ana.job_index <<  std::endl;
+    std::cout <<  " ana.specific_event_index: " << ana.specific_event_index <<  std::endl;
+    std::cout <<  " ana.do_cut_value_ntuple: " << ana.do_cut_value_ntuple <<  std::endl;
+    std::cout <<  " ana.do_run_cpu: " << ana.do_run_cpu <<  std::endl;
+    std::cout <<  " ana.do_write_ntuple: " << ana.do_write_ntuple <<  std::endl;
+    std::cout <<  " ana.mode: " << ana.mode <<  std::endl;
+    std::cout <<  " ana.verbose: " << ana.verbose <<  std::endl;
+    std::cout <<  " ana.nmatch_threshold: " << ana.nmatch_threshold <<  std::endl;
     std::cout <<  "=========================================================" << std::endl;
 
     // Create the TChain that holds the TTree's of the baby ntuples
@@ -241,6 +271,213 @@ int main(int argc, char** argv)
 
     // Create TTreeX instance that will take care of the interface part of TTree
     ana.tx = new RooUtil::TTreeX(ana.output_ttree);
+
+    // Write metadata related to this run
+    writeMetaData();
+
+    // Run the code
+    run_sdl();
+
+    return 0;
+}
+
+//________________________________________________________________________________________________________________________________
+void run_sdl()
+{
+
+    // Load various maps used in the SDL reconstruction
+    loadMaps();
+    Study* study;
+
+    if (not ana.do_run_cpu)
+        SDL::initModules(TString::Format("%s/data/centroid.txt", gSystem->Getenv("TRACKLOOPERDIR")));
+
+    if (not ana.do_cut_value_ntuple or ana.do_run_cpu)
+    {
+        createOutputBranches();
+    }
+    else
+    {
+        //call the function from WriteSDLNtuplev2.cc
+        study = new WriteSDLNtuplev2("WriteSDLNtuple");
+        study->bookStudy();
+        ana.cutflow.bookHistograms(ana.histograms);
+    }
+
+    // Timing average information
+    std::vector<std::vector<float>> timing_information;
+
+    // Looping input file
+    while (ana.looper.nextEvent())
+    {
+
+        std::cout << "event number = " << ana.looper.getCurrentEventIndex() << std::endl;
+
+        if (not goodEvent())
+            continue;
+
+        if (not ana.do_run_cpu)
+        {
+            //*******************************************************
+            // GPU VERSION RUN
+            //*******************************************************
+
+            // Main instance that will hold modules, hits, minidoublets, etc. (i.e. main data structure)
+            SDL::Event event;
+
+            // Add hits to the event
+            float timing_input_loading = 0;
+            if (ana.compilation_target.find("explicit") != std::string::npos)
+                timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
+            else
+                timing_input_loading = addInputsToLineSegmentTrackingUsingUnifiedMemory(event);
+
+            // Run Mini-doublet
+            float timing_MD = runMiniDoublet(event);
+
+            // Run Segment
+            float timing_LS = runSegment(event);
+
+            // Run pT4
+            float timing_pT4 = runpT4(event);
+
+            // Run T4x
+            float timing_T4x = 0; // runT4x(event);
+
+            // Run T4
+            float timing_T4 = runT4(event);
+
+            // Run T3
+            float timing_T3 = runT3(event);
+
+            // Run TC
+            float timing_TC = runTrackCandidate(event);
+
+            timing_information.push_back({ timing_input_loading,
+                    timing_MD,
+                    timing_LS,
+                    timing_T4,
+                    timing_T4x,
+                    timing_pT4,
+                    timing_T3,
+                    timing_TC});
+
+            if (ana.verbose == 4)
+            {
+                printAllObjects(event);
+            }
+
+            if (ana.verbose == 5)
+            {
+                debugPrintOutlierMultiplicities(event);
+            }
+
+            if (ana.do_write_ntuple)
+            {
+                if (not ana.do_cut_value_ntuple)
+                {
+                    fillOutputBranches(event);
+                }
+                else
+                {
+                    //call the function from WriteSDLNtupleV2.cc
+                    SDL::EventForAnalysisInterface* eventForAnalysisInterface = new SDL::EventForAnalysisInterface(event.getFullModules(), event.getHits(), event.getMiniDoublets(), event.getSegments(), event.getTracklets(), event.getTriplets(), event.getTrackCandidates());
+
+                    study->doStudy(*eventForAnalysisInterface);
+                    ana.cutflow.fill();
+                }
+            }
+
+        }
+        else
+        {
+            //*******************************************************
+            // CPU VERSION RUN
+            //*******************************************************
+
+            // Main instance that will hold modules, hits, minidoublets, etc. (i.e. main data structure)
+            SDL::CPU::Event event;
+
+            // event.setLogLevel(SDL::CPU::Log_Debug3);
+
+            // Add hits to the event
+            float timing_input_loading = addOuterTrackerHits(event);
+
+            // Add pixel segments
+            timing_input_loading += addPixelSegments(event);
+
+            // Print hit summary
+            printHitSummary(event);
+
+            // Run Mini-doublet
+            float timing_MD = runMiniDoublet_on_CPU(event);
+            printMiniDoubletSummary(event);
+
+            // Run Segment
+            float timing_LS = runSegment_on_CPU(event);
+            printSegmentSummary(event);
+
+            // Run Tracklet
+            float timing_T4 = runT4_on_CPU(event);
+            printTrackletSummary(event);
+            float timing_T4x = 0; // runT4x_on_CPU(event);
+            printTrackletSummary(event);
+            float timing_pT4 = runpT4_on_CPU(event);
+            printTrackletSummary(event);
+
+            // Run Triplet
+            float timing_T3 = runT3_on_CPU(event);
+            printTripletSummary(event);
+
+            // Run TrackCandidate
+            float timing_TC = runTrackCandidate_on_CPU(event);
+            printTrackCandidateSummary(event);
+
+            timing_information.push_back({ timing_input_loading,
+                    timing_MD,
+                    timing_LS,
+                    timing_T4,
+                    timing_T4x,
+                    timing_pT4,
+                    timing_T3,
+                    timing_TC});
+
+            if (ana.verbose == 4)
+            {
+                printAllObjects_for_CPU(event);
+            }
+
+            if (ana.do_write_ntuple)
+            {
+                fillOutputBranches_for_CPU(event);
+            }
+
+        }
+
+    }
+
+    printTimingInformation(timing_information);
+
+    if (not ana.do_run_cpu)
+        SDL::cleanModules();
+
+    // Writing ttree output to file
+    ana.output_tfile->cd();
+    if (not ana.do_cut_value_ntuple) 
+    {
+        ana.cutflow.saveOutput();
+    }
+
+    ana.output_ttree->Write();
+
+    // The below can be sometimes crucial
+    delete ana.output_tfile;
+
+}
+
+//_______________________________________________________________________________
+void writeMetaData()
+{
 
     // Write out metadata of the code to the output_tfile
     ana.output_tfile->cd();
@@ -258,7 +495,7 @@ int main(int argc, char** argv)
     TObjString tobjstr("code_tag_data");
     tobjstr.SetString(tstr.Data());
     ana.output_tfile->WriteObject(&tobjstr, "code_tag_data");
-    TString make_log_path = TString::Format("%s/.make.log", TrackLooperDir.Data());
+    TString make_log_path = TString::Format("%s/.make.log", ana.track_looper_dir_path.Data());
     std::ifstream makelog(make_log_path.Data());
     std::string makestr((std::istreambuf_iterator<char>(makelog)), std::istreambuf_iterator<char>());
     TString maketstr = makestr.c_str();
@@ -279,10 +516,11 @@ int main(int argc, char** argv)
     TString rawstrdata = maketstr.ReplaceAll("MAKETARGET=", "%");
     TString targetrawdata = RooUtil::StringUtil::rsplit(rawstrdata,"%")[1];
     TString targetdata = RooUtil::StringUtil::split(targetrawdata)[0];
+    ana.compilation_target = targetdata.Data();
 
     // Write out input sample or file name
     TObjString input;
-    input.SetString(result["input"].as<std::string>().c_str());
+    input.SetString(ana.input_raw_string.Data());
     ana.output_tfile->WriteObject(&input, "input");
 
     // Write out whether it's GPU or CPU
@@ -295,33 +533,12 @@ int main(int argc, char** argv)
 
     // Write the full command line used
     TObjString full_cmd_line_to_be_written;
-    full_cmd_line_to_be_written.SetString(full_cmd_line.Data());
+    full_cmd_line_to_be_written.SetString(ana.full_cmd_line.Data());
     ana.output_tfile->WriteObject(&full_cmd_line_to_be_written, "full_cmd_line");
 
     // Write the TRACKLOOPERDIR
     TObjString tracklooperdirpath_to_be_written;
-    tracklooperdirpath_to_be_written.SetString(TrackLooperDir.Data());
+    tracklooperdirpath_to_be_written.SetString(ana.track_looper_dir_path.Data());
     ana.output_tfile->WriteObject(&tracklooperdirpath_to_be_written, "tracklooper_path");
 
-    // Run depending on the mode
-    switch (ana.mode)
-    {
-        //case 0: build_module_map(); break;
-        //case 1: print_module_centroid(); break;
-        //case 2: mtv(); break;
-        //case 3: algo_eff(); break;
-        //case 4: tracklet(); break;
-        case 5: write_sdl_ntuple(false,true); break;
-        case 6 : write_sdl_ntuple(true,true); break;
-        case 7 : write_sdl_ntuple(false,false,targetdata.Data()); break; // quick run, not validation
-        //case 6: pixel_tracklet_eff(); break;
-        default:
-                std::cout << options.help() << std::endl;
-                std::cout << "ERROR: --mode was not provided! Check your arguments." << std::endl;
-                exit(1);
-                break;
-    }
-
-    return 0;
 }
-
