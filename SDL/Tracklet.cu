@@ -2857,7 +2857,7 @@ __device__ bool SDL::runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
 
 __device__ void SDL::runDeltaBetaIterations(float& betaIn, float& betaOut, float& betaAv, float & pt_beta, float sdIn_dr, float sdOut_dr, float dr, float lIn)
 {
-    if (lIn == 0)
+    if (lIn == 0) //pixel T4s
     {
         betaOut += copysign(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaOut);
         return;
@@ -2868,63 +2868,69 @@ __device__ void SDL::runDeltaBetaIterations(float& betaIn, float& betaOut, float
             and (fabsf(pt_beta) < 4.f * pt_betaMax
                 or (lIn >= 11 && fabsf(pt_beta) < 8.f * pt_betaMax)))   //and the pt_beta is well-defined; less strict for endcap-endcap
     {
+        const float betaInOriginal = betaIn;
+        const float betaOutOriginal = betaOut;
 
-        const float betaInUpd  = betaIn + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
-        const float betaOutUpd = betaOut + copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaOut); //FIXME: need a faster version
-        betaAv = 0.5f * (betaInUpd + betaOutUpd);
-
-        //1st update
+        betaIn  = betaIn + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
+        betaOut = betaOut + copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaOut); //FIXME: need a faster version
+        betaAv = 0.5f * (betaIn + betaOut);
+         //1st update
         pt_beta = dr * k2Rinv1GeVf / sin(betaAv); //get a better pt estimate
 
-        betaIn  += copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
-        betaOut += copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaOut); //FIXME: need a faster version
+        betaIn  = betaInOriginal + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
+        betaOut = betaOutOriginal + copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaOut); //FIXME: need a faster version
         //update the av and pt
         betaAv = 0.5f * (betaIn + betaOut);
         //2nd update
         pt_beta = dr * k2Rinv1GeVf / sin(betaAv); //get a better pt estimate
 
-        //might need these for future iterations
+        betaIn  = betaInOriginal + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
+        betaOut = betaOutOriginal + copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaOut); //FIXME: need a faster version
+        //update the av and pt
+        betaAv = 0.5f * (betaIn + betaOut);
+        //3rd update
+        pt_beta = dr * k2Rinv1GeVf / sin(betaAv); //get a better pt estimate
 
-/*
-        setRecoVars("betaIn_2nd", betaIn);
-        setRecoVars("betaOut_2nd", betaOut);
-        setRecoVars("betaAv_2nd", betaAv);
-        setRecoVars("betaPt_2nd", pt_beta);
-        setRecoVars("betaIn_3rdCorr", copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn));
-        setRecoVars("betaOut_3rdCorr", copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaOut));
-        setRecoVars("dBeta_2nd", betaIn - betaOut);
-
-        setRecoVars("betaIn_3rd", getRecoVar("betaIn_0th") + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn));
-        setRecoVars("betaOut_3rd", getRecoVar("betaOut_0th") + copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaOut));
-        setRecoVars("betaAv_3rd", 0.5f * (getRecoVar("betaIn_3rd") + getRecoVar("betaOut_3rd")));
-        setRecoVars("betaPt_3rd", dr * k2Rinv1GeVf / sin(getRecoVar("betaAv_3rd")));
-        setRecoVars("dBeta_3rd", getRecoVar("betaIn_3rd") - getRecoVar("betaOut_3rd"));
-
-        setRecoVars("betaIn_4th", getRecoVar("betaIn_0th") + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(getRecoVar("betaPt_3rd")), sinAlphaMax)), getRecoVar("betaIn_3rd")));
-        setRecoVars("betaOut_4th", getRecoVar("betaOut_0th") + copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(getRecoVar("betaPt_3rd")), sinAlphaMax)), getRecoVar("betaOut_3rd")));
-        setRecoVars("betaAv_4th", 0.5f * (getRecoVar("betaIn_4th") + getRecoVar("betaOut_4th")));
-        setRecoVars("betaPt_4th", dr * k2Rinv1GeVf / sin(getRecoVar("betaAv_4th")));
-        setRecoVars("dBeta_4th", getRecoVar("betaIn_4th") - getRecoVar("betaOut_4th"));*/
-
+        betaIn  = betaInOriginal + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
+        betaOut = betaOutOriginal + copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaOut); //FIXME: need a faster version
+        //update the av and pt
+        betaAv = 0.5f * (betaIn + betaOut);
+        //4th update
+        pt_beta = dr * k2Rinv1GeVf / sin(betaAv); //get a better pt estimate
 
     }
     else if (lIn < 11 && fabsf(betaOut) < 0.2 * fabsf(betaIn) && fabsf(pt_beta) < 12.f * pt_betaMax)   //use betaIn sign as ref
     {
-   
-        const float pt_betaIn = dr * k2Rinv1GeVf / sin(betaIn);
-        const float betaInUpd  = betaIn + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabs(pt_betaIn), sinAlphaMax)), betaIn); //FIXME: need a faster version
-        const float betaOutUpd = betaOut + copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabs(pt_betaIn), sinAlphaMax)), betaIn); //FIXME: need a faster version
-        betaAv = (fabsf(betaOut) > 0.2f * fabsf(betaIn)) ? (0.5f * (betaInUpd + betaOutUpd)) : betaInUpd;
+        const float betaInOriginal = betaIn;
+        const float betaOutOriginal = betaOut;
 
+        const float pt_betaIn = dr * k2Rinv1GeVf / sin(betaIn);
+        betaIn  = betaInOriginal + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabs(pt_betaIn), sinAlphaMax)), betaIn); //FIXME: need a faster version
+        betaOut = betaOutOriginal + copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabs(pt_betaIn), sinAlphaMax)), betaIn); //FIXME: need a faster version
+        betaAv = (fabsf(betaOutOriginal) > 0.2f * fabsf(betaInOriginal)) ? (0.5f * (betaIn + betaOut)) : betaIn;
         //1st update
         pt_beta = dr * k2Rinv1GeVf / sin(betaAv); //get a better pt estimate
-        betaIn  += copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
-        betaOut += copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
+
+        betaIn  = betaInOriginal + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
+        betaOut = betaOutOriginal + copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
         //update the av and pt
         betaAv = 0.5f * (betaIn + betaOut);
         //2nd update
         pt_beta = dr * k2Rinv1GeVf / sin(betaAv); //get a better pt estimate
 
+        betaIn  = betaInOriginal + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
+        betaOut = betaOutOriginal + copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
+        //update the av and pt
+        betaAv = 0.5f * (betaIn + betaOut);
+        //3rd update
+        pt_beta = dr * k2Rinv1GeVf / sin(betaAv); //get a better pt estimate
+
+        betaIn  = betaInOriginal + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
+        betaOut = betaOutOriginal + copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaOut); //FIXME: need a faster version
+        //update the av and pt
+        betaAv = 0.5f * (betaIn + betaOut);
+        //4th update
+        pt_beta = dr * k2Rinv1GeVf / sin(betaAv); //get a better pt estimate
     }
 }
 
