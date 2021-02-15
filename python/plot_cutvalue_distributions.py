@@ -45,28 +45,33 @@ def make_plots(qArray,qArraySimTrackMatched,quantity,layerType):
     maxValue = max(qArray)
     histMinLimit = minValue * 1.1 if minValue < 0 else minValue * 0.9
     histMaxLimit = maxValue * 0.9 if maxValue < 0 else maxValue * 1.1
-    if abs(histMaxLimit - histMinLimit) > 100 and histMinLimit > 0:
+    if abs(histMaxLimit - histMinLimit) > 10 and histMinLimit > 0 or "/" in quantity:
         binning = np.logspace(np.log10(histMinLimit),np.log10(histMaxLimit),1000)
     else:
         binning = np.linspace(histMinLimit,histMaxLimit,1000)
 
-    allHist = Hist1D(ak.to_numpy(qArray[qArray > -999]),bins = binning,label = "{}".format(quantity.split("_")[1]))
-    simtrackMatchedHist = Hist1D(ak.to_numpy(qArraySimTrackMatched[qArraySimTrackMatched > -999]),bins = binning, label = "Sim track matched {}".format(quantity.split("_")[1]))
+    allHist = Hist1D(ak.to_numpy(qArray[qArray > -999]),bins = binning,label = "{}".format(quantity))
+    simtrackMatchedHist = Hist1D(ak.to_numpy(qArraySimTrackMatched[qArraySimTrackMatched > -999]),bins = binning, label = "Sim track matched {}".format(quantity))
 
     fig = plt.figure()
     plt.yscale("log")
-    if abs(histMaxLimit - histMinLimit) > 100 and histMinLimit > 0:
+    if abs(histMaxLimit - histMinLimit) > 10 and histMinLimit > 0 or "/" in quantity:
         plt.xscale("log")
 
     allHist.plot(alpha = 0.8, color = "C0", label = "all")
     simtrackMatchedHist.plot(alpha = 0.8, color = "C3", label = "sim track matched")
     if layerType == "":
-        plt.title("Distribution for {}".format(quantity))
+        plt.title("{}".format(quantity))
     else:
-        plt.title("Distribution for {} type {}".format(quantity, layerType))
+        plt.title("{} type {}".format(quantity, layerType))
 
     plt.suptitle("Sample = {} Tag = {}".format(sys.argv[3],sys.argv[4]))
-
+    #extra job for the composite dudes
+    quantity = quantity.replace("("," ")
+    quantity = quantity.replace(")","")
+    quantity = quantity.replace("/","by")
+    quantity = quantity.replace("-","minus")
+    quantity = quantity.replace(" ","_")
     if len(sys.argv) > 2:
         if layerType != "":
             plt.savefig("{}/{}_{}.pdf".format(sys.argv[2],quantity,layerType))
@@ -114,11 +119,11 @@ def plot_distributions(obj):
 
             if all(qArray == -999):
                 continue
-            make_plots(qArray,qArraySimTrackMatched,quantity,layerTypes)
+            make_plots(qArray,qArraySimTrackMatched,quantity,layerType)
 
-def plot_composite_distributions(ob):
+def plot_composite_distributions(obj):
     global tree
-    composite_quantities = [("abs(betaIn)","-","betaInCut"),("abs(betaOut)","-","betaOutCut"),("abs(deltaBeta)","-","deltaBetaCut"),("zOut","-","zLo"),("zHi","-","zOut"),("abs(betaIn)","/","betaInCut"),("abs(betaOut)","/","betaOutCut"),("abs(deltaBeta)","/","deltaBetaCut")]
+    composite_quantities = [("betaInCut","-","abs(betaIn)"),("betaOutCut","-","abs(betaOut)"),("deltaBetaCut","-","abs(deltaBeta)"),("zOut","-","zLo"),("zHi","-","zOut"),("abs(betaIn)","/","betaInCut"),("abs(betaOut)","/","betaOutCut"),("abs(deltaBeta)","/","deltaBetaCut")]
 
     matchedMask = tree["{}_isFake".format(obj)].array() == 0
     layers = np.array(list(map(process_layers,ak.flatten(tree["{}_layer_binary".format(obj)].array()))))
@@ -134,12 +139,12 @@ def plot_composite_distributions(ob):
             print("composite quantity = {} {} {}".format(composite_quantity[0], composite_quantity[1], composite_quantity[2]))
 
             if composite_quantity[0][:4] == "abs(":
-                firstArray = tree["{}_{}".format(obj,composite_quantity[0][4:-1])].array()
+                firstArray = abs(tree["{}_{}".format(obj,composite_quantity[0][4:-1])].array())
             else:
                 firstArray = tree["{}_{}".format(obj,composite_quantity[0])].array()
 
             if composite_quantity[2][:4] == "abs(":
-                secondArray = tree["{}_{}".format(obj,composite_quantity[2][4:-1])].array()
+                secondArray = abs(tree["{}_{}".format(obj,composite_quantity[2][4:-1])].array())
             else:
                 secondArray = tree["{}_{}".format(obj,composite_quantity[2])].array()
 
@@ -150,21 +155,22 @@ def plot_composite_distributions(ob):
             else:
                 print("Operator {} not defined!".format(composite_quantity[1]))
                 sys.exit(1)
-
+            qArray = ak.flatten(qArray)
             if layerType == "":
                 qArraySimTrackMatched = qArray[ak.flatten(matchedMask)]
             else:
+                qArray = qArray[layerTypes == layerType]
                 qArraySimTrackMatched = qArray[ak.flatten(matchedMask)[layerTypes == layerType]]
 
 
             if all(qArray == -999):
                 continue
 
-            make_plots(qArray,qArraySimTrackMatched,"{} {} {} ".format(*composite_quantity),layerTypes)
+            make_plots(qArray,qArraySimTrackMatched,"{} {} {} {}".format(obj,*composite_quantity),layerType)
 
 
 
 objects = ["t4","t3"]
 for i in objects:
-    plot_distributions(i)
     plot_composite_distributions(i)
+    plot_distributions(i)
