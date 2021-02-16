@@ -1396,6 +1396,19 @@ void SDL::Event::createTrackCandidates()
     {
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
     }
+
+    //Pixel Track Candidates created separately
+    nThreads = 1;
+    nBlocks = (nLowerModules - 1) % nThreads == 0 ? (nLowerModules - 1)/nThreads : (nLowerModules - 1)/nThreads + 1;
+ 
+    createPixelTrackCandidatesInGPU<<<nBlocks, nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU, *tripletsInGPU, *trackCandidatesInGPU);
+
+    cudaerr = cudaDeviceSynchronize();
+    if(cudaerr != cudaSuccess)
+    {
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
+    }
+
 #if defined(AddObjects)
 #ifdef Explicit_Track
     addTrackCandidatesToEventExplicit();
@@ -2503,9 +2516,8 @@ __global__ void createTripletsInGPU(struct SDL::modules& modulesInGPU, struct SD
 
 __global__ void createPixelTrackCandidatesInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU)
 {
-    int outerInnerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int outerInnerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
     if(outerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) return;
-
     //FIXME:Cheapo module map - We care about pT4s and pTCs Only if the outerInnerInnerLowerModule is "connected" to the pixel module
 
     int outerInnerInnerLowerModuleIndex = modulesInGPU.lowerModuleIndices[outerInnerInnerLowerModuleArrayIndex];
@@ -2518,7 +2530,6 @@ __global__ void createPixelTrackCandidatesInGPU(struct SDL::modules& modulesInGP
     if(nPixelTracklets > N_MAX_PIXEL_TRACKLETS_PER_MODULE) 
         nPixelTracklets = N_MAX_PIXEL_TRACKLETS_PER_MODULE;
 
-    //PT4-T4
     unsigned int nOuterLayerTracklets = trackletsInGPU.nTracklets[outerInnerInnerLowerModuleArrayIndex];
     if(nOuterLayerTracklets > N_MAX_TRACKLETS_PER_MODULE)
     {
@@ -2530,7 +2541,7 @@ __global__ void createPixelTrackCandidatesInGPU(struct SDL::modules& modulesInGP
         nOuterLayerTriplets = N_MAX_TRIPLETS_PER_MODULE;
     }
 
-    unsigned int nThreadsForNestedKernel = fmax(nOuterLayerTracklets,nOuterLayerTriplets);
+    unsigned int nThreadsForNestedKernel = max(nOuterLayerTracklets,nOuterLayerTriplets);
     if(nThreadsForNestedKernel == 0) return;
 
     dim3 nThreads(16,16,1);
@@ -2540,7 +2551,7 @@ __global__ void createPixelTrackCandidatesInGPU(struct SDL::modules& modulesInGP
 }
 
 
-__global__ void createPixelTrackCandidatesFromOuterInnerInnerLowerModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, unsigned int& pixelLowerModuleArrayIndex, unsigned int& outerInnerInnerLowerModuleArrayIndex, unsigned int& nPixelTracklets, unsigned int& nOuterLayerTracklets, unsigned int& nOuterLayerTriplets)
+__global__ void createPixelTrackCandidatesFromOuterInnerInnerLowerModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, unsigned int pixelLowerModuleArrayIndex, unsigned int outerInnerInnerLowerModuleArrayIndex, unsigned int nPixelTracklets, unsigned int nOuterLayerTracklets, unsigned int nOuterLayerTriplets)
 {
     int pixelTrackletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
     int outerObjectArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
@@ -2558,7 +2569,7 @@ __global__ void createPixelTrackCandidatesFromOuterInnerInnerLowerModule(struct 
         outerObjectIndex = outerInnerInnerLowerModuleArrayIndex * N_MAX_TRACKLETS_PER_MODULE + outerObjectArrayIndex;
 
         //part 2 of cheapo module map : only considering tracklets with PS-PS inner segment
-        if(modulesInGPU.moduleType[trackletsInGPU.lowerModuleIndices[4 * outerObjectIndex + 2]] == SDL::PS)
+       if(modulesInGPU.moduleType[trackletsInGPU.lowerModuleIndices[4 * outerObjectIndex + 1]] == SDL::PS)
         {
             success = runTrackCandidateDefaultAlgoTwoTracklets(trackletsInGPU, tripletsInGPU, pixelTrackletIndex, outerObjectIndex, trackCandidateType);   
             if(success)
@@ -2601,7 +2612,7 @@ __global__ void createPixelTrackCandidatesFromOuterInnerInnerLowerModule(struct 
         outerObjectIndex = outerInnerInnerLowerModuleArrayIndex * N_MAX_TRIPLETS_PER_MODULE + outerObjectArrayIndex;
 
         //part 2 of cheapo module map : only considering tracklets with PS-PS inner segment
-        if(modulesInGPU.moduleType[trackletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1]] == SDL::PS)
+        if(modulesInGPU.moduleType[tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1]] == SDL::PS)
         {
             success = runTrackCandidateDefaultAlgoTrackletToTriplet(trackletsInGPU, tripletsInGPU, pixelTrackletIndex, outerObjectIndex, trackCandidateType);   
             if(success)
@@ -2911,6 +2922,20 @@ unsigned int SDL::Event::getNumberOfSegmentsByLayerBarrel(unsigned int layer)
 unsigned int SDL::Event::getNumberOfSegmentsByLayerEndcap(unsigned int layer)
 {
     return n_segments_by_layer_endcap_[layer];
+}
+
+unsigned int SDL::Event::getNumberOfPixelTracklets()
+{
+#ifdef Explicit_Tracklet
+    unsigned int nLowerModules;// = *(SDL::modulesInGPU->nLowerModules);
+    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    unsigned int nTrackletsInPixelModule;
+    cudaMemcpy(&nTrackletsInPixelModule,&trackletsInGPU->nTracklets[nLowerModules],sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    return nTrackletsInPixelModule;
+#else
+    return trackletsInGPU->nTracklets[*(modulesInGPU->nLowerModules)];
+#endif
+
 }
 
 unsigned int SDL::Event::getNumberOfTracklets()

@@ -115,6 +115,7 @@ namespace SDL
         unsigned int getNumberOfSegmentsByLayerEndcap(unsigned int layer);
 
         unsigned int getNumberOfTracklets();
+        unsigned int getNumberOfPixelTracklets();
         unsigned int getNumberOfTrackletsByLayer(unsigned int layer);
         unsigned int getNumberOfTrackletsByLayerBarrel(unsigned int layer);
         unsigned int getNumberOfTrackletsByLayerEndcap(unsigned int layer);
@@ -190,8 +191,8 @@ __global__ void createTripletsFromInnerInnerLowerModule(struct SDL::modules& mod
 
 __global__ void createPixelTrackCandidatesInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU);
 
-__global__ void createPixelTrackCandidatesFromOuterInnerInnerLowerModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, unsigned int& pixelLowerModuleArrayIndex, unsigned int& outerInnerInnerLowerModuleArrayIndex, unsigned int& nPixelTracklets, unsigned int& nOuterLayerTracklets,
-        unsigned int& nOuterLayerTriplets);
+__global__ void createPixelTrackCandidatesFromOuterInnerInnerLowerModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, unsigned int pixelLowerModuleArrayIndex, unsigned int outerInnerInnerLowerModuleArrayIndex, unsigned int nPixelTracklets, unsigned int nOuterLayerTracklets,
+        unsigned int nOuterLayerTriplets);
 
 
 __global__ void createTrackCandidatesInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU);
