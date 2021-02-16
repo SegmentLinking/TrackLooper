@@ -592,6 +592,7 @@ float runpT4(SDL::Event& event)
     event.createPixelTracklets();
     float pt4_elapsed = my_timer.RealTime();
     if (ana.verbose >= 1) std::cout << "Reco pT4 processing time: " << pt4_elapsed << " secs" << std::endl;
+    if (ana.verbose >= 1) std::cout << "# of Pixel T4s produced: "<< event.getNumberOfPixelTracklets() << std::endl;
 
     return pt4_elapsed;
 
