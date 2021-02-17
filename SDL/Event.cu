@@ -104,6 +104,8 @@ SDL::Event::~Event()
     {
         delete[] segmentsInCPU->mdIndices;
         delete[] segmentsInCPU->nSegments;
+        delete[] segmentsInCPU->innerMiniDoubletAnchorHitIndices;
+        delete[] segmentsInCPU->outerMiniDoubletAnchorHitIndices;
         delete segmentsInCPU; 
     }
 #endif
@@ -112,6 +114,8 @@ SDL::Event::~Event()
     {
         delete[] trackletsInCPU->segmentIndices;
         delete[] trackletsInCPU->nTracklets;
+        delete[] trackletsInCPU->betaIn;
+        delete[] trackletsInCPU->betaOut;
         delete trackletsInCPU;
     }
 #endif
@@ -120,6 +124,8 @@ SDL::Event::~Event()
     {
         delete[] tripletsInCPU->segmentIndices;
         delete[] tripletsInCPU->nTriplets;
+        delete[] tripletsInCPU->betaIn;
+        delete[] tripletsInCPU->betaOut;
         delete tripletsInCPU;
     }
 #endif
@@ -3110,8 +3116,12 @@ SDL::segments* SDL::Event::getSegments()
         unsigned int nMemoryLocations = (N_MAX_SEGMENTS_PER_MODULE) * (nModules - 1) + N_MAX_PIXEL_SEGMENTS_PER_MODULE;
         segmentsInCPU->mdIndices = new unsigned int[2 * nMemoryLocations];
         segmentsInCPU->nSegments = new unsigned int[nModules];
+        segmentsInCPU->innerMiniDoubletAnchorHitIndices = new unsigned int[nMemoryLocations];
+        segmentsInGPU->outerMiniDoubletAnchorHitIndices = new unsigned int[nMemoryLocations];
         cudaMemcpy(segmentsInCPU->mdIndices, segmentsInGPU->mdIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost);
         cudaMemcpy(segmentsInCPU->nSegments, segmentsInGPU->nSegments, nModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(segmentsInCPU->innerMiniDoubletAnchorHitIndices, segmentsInGPU->innerMiniDoubletAnchorHitIndices, nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(segmentsInCPU->outerMiniDoubletAnchorHitIndices, segmentsInGPU->outerMiniDoubletAnchorHitIndices, nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost);
     }
     return segmentsInCPU;
 }
@@ -3133,7 +3143,11 @@ SDL::tracklets* SDL::Event::getTracklets()
         unsigned int nMemoryLocations = (N_MAX_TRACKLETS_PER_MODULE) * nLowerModules + N_MAX_PIXEL_TRACKLETS_PER_MODULE;
         trackletsInCPU->segmentIndices = new unsigned int[2 * nMemoryLocations];
         trackletsInCPU->nTracklets = new unsigned int[nLowerModules];
+        trackletsInCPU->betaIn = new float[nMemoryLocations];
+        trackletsInCPU->betaOut = new float[nMemoryLocations];
         cudaMemcpy(trackletsInCPU->segmentIndices, trackletsInGPU->segmentIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(trackletsInCPU->betaIn, trackletsInGPU->betaIn, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost);
+        cudaMemcpy(trackletsInCPU->betaOut, trackletsInGPU->betaOut, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost);
         cudaMemcpy(trackletsInCPU->nTracklets, trackletsInGPU->nTracklets, (nLowerModules + 1)* sizeof(unsigned int), cudaMemcpyDeviceToHost);
     }
     return trackletsInCPU;
@@ -3156,7 +3170,11 @@ SDL::triplets* SDL::Event::getTriplets()
         unsigned int nMemoryLocations = (N_MAX_TRIPLETS_PER_MODULE) * (nLowerModules);
         tripletsInCPU->segmentIndices = new unsigned[2 * nMemoryLocations];
         tripletsInCPU->nTriplets = new unsigned int[nLowerModules];
+        tripletsInCPU->betaIn = new float[nMemoryLocations];
+        tripletsInCPU->betaOut = new float[nMemoryLocations];
         cudaMemcpy(tripletsInCPU->segmentIndices, tripletsInGPU->segmentIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(tripletsInCPU->betaIn, tripletsInGPU->betaIn, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost);
+        cudaMemcpy(tripletsInCPU->betaOut, tripletsInGPU->betaOut, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost);
         cudaMemcpy(tripletsInCPU->nTriplets, tripletsInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost); 
     }
     return tripletsInCPU;
