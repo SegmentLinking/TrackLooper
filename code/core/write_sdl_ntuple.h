@@ -22,6 +22,7 @@ void createQuadrupletCutValueBranches();
 void createTripletCutValueBranches();
 void createSegmentCutValueBranches();
 void createMiniDoubletCutValueBranches();
+void createOccupancyBranches();
 // Common
 void fillSimTrackOutputBranches();
 // GPU
@@ -30,6 +31,7 @@ void fillTrackCandidateOutputBranches(SDL::Event& event);
 void fillLowerLevelOutputBranches(SDL::Event& event);
 void fillQuadrupletOutputBranches(SDL::Event& event);
 void fillTripletOutputBranches(SDL::Event& event);
+void fillOccupancyBranches(SDL::Event& event);
 // CPU
 void fillOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event);
