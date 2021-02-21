@@ -1384,7 +1384,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
 //__________________________________________________________________________________________
 float addInputsToLineSegmentTrackingUsingUnifiedMemory(SDL::Event &event)
 {
-    return addInputsToLineSegmentTracking(event, false);
+    return addInputsToLineSegmentTracking(event, true);
 }
 
 //__________________________________________________________________________________________
