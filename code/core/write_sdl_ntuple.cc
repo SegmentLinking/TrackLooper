@@ -33,10 +33,26 @@ void createOutputBranches()
     ana.tx->createBranch<vector<int>>("tc_isFake");
     ana.tx->createBranch<vector<int>>("tc_isDuplicate");
 
+
     if (ana.do_lower_level)
     {
         createLowerLevelOutputBranches();
+        createOccupancyBranches(); //5 objects per module
     }
+}
+
+//________________________________________________________________________________________________________________________________
+
+void createOccupancyBranches()
+{
+    //one entry per lower module
+    ana.tx->createBranch<vector<int>>("module_layers");
+    ana.tx->createrBranch<vector<short>>("module_subdets");
+    ana.tx->createBranch<vector<int>>("md_occupancies");
+    ana.tx->createBranch<vector<int>>("sg_occupancies");
+    ana.tx->createBranch<vector<int>>("t4_occupancies");
+    ana.tx->createBranch<vector<int>>("t3_occupancies");
+    ana.tx->createBranch<vector<int>>("tc_occupancies");
 }
 
 //________________________________________________________________________________________________________________________________
@@ -143,11 +159,56 @@ void fillOutputBranches(SDL::Event& event)
     if (ana.do_lower_level)
     {
         fillLowerLevelOutputBranches(event);
+        fillOccupancyBranches(event);
     }
 
     ana.tx->fill();
     ana.tx->clear();
 
+}
+
+
+//________________________________________________________________________________________________________________________________
+void fillOccupancyBranches(SDL::Event& event)
+{
+    SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates());
+    SDL::tracklets& trackletsInGPU = (*event.getTracklets());
+    SDL::triplets& tripletsInGPU = (*event.getTriplets());
+    SDL::segments& segmentsInGPU = (*event.getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event.getHits());
+    SDL::modules& modulesInGPU = (*event.getModules());
+
+    //get the occupancies from these dudes
+    std::vector<int> moduleLayer;
+    std::vector<short> moduleSubdet;
+    std::vector<int> trackCandidateOccupancy;
+    std::vector<int> trackletOccupancy;
+    std::vector<int> tripletOccupancy;
+    std::vector<int> segmentOccupancy;
+    std::vector<int> mdOccupancy;
+
+    for(unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); idx++)
+    {
+        //layer = 0, subdet = 0 => pixel module
+        moduleLayer.push_back(modulesInGPU.layers[idx]);
+        moduleSubdet.push_back(modulesInGPU.subdets[idx]);
+
+        trackCandidateOccupancy.push_back(trackCandidatesInGPU.nTrackCandidates[idx]);
+        trackletOccupancy.push_back(trackletsInGPU.nTracklets[idx]);
+        tripletOccupancy.push_back(tripletsInGPU.nTriplets[idx]);
+        //md and segment - need some gymnastics
+        unsigned int lowerIdx = modulesInGPU.lowerModuleIndices[idx];
+        segmentOccupancy.push_back(segmentsInGPU.nSegments[lowerIdx]);
+        mdOccupancy.push_back(mdsInGPU.nMDs[lowerIdx]);
+    }
+    ana.tx->setBranch<vector<int>>("module_layers",moduleLayer);
+    ana.tx->setBranch<vector<short>>("module_subdets",moduleSubdet);
+    ana.tx->createBranch<vector<int>>("md_occupancies",mdOccupancy);
+    ana.tx->createBranch<vector<int>>("sg_occupancies",segmentOccupancy);
+    ana.tx->createBranch<vector<int>>("t4_occupancies",trackletOccupancy);
+    ana.tx->createBranch<vector<int>>("t3_occupancies",tripletOccupancy);
+    ana.tx->createBranch<vector<int>>("tc_occupancies",trackCandidateOccupancy);
 }
 
 //________________________________________________________________________________________________________________________________
