@@ -32,20 +32,27 @@ def make_histograms(obj):
         subdetName = "Barrel" if subdet == 5 else "Endcap"
         layerRange = range(1, 7) if subdet == 5 else range(1, 6)
         for layer in layerRange:
-            subdetLayerView = branches.loc[(branches["module_subdet"] == subdet) & (branches["module_layer"] == layer),"{}_occupancies".format(obj)]
+            subdetLayerView = branches.loc[(branches["module_subdets"] == subdet) & (branches["module_layers"] == layer),"{}_occupancies".format(obj)]
             if len(subdetLayerView) == 0:
                 continue
-            subdetLayerHists.append(Hist1D(subdetLayerView.values, bins = np.linspace(subdetLayerView.min(), subdetLayerView.max(), min(500,subdetLayerView.max() - subdetLayerView.min() + 1))), label = "{} Occupancy in {} Layer {}".format(obj,subdetName,layer)))
+            offset = 1
+            if subdetLayerView.min() == subdetLayerView.max():
+                offset = 2
+
+            subdetLayerHists.append(Hist1D(subdetLayerView.values, bins = np.linspace(subdetLayerView.min(), subdetLayerView.max(), min(500,subdetLayerView.max() - subdetLayerView.min() + offset)), label = "{} Occupancy in {} Layer {}".format(obj,subdetName,layer)))
 
             if subdet == 4:
                 for ring in range(1,16):
-                    subdetLayerRingView = branches.loc[(branches["module_subdet"] == subdet) & (branches["module_layer"] == layer) & (branches["module_ring"] == ring),"{}_occupancies".format(obj)]
+                    subdetLayerRingView = branches.loc[(branches["module_subdets"] == subdet) & (branches["module_layers"] == layer) & (branches["module_rings"] == ring),"{}_occupancies".format(obj)]
                     if len(subdetLayerRingView) == 0:
                         continue
-                    subdetLayerRingHists.append(Hist1D(subdetLayerRingView.values, bins = np.linspace(subdetLayerRingView.min(), subdetLayerRingView.max(), min(500,subdetLayerRingView.max() - subdetLayerRingView.min() + 1))), label = "{} Occupancy in {} Layer {} Ring {}".format(obj,subdetName,layer, ring)))
+                    offset = 1
+                    if subdetLayerRingView.min() == subdetLayerRingView.max():
+                        offset = 2
+                    subdetLayerRingHists.append(Hist1D(subdetLayerRingView.values, bins = np.linspace(subdetLayerRingView.min(), subdetLayerRingView.max(), min(500,subdetLayerRingView.max() - subdetLayerRingView.min() + offset)), label = "{} Occupancy in {} Layer {} Ring {}".format(obj,subdetName,layer, ring)))
 
         plot_histograms(overall_hist)
-        plot_hDSaistograms(subdetLayerHists)
+        plot_histograms(subdetLayerHists)
         plot_histograms(subdetLayerRingHists)
 
 
@@ -61,8 +68,9 @@ def plot_histograms(hists):
         plt.suptitle("Sample = {} Tag = {}".format(sys.argv[3], sys.argv[4]))
         outputName = hist.metadata["label"].replace(" ","_")
         plt.savefig("{}/{}.pdf".format(sys.argv[2],outputName))
+        plt.close()
 
 
 objects = ["md","sg","t3","t4","tc"]
-for i in objects:
+for obj in objects:
     make_histograms(obj)
