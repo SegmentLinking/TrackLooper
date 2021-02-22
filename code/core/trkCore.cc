@@ -1358,21 +1358,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
 
     }
 
-    if (useOMP)
-    {
-        event.addHitToEventOMP(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
-        //event.addHitToEventOMP(trkX, trkY, trkZ, hitId); // TODO : Need to fix the hitIdxs
-    }
-    else
-    {
-        for (auto &&[ihit, data] : iter::enumerate(iter::zip(trkX, trkY, trkZ, hitId, hitIdxs)))
-        {
-            auto &&[x, y, z, detId, hitidx] = data;
-            event.addHitToEvent(x, y, z, detId, hitidx);
-        }
-    }
-
-    event.addPixelSegmentToEventV2(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, etaErr_vec);
+    event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
+    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, etaErr_vec);
 
     float hit_loading_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Loading inputs processing time: " << hit_loading_elapsed << " secs" << std::endl;

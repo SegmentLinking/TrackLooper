@@ -214,113 +214,9 @@ void SDL::Event::resetObjectsInModule()
 {
     resetObjectRanges(*modulesInGPU,nModules);
 }
-// add hits via kernel method.
-void SDL::Event::addHitToEventGPU(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId)
-{
 
-    const int loopsize = x.size();
-    if(hitsInGPU == nullptr)
-    {
-
-        cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
-    	  createHitsInExplicitMemory(*hitsInGPU, 2*loopsize);
-    }
-
-    //calls the addHitToMemory function
-    ////Explicit
-    unsigned int nThreads = 256;
-    unsigned int nBlocks =  loopsize % nThreads == 0 ? loopsize/nThreads : loopsize/nThreads + 1;
-
-    float* dev_x;
-    float* dev_y;
-    float* dev_z;
-    float* dev_phi;
-    float* host_x = &x[0];
-    float* host_y = &y[0];
-    float* host_z = &z[0];
-    float* host_phi;
-    float* host_highEdgeXs;
-    float* host_highEdgeYs;
-    float* host_lowEdgeXs;
-    float* host_lowEdgeYs;
-    cudaMallocHost(&host_highEdgeXs,sizeof(float)*loopsize);
-    cudaMallocHost(&host_highEdgeYs,sizeof(float)*loopsize);
-    cudaMallocHost(&host_lowEdgeXs,sizeof(float)*loopsize);
-    cudaMallocHost(&host_lowEdgeYs,sizeof(float)*loopsize);
-    unsigned int* host_detId = &detId[0];
-    unsigned int* host_moduleIndex;
-    unsigned int* dev_moduleIndex;
-    cudaMalloc(&dev_x,loopsize*sizeof(float));
-    cudaMalloc(&dev_y,loopsize*sizeof(float));
-    cudaMalloc(&dev_z,loopsize*sizeof(float));
-    cudaMalloc(&dev_moduleIndex,sizeof(unsigned int)*loopsize);
-    cudaMallocHost(&host_moduleIndex,sizeof(unsigned int)*loopsize);
-    cudaMalloc(&dev_phi,sizeof(float)*loopsize);
-    cudaMallocHost(&host_phi,sizeof(float)*loopsize);
-  for (int ihit=0; ihit<loopsize;ihit++){
-    unsigned int moduleLayer = modulesInGPU->layers[(*detIdToIndex)[host_detId[ihit]]]; // I think detIdToIndex needs to be handled on host. this can be run in parallel otherwise
-    unsigned int subdet = modulesInGPU->subdets[(*detIdToIndex)[host_detId[ihit]]];
-    host_moduleIndex[ihit] = (*detIdToIndex)[host_detId[ihit]];
-    host_phi[ihit] = endcapGeometry.getCentroidPhi(host_detId[ihit]);
-
-    if(subdet == Barrel)
-    {
-        n_hits_by_layer_barrel_[moduleLayer-1]++;
-    }
-    else
-    {
-        n_hits_by_layer_endcap_[moduleLayer-1]++;
-    }
-      unsigned int this_index = host_moduleIndex[ihit];
-      if(modulesInGPU->subdets[this_index] == Endcap && modulesInGPU->moduleType[this_index] == TwoS) // cannot be run in parallel
-      {
-          float xhigh, yhigh, xlow, ylow;
-          getEdgeHits(host_detId[ihit],host_x[ihit],host_y[ihit],xhigh,yhigh,xlow,ylow);
-          host_highEdgeXs[ihit] = xhigh;
-          host_highEdgeYs[ihit] = yhigh;
-          host_lowEdgeXs[ihit] = xlow;
-          host_lowEdgeYs[ihit] = ylow;
-
-      }
-
-      //set the hit ranges appropriately in the modules struct
-
-      //start the index rolling if the module is encountered for the first time
-      if(modulesInGPU->hitRanges[this_index * 2] == -1) // cannot be run in parallel
-      {
-          modulesInGPU->hitRanges[this_index * 2] = ihit;
-      }
-      //always update the end index
-      modulesInGPU->hitRanges[this_index * 2 + 1] = ihit;
-  }
-    cudaMemcpy(dev_x,host_x,loopsize*sizeof(float),cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_y,host_y,loopsize*sizeof(float),cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_z,host_z,loopsize*sizeof(float),cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_moduleIndex,host_moduleIndex,loopsize*sizeof(unsigned int),cudaMemcpyHostToDevice);
-    cudaMemcpy(dev_phi,host_phi,loopsize*sizeof(float),cudaMemcpyHostToDevice);
-    //cudaDeviceSynchronize();
-    addHitToMemoryKernel<<<nBlocks,nThreads>>>(*hitsInGPU, *modulesInGPU, dev_x, dev_y, dev_z, dev_moduleIndex,dev_phi,loopsize);
-    cudaMemcpy(hitsInGPU->highEdgeXs,host_highEdgeXs,loopsize*sizeof(float),cudaMemcpyHostToDevice);
-    cudaMemcpy(hitsInGPU->highEdgeYs,host_highEdgeYs,loopsize*sizeof(float),cudaMemcpyHostToDevice);
-    cudaMemcpy(hitsInGPU->lowEdgeXs,host_lowEdgeXs,loopsize*sizeof(float),cudaMemcpyHostToDevice);
-    cudaMemcpy(hitsInGPU->lowEdgeYs,host_lowEdgeYs,loopsize*sizeof(float),cudaMemcpyHostToDevice);
-    cudaMemcpy(hitsInGPU->nHits,&loopsize,sizeof(unsigned int),cudaMemcpyHostToDevice);// value can't correctly be set in hit allocation
-    cudaDeviceSynchronize();
-    cudaFree(dev_x);
-    cudaFree(dev_y);
-    cudaFree(dev_z);
-    cudaFree(dev_moduleIndex);
-    cudaFree(dev_phi);
-    cudaFreeHost(host_phi);
-    cudaFreeHost(host_moduleIndex);
-    cudaFreeHost(host_highEdgeXs);
-    cudaFreeHost(host_highEdgeYs);
-    cudaFreeHost(host_lowEdgeXs);
-    cudaFreeHost(host_lowEdgeYs);
-
-}
-//explicit method using omp
-void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple)
+// Best working hit loading method. Previously named OMP
+void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple)
 {
     const int loopsize = x.size();// use the actual number of hits instead of a "max"
 
@@ -458,132 +354,7 @@ void SDL::Event::addHitToEventOMP(std::vector<float> x, std::vector<float> y, st
     cudaFreeHost(module_moduleType);
 
 }
-// old method using unified memory
-void SDL::Event::addHitToEvent(float x, float y, float z, unsigned int detId, unsigned int idx)
-{
-    const int HIT_MAX = 1000000;
-    const int HIT_2S_MAX = 100000;
-
-    if(hitsInGPU == nullptr)
-    {
-
-        cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
-        #ifdef Explicit_Hit
-        createHitsInExplicitMemory(*hitsInGPU,HIT_MAX);
-        #else
-        createHitsInUnifiedMemory(*hitsInGPU,HIT_MAX,HIT_2S_MAX);
-        #endif
-    }
-
-    //calls the addHitToMemory function
-    addHitToMemory(*hitsInGPU, *modulesInGPU, x, y, z, detId, idx);
-
-    //short* module_layers;
-    //short* module_subdet;
-    //cudaMallocHost(&module_layers,sizeof(short)*nModules);
-    //cudaMallocHost(&module_subdet,sizeof(short)*nModules);
-    //cudaMemcpy(module_layers,modulesInGPU->layers,nModules*sizeof(short),cudaMemcpyDeviceToHost);
-    //cudaMemcpy(module_subdet,modulesInGPU->subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost);
-    //unsigned int moduleLayer = module_layers[(*detIdToIndex)[detId]];
-    //unsigned int subdet = module_subdet[(*detIdToIndex)[detId]];
-
-    //if(subdet == Barrel)
-    //{
-    //    n_hits_by_layer_barrel_[moduleLayer-1]++;
-    //}
-    //else if(subdet == Endcap)
-    //{
-    //    n_hits_by_layer_endcap_[moduleLayer-1]++;
-    //}
-
-}
-void /*unsigned int*/ SDL::Event::addPixToEvent(float x, float y, float z, unsigned int detId, unsigned int idx)
-{
-    const int HIT_MAX = 1000000;
-    const int HIT_2S_MAX = 100000;
-
-    if(hitsInGPU == nullptr)
-    {
-
-        cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
-        #ifdef Explicit_Hit
-        createHitsInExplicitMemory(*hitsInGPU,HIT_MAX);
-        #else
-        createHitsInUnifiedMemory(*hitsInGPU,HIT_MAX,HIT_2S_MAX);
-        #endif
-    }
-
-    //calls the addHitToMemory function
-    unsigned int moduleIndex = (*detIdToIndex)[detId];
-    float phis = phi(x,y,z);
-    addHitToMemoryGPU<<<1,1>>>(*hitsInGPU, *modulesInGPU, x, y, z, detId, idx, moduleIndex,phis);
-    //addHitToMemory(*hitsInGPU, *modulesInGPU, x, y, z, detId, idx);
-
-    unsigned int moduleLayer = modulesInGPU->layers[(*detIdToIndex)[detId]];
-    unsigned int subdet = modulesInGPU->subdets[(*detIdToIndex)[detId]];
-
-    if(subdet == Barrel)
-    {
-        n_hits_by_layer_barrel_[moduleLayer-1]++;
-    }
-    else if(subdet == Endcap)
-    {
-        n_hits_by_layer_endcap_[moduleLayer-1]++;
-    }
-//    unsigned int* hitIdx;
-//    cudaMallocHost(&hitIdx,sizeof(unsigned int));
-//    cudaMemcpy(&hitIdx,hitsInGPU->nHits,sizeof(unsigned int),cudaMemcpyDeviceToHost);
-//    printf("hit %u\n",hitIdx[0]);
-//   // unsigned int dummy = *hitIdx;//so i can return the value and still free?
-//    //cudaFreeHost(hitIdx);
-//    return 0;
-}
-
-__global__ void /*SDL::Event::*/addPixelSegmentToEventKernel(unsigned int* hitIndices, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr,unsigned int pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU)
-{
-
-    //step 1 : Add pixel MDs
-    unsigned int innerMDIndex = pixelModuleIndex * N_MAX_MD_PER_MODULES + mdsInGPU.nMDs[pixelModuleIndex];
-
-    //FIXME:Fake Pixel MDs are being added to MD unified memory!
-#ifdef CUT_VALUE_DEBUG
-    addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices[0], hitIndices[1], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,0,0,0,0,innerMDIndex);
-
-#else
-    addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices[0], hitIndices[1], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,innerMDIndex);
-#endif
-    mdsInGPU.nMDs[pixelModuleIndex]++;
-    unsigned int outerMDIndex = pixelModuleIndex * N_MAX_MD_PER_MODULES + mdsInGPU.nMDs[pixelModuleIndex];
-#ifdef CUT_VALUE_DEBUG
-    addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices[2], hitIndices[3], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,0,0,0,0,outerMDIndex);
-#else
-    addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices[2], hitIndices[3], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,outerMDIndex);
-#endif
-    mdsInGPU.nMDs[pixelModuleIndex]++;
-
-    //step 2 : Add pixel segment
-    unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + segmentsInGPU.nSegments[pixelModuleIndex];
-    //FIXME:Fake Pixel Segment gets added to Segment unified memory in a convoluted fashion!
-#ifdef CUT_VALUE_DEBUG
-#else
-    addPixelSegmentToMemory(segmentsInGPU, mdsInGPU, hitsInGPU, modulesInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hitIndices[0], hitIndices[2], dPhiChange, ptIn, ptErr, px, py, pz, etaErr, pixelSegmentIndex, segmentsInGPU.nSegments[pixelModuleIndex]);
-#endif
-    segmentsInGPU.nSegments[pixelModuleIndex]++;
-}
-void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr)
-{
-    assert(hitIndices.size() == 4);
-    unsigned int pixelModuleIndex = (*detIdToIndex)[1] -1; 
-  unsigned int* hitIndices_host = &hitIndices[0];
-  unsigned int * hitIndices_dev;
-  cudaMalloc(&hitIndices_dev,4*sizeof(unsigned int));
-  cudaMemcpy(hitIndices_dev,hitIndices_host,4*sizeof(unsigned int),cudaMemcpyHostToDevice);
-
-  addPixelSegmentToEventKernel<<<1,1>>>(hitIndices_dev,dPhiChange,ptIn,ptErr,px,py,pz,etaErr,pixelModuleIndex, *modulesInGPU,*hitsInGPU,*mdsInGPU,*segmentsInGPU);
-  cudaDeviceSynchronize();
-  cudaFree(hitIndices_dev); 
-}
-__global__ void addPixelSegmentToEventKernelV2(unsigned int* hitIndices0,unsigned int* hitIndices1,unsigned int* hitIndices2,unsigned int* hitIndices3, float* dPhiChange, float* ptIn, float* ptErr, float* px, float* py, float* pz, float* etaErr,unsigned int pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU,const int size)
+__global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned int* hitIndices1,unsigned int* hitIndices2,unsigned int* hitIndices3, float* dPhiChange, float* ptIn, float* ptErr, float* px, float* py, float* pz, float* etaErr,unsigned int pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU,const int size)
 {
 
     for( int tid = blockIdx.x * blockDim.x + threadIdx.x; tid < size; tid += blockDim.x*gridDim.x)
@@ -603,7 +374,7 @@ __global__ void addPixelSegmentToEventKernelV2(unsigned int* hitIndices0,unsigne
       addPixelSegmentToMemory(segmentsInGPU, mdsInGPU, hitsInGPU, modulesInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hitIndices0[tid], hitIndices2[tid], dPhiChange[tid], ptIn[tid], ptErr[tid], px[tid], py[tid], pz[tid], etaErr[tid], pixelSegmentIndex, tid);
     }
 }
-void SDL::Event::addPixelSegmentToEventV2(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> etaErr)
+void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> etaErr)
 {
     if(mdsInGPU == nullptr)
     {
@@ -675,7 +446,7 @@ void SDL::Event::addPixelSegmentToEventV2(std::vector<unsigned int> hitIndices0,
 
     unsigned int nThreads = 256;
     unsigned int nBlocks =  size % nThreads == 0 ? size/nThreads : size/nThreads + 1;
-  addPixelSegmentToEventKernelV2<<<nBlocks,nThreads>>>(hitIndices0_dev,hitIndices1_dev,hitIndices2_dev,hitIndices3_dev,dPhiChange_dev,ptIn_dev,ptErr_dev,px_dev,py_dev,pz_dev,etaErr_dev,pixelModuleIndex, *modulesInGPU,*hitsInGPU,*mdsInGPU,*segmentsInGPU,size);
+  addPixelSegmentToEventKernel<<<nBlocks,nThreads>>>(hitIndices0_dev,hitIndices1_dev,hitIndices2_dev,hitIndices3_dev,dPhiChange_dev,ptIn_dev,ptErr_dev,px_dev,py_dev,pz_dev,etaErr_dev,pixelModuleIndex, *modulesInGPU,*hitsInGPU,*mdsInGPU,*segmentsInGPU,size);
    //std::cout<<"Number of pixel segments = "<<size<<std::endl;
    cudaDeviceSynchronize();
    cudaMemcpy(&(segmentsInGPU->nSegments)[pixelModuleIndex], &size, sizeof(unsigned int), cudaMemcpyHostToDevice);

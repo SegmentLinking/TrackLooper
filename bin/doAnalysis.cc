@@ -215,8 +215,8 @@ void addPixelSegments(SDL::Event& event, int isimtrk, std::vector<float> trkX, s
 //    trkY.insert(trkY.end(),vecY.begin(),vecY.end());
 //    trkZ.insert(trkZ.end(),vecZ.begin(),vecZ.end());
 //    hitId.insert(hitId.end(),hitIndices_vec.begin(),hitIndices_vec.end());
-    event.addHitToEventOMP(trkX,trkY,trkZ,hitId,hitId); // last value added for omp change for sdl (used for validation. this current value is incorrect but doAnalysis will be obsolete soon)
-    event.addPixelSegmentToEventV2(hitIndices_vec0,hitIndices_vec1,hitIndices_vec2,hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, etaErr_vec);
+    event.addHitToEvent(trkX,trkY,trkZ,hitId,hitId); // last value added for omp change for sdl (used for validation. this current value is incorrect but doAnalysis will be obsolete soon)
+    event.addPixelSegmentToEvent(hitIndices_vec0,hitIndices_vec1,hitIndices_vec2,hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, etaErr_vec);
 }
 
 int main(int argc, char** argv)
@@ -719,17 +719,8 @@ int main(int argc, char** argv)
             if (ana.verbose != 0) std::cout << "load Hits start" << std::endl;
             my_timer.Start();
             // Adding hits to modules
-//            event.addHitToEventGPU(trk.ph2_x(),trk.ph2_y(),trk.ph2_z(),trk.ph2_detId()); // adds explicit hits using a kernel approach. Slower than serial...
-//            event.addHitToEventOMP(trk.ph2_x(),trk.ph2_y(),trk.ph2_z(),trk.ph2_detId(),0); //adds explicit hits using omp or serial approach.  check if this runs with omp or serially before you start!
             addPixelSegments(event,-1,trk.ph2_x(),trk.ph2_y(),trk.ph2_z(),trk.ph2_detId()); //loads both pixels and hits at same time
             //old load hits method for unified memory
-//            for (unsigned int ihit = 0; ihit < trk.ph2_x().size(); ++ihit)
-//            {
-//                // Takes two arguments, SDL::Hit, and detId
-//                // SDL::Event internally will structure whether we already have the module instance or we need to create a new one.
-//                event.addHitToEvent(trk.ph2_x()[ihit], trk.ph2_y()[ihit], trk.ph2_z()[ihit],trk.ph2_detId()[ihit], ihit);
-//                //event.addPixToEvent(trk.ph2_x()[ihit], trk.ph2_y()[ihit], trk.ph2_z()[ihit],trk.ph2_detId()[ihit], ihit);
-//            }
 
             float ht_elapsed = my_timer.RealTime();
             event_times[ana.looper.getCurrentEventIndex()][0] = ht_elapsed;
