@@ -566,8 +566,41 @@ void fillTrackCandidateOutputBranches(SDL::Event& event)
 void fillLowerLevelOutputBranches(SDL::Event& event)
 {
     fillQuadrupletOutputBranches(event);
+    fillPixelQuadrupletOutputBranches(event);
     fillTripletOutputBranches(event);
 }
+
+
+//________________________________________________________________________________________________________________________________
+void fillPixelQuadrupletOutputBranches(SDL::Event& event)
+{
+    SDL::tracklets& trackletsInGPU = (*event.getTracklets());
+#ifdef CUT_VALUE_DEBUG
+    std::vector<float> t4_ZOut;
+    std::vector<float> t4_RtOut;
+    std::vector<float> t4_deltaPhiPos;
+    std::vector<float> t4_deltaPhi;
+    std::vector<float> t4_betaIn;
+    std::vector<float> t4_betaOut;
+    std::vector<float> t4_deltaBeta;
+    std::vector<float> t4_ZLo;
+    std::vector<float> t4_ZHi;
+    std::vector<float> t4_RtLo;
+    std::vector<float> t4_RtHi;
+    std::vector<float> t4_kZ;
+    std::vector<float> t4_ZLoPointed;
+    std::vector<float> t4_ZHiPointed;
+    std::vector<float> t4_sdlCut;
+    std::vector<float> t4_betaInCut;
+    std::vector<float> t4_betaOutCut;
+    std::vector<float> t4_deltaBetaCut;
+    std::vector<int> layer_binaries;
+    std::vector<int> moduleType_binaries;
+#endif
+
+   
+}
+
 
 //________________________________________________________________________________________________________________________________
 void fillQuadrupletOutputBranches(SDL::Event& event)
