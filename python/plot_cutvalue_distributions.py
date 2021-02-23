@@ -99,8 +99,9 @@ def plot_distributions(obj):
     matchedMask = tree["{}_isFake".format(obj)].array() == 0
 
     layers = np.array(list(map(process_layers,ak.flatten(tree["{}_layer_binary".format(obj)].array()))))
-    moduleTypes = np.array(list(map(process_moduleTypes,ak.flatten(tree["{}_moduleType_binary".format(obj)].array()))))
+    #moduleTypes = np.array(list(map(process_moduleTypes,ak.flatten(tree["{}_moduleType_binary".format(obj)].array()))))
     layerTypes = np.array(list(map(process_layerType,layers)))
+    print(layerTypes)
     unique_layerTypes = np.unique(layerTypes, axis = 0)
     unique_layerTypes = np.append(unique_layerTypes,"")
     print(unique_layerTypes)
@@ -127,8 +128,9 @@ def plot_composite_distributions(obj):
 
     matchedMask = tree["{}_isFake".format(obj)].array() == 0
     layers = np.array(list(map(process_layers,ak.flatten(tree["{}_layer_binary".format(obj)].array()))))
-    moduleTypes = np.array(list(map(process_moduleTypes,ak.flatten(tree["{}_moduleType_binary".format(obj)].array()))))
+    #moduleTypes = np.array(list(map(process_moduleTypes,ak.flatten(tree["{}_moduleType_binary".format(obj)].array()))))
     layerTypes = np.array(list(map(process_layerType,layers)))
+
     unique_layerTypes = np.unique(layerTypes, axis = 0)
     unique_layerTypes = np.append(unique_layerTypes,"")
     print(unique_layerTypes)
@@ -136,6 +138,8 @@ def plot_composite_distributions(obj):
     for layerType in unique_layerTypes:
         print("layerType = {}".format(layerType))
         for composite_quantity in composite_quantities:
+            if obj == "pT4" and "betaInCut" in composite_quantity:
+                continue
             print("composite quantity = {} {} {}".format(composite_quantity[0], composite_quantity[1], composite_quantity[2]))
 
             if composite_quantity[0][:4] == "abs(":
@@ -170,7 +174,8 @@ def plot_composite_distributions(obj):
 
 
 
-objects = ["t4","t3"]
+#objects = ["t4","t3","pT4"]
+objects = ["pT4"]
 for i in objects:
     plot_composite_distributions(i)
     plot_distributions(i)

@@ -63,6 +63,13 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<int>>("sim_T4_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_T4_types");
 
+    // Matched to pixel quadruplet
+    ana.tx->createBranch<vector<int>>("sim_pT4_matched");
+    ana.tx->createBranch<vector<vector<int>>>("sim_pT4_types");
+    ana.tx->createBranch<vector<int>>("pT4_isFake");
+    ana.tx->createBranch<vector<int>>("pT4_isDuplicate");
+
+
     // T4s
     ana.tx->createBranch<vector<float>>("t4_pt");
     ana.tx->createBranch<vector<float>>("t4_eta");
@@ -591,16 +598,13 @@ void fillTrackCandidateOutputBranches(SDL::Event& event)
 void fillLowerLevelOutputBranches(SDL::Event& event)
 {
     fillQuadrupletOutputBranches(event);
-#ifdef CUT_VALUE_DEBUG
-    fillPixelQuadrupletCutValueBranches(event);
-#endif
+    fillPixelQuadrupletOutputBranches(event);
     fillTripletOutputBranches(event);
 }
 
 
 //________________________________________________________________________________________________________________________________
-#ifdef CUT_VALUE_DEBUG
-void fillPixelQuadrupletCutValueBranches(SDL::Event& event)
+void fillPixelQuadrupletOutputBranches(SDL::Event& event)
 {
     SDL::tracklets& trackletsInGPU = (*event.getTracklets());
     SDL::segments& segmentsInGPU = (*event.getSegments());
@@ -608,6 +612,12 @@ void fillPixelQuadrupletCutValueBranches(SDL::Event& event)
     SDL::hits& hitsInGPU = (*event.getHits());
     SDL::modules& modulesInGPU = (*event.getModules());
 
+    std::vector<int> sim_pT4_matched(trk.sim_pt().size());
+    std::vector<vector<int>> sim_pT4_types(trk.sim_pt().size());
+    std::vector<int> pT4_isFake;
+    std::vector<vector<int>> pT4_matched_simIdx;
+
+#ifdef CUT_VALUE_DEBUG
     std::vector<float> pT4_ZOut;
     std::vector<float> pT4_RtOut;
     std::vector<float> pT4_deltaPhiPos;
@@ -628,6 +638,7 @@ void fillPixelQuadrupletCutValueBranches(SDL::Event& event)
     std::vector<float> pT4_deltaBetaCut;
     std::vector<int> layer_binaries;
     std::vector<int> moduleType_binaries;
+#endif
 
     const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 3000000;
     const int N_MAX_TRACKLETS_PER_MODULE = 8000;
@@ -698,9 +709,13 @@ void fillPixelQuadrupletCutValueBranches(SDL::Event& event)
                 (int) hitsInGPU.moduleIndices[outerSegmentOuterMiniDoubletUpperHitIndex],
         };
 
+        int layer0 = modulesInGPU.layers[module_idxs[0]];
+        int layer2 = modulesInGPU.layers[module_idxs[2]];
         int layer4 = modulesInGPU.layers[module_idxs[4]];
         int layer6 = modulesInGPU.layers[module_idxs[6]];
 
+        int subdet0 = modulesInGPU.subdets[module_idxs[0]];
+        int subdet2 = modulesInGPU.subdets[module_idxs[2]];
         int subdet4 = modulesInGPU.subdets[module_idxs[4]];
         int subdet6 = modulesInGPU.subdets[module_idxs[6]];
 
@@ -714,7 +729,29 @@ void fillPixelQuadrupletCutValueBranches(SDL::Event& event)
         layer_binary |= (1 << logicallayer2);
         layer_binary |= (1 << logicallayer4);
         layer_binary |= (1 << logicallayer6);
+#ifdef CUT_VALUE_DEBUG
+        layer_binaries.push_back(layer_binary);
+#endif
 
+        // sim track matched index
+        std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
+
+        for (auto &isimtrk : matched_sim_trk_idxs)
+        {
+            sim_pT4_matched[isimtrk]++;
+        }
+
+        for (auto &isimtrk : matched_sim_trk_idxs)
+        {
+            sim_pT4_types[isimtrk].push_back(layer_binary);
+        }
+
+
+        pT4_isFake.push_back(matched_sim_trk_idxs.size() == 0);
+        pT4_matched_simIdx.push_back(matched_sim_trk_idxs);
+
+#ifdef CUT_VALUE_DEBUG
+        //debug stuff
         float zOut = trackletsInGPU.zOut[trackletIndex];
         float rtOut = trackletsInGPU.rtOut[trackletIndex];
         float deltaPhiPos = trackletsInGPU.deltaPhiPos[trackletIndex];
@@ -751,7 +788,29 @@ void fillPixelQuadrupletCutValueBranches(SDL::Event& event)
         pT4_betaInCut.push_back(betaInCut);
         pT4_betaOutCut.push_back(betaOutCut);
         pT4_deltaBetaCut.push_back(deltaBetaCut);
+#endif
     }
+
+    vector<int> pT4_isDuplicate(pT4_matched_simIdx.size());
+
+    for (unsigned int i = 0; i < pT4_matched_simIdx.size(); ++i)
+    {
+        bool isDuplicate = false;
+        for (unsigned int isim = 0; isim < pT4_matched_simIdx[i].size(); ++isim)
+        {
+            if (sim_pT4_matched[pT4_matched_simIdx[i][isim]] > 1)
+            {
+                isDuplicate = true;
+            }
+        }
+        pT4_isDuplicate[i] = isDuplicate;
+    }
+
+    ana.tx->setBranch<vector<int>>("sim_pT4_matched", sim_pT4_matched);
+    ana.tx->setBranch<vector<vector<int>>>("sim_pT4_types", sim_pT4_types);
+    ana.tx->setBranch<vector<int>>("pT4_isFake", pT4_isFake);
+    ana.tx->setBranch<vector<int>>("pT4_isDuplicate", pT4_isDuplicate);
+#ifdef CUT_VALUE_DEBUG
     ana.tx->setBranch<vector<float>>("pT4_zOut",pT4_ZOut);
     ana.tx->setBranch<vector<float>>("pT4_rtOut",pT4_RtOut);
     ana.tx->setBranch<vector<float>>("pT4_deltaPhiPos",pT4_deltaPhiPos);
@@ -771,8 +830,8 @@ void fillPixelQuadrupletCutValueBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("pT4_betaOutCut",pT4_betaOutCut);
     ana.tx->setBranch<vector<float>>("pT4_deltaBetaCut",pT4_deltaBetaCut);
     ana.tx->setBranch<vector<int>>("pT4_layer_binary",layer_binaries);
-}
 #endif
+}
 
 
 //________________________________________________________________________________________________________________________________
