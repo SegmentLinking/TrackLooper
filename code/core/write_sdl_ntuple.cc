@@ -592,7 +592,7 @@ void fillLowerLevelOutputBranches(SDL::Event& event)
 {
     fillQuadrupletOutputBranches(event);
 #ifdef CUT_VALUE_DEBUG
-    fillPixelQuadrupletOutputBranches(event);
+    fillPixelQuadrupletCutValueBranches(event);
 #endif
     fillTripletOutputBranches(event);
 }
