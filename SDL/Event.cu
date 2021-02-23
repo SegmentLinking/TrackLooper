@@ -1475,8 +1475,8 @@ void SDL::Event::createTrackCandidates()
 
 #ifdef NESTED_PARA
     //auto t0 = std::chrono::high_resolution_clock::now();
-    //unsigned int nThreads = 1;
-    //unsigned int nBlocks = (nLowerModules-1) % nThreads == 0 ? (nLowerModules-1)/nThreads : (nLowerModules-1)/nThreads + 1;
+    unsigned int nThreads = 1;
+    unsigned int nBlocks = (nLowerModules-1) % nThreads == 0 ? (nLowerModules-1)/nThreads : (nLowerModules-1)/nThreads + 1;
 
     createTrackCandidatesInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU, *tripletsInGPU, *trackCandidatesInGPU);
 
