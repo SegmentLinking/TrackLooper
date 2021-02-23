@@ -414,6 +414,10 @@ void run_sdl()
             float timing_LS = runSegment_on_CPU(event);
             printSegmentSummary(event);
 
+            // Run Triplet
+            float timing_T3 = runT3_on_CPU(event);
+            printTripletSummary(event);
+
             // Run Tracklet
             float timing_T4 = runT4_on_CPU(event);
             printTrackletSummary(event);
@@ -421,10 +425,6 @@ void run_sdl()
             printTrackletSummary(event);
             float timing_pT4 = runpT4_on_CPU(event);
             printTrackletSummary(event);
-
-            // Run Triplet
-            float timing_T3 = runT3_on_CPU(event);
-            printTripletSummary(event);
 
             // Run TrackCandidate
             float timing_TC = runTrackCandidate_on_CPU(event);
