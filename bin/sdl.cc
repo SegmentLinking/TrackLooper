@@ -341,11 +341,11 @@ void run_sdl()
             // Run T4x
             float timing_T4x = 0; // runT4x(event);
 
-            // Run T4
-            float timing_T4 = runT4(event);
-
             // Run T3
             float timing_T3 = runT3(event);
+
+            // Run T4
+            float timing_T4 = runT4(event);
 
             // Run TC
             float timing_TC = runTrackCandidate(event);
