@@ -1521,7 +1521,7 @@ void SDL::Event::createTrackCandidates()
     cudaMemset(threadIdx_gpu, nLowerModules, threadSize*sizeof(unsigned int));
     cudaMemcpy(nTriplets, tripletsInGPU->nTriplets, (nLowerModules-1)*sizeof(unsigned int), cudaMemcpyDeviceToHost);
     cudaMemcpy(nTracklets, trackletsInGPU->nTracklets, nLowerModules*sizeof(unsigned int), cudaMemcpyDeviceToHost);
-    int nPixelTracklets= nTracklets[nLowerModules];
+    int nPixelTracklets= nTracklets[nLowerModules-1];
     if(nPixelTracklets > N_MAX_PIXEL_TRACKLETS_PER_MODULE)
       nPixelTracklets = N_MAX_PIXEL_TRACKLETS_PER_MODULE;
     unsigned int totalCand=0;
