@@ -2158,7 +2158,6 @@ __global__ void createPixelTrackletsInGPU(struct SDL::modules& modulesInGPU, str
     if(nInnerSegments == 0) return;
 
     if(modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::TwoS) return; //REMOVES 2S-2S
-    if(modulesInGPU.subdets[outerInnerLowerModuleIndex] == SDL::Endcap and modulesInGPU.layers[outerInnerLowerModuleIndex] >= 3) return; //Endcap E1 and E2 only
 
     dim3 nThreads(32,16,1);
     dim3 nBlocks(nInnerSegments % nThreads.x == 0 ? nInnerSegments / nThreads.x : nInnerSegments / nThreads.x + 1, nOuterSegments % nThreads.y == 0 ? nOuterSegments / nThreads.y : nOuterSegments / nThreads.y + 1, 1);
