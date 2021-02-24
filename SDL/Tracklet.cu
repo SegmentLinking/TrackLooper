@@ -560,6 +560,8 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
             + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
 
     float dBeta = betaIn - betaOut;
+    //FIXME: cheap hack
+    dBetaCut2 /= 100;
     deltaBetaCut = sqrtf(dBetaCut2);    
     //Cut #7: Cut on dBeta
     if (not (dBeta * dBeta <= dBetaCut2))
@@ -813,7 +815,14 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
     float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
             + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
     float dBeta = betaIn - betaOut;
+
+    //FIXME: cheap hack
+    if(modulesInGPU.subdets[innerOuterLowerModuleIndex] == SDL::Barrel) //cut only for BBBE and BBEE
+    {
+        dBetaCut2 /= 100;
+    }
     deltaBetaCut = sqrtf(dBetaCut2);
+
     //Cut #7: Cut on dBet
     if (not (dBeta * dBeta <= dBetaCut2))
     {
@@ -1060,8 +1069,10 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
     float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
             + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
     float dBeta = betaIn - betaOut;
+
     //Cut #7: Cut on dBeta
     deltaBetaCut = sqrtf(dBetaCut2);
+
     if (not (dBeta * dBeta <= dBetaCut2))
     {
         pass = false;
@@ -1296,10 +1307,13 @@ __device__ bool SDL::runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
 
     const float pt_betaOut = drt_tl_axis * k2Rinv1GeVf / sin(betaOut);
     const float dBetaRes = 0.02f / fminf(sdOut_d, drt_InSeg);
-    const float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
+    float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
             + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
     float dBeta = betaIn - betaOut;
+
+
     deltaBetaCut = sqrtf(dBetaCut2);
+
     if (not (dBeta * dBeta <= dBetaCut2))
     {
         //printf("dBeta2 = %f, dBetaCut2 = %f\n",dBeta * dBeta, dBetaCut2);
@@ -1545,10 +1559,12 @@ __device__ bool SDL::runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
     float drt_InSeg = hitsInGPU.rts[innerOuterAnchorHitIndex] - hitsInGPU.rts[innerInnerAnchorHitIndex];
 
     const float dBetaRes = 0.02f / fminf(sdOut_d, drt_InSeg);
-    const float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
+    float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
             + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
     float dBeta = betaIn - betaOut;
+
     deltaBetaCut = sqrtf(dBetaCut2);
+
     if (not (dBeta * dBeta <= dBetaCut2))
     {
         pass = false;
@@ -1864,6 +1880,9 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
     float dBeta = betaIn - betaOut;
     
     //Cut #7: Cut on dBeta
+    //FIXME: cheap hack
+    dBetaCut2 /= 100;
+
     if (not (dBeta * dBeta <= dBetaCut2))
     {
         pass = false;
@@ -2114,6 +2133,11 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
             + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
     float dBeta = betaIn - betaOut;
     //Cut #7: Cut on dBeta
+    if(modulesInGPU.subdets[innerOuterLowerModuleIndex] == SDL::Barrel) //cut only for BBBE and BBEE
+    {
+        dBetaCut2 /= 100;
+    }
+
     if (not (dBeta * dBeta <= dBetaCut2))
     {
         pass = false;
@@ -2360,6 +2384,7 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
             + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
     float dBeta = betaIn - betaOut;
     //Cut #7: Cut on dBeta
+
     if (not (dBeta * dBeta <= dBetaCut2))
     {
         pass = false;
@@ -2594,10 +2619,12 @@ __device__ bool SDL::runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
 
     const float pt_betaOut = drt_tl_axis * k2Rinv1GeVf / sin(betaOut);
     const float dBetaRes = 0.02f / fminf(sdOut_d, drt_InSeg);
-    const float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
+    float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
             + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
     float dBeta = betaIn - betaOut;
+
     float deltaBetaCut = sqrtf(dBetaCut2);
+
     if (not (dBeta * dBeta <= dBetaCut2))
     {
         //printf("dBeta2 = %f, dBetaCut2 = %f\n",dBeta * dBeta, dBetaCut2);
@@ -2842,9 +2869,10 @@ __device__ bool SDL::runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
     float drt_InSeg = hitsInGPU.rts[innerOuterAnchorHitIndex] - hitsInGPU.rts[innerInnerAnchorHitIndex];
 
     const float dBetaRes = 0.02f / fminf(sdOut_d, drt_InSeg);
-    const float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
+    float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
             + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
     float dBeta = betaIn - betaOut;
+
     float deltaBetaCut = sqrtf(dBetaCut2);
     if (not (dBeta * dBeta <= dBetaCut2))
     {
