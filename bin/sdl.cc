@@ -49,7 +49,7 @@ int main(int argc, char** argv)
         ("n,nevents"        , "N events to loop over"                                                                               , cxxopts::value<int>()->default_value("-1"))
         ("x,event_index"    , "specific event index to process"                                                                     , cxxopts::value<int>()->default_value("-1"))
         ("g,pdg_id"         , "The simhit pdgId match option (default = 0)"                                                         , cxxopts::value<int>()->default_value("0"))
-        ("v,verbose"        , "Verbose mode"                                                                                        , cxxopts::value<int>()->default_value("0"))
+        ("v,verbose"        , "Verbose mode (0: no print, 1: only final timing, 2: object multiplitcity"                            , cxxopts::value<int>()->default_value("0"))
         ("w,write_ntuple"   , "Write Ntuple"                                                                                        , cxxopts::value<int>()->default_value("1"))
         ("d,debug"          , "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")
         ("c,cpu"            , "Run CPU version of the code.")
@@ -326,7 +326,8 @@ void run_sdl()
             if (ana.compilation_target.find("explicit") != std::string::npos)
                 timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
             else
-                timing_input_loading = addInputsToLineSegmentTrackingUsingUnifiedMemory(event);
+                timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
+                //timing_input_loading = addInputsToLineSegmentTrackingUsingUnifiedMemory(event);
 
             // Run Mini-doublet
             float timing_MD = runMiniDoublet(event);
