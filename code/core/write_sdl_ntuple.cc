@@ -88,6 +88,12 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<int>>("t3_isFake");
     ana.tx->createBranch<vector<int>>("t3_isDuplicate");
 
+    //pLS
+    ana.tx->createBranch<vector<float>>("pLS_pt");
+    ana.tx->createBranch<vector<float>>("pLS_eta");
+    ana.tx->createBranch<vector<float>>("pLS_phi");
+    ana.tx->createBranch<vector<float>>("pLS_isFake");
+    ana.tx->createBranch<vector<float>>("pLS_isDuplicate");
 
 #ifdef CUT_VALUE_DEBUG
     createQuadrupletCutValueBranches();
@@ -601,8 +607,110 @@ void fillLowerLevelOutputBranches(SDL::Event& event)
     fillQuadrupletOutputBranches(event);
     fillPixelQuadrupletOutputBranches(event);
     fillTripletOutputBranches(event);
+    fillPixelLineSegmentOutputBranches(event);
 }
 
+
+
+//________________________________________________________________________________________________________________________________
+void fillPixelLineSegmentOutputBranches(SDL::Event& event)
+{
+    SDL::segments& segmentsInGPU = (*event.getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event.getHits());
+    SDL::modules& modulesInGPU = (*event.getModules());
+
+    std::vector<int> sim_pLS_matched(trk.sim_pt().size(), 0);
+    std::vector<vector<int>> sim_pLS_types(trk.sim_pt().size());
+    std::vector<int> pLS_isFake;
+    std::vector<vector<int>> pLS_matched_simIdx;
+    std::vector<float> pLS_pt;
+    std::vector<float> pLS_eta;
+    std::vector<float> pLS_phi;
+
+    const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000; 
+    const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
+    unsigned int pixelModuleIndex = *(modulesInGPU.nModules) - 1;
+    unsigned int nPixelSegments = std::min(segmentsInGPU.nSegments[pixelModuleIndex], N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+    for(unsigned int jdx = 0; jdx < nPixelSegments; jdx++)
+    {
+        unsigned int pixelSegmentIndex = pixelModuleINdex * N_MAX_SEGMENTS_PER_MODULE + jdx;
+        unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
+        unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
+        unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerMiniDoubletIndex];
+        unsigned int innerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerMiniDoubletIndex + 1];
+        unsigned int outerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerMiniDoubletIndex];
+        unsigned int outerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerMiniDoubletIndex + 1];
+
+        std::vector<int> hit_idx = {
+            (int) hitsInGPU.idxs[innerMiniDoubletLowerHitIndex], 
+            (int) hitsInGPU.idxs[innerMiniDoubletUpperHitIndex], 
+            (int) hitsInGPU.idxs[outerMiniDoubletLowerHitIndex], 
+            (int) hitsInGPU.idxs[outerMiniDoubletUpperHitIndex]
+        };
+
+        std::vector<int> hit_types = {0,0,0,0};
+        std::vector<int> module_idxs = {
+            pixelModuleIndex, pixelModuleIndex, pixelModuleIndex, pixelModuleIndex
+        };
+        int layer0 = modulesInGPU.layers[module_idxs[0]];
+        int layer2 = modulesInGPU.layers[module_idxs[2]];
+
+        int subdet0 = modulesInGPU.subdets[module_idxs[0]];
+        int subdet2 = modulesInGPU.subdets[module_idxs[2]];
+
+        int logicallayer0 = 0;
+        int logicallayer2 = 0;
+
+        int layer_binary = 0;
+        layer_binary |= (1 << logicallayer0);
+        layer_binary |= (1 << logicallayer2);
+
+        // sim track matched index
+        std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
+
+        for (auto &isimtrk : matched_sim_trk_idxs)
+        {
+            sim_pLS_matched[isimtrk]++;
+        }
+
+        for (auto &isimtrk : matched_sim_trk_idxs)
+        {
+            sim_pLS_types[isimtrk].push_back(layer_binary);
+        }
+
+
+        pLS_isFake.push_back(matched_sim_trk_idxs.size() == 0);
+        pLS_matched_simIdx.push_back(matched_sim_trk_idxs);
+
+        pLS_pt.push_back(segmentsInGPU.ptIn[jdx]);
+        pLS_eta.push_back(segmentsInGPU.eta[jdx]);
+        pLS_phi.push_back(segmentsInGPU.phi[jdx]);
+
+    }
+    vector<int> pLS_isDuplicate(pLS_matched_simIdx.size());
+
+    for (unsigned int i = 0; i < pLS_matched_simIdx.size(); ++i)
+    {
+        bool isDuplicate = false;
+        for (unsigned int isim = 0; isim < pLS_matched_simIdx[i].size(); ++isim)
+        {
+            if (sim_pLS_matched[pLS_matched_simIdx[i][isim]] > 1)
+            {
+                isDuplicate = true;
+            }
+        }
+        pLS_isDuplicate[i] = isDuplicate;
+    }
+
+    ana.tx->setBranch<vector<int>>("sim_pLS_matched",sim_pLS_matched);
+    ana.tx->setBranch<vector<vector<int>>("sim_pLS_types",sim_PLS_types);
+    ana.tx->setBranch<vector<float>>("pLS_pt",pLS_pt);
+    ana.tx->setBranch<vector<float>>("pLS_eta",pLS_eta);
+    ana.tx->setBranch<vector<float>>("pLS_phi",pLS_phi);
+    ana.tx->setBranch<vector<int>>("pLS_isFake",pLS_isFake);
+    ana.tx->setBranch<vector<int>>("pLS_isDuplicate",pLS_isDuplicate);
+}
 
 //________________________________________________________________________________________________________________________________
 void fillPixelQuadrupletOutputBranches(SDL::Event& event)
