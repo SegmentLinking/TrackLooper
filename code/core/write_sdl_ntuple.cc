@@ -89,11 +89,13 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<int>>("t3_isDuplicate");
 
     //pLS
+    ana.tx->createBranch<vector<int>>("sim_pLS_matched");
+    ana.tx->createBranch<vector<vector<int>>>("sim_pLS_types");
+    ana.tx->createBranch<vector<int>>("pLS_isFake");
+    ana.tx->createBranch<vector<int>>("pLS_isDuplicate");
     ana.tx->createBranch<vector<float>>("pLS_pt");
     ana.tx->createBranch<vector<float>>("pLS_eta");
     ana.tx->createBranch<vector<float>>("pLS_phi");
-    ana.tx->createBranch<vector<float>>("pLS_isFake");
-    ana.tx->createBranch<vector<float>>("pLS_isDuplicate");
 
 #ifdef CUT_VALUE_DEBUG
     createQuadrupletCutValueBranches();
@@ -634,7 +636,7 @@ void fillPixelLineSegmentOutputBranches(SDL::Event& event)
     unsigned int nPixelSegments = std::min(segmentsInGPU.nSegments[pixelModuleIndex], N_MAX_PIXEL_SEGMENTS_PER_MODULE);
     for(unsigned int jdx = 0; jdx < nPixelSegments; jdx++)
     {
-        unsigned int pixelSegmentIndex = pixelModuleINdex * N_MAX_SEGMENTS_PER_MODULE + jdx;
+        unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + jdx;
         unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
         unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
         unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerMiniDoubletIndex];
@@ -642,7 +644,7 @@ void fillPixelLineSegmentOutputBranches(SDL::Event& event)
         unsigned int outerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerMiniDoubletIndex];
         unsigned int outerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerMiniDoubletIndex + 1];
 
-        std::vector<int> hit_idx = {
+        std::vector<int> hit_idxs = {
             (int) hitsInGPU.idxs[innerMiniDoubletLowerHitIndex], 
             (int) hitsInGPU.idxs[innerMiniDoubletUpperHitIndex], 
             (int) hitsInGPU.idxs[outerMiniDoubletLowerHitIndex], 
@@ -704,7 +706,7 @@ void fillPixelLineSegmentOutputBranches(SDL::Event& event)
     }
 
     ana.tx->setBranch<vector<int>>("sim_pLS_matched",sim_pLS_matched);
-    ana.tx->setBranch<vector<vector<int>>("sim_pLS_types",sim_PLS_types);
+    ana.tx->setBranch<vector<vector<int>>>("sim_pLS_types",sim_pLS_types);
     ana.tx->setBranch<vector<float>>("pLS_pt",pLS_pt);
     ana.tx->setBranch<vector<float>>("pLS_eta",pLS_eta);
     ana.tx->setBranch<vector<float>>("pLS_phi",pLS_phi);

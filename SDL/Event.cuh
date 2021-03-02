@@ -180,7 +180,6 @@ __global__ void createTrackletsWithAGapInGPU(struct SDL::modules& modulesInGPU, 
 
 
 __global__ void createTrackletsWithAGapFromInnerInnerLowerModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int nInnerSegments, unsigned int innerInnerLowerModuleArrayIndex);
-phi[tid], 
 #ifndef NESTED_PARA
 #ifdef NEWGRID_Trips
 __global__ void createTripletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, str\

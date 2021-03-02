@@ -23,3 +23,5 @@ efficiency/bin/createEffNumDenPlots
 output*
 movetoweb.sh
 *.nvvp
+*.md
+*backup
