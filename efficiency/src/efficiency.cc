@@ -258,7 +258,7 @@ void fillFakeRateSets(std::vector<FakeRateSetDefinition>& FRsets)
 {
     for (auto& FRset : FRsets)
     {
-        for (unsigned int itc = 0; itc < sdl.tc_pt().size(); ++itc)
+        for (unsigned int itc = 0; itc < FRset.pt.size(); ++itc)
         {
             fillFakeRateSet(itc, FRset);
         }
@@ -328,7 +328,7 @@ void fillDuplicateRateSets(std::vector<DuplicateRateSetDefinition>& DLsets)
 {
     for (auto& DLset : DLsets)
     {
-        for (unsigned int itc = 0; itc < sdl.tc_pt().size(); ++itc)
+        for (unsigned int itc = 0; itc < DLset.pt.size(); ++itc)
         {
             fillDuplicateRateSet(itc, DLset);
         }
