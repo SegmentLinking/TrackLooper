@@ -199,24 +199,18 @@ EfficiencySetDefinition::EfficiencySetDefinition(TString set_name_, int pdgid_, 
     pass = pass_;
 }
 
-FakeRateSetDefinition::FakeRateSetDefinition(TString set_name_, int pdgid_, std::function<bool(int)> pass_, const std::vector<float>& pt_, const std::vector<float>& eta_, const std::vector<float>& phi_)
+FakeRateSetDefinition::FakeRateSetDefinition(TString set_name_, int pdgid_, std::function<bool(int)> pass_, const std::vector<float>& pt_, const std::vector<float>& eta_, const std::vector<float>& phi_) : pt(pt_), eta(eta_), phi(phi_)
 {
     set_name = set_name_;
     pdgid = pdgid_;
     pass = pass_;
-    pt = pt_;
-    eta_ = eta_;
-    phi = phi_;
 }
 
-DuplicateRateSetDefinition::DuplicateRateSetDefinition(TString set_name_, int pdgid_, std::function<bool(int)> pass_, const std::vector<float>& pt_, const std::vector<float>& eta_, const std::vector<float>& phi_)
+DuplicateRateSetDefinition::DuplicateRateSetDefinition(TString set_name_, int pdgid_, std::function<bool(int)> pass_, const std::vector<float>& pt_, const std::vector<float>& eta_, const std::vector<float>& phi_) : pt(pt_), eta(eta_), phi(phi_)
 {
     set_name = set_name_;
     pdgid = pdgid_;
     pass = pass_;
-    pt = pt_;
-    eta = eta_;
-    phi = phi_;
 }
 
 void initializeInputsAndOutputs()
