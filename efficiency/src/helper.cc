@@ -261,7 +261,7 @@ std::vector<float> getPtBounds()
 }
 
 //__________________________________________________________________________________________
-std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes)
+/*std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes)
 {
     if (hitidxs.size() != hittypes.size())
     {
@@ -386,4 +386,4 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
     }
 
     return matched_sim_trk_idxs;
-}
+}*/
