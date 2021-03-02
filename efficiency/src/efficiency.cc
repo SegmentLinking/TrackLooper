@@ -31,11 +31,11 @@ int main(int argc, char** argv)
     // creating a set of fake rate plots
     std::vector<FakeRateSetDefinition> list_FRSetDef;
 
-    list_FRSetDef.push_back(FakeRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isFake()[itc] > 0;}));
+    list_FRSetDef.push_back(FakeRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isFake()[itc] > 0;}, sdl.tc_pt(), sdl.tc_eta(), sdl.tc_phi());
     if (ana.do_lower_level)
     {
-        list_FRSetDef.push_back(FakeRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isFake()[it4] > 0;}));
-        list_FRSetDef.push_back(FakeRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isFake()[it3] > 0;}));
+        list_FRSetDef.push_back(FakeRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isFake()[it4] > 0;}), sdl.t4_pt(), sdl.t4_eta(), sdl.t4_phi());
+        list_FRSetDef.push_back(FakeRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isFake()[it3] > 0;}), sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi());
     }
 
     bookFakeRateSets(list_FRSetDef);
@@ -43,11 +43,11 @@ int main(int argc, char** argv)
     // creating a set of fake rate plots
     std::vector<DuplicateRateSetDefinition> list_DLSetDef;
 
-    list_DLSetDef.push_back(DuplicateRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isDuplicate()[itc] > 0;}));
+    list_DLSetDef.push_back(DuplicateRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isDuplicate()[itc] > 0;}), sdl.tc_pt(), sdl.tc_eta(), sdl.tc_phi());
     if (ana.do_lower_level)
     {
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isDuplicate()[it4] > 0;}));
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isDuplicate()[it3] > 0;}));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isDuplicate()[it4] > 0;}), sdl.t4_pt(), sdl.t4_eta(), sdl.t4_phi());
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isDuplicate()[it3] > 0;}), sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi());
     }
 
     bookDuplicateRateSets(list_DLSetDef);
