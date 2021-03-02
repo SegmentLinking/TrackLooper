@@ -77,8 +77,8 @@ public:
     int pdgid;
     std::function<bool(int)> pass;
     const std::vector<float> pt;
-    const std::vector<float> eta;
-    const std::vector<float> phi
+    const std::vector<float> eta
+    const std::vector<float> phi;
     FakeRateSetDefinition(TString, int, std::function<bool(int)>, const std::vector<float>&, const std::vector<float>&, const std::vector<float>&);
 };
 
@@ -89,7 +89,7 @@ public:
     std::function<bool(int)> pass;
     const std::vector<float> pt;
     const std::vector<float> eta;
-    const std::vector<float> phi
+    const std::vector<float> phi;
     DuplicateRateSetDefinition(TString, int, std::function<bool(int)>, const std::vector<float>&, const std::vector<float>&, const std::vector<float>&);
 };
 
