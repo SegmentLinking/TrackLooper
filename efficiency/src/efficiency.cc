@@ -36,7 +36,7 @@ int main(int argc, char** argv)
     {
         list_FRSetDef.push_back(FakeRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isFake()[it4] > 0;}), sdl.t4_pt(), sdl.t4_eta(), sdl.t4_phi());
         list_FRSetDef.push_back(FakeRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isFake()[it3] > 0;}), sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi());
-        list_FRSetDef.push_back(FakeRateSetDefinition("pLS_AllTypes", 13, [&](int itls) { return sdl.pLS_isFake()[itls] > 0;}));
+        list_FRSetDef.push_back(FakeRateSetDefinition("pLS_AllTypes", 13, [&](int itls) { return sdl.pLS_isFake()[itls] > 0;}), sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi());
     }
 
     bookFakeRateSets(list_FRSetDef);
@@ -49,7 +49,7 @@ int main(int argc, char** argv)
     {
         list_DLSetDef.push_back(DuplicateRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isDuplicate()[it4] > 0;}), sdl.t4_pt(), sdl.t4_eta(), sdl.t4_phi());
         list_DLSetDef.push_back(DuplicateRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isDuplicate()[it3] > 0;}), sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi());
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("pLS_AllTypes", 13, [&](int itls) { return sdl.pLS_isDuplicate()[itls] > 0;}));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("pLS_AllTypes", 13, [&](int itls) { return sdl.pLS_isDuplicate()[itls] > 0;}), sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi());
     }
 
     bookDuplicateRateSets(list_DLSetDef);
@@ -267,9 +267,9 @@ void fillFakeRateSets(std::vector<FakeRateSetDefinition>& FRsets)
 
 void fillFakeRateSet(int itc, FakeRateSetDefinition& FRset)
 {
-    const float& pt = sdl.tc_pt()[itc];
-    const float& eta = sdl.tc_eta()[itc];
-    const float& phi = sdl.tc_phi()[itc];
+    const float& pt = FRset.pt[itc];
+    const float& eta = FRset.eta[itc];
+    const float& phi = FRset.phi[itc];
 
     TString category_name = FRset.set_name;
 
@@ -337,9 +337,9 @@ void fillDuplicateRateSets(std::vector<DuplicateRateSetDefinition>& DLsets)
 
 void fillDuplicateRateSet(int itc, DuplicateRateSetDefinition& DLset)
 {
-    const float& pt = sdl.tc_pt()[itc];
-    const float& eta = sdl.tc_eta()[itc];
-    const float& phi = sdl.tc_phi()[itc];
+    const float& pt = DLset.pt[itc];
+    const float& eta = DLset.eta[itc];
+    const float& phi = DLset.phi[itc];
 
     TString category_name = DLset.set_name;
 
