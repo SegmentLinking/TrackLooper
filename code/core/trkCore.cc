@@ -1297,6 +1297,17 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
         {
 
+            //sim hit matching
+            std::vector<int> hit_types = {0,0,0,0};
+            std::vector<int> hit_idxs;
+            hit_idxs.push_back(trk.see_hitIdx()[iSeed][0]);
+            hit_idxs.push_back(trk.see_hitIdx()[iSeed][1]);
+            hit_idxs.push_back(trk.see_hitIdx()[iSeed][2]);
+            hit_idxs.push_back(trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]);
+            std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
+            if(matched_sim_trk_idxs.size() == 0) 
+                continue;
+
             unsigned int hitIdx0 = hit_size + count;
             count++; // incrementing the counter after the hitIdx should take care for the -1 right?
 
