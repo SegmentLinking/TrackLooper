@@ -228,6 +228,9 @@ int main(int argc, char** argv)
 
     //_______________________________________________________________________________
     // --lower_level
+#ifdef CUT_VALUE_DEBUG
+    ana.do_lower_level = true;
+#else
     if (result.count("lower_level"))
     {
         ana.do_lower_level = true;
@@ -236,6 +239,7 @@ int main(int argc, char** argv)
     {
         ana.do_lower_level = false;
     }
+#endif
 
     // Printing out the option settings overview
     std::cout <<  "=========================================================" << std::endl;

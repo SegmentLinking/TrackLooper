@@ -15,8 +15,13 @@ run_gpu()
         echo "sdl could not be found! Compilation probably failed! Check the compilation."
         exit
     fi
-    sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -i ${sample}
-    sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 4 -f
+    sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -i ${sample} -l
+    if [[ ${PDGID} == 0 ]]; then
+        sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 0 -f
+    else
+        sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 4 -f
+
+    fi
 }
 
 validate_efficiency_usage()
@@ -37,8 +42,8 @@ validate_efficiency_usage()
 # Parsing command-line opts
 while getopts ":h" OPTION; do
   case $OPTION in
-    h) usage;;
-    :) usage;;
+    h) validate_efficiency_usage;;
+    :) validate_efficiency_usage;;
   esac
 done
 

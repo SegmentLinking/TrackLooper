@@ -199,14 +199,14 @@ EfficiencySetDefinition::EfficiencySetDefinition(TString set_name_, int pdgid_, 
     pass = pass_;
 }
 
-FakeRateSetDefinition::FakeRateSetDefinition(TString set_name_, int pdgid_, std::function<bool(int)> pass_)
+FakeRateSetDefinition::FakeRateSetDefinition(TString set_name_, int pdgid_, std::function<bool(int)> pass_, const std::vector<float>& pt_, const std::vector<float>& eta_, const std::vector<float>& phi_) : pt(pt_), eta(eta_), phi(phi_)
 {
     set_name = set_name_;
     pdgid = pdgid_;
     pass = pass_;
 }
 
-DuplicateRateSetDefinition::DuplicateRateSetDefinition(TString set_name_, int pdgid_, std::function<bool(int)> pass_)
+DuplicateRateSetDefinition::DuplicateRateSetDefinition(TString set_name_, int pdgid_, std::function<bool(int)> pass_, const std::vector<float>& pt_, const std::vector<float>& eta_, const std::vector<float>& phi_) : pt(pt_), eta(eta_), phi(phi_)
 {
     set_name = set_name_;
     pdgid = pdgid_;
@@ -261,7 +261,7 @@ std::vector<float> getPtBounds()
 }
 
 //__________________________________________________________________________________________
-std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes)
+/*std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes)
 {
     if (hitidxs.size() != hittypes.size())
     {
@@ -386,4 +386,4 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
     }
 
     return matched_sim_trk_idxs;
-}
+}*/

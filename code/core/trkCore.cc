@@ -1221,6 +1221,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
     std::vector<float> ptIn_vec;
     std::vector<float> ptErr_vec;
     std::vector<float> etaErr_vec;
+    std::vector<float> eta_vec;
+    std::vector<float> phi_vec;
     std::vector<float> deltaPhi_vec;
     std::vector<float> trkX = trk.ph2_x();
     std::vector<float> trkY = trk.ph2_y();
@@ -1288,10 +1290,23 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         float px = p3LH.X();
         float py = p3LH.Y();
         float pz = p3LH.Z();
+        float eta = p3LH.Eta();
+        float phi = p3LH.Phi();
         //extra bit
-
-        if ((ptIn > 1 - 2 * ptErr) and (fabs(p3LH.Eta()) < 3))
+	
+        if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
         {
+
+            //sim hit matching
+            std::vector<int> hit_types = {0,0,0,0};
+            std::vector<int> hit_idxs;
+            hit_idxs.push_back(trk.see_hitIdx()[iSeed][0]);
+            hit_idxs.push_back(trk.see_hitIdx()[iSeed][1]);
+            hit_idxs.push_back(trk.see_hitIdx()[iSeed][2]);
+            hit_idxs.push_back(trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]);
+            std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
+            if(matched_sim_trk_idxs.size() == 0) 
+                continue;
 
             unsigned int hitIdx0 = hit_size + count;
             count++; // incrementing the counter after the hitIdx should take care for the -1 right?
@@ -1343,6 +1358,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             ptIn_vec.push_back(ptIn);
             ptErr_vec.push_back(ptErr);
             etaErr_vec.push_back(etaErr);
+            eta_vec.push_back(eta);
+            phi_vec.push_back(phi);
             deltaPhi_vec.push_back(pixelSegmentDeltaPhiChange);
 
             // For matching with sim tracks
@@ -1359,7 +1376,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
     }
 
     event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
-    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, etaErr_vec);
+    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec);
 
     float hit_loading_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Loading inputs processing time: " << hit_loading_elapsed << " secs" << std::endl;
@@ -1369,7 +1386,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
 //__________________________________________________________________________________________
 float addInputsToLineSegmentTrackingUsingUnifiedMemory(SDL::Event &event)
 {
-    return addInputsToLineSegmentTracking(event, false);
+    return addInputsToLineSegmentTracking(event, true);
 }
 
 //__________________________________________________________________________________________

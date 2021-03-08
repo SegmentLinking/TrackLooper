@@ -26,17 +26,24 @@ CFLAGS      = $(ROOTCFLAGS) --compiler-options -Wall --compiler-options -Wno-unu
 EXTRACFLAGS = $(shell rooutil-config)
 EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -L/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/lib64 -lcudart -fopenmp
 
-cutvalue: EXTRACFLAGS += -DCUT_VALUE_DEBUG
-cutvalue : $(ROOUTIL) efficiency $(EXES)
+CUTVALUEFLAG = 
+CUTVALUEFLAG_FLAGS = -DCUT_VALUE_DEBUG
 
 all: $(ROOUTIL) efficiency $(EXES)
 
 
+cutvalue: CUTVALUEFLAG = ${CUTVALUEFLAG_FLAGS}
+cutvalue: $(ROOUTIL) efficiency $(EXES)
+
+
+bin/doAnalysis: bin/doAnalysis.o $(OBJECTS)
+	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(EXTRAFLAGS) -o $@
+
 bin/sdl: bin/sdl.o $(OBJECTS)
-	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(EXTRAFLAGS) -o $@
+	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG)  $(EXTRAFLAGS) -o $@
 
 %.o: %.cc
-	$(CC) $(CFLAGS) $(EXTRACFLAGS) $< -dc -o $@
+	$(CC) $(CFLAGS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $< -dc -o $@
 
 $(ROOUTIL):
 	$(MAKE) -C code/rooutil/
