@@ -26,6 +26,7 @@ void fillTrackCandidateOutputBranches(SDL::Event& event);
 void fillLowerLevelOutputBranches(SDL::Event& event);
 void fillQuadrupletOutputBranches(SDL::Event& event);
 void fillTripletOutputBranches(SDL::Event& event);
+void fillQuintupletOutputBranches(SDL::Event& event);
 // CPU
 void fillOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event);

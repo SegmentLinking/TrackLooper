@@ -63,6 +63,15 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("t3_phi");
     ana.tx->createBranch<vector<int>>("t3_isFake");
     ana.tx->createBranch<vector<int>>("t3_isDuplicate");
+
+    //T5 - new kid
+    ana.tx->createBranch<vector<int>>("sim_T5_matched");
+    ana.tx->createBranch<vector<vector<int>>>("sim_T5_types");
+
+    ana.tx->createBranch<vector<float>>("t5_innerTripletPt");
+    ana.tx->createBranch<vector<float>>("t5_outerTripletPt");
+    ana.tx->createBranch<vector<int>>("t5_isFake");
+    ana.tx->createBranch<vector<int>>("t5_isDuplicate");
 }
 
 //________________________________________________________________________________________________________________________________
@@ -432,6 +441,167 @@ void fillLowerLevelOutputBranches(SDL::Event& event)
 {
     fillQuadrupletOutputBranches(event);
     fillTripletOutputBranches(event);
+    fillQuintupletOutputBranches(event);
+}
+
+
+//________________________________________________________________________________________________________________________________
+void fillQuintupletOutputBranches(SDL::Event& event)
+{
+    SDL::quintuplets& quintupletsInGPU = (*event.getQuintuplets());
+    SDL::triplets& tripletsInGPU = (*event.getTriplets());
+    SDL::segments& segmentsInGPU = (*event.getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event.getHits());
+    SDL::modules& modulesInGPU = (*event.getModules());
+
+    // Did it match to track candidate?
+    std::vector<int> sim_T5_matched(trk.sim_pt().size());
+    std::vector<vector<int>> sim_T5_types(trk.sim_pt().size());
+    std::vector<int> t5_isFake;
+    std::vector<vector<int>> t5_matched_simIdx;
+    std::vector<float> t5_innerTripletPt;
+    std::vector<float> t5_outerTripletPt;
+    const int MAX_NQUINTUPLET_PER_MODULE = 50000;
+    
+    for(unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
+    {
+        unsigned int nQuintuplets = quintupletsInGPU.nQuintuplets[idx];
+        if(nQuintuplets > MAX_NQUINTUPLET_PER_MODULE)
+        {
+            nQuintuplets = MAX_NQUINTUPLET_PER_MODULE;
+        }
+
+        for(unsigned int jdx = 0; jdx < nQuintuplets; jdx++)
+        {
+            unsigned int quintupletIndex = MAX_NQUINTUPLET_PER_MODULE * idx + jdx;
+            innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
+            outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
+            t5_innerTripletPt.push_back(quintupletsInGPU.innerTripletPt[quintupletIndex]);
+            t5_outerTripletPt.push_back(quintupletsInGPU.outerTripletPt[quintupletIndex]);
+
+            unsigned int innerTripletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex];
+            unsigned int innerTripletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex + 1];
+            unsigned int outerTripletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTripletIndex];
+            unsigned int outerTripletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTripletIndex + 1];
+
+            unsigned int innerTripletInnerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTripletInnerSegmentIndex];
+
+             //same as innerTripletOuterSegmentInnerMiniDoubletIndex
+            unsigned int innerTripletInnerSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTripletInnerSegmentIndex + 1];
+            
+            //same as outerTripletInnerSegmentInnerMiniDoubletIndex
+            unsigned int innerTripletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTripletOuterSegmentIndex + 1];
+
+            //same as outerTripletOuterSegmentInnerMiniDoubletIndex
+            unsigned int outerTripletInnerSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTripletInnerSegmentIndex + 1];
+
+            unsigned int outerTripletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTripletOuterSegmentIndex + 1];
+
+            unsigned int innerTripletInnerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTripletInnerSegmentInnerMiniDoubletIndex];
+            unsigned int innerTripletInnerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTripletInnerSegmentInnerMiniDoubletIndex + 1];
+
+            unsigned int innerTripletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTripletInnerSegmentOuterMiniDoubletIndex];
+            unsigned int innerTripletInnerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTripletInnerSegmentOuterMiniDoubletIndex + 1];
+
+            unsigned int innerTripletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTripletOuterSegmentOuterMiniDoubletIndex];
+            unsigned int innerTripletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTripletInnerSegmentOuterMiniDoubletIndex + 1];
+
+            unsigned int outerTripletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTripletInnerSegmentOuterMiniDoubletIndex];
+            unsigned int outerTripletInnerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTripletInnerSegmentOuterMiniDoubletIndex + 1];
+
+            unsigned int outerTripletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTripletOuterSegmentOuterMiniDoubletIndex];
+            unsigned int outerTripletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTripletOuterSegmentOuterMiniDoubletIndex + 1];
+
+            std::vector<int> hit_idxs = {
+                (int) hitsInGPU.idxs[innerTripletInnerSegmentInnerMiniDoubletLowerHitIndex];
+                (int) hitsInGPU.idxs[innerTripletInnerSegmentInnerMiniDoubletUpperHitIndex];
+                (int) hitsInGPU.idxs[innerTripletInnerSegmentOuterMiniDoubletLowerHitIndex];
+                (int) hitsInGPU.idxs[innerTripletInnerSegmentOuterMiniDoubletUpperHitIndex];
+                (int) hitsInGPU.idxs[innerTripletOuterSegmentOuterMiniDoubletLowerHitIndex];
+                (int) hitsInGPU.idxs[innerTripletOuterSegmentOuterMiniDoubletUpperHitIndex];
+                (int) hitsInGPU.idxs[outerTripletInnerSegmentOuterMiniDoubletLowerHitIndex];
+                (int) hitsInGPU.idxs[outerTripletInnerSegmentOuterMiniDoubletUpperHitIndex];
+                (int) hitsInGPU.idxs[outerTripletOuterSegmentOuterMiniDoubletLowerHitIndex];
+                (int) hitsInGPU.idxs[outerTripletOuterSegmentOuterMinidoubletUpperHitIndex];
+            }
+
+            std::vector<int> hit_types(hit_idxs.size(), 4);
+            std::vector<int> module_idxs = {
+                (int) hitsInGPU.moduleIndices[innerTripletInnerSegmentInnerMiniDoubletLowerHitIndex];
+                (int) hitsInGPU.moduleIndices[innerTripletInnerSegmentInnerMiniDoubletUpperHitIndex];
+                (int) hitsInGPU.moduleIndices[innerTripletInnerSegmentOuterMiniDoubletLowerHitIndex];
+                (int) hitsInGPU.moduleIndices[innerTripletInnerSegmentOuterMiniDoubletUpperHitIndex];
+                (int) hitsInGPU.moduleIndices[innerTripletOuterSegmentOuterMiniDoubletLowerHitIndex];
+                (int) hitsInGPU.moduleIndices[innerTripletOuterSegmentOuterMiniDoubletUpperHitIndex];
+                (int) hitsInGPU.moduleIndices[outerTripletInnerSegmentOuterMiniDoubletLowerHitIndex];
+                (int) hitsInGPU.moduleIndices[outerTripletInnerSegmentOuterMiniDoubletUpperHitIndex];
+                (int) hitsInGPU.moduleIndices[outerTripletOuterSegmentOuterMiniDoubletLowerHitIndex];
+                (int) hitsInGPU.moduleIndices[outerTripletOuterSegmentOuterMinidoubletUpperHitIndex];
+            }
+
+            int layer0 = modulesInGPU.layers[module_idxs[0]];
+            int layer2 = modulesInGPU.layers[module_idxs[2]];
+            int layer4 = modulesInGPU.layers[module_idxs[4]];
+            int layer6 = modulesInGPU.layers[module_idxs[6]];
+            int layer8 = modulesInGPU.layers[module_idxs[8]];
+
+            int subdet0 = modulesInGPU.subdets[module_idxs[0]];
+            int subdet2 = modulesInGPU.subdets[module_idxs[2]];
+            int subdet4 = modulesInGPU.subdets[module_idxs[4]];
+            int subdet6 = modulesInGPU.subdets[module_idxs[6]];
+            int subdet8 = modulesInGPU.subdets[module_idxs[8]];
+
+            int logicallayer0 = layer0 + 6 * (subdet0 == 4);
+            int logicallayer2 = layer2 + 6 * (subdet2 == 4);
+            int logicallayer4 = layer4 + 6 * (subdet4 == 4);
+            int logicallayer6 = layer6 + 6 * (subdet6 == 4);
+            int logicallayer8 = layer8 + 6 * (subdet == 4);
+
+            int layer_binary = 0;
+            layer_binary |= (1 << logicallayer0);
+            layer_binary |= (1 << logicallayer2);
+            layer_binary |= (1 << logicallayer4);
+            layer_binary |= (1 << logicallayer6);
+            layer_binary |= (1 << logicallayer8);
+
+            std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
+            for (auto &isimtrk : matched_sim_trk_idxs)
+            {
+                sim_T5_matched[isimtrk]++;
+            }
+
+            for (auto &isimtrk : matched_sim_trk_idxs)
+            {
+                sim_T5_types[isimtrk].push_back(layer_binary);
+            }
+            t5_isFake.push_back(matched_sim_trk_idxs.size() == 0);
+            t5_matched_simIdx.push_back(matched_sim_trk_idxs);
+
+        }
+    }
+
+    ana.tx->setBranch<vector<int>>("sim_T5_matched", sim_T5_matched);
+    ana.tx->setBranch<vector<vector<int>>>("sim_T5_types", sim_T5_types);
+    ana.tx->setBranch<vector<float>>("t5_innerTripletPt",t5_innerTripletPt);
+    ana.tx->setBranch<vector<float>>("t5_outerTripletPt",t5_outerTripletPt);
+    
+    std::vector<int> t5_isDuplicate(t5_matched_simIdx.size());
+
+    for (unsigned int i = 0; i < t5_matched_simIdx.size(); ++i)
+    {
+        bool isDuplicate = false;
+        for (unsigned int isim = 0; isim < t5_matched_simIdx[i].size(); ++isim)
+        {
+            if (sim_T5_matched[t5_matched_simIdx[i][isim]] > 1)
+            {
+                isDuplicate = true;
+            }
+        }
+        t5_isDuplicate[i] = isDuplicate;
+    }
+    ana.tx->setBranch<vector<int>>("t5_isFake", t5_isFake);
+    ana.tx->setBranch<vector<int>>("t5_isDuplicate", t5_isDuplicate);
 }
 
 //________________________________________________________________________________________________________________________________
