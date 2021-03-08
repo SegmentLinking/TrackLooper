@@ -46,6 +46,7 @@ SDL::Event::Event()
         n_tracklets_by_layer_barrel_[i] = 0;
         n_triplets_by_layer_barrel_[i] = 0;
         n_trackCandidates_by_layer_barrel_[i] = 0;
+        n_quintuplets_by_layer_barrel_[i] = 0;
         if(i<5)
         {
             n_hits_by_layer_endcap_[i] = 0;
@@ -54,6 +55,7 @@ SDL::Event::Event()
             n_tracklets_by_layer_endcap_[i] = 0;
             n_triplets_by_layer_endcap_[i] = 0;
             n_trackCandidates_by_layer_endcap_[i] = 0;
+            n_quintuplets_by_layer_endcap_[i] = 0;
         }
     }
     resetObjectsInModule();
@@ -3196,12 +3198,13 @@ __global__ void createQuintupletsFromInnerInnerLowerModule(SDL::modules& modules
    //these are actual module indices!!! not lower module indices
    unsigned int lowerModule2 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 1];
    unsigned int lowerModule3 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 2];
+   unsigned int lowerModuleArray3 = modulesInGPU.reverseLookupLowerModuleIndices[lowerModule3];
 
-   unsigned int nOuterTriplets = tripletsInGPU.nTriplets[lowerModule3] > N_MAX_TRIPLETS_PER_MODULE ? N_MAX_TRIPLETS_PER_MODULE : tripletsInGPU.nTriplets[lowerModule3];
+   unsigned int nOuterTriplets = min(tripletsInGPU.nTriplets[lowerModuleArray3], N_MAX_TRIPLETS_PER_MODULE);
   
    if(outerTripletArrayIndex >= nOuterTriplets) return;
 
-   unsigned int outerTripletIndex = modulesInGPU.reverseLookupLowerModuleIndices[lowerModule3] * N_MAX_TRIPLETS_PER_MODULE + outerTripletArrayIndex;
+   unsigned int outerTripletIndex = lowerModuleArray3 * N_MAX_TRIPLETS_PER_MODULE + outerTripletArrayIndex;
     //these are actual module indices!!
     unsigned int lowerModule4 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1];
     unsigned int lowerModule5 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 2];
@@ -3216,7 +3219,7 @@ __global__ void createQuintupletsFromInnerInnerLowerModule(SDL::modules& modules
        {
 #ifdef Warnings
            if(quintupletModuleIndex ==  N_MAX_QUINTUPLETS_PER_MODULE)
-               printf("Quintuplet excess alert! Module index = %d\n", lowerModule1);
+               printf("Quintuplet excess alert! Module index = %d\n", lowerModuleArray1);
 #endif
        }
        else
@@ -3231,7 +3234,7 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
 {
     int innerInnerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; //inner triplet inner segment inner MD
     if(innerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) return;
-    unsigned int nInnerTriplets = tripletsInGPU.nTriplets[innerInnerInnerLowerModuleArrayIndex] > N_MAX_SEGMENTS_PER_MODULE ? N_MAX_SEGMENTS_PER_MODULE : segmentsInGPU.nSegments[innerInnerInnerLowerModuleArrayIndex] ;
+    unsigned int nInnerTriplets = min(tripletsInGPU.nTriplets[innerInnerInnerLowerModuleArrayIndex], N_MAX_SEGMENTS_PER_MODULE);
     if(nInnerTriplets == 0) return;
 
     dim3 nThreads(16,16,1);

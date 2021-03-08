@@ -6,14 +6,32 @@
 #include "allocate.h"
 //#endif
 
+SDL::quintuplets::quintuplets()
+{
+    tripletIndices = nullptr;
+    lowerModuleIndices = nullptr;
+    nQuintuplets = nullptr;
+    innerTripletPt = nullptr;
+    outerTripletPt = nullptr;
+
+}
+
+void SDL::quintuplets::freeMemory()
+{
+    cudaFree(tripletIndices);
+    cudaFree(lowerModuleIndices);
+    cudaFree(nQuintuplets);
+    cudaFree(innerTripletPt);
+    cudaFree(outerTripletPt);
+}
 void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int maxQuintuplets, unsigned int nLowerModules)
 {
-    cudaMallocManaged(&quintupletsInGPU.tripletIndices, 7 * maxQuintuplets * nLowerModules * sizeof(unsigned int));
+    cudaMallocManaged(&quintupletsInGPU.tripletIndices, 2 * maxQuintuplets * nLowerModules * sizeof(unsigned int));
+    cudaMallocManaged(&quintupletsInGPU.lowerModuleIndices, 5 * maxQuintuplets * nLowerModules * sizeof(unsigned int)); 
     cudaMallocManaged(&quintupletsInGPU.innerTripletPt, 2 * maxQuintuplets * nLowerModules * sizeof(float));
 
     cudaMallocManaged(&quintupletsInGPU.nQuintuplets, nLowerModules * sizeof(unsigned int));
 
-    quintupletsInGPU.lowerModuleIndices = quintupletsInGPU.tripletIndices + nLowerModules * maxQuintuplets * 2;
     quintupletsInGPU.outerTripletPt = quintupletsInGPU.innerTripletPt + nLowerModules * maxQuintuplets;
 
 #pragma omp parallel for
@@ -48,7 +66,6 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     {
         pass = false;
     }
-    if(pass) printf("yay, pass\n");   
 
     unsigned int firstSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex];
     unsigned int secondSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex + 1];
@@ -96,3 +113,5 @@ __device__ bool SDL::T5HasCommonMiniDoublet(struct SDL::triplets& tripletsInGPU,
 
     return (innerOuterOuterMiniDoubletIndex == outerInnerInnerMiniDoubletIndex);
 }
+
+
