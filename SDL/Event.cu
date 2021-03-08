@@ -1605,7 +1605,34 @@ void SDL::Event::addTrackCandidatesToEvent()
     }
 }
 
+void SDL::Event::addQuintupletsToEvent()
+{
+    unsigned int idx;
+    for(unsigned int i = 0; i<*(SDL::modulesInGPU->nLowerModules); i++)
+    {
+        idx = SDL::modulesInGPU->lowerModuleIndices[i];
+        //tracklets run only on lower modules!!!!!!
+        if(quintupletsInGPU->nQuintuplets[i] == 0)
+        {
+            modulesInGPU->quintupletRanges[idx * 2] = -1;
+            modulesInGPU->quintupletRanges[idx * 2 + 1] = -1;
+        }
+        else
+        {
+            modulesInGPU->quintupletRanges[idx * 2] = idx * N_MAX_QUINTUPLETS_PER_MODULE;
+            modulesInGPU->quintupletRanges[idx * 2 + 1] = idx * N_MAX_QUINTUPLETS_PER_MODULE + quintupletsInGPU->nQuintuplets[i] - 1;
 
+            if(modulesInGPU->subdets[idx] == Barrel)
+            {
+                n_quintuplets_by_layer_barrel_[modulesInGPU->layers[idx] - 1] += quintupletsInGPU->nQuintuplets[i];
+            }
+            else
+            {
+                n_quintuplets_by_layer_endcap_[modulesInGPU->layers[idx] - 1] += quintupletsInGPU->nQuintuplets[i];
+            }
+        }
+    }
+}
 void SDL::Event::addTripletsToEvent()
 {
     unsigned int idx;
@@ -3157,31 +3184,34 @@ __global__ void createTrackCandidatesFromInnerInnerInnerLowerModule(struct SDL::
 }
 #endif
 
-__global__ void createQuintupletsFromInnerInnerLowerModule(SDL::modules& modulesInGPU, SDL::hits& hitsInGPU, SDL::miniDoublets& mdsInGPU, SDL::segments& segmentsInGPU, SDL::triplets& tripletsInGPU, SDL::quintuplets& quintupletsInGPU, unsigned int lowerModule1, unsigned int nInnerTriplets)
+__global__ void createQuintupletsFromInnerInnerLowerModule(SDL::modules& modulesInGPU, SDL::hits& hitsInGPU, SDL::miniDoublets& mdsInGPU, SDL::segments& segmentsInGPU, SDL::triplets& tripletsInGPU, SDL::quintuplets& quintupletsInGPU, unsigned int lowerModuleArray1, unsigned int nInnerTriplets)
 {
    int innerTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
    int outerTripletArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
 
    if(innerTripletArrayIndex >= nInnerTriplets) return;
 
-   unsigned int innerTripletIndex = lowerModule1 * N_MAX_TRIPLETS_PER_MODULE + innerTripletArrayIndex;
+   unsigned int innerTripletIndex = lowerModuleArray1 * N_MAX_TRIPLETS_PER_MODULE + innerTripletArrayIndex;
+   unsigned int lowerModule1 = modulesInGPU.lowerModuleIndices[lowerModuleArray1];
+   //these are actual module indices!!! not lower module indices
    unsigned int lowerModule2 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 1];
    unsigned int lowerModule3 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 2];
 
    unsigned int nOuterTriplets = tripletsInGPU.nTriplets[lowerModule3] > N_MAX_TRIPLETS_PER_MODULE ? N_MAX_TRIPLETS_PER_MODULE : tripletsInGPU.nTriplets[lowerModule3];
-
+  
    if(outerTripletArrayIndex >= nOuterTriplets) return;
 
-   unsigned int outerTripletIndex = lowerModule3 * N_MAX_TRIPLETS_PER_MODULE + outerTripletArrayIndex;
+   unsigned int outerTripletIndex = modulesInGPU.reverseLookupLowerModuleIndices[lowerModule3] * N_MAX_TRIPLETS_PER_MODULE + outerTripletArrayIndex;
+    //these are actual module indices!!
     unsigned int lowerModule4 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1];
     unsigned int lowerModule5 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 2];
-    
+   
     float innerTripletPt, outerTripletPt; //required for making distributions
-    bool success = runQuintupletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletIndex, outerTripletIndex, innerTripletPt, outerTripletPt);
+    bool success = runQuintupletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletIndex, outerTripletIndex, innerTripletPt, outerTripletPt);
 
    if(success)
    {
-       unsigned int quintupletModuleIndex = atomicAdd(&quintupletsInGPU.nQuintuplets[lowerModule1], 1);
+       unsigned int quintupletModuleIndex = atomicAdd(&quintupletsInGPU.nQuintuplets[lowerModuleArray1], 1);
        if(quintupletModuleIndex >= N_MAX_QUINTUPLETS_PER_MODULE)
        {
 #ifdef Warnings
@@ -3191,7 +3221,7 @@ __global__ void createQuintupletsFromInnerInnerLowerModule(SDL::modules& modules
        }
        else
        {
-            unsigned int quintupletIndex = lowerModule1 * N_MAX_QUINTUPLETS_PER_MODULE + quintupletModuleIndex;
+            unsigned int quintupletIndex = lowerModuleArray1 * N_MAX_QUINTUPLETS_PER_MODULE + quintupletModuleIndex;
             addQuintupletToMemory(quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletPt, outerTripletPt, quintupletIndex);
        }
    }
@@ -3383,7 +3413,7 @@ unsigned int SDL::Event::getNumberOfTripletsByLayer(unsigned int layer)
     if(layer == 6)
         return n_triplets_by_layer_barrel_[layer];
     else
-        return n_triplets_by_layer_barrel_[layer] + n_tracklets_by_layer_endcap_[layer];
+        return n_triplets_by_layer_barrel_[layer] + n_triplets_by_layer_endcap_[layer];
 }
 
 unsigned int SDL::Event::getNumberOfTripletsByLayerBarrel(unsigned int layer)
@@ -3394,6 +3424,40 @@ unsigned int SDL::Event::getNumberOfTripletsByLayerBarrel(unsigned int layer)
 unsigned int SDL::Event::getNumberOfTripletsByLayerEndcap(unsigned int layer)
 {
     return n_triplets_by_layer_endcap_[layer];
+}
+
+unsigned int SDL::Event::getNumberOfQuintuplets()
+{
+    unsigned int quintuplets = 0;
+    for(auto &it:n_quintuplets_by_layer_barrel_)
+    {
+        quintuplets += it;
+    }
+    for(auto &it:n_quintuplets_by_layer_endcap_)
+    {
+        quintuplets += it;
+    }
+
+    return quintuplets;
+
+}
+
+unsigned int SDL::Event::getNumberOfQuintupletsByLayer(unsigned int layer)
+{
+    if(layer == 6)
+        return n_quintuplets_by_layer_barrel_[layer];
+    else
+        return n_quintuplets_by_layer_barrel_[layer] + n_quintuplets_by_layer_endcap_[layer];
+}
+
+unsigned int SDL::Event::getNumberOfQuintupletsByLayerBarrel(unsigned int layer)
+{
+    return n_quintuplets_by_layer_barrel_[layer];
+}
+
+unsigned int SDL::Event::getNumberOfQuintupletsByLayerEndcap(unsigned int layer)
+{
+    return n_quintuplets_by_layer_endcap_[layer];
 }
 
 unsigned int SDL::Event::getNumberOfTrackCandidates()

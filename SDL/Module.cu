@@ -56,6 +56,7 @@ void SDL::createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int
     cudaMallocManaged(&modulesInGPU.segmentRanges,nModules * 2 * sizeof(int));
     cudaMallocManaged(&modulesInGPU.trackletRanges,nModules * 2 * sizeof(int));
     cudaMallocManaged(&modulesInGPU.tripletRanges,nModules * 2 * sizeof(int));
+    cudaMallocManaged(&modulesInGPU.quintupletRanges, nModules * 2 * sizeof(int));
     cudaMallocManaged(&modulesInGPU.trackCandidateRanges, nModules * 2 * sizeof(int));
 
     cudaMallocManaged(&modulesInGPU.moduleType,nModules * sizeof(ModuleType));

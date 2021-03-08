@@ -93,6 +93,7 @@ namespace SDL
         int* tripletRanges;
         int* trackCandidateRanges;
         //others will be added later
+        int* quintupletRanges;
 
     };
 

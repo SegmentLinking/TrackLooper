@@ -198,7 +198,6 @@ void createSegmentCutValueBranches()
 void createMiniDoubletCutValueBranches()
 {
     
->>>>>>> new_sdl_ntuple
 }
 
 //________________________________________________________________________________________________________________________________
@@ -618,7 +617,7 @@ void fillLowerLevelOutputBranches(SDL::Event& event)
     fillQuadrupletOutputBranches(event);
     fillPixelQuadrupletOutputBranches(event);
     fillTripletOutputBranches(event);
-    fillPixelLineSegmentOutputBranches(event;
+    fillPixelLineSegmentOutputBranches(event);
     fillQuintupletOutputBranches(event);
 }
 
@@ -653,8 +652,8 @@ void fillQuintupletOutputBranches(SDL::Event& event)
         for(unsigned int jdx = 0; jdx < nQuintuplets; jdx++)
         {
             unsigned int quintupletIndex = MAX_NQUINTUPLET_PER_MODULE * idx + jdx;
-            innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
-            outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
+            unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
+            unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
             t5_innerTripletPt.push_back(quintupletsInGPU.innerTripletPt[quintupletIndex]);
             t5_outerTripletPt.push_back(quintupletsInGPU.outerTripletPt[quintupletIndex]);
 
@@ -692,31 +691,31 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             unsigned int outerTripletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTripletOuterSegmentOuterMiniDoubletIndex + 1];
 
             std::vector<int> hit_idxs = {
-                (int) hitsInGPU.idxs[innerTripletInnerSegmentInnerMiniDoubletLowerHitIndex];
-                (int) hitsInGPU.idxs[innerTripletInnerSegmentInnerMiniDoubletUpperHitIndex];
-                (int) hitsInGPU.idxs[innerTripletInnerSegmentOuterMiniDoubletLowerHitIndex];
-                (int) hitsInGPU.idxs[innerTripletInnerSegmentOuterMiniDoubletUpperHitIndex];
-                (int) hitsInGPU.idxs[innerTripletOuterSegmentOuterMiniDoubletLowerHitIndex];
-                (int) hitsInGPU.idxs[innerTripletOuterSegmentOuterMiniDoubletUpperHitIndex];
-                (int) hitsInGPU.idxs[outerTripletInnerSegmentOuterMiniDoubletLowerHitIndex];
-                (int) hitsInGPU.idxs[outerTripletInnerSegmentOuterMiniDoubletUpperHitIndex];
-                (int) hitsInGPU.idxs[outerTripletOuterSegmentOuterMiniDoubletLowerHitIndex];
-                (int) hitsInGPU.idxs[outerTripletOuterSegmentOuterMinidoubletUpperHitIndex];
-            }
+                (int) hitsInGPU.idxs[innerTripletInnerSegmentInnerMiniDoubletLowerHitIndex],
+                (int) hitsInGPU.idxs[innerTripletInnerSegmentInnerMiniDoubletUpperHitIndex],
+                (int) hitsInGPU.idxs[innerTripletInnerSegmentOuterMiniDoubletLowerHitIndex],
+                (int) hitsInGPU.idxs[innerTripletInnerSegmentOuterMiniDoubletUpperHitIndex],
+                (int) hitsInGPU.idxs[innerTripletOuterSegmentOuterMiniDoubletLowerHitIndex],
+                (int) hitsInGPU.idxs[innerTripletOuterSegmentOuterMiniDoubletUpperHitIndex],
+                (int) hitsInGPU.idxs[outerTripletInnerSegmentOuterMiniDoubletLowerHitIndex],
+                (int) hitsInGPU.idxs[outerTripletInnerSegmentOuterMiniDoubletUpperHitIndex],
+                (int) hitsInGPU.idxs[outerTripletOuterSegmentOuterMiniDoubletLowerHitIndex],
+                (int) hitsInGPU.idxs[outerTripletOuterSegmentOuterMiniDoubletUpperHitIndex]
+            };
 
             std::vector<int> hit_types(hit_idxs.size(), 4);
             std::vector<int> module_idxs = {
-                (int) hitsInGPU.moduleIndices[innerTripletInnerSegmentInnerMiniDoubletLowerHitIndex];
-                (int) hitsInGPU.moduleIndices[innerTripletInnerSegmentInnerMiniDoubletUpperHitIndex];
-                (int) hitsInGPU.moduleIndices[innerTripletInnerSegmentOuterMiniDoubletLowerHitIndex];
-                (int) hitsInGPU.moduleIndices[innerTripletInnerSegmentOuterMiniDoubletUpperHitIndex];
-                (int) hitsInGPU.moduleIndices[innerTripletOuterSegmentOuterMiniDoubletLowerHitIndex];
-                (int) hitsInGPU.moduleIndices[innerTripletOuterSegmentOuterMiniDoubletUpperHitIndex];
-                (int) hitsInGPU.moduleIndices[outerTripletInnerSegmentOuterMiniDoubletLowerHitIndex];
-                (int) hitsInGPU.moduleIndices[outerTripletInnerSegmentOuterMiniDoubletUpperHitIndex];
-                (int) hitsInGPU.moduleIndices[outerTripletOuterSegmentOuterMiniDoubletLowerHitIndex];
-                (int) hitsInGPU.moduleIndices[outerTripletOuterSegmentOuterMinidoubletUpperHitIndex];
-            }
+                (int) hitsInGPU.moduleIndices[innerTripletInnerSegmentInnerMiniDoubletLowerHitIndex],
+                (int) hitsInGPU.moduleIndices[innerTripletInnerSegmentInnerMiniDoubletUpperHitIndex],
+                (int) hitsInGPU.moduleIndices[innerTripletInnerSegmentOuterMiniDoubletLowerHitIndex],
+                (int) hitsInGPU.moduleIndices[innerTripletInnerSegmentOuterMiniDoubletUpperHitIndex],
+                (int) hitsInGPU.moduleIndices[innerTripletOuterSegmentOuterMiniDoubletLowerHitIndex],
+                (int) hitsInGPU.moduleIndices[innerTripletOuterSegmentOuterMiniDoubletUpperHitIndex],
+                (int) hitsInGPU.moduleIndices[outerTripletInnerSegmentOuterMiniDoubletLowerHitIndex],
+                (int) hitsInGPU.moduleIndices[outerTripletInnerSegmentOuterMiniDoubletUpperHitIndex],
+                (int) hitsInGPU.moduleIndices[outerTripletOuterSegmentOuterMiniDoubletLowerHitIndex],
+                (int) hitsInGPU.moduleIndices[outerTripletOuterSegmentOuterMiniDoubletUpperHitIndex]
+            };
 
             int layer0 = modulesInGPU.layers[module_idxs[0]];
             int layer2 = modulesInGPU.layers[module_idxs[2]];
@@ -734,7 +733,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             int logicallayer2 = layer2 + 6 * (subdet2 == 4);
             int logicallayer4 = layer4 + 6 * (subdet4 == 4);
             int logicallayer6 = layer6 + 6 * (subdet6 == 4);
-            int logicallayer8 = layer8 + 6 * (subdet == 4);
+            int logicallayer8 = layer8 + 6 * (subdet8 == 4);
 
             int layer_binary = 0;
             layer_binary |= (1 << logicallayer0);

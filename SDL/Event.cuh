@@ -45,6 +45,8 @@ namespace SDL
         std::array<unsigned int, 5> n_triplets_by_layer_endcap_;
         std::array<unsigned int, 6> n_trackCandidates_by_layer_barrel_;
         std::array<unsigned int, 5> n_trackCandidates_by_layer_endcap_;
+        std::array<unsigned int, 6> n_quintuplets_by_layer_barrel_;
+        std::array<unsigned int, 5> n_quintuplets_by_layer_endcap_;
 
 
         //CUDA stuff

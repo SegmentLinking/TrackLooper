@@ -629,6 +629,32 @@ float runTrackCandidate(SDL::Event& event)
     return runTrackCandidateTest_v2(event);
 }
 
+float runQuintuplet(SDL::Event& event)
+{
+     TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Reco Quintuplet start" << std::endl;
+    my_timer.Start();
+    event.createQuintuplets();
+    float t5_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Reco Quintuplet processing time: " << t5_elapsed << " secs" << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced: " << event.getNumberOfQuintuplets() << std::endl;
+
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 1-2-3-4-5-6: " << event.getNumberOfQuintupletsByLayerBarrel(0) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 2: " << event.getNumberOfQuintupletsByLayerBarrel(1) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 3: " << event.getNumberOfQuintupletsByLayerBarrel(2) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 4: " << event.getNumberOfQuintupletsByLayerBarrel(3) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 5: " << event.getNumberOfQuintupletsByLayerBarrel(4) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 6: " << event.getNumberOfQuintupletsByLayerBarrel(5) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 1: " << event.getNumberOfQuintupletsByLayerEndcap(0) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 2: " << event.getNumberOfQuintupletsByLayerEndcap(1) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 3: " << event.getNumberOfQuintupletsByLayerEndcap(2) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 4: " << event.getNumberOfQuintupletsByLayerEndcap(3) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 5: " << event.getNumberOfQuintupletsByLayerEndcap(4) << std::endl;
+
+    return t5_elapsed;
+   
+}
+
 float runTrackCandidateTest_v2(SDL::Event& event)
 {
     TStopwatch my_timer;
