@@ -85,6 +85,8 @@ SDL::Event::~Event()
     cudaFreeHost(trackCandidatesInGPU);
     hitsInGPU->freeMemory();
     cudaFreeHost(hitsInGPU);
+    quintupletsInGPU->freeMemory();
+    cudaFreeHost(quintupletsInGPU);
 
 #ifdef Explicit_Hit
     if(hitsInCPU != nullptr)

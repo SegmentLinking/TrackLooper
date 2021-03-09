@@ -86,13 +86,14 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     unsigned int iia_idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[firstSegmentIndex];
     unsigned int ooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[secondSegmentIndex];
     float drIn = sqrtf((hitsInGPU.xs[iia_idx] - hitsInGPU.xs[ooa_idx]) * (hitsInGPU.xs[iia_idx] - hitsInGPU.xs[ooa_idx]) + (hitsInGPU.ys[iia_idx] - hitsInGPU.ys[ooa_idx]) * (hitsInGPU.ys[iia_idx] - hitsInGPU.ys[ooa_idx]));
-    innerTripletPt = drIn * k2Rinv1GeVf/sin((tripletsInGPU.betaIn[innerTripletIndex] + tripletsInGPU.betaOut[innerTripletIndex])/2.);
+    
+    innerTripletPt = drIn * k2Rinv1GeVf/sinf((fabsf(tripletsInGPU.betaIn[innerTripletIndex]) + fabsf(tripletsInGPU.betaOut[innerTripletIndex]))/2.);
 
     //computing outer triplet pt - reusing variables from above
     iia_idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[thirdSegmentIndex];
     ooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[fourthSegmentIndex];
     float drOut = sqrtf((hitsInGPU.xs[iia_idx] - hitsInGPU.xs[ooa_idx]) * (hitsInGPU.xs[iia_idx] - hitsInGPU.xs[ooa_idx]) + (hitsInGPU.ys[iia_idx] - hitsInGPU.ys[ooa_idx]) * (hitsInGPU.ys[iia_idx] - hitsInGPU.ys[ooa_idx]));
-    outerTripletPt = drOut * k2Rinv1GeVf/sin((tripletsInGPU.betaIn[outerTripletIndex] + tripletsInGPU.betaOut[outerTripletIndex])/2.);
+    outerTripletPt = drOut * k2Rinv1GeVf/sinf((fabsf(tripletsInGPU.betaIn[outerTripletIndex]) + fabsf(tripletsInGPU.betaOut[outerTripletIndex]))/2.);
 
 /*    float tol = 1.0; //very high value of tolerance.
     if(fabsf(innerTripletPt - outerTripletPt) > tol)

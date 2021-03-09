@@ -24,6 +24,7 @@ int main(int argc, char** argv)
     {
         list_effSetDef.push_back(EfficiencySetDefinition("T4s_AllTypes", 13, [&](int isim) {return sdl.sim_T4_matched()[isim] > 0;}));
         list_effSetDef.push_back(EfficiencySetDefinition("T3_AllTypes", 13, [&](int isim) {return sdl.sim_T3_matched()[isim] > 0;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("T5_AllTypes", 13, [&](int isim) {return sdl.sim_T5_matched()[isim] > 0;}));
     }
 
     bookEfficiencySets(list_effSetDef);
@@ -37,6 +38,7 @@ int main(int argc, char** argv)
         list_FRSetDef.push_back(FakeRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isFake()[it4] > 0;}, sdl.t4_pt(), sdl.t4_eta(), sdl.t4_phi()));
         list_FRSetDef.push_back(FakeRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isFake()[it3] > 0;}, sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi()));
         list_FRSetDef.push_back(FakeRateSetDefinition("pLS_AllTypes", 13, [&](int itls) { return sdl.pLS_isFake()[itls] > 0;}, sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi()));
+
     }
 
     bookFakeRateSets(list_FRSetDef);

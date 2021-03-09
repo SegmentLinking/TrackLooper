@@ -96,6 +96,7 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("t5_outerTripletPt");
     ana.tx->createBranch<vector<int>>("t5_isFake");
     ana.tx->createBranch<vector<int>>("t5_isDuplicate");
+    ana.tx->createBranch<vector<int>>("t5_layer_binary");
     //pLS
     ana.tx->createBranch<vector<int>>("sim_pLS_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_pLS_types");
@@ -639,6 +640,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     std::vector<vector<int>> t5_matched_simIdx;
     std::vector<float> t5_innerTripletPt;
     std::vector<float> t5_outerTripletPt;
+    std::vector<int> layer_binaries;
     const int MAX_NQUINTUPLET_PER_MODULE = 50000;
     
     for(unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
@@ -741,6 +743,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             layer_binary |= (1 << logicallayer4);
             layer_binary |= (1 << logicallayer6);
             layer_binary |= (1 << logicallayer8);
+            layer_binaries.push_back(layer_binary);
 
             std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
             for (auto &isimtrk : matched_sim_trk_idxs)
@@ -762,7 +765,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<vector<int>>>("sim_T5_types", sim_T5_types);
     ana.tx->setBranch<vector<float>>("t5_innerTripletPt",t5_innerTripletPt);
     ana.tx->setBranch<vector<float>>("t5_outerTripletPt",t5_outerTripletPt);
-    
+    ana.tx->setBranch<vector<int>>("t5_layer_binary",layer_binaries); 
     std::vector<int> t5_isDuplicate(t5_matched_simIdx.size());
 
     for (unsigned int i = 0; i < t5_matched_simIdx.size(); ++i)
