@@ -32,6 +32,8 @@ def parse_plot_name(output_name):
         rtnstr.append("Quadruplet w/ or w/o gap")
     elif "pLS_" in output_name:
         rtnstr.append("Pixel Line Segment")
+    elif "T5_" in output_name:
+        rtnstr.append("Quintuplet")
     types = "of type " + os.path.basename(output_name).split("_")[1]
     if "AllTypes" in types:
         types = "of all types"
@@ -189,13 +191,14 @@ if __name__ == "__main__":
             continue
         # if "Set4" not in key.GetName():
         #     continue
-        if "TC_All" not in key.GetName() and "T4s_All" not in key.GetName() and "T3_All" not in key.GetName() and "pLS" not in key.GetName():
+        if "TC_All" not in key.GetName() and "T4s_All" not in key.GetName() and "T3_All" not in key.GetName() and "pLS" not in key.GetName() and "T5" not in key.GetName():
             continue
         # if "pLS_P" not in key.GetName():
         #     continue
         # if "pix_P" not in key.GetName():
         #     continue
         numer_name = key.GetName()
+        print(numer_name)
         denom_name = numer_name.replace("numer", "denom")
         nice_name = numer_name.replace("Root__", "")
         nice_name = nice_name.replace("h_numer", "")
