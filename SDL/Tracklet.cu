@@ -560,8 +560,6 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
             + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
 
     float dBeta = betaIn - betaOut;
-    //FIXME: cheap hack
-    dBetaCut2 /= 100;
     deltaBetaCut = sqrtf(dBetaCut2);    
     //Cut #7: Cut on dBeta
     if (not (dBeta * dBeta <= dBetaCut2))
@@ -816,11 +814,6 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
             + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
     float dBeta = betaIn - betaOut;
 
-    //FIXME: cheap hack
-    if(modulesInGPU.subdets[innerOuterLowerModuleIndex] == SDL::Barrel) //cut only for BBBE and BBEE
-    {
-        dBetaCut2 /= 100;
-    }
     deltaBetaCut = sqrtf(dBetaCut2);
 
     //Cut #7: Cut on dBet
@@ -1316,7 +1309,6 @@ __device__ bool SDL::runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
 
     if (not (dBeta * dBeta <= dBetaCut2))
     {
-        //printf("dBeta2 = %f, dBetaCut2 = %f\n",dBeta * dBeta, dBetaCut2);
         pass = false;
     }
 
@@ -1880,8 +1872,6 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
     float dBeta = betaIn - betaOut;
     
     //Cut #7: Cut on dBeta
-    //FIXME: cheap hack
-    dBetaCut2 /= 100;
 
     if (not (dBeta * dBeta <= dBetaCut2))
     {
@@ -2133,10 +2123,6 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
             + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
     float dBeta = betaIn - betaOut;
     //Cut #7: Cut on dBeta
-    if(modulesInGPU.subdets[innerOuterLowerModuleIndex] == SDL::Barrel) //cut only for BBBE and BBEE
-    {
-        dBetaCut2 /= 100;
-    }
 
     if (not (dBeta * dBeta <= dBetaCut2))
     {
@@ -2627,7 +2613,6 @@ __device__ bool SDL::runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
 
     if (not (dBeta * dBeta <= dBetaCut2))
     {
-        //printf("dBeta2 = %f, dBetaCut2 = %f\n",dBeta * dBeta, dBetaCut2);
         pass = false;
     }
 
