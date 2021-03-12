@@ -82,19 +82,6 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
         pass = false;
     }
 
-    //computing innerTripletPt - need dr of inner triplet
-    unsigned int iia_idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[firstSegmentIndex];
-    unsigned int ooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[secondSegmentIndex];
-    float drIn = sqrtf((hitsInGPU.xs[iia_idx] - hitsInGPU.xs[ooa_idx]) * (hitsInGPU.xs[iia_idx] - hitsInGPU.xs[ooa_idx]) + (hitsInGPU.ys[iia_idx] - hitsInGPU.ys[ooa_idx]) * (hitsInGPU.ys[iia_idx] - hitsInGPU.ys[ooa_idx]));
-    
-    innerTripletPt = drIn * k2Rinv1GeVf/sinf((fabsf(tripletsInGPU.betaIn[innerTripletIndex]) + fabsf(tripletsInGPU.betaOut[innerTripletIndex]))/2.);
-
-    //computing outer triplet pt - reusing variables from above
-    iia_idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[thirdSegmentIndex];
-    ooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[fourthSegmentIndex];
-    float drOut = sqrtf((hitsInGPU.xs[iia_idx] - hitsInGPU.xs[ooa_idx]) * (hitsInGPU.xs[iia_idx] - hitsInGPU.xs[ooa_idx]) + (hitsInGPU.ys[iia_idx] - hitsInGPU.ys[ooa_idx]) * (hitsInGPU.ys[iia_idx] - hitsInGPU.ys[ooa_idx]));
-    outerTripletPt = drOut * k2Rinv1GeVf/sinf((fabsf(tripletsInGPU.betaIn[outerTripletIndex]) + fabsf(tripletsInGPU.betaOut[outerTripletIndex]))/2.);
-
     //radius computation from the three triplet MD anchor hits
     unsigned int innerTripletFirstSegmentAnchorHitIndex = segmentsInGPU.innerMiniDoubletAnchorHitIndices[firstSegmentIndex];
     unsigned int innerTripletSecondSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[firstSegmentIndex]; //same as second segment inner MD anchorhit index
@@ -159,7 +146,7 @@ __device__ float SDL::computeRadiusFromThreeAnchorHits(struct SDL::hits& hitsInG
         printf("FATAL! r^2 < 0!\n");
         return -1;
     }
-
+    
     radius = sqrtf(g * g  + f * f - c);
     return radius;
 }
