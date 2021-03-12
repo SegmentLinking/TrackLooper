@@ -58,7 +58,7 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsI
 
 }
 
-__device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5, unsigned int innerTripletIndex, unsigned int outerTripletIndex, float& innerTripletPt, float& outerTripletPt)
+__device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5, unsigned int innerTripletIndex, unsigned int outerTripletIndex, float& innerRadius, float& outerRadius)
 {
     bool pass = true;
 
@@ -95,14 +95,74 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     float drOut = sqrtf((hitsInGPU.xs[iia_idx] - hitsInGPU.xs[ooa_idx]) * (hitsInGPU.xs[iia_idx] - hitsInGPU.xs[ooa_idx]) + (hitsInGPU.ys[iia_idx] - hitsInGPU.ys[ooa_idx]) * (hitsInGPU.ys[iia_idx] - hitsInGPU.ys[ooa_idx]));
     outerTripletPt = drOut * k2Rinv1GeVf/sinf((fabsf(tripletsInGPU.betaIn[outerTripletIndex]) + fabsf(tripletsInGPU.betaOut[outerTripletIndex]))/2.);
 
-/*    float tol = 1.0; //very high value of tolerance.
-    if(fabsf(innerTripletPt - outerTripletPt) > tol)
+    //radius computation from the three triplet MD anchor hits
+    unsigned int innerTripletFirstSegmentAnchorHitIndex = segmentsInGPU.innerMiniDoubletAnchorHitIndices[firstSegmentIndex];
+    unsigned int innerTripletSecondSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[firstSegmentIndex]; //same as second segment inner MD anchorhit index
+    unsigned int innerTripletThirdSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[secondSegmentIndex]; //same as third segment inner MD anchor hit index
+
+    innerRadius = computeRadiusFromThreeAnchorHits(hitsInGPU, innerTripletFirstSegmentAnchorHitIndex, innerTripletSecondSegmentAnchorHitIndex, innerTripletThirdSegmentAnchorHitIndex);
+
+    if(innerRadius < 0)
     {
         pass = false;
-    }*/
+    }
+
+    unsigned int outerTripletFirstSegmentAnchorHitIndex = segmentsInGPU.innerMiniDoubletAnchorHitIndices[thirdSegmentIndex];
+    unsigned int outerTripletSecondSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[thirdSegmentIndex]; //same as fourth segment inner MD anchor hit index
+    unsigned int outerTripletThirdSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[fourthSegmentIndex];
+
+    outerRadius = computeRadiusFromThreeAnchorHits(hitsInGPU, outerTripletFirstSegmentAnchorHitIndex, outerTripletSecondSegmentAnchorHitIndex, outerTripletThirdSegmentAnchorHitIndex);
+
+    if(outerRadius < 0)
+    {
+        pass = false;
+    }
+
+
     return pass;
 }
 
+
+
+__device__ float SDL::computeRadiusFromThreeAnchorHits(struct SDL::hits& hitsInGPU, unsigned int firstAnchorHit, unsigned int secondAnchorHit, unsigned int thirdAnchorHit)
+{
+    float radius = 0;
+
+    //writing manual code for computing radius, which obviously sucks
+    //TODO:Use fancy inbuilt libraries like cuBLAS or cuSOLVE for this!
+    
+    //first anchor hit - (x1,y1), second anchor hit - (x2,y2), third anchor hit - (x3, y3)
+
+    float x1 = hitsInGPU.xs[firstAnchorHit];
+    float x2 = hitsInGPU.xs[secondAnchorHit];
+    float x3 = hitsInGPU.xs[thirdAnchorHit];
+
+    float y1 = hitsInGPU.ys[firstAnchorHit];
+    float y2 = hitsInGPU.ys[secondAnchorHit];
+    float y3 = hitsInGPU.ys[thirdAnchorHit];
+
+    if((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3) == 0)
+    {
+        return -1; //WTF man three collinear points!
+    }
+
+    float denom = ((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3));
+
+    float g = 0.5 * ((y3 - y2) * (x1 * x1 + y1 * y1) + (y1 - y3) * (x2 * x2 + y2 * y2) + (y2 - y1) * (x3 * x3 + y3 * y3))/denom;
+
+    float f = 0.5 * ((x2 - x3) * (x1 * x1 + y1 * y1) + (x3 - x1) * (x2 * x2 + y2 * y2) + (x1 - x2) * (x3 * x3 + y3 * y3))/denom;
+
+    float c = ((x2 * y3 - x3 * y2) * (x1 * x1 + y1 * y1) + (x3 * y1 - x1 * y3) * (x2 * x2 + y2 * y2) + (x1 * y2 - x2 * y1) * (x3 * x3 + y3 * y3))/denom;
+
+    if(g * g + f * f - c < 0)
+    {
+        printf("FATAL! r^2 < 0!\n");
+        return -1;
+    }
+
+    radius = sqrtf(g * g  + f * f - c);
+    return radius;
+}
 
 __device__ bool SDL::T5HasCommonMiniDoublet(struct SDL::triplets& tripletsInGPU, struct SDL::segments& segmentsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex)
 {

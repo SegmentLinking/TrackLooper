@@ -46,5 +46,7 @@ CUDA_DEV bool runQuintupletDefaultAlgo(struct modules& modulesInGPU, struct hits
 
 CUDA_DEV bool T5HasCommonMiniDoublet(struct triplets& tripletsInGPU, struct segments& segmentsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex);
 
+CUDA_DEV float computeRadiusFromThreeAnchorHits(struct SDL::hits& hitsInGPU, unsigned int firstAnchorHit, unsigned int secondAnchorHit, unsigned int thirdAnchorHit);
+
 }
 #endif
