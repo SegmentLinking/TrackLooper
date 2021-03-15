@@ -87,7 +87,6 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     unsigned int innerTripletSecondSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[firstSegmentIndex]; //same as second segment inner MD anchorhit index
     unsigned int innerTripletThirdSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[secondSegmentIndex]; //same as third segment inner MD anchor hit index
 
-    unsigned int outerTripletFirstSegmentAnchorHitIndex = segmentsInGPU.innerMiniDoubletAnchorHitIndices[thirdSegmentIndex];
     unsigned int outerTripletSecondSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[thirdSegmentIndex]; //same as fourth segment inner MD anchor hit index
     unsigned int outerTripletThirdSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[fourthSegmentIndex];
 
@@ -104,11 +103,78 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     float y4 = hitsInGPU.ys[outerTripletSecondSegmentAnchorHitIndex];
     float y5 = hitsInGPU.ys[outerTripletThirdSegmentAnchorHitIndex];
 
+    //construct the arrays
+    float x1Vec[] = {x1, x1, x1};
+    float y1Vec[] = {y1, y1, y1};
+    float x2Vec[] = {x2, x2, x2};
+    float y2Vec[] = {y2, y2, y2};
+    float x3Vec[] = {x3, x3, x3};
+    float y3Vec[] = {y3, y3, y3};
+    float x4Vec[] = {x4, x4, x4};
+    float y4Vec[] = {y4, y4, y4};
+    float x5Vec[] = {x5, x5, x5};
+    float y5Vec[] = {y5, y5, y5};
+
+    if(modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS)
+    {
+        x1Vec[1] = hitsInGPU.lowEdgeXs[innerTripletFirstSegmentAnchorHitIndex];
+        x1Vec[2] = hitsInGPU.highEdgeXs[innerTripletFirstSegmentAnchorHitIndex];
+
+        y1Vec[1] = hitsInGPU.lowEdgeYs[innerTripletFirstSegmentAnchorHitIndex];
+        y1Vec[2] = hitsInGPU.highEdgeYs[innerTripletFirstSegmentAnchorHitIndex];
+    }
+
+    if(modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS)
+    {
+        x2Vec[1] = hitsInGPU.lowEdgeXs[innerTripletSecondSegmentAnchorHitIndex];
+        x2Vec[2] = hitsInGPU.highEdgeXs[innerTripletSecondSegmentAnchorHitIndex];
+
+        y2Vec[1] = hitsInGPU.lowEdgeYs[innerTripletSecondSegmentAnchorHitIndex];
+        y2Vec[2] = hitsInGPU.highEdgeYs[innerTripletSecondSegmentAnchorHitIndex];
+
+    }
+
+    if(modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS)
+    {
+        x3Vec[1] = hitsInGPU.lowEdgeXs[innerTripletThirdSegmentAnchorHitIndex];
+        x3Vec[2] = hitsInGPU.highEdgeXs[innerTripletThirdSegmentAnchorHitIndex];
+
+        y3Vec[1] = hitsInGPU.lowEdgeYs[innerTripletThirdSegmentAnchorHitIndex];
+        y3Vec[2] = hitsInGPU.highEdgeYs[innerTripletThirdSegmentAnchorHitIndex];
+    }
+
+    if(modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex4] == SDL::TwoS)
+    {
+        x4Vec[1] = hitsInGPU.lowEdgeXs[outerTripletSecondSegmentAnchorHitIndex];
+        x4Vec[2] = hitsInGPU.highEdgeXs[outerTripletSecondSegmentAnchorHitIndex];
+
+        y4Vec[1] = hitsInGPU.lowEdgeYs[outerTripletSecondSegmentAnchorHitIndex];
+        y4Vec[2] = hitsInGPU.highEdgeYs[outerTripletSecondSegmentAnchorHitIndex];
+    }
+
+    if(modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex4] == SDL::TwoS)
+    {
+        x5Vec[1] = hitsInGPU.lowEdgeXs[outerTripletThirdSegmentAnchorHitIndex];
+        x5Vec[2] = hitsInGPU.highEdgeXs[outerTripletThirdSegmentAnchorHitIndex];
+
+        y5Vec[1] = hitsInGPU.lowEdgeYs[outerTripletThirdSegmentAnchorHitIndex];
+        y5Vec[2] = hitsInGPU.highEdgeYs[outerTripletThirdSegmentAnchorHitIndex];
+    }
+
+
     float innerG, innerF; //centers of inner circle
+    float innerGError, innerFError;
     float outerG, outerF; //centers of outer circle
+    float outerGError, outerFError;
 
     innerRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3, innerG, innerF);
     outerRadius = computeRadiusFromThreeAnchorHits(x3, y3, x4, y4, x5, y5, outerG, outerF);
+
+    float innerRadiusError = computeErrorInRadius(x1Vec, y1Vec, x2Vec, y2Vec, x3Vec, y3Vec, innerGError, innerFError);
+    float outerRadiusError = computeErrorInRadius(x3Vec, y3Vec, x4Vec, y4Vec, x5Vec, y5Vec, outerGError, outerFError);
+
+    printf("innerRadius = %f, innerRadiusError = %f, outerRadius = %f, outerRadiusError = %f\n",innerRadius, innerRadiusError, outerRadius, outerRadiusError);
+
     if(innerRadius < 0)
     {
         pass = false;
@@ -125,11 +191,71 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     if(omega1 * omega2 < 0)
     {
         pass = false;
-    } 
+    }
+
     return pass;
 }
 
+__device__ float SDL::computeErrorInRadius(float* x1Vec, float* y1Vec, float* x2Vec, float* y2Vec, float* x3Vec, float* y3Vec, float& gError, float& fError)
+{
+    // Numerical differentiation baby! Scientific computing course put into good use
+    float h = x1Vec[0]/100;
+    float gUp, gDown;
+    float fUp, fDown;
 
+    float dgBydx1, dfBydx1;
+    float dRBydx1 = (computeRadiusFromThreeAnchorHits(x1Vec[0] + h, y1Vec[0], x2Vec[0], y2Vec[0], x3Vec[0], y3Vec[0], gUp, fUp) - computeRadiusFromThreeAnchorHits(x1Vec[0] - h, y1Vec[0], x2Vec[0], y2Vec[0], x3Vec[0], y3Vec[0], gDown, fDown))/(2 * h);
+    dgBydx1 = (gUp - gDown)/(2 * h);
+    dfBydx1 = (fUp - fDown)/(2 * h);
+
+    h = x2Vec[0]/100;
+    float dgBydx2, dfBydx2;
+    float dRBydx2 = (computeRadiusFromThreeAnchorHits(x1Vec[0], y1Vec[0], x2Vec[0] + h, y2Vec[0], x3Vec[0], y3Vec[0], gUp, fUp) - computeRadiusFromThreeAnchorHits(x1Vec[0], y1Vec[0], x2Vec[0] - h, y2Vec[0], x3Vec[0], y3Vec[0], gDown, fDown))/(2 * h);
+    dgBydx2 = (gUp - gDown)/(2 * h);
+    dfBydx2 = (fUp - fDown)/(2 * h);
+
+    h = x3Vec[0]/100;
+    float dgBydx3, dfBydx3;
+    float dRBydx3 = (computeRadiusFromThreeAnchorHits(x1Vec[0], y1Vec[0], x2Vec[0], y2Vec[0], x3Vec[0] + h, y3Vec[0], gUp, fUp) - computeRadiusFromThreeAnchorHits(x1Vec[0], y1Vec[0], x2Vec[0], y2Vec[0], x3Vec[0] - h, y3Vec[0], gDown, fDown))/(2 * h);
+    dgBydx3 = (gUp - gDown)/(2 * h);
+    dfBydx3 = (fUp - fDown)/(2 * h);
+
+    h = y1Vec[0]/100;
+    float dgBydy1, dfBydy1;
+    float dRBydy1 = (computeRadiusFromThreeAnchorHits(x1Vec[0], y1Vec[0] + h, x2Vec[0], y2Vec[0], x3Vec[0], y3Vec[0], gUp, fUp) - computeRadiusFromThreeAnchorHits(x1Vec[0], y1Vec[0] - h, x2Vec[0], y2Vec[0], x3Vec[0], y3Vec[0], gDown, fDown))/(2 * h);
+    dgBydy1 = (gUp - gDown)/(2 * h);
+    dfBydy1 = (fUp - fDown)/(2 * h);
+
+    h = y2Vec[0]/100;
+    float dgBydy2, dfBydy2;
+    float dRBydy2 = (computeRadiusFromThreeAnchorHits(x1Vec[0], y1Vec[0], x2Vec[0], y2Vec[0] + h, x3Vec[0], y3Vec[0], gUp, fUp) - computeRadiusFromThreeAnchorHits(x1Vec[0], y1Vec[0], x2Vec[0], y2Vec[0] - h, x3Vec[0], y3Vec[0], gDown, fDown))/(2 * h);
+    dgBydy2 = (gUp - gDown)/(2 * h);
+    dfBydy2 = (fUp - fDown)/(2 * h);
+
+    h = y3Vec[0]/100;
+    float dgBydy3, dfBydy3;
+    float dRBydy3 = (computeRadiusFromThreeAnchorHits(x1Vec[0], y1Vec[0], x2Vec[0], y2Vec[0], x3Vec[0], y3Vec[0] + h, gUp, fUp) - computeRadiusFromThreeAnchorHits(x1Vec[0], y1Vec[0], x2Vec[0], y2Vec[0], x3Vec[0], y3Vec[0] - h, gDown, fDown))/(2 * h);
+    dgBydy3 = (gUp - gDown)/(2 * h);
+    dfBydy3 = (fUp - fDown)/(2 * h);
+
+
+    float radiusError2 = (dRBydx1 * dRBydx1) * (x1Vec[2] - x1Vec[1]) * (x1Vec[2] - x1Vec[1]) + (dRBydx2 * dRBydx2) * (x2Vec[2] - x2Vec[1]) * (x2Vec[2] - x2Vec[1]) + (dRBydx3 * dRBydx3) * (x3Vec[2] - x3Vec[1]) * (x3Vec[2] - x3Vec[1]) + (dRBydy1 * dRBydy1) * (y1Vec[2] - y1Vec[1]) * (y1Vec[2] - y1Vec[1]) + (dRBydy2 * dRBydy2) * (y2Vec[2] - y2Vec[1]) * (y2Vec[2] - y2Vec[1]) + (dRBydy3 * dRBydy3) * (y3Vec[2] - y3Vec[1]) * (y3Vec[2] - y3Vec[1]);
+
+    radiusError2/= 4;
+
+    float gError2 = (dgBydx1 * dgBydx1) * (x1Vec[2] - x1Vec[1]) * (x1Vec[2] - x1Vec[1]) + (dgBydx2 * dgBydx2) * (x2Vec[2] - x2Vec[1]) * (x2Vec[2] - x2Vec[1]) + (dgBydx3 * dgBydx3) * (x3Vec[2] - x3Vec[1]) * (x3Vec[2] - x3Vec[1]) + (dgBydy1 * dgBydy1) * (y1Vec[2] - y1Vec[1]) * (y1Vec[2] - y1Vec[1]) + (dgBydy2 * dgBydy2) * (y2Vec[2] - y2Vec[1]) * (y2Vec[2] - y2Vec[1]) + (dgBydy3 * dgBydy3) * (y3Vec[2] - y3Vec[1]) * (y3Vec[2] - y3Vec[1]);
+
+    gError2/= 4;
+
+    float fError2 = (dfBydx1 * dfBydx1) * (x1Vec[2] - x1Vec[1]) * (x1Vec[2] - x1Vec[1]) + (dfBydx2 * dfBydx2) * (x2Vec[2] - x2Vec[1]) * (x2Vec[2] - x2Vec[1]) + (dfBydx3 * dfBydx3) * (x3Vec[2] - x3Vec[1]) * (x3Vec[2] - x3Vec[1]) + (dfBydy1 * dfBydy1) * (y1Vec[2] - y1Vec[1]) * (y1Vec[2] - y1Vec[1]) + (dfBydy2 * dfBydy2) * (y2Vec[2] - y2Vec[1]) * (y2Vec[2] - y2Vec[1]) + (dfBydy3 * dfBydy3) * (y3Vec[2] - y3Vec[1]) * (y3Vec[2] - y3Vec[1]);
+
+    fError2/= 4;
+
+    gError = sqrtf(gError2);
+    fError = sqrtf(fError2);
+
+    return sqrtf(radiusError2);
+}
 
 __device__ float SDL::computeRadiusFromThreeAnchorHits(float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f)
 {
