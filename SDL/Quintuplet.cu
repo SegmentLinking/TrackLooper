@@ -87,46 +87,59 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     unsigned int innerTripletSecondSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[firstSegmentIndex]; //same as second segment inner MD anchorhit index
     unsigned int innerTripletThirdSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[secondSegmentIndex]; //same as third segment inner MD anchor hit index
 
-    innerRadius = computeRadiusFromThreeAnchorHits(hitsInGPU, innerTripletFirstSegmentAnchorHitIndex, innerTripletSecondSegmentAnchorHitIndex, innerTripletThirdSegmentAnchorHitIndex);
-
-    if(innerRadius < 0)
-    {
-        pass = false;
-    }
-
     unsigned int outerTripletFirstSegmentAnchorHitIndex = segmentsInGPU.innerMiniDoubletAnchorHitIndices[thirdSegmentIndex];
     unsigned int outerTripletSecondSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[thirdSegmentIndex]; //same as fourth segment inner MD anchor hit index
     unsigned int outerTripletThirdSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[fourthSegmentIndex];
 
-    outerRadius = computeRadiusFromThreeAnchorHits(hitsInGPU, outerTripletFirstSegmentAnchorHitIndex, outerTripletSecondSegmentAnchorHitIndex, outerTripletThirdSegmentAnchorHitIndex);
+
+    float x1 = hitsInGPU.xs[innerTripletFirstSegmentAnchorHitIndex];
+    float x2 = hitsInGPU.xs[innerTripletSecondSegmentAnchorHitIndex];
+    float x3 = hitsInGPU.xs[innerTripletThirdSegmentAnchorHitIndex];
+    float x4 = hitsInGPU.xs[outerTripletSecondSegmentAnchorHitIndex];
+    float x5 = hitsInGPU.xs[outerTripletThirdSegmentAnchorHitIndex];
+
+    float y1 = hitsInGPU.ys[innerTripletFirstSegmentAnchorHitIndex];
+    float y2 = hitsInGPU.ys[innerTripletSecondSegmentAnchorHitIndex];
+    float y3 = hitsInGPU.ys[innerTripletThirdSegmentAnchorHitIndex];
+    float y4 = hitsInGPU.ys[outerTripletSecondSegmentAnchorHitIndex];
+    float y5 = hitsInGPU.ys[outerTripletThirdSegmentAnchorHitIndex];
+
+    float innerG, innerF; //centers of inner circle
+    float outerG, outerF; //centers of outer circle
+
+    innerRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3, innerG, innerF);
+    outerRadius = computeRadiusFromThreeAnchorHits(x3, y3, x4, y4, x5, y5, outerG, outerF);
+    if(innerRadius < 0)
+    {
+        pass = false;
+    }
 
     if(outerRadius < 0)
     {
         pass = false;
     }
 
-
+    //cross product check   
+    float omega1 = (innerG - x1) * (y3 - y1) - (innerF - y1) * (x3 - x1);
+    float omega2 = (outerG - x3) * (y5 - y3) - (outerF - y3) * (x5 - x3);
+    if(omega1 * omega2 < 0)
+    {
+        pass = false;
+    } 
     return pass;
 }
 
 
 
-__device__ float SDL::computeRadiusFromThreeAnchorHits(struct SDL::hits& hitsInGPU, unsigned int firstAnchorHit, unsigned int secondAnchorHit, unsigned int thirdAnchorHit)
+__device__ float SDL::computeRadiusFromThreeAnchorHits(float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f)
 {
     float radius = 0;
 
     //writing manual code for computing radius, which obviously sucks
     //TODO:Use fancy inbuilt libraries like cuBLAS or cuSOLVE for this!
-    
+    //(g,f) -> center
     //first anchor hit - (x1,y1), second anchor hit - (x2,y2), third anchor hit - (x3, y3)
 
-    float x1 = hitsInGPU.xs[firstAnchorHit];
-    float x2 = hitsInGPU.xs[secondAnchorHit];
-    float x3 = hitsInGPU.xs[thirdAnchorHit];
-
-    float y1 = hitsInGPU.ys[firstAnchorHit];
-    float y2 = hitsInGPU.ys[secondAnchorHit];
-    float y3 = hitsInGPU.ys[thirdAnchorHit];
 
     if((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3) == 0)
     {
@@ -135,9 +148,9 @@ __device__ float SDL::computeRadiusFromThreeAnchorHits(struct SDL::hits& hitsInG
 
     float denom = ((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3));
 
-    float g = 0.5 * ((y3 - y2) * (x1 * x1 + y1 * y1) + (y1 - y3) * (x2 * x2 + y2 * y2) + (y2 - y1) * (x3 * x3 + y3 * y3))/denom;
+    g = 0.5 * ((y3 - y2) * (x1 * x1 + y1 * y1) + (y1 - y3) * (x2 * x2 + y2 * y2) + (y2 - y1) * (x3 * x3 + y3 * y3))/denom;
 
-    float f = 0.5 * ((x2 - x3) * (x1 * x1 + y1 * y1) + (x3 - x1) * (x2 * x2 + y2 * y2) + (x1 - x2) * (x3 * x3 + y3 * y3))/denom;
+    f = 0.5 * ((x2 - x3) * (x1 * x1 + y1 * y1) + (x3 - x1) * (x2 * x2 + y2 * y2) + (x1 - x2) * (x3 * x3 + y3 * y3))/denom;
 
     float c = ((x2 * y3 - x3 * y2) * (x1 * x1 + y1 * y1) + (x3 * y1 - x1 * y3) * (x2 * x2 + y2 * y2) + (x1 * y2 - x2 * y1) * (x3 * x3 + y3 * y3))/denom;
 

@@ -42,6 +42,10 @@ def process_layerType(layers):
     return "".join(layerType)
 
 
+def process_numbers(layers):
+    numbers = layers.astype(str)
+    return "".join(numbers)
+
 def make_plots(qArray,qArraySimTrackMatched,quantity,layerType):
     minValue = min(qArray[qArray > -999])
     maxValue = max(qArray)
@@ -63,7 +67,11 @@ def make_plots(qArray,qArraySimTrackMatched,quantity,layerType):
     allHist.plot(alpha = 0.8, color = "C0", label = "all")
     simtrackMatchedHist.plot(alpha = 0.8, color = "C3", label = "sim track matched")
     if layerType == "":
-        plt.title("{}".format(quantity))
+        if "TripletPt" in quantity:
+            title = quantity.replace("TripletPt","Triplet radius")
+        else:
+            title = quantity
+        plt.title("{}".format(title))
     else:
         plt.title("{} type {}".format(quantity, layerType))
 
@@ -103,8 +111,9 @@ def plot_distributions(obj):
 
     layers = np.array(list(map(process_layers,ak.flatten(tree["{}_layer_binary".format(obj)].array()))))
     #moduleTypes = np.array(list(map(process_moduleTypes,ak.flatten(tree["{}_moduleType_binary".format(obj)].array()))))
-    layerTypes = np.array(list(map(process_layerType,layers)))
-    print(layerTypes)
+#    layerTypes = np.array(list(map(process_layerType,layers)))
+    layerTypes = np.array(list(map(process_numbers, layers)))
+#    print(layerTypes)
     unique_layerTypes = np.unique(layerTypes, axis = 0)
     unique_layerTypes = np.append(unique_layerTypes,"")
     print(unique_layerTypes)
@@ -127,13 +136,13 @@ def plot_distributions(obj):
 
 def plot_composite_distributions(obj):
     global tree
-#    composite_quantities = [("betaInCut","-","abs(betaIn)"),("betaOutCut","-","abs(betaOut)"),("deltaBetaCut","-","abs(deltaBeta)"),("zOut","-","zLo"),("zHi","-","zOut"),("abs(betaIn)","/","betaInCut"),("abs(betaOut)","/","betaOutCut"),("abs(deltaBeta)","/","deltaBetaCut")]
-    composite_quantities = [("innerTripletPt", "-", "outerTripletPt")]
+    composite_quantities = [("innerTripletPt", "-", "outerTripletPt"),("innerTripletPt", "--", "outerTripletPt")]
 
     matchedMask = tree["{}_isFake".format(obj)].array() == 0
     layers = np.array(list(map(process_layers,ak.flatten(tree["{}_layer_binary".format(obj)].array()))))
-    #moduleTypes = np.array(list(map(process_moduleTypes,ak.flatten(tree["{}_moduleType_binary".format(obj)].array()))))
-    layerTypes = np.array(list(map(process_layerType,layers)))
+    #layerTypes = np.array(list(map(process_layerType,layers)))
+    layerTypes = np.array(list(map(process_numbers, layers)))
+
 
     unique_layerTypes = np.unique(layerTypes, axis = 0)
     unique_layerTypes = np.append(unique_layerTypes,"")
@@ -157,7 +166,9 @@ def plot_composite_distributions(obj):
                 secondArray = tree["{}_{}".format(obj,composite_quantity[2])].array()
 
             if composite_quantity[1] == "-":
-                qArray = abs(firstArray - secondArray)
+                qArray = abs(firstArray - secondArray) / firstArray
+            elif composite_quantity[1] == "--":
+                qArray = abs(firstArray - secondArray) / secondArray
             elif composite_quantity[1] == "/":
                 qArray = firstArray / secondArray
             else:
@@ -167,15 +178,19 @@ def plot_composite_distributions(obj):
             if layerType == "":
                 qArraySimTrackMatched = qArray[ak.flatten(matchedMask)]
             else:
-                print(len(qArray), len(layerTypes))                
                 qArray = qArray[layerTypes == layerType]
                 qArraySimTrackMatched = qArray[ak.flatten(matchedMask)[layerTypes == layerType]]
 
 
             if all(qArray == -999):
                 continue
-
-            make_plots(qArray,qArraySimTrackMatched,"{} {} {} {}".format(obj,*composite_quantity),layerType)
+            print("all integral = ",len(qArray), "sim track matched integral = ",len(qArraySimTrackMatched))
+            print("all integral till 1 = ",sum(qArray <= 1), "sim track matched integral till 1 = ",sum(qArraySimTrackMatched <= 1))
+            if composite_quantity[1] == "-":
+                make_plots(qArray,qArraySimTrackMatched,"{} {} ".format(obj,"abs(deltaR)/innerTripletRadius"),layerType)
+            elif composite_quantity[1] == "--":
+                 make_plots(qArray,qArraySimTrackMatched,"{} {} ".format(obj,"delta(1/R)/(1/inner radius)"),layerType)
+       
 
 
 
