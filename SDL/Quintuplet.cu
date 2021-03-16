@@ -163,17 +163,17 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
 
 
     float innerG, innerF; //centers of inner circle
-    float innerGError, innerFError;
+    float innerRadiusMin, innerRadiusMax;
     float outerG, outerF; //centers of outer circle
-    float outerGError, outerFError;
+    float outerRadiusMin, outerRadiusMax;
 
     innerRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3, innerG, innerF);
     outerRadius = computeRadiusFromThreeAnchorHits(x3, y3, x4, y4, x5, y5, outerG, outerF);
 
-    float innerRadiusError = computeErrorInRadius(x1Vec, y1Vec, x2Vec, y2Vec, x3Vec, y3Vec, innerGError, innerFError);
-    float outerRadiusError = computeErrorInRadius(x3Vec, y3Vec, x4Vec, y4Vec, x5Vec, y5Vec, outerGError, outerFError);
+    computeErrorInRadius(x1Vec, y1Vec, x2Vec, y2Vec, x3Vec, y3Vec, innerRadiusMin, innerRadiusMax);
+    computeErrorInRadius(x3Vec, y3Vec, x4Vec, y4Vec, x5Vec, y5Vec, outerRadiusMin, outerRadiusMax);
 
-    printf("innerRadius = %f, innerRadiusError = %f, outerRadius = %f, outerRadiusError = %f\n",innerRadius, innerRadiusError, outerRadius, outerRadiusError);
+    printf("innerRadius = %f, innerRadiusMin = %f, innerRadiusMax = %f, outerRadius = %f, outerRadiusMin = %f, outerRadiusMax = %f\n",innerRadius, innerRadiusMin, innerRadiusMax, outerRadius, outerRadiusMin, outerRadiusMax);
 
     if(innerRadius < 0)
     {
@@ -196,6 +196,37 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     return pass;
 }
 
+__device__ void SDL::computeErrorInRadius(float* x1Vec, float* y1Vec, float* x2Vec, float* y2Vec, float* x3Vec, float* y3Vec, float& minimumRadius, float& maximumRadius)
+{
+    //brute force
+    float candidateRadius;
+    minimumRadius = 0;
+    maximumRadius = 123456789;
+    float f,g; //placeholders
+    for(size_t i = 0; i < 3; i++)
+    {
+        for(size_t j = 0; j < 3; j++)
+        {
+            for(size_t k = 0; k < 3; k++)
+            {
+               candidateRadius = computeRadiusFromThreeAnchorHits(x1Vec[i], x2Vec[j], x3Vec[k], y1Vec[i], y2Vec[j], y3Vec[k],g,f); 
+               if(candidateRadius >= maximumRadius)
+               {
+                   maximumRadius = candidateRadius;
+               }
+
+               if(candidateRadius <= minimumRadius)
+               {
+                   minimumRadius = candidateRadius;
+               }
+    
+            }
+        }
+    }
+}
+
+
+/*
 __device__ float SDL::computeErrorInRadius(float* x1Vec, float* y1Vec, float* x2Vec, float* y2Vec, float* x3Vec, float* y3Vec, float& gError, float& fError)
 {
     // Numerical differentiation baby! Scientific computing course put into good use
@@ -255,7 +286,7 @@ __device__ float SDL::computeErrorInRadius(float* x1Vec, float* y1Vec, float* x2
     fError = sqrtf(fError2);
 
     return sqrtf(radiusError2);
-}
+}*/
 
 __device__ float SDL::computeRadiusFromThreeAnchorHits(float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f)
 {

@@ -50,7 +50,7 @@ CUDA_DEV float computeRadiusFromThreeAnchorHits(struct SDL::hits& hitsInGPU, uns
 
 CUDA_DEV float computeRadiusFromThreeAnchorHits(float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f);
 
-CUDA_DEV float computeErrorInRadius(float* x1Vec, float* y1Vec, float* x2Vec, float* y2Vec, float* x3Vec, float* y3Vec, float& gError, float& fError);
+CUDA_DEV void computeErrorInRadius(float* x1Vec, float* y1Vec, float* x2Vec, float* y2Vec, float* x3Vec, float* y3Vec, float& gError, float& fError);
 
 }
 #endif
