@@ -92,8 +92,15 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<int>>("sim_T5_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_T5_types");
 
-    ana.tx->createBranch<vector<float>>("t5_innerTripletPt");
-    ana.tx->createBranch<vector<float>>("t5_outerTripletPt");
+    ana.tx->createBranch<vector<float>>("t5_innerRadius");
+    ana.tx->createBranch<vector<float>>("t5_innerRadiusMin");
+    ana.tx->createBranch<vector<float>>("t5_innerRadiusMax");
+    ana.tx->createBranch<vector<float>>("t5_outerRadius");
+    ana.tx->createBranch<vector<float>>("t5_outerRadiusMin");
+    ana.tx->createBranch<vector<float>>("t5_outerRadiusMax");
+    ana.tx->createBranch<vector<float>>("t5_bridgeRadius");
+    ana.tx->createBranch<vector<float>>("t5_bridgeRadiusMin");
+    ana.tx->createBranch<vector<float>>("t5_bridgeRadiusMax");
     ana.tx->createBranch<vector<int>>("t5_isFake");
     ana.tx->createBranch<vector<int>>("t5_isDuplicate");
     ana.tx->createBranch<vector<int>>("t5_layer_binary");
@@ -638,8 +645,16 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     std::vector<vector<int>> sim_T5_types(trk.sim_pt().size());
     std::vector<int> t5_isFake;
     std::vector<vector<int>> t5_matched_simIdx;
-    std::vector<float> t5_innerTripletPt;
-    std::vector<float> t5_outerTripletPt;
+    std::vector<float> t5_innerRadius;
+    std::vector<float> t5_innerRadiusMin;
+    std::vector<float> t5_innerRadiusMax;
+    std::vector<float> t5_outerRadius;
+    std::vector<float> t5_outerRadiusMin;
+    std::vector<float> t5_outerRadiusMax;
+    std::vector<float> t5_bridgeRadius;
+    std::vector<float> t5_bridgeRadiusMin;
+    std::vector<float> t5_bridgeRadiusMax;
+
     std::vector<int> layer_binaries;
     const int MAX_NQUINTUPLET_PER_MODULE = 50000;
     
@@ -656,8 +671,15 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             unsigned int quintupletIndex = MAX_NQUINTUPLET_PER_MODULE * idx + jdx;
             unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
             unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
-            t5_innerTripletPt.push_back(quintupletsInGPU.innerTripletPt[quintupletIndex]);
-            t5_outerTripletPt.push_back(quintupletsInGPU.outerTripletPt[quintupletIndex]);
+            t5_innerRadius.push_back(quintupletsInGPU.innerRadius[quintupletIndex]);
+            t5_innerRadiusMin.push_back(quintupletsInGPU.innerRadiusMin[quintupletIndex]);
+            t5_innerRadiusMax.push_back(quintupletsInGPU.innerRadiusMax[quintupletIndex]);
+            t5_outerRadius.push_back(quintupletsInGPU.outerRadius[quintupletIndex]);
+            t5_outerRadiusMin.push_back(quintupletsInGPU.outerRadiusMin[quintupletIndex]);
+            t5_outerRadiusMax.push_back(quintupletsInGPU.outerRadiusMax[quintupletIndex]);
+            t5_bridgeRadius.push_back(quintupletsInGPU.bridgeRadius[quintupletIndex]);
+            t5_bridgeRadiusMin.push_back(quintupletsInGPU.bridgeRadiusMin[quintupletIndex]);
+            t5_bridgeRadiusMax.push_back(quintupletsInGPU.bridgeRadiusMax[quintupletIndex]);
 
             unsigned int innerTripletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex];
             unsigned int innerTripletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex + 1];
@@ -763,8 +785,15 @@ void fillQuintupletOutputBranches(SDL::Event& event)
 
     ana.tx->setBranch<vector<int>>("sim_T5_matched", sim_T5_matched);
     ana.tx->setBranch<vector<vector<int>>>("sim_T5_types", sim_T5_types);
-    ana.tx->setBranch<vector<float>>("t5_innerTripletPt",t5_innerTripletPt);
-    ana.tx->setBranch<vector<float>>("t5_outerTripletPt",t5_outerTripletPt);
+    ana.tx->setBranch<vector<float>>("t5_outerRadius",t5_outerRadius);
+    ana.tx->setBranch<vector<float>>("t5_outerRadiusMin",t5_outerRadiusMin);
+    ana.tx->setBranch<vector<float>>("t5_outerRadiusMax",t5_outerRadiusMax);
+    ana.tx->setBranch<vector<float>>("t5_innerRadius",t5_innerRadius);
+    ana.tx->setBranch<vector<float>>("t5_innerRadiusMin",t5_innerRadiusMin);
+    ana.tx->setBranch<vector<float>>("t5_innerRadiusMax",t5_innerRadiusMax);
+    ana.tx->setBranch<vector<float>>("t5_bridgeRadius",t5_bridgeRadius);
+    ana.tx->setBranch<vector<float>>("t5_bridgeRadiusMin",t5_bridgeRadiusMin);
+    ana.tx->setBranch<vector<float>>("t5_bridgeRadiusMax",t5_bridgeRadiusMax);
     ana.tx->setBranch<vector<int>>("t5_layer_binary",layer_binaries); 
     std::vector<int> t5_isDuplicate(t5_matched_simIdx.size());
 
