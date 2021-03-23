@@ -181,6 +181,7 @@ void fillTrackCandidateOutputBranches(SDL::Event& event)
             }
             else if (trackCandidateType == 1) // T4T3
             {
+
                 innerTrackletInnerSegmentIndex = trackletsInGPU.segmentIndices[2 * innerTrackletIdx];
                 innerTrackletOuterSegmentIndex = trackletsInGPU.segmentIndices[2 * innerTrackletIdx + 1];
                 outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTrackletIdx + 1];

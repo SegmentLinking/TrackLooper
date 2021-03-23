@@ -49,7 +49,7 @@ int main(int argc, char** argv)
         ("n,nevents"        , "N events to loop over"                                                                               , cxxopts::value<int>()->default_value("-1"))
         ("x,event_index"    , "specific event index to process"                                                                     , cxxopts::value<int>()->default_value("-1"))
         ("g,pdg_id"         , "The simhit pdgId match option (default = 0)"                                                         , cxxopts::value<int>()->default_value("0"))
-        ("v,verbose"        , "Verbose mode"                                                                                        , cxxopts::value<int>()->default_value("0"))
+        ("v,verbose"        , "Verbose mode (0: no print, 1: only final timing, 2: object multiplitcity"                            , cxxopts::value<int>()->default_value("0"))
         ("w,write_ntuple"   , "Write Ntuple"                                                                                        , cxxopts::value<int>()->default_value("1"))
         ("d,debug"          , "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")
         ("c,cpu"            , "Run CPU version of the code.")
@@ -326,7 +326,8 @@ void run_sdl()
             if (ana.compilation_target.find("explicit") != std::string::npos)
                 timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
             else
-                timing_input_loading = addInputsToLineSegmentTrackingUsingUnifiedMemory(event);
+                timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
+                //timing_input_loading = addInputsToLineSegmentTrackingUsingUnifiedMemory(event);
 
             // Run Mini-doublet
             float timing_MD = runMiniDoublet(event);
@@ -340,11 +341,11 @@ void run_sdl()
             // Run T4x
             float timing_T4x = 0; // runT4x(event);
 
-            // Run T4
-            float timing_T4 = runT4(event);
-
             // Run T3
             float timing_T3 = runT3(event);
+
+            // Run T4
+            float timing_T4 = runT4(event);
 
             // Run TC
             float timing_TC = runTrackCandidate(event);
@@ -413,6 +414,10 @@ void run_sdl()
             float timing_LS = runSegment_on_CPU(event);
             printSegmentSummary(event);
 
+            // Run Triplet
+            float timing_T3 = runT3_on_CPU(event);
+            printTripletSummary(event);
+
             // Run Tracklet
             float timing_T4 = runT4_on_CPU(event);
             printTrackletSummary(event);
@@ -420,10 +425,6 @@ void run_sdl()
             printTrackletSummary(event);
             float timing_pT4 = runpT4_on_CPU(event);
             printTrackletSummary(event);
-
-            // Run Triplet
-            float timing_T3 = runT3_on_CPU(event);
-            printTripletSummary(event);
 
             // Run TrackCandidate
             float timing_TC = runTrackCandidate_on_CPU(event);

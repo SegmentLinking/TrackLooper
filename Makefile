@@ -1,7 +1,7 @@
 
 # Simple makefile
 
-EXES=bin/doAnalysis bin/sdl
+EXES=bin/sdl
 
 ROOUTIL=code/rooutil/
 
@@ -31,8 +31,6 @@ cutvalue : $(ROOUTIL) efficiency $(EXES)
 
 all: $(ROOUTIL) efficiency $(EXES)
 
-bin/doAnalysis: bin/doAnalysis.o $(OBJECTS)
-	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(EXTRAFLAGS) -o $@
 
 bin/sdl: bin/sdl.o $(OBJECTS)
 	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(EXTRAFLAGS) -o $@
@@ -49,7 +47,6 @@ efficiency:
 clean:
 	rm -f $(OBJECTS) bin/*.o $(EXES)
 	rm -f code/rooutil/*.so code/rooutil/*.o
-	rm -f bin/doAnalysis.o
 	rm -f bin/sdl.o
 	rm -f SDL/*.o
 	cd efficiency/ && make clean
