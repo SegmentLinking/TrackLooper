@@ -1129,13 +1129,37 @@ void SDL::CPU::Event::createTrackletsWithPixelLineSegments_v2(TLAlgo algo)
         if (ptbin < 0)
             continue;
 
+        // --------------------------------------------------------------------------------------
+        // Comments on the pLS:
+        // We slice pixel line segments (pLS) into different phase-space "superbins".
+        // The slicing is done in pt, eta, phi, and dz.
+        //
+        // The maps like "SDL::moduleConnectionMap_pLStoLayer1Subdet5" contains a map of following.
+        // "superbin_index" -> {detId1, detId2, detId3, ... }
+        //
+        // So for a given pLS, we need to compute which "superbin_index" it belongs to and then aggregate the list of "detId"'s in given layer in a give subdet
+        // Then, we would aggregate the list of modules to loop over in the outer tracker to link pLS's to.
+        //
+        // The super bin indices are assigned at the time the map was created.
+        // Therefore, the convention of the definition index is very important and must be carefully communicated and defined.
+        //
+        // For example, if a pLS falls into (ipt, ieta, iphi, idz) then the superbin index is
+        // isuperbin = (nz*nphi*neta) * ipt + (nz*nphi) * ieta + (nz) * iphi + idz
+        //
+        // In this case, we bin:
+        // pt : (0.9 - 2.0), (2.0 and above)
+        // eta : -2.6 to 2.6 with 20 bins
+        // phi : -pi to pi with 72 bins
+        // dz : -30 to 30 cm with 24 bins
+        //
+        // --------------------------------------------------------------------------------------
         float neta = 20.; // # of eta bins
         float nphi = 72.; // # of phi bins
         float nz = 24.; // # of z bins
 
         int etabin = (eta + 2.6) / ((2*2.6) / neta);
         int phibin = (phi + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
-        int dzbin = (dz + 30) / (60 / nz);
+        int dzbin = (dz + 30) / (2*30 / nz);
         int isuperbin = (nz * nphi * neta) * ptbin + (nz * nphi) * etabin + (nz) * phibin + dzbin;
         int charge = (innerSegment.getDeltaPhiChange() > 0) - (innerSegment.getDeltaPhiChange() < 0);
 
