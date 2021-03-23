@@ -460,6 +460,21 @@ class SDL {
   vector<int> *t4_isDuplicate_;
   TBranch *t4_isDuplicate_branch;
   bool     t4_isDuplicate_isLoaded;
+  vector<float> *pT4_pt_;
+  TBranch *pT4_pt_branch;
+  bool     pT4_pt_isLoaded;
+  vector<float> *pT4_eta_;
+  TBranch *pT4_eta_branch;
+  bool     pT4_eta_isLoaded;
+  vector<float> *pT4_phi_;
+  TBranch *pT4_phi_branch;
+  bool     pT4_phi_isLoaded;
+  vector<int> *pT4_isFake_;
+  TBranch *pT4_isFake_branch;
+  bool     pT4_isFake_isLoaded;
+  vector<int> *pT4_isDuplicate_;
+  TBranch *pT4_isDuplicate_branch;
+  bool     pT4_isDuplicate_isLoaded;
   vector<float> *t3_pt_;
   TBranch *t3_pt_branch;
   bool     t3_pt_isLoaded;
@@ -496,6 +511,9 @@ class SDL {
   vector<int> *sim_T4_matched_;
   TBranch *sim_T4_matched_branch;
   bool     sim_T4_matched_isLoaded;
+  vector<int> *sim_pT4_matched_;
+  TBranch *sim_pT4_matched_branch;
+  bool     sim_pT4_matched_isLoaded;
   vector<int> *sim_T3_matched_;
   TBranch *sim_T3_matched_branch;
   bool     sim_T3_matched_isLoaded;
@@ -649,6 +667,11 @@ void LoadAllBranches();
   const vector<float> &t4_phi();
   const vector<int> &t4_isFake();
   const vector<int> &t4_isDuplicate();
+  const vector<float> &pT4_pt();
+  const vector<float> &pT4_eta();
+  const vector<float> &pT4_phi();
+  const vector<int> &pT4_isFake();
+  const vector<int> &pT4_isDuplicate();
   const vector<float> &t3_pt();
   const vector<float> &t3_eta();
   const vector<float> &t3_phi();
@@ -661,6 +684,7 @@ void LoadAllBranches();
   const vector<vector<int> > &sim_tcIdx_isMTVmatch();
   const vector<int> &sim_TC_matched();
   const vector<int> &sim_T4_matched();
+  const vector<int> &sim_pT4_matched();
   const vector<int> &sim_T3_matched();
 
   static void progress(int nEventsTotal, int nEventsChain);
@@ -817,6 +841,11 @@ namespace tas {
   const vector<float> &t4_phi();
   const vector<int> &t4_isFake();
   const vector<int> &t4_isDuplicate();
+  const vector<float> &pT4_pt();
+  const vector<float> &pT4_eta();
+  const vector<float> &pT4_phi();
+  const vector<int> &pT4_isFake();
+  const vector<int> &pT4_isDuplicate();
   const vector<float> &t3_pt();
   const vector<float> &t3_eta();
   const vector<float> &t3_phi();
@@ -829,6 +858,7 @@ namespace tas {
   const vector<vector<int> > &sim_tcIdx_isMTVmatch();
   const vector<int> &sim_TC_matched();
   const vector<int> &sim_T4_matched();
+  const vector<int> &sim_pT4_matched();
   const vector<int> &sim_T3_matched();
 }
 #endif

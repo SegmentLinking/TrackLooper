@@ -281,6 +281,14 @@ void SDL::CPU::Event::addPixelSegmentsToEvent(std::vector<SDL::CPU::Hit> hits, f
     // innerMiniDoublet.runMiniDoubletAllCombAlgo(); // Setting "all combination" pass in order to flag the pass bool flag
     // outerMiniDoublet.runMiniDoubletAllCombAlgo(); // Setting "all combination" pass in order to flag the pass bool flag
 
+    // std::cout << "debugging pixel line segment hit loading" << std::endl;
+    // std::cout << innerMiniDoublet.anchorHitPtr() << std::endl;
+    // std::cout << innerMiniDoublet.upperHitPtr() << std::endl;
+    // std::cout << innerMiniDoublet.lowerHitPtr() << std::endl;
+    // std::cout << outerMiniDoublet.anchorHitPtr() << std::endl;
+    // std::cout << outerMiniDoublet.upperHitPtr() << std::endl;
+    // std::cout << outerMiniDoublet.lowerHitPtr() << std::endl;
+
     pixel_miniDoublets_.push_back(innerMiniDoublet);
     SDL::CPU::MiniDoublet* innerMiniDoubletPtr = &pixel_miniDoublets_.back();
     pixel_miniDoublets_.push_back(outerMiniDoublet);
@@ -1074,6 +1082,179 @@ void SDL::CPU::Event::createTrackletsViaNavigation(SDL::CPU::TLAlgo algo)
 
 }
 
+
+// Create tracklets with pixel line segments
+void SDL::CPU::Event::createTrackletsWithPixelLineSegments_v2(TLAlgo algo)
+{
+    if (logLevel_ == SDL::CPU::Log_Debug)
+        SDL::CPU::cout << "SDL::CPU::Event::createTrackletsWithPixelLineSegments_v2()" << std::endl;
+
+    // Loop over lower modules
+    int nModuleProcessed = 0;
+    int nTotalLowerModule = getLowerModulePtrs().size();
+
+    if (logLevel_ == SDL::CPU::Log_Debug)
+        SDL::CPU::cout <<  " nTotalLowerModule: " << nTotalLowerModule <<  std::endl;
+
+    int nCombinations = 0;
+
+
+    // Loop over inner lower module for segments
+    for (auto& innerSegmentPtr : getPixelLayer().getSegmentPtrs())
+    {
+
+        // Get reference to segment in inner lower module
+        SDL::CPU::Segment& innerSegment = *innerSegmentPtr;
+
+        // Get reference to the inner lower Module
+        Module& pixelModule = getModule(1);
+        Module& innerLowerModule = pixelModule;
+
+        // obtain pt eta phi
+        float pt = innerSegment.innerMiniDoubletPtr()->lowerHitPtr()->x(); // The x coordinate is set to Pt at the pLS loading stage
+        float eta = innerSegment.innerMiniDoubletPtr()->lowerHitPtr()->y(); // The y coordinate is set to Eta at the pLS loading stage
+        float phi = innerSegment.innerMiniDoubletPtr()->lowerHitPtr()->z(); // The z coordinate is set to Phi at the pLS loading stage
+        // float dxy = innerSegment.innerMiniDoubletPtr()->upperHitPtr()->y(); // The y coordinate is set to dxy of PCA at the pLS loading stage
+        float dz = innerSegment.outerMiniDoubletPtr()->lowerHitPtr()->z(); // The x coordinate is set to dz of PCA at the pLS loading stage
+
+        // Determine superbin index
+
+        // Split by two pt bins below and above 2 GeV
+        int ptbin = -1;
+        if (pt >= 0.9 and pt < 2.0)
+            ptbin = 0;
+        if (pt >= 2.0)
+            ptbin = 1;
+
+        if (ptbin < 0)
+            continue;
+
+        float neta = 20.; // # of eta bins
+        float nphi = 72.; // # of phi bins
+        float nz = 24.; // # of z bins
+
+        int etabin = (eta + 2.6) / ((2*2.6) / neta);
+        int phibin = (phi + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
+        int dzbin = (dz + 30) / (60 / nz);
+        int isuperbin = (nz * nphi * neta) * ptbin + (nz * nphi) * etabin + (nz) * phibin + dzbin;
+        int charge = (innerSegment.getDeltaPhiChange() > 0) - (innerSegment.getDeltaPhiChange() < 0);
+
+        // std::cout <<  " pt: " << pt <<  " eta: " << eta <<  " phi: " << phi <<  " dz: " << dz <<  std::endl;
+        // std::cout <<  " ptbin: " << ptbin <<  " etabin: " << etabin <<  " phibin: " << phibin <<  " dzbin: " << dzbin <<  std::endl;
+
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5 = SDL::moduleConnectionMap_pLStoLayer1Subdet5.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet5 = SDL::moduleConnectionMap_pLStoLayer2Subdet5.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet5 = SDL::moduleConnectionMap_pLStoLayer3Subdet5.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet4 = SDL::moduleConnectionMap_pLStoLayer1Subdet4.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet4 = SDL::moduleConnectionMap_pLStoLayer2Subdet4.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet4 = SDL::moduleConnectionMap_pLStoLayer3Subdet4.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer4Subdet4 = SDL::moduleConnectionMap_pLStoLayer4Subdet4.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pos_pLStoLayer1Subdet5 = SDL::moduleConnectionMap_pLStoLayer1Subdet5_pos.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pos_pLStoLayer2Subdet5 = SDL::moduleConnectionMap_pLStoLayer2Subdet5_pos.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pos_pLStoLayer3Subdet5 = SDL::moduleConnectionMap_pLStoLayer3Subdet5_pos.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pos_pLStoLayer1Subdet4 = SDL::moduleConnectionMap_pLStoLayer1Subdet4_pos.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pos_pLStoLayer2Subdet4 = SDL::moduleConnectionMap_pLStoLayer2Subdet4_pos.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pos_pLStoLayer3Subdet4 = SDL::moduleConnectionMap_pLStoLayer3Subdet4_pos.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pos_pLStoLayer4Subdet4 = SDL::moduleConnectionMap_pLStoLayer4Subdet4_pos.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_neg_pLStoLayer1Subdet5 = SDL::moduleConnectionMap_pLStoLayer1Subdet5_neg.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_neg_pLStoLayer2Subdet5 = SDL::moduleConnectionMap_pLStoLayer2Subdet5_neg.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_neg_pLStoLayer3Subdet5 = SDL::moduleConnectionMap_pLStoLayer3Subdet5_neg.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_neg_pLStoLayer1Subdet4 = SDL::moduleConnectionMap_pLStoLayer1Subdet4_neg.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_neg_pLStoLayer2Subdet4 = SDL::moduleConnectionMap_pLStoLayer2Subdet4_neg.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_neg_pLStoLayer3Subdet4 = SDL::moduleConnectionMap_pLStoLayer3Subdet4_neg.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_neg_pLStoLayer4Subdet4 = SDL::moduleConnectionMap_pLStoLayer4Subdet4_neg.getConnectedModuleDetIds(isuperbin);
+
+        std::vector<unsigned int> connectedModuleDetIds;
+        if (ptbin == 1)
+        {
+            connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_pLStoLayer1Subdet5.begin(), connectedModuleDetIds_pLStoLayer1Subdet5.end());
+            connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_pLStoLayer2Subdet5.begin(), connectedModuleDetIds_pLStoLayer2Subdet5.end());
+            connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_pLStoLayer3Subdet5.begin(), connectedModuleDetIds_pLStoLayer3Subdet5.end());
+            connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_pLStoLayer1Subdet4.begin(), connectedModuleDetIds_pLStoLayer1Subdet4.end());
+            connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_pLStoLayer2Subdet4.begin(), connectedModuleDetIds_pLStoLayer2Subdet4.end());
+            connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_pLStoLayer3Subdet4.begin(), connectedModuleDetIds_pLStoLayer3Subdet4.end());
+            connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_pLStoLayer4Subdet4.begin(), connectedModuleDetIds_pLStoLayer4Subdet4.end());
+        }
+        else
+        {
+            if (charge > 0)
+            {
+                connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_pos_pLStoLayer1Subdet5.begin(), connectedModuleDetIds_pos_pLStoLayer1Subdet5.end());
+                connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_pos_pLStoLayer2Subdet5.begin(), connectedModuleDetIds_pos_pLStoLayer2Subdet5.end());
+                connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_pos_pLStoLayer3Subdet5.begin(), connectedModuleDetIds_pos_pLStoLayer3Subdet5.end());
+                connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_pos_pLStoLayer1Subdet4.begin(), connectedModuleDetIds_pos_pLStoLayer1Subdet4.end());
+                connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_pos_pLStoLayer2Subdet4.begin(), connectedModuleDetIds_pos_pLStoLayer2Subdet4.end());
+                connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_pos_pLStoLayer3Subdet4.begin(), connectedModuleDetIds_pos_pLStoLayer3Subdet4.end());
+                connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_pos_pLStoLayer4Subdet4.begin(), connectedModuleDetIds_pos_pLStoLayer4Subdet4.end());
+            }
+            else
+            {
+                connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_neg_pLStoLayer1Subdet5.begin(), connectedModuleDetIds_neg_pLStoLayer1Subdet5.end());
+                connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_neg_pLStoLayer2Subdet5.begin(), connectedModuleDetIds_neg_pLStoLayer2Subdet5.end());
+                connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_neg_pLStoLayer3Subdet5.begin(), connectedModuleDetIds_neg_pLStoLayer3Subdet5.end());
+                connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_neg_pLStoLayer1Subdet4.begin(), connectedModuleDetIds_neg_pLStoLayer1Subdet4.end());
+                connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_neg_pLStoLayer2Subdet4.begin(), connectedModuleDetIds_neg_pLStoLayer2Subdet4.end());
+                connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_neg_pLStoLayer3Subdet4.begin(), connectedModuleDetIds_neg_pLStoLayer3Subdet4.end());
+                connectedModuleDetIds.insert(connectedModuleDetIds.end(), connectedModuleDetIds_neg_pLStoLayer4Subdet4.begin(), connectedModuleDetIds_neg_pLStoLayer4Subdet4.end());
+            }
+        }
+
+        // std::cout <<  " isuperbin: " << isuperbin <<  std::endl;
+        // for (auto& detid : connectedModuleDetIds)
+        // {
+        //     std::cout <<  " detid: " << detid <<  std::endl;
+        // }
+
+        // Loop over connected outer lower modules
+        for (auto& outerLowerModuleDetId : connectedModuleDetIds)
+        {
+
+            if (not hasModule(outerLowerModuleDetId))
+                continue;
+
+            // Get reference to the outer lower module
+            Module& outerLowerModule = getModule(outerLowerModuleDetId);
+
+            // Loop over outer lower module mini-doublets
+            for (auto& outerSegmentPtr : outerLowerModule.getSegmentPtrs())
+            {
+
+                if (outerSegmentPtr->outerMiniDoubletPtr()->anchorHitPtr()->getModule().moduleType() != SDL::CPU::Module::PS)
+                    continue;
+
+                // Get reference to mini-doublet in outer lower module
+                SDL::CPU::Segment& outerSegment = *outerSegmentPtr;
+
+                // Create a tracklet candidate
+                SDL::CPU::Tracklet tlCand(innerSegmentPtr, outerSegmentPtr);
+
+                // Run segment algorithm on tlCand (tracklet candidate)
+                tlCand.runTrackletAlgo(algo, logLevel_);
+
+                nCombinations++;
+
+                if (tlCand.passesTrackletAlgo(algo))
+                {
+
+                    // Count the # of sg formed by layer
+                    incrementNumberOfTracklets(innerLowerModule);
+
+                    addTrackletToEvent(tlCand, 1/*pixel module=1*/, 0/*pixel is layer=0*/, SDL::CPU::Layer::Barrel);
+                }
+
+            }
+
+            nModuleProcessed++;
+
+        }
+
+
+    }
+
+    if (logLevel_ == SDL::CPU::Log_Debug)
+        std::cout << "SDL::CPU::Event::createTrackletsWithPixelLineSegments_v2(): nCombinations = " << nCombinations << std::endl;
+
+}
 
 // Create tracklets with pixel line segments
 void SDL::CPU::Event::createTrackletsWithPixelLineSegments(TLAlgo algo)
