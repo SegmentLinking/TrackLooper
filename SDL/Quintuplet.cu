@@ -29,10 +29,12 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     cudaMallocManaged(&quintupletsInGPU.tripletIndices, 2 * maxQuintuplets * nLowerModules * sizeof(unsigned int));
     cudaMallocManaged(&quintupletsInGPU.lowerModuleIndices, 5 * maxQuintuplets * nLowerModules * sizeof(unsigned int)); 
     cudaMallocManaged(&quintupletsInGPU.innerTripletPt, 2 * maxQuintuplets * nLowerModules * sizeof(float));
+    cudaMallocManaged(&quintupletsInGPU.innerRadiusFromRegression, 2 * maxQuintuplets * nLowerModules * sizeof(float));
 
     cudaMallocManaged(&quintupletsInGPU.nQuintuplets, nLowerModules * sizeof(unsigned int));
 
     quintupletsInGPU.outerTripletPt = quintupletsInGPU.innerTripletPt + nLowerModules * maxQuintuplets;
+    quintupletsInGPU.outerRadiusFromRegression = quintupletsInGPU.innerRadiusFromRegression + nLowerModules * maxQuintuplets;
 
 #pragma omp parallel for
     for(size_t i = 0; i<nLowerModules;i++)
@@ -42,7 +44,7 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
 
 }
 
-__device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerTripletPt, float outerTripletPt, unsigned int quintupletIndex)
+__device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerTripletPt, float outerTripletPt, float innerRadiusFromRegression, float outerRadiusFromRegression, unsigned int quintupletIndex)
 {
     quintupletsInGPU.tripletIndices[2 * quintupletIndex] = innerTripletIndex;
     quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1] = outerTripletIndex;
@@ -56,9 +58,13 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsI
     quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex + 3] = lowerModule4;
     quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex + 4] = lowerModule5;
 
+    quintupletsInGPU.innerRadiusFromRegression[quintupletIndex] = innerRadiusFromRegression;
+    quintupletsInGPU.outerRadiusFromRegression[quintupletIndex] = outerRadiusFromRegression;
+
 }
 
-__device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5, unsigned int innerTripletIndex, unsigned int outerTripletIndex, float& innerRadius, float& outerRadius)
+__device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5, unsigned int innerTripletIndex, unsigned int outerTripletIndex, float& innerRadius, float& outerRadius,
+        float& innerRadiusFromRegression, float& outerRadiusFromRegression)
 {
     bool pass = true;
 
@@ -82,6 +88,24 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
         pass = false;
     }
 
+
+    unsigned int firstMDIndex = segmentsInGPU.mdIndices[2 * firstSegmentIndex];
+    unsigned int secondMDIndex = segmentsInGPU.mdIndices[2 * secondSegmentIndex];
+    unsigned int thirdMDIndex = segmentsInGPU.mdIndices[2 * secondSegmentIndex + 1];
+    unsigned int fourthMDIndex = segmentsInGPU.mdIndices[2 * thirdSegmentIndex + 1];
+    unsigned int fifthMDIndex = segmentsInGPU.mdIndices[2 * fourthSegmentIndex + 1];
+
+    unsigned int firstMDLowerHitIndex = mdsInGPU.hitIndices[2 * firstMDIndex];
+    unsigned int firstMDUpperHitIndex = mdsInGPU.hitIndices[2 * firstMDIndex + 1];
+    unsigned int secondMDLowerHitIndex = mdsInGPU.hitIndices[2 * secondMDIndex];
+    unsigned int secondMDUpperHitIndex = mdsInGPU.hitIndices[2 * secondMDIndex + 1];
+    unsigned int thirdMDLowerHitIndex = mdsInGPU.hitIndices[2 * thirdMDIndex];
+    unsigned int thirdMDUpperHitIndex = mdsInGPU.hitIndices[2 * thirdMDIndex + 1];
+    unsigned int fourthMDLowerHitIndex = mdsInGPU.hitIndices[2 * fourthMDIndex];
+    unsigned int fourthMDUpperHitIndex = mdsInGPU.hitIndices[2 * fourthMDIndex + 1];
+    unsigned int fifthMDLowerHitIndex = mdsInGPU.hitIndices[2 * fifthMDIndex];
+    unsigned int fifthMDUpperHitIndex = mdsInGPU.hitIndices[2 * fifthMDIndex + 1];
+
     //radius computation from the three triplet MD anchor hits
     unsigned int innerTripletFirstSegmentAnchorHitIndex = segmentsInGPU.innerMiniDoubletAnchorHitIndices[firstSegmentIndex];
     unsigned int innerTripletSecondSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[firstSegmentIndex]; //same as second segment inner MD anchorhit index
@@ -89,7 +113,6 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
 
     unsigned int outerTripletSecondSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[thirdSegmentIndex]; //same as fourth segment inner MD anchor hit index
     unsigned int outerTripletThirdSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[fourthSegmentIndex];
-
 
     float x1 = hitsInGPU.xs[innerTripletFirstSegmentAnchorHitIndex];
     float x2 = hitsInGPU.xs[innerTripletSecondSegmentAnchorHitIndex];
@@ -103,7 +126,46 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     float y4 = hitsInGPU.ys[outerTripletSecondSegmentAnchorHitIndex];
     float y5 = hitsInGPU.ys[outerTripletThirdSegmentAnchorHitIndex];
 
-    //construct the arrays
+    //for the inner triplet
+    float x1Lower = hitsInGPU.xs[firstMDLowerHitIndex];
+    float x1Upper = modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex1] == SDL::Center ? hitsInGPU.xs[firstMDUpperHitIndex] : mdsInGPU.shiftedXs[firstMDIndex];
+
+    float x2Lower = hitsInGPU.xs[secondMDLowerHitIndex];
+    float x2Upper = modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex2] == SDL::Center ? hitsInGPU.xs[secondMDUpperHitIndex] : mdsInGPU.shiftedXs[secondMDIndex];
+
+    float x3Lower = hitsInGPU.xs[thirdMDLowerHitIndex];
+    float x3Upper = modulesInGPU.subdets[lowerModuleIndex3] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex3] == SDL::Center ? hitsInGPU.xs[thirdMDUpperHitIndex] : mdsInGPU.shiftedXs[thirdMDIndex];
+
+    float y1Lower = hitsInGPU.ys[firstMDLowerHitIndex];
+    float y1Upper = modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex1] == SDL::Center ? hitsInGPU.ys[firstMDUpperHitIndex] : mdsInGPU.shiftedYs[firstMDIndex];
+
+    float y2Lower = hitsInGPU.ys[secondMDLowerHitIndex];
+    float y2Upper = modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex2] == SDL::Center ? hitsInGPU.ys[secondMDUpperHitIndex] : mdsInGPU.shiftedYs[secondMDIndex];
+
+    float y3Lower = hitsInGPU.ys[thirdMDLowerHitIndex];
+    float y3Upper = modulesInGPU.subdets[lowerModuleIndex3] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex3] == SDL::Center ? hitsInGPU.ys[thirdMDUpperHitIndex] : mdsInGPU.shiftedYs[thirdMDIndex];
+
+    float x4Lower = hitsInGPU.xs[fourthMDLowerHitIndex];
+    float x4Upper = modulesInGPU.subdets[lowerModuleIndex4] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex4] == SDL::Center ? hitsInGPU.xs[fourthMDUpperHitIndex] : mdsInGPU.shiftedXs[fourthMDIndex];
+
+    float x5Lower = hitsInGPU.xs[fifthMDLowerHitIndex];
+    float x5Upper = modulesInGPU.subdets[lowerModuleIndex5] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex5] == SDL::Center ? hitsInGPU.xs[fifthMDUpperHitIndex] : mdsInGPU.shiftedXs[fifthMDIndex];
+
+    float y4Lower = hitsInGPU.ys[fourthMDLowerHitIndex];
+    float y4Upper = modulesInGPU.subdets[lowerModuleIndex4] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex4] == SDL::Center ? hitsInGPU.ys[fourthMDUpperHitIndex] : mdsInGPU.shiftedYs[fourthMDIndex];
+
+    float y5Lower = hitsInGPU.ys[fifthMDLowerHitIndex];
+    float y5Upper = modulesInGPU.subdets[lowerModuleIndex5] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex5] == SDL::Center ? hitsInGPU.ys[fifthMDUpperHitIndex] : mdsInGPU.shiftedYs[fifthMDIndex];
+
+
+    float innerXVec[] = {x1Lower,x1Upper,x2Lower,x2Upper,x3Lower,x3Upper};
+    float innerYVec[] = {y1Lower,y1Upper,y2Lower,y2Upper,y3Lower,y3Upper};
+
+    float outerXVec[] = {x3Lower,x3Upper,x4Lower,x4Upper,x5Lower,x5Upper};
+    float outerYVec[] = {y3Lower,y3Upper,y4Lower,y4Upper,y5Lower,y5Upper};
+
+
+/*    //construct the arrays
     float x1Vec[] = {x1, x1, x1};
     float y1Vec[] = {y1, y1, y1};
     float x2Vec[] = {x2, x2, x2};
@@ -159,7 +221,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
 
         y5Vec[1] = hitsInGPU.lowEdgeYs[outerTripletThirdSegmentAnchorHitIndex];
         y5Vec[2] = hitsInGPU.highEdgeYs[outerTripletThirdSegmentAnchorHitIndex];
-    }
+    }*/
 
 
     float innerG, innerF; //centers of inner circle
@@ -170,10 +232,16 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     innerRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3, innerG, innerF);
     outerRadius = computeRadiusFromThreeAnchorHits(x3, y3, x4, y4, x5, y5, outerG, outerF);
 
-    computeErrorInRadius(x1Vec, y1Vec, x2Vec, y2Vec, x3Vec, y3Vec, innerRadiusMin, innerRadiusMax);
-    computeErrorInRadius(x3Vec, y3Vec, x4Vec, y4Vec, x5Vec, y5Vec, outerRadiusMin, outerRadiusMax);
+    float innerGFromRegression, innerFFromRegression, outerGFromRegression, outerFFromRegression;
+    innerRadiusFromRegression = computeRadiusUsingRegression(3, innerXVec, innerYVec, innerGFromRegression, innerFFromRegression);
+    outerRadiusFromRegression = computeRadiusUsingRegression(3, outerXVec, outerYVec, outerGFromRegression, outerFFromRegression);
+    
+    
 
-    printf("innerRadius = %f, innerRadiusMin = %f, innerRadiusMax = %f, outerRadius = %f, outerRadiusMin = %f, outerRadiusMax = %f\n",innerRadius, innerRadiusMin, innerRadiusMax, outerRadius, outerRadiusMin, outerRadiusMax);
+//    computeErrorInRadius(x1Vec, y1Vec, x2Vec, y2Vec, x3Vec, y3Vec, innerRadiusMin, innerRadiusMax);
+//    computeErrorInRadius(x3Vec, y3Vec, x4Vec, y4Vec, x5Vec, y5Vec, outerRadiusMin, outerRadiusMax);
+
+//    printf("innerRadius = %f, innerRadiusMin = %f, innerRadiusMax = %f, outerRadius = %f, outerRadiusMin = %f, outerRadiusMax = %f\n",innerRadius, innerRadiusMin, innerRadiusMax, outerRadius, outerRadiusMin, outerRadiusMax);
 
     if(innerRadius < 0)
     {
@@ -186,12 +254,6 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     }
 
     //cross product check   
-    float omega1 = (innerG - x1) * (y3 - y1) - (innerF - y1) * (x3 - x1);
-    float omega2 = (outerG - x3) * (y5 - y3) - (outerF - y3) * (x5 - x3);
-    if(omega1 * omega2 < 0)
-    {
-        pass = false;
-    }
 
     return pass;
 }
@@ -288,6 +350,54 @@ __device__ float SDL::computeErrorInRadius(float* x1Vec, float* y1Vec, float* x2
     return sqrtf(radiusError2);
 }*/
 
+
+__device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float* ys, float& g, float& f)
+{
+    float radius = 0;
+
+    //3 variable linear regression
+    //http://faculty.cas.usf.edu/mbrannick/regression/Part3/Reg2.html
+
+    //some extra variables
+    //the two variables will be caled x1 and x2, and y (which is x^2 + y^2)
+    float sigmaX1Squared = 0.f;
+    float sigmaX2Squared = 0.f;
+    float sigmaX1X2 = 0.f; 
+    float sigmaX1y = 0.f; 
+    float sigmaX2y = 0.f;
+    float ybar = 0.f;
+    float x1bar = 0.f;
+    float x2bar = 0.f;
+
+    for(size_t i = 0; i < nPoints; i++)
+    {
+        sigmaX1Squared += xs[i] * xs[i];
+        sigmaX2Squared += ys[i] * ys[i];
+        sigmaX1X2 += xs[i] * ys[i];
+        sigmaX1y = xs[i] * (xs[i] * xs[i] + ys[i] * ys[i]);
+        sigmaX2y = ys[i] * (xs[i] * xs[i] + ys[i] * ys[i]);
+        ybar += (xs[i] * xs[i] + ys[i] * ys[i]);
+        x1bar += (xs[i]);
+        x2bar += (ys[i]);
+    }
+    ybar /= nPoints;
+    x1bar /= nPoints;
+    x2bar /= nPoints;
+    float twoG = (sigmaX2Squared * sigmaX1y - sigmaX1X2 * sigmaX2y)/(sigmaX1Squared * sigmaX2Squared - sigmaX1X2 * sigmaX1X2);
+    float twoF = (sigmaX1Squared * sigmaX2y - sigmaX1X2 * sigmaX1y)/(sigmaX1Squared * sigmaX2Squared - sigmaX1X2 * sigmaX1X2);
+    float c = -(ybar - twoG * x1bar * twoF * x2bar);
+    g = twoG/2;
+    f = twoF/2;
+    if(g * g + f * f - c < 0)
+    {
+        printf("FATAL! r^2 < 0!\n");
+        return -1;
+    }
+    
+    radius = sqrtf(g * g  + f * f - c);
+    return radius;
+
+}
 __device__ float SDL::computeRadiusFromThreeAnchorHits(float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f)
 {
     float radius = 0;

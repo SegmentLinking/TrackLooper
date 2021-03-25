@@ -94,6 +94,8 @@ void createLowerLevelOutputBranches()
 
     ana.tx->createBranch<vector<float>>("t5_innerTripletPt");
     ana.tx->createBranch<vector<float>>("t5_outerTripletPt");
+    ana.tx->createBranch<vector<float>>("t5_innerRadiusFromRegression");
+    ana.tx->createBranch<vector<float>>("t5_outerRadiusFromRegression");
     ana.tx->createBranch<vector<int>>("t5_isFake");
     ana.tx->createBranch<vector<int>>("t5_isDuplicate");
     ana.tx->createBranch<vector<int>>("t5_layer_binary");
@@ -640,6 +642,8 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     std::vector<vector<int>> t5_matched_simIdx;
     std::vector<float> t5_innerTripletPt;
     std::vector<float> t5_outerTripletPt;
+    std::vector<float> t5_innerRadiusFromRegression;
+    std::vector<float> t5_outerRadiusFromRegression;
     std::vector<int> layer_binaries;
     const int MAX_NQUINTUPLET_PER_MODULE = 50000;
     
@@ -658,6 +662,8 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
             t5_innerTripletPt.push_back(quintupletsInGPU.innerTripletPt[quintupletIndex]);
             t5_outerTripletPt.push_back(quintupletsInGPU.outerTripletPt[quintupletIndex]);
+            t5_innerRadiusFromRegression.push_back(quintupletsInGPU.innerRadiusFromRegression[quintupletIndex]);
+            t5_outerRadiusFromRegression.push_back(quintupletsInGPU.outerRadiusFromRegressoin[quintupletIndex]);
 
             unsigned int innerTripletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex];
             unsigned int innerTripletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex + 1];
@@ -765,6 +771,8 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<vector<int>>>("sim_T5_types", sim_T5_types);
     ana.tx->setBranch<vector<float>>("t5_innerTripletPt",t5_innerTripletPt);
     ana.tx->setBranch<vector<float>>("t5_outerTripletPt",t5_outerTripletPt);
+    ana.tx->setBranch<vector<float>>("t5_innerRadiusFromRegression",t5_innerRadiusFromRegression);
+    ana.tx->setBranch<vector<float>>("t5_outerRadiusFromRegressoin",t5_outerRadiusFromRegression);
     ana.tx->setBranch<vector<int>>("t5_layer_binary",layer_binaries); 
     std::vector<int> t5_isDuplicate(t5_matched_simIdx.size());
 

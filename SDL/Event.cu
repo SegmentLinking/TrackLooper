@@ -3212,7 +3212,8 @@ __global__ void createQuintupletsFromInnerInnerLowerModule(SDL::modules& modules
     unsigned int lowerModule5 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 2];
    
     float innerTripletPt, outerTripletPt; //required for making distributions
-    bool success = runQuintupletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletIndex, outerTripletIndex, innerTripletPt, outerTripletPt);
+    float innerRadiusFromRegression, outerRadiusFromRegression;
+    bool success = runQuintupletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletIndex, outerTripletIndex, innerTripletPt, outerTripletPt, innerRadiusFromRegression, outerRadiusFromRegression);
 
    if(success)
    {
@@ -3227,7 +3228,7 @@ __global__ void createQuintupletsFromInnerInnerLowerModule(SDL::modules& modules
        else
        {
             unsigned int quintupletIndex = lowerModuleArray1 * N_MAX_QUINTUPLETS_PER_MODULE + quintupletModuleIndex;
-            addQuintupletToMemory(quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletPt, outerTripletPt, quintupletIndex);
+            addQuintupletToMemory(quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletPt, outerTripletPt, innerRadiusFromRegression, outerRadiusFromRegression, quintupletIndex);
        }
    }
 }
