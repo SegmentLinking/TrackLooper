@@ -100,14 +100,14 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     unsigned int fourthSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTripletIndex + 1];
     //apply T4 criteria between segments 1 and 3
     float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut; //temp stuff
-    if(not runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, segmentsInGPU.innerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.outerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.innerLowerModuleIndices[thirdSegmentIndex], segmentsInGPU.outerLowerModuleIndices[thirdSegmentIndex], firstSegmentIndex, thirdSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut))
+/*    if(not runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, segmentsInGPU.innerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.outerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.innerLowerModuleIndices[thirdSegmentIndex], segmentsInGPU.outerLowerModuleIndices[thirdSegmentIndex], firstSegmentIndex, thirdSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut))
     {
         pass = false;
     }
     if(not runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, segmentsInGPU.innerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.outerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.innerLowerModuleIndices[fourthSegmentIndex], segmentsInGPU.outerLowerModuleIndices[fourthSegmentIndex], firstSegmentIndex, fourthSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut))
     {
         pass = false;
-    }
+    }*/
 
     //radius computation from the three triplet MD anchor hits
     unsigned int innerTripletFirstSegmentAnchorHitIndex = segmentsInGPU.innerMiniDoubletAnchorHitIndices[firstSegmentIndex];
@@ -203,16 +203,24 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
 
     float temp;
     computeErrorInRadius(x1Vec, y1Vec, x2Vec, y2Vec, x3Vec, y3Vec, innerRadiusMin, innerRadiusMax, omega1);
+//    printf("x1 = %f, y1 = %f, x2 = %f, y2 = %f, x3 = %f, y3 = %f, x4 = %f, y4 = %f, x5 = %f, y5 = %f\n",x1,y1,x2,y2,x3,y3,x4,y4,x5,y5);
+    printf("(%f,%f),(%f,%f),(%f,%f),(%f,%f),(%f,%f)\n",x1,y1,x2,y2,x3,y3,x4,y4,x5,y5);
      
-    if(innerRadiusMin < 0.75/k2Rinv1GeVf)
+/*    if(innerRadius < 0.75/(2 * k2Rinv1GeVf))
     {
         pass = false;
     } 
+
+    if(outerRadius < 0.75/(2 * k2Rinv1GeVf))
+    {
+        pass = false;
+    } 
+
  
     if(omega1 * omega2 < 0)
     {
         pass = false;
-    }
+    }*/
 
     return pass;
 }

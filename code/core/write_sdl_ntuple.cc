@@ -33,8 +33,8 @@ void createOutputBranches()
     ana.tx->createBranch<vector<int>>("tc_isFake");
     ana.tx->createBranch<vector<int>>("tc_isDuplicate");
 
-   createOccupancyBranches();
-
+    createOccupancyBranches();
+   
     if (ana.do_lower_level)
     {
         createLowerLevelOutputBranches();

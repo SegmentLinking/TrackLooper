@@ -3236,7 +3236,7 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
 {
     int innerInnerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; //inner triplet inner segment inner MD
     if(innerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) return;
-    unsigned int nInnerTriplets = min(tripletsInGPU.nTriplets[innerInnerInnerLowerModuleArrayIndex], N_MAX_SEGMENTS_PER_MODULE);
+    unsigned int nInnerTriplets = min(tripletsInGPU.nTriplets[innerInnerInnerLowerModuleArrayIndex], N_MAX_TRIPLETS_PER_MODULE);
     if(nInnerTriplets == 0) return;
 
     dim3 nThreads(16,16,1);
