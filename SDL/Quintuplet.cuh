@@ -30,8 +30,15 @@ namespace SDL
         unsigned int* lowerModuleIndices;
 
         unsigned int* nQuintuplets;
-        float* innerTripletPt;
-        float* outerTripletPt;
+        float* innerRadius;
+        float* innerRadiusMin;
+        float* innerRadiusMax;
+        float* outerRadius;
+        float* outerRadiusMin;
+        float* outerRadiusMax;
+        float* bridgeRadius;
+        float* bridgeRadiusMin;
+        float* bridgeRadiusMax;
 
         float* innerRadiusFromRegression;
         float* outerRadiusFromRegression;
@@ -43,10 +50,12 @@ namespace SDL
 
 void createQuintupletsInUnifiedMemory(struct quintuplets& quintupletsInGPU, unsigned int maxQuintuplets, unsigned int nLowerModules);
 
-CUDA_DEV void addQuintupletToMemory(struct quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerTripletPt, float outerTripletPt, float innerRadiusFromRegression, float outerRadiusFromRegression, unsigned int quintupletIndex);
 
-CUDA_DEV bool runQuintupletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int lowerModuleIndex1, unsigned int lowerMoudleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5, unsigned int innerTripletIndex, unsigned int outerTripletIndex, float& innerTripletPt, float& outerTripletPt, float&
-        innerRadiusFromRegression, float& outerRadiusFromRegression);
+CUDA_DEV void addQuintupletToMemory(struct quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerRadius, float innerRadiusMax, float innerRadiusMin, float outerRadius, float outerRadiusMax, float outerRadiusMin, float bridgeRadius, float bridgeRadiusMax, float bridgeRadiusMin,
+        float innerRadiusFromRegression, float outerRadiusFromRegression, unsigned int quintupletIndex);
+
+CUDA_DEV bool runQuintupletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int lowerModuleIndex1, unsigned int lowerMoudleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5, unsigned int innerTripletIndex, unsigned int outerTripletIndex, float& innerRadius, float& innerRadiusMax, float& innerRadiusMin, float& outerRadius,
+        float& outerRadiusMax, float& outerRadiusMin, float& bridgeRadius, float& bridgeRadiusMin, float& bridgeRadiusMax, float& innerRadiusFromRegression, float& outerRadiusFromRegression);
 
 CUDA_DEV bool T5HasCommonMiniDoublet(struct triplets& tripletsInGPU, struct segments& segmentsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex);
 
@@ -56,7 +65,7 @@ CUDA_DEV float computeRadiusFromThreeAnchorHits(float x1, float y1, float x2, fl
 
 CUDA_DEV float computeRadiusUsingRegression(int nPoints, float* xs, float* ys, float&g, float& f);
 
-CUDA_DEV void computeErrorInRadius(float* x1Vec, float* y1Vec, float* x2Vec, float* y2Vec, float* x3Vec, float* y3Vec, float& gError, float& fError);
+CUDA_DEV void computeErrorInRadius(float* x1Vec, float* y1Vec, float* x2Vec, float* y2Vec, float* x3Vec, float* y3Vec, float& gError, float& fError, float& omega1);
 
 }
 #endif
