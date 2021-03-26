@@ -94,6 +94,7 @@ void createLowerLevelOutputBranches()
 
     ana.tx->createBranch<vector<float>>("t5_innerRadiusFromRegression");
     ana.tx->createBranch<vector<float>>("t5_outerRadiusFromRegression");
+    ana.tx->createBranch<vector<vector<float>>>("t5_matched_pt");
     ana.tx->createBranch<vector<float>>("t5_innerRadius");
     ana.tx->createBranch<vector<float>>("t5_innerRadiusMin");
     ana.tx->createBranch<vector<float>>("t5_innerRadiusMax");
@@ -658,7 +659,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     std::vector<float> t5_bridgeRadius;
     std::vector<float> t5_bridgeRadiusMin;
     std::vector<float> t5_bridgeRadiusMax;
-
+    std::vector<std::vector<float>> t5_simpt;
     std::vector<int> layer_binaries;
     const int MAX_NQUINTUPLET_PER_MODULE = 50000;
     
@@ -676,7 +677,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
             unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
             t5_innerRadiusFromRegression.push_back(quintupletsInGPU.innerRadiusFromRegression[quintupletIndex]);
-            t5_outerRadiusFromRegression.push_back(quintupletsInGPU.outerRadiusFromRegressoin[quintupletIndex]);
+            t5_outerRadiusFromRegression.push_back(quintupletsInGPU.outerRadiusFromRegression[quintupletIndex]);
             t5_innerRadius.push_back(quintupletsInGPU.innerRadius[quintupletIndex]);
             t5_innerRadiusMin.push_back(quintupletsInGPU.innerRadiusMin[quintupletIndex]);
             t5_innerRadiusMax.push_back(quintupletsInGPU.innerRadiusMax[quintupletIndex]);
@@ -774,9 +775,11 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             layer_binaries.push_back(layer_binary);
 
             std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
+            std::vector<float> sim_pt_per_t5;
             for (auto &isimtrk : matched_sim_trk_idxs)
             {
                 sim_T5_matched[isimtrk]++;
+                sim_pt_per_t5.push_back(trk.sim_pt()[isimtrk]);
             }
 
             for (auto &isimtrk : matched_sim_trk_idxs)
@@ -785,6 +788,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             }
             t5_isFake.push_back(matched_sim_trk_idxs.size() == 0);
             t5_matched_simIdx.push_back(matched_sim_trk_idxs);
+            t5_simpt.push_back(sim_pt_per_t5);
 
         }
     }
@@ -792,7 +796,8 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<int>>("sim_T5_matched", sim_T5_matched);
     ana.tx->setBranch<vector<vector<int>>>("sim_T5_types", sim_T5_types);
     ana.tx->setBranch<vector<float>>("t5_innerRadiusFromRegression",t5_innerRadiusFromRegression);
-    ana.tx->setBranch<vector<float>>("t5_outerRadiusFromRegressoin",t5_outerRadiusFromRegression);
+    ana.tx->setBranch<vector<float>>("t5_outerRadiusFromRegression",t5_outerRadiusFromRegression);
+    ana.tx->setBranch<vector<vector<float>>>("t5_matched_pt",t5_simpt);
     ana.tx->setBranch<vector<float>>("t5_outerRadius",t5_outerRadius);
     ana.tx->setBranch<vector<float>>("t5_outerRadiusMin",t5_outerRadiusMin);
     ana.tx->setBranch<vector<float>>("t5_outerRadiusMax",t5_outerRadiusMax);
