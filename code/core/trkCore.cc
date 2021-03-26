@@ -918,7 +918,12 @@ void loadMaps()
     // SDL::moduleConnectionMap_pLS_pos.load("/nfs-7/userdata/phchang/segmentlinking/pixelmap_charge_split/pLS_map_pos_ElCheapo.txt");
     // SDL::moduleConnectionMap_pLS_neg.load("/nfs-7/userdata/phchang/segmentlinking/pixelmap_charge_split/pLS_map_neg_ElCheapo.txt");
 
-    TString pLSMapDir = gSystem->Getenv("PIXELMAPDIR");
+    // TString pLSMapDir = gSystem->Getenv("PIXELMAPDIR");
+    // TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta20_nphi72_nz24_ipt2_plus_z_special";
+    // TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta21_nphi72_nz25_ipt2";
+    // TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta11_nphi72_nz25_ipt2";
+    TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05";
+    // TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta25_nphi72_nz25_ipt2_etapm1";
 
     std::cout << "Loading pLS maps ... from pLSMapDir = " << pLSMapDir << std::endl;
 

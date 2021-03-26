@@ -1153,9 +1153,9 @@ void SDL::CPU::Event::createTrackletsWithPixelLineSegments_v2(TLAlgo algo)
         // dz : -30 to 30 cm with 24 bins
         //
         // --------------------------------------------------------------------------------------
-        float neta = 20.; // # of eta bins
+        float neta = 25.; // # of eta bins
         float nphi = 72.; // # of phi bins
-        float nz = 24.; // # of z bins
+        float nz = 25.; // # of z bins
 
         int etabin = (eta + 2.6) / ((2*2.6) / neta);
         int phibin = (phi + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
