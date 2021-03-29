@@ -161,34 +161,44 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
 
     //for the inner triplet
     float x1Lower = hitsInGPU.xs[firstMDLowerHitIndex];
-    float x1Upper = modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex1] == SDL::Center ? hitsInGPU.xs[firstMDUpperHitIndex] : mdsInGPU.shiftedXs[firstMDIndex];
+    float x1Upper = hitsInGPU.xs[firstMDUpperHitIndex];
+//    float x1Upper = modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex1] == SDL::Center ? hitsInGPU.xs[firstMDUpperHitIndex] : mdsInGPU.shiftedXs[firstMDIndex];
 
     float x2Lower = hitsInGPU.xs[secondMDLowerHitIndex];
-    float x2Upper = modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex2] == SDL::Center ? hitsInGPU.xs[secondMDUpperHitIndex] : mdsInGPU.shiftedXs[secondMDIndex];
+    float x2Upper = hitsInGPU.xs[secondMDUpperHitIndex];
+//    float x2Upper = modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex2] == SDL::Center ? hitsInGPU.xs[secondMDUpperHitIndex] : mdsInGPU.shiftedXs[secondMDIndex];
 
     float x3Lower = hitsInGPU.xs[thirdMDLowerHitIndex];
-    float x3Upper = modulesInGPU.subdets[lowerModuleIndex3] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex3] == SDL::Center ? hitsInGPU.xs[thirdMDUpperHitIndex] : mdsInGPU.shiftedXs[thirdMDIndex];
-
-    float y1Lower = hitsInGPU.ys[firstMDLowerHitIndex];
-    float y1Upper = modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex1] == SDL::Center ? hitsInGPU.ys[firstMDUpperHitIndex] : mdsInGPU.shiftedYs[firstMDIndex];
-
-    float y2Lower = hitsInGPU.ys[secondMDLowerHitIndex];
-    float y2Upper = modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex2] == SDL::Center ? hitsInGPU.ys[secondMDUpperHitIndex] : mdsInGPU.shiftedYs[secondMDIndex];
-
-    float y3Lower = hitsInGPU.ys[thirdMDLowerHitIndex];
-    float y3Upper = modulesInGPU.subdets[lowerModuleIndex3] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex3] == SDL::Center ? hitsInGPU.ys[thirdMDUpperHitIndex] : mdsInGPU.shiftedYs[thirdMDIndex];
+    float x3Upper = hitsInGPU.xs[thirdMDUpperHitIndex];
+//    float x3Upper = modulesInGPU.subdets[lowerModuleIndex3] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex3] == SDL::Center ? hitsInGPU.xs[thirdMDUpperHitIndex] : mdsInGPU.shiftedXs[thirdMDIndex];
 
     float x4Lower = hitsInGPU.xs[fourthMDLowerHitIndex];
-    float x4Upper = modulesInGPU.subdets[lowerModuleIndex4] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex4] == SDL::Center ? hitsInGPU.xs[fourthMDUpperHitIndex] : mdsInGPU.shiftedXs[fourthMDIndex];
+    float x4Upper = hitsInGPU.ys[fourthMDUpperHitIndex];
+//    float x4Upper = modulesInGPU.subdets[lowerModuleIndex4] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex4] == SDL::Center ? hitsInGPU.xs[fourthMDUpperHitIndex] : mdsInGPU.shiftedXs[fourthMDIndex];
 
     float x5Lower = hitsInGPU.xs[fifthMDLowerHitIndex];
-    float x5Upper = modulesInGPU.subdets[lowerModuleIndex5] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex5] == SDL::Center ? hitsInGPU.xs[fifthMDUpperHitIndex] : mdsInGPU.shiftedXs[fifthMDIndex];
+    float x5Upper = hitsInGPU.xs[fifthMDUpperHitIndex];
+//    float x5Upper = modulesInGPU.subdets[lowerModuleIndex5] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex5] == SDL::Center ? hitsInGPU.xs[fifthMDUpperHitIndex] : mdsInGPU.shiftedXs[fifthMDIndex];
+
+    float y1Lower = hitsInGPU.ys[firstMDLowerHitIndex];
+    float y1Upper = hitsInGPU.ys[firstMDUpperHitIndex];
+//    float y1Upper = modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex1] == SDL::Center ? hitsInGPU.ys[firstMDUpperHitIndex] : mdsInGPU.shiftedYs[firstMDIndex];
+
+    float y2Lower = hitsInGPU.ys[secondMDLowerHitIndex];
+    float y2Upper = hitsInGPU.ys[secondMDUpperHitIndex];
+//    float y2Upper = modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex2] == SDL::Center ? hitsInGPU.ys[secondMDUpperHitIndex] : mdsInGPU.shiftedYs[secondMDIndex];
+
+    float y3Lower = hitsInGPU.ys[thirdMDLowerHitIndex];
+    float y3Upper = hitsInGPU.ys[thirdMDUpperHitIndex];
+//    float y3Upper = modulesInGPU.subdets[lowerModuleIndex3] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex3] == SDL::Center ? hitsInGPU.ys[thirdMDUpperHitIndex] : mdsInGPU.shiftedYs[thirdMDIndex];
 
     float y4Lower = hitsInGPU.ys[fourthMDLowerHitIndex];
-    float y4Upper = modulesInGPU.subdets[lowerModuleIndex4] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex4] == SDL::Center ? hitsInGPU.ys[fourthMDUpperHitIndex] : mdsInGPU.shiftedYs[fourthMDIndex];
+    float y4Upper = hitsInGPU.ys[fourthMDUpperHitIndex];
+//    float y4Upper = modulesInGPU.subdets[lowerModuleIndex4] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex4] == SDL::Center ? hitsInGPU.ys[fourthMDUpperHitIndex] : mdsInGPU.shiftedYs[fourthMDIndex];
 
     float y5Lower = hitsInGPU.ys[fifthMDLowerHitIndex];
-    float y5Upper = modulesInGPU.subdets[lowerModuleIndex5] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex5] == SDL::Center ? hitsInGPU.ys[fifthMDUpperHitIndex] : mdsInGPU.shiftedYs[fifthMDIndex];
+    float y5Upper = hitsInGPU.ys[fifthMDUpperHitIndex];
+//    float y5Upper = modulesInGPU.subdets[lowerModuleIndex5] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex5] == SDL::Center ? hitsInGPU.ys[fifthMDUpperHitIndex] : mdsInGPU.shiftedYs[fifthMDIndex];
 
 
     float innerXVec[] = {x1Lower,x1Upper,x2Lower,x2Upper,x3Lower,x3Upper};
@@ -263,20 +273,18 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
 
     innerRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3, innerG, innerF);
     outerRadius = computeRadiusFromThreeAnchorHits(x3, y3, x4, y4, x5, y5, outerG, outerF);
-   bridgeRadius = computeRadiusFromThreeAnchorHits(x1, y1, x3, y3, x5, y5, bridgeG, bridgeF);
+    bridgeRadius = computeRadiusFromThreeAnchorHits(x2, y2, x3, y3, x4, y4, bridgeG, bridgeF);
 
     float innerGFromRegression, innerFFromRegression, outerGFromRegression, outerFFromRegression;
-    innerRadiusFromRegression = computeRadiusUsingRegression(3, innerXVec, innerYVec, innerGFromRegression, innerFFromRegression);
-    outerRadiusFromRegression = computeRadiusUsingRegression(3, outerXVec, outerYVec, outerGFromRegression, outerFFromRegression);
-    
-    
+    innerRadiusFromRegression = computeRadiusUsingRegression(6, innerXVec, innerYVec, innerGFromRegression, innerFFromRegression);
+    outerRadiusFromRegression = computeRadiusUsingRegression(6, outerXVec, outerYVec, outerGFromRegression, outerFFromRegression);
+   
 
     //cross product check   
     float omega1 = (innerG - x1) * (y3 - y1) - (innerF - y1) * (x3 - x1);
     float omega2 = (outerG - x3) * (y5 - y3) - (outerF - y3) * (x5 - x3);
 
     float temp;
-//    printf("x1 = %f, y1 = %f, x2 = %f, y2 = %f, x3 = %f, y3 = %f, x4 = %f, y4 = %f, x5 = %f, y5 = %f\n",x1,y1,x2,y2,x3,y3,x4,y4,x5,y5);
      
 /*    if(innerRadius < 0.75/(2 * k2Rinv1GeVf))
     {
@@ -417,8 +425,8 @@ __device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float
         sigmaX1Squared += xs[i] * xs[i];
         sigmaX2Squared += ys[i] * ys[i];
         sigmaX1X2 += xs[i] * ys[i];
-        sigmaX1y = xs[i] * (xs[i] * xs[i] + ys[i] * ys[i]);
-        sigmaX2y = ys[i] * (xs[i] * xs[i] + ys[i] * ys[i]);
+        sigmaX1y += xs[i] * (xs[i] * xs[i] + ys[i] * ys[i]);
+        sigmaX2y += ys[i] * (xs[i] * xs[i] + ys[i] * ys[i]);
         ybar += (xs[i] * xs[i] + ys[i] * ys[i]);
         x1bar += (xs[i]);
         x2bar += (ys[i]);
@@ -426,11 +434,16 @@ __device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float
     ybar /= nPoints;
     x1bar /= nPoints;
     x2bar /= nPoints;
-    float twoG = (sigmaX2Squared * sigmaX1y - sigmaX1X2 * sigmaX2y)/(sigmaX1Squared * sigmaX2Squared - sigmaX1X2 * sigmaX1X2);
-    float twoF = (sigmaX1Squared * sigmaX2y - sigmaX1X2 * sigmaX1y)/(sigmaX1Squared * sigmaX2Squared - sigmaX1X2 * sigmaX1X2);
-    float c = -(ybar - twoG * x1bar * twoF * x2bar);
-    g = twoG/2;
-    f = twoF/2;
+    float varX1 = (sigmaX1Squared / nPoints) - (x1bar) * (x1bar);
+    float varX2 = (sigmaX2Squared / nPoints) - (x2bar) * (x2bar);
+    float covX1X2 = (sigmaX1X2 / nPoints) - (x1bar) * (x2bar);
+    float covX1y = sigmaX1y / nPoints - x1bar * ybar;
+    float covX2y = sigmaX2y / nPoints - x2bar * ybar;
+    float denom = varX1 * varX2 - covX1X2 * covX1X2;
+    
+    g = (varX2 * covX1y - covX1X2 * covX2y)/(2 * denom);
+    f = (varX1 * covX2y - covX1X2 * covX1y)/(2 * denom); 
+    float c = -(ybar - 2 * g * x1bar - 2 * f * x2bar);
     if(g * g + f * f - c < 0)
     {
         printf("FATAL! r^2 < 0!\n");
