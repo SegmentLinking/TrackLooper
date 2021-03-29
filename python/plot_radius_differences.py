@@ -1,13 +1,11 @@
 import uproot
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
 import awkward as ak
 import mplhep
 import sys
 from yahist import Hist1D
-
-plt.style.use(mplhep.style.CMS)
+from matplotlib.ticker import LogLocator, NullFormatter
 
 f = uproot.open(sys.argv[1])
 tree = f["tree"]
@@ -52,8 +50,8 @@ def make_plots(qArray, qArraySimTrackMatched, quantity, layerType):
         return
     minValue = min(qArray[qArray > -999])
     maxValue = max(qArray)
-    histMinLimit = minValue * 1.1 if minValue < 0 else minValue * 0.9
-    histMaxLimit = maxValue * 0.9 if maxValue < 0 else maxValue * 1.1
+    histMinLimit = 1e-5
+    histMaxLimit = 1e2
     if abs(histMaxLimit - histMinLimit) > 10 and histMinLimit > 0 or "/" in quantity:
         binning = np.logspace(np.log10(histMinLimit), np.log10(histMaxLimit), 1000)
     else:
@@ -62,9 +60,9 @@ def make_plots(qArray, qArraySimTrackMatched, quantity, layerType):
     allHist = Hist1D(ak.to_numpy(qArray[qArray > -999]), bins=binning, label="{}".format(quantity))
     simtrackMatchedHist = Hist1D(ak.to_numpy(qArraySimTrackMatched[qArraySimTrackMatched > -999]), bins=binning, label="Sim track matched {}".format(quantity))
 
-    plt.yscale("log")
+    ax.set_yscale("log")
     if abs(histMaxLimit - histMinLimit) > 10 and histMinLimit > 0 or "/" in quantity:
-        plt.xscale("log")
+        plt.set_xscale("log")
 
     allHist.plot(alpha=0.8, color="C0", label="all", histtype="stepfilled")
     simtrackMatchedHist.plot(alpha=0.8, color="C3", label="sim track matched", histtype="stepfilled")
@@ -84,6 +82,8 @@ def make_plots(qArray, qArraySimTrackMatched, quantity, layerType):
     quantity = quantity.replace("/", "by")
     quantity = quantity.replace("-", "minus")
     quantity = quantity.replace(" ", "_")
+    if quantity[0] == "_":
+        quantity = quantity[1:]
     if len(sys.argv) > 2:
         if layerType != "":
             plt.savefig("{}/{}_{}.pdf".format(sys.argv[2], quantity, layerType))
@@ -101,17 +101,27 @@ def make_plots(qArray, qArraySimTrackMatched, quantity, layerType):
 def make_single_plots(qArray, quantity, layerType):
     minValue = min(qArray[qArray > -999])
     maxValue = max(qArray)
-    histMinLimit = minValue * 1.1 if minValue < 0 else minValue * 0.9
-    histMaxLimit = maxValue * 0.9 if maxValue < 0 else maxValue * 1.1
+    histMinLimit = 9e-6
+    histMaxLimit = 1.1e2
     if abs(histMaxLimit - histMinLimit) > 10 and histMinLimit > 0 or "/" in quantity:
-        binning = np.logspace(np.log10(histMinLimit), np.log10(histMaxLimit), 1000)
+        binning = np.logspace(np.log10(histMinLimit), np.log10(histMaxLimit), 500)
     else:
-        binning = np.linspace(histMinLimit, histMaxLimit, 100)
+        binning = np.linspace(histMinLimit, histMaxLimit, 500)
 
     allHist = Hist1D(ak.to_numpy(qArray[qArray > -999]), bins=binning, label="{}".format(quantity))
-    plt.yscale("log")
+    fig, ax = plt.subplots()
+    ax.set_yscale("log")
     if abs(histMaxLimit - histMinLimit) > 10 and histMinLimit > 0 or "/" in quantity:
-        plt.xscale("log")
+        x_major = LogLocator(base=10.0, numticks=5)
+        x_minor = LogLocator(base=10.0, subs=np.arange(1.0, 10.0) * 0.1, numticks=10)
+        ax.xaxis.set_major_locator(x_major)
+        ax.xaxis.set_minor_locator(x_minor)
+        ax.xaxis.set_minor_formatter(NullFormatter())
+        ax.set_xscale("log")
+
+    #find the 99%
+
+    print("99% limit at {}".format(allHist.quantile(0.99)))
 
     allHist.plot(alpha=0.8, color="C0", label="all", histtype="stepfilled")
 
@@ -127,6 +137,8 @@ def make_single_plots(qArray, quantity, layerType):
     quantity = quantity.replace("/", "by")
     quantity = quantity.replace("-", "minus")
     quantity = quantity.replace(" ", "_")
+    if quantity[0] == "_":
+        quantity = quantity[1:]
     if len(sys.argv) > 2:
         if layerType != "":
             plt.savefig("{}/{}_{}.pdf".format(sys.argv[2], quantity, layerType))
@@ -143,8 +155,9 @@ def make_single_plots(qArray, quantity, layerType):
 
 def make_radius_difference_distributions():
     global tree
-    matchedMask = tree["t5_isFake"].array() == 0
-    layers = np.array(list(map(process_layers, ak.flatten(tree["t5_layer_binary"].array()))))
+    all_t5_arrays = tree.arrays(filter_name = "t5*", entry_start = 0, entry_stop = -1, library = "ak")
+    matchedMask = all_t5_arrays.t5_isFake == 0
+    layers = np.array(list(map(process_layers, ak.flatten(all_t5_arrays.t5_layer_binary))))
     layerTypes = np.array(list(map(process_layerType, layers)))
 #    layerTypes = np.array(list(map(process_numbers, layers)))
     unique_layerTypes = np.unique(layerTypes, axis=0)
@@ -153,27 +166,29 @@ def make_radius_difference_distributions():
 
     for layerType in unique_layerTypes:
         print("layerType = {}".format(layerType))
-        innerRadius = ak.to_numpy(ak.flatten(tree["t5_innerRadius"].array()))
-        bridgeRadius = ak.to_numpy(ak.flatten(tree["t5_bridgeRadius"].array()))
-        outerRadius = ak.to_numpy(ak.flatten(tree["t5_outerRadius"].array()))
-        simRadius = ak.to_numpy(ak.flatten(tree["t5_matched_pt"].array()))/(2.99792458e-3 * 3.8)
+        innerRadius = ak.to_numpy(ak.flatten(all_t5_arrays.t5_innerRadius))
+        bridgeRadius = ak.to_numpy(ak.flatten(all_t5_arrays.t5_bridgeRadius))
+        outerRadius = ak.to_numpy(ak.flatten(all_t5_arrays.t5_outerRadius))
+        simRadius = ak.flatten(all_t5_arrays.t5_matched_pt/(2.99792458e-3 * 3.8))
+        simRadius = ak.flatten(simRadius)
 
         qArrayInner = abs(1.0/innerRadius - 1.0/simRadius)/(1.0/innerRadius)
         qArrayBridge = abs(1.0/bridgeRadius - 1.0/simRadius)/(1.0/bridgeRadius)
         qArrayOuter = abs(1.0/outerRadius - 1.0/simRadius)/(1.0/outerRadius)
 
-        for name,qArray in {"inner":qArrayInner, "bridge":qArrayBridge, "outer":qArrayOuter}.items():
+        for name,qArray in {"inner": qArrayInner, "bridge": qArrayBridge, "outer": qArrayOuter}.items():
+            print("qName = ",name)
             if layerType == "":
                 qArraySimTrackMatched = qArray[ak.to_numpy(ak.flatten(matchedMask))]
             else:
                 qArray = qArray[layerTypes == layerType]
                 qArraySimTrackMatched = qArray[ak.to_numpy(ak.flatten(matchedMask)[layerTypes == layerType])]
 
-            print("{} integral = {}, {} sim-track integral = {}".format(name, len(qArray), name, len(qArraySimTrackMatched)))
+            #print("{} integral = {}, {} sim-track integral = {}".format(name, len(qArray), name, len(qArraySimTrackMatched)))
 
-            make_single_plots(qArraySimTrackMatched, "(1/{} - 1/sim_radius)/(1/{{})".format(name + " radius"), layerType)
+            make_single_plots(qArraySimTrackMatched, "(1/{} - 1/sim_radius)/(1/{})".format(name + " radius", name + " radius"), layerType)
 
 
 objects = ["t5"]
 for i in objects:
-    make_radius_difference_distributions(i)
+    make_radius_difference_distributions()
