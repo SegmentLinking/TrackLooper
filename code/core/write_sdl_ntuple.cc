@@ -779,9 +779,15 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             for (auto &isimtrk : matched_sim_trk_idxs)
             {
                 sim_T5_matched[isimtrk]++;
-                sim_pt_per_t5.push_back(trk.sim_pt()[isimtrk]);
             }
-
+            if(matched_sim_trk_idxs.size() == 0)
+            {
+                sim_pt_per_t5.push_back(-999);
+            }
+            else
+            {
+		sim_pt_per_t5.push_back(trk.sim_pt()[matched_sim_trk_idxs[0]]);
+            }
             for (auto &isimtrk : matched_sim_trk_idxs)
             {
                 sim_T5_types[isimtrk].push_back(layer_binary);
