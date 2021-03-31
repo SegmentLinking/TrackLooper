@@ -189,6 +189,69 @@ def make_radius_difference_distributions():
             make_single_plots(qArraySimTrackMatched, "(1/{} - 1/sim_radius)/(1/{})".format(name + " radius", name + " radius"), layerType)
 
 
+def compute_interval_overlap(firstMin, firstMax, secondMin, secondMax):
+    intervalLength = np.zeros_like(firstMin)
+    intervalLength[firstMin < secondMin] = secondMin[firstMin < secondMin] - firstMax[firstMin < secondMin]
+    intervalLength[secondMin < firstMin] = firstMin[secondMin < firstMin] - secondMax[secondMin < firstMin]
+    return intervalLength
+
+def make_radius_compatibility_distributions():
+    global tree
+    all_t5_arrays = tree.array(filter_name = "t5*", entry_start = 0, entry_stop = -1, library = "ak")
+    matchedMask = all_t5_arrays.t5_isFake == 0
+    layers = np.array(list(map(process_layers, ak.flatten(all_t5_arrays.t5_layer_binary))))
+    layerTypes = np.array(list(map(process_layerType, layers)))
+#    layerTypes = np.array(list(map(process_numbers, layers)))
+    unique_layerTypes = np.unique(layerTypes, axis=0)
+    unique_layerTypes = np.append(unique_layerTypes,"")
+    print(unique_layerTypes)
+
+    for layerType in unique_layerTypes:
+        print("layerType = {}".format(layerType))
+
+        innerRadius = ak.to_numpy(ak.flatten(all_t5_arrays.t5_innerRadius))
+        innerRadiusResMin = ak.to_numpy(ak.flatten(all_t5_arrays.t5_innerRadiusMin))
+        innerRadius2SMin = ak.to_numpy(ak.flatten(all_t5_ararys.t5_innerRadiusMin2S))
+        innerRadiusResMax = ak.to_numpy(ak.flatten(all_t5_arrays.t5_innerRadiusMax))
+        innerRadius2SMax = ak.to_numpy(ak.flatten(all_t5_ararys.t5_innerRadiusMax2S))
+
+        bridgeRadius = ak.to_numpy(ak.flatten(all_t5_arrays.t5_bridgeRadius))
+        bridgeRadiusResMin = ak.to_numpy(ak.flatten(all_t5_arrays.t5_bridgeRadiusMin))
+        bridgeRadius2SMin = ak.to_numpy(ak.flatten(all_t5_ararys.t5_bridgeRadiusMin2S))
+        bridgeRadiusResMax = ak.to_numpy(ak.flatten(all_t5_arrays.t5_bridgeRadiusMax))
+        bridgeRadius2SMax = ak.to_numpy(ak.flatten(all_t5_ararys.t5_bridgeRadiusMax2S))
+
+        outerRadius = ak.to_numpy(ak.flatten(all_t5_arrays.t5_outerRadius))
+        outerRadiusResMin = ak.to_numpy(ak.flatten(all_t5_arrays.t5_outerRadiusMin))
+        outerRadius2SMin = ak.to_numpy(ak.flatten(all_t5_ararys.t5_outerRadiusMin2S))
+        outerRadiusResMax = ak.to_numpy(ak.flatten(all_t5_arrays.t5_outerRadiusMax))
+        outerRadius2SMax = ak.to_numpy(ak.flatten(all_t5_ararys.t5_outerRadiusMax2S))
+
+        simRadius = ak.flatten(all_t5_arrays.t5_matched_pt/(2.99792458e-3 * 3.8))
+        simRadius = ak.flatten(simRadius)
+
+        innerRadiusMin = ak.to_numpy(ak.min([innerRadiusResMin, innerRadius2SMin], axis = 0))
+        innerRadiusMax = ak.to_numpy(ak.max([innerRadiusResMax, innerRadius2SMax], axis = 0))
+        bridgeRadiusMin = ak.to_numpy(ak.min([bridgeRadiusResMin, bridgeRadius2SMin], axis = 0))
+        bridgeRadiusMax = ak.to_numpy(ak.max([bridgeRadiusResMax, bridgeRadius2SMax], axis = 0))
+        outerRadiusMin = ak.to_numpy(ak.min([outerRadiusResMin, outerRadius2SMin], axis = 0))
+        outerRadiusMax = ak.to_numpy(ak.max([outerRadiusResMax, outerRadius2SMax], axis = 0))
+
+        qArrayInnerBridge = compute_interval_overlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/bridgeRadiusMax, 1.0/bridgeRadiusMin)
+        qArrayInnerOuter = compute_interval_overlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/outerRadiusMax, 1.0/outerRadiusMin)
+
+
+        for name,qArray in {"innerBridge":qArrayInnerBridge, "innerOuter":qArrayInnerOuter}:
+            print("qName = ",name)
+            if layerType == "":
+                qArraySimTrackMatched = qArray[ak.to_numpy(ak.flatten(matchedMask))]
+            else:
+                qArray = qArray[layerTypes == layerType]
+                qArraySimTrackMatched = qArray[ak.to_numpy(ak.flatten(matchedMask)[layerTypes == layerType])]
+
+            make_plots(qArray, qArraySimTrackMatched, "overlap between 1/{} and 1/{}".format("Inner", name[5:]), layerType)
+
 objects = ["t5"]
 for i in objects:
     make_radius_difference_distributions()
+    make_radius_compatibility_distributions()
