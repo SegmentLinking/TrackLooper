@@ -96,6 +96,15 @@ namespace SDL
         int* trackCandidateRanges;
         //others will be added later
         int* quintupletRanges;
+        unsigned int* connectedPixels;
+        unsigned int* connectedPixelsIndex;
+        unsigned int* connectedPixelsSizes;
+        unsigned int* connectedPixelsPos;
+        unsigned int* connectedPixelsIndexPos;
+        unsigned int* connectedPixelsSizesPos;
+        unsigned int* connectedPixelsNeg;
+        unsigned int* connectedPixelsIndexNeg;
+        unsigned int* connectedPixelsSizesNeg;
 
     };
 
@@ -111,6 +120,7 @@ namespace SDL
     void createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned int nModules);
     void freeModules(struct modules& modulesInGPU);
     void freeModulesCache(struct modules& modulesInGPU);
+    void fillPixelMap(struct modules& modulesInGPU);
     void fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules);
     void fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nModules);
     void setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side);

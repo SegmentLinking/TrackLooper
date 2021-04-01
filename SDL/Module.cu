@@ -1,4 +1,5 @@
 # include "Module.cuh"
+#include "ModuleConnectionMap.h"
 #include "allocate.h"
 std::map <unsigned int, unsigned int> *SDL::detIdToIndex;
 
@@ -515,8 +516,128 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     std::cout<<"number of lower modules (without fake pixel module)= "<<*modulesInGPU.nLowerModules<<std::endl;
     createLowerModuleIndexMap(modulesInGPU,lowerModuleCounter, nModules);
     fillConnectedModuleArray(modulesInGPU,nModules);
+    fillPixelMap(modulesInGPU);
     resetObjectRanges(modulesInGPU,nModules);
 #endif
+}
+
+void SDL::fillPixelMap(struct modules& modulesInGPU)
+{
+    //unsigned int* pixelMap;
+    //unsigned int* nConnectedPixelModules;
+    int size_superbins = SDL::moduleConnectionMap_pLStoLayer1Subdet5.size();
+    std::vector<unsigned int> connectedModuleDetIds;
+    std::vector<unsigned int> connectedModuleDetIds_pos;
+    std::vector<unsigned int> connectedModuleDetIds_neg;
+    cudaMallocManaged(&modulesInGPU.connectedPixelsIndex,size_superbins * sizeof(unsigned int));
+    cudaMallocManaged(&modulesInGPU.connectedPixelsSizes,size_superbins * sizeof(unsigned int));
+    cudaMallocManaged(&modulesInGPU.connectedPixelsIndexPos,size_superbins * sizeof(unsigned int));
+    cudaMallocManaged(&modulesInGPU.connectedPixelsSizesPos,size_superbins * sizeof(unsigned int));
+    cudaMallocManaged(&modulesInGPU.connectedPixelsIndexNeg,size_superbins * sizeof(unsigned int));
+    cudaMallocManaged(&modulesInGPU.connectedPixelsSizesNeg,size_superbins * sizeof(unsigned int));
+    int totalSizes=0;
+    int totalSizes_pos=0;
+    int totalSizes_neg=0;
+    for(int isuperbin =0; isuperbin<size_superbins; isuperbin++){
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5 = SDL::moduleConnectionMap_pLStoLayer1Subdet5.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet5 = SDL::moduleConnectionMap_pLStoLayer2Subdet5.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet5 = SDL::moduleConnectionMap_pLStoLayer3Subdet5.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet4 = SDL::moduleConnectionMap_pLStoLayer1Subdet4.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet4 = SDL::moduleConnectionMap_pLStoLayer2Subdet4.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet4 = SDL::moduleConnectionMap_pLStoLayer3Subdet4.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer4Subdet4 = SDL::moduleConnectionMap_pLStoLayer4Subdet4.getConnectedModuleDetIds(isuperbin);
+      connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer1Subdet5.begin(),connectedModuleDetIds_pLStoLayer1Subdet5.end());
+      connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer2Subdet5.begin(),connectedModuleDetIds_pLStoLayer2Subdet5.end());
+      connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer3Subdet5.begin(),connectedModuleDetIds_pLStoLayer3Subdet5.end());
+      connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer1Subdet4.begin(),connectedModuleDetIds_pLStoLayer1Subdet4.end());
+      connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer2Subdet4.begin(),connectedModuleDetIds_pLStoLayer2Subdet4.end());
+      connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer3Subdet4.begin(),connectedModuleDetIds_pLStoLayer3Subdet4.end());
+      connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer4Subdet4.begin(),connectedModuleDetIds_pLStoLayer4Subdet4.end());
+
+      int sizes =0;
+      sizes += connectedModuleDetIds_pLStoLayer1Subdet5.size();
+      sizes += connectedModuleDetIds_pLStoLayer2Subdet5.size();
+      sizes += connectedModuleDetIds_pLStoLayer3Subdet5.size();
+      sizes += connectedModuleDetIds_pLStoLayer1Subdet4.size();
+      sizes += connectedModuleDetIds_pLStoLayer2Subdet4.size();
+      sizes += connectedModuleDetIds_pLStoLayer3Subdet4.size();
+      sizes += connectedModuleDetIds_pLStoLayer4Subdet4.size();
+      totalSizes += sizes;
+      modulesInGPU.connectedPixelsIndex[isuperbin] = totalSizes;
+      modulesInGPU.connectedPixelsSizes[isuperbin] = sizes;
+
+
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5_pos = SDL::moduleConnectionMap_pLStoLayer1Subdet5_pos.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet5_pos = SDL::moduleConnectionMap_pLStoLayer2Subdet5_pos.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet5_pos = SDL::moduleConnectionMap_pLStoLayer3Subdet5_pos.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet4_pos = SDL::moduleConnectionMap_pLStoLayer1Subdet4_pos.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet4_pos = SDL::moduleConnectionMap_pLStoLayer2Subdet4_pos.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet4_pos = SDL::moduleConnectionMap_pLStoLayer3Subdet4_pos.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer4Subdet4_pos = SDL::moduleConnectionMap_pLStoLayer4Subdet4_pos.getConnectedModuleDetIds(isuperbin);
+      connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer1Subdet5_pos.begin(),connectedModuleDetIds_pLStoLayer1Subdet5_pos.end());
+      connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer2Subdet5_pos.begin(),connectedModuleDetIds_pLStoLayer2Subdet5_pos.end());
+      connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer3Subdet5_pos.begin(),connectedModuleDetIds_pLStoLayer3Subdet5_pos.end());
+      connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer1Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer1Subdet4_pos.end());
+      connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer2Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer2Subdet4_pos.end());
+      connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer3Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer3Subdet4_pos.end());
+      connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer4Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer4Subdet4_pos.end());
+
+      int sizes_pos =0;
+      sizes_pos += connectedModuleDetIds_pLStoLayer1Subdet5_pos.size();
+      sizes_pos += connectedModuleDetIds_pLStoLayer2Subdet5_pos.size();
+      sizes_pos += connectedModuleDetIds_pLStoLayer3Subdet5_pos.size();
+      sizes_pos += connectedModuleDetIds_pLStoLayer1Subdet4_pos.size();
+      sizes_pos += connectedModuleDetIds_pLStoLayer2Subdet4_pos.size();
+      sizes_pos += connectedModuleDetIds_pLStoLayer3Subdet4_pos.size();
+      sizes_pos += connectedModuleDetIds_pLStoLayer4Subdet4_pos.size();
+      totalSizes_pos += sizes_pos;
+      modulesInGPU.connectedPixelsIndexPos[isuperbin] = totalSizes_pos;
+      modulesInGPU.connectedPixelsSizesPos[isuperbin] = sizes_pos;
+
+
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5_neg = SDL::moduleConnectionMap_pLStoLayer1Subdet5_neg.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet5_neg = SDL::moduleConnectionMap_pLStoLayer2Subdet5_neg.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet5_neg = SDL::moduleConnectionMap_pLStoLayer3Subdet5_neg.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet4_neg = SDL::moduleConnectionMap_pLStoLayer1Subdet4_neg.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet4_neg = SDL::moduleConnectionMap_pLStoLayer2Subdet4_neg.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet4_neg = SDL::moduleConnectionMap_pLStoLayer3Subdet4_neg.getConnectedModuleDetIds(isuperbin);
+      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer4Subdet4_neg = SDL::moduleConnectionMap_pLStoLayer4Subdet4_neg.getConnectedModuleDetIds(isuperbin);
+      connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer1Subdet5_neg.begin(),connectedModuleDetIds_pLStoLayer1Subdet5_neg.end());
+      connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer2Subdet5_neg.begin(),connectedModuleDetIds_pLStoLayer2Subdet5_neg.end());
+      connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer3Subdet5_neg.begin(),connectedModuleDetIds_pLStoLayer3Subdet5_neg.end());
+      connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer1Subdet4_neg.begin(),connectedModuleDetIds_pLStoLayer1Subdet4_neg.end());
+      connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer2Subdet4_neg.begin(),connectedModuleDetIds_pLStoLayer2Subdet4_neg.end());
+      connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer3Subdet4_neg.begin(),connectedModuleDetIds_pLStoLayer3Subdet4_neg.end());
+      connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer4Subdet4_neg.begin(),connectedModuleDetIds_pLStoLayer4Subdet4_neg.end());
+
+      int sizes_neg =0;
+      sizes_neg += connectedModuleDetIds_pLStoLayer1Subdet5_neg.size();
+      sizes_neg += connectedModuleDetIds_pLStoLayer2Subdet5_neg.size();
+      sizes_neg += connectedModuleDetIds_pLStoLayer3Subdet5_neg.size();
+      sizes_neg += connectedModuleDetIds_pLStoLayer1Subdet4_neg.size();
+      sizes_neg += connectedModuleDetIds_pLStoLayer2Subdet4_neg.size();
+      sizes_neg += connectedModuleDetIds_pLStoLayer3Subdet4_neg.size();
+      sizes_neg += connectedModuleDetIds_pLStoLayer4Subdet4_neg.size();
+      totalSizes_neg += sizes_neg;
+      modulesInGPU.connectedPixelsIndexNeg[isuperbin] = totalSizes_neg;
+      modulesInGPU.connectedPixelsSizesNeg[isuperbin] = sizes_neg;
+    }
+    //cudaMalloc(connectedPixels,7*size_superbins*sizeof(unsigned int));
+    cudaMallocManaged(&modulesInGPU.connectedPixels,totalSizes * sizeof(unsigned int));
+    //cudaMemcpy(modulesInGPU.connectedPixels,&connectedModuleDetIds[0],totalSizes*sizeof(unsigned int),cudaMemcpyHostToDevice);
+    cudaMallocManaged(&modulesInGPU.connectedPixelsPos,totalSizes_pos * sizeof(unsigned int));
+    //cudaMemcpy(modulesInGPU.connectedPixelsPos,&connectedModuleDetIds_pos[0],totalSizes_pos*sizeof(unsigned int),cudaMemcpyHostToDevice);
+    cudaMallocManaged(&modulesInGPU.connectedPixelsNeg,totalSizes_neg * sizeof(unsigned int));
+    //cudaMemcpy(modulesInGPU.connectedPixelsNeg,&connectedModuleDetIds_neg[0],totalSizes_neg*sizeof(unsigned int),cudaMemcpyHostToDevice);
+    for(int icondet=0; icondet< totalSizes; icondet++){
+      modulesInGPU.connectedPixels[icondet] = (*detIdToIndex)[connectedModuleDetIds[icondet]];
+    }
+    for(int icondet=0; icondet< totalSizes_pos; icondet++){
+      modulesInGPU.connectedPixelsPos[icondet] = (*detIdToIndex)[connectedModuleDetIds_pos[icondet]];
+    }
+    for(int icondet=0; icondet< totalSizes_neg; icondet++){
+      modulesInGPU.connectedPixelsNeg[icondet] = (*detIdToIndex)[connectedModuleDetIds_neg[icondet]];
+    }
 }
 
 void SDL::fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules)
