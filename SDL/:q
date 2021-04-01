@@ -1259,7 +1259,7 @@ void SDL::Event::createPixelTrackletsv2()
       connectedPixelType_host[i] = pixelType;
       int superbin = segmentsInGPU->superbin[i]; //get superbin for this pixel
       if(superbin <0) {continue;}
-      if(superbin >90000) {continue;}
+      //if(superbin >90000) {continue;}
       //printf("superbin %d, type %d\n",superbin,pixelType);
       if(pixelType ==0){
         connectedPixelSize_host[i] = modulesInGPU->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
@@ -1283,8 +1283,8 @@ void SDL::Event::createPixelTrackletsv2()
     cudaMemcpy(connectedPixelIndex_dev, connectedPixelIndex_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice);
     cudaMemcpy(connectedPixelType_dev, connectedPixelType_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice);
     //printf("nInnerSegments %d max_size %d\n",nInnerSegments,max_size);
-    dim3 nThreads(16,4,8);
-    dim3 nBlocks((nInnerSegments % nThreads.x == 0 ? nInnerSegments / nThreads.x : nInnerSegments / nThreads.x + 1),(max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1), (N_MAX_SEGMENTS_PER_MODULE % nThreads.z == 0 ? N_MAX_SEGMENTS_PER_MODULE / nThreads.z : N_MAX_SEGMENTS_PER_MODULE / nThreads.z + 1));
+    dim3 nThreads(32,16,1);
+    dim3 nBlocks((nInnerSegments % nThreads.x == 0 ? nInnerSegments / nThreads.x : nInnerSegments / nThreads.x + 1),(max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1), 1);
     createPixelTrackletsInGPUV3<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU, connectedPixelSize_dev,connectedPixelIndex_dev,connectedPixelType_dev,nInnerSegments);
 
     cudaError_t cudaerr = cudaDeviceSynchronize();
@@ -2493,35 +2493,30 @@ __global__ void createPixelTrackletsInGPUV3(struct SDL::modules& modulesInGPU, s
   if( segmentArrayIndex >= connectedPixelSize[pixelArrayIndex]) return; // don't exceed # connected segment modules for this pixel
 
 //  unsigned int outerInnerLowerModuleIndex = modulesInGPU.lowerModuleIndices[outerInnerLowerModuleArrayIndex];
-  unsigned int outerInnerLowerModuleArrayIndex;// This will be the index of the module that connects to this pixel. 
+  unsigned int outerInnerLowerModuleIndex;
   if(connectedPixelType[pixelArrayIndex] == 0){
-    outerInnerLowerModuleArrayIndex = modulesInGPU.connectedPixels[connectedPixelIndex[pixelArrayIndex]+segmentArrayIndex]; //gets module index for segment
+    outerInnerLowerModuleIndex = modulesInGPU.connectedPixels[connectedPixelIndex[pixelArrayIndex]+segmentArrayIndex]; //gets segment array index
   }
   else if(connectedPixelType[pixelArrayIndex] == 1){
-    outerInnerLowerModuleArrayIndex = modulesInGPU.connectedPixelsPos[connectedPixelIndex[pixelArrayIndex]+segmentArrayIndex]; //gets segment array index
+    outerInnerLowerModuleIndex = modulesInGPU.connectedPixelsPos[connectedPixelIndex[pixelArrayIndex]+segmentArrayIndex]; //gets segment array index
   }
   else if(connectedPixelType[pixelArrayIndex] == 2){
-    outerInnerLowerModuleArrayIndex = modulesInGPU.connectedPixelsNeg[connectedPixelIndex[pixelArrayIndex]+segmentArrayIndex]; //gets segment array index
+    outerInnerLowerModuleIndex = modulesInGPU.connectedPixelsNeg[connectedPixelIndex[pixelArrayIndex]+segmentArrayIndex]; //gets segment array index
   }
-  if(outerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) return;
-  unsigned int outerInnerLowerModuleIndex = /*modulesInGPU.lowerModuleIndices[*/outerInnerLowerModuleArrayIndex;//];
-
   unsigned int pixelModuleIndex = *modulesInGPU.nModules - 1; //last dude
   unsigned int pixelLowerModuleArrayIndex = modulesInGPU.reverseLookupLowerModuleIndices[pixelModuleIndex]; //should be the same as nLowerModules
-//  printf("%d\n",outerInnerLowerModuleIndex);
-  //unsigned int nInnerSegments = segmentsInGPU.nSegments[pixelModuleIndex] > N_MAX_PIXEL_SEGMENTS_PER_MODULE ? N_MAX_PIXEL_SEGMENTS_PER_MODULE : segmentsInGPU.nSegments[pixelModuleIndex];
+  unsigned int nInnerSegments = segmentsInGPU.nSegments[pixelModuleIndex] > N_MAX_PIXEL_SEGMENTS_PER_MODULE ? N_MAX_PIXEL_SEGMENTS_PER_MODULE : segmentsInGPU.nSegments[pixelModuleIndex];
   unsigned int nOuterSegments = segmentsInGPU.nSegments[outerInnerLowerModuleIndex] > N_MAX_SEGMENTS_PER_MODULE ? N_MAX_SEGMENTS_PER_MODULE : segmentsInGPU.nSegments[outerInnerLowerModuleIndex];
   if(nOuterSegments == 0) return;
-  //if(nInnerSegments == 0) return;
+  if(nInnerSegments == 0) return;
   if(modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::TwoS) return; //REMOVES 2S-2S
 
 //  int innerSegmentArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
-  int outerSegmentArrayIndex = blockIdx.z * blockDim.z + threadIdx.z;
-  //int outerSegmentArrayIndex = threadIdx_gpu_offset[blockIdx.y * blockDim.y + threadIdx.y];
+//  int outerSegmentArrayIndex = threadIdx_gpu_offset[blockIdx.y * blockDim.y + threadIdx.y];
 //  if(innerSegmentArrayIndex >= nInnerSegments) return;
-  if(outerSegmentArrayIndex >= nOuterSegments) return;
+//  if(outerSegmentArrayIndex >= nOuterSegments) return;
   unsigned int innerSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + pixelArrayIndex;
-  unsigned int outerSegmentIndex = outerInnerLowerModuleIndex * N_MAX_SEGMENTS_PER_MODULE + outerSegmentArrayIndex;
+  unsigned int outerSegmentIndex = outerInnerLowerModuleIndex * N_MAX_SEGMENTS_PER_MODULE + segmentArrayIndex;
   unsigned int outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex];
   if(modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS) return; //REMOVES PS-2S
   float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut;

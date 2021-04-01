@@ -589,7 +589,8 @@ float runpT4(SDL::Event& event)
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Quadruplet pT4 start" << std::endl;
     my_timer.Start();
-    event.createPixelTracklets();
+    //event.createPixelTracklets();
+    event.createPixelTrackletsv2();
     float pt4_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco pT4 processing time: " << pt4_elapsed << " secs" << std::endl;
     if (ana.verbose >= 2) std::cout << "# of Pixel T4s produced: "<< event.getNumberOfPixelTracklets() << std::endl;
@@ -919,11 +920,8 @@ void loadMaps()
     // SDL::moduleConnectionMap_pLS_neg.load("/nfs-7/userdata/phchang/segmentlinking/pixelmap_charge_split/pLS_map_neg_ElCheapo.txt");
 
     // TString pLSMapDir = gSystem->Getenv("PIXELMAPDIR");
-    // TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta20_nphi72_nz24_ipt2_plus_z_special";
-    // TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta21_nphi72_nz25_ipt2";
-    // TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta11_nphi72_nz25_ipt2";
-    TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05";
-    // TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta25_nphi72_nz25_ipt2_etapm1";
+    //TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05";
+    TString pLSMapDir = "/data2/segmentlinking/pixelmap_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05";
 
     std::cout << "Loading pLS maps ... from pLSMapDir = " << pLSMapDir << std::endl;
 
@@ -1265,6 +1263,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
     std::vector<float> trkZ = trk.ph2_z();
     std::vector<unsigned int> hitId = trk.ph2_detId();
     std::vector<unsigned int> hitIdxs(trk.ph2_detId().size());
+    std::vector<int> superbin_vec;
+    std::vector<int> pixelType_vec;
     std::iota(hitIdxs.begin(), hitIdxs.end(), 0);
     const int hit_size = trkX.size();
 
@@ -1332,7 +1332,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         {
 
             unsigned int hitIdx0 = hit_size + count;
-            count++; // incrementing the counter after the hitIdx should take care for the -1 right?
+            count++; 
 
             unsigned int hitIdx1 = hit_size + count;
             count++;
@@ -1391,13 +1391,37 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             {
                 hitIdxs.push_back(trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]);
             }
+// get pixel superbin
+            int ptbin = -1;
+            int pixtype =-1;
+            if (p3PCA.Pt() >= 0.9 and p3PCA.Pt() < 2.0){ ptbin = 0;pixtype=0;}
+            else if (p3PCA.Pt() >= 2.0){ 
+              ptbin = 1;
+              if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
+              else{pixtype=2;}
+            }
+            else{continue;}
+            //if (pt < 0){ ptbin = 0;}
+            float neta = 25.;
+            float nphi = 72.;
+            float nz = 25.;
+            int etabin = (p3PCA.Eta() + 2.6) / ((2*2.6)/neta);
+            int phibin = (p3PCA.Phi() + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
+            int dzbin = (trk.see_dz()[iSeed] + 30) / (2*30 / nz);
+            int isuperbin = (nz * nphi * neta) * ptbin + (nz * nphi) * etabin + (nz) * phibin + dzbin;
+            //int charge = (pixelSegmentDeltaPhiChange() > 0) - (pixelSegmentDeltaPhiChange() < 0);
+            superbin_vec.push_back(isuperbin);
+            pixelType_vec.push_back(pixtype);
+
+
+
 
         }
 
     }
 
-    event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
-    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, etaErr_vec);
+    event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); 
+    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, etaErr_vec,superbin_vec,pixelType_vec);
 
     float hit_loading_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Loading inputs processing time: " << hit_loading_elapsed << " secs" << std::endl;
