@@ -308,6 +308,7 @@ namespace SDL
 
                 // Create tracklets with pixel line segments
                 void createTrackletsWithPixelLineSegments(TLAlgo algo=Default_TLAlgo);
+                void createTrackletsWithPixelLineSegments_v2(TLAlgo algo=Default_TLAlgo);
 
                 // Create trackcandidates
                 void createTrackCandidates(TCAlgo algo=Default_TCAlgo);

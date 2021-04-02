@@ -26,12 +26,14 @@ void fillTrackCandidateOutputBranches(SDL::Event& event);
 void fillLowerLevelOutputBranches(SDL::Event& event);
 void fillQuadrupletOutputBranches(SDL::Event& event);
 void fillTripletOutputBranches(SDL::Event& event);
+void fillPixelQuadrupletOutputBranches(SDL::Event& event);
 // CPU
 void fillOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillLowerLevelOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillTripletOutputBranches_for_CPU(SDL::CPU::Event& event);
+void fillPixelQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event);
 
 // Timing
 void printTimingInformation(std::vector<std::vector<float>> timing_information);

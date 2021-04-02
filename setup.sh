@@ -19,6 +19,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DIR
 export PATH=$PATH:$DIR/bin
 export PATH=$PATH:$DIR/efficiency/bin
 export TRACKLOOPERDIR=$DIR
+export PIXELMAPDIR="/data2/segmentlinking/pixelmap_neta20_nphi72_nz24_ipt2"
 
 ###########################################################################################################
 # Validation scripts

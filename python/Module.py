@@ -163,7 +163,7 @@ class Module:
 #    def __str__(self):
 #        return "detid={} logicalLayer={} side={} moduleType={} ring={}".format(self.detId(), self.logicalLayer(), self.side(), self.moduleType(), self.ring())
     def __str__(self):
-        printstr = "detId={}, partnerDetId={},subdet={},side={},layer={},rod={},ring={},module={},moduleType={}".format(self.detId(),self.partnerDetId(),self.subdet(),self.side(),self.layer(),self.rod(),self.ring(),self.module(),self.moduleType())
+        printstr = "detId={}, partnerDetId={},subdet={},side={},layer={},rod={},ring={},module={},moduleType={},isLower={}".format(self.detId(),self.partnerDetId(),self.subdet(),self.side(),self.layer(),self.rod(),self.ring(),self.module(),self.moduleType(),self.isLower())
         return printstr
 
 

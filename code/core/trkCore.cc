@@ -913,6 +913,44 @@ void loadMaps()
     SDL::moduleConnectionMap.load(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
     ana.moduleConnectiongMapLoose.load(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
 
+    // El Cheapo
+    // SDL::moduleConnectionMap_pLS_all.load("/nfs-7/userdata/phchang/segmentlinking/pixelmap_charge_split/pLS_map_ElCheapo.txt");
+    // SDL::moduleConnectionMap_pLS_pos.load("/nfs-7/userdata/phchang/segmentlinking/pixelmap_charge_split/pLS_map_pos_ElCheapo.txt");
+    // SDL::moduleConnectionMap_pLS_neg.load("/nfs-7/userdata/phchang/segmentlinking/pixelmap_charge_split/pLS_map_neg_ElCheapo.txt");
+
+    // TString pLSMapDir = gSystem->Getenv("PIXELMAPDIR");
+    // TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta20_nphi72_nz24_ipt2_plus_z_special";
+    // TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta21_nphi72_nz25_ipt2";
+    // TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta11_nphi72_nz25_ipt2";
+    TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05";
+    // TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta25_nphi72_nz25_ipt2_etapm1";
+
+    std::cout << "Loading pLS maps ... from pLSMapDir = " << pLSMapDir << std::endl;
+
+    SDL::moduleConnectionMap_pLStoLayer1Subdet5.load(TString::Format("%s/pLS_map_layer1_subdet5.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer2Subdet5.load(TString::Format("%s/pLS_map_layer2_subdet5.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer3Subdet5.load(TString::Format("%s/pLS_map_layer3_subdet5.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer1Subdet4.load(TString::Format("%s/pLS_map_layer1_subdet4.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer2Subdet4.load(TString::Format("%s/pLS_map_layer2_subdet4.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer3Subdet4.load(TString::Format("%s/pLS_map_layer3_subdet4.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer4Subdet4.load(TString::Format("%s/pLS_map_layer4_subdet4.txt", pLSMapDir.Data()).Data());
+
+    SDL::moduleConnectionMap_pLStoLayer1Subdet5_neg.load(TString::Format("%s/pLS_map_neg_layer1_subdet5.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer2Subdet5_neg.load(TString::Format("%s/pLS_map_neg_layer2_subdet5.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer3Subdet5_neg.load(TString::Format("%s/pLS_map_neg_layer3_subdet5.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer1Subdet4_neg.load(TString::Format("%s/pLS_map_neg_layer1_subdet4.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer2Subdet4_neg.load(TString::Format("%s/pLS_map_neg_layer2_subdet4.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer3Subdet4_neg.load(TString::Format("%s/pLS_map_neg_layer3_subdet4.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer4Subdet4_neg.load(TString::Format("%s/pLS_map_neg_layer4_subdet4.txt", pLSMapDir.Data()).Data());
+
+    SDL::moduleConnectionMap_pLStoLayer1Subdet5_pos.load(TString::Format("%s/pLS_map_pos_layer1_subdet5.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer2Subdet5_pos.load(TString::Format("%s/pLS_map_pos_layer2_subdet5.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer3Subdet5_pos.load(TString::Format("%s/pLS_map_pos_layer3_subdet5.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer1Subdet4_pos.load(TString::Format("%s/pLS_map_pos_layer1_subdet4.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer2Subdet4_pos.load(TString::Format("%s/pLS_map_pos_layer2_subdet4.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer3Subdet4_pos.load(TString::Format("%s/pLS_map_pos_layer3_subdet4.txt", pLSMapDir.Data()).Data());
+    SDL::moduleConnectionMap_pLStoLayer4Subdet4_pos.load(TString::Format("%s/pLS_map_pos_layer4_subdet4.txt", pLSMapDir.Data()).Data());
+
     // SDL::moduleConnectionMap.load("/home/users/phchang/public_html/analysis/sdl/TrackLooper_/scripts/module_connection_map_data_10_e0_200_100_pt0p8_2p0_400_pt0p8_2p0_nolossers_dxy35cm_endcaplayer2.txt");
     // ana.moduleConnectiongMapLoose.load("/home/users/phchang/public_html/analysis/sdl/TrackLooper_/scripts/module_connection_map_data_10_e0_200_100_pt0p8_2p0_400_pt0p8_2p0_nolossers_dxy35cm_endcaplayer2.txt");
 
@@ -1630,19 +1668,25 @@ float addPixelSegments(SDL::CPU::Event& event, int isimtrk)
         int hitidx0 = trk.see_hitIdx()[iSeed][0];
         int hittype0 = trk.see_hitType()[iSeed][0];
         // hits.push_back(SDL::CPU::Hit(trk.pix_x()[hitidx0], trk.pix_y()[hitidx0], trk.pix_z()[hitidx0], hitidx0));
-        hits.push_back(SDL::CPU::Hit(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), hitidx0));
+        // hits.push_back(SDL::CPU::Hit(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), hitidx0));
+        hits.push_back(SDL::CPU::Hit(p3PCA.Pt(), p3PCA.Eta(), p3PCA.Phi(), hitidx0));
+        // hits.push_back(SDL::CPU::Hit(1, 2, 3, hitidx0));
         int hitidx1 = trk.see_hitIdx()[iSeed][1];
         int hittype1 = trk.see_hitType()[iSeed][1];
         // hits.push_back(SDL::CPU::Hit(trk.pix_x()[hitidx1], trk.pix_y()[hitidx1], trk.pix_z()[hitidx1], hitidx1));
         hits.push_back(SDL::CPU::Hit(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), hitidx1));
+        // hits.push_back(SDL::CPU::Hit(4, 5, 6, hitidx1));
         int hitidx2 = trk.see_hitIdx()[iSeed][2];
         int hittype2 = trk.see_hitType()[iSeed][2];
         // hits.push_back(SDL::CPU::Hit(trk.pix_x()[hitidx2], trk.pix_y()[hitidx2], trk.pix_z()[hitidx2], hitidx2));
-        hits.push_back(SDL::CPU::Hit(r3LH.X(), r3LH.Y(), r3LH.Z(), hitidx2));
+        hits.push_back(SDL::CPU::Hit(r3LH.X(), trk.see_dxy()[iSeed], trk.see_dz()[iSeed], hitidx2));
+        // hits.push_back(SDL::CPU::Hit(r3LH.X(), r3LH.Y(), r3LH.Z(), hitidx2));
+        // hits.push_back(SDL::CPU::Hit(7, 8, 9, hitidx2));
         int hitidx3 = trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]; // repeat last one if triplet
         int hittype3 = trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitType()[iSeed][3] : trk.see_hitIdx()[iSeed][2]; // repeat last one if triplet
         // hits.push_back(SDL::CPU::Hit(trk.pix_x()[hitidx3], trk.pix_y()[hitidx3], trk.pix_z()[hitidx3], hitidx3));
         hits.push_back(SDL::CPU::Hit(r3LH.X(), r3LH.Y(), r3LH.Z(), hitidx3));
+        // hits.push_back(SDL::CPU::Hit(10, 11, 12, hitidx3));
 
         float pixelSegmentDeltaPhiChange = r3LH.DeltaPhi(p3LH);
         float ptIn = p3LH.Pt();
@@ -1716,7 +1760,8 @@ float runpT4_on_CPU(SDL::CPU::Event& event)
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Quadruplet pT4 start" << std::endl;
     my_timer.Start();
-    event.createTrackletsWithPixelLineSegments();
+    // event.createTrackletsWithPixelLineSegments();
+    event.createTrackletsWithPixelLineSegments_v2();
     float pt4_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco pT4 processing time: " << pt4_elapsed << " secs" << std::endl;
     return pt4_elapsed;
