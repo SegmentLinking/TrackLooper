@@ -13,13 +13,19 @@ SDL::quintuplets::quintuplets()
     nQuintuplets = nullptr;
     innerRadius = nullptr;
     innerRadiusMin = nullptr;
+    innerRadiusMin2S = nullptr;
     innerRadiusMax = nullptr;
+    innerRadiusMax2S = nullptr;
     bridgeRadius = nullptr;
     bridgeRadiusMin = nullptr;
+    bridgeRadiusMin2S = nullptr;
     bridgeRadiusMax = nullptr;
+    bridgeRadiusMax2S = nullptr;
     outerRadius = nullptr;
     outerRadiusMin = nullptr;
+    outerRadiusMin2S = nullptr;
     outerRadiusMax = nullptr;
+    outerRadiusMax2S = nullptr;
 
 }
 
@@ -30,13 +36,19 @@ void SDL::quintuplets::freeMemory()
     cudaFree(nQuintuplets);
     cudaFree(innerRadius);
     cudaFree(innerRadiusMin);
+    cudaFree(innerRadiusMin2S);
     cudaFree(innerRadiusMax);
+    cudaFree(innerRadiusMax2S);
     cudaFree(bridgeRadius);
     cudaFree(bridgeRadiusMin);
+    cudaFree(bridgeRadiusMin2S);
     cudaFree(bridgeRadiusMax);
+    cudaFree(bridgeRadiusMax2S);
     cudaFree(outerRadius);
     cudaFree(outerRadiusMin);
+    cudaFree(outerRadiusMin2S);
     cudaFree(outerRadiusMax);
+    cudaFree(outerRadiusMax2S);
 }
 void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int maxQuintuplets, unsigned int nLowerModules)
 {

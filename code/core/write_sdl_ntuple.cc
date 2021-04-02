@@ -670,7 +670,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
 
     std::vector<std::vector<float>> t5_simpt;
     std::vector<int> layer_binaries;
-    const int MAX_NQUINTUPLET_PER_MODULE = 100000;
+    const int MAX_NQUINTUPLET_PER_MODULE = 50000;
     
     for(unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
     {
