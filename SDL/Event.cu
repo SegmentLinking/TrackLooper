@@ -13,7 +13,7 @@ const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 100000;
 const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
 const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 3000000;
 const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 5000000;
-const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 50000; //initial guesstimate!
+const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 100000; //initial guesstimate!
 
 struct SDL::modules* SDL::modulesInGPU = nullptr;
 unsigned int SDL::nModules;
