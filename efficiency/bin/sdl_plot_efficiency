@@ -157,7 +157,7 @@ echo ${CMDLINE} > cmdline.txt
 
 mkdir -p efficiencies/
 
-OUTDIR=efficiencies/eff_plots__${VERSION}_${TAG}_${SAMPLE}
+OUTDIR=efficiencies/eff_plots_${VERSION}_${TAG}_${SAMPLE}
 
 if [ -d "${OUTDIR}" ]; then
     if $FORCE; then
