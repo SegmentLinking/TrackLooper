@@ -874,8 +874,7 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
         int trkidx = unique_idxs[rawidx];
         if (trkidx < 0)
             continue;
-//        if (counts[rawidx] > (((float)nhits_input) * 0.75))
-        if (counts[rawidx] == (((float)nhits_input)))
+        if (counts[rawidx] > (((float)nhits_input) * 0.75))
             matched_sim_trk_idxs.push_back(trkidx);
     }
 
