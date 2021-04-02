@@ -277,7 +277,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
 
 __device__ bool SDL::checkIntervalOverlap(const float& firstMin, const float& firstMax, const float& secondMin, const float& secondMax)
 {
-    return ((firstMin < secondMin) & (secondMin < firstMax)) |  ((secondMin < firstMin) & (firstMin < secondMax));
+    return ((firstMin <= secondMin) & (secondMin < firstMax)) |  ((secondMin < firstMin) & (firstMin < secondMax));
 }
 
 __device__ bool SDL::matchRadiiBBBBB(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax)
@@ -295,7 +295,7 @@ __device__ bool SDL::matchRadiiBBBBB(const float& innerRadius, const float& brid
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
     outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
     
-    return checkIntervalOverlap(innerRadiusMin, innerRadiusMax, outerRadiusMin, outerRadiusMax);
+    return checkIntervalOverlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/bridgeRadiusMax, 1.0/bridgeRadiusMin);
 }
 
 __device__ bool SDL::matchRadiiBBBBE(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax)
@@ -314,7 +314,7 @@ __device__ bool SDL::matchRadiiBBBBE(const float& innerRadius, const float& brid
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
     outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
 
-    return checkIntervalOverlap(innerRadiusMin, innerRadiusMax, bridgeRadiusMin, bridgeRadiusMax);
+    return checkIntervalOverlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/bridgeRadiusMax, 1.0/bridgeRadiusMin);
 }
 
 __device__ bool SDL::matchRadiiBBBEE12378(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax)
@@ -332,7 +332,7 @@ __device__ bool SDL::matchRadiiBBBEE12378(const float& innerRadius, const float&
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
     outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
 
-    return checkIntervalOverlap(innerRadiusMin, innerRadiusMax, fminf(bridgeRadiusMin, bridgeRadiusMin2S), fmaxf(bridgeRadiusMax, bridgeRadiusMax2S));
+    return checkIntervalOverlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/fmaxf(bridgeRadiusMax, bridgeRadiusMax2S),1.0/fminf(bridgeRadiusMin, bridgeRadiusMin2S));
 }
 
 __device__ bool SDL::matchRadiiBBBEE23478(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax)
@@ -350,7 +350,7 @@ __device__ bool SDL::matchRadiiBBBEE23478(const float& innerRadius, const float&
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
     outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
 
-    return checkIntervalOverlap(innerRadiusMin, innerRadiusMax, fminf(bridgeRadiusMin, bridgeRadiusMin2S), fmaxf(bridgeRadiusMax, bridgeRadiusMax2S));
+    return checkIntervalOverlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/fmaxf(bridgeRadiusMax, bridgeRadiusMax2S), 1.0/fminf(bridgeRadiusMin, bridgeRadiusMin2S));
 
 }
 
@@ -369,7 +369,8 @@ __device__ bool SDL::matchRadiiBBBEE34578(const float& innerRadius, const float&
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
     outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
 
-    return checkIntervalOverlap(innerRadiusMin, innerRadiusMax, fminf(bridgeRadiusMin, bridgeRadiusMin2S), fmaxf(bridgeRadiusMax, bridgeRadiusMax2S));
+    return checkIntervalOverlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/fmaxf(bridgeRadiusMax, bridgeRadiusMax2S), 1.0/fminf(bridgeRadiusMin, bridgeRadiusMin2S));
+
 }
 
 __device__ bool SDL::matchRadiiBBBEE(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax)
@@ -388,7 +389,8 @@ __device__ bool SDL::matchRadiiBBBEE(const float& innerRadius, const float& brid
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
     outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
 
-    return checkIntervalOverlap(innerRadiusMin, innerRadiusMax, fminf(bridgeRadiusMin, bridgeRadiusMin2S), fmaxf(bridgeRadiusMax, bridgeRadiusMax2S));
+    return checkIntervalOverlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/fmaxf(bridgeRadiusMax, bridgeRadiusMax2S), 1.0/fminf(bridgeRadiusMin, bridgeRadiusMin2S));
+
 }
 
 __device__ bool SDL::matchRadiiBBEEE(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax)
@@ -407,7 +409,8 @@ __device__ bool SDL::matchRadiiBBEEE(const float& innerRadius, const float& brid
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
     outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
 
-    return checkIntervalOverlap(innerRadiusMin, innerRadiusMax, fminf(bridgeRadiusMin, bridgeRadiusMin2S), fmaxf(bridgeRadiusMax, bridgeRadiusMax2S));
+    return checkIntervalOverlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/fmaxf(bridgeRadiusMax, bridgeRadiusMax2S), 1.0/fminf(bridgeRadiusMin, bridgeRadiusMin2S));
+
 }
 
 __device__ bool SDL::matchRadiiBEEEE(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax) 
@@ -426,7 +429,7 @@ __device__ bool SDL::matchRadiiBEEEE(const float& innerRadius, const float& brid
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
     outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
 
-    return checkIntervalOverlap(fminf(innerRadiusMin, innerRadiusMin2S), fmaxf(innerRadiusMax, innerRadiusMax2S),  fminf(bridgeRadiusMin, bridgeRadiusMin2S), fmaxf(bridgeRadiusMax, bridgeRadiusMax2S));
+    return checkIntervalOverlap(1.0/fmaxf(innerRadiusMax, innerRadiusMax2S), 1.0/fminf(innerRadiusMin, innerRadiusMin2S), 1.0/fmaxf(bridgeRadiusMax, bridgeRadiusMax2S), 1.0/fminf(bridgeRadiusMin, bridgeRadiusMin2S));
 
 }
 
@@ -445,7 +448,8 @@ __device__ bool SDL::matchRadiiEEEEE(const float& innerRadius, const float& brid
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
     outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
 
-    return checkIntervalOverlap(fminf(innerRadiusMin, innerRadiusMin2S), fmaxf(innerRadiusMax, innerRadiusMax2S),  fminf(bridgeRadiusMin, bridgeRadiusMin2S), fmaxf(bridgeRadiusMax, bridgeRadiusMax2S));
+    return checkIntervalOverlap(1.0/fmaxf(innerRadiusMax, innerRadiusMax2S), 1.0/fminf(innerRadiusMin, innerRadiusMin2S), 1.0/fmaxf(bridgeRadiusMax, bridgeRadiusMax2S), 1.0/fminf(bridgeRadiusMin, bridgeRadiusMin2S));
+
 }
 
 __device__ void SDL::computeErrorInRadius(float* x1Vec, float* y1Vec, float* x2Vec, float* y2Vec, float* x3Vec, float* y3Vec, float& minimumRadius, float& maximumRadius)
