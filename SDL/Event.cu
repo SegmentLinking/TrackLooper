@@ -1201,7 +1201,7 @@ void SDL::Event::createTrackletsWithModuleMap()
 
 void SDL::Event::createPixelTrackletsv2()
 {
-    printf("This is pixel v2\n");
+//    printf("This is pixel v2\n");
     unsigned int nLowerModules;// = *modulesInGPU->nLowerModules;
     cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
     if(trackletsInGPU == nullptr)
