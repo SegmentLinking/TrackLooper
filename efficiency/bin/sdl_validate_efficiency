@@ -126,11 +126,11 @@ if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit" ]]; 
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache" ]]; then
-#     run_gpu explicit_cache ${SAMPLE} -x -c # Does not run on phi3
+     run_gpu explicit_cache ${SAMPLE} -x -c # Does not run on phi3
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache_newgrid" ]]; then
-#     run_gpu explicit_cache_newgrid ${SAMPLE} -x -c -g # Does not run on phi3
+     run_gpu explicit_cache_newgrid ${SAMPLE} -x -c -g # Does not run on phi3
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_newgrid" ]]; then
