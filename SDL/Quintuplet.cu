@@ -225,14 +225,6 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     {
         pass = false;
     }
-    if(bridgeRadius < 0.95/(2 * k2Rinv1GeVf))
-    {
-        pass = false;
-    }
-    if(outerRadius < 0.95/(2 * k2Rinv1GeVf))
-    {
-        pass = false;
-    } 
     //split by category
     bool tempPass;
     if(modulesInGPU.subdets[lowerModuleIndex1] == SDL::Barrel and modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.subdets[lowerModuleIndex3] == SDL::Barrel and modulesInGPU.subdets[lowerModuleIndex4] == SDL::Barrel and modulesInGPU.subdets[lowerModuleIndex5] == SDL::Barrel)
