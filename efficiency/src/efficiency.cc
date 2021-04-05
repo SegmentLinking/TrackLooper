@@ -25,6 +25,7 @@ int main(int argc, char** argv)
         list_effSetDef.push_back(EfficiencySetDefinition("T4s_AllTypes", 13, [&](int isim) {return sdl.sim_T4_matched()[isim] > 0;}));
         list_effSetDef.push_back(EfficiencySetDefinition("T3_AllTypes", 13, [&](int isim) {return sdl.sim_T3_matched()[isim] > 0;}));
         list_effSetDef.push_back(EfficiencySetDefinition("pT4_AllTypes", 13, [&](int isim) {return sdl.sim_pT4_matched()[isim] > 0;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("T5_AllTypes", 13, [&](int isim) {return sdl.sim_T5_matched()[isim] > 0;}));
     }
 
     bookEfficiencySets(list_effSetDef);
@@ -32,12 +33,14 @@ int main(int argc, char** argv)
     // creating a set of fake rate plots
     std::vector<FakeRateSetDefinition> list_FRSetDef;
 
-    list_FRSetDef.push_back(FakeRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isFake()[itc] > 0;}));
+    list_FRSetDef.push_back(FakeRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isFake()[itc] > 0;}, sdl.tc_pt(), sdl.tc_eta(), sdl.tc_phi()));
     if (ana.do_lower_level)
     {
-        list_FRSetDef.push_back(FakeRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isFake()[it4] > 0;}));
-        list_FRSetDef.push_back(FakeRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isFake()[it3] > 0;}));
-        list_FRSetDef.push_back(FakeRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return sdl.pT4_isFake()[ipT4] > 0;}));
+        list_FRSetDef.push_back(FakeRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isFake()[it4] > 0;}, sdl.t4_pt(), sdl.t4_eta(), sdl.t4_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isFake()[it3] > 0;}, sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return sdl.pT4_isFake()[ipT4] > 0;}, sdl.pT4_pt(), sdl.pT4_eta(), sdl.pT4_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("pLS_AllTypes", 13, [&](int itls) { return sdl.pLS_isFake()[itls] > 0;}, sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi()));
+
     }
 
     bookFakeRateSets(list_FRSetDef);
@@ -45,12 +48,13 @@ int main(int argc, char** argv)
     // creating a set of fake rate plots
     std::vector<DuplicateRateSetDefinition> list_DLSetDef;
 
-    list_DLSetDef.push_back(DuplicateRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isDuplicate()[itc] > 0;}));
+    list_DLSetDef.push_back(DuplicateRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isDuplicate()[itc] > 0;}, sdl.tc_pt(), sdl.tc_eta(), sdl.tc_phi()));
     if (ana.do_lower_level)
     {
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isDuplicate()[it4] > 0;}));
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isDuplicate()[it3] > 0;}));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isDuplicate()[it4] > 0;}, sdl.t4_pt(), sdl.t4_eta(), sdl.t4_phi()));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isDuplicate()[it3] > 0;}, sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi()));
         list_DLSetDef.push_back(DuplicateRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return sdl.pT4_isDuplicate()[ipT4] > 0;}));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("pLS_AllTypes", 13, [&](int itls) { return sdl.pLS_isDuplicate()[itls] > 0;}, sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi()));
     }
 
     bookDuplicateRateSets(list_DLSetDef);
@@ -263,9 +267,12 @@ void fillFakeRateSets(std::vector<FakeRateSetDefinition>& FRsets)
     {
         if (FRset.set_name.Contains("TC_"))
         {
-            for (unsigned int itc = 0; itc < sdl.tc_pt().size(); ++itc)
+            for (unsigned int itc = 0; itc < FRset.pt.size(); ++itc)
             {
-                fillFakeRateSet(itc, FRset);
+                for (unsigned int itc = 0; itc < sdl.tc_pt().size(); ++itc)
+                {
+                    fillFakeRateSet(itc, FRset);
+                }
             }
         }
         else if (FRset.set_name.Contains("T4s_"))
@@ -381,12 +388,15 @@ void fillDuplicateRateSets(std::vector<DuplicateRateSetDefinition>& DLsets)
     {
         if (DLset.set_name.Contains("TC_"))
         {
-            for (unsigned int itc = 0; itc < sdl.tc_pt().size(); ++itc)
+            for (unsigned int itc = 0; itc < DLset.pt.size(); ++itc)
             {
-                fillDuplicateRateSet(itc, DLset);
+                for (unsigned int itc = 0; itc < sdl.tc_pt().size(); ++itc)
+                {
+                    fillDuplicateRateSet(itc, DLset);
+                }
             }
         }
-        if (DLset.set_name.Contains("T4s_"))
+        else if (DLset.set_name.Contains("T4s_"))
         {
             for (unsigned int it4 = 0; it4 < sdl.t4_pt().size(); ++it4)
             {

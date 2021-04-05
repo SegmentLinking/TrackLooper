@@ -22,3 +22,6 @@ efficiency/bin/createEffNumDenPlots
 *.pyc
 output*
 movetoweb.sh
+*.nvvp
+*.md
+*backup
