@@ -53,7 +53,7 @@ int main(int argc, char** argv)
     {
         list_DLSetDef.push_back(DuplicateRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isDuplicate()[it4] > 0;}, sdl.t4_pt(), sdl.t4_eta(), sdl.t4_phi()));
         list_DLSetDef.push_back(DuplicateRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isDuplicate()[it3] > 0;}, sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi()));
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return sdl.pT4_isDuplicate()[ipT4] > 0;}));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return sdl.pT4_isDuplicate()[ipT4] > 0;}, sdl.pT4_pt(), sdl.pT4_eta(), sdl.pT4_phi()));
         list_DLSetDef.push_back(DuplicateRateSetDefinition("pLS_AllTypes", 13, [&](int itls) { return sdl.pLS_isDuplicate()[itls] > 0;}, sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi()));
     }
 

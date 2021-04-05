@@ -238,6 +238,11 @@ void SDL::Init(TTree *tree) {
     t4_phi_branch = tree->GetBranch("t4_phi");
     if (t4_phi_branch) { t4_phi_branch->SetAddress(&t4_phi_); }
   }
+  pT4_phi_branch = 0;
+  if (tree->GetBranch("pT4_phi") != 0) {
+    pT4_phi_branch = tree->GetBranch("pT4_phi");
+    if (pT4_phi_branch) { pT4_phi_branch->SetAddress(&pT4_phi_); }
+  }
   sim_T3_matched_branch = 0;
   if (tree->GetBranch("sim_T3_matched") != 0) {
     sim_T3_matched_branch = tree->GetBranch("sim_T3_matched");
@@ -257,6 +262,11 @@ void SDL::Init(TTree *tree) {
   if (tree->GetBranch("t4_eta") != 0) {
     t4_eta_branch = tree->GetBranch("t4_eta");
     if (t4_eta_branch) { t4_eta_branch->SetAddress(&t4_eta_); }
+  }
+  pT4_eta_branch = 0;
+  if (tree->GetBranch("pT4_eta") != 0) {
+    pT4_eta_branch = tree->GetBranch("pT4_eta");
+    if (pT4_eta_branch) { pT4_eta_branch->SetAddress(&pT4_eta_); }
   }
   sim_pt_branch = 0;
   if (tree->GetBranch("sim_pt") != 0) {
@@ -288,6 +298,12 @@ void SDL::Init(TTree *tree) {
     t4_pt_branch = tree->GetBranch("t4_pt");
     if (t4_pt_branch) { t4_pt_branch->SetAddress(&t4_pt_); }
   }
+  pT4_pt_branch = 0;
+  if (tree->GetBranch("pT4_pt") != 0) {
+    pT4_pt_branch = tree->GetBranch("pT4_pt");
+    if (pT4_pt_branch) { pT4_pt_branch->SetAddress(&pT4_pt_); }
+  }
+
   pLS_eta_branch = 0;
   if (tree->GetBranch("pLS_eta") != 0) {
     pLS_eta_branch = tree->GetBranch("pLS_eta");
@@ -359,16 +375,19 @@ void SDL::GetEntry(unsigned int idx) {
   sim_pLS_matched_isLoaded = false;
   pT4_isFake_isLoaded = false;
   t4_phi_isLoaded = false;
+  pT4_phi_isLoaded = false;
   sim_T3_matched_isLoaded = false;
   t3_pt_isLoaded = false;
   module_rings_isLoaded = false;
   t4_eta_isLoaded = false;
+  pT4_eta_isLoaded = false;
   sim_pt_isLoaded = false;
   pLS_isFake_isLoaded = false;
   sim_bunchCrossing_isLoaded = false;
   tc_isFake_isLoaded = false;
   sim_T3_types_isLoaded = false;
   t4_pt_isLoaded = false;
+  pT4_pt_isLoaded = false;
   pLS_eta_isLoaded = false;
   module_layers_isLoaded = false;
   sim_pca_dxy_isLoaded = false;
@@ -422,16 +441,19 @@ void SDL::LoadAllBranches() {
   if (sim_pLS_matched_branch != 0) sim_pLS_matched();
   if (pT4_isFake_branch != 0) pT4_isFake();
   if (t4_phi_branch != 0) t4_phi();
+  if (pT4_phi_branch != 0) pT4_phi();
   if (sim_T3_matched_branch != 0) sim_T3_matched();
   if (t3_pt_branch != 0) t3_pt();
   if (module_rings_branch != 0) module_rings();
   if (t4_eta_branch != 0) t4_eta();
+  if (pT4_eta_branch != 0) pT4_eta();
   if (sim_pt_branch != 0) sim_pt();
   if (pLS_isFake_branch != 0) pLS_isFake();
   if (sim_bunchCrossing_branch != 0) sim_bunchCrossing();
   if (tc_isFake_branch != 0) tc_isFake();
   if (sim_T3_types_branch != 0) sim_T3_types();
   if (t4_pt_branch != 0) t4_pt();
+  if (pT4_pt_branch != 0) pT4_pt();
   if (pLS_eta_branch != 0) pLS_eta();
   if (module_layers_branch != 0) module_layers();
   if (sim_pca_dxy_branch != 0) sim_pca_dxy();
@@ -1001,6 +1023,18 @@ const vector<float> &SDL::t4_phi() {
   }
   return *t4_phi_;
 }
+const vector<float> &SDL::pT4_phi() {
+  if (not pT4_phi_isLoaded) {
+    if (pT4_phi_branch != 0) {
+      pT4_phi_branch->GetEntry(index);
+    } else {
+      printf("branch pT4_phi_branch does not exist!\n");
+      exit(1);
+    }
+    pT4_phi_isLoaded = true;
+  }
+  return *pT4_phi_;
+}
 const vector<int> &SDL::sim_T3_matched() {
   if (not sim_T3_matched_isLoaded) {
     if (sim_T3_matched_branch != 0) {
@@ -1048,6 +1082,18 @@ const vector<float> &SDL::t4_eta() {
     t4_eta_isLoaded = true;
   }
   return *t4_eta_;
+}
+const vector<float> &SDL::pT4_eta() {
+  if (not pT4_eta_isLoaded) {
+    if (pT4_eta_branch != 0) {
+      pT4_eta_branch->GetEntry(index);
+    } else {
+      printf("branch pT4_eta_branch does not exist!\n");
+      exit(1);
+    }
+    pT4_eta_isLoaded = true;
+  }
+  return *pT4_eta_;
 }
 const vector<float> &SDL::sim_pt() {
   if (not sim_pt_isLoaded) {
@@ -1120,6 +1166,18 @@ const vector<float> &SDL::t4_pt() {
     t4_pt_isLoaded = true;
   }
   return *t4_pt_;
+}
+const vector<float> &SDL::pT4_pt() {
+  if (not pT4_pt_isLoaded) {
+    if (pT4_pt_branch != 0) {
+      pT4_pt_branch->GetEntry(index);
+    } else {
+      printf("branch pT4_pt_branch does not exist!\n");
+      exit(1);
+    }
+    pT4_pt_isLoaded = true;
+  }
+  return *pT4_pt_;
 }
 const vector<float> &SDL::pLS_eta() {
   if (not pLS_eta_isLoaded) {
@@ -1235,16 +1293,19 @@ namespace tas {
   const vector<int> &sim_pLS_matched() { return sdl.sim_pLS_matched(); }
   const vector<int> &pT4_isFake() { return sdl.pT4_isFake(); }
   const vector<float> &t4_phi() { return sdl.t4_phi(); }
+  const vector<float> &pT4_phi() { return sdl.pT4_phi(); }
   const vector<int> &sim_T3_matched() { return sdl.sim_T3_matched(); }
   const vector<float> &t3_pt() { return sdl.t3_pt(); }
   const vector<int> &module_rings() { return sdl.module_rings(); }
-  const vector<float> &t4_eta() { return sdl.t4_eta(); }
+  const vector<float> &t4_eta() { return sdl.t4_eta(); }  
+  const vector<float> &pT4_eta() { return sdl.pT4_eta(); }
   const vector<float> &sim_pt() { return sdl.sim_pt(); }
   const vector<int> &pLS_isFake() { return sdl.pLS_isFake(); }
   const vector<int> &sim_bunchCrossing() { return sdl.sim_bunchCrossing(); }
   const vector<int> &tc_isFake() { return sdl.tc_isFake(); }
   const vector<vector<int> > &sim_T3_types() { return sdl.sim_T3_types(); }
   const vector<float> &t4_pt() { return sdl.t4_pt(); }
+  const vector<float> &pT4_pt() { return sdl.pT4_pt(); }
   const vector<float> &pLS_eta() { return sdl.pLS_eta(); }
   const vector<int> &module_layers() { return sdl.module_layers(); }
   const vector<float> &sim_pca_dxy() { return sdl.sim_pca_dxy(); }
