@@ -11,6 +11,8 @@ SDL::quintuplets::quintuplets()
     tripletIndices = nullptr;
     lowerModuleIndices = nullptr;
     nQuintuplets = nullptr;
+
+#ifdef CUT_VALUE_DEBUG
     innerRadius = nullptr;
     innerRadiusMin = nullptr;
     innerRadiusMin2S = nullptr;
@@ -26,6 +28,7 @@ SDL::quintuplets::quintuplets()
     outerRadiusMin2S = nullptr;
     outerRadiusMax = nullptr;
     outerRadiusMax2S = nullptr;
+#endif
 
 }
 
@@ -34,6 +37,8 @@ void SDL::quintuplets::freeMemory()
     cudaFree(tripletIndices);
     cudaFree(lowerModuleIndices);
     cudaFree(nQuintuplets);
+
+#ifdef CUT_VALUE_DEBUG
     cudaFree(innerRadius);
     cudaFree(innerRadiusMin);
     cudaFree(innerRadiusMin2S);
@@ -49,6 +54,7 @@ void SDL::quintuplets::freeMemory()
     cudaFree(outerRadiusMin2S);
     cudaFree(outerRadiusMax);
     cudaFree(outerRadiusMax2S);
+#endif
 }
 void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int maxQuintuplets, unsigned int nLowerModules)
 {
@@ -57,7 +63,7 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
 
     cudaMallocManaged(&quintupletsInGPU.nQuintuplets, nLowerModules * sizeof(unsigned int));
 
-
+#ifdef CUT_VALUE_DEBUG
     cudaMallocManaged(&quintupletsInGPU.innerRadius, maxQuintuplets * nLowerModules * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.innerRadiusMin, maxQuintuplets * nLowerModules * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.innerRadiusMax, maxQuintuplets * nLowerModules * sizeof(float));
@@ -73,8 +79,7 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     cudaMallocManaged(&quintupletsInGPU.bridgeRadiusMax2S, maxQuintuplets * nLowerModules * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.outerRadiusMin2S, maxQuintuplets * nLowerModules * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.outerRadiusMax2S, maxQuintuplets * nLowerModules * sizeof(float));
-
-    cudaMallocManaged(&quintupletsInGPU.nQuintuplets, nLowerModules * sizeof(unsigned int));
+#endif
 
 #pragma omp parallel for
     for(size_t i = 0; i<nLowerModules;i++)
@@ -84,12 +89,25 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
 
 }
 
+#ifdef CUT_VALUE_DEBUG
 __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerRadius, float innerRadiusMin, float innerRadiusMax, float outerRadius, float outerRadiusMin, float outerRadiusMax, float bridgeRadius, float bridgeRadiusMin, float bridgeRadiusMax,
         float innerRadiusMin2S, float innerRadiusMax2S, float bridgeRadiusMin2S, float bridgeRadiusMax2S, float outerRadiusMin2S, float outerRadiusMax2S,unsigned int quintupletIndex)
+
+#else
+__device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, unsigned int quintupletIndex)
+#endif
+
 {
     quintupletsInGPU.tripletIndices[2 * quintupletIndex] = innerTripletIndex;
     quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1] = outerTripletIndex;
 
+    quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex] = lowerModule1;
+    quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex + 1] = lowerModule2;
+    quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex + 2] = lowerModule3;
+    quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex + 3] = lowerModule4;
+    quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex + 4] = lowerModule5;
+
+#ifdef CUT_VALUE_DEBUG
     quintupletsInGPU.innerRadius[quintupletIndex] = innerRadius;
     quintupletsInGPU.innerRadiusMin[quintupletIndex] = innerRadiusMin;
     quintupletsInGPU.innerRadiusMax[quintupletIndex] = innerRadiusMax;
@@ -105,12 +123,8 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsI
     quintupletsInGPU.bridgeRadiusMax2S[quintupletIndex] = bridgeRadiusMax2S;
     quintupletsInGPU.outerRadiusMin2S[quintupletIndex] = outerRadiusMin2S;
     quintupletsInGPU.outerRadiusMax2S[quintupletIndex] = outerRadiusMax2S;
+#endif
 
-    quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex] = lowerModule1;
-    quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex + 1] = lowerModule2;
-    quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex + 2] = lowerModule3;
-    quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex + 3] = lowerModule4;
-    quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex + 4] = lowerModule5;
 }
 
 __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5, unsigned int innerTripletIndex, unsigned int outerTripletIndex, float& innerRadius, float& innerRadiusMin, float&
@@ -249,13 +263,18 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     }
     else if(modulesInGPU.subdets[lowerModuleIndex1] == SDL::Barrel and modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.subdets[lowerModuleIndex3] == SDL::Barrel and modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap and modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap)
     {
-//        tempPass = matchRadiiBBBEE(innerRadius, bridgeRadius, outerRadius,innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S, outerRadiusMax2S, innerRadiusMin, innerRadiusMax, bridgeRadiusMin, bridgeRadiusMax, outerRadiusMin, outerRadiusMax);
-          if(modulesInGPU.layers[lowerModuleIndex1] == 1)
-              tempPass = matchRadiiBBBEE12378(innerRadius, bridgeRadius, outerRadius,innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S, outerRadiusMax2S, innerRadiusMin, innerRadiusMax, bridgeRadiusMin, bridgeRadiusMax, outerRadiusMin, outerRadiusMax);
-          else if(modulesInGPU.layers[lowerModuleIndex1] == 2)
-              tempPass = matchRadiiBBBEE23478(innerRadius, bridgeRadius, outerRadius,innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S, outerRadiusMax2S, innerRadiusMin, innerRadiusMax, bridgeRadiusMin, bridgeRadiusMax, outerRadiusMin, outerRadiusMax);
-          else
-              tempPass = matchRadiiBBBEE34578(innerRadius, bridgeRadius, outerRadius,innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S, outerRadiusMax2S, innerRadiusMin, innerRadiusMax, bridgeRadiusMin, bridgeRadiusMax, outerRadiusMin, outerRadiusMax); 
+        if(modulesInGPU.layers[lowerModuleIndex1] == 1)
+        {
+            tempPass = matchRadiiBBBEE12378(innerRadius, bridgeRadius, outerRadius,innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S, outerRadiusMax2S, innerRadiusMin, innerRadiusMax, bridgeRadiusMin, bridgeRadiusMax, outerRadiusMin, outerRadiusMax);
+        }
+        else if(modulesInGPU.layers[lowerModuleIndex1] == 2)
+        {
+            tempPass = matchRadiiBBBEE23478(innerRadius, bridgeRadius, outerRadius,innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S, outerRadiusMax2S, innerRadiusMin, innerRadiusMax, bridgeRadiusMin, bridgeRadiusMax, outerRadiusMin, outerRadiusMax);
+        }
+        else
+        {
+            tempPass = matchRadiiBBBEE34578(innerRadius, bridgeRadius, outerRadius,innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S, outerRadiusMax2S, innerRadiusMin, innerRadiusMax, bridgeRadiusMin, bridgeRadiusMax, outerRadiusMin, outerRadiusMax); 
+        }
     }
 
     else if(modulesInGPU.subdets[lowerModuleIndex1] == SDL::Barrel and modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap and modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap)

@@ -18,6 +18,7 @@
 // Common
 void createOutputBranches();
 void createLowerLevelOutputBranches();
+void createQuintupletCutValueBranches();
 void createQuadrupletCutValueBranches();
 void createTripletCutValueBranches();
 void createSegmentCutValueBranches();

@@ -28,9 +28,10 @@ namespace SDL
     {
         unsigned int* tripletIndices;
         unsigned int* lowerModuleIndices;
-
         unsigned int* nQuintuplets;
         float* innerRadius;
+
+#ifdef CUT_VALUE_DEBUG
         float* innerRadiusMin;
         float* innerRadiusMax;
         float* outerRadius;
@@ -39,14 +40,13 @@ namespace SDL
         float* bridgeRadius;
         float* bridgeRadiusMin;
         float* bridgeRadiusMax;
-
         float* innerRadiusMin2S;
         float* innerRadiusMax2S;
         float* bridgeRadiusMin2S;
         float* bridgeRadiusMax2S;
         float* outerRadiusMin2S;
         float* outerRadiusMax2S;
-
+#endif
 
         quintuplets();
         ~quintuplets();
@@ -55,8 +55,12 @@ namespace SDL
 
 void createQuintupletsInUnifiedMemory(struct quintuplets& quintupletsInGPU, unsigned int maxQuintuplets, unsigned int nLowerModules);
 
+#ifdef CUT_VALUE_DEBUG
 CUDA_DEV void addQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerRadius, float innerRadiusMin, float innerRadiusMax, float outerRadius, float outerRadiusMin, float outerRadiusMax, float bridgeRadius, float bridgeRadiusMin, float bridgeRadiusMax,
         float innerRadiusMin2S, float innerRadiusMax2S, float bridgeRadiusMin2S, float bridgeRadiusMax2S, float outerRadiusMin2S, float outerRadiusMax2S,unsigned int quintupletIndex);
+#else
+CUDA_DEV void addQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, unsigned int quintupletIndex); 
+#endif
 
 
 CUDA_DEV bool runQuintupletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int lowerModuleIndex1, unsigned int lowerMoudleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5, unsigned int innerTripletIndex, unsigned int outerTripletIndex, float& innerRadius, float& innerRadiusMax, float& innerRadiusMin, float& outerRadius,
