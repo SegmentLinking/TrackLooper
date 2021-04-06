@@ -1264,24 +1264,21 @@ void SDL::Event::createPixelTrackletsv2()
     segs_pix_gpu_offset = segs_pix_gpu + threadSize;
     cudaMemset(segs_pix_gpu, nInnerSegments, threadSize*sizeof(unsigned int)); // so if not set, it will pass in the kernel
     unsigned int totalSegs=0;
-    for (int i=0; i < nInnerSegments;i++){
-      //int pixelType = segmentsInGPU->pixelType[i];// get pixel type
-      int pixelType = pixelTypes[i];// get pixel type
-      connectedPixelType_host[i] = pixelType;
-      //int superbin = segmentsInGPU->superbin[i]; //get superbin for this pixel
+    for (int i=0; i < nInnerSegments;i++){// loop over # pLS
+      int pixelType = pixelTypes[i];// get pixel type for this pLS
+      connectedPixelType_host[i] = pixelType; // append pixel type to array for transfer to kernel
       int superbin = superbins[i]; //get superbin for this pixel
       if(superbin <0) {continue;}
-      if(superbin >90000) {continue;}
-      //printf("superbin %d, type %d\n",superbin,pixelType);
-      if(pixelType ==0){
+      if(superbin >90000) {continue;}// skip any weird out of range values
+      if(pixelType ==0){ // used pixel type to select correct size-index arrays
         connectedPixelSize_host[i] = connectedPixelsSizes[superbin]; //number of connected modules to this pixel
-        connectedPixelIndex_host[i] = connectedPixelsIndex[superbin];// index to get start of connected modules
-        for (int j=0; j < connectedPixelsSizes[superbin]; j++){
-          segs_pix[totalSegs+j] = i;
-          segs_pix_offset[totalSegs+j] = j;
+        connectedPixelIndex_host[i] = connectedPixelsIndex[superbin];// index to get start of connected modules for this superbin in map
+        for (int j=0; j < connectedPixelsSizes[superbin]; j++){ // loop over modules from the size
+          segs_pix[totalSegs+j] = i; // save the pixel index in array to be transfered to kernel
+          segs_pix_offset[totalSegs+j] = j; // save this segment in array to be transfered to kernel
         }
-        totalSegs += connectedPixelSize_host[i];
-      if (connectedPixelsSizes[superbin] > max_size){ max_size = connectedPixelsSizes[superbin];}
+        totalSegs += connectedPixelSize_host[i]; // increment counter
+      if (connectedPixelsSizes[superbin] > max_size){ max_size = connectedPixelsSizes[superbin];} // set the maximum number of modules in a row
       }
       else if(pixelType ==1){
         connectedPixelSize_host[i] = connectedPixelsSizesPos[superbin]; //number of pixel connected modules
@@ -1316,8 +1313,10 @@ void SDL::Event::createPixelTrackletsv2()
 //    dim3 nThreads(16,4,8);
 //    dim3 nBlocks((nInnerSegments % nThreads.x == 0 ? nInnerSegments / nThreads.x : nInnerSegments / nThreads.x + 1),(max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1), (N_MAX_SEGMENTS_PER_MODULE % nThreads.z == 0 ? N_MAX_SEGMENTS_PER_MODULE / nThreads.z : N_MAX_SEGMENTS_PER_MODULE / nThreads.z + 1));
     dim3 nThreads(32,16,1);
-    dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),(max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
-    createPixelTrackletsInGPUV3<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU, connectedPixelSize_dev,connectedPixelIndex_dev,connectedPixelType_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset);
+    dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
+                  (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
+    createPixelTrackletsInGPUV3<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU, 
+    connectedPixelSize_dev,connectedPixelIndex_dev,connectedPixelType_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset);
     //createPixelTrackletsInGPUV3<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU, connectedPixelSize_dev,connectedPixelIndex_dev,connectedPixelType_dev,nInnerSegments);
 
     cudaError_t cudaerr = cudaDeviceSynchronize();

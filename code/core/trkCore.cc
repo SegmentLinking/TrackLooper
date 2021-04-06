@@ -1391,12 +1391,12 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             {
                 hitIdxs.push_back(trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]);
             }
-// get pixel superbin
+            // get pixel superbin
             int ptbin = -1;
             int pixtype =-1;
-            if (p3PCA.Pt() >= 0.9 and p3PCA.Pt() < 2.0){ ptbin = 0;pixtype=0;}
-            else if (p3PCA.Pt() >= 2.0){ 
-              ptbin = 1;
+            if (p3PCA.Pt() >= 2.0){ ptbin = 1;pixtype=0;}
+            else if (p3PCA.Pt() >= 0.9 and p3PCA.Pt() < 2.0){ 
+              ptbin = 0;
               if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
               else{pixtype=2;}
             }
