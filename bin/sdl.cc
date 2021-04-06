@@ -353,8 +353,11 @@ void run_sdl()
 
             // Run TC
             float timing_TC = runTrackCandidate(event);
-            
+
+#ifdef DO_QUINTUPLET
             float timing_T5 = runQuintuplet(event);
+#else
+            float timing_T5 = 0;
 
             timing_information.push_back({ timing_input_loading,
                     timing_MD,
