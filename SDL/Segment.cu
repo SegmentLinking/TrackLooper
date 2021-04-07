@@ -63,7 +63,6 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     segmentsInGPU.eta = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 6;
     segmentsInGPU.phi = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 7;
     
-
 #pragma omp parallel for default(shared)
     for(size_t i = 0; i < nModules; i++)
     {
@@ -340,7 +339,6 @@ __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, str
 
     segmentsInGPU.superbin[pixelSegmentArrayIndex] = superbin;
     segmentsInGPU.pixelType[pixelSegmentArrayIndex] = pixelType;
-    //printf("pixelType %d\n",pixelType);
 }
 
 __device__ void SDL::dAlphaThreshold(float* dAlphaThresholdValues, struct hits& hitsInGPU, struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, unsigned int& innerMiniDoubletAnchorHitIndex, unsigned int& outerMiniDoubletAnchorHitIndex, unsigned int& innerLowerModuleIndex, unsigned int& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex)
