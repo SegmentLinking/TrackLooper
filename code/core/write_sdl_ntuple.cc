@@ -100,7 +100,6 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<vector<int>>>("sim_T5_types");
     ana.tx->createBranch<vector<int>>("t5_isFake");
     ana.tx->createBranch<vector<int>>("t5_isDuplicate");
-    ana.tx->createBranch<vector<int>>("t5_layer_binary");
 #endif
     //pLS
     ana.tx->createBranch<vector<int>>("sim_pLS_matched");
@@ -126,6 +125,7 @@ void createLowerLevelOutputBranches()
 #ifdef DO_QUINTUPLET
 void createQuintupletCutValueBranches()
 {
+    ana.tx->createBranch<vector<int>>("t5_layer_binary");
     ana.tx->createBranch<vector<vector<float>>>("t5_matched_pt");
     ana.tx->createBranch<vector<float>>("t5_innerRadius");
     ana.tx->createBranch<vector<float>>("t5_innerRadiusMin");
@@ -658,7 +658,9 @@ void fillLowerLevelOutputBranches(SDL::Event& event)
     fillPixelQuadrupletOutputBranches(event);
     fillTripletOutputBranches(event);
     fillPixelLineSegmentOutputBranches(event);
+#ifdef DO_QUINTUPLET
     fillQuintupletOutputBranches(event);
+#endif
 }
 
 #ifdef DO_QUINTUPLET
@@ -2441,7 +2443,7 @@ void fillPixelQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event)
 }
 
 //________________________________________________________________________________________________________________________________
-void printTimingInformation(std::vector<std::vector<float>> timing_information)
+void printTimingInformation(std::vector<std::vector<float>>& timing_information)
 {
 
     if (ana.verbose == 0)
@@ -2453,7 +2455,7 @@ void printTimingInformation(std::vector<std::vector<float>> timing_information)
     std::cout << right;
     std::cout << "Timing summary" << std::endl;
     std::cout << "Evt     Hits         MD       LS      T4      T4x       pT4        T3       TC       T5       Total" << std::endl;
-    std::vector<float> timing_sum_information(timing_information.size());
+    std::vector<float> timing_sum_information(8);
     for (auto&& [ievt, timing] : iter::enumerate(timing_information))
     {
         float timing_total = 0.f;
