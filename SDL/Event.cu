@@ -16,6 +16,7 @@ const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 5000000;
 
 
 struct SDL::modules* SDL::modulesInGPU = nullptr;
+struct SDL::pixelMap* SDL::pixelMapping = nullptr;
 unsigned int SDL::nModules;
 
 SDL::Event::Event()
@@ -36,6 +37,7 @@ SDL::Event::Event()
     trackCandidatesInCPU = nullptr;
     modulesInCPU = nullptr;
     modulesInCPUFull = nullptr;
+//    pixelMapping = nullptr;
     //reset the arrays
     for(int i = 0; i<6; i++)
     {
@@ -195,7 +197,9 @@ void SDL::initModules(const char* moduleMetaDataFilePath)
     if(modulesInGPU == nullptr)
     {
         cudaMallocHost(&modulesInGPU, sizeof(struct SDL::modules));
-        loadModulesFromFile(*modulesInGPU,nModules,moduleMetaDataFilePath); //nModules gets filled here
+        //pixelMapping = new pixelMap;
+        cudaMallocHost(&pixelMapping, sizeof(struct SDL::pixelMap));
+        loadModulesFromFile(*modulesInGPU,nModules,*pixelMapping,moduleMetaDataFilePath); //nModules gets filled here
     }
     resetObjectRanges(*modulesInGPU,nModules);
 }
@@ -1197,12 +1201,12 @@ void SDL::Event::createPixelTrackletsv2()
     unsigned int nInnerSegments;
     int* superbins;
     int* pixelTypes;
-    unsigned int* connectedPixelsSizes;
-    unsigned int* connectedPixelsIndex;
-    unsigned int* connectedPixelsSizesPos;
-    unsigned int* connectedPixelsIndexPos;
-    unsigned int* connectedPixelsSizesNeg;
-    unsigned int* connectedPixelsIndexNeg;
+    //unsigned int* connectedPixelsSizes;
+    //unsigned int* connectedPixelsIndex;
+    //unsigned int* connectedPixelsSizesPos;
+    //unsigned int* connectedPixelsIndexPos;
+    //unsigned int* connectedPixelsSizesNeg;
+    //unsigned int* connectedPixelsIndexNeg;
 #ifdef Explicit_Module
     unsigned int nModules; //= *modulesInGPU->nModules;
     cudaMemcpy(&nModules,modulesInGPU->nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
@@ -1229,19 +1233,18 @@ void SDL::Event::createPixelTrackletsv2()
 //    connectedPixelsIndexPos = modulesInGPU->connectedPixelsIndexPos;
 //    connectedPixelsIndexNeg = modulesInGPU->connectedPixelsIndexNeg;
 #endif
-    cudaMallocHost(&connectedPixelsSizes,90000*sizeof(unsigned int));
-    cudaMallocHost(&connectedPixelsIndex,90000*sizeof(unsigned int));
-    cudaMallocHost(&connectedPixelsSizesPos,90000*sizeof(unsigned int));
-    cudaMallocHost(&connectedPixelsIndexPos,90000*sizeof(unsigned int));
-    cudaMallocHost(&connectedPixelsSizesNeg,90000*sizeof(unsigned int));
-    cudaMallocHost(&connectedPixelsIndexNeg,90000*sizeof(unsigned int));
-    cudaMemcpy(connectedPixelsSizes,modulesInGPU->connectedPixelsSizes,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    cudaMemcpy(connectedPixelsIndex,modulesInGPU->connectedPixelsIndex,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    cudaMemcpy(connectedPixelsSizesPos,modulesInGPU->connectedPixelsSizesPos,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    cudaMemcpy(connectedPixelsIndexPos,modulesInGPU->connectedPixelsIndexPos,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    cudaMemcpy(connectedPixelsSizesNeg,modulesInGPU->connectedPixelsSizesNeg,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    cudaMemcpy(connectedPixelsIndexNeg,modulesInGPU->connectedPixelsIndexNeg,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
-   // if(pixelModuleIndexv2 >= nInnerSegments) return; // dont exceed number of pixels
+    //cudaMallocHost(&connectedPixelsSizes,90000*sizeof(unsigned int));
+    //cudaMallocHost(&connectedPixelsIndex,90000*sizeof(unsigned int));
+    //cudaMallocHost(&connectedPixelsSizesPos,90000*sizeof(unsigned int));
+    //cudaMallocHost(&connectedPixelsIndexPos,90000*sizeof(unsigned int));
+    //cudaMallocHost(&connectedPixelsSizesNeg,90000*sizeof(unsigned int));
+    //cudaMallocHost(&connectedPixelsIndexNeg,90000*sizeof(unsigned int));
+    //cudaMemcpy(connectedPixelsSizes,modulesInGPU->connectedPixelsSizes,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    //cudaMemcpy(connectedPixelsIndex,modulesInGPU->connectedPixelsIndex,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    //cudaMemcpy(connectedPixelsSizesPos,modulesInGPU->connectedPixelsSizesPos,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    //cudaMemcpy(connectedPixelsIndexPos,modulesInGPU->connectedPixelsIndexPos,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    //cudaMemcpy(connectedPixelsSizesNeg,modulesInGPU->connectedPixelsSizesNeg,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    //cudaMemcpy(connectedPixelsIndexNeg,modulesInGPU->connectedPixelsIndexNeg,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
       unsigned int* connectedPixelSize_host;
       unsigned int* connectedPixelIndex_host;
       unsigned int* connectedPixelType_host;
@@ -1271,34 +1274,34 @@ void SDL::Event::createPixelTrackletsv2()
       if(superbin <0) {continue;}
       if(superbin >90000) {continue;}// skip any weird out of range values
       if(pixelType ==0){ // used pixel type to select correct size-index arrays
-        connectedPixelSize_host[i] = connectedPixelsSizes[superbin]; //number of connected modules to this pixel
-        connectedPixelIndex_host[i] = connectedPixelsIndex[superbin];// index to get start of connected modules for this superbin in map
-        for (int j=0; j < connectedPixelsSizes[superbin]; j++){ // loop over modules from the size
+        connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
+        connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndex[superbin];// index to get start of connected modules for this superbin in map
+        for (int j=0; j < pixelMapping->connectedPixelsSizes[superbin]; j++){ // loop over modules from the size
           segs_pix[totalSegs+j] = i; // save the pixel index in array to be transfered to kernel
           segs_pix_offset[totalSegs+j] = j; // save this segment in array to be transfered to kernel
         }
         totalSegs += connectedPixelSize_host[i]; // increment counter
-      if (connectedPixelsSizes[superbin] > max_size){ max_size = connectedPixelsSizes[superbin];} // set the maximum number of modules in a row
+      if (pixelMapping->connectedPixelsSizes[superbin] > max_size){ max_size = pixelMapping->connectedPixelsSizes[superbin];} // set the maximum number of modules in a row
       }
       else if(pixelType ==1){
-        connectedPixelSize_host[i] = connectedPixelsSizesPos[superbin]; //number of pixel connected modules
-        connectedPixelIndex_host[i] = connectedPixelsIndexPos[superbin];// index to get start of connected pixel modules
-        for (int j=0; j < connectedPixelsSizes[superbin]; j++){
+        connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesPos[superbin]; //number of pixel connected modules
+        connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndexPos[superbin];// index to get start of connected pixel modules
+        for (int j=0; j < pixelMapping->connectedPixelsSizes[superbin]; j++){
           segs_pix[totalSegs+j] = i;
           segs_pix_offset[totalSegs+j] = j;
         }
         totalSegs += connectedPixelSize_host[i];
-      if (connectedPixelsSizesPos[superbin]> max_size){ max_size = connectedPixelsSizesPos[superbin];}
+      if (pixelMapping->connectedPixelsSizesPos[superbin]> max_size){ max_size = pixelMapping->connectedPixelsSizesPos[superbin];}
       }
       else if(pixelType ==2){
-        connectedPixelSize_host[i] = connectedPixelsSizesNeg[superbin]; //number of pixel connected modules
-        connectedPixelIndex_host[i] =connectedPixelsIndexNeg[superbin];// index to get start of connected pixel modules
-        for (int j=0; j < connectedPixelsSizes[superbin]; j++){
+        connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesNeg[superbin]; //number of pixel connected modules
+        connectedPixelIndex_host[i] =pixelMapping->connectedPixelsIndexNeg[superbin];// index to get start of connected pixel modules
+        for (int j=0; j < pixelMapping->connectedPixelsSizes[superbin]; j++){
           segs_pix[totalSegs+j] = i;
           segs_pix_offset[totalSegs+j] = j;
         }
         totalSegs += connectedPixelSize_host[i];
-      if (connectedPixelsSizesNeg[superbin] > max_size){max_size = connectedPixelsSizesNeg[superbin];}
+      if (pixelMapping->connectedPixelsSizesNeg[superbin] > max_size){max_size = pixelMapping->connectedPixelsSizesNeg[superbin];}
       }
       else{continue;}
      // printf("connectedPixelSize %d\n",connectedPixelSize_host[i]);
@@ -1326,12 +1329,12 @@ void SDL::Event::createPixelTrackletsv2()
 
       }
 
-    cudaFreeHost(connectedPixelsSizes);
-    cudaFreeHost(connectedPixelsSizesPos);
-    cudaFreeHost(connectedPixelsSizesNeg);
-    cudaFreeHost(connectedPixelsIndex);
-    cudaFreeHost(connectedPixelsIndexPos);
-    cudaFreeHost(connectedPixelsIndexNeg);
+    //cudaFreeHost(connectedPixelsSizes);
+    //cudaFreeHost(connectedPixelsSizesPos);
+    //cudaFreeHost(connectedPixelsSizesNeg);
+    //cudaFreeHost(connectedPixelsIndex);
+    //cudaFreeHost(connectedPixelsIndexPos);
+    //cudaFreeHost(connectedPixelsIndexNeg);
     cudaFreeHost(connectedPixelSize_host);
     cudaFreeHost(connectedPixelIndex_host);
     cudaFreeHost(connectedPixelType_host);

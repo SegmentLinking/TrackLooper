@@ -63,6 +63,7 @@ namespace SDL
         trackCandidates* trackCandidatesInCPU;
         modules* modulesInCPU;
         modules* modulesInCPUFull;
+    //    struct pixelMap* pixelMapping;
 
     public:
         Event();
@@ -147,6 +148,7 @@ namespace SDL
     void initModules(const char* moduleMetaDataFilePath="data/centroid.txt"); //read from file and init
     void cleanModules();
     void initModulesHost(); //read from file and init
+    extern struct pixelMap* pixelMapping;
 
 }
 
