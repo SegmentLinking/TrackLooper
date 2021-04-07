@@ -114,6 +114,9 @@ namespace SDL
         //unsigned int* connectedPixelsNeg;
         unsigned int* connectedPixelsIndexNeg;
         unsigned int* connectedPixelsSizesNeg;
+
+        int* superbin;
+        int* pixelType;
     };
 
     extern std::map <unsigned int,unsigned int>* detIdToIndex;
@@ -126,8 +129,8 @@ namespace SDL
     void createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules, bool* isLower);
     void createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int nModules);
     void createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned int nModules);
-    void freeModules(struct modules& modulesInGPU);
-    void freeModulesCache(struct modules& modulesInGPU);
+    void freeModules(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
+    void freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
     void fillPixelMap(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
     void fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules);
     void fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nModules);

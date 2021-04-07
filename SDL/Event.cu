@@ -63,7 +63,6 @@ SDL::Event::Event()
 
 SDL::Event::~Event()
 {
-
 #ifdef CACHE_ALLOC
     mdsInGPU->freeMemoryCache();
     segmentsInGPU->freeMemoryCache();
@@ -207,11 +206,12 @@ void SDL::initModules(const char* moduleMetaDataFilePath)
 void SDL::cleanModules()
 {
   #ifdef CACHE_ALLOC
-  freeModulesCache(*modulesInGPU);
+  freeModulesCache(*modulesInGPU,*pixelMapping);
   #else
-  freeModules(*modulesInGPU);
+  freeModules(*modulesInGPU,*pixelMapping);
   #endif
   cudaFreeHost(modulesInGPU);
+  cudaFreeHost(pixelMapping);
 }
 
 void SDL::Event::resetObjectsInModule()
@@ -413,6 +413,12 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     float* etaErr_host = &etaErr[0];
     int* superbin_host = &superbin[0];
     int* pixelType_host = &pixelType[0];
+    //cudaMallocHost(&pixelMapping->superbin,superbin.size()*sizeof(int));
+    //cudaMallocHost(&pixelMapping->pixelType,pixelType.size()*sizeof(int));
+    //cudaMallocHost(&pixelMapping->superbin,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int));
+    //cudaMallocHost(&pixelMapping->pixelType,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int));
+    //pixelMapping->superbin = &superbin[0];
+    //pixelMapping->pixelType = &pixelType[0];
 
     unsigned int* hitIndices0_dev;
     unsigned int* hitIndices1_dev;
@@ -1159,17 +1165,14 @@ void SDL::Event::createTrackletsWithModuleMap()
 
 }
 
-void SDL::Event::createPixelTrackletsv2()
+void SDL::Event::createPixelTrackletsWithMap()
 {
-//    printf("This is pixel v2\n");
     unsigned int nLowerModules;// = *modulesInGPU->nLowerModules;
     cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
     if(trackletsInGPU == nullptr)
     {
         cudaMallocHost(&trackletsInGPU, sizeof(SDL::tracklets));
 #ifdef Explicit_Tracklet
-//        //FIXME:Change this to look like the unified allocator below after pixels have been incorporated!
-        //createTrackletsInExplicitMemory(*trackletsInGPU,N_MAX_TRACKLETS_PER_MODULE, nLowerModules);
         createTrackletsInExplicitMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , N_MAX_PIXEL_TRACKLETS_PER_MODULE, nLowerModules);
 #else
         createTrackletsInUnifiedMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , N_MAX_PIXEL_TRACKLETS_PER_MODULE, nLowerModules);
@@ -1177,13 +1180,6 @@ void SDL::Event::createPixelTrackletsv2()
     }
 
 #ifdef NESTED_PARA
-    //printf("pixel nested\n");
-    //unsigned int nModules = *modulesInGPU->nModules;
-    //dim3 nThreads(1,1,1);
-    //dim3 nBlocks((N_MAX_PIXEL_SEGMENTS_PER_MODULE % nThreads.x == 0 ? N_MAX_PIXEL_SEGMENTS_PER_MODULE / nThreads.x : N_MAX_PIXEL_SEGMENTS_PER_MODULE / nThreads.x + 1),(100 % nThreads.y == 0 ? 100/nThreads.y : 100/nThreads.y + 1), 1);
-
-    //createPixelTrackletsInGPUV3<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU);
-    //createPixelTrackletsInGPUV2<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU);
     unsigned int nThreads = 1;
     unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads + 1;
 
@@ -1201,21 +1197,14 @@ void SDL::Event::createPixelTrackletsv2()
     unsigned int nInnerSegments;
     int* superbins;
     int* pixelTypes;
-    //unsigned int* connectedPixelsSizes;
-    //unsigned int* connectedPixelsIndex;
-    //unsigned int* connectedPixelsSizesPos;
-    //unsigned int* connectedPixelsIndexPos;
-    //unsigned int* connectedPixelsSizesNeg;
-    //unsigned int* connectedPixelsIndexNeg;
 #ifdef Explicit_Module
-    unsigned int nModules; //= *modulesInGPU->nModules;
+    unsigned int nModules; 
     cudaMemcpy(&nModules,modulesInGPU->nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
     pixelModuleIndex = nModules-1;
     unsigned int* nSegments;
     cudaMallocHost(& nSegments,nModules*sizeof(unsigned int));
     cudaMemcpy(nSegments,segmentsInGPU->nSegments,nModules*sizeof(unsigned int),cudaMemcpyDeviceToHost);
     nInnerSegments = nSegments[pixelModuleIndex] > N_MAX_PIXEL_SEGMENTS_PER_MODULE ? N_MAX_PIXEL_SEGMENTS_PER_MODULE : nSegments[pixelModuleIndex]; // number of pLS
-
     cudaMallocHost(& superbins,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int));
     cudaMallocHost(& pixelTypes,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int));
     cudaMemcpy(superbins,segmentsInGPU->superbin,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int),cudaMemcpyDeviceToHost);
@@ -1226,37 +1215,15 @@ void SDL::Event::createPixelTrackletsv2()
     nInnerSegments = segmentsInGPU->nSegments[pixelModuleIndex] > N_MAX_PIXEL_SEGMENTS_PER_MODULE ? N_MAX_PIXEL_SEGMENTS_PER_MODULE : segmentsInGPU->nSegments[pixelModuleIndex]; // number of pLS
     superbins = segmentsInGPU->superbin;
     pixelTypes = segmentsInGPU->pixelType;
-//    connectedPixelsSizes = modulesInGPU->connectedPixelsSizes;
-//    connectedPixelsSizesPos = modulesInGPU->connectedPixelsSizesPos;
-//    connectedPixelsSizesNeg = modulesInGPU->connectedPixelsSizesNeg;
-//    connectedPixelsIndex = modulesInGPU->connectedPixelsIndex;
-//    connectedPixelsIndexPos = modulesInGPU->connectedPixelsIndexPos;
-//    connectedPixelsIndexNeg = modulesInGPU->connectedPixelsIndexNeg;
 #endif
-    //cudaMallocHost(&connectedPixelsSizes,90000*sizeof(unsigned int));
-    //cudaMallocHost(&connectedPixelsIndex,90000*sizeof(unsigned int));
-    //cudaMallocHost(&connectedPixelsSizesPos,90000*sizeof(unsigned int));
-    //cudaMallocHost(&connectedPixelsIndexPos,90000*sizeof(unsigned int));
-    //cudaMallocHost(&connectedPixelsSizesNeg,90000*sizeof(unsigned int));
-    //cudaMallocHost(&connectedPixelsIndexNeg,90000*sizeof(unsigned int));
-    //cudaMemcpy(connectedPixelsSizes,modulesInGPU->connectedPixelsSizes,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    //cudaMemcpy(connectedPixelsIndex,modulesInGPU->connectedPixelsIndex,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    //cudaMemcpy(connectedPixelsSizesPos,modulesInGPU->connectedPixelsSizesPos,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    //cudaMemcpy(connectedPixelsIndexPos,modulesInGPU->connectedPixelsIndexPos,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    //cudaMemcpy(connectedPixelsSizesNeg,modulesInGPU->connectedPixelsSizesNeg,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    //cudaMemcpy(connectedPixelsIndexNeg,modulesInGPU->connectedPixelsIndexNeg,90000*sizeof(unsigned int),cudaMemcpyDeviceToHost);
-      unsigned int* connectedPixelSize_host;
-      unsigned int* connectedPixelIndex_host;
-      unsigned int* connectedPixelType_host;
+    unsigned int* connectedPixelSize_host;
+    unsigned int* connectedPixelIndex_host;
     cudaMallocHost(&connectedPixelSize_host, nInnerSegments* sizeof(unsigned int));
     cudaMallocHost(&connectedPixelIndex_host, nInnerSegments* sizeof(unsigned int));
-    cudaMallocHost(&connectedPixelType_host, nInnerSegments* sizeof(unsigned int));
-      unsigned int* connectedPixelSize_dev;
-      unsigned int* connectedPixelIndex_dev;
-      unsigned int* connectedPixelType_dev;
+    unsigned int* connectedPixelSize_dev;
+    unsigned int* connectedPixelIndex_dev;
     cudaMalloc(&connectedPixelSize_dev, nInnerSegments* sizeof(unsigned int));
     cudaMalloc(&connectedPixelIndex_dev, nInnerSegments* sizeof(unsigned int));
-    cudaMalloc(&connectedPixelType_dev, nInnerSegments* sizeof(unsigned int));
     unsigned int max_size =0;
     int threadSize = 1000000;
     unsigned int *segs_pix = (unsigned int*)malloc(2*threadSize*sizeof(unsigned int));
@@ -1267,9 +1234,10 @@ void SDL::Event::createPixelTrackletsv2()
     segs_pix_gpu_offset = segs_pix_gpu + threadSize;
     cudaMemset(segs_pix_gpu, nInnerSegments, threadSize*sizeof(unsigned int)); // so if not set, it will pass in the kernel
     unsigned int totalSegs=0;
+    int pixelIndexOffsetPos = pixelMapping->connectedPixelsIndex[89999];
+    int pixelIndexOffsetNeg = pixelMapping->connectedPixelsIndexPos[89999] + pixelIndexOffsetPos;
     for (int i=0; i < nInnerSegments;i++){// loop over # pLS
       int pixelType = pixelTypes[i];// get pixel type for this pLS
-      connectedPixelType_host[i] = pixelType; // append pixel type to array for transfer to kernel
       int superbin = superbins[i]; //get superbin for this pixel
       if(superbin <0) {continue;}
       if(superbin >90000) {continue;}// skip any weird out of range values
@@ -1285,7 +1253,7 @@ void SDL::Event::createPixelTrackletsv2()
       }
       else if(pixelType ==1){
         connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesPos[superbin]; //number of pixel connected modules
-        connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndexPos[superbin];// index to get start of connected pixel modules
+        connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndexPos[superbin]+pixelIndexOffsetPos;// index to get start of connected pixel modules
         for (int j=0; j < pixelMapping->connectedPixelsSizes[superbin]; j++){
           segs_pix[totalSegs+j] = i;
           segs_pix_offset[totalSegs+j] = j;
@@ -1295,7 +1263,7 @@ void SDL::Event::createPixelTrackletsv2()
       }
       else if(pixelType ==2){
         connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesNeg[superbin]; //number of pixel connected modules
-        connectedPixelIndex_host[i] =pixelMapping->connectedPixelsIndexNeg[superbin];// index to get start of connected pixel modules
+        connectedPixelIndex_host[i] =pixelMapping->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;// index to get start of connected pixel modules
         for (int j=0; j < pixelMapping->connectedPixelsSizes[superbin]; j++){
           segs_pix[totalSegs+j] = i;
           segs_pix_offset[totalSegs+j] = j;
@@ -1304,23 +1272,17 @@ void SDL::Event::createPixelTrackletsv2()
       if (pixelMapping->connectedPixelsSizesNeg[superbin] > max_size){max_size = pixelMapping->connectedPixelsSizesNeg[superbin];}
       }
       else{continue;}
-     // printf("connectedPixelSize %d\n",connectedPixelSize_host[i]);
     }
     cudaMemcpy(connectedPixelSize_dev, connectedPixelSize_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice);
     cudaMemcpy(connectedPixelIndex_dev, connectedPixelIndex_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice);
-    cudaMemcpy(connectedPixelType_dev, connectedPixelType_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice);
     cudaMemcpy(segs_pix_gpu,segs_pix,threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
     cudaMemcpy(segs_pix_gpu_offset,segs_pix_offset,threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
     
-//    printf("nInnerSegments %d max_size %d totalSegs %d\n",nInnerSegments,max_size,totalSegs);
-//    dim3 nThreads(16,4,8);
-//    dim3 nBlocks((nInnerSegments % nThreads.x == 0 ? nInnerSegments / nThreads.x : nInnerSegments / nThreads.x + 1),(max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1), (N_MAX_SEGMENTS_PER_MODULE % nThreads.z == 0 ? N_MAX_SEGMENTS_PER_MODULE / nThreads.z : N_MAX_SEGMENTS_PER_MODULE / nThreads.z + 1));
     dim3 nThreads(32,16,1);
     dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
                   (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
-    createPixelTrackletsInGPUV3<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU, 
-    connectedPixelSize_dev,connectedPixelIndex_dev,connectedPixelType_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset);
-    //createPixelTrackletsInGPUV3<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU, connectedPixelSize_dev,connectedPixelIndex_dev,connectedPixelType_dev,nInnerSegments);
+    createPixelTrackletsInGPUFromMap<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU, 
+    connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset);
 
     cudaError_t cudaerr = cudaDeviceSynchronize();
     if(cudaerr != cudaSuccess)
@@ -1329,18 +1291,10 @@ void SDL::Event::createPixelTrackletsv2()
 
       }
 
-    //cudaFreeHost(connectedPixelsSizes);
-    //cudaFreeHost(connectedPixelsSizesPos);
-    //cudaFreeHost(connectedPixelsSizesNeg);
-    //cudaFreeHost(connectedPixelsIndex);
-    //cudaFreeHost(connectedPixelsIndexPos);
-    //cudaFreeHost(connectedPixelsIndexNeg);
     cudaFreeHost(connectedPixelSize_host);
     cudaFreeHost(connectedPixelIndex_host);
-    cudaFreeHost(connectedPixelType_host);
     cudaFree(connectedPixelSize_dev);
     cudaFree(connectedPixelIndex_dev);
-    cudaFree(connectedPixelType_dev);
 #ifdef Explicit_Module
     cudaFreeHost(nSegments);
     cudaFreeHost(superbins);
@@ -1348,12 +1302,6 @@ void SDL::Event::createPixelTrackletsv2()
 #endif
     free(segs_pix);
     cudaFree(segs_pix_gpu);
-    //free(nSegments);
-    //free(threadIdx);
-    //cudaFree(threadIdx_gpu);
-//#ifdef Explicit_Module
-//    cudaFreeHost(lowerModuleIndices);
-//#endif
 
 #else
     printf("original 3D grid launching in createPixelTracklets does not exist");
@@ -1361,12 +1309,8 @@ void SDL::Event::createPixelTrackletsv2()
 #endif
 #endif
 
-//#if defined(AddObjects) && !defined(Full_Explicit)
- //   std::cout<<"Number of pixel tracklets = "<<trackletsInGPU->nTracklets[nLowerModules]<<std::endl;
-//#endif
     unsigned int nPixelTracklets;
     cudaMemcpy(&nPixelTracklets, &(trackletsInGPU->nTracklets[nLowerModules]), sizeof(unsigned int), cudaMemcpyDeviceToHost);
-    //std::cout<<"number of pixel tracklets = "<<nPixelTracklets<<std::endl;
 }
 void SDL::Event::createPixelTracklets()
 {
@@ -2531,27 +2475,16 @@ __global__ void createPixelTrackletsInGPU(struct SDL::modules& modulesInGPU, str
         }
     }
 }
-__global__ void createPixelTrackletsInGPUV3(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex,unsigned int* connectedPixelType,unsigned int nInnerSegs,unsigned int* seg_pix_gpu, unsigned int* seg_pix_gpu_offset)
-//__global__ void createPixelTrackletsInGPUV3(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex,unsigned int* connectedPixelType,unsigned int nInnerSegs)
+__global__ void createPixelTrackletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex,unsigned int nInnerSegs,unsigned int* seg_pix_gpu, unsigned int* seg_pix_gpu_offset)
 {
   //newgrid with map
-//  int segmentArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;// segment loop; this segent
-//  int pixelArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;// pixel loop; this pixel
   int segmentArrayIndex = seg_pix_gpu_offset[blockIdx.x * blockDim.x + threadIdx.x];// segment loop; this segent
   int pixelArrayIndex = seg_pix_gpu[blockIdx.x * blockDim.x + threadIdx.x];// pixel loop; this pixel
   if(pixelArrayIndex >= nInnerSegs) return;// don't exceed # of pLS
   if( segmentArrayIndex >= connectedPixelSize[pixelArrayIndex]) return; // don't exceed # connected segment modules for this pixel
 
   unsigned int outerInnerLowerModuleArrayIndex;// This will be the index of the module that connects to this pixel. 
-  if(connectedPixelType[pixelArrayIndex] == 0){
     outerInnerLowerModuleArrayIndex = modulesInGPU.connectedPixels[connectedPixelIndex[pixelArrayIndex]+segmentArrayIndex]; //gets module index for segment
-  }
-  else if(connectedPixelType[pixelArrayIndex] == 1){
-    outerInnerLowerModuleArrayIndex = modulesInGPU.connectedPixelsPos[connectedPixelIndex[pixelArrayIndex]+segmentArrayIndex]; //gets segment array index
-  }
-  else if(connectedPixelType[pixelArrayIndex] == 2){
-    outerInnerLowerModuleArrayIndex = modulesInGPU.connectedPixelsNeg[connectedPixelIndex[pixelArrayIndex]+segmentArrayIndex]; //gets segment array index
-  }
   if(outerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) return;
   unsigned int outerInnerLowerModuleIndex = /*modulesInGPU.lowerModuleIndices[*/outerInnerLowerModuleArrayIndex;//];
 
@@ -2598,70 +2531,6 @@ __global__ void createPixelTrackletsInGPUV3(struct SDL::modules& modulesInGPU, s
 }
 
 #else
-__global__ void createPixelTrackletsInGPUV2(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU)
-{
-    //printf("pixel nested kernel vx2\n");
-    int outerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
-    int pixelModuleIndexv2 = blockIdx.y * blockDim.y + threadIdx.y;
-    if(outerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) return;
-    if(pixelModuleIndexv2 >= *modulesInGPU.nLowerModules) return;
-    int pixelType = segmentsInGPU.pixelType[pixelModuleIndexv2];
-    int superbin = segmentsInGPU.superbin[pixelModuleIndexv2];
-    unsigned int connectedPixelSize ;
-    unsigned int connectedPixelIndex;
-    if(pixelType ==0){
-      connectedPixelSize = modulesInGPU.connectedPixelsSizes[superbin]; //number of pixel connected modules
-      connectedPixelIndex = modulesInGPU.connectedPixelsIndex[superbin];// index to get start of connected pixel modules
-    }
-    else if(pixelType ==1){
-      connectedPixelSize = modulesInGPU.connectedPixelsSizesPos[superbin]; //number of pixel connected modules
-      connectedPixelIndex = modulesInGPU.connectedPixelsIndexPos[superbin];// index to get start of connected pixel modules
-    }
-    else if(pixelType ==2){
-      connectedPixelSize = modulesInGPU.connectedPixelsSizesNeg[superbin]; //number of pixel connected modules
-      connectedPixelIndex = modulesInGPU.connectedPixelsIndexNeg[superbin];// index to get start of connected pixel modules
-    }
-    else{return;}
-
-//unsigned int connectedPixelSize = modulesInGPU.connectedPixelsSizes[pixelModuleIndex]; //number of pixel connected modules
-//    unsigned int connectedPixelIndex = modulesInGPU.connectedPixelsIndex[pixelModuleIndex];// index to get start of connected pixel modules
-//    if(connectedPixelSize ==0) return;
-    if(outerInnerLowerModuleArrayIndex >= connectedPixelSize) return; // only get the modules that are connected to this pixelModuleIndex
-
-
-    unsigned int outerInnerLowerModuleIndex = modulesInGPU.lowerModuleIndices[outerInnerLowerModuleArrayIndex];
-//
-//    unsigned int nConnectedModules = modulesInGPU.connectedPixelsSizes[outerInnerLowerModuleIndex];
-//    if(nConnectedModules ==0) return;
-//
-    unsigned int pixelModuleIndex = *modulesInGPU.nModules - 1; //last dude
-      unsigned int pixelLowerModuleArrayIndex; 
-    if(pixelType ==0){
-      pixelLowerModuleArrayIndex = modulesInGPU.reverseLookupLowerModuleIndices[modulesInGPU.connectedPixels[connectedPixelIndex+outerInnerLowerModuleArrayIndex]];
-    }
-    else if(pixelType ==1){
-      pixelLowerModuleArrayIndex =modulesInGPU.reverseLookupLowerModuleIndices[ modulesInGPU.connectedPixelsPos[connectedPixelIndex+outerInnerLowerModuleArrayIndex]];
-    }
-    else if(pixelType ==2){
-      pixelLowerModuleArrayIndex =modulesInGPU.reverseLookupLowerModuleIndices[modulesInGPU.connectedPixelsNeg[connectedPixelIndex+outerInnerLowerModuleArrayIndex]];
-    }
-   else{return;}
-    printf("pixelLowerModuleArrayIndex %d\n",pixelLowerModuleArrayIndex);
-//    unsigned int pixelLowerModuleArrayIndex = modulesInGPU.reverseLookupLowerModuleIndices[pixelModuleIndex]; //should be the same as nLowerModules
-    unsigned int nInnerSegments = segmentsInGPU.nSegments[pixelModuleIndex] > N_MAX_PIXEL_SEGMENTS_PER_MODULE ? N_MAX_PIXEL_SEGMENTS_PER_MODULE : segmentsInGPU.nSegments[pixelModuleIndex];
-    unsigned int nOuterSegments = segmentsInGPU.nSegments[outerInnerLowerModuleIndex] > N_MAX_SEGMENTS_PER_MODULE ? N_MAX_SEGMENTS_PER_MODULE : segmentsInGPU.nSegments[outerInnerLowerModuleIndex];
-    if(nOuterSegments == 0) return;
-    if(nInnerSegments == 0) return;
-    if(modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::TwoS) return; //REMOVES 2S-2S
-    dim3 nThreads(32,16,1);
-//    dim3 nBlocks(nConnectedModules % nThreads.x == 0 ? nConnectedModules / nThreads.x : nConnectedModules / nThreads.x + 1, nOuterSegments % nThreads.y == 0 ? nOuterSegments / nThreads.y : nOuterSegments / nThreads.y + 1, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
-    dim3 nBlocks(nInnerSegments % nThreads.x == 0 ? nInnerSegments / nThreads.x : nInnerSegments / nThreads.x + 1, nOuterSegments % nThreads.y == 0 ? nOuterSegments / nThreads.y : nOuterSegments / nThreads.y + 1, 1);
-//
-    //createPixelTrackletsFromOuterInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, trackletsInGPU, outerInnerLowerModuleIndex, nInnerSegments, nOuterSegments, pixelModuleIndex, pixelLowerModuleArrayIndex);
-    createPixelTrackletsFromOuterInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, trackletsInGPU, outerInnerLowerModuleIndex, nInnerSegments, nOuterSegments, pixelModuleIndex,pixelLowerModuleArrayIndex);
-    //createPixelTrackletsFromOuterInnerLowerModulev2<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, trackletsInGPU, outerInnerLowerModuleIndex, nInnerSegments, nOuterSegments, pixelModuleIndex, pixelLowerModuleArrayIndex);
-
-}
 __global__ void createPixelTrackletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU)
 {
     //printf("pixel nested kernel\n");
@@ -2681,100 +2550,6 @@ __global__ void createPixelTrackletsInGPU(struct SDL::modules& modulesInGPU, str
 
     createPixelTrackletsFromOuterInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, trackletsInGPU, outerInnerLowerModuleIndex, nInnerSegments, nOuterSegments, pixelModuleIndex, pixelLowerModuleArrayIndex);
 
-}
-__global__ void createPixelTrackletsInGPUV3(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU)
-{
-    //printf("pixel nested kernel\n");
-    int pixelModuleIndexv2 = blockIdx.x * blockDim.x + threadIdx.x; // loop over pixels
-    int segmentArrayIndex = blockIdx.y * blockDim.y + threadIdx.y; // loop for modules for segments lower hit
-    if(segmentArrayIndex >= *modulesInGPU.nLowerModules) return; // don't exceed number of modules
-    unsigned int pixelModuleIndex = *modulesInGPU.nModules - 1; // pixel module index
-    unsigned int nInnerSegments = segmentsInGPU.nSegments[pixelModuleIndex] > N_MAX_PIXEL_SEGMENTS_PER_MODULE ? N_MAX_PIXEL_SEGMENTS_PER_MODULE : segmentsInGPU.nSegments[pixelModuleIndex]; // number of pLS
-    if(pixelModuleIndexv2 >= nInnerSegments) return; // dont exceed number of pixels
-    int pixelType = segmentsInGPU.pixelType[pixelModuleIndexv2];// get pixel type
-    int superbin = segmentsInGPU.superbin[pixelModuleIndexv2]; //get superbin for this pixel
-    if(superbin <0) return;
-    unsigned int connectedPixelSize;
-    unsigned int connectedPixelIndex;
-    unsigned int segmentLowerModuleIndex; 
-    //printf("%d %d\n",superbin,segmentArrayIndex);
-    if(pixelType ==0){
-      connectedPixelSize = modulesInGPU.connectedPixelsSizes[superbin]-1; //number of connected modules to this pixel
-      connectedPixelIndex = modulesInGPU.connectedPixelsIndex[superbin];// index to get start of connected modules
-    if(segmentArrayIndex > connectedPixelSize){return;} // don't exceed size of connected modules (loop over all connected modules)
-      segmentLowerModuleIndex = /*modulesInGPU.lowerModuleIndices[*/modulesInGPU.connectedPixels[connectedPixelIndex+segmentArrayIndex]; //gets segment array index
-    }
-    else if(pixelType ==1){
-      connectedPixelSize = modulesInGPU.connectedPixelsSizesPos[superbin]-1; //number of pixel connected modules
-      connectedPixelIndex = modulesInGPU.connectedPixelsIndexPos[superbin];// index to get start of connected pixel modules
-    if(segmentArrayIndex > connectedPixelSize){return;} // don't exceed size of connected modules (loop over all connected modules)
-      segmentLowerModuleIndex = /*modulesInGPU.lowerModuleIndices[*/modulesInGPU.connectedPixelsPos[connectedPixelIndex+segmentArrayIndex];
-    }
-    else if(pixelType ==2){
-      connectedPixelSize = modulesInGPU.connectedPixelsSizesNeg[superbin]-1; //number of pixel connected modules
-      connectedPixelIndex = modulesInGPU.connectedPixelsIndexNeg[superbin];// index to get start of connected pixel modules
-    if(segmentArrayIndex > connectedPixelSize){return;} // don't exceed size of connected modules (loop over all connected modules)
-      segmentLowerModuleIndex = /*modulesInGPU.lowerModuleIndices[*/modulesInGPU.connectedPixelsNeg[connectedPixelIndex+segmentArrayIndex];
-    }
-    else{return;}
-    //printf("segmentLowerModuleIndex: %d\n",segmentLowerModuleIndex);
-    //segmentLowerModuleIndex=0;
-    //if(segmentLowerModuleIndex >= 1/**modulesInGPU.nLowerModules*/) return; // don't exceed number of modules
-
-//    unsigned int outerInnerLowerModuleIndex = modulesInGPU.lowerModuleIndices[outerInnerLowerModuleArrayIndex]; // correspond to module number index to this segment
-    unsigned int pixelLowerModuleArrayIndex = modulesInGPU.reverseLookupLowerModuleIndices[pixelModuleIndex]; //should be the same as nLowerModules 
-    //unsigned int nInnerSegments = segmentsInGPU.nSegments[pixelModuleIndex] > N_MAX_PIXEL_SEGMENTS_PER_MODULE ? N_MAX_PIXEL_SEGMENTS_PER_MODULE : segmentsInGPU.nSegments[pixelModuleIndex]; // number of pLS
-    unsigned int nOuterSegments = segmentsInGPU.nSegments[segmentLowerModuleIndex] > N_MAX_SEGMENTS_PER_MODULE ? N_MAX_SEGMENTS_PER_MODULE : segmentsInGPU.nSegments[segmentLowerModuleIndex]; // number of segments from module corresponding to each module. 
-    if(nOuterSegments == 0) return;
-    if(nInnerSegments == 0) return;
-    if(modulesInGPU.moduleType[segmentLowerModuleIndex] == SDL::TwoS) return; //REMOVES 2S-2S
-    dim3 nThreads(32,16,1);
-    dim3 nBlocks(nInnerSegments % nThreads.x == 0 ? nInnerSegments / nThreads.x : nInnerSegments / nThreads.x + 1, nOuterSegments % nThreads.y == 0 ? nOuterSegments / nThreads.y : nOuterSegments / nThreads.y + 1, 1);
-
-    createPixelTrackletsFromOuterInnerLowerModulev3<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, trackletsInGPU, segmentLowerModuleIndex, nInnerSegments, nOuterSegments, pixelModuleIndex, pixelLowerModuleArrayIndex);
-
-}
-
-__global__ void createPixelTrackletsFromOuterInnerLowerModulev3(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, unsigned int outerInnerLowerModuleIndex, unsigned int nInnerSegments, unsigned int nOuterSegments, unsigned int pixelModuleIndex, unsigned int pixelLowerModuleArrayIndex)
-{
-    //printf("pixel nested kernel inner\n");
-    int innerSegmentArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;// looping over pixels
-    int outerSegmentArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;//looping over segments
-    if(innerSegmentArrayIndex >= nInnerSegments) return; // not over # of pLS
-    if(outerSegmentArrayIndex >= nOuterSegments) return; // not over # of segments for this module
-    unsigned int innerSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + innerSegmentArrayIndex; // get this pixel index Just innerSegmentArrayIndex'th value (1-pLS)
-    unsigned int outerSegmentIndex = outerInnerLowerModuleIndex * N_MAX_SEGMENTS_PER_MODULE + outerSegmentArrayIndex; // get this segment Index for this this module
-    unsigned int outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex]; // get corresponding outer module index for this segment 
-    if(modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS) return; //REMOVES PS-2S
-    float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut;
-#ifdef CUT_VALUE_DEBUG
-    float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ;
-    bool success = runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, pixelModuleIndex, outerInnerLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, N_MAX_SEGMENTS_PER_MODULE); //might want to send the other two module indices and the anchor hits also to save memory accesses
-#else
-    bool success = runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, pixelModuleIndex, outerInnerLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, N_MAX_SEGMENTS_PER_MODULE); //might want to send the other two module indices and the anchor hits also to save memory accesses
-#endif
-
-    if(success)
-    {
-        unsigned int trackletModuleIndex = atomicAdd(&trackletsInGPU.nTracklets[pixelLowerModuleArrayIndex], 1);
-        if(trackletModuleIndex >= N_MAX_PIXEL_TRACKLETS_PER_MODULE)
-        {
-            #ifdef Warnings
-            if(trackletModuleIndex == N_MAX_PIXEL_TRACKLETS_PER_MODULE)
-                printf("Pixel Tracklet excess alert! Module index = %d\n",pixelModuleIndex);
-            #endif
-        }
-        else
-        {
-            unsigned int trackletIndex = pixelLowerModuleArrayIndex * N_MAX_TRACKLETS_PER_MODULE + trackletModuleIndex;
-#ifdef CUT_VALUE_DEBUG
-                addTrackletToMemory(trackletsInGPU,innerSegmentIndex,outerSegmentIndex,pixelModuleIndex,pixelModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, trackletIndex);
-
-#else
-            addTrackletToMemory(trackletsInGPU,innerSegmentIndex,outerSegmentIndex,pixelModuleIndex,pixelModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,trackletIndex);
-#endif
-        }
-    }
 }
 __global__ void createPixelTrackletsFromOuterInnerLowerModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, unsigned int outerInnerLowerModuleIndex, unsigned int nInnerSegments, unsigned int nOuterSegments, unsigned int pixelModuleIndex, unsigned int pixelLowerModuleArrayIndex)
 {
@@ -2818,61 +2593,6 @@ __global__ void createPixelTrackletsFromOuterInnerLowerModule(struct SDL::module
     }
 }
 #endif
-__global__ void createPixelTrackletsFromOuterInnerLowerModulev2(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, unsigned int outerInnerLowerModuleIndex, unsigned int nInnerSegments, unsigned int nOuterSegments, unsigned int pixelModuleIndex, unsigned int pixelLowerModuleArrayIndex)
-{
-    //printf("pixel nested kernel inner v2\n");
-
-    int outerLowerModuleArrayIndex = blockIdx.x*blockDim.x + threadIdx.x; //loop over potential modules connected to the pixel superbin
-    //int pixelModuleIndex = blockIdx.y*blockDim.y + threadIdx.y; //loop over potential modules connected to the pixel superbin
-
-    unsigned int connectedPixelSize = modulesInGPU.connectedPixelsSizes[pixelModuleIndex]; //number of pixel connected modules
-    unsigned int connectedPixelIndex = modulesInGPU.connectedPixelsIndex[pixelModuleIndex];// index to get start of connected pixel modules
-    if(outerLowerModuleArrayIndex > connectedPixelSize) return; // only get the modules that are connected to this pixelModuleIndex
-
-
-    unsigned int outerLowerModuleIndex = modulesInGPU.connectedPixels[connectedPixelIndex+outerLowerModuleArrayIndex]; // get the connected modules
-
-//    int innerSegmentArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
-//    int outerSegmentArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
-//    if(innerSegmentArrayIndex >= nInnerSegments) return;
-//    if(outerSegmentArrayIndex >= nOuterSegments) return;
-//    unsigned int innerSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + innerSegmentArrayIndex;
-//    unsigned int outerSegmentIndex = outerInnerLowerModuleIndex * N_MAX_SEGMENTS_PER_MODULE + outerSegmentArrayIndex;
-//    unsigned int outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex];
-
-
-
-//    if(modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS) return; //REMOVES PS-2S
-//    float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut;
-//#ifdef CUT_VALUE_DEBUG
-//    float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ;
-//    bool success = runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, pixelModuleIndex, outerInnerLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, N_MAX_SEGMENTS_PER_MODULE); //might want to send the other two module indices and the anchor hits also to save memory accesses
-//#else
-//    bool success = runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, pixelModuleIndex, outerInnerLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, N_MAX_SEGMENTS_PER_MODULE); //might want to send the other two module indices and the anchor hits also to save memory accesses
-//#endif
-//
-//    if(success)
-//    {
-//        unsigned int trackletModuleIndex = atomicAdd(&trackletsInGPU.nTracklets[pixelLowerModuleArrayIndex], 1);
-//        if(trackletModuleIndex >= N_MAX_PIXEL_TRACKLETS_PER_MODULE)
-//        {
-//            #ifdef Warnings
-//            if(trackletModuleIndex == N_MAX_PIXEL_TRACKLETS_PER_MODULE)
-//                printf("Pixel Tracklet excess alert! Module index = %d\n",pixelModuleIndex);
-//            #endif
-//        }
-//        else
-//        {
-//            unsigned int trackletIndex = pixelLowerModuleArrayIndex * N_MAX_TRACKLETS_PER_MODULE + trackletModuleIndex;
-//#ifdef CUT_VALUE_DEBUG
-//                addTrackletToMemory(trackletsInGPU,innerSegmentIndex,outerSegmentIndex,pixelModuleIndex,pixelModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, trackletIndex);
-//
-//#else
-//            addTrackletToMemory(trackletsInGPU,innerSegmentIndex,outerSegmentIndex,pixelModuleIndex,pixelModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,trackletIndex);
-//#endif
-//        }
-//    }
-}
 
 __global__ void createTrackletsWithAGapFromInnerInnerLowerModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int nInnerSegments, unsigned int innerInnerLowerModuleArrayIndex)
 {
