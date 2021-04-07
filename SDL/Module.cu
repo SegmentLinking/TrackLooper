@@ -352,7 +352,7 @@ void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int n
 
 }
 
-void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModules, const char* moduleMetaDataFilePath)
+void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModules, struct pixelMap& pixelMapping, const char* moduleMetaDataFilePath)
 {
     detIdToIndex = new std::map<unsigned int, unsigned int>;
 
@@ -492,7 +492,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     std::cout<<"number of lower modules (without fake pixel module)= "<<lowerModuleCounter[0]<<std::endl;
     createLowerModuleIndexMapExplicit(modulesInGPU,lowerModuleCounter[0], nModules,host_isLower);
     fillConnectedModuleArrayExplicit(modulesInGPU,nModules);
-    fillPixelMap(modulesInGPU);
+    fillPixelMap(modulesInGPU,pixelMapping);
     resetObjectRanges(modulesInGPU,nModules);
 
 #else
@@ -544,12 +544,12 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     std::cout<<"number of lower modules (without fake pixel module)= "<<*modulesInGPU.nLowerModules<<std::endl;
     createLowerModuleIndexMap(modulesInGPU,lowerModuleCounter, nModules);
     fillConnectedModuleArray(modulesInGPU,nModules);
-    fillPixelMap(modulesInGPU);
+    fillPixelMap(modulesInGPU,pixelMapping);
     resetObjectRanges(modulesInGPU,nModules);
 #endif
 }
 
-void SDL::fillPixelMap(struct modules& modulesInGPU)
+void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMapping) 
 {
     //unsigned int* pixelMap;
     //unsigned int* nConnectedPixelModules;
@@ -563,48 +563,48 @@ void SDL::fillPixelMap(struct modules& modulesInGPU)
     unsigned int* connectedPixelsSizes;
     unsigned int* connectedPixelsSizesPos;
     unsigned int* connectedPixelsSizesNeg;
-    cudaMallocHost(&connectedPixelsIndex,size_superbins * sizeof(unsigned int));
-    cudaMallocHost(&connectedPixelsSizes,size_superbins * sizeof(unsigned int));
-    cudaMallocHost(&connectedPixelsIndexPos,size_superbins * sizeof(unsigned int));
-    cudaMallocHost(&connectedPixelsSizesPos,size_superbins * sizeof(unsigned int));
-    cudaMallocHost(&connectedPixelsIndexNeg,size_superbins * sizeof(unsigned int));
-    cudaMallocHost(&connectedPixelsSizesNeg,size_superbins * sizeof(unsigned int));
-#ifdef CACHE_ALLOC
-    cudaStream_t stream=0; 
-#ifdef Explicit_Module
-    int dev;
-    cudaGetDevice(&dev);
-    modulesInGPU.connectedPixelsIndex =    (unsigned int*)cms::cuda::allocate_device(dev,size_superbins * sizeof(unsigned int),stream);
-    modulesInGPU.connectedPixelsIndexPos = (unsigned int*)cms::cuda::allocate_device(dev,size_superbins * sizeof(unsigned int),stream);
-    modulesInGPU.connectedPixelsIndexNeg = (unsigned int*)cms::cuda::allocate_device(dev,size_superbins * sizeof(unsigned int),stream);
-    modulesInGPU.connectedPixelsSizes =     (unsigned int*)cms::cuda::allocate_device(dev,size_superbins * sizeof(unsigned int),stream);
-    modulesInGPU.connectedPixelsSizesPos =  (unsigned int*)cms::cuda::allocate_device(dev,size_superbins * sizeof(unsigned int),stream);
-    modulesInGPU.connectedPixelsSizesNeg =  (unsigned int*)cms::cuda::allocate_device(dev,size_superbins * sizeof(unsigned int),stream);
-#else
-    modulesInGPU.connectedPixelsIndex = (unsigned int*)cms::cuda::allocate_managed(size_superbins * sizeof(unsigned int),stream);
-    modulesInGPU.connectedPixelsIndexPos = (unsigned int*)cms::cuda::allocate_managed(size_superbins * sizeof(unsigned int),stream);
-    modulesInGPU.connectedPixelsIndexNeg = (unsigned int*)cms::cuda::allocate_managed(size_superbins * sizeof(unsigned int),stream);
-    modulesInGPU.connectedPixelsSizes = (unsigned int*)cms::cuda::allocate_managed(size_superbins * sizeof(unsigned int),stream);
-    modulesInGPU.connectedPixelsSizesPos = (unsigned int*)cms::cuda::allocate_managed(size_superbins * sizeof(unsigned int),stream);
-    modulesInGPU.connectedPixelsSizesNeg = (unsigned int*)cms::cuda::allocate_managed(size_superbins * sizeof(unsigned int),stream);
-#endif
-#else
-#ifdef Explicit_Module
-    cudaMalloc(&modulesInGPU.connectedPixelsIndex,size_superbins * sizeof(unsigned int));
-    cudaMalloc(&modulesInGPU.connectedPixelsIndexPos,size_superbins * sizeof(unsigned int));
-    cudaMalloc(&modulesInGPU.connectedPixelsIndexNeg,size_superbins * sizeof(unsigned int));
-    cudaMalloc(&modulesInGPU.connectedPixelsSizes,size_superbins * sizeof(unsigned int));
-    cudaMalloc(&modulesInGPU.connectedPixelsSizesPos,size_superbins * sizeof(unsigned int));
-    cudaMalloc(&modulesInGPU.connectedPixelsSizesNeg,size_superbins * sizeof(unsigned int));
-#else
-    cudaMallocManaged(&modulesInGPU.connectedPixelsIndex,size_superbins * sizeof(unsigned int));
-    cudaMallocManaged(&modulesInGPU.connectedPixelsIndexPos,size_superbins * sizeof(unsigned int));
-    cudaMallocManaged(&modulesInGPU.connectedPixelsIndexNeg,size_superbins * sizeof(unsigned int));
-    cudaMallocManaged(&modulesInGPU.connectedPixelsSizes,size_superbins * sizeof(unsigned int));
-    cudaMallocManaged(&modulesInGPU.connectedPixelsSizesPos,size_superbins * sizeof(unsigned int));
-    cudaMallocManaged(&modulesInGPU.connectedPixelsSizesNeg,size_superbins * sizeof(unsigned int));
-#endif
-#endif
+    cudaMallocHost(&pixelMapping.connectedPixelsIndex,size_superbins * sizeof(unsigned int));
+    cudaMallocHost(&pixelMapping.connectedPixelsSizes,size_superbins * sizeof(unsigned int));
+    cudaMallocHost(&pixelMapping.connectedPixelsIndexPos,size_superbins * sizeof(unsigned int));
+    cudaMallocHost(&pixelMapping.connectedPixelsSizesPos,size_superbins * sizeof(unsigned int));
+    cudaMallocHost(&pixelMapping.connectedPixelsIndexNeg,size_superbins * sizeof(unsigned int));
+    cudaMallocHost(&pixelMapping.connectedPixelsSizesNeg,size_superbins * sizeof(unsigned int));
+//#ifdef CACHE_ALLOC
+//    cudaStream_t stream=0; 
+//#ifdef Explicit_Module
+//    int dev;
+//    cudaGetDevice(&dev);
+//    modulesInGPU.connectedPixelsIndex =    (unsigned int*)cms::cuda::allocate_device(dev,size_superbins * sizeof(unsigned int),stream);
+//    modulesInGPU.connectedPixelsIndexPos = (unsigned int*)cms::cuda::allocate_device(dev,size_superbins * sizeof(unsigned int),stream);
+//    modulesInGPU.connectedPixelsIndexNeg = (unsigned int*)cms::cuda::allocate_device(dev,size_superbins * sizeof(unsigned int),stream);
+//    modulesInGPU.connectedPixelsSizes =     (unsigned int*)cms::cuda::allocate_device(dev,size_superbins * sizeof(unsigned int),stream);
+//    modulesInGPU.connectedPixelsSizesPos =  (unsigned int*)cms::cuda::allocate_device(dev,size_superbins * sizeof(unsigned int),stream);
+//    modulesInGPU.connectedPixelsSizesNeg =  (unsigned int*)cms::cuda::allocate_device(dev,size_superbins * sizeof(unsigned int),stream);
+//#else
+//    modulesInGPU.connectedPixelsIndex = (unsigned int*)cms::cuda::allocate_managed(size_superbins * sizeof(unsigned int),stream);
+//    modulesInGPU.connectedPixelsIndexPos = (unsigned int*)cms::cuda::allocate_managed(size_superbins * sizeof(unsigned int),stream);
+//    modulesInGPU.connectedPixelsIndexNeg = (unsigned int*)cms::cuda::allocate_managed(size_superbins * sizeof(unsigned int),stream);
+//    modulesInGPU.connectedPixelsSizes = (unsigned int*)cms::cuda::allocate_managed(size_superbins * sizeof(unsigned int),stream);
+//    modulesInGPU.connectedPixelsSizesPos = (unsigned int*)cms::cuda::allocate_managed(size_superbins * sizeof(unsigned int),stream);
+//    modulesInGPU.connectedPixelsSizesNeg = (unsigned int*)cms::cuda::allocate_managed(size_superbins * sizeof(unsigned int),stream);
+//#endif
+//#else
+//#ifdef Explicit_Module
+//    cudaMalloc(&modulesInGPU.connectedPixelsIndex,size_superbins * sizeof(unsigned int));
+//    cudaMalloc(&modulesInGPU.connectedPixelsIndexPos,size_superbins * sizeof(unsigned int));
+//    cudaMalloc(&modulesInGPU.connectedPixelsIndexNeg,size_superbins * sizeof(unsigned int));
+//    cudaMalloc(&modulesInGPU.connectedPixelsSizes,size_superbins * sizeof(unsigned int));
+//    cudaMalloc(&modulesInGPU.connectedPixelsSizesPos,size_superbins * sizeof(unsigned int));
+//    cudaMalloc(&modulesInGPU.connectedPixelsSizesNeg,size_superbins * sizeof(unsigned int));
+//#else
+//    cudaMallocManaged(&modulesInGPU.connectedPixelsIndex,size_superbins * sizeof(unsigned int));
+//    cudaMallocManaged(&modulesInGPU.connectedPixelsIndexPos,size_superbins * sizeof(unsigned int));
+//    cudaMallocManaged(&modulesInGPU.connectedPixelsIndexNeg,size_superbins * sizeof(unsigned int));
+//    cudaMallocManaged(&modulesInGPU.connectedPixelsSizes,size_superbins * sizeof(unsigned int));
+//    cudaMallocManaged(&modulesInGPU.connectedPixelsSizesPos,size_superbins * sizeof(unsigned int));
+//    cudaMallocManaged(&modulesInGPU.connectedPixelsSizesNeg,size_superbins * sizeof(unsigned int));
+//#endif
+//#endif
     int totalSizes=0;
     int totalSizes_pos=0;
     int totalSizes_neg=0;
@@ -634,8 +634,8 @@ void SDL::fillPixelMap(struct modules& modulesInGPU)
       sizes += connectedModuleDetIds_pLStoLayer3Subdet4.size();
       sizes += connectedModuleDetIds_pLStoLayer4Subdet4.size();
       totalSizes += sizes;
-      connectedPixelsIndex[isuperbin] = totalSizes;
-      connectedPixelsSizes[isuperbin] = sizes;
+      pixelMapping.connectedPixelsIndex[isuperbin] = totalSizes;
+      pixelMapping.connectedPixelsSizes[isuperbin] = sizes;
       //modulesInGPU.connectedPixelsIndex[isuperbin] = totalSizes;
       //modulesInGPU.connectedPixelsSizes[isuperbin] = sizes;
 
@@ -666,8 +666,8 @@ void SDL::fillPixelMap(struct modules& modulesInGPU)
       totalSizes_pos += sizes_pos;
       //modulesInGPU.connectedPixelsIndexPos[isuperbin] = totalSizes_pos;
       //modulesInGPU.connectedPixelsSizesPos[isuperbin] = sizes_pos;
-      connectedPixelsIndexPos[isuperbin] = totalSizes_pos;
-      connectedPixelsSizesPos[isuperbin] = sizes_pos;
+      pixelMapping.connectedPixelsIndexPos[isuperbin] = totalSizes_pos;
+      pixelMapping.connectedPixelsSizesPos[isuperbin] = sizes_pos;
 
 
       std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5_neg = SDL::moduleConnectionMap_pLStoLayer1Subdet5_neg.getConnectedModuleDetIds(isuperbin);
@@ -696,16 +696,16 @@ void SDL::fillPixelMap(struct modules& modulesInGPU)
       totalSizes_neg += sizes_neg;
       //modulesInGPU.connectedPixelsIndexNeg[isuperbin] = totalSizes_neg;
       //modulesInGPU.connectedPixelsSizesNeg[isuperbin] = sizes_neg;
-      connectedPixelsIndexNeg[isuperbin] = totalSizes_neg;
-      connectedPixelsSizesNeg[isuperbin] = sizes_neg;
+      pixelMapping.connectedPixelsIndexNeg[isuperbin] = totalSizes_neg;
+      pixelMapping.connectedPixelsSizesNeg[isuperbin] = sizes_neg;
     }
 
-    cudaMemcpy(modulesInGPU.connectedPixelsSizes,connectedPixelsSizes,size_superbins*sizeof(unsigned int),cudaMemcpyHostToDevice);
-    cudaMemcpy(modulesInGPU.connectedPixelsSizesPos,connectedPixelsSizesPos,size_superbins*sizeof(unsigned int),cudaMemcpyHostToDevice);
-    cudaMemcpy(modulesInGPU.connectedPixelsSizesNeg,connectedPixelsSizesNeg,size_superbins*sizeof(unsigned int),cudaMemcpyHostToDevice);
-    cudaMemcpy(modulesInGPU.connectedPixelsIndex,connectedPixelsIndex,size_superbins*sizeof(unsigned int),cudaMemcpyHostToDevice);
-    cudaMemcpy(modulesInGPU.connectedPixelsIndexPos,connectedPixelsIndexPos,size_superbins*sizeof(unsigned int),cudaMemcpyHostToDevice);
-    cudaMemcpy(modulesInGPU.connectedPixelsIndexNeg,connectedPixelsIndexNeg,size_superbins*sizeof(unsigned int),cudaMemcpyHostToDevice);
+//    cudaMemcpy(modulesInGPU.connectedPixelsSizes,connectedPixelsSizes,size_superbins*sizeof(unsigned int),cudaMemcpyHostToDevice);
+//    cudaMemcpy(modulesInGPU.connectedPixelsSizesPos,connectedPixelsSizesPos,size_superbins*sizeof(unsigned int),cudaMemcpyHostToDevice);
+//    cudaMemcpy(modulesInGPU.connectedPixelsSizesNeg,connectedPixelsSizesNeg,size_superbins*sizeof(unsigned int),cudaMemcpyHostToDevice);
+//    cudaMemcpy(modulesInGPU.connectedPixelsIndex,connectedPixelsIndex,size_superbins*sizeof(unsigned int),cudaMemcpyHostToDevice);
+//    cudaMemcpy(modulesInGPU.connectedPixelsIndexPos,connectedPixelsIndexPos,size_superbins*sizeof(unsigned int),cudaMemcpyHostToDevice);
+//    cudaMemcpy(modulesInGPU.connectedPixelsIndexNeg,connectedPixelsIndexNeg,size_superbins*sizeof(unsigned int),cudaMemcpyHostToDevice);
 
     unsigned int* connectedPixels;
     unsigned int* connectedPixelsPos;
@@ -751,12 +751,12 @@ void SDL::fillPixelMap(struct modules& modulesInGPU)
     cudaFreeHost(connectedPixels);
     cudaFreeHost(connectedPixelsPos);
     cudaFreeHost(connectedPixelsNeg);
-    cudaFreeHost(connectedPixelsSizes);
-    cudaFreeHost(connectedPixelsSizesPos);
-    cudaFreeHost(connectedPixelsSizesNeg);
-    cudaFreeHost(connectedPixelsIndex);
-    cudaFreeHost(connectedPixelsIndexPos);
-    cudaFreeHost(connectedPixelsIndexNeg);
+    //cudaFreeHost(connectedPixelsSizes);
+    //cudaFreeHost(connectedPixelsSizesPos);
+    //cudaFreeHost(connectedPixelsSizesNeg);
+    //cudaFreeHost(connectedPixelsIndex);
+    //cudaFreeHost(connectedPixelsIndexPos);
+    //cudaFreeHost(connectedPixelsIndexNeg);
 }
 
 void SDL::fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules)
