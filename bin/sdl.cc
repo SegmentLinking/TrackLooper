@@ -363,7 +363,8 @@ void run_sdl()
                     timing_T4x,
                     timing_pT4,
                     timing_T3,
-                    timing_TC});
+                    timing_TC,
+                    timing_T5});
 
             if (ana.verbose == 4)
             {
