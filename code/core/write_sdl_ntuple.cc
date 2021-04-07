@@ -94,13 +94,14 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<int>>("t3_isFake");
     ana.tx->createBranch<vector<int>>("t3_isDuplicate");
 
+#ifdef DO_QUINTUPLET
     //T5 - new kid
     ana.tx->createBranch<vector<int>>("sim_T5_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_T5_types");
     ana.tx->createBranch<vector<int>>("t5_isFake");
     ana.tx->createBranch<vector<int>>("t5_isDuplicate");
     ana.tx->createBranch<vector<int>>("t5_layer_binary");
-
+#endif
     //pLS
     ana.tx->createBranch<vector<int>>("sim_pLS_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_pLS_types");
@@ -116,10 +117,13 @@ void createLowerLevelOutputBranches()
     createSegmentCutValueBranches();
     createMiniDoubletCutValueBranches();
     createPixelQuadrupletCutValueBranches();
+#ifdef DO_QUINTUPLET
     createQuintupletCutValueBranches();
+#endif
 #endif
 }
 
+#ifdef DO_QUINTUPLET
 void createQuintupletCutValueBranches()
 {
     ana.tx->createBranch<vector<vector<float>>>("t5_matched_pt");
@@ -140,7 +144,7 @@ void createQuintupletCutValueBranches()
     ana.tx->createBranch<vector<float>>("t5_outerRadiusMax2S");
 
 }
-
+#endif
 void createQuadrupletCutValueBranches()
 {
     ana.tx->createBranch<vector<float>>("t4_zOut");
@@ -255,7 +259,9 @@ void fillOccupancyBranches(SDL::Event& event)
     SDL::miniDoublets& mdsInGPU = (*event.getMiniDoublets());
     SDL::hits& hitsInGPU = (*event.getHits());
     SDL::modules& modulesInGPU = (*event.getModules());
-
+#ifdef DO_QUINTUPLET
+    SDL::quintuplets&  quintupletsInGPU = (*event.getQuintuplets());
+#endif
     //get the occupancies from these dudes
     std::vector<int> moduleLayer;
     std::vector<int> moduleSubdet;
@@ -281,7 +287,9 @@ void fillOccupancyBranches(SDL::Event& event)
         trackCandidateOccupancy.push_back(trackCandidatesInGPU.nTrackCandidates[idx]);
         trackletOccupancy.push_back(trackletsInGPU.nTracklets[idx]);
         tripletOccupancy.push_back(tripletsInGPU.nTriplets[idx]);
+#ifdef DO_QUINTUPLET
         quintupletOccupancy.push_back(quintupletsInGPU.nQuintuplets[idx]);
+#endif
     }
     ana.tx->setBranch<vector<int>>("module_layers",moduleLayer);
     ana.tx->setBranch<vector<int>>("module_subdets",moduleSubdet);
@@ -291,7 +299,9 @@ void fillOccupancyBranches(SDL::Event& event)
     ana.tx->setBranch<vector<int>>("t4_occupancies",trackletOccupancy);
     ana.tx->setBranch<vector<int>>("t3_occupancies",tripletOccupancy);
     ana.tx->setBranch<vector<int>>("tc_occupancies",trackCandidateOccupancy);
-    ana.tx->setBranch<vector<itn>>("t5_occupancies", quintupletOccupancy);
+#ifdef DO_QUINTUPLET
+    ana.tx->setBranch<vector<int>>("t5_occupancies", quintupletOccupancy);
+#endif
 }
 
 //________________________________________________________________________________________________________________________________
@@ -651,7 +661,7 @@ void fillLowerLevelOutputBranches(SDL::Event& event)
     fillQuintupletOutputBranches(event);
 }
 
-
+#ifdef DO_QUINTUPLET
 //________________________________________________________________________________________________________________________________
 void fillQuintupletOutputBranches(SDL::Event& event)
 {
@@ -808,8 +818,9 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             layer_binary |= (1 << logicallayer4);
             layer_binary |= (1 << logicallayer6);
             layer_binary |= (1 << logicallayer8);
+#ifdef CUT_VALUE_DEBUG
             layer_binaries.push_back(layer_binary);
-
+#endif
             std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
             for (auto &isimtrk : matched_sim_trk_idxs)
             {
@@ -878,7 +889,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
 #endif
 
 }
-
+#endif
 
 
 //________________________________________________________________________________________________________________________________

@@ -358,7 +358,7 @@ void run_sdl()
             float timing_T5 = runQuintuplet(event);
 #else
             float timing_T5 = 0;
-
+#endif
             timing_information.push_back({ timing_input_loading,
                     timing_MD,
                     timing_LS,
