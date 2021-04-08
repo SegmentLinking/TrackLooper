@@ -1234,13 +1234,13 @@ void SDL::Event::createPixelTrackletsWithMap()
     segs_pix_gpu_offset = segs_pix_gpu + threadSize;
     cudaMemset(segs_pix_gpu, nInnerSegments, threadSize*sizeof(unsigned int)); // so if not set, it will pass in the kernel
     unsigned int totalSegs=0;
-    int pixelIndexOffsetPos = pixelMapping->connectedPixelsIndex[89999];
-    int pixelIndexOffsetNeg = pixelMapping->connectedPixelsIndexPos[89999] + pixelIndexOffsetPos;
+    int pixelIndexOffsetPos = pixelMapping->connectedPixelsIndex[44999];
+    int pixelIndexOffsetNeg = pixelMapping->connectedPixelsIndexPos[44999] + pixelIndexOffsetPos;
     for (int i=0; i < nInnerSegments;i++){// loop over # pLS
       int pixelType = pixelTypes[i];// get pixel type for this pLS
       int superbin = superbins[i]; //get superbin for this pixel
       if(superbin <0) {continue;}
-      if(superbin >90000) {continue;}// skip any weird out of range values
+      if(superbin >45000) {continue;}// skip any weird out of range values
       if(pixelType ==0){ // used pixel type to select correct size-index arrays
         connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
         connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndex[superbin];// index to get start of connected modules for this superbin in map
