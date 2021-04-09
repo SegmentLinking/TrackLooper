@@ -81,6 +81,26 @@ void SDL::CPU::Segment::addInwardTrackletPtr(SDL::CPU::Tracklet* tl)
     inwardTrackletPtrs.push_back(tl);
 }
 
+const std::vector<SDL::CPU::Triplet*>& SDL::CPU::Segment::getListOfOutwardTripletPtrs()
+{
+    return outwardTripletPtrs;
+}
+
+const std::vector<SDL::CPU::Triplet*>& SDL::CPU::Segment::getListOfInwardTripletPtrs()
+{
+    return inwardTripletPtrs;
+}
+
+void SDL::CPU::Segment::addOutwardTripletPtr(SDL::CPU::Triplet* tp)
+{
+    outwardTripletPtrs.push_back(tp);
+}
+
+void SDL::CPU::Segment::addInwardTripletPtr(SDL::CPU::Triplet* tp)
+{
+    inwardTripletPtrs.push_back(tp);
+}
+
 SDL::CPU::MiniDoublet* SDL::CPU::Segment::innerMiniDoubletPtr() const
 {
     return innerMiniDoubletPtr_;

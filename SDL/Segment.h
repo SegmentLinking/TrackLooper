@@ -112,6 +112,12 @@ namespace SDL
                 void addOutwardTrackletPtr(Tracklet* tl);
                 void addInwardTrackletPtr(Tracklet* tl);
 
+                const std::vector<Triplet*>& getListOfOutwardTripletPtrs();
+                const std::vector<Triplet*>& getListOfInwardTripletPtrs();
+
+                void addOutwardTripletPtr(Triplet* tl);
+                void addInwardTripletPtr(Triplet* tl);
+
                 MiniDoublet* innerMiniDoubletPtr() const;
                 MiniDoublet* outerMiniDoubletPtr() const;
                 const int& getPassAlgo() const;
