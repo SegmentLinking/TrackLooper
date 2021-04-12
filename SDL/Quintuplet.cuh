@@ -29,9 +29,9 @@ namespace SDL
         unsigned int* tripletIndices;
         unsigned int* lowerModuleIndices;
         unsigned int* nQuintuplets;
-        float* innerRadius;
 
 #ifdef CUT_VALUE_DEBUG
+        float* innerRadius;
         float* innerRadiusMin;
         float* innerRadiusMax;
         float* outerRadius;
