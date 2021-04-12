@@ -23,10 +23,10 @@ void SDL::Init(TTree *tree) {
     t3_isDuplicate_branch = tree->GetBranch("t3_isDuplicate");
     if (t3_isDuplicate_branch) { t3_isDuplicate_branch->SetAddress(&t3_isDuplicate_); }
   }
-  pLS_phi_branch = 0;
-  if (tree->GetBranch("pLS_phi") != 0) {
-    pLS_phi_branch = tree->GetBranch("pLS_phi");
-    if (pLS_phi_branch) { pLS_phi_branch->SetAddress(&pLS_phi_); }
+  t5_outerRadiusMax2S_branch = 0;
+  if (tree->GetBranch("t5_outerRadiusMax2S") != 0) {
+    t5_outerRadiusMax2S_branch = tree->GetBranch("t5_outerRadiusMax2S");
+    if (t5_outerRadiusMax2S_branch) { t5_outerRadiusMax2S_branch->SetAddress(&t5_outerRadiusMax2S_); }
   }
   sim_event_branch = 0;
   if (tree->GetBranch("sim_event") != 0) {
@@ -73,10 +73,15 @@ void SDL::Init(TTree *tree) {
     t4_occupancies_branch = tree->GetBranch("t4_occupancies");
     if (t4_occupancies_branch) { t4_occupancies_branch->SetAddress(&t4_occupancies_); }
   }
-  t5_innerTripletPt_branch = 0;
-  if (tree->GetBranch("t5_innerTripletPt") != 0) {
-    t5_innerTripletPt_branch = tree->GetBranch("t5_innerTripletPt");
-    if (t5_innerTripletPt_branch) { t5_innerTripletPt_branch->SetAddress(&t5_innerTripletPt_); }
+  pLS_isDuplicate_branch = 0;
+  if (tree->GetBranch("pLS_isDuplicate") != 0) {
+    pLS_isDuplicate_branch = tree->GetBranch("pLS_isDuplicate");
+    if (pLS_isDuplicate_branch) { pLS_isDuplicate_branch->SetAddress(&pLS_isDuplicate_); }
+  }
+  t5_innerRadiusMin_branch = 0;
+  if (tree->GetBranch("t5_innerRadiusMin") != 0) {
+    t5_innerRadiusMin_branch = tree->GetBranch("t5_innerRadiusMin");
+    if (t5_innerRadiusMin_branch) { t5_innerRadiusMin_branch->SetAddress(&t5_innerRadiusMin_); }
   }
   t3_occupancies_branch = 0;
   if (tree->GetBranch("t3_occupancies") != 0) {
@@ -98,15 +103,30 @@ void SDL::Init(TTree *tree) {
     t5_layer_binary_branch = tree->GetBranch("t5_layer_binary");
     if (t5_layer_binary_branch) { t5_layer_binary_branch->SetAddress(&t5_layer_binary_); }
   }
+  t5_outerRadiusMin2S_branch = 0;
+  if (tree->GetBranch("t5_outerRadiusMin2S") != 0) {
+    t5_outerRadiusMin2S_branch = tree->GetBranch("t5_outerRadiusMin2S");
+    if (t5_outerRadiusMin2S_branch) { t5_outerRadiusMin2S_branch->SetAddress(&t5_outerRadiusMin2S_); }
+  }
   sim_tcIdx_branch = 0;
   if (tree->GetBranch("sim_tcIdx") != 0) {
     sim_tcIdx_branch = tree->GetBranch("sim_tcIdx");
     if (sim_tcIdx_branch) { sim_tcIdx_branch->SetAddress(&sim_tcIdx_); }
   }
+  pLS_isFake_branch = 0;
+  if (tree->GetBranch("pLS_isFake") != 0) {
+    pLS_isFake_branch = tree->GetBranch("pLS_isFake");
+    if (pLS_isFake_branch) { pLS_isFake_branch->SetAddress(&pLS_isFake_); }
+  }
   t4_isFake_branch = 0;
   if (tree->GetBranch("t4_isFake") != 0) {
     t4_isFake_branch = tree->GetBranch("t4_isFake");
     if (t4_isFake_branch) { t4_isFake_branch->SetAddress(&t4_isFake_); }
+  }
+  pLS_eta_branch = 0;
+  if (tree->GetBranch("pLS_eta") != 0) {
+    pLS_eta_branch = tree->GetBranch("pLS_eta");
+    if (pLS_eta_branch) { pLS_eta_branch->SetAddress(&pLS_eta_); }
   }
   tc_occupancies_branch = 0;
   if (tree->GetBranch("tc_occupancies") != 0) {
@@ -138,20 +158,30 @@ void SDL::Init(TTree *tree) {
     sim_TC_matched_branch = tree->GetBranch("sim_TC_matched");
     if (sim_TC_matched_branch) { sim_TC_matched_branch->SetAddress(&sim_TC_matched_); }
   }
-  pLS_isDuplicate_branch = 0;
-  if (tree->GetBranch("pLS_isDuplicate") != 0) {
-    pLS_isDuplicate_branch = tree->GetBranch("pLS_isDuplicate");
-    if (pLS_isDuplicate_branch) { pLS_isDuplicate_branch->SetAddress(&pLS_isDuplicate_); }
+  t5_bridgeRadiusMin2S_branch = 0;
+  if (tree->GetBranch("t5_bridgeRadiusMin2S") != 0) {
+    t5_bridgeRadiusMin2S_branch = tree->GetBranch("t5_bridgeRadiusMin2S");
+    if (t5_bridgeRadiusMin2S_branch) { t5_bridgeRadiusMin2S_branch->SetAddress(&t5_bridgeRadiusMin2S_); }
   }
   module_subdets_branch = 0;
   if (tree->GetBranch("module_subdets") != 0) {
     module_subdets_branch = tree->GetBranch("module_subdets");
     if (module_subdets_branch) { module_subdets_branch->SetAddress(&module_subdets_); }
   }
+  t5_innerRadiusMax2S_branch = 0;
+  if (tree->GetBranch("t5_innerRadiusMax2S") != 0) {
+    t5_innerRadiusMax2S_branch = tree->GetBranch("t5_innerRadiusMax2S");
+    if (t5_innerRadiusMax2S_branch) { t5_innerRadiusMax2S_branch->SetAddress(&t5_innerRadiusMax2S_); }
+  }
   tc_pt_branch = 0;
   if (tree->GetBranch("tc_pt") != 0) {
     tc_pt_branch = tree->GetBranch("tc_pt");
     if (tc_pt_branch) { tc_pt_branch->SetAddress(&tc_pt_); }
+  }
+  t5_innerRadiusMax_branch = 0;
+  if (tree->GetBranch("t5_innerRadiusMax") != 0) {
+    t5_innerRadiusMax_branch = tree->GetBranch("t5_innerRadiusMax");
+    if (t5_innerRadiusMax_branch) { t5_innerRadiusMax_branch->SetAddress(&t5_innerRadiusMax_); }
   }
   tc_isDuplicate_branch = 0;
   if (tree->GetBranch("tc_isDuplicate") != 0) {
@@ -183,6 +213,11 @@ void SDL::Init(TTree *tree) {
     t3_isFake_branch = tree->GetBranch("t3_isFake");
     if (t3_isFake_branch) { t3_isFake_branch->SetAddress(&t3_isFake_); }
   }
+  t5_bridgeRadiusMax2S_branch = 0;
+  if (tree->GetBranch("t5_bridgeRadiusMax2S") != 0) {
+    t5_bridgeRadiusMax2S_branch = tree->GetBranch("t5_bridgeRadiusMax2S");
+    if (t5_bridgeRadiusMax2S_branch) { t5_bridgeRadiusMax2S_branch->SetAddress(&t5_bridgeRadiusMax2S_); }
+  }
   md_occupancies_branch = 0;
   if (tree->GetBranch("md_occupancies") != 0) {
     md_occupancies_branch = tree->GetBranch("md_occupancies");
@@ -197,6 +232,11 @@ void SDL::Init(TTree *tree) {
   if (tree->GetBranch("sim_TC_types") != 0) {
     sim_TC_types_branch = tree->GetBranch("sim_TC_types");
     if (sim_TC_types_branch) { sim_TC_types_branch->SetAddress(&sim_TC_types_); }
+  }
+  t5_bridgeRadiusMin_branch = 0;
+  if (tree->GetBranch("t5_bridgeRadiusMin") != 0) {
+    t5_bridgeRadiusMin_branch = tree->GetBranch("t5_bridgeRadiusMin");
+    if (t5_bridgeRadiusMin_branch) { t5_bridgeRadiusMin_branch->SetAddress(&t5_bridgeRadiusMin_); }
   }
   sg_occupancies_branch = 0;
   if (tree->GetBranch("sg_occupancies") != 0) {
@@ -213,15 +253,20 @@ void SDL::Init(TTree *tree) {
     t4_isDuplicate_branch = tree->GetBranch("t4_isDuplicate");
     if (t4_isDuplicate_branch) { t4_isDuplicate_branch->SetAddress(&t4_isDuplicate_); }
   }
+  pT4_pt_branch = 0;
+  if (tree->GetBranch("pT4_pt") != 0) {
+    pT4_pt_branch = tree->GetBranch("pT4_pt");
+    if (pT4_pt_branch) { pT4_pt_branch->SetAddress(&pT4_pt_); }
+  }
   sim_pLS_types_branch = 0;
   if (tree->GetBranch("sim_pLS_types") != 0) {
     sim_pLS_types_branch = tree->GetBranch("sim_pLS_types");
     if (sim_pLS_types_branch) { sim_pLS_types_branch->SetAddress(&sim_pLS_types_); }
   }
-  t5_outerTripletPt_branch = 0;
-  if (tree->GetBranch("t5_outerTripletPt") != 0) {
-    t5_outerTripletPt_branch = tree->GetBranch("t5_outerTripletPt");
-    if (t5_outerTripletPt_branch) { t5_outerTripletPt_branch->SetAddress(&t5_outerTripletPt_); }
+  t5_bridgeRadius_branch = 0;
+  if (tree->GetBranch("t5_bridgeRadius") != 0) {
+    t5_bridgeRadius_branch = tree->GetBranch("t5_bridgeRadius");
+    if (t5_bridgeRadius_branch) { t5_bridgeRadius_branch->SetAddress(&t5_bridgeRadius_); }
   }
   sim_pLS_matched_branch = 0;
   if (tree->GetBranch("sim_pLS_matched") != 0) {
@@ -233,6 +278,11 @@ void SDL::Init(TTree *tree) {
     pT4_isFake_branch = tree->GetBranch("pT4_isFake");
     if (pT4_isFake_branch) { pT4_isFake_branch->SetAddress(&pT4_isFake_); }
   }
+  pT4_phi_branch = 0;
+  if (tree->GetBranch("pT4_phi") != 0) {
+    pT4_phi_branch = tree->GetBranch("pT4_phi");
+    if (pT4_phi_branch) { pT4_phi_branch->SetAddress(&pT4_phi_); }
+  }
   t4_phi_branch = 0;
   if (tree->GetBranch("t4_phi") != 0) {
     t4_phi_branch = tree->GetBranch("t4_phi");
@@ -242,6 +292,11 @@ void SDL::Init(TTree *tree) {
   if (tree->GetBranch("sim_T3_matched") != 0) {
     sim_T3_matched_branch = tree->GetBranch("sim_T3_matched");
     if (sim_T3_matched_branch) { sim_T3_matched_branch->SetAddress(&sim_T3_matched_); }
+  }
+  t5_matched_pt_branch = 0;
+  if (tree->GetBranch("t5_matched_pt") != 0) {
+    t5_matched_pt_branch = tree->GetBranch("t5_matched_pt");
+    if (t5_matched_pt_branch) { t5_matched_pt_branch->SetAddress(&t5_matched_pt_); }
   }
   t3_pt_branch = 0;
   if (tree->GetBranch("t3_pt") != 0) {
@@ -253,6 +308,16 @@ void SDL::Init(TTree *tree) {
     module_rings_branch = tree->GetBranch("module_rings");
     if (module_rings_branch) { module_rings_branch->SetAddress(&module_rings_); }
   }
+  t5_innerRadiusMin2S_branch = 0;
+  if (tree->GetBranch("t5_innerRadiusMin2S") != 0) {
+    t5_innerRadiusMin2S_branch = tree->GetBranch("t5_innerRadiusMin2S");
+    if (t5_innerRadiusMin2S_branch) { t5_innerRadiusMin2S_branch->SetAddress(&t5_innerRadiusMin2S_); }
+  }
+  t5_innerRadius_branch = 0;
+  if (tree->GetBranch("t5_innerRadius") != 0) {
+    t5_innerRadius_branch = tree->GetBranch("t5_innerRadius");
+    if (t5_innerRadius_branch) { t5_innerRadius_branch->SetAddress(&t5_innerRadius_); }
+  }
   t4_eta_branch = 0;
   if (tree->GetBranch("t4_eta") != 0) {
     t4_eta_branch = tree->GetBranch("t4_eta");
@@ -263,10 +328,10 @@ void SDL::Init(TTree *tree) {
     sim_pt_branch = tree->GetBranch("sim_pt");
     if (sim_pt_branch) { sim_pt_branch->SetAddress(&sim_pt_); }
   }
-  pLS_isFake_branch = 0;
-  if (tree->GetBranch("pLS_isFake") != 0) {
-    pLS_isFake_branch = tree->GetBranch("pLS_isFake");
-    if (pLS_isFake_branch) { pLS_isFake_branch->SetAddress(&pLS_isFake_); }
+  t5_bridgeRadiusMax_branch = 0;
+  if (tree->GetBranch("t5_bridgeRadiusMax") != 0) {
+    t5_bridgeRadiusMax_branch = tree->GetBranch("t5_bridgeRadiusMax");
+    if (t5_bridgeRadiusMax_branch) { t5_bridgeRadiusMax_branch->SetAddress(&t5_bridgeRadiusMax_); }
   }
   sim_bunchCrossing_branch = 0;
   if (tree->GetBranch("sim_bunchCrossing") != 0) {
@@ -283,30 +348,50 @@ void SDL::Init(TTree *tree) {
     sim_T3_types_branch = tree->GetBranch("sim_T3_types");
     if (sim_T3_types_branch) { sim_T3_types_branch->SetAddress(&sim_T3_types_); }
   }
+  t5_outerRadiusMax_branch = 0;
+  if (tree->GetBranch("t5_outerRadiusMax") != 0) {
+    t5_outerRadiusMax_branch = tree->GetBranch("t5_outerRadiusMax");
+    if (t5_outerRadiusMax_branch) { t5_outerRadiusMax_branch->SetAddress(&t5_outerRadiusMax_); }
+  }
   t4_pt_branch = 0;
   if (tree->GetBranch("t4_pt") != 0) {
     t4_pt_branch = tree->GetBranch("t4_pt");
     if (t4_pt_branch) { t4_pt_branch->SetAddress(&t4_pt_); }
   }
-  pLS_eta_branch = 0;
-  if (tree->GetBranch("pLS_eta") != 0) {
-    pLS_eta_branch = tree->GetBranch("pLS_eta");
-    if (pLS_eta_branch) { pLS_eta_branch->SetAddress(&pLS_eta_); }
+  t5_outerRadius_branch = 0;
+  if (tree->GetBranch("t5_outerRadius") != 0) {
+    t5_outerRadius_branch = tree->GetBranch("t5_outerRadius");
+    if (t5_outerRadius_branch) { t5_outerRadius_branch->SetAddress(&t5_outerRadius_); }
   }
   module_layers_branch = 0;
   if (tree->GetBranch("module_layers") != 0) {
     module_layers_branch = tree->GetBranch("module_layers");
     if (module_layers_branch) { module_layers_branch->SetAddress(&module_layers_); }
   }
+  pT4_eta_branch = 0;
+  if (tree->GetBranch("pT4_eta") != 0) {
+    pT4_eta_branch = tree->GetBranch("pT4_eta");
+    if (pT4_eta_branch) { pT4_eta_branch->SetAddress(&pT4_eta_); }
+  }
   sim_pca_dxy_branch = 0;
   if (tree->GetBranch("sim_pca_dxy") != 0) {
     sim_pca_dxy_branch = tree->GetBranch("sim_pca_dxy");
     if (sim_pca_dxy_branch) { sim_pca_dxy_branch->SetAddress(&sim_pca_dxy_); }
   }
+  t5_outerRadiusMin_branch = 0;
+  if (tree->GetBranch("t5_outerRadiusMin") != 0) {
+    t5_outerRadiusMin_branch = tree->GetBranch("t5_outerRadiusMin");
+    if (t5_outerRadiusMin_branch) { t5_outerRadiusMin_branch->SetAddress(&t5_outerRadiusMin_); }
+  }
   sim_pdgId_branch = 0;
   if (tree->GetBranch("sim_pdgId") != 0) {
     sim_pdgId_branch = tree->GetBranch("sim_pdgId");
     if (sim_pdgId_branch) { sim_pdgId_branch->SetAddress(&sim_pdgId_); }
+  }
+  pLS_phi_branch = 0;
+  if (tree->GetBranch("pLS_phi") != 0) {
+    pLS_phi_branch = tree->GetBranch("pLS_phi");
+    if (pLS_phi_branch) { pLS_phi_branch->SetAddress(&pLS_phi_); }
   }
   tree->SetMakeClass(0);
 }
@@ -316,7 +401,7 @@ void SDL::GetEntry(unsigned int idx) {
   t3_phi_isLoaded = false;
   sim_parentVtxIdx_isLoaded = false;
   t3_isDuplicate_isLoaded = false;
-  pLS_phi_isLoaded = false;
+  t5_outerRadiusMax2S_isLoaded = false;
   sim_event_isLoaded = false;
   sim_pT4_matched_isLoaded = false;
   sim_q_isLoaded = false;
@@ -326,60 +411,77 @@ void SDL::GetEntry(unsigned int idx) {
   sim_T5_matched_isLoaded = false;
   sim_T5_types_isLoaded = false;
   t4_occupancies_isLoaded = false;
-  t5_innerTripletPt_isLoaded = false;
+  pLS_isDuplicate_isLoaded = false;
+  t5_innerRadiusMin_isLoaded = false;
   t3_occupancies_isLoaded = false;
   t5_isDuplicate_isLoaded = false;
   sim_pT4_types_isLoaded = false;
   t5_layer_binary_isLoaded = false;
+  t5_outerRadiusMin2S_isLoaded = false;
   sim_tcIdx_isLoaded = false;
+  pLS_isFake_isLoaded = false;
   t4_isFake_isLoaded = false;
+  pLS_eta_isLoaded = false;
   tc_occupancies_isLoaded = false;
   simvtx_x_isLoaded = false;
   simvtx_y_isLoaded = false;
   simvtx_z_isLoaded = false;
   sim_T4_matched_isLoaded = false;
   sim_TC_matched_isLoaded = false;
-  pLS_isDuplicate_isLoaded = false;
+  t5_bridgeRadiusMin2S_isLoaded = false;
   module_subdets_isLoaded = false;
+  t5_innerRadiusMax2S_isLoaded = false;
   tc_pt_isLoaded = false;
+  t5_innerRadiusMax_isLoaded = false;
   tc_isDuplicate_isLoaded = false;
   pLS_pt_isLoaded = false;
   sim_T4_types_isLoaded = false;
   pT4_isDuplicate_isLoaded = false;
   sim_phi_isLoaded = false;
   t3_isFake_isLoaded = false;
+  t5_bridgeRadiusMax2S_isLoaded = false;
   md_occupancies_isLoaded = false;
   t5_isFake_isLoaded = false;
   sim_TC_types_isLoaded = false;
+  t5_bridgeRadiusMin_isLoaded = false;
   sg_occupancies_isLoaded = false;
   sim_pca_dz_isLoaded = false;
   t4_isDuplicate_isLoaded = false;
+  pT4_pt_isLoaded = false;
   sim_pLS_types_isLoaded = false;
-  t5_outerTripletPt_isLoaded = false;
+  t5_bridgeRadius_isLoaded = false;
   sim_pLS_matched_isLoaded = false;
   pT4_isFake_isLoaded = false;
+  pT4_phi_isLoaded = false;
   t4_phi_isLoaded = false;
   sim_T3_matched_isLoaded = false;
+  t5_matched_pt_isLoaded = false;
   t3_pt_isLoaded = false;
   module_rings_isLoaded = false;
+  t5_innerRadiusMin2S_isLoaded = false;
+  t5_innerRadius_isLoaded = false;
   t4_eta_isLoaded = false;
   sim_pt_isLoaded = false;
-  pLS_isFake_isLoaded = false;
+  t5_bridgeRadiusMax_isLoaded = false;
   sim_bunchCrossing_isLoaded = false;
   tc_isFake_isLoaded = false;
   sim_T3_types_isLoaded = false;
+  t5_outerRadiusMax_isLoaded = false;
   t4_pt_isLoaded = false;
-  pLS_eta_isLoaded = false;
+  t5_outerRadius_isLoaded = false;
   module_layers_isLoaded = false;
+  pT4_eta_isLoaded = false;
   sim_pca_dxy_isLoaded = false;
+  t5_outerRadiusMin_isLoaded = false;
   sim_pdgId_isLoaded = false;
+  pLS_phi_isLoaded = false;
 }
 void SDL::LoadAllBranches() {
   if (t3_eta_branch != 0) t3_eta();
   if (t3_phi_branch != 0) t3_phi();
   if (sim_parentVtxIdx_branch != 0) sim_parentVtxIdx();
   if (t3_isDuplicate_branch != 0) t3_isDuplicate();
-  if (pLS_phi_branch != 0) pLS_phi();
+  if (t5_outerRadiusMax2S_branch != 0) t5_outerRadiusMax2S();
   if (sim_event_branch != 0) sim_event();
   if (sim_pT4_matched_branch != 0) sim_pT4_matched();
   if (sim_q_branch != 0) sim_q();
@@ -389,53 +491,70 @@ void SDL::LoadAllBranches() {
   if (sim_T5_matched_branch != 0) sim_T5_matched();
   if (sim_T5_types_branch != 0) sim_T5_types();
   if (t4_occupancies_branch != 0) t4_occupancies();
-  if (t5_innerTripletPt_branch != 0) t5_innerTripletPt();
+  if (pLS_isDuplicate_branch != 0) pLS_isDuplicate();
+  if (t5_innerRadiusMin_branch != 0) t5_innerRadiusMin();
   if (t3_occupancies_branch != 0) t3_occupancies();
   if (t5_isDuplicate_branch != 0) t5_isDuplicate();
   if (sim_pT4_types_branch != 0) sim_pT4_types();
   if (t5_layer_binary_branch != 0) t5_layer_binary();
+  if (t5_outerRadiusMin2S_branch != 0) t5_outerRadiusMin2S();
   if (sim_tcIdx_branch != 0) sim_tcIdx();
+  if (pLS_isFake_branch != 0) pLS_isFake();
   if (t4_isFake_branch != 0) t4_isFake();
+  if (pLS_eta_branch != 0) pLS_eta();
   if (tc_occupancies_branch != 0) tc_occupancies();
   if (simvtx_x_branch != 0) simvtx_x();
   if (simvtx_y_branch != 0) simvtx_y();
   if (simvtx_z_branch != 0) simvtx_z();
   if (sim_T4_matched_branch != 0) sim_T4_matched();
   if (sim_TC_matched_branch != 0) sim_TC_matched();
-  if (pLS_isDuplicate_branch != 0) pLS_isDuplicate();
+  if (t5_bridgeRadiusMin2S_branch != 0) t5_bridgeRadiusMin2S();
   if (module_subdets_branch != 0) module_subdets();
+  if (t5_innerRadiusMax2S_branch != 0) t5_innerRadiusMax2S();
   if (tc_pt_branch != 0) tc_pt();
+  if (t5_innerRadiusMax_branch != 0) t5_innerRadiusMax();
   if (tc_isDuplicate_branch != 0) tc_isDuplicate();
   if (pLS_pt_branch != 0) pLS_pt();
   if (sim_T4_types_branch != 0) sim_T4_types();
   if (pT4_isDuplicate_branch != 0) pT4_isDuplicate();
   if (sim_phi_branch != 0) sim_phi();
   if (t3_isFake_branch != 0) t3_isFake();
+  if (t5_bridgeRadiusMax2S_branch != 0) t5_bridgeRadiusMax2S();
   if (md_occupancies_branch != 0) md_occupancies();
   if (t5_isFake_branch != 0) t5_isFake();
   if (sim_TC_types_branch != 0) sim_TC_types();
+  if (t5_bridgeRadiusMin_branch != 0) t5_bridgeRadiusMin();
   if (sg_occupancies_branch != 0) sg_occupancies();
   if (sim_pca_dz_branch != 0) sim_pca_dz();
   if (t4_isDuplicate_branch != 0) t4_isDuplicate();
+  if (pT4_pt_branch != 0) pT4_pt();
   if (sim_pLS_types_branch != 0) sim_pLS_types();
-  if (t5_outerTripletPt_branch != 0) t5_outerTripletPt();
+  if (t5_bridgeRadius_branch != 0) t5_bridgeRadius();
   if (sim_pLS_matched_branch != 0) sim_pLS_matched();
   if (pT4_isFake_branch != 0) pT4_isFake();
+  if (pT4_phi_branch != 0) pT4_phi();
   if (t4_phi_branch != 0) t4_phi();
   if (sim_T3_matched_branch != 0) sim_T3_matched();
+  if (t5_matched_pt_branch != 0) t5_matched_pt();
   if (t3_pt_branch != 0) t3_pt();
   if (module_rings_branch != 0) module_rings();
+  if (t5_innerRadiusMin2S_branch != 0) t5_innerRadiusMin2S();
+  if (t5_innerRadius_branch != 0) t5_innerRadius();
   if (t4_eta_branch != 0) t4_eta();
   if (sim_pt_branch != 0) sim_pt();
-  if (pLS_isFake_branch != 0) pLS_isFake();
+  if (t5_bridgeRadiusMax_branch != 0) t5_bridgeRadiusMax();
   if (sim_bunchCrossing_branch != 0) sim_bunchCrossing();
   if (tc_isFake_branch != 0) tc_isFake();
   if (sim_T3_types_branch != 0) sim_T3_types();
+  if (t5_outerRadiusMax_branch != 0) t5_outerRadiusMax();
   if (t4_pt_branch != 0) t4_pt();
-  if (pLS_eta_branch != 0) pLS_eta();
+  if (t5_outerRadius_branch != 0) t5_outerRadius();
   if (module_layers_branch != 0) module_layers();
+  if (pT4_eta_branch != 0) pT4_eta();
   if (sim_pca_dxy_branch != 0) sim_pca_dxy();
+  if (t5_outerRadiusMin_branch != 0) t5_outerRadiusMin();
   if (sim_pdgId_branch != 0) sim_pdgId();
+  if (pLS_phi_branch != 0) pLS_phi();
 }
 const vector<float> &SDL::t3_eta() {
   if (not t3_eta_isLoaded) {
@@ -485,17 +604,17 @@ const vector<int> &SDL::t3_isDuplicate() {
   }
   return *t3_isDuplicate_;
 }
-const vector<float> &SDL::pLS_phi() {
-  if (not pLS_phi_isLoaded) {
-    if (pLS_phi_branch != 0) {
-      pLS_phi_branch->GetEntry(index);
+const vector<float> &SDL::t5_outerRadiusMax2S() {
+  if (not t5_outerRadiusMax2S_isLoaded) {
+    if (t5_outerRadiusMax2S_branch != 0) {
+      t5_outerRadiusMax2S_branch->GetEntry(index);
     } else {
-      printf("branch pLS_phi_branch does not exist!\n");
+      printf("branch t5_outerRadiusMax2S_branch does not exist!\n");
       exit(1);
     }
-    pLS_phi_isLoaded = true;
+    t5_outerRadiusMax2S_isLoaded = true;
   }
-  return *pLS_phi_;
+  return *t5_outerRadiusMax2S_;
 }
 const vector<int> &SDL::sim_event() {
   if (not sim_event_isLoaded) {
@@ -605,17 +724,29 @@ const vector<int> &SDL::t4_occupancies() {
   }
   return *t4_occupancies_;
 }
-const vector<float> &SDL::t5_innerTripletPt() {
-  if (not t5_innerTripletPt_isLoaded) {
-    if (t5_innerTripletPt_branch != 0) {
-      t5_innerTripletPt_branch->GetEntry(index);
+const vector<int> &SDL::pLS_isDuplicate() {
+  if (not pLS_isDuplicate_isLoaded) {
+    if (pLS_isDuplicate_branch != 0) {
+      pLS_isDuplicate_branch->GetEntry(index);
     } else {
-      printf("branch t5_innerTripletPt_branch does not exist!\n");
+      printf("branch pLS_isDuplicate_branch does not exist!\n");
       exit(1);
     }
-    t5_innerTripletPt_isLoaded = true;
+    pLS_isDuplicate_isLoaded = true;
   }
-  return *t5_innerTripletPt_;
+  return *pLS_isDuplicate_;
+}
+const vector<float> &SDL::t5_innerRadiusMin() {
+  if (not t5_innerRadiusMin_isLoaded) {
+    if (t5_innerRadiusMin_branch != 0) {
+      t5_innerRadiusMin_branch->GetEntry(index);
+    } else {
+      printf("branch t5_innerRadiusMin_branch does not exist!\n");
+      exit(1);
+    }
+    t5_innerRadiusMin_isLoaded = true;
+  }
+  return *t5_innerRadiusMin_;
 }
 const vector<int> &SDL::t3_occupancies() {
   if (not t3_occupancies_isLoaded) {
@@ -665,6 +796,18 @@ const vector<int> &SDL::t5_layer_binary() {
   }
   return *t5_layer_binary_;
 }
+const vector<float> &SDL::t5_outerRadiusMin2S() {
+  if (not t5_outerRadiusMin2S_isLoaded) {
+    if (t5_outerRadiusMin2S_branch != 0) {
+      t5_outerRadiusMin2S_branch->GetEntry(index);
+    } else {
+      printf("branch t5_outerRadiusMin2S_branch does not exist!\n");
+      exit(1);
+    }
+    t5_outerRadiusMin2S_isLoaded = true;
+  }
+  return *t5_outerRadiusMin2S_;
+}
 const vector<vector<int> > &SDL::sim_tcIdx() {
   if (not sim_tcIdx_isLoaded) {
     if (sim_tcIdx_branch != 0) {
@@ -677,6 +820,18 @@ const vector<vector<int> > &SDL::sim_tcIdx() {
   }
   return *sim_tcIdx_;
 }
+const vector<int> &SDL::pLS_isFake() {
+  if (not pLS_isFake_isLoaded) {
+    if (pLS_isFake_branch != 0) {
+      pLS_isFake_branch->GetEntry(index);
+    } else {
+      printf("branch pLS_isFake_branch does not exist!\n");
+      exit(1);
+    }
+    pLS_isFake_isLoaded = true;
+  }
+  return *pLS_isFake_;
+}
 const vector<int> &SDL::t4_isFake() {
   if (not t4_isFake_isLoaded) {
     if (t4_isFake_branch != 0) {
@@ -688,6 +843,18 @@ const vector<int> &SDL::t4_isFake() {
     t4_isFake_isLoaded = true;
   }
   return *t4_isFake_;
+}
+const vector<float> &SDL::pLS_eta() {
+  if (not pLS_eta_isLoaded) {
+    if (pLS_eta_branch != 0) {
+      pLS_eta_branch->GetEntry(index);
+    } else {
+      printf("branch pLS_eta_branch does not exist!\n");
+      exit(1);
+    }
+    pLS_eta_isLoaded = true;
+  }
+  return *pLS_eta_;
 }
 const vector<int> &SDL::tc_occupancies() {
   if (not tc_occupancies_isLoaded) {
@@ -761,17 +928,17 @@ const vector<int> &SDL::sim_TC_matched() {
   }
   return *sim_TC_matched_;
 }
-const vector<int> &SDL::pLS_isDuplicate() {
-  if (not pLS_isDuplicate_isLoaded) {
-    if (pLS_isDuplicate_branch != 0) {
-      pLS_isDuplicate_branch->GetEntry(index);
+const vector<float> &SDL::t5_bridgeRadiusMin2S() {
+  if (not t5_bridgeRadiusMin2S_isLoaded) {
+    if (t5_bridgeRadiusMin2S_branch != 0) {
+      t5_bridgeRadiusMin2S_branch->GetEntry(index);
     } else {
-      printf("branch pLS_isDuplicate_branch does not exist!\n");
+      printf("branch t5_bridgeRadiusMin2S_branch does not exist!\n");
       exit(1);
     }
-    pLS_isDuplicate_isLoaded = true;
+    t5_bridgeRadiusMin2S_isLoaded = true;
   }
-  return *pLS_isDuplicate_;
+  return *t5_bridgeRadiusMin2S_;
 }
 const vector<int> &SDL::module_subdets() {
   if (not module_subdets_isLoaded) {
@@ -785,6 +952,18 @@ const vector<int> &SDL::module_subdets() {
   }
   return *module_subdets_;
 }
+const vector<float> &SDL::t5_innerRadiusMax2S() {
+  if (not t5_innerRadiusMax2S_isLoaded) {
+    if (t5_innerRadiusMax2S_branch != 0) {
+      t5_innerRadiusMax2S_branch->GetEntry(index);
+    } else {
+      printf("branch t5_innerRadiusMax2S_branch does not exist!\n");
+      exit(1);
+    }
+    t5_innerRadiusMax2S_isLoaded = true;
+  }
+  return *t5_innerRadiusMax2S_;
+}
 const vector<float> &SDL::tc_pt() {
   if (not tc_pt_isLoaded) {
     if (tc_pt_branch != 0) {
@@ -796,6 +975,18 @@ const vector<float> &SDL::tc_pt() {
     tc_pt_isLoaded = true;
   }
   return *tc_pt_;
+}
+const vector<float> &SDL::t5_innerRadiusMax() {
+  if (not t5_innerRadiusMax_isLoaded) {
+    if (t5_innerRadiusMax_branch != 0) {
+      t5_innerRadiusMax_branch->GetEntry(index);
+    } else {
+      printf("branch t5_innerRadiusMax_branch does not exist!\n");
+      exit(1);
+    }
+    t5_innerRadiusMax_isLoaded = true;
+  }
+  return *t5_innerRadiusMax_;
 }
 const vector<int> &SDL::tc_isDuplicate() {
   if (not tc_isDuplicate_isLoaded) {
@@ -869,6 +1060,18 @@ const vector<int> &SDL::t3_isFake() {
   }
   return *t3_isFake_;
 }
+const vector<float> &SDL::t5_bridgeRadiusMax2S() {
+  if (not t5_bridgeRadiusMax2S_isLoaded) {
+    if (t5_bridgeRadiusMax2S_branch != 0) {
+      t5_bridgeRadiusMax2S_branch->GetEntry(index);
+    } else {
+      printf("branch t5_bridgeRadiusMax2S_branch does not exist!\n");
+      exit(1);
+    }
+    t5_bridgeRadiusMax2S_isLoaded = true;
+  }
+  return *t5_bridgeRadiusMax2S_;
+}
 const vector<int> &SDL::md_occupancies() {
   if (not md_occupancies_isLoaded) {
     if (md_occupancies_branch != 0) {
@@ -904,6 +1107,18 @@ const vector<vector<int> > &SDL::sim_TC_types() {
     sim_TC_types_isLoaded = true;
   }
   return *sim_TC_types_;
+}
+const vector<float> &SDL::t5_bridgeRadiusMin() {
+  if (not t5_bridgeRadiusMin_isLoaded) {
+    if (t5_bridgeRadiusMin_branch != 0) {
+      t5_bridgeRadiusMin_branch->GetEntry(index);
+    } else {
+      printf("branch t5_bridgeRadiusMin_branch does not exist!\n");
+      exit(1);
+    }
+    t5_bridgeRadiusMin_isLoaded = true;
+  }
+  return *t5_bridgeRadiusMin_;
 }
 const vector<int> &SDL::sg_occupancies() {
   if (not sg_occupancies_isLoaded) {
@@ -941,6 +1156,18 @@ const vector<int> &SDL::t4_isDuplicate() {
   }
   return *t4_isDuplicate_;
 }
+const vector<float> &SDL::pT4_pt() {
+  if (not pT4_pt_isLoaded) {
+    if (pT4_pt_branch != 0) {
+      pT4_pt_branch->GetEntry(index);
+    } else {
+      printf("branch pT4_pt_branch does not exist!\n");
+      exit(1);
+    }
+    pT4_pt_isLoaded = true;
+  }
+  return *pT4_pt_;
+}
 const vector<vector<int> > &SDL::sim_pLS_types() {
   if (not sim_pLS_types_isLoaded) {
     if (sim_pLS_types_branch != 0) {
@@ -953,17 +1180,17 @@ const vector<vector<int> > &SDL::sim_pLS_types() {
   }
   return *sim_pLS_types_;
 }
-const vector<float> &SDL::t5_outerTripletPt() {
-  if (not t5_outerTripletPt_isLoaded) {
-    if (t5_outerTripletPt_branch != 0) {
-      t5_outerTripletPt_branch->GetEntry(index);
+const vector<float> &SDL::t5_bridgeRadius() {
+  if (not t5_bridgeRadius_isLoaded) {
+    if (t5_bridgeRadius_branch != 0) {
+      t5_bridgeRadius_branch->GetEntry(index);
     } else {
-      printf("branch t5_outerTripletPt_branch does not exist!\n");
+      printf("branch t5_bridgeRadius_branch does not exist!\n");
       exit(1);
     }
-    t5_outerTripletPt_isLoaded = true;
+    t5_bridgeRadius_isLoaded = true;
   }
-  return *t5_outerTripletPt_;
+  return *t5_bridgeRadius_;
 }
 const vector<int> &SDL::sim_pLS_matched() {
   if (not sim_pLS_matched_isLoaded) {
@@ -989,6 +1216,18 @@ const vector<int> &SDL::pT4_isFake() {
   }
   return *pT4_isFake_;
 }
+const vector<float> &SDL::pT4_phi() {
+  if (not pT4_phi_isLoaded) {
+    if (pT4_phi_branch != 0) {
+      pT4_phi_branch->GetEntry(index);
+    } else {
+      printf("branch pT4_phi_branch does not exist!\n");
+      exit(1);
+    }
+    pT4_phi_isLoaded = true;
+  }
+  return *pT4_phi_;
+}
 const vector<float> &SDL::t4_phi() {
   if (not t4_phi_isLoaded) {
     if (t4_phi_branch != 0) {
@@ -1012,6 +1251,18 @@ const vector<int> &SDL::sim_T3_matched() {
     sim_T3_matched_isLoaded = true;
   }
   return *sim_T3_matched_;
+}
+const vector<vector<float> > &SDL::t5_matched_pt() {
+  if (not t5_matched_pt_isLoaded) {
+    if (t5_matched_pt_branch != 0) {
+      t5_matched_pt_branch->GetEntry(index);
+    } else {
+      printf("branch t5_matched_pt_branch does not exist!\n");
+      exit(1);
+    }
+    t5_matched_pt_isLoaded = true;
+  }
+  return *t5_matched_pt_;
 }
 const vector<float> &SDL::t3_pt() {
   if (not t3_pt_isLoaded) {
@@ -1037,6 +1288,30 @@ const vector<int> &SDL::module_rings() {
   }
   return *module_rings_;
 }
+const vector<float> &SDL::t5_innerRadiusMin2S() {
+  if (not t5_innerRadiusMin2S_isLoaded) {
+    if (t5_innerRadiusMin2S_branch != 0) {
+      t5_innerRadiusMin2S_branch->GetEntry(index);
+    } else {
+      printf("branch t5_innerRadiusMin2S_branch does not exist!\n");
+      exit(1);
+    }
+    t5_innerRadiusMin2S_isLoaded = true;
+  }
+  return *t5_innerRadiusMin2S_;
+}
+const vector<float> &SDL::t5_innerRadius() {
+  if (not t5_innerRadius_isLoaded) {
+    if (t5_innerRadius_branch != 0) {
+      t5_innerRadius_branch->GetEntry(index);
+    } else {
+      printf("branch t5_innerRadius_branch does not exist!\n");
+      exit(1);
+    }
+    t5_innerRadius_isLoaded = true;
+  }
+  return *t5_innerRadius_;
+}
 const vector<float> &SDL::t4_eta() {
   if (not t4_eta_isLoaded) {
     if (t4_eta_branch != 0) {
@@ -1061,17 +1336,17 @@ const vector<float> &SDL::sim_pt() {
   }
   return *sim_pt_;
 }
-const vector<int> &SDL::pLS_isFake() {
-  if (not pLS_isFake_isLoaded) {
-    if (pLS_isFake_branch != 0) {
-      pLS_isFake_branch->GetEntry(index);
+const vector<float> &SDL::t5_bridgeRadiusMax() {
+  if (not t5_bridgeRadiusMax_isLoaded) {
+    if (t5_bridgeRadiusMax_branch != 0) {
+      t5_bridgeRadiusMax_branch->GetEntry(index);
     } else {
-      printf("branch pLS_isFake_branch does not exist!\n");
+      printf("branch t5_bridgeRadiusMax_branch does not exist!\n");
       exit(1);
     }
-    pLS_isFake_isLoaded = true;
+    t5_bridgeRadiusMax_isLoaded = true;
   }
-  return *pLS_isFake_;
+  return *t5_bridgeRadiusMax_;
 }
 const vector<int> &SDL::sim_bunchCrossing() {
   if (not sim_bunchCrossing_isLoaded) {
@@ -1109,6 +1384,18 @@ const vector<vector<int> > &SDL::sim_T3_types() {
   }
   return *sim_T3_types_;
 }
+const vector<float> &SDL::t5_outerRadiusMax() {
+  if (not t5_outerRadiusMax_isLoaded) {
+    if (t5_outerRadiusMax_branch != 0) {
+      t5_outerRadiusMax_branch->GetEntry(index);
+    } else {
+      printf("branch t5_outerRadiusMax_branch does not exist!\n");
+      exit(1);
+    }
+    t5_outerRadiusMax_isLoaded = true;
+  }
+  return *t5_outerRadiusMax_;
+}
 const vector<float> &SDL::t4_pt() {
   if (not t4_pt_isLoaded) {
     if (t4_pt_branch != 0) {
@@ -1121,17 +1408,17 @@ const vector<float> &SDL::t4_pt() {
   }
   return *t4_pt_;
 }
-const vector<float> &SDL::pLS_eta() {
-  if (not pLS_eta_isLoaded) {
-    if (pLS_eta_branch != 0) {
-      pLS_eta_branch->GetEntry(index);
+const vector<float> &SDL::t5_outerRadius() {
+  if (not t5_outerRadius_isLoaded) {
+    if (t5_outerRadius_branch != 0) {
+      t5_outerRadius_branch->GetEntry(index);
     } else {
-      printf("branch pLS_eta_branch does not exist!\n");
+      printf("branch t5_outerRadius_branch does not exist!\n");
       exit(1);
     }
-    pLS_eta_isLoaded = true;
+    t5_outerRadius_isLoaded = true;
   }
-  return *pLS_eta_;
+  return *t5_outerRadius_;
 }
 const vector<int> &SDL::module_layers() {
   if (not module_layers_isLoaded) {
@@ -1145,6 +1432,18 @@ const vector<int> &SDL::module_layers() {
   }
   return *module_layers_;
 }
+const vector<float> &SDL::pT4_eta() {
+  if (not pT4_eta_isLoaded) {
+    if (pT4_eta_branch != 0) {
+      pT4_eta_branch->GetEntry(index);
+    } else {
+      printf("branch pT4_eta_branch does not exist!\n");
+      exit(1);
+    }
+    pT4_eta_isLoaded = true;
+  }
+  return *pT4_eta_;
+}
 const vector<float> &SDL::sim_pca_dxy() {
   if (not sim_pca_dxy_isLoaded) {
     if (sim_pca_dxy_branch != 0) {
@@ -1157,6 +1456,18 @@ const vector<float> &SDL::sim_pca_dxy() {
   }
   return *sim_pca_dxy_;
 }
+const vector<float> &SDL::t5_outerRadiusMin() {
+  if (not t5_outerRadiusMin_isLoaded) {
+    if (t5_outerRadiusMin_branch != 0) {
+      t5_outerRadiusMin_branch->GetEntry(index);
+    } else {
+      printf("branch t5_outerRadiusMin_branch does not exist!\n");
+      exit(1);
+    }
+    t5_outerRadiusMin_isLoaded = true;
+  }
+  return *t5_outerRadiusMin_;
+}
 const vector<int> &SDL::sim_pdgId() {
   if (not sim_pdgId_isLoaded) {
     if (sim_pdgId_branch != 0) {
@@ -1168,6 +1479,18 @@ const vector<int> &SDL::sim_pdgId() {
     sim_pdgId_isLoaded = true;
   }
   return *sim_pdgId_;
+}
+const vector<float> &SDL::pLS_phi() {
+  if (not pLS_phi_isLoaded) {
+    if (pLS_phi_branch != 0) {
+      pLS_phi_branch->GetEntry(index);
+    } else {
+      printf("branch pLS_phi_branch does not exist!\n");
+      exit(1);
+    }
+    pLS_phi_isLoaded = true;
+  }
+  return *pLS_phi_;
 }
 void SDL::progress( int nEventsTotal, int nEventsChain ){
   int period = 1000;
@@ -1192,7 +1515,7 @@ namespace tas {
   const vector<float> &t3_phi() { return sdl.t3_phi(); }
   const vector<int> &sim_parentVtxIdx() { return sdl.sim_parentVtxIdx(); }
   const vector<int> &t3_isDuplicate() { return sdl.t3_isDuplicate(); }
-  const vector<float> &pLS_phi() { return sdl.pLS_phi(); }
+  const vector<float> &t5_outerRadiusMax2S() { return sdl.t5_outerRadiusMax2S(); }
   const vector<int> &sim_event() { return sdl.sim_event(); }
   const vector<int> &sim_pT4_matched() { return sdl.sim_pT4_matched(); }
   const vector<int> &sim_q() { return sdl.sim_q(); }
@@ -1202,51 +1525,68 @@ namespace tas {
   const vector<int> &sim_T5_matched() { return sdl.sim_T5_matched(); }
   const vector<vector<int> > &sim_T5_types() { return sdl.sim_T5_types(); }
   const vector<int> &t4_occupancies() { return sdl.t4_occupancies(); }
-  const vector<float> &t5_innerTripletPt() { return sdl.t5_innerTripletPt(); }
+  const vector<int> &pLS_isDuplicate() { return sdl.pLS_isDuplicate(); }
+  const vector<float> &t5_innerRadiusMin() { return sdl.t5_innerRadiusMin(); }
   const vector<int> &t3_occupancies() { return sdl.t3_occupancies(); }
   const vector<int> &t5_isDuplicate() { return sdl.t5_isDuplicate(); }
   const vector<vector<int> > &sim_pT4_types() { return sdl.sim_pT4_types(); }
   const vector<int> &t5_layer_binary() { return sdl.t5_layer_binary(); }
+  const vector<float> &t5_outerRadiusMin2S() { return sdl.t5_outerRadiusMin2S(); }
   const vector<vector<int> > &sim_tcIdx() { return sdl.sim_tcIdx(); }
+  const vector<int> &pLS_isFake() { return sdl.pLS_isFake(); }
   const vector<int> &t4_isFake() { return sdl.t4_isFake(); }
+  const vector<float> &pLS_eta() { return sdl.pLS_eta(); }
   const vector<int> &tc_occupancies() { return sdl.tc_occupancies(); }
   const vector<float> &simvtx_x() { return sdl.simvtx_x(); }
   const vector<float> &simvtx_y() { return sdl.simvtx_y(); }
   const vector<float> &simvtx_z() { return sdl.simvtx_z(); }
   const vector<int> &sim_T4_matched() { return sdl.sim_T4_matched(); }
   const vector<int> &sim_TC_matched() { return sdl.sim_TC_matched(); }
-  const vector<int> &pLS_isDuplicate() { return sdl.pLS_isDuplicate(); }
+  const vector<float> &t5_bridgeRadiusMin2S() { return sdl.t5_bridgeRadiusMin2S(); }
   const vector<int> &module_subdets() { return sdl.module_subdets(); }
+  const vector<float> &t5_innerRadiusMax2S() { return sdl.t5_innerRadiusMax2S(); }
   const vector<float> &tc_pt() { return sdl.tc_pt(); }
+  const vector<float> &t5_innerRadiusMax() { return sdl.t5_innerRadiusMax(); }
   const vector<int> &tc_isDuplicate() { return sdl.tc_isDuplicate(); }
   const vector<float> &pLS_pt() { return sdl.pLS_pt(); }
   const vector<vector<int> > &sim_T4_types() { return sdl.sim_T4_types(); }
   const vector<int> &pT4_isDuplicate() { return sdl.pT4_isDuplicate(); }
   const vector<float> &sim_phi() { return sdl.sim_phi(); }
   const vector<int> &t3_isFake() { return sdl.t3_isFake(); }
+  const vector<float> &t5_bridgeRadiusMax2S() { return sdl.t5_bridgeRadiusMax2S(); }
   const vector<int> &md_occupancies() { return sdl.md_occupancies(); }
   const vector<int> &t5_isFake() { return sdl.t5_isFake(); }
   const vector<vector<int> > &sim_TC_types() { return sdl.sim_TC_types(); }
+  const vector<float> &t5_bridgeRadiusMin() { return sdl.t5_bridgeRadiusMin(); }
   const vector<int> &sg_occupancies() { return sdl.sg_occupancies(); }
   const vector<float> &sim_pca_dz() { return sdl.sim_pca_dz(); }
   const vector<int> &t4_isDuplicate() { return sdl.t4_isDuplicate(); }
+  const vector<float> &pT4_pt() { return sdl.pT4_pt(); }
   const vector<vector<int> > &sim_pLS_types() { return sdl.sim_pLS_types(); }
-  const vector<float> &t5_outerTripletPt() { return sdl.t5_outerTripletPt(); }
+  const vector<float> &t5_bridgeRadius() { return sdl.t5_bridgeRadius(); }
   const vector<int> &sim_pLS_matched() { return sdl.sim_pLS_matched(); }
   const vector<int> &pT4_isFake() { return sdl.pT4_isFake(); }
+  const vector<float> &pT4_phi() { return sdl.pT4_phi(); }
   const vector<float> &t4_phi() { return sdl.t4_phi(); }
   const vector<int> &sim_T3_matched() { return sdl.sim_T3_matched(); }
+  const vector<vector<float> > &t5_matched_pt() { return sdl.t5_matched_pt(); }
   const vector<float> &t3_pt() { return sdl.t3_pt(); }
   const vector<int> &module_rings() { return sdl.module_rings(); }
+  const vector<float> &t5_innerRadiusMin2S() { return sdl.t5_innerRadiusMin2S(); }
+  const vector<float> &t5_innerRadius() { return sdl.t5_innerRadius(); }
   const vector<float> &t4_eta() { return sdl.t4_eta(); }
   const vector<float> &sim_pt() { return sdl.sim_pt(); }
-  const vector<int> &pLS_isFake() { return sdl.pLS_isFake(); }
+  const vector<float> &t5_bridgeRadiusMax() { return sdl.t5_bridgeRadiusMax(); }
   const vector<int> &sim_bunchCrossing() { return sdl.sim_bunchCrossing(); }
   const vector<int> &tc_isFake() { return sdl.tc_isFake(); }
   const vector<vector<int> > &sim_T3_types() { return sdl.sim_T3_types(); }
+  const vector<float> &t5_outerRadiusMax() { return sdl.t5_outerRadiusMax(); }
   const vector<float> &t4_pt() { return sdl.t4_pt(); }
-  const vector<float> &pLS_eta() { return sdl.pLS_eta(); }
+  const vector<float> &t5_outerRadius() { return sdl.t5_outerRadius(); }
   const vector<int> &module_layers() { return sdl.module_layers(); }
+  const vector<float> &pT4_eta() { return sdl.pT4_eta(); }
   const vector<float> &sim_pca_dxy() { return sdl.sim_pca_dxy(); }
+  const vector<float> &t5_outerRadiusMin() { return sdl.t5_outerRadiusMin(); }
   const vector<int> &sim_pdgId() { return sdl.sim_pdgId(); }
+  const vector<float> &pLS_phi() { return sdl.pLS_phi(); }
 }

@@ -18,6 +18,7 @@
 // Common
 void createOutputBranches();
 void createLowerLevelOutputBranches();
+void createQuintupletCutValueBranches();
 void createQuadrupletCutValueBranches();
 void createTripletCutValueBranches();
 void createSegmentCutValueBranches();
@@ -42,6 +43,7 @@ void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillLowerLevelOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillTripletOutputBranches_for_CPU(SDL::CPU::Event& event);
+void fillPixelQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event);
 
 // Timing
 void printTimingInformation(std::vector<std::vector<float>> timing_information);

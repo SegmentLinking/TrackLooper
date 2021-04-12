@@ -66,6 +66,14 @@ echo "  PDGID             : ${PDGID}"
 echo "  FORCE             : ${FORCE}"
 echo ""
 
+# Check the input file exists
+if [ -f "$INPUTFILE" ]; then
+    :
+else
+    echo "${INPUTFILE} does not exist! Check your arguments"
+    exit
+fi
+
 # Get tag from the efficiency file
 echo "Parsing repository git hash tag..."
 PYTHON_CODE=$(cat <<END

@@ -1,6 +1,27 @@
 #include "ModuleConnectionMap.h"
 
 SDL::ModuleConnectionMap SDL::moduleConnectionMap;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet5;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet5;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet5;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet4;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet4;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet4;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer4Subdet4;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet5_pos;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet5_pos;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet5_pos;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet4_pos;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet4_pos;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet4_pos;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer4Subdet4_pos;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet5_neg;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet5_neg;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet5_neg;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet4_neg;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet4_neg;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet4_neg;
+SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer4Subdet4_neg;
 
 SDL::ModuleConnectionMap::ModuleConnectionMap()
 {
