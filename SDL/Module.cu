@@ -23,6 +23,7 @@ void SDL::createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int
     modulesInGPU.isInverted =               (bool*)cms::cuda::allocate_managed(nModules * sizeof(bool),stream);
     modulesInGPU.isLower =                  (bool*)cms::cuda::allocate_managed(nModules * sizeof(bool),stream);
     modulesInGPU.nEligibleModules =     (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
+    modulesInGPU.nEligibleT5Modules =   (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
 
     modulesInGPU.hitRanges =                 (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
     modulesInGPU.mdRanges =                  (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
@@ -50,6 +51,7 @@ void SDL::createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int
     cudaMallocManaged(&modulesInGPU.isInverted, nModules * sizeof(bool));
     cudaMallocManaged(&modulesInGPU.isLower, nModules * sizeof(bool));
     cudaMallocManaged(&modulesInGPU.nEligibleModules,sizeof(unsigned int));
+    cudaMallocManaged(&modulesInGPU.nEligibleT5Modules, sizeof(unsigned int));
 
     cudaMallocManaged(&modulesInGPU.hitRanges,nModules * 2 * sizeof(int));
     cudaMallocManaged(&modulesInGPU.mdRanges,nModules * 2 * sizeof(int));
@@ -89,6 +91,7 @@ void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned in
     modulesInGPU.isInverted =                (bool*)cms::cuda::allocate_device(dev,nModules * sizeof(bool),stream);
     modulesInGPU.isLower =                   (bool*)cms::cuda::allocate_device(dev,nModules * sizeof(bool),stream);
     modulesInGPU.nEligibleModules =     (unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
+    modulesInGPU.nEligibleT5Modules =   (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int), stream);
 
     modulesInGPU.hitRanges =                  (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
     modulesInGPU.mdRanges =                   (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
@@ -116,6 +119,7 @@ void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned in
     cudaMalloc(&modulesInGPU.isInverted, nModules * sizeof(bool));
     cudaMalloc(&modulesInGPU.isLower, nModules * sizeof(bool));
     cudaMalloc(&modulesInGPU.nEligibleModules,sizeof(unsigned int));
+    cudaMalloc(&modulesInGPU.nEligibleT5Modules, sizeof(unsigned int));
 
     cudaMalloc(&modulesInGPU.hitRanges,nModules * 2 * sizeof(int));
     cudaMalloc(&modulesInGPU.mdRanges,nModules * 2 * sizeof(int));
@@ -162,7 +166,9 @@ void SDL::freeModulesCache(struct modules& modulesInGPU)
   cms::cuda::free_device(dev,modulesInGPU.lowerModuleIndices);
   cms::cuda::free_device(dev,modulesInGPU.reverseLookupLowerModuleIndices);
   cms::cuda::free_device(dev,modulesInGPU.trackCandidateModuleIndices);
+  cms::cuda::free_device(dev,modulesInGPU.quintupletModuleIndices);
   cms::cuda::free_device(dev,modulesInGPU.nEligibleModules);
+  cms::cuda::free_device(dev,modulesInGPU.nEligibleT5Modules);
 #else
   cms::cuda::free_managed(modulesInGPU.detIds);
   cms::cuda::free_managed(modulesInGPU.moduleMap);
@@ -190,7 +196,9 @@ void SDL::freeModulesCache(struct modules& modulesInGPU)
   cms::cuda::free_managed(modulesInGPU.lowerModuleIndices);
   cms::cuda::free_managed(modulesInGPU.reverseLookupLowerModuleIndices);
   cms::cuda::free_managed(modulesInGPU.trackCandidateModuleIndices);
+  cms::cuda::free_managed(modulesInGPU.quintupletModuleIndices);
   cms::cuda::free_managed(modulesInGPU.nEligibleModules);
+  cms::cuda::free_managed(modulesInGPU.nEligibleT5Modules);
 #endif
 }
 void SDL::freeModules(struct modules& modulesInGPU)
@@ -221,7 +229,9 @@ void SDL::freeModules(struct modules& modulesInGPU)
   cudaFree(modulesInGPU.lowerModuleIndices);
   cudaFree(modulesInGPU.reverseLookupLowerModuleIndices);
   cudaFree(modulesInGPU.trackCandidateModuleIndices);
+  cudaFree(modulesInGPU.quintupletModuleIndices);
   cudaFree(modulesInGPU.nEligibleModules);
+  cudaFree(modulesInGPU.nEligibleT5Modules);
 }
 
 void SDL::createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules,bool* isLower)
@@ -259,10 +269,12 @@ void SDL::createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsign
     modulesInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_device(dev,(nLowerModules + 1) * sizeof(unsigned int),stream);
     modulesInGPU.reverseLookupLowerModuleIndices = (int*)cms::cuda::allocate_device(dev,nModules * sizeof(int),stream);
     modulesInGPU.trackCandidateModuleIndices = (int*)cms::cuda::allocate_device(dev,(nLowerModules + 1) * sizeof(int),stream);
+    modulesInGPU.quintupletModuleIndices = (int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(int), stream);
     #else
     cudaMalloc(&modulesInGPU.lowerModuleIndices,(nLowerModules + 1) * sizeof(unsigned int));
     cudaMalloc(&modulesInGPU.reverseLookupLowerModuleIndices,nModules * sizeof(int));
     cudaMalloc(&modulesInGPU.trackCandidateModuleIndices, (nLowerModules + 1) * sizeof(int));
+    cudaMalloc(&modulesInGPU.quintupletModuleIndices, nLowerModules * sizeof(int));
     #endif
     cudaMemcpy(modulesInGPU.lowerModuleIndices,lowerModuleIndices,sizeof(unsigned int)*(nLowerModules+1),cudaMemcpyHostToDevice);
     cudaMemcpy(modulesInGPU.reverseLookupLowerModuleIndices,reverseLookupLowerModuleIndices,sizeof(int)*nModules,cudaMemcpyHostToDevice);
@@ -279,10 +291,12 @@ void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int n
     modulesInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_managed((nLowerModules + 1) * sizeof(unsigned int),stream);
     modulesInGPU.reverseLookupLowerModuleIndices = (int*)cms::cuda::allocate_managed(nModules * sizeof(int),stream);
     modulesInGPU.trackCandidateModuleIndices = (int*)cms::cuda::allocate_managed((nLowerModules + 1) * sizeof(int),stream);
+    modulesInGPU.quintupletModuleIndices = (int*)cms::cuda::allocate_managed(nLowerModules * sizeof(int), stream);
     #else
     cudaMallocManaged(&modulesInGPU.lowerModuleIndices,(nLowerModules + 1) * sizeof(unsigned int));
     cudaMallocManaged(&modulesInGPU.reverseLookupLowerModuleIndices,nModules * sizeof(int));
     cudaMallocManaged(&modulesInGPU.trackCandidateModuleIndices, (nLowerModules + 1) * sizeof(int));
+    cudaMallocManaged(&modulesInGPU.quintupletModuleIndices, nLowerModules * sizeof(int));
     #endif
 
 

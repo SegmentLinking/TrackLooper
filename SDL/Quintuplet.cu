@@ -31,6 +31,21 @@ SDL::quintuplets::quintuplets()
 #endif
 }
 
+void SDL::quintuplets::freeMemoryCache()
+{
+#ifdef Explicit_T5
+    int dev;
+    cudaGetDevice(&dev);
+    cms::cuda::free_device(dev,tripletIndices);
+    cms::cuda::free_device(dev, lowerModuleIndices);
+    cms::cuda::free_device(dev, nQuintuplets);
+#else
+    cms::cuda::free_managed(tripletIndices);
+    cms::cuda::free_managed(lowerModuleIndices);
+    cms::cuda::free_managed(nQuintuplets);
+#endif
+}
+
 void SDL::quintuplets::freeMemory()
 {
     cudaFree(tripletIndices);
@@ -55,10 +70,64 @@ void SDL::quintuplets::freeMemory()
     cudaFree(outerRadiusMax2S);
 #endif
 }
-void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int maxQuintuplets, unsigned int nLowerModules)
+
+//TODO:Reuse the track candidate one instead of this!
+void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU, unsigned int& nEligibleModules, unsigned int maxQuintuplets)
 {
-    cudaMallocManaged(&quintupletsInGPU.tripletIndices, 2 * maxQuintuplets * nLowerModules * sizeof(unsigned int));
-    cudaMallocManaged(&quintupletsInGPU.lowerModuleIndices, 5 * maxQuintuplets * nLowerModules * sizeof(unsigned int)); 
+    unsigned int nLowerModules;
+    cudaMemcpy(&nLowerModules,modulesInGPU.nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    unsigned int nModules;
+    cudaMemcpy(&nModules,modulesInGPU.nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    cudaMemset(modulesInGPU.quintupletModuleIndices, -1, sizeof(int) * (nLowerModules));
+
+    short* module_subdets;
+    cudaMallocHost(&module_subdets, nModules* sizeof(short));
+    cudaMemcpy(module_subdets,modulesInGPU.subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+    unsigned int* module_lowerModuleIndices;
+    cudaMallocHost(&module_lowerModuleIndices, nLowerModules * sizeof(unsigned int));
+    cudaMemcpy(module_lowerModuleIndices,modulesInGPU.lowerModuleIndices, nLowerModules * sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    short* module_layers;
+    cudaMallocHost(&module_layers, nModules * sizeof(short));
+    cudaMemcpy(module_layers,modulesInGPU.layers,nModules * sizeof(short),cudaMemcpyDeviceToHost);
+    int* module_quintupletModuleIndices;
+    cudaMallocHost(&module_quintupletModuleIndices, nLowerModules * sizeof(int));
+    cudaMemcpy(module_quintupletModuleIndices,modulesInGPU.quintupletModuleIndices,nLowerModules *sizeof(int),cudaMemcpyDeviceToHost);
+
+    //start filling
+    for(unsigned int i = 0; i <= nLowerModules; i++)
+    {
+        //condition for a quintuple to exist for a module
+        //TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap
+        unsigned int idx = module_lowerModuleIndices[i];
+        if((module_subdets[idx] == SDL::Barrel and module_layers[idx] < 5) or (module_subdets[idx] == SDL::Endcap and module_layers[idx] == 1))
+        {
+            module_quintupletModuleIndices[i] = nEligibleModules * maxQuintuplets;
+            nEligibleModules++;
+        }
+    }
+    cudaMemcpy(modulesInGPU.quintupletModuleIndices,module_quintupletModuleIndices,nLowerModules*sizeof(int),cudaMemcpyHostToDevice);
+    cudaMemcpy(modulesInGPU.nEligibleT5Modules,&nEligibleModules,sizeof(unsigned int),cudaMemcpyHostToDevice);
+    cudaFreeHost(module_subdets);
+    cudaFreeHost(module_lowerModuleIndices);
+    cudaFreeHost(module_layers);
+    cudaFreeHost(module_quintupletModuleIndices);
+
+}
+
+
+void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& maxQuintuplets, const unsigned int& nLowerModules, const unsigned int& nEligibleModules)
+{
+    unsigned int nMemoryLocations = maxQuintuplets * nEligibleModules;
+    std::cout<<"Number of eligible T5 modules = "<<nEligibleModules<<std::endl;
+
+#ifdef CACHE_ALLOC
+    cudaStream_t stream = 0;
+    quintupletsInGPU.tripletIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * 2 * sizeof(unsigned int));
+    quintupletsInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * 5 * sizeof(unsigned int));
+    quintupletsInGPU.nQuintuplets = (unsigned int*)cms::cuda::allocate_managed(nLowerModules * sizeof(unsigned int));
+#else
+    cudaMallocManaged(&quintupletsInGPU.tripletIndices, 2 * nMemoryLocations * sizeof(unsigned int));
+    cudaMallocManaged(&quintupletsInGPU.lowerModuleIndices, 5 * nMemoryLocations * sizeof(unsigned int)); 
 
     cudaMallocManaged(&quintupletsInGPU.nQuintuplets, nLowerModules * sizeof(unsigned int));
 
@@ -79,6 +148,7 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     cudaMallocManaged(&quintupletsInGPU.outerRadiusMin2S, maxQuintuplets * nLowerModules * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.outerRadiusMax2S, maxQuintuplets * nLowerModules * sizeof(float));
 #endif
+#endif
 
 #pragma omp parallel for
     for(size_t i = 0; i<nLowerModules;i++)
@@ -87,6 +157,24 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     }
 
 }
+
+void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& maxQuintuplets, const unsigned int& nLowerModules, const unsigned int& nEligibleModules)
+{
+    unsigned int nMemoryLocations = nEligibleModules * maxQuintuplets;
+#ifdef CACHE_ALLOC
+    cudaStream_t stream = 0;
+    int dev;
+    cudaGetDevice(&dev);
+    cudaMalloc(&quintupletsInGPU.tripletIndices, 2 * nMemoryLocations * sizeof(unsigned int));
+    cudaMalloc(&quintupletsInGPU.lowerModuleIndices, 5 * nMemoryLocations * sizeof(unsigned int));
+    quintupletsInGPU.nQuintuplets = (unsigned int*)cms::cuda::allocate_device(dev, nLowerModules * siezof(unsigned int), stream);
+#else
+    cudaMalloc(&quintupletsInGPU.tripletIndices, 2 * nMemoryLocations * sizeof(unsigned int));
+    cudaMalloc(&quintupletsInGPU.lowerModuleIndices, 5 * nMemoryLocations * sizeof(unsigned int));
+    cudaMalloc(&quintupletsInGPU.nQuintuplets, nLowerModules * sizeof(unsigned int));
+#endif
+}
+
 
 #ifdef CUT_VALUE_DEBUG
 __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerRadius, float innerRadiusMin, float innerRadiusMax, float outerRadius, float outerRadiusMin, float outerRadiusMax, float bridgeRadius, float bridgeRadiusMin, float bridgeRadiusMax,

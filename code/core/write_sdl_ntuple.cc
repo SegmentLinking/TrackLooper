@@ -688,11 +688,17 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     std::vector<int> layer_binaries;
 #endif
 
-    const int MAX_NQUINTUPLET_PER_MODULE = 50000;
+    const int MAX_NQUINTUPLET_PER_MODULE = 5000;
     
     for(unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
     {
+        if(mdoulesInGPU.quintupletModuleIndices[idx] == -1)
+        {
+            continue;
+        }
+
         unsigned int nQuintuplets = quintupletsInGPU.nQuintuplets[idx];
+        
         if(nQuintuplets > MAX_NQUINTUPLET_PER_MODULE)
         {
             nQuintuplets = MAX_NQUINTUPLET_PER_MODULE;
@@ -700,7 +706,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
 
         for(unsigned int jdx = 0; jdx < nQuintuplets; jdx++)
         {
-            unsigned int quintupletIndex = MAX_NQUINTUPLET_PER_MODULE * idx + jdx;
+            unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[idx] + jdx;
             unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
             unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
 

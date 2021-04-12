@@ -91,6 +91,8 @@ namespace SDL
 
         void addQuintupletsToEvent();
 
+        void addQuintupletsToEventExplicit();
+
         void resetObjectsInModule();
 
         void createMiniDoublets();
