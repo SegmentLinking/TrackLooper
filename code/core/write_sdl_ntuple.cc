@@ -1017,6 +1017,10 @@ void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event)
             hit_idx.push_back(trackCandidatePtr->innerTrackletBasePtr()->outerSegmentPtr()->innerMiniDoubletPtr()->upperHitPtr()->idx());
             hit_idx.push_back(trackCandidatePtr->innerTrackletBasePtr()->outerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->idx());
             hit_idx.push_back(trackCandidatePtr->innerTrackletBasePtr()->outerSegmentPtr()->outerMiniDoubletPtr()->upperHitPtr()->idx());
+            hit_idx.push_back(trackCandidatePtr->outerTrackletBasePtr()->innerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->idx());
+            hit_idx.push_back(trackCandidatePtr->outerTrackletBasePtr()->innerSegmentPtr()->innerMiniDoubletPtr()->upperHitPtr()->idx());
+            hit_idx.push_back(trackCandidatePtr->outerTrackletBasePtr()->innerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->idx());
+            hit_idx.push_back(trackCandidatePtr->outerTrackletBasePtr()->innerSegmentPtr()->outerMiniDoubletPtr()->upperHitPtr()->idx());
             hit_idx.push_back(trackCandidatePtr->outerTrackletBasePtr()->outerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->idx());
             hit_idx.push_back(trackCandidatePtr->outerTrackletBasePtr()->outerSegmentPtr()->innerMiniDoubletPtr()->upperHitPtr()->idx());
             hit_idx.push_back(trackCandidatePtr->outerTrackletBasePtr()->outerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->idx());
@@ -1046,41 +1050,75 @@ void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event)
             hit_types.push_back(4);
             hit_types.push_back(4);
             hit_types.push_back(4);
+            hit_types.push_back(4);
+            hit_types.push_back(4);
+            hit_types.push_back(4);
+            hit_types.push_back(4);
 
-            const SDL::CPU::Module& module0 = trackCandidatePtr->innerTrackletBasePtr()->innerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->getModule();
-            const SDL::CPU::Module& module2 = trackCandidatePtr->innerTrackletBasePtr()->innerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->getModule();
-            const SDL::CPU::Module& module4 = trackCandidatePtr->innerTrackletBasePtr()->outerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->getModule();
-            const SDL::CPU::Module& module6 = trackCandidatePtr->innerTrackletBasePtr()->outerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->getModule();
-            const SDL::CPU::Module& module8 = trackCandidatePtr->outerTrackletBasePtr()->outerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->getModule();
-            const SDL::CPU::Module& module10 = trackCandidatePtr->outerTrackletBasePtr()->outerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->getModule();
+            // 0 -- 0
+            //      0 -- 0
+            //
+            //           0 -- 0
+            //                0 -- 0
+            // 01  23   
+            //     45   67
+            //          89   1011
+            //               1213  1415
 
-            bool isPixel0 = module0.isPixelLayerModule();
-            bool isPixel2 = module2.isPixelLayerModule();
-            bool isPixel4 = module4.isPixelLayerModule();
-            bool isPixel6 = module6.isPixelLayerModule();
-            bool isPixel8 = module8.isPixelLayerModule();
-            bool isPixel10 =module10.isPixelLayerModule();
+            // 0 -- 0
+            //      0 -- 0
+            //
+            //           0 -- 0
+            //                0 -- 0
+            // 0    2   
+            //      4    6
+            //           8   10  
+            //               1213  1415
 
-            int layer0 = module0.layer();
-            int layer2 = module2.layer();
-            int layer4 = module4.layer();
-            int layer6 = module6.layer();
-            int layer8 = module8.layer();
-            int layer10 =module10.layer();
+            const SDL::CPU::Module& module0  = trackCandidatePtr->innerTrackletBasePtr()->innerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->getModule();
+            const SDL::CPU::Module& module2  = trackCandidatePtr->innerTrackletBasePtr()->innerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->getModule();
+            const SDL::CPU::Module& module4  = trackCandidatePtr->innerTrackletBasePtr()->outerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->getModule();
+            const SDL::CPU::Module& module6  = trackCandidatePtr->innerTrackletBasePtr()->outerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->getModule();
+            const SDL::CPU::Module& module8  = trackCandidatePtr->outerTrackletBasePtr()->innerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->getModule();
+            const SDL::CPU::Module& module10 = trackCandidatePtr->outerTrackletBasePtr()->innerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->getModule();
+            const SDL::CPU::Module& module12 = trackCandidatePtr->outerTrackletBasePtr()->outerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->getModule();
+            const SDL::CPU::Module& module14 = trackCandidatePtr->outerTrackletBasePtr()->outerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->getModule();
 
-            int subdet0 = module0.subdet();
-            int subdet2 = module2.subdet();
-            int subdet4 = module4.subdet();
-            int subdet6 = module6.subdet();
-            int subdet8 = module8.subdet();
-            int subdet10 =module10.subdet();
+            bool isPixel0  = module0.isPixelLayerModule();
+            bool isPixel2  = module2.isPixelLayerModule();
+            bool isPixel4  = module4.isPixelLayerModule();
+            bool isPixel6  = module6.isPixelLayerModule();
+            bool isPixel8  = module8.isPixelLayerModule();
+            bool isPixel10 = module10.isPixelLayerModule();
+            bool isPixel12 = module12.isPixelLayerModule();
+            bool isPixel14 = module14.isPixelLayerModule();
 
-            int logicallayer0 = isPixel0 ? 0 : layer0  + 6 * (subdet0 == 4);
-            int logicallayer2 = isPixel2 ? 0 : layer2  + 6 * (subdet2 == 4);
-            int logicallayer4 = isPixel4 ? 0 : layer4  + 6 * (subdet4 == 4);
-            int logicallayer6 = isPixel6 ? 0 : layer6  + 6 * (subdet6 == 4);
-            int logicallayer8 = isPixel8 ? 0 : layer8  + 6 * (subdet8 == 4);
-            int logicallayer10 =isPixel10 ? 0 : layer10 + 6 * (subdet10 == 4);
+            int layer0  = module0.layer();
+            int layer2  = module2.layer();
+            int layer4  = module4.layer();
+            int layer6  = module6.layer();
+            int layer8  = module8.layer();
+            int layer10 = module10.layer();
+            int layer12 = module12.layer();
+            int layer14 = module14.layer();
+
+            int subdet0  = module0.subdet();
+            int subdet2  = module2.subdet();
+            int subdet4  = module4.subdet();
+            int subdet6  = module6.subdet();
+            int subdet8  = module8.subdet();
+            int subdet10 = module10.subdet();
+            int subdet12 = module12.subdet();
+            int subdet14 = module14.subdet();
+
+            int logicallayer0  = isPixel0  ? 0 : layer0  + 6 * (subdet0  == 4);
+            int logicallayer2  = isPixel2  ? 0 : layer2  + 6 * (subdet2  == 4);
+            int logicallayer4  = isPixel4  ? 0 : layer4  + 6 * (subdet4  == 4);
+            int logicallayer6  = isPixel6  ? 0 : layer6  + 6 * (subdet6  == 4);
+            int logicallayer8  = isPixel8  ? 0 : layer8  + 6 * (subdet8  == 4);
+            int logicallayer10 = isPixel10 ? 0 : layer10 + 6 * (subdet10 == 4);
+            int logicallayer12 = isPixel12 ? 0 : layer12 + 6 * (subdet12 == 4);
+            int logicallayer14 = isPixel14 ? 0 : layer14 + 6 * (subdet14 == 4);
 
             int layer_binary = 0;
             layer_binary |= (1 << logicallayer0);
@@ -1089,6 +1127,8 @@ void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event)
             layer_binary |= (1 << logicallayer6);
             layer_binary |= (1 << logicallayer8);
             layer_binary |= (1 << logicallayer10);
+            layer_binary |= (1 << logicallayer12);
+            layer_binary |= (1 << logicallayer14);
 
             // sim track matched index
             std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idx, hit_types);
@@ -1108,19 +1148,32 @@ void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event)
             float phi = -999;
 
             bool isInnerTrackletTriplet = (hit_idx[2] == hit_idx[4] and hit_idx[3] == hit_idx[5] and hit_types[2] == hit_types[4] and hit_types[3] == hit_types[5]);
-            bool isOuterTrackletTriplet = (hit_idx[6] == hit_idx[8] and hit_idx[7] == hit_idx[9] and hit_types[6] == hit_types[8] and hit_types[7] == hit_types[9]);
+            bool isOuterTrackletTriplet = (hit_idx[10] == hit_idx[12] and hit_idx[11] == hit_idx[13] and hit_types[10] == hit_types[12] and hit_types[11] == hit_types[13]);
 
-            // std::cout << "here1" << std::endl;
-            // std::cout <<  " isInnerTrackletTriplet: " << isInnerTrackletTriplet <<  " isOuterTrackletTriplet: " << isOuterTrackletTriplet <<  std::endl;
-            // if (isInnerTrackletTriplet)
+            // // if (isInnerTrackletTriplet and isOuterTrackletTriplet)
+            // if (true)
             // {
+            //     std::cout << "here1" << std::endl;
+            //     std::cout <<  " isInnerTrackletTriplet: " << isInnerTrackletTriplet <<  " isOuterTrackletTriplet: " << isOuterTrackletTriplet <<  std::endl;
             //     std::cout <<  " logicallayer0: " << logicallayer0 <<  " logicallayer2: " << logicallayer2 <<  " logicallayer4: " << logicallayer4 <<  " logicallayer6: " << logicallayer6 <<  " logicallayer8: " << logicallayer8 <<  " logicallayer10: " << logicallayer10 <<  std::endl;
-            //     // std::cout << ((SDL::CPU::Triplet*) trackCandidatePtr->innerTrackletBasePtr())->tlCand;
+            //     for (unsigned int ihit = 0; ihit < hit_idx.size(); ++ihit)
+            //     {
+            //         std::cout <<  " ihit: " << ihit <<  " hit_idx[ihit]: " << hit_idx[ihit] <<  std::endl;
+            //     }
+            //     for (unsigned int ihit = 0; ihit < hit_types.size(); ++ihit)
+            //     {
+            //         std::cout <<  " ihit: " << ihit <<  " hit_types[ihit]: " << hit_types[ihit] <<  std::endl;
+            //     }
             //     std::cout << "recovar size: " << ((SDL::CPU::Triplet*) trackCandidatePtr->innerTrackletBasePtr())->tlCand.getRecoVars().size() << std::endl;
-            //     // for (auto& [k, v]: ((SDL::CPU::Triplet*) trackCandidatePtr->innerTrackletBasePtr())->tlCand.getRecoVars())
-            //     // {
-            //     //     std::cout <<  " k: " << k <<  std::endl;
-            //     // }
+            //     for (auto& [k, v]: ((SDL::CPU::Triplet*) trackCandidatePtr->innerTrackletBasePtr())->tlCand.getRecoVars())
+            //     {
+            //         std::cout <<  " k: " << k <<  std::endl;
+            //     }
+            //     std::cout << "recovar size: " << ((SDL::CPU::Triplet*) trackCandidatePtr->outerTrackletBasePtr())->tlCand.getRecoVars().size() << std::endl;
+            //     for (auto& [k, v]: ((SDL::CPU::Triplet*) trackCandidatePtr->outerTrackletBasePtr())->tlCand.getRecoVars())
+            //     {
+            //         std::cout <<  " k: " << k <<  std::endl;
+            //     }
             // }
             float pt_in  = isInnerTrackletTriplet ? ((SDL::CPU::Triplet*) trackCandidatePtr->innerTrackletBasePtr())->tlCand.getRecoVar("pt_beta") : trackCandidatePtr->innerTrackletBasePtr()->getRecoVar("pt_beta");
             // std::cout <<  " pt_in: " << pt_in <<  std::endl;
@@ -1138,14 +1191,14 @@ void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event)
             if (hit_types[0] == 4)
             {
                 SDL::CPU::Hit hitA(trk.ph2_x()[hit_idx[0]], trk.ph2_y()[hit_idx[0]], trk.ph2_z()[hit_idx[0]]);
-                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[11]], trk.ph2_y()[hit_idx[11]], trk.ph2_z()[hit_idx[11]]);
+                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[15]], trk.ph2_y()[hit_idx[15]], trk.ph2_z()[hit_idx[15]]);
                 eta = hitB.eta();
                 phi = hitA.phi();
             }
             else
             {
                 SDL::CPU::Hit hitA(trk.pix_x()[hit_idx[0]], trk.pix_y()[hit_idx[0]], trk.pix_z()[hit_idx[0]]);
-                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[11]], trk.ph2_y()[hit_idx[11]], trk.ph2_z()[hit_idx[11]]);
+                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[15]], trk.ph2_y()[hit_idx[15]], trk.ph2_z()[hit_idx[15]]);
                 eta = hitB.eta();
                 phi = hitA.phi();
             }

@@ -426,6 +426,8 @@ void run_sdl()
             float timing_pT4 = runpT4_on_CPU(event);
             printTrackletSummary(event);
 
+            // Run T5s
+            // float timing_T5 = runT5_on_CPU(event);
             // Run TrackCandidate
             float timing_TC = runTrackCandidate_on_CPU(event);
             printTrackCandidateSummary(event);

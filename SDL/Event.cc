@@ -1514,47 +1514,52 @@ void SDL::CPU::Event::createT5s()
             SDL::CPU::Triplet& innerTriplet = *innerTripletPtr;
 
             // Get the outer mini-doublet module detId
-            innerTriplet.outerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->getModule();
-
-            const std::vector<Triplet*>& outerTripletPtrs = getListOfOutwardTripletPtrs();
-
-            // Loop over outer lower module mini-doublets
-            for (auto& outerTripletPtr : outerTripletPtrs)
+            const std::vector<Segment*>& outwardSegmentPtrs = innerTriplet.outerSegmentPtr()->outerMiniDoubletPtr()->getListOfOutwardSegmentPtrs();
+            for (auto& outwardSegmentPtr : outwardSegmentPtrs)
             {
 
-                // Count the # of tlCands considered by layer
-                incrementNumberOfTrackCandidateCandidates(innerLowerModule);
+                const std::vector<Triplet*>& outerTripletPtrs = outwardSegmentPtr->getListOfOutwardTripletPtrs();
 
-                // Tracklet between Seg1 - Seg3
-                SDL::CPU::Tracklet tlCand13(innerTripletPtr->innerSegmentPtr(), outerTripletPtr->innerSegmentPtr());
-
-                // Run the tracklet algo
-                tlCand13.runTrackletAlgo(SDL::CPU::Default_TLAlgo, logLevel_);
-
-                if (not (tlCand13.passesTrackletAlgo(SDL::CPU::Default_TLAlgo)))
+                // Loop over outer lower module mini-doublets
+                for (auto& outerTripletPtr : outerTripletPtrs)
                 {
-                    continue;
+
+                    // Count the # of tlCands considered by layer
+                    incrementNumberOfTrackCandidateCandidates(innerLowerModule);
+
+                    // Tracklet between Seg1 - Seg3
+                    SDL::CPU::Tracklet tlCand13(innerTripletPtr->innerSegmentPtr(), outerTripletPtr->innerSegmentPtr());
+
+                    // Run the tracklet algo
+                    tlCand13.runTrackletAlgo(SDL::CPU::Default_TLAlgo, logLevel_);
+
+                    if (not (tlCand13.passesTrackletAlgo(SDL::CPU::Default_TLAlgo)))
+                    {
+                        continue;
+                    }
+
+                    // Tracklet between Seg1 - Seg4
+                    SDL::CPU::Tracklet tlCand14(innerTripletPtr->innerSegmentPtr(), outerTripletPtr->outerSegmentPtr());
+
+                    // Run the tracklet algo
+                    tlCand14.runTrackletAlgo(SDL::CPU::Default_TLAlgo, logLevel_);
+
+                    if (not (tlCand14.passesTrackletAlgo(SDL::CPU::Default_TLAlgo)))
+                    {
+                        continue;
+                    }
+
+                    SDL::CPU::TrackCandidate tcCand(innerTripletPtr, outerTripletPtr);
+
+                    // Count the # of track candidates considered
+                    incrementNumberOfTrackCandidates(innerLowerModule);
+
+                    if (innerLowerModule.subdet() == SDL::CPU::Module::Barrel)
+                        addTrackCandidateToLowerLayer(tcCand, innerLowerModule.layer(), SDL::CPU::Layer::Barrel);
+                    else
+                        addTrackCandidateToLowerLayer(tcCand, innerLowerModule.layer(), SDL::CPU::Layer::Endcap);
+
                 }
-
-                // Tracklet between Seg1 - Seg4
-                SDL::CPU::Tracklet tlCand14(innerTripletPtr->innerSegmentPtr(), outerTripletPtr->innerSegmentPtr());
-
-                // Run the tracklet algo
-                tlCand14.runTrackletAlgo(SDL::CPU::Default_TLAlgo, logLevel_);
-
-                if (not (tlCand14.passesTrackletAlgo(SDL::CPU::Default_TLAlgo)))
-                {
-                    continue;
-                }
-
-                // Count the # of track candidates considered
-                incrementNumberOfTrackCandidates(innerLowerModule);
-
-                if (innerLowerModule.subdet() == SDL::CPU::Module::Barrel)
-                    addTrackCandidateToLowerLayer(tcCand, innerLowerModule.layer(), SDL::CPU::Layer::Barrel);
-                else
-                    addTrackCandidateToLowerLayer(tcCand, innerLowerModule.layer(), SDL::CPU::Layer::Endcap);
-
             }
         }
     }

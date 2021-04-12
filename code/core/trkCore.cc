@@ -1792,6 +1792,18 @@ float runTrackCandidate_on_CPU(SDL::CPU::Event& event)
 }
 
 //__________________________________________________________________________________________
+float runT5_on_CPU(SDL::CPU::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Reco T5 start" << std::endl;
+    my_timer.Start();
+    event.createT5s();
+    float t5_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Reco T5 processing time: " << t5_elapsed << " secs" << std::endl;
+    return t5_elapsed;
+}
+
+//__________________________________________________________________________________________
 void printHitSummary(SDL::CPU::Event& event)
 {
     if (ana.verbose >= 2) std::cout << "Summary of hits" << std::endl;
