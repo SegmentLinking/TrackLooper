@@ -127,6 +127,7 @@ void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned in
     cudaMalloc(&modulesInGPU.trackletRanges,nModules * 2 * sizeof(int));
     cudaMalloc(&modulesInGPU.tripletRanges,nModules * 2 * sizeof(int));
     cudaMalloc(&modulesInGPU.trackCandidateRanges, nModules * 2 * sizeof(int));
+    cudaMalloc(&modulesInGPU.quintupletRanges, nModules * 2 * sizeof(int));
 
     cudaMalloc(&modulesInGPU.moduleType,nModules * sizeof(ModuleType));
     cudaMalloc(&modulesInGPU.moduleLayerType,nModules * sizeof(ModuleLayerType));
@@ -868,6 +869,7 @@ void SDL::resetObjectRanges(struct modules& modulesInGPU, unsigned int nModules)
         cudaMemset(modulesInGPU.trackletRanges, -1,nModules*2*sizeof(int));
         cudaMemset(modulesInGPU.tripletRanges, -1,nModules*2*sizeof(int));
         cudaMemset(modulesInGPU.trackCandidateRanges, -1,nModules*2*sizeof(int));
+        cudaMemset(modulesInGPU.quintupletRanges, -1, nModules*2*sizeof(int));
 #else
 
 #pragma omp parallel for default(shared)
@@ -879,6 +881,7 @@ void SDL::resetObjectRanges(struct modules& modulesInGPU, unsigned int nModules)
         modulesInGPU.trackletRanges[i] = -1;
         modulesInGPU.tripletRanges[i] = -1;
         modulesInGPU.trackCandidateRanges[i] = -1;
+        modulesInGPU.quintupletRanges[i] = -1;
     }
 #endif
 }
