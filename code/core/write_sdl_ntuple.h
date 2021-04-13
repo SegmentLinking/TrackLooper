@@ -46,7 +46,7 @@ void fillTripletOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillPixelQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event);
 
 // Timing
-void printTimingInformation(std::vector<std::vector<float>> timing_information);
+void printTimingInformation(std::vector<std::vector<float>>& timing_information);
 
 // Print multiplicities
 void printQuadrupletMultiplicities(SDL::Event& event);

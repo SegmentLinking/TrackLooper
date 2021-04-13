@@ -64,6 +64,7 @@ namespace SDL
         segments* segmentsInCPU;
         tracklets* trackletsInCPU;
         triplets* tripletsInCPU;
+        quintuplets* quintupletsInCPU;
         trackCandidates* trackCandidatesInCPU;
         modules* modulesInCPU;
         modules* modulesInCPUFull;

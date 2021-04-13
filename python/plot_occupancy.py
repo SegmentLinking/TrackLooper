@@ -19,15 +19,15 @@ def make_histograms(obj):
     mdf = open("{}_summaries.md".format(obj),"w")
     mdf.write("% {} Occupancy summary\n".format(obj))
     mdf.write("### 100% of the distribution between lower and upper limits\n")  
-    mdf.write("| Region | Lower limit &nbsp; &nbsp; | Upper limit &nbsp; &nbsp; | Link|\n")
-    mdf.write("| :---: | :---: | :---: | :---: |\n")
+    mdf.write("| Region | Lower limit &nbsp; &nbsp; | Upper limit &nbsp; &nbsp; |  99.9% Upper limit &nbsp; &nbsp; |Link|\n")
+    mdf.write("| :---: | :---: | :---: | :---: | :---: |\n")
  
     # one big histogram, one split by subdets alone, one split by subdet and layer
     # and for endcap, one split by layer and ring
 
     branchesList = ["module_*", "{}_occupancies".format(obj)]
     branches = tree.arrays(filter_name=branchesList, library="pd")
-
+    print("dataframe obtained!")
     # create the slices
     view = branches.loc[branches["module_subdets"] != 0,"{}_occupancies".format(obj)]
     overall_hist = Hist1D(view.values, bins = np.linspace(view.min(), view.max(),min(500,view.max() - view.min() + 1)), label = "{} Occupancy".format(obj))
@@ -53,7 +53,7 @@ def make_histograms(obj):
             if subdetLayerView.min() == subdetLayerView.max():
                 offset = 2
 
-            subdetLayerHists.append(Hist1D(subdetLayerView.values, bins = np.linspace(subdetLayerView.min(), subdetLayerView.max(), min(500,subdetLayerView.max() - subdetLayerView.min() + offset)), label = "{} Occupancy in {} Layer {}".format(obj,subdetName,layer)))
+            subdetLayerHists.append(Hist1D(subdetLayerView.values, bins = np.linspace(subdetLayerView.min(), subdetLayerView.max() + 1, min(500,subdetLayerView.max() - subdetLayerView.min() + offset)), label = "{} Occupancy in {} Layer {}".format(obj,subdetName,layer)))
 
             if subdet == 4:
                 for ring in range(1,16):
@@ -63,7 +63,7 @@ def make_histograms(obj):
                     offset = 1
                     if subdetLayerRingView.min() == subdetLayerRingView.max():
                         offset = 2
-                    subdetLayerRingHists.append(Hist1D(subdetLayerRingView.values, bins = np.linspace(subdetLayerRingView.min(), subdetLayerRingView.max(), min(500,subdetLayerRingView.max() - subdetLayerRingView.min() + offset)), label = "{} Occupancy in {} Layer {} Ring {}".format(obj,subdetName,layer, ring)))
+                    subdetLayerRingHists.append(Hist1D(subdetLayerRingView.values, bins = np.linspace(subdetLayerRingView.min(), subdetLayerRingView.max() + 1, min(500,subdetLayerRingView.max() - subdetLayerRingView.min() + offset)), label = "{} Occupancy in {} Layer {} Ring {}".format(obj,subdetName,layer, ring)))
 
     plot_histograms(mdf,overall_hist)
     plot_histograms(mdf,subdetLayerHists)
@@ -84,12 +84,13 @@ def plot_histograms(mdf,hists):
         plt.suptitle("Sample = {} Tag = {}".format(sys.argv[3], sys.argv[4]))
         outputName = hist.metadata["label"].replace(" ","_")
         url_prefix = sys.argv[2].replace("/home/users/bsathian/public_html","http://uaf-10.t2.ucsd.edu/~bsathian")
-        mdf.write("|{}|{}|{}|[plot]({})\n".format(hist.metadata["label"],hist.edges[0],hist.edges[-1],"{}/{}.pdf".format(url_prefix,outputName)))
+        mdf.write("|{}|{:0.1f}|{:0.1f}|{:0.1f}|[plot]({})\n".format(hist.metadata["label"],hist.edges[0],hist.edges[-1],hist.quantile(0.999),"{}/{}.pdf".format(url_prefix,outputName)))
         os.system("mkdir -p {}".format(sys.argv[2]))
         plt.savefig("{}/{}.pdf".format(sys.argv[2],outputName))
         plt.close()
 
     
-objects = ["md","sg","t3","t4","tc"]
+#objects = ["md","sg","t3","t4","tc", "t5"]
+objects = ["t5"]
 for obj in objects:
     make_histograms(obj)

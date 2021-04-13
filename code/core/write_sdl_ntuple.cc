@@ -94,13 +94,13 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<int>>("t3_isFake");
     ana.tx->createBranch<vector<int>>("t3_isDuplicate");
 
+#ifdef DO_QUINTUPLET
     //T5 - new kid
     ana.tx->createBranch<vector<int>>("sim_T5_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_T5_types");
     ana.tx->createBranch<vector<int>>("t5_isFake");
     ana.tx->createBranch<vector<int>>("t5_isDuplicate");
-    ana.tx->createBranch<vector<int>>("t5_layer_binary");
-
+#endif
     //pLS
     ana.tx->createBranch<vector<int>>("sim_pLS_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_pLS_types");
@@ -116,12 +116,16 @@ void createLowerLevelOutputBranches()
     createSegmentCutValueBranches();
     createMiniDoubletCutValueBranches();
     createPixelQuadrupletCutValueBranches();
+#ifdef DO_QUINTUPLET
     createQuintupletCutValueBranches();
+#endif
 #endif
 }
 
+#ifdef DO_QUINTUPLET
 void createQuintupletCutValueBranches()
 {
+    ana.tx->createBranch<vector<int>>("t5_layer_binary");
     ana.tx->createBranch<vector<vector<float>>>("t5_matched_pt");
     ana.tx->createBranch<vector<float>>("t5_innerRadius");
     ana.tx->createBranch<vector<float>>("t5_innerRadiusMin");
@@ -140,7 +144,7 @@ void createQuintupletCutValueBranches()
     ana.tx->createBranch<vector<float>>("t5_outerRadiusMax2S");
 
 }
-
+#endif
 void createQuadrupletCutValueBranches()
 {
     ana.tx->createBranch<vector<float>>("t4_zOut");
@@ -255,7 +259,9 @@ void fillOccupancyBranches(SDL::Event& event)
     SDL::miniDoublets& mdsInGPU = (*event.getMiniDoublets());
     SDL::hits& hitsInGPU = (*event.getHits());
     SDL::modules& modulesInGPU = (*event.getModules());
-
+#ifdef DO_QUINTUPLET
+    SDL::quintuplets&  quintupletsInGPU = (*event.getQuintuplets());
+#endif
     //get the occupancies from these dudes
     std::vector<int> moduleLayer;
     std::vector<int> moduleSubdet;
@@ -281,7 +287,9 @@ void fillOccupancyBranches(SDL::Event& event)
         trackCandidateOccupancy.push_back(trackCandidatesInGPU.nTrackCandidates[idx]);
         trackletOccupancy.push_back(trackletsInGPU.nTracklets[idx]);
         tripletOccupancy.push_back(tripletsInGPU.nTriplets[idx]);
+#ifdef DO_QUINTUPLET
         quintupletOccupancy.push_back(quintupletsInGPU.nQuintuplets[idx]);
+#endif
     }
     ana.tx->setBranch<vector<int>>("module_layers",moduleLayer);
     ana.tx->setBranch<vector<int>>("module_subdets",moduleSubdet);
@@ -291,7 +299,9 @@ void fillOccupancyBranches(SDL::Event& event)
     ana.tx->setBranch<vector<int>>("t4_occupancies",trackletOccupancy);
     ana.tx->setBranch<vector<int>>("t3_occupancies",tripletOccupancy);
     ana.tx->setBranch<vector<int>>("tc_occupancies",trackCandidateOccupancy);
-    ana.tx->setBranch<vector<itn>>("t5_occupancies", quintupletOccupancy);
+#ifdef DO_QUINTUPLET
+    ana.tx->setBranch<vector<int>>("t5_occupancies", quintupletOccupancy);
+#endif
 }
 
 //________________________________________________________________________________________________________________________________
@@ -648,10 +658,12 @@ void fillLowerLevelOutputBranches(SDL::Event& event)
     fillPixelQuadrupletOutputBranches(event);
     fillTripletOutputBranches(event);
     fillPixelLineSegmentOutputBranches(event);
+#ifdef DO_QUINTUPLET
     fillQuintupletOutputBranches(event);
+#endif
 }
 
-
+#ifdef DO_QUINTUPLET
 //________________________________________________________________________________________________________________________________
 void fillQuintupletOutputBranches(SDL::Event& event)
 {
@@ -692,7 +704,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     
     for(unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
     {
-        if(mdoulesInGPU.quintupletModuleIndices[idx] == -1)
+        if(modulesInGPU.quintupletModuleIndices[idx] == -1)
         {
             continue;
         }
@@ -814,8 +826,9 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             layer_binary |= (1 << logicallayer4);
             layer_binary |= (1 << logicallayer6);
             layer_binary |= (1 << logicallayer8);
+#ifdef CUT_VALUE_DEBUG
             layer_binaries.push_back(layer_binary);
-
+#endif
             std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
             for (auto &isimtrk : matched_sim_trk_idxs)
             {
@@ -884,7 +897,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
 #endif
 
 }
-
+#endif
 
 
 //________________________________________________________________________________________________________________________________
@@ -2436,7 +2449,7 @@ void fillPixelQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event)
 }
 
 //________________________________________________________________________________________________________________________________
-void printTimingInformation(std::vector<std::vector<float>> timing_information)
+void printTimingInformation(std::vector<std::vector<float>>& timing_information)
 {
 
     if (ana.verbose == 0)
@@ -2447,8 +2460,8 @@ void printTimingInformation(std::vector<std::vector<float>> timing_information)
     std::cout << setprecision(2);
     std::cout << right;
     std::cout << "Timing summary" << std::endl;
-    std::cout << "Evt     Hits         MD       LS      T4      T4x       pT4        T3       TC       Total" << std::endl;
-    std::vector<float> timing_sum_information(7);
+    std::cout << "Evt     Hits         MD       LS      T4      T4x       pT4        T3       TC       T5       Total" << std::endl;
+    std::vector<float> timing_sum_information(8);
     for (auto&& [ievt, timing] : iter::enumerate(timing_information))
     {
         float timing_total = 0.f;
@@ -2460,6 +2473,7 @@ void printTimingInformation(std::vector<std::vector<float>> timing_information)
         timing_total += timing[5]*1000; // pT4
         timing_total += timing[6]*1000; // T3
         timing_total += timing[7]*1000; // TC
+        timing_total += timing[8]*10000; //T5
         std::cout << setw(6) << ievt;
         std::cout << "   "<<setw(6) << timing[0]*1000; // Hits
         std::cout << "   "<<setw(6) << timing[1]*1000; // MD
@@ -2469,6 +2483,7 @@ void printTimingInformation(std::vector<std::vector<float>> timing_information)
         std::cout << "   "<<setw(6) << timing[5]*1000; // pT4
         std::cout << "   "<<setw(6) << timing[6]*1000; // T3
         std::cout << "   "<<setw(6) << timing[7]*1000; // TC
+        std::cout << "   "<<setw(6) << timing[8]*1000; //T5
         std::cout << "   "<<setw(7) << timing_total; // Total time
         std::cout << std::endl;
         timing_sum_information[0] += timing[0]*1000; // Hits
@@ -2479,6 +2494,7 @@ void printTimingInformation(std::vector<std::vector<float>> timing_information)
         timing_sum_information[5] += timing[5]*1000; // pT4
         timing_sum_information[6] += timing[6]*1000; // T3
         timing_sum_information[7] += timing[7]*1000; // TC
+        timing_sum_information[8] += timing[8]*1000;
     }
     timing_sum_information[0] /= timing_information.size(); // Hits
     timing_sum_information[1] /= timing_information.size(); // MD
@@ -2488,6 +2504,7 @@ void printTimingInformation(std::vector<std::vector<float>> timing_information)
     timing_sum_information[5] /= timing_information.size(); // pT4
     timing_sum_information[6] /= timing_information.size(); // T3
     timing_sum_information[7] /= timing_information.size(); // TC
+    timing_sum_information[8] /= timing_information.size(); //T5
     float timing_total_avg = 0.f;
     timing_total_avg += timing_sum_information[0]; // Hits
     timing_total_avg += timing_sum_information[1]; // MD
@@ -2496,7 +2513,8 @@ void printTimingInformation(std::vector<std::vector<float>> timing_information)
     timing_total_avg += timing_sum_information[4]; // T4x
     timing_total_avg += timing_sum_information[5]; // pT4
     timing_total_avg += timing_sum_information[6]; // T3
-    timing_total_avg += timing_sum_information[7]; // T3
+    timing_total_avg += timing_sum_information[7]; // TC
+    timing_total_avg += timing_sum_information[8]; //T5
     std::cout << setprecision(0);
     std::cout << setw(6) << "avg";
     std::cout << "   "<<setw(6) << timing_sum_information[0]; // Hits
@@ -2506,7 +2524,8 @@ void printTimingInformation(std::vector<std::vector<float>> timing_information)
     std::cout << "   "<<setw(6) << timing_sum_information[4]; // T4x
     std::cout << "   "<<setw(6) << timing_sum_information[5]; // pT4
     std::cout << "   "<<setw(6) << timing_sum_information[6]; // T3
-    std::cout << "   "<<setw(6) << timing_sum_information[7]; // T3
+    std::cout << "   "<<setw(6) << timing_sum_information[7]; // TC
+    std::cout << "   "<<setw(6) << timing_sum_information[8]; //T5
     std::cout << "   "<<setw(7) << timing_total_avg; // Average total time
     std::cout << "    "<<ana.compilation_target;
     std::cout << std::endl;
