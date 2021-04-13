@@ -178,6 +178,9 @@ SDL::Event::~Event()
         delete[] modulesInCPU->isLower;
         delete[] modulesInCPU->trackCandidateModuleIndices;
         delete[] modulesInCPU->quintupletModuleIndices;
+        delete[] modulesInCPU->layers;
+        delete[] modulesInCPU->subdets;
+        delete[] modulesInCPU->rings;
         delete[] modulesInCPU;
     }
     if(modulesInCPUFull != nullptr)
@@ -4088,6 +4091,7 @@ SDL::modules* SDL::Event::getModules()
         modulesInCPU->quintupletModuleIndices = new int[nLowerModules];
         modulesInCPU->layers = new short[nModules];
         modulesInCPU->subdets = new short[nModules];
+        modulesInCPU->rings = new short[nModules];
     
 
         cudaMemcpy(modulesInCPU->nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
@@ -4100,6 +4104,7 @@ SDL::modules* SDL::Event::getModules()
         cudaMemcpy(modulesInCPU->quintupletModuleIndices, modulesInGPU->quintupletModuleIndices, nLowerModules * sizeof(int), cudaMemcpyDeviceToHost);
         cudaMemcpy(modulesInCPU->layers, modulesInGPU->layers, nModules * sizeof(short), cudaMemcpyDeviceToHost);
         cudaMemcpy(modulesInCPU->subdets, modulesInGPU->subdets, nModules * sizeof(short), cudaMemcpyDeviceToHost);
+        cudaMemcpy(modulesInCPU->rings, modulesInGPU->rings, nModules * sizeof(short), cudaMemcpyDeviceToHost);
     //}
     return modulesInCPU;
 }
