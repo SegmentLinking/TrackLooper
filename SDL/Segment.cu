@@ -319,6 +319,7 @@ __device__ void SDL::addSegmentToMemory(struct segments& segmentsInGPU, unsigned
 
 __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, unsigned int pixelModuleIndex, unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr, float eta, float phi, unsigned int idx, unsigned int pixelSegmentArrayIndex, int superbin, int
         pixelType)
+
 {
     segmentsInGPU.mdIndices[idx * 2] = innerMDIndex;
     segmentsInGPU.mdIndices[idx * 2 + 1] = outerMDIndex;
