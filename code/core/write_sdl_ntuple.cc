@@ -2461,7 +2461,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information)
     std::cout << right;
     std::cout << "Timing summary" << std::endl;
     std::cout << "Evt     Hits         MD       LS      T4      T4x       pT4        T3       TC       T5       Total" << std::endl;
-    std::vector<float> timing_sum_information(9);
+    std::vector<float> timing_sum_information(timing_information[0].size());
     for (auto&& [ievt, timing] : iter::enumerate(timing_information))
     {
         float timing_total = 0.f;
