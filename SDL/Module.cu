@@ -247,6 +247,7 @@ void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMappin
   cudaFree(modulesInGPU.trackletRanges);
   cudaFree(modulesInGPU.tripletRanges);
   cudaFree(modulesInGPU.trackCandidateRanges);
+  cudaFree(modulesInGPU.quintupletRanges);
   cudaFree(modulesInGPU.moduleType);
   cudaFree(modulesInGPU.moduleLayerType);
   cudaFree(modulesInGPU.lowerModuleIndices);
