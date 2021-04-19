@@ -25,18 +25,26 @@ CXXFLAGS    = $(ROOTCFLAGS) -ISDL -I$(shell pwd) -Icode -Icode/AnalysisInterface
 CFLAGS      = $(ROOTCFLAGS) --compiler-options -Wall --compiler-options -Wno-unused-function --compiler-options -g --compiler-options -O2 --compiler-options -fPIC --compiler-options -fno-var-tracking -ISDL -I$(shell pwd) -Icode -Icode/AnalysisInterface -Icode/core -I/mnt/data1/dsr/cub -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/include --compiler-options -fopenmp
 EXTRACFLAGS = $(shell rooutil-config)
 EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -L/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/lib64 -lcudart -fopenmp
+DOQUINTUPLET = -DDO_QUINTUPLET
 
-cutvalue: EXTRACFLAGS += -DCUT_VALUE_DEBUG
-cutvalue : $(ROOUTIL) efficiency $(EXES)
+CUTVALUEFLAG = 
+CUTVALUEFLAG_FLAGS = -DCUT_VALUE_DEBUG
 
 all: $(ROOUTIL) efficiency $(EXES)
 
 
+cutvalue: CUTVALUEFLAG = ${CUTVALUEFLAG_FLAGS}
+cutvalue: $(ROOUTIL) efficiency $(EXES)
+
+
+bin/doAnalysis: bin/doAnalysis.o $(OBJECTS)
+	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) -o $@
+
 bin/sdl: bin/sdl.o $(OBJECTS)
-	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(EXTRAFLAGS) -o $@
+	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG)  $(EXTRAFLAGS) $(DOQUINTUPLET) -o $@
 
 %.o: %.cc
-	$(CC) $(CFLAGS) $(EXTRACFLAGS) $< -dc -o $@
+	$(CC) $(CFLAGS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(DOQUINTUPLET) $< -dc -o $@
 
 $(ROOUTIL):
 	$(MAKE) -C code/rooutil/

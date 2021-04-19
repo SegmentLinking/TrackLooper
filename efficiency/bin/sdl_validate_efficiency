@@ -15,7 +15,9 @@ run_gpu()
         echo "sdl could not be found! Compilation probably failed! Check the compilation."
         exit
     fi
+
     sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -i ${sample} -v 0 -l 
+
     if [[ ${PDGID} == 0 ]]; then
         sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 0 -f
     else

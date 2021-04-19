@@ -55,10 +55,12 @@ namespace SDL
         unsigned int *nModules; //single number
         unsigned int *nLowerModules;
         unsigned int *nEligibleModules;
+        unsigned int *nEligibleT5Modules; //This number is just nEligibleModules - 1, but still we want this to be independent of the TC kernel
         unsigned int *lowerModuleIndices;
         int *reverseLookupLowerModuleIndices; //module index to lower module index reverse lookup
 
         int *trackCandidateModuleIndices;
+        int *quintupletModuleIndices;
 
         
         short* layers;
@@ -93,6 +95,8 @@ namespace SDL
         int* tripletRanges;
         int* trackCandidateRanges;
         //others will be added later
+        int* quintupletRanges;
+
         unsigned int* connectedPixels;
         unsigned int* connectedPixelsIndex;
         unsigned int* connectedPixelsSizes;
