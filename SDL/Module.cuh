@@ -97,20 +97,45 @@ namespace SDL
         //others will be added later
         int* quintupletRanges;
 
+        unsigned int* connectedPixels;
+        unsigned int* connectedPixelsIndex;
+        unsigned int* connectedPixelsSizes;
+        unsigned int* connectedPixelsPos;
+        unsigned int* connectedPixelsIndexPos;
+        unsigned int* connectedPixelsSizesPos;
+        unsigned int* connectedPixelsNeg;
+        unsigned int* connectedPixelsIndexNeg;
+        unsigned int* connectedPixelsSizesNeg;
+
+    };
+    struct pixelMap{
+        //unsigned int* connectedPixels;
+        unsigned int* connectedPixelsIndex;
+        unsigned int* connectedPixelsSizes;
+        //unsigned int* connectedPixelsPos;
+        unsigned int* connectedPixelsIndexPos;
+        unsigned int* connectedPixelsSizesPos;
+        //unsigned int* connectedPixelsNeg;
+        unsigned int* connectedPixelsIndexNeg;
+        unsigned int* connectedPixelsSizesNeg;
+
+        int* superbin;
+        int* pixelType;
     };
 
     extern std::map <unsigned int,unsigned int>* detIdToIndex;
 
 
     //functions
-    void loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModules, const char* moduleMetaDataFilePath="data/centroid.txt");
+    void loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModules,struct pixelMap& pixelMapping, const char* moduleMetaDataFilePath="data/centroid.txt");
 
     void createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules);
     void createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules, bool* isLower);
     void createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int nModules);
     void createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned int nModules);
-    void freeModules(struct modules& modulesInGPU);
-    void freeModulesCache(struct modules& modulesInGPU);
+    void freeModules(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
+    void freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
+    void fillPixelMap(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
     void fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules);
     void fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nModules);
     void setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side);
