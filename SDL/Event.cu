@@ -983,7 +983,7 @@ void SDL::Event::createTriplets()
     */
     max_OuterSeg = N_MAX_SEGMENTS_PER_MODULE;
     //printf("nonZeroModules=%d max_InnerSeg=%d max_OuterSeg=%d\n", nonZeroModules, max_InnerSeg, max_OuterSeg);
-    dim3 nThreads(32,16,1);
+    dim3 nThreads(16,16,1);
     dim3 nBlocks((max_OuterSeg % nThreads.x == 0 ? max_OuterSeg / nThreads.x : max_OuterSeg / nThreads.x + 1),(max_InnerSeg % nThreads.y == 0 ? max_InnerSeg/nThreads.y : max_InnerSeg/nThreads.y + 1), (nonZeroModules % nThreads.z == 0 ? nonZeroModules/nThreads.z : nonZeroModules/nThreads.z + 1));
     createTripletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, index_gpu);
     cudaError_t cudaerr = cudaDeviceSynchronize();
@@ -1408,7 +1408,7 @@ void SDL::Event::createTrackCandidates()
     //auto t2 = std::chrono::high_resolution_clock::now();
     //auto trackTime = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1); //in milliseconds
 
-    dim3 nThreads_p(32,16,1);
+    dim3 nThreads_p(16,16,1);
     dim3 nBlocks_p((nPixelTracklets % nThreads_p.x == 0 ? nPixelTracklets/nThreads_p.x : nPixelTracklets/nThreads_p.x + 1), (totalCand % nThreads_p.y == 0 ? totalCand/nThreads_p.y : totalCand/nThreads_p.y + 1), 1);
     createPixelTrackCandidatesInGPU<<<nBlocks_p, nThreads_p>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU, *tripletsInGPU, *trackCandidatesInGPU, threadIdx_gpu, threadIdx_gpu_offset);
     cudaerr = cudaDeviceSynchronize();
@@ -2523,7 +2523,7 @@ __global__ void createPixelTrackletsInGPU(struct SDL::modules& modulesInGPU, str
 
     if(modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::TwoS) return; //REMOVES 2S-2S
 
-    dim3 nThreads(32,16,1);
+    dim3 nThreads(16,16,1);
     dim3 nBlocks(nInnerSegments % nThreads.x == 0 ? nInnerSegments / nThreads.x : nInnerSegments / nThreads.x + 1, nOuterSegments % nThreads.y == 0 ? nOuterSegments / nThreads.y : nOuterSegments / nThreads.y + 1, 1);
 
     createPixelTrackletsFromOuterInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, trackletsInGPU, outerInnerLowerModuleIndex, nInnerSegments, nOuterSegments, pixelModuleIndex, pixelLowerModuleArrayIndex);
