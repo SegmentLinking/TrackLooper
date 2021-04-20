@@ -76,10 +76,7 @@ public:
     TString set_name;
     int pdgid;
     std::function<bool(int)> pass;
-    const std::vector<float>& pt;
-    const std::vector<float>& eta;
-    const std::vector<float>& phi;
-    FakeRateSetDefinition(TString, int, std::function<bool(int)>, const std::vector<float>&, const std::vector<float>&, const std::vector<float>&);
+    FakeRateSetDefinition(TString, int, std::function<bool(int)>);
 };
 
 class DuplicateRateSetDefinition {
@@ -87,15 +84,13 @@ public:
     TString set_name;
     int pdgid;
     std::function<bool(int)> pass;
-    const std::vector<float>& pt;
-    const std::vector<float>& eta;
-    const std::vector<float>& phi;
-    DuplicateRateSetDefinition(TString, int, std::function<bool(int)>, const std::vector<float>&, const std::vector<float>&, const std::vector<float>&);
+    DuplicateRateSetDefinition(TString, int, std::function<bool(int)>);
 };
 
 
 void parseArguments(int argc, char** argv);
 void initializeInputsAndOutputs();
 std::vector<float> getPtBounds();
+std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes);
 
 #endif

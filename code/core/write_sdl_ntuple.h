@@ -18,13 +18,6 @@
 // Common
 void createOutputBranches();
 void createLowerLevelOutputBranches();
-void createQuintupletCutValueBranches();
-void createQuadrupletCutValueBranches();
-void createTripletCutValueBranches();
-void createSegmentCutValueBranches();
-void createMiniDoubletCutValueBranches();
-void createOccupancyBranches();
-void createPixelQuadrupletCutValueBranches();
 // Common
 void fillSimTrackOutputBranches();
 // GPU
@@ -33,9 +26,6 @@ void fillTrackCandidateOutputBranches(SDL::Event& event);
 void fillLowerLevelOutputBranches(SDL::Event& event);
 void fillQuadrupletOutputBranches(SDL::Event& event);
 void fillTripletOutputBranches(SDL::Event& event);
-void fillQuintupletOutputBranches(SDL::Event& event);
-void fillPixelLineSegmentOutputBranches(SDL::Event& event);
-void fillOccupancyBranches(SDL::Event& event);
 void fillPixelQuadrupletOutputBranches(SDL::Event& event);
 // CPU
 void fillOutputBranches_for_CPU(SDL::CPU::Event& event);
@@ -46,7 +36,7 @@ void fillTripletOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillPixelQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event);
 
 // Timing
-void printTimingInformation(std::vector<std::vector<float>>& timing_information);
+void printTimingInformation(std::vector<std::vector<float>> timing_information);
 
 // Print multiplicities
 void printQuadrupletMultiplicities(SDL::Event& event);
