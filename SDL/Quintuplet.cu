@@ -96,7 +96,7 @@ void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU, 
     cudaMemcpy(module_quintupletModuleIndices,modulesInGPU.quintupletModuleIndices,nLowerModules *sizeof(int),cudaMemcpyDeviceToHost);
 
     //start filling
-    for(unsigned int i = 0; i <= nLowerModules; i++)
+    for(unsigned int i = 0; i < nLowerModules; i++)
     {
         //condition for a quintuple to exist for a module
         //TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap
