@@ -4049,6 +4049,40 @@ unsigned int SDL::Event::getNumberOfTripletsByLayerEndcap(unsigned int layer)
     return n_triplets_by_layer_endcap_[layer];
 }
 
+unsigned int SDL::Event::getNumberOfQuintuplets()
+{
+    unsigned int quintuplets = 0;
+    for(auto &it:n_quintuplets_by_layer_barrel_)
+    {
+        quintuplets += it;
+    }
+    for(auto &it:n_quintuplets_by_layer_endcap_)
+    {
+        quintuplets += it;
+    }
+
+    return quintuplets;
+
+}
+
+unsigned int SDL::Event::getNumberOfQuintupletsByLayer(unsigned int layer)
+{
+    if(layer == 6)
+        return n_quintuplets_by_layer_barrel_[layer];
+    else
+        return n_quintuplets_by_layer_barrel_[layer] + n_quintuplets_by_layer_endcap_[layer];
+}
+
+unsigned int SDL::Event::getNumberOfQuintupletsByLayerBarrel(unsigned int layer)
+{
+    return n_quintuplets_by_layer_barrel_[layer];
+}
+
+unsigned int SDL::Event::getNumberOfQuintupletsByLayerEndcap(unsigned int layer)
+{
+    return n_quintuplets_by_layer_endcap_[layer];
+}
+
 unsigned int SDL::Event::getNumberOfTrackCandidates()
 {
     unsigned int trackCandidates = 0;

@@ -137,6 +137,11 @@ namespace SDL
         unsigned int getNumberOfTrackCandidatesByLayerBarrel(unsigned int layer);
         unsigned int getNumberOfTrackCandidatesByLayerEndcap(unsigned int layer);
 
+        unsigned int getNumberOfQuintuplets();
+        unsigned int getNumberOfQuintupletsByLayer(unsigned int layer);
+        unsigned int getNumberOfQuintupletsByLayerBarrel(unsigned int layer);
+        unsigned int getNumberOfQuintupletsByLayerEndcap(unsigned int layer);
+
         hits* getHits();
         miniDoublets* getMiniDoublets();
         segments* getSegments() ;
