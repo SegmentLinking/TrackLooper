@@ -1437,10 +1437,12 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             float neta = 25.;
             float nphi = 72.;
             float nz = 25.;
+            if(abs(p3PCA.Eta()) >= 2.5){continue;}
             int etabin = (p3PCA.Eta() + 2.6) / ((2*2.6)/neta);
             int phibin = (p3PCA.Phi() + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
             int dzbin = (trk.see_dz()[iSeed] + 30) / (2*30 / nz);
             int isuperbin = /*(nz * nphi * neta) * ptbin + (removed since pt bin is determined by pixelType)*/ (nz * nphi) * etabin + (nz) * phibin + dzbin;
+            //if(isuperbin<0 || isuperbin>=44900){printf("isuperbin %d %d %d %d %f\n",isuperbin,etabin,phibin,dzbin,p3PCA.Eta());}
             superbin_vec.push_back(isuperbin);
             pixelType_vec.push_back(pixtype);
 
