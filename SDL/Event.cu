@@ -1462,7 +1462,7 @@ void SDL::Event::createQuintuplets()
     }
 
 
-//#ifdef NESTED_PARA
+#ifdef NESTED_PARA
     unsigned int nThreads = 1;
     unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads + 1;
     createQuintupletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU);
@@ -1473,15 +1473,76 @@ void SDL::Event::createQuintuplets()
     {
 	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
     }
-/*#else
+#else
 #ifdef NEWGRID_T5
-    printf("Not yet implemented!!!\n");
-    exit(3);
+
+    unsigned int nonZeroModules=0;
+    unsigned int max_InnerTriplets=0;
+    unsigned int *index = (unsigned int*)malloc(nLowerModules*sizeof(unsigned int));
+    unsigned int *index_gpu;
+    cudaMalloc((void **)&index_gpu, nLowerModules*sizeof(unsigned int));
+    unsigned int *nTriplets = (unsigned int*)malloc(nLowerModules*sizeof(unsigned int));
+    cudaMemcpy((void *)nTriplets, tripletsInGPU->nTriplets, nLowerModules*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+    //go one level above - don't start kernels for ineligible modules
+    unsigned int* module_quintupletModuleIndices = (unsigned int*)malloc(nLowerModules * sizeof(unsigned int));
+    cudaMemcpy(module_quintupletModuleIndices, modulesInGPU->quintupletModuleIndices, nLowerModules * sizeof(unsigned int));
+
+    for (unsigned int innerLowerModuleIndex = 0; innerLowerModuleIndex < nLowerModules; innerLowerModuleIndex++) 
+    {
+        unsigned int nInnerTriplets = min(nTriplets[innerLowerModuleIndex], N_MAX_TRIPLETS_PER_MODULE); 
+        if (nInnerTriplets != 0 and module_quintupletModuleIndices[innerLowerModuleIndex] != -1) 
+        {
+          index[nonZeroModules] = innerLowerModuleIndex;
+          nonZeroModules++;
+        }
+        max_InnerTriplets = max_InnerTriplets > nInnerTriplets ? max_InnerTriplets : nInnerTriplets;
+    }
+    free(module_quintupletModuleIndices);
+/*    
+#else
+    unsigned int nonZeroModules=0;
+    unsigned int max_Triplets=0;
+    unsigned int *index = (unsigned int*)malloc(nLowerModules*sizeof(unsigned int));
+    unsigned int *index_gpu;
+    cudaMalloc((void **)&index_gpu, nLowerModules*sizeof(unsigned int));
+    unsigned int *nTriplets = (unsigned int*)malloc(nLowerModules*sizeof(unsigned int));
+    cudaMemcpy((void *)nTriplets, tripletsInGPU->nTriplets, nLowerModules*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    for (unsigned int innerLowerModuleIndex =0; innerLowerModuleIndex < nLowerModules; innerLowerModuleIndex++) 
+    {
+        unsigned int nInnerTriplets = nTriplets[innerLowerModuleIndex] > N_MAX_TRIPLETS_PER_MODULE ? N_MAX_TRIPLETS_PER_MODULE : nTriplets[innerLowerModuleIndex];
+        //go one level above - don't start kernels for ineligible modules
+        if (nInnerTriplets != 0 and modulesInGPU.quintupletModuleIndices[innerLowerModuleIndex] != -1) 
+        {
+          index[nonZeroModules] = innerLowerModuleIndex;
+          nonZeroModules++;
+        }
+        max_InnerTriplets = max_InnerTriplets > nInnerTriplets ? max_InnerTriplets : nInnerTriplets;
+    }
+#endif*/
+
+    cudaMemcpy(index_gpu, index, nonZeroModules * sizeof(unsigned int), cudaMemcpyHostToDevice);
+    int max_Triplets = 0;
+    max_outerTriplets = N_MAX_TRIPLETS_PER_MODULE;
+    printf("nonZeroModules=%d max_InnerTriplets=%d max_outerTriplets=%d\n", nonZeroModules, max_InnerTriplets, max_outerTriplets);
+    dim3 nThreads(32,16,1);
+
+    dim3 nBlocks((max_outerTriplets % nThreads.x == 0 ? max_outerTriplets / nThreads.x : max_outerTriplets / nThreads.x + 1),(max_InnerTriplets % nThreads.y == 0 ? max_InnerTriplets/nThreads.y : max_InnerTriplets/nThreads.y + 1), (nonZeroModules % nThreads.z == 0 ? nonZeroModules/nThreads.z : nonZeroModules/nThreads.z + 1));
+
+    createQuintupletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, index_gpu);
+    cudaError_t cudaerr = cudaDeviceSynchronize();
+    if(cudaerr != cudaSuccess)
+    {
+	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
+    }
+    free(nSegments);
+    free(index);
+    cudaFree(index_gpu);
 #else
     printf("original 3D grid launching in createQuintuplets does not exist");
     exit(3);
 #endif
-#endif*/
+#endif
 
 #if defined(AddObjects)
 #ifdef Explicit_T5
@@ -3474,6 +3535,71 @@ __global__ void createTrackCandidatesFromInnerInnerInnerLowerModule(struct SDL::
 }
 #endif
 
+
+#ifndef NESTED_PARA
+__global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int* index_gpu)
+{
+    int lowerModuleArray1 = index_gpu[blockIdx.z * blockDim.z + threadIdx.z];
+
+    //this if statement never gets executed!
+    if(lowerModuleArray1  >= *modulesInGPU.nLowerModules) return;
+
+    unsigned int nInnerTriplets = tripletsInGPU.nTriplets[lowerModuleArray1];
+
+    unsigned int innerTripletArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned int outerTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(innerTripletArrayIndex >= nInnerTriplets) return;
+
+    unsigned int innerTripletIndex = lowerModuleArray1 * N_MAX_TRIPLETS_PER_MODULE + innerTripletArrayIndex;
+    unsigned int lowerModule1 = modulesInGPU.lowerModuleIndices[lowerModuleArray1];
+    //these are actual module indices!! not lower module indices!
+    unsigned int lowerModule2 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 1];
+    unsigned int lowerModule3 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 2];
+    unsigned int lowerModuleArray3 = modulesInGPU.reverseLookupLowerModuleIndices[lowerModule3];
+    unsigned int nOuterTriplets = min(tripletsInGPU.nTriplets[lowerModuleArray3], N_MAX_TRIPLETS_PER_MODULE);
+
+    if(outerTripletArrayIndex >= nOuterTriplets) return;
+    unsigned int outerTripletIndex = lowerModuleArray3 * N_MAX_TRIPLETS_PER_MODULE + outerTripletArrayIndex;
+    //these are actual module indices!!
+    unsigned int lowerModule4 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1];
+    unsigned int lowerModule5 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 2];
+   
+    float innerRadius, innerRadiusMin, innerRadiusMin2S, innerRadiusMax, innerRadiusMax2S, outerRadius, outerRadiusMin, outerRadiusMin2S, outerRadiusMax, outerRadiusMax2S, bridgeRadius, bridgeRadiusMin, bridgeRadiusMin2S, bridgeRadiusMax, bridgeRadiusMax2S; //required for making distributions
+    bool success = runQuintupletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletIndex, outerTripletIndex, innerRadius, innerRadiusMin, innerRadiusMax, outerRadius, outerRadiusMin, outerRadiusMax, bridgeRadius, bridgeRadiusMin, bridgeRadiusMax, innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S,
+            outerRadiusMax2S);
+
+   if(success)
+   {
+       unsigned int quintupletModuleIndex = atomicAdd(&quintupletsInGPU.nQuintuplets[lowerModuleArray1], 1);
+       if(quintupletModuleIndex >= N_MAX_QUINTUPLETS_PER_MODULE)
+       {
+#ifdef Warnings
+           if(quintupletModuleIndex ==  N_MAX_QUINTUPLETS_PER_MODULE)
+               printf("Quintuplet excess alert! Module index = %d\n", lowerModuleArray1);
+#endif
+       }
+       else
+       {
+           //this if statement should never get executed!
+           if(modulesInGPU.quintupletModuleIndices[lowerModuleArray1] == -1)
+           {
+                printf("Quintuplets : no memory for module at module index = %d\n", lowerModuleArray1);
+           }
+           else
+           {
+                unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[lowerModuleArray1] +  quintupletModuleIndex;
+#ifdef CUT_VALUE_DEBUG
+                addQuintupletToMemory(quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, innerRadiusMin, innerRadiusMax, outerRadius, outerRadiusMin, outerRadiusMax, bridgeRadius, bridgeRadiusMin, bridgeRadiusMax, innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S, outerRadiusMax2S, quintupletIndex);
+#else
+                addQuintupletToMemory(quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, quintupletIndex);
+#endif
+            }
+        }
+    }
+}
+
+#else
 __global__ void createQuintupletsFromInnerInnerLowerModule(SDL::modules& modulesInGPU, SDL::hits& hitsInGPU, SDL::miniDoublets& mdsInGPU, SDL::segments& segmentsInGPU, SDL::triplets& tripletsInGPU, SDL::quintuplets& quintupletsInGPU, unsigned int lowerModuleArray1, unsigned int nInnerTriplets)
 {
    int innerTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -3534,7 +3660,11 @@ __global__ void createQuintupletsFromInnerInnerLowerModule(SDL::modules& modules
 __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU)
 {
     int innerInnerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; //inner triplet inner segment inner MD
-    if(innerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) return;
+
+    //no quintuplets can be formed for these folks - no need to run inner kernels for them!
+
+    if(innerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules or modulesInGPU.quintupletModuleIndex[innerInnerInnerLowerModuleArrayIndex] == -1) return; 
+
     unsigned int nInnerTriplets = min(tripletsInGPU.nTriplets[innerInnerInnerLowerModuleArrayIndex], N_MAX_TRIPLETS_PER_MODULE);
     if(nInnerTriplets == 0) return;
 
@@ -3545,6 +3675,7 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
    
 }
 
+#endif
 
 unsigned int SDL::Event::getNumberOfHits()
 {
