@@ -48,14 +48,15 @@ namespace SDL
         std::array<unsigned int, 6> n_quintuplets_by_layer_barrel_;
         std::array<unsigned int, 5> n_quintuplets_by_layer_endcap_;
 
+
         //CUDA stuff
         struct hits* hitsInGPU;
         struct miniDoublets* mdsInGPU;
         struct segments* segmentsInGPU;
         struct tracklets* trackletsInGPU;
         struct triplets* tripletsInGPU;
-        struct trackCandidates* trackCandidatesInGPU;
         struct quintuplets* quintupletsInGPU;
+        struct trackCandidates* trackCandidatesInGPU;
 
         //CPU interface stuff
         hits* hitsInCPU;
@@ -147,10 +148,10 @@ namespace SDL
         segments* getSegments() ;
         tracklets* getTracklets();
         triplets* getTriplets();
+        quintuplets* getQuintuplets();
         trackCandidates* getTrackCandidates();
         modules* getModules();
         modules* getFullModules();
-        quintuplets* getQuintuplets();
 
     };
 
