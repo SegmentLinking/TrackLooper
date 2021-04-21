@@ -1327,8 +1327,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         float py = p3LH.Y();
         float pz = p3LH.Z();
         //extra bit
-
-        if ((ptIn > 1 - 2 * ptErr) and (fabs(p3LH.Eta()) < 3))
+	
+        if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
         {
             // get pixel superbin
             //int ptbin = -1;
@@ -1421,8 +1421,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
 
     }
 
-    event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); 
-    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, etaErr_vec,superbin_vec,pixelType_vec);
+    event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
+    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec);
 
     float hit_loading_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Loading inputs processing time: " << hit_loading_elapsed << " secs" << std::endl;

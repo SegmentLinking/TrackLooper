@@ -163,6 +163,7 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
   cms::cuda::free_device(dev,modulesInGPU.reverseLookupLowerModuleIndices);
   cms::cuda::free_device(dev,modulesInGPU.trackCandidateModuleIndices);
   cms::cuda::free_device(dev,modulesInGPU.nEligibleModules);
+  cms::cuda::free_device(dev,modulesInGPU.nEligibleT5Modules);
   cms::cuda::free_device(dev,modulesInGPU.connectedPixels);
   //cms::cuda::free_device(dev,pixelMapping.connectedPixelsSizes);
   //cms::cuda::free_device(dev,pixelMapping.connectedPixelsSizesPos);
@@ -198,6 +199,7 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
   cms::cuda::free_managed(modulesInGPU.reverseLookupLowerModuleIndices);
   cms::cuda::free_managed(modulesInGPU.trackCandidateModuleIndices);
   cms::cuda::free_managed(modulesInGPU.nEligibleModules);
+  cms::cuda::free_managed(modulesInGPU.nEligibleT5Modules);
   cms::cuda::free_managed(modulesInGPU.connectedPixels);
   //cms::cuda::free_managed(pixelMapping.connectedPixelsSizes);
   //cms::cuda::free_managed(pixelMapping.connectedPixelsSizesPos);
@@ -236,12 +238,14 @@ void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMappin
   cudaFree(modulesInGPU.trackletRanges);
   cudaFree(modulesInGPU.tripletRanges);
   cudaFree(modulesInGPU.trackCandidateRanges);
+  cudaFree(modulesInGPU.quintupletRanges);
   cudaFree(modulesInGPU.moduleType);
   cudaFree(modulesInGPU.moduleLayerType);
   cudaFree(modulesInGPU.lowerModuleIndices);
   cudaFree(modulesInGPU.reverseLookupLowerModuleIndices);
   cudaFree(modulesInGPU.trackCandidateModuleIndices);
   cudaFree(modulesInGPU.nEligibleModules);
+  cudaFree(modulesInGPU.nEligibleT5Modules);
   cudaFree(modulesInGPU.connectedPixels);
   cudaFreeHost(pixelMapping.connectedPixelsSizes);
   cudaFreeHost(pixelMapping.connectedPixelsSizesPos);
