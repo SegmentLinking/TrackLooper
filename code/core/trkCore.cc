@@ -1330,7 +1330,18 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
 
         if ((ptIn > 1 - 2 * ptErr) and (fabs(p3LH.Eta()) < 3))
         {
-
+            // get pixel superbin
+            //int ptbin = -1;
+            int pixtype =-1;
+            if (p3PCA.Pt() >= 2.0){ /*ptbin = 1;*/pixtype=0;}
+            else if (p3PCA.Pt() >= 0.9 and p3PCA.Pt() < 2.0){ 
+              //ptbin = 0;
+              if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
+              else{pixtype=2;}
+            }
+            else{continue;}
+            if(abs(p3PCA.Eta()) >= 2.5){continue;}
+// all continues before pushing back into vectots to avoid strange offsets in indicies. 
             unsigned int hitIdx0 = hit_size + count;
             count++; 
 
@@ -1391,21 +1402,10 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             {
                 hitIdxs.push_back(trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]);
             }
-            // get pixel superbin
-            //int ptbin = -1;
-            int pixtype =-1;
-            if (p3PCA.Pt() >= 2.0){ /*ptbin = 1;*/pixtype=0;}
-            else if (p3PCA.Pt() >= 0.9 and p3PCA.Pt() < 2.0){ 
-              //ptbin = 0;
-              if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
-              else{pixtype=2;}
-            }
-            else{continue;}
             //if (pt < 0){ ptbin = 0;}
             float neta = 25.;
             float nphi = 72.;
             float nz = 25.;
-            if(abs(p3PCA.Eta()) >= 2.5){continue;}
             int etabin = (p3PCA.Eta() + 2.6) / ((2*2.6)/neta);
             int phibin = (p3PCA.Phi() + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
             int dzbin = (trk.see_dz()[iSeed] + 30) / (2*30 / nz);
