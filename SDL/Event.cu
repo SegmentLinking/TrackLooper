@@ -13,7 +13,7 @@ const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 100000;
 const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
 const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 3000000;
 const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 5000000;
-
+const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 5000;
 
 struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::pixelMap* SDL::pixelMapping = nullptr;
@@ -26,6 +26,7 @@ SDL::Event::Event()
     segmentsInGPU = nullptr;
     trackletsInGPU = nullptr;
     tripletsInGPU = nullptr;
+    quintupletsInGPU = nullptr;
     trackCandidatesInGPU = nullptr;
 
 
@@ -39,7 +40,6 @@ SDL::Event::Event()
     modulesInCPUFull = nullptr;
     quintupletsInCPU = nullptr;
 
-//    pixelMapping = nullptr;
     //reset the arrays
     for(int i = 0; i<6; i++)
     {
@@ -49,6 +49,7 @@ SDL::Event::Event()
         n_tracklets_by_layer_barrel_[i] = 0;
         n_triplets_by_layer_barrel_[i] = 0;
         n_trackCandidates_by_layer_barrel_[i] = 0;
+        n_quintuplets_by_layer_barrel_[i] = 0;
         if(i<5)
         {
             n_hits_by_layer_endcap_[i] = 0;
@@ -57,6 +58,7 @@ SDL::Event::Event()
             n_tracklets_by_layer_endcap_[i] = 0;
             n_triplets_by_layer_endcap_[i] = 0;
             n_trackCandidates_by_layer_endcap_[i] = 0;
+            n_quintuplets_by_layer_endcap_[i] = 0;
         }
     }
     resetObjectsInModule();
@@ -65,18 +67,25 @@ SDL::Event::Event()
 
 SDL::Event::~Event()
 {
+
 #ifdef CACHE_ALLOC
     mdsInGPU->freeMemoryCache();
     segmentsInGPU->freeMemoryCache();
     tripletsInGPU->freeMemoryCache();
     trackletsInGPU->freeMemoryCache();
     trackCandidatesInGPU->freeMemoryCache();
+#ifdef DO_QUINTUPLET
+    quintupletsInGPU->freeMemoryCache();
+#endif
 #else
     mdsInGPU->freeMemory();
     segmentsInGPU->freeMemory();
     tripletsInGPU->freeMemory();
     trackletsInGPU->freeMemory();
     trackCandidatesInGPU->freeMemory();
+#ifdef DO_QUINTUPLET
+    quintupletsInGPU->freeMemory();
+#endif
 #endif
     cudaFreeHost(mdsInGPU);
     cudaFreeHost(segmentsInGPU);
@@ -85,6 +94,9 @@ SDL::Event::~Event()
     cudaFreeHost(trackCandidatesInGPU);
     hitsInGPU->freeMemory();
     cudaFreeHost(hitsInGPU);
+#ifdef DO_QUINTUPLET
+    cudaFreeHost(quintupletsInGPU);
+#endif
 
 #ifdef Explicit_Hit
     if(hitsInCPU != nullptr)
@@ -113,6 +125,9 @@ SDL::Event::~Event()
         delete[] segmentsInCPU->nSegments;
         delete[] segmentsInCPU->innerMiniDoubletAnchorHitIndices;
         delete[] segmentsInCPU->outerMiniDoubletAnchorHitIndices;
+        delete[] segmentsInCPU->ptIn;
+        delete[] segmentsInCPU->eta;
+        delete[] segmentsInCPU->phi;
         delete segmentsInCPU;
     }
 #endif
@@ -136,6 +151,18 @@ SDL::Event::~Event()
         delete tripletsInCPU;
     }
 #endif
+#ifdef Explicit_T5
+#ifdef DO_QUINTUPLET
+    if(quintupletsInCPU != nullptr)
+    {
+        delete[] quintupletsInCPU->tripletIndices;
+        delete[] quintupletsInCPU->nQuintuplets;
+        delete[] quintupletsInCPU->lowerModuleIndices;
+        delete quintupletsInCPU;
+    }
+#endif
+#endif
+
 #ifdef Explicit_Track
     if(trackCandidatesInCPU != nullptr)
     {
@@ -155,6 +182,10 @@ SDL::Event::~Event()
         delete[] modulesInCPU->hitRanges;
         delete[] modulesInCPU->isLower;
         delete[] modulesInCPU->trackCandidateModuleIndices;
+        delete[] modulesInCPU->quintupletModuleIndices;
+        delete[] modulesInCPU->layers;
+        delete[] modulesInCPU->subdets;
+        delete[] modulesInCPU->rings;
         delete[] modulesInCPU;
     }
     if(modulesInCPUFull != nullptr)
@@ -188,6 +219,7 @@ SDL::Event::~Event()
         delete[] modulesInCPUFull->lowerModuleIndices;
         delete[] modulesInCPUFull->reverseLookupLowerModuleIndices;
         delete[] modulesInCPUFull->trackCandidateModuleIndices;
+        delete[] modulesInCPUFull->quintupletModuleIndices;
         delete[] modulesInCPUFull;
     }
 #endif
@@ -1867,6 +1899,95 @@ void SDL::Event::addTrackCandidatesToEvent()
     }
 }
 
+
+
+void SDL::Event::addQuintupletsToEvent()
+{
+    unsigned int idx;
+    for(unsigned int i = 0; i<*(SDL::modulesInGPU->nLowerModules); i++)
+    {
+        idx = SDL::modulesInGPU->lowerModuleIndices[i];
+        //tracklets run only on lower modules!!!!!!
+        if(quintupletsInGPU->nQuintuplets[i] == 0)
+        {
+            modulesInGPU->quintupletRanges[idx * 2] = -1;
+            modulesInGPU->quintupletRanges[idx * 2 + 1] = -1;
+        }
+        else
+        {
+            modulesInGPU->quintupletRanges[idx * 2] = SDL::modulesInGPU->quintupletModuleIndices[i];
+            modulesInGPU->quintupletRanges[idx * 2 + 1] = SDL::modulesInGPU->quintupletModuleIndices[i] + quintupletsInGPU->nQuintuplets[i] - 1;
+
+            if(modulesInGPU->subdets[idx] == Barrel)
+            {
+                n_quintuplets_by_layer_barrel_[modulesInGPU->layers[idx] - 1] += quintupletsInGPU->nQuintuplets[i];
+            }
+            else
+            {
+                n_quintuplets_by_layer_endcap_[modulesInGPU->layers[idx] - 1] += quintupletsInGPU->nQuintuplets[i];
+            }
+        }
+    }
+}
+
+void SDL::Event::addQuintupletsToEventExplicit()
+{
+    unsigned int nLowerModules;
+    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+
+    unsigned int* nQuintupletsCPU;
+    cudaMallocHost(&nQuintupletsCPU, nLowerModules * sizeof(unsigned int));
+    cudaMemcpy(nQuintupletsCPU,quintupletsInGPU->nQuintuplets,nLowerModules*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+
+    short* module_subdets;
+    cudaMallocHost(&module_subdets, nModules* sizeof(short));
+    cudaMemcpy(module_subdets,modulesInGPU->subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+
+    unsigned int* module_lowerModuleIndices;
+    cudaMallocHost(&module_lowerModuleIndices, (nLowerModules +1)* sizeof(unsigned int));
+    cudaMemcpy(module_lowerModuleIndices,modulesInGPU->lowerModuleIndices,(nLowerModules+1)*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+
+    int* module_quintupletRanges;
+    cudaMallocHost(&module_quintupletRanges, nModules* 2*sizeof(int));
+    cudaMemcpy(module_quintupletRanges,modulesInGPU->quintupletRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost);
+    short* module_layers;
+    cudaMallocHost(&module_layers, nModules * sizeof(short));
+    cudaMemcpy(module_layers,modulesInGPU->layers,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+    int* module_quintupletModuleIndices;
+    cudaMallocHost(&module_quintupletModuleIndices, nLowerModules * sizeof(int));
+    cudaMemcpy(module_quintupletModuleIndices, modulesInGPU->quintupletModuleIndices, nLowerModules * sizeof(int), cudaMemcpyDeviceToHost);
+    unsigned int idx;
+    for(unsigned int i = 0; i<nLowerModules; i++)
+    {
+        idx = module_lowerModuleIndices[i];
+        if(nQuintupletsCPU[i] == 0 or module_quintupletModuleIndices[i] == -1)
+        {
+            module_quintupletRanges[idx * 2] = -1;
+            module_quintupletRanges[idx * 2 + 1] = -1;
+        }
+       else 
+        {
+            module_quintupletRanges[idx * 2] = module_quintupletModuleIndices[i];
+            module_quintupletRanges[idx * 2 + 1] = module_quintupletModuleIndices[i] + nQuintupletsCPU[i] - 1; 
+
+            if(module_subdets[idx] == Barrel)
+            {
+                n_quintuplets_by_layer_barrel_[module_layers[idx] - 1] += nQuintupletsCPU[i];
+            }
+            else
+            {
+                n_quintuplets_by_layer_endcap_[module_layers[idx] - 1] += nQuintupletsCPU[i];
+            }
+        }
+    }
+    cudaFreeHost(nQuintupletsCPU);
+    cudaFreeHost(module_lowerModuleIndices);
+    cudaFreeHost(module_quintupletRanges);
+    cudaFreeHost(module_layers);
+    cudaFreeHost(module_subdets);
+    cudaFreeHost(module_quintupletModuleIndices);
+
+}
 
 void SDL::Event::addTripletsToEvent()
 {
@@ -4113,6 +4234,35 @@ SDL::triplets* SDL::Event::getTriplets()
 }
 #endif
 
+#ifdef Explicit_T5
+SDL::quintuplets* SDL::Event::getQuintuplets()
+{
+    if(quintupletsInCPU == nullptr)
+    {
+        quintupletsInCPU = new SDL::quintuplets;
+        unsigned int nLowerModules;
+        cudaMemcpy(&nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        unsigned int nEligibleT5Modules;
+        cudaMemcpy(&nEligibleT5Modules, modulesInGPU->nEligibleT5Modules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        unsigned int nMemoryLocations = nEligibleT5Modules * N_MAX_QUINTUPLETS_PER_MODULE;
+
+        quintupletsInCPU->nQuintuplets = new unsigned int[nLowerModules];
+        quintupletsInCPU->tripletIndices = new unsigned int[2 * nMemoryLocations];
+        quintupletsInCPU->lowerModuleIndices = new unsigned int[5 * nMemoryLocations];
+        cudaMemcpy(quintupletsInCPU->nQuintuplets, quintupletsInGPU->nQuintuplets,  nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(quintupletsInCPU->tripletIndices, quintupletsInGPU->tripletIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost);    
+        cudaMemcpy(quintupletsInCPU->lowerModuleIndices, quintupletsInGPU->lowerModuleIndices, 5 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    }  
+
+    return quintupletsInCPU;
+}
+#else
+SDL::quintuplets* SDL::Event::getQuintuplets()
+{
+    return quintupletsInGPU;
+}
+#endif
+
 #ifdef Explicit_Track
 SDL::trackCandidates* SDL::Event::getTrackCandidates()
 {
@@ -4224,8 +4374,10 @@ SDL::modules* SDL::Event::getModules()
         modulesInCPU->hitRanges = new int[2*nModules];
         modulesInCPU->isLower = new bool[nModules];
         modulesInCPU->trackCandidateModuleIndices = new int[nLowerModules+1];
+        modulesInCPU->quintupletModuleIndices = new int[nLowerModules];
         modulesInCPU->layers = new short[nModules];
         modulesInCPU->subdets = new short[nModules];
+        modulesInCPU->rings = new short[nModules];
 
         cudaMemcpy(modulesInCPU->nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
         cudaMemcpy(modulesInCPU->nModules, modulesInGPU->nModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
@@ -4234,8 +4386,11 @@ SDL::modules* SDL::Event::getModules()
         cudaMemcpy(modulesInCPU->hitRanges, modulesInGPU->hitRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost);
         cudaMemcpy(modulesInCPU->isLower, modulesInGPU->isLower, nModules * sizeof(bool), cudaMemcpyDeviceToHost);
         cudaMemcpy(modulesInCPU->trackCandidateModuleIndices, modulesInGPU->trackCandidateModuleIndices, (nLowerModules+1) * sizeof(int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(modulesInCPU->quintupletModuleIndices, modulesInGPU->quintupletModuleIndices, nLowerModules * sizeof(int), cudaMemcpyDeviceToHost);
         cudaMemcpy(modulesInCPU->layers, modulesInGPU->layers, nModules * sizeof(short), cudaMemcpyDeviceToHost);
         cudaMemcpy(modulesInCPU->subdets, modulesInGPU->subdets, nModules * sizeof(short), cudaMemcpyDeviceToHost);
+        cudaMemcpy(modulesInCPU->rings, modulesInGPU->rings, nModules * sizeof(short), cudaMemcpyDeviceToHost);
+
     //}
     return modulesInCPU;
 }

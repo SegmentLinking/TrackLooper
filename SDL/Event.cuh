@@ -20,6 +20,7 @@
 #include "Tracklet.cuh"
 #include "Triplet.cuh"
 #include "TrackCandidate.cuh"
+#include "Quintuplet.cuh"
 
 #include "cuda_profiler_api.h"
 #ifdef __CUDACC__
@@ -44,7 +45,8 @@ namespace SDL
         std::array<unsigned int, 5> n_triplets_by_layer_endcap_;
         std::array<unsigned int, 6> n_trackCandidates_by_layer_barrel_;
         std::array<unsigned int, 5> n_trackCandidates_by_layer_endcap_;
-
+        std::array<unsigned int, 6> n_quintuplets_by_layer_barrel_;
+        std::array<unsigned int, 5> n_quintuplets_by_layer_endcap_;
 
         //CUDA stuff
         struct hits* hitsInGPU;
@@ -53,6 +55,7 @@ namespace SDL
         struct tracklets* trackletsInGPU;
         struct triplets* tripletsInGPU;
         struct trackCandidates* trackCandidatesInGPU;
+        struct quintuplets* quintupletsInGPU;
 
         //CPU interface stuff
         hits* hitsInCPU;
@@ -63,6 +66,8 @@ namespace SDL
         trackCandidates* trackCandidatesInCPU;
         modules* modulesInCPU;
         modules* modulesInCPUFull;
+        quintuplets* quintupletsInCPU;
+
         int* superbinCPU;
         int* pixelTypeCPU;
     public:
@@ -85,6 +90,8 @@ namespace SDL
         void addTrackletsWithAGapToEventExplicit();
         void addTripletsToEventExplicit();
         void addTrackCandidatesToEventExplicit();
+        void addQuintupletsToEvent();
+        void addQuintupletsToEventExplicit();
 
         void resetObjectsInModule();
 
@@ -96,6 +103,7 @@ namespace SDL
         void createPixelTrackletsWithMap();
         void createTrackletsWithAGapWithModuleMap();
         void createTrackCandidates();
+        void createQuintuplets();
 
         unsigned int getNumberOfHits();
         unsigned int getNumberOfHitsByLayer(unsigned int layer);
@@ -137,6 +145,7 @@ namespace SDL
         trackCandidates* getTrackCandidates();
         modules* getModules();
         modules* getFullModules();
+        quintuplets* getQuintuplets();
 
     };
 
