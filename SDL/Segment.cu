@@ -118,6 +118,9 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.py = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 3;
     segmentsInGPU.pz = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 4;
     segmentsInGPU.etaErr = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 5;
+    segmentsInGPU.eta = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 6;
+    segmentsInGPU.phi = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 7;
+
 }
 //void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules)
 //{
