@@ -1280,16 +1280,19 @@ void SDL::Event::createPixelTrackletsWithMap()
     unsigned int totalSegs=0;
     int pixelIndexOffsetPos = pixelMapping->connectedPixelsIndex[44999];
     int pixelIndexOffsetNeg = pixelMapping->connectedPixelsIndexPos[44999] + pixelIndexOffsetPos;
+    //printf("indexOffset %u %u %u\n",pixelIndexOffsetPos,pixelIndexOffsetNeg,pixelIndexOffsetNeg+pixelMapping->connectedPixelsIndexNeg[44999]);
     int i =-1;
     for (int ix=0; ix < nInnerSegments;ix++){// loop over # pLS
       int pixelType = pixelTypes[ix];// get pixel type for this pLS
       int superbin = superbins[ix]; //get superbin for this pixel
       if(superbin <0) {/*printf("bad neg %d\n",ix);*/continue;}
       if(superbin >=45000) {/*printf("bad pos %d %d %d\n",ix,superbin,pixelType);*/continue;}// skip any weird out of range values
+      if(pixelType >2 || pixelType < 0){/*printf("bad pixel type %d %d\n",ix,pixelType);*/continue;}
       i++;
       if(pixelType ==0){ // used pixel type to select correct size-index arrays
         connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
         connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndex[superbin];// index to get start of connected modules for this superbin in map
+//        if(connectedPixelIndex_host[i] >= pixelIndexOffsetPos){printf("TESTX0 %d %d %u %d %u\n",ix,i,connectedPixelIndex_host[i],superbin,pixelMapping->connectedPixelsIndex[superbin]);}
         for (int j=0; j < pixelMapping->connectedPixelsSizes[superbin]; j++){ // loop over modules from the size
           segs_pix[totalSegs+j] = i; // save the pixel index in array to be transfered to kernel
           segs_pix_offset[totalSegs+j] = j; // save this segment in array to be transfered to kernel
@@ -1300,7 +1303,8 @@ void SDL::Event::createPixelTrackletsWithMap()
       else if(pixelType ==1){
         connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesPos[superbin]; //number of pixel connected modules
         connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndexPos[superbin]+pixelIndexOffsetPos;// index to get start of connected pixel modules
-        for (int j=0; j < pixelMapping->connectedPixelsSizes[superbin]; j++){
+//        if(connectedPixelIndex_host[i] >= pixelIndexOffsetNeg){printf("TESTX1 %d %d %u %d %u\n",ix,i,connectedPixelIndex_host[i],superbin,pixelMapping->connectedPixelsIndexPos[superbin]);}
+        for (int j=0; j < pixelMapping->connectedPixelsSizesPos[superbin]; j++){
           segs_pix[totalSegs+j] = i;
           segs_pix_offset[totalSegs+j] = j;
         }
@@ -1310,16 +1314,21 @@ void SDL::Event::createPixelTrackletsWithMap()
       else if(pixelType ==2){
         connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesNeg[superbin]; //number of pixel connected modules
         connectedPixelIndex_host[i] =pixelMapping->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;// index to get start of connected pixel modules
-        for (int j=0; j < pixelMapping->connectedPixelsSizes[superbin]; j++){
+//        if(connectedPixelIndex_host[i] >= pixelIndexOffsetNeg+ pixelMapping->connectedPixelsIndexNeg[44999]){printf("TESTX2 %d %d %u %d %u\n",ix,i,connectedPixelIndex_host[i],superbin,pixelMapping->connectedPixelsIndexNeg[superbin]);}
+        for (int j=0; j < pixelMapping->connectedPixelsSizesNeg[superbin]; j++){
           segs_pix[totalSegs+j] = i;
           segs_pix_offset[totalSegs+j] = j;
         }
         totalSegs += connectedPixelSize_host[i];
       if (pixelMapping->connectedPixelsSizesNeg[superbin] > max_size){max_size = pixelMapping->connectedPixelsSizesNeg[superbin];}
       }
-//      if(i==255){printf("255: %d %d %u\n",pixelType,superbin,connectedPixelIndex_host[i]);}
+      //if(i==230){printf("255: %d %d %u\n",pixelType,superbin,connectedPixelIndex_host[i]);}
       else{continue;}
     }
+
+//    for(int k =0; k< i;k++){
+//      if(connectedPixelIndex_host[k] > 3735957){printf("This Bad %d %u\n",k,connectedPixelIndex_host[i]);}
+//    }
     cudaMemcpy(connectedPixelSize_dev, connectedPixelSize_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice);
     cudaMemcpy(connectedPixelIndex_dev, connectedPixelIndex_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice);
     cudaMemcpy(segs_pix_gpu,segs_pix,threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
@@ -1329,7 +1338,8 @@ void SDL::Event::createPixelTrackletsWithMap()
     dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
                   (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
     createPixelTrackletsInGPUFromMap<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU, 
-    connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset);
+    connectedPixelSize_dev,connectedPixelIndex_dev,i,segs_pix_gpu,segs_pix_gpu_offset);
+    //connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset);
 
     cudaError_t cudaerr = cudaDeviceSynchronize();
     if(cudaerr != cudaSuccess)
@@ -2712,7 +2722,7 @@ __global__ void createPixelTrackletsInGPUFromMap(struct SDL::modules& modulesInG
     //unsigned int temp = connectedPixelIndex[255]+0;//gets module index for segment
     //outerInnerLowerModuleArrayIndex = modulesInGPU.connectedPixels[134378]; //gets module index for segment
     //printf("test %u %u %u %u\n",temp,pixelArrayIndex,segmentArrayIndex,blockIdx.x);
-    if(temp >45000*3) return;
+    //if(temp >3735957){printf("kernel %u %d %d %u\n",temp,pixelArrayIndex,segmentArrayIndex,nInnerSegs); return;}
     outerInnerLowerModuleArrayIndex = modulesInGPU.connectedPixels[temp]; //gets module index for segment
     //outerInnerLowerModuleArrayIndex = modulesInGPU.connectedPixels[connectedPixelIndex[pixelArrayIndex]+segmentArrayIndex]; //gets module index for segment
   if(outerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) return;
