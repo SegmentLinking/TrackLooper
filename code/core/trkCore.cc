@@ -1354,6 +1354,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         float px = p3LH.X();
         float py = p3LH.Y();
         float pz = p3LH.Z();
+        float eta = p3LH.Eta();
+        float phi = p3LH.Phi();
         //extra bit
 	
         if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
