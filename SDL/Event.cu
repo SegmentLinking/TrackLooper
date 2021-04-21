@@ -1236,11 +1236,13 @@ void SDL::Event::createPixelTrackletsWithMap()
     unsigned int totalSegs=0;
     int pixelIndexOffsetPos = pixelMapping->connectedPixelsIndex[44999];
     int pixelIndexOffsetNeg = pixelMapping->connectedPixelsIndexPos[44999] + pixelIndexOffsetPos;
-    for (int i=0; i < nInnerSegments;i++){// loop over # pLS
-      int pixelType = pixelTypes[i];// get pixel type for this pLS
-      int superbin = superbins[i]; //get superbin for this pixel
-      if(superbin <0) {continue;}
-      if(superbin >45000) {continue;}// skip any weird out of range values
+    int i =-1;
+    for (int ix=0; ix < nInnerSegments;ix++){// loop over # pLS
+      int pixelType = pixelTypes[ix];// get pixel type for this pLS
+      int superbin = superbins[ix]; //get superbin for this pixel
+      if(superbin <0) {/*printf("bad neg %d\n",ix);*/continue;}
+      if(superbin >=45000) {/*printf("bad pos %d %d %d\n",ix,superbin,pixelType);*/continue;}// skip any weird out of range values
+      i++;
       if(pixelType ==0){ // used pixel type to select correct size-index arrays
         connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
         connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndex[superbin];// index to get start of connected modules for this superbin in map
@@ -1271,6 +1273,7 @@ void SDL::Event::createPixelTrackletsWithMap()
         totalSegs += connectedPixelSize_host[i];
       if (pixelMapping->connectedPixelsSizesNeg[superbin] > max_size){max_size = pixelMapping->connectedPixelsSizesNeg[superbin];}
       }
+//      if(i==255){printf("255: %d %d %u\n",pixelType,superbin,connectedPixelIndex_host[i]);}
       else{continue;}
     }
     cudaMemcpy(connectedPixelSize_dev, connectedPixelSize_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice);
@@ -2484,7 +2487,13 @@ __global__ void createPixelTrackletsInGPUFromMap(struct SDL::modules& modulesInG
   if( segmentArrayIndex >= connectedPixelSize[pixelArrayIndex]) return; // don't exceed # connected segment modules for this pixel
 
   unsigned int outerInnerLowerModuleArrayIndex;// This will be the index of the module that connects to this pixel. 
-    outerInnerLowerModuleArrayIndex = modulesInGPU.connectedPixels[connectedPixelIndex[pixelArrayIndex]+segmentArrayIndex]; //gets module index for segment
+    unsigned int temp = connectedPixelIndex[pixelArrayIndex]+segmentArrayIndex; //gets module index for segment
+    //unsigned int temp = connectedPixelIndex[255]+0;//gets module index for segment
+    //outerInnerLowerModuleArrayIndex = modulesInGPU.connectedPixels[134378]; //gets module index for segment
+    //printf("test %u %u %u %u\n",temp,pixelArrayIndex,segmentArrayIndex,blockIdx.x);
+    if(temp >45000*3) return;
+    outerInnerLowerModuleArrayIndex = modulesInGPU.connectedPixels[temp]; //gets module index for segment
+    //outerInnerLowerModuleArrayIndex = modulesInGPU.connectedPixels[connectedPixelIndex[pixelArrayIndex]+segmentArrayIndex]; //gets module index for segment
   if(outerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) return;
   unsigned int outerInnerLowerModuleIndex = /*modulesInGPU.lowerModuleIndices[*/outerInnerLowerModuleArrayIndex;//];
 
