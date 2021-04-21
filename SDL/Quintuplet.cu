@@ -74,9 +74,10 @@ void SDL::quintuplets::freeMemory()
 }
 
 //TODO:Reuse the track candidate one instead of this!
-void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU, unsigned int& nEligibleModules, unsigned int maxQuintuplets)
+void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,struct triplets& tripletsInGPU, unsigned int& nEligibleModules, unsigned int* indicesOfEligibleModules, unsigned int maxQuintuplets, unsigned int& maxTriplets)
 {
     unsigned int nLowerModules;
+    maxTriplets = 0;
     cudaMemcpy(&nLowerModules,modulesInGPU.nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
     unsigned int nModules;
     cudaMemcpy(&nModules,modulesInGPU.nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
@@ -94,6 +95,10 @@ void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU, 
     int* module_quintupletModuleIndices;
     cudaMallocHost(&module_quintupletModuleIndices, nLowerModules * sizeof(int));
     cudaMemcpy(module_quintupletModuleIndices,modulesInGPU.quintupletModuleIndices,nLowerModules *sizeof(int),cudaMemcpyDeviceToHost);
+    
+    unsigned int* nTriplets;
+    cudaMallocHost(&nTriplets, nLowerModules * sizeof(unsigned int));
+    cudaMemcpy(nTriplets, tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
     //start filling
     for(unsigned int i = 0; i <= nLowerModules; i++)
@@ -101,10 +106,13 @@ void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU, 
         //condition for a quintuple to exist for a module
         //TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap
         unsigned int idx = module_lowerModuleIndices[i];
-        if((module_subdets[idx] == SDL::Barrel and module_layers[idx] < 5) or (module_subdets[idx] == SDL::Endcap and module_layers[idx] == 1))
+        if(((module_subdets[idx] == SDL::Barrel and module_layers[idx] < 5) or (module_subdets[idx] == SDL::Endcap and module_layers[idx] == 1)) and nTriplets[i] != 0)
         {
             module_quintupletModuleIndices[i] = nEligibleModules * maxQuintuplets;
+            indicesOfEligibleModules[nEligibleModules] = i;
             nEligibleModules++;
+            maxTriplets = max(nTriplets[i], maxTriplets);
+            
         }
     }
     cudaMemcpy(modulesInGPU.quintupletModuleIndices,module_quintupletModuleIndices,nLowerModules*sizeof(int),cudaMemcpyHostToDevice);
@@ -113,7 +121,7 @@ void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU, 
     cudaFreeHost(module_lowerModuleIndices);
     cudaFreeHost(module_layers);
     cudaFreeHost(module_quintupletModuleIndices);
-
+    cudaFreeHost(nTriplets);
 }
 
 
