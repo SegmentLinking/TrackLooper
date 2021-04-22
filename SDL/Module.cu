@@ -206,6 +206,7 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
   cms::cuda::free_managed(modulesInGPU.trackletRanges);
   cms::cuda::free_managed(modulesInGPU.tripletRanges);
   cms::cuda::free_managed(modulesInGPU.trackCandidateRanges);
+  cms::cuda::free_managed(modulesInGPU.quintupletRanges);
   cms::cuda::free_managed(modulesInGPU.moduleType);
   cms::cuda::free_managed(modulesInGPU.moduleLayerType);
   cms::cuda::free_managed(modulesInGPU.lowerModuleIndices);
