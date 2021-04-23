@@ -228,6 +228,9 @@ int main(int argc, char** argv)
 
     //_______________________________________________________________________________
     // --lower_level
+#ifdef CUT_VALUE_DEBUG
+    ana.do_lower_level = true;
+#else
     if (result.count("lower_level"))
     {
         ana.do_lower_level = true;
@@ -236,6 +239,7 @@ int main(int argc, char** argv)
     {
         ana.do_lower_level = false;
     }
+#endif
 
     // Printing out the option settings overview
     std::cout <<  "=========================================================" << std::endl;
@@ -350,6 +354,11 @@ void run_sdl()
             // Run TC
             float timing_TC = runTrackCandidate(event);
 
+#ifdef DO_QUINTUPLET
+            float timing_T5 = runQuintuplet(event);
+#else
+            float timing_T5 = 0;
+#endif
             timing_information.push_back({ timing_input_loading,
                     timing_MD,
                     timing_LS,
@@ -357,7 +366,8 @@ void run_sdl()
                     timing_T4x,
                     timing_pT4,
                     timing_T3,
-                    timing_TC});
+                    timing_TC,
+                    timing_T5});
 
             if (ana.verbose == 4)
             {
