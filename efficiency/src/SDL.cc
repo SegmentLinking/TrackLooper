@@ -53,10 +53,20 @@ void SDL::Init(TTree *tree) {
     tc_eta_branch = tree->GetBranch("tc_eta");
     if (tc_eta_branch) { tc_eta_branch->SetAddress(&tc_eta_); }
   }
+  t5_eta_branch = 0;
+  if (tree->GetBranch("t5_eta") != 0) {
+    t5_eta_branch = tree->GetBranch("t5_eta");
+    if (t5_eta_branch) { t5_eta_branch->SetAddress(&t5_eta_); }
+  }
   tc_phi_branch = 0;
   if (tree->GetBranch("tc_phi") != 0) {
     tc_phi_branch = tree->GetBranch("tc_phi");
     if (tc_phi_branch) { tc_phi_branch->SetAddress(&tc_phi_); }
+  }
+  t5_phi_branch = 0;
+  if (tree->GetBranch("t5_phi") != 0) {
+    t5_phi_branch = tree->GetBranch("t5_phi");
+    if (t5_phi_branch) { t5_phi_branch->SetAddress(&t5_phi_); }
   }
   sim_T5_matched_branch = 0;
   if (tree->GetBranch("sim_T5_matched") != 0) {
@@ -177,6 +187,11 @@ void SDL::Init(TTree *tree) {
   if (tree->GetBranch("tc_pt") != 0) {
     tc_pt_branch = tree->GetBranch("tc_pt");
     if (tc_pt_branch) { tc_pt_branch->SetAddress(&tc_pt_); }
+  }
+  t5_pt_branch = 0;
+  if (tree->GetBranch("t5_pt") != 0) {
+    t5_pt_branch = tree->GetBranch("t5_pt");
+    if (t5_pt_branch) { t5_pt_branch->SetAddress(&t5_pt_); }
   }
   t5_innerRadiusMax_branch = 0;
   if (tree->GetBranch("t5_innerRadiusMax") != 0) {
@@ -407,7 +422,9 @@ void SDL::GetEntry(unsigned int idx) {
   sim_q_isLoaded = false;
   sim_eta_isLoaded = false;
   tc_eta_isLoaded = false;
+  t5_eta_isLoaded = false;
   tc_phi_isLoaded = false;
+  t5_phi_isLoaded = false;
   sim_T5_matched_isLoaded = false;
   sim_T5_types_isLoaded = false;
   t4_occupancies_isLoaded = false;
@@ -432,6 +449,7 @@ void SDL::GetEntry(unsigned int idx) {
   module_subdets_isLoaded = false;
   t5_innerRadiusMax2S_isLoaded = false;
   tc_pt_isLoaded = false;
+  t5_pt_isLoaded = false;
   t5_innerRadiusMax_isLoaded = false;
   tc_isDuplicate_isLoaded = false;
   pLS_pt_isLoaded = false;
@@ -487,7 +505,9 @@ void SDL::LoadAllBranches() {
   if (sim_q_branch != 0) sim_q();
   if (sim_eta_branch != 0) sim_eta();
   if (tc_eta_branch != 0) tc_eta();
+  if (t5_eta_branch != 0) t5_eta();
   if (tc_phi_branch != 0) tc_phi();
+  if (t5_phi_branch != 0) t5_phi();
   if (sim_T5_matched_branch != 0) sim_T5_matched();
   if (sim_T5_types_branch != 0) sim_T5_types();
   if (t4_occupancies_branch != 0) t4_occupancies();
@@ -512,6 +532,7 @@ void SDL::LoadAllBranches() {
   if (module_subdets_branch != 0) module_subdets();
   if (t5_innerRadiusMax2S_branch != 0) t5_innerRadiusMax2S();
   if (tc_pt_branch != 0) tc_pt();
+  if (t5_pt_branch != 0) t5_pt();
   if (t5_innerRadiusMax_branch != 0) t5_innerRadiusMax();
   if (tc_isDuplicate_branch != 0) tc_isDuplicate();
   if (pLS_pt_branch != 0) pLS_pt();
@@ -676,6 +697,18 @@ const vector<float> &SDL::tc_eta() {
   }
   return *tc_eta_;
 }
+const vector<float> &SDL::t5_eta() {
+  if (not t5_eta_isLoaded) {
+    if (t5_eta_branch != 0) {
+      t5_eta_branch->GetEntry(index);
+    } else {
+      printf("branch t5_eta_branch does not exist!\n");
+      exit(1);
+    }
+    t5_eta_isLoaded = true;
+  }
+  return *t5_eta_;
+}
 const vector<float> &SDL::tc_phi() {
   if (not tc_phi_isLoaded) {
     if (tc_phi_branch != 0) {
@@ -687,6 +720,18 @@ const vector<float> &SDL::tc_phi() {
     tc_phi_isLoaded = true;
   }
   return *tc_phi_;
+}
+const vector<float> &SDL::t5_phi() {
+  if (not t5_phi_isLoaded) {
+    if (t5_phi_branch != 0) {
+      t5_phi_branch->GetEntry(index);
+    } else {
+      printf("branch t5_phi_branch does not exist!\n");
+      exit(1);
+    }
+    t5_phi_isLoaded = true;
+  }
+  return *t5_phi_;
 }
 const vector<int> &SDL::sim_T5_matched() {
   if (not sim_T5_matched_isLoaded) {
@@ -975,6 +1020,18 @@ const vector<float> &SDL::tc_pt() {
     tc_pt_isLoaded = true;
   }
   return *tc_pt_;
+}
+const vector<float> &SDL::t5_pt() {
+  if (not t5_pt_isLoaded) {
+    if (t5_pt_branch != 0) {
+      t5_pt_branch->GetEntry(index);
+    } else {
+      printf("branch t5_pt_branch does not exist!\n");
+      exit(1);
+    }
+    t5_pt_isLoaded = true;
+  }
+  return *t5_pt_;
 }
 const vector<float> &SDL::t5_innerRadiusMax() {
   if (not t5_innerRadiusMax_isLoaded) {
@@ -1521,6 +1578,7 @@ namespace tas {
   const vector<int> &sim_q() { return sdl.sim_q(); }
   const vector<float> &sim_eta() { return sdl.sim_eta(); }
   const vector<float> &tc_eta() { return sdl.tc_eta(); }
+  const vector<float> &t5_eta() { return sdl.t5_eta(); }
   const vector<float> &tc_phi() { return sdl.tc_phi(); }
   const vector<int> &sim_T5_matched() { return sdl.sim_T5_matched(); }
   const vector<vector<int> > &sim_T5_types() { return sdl.sim_T5_types(); }
@@ -1546,6 +1604,7 @@ namespace tas {
   const vector<int> &module_subdets() { return sdl.module_subdets(); }
   const vector<float> &t5_innerRadiusMax2S() { return sdl.t5_innerRadiusMax2S(); }
   const vector<float> &tc_pt() { return sdl.tc_pt(); }
+  const vector<float> &t5_pt() { return sdl.t5_pt(); }
   const vector<float> &t5_innerRadiusMax() { return sdl.t5_innerRadiusMax(); }
   const vector<int> &tc_isDuplicate() { return sdl.tc_isDuplicate(); }
   const vector<float> &pLS_pt() { return sdl.pLS_pt(); }

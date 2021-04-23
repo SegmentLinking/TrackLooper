@@ -50,9 +50,15 @@ protected:
   vector<float> *tc_eta_;
   TBranch *tc_eta_branch;
   bool tc_eta_isLoaded;
+  vector<float> *t5_eta_;
+  TBranch *t5_eta_branch;
+  bool t5_eta_isLoaded;
   vector<float> *tc_phi_;
   TBranch *tc_phi_branch;
   bool tc_phi_isLoaded;
+  vector<float> *t5_phi_;
+  TBranch *t5_phi_branch;
+  bool t5_phi_isLoaded;
   vector<int> *sim_T5_matched_;
   TBranch *sim_T5_matched_branch;
   bool sim_T5_matched_isLoaded;
@@ -125,6 +131,9 @@ protected:
   vector<float> *tc_pt_;
   TBranch *tc_pt_branch;
   bool tc_pt_isLoaded;
+  vector<float> *t5_pt_;
+  TBranch *t5_pt_branch;
+  bool t5_pt_isLoaded;
   vector<float> *t5_innerRadiusMax_;
   TBranch *t5_innerRadiusMax_branch;
   bool t5_innerRadiusMax_isLoaded;
@@ -268,7 +277,9 @@ public:
   const vector<int> &sim_q();
   const vector<float> &sim_eta();
   const vector<float> &tc_eta();
+  const vector<float> &t5_eta();
   const vector<float> &tc_phi();
+  const vector<float> &t5_phi();
   const vector<int> &sim_T5_matched();
   const vector<vector<int> > &sim_T5_types();
   const vector<int> &t4_occupancies();
@@ -293,6 +304,7 @@ public:
   const vector<int> &module_subdets();
   const vector<float> &t5_innerRadiusMax2S();
   const vector<float> &tc_pt();
+  const vector<float> &t5_pt();
   const vector<float> &t5_innerRadiusMax();
   const vector<int> &tc_isDuplicate();
   const vector<float> &pLS_pt();
@@ -355,7 +367,9 @@ namespace tas {
   const vector<int> &sim_q();
   const vector<float> &sim_eta();
   const vector<float> &tc_eta();
+  const vector<float> &t5_eta();
   const vector<float> &tc_phi();
+  const vector<float> &t5_phi();
   const vector<int> &sim_T5_matched();
   const vector<vector<int> > &sim_T5_types();
   const vector<int> &t4_occupancies();
@@ -380,6 +394,7 @@ namespace tas {
   const vector<int> &module_subdets();
   const vector<float> &t5_innerRadiusMax2S();
   const vector<float> &tc_pt();
+  const vector<float> &t5_pt();
   const vector<float> &t5_innerRadiusMax();
   const vector<int> &tc_isDuplicate();
   const vector<float> &pLS_pt();
