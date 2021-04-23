@@ -303,6 +303,9 @@ namespace SDL
                 // Create tracklets from two layers (inefficient way)
                 void createTrackletsFromTwoLayers(int innerLayerIdx, SDL::CPU::Layer::SubDet innerLayerSubDet, int outerLayerIdx, SDL::CPU::Layer::SubDet outerLayerSubDet, TLAlgo algo=Default_TLAlgo);
 
+                // Create T5s
+                void createT5s();
+
                 // Create tracklets
                 void createTrackletsViaNavigation(TLAlgo algo=Default_TLAlgo);
 
