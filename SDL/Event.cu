@@ -1511,15 +1511,15 @@ void SDL::Event::createTrackCandidates()
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
     }
     
-    unsigned int nThreadsx = 1;
-    unsigned int nBlocksx = ( N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE) % nThreadsx == 0 ? N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE/nThreadsx : N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE/nThreadsx + 1;
-    addpT2asTrackCandidateInGPU<<<nBlocksx,nThreadsx>>>(*modulesInGPU,*trackletsInGPU,*trackCandidatesInGPU);
-    cudaerr = cudaDeviceSynchronize();
-    //cudaError_t cudaerr = cudaDeviceSynchronize();
-    if(cudaerr != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-    }
+//    unsigned int nThreadsx = 1;
+//    unsigned int nBlocksx = ( N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE) % nThreadsx == 0 ? N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE/nThreadsx : N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE/nThreadsx + 1;
+//    addpT2asTrackCandidateInGPU<<<nBlocksx,nThreadsx>>>(*modulesInGPU,*trackletsInGPU,*trackCandidatesInGPU);
+//    cudaerr = cudaDeviceSynchronize();
+//    //cudaError_t cudaerr = cudaDeviceSynchronize();
+//    if(cudaerr != cudaSuccess)
+//    {
+//        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
+//    }
 
 #else
 #ifdef NESTED_PARA
