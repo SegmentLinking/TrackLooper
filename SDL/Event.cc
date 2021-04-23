@@ -1505,59 +1505,85 @@ void SDL::CPU::Event::createT5s()
         // Get reference to the inner lower Module
         Module& innerLowerModule = getModule(detId);
 
+        // std::cout <<  " innerLowerModule.getTripletPtrs().size(): " << innerLowerModule.getTripletPtrs().size() <<  std::endl;
+        // int i_in_tp = 0;;
+
         // Triple nested loops
         // Loop over inner lower module for segments
         for (auto& innerTripletPtr : innerLowerModule.getTripletPtrs())
         {
+
+            // i_in_tp ++;
 
             // Get reference to segment in inner lower module
             SDL::CPU::Triplet& innerTriplet = *innerTripletPtr;
 
             // Get the outer mini-doublet module detId
             const std::vector<Segment*>& outwardSegmentPtrs = innerTriplet.outerSegmentPtr()->outerMiniDoubletPtr()->getListOfOutwardSegmentPtrs();
+
+            // std::cout <<  " outwardSegmentPtrs.size(): " << outwardSegmentPtrs.size() <<  std::endl;
+            // int i_ow_sg = 0;
+
             for (auto& outwardSegmentPtr : outwardSegmentPtrs)
             {
+
+                // i_ow_sg ++;
 
                 const std::vector<Triplet*>& outerTripletPtrs = outwardSegmentPtr->getListOfOutwardTripletPtrs();
 
                 // Loop over outer lower module mini-doublets
+                // std::cout <<  " outerTripletPtrs.size(): " << outerTripletPtrs.size() <<  std::endl;
+                // int i_out_tp = 0;
+
                 for (auto& outerTripletPtr : outerTripletPtrs)
                 {
+
+                    // i_out_tp ++;
+
+                    // std::cout <<  " detId: " << detId <<  " i_in_tp: " << i_in_tp <<  " i_ow_sg: " << i_ow_sg <<  " i_out_tp: " << i_out_tp <<  std::endl;
+                    // std::cout << innerTripletPtr;
+                    // std::cout << outerTripletPtr;
 
                     // Count the # of tlCands considered by layer
                     incrementNumberOfTrackCandidateCandidates(innerLowerModule);
 
-                    // Tracklet between Seg1 - Seg3
-                    SDL::CPU::Tracklet tlCand13(innerTripletPtr->innerSegmentPtr(), outerTripletPtr->innerSegmentPtr());
+                    // // Tracklet between Seg1 - Seg3
+                    // SDL::CPU::Tracklet tlCand13(innerTripletPtr->innerSegmentPtr(), outerTripletPtr->innerSegmentPtr());
 
-                    // Run the tracklet algo
-                    tlCand13.runTrackletAlgo(SDL::CPU::Default_TLAlgo, logLevel_);
+                    // // Run the tracklet algo
+                    // tlCand13.runTrackletAlgo(SDL::CPU::Default_TLAlgo, logLevel_);
 
-                    if (not (tlCand13.passesTrackletAlgo(SDL::CPU::Default_TLAlgo)))
-                    {
-                        continue;
-                    }
+                    // if (not (tlCand13.passesTrackletAlgo(SDL::CPU::Default_TLAlgo)))
+                    // {
+                    //     continue;
+                    // }
 
-                    // Tracklet between Seg1 - Seg4
-                    SDL::CPU::Tracklet tlCand14(innerTripletPtr->innerSegmentPtr(), outerTripletPtr->outerSegmentPtr());
+                    // // Tracklet between Seg1 - Seg4
+                    // SDL::CPU::Tracklet tlCand14(innerTripletPtr->innerSegmentPtr(), outerTripletPtr->outerSegmentPtr());
 
-                    // Run the tracklet algo
-                    tlCand14.runTrackletAlgo(SDL::CPU::Default_TLAlgo, logLevel_);
+                    // // Run the tracklet algo
+                    // tlCand14.runTrackletAlgo(SDL::CPU::Default_TLAlgo, logLevel_);
 
-                    if (not (tlCand14.passesTrackletAlgo(SDL::CPU::Default_TLAlgo)))
-                    {
-                        continue;
-                    }
+                    // if (not (tlCand14.passesTrackletAlgo(SDL::CPU::Default_TLAlgo)))
+                    // {
+                    //     continue;
+                    // }
 
                     SDL::CPU::TrackCandidate tcCand(innerTripletPtr, outerTripletPtr);
 
-                    // Count the # of track candidates considered
-                    incrementNumberOfTrackCandidates(innerLowerModule);
+                    tcCand.runTrackCandidateT5(logLevel_);
 
-                    if (innerLowerModule.subdet() == SDL::CPU::Module::Barrel)
-                        addTrackCandidateToLowerLayer(tcCand, innerLowerModule.layer(), SDL::CPU::Layer::Barrel);
-                    else
-                        addTrackCandidateToLowerLayer(tcCand, innerLowerModule.layer(), SDL::CPU::Layer::Endcap);
+                    if (tcCand.passesTrackCandidateAlgo(Default_TCAlgo))
+                    {
+
+                        // Count the # of track candidates considered
+                        incrementNumberOfTrackCandidates(innerLowerModule);
+
+                        if (innerLowerModule.subdet() == SDL::CPU::Module::Barrel)
+                            addTrackCandidateToLowerLayer(tcCand, innerLowerModule.layer(), SDL::CPU::Layer::Barrel);
+                        else
+                            addTrackCandidateToLowerLayer(tcCand, innerLowerModule.layer(), SDL::CPU::Layer::Endcap);
+                    }
 
                 }
             }
