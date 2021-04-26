@@ -100,6 +100,9 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<vector<int>>>("sim_T5_types");
     ana.tx->createBranch<vector<int>>("t5_isFake");
     ana.tx->createBranch<vector<int>>("t5_isDuplicate");
+    ana.tx->createBranch<vector<float>>("t5_pt");
+    ana.tx->createBranch<vector<float>>("t5_eta");
+    ana.tx->createBranch<vector<float>>("t5_phi");
 #endif
     //pLS
     ana.tx->createBranch<vector<int>>("sim_pLS_matched");
@@ -704,6 +707,8 @@ void fillQuintupletOutputBranches(SDL::Event& event)
 #endif
 
     const int MAX_NQUINTUPLET_PER_MODULE = 5000;
+    const float kRinv1GeVf = (2.99792458e-3 * 3.8);
+    const float k2Rinv1GeVf = kRinv1GeVf / 2.;
     
     for(unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
     {
@@ -896,6 +901,9 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<vector<int>>>("sim_T5_types", sim_T5_types);
     ana.tx->setBranch<vector<int>>("t5_isFake", t5_isFake);
     ana.tx->setBranch<vector<int>>("t5_isDuplicate", t5_isDuplicate);
+    ana.tx->setBranch<vector<float>>("t5_pt", t5_pt);
+    ana.tx->setBranch<vector<float>>("t5_eta", t5_eta);
+    ana.tx->setBranch<vector<float>>("t5_phi", t5_phi);
 #ifdef CUT_VALUE_DEBUG
     ana.tx->setBranch<vector<vector<float>>>("t5_matched_pt",t5_simpt);
 

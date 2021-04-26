@@ -13,6 +13,16 @@ void SDL::Init(TTree *tree) {
     t3_phi_branch = tree->GetBranch("t3_phi");
     if (t3_phi_branch) { t3_phi_branch->SetAddress(&t3_phi_); }
   }
+  t5_eta_branch = 0;
+  if (tree->GetBranch("t5_eta") != 0) {
+    t5_eta_branch = tree->GetBranch("t5_eta");
+    if (t5_eta_branch) { t5_eta_branch->SetAddress(&t5_eta_); }
+  }
+  t5_phi_branch = 0;
+  if (tree->GetBranch("t5_phi") != 0) {
+    t5_phi_branch = tree->GetBranch("t5_phi");
+    if (t5_phi_branch) { t5_phi_branch->SetAddress(&t5_phi_); }
+  }
   sim_parentVtxIdx_branch = 0;
   if (tree->GetBranch("sim_parentVtxIdx") != 0) {
     sim_parentVtxIdx_branch = tree->GetBranch("sim_parentVtxIdx");
@@ -303,6 +313,11 @@ void SDL::Init(TTree *tree) {
     t3_pt_branch = tree->GetBranch("t3_pt");
     if (t3_pt_branch) { t3_pt_branch->SetAddress(&t3_pt_); }
   }
+  t5_pt_branch = 0;
+  if (tree->GetBranch("t5_pt") != 0) {
+    t5_pt_branch = tree->GetBranch("t5_pt");
+    if (t5_pt_branch) { t5_pt_branch->SetAddress(&t5_pt_); }
+  }
   module_rings_branch = 0;
   if (tree->GetBranch("module_rings") != 0) {
     module_rings_branch = tree->GetBranch("module_rings");
@@ -398,7 +413,9 @@ void SDL::Init(TTree *tree) {
 void SDL::GetEntry(unsigned int idx) {
   index = idx;
   t3_eta_isLoaded = false;
+  t5_eta_isLoaded = false;
   t3_phi_isLoaded = false;
+  t5_phi_isLoaded = false;
   sim_parentVtxIdx_isLoaded = false;
   t3_isDuplicate_isLoaded = false;
   t5_outerRadiusMax2S_isLoaded = false;
@@ -457,6 +474,7 @@ void SDL::GetEntry(unsigned int idx) {
   sim_T3_matched_isLoaded = false;
   t5_matched_pt_isLoaded = false;
   t3_pt_isLoaded = false;
+  t5_pt_isLoaded = false;
   module_rings_isLoaded = false;
   t5_innerRadiusMin2S_isLoaded = false;
   t5_innerRadius_isLoaded = false;
@@ -478,7 +496,9 @@ void SDL::GetEntry(unsigned int idx) {
 }
 void SDL::LoadAllBranches() {
   if (t3_eta_branch != 0) t3_eta();
+  if (t5_eta_branch != 0) t5_eta();
   if (t3_phi_branch != 0) t3_phi();
+  if (t5_phi_branch != 0) t5_phi();
   if (sim_parentVtxIdx_branch != 0) sim_parentVtxIdx();
   if (t3_isDuplicate_branch != 0) t3_isDuplicate();
   if (t5_outerRadiusMax2S_branch != 0) t5_outerRadiusMax2S();
@@ -537,6 +557,7 @@ void SDL::LoadAllBranches() {
   if (sim_T3_matched_branch != 0) sim_T3_matched();
   if (t5_matched_pt_branch != 0) t5_matched_pt();
   if (t3_pt_branch != 0) t3_pt();
+  if (t5_pt_branch != 0) t5_pt();
   if (module_rings_branch != 0) module_rings();
   if (t5_innerRadiusMin2S_branch != 0) t5_innerRadiusMin2S();
   if (t5_innerRadius_branch != 0) t5_innerRadius();
@@ -579,6 +600,30 @@ const vector<float> &SDL::t3_phi() {
     t3_phi_isLoaded = true;
   }
   return *t3_phi_;
+}
+const vector<float> &SDL::t5_eta() {
+  if (not t5_eta_isLoaded) {
+    if (t5_eta_branch != 0) {
+      t5_eta_branch->GetEntry(index);
+    } else {
+      printf("branch t5_eta_branch does not exist!\n");
+      exit(1);
+    }
+    t5_eta_isLoaded = true;
+  }
+  return *t5_eta_;
+}
+const vector<float> &SDL::t5_phi() {
+  if (not t5_phi_isLoaded) {
+    if (t5_phi_branch != 0) {
+      t5_phi_branch->GetEntry(index);
+    } else {
+      printf("branch t5_phi_branch does not exist!\n");
+      exit(1);
+    }
+    t5_phi_isLoaded = true;
+  }
+  return *t5_phi_;
 }
 const vector<int> &SDL::sim_parentVtxIdx() {
   if (not sim_parentVtxIdx_isLoaded) {
@@ -1276,6 +1321,20 @@ const vector<float> &SDL::t3_pt() {
   }
   return *t3_pt_;
 }
+
+const vector<float> &SDL::t5_pt() {
+  if (not t5_pt_isLoaded) {
+    if (t5_pt_branch != 0) {
+      t5_pt_branch->GetEntry(index);
+    } else {
+      printf("branch t5_pt_branch does not exist!\n");
+      exit(1);
+    }
+    t5_pt_isLoaded = true;
+  }
+  return *t5_pt_;
+}
+
 const vector<int> &SDL::module_rings() {
   if (not module_rings_isLoaded) {
     if (module_rings_branch != 0) {
@@ -1513,6 +1572,8 @@ void SDL::progress( int nEventsTotal, int nEventsChain ){
 namespace tas {
   const vector<float> &t3_eta() { return sdl.t3_eta(); }
   const vector<float> &t3_phi() { return sdl.t3_phi(); }
+  const vector<float> &t5_eta() { return sdl.t5_eta(); }
+  const vector<float> &t5_phi() { return sdl.t5_phi(); }
   const vector<int> &sim_parentVtxIdx() { return sdl.sim_parentVtxIdx(); }
   const vector<int> &t3_isDuplicate() { return sdl.t3_isDuplicate(); }
   const vector<float> &t5_outerRadiusMax2S() { return sdl.t5_outerRadiusMax2S(); }
@@ -1571,6 +1632,7 @@ namespace tas {
   const vector<int> &sim_T3_matched() { return sdl.sim_T3_matched(); }
   const vector<vector<float> > &t5_matched_pt() { return sdl.t5_matched_pt(); }
   const vector<float> &t3_pt() { return sdl.t3_pt(); }
+  const vector<float> &t5_pt() { return sdl.t5_pt(); }
   const vector<int> &module_rings() { return sdl.module_rings(); }
   const vector<float> &t5_innerRadiusMin2S() { return sdl.t5_innerRadiusMin2S(); }
   const vector<float> &t5_innerRadius() { return sdl.t5_innerRadius(); }

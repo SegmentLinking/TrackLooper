@@ -26,6 +26,12 @@ protected:
   vector<float> *t3_phi_;
   TBranch *t3_phi_branch;
   bool t3_phi_isLoaded;
+  vector<float> *t5_eta_;
+  TBranch *t5_eta_branch;
+  bool t5_eta_isLoaded;
+  vector<float> *t5_phi_;
+  TBranch *t5_phi_branch;
+  bool t5_phi_isLoaded;
   vector<int> *sim_parentVtxIdx_;
   TBranch *sim_parentVtxIdx_branch;
   bool sim_parentVtxIdx_isLoaded;
@@ -200,6 +206,9 @@ protected:
   vector<float> *t3_pt_;
   TBranch *t3_pt_branch;
   bool t3_pt_isLoaded;
+  vector<float> *t5_pt_;
+  TBranch *t5_pt_branch;
+  bool t5_pt_isLoaded;
   vector<int> *module_rings_;
   TBranch *module_rings_branch;
   bool module_rings_isLoaded;
@@ -260,6 +269,8 @@ public:
   void LoadAllBranches();
   const vector<float> &t3_eta();
   const vector<float> &t3_phi();
+  const vector<float> &t5_eta();
+  const vector<float> &t5_phi();
   const vector<int> &sim_parentVtxIdx();
   const vector<int> &t3_isDuplicate();
   const vector<float> &t5_outerRadiusMax2S();
@@ -318,6 +329,7 @@ public:
   const vector<int> &sim_T3_matched();
   const vector<vector<float> > &t5_matched_pt();
   const vector<float> &t3_pt();
+  const vector<float> &t5_pt();
   const vector<int> &module_rings();
   const vector<float> &t5_innerRadiusMin2S();
   const vector<float> &t5_innerRadius();
@@ -347,6 +359,8 @@ namespace tas {
 
   const vector<float> &t3_eta();
   const vector<float> &t3_phi();
+  const vector<float> &t5_eta();
+  const vector<float> &t5_phi();
   const vector<int> &sim_parentVtxIdx();
   const vector<int> &t3_isDuplicate();
   const vector<float> &t5_outerRadiusMax2S();
@@ -405,6 +419,7 @@ namespace tas {
   const vector<int> &sim_T3_matched();
   const vector<vector<float> > &t5_matched_pt();
   const vector<float> &t3_pt();
+  const vector<float> &t5_pt();
   const vector<int> &module_rings();
   const vector<float> &t5_innerRadiusMin2S();
   const vector<float> &t5_innerRadius();
