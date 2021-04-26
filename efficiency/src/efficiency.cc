@@ -40,6 +40,7 @@ int main(int argc, char** argv)
         list_FRSetDef.push_back(FakeRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isFake()[it3] > 0;}, sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi()));
         list_FRSetDef.push_back(FakeRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return sdl.pT4_isFake()[ipT4] > 0;}, sdl.pT4_pt(), sdl.pT4_eta(), sdl.pT4_phi()));
         list_FRSetDef.push_back(FakeRateSetDefinition("pLS_AllTypes", 13, [&](int itls) { return sdl.pLS_isFake()[itls] > 0;}, sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("T5_AllTypes", 13, [&](int itls) { return sdl.t5_isFake()[itls] > 0;}, sdl.t5_pt(), sdl.t5_eta(), sdl.t5_phi()));
 
     }
 
@@ -55,6 +56,8 @@ int main(int argc, char** argv)
         list_DLSetDef.push_back(DuplicateRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isDuplicate()[it3] > 0;}, sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi()));
         list_DLSetDef.push_back(DuplicateRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return sdl.pT4_isDuplicate()[ipT4] > 0;}, sdl.pT4_pt(), sdl.pT4_eta(), sdl.pT4_phi()));
         list_DLSetDef.push_back(DuplicateRateSetDefinition("pLS_AllTypes", 13, [&](int itls) { return sdl.pLS_isDuplicate()[itls] > 0;}, sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi()));
+        list_DLSetDef.push_back(FakeRateSetDefinition("T5_AllTypes", 13, [&](int itls) { return sdl.t5_isDuplicate()[itls] > 0;}, sdl.t5_pt(), sdl.t5_eta(), sdl.t5_phi()));
+
     }
 
     bookDuplicateRateSets(list_DLSetDef);
