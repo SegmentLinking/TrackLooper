@@ -58,6 +58,12 @@ namespace SDL
                 // Pointers of tracklets containing this segment as outer segment
                 std::vector<Tracklet*> inwardTrackletPtrs;
 
+                // Pointers of triplets containing this segment as inner segment
+                std::vector<Triplet*> outwardTripletPtrs;
+
+                // Pointers of triplets containing this segment as outer segment
+                std::vector<Triplet*> inwardTripletPtrs;
+
             public:
                 enum SegmentSelection
                 {
@@ -111,6 +117,12 @@ namespace SDL
 
                 void addOutwardTrackletPtr(Tracklet* tl);
                 void addInwardTrackletPtr(Tracklet* tl);
+
+                const std::vector<Triplet*>& getListOfOutwardTripletPtrs();
+                const std::vector<Triplet*>& getListOfInwardTripletPtrs();
+
+                void addOutwardTripletPtr(Triplet* tl);
+                void addInwardTripletPtr(Triplet* tl);
 
                 MiniDoublet* innerMiniDoubletPtr() const;
                 MiniDoublet* outerMiniDoubletPtr() const;

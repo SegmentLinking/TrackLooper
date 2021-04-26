@@ -19,6 +19,12 @@ SDL::CPU::Triplet::Triplet(SDL::CPU::Segment* innerSegmentPtr, SDL::CPU::Segment
 {
 }
 
+void SDL::CPU::Triplet::addSelfPtrToSegments()
+{
+    innerSegmentPtr_->addOutwardTripletPtr(this);
+    outerSegmentPtr_->addInwardTripletPtr(this);
+}
+
 bool SDL::CPU::Triplet::passesTripletAlgo(SDL::CPU::TPAlgo algo) const
 {
     // Each algorithm is an enum shift it by its value and check against the flag

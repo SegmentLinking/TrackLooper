@@ -431,13 +431,15 @@ void run_sdl()
             // Run Tracklet
             float timing_T4 = runT4_on_CPU(event);
             printTrackletSummary(event);
-            float timing_T4x = 0; // runT4x_on_CPU(event);
+            float timing_T4x = 0; // runT4x_on_CPU(event); // T4x's are turned off right now
             printTrackletSummary(event);
             float timing_pT4 = runpT4_on_CPU(event);
             printTrackletSummary(event);
 
+            // Run T5s
+            float timing_T5 = runT5_on_CPU(event);
             // Run TrackCandidate
-            float timing_TC = runTrackCandidate_on_CPU(event);
+            float timing_TC = runTrackCandidate_on_CPU(event); // {T4, T3 based TC's, and no T5};
             printTrackCandidateSummary(event);
 
             timing_information.push_back({ timing_input_loading,
@@ -488,20 +490,21 @@ void writeMetaData()
 
     // Write out metadata of the code to the output_tfile
     ana.output_tfile->cd();
-    gSystem->Exec("echo '' > .gitversion.txt");
-    gSystem->Exec("git rev-parse HEAD >> .gitversion.txt");
-    gSystem->Exec("echo 'git status' >> .gitversion.txt");
-    gSystem->Exec("git status >> .gitversion.txt");
-    gSystem->Exec("echo 'git log -n5' >> .gitversion.txt");
-    gSystem->Exec("git log >> .gitversion.txt");
-    gSystem->Exec("echo 'git diff' >> .gitversion.txt");
-    gSystem->Exec("git diff >> .gitversion.txt");
-    std::ifstream t(".gitversion.txt");
+    gSystem->Exec(TString::Format("echo '' > %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("git rev-parse HEAD >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("echo 'git status' >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("git status >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("echo 'git log -n5' >> .%s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("git log >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("echo 'git diff' >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("git diff >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    std::ifstream t(TString::Format("%s.gitversion.txt", ana.output_tfile->GetName()));
     std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
     TString tstr = str.c_str();
     TObjString tobjstr("code_tag_data");
     tobjstr.SetString(tstr.Data());
     ana.output_tfile->WriteObject(&tobjstr, "code_tag_data");
+    gSystem->Exec(TString::Format("rm %s.gitversion.txt", ana.output_tfile->GetName()));
     TString make_log_path = TString::Format("%s/.make.log", ana.track_looper_dir_path.Data());
     std::ifstream makelog(make_log_path.Data());
     std::string makestr((std::istreambuf_iterator<char>(makelog)), std::istreambuf_iterator<char>());
@@ -511,13 +514,14 @@ void writeMetaData()
     ana.output_tfile->WriteObject(&maketobjstr, "make_log");
 
     // Write git diff output in a separate string to gauge the difference
-    gSystem->Exec("git diff > .gitdiff.txt");
-    std::ifstream gitdiff(".gitdiff.txt");
+    gSystem->Exec(TString::Format("git diff > %s.gitdiff.txt", ana.output_tfile->GetName()));
+    std::ifstream gitdiff(TString::Format("%s.gitdiff.txt", ana.output_tfile->GetName()));
     std::string strgitdiff((std::istreambuf_iterator<char>(gitdiff)), std::istreambuf_iterator<char>());
     TString tstrgitdiff = strgitdiff.c_str();
     TObjString tobjstrgitdiff("gitdiff");
     tobjstrgitdiff.SetString(tstrgitdiff.Data());
     ana.output_tfile->WriteObject(&tobjstrgitdiff, "gitdiff");
+    gSystem->Exec(TString::Format("rm %s.gitdiff.txt", ana.output_tfile->GetName()));
 
     // Parse from makestr the TARGET
     TString rawstrdata = maketstr.ReplaceAll("MAKETARGET=", "%");

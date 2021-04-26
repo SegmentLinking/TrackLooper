@@ -69,6 +69,8 @@ namespace SDL
                 Triplet(Segment* innerSegmentPtr, Segment* outerSegmentPtr);
                 ~Triplet();
 
+                void addSelfPtrToSegments();
+
                 // return whether it passed the algorithm
                 bool passesTripletAlgo(TPAlgo algo) const;
 
