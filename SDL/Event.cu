@@ -80,8 +80,8 @@ SDL::Event::~Event()
     mdsInGPU->freeMemory();
     segmentsInGPU->freeMemory();
     tripletsInGPU->freeMemory();
-    trackletsInGPU->freeMemory();
     trackCandidatesInGPU->freeMemory();
+    trackletsInGPU->freeMemory();
 #ifdef DO_QUINTUPLET
     quintupletsInGPU->freeMemory();
 #endif
@@ -1045,6 +1045,7 @@ void SDL::Event::createTrackletsWithModuleMap()
         createTrackletsInUnifiedMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , N_MAX_PIXEL_TRACKLETS_PER_MODULE, nLowerModules);
 #endif
     }
+#ifndef DO_QUINTUPLET
 
 #ifdef NESTED_PARA
     unsigned int nThreads = 1;
@@ -1198,7 +1199,7 @@ void SDL::Event::createTrackletsWithModuleMap()
 #endif
 #endif
     /*addTrackletsToEvent will be called in the createTrackletsWithAGapWithModuleMap function*/
-
+#endif // end not T5
 #if defined(AddObjects)
 #ifdef Explicit_Tracklet
     addTrackletsToEventExplicit();
@@ -1499,6 +1500,28 @@ void SDL::Event::createTrackCandidates()
 #endif
     }
 
+#ifdef DO_QUINTUPLET
+    dim3 nThreads(32,16,1);
+    dim3 nBlocks(((nLowerModules-1) % nThreads.x == 0 ? (nLowerModules-1)/nThreads.x : (nLowerModules-1)/nThreads.x + 1),((N_MAX_QUINTUPLETS_PER_MODULE-1) % nThreads.y == 0 ? (N_MAX_QUINTUPLETS_PER_MODULE-1)/nThreads.y : (N_MAX_QUINTUPLETS_PER_MODULE-1)/nThreads.y + 1),1);
+    addT5asTrackCandidateInGPU<<<nBlocks,nThreads>>>(*modulesInGPU,*quintupletsInGPU,*trackCandidatesInGPU);
+
+    cudaError_t cudaerr = cudaDeviceSynchronize();
+    if(cudaerr != cudaSuccess)
+    {
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
+    }
+    
+    unsigned int nThreadsx = 1;
+    unsigned int nBlocksx = ( N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE) % nThreadsx == 0 ? N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE/nThreadsx : N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE/nThreadsx + 1;
+    addpT2asTrackCandidateInGPU<<<nBlocksx,nThreadsx>>>(*modulesInGPU,*trackletsInGPU,*trackCandidatesInGPU);
+    cudaerr = cudaDeviceSynchronize();
+    //cudaError_t cudaerr = cudaDeviceSynchronize();
+    if(cudaerr != cudaSuccess)
+    {
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
+    }
+
+#else
 #ifdef NESTED_PARA
     //auto t0 = std::chrono::high_resolution_clock::now();
     unsigned int nThreads = 1;
@@ -1610,8 +1633,8 @@ void SDL::Event::createTrackCandidates()
     printf("original 3D grid launching in createTrackCandidates does not exist");
     exit(3);
 #endif
-#endif
-
+#endif 
+#endif // do_quintuplets
 #if defined(AddObjects)
 #ifdef Explicit_Track
     addTrackCandidatesToEventExplicit();
@@ -1621,7 +1644,6 @@ void SDL::Event::createTrackCandidates()
 #endif
 
 }
-
 
 void SDL::Event::createQuintuplets()
 {
@@ -3130,6 +3152,39 @@ __global__ void createTripletsInGPU(struct SDL::modules& modulesInGPU, struct SD
     createTripletsFromInnerInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, innerInnerLowerModuleIndex, nInnerSegments, nConnectedModules, innerInnerLowerModuleArrayIndex);
 }
 #endif
+
+__global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,struct SDL::quintuplets& quintupletsInGPU,struct SDL::trackCandidates& trackCandidatesInGPU)
+{
+  int innerInnerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    if(innerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules or modulesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] == -1) return; 
+  unsigned int nQuints = quintupletsInGPU.nQuintuplets[innerInnerInnerLowerModuleArrayIndex];
+  if (nQuints > N_MAX_QUINTUPLETS_PER_MODULE) {nQuints = N_MAX_QUINTUPLETS_PER_MODULE;}
+  int innerObjectArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
+  if(innerObjectArrayIndex >= nQuints) return;
+  int quintupletIndex = modulesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] + innerObjectArrayIndex;
+  
+//  unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];// should add quintuplet index or the two triplet indicies? go with quint for now...
+//  unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
+
+  unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[innerInnerInnerLowerModuleArrayIndex],1);
+  atomicAdd(&trackCandidatesInGPU.nTrackCandidatesT5[innerInnerInnerLowerModuleArrayIndex],1);
+  unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[innerInnerInnerLowerModuleArrayIndex] + trackCandidateModuleIdx;
+  addTrackCandidateToMemory(trackCandidatesInGPU, 4/*track candidate type T5=4*/, quintupletIndex, quintupletIndex, trackCandidateIdx);
+}
+
+__global__ void addpT2asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,struct SDL::tracklets& trackletsInGPU,struct SDL::trackCandidates& trackCandidatesInGPU)
+{
+  int pixelTrackletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
+  unsigned int pixelLowerModuleArrayIndex = *modulesInGPU.nLowerModules;
+  unsigned int nPixelTracklets = trackletsInGPU.nTracklets[pixelLowerModuleArrayIndex];
+  if(pixelTrackletArrayIndex >= nPixelTracklets) return;
+  int pixelTrackletIndex = pixelLowerModuleArrayIndex * N_MAX_TRACKLETS_PER_MODULE + pixelTrackletArrayIndex;
+  unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
+  atomicAdd(&trackCandidatesInGPU.nTrackCandidatespT2[pixelLowerModuleArrayIndex],1);
+  unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[pixelLowerModuleArrayIndex] + trackCandidateModuleIdx;
+  addTrackCandidateToMemory(trackCandidatesInGPU, 3/*track candidate type pT2=3*/, pixelTrackletIndex, pixelTrackletIndex, trackCandidateIdx);
+}
+
 
 #ifndef NESTED_PARA
 __global__ void createPixelTrackCandidatesInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, unsigned int* threadIdx_gpu, unsigned int* threadIdx_gpu_offset)

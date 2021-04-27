@@ -19,13 +19,13 @@ int main(int argc, char** argv)
     // creating a set of efficiency plots
     std::vector<EfficiencySetDefinition> list_effSetDef;
 
-    list_effSetDef.push_back(EfficiencySetDefinition("TC_AllTypes", 13, [&](int isim) {return sdl.sim_TC_matched()[isim] > 0;}));
+    list_effSetDef.push_back(EfficiencySetDefinition("TC_AllTypes", 13, [&](int isim) {return sdl.sim_TC_matched().size() > isim ? sdl.sim_TC_matched()[isim] > 0 : false;}));
     if (ana.do_lower_level)
     {
-        list_effSetDef.push_back(EfficiencySetDefinition("T4s_AllTypes", 13, [&](int isim) {return sdl.sim_T4_matched()[isim] > 0;}));
-        list_effSetDef.push_back(EfficiencySetDefinition("T3_AllTypes", 13, [&](int isim) {return sdl.sim_T3_matched()[isim] > 0;}));
-        list_effSetDef.push_back(EfficiencySetDefinition("pT4_AllTypes", 13, [&](int isim) {return sdl.sim_pT4_matched()[isim] > 0;}));
-        list_effSetDef.push_back(EfficiencySetDefinition("T5_AllTypes", 13, [&](int isim) {return sdl.sim_T5_matched()[isim] > 0;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("T4s_AllTypes", 13, [&](int isim) {return sdl.sim_T4_matched().size() > isim ? sdl.sim_T4_matched()[isim] > 0 : false;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("T3_AllTypes", 13, [&](int isim) {return sdl.sim_T3_matched().size() > isim ? sdl.sim_T3_matched()[isim] > 0 : false;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("pT4_AllTypes", 13, [&](int isim) {return sdl.sim_pT4_matched().size() > isim ? sdl.sim_pT4_matched()[isim] > 0 : false;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("T5_AllTypes", 13, [&](int isim) {return sdl.sim_T5_matched().size() > isim ? sdl.sim_T5_matched()[isim] > 0 : false;}));
     }
 
     bookEfficiencySets(list_effSetDef);
@@ -33,15 +33,15 @@ int main(int argc, char** argv)
     // creating a set of fake rate plots
     std::vector<FakeRateSetDefinition> list_FRSetDef;
 
-    list_FRSetDef.push_back(FakeRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isFake()[itc] > 0;}, sdl.tc_pt(), sdl.tc_eta(), sdl.tc_phi()));
+    // TODO FIXME the passing of the pt eta phi's are not implemented properly. (It's like half finished....)
+    list_FRSetDef.push_back(FakeRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isFake().size() > itc ? sdl.tc_isFake()[itc] > 0 : false;}, sdl.tc_pt(), sdl.tc_eta(), sdl.tc_phi()));
     if (ana.do_lower_level)
     {
-        list_FRSetDef.push_back(FakeRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isFake()[it4] > 0;}, sdl.t4_pt(), sdl.t4_eta(), sdl.t4_phi()));
-        list_FRSetDef.push_back(FakeRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isFake()[it3] > 0;}, sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi()));
-        list_FRSetDef.push_back(FakeRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return sdl.pT4_isFake()[ipT4] > 0;}, sdl.pT4_pt(), sdl.pT4_eta(), sdl.pT4_phi()));
-        list_FRSetDef.push_back(FakeRateSetDefinition("pLS_AllTypes", 13, [&](int itls) { return sdl.pLS_isFake()[itls] > 0;}, sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi()));
-        list_FRSetDef.push_back(FakeRateSetDefinition("T5_AllTypes", 13, [&](int itls) { return sdl.t5_isFake()[itls] > 0;}, sdl.t5_pt(), sdl.t5_eta(), sdl.t5_phi()));
-
+        list_FRSetDef.push_back(FakeRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isFake().size() > it4 ? sdl.t4_isFake()[it4] > 0 : false;}, sdl.t4_pt(), sdl.t4_eta(), sdl.t4_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isFake().size() > it3 ? sdl.t3_isFake()[it3] > 0 : false;}, sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return sdl.pT4_isFake().size() > ipT4 ? sdl.pT4_isFake()[ipT4] > 0 : false;}, sdl.pT4_pt(), sdl.pT4_eta(), sdl.pT4_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("pLS_AllTypes", 13, [&](int itls) {return sdl.pLS_isFake().size() > itls ? sdl.pLS_isFake()[itls] > 0 : false;}, sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("T5_AllTypes", 13, [&](int iT5) {return sdl.t5_isFake().size() > iT5 ? sdl.t5_isFake()[iT5] > 0 : false;}, sdl.t5_pt(), sdl.t5_eta(), sdl.t5_phi()));
     }
 
     bookFakeRateSets(list_FRSetDef);
@@ -49,15 +49,14 @@ int main(int argc, char** argv)
     // creating a set of fake rate plots
     std::vector<DuplicateRateSetDefinition> list_DLSetDef;
 
-    list_DLSetDef.push_back(DuplicateRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isDuplicate()[itc] > 0;}, sdl.tc_pt(), sdl.tc_eta(), sdl.tc_phi()));
+    list_DLSetDef.push_back(DuplicateRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isDuplicate().size() > itc ? sdl.tc_isDuplicate()[itc] > 0 : false;}, sdl.tc_pt(), sdl.tc_eta(), sdl.tc_phi()));
     if (ana.do_lower_level)
     {
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isDuplicate()[it4] > 0;}, sdl.t4_pt(), sdl.t4_eta(), sdl.t4_phi()));
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isDuplicate()[it3] > 0;}, sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi()));
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return sdl.pT4_isDuplicate()[ipT4] > 0;}, sdl.pT4_pt(), sdl.pT4_eta(), sdl.pT4_phi()));
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("pLS_AllTypes", 13, [&](int itls) { return sdl.pLS_isDuplicate()[itls] > 0;}, sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi()));
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("T5_AllTypes", 13, [&](int itls) { return sdl.t5_isDuplicate()[itls] > 0;}, sdl.t5_pt(), sdl.t5_eta(), sdl.t5_phi()));
-
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isDuplicate().size() > it4 ? sdl.t4_isDuplicate()[it4] > 0 : false;}, sdl.t4_pt(), sdl.t4_eta(), sdl.t4_phi()));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isDuplicate().size() > it3 ? sdl.t3_isDuplicate()[it3] > 0 : false;}, sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi()));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return sdl.pT4_isDuplicate().size() > ipT4 ? sdl.pT4_isDuplicate()[ipT4] > 0 : false;}, sdl.pT4_pt(), sdl.pT4_eta(), sdl.pT4_phi()));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("pLS_AllTypes", 13, [&](int itls) {return sdl.pLS_isDuplicate().size() > itls ? sdl.pLS_isDuplicate()[itls] > 0 : false;}, sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi()));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("T5_AllTypes", 13, [&](int iT5) {return sdl.t5_isDuplicate().size() > iT5 ? sdl.t5_isDuplicate()[iT5] > 0 : false;}, sdl.t5_pt(), sdl.t5_eta(), sdl.t5_phi()));
     }
 
     bookDuplicateRateSets(list_DLSetDef);
@@ -296,9 +295,9 @@ void fillFakeRateSets(std::vector<FakeRateSetDefinition>& FRsets)
                 fillFakeRateSet(it3, FRset);
             }
         }
-        else if(FRset.set_name.Contains("T5_"))
+        else if (FRset.set_name.Contains("T5_"))
         {
-            for(unsigned int it5 = 0; it5 < sdl.t5_pt().size(); ++it5)
+            for (unsigned int it5 = 0; it5 < sdl.t5_pt().size(); ++it5)
             {
                 fillFakeRateSet(it5, FRset);
             }
@@ -335,7 +334,7 @@ void fillFakeRateSet(int itc, FakeRateSetDefinition& FRset)
         eta = sdl.t3_eta()[itc];
         phi = sdl.t3_phi()[itc];
     }
-    else if(FRset.set_name.Contains("T5_"))
+    else if (FRset.set_name.Contains("T5_"))
     {
         pt = sdl.t5_pt()[itc];
         eta = sdl.t5_eta()[itc];
@@ -427,14 +426,13 @@ void fillDuplicateRateSets(std::vector<DuplicateRateSetDefinition>& DLsets)
                 fillDuplicateRateSet(it3, DLset);
             }
         }
-        else if(DLset.set_name.Contains("T5_"))
+        if (DLset.set_name.Contains("T5_"))
         {
-            for(unsigned int it5 = 0; it5 < sdl.t5_pt().size(); ++it5)
+            for (unsigned int it5 = 0; it5 < sdl.t5_pt().size(); ++it5)
             {
                 fillDuplicateRateSet(it5, DLset);
             }
         }
-
     }
 }
 
@@ -467,7 +465,7 @@ void fillDuplicateRateSet(int itc, DuplicateRateSetDefinition& DLset)
         eta = sdl.t3_eta()[itc];
         phi = sdl.t3_phi()[itc];
     }
-    else if(DLset.set_name.Contains("T5_"))
+    else if (DLset.set_name.Contains("T5_"))
     {
         pt = sdl.t5_pt()[itc];
         eta = sdl.t5_eta()[itc];

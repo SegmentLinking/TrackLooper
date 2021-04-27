@@ -113,3 +113,4 @@ float SDL::CPU::MathUtil::angleCorr(float dr, float pt, float angle)
     const float sinAlphaMax = 0.95;
     return copysign(std::asin(std::min(dr * k2Rinv1GeVf / std::abs(pt), sinAlphaMax)), angle);
 }
+
