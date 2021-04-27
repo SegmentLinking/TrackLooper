@@ -103,6 +103,9 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("t5_phi");
     ana.tx->createBranch<vector<int>>("t5_isFake");
     ana.tx->createBranch<vector<int>>("t5_isDuplicate");
+    ana.tx->createBranch<vector<float>>("t5_pt");
+    ana.tx->createBranch<vector<float>>("t5_eta");
+    ana.tx->createBranch<vector<float>>("t5_phi");
 #endif
     //pLS
     ana.tx->createBranch<vector<int>>("sim_pLS_matched");
@@ -716,6 +719,9 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     std::vector<vector<int>> sim_T5_types(trk.sim_pt().size());
     std::vector<int> t5_isFake;
     std::vector<vector<int>> t5_matched_simIdx;
+    std::vector<float> t5_pt;
+    std::vector<float> t5_eta;
+    std::vector<float> t5_phi;
 
 #ifdef CUT_VALUE_DEBUG
     std::vector<float> t5_innerRadius;
@@ -738,6 +744,8 @@ void fillQuintupletOutputBranches(SDL::Event& event)
 #endif
 
     const int MAX_NQUINTUPLET_PER_MODULE = 5000;
+    const float kRinv1GeVf = (2.99792458e-3 * 3.8);
+    const float k2Rinv1GeVf = kRinv1GeVf / 2.;
     
     for(unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
     {
@@ -758,6 +766,8 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[idx] + jdx;
             unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
             unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
+
+
 
 #ifdef CUT_VALUE_DEBUG
             t5_innerRadius.push_back(quintupletsInGPU.innerRadius[quintupletIndex]);
@@ -864,6 +874,23 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             layer_binary |= (1 << logicallayer4);
             layer_binary |= (1 << logicallayer6);
             layer_binary |= (1 << logicallayer8);
+
+            // radius values now not covered under CUT_VALUE_DEBUG
+            // using innerRadius and outerRadius to match up with CPU implementation
+
+            float pt = k2Rinv1GeVf * (quintupletsInGPU.innerRadius[quintupletIndex] + quintupletsInGPU.outerRadius[quintupletIndex]);
+
+            //copyting stuff from before for eta and phi
+            SDL::CPU::Hit hitA(trk.ph2_x()[hit_idxs[0]], trk.ph2_y()[hit_idxs[0]], trk.ph2_z()[hit_idxs[0]]);
+            SDL::CPU::Hit hitB(trk.ph2_x()[hit_idxs[9]], trk.ph2_y()[hit_idxs[9]], trk.ph2_z()[hit_idxs[9]]);
+
+            float eta = hitB.eta();
+            float phi = hitA.phi();
+
+            t5_pt.push_back(pt);
+            t5_eta.push_back(eta);
+            t5_phi.push_back(phi);
+
 #ifdef CUT_VALUE_DEBUG
             layer_binaries.push_back(layer_binary);
 #endif
@@ -912,6 +939,9 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<vector<int>>>("sim_T5_types", sim_T5_types);
     ana.tx->setBranch<vector<int>>("t5_isFake", t5_isFake);
     ana.tx->setBranch<vector<int>>("t5_isDuplicate", t5_isDuplicate);
+    ana.tx->setBranch<vector<float>>("t5_pt", t5_pt);
+    ana.tx->setBranch<vector<float>>("t5_eta", t5_eta);
+    ana.tx->setBranch<vector<float>>("t5_phi", t5_phi);
 #ifdef CUT_VALUE_DEBUG
     ana.tx->setBranch<vector<vector<float>>>("t5_matched_pt",t5_simpt);
 
