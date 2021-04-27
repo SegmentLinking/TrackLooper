@@ -26,12 +26,14 @@ namespace SDL
 {
     struct trackCandidates
     {
-        short* trackCandidateType; //3 types : 0-T4T4, 1-T4T3, 2-T3T4
+        short* trackCandidateType; //3 types : 0-T4T4, 1-T4T3, 2-T3T4 3-pT2 4-T5
         unsigned int* objectIndices; //will hold tracklet and  triplet indices  - check the type!!
         unsigned int* nTrackCandidates;
         unsigned int* nTrackCandidatesT4T4;
         unsigned int* nTrackCandidatesT4T3;
         unsigned int* nTrackCandidatesT3T4;
+        unsigned int* nTrackCandidatespT2;
+        unsigned int* nTrackCandidatesT5;
 
         trackCandidates();
         ~trackCandidates();
