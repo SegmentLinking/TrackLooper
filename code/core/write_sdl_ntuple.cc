@@ -445,7 +445,7 @@ void fillTrackCandidateOutputBranches(SDL::Event& event)
                 betaIn_out = trackletsInGPU.betaIn[outerTrackletIdx];
                 betaOut_out = trackletsInGPU.betaOut[outerTrackletIdx];
             }
-
+#ifdef DO_QUINTUPLET
             if (trackCandidateType == 4) // T5
             {
             unsigned int innerTrackletIndex = quintupletsInGPU.tripletIndices[2 * innerTrackletIdx];
@@ -458,6 +458,7 @@ void fillTrackCandidateOutputBranches(SDL::Event& event)
                 betaIn_out = tripletsInGPU.betaIn[outerTrackletIndex];
                 betaOut_out = tripletsInGPU.betaOut[outerTrackletIndex];
             }
+#endif
             unsigned int innerTrackletInnerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletInnerSegmentIndex];
             unsigned int innerTrackletInnerSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletInnerSegmentIndex + 1];
             unsigned int innerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletOuterSegmentIndex];
