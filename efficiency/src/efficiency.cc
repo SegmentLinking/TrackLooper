@@ -270,12 +270,9 @@ void fillFakeRateSets(std::vector<FakeRateSetDefinition>& FRsets)
     {
         if (FRset.set_name.Contains("TC_"))
         {
-            for (unsigned int itc = 0; itc < FRset.pt.size(); ++itc)
+            for (unsigned int itc = 0; itc < sdl.tc_pt().size(); ++itc)
             {
-                for (unsigned int itc = 0; itc < sdl.tc_pt().size(); ++itc)
-                {
-                    fillFakeRateSet(itc, FRset);
-                }
+                fillFakeRateSet(itc, FRset);
             }
         }
         else if (FRset.set_name.Contains("T4s_"))
@@ -297,6 +294,13 @@ void fillFakeRateSets(std::vector<FakeRateSetDefinition>& FRsets)
             for (unsigned int it3 = 0; it3 < sdl.t3_pt().size(); ++it3)
             {
                 fillFakeRateSet(it3, FRset);
+            }
+        }
+        else if(FRset.set_name.Contains("T5_"))
+        {
+            for(unsigned int it5 = 0; it5 < sdl.t5_pt().size(); ++it5)
+            {
+                fillFakeRateSet(it5, FRset);
             }
         }
     }
@@ -330,6 +334,12 @@ void fillFakeRateSet(int itc, FakeRateSetDefinition& FRset)
         pt = sdl.t3_pt()[itc];
         eta = sdl.t3_eta()[itc];
         phi = sdl.t3_phi()[itc];
+    }
+    else if(FRset.set_name.Contains("T5_"))
+    {
+        pt = sdl.t5_pt()[itc];
+        eta = sdl.t5_eta()[itc];
+        phi = sdl.t5_phi()[itc];
     }
 
     TString category_name = FRset.set_name;
@@ -391,12 +401,9 @@ void fillDuplicateRateSets(std::vector<DuplicateRateSetDefinition>& DLsets)
     {
         if (DLset.set_name.Contains("TC_"))
         {
-            for (unsigned int itc = 0; itc < DLset.pt.size(); ++itc)
+            for (unsigned int itc = 0; itc < sdl.tc_pt().size(); ++itc)
             {
-                for (unsigned int itc = 0; itc < sdl.tc_pt().size(); ++itc)
-                {
-                    fillDuplicateRateSet(itc, DLset);
-                }
+                fillDuplicateRateSet(itc, DLset);
             }
         }
         else if (DLset.set_name.Contains("T4s_"))
@@ -420,6 +427,14 @@ void fillDuplicateRateSets(std::vector<DuplicateRateSetDefinition>& DLsets)
                 fillDuplicateRateSet(it3, DLset);
             }
         }
+        else if(DLset.set_name.Contains("T5_"))
+        {
+            for(unsigned int it5 = 0; it5 < sdl.t5_pt().size(); ++it5)
+            {
+                fillDuplicateRateSet(it5, DLset);
+            }
+        }
+
     }
 }
 
@@ -451,6 +466,12 @@ void fillDuplicateRateSet(int itc, DuplicateRateSetDefinition& DLset)
         pt = sdl.t3_pt()[itc];
         eta = sdl.t3_eta()[itc];
         phi = sdl.t3_phi()[itc];
+    }
+    else if(DLset.set_name.Contains("T5_"))
+    {
+        pt = sdl.t5_pt()[itc];
+        eta = sdl.t5_eta()[itc];
+        phi = sdl.t5_phi()[itc];
     }
 
     TString category_name = DLset.set_name;
