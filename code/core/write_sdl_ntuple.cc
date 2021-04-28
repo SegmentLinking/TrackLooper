@@ -98,9 +98,6 @@ void createLowerLevelOutputBranches()
     //T5 - new kid
     ana.tx->createBranch<vector<int>>("sim_T5_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_T5_types");
-    ana.tx->createBranch<vector<float>>("t5_pt");
-    ana.tx->createBranch<vector<float>>("t5_eta");
-    ana.tx->createBranch<vector<float>>("t5_phi");
     ana.tx->createBranch<vector<int>>("t5_isFake");
     ana.tx->createBranch<vector<int>>("t5_isDuplicate");
     ana.tx->createBranch<vector<float>>("t5_pt");
