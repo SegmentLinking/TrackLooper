@@ -433,7 +433,7 @@ void run_sdl()
             printTripletSummary(event);
 
             // Run Tracklet
-            float timing_T4 = runT4_on_CPU(event);
+            float timing_T4 = 0; // runT4_on_CPU(event);
             printTrackletSummary(event);
             float timing_T4x = 0; // runT4x_on_CPU(event); // T4x's are turned off right now
             printTrackletSummary(event);
@@ -443,7 +443,7 @@ void run_sdl()
             // Run T5s
             float timing_T5 = runT5_on_CPU(event);
             // Run TrackCandidate
-            float timing_TC = runTrackCandidate_on_CPU(event); // {T4, T3 based TC's, and no T5};
+            float timing_TC = 0; // runTrackCandidate_on_CPU(event); // {T4, T3 based TC's, and no T5};
             printTrackCandidateSummary(event);
 
             timing_information.push_back({ timing_input_loading,
@@ -453,7 +453,8 @@ void run_sdl()
                     timing_T4x,
                     timing_pT4,
                     timing_T3,
-                    timing_TC});
+                    timing_TC,
+                    timing_T5});
 
             if (ana.verbose == 4)
             {

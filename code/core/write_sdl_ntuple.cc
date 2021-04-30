@@ -123,6 +123,10 @@ void createLowerLevelOutputBranches()
     createQuintupletCutValueBranches();
 #endif
 #endif
+
+#ifdef PRIMITIVE_STUDY
+    createPrimitiveBranches();
+#endif
 }
 
 #ifdef DO_QUINTUPLET
@@ -232,6 +236,82 @@ void createSegmentCutValueBranches()
 void createMiniDoubletCutValueBranches()
 {
     
+}
+
+void createPrimitiveBranches()
+{
+
+    ana.tx->createBranch<vector<int>>("prim_detid");
+    ana.tx->createBranch<vector<int>>("prim_layer");
+    ana.tx->createBranch<vector<int>>("prim_type");
+    ana.tx->createBranch<vector<int>>("prim_tilt");
+
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_sim_idx");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_sim_pdgid");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_sim_pt");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_sim_eta");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_sim_phi");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_sim_dxy");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_sim_dz");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_x");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_y");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_z");
+
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_sim_idx");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_sim_pdgid");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_sim_pt");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_sim_eta");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_sim_phi");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_sim_dxy");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_sim_dz");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_x");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_y");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_z");
+
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_sim_idx"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_sim_pdgid");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_sim_pt");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_sim_eta");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_sim_phi");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_sim_dxy");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_sim_dz");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_x");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_y");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_z");
+
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_sim_idx"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_sim_pdgid");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_sim_pt");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_sim_eta");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_sim_phi");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_sim_dxy");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_sim_dz");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_x");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_y");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_z");
+
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_sim_idx"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_sim_pdgid");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_sim_pt");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_sim_eta");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_sim_phi");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_sim_dxy");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_sim_dz");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_x"); // paired with upper
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_y"); // paired with upper
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_z"); // paired with upper
+
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_sim_idx"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_sim_pdgid");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_sim_pt");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_sim_eta");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_sim_phi");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_sim_dxy");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_sim_dz");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_x"); // paired with lower
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_y"); // paired with lower
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_z"); // paired with lower
+
 }
 
 //________________________________________________________________________________________________________________________________
@@ -2111,7 +2191,97 @@ void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event)
             tc_phi.push_back(phi);
             tc_matched_simIdx.push_back(matched_sim_trk_idxs);
 
+        } // trackCandidatePtrs loop
+
+    }
+
+    // Now loop over pT2's
+    // Quadruplets ptrs
+    const std::vector<SDL::CPU::Tracklet*>& trackletPtrs = event.getPixelLayer().getTrackletPtrs();
+
+    // Loop over trackCandidate ptrs
+    for (auto& trackletPtr : trackletPtrs)
+    {
+
+        // hit idx
+        std::vector<int> hit_idx;
+        hit_idx.push_back(trackletPtr->innerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->idx());
+        hit_idx.push_back(trackletPtr->innerSegmentPtr()->innerMiniDoubletPtr()->upperHitPtr()->idx());
+        hit_idx.push_back(trackletPtr->innerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->idx());
+        hit_idx.push_back(trackletPtr->innerSegmentPtr()->outerMiniDoubletPtr()->upperHitPtr()->idx());
+        hit_idx.push_back(trackletPtr->outerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->idx());
+        hit_idx.push_back(trackletPtr->outerSegmentPtr()->innerMiniDoubletPtr()->upperHitPtr()->idx());
+        hit_idx.push_back(trackletPtr->outerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->idx());
+        hit_idx.push_back(trackletPtr->outerSegmentPtr()->outerMiniDoubletPtr()->upperHitPtr()->idx());
+
+        std::vector<int> hit_types;
+        hit_types.push_back(0);
+        hit_types.push_back(0);
+        hit_types.push_back(0);
+        hit_types.push_back(0);
+        hit_types.push_back(4);
+        hit_types.push_back(4);
+        hit_types.push_back(4);
+        hit_types.push_back(4);
+
+        const SDL::CPU::Module& module0 = trackletPtr->innerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->getModule();
+        const SDL::CPU::Module& module2 = trackletPtr->innerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->getModule();
+        const SDL::CPU::Module& module4 = trackletPtr->outerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->getModule();
+        const SDL::CPU::Module& module6 = trackletPtr->outerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->getModule();
+
+        const bool isPixel0 = true;
+        const bool isPixel2 = true;
+        const bool isPixel4 = false;
+        const bool isPixel6 = false;
+
+        const int layer0 = module0.layer();
+        const int layer2 = module2.layer();
+        const int layer4 = module4.layer();
+        const int layer6 = module6.layer();
+
+        const int subdet0 = module0.subdet();
+        const int subdet2 = module2.subdet();
+        const int subdet4 = module4.subdet();
+        const int subdet6 = module6.subdet();
+
+        const int logicallayer0 = isPixel0 ? 0 : layer0  + 6 * (subdet0 == 4);
+        const int logicallayer2 = isPixel2 ? 0 : layer2  + 6 * (subdet2 == 4);
+        const int logicallayer4 = isPixel4 ? 0 : layer4  + 6 * (subdet4 == 4);
+        const int logicallayer6 = isPixel6 ? 0 : layer6  + 6 * (subdet6 == 4);
+
+        int layer_binary = 0;
+        layer_binary |= (1 << logicallayer0);
+        layer_binary |= (1 << logicallayer2);
+        layer_binary |= (1 << logicallayer4);
+        layer_binary |= (1 << logicallayer6);
+
+        // sim track matched index
+        std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idx, hit_types);
+
+        for (auto& isimtrk : matched_sim_trk_idxs)
+        {
+            sim_TC_matched[isimtrk]++;
         }
+
+        for (auto& isimtrk : matched_sim_trk_idxs)
+        {
+            sim_TC_types[isimtrk].push_back(layer_binary);
+        }
+
+        // Compute pt, eta, phi of pT4
+        const float pt = trackletPtr->getRecoVar("pt_beta");
+        float eta = -999;
+        float phi = -999;
+        SDL::CPU::Hit hitA(trk.pix_x()[hit_idx[0]], trk.pix_y()[hit_idx[0]], trk.pix_z()[hit_idx[0]]);
+        SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[7]], trk.ph2_y()[hit_idx[7]], trk.ph2_z()[hit_idx[7]]);
+        eta = hitB.eta();
+        phi = hitA.phi();
+
+        tc_isFake.push_back(matched_sim_trk_idxs.size() == 0);
+        tc_pt.push_back(pt);
+        tc_eta.push_back(eta);
+        tc_phi.push_back(phi);
+        tc_matched_simIdx.push_back(matched_sim_trk_idxs);
 
     }
 

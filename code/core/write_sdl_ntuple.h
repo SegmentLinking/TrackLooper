@@ -27,6 +27,7 @@ void createSegmentCutValueBranches();
 void createMiniDoubletCutValueBranches();
 void createOccupancyBranches();
 void createPixelQuadrupletCutValueBranches();
+void createPrimitiveBranches();
 // Common
 void fillSimTrackOutputBranches();
 // GPU
