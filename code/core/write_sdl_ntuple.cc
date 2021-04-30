@@ -1200,7 +1200,10 @@ void fillPixelQuadrupletOutputBranches(SDL::Event& event)
         unsigned int outerSegmentIndex = trackletsInGPU.segmentIndices[2 * trackletIndex + 1];
         float betaIn = trackletsInGPU.betaIn[trackletIndex];
         float betaOut = trackletsInGPU.betaOut[trackletIndex];
-
+        float pt_beta = trackletsInGPU.pt_beta[trackletIndex];
+        std::cout <<  " pt_beta: " << pt_beta <<  std::endl;
+        std::cout <<  " betaOut: " << betaOut <<  std::endl;
+        std::cout <<  " betaIn: " << betaIn <<  std::endl;
 
         unsigned int innerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerSegmentIndex];
         unsigned int innerSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerSegmentIndex + 1];
@@ -1293,7 +1296,8 @@ void fillPixelQuadrupletOutputBranches(SDL::Event& event)
             sim_pT4_types[isimtrk].push_back(layer_binary);
         }
 
-        const float pt = ptAv;
+        // const float pt = ptAv;
+        const float pt = pt_beta;
         float eta = -999;
         float phi = -999;
         SDL::CPU::Hit hitA(trk.pix_x()[hit_idxs[0]], trk.pix_y()[hit_idxs[0]], trk.pix_z()[hit_idxs[0]]);

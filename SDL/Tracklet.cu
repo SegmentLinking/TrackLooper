@@ -234,7 +234,6 @@ void SDL::tracklets::freeMemory()
     cudaFree(nTracklets);
     cudaFree(zOut);
     cudaFree(betaIn);
-    cudaFree(pt_beta);
 #ifdef CUT_VALUE_DEBUG
     cudaFree(zLo);
     cudaFree(zHi);
