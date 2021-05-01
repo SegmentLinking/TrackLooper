@@ -338,6 +338,9 @@ void SDL::CPU::TrackCandidate::runTrackCandidateInnerTripletToOuterTracklet(SDL:
 void SDL::CPU::TrackCandidate::runTrackCandidateT5(SDL::CPU::LogLevel logLevel)
 {
 
+    setRecoVars("innerRadius", -999);
+    setRecoVars("outerRadius", -999);
+
     passAlgo_ &= (0 << SDL::CPU::Default_TCAlgo);
 
     // Tracklet between Seg1 - Seg3
@@ -408,6 +411,9 @@ void SDL::CPU::TrackCandidate::runTrackCandidateT5(SDL::CPU::LogLevel logLevel)
     float innerRadius  = computeRadiusFromThreeAnchorHits(hit1->x(), hit1->y(), hit2->x(), hit2->y(), hit3->x(), hit3->y(), innerG, innerF);
     float outerRadius  = computeRadiusFromThreeAnchorHits(hit3->x(), hit3->y(), hit4->x(), hit4->y(), hit5->x(), hit5->y(), outerG, outerF);
     float bridgeRadius = computeRadiusFromThreeAnchorHits(hit2->x(), hit2->y(), hit3->x(), hit3->y(), hit4->x(), hit4->y(), bridgeG, bridgeF);
+
+    setRecoVars("innerRadius", innerRadius);
+    setRecoVars("outerRadius", outerRadius);
 
     float innerRadiusMin2S, innerRadiusMax2S;
     float outerRadiusMin2S, outerRadiusMax2S;

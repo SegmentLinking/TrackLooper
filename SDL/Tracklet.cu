@@ -22,6 +22,7 @@ void SDL::createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsig
     trackletsInGPU.nTracklets = (unsigned int*)cms::cuda::allocate_managed(nLowerModules * sizeof(unsigned int),stream);
     trackletsInGPU.zOut = (float*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(float) * 4,stream);
     trackletsInGPU.betaIn = (float*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(float) * 3,stream);
+#else
     cudaMallocManaged(&trackletsInGPU.segmentIndices, 2 * nMemoryLocations * sizeof(unsigned int));
     cudaMallocManaged(&trackletsInGPU.lowerModuleIndices, 4 * nMemoryLocations * sizeof(unsigned int));
     cudaMallocManaged(&trackletsInGPU.nTracklets,nLowerModules * sizeof(unsigned int));
@@ -74,7 +75,7 @@ void SDL::createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, unsi
     cudaMalloc(&trackletsInGPU.lowerModuleIndices, 4 * nMemoryLocations * sizeof(unsigned int));
     cudaMalloc(&trackletsInGPU.nTracklets,nLowerModules * sizeof(unsigned int));
     cudaMalloc(&trackletsInGPU.zOut, nMemoryLocations *4* sizeof(float));
-    cudaMalloc(&trackletsInGPU.betaIn, nMemoryLocations *2* sizeof(float));
+    cudaMalloc(&trackletsInGPU.betaIn, nMemoryLocations *3* sizeof(float));
 #endif
     cudaMemset(trackletsInGPU.nTracklets,0,nLowerModules*sizeof(unsigned int));
     trackletsInGPU.rtOut = trackletsInGPU.zOut + nMemoryLocations;
@@ -121,7 +122,7 @@ void SDL::createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, unsi
 
 
 #ifdef CUT_VALUE_DEBUG
-__device__ void SDL::addTrackletToMemory(struct tracklets& trackletsInGPU, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, unsigned int innerInnerLowerModuleIndex, unsigned int innerOuterLowerModuleIndex, unsigned int outerInnerLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float& pt_beta, float& zLo, float& zHi, float& rtLo, float& rtHi, float& zLoPointed, float&
+__device__ void SDL::addTrackletToMemory(struct tracklets& trackletsInGPU, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, unsigned int innerInnerLowerModuleIndex, unsigned int innerOuterLowerModuleIndex, unsigned int outerInnerLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float pt_beta, float& zLo, float& zHi, float& rtLo, float& rtHi, float& zLoPointed, float&
         zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ, unsigned int trackletIndex)
 {
     trackletsInGPU.segmentIndices[trackletIndex * 2] = innerSegmentIndex;
@@ -153,7 +154,7 @@ __device__ void SDL::addTrackletToMemory(struct tracklets& trackletsInGPU, unsig
     trackletsInGPU.kZ[trackletIndex] = kZ;
 }
 #else
-__device__ void SDL::addTrackletToMemory(struct tracklets& trackletsInGPU, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, unsigned int innerInnerLowerModuleIndex, unsigned int innerOuterLowerModuleIndex, unsigned int outerInnerLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float& pt_beta, unsigned int trackletIndex)
+__device__ void SDL::addTrackletToMemory(struct tracklets& trackletsInGPU, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, unsigned int innerInnerLowerModuleIndex, unsigned int innerOuterLowerModuleIndex, unsigned int outerInnerLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float pt_beta, unsigned int trackletIndex)
 {
     trackletsInGPU.segmentIndices[trackletIndex * 2] = innerSegmentIndex;
     trackletsInGPU.segmentIndices[trackletIndex * 2 + 1] = outerSegmentIndex;
