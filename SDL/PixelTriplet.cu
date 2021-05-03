@@ -55,10 +55,16 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
 
 
     // pixel segment vs inner segment of the triplet
-    pass = runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, pixelModuleIndex, tripletsInGPU.lowerModuleIndices[3 * tripletIndex], tripletsInGPU.lowerModuleIndices[3 * tripletIndex + 1], pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut);
+    if(not runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, pixelModuleIndex, tripletsInGPU.lowerModuleIndices[3 * tripletIndex], tripletsInGPU.lowerModuleIndices[3 * tripletIndex + 1], pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut))
+    {
+        pass = false;
+    }
 
     //pixel segment vs outer segment of triplet
-    pass = runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, pixelModuleIndex, tripletsInGPU.lowerModuleIndices[3 * tripletIndex + 1], tripletsInGPU.lowerModuleIndices[3 * tripletIndex + 2], pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut);
+    if(not runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, pixelModuleIndex, tripletsInGPU.lowerModuleIndices[3 * tripletIndex + 1], tripletsInGPU.lowerModuleIndices[3 * tripletIndex + 2], pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut))
+    {
+        pass = false;
+    }
 
 
     //pt matching between the pixel ptin and the triplet circle pt
