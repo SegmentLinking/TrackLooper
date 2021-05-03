@@ -4,6 +4,23 @@
 # include "PixelTriplet.cuh"
 #include "allocate.h"
 
+SDL::pixelTriplets::pixelTriplets()
+{
+    pixelSegmentIndices = nullptr;
+    tripletIndices = nullptr;
+    nPixelTriplets = nullptr;
+}
+
+void SDL::pixelTriplets::freeMemory()
+{
+    cudaFree(pixelSegmentIndices);
+    cudaFree(tripletIndices);
+    cudaFree(nPixelTriplets);
+}
+
+SDL::pixelTriplets::~pixelTriplets()
+{
+}
 
 void SDL::createPixelTripletsInUnifiedMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int maxPixelTriplets)
 {
@@ -25,7 +42,7 @@ __device__ void SDL::addPixelTripletToMemory(struct pixelTriplets& pixelTriplets
     pixelTripletsInGPU.tripletIndices[pixelTripletIndex] = tripletIndex;
 }
 
-__device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& pixelSegmentIndex, unsigned int tripletIndex)
+__device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& pixelSegmentIndex, unsigned int& tripletIndex)
 {
     bool pass = true;
 
