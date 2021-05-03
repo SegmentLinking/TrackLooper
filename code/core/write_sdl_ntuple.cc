@@ -55,6 +55,7 @@ void createOccupancyBranches()
     ana.tx->createBranch<vector<int>>("t3_occupancies");
     ana.tx->createBranch<vector<int>>("tc_occupancies");
     ana.tx->createBranch<vector<int>>("t5_occupancies");
+    ana.tx->createBranch<int>("pT3_occupancies");
 }
 
 //________________________________________________________________________________________________________________________________
@@ -112,6 +113,16 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("pLS_pt");
     ana.tx->createBranch<vector<float>>("pLS_eta");
     ana.tx->createBranch<vector<float>>("pLS_phi");
+
+
+    ana.tx->createBranch<vector<int>>("sim_pT3_matched");
+    ana.tx->createBranch<vector<vector<int>>>("sim_pT3_types");
+//    ana.tx->createBranch<vector<float>>("pT3_pt");
+//    ana.tx->createBranch<vector<float>>("pT3_eta");
+//    ana.tx->createBranch<vector<float>>("pT3_phi");
+    ana.tx->createBranch<vector<int>>("pT3_isFake");
+    ana.tx->createBranch<vector<int>>("pT3_isDuplicate");
+
 
 #ifdef CUT_VALUE_DEBUG
     createQuadrupletCutValueBranches();
@@ -265,6 +276,7 @@ void fillOccupancyBranches(SDL::Event& event)
 #ifdef DO_QUINTUPLET
     SDL::quintuplets&  quintupletsInGPU = (*event.getQuintuplets());
 #endif
+    SDL::pixelTriplets& pixelTripletsInGPU = (*event.getPixelTriplets());
     //get the occupancies from these dudes
     std::vector<int> moduleLayer;
     std::vector<int> moduleSubdet;
@@ -302,6 +314,7 @@ void fillOccupancyBranches(SDL::Event& event)
     ana.tx->setBranch<vector<int>>("t4_occupancies",trackletOccupancy);
     ana.tx->setBranch<vector<int>>("t3_occupancies",tripletOccupancy);
     ana.tx->setBranch<vector<int>>("tc_occupancies",trackCandidateOccupancy);
+    ana.tx->setBranch<int>("pT3_occupancies", pixelTripletsInGPU.nPixelTriplets);
 #ifdef DO_QUINTUPLET
     ana.tx->setBranch<vector<int>>("t5_occupancies", quintupletOccupancy);
 #endif
@@ -698,6 +711,7 @@ void fillLowerLevelOutputBranches(SDL::Event& event)
 #ifdef DO_QUINTUPLET
     fillQuintupletOutputBranches(event);
 #endif
+    fillPixelTripletOutputBranches(event);
 }
 
 #ifdef DO_QUINTUPLET
@@ -964,6 +978,151 @@ void fillQuintupletOutputBranches(SDL::Event& event)
 }
 #endif
 
+void fillPixelTripletOutputBranches(SDL::Event& event)
+{
+    SDL::pixelTriplets& pixelTripletsInGPU = (*event.getPixelTriplets());
+    SDL::segments& segmentsInGPU = (*event.getSegments());
+    SDL::miniDoublets& mdsInGPU = (*event.getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event.getHits());
+    SDL::modules& modulesInGPU = (*event.getModules());
+
+    std::vector<int> sim_pT3_matched(trk.sim_pt().size(), 0);
+    std::vctor<vector<int>> sim_pT3_types(trk.sim_pt().size());
+    std::vector<int> pT3_isFake;
+    std::vector<vector<int>> pT3_matched_simIdx;
+    //std::vector<float> pT3_pt;
+    //std::vector<float> pT3_eta;
+    //std::vector<float> pT3_phi;
+    const unsigned int N_MAX_PIXEL_TRIPLETS = 3000000;
+
+    unsigned int nPixelTriplets = std::min(pixelTripletsInGPU.nPixelTriplets, N_MAX_PIXEL_TRIPLETS);
+
+    for(unsigned int jdx = 0; jdx < nPixelTriplets; jdx++)
+    {
+        unsigned int pixelSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[jdx];
+        unsigned int tripletIndex = pixelTripletsInGPU.tripletIndices[jdx];
+        
+        unsigned int pixelInnerMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
+        unsigned int pixelOuterMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
+        unsigned int tripletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * tripletIndex];
+        unsigned int tripletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * tripletIndex + 1];
+
+        unsigned int tripletInnerMDIndex = segmentsInGPU.mdIndices[2 * tripletInnerSegmentIndex];
+        unsigned int tripletMiddleMDIndex = segmentsInGPU.mdIndices[2 * tripletInnerSegmentIndex + 1];
+        unsigned int tripletOuterMDIndex = segmentsInGPU.mdIndices[2 * tripletOuterSegmentIndex + 1];
+
+        unsigned int pixelInnerMDLowerHitIndex = mdsInGPU.hitIndices[2 * pixelInnerMDIndex];
+        unsigned int pixelInnerMDUpperHitIndex = mdsInGPU.hitIndices[2 * pixelInnerMDIndex + 1];
+        unsigned int pixelOuterMDLowerHitIndex = mdsInGPU.hitIndices[2 * pixelOuterMDIndex];
+        unsigned int pixelOuterMDUpperHitIndex = mdsInGPU.hitIndices[2 * pixelOuterMDIndex + 1];
+
+        unsigned int tripletInnerMDLowerHitIndex = mdsInGPU.hitIndices[2 * tripletInnerMDIndex];
+        unsigned int tripletInnerMDUpperHitIndex = mdsInGPU.hitIndices[2 * tripletInnerMDIndex + 1];
+        unsigned int tripletMiddleMDLowerHitIndex = mdsInGPU.hitIndices[2 * tripletMiddleMDIndex];
+        unsigned int tripletMiddleMDUpperHitIndex = mdsInGPU.hitIndices[2 * tripletMiddleMDIndex + 1];
+        unsigned int tripletOuterMDLowerHitIndex = mdsInGPU.hitIndices[2 * tripletOuterMDIndex];
+        unsigned int tripletOuterMDUpperHitIndex = mdsInGPU.hitIndices[2 * tripletOuterMDIndex + 1];
+
+        std::vector<int> hit_idxs = {
+            (int) hitsInGPU.idxs[pixelInnerMDLowerHitIndex];
+            (int) hitsInGPU.idxs[pixelInnerMDUpperHitIndex];
+            (int) hitsInGPU.idxs[pixelOuterMDLowerHitIndex];
+            (int) hitsInGPU.idxs[pixelOuterMDUpperHitIndex];
+            (int) hitsInGPU.idxs[tripletInnerMDLowerHitIndex];
+            (int) hitsInGPU.idxs[tripletInnerMDUpperHitIndex];
+            (int) hitsInGPU.idxs[tripletMiddleMDLowerHitIndex];
+            (int) hitsInGPU.idxs[tripletMiddleMDUpperHitIndex];
+            (int) hitsInGPU.idxs[tripletOuterMDLowerHitIndex];
+            (int) hitsInGPU.idxs[tripletOuterMDUpperHitIndex];
+        };
+        std::vector<int> hit_types;
+        hit_types.push_back(0);
+        hit_types.push_back(0);
+        hit_types.push_back(0);
+        hit_types.push_back(0);
+        hit_types.push_back(4);
+        hit_types.push_back(4);
+        hit_types.push_back(4);
+        hit_types.push_back(4);
+        hit_types.push_back(4);
+        hit_types.push_back(4);
+
+        std::vector<int> module_idxs = {
+            (int) hitsInGPU.moduleIndices[pixelInnerMDLowerHitIndex];
+            (int) hitsInGPU.moduleIndices[pixelInnerMDUpperHitIndex];
+            (int) hitsInGPU.moduleIndices[pixelOuterMDLowerHitIndex];
+            (int) hitsInGPU.moduleIndices[pixelOuterMDUpperHitIndex];
+            (int) hitsInGPU.moduleIndices[tripletInnerMDLowerHitIndex];
+            (int) hitsInGPU.moduleIndices[tripletInnerMDUpperHitIndex];
+            (int) hitsInGPU.moduleIndices[tripletMiddleMDLowerHitIndex];
+            (int) hitsInGPU.moduleIndices[tripletMiddleMDUpperHitIndex];
+            (int) hitsInGPU.moduleIndices[tripletOuterMDLowerHitIndex];
+            (int) hitsInGPU.moduleIndices[tripletOuterMDUpperHitIndex];
+        };
+        int layer0 = modulesInGPU.layers[module_idxs[0]];
+        int layer2 = modulesInGPU.layers[module_idxs[2]];
+        int layer4 = modulesInGPU.layers[module_idxs[4]];
+        int layer6 = modulesInGPU.layers[module_idxs[6]];
+        int layer8 = modulesInGPU.layers[module_idxs[8]];
+
+        int subdet0 = modulesInGPU.subdets[module_idxs[0]];
+        int subdet2 = modulesInGPU.subdets[module_idxs[2]];
+        int subdet4 = modulesInGPU.subdets[module_idxs[4]];
+        int subdet6 = modulesInGPU.subdets[module_idxs[6]];
+        int subdet8 = modulesInGPU.subdets[module_idxs[8]];
+
+        int logicallayer0 = 0;
+        int logicallayer2 = 0;
+        int logicallayer4 = layer4 + 6 * (subdet4 == 4);
+        int logicallayer6 = layer6 + 6 * (subdet6 == 4);
+        int logicallayer8 = layer8 + 6 * (subdet8 == 4);
+
+        int layer_binary = 0;
+        layer_binary |= (1 << logicallayer0);
+        layer_binary |= (1 << logicallayer2);
+        layer_binary |= (1 << logicallayer4);
+        layer_binary |= (1 << logicallayer6);
+        layer_binary |= (1 << logicallayer8);
+
+        //bare bones implementation only
+        std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
+        for (auto &isimtrk : matched_sim_trk_idxs)
+        {
+            sim_pT3_matched[isimtrk]++;
+        }
+
+        for (auto &isimtrk : matched_sim_trk_idxs)
+        {
+            sim_pT3_types[isimtrk].push_back(layer_binary);
+        }
+        pT3_isFake.push_back(matched_sim_trk_idxs.size() == 0);
+        pT3_matched_simIdx.push_back(matched_sim_trk_idxs);
+    }
+
+    vector<int> pT3_isDuplicate(pT4_matched_simIdx.size());
+
+    for (unsigned int i = 0; i < pT3_matched_simIdx.size(); ++i)
+    {
+        bool isDuplicate = false;
+        for (unsigned int isim = 0; isim < pT3_matched_simIdx[i].size(); ++isim)
+        {
+            if (sim_pT3_matched[pT3_matched_simIdx[i][isim]] > 1)
+            {
+                isDuplicate = true;
+            }
+        }
+        pT3_isDuplicate[i] = isDuplicate;
+    }
+
+    ana.tx->setBranch<vector<int>>("sim_pT3_matched", sim_pT3_matched);
+    ana.tx->setBranch<vector<vector<int>>>("sim_pT3_types", sim_pT3_types);
+    ana.tx->setBranch<vector<int>>("pT3_isFake", pT3_isFake);
+    ana.tx->setBranch<vector<int>>("pT3_isDuplicate", pT3_isDuplicate);
+//    ana.tx->setBranch<vector<float>>("pT4_pt", pT4_pt);
+//    ana.tx->setBranch<vector<float>>("pT4_eta", pT4_eta);
+//    ana.tx->setBranch<vector<float>>("pT4_phi", pT4_phi);
+
+}
 
 //________________________________________________________________________________________________________________________________
 void fillPixelLineSegmentOutputBranches(SDL::Event& event)
@@ -2847,7 +3006,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information)
     std::cout << setprecision(2);
     std::cout << right;
     std::cout << "Timing summary" << std::endl;
-    std::cout << "Evt     Hits         MD       LS      T4      T4x       pT4        T3       TC       T5       Total" << std::endl;
+    std::cout << "Evt     Hits         MD       LS      T4      T4x       pT4        T3       TC       T5       pT3        Total" << std::endl;
     std::vector<float> timing_sum_information(timing_information[0].size());
     for (auto&& [ievt, timing] : iter::enumerate(timing_information))
     {
@@ -2860,7 +3019,8 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information)
         timing_total += timing[5]*1000; // pT4
         timing_total += timing[6]*1000; // T3
         timing_total += timing[7]*1000; // TC
-        timing_total += timing[8]*10000; //T5
+        timing_total += timing[8]*1000; //T5
+        timing_total += timing[9]*1000; //pT3
         std::cout << setw(6) << ievt;
         std::cout << "   "<<setw(6) << timing[0]*1000; // Hits
         std::cout << "   "<<setw(6) << timing[1]*1000; // MD
@@ -2871,6 +3031,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information)
         std::cout << "   "<<setw(6) << timing[6]*1000; // T3
         std::cout << "   "<<setw(6) << timing[7]*1000; // TC
         std::cout << "   "<<setw(6) << timing[8]*1000; //T5
+        std::cout << "   "<<setw(6) << timing[9]*1000; //pT3
         std::cout << "   "<<setw(7) << timing_total; // Total time
         std::cout << std::endl;
         timing_sum_information[0] += timing[0]*1000; // Hits
@@ -2881,7 +3042,8 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information)
         timing_sum_information[5] += timing[5]*1000; // pT4
         timing_sum_information[6] += timing[6]*1000; // T3
         timing_sum_information[7] += timing[7]*1000; // TC
-        timing_sum_information[8] += timing[8]*1000;
+        timing_sum_information[8] += timing[8]*1000; // T5
+        timing_sum_information[9] += timing[9]*1000; //pT3
     }
     timing_sum_information[0] /= timing_information.size(); // Hits
     timing_sum_information[1] /= timing_information.size(); // MD
@@ -2892,6 +3054,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information)
     timing_sum_information[6] /= timing_information.size(); // T3
     timing_sum_information[7] /= timing_information.size(); // TC
     timing_sum_information[8] /= timing_information.size(); //T5
+    timing_sum_information[9] /= timing_information.size(); //pT3
     float timing_total_avg = 0.f;
     timing_total_avg += timing_sum_information[0]; // Hits
     timing_total_avg += timing_sum_information[1]; // MD
@@ -2902,6 +3065,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information)
     timing_total_avg += timing_sum_information[6]; // T3
     timing_total_avg += timing_sum_information[7]; // TC
     timing_total_avg += timing_sum_information[8]; //T5
+    timing_total_avg += timing_sum_information[9]; //pT3
     std::cout << setprecision(0);
     std::cout << setw(6) << "avg";
     std::cout << "   "<<setw(6) << timing_sum_information[0]; // Hits
@@ -2913,8 +3077,9 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information)
     std::cout << "   "<<setw(6) << timing_sum_information[6]; // T3
     std::cout << "   "<<setw(6) << timing_sum_information[7]; // TC
     std::cout << "   "<<setw(6) << timing_sum_information[8]; //T5
+    std::cout << "   "<<setw(6) << timing_sum_information[9]; //pT3
     std::cout << "   "<<setw(7) << timing_total_avg; // Average total time
-    std::cout << "    "<<ana.compilation_target;
+    std::cout << "   "<<ana.compilation_target;
     std::cout << std::endl;
 
     std::cout << left;

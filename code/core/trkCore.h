@@ -48,6 +48,8 @@ float runT3(SDL::Event& event);
 float runTrackCandidate(SDL::Event& event);
 float runTrackCandidateTest_v2(SDL::Event& event);
 float runQuintuplet(SDL::Event& event);
+float runpT3(SDL::Event& event);
+
 std::vector<float> getPtBounds();
 bool inTimeTrackWithPdgId(int isimtrk, int pdgid);
 std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes);

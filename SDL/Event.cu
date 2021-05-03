@@ -15,6 +15,8 @@ const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
 const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 3000000;
 const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 5000000;
 const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 5000;
+const unsigned int N_MAX_PIXEL_TRIPLETS = 3000000;
+
 struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::pixelMap* SDL::pixelMapping = nullptr;
 unsigned int SDL::nModules;
@@ -28,6 +30,7 @@ SDL::Event::Event()
     tripletsInGPU = nullptr;
     quintupletsInGPU = nullptr;
     trackCandidatesInGPU = nullptr;
+    pixelTripletsInGPU = nullptr;
 
 
     hitsInCPU = nullptr;
@@ -39,6 +42,7 @@ SDL::Event::Event()
     modulesInCPU = nullptr;
     modulesInCPUFull = nullptr;
     quintupletsInCPU = nullptr;
+    pixelTripletsInCPU = nullptr;
 
     //reset the arrays
     for(int i = 0; i<6; i++)
@@ -94,6 +98,10 @@ SDL::Event::~Event()
     cudaFreeHost(trackCandidatesInGPU);
     hitsInGPU->freeMemory();
     cudaFreeHost(hitsInGPU);
+
+    pixelTripletsInGPU->freeMemory();
+    cudaFreeHost(pixelTripletsInGPU);
+
 #ifdef DO_QUINTUPLET
     cudaFreeHost(quintupletsInGPU);
 #endif
@@ -163,6 +171,16 @@ SDL::Event::~Event()
         delete quintupletsInCPU;
     }
 #endif
+#endif
+
+#ifdef Explicit_PixelTriplet
+    if(pixelTripletsInCPU != nullptr)
+    {
+        delete[] pixelTripletsInCPU->tripletIndices;
+        delete[] pixelTripletsInCPU->pixelSegmentIndices;
+        delete nPixelTriplets;
+        delete pixelTripletsInCPU;
+    }
 #endif
 
 #ifdef Explicit_Track
@@ -1647,6 +1665,43 @@ void SDL::Event::createTrackCandidates()
 #endif
 
 }
+
+
+void SDL::Event::createPixelTriplets()
+{
+    unsigned int nLowerModules;
+    cudaMemcpy(&nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+    if(pixelTripletsInGPU == nullptr)
+    {
+        cudaMallocHost(&pixelTripletsInGPU, sizeof(SDL::pixelTriplets));
+    }
+#ifdef Explicit_PixelTriplet
+    createPixelTripletsInExplicitMemory(*pixelTripletsInGPU, N_MAX_PIXEL_TRIPLETS);
+#else
+    createPixelTripletsInUnifiedMemory(*pixelTripletsInGPU, N_MAX_PIXEL_TRIPLETS);
+#endif
+
+    unsigned int nThreads = 1;
+    unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules / nThreads : nLowerModules / nThreads + 1;
+
+    createPixelTripletsInGPU<<<nBlocks, nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU);
+
+    cudaError_t cudaerr = cudaDeviceSynchronize();
+    if(cudaerr != cudaSuccess)
+    {
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
+
+    }
+
+    unsigned int nPixelTriplets;
+    cudaMemcpy(&nPixelTriplets, &(pixelTripletsInGPU->nPixelTriplets),  sizeof(unsigned int), cudaMemcpyDeviceToHost);
+#ifdef Warnings
+    std::cout<<"number of pixel triplets = "<<nPixelTriplets<<std::endl;
+#endif
+
+}
+
 
 void SDL::Event::createQuintuplets()
 {
@@ -3819,6 +3874,66 @@ __global__ void createTrackCandidatesFromInnerInnerInnerLowerModule(struct SDL::
 #endif
 
 
+//#ifndef NESTED_PARA
+//#else
+
+__global__ void createPixelTripletsFromOuterInnerLowerModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, unsigned int outerTripletInnerLowerModuleArrayIndex, unsigned int nPixelSegments, unsigned int nOuterTriplets, unsigned int pixelModuleIndex)
+{
+   int pixelSegmentArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
+   int outerTripletArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
+
+   if(pixelSegmentArrayIndex >= nPixelSegments) return;
+   if(outerTripletArrayIndex >= nOuterTriplets) return;
+
+   unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + pixelSegmentArrayIndex;
+   unsigned int outerTripletIndex = outerTripletInnerLowerModuleArrayIndex * N_MAX_TRIPLETS_PER_MODULE + outerTripletArrayIndex;
+
+   bool success = runPixelTripletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelSegmentIndex, outerTripletIndex);
+
+   if(success)
+   {
+       unsigned int pixelTripletIndex = atomicAdd(pixelTripletsInGPU.nPixelTriplets, 1);
+       if(pixelTripletIndex >= N_MAX_PIXEL_TRIPLETS)
+       {
+            #ifdef Warnings
+            if(pixelTripletIndex == N_MAX_PIXEL_TRIPLETS)
+            {
+               printf("Pixel Triplet excess alert!\n"); 
+            }
+            #endif
+       }
+       else
+       {
+           addPixelTripletToMemory(pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelTripletIndex);
+       }
+   }
+}
+
+__global__ void createPixelTripletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU)
+{
+    int outerTripletInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
+
+    //lower modules 2 and 3 are taken from the triplet!
+    if(outerTripletInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) return;
+
+    unsigned int nOuterTriplets = tripletsInGPU.nTriplets[outerTripletInnerLowerModuleArrayIndex] > N_MAX_TRIPLETS_PER_MODULE ? N_MAX_TRIPLETS_PER_MODULE : tripletsInGPU.nTriplets[outerTripletInnerLowerModuleArrayIndex];
+
+    unsigned int pixelModuleIndex = *modulesInGPU.nModules - 1;
+    unsigned int nPixelSegments = segmentsInGPU.nSegments[pixelModuleIndex] > N_MAX_PIXEL_SEGMENTS_PER_MODULE ? N_MAX_PIXEL_SEGMENTS_PER_MODULE : segmentsInGPU.nSegments[pixelModuleIndex];
+    
+    //TODO:Insert a version of El-cheapo module map here!
+
+    if(nOuterTriplets == 0) return;
+    dim3 nThreads(16,16,1);
+    dim3 nBlocks(nPixelSegments % nThreads.x == 0 ? nPixelSegments / nThreads.x : nPixelSegments / nThreads.x + 1, nOuterTriplets % nThreads.y == 0 ? nOuterTriplets / nThreads.y : nOuterTriplets / nThreads.y + 1, 1);
+
+    createPixelTripletsFromOuterInnerLowerModule<<<nBlocks, nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, outerTripletInnerLowerModuleArrayIndex, nPixelSegments, nOuterTriplets, pixelModuleIndex);
+}
+
+//#endif
+
+
+
 #ifndef NESTED_PARA
 __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int* threadIdx_gpu, unsigned int* threadIdx_gpu_offset)
 {
@@ -4146,6 +4261,17 @@ unsigned int SDL::Event::getNumberOfTripletsByLayerEndcap(unsigned int layer)
     return n_triplets_by_layer_endcap_[layer];
 }
 
+unsigned int SDL::Event::getNumberOfPixelTriplets()
+{
+#ifdef Explicit_PixelTriplet
+    unsigned int nPixelTriplets;
+    cudaMemcpy(&nPixelTriplets, pixelTripletsInGPU->nPixelTriplets, sizeof(unsigned int));
+    return nPixelTriplets;
+#else
+    return *(pixelTripletsInGPU->nPixelTriplets); 
+#endif
+}
+
 unsigned int SDL::Event::getNumberOfQuintuplets()
 {
     unsigned int quintuplets = 0;
@@ -4402,6 +4528,31 @@ SDL::quintuplets* SDL::Event::getQuintuplets()
     return quintupletsInGPU;
 }
 #endif
+
+#ifdef Explicit_PixelTriplet
+SDL::pixelTriplets* SDL::Event::getPixelTriplets()
+{
+    if(pixelTripletsInCPU == nullptr)
+    {
+        pixelTripletsInCPU = new SDL::pixelTriplets;
+        
+        pixelTripletsInCPU->nPixelTriplets = new unsigned int;
+        pixelTripletsInCPU->tripletIndices = new unsigned int[N_MAX_PIXEL_TRIPLETS];
+        pixelTripletsInCPU->pixelSegmentIndices = new unsigned int[N_MAX_PIXEL_TRIPLETS];
+
+        cudaMemcpy(pixelTripletsInCPU->nPixelTriplets, pixelTripletsInGPU->nPixelTriplets, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(pixelTripletsInCPU->tripletIndices, pixelTripletsInGPU->tripletIndcies, N_MAX_PIXEL_TRIPLETS * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(pixelTripletsInGPU->pixelSegmentIndices, pixelTripletsInGPU->pixelSegmentIndices, N_MAX_PIXEL_TRIPLETS * sizeof(unsigned int) cudaMemcpyDeviceToHost);
+    }
+    return pixelTripletsInCPU;
+}
+#else
+SDL::pixelTriplets* SDL::Event::getPixelTriplets()
+{
+    return pixelTripletsInGPU;
+}
+#endif
+
 
 #ifdef Explicit_Track
 SDL::trackCandidates* SDL::Event::getTrackCandidates()
