@@ -28,6 +28,8 @@ void createMiniDoubletCutValueBranches();
 void createOccupancyBranches();
 void createPixelQuadrupletCutValueBranches();
 void createPrimitiveBranches();
+void createPrimitiveBranches_v1();
+void createPrimitiveBranches_v2();
 // Common
 void fillSimTrackOutputBranches();
 // GPU
@@ -54,6 +56,9 @@ void fillPixelQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event);
 #ifdef DO_QUINTUPLET
 void fillQuintupletOutputBranches_for_CPU(SDL::CPU::Event& event);
 #endif
+void fillPrimitiveBranches_for_CPU(SDL::CPU::Event& event);
+void fillPrimitiveBranches_for_CPU_v1(SDL::CPU::Event& event);
+void fillPrimitiveBranches_for_CPU_v2(SDL::CPU::Event& event);
 
 // Timing
 void printTimingInformation(std::vector<std::vector<float>>& timing_information);

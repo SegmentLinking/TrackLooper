@@ -476,6 +476,113 @@ float addOuterTrackerHits(SDL::CPU::Event& event)
     return hit_loading_elapsed;
 }
 
+//__________________________________________________________________________________________
+float addOuterTrackerSimHits(SDL::CPU::Event& event)
+{
+
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Loading Outer Tracker Hits for CPU...." << std::endl;
+    my_timer.Start();
+
+    // Adding hits to modules
+    for (auto&& [ihit, data] : iter::enumerate(iter::zip(trk.simhit_x(), trk.simhit_y(), trk.simhit_z(), trk.simhit_subdet(), trk.simhit_detId())))
+    {
+
+        auto&& [x, y, z, subdet, detid] = data;
+
+        if (not (subdet == 5 or subdet == 4))
+            continue;
+
+        // Takes two arguments, SDL::Hit, and detId
+        // SDL::Event internally will structure whether we already have the module instance or we need to create a new one.
+        event.addHitToModule(
+                // a hit
+                SDL::CPU::Hit(x, y, z, ihit),
+                // add to module with "detId"
+                detid
+                );
+
+    }
+
+    float hit_loading_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Loading outer tracker hits processing time: " << hit_loading_elapsed << " secs" << std::endl;
+    return hit_loading_elapsed;
+}
+
+//__________________________________________________________________________________________
+float addOuterTrackerSimHitsFromPVOnly(SDL::CPU::Event& event)
+{
+
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Loading Outer Tracker Hits for CPU...." << std::endl;
+    my_timer.Start();
+
+    // Adding hits to modules
+    for (auto&& [ihit, data] : iter::enumerate(iter::zip(trk.simhit_x(), trk.simhit_y(), trk.simhit_z(), trk.simhit_subdet(), trk.simhit_detId())))
+    {
+
+        if (trk.sim_bunchCrossing()[trk.simhit_simTrkIdx()[ihit]] != 0)
+            continue;
+        if (trk.sim_event()[trk.simhit_simTrkIdx()[ihit]] != 0)
+            continue;
+
+        auto&& [x, y, z, subdet, detid] = data;
+
+        if (not (subdet == 5 or subdet == 4))
+            continue;
+
+        // Takes two arguments, SDL::Hit, and detId
+        // SDL::Event internally will structure whether we already have the module instance or we need to create a new one.
+        event.addHitToModule(
+                // a hit
+                SDL::CPU::Hit(x, y, z, ihit),
+                // add to module with "detId"
+                detid
+                );
+
+    }
+
+    float hit_loading_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Loading outer tracker hits processing time: " << hit_loading_elapsed << " secs" << std::endl;
+    return hit_loading_elapsed;
+}
+
+//__________________________________________________________________________________________
+float addOuterTrackerSimHitsNotFromPVOnly(SDL::CPU::Event& event)
+{
+
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Loading Outer Tracker Hits for CPU...." << std::endl;
+    my_timer.Start();
+
+    // Adding hits to modules
+    for (auto&& [ihit, data] : iter::enumerate(iter::zip(trk.simhit_x(), trk.simhit_y(), trk.simhit_z(), trk.simhit_subdet(), trk.simhit_detId())))
+    {
+
+        if (trk.sim_bunchCrossing()[trk.simhit_simTrkIdx()[ihit]] == 0 and trk.sim_event()[trk.simhit_simTrkIdx()[ihit]] == 0)
+            continue;
+
+        auto&& [x, y, z, subdet, detid] = data;
+
+        if (not (subdet == 5 or subdet == 4))
+            continue;
+
+        // Takes two arguments, SDL::Hit, and detId
+        // SDL::Event internally will structure whether we already have the module instance or we need to create a new one.
+        event.addHitToModule(
+                // a hit
+                SDL::CPU::Hit(x, y, z, ihit),
+                // add to module with "detId"
+                detid
+                );
+
+    }
+
+    float hit_loading_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Loading outer tracker hits processing time: " << hit_loading_elapsed << " secs" << std::endl;
+    return hit_loading_elapsed;
+}
+
 float runMiniDoublet(SDL::Event& event)
 {
     TStopwatch my_timer;
@@ -2010,3 +2117,159 @@ void printTrackCandidateSummary(SDL::CPU::Event& event)
 
 }
 
+//__________________________________________________________________________________________
+bool isDenomSimTrk(int isimtrk)
+{
+    if (isimtrk < 0)
+        return false;
+    const float& pt = trk.sim_pt()[isimtrk];
+    const float& eta = trk.sim_eta()[isimtrk];
+    const float& dz = trk.sim_pca_dz()[isimtrk];
+    const float& dxy = trk.sim_pca_dxy()[isimtrk];
+    const float& phi = trk.sim_phi()[isimtrk];
+    const int& bunch = trk.sim_bunchCrossing()[isimtrk];
+    const int& event = trk.sim_event()[isimtrk];
+    const int& vtxIdx = trk.sim_parentVtxIdx()[isimtrk];
+    const int& pdgidtrk = trk.sim_pdgId()[isimtrk];
+    const int& q = trk.sim_q()[isimtrk];
+    const float& vtx_x = trk.simvtx_x()[vtxIdx];
+    const float& vtx_y = trk.simvtx_y()[vtxIdx];
+    const float& vtx_z = trk.simvtx_z()[vtxIdx];
+    const float& vtx_perp = sqrt(vtx_x * vtx_x + vtx_y * vtx_y);
+
+    if (bunch != 0)
+        return false;
+
+    if (event != 0)
+        return false;
+
+    if (q == 0)
+        return false;
+
+    return true;
+}
+
+//__________________________________________________________________________________________
+bool isDenomOfInterestSimTrk(int isimtrk)
+{
+    if (isimtrk < 0)
+        return false;
+    const float& pt = trk.sim_pt()[isimtrk];
+    if (pt < 1)
+        return false;
+    const float& eta = trk.sim_eta()[isimtrk];
+    const float& dz = trk.sim_pca_dz()[isimtrk];
+    const float& dxy = trk.sim_pca_dxy()[isimtrk];
+    const float& phi = trk.sim_phi()[isimtrk];
+    const int& bunch = trk.sim_bunchCrossing()[isimtrk];
+    const int& event = trk.sim_event()[isimtrk];
+    const int& vtxIdx = trk.sim_parentVtxIdx()[isimtrk];
+    const int& pdgidtrk = trk.sim_pdgId()[isimtrk];
+    const int& q = trk.sim_q()[isimtrk];
+    const float& vtx_x = trk.simvtx_x()[vtxIdx];
+    const float& vtx_y = trk.simvtx_y()[vtxIdx];
+    const float& vtx_z = trk.simvtx_z()[vtxIdx];
+    const float& vtx_perp = sqrt(vtx_x * vtx_x + vtx_y * vtx_y);
+
+    if (bunch != 0)
+        return false;
+
+    if (q == 0)
+        return false;
+
+    if (vtx_perp > 2.5)
+        return false;
+
+    if (abs(vtx_z) > 30)
+        return false;
+
+    return true;
+}
+
+
+//__________________________________________________________________________________________
+int getDenomSimTrkType(int isimtrk)
+{
+    if (isimtrk < 0)
+        return 0;
+    const int& q = trk.sim_q()[isimtrk];
+    if (q == 0)
+        return false;
+    const float& pt = trk.sim_pt()[isimtrk];
+    if (pt < 1)
+        return 0;
+    const float& eta = trk.sim_eta()[isimtrk];
+    const float& dz = trk.sim_pca_dz()[isimtrk];
+    const float& dxy = trk.sim_pca_dxy()[isimtrk];
+    const float& phi = trk.sim_phi()[isimtrk];
+    const int& bunch = trk.sim_bunchCrossing()[isimtrk];
+    const int& event = trk.sim_event()[isimtrk];
+    const int& vtxIdx = trk.sim_parentVtxIdx()[isimtrk];
+    const int& pdgidtrk = trk.sim_pdgId()[isimtrk];
+    const float& vtx_x = trk.simvtx_x()[vtxIdx];
+    const float& vtx_y = trk.simvtx_y()[vtxIdx];
+    const float& vtx_z = trk.simvtx_z()[vtxIdx];
+    const float& vtx_perp = sqrt(vtx_x * vtx_x + vtx_y * vtx_y);
+
+    if (vtx_perp > 2.5)
+        return 1;
+
+    if (abs(vtx_z) > 30)
+        return 1;
+
+    if (bunch != 0)
+        return 2;
+
+    if (event != 0)
+        return 3;
+
+    return 4;
+}
+
+//__________________________________________________________________________________________
+int bestSimHitMatch(int irecohit)
+{
+    const std::vector<int>& simhitidxs = trk.ph2_simHitIdx()[irecohit];
+    if (simhitidxs.size() == 0)
+        return -999;
+    float ptmax = 0;
+    int best_i = -1;
+    for (auto& simhitidx : simhitidxs)
+    {
+        int isimtrk = trk.simhit_simTrkIdx()[simhitidx];
+        float tmppt = trk.sim_pt()[isimtrk];
+        if (tmppt > ptmax)
+        {
+            best_i = simhitidx;
+            ptmax = tmppt;
+        }
+    }
+    return best_i;
+}
+
+//__________________________________________________________________________________________
+int logicalLayer(const SDL::CPU::Module& module)
+{
+    return module.layer() + 6 * (module.subdet() == 4) + 5 * (module.subdet() == 4 and module.moduleType() == 1);
+}
+
+//__________________________________________________________________________________________
+int isAnchorLayer(const SDL::CPU::Module& module)
+{
+
+    if (module.moduleType() == SDL::CPU::Module::PS)
+    {
+        if (module.moduleLayerType() == SDL::CPU::Module::Pixel)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        return module.isLower();
+    }
+}

@@ -240,36 +240,76 @@ void createMiniDoubletCutValueBranches()
 
 void createPrimitiveBranches()
 {
+    createPrimitiveBranches_v2();
+}
+
+void createPrimitiveBranches_v1()
+{
 
     ana.tx->createBranch<vector<int>>("prim_detid");
     ana.tx->createBranch<vector<int>>("prim_layer");
     ana.tx->createBranch<vector<int>>("prim_type");
     ana.tx->createBranch<vector<int>>("prim_tilt");
+    ana.tx->createBranch<vector<int>>("prim_rod");
+    ana.tx->createBranch<vector<int>>("prim_ring");
+    ana.tx->createBranch<vector<int>>("prim_module");
 
-    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_sim_idx");
-    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_sim_pdgid");
-    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_sim_pt");
-    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_sim_eta");
-    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_sim_phi");
-    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_sim_dxy");
-    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_sim_dz");
-    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_x");
-    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_y");
-    ana.tx->createBranch<vector<vector<float>>>("prim_lower_simhit_z");
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_nonpvsimhit_layer");
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_nonpvsimhit_sim_denom");
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_nonpvsimhit_sim_idx");
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_nonpvsimhit_sim_pdgid");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_nonpvsimhit_sim_pt");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_nonpvsimhit_sim_eta");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_nonpvsimhit_sim_phi");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_nonpvsimhit_sim_dxy");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_nonpvsimhit_sim_dz");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_nonpvsimhit_x");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_nonpvsimhit_y");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_nonpvsimhit_z");
 
-    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_sim_idx");
-    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_sim_pdgid");
-    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_sim_pt");
-    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_sim_eta");
-    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_sim_phi");
-    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_sim_dxy");
-    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_sim_dz");
-    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_x");
-    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_y");
-    ana.tx->createBranch<vector<vector<float>>>("prim_upper_simhit_z");
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_nonpvsimhit_layer");
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_nonpvsimhit_sim_denom");
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_nonpvsimhit_sim_idx");
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_nonpvsimhit_sim_pdgid");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_nonpvsimhit_sim_pt");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_nonpvsimhit_sim_eta");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_nonpvsimhit_sim_phi");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_nonpvsimhit_sim_dxy");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_nonpvsimhit_sim_dz");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_nonpvsimhit_x");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_nonpvsimhit_y");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_nonpvsimhit_z");
 
-    ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_sim_idx"); // first match simhit -> sim trk
-    ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_sim_pdgid");
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_pvsimhit_layer");
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_pvsimhit_sim_denom");
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_pvsimhit_sim_idx");
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_pvsimhit_sim_pdgid");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_pvsimhit_sim_pt");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_pvsimhit_sim_eta");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_pvsimhit_sim_phi");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_pvsimhit_sim_dxy");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_pvsimhit_sim_dz");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_pvsimhit_x");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_pvsimhit_y");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_pvsimhit_z");
+
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_pvsimhit_layer");
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_pvsimhit_sim_denom");
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_pvsimhit_sim_idx");
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_pvsimhit_sim_pdgid");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_pvsimhit_sim_pt");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_pvsimhit_sim_eta");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_pvsimhit_sim_phi");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_pvsimhit_sim_dxy");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_pvsimhit_sim_dz");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_pvsimhit_x");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_pvsimhit_y");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_pvsimhit_z");
+
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_recohit_layer"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_recohit_sim_denom"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_recohit_sim_idx"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_recohit_sim_pdgid");
     ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_sim_pt");
     ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_sim_eta");
     ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_sim_phi");
@@ -279,8 +319,10 @@ void createPrimitiveBranches()
     ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_y");
     ana.tx->createBranch<vector<vector<float>>>("prim_lower_recohit_z");
 
-    ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_sim_idx"); // first match simhit -> sim trk
-    ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_sim_pdgid");
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_recohit_layer"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_recohit_sim_denom"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_recohit_sim_idx"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_recohit_sim_pdgid");
     ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_sim_pt");
     ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_sim_eta");
     ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_sim_phi");
@@ -290,8 +332,10 @@ void createPrimitiveBranches()
     ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_y");
     ana.tx->createBranch<vector<vector<float>>>("prim_upper_recohit_z");
 
-    ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_sim_idx"); // first match simhit -> sim trk
-    ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_sim_pdgid");
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_mdhit_layer"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_mdhit_sim_denom"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_mdhit_sim_idx"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_mdhit_sim_pdgid");
     ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_sim_pt");
     ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_sim_eta");
     ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_sim_phi");
@@ -301,8 +345,10 @@ void createPrimitiveBranches()
     ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_y"); // paired with upper
     ana.tx->createBranch<vector<vector<float>>>("prim_lower_mdhit_z"); // paired with upper
 
-    ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_sim_idx"); // first match simhit -> sim trk
-    ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_sim_pdgid");
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_mdhit_layer"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_mdhit_sim_denom"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_mdhit_sim_idx"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_mdhit_sim_pdgid");
     ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_sim_pt");
     ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_sim_eta");
     ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_sim_phi");
@@ -312,7 +358,96 @@ void createPrimitiveBranches()
     ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_y"); // paired with lower
     ana.tx->createBranch<vector<vector<float>>>("prim_upper_mdhit_z"); // paired with lower
 
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_sghit_layer"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_sghit_sim_denom"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_sghit_sim_idx"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_lower_sghit_sim_pdgid");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_sghit_sim_pt");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_sghit_sim_eta");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_sghit_sim_phi");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_sghit_sim_dxy");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_sghit_sim_dz");
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_sghit_x"); // paired with upper
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_sghit_y"); // paired with upper
+    ana.tx->createBranch<vector<vector<float>>>("prim_lower_sghit_z"); // paired with upper
+
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_sghit_layer"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_sghit_sim_denom"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_sghit_sim_idx"); // first match simhit -> sim trk
+    ana.tx->createBranch<vector<vector<int>>>("prim_upper_sghit_sim_pdgid");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_sghit_sim_pt");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_sghit_sim_eta");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_sghit_sim_phi");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_sghit_sim_dxy");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_sghit_sim_dz");
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_sghit_x"); // paired with lower
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_sghit_y"); // paired with lower
+    ana.tx->createBranch<vector<vector<float>>>("prim_upper_sghit_z"); // paired with lower
+
 }
+
+void createPrimitiveBranches_v2()
+{
+
+    vector<TString> categs = {"sim", "nonsim"};
+
+    for (auto& categ : categs)
+    {
+        // ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_simhit_idx", categ.Data()));
+        // ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_simhit_layer", categ.Data()));
+        // ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_simhit_subdet", categ.Data()));
+        // ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_simhit_side", categ.Data()));
+        // ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_simhit_rod", categ.Data()));
+        // ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_simhit_ring", categ.Data()));
+        // ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_simhit_module", categ.Data()));
+        // ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_simhit_detid", categ.Data()));
+        // ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_simhit_isanchorlayer", categ.Data()));
+        // ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_simhit_islowerlayer", categ.Data()));
+        // ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_simhit_x", categ.Data()));
+        // ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_simhit_y", categ.Data()));
+        // ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_simhit_z", categ.Data()));
+        // ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_simhit_sim_pt", categ.Data()));
+        // ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_simhit_sim_eta", categ.Data()));
+        // ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_simhit_sim_phi", categ.Data()));
+        // ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_simhit_sim_vx", categ.Data()));
+        // ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_simhit_sim_vy", categ.Data()));
+        // ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_simhit_sim_vz", categ.Data()));
+        // ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_simhit_sim_idx", categ.Data()));
+        // ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_simhit_sim_q", categ.Data()));
+        // ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_simhit_sim_pdgid", categ.Data()));
+        // ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_simhit_sim_event", categ.Data()));
+        // ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_simhit_sim_bunch", categ.Data()));
+        // ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_simhit_sim_denom", categ.Data()));
+
+        ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_hit_idx", categ.Data()));
+        ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_hit_layer", categ.Data()));
+        ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_hit_subdet", categ.Data()));
+        ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_hit_side", categ.Data()));
+        ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_hit_rod", categ.Data()));
+        ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_hit_ring", categ.Data()));
+        ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_hit_module", categ.Data()));
+        ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_hit_detid", categ.Data()));
+        ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_hit_isanchorlayer", categ.Data()));
+        ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_hit_islowerlayer", categ.Data()));
+        ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_hit_x", categ.Data()));
+        ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_hit_y", categ.Data()));
+        ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_hit_z", categ.Data()));
+        ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_hit_sim_pt", categ.Data()));
+        ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_hit_sim_eta", categ.Data()));
+        ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_hit_sim_phi", categ.Data()));
+        ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_hit_sim_vx", categ.Data()));
+        ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_hit_sim_vy", categ.Data()));
+        ana.tx->createBranch<vector<float>>(TString::Format("prim_%s_hit_sim_vz", categ.Data()));
+        ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_hit_sim_idx", categ.Data()));
+        ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_hit_sim_q", categ.Data()));
+        ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_hit_sim_pdgid", categ.Data()));
+        ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_hit_sim_event", categ.Data()));
+        ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_hit_sim_bunch", categ.Data()));
+        ana.tx->createBranch<vector<int>>(TString::Format("prim_%s_hit_sim_denom", categ.Data()));
+    }
+
+}
+
 
 //________________________________________________________________________________________________________________________________
 void fillOutputBranches(SDL::Event& event)
@@ -2278,6 +2413,10 @@ void fillOutputBranches_for_CPU(SDL::CPU::Event& event)
         fillLowerLevelOutputBranches_for_CPU(event);
     }
 
+#ifdef PRIMITIVE_STUDY
+    fillPrimitiveBranches_for_CPU(event);
+#endif
+
     ana.tx->fill();
     ana.tx->clear();
 
@@ -3341,6 +3480,724 @@ void fillQuintupletOutputBranches_for_CPU(SDL::CPU::Event& event)
     ana.tx->setBranch<vector<float>>("t5_phi", t5_phi);
     ana.tx->setBranch<vector<int>>("t5_isFake", t5_isFake);
     ana.tx->setBranch<vector<int>>("t5_isDuplicate", t5_isDuplicate);
+
+}
+
+//________________________________________________________________________________________________________________________________
+void fillPrimitiveBranches_for_CPU(SDL::CPU::Event& event)
+{
+    fillPrimitiveBranches_for_CPU_v2(event);
+}
+
+//________________________________________________________________________________________________________________________________
+void fillPrimitiveBranches_for_CPU_v1(SDL::CPU::Event& event)
+{
+    SDL::CPU::Event simhit_event;
+    addOuterTrackerSimHitsFromPVOnly(simhit_event);
+
+    SDL::CPU::Event simhit_NotPVevent;
+    addOuterTrackerSimHitsNotFromPVOnly(simhit_NotPVevent);
+
+    std::vector<unsigned int> detids;
+
+    for (auto& module : event.getLowerModulePtrs())
+    {
+        if (module->detId() == 1) // Pixel modules are skipped for now
+            continue;
+        const unsigned int& detid = module->moduleType() == SDL::CPU::Module::PS ? (module->moduleLayerType() == SDL::CPU::Module::Pixel ? module->detId() : module->partnerDetId()) : module->detId();
+        if (std::find(detids.begin(), detids.end(), detid) == detids.end())
+            detids.push_back(detid);
+    }
+
+    for (auto& module : simhit_event.getLowerModulePtrs())
+    {
+        const unsigned int& detid = module->moduleType() == SDL::CPU::Module::PS ? (module->moduleLayerType() == SDL::CPU::Module::Pixel ? module->detId() : module->partnerDetId()) : module->detId();
+        if (std::find(detids.begin(), detids.end(), detid) == detids.end())
+            detids.push_back(detid);
+    }
+
+    for (auto& module : simhit_NotPVevent.getLowerModulePtrs())
+    {
+        const unsigned int& detid = module->moduleType() == SDL::CPU::Module::PS ? (module->moduleLayerType() == SDL::CPU::Module::Pixel ? module->detId() : module->partnerDetId()) : module->detId();
+        if (std::find(detids.begin(), detids.end(), detid) == detids.end())
+            detids.push_back(detid);
+    }
+    
+    for (auto& detid : detids)
+    {
+
+        const SDL::CPU::Module& module = event.getModule(detid);
+        const SDL::CPU::Module& simhit_module = simhit_event.getModule(detid);
+        const SDL::CPU::Module& simhit_NotPVmodule = simhit_NotPVevent.getModule(detid);
+        const SDL::CPU::Module& partner_module = event.getModule(module.partnerDetId());
+        const SDL::CPU::Module& partner_simhit_module = simhit_event.getModule(module.partnerDetId());
+        const SDL::CPU::Module& partner_simhit_NotPVmodule = simhit_NotPVevent.getModule(module.partnerDetId());
+
+        int layer = module.layer() + 6 * (module.subdet() == 4) + 5 * (module.subdet() == 4 and module.moduleType() == 1);
+
+        ana.tx->pushbackToBranch<int>("prim_detid", detid);
+        ana.tx->pushbackToBranch<int>("prim_layer", module.layer() + 6 * (module.subdet() == 4));
+        ana.tx->pushbackToBranch<int>("prim_type", module.moduleType());
+        ana.tx->pushbackToBranch<int>("prim_tilt", (module.subdet() == 5) and (module.side() != 3));
+        ana.tx->pushbackToBranch<int>("prim_rod", module.rod());
+        ana.tx->pushbackToBranch<int>("prim_ring", module.ring());
+        ana.tx->pushbackToBranch<int>("prim_module", module.module());
+
+        vector<int> prim_lower_nonpvsimhit_layer;
+        vector<int> prim_lower_nonpvsimhit_sim_denom;
+        vector<int> prim_lower_nonpvsimhit_sim_idx;
+        vector<int> prim_lower_nonpvsimhit_sim_pdgid;
+        vector<float> prim_lower_nonpvsimhit_sim_pt;
+        vector<float> prim_lower_nonpvsimhit_sim_eta;
+        vector<float> prim_lower_nonpvsimhit_sim_phi;
+        vector<float> prim_lower_nonpvsimhit_sim_dxy;
+        vector<float> prim_lower_nonpvsimhit_sim_dz;
+        vector<float> prim_lower_nonpvsimhit_x;
+        vector<float> prim_lower_nonpvsimhit_y;
+        vector<float> prim_lower_nonpvsimhit_z;
+        for (auto& hitPtr : simhit_NotPVmodule.getHitPtrs())
+        {
+            int idx = hitPtr->idx();
+            int trkidx = trk.simhit_simTrkIdx()[idx];
+            prim_lower_nonpvsimhit_layer.push_back(layer);
+            prim_lower_nonpvsimhit_sim_denom.push_back(isDenomOfInterestSimTrk(trkidx));
+            prim_lower_nonpvsimhit_sim_idx.push_back(trkidx);
+            prim_lower_nonpvsimhit_sim_pdgid.push_back(trk.sim_pdgId()[trkidx]);
+            prim_lower_nonpvsimhit_sim_pt.push_back(trk.sim_pt()[trkidx]);
+            prim_lower_nonpvsimhit_sim_eta.push_back(trk.sim_eta()[trkidx]);
+            prim_lower_nonpvsimhit_sim_phi.push_back(trk.sim_phi()[trkidx]);
+            prim_lower_nonpvsimhit_sim_dxy.push_back(trk.sim_pca_dxy()[trkidx]);
+            prim_lower_nonpvsimhit_sim_dz.push_back(trk.sim_pca_dz()[trkidx]);
+            prim_lower_nonpvsimhit_x.push_back(hitPtr->x());
+            prim_lower_nonpvsimhit_y.push_back(hitPtr->y());
+            prim_lower_nonpvsimhit_z.push_back(hitPtr->z());
+        }
+
+        vector<int> prim_upper_nonpvsimhit_layer;
+        vector<int> prim_upper_nonpvsimhit_sim_denom;
+        vector<int> prim_upper_nonpvsimhit_sim_idx;
+        vector<int> prim_upper_nonpvsimhit_sim_pdgid;
+        vector<float> prim_upper_nonpvsimhit_sim_pt;
+        vector<float> prim_upper_nonpvsimhit_sim_eta;
+        vector<float> prim_upper_nonpvsimhit_sim_phi;
+        vector<float> prim_upper_nonpvsimhit_sim_dxy;
+        vector<float> prim_upper_nonpvsimhit_sim_dz;
+        vector<float> prim_upper_nonpvsimhit_x;
+        vector<float> prim_upper_nonpvsimhit_y;
+        vector<float> prim_upper_nonpvsimhit_z;
+        for (auto& hitPtr : partner_simhit_NotPVmodule.getHitPtrs())
+        {
+            int idx = hitPtr->idx();
+            int trkidx = trk.simhit_simTrkIdx()[idx];
+            prim_upper_nonpvsimhit_layer.push_back(layer);
+            prim_upper_nonpvsimhit_sim_denom.push_back(isDenomOfInterestSimTrk(trkidx));
+            prim_upper_nonpvsimhit_sim_idx.push_back(trkidx);
+            prim_upper_nonpvsimhit_sim_pdgid.push_back(trk.sim_pdgId()[trkidx]);
+            prim_upper_nonpvsimhit_sim_pt.push_back(trk.sim_pt()[trkidx]);
+            prim_upper_nonpvsimhit_sim_eta.push_back(trk.sim_eta()[trkidx]);
+            prim_upper_nonpvsimhit_sim_phi.push_back(trk.sim_phi()[trkidx]);
+            prim_upper_nonpvsimhit_sim_dxy.push_back(trk.sim_pca_dxy()[trkidx]);
+            prim_upper_nonpvsimhit_sim_dz.push_back(trk.sim_pca_dz()[trkidx]);
+            prim_upper_nonpvsimhit_x.push_back(hitPtr->x());
+            prim_upper_nonpvsimhit_y.push_back(hitPtr->y());
+            prim_upper_nonpvsimhit_z.push_back(hitPtr->z());
+        }
+
+        vector<int> prim_lower_pvsimhit_layer;
+        vector<int> prim_lower_pvsimhit_sim_denom;
+        vector<int> prim_lower_pvsimhit_sim_idx;
+        vector<int> prim_lower_pvsimhit_sim_pdgid;
+        vector<float> prim_lower_pvsimhit_sim_pt;
+        vector<float> prim_lower_pvsimhit_sim_eta;
+        vector<float> prim_lower_pvsimhit_sim_phi;
+        vector<float> prim_lower_pvsimhit_sim_dxy;
+        vector<float> prim_lower_pvsimhit_sim_dz;
+        vector<float> prim_lower_pvsimhit_x;
+        vector<float> prim_lower_pvsimhit_y;
+        vector<float> prim_lower_pvsimhit_z;
+        for (auto& hitPtr : simhit_module.getHitPtrs())
+        {
+            int idx = hitPtr->idx();
+            int trkidx = trk.simhit_simTrkIdx()[idx];
+            prim_lower_pvsimhit_layer.push_back(layer);
+            prim_lower_pvsimhit_sim_denom.push_back(isDenomOfInterestSimTrk(trkidx));
+            prim_lower_pvsimhit_sim_idx.push_back(trkidx);
+            prim_lower_pvsimhit_sim_pdgid.push_back(trk.sim_pdgId()[trkidx]);
+            prim_lower_pvsimhit_sim_pt.push_back(trk.sim_pt()[trkidx]);
+            prim_lower_pvsimhit_sim_eta.push_back(trk.sim_eta()[trkidx]);
+            prim_lower_pvsimhit_sim_phi.push_back(trk.sim_phi()[trkidx]);
+            prim_lower_pvsimhit_sim_dxy.push_back(trk.sim_pca_dxy()[trkidx]);
+            prim_lower_pvsimhit_sim_dz.push_back(trk.sim_pca_dz()[trkidx]);
+            prim_lower_pvsimhit_x.push_back(hitPtr->x());
+            prim_lower_pvsimhit_y.push_back(hitPtr->y());
+            prim_lower_pvsimhit_z.push_back(hitPtr->z());
+        }
+
+        vector<int> prim_upper_pvsimhit_layer;
+        vector<int> prim_upper_pvsimhit_sim_denom;
+        vector<int> prim_upper_pvsimhit_sim_idx;
+        vector<int> prim_upper_pvsimhit_sim_pdgid;
+        vector<float> prim_upper_pvsimhit_sim_pt;
+        vector<float> prim_upper_pvsimhit_sim_eta;
+        vector<float> prim_upper_pvsimhit_sim_phi;
+        vector<float> prim_upper_pvsimhit_sim_dxy;
+        vector<float> prim_upper_pvsimhit_sim_dz;
+        vector<float> prim_upper_pvsimhit_x;
+        vector<float> prim_upper_pvsimhit_y;
+        vector<float> prim_upper_pvsimhit_z;
+        for (auto& hitPtr : partner_simhit_module.getHitPtrs())
+        {
+            int idx = hitPtr->idx();
+            int trkidx = trk.simhit_simTrkIdx()[idx];
+            prim_upper_pvsimhit_layer.push_back(layer);
+            prim_upper_pvsimhit_sim_denom.push_back(isDenomOfInterestSimTrk(trkidx));
+            prim_upper_pvsimhit_sim_idx.push_back(trkidx);
+            prim_upper_pvsimhit_sim_pdgid.push_back(trk.sim_pdgId()[trkidx]);
+            prim_upper_pvsimhit_sim_pt.push_back(trk.sim_pt()[trkidx]);
+            prim_upper_pvsimhit_sim_eta.push_back(trk.sim_eta()[trkidx]);
+            prim_upper_pvsimhit_sim_phi.push_back(trk.sim_phi()[trkidx]);
+            prim_upper_pvsimhit_sim_dxy.push_back(trk.sim_pca_dxy()[trkidx]);
+            prim_upper_pvsimhit_sim_dz.push_back(trk.sim_pca_dz()[trkidx]);
+            prim_upper_pvsimhit_x.push_back(hitPtr->x());
+            prim_upper_pvsimhit_y.push_back(hitPtr->y());
+            prim_upper_pvsimhit_z.push_back(hitPtr->z());
+        }
+
+        vector<int> prim_lower_recohit_layer;
+        vector<int> prim_lower_recohit_sim_denom;
+        vector<int> prim_lower_recohit_sim_idx;
+        vector<int> prim_lower_recohit_sim_pdgid;
+        vector<float> prim_lower_recohit_sim_pt;
+        vector<float> prim_lower_recohit_sim_eta;
+        vector<float> prim_lower_recohit_sim_phi;
+        vector<float> prim_lower_recohit_sim_dxy;
+        vector<float> prim_lower_recohit_sim_dz;
+        vector<float> prim_lower_recohit_x;
+        vector<float> prim_lower_recohit_y;
+        vector<float> prim_lower_recohit_z;
+        for (auto& hitPtr : module.getHitPtrs())
+        {
+            int hitidx = hitPtr->idx();
+            bool has_simhit_matched = trk.ph2_simHitIdx()[hitidx].size() > 0;
+            if (has_simhit_matched)
+            {
+                for (auto& idx : trk.ph2_simHitIdx()[hitidx])
+                {
+                    int trkidx = trk.simhit_simTrkIdx()[idx];
+                    prim_lower_recohit_sim_denom.push_back(isDenomOfInterestSimTrk(trkidx));
+                    prim_lower_recohit_sim_idx.push_back(trkidx);
+                    prim_lower_recohit_sim_pdgid.push_back(trk.sim_pdgId()[trkidx]);
+                    prim_lower_recohit_sim_pt.push_back(trk.sim_pt()[trkidx]);
+                    prim_lower_recohit_sim_eta.push_back(trk.sim_eta()[trkidx]);
+                    prim_lower_recohit_sim_phi.push_back(trk.sim_phi()[trkidx]);
+                    prim_lower_recohit_sim_dxy.push_back(trk.sim_pca_dxy()[trkidx]);
+                    prim_lower_recohit_sim_dz.push_back(trk.sim_pca_dz()[trkidx]);
+                    break;
+                }
+            }
+            else
+            {
+                prim_lower_recohit_sim_denom.push_back(-999);
+                prim_lower_recohit_sim_idx.push_back(-999);
+                prim_lower_recohit_sim_pdgid.push_back(-999);
+                prim_lower_recohit_sim_pt.push_back(-999);
+                prim_lower_recohit_sim_eta.push_back(-999);
+                prim_lower_recohit_sim_phi.push_back(-999);
+                prim_lower_recohit_sim_dxy.push_back(-999);
+                prim_lower_recohit_sim_dz.push_back(-999);
+            }
+            prim_lower_recohit_layer.push_back(layer);
+            prim_lower_recohit_x.push_back(hitPtr->x());
+            prim_lower_recohit_y.push_back(hitPtr->y());
+            prim_lower_recohit_z.push_back(hitPtr->z());
+        }
+
+        vector<int> prim_upper_recohit_layer;
+        vector<int> prim_upper_recohit_sim_denom;
+        vector<int> prim_upper_recohit_sim_idx;
+        vector<int> prim_upper_recohit_sim_pdgid;
+        vector<float> prim_upper_recohit_sim_pt;
+        vector<float> prim_upper_recohit_sim_eta;
+        vector<float> prim_upper_recohit_sim_phi;
+        vector<float> prim_upper_recohit_sim_dxy;
+        vector<float> prim_upper_recohit_sim_dz;
+        vector<float> prim_upper_recohit_x;
+        vector<float> prim_upper_recohit_y;
+        vector<float> prim_upper_recohit_z;
+        for (auto& hitPtr : partner_module.getHitPtrs())
+        {
+            int hitidx = hitPtr->idx();
+            bool has_simhit_matched = trk.ph2_simHitIdx()[hitidx].size() > 0;
+            if (has_simhit_matched)
+            {
+                for (auto& idx : trk.ph2_simHitIdx()[hitidx])
+                {
+                    int trkidx = trk.simhit_simTrkIdx()[idx];
+                    prim_upper_recohit_sim_denom.push_back(isDenomOfInterestSimTrk(trkidx));
+                    prim_upper_recohit_sim_idx.push_back(trkidx);
+                    prim_upper_recohit_sim_pdgid.push_back(trk.sim_pdgId()[trkidx]);
+                    prim_upper_recohit_sim_pt.push_back(trk.sim_pt()[trkidx]);
+                    prim_upper_recohit_sim_eta.push_back(trk.sim_eta()[trkidx]);
+                    prim_upper_recohit_sim_phi.push_back(trk.sim_phi()[trkidx]);
+                    prim_upper_recohit_sim_dxy.push_back(trk.sim_pca_dxy()[trkidx]);
+                    prim_upper_recohit_sim_dz.push_back(trk.sim_pca_dz()[trkidx]);
+                    break;
+                }
+            }
+            else
+            {
+                prim_upper_recohit_sim_denom.push_back(-999);
+                prim_upper_recohit_sim_idx.push_back(-999);
+                prim_upper_recohit_sim_pdgid.push_back(-999);
+                prim_upper_recohit_sim_pt.push_back(-999);
+                prim_upper_recohit_sim_eta.push_back(-999);
+                prim_upper_recohit_sim_phi.push_back(-999);
+                prim_upper_recohit_sim_dxy.push_back(-999);
+                prim_upper_recohit_sim_dz.push_back(-999);
+            }
+            prim_upper_recohit_layer.push_back(layer);
+            prim_upper_recohit_x.push_back(hitPtr->x());
+            prim_upper_recohit_y.push_back(hitPtr->y());
+            prim_upper_recohit_z.push_back(hitPtr->z());
+        }
+
+        vector<int> prim_lower_mdhit_layer;
+        vector<int> prim_lower_mdhit_sim_denom;
+        vector<int> prim_lower_mdhit_sim_idx;
+        vector<int> prim_lower_mdhit_sim_pdgid;
+        vector<float> prim_lower_mdhit_sim_pt;
+        vector<float> prim_lower_mdhit_sim_eta;
+        vector<float> prim_lower_mdhit_sim_phi;
+        vector<float> prim_lower_mdhit_sim_dxy;
+        vector<float> prim_lower_mdhit_sim_dz;
+        vector<float> prim_lower_mdhit_x;
+        vector<float> prim_lower_mdhit_y;
+        vector<float> prim_lower_mdhit_z;
+        vector<int> prim_upper_mdhit_layer;
+        vector<int> prim_upper_mdhit_sim_denom;
+        vector<int> prim_upper_mdhit_sim_idx;
+        vector<int> prim_upper_mdhit_sim_pdgid;
+        vector<float> prim_upper_mdhit_sim_pt;
+        vector<float> prim_upper_mdhit_sim_eta;
+        vector<float> prim_upper_mdhit_sim_phi;
+        vector<float> prim_upper_mdhit_sim_dxy;
+        vector<float> prim_upper_mdhit_sim_dz;
+        vector<float> prim_upper_mdhit_x;
+        vector<float> prim_upper_mdhit_y;
+        vector<float> prim_upper_mdhit_z;
+        for (auto& mdPtr : module.getMiniDoubletPtrs())
+        {
+            int hitidx = mdPtr->lowerHitPtr()->idx();
+            bool has_simhit_matched = trk.ph2_simHitIdx()[hitidx].size() > 0;
+            if (has_simhit_matched)
+            {
+                for (auto& idx : trk.ph2_simHitIdx()[hitidx])
+                {
+                    int trkidx = trk.simhit_simTrkIdx()[idx];
+                    prim_lower_mdhit_sim_denom.push_back(isDenomOfInterestSimTrk(trkidx));
+                    prim_lower_mdhit_sim_idx.push_back(trkidx);
+                    prim_lower_mdhit_sim_pdgid.push_back(trk.sim_pdgId()[trkidx]);
+                    prim_lower_mdhit_sim_pt.push_back(trk.sim_pt()[trkidx]);
+                    prim_lower_mdhit_sim_eta.push_back(trk.sim_eta()[trkidx]);
+                    prim_lower_mdhit_sim_phi.push_back(trk.sim_phi()[trkidx]);
+                    prim_lower_mdhit_sim_dxy.push_back(trk.sim_pca_dxy()[trkidx]);
+                    prim_lower_mdhit_sim_dz.push_back(trk.sim_pca_dz()[trkidx]);
+                    break;
+                }
+            }
+            else
+            {
+                prim_lower_mdhit_sim_denom.push_back(-999);
+                prim_lower_mdhit_sim_idx.push_back(-999);
+                prim_lower_mdhit_sim_pdgid.push_back(-999);
+                prim_lower_mdhit_sim_pt.push_back(-999);
+                prim_lower_mdhit_sim_eta.push_back(-999);
+                prim_lower_mdhit_sim_phi.push_back(-999);
+                prim_lower_mdhit_sim_dxy.push_back(-999);
+                prim_lower_mdhit_sim_dz.push_back(-999);
+            }
+            prim_lower_mdhit_layer.push_back(layer);
+            prim_lower_mdhit_x.push_back(mdPtr->lowerHitPtr()->x());
+            prim_lower_mdhit_y.push_back(mdPtr->lowerHitPtr()->y());
+            prim_lower_mdhit_z.push_back(mdPtr->lowerHitPtr()->z());
+
+            hitidx = mdPtr->upperHitPtr()->idx();
+            has_simhit_matched = trk.ph2_simHitIdx()[hitidx].size() > 0;
+            if (has_simhit_matched)
+            {
+                for (auto& idx : trk.ph2_simHitIdx()[hitidx])
+                {
+                    int trkidx = trk.simhit_simTrkIdx()[idx];
+                    prim_upper_mdhit_sim_denom.push_back(isDenomOfInterestSimTrk(trkidx));
+                    prim_upper_mdhit_sim_idx.push_back(trkidx);
+                    prim_upper_mdhit_sim_pdgid.push_back(trk.sim_pdgId()[trkidx]);
+                    prim_upper_mdhit_sim_pt.push_back(trk.sim_pt()[trkidx]);
+                    prim_upper_mdhit_sim_eta.push_back(trk.sim_eta()[trkidx]);
+                    prim_upper_mdhit_sim_phi.push_back(trk.sim_phi()[trkidx]);
+                    prim_upper_mdhit_sim_dxy.push_back(trk.sim_pca_dxy()[trkidx]);
+                    prim_upper_mdhit_sim_dz.push_back(trk.sim_pca_dz()[trkidx]);
+                    break;
+                }
+            }
+            else
+            {
+                prim_upper_mdhit_sim_denom.push_back(-999);
+                prim_upper_mdhit_sim_idx.push_back(-999);
+                prim_upper_mdhit_sim_pdgid.push_back(-999);
+                prim_upper_mdhit_sim_pt.push_back(-999);
+                prim_upper_mdhit_sim_eta.push_back(-999);
+                prim_upper_mdhit_sim_phi.push_back(-999);
+                prim_upper_mdhit_sim_dxy.push_back(-999);
+                prim_upper_mdhit_sim_dz.push_back(-999);
+            }
+            prim_upper_mdhit_layer.push_back(layer);
+            prim_upper_mdhit_x.push_back(mdPtr->upperHitPtr()->x());
+            prim_upper_mdhit_y.push_back(mdPtr->upperHitPtr()->y());
+            prim_upper_mdhit_z.push_back(mdPtr->upperHitPtr()->z());
+        }
+
+        ana.tx->pushbackToBranch<vector<int>>("prim_lower_nonpvsimhit_layer", prim_lower_nonpvsimhit_layer);
+        ana.tx->pushbackToBranch<vector<int>>("prim_lower_nonpvsimhit_sim_denom", prim_lower_nonpvsimhit_sim_denom);
+        ana.tx->pushbackToBranch<vector<int>>("prim_lower_nonpvsimhit_sim_idx", prim_lower_nonpvsimhit_sim_idx);
+        ana.tx->pushbackToBranch<vector<int>>("prim_lower_nonpvsimhit_sim_pdgid", prim_lower_nonpvsimhit_sim_pdgid);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_nonpvsimhit_sim_pt", prim_lower_nonpvsimhit_sim_pt);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_nonpvsimhit_sim_eta", prim_lower_nonpvsimhit_sim_eta);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_nonpvsimhit_sim_phi", prim_lower_nonpvsimhit_sim_phi);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_nonpvsimhit_sim_dxy", prim_lower_nonpvsimhit_sim_dxy);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_nonpvsimhit_sim_dz", prim_lower_nonpvsimhit_sim_dz);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_nonpvsimhit_x", prim_lower_nonpvsimhit_x);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_nonpvsimhit_y", prim_lower_nonpvsimhit_y);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_nonpvsimhit_z", prim_lower_nonpvsimhit_z);
+
+        ana.tx->pushbackToBranch<vector<int>>("prim_upper_nonpvsimhit_layer", prim_upper_nonpvsimhit_layer);
+        ana.tx->pushbackToBranch<vector<int>>("prim_upper_nonpvsimhit_sim_denom", prim_upper_nonpvsimhit_sim_denom);
+        ana.tx->pushbackToBranch<vector<int>>("prim_upper_nonpvsimhit_sim_idx", prim_upper_nonpvsimhit_sim_idx);
+        ana.tx->pushbackToBranch<vector<int>>("prim_upper_nonpvsimhit_sim_pdgid", prim_upper_nonpvsimhit_sim_pdgid);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_nonpvsimhit_sim_pt", prim_upper_nonpvsimhit_sim_pt);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_nonpvsimhit_sim_eta", prim_upper_nonpvsimhit_sim_eta);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_nonpvsimhit_sim_phi", prim_upper_nonpvsimhit_sim_phi);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_nonpvsimhit_sim_dxy", prim_upper_nonpvsimhit_sim_dxy);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_nonpvsimhit_sim_dz", prim_upper_nonpvsimhit_sim_dz);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_nonpvsimhit_x", prim_upper_nonpvsimhit_x);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_nonpvsimhit_y", prim_upper_nonpvsimhit_y);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_nonpvsimhit_z", prim_upper_nonpvsimhit_z);
+
+        ana.tx->pushbackToBranch<vector<int>>("prim_lower_pvsimhit_layer", prim_lower_pvsimhit_layer);
+        ana.tx->pushbackToBranch<vector<int>>("prim_lower_pvsimhit_sim_denom", prim_lower_pvsimhit_sim_denom);
+        ana.tx->pushbackToBranch<vector<int>>("prim_lower_pvsimhit_sim_idx", prim_lower_pvsimhit_sim_idx);
+        ana.tx->pushbackToBranch<vector<int>>("prim_lower_pvsimhit_sim_pdgid", prim_lower_pvsimhit_sim_pdgid);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_pvsimhit_sim_pt", prim_lower_pvsimhit_sim_pt);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_pvsimhit_sim_eta", prim_lower_pvsimhit_sim_eta);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_pvsimhit_sim_phi", prim_lower_pvsimhit_sim_phi);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_pvsimhit_sim_dxy", prim_lower_pvsimhit_sim_dxy);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_pvsimhit_sim_dz", prim_lower_pvsimhit_sim_dz);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_pvsimhit_x", prim_lower_pvsimhit_x);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_pvsimhit_y", prim_lower_pvsimhit_y);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_pvsimhit_z", prim_lower_pvsimhit_z);
+
+        ana.tx->pushbackToBranch<vector<int>>("prim_upper_pvsimhit_layer", prim_upper_pvsimhit_layer);
+        ana.tx->pushbackToBranch<vector<int>>("prim_upper_pvsimhit_sim_denom", prim_upper_pvsimhit_sim_denom);
+        ana.tx->pushbackToBranch<vector<int>>("prim_upper_pvsimhit_sim_idx", prim_upper_pvsimhit_sim_idx);
+        ana.tx->pushbackToBranch<vector<int>>("prim_upper_pvsimhit_sim_pdgid", prim_upper_pvsimhit_sim_pdgid);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_pvsimhit_sim_pt", prim_upper_pvsimhit_sim_pt);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_pvsimhit_sim_eta", prim_upper_pvsimhit_sim_eta);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_pvsimhit_sim_phi", prim_upper_pvsimhit_sim_phi);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_pvsimhit_sim_dxy", prim_upper_pvsimhit_sim_dxy);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_pvsimhit_sim_dz", prim_upper_pvsimhit_sim_dz);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_pvsimhit_x", prim_upper_pvsimhit_x);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_pvsimhit_y", prim_upper_pvsimhit_y);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_pvsimhit_z", prim_upper_pvsimhit_z);
+
+        ana.tx->pushbackToBranch<vector<int>>("prim_lower_recohit_layer", prim_lower_recohit_layer); // first match simhit -> sim trk
+        ana.tx->pushbackToBranch<vector<int>>("prim_lower_recohit_sim_denom", prim_lower_recohit_sim_denom); // first match simhit -> sim trk
+        ana.tx->pushbackToBranch<vector<int>>("prim_lower_recohit_sim_idx", prim_lower_recohit_sim_idx); // first match simhit -> sim trk
+        ana.tx->pushbackToBranch<vector<int>>("prim_lower_recohit_sim_pdgid", prim_lower_recohit_sim_pdgid);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_recohit_sim_pt", prim_lower_recohit_sim_pt);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_recohit_sim_eta", prim_lower_recohit_sim_eta);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_recohit_sim_phi", prim_lower_recohit_sim_phi);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_recohit_sim_dxy", prim_lower_recohit_sim_dxy);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_recohit_sim_dz", prim_lower_recohit_sim_dz);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_recohit_x", prim_lower_recohit_x);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_recohit_y", prim_lower_recohit_y);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_recohit_z", prim_lower_recohit_z);
+
+        ana.tx->pushbackToBranch<vector<int>>("prim_upper_recohit_layer", prim_upper_recohit_layer); // first match simhit -> sim trk
+        ana.tx->pushbackToBranch<vector<int>>("prim_upper_recohit_sim_denom", prim_upper_recohit_sim_denom); // first match simhit -> sim trk
+        ana.tx->pushbackToBranch<vector<int>>("prim_upper_recohit_sim_idx", prim_upper_recohit_sim_idx); // first match simhit -> sim trk
+        ana.tx->pushbackToBranch<vector<int>>("prim_upper_recohit_sim_pdgid", prim_upper_recohit_sim_pdgid);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_recohit_sim_pt", prim_upper_recohit_sim_pt);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_recohit_sim_eta", prim_upper_recohit_sim_eta);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_recohit_sim_phi", prim_upper_recohit_sim_phi);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_recohit_sim_dxy", prim_upper_recohit_sim_dxy);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_recohit_sim_dz", prim_upper_recohit_sim_dz);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_recohit_x", prim_upper_recohit_x);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_recohit_y", prim_upper_recohit_y);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_recohit_z", prim_upper_recohit_z);
+
+        ana.tx->pushbackToBranch<vector<int>>("prim_lower_mdhit_layer", prim_lower_mdhit_layer); // first match simhit -> sim trk
+        ana.tx->pushbackToBranch<vector<int>>("prim_lower_mdhit_sim_denom", prim_lower_mdhit_sim_denom); // first match simhit -> sim trk
+        ana.tx->pushbackToBranch<vector<int>>("prim_lower_mdhit_sim_idx", prim_lower_mdhit_sim_idx); // first match simhit -> sim trk
+        ana.tx->pushbackToBranch<vector<int>>("prim_lower_mdhit_sim_pdgid", prim_lower_mdhit_sim_pdgid);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_mdhit_sim_pt", prim_lower_mdhit_sim_pt);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_mdhit_sim_eta", prim_lower_mdhit_sim_eta);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_mdhit_sim_phi", prim_lower_mdhit_sim_phi);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_mdhit_sim_dxy", prim_lower_mdhit_sim_dxy);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_mdhit_sim_dz", prim_lower_mdhit_sim_dz);
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_mdhit_x", prim_lower_mdhit_x); // paired with upper
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_mdhit_y", prim_lower_mdhit_y); // paired with upper
+        ana.tx->pushbackToBranch<vector<float>>("prim_lower_mdhit_z", prim_lower_mdhit_z); // paired with upper
+
+        ana.tx->pushbackToBranch<vector<int>>("prim_upper_mdhit_layer", prim_upper_mdhit_layer); // first match simhit -> sim trk
+        ana.tx->pushbackToBranch<vector<int>>("prim_upper_mdhit_sim_denom", prim_upper_mdhit_sim_denom); // first match simhit -> sim trk
+        ana.tx->pushbackToBranch<vector<int>>("prim_upper_mdhit_sim_idx", prim_upper_mdhit_sim_idx); // first match simhit -> sim trk
+        ana.tx->pushbackToBranch<vector<int>>("prim_upper_mdhit_sim_pdgid", prim_upper_mdhit_sim_pdgid);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_mdhit_sim_pt", prim_upper_mdhit_sim_pt);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_mdhit_sim_eta", prim_upper_mdhit_sim_eta);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_mdhit_sim_phi", prim_upper_mdhit_sim_phi);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_mdhit_sim_dxy", prim_upper_mdhit_sim_dxy);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_mdhit_sim_dz", prim_upper_mdhit_sim_dz);
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_mdhit_x", prim_upper_mdhit_x); // paired with lower
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_mdhit_y", prim_upper_mdhit_y); // paired with lower
+        ana.tx->pushbackToBranch<vector<float>>("prim_upper_mdhit_z", prim_upper_mdhit_z); // paired with lower
+
+    }
+
+    // std::cout <<  " detids.size(): " << detids.size() <<  std::endl;
+
+}
+
+//________________________________________________________________________________________________________________________________
+void fillPrimitiveBranches_for_CPU_v2(SDL::CPU::Event& event)
+{
+    SDL::CPU::Event simhit_event;
+    addOuterTrackerSimHits(simhit_event);
+
+    SDL::CPU::Event simhit_NotPVevent;
+    addOuterTrackerSimHitsNotFromPVOnly(simhit_NotPVevent);
+
+    // vector<int> prim_sim_simhit_idx;
+    // vector<int> prim_sim_simhit_layer;
+    // vector<int> prim_sim_simhit_subdet;
+    // vector<int> prim_sim_simhit_side;
+    // vector<int> prim_sim_simhit_rod;
+    // vector<int> prim_sim_simhit_ring;
+    // vector<int> prim_sim_simhit_module;
+    // vector<int> prim_sim_simhit_detid;
+    // vector<int> prim_sim_simhit_isanchorlayer;
+    // vector<int> prim_sim_simhit_islowerlayer;
+    // vector<float> prim_sim_simhit_x;
+    // vector<float> prim_sim_simhit_y;
+    // vector<float> prim_sim_simhit_z;
+    // vector<float> prim_sim_simhit_sim_pt;
+    // vector<float> prim_sim_simhit_sim_eta;
+    // vector<float> prim_sim_simhit_sim_phi;
+    // vector<float> prim_sim_simhit_sim_vx;
+    // vector<float> prim_sim_simhit_sim_vy;
+    // vector<float> prim_sim_simhit_sim_vz;
+    // vector<int> prim_sim_simhit_sim_idx;
+    // vector<int> prim_sim_simhit_sim_q;
+    // vector<int> prim_sim_simhit_sim_pdgid;
+    // vector<int> prim_sim_simhit_sim_event;
+    // vector<int> prim_sim_simhit_sim_bunch;
+    // vector<int> prim_sim_simhit_sim_denom;
+
+    vector<int> prim_sim_hit_idx;
+    vector<int> prim_sim_hit_layer;
+    vector<int> prim_sim_hit_subdet;
+    vector<int> prim_sim_hit_side;
+    vector<int> prim_sim_hit_rod;
+    vector<int> prim_sim_hit_ring;
+    vector<int> prim_sim_hit_module;
+    vector<int> prim_sim_hit_detid;
+    vector<int> prim_sim_hit_isanchorlayer;
+    vector<int> prim_sim_hit_islowerlayer;
+    vector<float> prim_sim_hit_x;
+    vector<float> prim_sim_hit_y;
+    vector<float> prim_sim_hit_z;
+    vector<float> prim_sim_hit_sim_pt;
+    vector<float> prim_sim_hit_sim_eta;
+    vector<float> prim_sim_hit_sim_phi;
+    vector<float> prim_sim_hit_sim_vx;
+    vector<float> prim_sim_hit_sim_vy;
+    vector<float> prim_sim_hit_sim_vz;
+    vector<int> prim_sim_hit_sim_idx;
+    vector<int> prim_sim_hit_sim_q;
+    vector<int> prim_sim_hit_sim_pdgid;
+    vector<int> prim_sim_hit_sim_event;
+    vector<int> prim_sim_hit_sim_bunch;
+    vector<int> prim_sim_hit_sim_denom;
+
+    // vector<int> prim_nonsim_simhit_idx;
+    // vector<int> prim_nonsim_simhit_layer;
+    // vector<int> prim_nonsim_simhit_subdet;
+    // vector<int> prim_nonsim_simhit_side;
+    // vector<int> prim_nonsim_simhit_rod;
+    // vector<int> prim_nonsim_simhit_ring;
+    // vector<int> prim_nonsim_simhit_module;
+    // vector<int> prim_nonsim_simhit_detid;
+    // vector<int> prim_nonsim_simhit_isanchorlayer;
+    // vector<int> prim_nonsim_simhit_islowerlayer;
+    // vector<float> prim_nonsim_simhit_x;
+    // vector<float> prim_nonsim_simhit_y;
+    // vector<float> prim_nonsim_simhit_z;
+    // vector<float> prim_nonsim_simhit_sim_pt;
+    // vector<float> prim_nonsim_simhit_sim_eta;
+    // vector<float> prim_nonsim_simhit_sim_phi;
+    // vector<float> prim_nonsim_simhit_sim_vx;
+    // vector<float> prim_nonsim_simhit_sim_vy;
+    // vector<float> prim_nonsim_simhit_sim_vz;
+    // vector<int> prim_nonsim_simhit_sim_idx;
+    // vector<int> prim_nonsim_simhit_sim_q;
+    // vector<int> prim_nonsim_simhit_sim_pdgid;
+    // vector<int> prim_nonsim_simhit_sim_event;
+    // vector<int> prim_nonsim_simhit_sim_bunch;
+    // vector<int> prim_nonsim_simhit_sim_denom;
+
+    vector<int> prim_nonsim_hit_idx;
+    vector<int> prim_nonsim_hit_layer;
+    vector<int> prim_nonsim_hit_subdet;
+    vector<int> prim_nonsim_hit_side;
+    vector<int> prim_nonsim_hit_rod;
+    vector<int> prim_nonsim_hit_ring;
+    vector<int> prim_nonsim_hit_module;
+    vector<int> prim_nonsim_hit_detid;
+    vector<int> prim_nonsim_hit_isanchorlayer;
+    vector<int> prim_nonsim_hit_islowerlayer;
+    vector<float> prim_nonsim_hit_x;
+    vector<float> prim_nonsim_hit_y;
+    vector<float> prim_nonsim_hit_z;
+    vector<float> prim_nonsim_hit_sim_pt;
+    vector<float> prim_nonsim_hit_sim_eta;
+    vector<float> prim_nonsim_hit_sim_phi;
+    vector<float> prim_nonsim_hit_sim_vx;
+    vector<float> prim_nonsim_hit_sim_vy;
+    vector<float> prim_nonsim_hit_sim_vz;
+    vector<int> prim_nonsim_hit_sim_idx;
+    vector<int> prim_nonsim_hit_sim_q;
+    vector<int> prim_nonsim_hit_sim_pdgid;
+    vector<int> prim_nonsim_hit_sim_event;
+    vector<int> prim_nonsim_hit_sim_bunch;
+    vector<int> prim_nonsim_hit_sim_denom;
+
+    for (auto& module : event.getModulePtrs())
+    {
+        if (module->detId() == 1)
+            continue;
+        for (auto& hit : module->getHitPtrs())
+        {
+            int simhitidx = bestSimHitMatch(hit->idx());
+            if (simhitidx < 0)
+            {
+                prim_nonsim_hit_idx           . push_back(hit->idx());
+                prim_nonsim_hit_layer         . push_back(logicalLayer(*module));
+                prim_nonsim_hit_subdet        . push_back(module->subdet());
+                prim_nonsim_hit_side          . push_back(module->side());
+                prim_nonsim_hit_rod           . push_back(module->rod());
+                prim_nonsim_hit_ring          . push_back(module->ring());
+                prim_nonsim_hit_module        . push_back(module->module());
+                prim_nonsim_hit_detid         . push_back(module->detId());
+                prim_nonsim_hit_isanchorlayer . push_back(isAnchorLayer(*module));
+                prim_nonsim_hit_islowerlayer  . push_back(module->isLower());
+                prim_nonsim_hit_x             . push_back(hit->x());
+                prim_nonsim_hit_y             . push_back(hit->y());
+                prim_nonsim_hit_z             . push_back(hit->z());
+                prim_nonsim_hit_sim_pt    . push_back(-999);
+                prim_nonsim_hit_sim_eta   . push_back(-999);
+                prim_nonsim_hit_sim_phi   . push_back(-999);
+                prim_nonsim_hit_sim_vx    . push_back(-999);
+                prim_nonsim_hit_sim_vy    . push_back(-999);
+                prim_nonsim_hit_sim_vz    . push_back(-999);
+                prim_nonsim_hit_sim_idx   . push_back(-999);
+                prim_nonsim_hit_sim_q     . push_back(-999);
+                prim_nonsim_hit_sim_pdgid . push_back(-999);
+                prim_nonsim_hit_sim_event . push_back(-999);
+                prim_nonsim_hit_sim_bunch . push_back(-999);
+                prim_nonsim_hit_sim_denom . push_back(-999);
+            }
+            else
+            {
+                int simtrkidx = trk.simhit_simTrkIdx()[simhitidx];
+                prim_sim_hit_idx           . push_back(hit->idx());
+                prim_sim_hit_layer         . push_back(logicalLayer(*module));
+                prim_sim_hit_subdet        . push_back(module->subdet());
+                prim_sim_hit_side          . push_back(module->side());
+                prim_sim_hit_rod           . push_back(module->rod());
+                prim_sim_hit_ring          . push_back(module->ring());
+                prim_sim_hit_module        . push_back(module->module());
+                prim_sim_hit_detid         . push_back(module->detId());
+                prim_sim_hit_isanchorlayer . push_back(isAnchorLayer(*module));
+                prim_sim_hit_islowerlayer  . push_back(module->isLower());
+                prim_sim_hit_x             . push_back(hit->x());
+                prim_sim_hit_y             . push_back(hit->y());
+                prim_sim_hit_z             . push_back(hit->z());
+                prim_sim_hit_sim_pt    . push_back(trk.sim_pt()[simtrkidx]);
+                prim_sim_hit_sim_eta   . push_back(trk.sim_eta()[simtrkidx]);
+                prim_sim_hit_sim_phi   . push_back(trk.sim_phi()[simtrkidx]);
+                int vtxidx = trk.sim_parentVtxIdx()[simtrkidx];
+                prim_sim_hit_sim_vx    . push_back(trk.simvtx_x()[vtxidx]);
+                prim_sim_hit_sim_vy    . push_back(trk.simvtx_x()[vtxidx]);
+                prim_sim_hit_sim_vz    . push_back(trk.simvtx_x()[vtxidx]);
+                prim_sim_hit_sim_idx   . push_back(simtrkidx);
+                prim_sim_hit_sim_q     . push_back(trk.sim_q()[simtrkidx]);
+                prim_sim_hit_sim_pdgid . push_back(trk.sim_pdgId()[simtrkidx]);
+                prim_sim_hit_sim_event . push_back(trk.sim_event()[simtrkidx]);
+                prim_sim_hit_sim_bunch . push_back(trk.sim_bunchCrossing()[simtrkidx]);
+                prim_sim_hit_sim_denom . push_back(getDenomSimTrkType(simtrkidx));
+            }
+        }
+    }
+
+    ana.tx->setBranch<vector<int>>("prim_sim_hit_idx", prim_sim_hit_idx);
+    ana.tx->setBranch<vector<int>>("prim_sim_hit_layer", prim_sim_hit_layer);
+    ana.tx->setBranch<vector<int>>("prim_sim_hit_subdet", prim_sim_hit_subdet);
+    ana.tx->setBranch<vector<int>>("prim_sim_hit_side", prim_sim_hit_side);
+    ana.tx->setBranch<vector<int>>("prim_sim_hit_rod", prim_sim_hit_rod);
+    ana.tx->setBranch<vector<int>>("prim_sim_hit_ring", prim_sim_hit_ring);
+    ana.tx->setBranch<vector<int>>("prim_sim_hit_module", prim_sim_hit_module);
+    ana.tx->setBranch<vector<int>>("prim_sim_hit_detid", prim_sim_hit_detid);
+    ana.tx->setBranch<vector<int>>("prim_sim_hit_isanchorlayer", prim_sim_hit_isanchorlayer);
+    ana.tx->setBranch<vector<int>>("prim_sim_hit_islowerlayer", prim_sim_hit_islowerlayer);
+    ana.tx->setBranch<vector<float>>("prim_sim_hit_x", prim_sim_hit_x);
+    ana.tx->setBranch<vector<float>>("prim_sim_hit_y", prim_sim_hit_y);
+    ana.tx->setBranch<vector<float>>("prim_sim_hit_z", prim_sim_hit_z);
+    ana.tx->setBranch<vector<float>>("prim_sim_hit_sim_pt", prim_sim_hit_sim_pt);
+    ana.tx->setBranch<vector<float>>("prim_sim_hit_sim_eta", prim_sim_hit_sim_eta);
+    ana.tx->setBranch<vector<float>>("prim_sim_hit_sim_phi", prim_sim_hit_sim_phi);
+    ana.tx->setBranch<vector<float>>("prim_sim_hit_sim_vx", prim_sim_hit_sim_vx);
+    ana.tx->setBranch<vector<float>>("prim_sim_hit_sim_vy", prim_sim_hit_sim_vy);
+    ana.tx->setBranch<vector<float>>("prim_sim_hit_sim_vz", prim_sim_hit_sim_vz);
+    ana.tx->setBranch<vector<int>>("prim_sim_hit_sim_idx", prim_sim_hit_sim_idx);
+    ana.tx->setBranch<vector<int>>("prim_sim_hit_sim_q", prim_sim_hit_sim_q);
+    ana.tx->setBranch<vector<int>>("prim_sim_hit_sim_pdgid", prim_sim_hit_sim_pdgid);
+    ana.tx->setBranch<vector<int>>("prim_sim_hit_sim_event", prim_sim_hit_sim_event);
+    ana.tx->setBranch<vector<int>>("prim_sim_hit_sim_bunch", prim_sim_hit_sim_bunch);
+    ana.tx->setBranch<vector<int>>("prim_sim_hit_sim_denom", prim_sim_hit_sim_denom);
+
+    ana.tx->setBranch<vector<int>>("prim_nonsim_hit_idx", prim_nonsim_hit_idx);
+    ana.tx->setBranch<vector<int>>("prim_nonsim_hit_layer", prim_nonsim_hit_layer);
+    ana.tx->setBranch<vector<int>>("prim_nonsim_hit_subdet", prim_nonsim_hit_subdet);
+    ana.tx->setBranch<vector<int>>("prim_nonsim_hit_side", prim_nonsim_hit_side);
+    ana.tx->setBranch<vector<int>>("prim_nonsim_hit_rod", prim_nonsim_hit_rod);
+    ana.tx->setBranch<vector<int>>("prim_nonsim_hit_ring", prim_nonsim_hit_ring);
+    ana.tx->setBranch<vector<int>>("prim_nonsim_hit_module", prim_nonsim_hit_module);
+    ana.tx->setBranch<vector<int>>("prim_nonsim_hit_detid", prim_nonsim_hit_detid);
+    ana.tx->setBranch<vector<int>>("prim_nonsim_hit_isanchorlayer", prim_nonsim_hit_isanchorlayer);
+    ana.tx->setBranch<vector<int>>("prim_nonsim_hit_islowerlayer", prim_nonsim_hit_islowerlayer);
+    ana.tx->setBranch<vector<float>>("prim_nonsim_hit_x", prim_nonsim_hit_x);
+    ana.tx->setBranch<vector<float>>("prim_nonsim_hit_y", prim_nonsim_hit_y);
+    ana.tx->setBranch<vector<float>>("prim_nonsim_hit_z", prim_nonsim_hit_z);
+    ana.tx->setBranch<vector<float>>("prim_nonsim_hit_sim_pt", prim_nonsim_hit_sim_pt);
+    ana.tx->setBranch<vector<float>>("prim_nonsim_hit_sim_eta", prim_nonsim_hit_sim_eta);
+    ana.tx->setBranch<vector<float>>("prim_nonsim_hit_sim_phi", prim_nonsim_hit_sim_phi);
+    ana.tx->setBranch<vector<float>>("prim_nonsim_hit_sim_vx", prim_nonsim_hit_sim_vx);
+    ana.tx->setBranch<vector<float>>("prim_nonsim_hit_sim_vy", prim_nonsim_hit_sim_vy);
+    ana.tx->setBranch<vector<float>>("prim_nonsim_hit_sim_vz", prim_nonsim_hit_sim_vz);
+    ana.tx->setBranch<vector<int>>("prim_nonsim_hit_sim_idx", prim_nonsim_hit_sim_idx);
+    ana.tx->setBranch<vector<int>>("prim_nonsim_hit_sim_q", prim_nonsim_hit_sim_q);
+    ana.tx->setBranch<vector<int>>("prim_nonsim_hit_sim_pdgid", prim_nonsim_hit_sim_pdgid);
+    ana.tx->setBranch<vector<int>>("prim_nonsim_hit_sim_event", prim_nonsim_hit_sim_event);
+    ana.tx->setBranch<vector<int>>("prim_nonsim_hit_sim_bunch", prim_nonsim_hit_sim_bunch);
+    ana.tx->setBranch<vector<int>>("prim_nonsim_hit_sim_denom", prim_nonsim_hit_sim_denom);
 
 }
 
