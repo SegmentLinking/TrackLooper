@@ -88,15 +88,30 @@ void SDL::Init(TTree *tree) {
     sim_pT4_types_branch = tree->GetBranch("sim_pT4_types");
     if (sim_pT4_types_branch) { sim_pT4_types_branch->SetAddress(&sim_pT4_types_); }
   }
+  sim_pT3_matched_branch = 0;
+  if (tree->GetBranch("sim_pT3_matched") != 0) {
+    sim_pT3_matched_branch = tree->GetBranch("sim_pT3_matched");
+    if (sim_pT3_matched_branch) { sim_pT3_matched_branch->SetAddress(&sim_pT3_matched_); }
+  }
   sim_tcIdx_branch = 0;
   if (tree->GetBranch("sim_tcIdx") != 0) {
     sim_tcIdx_branch = tree->GetBranch("sim_tcIdx");
     if (sim_tcIdx_branch) { sim_tcIdx_branch->SetAddress(&sim_tcIdx_); }
   }
+  pT3_isFake_branch = 0;
+  if (tree->GetBranch("pT3_isFake") != 0) {
+    pT3_isFake_branch = tree->GetBranch("pT3_isFake");
+    if (pT3_isFake_branch) { pT3_isFake_branch->SetAddress(&pT3_isFake_); }
+  }
   t4_isFake_branch = 0;
   if (tree->GetBranch("t4_isFake") != 0) {
     t4_isFake_branch = tree->GetBranch("t4_isFake");
     if (t4_isFake_branch) { t4_isFake_branch->SetAddress(&t4_isFake_); }
+  }
+  pT3_occupancies_branch = 0;
+  if (tree->GetBranch("pT3_occupancies") != 0) {
+    pT3_occupancies_branch = tree->GetBranch("pT3_occupancies");
+    if (pT3_occupancies_branch) { pT3_occupancies_branch->SetAddress(&pT3_occupancies_); }
   }
   tc_occupancies_branch = 0;
   if (tree->GetBranch("tc_occupancies") != 0) {
@@ -147,6 +162,11 @@ void SDL::Init(TTree *tree) {
   if (tree->GetBranch("tc_pt") != 0) {
     tc_pt_branch = tree->GetBranch("tc_pt");
     if (tc_pt_branch) { tc_pt_branch->SetAddress(&tc_pt_); }
+  }
+  pT3_isDuplicate_branch = 0;
+  if (tree->GetBranch("pT3_isDuplicate") != 0) {
+    pT3_isDuplicate_branch = tree->GetBranch("pT3_isDuplicate");
+    if (pT3_isDuplicate_branch) { pT3_isDuplicate_branch->SetAddress(&pT3_isDuplicate_); }
   }
   tc_isDuplicate_branch = 0;
   if (tree->GetBranch("tc_isDuplicate") != 0) {
@@ -212,6 +232,11 @@ void SDL::Init(TTree *tree) {
   if (tree->GetBranch("pT4_pt") != 0) {
     pT4_pt_branch = tree->GetBranch("pT4_pt");
     if (pT4_pt_branch) { pT4_pt_branch->SetAddress(&pT4_pt_); }
+  }
+  sim_pT3_types_branch = 0;
+  if (tree->GetBranch("sim_pT3_types") != 0) {
+    sim_pT3_types_branch = tree->GetBranch("sim_pT3_types");
+    if (sim_pT3_types_branch) { sim_pT3_types_branch->SetAddress(&sim_pT3_types_); }
   }
   sim_pLS_types_branch = 0;
   if (tree->GetBranch("sim_pLS_types") != 0) {
@@ -349,8 +374,11 @@ void SDL::GetEntry(unsigned int idx) {
   t3_occupancies_isLoaded = false;
   t5_isDuplicate_isLoaded = false;
   sim_pT4_types_isLoaded = false;
+  sim_pT3_matched_isLoaded = false;
   sim_tcIdx_isLoaded = false;
+  pT3_isFake_isLoaded = false;
   t4_isFake_isLoaded = false;
+  pT3_occupancies_isLoaded = false;
   tc_occupancies_isLoaded = false;
   simvtx_x_isLoaded = false;
   simvtx_y_isLoaded = false;
@@ -361,6 +389,7 @@ void SDL::GetEntry(unsigned int idx) {
   module_subdets_isLoaded = false;
   t5_occupancies_isLoaded = false;
   tc_pt_isLoaded = false;
+  pT3_isDuplicate_isLoaded = false;
   tc_isDuplicate_isLoaded = false;
   pLS_pt_isLoaded = false;
   sim_T4_types_isLoaded = false;
@@ -374,6 +403,7 @@ void SDL::GetEntry(unsigned int idx) {
   sim_pca_dz_isLoaded = false;
   t4_isDuplicate_isLoaded = false;
   pT4_pt_isLoaded = false;
+  sim_pT3_types_isLoaded = false;
   sim_pLS_types_isLoaded = false;
   sim_pLS_matched_isLoaded = false;
   pT4_isFake_isLoaded = false;
@@ -416,8 +446,11 @@ void SDL::LoadAllBranches() {
   if (t3_occupancies_branch != 0) t3_occupancies();
   if (t5_isDuplicate_branch != 0) t5_isDuplicate();
   if (sim_pT4_types_branch != 0) sim_pT4_types();
+  if (sim_pT3_matched_branch != 0) sim_pT3_matched();
   if (sim_tcIdx_branch != 0) sim_tcIdx();
+  if (pT3_isFake_branch != 0) pT3_isFake();
   if (t4_isFake_branch != 0) t4_isFake();
+  if (pT3_occupancies_branch != 0) pT3_occupancies();
   if (tc_occupancies_branch != 0) tc_occupancies();
   if (simvtx_x_branch != 0) simvtx_x();
   if (simvtx_y_branch != 0) simvtx_y();
@@ -428,6 +461,7 @@ void SDL::LoadAllBranches() {
   if (module_subdets_branch != 0) module_subdets();
   if (t5_occupancies_branch != 0) t5_occupancies();
   if (tc_pt_branch != 0) tc_pt();
+  if (pT3_isDuplicate_branch != 0) pT3_isDuplicate();
   if (tc_isDuplicate_branch != 0) tc_isDuplicate();
   if (pLS_pt_branch != 0) pLS_pt();
   if (sim_T4_types_branch != 0) sim_T4_types();
@@ -441,6 +475,7 @@ void SDL::LoadAllBranches() {
   if (sim_pca_dz_branch != 0) sim_pca_dz();
   if (t4_isDuplicate_branch != 0) t4_isDuplicate();
   if (pT4_pt_branch != 0) pT4_pt();
+  if (sim_pT3_types_branch != 0) sim_pT3_types();
   if (sim_pLS_types_branch != 0) sim_pLS_types();
   if (sim_pLS_matched_branch != 0) sim_pLS_matched();
   if (pT4_isFake_branch != 0) pT4_isFake();
@@ -669,6 +704,18 @@ const vector<vector<int> > &SDL::sim_pT4_types() {
   }
   return *sim_pT4_types_;
 }
+const vector<int> &SDL::sim_pT3_matched() {
+  if (not sim_pT3_matched_isLoaded) {
+    if (sim_pT3_matched_branch != 0) {
+      sim_pT3_matched_branch->GetEntry(index);
+    } else {
+      printf("branch sim_pT3_matched_branch does not exist!\n");
+      exit(1);
+    }
+    sim_pT3_matched_isLoaded = true;
+  }
+  return *sim_pT3_matched_;
+}
 const vector<vector<int> > &SDL::sim_tcIdx() {
   if (not sim_tcIdx_isLoaded) {
     if (sim_tcIdx_branch != 0) {
@@ -681,6 +728,18 @@ const vector<vector<int> > &SDL::sim_tcIdx() {
   }
   return *sim_tcIdx_;
 }
+const vector<int> &SDL::pT3_isFake() {
+  if (not pT3_isFake_isLoaded) {
+    if (pT3_isFake_branch != 0) {
+      pT3_isFake_branch->GetEntry(index);
+    } else {
+      printf("branch pT3_isFake_branch does not exist!\n");
+      exit(1);
+    }
+    pT3_isFake_isLoaded = true;
+  }
+  return *pT3_isFake_;
+}
 const vector<int> &SDL::t4_isFake() {
   if (not t4_isFake_isLoaded) {
     if (t4_isFake_branch != 0) {
@@ -692,6 +751,18 @@ const vector<int> &SDL::t4_isFake() {
     t4_isFake_isLoaded = true;
   }
   return *t4_isFake_;
+}
+const int &SDL::pT3_occupancies() {
+  if (not pT3_occupancies_isLoaded) {
+    if (pT3_occupancies_branch != 0) {
+      pT3_occupancies_branch->GetEntry(index);
+    } else {
+      printf("branch pT3_occupancies_branch does not exist!\n");
+      exit(1);
+    }
+    pT3_occupancies_isLoaded = true;
+  }
+  return pT3_occupancies_;
 }
 const vector<int> &SDL::tc_occupancies() {
   if (not tc_occupancies_isLoaded) {
@@ -812,6 +883,18 @@ const vector<float> &SDL::tc_pt() {
     tc_pt_isLoaded = true;
   }
   return *tc_pt_;
+}
+const vector<int> &SDL::pT3_isDuplicate() {
+  if (not pT3_isDuplicate_isLoaded) {
+    if (pT3_isDuplicate_branch != 0) {
+      pT3_isDuplicate_branch->GetEntry(index);
+    } else {
+      printf("branch pT3_isDuplicate_branch does not exist!\n");
+      exit(1);
+    }
+    pT3_isDuplicate_isLoaded = true;
+  }
+  return *pT3_isDuplicate_;
 }
 const vector<int> &SDL::tc_isDuplicate() {
   if (not tc_isDuplicate_isLoaded) {
@@ -968,6 +1051,18 @@ const vector<float> &SDL::pT4_pt() {
     pT4_pt_isLoaded = true;
   }
   return *pT4_pt_;
+}
+const vector<vector<int> > &SDL::sim_pT3_types() {
+  if (not sim_pT3_types_isLoaded) {
+    if (sim_pT3_types_branch != 0) {
+      sim_pT3_types_branch->GetEntry(index);
+    } else {
+      printf("branch sim_pT3_types_branch does not exist!\n");
+      exit(1);
+    }
+    sim_pT3_types_isLoaded = true;
+  }
+  return *sim_pT3_types_;
 }
 const vector<vector<int> > &SDL::sim_pLS_types() {
   if (not sim_pLS_types_isLoaded) {
@@ -1281,8 +1376,11 @@ namespace tas {
   const vector<int> &t3_occupancies() { return sdl.t3_occupancies(); }
   const vector<int> &t5_isDuplicate() { return sdl.t5_isDuplicate(); }
   const vector<vector<int> > &sim_pT4_types() { return sdl.sim_pT4_types(); }
+  const vector<int> &sim_pT3_matched() { return sdl.sim_pT3_matched(); }
   const vector<vector<int> > &sim_tcIdx() { return sdl.sim_tcIdx(); }
+  const vector<int> &pT3_isFake() { return sdl.pT3_isFake(); }
   const vector<int> &t4_isFake() { return sdl.t4_isFake(); }
+  const int &pT3_occupancies() { return sdl.pT3_occupancies(); }
   const vector<int> &tc_occupancies() { return sdl.tc_occupancies(); }
   const vector<float> &simvtx_x() { return sdl.simvtx_x(); }
   const vector<float> &simvtx_y() { return sdl.simvtx_y(); }
@@ -1293,6 +1391,7 @@ namespace tas {
   const vector<int> &module_subdets() { return sdl.module_subdets(); }
   const vector<int> &t5_occupancies() { return sdl.t5_occupancies(); }
   const vector<float> &tc_pt() { return sdl.tc_pt(); }
+  const vector<int> &pT3_isDuplicate() { return sdl.pT3_isDuplicate(); }
   const vector<int> &tc_isDuplicate() { return sdl.tc_isDuplicate(); }
   const vector<float> &pLS_pt() { return sdl.pLS_pt(); }
   const vector<vector<int> > &sim_T4_types() { return sdl.sim_T4_types(); }
@@ -1306,6 +1405,7 @@ namespace tas {
   const vector<float> &sim_pca_dz() { return sdl.sim_pca_dz(); }
   const vector<int> &t4_isDuplicate() { return sdl.t4_isDuplicate(); }
   const vector<float> &pT4_pt() { return sdl.pT4_pt(); }
+  const vector<vector<int> > &sim_pT3_types() { return sdl.sim_pT3_types(); }
   const vector<vector<int> > &sim_pLS_types() { return sdl.sim_pLS_types(); }
   const vector<int> &sim_pLS_matched() { return sdl.sim_pLS_matched(); }
   const vector<int> &pT4_isFake() { return sdl.pT4_isFake(); }

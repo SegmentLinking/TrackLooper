@@ -24,6 +24,8 @@ def parse_plot_name(output_name):
         rtnstr.append("Quadruplet w/o gap")
     elif "T4x_" in output_name:
         rtnstr.append("Quadruplet w/ gap")
+    elif "pT3_" in output_name:
+        rtnstr.append("Pixel Triplet")
     elif "T3_" in output_name:
         rtnstr.append("Triplet")
     elif "TC_" in output_name:
@@ -191,7 +193,7 @@ if __name__ == "__main__":
             continue
         # if "Set4" not in key.GetName():
         #     continue
-        if "TC_All" not in key.GetName() and "T4s_All" not in key.GetName() and "T3_All" not in key.GetName() and "pLS" not in key.GetName() and "T5" not in key.GetName() and "pT4_All" not in key.GetName():
+        if "TC_All" not in key.GetName() and "T4s_All" not in key.GetName() and "T3_All" not in key.GetName() and "pLS" not in key.GetName() and "T5" not in key.GetName() and "pT4_All" not in key.GetName() and "pT3_All" not in key.GetName():
             continue
         # if "pLS_P" not in key.GetName():
         #     continue

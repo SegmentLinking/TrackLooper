@@ -26,6 +26,7 @@ int main(int argc, char** argv)
         list_effSetDef.push_back(EfficiencySetDefinition("T3_AllTypes", 13, [&](int isim) {return sdl.sim_T3_matched().size() > isim ? sdl.sim_T3_matched()[isim] > 0 : false;}));
         list_effSetDef.push_back(EfficiencySetDefinition("pT4_AllTypes", 13, [&](int isim) {return sdl.sim_pT4_matched().size() > isim ? sdl.sim_pT4_matched()[isim] > 0 : false;}));
         list_effSetDef.push_back(EfficiencySetDefinition("T5_AllTypes", 13, [&](int isim) {return sdl.sim_T5_matched().size() > isim ? sdl.sim_T5_matched()[isim] > 0 : false;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("pT3_AllTypes", 13, [&](int isim) {return sdl.sim_pT3_matched().size() > isim ? sdl.sim_pT3_matched()[isim] > 0 : false;}));
     }
 
     bookEfficiencySets(list_effSetDef);
