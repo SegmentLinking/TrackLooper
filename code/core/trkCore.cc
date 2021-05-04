@@ -858,7 +858,7 @@ bool inTimeTrackWithPdgId(int isimtrk, int pdgid)
     return true;
 }
 
-std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes)
+std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes, bool verbose)
 {
     if (hitidxs.size() != hittypes.size())
     {
@@ -883,9 +883,19 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
     std::vector<vector<int>> simtrk_idxs;
     std::vector<int> unique_idxs; // to aggregate which ones to count and test
 
+    if (verbose)
+    {
+        std::cout <<  " '------------------------': " << "------------------------" <<  std::endl;
+    }
+
     for (auto&& [ihit, ihitdata] : iter::enumerate(to_check_duplicate))
     {
         auto&& [hitidx, hittype] = ihitdata;
+
+        if (verbose)
+        {
+            std::cout <<  " hitidx: " << hitidx <<  " hittype: " << hittype <<  std::endl;
+        }
 
         std::vector<int> simtrk_idxs_per_hit;
 
@@ -908,8 +918,6 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
 
         for (auto& simhit_idx : (*simHitIdxs).at(hitidx))
         {
-            // std::cout << "  " << trk.simhit_simTrkIdx().size() << std::endl;
-            // std::cout << " " << simhit_idx << std::endl;
             if (trk.simhit_simTrkIdx().size() <= simhit_idx)
             {
                 std::cout << (*simHitIdxs).size() << " " << hittype << std::endl;
@@ -917,6 +925,10 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
                 std::cout << trk.simhit_simTrkIdx().size() << " " << simhit_idx << std::endl;
             }
             int simtrk_idx = trk.simhit_simTrkIdx().at(simhit_idx);
+            if (verbose)
+            {
+                std::cout <<  " hitidx: " << hitidx <<  " simhit_idx: " << simhit_idx <<  " simtrk_idx: " << simtrk_idx <<  std::endl;
+            }
             simtrk_idxs_per_hit.push_back(simtrk_idx);
             if (std::find(unique_idxs.begin(), unique_idxs.end(), simtrk_idx) == unique_idxs.end())
                 unique_idxs.push_back(simtrk_idx);
@@ -924,6 +936,10 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
 
         if (simtrk_idxs_per_hit.size() == 0)
         {
+            if (verbose)
+            {
+                std::cout <<  " hitidx: " << hitidx <<  " -1: " << -1 <<  std::endl;
+            }
             simtrk_idxs_per_hit.push_back(-1);
             if (std::find(unique_idxs.begin(), unique_idxs.end(), -1) == unique_idxs.end())
                 unique_idxs.push_back(-1);
@@ -932,8 +948,17 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
         simtrk_idxs.push_back(simtrk_idxs_per_hit);
     }
 
+    if (verbose)
+    {
+        std::cout <<  " unique_idxs.size(): " << unique_idxs.size() <<  std::endl;
+        for (auto& unique_idx : unique_idxs)
+        {
+            std::cout <<  " unique_idx: " << unique_idx <<  std::endl;
+        }
+    }
+
     // print
-/*    if (ana.verbose >= 1)
+    if (verbose)
     {
         std::cout << "va print" << std::endl;
         for (auto& vec : simtrk_idxs)
@@ -945,18 +970,22 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
             std::cout << std::endl;
         }
         std::cout << "va print end" << std::endl;
-    }*/
+    }
 
     // Compute all permutations
     std::function<void(vector<vector<int>>&, vector<int>, size_t, vector<vector<int>>&)> perm =
         [&](vector<vector<int>>& result, vector<int> intermediate, size_t n, vector<vector<int>>& va)
     {
+        // std::cout <<  " 'called': " << "called" <<  std::endl;
         if (va.size() > n)
         {
             for (auto x : va[n])
             {
-                intermediate.push_back(x);
-                perm(result, intermediate, n+1, va);
+                // std::cout <<  " n: " << n <<  std::endl;
+                // std::cout <<  " intermediate.size(): " << intermediate.size() <<  std::endl;
+                std::vector<int> copy_intermediate(intermediate);
+                copy_intermediate.push_back(x);
+                perm(result, copy_intermediate, n+1, va);
             }
         }
         else
@@ -967,6 +996,19 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
 
     vector<vector<int>> allperms;
     perm(allperms, vector<int>(), 0, simtrk_idxs);
+
+    if (verbose)
+    {
+        std::cout <<  " allperms.size(): " << allperms.size() <<  std::endl;
+        for (unsigned iperm = 0; iperm < allperms.size(); ++iperm)
+        {
+            std::cout <<  " allperms[iperm].size(): " << allperms[iperm].size() <<  std::endl;
+            for (unsigned ielem = 0; ielem < allperms[iperm].size(); ++ielem)
+            {
+                std::cout <<  " allperms[iperm][ielem]: " << allperms[iperm][ielem] <<  std::endl;
+            }
+        }
+    }
 
     std::vector<int> matched_sim_trk_idxs;
     for (auto& trkidx_perm : allperms)
