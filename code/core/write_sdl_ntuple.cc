@@ -14,6 +14,10 @@ void createOutputBranches()
     ana.tx->createBranch<vector<int>>("sim_pdgId");
     ana.tx->createBranch<vector<int>>("sim_bunchCrossing");
     ana.tx->createBranch<vector<int>>("sim_parentVtxIdx");
+    ana.tx->createBranch<vector<int>>("sim_denom");
+    ana.tx->createBranch<vector<float>>("sim_vx");
+    ana.tx->createBranch<vector<float>>("sim_vy");
+    ana.tx->createBranch<vector<float>>("sim_vz");
 
     // Sim vertex
     ana.tx->createBranch<vector<float>>("simvtx_x");
@@ -598,6 +602,22 @@ void fillSimTrackOutputBranches()
     ana.tx->setBranch<vector<int>>("sim_pdgId", trk.sim_pdgId());
     ana.tx->setBranch<vector<int>>("sim_bunchCrossing", trk.sim_bunchCrossing());
     ana.tx->setBranch<vector<int>>("sim_parentVtxIdx", trk.sim_parentVtxIdx());
+    std::vector<int> sim_denom;
+    std::vector<float> sim_vx;
+    std::vector<float> sim_vy;
+    std::vector<float> sim_vz;
+    for (unsigned int isimtrk = 0; isimtrk < trk.sim_pt().size(); ++isimtrk)
+    {
+        sim_denom.push_back(getDenomSimTrkType(isimtrk));
+        int vtxidx = trk.sim_parentVtxIdx()[isimtrk];
+        sim_vx.push_back(trk.simvtx_x()[vtxidx]);
+        sim_vy.push_back(trk.simvtx_y()[vtxidx]);
+        sim_vz.push_back(trk.simvtx_z()[vtxidx]);
+    }
+    ana.tx->setBranch<vector<int>>("sim_denom", sim_denom);
+    ana.tx->setBranch<vector<float>>("sim_vx", sim_vx);
+    ana.tx->setBranch<vector<float>>("sim_vy", sim_vy);
+    ana.tx->setBranch<vector<float>>("sim_vz", sim_vz);
 
     // simvtx
     ana.tx->setBranch<vector<float>>("simvtx_x", trk.simvtx_x());

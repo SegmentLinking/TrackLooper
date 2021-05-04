@@ -2233,14 +2233,14 @@ bool isDenomOfInterestSimTrk(int isimtrk)
 int getDenomSimTrkType(int isimtrk)
 {
     if (isimtrk < 0)
-        return 0;
+        return 0; // not a sim
     const int& q = trk.sim_q()[isimtrk];
     if (q == 0)
-        return false;
+        return 1; // sim
     const float& pt = trk.sim_pt()[isimtrk];
-    if (pt < 1)
-        return 0;
     const float& eta = trk.sim_eta()[isimtrk];
+    if (pt < 1 or abs(eta) > 2.4)
+        return 2; // sim and charged
     const float& dz = trk.sim_pca_dz()[isimtrk];
     const float& dxy = trk.sim_pca_dxy()[isimtrk];
     const float& phi = trk.sim_phi()[isimtrk];
@@ -2254,18 +2254,18 @@ int getDenomSimTrkType(int isimtrk)
     const float& vtx_perp = sqrt(vtx_x * vtx_x + vtx_y * vtx_y);
 
     if (vtx_perp > 2.5)
-        return 1;
+        return 3; // pt > 1 and abs(eta) < 2.4
 
     if (abs(vtx_z) > 30)
-        return 1;
+        return 4; // pt > 1 and abs(eta) < 2.4 and vtx < 2.5
 
     if (bunch != 0)
-        return 2;
+        return 5; // pt > 1 and abs(eta) < 2.4 and vtx < 2.5 and vtx < 300
 
     if (event != 0)
-        return 3;
+        return 6; // pt > 1 and abs(eta) < 2.4 and vtx 2.5/30 and bunch == 0
 
-    return 4;
+    return 7; // pt > 1 and abs(eta) < 2.4 and vtx 2.5/30 and bunch == 0 and event == 0
 }
 
 //__________________________________________________________________________________________
