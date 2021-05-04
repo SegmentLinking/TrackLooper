@@ -27,6 +27,7 @@ void SDL::createPixelTripletsInUnifiedMemory(struct pixelTriplets& pixelTriplets
     cudaMallocManaged(&pixelTripletsInGPU.pixelSegmentIndices, maxPixelTriplets * sizeof(float));
     cudaMallocManaged(&pixelTripletsInGPU.tripletIndices, maxPixelTriplets * sizeof(float));
     cudaMallocManaged(&pixelTripletsInGPU.nPixelTriplets, sizeof(unsigned int));
+    cudaMemset(pixelTripletsInGPU.nPixelTriplets, 0, sizeof(unsigned int));
 }
 
 void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int maxPixelTriplets)
@@ -34,6 +35,8 @@ void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTriplet
     cudaMalloc(&pixelTripletsInGPU.pixelSegmentIndices, maxPixelTriplets * sizeof(float));
     cudaMalloc(&pixelTripletsInGPU.tripletIndices, maxPixelTriplets * sizeof(float));
     cudaMalloc(&pixelTripletsInGPU.nPixelTriplets, sizeof(unsigned int));
+    cudaMemset(pixelTripletsInGPU.nPixelTriplets, 0, sizeof(unsigned int));
+
 }
 
 __device__ void SDL::addPixelTripletToMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, unsigned int pixelTripletIndex)
