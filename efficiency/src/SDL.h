@@ -13,7 +13,7 @@
 #include <unistd.h>
 typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > LorentzVector;
 
-// Generated with file: /home/users/bsathian/SDL/TrackLooper_central_take3/TrackLooper/output/outputs_478b0bb_PU200/gpu_unified.root
+// Generated with file: /home/users/bsathian/SDL/TrackLooper_central_take3/TrackLooper/debug.root
 
 using namespace std;
 class SDL {
@@ -71,12 +71,21 @@ protected:
   vector<vector<int> > *sim_pT4_types_;
   TBranch *sim_pT4_types_branch;
   bool sim_pT4_types_isLoaded;
+  vector<int> *sim_pT3_matched_;
+  TBranch *sim_pT3_matched_branch;
+  bool sim_pT3_matched_isLoaded;
   vector<vector<int> > *sim_tcIdx_;
   TBranch *sim_tcIdx_branch;
   bool sim_tcIdx_isLoaded;
+  vector<int> *pT3_isFake_;
+  TBranch *pT3_isFake_branch;
+  bool pT3_isFake_isLoaded;
   vector<int> *t4_isFake_;
   TBranch *t4_isFake_branch;
   bool t4_isFake_isLoaded;
+  int pT3_occupancies_;
+  TBranch *pT3_occupancies_branch;
+  bool pT3_occupancies_isLoaded;
   vector<int> *tc_occupancies_;
   TBranch *tc_occupancies_branch;
   bool tc_occupancies_isLoaded;
@@ -107,6 +116,9 @@ protected:
   vector<float> *tc_pt_;
   TBranch *tc_pt_branch;
   bool tc_pt_isLoaded;
+  vector<int> *pT3_isDuplicate_;
+  TBranch *pT3_isDuplicate_branch;
+  bool pT3_isDuplicate_isLoaded;
   vector<int> *tc_isDuplicate_;
   TBranch *tc_isDuplicate_branch;
   bool tc_isDuplicate_isLoaded;
@@ -146,6 +158,9 @@ protected:
   vector<float> *pT4_pt_;
   TBranch *pT4_pt_branch;
   bool pT4_pt_isLoaded;
+  vector<vector<int> > *sim_pT3_types_;
+  TBranch *sim_pT3_types_branch;
+  bool sim_pT3_types_isLoaded;
   vector<vector<int> > *sim_pLS_types_;
   TBranch *sim_pLS_types_branch;
   bool sim_pLS_types_isLoaded;
@@ -236,8 +251,11 @@ public:
   const vector<int> &t3_occupancies();
   const vector<int> &t5_isDuplicate();
   const vector<vector<int> > &sim_pT4_types();
+  const vector<int> &sim_pT3_matched();
   const vector<vector<int> > &sim_tcIdx();
+  const vector<int> &pT3_isFake();
   const vector<int> &t4_isFake();
+  const int &pT3_occupancies();
   const vector<int> &tc_occupancies();
   const vector<float> &simvtx_x();
   const vector<float> &simvtx_y();
@@ -248,6 +266,7 @@ public:
   const vector<int> &module_subdets();
   const vector<int> &t5_occupancies();
   const vector<float> &tc_pt();
+  const vector<int> &pT3_isDuplicate();
   const vector<int> &tc_isDuplicate();
   const vector<float> &pLS_pt();
   const vector<vector<int> > &sim_T4_types();
@@ -261,6 +280,7 @@ public:
   const vector<float> &sim_pca_dz();
   const vector<int> &t4_isDuplicate();
   const vector<float> &pT4_pt();
+  const vector<vector<int> > &sim_pT3_types();
   const vector<vector<int> > &sim_pLS_types();
   const vector<int> &sim_pLS_matched();
   const vector<int> &pT4_isFake();
@@ -310,8 +330,11 @@ namespace tas {
   const vector<int> &t3_occupancies();
   const vector<int> &t5_isDuplicate();
   const vector<vector<int> > &sim_pT4_types();
+  const vector<int> &sim_pT3_matched();
   const vector<vector<int> > &sim_tcIdx();
+  const vector<int> &pT3_isFake();
   const vector<int> &t4_isFake();
+  const int &pT3_occupancies();
   const vector<int> &tc_occupancies();
   const vector<float> &simvtx_x();
   const vector<float> &simvtx_y();
@@ -322,6 +345,7 @@ namespace tas {
   const vector<int> &module_subdets();
   const vector<int> &t5_occupancies();
   const vector<float> &tc_pt();
+  const vector<int> &pT3_isDuplicate();
   const vector<int> &tc_isDuplicate();
   const vector<float> &pLS_pt();
   const vector<vector<int> > &sim_T4_types();
@@ -335,6 +359,7 @@ namespace tas {
   const vector<float> &sim_pca_dz();
   const vector<int> &t4_isDuplicate();
   const vector<float> &pT4_pt();
+  const vector<vector<int> > &sim_pT3_types();
   const vector<vector<int> > &sim_pLS_types();
   const vector<int> &sim_pLS_matched();
   const vector<int> &pT4_isFake();

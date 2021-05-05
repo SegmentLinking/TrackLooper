@@ -317,7 +317,7 @@ void fillOccupancyBranches(SDL::Event& event)
     ana.tx->setBranch<vector<int>>("t4_occupancies",trackletOccupancy);
     ana.tx->setBranch<vector<int>>("t3_occupancies",tripletOccupancy);
     ana.tx->setBranch<vector<int>>("tc_occupancies",trackCandidateOccupancy);
-    ana.tx->setBranch<int>("pT3_occupancies", pixelTripletsInGPU.nPixelTriplets);
+    ana.tx->setBranch<int>("pT3_occupancies", *(pixelTripletsInGPU.nPixelTriplets));
 #ifdef DO_QUINTUPLET
     ana.tx->setBranch<vector<int>>("t5_occupancies", quintupletOccupancy);
 #endif
@@ -984,13 +984,14 @@ void fillQuintupletOutputBranches(SDL::Event& event)
 void fillPixelTripletOutputBranches(SDL::Event& event)
 {
     SDL::pixelTriplets& pixelTripletsInGPU = (*event.getPixelTriplets());
+    SDL::triplets& tripletsInGPU = (*event.getTriplets());
     SDL::segments& segmentsInGPU = (*event.getSegments());
     SDL::miniDoublets& mdsInGPU = (*event.getMiniDoublets());
     SDL::hits& hitsInGPU = (*event.getHits());
     SDL::modules& modulesInGPU = (*event.getModules());
 
     std::vector<int> sim_pT3_matched(trk.sim_pt().size(), 0);
-    std::vctor<vector<int>> sim_pT3_types(trk.sim_pt().size());
+    std::vector<vector<int>> sim_pT3_types(trk.sim_pt().size());
     std::vector<int> pT3_isFake;
     std::vector<vector<int>> pT3_matched_simIdx;
     //std::vector<float> pT3_pt;
@@ -998,7 +999,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     //std::vector<float> pT3_phi;
     const unsigned int N_MAX_PIXEL_TRIPLETS = 3000000;
 
-    unsigned int nPixelTriplets = std::min(pixelTripletsInGPU.nPixelTriplets, N_MAX_PIXEL_TRIPLETS);
+    unsigned int nPixelTriplets = std::min(*(pixelTripletsInGPU.nPixelTriplets), N_MAX_PIXEL_TRIPLETS);
 
     for(unsigned int jdx = 0; jdx < nPixelTriplets; jdx++)
     {
@@ -1027,17 +1028,18 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         unsigned int tripletOuterMDUpperHitIndex = mdsInGPU.hitIndices[2 * tripletOuterMDIndex + 1];
 
         std::vector<int> hit_idxs = {
-            (int) hitsInGPU.idxs[pixelInnerMDLowerHitIndex];
-            (int) hitsInGPU.idxs[pixelInnerMDUpperHitIndex];
-            (int) hitsInGPU.idxs[pixelOuterMDLowerHitIndex];
-            (int) hitsInGPU.idxs[pixelOuterMDUpperHitIndex];
-            (int) hitsInGPU.idxs[tripletInnerMDLowerHitIndex];
-            (int) hitsInGPU.idxs[tripletInnerMDUpperHitIndex];
-            (int) hitsInGPU.idxs[tripletMiddleMDLowerHitIndex];
-            (int) hitsInGPU.idxs[tripletMiddleMDUpperHitIndex];
-            (int) hitsInGPU.idxs[tripletOuterMDLowerHitIndex];
-            (int) hitsInGPU.idxs[tripletOuterMDUpperHitIndex];
+            (int) hitsInGPU.idxs[pixelInnerMDLowerHitIndex],
+            (int) hitsInGPU.idxs[pixelInnerMDUpperHitIndex],
+            (int) hitsInGPU.idxs[pixelOuterMDLowerHitIndex],
+            (int) hitsInGPU.idxs[pixelOuterMDUpperHitIndex],
+            (int) hitsInGPU.idxs[tripletInnerMDLowerHitIndex],
+            (int) hitsInGPU.idxs[tripletInnerMDUpperHitIndex],
+            (int) hitsInGPU.idxs[tripletMiddleMDLowerHitIndex],
+            (int) hitsInGPU.idxs[tripletMiddleMDUpperHitIndex],
+            (int) hitsInGPU.idxs[tripletOuterMDLowerHitIndex],
+            (int) hitsInGPU.idxs[tripletOuterMDUpperHitIndex]
         };
+
         std::vector<int> hit_types;
         hit_types.push_back(0);
         hit_types.push_back(0);
@@ -1051,17 +1053,16 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         hit_types.push_back(4);
 
         std::vector<int> module_idxs = {
-            (int) hitsInGPU.moduleIndices[pixelInnerMDLowerHitIndex];
-            (int) hitsInGPU.moduleIndices[pixelInnerMDUpperHitIndex];
-            (int) hitsInGPU.moduleIndices[pixelOuterMDLowerHitIndex];
-            (int) hitsInGPU.moduleIndices[pixelOuterMDUpperHitIndex];
-            (int) hitsInGPU.moduleIndices[tripletInnerMDLowerHitIndex];
-            (int) hitsInGPU.moduleIndices[tripletInnerMDUpperHitIndex];
-            (int) hitsInGPU.moduleIndices[tripletMiddleMDLowerHitIndex];
-            (int) hitsInGPU.moduleIndices[tripletMiddleMDUpperHitIndex];
-            (int) hitsInGPU.moduleIndices[tripletOuterMDLowerHitIndex];
-            (int) hitsInGPU.moduleIndices[tripletOuterMDUpperHitIndex];
-        };
+            (int) hitsInGPU.moduleIndices[pixelInnerMDLowerHitIndex],
+            (int) hitsInGPU.moduleIndices[pixelInnerMDUpperHitIndex],
+            (int) hitsInGPU.moduleIndices[pixelOuterMDLowerHitIndex],
+            (int) hitsInGPU.moduleIndices[pixelOuterMDUpperHitIndex],
+            (int) hitsInGPU.moduleIndices[tripletInnerMDLowerHitIndex],
+            (int) hitsInGPU.moduleIndices[tripletInnerMDUpperHitIndex],
+            (int) hitsInGPU.moduleIndices[tripletMiddleMDLowerHitIndex],
+            (int) hitsInGPU.moduleIndices[tripletMiddleMDUpperHitIndex],
+            (int) hitsInGPU.moduleIndices[tripletOuterMDLowerHitIndex],
+            (int) hitsInGPU.moduleIndices[tripletOuterMDUpperHitIndex]        };
         int layer0 = modulesInGPU.layers[module_idxs[0]];
         int layer2 = modulesInGPU.layers[module_idxs[2]];
         int layer4 = modulesInGPU.layers[module_idxs[4]];
@@ -1122,7 +1123,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
 
     }
 
-    vector<int> pT3_isDuplicate(pT4_matched_simIdx.size());
+    vector<int> pT3_isDuplicate(pT3_matched_simIdx.size());
 
     for (unsigned int i = 0; i < pT3_matched_simIdx.size(); ++i)
     {
