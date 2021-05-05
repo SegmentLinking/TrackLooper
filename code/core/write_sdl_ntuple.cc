@@ -1150,7 +1150,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("pT3_eta", pT3_eta);
     ana.tx->setBranch<vector<float>>("pT3_phi", pT3_phi);
     ana.tx->setBranch<vector<float>>("pT3_pixelRadius", pT3_pixelRadius);
-    ana.tx->setBranch<vector<float>>("pT3_tripletRaduis", pT3_tripletRadius);
+    ana.tx->setBranch<vector<float>>("pT3_tripletRadius", pT3_tripletRadius);
 
 }
 

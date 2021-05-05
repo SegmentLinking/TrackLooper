@@ -43,6 +43,8 @@ int main(int argc, char** argv)
         list_FRSetDef.push_back(FakeRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return sdl.pT4_isFake().size() > ipT4 ? sdl.pT4_isFake()[ipT4] > 0 : false;}, sdl.pT4_pt(), sdl.pT4_eta(), sdl.pT4_phi()));
         list_FRSetDef.push_back(FakeRateSetDefinition("pLS_AllTypes", 13, [&](int itls) {return sdl.pLS_isFake().size() > itls ? sdl.pLS_isFake()[itls] > 0 : false;}, sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi()));
         list_FRSetDef.push_back(FakeRateSetDefinition("T5_AllTypes", 13, [&](int iT5) {return sdl.t5_isFake().size() > iT5 ? sdl.t5_isFake()[iT5] > 0 : false;}, sdl.t5_pt(), sdl.t5_eta(), sdl.t5_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("pT3_AllTypes", 13, [&](int ipT3) {return sdl.pT3_isFake().size() > ipT3 ? sdl.pT3_isFake()[ipT3] > 0 : false;}, sdl.t5_pt(), sdl.t5_eta(), sdl.t5_phi()));
+
     }
 
     bookFakeRateSets(list_FRSetDef);
@@ -58,6 +60,8 @@ int main(int argc, char** argv)
         list_DLSetDef.push_back(DuplicateRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return sdl.pT4_isDuplicate().size() > ipT4 ? sdl.pT4_isDuplicate()[ipT4] > 0 : false;}, sdl.pT4_pt(), sdl.pT4_eta(), sdl.pT4_phi()));
         list_DLSetDef.push_back(DuplicateRateSetDefinition("pLS_AllTypes", 13, [&](int itls) {return sdl.pLS_isDuplicate().size() > itls ? sdl.pLS_isDuplicate()[itls] > 0 : false;}, sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi()));
         list_DLSetDef.push_back(DuplicateRateSetDefinition("T5_AllTypes", 13, [&](int iT5) {return sdl.t5_isDuplicate().size() > iT5 ? sdl.t5_isDuplicate()[iT5] > 0 : false;}, sdl.t5_pt(), sdl.t5_eta(), sdl.t5_phi()));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("pT3_AllTypes", 13, [&](int ipT3) {return sdl.pT3_isDuplicate().size() > ipT3 ? sdl.t5_isDuplicate()[ipT3] > 0 : false;}, sdl.t5_pt(), sdl.t5_eta(), sdl.t5_phi()));
+
     }
 
     bookDuplicateRateSets(list_DLSetDef);
