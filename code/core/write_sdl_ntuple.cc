@@ -994,9 +994,11 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     std::vector<vector<int>> sim_pT3_types(trk.sim_pt().size());
     std::vector<int> pT3_isFake;
     std::vector<vector<int>> pT3_matched_simIdx;
-    //std::vector<float> pT3_pt;
-    //std::vector<float> pT3_eta;
-    //std::vector<float> pT3_phi;
+    std::vector<float> pT3_pt;
+    std::vector<float> pT3_eta;
+    std::vector<float> pT3_phi;
+    std::vector<float> pT3_pixelRadius;
+    std::vector<float> pT3_tripletRadius;
     const unsigned int N_MAX_PIXEL_TRIPLETS = 3000000;
 
     unsigned int nPixelTriplets = std::min(*(pixelTripletsInGPU.nPixelTriplets), N_MAX_PIXEL_TRIPLETS);
@@ -1103,7 +1105,9 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         pT3_matched_simIdx.push_back(matched_sim_trk_idxs);
 
         float pixelRadius = pixelTripletsInGPU.pixelRadius[jdx];
-        float tripletRadius = pixelTripletsINGPU.tripletRadius[jdx];
+        float tripletRadius = pixelTripletsInGPU.tripletRadius[jdx];
+        const float kRinv1GeVf = (2.99792458e-3 * 3.8);
+        const float k2Rinv1GeVf = kRinv1GeVf / 2.;
 
         float pt = k2Rinv1GeVf * (pixelRadius + tripletRadius);
 
