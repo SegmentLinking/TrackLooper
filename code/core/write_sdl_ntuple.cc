@@ -117,11 +117,14 @@ void createLowerLevelOutputBranches()
 
     ana.tx->createBranch<vector<int>>("sim_pT3_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_pT3_types");
-//    ana.tx->createBranch<vector<float>>("pT3_pt");
-//    ana.tx->createBranch<vector<float>>("pT3_eta");
-//    ana.tx->createBranch<vector<float>>("pT3_phi");
+    ana.tx->createBranch<vector<float>>("pT3_pt");
+    ana.tx->createBranch<vector<float>>("pT3_eta");
+    ana.tx->createBranch<vector<float>>("pT3_phi");
     ana.tx->createBranch<vector<int>>("pT3_isFake");
     ana.tx->createBranch<vector<int>>("pT3_isDuplicate");
+
+    ana.tx->createBranch<vector<float>>("pT3_pixelRadius");
+    ana.tx->createBranch<vector<float>>("pT3_tripletRadius");
 
 
 #ifdef CUT_VALUE_DEBUG
@@ -1097,6 +1100,26 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         }
         pT3_isFake.push_back(matched_sim_trk_idxs.size() == 0);
         pT3_matched_simIdx.push_back(matched_sim_trk_idxs);
+
+        float pixelRadius = pixelTripletsInGPU.pixelRadius[jdx];
+        float tripletRadius = pixelTripletsINGPU.tripletRadius[jdx];
+
+        float pt = k2Rinv1GeVf * (pixelRadius + tripletRadius);
+
+        //copyting stuff from before for eta and phi
+        SDL::CPU::Hit hitA(trk.ph2_x()[hit_idxs[0]], trk.ph2_y()[hit_idxs[0]], trk.ph2_z()[hit_idxs[0]]);
+        SDL::CPU::Hit hitB(trk.ph2_x()[hit_idxs[9]], trk.ph2_y()[hit_idxs[9]], trk.ph2_z()[hit_idxs[9]]);
+
+        float eta = hitB.eta();
+        float phi = hitA.phi();
+
+        pT3_pt.push_back(pt);
+        pT3_eta.push_back(eta);
+        pT3_phi.push_back(phi);
+
+        pT3_pixelRadius.push_back(pixelRadius);
+        pT3_tripletRadius.push_back(tripletRadius);
+
     }
 
     vector<int> pT3_isDuplicate(pT4_matched_simIdx.size());
@@ -1118,9 +1141,11 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<vector<int>>>("sim_pT3_types", sim_pT3_types);
     ana.tx->setBranch<vector<int>>("pT3_isFake", pT3_isFake);
     ana.tx->setBranch<vector<int>>("pT3_isDuplicate", pT3_isDuplicate);
-//    ana.tx->setBranch<vector<float>>("pT4_pt", pT4_pt);
-//    ana.tx->setBranch<vector<float>>("pT4_eta", pT4_eta);
-//    ana.tx->setBranch<vector<float>>("pT4_phi", pT4_phi);
+    ana.tx->setBranch<vector<float>>("pT3_pt", pT3_pt);
+    ana.tx->setBranch<vector<float>>("pT3_eta", pT3_eta);
+    ana.tx->setBranch<vector<float>>("pT3_phi", pT3_phi);
+    ana.tx->setBranch<vector<float>>("pT3_pixelRadius", pT3_pixelRadius);
+    ana.tx->setBranch<vector<float>>("pT3_tripletRaduis", pT3_tripletRadius);
 
 }
 

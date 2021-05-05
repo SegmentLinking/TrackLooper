@@ -178,6 +178,9 @@ SDL::Event::~Event()
     {
         delete[] pixelTripletsInCPU->tripletIndices;
         delete[] pixelTripletsInCPU->pixelSegmentIndices;
+        delete[] pixelTripletsInCPU->pixelRadius;
+        delete[] pixelTripletsInCPU->pixelRadiusError;
+        delete[] pixelTripletsInCPU->tripletRadius;
         delete nPixelTriplets;
         delete pixelTripletsInCPU;
     }
@@ -3888,7 +3891,10 @@ __global__ void createPixelTripletsFromOuterInnerLowerModule(struct SDL::modules
    unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + pixelSegmentArrayIndex;
    unsigned int outerTripletIndex = outerTripletInnerLowerModuleArrayIndex * N_MAX_TRIPLETS_PER_MODULE + outerTripletArrayIndex;
 
-   bool success = runPixelTripletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelSegmentIndex, outerTripletIndex);
+   if(modulesInGPU.moduleType[tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1]] == SDL::TwoS) return; //REMOVES PS-2S
+
+   float pixelRadius, pixelRadiusError, tripletRadius;
+   bool success = runPixelTripletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius);
 
    if(success)
    {
@@ -3904,7 +3910,7 @@ __global__ void createPixelTripletsFromOuterInnerLowerModule(struct SDL::modules
        }
        else
        {
-           addPixelTripletToMemory(pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelTripletIndex);
+           addPixelTripletToMemory(pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, pixelTripletIndex);
        }
    }
 }
@@ -3921,7 +3927,9 @@ __global__ void createPixelTripletsInGPU(struct SDL::modules& modulesInGPU, stru
     unsigned int pixelModuleIndex = *modulesInGPU.nModules - 1;
     unsigned int nPixelSegments = segmentsInGPU.nSegments[pixelModuleIndex] > N_MAX_PIXEL_SEGMENTS_PER_MODULE ? N_MAX_PIXEL_SEGMENTS_PER_MODULE : segmentsInGPU.nSegments[pixelModuleIndex];
     
-    //TODO:Insert a version of El-cheapo module map here!
+    //El-cheapo map applied on the inner segment
+    unsigned int outerTripletInnerLowerModuleIndex = modulesInGPU.lowerModuleIndices[outerTripletInnerLowerModuleArrayIndex];
+    if(modulesInGPU.moduleType[outerTripletInnerLowerModuleIndex]== SDL::TwoS) return; //REMOVES 2S-2S
 
     if(nOuterTriplets == 0) return;
     dim3 nThreads(16,16,1);
@@ -4539,10 +4547,16 @@ SDL::pixelTriplets* SDL::Event::getPixelTriplets()
         pixelTripletsInCPU->nPixelTriplets = new unsigned int;
         pixelTripletsInCPU->tripletIndices = new unsigned int[N_MAX_PIXEL_TRIPLETS];
         pixelTripletsInCPU->pixelSegmentIndices = new unsigned int[N_MAX_PIXEL_TRIPLETS];
+        pixelTripletsInCPU->pixelRadius = new float[N_MAX_PIXEL_TRIPLETS];
+        pixelTripletsInCPU->pixelRadiusError = new float[N_MAX_PIXEL_TRIPLETS];
+        pixelTripletsInCPU->tripletRadius = new float[N_MAX_PIXEL_TRIPLETS];
 
         cudaMemcpy(pixelTripletsInCPU->nPixelTriplets, pixelTripletsInGPU->nPixelTriplets, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        cudaMemcpy(pixelTripletsInCPU->tripletIndices, pixelTripletsInGPU->tripletIndcies, N_MAX_PIXEL_TRIPLETS * sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        cudaMemcpy(pixelTripletsInGPU->pixelSegmentIndices, pixelTripletsInGPU->pixelSegmentIndices, N_MAX_PIXEL_TRIPLETS * sizeof(unsigned int) cudaMemcpyDeviceToHost);
+        cudaMemcpy(pixelTripletsInCPU->tripletIndices, pixelTripletsInGPU->tripletIndices, N_MAX_PIXEL_TRIPLETS * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(pixelTripletsInCPU->pixelSegmentIndices, pixelTripletsInGPU->pixelSegmentIndices, N_MAX_PIXEL_TRIPLETS * sizeof(unsigned int) cudaMemcpyDeviceToHost);
+        cudaMemcpy(pixelTripeltsInCPU->pixelRadius, pixelTripletsInGPU->pixelRadius, N_MAX_PIXEL_TRIPLETS * sizeof(float), cudaMemcpyDeviceToHost);
+        cudaMemcpy(pixelTripletsInCPU->pixelRadiusError, pixelTripletsInGPU->pixelRadiusError, N_MAX_PIXEL_TRIPLETS * sizeof(float), cudaMemcpyDeviceToHost);
+        cudaMemcpy(pixelTripletsInCPU->tripletRadius, pixelTripletsInGPU->tripletRadius, N_MAX_PIXEL_TRIPLETS * sizeof(float), cudaMemcpyDeviceToHost);
     }
     return pixelTripletsInCPU;
 }
