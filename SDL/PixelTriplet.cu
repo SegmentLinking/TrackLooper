@@ -13,6 +13,9 @@ void SDL::pixelTriplets::freeMemory()
     cudaFree(pixelSegmentIndices);
     cudaFree(tripletIndices);
     cudaFree(nPixelTriplets);
+    cudaFree(pixelRadius);
+    cudaFree(pixelRadiusError);
+    cudaFree(tripletRadius);
 }
 
 SDL::pixelTriplets::~pixelTriplets()
