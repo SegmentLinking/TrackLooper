@@ -461,6 +461,7 @@ void createPrimitiveBranches_v2()
     ana.tx->createBranch<vector<int>>("prim_sim_md_detid");
     ana.tx->createBranch<vector<int>>("prim_sim_md_isanchorlayer");
     ana.tx->createBranch<vector<int>>("prim_sim_md_islowerlayer");
+    ana.tx->createBranch<vector<int>>("prim_sim_md_nsim_match");
     ana.tx->createBranch<vector<float>>("prim_sim_md_anchor_x");
     ana.tx->createBranch<vector<float>>("prim_sim_md_anchor_y");
     ana.tx->createBranch<vector<float>>("prim_sim_md_anchor_z");
@@ -492,6 +493,7 @@ void createPrimitiveBranches_v2()
     ana.tx->createBranch<vector<int>>("prim_nonsim_md_detid");
     ana.tx->createBranch<vector<int>>("prim_nonsim_md_isanchorlayer");
     ana.tx->createBranch<vector<int>>("prim_nonsim_md_islowerlayer");
+    ana.tx->createBranch<vector<int>>("prim_nonsim_md_nsim_match");
     ana.tx->createBranch<vector<float>>("prim_nonsim_md_anchor_x");
     ana.tx->createBranch<vector<float>>("prim_nonsim_md_anchor_y");
     ana.tx->createBranch<vector<float>>("prim_nonsim_md_anchor_z");
@@ -4246,6 +4248,7 @@ void fillPrimitiveBranches_MD_for_CPU_v2(SDL::CPU::Event& event)
     vector<int> prim_sim_md_detid;
     vector<int> prim_sim_md_isanchorlayer;
     vector<int> prim_sim_md_islowerlayer;
+    vector<int> prim_sim_md_nsim_match;
     vector<float> prim_sim_md_anchor_x;
     vector<float> prim_sim_md_anchor_y;
     vector<float> prim_sim_md_anchor_z;
@@ -4276,6 +4279,7 @@ void fillPrimitiveBranches_MD_for_CPU_v2(SDL::CPU::Event& event)
     vector<int> prim_nonsim_md_detid;
     vector<int> prim_nonsim_md_isanchorlayer;
     vector<int> prim_nonsim_md_islowerlayer;
+    vector<int> prim_nonsim_md_nsim_match;
     vector<float> prim_nonsim_md_anchor_x;
     vector<float> prim_nonsim_md_anchor_y;
     vector<float> prim_nonsim_md_anchor_z;
@@ -4308,6 +4312,10 @@ void fillPrimitiveBranches_MD_for_CPU_v2(SDL::CPU::Event& event)
             SDL::CPU::Hit* nahit = lhit == ahit ? uhit : lhit;
             std::vector<int> matchSimTrkIdxs = matchedSimTrkIdxs({lhit->idx(), uhit->idx()}, {4, 4});
 
+            int nsim_match = 0;
+            if (trk.ph2_simHitIdx()[lhit->idx()].size() > 0) nsim_match++;
+            if (trk.ph2_simHitIdx()[uhit->idx()].size() > 0) nsim_match++;
+
             if (matchSimTrkIdxs.size() == 0) // no match
             {
                 prim_nonsim_md_anchor_idx    . push_back(ahit->idx());
@@ -4321,6 +4329,7 @@ void fillPrimitiveBranches_MD_for_CPU_v2(SDL::CPU::Event& event)
                 prim_nonsim_md_detid         . push_back(module->detId());
                 prim_nonsim_md_isanchorlayer . push_back(isAnchorLayer(*module));
                 prim_nonsim_md_islowerlayer  . push_back(module->isLower());
+                prim_nonsim_md_nsim_match    . push_back(nsim_match);
                 prim_nonsim_md_anchor_x      . push_back(ahit->x());
                 prim_nonsim_md_anchor_y      . push_back(ahit->y());
                 prim_nonsim_md_anchor_z      . push_back(ahit->z());
@@ -4354,6 +4363,7 @@ void fillPrimitiveBranches_MD_for_CPU_v2(SDL::CPU::Event& event)
                 prim_sim_md_detid         . push_back(module->detId());
                 prim_sim_md_isanchorlayer . push_back(isAnchorLayer(*module));
                 prim_sim_md_islowerlayer  . push_back(module->isLower());
+                prim_sim_md_nsim_match    . push_back(nsim_match);
                 prim_sim_md_anchor_x      . push_back(ahit->x());
                 prim_sim_md_anchor_y      . push_back(ahit->y());
                 prim_sim_md_anchor_z      . push_back(ahit->z());
@@ -4388,6 +4398,7 @@ void fillPrimitiveBranches_MD_for_CPU_v2(SDL::CPU::Event& event)
     ana.tx->setBranch<vector<int>>("prim_sim_md_detid", prim_sim_md_detid);
     ana.tx->setBranch<vector<int>>("prim_sim_md_isanchorlayer", prim_sim_md_isanchorlayer);
     ana.tx->setBranch<vector<int>>("prim_sim_md_islowerlayer", prim_sim_md_islowerlayer);
+    ana.tx->setBranch<vector<int>>("prim_sim_md_nsim_match", prim_sim_md_nsim_match);
     ana.tx->setBranch<vector<float>>("prim_sim_md_anchor_x", prim_sim_md_anchor_x);
     ana.tx->setBranch<vector<float>>("prim_sim_md_anchor_y", prim_sim_md_anchor_y);
     ana.tx->setBranch<vector<float>>("prim_sim_md_anchor_z", prim_sim_md_anchor_z);
@@ -4418,6 +4429,7 @@ void fillPrimitiveBranches_MD_for_CPU_v2(SDL::CPU::Event& event)
     ana.tx->setBranch<vector<int>>("prim_nonsim_md_detid", prim_nonsim_md_detid);
     ana.tx->setBranch<vector<int>>("prim_nonsim_md_isanchorlayer", prim_nonsim_md_isanchorlayer);
     ana.tx->setBranch<vector<int>>("prim_nonsim_md_islowerlayer", prim_nonsim_md_islowerlayer);
+    ana.tx->setBranch<vector<int>>("prim_nonsim_md_nsim_match", prim_nonsim_md_nsim_match);
     ana.tx->setBranch<vector<float>>("prim_nonsim_md_anchor_x", prim_nonsim_md_anchor_x);
     ana.tx->setBranch<vector<float>>("prim_nonsim_md_anchor_y", prim_nonsim_md_anchor_y);
     ana.tx->setBranch<vector<float>>("prim_nonsim_md_anchor_z", prim_nonsim_md_anchor_z);
