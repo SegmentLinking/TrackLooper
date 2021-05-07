@@ -148,6 +148,18 @@ __device__ bool SDL::runTrackCandidateDefaultAlgoTwoTracklets(struct tracklets& 
     return pass;
 }
 
+__device__ bool SDL::runTrackCandidateDefaultAlgoTwoTracklets(struct tracklets& trackletsInGPU, struct pixelTracklets& pixelTrackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, short& trackCandidateType)
+{
+    bool pass = true;
+    trackCandidateType = 0;
+    if(not hasCommonSegment(pixelTrackletsInGPU, trackletsInGPU, tripletsInGPU, innerTrackletIndex, outerTrackletIndex, trackCandidateType))
+    {
+        pass = false;
+    }
+    return pass;
+}
+
+
 SDL::trackCandidates::trackCandidates()
 {
     trackCandidateType = nullptr;
@@ -212,6 +224,19 @@ __device__ bool SDL::runTrackCandidateDefaultAlgoTrackletToTriplet(struct trackl
     return pass;
 }
 
+__device__ bool SDL::runTrackCandidateDefaultAlgoTrackletToTriplet(struct pixelTracklets& pixelTrackletsInGPU, struct trackets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTripletIndex, short& trackCandidateType)
+{
+    bool pass = true;
+    trackCandidateType = 1;
+    if(not hasCommonSegment(pixelTrackletsInGPU, trackletsInGPU, tripletsInGPU, innerTrackletIndex, outerTripletIndex, trackCandidateType))
+    {
+        pass = false;
+    }
+
+    return pass;
+}
+
+
 __device__ bool SDL::runTrackCandidateDefaultAlgoTripletToTracklet(struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTripletIndex, unsigned int outerTrackletIndex, short& trackCandidateType)
 {
     bool pass = true;
@@ -249,4 +274,22 @@ __device__ bool SDL::hasCommonSegment(struct tracklets& trackletsInGPU, struct t
     return (innerObjectOuterSegmentIndex == outerObjectInnerSegmentIndex);
 }
 
+__device__ bool SDL::hasCommonSegment(struct pixelTracklets& pixelTrackletsInGPU, struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerObjectIndex, unsigned int outerObjectIndex, short trackCandidateType)
+{
+    unsigned int innerObjectOuterSegmentIndex, outerObjectInnerSegmentIndex;
 
+    if(trackCandidateType == 0)
+    {
+        //2 tracklets
+        innerObjectOuterSegmentIndex = pixelTrackletsInGPU.segmentIndices[2 * innerObjectIndex + 1];
+        outerObjectInnerSegmentIndex = trackletsInGPU.segmentIndices[2 * outerObjectIndex];
+    }
+    else if(trackCandidateType == 1)
+    {
+        //T4T3
+        innerObjectOuterSegmentIndex = pixelTrackletsInGPU.segmentIndices[2 * innerObjectIndex + 1];
+        outerObjectInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * outerObjectIndex];
+    }
+
+    return (innerObjectOuterSegmentIndex == outerObjectInnerSegmentIndex);
+}

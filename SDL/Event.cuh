@@ -18,6 +18,7 @@
 #include "MiniDoublet.cuh"
 #include "Segment.cuh"
 #include "Tracklet.cuh"
+#include "PixelTracklet.cuh"
 #include "Triplet.cuh"
 #include "TrackCandidate.cuh"
 #include "Quintuplet.cuh"
@@ -54,6 +55,7 @@ namespace SDL
         struct miniDoublets* mdsInGPU;
         struct segments* segmentsInGPU;
         struct tracklets* trackletsInGPU;
+        struct pixelTracklets* pixelTrackletsInGPU;
         struct triplets* tripletsInGPU;
         struct quintuplets* quintupletsInGPU;
         struct trackCandidates* trackCandidatesInGPU;
@@ -63,6 +65,7 @@ namespace SDL
         miniDoublets* mdsInCPU;
         segments* segmentsInCPU;
         tracklets* trackletsInCPU;
+        pixelTracklets* pixelTrackletsInCPU;
         triplets* tripletsInCPU;
         trackCandidates* trackCandidatesInCPU;
         modules* modulesInCPU;
@@ -147,6 +150,7 @@ namespace SDL
         miniDoublets* getMiniDoublets();
         segments* getSegments() ;
         tracklets* getTracklets();
+        pixelTracklets* getPixelTracklets();
         triplets* getTriplets();
         quintuplets* getQuintuplets();
         trackCandidates* getTrackCandidates();
@@ -192,16 +196,16 @@ __global__ void createTrackletsFromTripletsP2(struct SDL::modules& modulesInGPU,
 
 #ifndef NESTED_PARA
 #ifdef NEWGRID_Pixel
-__global__ void createPixelTrackletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, unsigned int* threadIdx_gpu, unsigned int* threadIdx_gpu_offset);
-__global__ void createPixelTrackletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex, unsigned int nInnerSegs,unsigned int* seg_pix_gpu, unsigned int* seg_pix_gpu_offset);
+__global__ void createPixelTrackletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTracklets& pixelTrackletsInGPU, unsigned int* threadIdx_gpu, unsigned int* threadIdx_gpu_offset);
+__global__ void createPixelTrackletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTracklets& pixelTrackletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex, unsigned int nInnerSegs,unsigned int* seg_pix_gpu, unsigned int* seg_pix_gpu_offset);
 #endif
 #else
-__global__ void createPixelTrackletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU);
+__global__ void createPixelTrackletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTracklets& pixelTrackletsInGPU);
 
 
-__global__ void createPixelTrackletsFromOuterInnerLowerModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, unsigned int outerInnerLowerModuleIndex, unsigned int nInnerSegments, unsigned int nOuterSegments, unsigned int pixelModuleIndex, unsigned int pixelLowerModuleArrayIndex);
+__global__ void createPixelTrackletsFromOuterInnerLowerModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTracklets& pixelTrackletsInGPU, unsigned int outerInnerLowerModuleIndex, unsigned int nInnerSegments, unsigned int nOuterSegments, unsigned int pixelModuleIndex, unsigned int pixelLowerModuleArrayIndex);
 #endif
-__global__ void createPixelTrackletsFromOuterInnerLowerModulev3(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, unsigned int outerInnerLowerModuleIndex, unsigned int nInnerSegments, unsigned int nOuterSegments, unsigned int pixelModuleIndex, unsigned int pixelLowerModuleArrayIndex);
+__global__ void createPixelTrackletsFromOuterInnerLowerModulev3(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTracklets& pixelTrackletsInGPU, unsigned int outerInnerLowerModuleIndex, unsigned int nInnerSegments, unsigned int nOuterSegments, unsigned int pixelModuleIndex, unsigned int pixelLowerModuleArrayIndex);
 
 __global__ void createTrackletsWithAGapInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU);
 
