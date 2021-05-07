@@ -1048,7 +1048,6 @@ void SDL::Event::createTrackletsWithModuleMap()
         createTrackletsInUnifiedMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , N_MAX_PIXEL_TRACKLETS_PER_MODULE, nLowerModules);
 #endif
     }
-#ifndef DO_QUINTUPLET
 
 #ifdef NESTED_PARA
     unsigned int nThreads = 1;
@@ -1201,8 +1200,6 @@ void SDL::Event::createTrackletsWithModuleMap()
     exit(1);
 #endif
 #endif
-    /*addTrackletsToEvent will be called in the createTrackletsWithAGapWithModuleMap function*/
-#endif // end not T5
 #if defined(AddObjects)
 #ifdef Explicit_Tracklet
     addTrackletsToEventExplicit();
@@ -1215,7 +1212,7 @@ void SDL::Event::createTrackletsWithModuleMap()
 
 void SDL::Event::createPixelTrackletsWithMap()
 {
-    unsigned int nLowerModules;// = *modulesInGPU->nLowerModules;
+    unsigned int nLowerModules;
     cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
     if(trackletsInGPU == nullptr)
     {
