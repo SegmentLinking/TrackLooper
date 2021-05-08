@@ -148,7 +148,7 @@ __device__ bool SDL::runTrackCandidateDefaultAlgoTwoTracklets(struct tracklets& 
     return pass;
 }
 
-__device__ bool SDL::runTrackCandidateDefaultAlgoTwoTracklets(struct tracklets& trackletsInGPU, struct pixelTracklets& pixelTrackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, short& trackCandidateType)
+__device__ bool SDL::runTrackCandidateDefaultAlgoTwoTracklets(struct pixelTracklets& pixelTrackletsInGPU, struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, short& trackCandidateType)
 {
     bool pass = true;
     trackCandidateType = 0;
@@ -224,7 +224,7 @@ __device__ bool SDL::runTrackCandidateDefaultAlgoTrackletToTriplet(struct trackl
     return pass;
 }
 
-__device__ bool SDL::runTrackCandidateDefaultAlgoTrackletToTriplet(struct pixelTracklets& pixelTrackletsInGPU, struct trackets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTripletIndex, short& trackCandidateType)
+__device__ bool SDL::runTrackCandidateDefaultAlgoTrackletToTriplet(struct pixelTracklets& pixelTrackletsInGPU, struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTripletIndex, short& trackCandidateType)
 {
     bool pass = true;
     trackCandidateType = 1;

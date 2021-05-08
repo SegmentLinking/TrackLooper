@@ -391,14 +391,6 @@ void run_sdl()
                 {
                     fillOutputBranches(event);
                 }
-                else
-                {
-                    //call the function from WriteSDLNtupleV2.cc
-                    SDL::EventForAnalysisInterface* eventForAnalysisInterface = new SDL::EventForAnalysisInterface(event.getFullModules(), event.getHits(), event.getMiniDoublets(), event.getSegments(), event.getTracklets(), event.getTriplets(), event.getTrackCandidates());
-
-                    study->doStudy(*eventForAnalysisInterface);
-                    ana.cutflow.fill();
-                }
             }
 
         }
