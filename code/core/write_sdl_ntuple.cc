@@ -124,7 +124,9 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<int>>("pT3_isDuplicate");
 
     ana.tx->createBranch<vector<float>>("pT3_pixelRadius");
+    ana.tx->createBranch<vector<float>>("pT3_pixelRadiusError");
     ana.tx->createBranch<vector<float>>("pT3_tripletRadius");
+    ana.tx->createBranch<vector<int>>("pT3_layer_binary");
 
 
 #ifdef CUT_VALUE_DEBUG
@@ -999,6 +1001,8 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     std::vector<float> pT3_phi;
     std::vector<float> pT3_pixelRadius;
     std::vector<float> pT3_tripletRadius;
+    std::vector<float> pT3_pixelRadiusError;
+    std::vector<int> pT3_layer_binary;
     const unsigned int N_MAX_PIXEL_TRIPLETS = 3000000;
 
     unsigned int nPixelTriplets = std::min(*(pixelTripletsInGPU.nPixelTriplets), N_MAX_PIXEL_TRIPLETS);
@@ -1089,6 +1093,8 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         layer_binary |= (1 << logicallayer4);
         layer_binary |= (1 << logicallayer6);
         layer_binary |= (1 << logicallayer8);
+          
+        pT3_layer_binary.push_back(layer_binary);
 
         //bare bones implementation only
         std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
@@ -1105,12 +1111,12 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         pT3_matched_simIdx.push_back(matched_sim_trk_idxs);
 
         float pixelRadius = pixelTripletsInGPU.pixelRadius[jdx];
+        float pixelRadiusError = pixelTripletsInGPU.pixelRadiusError[jdx];
         float tripletRadius = pixelTripletsInGPU.tripletRadius[jdx];
         const float kRinv1GeVf = (2.99792458e-3 * 3.8);
         const float k2Rinv1GeVf = kRinv1GeVf / 2.;
 
         float pt = k2Rinv1GeVf * (pixelRadius + tripletRadius);
-
         //copyting stuff from before for eta and phi
         SDL::CPU::Hit hitA(trk.ph2_x()[hit_idxs[0]], trk.ph2_y()[hit_idxs[0]], trk.ph2_z()[hit_idxs[0]]);
         SDL::CPU::Hit hitB(trk.ph2_x()[hit_idxs[9]], trk.ph2_y()[hit_idxs[9]], trk.ph2_z()[hit_idxs[9]]);
@@ -1123,6 +1129,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         pT3_phi.push_back(phi);
 
         pT3_pixelRadius.push_back(pixelRadius);
+        pT3_pixelRadiusError.push_back(pixelRadiusError);
         pT3_tripletRadius.push_back(tripletRadius);
 
     }
@@ -1150,7 +1157,9 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("pT3_eta", pT3_eta);
     ana.tx->setBranch<vector<float>>("pT3_phi", pT3_phi);
     ana.tx->setBranch<vector<float>>("pT3_pixelRadius", pT3_pixelRadius);
+    ana.tx->setBranch<vector<float>>("pT3_pixelRadiusError", pT3_pixelRadiusError);
     ana.tx->setBranch<vector<float>>("pT3_tripletRadius", pT3_tripletRadius);
+    ana.tx->setBranch<vector<int>>("pT3_layer_binary", pT3_layer_binary);
 
 }
 
