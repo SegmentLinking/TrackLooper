@@ -26,7 +26,7 @@ def process_moduleTypes(moduleType_binary,objectType = "T4"):
         layers = [0,2,4,6]
     elif objectType == "sg":
         layers = [0,2]
-    elif objectType == "t5" or objectType == "pT3":
+    elif objectType == "pT3" or objectType == "pT3":
         layers = [0,2,4,6,8]
 
     for i in layers:
@@ -149,9 +149,10 @@ def make_single_plots(qArray, quantity, layerType):
 
 def make_radius_difference_distributions():
     global tree
-    all_pT3_arrays = tree.arrays(filter_name = "pT3*", entry_start = 0, entry_stop = -1, library = "ak")
+    all_pT3_arrays = tree.arrays(filter_name = "pT3*", library = "ak")
+    print("abcbcd")
     matchedMask = all_pT3_arrays.pT3_isFake == 0
-    layers = np.array(list(map(process_layers, ak.flatten(all_pT3_arrays.pT3_layer_binary)))
+    layers = np.array(list(map(process_layers, ak.flatten(all_pT3_arrays.pT3_layer_binary))))
 
     layerTypes = np.array(list(map(process_layerType, layers)))
 #    layerTypes = np.array(list(map(process_numbers, layers)))
@@ -170,7 +171,7 @@ def make_radius_difference_distributions():
         qArrayInner = abs(1.0/pixelRadius - 1.0/simRadius)/(1.0/pixelRadius)
         qArrayOuter = abs(1.0/tripletRadius - 1.0/simRadius)/(1.0/tripletRadius)
 
-        for name,qArray in {"inner": qArrayInner, "bridge": qArrayBridge, "outer": qArrayOuter}.items():
+        for name,qArray in {"inner": qArrayInner, "outer": qArrayOuter}.items():
             print("qName = ",name)
             if layerType == "":
                 qArraySimTrackMatched = qArray[ak.to_numpy(ak.flatten(matchedMask))]
@@ -178,7 +179,7 @@ def make_radius_difference_distributions():
                 qArray = qArray[layerTypes == layerType]
                 qArraySimTrackMatched = qArray[ak.to_numpy(ak.flatten(matchedMask)[layerTypes == layerType])]
 
-            #print("{} integral = {}, {} sim-track integral = {}".format(name, len(qArray), name, len(qArraySimTrackMatched)))
+            print("{} integral = {}, {} sim-track integral = {}".format(name, len(qArray), name, len(qArraySimTrackMatched)))
 
             make_single_plots(qArraySimTrackMatched, "(1/{} - 1/sim_radius)/(1/{})".format(name + " radius", name + " radius"), layerType)
 
@@ -209,9 +210,9 @@ def make_radius_compatibility_distributions():
 
         tripletRadius = ak.to_numpy(ak.flatten(all_pT3_arrays.pT3_tripletRadius))
         tripletRadiusResMin = ak.to_numpy(ak.flatten(all_pT3_arrays.pT3_tripletRadiusMin))
-        tripletRadiusResMax = ak.to_numpy(ak.flatten(all_pT3_arrays.t5_tripletRadiusMax))
+        tripletRadiusResMax = ak.to_numpy(ak.flatten(all_pT3_arrays.pT3_tripletRadiusMax))
 
-        simRadius = ak.flatten(all_t5_arrays.t5_matched_pt/(2.99792458e-3 * 3.8))
+        simRadius = ak.flatten(all_pT3_arrays.pT3_matched_pt/(2.99792458e-3 * 3.8))
         simRadius = ak.flatten(simRadius)
 
         pixelRadiusMin = ak.to_numpy(ak.min([pixelRadiusResMin, pixelRadius2SMin], axis = 0))
@@ -232,7 +233,7 @@ def make_radius_compatibility_distributions():
             print("{} total integral = {}, {} integral below zero = {}, sim-matched {} total integral = {}, sim-matched {} integral above zero = {}".format(name, len(qArray), name, sum(qArray < 0), name, len(qArraySimTrackMatched), name, sum(qArraySimTrackMatched > 0)))
             make_plots(qArray, qArraySimTrackMatched, "overlap between 1/{} and 1/{}".format("Inner", name[5:]), layerType)
 
-objects = ["t5"]
+objects = ["pT3"]
 for i in objects:
     make_radius_difference_distributions()
     #make_radius_compatibility_distributions()
