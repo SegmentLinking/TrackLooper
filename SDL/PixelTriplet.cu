@@ -81,8 +81,9 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
 
 
     //pt matching between the pixel ptin and the triplet circle pt
-    float pixelSegmentPt = segmentsInGPU.ptIn[pixelSegmentIndex];
-    float pixelSegmentPtError = segmentsInGPU.ptErr[pixelSegmentIndex];
+    unsigned int pixelSegmentArrayIndex = pixelSegmentIndex - (pixelModuleIndex * 600);
+    float pixelSegmentPt = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
+    float pixelSegmentPtError = segmentsInGPU.ptErr[pixelSegmentArrayIndex];
 
     pixelRadius = pixelSegmentPt/(2 * k2Rinv1GeVf);
     pixelRadiusError = pixelSegmentPtError/(2 * k2Rinv1GeVf);

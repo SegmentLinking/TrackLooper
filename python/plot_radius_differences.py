@@ -26,7 +26,7 @@ def process_moduleTypes(moduleType_binary,objectType = "T4"):
         layers = [0,2,4,6]
     elif objectType == "sg":
         layers = [0,2]
-    elif objectType == "t5":
+    elif objectType == "t5" or objectType == "pT3":
         layers = [0,2,4,6,8]
 
     for i in layers:
@@ -52,18 +52,12 @@ def make_plots(qArray, qArraySimTrackMatched, quantity, layerType):
     maxValue = max(qArray)
     histMinLimit = 1.1 * minValue if minValue < 0 else 0.9 * minValue
     histMaxLimit = 1.1 * maxValue if maxValue > 0 else 0.9 * maxValue
-#    if abs(histMaxLimit - histMinLimit) > 10 and histMinLimit > 0 or "/" in quantity:
-#        binning = np.logspace(np.log10(histMinLimit), np.log10(histMaxLimit), 1000)
-#    else:
     binning = np.linspace(histMinLimit, histMaxLimit, 1000)
 
     allHist = Hist1D(ak.to_numpy(qArray[qArray > -999]), bins=binning, label="{}".format(quantity))
     simtrackMatchedHist = Hist1D(ak.to_numpy(qArraySimTrackMatched[qArraySimTrackMatched > -999]), bins=binning, label="Sim track matched {}".format(quantity))
     fig, ax = plt.subplots()
     ax.set_yscale("log")
-#    if abs(histMaxLimit - histMinLimit) > 10 and histMinLimit > 0 or "/" in quantity:
-#        ax.set_xscale("log")
-
     allHist.plot(alpha=0.8, color="C0", label="all", histtype="stepfilled")
     simtrackMatchedHist.plot(alpha=0.8, color="C3", label="sim track matched", histtype="stepfilled")
     if layerType == "":
@@ -155,26 +149,26 @@ def make_single_plots(qArray, quantity, layerType):
 
 def make_radius_difference_distributions():
     global tree
-    all_t5_arrays = tree.arrays(filter_name = "t5*", entry_start = 0, entry_stop = -1, library = "ak")
-    matchedMask = all_t5_arrays.t5_isFake == 0
-    layers = np.array(list(map(process_layers, ak.flatten(all_t5_arrays.t5_layer_binary))))
-#    layerTypes = np.array(list(map(process_layerType, layers)))
-    layerTypes = np.array(list(map(process_numbers, layers)))
+    all_pT3_arrays = tree.arrays(filter_name = "pT3*", entry_start = 0, entry_stop = -1, library = "ak")
+    matchedMask = all_pT3_arrays.pT3_isFake == 0
+    layers = np.array(list(map(process_layers, ak.flatten(all_pT3_arrays.pT3_layer_binary)))
+
+    layerTypes = np.array(list(map(process_layerType, layers)))
+#    layerTypes = np.array(list(map(process_numbers, layers)))
+
     unique_layerTypes = np.unique(layerTypes, axis=0)
     unique_layerTypes = np.append(unique_layerTypes,"")
     print(unique_layerTypes)
 
     for layerType in unique_layerTypes:
         print("layerType = {}".format(layerType))
-        innerRadius = ak.to_numpy(ak.flatten(all_t5_arrays.t5_innerRadius))
-        bridgeRadius = ak.to_numpy(ak.flatten(all_t5_arrays.t5_bridgeRadius))
-        outerRadius = ak.to_numpy(ak.flatten(all_t5_arrays.t5_outerRadius))
-        simRadius = ak.flatten(all_t5_arrays.t5_matched_pt/(2.99792458e-3 * 3.8))
+        pixelRadius = ak.to_numpy(ak.flatten(all_pT3_arrays.pT3_pixelRadius))
+        tripletRadius = ak.to_numpy(ak.flatten(all_pT3_arrays.pT3_tripletRadius))
+        simRadius = ak.flatten(all_pT3_arrays.pT3_matched_pt/(2.99792458e-3 * 3.8))
         simRadius = ak.flatten(simRadius)
 
-        qArrayInner = abs(1.0/innerRadius - 1.0/simRadius)/(1.0/innerRadius)
-        qArrayBridge = abs(1.0/bridgeRadius - 1.0/simRadius)/(1.0/bridgeRadius)
-        qArrayOuter = abs(1.0/outerRadius - 1.0/simRadius)/(1.0/outerRadius)
+        qArrayInner = abs(1.0/pixelRadius - 1.0/simRadius)/(1.0/pixelRadius)
+        qArrayOuter = abs(1.0/tripletRadius - 1.0/simRadius)/(1.0/tripletRadius)
 
         for name,qArray in {"inner": qArrayInner, "bridge": qArrayBridge, "outer": qArrayOuter}.items():
             print("qName = ",name)
@@ -197,9 +191,9 @@ def compute_interval_overlap(firstMin, firstMax, secondMin, secondMax):
 
 def make_radius_compatibility_distributions():
     global tree
-    all_t5_arrays = tree.arrays(filter_name = "t5*", entry_start = 0, entry_stop = 5, library = "ak")
-    matchedMask = all_t5_arrays.t5_isFake == 0
-    layers = np.array(list(map(process_layers, ak.flatten(all_t5_arrays.t5_layer_binary))))
+    all_pT3_arrays = tree.arrays(filter_name = "pT3*", entry_start = 0, entry_stop = 5, library = "ak")
+    matchedMask = all_pT3_arrays.pT3_isFake == 0
+    layers = np.array(list(map(process_layers, ak.flatten(all_pT3_arrays.pT3_layer_binary))))
     layerTypes = np.array(list(map(process_layerType, layers)))
 #    layerTypes = np.array(list(map(process_numbers, layers)))
     unique_layerTypes = np.unique(layerTypes, axis=0)
@@ -209,39 +203,26 @@ def make_radius_compatibility_distributions():
     for layerType in unique_layerTypes:
         print("layerType = {}".format(layerType))
 
-        innerRadius = ak.to_numpy(ak.flatten(all_t5_arrays.t5_innerRadius))
-        innerRadiusResMin = ak.to_numpy(ak.flatten(all_t5_arrays.t5_innerRadiusMin))
-        innerRadius2SMin = ak.to_numpy(ak.flatten(all_t5_arrays.t5_innerRadiusMin2S))
-        innerRadiusResMax = ak.to_numpy(ak.flatten(all_t5_arrays.t5_innerRadiusMax))
-        innerRadius2SMax = ak.to_numpy(ak.flatten(all_t5_arrays.t5_innerRadiusMax2S))
+        pixelRadius = ak.to_numpy(ak.flatten(all_pT3_arrays.pT3_pixelRadius))
+        pixelRadiusResMin = ak.to_numpy(ak.flatten(all_pT3_arrays.pT3_pixelRadiusMin))
+        pixelRadiusResMax = ak.to_numpy(ak.flatten(all_pT3_arrays.pT3_pixelRadiusMax))
 
-        bridgeRadius = ak.to_numpy(ak.flatten(all_t5_arrays.t5_bridgeRadius))
-        bridgeRadiusResMin = ak.to_numpy(ak.flatten(all_t5_arrays.t5_bridgeRadiusMin))
-        bridgeRadius2SMin = ak.to_numpy(ak.flatten(all_t5_arrays.t5_bridgeRadiusMin2S))
-        bridgeRadiusResMax = ak.to_numpy(ak.flatten(all_t5_arrays.t5_bridgeRadiusMax))
-        bridgeRadius2SMax = ak.to_numpy(ak.flatten(all_t5_arrays.t5_bridgeRadiusMax2S))
-
-        outerRadius = ak.to_numpy(ak.flatten(all_t5_arrays.t5_outerRadius))
-        outerRadiusResMin = ak.to_numpy(ak.flatten(all_t5_arrays.t5_outerRadiusMin))
-        outerRadius2SMin = ak.to_numpy(ak.flatten(all_t5_arrays.t5_outerRadiusMin2S))
-        outerRadiusResMax = ak.to_numpy(ak.flatten(all_t5_arrays.t5_outerRadiusMax))
-        outerRadius2SMax = ak.to_numpy(ak.flatten(all_t5_arrays.t5_outerRadiusMax2S))
+        tripletRadius = ak.to_numpy(ak.flatten(all_pT3_arrays.pT3_tripletRadius))
+        tripletRadiusResMin = ak.to_numpy(ak.flatten(all_pT3_arrays.pT3_tripletRadiusMin))
+        tripletRadiusResMax = ak.to_numpy(ak.flatten(all_pT3_arrays.t5_tripletRadiusMax))
 
         simRadius = ak.flatten(all_t5_arrays.t5_matched_pt/(2.99792458e-3 * 3.8))
         simRadius = ak.flatten(simRadius)
 
-        innerRadiusMin = ak.to_numpy(ak.min([innerRadiusResMin, innerRadius2SMin], axis = 0))
-        innerRadiusMax = ak.to_numpy(ak.max([innerRadiusResMax, innerRadius2SMax], axis = 0))
-        bridgeRadiusMin = ak.to_numpy(ak.min([bridgeRadiusResMin, bridgeRadius2SMin], axis = 0))
-        bridgeRadiusMax = ak.to_numpy(ak.max([bridgeRadiusResMax, bridgeRadius2SMax], axis = 0))
-        outerRadiusMin = ak.to_numpy(ak.min([outerRadiusResMin, outerRadius2SMin], axis = 0))
-        outerRadiusMax = ak.to_numpy(ak.max([outerRadiusResMax, outerRadius2SMax], axis = 0))
+        pixelRadiusMin = ak.to_numpy(ak.min([pixelRadiusResMin, pixelRadius2SMin], axis = 0))
+        pixelRadiusMax = ak.to_numpy(ak.max([pixelRadiusResMax, pixelRadius2SMax], axis = 0))
+        tripletRadiusMin = ak.to_numpy(ak.min([tripletRadiusResMin, tripletRadius2SMin], axis = 0))
+        tripletRadiusMax = ak.to_numpy(ak.max([tripletRadiusResMax, tripletRadius2SMax], axis = 0))
 
-        qArrayInnerBridge = compute_interval_overlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/bridgeRadiusMax, 1.0/bridgeRadiusMin)
-        qArrayInnerOuter = compute_interval_overlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/outerRadiusMax, 1.0/outerRadiusMin)
+        qArrayInnerOuter = compute_interval_overlap(1.0/pixelRadiusMax, 1.0/pixelRadiusMin, 1.0/tripletRadiusMax, 1.0/tripletRadiusMin)
 
 
-        for name,qArray in {"innerBridge":qArrayInnerBridge, "innerOuter":qArrayInnerOuter}.items():
+        for name,qArray in {"innerOuter":qArrayInnerOuter}.items():
             print("qName = ",name)
             if layerType == "":
                 qArraySimTrackMatched = qArray[ak.to_numpy(ak.flatten(matchedMask))]
@@ -253,5 +234,5 @@ def make_radius_compatibility_distributions():
 
 objects = ["t5"]
 for i in objects:
-    #make_radius_difference_distributions()
-    make_radius_compatibility_distributions()
+    make_radius_difference_distributions()
+    #make_radius_compatibility_distributions()
