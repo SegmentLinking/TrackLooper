@@ -139,7 +139,7 @@ __device__ bool SDL::passRadiusCriterionBBB(float& pixelRadius, float& pixelRadi
     float tripletInvRadiusErrorBound = 0.15624;
     float pixelInvRadiusErrorBound = 0.17235;
     float tripletRadiusMin = tripletRadius/(1 + tripletInvRadiusErrorBound);
-    float tripletRadiusMax = tripletRadius/(1 - tripletInvRadiusErrorBound);
+    float tripletRadiusMax = tripletInvRadiusErrorBound < 1 ? tripletRadius/(1 - tripletInvRadiusErrorBound) : 123456789;
     float pixelRadiusMin = fminf(pixelRadius - pixelRadiusError, pixelRadius/(1 + pixelInvRadiusErrorBound));
     float pixelRadiusMax = fmaxf(pixelRadius + pixelRadiusError, pixelRadius/(1 - pixelInvRadiusErrorBound));
     
@@ -151,7 +151,7 @@ __device__ bool SDL::passRadiusCriterionBBE(float& pixelRadius, float& pixelRadi
     float tripletInvRadiusErrorBound = 0.45972;
     float pixelInvRadiusErrorBound = 0.19644;
     float tripletRadiusMin = tripletRadius/(1 + tripletInvRadiusErrorBound);
-    float tripletRadiusMax = tripletRadius/(1 - tripletInvRadiusErrorBound);
+    float tripletRadiusMax = tripletInvRadiusErrorBound < 1 ? tripletRadius/(1 - tripletInvRadiusErrorBound) : 123456789;
     float pixelRadiusMin = fminf(pixelRadius - pixelRadiusError, pixelRadius/(1 + pixelInvRadiusErrorBound));
     float pixelRadiusMax = fmaxf(pixelRadius + pixelRadiusError, pixelRadius/(1 - pixelInvRadiusErrorBound));
 
@@ -164,7 +164,7 @@ __device__ bool SDL::passRadiusCriterionBEE(float& pixelRadius, float& pixelRadi
     float tripletInvRadiusErrorBound = 1.59294;
     float pixelInvRadiusErrorBound = 0.255181;
     float tripletRadiusMin = tripletRadius/(1 + tripletInvRadiusErrorBound);
-    float tripletRadiusMax = tripletRadius/(1 - tripletInvRadiusErrorBound);
+    float tripletRadiusMax = tripletInvRadiusErrorBound < 1 ? tripletRadius/(1 - tripletInvRadiusErrorBound) : 123456789;
     float pixelRadiusMin = fminf(pixelRadius - pixelRadiusError, pixelRadius/(1 + pixelInvRadiusErrorBound));
     float pixelRadiusMax = fmaxf(pixelRadius + pixelRadiusError, pixelRadius/(1 - pixelInvRadiusErrorBound));
 
@@ -178,7 +178,7 @@ __device__ bool SDL::passRadiusCriterionEEE(float& pixelRadius, float& pixelRadi
     float tripletInvRadiusErrorBound = 1.7006;
     float pixelInvRadiusErrorBound = 0.26367;
     float tripletRadiusMin = tripletRadius/(1 + tripletInvRadiusErrorBound);
-    float tripletRadiusMax = tripletRadius/(1 - tripletInvRadiusErrorBound);
+    float tripletRadiusMax = tripletInvRadiusErrorBound < 1 ? tripletRadius/(1 - tripletInvRadiusErrorBound) : 123456789;
     float pixelRadiusMin = fminf(pixelRadius - pixelRadiusError, pixelRadius/(1 + pixelInvRadiusErrorBound));
     float pixelRadiusMax = fmaxf(pixelRadius + pixelRadiusError, pixelRadius/(1 - pixelInvRadiusErrorBound));
 

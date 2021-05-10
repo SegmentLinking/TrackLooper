@@ -120,6 +120,7 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("pT3_pt");
     ana.tx->createBranch<vector<float>>("pT3_eta");
     ana.tx->createBranch<vector<float>>("pT3_phi");
+    ana.tx->createBranch<vector<vector<float>>>("pT3_matched_pt");
     ana.tx->createBranch<vector<int>>("pT3_isFake");
     ana.tx->createBranch<vector<int>>("pT3_isDuplicate");
 
@@ -1003,6 +1004,8 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     std::vector<float> pT3_tripletRadius;
     std::vector<float> pT3_pixelRadiusError;
     std::vector<int> pT3_layer_binary;
+    std::vector<std::vector<float>> pT3_simpt;
+
     const unsigned int N_MAX_PIXEL_TRIPLETS = 3000000;
 
     unsigned int nPixelTriplets = std::min(*(pixelTripletsInGPU.nPixelTriplets), N_MAX_PIXEL_TRIPLETS);
@@ -1103,6 +1106,17 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
             sim_pT3_matched[isimtrk]++;
         }
 
+        std::vector<float> sim_pt_per_pT3;
+        if(matched_sim_trk_idxs.size() == 0)
+        {
+            sim_pt_per_pT3.push_back(-999);
+        }
+        else
+        {
+            sim_pt_per_pT3.push_back(trk.sim_pt()[matched_sim_trk_idxs[0]]);
+        }
+        pT3_simpt.push_back(sim_pt_per_pT3);
+
         for (auto &isimtrk : matched_sim_trk_idxs)
         {
             sim_pT3_types[isimtrk].push_back(layer_binary);
@@ -1156,6 +1170,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("pT3_pt", pT3_pt);
     ana.tx->setBranch<vector<float>>("pT3_eta", pT3_eta);
     ana.tx->setBranch<vector<float>>("pT3_phi", pT3_phi);
+    ana.tx->setBranch<vector<vector<float>>>("pT3_matched_pt", pT3_simpt);
     ana.tx->setBranch<vector<float>>("pT3_pixelRadius", pT3_pixelRadius);
     ana.tx->setBranch<vector<float>>("pT3_pixelRadiusError", pT3_pixelRadiusError);
     ana.tx->setBranch<vector<float>>("pT3_tripletRadius", pT3_tripletRadius);
