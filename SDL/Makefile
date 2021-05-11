@@ -22,7 +22,7 @@ CXXFLAGS             =  -g --compiler-options -Wall --compiler-options -Wshadow 
 LD                   = nvcc 
 SOFLAGS              = -g -shared --compiler-options -fPIC --cudart shared -arch=compute_52
 PRINTFLAG            = -DAddObjects -DT4FromT3 #-DWarnings
-FINALSTATE           = -DFINAL_T3T4 #-DFINAL_T5 -DFINAL_pT2
+FINALSTATE           = -DFINAL_T5 -DFINAL_pT2 #-DFINAL_T3T4 
 MEMFLAG              =
 CACHEFLAG            =
 CUDALAUNCHFLAG       = -DNESTED_PARA 
