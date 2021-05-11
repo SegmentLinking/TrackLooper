@@ -48,7 +48,11 @@ gpu_tgraphs = {}
 configurations = []
 for eff_file_gpu in eff_files_gpu:
     configuration = os.path.basename(os.path.dirname(eff_file_gpu)).split("GPU_")[1].split("_{}".format(githash))[0] # e.g. unified_cache ...
-    configurations.append(configuration)
+    tempf = r.TFile(eff_file_gpu)
+    if tempf.Get(keys[0]):
+        configurations.append(configuration)
+    else:
+        continue
     gpu_file = r.TFile(eff_file_gpu)
     gpu_tgraphs[configuration] = {}
     for key in keys:

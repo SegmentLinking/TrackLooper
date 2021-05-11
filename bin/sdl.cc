@@ -87,6 +87,10 @@ int main(int argc, char** argv)
         ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_1pion_10k_pt0p5_50p0.root";
     else if (ana.input_raw_string.EqualTo("PU200"))
         ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_with_PUinfo_500_evts.root";
+    else if (ana.input_raw_string.EqualTo("cube"))
+        ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_10_pt0p5_50_5cm_cube.root";
+    else if (ana.input_raw_string.EqualTo("cube50cm"))
+        ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_10_pt0p5_50_50cm_cube.root";
     else
         ana.input_file_list_tstring = ana.input_raw_string;
 
@@ -351,13 +355,15 @@ void run_sdl()
             //Run pT3
             float timing_pT3 = runpT3(event);
 
+#ifdef DO_QUINTUPLET
+            float timing_T5 = runQuintuplet(event);
+            //Don't run T4
+            float timing_T4 = 0;
+#else
+            float timing_T5 = 0;
             // Run T4
             float timing_T4 = runT4(event);
 
-#ifdef DO_QUINTUPLET
-            float timing_T5 = runQuintuplet(event);
-#else
-            float timing_T5 = 0;
 #endif
             // Run TC
             float timing_TC = runTrackCandidate(event);
@@ -388,14 +394,6 @@ void run_sdl()
                 if (not ana.do_cut_value_ntuple)
                 {
                     fillOutputBranches(event);
-                }
-                else
-                {
-                    //call the function from WriteSDLNtupleV2.cc
-                    SDL::EventForAnalysisInterface* eventForAnalysisInterface = new SDL::EventForAnalysisInterface(event.getFullModules(), event.getHits(), event.getMiniDoublets(), event.getSegments(), event.getTracklets(), event.getTriplets(), event.getTrackCandidates());
-
-                    study->doStudy(*eventForAnalysisInterface);
-                    ana.cutflow.fill();
                 }
             }
 
@@ -433,7 +431,7 @@ void run_sdl()
             printTripletSummary(event);
 
             // Run Tracklet
-            float timing_T4 = runT4_on_CPU(event);
+            float timing_T4 = 0; // runT4_on_CPU(event);
             printTrackletSummary(event);
             float timing_T4x = 0; // runT4x_on_CPU(event); // T4x's are turned off right now
             printTrackletSummary(event);
@@ -443,7 +441,7 @@ void run_sdl()
             // Run T5s
             float timing_T5 = runT5_on_CPU(event);
             // Run TrackCandidate
-            float timing_TC = runTrackCandidate_on_CPU(event); // {T4, T3 based TC's, and no T5};
+            float timing_TC = 0; // runTrackCandidate_on_CPU(event); // {T4, T3 based TC's, and no T5};
             printTrackCandidateSummary(event);
 
             timing_information.push_back({ timing_input_loading,
@@ -453,7 +451,8 @@ void run_sdl()
                     timing_T4x,
                     timing_pT4,
                     timing_T3,
-                    timing_TC});
+                    timing_TC,
+                    timing_T5});
 
             if (ana.verbose == 4)
             {
