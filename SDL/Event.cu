@@ -9,12 +9,18 @@ const unsigned int MAX_CONNECTED_MODULES = 40;
 const unsigned int N_MAX_TRACKLETS_PER_MODULE = 8000;//temporary
 const unsigned int N_MAX_TRIPLETS_PER_MODULE = 5000;
 const unsigned int N_MAX_TOTAL_TRIPLETS = 150000;
-const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 5000;
 const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 100000;
 const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
+const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 5000;
+#ifdef FINAL_T3T4
+const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 50000;
+const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 3000000;
+const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 5000000;
+#else
+const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 5000;
 const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 200000;
 const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 200000;
-const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 5000;
+#endif
 struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::pixelMap* SDL::pixelMapping = nullptr;
 unsigned int SDL::nModules;
