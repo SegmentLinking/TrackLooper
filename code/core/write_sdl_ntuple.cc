@@ -95,7 +95,7 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<int>>("t3_isFake");
     ana.tx->createBranch<vector<int>>("t3_isDuplicate");
 
-#ifdef DO_QUINTUPLET
+//#ifdef DO_QUINTUPLET
     //T5 - new kid
     ana.tx->createBranch<vector<int>>("sim_T5_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_T5_types");
@@ -104,7 +104,7 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("t5_pt");
     ana.tx->createBranch<vector<float>>("t5_eta");
     ana.tx->createBranch<vector<float>>("t5_phi");
-#endif
+//#endif
     //pLS
     ana.tx->createBranch<vector<int>>("sim_pLS_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_pLS_types");
@@ -361,7 +361,8 @@ void fillOccupancyBranches(SDL::Event& event)
     SDL::modules& modulesInGPU = (*event.getModules());
 #ifdef DO_QUINTUPLET
     SDL::quintuplets&  quintupletsInGPU = (*event.getQuintuplets());
-#else
+#endif
+#ifdef DO_QUADRUPLET
     SDL::tracklets& trackletsInGPU = (*event.getTracklets());
 #endif
     SDL::pixelTriplets& pixelTripletsInGPU = (*event.getPixelTriplets());
@@ -393,9 +394,13 @@ void fillOccupancyBranches(SDL::Event& event)
         {
 #ifdef DO_QUINTUPLET
             quintupletOccupancy.push_back(quintupletsInGPU.nQuintuplets[idx]);
-            trackletOccupancy.push_back(0);
 #else
+            quintupletOccupancy.push_back(0);
+#endif
+#ifdef DO_QUADRUPLET
             trackletOccupancy.push_back(trackletsInGPU.nTracklets[idx]);
+#else
+            trackletOccupancy.push_back(0);
 #endif
             tripletOccupancy.push_back(tripletsInGPU.nTriplets[idx]);
         }
@@ -440,7 +445,7 @@ void fillSimTrackOutputBranches()
 //________________________________________________________________________________________________________________________________
 void fillTrackCandidateOutputBranches(SDL::Event& event)
 {
-    fillTrackCandidateOutputBranches_v2(event);
+    fillTrackCandidateOutputBranches_v1(event);
 }
 
 //________________________________________________________________________________________________________________________________
@@ -456,7 +461,8 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
     SDL::pixelTracklets& pixelTrackletsInGPU = (*event.getPixelTracklets());
 #ifdef DO_QUINTUPLET
     SDL::quintuplets& quintupletsInGPU = (*event.getQuintuplets());
-#else
+#endif
+#ifdef DO_QUADRUPLET
     SDL::tracklets& trackletsInGPU = (*event.getTracklets());
 #endif
 
@@ -490,25 +496,6 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
 
         for (unsigned int jdx = 0; jdx < nTrackCandidates; jdx++)
         {
-//#ifdef DO_QUINTUPLET
-//            unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[idx] + jdx;
-//            unsigned int innerTrackletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
-//            unsigned int outerTrackletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
-//            unsigned int innerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTrackletIndex];
-//            unsigned int innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTrackletIndex + 1];
-//            unsigned int outerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTrackletIndex];
-//            unsigned int outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTrackletIndex + 1];
-//// come back to the beta
-//            float betaIn_in = 0;
-//            float betaOut_in = 0;
-//            float betaIn_out = 0;
-//            float betaOut_out = 0;
-//                betaIn_in = tripletsInGPU.betaIn[innerTrackletIndex];
-//                betaOut_in = tripletsInGPU.betaOut[innerTrackletIndex];
-//                betaIn_out = tripletsInGPU.betaIn[outerTrackletIndex];
-//                betaOut_out = tripletsInGPU.betaOut[outerTrackletIndex];
-//
-//#else
             unsigned int trackCandidateIndex = modulesInGPU.trackCandidateModuleIndices[idx] + jdx; // this line causes the issue
             short trackCandidateType = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
             unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex];
@@ -546,7 +533,8 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 betaIn_out = tripletsInGPU.betaIn[outerTrackletIndex];
                 betaOut_out = tripletsInGPU.betaOut[outerTrackletIndex];
             }
-#else
+#endif
+#ifdef DO_QUADRUPLET
             if (trackCandidateType == 0) // T4T4
             {
                 innerTrackletInnerSegmentIndex = trackletsInGPU.segmentIndices[2 * innerTrackletIdx];
@@ -577,6 +565,27 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 betaOut_in = tripletsInGPU.betaOut[innerTrackletIdx];
                 betaIn_out = trackletsInGPU.betaIn[outerTrackletIdx];
                 betaOut_out = trackletsInGPU.betaOut[outerTrackletIdx];
+            }
+            else if (trackCandidateType == 5) // pT2T4
+            {
+                innerTrackletInnerSegmentIndex = pixelTrackletsInGPU.segmentIndices[2 * innerTrackletIdx];
+                innerTrackletOuterSegmentIndex = pixelTrackletsInGPU.segmentIndices[2 * innerTrackletIdx + 1];
+                outerTrackletOuterSegmentIndex = trackletsInGPU.segmentIndices[2 * outerTrackletIdx + 1];
+                betaIn_in = pixelTrackletsInGPU.betaIn[innerTrackletIdx];
+                betaOut_in = pixelTrackletsInGPU.betaOut[innerTrackletIdx];
+                betaIn_out = trackletsInGPU.betaIn[outerTrackletIdx];
+                betaOut_out = trackletsInGPU.betaOut[outerTrackletIdx];
+            }
+            else if (trackCandidateType == 6) // pT2T3
+            {
+
+                innerTrackletInnerSegmentIndex = pixelTrackletsInGPU.segmentIndices[2 * innerTrackletIdx];
+                innerTrackletOuterSegmentIndex = pixelTrackletsInGPU.segmentIndices[2 * innerTrackletIdx + 1];
+                outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTrackletIdx + 1];
+                betaIn_in = pixelTrackletsInGPU.betaIn[innerTrackletIdx];
+                betaOut_in = pixelTrackletsInGPU.betaOut[innerTrackletIdx];
+                betaIn_out = tripletsInGPU.betaIn[outerTrackletIdx];
+                betaOut_out = tripletsInGPU.betaOut[outerTrackletIdx];
             }
 
 #endif
@@ -817,9 +826,6 @@ void fillTrackCandidateOutputBranches_v2(SDL::Event& event)
     SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
     SDL::hits& hitsInGPU = (*event.getHits());
     SDL::modules& modulesInGPU = (*event.getModules());
-#ifdef DO_QUINTUPLET
-    SDL::quintuplets& quintupletsInGPU = (*event.getQuintuplets());
-
     // Did it match to track candidate?
     std::vector<int> sim_TC_matched(trk.sim_pt().size());
     std::vector<vector<int>> sim_TC_types(trk.sim_pt().size());
@@ -828,10 +834,13 @@ void fillTrackCandidateOutputBranches_v2(SDL::Event& event)
     std::vector<float> tc_pt;
     std::vector<float> tc_eta;
     std::vector<float> tc_phi;
-
-    const int MAX_NQUINTUPLET_PER_MODULE = 5000;
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     const float k2Rinv1GeVf = kRinv1GeVf / 2.;
+#ifdef DO_QUINTUPLET
+    SDL::quintuplets& quintupletsInGPU = (*event.getQuintuplets());
+
+
+    const int MAX_NQUINTUPLET_PER_MODULE = 5000;
     
     for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
     {
@@ -1123,7 +1132,8 @@ void fillLowerLevelOutputBranches(SDL::Event& event)
     fillPixelLineSegmentOutputBranches(event);
 #ifdef DO_QUINTUPLET
     fillQuintupletOutputBranches(event);
-#else
+#endif
+#ifdef DO_QUADRUPLET
     fillQuadrupletOutputBranches(event);
 #endif
     fillPixelTripletOutputBranches(event);
@@ -1935,7 +1945,7 @@ void fillPixelQuadrupletOutputBranches(SDL::Event& event)
 
 
 //________________________________________________________________________________________________________________________________
-#ifndef DO_QUINTUPLET
+#ifdef DO_QUADRUPLET
 void fillQuadrupletOutputBranches(SDL::Event& event)
 {
 
@@ -3658,7 +3668,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information)
 
 //________________________________________________________________________________________________________________________________
 //
-#ifndef DO_QUINTUPLET
+#ifdef DO_QUADRUPLET
 void printQuadrupletMultiplicities(SDL::Event& event)
 {
     SDL::tracklets& trackletsInGPU = (*event.getTracklets());
@@ -3712,7 +3722,7 @@ void printAllObjects(SDL::Event& event)
     printLSs(event);
     printpLSs(event);
     printT3s(event);
-#ifndef DO_QUINTUPLET
+#ifdef DO_QUADRUPLET
     printT4s(event);
     printTCs(event);
 #endif

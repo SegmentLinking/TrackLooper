@@ -10,12 +10,13 @@ void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned
     cudaStream_t stream=0;
     tripletsInGPU.segmentIndices = (unsigned int*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(unsigned int) *5,stream);
     tripletsInGPU.nTriplets = (unsigned int*)cms::cuda::allocate_managed(nLowerModules * sizeof(unsigned int),stream);
-    tripletsInGPU.zOut = (float*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(float) *7,stream);
+    tripletsInGPU.betaIn = (float*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(float) * 3,stream);
 #else
     cudaMallocManaged(&tripletsInGPU.segmentIndices, 5 * maxTriplets * nLowerModules * sizeof(unsigned int));
     cudaMallocManaged(&tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int));
-    cudaMallocManaged(&tripletsInGPU.zOut, maxTriplets * nLowerModules * 7*sizeof(unsigned int));
+    cudaMallocManaged(&tripletsInGPU.betaIn, maxTriplets * nLowerModules * 3 * sizeof(float));
 #ifdef CUT_VALUE_DEBUG
+    cudaMallocManaged(&tripletsInGPU.zOut, maxTriplets * nLowerModules * 4*sizeof(unsigned int));
     cudaMallocManaged(&tripletsInGPU.zLo, maxTriplets * nLowerModules * sizeof(float));
     cudaMallocManaged(&tripletsInGPU.zHi, maxTriplets * nLowerModules * sizeof(float));
     cudaMallocManaged(&tripletsInGPU.zLoPointed, maxTriplets * nLowerModules * sizeof(float));
@@ -27,16 +28,16 @@ void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned
     cudaMallocManaged(&tripletsInGPU.rtLo, maxTriplets * nLowerModules * sizeof(float));
     cudaMallocManaged(&tripletsInGPU.rtHi, maxTriplets * nLowerModules * sizeof(float));
     cudaMallocManaged(&tripletsInGPU.kZ, maxTriplets * nLowerModules * sizeof(float));
-#endif
-#endif
-    tripletsInGPU.lowerModuleIndices = tripletsInGPU.segmentIndices + nLowerModules * maxTriplets *2;
 
     tripletsInGPU.rtOut = tripletsInGPU.zOut + nLowerModules * maxTriplets;
     tripletsInGPU.deltaPhiPos = tripletsInGPU.zOut + nLowerModules * maxTriplets *2;
     tripletsInGPU.deltaPhi = tripletsInGPU.zOut + nLowerModules * maxTriplets *3;
-    tripletsInGPU.betaIn = tripletsInGPU.zOut + nLowerModules * maxTriplets *4;
-    tripletsInGPU.betaOut = tripletsInGPU.zOut + nLowerModules * maxTriplets *5;
-    tripletsInGPU.pt_beta = tripletsInGPU.zOut + nLowerModules * maxTriplets *6;
+
+#endif
+#endif
+    tripletsInGPU.lowerModuleIndices = tripletsInGPU.segmentIndices + nLowerModules * maxTriplets *2;
+    tripletsInGPU.betaOut = tripletsInGPU.betaIn + nLowerModules * maxTriplets ;
+    tripletsInGPU.pt_beta = tripletsInGPU.betaIn + nLowerModules * maxTriplets * 2;
 
 
 #pragma omp parallel for
@@ -52,23 +53,19 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
     int dev;
     cudaGetDevice(&dev);
     tripletsInGPU.segmentIndices = (unsigned int*)cms::cuda::allocate_device(dev,maxTriplets * nLowerModules * sizeof(unsigned int) *5,stream);
-    tripletsInGPU.zOut = (float*)cms::cuda::allocate_device(dev,maxTriplets * nLowerModules * sizeof(float) *7,stream);
+    tripletsInGPU.betaIn = (float*)cms::cuda::allocate_device(dev,maxTriplets * nLowerModules * sizeof(float) *3,stream);
     tripletsInGPU.nTriplets = (unsigned int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(unsigned int),stream);
 
 #else
     cudaMalloc(&tripletsInGPU.segmentIndices, 5 * maxTriplets * nLowerModules * sizeof(unsigned int));
-    cudaMalloc(&tripletsInGPU.zOut, maxTriplets * nLowerModules * 7* sizeof(unsigned int));
+    cudaMalloc(&tripletsInGPU.betaIn, maxTriplets * nLowerModules * 3 * sizeof(float));
     cudaMalloc(&tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int));
 #endif
     cudaMemset(tripletsInGPU.nTriplets,0,nLowerModules * sizeof(unsigned int));
     tripletsInGPU.lowerModuleIndices = tripletsInGPU.segmentIndices + nLowerModules * maxTriplets *2;
 
-    tripletsInGPU.rtOut = tripletsInGPU.zOut + nLowerModules * maxTriplets;
-    tripletsInGPU.deltaPhiPos = tripletsInGPU.zOut + nLowerModules * maxTriplets *2;
-    tripletsInGPU.deltaPhi = tripletsInGPU.zOut + nLowerModules * maxTriplets *3;
-    tripletsInGPU.betaIn = tripletsInGPU.zOut + nLowerModules * maxTriplets *4;
-    tripletsInGPU.betaOut = tripletsInGPU.zOut + nLowerModules * maxTriplets *5;
-    tripletsInGPU.pt_beta = tripletsInGPU.zOut + nLowerModules * maxTriplets *6;
+    tripletsInGPU.betaOut = tripletsInGPU.betaIn + nLowerModules * maxTriplets;
+    tripletsInGPU.pt_beta = tripletsInGPU.betaIn + nLowerModules * maxTriplets * 2;
 
 }
 
@@ -76,7 +73,7 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
 __device__ void SDL::addTripletToMemory(struct triplets& tripletsInGPU, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float& pt_beta, float& zLo, float& zHi, float& rtLo, float& rtHi, float& zLoPointed, float&
         zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ, unsigned int tripletIndex)
 #else
-__device__ void SDL::addTripletToMemory(struct triplets& tripletsInGPU, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float& pt_beta, unsigned int tripletIndex)
+__device__ void SDL::addTripletToMemory(struct triplets& tripletsInGPU, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, float& betaIn, float& betaOut, float& pt_beta, unsigned int tripletIndex)
 #endif
 {
     tripletsInGPU.segmentIndices[tripletIndex * 2] = innerSegmentIndex;
@@ -85,15 +82,15 @@ __device__ void SDL::addTripletToMemory(struct triplets& tripletsInGPU, unsigned
     tripletsInGPU.lowerModuleIndices[tripletIndex * 3 + 1] = middleLowerModuleIndex;
     tripletsInGPU.lowerModuleIndices[tripletIndex * 3 + 2] = outerOuterLowerModuleIndex;
 
-    tripletsInGPU.zOut[tripletIndex] = zOut;
-    tripletsInGPU.rtOut[tripletIndex] = rtOut;
-    tripletsInGPU.deltaPhiPos[tripletIndex] = deltaPhiPos;
-    tripletsInGPU.deltaPhi[tripletIndex] = deltaPhi;
 
     tripletsInGPU.betaIn[tripletIndex] = betaIn;
     tripletsInGPU.betaOut[tripletIndex] = betaOut;
     tripletsInGPU.pt_beta[tripletIndex] = pt_beta;
 #ifdef CUT_VALUE_DEBUG
+    tripletsInGPU.zOut[tripletIndex] = zOut;
+    tripletsInGPU.rtOut[tripletIndex] = rtOut;
+    tripletsInGPU.deltaPhiPos[tripletIndex] = deltaPhiPos;
+    tripletsInGPU.deltaPhi[tripletIndex] = deltaPhi;
     tripletsInGPU.zLo[tripletIndex] = zLo;
     tripletsInGPU.zHi[tripletIndex] = zHi;
     tripletsInGPU.rtLo[tripletIndex] = rtLo;
@@ -112,15 +109,14 @@ SDL::triplets::triplets()
 {
     segmentIndices = nullptr;
     lowerModuleIndices = nullptr;
-    zOut = nullptr;
-    rtOut = nullptr;
-
-    deltaPhiPos = nullptr;
-    deltaPhi = nullptr;
     betaIn = nullptr;
     betaOut = nullptr;
     pt_beta = nullptr;
 #ifdef CUT_VALUE_DEBUG
+    zOut = nullptr;
+    rtOut = nullptr;
+    deltaPhiPos = nullptr;
+    deltaPhi = nullptr;
     zLo = nullptr;
     zHi = nullptr;
     rtLo = nullptr;
@@ -145,11 +141,11 @@ void SDL::triplets::freeMemoryCache()
     int dev;
     cudaGetDevice(&dev);
     cms::cuda::free_device(dev,segmentIndices);
-    cms::cuda::free_device(dev,zOut);
+    cms::cuda::free_device(dev,betaIn);
     cms::cuda::free_device(dev,nTriplets);
 #else
     cms::cuda::free_managed(segmentIndices);
-    cms::cuda::free_managed(zOut);
+    cms::cuda::free_managed(betaIn);
     cms::cuda::free_managed(nTriplets);
 #endif
 }
@@ -157,8 +153,9 @@ void SDL::triplets::freeMemory()
 {
     cudaFree(segmentIndices);
     cudaFree(nTriplets);
-    cudaFree(zOut);
+    cudaFree(betaIn);
 #ifdef CUT_VALUE_DEBUG
+    cudaFree(zOut);
     cudaFree(zLo);
     cudaFree(zHi);
     cudaFree(rtLo);
