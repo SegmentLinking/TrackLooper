@@ -38,14 +38,6 @@ namespace SDL
         float* dPhiChangeMins;
         float* dPhiChangeMaxs;
 
-        //optional dudes
-        float* zIns;
-        float* zOuts;
-        float* rtIns;
-        float* rtOuts;
-        float* dAlphaInnerMDSegments;
-        float* dAlphaOuterMDSegments;
-        float* dAlphaInnerMDOuterMDs;
 
         //not so optional pixel dudes
         float* ptIn;
@@ -60,6 +52,13 @@ namespace SDL
         int* pixelType;
 
 #ifdef CUT_VALUE_DEBUG
+        float* zIns;
+        float* zOuts;
+        float* rtIns;
+        float* rtOuts;
+        float* dAlphaInnerMDSegments;
+        float* dAlphaOuterMDSegments;
+        float* dAlphaInnerMDOuterMDs;
         float* zLo;
         float* zHi;
         float* rtLo;
