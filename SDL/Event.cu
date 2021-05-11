@@ -9,12 +9,18 @@ const unsigned int MAX_CONNECTED_MODULES = 40;
 const unsigned int N_MAX_TRACKLETS_PER_MODULE = 8000;//temporary
 const unsigned int N_MAX_TRIPLETS_PER_MODULE = 5000;
 const unsigned int N_MAX_TOTAL_TRIPLETS = 150000;
-const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 5000;
 const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 100000;
 const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
+const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 5000;
+//#ifdef FINAL_T3T4
+//const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 50000;
+//const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 3000000;
+//const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 5000000;
+//#else
+const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 5000;
 const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 200000;
 const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 200000;
-const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 5000;
+//#endif
 struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::pixelMap* SDL::pixelMapping = nullptr;
 unsigned int SDL::nModules;
@@ -76,9 +82,10 @@ SDL::Event::~Event()
     tripletsInGPU->freeMemoryCache();
     pixelTrackletsInGPU->freeMemoryCache();
     trackCandidatesInGPU->freeMemoryCache();
-#ifdef DO_QUINTUPLET
+#ifdef FINAL_T5
     quintupletsInGPU->freeMemoryCache();
-#else
+#endif
+#ifdef FINAL_T3T4
     trackletsInGPU->freeMemoryCache();
 #endif
 #else
@@ -87,9 +94,10 @@ SDL::Event::~Event()
     tripletsInGPU->freeMemory();
     pixelTrackletsInGPU->freeMemory();
     trackCandidatesInGPU->freeMemory();
-#ifdef DO_QUINTUPLET
+#ifdef FINAL_T5
     quintupletsInGPU->freeMemory();
-#else
+#endif
+#ifdef FINAL_T3T4
     trackletsInGPU->freeMemory();
 #endif
 #endif
@@ -100,9 +108,10 @@ SDL::Event::~Event()
     cudaFreeHost(trackCandidatesInGPU);
     hitsInGPU->freeMemory();
     cudaFreeHost(hitsInGPU);
-#ifdef DO_QUINTUPLET
+#ifdef FINAL_T5
     cudaFreeHost(quintupletsInGPU);
-#else
+#endif
+#ifdef FINAL_T3T4
     cudaFreeHost(trackletsInGPU);
 #endif
 
@@ -171,7 +180,7 @@ SDL::Event::~Event()
     }
 #endif
 #ifdef Explicit_T5
-#ifdef DO_QUINTUPLET
+#ifdef FINAL_T5
     if(quintupletsInCPU != nullptr)
     {
         delete[] quintupletsInCPU->tripletIndices;
@@ -1504,28 +1513,33 @@ void SDL::Event::createTrackCandidates()
 #endif
     }
 
-#ifdef DO_QUINTUPLET
+#ifdef FINAL_T5
+    printf("running final state T5\n");
     dim3 nThreads(32,16,1);
     dim3 nBlocks(((nLowerModules-1) % nThreads.x == 0 ? (nLowerModules-1)/nThreads.x : (nLowerModules-1)/nThreads.x + 1),((N_MAX_QUINTUPLETS_PER_MODULE-1) % nThreads.y == 0 ? (N_MAX_QUINTUPLETS_PER_MODULE-1)/nThreads.y : (N_MAX_QUINTUPLETS_PER_MODULE-1)/nThreads.y + 1),1);
     addT5asTrackCandidateInGPU<<<nBlocks,nThreads>>>(*modulesInGPU,*quintupletsInGPU,*trackCandidatesInGPU);
 
-    cudaError_t cudaerr = cudaDeviceSynchronize();
-    if(cudaerr != cudaSuccess)
+    cudaError_t cudaerr_T5 = cudaDeviceSynchronize();
+    if(cudaerr_T5 != cudaSuccess)
     {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_T5)<<std::endl;
     }
-    
+#endif // final state T5
+#ifdef FINAL_pT2
+    printf("running final state pT2\n");
     unsigned int nThreadsx = 1;
     unsigned int nBlocksx = ( N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE) % nThreadsx == 0 ? N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE/nThreadsx : N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE/nThreadsx + 1;
     addpT2asTrackCandidateInGPU<<<nBlocksx,nThreadsx>>>(*modulesInGPU,*pixelTrackletsInGPU,*trackCandidatesInGPU);
-    cudaerr = cudaDeviceSynchronize();
-    //cudaError_t cudaerr = cudaDeviceSynchronize();
-    if(cudaerr != cudaSuccess)
+    cudaError_t cudaerr_pT2 = cudaDeviceSynchronize();
+    if(cudaerr_pT2 != cudaSuccess)
     {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT2)<<std::endl;
     }
 
-#else
+#endif // final state pT2
+
+#ifdef FINAL_T3T4
+    printf("running final state T3T4\n");
 #ifdef NESTED_PARA
     //auto t0 = std::chrono::high_resolution_clock::now();
     unsigned int nThreads = 1;
@@ -1543,7 +1557,7 @@ void SDL::Event::createTrackCandidates()
     nThreads = 1;
     nBlocks = (nLowerModules - 1) % nThreads == 0 ? (nLowerModules - 1)/nThreads : (nLowerModules - 1)/nThreads + 1;
 
-    createPixelTrackCandidatesInGPU<<<nBlocks, nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU, *tripletsInGPU, *trackCandidatesInGPU);
+    createPixelTrackCandidatesInGPU<<<nBlocks, nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTrackletsInGPU, *trackletsInGPU, *tripletsInGPU, *trackCandidatesInGPU);
 
     cudaerr = cudaDeviceSynchronize();
     if(cudaerr != cudaSuccess)
@@ -1557,7 +1571,8 @@ void SDL::Event::createTrackCandidates()
     unsigned int *nTriplets = (unsigned int*)malloc((2*nLowerModules-1)*sizeof(unsigned int));
     //unsigned int *nTracklets = (unsigned int*)malloc(nLowerModules*sizeof(unsigned int));
     unsigned int *nTracklets = nTriplets + nLowerModules -1;
-    int threadSize=230000;
+    //int threadSize=2300000;
+    int threadSize=10000000;
     unsigned int *threadIdx = (unsigned int*)malloc(2*threadSize*sizeof(unsigned int));
     unsigned int *threadIdx_offset = threadIdx+threadSize;
     unsigned int *threadIdx_gpu;
@@ -1583,6 +1598,7 @@ void SDL::Event::createTrackCandidates()
       if (temp !=0) {
         for (int k=0; k<temp; k++) {
           threadIdx[totalCand+k] = i;
+          //printf("totalCand+k: %d\n",totalCand+k);
           threadIdx_offset[totalCand+k] = k;
         }
 	totalCand += temp;
@@ -1611,7 +1627,7 @@ void SDL::Event::createTrackCandidates()
 
     dim3 nThreads_p(16,16,1);
     dim3 nBlocks_p((nPixelTracklets % nThreads_p.x == 0 ? nPixelTracklets/nThreads_p.x : nPixelTracklets/nThreads_p.x + 1), (totalCand % nThreads_p.y == 0 ? totalCand/nThreads_p.y : totalCand/nThreads_p.y + 1), 1);
-    createPixelTrackCandidatesInGPU<<<nBlocks_p, nThreads_p>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU, *tripletsInGPU, *trackCandidatesInGPU, threadIdx_gpu, threadIdx_gpu_offset);
+    createPixelTrackCandidatesInGPU<<<nBlocks_p, nThreads_p>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTrackletsInGPU, *trackletsInGPU, *tripletsInGPU, *trackCandidatesInGPU, threadIdx_gpu, threadIdx_gpu_offset);
     cudaerr = cudaDeviceSynchronize();
     if(cudaerr != cudaSuccess)
       {
@@ -1632,7 +1648,7 @@ void SDL::Event::createTrackCandidates()
     exit(3);
 #endif
 #endif 
-#endif // do_quintuplets
+#endif // Final state T3+T4
 #if defined(AddObjects)
 #ifdef Explicit_Track
     addTrackCandidatesToEventExplicit();
@@ -3040,6 +3056,7 @@ __global__ void createTripletsInGPU(struct SDL::modules& modulesInGPU, struct SD
 
 __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,struct SDL::quintuplets& quintupletsInGPU,struct SDL::trackCandidates& trackCandidatesInGPU)
 {
+
   int innerInnerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
     if(innerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules or modulesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] == -1) return; 
   unsigned int nQuints = quintupletsInGPU.nQuintuplets[innerInnerInnerLowerModuleArrayIndex];
@@ -3147,7 +3164,7 @@ __global__ void createPixelTrackCandidatesInGPU(struct SDL::modules& modulesInGP
 		  else
 		    {
 		      unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[pixelLowerModuleArrayIndex] + trackCandidateModuleIdx;
-		      addTrackCandidateToMemory(trackCandidatesInGPU, trackCandidateType, pixelTrackletIndex, outerObjectIndex, trackCandidateIdx);
+		      addTrackCandidateToMemory(trackCandidatesInGPU, 5/*trackCandidateType*/, pixelTrackletIndex, outerObjectIndex, trackCandidateIdx);
                     }
 
                 }
@@ -3190,7 +3207,7 @@ __global__ void createPixelTrackCandidatesInGPU(struct SDL::modules& modulesInGP
 		  else
 		    {
 		      unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[pixelLowerModuleArrayIndex] + trackCandidateModuleIdx;
-		      addTrackCandidateToMemory(trackCandidatesInGPU, trackCandidateType, pixelTrackletIndex, outerObjectIndex, trackCandidateIdx);
+		      addTrackCandidateToMemory(trackCandidatesInGPU, 6/*trackCandidateType*/, pixelTrackletIndex, outerObjectIndex, trackCandidateIdx);
                     }
 
                 }
@@ -3284,7 +3301,7 @@ __global__ void createPixelTrackCandidatesFromOuterInnerInnerLowerModule(struct 
                     else
                    {
                         unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[pixelLowerModuleArrayIndex] + trackCandidateModuleIdx;
-                        addTrackCandidateToMemory(trackCandidatesInGPU, trackCandidateType, pixelTrackletIndex, outerObjectIndex, trackCandidateIdx);
+                        addTrackCandidateToMemory(trackCandidatesInGPU, 5/*pT2-T4 trackCandidateType*/, pixelTrackletIndex, outerObjectIndex, trackCandidateIdx);
                     }
 
                 }
@@ -3327,7 +3344,7 @@ __global__ void createPixelTrackCandidatesFromOuterInnerInnerLowerModule(struct 
                     else
                    {
                         unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[pixelLowerModuleArrayIndex] + trackCandidateModuleIdx;
-                        addTrackCandidateToMemory(trackCandidatesInGPU, trackCandidateType, pixelTrackletIndex, outerObjectIndex, trackCandidateIdx);
+                        addTrackCandidateToMemory(trackCandidatesInGPU, 6/* pT2-T3 trackCandidateType*/, pixelTrackletIndex, outerObjectIndex, trackCandidateIdx);
                     }
 
                 }
@@ -4176,7 +4193,7 @@ SDL::segments* SDL::Event::getSegments()
 #ifdef Explicit_Tracklet
 SDL::tracklets* SDL::Event::getTracklets()
 {
-#ifndef DO_QUINTUPLET
+#ifdef FINAL_T3T4
     if(trackletsInCPU == nullptr)
     {
         unsigned int nLowerModules;

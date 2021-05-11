@@ -352,15 +352,17 @@ void run_sdl()
             // Run T3
             float timing_T3 = runT3(event);
 
-#ifdef DO_QUINTUPLET
-            float timing_T5 = runQuintuplet(event);
-            //Don't run T4
-            float timing_T4 = 0;
-#else
-            float timing_T5 = 0;
+#ifdef DO_QUADRUPLET
             // Run T4
             float timing_T4 = runT4(event);
-
+#else
+            //Don't run T4
+            float timing_T4 = 0;
+#endif
+#ifdef DO_QUINTUPLET
+            float timing_T5 = runQuintuplet(event);
+#else
+            float timing_T5 = 0;
 #endif
             // Run TC
             float timing_TC = runTrackCandidate(event);
