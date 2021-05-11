@@ -580,7 +580,6 @@ __device__ void SDL::computeErrorInRadius(float* x1Vec, float* y1Vec, float* x2V
     float candidateRadius;
     minimumRadius = 123456789.f;
     maximumRadius = 0;
-    float f,g; //placeholders
     for(size_t i = 0; i < 3; i++)
     {
         for(size_t j = 0; j < 3; j++)
