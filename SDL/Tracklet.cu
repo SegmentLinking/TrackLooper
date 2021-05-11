@@ -3,9 +3,7 @@
 #endif
 #include "Tracklet.cuh"
 
-//#ifdef CACHE_ALLOC
 #include "allocate.h"
-//#endif
 
 CUDA_CONST_VAR float SDL::pt_betaMax = 7.0;
 
@@ -161,11 +159,7 @@ void SDL::tracklets::freeMemoryCache()
     cms::cuda::free_device(dev,lowerModuleIndices);
     cms::cuda::free_device(dev,zOut);
     cms::cuda::free_device(dev,betaIn);
-//  #ifdef Full_Explicit
     cms::cuda::free_device(dev,nTracklets);
-//  #else
-//    cms::cuda::free_managed(nTracklets);
-//  #endif
 #else
     cms::cuda::free_managed(segmentIndices);
     cms::cuda::free_managed(lowerModuleIndices);
@@ -304,7 +298,6 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
 
     float drt_OutLo_InLo = (rt_OutLo - rt_InLo);
     float r3_InLo = sqrtf(z_InLo * z_InLo + rt_InLo * rt_InLo);
-//    float drt_InSeg = innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->rt() - innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->rt();
     float drt_InSeg = hitsInGPU.rts[innerOuterAnchorHitIndex] - hitsInGPU.rts[innerInnerAnchorHitIndex];
     float dz_InSeg = hitsInGPU.zs[innerOuterAnchorHitIndex] - hitsInGPU.zs[innerInnerAnchorHitIndex];
 
@@ -365,8 +358,6 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
 
     bool isEC_lastLayer = modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS;
 
-//    float alpha_outUp = ; 
-//    unsigned int outerOuterEdgeIndex = hitsInGPU.edge2SMap[outerOuterAnchorHitIndex]; //POTENTIAL NUCLEAR GANDHI
         unsigned int outerOuterEdgeIndex = outerOuterAnchorHitIndex;
 
     float alpha_OutUp,alpha_OutUp_highEdge,alpha_OutUp_lowEdge;
@@ -720,11 +711,9 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
 
     const float dBetaRIn2 = 0; // TODO-RH
     // const float dBetaROut2 = 0; // TODO-RH
-    float dBetaROut = 0;//sqrtf((hitsInGPU.xs[outerOuterAnchorHitIndex] - hitsInGPU.xs[outerInnerAnchorHitIndex]) * (hitsInGPU.xs[outerOuterAnchorHitIndex] - hitsInGPU.xs[outerInnerAnchorHitIndex]) + (hitsInGPU.ys[outerOuterAnchorHitIndex] - hitsInGPU.ys[outerInnerAnchorHitIndex]) * (hitsInGPU.ys[outerOuterAnchorHitIndex] - hitsInGPU.ys[outerInnerAnchorHitIndex])) * sinDPhi/drt_tl_axis;
-
+    float dBetaROut = 0;
     if(modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS)
     {
-//        unsigned int outerOuterEdgeIndex = hitsInGPU.edge2SMap[outerOuterAnchorHitIndex]; //NO NUCLEAR GANDHI HERE
         unsigned int outerOuterEdgeIndex = outerOuterAnchorHitIndex;
 
                 //FIXME:might need to change to outer edge rt - inner edge rt
@@ -858,9 +847,6 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
 
     float sdlPVoff = 0.1f/rtOut;
     sdlCut = alpha1GeV_OutLo + sqrtf(sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
-
-    //sdIn_mdOut_hit = innerOuterAnchorHitIndex
-    //sdOut_mdOut_hit = outerOuterAnchorHitIndex
 
     deltaPhiPos = deltaPhi(hitsInGPU.xs[innerOuterAnchorHitIndex], hitsInGPU.ys[innerOuterAnchorHitIndex], hitsInGPU.zs[innerOuterAnchorHitIndex], hitsInGPU.xs[outerOuterAnchorHitIndex], hitsInGPU.ys[outerOuterAnchorHitIndex], hitsInGPU.zs[outerOuterAnchorHitIndex]);
 
