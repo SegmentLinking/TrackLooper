@@ -5,19 +5,13 @@
 # include "MiniDoublet.cuh"
 #define SDL_INF 123456789
 
-//#ifdef CACHE_ALLOC
 #include "allocate.h"
-//#endif
 
 //defining the constant host device variables right up here
 CUDA_CONST_VAR float SDL::miniMulsPtScaleBarrel[6] = {0.0052, 0.0038, 0.0034, 0.0034, 0.0032, 0.0034};
 CUDA_CONST_VAR float SDL::miniMulsPtScaleEndcap[5] = {0.006, 0.006, 0.006, 0.006, 0.006}; 
 CUDA_CONST_VAR float SDL::miniRminMeanBarrel[6] = {21.8, 34.6, 49.6, 67.4, 87.6, 106.8};
 CUDA_CONST_VAR float SDL::miniRminMeanEndcap[5] = {131.4, 156.2, 185.6, 220.3, 261.5};
-//CUDA_CONST_VAR float SDL::miniDeltaTilted[3] = {0.26, 0.26, 0.26};
-//CUDA_CONST_VAR float SDL::miniDeltaFlat[6] ={0.26, 0.16, 0.16, 0.18, 0.18, 0.18};
-//CUDA_CONST_VAR float SDL::miniDeltaLooseTilted[3] = {0.4,0.4,0.4};
-//CUDA_CONST_VAR float SDL::miniDeltaEndcap[5][15];
 CUDA_CONST_VAR float SDL::k2Rinv1GeVf = (2.99792458e-3 * 3.8) / 2;
 CUDA_CONST_VAR float SDL::sinAlphaMax = 0.95;
 CUDA_CONST_VAR float SDL::ptCut = 1.0;
@@ -25,7 +19,6 @@ CUDA_CONST_VAR float SDL::deltaZLum = 15.0;
 CUDA_CONST_VAR float SDL::pixelPSZpitch = 0.15;
 CUDA_CONST_VAR float SDL::strip2SZpitch = 5.0;
 
-//FIXME:new memory locations for the pixel MDs
 void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, unsigned int nModules, unsigned int maxPixelMDs)
 {
     unsigned int nMemoryLocations = maxMDsPerModule * (nModules - 1) + maxPixelMDs;
@@ -33,7 +26,7 @@ void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int m
     cudaStream_t stream=0;
     mdsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * 3 * sizeof(unsigned int), stream);
     mdsInGPU.pixelModuleFlag = (short*)cms::cuda::allocate_managed(nMemoryLocations*sizeof(short),stream);
-    mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_managed(nModules*sizeof(unsigned int),stream); //should this be nMemoryLocations or nModules as before?
+    mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_managed(nModules*sizeof(unsigned int),stream);
     mdsInGPU.dphichanges = (float*)cms::cuda::allocate_managed(nMemoryLocations*9*sizeof(float),stream);
 #else
     cudaMallocManaged(&mdsInGPU.hitIndices, nMemoryLocations * 3 * sizeof(unsigned int));
@@ -210,9 +203,6 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInGP
 
     miniCut = 0;
 
-//    float miniCutLower = dPhiThreshold(hitsInGPU, modulesInGPU, lowerHitIndex, lowerModuleIndex);
-//    float miniCutUpper = dPhiThreshold(hitsInGPU, modulesInGPU, upperHitIndex, lowerModuleIndex);
-
     if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
     {
         miniCut = dPhiThreshold(hitsInGPU, modulesInGPU, lowerHitIndex, lowerModuleIndex); 
@@ -234,8 +224,6 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInGP
         shiftStripHits(modulesInGPU, hitsInGPU, lowerModuleIndex, lowerHitIndex, upperHitIndex, shiftedCoords);
         xn = shiftedCoords[0];
         yn = shiftedCoords[1];
-//        zn = shiftedCoords[2];
-
         // Lower or the upper hit needs to be modified depending on which one was actually shifted
         if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
         {
@@ -364,9 +352,6 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGP
         // Appropriate lower or upper hit is modified after checking which one was actually shifted
         if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
         {
-            // SDL::Hit upperHitMod(upperHit);
-            // upperHitMod.setXYZ(xn, yn, upperHit.z());
-            // setDeltaPhi(lowerHit.deltaPhi(upperHitMod));
             shiftedX = xn;
             shiftedY = yn;
             shiftedZ = zUpper;
@@ -375,9 +360,7 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGP
         }
         else
         {
-            // SDL::Hit lowerHitMod(lowerHit);
-            // lowerHitMod.setXYZ(xn, yn, lowerHit.z());
-            // setDeltaPhi(lowerHitMod.deltaPhi(upperHit));
+
             shiftedX = xn;
             shiftedY = yn;
             shiftedZ = zLower;
@@ -485,9 +468,6 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInGP
 
     float miniCut = 0;
 
-//    float miniCutLower = dPhiThreshold(hitsInGPU, modulesInGPU, lowerHitIndex, lowerModuleIndex);
-//    float miniCutUpper = dPhiThreshold(hitsInGPU, modulesInGPU, upperHitIndex, lowerModuleIndex);
-
     if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
     {
         miniCut = dPhiThreshold(hitsInGPU, modulesInGPU, lowerHitIndex, lowerModuleIndex); 
@@ -509,7 +489,6 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInGP
         shiftStripHits(modulesInGPU, hitsInGPU, lowerModuleIndex, lowerHitIndex, upperHitIndex, shiftedCoords);
         xn = shiftedCoords[0];
         yn = shiftedCoords[1];
-//        zn = shiftedCoords[2];
 
         // Lower or the upper hit needs to be modified depending on which one was actually shifted
         if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
@@ -735,11 +714,7 @@ __device__ float SDL::dPhiThreshold(struct hits& hitsInGPU, struct modules& modu
     // =================================================================
     // Various constants
     // =================================================================
-    // const float ptCut = PTCUT;
-    // const float sinAlphaMax = 0.95;
     //mean of the horizontal layer position in y; treat this as R below
-/*    __device__ __constant__ float miniRminMeanBarrel[] = {21.8, 34.6, 49.6, 67.4, 87.6, 106.8}; // TODO: Update this with newest geometry
-    __device__ __constant__ float miniRminMeanEndcap[] = {131.4, 156.2, 185.6, 220.3, 261.5};// use z for endcaps // TODO: Update this with newest geometry*/
 
     // =================================================================
     // Computing some components that make up the cut threshold
@@ -972,7 +947,6 @@ __device__ void SDL::shiftStripHits(struct modules& modulesInGPU, struct hits& h
     // angleA = atanf(pixelHitPtr->rt() / pixelHitPtr->z() + (pixelHitPtr->z() < 0 ? M_PI : 0)); // Shift by pi if the z is negative so that the value of the angleA stays between 0 to pi and not -pi/2 to pi/2
 
     angleA = fabsf(atanf(hitsInGPU.rts[pixelHitIndex] / hitsInGPU.zs[pixelHitIndex]));
-    // angleB = isEndcap ? M_PI / 2. : -atanf(tiltedGeometry.getDrDz(detid) * (lowerModule.side() == SDL::Module::PosZ ? -1 : 1)); // The tilt module on the postive z-axis has negative drdz slope in r-z plane and vice versa
     if(modulesInGPU.moduleType[lowerModuleIndex] == PS and modulesInGPU.moduleLayerType[upperModuleIndex] == Strip)
     {
         drdz_ = modulesInGPU.drdzs[upperModuleIndex];
@@ -1108,11 +1082,7 @@ void SDL::miniDoublets::freeMemoryCache()
     cms::cuda::free_device(dev,hitIndices);
     cms::cuda::free_device(dev,pixelModuleFlag);
     cms::cuda::free_device(dev,dphichanges);
-//  #ifdef Full_Explicit
     cms::cuda::free_device(dev,nMDs);
-//  #else
-//    cms::cuda::free_managed(nMDs);
-//  #endif
 #else
     cms::cuda::free_managed(hitIndices);
     cms::cuda::free_managed(pixelModuleFlag);

@@ -2,9 +2,7 @@
 #define CUDA_CONST_VAR __device__
 #endif
 # include "Triplet.cuh"
-//#ifdef CACHE_ALLOC
 #include "allocate.h"
-//#endif
 
 void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, unsigned int nLowerModules)
 {
@@ -148,11 +146,7 @@ void SDL::triplets::freeMemoryCache()
     cudaGetDevice(&dev);
     cms::cuda::free_device(dev,segmentIndices);
     cms::cuda::free_device(dev,zOut);
-//  #ifdef Full_Explicit
     cms::cuda::free_device(dev,nTriplets);
-//  #else
-//    cms::cuda::free_managed(nTriplets);
-//  #endif
 #else
     cms::cuda::free_managed(segmentIndices);
     cms::cuda::free_managed(zOut);

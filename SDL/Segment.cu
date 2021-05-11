@@ -122,49 +122,6 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.phi = segmentsInGPU.dPhis + nMemoryLocations * 13 + maxPixelSegments * 7;
 
 }
-//void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules)
-//{
-//#ifdef CACHE_ALLOC
-//    cudaStream_t stream=0; 
-//    int dev;
-//    cudaGetDevice(&dev);
-//    segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_device(dev,maxSegments*nModules*6 *sizeof(unsigned int),stream);
-//    segmentsInGPU.dPhis = (float*)cms::cuda::allocate_device(dev,maxSegments*nModules*13 *sizeof(float),stream);
-////  #ifdef Full_Explicit
-//    segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_device(dev,nModules *sizeof(unsigned int),stream);
-//    cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
-////  #else
-////    segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_managed(nModules *sizeof(unsigned int),stream);
-////  #endif
-//
-//#else
-//    cudaMalloc(&segmentsInGPU.mdIndices, maxSegments * nModules * 6 * sizeof(unsigned int));
-//    cudaMalloc(&segmentsInGPU.dPhis, maxSegments * nModules *13* sizeof(float));
-////  #ifdef Full_Explicit
-//    cudaMalloc(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
-//    cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
-////  #else
-////    cudaMallocManaged(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
-////  #endif
-//#endif
-//    segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 2;
-//    segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 3;
-//    segmentsInGPU.innerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 4;
-//    segmentsInGPU.outerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + maxSegments *nModules * 5;
-//
-//    segmentsInGPU.dPhiMins = segmentsInGPU.dPhis + maxSegments *nModules;
-//    segmentsInGPU.dPhiMaxs = segmentsInGPU.dPhis + maxSegments *nModules * 2;
-//    segmentsInGPU.dPhiChanges = segmentsInGPU.dPhis + maxSegments *nModules * 3;
-//    segmentsInGPU.dPhiChangeMins = segmentsInGPU.dPhis + maxSegments *nModules * 4;
-//    segmentsInGPU.dPhiChangeMaxs = segmentsInGPU.dPhis + maxSegments *nModules * 5;
-//    segmentsInGPU.zIns  = segmentsInGPU.dPhis + maxSegments *nModules * 6;
-//    segmentsInGPU.zOuts = segmentsInGPU.dPhis + maxSegments *nModules * 7;
-//    segmentsInGPU.rtIns = segmentsInGPU.dPhis + maxSegments *nModules * 8;
-//    segmentsInGPU.rtOuts = segmentsInGPU.dPhis + maxSegments *nModules * 9;
-//    segmentsInGPU.dAlphaInnerMDSegments = segmentsInGPU.dPhis + maxSegments *nModules * 10;
-//    segmentsInGPU.dAlphaOuterMDSegments = segmentsInGPU.dPhis + maxSegments *nModules * 11;
-//    segmentsInGPU.dAlphaInnerMDOuterMDs = segmentsInGPU.dPhis + maxSegments *nModules * 12;
-//}
 
 SDL::segments::segments()
 {
@@ -367,7 +324,7 @@ __device__ void SDL::dAlphaThreshold(float* dAlphaThresholdValues, struct hits& 
     float drdzOuter = -1.f;
     if(isInnerTilted)
     {
-        if(/*modulesInGPU.moduleType[innerLowerModuleIndex] == PS and*/ modulesInGPU.moduleLayerType[innerLowerModuleIndex] == Strip)
+        if(modulesInGPU.moduleLayerType[innerLowerModuleIndex] == Strip)
         {
             drdzInner = modulesInGPU.drdzs[innerLowerModuleIndex];
         }
@@ -378,7 +335,7 @@ __device__ void SDL::dAlphaThreshold(float* dAlphaThresholdValues, struct hits& 
     }
     if(isOuterTilted)
     {
-        if(/*modulesInGPU.moduleType[outerLowerModuleIndex] == PS and */ modulesInGPU.moduleLayerType[outerLowerModuleIndex] == Strip)
+        if(modulesInGPU.moduleLayerType[outerLowerModuleIndex] == Strip)
         {
             drdzOuter = modulesInGPU.drdzs[outerLowerModuleIndex];
         }
@@ -534,7 +491,6 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
     unsigned int outerEdgeIndex;
     if(outerLayerEndcapTwoS)
     {
-//        outerEdgeIndex = hitsInGPU.edge2SMap[outerMiniDoubletAnchorHitIndex];
         outerEdgeIndex = outerMiniDoubletAnchorHitIndex;
 
         float dPhiPos_high = deltaPhi(hitsInGPU.xs[innerMiniDoubletAnchorHitIndex], hitsInGPU.ys[innerMiniDoubletAnchorHitIndex], hitsInGPU.zs[innerMiniDoubletAnchorHitIndex], hitsInGPU.highEdgeXs[outerEdgeIndex], hitsInGPU.highEdgeYs[outerEdgeIndex], hitsInGPU.zs[outerMiniDoubletAnchorHitIndex]);
@@ -651,8 +607,6 @@ __device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, s
     float sdSlope = asinf(fminf(rtOut * k2Rinv1GeVf / ptCut, sinAlphaMax));
     float sdPVoff = 0.1f/rtOut;
     float dzDrtScale = tanf(sdSlope)/sdSlope; //FIXME: need appropriate value
-//    float pixelPSZpitch = 0.15;
-//    float strip2SZpitch = 5.0f;
 
     const float zGeom = modulesInGPU.layers[innerLowerModuleIndex] <= 2 ? 2.f * pixelPSZpitch : 2.f * strip2SZpitch;
 
@@ -825,7 +779,6 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
     unsigned int outerEdgeIndex;
     if(outerLayerEndcapTwoS)
     {
-        //outerEdgeIndex = hitsInGPU.edge2SMap[outerMiniDoubletAnchorHitIndex];
         outerEdgeIndex = outerMiniDoubletAnchorHitIndex;
 
         float dPhiPos_high = deltaPhi(hitsInGPU.xs[innerMiniDoubletAnchorHitIndex], hitsInGPU.ys[innerMiniDoubletAnchorHitIndex], hitsInGPU.zs[innerMiniDoubletAnchorHitIndex], hitsInGPU.highEdgeXs[outerEdgeIndex], hitsInGPU.highEdgeYs[outerEdgeIndex], hitsInGPU.zs[outerMiniDoubletAnchorHitIndex]);
@@ -893,9 +846,6 @@ __device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, s
     float sdMuls = (modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel) ? miniMulsPtScaleBarrel[modulesInGPU.layers[innerLowerModuleIndex]-1] * 3.f/ptCut : miniMulsPtScaleEndcap[modulesInGPU.layers[innerLowerModuleIndex]-1] * 3.f/ptCut;
 
 
-//    unsigned int innerMiniDoubletAnchorHitIndex;
-//    unsigned int outerMiniDoubletAnchorHitIndex;
-
     if(mdsInGPU.pixelModuleFlag[innerMDIndex] >= 0)
     {
         if(mdsInGPU.pixelModuleFlag[innerMDIndex] == 0)
@@ -939,8 +889,6 @@ __device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, s
     float sdSlope = asinf(fminf(rtOut * k2Rinv1GeVf / ptCut, sinAlphaMax));
     float sdPVoff = 0.1f/rtOut;
     float dzDrtScale = tanf(sdSlope)/sdSlope; //FIXME: need appropriate value
-//    float pixelPSZpitch = 0.15;
-//    float strip2SZpitch = 5.0f;
 
     const float zGeom = modulesInGPU.layers[innerLowerModuleIndex] <= 2 ? 2.f * pixelPSZpitch : 2.f * strip2SZpitch;
 
