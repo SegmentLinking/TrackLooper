@@ -94,7 +94,7 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<int>>("t3_isFake");
     ana.tx->createBranch<vector<int>>("t3_isDuplicate");
 
-#ifdef DO_QUINTUPLET
+//#ifdef DO_QUINTUPLET
     //T5 - new kid
     ana.tx->createBranch<vector<int>>("sim_T5_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_T5_types");
@@ -103,7 +103,7 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("t5_pt");
     ana.tx->createBranch<vector<float>>("t5_eta");
     ana.tx->createBranch<vector<float>>("t5_phi");
-#endif
+//#endif
     //pLS
     ana.tx->createBranch<vector<int>>("sim_pLS_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_pLS_types");
@@ -376,10 +376,13 @@ void fillOccupancyBranches(SDL::Event& event)
         {
 #ifdef DO_QUINTUPLET
             quintupletOccupancy.push_back(quintupletsInGPU.nQuintuplets[idx]);
-            trackletOccupancy.push_back(0);
+#else
+            quintupletOccupancy.push_back(0);
 #endif
 #ifdef DO_QUADRUPLET
             trackletOccupancy.push_back(trackletsInGPU.nTracklets[idx]);
+#else
+            trackletOccupancy.push_back(0);
 #endif
             tripletOccupancy.push_back(tripletsInGPU.nTriplets[idx]);
         }
@@ -474,25 +477,6 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
 
         for (unsigned int jdx = 0; jdx < nTrackCandidates; jdx++)
         {
-//#ifdef DO_QUINTUPLET
-//            unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[idx] + jdx;
-//            unsigned int innerTrackletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
-//            unsigned int outerTrackletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
-//            unsigned int innerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTrackletIndex];
-//            unsigned int innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTrackletIndex + 1];
-//            unsigned int outerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTrackletIndex];
-//            unsigned int outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTrackletIndex + 1];
-//// come back to the beta
-//            float betaIn_in = 0;
-//            float betaOut_in = 0;
-//            float betaIn_out = 0;
-//            float betaOut_out = 0;
-//                betaIn_in = tripletsInGPU.betaIn[innerTrackletIndex];
-//                betaOut_in = tripletsInGPU.betaOut[innerTrackletIndex];
-//                betaIn_out = tripletsInGPU.betaIn[outerTrackletIndex];
-//                betaOut_out = tripletsInGPU.betaOut[outerTrackletIndex];
-//
-//#else
             unsigned int trackCandidateIndex = modulesInGPU.trackCandidateModuleIndices[idx] + jdx; // this line causes the issue
             short trackCandidateType = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
             unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex];

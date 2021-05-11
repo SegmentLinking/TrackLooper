@@ -355,14 +355,12 @@ void run_sdl()
 #ifdef DO_QUADRUPLET
             // Run T4
             float timing_T4 = runT4(event);
-            printf("THis runs T4\n");
 #else
             //Don't run T4
             float timing_T4 = 0;
 #endif
 #ifdef DO_QUINTUPLET
             float timing_T5 = runQuintuplet(event);
-            printf("THis runs T5\n");
 #else
             float timing_T5 = 0;
 #endif

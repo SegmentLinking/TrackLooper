@@ -1571,7 +1571,7 @@ void SDL::Event::createTrackCandidates()
     unsigned int *nTriplets = (unsigned int*)malloc((2*nLowerModules-1)*sizeof(unsigned int));
     //unsigned int *nTracklets = (unsigned int*)malloc(nLowerModules*sizeof(unsigned int));
     unsigned int *nTracklets = nTriplets + nLowerModules -1;
-    int threadSize=230000;
+    int threadSize=2300000;
     unsigned int *threadIdx = (unsigned int*)malloc(2*threadSize*sizeof(unsigned int));
     unsigned int *threadIdx_offset = threadIdx+threadSize;
     unsigned int *threadIdx_gpu;
