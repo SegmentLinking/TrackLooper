@@ -4,6 +4,7 @@ import ROOT as r
 from array import array
 import os
 import sys
+from math import sqrt
 
 r.gROOT.SetBatch(True)
 
@@ -44,6 +45,7 @@ def parse_plot_name(output_name):
     rtnstr.append(types)
     return " ".join(rtnstr)
 
+
 def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None):
 
     if "scalar" in output_name and "ptscalar" not in output_name:
@@ -53,7 +55,12 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
     if "coarse" in output_name and "ptcoarse" not in output_name:
         num.Rebin(6)
         den.Rebin(6)
+    if "pt" in output_name:
+        overFlowBin = num.GetBinContent(num.GetNbinsX() + 1)
+        lastBin = num.GetBinContent(num.GetNbinsX())
 
+        num.SetBinContent(num.GetNbinsX(), lastBin + overFlowBin)
+        num.SetBinError(num.GetNbinsX(), sqrt(lastBin + overFlowBin))
     teff = r.TEfficiency(num, den)
     eff = teff.CreateGraph()
     c1 = r.TCanvas()
