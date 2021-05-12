@@ -89,11 +89,10 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
 
 
     // pixel segment vs inner segment of the triplet
-    pass = pass & runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, pixelModuleIndex, lowerModuleIndex, middleModuleIndex, pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
+    pass = pass & runPixelTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, pixelModuleIndex, lowerModuleIndex, middleModuleIndex, pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
 
     //pixel segment vs outer segment of triplet
-    pass = pass & runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, pixelModuleIndex, middleModuleIndex, upperModuleIndex, pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
-
+    pass = pass & runPixelTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, pixelModuleIndex, middleModuleIndex, upperModuleIndex, pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
 
     //pt matching between the pixel ptin and the triplet circle pt
     unsigned int pixelSegmentArrayIndex = pixelSegmentIndex - (pixelModuleIndex * 600);
@@ -102,7 +101,6 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
 
     pixelRadius = pixelSegmentPt/(2 * k2Rinv1GeVf);
     pixelRadiusError = pixelSegmentPtError/(2 * k2Rinv1GeVf);
-    
     unsigned int tripletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * tripletIndex];
     unsigned int tripletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * tripletIndex + 1];
 
@@ -121,8 +119,8 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     tripletRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3);
     
     pass = pass & passRadiusCriterion(modulesInGPU, pixelRadius, pixelRadiusError, tripletRadius, lowerModuleIndex, middleModuleIndex, upperModuleIndex);
-
     return pass;
+
 }
 
 
@@ -153,7 +151,7 @@ __device__ bool SDL::passRadiusCriterionBBB(float& pixelRadius, float& pixelRadi
     float tripletInvRadiusErrorBound = 0.15624;
     float pixelInvRadiusErrorBound = 0.17235;
     float tripletRadiusMin = tripletRadius/(1 + tripletInvRadiusErrorBound);
-    float tripletRadiusMax = tripletInvRadiusErrorBound < 1 ? tripletRadius/(1 - tripletInvRadiusErrorBound) : 123456789.f;
+    float tripletRadiusMax = tripletInvRadiusErrorBound < 1 ? tripletRadius/(1 - tripletInvRadiusErrorBound) : 123456789;
     float pixelRadiusMin = fminf(pixelRadius - pixelRadiusError, pixelRadius/(1 + pixelInvRadiusErrorBound));
     float pixelRadiusMax = fmaxf(pixelRadius + pixelRadiusError, pixelRadius/(1 - pixelInvRadiusErrorBound));
     
@@ -165,7 +163,7 @@ __device__ bool SDL::passRadiusCriterionBBE(float& pixelRadius, float& pixelRadi
     float tripletInvRadiusErrorBound = 0.45972;
     float pixelInvRadiusErrorBound = 0.19644;
     float tripletRadiusMin = tripletRadius/(1 + tripletInvRadiusErrorBound);
-    float tripletRadiusMax = tripletInvRadiusErrorBound < 1 ? tripletRadius/(1 - tripletInvRadiusErrorBound) : 123456789.f;
+    float tripletRadiusMax = tripletInvRadiusErrorBound < 1 ? tripletRadius/(1 - tripletInvRadiusErrorBound) : 123456789;
     float pixelRadiusMin = fminf(pixelRadius - pixelRadiusError, pixelRadius/(1 + pixelInvRadiusErrorBound));
     float pixelRadiusMax = fmaxf(pixelRadius + pixelRadiusError, pixelRadius/(1 - pixelInvRadiusErrorBound));
 
@@ -178,11 +176,11 @@ __device__ bool SDL::passRadiusCriterionBEE(float& pixelRadius, float& pixelRadi
     float tripletInvRadiusErrorBound = 1.59294;
     float pixelInvRadiusErrorBound = 0.255181;
     float tripletRadiusMin = tripletRadius/(1 + tripletInvRadiusErrorBound);
-    float tripletRadiusMax = tripletInvRadiusErrorBound < 1 ? tripletRadius/(1 - tripletInvRadiusErrorBound) : 123456789.f;
+    float tripletRadiusMax = tripletInvRadiusErrorBound < 1 ? tripletRadius/(1 - tripletInvRadiusErrorBound) : 123456789;
     float pixelRadiusMin = fminf(pixelRadius - pixelRadiusError, pixelRadius/(1 + pixelInvRadiusErrorBound));
     float pixelRadiusMax = fmaxf(pixelRadius + pixelRadiusError, pixelRadius/(1 - pixelInvRadiusErrorBound));
 
-    return true; //checkIntervalOverlap(1.0/tripletRadiusMax, 1.0/tripletRadiusMin, 1.0/pixelRadusMax, 1.0/pixelRadiusMin);
+    return checkIntervalOverlap(1.0/tripletRadiusMax, 1.0/tripletRadiusMin, 1.0/pixelRadiusMax, 1.0/pixelRadiusMin);
 
 }
 
@@ -192,7 +190,7 @@ __device__ bool SDL::passRadiusCriterionEEE(float& pixelRadius, float& pixelRadi
     float tripletInvRadiusErrorBound = 1.7006;
     float pixelInvRadiusErrorBound = 0.26367;
     float tripletRadiusMin = tripletRadius/(1 + tripletInvRadiusErrorBound);
-    float tripletRadiusMax = tripletInvRadiusErrorBound < 1 ? tripletRadius/(1 - tripletInvRadiusErrorBound) : 123456789.f;
+    float tripletRadiusMax = tripletInvRadiusErrorBound < 1 ? tripletRadius/(1 - tripletInvRadiusErrorBound) : 123456789;
     float pixelRadiusMin = fminf(pixelRadius - pixelRadiusError, pixelRadius/(1 + pixelInvRadiusErrorBound));
     float pixelRadiusMax = fmaxf(pixelRadius + pixelRadiusError, pixelRadius/(1 - pixelInvRadiusErrorBound));
 

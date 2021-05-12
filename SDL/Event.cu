@@ -21,7 +21,6 @@ const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 5000;
 const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 200000;
 const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 200000;
 #endif
-const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 5000;
 const unsigned int N_MAX_PIXEL_TRIPLETS = 3000000;
 
 struct SDL::modules* SDL::modulesInGPU = nullptr;
@@ -209,7 +208,7 @@ SDL::Event::~Event()
         delete[] pixelTripletsInCPU->pixelSegmentIndices;
         delete[] pixelTripletsInCPU->pixelRadius;
         delete[] pixelTripletsInCPU->tripletRadius;
-        delete nPixelTriplets;
+        delete pixelTripletsInCPU->nPixelTriplets;
         delete pixelTripletsInCPU;
     }
 #endif
@@ -4085,7 +4084,7 @@ unsigned int SDL::Event::getNumberOfPixelTriplets()
 {
 #ifdef Explicit_PT3
     unsigned int nPixelTriplets;
-    cudaMemcpy(&nPixelTriplets, pixelTripletsInGPU->nPixelTriplets, sizeof(unsigned int));
+    cudaMemcpy(&nPixelTriplets, pixelTripletsInGPU->nPixelTriplets, sizeof(unsigned int), cudaMemcpyDeviceToHost);
     return nPixelTriplets;
 #else
     return *(pixelTripletsInGPU->nPixelTriplets); 
@@ -4398,7 +4397,7 @@ SDL::pixelTriplets* SDL::Event::getPixelTriplets()
         pixelTripletsInCPU->tripletRadius = new float[nPixelTriplets];
 
         cudaMemcpy(pixelTripletsInCPU->tripletIndices, pixelTripletsInGPU->tripletIndices, nPixelTriplets * sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        cudaMemcpy(pixelTripletsInCPU->pixelSegmentIndices, pixelTripletsInGPU->pixelSegmentIndices, nPixelTriplets * sizeof(unsigned int) cudaMemcpyDeviceToHost);
+        cudaMemcpy(pixelTripletsInCPU->pixelSegmentIndices, pixelTripletsInGPU->pixelSegmentIndices, nPixelTriplets * sizeof(unsigned int), cudaMemcpyDeviceToHost);
         cudaMemcpy(pixelTripletsInCPU->pixelRadius, pixelTripletsInGPU->pixelRadius, nPixelTriplets * sizeof(float), cudaMemcpyDeviceToHost);
         cudaMemcpy(pixelTripletsInCPU->tripletRadius, pixelTripletsInGPU->tripletRadius, nPixelTriplets * sizeof(float), cudaMemcpyDeviceToHost);
     }

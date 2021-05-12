@@ -27,6 +27,7 @@ void createSegmentCutValueBranches();
 void createMiniDoubletCutValueBranches();
 void createOccupancyBranches();
 void createPixelQuadrupletCutValueBranches();
+void createPixelTripletCutValueBranches();
 void createPrimitiveBranches();
 // Common
 void fillSimTrackOutputBranches();

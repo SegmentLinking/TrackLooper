@@ -20,7 +20,8 @@
 #include "Hit.cuh"
 #include "PrintUtil.h"
 #include "Quintuplet.cuh"
-
+#include "PixelTracklet.cuh"
+#
 namespace SDL
 {
     struct pixelTriplets //one pixel segment, one outer tracker triplet!
@@ -47,7 +48,7 @@ namespace SDL
     CUDA_DEV void addPixelTripletToMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float pixelRadiusError, float tripletRadius, unsigned int pixelTripletIndex);
 #else
     CUDA_DEV void addPixelTripletToMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float tripletRadius, unsigned int pixelTripletIndex);
-
+#endif
 
     CUDA_DEV bool runPixelTripletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& pixelSegmentIndex, unsigned int tripletIndex, float& pixelRadius, float& pixelRadiusError, float& tripletRadius);
 

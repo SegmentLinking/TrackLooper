@@ -120,15 +120,8 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("pT3_pt");
     ana.tx->createBranch<vector<float>>("pT3_eta");
     ana.tx->createBranch<vector<float>>("pT3_phi");
-    ana.tx->createBranch<vector<vector<float>>>("pT3_matched_pt");
     ana.tx->createBranch<vector<int>>("pT3_isFake");
     ana.tx->createBranch<vector<int>>("pT3_isDuplicate");
-
-    ana.tx->createBranch<vector<float>>("pT3_pixelRadius");
-    ana.tx->createBranch<vector<float>>("pT3_pixelRadiusError");
-    ana.tx->createBranch<vector<float>>("pT3_tripletRadius");
-    ana.tx->createBranch<vector<int>>("pT3_layer_binary");
-
 
 #ifdef CUT_VALUE_DEBUG
     createQuadrupletCutValueBranches();
@@ -136,6 +129,7 @@ void createLowerLevelOutputBranches()
     createSegmentCutValueBranches();
     createMiniDoubletCutValueBranches();
     createPixelQuadrupletCutValueBranches();
+    createPixelTripletCutValueBranches();
 #ifdef DO_QUINTUPLET
     createQuintupletCutValueBranches();
 #endif
@@ -169,6 +163,15 @@ void createQuintupletCutValueBranches()
 
 }
 #endif
+void createPixelTripletCutValueBranches()
+{
+    ana.tx->createBranch<vector<float>>("pT3_pixelRadius");
+    ana.tx->createBranch<vector<float>>("pT3_pixelRadiusError");
+    ana.tx->createBranch<vector<vector<float>>>("pT3_matched_pt");
+    ana.tx->createBranch<vector<float>>("pT3_tripletRadius");
+    ana.tx->createBranch<vector<int>>("pT3_layer_binary");
+
+}
 void createQuadrupletCutValueBranches()
 {
     ana.tx->createBranch<vector<float>>("t4_zOut");
@@ -474,6 +477,15 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
     std::vector<float> tc_pt;
     std::vector<float> tc_eta;
     std::vector<float> tc_phi;
+
+#ifdef DO_QUADRUPLET
+    const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 50000;
+    const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 5000000;
+#else
+    const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 5000;
+    const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 200000;
+#endif
+
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
 
@@ -1419,11 +1431,14 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     std::vector<float> pT3_pt;
     std::vector<float> pT3_eta;
     std::vector<float> pT3_phi;
+
+#ifdef CUT_VALUE_DEBUG
     std::vector<float> pT3_pixelRadius;
     std::vector<float> pT3_tripletRadius;
-    std::vector<float> pT3_pixelRadiusError;
     std::vector<int> pT3_layer_binary;
+    std::vector<float> pT3_pixelRadiusError;
     std::vector<std::vector<float>> pT3_simpt;
+#endif
 
     const unsigned int N_MAX_PIXEL_TRIPLETS = 3000000;
 
@@ -1516,7 +1531,6 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         layer_binary |= (1 << logicallayer6);
         layer_binary |= (1 << logicallayer8);
           
-        pT3_layer_binary.push_back(layer_binary);
 
         //bare bones implementation only
         std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
@@ -1524,7 +1538,8 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         {
             sim_pT3_matched[isimtrk]++;
         }
-
+#ifdef CUT_VALUE_DEBUG
+        pT3_layer_binary.push_back(layer_binary);
         std::vector<float> sim_pt_per_pT3;
         if(matched_sim_trk_idxs.size() == 0)
         {
@@ -1535,7 +1550,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
             sim_pt_per_pT3.push_back(trk.sim_pt()[matched_sim_trk_idxs[0]]);
         }
         pT3_simpt.push_back(sim_pt_per_pT3);
-
+#endif
         for (auto &isimtrk : matched_sim_trk_idxs)
         {
             sim_pT3_types[isimtrk].push_back(layer_binary);
@@ -1560,11 +1575,11 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         pT3_pt.push_back(pt);
         pT3_eta.push_back(eta);
         pT3_phi.push_back(phi);
-
+#ifdef CUT_VALUE_DEBUG
         pT3_pixelRadius.push_back(pixelRadius);
         pT3_pixelRadiusError.push_back(pixelRadiusError);
         pT3_tripletRadius.push_back(tripletRadius);
-
+#endif
     }
 
     vector<int> pT3_isDuplicate(pT3_matched_simIdx.size());
@@ -1589,11 +1604,13 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("pT3_pt", pT3_pt);
     ana.tx->setBranch<vector<float>>("pT3_eta", pT3_eta);
     ana.tx->setBranch<vector<float>>("pT3_phi", pT3_phi);
+#ifdef CUT_VALUE_DEBUG
     ana.tx->setBranch<vector<vector<float>>>("pT3_matched_pt", pT3_simpt);
     ana.tx->setBranch<vector<float>>("pT3_pixelRadius", pT3_pixelRadius);
     ana.tx->setBranch<vector<float>>("pT3_pixelRadiusError", pT3_pixelRadiusError);
     ana.tx->setBranch<vector<float>>("pT3_tripletRadius", pT3_tripletRadius);
     ana.tx->setBranch<vector<int>>("pT3_layer_binary", pT3_layer_binary);
+#endif
 
 }
 
@@ -1737,7 +1754,11 @@ void fillPixelQuadrupletOutputBranches(SDL::Event& event)
     std::vector<int> moduleType_binaries;
 #endif
 
+#ifdef DO_QUADRUPLET
+    const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 3000000;
+#else
     const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 200000;
+#endif
     const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
 
     unsigned int nPixelTracklets = std::min(*(pixelTrackletsInGPU.nPixelTracklets), N_MAX_PIXEL_TRACKLETS_PER_MODULE);
