@@ -150,12 +150,19 @@ __device__ bool SDL::passRadiusCriterionBBB(float& pixelRadius, float& pixelRadi
 {
     float tripletInvRadiusErrorBound = 0.15624;
     float pixelInvRadiusErrorBound = 0.17235;
-    float tripletRadiusMin = tripletRadius/(1 + tripletInvRadiusErrorBound);
-    float tripletRadiusMax = tripletInvRadiusErrorBound < 1 ? tripletRadius/(1 - tripletInvRadiusErrorBound) : 123456789;
-    float pixelRadiusMin = fminf(pixelRadius - pixelRadiusError, pixelRadius/(1 + pixelInvRadiusErrorBound));
-    float pixelRadiusMax = fmaxf(pixelRadius + pixelRadiusError, pixelRadius/(1 - pixelInvRadiusErrorBound));
-    
-    return checkIntervalOverlap(1.0/tripletRadiusMax, 1.0/tripletRadiusMin, 1.0/pixelRadiusMax, 1.0/pixelRadiusMin);
+//    float tripletRadiusMin = tripletRadius/(1 + tripletInvRadiusErrorBound);
+//    float tripletRadiusMax = tripletInvRadiusErrorBound < 1 ? tripletRadius/(1 - tripletInvRadiusErrorBound) : 123456789;
+//    float pixelRadiusMin = fminf(pixelRadius - pixelRadiusError, pixelRadius/(1 + pixelInvRadiusErrorBound));
+//    float pixelRadiusMax = fmaxf(pixelRadius + pixelRadiusError, pixelRadius/(1 - pixelInvRadiusErrorBound));
+
+
+    float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
+    float tripletRadiusInvMin = fmaxf((1 - tripletInvRadiusErrorBound)/tripletRadius, 0);
+
+    float pixelRadiusInvMax = fmaxf((1 + pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius - pixelRadiusError));
+    float pixelRadiusInvMin = fminf((1 - pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius + pixelRadiusError));
+
+    return checkIntervalOverlap(tripletRadiusInvMin, tripletRadiusInvMax, pixelRadiusInvMin, pixelRadiusInvMax);
 }
 
 __device__ bool SDL::passRadiusCriterionBBE(float& pixelRadius, float& pixelRadiusError, float& tripletRadius)
