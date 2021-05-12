@@ -114,6 +114,8 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
     if "etamaxzoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
+
+    eff.GetYaxis().SetRangeUser(0,1.02)
     eff.SetTitle(parse_plot_name(output_name))
     def draw_label():
         # Label

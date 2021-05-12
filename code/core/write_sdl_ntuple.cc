@@ -1457,7 +1457,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         unsigned int tripletInnerMDIndex = segmentsInGPU.mdIndices[2 * tripletInnerSegmentIndex];
         unsigned int tripletMiddleMDIndex = segmentsInGPU.mdIndices[2 * tripletInnerSegmentIndex + 1];
         unsigned int tripletOuterMDIndex = segmentsInGPU.mdIndices[2 * tripletOuterSegmentIndex + 1];
-
+        std::cout<<segmentsInGPU.mdIndices[2 * tripletInnerSegmentIndex + 1]<<" "<<segmentsInGPU.mdIndices[2 * tripletOuterSegmentIndex]<<std::endl;
         unsigned int pixelInnerMDLowerHitIndex = mdsInGPU.hitIndices[2 * pixelInnerMDIndex];
         unsigned int pixelInnerMDUpperHitIndex = mdsInGPU.hitIndices[2 * pixelInnerMDIndex + 1];
         unsigned int pixelOuterMDLowerHitIndex = mdsInGPU.hitIndices[2 * pixelOuterMDIndex];
