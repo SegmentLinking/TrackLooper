@@ -1508,8 +1508,19 @@ void SDL::Event::createTrackCandidates()
     {
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT2)<<std::endl;
     }
+#elif FINAL_pT3
+    printf("running final state pT3\n");
+    unsigned int nThreads = 1;
+    unsigned int nBlocks = (N_MAX_PIXEL_TRIPLETS) % nThreads == 0 ? N_MAX_PIXEL_TRIPLETS / nThreads : N_MAX_PIXEL_TRIPLETS / nThreads + 1;
+    addpT3asTrackCandidateInGPU<<<nBlocks, nThreads>>>(*modulesInGPU, *pixelTripletsIn  GPU, *trackCandidatesInGPU);
+    cudaError_t cudaerr_pT3 = cudaDeviceSynchronize();
+    if(cudaerr_pT3 != cudaSuccess)
+    {
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT2)<<std::endl;
+    }
+#endif // final state pT2 and pT3
 
-#endif // final state pT2
+
 
 #ifdef FINAL_T3T4
     printf("running final state T3T4\n");
@@ -3077,6 +3088,20 @@ __global__ void addpT2asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,st
   atomicAdd(trackCandidatesInGPU.nTrackCandidatespT2,1);
   unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[pixelLowerModuleArrayIndex] + trackCandidateModuleIdx;
   addTrackCandidateToMemory(trackCandidatesInGPU, 3/*track candidate type pT2=3*/, pixelTrackletIndex, pixelTrackletIndex, trackCandidateIdx);
+}
+
+__global__ void addpT3asTrackCandidateGPU(struct SDL::modules& modulesInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU)
+{
+  int pixelTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
+  unsigned int pixelLowerModuleArrayIndex = *modulesInGPU.nLowerModules;
+  unsigned int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets; 
+  if(pixelTripletArrayIndex >= nPixelTriplets) return;
+  int pixelTripletIndex = pixelTripletArrayIndex;
+  unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
+  atomicAdd(trackCandidatesInGPU.nTrackCandidatespT3,1);
+  unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[pixelLowerModuleArrayIndex] + trackCandidateModuleIdx;
+  addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, trackCandidateIdx);
+
 }
 
 

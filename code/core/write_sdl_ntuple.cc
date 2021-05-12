@@ -532,6 +532,20 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 betaIn_out = pixelTrackletsInGPU.betaIn[outerTrackletIdx];
                 betaOut_out = pixelTrackletsInGPU.betaOut[outerTrackletIdx];
             }
+
+            if (trackCandidateType == 5) //pT3
+            {
+                innerTrackletInnerSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[innerTrackletIdx];
+                innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx]]; //lower segment of the outer triplet
+                
+                outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * [pixelTripletsInGPU.tripletIndices] + 1]; //upper segment of the outer triplet
+
+                betaIn_in = 0;
+                betaOut_in = 0;
+                betaIn_out = tripletsInGPU.betaIn[pixelTripletsInGPU.tripletIndices[innerTrackletIdx]];
+                betaOut_out = tripletsInGPU.betaOut[pixelTripletsInGPU.tripletIndices[innerTrackletIdx]];
+
+            }
 #ifdef DO_QUINTUPLET
             if (trackCandidateType == 4) // T5
             {
