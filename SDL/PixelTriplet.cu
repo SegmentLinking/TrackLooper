@@ -49,9 +49,7 @@ void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTriplet
     cudaMalloc(&pixelTripletsInGPU.nPixelTriplets, sizeof(unsigned int));
     cudaMalloc(&pixelTripletsInGPU.pixelRadius, maxPixelTriplets * sizeof(float));
     cudaMalloc(&pixelTripletsInGPU.tripletRadius, maxPixelTriplets * sizeof(float));
-#ifdef CUT_VALUE_DEBUG
-    cudaMalloc(&pixelTripletsInGPU.pixelRadiusError, maxPixelTriplets * sizeof(float));
-#endif
+
     cudaMemset(pixelTripletsInGPU.nPixelTriplets, 0, sizeof(unsigned int));
 
 }

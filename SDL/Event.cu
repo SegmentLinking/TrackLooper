@@ -202,13 +202,12 @@ SDL::Event::~Event()
 #endif
 #endif
 
-#ifdef Explicit_PixelTriplet
+#ifdef Explicit_PT3
     if(pixelTripletsInCPU != nullptr)
     {
         delete[] pixelTripletsInCPU->tripletIndices;
         delete[] pixelTripletsInCPU->pixelSegmentIndices;
         delete[] pixelTripletsInCPU->pixelRadius;
-        delete[] pixelTripletsInCPU->pixelRadiusError;
         delete[] pixelTripletsInCPU->tripletRadius;
         delete nPixelTriplets;
         delete pixelTripletsInCPU;
@@ -1632,7 +1631,7 @@ void SDL::Event::createPixelTriplets()
     {
         cudaMallocHost(&pixelTripletsInGPU, sizeof(SDL::pixelTriplets));
     }
-#ifdef Explicit_PixelTriplet
+#ifdef Explicit_PT3
     createPixelTripletsInExplicitMemory(*pixelTripletsInGPU, N_MAX_PIXEL_TRIPLETS);
 #else
     createPixelTripletsInUnifiedMemory(*pixelTripletsInGPU, N_MAX_PIXEL_TRIPLETS);
@@ -4084,7 +4083,7 @@ unsigned int SDL::Event::getNumberOfTripletsByLayerEndcap(unsigned int layer)
 
 unsigned int SDL::Event::getNumberOfPixelTriplets()
 {
-#ifdef Explicit_PixelTriplet
+#ifdef Explicit_PT3
     unsigned int nPixelTriplets;
     cudaMemcpy(&nPixelTriplets, pixelTripletsInGPU->nPixelTriplets, sizeof(unsigned int));
     return nPixelTriplets;
@@ -4382,7 +4381,7 @@ SDL::quintuplets* SDL::Event::getQuintuplets()
 }
 #endif
 
-#ifdef Explicit_PixelTriplet
+#ifdef Explicit_PT3
 SDL::pixelTriplets* SDL::Event::getPixelTriplets()
 {
     if(pixelTripletsInCPU == nullptr)
@@ -4390,18 +4389,18 @@ SDL::pixelTriplets* SDL::Event::getPixelTriplets()
         pixelTripletsInCPU = new SDL::pixelTriplets;
         
         pixelTripletsInCPU->nPixelTriplets = new unsigned int;
-        pixelTripletsInCPU->tripletIndices = new unsigned int[N_MAX_PIXEL_TRIPLETS];
-        pixelTripletsInCPU->pixelSegmentIndices = new unsigned int[N_MAX_PIXEL_TRIPLETS];
-        pixelTripletsInCPU->pixelRadius = new float[N_MAX_PIXEL_TRIPLETS];
-        pixelTripletsInCPU->pixelRadiusError = new float[N_MAX_PIXEL_TRIPLETS];
-        pixelTripletsInCPU->tripletRadius = new float[N_MAX_PIXEL_TRIPLETS];
-
         cudaMemcpy(pixelTripletsInCPU->nPixelTriplets, pixelTripletsInGPU->nPixelTriplets, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        cudaMemcpy(pixelTripletsInCPU->tripletIndices, pixelTripletsInGPU->tripletIndices, N_MAX_PIXEL_TRIPLETS * sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        cudaMemcpy(pixelTripletsInCPU->pixelSegmentIndices, pixelTripletsInGPU->pixelSegmentIndices, N_MAX_PIXEL_TRIPLETS * sizeof(unsigned int) cudaMemcpyDeviceToHost);
-        cudaMemcpy(pixelTripeltsInCPU->pixelRadius, pixelTripletsInGPU->pixelRadius, N_MAX_PIXEL_TRIPLETS * sizeof(float), cudaMemcpyDeviceToHost);
-        cudaMemcpy(pixelTripletsInCPU->pixelRadiusError, pixelTripletsInGPU->pixelRadiusError, N_MAX_PIXEL_TRIPLETS * sizeof(float), cudaMemcpyDeviceToHost);
-        cudaMemcpy(pixelTripletsInCPU->tripletRadius, pixelTripletsInGPU->tripletRadius, N_MAX_PIXEL_TRIPLETS * sizeof(float), cudaMemcpyDeviceToHost);
+        unsigned int nPixelTriplets = *(pixelTripletsInCPU->nPixelTriplets);
+        pixelTripletsInCPU->tripletIndices = new unsigned int[nPixelTriplets];
+        pixelTripletsInCPU->pixelSegmentIndices = new unsigned int[nPixelTriplets];
+        pixelTripletsInCPU->pixelRadius = new float[nPixelTriplets];
+        pixelTripletsInCPU->pixelRadiusError = new float[nPixelTriplets];
+        pixelTripletsInCPU->tripletRadius = new float[nPixelTriplets];
+
+        cudaMemcpy(pixelTripletsInCPU->tripletIndices, pixelTripletsInGPU->tripletIndices, nPixelTriplets * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(pixelTripletsInCPU->pixelSegmentIndices, pixelTripletsInGPU->pixelSegmentIndices, nPixelTriplets * sizeof(unsigned int) cudaMemcpyDeviceToHost);
+        cudaMemcpy(pixelTripletsInCPU->pixelRadius, pixelTripletsInGPU->pixelRadius, nPixelTriplets * sizeof(float), cudaMemcpyDeviceToHost);
+        cudaMemcpy(pixelTripletsInCPU->tripletRadius, pixelTripletsInGPU->tripletRadius, nPixelTriplets * sizeof(float), cudaMemcpyDeviceToHost);
     }
     return pixelTripletsInCPU;
 }
