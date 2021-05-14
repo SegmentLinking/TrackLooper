@@ -35,13 +35,12 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     cudaMallocManaged(&segmentsInGPU.dAlphaOuterMDSegmentThreshold, nMemoryLocations * sizeof(float));
     cudaMallocManaged(&segmentsInGPU.dAlphaInnerMDOuterMDThreshold, nMemoryLocations * sizeof(float));
 
-    segmentsInGPU.zIns  = segmentsInGPU.dPhis + nMemoryLocations * 6;
-    segmentsInGPU.zOuts = segmentsInGPU.dPhis + nMemoryLocations * 7;
-    segmentsInGPU.rtIns = segmentsInGPU.dPhis + nMemoryLocations * 8;
-    segmentsInGPU.rtOuts = segmentsInGPU.dPhis + nMemoryLocations * 9;
-    segmentsInGPU.dAlphaInnerMDSegments = segmentsInGPU.dPhis + nMemoryLocations * 10;
-    segmentsInGPU.dAlphaOuterMDSegments = segmentsInGPU.dPhis + nMemoryLocations * 11;
-    segmentsInGPU.dAlphaInnerMDOuterMDs = segmentsInGPU.dPhis + nMemoryLocations * 12;
+    segmentsInGPU.zOuts = segmentsInGPU.zIns + nMemoryLocations;
+    segmentsInGPU.rtIns = segmentsInGPU.zIns + nMemoryLocations * 2;
+    segmentsInGPU.rtOuts = segmentsInGPU.zIns + nMemoryLocations * 3;
+    segmentsInGPU.dAlphaInnerMDSegments = segmentsInGPU.zIns + nMemoryLocations * 4;
+    segmentsInGPU.dAlphaOuterMDSegments = segmentsInGPU.zIns + nMemoryLocations * 5;
+    segmentsInGPU.dAlphaInnerMDOuterMDs = segmentsInGPU.zIns + nMemoryLocations * 6;
 
 #endif
 #endif

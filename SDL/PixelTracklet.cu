@@ -25,17 +25,17 @@ void SDL::createPixelTrackletsInUnifiedMemory(struct pixelTracklets& pixelTrackl
     cudaMallocManaged(&pixelTrackletsInGPU.betaIn, maxPixelTracklets *3* sizeof(float));
 
 #ifdef CUT_VALUE_DEBUG
-    cudaMallocManaged(&trackletsInGPU.zLo, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.zHi, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.zLoPointed, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.zHiPointed, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.sdlCut, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.betaInCut, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.betaOutCut, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.deltaBetaCut, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.rtLo, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.rtHi, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.kZ, maxPixelTracklets * sizeof(float));
+    cudaMallocManaged(&pixelTrackletsInGPU.zLo, maxPixelTracklets * sizeof(float));
+    cudaMallocManaged(&pixelTrackletsInGPU.zHi, maxPixelTracklets * sizeof(float));
+    cudaMallocManaged(&pixelTrackletsInGPU.zLoPointed, maxPixelTracklets * sizeof(float));
+    cudaMallocManaged(&pixelTrackletsInGPU.zHiPointed, maxPixelTracklets * sizeof(float));
+    cudaMallocManaged(&pixelTrackletsInGPU.sdlCut, maxPixelTracklets * sizeof(float));
+    cudaMallocManaged(&pixelTrackletsInGPU.betaInCut, maxPixelTracklets * sizeof(float));
+    cudaMallocManaged(&pixelTrackletsInGPU.betaOutCut, maxPixelTracklets * sizeof(float));
+    cudaMallocManaged(&pixelTrackletsInGPU.deltaBetaCut, maxPixelTracklets * sizeof(float));
+    cudaMallocManaged(&pixelTrackletsInGPU.rtLo, maxPixelTracklets * sizeof(float));
+    cudaMallocManaged(&pixelTrackletsInGPU.rtHi, maxPixelTracklets * sizeof(float));
+    cudaMallocManaged(&pixelTrackletsInGPU.kZ, maxPixelTracklets * sizeof(float));
 
 #endif
 #endif
@@ -99,7 +99,7 @@ __device__ void SDL::addPixelTrackletToMemory(struct pixelTracklets& pixelTrackl
     pixelTrackletsInGPU.pt_beta[pixelTrackletIndex] = pt_beta;
 
 #ifdef CUT_VALUE_DEBUG
-    pixelTrackletsInGPU.zLo[trackletIndex] = zLo;
+    pixelTrackletsInGPU.zLo[pixelTrackletIndex] = zLo;
     pixelTrackletsInGPU.zHi[pixelTrackletIndex] = zHi;
     pixelTrackletsInGPU.rtLo[pixelTrackletIndex] = rtLo;
     pixelTrackletsInGPU.rtHi[pixelTrackletIndex] = rtHi;

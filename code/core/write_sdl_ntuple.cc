@@ -468,7 +468,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
 #ifdef DO_QUADRUPLET
     SDL::tracklets& trackletsInGPU = (*event.getTracklets());
 #endif
-
+    SDL::pixelTriplets& pixelTripletsInGPU = (*event.getPixelTriplets());
     // Did it match to track candidate?
     std::vector<int> sim_TC_matched(trk.sim_pt().size());
     std::vector<vector<int>> sim_TC_types(trk.sim_pt().size());
@@ -538,7 +538,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 innerTrackletInnerSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[innerTrackletIdx];
                 innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx]]; //lower segment of the outer triplet
                 
-                outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * [pixelTripletsInGPU.tripletIndices] + 1]; //upper segment of the outer triplet
+                outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx] + 1]; //upper segment of the outer triplet
 
                 betaIn_in = 0;
                 betaOut_in = 0;
@@ -1471,7 +1471,6 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         unsigned int tripletInnerMDIndex = segmentsInGPU.mdIndices[2 * tripletInnerSegmentIndex];
         unsigned int tripletMiddleMDIndex = segmentsInGPU.mdIndices[2 * tripletInnerSegmentIndex + 1];
         unsigned int tripletOuterMDIndex = segmentsInGPU.mdIndices[2 * tripletOuterSegmentIndex + 1];
-        std::cout<<segmentsInGPU.mdIndices[2 * tripletInnerSegmentIndex + 1]<<" "<<segmentsInGPU.mdIndices[2 * tripletOuterSegmentIndex]<<std::endl;
         unsigned int pixelInnerMDLowerHitIndex = mdsInGPU.hitIndices[2 * pixelInnerMDIndex];
         unsigned int pixelInnerMDUpperHitIndex = mdsInGPU.hitIndices[2 * pixelInnerMDIndex + 1];
         unsigned int pixelOuterMDLowerHitIndex = mdsInGPU.hitIndices[2 * pixelOuterMDIndex];
@@ -1894,23 +1893,23 @@ void fillPixelQuadrupletOutputBranches(SDL::Event& event)
 
 #ifdef CUT_VALUE_DEBUG
         //debug stuff
-        float zOut = trackletsInGPU.zOut[trackletIndex];
-        float rtOut = trackletsInGPU.rtOut[trackletIndex];
-        float deltaPhiPos = trackletsInGPU.deltaPhiPos[trackletIndex];
-        float deltaPhi = trackletsInGPU.deltaPhi[trackletIndex];
+        float zOut = pixelTrackletsInGPU.zOut[trackletIndex];
+        float rtOut = pixelTrackletsInGPU.rtOut[trackletIndex];
+        float deltaPhiPos = pixelTrackletsInGPU.deltaPhiPos[trackletIndex];
+        float deltaPhi = pixelTrackletsInGPU.deltaPhi[trackletIndex];
         //betaIn and betaOut already defined!
         float deltaBeta = betaIn - betaOut;
-        float zLo = trackletsInGPU.zLo[trackletIndex];
-        float zHi = trackletsInGPU.zHi[trackletIndex];
-        float rtLo = trackletsInGPU.rtLo[trackletIndex];
-        float rtHi = trackletsInGPU.rtHi[trackletIndex];
-        float kZ = trackletsInGPU.kZ[trackletIndex];
-        float zLoPointed = trackletsInGPU.zLoPointed[trackletIndex];
-        float zHiPointed = trackletsInGPU.zHiPointed[trackletIndex];
-        float sdlCut = trackletsInGPU.sdlCut[trackletIndex];
-        float betaInCut = trackletsInGPU.betaInCut[trackletIndex];
-        float betaOutCut = trackletsInGPU.betaOutCut[trackletIndex];
-        float deltaBetaCut = trackletsInGPU.deltaBetaCut[trackletIndex];
+        float zLo = pixelTrackletsInGPU.zLo[trackletIndex];
+        float zHi = pixelTrackletsInGPU.zHi[trackletIndex];
+        float rtLo = pixelTrackletsInGPU.rtLo[trackletIndex];
+        float rtHi = pixelTrackletsInGPU.rtHi[trackletIndex];
+        float kZ = pixelTrackletsInGPU.kZ[trackletIndex];
+        float zLoPointed = pixelTrackletsInGPU.zLoPointed[trackletIndex];
+        float zHiPointed = pixelTrackletsInGPU.zHiPointed[trackletIndex];
+        float sdlCut = pixelTrackletsInGPU.sdlCut[trackletIndex];
+        float betaInCut = pixelTrackletsInGPU.betaInCut[trackletIndex];
+        float betaOutCut = pixelTrackletsInGPU.betaOutCut[trackletIndex];
+        float deltaBetaCut = pixelTrackletsInGPU.deltaBetaCut[trackletIndex];
 
         pT4_ZOut.push_back(zOut);
         pT4_RtOut.push_back(rtOut);

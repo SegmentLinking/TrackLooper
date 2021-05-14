@@ -176,7 +176,7 @@ SDL::trackCandidates::~trackCandidates()
 
 void SDL::trackCandidates::freeMemoryCache()
 {
-ifdef Explicit_Track
+#ifdef Explicit_Track
     int dev;
     cudaGetDevice(&dev);
     //FIXME
@@ -188,7 +188,7 @@ ifdef Explicit_Track
     cms::cuda::free_device(dev,nTrackCandidatespT2);
     cms::cuda::free_device(dev,nTrackCandidatespT3);
     cms::cuda::free_device(dev,nTrackCandidatesT5);
-#else
+#
     cms::cuda::free_managed(trackCandidateType);
     cms::cuda::free_managed(nTrackCandidates);
     cms::cuda::free_managed(nTrackCandidatesT4T4);
