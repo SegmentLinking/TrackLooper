@@ -61,6 +61,12 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
 
         num.SetBinContent(num.GetNbinsX(), lastBin + overFlowBin)
         num.SetBinError(num.GetNbinsX(), sqrt(lastBin + overFlowBin))
+        
+        overFlowBin = den.GetBinContent(den.GetNbinsX() + 1)
+        lastBin = den.GetBinContent(den.GetNbinsX())
+
+        den.SetBinContent(den.GetNbinsX(), lastBin + overFlowBin)
+        den.SetBinError(den.GetNbinsX(), sqrt(lastBin + overFlowBin))
 
         overFlowBin = den.GetBinContent(den.GetNbinsX() + 1)
         lastBin = den.GetBinContent(den.GetNbinsX())
@@ -118,19 +124,22 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
         if yaxis_min > eff.GetY()[i] and eff.GetY()[i] != 0:
             yaxis_min = eff.GetY()[i]
     # print yaxis_min
-    if "eta" in output_name:
-        eff.GetXaxis().SetLimits(-2.5, 2.5)
     if "ptzoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
-    if "etazoom" in output_name:
+    elif "etazoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
-    if "ptmaxzoom" in output_name:
+    elif "ptmaxzoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
-    if "etamaxzoom" in output_name:
+    elif "etamaxzoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
+    else:
+        eff.GetYaxis().SetRangeUser(0, 1.02)
 
-    eff.GetYaxis().SetRangeUser(0,1.02)
+    if "eta" in output_name:
+        eff.GetXaxis().SetLimits(-2.5, 2.5)
+
     eff.SetTitle(parse_plot_name(output_name))
+
     def draw_label():
         # Label
         t = r.TLatex()
