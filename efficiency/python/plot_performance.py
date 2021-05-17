@@ -61,7 +61,7 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
 
         num.SetBinContent(num.GetNbinsX(), lastBin + overFlowBin)
         num.SetBinError(num.GetNbinsX(), sqrt(lastBin + overFlowBin))
-
+        
         overFlowBin = den.GetBinContent(den.GetNbinsX() + 1)
         lastBin = den.GetBinContent(den.GetNbinsX())
 
@@ -126,10 +126,12 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
     elif "etamaxzoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
-    elif "eta" in output_name:
-        eff.GetXaxis().SetLimits(-2.5, 2.5)
     else:
         eff.GetYaxis().SetRangeUser(0, 1.02)
+
+    if "eta" in output_name:
+        eff.GetXaxis().SetLimits(-2.5, 2.5)
+
     eff.SetTitle(parse_plot_name(output_name))
 
     def draw_label():
