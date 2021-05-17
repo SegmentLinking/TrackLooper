@@ -68,12 +68,6 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
         den.SetBinContent(den.GetNbinsX(), lastBin + overFlowBin)
         den.SetBinError(den.GetNbinsX(), sqrt(lastBin + overFlowBin))
 
-        overFlowBin = den.GetBinContent(den.GetNbinsX() + 1)
-        lastBin = den.GetBinContent(den.GetNbinsX())
-
-        den.SetBinContent(den.GetNbinsX(), lastBin + overFlowBin)
-        den.SetBinError(den.GetNbinsX(), sqrt(lastBin + overFlowBin))
-   
     teff = r.TEfficiency(num, den)
     eff = teff.CreateGraph()
     c1 = r.TCanvas()
