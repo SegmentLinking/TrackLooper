@@ -151,6 +151,12 @@ __device__ bool SDL::passRadiusCriterionBBB(float& pixelRadius, float& pixelRadi
     float tripletInvRadiusErrorBound = 0.15624;
     float pixelInvRadiusErrorBound = 0.17235;
 
+    if(pixelRadius > 2.0/(2 * k2Rinv1GeVf))
+    {
+        pixelInvRadiusErrorBound = 0.6375;
+        tripletInvRadiusErrorBound = 0.6588;
+    }
+
     float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
     float tripletRadiusInvMin = fmaxf((1 - tripletInvRadiusErrorBound)/tripletRadius, 0);
 
@@ -164,6 +170,12 @@ __device__ bool SDL::passRadiusCriterionBBE(float& pixelRadius, float& pixelRadi
 {
     float tripletInvRadiusErrorBound = 0.45972;
     float pixelInvRadiusErrorBound = 0.19644;
+
+    if(pixelRadius > 2.0/(2 * k2Rinv1GeVf))
+    {
+        pixelInvRadiusErrorBound = 0.6805;
+        tripletInvRadiusErrorBound = 0.8557;
+    }
 
     float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
     float tripletRadiusInvMin = fmaxf((1 - tripletInvRadiusErrorBound)/tripletRadius, 0);
@@ -180,27 +192,40 @@ __device__ bool SDL::passRadiusCriterionBEE(float& pixelRadius, float& pixelRadi
     float tripletInvRadiusErrorBound = 1.59294;
     float pixelInvRadiusErrorBound = 0.255181;
 
+    if(pixelRadius > 2.0/(2 * k2Rinv1GeVf)) //as good as not having selections
+    {
+        pixelInvRadiusErrorBound = 2.2091;
+        tripletInvRadiusErrorBound = 2.3548;
+    }
+
     float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
     float tripletRadiusInvMin = fmaxf((1 - tripletInvRadiusErrorBound)/tripletRadius, 0);
 
     float pixelRadiusInvMax = fmaxf((1 + pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius - pixelRadiusError));
     float pixelRadiusInvMin = fminf((1 - pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius + pixelRadiusError));
+    pixelRadiusInvMin = fmaxf(pixelRadiusInvMin, 0);
 
     return checkIntervalOverlap(tripletRadiusInvMin, tripletRadiusInvMax, pixelRadiusInvMin, pixelRadiusInvMax);
 
 }
-
 
 __device__ bool SDL::passRadiusCriterionEEE(float& pixelRadius, float& pixelRadiusError, float& tripletRadius)
 {
     float tripletInvRadiusErrorBound = 1.7006;
     float pixelInvRadiusErrorBound = 0.26367;
 
+    if(pixelRadius > 2.0/(2 * k2Rinv1GeVf)) //as good as not having selections
+    {
+        pixelInvRadiusErrorBound = 2.286;
+        tripletInvRadiusErrorBound = 2.436;
+    }
+
     float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
     float tripletRadiusInvMin = fmaxf((1 - tripletInvRadiusErrorBound)/tripletRadius, 0);
 
     float pixelRadiusInvMax = fmaxf((1 + pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius - pixelRadiusError));
     float pixelRadiusInvMin = fminf((1 - pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius + pixelRadiusError));
+    pixelRadiusInvMin = fmaxf(0, pixelRadiusInvMin);
 
     return checkIntervalOverlap(tripletRadiusInvMin, tripletRadiusInvMax, pixelRadiusInvMin, pixelRadiusInvMax);
 
