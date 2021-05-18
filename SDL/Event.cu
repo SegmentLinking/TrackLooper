@@ -1510,13 +1510,13 @@ void SDL::Event::createTrackCandidates()
     }
 #elif FINAL_pT3
     printf("running final state pT3\n");
-    unsigned int nThreads = 1;
-    unsigned int nBlocks = (N_MAX_PIXEL_TRIPLETS) % nThreads == 0 ? N_MAX_PIXEL_TRIPLETS / nThreads : N_MAX_PIXEL_TRIPLETS / nThreads + 1;
-    addpT3asTrackCandidateInGPU<<<nBlocks, nThreads>>>(*modulesInGPU, *pixelTripletsIn  GPU, *trackCandidatesInGPU);
+    unsigned int nThreadsx = 1;
+    unsigned int nBlocksx = (N_MAX_PIXEL_TRIPLETS) % nThreadsx == 0 ? N_MAX_PIXEL_TRIPLETS / nThreadsx : N_MAX_PIXEL_TRIPLETS / nThreadsx + 1;
+    addpT3asTrackCandidateInGPU<<<nBlocksx, nThreadsx>>>(*modulesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU);
     cudaError_t cudaerr_pT3 = cudaDeviceSynchronize();
     if(cudaerr_pT3 != cudaSuccess)
     {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT2)<<std::endl;
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT3)<<std::endl;
     }
 #endif // final state pT2 and pT3
 
@@ -3090,7 +3090,7 @@ __global__ void addpT2asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,st
   addTrackCandidateToMemory(trackCandidatesInGPU, 3/*track candidate type pT2=3*/, pixelTrackletIndex, pixelTrackletIndex, trackCandidateIdx);
 }
 
-__global__ void addpT3asTrackCandidateGPU(struct SDL::modules& modulesInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU)
+__global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU)
 {
   int pixelTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
   unsigned int pixelLowerModuleArrayIndex = *modulesInGPU.nLowerModules;
