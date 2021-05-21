@@ -18,6 +18,8 @@ run_gpu()
     sdl -v 3 -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -i ${sample} -v 0 -l
     if [[ ${PDGID} == 0 ]]; then
         sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 0 -f
+    elif [[ ${sample} == *"highE"* ]]; then
+        sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 0 -f
     else
         sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 4 -f
 

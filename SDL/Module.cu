@@ -178,12 +178,6 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
   cms::cuda::free_device(dev,modulesInGPU.nEligibleModules);
   cms::cuda::free_device(dev,modulesInGPU.nEligibleT5Modules);
   cms::cuda::free_device(dev,modulesInGPU.connectedPixels);
-  //cms::cuda::free_device(dev,pixelMapping.connectedPixelsSizes);
-  //cms::cuda::free_device(dev,pixelMapping.connectedPixelsSizesPos);
-  //cms::cuda::free_device(dev,pixelMapping.connectedPixelsSizesNeg);
-  //cms::cuda::free_device(dev,pixelMapping.connectedPixelsIndex);
-  //cms::cuda::free_device(dev,pixelMapping.connectedPixelsIndexPos);
-  //cms::cuda::free_device(dev,pixelMapping.connectedPixelsIndexNeg);
 #else
   cms::cuda::free_managed(modulesInGPU.detIds);
   cms::cuda::free_managed(modulesInGPU.moduleMap);
@@ -216,12 +210,6 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
   cms::cuda::free_managed(modulesInGPU.nEligibleModules);
   cms::cuda::free_managed(modulesInGPU.nEligibleT5Modules);
   cms::cuda::free_managed(modulesInGPU.connectedPixels);
-  //cms::cuda::free_managed(pixelMapping.connectedPixelsSizes);
-  //cms::cuda::free_managed(pixelMapping.connectedPixelsSizesPos);
-  //cms::cuda::free_managed(pixelMapping.connectedPixelsSizesNeg);
-  //cms::cuda::free_managed(pixelMapping.connectedPixelsIndex);
-  //cms::cuda::free_managed(pixelMapping.connectedPixelsIndexPos);
-  //cms::cuda::free_managed(pixelMapping.connectedPixelsIndexNeg);
 #endif
   cudaFreeHost(pixelMapping.connectedPixelsSizes);
   cudaFreeHost(pixelMapping.connectedPixelsSizesPos);
@@ -394,7 +382,6 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
             counter++;
         }
     }
-    //FIXME:MANUAL INSERTION OF PIXEL MODULE!
     (*detIdToIndex)[1] = counter; //pixel module is the last module in the module list
     counter++;
     nModules = counter;
@@ -563,8 +550,6 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
 
 void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMapping) 
 {
-    //unsigned int* pixelMap;
-    //unsigned int* nConnectedPixelModules;
     int size_superbins = 45000;//SDL::moduleConnectionMap_pLStoLayer1Subdet5.size(); //changed to 45000 to reduce memory useage on GPU
     std::vector<unsigned int> connectedModuleDetIds;
     std::vector<unsigned int> connectedModuleDetIds_pos;

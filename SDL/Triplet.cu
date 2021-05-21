@@ -2,9 +2,7 @@
 #define CUDA_CONST_VAR __device__
 #endif
 # include "Triplet.cuh"
-//#ifdef CACHE_ALLOC
 #include "allocate.h"
-//#endif
 
 void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, unsigned int nLowerModules)
 {

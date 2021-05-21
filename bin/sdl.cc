@@ -352,6 +352,9 @@ void run_sdl()
             // Run T3
             float timing_T3 = runT3(event);
 
+            //Run pT3
+            float timing_pT3 = runpT3(event);
+
 #ifdef DO_QUADRUPLET
             // Run T4
             float timing_T4 = runT4(event);
@@ -375,7 +378,8 @@ void run_sdl()
                     timing_pT4,
                     timing_T3,
                     timing_TC,
-                    timing_T5});
+                    timing_T5,
+                    timing_pT3});
 
             if (ana.verbose == 4)
             {
