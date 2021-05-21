@@ -73,11 +73,7 @@ namespace SDL
 
     CUDA_DEV bool T5HasCommonMiniDoublet(struct triplets& tripletsInGPU, struct segments& segmentsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex);
 
-    CUDA_DEV float computeRadiusFromThreeAnchorHits(struct SDL::hits& hitsInGPU, unsigned int firstAnchorHit, unsigned int secondAnchorHit, unsigned int thirdAnchorHit, float& g, float& f);
-
-    CUDA_DEV float computeRadiusFromThreeAnchorHits(float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f);
-
-    CUDA_DEV float computeRadiusUsingRegression(int nPoints, float* xs, float* ys, float&g, float& f);
+    CUDA_DEV float computeRadiusFromThreeAnchorHits(float x1, float y1, float x2, float y2, float x3, float y3);
 
     CUDA_DEV void computeErrorInRadius(float* x1Vec, float* y1Vec, float* x2Vec, float* y2Vec, float* x3Vec, float* y3Vec, float& gError, float& fError);
 
