@@ -25,17 +25,21 @@ usage()
   echo "  -t    git hash tag           (e.g. -t 78df188DIRTY)"
   echo "  -T    reference git hash tag (e.g. -t 78df188)"
   echo "  -m    mode (e.g. -m unified_newgrid)"
+  echo "  -l    Legend name for -t tag"
+  echo "  -L    Legend name for -T tag"
   exit
 }
 
 # Parsing command-line opts
-while getopts ":i::t:T:f:m:h" OPTION; do
+while getopts ":i::t:T:f:m:l:L:h" OPTION; do
   case $OPTION in
     i) SAMPLE=${OPTARG};;
     t) TAG=${OPTARG};;
     T) SECONDTAG=${OPTARG};;
     f) FORCE=true;;
     m) MODE=${OPTARG};;
+    l) LEGENDTAG=${OPTARG};;
+    L) REFLEGENDTAG=${OPTARG};;
     h) usage;;
     :) usage;;
   esac
@@ -93,7 +97,7 @@ echo "Making comparison plots...              (log: ${OUTDIR}/plots.log)"
 
 echo "Available runs to compare...:"
 for i in $(ls -d efficiencies/*_GPU_${MODE}_${TAG}_${SAMPLE}); do echo $i; done
-python $DIR/../python/plot_compare_arbitrary.py ${TAG} ${SECONDTAG} ${SAMPLE} ${MODE} > plots.log 2>&1
+python $DIR/../python/plot_compare_arbitrary.py ${TAG} ${SECONDTAG} ${SAMPLE} ${MODE} ${REFLEGENDTAG} ${LEGENDTAG} > plots.log 2>&1
 
 grep "VALIDATION FAILED" plots.log
 

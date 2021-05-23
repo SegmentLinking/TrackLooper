@@ -130,6 +130,9 @@ for key in keys:
     eff.GetXaxis().SetLabelSize(0.05)
     eff.GetYaxis().SetLabelSize(0.05)
     yaxis_max = 0
+
+    leg1 = r.TLegend(0.63, 0.18, 0.93, 0.38)
+
     for i in xrange(0, eff.GetN()):
         if yaxis_max < eff.GetY()[i]:
             yaxis_max = eff.GetY()[i]
@@ -154,6 +157,8 @@ for key in keys:
         eff.GetXaxis().SetLimits(-2.5, 2.5)
 
     eff.SetTitle(parse_plot_name(output_name))
+    if len(sys.argv) > 5:
+        leg1.AddEntry(eff,sys.argv[5], "ep")
     # Label
     t = r.TLatex()
     t.SetTextAlign(11) # align bottom left corner of text
@@ -174,7 +179,10 @@ for key in keys:
         gpu_graphs[-1].SetMarkerColor(cs[ii])
         gpu_graphs[-1].SetLineColor(cs[ii])
         gpu_graphs[-1].Draw("ep")
+        if len(sys.argv) > 6:
+            leg1.AddEntry(gpu_graphs[-1], sys.argv[6], "ep")
 
+    leg1.Draw()
     # Save
     c1.SetGrid()
     c1.SaveAs("{}".format(output_name))
