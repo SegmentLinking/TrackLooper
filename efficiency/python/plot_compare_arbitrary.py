@@ -135,8 +135,11 @@ for key in keys:
     eff.GetXaxis().SetLabelSize(0.05)
     eff.GetYaxis().SetLabelSize(0.05)
     yaxis_max = 0
-
-    leg1 = r.TLegend(0.63, 0.18, 0.93, 0.38)
+    
+    if "fakerate" in key or "duplrate" in keys:
+        leg1 = r.TLegend(0.63, 0.67, 0.93, 0.87)
+    else:
+        leg1 = r.TLegend(0.63, 0.18, 0.93, 0.38)
 
     for i in xrange(0, eff.GetN()):
         if yaxis_max < eff.GetY()[i]:
