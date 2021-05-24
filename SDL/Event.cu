@@ -2891,7 +2891,7 @@ __global__ void createPixelTrackletsInGPUFromMap(struct SDL::modules& modulesInG
   unsigned int outerInnerLowerModuleArrayIndex;// This will be the index of the module that connects to this pixel.
     unsigned int temp = connectedPixelIndex[pixelArrayIndex]+segmentArrayIndex; //gets module index for segment
     outerInnerLowerModuleArrayIndex = modulesInGPU.connectedPixels[temp]; //gets module index for segment
-  if(outerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) return;
+  if(outerInnerLowerModuleArrayIndex >= *modulesInGPU.nModules - 1) return;
   unsigned int outerInnerLowerModuleIndex = /*modulesInGPU.lowerModuleIndices[*/outerInnerLowerModuleArrayIndex;//];
 
   unsigned int pixelModuleIndex = *modulesInGPU.nModules - 1; //last dude
@@ -3855,8 +3855,8 @@ __global__ void createPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGP
     unsigned int tripletLowerModuleIndex; //index of the module that connects to this pixel
     unsigned int tempIndex = connectedPixelIndex[pixelSegmentArrayIndex] + segmentModuleIndex; //gets module array index for segment
     tripletLowerModuleIndex = modulesInGPU.connectedPixels[tempIndex];
-    unsigned int tripletLowerModuleArrayIndex = modulesInGPU.lowerModuleIndices[tripletLowerModuleIndex];
-    if(tripletLowerModuleIndex >= *modulesInGPU.nLowerModules) return;
+    unsigned int tripletLowerModuleArrayIndex = modulesInGPU.reverseLookupLowerModuleIndices[tripletLowerModuleIndex];
+    if(tripletLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) return;
 
     unsigned int pixelModuleIndex = *modulesInGPU.nModules - 1;
     unsigned int nOuterTriplets = min(tripletsInGPU.nTriplets[tripletLowerModuleArrayIndex], N_MAX_TRIPLETS_PER_MODULE);
