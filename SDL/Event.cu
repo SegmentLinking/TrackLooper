@@ -1295,7 +1295,6 @@ void SDL::Event::createPixelTrackletsWithMap()
           segs_pix_offset[totalSegs+j] = j; // save this segment in array to be transfered to kernel
         }
         totalSegs += connectedPixelSize_host[i]; // increment counter
-      if (pixelMapping->connectedPixelsSizes[superbin] > max_size){ max_size = pixelMapping->connectedPixelsSizes[superbin];} // set the maximum number of modules in a row
       }
       else if(pixelType ==1){
         connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesPos[superbin]; //number of pixel connected modules
@@ -1305,7 +1304,6 @@ void SDL::Event::createPixelTrackletsWithMap()
           segs_pix_offset[totalSegs+j] = j;
         }
         totalSegs += connectedPixelSize_host[i];
-      if (pixelMapping->connectedPixelsSizesPos[superbin]> max_size){ max_size = pixelMapping->connectedPixelsSizesPos[superbin];}
       }
       else if(pixelType ==2){
         connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesNeg[superbin]; //number of pixel connected modules
@@ -1315,7 +1313,6 @@ void SDL::Event::createPixelTrackletsWithMap()
           segs_pix_offset[totalSegs+j] = j;
         }
         totalSegs += connectedPixelSize_host[i];
-      if (pixelMapping->connectedPixelsSizesNeg[superbin] > max_size){max_size = pixelMapping->connectedPixelsSizesNeg[superbin];}
       }
       else{continue;}
     }
@@ -1720,10 +1717,6 @@ void SDL::Event::createPixelTriplets()
               segs_pix_offset[totalSegs+j] = j; // save this segment in array to be transfered to kernel
             }
             totalSegs += connectedPixelSize_host[i]; // increment counter
-            if (pixelMapping->connectedPixelsSizes[superbin] > max_size)
-            { 
-                max_size = pixelMapping->connectedPixelsSizes[superbin];
-            } // set the maximum number of modules in a row
         }
         else if(pixelType ==1)
         {
@@ -1735,10 +1728,6 @@ void SDL::Event::createPixelTriplets()
                 segs_pix_offset[totalSegs+j] = j;
             }
             totalSegs += connectedPixelSize_host[i];
-            if (pixelMapping->connectedPixelsSizesPos[superbin]> max_size)
-            { 
-                max_size = pixelMapping->connectedPixelsSizesPos[superbin];
-            }
         }
         else if(pixelType ==2)
         {
@@ -1750,10 +1739,6 @@ void SDL::Event::createPixelTriplets()
                 segs_pix_offset[totalSegs+j] = j;
             }
             totalSegs += connectedPixelSize_host[i];
-            if(pixelMapping->connectedPixelsSizesNeg[superbin] > max_size)
-            {
-                max_size = pixelMapping->connectedPixelsSizesNeg[superbin];
-            }
         }
     }
 
