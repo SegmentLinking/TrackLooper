@@ -252,25 +252,15 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
 
     //apply T4 criteria between segments 1 and 3
     float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta; //temp stuff
-#ifdef CUT_VALUE_DEBUG
     float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ;
-     if(not runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, segmentsInGPU.innerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.outerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.innerLowerModuleIndices[thirdSegmentIndex], segmentsInGPU.outerLowerModuleIndices[thirdSegmentIndex], firstSegmentIndex, thirdSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ)) 
-#else
-    if(not runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, segmentsInGPU.innerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.outerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.innerLowerModuleIndices[thirdSegmentIndex], segmentsInGPU.outerLowerModuleIndices[thirdSegmentIndex], firstSegmentIndex, thirdSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta))
-#endif
+    if(not runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, segmentsInGPU.innerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.outerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.innerLowerModuleIndices[thirdSegmentIndex], segmentsInGPU.outerLowerModuleIndices[thirdSegmentIndex], firstSegmentIndex, thirdSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ)) 
     {
         pass = false;
     }
-#ifdef CUT_VALUE_DEBUG
     if(not runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, segmentsInGPU.innerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.outerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.innerLowerModuleIndices[fourthSegmentIndex], segmentsInGPU.outerLowerModuleIndices[fourthSegmentIndex], firstSegmentIndex, fourthSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ))
-
-#else
-    if(not runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, segmentsInGPU.innerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.outerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.innerLowerModuleIndices[fourthSegmentIndex], segmentsInGPU.outerLowerModuleIndices[fourthSegmentIndex], firstSegmentIndex, fourthSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta))
-#endif
     {
         pass = false;
     }
-
 
     //radius computation from the three triplet MD anchor hits
     unsigned int innerTripletFirstSegmentAnchorHitIndex = segmentsInGPU.innerMiniDoubletAnchorHitIndices[firstSegmentIndex];
@@ -351,14 +341,9 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
         y5Vec[2] = hitsInGPU.highEdgeYs[outerTripletThirdSegmentAnchorHitIndex];
     }
 
-
-    float innerG, innerF; //centers of inner circle
-    float outerG, outerF; //centers of outer circle
-    float bridgeG, bridgeF;
-
-    innerRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3, innerG, innerF);
-    outerRadius = computeRadiusFromThreeAnchorHits(x3, y3, x4, y4, x5, y5, outerG, outerF);
-    bridgeRadius = computeRadiusFromThreeAnchorHits(x2, y2, x3, y3, x4, y4, bridgeG, bridgeF);
+    innerRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3);
+    outerRadius = computeRadiusFromThreeAnchorHits(x3, y3, x4, y4, x5, y5);
+    bridgeRadius = computeRadiusFromThreeAnchorHits(x2, y2, x3, y3, x4, y4);
 
 
     computeErrorInRadius(x1Vec, y1Vec, x2Vec, y2Vec, x3Vec, y3Vec, innerRadiusMin2S, innerRadiusMax2S);    
@@ -417,20 +402,29 @@ __device__ bool SDL::checkIntervalOverlap(const float& firstMin, const float& fi
     return ((firstMin <= secondMin) & (secondMin < firstMax)) |  ((secondMin < firstMin) & (firstMin < secondMax));
 }
 
+/*bounds for high Pt taken from : http://uaf-10.t2.ucsd.edu/~bsathian/SDL/T5_efficiency/efficiencies/new_efficiencies/efficiencies_20210513_T5_recovering_high_Pt_efficiencies/highE_radius_matching/highE_bounds.txt */
+
 __device__ bool SDL::matchRadiiBBBBB(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax)
 {
     float innerInvRadiusErrorBound =  0.1512;
     float bridgeInvRadiusErrorBound = 0.1781;
     float outerInvRadiusErrorBound = 0.1840;
 
+    if(innerRadius > 2.0/(2 * k2Rinv1GeVf))
+    {
+        innerInvRadiusErrorBound = 0.4449;
+        bridgeInvRadiusErrorBound = 0.4033;
+        outerInvRadiusErrorBound = 0.8016;
+    }
+
     innerRadiusMin = innerRadius/(1 + innerInvRadiusErrorBound);
-    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789;
+    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789.f;
 
     bridgeRadiusMin = bridgeRadius/(1 + bridgeInvRadiusErrorBound);
-    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789;
+    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789.f;
 
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
-    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
+    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789.f;
     
     return checkIntervalOverlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/bridgeRadiusMax, 1.0/bridgeRadiusMin);
 }
@@ -442,14 +436,22 @@ __device__ bool SDL::matchRadiiBBBBE(const float& innerRadius, const float& brid
     float bridgeInvRadiusErrorBound = 0.2167;
     float outerInvRadiusErrorBound = 1.1116;
 
+    if(innerRadius > 2.0/(2 * k2Rinv1GeVf))
+    {
+        innerInvRadiusErrorBound = 0.4750;
+        bridgeInvRadiusErrorBound = 0.3903;
+        outerInvRadiusErrorBound = 15.2120;
+    }
+
+
     innerRadiusMin = innerRadius/(1 + innerInvRadiusErrorBound);
-    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789; //large number signifying infty
+    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789.f; //large number signifying infty
 
     bridgeRadiusMin = bridgeRadius/(1 + bridgeInvRadiusErrorBound);
-    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789;
+    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789.f;
 
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
-    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
+    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789.f;
 
     return checkIntervalOverlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/bridgeRadiusMax, 1.0/bridgeRadiusMin);
 }
@@ -461,13 +463,13 @@ __device__ bool SDL::matchRadiiBBBEE12378(const float& innerRadius, const float&
     float outerInvRadiusErrorBound = 7.655;
 
     innerRadiusMin = innerRadius/(1 + innerInvRadiusErrorBound);
-    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789;
+    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789.f;
 
     bridgeRadiusMin = bridgeRadius/(1 + bridgeInvRadiusErrorBound);
-    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789;
+    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789.f;
 
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
-    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
+    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789.f;
 
     return checkIntervalOverlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/fmaxf(bridgeRadiusMax, bridgeRadiusMax2S),1.0/fminf(bridgeRadiusMin, bridgeRadiusMin2S));
 }
@@ -479,13 +481,13 @@ __device__ bool SDL::matchRadiiBBBEE23478(const float& innerRadius, const float&
     float outerInvRadiusErrorBound = 24.0450;
 
     innerRadiusMin = innerRadius/(1 + innerInvRadiusErrorBound);
-    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789;
+    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789.f;
 
     bridgeRadiusMin = bridgeRadius/(1 + bridgeInvRadiusErrorBound);
-    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789;
+    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789.f;
 
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
-    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
+    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789.f;
 
     return checkIntervalOverlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/fmaxf(bridgeRadiusMax, bridgeRadiusMax2S), 1.0/fminf(bridgeRadiusMin, bridgeRadiusMin2S));
 
@@ -498,13 +500,13 @@ __device__ bool SDL::matchRadiiBBBEE34578(const float& innerRadius, const float&
     float outerInvRadiusErrorBound = 2.688;
 
     innerRadiusMin = innerRadius/(1 + innerInvRadiusErrorBound);
-    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789;
+    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789.f;
 
     bridgeRadiusMin = bridgeRadius/(1 + bridgeInvRadiusErrorBound);
-    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789;
+    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789.f;
 
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
-    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
+    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789.f;
 
     return checkIntervalOverlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/fmaxf(bridgeRadiusMax, bridgeRadiusMax2S), 1.0/fminf(bridgeRadiusMin, bridgeRadiusMin2S));
 
@@ -517,14 +519,21 @@ __device__ bool SDL::matchRadiiBBBEE(const float& innerRadius, const float& brid
     float bridgeInvRadiusErrorBound = 0.5971;
     float outerInvRadiusErrorBound = 11.7102;
 
+    if(innerRadius > 2.0/(2 * k2Rinv1GeVf)) //as good as no selections
+    {
+        innerInvRadiusErrorBound = 1.0412;
+        outerInvRadiusErrorBound = 32.2737;
+        bridgeInvRadiusErrorBound = 10.9688;
+    }
+
     innerRadiusMin = innerRadius/(1 + innerInvRadiusErrorBound);
-    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789;
+    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789.f;
 
     bridgeRadiusMin = bridgeRadius/(1 + bridgeInvRadiusErrorBound);
-    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789;
+    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789.f;
 
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
-    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
+    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789.f;
 
     return checkIntervalOverlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/fmaxf(bridgeRadiusMax, bridgeRadiusMax2S), 1.0/fminf(bridgeRadiusMin, bridgeRadiusMin2S));
 
@@ -537,14 +546,21 @@ __device__ bool SDL::matchRadiiBBEEE(const float& innerRadius, const float& brid
     float bridgeInvRadiusErrorBound = 2.1381;
     float outerInvRadiusErrorBound = 20.4179;
 
+    if(innerRadius > 2.0/(2 * k2Rinv1GeVf)) //as good as no selections!
+    {
+        innerInvRadiusErrorBound = 12.9173;
+        outerInvRadiusErrorBound = 25.6702;
+        bridgeInvRadiusErrorBound = 5.1700;
+    }
+
     innerRadiusMin = innerRadius/(1 + innerInvRadiusErrorBound);
-    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789;
+    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789.f;
 
     bridgeRadiusMin = bridgeRadius/(1 + bridgeInvRadiusErrorBound);
-    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789;
+    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789.f;
 
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
-    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
+    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789.f;
 
     return checkIntervalOverlap(1.0/innerRadiusMax, 1.0/innerRadiusMin, 1.0/fmaxf(bridgeRadiusMax, bridgeRadiusMax2S), 1.0/fminf(bridgeRadiusMin, bridgeRadiusMin2S));
 
@@ -557,14 +573,22 @@ __device__ bool SDL::matchRadiiBEEEE(const float& innerRadius, const float& brid
     float bridgeInvRadiusErrorBound = 3.7280;
     float outerInvRadiusErrorBound = 5.7030;
 
+
+    if(innerRadius > 2.0/(2 * k2Rinv1GeVf))
+    {
+        innerInvRadiusErrorBound = 23.2713;
+        outerInvRadiusErrorBound = 24.0450;
+        bridgeInvRadiusErrorBound = 21.7980;
+    }
+
     innerRadiusMin = innerRadius/(1 + innerInvRadiusErrorBound);
-    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789;
+    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789.f;
 
     bridgeRadiusMin = bridgeRadius/(1 + bridgeInvRadiusErrorBound);
-    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789;
+    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789.f;
 
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
-    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
+    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789.f;
 
     return checkIntervalOverlap(1.0/fmaxf(innerRadiusMax, innerRadiusMax2S), 1.0/fminf(innerRadiusMin, innerRadiusMin2S), 1.0/fmaxf(bridgeRadiusMax, bridgeRadiusMax2S), 1.0/fminf(bridgeRadiusMin, bridgeRadiusMin2S));
 
@@ -575,15 +599,22 @@ __device__ bool SDL::matchRadiiEEEEE(const float& innerRadius, const float& brid
     float innerInvRadiusErrorBound =  1.9382;
     float bridgeInvRadiusErrorBound = 2.2091;
     float outerInvRadiusErrorBound = 7.4084;
+    
+    if(innerRadius > 2.0/(2 * k2Rinv1GeVf))
+    {
+        innerInvRadiusErrorBound = 22.5226;
+        bridgeInvRadiusErrorBound = 21.0966;
+        outerInvRadiusErrorBound = 19.1252;
+    }
 
     innerRadiusMin = innerRadius/(1 + innerInvRadiusErrorBound);
-    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789;
+    innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789.f;
 
     bridgeRadiusMin = bridgeRadius/(1 + bridgeInvRadiusErrorBound);
-    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789;
+    bridgeRadiusMax = bridgeInvRadiusErrorBound < 1 ? bridgeRadius/(1 - bridgeInvRadiusErrorBound) : 123456789.f;
 
     outerRadiusMin = outerRadius/(1 + outerInvRadiusErrorBound);
-    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
+    outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789.f;
 
     return checkIntervalOverlap(1.0/fmaxf(innerRadiusMax, innerRadiusMax2S), 1.0/fminf(innerRadiusMin, innerRadiusMin2S), 1.0/fmaxf(bridgeRadiusMax, bridgeRadiusMax2S), 1.0/fminf(bridgeRadiusMin, bridgeRadiusMin2S));
 
@@ -593,23 +624,22 @@ __device__ void SDL::computeErrorInRadius(float* x1Vec, float* y1Vec, float* x2V
 {
     //brute force
     float candidateRadius;
-    minimumRadius = 123456789;
+    minimumRadius = 123456789.f;
     maximumRadius = 0;
-    float f,g; //placeholders
     for(size_t i = 0; i < 3; i++)
     {
         for(size_t j = 0; j < 3; j++)
         {
             for(size_t k = 0; k < 3; k++)
             {
-               candidateRadius = computeRadiusFromThreeAnchorHits(x1Vec[i], y1Vec[i], x2Vec[j], y2Vec[j], x3Vec[k], y3Vec[k],g,f);
+               candidateRadius = computeRadiusFromThreeAnchorHits(x1Vec[i], y1Vec[i], x2Vec[j], y2Vec[j], x3Vec[k], y3Vec[k]);
                maximumRadius = fmaxf(candidateRadius, maximumRadius);
                minimumRadius = fminf(candidateRadius, minimumRadius);
             }
         }
     }
 }
-__device__ float SDL::computeRadiusFromThreeAnchorHits(float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f)
+__device__ float SDL::computeRadiusFromThreeAnchorHits(float x1, float y1, float x2, float y2, float x3, float y3)
 {
     float radius = 0;
 
@@ -626,9 +656,9 @@ __device__ float SDL::computeRadiusFromThreeAnchorHits(float x1, float y1, float
 
     float denom = ((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3));
 
-    g = 0.5 * ((y3 - y2) * (x1 * x1 + y1 * y1) + (y1 - y3) * (x2 * x2 + y2 * y2) + (y2 - y1) * (x3 * x3 + y3 * y3))/denom;
+    float g = 0.5 * ((y3 - y2) * (x1 * x1 + y1 * y1) + (y1 - y3) * (x2 * x2 + y2 * y2) + (y2 - y1) * (x3 * x3 + y3 * y3))/denom;
 
-    f = 0.5 * ((x2 - x3) * (x1 * x1 + y1 * y1) + (x3 - x1) * (x2 * x2 + y2 * y2) + (x1 - x2) * (x3 * x3 + y3 * y3))/denom;
+    float f = 0.5 * ((x2 - x3) * (x1 * x1 + y1 * y1) + (x3 - x1) * (x2 * x2 + y2 * y2) + (x1 - x2) * (x3 * x3 + y3 * y3))/denom;
 
     float c = ((x2 * y3 - x3 * y2) * (x1 * x1 + y1 * y1) + (x3 * y1 - x1 * y3) * (x2 * x2 + y2 * y2) + (x1 * y2 - x2 * y1) * (x3 * x3 + y3 * y3))/denom;
 

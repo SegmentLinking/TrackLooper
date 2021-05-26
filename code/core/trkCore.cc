@@ -732,6 +732,20 @@ float runT3(SDL::Event& event)
 
 }
 
+
+float runpT3(SDL::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Reco Pixel Triplet pT3 start" << std::endl;
+    my_timer.Start();
+    event.createPixelTriplets();
+    float pt3_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Reco pT3 processing time: " << pt3_elapsed << " secs" << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Pixel T3s produced: "<< event.getNumberOfPixelTriplets() << std::endl;
+
+    return pt3_elapsed;
+}
+
 float runTrackCandidate(SDL::Event& event)
 {
     return runTrackCandidateTest_v2(event);

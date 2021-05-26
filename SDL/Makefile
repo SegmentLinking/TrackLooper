@@ -21,11 +21,12 @@ CXX                  = nvcc
 CXXFLAGS             =  -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared -arch=compute_52 -I/mnt/data1/dsr/cub 
 LD                   = nvcc 
 SOFLAGS              = -g -shared --compiler-options -fPIC --cudart shared -arch=compute_52
-PRINTFLAG            = -DAddObjects -DDO_QUINTUPLET -DT4FromT3 #-DWarnings
+PRINTFLAG            = -DAddObjects -DT4FromT3 #-DWarnings
+FINALSTATE           = -DFINAL_T5 -DFINAL_pT3 #-DFINAL_pT2 #-DFINAL_T3T4 
 MEMFLAG              =
 CACHEFLAG            =
 CUDALAUNCHFLAG       = -DNESTED_PARA 
-MEMFLAG_FLAGS        = -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips -DExplicit_Hit -DExplicit_Track -DExplicit_Module -DExplicit_T5
+MEMFLAG_FLAGS        = -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips -DExplicit_Hit -DExplicit_Track -DExplicit_Module -DExplicit_T5 -DExplicit_PT3
 CACHEFLAG_FLAGS      = -DCACHE_ALLOC
 CUDALAUNCHFLAG_FLAGS = -DNEWGRID_MD -DNEWGRID_Seg -DNEWGRID_Trips -DNEWGRID_Tracklet -DNEWGRID_Pixel -DNEWGRID_Track -DNEWGRID_T5
 
@@ -35,10 +36,10 @@ CUDALAUNCHFLAG_FLAGS = -DNEWGRID_MD -DNEWGRID_Seg -DNEWGRID_Trips -DNEWGRID_Trac
 CUTVALUEFLAG = 
 CUTVALUEFLAG_FLAGS = -DCUT_VALUE_DEBUG
 %_cuda.o : %.cu %.cuh
-	$(LD) -x cu $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $(CUTVALUEFLAG) $< -o $@
+	$(LD) -x cu $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $(CUTVALUEFLAG) $(FINALSTATE) $< -o $@
 
 %_cpu.o : %.cc %.h
-	$(LD) -O2 $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $< -o $@
+	$(LD) -O2 $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $(FINALSTATE) $< -o $@
 
 $(LIB):$(CCOBJECTS) $(CUOBJECTS)
 	$(LD)  $(SOFLAGS) $^ -o $@

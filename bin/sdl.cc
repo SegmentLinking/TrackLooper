@@ -352,9 +352,16 @@ void run_sdl()
             // Run T3
             float timing_T3 = runT3(event);
 
-            // Run T4
-            float timing_T4 = 0; // runT4(event);
+            //Run pT3
+            float timing_pT3 = runpT3(event);
 
+#ifdef DO_QUADRUPLET
+            // Run T4
+            float timing_T4 = runT4(event);
+#else
+            //Don't run T4
+            float timing_T4 = 0;
+#endif
 #ifdef DO_QUINTUPLET
             float timing_T5 = runQuintuplet(event);
 #else
@@ -371,7 +378,8 @@ void run_sdl()
                     timing_pT4,
                     timing_T3,
                     timing_TC,
-                    timing_T5});
+                    timing_T5,
+                    timing_pT3});
 
             if (ana.verbose == 4)
             {
@@ -388,14 +396,6 @@ void run_sdl()
                 if (not ana.do_cut_value_ntuple)
                 {
                     fillOutputBranches(event);
-                }
-                else
-                {
-                    //call the function from WriteSDLNtupleV2.cc
-                    SDL::EventForAnalysisInterface* eventForAnalysisInterface = new SDL::EventForAnalysisInterface(event.getFullModules(), event.getHits(), event.getMiniDoublets(), event.getSegments(), event.getTracklets(), event.getTriplets(), event.getTrackCandidates());
-
-                    study->doStudy(*eventForAnalysisInterface);
-                    ana.cutflow.fill();
                 }
             }
 

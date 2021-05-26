@@ -16,6 +16,7 @@
 #include "TiltedGeometry.h"
 #include "Triplet.cuh"
 #include "Tracklet.cuh"
+#include "PixelTracklet.cuh"
 #include "Segment.cuh"
 #include "MiniDoublet.cuh"
 #include "Module.cuh"
@@ -33,6 +34,7 @@ namespace SDL
         unsigned int* nTrackCandidatesT4T3;
         unsigned int* nTrackCandidatesT3T4;
         unsigned int* nTrackCandidatespT2;
+        unsigned int* nTrackCandidatespT3;
         unsigned int* nTrackCandidatesT5;
 
         trackCandidates();
@@ -51,11 +53,17 @@ namespace SDL
    
     CUDA_DEV bool runTrackCandidateDefaultAlgoTwoTracklets(struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, short& trackCandidateType);
 
+    CUDA_DEV bool runTrackCandidateDefaultAlgoTwoTracklets(struct pixelTracklets& pixelTrackletsInGPU, struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, short& trackCandidateType);
+
     CUDA_DEV bool runTrackCandidateDefaultAlgoTrackletToTriplet(struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTripletIndex, short& trackCandidateType);
 
+    CUDA_DEV bool runTrackCandidateDefaultAlgoTrackletToTriplet(struct pixelTracklets& pixelTrackletsInGPU, struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTripletIndex, short& trackCandidateType);
+ 
     CUDA_DEV bool runTrackCandidateDefaultAlgoTripletToTracklet(struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTripletIndex, unsigned int outerTrackletIndex, short& trackCandidateType);
 
     CUDA_DEV bool hasCommonSegment(struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerObjectIndex, unsigned int outerObjectIndex, short trackCandidateType);
+
+    CUDA_DEV bool hasCommonSegment(struct pixelTracklets& pixelTrackletsInGPU, struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerObjectIndex, unsigned int outerObjectIndex, short trackCandidateType);
 
 }
 

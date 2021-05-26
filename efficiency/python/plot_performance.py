@@ -4,6 +4,7 @@ import ROOT as r
 from array import array
 import os
 import sys
+from math import sqrt
 
 r.gROOT.SetBatch(True)
 
@@ -24,6 +25,8 @@ def parse_plot_name(output_name):
         rtnstr.append("Quadruplet w/o gap")
     elif "T4x_" in output_name:
         rtnstr.append("Quadruplet w/ gap")
+    elif "pT3_" in output_name:
+        rtnstr.append("Pixel Triplet")
     elif "T3_" in output_name:
         rtnstr.append("Triplet")
     elif "TC_" in output_name:
@@ -42,6 +45,7 @@ def parse_plot_name(output_name):
     rtnstr.append(types)
     return " ".join(rtnstr)
 
+
 def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None):
 
     if "scalar" in output_name and "ptscalar" not in output_name:
@@ -51,6 +55,18 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
     if "coarse" in output_name and "ptcoarse" not in output_name:
         num.Rebin(6)
         den.Rebin(6)
+    if "pt" in output_name:
+        overFlowBin = num.GetBinContent(num.GetNbinsX() + 1)
+        lastBin = num.GetBinContent(num.GetNbinsX())
+
+        num.SetBinContent(num.GetNbinsX(), lastBin + overFlowBin)
+        num.SetBinError(num.GetNbinsX(), sqrt(lastBin + overFlowBin))
+        
+        overFlowBin = den.GetBinContent(den.GetNbinsX() + 1)
+        lastBin = den.GetBinContent(den.GetNbinsX())
+
+        den.SetBinContent(den.GetNbinsX(), lastBin + overFlowBin)
+        den.SetBinError(den.GetNbinsX(), sqrt(lastBin + overFlowBin))
 
     teff = r.TEfficiency(num, den)
     eff = teff.CreateGraph()
@@ -102,17 +118,22 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
         if yaxis_min > eff.GetY()[i] and eff.GetY()[i] != 0:
             yaxis_min = eff.GetY()[i]
     # print yaxis_min
-    if "eta" in output_name:
-        eff.GetXaxis().SetLimits(-2.5, 2.5)
     if "ptzoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
-    if "etazoom" in output_name:
+    elif "etazoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
-    if "ptmaxzoom" in output_name:
+    elif "ptmaxzoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
-    if "etamaxzoom" in output_name:
+    elif "etamaxzoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
+    else:
+        eff.GetYaxis().SetRangeUser(0, 1.02)
+
+    if "eta" in output_name:
+        eff.GetXaxis().SetLimits(-2.5, 2.5)
+
     eff.SetTitle(parse_plot_name(output_name))
+
     def draw_label():
         # Label
         t = r.TLatex()
@@ -191,7 +212,7 @@ if __name__ == "__main__":
             continue
         # if "Set4" not in key.GetName():
         #     continue
-        if "TC_All" not in key.GetName() and "T4s_All" not in key.GetName() and "T3_All" not in key.GetName() and "pLS" not in key.GetName() and "T5" not in key.GetName() and "pT4_All" not in key.GetName():
+        if "TC_All" not in key.GetName() and "T4s_All" not in key.GetName() and "T3_All" not in key.GetName() and "pLS" not in key.GetName() and "T5" not in key.GetName() and "pT4_All" not in key.GetName() and "pT3_All" not in key.GetName():
             continue
         # if "pLS_P" not in key.GetName():
         #     continue
