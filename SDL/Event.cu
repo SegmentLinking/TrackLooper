@@ -1698,11 +1698,10 @@ void SDL::Event::createPixelTriplets()
     unsigned int totalSegs=0;
     int pixelIndexOffsetPos = pixelMapping->connectedPixelsIndex[44999];
     int pixelIndexOffsetNeg = pixelMapping->connectedPixelsIndexPos[44999] + pixelIndexOffsetPos;
-    int i =-1;
-    for (int ix=0; ix < nInnerSegments;ix++)
+    for (int i = 0; i < nInnerSegments; i++)
     {// loop over # pLS
-        int pixelType = pixelTypes[ix];// get pixel type for this pLS
-        int superbin = superbins[ix]; //get superbin for this pixel
+        int pixelType = pixelTypes[i];// get pixel type for this pLS
+        int superbin = superbins[i]; //get superbin for this pixel
         if(superbin < 0) 
         {/*printf("bad neg %d\n",ix);*/
             continue;
@@ -1715,7 +1714,6 @@ void SDL::Event::createPixelTriplets()
         {/*printf("bad pixel type %d %d\n",ix,pixelType);*/
             continue;
         }
-        i++;
         if(pixelType ==0)
         { // used pixel type to select correct size-index arrays
             connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
@@ -1771,7 +1769,7 @@ void SDL::Event::createPixelTriplets()
     dim3 nThreads(16,16,1);
     dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
                   (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
-    createPixelTripletsInGPUFromMap<<<nBlocks, nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, connectedPixelSize_dev,connectedPixelIndex_dev,i,segs_pix_gpu,segs_pix_gpu_offset);
+    createPixelTripletsInGPUFromMap<<<nBlocks, nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset);
 
     cudaError_t cudaerr = cudaDeviceSynchronize();
     if(cudaerr != cudaSuccess)
@@ -3854,6 +3852,8 @@ __global__ void createPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGP
 
     unsigned int tripletLowerModuleIndex; //index of the module that connects to this pixel
     unsigned int tempIndex = connectedPixelIndex[pixelSegmentArrayIndex] + segmentModuleIndex; //gets module array index for segment
+
+    //these are actual module indices
     tripletLowerModuleIndex = modulesInGPU.connectedPixels[tempIndex];
     unsigned int tripletLowerModuleArrayIndex = modulesInGPU.reverseLookupLowerModuleIndices[tripletLowerModuleIndex];
     if(tripletLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) return;
