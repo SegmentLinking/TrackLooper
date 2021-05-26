@@ -1669,7 +1669,7 @@ void SDL::Event::createPixelTriplets()
     cudaMemcpy(&nModules,modulesInGPU->nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
     pixelModuleIndex = nModules-1;
     unsigned int nInnerSegments = 0;
-    cudaMemcpy(&nInnerSegments, (segmentsInGPU->nSegments + pixelModuleIndex), sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&nInnerSegments, &(segmentsInGPU->nSegments[pixelModuleIndex]), sizeof(unsigned int), cudaMemcpyDeviceToHost);
     nInnerSegments = std::min(nInnerSegments, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
 
     cudaMallocHost(&superbins,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int));
@@ -1702,18 +1702,11 @@ void SDL::Event::createPixelTriplets()
     {// loop over # pLS
         int pixelType = pixelTypes[i];// get pixel type for this pLS
         int superbin = superbins[i]; //get superbin for this pixel
-        if(superbin < 0) 
-        {/*printf("bad neg %d\n",ix);*/
+        if((superbin < 0) or (superbin >= 45000) or (pixelType > 2) or (pixelType < 0)) 
+        {            
             continue;
         }
-        if(superbin >=45000) 
-        {/*printf("bad pos %d %d %d\n",ix,superbin,pixelType);*/
-            continue;
-        }// skip any weird out of range values
-        if(pixelType >2 || pixelType < 0)
-        {/*printf("bad pixel type %d %d\n",ix,pixelType);*/
-            continue;
-        }
+
         if(pixelType ==0)
         { // used pixel type to select correct size-index arrays
             connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
@@ -1765,7 +1758,9 @@ void SDL::Event::createPixelTriplets()
     cudaMemcpy(connectedPixelIndex_dev, connectedPixelIndex_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice);
     cudaMemcpy(segs_pix_gpu,segs_pix,threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
     cudaMemcpy(segs_pix_gpu_offset,segs_pix_offset,threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
-
+    
+    //nuking max_size
+    max_size = N_MAX_TRIPLETS_PER_MODULE; 
     dim3 nThreads(16,16,1);
     dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
                   (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
