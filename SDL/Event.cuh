@@ -10,6 +10,7 @@
 #include <iostream>
 #include <cmath>
 #include <memory>
+#include <algorithm>
 #include <cuda_runtime.h>
 #include <omp.h>
 #include <chrono>
