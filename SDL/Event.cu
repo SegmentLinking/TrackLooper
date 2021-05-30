@@ -1673,7 +1673,7 @@ void SDL::Event::createPixelTriplets()
     nInnerSegments = std::min(nInnerSegments, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
     
     cudaMallocHost(&nTriplets, nLowerModules * sizeof(unsigned int));
-    cudaMemcpy(nTriplets, tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int));
+    cudaMemcpy(nTriplets, tripletsInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
     cudaMallocHost(&superbins,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int));
     cudaMallocHost(&pixelTypes,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int));
@@ -1751,7 +1751,6 @@ void SDL::Event::createPixelTriplets()
     cudaMemcpy(segs_pix_gpu_offset,segs_pix_offset,threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
     
     //less cheap method to estimate max_size for y axis
-    max_size = 0;
     max_size = *std::max_element(nTriplets, nTriplets + nLowerModules);
     dim3 nThreads(16,16,1);
     dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
@@ -1770,7 +1769,7 @@ void SDL::Event::createPixelTriplets()
     cudaFree(connectedPixelIndex_dev);
     cudaFreeHost(superbins);
     cudaFreeHost(pixelTypes);
-
+    cudaFreeHost(nTriplets);
     free(segs_pix);
     cudaFree(segs_pix_gpu);
 #else
