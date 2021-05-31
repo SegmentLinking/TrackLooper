@@ -21,7 +21,7 @@ const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 5000;
 const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 200000;
 const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 200000;
 #endif
-const unsigned int N_MAX_PIXEL_TRIPLETS = 3000000;
+const unsigned int N_MAX_PIXEL_TRIPLETS = 250000;
 
 struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::pixelMap* SDL::pixelMapping = nullptr;

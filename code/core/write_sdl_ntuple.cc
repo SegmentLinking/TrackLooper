@@ -1454,7 +1454,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     std::vector<std::vector<float>> pT3_simpt;
 #endif
 
-    const unsigned int N_MAX_PIXEL_TRIPLETS = 3000000;
+    const unsigned int N_MAX_PIXEL_TRIPLETS = 250000;
 
     unsigned int nPixelTriplets = std::min(*(pixelTripletsInGPU.nPixelTriplets), N_MAX_PIXEL_TRIPLETS);
 
