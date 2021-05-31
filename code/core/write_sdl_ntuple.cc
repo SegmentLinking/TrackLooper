@@ -496,9 +496,9 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
 
         unsigned int nTrackCandidates = trackCandidatesInGPU.nTrackCandidates[idx];
 
-        if (idx == *(modulesInGPU.nLowerModules) and nTrackCandidates > 5000000)
+        if (idx == *(modulesInGPU.nLowerModules) and nTrackCandidates > N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE)
         {
-            nTrackCandidates = 5000000;
+            nTrackCandidates = N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE;
         }
 
         if (idx < *(modulesInGPU.nLowerModules) and nTrackCandidates > 50000)
