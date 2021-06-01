@@ -27,6 +27,12 @@ def make_histograms(obj):
 
     branchesList = ["module_*", "{}_occupancies".format(obj)]
     branches = tree.arrays(filter_name=branchesList, library="pd")
+    if type(branches) is tuple:
+        branches, occupancies = branches
+        branches.drop(index = 13296, level = 1, inplace = True)
+        branches["{}_occupancies".format(obj)] = occupancies
+    print(branches)
+
     print("dataframe obtained!")
     # create the slices
     view = branches.loc[branches["module_subdets"] != 0,"{}_occupancies".format(obj)]
@@ -87,10 +93,10 @@ def plot_histograms(mdf,hists):
         mdf.write("|{}|{:0.1f}|{:0.1f}|{:0.1f}|[plot]({})\n".format(hist.metadata["label"],hist.edges[0],hist.edges[-1],hist.quantile(0.999),"{}/{}.pdf".format(url_prefix,outputName)))
         os.system("mkdir -p {}".format(sys.argv[2]))
         plt.savefig("{}/{}.pdf".format(sys.argv[2],outputName))
+        print(hist.metadata["label"])
         plt.close()
 
     
-#objects = ["md","sg","t3","t4","tc", "t5"]
-objects = ["t5"]
+objects = ["md","sg","t3","t4","tc", "t5", "pT3"]
 for obj in objects:
     make_histograms(obj)

@@ -21,7 +21,7 @@ const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 5000;
 const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 200000;
 const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 200000;
 #endif
-const unsigned int N_MAX_PIXEL_TRIPLETS = 3000000;
+const unsigned int N_MAX_PIXEL_TRIPLETS = 250000;
 
 struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::pixelMap* SDL::pixelMapping = nullptr;
@@ -1329,7 +1329,7 @@ void SDL::Event::createPixelTrackletsWithMap()
     dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
                   (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
     createPixelTrackletsInGPUFromMap<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTrackletsInGPU,
-    connectedPixelSize_dev,connectedPixelIndex_dev,i,segs_pix_gpu,segs_pix_gpu_offset);
+    connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset);
 
     cudaError_t cudaerr = cudaDeviceSynchronize();
     if(cudaerr != cudaSuccess)
@@ -1664,13 +1664,16 @@ void SDL::Event::createPixelTriplets()
     unsigned int pixelModuleIndex;
     int* superbins;
     int* pixelTypes;
-
+    unsigned int *nTriplets;
     unsigned int nModules;
     cudaMemcpy(&nModules,modulesInGPU->nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
     pixelModuleIndex = nModules-1;
     unsigned int nInnerSegments = 0;
     cudaMemcpy(&nInnerSegments, &(segmentsInGPU->nSegments[pixelModuleIndex]), sizeof(unsigned int), cudaMemcpyDeviceToHost);
     nInnerSegments = std::min(nInnerSegments, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+    
+    cudaMallocHost(&nTriplets, nLowerModules * sizeof(unsigned int));
+    cudaMemcpy(nTriplets, tripletsInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
     cudaMallocHost(&superbins,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int));
     cudaMallocHost(&pixelTypes,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int));
@@ -1747,8 +1750,8 @@ void SDL::Event::createPixelTriplets()
     cudaMemcpy(segs_pix_gpu,segs_pix,threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
     cudaMemcpy(segs_pix_gpu_offset,segs_pix_offset,threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
     
-    //nuking max_size
-    max_size = N_MAX_TRIPLETS_PER_MODULE; 
+    //less cheap method to estimate max_size for y axis
+    max_size = *std::max_element(nTriplets, nTriplets + nLowerModules);
     dim3 nThreads(16,16,1);
     dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
                   (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
@@ -1766,7 +1769,7 @@ void SDL::Event::createPixelTriplets()
     cudaFree(connectedPixelIndex_dev);
     cudaFreeHost(superbins);
     cudaFreeHost(pixelTypes);
-
+    cudaFreeHost(nTriplets);
     free(segs_pix);
     cudaFree(segs_pix_gpu);
 #else

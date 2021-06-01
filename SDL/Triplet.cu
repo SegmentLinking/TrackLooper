@@ -180,6 +180,12 @@ __device__ bool SDL::runTripletDefaultAlgo(struct modules& modulesInGPU, struct 
     {
         pass = false;
     }
+
+    if(not(passRZConstraint(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex)))
+    {
+        pass = false;
+    }
+
     if(not(passPointingConstraint(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, zOut, rtOut))) //fill arguments
     {
         pass = false;
@@ -192,6 +198,80 @@ __device__ bool SDL::runTripletDefaultAlgo(struct modules& modulesInGPU, struct 
     }
 
     return pass;
+}
+
+
+__device__ bool SDL::passRZConstraint(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex)
+{
+    bool pass = true;
+
+    unsigned int innerAnchorHitIndex = segmentsInGPU.innerMiniDoubletAnchorHitIndices[innerSegmentIndex];
+    unsigned int middleAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerSegmentIndex];
+    unsigned int outerAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[outerSegmentIndex];
+
+    //get the rt and z
+    const float& r1 = hitsInGPU.rts[innerAnchorHitIndex];
+    const float& r2 = hitsInGPU.rts[middleAnchorHitIndex];
+    const float& r3 = hitsInGPU.rts[outerAnchorHitIndex];
+
+    const float& z1 = hitsInGPU.zs[innerAnchorHitIndex];
+    const float& z2 = hitsInGPU.zs[middleAnchorHitIndex];
+    const float& z3 = hitsInGPU.zs[outerAnchorHitIndex];
+
+    //following Philip's layer number prescription
+    const int layer1 = modulesInGPU.layers[innerInnerLowerModuleIndex] + 6 * (modulesInGPU.subdets[innerInnerLowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[innerInnerLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::TwoS);
+    const int layer2 = modulesInGPU.layers[middleLowerModuleIndex] + 6 * (modulesInGPU.subdets[middleLowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[middleLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[middleLowerModuleIndex] == SDL::TwoS);
+    const int layer3 = modulesInGPU.layers[outerOuterLowerModuleIndex] + 6 * (modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS);
+
+    const float residual = z2 - ( (z3 - z1) / (r3 - r1) * (r2 - r1) + z1);
+
+    if (layer1 == 1 and layer2 == 2 and layer3 == 3)
+    {
+        pass = abs(residual) < 0.5;
+    }
+    else if (layer1 == 2 and layer2 == 3 and layer3 == 4)
+    {
+        pass = abs(residual) < 1.2;
+    }
+    else if (layer1 == 3 and layer2 == 4 and layer3 == 5)
+    {
+        pass = abs(residual) < 5;
+    }
+    else if (layer1 == 4 and layer2 == 5 and layer3 == 6)
+    {
+        pass = abs(residual) < 5;
+    }
+    else if (layer1 == 1 and layer2 == 2 and layer3 == 7)
+    {
+        pass = abs(residual) < 0.7;
+    }
+    else if (layer1 == 1 and layer2 == 7 and layer3 == 8)
+    {
+        pass = abs(residual) < 0.8;
+    }
+    else if (layer1 == 2 and layer2 == 3 and layer3 == 7)
+    {
+        pass = abs(residual) < 0.5;
+    }
+    else if (layer1 == 2 and layer2 == 7 and layer3 == 8)
+    {
+        pass = abs(residual) < 0.8;
+    }
+    else if (layer1 == 7 and layer2 == 8 and layer3 == 9)
+    {
+        pass = abs(residual) < 0.8;
+    }
+    else if (layer1 == 8 and layer2 == 9 and layer3 == 10)
+    {
+        pass = abs(residual) < 1;
+    }
+    else if (layer1 == 9 and layer2 == 10 and layer3 == 11)
+    {
+        pass = abs(residual) < 1;
+    }
+
+    return pass;
+
 }
 
 __device__ bool SDL::passPointingConstraint(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, float& zOut, float& rtOut)
