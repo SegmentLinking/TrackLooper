@@ -496,9 +496,9 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
 
         unsigned int nTrackCandidates = trackCandidatesInGPU.nTrackCandidates[idx];
 
-        if (idx == *(modulesInGPU.nLowerModules) and nTrackCandidates > 5000000)
+        if (idx == *(modulesInGPU.nLowerModules) and nTrackCandidates > N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE)
         {
-            nTrackCandidates = 5000000;
+            nTrackCandidates = N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE;
         }
 
         if (idx < *(modulesInGPU.nLowerModules) and nTrackCandidates > 50000)
@@ -1454,7 +1454,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     std::vector<std::vector<float>> pT3_simpt;
 #endif
 
-    const unsigned int N_MAX_PIXEL_TRIPLETS = 3000000;
+    const unsigned int N_MAX_PIXEL_TRIPLETS = 250000;
 
     unsigned int nPixelTriplets = std::min(*(pixelTripletsInGPU.nPixelTriplets), N_MAX_PIXEL_TRIPLETS);
 
