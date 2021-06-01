@@ -13,6 +13,10 @@ if len(sys.argv) > 4:
     runType = sys.argv[4]
 else:
     runType = "unified"
+if len(sys.argv) > 5:
+    refRunType = sys.argv[5]
+else:
+    refRunType = "unified"
 
 r.gROOT.SetBatch(True)
 
@@ -55,11 +59,12 @@ def parse_plot_name(output_name):
 
 
 # Get the files to be compared
-eff_file_cpu = glob.glob("efficiencies/eff_plots__GPU_{}_{}_{}/efficiencies.root".format(runType, refgithash, sample))
 if len(sys.argv) <= 4:
-    eff_files_gpu = glob.glob("efficiencies/eff_plots__GPU_*{}_{}/efficiencies.root".format(githash, sample))
+    eff_files_cpu = glob.glob("efficiencies/eff_plots__GPU_*{}_{}/efficiencies.root".format(refgithash, sample))
 else:
-     eff_files_gpu = glob.glob("efficiencies/eff_plots__GPU_{}_{}_{}/efficiencies.root".format(runType, githash, sample))
+    eff_file_cpu = glob.glob("efficiencies/eff_plots__GPU_{}_{}_{}/efficiencies.root".format(refRunType, refgithash, sample))
+
+eff_files_gpu = glob.glob("efficiencies/eff_plots__GPU_{}_{}_{}/efficiencies.root".format(runType, githash, sample))
    
 
 # Get cpu efficiency graph files
@@ -130,6 +135,12 @@ for key in keys:
     eff.GetXaxis().SetLabelSize(0.05)
     eff.GetYaxis().SetLabelSize(0.05)
     yaxis_max = 0
+    
+    if "fakerate" in key or "duplrate" in keys:
+        leg1 = r.TLegend(0.63, 0.67, 0.93, 0.87)
+    else:
+        leg1 = r.TLegend(0.63, 0.18, 0.93, 0.38)
+
     for i in xrange(0, eff.GetN()):
         if yaxis_max < eff.GetY()[i]:
             yaxis_max = eff.GetY()[i]
@@ -154,6 +165,8 @@ for key in keys:
         eff.GetXaxis().SetLimits(-2.5, 2.5)
 
     eff.SetTitle(parse_plot_name(output_name))
+    if len(sys.argv) > 5:
+        leg1.AddEntry(eff,sys.argv[6], "ep")
     # Label
     t = r.TLatex()
     t.SetTextAlign(11) # align bottom left corner of text
@@ -174,7 +187,10 @@ for key in keys:
         gpu_graphs[-1].SetMarkerColor(cs[ii])
         gpu_graphs[-1].SetLineColor(cs[ii])
         gpu_graphs[-1].Draw("ep")
+        if len(sys.argv) > 6:
+            leg1.AddEntry(gpu_graphs[-1], sys.argv[7], "ep")
 
+    leg1.Draw()
     # Save
     c1.SetGrid()
     c1.SaveAs("{}".format(output_name))
