@@ -1526,14 +1526,20 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             // get pixel superbin
             //int ptbin = -1;
             int pixtype =-1;
-            if (p3PCA.Pt() >= 2.0){ /*ptbin = 1;*/pixtype=0;}
-            else if (p3PCA.Pt() >= 0.9 and p3PCA.Pt() < 2.0){ 
+            //if (p3PCA.Pt() >= 2.0){ /*ptbin = 1;*/pixtype=0;}
+            //else if (p3PCA.Pt() >= 0.9 and p3PCA.Pt() < 2.0){ 
+            //  //ptbin = 0;
+            //  if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
+            //  else{pixtype=2;}
+            //}
+            if (p3LH.Pt() >= 2.0){ /*ptbin = 1;*/pixtype=0;}
+            else if (p3LH.Pt() >= 0.9 and p3LH.Pt() < 2.0){ 
               //ptbin = 0;
               if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
               else{pixtype=2;}
             }
             else{continue;}
-            if(abs(p3PCA.Eta()) >= 2.5){continue;}
+            // if(abs(p3PCA.Eta()) >= 2.5){continue;}
 // all continues before pushing back into vectots to avoid strange offsets in indicies. 
             unsigned int hitIdx0 = hit_size + count;
             count++; 
@@ -2021,6 +2027,18 @@ float runT5_on_CPU(SDL::CPU::Event& event)
     float t5_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco T5 processing time: " << t5_elapsed << " secs" << std::endl;
     return t5_elapsed;
+}
+
+//__________________________________________________________________________________________
+float runpT3_on_CPU(SDL::CPU::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Reco pT3 start" << std::endl;
+    my_timer.Start();
+    event.createpT3s();
+    float pt3_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Reco pT3 processing time: " << pt3_elapsed << " secs" << std::endl;
+    return pt3_elapsed;
 }
 
 //__________________________________________________________________________________________
