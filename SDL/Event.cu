@@ -1329,7 +1329,7 @@ void SDL::Event::createPixelTrackletsWithMap()
     dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
                   (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
     createPixelTrackletsInGPUFromMap<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTrackletsInGPU,
-    connectedPixelSize_dev,connectedPixelIndex_dev,i,segs_pix_gpu,segs_pix_gpu_offset);
+    connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset);
 
     cudaError_t cudaerr = cudaDeviceSynchronize();
     if(cudaerr != cudaSuccess)
