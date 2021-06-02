@@ -52,7 +52,7 @@ float runpT3(SDL::Event& event);
 
 std::vector<float> getPtBounds();
 bool inTimeTrackWithPdgId(int isimtrk, int pdgid);
-std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes);
+std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes, bool verbose=false);
 std::vector<int> matchedSimTrkIdxs(SDL::Segment* sg, bool matchOnlyAnchor=false);
 std::vector<int> matchedSimTrkIdxs(SDL::Tracklet& tl);
 
@@ -70,6 +70,9 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP);
 TVector3 calculateR3FromPCA(const TVector3& p3, const float dxy, const float dz);
 
 float addOuterTrackerHits(SDL::CPU::Event& event);
+float addOuterTrackerSimHits(SDL::CPU::Event& event);
+float addOuterTrackerSimHitsFromPVOnly(SDL::CPU::Event& event);
+float addOuterTrackerSimHitsNotFromPVOnly(SDL::CPU::Event& event);
 float addPixelSegments(SDL::CPU::Event& event, int isimtrk=-1);
 float runMiniDoublet_on_CPU(SDL::CPU::Event& event);
 float runSegment_on_CPU(SDL::CPU::Event& event);
@@ -87,5 +90,13 @@ void printSegmentSummary(SDL::CPU::Event& event);
 void printTrackletSummary(SDL::CPU::Event& event);
 void printTripletSummary(SDL::CPU::Event& event);
 void printTrackCandidateSummary(SDL::CPU::Event& event);
+
+// trk tool
+bool isDenomSimTrk(int isimtrk);
+bool isDenomOfInterestSimTrk(int isimtrk);
+int getDenomSimTrkType(int isimtrk);
+int bestSimHitMatch(int irecohit);
+int logicalLayer(const SDL::CPU::Module& module);
+int isAnchorLayer(const SDL::CPU::Module& module);
 
 #endif

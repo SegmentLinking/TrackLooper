@@ -90,6 +90,9 @@ namespace SDL
                 bool passPointingConstraintBarrelEndcapEndcap(SDL::CPU::LogLevel logLevel);
                 bool passPointingConstraintEndcapEndcapEndcap(SDL::CPU::LogLevel logLevel);
 
+                // ad hoc RZ constraint based on http://uaf-10.t2.ucsd.edu/~phchang/talks/PhilipChang20210519_LST_RZConstraint.pdf
+                bool passAdHocRZConstraint(SDL::CPU::LogLevel logLevel);
+
         };
     }
 

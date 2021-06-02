@@ -42,6 +42,10 @@ cutvalue: $(ROOUTIL) efficiency $(EXES)
 primitive: PRIMITIVEFLAG = ${PRIMITIVEFLAG_FLAGS}
 primitive: $(ROOUTIL) efficiency $(EXES)
 
+cutvalue_primitive: CUTVALUEFLAG = ${CUTVALUEFLAG_FLAGS}
+cutvalue_primitive: PRIMITIVEFLAG = ${PRIMITIVEFLAG_FLAGS}
+cutvalue_primitive: $(ROOUTIL) efficiency $(EXES)
+
 
 bin/doAnalysis: bin/doAnalysis.o $(OBJECTS)
 	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) -o $@
