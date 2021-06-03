@@ -1323,7 +1323,7 @@ void SDL::Event::createPixelTrackletsWithMap()
     cudaMemcpy(segs_pix_gpu_offset,segs_pix_offset,threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
 
     //nuking max_size
-    max_size = N_MAX_SEGMENTS_PER_MODULE; 
+    max_size = N_MAX_SEGMENTS_PER_MODULE;
 
     dim3 nThreads(32,16,1);
     dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
@@ -1566,7 +1566,7 @@ void SDL::Event::createTrackCandidates()
     cudaMemset(threadIdx_gpu, nLowerModules, threadSize*sizeof(unsigned int));
     cudaMemcpy(nTriplets, tripletsInGPU->nTriplets, (nLowerModules-1)*sizeof(unsigned int), cudaMemcpyDeviceToHost);
     cudaMemcpy(nTracklets, trackletsInGPU->nTracklets, nLowerModules*sizeof(unsigned int), cudaMemcpyDeviceToHost);
-    int nPixelTracklets;    
+    int nPixelTracklets;
     cudaMemcpy(&nPixelTracklets, pixelTrackletsInGPU->nPixelTracklets, sizeof(unsigned int), cudaMemcpyDeviceToHost);
     if(nPixelTracklets > N_MAX_PIXEL_TRACKLETS_PER_MODULE)
       nPixelTracklets = N_MAX_PIXEL_TRACKLETS_PER_MODULE;
@@ -1620,7 +1620,7 @@ void SDL::Event::createTrackCandidates()
     printf("original 3D grid launching in createTrackCandidates does not exist");
     exit(3);
 #endif
-#endif 
+#endif
 #endif // Final state T3+T4
 #if defined(AddObjects)
 #ifdef Explicit_Track
@@ -1671,7 +1671,7 @@ void SDL::Event::createPixelTriplets()
     unsigned int nInnerSegments = 0;
     cudaMemcpy(&nInnerSegments, &(segmentsInGPU->nSegments[pixelModuleIndex]), sizeof(unsigned int), cudaMemcpyDeviceToHost);
     nInnerSegments = std::min(nInnerSegments, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
-    
+
     cudaMallocHost(&nTriplets, nLowerModules * sizeof(unsigned int));
     cudaMemcpy(nTriplets, tripletsInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
@@ -1705,8 +1705,8 @@ void SDL::Event::createPixelTriplets()
     {// loop over # pLS
         int pixelType = pixelTypes[i];// get pixel type for this pLS
         int superbin = superbins[i]; //get superbin for this pixel
-        if((superbin < 0) or (superbin >= 45000) or (pixelType > 2) or (pixelType < 0)) 
-        {            
+        if((superbin < 0) or (superbin >= 45000) or (pixelType > 2) or (pixelType < 0))
+        {
             continue;
         }
 
@@ -1749,7 +1749,7 @@ void SDL::Event::createPixelTriplets()
     cudaMemcpy(connectedPixelIndex_dev, connectedPixelIndex_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice);
     cudaMemcpy(segs_pix_gpu,segs_pix,threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
     cudaMemcpy(segs_pix_gpu_offset,segs_pix_offset,threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
-    
+
     //less cheap method to estimate max_size for y axis
     max_size = *std::max_element(nTriplets, nTriplets + nLowerModules);
     dim3 nThreads(16,16,1);
@@ -1856,8 +1856,18 @@ void SDL::Event::createQuintuplets()
 
     dim3 nThreads(16, 16, 1);
     int max_outerTriplets = N_MAX_TRIPLETS_PER_MODULE;
-    dim3 nBlocks((max_outerTriplets % nThreads.x == 0 ? max_outerTriplets/nThreads.x : max_outerTriplets/nThreads.x + 1), (nTotalTriplets % nThreads.y == 0 ? nTotalTriplets/nThreads.y : nTotalTriplets/nThreads.y + 1), 1);
-    createQuintupletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, threadIdx_gpu, threadIdx_gpu_offset);
+
+    int mp;
+    cudaDeviceGetAttribute(&mp, cudaDevAttrMultiProcessorCount, 0);
+    int m = (nTotalTriplets + nThreads.y*mp - 1)/(nThreads.y*mp);
+    int mPerThread=16;
+    m = (m + mPerThread -1)/mPerThread;
+    int nblocksY = mp*m;
+    printf("cuda multiprocessor #:%d mPerThreads=%d nBlocksY=%d\n", mp, mPerThread, nblocksY);
+    dim3 nBlocks((max_outerTriplets % nThreads.x == 0 ? max_outerTriplets/nThreads.x : max_outerTriplets/nThreads.x + 1), nblocksY, 1);
+
+    //    dim3 nBlocks((max_outerTriplets % nThreads.x == 0 ? max_outerTriplets/nThreads.x : max_outerTriplets/nThreads.x + 1), (nTotalTriplets % nThreads.y == 0 ? nTotalTriplets/nThreads.y : nTotalTriplets/nThreads.y + 1), 1);
+    createQuintupletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, threadIdx_gpu, threadIdx_gpu_offset, nTotalTriplets);
     cudaError_t cudaerr = cudaDeviceSynchronize();
     if(cudaerr != cudaSuccess)
       {
@@ -3181,13 +3191,13 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,str
 {
 
   int innerInnerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
-    if(innerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules or modulesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] == -1) return; 
+    if(innerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules or modulesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] == -1) return;
   unsigned int nQuints = quintupletsInGPU.nQuintuplets[innerInnerInnerLowerModuleArrayIndex];
   if (nQuints > N_MAX_QUINTUPLETS_PER_MODULE) {nQuints = N_MAX_QUINTUPLETS_PER_MODULE;}
   int innerObjectArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
   if(innerObjectArrayIndex >= nQuints) return;
   int quintupletIndex = modulesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] + innerObjectArrayIndex;
-  
+
   unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[innerInnerInnerLowerModuleArrayIndex],1);
   atomicAdd(&trackCandidatesInGPU.nTrackCandidatesT5[innerInnerInnerLowerModuleArrayIndex],1);
   unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[innerInnerInnerLowerModuleArrayIndex] + trackCandidateModuleIdx;
@@ -3198,7 +3208,7 @@ __global__ void addpT2asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,st
 {
   int pixelTrackletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
   unsigned int pixelLowerModuleArrayIndex = *modulesInGPU.nLowerModules;
-  unsigned int nPixelTracklets = *pixelTrackletsInGPU.nPixelTracklets; 
+  unsigned int nPixelTracklets = *pixelTrackletsInGPU.nPixelTracklets;
   if(pixelTrackletArrayIndex >= nPixelTracklets) return;
   int pixelTrackletIndex = pixelTrackletArrayIndex;
   unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
@@ -3211,7 +3221,7 @@ __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
 {
   int pixelTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
   unsigned int pixelLowerModuleArrayIndex = *modulesInGPU.nLowerModules;
-  unsigned int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets; 
+  unsigned int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets;
   if(pixelTripletArrayIndex >= nPixelTriplets) return;
   int pixelTripletIndex = pixelTripletArrayIndex;
   unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
@@ -3868,7 +3878,7 @@ __global__ void createPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGP
             #ifdef Warnings
             if(pixelTripletIndex == N_MAX_PIXEL_TRIPLETS)
             {
-               printf("Pixel Triplet excess alert!\n"); 
+               printf("Pixel Triplet excess alert!\n");
             }
             #endif
         }
@@ -3909,7 +3919,7 @@ __global__ void createPixelTripletsFromOuterInnerLowerModule(struct SDL::modules
             #ifdef Warnings
             if(pixelTripletIndex == N_MAX_PIXEL_TRIPLETS)
             {
-               printf("Pixel Triplet excess alert!\n"); 
+               printf("Pixel Triplet excess alert!\n");
             }
             #endif
        }
@@ -3935,7 +3945,7 @@ __global__ void createPixelTripletsInGPU(struct SDL::modules& modulesInGPU, stru
 
     unsigned int pixelModuleIndex = *modulesInGPU.nModules - 1;
     unsigned int nPixelSegments = segmentsInGPU.nSegments[pixelModuleIndex] > N_MAX_PIXEL_SEGMENTS_PER_MODULE ? N_MAX_PIXEL_SEGMENTS_PER_MODULE : segmentsInGPU.nSegments[pixelModuleIndex];
-    
+
     //El-cheapo map applied on the inner segment
     unsigned int outerTripletInnerLowerModuleIndex = modulesInGPU.lowerModuleIndices[outerTripletInnerLowerModuleArrayIndex];
     if(modulesInGPU.moduleType[outerTripletInnerLowerModuleIndex]== SDL::TwoS) return; //REMOVES 2S-2S
@@ -3950,20 +3960,28 @@ __global__ void createPixelTripletsInGPU(struct SDL::modules& modulesInGPU, stru
 #endif
 
 #ifndef NESTED_PARA
-__global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int* threadIdx_gpu, unsigned int* threadIdx_gpu_offset)
+__global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int* threadIdx_gpu, unsigned int* threadIdx_gpu_offset, int nTotalTriplets)
 {
-    int lowerModuleArray1 = threadIdx_gpu[blockIdx.y * blockDim.y + threadIdx.y];
+    int gidy = blockIdx.y * blockDim.y + threadIdx.y;
+    int np = gridDim.y * blockDim.y;
+    int gidx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    for (int iter=gidy; iter < nTotalTriplets; iter+=np) {
+      //int lowerModuleArray1 = threadIdx_gpu[blockIdx.y * blockDim.y + threadIdx.y];
+    int lowerModuleArray1 = threadIdx_gpu[iter];
 
     //this if statement never gets executed!
-    if(lowerModuleArray1  >= *modulesInGPU.nLowerModules) return;
+    if(lowerModuleArray1  >= *modulesInGPU.nLowerModules) continue;
 
     unsigned int nInnerTriplets = tripletsInGPU.nTriplets[lowerModuleArray1];
 
     //unsigned int innerTripletArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
-    unsigned int innerTripletArrayIndex = threadIdx_gpu_offset[blockIdx.y * blockDim.y + threadIdx.y];
-    unsigned int outerTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    //unsigned int innerTripletArrayIndex = threadIdx_gpu_offset[blockIdx.y * blockDim.y + threadIdx.y];
+    //unsigned int outerTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int innerTripletArrayIndex = threadIdx_gpu_offset[iter];
+    unsigned int outerTripletArrayIndex = gidx;
 
-    if(innerTripletArrayIndex >= nInnerTriplets) return;
+    if(innerTripletArrayIndex >= nInnerTriplets) continue;
 
     unsigned int innerTripletIndex = lowerModuleArray1 * N_MAX_TRIPLETS_PER_MODULE + innerTripletArrayIndex;
     unsigned int lowerModule1 = modulesInGPU.lowerModuleIndices[lowerModuleArray1];
@@ -3973,7 +3991,7 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
     unsigned int lowerModuleArray3 = modulesInGPU.reverseLookupLowerModuleIndices[lowerModule3];
     unsigned int nOuterTriplets = min(tripletsInGPU.nTriplets[lowerModuleArray3], N_MAX_TRIPLETS_PER_MODULE);
 
-    if(outerTripletArrayIndex >= nOuterTriplets) return;
+    if(outerTripletArrayIndex >= nOuterTriplets) continue;
     unsigned int outerTripletIndex = lowerModuleArray3 * N_MAX_TRIPLETS_PER_MODULE + outerTripletArrayIndex;
     //these are actual module indices!!
     unsigned int lowerModule4 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1];
@@ -4010,6 +4028,7 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
 #endif
             }
         }
+    }
     }
 }
 
@@ -4282,7 +4301,7 @@ unsigned int SDL::Event::getNumberOfPixelTriplets()
     cudaMemcpy(&nPixelTriplets, pixelTripletsInGPU->nPixelTriplets, sizeof(unsigned int), cudaMemcpyDeviceToHost);
     return nPixelTriplets;
 #else
-    return *(pixelTripletsInGPU->nPixelTriplets); 
+    return *(pixelTripletsInGPU->nPixelTriplets);
 #endif
 }
 
@@ -4581,7 +4600,7 @@ SDL::pixelTriplets* SDL::Event::getPixelTriplets()
     if(pixelTripletsInCPU == nullptr)
     {
         pixelTripletsInCPU = new SDL::pixelTriplets;
-        
+
         pixelTripletsInCPU->nPixelTriplets = new unsigned int;
         cudaMemcpy(pixelTripletsInCPU->nPixelTriplets, pixelTripletsInGPU->nPixelTriplets, sizeof(unsigned int), cudaMemcpyDeviceToHost);
         unsigned int nPixelTriplets = *(pixelTripletsInCPU->nPixelTriplets);
