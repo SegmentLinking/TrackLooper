@@ -82,6 +82,7 @@ float runpT4_on_CPU(SDL::CPU::Event& event);
 float runT3_on_CPU(SDL::CPU::Event& event);
 float runTrackCandidate_on_CPU(SDL::CPU::Event& event);
 float runT5_on_CPU(SDL::CPU::Event& event);
+float runpT3_on_CPU(SDL::CPU::Event& event);
 
 // Printing SDL information
 void printHitSummary(SDL::CPU::Event& event);

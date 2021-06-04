@@ -112,7 +112,21 @@ void SDL::CPU::Triplet::runTripletDefaultAlgo(SDL::CPU::LogLevel logLevel)
 
     //====================================================
     //
-    // Compute momentum of Triplet
+    // Compute momentum of Triplet ( NOT USED )
+    //
+    if (true)
+    {
+        SDL::CPU::Hit& HitA = (*innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr());
+        SDL::CPU::Hit& HitB = (*innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr());
+        SDL::CPU::Hit& HitC = (*outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr());
+        float g, f; // not used
+        float radius = SDL::CPU::TrackCandidate::computeRadiusFromThreeAnchorHits(HitA.x(), HitA.y(), HitB.x(), HitB.y(), HitC.x(), HitC.y(), g, f);
+        setRecoVars("tripletRadius", radius);
+    }
+
+    //====================================================
+    //
+    // Cut on momentum of Triplet ( NOT USED )
     //
     if (false)
     {

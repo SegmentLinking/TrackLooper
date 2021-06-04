@@ -11,6 +11,7 @@
 #include "MathUtil.h"
 #include "PrintUtil.h"
 #include "TrackletBase.h"
+#include "TrackCandidate.h"
 
 namespace SDL
 {

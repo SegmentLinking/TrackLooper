@@ -505,6 +505,111 @@ void SDL::CPU::TrackCandidate::runTrackCandidateT5(SDL::CPU::LogLevel logLevel)
     return;
 }
 
+// Connecting pixel track to outer tracker triplet
+void SDL::CPU::TrackCandidate::runTrackCandidatepT3(SDL::CPU::LogLevel logLevel)
+{
+
+    setRecoVars("innerRadius", -999);
+    setRecoVars("outerRadius", -999);
+
+    passAlgo_ &= (0 << SDL::CPU::Default_TCAlgo);
+
+    // Tracklet between pixel and inner T2 of the T3
+    SDL::CPU::Tracklet tlCand13(innerTrackletPtr()->innerSegmentPtr(), outerTripletPtr()->innerSegmentPtr());
+
+    // Run the tracklet algo
+    tlCand13.runTrackletAlgo(SDL::CPU::Default_TLAlgo);
+
+    if (not (tlCand13.passesTrackletAlgo(SDL::CPU::Default_TLAlgo)))
+    {
+        if (logLevel >= SDL::CPU::Log_Debug3)
+        {
+            SDL::CPU::cout << "Failed Cut #1 in " << __FUNCTION__ << std::endl;
+        }
+        passAlgo_ &= (0 << SDL::CPU::Default_TCAlgo);
+        return;
+    }
+    // Flag the pass bit
+    passBitsDefaultAlgo_ |= (1 << pT3Selection::pT3tracklet13);
+
+    // Tracklet between Seg1 - Seg4
+    SDL::CPU::Tracklet tlCand14(innerTrackletPtr()->innerSegmentPtr(), outerTripletPtr()->outerSegmentPtr());
+
+    // Run the tracklet algo
+    tlCand14.runTrackletAlgo(SDL::CPU::Default_TLAlgo);
+
+    if (not (tlCand14.passesTrackletAlgo(SDL::CPU::Default_TLAlgo)))
+    {
+        if (logLevel >= SDL::CPU::Log_Debug3)
+        {
+            SDL::CPU::cout << "Failed Cut #2 in " << __FUNCTION__ << std::endl;
+        }
+        passAlgo_ &= (0 << SDL::CPU::Default_TCAlgo);
+        return;
+    }
+    // Flag the pass bit
+    passBitsDefaultAlgo_ |= (1 << pT3Selection::pT3tracklet14);
+
+    std::vector<std::vector<SDL::CPU::Hit*>> hits;
+
+    float pixelSegmentPt = innerTrackletPtr()->innerSegmentPtr()->getRecoVar("ptIn");
+    float pixelSegmentPtError = innerTrackletPtr()->innerSegmentPtr()->getRecoVar("ptErr");
+
+    float kRinv1GeVf = (2.99792458e-3 * 3.8);
+    float k2Rinv1GeVf = kRinv1GeVf / 2.;
+
+    float pixelRadius = pixelSegmentPt/(2 * k2Rinv1GeVf);
+    float pixelRadiusError = pixelSegmentPtError/(2 * k2Rinv1GeVf);
+
+    SDL::CPU::Hit* hit1 = outerTripletPtr()->innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr();
+    SDL::CPU::Hit* hit2 = outerTripletPtr()->innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr();
+    SDL::CPU::Hit* hit3 = outerTripletPtr()->outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr();
+
+    bool isEndcap1 = hit1->getModule().subdet() == SDL::CPU::Module::Endcap;
+    bool isEndcap2 = hit2->getModule().subdet() == SDL::CPU::Module::Endcap;
+    bool isEndcap3 = hit3->getModule().subdet() == SDL::CPU::Module::Endcap;
+
+    float outerG, outerF;
+    float tripletRadius = computeRadiusFromThreeAnchorHits(hit1->x(), hit1->y(), hit2->x(), hit2->y(), hit3->x(), hit3->y(), outerG, outerF);
+
+    setRecoVars("innerRadius", pixelRadius);
+    setRecoVars("outerRadius", tripletRadius);
+
+    bool pass = true;
+    if(isEndcap1)
+    {
+        pass =  passRadiusCriterionEEE(pixelRadius, pixelRadiusError, tripletRadius);
+    }
+    else if(isEndcap2)
+    {
+        pass =  passRadiusCriterionBEE(pixelRadius, pixelRadiusError, tripletRadius);
+    }
+    else if(isEndcap3)
+    {
+        pass =  passRadiusCriterionBBE(pixelRadius, pixelRadiusError, tripletRadius);
+    }
+    else
+    {
+        pass =  passRadiusCriterionBBB(pixelRadius, pixelRadiusError, tripletRadius);
+    }
+
+    if (not pass)
+    {
+        if (logLevel >= SDL::CPU::Log_Debug3)
+        {
+            SDL::CPU::cout << "Failed Cut #3 in " << __FUNCTION__ << std::endl;
+        }
+        passAlgo_ &= (0 << SDL::CPU::Default_TCAlgo);
+        return;
+    }
+    // Flag the pass bit
+    passBitsDefaultAlgo_ |= (1 << pT3Selection::pT3radiusConsistency);
+
+    passAlgo_ |= (1 << SDL::CPU::Default_TCAlgo);
+
+    return;
+}
+
 bool SDL::CPU::TrackCandidate::checkIntervalOverlap(const float& firstMin, const float& firstMax, const float& secondMin, const float& secondMax)
 {
     return ((firstMin <= secondMin) & (secondMin < firstMax)) |  ((secondMin < firstMin) & (firstMin < secondMax));
@@ -516,6 +621,15 @@ bool SDL::CPU::TrackCandidate::matchRadiiBBBBB(const float& innerRadius, const f
     float innerInvRadiusErrorBound =  0.1512;
     float bridgeInvRadiusErrorBound = 0.1781;
     float outerInvRadiusErrorBound = 0.1840;
+
+    const float kRinv1GeVf = (2.99792458e-3 * 3.8);
+    const float k2Rinv1GeVf = kRinv1GeVf / 2.;
+    if (innerRadius > 2.0/(2 * k2Rinv1GeVf))
+    {
+        innerInvRadiusErrorBound = 0.4449;
+        bridgeInvRadiusErrorBound = 0.4033;
+        outerInvRadiusErrorBound = 0.8016;
+    }
 
     innerRadiusMin = innerRadius/(1 + innerInvRadiusErrorBound);
     innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789;
@@ -535,6 +649,15 @@ bool SDL::CPU::TrackCandidate::matchRadiiBBBBE(const float& innerRadius, const f
     float innerInvRadiusErrorBound =  0.1781;
     float bridgeInvRadiusErrorBound = 0.2167;
     float outerInvRadiusErrorBound = 1.1116;
+
+    const float kRinv1GeVf = (2.99792458e-3 * 3.8);
+    const float k2Rinv1GeVf = kRinv1GeVf / 2.;
+    if (innerRadius > 2.0/(2 * k2Rinv1GeVf))
+    {
+        innerInvRadiusErrorBound = 0.4750;
+        bridgeInvRadiusErrorBound = 0.3903;
+        outerInvRadiusErrorBound = 15.2120;
+    }
 
     innerRadiusMin = innerRadius/(1 + innerInvRadiusErrorBound);
     innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789; //large number signifying infty
@@ -611,6 +734,15 @@ bool SDL::CPU::TrackCandidate::matchRadiiBBBEE(const float& innerRadius, const f
     float bridgeInvRadiusErrorBound = 0.5971;
     float outerInvRadiusErrorBound = 11.7102;
 
+    const float kRinv1GeVf = (2.99792458e-3 * 3.8);
+    const float k2Rinv1GeVf = kRinv1GeVf / 2.;
+    if (innerRadius > 2.0/(2 * k2Rinv1GeVf)) //as good as no selections
+    {
+        innerInvRadiusErrorBound = 1.0412;
+        outerInvRadiusErrorBound = 32.2737;
+        bridgeInvRadiusErrorBound = 10.9688;
+    }
+
     innerRadiusMin = innerRadius/(1 + innerInvRadiusErrorBound);
     innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789;
 
@@ -630,6 +762,15 @@ bool SDL::CPU::TrackCandidate::matchRadiiBBEEE(const float& innerRadius, const f
     float innerInvRadiusErrorBound =  0.6376;
     float bridgeInvRadiusErrorBound = 2.1381;
     float outerInvRadiusErrorBound = 20.4179;
+
+    const float kRinv1GeVf = (2.99792458e-3 * 3.8);
+    const float k2Rinv1GeVf = kRinv1GeVf / 2.;
+    if (innerRadius > 2.0/(2 * k2Rinv1GeVf)) //as good as no selections!
+    {
+        innerInvRadiusErrorBound = 12.9173;
+        outerInvRadiusErrorBound = 25.6702;
+        bridgeInvRadiusErrorBound = 5.1700;
+    }
 
     innerRadiusMin = innerRadius/(1 + innerInvRadiusErrorBound);
     innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789;
@@ -651,6 +792,15 @@ bool SDL::CPU::TrackCandidate::matchRadiiBEEEE(const float& innerRadius, const f
     float bridgeInvRadiusErrorBound = 3.7280;
     float outerInvRadiusErrorBound = 5.7030;
 
+    const float kRinv1GeVf = (2.99792458e-3 * 3.8);
+    const float k2Rinv1GeVf = kRinv1GeVf / 2.;
+    if (innerRadius > 2.0/(2 * k2Rinv1GeVf))
+    {
+        innerInvRadiusErrorBound = 23.2713;
+        outerInvRadiusErrorBound = 24.0450;
+        bridgeInvRadiusErrorBound = 21.7980;
+    }
+
     innerRadiusMin = innerRadius/(1 + innerInvRadiusErrorBound);
     innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789;
 
@@ -670,6 +820,15 @@ bool SDL::CPU::TrackCandidate::matchRadiiEEEEE(const float& innerRadius, const f
     float bridgeInvRadiusErrorBound = 2.2091;
     float outerInvRadiusErrorBound = 7.4084;
 
+    const float kRinv1GeVf = (2.99792458e-3 * 3.8);
+    const float k2Rinv1GeVf = kRinv1GeVf / 2.;
+    if (innerRadius > 2.0/(2 * k2Rinv1GeVf))
+    {
+        innerInvRadiusErrorBound = 22.5226;
+        bridgeInvRadiusErrorBound = 21.0966;
+        outerInvRadiusErrorBound = 19.1252;
+    }
+
     innerRadiusMin = innerRadius/(1 + innerInvRadiusErrorBound);
     innerRadiusMax = innerInvRadiusErrorBound < 1 ? innerRadius/(1 - innerInvRadiusErrorBound) : 123456789;
 
@@ -680,6 +839,104 @@ bool SDL::CPU::TrackCandidate::matchRadiiEEEEE(const float& innerRadius, const f
     outerRadiusMax = outerInvRadiusErrorBound < 1 ? outerRadius/(1 - outerInvRadiusErrorBound) : 123456789;
 
     return checkIntervalOverlap(1.0/fmaxf(innerRadiusMax, innerRadiusMax2S), 1.0/fminf(innerRadiusMin, innerRadiusMin2S), 1.0/fmaxf(bridgeRadiusMax, bridgeRadiusMax2S), 1.0/fminf(bridgeRadiusMin, bridgeRadiusMin2S));
+
+}
+
+/*bounds for high Pt taken from : http://uaf-10.t2.ucsd.edu/~bsathian/SDL/T5_efficiency/efficiencies/new_efficiencies/efficiencies_20210513_T5_recovering_high_Pt_efficiencies/highE_radius_matching/highE_bounds.txt */
+bool SDL::CPU::TrackCandidate::passRadiusCriterionBBB(float& pixelRadius, float& pixelRadiusError, float& tripletRadius)
+{
+    float tripletInvRadiusErrorBound = 0.15624;
+    float pixelInvRadiusErrorBound = 0.17235;
+
+    float kRinv1GeVf = (2.99792458e-3 * 3.8);
+    float k2Rinv1GeVf = kRinv1GeVf / 2.;
+
+    if(pixelRadius > 2.0/(2 * k2Rinv1GeVf))
+    {
+        pixelInvRadiusErrorBound = 0.6375;
+        tripletInvRadiusErrorBound = 0.6588;
+    }
+
+    float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
+    float tripletRadiusInvMin = fmaxf((1 - tripletInvRadiusErrorBound)/tripletRadius, 0);
+
+    float pixelRadiusInvMax = fmaxf((1 + pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius - pixelRadiusError));
+    float pixelRadiusInvMin = fminf((1 - pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius + pixelRadiusError));
+
+    return checkIntervalOverlap(tripletRadiusInvMin, tripletRadiusInvMax, pixelRadiusInvMin, pixelRadiusInvMax);
+}
+
+bool SDL::CPU::TrackCandidate::passRadiusCriterionBBE(float& pixelRadius, float& pixelRadiusError, float& tripletRadius)
+{
+    float tripletInvRadiusErrorBound = 0.45972;
+    float pixelInvRadiusErrorBound = 0.19644;
+
+    float kRinv1GeVf = (2.99792458e-3 * 3.8);
+    float k2Rinv1GeVf = kRinv1GeVf / 2.;
+
+    if(pixelRadius > 2.0/(2 * k2Rinv1GeVf))
+    {
+        pixelInvRadiusErrorBound = 0.6805;
+        tripletInvRadiusErrorBound = 0.8557;
+    }
+
+    float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
+    float tripletRadiusInvMin = fmaxf((1 - tripletInvRadiusErrorBound)/tripletRadius, 0);
+
+    float pixelRadiusInvMax = fmaxf((1 + pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius - pixelRadiusError));
+    float pixelRadiusInvMin = fminf((1 - pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius + pixelRadiusError));
+
+    return checkIntervalOverlap(tripletRadiusInvMin, tripletRadiusInvMax, pixelRadiusInvMin, pixelRadiusInvMax);
+
+}
+
+bool SDL::CPU::TrackCandidate::passRadiusCriterionBEE(float& pixelRadius, float& pixelRadiusError, float& tripletRadius)
+{
+    float tripletInvRadiusErrorBound = 1.59294;
+    float pixelInvRadiusErrorBound = 0.255181;
+
+    float kRinv1GeVf = (2.99792458e-3 * 3.8);
+    float k2Rinv1GeVf = kRinv1GeVf / 2.;
+
+    if(pixelRadius > 2.0/(2 * k2Rinv1GeVf)) //as good as not having selections
+    {
+        pixelInvRadiusErrorBound = 2.2091;
+        tripletInvRadiusErrorBound = 2.3548;
+    }
+
+    float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
+    float tripletRadiusInvMin = fmaxf((1 - tripletInvRadiusErrorBound)/tripletRadius, 0);
+
+    float pixelRadiusInvMax = fmaxf((1 + pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius - pixelRadiusError));
+    float pixelRadiusInvMin = fminf((1 - pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius + pixelRadiusError));
+    pixelRadiusInvMin = fmaxf(pixelRadiusInvMin, 0);
+
+    return checkIntervalOverlap(tripletRadiusInvMin, tripletRadiusInvMax, pixelRadiusInvMin, pixelRadiusInvMax);
+
+}
+
+bool SDL::CPU::TrackCandidate::passRadiusCriterionEEE(float& pixelRadius, float& pixelRadiusError, float& tripletRadius)
+{
+    float tripletInvRadiusErrorBound = 1.7006;
+    float pixelInvRadiusErrorBound = 0.26367;
+
+    float kRinv1GeVf = (2.99792458e-3 * 3.8);
+    float k2Rinv1GeVf = kRinv1GeVf / 2.;
+
+    if(pixelRadius > 2.0/(2 * k2Rinv1GeVf)) //as good as not having selections
+    {
+        pixelInvRadiusErrorBound = 2.286;
+        tripletInvRadiusErrorBound = 2.436;
+    }
+
+    float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
+    float tripletRadiusInvMin = fmaxf((1 - tripletInvRadiusErrorBound)/tripletRadius, 0);
+
+    float pixelRadiusInvMax = fmaxf((1 + pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius - pixelRadiusError));
+    float pixelRadiusInvMin = fminf((1 - pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius + pixelRadiusError));
+    pixelRadiusInvMin = fmaxf(0, pixelRadiusInvMin);
+
+    return checkIntervalOverlap(tripletRadiusInvMin, tripletRadiusInvMax, pixelRadiusInvMin, pixelRadiusInvMax);
 
 }
 

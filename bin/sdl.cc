@@ -439,6 +439,8 @@ void run_sdl()
             printTrackletSummary(event);
             float timing_pT4 = runpT4_on_CPU(event);
             printTrackletSummary(event);
+            float timing_pT3 = runpT3_on_CPU(event);
+            printTrackletSummary(event);
 
             // Run T5s
             float timing_T5 = runT5_on_CPU(event);
@@ -451,7 +453,7 @@ void run_sdl()
                     timing_LS,
                     timing_T4,
                     timing_T4x,
-                    timing_pT4,
+                    timing_pT3,
                     timing_T3,
                     timing_TC,
                     timing_T5});
