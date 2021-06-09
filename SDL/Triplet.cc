@@ -657,47 +657,47 @@ bool SDL::CPU::Triplet::passAdHocRZConstraint(SDL::CPU::LogLevel logLevel)
 
     if (layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-        return abs(residual) < 0.5;
+        return std::abs(residual) < 0.5;
     }
     else if (layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
-        return abs(residual) < 1.2;
+        return std::abs(residual) < 1.2;
     }
     else if (layer1 == 3 and layer2 == 4 and layer3 == 5)
     {
-        return abs(residual) < 5;
+        return std::abs(residual) < 5;
     }
     else if (layer1 == 4 and layer2 == 5 and layer3 == 6)
     {
-        return abs(residual) < 5;
+        return std::abs(residual) < 5;
     }
     else if (layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
-        return abs(residual) < 0.7;
+        return std::abs(residual) < 0.7;
     }
     else if (layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
-        return abs(residual) < 0.8;
+        return std::abs(residual) < 0.8;
     }
     else if (layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
-        return abs(residual) < 0.5;
+        return std::abs(residual) < 0.5;
     }
     else if (layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
-        return abs(residual) < 0.8;
+        return std::abs(residual) < 0.8;
     }
     else if (layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
-        return abs(residual) < 0.8;
+        return std::abs(residual) < 0.8;
     }
     else if (layer1 == 8 and layer2 == 9 and layer3 == 10)
     {
-        return abs(residual) < 1;
+        return std::abs(residual) < 1;
     }
     else if (layer1 == 9 and layer2 == 10 and layer3 == 11)
     {
-        return abs(residual) < 1;
+        return std::abs(residual) < 1;
     }
     else
     {
