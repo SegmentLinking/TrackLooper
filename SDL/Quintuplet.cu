@@ -415,6 +415,8 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     return pass;
 }
 
+
+//bounds can be found at http://uaf-10.t2.ucsd.edu/~bsathian/SDL/T5_RZFix/t5_rz_thresholds.txt
 __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, unsigned int anchorHitIndex1, unsigned int anchorHitIndex2, unsigned int anchorHitIndex3, unsigned int anchorHitIndex4, unsigned int anchorHitIndex5, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5) 
 {
     bool pass = true;
