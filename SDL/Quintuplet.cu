@@ -469,97 +469,101 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     {
         if(layer4 == 4 and layer5 == 5)
         {
-            return RMSE < 1.005; 
+            return RMSE < 0.545; 
         }
         else if(layer4 == 4 and layer5 == 12)
         {
-            return RMSE < 1.875;
+            return RMSE < 1.105;
         }
         else if(layer4 == 7 and layer5 == 8)
         {
-            return RMSE < 1.875;
+            return RMSE < 0.225;
         }
         else if(layer4 == 7 and layer5 == 13)
         {
-            return RMSE < 1.895;
+            return RMSE < 0.775;
         }
         else if(layer4 == 12 and layer5 == 13)
         {
-            return RMSE < 1.195;
+            return RMSE < 0.625;
         }
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
         if(layer4 == 8 and layer5 == 9)
         {
-            return RMSE < 0.115;
+            return RMSE < 0.065;
         }
         else if(layer4 == 8 and layer5 == 14)
         {
-            return RMSE < 1.395;
+            return RMSE < 0.835;
         }
         else if(layer4 == 13 and layer5 == 14)
         {
-            return RMSE < 0.695;
+            return RMSE < 0.575;
         }
     }
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
         if(layer4 == 9 and layer5 == 10)
         {
-            return RMSE < 0.895;
+            return RMSE < 0.045;
         }
 
         else if(layer4 == 9 and layer5 == 15)
         {
-            return RMSE < 1.265;
+            return RMSE < 0.825;
         }
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
         if(layer4 == 5 and layer5 == 6)
         {
-            return RMSE < 1.715;
+            return RMSE < 0.845;
         }
         else if(layer4 == 5 and layer5 == 12)
         {
-            return RMSE < 1.995;
+            return RMSE < 1.365;
         }
 
         else if(layer4 == 12 and layer5 == 13)
         {
-            return RMSE < 1.515;
+            return RMSE < 0.675;
         }
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
         if(layer4 == 13 and layer5 == 14)
         {
-            return RMSE < 0.935;
+            return RMSE < 0.495;
         }
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 12 and layer4 == 13 and layer5 == 14)
     {
-        return RMSE < 1.325; 
+        return RMSE < 0.695; 
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
         if(layer4 == 9 and layer5 == 15)
         {
-            return RMSE < 1.455;
+            return RMSE < 0.735;
         }
         else if(layer4 == 14 and layer5 == 15)
         {
-            return RMSE < 0.955;
+            return RMSE < 0.525;
         }
+    }
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 13 and layer4 == 14 and layer5 == 15)
+    {
+        return RMSE < 0.665;
     }
     else if(layer1 == 3 and layer2 == 4 and layer3 == 5 and layer4 == 12 and layer5 == 13)
     {
-        return RMSE < 1.085;
+        return RMSE < 0.995;
     }
     else if(layer1 == 3 and layer2 == 4 and layer3 == 12 and layer4 == 13 and layer5 == 14)
     {
-        return RMSE < 0.865;
+        return RMSE < 0.525;
     }
     else if(layer1 == 3 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
     {
@@ -567,31 +571,35 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     }
     else if(layer1 == 3 and layer2 == 7 and layer3 == 13 and layer4 == 14 and layer5 == 15)
     {
-        return RMSE < 1.645;
+        return RMSE < 0.745;
     }
     else if(layer1 == 3 and layer2 == 12 and layer3 == 13 and layer4 == 14 and layer5 == 15)
     {
-        return RMSE < 1.035; 
+        return RMSE < 0.555; 
     }
     else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
         if(layer4 == 10 and layer5 == 11)
         {
-            return RMSE < 0.075;
+            return RMSE < 0.045;
+        }
+        else if(layer4 == 10 and layer5 == 16)
+        {
+            return RMSE < 0.825;
         }
         else if(layer4 == 15 and layer5 == 16)
         {
-            return RMSE < 0.865;
+            return RMSE < 0.525;
         }
     }
 
     else if(layer1 == 7 and layer2 == 8 and layer3 == 14 and layer4 == 15 and layer5 == 16)
     {
-        return RMSE < 1.535;
+        return RMSE < 0.885;
     }
     else if(layer1 == 7 and layer2 == 13 and layer3 == 14 and layer4 == 15 and layer5 == 16)
     {
-        return RMSE < 1.035;
+        return RMSE < 0.845;
     }
 
     return true;
