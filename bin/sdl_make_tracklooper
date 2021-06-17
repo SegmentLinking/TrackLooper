@@ -109,7 +109,6 @@ fi
 #if make cut value is called then cut value ntuple making is done
 if $PRIMITIVE; then
     echo " Making cut value ntuple" | tee -a ${LOG}
-    MAKETARGET=${MAKETARGET}_primitive;
     TRACKLOOPERTARGET=primitive 
     echo "debug : MAKETARGET=${MAKETARGET}"
 fi
