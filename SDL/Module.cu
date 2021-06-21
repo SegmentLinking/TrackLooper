@@ -594,9 +594,9 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
       sizes += connectedModuleDetIds_pLStoLayer2Subdet4.size();
       sizes += connectedModuleDetIds_pLStoLayer3Subdet4.size();
       sizes += connectedModuleDetIds_pLStoLayer4Subdet4.size();
-      totalSizes += sizes;
       pixelMapping.connectedPixelsIndex[isuperbin] = totalSizes;
       pixelMapping.connectedPixelsSizes[isuperbin] = sizes;
+      totalSizes += sizes;
 
 
       std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5_pos = SDL::moduleConnectionMap_pLStoLayer1Subdet5_pos.getConnectedModuleDetIds(isuperbin);
@@ -622,9 +622,9 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
       sizes_pos += connectedModuleDetIds_pLStoLayer2Subdet4_pos.size();
       sizes_pos += connectedModuleDetIds_pLStoLayer3Subdet4_pos.size();
       sizes_pos += connectedModuleDetIds_pLStoLayer4Subdet4_pos.size();
-      totalSizes_pos += sizes_pos;
       pixelMapping.connectedPixelsIndexPos[isuperbin] = totalSizes_pos;
       pixelMapping.connectedPixelsSizesPos[isuperbin] = sizes_pos;
+      totalSizes_pos += sizes_pos;
 
 
       std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5_neg = SDL::moduleConnectionMap_pLStoLayer1Subdet5_neg.getConnectedModuleDetIds(isuperbin);
@@ -650,9 +650,10 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
       sizes_neg += connectedModuleDetIds_pLStoLayer2Subdet4_neg.size();
       sizes_neg += connectedModuleDetIds_pLStoLayer3Subdet4_neg.size();
       sizes_neg += connectedModuleDetIds_pLStoLayer4Subdet4_neg.size();
-      totalSizes_neg += sizes_neg;
       pixelMapping.connectedPixelsIndexNeg[isuperbin] = totalSizes_neg;
       pixelMapping.connectedPixelsSizesNeg[isuperbin] = sizes_neg;
+      totalSizes_neg += sizes_neg;
+
     }
 
     unsigned int* connectedPixels;
