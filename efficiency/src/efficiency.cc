@@ -286,6 +286,13 @@ void fillFakeRateSets(std::vector<FakeRateSetDefinition>& FRsets)
                 fillFakeRateSet(it4, FRset);
             }
         }
+        else if (FRset.set_name.Contains("pT3_"))
+        {
+            for (unsigned int ipt3 = 0; ipt3 < sdl.pT3_pt().size(); ++ipt3)
+            {
+                fillFakeRateSet(ipt3, FRset);
+            }
+        }
         else if (FRset.set_name.Contains("pT4_"))
         {
             for (unsigned int ipt4 = 0; ipt4 < sdl.pT4_pt().size(); ++ipt4)
@@ -326,6 +333,12 @@ void fillFakeRateSet(int itc, FakeRateSetDefinition& FRset)
         pt = sdl.t4_pt()[itc];
         eta = sdl.t4_eta()[itc];
         phi = sdl.t4_phi()[itc];
+    }
+    else if (FRset.set_name.Contains("pT3_"))
+    {
+        pt = sdl.pT3_pt()[itc];
+        eta = sdl.pT3_eta()[itc];
+        phi = sdl.pT3_phi()[itc];
     }
     else if (FRset.set_name.Contains("pT4_"))
     {
@@ -417,21 +430,28 @@ void fillDuplicateRateSets(std::vector<DuplicateRateSetDefinition>& DLsets)
                 fillDuplicateRateSet(it4, DLset);
             }
         }
-        if (DLset.set_name.Contains("pT4_"))
+        else if (DLset.set_name.Contains("pT3_"))
+        {
+            for (unsigned int ipt3 = 0; ipt3 < sdl.pT3_pt().size(); ++ipt3)
+            {
+                fillDuplicateRateSet(ipt3, DLset);
+            }
+        }
+        else if (DLset.set_name.Contains("pT4_"))
         {
             for (unsigned int ipt4 = 0; ipt4 < sdl.pT4_pt().size(); ++ipt4)
             {
                 fillDuplicateRateSet(ipt4, DLset);
             }
         }
-        if (DLset.set_name.Contains("T3_"))
+        else if (DLset.set_name.Contains("T3_"))
         {
             for (unsigned int it3 = 0; it3 < sdl.t3_pt().size(); ++it3)
             {
                 fillDuplicateRateSet(it3, DLset);
             }
         }
-        if (DLset.set_name.Contains("T5_"))
+        else if (DLset.set_name.Contains("T5_"))
         {
             for (unsigned int it5 = 0; it5 < sdl.t5_pt().size(); ++it5)
             {
@@ -457,6 +477,12 @@ void fillDuplicateRateSet(int itc, DuplicateRateSetDefinition& DLset)
         pt = sdl.t4_pt()[itc];
         eta = sdl.t4_eta()[itc];
         phi = sdl.t4_phi()[itc];
+    }
+    else if (DLset.set_name.Contains("pT3_"))
+    {
+        pt = sdl.pT3_pt()[itc];
+        eta = sdl.pT3_eta()[itc];
+        phi = sdl.pT3_phi()[itc];
     }
     else if (DLset.set_name.Contains("pT4_"))
     {
