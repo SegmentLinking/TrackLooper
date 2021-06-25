@@ -203,8 +203,6 @@ __device__ bool SDL::runTripletDefaultAlgo(struct modules& modulesInGPU, struct 
 
 __device__ bool SDL::passRZConstraint(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex)
 {
-    bool pass = true;
-
     unsigned int innerAnchorHitIndex = segmentsInGPU.innerMiniDoubletAnchorHitIndices[innerSegmentIndex];
     unsigned int middleAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerSegmentIndex];
     unsigned int outerAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[outerSegmentIndex];
@@ -225,53 +223,66 @@ __device__ bool SDL::passRZConstraint(struct SDL::modules& modulesInGPU, struct 
 
     const float residual = z2 - ( (z3 - z1) / (r3 - r1) * (r2 - r1) + z1);
 
-    if (layer1 == 1 and layer2 == 2 and layer3 == 3)
+    if (layer1 == 12 and layer2 == 13 and layer3 == 14)
     {
-        pass = fabsf(residual) < 0.5;
+        return false;
     }
-    else if (layer1 == 2 and layer2 == 3 and layer3 == 4)
+    else if (layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-        pass = fabsf(residual) < 1.2;
-    }
-    else if (layer1 == 3 and layer2 == 4 and layer3 == 5)
-    {
-        pass = fabsf(residual) < 5;
-    }
-    else if (layer1 == 4 and layer2 == 5 and layer3 == 6)
-    {
-        pass = fabsf(residual) < 5;
+        return fabsf(residual) < 0.53;
     }
     else if (layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
-        pass = fabsf(residual) < 0.7;
+        return fabsf(residual) < 1;
+    }
+    else if (layer1 == 13 and layer2 == 14 and layer3 == 15)
+    {
+        return false;
+    }
+    else if (layer1 == 14 and layer2 == 15 and layer3 == 16)
+    {
+        return false;
     }
     else if (layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
-        pass = fabsf(residual) < 0.8;
+        return fabsf(residual) < 1;
+    }
+    else if (layer1 == 2 and layer2 == 3 and layer3 == 4)
+    {
+        return fabsf(residual) < 1.21;
     }
     else if (layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
-        pass = fabsf(residual) < 0.5;
+        return fabsf(residual) < 1.;
     }
     else if (layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
-        pass = fabsf(residual) < 0.8;
+        return fabsf(residual) < 1.;
+    }
+    else if (layer1 == 3 and layer2 == 4 and layer3 == 5)
+    {
+        return fabsf(residual) < 2.7;
+    }
+    else if (layer1 == 4 and layer2 == 5 and layer3 == 6)
+    {
+        return fabsf(residual) < 3.06;
     }
     else if (layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
-        pass = fabsf(residual) < 0.8;
+        return fabsf(residual) < 1;
     }
     else if (layer1 == 8 and layer2 == 9 and layer3 == 10)
     {
-        pass = fabsf(residual) < 1;
+        return fabsf(residual) < 1;
     }
     else if (layer1 == 9 and layer2 == 10 and layer3 == 11)
     {
-        pass = fabsf(residual) < 1;
+        return fabsf(residual) < 1;
     }
-
-    return pass;
-
+    else
+    {
+        return fabsf(residual) < 5;
+    }
 }
 
 __device__ bool SDL::passPointingConstraint(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, float& zOut, float& rtOut)
