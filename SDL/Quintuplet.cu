@@ -475,10 +475,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         {
             return RMSE < 1.105;
         }
-        else if(layer4 == 7 and layer5 == 8)
-        {
-            return RMSE < 0.225;
-        }
         else if(layer4 == 7 and layer5 == 13)
         {
             return RMSE < 0.775;
@@ -490,11 +486,7 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
-        if(layer4 == 8 and layer5 == 9)
-        {
-            return RMSE < 0.065;
-        }
-        else if(layer4 == 8 and layer5 == 14)
+        if(layer4 == 8 and layer5 == 14)
         {
             return RMSE < 0.835;
         }
@@ -503,17 +495,9 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
             return RMSE < 0.575;
         }
     }
-    else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
+    else if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
     {
-        if(layer4 == 9 and layer5 == 10)
-        {
-            return RMSE < 0.045;
-        }
-
-        else if(layer4 == 9 and layer5 == 15)
-        {
-            return RMSE < 0.825;
-        }
+        return RMSE < 1.265;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
@@ -531,12 +515,9 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
             return RMSE < 0.675;
         }
     }
-    else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
-        if(layer4 == 13 and layer5 == 14)
-        {
-            return RMSE < 0.495;
-        }
+            return RMSE < 0.935;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 12 and layer4 == 13 and layer5 == 14)
     {
@@ -577,22 +558,10 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     {
         return RMSE < 0.555; 
     }
-    else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
     {
-        if(layer4 == 10 and layer5 == 11)
-        {
-            return RMSE < 0.045;
-        }
-        else if(layer4 == 10 and layer5 == 16)
-        {
-            return RMSE < 0.825;
-        }
-        else if(layer4 == 15 and layer5 == 16)
-        {
-            return RMSE < 0.525;
-        }
+            return RMSE < 0.865;
     }
-
     else if(layer1 == 7 and layer2 == 8 and layer3 == 14 and layer4 == 15 and layer5 == 16)
     {
         return RMSE < 0.885;
@@ -604,8 +573,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
 
     return true;
 }
-
-
 
 __device__ bool SDL::checkIntervalOverlap(const float& firstMin, const float& firstMax, const float& secondMin, const float& secondMax)
 {
