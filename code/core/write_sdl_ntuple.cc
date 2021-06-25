@@ -164,6 +164,8 @@ void createQuintupletCutValueBranches()
     ana.tx->createBranch<vector<float>>("t5_bridgeRadiusMax2S");
     ana.tx->createBranch<vector<float>>("t5_outerRadiusMin2S");
     ana.tx->createBranch<vector<float>>("t5_outerRadiusMax2S");
+    ana.tx->createBranch<vector<int>>("t5_moduleType_binary");
+
 
 }
 #endif
@@ -1442,6 +1444,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     std::vector<float> t5_bridgeRadiusMax2S;
     std::vector<std::vector<float>> t5_simpt;
     std::vector<int> layer_binaries;
+    std::vector<int> moduleType_binaries;
 #endif
 
     const int MAX_NQUINTUPLET_PER_MODULE = 5000;
@@ -1575,6 +1578,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             layer_binary |= (1 << logicallayer4);
             layer_binary |= (1 << logicallayer6);
             layer_binary |= (1 << logicallayer8);
+            
 
             // radius values now not covered under CUT_VALUE_DEBUG
             // using innerRadius and outerRadius to match up with CPU implementation
@@ -1593,7 +1597,22 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             t5_phi.push_back(phi);
 
 #ifdef CUT_VALUE_DEBUG
+
+            int moduleType_binary = 0;
+            int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
+            int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
+            int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
+            int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
+            int moduleType8 = modulesInGPU.moduleType[module_idxs[8]];
+            
+            moduleType_binary |= (moduleType0 << 0);
+            moduleType_binary |= (moduleType2 << 2);
+            moduleType_binary |= (moduleType4 << 4);
+            moduleType_binary |= (moduleType6 << 6);
+            moduleType_binary |= (moduleType8 << 8);
+
             layer_binaries.push_back(layer_binary);
+            moduleType_binaries.push_back(moduleType_binary);
 #endif
             std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
             for (auto &isimtrk : matched_sim_trk_idxs)
@@ -1663,6 +1682,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("t5_bridgeRadiusMin2S",t5_bridgeRadiusMin2S);
     ana.tx->setBranch<vector<float>>("t5_bridgeRadiusMax2S",t5_bridgeRadiusMax2S);
     ana.tx->setBranch<vector<int>>("t5_layer_binary",layer_binaries); 
+    ana.tx->setBranch<vector<int>>("t5_moduleType_binary", moduleType_binaries);
 #endif
 
 }
@@ -3853,6 +3873,7 @@ void fillQuintupletOutputBranches_for_CPU(SDL::CPU::Event& event)
     std::vector<float> t5_pt;
     std::vector<float> t5_eta;
     std::vector<float> t5_phi;
+    std::vector<std::vector<float>> t5_simpt;
 
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     const float k2Rinv1GeVf = kRinv1GeVf / 2.;
@@ -4079,6 +4100,17 @@ void fillQuintupletOutputBranches_for_CPU(SDL::CPU::Event& event)
             t5_eta.push_back(eta);
             t5_phi.push_back(phi);
             t5_matched_simIdx.push_back(matched_sim_trk_idxs);
+            std::vector<float> sim_pt_per_t5;
+            if(matched_sim_trk_idxs.size() == 0)
+            {
+                sim_pt_per_t5.push_back(-999);
+            }
+            else
+            {
+		sim_pt_per_t5.push_back(trk.sim_pt()[matched_sim_trk_idxs[0]]);
+            }
+            t5_simpt.push_back(sim_pt_per_t5);
+
 
         }
 
@@ -4107,6 +4139,7 @@ void fillQuintupletOutputBranches_for_CPU(SDL::CPU::Event& event)
     ana.tx->setBranch<vector<float>>("t5_phi", t5_phi);
     ana.tx->setBranch<vector<int>>("t5_isFake", t5_isFake);
     ana.tx->setBranch<vector<int>>("t5_isDuplicate", t5_isDuplicate);
+    ana.tx->setBranch<vector<vector<float>>>("t5_matched_pt", t5_simpt);
 
 }
 

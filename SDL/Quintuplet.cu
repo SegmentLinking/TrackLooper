@@ -267,6 +267,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
         pass = false;
     }
 
+
     //radius computation from the three triplet MD anchor hits
     unsigned int innerTripletFirstSegmentAnchorHitIndex = segmentsInGPU.innerMiniDoubletAnchorHitIndices[firstSegmentIndex];
     unsigned int innerTripletSecondSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[firstSegmentIndex]; //same as second segment inner MD anchorhit index
@@ -274,6 +275,13 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
 
     unsigned int outerTripletSecondSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[thirdSegmentIndex]; //same as fourth segment inner MD anchor hit index
     unsigned int outerTripletThirdSegmentAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[fourthSegmentIndex];
+
+    if(not passT5RZConstraint(modulesInGPU, hitsInGPU, innerTripletFirstSegmentAnchorHitIndex, innerTripletSecondSegmentAnchorHitIndex, innerTripletThirdSegmentAnchorHitIndex, outerTripletSecondSegmentAnchorHitIndex, outerTripletThirdSegmentAnchorHitIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5))
+    {
+        pass = false;
+    }
+
+
 
     float x1 = hitsInGPU.xs[innerTripletFirstSegmentAnchorHitIndex];
     float x2 = hitsInGPU.xs[innerTripletSecondSegmentAnchorHitIndex];
@@ -360,10 +368,6 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     bridgeRadius = computeRadiusFromThreeAnchorHits(x2, y2, x3, y3, x4, y4);
 
 
-    //computeErrorInRadius(x1Vec, y1Vec, x2Vec, y2Vec, x3Vec, y3Vec, innerRadiusMin2S, innerRadiusMax2S);
-    //computeErrorInRadius(x2Vec, y2Vec, x3Vec, y3Vec, x4Vec, y4Vec, bridgeRadiusMin2S, bridgeRadiusMax2S);
-    //computeErrorInRadius(x3Vec, y3Vec, x4Vec, y4Vec, x5Vec, y5Vec, outerRadiusMin2S, outerRadiusMax2S);
-
     if(innerRadius < 0.95/(2 * k2Rinv1GeVf))
     {
         pass = false;
@@ -409,6 +413,165 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
 
     pass = pass & tempPass;
     return pass;
+}
+
+
+//bounds can be found at http://uaf-10.t2.ucsd.edu/~bsathian/SDL/T5_RZFix/t5_rz_thresholds.txt
+__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, unsigned int anchorHitIndex1, unsigned int anchorHitIndex2, unsigned int anchorHitIndex3, unsigned int anchorHitIndex4, unsigned int anchorHitIndex5, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5) 
+{
+    const float& rt1 = hitsInGPU.rts[anchorHitIndex1];
+    const float& rt2 = hitsInGPU.rts[anchorHitIndex2];
+    const float& rt3 = hitsInGPU.rts[anchorHitIndex3];
+    const float& rt4 = hitsInGPU.rts[anchorHitIndex4];
+    const float& rt5 = hitsInGPU.rts[anchorHitIndex5];
+
+    const float& z1 = hitsInGPU.zs[anchorHitIndex1];
+    const float& z2 = hitsInGPU.zs[anchorHitIndex2];
+    const float& z3 = hitsInGPU.zs[anchorHitIndex3];
+    const float& z4 = hitsInGPU.zs[anchorHitIndex4];
+    const float& z5 = hitsInGPU.zs[anchorHitIndex5];
+
+    //following Philip's layer number prescription
+    const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
+    const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
+    const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
+    const int layer4 = modulesInGPU.layers[lowerModuleIndex4] + 6 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex4] == SDL::TwoS);
+    const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
+
+    //slope computed using the internal T3s
+    const int moduleLayer1 = modulesInGPU.moduleType[lowerModuleIndex1];
+    const int moduleLayer2 = modulesInGPU.moduleType[lowerModuleIndex2];
+    const int moduleLayer3 = modulesInGPU.moduleType[lowerModuleIndex3];
+    const int moduleLayer4 = modulesInGPU.moduleType[lowerModuleIndex4];
+    const int moduleLayer5 = modulesInGPU.moduleType[lowerModuleIndex5];
+
+    float slope;
+    if(moduleLayer1 == 0 and moduleLayer2 == 0 and moduleLayer3 == 1) //PSPS2S
+    {
+        slope = (z2 -z1)/(rt2 - rt1);
+    }
+    else
+    {
+        slope = (z3 - z1)/(rt3 - rt1);
+    }
+    float residual4 = (layer4 <= 6)? ((z4 - z1) - slope * (rt4 - rt1)) : ((rt4 - rt1) - (z4 - z1)/slope);
+    float residual5 = (layer4 <= 6) ? ((z5 - z1) - slope * (rt5 - rt1)) : ((rt5 - rt1) - (z5 - z1)/slope);
+
+    // creating a chi squared type quantity
+    // 0-> PS, 1->2S
+    residual4 = (moduleLayer4 == 0) ? residual4/2.4 : residual4/5.0;
+    residual5 = (moduleLayer5 == 0) ? residual5/2.4 : residual5/5.0;
+
+    const float RMSE = sqrtf(0.5 * (residual4 * residual4 + residual5 * residual5));
+
+    //categories!
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3)
+    {
+        if(layer4 == 4 and layer5 == 5)
+        {
+            return RMSE < 0.545; 
+        }
+        else if(layer4 == 4 and layer5 == 12)
+        {
+            return RMSE < 1.105;
+        }
+        else if(layer4 == 7 and layer5 == 13)
+        {
+            return RMSE < 0.775;
+        }
+        else if(layer4 == 12 and layer5 == 13)
+        {
+            return RMSE < 0.625;
+        }
+    }
+    else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
+    {
+        if(layer4 == 8 and layer5 == 14)
+        {
+            return RMSE < 0.835;
+        }
+        else if(layer4 == 13 and layer5 == 14)
+        {
+            return RMSE < 0.575;
+        }
+    }
+    else if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
+    {
+        return RMSE < 0.825;
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
+    {
+        if(layer4 == 5 and layer5 == 6)
+        {
+            return RMSE < 0.845;
+        }
+        else if(layer4 == 5 and layer5 == 12)
+        {
+            return RMSE < 1.365;
+        }
+
+        else if(layer4 == 12 and layer5 == 13)
+        {
+            return RMSE < 0.675;
+        }
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
+    {
+            return RMSE < 0.495;
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 12 and layer4 == 13 and layer5 == 14)
+    {
+        return RMSE < 0.695; 
+    }
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
+    {
+        if(layer4 == 9 and layer5 == 15)
+        {
+            return RMSE < 0.735;
+        }
+        else if(layer4 == 14 and layer5 == 15)
+        {
+            return RMSE < 0.525;
+        }
+    }
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 13 and layer4 == 14 and layer5 == 15)
+    {
+        return RMSE < 0.665;
+    }
+    else if(layer1 == 3 and layer2 == 4 and layer3 == 5 and layer4 == 12 and layer5 == 13)
+    {
+        return RMSE < 0.995;
+    }
+    else if(layer1 == 3 and layer2 == 4 and layer3 == 12 and layer4 == 13 and layer5 == 14)
+    {
+        return RMSE < 0.525;
+    }
+    else if(layer1 == 3 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
+    {
+        return RMSE < 0.525;
+    }
+    else if(layer1 == 3 and layer2 == 7 and layer3 == 13 and layer4 == 14 and layer5 == 15)
+    {
+        return RMSE < 0.745;
+    }
+    else if(layer1 == 3 and layer2 == 12 and layer3 == 13 and layer4 == 14 and layer5 == 15)
+    {
+        return RMSE < 0.555; 
+    }
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
+    {
+            return RMSE < 0.525;
+    }
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 14 and layer4 == 15 and layer5 == 16)
+    {
+        return RMSE < 0.885;
+    }
+    else if(layer1 == 7 and layer2 == 13 and layer3 == 14 and layer4 == 15 and layer5 == 16)
+    {
+        return RMSE < 0.845;
+    }
+
+    return true;
 }
 
 __device__ bool SDL::checkIntervalOverlap(const float& firstMin, const float& firstMax, const float& secondMin, const float& secondMax)

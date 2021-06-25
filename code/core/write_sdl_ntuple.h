@@ -65,6 +65,10 @@ void fillPrimitiveBranches_for_CPU_v1(SDL::CPU::Event& event);
 void fillPrimitiveBranches_for_CPU_v2(SDL::CPU::Event& event);
 void fillPrimitiveBranches_Hit_for_CPU_v2(SDL::CPU::Event& event);
 void fillPrimitiveBranches_MD_for_CPU_v2(SDL::CPU::Event& event);
+void fillPrimitiveBranches_T2_for_CPU_v2(SDL::CPU::Event& event);
+void fillPrimitiveBranches_T3_for_CPU_v2(SDL::CPU::Event& event);
+void fillPrimitiveBranches_T5_for_CPU_v2(SDL::CPU::Event& event);
+
 
 // Timing
 void printTimingInformation(std::vector<std::vector<float>>& timing_information);
