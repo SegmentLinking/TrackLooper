@@ -54,6 +54,7 @@ void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillLowerLevelOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillTripletOutputBranches_for_CPU(SDL::CPU::Event& event);
+void fillPixelLineSegmentOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillPixelQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillPixelTripletOutputBranches_for_CPU(SDL::CPU::Event& event);
 #ifdef DO_QUINTUPLET

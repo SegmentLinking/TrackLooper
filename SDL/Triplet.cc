@@ -646,6 +646,7 @@ bool SDL::CPU::Triplet::passAdHocRZConstraint(SDL::CPU::LogLevel logLevel)
     const float& z3 = outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->z();
 
     const float residual = z2 - ( (z3 - z1) / (r3 - r1) * (r2 - r1) + z1);
+    setRecoVars("residual", residual);
 
     const SDL::CPU::Module& ModuleA = innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->getModule();
     const SDL::CPU::Module& ModuleB = innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->getModule();
@@ -655,53 +656,65 @@ bool SDL::CPU::Triplet::passAdHocRZConstraint(SDL::CPU::LogLevel logLevel)
     const int layer2 =  ModuleB.layer() + 6 * (ModuleB.subdet() == 4) + 5 * (ModuleB.subdet() == 4 and ModuleB.moduleType() == 1);
     const int layer3 =  ModuleC.layer() + 6 * (ModuleC.subdet() == 4) + 5 * (ModuleC.subdet() == 4 and ModuleC.moduleType() == 1);
 
-    if (layer1 == 1 and layer2 == 2 and layer3 == 3)
+    if (layer1 == 12 and layer2 == 13 and layer3 == 14)
     {
-        return std::abs(residual) < 0.5;
+        return false;
     }
-    else if (layer1 == 2 and layer2 == 3 and layer3 == 4)
+    else if (layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-        return std::abs(residual) < 1.2;
-    }
-    else if (layer1 == 3 and layer2 == 4 and layer3 == 5)
-    {
-        return std::abs(residual) < 5;
-    }
-    else if (layer1 == 4 and layer2 == 5 and layer3 == 6)
-    {
-        return std::abs(residual) < 5;
+        return fabs(residual) < 0.53;
     }
     else if (layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
-        return std::abs(residual) < 0.7;
+        return fabs(residual) < 1;
+    }
+    else if (layer1 == 13 and layer2 == 14 and layer3 == 15)
+    {
+        return false;
+    }
+    else if (layer1 == 14 and layer2 == 15 and layer3 == 16)
+    {
+        return false;
     }
     else if (layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
-        return std::abs(residual) < 0.8;
+        return fabs(residual) < 1;
+    }
+    else if (layer1 == 2 and layer2 == 3 and layer3 == 4)
+    {
+        return fabs(residual) < 1.21;
     }
     else if (layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
-        return std::abs(residual) < 0.5;
+        return fabs(residual) < 1.;
     }
     else if (layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
-        return std::abs(residual) < 0.8;
+        return fabs(residual) < 1.;
+    }
+    else if (layer1 == 3 and layer2 == 4 and layer3 == 5)
+    {
+        return fabs(residual) < 2.7;
+    }
+    else if (layer1 == 4 and layer2 == 5 and layer3 == 6)
+    {
+        return fabs(residual) < 3.06;
     }
     else if (layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
-        return std::abs(residual) < 0.8;
+        return fabs(residual) < 1;
     }
     else if (layer1 == 8 and layer2 == 9 and layer3 == 10)
     {
-        return std::abs(residual) < 1;
+        return fabs(residual) < 1;
     }
     else if (layer1 == 9 and layer2 == 10 and layer3 == 11)
     {
-        return std::abs(residual) < 1;
+        return fabs(residual) < 1;
     }
     else
     {
-        return true;
+        return fabs(residual) < 5;
     }
 
 }
