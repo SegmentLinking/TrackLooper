@@ -4153,7 +4153,7 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
 
 #endif
 
-__global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int& nPixelTriplets, unsigned int& nOuterQuintuplets, unsigned int& firstLowerModuleArrayIndex)
+__global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int nPixelTriplets, unsigned int nOuterQuintuplets, unsigned int firstLowerModuleArrayIndex)
 {
     unsigned int pixelTripletIndex = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned int outerQuintupletArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
@@ -4181,10 +4181,10 @@ __global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modul
        else
        {
 #ifdef CUT_VALUE_DEBUG
-           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelTripletIndex, outerQuintupletIndex, pixelQuintupletIndex,rzChiSquared);
+           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelTripletIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared);
 
 #else
-           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelTripletIndex, outerQuintupletIndex, pixelQuintupletIndex);
+           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelTripletIndex, quintupletIndex, pixelQuintupletIndex);
 #endif
        }
 
@@ -4194,7 +4194,7 @@ __global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modul
 
 __global__ void createPixelQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU)
 {
-    int firstLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int firstLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(firstLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) return;
 
