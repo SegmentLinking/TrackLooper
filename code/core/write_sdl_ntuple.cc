@@ -2078,6 +2078,13 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
         }
 
 #endif
+        for (auto &isimtrk : matched_sim_trk_idxs)
+        {
+            sim_pT5_types[isimtrk].push_back(layer_binary);
+        }
+        pT5_isFake.push_back(matched_sim_trk_idxs.size() == 0);
+        pT5_matched_simIdx.push_back(matched_sim_trk_idxs);
+
         const float kRinv1GeVf = (2.99792458e-3 * 3.8);
 
         float pt = (pixelTripletsInGPU.pixelRadius[pT3Index] + pixelTripletsInGPU.tripletRadius[pT3Index] + quintupletsInGPU.outerRadius[jdx]) * (kRinv1GeVf)/3;
