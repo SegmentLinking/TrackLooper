@@ -24,6 +24,7 @@
 #include "TrackCandidate.cuh"
 #include "Quintuplet.cuh"
 #include "PixelTriplet.cuh"
+#include "PixelQuintuplet.cuh"
 
 #include "cuda_profiler_api.h"
 #ifdef __CUDACC__
@@ -62,6 +63,7 @@ namespace SDL
         struct quintuplets* quintupletsInGPU;
         struct trackCandidates* trackCandidatesInGPU;
         struct pixelTriplets* pixelTripletsInGPU;
+        struct pixelQuintuplets* pixelQuintupletsInGPU;
 
         //CPU interface stuff
         hits* hitsInCPU;
@@ -75,6 +77,7 @@ namespace SDL
         modules* modulesInCPUFull;
         quintuplets* quintupletsInCPU;
         pixelTriplets* pixelTripletsInCPU;
+        pixelQuintuplets* pixelQuintupletsInCPU;
 
         int* superbinCPU;
         int* pixelTypeCPU;
@@ -113,6 +116,7 @@ namespace SDL
         void createTrackCandidates();
         void createQuintuplets();
         void createPixelTriplets();
+        void createPixelQuintuplets();
 
         unsigned int getNumberOfHits();
         unsigned int getNumberOfHitsByLayer(unsigned int layer);
@@ -152,6 +156,7 @@ namespace SDL
         unsigned int getNumberOfQuintupletsByLayerEndcap(unsigned int layer);
 
         unsigned int getNumberOfPixelTriplets();
+        unsigned int getNumberOfPixelQuintuplets();
 
         hits* getHits();
         miniDoublets* getMiniDoublets();
@@ -164,6 +169,7 @@ namespace SDL
         pixelTriplets* getPixelTriplets();
         modules* getModules();
         modules* getFullModules();
+        pixelQuintuplets* getPixelQuintuplets();
 
     };
 
@@ -266,4 +272,5 @@ __global__ void createPixelTripletsInGPU(struct SDL::modules& modulesInGPU, stru
 __global__ void createPixelTripletsFromOuterInnerLowerModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, unsigned int outerTripletInnerLowerModuleArrayIndex, unsigned int nPixelSegments, unsigned int nOuterTriplets, unsigned int pixelModuleIndex);
 #endif
 
+__global__ void createPixelQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU);
 #endif

@@ -20,6 +20,7 @@ void createOutputBranches();
 void createLowerLevelOutputBranches();
 #ifdef DO_QUINTUPLET
 void createQuintupletCutValueBranches();
+void createPixelQuintupletCutValueBranches();
 #endif
 void createQuadrupletCutValueBranches();
 void createTripletCutValueBranches();
@@ -44,6 +45,7 @@ void fillTripletOutputBranches(SDL::Event& event);
 void fillPixelTripletOutputBranches(SDL::Event& event);
 #ifdef DO_QUINTUPLET
 void fillQuintupletOutputBranches(SDL::Event& event);
+void fillPixelQuintupletOutputBranches(SDL::Event& event);
 #endif
 void fillPixelLineSegmentOutputBranches(SDL::Event& event);
 void fillOccupancyBranches(SDL::Event& event);
