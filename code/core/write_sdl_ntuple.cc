@@ -164,6 +164,7 @@ void createQuintupletCutValueBranches()
     ana.tx->createBranch<vector<float>>("t5_innerRadiusMin");
     ana.tx->createBranch<vector<float>>("t5_innerRadiusMax");
     ana.tx->createBranch<vector<float>>("t5_outerRadius");
+    ana.tx->createBranch<vector<float>>("t5_regressionRadius");
     ana.tx->createBranch<vector<float>>("t5_outerRadiusMin");
     ana.tx->createBranch<vector<float>>("t5_outerRadiusMax");
     ana.tx->createBranch<vector<float>>("t5_bridgeRadius");
@@ -1451,6 +1452,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     std::vector<float> t5_innerRadiusMin2S;
     std::vector<float> t5_innerRadiusMax2S;
     std::vector<float> t5_outerRadius;
+    std::vector<float> t5_regressionRadius;
     std::vector<float> t5_outerRadiusMin;
     std::vector<float> t5_outerRadiusMax;
     std::vector<float> t5_outerRadiusMin2S;
@@ -1499,6 +1501,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             t5_innerRadiusMax2S.push_back(quintupletsInGPU.innerRadiusMax2S[quintupletIndex]);
 
             t5_outerRadius.push_back(quintupletsInGPU.outerRadius[quintupletIndex]);
+            t5_regressionRadius.push_back(quintupletsInGPU.regressionRadius[quintupletIndex]);
             t5_outerRadiusMin.push_back(quintupletsInGPU.outerRadiusMin[quintupletIndex]);
             t5_outerRadiusMax.push_back(quintupletsInGPU.outerRadiusMax[quintupletIndex]);
             t5_outerRadiusMin2S.push_back(quintupletsInGPU.outerRadiusMin2S[quintupletIndex]);
@@ -1684,6 +1687,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<vector<float>>>("t5_matched_pt",t5_simpt);
 
     ana.tx->setBranch<vector<float>>("t5_outerRadius",t5_outerRadius);
+    ana.tx->setBranch<vector<float>>("t5_regressionRadius", t5_regressionRadius);
     ana.tx->setBranch<vector<float>>("t5_outerRadiusMin",t5_outerRadiusMin);
     ana.tx->setBranch<vector<float>>("t5_outerRadiusMax",t5_outerRadiusMax);
     ana.tx->setBranch<vector<float>>("t5_outerRadiusMin2S",t5_outerRadiusMin2S);
