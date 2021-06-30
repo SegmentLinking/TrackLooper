@@ -183,7 +183,7 @@ void createQuintupletCutValueBranches()
 
 void createPixelQuintupletCutValueBranches()
 {
-    ana.tx->createBranch<vector<float>>("pT5_layer_binary");
+    ana.tx->createBranch<vector<int>>("pT5_layer_binary");
     ana.tx->createBranch<vector<float>>("pT5_matched_pt");
     ana.tx->createBranch<vector<float>>("pT5_rzChiSquared");
 }
@@ -608,6 +608,7 @@ void fillOccupancyBranches(SDL::Event& event)
     SDL::modules& modulesInGPU = (*event.getModules());
 #ifdef DO_QUINTUPLET
     SDL::quintuplets&  quintupletsInGPU = (*event.getQuintuplets());
+    SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event.getPixelQuintuplets());
 #endif
 #ifdef DO_QUADRUPLET
     SDL::tracklets& trackletsInGPU = (*event.getTracklets());
@@ -664,6 +665,7 @@ void fillOccupancyBranches(SDL::Event& event)
     ana.tx->setBranch<int>("pT3_occupancies", *(pixelTripletsInGPU.nPixelTriplets));
 #ifdef DO_QUINTUPLET
     ana.tx->setBranch<vector<int>>("t5_occupancies", quintupletOccupancy);
+    ana.tx->setBranch<int>("pT5_occupancies", *(pixelQuintupletsInGPU.nPixelQuintuplets));
 #endif
 }
 
@@ -1418,6 +1420,7 @@ void fillLowerLevelOutputBranches(SDL::Event& event)
     fillPixelLineSegmentOutputBranches(event);
 #ifdef DO_QUINTUPLET
     fillQuintupletOutputBranches(event);
+    fillPixelQuintupletOutputBranches(event);
 #endif
 #ifdef DO_QUADRUPLET
     fillQuadrupletOutputBranches(event);
@@ -1930,11 +1933,12 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
     std::vector<float> pT5_phi;
 
 #ifdef CUT_VALUE_DEBUG
+    std::vector<int> pT5_layer_binary;
     std::vector<float> pT5_rzChiSquared;
     std::vector<float> pT5_simpt;
 #endif
     const unsigned int N_MAX_PIXEL_QUINTUPLETS = 1000000;
-    unsigned int nPixelQuintupets = std::min(*(pixelQuintupletsInGPU.nPixelQuintuplets), N_MAX_PIXEL_QUINTUPLETS);
+    unsigned int nPixelQuintuplets = std::min(*(pixelQuintupletsInGPU.nPixelQuintuplets), N_MAX_PIXEL_QUINTUPLETS);
 
     for(unsigned int jdx = 0; jdx < nPixelQuintuplets; jdx++)
     {
@@ -1977,21 +1981,21 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
         unsigned int hitIndex14 = mdsInGPU.hitIndices[2 * T5MDIndex5 + 1];
 
         std::vector<int> hit_idxs = {
-            (int) hitsInGPU.idxs[hitIndex1];
-            (int) hitsInGPU.idxs[hitIndex2];
-            (int) hitsInGPU.idxs[hitIndex3];
-            (int) hitsInGPU.idxs[hitIndex4];
-            (int) hitsInGPU.idxs[hitIndex5];
-            (int) hitsInGPU.idxs[hitIndex6];
-            (int) hitsInGPU.idxs[hitIndex7];
-            (int) hitsInGPU.idxs[hitIndex8];
-            (int) hitsInGPU.idxs[hitIndex9];
-            (int) hitsInGPU.idxs[hitIndex10];
-            (int) hitsInGPU.idxs[hitIndex11];
-            (int) hitsInGPU.idxs[hitIndex12];
-            (int) hitsInGPU.idxs[hitIndex13];
-            (int) hitsInGPU.idxs[hitIndex14];
-        }
+            (int) hitsInGPU.idxs[hitIndex1],
+            (int) hitsInGPU.idxs[hitIndex2],
+            (int) hitsInGPU.idxs[hitIndex3],
+            (int) hitsInGPU.idxs[hitIndex4],
+            (int) hitsInGPU.idxs[hitIndex5],
+            (int) hitsInGPU.idxs[hitIndex6],
+            (int) hitsInGPU.idxs[hitIndex7],
+            (int) hitsInGPU.idxs[hitIndex8],
+            (int) hitsInGPU.idxs[hitIndex9],
+            (int) hitsInGPU.idxs[hitIndex10],
+            (int) hitsInGPU.idxs[hitIndex11],
+            (int) hitsInGPU.idxs[hitIndex12],
+            (int) hitsInGPU.idxs[hitIndex13],
+            (int) hitsInGPU.idxs[hitIndex14],
+        };
 
         std::vector<int> hit_types;
         hit_types.push_back(0);
@@ -2010,21 +2014,21 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
         hit_types.push_back(4); 
 
         std::vector<int> module_idxs = {
-            (int) hitsInGPU.moduleIndices[hitIndex1];
-            (int) hitsInGPU.moduleIndices[hitIndex2];
-            (int) hitsInGPU.moduleIndices[hitIndex3];
-            (int) hitsInGPU.moduleIndices[hitIndex4];
-            (int) hitsInGPU.moduleIndices[hitIndex5];
-            (int) hitsInGPU.moduleIndices[hitIndex6];
-            (int) hitsInGPU.moduleIndices[hitIndex7];
-            (int) hitsInGPU.moduleIndices[hitIndex8];
-            (int) hitsInGPU.moduleIndices[hitIndex9];
-            (int) hitsInGPU.moduleIndices[hitIndex10];
-            (int) hitsInGPU.moduleIndices[hitIndex11];
-            (int) hitsInGPU.moduleIndices[hitIndex12];
-            (int) hitsInGPU.moduleIndices[hitIndex13];
-            (int) hitsInGPU.moduleIndices[hitIndex14];
-        }
+            (int) hitsInGPU.moduleIndices[hitIndex1],
+            (int) hitsInGPU.moduleIndices[hitIndex2],
+            (int) hitsInGPU.moduleIndices[hitIndex3],
+            (int) hitsInGPU.moduleIndices[hitIndex4],
+            (int) hitsInGPU.moduleIndices[hitIndex5],
+            (int) hitsInGPU.moduleIndices[hitIndex6],
+            (int) hitsInGPU.moduleIndices[hitIndex7],
+            (int) hitsInGPU.moduleIndices[hitIndex8],
+            (int) hitsInGPU.moduleIndices[hitIndex9],
+            (int) hitsInGPU.moduleIndices[hitIndex10],
+            (int) hitsInGPU.moduleIndices[hitIndex11],
+            (int) hitsInGPU.moduleIndices[hitIndex12],
+            (int) hitsInGPU.moduleIndices[hitIndex13],
+            (int) hitsInGPU.moduleIndices[hitIndex14],
+        };
 
         //layer binary -> disregard the 4 pixels!
         int layer0 = modulesInGPU.layers[module_idxs[0]];
@@ -2035,13 +2039,19 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
         int layer10 = modulesInGPU.layers[module_idxs[10]];
         int layer12 = modulesInGPU.layers[module_idxs[12]];
 
+        int subdet4 = modulesInGPU.subdets[module_idxs[4]];
+        int subdet6 = modulesInGPU.subdets[module_idxs[6]];
+        int subdet8 = modulesInGPU.subdets[module_idxs[8]];
+        int subdet10 = modulesInGPU.subdets[module_idxs[10]];
+        int subdet12 = modulesInGPU.subdets[module_idxs[12]];
+
         int logicallayer0 = 0;
         int logicallayer2 = 0;
         int logicallayer4 = layer4 + 6 * (subdet4 == 4);
         int logicallayer6 = layer6 + 6 * (subdet6 == 4);
         int logicallayer8 = layer8 + 6 * (subdet8 == 4);
-        int logicallayer10 = layer10 + 6 * (subdet4 == 4);
-        int logicallayer12 = layer12 + 6 * (subdet6 == 4);
+        int logicallayer10 = layer10 + 6 * (subdet10 == 4);
+        int logicallayer12 = layer12 + 6 * (subdet12 == 4);
 
         int layer_binary = 0;
         layer_binary |= (1 << logicallayer0);
@@ -2112,7 +2122,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("pT5_phi", pT5_phi);
 
 #ifdef CUT_VALUE_DEBUG
-    ana.tx->setBranch<vector<float>>("pT5_layer_binary", pT5_layer_binary);
+    ana.tx->setBranch<vector<int>>("pT5_layer_binary", pT5_layer_binary);
     ana.tx->setBranch<vector<float>>("pT5_rzChiSquared", pT5_rzChiSquared);
     ana.tx->setBranch<vector<float>>("pT5_matched_pt", pT5_simpt);
 #endif
