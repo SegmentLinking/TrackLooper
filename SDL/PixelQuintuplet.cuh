@@ -57,7 +57,6 @@ namespace SDL
 
     CUDA_DEV float computePT5ChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int& pixelAnchorHitIndex1, unsigned int& pixelAnchorHitIndex2, unsigned int& anchorHitIndex1, unsigned int& anchorHitIndex2, unsigned int& anchorHitIndex3, unsigned int anchorHitIndex4, unsigned int& anchorHitIndex5, unsigned int& lowerModuleIndex1, unsigned int& lowerModuleIndex2, unsigned int& lowerModuleIndex3, unsigned int& lowerModuleIndex4, unsigned int& lowerModuleIndex5);
 
-
 }
 
 #endif

@@ -153,3 +153,5 @@ __device__ float SDL::computePT5ChiSquared(struct modules& modulesInGPU, struct 
 
     return RMSE;
 }
+
+
