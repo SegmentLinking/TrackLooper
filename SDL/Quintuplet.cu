@@ -203,7 +203,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
 
 #ifdef CUT_VALUE_DEBUG
 __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerRadius, float innerRadiusMin, float innerRadiusMax, float outerRadius, float outerRadiusMin, float outerRadiusMax, float bridgeRadius, float bridgeRadiusMin, float bridgeRadiusMax,
-        float innerRadiusMin2S, float innerRadiusMax2S, float bridgeRadiusMin2S, float bridgeRadiusMax2S, float outerRadiusMin2S, float outerRadiusMax2S, unsigned int regressionRadius, unsigned int quintupletIndex)
+        float innerRadiusMin2S, float innerRadiusMax2S, float bridgeRadiusMin2S, float bridgeRadiusMax2S, float outerRadiusMin2S, float outerRadiusMax2S, float regressionRadius, unsigned int quintupletIndex)
 
 #else
 __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerRadius, float outerRadius, float regressionRadius, unsigned int quintupletIndex)
@@ -893,7 +893,7 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
     short moduleSubdet, moduleSide;
     ModuleLayerType moduleLayerType;
     float drdz;
-
+    float minSigma = 123456789; //arbitrarily large number
     for(size_t i=0; i<5; i++)
     {
         moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
@@ -944,6 +944,12 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
         {
             printf("ERROR!!!!! I SHOULDN'T BE HERE!!!! subdet = %d, type = %d, side = %d\n", moduleSubdet, moduleType, moduleSide);
         }
+        minSigma = fminf(minSigma, sigmas[i]);
+    }
+    //divide everyone by minSigma
+    for(size_t i = 0; i < 5; i++)
+    {
+        sigmas[i] /= minSigma;
     }
 }
 
@@ -961,7 +967,7 @@ __device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float
     float sigmaY = 0.f;
     float sigmaX1 = 0.f;
     float sigmaX2 = 0.f;
-    float sumSigmas = 0.f;
+    float sigmaOne = 0.f;
     for(size_t i = 0; i < nPoints; i++)
     {
         sigmaX1Squared += (xs[i] * xs[i])/(sigmas[i] * sigmas[i]);
@@ -970,16 +976,16 @@ __device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float
         sigmaX1y += (xs[i] * (xs[i] * xs[i] + ys[i] * ys[i]))/(sigmas[i] * sigmas[i]);
         sigmaX2y += (ys[i] * (xs[i] * xs[i] + ys[i] * ys[i]))/(sigmas[i] * sigmas[i]);
         sigmaY += (xs[i] * xs[i] + ys[i] * ys[i])/(sigmas[i] * sigmas[i]);
-        sigmaX1 += (xs[i])/(sigmas[i] * sigmas[i]);
-        sigmaX2 += (ys[i])/(sigmas[i] * sigmas[i]);
-        sumSigmas = sigmas[i] * sigmas[i];
+        sigmaX1 += xs[i]/(sigmas[i] * sigmas[i]);
+        sigmaX2 += ys[i]/(sigmas[i] * sigmas[i]);
+        sigmaOne += 1.0/(sigmas[i] * sigmas[i]);
     }
     float denominator = (sigmaX1X2 - sigmaX1 * sigmaX2) * (sigmaX1X2 - sigmaX1 * sigmaX2) - (sigmaX1Squared - sigmaX1 * sigmaX1) * (sigmaX2Squared - sigmaX2 * sigmaX2);
 
     float twoG = ((sigmaX2y - sigmaX2 * sigmaY) * (sigmaX1X2 - sigmaX1 * sigmaX2) - (sigmaX1y - sigmaX1 * sigmaY) * (sigmaX2Squared - sigmaX2 * sigmaX2)) / denominator;
     float twoF = ((sigmaX1y - sigmaX1 * sigmaY) * (sigmaX1X2 - sigmaX1 * sigmaX2) - (sigmaX2y - sigmaX2 * sigmaY) * (sigmaX1Squared - sigmaX1 * sigmaX1)) / denominator;
 
-    float c = -sumSigmas * (sigmaY - twoG * sigmaX1 - twoF * sigmaX2);
+    float c = -(sigmaY - twoG * sigmaX1 - twoF * sigmaX2)/sigmaOne;
     g = twoG/2;
     f = twoF/2;
     if(g * g + f * f - c < 0)
