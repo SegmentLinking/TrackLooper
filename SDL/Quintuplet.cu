@@ -430,7 +430,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     regressionRadius = computeRadiusUsingRegression(5,xVec, yVec, sigmas, regressionG, regressionF, chiSquared);
 
     //extra chi squared cuts!
-    pass = pass & passChiSquaredConstraint(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex4, chiSquared);
+    pass = pass & passChiSquaredConstraint(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, chiSquared);
     return pass;
 }
 
