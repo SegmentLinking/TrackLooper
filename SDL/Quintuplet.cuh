@@ -105,7 +105,7 @@ CUDA_DEV bool matchRadiiBBBEE34578(const float& innerRadius, const float& bridge
     CUDA_DEV float computeRadiusUsingRegression(int nPoints, float* xs, float* ys, float* sigmas, float& g, float& f, float& chiSquared);
     CUDA_DEV void computeSigmasForRegression(SDL::modules& modulesInGPU, const unsigned int* lowerModuleIndices, float* sigmas);
 
-
+    CUDA_DEV bool passChiSquaredConstraint(struct modules& modulesInGPU, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5, float& chiSquared);
 
 }
 #endif
