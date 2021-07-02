@@ -11,6 +11,7 @@ SDL::quintuplets::quintuplets()
     nQuintuplets = nullptr;
     innerRadius = nullptr;
     outerRadius = nullptr;
+    regressionRadius = nullptr;
 
 #ifdef CUT_VALUE_DEBUG
     innerRadiusMin = nullptr;
@@ -26,6 +27,7 @@ SDL::quintuplets::quintuplets()
     outerRadiusMin2S = nullptr;
     outerRadiusMax = nullptr;
     outerRadiusMax2S = nullptr;
+    chiSquared = nullptr;
 #endif
 }
 
@@ -59,7 +61,7 @@ void SDL::quintuplets::freeMemory()
     cudaFree(nQuintuplets);
     cudaFree(innerRadius);
     cudaFree(outerRadius);
-
+    cudaFree(regressionRadius);
 #ifdef CUT_VALUE_DEBUG
     cudaFree(innerRadiusMin);
     cudaFree(innerRadiusMin2S);
@@ -74,6 +76,7 @@ void SDL::quintuplets::freeMemory()
     cudaFree(outerRadiusMin2S);
     cudaFree(outerRadiusMax);
     cudaFree(outerRadiusMax2S);
+    cudaFree(chiSquared);
 #endif
 }
 
@@ -165,6 +168,7 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     cudaMallocManaged(&quintupletsInGPU.bridgeRadiusMax2S, nMemoryLocations * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.outerRadiusMin2S, nMemoryLocations * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.outerRadiusMax2S, nMemoryLocations * sizeof(float));
+    cudaMallocManaged(&quintupletsInGPU.chiSquared, nMemoryLocations * sizeof(float));
 #endif
 #endif
 
@@ -203,7 +207,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
 
 #ifdef CUT_VALUE_DEBUG
 __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerRadius, float innerRadiusMin, float innerRadiusMax, float outerRadius, float outerRadiusMin, float outerRadiusMax, float bridgeRadius, float bridgeRadiusMin, float bridgeRadiusMax,
-        float innerRadiusMin2S, float innerRadiusMax2S, float bridgeRadiusMin2S, float bridgeRadiusMax2S, float outerRadiusMin2S, float outerRadiusMax2S, float regressionRadius, unsigned int quintupletIndex)
+        float innerRadiusMin2S, float innerRadiusMax2S, float bridgeRadiusMin2S, float bridgeRadiusMax2S, float outerRadiusMin2S, float outerRadiusMax2S, float regressionRadius, float chiSquared, unsigned int quintupletIndex)
 
 #else
 __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerRadius, float outerRadius, float regressionRadius, unsigned int quintupletIndex)
@@ -236,12 +240,13 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsI
     quintupletsInGPU.bridgeRadiusMax2S[quintupletIndex] = bridgeRadiusMax2S;
     quintupletsInGPU.outerRadiusMin2S[quintupletIndex] = outerRadiusMin2S;
     quintupletsInGPU.outerRadiusMax2S[quintupletIndex] = outerRadiusMax2S;
+    quintupletsInGPU.chiSquared[quintupletIndex] = chiSquared;
 #endif
 
 }
 
 __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5, unsigned int innerTripletIndex, unsigned int outerTripletIndex, float& innerRadius, float& innerRadiusMin, float&
-    innerRadiusMax, float& outerRadius, float& outerRadiusMin, float& outerRadiusMax, float& bridgeRadius, float& bridgeRadiusMin, float& bridgeRadiusMax, float& innerRadiusMin2S, float& innerRadiusMax2S, float& bridgeRadiusMin2S, float& bridgeRadiusMax2S, float& outerRadiusMin2S, float& outerRadiusMax2S, float& regressionRadius)
+    innerRadiusMax, float& outerRadius, float& outerRadiusMin, float& outerRadiusMax, float& bridgeRadius, float& bridgeRadiusMin, float& bridgeRadiusMax, float& innerRadiusMin2S, float& innerRadiusMax2S, float& bridgeRadiusMin2S, float& bridgeRadiusMax2S, float& outerRadiusMin2S, float& outerRadiusMax2S, float& regressionRadius, float& chiSquared)
 {
     bool pass = true;
 
@@ -422,7 +427,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     //5 categories for sigmas
     const unsigned int lowerModuleIndices[] = {lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5};
     computeSigmasForRegression(modulesInGPU, lowerModuleIndices, sigmas);
-    regressionRadius = computeRadiusUsingRegression(5,xVec, yVec, sigmas, regressionG, regressionF);
+    regressionRadius = computeRadiusUsingRegression(5,xVec, yVec, sigmas, regressionG, regressionF, chiSquared);
     return pass;
 }
 
@@ -893,7 +898,6 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
     short moduleSubdet, moduleSide;
     ModuleLayerType moduleLayerType;
     float drdz;
-    float minSigma = 123456789; //arbitrarily large number
     for(size_t i=0; i<5; i++)
     {
         moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
@@ -944,16 +948,15 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
         {
             printf("ERROR!!!!! I SHOULDN'T BE HERE!!!! subdet = %d, type = %d, side = %d\n", moduleSubdet, moduleType, moduleSide);
         }
-        minSigma = fminf(minSigma, sigmas[i]);
     }
-    //divide everyone by minSigma
+    //divide everyone by the smallest possible value of sigma
     for(size_t i = 0; i < 5; i++)
     {
-        sigmas[i] /= minSigma;
+        sigmas[i] /= 0.000081;
     }
 }
 
-__device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float* ys, float* sigmas, float& g, float& f)
+__device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float* ys, float* sigmas, float& g, float& f, float& chiSquared)
 {
     float radius = 0;
 
@@ -995,5 +998,11 @@ __device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float
     }
     
     radius = sqrtf(g * g  + f * f - c);
+    //compute chi squared
+    chiSquared = 0;
+    for(size_t i = 0; i < nPoints; i++)
+    {
+       chiSquared +=  (xs[i] * xs[i] + ys[i] * ys[i] - twoG * xs[i] - twoF * ys[i] + c) * (xs[i] * xs[i] + ys[i] * ys[i] - twoG * xs[i] - twoF * ys[i] + c) / (sigmas[i] * sigmas[i]);
+    }
     return radius;
 }

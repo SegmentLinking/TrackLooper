@@ -177,8 +177,7 @@ void createQuintupletCutValueBranches()
     ana.tx->createBranch<vector<float>>("t5_outerRadiusMin2S");
     ana.tx->createBranch<vector<float>>("t5_outerRadiusMax2S");
     ana.tx->createBranch<vector<int>>("t5_moduleType_binary");
-
-
+    ana.tx->createBranch<vector<float>>("t5_chiSquared");
 }
 
 void createPixelQuintupletCutValueBranches()
@@ -1466,6 +1465,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     std::vector<float> t5_bridgeRadiusMin2S;
     std::vector<float> t5_bridgeRadiusMax2S;
     std::vector<std::vector<float>> t5_simpt;
+    std::vector<float> t5_chiSquared;
     std::vector<int> layer_binaries;
     std::vector<int> moduleType_binaries;
 #endif
@@ -1515,6 +1515,8 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             t5_bridgeRadiusMax.push_back(quintupletsInGPU.bridgeRadiusMax[quintupletIndex]);
             t5_bridgeRadiusMin2S.push_back(quintupletsInGPU.bridgeRadiusMin2S[quintupletIndex]);
             t5_bridgeRadiusMax2S.push_back(quintupletsInGPU.bridgeRadiusMax2S[quintupletIndex]);
+
+            t5_chiSquared.push_back(quintupletsInGPU.chiSquared[quintupletIndex]);
 #endif
 
             unsigned int innerTripletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex];
@@ -1695,6 +1697,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("t5_outerRadiusMax",t5_outerRadiusMax);
     ana.tx->setBranch<vector<float>>("t5_outerRadiusMin2S",t5_outerRadiusMin2S);
     ana.tx->setBranch<vector<float>>("t5_outerRadiusMax2S",t5_outerRadiusMax2S);
+    ana.tx->setBranch<vector<float>>("t5_chiSquared", t5_chiSquared);
 
     ana.tx->setBranch<vector<float>>("t5_innerRadius",t5_innerRadius);
     ana.tx->setBranch<vector<float>>("t5_innerRadiusMin",t5_innerRadiusMin);
