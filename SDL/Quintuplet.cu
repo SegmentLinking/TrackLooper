@@ -422,12 +422,14 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     //compute regression radius right here
     float xVec[] = {x1, x2, x3, x4, x5};
     float yVec[] = {y1, y2, y3, y4, y5};
-    float sigmas[5];
+    float sigmas[5], delta1[5], delta2[5], slopes[5];
+    bool isFlat[5];
     float regressionG, regressionF;
     //5 categories for sigmas
     const unsigned int lowerModuleIndices[] = {lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5};
-    computeSigmasForRegression(modulesInGPU, lowerModuleIndices, sigmas);
-    regressionRadius = computeRadiusUsingRegression(5,xVec, yVec, sigmas, regressionG, regressionF, chiSquared);
+
+    computeSigmasForRegression(modulesInGPU, lowerModuleIndices, delta1, delta2, slopes, isFlat);
+    regressionRadius = computeRadiusUsingRegression(5,xVec, yVec, delta1, delta2, slopes, isFlat, regressionG, regressionF, sigmas, chiSquared);
 
     //extra chi squared cuts!
     pass = pass & passChiSquaredConstraint(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, chiSquared);
@@ -1019,9 +1021,9 @@ __device__ bool SDL::T5HasCommonMiniDoublet(struct SDL::triplets& tripletsInGPU,
     return (innerOuterOuterMiniDoubletIndex == outerInnerInnerMiniDoubletIndex);
 }
 
-__device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, const unsigned int* lowerModuleIndices, float* sigmas) 
+__device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, const unsigned int* lowerModuleIndices, float* delta1, float* delta2, float* slopes, bool* isFlat) 
 {
-    //sigmas in cm^2
+    
 
     ModuleType moduleType;
     short moduleSubdet, moduleSide;
@@ -1036,13 +1038,19 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
         //category 1 - barrel PS flat
         if(moduleSubdet == Barrel and moduleType == PS and moduleSide == Center)        
         {
-            sigmas[i] = 0.0001; 
+            delta1[i] = 0.01; 
+            delta2[i] = 0.01;
+            slopes[i] = -999;             
+            isFlat[i] = true;
         }
 
         //category 2 - barrel 2S
         else if(moduleSubdet == Barrel and moduleType == TwoS)
         {
-            sigmas[i] = 0.000081;
+            delta1[i] = 0.009;
+            delta2[i] = 0.009;
+            slopes[i] = -999;
+            isFlat[i] = true;
         }
 
         //category 3 - barrel PS tilted
@@ -1052,45 +1060,63 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
             if(moduleLayerType == Strip)
             {
                 drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
+                slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
             }
             else
             {
                 drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
+                slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
             }
 
-            sigmas[i] = (0.15f * drdz/sqrtf(1 + drdz * drdz)) * (0.15f * drdz/sqrtf(1 + drdz * drdz));
+            delta1[i] = 0.01;
+            delta2[i] = (0.15f * drdz/sqrtf(1 + drdz * drdz));
+            isFlat[i] = false;
 
-        }
-    
+        } 
         //category 4 - endcap PS
         else if(moduleSubdet == Endcap and moduleType == PS)
         {
-            sigmas[i] = 0.0225;
+            delta1[i] = 0.01;
+            delta2[i] = 0.15f;
+            if(moduleLayerType == Strip)
+            {                
+                slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
+            }
+            else
+            {
+                slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
+            }
+            isFlat[i] = false;
         }
 
         //category 5 - endcap 2S
         else if(moduleSubdet == Endcap and moduleType == TwoS)
         {
-            sigmas[i] = 25.f;
+            delta1[i] = 0.009;
+            delta2[i] = 5.f;
+            slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
+            isFlat[i] = false;
         }
         else
         {
             printf("ERROR!!!!! I SHOULDN'T BE HERE!!!! subdet = %d, type = %d, side = %d\n", moduleSubdet, moduleType, moduleSide);
         }
     }
-    //divide everyone by the smallest possible value of sigma
+    //divide everyone by the smallest possible values of delta1 and delta2
     for(size_t i = 0; i < 5; i++)
     {
-        sigmas[i] /= 0.000081;
+        delta1[i] /= 0.009;
+        delta2[i] /= 0.009;
     }
 }
 
-__device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float* ys, float* sigmas, float& g, float& f, float& chiSquared)
+__device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float* ys, float* delta1, float* delta2, float* slopes, bool* isFlat, float& g, float& f, float* sigmas, float& chiSquared)
 {
     float radius = 0;
 
     //some extra variables
     //the two variables will be caled x1 and x2, and y (which is x^2 + y^2)
+
     float sigmaX1Squared = 0.f;
     float sigmaX2Squared = 0.f;
     float sigmaX1X2 = 0.f; 
@@ -1100,8 +1126,44 @@ __device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float
     float sigmaX1 = 0.f;
     float sigmaX2 = 0.f;
     float sigmaOne = 0.f;
+
+    float xPrime, yPrime, absArctanSlope, angleM;
     for(size_t i = 0; i < nPoints; i++)
     {
+        //computing sigmas is a very tricky affair
+        //if the module is tilted or endcap, we need to use the slopes properly!
+
+        absArctanSlope = ((slopes[i] != 123456789) ? fabs(atanf(slopes[i])) : M_PI / 2); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
+
+        if(xs[i] > 0 and ys[i] > 0)
+        {
+            angleM = absArctanSlope;
+        }
+        else if(xs[i] < 0 and ys[i] < 0)
+        {
+            angleM = M_PI + absArctanSlope;
+        }
+        else if(xs[i] > 0 and ys[i] < 0)
+        {
+           angleM = -absArctanSlope; 
+        }
+        else if(xs[i] < 0 and ys[i] > 0)
+        {
+            angleM = M_PI - absArctanSlope;
+        }
+
+        if(not isFlat[i])
+        {
+            xPrime = xs[i] * cosf(angleM) + ys[i] * sinf(angleM);
+            yPrime = ys[i] * cosf(angleM) - xs[i] * sinf(angleM);
+        }
+        else
+        {
+            xPrime = xs[i];
+            yPrime = ys[i];
+        }
+        sigmas[i] = 2 * sqrtf((xPrime * delta1[i]) * (xPrime * delta1[i]) + (yPrime * delta2[i]) * (yPrime * delta2[i]));
+
         sigmaX1Squared += (xs[i] * xs[i])/(sigmas[i] * sigmas[i]);
         sigmaX2Squared += (ys[i] * ys[i])/(sigmas[i] * sigmas[i]);
         sigmaX1X2 += (xs[i] * ys[i])/(sigmas[i] * sigmas[i]);
