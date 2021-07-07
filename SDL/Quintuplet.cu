@@ -432,7 +432,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     regressionRadius = computeRadiusUsingRegression(5,xVec, yVec, delta1, delta2, slopes, isFlat, regressionG, regressionF, sigmas, chiSquared);
 
     //extra chi squared cuts!
-    pass = pass & passChiSquaredConstraint(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, chiSquared);
+    //pass = pass & passChiSquaredConstraint(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, chiSquared);
     return pass;
 }
 
@@ -1137,19 +1137,19 @@ __device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float
 
         if(xs[i] > 0 and ys[i] > 0)
         {
-            angleM = absArctanSlope;
-        }
-        else if(xs[i] < 0 and ys[i] < 0)
-        {
-            angleM = M_PI + absArctanSlope;
-        }
-        else if(xs[i] > 0 and ys[i] < 0)
-        {
-           angleM = -absArctanSlope; 
+            angleM = M_PI/2 - absArctanSlope;
         }
         else if(xs[i] < 0 and ys[i] > 0)
         {
-            angleM = M_PI - absArctanSlope;
+            angleM = absArctanSlope + M_PI/2;
+        }
+        else if(xs[i] < 0 and ys[i] < 0)
+        {
+            angleM = -(absArctanSlope + M_PI/2);
+        }
+        else if(xs[i] > 0 and ys[i] < 0)
+        {
+            angleM = -(M_PI/2 - absArctanSlope);
         }
 
         if(not isFlat[i])
