@@ -28,6 +28,7 @@ SDL::quintuplets::quintuplets()
     outerRadiusMax = nullptr;
     outerRadiusMax2S = nullptr;
     chiSquared = nullptr;
+    nonAnchorChiSquared = nullptr;
 #endif
 }
 
@@ -169,6 +170,7 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     cudaMallocManaged(&quintupletsInGPU.outerRadiusMin2S, nMemoryLocations * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.outerRadiusMax2S, nMemoryLocations * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.chiSquared, nMemoryLocations * sizeof(float));
+    cudaMallocManaged(&quintupletsInGPU.nonAnchorChiSquared, nMemoryLocations * sizeof(float));
 #endif
 #endif
 
@@ -207,7 +209,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
 
 #ifdef CUT_VALUE_DEBUG
 __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerRadius, float innerRadiusMin, float innerRadiusMax, float outerRadius, float outerRadiusMin, float outerRadiusMax, float bridgeRadius, float bridgeRadiusMin, float bridgeRadiusMax,
-        float innerRadiusMin2S, float innerRadiusMax2S, float bridgeRadiusMin2S, float bridgeRadiusMax2S, float outerRadiusMin2S, float outerRadiusMax2S, float regressionRadius, float chiSquared, unsigned int quintupletIndex)
+        float innerRadiusMin2S, float innerRadiusMax2S, float bridgeRadiusMin2S, float bridgeRadiusMax2S, float outerRadiusMin2S, float outerRadiusMax2S, float regressionRadius, float chiSquared, float nonAnchorChiSquared, unsigned int quintupletIndex)
 
 #else
 __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerRadius, float outerRadius, float regressionRadius, unsigned int quintupletIndex)
@@ -241,12 +243,13 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsI
     quintupletsInGPU.outerRadiusMin2S[quintupletIndex] = outerRadiusMin2S;
     quintupletsInGPU.outerRadiusMax2S[quintupletIndex] = outerRadiusMax2S;
     quintupletsInGPU.chiSquared[quintupletIndex] = chiSquared;
+    quintupletsInGPU.nonAnchorChiSquared[quintupletIndex] = nonAnchorChiSquared;
 #endif
 
 }
 
 __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5, unsigned int innerTripletIndex, unsigned int outerTripletIndex, float& innerRadius, float& innerRadiusMin, float&
-    innerRadiusMax, float& outerRadius, float& outerRadiusMin, float& outerRadiusMax, float& bridgeRadius, float& bridgeRadiusMin, float& bridgeRadiusMax, float& innerRadiusMin2S, float& innerRadiusMax2S, float& bridgeRadiusMin2S, float& bridgeRadiusMax2S, float& outerRadiusMin2S, float& outerRadiusMax2S, float& regressionRadius, float& chiSquared)
+    innerRadiusMax, float& outerRadius, float& outerRadiusMin, float& outerRadiusMax, float& bridgeRadius, float& bridgeRadiusMin, float& bridgeRadiusMax, float& innerRadiusMin2S, float& innerRadiusMax2S, float& bridgeRadiusMin2S, float& bridgeRadiusMax2S, float& outerRadiusMin2S, float& outerRadiusMax2S, float& regressionRadius, float& chiSquared, float& nonAnchorChiSquared)
 {
     bool pass = true;
 
@@ -300,6 +303,33 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     float y4 = hitsInGPU.ys[outerTripletSecondSegmentAnchorHitIndex];
     float y5 = hitsInGPU.ys[outerTripletThirdSegmentAnchorHitIndex];
 
+
+    unsigned int firstMDIndex = segmentsInGPU.mdIndices[2 * firstSegmentIndex];
+    unsigned int secondMDIndex = segmentsInGPU.mdIndices[2 * secondSegmentIndex];
+    unsigned int thirdMDIndex = segmentsInGPU.mdIndices[2 * secondSegmentIndex + 1];
+    unsigned int fourthMDIndex = segmentsInGPU.mdIndices[2 * thirdSegmentIndex + 1];
+    unsigned int fifthMDIndex = segmentsInGPU.mdIndices[2 * fourthSegmentIndex + 1];
+
+    unsigned int nonAnchor1 = mdsInGPU.hitIndices[2 * firstMDIndex] == innerTripletFirstSegmentAnchorHitIndex ? mdsInGPU.hitIndices[2 * firstMDIndex + 1] : mdsInGPU.hitIndices[2 * firstMDIndex];
+    unsigned int nonAnchor2 = mdsInGPU.hitIndices[2 * secondMDIndex] == innerTripletSecondSegmentAnchorHitIndex ? mdsInGPU.hitIndices[2 * secondMDIndex + 1] : mdsInGPU.hitIndices[2 * secondMDIndex];
+    unsigned int nonAnchor3 = mdsInGPU.hitIndices[2 * thirdMDIndex] == innerTripletThirdSegmentAnchorHitIndex ? mdsInGPU.hitIndices[2 * thirdMDIndex + 1] : mdsInGPU.hitIndices[2 * thirdMDIndex];
+    unsigned int nonAnchor4 = mdsInGPU.hitIndices[2 * fourthMDIndex] == outerTripletSecondSegmentAnchorHitIndex ? mdsInGPU.hitIndices[2 * fourthMDIndex + 1] : mdsInGPU.hitIndices[2 * fourthMDIndex];
+    unsigned int nonAnchor5 = mdsInGPU.hitIndices[2 * fifthMDIndex] == outerTripletThirdSegmentAnchorHitIndex ? mdsInGPU.hitIndices[2 * fifthMDIndex + 1] : mdsInGPU.hitIndices[2 * fifthMDIndex];
+
+    //non anchor is always shifted for tilted and endcap!
+
+    float x1NonAnchor = modulesInGPU.subdets[lowerModuleIndex1] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex1] == SDL::Center ? hitsInGPU.xs[nonAnchor1] : mdsInGPU.shiftedXs[firstMDIndex];
+    float x2NonAnchor = modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex2] == SDL::Center ? hitsInGPU.xs[nonAnchor2] : mdsInGPU.shiftedXs[secondMDIndex];
+    float x3NonAnchor = modulesInGPU.subdets[lowerModuleIndex3] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex3] == SDL::Center ? hitsInGPU.xs[nonAnchor3] : mdsInGPU.shiftedXs[thirdMDIndex];
+    float x4NonAnchor = modulesInGPU.subdets[lowerModuleIndex4] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex4] == SDL::Center ? hitsInGPU.xs[nonAnchor4] : mdsInGPU.shiftedXs[fourthMDIndex];
+    float x5NonAnchor = modulesInGPU.subdets[lowerModuleIndex5] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex5] == SDL::Center ? hitsInGPU.xs[nonAnchor5] : mdsInGPU.shiftedXs[fifthMDIndex];
+
+
+    float y1NonAnchor = modulesInGPU.subdets[lowerModuleIndex1] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex1] == SDL::Center ? hitsInGPU.ys[nonAnchor1] : mdsInGPU.shiftedYs[firstMDIndex];
+    float y2NonAnchor = modulesInGPU.subdets[lowerModuleIndex2] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex2] == SDL::Center ? hitsInGPU.ys[nonAnchor2] : mdsInGPU.shiftedYs[secondMDIndex];
+    float y3NonAnchor = modulesInGPU.subdets[lowerModuleIndex3] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex3] == SDL::Center ? hitsInGPU.ys[nonAnchor3] : mdsInGPU.shiftedYs[thirdMDIndex];
+    float y4NonAnchor = modulesInGPU.subdets[lowerModuleIndex4] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex4] == SDL::Center ? hitsInGPU.ys[nonAnchor4] : mdsInGPU.shiftedYs[fourthMDIndex];
+    float y5NonAnchor = modulesInGPU.subdets[lowerModuleIndex5] == SDL::Barrel and modulesInGPU.sides[lowerModuleIndex5] == SDL::Center ? hitsInGPU.ys[nonAnchor5] : mdsInGPU.shiftedYs[fifthMDIndex];
 
     //construct the arrays
     float x1Vec[] = {x1, x1, x1};
@@ -436,6 +466,13 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     {
         pass = pass & passChiSquaredConstraint(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, chiSquared);
     }
+    //compute the other chisquared
+    float nonAnchorDelta1[5], nonAnchorDelta2[5], nonAnchorSlopes[5];
+    float nonAnchorxs[] = {x1NonAnchor, x2NonAnchor, x3NonAnchor, x4NonAnchor, x5NonAnchor};
+    float nonAnchorys[] = {y1NonAnchor, y2NonAnchor, y3NonAnchor, y4NonAnchor, y5NonAnchor};
+
+    computeSigmasForRegression(modulesInGPU, lowerModuleIndices, nonAnchorDelta1, nonAnchorDelta2, nonAnchorSlopes, isFlat, false);
+    nonAnchorChiSquared = computeChiSquared(5, nonAnchorxs, nonAnchorys, nonAnchorDelta1, nonAnchorDelta2, nonAnchorSlopes, isFlat, regressionG, regressionF, regressionRadius);
     return pass;
 }
 
@@ -1030,10 +1067,15 @@ __device__ bool SDL::T5HasCommonMiniDoublet(struct SDL::triplets& tripletsInGPU,
     return (innerOuterOuterMiniDoubletIndex == outerInnerInnerMiniDoubletIndex);
 }
 
-__device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, const unsigned int* lowerModuleIndices, float* delta1, float* delta2, float* slopes, bool* isFlat) 
+__device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, const unsigned int* lowerModuleIndices, float* delta1, float* delta2, float* slopes, bool* isFlat, bool anchorHits) 
 {
-    
-
+   /*bool anchorHits required to deal with a weird edge case wherein 
+     the hits ultimately used in the regression are anchor hits, but the
+     lower modules need not all be Pixel Modules (in case of PS). Similarly,
+     when we compute the chi squared for the non-anchor hits, the "partner module"
+     need not always be a PS strip module, but all non-anchor hits sit on strip 
+     modules.
+    */
     ModuleType moduleType;
     short moduleSubdet, moduleSide;
     ModuleLayerType moduleLayerType;
@@ -1065,6 +1107,7 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
         //category 3 - barrel PS tilted
         else if(moduleSubdet == Barrel and moduleType == PS and moduleSide != Center)
         {
+
             //get drdz
             if(moduleLayerType == Strip)
             {
@@ -1078,15 +1121,22 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
             }
 
             delta1[i] = 0.01;
-            delta2[i] = (0.15f * drdz/sqrtf(1 + drdz * drdz));
             isFlat[i] = false;
 
-        } 
+            if(anchorHits)
+            {
+                delta2[i] = (0.15f * drdz/sqrtf(1 + drdz * drdz));
+            }
+            else
+            {
+                delta2[i] = (2.4f * drdz/sqrtf(1 + drdz * drdz));
+            }
+        }
+
         //category 4 - endcap PS
         else if(moduleSubdet == Endcap and moduleType == PS)
         {
             delta1[i] = 0.01;
-            delta2[i] = 0.15f;
             if(moduleLayerType == Strip)
             {                
                 slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
@@ -1094,8 +1144,21 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
             else
             {
                 slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
+
             }
             isFlat[i] = false;
+
+            /*despite the type of the module layer of the lower module index,
+            all anchor hits are on the pixel side and all non-anchor hits are
+            on the strip side!*/
+            if(anchorHits)
+            {
+                delta2[i] = 0.15f;
+            }
+            else
+            {
+                delta2[i] = 2.4f;
+            }
         }
 
         //category 5 - endcap 2S
@@ -1205,4 +1268,48 @@ __device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float
        chiSquared +=  (xs[i] * xs[i] + ys[i] * ys[i] - twoG * xs[i] - twoF * ys[i] + c) * (xs[i] * xs[i] + ys[i] * ys[i] - twoG * xs[i] - twoF * ys[i] + c) / (sigmas[i] * sigmas[i]);
     }
     return radius;
+}
+
+__device__ float SDL::computeChiSquared(int nPoints, float* xs, float* ys, float* delta1, float* delta2, float* slopes, bool* isFlat, float g, float f, float radius)
+{
+    // given values of (g, f, radius) and a set of points (and its uncertainties)
+    //compute chi squared
+    float c = g*g + f*f - radius*radius;
+    float chiSquared;
+    float absArctanSlope, angleM, xPrime, yPrime, sigma;
+    for(size_t i = 0; i < nPoints; i++)
+    {
+        absArctanSlope = ((slopes[i] != 123456789) ? fabs(atanf(slopes[i])) : M_PI / 2); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
+        if(xs[i] > 0 and ys[i] > 0)
+        {
+            angleM = M_PI/2 - absArctanSlope;
+        }
+        else if(xs[i] < 0 and ys[i] > 0)
+        {
+            angleM = absArctanSlope + M_PI/2;
+        }
+        else if(xs[i] < 0 and ys[i] < 0)
+        {
+            angleM = -(absArctanSlope + M_PI/2);
+        }
+        else if(xs[i] > 0 and ys[i] < 0)
+        {
+            angleM = -(M_PI/2 - absArctanSlope);
+        }
+
+        if(not isFlat[i])
+        {
+            xPrime = xs[i] * cosf(angleM) + ys[i] * sinf(angleM);
+            yPrime = ys[i] * cosf(angleM) - xs[i] * sinf(angleM);
+        }
+        else
+        {
+            xPrime = xs[i];
+            yPrime = ys[i];
+        }
+        sigma = 2 * sqrtf((xPrime * delta1[i]) * (xPrime * delta1[i]) + (yPrime * delta2[i]) * (yPrime * delta2[i]));
+
+       chiSquared +=  (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) * (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) / (sigma * sigma);
+    }
+    return chiSquared;
 }
