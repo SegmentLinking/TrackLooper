@@ -777,6 +777,21 @@ float runQuintuplet(SDL::Event& event)
    
 }
 
+float runPixelQuintuplet(SDL::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Reco Pixel Quintuplet start" << std::endl;
+    my_timer.Start();
+    event.createPixelQuintuplets();
+    float pt5_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Reco Pixel Quintuplet processing time: " << pt5_elapsed << " secs" << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Pixel Quintuplets produced: " << event.getNumberOfPixelQuintuplets() << std::endl;
+
+    return pt5_elapsed;
+}
+
+
+
 float runTrackCandidateTest_v2(SDL::Event& event)
 {
     TStopwatch my_timer;

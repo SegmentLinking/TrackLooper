@@ -364,8 +364,10 @@ void run_sdl()
 #endif
 #ifdef DO_QUINTUPLET
             float timing_T5 = runQuintuplet(event);
+            float timing_pT5 = runPixelQuintuplet(event);
 #else
             float timing_T5 = 0;
+            float timing_pT5 = 0;
 #endif
             // Run TC
             float timing_TC = runTrackCandidate(event);
@@ -379,7 +381,8 @@ void run_sdl()
                     timing_T3,
                     timing_TC,
                     timing_T5,
-                    timing_pT3});
+                    timing_pT3,
+                    timing_pT5});
 
             if (ana.verbose == 4)
             {
