@@ -1548,7 +1548,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             unsigned int innerTripletInnerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTripletInnerSegmentOuterMiniDoubletIndex + 1];
 
             unsigned int innerTripletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTripletOuterSegmentOuterMiniDoubletIndex];
-            unsigned int innerTripletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTripletInnerSegmentOuterMiniDoubletIndex + 1];
+            unsigned int innerTripletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTripletOuterSegmentOuterMiniDoubletIndex + 1];
 
             unsigned int outerTripletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTripletInnerSegmentOuterMiniDoubletIndex];
             unsigned int outerTripletInnerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTripletInnerSegmentOuterMiniDoubletIndex + 1];
