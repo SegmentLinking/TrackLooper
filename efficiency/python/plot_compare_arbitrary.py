@@ -39,7 +39,7 @@ def parse_plot_name(output_name):
         rtnstr.append("Quadruplet w/ gap")
     elif "pT3_" in output_name:
         rtnstr.append("Pixel Triplet")
-    elif "pT3_" in output_name:
+    elif "pT5_" in output_name:
         rtnstr.append("Pixel Quintuplet")
     elif "T3_" in output_name:
         rtnstr.append("Triplet")
