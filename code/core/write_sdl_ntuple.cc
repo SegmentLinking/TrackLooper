@@ -186,6 +186,8 @@ void createPixelQuintupletCutValueBranches()
     ana.tx->createBranch<vector<int>>("pT5_layer_binary");
     ana.tx->createBranch<vector<float>>("pT5_matched_pt");
     ana.tx->createBranch<vector<float>>("pT5_rzChiSquared");
+    ana.tx->createBranch<vector<float>>("pT5_rPhiChiSquared");
+    ana.tx->createBranch<vector<float>>("pT5_rPhiChiSquaredInwards");
 }
 #endif
 void createPixelTripletCutValueBranches()
@@ -1942,6 +1944,8 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
 #ifdef CUT_VALUE_DEBUG
     std::vector<int> pT5_layer_binary;
     std::vector<float> pT5_rzChiSquared;
+    std::vector<float> pT5_rPhiChiSquared;
+    std::vector<float> pT5_rPhiChiSquaredInwards;
     std::vector<float> pT5_simpt;
 #endif
     const unsigned int N_MAX_PIXEL_QUINTUPLETS = 1000000;
@@ -2078,7 +2082,10 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
 #ifdef CUT_VALUE_DEBUG
         pT5_layer_binary.push_back(layer_binary);
         pT5_rzChiSquared.push_back(pixelQuintupletsInGPU.rzChiSquared[jdx]);
+        pT5_rPhiChiSquared.push_back(pixelQuintupletsInGPU.rPhiChiSquared[jdx]);
+        pT5_rPhiChiSquaredInwards.push_back(pixelQuintupletsInGPU.rPhiChiSquaredInwards[jdx]);
         std::vector<float> sim_pt_per_pT5;
+
         if(matched_sim_trk_idxs.size() == 0)
         {
             sim_pt_per_pT5.push_back(-999);
@@ -2138,6 +2145,8 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
 #ifdef CUT_VALUE_DEBUG
     ana.tx->setBranch<vector<int>>("pT5_layer_binary", pT5_layer_binary);
     ana.tx->setBranch<vector<float>>("pT5_rzChiSquared", pT5_rzChiSquared);
+    ana.tx->setBranch<vector<float>>("pT5_rPhiChiSquared", pT5_rPhiChiSquared);
+    ana.tx->setBranch<vector<float>>("pT5_rPhiChiSquaredInwards", pT5_rPhiChiSquaredInwards);
     ana.tx->setBranch<vector<float>>("pT5_matched_pt", pT5_simpt);
 #endif
 }

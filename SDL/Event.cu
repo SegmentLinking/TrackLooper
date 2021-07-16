@@ -4163,9 +4163,9 @@ __global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modul
 
     unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[firstLowerModuleArrayIndex] + outerQuintupletArrayIndex;
 
-    float rzChiSquared;
+    float rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards;
 
-    bool success = runPixelQuintupletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelTripletsInGPU, pixelTripletIndex, quintupletIndex, rzChiSquared);
+    bool success = runPixelQuintupletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelTripletsInGPU, pixelTripletIndex, quintupletIndex, rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
 
     if(success)
     {
@@ -4182,7 +4182,7 @@ __global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modul
        else
        {
 #ifdef CUT_VALUE_DEBUG
-           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelTripletIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared);
+           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelTripletIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
 
 #else
            addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelTripletIndex, quintupletIndex, pixelQuintupletIndex);
