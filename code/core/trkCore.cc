@@ -1579,9 +1579,9 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             trkX.push_back(r3PCA.X());
             trkY.push_back(r3PCA.Y());
             trkZ.push_back(r3PCA.Z());
-            trkX.push_back(r3PCA.X());
-            trkY.push_back(r3PCA.Y());
-            trkZ.push_back(r3PCA.Z());
+            trkX.push_back(p3PCA.X());
+            trkY.push_back(p3PCA.Y());
+            trkZ.push_back(p3PCA.Z());
             trkX.push_back(r3LH.X());
             trkY.push_back(r3LH.Y());
             trkZ.push_back(r3LH.Z());
@@ -1591,8 +1591,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             if(trk.see_hitIdx()[iSeed].size() > 3)
             {
                 trkX.push_back(r3LH.X());
-                trkY.push_back(r3LH.Y());
-                trkZ.push_back(r3LH.Z());
+                trkY.push_back(trk.see_dxy()[iSeed]);
+                trkZ.push_back(trk.see_dz()[iSeed]);
                 hitId.push_back(1);
             }
             px_vec.push_back(px);
