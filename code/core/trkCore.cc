@@ -1579,9 +1579,9 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             trkX.push_back(r3PCA.X());
             trkY.push_back(r3PCA.Y());
             trkZ.push_back(r3PCA.Z());
-            trkX.push_back(p3PCA.X());
-            trkY.push_back(p3PCA.Y());
-            trkZ.push_back(p3PCA.Z());
+            trkX.push_back(p3PCA.Pt());
+            trkY.push_back(p3PCA.Eta());
+            trkZ.push_back(p3PCA.Phi());
             trkX.push_back(r3LH.X());
             trkY.push_back(r3LH.Y());
             trkZ.push_back(r3LH.Z());
