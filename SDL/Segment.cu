@@ -296,8 +296,8 @@ __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, str
     /*
        The two anchor hits are r3PCA and r3LH. p3PCA pt, eta, phi is hitIndex1
     */
-    float circleRadius = hitsInGPU.xs[mdsInGPU.hitIndices[2 * innerMDIndex]] / (2 * k2Rinv1GeVf);
-    float circlePhi = hitsInGPU.zs[mdsInGPU.hitIndices[2 * innerMDIndex]];
+    float circleRadius = hitsInGPU.xs[mdsInGPU.hitIndices[2 * innerMDIndex + 1]] / (2 * k2Rinv1GeVf);
+    float circlePhi = hitsInGPU.zs[mdsInGPU.hitIndices[2 * innerMDIndex + 1]];
 
     float candidateCenterXs[] = {hitsInGPU.xs[innerAnchorHitIndex] + circleRadius * sinf(circlePhi), hitsInGPU.xs[innerAnchorHitIndex] - circleRadius * sinf(circlePhi)};
     float candidateCenterYs[] = {hitsInGPU.ys[innerAnchorHitIndex] - circleRadius * cosf(circlePhi), hitsInGPU.ys[innerAnchorHitIndex] + circleRadius * cosf(circlePhi)};
@@ -308,19 +308,16 @@ __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, str
     size_t bestIndex;
     for(size_t i = 0; i < 2; i++)
     {
-        chiSquared = (hitsInGPU.xs[outerAnchorHitIndex] - candidateCenterXs[i]) * (hitsInGPU.xs[outerAnchorHitIndex] - candidateCenterXs[i]) + (hitsInGPU.ys[outerAnchorHitIndex] - candidateCenterYs[i]) * (hitsInGPU.ys[outerAnchorHitIndex] - candidateCenterYs[i]) - (circleRadius * circleRadius);
-        chiSquared = chiSquared * chiSquared;
+        chiSquared = fabsf(sqrtf((hitsInGPU.xs[outerAnchorHitIndex] - candidateCenterXs[i]) * (hitsInGPU.xs[outerAnchorHitIndex] - candidateCenterXs[i]) + (hitsInGPU.ys[outerAnchorHitIndex] - candidateCenterYs[i]) * (hitsInGPU.ys[outerAnchorHitIndex] - candidateCenterYs[i])) - circleRadius);
         if(chiSquared < bestChiSquared)
         {
             bestChiSquared = chiSquared;
-             bestIndex = i;
+            bestIndex = i;
         }
     }
-    printf("best chi squared = %f", bestChiSquared);
     segmentsInGPU.circleCenterX[pixelSegmentArrayIndex] = candidateCenterXs[bestIndex];
     segmentsInGPU.circleCenterY[pixelSegmentArrayIndex] = candidateCenterYs[bestIndex];
     segmentsInGPU.circleRadius[pixelSegmentArrayIndex] = circleRadius;
-
 }
 
 __device__ void SDL::dAlphaThreshold(float* dAlphaThresholdValues, struct hits& hitsInGPU, struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, unsigned int& innerMiniDoubletAnchorHitIndex, unsigned int& outerMiniDoubletAnchorHitIndex, unsigned int& innerLowerModuleIndex, unsigned int& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex)

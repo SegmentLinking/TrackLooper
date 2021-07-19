@@ -115,8 +115,9 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     float y1 = hitsInGPU.ys[innerMDAnchorHitIndex];
     float y2 = hitsInGPU.ys[middleMDAnchorHitIndex];
     float y3 = hitsInGPU.ys[outerMDAnchorHitIndex];
+    float g,f;
     
-    tripletRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3);
+    tripletRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3,g,f);
     
     pass = pass & passRadiusCriterion(modulesInGPU, pixelRadius, pixelRadiusError, tripletRadius, lowerModuleIndex, middleModuleIndex, upperModuleIndex);
     return pass;
