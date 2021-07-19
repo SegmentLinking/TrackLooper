@@ -184,6 +184,7 @@ void createQuintupletCutValueBranches()
 void createPixelQuintupletCutValueBranches()
 {
     ana.tx->createBranch<vector<int>>("pT5_layer_binary");
+    ana.tx->createBranch<vector<int>>("pT5_moduleType_binary");
     ana.tx->createBranch<vector<float>>("pT5_matched_pt");
     ana.tx->createBranch<vector<float>>("pT5_rzChiSquared");
     ana.tx->createBranch<vector<float>>("pT5_rPhiChiSquared");
@@ -1943,6 +1944,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
 
 #ifdef CUT_VALUE_DEBUG
     std::vector<int> pT5_layer_binary;
+    std::vector<int> pT5_moduleType_binary;
     std::vector<float> pT5_rzChiSquared;
     std::vector<float> pT5_rPhiChiSquared;
     std::vector<float> pT5_rPhiChiSquaredInwards;
@@ -2056,6 +2058,15 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
         int subdet10 = modulesInGPU.subdets[module_idxs[10]];
         int subdet12 = modulesInGPU.subdets[module_idxs[12]];
 
+        int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
+        int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
+        int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
+        int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
+        int moduleType8 = modulesInGPU.moduleType[module_idxs[8]];
+        int moduleType10 = modulesInGPU.moduleType[module_idxs[10]];
+        int moduleType12 = modulesInGPU.moduleType[module_idxs[12]];
+
+
         int logicallayer0 = 0;
         int logicallayer2 = 0;
         int logicallayer4 = layer4 + 6 * (subdet4 == 4);
@@ -2073,6 +2084,15 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
         layer_binary |= (1 << logicallayer10);
         layer_binary |= (1 << logicallayer12);
 
+        int moduleType_binary = 0;
+        moduleType_binary |= (moduleType4 << 0);
+        moduleType_binary |= (moduleType6 << 2);
+        moduleType_binary |= (moduleType8 << 4);
+        moduleType_binary |= (moduleType10 << 6);
+        moduleType_binary |= (moduleType12 << 8);
+       
+ 
+
         std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
         for (auto &isimtrk : matched_sim_trk_idxs)
         {
@@ -2081,6 +2101,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
 
 #ifdef CUT_VALUE_DEBUG
         pT5_layer_binary.push_back(layer_binary);
+        pT5_moduleType_binary.push_back(moduleType_binary);
         pT5_rzChiSquared.push_back(pixelQuintupletsInGPU.rzChiSquared[jdx]);
         pT5_rPhiChiSquared.push_back(pixelQuintupletsInGPU.rPhiChiSquared[jdx]);
         pT5_rPhiChiSquaredInwards.push_back(pixelQuintupletsInGPU.rPhiChiSquaredInwards[jdx]);
@@ -2144,6 +2165,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
 
 #ifdef CUT_VALUE_DEBUG
     ana.tx->setBranch<vector<int>>("pT5_layer_binary", pT5_layer_binary);
+    ana.tx->setBranch<vector<int>>("pT5_moduleType_binary", pT5_moduleType_binary);
     ana.tx->setBranch<vector<float>>("pT5_rzChiSquared", pT5_rzChiSquared);
     ana.tx->setBranch<vector<float>>("pT5_rPhiChiSquared", pT5_rPhiChiSquared);
     ana.tx->setBranch<vector<float>>("pT5_rPhiChiSquaredInwards", pT5_rPhiChiSquaredInwards);

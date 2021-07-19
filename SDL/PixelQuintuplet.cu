@@ -155,7 +155,7 @@ __device__ float SDL::computePT5RPhiChiSquaredInwards(struct modules& modulesInG
     {
         x = hitsInGPU.xs[pixelHits[i]];
         y = hitsInGPU.ys[pixelHits[i]];
-        float residual = sqrtf((x - g) * (x -g) + (y - f) * (y - f)) - r;
+        float residual = (x - g) * (x -g) + (y - f) * (y - f) - r * r;
         chiSquared += residual * residual;
     }
     chiSquared /= 2;
