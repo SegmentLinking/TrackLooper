@@ -55,6 +55,8 @@ __device__ void SDL::addPixelQuintupletToMemory(struct pixelQuintuplets& pixelQu
     pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex] = T5Index;
 #ifdef CUT_VALUE_DEBUG
     pixelQuintupletsInGPU.rzChiSquared[pixelQuintupletIndex] = rzChiSquared;
+    pixelQuintupletsInGPU.rPhiChiSquared[pixelQuintupletIndex] = rPhiChiSquared;
+    pixelQuintupletsInGPU.rPhiChiSquaredInwards[pixelQuintupletIndex] = rPhiChiSquaredInwards;
 #endif
 }
 
@@ -64,6 +66,9 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
     
     unsigned int pT3OuterT3Index = pixelTripletsInGPU.tripletIndices[pixelTripletIndex];
     unsigned int pT3InnerSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[pixelTripletIndex];
+    unsigned int pixelModuleIndex = segmentsInGPU.innerLowerModuleIndices[pT3InnerSegmentIndex];
+
+    unsigned int pT3InnerSegmentArrayIndex = pT3InnerSegmentIndex - (600 * pixelModuleIndex);
 
     unsigned int T5InnerT3Index = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
     unsigned int T5OuterT3Index = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
@@ -96,14 +101,14 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
 
     unsigned int lowerModuleIndices[] = {lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5};
     unsigned int anchorHits[] = {anchorHitIndex1, anchorHitIndex2, anchorHitIndex3, anchorHitIndex4, anchorHitIndex5};
-    unsigned int pixelHits[] = {pixelAnchorHitIndex1, pixelNonAnchorHitIndex1, pixelAnchorHitIndex2, pixelNonAnchorHitIndex2};
+    unsigned int pixelHits[] = {pixelAnchorHitIndex1, pixelAnchorHitIndex2};
 
     //cut 1 -> common T3
     pass = pass & (pT3OuterT3Index == T5InnerT3Index);
 
     rzChiSquared = computePT5RZChiSquared(modulesInGPU, hitsInGPU, pixelAnchorHitIndex1, pixelAnchorHitIndex2, anchorHits, lowerModuleIndices);
 
-    rPhiChiSquared = computePT5RPhiChiSquared(modulesInGPU, hitsInGPU, pixelHits, anchorHits, lowerModuleIndices);
+    rPhiChiSquared = computePT5RPhiChiSquared(modulesInGPU, hitsInGPU, segmentsInGPU, pT3InnerSegmentArrayIndex, anchorHits, lowerModuleIndices);
 
     rPhiChiSquaredInwards = computePT5RPhiChiSquaredInwards(modulesInGPU, hitsInGPU, quintupletsInGPU, quintupletIndex, pixelHits);
 
@@ -112,18 +117,15 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
 }
 
 
-__device__ float SDL::computePT5RPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int* pixelHits, unsigned int* anchorHits, unsigned int* lowerModuleIndices)
+__device__ float SDL::computePT5RPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, struct segments& segmentsInGPU, unsigned int pixelSegmentArrayIndex, unsigned int* anchorHits, unsigned int* lowerModuleIndices)
 {
     /*
        Compute circle parameters from 3 pixel hits, and then use them to compute the chi squared for the outer hits
     */
-    float g, f;
-    unsigned int pixelAnchorHitIndex1 = pixelHits[0];
-    unsigned int pixelNonAnchorHitIndex1 = pixelHits[1];
-    unsigned int pixelAnchorHitIndex2 = pixelHits[2];
 
-    float radius = computeRadiusFromThreeAnchorHits(hitsInGPU.xs[pixelAnchorHitIndex1], hitsInGPU.ys[pixelAnchorHitIndex1], hitsInGPU.xs[pixelNonAnchorHitIndex1], hitsInGPU.ys[pixelNonAnchorHitIndex1], hitsInGPU.xs[pixelAnchorHitIndex2], hitsInGPU.ys[pixelAnchorHitIndex2], g, f);
-
+    float g = segmentsInGPU.circleCenterX[pixelSegmentArrayIndex];
+    float f = segmentsInGPU.circleCenterY[pixelSegmentArrayIndex];
+    float radius = segmentsInGPU.circleRadius[pixelSegmentArrayIndex];
     float delta1[5], delta2[5], slopes[5];
     bool isFlat[5];
     float xs[5];
@@ -149,15 +151,14 @@ __device__ float SDL::computePT5RPhiChiSquaredInwards(struct modules& modulesInG
     float r = quintupletsInGPU.regressionRadius[quintupletIndex];
     float x, y;
     float chiSquared = 0;   
-    int nPoints = (pixelHits[3] == pixelHits[2]) ? 3 : 4;
-    for(size_t i = 0; i < nPoints; i++)
+    for(size_t i = 0; i < 2; i++)
     {
         x = hitsInGPU.xs[pixelHits[i]];
         y = hitsInGPU.ys[pixelHits[i]];
-        float residual = (x - g) * (x -g) + (y - f) * (y - f) - r * r;
+        float residual = sqrtf((x - g) * (x -g) + (y - f) * (y - f)) - r;
         chiSquared += residual * residual;
     }
-    chiSquared /= nPoints;
+    chiSquared /= 2;
     return chiSquared;
 }
 
