@@ -112,10 +112,258 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
 
     rPhiChiSquaredInwards = computePT5RPhiChiSquaredInwards(modulesInGPU, hitsInGPU, quintupletsInGPU, quintupletIndex, pixelHits);
 
+    pass = pass & passPT5RZChiSquaredCuts(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared);
+
+    pass = pass & passPT5RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rPhiChiSquared);
+
+    //pass = pass & passPT5RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rPhiChiSquaredInwards);
+
     //other cuts will be filled here!
     return pass;
 }
 
+
+__device__ bool SDL::passPT5RPhiChiSquaredCuts(struct modules& modulesInGPU, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5, float rPhiChiSquared)
+{
+    const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
+    const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
+    const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
+    const int layer4 = modulesInGPU.layers[lowerModuleIndex4] + 6 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex4] == SDL::TwoS);
+    const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
+
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3)
+    {
+        if(layer4 == 12 and layer5 == 13)
+        {
+            return rPhiChiSquared < 48.921;
+        }
+        else if(layer4 == 4 and layer5 == 12)
+        {
+            return rPhiChiSquared < 97.948;
+        }
+        else if(layer4 == 4 and layer5 == 5)
+        {
+            return rPhiChiSquared < 129.3;
+        }
+        else if(layer4 == 7 and layer5 == 13)
+        {
+            return rPhiChiSquared < 56.21;
+        }
+        else if(layer4 == 7 and layer5 == 8)
+        {
+            return rPhiChiSquared < 74.198;
+        }
+    }
+    else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
+    {
+        if(layer4 == 13 and layer5 == 14)
+        {
+            return rPhiChiSquared < 21.265;
+        }
+        else if(layer4 == 8 and layer5 == 14)
+        {
+            return rPhiChiSquared < 37.058;
+        }
+        else if(layer4 == 8 and layer5 == 9)
+        {
+            return rPhiChiSquared < 42.578;
+        }
+    }
+    else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
+    {
+        if(layer4 == 9 and layer5 == 10)
+        {
+            return rPhiChiSquared < 32.253;
+        }
+        else if(layer4 == 9 and layer5 == 15)
+        {
+            return rPhiChiSquared < 37.058;
+        }
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
+    {
+        if(layer4 == 12 and layer5 == 13)
+        {
+            return rPhiChiSquared < 97.947;
+        }
+        else if(layer4 == 5 and layer5 == 12)
+        {
+            return rPhiChiSquared < 129.3;
+        }
+        else if(layer4 == 5 and layer5 == 6)
+        {
+            return rPhiChiSquared < 170.68;
+        }
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
+    {
+        if(layer4 == 13 and layer5 == 14)
+        {   
+            return rPhiChiSquared < 48.92;
+        }
+        else if(layer4 == 8 and layer5 == 14)
+        {
+            return rPhiChiSquared < 74.2;
+        }
+    }
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
+    {
+        if(layer4 == 14 and layer5 == 15)
+        {
+            return rPhiChiSquared < 42.58;
+        }
+        else if(layer4 == 9 and layer5 == 10)
+        {
+            return rPhiChiSquared < 37.06;
+        }
+        else if(layer4 == 9 and layer5 == 15)
+        {
+            return rPhiChiSquared < 48.92;
+        }
+    }
+    else if(layer1 == 3 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
+    {
+        return rPhiChiSquared < 85.25;
+    }
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
+    {
+        if(layer4 == 10 and layer5 == 11)
+        {
+            return rPhiChiSquared < 42.58;
+        }
+        else if(layer4 == 10 and layer5 == 16)
+        {
+            return rPhiChiSquared < 37.06;
+        }
+        else if(layer4 == 15 and layer5 == 16)
+        {
+            return rPhiChiSquared < 37.06;
+        }
+    }
+    return true;
+}
+
+
+
+__device__ bool SDL::passPT5RPhiChiSquaredInwardsCuts(struct modules& modulesInGPU, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5, float rPhiChiSquared)
+{
+    const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
+    const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
+    const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
+    const int layer4 = modulesInGPU.layers[lowerModuleIndex4] + 6 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex4] == SDL::TwoS);
+    const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
+
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3)
+    {
+        if(layer4 == 12 and layer5 == 13)
+        {
+            return rPhiChiSquared < 451.141;
+        }
+        else if(layer4 == 4 and layer5 == 12)
+        {
+            return rPhiChiSquared < 786.173;
+        }
+        else if(layer4 == 4 and layer5 == 5)
+        {
+            return rPhiChiSquared < 595.545;
+        }
+        else if(layer4 == 7 and lyaer5 == 13)
+        {
+            return rPhiChiSquared < 581.339;
+        }
+        else if(layer4 == 7 and layer5 == 8)
+        {
+            return rPhiChiSquared < 112.537;
+        }
+    }
+    else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
+    {
+        if(layer4 == 13 and layer5 == 14)
+        {
+            return rPhiChiSquared < 225.322;
+        }
+        else if(layer4 == 8 and layer5 == 14)
+        {
+            return rPhiChiSquared < 1192.402;
+        }
+        else if(layer4 == 8 and layer5 == 9)
+        {
+            return rPhiChiSquared < 786.173;
+        }
+    }
+    else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
+    {
+        if(layer4 == 9 and layer5 == 10)
+        {
+            return rPhiChiSquared < 1037.817;
+        }
+        else if(layer4 == 9 and layer5 == 15)
+        {
+            return rPhiChiSquared < 1808.536;
+        }
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
+    {
+        if(layer4 == 12 and layer5 == 13)
+        {
+            return rPhiChiSquared < 684.253;
+        }
+        else if(layer4 == 5 and layer5 == 12)
+        {
+            return rPhiChiSquared < 684.253;
+        }
+        else if(layer4 == 5 and layer5 == 6)
+        {
+            return rPhiChiSquared < 684.253;
+        }
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
+    {
+        if(layer4 == 13 and layer5 == 14)
+        {   
+            return rPhiChiSquared < 451.141;
+        }
+        else if(layer4 == 8 and layer5 == 14)
+        {
+            return rPhiChiSquared < 518.34;
+        }
+    }
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
+    {
+        if(layer4 == 14 and layer5 == 15)
+        {
+            return rPhiChiSquared < 2077.92;
+        }
+        else if(layer4 == 9 and layer5 == 10)
+        {
+            return rPhiChiSquared < 74.20;
+        }
+        else if(layer4 == 9 and layer5 == 15)
+        {
+            return rPhiChiSquared < 1808.536;
+        }
+    }
+    else if(layer1 == 3 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
+    {
+        return rPhiChiSquared < 786.173;
+    }
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
+    {
+        if(layer4 == 10 and layer5 == 11)
+        {
+            return rPhiChiSquared < 1574.076;
+        }
+        else if(layer4 == 10 and layer5 == 16)
+        {
+            return rPhiChiSquared < 5492.11;
+        }
+        else if(layer4 == 15 and layer5 == 16)
+        {
+            return rPhiChiSquared < 2743.037;
+        }
+    }
+    return true;
+}
 
 __device__ float SDL::computePT5RPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, struct segments& segmentsInGPU, unsigned int pixelSegmentArrayIndex, unsigned int* anchorHits, unsigned int* lowerModuleIndices)
 {
@@ -141,6 +389,127 @@ __device__ float SDL::computePT5RPhiChiSquared(struct modules& modulesInGPU, str
     chiSquared = computeChiSquared(5, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius);
 
     return chiSquared;
+}
+
+__device__ bool SDL::passPT5RZChiSquaredCuts(struct modules& modulesInGPU, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5, float& rzChiSquared)
+{
+    const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
+    const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
+    const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
+    const int layer4 = modulesInGPU.layers[lowerModuleIndex4] + 6 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex4] == SDL::TwoS);
+    const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
+
+    
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3)
+    {
+        if(layer4 == 12 and layer5 == 13)
+        {
+            return rzChiSquared < 451.141;
+        }
+        else if(layer4 == 4 and layer5 == 12)
+        {
+            return rzChiSquared < 392.654;
+        }
+        else if(layer4 == 4 and layer5 == 5)
+        {
+            return rzChiSquared < 225.322;
+        }
+        else if(layer4 == 7 and layer5 == 13)
+        {
+            return rzChiSquared < 595.546;
+        }
+        else if(layer4 == 7 and layer5 == 8)
+        {
+            return rzChiSquared < 196.111;
+        }
+    }
+    else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
+    {
+        if(layer4 == 13 and layer5 == 14)
+        {
+            return rzChiSquared < 297.446;
+        }
+        else if(layer4 == 8 and layer5 == 14)
+        {   
+            return rzChiSquared < 451.141;
+        }
+        else if(layer4 == 8 and layer5 == 9)
+        {
+            return rzChiSquared < 518.339;
+        }
+    }
+    else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
+    {
+        if(layer4 == 9 and layer5 == 10)
+        {
+            return rzChiSquared < 341.75;
+        }
+        else if(layer4 == 9 and layer5 == 15)
+        {
+            return rzChiSquared < 341.75;
+        }
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
+    {
+        if(layer4 == 12 and layer5 == 13)
+        {
+            return rzChiSquared < 392.655;
+        }
+        else if(layer4 == 5 and layer5 == 12)
+        {
+            return rzChiSquared < 341.75;
+        }
+        else if(layer4 == 5 and layer5 == 6)
+        {
+            return rzChiSquared < 112.537;
+        }
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer4 == 7)
+    {
+        if(layer4 == 13 and layer5 == 14)
+        {
+            return rzChiSquared < 595.545;
+        }
+        else if(layer4 == 8 and layer5 == 14)
+        {
+            return rzChiSquared < 74.198;
+        }
+    }
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
+    {
+        if(layer4 == 14 and layer5 == 15)
+        {
+            return rzChiSquared < 518.339;
+        }
+        else if(layer4 == 9 and layer5 == 10)
+        {
+            return rzChiSquared < 8.046;
+        }
+        else if(layer4 == 9 and layer5 == 15)
+        {
+            return rzChiSquared < 451.141;
+        }
+    }
+    else if(layer1 == 3 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
+    {
+        return rzChiSquared < 56.207;
+    }
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
+    {
+        if(layer4 == 10 and layer5 == 11)
+        {
+            return rzChiSquared < 64.578;
+        }
+        else if(layer4 == 10 and layer5 == 16)
+        {
+            return rzChiSquared < 85.250;
+        }
+        else if(layer4 == 15 and layer5 == 16)
+        {
+            return rzChiSquared < 85.250;
+        }
+    }
+    return true;
 }
 
 __device__ float SDL::computePT5RPhiChiSquaredInwards(struct modules& modulesInGPU, struct hits& hitsInGPU, struct quintuplets& quintupletsInGPU, unsigned int quintupletIndex, unsigned int* pixelHits)
