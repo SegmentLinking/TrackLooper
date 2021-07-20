@@ -267,7 +267,7 @@ __device__ bool SDL::passPT5RPhiChiSquaredInwardsCuts(struct modules& modulesInG
         {
             return rPhiChiSquared < 595.545;
         }
-        else if(layer4 == 7 and lyaer5 == 13)
+        else if(layer4 == 7 and layer5 == 13)
         {
             return rPhiChiSquared < 581.339;
         }
