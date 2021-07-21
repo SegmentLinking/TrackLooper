@@ -197,6 +197,7 @@ void createPixelTripletCutValueBranches()
     ana.tx->createBranch<vector<float>>("pT3_pixelRadiusError");
     ana.tx->createBranch<vector<vector<float>>>("pT3_matched_pt");
     ana.tx->createBranch<vector<float>>("pT3_tripletRadius");
+    ana.tx->createBranch<vector<float>>("pT3_rPhiChiSquared");
     ana.tx->createBranch<vector<int>>("pT3_layer_binary");
     ana.tx->createBranch<vector<int>>("pT3_pix_idx1");
     ana.tx->createBranch<vector<int>>("pT3_pix_idx2");
@@ -1746,6 +1747,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     std::vector<int> pT3_layer_binary;
     std::vector<float> pT3_pixelRadiusError;
     std::vector<std::vector<float>> pT3_simpt;
+    std::vector<float> rPhiChiSquared;
 #endif
 
     const unsigned int N_MAX_PIXEL_TRIPLETS = 250000;
@@ -1888,6 +1890,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         pT3_pixelRadius.push_back(pixelRadius);
         pT3_pixelRadiusError.push_back(pixelRadiusError);
         pT3_tripletRadius.push_back(tripletRadius);
+        rPhiChiSquared.push_back(pixelTripletsInGPU.rPhiChiSquared[jdx]);
 #endif
     }
 
@@ -1919,6 +1922,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("pT3_pixelRadiusError", pT3_pixelRadiusError);
     ana.tx->setBranch<vector<float>>("pT3_tripletRadius", pT3_tripletRadius);
     ana.tx->setBranch<vector<int>>("pT3_layer_binary", pT3_layer_binary);
+    ana.tx->setBranch<vector<float>>("pT3_rPhiChiSquared", pT3_rPhiChiSquared);
 #endif
 
 }
