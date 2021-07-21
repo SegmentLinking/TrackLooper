@@ -199,7 +199,7 @@ __device__ bool SDL::passPT3RPhiChiSquaredCuts(struct modules& modulesInGPU, uns
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
-        return rPhiChiSQuared < 16.109;
+        return rPhiChiSquared < 16.109;
     }
     else if(layer1 == 3 and layer2 == 7 and layer3 == 13)
     {   
