@@ -116,7 +116,7 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
 
     pass = pass & passPT5RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rPhiChiSquared);
 
-    //pass = pass & passPT5RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rPhiChiSquaredInwards);
+    pass = pass & passPT5RPhiChiSquaredInwardsCuts(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rPhiChiSquaredInwards);
 
     //other cuts will be filled here!
     return pass;
@@ -267,7 +267,7 @@ __device__ bool SDL::passPT5RPhiChiSquaredInwardsCuts(struct modules& modulesInG
         {
             return rPhiChiSquared < 595.545;
         }
-        else if(layer4 == 7 and lyaer5 == 13)
+        else if(layer4 == 7 and layer5 == 13)
         {
             return rPhiChiSquared < 581.339;
         }
