@@ -127,7 +127,9 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     unsigned int anchorHits[] = {innerMDAnchorHitIndex, middleMDAnchorHitIndex, outerMDAnchorHitIndex};
     unsigned int lowerModuleIndices[] = {lowerModuleIndex, middleModuleIndex, upperModuleIndex};
 
-    rPhiChiSquared = computePT3RPhiChiSquared(modulesInGPU, hitsInGPU, segmentsInGPU, pixelSegmentArrayIndex, anchorHits, lowerModuleIndices); 
+    rPhiChiSquared = computePT3RPhiChiSquared(modulesInGPU, hitsInGPU, segmentsInGPU, pixelSegmentArrayIndex, anchorHits, lowerModuleIndices);
+
+    pass = pass & passPT3RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquared);
 
     return pass;
 
@@ -153,7 +155,7 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, str
 
     computeSigmasForRegression(modulesInGPU, lowerModuleIndices, delta1, delta2, slopes, isFlat, 3);
     chiSquared = computeChiSquared(3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius);
-
+    
     return chiSquared;
 }
 
@@ -164,6 +166,70 @@ __device__ bool SDL::passPT3RPhiChiSquaredCuts(struct modules& modulesInGPU, uns
     const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
     const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
 
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3)
+    {
+        return rPhiChiSquared < 21.266;
+    }
+    else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
+    {
+        return rPhiChiSquared < 12.203;
+    }
+    else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
+    {
+        return rPhiChiSquared < 8.045;
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 12)
+    {
+        return rPhiChiSquared < 7.002;
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
+    {
+        return rPhiChiSquared < 37.058;
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
+    {
+        return rPhiChiSquared < 18.509;
+    }
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 13)
+    {
+        return rPhiChiSquared < 5.305;
+    }
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
+    {
+        return rPhiChiSQuared < 16.109;
+    }
+    else if(layer1 == 3 and layer2 == 7 and layer3 == 13)
+    {   
+        return rPhiChiSquared < 5.305;
+    }
+    else if(layer1 == 3 and layer2 == 7 and layer3 == 8)
+    {
+        return rPhiChiSquared < 37.058;
+    }
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 14)
+    {
+        return rPhiChiSquared < 7.003;
+    }
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
+    {
+        return rPhiChiSquared < 12.203;
+    }
+    else if(layer1 == 8 and layer2 == 9 and layer3 == 10)
+    {
+        return rPhiChiSquared < 14.021;
+    }
+    else if(layer1 == 8 and layer2 == 9 and layer3 == 15)
+    {
+        return rPhiChiSquared < 4.018;
+    }
+    else if(layer1 == 9 and layer2 == 10 and layer3 == 11)
+    {
+        return rPhiChiSquared < 24.433;
+    }
+    else if(layer1 == 9 and layer2 == 10 and layer3 == 16)
+    {
+        return rPhiChiSquared < 4.617;
+    }
     return true;
 }
 
