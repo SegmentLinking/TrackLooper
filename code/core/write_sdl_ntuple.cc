@@ -199,6 +199,7 @@ void createPixelTripletCutValueBranches()
     ana.tx->createBranch<vector<float>>("pT3_tripletRadius");
     ana.tx->createBranch<vector<float>>("pT3_rPhiChiSquared");
     ana.tx->createBranch<vector<int>>("pT3_layer_binary");
+    ana.tx->createBranch<vector<int>>("pT3_moduleType_binary");
     ana.tx->createBranch<vector<int>>("pT3_pix_idx1");
     ana.tx->createBranch<vector<int>>("pT3_pix_idx2");
     ana.tx->createBranch<vector<int>>("pT3_pix_idx3");
