@@ -489,7 +489,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     float nonAnchorxs[] = {x1NonAnchor, x2NonAnchor, x3NonAnchor, x4NonAnchor, x5NonAnchor};
     float nonAnchorys[] = {y1NonAnchor, y2NonAnchor, y3NonAnchor, y4NonAnchor, y5NonAnchor};
 
-    computeSigmasForRegression(modulesInGPU, lowerModuleIndices, nonAnchorDelta1, nonAnchorDelta2, nonAnchorSlopes, isFlat, false);
+    computeSigmasForRegression(modulesInGPU, lowerModuleIndices, nonAnchorDelta1, nonAnchorDelta2, nonAnchorSlopes, isFlat, 5, false);
     nonAnchorChiSquared = computeChiSquared(5, nonAnchorxs, nonAnchorys, nonAnchorDelta1, nonAnchorDelta2, nonAnchorSlopes, isFlat, regressionG, regressionF, regressionRadius);
     return pass;
 }
@@ -1083,7 +1083,7 @@ __device__ bool SDL::T5HasCommonMiniDoublet(struct SDL::triplets& tripletsInGPU,
     return (innerOuterOuterMiniDoubletIndex == outerInnerInnerMiniDoubletIndex);
 }
 
-__device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, const unsigned int* lowerModuleIndices, float* delta1, float* delta2, float* slopes, bool* isFlat, bool anchorHits) 
+__device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, const unsigned int* lowerModuleIndices, float* delta1, float* delta2, float* slopes, bool* isFlat, int nPoints, bool anchorHits) 
 {
    /*bool anchorHits required to deal with a weird edge case wherein 
      the hits ultimately used in the regression are anchor hits, but the

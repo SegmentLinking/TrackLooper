@@ -151,7 +151,7 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, str
         ys[i] = hitsInGPU.ys[anchorHits[i]];
     }
 
-    computeSigmasForRegression(modulesInGPU, lowerModuleIndices, delta1, delta2, slopes, isFlat);
+    computeSigmasForRegression(modulesInGPU, lowerModuleIndices, delta1, delta2, slopes, isFlat, 3);
     chiSquared = computeChiSquared(3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius);
 
     return chiSquared;
