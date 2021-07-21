@@ -1745,9 +1745,10 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     std::vector<float> pT3_pixelRadius;
     std::vector<float> pT3_tripletRadius;
     std::vector<int> pT3_layer_binary;
+    std::vector<int> pT3_moduleType_binary;
     std::vector<float> pT3_pixelRadiusError;
     std::vector<std::vector<float>> pT3_simpt;
-    std::vector<float> rPhiChiSquared;
+    std::vector<float> pT3_rPhiChiSquared;
 #endif
 
     const unsigned int N_MAX_PIXEL_TRIPLETS = 250000;
@@ -1827,6 +1828,12 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         int subdet6 = modulesInGPU.subdets[module_idxs[6]];
         int subdet8 = modulesInGPU.subdets[module_idxs[8]];
 
+        int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
+        int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
+        int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
+        int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
+        int moduleType8 = modulesInGPU.moduleType[module_idxs[8]];
+
         int logicallayer0 = 0;
         int logicallayer2 = 0;
         int logicallayer4 = layer4 + 6 * (subdet4 == 4);
@@ -1839,10 +1846,12 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         layer_binary |= (1 << logicallayer4);
         layer_binary |= (1 << logicallayer6);
         layer_binary |= (1 << logicallayer8);
-          
-        // std::cout << " " << hit_idxs[0] << " " << hit_idxs[1] << " " << hit_idxs[2] << " " << hit_idxs[3] << " " << hit_idxs[4] << " " << hit_idxs[5] << " " << hit_idxs[6] << " " << hit_idxs[7] << " " << hit_idxs[8] << " " << hit_idxs[9] << std::endl;
-        // std::cout << " " << hit_types[0] << " " << hit_types[1] << " " << hit_types[2] << " " << hit_types[3] << " " << hit_types[4] << " " << hit_types[5] << " " << hit_types[6] << " " << hit_types[7] << " " << hit_types[8] << " " << hit_types[9] << std::endl;
 
+        int moduleType_binary = 0;
+        moduleType_binary |= (moduleType4 << 0);
+        moduleType_binary |= (moduleType6 << 2);
+        moduleType_binary |= (moduleType8 << 4);
+          
         //bare bones implementation only
         std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
         for (auto &isimtrk : matched_sim_trk_idxs)
@@ -1890,7 +1899,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         pT3_pixelRadius.push_back(pixelRadius);
         pT3_pixelRadiusError.push_back(pixelRadiusError);
         pT3_tripletRadius.push_back(tripletRadius);
-        rPhiChiSquared.push_back(pixelTripletsInGPU.rPhiChiSquared[jdx]);
+        pT3_rPhiChiSquared.push_back(pixelTripletsInGPU.rPhiChiSquared[jdx]);
 #endif
     }
 
@@ -1922,6 +1931,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("pT3_pixelRadiusError", pT3_pixelRadiusError);
     ana.tx->setBranch<vector<float>>("pT3_tripletRadius", pT3_tripletRadius);
     ana.tx->setBranch<vector<int>>("pT3_layer_binary", pT3_layer_binary);
+    ana.tx->setBranch<vector<int>>("pT3_moduleType_binary", pT3_moduleType_binary);
     ana.tx->setBranch<vector<float>>("pT3_rPhiChiSquared", pT3_rPhiChiSquared);
 #endif
 
