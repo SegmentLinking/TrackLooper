@@ -1861,6 +1861,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         }
 #ifdef CUT_VALUE_DEBUG
         pT3_layer_binary.push_back(layer_binary);
+        pT3_moduleType_binary.push_back(moduleType_binary);
         std::vector<float> sim_pt_per_pT3;
         if(matched_sim_trk_idxs.size() == 0)
         {
