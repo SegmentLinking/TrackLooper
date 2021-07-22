@@ -17,7 +17,7 @@ gitHash_2 = sys.argv[6]
 legendName_1 = sys.argv[7]
 legendName_2 = sys.argv[8]
 title = sys.argv[9]
-output_name = sys.argv[11]
+output_name = sys.argv[10]
 
 # assert that the bin sizes are same!
 
