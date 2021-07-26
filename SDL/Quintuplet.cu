@@ -17,7 +17,6 @@ SDL::quintuplets::quintuplets()
     layer = nullptr;
     regressionG = nullptr;
     regressionF = nullptr;
->>>>>>> 1d2412a1282dcafa609ef131e539b760af83898f
 
 #ifdef CUT_VALUE_DEBUG
     innerRadiusMin = nullptr;

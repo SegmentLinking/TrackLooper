@@ -853,10 +853,10 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 //outerTrackletIndex = T5
                 innerTrackletInnerSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[innerTrackletIdx];
                 innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx]];
-                outerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIndex] + 1];
+                outerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx] + 1];
 
-                outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIndex + 1]];
-                outermostSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIndex + 1] + 1];
+                outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]];
+                outermostSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1] + 1];
 
                 //betaIn only has the beta values of the T5s. Use the TC type = 7 criterion to then get the pixel pT value to add together with these later!!!!!!
                 betaIn_in = tripletsInGPU.betaIn[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]];
@@ -934,7 +934,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             if(trackCandidateType == 7)
             {
                outermostSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outermostSegmentIndex];
-                outermostSegmentOuterMiniDoubletIndex; = segmentsInGPU.mdIndices[2 * outermostSegmentIndex + 1];
+               outermostSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outermostSegmentIndex + 1];
 
 
             }
@@ -952,13 +952,13 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             unsigned int outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentOuterMiniDoubletIndex];
             unsigned int outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentOuterMiniDoubletIndex + 1];
 
-            unsigned int outermostOuterMiniDoubletLowerHitIndex;
-            unsigned int outermostOuterMiniDoubletUpperHitIndex;
+            unsigned int outermostSegmentOuterMiniDoubletLowerHitIndex;
+            unsigned int outermostSegmentOuterMiniDoubletUpperHitIndex;
 
             if(trackCandidateType == 7)
             {
-                outermostOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outermostOuterMiniDoubletIndex];
-                outermostOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outermostOuterMiniDoubletIndex + 1];
+                outermostSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outermostSegmentOuterMiniDoubletIndex];
+                outermostSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outermostSegmentOuterMiniDoubletIndex + 1];
             }
 
             std::vector<int> hit_idx = {
@@ -978,8 +978,8 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
 
             if(trackCandidateType == 7)
             {
-                hit_idxs.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletLowerHitIndex]);
-                hit_idxs.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletUpperHitIndex]);
+                hit_idx.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletLowerHitIndex]);
+                hit_idx.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletUpperHitIndex]);
             }
 
             unsigned int iiia_idx = -1;
@@ -1067,8 +1067,8 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 (int) hitsInGPU.moduleIndices[outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
             };
 
-            module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostOuterMiniDoubletLowerHitIndex]);
-            moduls_idxs.push_back((int) hitsInGPU.moduleIndices[outermostOuterMiniDoubletUpperHitIndex]);
+            module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostSegmentOuterMiniDoubletLowerHitIndex]);
+            module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostSegmentOuterMiniDoubletUpperHitIndex]);
 
             bool isPixel0 = (idx == *(modulesInGPU.nLowerModules));
             // bool isPixel1 = (idx == *(modulesInGPU.nLowerModules));
