@@ -26,6 +26,7 @@ void SDL::pixelTriplets::freeMemory()
     cudaFree(isDup);
 #ifdef CUT_VALUE_DEBUG
     cudaFree(pixelRadiusError);
+    cudaFree(rPhiChiSquared);
 #endif
 }
 
@@ -44,6 +45,7 @@ void SDL::createPixelTripletsInUnifiedMemory(struct pixelTriplets& pixelTriplets
     cudaMallocManaged(&pixelTripletsInGPU.isDup, maxPixelTriplets * sizeof(bool));
 #ifdef CUT_VALUE_DEBUG
     cudaMallocManaged(&pixelTripletsInGPU.pixelRadiusError, maxPixelTriplets * sizeof(float));
+    cudaMallocManaged(&pixelTripletsInGPU.rPhiChiSquared, maxPixelTriplets * sizeof(float));
 #endif
     pixelTripletsInGPU.eta = pixelTripletsInGPU.pt + maxPixelTriplets;
     pixelTripletsInGPU.phi = pixelTripletsInGPU.pt + maxPixelTriplets * 2;
@@ -73,7 +75,7 @@ void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTriplet
 }
 
 #ifdef CUT_VALUE_DEBUG
-__device__ void SDL::addPixelTripletToMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float pixelRadiusError, float tripletRadius, unsigned int pixelTripletIndex)
+__device__ void SDL::addPixelTripletToMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float pixelRadiusError, float tripletRadius, float rPhiChiSquared, unsigned int pixelTripletIndex)
 #else
 __device__ void SDL::addPixelTripletToMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float tripletRadius, unsigned int pixelTripletIndex, float pt, float eta, float phi, float eta_pix, float phi_pix,float score)
 #endif
@@ -92,6 +94,7 @@ __device__ void SDL::addPixelTripletToMemory(struct pixelTriplets& pixelTriplets
 
 #ifdef CUT_VALUE_DEBUG
     pixelTripletsInGPU.pixelRadiusError[pixelTripletIndex] = pixelRadiusError;
+    pixelTripletsInGPU.rPhiChiSquared[pixelTripletIndex] = rPhiChiSquared;
 #endif
 }
 __device__ void SDL::rmPixelTripletToMemory(struct pixelTriplets& pixelTripletsInGPU,unsigned int pixelTripletIndex)
@@ -99,7 +102,7 @@ __device__ void SDL::rmPixelTripletToMemory(struct pixelTriplets& pixelTripletsI
     pixelTripletsInGPU.isDup[pixelTripletIndex] = 1;
 }
 
-__device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& pixelSegmentIndex, unsigned int tripletIndex, float& pixelRadius, float& pixelRadiusError, float& tripletRadius)
+__device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& pixelSegmentIndex, unsigned int tripletIndex, float& pixelRadius, float& pixelRadiusError, float& tripletRadius, float& rPhiChiSquared)
 {
     bool pass = true;
 
@@ -144,12 +147,122 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     float y1 = hitsInGPU.ys[innerMDAnchorHitIndex];
     float y2 = hitsInGPU.ys[middleMDAnchorHitIndex];
     float y3 = hitsInGPU.ys[outerMDAnchorHitIndex];
+    float g,f;
     
-    tripletRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3);
+    tripletRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3,g,f);
     
     pass = pass & passRadiusCriterion(modulesInGPU, pixelRadius, pixelRadiusError, tripletRadius, lowerModuleIndex, middleModuleIndex, upperModuleIndex);
+
+    unsigned int anchorHits[] = {innerMDAnchorHitIndex, middleMDAnchorHitIndex, outerMDAnchorHitIndex};
+    unsigned int lowerModuleIndices[] = {lowerModuleIndex, middleModuleIndex, upperModuleIndex};
+
+    rPhiChiSquared = computePT3RPhiChiSquared(modulesInGPU, hitsInGPU, segmentsInGPU, pixelSegmentArrayIndex, anchorHits, lowerModuleIndices);
+
+    if(pixelSegmentPt < 5.0)
+    {
+        pass = pass & passPT3RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquared);
+    }
+
     return pass;
 
+}
+
+
+//TODO: merge this one and the pT5 function later into a single function
+__device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, struct segments& segmentsInGPU, unsigned int pixelSegmentArrayIndex, unsigned int* anchorHits, unsigned int* lowerModuleIndices)
+{
+    float g = segmentsInGPU.circleCenterX[pixelSegmentArrayIndex];
+    float f = segmentsInGPU.circleCenterY[pixelSegmentArrayIndex];
+    float radius = segmentsInGPU.circleRadius[pixelSegmentArrayIndex];
+    float delta1[3], delta2[3], slopes[3];
+    bool isFlat[3];
+    float xs[3];
+    float ys[3];
+    float chiSquared = 0;
+    for(size_t i = 0; i < 3; i++)
+    {
+        xs[i] = hitsInGPU.xs[anchorHits[i]];
+        ys[i] = hitsInGPU.ys[anchorHits[i]];
+    }
+
+    computeSigmasForRegression(modulesInGPU, lowerModuleIndices, delta1, delta2, slopes, isFlat, 3);
+    chiSquared = computeChiSquared(3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius);
+    
+    return chiSquared;
+}
+
+
+__device__ bool SDL::passPT3RPhiChiSquaredCuts(struct modules& modulesInGPU, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, float& rPhiChiSquared)
+{
+    const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
+    const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
+    const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
+
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3)
+    {
+        return rPhiChiSquared < 21.266;
+    }
+    else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
+    {
+        return rPhiChiSquared < 12.203;
+    }
+    else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
+    {
+        return rPhiChiSquared < 8.045;
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 12)
+    {
+        return rPhiChiSquared < 7.002;
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
+    {
+        return rPhiChiSquared < 37.058;
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
+    {
+        return rPhiChiSquared < 18.509;
+    }
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 13)
+    {
+        return rPhiChiSquared < 5.305;
+    }
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
+    {
+        return rPhiChiSquared < 16.109;
+    }
+    else if(layer1 == 3 and layer2 == 7 and layer3 == 13)
+    {   
+        return rPhiChiSquared < 5.305;
+    }
+    else if(layer1 == 3 and layer2 == 7 and layer3 == 8)
+    {
+        return rPhiChiSquared < 37.058;
+    }
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 14)
+    {
+        return rPhiChiSquared < 7.003;
+    }
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
+    {
+        return rPhiChiSquared < 12.203;
+    }
+    else if(layer1 == 8 and layer2 == 9 and layer3 == 10)
+    {
+        return rPhiChiSquared < 14.021;
+    }
+    else if(layer1 == 8 and layer2 == 9 and layer3 == 15)
+    {
+        return rPhiChiSquared < 4.018;
+    }
+    else if(layer1 == 9 and layer2 == 10 and layer3 == 11)
+    {
+        return rPhiChiSquared < 24.433;
+    }
+    else if(layer1 == 9 and layer2 == 10 and layer3 == 16)
+    {
+        return rPhiChiSquared < 4.617;
+    }
+    return true;
 }
 
 

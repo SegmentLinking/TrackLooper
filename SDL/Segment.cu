@@ -17,12 +17,19 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     segmentsInGPU.dPhis = (float*)cms::cuda::allocate_managed((nMemoryLocations*6 + maxPixelSegments * 8) *sizeof(float),stream);
     segmentsInGPU.superbin = (int*)cms::cuda::allocate_managed((maxPixelSegments) *sizeof(int),stream);
     segmentsInGPU.pixelType = (int*)cms::cuda::allocate_managed((maxPixelSegments) *sizeof(int),stream);
+    segmentsInGPU.circleCenterX = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
+    segmentsInGPU.circleCenterY = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
+    segmentsInGPU.circleRadius = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
+
 #else
     cudaMallocManaged(&segmentsInGPU.mdIndices, nMemoryLocations * 6 * sizeof(unsigned int));
     cudaMallocManaged(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
     cudaMallocManaged(&segmentsInGPU.dPhis, (nMemoryLocations * 6 + maxPixelSegments * 8)*sizeof(float));
     cudaMallocManaged(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int));
     cudaMallocManaged(&segmentsInGPU.pixelType, (maxPixelSegments )*sizeof(int));
+    cudaMallocManaged(&segmentsInGPU.circleCenterX, maxPixelSegments * sizeof(float));
+    cudaMallocManaged(&segmentsInGPU.circleCenterY, maxPixelSegments * sizeof(float));
+    cudaMallocManaged(&segmentsInGPU.circleRadius, maxPixelSegments * sizeof(float));
 
 #ifdef CUT_VALUE_DEBUG
     cudaMallocManaged(&segmentsInGPU.zIns, nMemoryLocations * 7 * sizeof(float));
@@ -84,6 +91,9 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.dPhis = (float*)cms::cuda::allocate_device(dev,(nMemoryLocations*6 + maxPixelSegments * 8) *sizeof(float),stream);
     segmentsInGPU.superbin = (int*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(int),stream);
     segmentsInGPU.pixelType = (int*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(int),stream);
+    segmentsInGPU.circleCenterX = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
+    segmentsInGPU.circleCenterY = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
+    segmentsInGPU.circleRadius = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
 
 #else
     cudaMalloc(&segmentsInGPU.mdIndices, nMemoryLocations * 6 * sizeof(unsigned int));
@@ -91,6 +101,10 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     cudaMalloc(&segmentsInGPU.dPhis, (nMemoryLocations * 6 + maxPixelSegments * 8)*sizeof(float));
     cudaMalloc(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int));
     cudaMalloc(&segmentsInGPU.pixelType, (maxPixelSegments )*sizeof(int));
+    cudaMalloc(&segmentsInGPU.circleCenterX, maxPixelSegments * sizeof(float));
+    cudaMalloc(&segmentsInGPU.circleCenterY, maxPixelSegments * sizeof(float));
+    cudaMalloc(&segmentsInGPU.circleRadius, maxPixelSegments * sizeof(float));
+
 #endif
     cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
 
@@ -120,6 +134,9 @@ SDL::segments::segments()
 {
     superbin = nullptr;
     pixelType = nullptr;
+    circleRadius = nullptr;
+    circleCenterX = nullptr;
+    circleCenterY = nullptr;
     mdIndices = nullptr;
     innerLowerModuleIndices = nullptr;
     outerLowerModuleIndices = nullptr;
@@ -168,12 +185,18 @@ void SDL::segments::freeMemoryCache()
     cms::cuda::free_device(dev,nSegments);
     cms::cuda::free_device(dev,superbin);
     cms::cuda::free_device(dev,pixelType);
+    cms::cuda::free_device(dev, circleCenterX);
+    cms::cuda::free_device(dev, circleCenterY);
+    cms::cuda::free_device(dev, circleRadius);
 #else
     cms::cuda::free_managed(mdIndices);
     cms::cuda::free_managed(dPhis);
     cms::cuda::free_managed(nSegments);
     cms::cuda::free_managed(superbin);
     cms::cuda::free_managed(pixelType);
+    cms::cuda::free_managed(circleCenterX);
+    cms::cuda::free_managed(circleCenterY);
+    cms::cuda::free_managed(circleRadius);
 #endif
 }
 void SDL::segments::freeMemory()
@@ -183,6 +206,9 @@ void SDL::segments::freeMemory()
     cudaFree(dPhis);
     cudaFree(superbin);
     cudaFree(pixelType);
+    cudaFree(circleCenterX);
+    cudaFree(circleCenterY);
+    cudaFree(circleRadius);
 
 #ifdef CUT_VALUE_DEBUG
     cudaFree(zIns);
@@ -265,6 +291,33 @@ __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, str
 
     segmentsInGPU.superbin[pixelSegmentArrayIndex] = superbin;
     segmentsInGPU.pixelType[pixelSegmentArrayIndex] = pixelType;
+
+    //computing circle parameters
+    /*
+       The two anchor hits are r3PCA and r3LH. p3PCA pt, eta, phi is hitIndex1
+    */
+    float circleRadius = hitsInGPU.xs[mdsInGPU.hitIndices[2 * innerMDIndex + 1]] / (2 * k2Rinv1GeVf);
+    float circlePhi = hitsInGPU.zs[mdsInGPU.hitIndices[2 * innerMDIndex + 1]];
+
+    float candidateCenterXs[] = {hitsInGPU.xs[innerAnchorHitIndex] + circleRadius * sinf(circlePhi), hitsInGPU.xs[innerAnchorHitIndex] - circleRadius * sinf(circlePhi)};
+    float candidateCenterYs[] = {hitsInGPU.ys[innerAnchorHitIndex] - circleRadius * cosf(circlePhi), hitsInGPU.ys[innerAnchorHitIndex] + circleRadius * cosf(circlePhi)};
+
+    //check which of the circles can accommodate r3LH better (we won't get perfect agreement)
+    float bestChiSquared = 123456789.f;
+    float chiSquared;
+    size_t bestIndex;
+    for(size_t i = 0; i < 2; i++)
+    {
+        chiSquared = fabsf(sqrtf((hitsInGPU.xs[outerAnchorHitIndex] - candidateCenterXs[i]) * (hitsInGPU.xs[outerAnchorHitIndex] - candidateCenterXs[i]) + (hitsInGPU.ys[outerAnchorHitIndex] - candidateCenterYs[i]) * (hitsInGPU.ys[outerAnchorHitIndex] - candidateCenterYs[i])) - circleRadius);
+        if(chiSquared < bestChiSquared)
+        {
+            bestChiSquared = chiSquared;
+            bestIndex = i;
+        }
+    }
+    segmentsInGPU.circleCenterX[pixelSegmentArrayIndex] = candidateCenterXs[bestIndex];
+    segmentsInGPU.circleCenterY[pixelSegmentArrayIndex] = candidateCenterYs[bestIndex];
+    segmentsInGPU.circleRadius[pixelSegmentArrayIndex] = circleRadius;
 }
 
 __device__ void SDL::dAlphaThreshold(float* dAlphaThresholdValues, struct hits& hitsInGPU, struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, unsigned int& innerMiniDoubletAnchorHitIndex, unsigned int& outerMiniDoubletAnchorHitIndex, unsigned int& innerLowerModuleIndex, unsigned int& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex)
