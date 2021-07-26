@@ -184,8 +184,11 @@ void createQuintupletCutValueBranches()
 void createPixelQuintupletCutValueBranches()
 {
     ana.tx->createBranch<vector<int>>("pT5_layer_binary");
+    ana.tx->createBranch<vector<int>>("pT5_moduleType_binary");
     ana.tx->createBranch<vector<float>>("pT5_matched_pt");
     ana.tx->createBranch<vector<float>>("pT5_rzChiSquared");
+    ana.tx->createBranch<vector<float>>("pT5_rPhiChiSquared");
+    ana.tx->createBranch<vector<float>>("pT5_rPhiChiSquaredInwards");
 }
 #endif
 void createPixelTripletCutValueBranches()
@@ -194,7 +197,9 @@ void createPixelTripletCutValueBranches()
     ana.tx->createBranch<vector<float>>("pT3_pixelRadiusError");
     ana.tx->createBranch<vector<vector<float>>>("pT3_matched_pt");
     ana.tx->createBranch<vector<float>>("pT3_tripletRadius");
+    ana.tx->createBranch<vector<float>>("pT3_rPhiChiSquared");
     ana.tx->createBranch<vector<int>>("pT3_layer_binary");
+    ana.tx->createBranch<vector<int>>("pT3_moduleType_binary");
     ana.tx->createBranch<vector<int>>("pT3_pix_idx1");
     ana.tx->createBranch<vector<int>>("pT3_pix_idx2");
     ana.tx->createBranch<vector<int>>("pT3_pix_idx3");
@@ -726,6 +731,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
     SDL::pixelTracklets& pixelTrackletsInGPU = (*event.getPixelTracklets());
 #ifdef DO_QUINTUPLET
     SDL::quintuplets& quintupletsInGPU = (*event.getQuintuplets());
+    SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event.getPixelQuintuplets());
 #endif
 #ifdef DO_QUADRUPLET
     SDL::tracklets& trackletsInGPU = (*event.getTracklets());
@@ -745,7 +751,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
     const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 5000000;
 #else
     const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 5000;
-    const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 200000;
+    const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 400000;
 #endif
 
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
@@ -778,6 +784,8 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             unsigned int innerTrackletInnerSegmentIndex = -1;
             unsigned int innerTrackletOuterSegmentIndex = -1;
             unsigned int outerTrackletOuterSegmentIndex = -1;
+            unsigned int outerTrackletInnerSegmentIndex = -1;
+            unsigned int outermostSegmentIndex = -1;
 
             float betaIn_in = 0;
             float betaOut_in = 0;
@@ -820,6 +828,25 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 betaOut_in = tripletsInGPU.betaOut[innerTrackletIndex];
                 betaIn_out = tripletsInGPU.betaIn[outerTrackletIndex];
                 betaOut_out = tripletsInGPU.betaOut[outerTrackletIndex];
+            }
+            if(trackCandidateType == 7) //pT5
+            {
+                //innerTrackletIndex = pT3
+                //outerTrackletIndex = T5
+                innerTrackletInnerSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[innerTrackletIdx];
+                innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx]];
+                outerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIndex] + 1];
+
+                outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIndex + 1]];
+                outermostSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIndex + 1] + 1];
+
+                //betaIn only has the beta values of the T5s. Use the TC type = 7 criterion to then get the pixel pT value to add together with these later!!!!!!
+                betaIn_in = tripletsInGPU.betaIn[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]];
+                betaOut_in = tripletsInGPU.betaOut[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx] + 1];
+
+                betaIn_out = tripletsInGPU.betaIn[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]];
+                betaOut_out = tripletsInGPU.betaOut[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1] + 1];
+
             }
 #endif
 #ifdef DO_QUADRUPLET
@@ -883,6 +910,17 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             unsigned int innerTrackletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletOuterSegmentIndex + 1];
             unsigned int outerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex];
             unsigned int outerTrackletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex + 1];
+
+            unsigned int outermostSegmentInnerMiniDoubletIndex;            
+            unsigned int outermostSegmentOuterMiniDoubletIndex;
+            if(trackCandidateType == 7)
+            {
+               outermostSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outermostSegmentIndex];
+                outermostSegmentOuterMiniDoubletIndex; = segmentsInGPU.mdIndices[2 * outermostSegmentIndex + 1];
+
+
+            }
+
             unsigned int innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentInnerMiniDoubletIndex];
             unsigned int innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentInnerMiniDoubletIndex + 1];
             unsigned int innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentOuterMiniDoubletIndex];
@@ -895,6 +933,15 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             unsigned int outerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentInnerMiniDoubletIndex + 1];
             unsigned int outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentOuterMiniDoubletIndex];
             unsigned int outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentOuterMiniDoubletIndex + 1];
+
+            unsigned int outermostOuterMiniDoubletLowerHitIndex;
+            unsigned int outermostOuterMiniDoubletUpperHitIndex;
+
+            if(trackCandidateType == 7)
+            {
+                outermostOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outermostOuterMiniDoubletIndex];
+                outermostOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outermostOuterMiniDoubletIndex + 1];
+            }
 
             std::vector<int> hit_idx = {
                 (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex],
@@ -910,12 +957,19 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 (int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex],
                 (int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
             };
+
+            if(trackCandidateType == 7)
+            {
+                hit_idxs.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletLowerHitIndex]);
+                hit_idxs.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletUpperHitIndex]);
+            }
+
             unsigned int iiia_idx = -1;
             unsigned int iooa_idx = -1;
             unsigned int oiia_idx = -1;
             unsigned int oooa_idx = -1;
 
-            if (idx == *(modulesInGPU.nLowerModules))
+            if (idx == *(modulesInGPU.nLowerModules) and trackCandidateType != 7)
             {
                 iiia_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerTrackletInnerSegmentIndex]; // for pLS the innerSegment outerMiniDoublet
                 iooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerTrackletOuterSegmentIndex];
@@ -932,11 +986,23 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
 
             const float dr_in = sqrt(pow(hitsInGPU.xs[iiia_idx] - hitsInGPU.xs[iooa_idx], 2) + pow(hitsInGPU.ys[iiia_idx] - hitsInGPU.ys[iooa_idx], 2));
             const float dr_out = sqrt(pow(hitsInGPU.xs[oiia_idx] - hitsInGPU.xs[oooa_idx], 2) + pow(hitsInGPU.ys[oiia_idx] - hitsInGPU.ys[oooa_idx], 2));
+
             const float kRinv1GeVf = (2.99792458e-3 * 3.8);
             const float k2Rinv1GeVf = kRinv1GeVf / 2.;
+
             const float ptAv_in = (idx == *(modulesInGPU.nLowerModules)) ? segmentsInGPU.ptIn[innerTrackletInnerSegmentIndex-((*(modulesInGPU.nModules))-1)*600] : dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.);
+
             const float ptAv_out = dr_out * k2Rinv1GeVf / sin((betaIn_out + betaOut_out) / 2.);
-            const float ptAv = (ptAv_in + ptAv_out) / 2.;
+            float ptAv;
+            if(trackCandidateType == 7)
+            {
+                float ptAv_outermost = dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.);
+                ptAv =  (ptAv_in + ptAv_out + ptAv_outermost) / 3.;
+            }
+            else
+            {
+                ptAv = (ptAv_in + ptAv_out) / 2.;
+            }
 
             std::vector<int> hit_types;
             if (idx == *(modulesInGPU.nLowerModules)) // Then this means this track candidate is a pLS-based
@@ -962,6 +1028,11 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             hit_types.push_back(4);
             hit_types.push_back(4);
             hit_types.push_back(4);
+            if(trackCandidateType == 7)
+            {
+                hit_types.push_back(4);
+                hit_types.push_back(4);
+            }
 
             std::vector<int> module_idxs = {
                 (int) hitsInGPU.moduleIndices[innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex],
@@ -977,6 +1048,10 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 (int) hitsInGPU.moduleIndices[outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex],
                 (int) hitsInGPU.moduleIndices[outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
             };
+
+            module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostOuterMiniDoubletLowerHitIndex]);
+            moduls_idxs.push_back((int) hitsInGPU.moduleIndices[outermostOuterMiniDoubletUpperHitIndex]);
+
             bool isPixel0 = (idx == *(modulesInGPU.nLowerModules));
             // bool isPixel1 = (idx == *(modulesInGPU.nLowerModules));
             bool isPixel2 = (idx == *(modulesInGPU.nLowerModules));
@@ -989,6 +1064,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             // bool isPixel9 = false;
             bool isPixel10 = false;
             // bool isPixel11 = false;
+            bool isPixel12 = false;
 
             int layer0 = modulesInGPU.layers[module_idxs[0]];
             // int layer1 = modulesInGPU.layers[module_idxs[1]];
@@ -1002,6 +1078,8 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             // int layer9 = modulesInGPU.layers[module_idxs[9]];
             int layer10 = modulesInGPU.layers[module_idxs[10]];
             // int layer11 = modulesInGPU.layers[module_idxs[11]];
+            int layer12 = trackCandidateType == 7 ? modulesInGPU.layers[module_idxs[12]] : 0;
+
 
             int subdet0 = modulesInGPU.subdets[module_idxs[0]];
             // int subdet1 = modulesInGPU.subdets[module_idxs[1]];
@@ -1015,6 +1093,8 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             // int subdet9 = modulesInGPU.subdets[module_idxs[9]];
             int subdet10 = modulesInGPU.subdets[module_idxs[10]];
             // int subdet11 = modulesInGPU.subdets[module_idxs[11]];
+            int subdet12 = trackCandidateType == 7 ? modulesInGPU.subdets[module_idxs[12]] : 0;
+
 
             int logicallayer0 = isPixel0 ? 0 : layer0 + 6 * (subdet0 == 4);
             // int logicallayer1 = isPixel1 ? 0 : layer1 + 6 * (subdet1 == 4);
@@ -1028,6 +1108,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             // int logicallayer9 = isPixel9 ? 0 : layer9 + 6 * (subdet9 == 4);
             int logicallayer10 = isPixel10 ? 0 : layer10 + 6 * (subdet10 == 4);
             // int logicallayer11 = isPixel11 ? 0 : layer11 + 6 * (subdet11 == 4);
+            int logicallayer12 = trackCandidateType == 7 ? (isPixel12 == 0 ? 0 : layer12 + 6 * (subdet12 == 4)) : 0;
 
             int layer_binary = 0;
             layer_binary |= (1 << logicallayer0);
@@ -1036,6 +1117,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             layer_binary |= (1 << logicallayer6);
             layer_binary |= (1 << logicallayer8);
             layer_binary |= (1 << logicallayer10);
+            if(trackCandidateType == 7) layer_binary |= (1 << logicallayer12);
 
             // sim track matched index
             std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idx, hit_types);
@@ -1067,6 +1149,12 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[11]], trk.ph2_y()[hit_idx[11]], trk.ph2_z()[hit_idx[11]]);
                 eta = hitB.eta();
                 phi = hitA.phi();
+            }
+
+            if(trackCandidateType == 7)
+            {
+                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[13]], trk.ph2_y()[hit_idx[13]], trk.ph2_z()[hit_idx[13]]);
+                eta = hitB.eta();
             }
 
             tc_isFake.push_back(matched_sim_trk_idxs.size() == 0);
@@ -1741,8 +1829,10 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     std::vector<float> pT3_pixelRadius;
     std::vector<float> pT3_tripletRadius;
     std::vector<int> pT3_layer_binary;
+    std::vector<int> pT3_moduleType_binary;
     std::vector<float> pT3_pixelRadiusError;
     std::vector<std::vector<float>> pT3_simpt;
+    std::vector<float> pT3_rPhiChiSquared;
 #endif
 
     const unsigned int N_MAX_PIXEL_TRIPLETS = 250000;
@@ -1822,6 +1912,12 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         int subdet6 = modulesInGPU.subdets[module_idxs[6]];
         int subdet8 = modulesInGPU.subdets[module_idxs[8]];
 
+        int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
+        int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
+        int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
+        int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
+        int moduleType8 = modulesInGPU.moduleType[module_idxs[8]];
+
         int logicallayer0 = 0;
         int logicallayer2 = 0;
         int logicallayer4 = layer4 + 6 * (subdet4 == 4);
@@ -1834,10 +1930,12 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         layer_binary |= (1 << logicallayer4);
         layer_binary |= (1 << logicallayer6);
         layer_binary |= (1 << logicallayer8);
-          
-        // std::cout << " " << hit_idxs[0] << " " << hit_idxs[1] << " " << hit_idxs[2] << " " << hit_idxs[3] << " " << hit_idxs[4] << " " << hit_idxs[5] << " " << hit_idxs[6] << " " << hit_idxs[7] << " " << hit_idxs[8] << " " << hit_idxs[9] << std::endl;
-        // std::cout << " " << hit_types[0] << " " << hit_types[1] << " " << hit_types[2] << " " << hit_types[3] << " " << hit_types[4] << " " << hit_types[5] << " " << hit_types[6] << " " << hit_types[7] << " " << hit_types[8] << " " << hit_types[9] << std::endl;
 
+        int moduleType_binary = 0;
+        moduleType_binary |= (moduleType4 << 0);
+        moduleType_binary |= (moduleType6 << 2);
+        moduleType_binary |= (moduleType8 << 4);
+          
         //bare bones implementation only
         std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
         for (auto &isimtrk : matched_sim_trk_idxs)
@@ -1846,6 +1944,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         }
 #ifdef CUT_VALUE_DEBUG
         pT3_layer_binary.push_back(layer_binary);
+        pT3_moduleType_binary.push_back(moduleType_binary);
         std::vector<float> sim_pt_per_pT3;
         if(matched_sim_trk_idxs.size() == 0)
         {
@@ -1885,6 +1984,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         pT3_pixelRadius.push_back(pixelRadius);
         pT3_pixelRadiusError.push_back(pixelRadiusError);
         pT3_tripletRadius.push_back(tripletRadius);
+        pT3_rPhiChiSquared.push_back(pixelTripletsInGPU.rPhiChiSquared[jdx]);
 #endif
     }
 
@@ -1916,6 +2016,8 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("pT3_pixelRadiusError", pT3_pixelRadiusError);
     ana.tx->setBranch<vector<float>>("pT3_tripletRadius", pT3_tripletRadius);
     ana.tx->setBranch<vector<int>>("pT3_layer_binary", pT3_layer_binary);
+    ana.tx->setBranch<vector<int>>("pT3_moduleType_binary", pT3_moduleType_binary);
+    ana.tx->setBranch<vector<float>>("pT3_rPhiChiSquared", pT3_rPhiChiSquared);
 #endif
 
 }
@@ -1941,7 +2043,10 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
 
 #ifdef CUT_VALUE_DEBUG
     std::vector<int> pT5_layer_binary;
+    std::vector<int> pT5_moduleType_binary;
     std::vector<float> pT5_rzChiSquared;
+    std::vector<float> pT5_rPhiChiSquared;
+    std::vector<float> pT5_rPhiChiSquaredInwards;
     std::vector<float> pT5_simpt;
 #endif
     const unsigned int N_MAX_PIXEL_QUINTUPLETS = 1000000;
@@ -2052,6 +2157,15 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
         int subdet10 = modulesInGPU.subdets[module_idxs[10]];
         int subdet12 = modulesInGPU.subdets[module_idxs[12]];
 
+        int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
+        int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
+        int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
+        int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
+        int moduleType8 = modulesInGPU.moduleType[module_idxs[8]];
+        int moduleType10 = modulesInGPU.moduleType[module_idxs[10]];
+        int moduleType12 = modulesInGPU.moduleType[module_idxs[12]];
+
+
         int logicallayer0 = 0;
         int logicallayer2 = 0;
         int logicallayer4 = layer4 + 6 * (subdet4 == 4);
@@ -2069,6 +2183,15 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
         layer_binary |= (1 << logicallayer10);
         layer_binary |= (1 << logicallayer12);
 
+        int moduleType_binary = 0;
+        moduleType_binary |= (moduleType4 << 0);
+        moduleType_binary |= (moduleType6 << 2);
+        moduleType_binary |= (moduleType8 << 4);
+        moduleType_binary |= (moduleType10 << 6);
+        moduleType_binary |= (moduleType12 << 8);
+       
+ 
+
         std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
         for (auto &isimtrk : matched_sim_trk_idxs)
         {
@@ -2077,8 +2200,12 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
 
 #ifdef CUT_VALUE_DEBUG
         pT5_layer_binary.push_back(layer_binary);
+        pT5_moduleType_binary.push_back(moduleType_binary);
         pT5_rzChiSquared.push_back(pixelQuintupletsInGPU.rzChiSquared[jdx]);
+        pT5_rPhiChiSquared.push_back(pixelQuintupletsInGPU.rPhiChiSquared[jdx]);
+        pT5_rPhiChiSquaredInwards.push_back(pixelQuintupletsInGPU.rPhiChiSquaredInwards[jdx]);
         std::vector<float> sim_pt_per_pT5;
+
         if(matched_sim_trk_idxs.size() == 0)
         {
             sim_pt_per_pT5.push_back(-999);
@@ -2137,7 +2264,10 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
 
 #ifdef CUT_VALUE_DEBUG
     ana.tx->setBranch<vector<int>>("pT5_layer_binary", pT5_layer_binary);
+    ana.tx->setBranch<vector<int>>("pT5_moduleType_binary", pT5_moduleType_binary);
     ana.tx->setBranch<vector<float>>("pT5_rzChiSquared", pT5_rzChiSquared);
+    ana.tx->setBranch<vector<float>>("pT5_rPhiChiSquared", pT5_rPhiChiSquared);
+    ana.tx->setBranch<vector<float>>("pT5_rPhiChiSquaredInwards", pT5_rPhiChiSquaredInwards);
     ana.tx->setBranch<vector<float>>("pT5_matched_pt", pT5_simpt);
 #endif
 }

@@ -50,6 +50,9 @@ namespace SDL
         float* phi;
         int* superbin;
         int* pixelType;
+        float* circleCenterX;
+        float* circleCenterY;
+        float* circleRadius;
 
 #ifdef CUT_VALUE_DEBUG
         float* zIns;

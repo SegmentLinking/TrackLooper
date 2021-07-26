@@ -35,6 +35,7 @@ namespace SDL
         unsigned int* nTrackCandidatesT3T4;
         unsigned int* nTrackCandidatespT2;
         unsigned int* nTrackCandidatespT3;
+        unsigned int* nTrackCandidatespT5;
         unsigned int* nTrackCandidatesT5;
 
         trackCandidates();
