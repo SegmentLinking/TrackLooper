@@ -1521,7 +1521,17 @@ void SDL::Event::createTrackCandidates()
     }
 #endif // final state pT2 and pT3
 
-
+#ifdef FINAL_T5
+    printf("Adding pT5s to TC collection\n");
+    unsigned int nThreadsx_pT5 = 1;
+    unsigned int nBlocksx_pT5 = (N_MAX_PIXEL_QUINTUPLETS) % nThreadsx == 0 ? N_MAX_PIXEL_QUINTUPLETS / nThreadsx : N_MAX_PIXEL_QUINTUPLETS / nThreadsx + 1;
+    addpT5asTrackCandidateInGPU<<<nBlocksx_pT5, nThreadsx_pT5>>>(*modulesInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU);
+    cudaError_t cudaerr_pT5 = cudaDeviceSynchronize();
+    if(cudaerr_pT5 != cudaSuccess)
+    {
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT3)<<std::endl;
+    }
+#endif
 
 #ifdef FINAL_T3T4
     printf("running final state T3T4\n");
@@ -3271,6 +3281,22 @@ __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
 
 }
 
+
+__global__ void addPT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU)
+{
+  int pixelQuintupletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
+  unsigned int pixelLowerModuleArrayIndex = *modulesInGPU.nLowerModules;
+  unsigned int nPixelQuintuplets = *pixelQuintupletsInGPU.nPixelQuintuplets;
+  if(pixelQuintupletArrayIndex >= nPixelQuintuplets) return;
+  int pixelQuintupletIndex = pixelQuintupletArrayIndex;
+  unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
+  atomicAdd(trackCandidatesInGPU.nTrackCandidatespT5,1);
+  unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[pixelLowerModuleArrayIndex] + trackCandidateModuleIdx;
+  
+
+  addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pixelQuintupletsInGPU.pT3Indices[pixelQuintupletIndex], pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], trackCandidateIdx);
+
+}
 
 #ifndef NESTED_PARA
 __global__ void createPixelTrackCandidatesInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTracklets& pixelTrackletsInGPU, struct SDL::tracklets& trackletsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, unsigned int* threadIdx_gpu, unsigned int* threadIdx_gpu_offset)
