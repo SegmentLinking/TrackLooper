@@ -5158,22 +5158,17 @@ __device__ int inline checkHitsT5(unsigned int ix, unsigned int jx,struct SDL::m
         int nMatched =0;
         for (int i =0; i<10;i++){
           bool matched = false;
-          //if(hits1[i] == -1){continue;}
           for (int j =0; j<10; j++){
-            //if(hits2[j] == -1){continue;}
             if(hits1[i] == hits2[j]){matched = true; break;}
           }
           if(matched){nMatched++;}
         }
-        //if(nMatched==9){printf("%u %u %u %u %u %u %u %u %u XXX %u %u %u %u %u %u %u %u %u %u\n",hits1[1],hits1[2],hits1[3],hits1[4],hits1[5],hits1[6],hits1[7],hits1[8],hits1[9],hits2[0],hits2[1],hits2[2],hits2[3],hits2[4],hits2[5],hits2[6],hits2[7],hits2[8],hits2[9]);}
-        //if(nMatched ==9){printf("%u %u %u %u %u %u %u %u %u %u || %u %u %u %u %u %u %u %u %u %u\n",hits1[0],hits1[1],hits1[2],hits1[3],hits1[4],hits1[5],hits1[6],hits1[7],hits1[8],hits1[9],hits2[0],hits2[1],hits2[2],hits2[3],hits2[4],hits2[5],hits2[6],hits2[7],hits2[8],hits2[9]);}
         return nMatched;
 }
 __device__ int duplicateCounter;
 __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU,bool secondPass)
 {
       int dup_count=0;
-      //for(int q=0;q<2;q++){
       for(unsigned int lowmod1=blockIdx.x*blockDim.x+threadIdx.x; lowmod1<*modulesInGPU.nLowerModules;lowmod1+=blockDim.x*gridDim.x){
       for(unsigned int ix1=blockIdx.y*blockDim.y+threadIdx.y; ix1<quintupletsInGPU.nQuintuplets[lowmod1]; ix1+=blockDim.y*gridDim.y){
         unsigned int ix = modulesInGPU.quintupletModuleIndices[lowmod1] + ix1;
@@ -5200,7 +5195,6 @@ __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, str
           if(nMatched >=7){
             dup_count++;
             if(secondPass){
-              //printf("second\n");
               if( quintupletsInGPU.score_rphisum[ix] - quintupletsInGPU.score_rphisum[jx] > 0){
                 rmQuintupletToMemory(quintupletsInGPU,ix);continue; // keept shorted track
               }
@@ -5211,10 +5205,6 @@ __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, str
           }
         }}
       }}
-      //__syncthreads();
-      //secondPass=true;
-      //}
-     // printf("dups: %d\n",dup_count);
 }
 
 __device__ float scorepT3(struct SDL::modules& modulesInGPU,struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU,struct SDL::segments& segmentsInGPU,struct SDL::triplets& tripletsInGPU, unsigned int innerPix, unsigned int outerTrip, float pt, float pz)

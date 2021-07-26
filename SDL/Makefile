@@ -23,7 +23,7 @@ LD                   = nvcc
 SOFLAGS              = -g -shared --compiler-options -fPIC --cudart shared -arch=compute_70
 PRINTFLAG            = -DAddObjects -DT4FromT3 #-DWarnings
 FINALSTATE           = -DFINAL_T5 #-DFINAL_pT3 #-DFINAL_T3T4 
-DUPLICATES           = #-DDUP_T5
+DUPLICATES           = -DDUP_T5
 MEMFLAG              =
 CACHEFLAG            =
 CUDALAUNCHFLAG       = -DNESTED_PARA 
