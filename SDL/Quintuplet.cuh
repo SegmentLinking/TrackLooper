@@ -37,6 +37,7 @@ namespace SDL
         float* phi;
         float* score_rphi;
         float* score_rz;
+        float* score_rzlsq;
         float* score_rphiz;
         int* layer;
         bool* isDup;

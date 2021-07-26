@@ -115,6 +115,7 @@ void createLowerLevelOutputBranches()
 
     ana.tx->createBranch<vector<float>>("t5_score_rphi");
     ana.tx->createBranch<vector<float>>("t5_score_rz");
+    ana.tx->createBranch<vector<float>>("t5_score_rzlsq");
     ana.tx->createBranch<vector<float>>("t5_score_rphiz");
     ana.tx->createBranch<vector<vector<int>>>("t5_hitIdxs");
     ana.tx->createBranch<vector<vector<int>>>("t5_matched_simIdx");
@@ -1468,6 +1469,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     std::vector<float> t5_phi_2;
     std::vector<float> t5_score_rphi;
     std::vector<float> t5_score_rz;
+    std::vector<float> t5_score_rzlsq;
     std::vector<float> t5_score_rphiz;
     std::vector<vector<int>> t5_hitIdxs;
     std::vector<int> t5_foundDuplicate;
@@ -1520,9 +1522,11 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
             unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
 
+            if(quintupletsInGPU.isDup[quintupletIndex]==1){continue;}
             t5_foundDuplicate.emplace_back(quintupletsInGPU.isDup[quintupletIndex]);
             t5_score_rphi.emplace_back(quintupletsInGPU.score_rphi[quintupletIndex]);
             t5_score_rz.emplace_back(quintupletsInGPU.score_rz[quintupletIndex]);
+            t5_score_rzlsq.emplace_back(quintupletsInGPU.score_rzlsq[quintupletIndex]);
             t5_score_rphiz.emplace_back(quintupletsInGPU.score_rphiz[quintupletIndex]);
             t5_eta_2.emplace_back(quintupletsInGPU.eta[quintupletIndex]);
             t5_phi_2.emplace_back(quintupletsInGPU.phi[quintupletIndex]);
@@ -1730,6 +1734,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<vector<int>>>("t5_hitIdxs", t5_hitIdxs);
     ana.tx->setBranch<vector<float>>("t5_score_rphi", t5_score_rphi);
     ana.tx->setBranch<vector<float>>("t5_score_rz", t5_score_rz);
+    ana.tx->setBranch<vector<float>>("t5_score_rzlsq", t5_score_rzlsq);
     ana.tx->setBranch<vector<float>>("t5_score_rphiz", t5_score_rphiz);
 #ifdef CUT_VALUE_DEBUG
     ana.tx->setBranch<vector<vector<float>>>("t5_matched_pt",t5_simpt);
@@ -1799,10 +1804,10 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         unsigned int pixelSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[jdx];
         unsigned int tripletIndex = pixelTripletsInGPU.tripletIndices[jdx];
 
-        pT3_eta_2.emplace_back(pixelTripletsInGPU.eta[jdx];
-        pT3_phi_2.emplace_back(pixelTripletsInGPU.phi[jdx];
-        pT3_score.emplace_back(pixelTripletsInGPU.score[jdx];
-        pT3_foundDuplicate.emplace_back(pixelTripletsInGPU.isDup[jdx];
+        pT3_eta_2.emplace_back(pixelTripletsInGPU.eta[jdx]);
+        pT3_phi_2.emplace_back(pixelTripletsInGPU.phi[jdx]);
+        pT3_score.emplace_back(pixelTripletsInGPU.score[jdx]);
+        pT3_foundDuplicate.emplace_back(pixelTripletsInGPU.isDup[jdx]);
         
         unsigned int pixelInnerMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
         unsigned int pixelOuterMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];

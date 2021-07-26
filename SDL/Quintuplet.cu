@@ -166,7 +166,7 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     cudaMallocManaged(&quintupletsInGPU.innerRadius, nMemoryLocations * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.outerRadius, nMemoryLocations * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.regressionRadius, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&quintupletsInGPU.pt, nMemoryLocations *6* sizeof(float));
+    cudaMallocManaged(&quintupletsInGPU.pt, nMemoryLocations *7* sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.layer, nMemoryLocations * sizeof(int));
     cudaMallocManaged(&quintupletsInGPU.isDup, nMemoryLocations * sizeof(bool));
 
@@ -193,6 +193,7 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     quintupletsInGPU.score_rphi = quintupletsInGPU.pt + 3*nMemoryLocations;
     quintupletsInGPU.score_rz = quintupletsInGPU.pt + 4*nMemoryLocations;
     quintupletsInGPU.score_rphiz = quintupletsInGPU.pt + 5*nMemoryLocations;
+    quintupletsInGPU.score_rzlsq = quintupletsInGPU.pt + 6*nMemoryLocations;
 #pragma omp parallel for
     for(size_t i = 0; i<nLowerModules;i++)
     {
@@ -259,6 +260,7 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsI
     quintupletsInGPU.phi[quintupletIndex] = phi;
     quintupletsInGPU.score_rphi[quintupletIndex] = scores[0];
     quintupletsInGPU.score_rz[quintupletIndex] = scores[1];
+    quintupletsInGPU.score_rzlsq[quintupletIndex] = scores[3];
     quintupletsInGPU.score_rphiz[quintupletIndex] = scores[2];
     quintupletsInGPU.layer[quintupletIndex] = layer;
     quintupletsInGPU.isDup[quintupletIndex] = 0;
