@@ -133,5 +133,5 @@ if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_newgr
 fi
 
 echo "Total Timing Summary"
-echo "Evt     Hits         MD       LS      T4      T4x       pT4        T3       TC       T5       pT3      Total"
+echo "Evt     Hits         MD       LS      T4      T4x       pT4       T3       TC       T5      pT3     pT5     Total"
 grep -hr "avg " timing_temp.txt # space is needed to not get certain bad lines 

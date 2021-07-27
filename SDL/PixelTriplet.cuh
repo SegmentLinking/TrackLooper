@@ -34,6 +34,13 @@ namespace SDL
         float* pixelRadiusError;
         float* rPhiChiSquared;
         float* tripletRadius;
+        float* pt;
+        float* eta;
+        float* phi;
+        float* eta_pix;
+        float* phi_pix;
+        float* score;
+        bool* isDup;
 
         pixelTriplets();
         ~pixelTriplets();
@@ -48,8 +55,9 @@ namespace SDL
 #ifdef CUT_VALUE_DEBUG
     CUDA_DEV void addPixelTripletToMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float pixelRadiusError, float tripletRadius, float rPhiChiSquared, unsigned int pixelTripletIndex);
 #else
-    CUDA_DEV void addPixelTripletToMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float tripletRadius, unsigned int pixelTripletIndex);
+    CUDA_DEV void addPixelTripletToMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float tripletRadius, unsigned int pixelTripletIndex,float pt, float eta, float phi, float eta_pix, float phi_pix, float score);
 #endif
+    CUDA_DEV void rmPixelTripletToMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelTripletIndex);
 
     CUDA_DEV bool runPixelTripletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& pixelSegmentIndex, unsigned int tripletIndex, float& pixelRadius, float& pixelRadiusError, float& tripletRadius, float& rPhiChiSquared);
 

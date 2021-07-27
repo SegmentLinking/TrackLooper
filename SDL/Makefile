@@ -22,7 +22,8 @@ CXXFLAGS             =  -g --compiler-options -Wall --compiler-options -Wshadow 
 LD                   = nvcc 
 SOFLAGS              = -g -shared --compiler-options -fPIC --cudart shared -arch=compute_70
 PRINTFLAG            = -DAddObjects -DT4FromT3 #-DWarnings
-FINALSTATE           = -DFINAL_T5 -DFINAL_pT3 #-DFINAL_pT2 #-DFINAL_T3T4 
+FINALSTATE           = -DFINAL_T5 #-DFINAL_pT3 #-DFINAL_T3T4 
+DUPLICATES           = -DDUP_T5
 MEMFLAG              =
 CACHEFLAG            =
 CUDALAUNCHFLAG       = -DNESTED_PARA 
@@ -36,10 +37,10 @@ CUDALAUNCHFLAG_FLAGS = -DNEWGRID_MD -DNEWGRID_Seg -DNEWGRID_Trips -DNEWGRID_Trac
 CUTVALUEFLAG = 
 CUTVALUEFLAG_FLAGS = -DCUT_VALUE_DEBUG
 %_cuda.o : %.cu %.cuh
-	$(LD) -x cu $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $(CUTVALUEFLAG) $(FINALSTATE) $< -o $@
+	$(LD) -x cu $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $(CUTVALUEFLAG) $(FINALSTATE) $(DUPLICATES) $< -o $@
 
 %_cpu.o : %.cc %.h
-	$(LD) -O2 $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $(FINALSTATE) $< -o $@
+	$(LD) -O2 $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $(FINALSTATE) $(DUPLICATES) $< -o $@
 
 $(LIB):$(CCOBJECTS) $(CUOBJECTS)
 	$(LD)  $(SOFLAGS) $^ -o $@

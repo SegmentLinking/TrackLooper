@@ -106,9 +106,20 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<vector<int>>>("sim_T5_types");
     ana.tx->createBranch<vector<int>>("t5_isFake");
     ana.tx->createBranch<vector<int>>("t5_isDuplicate");
+    ana.tx->createBranch<vector<int>>("t5_foundDuplicate");
     ana.tx->createBranch<vector<float>>("t5_pt");
     ana.tx->createBranch<vector<float>>("t5_eta");
     ana.tx->createBranch<vector<float>>("t5_phi");
+    ana.tx->createBranch<vector<float>>("t5_eta_2");
+    ana.tx->createBranch<vector<float>>("t5_phi_2");
+
+    ana.tx->createBranch<vector<float>>("t5_score_rphi");
+    ana.tx->createBranch<vector<float>>("t5_score_rz");
+    ana.tx->createBranch<vector<float>>("t5_score_rzlsq");
+    ana.tx->createBranch<vector<float>>("t5_score_rphisum");
+    ana.tx->createBranch<vector<vector<int>>>("t5_hitIdxs");
+    ana.tx->createBranch<vector<vector<int>>>("t5_matched_simIdx");
+
 //#endif
     //pLS
     ana.tx->createBranch<vector<int>>("sim_pLS_matched");
@@ -119,7 +130,7 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("pLS_eta");
     ana.tx->createBranch<vector<float>>("pLS_phi");
 
-
+    //pT3
     ana.tx->createBranch<vector<int>>("sim_pT3_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_pT3_types");
     ana.tx->createBranch<vector<float>>("pT3_pt");
@@ -127,7 +138,14 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("pT3_phi");
     ana.tx->createBranch<vector<int>>("pT3_isFake");
     ana.tx->createBranch<vector<int>>("pT3_isDuplicate");
+    ana.tx->createBranch<vector<float>>("pT3_eta_2");
+    ana.tx->createBranch<vector<float>>("pT3_phi_2");
+    ana.tx->createBranch<vector<float>>("pT3_score");
+    ana.tx->createBranch<vector<int>>("pT3_foundDuplicate");
+    ana.tx->createBranch<vector<vector<int>>>("pT3_matched_simIdx");
+    ana.tx->createBranch<vector<vector<int>>>("pT3_hitIdxs");
 
+    //pT5
     ana.tx->createBranch<vector<int>>("sim_pT5_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_pT5_types");
     ana.tx->createBranch<vector<float>>("pT5_pt");
@@ -835,10 +853,10 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 //outerTrackletIndex = T5
                 innerTrackletInnerSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[innerTrackletIdx];
                 innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx]];
-                outerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIndex] + 1];
+                outerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx] + 1];
 
-                outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIndex + 1]];
-                outermostSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIndex + 1] + 1];
+                outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]];
+                outermostSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1] + 1];
 
                 //betaIn only has the beta values of the T5s. Use the TC type = 7 criterion to then get the pixel pT value to add together with these later!!!!!!
                 betaIn_in = tripletsInGPU.betaIn[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]];
@@ -916,7 +934,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             if(trackCandidateType == 7)
             {
                outermostSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outermostSegmentIndex];
-                outermostSegmentOuterMiniDoubletIndex; = segmentsInGPU.mdIndices[2 * outermostSegmentIndex + 1];
+               outermostSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outermostSegmentIndex + 1];
 
 
             }
@@ -934,13 +952,13 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             unsigned int outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentOuterMiniDoubletIndex];
             unsigned int outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentOuterMiniDoubletIndex + 1];
 
-            unsigned int outermostOuterMiniDoubletLowerHitIndex;
-            unsigned int outermostOuterMiniDoubletUpperHitIndex;
+            unsigned int outermostSegmentOuterMiniDoubletLowerHitIndex;
+            unsigned int outermostSegmentOuterMiniDoubletUpperHitIndex;
 
             if(trackCandidateType == 7)
             {
-                outermostOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outermostOuterMiniDoubletIndex];
-                outermostOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outermostOuterMiniDoubletIndex + 1];
+                outermostSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outermostSegmentOuterMiniDoubletIndex];
+                outermostSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outermostSegmentOuterMiniDoubletIndex + 1];
             }
 
             std::vector<int> hit_idx = {
@@ -960,8 +978,8 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
 
             if(trackCandidateType == 7)
             {
-                hit_idxs.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletLowerHitIndex]);
-                hit_idxs.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletUpperHitIndex]);
+                hit_idx.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletLowerHitIndex]);
+                hit_idx.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletUpperHitIndex]);
             }
 
             unsigned int iiia_idx = -1;
@@ -1049,8 +1067,8 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 (int) hitsInGPU.moduleIndices[outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
             };
 
-            module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostOuterMiniDoubletLowerHitIndex]);
-            moduls_idxs.push_back((int) hitsInGPU.moduleIndices[outermostOuterMiniDoubletUpperHitIndex]);
+            module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostSegmentOuterMiniDoubletLowerHitIndex]);
+            module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostSegmentOuterMiniDoubletUpperHitIndex]);
 
             bool isPixel0 = (idx == *(modulesInGPU.nLowerModules));
             // bool isPixel1 = (idx == *(modulesInGPU.nLowerModules));
@@ -1535,6 +1553,14 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     std::vector<float> t5_pt;
     std::vector<float> t5_eta;
     std::vector<float> t5_phi;
+    std::vector<float> t5_eta_2;
+    std::vector<float> t5_phi_2;
+    std::vector<float> t5_score_rphi;
+    std::vector<float> t5_score_rz;
+    std::vector<float> t5_score_rzlsq;
+    std::vector<float> t5_score_rphisum;
+    std::vector<vector<int>> t5_hitIdxs;
+    std::vector<int> t5_foundDuplicate;
 
 #ifdef CUT_VALUE_DEBUG
     std::vector<float> t5_innerRadius;
@@ -1584,7 +1610,14 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
             unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
 
-
+            if(quintupletsInGPU.isDup[quintupletIndex]==1){continue;}
+            t5_foundDuplicate.emplace_back(quintupletsInGPU.isDup[quintupletIndex]);
+            t5_score_rphi.emplace_back(quintupletsInGPU.score_rphi[quintupletIndex]);
+            t5_score_rz.emplace_back(quintupletsInGPU.score_rz[quintupletIndex]);
+            t5_score_rzlsq.emplace_back(quintupletsInGPU.score_rzlsq[quintupletIndex]);
+            t5_score_rphisum.emplace_back(quintupletsInGPU.score_rphisum[quintupletIndex]);
+            t5_eta_2.emplace_back(quintupletsInGPU.eta[quintupletIndex]);
+            t5_phi_2.emplace_back(quintupletsInGPU.phi[quintupletIndex]);
 
 #ifdef CUT_VALUE_DEBUG
             t5_innerRadius.push_back(quintupletsInGPU.innerRadius[quintupletIndex]);
@@ -1656,6 +1689,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
                 (int) hitsInGPU.idxs[outerTripletOuterSegmentOuterMiniDoubletLowerHitIndex],
                 (int) hitsInGPU.idxs[outerTripletOuterSegmentOuterMiniDoubletUpperHitIndex]
             };
+            t5_hitIdxs.emplace_back(hit_idxs);
 
             std::vector<int> hit_types(hit_idxs.size(), 4);
             std::vector<int> module_idxs = {
@@ -1776,9 +1810,20 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<vector<int>>>("sim_T5_types", sim_T5_types);
     ana.tx->setBranch<vector<int>>("t5_isFake", t5_isFake);
     ana.tx->setBranch<vector<int>>("t5_isDuplicate", t5_isDuplicate);
+    ana.tx->setBranch<vector<int>>("t5_foundDuplicate", t5_foundDuplicate);
     ana.tx->setBranch<vector<float>>("t5_pt", t5_pt);
     ana.tx->setBranch<vector<float>>("t5_eta", t5_eta);
     ana.tx->setBranch<vector<float>>("t5_phi", t5_phi);
+    ana.tx->setBranch<vector<float>>("t5_eta_2", t5_eta_2);
+    ana.tx->setBranch<vector<float>>("t5_phi_2", t5_phi_2);
+
+
+    ana.tx->setBranch<vector<vector<int>>>("t5_matched_simIdx", t5_matched_simIdx);
+    ana.tx->setBranch<vector<vector<int>>>("t5_hitIdxs", t5_hitIdxs);
+    ana.tx->setBranch<vector<float>>("t5_score_rphi", t5_score_rphi);
+    ana.tx->setBranch<vector<float>>("t5_score_rz", t5_score_rz);
+    ana.tx->setBranch<vector<float>>("t5_score_rzlsq", t5_score_rzlsq);
+    ana.tx->setBranch<vector<float>>("t5_score_rphisum", t5_score_rphisum);
 #ifdef CUT_VALUE_DEBUG
     ana.tx->setBranch<vector<vector<float>>>("t5_matched_pt",t5_simpt);
 
@@ -1824,6 +1869,11 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     std::vector<float> pT3_pt;
     std::vector<float> pT3_eta;
     std::vector<float> pT3_phi;
+    std::vector<float> pT3_eta_2;
+    std::vector<float> pT3_phi_2;
+    std::vector<float> pT3_score;
+    std::vector<int> pT3_foundDuplicate;
+    std::vector<vector<int>> pT3_hitIdxs;
 
 #ifdef CUT_VALUE_DEBUG
     std::vector<float> pT3_pixelRadius;
@@ -1843,6 +1893,11 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     {
         unsigned int pixelSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[jdx];
         unsigned int tripletIndex = pixelTripletsInGPU.tripletIndices[jdx];
+
+        pT3_eta_2.emplace_back(pixelTripletsInGPU.eta[jdx]);
+        pT3_phi_2.emplace_back(pixelTripletsInGPU.phi[jdx]);
+        pT3_score.emplace_back(pixelTripletsInGPU.score[jdx]);
+        pT3_foundDuplicate.emplace_back(pixelTripletsInGPU.isDup[jdx]);
         
         unsigned int pixelInnerMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
         unsigned int pixelOuterMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
@@ -1876,6 +1931,8 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
             (int) hitsInGPU.idxs[tripletOuterMDLowerHitIndex],
             (int) hitsInGPU.idxs[tripletOuterMDUpperHitIndex]
         };
+
+        pT3_hitIdxs.emplace_back(hit_idxs);
 
         std::vector<int> hit_types;
         hit_types.push_back(0);
@@ -2010,6 +2067,12 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("pT3_pt", pT3_pt);
     ana.tx->setBranch<vector<float>>("pT3_eta", pT3_eta);
     ana.tx->setBranch<vector<float>>("pT3_phi", pT3_phi);
+    ana.tx->setBranch<vector<float>>("pT3_eta_2", pT3_eta_2);
+    ana.tx->setBranch<vector<float>>("pT3_phi_2", pT3_phi_2);
+    ana.tx->setBranch<vector<float>>("pT3_score", pT3_score);
+    ana.tx->setBranch<vector<int>>("pT3_foundDuplicate", pT3_foundDuplicate);
+    ana.tx->setBranch<vector<vector<int>>>("pT3_matched_simIdx", pT3_matched_simIdx);
+    ana.tx->setBranch<vector<vector<int>>>("pT3_hitIdxs", pT3_hitIdxs);
 #ifdef CUT_VALUE_DEBUG
     ana.tx->setBranch<vector<vector<float>>>("pT3_matched_pt", pT3_simpt);
     ana.tx->setBranch<vector<float>>("pT3_pixelRadius", pT3_pixelRadius);
