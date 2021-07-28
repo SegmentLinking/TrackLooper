@@ -1894,6 +1894,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         unsigned int pixelSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[jdx];
         unsigned int tripletIndex = pixelTripletsInGPU.tripletIndices[jdx];
 
+        if(pixelTripletsInGPU.isDup[jdx]==1){continue;}
         pT3_eta_2.emplace_back(pixelTripletsInGPU.eta[jdx]);
         pT3_phi_2.emplace_back(pixelTripletsInGPU.phi[jdx]);
         pT3_score.emplace_back(pixelTripletsInGPU.score[jdx]);
