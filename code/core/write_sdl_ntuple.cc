@@ -859,11 +859,11 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 outermostSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1] + 1];
 
                 //betaIn only has the beta values of the T5s. Use the TC type = 7 criterion to then get the pixel pT value to add together with these later!!!!!!
-                betaIn_in = tripletsInGPU.betaIn[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]];
-                betaOut_in = tripletsInGPU.betaOut[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx] + 1];
+                betaIn_in = tripletsInGPU.betaIn[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]];
+                betaOut_in = tripletsInGPU.betaOut[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]];
 
-                betaIn_out = tripletsInGPU.betaIn[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]];
-                betaOut_out = tripletsInGPU.betaOut[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1] + 1];
+                betaIn_out = tripletsInGPU.betaIn[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]];
+                betaOut_out = tripletsInGPU.betaOut[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]];
 
             }
 #endif
@@ -1066,9 +1066,11 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 (int) hitsInGPU.moduleIndices[outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex],
                 (int) hitsInGPU.moduleIndices[outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
             };
-
-            module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostSegmentOuterMiniDoubletLowerHitIndex]);
-            module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostSegmentOuterMiniDoubletUpperHitIndex]);
+            if(trackCandidateType == 7)
+            {
+                module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostSegmentOuterMiniDoubletLowerHitIndex]);
+                module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostSegmentOuterMiniDoubletUpperHitIndex]);
+            }
 
             bool isPixel0 = (idx == *(modulesInGPU.nLowerModules));
             // bool isPixel1 = (idx == *(modulesInGPU.nLowerModules));
