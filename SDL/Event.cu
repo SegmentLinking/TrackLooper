@@ -3270,7 +3270,10 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,str
   int innerObjectArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
   if(innerObjectArrayIndex >= nQuints) return;
   int quintupletIndex = modulesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] + innerObjectArrayIndex;
-  if(quintupletsInGPU.isDup[quintupletIndex]){return;}
+  if(quintupletsInGPU.isDup[quintupletIndex] or quintupletsInGPU.partOfPT5[quintupletIndex])
+  {
+      return;
+  }
 
   unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[innerInnerInnerLowerModuleArrayIndex],1);
   atomicAdd(&trackCandidatesInGPU.nTrackCandidatesT5[innerInnerInnerLowerModuleArrayIndex],1);
@@ -3298,7 +3301,11 @@ __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
   unsigned int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets;
   if(pixelTripletArrayIndex >= nPixelTriplets) return;
   int pixelTripletIndex = pixelTripletArrayIndex;
-  if(pixelTripletsInGPU.isDup[pixelTripletIndex]){return;}
+
+  if(pixelTripletsInGPU.isDup[pixelTripletIndex] or pixelTripletsInGPU.partOfPT5[pixelTripletIndex])
+  {
+      return;
+  }
 
   unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
   atomicAdd(trackCandidatesInGPU.nTrackCandidatespT3,1);
@@ -4158,9 +4165,10 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
                 scores[2] = chiSquared + nonAnchorChiSquared;
                 //printf("%f %f %f %f\n",scores[0],scores[2],scores[1],scores[3]);
 #ifdef CUT_VALUE_DEBUG
-                addQuintupletToMemory(quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, innerRadiusMin, innerRadiusMax, outerRadius, outerRadiusMin, outerRadiusMax, bridgeRadius, bridgeRadiusMin, bridgeRadiusMax, innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S, outerRadiusMax2S, regressionG, regressionF, regressionRadius, chiSquared, nonAnchorChiSquared, quintupletIndex);
+                addQuintupletToMemory(quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, innerRadiusMin, innerRadiusMax, outerRadius, outerRadiusMin, outerRadiusMax, bridgeRadius, bridgeRadiusMin, bridgeRadiusMax, innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S, outerRadiusMax2S, regressionG, regressionF, regressionRadius, chiSquared, nonAnchorChiSquared,
+                        pt, eta, phi, scores, layer, quintupletIndex);
 #else
-                addQuintupletToMemory(quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, outerRadius, regressionG, regressionF, regressionRadius, quintupletIndex, pt,eta,phi,scores,layer);
+                addQuintupletToMemory(quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, outerRadius, regressionG, regressionF, regressionRadius, pt,eta,phi,scores,layer,quintupletIndex);
 #endif
             }
         }
@@ -4236,9 +4244,9 @@ __global__ void createQuintupletsFromInnerInnerLowerModule(SDL::modules& modules
                 //printf("scores: %f %f %f\n",scores[0],scores[1],scores[2]);
                 
 #ifdef CUT_VALUE_DEBUG
-                addQuintupletToMemory(quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, innerRadiusMin, innerRadiusMax, outerRadius, outerRadiusMin, outerRadiusMax, bridgeRadius, bridgeRadiusMin, bridgeRadiusMax, innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S, outerRadiusMax2S, regressionG, regressionF, regressionRadius, chiSquared, nonAnchorChiSquared, quintupletIndex);
+                addQuintupletToMemory(quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, innerRadiusMin, innerRadiusMax, outerRadius, outerRadiusMin, outerRadiusMax, bridgeRadius, bridgeRadiusMin, bridgeRadiusMax, innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S, outerRadiusMax2S, regressionG, regressionF, regressionRadius, chiSquared, nonAnchorChiSquared, pt,eta,phi,scores,layer, quintupletIndex);
 #else
-                addQuintupletToMemory(quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, outerRadius, regressionG, regressionF, regressionRadius, quintupletIndex,pt,eta,phi,scores,layer);
+                addQuintupletToMemory(quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, outerRadius, regressionG, regressionF, regressionRadius, pt,eta,phi,scores,layer, quintupletIndex);
 #endif
 
             }
@@ -4275,7 +4283,10 @@ __global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modul
     
     if(outerQuintupletArrayIndex >= nOuterQuintuplets) return;
     unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[firstLowerModuleArrayIndex] + outerQuintupletArrayIndex;
-    if(quintupletsInGPU.isDup[quintupletIndex]){return;}
+    if(quintupletsInGPU.isDup[quintupletIndex])
+    {
+        return;
+    }
 
     float rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards;
 
@@ -4302,6 +4313,9 @@ __global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modul
 #else
            addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelTripletIndex, quintupletIndex, pixelQuintupletIndex);
 #endif
+           //mark the relevant T5 and pT3 here!
+           quintupletsInGPU.partOfPT5[quintupletIndex] = true;
+           pixelTripletsInGPU.partOfPT5[pixelTripletIndex] = true;
        }
 
     }
@@ -5172,7 +5186,10 @@ __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, str
       for(unsigned int lowmod1=blockIdx.x*blockDim.x+threadIdx.x; lowmod1<*modulesInGPU.nLowerModules;lowmod1+=blockDim.x*gridDim.x){
       for(unsigned int ix1=blockIdx.y*blockDim.y+threadIdx.y; ix1<quintupletsInGPU.nQuintuplets[lowmod1]; ix1+=blockDim.y*gridDim.y){
         unsigned int ix = modulesInGPU.quintupletModuleIndices[lowmod1] + ix1;
-        if(secondPass && quintupletsInGPU.isDup[ix]==1){continue;}
+        if(secondPass && quintupletsInGPU.isDup[ix]==1)
+        {
+            continue;
+        }
         float pt1  = quintupletsInGPU.pt[ix];
         float eta1 = quintupletsInGPU.eta[ix];
         float phi1 = quintupletsInGPU.phi[ix];
@@ -5181,7 +5198,10 @@ __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, str
         for(unsigned int jx1=0; jx1<quintupletsInGPU.nQuintuplets[lowmod]; jx1++){
           unsigned int jx = modulesInGPU.quintupletModuleIndices[lowmod] + jx1;
           if(ix==jx){continue;}
-          if(secondPass && quintupletsInGPU.isDup[jx]==1){continue;}
+          if(secondPass && quintupletsInGPU.isDup[jx]==1)
+          {
+              continue;
+          }
           float pt2  = quintupletsInGPU.pt[jx];
           float eta2 = quintupletsInGPU.eta[jx];
           float phi2 = quintupletsInGPU.phi[jx];
