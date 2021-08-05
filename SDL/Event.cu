@@ -1795,17 +1795,11 @@ void SDL::Event::createPixelTriplets()
     exit(2);
 #endif
 #endif
-#ifdef DUP_pT3
-    dim3 nThreads_dup(1024,1,1);
-    dim3 nBlocks_dup(64,1,1);
-    removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU);
-#endif
     unsigned int nPixelTriplets;
     cudaMemcpy(&nPixelTriplets, &(pixelTripletsInGPU->nPixelTriplets),  sizeof(unsigned int), cudaMemcpyDeviceToHost);
 #ifdef Warnings
     std::cout<<"number of pixel triplets = "<<nPixelTriplets<<std::endl;
 #endif
-
 }
 
 
@@ -1959,6 +1953,12 @@ void SDL::Event::createPixelQuintuplets()
 #ifdef Warnings
     std::cout<<"number of pixel quintuplets = "<<nPixelQuintuplets<<std::endl;
 #endif    
+
+#ifdef DUP_pT3
+    dim3 nThreads_dup(1024,1,1);
+    dim3 nBlocks_dup(64,1,1);
+    removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU);
+#endif
 }
 
 
@@ -4279,7 +4279,7 @@ __global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modul
     unsigned int pixelTripletIndex = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned int outerQuintupletArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
     if(pixelTripletIndex >= nPixelTriplets) return;
-    if(pixelTripletsInGPU.isDup[pixelTripletIndex]){return;}
+//    if(pixelTripletsInGPU.isDup[pixelTripletIndex]){return;}
     
     if(outerQuintupletArrayIndex >= nOuterQuintuplets) return;
     unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[firstLowerModuleArrayIndex] + outerQuintupletArrayIndex;
@@ -5398,8 +5398,18 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesI
         if((nMatched[0] >=4) && (nMatched[1] >= 4)){
           dup_count++;
           //if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > .2){
-          if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > 0){
-            rmPixelTripletToMemory(pixelTripletsInGPU,ix);break; // keept shorted track
+          if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > 0)
+          {
+              if(pixelTripletsInGPU.partOfPT5[ix])
+              {
+                  rmPixelTripletToMemory(pixelTripletsInGPU, jx); 
+                  break;
+              }
+              else
+              {
+                rmPixelTripletToMemory(pixelTripletsInGPU,ix);
+                break; // keept shorted track
+              }
           }
         }
         //if(nMatched ==8){
