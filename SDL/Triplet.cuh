@@ -34,6 +34,8 @@ namespace SDL
         float* betaOut;
         float* pt_beta;
 
+        bool* partOfPT5;
+
 #ifdef CUT_VALUE_DEBUG
         //debug variables
         float* zOut;
