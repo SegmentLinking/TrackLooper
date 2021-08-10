@@ -1803,6 +1803,7 @@ void SDL::Event::createPixelTriplets()
 
     //pT3s can be cleaned here because they're not used in making pT5s!
 #ifdef DUP_pT3
+    printf("run dup pT3\n");
     dim3 nThreads_dup(1024,1,1);
     dim3 nBlocks_dup(64,1,1);
     removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU);
@@ -3950,6 +3951,7 @@ __global__ void createPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGP
     int segmentModuleIndex = seg_pix_gpu_offset[offsetIndex];
     int pixelSegmentArrayIndex = seg_pix_gpu[offsetIndex];
     if(pixelSegmentArrayIndex >= nPixelSegments) return;
+    if(segmentsInGPU.partOfPT5[pixelSegmentArrayIndex]) return;
     if(segmentModuleIndex >= connectedPixelSize[pixelSegmentArrayIndex]) return;
 
     unsigned int tripletLowerModuleIndex; //index of the module that connects to this pixel
@@ -4284,14 +4286,16 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
 
 #endif
 
-__global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int nPixelSegments, unsigned int nOuterQuintuplets, unsigned int firstLowerModuleArrayIndex)
+__global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int nPixelSegments, unsigned int nOuterQuintuplets, unsigned int firstLowerModuleArrayIndex, unsigned int pixelModuleIndex)
 {
-    unsigned int pixelSegmentIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int pixelSegmentArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned int outerQuintupletArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
-    if(pixelSegmentIndex >= nPixelSegments) return;
-    
+    if(pixelSegmentArrayIndex >= nPixelSegments) return; 
     if(outerQuintupletArrayIndex >= nOuterQuintuplets) return;
+
+    unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + pixelSegmentArrayIndex;
     unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[firstLowerModuleArrayIndex] + outerQuintupletArrayIndex;
+
     if(quintupletsInGPU.isDup[quintupletIndex])
     {
         return;
@@ -4328,6 +4332,7 @@ __global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modul
            unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
            tripletsInGPU.partOfPT5[innerTripletIndex] = true;
            tripletsInGPU.partOfPT5[outerTripletIndex] = true;
+           segmentsInGPU.partOfPT5[pixelSegmentArrayIndex] = true;
        }
 
     }
@@ -4350,7 +4355,7 @@ __global__ void createPixelQuintupletsInGPU(struct SDL::modules& modulesInGPU, s
     dim3 nThreads(16, 16, 1);
     dim3 nBlocks(nPixelSegments % nThreads.x == 0 ? nPixelSegments / nThreads.x : nPixelSegments / nThreads.x + 1, nOuterQuintuplets % nThreads.y == 0 ? nOuterQuintuplets / nThreads.y : nOuterQuintuplets / nThreads.y + 1, 1);
 
-    createPixelQuintupletsFromFirstModule<<<nBlocks, nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, nPixelSegments, nOuterQuintuplets, firstLowerModuleArrayIndex);
+    createPixelQuintupletsFromFirstModule<<<nBlocks, nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, nPixelSegments, nOuterQuintuplets, firstLowerModuleArrayIndex, pixelModuleIndex);
 
 }
 

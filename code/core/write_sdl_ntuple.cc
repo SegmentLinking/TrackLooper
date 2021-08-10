@@ -851,11 +851,11 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             {
                 //innerTrackletIndex = pLS
                 //outerTrackletIndex = T5
-                innerTracketInnerSegmentIndex = innerTrackletIndex;
+                innerTrackletInnerSegmentIndex = innerTrackletIdx;
                 //segment number 1 of T5
-                innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIndex]];
+                innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]];
                 //segment number 2 of T5
-                outerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIndex] + 1];
+                outerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx] + 1];
                 //segment number 3 of T5
                 outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]];
                 //segment number 4 of T5
@@ -2291,7 +2291,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
 
         const float kRinv1GeVf = (2.99792458e-3 * 3.8);
 
-        float pt = (pixelTripletsInGPU.pixelRadius[pT3Index] + pixelTripletsInGPU.tripletRadius[pT3Index] + quintupletsInGPU.outerRadius[jdx]) * (kRinv1GeVf)/3;
+        float pt = (segmentsInGPU.ptIn[pixelSegmentIndex - ((*(modulesInGPU.nModules))-1)*600 ] +  quintupletsInGPU.regressionRadius[T5Index] * kRinv1GeVf) / 2;
 
         SDL::CPU::Hit hitA(trk.pix_x()[hit_idxs[0]], trk.pix_y()[hit_idxs[0]], trk.pix_z()[hit_idxs[0]]);
         SDL::CPU::Hit hitB(trk.ph2_x()[hit_idxs[13]], trk.ph2_y()[hit_idxs[13]], trk.ph2_z()[hit_idxs[13]]);

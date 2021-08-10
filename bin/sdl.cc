@@ -352,8 +352,6 @@ void run_sdl()
             // Run T3
             float timing_T3 = runT3(event);
 
-            //Run pT3
-            float timing_pT3 = runpT3(event);
 
 #ifdef DO_QUADRUPLET
             // Run T4
@@ -369,6 +367,9 @@ void run_sdl()
             float timing_T5 = 0;
             float timing_pT5 = 0;
 #endif
+            //Run pT3
+            float timing_pT3 = runpT3(event);
+
             // Run TC
             float timing_TC = runTrackCandidate(event);
 

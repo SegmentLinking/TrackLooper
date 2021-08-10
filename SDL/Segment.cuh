@@ -53,6 +53,7 @@ namespace SDL
         float* circleCenterX;
         float* circleCenterY;
         float* circleRadius;
+        bool* partOfPT5;
 
 #ifdef CUT_VALUE_DEBUG
         float* zIns;

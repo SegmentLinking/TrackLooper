@@ -20,7 +20,7 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     segmentsInGPU.circleCenterX = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
     segmentsInGPU.circleCenterY = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
     segmentsInGPU.circleRadius = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
-
+    segmentsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_managed(maxPixelSegments * sizeof(bool), stream);
 #else
     cudaMallocManaged(&segmentsInGPU.mdIndices, nMemoryLocations * 6 * sizeof(unsigned int));
     cudaMallocManaged(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
@@ -30,6 +30,7 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     cudaMallocManaged(&segmentsInGPU.circleCenterX, maxPixelSegments * sizeof(float));
     cudaMallocManaged(&segmentsInGPU.circleCenterY, maxPixelSegments * sizeof(float));
     cudaMallocManaged(&segmentsInGPU.circleRadius, maxPixelSegments * sizeof(float));
+    cudaMallocManaged(&segmentsInGPU.partOfPT5, maxPixelSegments * sizeof(bool));
 
 #ifdef CUT_VALUE_DEBUG
     cudaMallocManaged(&segmentsInGPU.zIns, nMemoryLocations * 7 * sizeof(float));
@@ -76,6 +77,8 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     {
         segmentsInGPU.nSegments[i] = 0;
     }
+    cudaMemset(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool));
+
 }
 void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments)
 {
@@ -94,6 +97,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.circleCenterX = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
     segmentsInGPU.circleCenterY = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
     segmentsInGPU.circleRadius = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
+    segmentsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(bool), stream);
 
 #else
     cudaMalloc(&segmentsInGPU.mdIndices, nMemoryLocations * 6 * sizeof(unsigned int));
@@ -104,9 +108,11 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     cudaMalloc(&segmentsInGPU.circleCenterX, maxPixelSegments * sizeof(float));
     cudaMalloc(&segmentsInGPU.circleCenterY, maxPixelSegments * sizeof(float));
     cudaMalloc(&segmentsInGPU.circleRadius, maxPixelSegments * sizeof(float));
+    cudaMalloc(&segmentsInGPU.partOfPT5, maxPixelSegments * sizeof(bool));
 
 #endif
     cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
+    cudaMemset(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool));
 
     segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 2;
     segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 3;
@@ -150,6 +156,7 @@ SDL::segments::segments()
     dPhiChanges = nullptr;
     dPhiChangeMins = nullptr;
     dPhiChangeMaxs = nullptr;
+    partOfPT5 = nullptr;
 
 #ifdef CUT_VALUE_DEBUG
     zIns = nullptr;
@@ -188,6 +195,7 @@ void SDL::segments::freeMemoryCache()
     cms::cuda::free_device(dev, circleCenterX);
     cms::cuda::free_device(dev, circleCenterY);
     cms::cuda::free_device(dev, circleRadius);
+    cms::cuda::free_device(dev, partOfPT5);
 #else
     cms::cuda::free_managed(mdIndices);
     cms::cuda::free_managed(dPhis);
@@ -197,6 +205,7 @@ void SDL::segments::freeMemoryCache()
     cms::cuda::free_managed(circleCenterX);
     cms::cuda::free_managed(circleCenterY);
     cms::cuda::free_managed(circleRadius);
+    cms::cuda::free_managed(partOfPT5);
 #endif
 }
 void SDL::segments::freeMemory()
@@ -209,7 +218,7 @@ void SDL::segments::freeMemory()
     cudaFree(circleCenterX);
     cudaFree(circleCenterY);
     cudaFree(circleRadius);
-
+    cudaFree(partOfPT5);
 #ifdef CUT_VALUE_DEBUG
     cudaFree(zIns);
     cudaFree(zLo);

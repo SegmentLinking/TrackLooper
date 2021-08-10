@@ -147,10 +147,12 @@ void SDL::triplets::freeMemoryCache()
     cms::cuda::free_device(dev,segmentIndices);
     cms::cuda::free_device(dev,betaIn);
     cms::cuda::free_device(dev,nTriplets);
+    cms::cuda::free_device(dev, partOfPT5);
 #else
     cms::cuda::free_managed(segmentIndices);
     cms::cuda::free_managed(betaIn);
     cms::cuda::free_managed(nTriplets);
+    cms::cuda::free_managed(partOfPT5);
 #endif
 }
 void SDL::triplets::freeMemory()
@@ -158,6 +160,7 @@ void SDL::triplets::freeMemory()
     cudaFree(segmentIndices);
     cudaFree(nTriplets);
     cudaFree(betaIn);
+    cudaFree(partOfPT5);
 #ifdef CUT_VALUE_DEBUG
     cudaFree(zOut);
     cudaFree(zLo);
