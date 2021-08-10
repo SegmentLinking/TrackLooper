@@ -3977,7 +3977,7 @@ __global__ void createPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGP
         float eta_pix = segmentsInGPU.eta[pixelSegmentArrayIndex];
         float phi_pix = segmentsInGPU.phi[pixelSegmentArrayIndex];
         float pt = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
-        float score = scorepT3(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,tripletsInGPU,pixelSegmentIndex,outerTripletIndex,pt,segmentsInGPU.pz[pixelSegmentArrayIndex]);
+        float score = rPhiChiSquared;//scorepT3(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,tripletsInGPU,pixelSegmentIndex,outerTripletIndex,pt,segmentsInGPU.pz[pixelSegmentArrayIndex]);
         //printf("%f\n",score);
         //if(score >100){return;}
         unsigned int pixelTripletIndex = atomicAdd(pixelTripletsInGPU.nPixelTriplets, 1);
@@ -5250,7 +5250,7 @@ __device__ float scorepT3(struct SDL::modules& modulesInGPU,struct SDL::hits& hi
         //printf("pT3 score: %f\n",score);
         return score;
 }
-__device__ int inline checkHitspT3(unsigned int ix, unsigned int jx,struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU){
+__device__ inline int* checkHitspT3(unsigned int ix, unsigned int jx,struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU){
         int phits1[6] = {-1,-1,-1,-1};
         int phits2[6] = {-1,-1,-1,-1};
           phits1[0] = mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[ix]]];
@@ -5303,7 +5303,8 @@ __device__ int inline checkHitspT3(unsigned int ix, unsigned int jx,struct SDL::
         //if((nMatched >= 6) & (npMatched >= 4)){return true;}
         //if((nMatched >= 2) & (npMatched >= 1)){return true;}
         //if((nMatched  + npMatched >= 10)){return true;}
-        return nMatched+npMatched;
+        int matched[2] = {npMatched,nMatched};
+        return matched;//nMatched+npMatched;
 }
 __device__ int duplicateCounter_pT3 =0;
 __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::triplets& tripletsInGPU)
@@ -5319,7 +5320,8 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesI
       float eta1     = pixelTripletsInGPU.eta[ix];
       float phi1     = pixelTripletsInGPU.phi[ix];
       //float pt1     = pixelTripletsInGPU.pt[ix];
-      for (unsigned int jx=ix+1; jx<*pixelTripletsInGPU.nPixelTriplets-1; jx++){
+      //for (unsigned int jx=ix+1; jx<*pixelTripletsInGPU.nPixelTriplets-1; jx++){
+      for (unsigned int jx=0; jx<*pixelTripletsInGPU.nPixelTriplets-1; jx++){
        // if(pixelTripletsInGPU.isDup[jx]){continue;}
         //float pt2 = pixelTripletsInGPU.pt[jx];
         //if(abs(1./pt1 - 1./pt2) > 0.5){continue;}
@@ -5328,9 +5330,9 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesI
         float dEta_pix = abs(eta1_pix-eta2_pix);
         float dPhi_pix = abs(phi1_pix-phi2_pix);
         if(dPhi_pix > M_PI){dPhi_pix = dPhi_pix - 2*M_PI;}
-        if (dEta_pix > 0.005){continue;}
-        if (abs(dPhi_pix) > 0.005){continue;}
-        //float dR2_pix = dEta_pix*dEta_pix + dPhi_pix*dPhi_pix;
+        //if (dEta_pix > 0.005){continue;}
+        //if (abs(dPhi_pix) > 0.005){continue;}
+        float dR2_pix = dEta_pix*dEta_pix + dPhi_pix*dPhi_pix;
         //if(dR2_pix < 0.0001){
         //  isDup=true;break;
         //}
@@ -5340,10 +5342,10 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesI
         float dEta = abs(eta1-eta2);
         float dPhi = abs(phi1-phi2);
         if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
-        if (dEta > 0.005){continue;}
-        if (dPhi > 0.005){continue;}
-        //float dR2 = dEta*dEta + dPhi*dPhi;
-        int nMatched = checkHitspT3(ix,jx,mdsInGPU,segmentsInGPU,tripletsInGPU,pixelTripletsInGPU); 
+        //if (dEta > 0.005){continue;}
+        //if (dPhi > 0.005){continue;}
+        float dR2 = dEta*dEta + dPhi*dPhi;
+        int* nMatched = checkHitspT3(ix,jx,mdsInGPU,segmentsInGPU,tripletsInGPU,pixelTripletsInGPU); 
         //if(nMatched ==5){
         //  dup_count++;
         //  if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > 2){
@@ -5356,32 +5358,49 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesI
         //    rmPixelTripletToMemory(pixelTripletsInGPU,ix);break; // keept shorted track
         //  }
         //}
-        if(nMatched ==7){
+        //if(nMatched >=6){
+        //  dup_count++;
+        //  //if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > .2){
+        //  if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > 0){
+        //    rmPixelTripletToMemory(pixelTripletsInGPU,ix);break; // keept shorted track
+        //  }
+        //  else if(nMatched ==10 && ix-jx >0){
+        //    rmPixelTripletToMemory(pixelTripletsInGPU,ix);break; // keept shorted track
+        //  }
+        //}
+        //else if(dR2 < 0.00001 || dR2_pix < 0.00001){
+        //  dup_count++;
+        //  //if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > .2){
+        //  if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > 0){
+        //    rmPixelTripletToMemory(pixelTripletsInGPU,ix);break; // keept shorted track
+        //  }
+        //}
+        if((nMatched[0] >=4) && (nMatched[1] >= 4)){
           dup_count++;
           //if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > .2){
-          if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > .2){
+          if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > 0){
             rmPixelTripletToMemory(pixelTripletsInGPU,ix);break; // keept shorted track
           }
         }
-        if(nMatched ==8){
-          dup_count++;
-          //if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > 0.6){
-          if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > 0.6){
-            rmPixelTripletToMemory(pixelTripletsInGPU,ix);break; // keept shorted track
-          }
-        }
-        if(nMatched ==9){
-          //if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > 0.01){
-          if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > 0.01){
-            rmPixelTripletToMemory(pixelTripletsInGPU,ix);break; // keept shorted track
-          }
-        }
-        if(nMatched ==10){
-          dup_count++;
-          if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] >= 0){
-            rmPixelTripletToMemory(pixelTripletsInGPU,ix);break; // keept shorted track
-          }
-        }
+        //if(nMatched ==8){
+        //  dup_count++;
+        //  //if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > 0.6){
+        //  if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > 0.6){
+        //    rmPixelTripletToMemory(pixelTripletsInGPU,ix);break; // keept shorted track
+        //  }
+        //}
+        //if(nMatched ==9){
+        //  //if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > 0.01){
+        //  if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > 0.01){
+        //    rmPixelTripletToMemory(pixelTripletsInGPU,ix);break; // keept shorted track
+        //  }
+        //}
+        //if(nMatched ==10){
+        //  dup_count++;
+        //  if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] >= 0){
+        //    rmPixelTripletToMemory(pixelTripletsInGPU,ix);break; // keept shorted track
+        //  }
+        //}
 
       }
     }
