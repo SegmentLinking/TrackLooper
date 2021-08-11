@@ -41,6 +41,7 @@ namespace SDL
         float* phi_pix;
         float* score;
         bool* isDup;
+        bool* partOfPT5;
 
         pixelTriplets();
         ~pixelTriplets();

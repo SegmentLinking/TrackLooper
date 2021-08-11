@@ -10,6 +10,7 @@ SDL::pixelTriplets::pixelTriplets()
     tripletRadius = nullptr;
     pt = nullptr;
     isDup = nullptr;
+    partOfPT5 = nullptr;
 #ifdef CUT_VALUE_DEBUG
     pixelRadiusError = nullptr;
 #endif
@@ -24,6 +25,7 @@ void SDL::pixelTriplets::freeMemory()
     cudaFree(tripletRadius);
     cudaFree(pt);
     cudaFree(isDup);
+    cudaFree(partOfPT5);
 #ifdef CUT_VALUE_DEBUG
     cudaFree(pixelRadiusError);
     cudaFree(rPhiChiSquared);
@@ -43,6 +45,7 @@ void SDL::createPixelTripletsInUnifiedMemory(struct pixelTriplets& pixelTriplets
     cudaMallocManaged(&pixelTripletsInGPU.tripletRadius, maxPixelTriplets * sizeof(float));
     cudaMallocManaged(&pixelTripletsInGPU.pt, maxPixelTriplets * 6*sizeof(float));
     cudaMallocManaged(&pixelTripletsInGPU.isDup, maxPixelTriplets * sizeof(bool));
+    cudaMallocManaged(&pixelTripletsInGPU.partOfPT5, maxPixelTriplets * sizeof(bool));
 #ifdef CUT_VALUE_DEBUG
     cudaMallocManaged(&pixelTripletsInGPU.pixelRadiusError, maxPixelTriplets * sizeof(float));
     cudaMallocManaged(&pixelTripletsInGPU.rPhiChiSquared, maxPixelTriplets * sizeof(float));
@@ -64,6 +67,7 @@ void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTriplet
     cudaMalloc(&pixelTripletsInGPU.tripletRadius, maxPixelTriplets * sizeof(float));
     cudaMalloc(&pixelTripletsInGPU.pt, maxPixelTriplets * 6*sizeof(float));
     cudaMalloc(&pixelTripletsInGPU.isDup, maxPixelTriplets * sizeof(bool));
+    cudaMalloc(&pixelTripletsInGPU.partOfPT5, maxPixelTriplets * sizeof(bool));
 
     pixelTripletsInGPU.eta = pixelTripletsInGPU.pt + maxPixelTriplets;
     pixelTripletsInGPU.phi = pixelTripletsInGPU.pt + maxPixelTriplets * 2;

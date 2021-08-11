@@ -849,21 +849,24 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             }
             if(trackCandidateType == 7) //pT5
             {
-                //innerTrackletIndex = pT3
+                //innerTrackletIndex = pLS
                 //outerTrackletIndex = T5
-                innerTrackletInnerSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[innerTrackletIdx];
-                innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx]];
-                outerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx] + 1];
-
+                innerTrackletInnerSegmentIndex = innerTrackletIdx;
+                //segment number 1 of T5
+                innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]];
+                //segment number 2 of T5
+                outerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx] + 1];
+                //segment number 3 of T5
                 outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]];
+                //segment number 4 of T5
                 outermostSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1] + 1];
 
                 //betaIn only has the beta values of the T5s. Use the TC type = 7 criterion to then get the pixel pT value to add together with these later!!!!!!
-                betaIn_in = tripletsInGPU.betaIn[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]];
-                betaOut_in = tripletsInGPU.betaOut[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx] + 1];
+                betaIn_in = tripletsInGPU.betaIn[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]];
+                betaOut_in = tripletsInGPU.betaOut[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]];
 
-                betaIn_out = tripletsInGPU.betaIn[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]];
-                betaOut_out = tripletsInGPU.betaOut[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1] + 1];
+                betaIn_out = tripletsInGPU.betaIn[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]];
+                betaOut_out = tripletsInGPU.betaOut[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]];
 
             }
 #endif
@@ -1066,9 +1069,11 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 (int) hitsInGPU.moduleIndices[outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex],
                 (int) hitsInGPU.moduleIndices[outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
             };
-
-            module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostSegmentOuterMiniDoubletLowerHitIndex]);
-            module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostSegmentOuterMiniDoubletUpperHitIndex]);
+            if(trackCandidateType == 7)
+            {
+                module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostSegmentOuterMiniDoubletLowerHitIndex]);
+                module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostSegmentOuterMiniDoubletUpperHitIndex]);
+            }
 
             bool isPixel0 = (idx == *(modulesInGPU.nLowerModules));
             // bool isPixel1 = (idx == *(modulesInGPU.nLowerModules));
@@ -2089,7 +2094,6 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
 void fillPixelQuintupletOutputBranches(SDL::Event& event)
 {
     SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event.getPixelQuintuplets());
-    SDL::pixelTriplets& pixelTripletsInGPU = (*event.getPixelTriplets());
     SDL::quintuplets& quintupletsInGPU = (*event.getQuintuplets());
     SDL::triplets& tripletsInGPU = (*event.getTriplets());
     SDL::segments& segmentsInGPU = (*event.getSegments());
@@ -2119,25 +2123,23 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
     for(unsigned int jdx = 0; jdx < nPixelQuintuplets; jdx++)
     {
         //obtain the hits
-        unsigned int pT3Index = pixelQuintupletsInGPU.pT3Indices[jdx];
         unsigned int T5Index = pixelQuintupletsInGPU.T5Indices[jdx];
-
-        unsigned int pT3TripletIndex = pixelTripletsInGPU.tripletIndices[pT3Index]; //should be the same as T5InnerTripletIndex
+    
         unsigned int T5InnerTripletIndex = quintupletsInGPU.tripletIndices[2 * T5Index];
         unsigned int T5OuterTripletIndex = quintupletsInGPU.tripletIndices[2 * T5Index + 1];
 
-        unsigned int pixelSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[pT3Index];
-        unsigned int commonTripletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * pT3TripletIndex]; 
-        unsigned int commonTripletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * pT3TripletIndex + 1];
+        unsigned int pixelSegmentIndex = pixelQuintupletsInGPU.pixelIndices[jdx];
+        unsigned int T5InnerTripletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * T5InnerTripletIndex]; 
+        unsigned int T5InnerTripletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * T5InnerTripletIndex + 1];
         unsigned int T5OuterTripletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * T5OuterTripletIndex];
         unsigned int T5OuterTripletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * T5OuterTripletIndex + 1];
 
         //7 MDs -> 14 hits!
         unsigned int pixelInnerMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
         unsigned int pixelOuterMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
-        unsigned int T5MDIndex1 = segmentsInGPU.mdIndices[2 * commonTripletInnerSegmentIndex];
-        unsigned int T5MDIndex2 = segmentsInGPU.mdIndices[2 * commonTripletInnerSegmentIndex + 1];
-        unsigned int T5MDIndex3 = segmentsInGPU.mdIndices[2 * commonTripletOuterSegmentIndex + 1];
+        unsigned int T5MDIndex1 = segmentsInGPU.mdIndices[2 * T5InnerTripletInnerSegmentIndex];
+        unsigned int T5MDIndex2 = segmentsInGPU.mdIndices[2 * T5InnerTripletInnerSegmentIndex + 1];
+        unsigned int T5MDIndex3 = segmentsInGPU.mdIndices[2 * T5InnerTripletOuterSegmentIndex + 1];
         unsigned int T5MDIndex4 = segmentsInGPU.mdIndices[2 * T5OuterTripletInnerSegmentIndex + 1];
         unsigned int T5MDIndex5 = segmentsInGPU.mdIndices[2 * T5OuterTripletOuterSegmentIndex + 1];
 
@@ -2288,8 +2290,8 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
         pT5_matched_simIdx.push_back(matched_sim_trk_idxs);
 
         const float kRinv1GeVf = (2.99792458e-3 * 3.8);
-
-        float pt = (pixelTripletsInGPU.pixelRadius[pT3Index] + pixelTripletsInGPU.tripletRadius[pT3Index] + quintupletsInGPU.outerRadius[jdx]) * (kRinv1GeVf)/3;
+//        std::cout<<"pt in = "<<segmentsInGPU.ptIn[pixelSegmentIndex - ((*(modulesInGPU.nModules))-1)*600] << std::endl;
+        float pt = (segmentsInGPU.ptIn[pixelSegmentIndex - ((*(modulesInGPU.nModules))-1)*600 ] +  quintupletsInGPU.regressionRadius[T5Index] * kRinv1GeVf) / 2;
 
         SDL::CPU::Hit hitA(trk.pix_x()[hit_idxs[0]], trk.pix_y()[hit_idxs[0]], trk.pix_z()[hit_idxs[0]]);
         SDL::CPU::Hit hitB(trk.ph2_x()[hit_idxs[13]], trk.ph2_y()[hit_idxs[13]], trk.ph2_z()[hit_idxs[13]]);
