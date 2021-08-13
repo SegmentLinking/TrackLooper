@@ -17,6 +17,7 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     segmentsInGPU.dPhis = (float*)cms::cuda::allocate_managed((nMemoryLocations*6 + maxPixelSegments * 8) *sizeof(float),stream);
     segmentsInGPU.superbin = (int*)cms::cuda::allocate_managed((maxPixelSegments) *sizeof(int),stream);
     segmentsInGPU.pixelType = (int*)cms::cuda::allocate_managed((maxPixelSegments) *sizeof(int),stream);
+    segmentsInGPU.isDup = (bool*)cms::cuda::allocate_managed((maxPixelSegments) *sizeof(bool),stream);
     segmentsInGPU.circleCenterX = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
     segmentsInGPU.circleCenterY = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
     segmentsInGPU.circleRadius = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
@@ -27,6 +28,7 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     cudaMallocManaged(&segmentsInGPU.dPhis, (nMemoryLocations * 6 + maxPixelSegments * 8)*sizeof(float));
     cudaMallocManaged(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int));
     cudaMallocManaged(&segmentsInGPU.pixelType, (maxPixelSegments )*sizeof(int));
+    cudaMallocManaged(&segmentsInGPU.isDup, (maxPixelSegments )*sizeof(bool));
     cudaMallocManaged(&segmentsInGPU.circleCenterX, maxPixelSegments * sizeof(float));
     cudaMallocManaged(&segmentsInGPU.circleCenterY, maxPixelSegments * sizeof(float));
     cudaMallocManaged(&segmentsInGPU.circleRadius, maxPixelSegments * sizeof(float));
@@ -94,6 +96,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.dPhis = (float*)cms::cuda::allocate_device(dev,(nMemoryLocations*6 + maxPixelSegments * 8) *sizeof(float),stream);
     segmentsInGPU.superbin = (int*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(int),stream);
     segmentsInGPU.pixelType = (int*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(int),stream);
+    segmentsInGPU.isDup = (bool*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(bool),stream);
     segmentsInGPU.circleCenterX = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
     segmentsInGPU.circleCenterY = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
     segmentsInGPU.circleRadius = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
@@ -105,6 +108,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     cudaMalloc(&segmentsInGPU.dPhis, (nMemoryLocations * 6 + maxPixelSegments * 8)*sizeof(float));
     cudaMalloc(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int));
     cudaMalloc(&segmentsInGPU.pixelType, (maxPixelSegments )*sizeof(int));
+    cudaMalloc(&segmentsInGPU.isDup, (maxPixelSegments )*sizeof(bool));
     cudaMalloc(&segmentsInGPU.circleCenterX, maxPixelSegments * sizeof(float));
     cudaMalloc(&segmentsInGPU.circleCenterY, maxPixelSegments * sizeof(float));
     cudaMalloc(&segmentsInGPU.circleRadius, maxPixelSegments * sizeof(float));
@@ -140,6 +144,7 @@ SDL::segments::segments()
 {
     superbin = nullptr;
     pixelType = nullptr;
+    isDup = nullptr;
     circleRadius = nullptr;
     circleCenterX = nullptr;
     circleCenterY = nullptr;
@@ -192,6 +197,7 @@ void SDL::segments::freeMemoryCache()
     cms::cuda::free_device(dev,nSegments);
     cms::cuda::free_device(dev,superbin);
     cms::cuda::free_device(dev,pixelType);
+    cms::cuda::free_device(dev,isDup);
     cms::cuda::free_device(dev, circleCenterX);
     cms::cuda::free_device(dev, circleCenterY);
     cms::cuda::free_device(dev, circleRadius);
@@ -202,6 +208,7 @@ void SDL::segments::freeMemoryCache()
     cms::cuda::free_managed(nSegments);
     cms::cuda::free_managed(superbin);
     cms::cuda::free_managed(pixelType);
+    cms::cuda::free_managed(isDup);
     cms::cuda::free_managed(circleCenterX);
     cms::cuda::free_managed(circleCenterY);
     cms::cuda::free_managed(circleRadius);
@@ -215,6 +222,7 @@ void SDL::segments::freeMemory()
     cudaFree(dPhis);
     cudaFree(superbin);
     cudaFree(pixelType);
+    cudaFree(isDup);
     cudaFree(circleCenterX);
     cudaFree(circleCenterY);
     cudaFree(circleRadius);
@@ -278,6 +286,9 @@ __device__ void SDL::addSegmentToMemory(struct segments& segmentsInGPU, unsigned
 #endif
 }
 
+__device__ void SDL::rmPixelSegmentFromMemory(struct segments& segmentsInGPU,unsigned int pixelSegmentArrayIndex){
+    segmentsInGPU.isDup[pixelSegmentArrayIndex] = 1;
+}
 __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, unsigned int pixelModuleIndex, unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr, float eta, float phi, unsigned int idx, unsigned int pixelSegmentArrayIndex, int superbin, int
         pixelType)
 
@@ -300,6 +311,7 @@ __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, str
 
     segmentsInGPU.superbin[pixelSegmentArrayIndex] = superbin;
     segmentsInGPU.pixelType[pixelSegmentArrayIndex] = pixelType;
+    segmentsInGPU.isDup[pixelSegmentArrayIndex] = 0;
 
     //computing circle parameters
     /*

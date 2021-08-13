@@ -2123,6 +2123,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
     for(unsigned int jdx = 0; jdx < nPixelQuintuplets; jdx++)
     {
         //obtain the hits
+        if(pixelQuintupletsInGPU.isDup[jdx]) {continue;};
         unsigned int T5Index = pixelQuintupletsInGPU.T5Indices[jdx];
     
         unsigned int T5InnerTripletIndex = quintupletsInGPU.tripletIndices[2 * T5Index];
