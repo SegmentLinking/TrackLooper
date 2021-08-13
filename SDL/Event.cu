@@ -1947,6 +1947,7 @@ void SDL::Event::createPixelQuintuplets()
     createPixelQuintupletsInUnifiedMemory(*pixelQuintupletsInGPU, N_MAX_PIXEL_QUINTUPLETS);
 #endif
 
+#ifdef NESTED_PARA
     unsigned int nThreads = 1;
     unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads/ + 1;
 
@@ -1957,14 +1958,132 @@ void SDL::Event::createPixelQuintuplets()
     {
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
     }
+#else
+#ifdef NEWGRID_pT5
+    unsigned int pixelModuleIndex;
+    int* superbins;
+    int* pixelTypes;
+    unsigned int *nQuintuplets;
+    unsigned int nModules;
+    cudaMemcpy(&nModules,modulesInGPU->nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    pixelModuleIndex = nModules-1;
+    unsigned int nInnerSegments = 0;
+    cudaMemcpy(&nInnerSegments, &(segmentsInGPU->nSegments[pixelModuleIndex]), sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    nInnerSegments = std::min(nInnerSegments, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
 
+    cudaMallocHost(&nQuintuplets, nLowerModules * sizeof(unsigned int));
+    cudaMemcpy(nQuintuplets, quintupletsInGPU->nQuintuplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+    cudaMallocHost(&superbins,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int));
+    cudaMallocHost(&pixelTypes,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int));
+
+    cudaMemcpy(superbins,segmentsInGPU->superbin,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int),cudaMemcpyDeviceToHost);
+    cudaMemcpy(pixelTypes,segmentsInGPU->pixelType,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int),cudaMemcpyDeviceToHost);
+
+    unsigned int* connectedPixelSize_host;
+    unsigned int* connectedPixelIndex_host;
+    cudaMallocHost(&connectedPixelSize_host, nInnerSegments* sizeof(unsigned int));
+    cudaMallocHost(&connectedPixelIndex_host, nInnerSegments* sizeof(unsigned int));
+    unsigned int* connectedPixelSize_dev;
+    unsigned int* connectedPixelIndex_dev;
+    cudaMalloc(&connectedPixelSize_dev, nInnerSegments* sizeof(unsigned int));
+    cudaMalloc(&connectedPixelIndex_dev, nInnerSegments* sizeof(unsigned int));
+    unsigned int max_size =0;
+    int threadSize = 1000000;
+    unsigned int *segs_pix = (unsigned int*)malloc(2*threadSize*sizeof(unsigned int));
+    unsigned int *segs_pix_offset = segs_pix+threadSize;
+    unsigned int *segs_pix_gpu;
+    unsigned int *segs_pix_gpu_offset;
+    cudaMalloc((void **)&segs_pix_gpu, 2*threadSize*sizeof(unsigned int));
+    segs_pix_gpu_offset = segs_pix_gpu + threadSize;
+    cudaMemset(segs_pix_gpu, nInnerSegments, threadSize*sizeof(unsigned int)); // so if not set, it will pass in the kernel
+    unsigned int totalSegs=0;
+    int pixelIndexOffsetPos = pixelMapping->connectedPixelsIndex[44999] + pixelMapping->connectedPixelsSizes[44999];
+    int pixelIndexOffsetNeg = pixelMapping->connectedPixelsIndexPos[44999] + pixelMapping->connectedPixelsSizes[44999] + pixelIndexOffsetPos;
+
+    for (int i = 0; i < nInnerSegments; i++)
+    {// loop over # pLS
+        int pixelType = pixelTypes[i];// get pixel type for this pLS
+        int superbin = superbins[i]; //get superbin for this pixel
+        if((superbin < 0) or (superbin >= 45000) or (pixelType > 2) or (pixelType < 0))
+        {
+            continue;
+        }
+
+        if(pixelType ==0)
+        { // used pixel type to select correct size-index arrays
+            connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
+            connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndex[superbin];// index to get start of connected modules for this superbin in map
+            for (int j=0; j < pixelMapping->connectedPixelsSizes[superbin]; j++)
+            { // loop over modules from the size
+                segs_pix[totalSegs+j] = i; // save the pixel index in array to be transfered to kernel
+                segs_pix_offset[totalSegs+j] = j; // save this segment in array to be transfered to kernel
+            }
+            totalSegs += connectedPixelSize_host[i]; // increment counter
+        }
+        else if(pixelType ==1)
+        {
+            connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesPos[superbin]; //number of pixel connected modules
+            connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndexPos[superbin]+pixelIndexOffsetPos;// index to get start of connected pixel modules
+            for (int j=0; j < pixelMapping->connectedPixelsSizesPos[superbin]; j++)
+            {
+                segs_pix[totalSegs+j] = i;
+                segs_pix_offset[totalSegs+j] = j;
+            }
+            totalSegs += connectedPixelSize_host[i];
+        }
+        else if(pixelType ==2)
+        {
+            connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesNeg[superbin]; //number of pixel connected modules
+            connectedPixelIndex_host[i] =pixelMapping->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;// index to get start of connected pixel modules
+            for (int j=0; j < pixelMapping->connectedPixelsSizesNeg[superbin]; j++)
+            {
+                segs_pix[totalSegs+j] = i;
+                segs_pix_offset[totalSegs+j] = j;
+            }
+            totalSegs += connectedPixelSize_host[i];
+        }
+    }
+
+    cudaMemcpy(connectedPixelSize_dev, connectedPixelSize_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice);
+    cudaMemcpy(connectedPixelIndex_dev, connectedPixelIndex_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice);
+    cudaMemcpy(segs_pix_gpu,segs_pix,threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
+    cudaMemcpy(segs_pix_gpu_offset,segs_pix_offset,threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
+
+    //less cheap method to estimate max_size for y axis
+    max_size = *std::max_element(nQuintuplets, nQuintuplets + nLowerModules);
+    dim3 nThreads(16,16,1);
+    dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
+                  (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
+    createPixelQuintupletsInGPUFromMap<<<nBlocks, nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, connectedPixelSize_dev, connectedPixelIndex_dev, nInnerSegments, segs_pix_gpu, segs_pix_gpu_offset, totalSegs);
+
+    cudaError_t cudaerr = cudaDeviceSynchronize();
+    if(cudaerr != cudaSuccess)
+    {
+	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
+
+    }
+    cudaFreeHost(connectedPixelSize_host);
+    cudaFreeHost(connectedPixelIndex_host);
+    cudaFree(connectedPixelSize_dev);
+    cudaFree(connectedPixelIndex_dev);
+    cudaFreeHost(superbins);
+    cudaFreeHost(pixelTypes);
+    cudaFreeHost(nQuintuplets);
+    free(segs_pix);
+    cudaFree(segs_pix_gpu);
+
+#else
+    printf("original 3D grid launching in createPixelQuintuplets does not exist");
+    exit(2);
+#endif
+#endif
     unsigned int nPixelQuintuplets;
     cudaMemcpy(&nPixelQuintuplets, &(pixelQuintupletsInGPU->nPixelQuintuplets), sizeof(unsigned int), cudaMemcpyDeviceToHost);
 #ifdef Warnings
     std::cout<<"number of pixel quintuplets = "<<nPixelQuintuplets<<std::endl;
-#endif    
+#endif   
 }
-
 
 
 void SDL::Event::createTrackletsWithAGapWithModuleMap()
@@ -4287,6 +4406,77 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
 
 #endif
 
+#ifndef NESTED_PARA
+__global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex, unsigned int nPixelSegments, unsigned int* seg_pix_gpu, unsigned int* seg_pix_gpu_offset, unsigned int totalSegs)
+{
+    unsigned int offsetIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    if(offsetIndex >= totalSegs) return;
+
+    int segmentModuleIndex = seg_pix_gpu_offset[offsetIndex];
+    int pixelSegmentArrayIndex = seg_pix_gpu[offsetIndex];
+    if(pixelSegmentArrayIndex >= nPixelSegments) return;
+    if(segmentModuleIndex >= connectedPixelSize[pixelSegmentArrayIndex]) return;
+
+    unsigned int quintupletLowerModuleIndex; //index of the module that connects to this pixel
+    unsigned int tempIndex = connectedPixelIndex[pixelSegmentArrayIndex] + segmentModuleIndex; //gets module array index for segment
+
+    //these are actual module indices
+    quintupletLowerModuleIndex = modulesInGPU.connectedPixels[tempIndex];
+    unsigned int quintupletLowerModuleArrayIndex = modulesInGPU.reverseLookupLowerModuleIndices[quintupletLowerModuleIndex];
+    if(quintupletLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) return;
+
+    unsigned int pixelModuleIndex = *modulesInGPU.nModules - 1;
+    unsigned int nOuterQuintuplets = min(quintupletsInGPU.nQuintuplets[quintupletLowerModuleArrayIndex], N_MAX_QUINTUPLETS_PER_MODULE);
+
+    if(nOuterQuintuplets == 0) return;
+
+    //fetch the quintuplet
+    unsigned int outerQuintupletArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
+    if(outerQuintupletArrayIndex >= nOuterQuintuplets) return;
+    unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + pixelSegmentArrayIndex;
+    
+    unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[quintupletLowerModuleArrayIndex] + outerQuintupletArrayIndex;
+
+    if(quintupletsInGPU.isDup[quintupletIndex]) return;
+
+    float rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards;
+
+    bool success = runPixelQuintupletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelSegmentIndex, quintupletIndex, rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
+
+    if(success)
+    {
+       unsigned int pixelQuintupletIndex = atomicAdd(pixelQuintupletsInGPU.nPixelQuintuplets, 1);
+       if(pixelQuintupletIndex >= N_MAX_PIXEL_QUINTUPLETS)
+       {
+            #ifdef Warnings
+            if(pixelQuintupletIndex == N_MAX_PIXEL_QUINTUPLETS)
+            {
+               printf("Pixel Quintuplet excess alert!\n");
+            }
+            #endif
+       }
+       else
+       {
+#ifdef CUT_VALUE_DEBUG
+           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
+
+#else
+           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex);
+#endif
+           //mark the relevant T5 and pT3 here!
+           quintupletsInGPU.partOfPT5[quintupletIndex] = true;
+           unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
+           unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
+           tripletsInGPU.partOfPT5[innerTripletIndex] = true;
+           tripletsInGPU.partOfPT5[outerTripletIndex] = true;
+           segmentsInGPU.partOfPT5[pixelSegmentArrayIndex] = true;
+       }
+
+    }
+}
+
+
+#else
 __global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int nPixelSegments, unsigned int nOuterQuintuplets, unsigned int firstLowerModuleArrayIndex, unsigned int pixelModuleIndex)
 {
     unsigned int pixelSegmentArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -4359,6 +4549,8 @@ __global__ void createPixelQuintupletsInGPU(struct SDL::modules& modulesInGPU, s
     createPixelQuintupletsFromFirstModule<<<nBlocks, nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, nPixelSegments, nOuterQuintuplets, firstLowerModuleArrayIndex, pixelModuleIndex);
 
 }
+
+#endif
 
 unsigned int SDL::Event::getNumberOfHits()
 {
