@@ -11,7 +11,7 @@
 void bookEfficiencySets(std::vector<EfficiencySetDefinition>& effset);
 void bookEfficiencySet(EfficiencySetDefinition& effset);
 void fillEfficiencySets(std::vector<EfficiencySetDefinition>& effset);
-void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset);
+void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool excludepT5Found);
 void bookFakeRateSets(std::vector<FakeRateSetDefinition>& FRset);
 void bookFakeRateSet(FakeRateSetDefinition& FRset);
 void fillFakeRateSets(std::vector<FakeRateSetDefinition>& FRset);

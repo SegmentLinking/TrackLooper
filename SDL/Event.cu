@@ -4509,15 +4509,15 @@ __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesI
            addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
 
 #else
-           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex);
+           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquared);
 #endif
-           //mark the relevant T5 and pT3 here!
-           quintupletsInGPU.partOfPT5[quintupletIndex] = true;
-           unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
-           unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
-           tripletsInGPU.partOfPT5[innerTripletIndex] = true;
-           tripletsInGPU.partOfPT5[outerTripletIndex] = true;
-           segmentsInGPU.partOfPT5[pixelSegmentArrayIndex] = true;
+//           //mark the relevant T5 and pT3 here!
+//           quintupletsInGPU.partOfPT5[quintupletIndex] = true;
+//           unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
+//           unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
+//           tripletsInGPU.partOfPT5[innerTripletIndex] = true;
+//           tripletsInGPU.partOfPT5[outerTripletIndex] = true;
+//           segmentsInGPU.partOfPT5[pixelSegmentArrayIndex] = true;
        }
 
     }
@@ -4956,6 +4956,7 @@ SDL::segments* SDL::Event::getSegments()
         segmentsInCPU->ptIn = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
         segmentsInCPU->eta = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
         segmentsInCPU->phi = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
+        segmentsInCPU->isDup = new bool[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
         cudaMemcpy(segmentsInCPU->mdIndices, segmentsInGPU->mdIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost);
         cudaMemcpy(segmentsInCPU->nSegments, segmentsInGPU->nSegments, nModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
         cudaMemcpy(segmentsInCPU->innerMiniDoubletAnchorHitIndices, segmentsInGPU->innerMiniDoubletAnchorHitIndices, nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost);
@@ -4963,6 +4964,7 @@ SDL::segments* SDL::Event::getSegments()
         cudaMemcpy(segmentsInCPU->ptIn, segmentsInGPU->ptIn, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost);
         cudaMemcpy(segmentsInCPU->eta, segmentsInGPU->eta, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost);
         cudaMemcpy(segmentsInCPU->phi, segmentsInGPU->phi, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost);
+        cudaMemcpy(segmentsInCPU->isDup, segmentsInGPU->isDup, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(bool), cudaMemcpyDeviceToHost);
 
 
     }
@@ -5161,9 +5163,11 @@ SDL::pixelQuintuplets* SDL::Event::getPixelQuintuplets()
 
         pixelQuintupletsInCPU->pixelIndices = new unsigned int[nPixelQuintuplets];
         pixelQuintupletsInCPU->T5Indices = new unsigned int[nPixelQuintuplets];
+        pixelQuintupletsInCPU->isDup = new bool[nPixelQuintuplets];
 
         cudaMemcpy(pixelQuintupletsInCPU->pixelIndices, pixelQuintupletsInGPU->pixelIndices, nPixelQuintuplets * sizeof(unsigned int), cudaMemcpyDeviceToHost);
         cudaMemcpy(pixelQuintupletsInCPU->T5Indices, pixelQuintupletsInGPU->T5Indices, nPixelQuintuplets * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(pixelQuintupletsInCPU->isDup, pixelQuintupletsInGPU->isDup, nPixelQuintuplets * sizeof(bool), cudaMemcpyDeviceToHost);
     }
     return pixelQuintupletsInCPU;
 }
