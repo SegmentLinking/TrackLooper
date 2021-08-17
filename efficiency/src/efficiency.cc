@@ -25,6 +25,7 @@ int main(int argc, char** argv)
         list_effSetDef.push_back(EfficiencySetDefinition("T4s_AllTypes", 13, [&](int isim) {return sdl.sim_T4_matched().size() > isim ? sdl.sim_T4_matched()[isim] > 0 : false;}));
         list_effSetDef.push_back(EfficiencySetDefinition("T3_AllTypes", 13, [&](int isim) {return sdl.sim_T3_matched().size() > isim ? sdl.sim_T3_matched()[isim] > 0 : false;}));
         list_effSetDef.push_back(EfficiencySetDefinition("pT4_AllTypes", 13, [&](int isim) {return sdl.sim_pT4_matched().size() > isim ? sdl.sim_pT4_matched()[isim] > 0 : false;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("pLS_AllTypes", 13, [&](int isim) {return sdl.sim_pLS_matched().size() > isim ? sdl.sim_pLS_matched()[isim] > 0 : false;}));
         list_effSetDef.push_back(EfficiencySetDefinition("T5_AllTypes", 13, [&](int isim) {return sdl.sim_T5_matched().size() > isim ? sdl.sim_T5_matched()[isim] > 0 : false;}));
         list_effSetDef.push_back(EfficiencySetDefinition("pT3_AllTypes", 13, [&](int isim) {return sdl.sim_pT3_matched().size() > isim ? sdl.sim_pT3_matched()[isim] > 0 : false;}));
         list_effSetDef.push_back(EfficiencySetDefinition("pT5_AllTypes", 13, [&](int isim) {return sdl.sim_pT5_matched().size() > isim ? sdl.sim_pT5_matched()[isim] > 0 : false;}));
@@ -170,14 +171,15 @@ void fillEfficiencySets(std::vector<EfficiencySetDefinition>& effsets)
 {
     for (auto& effset : effsets)
     {
+        bool excludepT5FoundSim = effset.set_name.Contains("pT3_");
         for (unsigned int isimtrk = 0; isimtrk < sdl.sim_pt().size(); ++isimtrk)
         {
-            fillEfficiencySet(isimtrk, effset);
+            fillEfficiencySet(isimtrk, effset,excludepT5FoundSim);
         }
     }
 }
 
-void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset)
+void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool excludepT5Found)
 {
     const float& pt = sdl.sim_pt()[isimtrk];
     const float& eta = sdl.sim_eta()[isimtrk];
@@ -194,6 +196,8 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset)
     const float& vtx_z = sdl.simvtx_z()[vtxIdx];
     const float& vtx_perp = sqrt(vtx_x * vtx_x + vtx_y * vtx_y);
 
+    const float& pT5Found = sdl.sim_pT5_matched()[isimtrk];
+
     if (bunch != 0)
         return;
 
@@ -205,6 +209,9 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset)
 
     if (ana.pdgid == 0 and q == 0)
         return;
+
+    if(pT5Found !=0 and excludepT5Found)
+      return;
 
     TString category_name = effset.set_name;
 
@@ -297,6 +304,13 @@ void fillFakeRateSets(std::vector<FakeRateSetDefinition>& FRsets)
                 fillFakeRateSet(ipt3, FRset);
             }
         }
+        else if (FRset.set_name.Contains("pLS_"))
+        {
+            for (unsigned int ipls = 0; ipls < sdl.pLS_pt().size(); ++ipls)
+            {
+                fillFakeRateSet(ipls, FRset);
+            }
+        }
         else if (FRset.set_name.Contains("pT5_"))
         {
             for (unsigned int ipt5 = 0; ipt5 < sdl.pT5_pt().size(); ++ipt5)
@@ -351,6 +365,12 @@ void fillFakeRateSet(int itc, FakeRateSetDefinition& FRset)
         pt = sdl.pT3_pt()[itc];
         eta = sdl.pT3_eta()[itc];
         phi = sdl.pT3_phi()[itc];
+    }
+    else if (FRset.set_name.Contains("pLS_"))
+    {
+        pt = sdl.pLS_pt()[itc];
+        eta = sdl.pLS_eta()[itc];
+        phi = sdl.pLS_phi()[itc];
     }
     else if (FRset.set_name.Contains("pT5_"))
     {
@@ -455,6 +475,13 @@ void fillDuplicateRateSets(std::vector<DuplicateRateSetDefinition>& DLsets)
                 fillDuplicateRateSet(ipt3, DLset);
             }
         }
+        else if (DLset.set_name.Contains("pLS_"))
+        {
+            for (unsigned int ipls = 0; ipls < sdl.pLS_pt().size(); ++ipls)
+            {
+                fillDuplicateRateSet(ipls, DLset);
+            }
+        }
         else if (DLset.set_name.Contains("pT5_"))
         {
             for (unsigned int ipt5 = 0; ipt5 < sdl.pT5_pt().size(); ++ipt5)
@@ -508,6 +535,12 @@ void fillDuplicateRateSet(int itc, DuplicateRateSetDefinition& DLset)
         pt = sdl.pT3_pt()[itc];
         eta = sdl.pT3_eta()[itc];
         phi = sdl.pT3_phi()[itc];
+    }
+    else if (DLset.set_name.Contains("pLS_"))
+    {
+        pt = sdl.pLS_pt()[itc];
+        eta = sdl.pLS_eta()[itc];
+        phi = sdl.pLS_phi()[itc];
     }
     else if (DLset.set_name.Contains("pT5_"))
     {

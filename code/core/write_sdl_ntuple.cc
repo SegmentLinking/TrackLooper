@@ -2123,6 +2123,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
     for(unsigned int jdx = 0; jdx < nPixelQuintuplets; jdx++)
     {
         //obtain the hits
+        if(pixelQuintupletsInGPU.isDup[jdx]) {continue;};
         unsigned int T5Index = pixelQuintupletsInGPU.T5Indices[jdx];
     
         unsigned int T5InnerTripletIndex = quintupletsInGPU.tripletIndices[2 * T5Index];
@@ -2360,6 +2361,7 @@ void fillPixelLineSegmentOutputBranches(SDL::Event& event)
     unsigned int nPixelSegments = std::min(segmentsInGPU.nSegments[pixelModuleIndex], N_MAX_PIXEL_SEGMENTS_PER_MODULE);
     for(unsigned int jdx = 0; jdx < nPixelSegments; jdx++)
     {
+        if(segmentsInGPU.isDup[jdx]) {continue;}
         unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + jdx;
         unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
         unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];

@@ -9,6 +9,8 @@ SDL::pixelQuintuplets::pixelQuintuplets()
     pixelIndices = nullptr;
     T5Indices = nullptr;
     nPixelQuintuplets = nullptr;
+    isDup = nullptr;
+    score = nullptr;
 }
 
 SDL::pixelQuintuplets::~pixelQuintuplets()
@@ -20,6 +22,8 @@ void SDL::pixelQuintuplets::freeMemory()
     cudaFree(pixelIndices);
     cudaFree(T5Indices);
     cudaFree(nPixelQuintuplets);
+    cudaFree(isDup);
+    cudaFree(score);
 }
 
 void SDL::createPixelQuintupletsInUnifiedMemory(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int maxPixelQuintuplets)
@@ -27,6 +31,8 @@ void SDL::createPixelQuintupletsInUnifiedMemory(struct SDL::pixelQuintuplets& pi
     cudaMallocManaged(&pixelQuintupletsInGPU.pixelIndices, maxPixelQuintuplets * sizeof(unsigned int));
     cudaMallocManaged(&pixelQuintupletsInGPU.T5Indices, maxPixelQuintuplets * sizeof(unsigned int));
     cudaMallocManaged(&pixelQuintupletsInGPU.nPixelQuintuplets, sizeof(unsigned int));
+    cudaMallocManaged(&pixelQuintupletsInGPU.isDup, maxPixelQuintuplets * sizeof(bool));
+    cudaMallocManaged(&pixelQuintupletsInGPU.score, maxPixelQuintuplets * sizeof(float));
 #ifdef CUT_VALUE_DEBUG
     cudaMallocManaged(&pixelQuintupletsInGPU.rzChiSquared, maxPixelQuintuplets * sizeof(unsigned int));
     cudaMallocManaged(&pixelQuintupletsInGPU.rPhiChiSquared, maxPixelQuintuplets * sizeof(unsigned int));
@@ -41,18 +47,28 @@ void SDL::createPixelQuintupletsInExplicitMemory(struct SDL::pixelQuintuplets& p
     cudaMalloc(&pixelQuintupletsInGPU.pixelIndices, maxPixelQuintuplets * sizeof(unsigned int));
     cudaMalloc(&pixelQuintupletsInGPU.T5Indices, maxPixelQuintuplets * sizeof(unsigned int));
     cudaMalloc(&pixelQuintupletsInGPU.nPixelQuintuplets, sizeof(unsigned int));
+    cudaMalloc(&pixelQuintupletsInGPU.isDup, maxPixelQuintuplets * sizeof(bool));
+    cudaMalloc(&pixelQuintupletsInGPU.score, maxPixelQuintuplets * sizeof(float));
 
     cudaMemset(pixelQuintupletsInGPU.nPixelQuintuplets, 0, sizeof(unsigned int));
 }
 
+__device__ void SDL::rmPixelQuintupletToMemory(struct pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pixelQuintupletIndex)
+{
+
+    pixelQuintupletsInGPU.isDup[pixelQuintupletIndex] = 1;
+}
 #ifdef CUT_VALUE_DEBUG
 __device__ void SDL::addPixelQuintupletToMemory(struct pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pixelIndex, unsigned int T5Index, unsigned int pixelQuintupletIndex, float& rzChiSquared, float& rPhiChiSquared, float& rPhiChiSquaredInwards)
 #else
-__device__ void SDL::addPixelQuintupletToMemory(struct pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pixelIndex, unsigned int T5Index, unsigned int pixelQuintupletIndex)
+__device__ void SDL::addPixelQuintupletToMemory(struct pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pixelIndex, unsigned int T5Index, unsigned int pixelQuintupletIndex, float score)
 #endif
 {
     pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex] = pixelIndex;
     pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex] = T5Index;
+    pixelQuintupletsInGPU.isDup[pixelQuintupletIndex] = 0;
+    pixelQuintupletsInGPU.score[pixelQuintupletIndex] = score;
+    
 #ifdef CUT_VALUE_DEBUG
     pixelQuintupletsInGPU.rzChiSquared[pixelQuintupletIndex] = rzChiSquared;
     pixelQuintupletsInGPU.rPhiChiSquared[pixelQuintupletIndex] = rPhiChiSquared;
