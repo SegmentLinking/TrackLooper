@@ -117,6 +117,7 @@ namespace SDL
         void createQuintuplets();
         void createPixelTriplets();
         void createPixelQuintuplets();
+        void pixelLineSegmentCleaning();
 
         unsigned int getNumberOfHits();
         unsigned int getNumberOfHitsByLayer(unsigned int layer);

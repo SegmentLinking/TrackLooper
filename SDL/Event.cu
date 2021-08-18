@@ -1649,6 +1649,11 @@ void SDL::Event::createTrackCandidates()
 #endif
 #endif
 
+//int pT2_num = *trackCandidatesInGPU->nTrackCandidatespT2;
+//int pT3_num = *trackCandidatesInGPU->nTrackCandidatespT3;
+//int T5_num = *trackCandidatesInGPU->nTrackCandidatesT5;
+//int pT5_num = *trackCandidatesInGPU->nTrackCandidatespT5;
+//printf("total: %d %d %d %d\n",pT2_num,pT3_num,pT5_num,T5_num);
 }
 
 void SDL::Event::createPixelTriplets()
@@ -1932,7 +1937,20 @@ void SDL::Event::createQuintuplets()
 #endif
 
 }
+void SDL::Event::pixelLineSegmentCleaning()
+{
+#ifdef DUP_pLS
+    printf("cleaning pixels\n");
+    checkHitspLS<<<64,1024>>>(*modulesInGPU,*mdsInGPU, *segmentsInGPU, *hitsInGPU);
+    cudaError_t cudaerrpix = cudaDeviceSynchronize();
+    if(cudaerrpix != cudaSuccess)
+    {
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerrpix)<<std::endl;
 
+    }
+#endif  
+
+}
 void SDL::Event::createPixelQuintuplets()
 {
     unsigned int nLowerModules;
@@ -1948,15 +1966,6 @@ void SDL::Event::createPixelQuintuplets()
     createPixelQuintupletsInUnifiedMemory(*pixelQuintupletsInGPU, N_MAX_PIXEL_QUINTUPLETS);
 #endif  
     
-#ifdef DUP_pLS
-    checkHitspLS<<<64,1024>>>(*modulesInGPU,*mdsInGPU, *segmentsInGPU, *hitsInGPU);
-    cudaError_t cudaerrpix = cudaDeviceSynchronize();
-    if(cudaerrpix != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerrpix)<<std::endl;
-
-    }
-#endif  
 
 #ifdef NESTED_PARA
     unsigned int nThreads = 1;
@@ -4218,7 +4227,7 @@ __global__ void createPixelTripletsFromOuterInnerLowerModule(struct SDL::modules
         float eta_pix = segmentsInGPU.eta[pixelSegmentArrayIndex];
         float phi_pix = segmentsInGPU.phi[pixelSegmentArrayIndex];
         float pt = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
-        float score = scorepT3(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,tripletsInGPU,pixelSegmentIndex,outerTripletIndex,pt,segmentsInGPU.pz[pixelSegmentArrayIndex]);
+        float score = rPhiChiSquared;//scorepT3(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,tripletsInGPU,pixelSegmentIndex,outerTripletIndex,pt,segmentsInGPU.pz[pixelSegmentArrayIndex]);
 
        unsigned int pixelTripletIndex = atomicAdd(pixelTripletsInGPU.nPixelTriplets, 1);
        if(pixelTripletIndex >= N_MAX_PIXEL_TRIPLETS)
@@ -4493,6 +4502,7 @@ __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesI
 
     if(success)
     {
+       //printf("pT5 scores: %f %f %f\n",rzChiSquared, rPhiChiSquared,rPhiChiSquaredInwards);
        unsigned int pixelQuintupletIndex = atomicAdd(pixelQuintupletsInGPU.nPixelQuintuplets, 1);
        if(pixelQuintupletIndex >= N_MAX_PIXEL_QUINTUPLETS)
        {
@@ -4509,7 +4519,10 @@ __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesI
            addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
 
 #else
-           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquared);
+           //addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquared);
+           //addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquaredInwards);
+           //addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared);
+           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquaredInwards+rPhiChiSquared);
 #endif
 //           //mark the relevant T5 and pT3 here!
 //           quintupletsInGPU.partOfPT5[quintupletIndex] = true;
@@ -5907,5 +5920,5 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU,struct SDL::miniD
        }
        if(found){counter++;rmPixelSegmentFromMemory(segmentsInGPU,ix);continue;}
      }
-     //printf("%u %d\n",nPixelSegments,counter);
+//     printf("%u %d\n",nPixelSegments,counter);
 }

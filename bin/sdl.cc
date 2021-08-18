@@ -362,9 +362,11 @@ void run_sdl()
 #endif
 #ifdef DO_QUINTUPLET
             float timing_T5 = runQuintuplet(event);
+            float timing_pLS = runPixelLineSegment(event);
             float timing_pT5 = runPixelQuintuplet(event);
 #else
             float timing_T5 = 0;
+            float timing_pLS = 0;
             float timing_pT5 = 0;
 #endif
             //Run pT3
@@ -383,7 +385,10 @@ void run_sdl()
                     timing_TC,
                     timing_T5,
                     timing_pT3,
-                    timing_pT5});
+                    timing_pT5,
+                    timing_pLS
+
+                    });
 
             if (ana.verbose == 4)
             {
