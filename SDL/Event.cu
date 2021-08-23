@@ -4233,7 +4233,7 @@ __global__ void createPixelTripletsFromOuterInnerLowerModule(struct SDL::modules
        else
        {
 #ifdef CUT_VALUE_DEBUG
-           addPixelTripletToMemory(pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared, pixelTripletIndex);
+           addPixelTripletToMemory(pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared, pixelTripletIndex, pt, eta, phi, eta_pix, phi_pix, score);
 #else
            addPixelTripletToMemory(pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius,tripletRadius, pixelTripletIndex,pt,eta,phi,eta_pix,phi_pix,score);
 #endif
@@ -4506,7 +4506,7 @@ __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesI
        else
        {
 #ifdef CUT_VALUE_DEBUG
-           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
+           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, rPhiChiSquared);
 
 #else
            addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquared);
@@ -4558,7 +4558,7 @@ __global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modul
        else
        {
 #ifdef CUT_VALUE_DEBUG
-           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
+           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, rPhiChiSquared);
 
 #else
            addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,/*score*/rPhiChiSquared);
