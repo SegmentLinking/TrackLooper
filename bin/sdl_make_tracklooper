@@ -18,19 +18,20 @@ usage()
   echo "      sh $(basename $0) OPTIONSTRINGS ..."
   echo
   echo "Options:"
-  echo "  -h    Help                   (Display this message)"
-  echo "  -x    explicit memory        (Make library with explicit memory enabled)"
-  echo "  -c    cache                  (Make library with cache enabled)"
-  echo "  -g    new grid               (Make library with new grid approach enabled)"
-  echo "  -s    show log               (Full compilation script to stdout)"
-  echo "  -m    make clean binaries    (Make clean binaries before remake. e.g. when header files changed in SDL/*.cuh)"
-  echo "  -d    cut value ntuple       (With extra variables in a debug ntuple file)"
+  echo "  -h    Help                    (Display this message)"
+  echo "  -x    explicit memory         (Make library with explicit memory enabled)"
+  echo "  -c    cache                   (Make library with cache enabled)"
+  echo "  -g    new grid                (Make library with new grid approach enabled)"
+  echo "  -s    show log                (Full compilation script to stdout)"
+  echo "  -m    make clean binaries     (Make clean binaries before remake. e.g. when header files changed in SDL/*.cuh)"
+  echo "  -d    cut value ntuple        (With extra variables in a debug ntuple file)"
+  echo "  -p    primitive object ntuple (With extra variables related to primitive objects)"
   echo
   exit
 }
 
 # Parsing command-line opts
-while getopts ":cxgsmdh" OPTION; do
+while getopts ":cxgsmdph" OPTION; do
   case $OPTION in
     c) MAKECACHE=true;;
     x) MAKEEXPLICIT=true;;
@@ -38,6 +39,7 @@ while getopts ":cxgsmdh" OPTION; do
     s) SHOWLOG=true;;
     m) MAKECLEANBINARIES=true;;
     d) MAKECUTVALUES=true;;
+    p) PRIMITIVE=true;;
     h) usage;;
     :) usage;;
   esac
@@ -50,6 +52,7 @@ if [ -z ${MAKENEWGRID}  ]; then MAKENEWGRID=false; fi
 if [ -z ${SHOWLOG} ]; then SHOWLOG=false; fi
 if [ -z ${MAKECLEANBINARIES} ]; then MAKECLEANBINARIES=false; fi
 if [ -z ${MAKECUTVALUES} ]; then MAKECUTVALUES=false; fi
+if [ -z ${PRIMITIVE} ]; then PRIMITIVE=false; fi
 
 # Shift away the parsed options
 shift $(($OPTIND - 1))
@@ -73,6 +76,7 @@ echo "  MAKENEWGRID       : ${MAKENEWGRID}"                   | tee -a ${LOG}
 echo "  SHOWLOG           : ${SHOWLOG}"                       | tee -a ${LOG}
 echo "  MAKECLEANBINARIES : ${MAKECLEANBINARIES}"             | tee -a ${LOG}
 echo "  MAKECUTVALUES     : ${MAKECUTVALUES}"                 | tee -a ${LOG}
+echo "  PRIMITIVE         : ${PRIMITIVE}"                     | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
 echo "  (cf. Run > sh $(basename $0) -h to see all options)"  | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
@@ -100,6 +104,12 @@ if $MAKECUTVALUES; then
     echo " Making cut value ntuple" | tee -a ${LOG}
     MAKETARGET=${MAKETARGET}_cutvalue;
     TRACKLOOPERTARGET=cutvalue 
+    echo "debug : MAKETARGET=${MAKETARGET}"
+fi
+#if make cut value is called then cut value ntuple making is done
+if $PRIMITIVE; then
+    echo " Making cut value ntuple" | tee -a ${LOG}
+    TRACKLOOPERTARGET=primitive 
     echo "debug : MAKETARGET=${MAKETARGET}"
 fi
 

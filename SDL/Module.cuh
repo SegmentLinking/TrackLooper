@@ -96,7 +96,6 @@ namespace SDL
         int* trackCandidateRanges;
         //others will be added later
         int* quintupletRanges;
-
         unsigned int* connectedPixels;
         unsigned int* connectedPixelsIndex;
         unsigned int* connectedPixelsSizes;

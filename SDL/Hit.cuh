@@ -35,6 +35,7 @@ namespace SDL
         
         float *rts;
         float* phis;
+        float* etas;
 
 //        int *edge2SMap;
         float *highEdgeXs;

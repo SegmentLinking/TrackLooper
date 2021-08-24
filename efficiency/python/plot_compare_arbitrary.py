@@ -4,17 +4,70 @@ import os
 import sys
 import glob
 import ROOT as r
-from plot_efficiency import parse_plot_name
 
 # Get the git hash to compare
 githash = sys.argv[1]
 refgithash = sys.argv[2]
 sample = sys.argv[3]
+if len(sys.argv) > 4:
+    runType = sys.argv[4]
+else:
+    runType = "unified"
+if len(sys.argv) > 5:
+    refRunType = sys.argv[5]
+else:
+    refRunType = "unified"
+
+r.gROOT.SetBatch(True)
+
+def parse_plot_name(output_name):
+    if "fakerate" in output_name:
+        rtnstr = ["Fake Rate of"]
+    elif "duplrate" in output_name:
+        rtnstr = ["Duplicate Rate of"]
+    else:
+        rtnstr = ["Efficiency of"]
+    if "MD_" in output_name:
+        rtnstr.append("Mini-Doublet")
+    elif "LS_" in output_name and "pLS" not in output_name:
+        rtnstr.append("Line Segment")
+    elif "pT4_" in output_name:
+        rtnstr.append("Quadruplet w/ Pixel LS")
+    elif "T4_" in output_name:
+        rtnstr.append("Quadruplet w/o gap")
+    elif "T4x_" in output_name:
+        rtnstr.append("Quadruplet w/ gap")
+    elif "pT3_" in output_name:
+        rtnstr.append("Pixel Triplet")
+    elif "pT5_" in output_name:
+        rtnstr.append("Pixel Quintuplet")
+    elif "T3_" in output_name:
+        rtnstr.append("Triplet")
+    elif "TC_" in output_name:
+        rtnstr.append("Track Candidate")
+    elif "T4s_" in output_name:
+        rtnstr.append("Quadruplet w/ or w/o gap")
+    elif "pLS_" in output_name:
+        rtnstr.append("Pixel Line Segment")
+    elif "T5_" in output_name:
+        rtnstr.append("Quintuplet")
+    types = "of type " + os.path.basename(output_name).split("_")[1]
+    if "AllTypes" in types:
+        types = "of all types"
+    if "Set1Types" in types:
+        types = "of set 1 types"
+    rtnstr.append(types)
+    return " ".join(rtnstr)
+
 
 # Get the files to be compared
-eff_file_cpu = glob.glob("efficiencies/eff_plots__GPU_unified_{}_{}/efficiencies.root".format(refgithash, sample))
+if len(sys.argv) <= 4:
+    eff_files_cpu = glob.glob("efficiencies/eff_plots__GPU_*{}_{}/efficiencies.root".format(refgithash, sample))
+else:
+    eff_file_cpu = glob.glob("efficiencies/eff_plots__GPU_{}_{}_{}/efficiencies.root".format(refRunType, refgithash, sample))
 
-eff_files_gpu = glob.glob("efficiencies/eff_plots__GPU_*{}_{}/efficiencies.root".format(githash, sample))
+eff_files_gpu = glob.glob("efficiencies/eff_plots__GPU_{}_{}_{}/efficiencies.root".format(runType, githash, sample))
+   
 
 # Get cpu efficiency graph files
 cpu_file = r.TFile(eff_file_cpu[0])
@@ -84,6 +137,12 @@ for key in keys:
     eff.GetXaxis().SetLabelSize(0.05)
     eff.GetYaxis().SetLabelSize(0.05)
     yaxis_max = 0
+    
+    if "fakerate" in key or "duplrate" in keys:
+        leg1 = r.TLegend(0.63, 0.67, 0.93, 0.87)
+    else:
+        leg1 = r.TLegend(0.63, 0.18, 0.93, 0.38)
+
     for i in xrange(0, eff.GetN()):
         if yaxis_max < eff.GetY()[i]:
             yaxis_max = eff.GetY()[i]
@@ -93,17 +152,23 @@ for key in keys:
         if yaxis_min > eff.GetY()[i] and eff.GetY()[i] != 0:
             yaxis_min = eff.GetY()[i]
     # print yaxis_min
-    if "eta" in output_name:
-        eff.GetXaxis().SetLimits(-2.5, 2.5)
     if "ptzoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
-    if "etazoom" in output_name:
+    elif "etazoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
-    if "ptmaxzoom" in output_name:
+    elif "ptmaxzoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
-    if "etamaxzoom" in output_name:
+    elif "etamaxzoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
+    else:
+        eff.GetYaxis().SetRangeUser(0, 1.02)
+
+    if "eta" in output_name:
+        eff.GetXaxis().SetLimits(-2.5, 2.5)
+
     eff.SetTitle(parse_plot_name(output_name))
+    if len(sys.argv) > 5:
+        leg1.AddEntry(eff,sys.argv[6], "ep")
     # Label
     t = r.TLatex()
     t.SetTextAlign(11) # align bottom left corner of text
@@ -124,7 +189,10 @@ for key in keys:
         gpu_graphs[-1].SetMarkerColor(cs[ii])
         gpu_graphs[-1].SetLineColor(cs[ii])
         gpu_graphs[-1].Draw("ep")
+        if len(sys.argv) > 6:
+            leg1.AddEntry(gpu_graphs[-1], sys.argv[7], "ep")
 
+    leg1.Draw()
     # Save
     c1.SetGrid()
     c1.SaveAs("{}".format(output_name))

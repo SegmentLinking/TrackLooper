@@ -18,22 +18,35 @@
 // Common
 void createOutputBranches();
 void createLowerLevelOutputBranches();
+#ifdef DO_QUINTUPLET
 void createQuintupletCutValueBranches();
+void createPixelQuintupletCutValueBranches();
+#endif
 void createQuadrupletCutValueBranches();
 void createTripletCutValueBranches();
 void createSegmentCutValueBranches();
 void createMiniDoubletCutValueBranches();
 void createOccupancyBranches();
 void createPixelQuadrupletCutValueBranches();
+void createPixelTripletCutValueBranches();
+void createPrimitiveBranches();
+void createPrimitiveBranches_v1();
+void createPrimitiveBranches_v2();
 // Common
 void fillSimTrackOutputBranches();
 // GPU
 void fillOutputBranches(SDL::Event& event);
 void fillTrackCandidateOutputBranches(SDL::Event& event);
+void fillTrackCandidateOutputBranches_v1(SDL::Event& event);
+void fillTrackCandidateOutputBranches_v2(SDL::Event& event);
 void fillLowerLevelOutputBranches(SDL::Event& event);
 void fillQuadrupletOutputBranches(SDL::Event& event);
 void fillTripletOutputBranches(SDL::Event& event);
+void fillPixelTripletOutputBranches(SDL::Event& event);
+#ifdef DO_QUINTUPLET
 void fillQuintupletOutputBranches(SDL::Event& event);
+void fillPixelQuintupletOutputBranches(SDL::Event& event);
+#endif
 void fillPixelLineSegmentOutputBranches(SDL::Event& event);
 void fillOccupancyBranches(SDL::Event& event);
 void fillPixelQuadrupletOutputBranches(SDL::Event& event);
@@ -43,7 +56,21 @@ void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillLowerLevelOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillTripletOutputBranches_for_CPU(SDL::CPU::Event& event);
+void fillPixelLineSegmentOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillPixelQuadrupletOutputBranches_for_CPU(SDL::CPU::Event& event);
+void fillPixelTripletOutputBranches_for_CPU(SDL::CPU::Event& event);
+#ifdef DO_QUINTUPLET
+void fillQuintupletOutputBranches_for_CPU(SDL::CPU::Event& event);
+#endif
+void fillPrimitiveBranches_for_CPU(SDL::CPU::Event& event);
+void fillPrimitiveBranches_for_CPU_v1(SDL::CPU::Event& event);
+void fillPrimitiveBranches_for_CPU_v2(SDL::CPU::Event& event);
+void fillPrimitiveBranches_Hit_for_CPU_v2(SDL::CPU::Event& event);
+void fillPrimitiveBranches_MD_for_CPU_v2(SDL::CPU::Event& event);
+void fillPrimitiveBranches_T2_for_CPU_v2(SDL::CPU::Event& event);
+void fillPrimitiveBranches_T3_for_CPU_v2(SDL::CPU::Event& event);
+void fillPrimitiveBranches_T5_for_CPU_v2(SDL::CPU::Event& event);
+
 
 // Timing
 void printTimingInformation(std::vector<std::vector<float>>& timing_information);

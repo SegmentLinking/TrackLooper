@@ -2,9 +2,7 @@
 #define CUDA_CONST_VAR __device__
 #endif
 # include "Triplet.cuh"
-//#ifdef CACHE_ALLOC
 #include "allocate.h"
-//#endif
 
 void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, unsigned int nLowerModules)
 {
@@ -12,12 +10,15 @@ void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned
     cudaStream_t stream=0;
     tripletsInGPU.segmentIndices = (unsigned int*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(unsigned int) *5,stream);
     tripletsInGPU.nTriplets = (unsigned int*)cms::cuda::allocate_managed(nLowerModules * sizeof(unsigned int),stream);
-    tripletsInGPU.zOut = (float*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(float) *6,stream);
+    tripletsInGPU.betaIn = (float*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(float) * 3,stream);
+    tripletsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(bool), stream);
 #else
     cudaMallocManaged(&tripletsInGPU.segmentIndices, 5 * maxTriplets * nLowerModules * sizeof(unsigned int));
     cudaMallocManaged(&tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int));
-    cudaMallocManaged(&tripletsInGPU.zOut, maxTriplets * nLowerModules * 6*sizeof(unsigned int));
+    cudaMallocManaged(&tripletsInGPU.betaIn, maxTriplets * nLowerModules * 3 * sizeof(float));
+    cudaMallocManaged(&tripletsInGPU.partOfPT5, maxTriplets * nLowerModules * sizeof(bool));
 #ifdef CUT_VALUE_DEBUG
+    cudaMallocManaged(&tripletsInGPU.zOut, maxTriplets * nLowerModules * 4*sizeof(unsigned int));
     cudaMallocManaged(&tripletsInGPU.zLo, maxTriplets * nLowerModules * sizeof(float));
     cudaMallocManaged(&tripletsInGPU.zHi, maxTriplets * nLowerModules * sizeof(float));
     cudaMallocManaged(&tripletsInGPU.zLoPointed, maxTriplets * nLowerModules * sizeof(float));
@@ -29,15 +30,16 @@ void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned
     cudaMallocManaged(&tripletsInGPU.rtLo, maxTriplets * nLowerModules * sizeof(float));
     cudaMallocManaged(&tripletsInGPU.rtHi, maxTriplets * nLowerModules * sizeof(float));
     cudaMallocManaged(&tripletsInGPU.kZ, maxTriplets * nLowerModules * sizeof(float));
-#endif
-#endif
-    tripletsInGPU.lowerModuleIndices = tripletsInGPU.segmentIndices + nLowerModules * maxTriplets *2;
 
     tripletsInGPU.rtOut = tripletsInGPU.zOut + nLowerModules * maxTriplets;
     tripletsInGPU.deltaPhiPos = tripletsInGPU.zOut + nLowerModules * maxTriplets *2;
     tripletsInGPU.deltaPhi = tripletsInGPU.zOut + nLowerModules * maxTriplets *3;
-    tripletsInGPU.betaIn = tripletsInGPU.zOut + nLowerModules * maxTriplets *4;
-    tripletsInGPU.betaOut = tripletsInGPU.zOut + nLowerModules * maxTriplets *5;
+
+#endif
+#endif
+    tripletsInGPU.lowerModuleIndices = tripletsInGPU.segmentIndices + nLowerModules * maxTriplets *2;
+    tripletsInGPU.betaOut = tripletsInGPU.betaIn + nLowerModules * maxTriplets ;
+    tripletsInGPU.pt_beta = tripletsInGPU.betaIn + nLowerModules * maxTriplets * 2;
 
 
 #pragma omp parallel for
@@ -53,28 +55,30 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
     int dev;
     cudaGetDevice(&dev);
     tripletsInGPU.segmentIndices = (unsigned int*)cms::cuda::allocate_device(dev,maxTriplets * nLowerModules * sizeof(unsigned int) *5,stream);
-    tripletsInGPU.zOut = (float*)cms::cuda::allocate_device(dev,maxTriplets * nLowerModules * sizeof(float) *6,stream);
+    tripletsInGPU.betaIn = (float*)cms::cuda::allocate_device(dev,maxTriplets * nLowerModules * sizeof(float) *3,stream);
     tripletsInGPU.nTriplets = (unsigned int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(unsigned int),stream);
+    tripletsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_device(dev, maxTriplets * nLowerModules * sizeof(bool), stream);
 
 #else
     cudaMalloc(&tripletsInGPU.segmentIndices, 5 * maxTriplets * nLowerModules * sizeof(unsigned int));
-    cudaMalloc(&tripletsInGPU.zOut, maxTriplets * nLowerModules * 6* sizeof(unsigned int));
+    cudaMalloc(&tripletsInGPU.betaIn, maxTriplets * nLowerModules * 3 * sizeof(float));
     cudaMalloc(&tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int));
+    cudaMalloc(&tripletsInGPU.partOfPT5, maxTriplets * nLowerModules * sizeof(bool));
 #endif
     cudaMemset(tripletsInGPU.nTriplets,0,nLowerModules * sizeof(unsigned int));
     tripletsInGPU.lowerModuleIndices = tripletsInGPU.segmentIndices + nLowerModules * maxTriplets *2;
 
-    tripletsInGPU.rtOut = tripletsInGPU.zOut + nLowerModules * maxTriplets;
-    tripletsInGPU.deltaPhiPos = tripletsInGPU.zOut + nLowerModules * maxTriplets *2;
-    tripletsInGPU.deltaPhi = tripletsInGPU.zOut + nLowerModules * maxTriplets *3;
-    tripletsInGPU.betaIn = tripletsInGPU.zOut + nLowerModules * maxTriplets *4;
-    tripletsInGPU.betaOut = tripletsInGPU.zOut + nLowerModules * maxTriplets *5;
+    tripletsInGPU.betaOut = tripletsInGPU.betaIn + nLowerModules * maxTriplets;
+    tripletsInGPU.pt_beta = tripletsInGPU.betaIn + nLowerModules * maxTriplets * 2;
 
 }
 
 #ifdef CUT_VALUE_DEBUG
-__device__ void SDL::addTripletToMemory(struct triplets& tripletsInGPU, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float& zLo, float& zHi, float& rtLo, float& rtHi, float& zLoPointed, float&
+__device__ void SDL::addTripletToMemory(struct triplets& tripletsInGPU, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float& pt_beta, float& zLo, float& zHi, float& rtLo, float& rtHi, float& zLoPointed, float&
         zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ, unsigned int tripletIndex)
+#else
+__device__ void SDL::addTripletToMemory(struct triplets& tripletsInGPU, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, float& betaIn, float& betaOut, float& pt_beta, unsigned int tripletIndex)
+#endif
 {
     tripletsInGPU.segmentIndices[tripletIndex * 2] = innerSegmentIndex;
     tripletsInGPU.segmentIndices[tripletIndex * 2 + 1] = outerSegmentIndex;
@@ -82,14 +86,15 @@ __device__ void SDL::addTripletToMemory(struct triplets& tripletsInGPU, unsigned
     tripletsInGPU.lowerModuleIndices[tripletIndex * 3 + 1] = middleLowerModuleIndex;
     tripletsInGPU.lowerModuleIndices[tripletIndex * 3 + 2] = outerOuterLowerModuleIndex;
 
+
+    tripletsInGPU.betaIn[tripletIndex] = betaIn;
+    tripletsInGPU.betaOut[tripletIndex] = betaOut;
+    tripletsInGPU.pt_beta[tripletIndex] = pt_beta;
+#ifdef CUT_VALUE_DEBUG
     tripletsInGPU.zOut[tripletIndex] = zOut;
     tripletsInGPU.rtOut[tripletIndex] = rtOut;
     tripletsInGPU.deltaPhiPos[tripletIndex] = deltaPhiPos;
     tripletsInGPU.deltaPhi[tripletIndex] = deltaPhi;
-
-    tripletsInGPU.betaIn[tripletIndex] = betaIn;
-    tripletsInGPU.betaOut[tripletIndex] = betaOut;
-
     tripletsInGPU.zLo[tripletIndex] = zLo;
     tripletsInGPU.zHi[tripletIndex] = zHi;
     tripletsInGPU.rtLo[tripletIndex] = rtLo;
@@ -101,40 +106,21 @@ __device__ void SDL::addTripletToMemory(struct triplets& tripletsInGPU, unsigned
     tripletsInGPU.betaOutCut[tripletIndex] = betaOutCut;
     tripletsInGPU.deltaBetaCut[tripletIndex] = deltaBetaCut;
     tripletsInGPU.kZ[tripletIndex] = kZ;
-
-}
-#else
-__device__ void SDL::addTripletToMemory(struct triplets& tripletsInGPU, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, unsigned int tripletIndex)
-{
-   tripletsInGPU.segmentIndices[tripletIndex * 2] = innerSegmentIndex;
-   tripletsInGPU.segmentIndices[tripletIndex * 2 + 1] = outerSegmentIndex;
-   tripletsInGPU.lowerModuleIndices[tripletIndex * 3] = innerInnerLowerModuleIndex;
-   tripletsInGPU.lowerModuleIndices[tripletIndex * 3 + 1] = middleLowerModuleIndex;
-   tripletsInGPU.lowerModuleIndices[tripletIndex * 3 + 2] = outerOuterLowerModuleIndex;
-
-   tripletsInGPU.zOut[tripletIndex] = zOut;
-   tripletsInGPU.rtOut[tripletIndex] = rtOut;
-   tripletsInGPU.deltaPhiPos[tripletIndex] = deltaPhiPos;
-   tripletsInGPU.deltaPhi[tripletIndex] = deltaPhi;
-
-   tripletsInGPU.betaIn[tripletIndex] = betaIn;
-   tripletsInGPU.betaOut[tripletIndex] = betaOut;
-
-}
 #endif
+}
 
 SDL::triplets::triplets()
 {
     segmentIndices = nullptr;
     lowerModuleIndices = nullptr;
-    zOut = nullptr;
-    rtOut = nullptr;
-
-    deltaPhiPos = nullptr;
-    deltaPhi = nullptr;
     betaIn = nullptr;
     betaOut = nullptr;
+    pt_beta = nullptr;
 #ifdef CUT_VALUE_DEBUG
+    zOut = nullptr;
+    rtOut = nullptr;
+    deltaPhiPos = nullptr;
+    deltaPhi = nullptr;
     zLo = nullptr;
     zHi = nullptr;
     rtLo = nullptr;
@@ -159,24 +145,24 @@ void SDL::triplets::freeMemoryCache()
     int dev;
     cudaGetDevice(&dev);
     cms::cuda::free_device(dev,segmentIndices);
-    cms::cuda::free_device(dev,zOut);
-//  #ifdef Full_Explicit
+    cms::cuda::free_device(dev,betaIn);
     cms::cuda::free_device(dev,nTriplets);
-//  #else
-//    cms::cuda::free_managed(nTriplets);
-//  #endif
+    cms::cuda::free_device(dev, partOfPT5);
 #else
     cms::cuda::free_managed(segmentIndices);
-    cms::cuda::free_managed(zOut);
+    cms::cuda::free_managed(betaIn);
     cms::cuda::free_managed(nTriplets);
+    cms::cuda::free_managed(partOfPT5);
 #endif
 }
 void SDL::triplets::freeMemory()
 {
     cudaFree(segmentIndices);
     cudaFree(nTriplets);
-    cudaFree(zOut);
+    cudaFree(betaIn);
+    cudaFree(partOfPT5);
 #ifdef CUT_VALUE_DEBUG
+    cudaFree(zOut);
     cudaFree(zLo);
     cudaFree(zHi);
     cudaFree(rtLo);
@@ -192,8 +178,7 @@ void SDL::triplets::freeMemory()
 }
 
 
-#ifdef CUT_VALUE_DEBUG
-__device__ bool SDL::runTripletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float &zLo, float& zHi, float& rtLo, float& rtHi,
+__device__ bool SDL::runTripletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float& pt_beta, float &zLo, float& zHi, float& rtLo, float& rtHi,
         float& zLoPointed, float& zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ)
 {
     bool pass = true;
@@ -202,13 +187,19 @@ __device__ bool SDL::runTripletDefaultAlgo(struct modules& modulesInGPU, struct 
     {
         pass = false;
     }
+
+    if(not(passRZConstraint(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex)))
+    {
+        pass = false;
+    }
+
     if(not(passPointingConstraint(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, zOut, rtOut))) //fill arguments
     {
         pass = false;
     }
     //now check tracklet algo
     
-    if(not(runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ)))
+    if(not(runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ)))
     {
         pass = false;
     }
@@ -216,29 +207,91 @@ __device__ bool SDL::runTripletDefaultAlgo(struct modules& modulesInGPU, struct 
     return pass;
 }
 
-#else
-__device__ bool SDL::runTripletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut)
+
+__device__ bool SDL::passRZConstraint(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex)
 {
-    bool pass = true;
-    //check
-    if(not(hasCommonMiniDoublet(segmentsInGPU, innerSegmentIndex, outerSegmentIndex)))
-    {
-        pass = false;
-    }
-    if(not(passPointingConstraint(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, zOut, rtOut))) //fill arguments
-    {
-        pass = false;
-    }
-    //now check tracklet algo
-    
-    if(not(runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut)))
-    {
-        pass = false;
-    }
+    unsigned int innerAnchorHitIndex = segmentsInGPU.innerMiniDoubletAnchorHitIndices[innerSegmentIndex];
+    unsigned int middleAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerSegmentIndex];
+    unsigned int outerAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[outerSegmentIndex];
 
-    return pass;
+    //get the rt and z
+    const float& r1 = hitsInGPU.rts[innerAnchorHitIndex];
+    const float& r2 = hitsInGPU.rts[middleAnchorHitIndex];
+    const float& r3 = hitsInGPU.rts[outerAnchorHitIndex];
+
+    const float& z1 = hitsInGPU.zs[innerAnchorHitIndex];
+    const float& z2 = hitsInGPU.zs[middleAnchorHitIndex];
+    const float& z3 = hitsInGPU.zs[outerAnchorHitIndex];
+
+    //following Philip's layer number prescription
+    const int layer1 = modulesInGPU.layers[innerInnerLowerModuleIndex] + 6 * (modulesInGPU.subdets[innerInnerLowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[innerInnerLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::TwoS);
+    const int layer2 = modulesInGPU.layers[middleLowerModuleIndex] + 6 * (modulesInGPU.subdets[middleLowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[middleLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[middleLowerModuleIndex] == SDL::TwoS);
+    const int layer3 = modulesInGPU.layers[outerOuterLowerModuleIndex] + 6 * (modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS);
+
+    const float residual = z2 - ( (z3 - z1) / (r3 - r1) * (r2 - r1) + z1);
+
+    if (layer1 == 12 and layer2 == 13 and layer3 == 14)
+    {
+        return false;
+    }
+    else if (layer1 == 1 and layer2 == 2 and layer3 == 3)
+    {
+        return fabsf(residual) < 0.53;
+    }
+    else if (layer1 == 1 and layer2 == 2 and layer3 == 7)
+    {
+        return fabsf(residual) < 1;
+    }
+    else if (layer1 == 13 and layer2 == 14 and layer3 == 15)
+    {
+        return false;
+    }
+    else if (layer1 == 14 and layer2 == 15 and layer3 == 16)
+    {
+        return false;
+    }
+    else if (layer1 == 1 and layer2 == 7 and layer3 == 8)
+    {
+        return fabsf(residual) < 1;
+    }
+    else if (layer1 == 2 and layer2 == 3 and layer3 == 4)
+    {
+        return fabsf(residual) < 1.21;
+    }
+    else if (layer1 == 2 and layer2 == 3 and layer3 == 7)
+    {
+        return fabsf(residual) < 1.;
+    }
+    else if (layer1 == 2 and layer2 == 7 and layer3 == 8)
+    {
+        return fabsf(residual) < 1.;
+    }
+    else if (layer1 == 3 and layer2 == 4 and layer3 == 5)
+    {
+        return fabsf(residual) < 2.7;
+    }
+    else if (layer1 == 4 and layer2 == 5 and layer3 == 6)
+    {
+        return fabsf(residual) < 3.06;
+    }
+    else if (layer1 == 7 and layer2 == 8 and layer3 == 9)
+    {
+        return fabsf(residual) < 1;
+    }
+    else if (layer1 == 8 and layer2 == 9 and layer3 == 10)
+    {
+        return fabsf(residual) < 1;
+    }
+    else if (layer1 == 9 and layer2 == 10 and layer3 == 11)
+    {
+        return fabsf(residual) < 1;
+    }
+    else
+    {
+        return fabsf(residual) < 5;
+    }
 }
-#endif
+
 __device__ bool SDL::passPointingConstraint(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, float& zOut, float& rtOut)
 {
     short innerInnerLowerModuleSubdet = modulesInGPU.subdets[innerInnerLowerModuleIndex];

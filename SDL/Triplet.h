@@ -11,6 +11,7 @@
 #include "MathUtil.h"
 #include "PrintUtil.h"
 #include "TrackletBase.h"
+#include "TrackCandidate.h"
 
 namespace SDL
 {
@@ -69,6 +70,8 @@ namespace SDL
                 Triplet(Segment* innerSegmentPtr, Segment* outerSegmentPtr);
                 ~Triplet();
 
+                void addSelfPtrToSegments();
+
                 // return whether it passed the algorithm
                 bool passesTripletAlgo(TPAlgo algo) const;
 
@@ -87,6 +90,9 @@ namespace SDL
                 bool passPointingConstraintBarrelBarrelEndcap(SDL::CPU::LogLevel logLevel);
                 bool passPointingConstraintBarrelEndcapEndcap(SDL::CPU::LogLevel logLevel);
                 bool passPointingConstraintEndcapEndcapEndcap(SDL::CPU::LogLevel logLevel);
+
+                // ad hoc RZ constraint based on http://uaf-10.t2.ucsd.edu/~phchang/talks/PhilipChang20210519_LST_RZConstraint.pdf
+                bool passAdHocRZConstraint(SDL::CPU::LogLevel logLevel);
 
         };
     }

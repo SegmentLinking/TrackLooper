@@ -1,0 +1,119 @@
+#!/bin/bash
+
+##############################################################################
+#
+#
+# Validation Plot Maker
+# ${TAG} is compared to the unified efficiency plots from reference ${SECONDTAG}
+#
+#
+##############################################################################
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Help
+usage()
+{
+  echo "ERROR - Usage:"
+  echo
+  echo "      sh $(basename $0) OPTIONSTRINGS ..."
+  echo
+  echo "Options:"
+  echo "  -h    Help                   (Display this message)"
+  echo "  -f    force                  (Force re-run of the efficiency)"
+  echo "  -i    input sample type      (e.g. -i muonGun)"
+  echo "  -t    git hash tag           (e.g. -t 78df188DIRTY)"
+  echo "  -T    reference git hash tag (e.g. -t 78df188)"
+  echo "  -m    mode                   (e.g. -m unified_newgrid)"
+  echo "  -M    reference mode         (e.g. -M explicit)"
+  echo "  -l    Legend name for -t tag"
+  echo "  -L    Legend name for -T tag"
+  exit
+}
+
+# Parsing command-line opts
+while getopts ":i::t:T:f:m:M:l:L:h" OPTION; do
+  case $OPTION in
+    i) SAMPLE=${OPTARG};;
+    t) TAG=${OPTARG};;
+    T) SECONDTAG=${OPTARG};;
+    f) FORCE=true;;
+    m) MODE=${OPTARG};;
+    M) REFMODE=${OPTARG};;
+    l) LEGENDTAG=${OPTARG};;
+    L) REFLEGENDTAG=${OPTARG};;
+    h) usage;;
+    :) usage;;
+  esac
+done
+
+# If the command line options are not provided set it to default value of false
+if [ -z ${SAMPLE} ]; then usage; fi
+if [ -z ${TAG} ]; then usage; fi
+if [ -z ${SECONDTAG} ]; then usage; fi
+if [ -z ${FORCE} ]; then FORCE=false; fi
+
+# Shift away the parsed options
+shift $(($OPTIND - 1))
+
+if [ -d "${OUTDIR}" ]; then
+    if $FORCE; then
+        :
+    else
+        echo "Already ran efficiency for TAG=${TAG} SECONDTAG=${SECONDTAG} SAMPLE=${SAMPLE} !!!"
+        echo "Are you sure you want to re-run and overwrite?  Add -f in the command line to overwrite."
+        exit
+    fi
+fi
+
+# Verbose
+echo "====================================================="
+echo "Validation Efficiency Comparison                     "
+echo "====================================================="
+echo ""
+echo "  TAG               : ${TAG}"
+echo "  SECONDTAG(REFERENCE): ${SECONDTAG}"
+echo "  SAMPLE            : ${SAMPLE}"
+echo "  MODE              : ${MODE}"
+echo "  SECONDMODE (REFERENCE): ${REFMODE}"
+echo ""
+
+if [ $(ls -d efficiencies/*_GPU_${MODE}_${TAG}_${SAMPLE} 2> /dev/null) ] && [ $(ls -d efficiencies/*_GPU_${REFMODE}_${SECONDTAG}_${SAMPLE} 2> /dev/null) ]; then
+    :
+else
+    echo "Nothing to compare! Have you run any efficiencies plots for the ones you requested?"
+    exit
+fi
+
+# Create output directory
+mkdir -p efficiencies/
+
+# Set output directory
+OUTDIR=efficiencies/eff_comparison_plots__${TAG}_${MODE}_${SECONDTAG}_${REFMODE}_${SAMPLE}
+
+# Delete the output if already existing
+rm -rf ${OUTDIR}
+
+# Make plots
+mkdir -p plots
+echo "Making comparison plots...              (log: ${OUTDIR}/plots.log)"
+
+echo "Available runs to compare...:"
+for i in $(ls -d efficiencies/*_GPU_${MODE}_${TAG}_${SAMPLE}); do echo $i; done
+python $DIR/../python/plot_compare_arbitrary.py ${TAG} ${SECONDTAG} ${SAMPLE} ${MODE} ${REFMODE} ${REFLEGENDTAG} ${LEGENDTAG} > plots.log 2>&1
+
+grep "VALIDATION FAILED" plots.log
+
+# copy the plots
+echo "Copying plots..."
+cp -r plots ${OUTDIR}
+
+# copy the source code info
+mv plots.log ${OUTDIR}/
+cp $DIR/../misc/index.php ${OUTDIR}/
+
+# clean up so that the next run would be spoiled
+rm -rf plots
+
+# Output
+echo "Done! Output is located at ${OUTDIR}/"

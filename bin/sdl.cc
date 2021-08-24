@@ -87,6 +87,10 @@ int main(int argc, char** argv)
         ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_1pion_10k_pt0p5_50p0.root";
     else if (ana.input_raw_string.EqualTo("PU200"))
         ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_with_PUinfo_500_evts.root";
+    else if (ana.input_raw_string.EqualTo("cube"))
+        ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_10_pt0p5_50_5cm_cube.root";
+    else if (ana.input_raw_string.EqualTo("cube50cm"))
+        ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_10_pt0p5_50_50cm_cube.root";
     else
         ana.input_file_list_tstring = ana.input_raw_string;
 
@@ -348,17 +352,27 @@ void run_sdl()
             // Run T3
             float timing_T3 = runT3(event);
 
+
+#ifdef DO_QUADRUPLET
             // Run T4
             float timing_T4 = runT4(event);
+#else
+            //Don't run T4
+            float timing_T4 = 0;
+#endif
+#ifdef DO_QUINTUPLET
+            float timing_T5 = runQuintuplet(event);
+            float timing_pT5 = runPixelQuintuplet(event);
+#else
+            float timing_T5 = 0;
+            float timing_pT5 = 0;
+#endif
+            //Run pT3
+            float timing_pT3 = runpT3(event);
 
             // Run TC
             float timing_TC = runTrackCandidate(event);
 
-#ifdef DO_QUINTUPLET
-            float timing_T5 = runQuintuplet(event);
-#else
-            float timing_T5 = 0;
-#endif
             timing_information.push_back({ timing_input_loading,
                     timing_MD,
                     timing_LS,
@@ -367,7 +381,9 @@ void run_sdl()
                     timing_pT4,
                     timing_T3,
                     timing_TC,
-                    timing_T5});
+                    timing_T5,
+                    timing_pT3,
+                    timing_pT5});
 
             if (ana.verbose == 4)
             {
@@ -384,14 +400,6 @@ void run_sdl()
                 if (not ana.do_cut_value_ntuple)
                 {
                     fillOutputBranches(event);
-                }
-                else
-                {
-                    //call the function from WriteSDLNtupleV2.cc
-                    SDL::EventForAnalysisInterface* eventForAnalysisInterface = new SDL::EventForAnalysisInterface(event.getFullModules(), event.getHits(), event.getMiniDoublets(), event.getSegments(), event.getTracklets(), event.getTriplets(), event.getTrackCandidates());
-
-                    study->doStudy(*eventForAnalysisInterface);
-                    ana.cutflow.fill();
                 }
             }
 
@@ -429,15 +437,19 @@ void run_sdl()
             printTripletSummary(event);
 
             // Run Tracklet
-            float timing_T4 = runT4_on_CPU(event);
+            float timing_T4 = 0; // runT4_on_CPU(event);
             printTrackletSummary(event);
-            float timing_T4x = 0; // runT4x_on_CPU(event);
+            float timing_T4x = 0; // runT4x_on_CPU(event); // T4x's are turned off right now
             printTrackletSummary(event);
             float timing_pT4 = runpT4_on_CPU(event);
             printTrackletSummary(event);
+            float timing_pT3 = runpT3_on_CPU(event);
+            printTrackletSummary(event);
 
+            // Run T5s
+            float timing_T5 = runT5_on_CPU(event);
             // Run TrackCandidate
-            float timing_TC = runTrackCandidate_on_CPU(event);
+            float timing_TC = 0; // runTrackCandidate_on_CPU(event); // {T4, T3 based TC's, and no T5};
             printTrackCandidateSummary(event);
 
             timing_information.push_back({ timing_input_loading,
@@ -445,9 +457,10 @@ void run_sdl()
                     timing_LS,
                     timing_T4,
                     timing_T4x,
-                    timing_pT4,
+                    timing_pT3,
                     timing_T3,
-                    timing_TC});
+                    timing_TC,
+                    timing_T5});
 
             if (ana.verbose == 4)
             {
@@ -488,20 +501,21 @@ void writeMetaData()
 
     // Write out metadata of the code to the output_tfile
     ana.output_tfile->cd();
-    gSystem->Exec("echo '' > .gitversion.txt");
-    gSystem->Exec("git rev-parse HEAD >> .gitversion.txt");
-    gSystem->Exec("echo 'git status' >> .gitversion.txt");
-    gSystem->Exec("git status >> .gitversion.txt");
-    gSystem->Exec("echo 'git log -n5' >> .gitversion.txt");
-    gSystem->Exec("git log >> .gitversion.txt");
-    gSystem->Exec("echo 'git diff' >> .gitversion.txt");
-    gSystem->Exec("git diff >> .gitversion.txt");
-    std::ifstream t(".gitversion.txt");
+    gSystem->Exec(TString::Format("echo '' > %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("git rev-parse HEAD >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("echo 'git status' >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("git status >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("echo 'git log -n5' >> .%s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("git log >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("echo 'git diff' >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("git diff >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    std::ifstream t(TString::Format("%s.gitversion.txt", ana.output_tfile->GetName()));
     std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
     TString tstr = str.c_str();
     TObjString tobjstr("code_tag_data");
     tobjstr.SetString(tstr.Data());
     ana.output_tfile->WriteObject(&tobjstr, "code_tag_data");
+    gSystem->Exec(TString::Format("rm %s.gitversion.txt", ana.output_tfile->GetName()));
     TString make_log_path = TString::Format("%s/.make.log", ana.track_looper_dir_path.Data());
     std::ifstream makelog(make_log_path.Data());
     std::string makestr((std::istreambuf_iterator<char>(makelog)), std::istreambuf_iterator<char>());
@@ -511,13 +525,14 @@ void writeMetaData()
     ana.output_tfile->WriteObject(&maketobjstr, "make_log");
 
     // Write git diff output in a separate string to gauge the difference
-    gSystem->Exec("git diff > .gitdiff.txt");
-    std::ifstream gitdiff(".gitdiff.txt");
+    gSystem->Exec(TString::Format("git diff > %s.gitdiff.txt", ana.output_tfile->GetName()));
+    std::ifstream gitdiff(TString::Format("%s.gitdiff.txt", ana.output_tfile->GetName()));
     std::string strgitdiff((std::istreambuf_iterator<char>(gitdiff)), std::istreambuf_iterator<char>());
     TString tstrgitdiff = strgitdiff.c_str();
     TObjString tobjstrgitdiff("gitdiff");
     tobjstrgitdiff.SetString(tstrgitdiff.Data());
     ana.output_tfile->WriteObject(&tobjstrgitdiff, "gitdiff");
+    gSystem->Exec(TString::Format("rm %s.gitdiff.txt", ana.output_tfile->GetName()));
 
     // Parse from makestr the TARGET
     TString rawstrdata = maketstr.ReplaceAll("MAKETARGET=", "%");

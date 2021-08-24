@@ -19,6 +19,12 @@ SDL::CPU::Triplet::Triplet(SDL::CPU::Segment* innerSegmentPtr, SDL::CPU::Segment
 {
 }
 
+void SDL::CPU::Triplet::addSelfPtrToSegments()
+{
+    innerSegmentPtr_->addOutwardTripletPtr(this);
+    outerSegmentPtr_->addInwardTripletPtr(this);
+}
+
 bool SDL::CPU::Triplet::passesTripletAlgo(SDL::CPU::TPAlgo algo) const
 {
     // Each algorithm is an enum shift it by its value and check against the flag
@@ -106,7 +112,21 @@ void SDL::CPU::Triplet::runTripletDefaultAlgo(SDL::CPU::LogLevel logLevel)
 
     //====================================================
     //
-    // Compute momentum of Triplet
+    // Compute momentum of Triplet ( NOT USED )
+    //
+    if (true)
+    {
+        SDL::CPU::Hit& HitA = (*innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr());
+        SDL::CPU::Hit& HitB = (*innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr());
+        SDL::CPU::Hit& HitC = (*outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr());
+        float g, f; // not used
+        float radius = SDL::CPU::TrackCandidate::computeRadiusFromThreeAnchorHits(HitA.x(), HitA.y(), HitB.x(), HitB.y(), HitC.x(), HitC.y(), g, f);
+        setRecoVars("tripletRadius", radius);
+    }
+
+    //====================================================
+    //
+    // Cut on momentum of Triplet ( NOT USED )
     //
     if (false)
     {
@@ -139,6 +159,8 @@ bool SDL::CPU::Triplet::passPointingConstraint(SDL::CPU::LogLevel logLevel)
     // SDL::CPU::cout << innerSegmentPtr();
     // SDL::CPU::cout << outerSegmentPtr();
     // return false;
+    if (not passAdHocRZConstraint(logLevel))
+        return false;
     
     const SDL::CPU::Module& ModuleA = innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->getModule();
     const SDL::CPU::Module& ModuleB = innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->getModule();
@@ -610,4 +632,89 @@ bool SDL::CPU::Triplet::passPointingConstraintEndcapEndcapEndcap(SDL::CPU::LogLe
     // Flag the pass bit
     passBitsDefaultAlgo_ |= (1 << TripletSelection::deltaZPointed);
     return true;
+}
+
+bool SDL::CPU::Triplet::passAdHocRZConstraint(SDL::CPU::LogLevel logLevel)
+{
+
+    // Obtain the R's and Z's
+    const float& r1 = innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->rt();
+    const float& z1 = innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->z();
+    const float& r2 = innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->rt();
+    const float& z2 = innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->z();
+    const float& r3 = outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->rt();
+    const float& z3 = outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->z();
+
+    const float residual = z2 - ( (z3 - z1) / (r3 - r1) * (r2 - r1) + z1);
+    setRecoVars("residual", residual);
+
+    const SDL::CPU::Module& ModuleA = innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->getModule();
+    const SDL::CPU::Module& ModuleB = innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->getModule();
+    const SDL::CPU::Module& ModuleC = outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->getModule();
+
+    const int layer1 =  ModuleA.layer() + 6 * (ModuleA.subdet() == 4) + 5 * (ModuleA.subdet() == 4 and ModuleA.moduleType() == 1);
+    const int layer2 =  ModuleB.layer() + 6 * (ModuleB.subdet() == 4) + 5 * (ModuleB.subdet() == 4 and ModuleB.moduleType() == 1);
+    const int layer3 =  ModuleC.layer() + 6 * (ModuleC.subdet() == 4) + 5 * (ModuleC.subdet() == 4 and ModuleC.moduleType() == 1);
+
+    if (layer1 == 12 and layer2 == 13 and layer3 == 14)
+    {
+        return false;
+    }
+    else if (layer1 == 1 and layer2 == 2 and layer3 == 3)
+    {
+        return fabs(residual) < 0.53;
+    }
+    else if (layer1 == 1 and layer2 == 2 and layer3 == 7)
+    {
+        return fabs(residual) < 1;
+    }
+    else if (layer1 == 13 and layer2 == 14 and layer3 == 15)
+    {
+        return false;
+    }
+    else if (layer1 == 14 and layer2 == 15 and layer3 == 16)
+    {
+        return false;
+    }
+    else if (layer1 == 1 and layer2 == 7 and layer3 == 8)
+    {
+        return fabs(residual) < 1;
+    }
+    else if (layer1 == 2 and layer2 == 3 and layer3 == 4)
+    {
+        return fabs(residual) < 1.21;
+    }
+    else if (layer1 == 2 and layer2 == 3 and layer3 == 7)
+    {
+        return fabs(residual) < 1.;
+    }
+    else if (layer1 == 2 and layer2 == 7 and layer3 == 8)
+    {
+        return fabs(residual) < 1.;
+    }
+    else if (layer1 == 3 and layer2 == 4 and layer3 == 5)
+    {
+        return fabs(residual) < 2.7;
+    }
+    else if (layer1 == 4 and layer2 == 5 and layer3 == 6)
+    {
+        return fabs(residual) < 3.06;
+    }
+    else if (layer1 == 7 and layer2 == 8 and layer3 == 9)
+    {
+        return fabs(residual) < 1;
+    }
+    else if (layer1 == 8 and layer2 == 9 and layer3 == 10)
+    {
+        return fabs(residual) < 1;
+    }
+    else if (layer1 == 9 and layer2 == 10 and layer3 == 11)
+    {
+        return fabs(residual) < 1;
+    }
+    else
+    {
+        return fabs(residual) < 5;
+    }
+
 }

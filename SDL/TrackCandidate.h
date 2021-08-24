@@ -81,6 +81,23 @@ namespace SDL
                     nCut
                 };
 
+                enum T5Selection
+                {
+                    tracklet13 = 0,
+                    tracklet14,
+                    radiusConsistency,
+                    nCutT5
+                };
+
+                enum pT3Selection
+                {
+                    pT3tracklet13 = 0,
+                    pT3tracklet14,
+                    pT3radiusConsistency,
+                    nCutpT3
+                };
+
+
             private:
                 // Bits to flag whether this tracklet passes which cut of default algorithm
                 int passBitsDefaultAlgo_;
@@ -124,8 +141,35 @@ namespace SDL
                 // Connecting inner triplet to outer tracklet with share segment
                 void runTrackCandidateInnerTripletToOuterTracklet(SDL::CPU::LogLevel logLevel);
 
+                // Connecting inner triplet to outer triplet with share mini-doublet
+                void runTrackCandidateT5(SDL::CPU::LogLevel logLevel);
+
+                // Connecting pixel track to outer tracker triplet
+                void runTrackCandidatepT3(SDL::CPU::LogLevel logLevel);
+
                 bool isIdxMatched(const TrackCandidate&) const;
                 bool isAnchorHitIdxMatched(const TrackCandidate&) const;
+
+                bool matchRadiiBBBBB(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax);
+                bool matchRadiiBBBBE(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax);
+                bool matchRadiiBBBEE12378(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax);
+                bool matchRadiiBBBEE23478(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax);
+                bool matchRadiiBBBEE34578(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax);
+                bool matchRadiiBBBEE(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax);
+                bool matchRadiiBBEEE(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax);
+                bool matchRadiiBEEEE(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax); 
+                bool matchRadiiEEEEE(const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerRadiusMin, float& innerRadiusMax, float& bridgeRadiusMin, float& bridgeRadiusMax, float& outerRadiusMin, float& outerRadiusMax);
+                bool checkIntervalOverlap(const float& firstMin, const float& firstMax, const float& secondMin, const float& secondMax);
+
+                static float computeRadiusFromThreeAnchorHits(float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f);
+                void computeErrorInRadius(std::vector<float> x1Vec, std::vector<float> y1Vec, std::vector<float> x2Vec, std::vector<float> y2Vec, std::vector<float> x3Vec, std::vector<float> y3Vec, float& minimumRadius, float& maximumRadius);
+
+                // for pT3
+                /*bounds for high Pt taken from : http://uaf-10.t2.ucsd.edu/~bsathian/SDL/T5_efficiency/efficiencies/new_efficiencies/efficiencies_20210513_T5_recovering_high_Pt_efficiencies/highE_radius_matching/highE_bounds.txt */
+                bool passRadiusCriterionBBB(float& pixelRadius, float& pixelRadiusError, float& tripletRadius);
+                bool passRadiusCriterionBBE(float& pixelRadius, float& pixelRadiusError, float& tripletRadius);
+                bool passRadiusCriterionBEE(float& pixelRadius, float& pixelRadiusError, float& tripletRadius);
+                bool passRadiusCriterionEEE(float& pixelRadius, float& pixelRadiusError, float& tripletRadius);
 
                 // cout printing
                 friend std::ostream& operator<<(std::ostream& out, const TrackCandidate& tc);

@@ -14,6 +14,7 @@ SDL::hits::hits()
     moduleIndices = nullptr;
     rts = nullptr;
     phis = nullptr;
+    etas = nullptr;
 //    edge2SMap = nullptr;
     highEdgeXs = nullptr;
     highEdgeYs = nullptr;
@@ -35,6 +36,7 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
 
     hitsInGPU.rts = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
     hitsInGPU.phis = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
+    hitsInGPU.etas = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
 
     hitsInGPU.moduleIndices = (unsigned int*)cms::cuda::allocate_managed(nMaxHits*sizeof(unsigned int),stream);
     hitsInGPU.idxs = (unsigned int*)cms::cuda::allocate_managed(nMaxHits*sizeof(unsigned int),stream);
@@ -57,6 +59,7 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
 
     cudaMallocManaged(&hitsInGPU.rts, nMaxHits * sizeof(float));
     cudaMallocManaged(&hitsInGPU.phis, nMaxHits * sizeof(float));
+    cudaMallocManaged(&hitsInGPU.etas, nMaxHits * sizeof(float));
 
 //    cudaMallocManaged(&hitsInGPU.edge2SMap, nMaxHits * sizeof(int)); //hits to edge hits map. Signed int
     //cudaMallocManaged(&hitsInGPU.highEdgeXs, nMax2SHits * sizeof(float)); // due to changes made for the explicit version
@@ -87,6 +90,7 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
 
     hitsInGPU.rts = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
     hitsInGPU.phis = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
+    hitsInGPU.etas = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
 
     hitsInGPU.moduleIndices = (unsigned int*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(unsigned int),stream);
     hitsInGPU.idxs = (unsigned int*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(unsigned int),stream);
@@ -107,6 +111,7 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
 
     cudaMalloc(&hitsInGPU.rts, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.phis, nMaxHits * sizeof(float));
+    cudaMalloc(&hitsInGPU.etas, nMaxHits * sizeof(float));
 
     cudaMalloc(&hitsInGPU.highEdgeXs, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.highEdgeYs, nMaxHits * sizeof(float));
@@ -355,6 +360,7 @@ void SDL::hits::freeMemory()
     cudaFree(rts);
     cudaFree(idxs);
     cudaFree(phis);
+    cudaFree(etas);
 
 //    cudaFree(edge2SMap);
     cudaFree(highEdgeXs);

@@ -476,6 +476,113 @@ float addOuterTrackerHits(SDL::CPU::Event& event)
     return hit_loading_elapsed;
 }
 
+//__________________________________________________________________________________________
+float addOuterTrackerSimHits(SDL::CPU::Event& event)
+{
+
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Loading Outer Tracker Hits for CPU...." << std::endl;
+    my_timer.Start();
+
+    // Adding hits to modules
+    for (auto&& [ihit, data] : iter::enumerate(iter::zip(trk.simhit_x(), trk.simhit_y(), trk.simhit_z(), trk.simhit_subdet(), trk.simhit_detId())))
+    {
+
+        auto&& [x, y, z, subdet, detid] = data;
+
+        if (not (subdet == 5 or subdet == 4))
+            continue;
+
+        // Takes two arguments, SDL::Hit, and detId
+        // SDL::Event internally will structure whether we already have the module instance or we need to create a new one.
+        event.addHitToModule(
+                // a hit
+                SDL::CPU::Hit(x, y, z, ihit),
+                // add to module with "detId"
+                detid
+                );
+
+    }
+
+    float hit_loading_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Loading outer tracker hits processing time: " << hit_loading_elapsed << " secs" << std::endl;
+    return hit_loading_elapsed;
+}
+
+//__________________________________________________________________________________________
+float addOuterTrackerSimHitsFromPVOnly(SDL::CPU::Event& event)
+{
+
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Loading Outer Tracker Hits for CPU...." << std::endl;
+    my_timer.Start();
+
+    // Adding hits to modules
+    for (auto&& [ihit, data] : iter::enumerate(iter::zip(trk.simhit_x(), trk.simhit_y(), trk.simhit_z(), trk.simhit_subdet(), trk.simhit_detId())))
+    {
+
+        if (trk.sim_bunchCrossing()[trk.simhit_simTrkIdx()[ihit]] != 0)
+            continue;
+        if (trk.sim_event()[trk.simhit_simTrkIdx()[ihit]] != 0)
+            continue;
+
+        auto&& [x, y, z, subdet, detid] = data;
+
+        if (not (subdet == 5 or subdet == 4))
+            continue;
+
+        // Takes two arguments, SDL::Hit, and detId
+        // SDL::Event internally will structure whether we already have the module instance or we need to create a new one.
+        event.addHitToModule(
+                // a hit
+                SDL::CPU::Hit(x, y, z, ihit),
+                // add to module with "detId"
+                detid
+                );
+
+    }
+
+    float hit_loading_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Loading outer tracker hits processing time: " << hit_loading_elapsed << " secs" << std::endl;
+    return hit_loading_elapsed;
+}
+
+//__________________________________________________________________________________________
+float addOuterTrackerSimHitsNotFromPVOnly(SDL::CPU::Event& event)
+{
+
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Loading Outer Tracker Hits for CPU...." << std::endl;
+    my_timer.Start();
+
+    // Adding hits to modules
+    for (auto&& [ihit, data] : iter::enumerate(iter::zip(trk.simhit_x(), trk.simhit_y(), trk.simhit_z(), trk.simhit_subdet(), trk.simhit_detId())))
+    {
+
+        if (trk.sim_bunchCrossing()[trk.simhit_simTrkIdx()[ihit]] == 0 and trk.sim_event()[trk.simhit_simTrkIdx()[ihit]] == 0)
+            continue;
+
+        auto&& [x, y, z, subdet, detid] = data;
+
+        if (not (subdet == 5 or subdet == 4))
+            continue;
+
+        // Takes two arguments, SDL::Hit, and detId
+        // SDL::Event internally will structure whether we already have the module instance or we need to create a new one.
+        event.addHitToModule(
+                // a hit
+                SDL::CPU::Hit(x, y, z, ihit),
+                // add to module with "detId"
+                detid
+                );
+
+    }
+
+    float hit_loading_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Loading outer tracker hits processing time: " << hit_loading_elapsed << " secs" << std::endl;
+    return hit_loading_elapsed;
+}
+
 float runMiniDoublet(SDL::Event& event)
 {
     TStopwatch my_timer;
@@ -625,6 +732,20 @@ float runT3(SDL::Event& event)
 
 }
 
+
+float runpT3(SDL::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Reco Pixel Triplet pT3 start" << std::endl;
+    my_timer.Start();
+    event.createPixelTriplets();
+    float pt3_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Reco pT3 processing time: " << pt3_elapsed << " secs" << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Pixel T3s produced: "<< event.getNumberOfPixelTriplets() << std::endl;
+
+    return pt3_elapsed;
+}
+
 float runTrackCandidate(SDL::Event& event)
 {
     return runTrackCandidateTest_v2(event);
@@ -655,6 +776,21 @@ float runQuintuplet(SDL::Event& event)
     return t5_elapsed;
    
 }
+
+float runPixelQuintuplet(SDL::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Reco Pixel Quintuplet start" << std::endl;
+    my_timer.Start();
+    event.createPixelQuintuplets();
+    float pt5_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Reco Pixel Quintuplet processing time: " << pt5_elapsed << " secs" << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Pixel Quintuplets produced: " << event.getNumberOfPixelQuintuplets() << std::endl;
+
+    return pt5_elapsed;
+}
+
+
 
 float runTrackCandidateTest_v2(SDL::Event& event)
 {
@@ -751,7 +887,7 @@ bool inTimeTrackWithPdgId(int isimtrk, int pdgid)
     return true;
 }
 
-std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes)
+std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes, bool verbose)
 {
     if (hitidxs.size() != hittypes.size())
     {
@@ -776,9 +912,19 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
     std::vector<vector<int>> simtrk_idxs;
     std::vector<int> unique_idxs; // to aggregate which ones to count and test
 
+    if (verbose)
+    {
+        std::cout <<  " '------------------------': " << "------------------------" <<  std::endl;
+    }
+
     for (auto&& [ihit, ihitdata] : iter::enumerate(to_check_duplicate))
     {
         auto&& [hitidx, hittype] = ihitdata;
+
+        if (verbose)
+        {
+            std::cout <<  " hitidx: " << hitidx <<  " hittype: " << hittype <<  std::endl;
+        }
 
         std::vector<int> simtrk_idxs_per_hit;
 
@@ -801,8 +947,6 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
 
         for (auto& simhit_idx : (*simHitIdxs).at(hitidx))
         {
-            // std::cout << "  " << trk.simhit_simTrkIdx().size() << std::endl;
-            // std::cout << " " << simhit_idx << std::endl;
             if (trk.simhit_simTrkIdx().size() <= simhit_idx)
             {
                 std::cout << (*simHitIdxs).size() << " " << hittype << std::endl;
@@ -810,6 +954,10 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
                 std::cout << trk.simhit_simTrkIdx().size() << " " << simhit_idx << std::endl;
             }
             int simtrk_idx = trk.simhit_simTrkIdx().at(simhit_idx);
+            if (verbose)
+            {
+                std::cout <<  " hitidx: " << hitidx <<  " simhit_idx: " << simhit_idx <<  " simtrk_idx: " << simtrk_idx <<  std::endl;
+            }
             simtrk_idxs_per_hit.push_back(simtrk_idx);
             if (std::find(unique_idxs.begin(), unique_idxs.end(), simtrk_idx) == unique_idxs.end())
                 unique_idxs.push_back(simtrk_idx);
@@ -817,6 +965,10 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
 
         if (simtrk_idxs_per_hit.size() == 0)
         {
+            if (verbose)
+            {
+                std::cout <<  " hitidx: " << hitidx <<  " -1: " << -1 <<  std::endl;
+            }
             simtrk_idxs_per_hit.push_back(-1);
             if (std::find(unique_idxs.begin(), unique_idxs.end(), -1) == unique_idxs.end())
                 unique_idxs.push_back(-1);
@@ -825,8 +977,17 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
         simtrk_idxs.push_back(simtrk_idxs_per_hit);
     }
 
+    if (verbose)
+    {
+        std::cout <<  " unique_idxs.size(): " << unique_idxs.size() <<  std::endl;
+        for (auto& unique_idx : unique_idxs)
+        {
+            std::cout <<  " unique_idx: " << unique_idx <<  std::endl;
+        }
+    }
+
     // print
-/*    if (ana.verbose >= 1)
+    if (verbose)
     {
         std::cout << "va print" << std::endl;
         for (auto& vec : simtrk_idxs)
@@ -838,18 +999,22 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
             std::cout << std::endl;
         }
         std::cout << "va print end" << std::endl;
-    }*/
+    }
 
     // Compute all permutations
     std::function<void(vector<vector<int>>&, vector<int>, size_t, vector<vector<int>>&)> perm =
         [&](vector<vector<int>>& result, vector<int> intermediate, size_t n, vector<vector<int>>& va)
     {
+        // std::cout <<  " 'called': " << "called" <<  std::endl;
         if (va.size() > n)
         {
             for (auto x : va[n])
             {
-                intermediate.push_back(x);
-                perm(result, intermediate, n+1, va);
+                // std::cout <<  " n: " << n <<  std::endl;
+                // std::cout <<  " intermediate.size(): " << intermediate.size() <<  std::endl;
+                std::vector<int> copy_intermediate(intermediate);
+                copy_intermediate.push_back(x);
+                perm(result, copy_intermediate, n+1, va);
             }
         }
         else
@@ -860,6 +1025,19 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
 
     vector<vector<int>> allperms;
     perm(allperms, vector<int>(), 0, simtrk_idxs);
+
+    if (verbose)
+    {
+        std::cout <<  " allperms.size(): " << allperms.size() <<  std::endl;
+        for (unsigned iperm = 0; iperm < allperms.size(); ++iperm)
+        {
+            std::cout <<  " allperms[iperm].size(): " << allperms[iperm].size() <<  std::endl;
+            for (unsigned ielem = 0; ielem < allperms[iperm].size(); ++ielem)
+            {
+                std::cout <<  " allperms[iperm][ielem]: " << allperms[iperm][ielem] <<  std::endl;
+            }
+        }
+    }
 
     std::vector<int> matched_sim_trk_idxs;
     for (auto& trkidx_perm : allperms)
@@ -1360,7 +1538,24 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
 	
         if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
         {
-
+            // get pixel superbin
+            //int ptbin = -1;
+            int pixtype =-1;
+            //if (p3PCA.Pt() >= 2.0){ /*ptbin = 1;*/pixtype=0;}
+            //else if (p3PCA.Pt() >= 0.9 and p3PCA.Pt() < 2.0){ 
+            //  //ptbin = 0;
+            //  if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
+            //  else{pixtype=2;}
+            //}
+            if (p3LH.Pt() >= 2.0){ /*ptbin = 1;*/pixtype=0;}
+            else if (p3LH.Pt() >= 0.9 and p3LH.Pt() < 2.0){ 
+              //ptbin = 0;
+              if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
+              else{pixtype=2;}
+            }
+            else{continue;}
+            // if(abs(p3PCA.Eta()) >= 2.5){continue;}
+// all continues before pushing back into vectots to avoid strange offsets in indicies. 
             unsigned int hitIdx0 = hit_size + count;
             count++; 
 
@@ -1384,9 +1579,9 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             trkX.push_back(r3PCA.X());
             trkY.push_back(r3PCA.Y());
             trkZ.push_back(r3PCA.Z());
-            trkX.push_back(r3PCA.X());
-            trkY.push_back(r3PCA.Y());
-            trkZ.push_back(r3PCA.Z());
+            trkX.push_back(p3PCA.Pt());
+            trkY.push_back(p3PCA.Eta());
+            trkZ.push_back(p3PCA.Phi());
             trkX.push_back(r3LH.X());
             trkY.push_back(r3LH.Y());
             trkZ.push_back(r3LH.Z());
@@ -1396,8 +1591,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             if(trk.see_hitIdx()[iSeed].size() > 3)
             {
                 trkX.push_back(r3LH.X());
-                trkY.push_back(r3LH.Y());
-                trkZ.push_back(r3LH.Z());
+                trkY.push_back(trk.see_dxy()[iSeed]);
+                trkZ.push_back(trk.see_dz()[iSeed]);
                 hitId.push_back(1);
             }
             px_vec.push_back(px);
@@ -1423,16 +1618,6 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             {
                 hitIdxs.push_back(trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]);
             }
-            // get pixel superbin
-            //int ptbin = -1;
-            int pixtype =-1;
-            if (p3PCA.Pt() >= 2.0){ /*ptbin = 1;*/pixtype=0;}
-            else if (p3PCA.Pt() >= 0.9 and p3PCA.Pt() < 2.0){ 
-              //ptbin = 0;
-              if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
-              else{pixtype=2;}
-            }
-            else{continue;}
             //if (pt < 0){ ptbin = 0;}
             float neta = 25.;
             float nphi = 72.;
@@ -1441,6 +1626,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             int phibin = (p3PCA.Phi() + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
             int dzbin = (trk.see_dz()[iSeed] + 30) / (2*30 / nz);
             int isuperbin = /*(nz * nphi * neta) * ptbin + (removed since pt bin is determined by pixelType)*/ (nz * nphi) * etabin + (nz) * phibin + dzbin;
+            //if(isuperbin<0 || isuperbin>=44900){printf("isuperbin %d %d %d %d %f\n",isuperbin,etabin,phibin,dzbin,p3PCA.Eta());}
             superbin_vec.push_back(isuperbin);
             pixelType_vec.push_back(pixtype);
 
@@ -1450,7 +1636,6 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         }
 
     }
-
 
     event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
     event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec);
@@ -1848,6 +2033,30 @@ float runTrackCandidate_on_CPU(SDL::CPU::Event& event)
 }
 
 //__________________________________________________________________________________________
+float runT5_on_CPU(SDL::CPU::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Reco T5 start" << std::endl;
+    my_timer.Start();
+    event.createT5s();
+    float t5_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Reco T5 processing time: " << t5_elapsed << " secs" << std::endl;
+    return t5_elapsed;
+}
+
+//__________________________________________________________________________________________
+float runpT3_on_CPU(SDL::CPU::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Reco pT3 start" << std::endl;
+    my_timer.Start();
+    event.createpT3s();
+    float pt3_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Reco pT3 processing time: " << pt3_elapsed << " secs" << std::endl;
+    return pt3_elapsed;
+}
+
+//__________________________________________________________________________________________
 void printHitSummary(SDL::CPU::Event& event)
 {
     if (ana.verbose >= 2) std::cout << "Summary of hits" << std::endl;
@@ -1997,3 +2206,159 @@ void printTrackCandidateSummary(SDL::CPU::Event& event)
 
 }
 
+//__________________________________________________________________________________________
+bool isDenomSimTrk(int isimtrk)
+{
+    if (isimtrk < 0)
+        return false;
+    const float& pt = trk.sim_pt()[isimtrk];
+    const float& eta = trk.sim_eta()[isimtrk];
+    const float& dz = trk.sim_pca_dz()[isimtrk];
+    const float& dxy = trk.sim_pca_dxy()[isimtrk];
+    const float& phi = trk.sim_phi()[isimtrk];
+    const int& bunch = trk.sim_bunchCrossing()[isimtrk];
+    const int& event = trk.sim_event()[isimtrk];
+    const int& vtxIdx = trk.sim_parentVtxIdx()[isimtrk];
+    const int& pdgidtrk = trk.sim_pdgId()[isimtrk];
+    const int& q = trk.sim_q()[isimtrk];
+    const float& vtx_x = trk.simvtx_x()[vtxIdx];
+    const float& vtx_y = trk.simvtx_y()[vtxIdx];
+    const float& vtx_z = trk.simvtx_z()[vtxIdx];
+    const float& vtx_perp = sqrt(vtx_x * vtx_x + vtx_y * vtx_y);
+
+    if (bunch != 0)
+        return false;
+
+    if (event != 0)
+        return false;
+
+    if (q == 0)
+        return false;
+
+    return true;
+}
+
+//__________________________________________________________________________________________
+bool isDenomOfInterestSimTrk(int isimtrk)
+{
+    if (isimtrk < 0)
+        return false;
+    const float& pt = trk.sim_pt()[isimtrk];
+    if (pt < 1)
+        return false;
+    const float& eta = trk.sim_eta()[isimtrk];
+    const float& dz = trk.sim_pca_dz()[isimtrk];
+    const float& dxy = trk.sim_pca_dxy()[isimtrk];
+    const float& phi = trk.sim_phi()[isimtrk];
+    const int& bunch = trk.sim_bunchCrossing()[isimtrk];
+    const int& event = trk.sim_event()[isimtrk];
+    const int& vtxIdx = trk.sim_parentVtxIdx()[isimtrk];
+    const int& pdgidtrk = trk.sim_pdgId()[isimtrk];
+    const int& q = trk.sim_q()[isimtrk];
+    const float& vtx_x = trk.simvtx_x()[vtxIdx];
+    const float& vtx_y = trk.simvtx_y()[vtxIdx];
+    const float& vtx_z = trk.simvtx_z()[vtxIdx];
+    const float& vtx_perp = sqrt(vtx_x * vtx_x + vtx_y * vtx_y);
+
+    if (bunch != 0)
+        return false;
+
+    if (q == 0)
+        return false;
+
+    if (vtx_perp > 2.5)
+        return false;
+
+    if (abs(vtx_z) > 30)
+        return false;
+
+    return true;
+}
+
+
+//__________________________________________________________________________________________
+int getDenomSimTrkType(int isimtrk)
+{
+    if (isimtrk < 0)
+        return 0; // not a sim
+    const int& q = trk.sim_q()[isimtrk];
+    if (q == 0)
+        return 1; // sim
+    const float& pt = trk.sim_pt()[isimtrk];
+    const float& eta = trk.sim_eta()[isimtrk];
+    if (pt < 1 or abs(eta) > 2.4)
+        return 2; // sim and charged
+    const float& dz = trk.sim_pca_dz()[isimtrk];
+    const float& dxy = trk.sim_pca_dxy()[isimtrk];
+    const float& phi = trk.sim_phi()[isimtrk];
+    const int& bunch = trk.sim_bunchCrossing()[isimtrk];
+    const int& event = trk.sim_event()[isimtrk];
+    const int& vtxIdx = trk.sim_parentVtxIdx()[isimtrk];
+    const int& pdgidtrk = trk.sim_pdgId()[isimtrk];
+    const float& vtx_x = trk.simvtx_x()[vtxIdx];
+    const float& vtx_y = trk.simvtx_y()[vtxIdx];
+    const float& vtx_z = trk.simvtx_z()[vtxIdx];
+    const float& vtx_perp = sqrt(vtx_x * vtx_x + vtx_y * vtx_y);
+
+    if (vtx_perp > 2.5)
+        return 3; // pt > 1 and abs(eta) < 2.4
+
+    if (abs(vtx_z) > 30)
+        return 4; // pt > 1 and abs(eta) < 2.4 and vtx < 2.5
+
+    if (bunch != 0)
+        return 5; // pt > 1 and abs(eta) < 2.4 and vtx < 2.5 and vtx < 300
+
+    if (event != 0)
+        return 6; // pt > 1 and abs(eta) < 2.4 and vtx 2.5/30 and bunch == 0
+
+    return 7; // pt > 1 and abs(eta) < 2.4 and vtx 2.5/30 and bunch == 0 and event == 0
+}
+
+//__________________________________________________________________________________________
+int bestSimHitMatch(int irecohit)
+{
+    const std::vector<int>& simhitidxs = trk.ph2_simHitIdx()[irecohit];
+    if (simhitidxs.size() == 0)
+        return -999;
+    float ptmax = 0;
+    int best_i = -1;
+    for (auto& simhitidx : simhitidxs)
+    {
+        int isimtrk = trk.simhit_simTrkIdx()[simhitidx];
+        float tmppt = trk.sim_pt()[isimtrk];
+        if (tmppt > ptmax)
+        {
+            best_i = simhitidx;
+            ptmax = tmppt;
+        }
+    }
+    return best_i;
+}
+
+//__________________________________________________________________________________________
+int logicalLayer(const SDL::CPU::Module& module)
+{
+    return module.layer() + 6 * (module.subdet() == 4) + 5 * (module.subdet() == 4 and module.moduleType() == 1);
+}
+
+//__________________________________________________________________________________________
+int isAnchorLayer(const SDL::CPU::Module& module)
+{
+
+    if (module.moduleType() == SDL::CPU::Module::PS)
+    {
+        if (module.moduleLayerType() == SDL::CPU::Module::Pixel)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        return module.isLower();
+    }
+}

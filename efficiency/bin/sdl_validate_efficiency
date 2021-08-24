@@ -15,10 +15,10 @@ run_gpu()
         echo "sdl could not be found! Compilation probably failed! Check the compilation."
         exit
     fi
-
-    sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -i ${sample} -v 0 -l 
-
+    sdl -v 3 -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -i ${sample} -v 0 -l
     if [[ ${PDGID} == 0 ]]; then
+        sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 0 -f
+    elif [[ ${sample} == *"highE"* ]]; then
         sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 0 -f
     else
         sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 4 -f
@@ -117,11 +117,11 @@ if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified" ]]; t
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified_cache" ]]; then
-    run_gpu unified_cache ${SAMPLE} ${NEVENTS} -c
+#    run_gpu unified_cache ${SAMPLE} ${NEVENTS} -c
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified_cache_newgrid" ]]; then
-    run_gpu unified_cache_newgrid ${SAMPLE} ${NEVENTS} -c -g
+#    run_gpu unified_cache_newgrid ${SAMPLE} ${NEVENTS} -c -g
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified_newgrid" ]]; then
@@ -133,11 +133,11 @@ if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit" ]]; 
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache" ]]; then
-     run_gpu explicit_cache ${SAMPLE} ${NEVENTS} -x -c # Does not run on phi3
+#     run_gpu explicit_cache ${SAMPLE} ${NEVENTS} -x -c # Does not run on phi3
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache_newgrid" ]]; then
-     run_gpu explicit_cache_newgrid ${SAMPLE} ${NEVENTS} -x -c -g # Does not run on phi3
+#     run_gpu explicit_cache_newgrid ${SAMPLE} ${NEVENTS} -x -c -g # Does not run on phi3
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_newgrid" ]]; then
