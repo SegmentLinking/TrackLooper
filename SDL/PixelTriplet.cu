@@ -178,7 +178,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     if(pixelSegmentPt < 5.0)
     {
         pass = pass & passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
-        pass = pass & passPT3RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquared);
+       pass = pass & passPT3RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquared);
     }
 
     return pass;
@@ -192,41 +192,58 @@ __device__ bool SDL::passPT3RZChiSquaredCuts(struct modules& modulesInGPU, unsig
     const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
     const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
 
-    if(layer1 == 7 and layer2 == 8 and layer3 == 9)
+    if(layer1 == 8 and layer2 == 9 and layer3 == 10)
+    {
+        return rzChiSquared < 85.2499;
+    }
+    else if(layer1 == 8 and layer2 == 9 and layer3 == 15)
+    {
+        return rzChiSquared < 85.2499;
+    }
+
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
         return rzChiSquared < 74.19805;
     }
     else if(layer1 == 7 and layer2 == 8 and layer3 == 14)
     {
-        return rzChiSquared < 85.24992;
+        return rzChiSquared < 97.9479;
     }
+
     else if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-        return rzChiSquared < 392.6545;
-    }
-    else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
-    {
-        return rzChiSquared < 392.6545;
+        return rzChiSquared < 451.1407;;
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
-        return rzChiSquared < 451.141;
+        return rzChiSquared < 595.546;
     }
+
+    else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
+    {
+        return rzChiSquared < 518.339;
+    }
+
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
+    {
+        return rzChiSquared < 684.253;
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 12)
+    {
+        return rzChiSquared < 684.253;
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
+    {
+        return rzChiSquared  < 392.654;
+    }
+
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
-        return rzChiSquared < 341.7504;
+        return rzChiSquared < 518.339;
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 13)
     {
-        return rzChiSquared < 297.445;
-    }
-    else if(layer1 == 3 and layer2 == 7 and layer3 == 8)
-    {
-        return rzChiSquared < 12.203;
-    }
-    else if(layer1 == 3 and layer2 == 7 and layer3 == 13)
-    {
-        return rzChiSquared < 451.140;
+        return rzChiSquared < 518.339;
     }
 
     //default - category not found!
@@ -315,52 +332,68 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, str
 }
 
 
+//90pc threshold
 __device__ bool SDL::passPT3RPhiChiSquaredCuts(struct modules& modulesInGPU, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, float& chiSquared)
 {
+
     const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
     const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
     const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
 
-    if(layer1 == 7 and layer2 == 8 and layer3 == 9)
+    if(layer1 == 8 and layer2 == 9 and layer3 == 10)
     {
-        return chiSquared < 18.5087;
+        return chiSquared < 7.003;
+    }
+    else if(layer1 == 8 and layer2 == 9 and layer3 == 15)
+    {
+        return chiSquared < 0.5;
+    }
+
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
+    {
+        return chiSquared < 8.046;
     }
     else if(layer1 == 7 and layer2 == 8 and layer3 == 14)
     {
-        return chiSquared < 7.0027;
+        return chiSquared < 0.575;
     }
-    else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
+
+    else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
-        return chiSquared < 14.0208;
-    }
-    else if(layer1 == 2 and layer2 == 7 and layer3 == 13)
-    {
-        return chiSquared < 3.0441;
+        return chiSquared < 5.304;
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-        return chiSquared < 18.508;
+        return chiSquared < 10.6211;
     }
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
-        return chiSquared < 10.6211;
+        return chiSquared < 4.617;
     }
-    else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
+
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
-        return chiSquared < 10.6211;
+        return chiSquared < 8.046;
     }
-    else if(layer1 == 3 and layer2 == 7 and layer3 == 8)
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 13)
     {
-        return chiSquared < 0.8725;
+        return chiSquared < 0.435;
     }
-    else if(layer1 == 3 and layer2 == 7 and layer3 == 13)
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
         return chiSquared < 9.244;
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 12)
+    {
+        return chiSquared < 0.287;
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
+    {
+        return chiSquared < 18.509;
     }
 
     return true;
 }
-
 
 __device__ bool SDL::passRadiusCriterion(struct modules& modulesInGPU, float& pixelRadius, float& pixelRadiusError, float& tripletRadius, unsigned int lowerModuleIndex, unsigned int middleModuleIndex, unsigned int upperModuleIndex)
 {
