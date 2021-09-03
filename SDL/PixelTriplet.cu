@@ -115,7 +115,7 @@ __device__ void SDL::rmPixelTripletToMemory(struct pixelTriplets& pixelTripletsI
     pixelTripletsInGPU.isDup[pixelTripletIndex] = 1;
 }
 
-__device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& pixelSegmentIndex, unsigned int tripletIndex, float& pixelRadius, float& pixelRadiusError, float& tripletRadius, float& rzChiSquared, float& rPhiChiSquared, float& rPhiChiSquaredInwards)
+__device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& pixelSegmentIndex, unsigned int tripletIndex, float& pixelRadius, float& pixelRadiusError, float& tripletRadius, float& rzChiSquared, float& rPhiChiSquared, float& rPhiChiSquaredInwards, bool runChiSquaredCuts)
 {
     bool pass = true;
 
@@ -184,7 +184,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
 
     rPhiChiSquaredInwards = computePT3RPhiChiSquaredInwards(modulesInGPU, hitsInGPU, tripletRadius, g, f, pixelAnchorHits);
 
-    if(pixelSegmentPt < 5.0)
+    if(runChiSquaredCuts and pixelSegmentPt < 5.0)
     {
         pass = pass & passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
         pass = pass & passPT3RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquared);

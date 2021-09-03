@@ -119,7 +119,7 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
     
     float pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquaredTemp, rzChiSquaredTemp, rPhiChiSquaredInwardsTemp;
 
-    pass = pass & runPixelTripletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelSegmentIndex, T5InnerT3Index, pixelRadius, pixelRadiusError, tripletRadius, rzChiSquaredTemp, rPhiChiSquaredTemp, rPhiChiSquaredInwardsTemp);
+    pass = pass & runPixelTripletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelSegmentIndex, T5InnerT3Index, pixelRadius, pixelRadiusError, tripletRadius, rzChiSquaredTemp, rPhiChiSquaredTemp, rPhiChiSquaredInwardsTemp, false);
 
     rzChiSquared = computePT5RZChiSquared(modulesInGPU, hitsInGPU, pixelAnchorHitIndex1, pixelAnchorHitIndex2, anchorHits, lowerModuleIndices);
 
