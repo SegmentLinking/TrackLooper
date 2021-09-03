@@ -216,6 +216,7 @@ void createPixelTripletCutValueBranches()
     ana.tx->createBranch<vector<vector<float>>>("pT3_matched_pt");
     ana.tx->createBranch<vector<float>>("pT3_tripletRadius");
     ana.tx->createBranch<vector<float>>("pT3_rPhiChiSquared");
+    ana.tx->createBranch<vector<float>>("pT3_rPhiChiSquaredInwards");
     ana.tx->createBranch<vector<float>>("pT3_rzChiSquared");
     ana.tx->createBranch<vector<int>>("pT3_layer_binary");
     ana.tx->createBranch<vector<int>>("pT3_moduleType_binary");
@@ -1889,6 +1890,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     std::vector<float> pT3_pixelRadiusError;
     std::vector<std::vector<float>> pT3_simpt;
     std::vector<float> pT3_rPhiChiSquared;
+    std::vector<float> pT3_rPhiChiSquaredInwards;
     std::vector<float> pT3_rzChiSquared;
 #endif
 
@@ -2050,6 +2052,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
         pT3_pixelRadiusError.push_back(pixelRadiusError);
         pT3_tripletRadius.push_back(tripletRadius);
         pT3_rPhiChiSquared.push_back(pixelTripletsInGPU.rPhiChiSquared[jdx]);
+        pT3_rPhiChiSquaredInwards.push_back(pixelTripletsInGPU.rPhiChiSquaredInwards[jdx]);
         pT3_rzChiSquared.push_back(pixelTripletsInGPU.rzChiSquared[jdx]);
 #endif
     }
@@ -2090,6 +2093,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<int>>("pT3_layer_binary", pT3_layer_binary);
     ana.tx->setBranch<vector<int>>("pT3_moduleType_binary", pT3_moduleType_binary);
     ana.tx->setBranch<vector<float>>("pT3_rPhiChiSquared", pT3_rPhiChiSquared);
+    ana.tx->setBranch<vector<float>>("pT3_rPhiChiSquaredInwards", pT3_rPhiChiSquaredInwards);
     ana.tx->setBranch<vector<float>>("pT3_rzChiSquared", pT3_rzChiSquared);
 #endif
 
