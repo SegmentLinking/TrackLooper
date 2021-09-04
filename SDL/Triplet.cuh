@@ -28,6 +28,10 @@ namespace SDL
         unsigned int* segmentIndices;
         unsigned int* lowerModuleIndices; //3 of them now
         unsigned int* nTriplets;
+
+        //for track extensions
+        unsigned int* logicalLayers;
+        unsigned int* hitIndices;
         
         //delta beta = betaIn - betaOut
         float* betaIn;

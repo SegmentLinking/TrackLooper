@@ -33,6 +33,11 @@ namespace SDL
         unsigned int* nPixelQuintuplets;
         bool* isDup;
         float* score;
+
+        //for track extensions
+        unsigned int* logicalLayers;
+        unsigned int* hitIndices;
+
 #ifdef CUT_VALUE_DEBUG
         float* rzChiSquared;
         float* rPhiChiSquared;

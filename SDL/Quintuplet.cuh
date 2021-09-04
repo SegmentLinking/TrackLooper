@@ -45,6 +45,11 @@ namespace SDL
 
         float* regressionG;
         float* regressionF;
+
+        //for track extensions
+        unsigned int* logicalLayers;
+        unsigned int* hitIndices;
+
 #ifdef CUT_VALUE_DEBUG
         float* innerRadiusMin;
         float* innerRadiusMax;

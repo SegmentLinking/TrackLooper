@@ -43,6 +43,13 @@ namespace SDL
         bool* isDup;
         bool* partOfPT5;
 
+        unsigned int* logicalLayers;
+        unsigned int* hitIndices;
+
+        //for track extensions
+        unsigned int* logicalLayers;
+        unsigned int* hitIndices;
+
         pixelTriplets();
         ~pixelTriplets();
         void freeMemory();
