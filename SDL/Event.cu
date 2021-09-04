@@ -4274,8 +4274,6 @@ __global__ void createPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGP
     int segmentModuleIndex = seg_pix_gpu_offset[offsetIndex];
     int pixelSegmentArrayIndex = seg_pix_gpu[offsetIndex];
     if(pixelSegmentArrayIndex >= nPixelSegments) return;
-    if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) return;
-    if(segmentsInGPU.partOfPT5[pixelSegmentArrayIndex]) return;
     if(segmentModuleIndex >= connectedPixelSize[pixelSegmentArrayIndex]) return;
 
     unsigned int tripletLowerModuleIndex; //index of the module that connects to this pixel
@@ -4299,10 +4297,12 @@ __global__ void createPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGP
     unsigned int outerTripletIndex = tripletLowerModuleArrayIndex * N_MAX_TRIPLETS_PER_MODULE + outerTripletArrayIndex;
     if(modulesInGPU.moduleType[tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1]] == SDL::TwoS) return; //REMOVES PS-2S
 
+    if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) return;
+    if(segmentsInGPU.partOfPT5[pixelSegmentArrayIndex]) return; //don't make pT3s for those pixels that are part of pT5
     if(tripletsInGPU.partOfPT5[outerTripletIndex]) return; //don't create pT3s for T3s accounted in pT5s
 
-    float pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared;
-    bool success = runPixelTripletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared);
+    float pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared, rzChiSquared, rPhiChiSquaredInwards;
+    bool success = runPixelTripletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
 
     if(success)
     {
@@ -4332,7 +4332,7 @@ __global__ void createPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGP
         else
         {
 #ifdef CUT_VALUE_DEBUG
-            addPixelTripletToMemory(pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared, pixelTripletIndex);
+            addPixelTripletToMemory(pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared, rPhiChiSquaredInwards, rzChiSquared, pixelTripletIndex, pt, eta, phi, eta_pix, phi_pix, score);
 #else
             addPixelTripletToMemory(pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius,tripletRadius, pixelTripletIndex, pt,eta,phi,eta_pix,phi_pix,score);
 #endif
@@ -4354,17 +4354,20 @@ __global__ void createPixelTripletsFromOuterInnerLowerModule(struct SDL::modules
    unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + pixelSegmentArrayIndex;
    unsigned int outerTripletIndex = outerTripletInnerLowerModuleArrayIndex * N_MAX_TRIPLETS_PER_MODULE + outerTripletArrayIndex;
 
+
+   if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) return;
+   if(segmentsInGPU.partOfPT5[pixelSegmentArrayIndex]) return;
    if(tripletsInGPU.partOfPT5[outerTripletIndex]) return; //don't create pT3s for T3s accounted in pT5s
 
 
    if(modulesInGPU.moduleType[tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1]] == SDL::TwoS) return; //REMOVES PS-2S
 
-   float pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared;
-   bool success = runPixelTripletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared);
+   float pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared, rzChiSquared, rPhiChiSquaredInwards;
+   bool success = runPixelTripletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
 
    if(success)
    {
-        unsigned int tripletLowerModuleIndex = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1];
+        unsigned int tripletLowerModuleIndex = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex];
         short layer2_adjustment;
         if(modulesInGPU.layers[tripletLowerModuleIndex] == 1){layer2_adjustment = 1;} //get upper segment to be in second layer
         else if( modulesInGPU.layers[tripletLowerModuleIndex] == 2){layer2_adjustment = 0;} // get lower segment to be in second layer
@@ -4389,7 +4392,7 @@ __global__ void createPixelTripletsFromOuterInnerLowerModule(struct SDL::modules
        else
        {
 #ifdef CUT_VALUE_DEBUG
-           addPixelTripletToMemory(pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared, pixelTripletIndex);
+           addPixelTripletToMemory(pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared, rPhiChiSquaredInwards, rzChiSquared, pixelTripletIndex, pt, eta, phi, eta_pix, phi_pix, score);
 #else
            addPixelTripletToMemory(pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius,tripletRadius, pixelTripletIndex,pt,eta,phi,eta_pix,phi_pix,score);
 #endif
@@ -4663,7 +4666,7 @@ __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesI
        else
        {
 #ifdef CUT_VALUE_DEBUG
-           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
+           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, rPhiChiSquared);
 
 #else
            //addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquared);
@@ -4720,7 +4723,7 @@ __global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modul
        else
        {
 #ifdef CUT_VALUE_DEBUG
-           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
+           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, rPhiChiSquared);
 
 #else
            float eta = quintupletsInGPU.eta[quintupletIndex];
