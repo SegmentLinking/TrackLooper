@@ -1498,6 +1498,7 @@ void SDL::Event::createTrackCandidates()
     printf("Adding pT5s to TC collection\n");
     unsigned int nThreadsx_pT5 = 1;
     unsigned int nBlocksx_pT5 = (N_MAX_PIXEL_QUINTUPLETS) % nThreadsx_pT5 == 0 ? N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 : N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 + 1;
+    //removeDupPixelQuintupletsInGPUFromMap<<<nBlocksx_pT5,nThreadsx_pT5>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU, *pixelQuintupletsInGPU, *quintupletsInGPU,true);
     addpT5asTrackCandidateInGPU<<<nBlocksx_pT5, nThreadsx_pT5>>>(*modulesInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU);
     cudaError_t cudaerr_pT5 = cudaDeviceSynchronize();
     if(cudaerr_pT5 != cudaSuccess)
@@ -1505,12 +1506,31 @@ void SDL::Event::createTrackCandidates()
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT5)<<std::endl;
     }
 #endif
+#ifdef FINAL_pT3
+    printf("running final state pT3\n");
+    unsigned int nThreadsx = 1;
+    unsigned int nBlocksx = (N_MAX_PIXEL_TRIPLETS) % nThreadsx == 0 ? N_MAX_PIXEL_TRIPLETS / nThreadsx : N_MAX_PIXEL_TRIPLETS / nThreadsx + 1;
+    dim3 nThreads_dup(1024,1,1);
+    dim3 nBlocks_dup(64,1,1);
+    removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU,true);
+    cudaDeviceSynchronize();
+    addpT3asTrackCandidateInGPU<<<nBlocksx, nThreadsx>>>(*modulesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
+    cudaError_t cudaerr_pT3 = cudaDeviceSynchronize();
+    if(cudaerr_pT3 != cudaSuccess)
+    {
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT3)<<std::endl;
+    }
+#endif // final state pT2 and pT3
 
 #ifdef FINAL_T5
     printf("running final state T5\n");
     dim3 nThreads(32,16,1);
     dim3 nBlocks(((nLowerModules-1) % nThreads.x == 0 ? (nLowerModules-1)/nThreads.x : (nLowerModules-1)/nThreads.x + 1),((N_MAX_QUINTUPLETS_PER_MODULE-1) % nThreads.y == 0 ? (N_MAX_QUINTUPLETS_PER_MODULE-1)/nThreads.y : (N_MAX_QUINTUPLETS_PER_MODULE-1)/nThreads.y + 1),1);
-    addT5asTrackCandidateInGPU<<<nBlocks,nThreads>>>(*modulesInGPU,*quintupletsInGPU,*trackCandidatesInGPU);
+    dim3 dupThreads(32,32,1);
+    dim3 dupBlocks(16,16,1);
+    removeDupQuintupletsInGPU<<<dupBlocks,dupThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU,true);
+    cudaDeviceSynchronize();
+    addT5asTrackCandidateInGPU<<<nBlocks,nThreads>>>(*modulesInGPU,*quintupletsInGPU,*trackCandidatesInGPU,*pixelQuintupletsInGPU);
 
     cudaError_t cudaerr_T5 = cudaDeviceSynchronize();
     if(cudaerr_T5 != cudaSuccess)
@@ -1528,17 +1548,18 @@ void SDL::Event::createTrackCandidates()
     {
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT2)<<std::endl;
     }
-#elif FINAL_pT3
-    printf("running final state pT3\n");
-    unsigned int nThreadsx = 1;
-    unsigned int nBlocksx = (N_MAX_PIXEL_TRIPLETS) % nThreadsx == 0 ? N_MAX_PIXEL_TRIPLETS / nThreadsx : N_MAX_PIXEL_TRIPLETS / nThreadsx + 1;
-    addpT3asTrackCandidateInGPU<<<nBlocksx, nThreadsx>>>(*modulesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
-    cudaError_t cudaerr_pT3 = cudaDeviceSynchronize();
-    if(cudaerr_pT3 != cudaSuccess)
+#endif // final state T5
+#ifdef FINAL_pLS
+    printf("Adding pLSs to TC collection\n");
+    unsigned int nThreadsx_pLS = 1;
+    unsigned int nBlocksx_pLS = (20000) % nThreadsx_pLS == 0 ? 20000 / nThreadsx_pT5 : 20000 / nThreadsx_pT5 + 1;
+    addpLSasTrackCandidateInGPU<<<nBlocksx, nThreadsx>>>(*modulesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU,*mdsInGPU,*hitsInGPU);
+    cudaError_t cudaerr_pLS = cudaDeviceSynchronize();
+    if(cudaerr_pLS != cudaSuccess)
     {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT3)<<std::endl;
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pLS)<<std::endl;
     }
-#endif // final state pT2 and pT3
+#endif
 
 
 #ifdef FINAL_T3T4
@@ -1649,11 +1670,12 @@ void SDL::Event::createTrackCandidates()
 #endif
 #endif
 
-//int pT2_num = *trackCandidatesInGPU->nTrackCandidatespT2;
-//int pT3_num = *trackCandidatesInGPU->nTrackCandidatespT3;
 //int T5_num = *trackCandidatesInGPU->nTrackCandidatesT5;
-//int pT5_num = *trackCandidatesInGPU->nTrackCandidatespT5;
-//printf("total: %d %d %d %d\n",pT2_num,pT3_num,pT5_num,T5_num);
+int pT2_num = *trackCandidatesInGPU->nTrackCandidatespT2;
+int pT3_num = *trackCandidatesInGPU->nTrackCandidatespT3;
+int pT5_num = *trackCandidatesInGPU->nTrackCandidatespT5;
+int pLS_num = *trackCandidatesInGPU->nTrackCandidatespLS;
+printf("total: %d %d %d %d\n",pT2_num,pT3_num,pT5_num,pLS_num);
 }
 
 void SDL::Event::createPixelTriplets()
@@ -1813,7 +1835,7 @@ void SDL::Event::createPixelTriplets()
     printf("run dup pT3\n");
     dim3 nThreads_dup(1024,1,1);
     dim3 nBlocks_dup(64,1,1);
-    removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU);
+    removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU,false);
 #endif
 
 }
@@ -1920,8 +1942,6 @@ void SDL::Event::createQuintuplets()
   printf("run dup T5\n");
     dim3 dupThreads(32,32,1);
     dim3 dupBlocks(16,16,1);
-    //dim3 dupThreads(1,1,1);
-    //dim3 dupBlocks(1,1,1);
     removeDupQuintupletsInGPU<<<dupBlocks,dupThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU,false);
     cudaDeviceSynchronize();
     //removeDupQuintupletsInGPU<<<dupBlocks,dupThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU,true);
@@ -2104,7 +2124,7 @@ void SDL::Event::createPixelQuintuplets()
     dim3 nBlocks_dup(64,1,1);
 #ifdef DUP_pT5
     printf("run dup pT5\n");
-    removeDupPixelQuintupletsInGPUFromMap<<<nBlocks_dup,nThreads_dup>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU, *pixelQuintupletsInGPU, *quintupletsInGPU);
+    removeDupPixelQuintupletsInGPUFromMap<<<nBlocks_dup,nThreads_dup>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU, *pixelQuintupletsInGPU, *quintupletsInGPU,false);
     cudaError_t cudaerr2 = cudaDeviceSynchronize();
     if(cudaerr2 != cudaSuccess)
     {
@@ -3415,7 +3435,32 @@ __global__ void createTripletsInGPU(struct SDL::modules& modulesInGPU, struct SD
 }
 #endif
 
-__global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,struct SDL::quintuplets& quintupletsInGPU,struct SDL::trackCandidates& trackCandidatesInGPU)
+__device__ inline int checkHitspT5(unsigned int ix, unsigned int jx,struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::hits& hitsInGPU){
+        int phits1[4] = {-1,-1,-1,-1};
+        int phits2[4] = {-1,-1,-1,-1};
+          phits1[0] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*ix]]];
+          phits1[1] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*ix+1]]];
+          phits1[2] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*ix]+1]];
+          phits1[3] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*ix+1]+1]];
+
+          phits2[0] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*jx]]];
+          phits2[1] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*jx+1]]];
+          phits2[2] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*jx]+1]];
+          phits2[3] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*jx+1]+1]];
+
+        int npMatched =0;
+        for (int i =0; i<4;i++){
+          bool pmatched = false;
+          if(phits1[i] == -1){continue;}
+          for (int j =0; j<4; j++){
+            if(phits2[j] == -1){continue;}
+            if(phits1[i] == phits2[j]){pmatched = true; break;}
+          }
+          if(pmatched){npMatched++;}
+        }
+        return npMatched;
+}
+__global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,struct SDL::quintuplets& quintupletsInGPU,struct SDL::trackCandidates& trackCandidatesInGPU,struct SDL::pixelQuintuplets& pixelQuintupletsInGPU)
 {
 
   int innerInnerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -3431,7 +3476,21 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,str
   {
       return;
   }
-
+  #ifdef Crossclean_T5
+  //cross cleaning step
+  float eta1 = quintupletsInGPU.eta[quintupletIndex]; 
+  float phi1 = quintupletsInGPU.phi[quintupletIndex]; 
+  for (unsigned int jx=0; jx<*pixelQuintupletsInGPU.nPixelQuintuplets; jx++){
+       float eta2 = pixelQuintupletsInGPU.eta[jx];
+       float phi2 = pixelQuintupletsInGPU.phi[jx];
+       float dEta = abs(eta1-eta2);
+       float dPhi = abs(phi1-phi2);
+       if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
+       float dR2 = dEta*dEta + dPhi*dPhi;
+       //printf("dR2: %f\n",dR2);
+       if(dR2 < 1e-3) return;
+  }
+  #endif
   unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[innerInnerInnerLowerModuleArrayIndex],1);
   atomicAdd(&trackCandidatesInGPU.nTrackCandidatesT5[innerInnerInnerLowerModuleArrayIndex],1);
   unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[innerInnerInnerLowerModuleArrayIndex] + trackCandidateModuleIdx;
@@ -3464,7 +3523,7 @@ __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
       return;
   }
 
-
+#ifdef Crossclean_pT3
   //cross cleaning step
   float eta1 = pixelTripletsInGPU.eta_pix[pixelTripletIndex]; 
   float phi1 = pixelTripletsInGPU.phi_pix[pixelTripletIndex]; 
@@ -3478,16 +3537,104 @@ __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
        float dPhi = abs(phi1-phi2);
        if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
        float dR2 = dEta*dEta + dPhi*dPhi;
-       if(dR2 < 0.0000001) return;
-
-
+       if(dR2 < 1e-5) return;
   }
+#endif
 
 
   unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
   atomicAdd(trackCandidatesInGPU.nTrackCandidatespT3,1);
   unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[pixelLowerModuleArrayIndex] + trackCandidateModuleIdx;
   addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, trackCandidateIdx);
+
+}
+__global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU,struct SDL::segments& segmentsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU,struct SDL::miniDoublets& mdsInGPU, struct SDL::hits& hitsInGPU)
+{
+  int pixelArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
+  unsigned int pixelLowerModuleArrayIndex = *modulesInGPU.nLowerModules;
+  int pixelModuleIndex = *modulesInGPU.nModules - 1;
+  unsigned int nPixels = segmentsInGPU.nSegments[pixelModuleIndex];
+  if(pixelArrayIndex >= nPixels) return;
+
+  if(segmentsInGPU.isDup[pixelArrayIndex])  
+  {
+      return;
+  }
+
+
+  //cross cleaning step
+
+  unsigned int loop_bound = *pixelQuintupletsInGPU.nPixelQuintuplets;
+  if (loop_bound < *pixelTripletsInGPU.nPixelTriplets) { loop_bound = *pixelTripletsInGPU.nPixelTriplets;}
+  float eta1 = segmentsInGPU.eta[pixelArrayIndex]; 
+  float phi1 = segmentsInGPU.phi[pixelArrayIndex]; 
+  unsigned int prefix = pixelModuleIndex*N_MAX_SEGMENTS_PER_MODULE;
+  for (unsigned int jx=0; jx<loop_bound; jx++){
+     if(jx < *pixelQuintupletsInGPU.nPixelQuintuplets){
+       unsigned int pLS_jx = pixelQuintupletsInGPU.pixelIndices[jx];
+        int npMatched = checkHitspT5(prefix+pixelArrayIndex,pLS_jx,mdsInGPU,segmentsInGPU,hitsInGPU);
+        if(npMatched >0){
+        //printf("pLS quint matched %d\n",npMatched);
+        return;
+        }
+       float eta2 = segmentsInGPU.eta[pLS_jx - prefix];
+       float phi2 = segmentsInGPU.phi[pLS_jx - prefix];
+       float dEta = abs(eta1-eta2);
+       float dPhi = abs(phi1-phi2);
+       if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
+       float dR2 = dEta*dEta + dPhi*dPhi;
+       if(dR2 < 0.0000001) return;
+     }
+     if(jx < *pixelTripletsInGPU.nPixelTriplets){
+        int pLS_jx = pixelTripletsInGPU.pixelSegmentIndices[jx];
+        int npMatched = checkHitspT5(prefix+pixelArrayIndex,pLS_jx,mdsInGPU,segmentsInGPU,hitsInGPU);
+        if(npMatched >0){
+        //printf("pLS trip matched %d\n",npMatched);
+        return;
+        }
+       float eta2 = pixelTripletsInGPU.eta_pix[jx]; 
+       float phi2 = pixelTripletsInGPU.phi_pix[jx]; 
+       float dEta = abs(eta1-eta2);
+       float dPhi = abs(phi1-phi2);
+       if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
+       float dR2 = dEta*dEta + dPhi*dPhi;
+       if(dR2 < 0.0000001) return;
+     }
+
+  }
+
+   int hits1[4];
+   hits1[0] = /*hitsInGPU.idxs[*/mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+pixelArrayIndex)]];//];
+   hits1[1] = /*hitsInGPU.idxs[*/mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+pixelArrayIndex)+1]];//];
+   hits1[2] = /*hitsInGPU.idxs[*/mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+pixelArrayIndex)]+1];//];
+   hits1[3] = /*hitsInGPU.idxs[*/mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+pixelArrayIndex)+1]+1];//];
+  //printf("%d %d %d %d\n",hits1[0],hits1[1],hits1[2],hits1[3]);
+  float rsum=0, zsum=0, r2sum=0,rzsum=0;
+  for(int i =0; i < 4; i++){
+    rsum += hitsInGPU.rts[hits1[i]];
+    zsum += hitsInGPU.zs[hits1[i]];
+    r2sum += hitsInGPU.rts[hits1[i]]*hitsInGPU.rts[hits1[i]];
+    rzsum += hitsInGPU.rts[hits1[i]]*hitsInGPU.zs[hits1[i]];
+  }
+  float slope_lsq = (4*rzsum - rsum*zsum)/(4*r2sum-rsum*rsum);
+  float b = (r2sum*zsum-rsum*rzsum)/(r2sum*4-rsum*rsum);
+  float score_lsq=0;
+  for( int i=0; i <4; i++){
+    float z = hitsInGPU.zs[hits1[i]];
+    float r = hitsInGPU.rts[hits1[i]];
+    float var_lsq = slope_lsq*(r)+b - z;
+    //float err = 0.15;
+    score_lsq += abs(var_lsq);//(var_lsq*var_lsq) / (err*err);
+  }
+  //printf("score_lsq %f %f\n",slope_lsq,score_lsq);
+  if(score_lsq > 5){return;}
+
+
+
+  unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
+  atomicAdd(trackCandidatesInGPU.nTrackCandidatespLS,1);
+  unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[pixelLowerModuleArrayIndex] + trackCandidateModuleIdx;
+  addTrackCandidateToMemory(trackCandidatesInGPU, 8/*track candidate type pLS=8*/, pixelArrayIndex, pixelArrayIndex, trackCandidateIdx);
 
 }
 
@@ -4522,7 +4669,9 @@ __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesI
            //addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquared);
            //addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquaredInwards);
            //addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared);
-           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquaredInwards+rPhiChiSquared);
+           float eta = quintupletsInGPU.eta[quintupletIndex];
+           float phi = quintupletsInGPU.phi[quintupletIndex];
+           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquaredInwards+rPhiChiSquared, eta,phi);
 #endif
 //           //mark the relevant T5 and pT3 here!
 //           quintupletsInGPU.partOfPT5[quintupletIndex] = true;
@@ -4574,7 +4723,9 @@ __global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modul
            addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
 
 #else
-           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,/*score*/rPhiChiSquared);
+           float eta = quintupletsInGPU.eta[quintupletIndex];
+           float phi = quintupletsInGPU.phi[quintupletIndex];
+           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,/*score*/rPhiChiSquared,eta,phi);
 #endif
 //           //mark the relevant T5 and pT3 here!
 //           quintupletsInGPU.partOfPT5[quintupletIndex] = true;
@@ -5461,7 +5612,7 @@ __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, str
       for(unsigned int lowmod1=blockIdx.x*blockDim.x+threadIdx.x; lowmod1<*modulesInGPU.nLowerModules;lowmod1+=blockDim.x*gridDim.x){
       for(unsigned int ix1=blockIdx.y*blockDim.y+threadIdx.y; ix1<quintupletsInGPU.nQuintuplets[lowmod1]; ix1+=blockDim.y*gridDim.y){
         unsigned int ix = modulesInGPU.quintupletModuleIndices[lowmod1] + ix1;
-        if(secondPass && quintupletsInGPU.isDup[ix]==1)
+        if(secondPass && (quintupletsInGPU.partOfPT5[ix] || quintupletsInGPU.isDup[ix]))
         {
             continue;
         }
@@ -5473,7 +5624,7 @@ __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, str
         for(unsigned int jx1=0; jx1<quintupletsInGPU.nQuintuplets[lowmod]; jx1++){
           unsigned int jx = modulesInGPU.quintupletModuleIndices[lowmod] + jx1;
           if(ix==jx){continue;}
-          if(secondPass && quintupletsInGPU.isDup[jx]==1)
+          if(secondPass && (quintupletsInGPU.partOfPT5[jx] || quintupletsInGPU.isDup[jx]))
           {
               continue;
           }
@@ -5487,13 +5638,16 @@ __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, str
           if (abs(dPhi) > 0.1){continue;}
           float dR2 = dEta*dEta + dPhi*dPhi;
           int nMatched = checkHitsT5(ix,jx,mdsInGPU,segmentsInGPU,tripletsInGPU,quintupletsInGPU);
-          if(nMatched >=7){
-            dup_count++;
-            if(secondPass){
+          if(secondPass && (dR2 < 0.001 || nMatched >= 5)){
               if( quintupletsInGPU.score_rphisum[ix] > quintupletsInGPU.score_rphisum[jx] ){
                 rmQuintupletToMemory(quintupletsInGPU,ix);continue; // keept shorted track
               }
+              if( (quintupletsInGPU.score_rphisum[ix] == quintupletsInGPU.score_rphisum[jx]) && (ix<jx)){
+              rmQuintupletToMemory(quintupletsInGPU,ix);continue; // keept shorted track
             }
+          }
+          if(nMatched >=7){
+            dup_count++;
               if( quintupletsInGPU.score_rphisum[ix] > quintupletsInGPU.score_rphisum[jx] ){
               rmQuintupletToMemory(quintupletsInGPU,ix);continue; // keept shorted track
             }
@@ -5548,31 +5702,6 @@ __device__ float scorepT3(struct SDL::modules& modulesInGPU,struct SDL::hits& hi
         //printf("pT3 score: %f\n",score);
         return score;
 }
-__device__ inline int checkHitspT5(unsigned int ix, unsigned int jx,struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::hits& hitsInGPU){
-        int phits1[4] = {-1,-1,-1,-1};
-        int phits2[4] = {-1,-1,-1,-1};
-          phits1[0] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*ix]]];
-          phits1[1] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*ix+1]]];
-          phits1[2] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*ix]+1]];
-          phits1[3] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*ix+1]+1]];
-
-          phits2[0] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*jx]]];
-          phits2[1] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*jx+1]]];
-          phits2[2] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*jx]+1]];
-          phits2[3] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*jx+1]+1]];
-
-        int npMatched =0;
-        for (int i =0; i<4;i++){
-          bool pmatched = false;
-          if(phits1[i] == -1){continue;}
-          for (int j =0; j<4; j++){
-            if(phits2[j] == -1){continue;}
-            if(phits1[i] == phits2[j]){pmatched = true; break;}
-          }
-          if(pmatched){npMatched++;}
-        }
-        return npMatched;
-}
 __device__ inline int* checkHitspT3(unsigned int ix, unsigned int jx,struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU,struct SDL::hits& hitsInGPU){
         int phits1[4] = {-1,-1,-1,-1};
         int phits2[4] = {-1,-1,-1,-1};
@@ -5626,7 +5755,7 @@ __device__ inline int* checkHitspT3(unsigned int ix, unsigned int jx,struct SDL:
         return matched;//nMatched+npMatched;
 }
 __device__ int duplicateCounter_pT3 =0;
-__global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::triplets& tripletsInGPU)
+__global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::triplets& tripletsInGPU, bool secondPass)
 {
     int dup_count=0;
     //for (unsigned int ix=0; ix<*pixelTrackletsInGPU.nPixelTracklets; ix++){
@@ -5700,7 +5829,8 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesI
         //printf("%d\n",nMatched[0]);
         //}
         //if((nMatched[1] >= 4) || (pLS_ix == pLS_jx))
-        if((nMatched[0] + nMatched[1]) >= 7)
+        //if((nMatched[0] + nMatched[1]) >= 7)
+        if(((nMatched[0] + nMatched[1]) >= 7) || (secondPass && ((nMatched[0] + nMatched[1]) >= 5)))
         {
           dup_count++;
           //if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > .2){
@@ -5755,12 +5885,13 @@ __global__ void markUsedObjects(struct SDL::modules& modulesInGPU, struct SDL::s
     
     }
 }
-__global__ void removeDupPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, struct SDL::quintuplets& quintupletsInGPU)
+__global__ void removeDupPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, struct SDL::quintuplets& quintupletsInGPU, bool secondPass)
 {
     int dup_count=0;
     //for (unsigned int ix=0; ix<*pixelTrackletsInGPU.nPixelTracklets; ix++){
     for (unsigned int ix=blockIdx.x*blockDim.x+threadIdx.x; ix<*pixelQuintupletsInGPU.nPixelQuintuplets; ix+=blockDim.x*gridDim.x){
       bool isDup = false;
+      if(secondPass && pixelQuintupletsInGPU.isDup[ix]){continue;}
 //      if(pixelTripletsInGPU.isDup[ix]){continue;}
 //      float pt1 = pixelTrackletsInGPU.pt[ix];
 //      float eta1_pix = pixelTripletsInGPU.eta_pix[ix];
@@ -5771,6 +5902,7 @@ __global__ void removeDupPixelQuintupletsInGPUFromMap(struct SDL::modules& modul
       //for (unsigned int jx=ix+1; jx<*pixelTripletsInGPU.nPixelTriplets-1; jx++){
       for (unsigned int jx=0; jx<*pixelQuintupletsInGPU.nPixelQuintuplets; jx++){
       if(ix==jx){continue;}
+      if(secondPass && pixelQuintupletsInGPU.isDup[jx]){continue;}
        // if(pixelTripletsInGPU.isDup[jx]){continue;}
         //float pt2 = pixelTripletsInGPU.pt[jx];
         //if(abs(1./pt1 - 1./pt2) > 0.5){continue;}
@@ -5815,7 +5947,7 @@ __global__ void removeDupPixelQuintupletsInGPUFromMap(struct SDL::modules& modul
         //        break; // keept shorted track
         //  }
         //}
-        if((nMatched + npMatched) >=10)
+        if(((nMatched + npMatched) >=10) || (secondPass && ((nMatched + npMatched) >=7)) )
         //if(nMatched >= 7 || (npMatched>=3))
         {
           dup_count++;
@@ -5823,37 +5955,37 @@ __global__ void removeDupPixelQuintupletsInGPUFromMap(struct SDL::modules& modul
           if( pixelQuintupletsInGPU.score[ix] > pixelQuintupletsInGPU.score[jx])
           {
                 rmPixelQuintupletToMemory(pixelQuintupletsInGPU,ix);
-                break; // keept shorted track
+                break;
           }
           if( (pixelQuintupletsInGPU.score[ix] == pixelQuintupletsInGPU.score[jx]) && (ix>jx))
           {
                 rmPixelQuintupletToMemory(pixelQuintupletsInGPU,ix);
-                break; // keept shorted track
+                break;
           }
         }
-       int pixelModuleIndex = *modulesInGPU.nModules - 1;
-       unsigned int prefix = pixelModuleIndex*N_MAX_SEGMENTS_PER_MODULE; 
-       float eta1 = segmentsInGPU.eta[pLS_ix - prefix];
-       float eta2 = segmentsInGPU.eta[pLS_jx - prefix];
-       float phi1 = segmentsInGPU.phi[pLS_ix - prefix];
-       float phi2 = segmentsInGPU.phi[pLS_jx - prefix];
-       float dEta = abs(eta1-eta2);
-       float dPhi = abs(phi1-phi2);
-       if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
-       float dR2 = dEta*dEta + dPhi*dPhi;
-       // if(dR2<0.001)
+       //if(!secondPass){continue;}
+       //int pixelModuleIndex = *modulesInGPU.nModules - 1;
+       //unsigned int prefix = pixelModuleIndex*N_MAX_SEGMENTS_PER_MODULE; 
+       //float eta1 = segmentsInGPU.eta[pLS_ix - prefix];
+       //float eta2 = segmentsInGPU.eta[pLS_jx - prefix];
+       //float phi1 = segmentsInGPU.phi[pLS_ix - prefix];
+       //float phi2 = segmentsInGPU.phi[pLS_jx - prefix];
+       //float dEta = abs(eta1-eta2);
+       //float dPhi = abs(phi1-phi2);
+       //if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
+       //float dR2 = dEta*dEta + dPhi*dPhi;
+       // if(dR2<0.00001)
        // {
        //   dup_count++;
-       //   //if( pixelTripletsInGPU.score[ix] - pixelTripletsInGPU.score[jx] > .2){
-       //   if( pixelQuintupletsInGPU.score[ix] - pixelQuintupletsInGPU.score[jx] > 0)
+       //   if( pixelQuintupletsInGPU.score[ix] > pixelQuintupletsInGPU.score[jx])
        //   {
        //         rmPixelQuintupletToMemory(pixelQuintupletsInGPU,ix);
-       //         break; // keept shorted track
+       //         break;
        //   }
-       //   if( (pixelQuintupletsInGPU.score[ix] = pixelQuintupletsInGPU.score[jx]) && (ix>jx))
+       //   if( (pixelQuintupletsInGPU.score[ix] == pixelQuintupletsInGPU.score[jx]) && (ix>jx))
        //   {
        //         rmPixelQuintupletToMemory(pixelQuintupletsInGPU,ix);
-       //         break; // keept shorted track
+       //         break;
        //   }
        // }
 
@@ -5879,8 +6011,10 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU,struct SDL::miniD
        for(int jx=0;jx<nPixelSegments;jx++){
          if(ix==jx){continue;}
          unsigned int phits2[4] ;
-         float ptErr_diff = segmentsInGPU.ptErr[ix] - segmentsInGPU.ptErr[jx];
-         if (ptErr_diff>0){continue;}// allows for exact matches to be checked
+         //float ptSig_diff = segmentsInGPU.ptIn[ix]/segmentsInGPU.ptErr[ix] -segmentsInGPU.ptIn[jx]/segmentsInGPU.ptErr[jx];
+         //if (ptSig_diff<0){continue;}// want the significance to be high allows for exact matches to be checked
+         float ptErr_diff = segmentsInGPU.ptIn[ix] -segmentsInGPU.ptIn[jx];
+         if (ptErr_diff>0){continue;}// want the significance to be high allows for exact matches to be checked
 
          phits2[0] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+jx)]]];
          phits2[1] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+jx)+1]]];

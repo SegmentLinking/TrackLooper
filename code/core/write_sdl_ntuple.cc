@@ -34,6 +34,9 @@ void createOutputBranches()
     ana.tx->createBranch<vector<float>>("tc_pt");
     ana.tx->createBranch<vector<float>>("tc_eta");
     ana.tx->createBranch<vector<float>>("tc_phi");
+    ana.tx->createBranch<vector<int>>("tc_type");
+    ana.tx->createBranch<vector<vector<int>>>("tc_matched_simIdx");
+    ana.tx->createBranch<vector<int>>("tc_sim");
     ana.tx->createBranch<vector<int>>("tc_isFake");
     ana.tx->createBranch<vector<int>>("tc_isDuplicate");
 
@@ -763,6 +766,8 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
     std::vector<float> tc_pt;
     std::vector<float> tc_eta;
     std::vector<float> tc_phi;
+    std::vector<int> tc_type;
+    std::vector<int> tc_sim;
 
 #ifdef DO_QUADRUPLET
     const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 50000;
@@ -810,6 +815,49 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             float betaIn_out = 0;
             float betaOut_out = 0;
 
+
+            std::vector<int> hit_idx;
+            std::vector<int> hit_types;
+            int layer_binary = 0;
+            /*const*/ float pt;
+            tc_type.emplace_back(trackCandidateType);
+       if (trackCandidateType == 8) //pLS
+       {
+        const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
+        unsigned int pixelModuleIndex = *(modulesInGPU.nModules) - 1;
+        unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + innerTrackletIdx;
+        pt = segmentsInGPU.ptIn[innerTrackletIdx];
+        unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
+        unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
+        unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerMiniDoubletIndex];
+        unsigned int innerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerMiniDoubletIndex + 1];
+        unsigned int outerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerMiniDoubletIndex];
+        unsigned int outerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerMiniDoubletIndex + 1];
+
+        /*std::vector<int>*/ hit_idx = {
+            (int) hitsInGPU.idxs[innerMiniDoubletLowerHitIndex],
+            (int) hitsInGPU.idxs[innerMiniDoubletUpperHitIndex],
+            (int) hitsInGPU.idxs[outerMiniDoubletLowerHitIndex],
+            (int) hitsInGPU.idxs[outerMiniDoubletUpperHitIndex]
+        };
+
+        /*std::vector<int>*/ hit_types = {0,0,0,0};
+        std::vector<int> module_idxs = {
+            pixelModuleIndex, pixelModuleIndex, pixelModuleIndex, pixelModuleIndex
+        };
+        int layer0 = modulesInGPU.layers[module_idxs[0]];
+        int layer2 = modulesInGPU.layers[module_idxs[2]];
+
+        int subdet0 = modulesInGPU.subdets[module_idxs[0]];
+        int subdet2 = modulesInGPU.subdets[module_idxs[2]];
+
+        int logicallayer0 = 0;
+        int logicallayer2 = 0;
+
+        ///*int*/ layer_binary = 0;
+        layer_binary |= (1 << logicallayer0);
+        layer_binary |= (1 << logicallayer2);
+       }else{
             if (trackCandidateType == 3) // pT2
             {
                 innerTrackletInnerSegmentIndex = pixelTrackletsInGPU.segmentIndices[2 * innerTrackletIdx];
@@ -964,7 +1012,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 outermostSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outermostSegmentOuterMiniDoubletIndex + 1];
             }
 
-            std::vector<int> hit_idx = {
+            /*std::vector<int>*/ hit_idx = {
                 (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex],
                 (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex],
                 (int) hitsInGPU.idxs[innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex],
@@ -1025,7 +1073,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 ptAv = (ptAv_in + ptAv_out) / 2.;
             }
 
-            std::vector<int> hit_types;
+            /*std::vector<int>*/ hit_types;
             if (idx == *(modulesInGPU.nLowerModules)) // Then this means this track candidate is a pLS-based
             {
                 hit_types.push_back(0);
@@ -1133,7 +1181,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             // int logicallayer11 = isPixel11 ? 0 : layer11 + 6 * (subdet11 == 4);
             int logicallayer12 = trackCandidateType == 7 ? (isPixel12 == 0 ? 0 : layer12 + 6 * (subdet12 == 4)) : 0;
 
-            int layer_binary = 0;
+            //int layer_binary = 0;
             layer_binary |= (1 << logicallayer0);
             layer_binary |= (1 << logicallayer2);
             layer_binary |= (1 << logicallayer4);
@@ -1141,7 +1189,8 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             layer_binary |= (1 << logicallayer8);
             layer_binary |= (1 << logicallayer10);
             if(trackCandidateType == 7) layer_binary |= (1 << logicallayer12);
-
+            /*const float*/ pt = ptAv;
+      }// end !pLS
             // sim track matched index
             std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idx, hit_types);
 
@@ -1156,7 +1205,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             }
 
             // Compute pt, eta, phi of TC
-            const float pt = ptAv;
+            //const float pt = ptAv;
             float eta = -999;
             float phi = -999;
             if (hit_types[0] == 4)
@@ -1185,6 +1234,13 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             tc_eta.push_back(eta);
             tc_phi.push_back(phi);
             tc_matched_simIdx.push_back(matched_sim_trk_idxs);
+            //if(matched_sim_trk_idxs.size() == 0){
+            //  tc_sim.emplace_back(-1);
+            //}
+            //else{
+            //  tc_sim.emplace_back(matched_sim_trk_idxs[0]);
+            //}
+  
 
       }
     }
@@ -1207,11 +1263,14 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
         tc_isDuplicate[i] = isDuplicate;
     }
 
+    
     ana.tx->setBranch<vector<float>>("tc_pt", tc_pt);
     ana.tx->setBranch<vector<float>>("tc_eta", tc_eta);
     ana.tx->setBranch<vector<float>>("tc_phi", tc_phi);
     ana.tx->setBranch<vector<int>>("tc_isFake", tc_isFake);
     ana.tx->setBranch<vector<int>>("tc_isDuplicate", tc_isDuplicate);
+    ana.tx->setBranch<vector<int>>("tc_type", tc_type);
+    ana.tx->setBranch<vector<vector<int>>>("tc_matched_simIdx", tc_matched_simIdx);
 }
 
 //________________________________________________________________________________________________________________________________

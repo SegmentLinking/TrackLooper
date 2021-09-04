@@ -33,6 +33,8 @@ namespace SDL
         unsigned int* nPixelQuintuplets;
         bool* isDup;
         float* score;
+        float* eta;
+        float* phi;
 #ifdef CUT_VALUE_DEBUG
         float* rzChiSquared;
         float* rPhiChiSquared;
@@ -54,7 +56,7 @@ namespace SDL
     CUDA_DEV void addPixelQuintupletToMemory(struct pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pixelIndex, unsigned int T5Index, unsigned int pixelQuintupletIndex, float& rzChiSquared, float& rPhiChiSquared, float& rPhiChiSquaredInwards);
 
 #else
-    CUDA_DEV void addPixelQuintupletToMemory(struct pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pixelIndex, unsigned int T5Index, unsigned int pixelQuintupletIndex, float score);
+    CUDA_DEV void addPixelQuintupletToMemory(struct pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pixelIndex, unsigned int T5Index, unsigned int pixelQuintupletIndex, float score, float eta, float phi);
 #endif
 
     CUDA_DEV bool runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct quintuplets& quintupletsInGPU, unsigned int& pixelSegmentIndex, unsigned int& quintupletIndex, float& rzChiSquared, float& rPhiChiSquared, float& rPhiChiSquaredInwards);
