@@ -1530,7 +1530,7 @@ void SDL::Event::createTrackCandidates()
     dim3 dupBlocks(16,16,1);
     removeDupQuintupletsInGPU<<<dupBlocks,dupThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU,true);
     cudaDeviceSynchronize();
-    addT5asTrackCandidateInGPU<<<nBlocks,nThreads>>>(*modulesInGPU,*quintupletsInGPU,*trackCandidatesInGPU,*pixelQuintupletsInGPU);
+    addT5asTrackCandidateInGPU<<<nBlocks,nThreads>>>(*modulesInGPU,*quintupletsInGPU,*trackCandidatesInGPU,*pixelQuintupletsInGPU,*pixelTripletsInGPU);
 
     cudaError_t cudaerr_T5 = cudaDeviceSynchronize();
     if(cudaerr_T5 != cudaSuccess)
@@ -3460,7 +3460,7 @@ __device__ inline int checkHitspT5(unsigned int ix, unsigned int jx,struct SDL::
         }
         return npMatched;
 }
-__global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,struct SDL::quintuplets& quintupletsInGPU,struct SDL::trackCandidates& trackCandidatesInGPU,struct SDL::pixelQuintuplets& pixelQuintupletsInGPU)
+__global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,struct SDL::quintuplets& quintupletsInGPU,struct SDL::trackCandidates& trackCandidatesInGPU,struct SDL::pixelQuintuplets& pixelQuintupletsInGPU,struct SDL::pixelTriplets& pixelTripletsInGPU )
 {
 
   int innerInnerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -3477,10 +3477,14 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,str
       return;
   }
   #ifdef Crossclean_T5
+  unsigned int loop_bound = *pixelQuintupletsInGPU.nPixelQuintuplets;
+  if (loop_bound < *pixelTripletsInGPU.nPixelTriplets) { loop_bound = *pixelTripletsInGPU.nPixelTriplets;}
   //cross cleaning step
   float eta1 = quintupletsInGPU.eta[quintupletIndex]; 
   float phi1 = quintupletsInGPU.phi[quintupletIndex]; 
-  for (unsigned int jx=0; jx<*pixelQuintupletsInGPU.nPixelQuintuplets; jx++){
+  //for (unsigned int jx=0; jx<*pixelQuintupletsInGPU.nPixelQuintuplets; jx++){
+  for (unsigned int jx=0; jx<loop_bound; jx++){
+     if(jx < *pixelQuintupletsInGPU.nPixelQuintuplets){
        float eta2 = pixelQuintupletsInGPU.eta[jx];
        float phi2 = pixelQuintupletsInGPU.phi[jx];
        float dEta = abs(eta1-eta2);
@@ -3489,6 +3493,16 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,str
        float dR2 = dEta*dEta + dPhi*dPhi;
        //printf("dR2: %f\n",dR2);
        if(dR2 < 1e-3) return;
+     }
+     if(jx < *pixelTripletsInGPU.nPixelTriplets){
+       float eta2 = pixelTripletsInGPU.eta[jx]; 
+       float phi2 = pixelTripletsInGPU.phi[jx]; 
+       float dEta = abs(eta1-eta2);
+       float dPhi = abs(phi1-phi2);
+       if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
+       float dR2 = dEta*dEta + dPhi*dPhi;
+       if(dR2 < 0.0000001) return;
+     }
   }
   #endif
   unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[innerInnerInnerLowerModuleArrayIndex],1);
