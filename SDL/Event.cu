@@ -40,6 +40,7 @@ SDL::Event::Event()
     trackCandidatesInGPU = nullptr;
     pixelTripletsInGPU = nullptr;
     pixelQuintupletsInGPU = nullptr;
+    trackExtensionsInGPU = nullptr;
 
     hitsInCPU = nullptr;
     mdsInCPU = nullptr;
@@ -100,6 +101,7 @@ SDL::Event::~Event()
     tripletsInGPU->freeMemory();
     pixelTrackletsInGPU->freeMemory();
     trackCandidatesInGPU->freeMemory();
+    trackExtensionsInGPU->freeMemory();
 #ifdef FINAL_T5
     quintupletsInGPU->freeMemory();
 #endif
@@ -112,6 +114,7 @@ SDL::Event::~Event()
     cudaFreeHost(tripletsInGPU);
     cudaFreeHost(pixelTrackletsInGPU);
     cudaFreeHost(trackCandidatesInGPU);
+    cudaFreeHost(trackExtensionsInGPU);
     hitsInGPU->freeMemory();
     cudaFreeHost(hitsInGPU);
 
@@ -1662,6 +1665,7 @@ void SDL::Event::createExtendedTracks()
     unsigned int nLowerModules;// = *modulesInGPU->nLowerModules + 1; //including the pixel module
     cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
     nLowerModules += 1;// include the pixel module
+    std::cout<<"nLowerModules = "<<nLowerModules<<std::endl;
     unsigned int* nTrackCandidates;
     unsigned int* nTriplets;
     cudaMallocHost(&nTrackCandidates, nLowerModules * sizeof(unsigned int));
@@ -1675,6 +1679,7 @@ void SDL::Event::createExtendedTracks()
     dim3 nThreads(16,16,4);
     unsigned int maxTCs = *std::max_element(nTrackCandidates, nTrackCandidates + nLowerModules);
     unsigned int maxT3s = *std::max_element(nTriplets, nTriplets + nLowerModules - 1); 
+    std::cout<<"max TCs = "<<maxTCs<<" max T3s = "<<maxT3s<<std::endl;
     dim3 nBlocks(nLowerModules % nThreads.x == 0 ? nLowerModules / nThreads.x : nLowerModules / nThreads.x + 1, maxTCs % nThreads.y == 0 ? maxTCs / nThreads.y : maxTCs / nThreads.y + 1, maxT3s % nThreads.z == 0 ? maxT3s / nThreads.z : maxT3s / nThreads.z + 1);
    createExtendedTracksInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *tripletsInGPU, *pixelTripletsInGPU, *quintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
 
@@ -2128,8 +2133,8 @@ void SDL::Event::createPixelQuintuplets()
 #endif
     unsigned int nPixelQuintuplets;
     cudaMemcpy(&nPixelQuintuplets, &(pixelQuintupletsInGPU->nPixelQuintuplets), sizeof(unsigned int), cudaMemcpyDeviceToHost);
-    dim3 nThreads_dup(1024,1,1);
-    dim3 nBlocks_dup(64,1,1);
+    dim3 nThreads_dup(512,1,1);
+    dim3 nBlocks_dup(128,1,1);
 #ifdef DUP_pT5
     printf("run dup pT5\n");
     removeDupPixelQuintupletsInGPUFromMap<<<nBlocks_dup,nThreads_dup>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU, *pixelQuintupletsInGPU, *quintupletsInGPU);
@@ -5955,6 +5960,7 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU,struct SDL::miniD
 
 __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::trackExtensions& trackExtensionsInGPU)
 {
+    printf("inside kernel!\n");
     int moduleIdx = blockIdx.x * blockDim.x + threadIdx.x;
     int tcArrayIdx = blockIdx.y * blockDim.y + threadIdx.y;
     int t3ArrayIdx = blockIdx.z * blockDim.z + threadIdx.z;
