@@ -80,7 +80,7 @@ namespace SDL
         quintuplets* quintupletsInCPU;
         pixelTriplets* pixelTripletsInCPU;
         pixelQuintuplets* pixelQuintupletsInCPU;
-        trackExtesnions* trackExtensionsInCPU;
+        trackExtensions* trackExtensionsInCPU;
 
         int* superbinCPU;
         int* pixelTypeCPU;
