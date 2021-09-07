@@ -93,7 +93,6 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
 
     //will add chi squared cuts later!
     pass = pass & (nLayerOverlap == layerOverlapTarget) & (nHitOverlap == hitOverlapTarget);
-    printf("layeroverlap = %d, hitoverlap = %d\n", nLayerOverlap, nHitOverlap);
     constituentTCType[0] = anchorObjectType;
     constituentTCType[1] = outerObjectType;
 

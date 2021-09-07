@@ -1661,7 +1661,7 @@ void SDL::Event::createExtendedTracks()
     {
         cudaMallocHost(&trackExtensionsInGPU, sizeof(SDL::trackExtensions));
     }
-    createTrackExtensionsInExplicitMemory(*trackExtensionsInGPU, N_MAX_TRACK_CANDIDATE_EXTENSIONS);
+    createTrackExtensionsInUnifiedMemory(*trackExtensionsInGPU, N_MAX_TRACK_CANDIDATE_EXTENSIONS);
     unsigned int nLowerModules;// = *modulesInGPU->nLowerModules + 1; //including the pixel module
     cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
     nLowerModules += 1;// include the pixel module
@@ -1676,7 +1676,7 @@ void SDL::Event::createExtendedTracks()
     /* extremely naive way - 3D grid
      * most of the threads launched here will exit without running
      */
-    dim3 nThreads(16,16,4);
+    dim3 nThreads(4,16,4);
     unsigned int maxTCs = *std::max_element(nTrackCandidates, nTrackCandidates + nLowerModules);
     unsigned int maxT3s = *std::max_element(nTriplets, nTriplets + nLowerModules - 1); 
     std::cout<<"max TCs = "<<maxTCs<<" max T3s = "<<maxT3s<<std::endl;
@@ -4601,10 +4601,12 @@ __global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modul
        else
        {
 #ifdef CUT_VALUE_DEBUG
-           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, rPhiChiSquared);
+           addPixelQuintupletToMemory(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, rPhiChiSquared);
+
 
 #else
-           addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,/*score*/rPhiChiSquared);
+           addPixelQuintupletToMemory(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquared);
+
 #endif
 //           //mark the relevant T5 and pT3 here!
 //           quintupletsInGPU.partOfPT5[quintupletIndex] = true;
@@ -5960,14 +5962,11 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU,struct SDL::miniD
 
 __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::trackExtensions& trackExtensionsInGPU)
 {
-    printf("inside kernel!\n");
     int moduleIdx = blockIdx.x * blockDim.x + threadIdx.x;
     int tcArrayIdx = blockIdx.y * blockDim.y + threadIdx.y;
     int t3ArrayIdx = blockIdx.z * blockDim.z + threadIdx.z;
-
-    if(moduleIdx >= *modulesInGPU.nLowerModules) return;
+    if(moduleIdx > *modulesInGPU.nLowerModules) return;
     if(tcArrayIdx >= trackCandidatesInGPU.nTrackCandidates[moduleIdx]) return;
-
     //get the last but two module index - (2,4) hardcoded
     unsigned int tcIdx = modulesInGPU.trackCandidateModuleIndices[moduleIdx] + tcArrayIdx;
     short tcType = trackCandidatesInGPU.trackCandidateType[tcIdx];
@@ -5983,6 +5982,8 @@ __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, str
         unsigned int outerT3Index = pixelTripletsInGPU.tripletIndices[pT3Index];
         outerT3StartingModuleIndex = tripletsInGPU.lowerModuleIndices[3 * outerT3Index + 1];
     }
+    if(t3ArrayIdx >= tripletsInGPU.nTriplets[outerT3StartingModuleIndex]) return;
+
     unsigned int t3Idx = modulesInGPU.reverseLookupLowerModuleIndices[outerT3StartingModuleIndex] * N_MAX_TRIPLETS_PER_MODULE + t3ArrayIdx;
 
     short constituentTCType[3];
