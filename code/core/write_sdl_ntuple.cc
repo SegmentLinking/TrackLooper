@@ -116,9 +116,9 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("t5_eta_2");
     ana.tx->createBranch<vector<float>>("t5_phi_2");
 
-    ana.tx->createBranch<vector<float>>("t5_score_rphi");
-    ana.tx->createBranch<vector<float>>("t5_score_rz");
-    ana.tx->createBranch<vector<float>>("t5_score_rzlsq");
+//    ana.tx->createBranch<vector<float>>("t5_score_rphi");
+//    ana.tx->createBranch<vector<float>>("t5_score_rz");
+//    ana.tx->createBranch<vector<float>>("t5_score_rzlsq");
     ana.tx->createBranch<vector<float>>("t5_score_rphisum");
     ana.tx->createBranch<vector<vector<int>>>("t5_hitIdxs");
     ana.tx->createBranch<vector<vector<int>>>("t5_matched_simIdx");
@@ -1621,9 +1621,9 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     std::vector<float> t5_phi;
     std::vector<float> t5_eta_2;
     std::vector<float> t5_phi_2;
-    std::vector<float> t5_score_rphi;
-    std::vector<float> t5_score_rz;
-    std::vector<float> t5_score_rzlsq;
+//    std::vector<float> t5_score_rphi;
+//    std::vector<float> t5_score_rz;
+//    std::vector<float> t5_score_rzlsq;
     std::vector<float> t5_score_rphisum;
     std::vector<vector<int>> t5_hitIdxs;
     std::vector<int> t5_foundDuplicate;
@@ -1678,9 +1678,9 @@ void fillQuintupletOutputBranches(SDL::Event& event)
 
             if(quintupletsInGPU.isDup[quintupletIndex]==1){continue;}
             t5_foundDuplicate.emplace_back(quintupletsInGPU.isDup[quintupletIndex]);
-            t5_score_rphi.emplace_back(quintupletsInGPU.score_rphi[quintupletIndex]);
-            t5_score_rz.emplace_back(quintupletsInGPU.score_rz[quintupletIndex]);
-            t5_score_rzlsq.emplace_back(quintupletsInGPU.score_rzlsq[quintupletIndex]);
+            //t5_score_rphi.emplace_back(quintupletsInGPU.score_rphi[quintupletIndex]);
+            //t5_score_rz.emplace_back(quintupletsInGPU.score_rz[quintupletIndex]);
+            //t5_score_rzlsq.emplace_back(quintupletsInGPU.score_rzlsq[quintupletIndex]);
             t5_score_rphisum.emplace_back(quintupletsInGPU.score_rphisum[quintupletIndex]);
             t5_eta_2.emplace_back(quintupletsInGPU.eta[quintupletIndex]);
             t5_phi_2.emplace_back(quintupletsInGPU.phi[quintupletIndex]);
@@ -1886,9 +1886,9 @@ void fillQuintupletOutputBranches(SDL::Event& event)
 
     ana.tx->setBranch<vector<vector<int>>>("t5_matched_simIdx", t5_matched_simIdx);
     ana.tx->setBranch<vector<vector<int>>>("t5_hitIdxs", t5_hitIdxs);
-    ana.tx->setBranch<vector<float>>("t5_score_rphi", t5_score_rphi);
-    ana.tx->setBranch<vector<float>>("t5_score_rz", t5_score_rz);
-    ana.tx->setBranch<vector<float>>("t5_score_rzlsq", t5_score_rzlsq);
+//    ana.tx->setBranch<vector<float>>("t5_score_rphi", t5_score_rphi);
+//    ana.tx->setBranch<vector<float>>("t5_score_rz", t5_score_rz);
+//    ana.tx->setBranch<vector<float>>("t5_score_rzlsq", t5_score_rzlsq);
     ana.tx->setBranch<vector<float>>("t5_score_rphisum", t5_score_rphisum);
 #ifdef CUT_VALUE_DEBUG
     ana.tx->setBranch<vector<vector<float>>>("t5_matched_pt",t5_simpt);
