@@ -822,7 +822,7 @@ float runTrackCandidateTest_v2(SDL::Event& event)
 
 float runTrackExtensions(SDL::Event& event)
 {
-    TStopWatch my_timer;
+    TStopwatch my_timer;
     if (ana.verbose >= 2) 
     {
         std::cout << "Reco Track Extension start" << std::endl;

@@ -1676,7 +1676,7 @@ void SDL::Event::createExtendedTracks()
     unsigned int maxTCs = *std::max_element(nTrackCandidates, nTrackCandidates + nLowerModules);
     unsigned int maxT3s = *std::max_element(nTriplets, nTriplets + nLowerModules - 1); 
     dim3 nBlocks(nLowerModules % nThreads.x == 0 ? nLowerModules / nThreads.x : nLowerModules / nThreads.x + 1, maxTCs % nThreads.y == 0 ? maxTCs / nThreads.y : maxTCs / nThreads.y + 1, maxT3s % nThreads.z == 0 ? maxT3s / nThreads.z : maxT3s / nThreads.z + 1);
-   createExtendedTracksInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *tripletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
+   createExtendedTracksInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *tripletsInGPU, *pixelTripletsInGPU, *quintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
 
     cudaError_t cudaerr = cudaDeviceSynchronize();
     if(cudaerr != cudaSuccess)
