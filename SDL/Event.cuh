@@ -25,6 +25,7 @@
 #include "Quintuplet.cuh"
 #include "PixelTriplet.cuh"
 #include "PixelQuintuplet.cuh"
+#include "TrackExtensions.cuh"
 
 #include "cuda_profiler_api.h"
 #ifdef __CUDACC__
@@ -64,6 +65,7 @@ namespace SDL
         struct trackCandidates* trackCandidatesInGPU;
         struct pixelTriplets* pixelTripletsInGPU;
         struct pixelQuintuplets* pixelQuintupletsInGPU;
+        struct trackExtensions* trackExtensionsInGPU;
 
         //CPU interface stuff
         hits* hitsInCPU;
@@ -78,6 +80,7 @@ namespace SDL
         quintuplets* quintupletsInCPU;
         pixelTriplets* pixelTripletsInCPU;
         pixelQuintuplets* pixelQuintupletsInCPU;
+        trackExtesnions* trackExtensionsInCPU;
 
         int* superbinCPU;
         int* pixelTypeCPU;
@@ -114,6 +117,7 @@ namespace SDL
         void createPixelTrackletsWithMap();
         void createTrackletsWithAGapWithModuleMap();
         void createTrackCandidates();
+        void createExtendedTracks();
         void createQuintuplets();
         void createPixelTriplets();
         void createPixelQuintuplets();
@@ -157,6 +161,7 @@ namespace SDL
 
         unsigned int getNumberOfPixelTriplets();
         unsigned int getNumberOfPixelQuintuplets();
+        unsigned int getNumberOfExtendedTracks();
 
         hits* getHits();
         miniDoublets* getMiniDoublets();
@@ -295,4 +300,5 @@ __global__ void createPixelQuintupletsFromFirstModule(struct SDL::modules& modul
 __global__ void createPixelQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU);
 #endif
 
+__global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::trackExtensions& trackExtensionsInGPU);
 #endif

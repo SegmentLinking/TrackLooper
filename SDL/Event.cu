@@ -23,6 +23,7 @@ const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 250000;
 #endif
 const unsigned int N_MAX_PIXEL_TRIPLETS = 250000;
 const unsigned int N_MAX_PIXEL_QUINTUPLETS = 1000000;
+const unsigned int N_MAX_TRACK_CANDIDATE_EXTENSIONS = 200000;
 struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::pixelMap* SDL::pixelMapping = nullptr;
 unsigned int SDL::nModules;
@@ -1650,6 +1651,42 @@ void SDL::Event::createTrackCandidates()
 #endif
 
 }
+
+void SDL::Event::createExtendedTracks()
+{
+    if(trackExtensionsInGPU == nullptr)
+    {
+        cudaMallocHost(&trackExtensionsInGPU, sizeof(SDL::trackExtensions));
+    }
+    createTrackExtensionsInExplicitMemory(*trackExtensionsInGPU, N_MAX_TRACK_CANDIDATE_EXTENSIONS);
+    unsigned int nLowerModules;// = *modulesInGPU->nLowerModules + 1; //including the pixel module
+    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    nLowerModules += 1;// include the pixel module
+    unsigned int* nTrackCandidates;
+    unsigned int* nTriplets;
+    cudaMallocHost(&nTrackCandidates, nLowerModules * sizeof(unsigned int));
+    cudaMallocHost(&nTriplets, (nLowerModules - 1) * sizeof(unsigned int));
+    cudaMemcpy(nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(nTriplets, tripletsInGPU->nTriplets, (nLowerModules - 1) * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+    /* extremely naive way - 3D grid
+     * most of the threads launched here will exit without running
+     */
+    dim3 nThreads(16,16,4);
+    unsigned int maxTCs = *std::max_element(nTrackCandidates, nTrackCandidates + nLowerModules);
+    unsigned int maxT3s = *std::max_element(nTriplets, nTriplets + nLowerModules - 1); 
+    dim3 nBlocks(nLowerModules % nThreads.x == 0 ? nLowerModules / nThreads.x : nLowerModules / nThreads.x + 1, maxTCs % nThreads.y == 0 ? maxTCs / nThreads.y : maxTCs / nThreads.y + 1, maxT3s % nThreads.z == 0 ? maxT3s / nThreads.z : maxT3s / nThreads.z + 1);
+   createExtendedTracksInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *tripletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
+
+    cudaError_t cudaerr = cudaDeviceSynchronize();
+    if(cudaerr != cudaSuccess)
+    {
+	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
+    }
+    cudaFreeHost(nTrackCandidates);
+    cudaFreeHost(nTriplets);
+}
+
 
 void SDL::Event::createPixelTriplets()
 {
@@ -3426,7 +3463,7 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,str
   unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[innerInnerInnerLowerModuleArrayIndex],1);
   atomicAdd(&trackCandidatesInGPU.nTrackCandidatesT5[innerInnerInnerLowerModuleArrayIndex],1);
   unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[innerInnerInnerLowerModuleArrayIndex] + trackCandidateModuleIdx;
-  addTrackCandidateToMemory(trackCandidatesInGPU, 4/*track candidate type T5=4*/, quintupletIndex, quintupletIndex, trackCandidateIdx);
+  addTrackCandidateToMemory(trackCandidatesInGPU, 4/*track candidate type T5=4*/, quintupletIndex, quintupletIndex, &trackCandidatesInGPU.logicalLayers[5 * quintupletIndex], &trackCandidatesInGPU.hitIndices[10 * quintupletIndex], trackCandidateIdx);
 }
 
 __global__ void addpT2asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,struct SDL::pixelTracklets& pixelTrackletsInGPU,struct SDL::trackCandidates& trackCandidatesInGPU)
@@ -3478,7 +3515,7 @@ __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
   unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
   atomicAdd(trackCandidatesInGPU.nTrackCandidatespT3,1);
   unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[pixelLowerModuleArrayIndex] + trackCandidateModuleIdx;
-  addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, trackCandidateIdx);
+  addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, &pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex], &pixelTripletsInGPU.hitIndices[10 * pixelTripletIndex], trackCandidateIdx);
 
 }
 
@@ -3499,7 +3536,7 @@ __global__ void addpT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
   unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[pixelLowerModuleArrayIndex] + trackCandidateModuleIdx;
   
 
-  addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex], pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], trackCandidateIdx);
+  addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex], pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], &pixelQuintupletsInGPU.logicalLayers[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.hitIndices[14 * pixelQuintupletIndex], trackCandidateIdx);
 
 }
 
@@ -4794,6 +4831,11 @@ unsigned int SDL::Event::getNumberOfPixelTriplets()
 }
 
 
+unsigned int SDL::Event::getNumberOfExtendedTracks()
+{
+    return *(trackExtensionsInGPU->nTrackExtensions);
+}
+
 unsigned int SDL::Event::getNumberOfPixelQuintuplets()
 {
 #ifdef Explicit_PT5
@@ -5908,4 +5950,42 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU,struct SDL::miniD
        if(found){counter++;rmPixelSegmentFromMemory(segmentsInGPU,ix);continue;}
      }
      //printf("%u %d\n",nPixelSegments,counter);
+}
+
+__global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::trackExtensions& trackExtensionsInGPU)
+{
+    int moduleIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    int tcArrayIdx = blockIdx.y * blockDim.y + threadIdx.y;
+    int t3ArrayIdx = blockIdx.z * blockDim.z + threadIdx.z;
+
+    if(moduleIdx >= *modulesInGPU.nLowerModules) return;
+    if(tcArrayIdx >= trackCandidatesInGPU.nTrackCandidates[moduleIdx]) return;
+
+    //get the last but two module index - (2,4) hardcoded
+    unsigned int tcIdx = modulesInGPU.trackCandidateModuleIndices[moduleIdx] + tcArrayIdx;
+    short tcType = trackCandidatesInGPU.trackCandidateType[tcIdx];
+    
+    unsigned int outerT3StartingModuleIndex;
+    if(tcType == 7 or tcType == 4)
+    {
+        outerT3StartingModuleIndex = quintupletsInGPU.lowerModuleIndices[5 * trackCandidatesInGPU.objectIndices[2 * tcIdx + 1] + 3];
+    }
+    else //pT3
+    {
+        unsigned int pT3Index = trackCandidatesInGPU.objectIndices[2 * tcIdx];
+        unsigned int outerT3Index = pixelTripletsInGPU.tripletIndices[pT3Index];
+        outerT3StartingModuleIndex = tripletsInGPU.lowerModuleIndices[3 * outerT3Index + 1];
+    }
+    unsigned int t3Idx = modulesInGPU.reverseLookupLowerModuleIndices[outerT3StartingModuleIndex] * N_MAX_TRIPLETS_PER_MODULE + t3ArrayIdx;
+
+    short constituentTCType[3];
+    unsigned int constituentTCIndex[3];
+
+    bool success = runTrackExtensionDefaultAlgo(modulesInGPU, tripletsInGPU, trackCandidatesInGPU, tcIdx, t3Idx, tcType, 3, 2, 4, constituentTCType, constituentTCIndex);
+
+    if(success)
+    {
+        unsigned int trackExtensionIndex = atomicAdd(trackExtensionsInGPU.nTrackExtensions, 1);
+        addTrackExtensionToMemory(trackExtensionsInGPU, constituentTCType, constituentTCIndex, trackExtensionIndex); 
+    }
 }

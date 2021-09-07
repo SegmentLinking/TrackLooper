@@ -38,6 +38,9 @@ namespace SDL
         unsigned int* nTrackCandidatespT5;
         unsigned int* nTrackCandidatesT5;
 
+        unsigned int* logicalLayers;
+        unsigned int* hitIndices;
+
         trackCandidates();
         ~trackCandidates();
         void freeMemory();
@@ -51,7 +54,9 @@ namespace SDL
     void createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates, unsigned int maxPixelTrackCandidates, unsigned int nLowerModules, unsigned int nEligibleModules);
     
     CUDA_DEV void addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, unsigned int trackCandidateIndex);
-   
+
+    CUDA_DEV void addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, unsigned int* logicalLayerIndices, unsigned int* hitIndices, unsigned int trackCandidateIndex);
+
     CUDA_DEV bool runTrackCandidateDefaultAlgoTwoTracklets(struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, short& trackCandidateType);
 
     CUDA_DEV bool runTrackCandidateDefaultAlgoTwoTracklets(struct pixelTracklets& pixelTrackletsInGPU, struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, short& trackCandidateType);

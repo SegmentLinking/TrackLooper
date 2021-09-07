@@ -21,7 +21,7 @@
 #include "PrintUtil.h"
 #include "Quintuplet.cuh"
 #include "PixelTracklet.cuh"
-#
+
 namespace SDL
 {
     struct pixelTriplets //one pixel segment, one outer tracker triplet!
@@ -42,9 +42,6 @@ namespace SDL
         float* score;
         bool* isDup;
         bool* partOfPT5;
-
-        unsigned int* logicalLayers;
-        unsigned int* hitIndices;
 
         //for track extensions
         unsigned int* logicalLayers;

@@ -820,6 +820,24 @@ float runTrackCandidateTest_v2(SDL::Event& event)
 }
 
 
+float runTrackExtensions(SDL::Event& event)
+{
+    TStopWatch my_timer;
+    if (ana.verbose >= 2) 
+    {
+        std::cout << "Reco Track Extension start" << std::endl;
+    }
+    my_timer.Start();
+    event.createExtendedTracks();
+    float tce_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2)
+    {
+        std::cout<<"Reco Track Extension processing time: " << tce_elapsed<<" secs "<< std::endl;
+        std::cout<<"# of Track Extensions produced: "<<event.getNumberOfExtendedTracks()<<std::endl;
+    }
+    return tce_elapsed;
+}
+
 bool goodEvent()
 {
     if (ana.specific_event_index >= 0)

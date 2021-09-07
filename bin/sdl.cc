@@ -373,6 +373,8 @@ void run_sdl()
             // Run TC
             float timing_TC = runTrackCandidate(event);
 
+            float timing_TCE = runTrackExtensions(event);
+
             timing_information.push_back({ timing_input_loading,
                     timing_MD,
                     timing_LS,

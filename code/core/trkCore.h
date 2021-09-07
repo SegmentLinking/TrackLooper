@@ -50,6 +50,7 @@ float runTrackCandidateTest_v2(SDL::Event& event);
 float runQuintuplet(SDL::Event& event);
 float runPixelQuintuplet(SDL::Event& event);
 float runpT3(SDL::Event& event);
+float runTrackExtensions(SDL::Event& event);
 
 std::vector<float> getPtBounds();
 bool inTimeTrackWithPdgId(int isimtrk, int pdgid);
