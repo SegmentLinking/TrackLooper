@@ -24,6 +24,13 @@ void SDL::pixelQuintuplets::freeMemory()
     cudaFree(nPixelQuintuplets);
     cudaFree(isDup);
     cudaFree(score);
+    cudaFree(eta);
+    cudaFree(phi);
+#ifdef CUT_VALUE_DEBUG
+    cudaFree(rzChiSquared);
+    cudaFree(rPhiChiSquared);
+    cudaFree(rPhiChiSquaredInwards);
+#endif
 }
 
 void SDL::createPixelQuintupletsInUnifiedMemory(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int maxPixelQuintuplets)

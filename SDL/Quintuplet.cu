@@ -52,6 +52,7 @@ void SDL::quintuplets::freeMemoryCache()
     cms::cuda::free_device(dev, nQuintuplets);
     cms::cuda::free_device(dev, innerRadius);
     cms::cuda::free_device(dev, outerRadius);
+    cms::cuda::free_device(dev, partOfPT5);
     cms::cuda::free_device(dev, isDup);
     cms::cuda::free_device(dev, pt);
     cms::cuda::free_device(dev, layer);
@@ -64,6 +65,7 @@ void SDL::quintuplets::freeMemoryCache()
     cms::cuda::free_managed(nQuintuplets);
     cms::cuda::free_managed(innerRadius);
     cms::cuda::free_managed(outerRadius);
+    cms::cuda::free_managed(partOfPT5);
     cms::cuda::free_managed(isDup);
     cms::cuda::free_managed(pt);
     cms::cuda::free_managed(layer);
@@ -102,6 +104,7 @@ void SDL::quintuplets::freeMemory()
     cudaFree(outerRadiusMax);
     cudaFree(outerRadiusMax2S);
     cudaFree(chiSquared);
+    cudaFree(nonAnchorChiSquared);
 #endif
 }
 

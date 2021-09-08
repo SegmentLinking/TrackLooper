@@ -45,6 +45,7 @@ namespace SDL
         
         hits();
         void freeMemory();
+        void freeMemoryCache();
         ~hits();
 
     };

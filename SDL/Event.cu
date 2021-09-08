@@ -87,6 +87,7 @@ SDL::Event::~Event()
     tripletsInGPU->freeMemoryCache();
     pixelTrackletsInGPU->freeMemoryCache();
     trackCandidatesInGPU->freeMemoryCache();
+    hitsInGPU->freeMemoryCache();
 #ifdef FINAL_T5
     quintupletsInGPU->freeMemoryCache();
 #endif
@@ -94,6 +95,7 @@ SDL::Event::~Event()
     trackletsInGPU->freeMemoryCache();
 #endif
 #else
+    hitsInGPU->freeMemory();
     mdsInGPU->freeMemory();
     segmentsInGPU->freeMemory();
     tripletsInGPU->freeMemory();
@@ -111,11 +113,12 @@ SDL::Event::~Event()
     cudaFreeHost(tripletsInGPU);
     cudaFreeHost(pixelTrackletsInGPU);
     cudaFreeHost(trackCandidatesInGPU);
-    hitsInGPU->freeMemory();
     cudaFreeHost(hitsInGPU);
 
     pixelTripletsInGPU->freeMemory();
     cudaFreeHost(pixelTripletsInGPU);
+    pixelQuintupletsInGPU->freeMemory();
+    cudaFreeHost(pixelQuintupletsInGPU);
 
 #ifdef FINAL_T5
     cudaFreeHost(quintupletsInGPU);
@@ -298,6 +301,7 @@ void SDL::cleanModules()
   #endif
   cudaFreeHost(modulesInGPU);
   cudaFreeHost(pixelMapping);
+//cudaDeviceReset(); // uncomment for leak check "cuda-memcheck --leak-check full --show-backtrace yes" does not work with caching.
 }
 
 void SDL::Event::resetObjectsInModule()
@@ -5827,6 +5831,7 @@ __global__ void markUsedObjects(struct SDL::modules& modulesInGPU, struct SDL::s
 }
 __global__ void removeDupPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, struct SDL::quintuplets& quintupletsInGPU, bool secondPass)
 {
+    //printf("running pT5 duprm\n");
     int dup_count=0;
     for (unsigned int ix=blockIdx.x*blockDim.x+threadIdx.x; ix<*pixelQuintupletsInGPU.nPixelQuintuplets; ix+=blockDim.x*gridDim.x){
       bool isDup = false;
