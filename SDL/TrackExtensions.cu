@@ -121,6 +121,10 @@ __device__ void SDL::computeLayerAndHitOverlaps(unsigned int* anchorLayerIndices
                 nHitOverlap++;
             }
             j++;
+            if(j == nOuterLayers)
+            {
+                break;
+            }
         }
     }
 }

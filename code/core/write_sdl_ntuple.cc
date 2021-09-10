@@ -154,7 +154,6 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<int>>("pT5_isFake");
     ana.tx->createBranch<vector<int>>("pT5_isDuplicate");
 
-
 #ifdef CUT_VALUE_DEBUG
     createQuadrupletCutValueBranches();
     createTripletCutValueBranches();
