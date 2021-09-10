@@ -1,8 +1,6 @@
 #include "Kernels.cuh"
 #include "allocate.h"
 
-
-
 #ifndef NESTED_PARA
 __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU)
 {
