@@ -1069,6 +1069,10 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
             matched_sim_trk_idxs.push_back(trkidx);
     }
 
+    set<int> s;
+    unsigned size = matched_sim_trk_idxs.size();
+    for( unsigned i = 0; i < size; ++i ) s.insert( matched_sim_trk_idxs[i] );
+    matched_sim_trk_idxs.assign( s.begin(), s.end() );
     return matched_sim_trk_idxs;
 }
 
