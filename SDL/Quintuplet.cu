@@ -52,6 +52,7 @@ void SDL::quintuplets::freeMemoryCache()
     cms::cuda::free_device(dev, nQuintuplets);
     cms::cuda::free_device(dev, innerRadius);
     cms::cuda::free_device(dev, outerRadius);
+    cms::cuda::free_device(dev, partOfPT5);
     cms::cuda::free_device(dev, isDup);
     cms::cuda::free_device(dev, pt);
     cms::cuda::free_device(dev, layer);
@@ -64,6 +65,7 @@ void SDL::quintuplets::freeMemoryCache()
     cms::cuda::free_managed(nQuintuplets);
     cms::cuda::free_managed(innerRadius);
     cms::cuda::free_managed(outerRadius);
+    cms::cuda::free_managed(partOfPT5);
     cms::cuda::free_managed(isDup);
     cms::cuda::free_managed(pt);
     cms::cuda::free_managed(layer);
@@ -102,6 +104,7 @@ void SDL::quintuplets::freeMemory()
     cudaFree(outerRadiusMax);
     cudaFree(outerRadiusMax2S);
     cudaFree(chiSquared);
+    cudaFree(nonAnchorChiSquared);
 #endif
 }
 
@@ -185,7 +188,7 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     cudaMallocManaged(&quintupletsInGPU.innerRadius, nMemoryLocations * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.outerRadius, nMemoryLocations * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.regressionRadius, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&quintupletsInGPU.pt, nMemoryLocations *7* sizeof(float));
+    cudaMallocManaged(&quintupletsInGPU.pt, nMemoryLocations *4* sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.layer, nMemoryLocations * sizeof(int));
     cudaMallocManaged(&quintupletsInGPU.isDup, nMemoryLocations * sizeof(bool));
     cudaMallocManaged(&quintupletsInGPU.partOfPT5, nMemoryLocations * sizeof(bool));
@@ -212,10 +215,10 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
 #endif
     quintupletsInGPU.eta = quintupletsInGPU.pt + nMemoryLocations;
     quintupletsInGPU.phi = quintupletsInGPU.pt + 2*nMemoryLocations;
-    quintupletsInGPU.score_rphi = quintupletsInGPU.pt + 3*nMemoryLocations;
-    quintupletsInGPU.score_rz = quintupletsInGPU.pt + 4*nMemoryLocations;
-    quintupletsInGPU.score_rphisum = quintupletsInGPU.pt + 5*nMemoryLocations;
-    quintupletsInGPU.score_rzlsq = quintupletsInGPU.pt + 6*nMemoryLocations;
+    //quintupletsInGPU.score_rphi = quintupletsInGPU.pt + 3*nMemoryLocations;
+    //quintupletsInGPU.score_rz = quintupletsInGPU.pt + 4*nMemoryLocations;
+    quintupletsInGPU.score_rphisum = quintupletsInGPU.pt + 3*nMemoryLocations;
+    //quintupletsInGPU.score_rzlsq = quintupletsInGPU.pt + 6*nMemoryLocations;
 #pragma omp parallel for
     for(size_t i = 0; i<nLowerModules;i++)
     {
@@ -251,7 +254,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     cudaMalloc(&quintupletsInGPU.innerRadius, nMemoryLocations * sizeof(float));
     cudaMalloc(&quintupletsInGPU.outerRadius, nMemoryLocations * sizeof(float));
     cudaMalloc(&quintupletsInGPU.regressionRadius, nMemoryLocations * sizeof(float));
-    cudaMalloc(&quintupletsInGPU.pt, nMemoryLocations *7* sizeof(float));
+    cudaMalloc(&quintupletsInGPU.pt, nMemoryLocations *4* sizeof(float));
     cudaMalloc(&quintupletsInGPU.isDup, nMemoryLocations * sizeof(bool));
     cudaMalloc(&quintupletsInGPU.partOfPT5, nMemoryLocations * sizeof(bool));
     cudaMalloc(&quintupletsInGPU.layer, nMemoryLocations * sizeof(int));
@@ -260,20 +263,20 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
 #endif
     quintupletsInGPU.eta = quintupletsInGPU.pt + nMemoryLocations;
     quintupletsInGPU.phi = quintupletsInGPU.pt + 2*nMemoryLocations;
-    quintupletsInGPU.score_rphi = quintupletsInGPU.pt + 3*nMemoryLocations;
-    quintupletsInGPU.score_rz = quintupletsInGPU.pt + 4*nMemoryLocations;
-    quintupletsInGPU.score_rphisum = quintupletsInGPU.pt + 5*nMemoryLocations;
-    quintupletsInGPU.score_rzlsq = quintupletsInGPU.pt + 6*nMemoryLocations;
+    //quintupletsInGPU.score_rphi = quintupletsInGPU.pt + 3*nMemoryLocations;
+    //quintupletsInGPU.score_rz = quintupletsInGPU.pt + 4*nMemoryLocations;
+    quintupletsInGPU.score_rphisum = quintupletsInGPU.pt + 3*nMemoryLocations;
+    //quintupletsInGPU.score_rzlsq = quintupletsInGPU.pt + 6*nMemoryLocations;
     cudaMemset(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int));
 }
 
 
 #ifdef CUT_VALUE_DEBUG
 __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerRadius, float innerRadiusMin, float innerRadiusMax, float outerRadius, float outerRadiusMin, float outerRadiusMax, float bridgeRadius, float bridgeRadiusMin, float bridgeRadiusMax,
-        float innerRadiusMin2S, float innerRadiusMax2S, float bridgeRadiusMin2S, float bridgeRadiusMax2S, float outerRadiusMin2S, float outerRadiusMax2S, float regressionG, float regressionF, float regressionRadius, float chiSquared, float nonAnchorChiSquared, float pt, float eta, float phi, float* scores, int layer, unsigned int quintupletIndex)
+        float innerRadiusMin2S, float innerRadiusMax2S, float bridgeRadiusMin2S, float bridgeRadiusMax2S, float outerRadiusMin2S, float outerRadiusMax2S, float regressionG, float regressionF, float regressionRadius, float chiSquared, float nonAnchorChiSquared, float pt, float eta, float phi, float scores, int layer, unsigned int quintupletIndex)
 
 #else
-__device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerRadius, float outerRadius, float regressionG, float regressionF, float regressionRadius, float pt, float eta, float phi, float* scores, int layer, unsigned int quintupletIndex)
+__device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerRadius, float outerRadius, float regressionG, float regressionF, float regressionRadius, float pt, float eta, float phi, float scores, int layer, unsigned int quintupletIndex)
 #endif
 
 {
@@ -291,10 +294,10 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsI
     quintupletsInGPU.pt[quintupletIndex] = pt;
     quintupletsInGPU.eta[quintupletIndex] = eta;
     quintupletsInGPU.phi[quintupletIndex] = phi;
-    quintupletsInGPU.score_rphi[quintupletIndex] = scores[0];
-    quintupletsInGPU.score_rz[quintupletIndex] = scores[1];
-    quintupletsInGPU.score_rzlsq[quintupletIndex] = scores[3];
-    quintupletsInGPU.score_rphisum[quintupletIndex] = scores[2];
+    //quintupletsInGPU.score_rphi[quintupletIndex] = scores[0];
+    //quintupletsInGPU.score_rz[quintupletIndex] = scores[1];
+    //quintupletsInGPU.score_rzlsq[quintupletIndex] = scores[3];
+    quintupletsInGPU.score_rphisum[quintupletIndex] = scores;
     quintupletsInGPU.layer[quintupletIndex] = layer;
     quintupletsInGPU.isDup[quintupletIndex] = 0;
     quintupletsInGPU.regressionG[quintupletIndex] = regressionG;
