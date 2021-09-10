@@ -3222,5 +3222,3 @@ SDL::modules* SDL::Event::getFullModules()
     return modulesInGPU;
 }
 #endif
-
-
