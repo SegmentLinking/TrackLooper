@@ -149,6 +149,8 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<vector<int>>>("pT3_hitIdxs");
 
     //pT5
+    ana.tx->createBranch<vector<vector<int>>>("pT5_matched_simIdx");
+    ana.tx->createBranch<vector<vector<int>>>("pT5_hitIdxs");
     ana.tx->createBranch<vector<int>>("sim_pT5_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_pT5_types");
     ana.tx->createBranch<vector<float>>("pT5_pt");
@@ -156,6 +158,7 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("pT5_phi");
     ana.tx->createBranch<vector<int>>("pT5_isFake");
     ana.tx->createBranch<vector<int>>("pT5_isDuplicate");
+    ana.tx->createBranch<vector<int>>("pT5_score");
 
 
 #ifdef CUT_VALUE_DEBUG
@@ -2171,10 +2174,12 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
     std::vector<int> sim_pT5_matched(trk.sim_pt().size(), 0);
     std::vector<vector<int>> sim_pT5_types(trk.sim_pt().size());
     std::vector<int> pT5_isFake;
-    std::vector<vector<int>> pT5_matched_simIdx;
+    std::vector<int> pT5_score;
     std::vector<float> pT5_pt;
     std::vector<float> pT5_eta;
     std::vector<float> pT5_phi;
+    std::vector<vector<int>> pT5_hitIdxs;
+    std::vector<vector<int>> pT5_matched_simIdx;
 
 #ifdef CUT_VALUE_DEBUG
     std::vector<int> pT5_layer_binary;
@@ -2191,6 +2196,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
     {
         //obtain the hits
         if(pixelQuintupletsInGPU.isDup[jdx]) {continue;};
+        pT5_score.emplace_back(pixelQuintupletsInGPU.score[jdx]);
         unsigned int T5Index = pixelQuintupletsInGPU.T5Indices[jdx];
     
         unsigned int T5InnerTripletIndex = quintupletsInGPU.tripletIndices[2 * T5Index];
@@ -2242,6 +2248,8 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
             (int) hitsInGPU.idxs[hitIndex13],
             (int) hitsInGPU.idxs[hitIndex14],
         };
+
+        pT5_hitIdxs.emplace_back(hit_idxs);
 
         std::vector<int> hit_types;
         hit_types.push_back(0);
@@ -2392,9 +2400,12 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<vector<int>>>("sim_pT5_types", sim_pT5_types);
     ana.tx->setBranch<vector<int>>("pT5_isFake", pT5_isFake);
     ana.tx->setBranch<vector<int>>("pT5_isDuplicate", pT5_isDuplicate);
+    ana.tx->setBranch<vector<int>>("pT5_score", pT5_score);
     ana.tx->setBranch<vector<float>>("pT5_pt", pT5_pt);
     ana.tx->setBranch<vector<float>>("pT5_eta", pT5_eta);
     ana.tx->setBranch<vector<float>>("pT5_phi", pT5_phi);
+    ana.tx->setBranch<vector<vector<int>>>("pT5_matched_simIdx", pT5_matched_simIdx);
+    ana.tx->setBranch<vector<vector<int>>>("pT5_hitIdxs", pT5_hitIdxs);
 
 #ifdef CUT_VALUE_DEBUG
     ana.tx->setBranch<vector<int>>("pT5_layer_binary", pT5_layer_binary);
