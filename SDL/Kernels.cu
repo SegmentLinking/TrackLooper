@@ -2168,7 +2168,8 @@ __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesI
     
     unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[quintupletLowerModuleArrayIndex] + outerQuintupletArrayIndex;
 
-    if(quintupletsInGPU.isDup[quintupletIndex]) return;
+    if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) return;//skip duplicated pLS
+    if(quintupletsInGPU.isDup[quintupletIndex]) return; //skip duplicated T5s
 
     float rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards;
 
@@ -2689,7 +2690,7 @@ __global__ void removeDupPixelQuintupletsInGPUFromMap(struct SDL::modules& modul
             unsigned int pLS_jx = pixelQuintupletsInGPU.pixelIndices[jx];
             int nMatched = checkHitsT5(T5_ix,T5_jx,mdsInGPU,segmentsInGPU,tripletsInGPU,quintupletsInGPU);
             int npMatched = checkHitspT5(pLS_ix,pLS_jx,mdsInGPU,segmentsInGPU,hitsInGPU);
-            if(((nMatched + npMatched) >=10))// || (secondPass && ((nMatched + npMatched) >=1))) 
+            if(((nMatched + npMatched) >=7))// || (secondPass && ((nMatched + npMatched) >=1))) 
             {
                 dup_count++;
                 if( pixelQuintupletsInGPU.score[ix] > pixelQuintupletsInGPU.score[jx])
