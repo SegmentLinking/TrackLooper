@@ -2168,7 +2168,8 @@ __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesI
     
     unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[quintupletLowerModuleArrayIndex] + outerQuintupletArrayIndex;
 
-    if(quintupletsInGPU.isDup[quintupletIndex]) return;
+    if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) return;//skip duplicated pLS
+    if(quintupletsInGPU.isDup[quintupletIndex]) return; //skip duplicated T5s
 
     float rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards;
 
