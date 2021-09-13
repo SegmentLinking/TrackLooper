@@ -13,6 +13,8 @@ def parse_plot_name(output_name):
         rtnstr = ["Fake Rate of"]
     elif "duplrate" in output_name:
         rtnstr = ["Duplicate Rate of"]
+    elif "inefficiency" in output_name:
+        rtnstr = ["Inefficiency of"]
     else:
         rtnstr = ["Efficiency of"]
     if "MD_" in output_name:
@@ -100,6 +102,8 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
             eff.GetYaxis().SetTitle("Fake Rate")
         elif "duplrate" in output_name:
             eff.GetYaxis().SetTitle("Duplicate Rate")
+        elif "inefficiency" in output_name:
+            eff.GetYaxis().SetTitle("Inefficiency")
         else:
             eff.GetYaxis().SetTitle("Efficiency")
         if raw_number:
