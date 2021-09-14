@@ -777,6 +777,18 @@ float runQuintuplet(SDL::Event& event)
    
 }
 
+float runPixelLineSegment(SDL::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Reco Pixel Line Segment start" << std::endl;
+    my_timer.Start();
+    event.pixelLineSegmentCleaning();
+    float pls_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Reco Pixel Line Segment processing time: " << pls_elapsed << " secs" << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of Pixel Quintuplets produced: " << event.getNumberOfPixelQuintuplets() << std::endl;
+
+    return pls_elapsed;
+}
 float runPixelQuintuplet(SDL::Event& event)
 {
     TStopwatch my_timer;
@@ -1075,6 +1087,10 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
             matched_sim_trk_idxs.push_back(trkidx);
     }
 
+    set<int> s;
+    unsigned size = matched_sim_trk_idxs.size();
+    for( unsigned i = 0; i < size; ++i ) s.insert( matched_sim_trk_idxs[i] );
+    matched_sim_trk_idxs.assign( s.begin(), s.end() );
     return matched_sim_trk_idxs;
 }
 

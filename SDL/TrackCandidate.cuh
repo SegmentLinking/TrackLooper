@@ -27,7 +27,7 @@ namespace SDL
 {
     struct trackCandidates
     {
-        short* trackCandidateType; //3 types : 0-T4T4, 1-T4T3, 2-T3T4 3-pT2 4-T5
+        short* trackCandidateType; //3 types : 0-T4T4, 1-T4T3, 2-T3T4 3-pT2 4-T5 5-pT3 6-pT2T3 7-pT5 8-pLS
         unsigned int* objectIndices; //will hold tracklet and  triplet indices  - check the type!!
         unsigned int* nTrackCandidates;
         unsigned int* nTrackCandidatesT4T4;
@@ -36,6 +36,7 @@ namespace SDL
         unsigned int* nTrackCandidatespT2;
         unsigned int* nTrackCandidatespT3;
         unsigned int* nTrackCandidatespT5;
+        unsigned int* nTrackCandidatespLS;
         unsigned int* nTrackCandidatesT5;
 
         unsigned int* logicalLayers;

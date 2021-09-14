@@ -49,6 +49,7 @@ float runTrackCandidate(SDL::Event& event);
 float runTrackCandidateTest_v2(SDL::Event& event);
 float runQuintuplet(SDL::Event& event);
 float runPixelQuintuplet(SDL::Event& event);
+float runPixelLineSegment(SDL::Event& event);
 float runpT3(SDL::Event& event);
 float runTrackExtensions(SDL::Event& event);
 

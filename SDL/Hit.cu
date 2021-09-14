@@ -61,11 +61,6 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
     cudaMallocManaged(&hitsInGPU.phis, nMaxHits * sizeof(float));
     cudaMallocManaged(&hitsInGPU.etas, nMaxHits * sizeof(float));
 
-//    cudaMallocManaged(&hitsInGPU.edge2SMap, nMaxHits * sizeof(int)); //hits to edge hits map. Signed int
-    //cudaMallocManaged(&hitsInGPU.highEdgeXs, nMax2SHits * sizeof(float)); // due to changes made for the explicit version
-    //cudaMallocManaged(&hitsInGPU.highEdgeYs, nMax2SHits * sizeof(float)); // higher memory usage but timing is comparable and results are correct.
-    //cudaMallocManaged(&hitsInGPU.lowEdgeXs, nMax2SHits * sizeof(float));
-    //cudaMallocManaged(&hitsInGPU.lowEdgeYs, nMax2SHits * sizeof(float));
     cudaMallocManaged(&hitsInGPU.highEdgeXs, nMaxHits * sizeof(float));
     cudaMallocManaged(&hitsInGPU.highEdgeYs, nMaxHits * sizeof(float));
     cudaMallocManaged(&hitsInGPU.lowEdgeXs, nMaxHits * sizeof(float));
@@ -75,8 +70,6 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
     cudaMallocManaged(&hitsInGPU.nHits, sizeof(unsigned int));
 #endif
     *hitsInGPU.nHits = 0;
-//    cudaMallocManaged(&hitsInGPU.n2SHits, sizeof(unsigned int));
-//    *hitsInGPU.n2SHits = 0;
 }
 void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHits)
 {
@@ -349,10 +342,45 @@ void SDL::printHit(struct hits& hitsInGPU, struct modules& modulesInGPU, unsigne
 }
 
 
+void SDL::hits::freeMemoryCache()
+{
+#ifdef Explicit_Hit
+    int dev;
+    cudaGetDevice(&dev);
+    cms::cuda::free_device(dev,nHits);
+    cms::cuda::free_device(dev,xs);
+    cms::cuda::free_device(dev,ys);
+    cms::cuda::free_device(dev,zs);
+    cms::cuda::free_device(dev,moduleIndices);
+    cms::cuda::free_device(dev,rts);
+    cms::cuda::free_device(dev,idxs);
+    cms::cuda::free_device(dev,phis);
+    cms::cuda::free_device(dev,etas);
+
+    cms::cuda::free_device(dev,highEdgeXs);
+    cms::cuda::free_device(dev,highEdgeYs);
+    cms::cuda::free_device(dev,lowEdgeXs);
+    cms::cuda::free_device(dev,lowEdgeYs);
+#else
+    cms::cuda::free_managed(nHits);
+    cms::cuda::free_managed(xs);
+    cms::cuda::free_managed(ys);
+    cms::cuda::free_managed(zs);
+    cms::cuda::free_managed(moduleIndices);
+    cms::cuda::free_managed(rts);
+    cms::cuda::free_managed(idxs);
+    cms::cuda::free_managed(phis);
+    cms::cuda::free_managed(etas);
+
+    cms::cuda::free_managed(highEdgeXs);
+    cms::cuda::free_managed(highEdgeYs);
+    cms::cuda::free_managed(lowEdgeXs);
+    cms::cuda::free_managed(lowEdgeYs);
+#endif
+}
 void SDL::hits::freeMemory()
 {
     cudaFree(nHits);
-//    cudaFree(n2SHits);
     cudaFree(xs);
     cudaFree(ys);
     cudaFree(zs);
@@ -362,7 +390,6 @@ void SDL::hits::freeMemory()
     cudaFree(phis);
     cudaFree(etas);
 
-//    cudaFree(edge2SMap);
     cudaFree(highEdgeXs);
     cudaFree(highEdgeYs);
     cudaFree(lowEdgeXs);

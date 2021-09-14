@@ -46,7 +46,7 @@ __device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExte
     }
 }
 
-__device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, struct triplets& tripletsInGPU, struct trackCandidates& trackCandidatesInGPU, unsigned int anchorObjectIndex, unsigned int outerObjectIndex, short anchorObjectType, short outerObjectType, unsigned int layerOverlapTarget, unsigned int hitOverlapTarget, short* constituentTCType, unsigned int* constituentTCIndex)
+__device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct triplets& tripletsInGPU, struct trackCandidates& trackCandidatesInGPU, unsigned int anchorObjectIndex, unsigned int outerObjectIndex, short anchorObjectType, short outerObjectType, unsigned int layerOverlapTarget, unsigned int hitOverlapTarget, short* constituentTCType, unsigned int* constituentTCIndex)
 {
     /*
        Basic premise:
@@ -64,8 +64,7 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
 
     unsigned int nAnchorLayers = (anchorObjectType == 7) ? 7 : (anchorObjectType == 3 ? 3 : 5);
     if(anchorObjectType != 3) //mostly this
-    {
-        
+    { 
         anchorLayerIndices = &trackCandidatesInGPU.logicalLayers[nAnchorLayers * anchorObjectIndex];
         anchorHitIndices = &trackCandidatesInGPU.hitIndices[2 * nAnchorLayers * anchorObjectIndex];
     }
@@ -87,10 +86,9 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
         outerObjectLayerIndices = &trackCandidatesInGPU.logicalLayers[nOuterLayers * outerObjectIndex];
         outerObjectHitIndices = &trackCandidatesInGPU.hitIndices[2 * nOuterLayers * outerObjectIndex];
     }
-
+    
     unsigned int nLayerOverlap(0), nHitOverlap(0);
     computeLayerAndHitOverlaps(anchorLayerIndices, anchorHitIndices, outerObjectLayerIndices, outerObjectHitIndices, nAnchorLayers, nOuterLayers, nLayerOverlap, nHitOverlap);
-
     //will add chi squared cuts later!
     pass = pass & (nLayerOverlap == layerOverlapTarget) & (nHitOverlap == hitOverlapTarget);
     constituentTCType[0] = anchorObjectType;
@@ -99,6 +97,10 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     constituentTCIndex[0] = anchorObjectIndex;
     constituentTCIndex[1] = outerObjectIndex;
 
+    if(pass)
+    {
+        printf("anchor type = %d, outer type = %d\n", anchorObjectType, outerObjectType);
+    }
     return pass;
 }
 
