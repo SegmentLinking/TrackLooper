@@ -145,6 +145,8 @@ void bookEfficiencySet(EfficiencySetDefinition& effset)
     ana.tx.createBranch<vector<float>>(category_name + "_denom_dxy");
     ana.tx.createBranch<vector<float>>(category_name + "_denom_dz");
     ana.tx.createBranch<vector<float>>(category_name + "_denom_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_denom_layers");
+    ana.tx.createBranch<vector<float>>(category_name + "_denom_layersgap");
 
     // Numerator tracks' quantities
     ana.tx.createBranch<vector<float>>(category_name + "_numer_pt");
@@ -152,6 +154,8 @@ void bookEfficiencySet(EfficiencySetDefinition& effset)
     ana.tx.createBranch<vector<float>>(category_name + "_numer_dxy");
     ana.tx.createBranch<vector<float>>(category_name + "_numer_dz");
     ana.tx.createBranch<vector<float>>(category_name + "_numer_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_numer_layers");
+    ana.tx.createBranch<vector<float>>(category_name + "_numer_layersgap");
     //inefficiencies
     // Denominator tracks' quantities
     ana.tx.createBranch<vector<float>>(category_name + "_inefficiency_denom_pt");
@@ -159,12 +163,16 @@ void bookEfficiencySet(EfficiencySetDefinition& effset)
     ana.tx.createBranch<vector<float>>(category_name + "_inefficiency_denom_dxy");
     ana.tx.createBranch<vector<float>>(category_name + "_inefficiency_denom_dz");
     ana.tx.createBranch<vector<float>>(category_name + "_inefficiency_denom_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_inefficiency_denom_layers");
+    ana.tx.createBranch<vector<float>>(category_name + "_inefficiency_denom_layersgap");
 
     ana.tx.createBranch<vector<float>>(category_name + "_inefficiency_numer_pt");
     ana.tx.createBranch<vector<float>>(category_name + "_inefficiency_numer_eta");
     ana.tx.createBranch<vector<float>>(category_name + "_inefficiency_numer_dxy");
     ana.tx.createBranch<vector<float>>(category_name + "_inefficiency_numer_dz");
     ana.tx.createBranch<vector<float>>(category_name + "_inefficiency_numer_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_inefficiency_numer_layers");
+    ana.tx.createBranch<vector<float>>(category_name + "_inefficiency_numer_layersgap");
 
 
     // Histogram utility object that is used to define the histograms
@@ -178,6 +186,10 @@ void bookEfficiencySet(EfficiencySetDefinition& effset)
     ana.histograms.addVecHistogram(category_name + "_h_numer_dz"  , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_numer_dz"); } );
     ana.histograms.addVecHistogram(category_name + "_h_denom_phi" , 180 , -M_PI , M_PI , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_denom_phi"); } );
     ana.histograms.addVecHistogram(category_name + "_h_numer_phi" , 180 , -M_PI , M_PI , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_numer_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_denom_layers" , 7 , -1 , 6 , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_denom_layers"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_numer_layers" , 7 , -1 , 6 , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_numer_layers"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_denom_layersgap" , 7 , -1 , 6 , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_denom_layersgap"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_numer_layersgap" , 7 , -1 , 6 , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_numer_layersgap"); } );
     ana.histograms.addVecHistogram(category_name + "_h_inefficiency_denom_pt"  , pt_boundaries      , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_denom_pt"); } );
     ana.histograms.addVecHistogram(category_name + "_h_inefficiency_denom_eta" , 180 , -2.5  , 2.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_denom_eta"); } );
     ana.histograms.addVecHistogram(category_name + "_h_inefficiency_denom_dxy" , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_denom_dxy"); } );
@@ -188,6 +200,10 @@ void bookEfficiencySet(EfficiencySetDefinition& effset)
     ana.histograms.addVecHistogram(category_name + "_h_inefficiency_numer_dxy" , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_numer_dxy"); } );
     ana.histograms.addVecHistogram(category_name + "_h_inefficiency_numer_dz"  , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_numer_dz"); } );
     ana.histograms.addVecHistogram(category_name + "_h_inefficiency_numer_phi" , 180 , -M_PI , M_PI , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_numer_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_inefficiency_denom_layers" , 7 , -1 , 6 , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_denom_layers"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_inefficiency_numer_layers" , 7 , -1 , 6 , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_numer_layers"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_inefficiency_denom_layersgap" , 7 , -1 , 6 , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_denom_layersgap"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_inefficiency_numer_layersgap" , 7 , -1 , 6 , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_numer_layersgap"); } );
 
 }
 
@@ -219,6 +235,8 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
     const float& vtx_y = sdl.simvtx_y()[vtxIdx];
     const float& vtx_z = sdl.simvtx_z()[vtxIdx];
     const float& vtx_perp = sqrt(vtx_x * vtx_x + vtx_y * vtx_y);
+    const float& lay = sdl.sim_len()[isimtrk];
+    const float& laygap = sdl.sim_lengap()[isimtrk];
 
     const float& pT5Found = sdl.sim_pT5_matched()[isimtrk];
 
@@ -244,27 +262,27 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
     const float vtx_z_thresh = 30;
     const float vtx_perp_thresh = 2.5;
 
-    if (pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
+    if (pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_eta", eta);
-    if (abs(eta) < 2.4 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
+        ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_eta", eta);}
+    if (abs(eta) < 2.4 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_pt", pt);
-    if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
+        ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_pt", pt);}
+    if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_phi", phi);
-    if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh)
+        ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_phi", phi);}
+    if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_dxy", dxy);
-    if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_perp) < vtx_perp_thresh)
+        ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_dxy", dxy);}
+    if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_dz", dz);
+        ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_dz", dz);}
+    //if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+    //    ana.tx.pushbackToBranch<float>(category_name + "_denom_layers", static_cast< float >(lay));
+    //    ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_layers", static_cast< float >(lay));
+    //    ana.tx.pushbackToBranch<float>(category_name + "_denom_layersgap", static_cast< float >(laygap));
+    //    ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_layersgap", static_cast< float >(laygap));}
 
-    if (pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
-        ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_eta", eta);
-    if (abs(eta) < 2.4 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
-        ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_pt", pt);
-    if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
-        ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_phi", phi);
-    if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh)
-        ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_dxy", dxy);
-    if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_perp) < vtx_perp_thresh)
-        ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_dz", dz);
     if (effset.pass(isimtrk))
     {
         if (pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
@@ -277,6 +295,10 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
             ana.tx.pushbackToBranch<float>(category_name + "_numer_dxy", dxy);
         if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_perp) < vtx_perp_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_numer_dz", dz);
+        printf("layer: %f\n",lay);
+        //if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+        //    ana.tx.pushbackToBranch<float>(category_name + "_numer_layers", static_cast< float >(lay));
+        //    ana.tx.pushbackToBranch<float>(category_name + "_numer_layersgap", static_cast< float >(laygap));}
     }
     //inefficiencies
     else
@@ -291,6 +313,9 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_dxy", dxy);
         if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_perp) < vtx_perp_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_dz", dz);
+        //if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+        //    ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_layers", static_cast< float >(lay));
+        //    ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_layersgap", static_cast< float >(laygap));}
     }
 }
 

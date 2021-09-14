@@ -23,6 +23,8 @@ void createOutputBranches()
     ana.tx->createBranch<vector<float>>("simvtx_x");
     ana.tx->createBranch<vector<float>>("simvtx_y");
     ana.tx->createBranch<vector<float>>("simvtx_z");
+    ana.tx->createBranch<vector<float>>("sim_len");
+    ana.tx->createBranch<vector<float>>("sim_lengap");
 
     ana.tx->createBranch<vector<vector<int>>>("sim_tcIdx");
 
@@ -705,7 +707,7 @@ void fillSimTrackOutputBranches()
 {
 
     // Sim tracks
-    ana.tx->setBranch<vector<float>>("sim_pt", trk.sim_pt());
+//    ana.tx->setBranch<vector<float>>("sim_pt", trk.sim_pt());
     ana.tx->setBranch<vector<float>>("sim_eta", trk.sim_eta());
     ana.tx->setBranch<vector<float>>("sim_phi", trk.sim_phi());
     ana.tx->setBranch<vector<float>>("sim_pca_dxy", trk.sim_pca_dxy());
@@ -736,6 +738,84 @@ void fillSimTrackOutputBranches()
     ana.tx->setBranch<vector<float>>("simvtx_x", trk.simvtx_x());
     ana.tx->setBranch<vector<float>>("simvtx_y", trk.simvtx_y());
     ana.tx->setBranch<vector<float>>("simvtx_z", trk.simvtx_z());
+
+    //const auto simHitIdxs = &trk.sim_simHitIdx();
+    const auto simHitLays = &trk.simhit_layer();
+        //count++;
+        //if(hit.size() ==0){continue;}
+        //printf("size: %d\n",hit.size());
+        //for(auto lay: hit){
+        //  printf("%d\n",simHitLays->at(lay));
+        //}
+    std::vector<float> sim_len;
+    std::vector<float> sim_lengap;
+    for(unsigned int isimtrk =0; isimtrk < trk.sim_pt().size(); ++isimtrk)
+    {
+       //printf("size: %d\n",trk.sim_simHitIdx()[isimtrk].size());
+       bool lay1 = 0;
+       bool lay2 = 0;
+       bool lay3 = 0;
+       bool lay4 = 0;
+       bool lay5 = 0;
+       bool lay6 = 0;
+        int len =-1;
+        int lengap =-1;
+       for (unsigned int ith_hit = 0; ith_hit < trk.sim_simHitIdx()[isimtrk].size(); ++ith_hit)
+       {
+          // Retrieve the sim hit idx
+          unsigned int simhitidx = trk.sim_simHitIdx()[isimtrk][ith_hit];
+          // Select only the hits in the outer tracker
+          if (not (trk.simhit_subdet()[simhitidx] == 4 or trk.simhit_subdet()[simhitidx] == 5))
+            continue;
+
+          //if (not (trk.simhit_particle()[simhitidx] == trk.sim_pdgId()[isimtrk]))
+          //  continue;
+
+          if (isMuonCurlingHit(isimtrk, ith_hit))
+            break;
+        
+          //printf("%d\n",simHitLays->at(simhitidx));
+          int lay = simHitLays->at(simhitidx);
+          if(lay ==1){lay1=1;}
+          if(lay ==2){lay2=1;}
+          if(lay ==3){lay3=1;}
+          if(lay ==4){lay4=1;}
+          if(lay ==5){lay5=1;}
+          if(lay ==6){lay6=1;}
+          if(lay >6){printf("high layer: %d\n",lay);}
+          len =0;
+          lengap =0;
+        }
+        if(lay1){
+        len=1;
+        if(lay2){len++;
+        if(lay3){len++;
+        if(lay4){len++; 
+        if(lay5){len++;
+        if(lay6){len++;
+        }}}}} 
+        }
+        sim_len.push_back(static_cast<float>(len));
+        if(lay1){lengap++;} 
+        if(lay2){lengap++;}
+        if(lay3){lengap++;}
+        if(lay4){lengap++;} 
+        if(lay5){lengap++;}
+        if(lay6){lengap++;}
+        sim_lengap.push_back(static_cast<float>(lengap));
+    }
+    ana.tx->setBranch<vector<float>>("sim_pt", sim_len);
+    ana.tx->setBranch<vector<float>>("sim_len", trk.sim_pt());
+    ana.tx->setBranch<vector<float>>("sim_lengap", trk.sim_pt());
+    //printf("count %d\n",count);
+    //printf("%d %d %d\n",simHitIdxs->size(),simHitLays->size(),trk.sim_pt().size());
+    ////layer test
+    //for (unsigned int isimtrk = 0; isimtrk < trk.simhit_hitIdx().size(); ++isimtrk)
+    //{
+    //  for(auto hit: trk.simhit_hitIdx()[isimtrk]){
+    //    printf("layer: %u %d %d\n",isimtrk, hit,trk.simhit_layer()[hit]);
+    //  }
+    //}
 }
 
 //________________________________________________________________________________________________________________________________

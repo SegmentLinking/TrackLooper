@@ -64,6 +64,7 @@ void WriteSDLNtuplev2::createHitsSimHitsSimTracksBranches()
     ana.tx->createBranch<vector<float>>("simvtx_x");
     ana.tx->createBranch<vector<float>>("simvtx_y");
     ana.tx->createBranch<vector<float>>("simvtx_z");
+    ana.tx->createBranch<vector<float>>("sim_len");
 }
 
 //____________________________________________________________________________________________
@@ -426,6 +427,7 @@ void WriteSDLNtuplev2::setHitsSimHitsSimTracksBranches()
     ana.tx->setBranch<vector<float>>("simvtx_x", trk.simvtx_x());
     ana.tx->setBranch<vector<float>>("simvtx_y", trk.simvtx_y());
     ana.tx->setBranch<vector<float>>("simvtx_z", trk.simvtx_z());
+    ana.tx->setBranch<vector<float>>("sim_len", trk.sim_len());
 
     //--------------------
     // Extra calculations 

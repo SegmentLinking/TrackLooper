@@ -95,6 +95,8 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
             title = "d0 [cm]"
         elif "_pt" in output_name:
             title = "p_{T} [GeV]"
+        elif "_lay" in output_name:
+            title = "layers"
         else:
             title = "#eta"
         eff.GetXaxis().SetTitle(title)
@@ -160,6 +162,8 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
             fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{xy}| < 2.5 cm"
         elif "_dxy" in output_name:
             fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm"
+        elif "_lay" in output_name:
+            fiducial_label = "p_{T} > 1.5 GeV, |#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
         else:
             fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
         if "fakerate" in output_name or "duplrate" in output_name:

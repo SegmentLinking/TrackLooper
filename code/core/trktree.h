@@ -557,6 +557,12 @@ protected:
   vector<float> *trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_;
   TBranch *trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_branch;
   bool trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_isLoaded;
+  vector<float> *sim_len_;
+  TBranch *sim_len_branch;
+  bool sim_len_isLoaded;
+  vector<float> *sim_lengap_;
+  TBranch *sim_lengap_branch;
+  bool sim_lengap_isLoaded;
   vector<float> *simvtx_x_;
   TBranch *simvtx_x_branch;
   bool simvtx_x_isLoaded;
@@ -1103,6 +1109,8 @@ public:
   const vector<float> &see_stateTrajGlbPx();
   const vector<unsigned short> &ph2_simType();
   const vector<float> &trk_bestFromFirstHitSimTrkShareFracSimClusterDenom();
+  const vector<float> &sim_len();
+  const vector<float> &sim_lengap();
   const vector<float> &simvtx_x();
   const vector<float> &trk_pz();
   const vector<float> &see_bestFromFirstHitSimTrkShareFrac();
@@ -1412,6 +1420,8 @@ namespace tas {
   const vector<float> &see_stateTrajGlbPx();
   const vector<unsigned short> &ph2_simType();
   const vector<float> &trk_bestFromFirstHitSimTrkShareFracSimClusterDenom();
+  const vector<float> &sim_len();
+  const vector<float> &sim_lengap();
   const vector<float> &simvtx_x();
   const vector<float> &trk_pz();
   const vector<float> &see_bestFromFirstHitSimTrkShareFrac();

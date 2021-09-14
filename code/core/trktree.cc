@@ -898,6 +898,16 @@ void trktree::Init(TTree *tree) {
     trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_branch = tree->GetBranch("trk_bestFromFirstHitSimTrkShareFracSimClusterDenom");
     if (trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_branch) { trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_branch->SetAddress(&trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_); }
   }
+  sim_len_branch = 0;
+  if (tree->GetBranch("sim_len") != 0) {
+    sim_len_branch = tree->GetBranch("sim_len");
+    if (sim_len_branch) { sim_len_branch->SetAddress(&sim_len_); }
+  }
+  sim_lengap_branch = 0;
+  if (tree->GetBranch("sim_lengap") != 0) {
+    sim_lengap_branch = tree->GetBranch("sim_lengap");
+    if (sim_lengap_branch) { sim_lengap_branch->SetAddress(&sim_lengap_); }
+  }
   simvtx_x_branch = 0;
   if (tree->GetBranch("simvtx_x") != 0) {
     simvtx_x_branch = tree->GetBranch("simvtx_x");
@@ -1686,6 +1696,8 @@ void trktree::GetEntry(unsigned int idx) {
   see_stateTrajGlbPx_isLoaded = false;
   ph2_simType_isLoaded = false;
   trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_isLoaded = false;
+  sim_len_isLoaded = false;
+  sim_lengap_isLoaded = false;
   simvtx_x_isLoaded = false;
   trk_pz_isLoaded = false;
   see_bestFromFirstHitSimTrkShareFrac_isLoaded = false;
@@ -1988,6 +2000,8 @@ void trktree::LoadAllBranches() {
   if (see_stateTrajGlbPx_branch != 0) see_stateTrajGlbPx();
   if (ph2_simType_branch != 0) ph2_simType();
   if (trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_branch != 0) trk_bestFromFirstHitSimTrkShareFracSimClusterDenom();
+  if (sim_len_branch != 0) sim_len();
+  if (sim_lengap_branch != 0) sim_lengap();
   if (simvtx_x_branch != 0) simvtx_x();
   if (trk_pz_branch != 0) trk_pz();
   if (see_bestFromFirstHitSimTrkShareFrac_branch != 0) see_bestFromFirstHitSimTrkShareFrac();
@@ -4257,6 +4271,30 @@ const vector<float> &trktree::trk_bestFromFirstHitSimTrkShareFracSimClusterDenom
     trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_isLoaded = true;
   }
   return *trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_;
+}
+const vector<float> &trktree::sim_len() {
+  if (not sim_len_isLoaded) {
+    if (sim_len_branch != 0) {
+      sim_len_branch->GetEntry(index);
+    } else {
+      printf("branch sim_len_branch does not exist!\n");
+      exit(1);
+    }
+    sim_len_isLoaded = true;
+  }
+  return *sim_len_;
+}
+const vector<float> &trktree::sim_lengap() {
+  if (not sim_lengap_isLoaded) {
+    if (sim_lengap_branch != 0) {
+      sim_lengap_branch->GetEntry(index);
+    } else {
+      printf("branch sim_lengap_branch does not exist!\n");
+      exit(1);
+    }
+    sim_lengap_isLoaded = true;
+  }
+  return *sim_lengap_;
 }
 const vector<float> &trktree::simvtx_x() {
   if (not simvtx_x_isLoaded) {
