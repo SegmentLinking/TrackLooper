@@ -45,9 +45,9 @@ namespace SDL
 
     //FIXME:Need to extend this to > 2 objects
 
-    CUDA_DEV bool runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct triplets& tripletsInGPU, struct trackCandidates& trackCandidatesInGPU, unsigned int anchorObjectIndex, unsigned int outerObjectIndex, short anchorObjectType, short outerObjectType, unsigned int layerOverlapTarget, unsigned int hitOverlapTarget, short* constituentTCType, unsigned int* constituentTCIndex);
+    CUDA_DEV bool runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct trackCandidates& trackCandidatesInGPU, unsigned int anchorObjectIndex, unsigned int outerObjectIndex, short anchorObjectType, short outerObjectType, unsigned int outerT3Index, unsigned int layerOverlapTarget, short* constituentTCType, unsigned int* constituentTCIndex);
 
-    CUDA_DEV void computeLayerAndHitOverlaps(unsigned int* anchorLayerIndices, unsigned int* anchorHitIndices, unsigned int* outerObjectLayerIndices, unsigned int* outerObjectHitIndices, unsigned int nAnchorLayers, unsigned int nOuterLayers, unsigned int& nLayerOverlap, unsigned int& nHitOverlap);
+    CUDA_DEV bool computeLayerAndHitOverlaps(SDL::modules& modulesInGPU, unsigned int* anchorLayerIndices, unsigned int* anchorHitIndices, unsigned int* anchorLowerModuleIndices, unsigned int* outerObjectLayerIndices, unsigned int* outerObjectHitIndices, unsigned int* outerObjectLowerModuleIndice, unsigned int nAnchorLayers, unsigned int nOuterLayers, unsigned int& nLayerOverlap, unsigned int& nHitOverlap, unsigned int& layerOverlapTarget);
 
 }
 #endif

@@ -98,13 +98,11 @@ namespace SDL
         void addTrackletsToEvent();
         void addTrackletsWithAGapToEvent();
         void addTripletsToEvent();
-        void addTrackCandidatesToEvent();
         void addMiniDoubletsToEventExplicit();
         void addSegmentsToEventExplicit();
         void addTrackletsToEventExplicit();
         void addTrackletsWithAGapToEventExplicit();
         void addTripletsToEventExplicit();
-        void addTrackCandidatesToEventExplicit();
         void addQuintupletsToEvent();
         void addQuintupletsToEventExplicit();
 
@@ -152,9 +150,6 @@ namespace SDL
 
         unsigned int getNumberOfTrackCandidates();
         unsigned int getNumberOfPixelTrackCandidates();
-        unsigned int getNumberOfTrackCandidatesByLayer(unsigned int layer);
-        unsigned int getNumberOfTrackCandidatesByLayerBarrel(unsigned int layer);
-        unsigned int getNumberOfTrackCandidatesByLayerEndcap(unsigned int layer);
 
         unsigned int getNumberOfQuintuplets();
         unsigned int getNumberOfQuintupletsByLayer(unsigned int layer);

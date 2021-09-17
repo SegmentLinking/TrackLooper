@@ -12,7 +12,9 @@ SDL::pixelTriplets::pixelTriplets()
     isDup = nullptr;
     partOfPT5 = nullptr;
     logicalLayers = nullptr;
+    lowerModuleIndices = nullptr;
     hitIndices = nullptr;
+    lowerModuleIndices = nullptr;
 
 #ifdef CUT_VALUE_DEBUG
     pixelRadiusError = nullptr;
@@ -34,6 +36,7 @@ void SDL::pixelTriplets::freeMemory()
     cudaFree(partOfPT5);
     cudaFree(logicalLayers);
     cudaFree(hitIndices);
+    cudaFree(lowerModuleIndices);
 #ifdef CUT_VALUE_DEBUG
     cudaFree(pixelRadiusError);
     cudaFree(rPhiChiSquared);
@@ -59,6 +62,7 @@ void SDL::createPixelTripletsInUnifiedMemory(struct pixelTriplets& pixelTriplets
 
     cudaMallocManaged(&pixelTripletsInGPU.logicalLayers, maxPixelTriplets * sizeof(unsigned int) * 5);
     cudaMallocManaged(&pixelTripletsInGPU.hitIndices, maxPixelTriplets * sizeof(unsigned int) * 10);
+    cudaMallocManaged(&pixelTripletsInGPU.lowerModuleIndices, maxPixelTriplets * sizeof(unsigned int) * 5);
 
 #ifdef CUT_VALUE_DEBUG
     cudaMallocManaged(&pixelTripletsInGPU.pixelRadiusError, maxPixelTriplets * sizeof(float));
@@ -87,6 +91,7 @@ void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTriplet
 
     cudaMalloc(&pixelTripletsInGPU.logicalLayers, maxPixelTriplets * sizeof(unsigned int) * 5);
     cudaMalloc(&pixelTripletsInGPU.hitIndices, maxPixelTriplets * sizeof(unsigned int) * 10);
+    cudaMalloc(&pixelTripletsInGPU.lowerModuleIndices, maxPixelTriplets * sizeof(unsigned int) * 5);
 
     pixelTripletsInGPU.eta = pixelTripletsInGPU.pt + maxPixelTriplets;
     pixelTripletsInGPU.phi = pixelTripletsInGPU.pt + maxPixelTriplets * 2;
@@ -127,6 +132,13 @@ __device__ void SDL::addPixelTripletToMemory(struct modules& modulesInGPU, struc
     pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex + 2] = tripletsInGPU.logicalLayers[tripletIndex * 3];
     pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex + 3] = tripletsInGPU.logicalLayers[tripletIndex * 3 + 1];
     pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex + 4] = tripletsInGPU.logicalLayers[tripletIndex * 3 + 2];
+
+    pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex] = segmentsInGPU.innerMiniDoubletAnchorHitIndices[pixelSegmentIndex];
+    pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex + 1] = segmentsInGPU.outerMiniDoubletAnchorHitIndices[pixelSegmentIndex];
+    pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex + 2] = tripletsInGPU.lowerModuleIndices[3 * tripletIndex];
+     pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex + 3] = tripletsInGPU.lowerModuleIndices[3 * tripletIndex + 1];
+      pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex + 4] = tripletsInGPU.lowerModuleIndices[3 * tripletIndex + 2];
+ 
     
     unsigned int pixelInnerMD = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
     unsigned int pixelOuterMD = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];

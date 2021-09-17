@@ -36,6 +36,7 @@ namespace SDL
         //for track extensions
         unsigned int* logicalLayers;
         unsigned int* hitIndices;
+        unsigned int* lowerModuleIndices;
         float* eta;
         float* phi;
 #ifdef CUT_VALUE_DEBUG

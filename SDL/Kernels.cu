@@ -1002,10 +1002,9 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,str
         }
     }
 #endif
-    unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[innerInnerInnerLowerModuleArrayIndex],1);
-    atomicAdd(&trackCandidatesInGPU.nTrackCandidatesT5[innerInnerInnerLowerModuleArrayIndex],1);
-    unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[innerInnerInnerLowerModuleArrayIndex] + trackCandidateModuleIdx;
-    addTrackCandidateToMemory(trackCandidatesInGPU, 4/*track candidate type T5=4*/, quintupletIndex, quintupletIndex, &quintupletsInGPU.logicalLayers[5 * quintupletIndex], &quintupletsInGPU.hitIndices[10 * quintupletIndex], trackCandidateIdx);
+    unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
+    atomicAdd(trackCandidatesInGPU.nTrackCandidatesT5,1);
+    addTrackCandidateToMemory(trackCandidatesInGPU, 4/*track candidate type T5=4*/, quintupletIndex, quintupletIndex, &quintupletsInGPU.logicalLayers[5 * quintupletIndex], &quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex], &quintupletsInGPU.hitIndices[10 * quintupletIndex], trackCandidateIdx);
 }
 
 __global__ void addpT2asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,struct SDL::pixelTracklets& pixelTrackletsInGPU,struct SDL::trackCandidates& trackCandidatesInGPU)
@@ -1015,9 +1014,10 @@ __global__ void addpT2asTrackCandidateInGPU(struct SDL::modules& modulesInGPU,st
     unsigned int nPixelTracklets = *pixelTrackletsInGPU.nPixelTracklets;
     if(pixelTrackletArrayIndex >= nPixelTracklets) return;
     int pixelTrackletIndex = pixelTrackletArrayIndex;
-    unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
+
+    unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
     atomicAdd(trackCandidatesInGPU.nTrackCandidatespT2,1);
-    unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[pixelLowerModuleArrayIndex] + trackCandidateModuleIdx;
+    
     addTrackCandidateToMemory(trackCandidatesInGPU, 3/*track candidate type pT2=3*/, pixelTrackletIndex, pixelTrackletIndex, trackCandidateIdx);
 }
 
@@ -1052,11 +1052,9 @@ __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
     }
 #endif
 
-
-    unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
+    unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
     atomicAdd(trackCandidatesInGPU.nTrackCandidatespT3,1);
-    unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[pixelLowerModuleArrayIndex] + trackCandidateModuleIdx;
-    addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, &pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex], &pixelTripletsInGPU.hitIndices[10 * pixelTripletIndex], trackCandidateIdx);
+    addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, &pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex], &pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex], &pixelTripletsInGPU.hitIndices[10 * pixelTripletIndex], trackCandidateIdx);
 }
 
 __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU,struct SDL::segments& segmentsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU,struct SDL::miniDoublets& mdsInGPU, struct SDL::hits& hitsInGPU)
@@ -1141,11 +1139,8 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
     }
     if(score_lsq > 5){return;}
 
-
-
-    unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
+    unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
     atomicAdd(trackCandidatesInGPU.nTrackCandidatespLS,1);
-    unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[pixelLowerModuleArrayIndex] + trackCandidateModuleIdx;
     addTrackCandidateToMemory(trackCandidatesInGPU, 8/*track candidate type pLS=8*/, pixelArrayIndex, pixelArrayIndex, trackCandidateIdx);
 
 }
@@ -1162,13 +1157,9 @@ __global__ void addpT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
     {
         return;
     }
-    unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
+    unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
     atomicAdd(trackCandidatesInGPU.nTrackCandidatespT5,1);
-    unsigned int trackCandidateIdx = modulesInGPU.trackCandidateModuleIndices[pixelLowerModuleArrayIndex] + trackCandidateModuleIdx;
-  
-
-    addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex], pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], &pixelQuintupletsInGPU.logicalLayers[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.hitIndices[14 * pixelQuintupletIndex], trackCandidateIdx);
-
+    addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex], pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], &pixelQuintupletsInGPU.logicalLayers[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.lowerModuleIndices[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.hitIndices[14 * pixelQuintupletIndex], trackCandidateIdx);
 }
 
 #ifndef NESTED_PARA
@@ -1227,10 +1218,10 @@ __global__ void createPixelTrackCandidatesInGPU(struct SDL::modules& modulesInGP
         {
 	        unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
 	        atomicAdd(&trackCandidatesInGPU.nTrackCandidatesT4T4[pixelLowerModuleArrayIndex],1);
-	        if(trackCandidateModuleIdx >= N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE)
+	        if(trackCandidateModuleIdx >= N_MAX_PIXEL_TRACK_CANDIDATES)
             {
                 #ifdef Warnings
-    		  if(innerInnerInnerLowerModuleArrayIndex == *modulesInGPU.nLowerModules && trackCandidateModuleIdx == N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE)
+    		  if(innerInnerInnerLowerModuleArrayIndex == *modulesInGPU.nLowerModules && trackCandidateModuleIdx == N_MAX_PIXEL_TRACK_CANDIDATES)
                 {
 
 		            printf("Track Candidate excess alert! lower Module array index = %d\n",innerInnerInnerLowerModuleArrayIndex);
@@ -1270,10 +1261,10 @@ __global__ void createPixelTrackCandidatesInGPU(struct SDL::modules& modulesInGP
             {
 	            unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
 	            atomicAdd(&trackCandidatesInGPU.nTrackCandidatesT4T4[pixelLowerModuleArrayIndex],1);
-	            if(trackCandidateModuleIdx >= N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE)
+	            if(trackCandidateModuleIdx >= N_MAX_PIXEL_TRACK_CANDIDATES)
                 {
 #ifdef Warnings
-		            if(innerInnerInnerLowerModuleArrayIndex == *modulesInGPU.nLowerModules && trackCandidateModuleIdx == N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE)
+		            if(innerInnerInnerLowerModuleArrayIndex == *modulesInGPU.nLowerModules && trackCandidateModuleIdx == N_MAX_PIXEL_TRACK_CANDIDATES)
                     {
 
 		                printf("Track Candidate excess alert! lower Module array index = %d\n",innerInnerInnerLowerModuleArrayIndex);
@@ -1362,10 +1353,10 @@ __global__ void createPixelTrackCandidatesFromOuterInnerInnerLowerModule(struct 
             {
                 unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
                 atomicAdd(&trackCandidatesInGPU.nTrackCandidatesT4T4[pixelLowerModuleArrayIndex],1);
-                if(trackCandidateModuleIdx >= N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE)
+                if(trackCandidateModuleIdx >= N_MAX_PIXEL_TRACK_CANDIDATES)
                 {
                     #ifdef Warnings
-                    if(innerInnerInnerLowerModuleArrayIndex == *modulesInGPU.nLowerModules && trackCandidateModuleIdx == N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE)
+                    if(innerInnerInnerLowerModuleArrayIndex == *modulesInGPU.nLowerModules && trackCandidateModuleIdx == N_MAX_PIXEL_TRACK_CANDIDATES)
                     {
 
                         printf("Track Candidate excess alert! lower Module array index = %d\n",innerInnerInnerLowerModuleArrayIndex);
@@ -1405,10 +1396,10 @@ __global__ void createPixelTrackCandidatesFromOuterInnerInnerLowerModule(struct 
             {
                 unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[pixelLowerModuleArrayIndex],1);
                 atomicAdd(&trackCandidatesInGPU.nTrackCandidatesT4T4[pixelLowerModuleArrayIndex],1);
-                if(trackCandidateModuleIdx >= N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE)
+                if(trackCandidateModuleIdx >= N_MAX_PIXEL_TRACK_CANDIDATES)
                 {
                     #ifdef Warnings
-                    if(innerInnerInnerLowerModuleArrayIndex == *modulesInGPU.nLowerModules && trackCandidateModuleIdx == N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE)
+                    if(innerInnerInnerLowerModuleArrayIndex == *modulesInGPU.nLowerModules && trackCandidateModuleIdx == N_MAX_PIXEL_TRACK_CANDIDATES)
                     {
 
                         printf("Track Candidate excess alert! lower Module array index = %d\n",innerInnerInnerLowerModuleArrayIndex);
@@ -1488,10 +1479,10 @@ __global__ void createTrackCandidatesInGPU(struct SDL::modules& modulesInGPU, st
             {
 	            unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[innerInnerInnerLowerModuleArrayIndex],1);
 	            atomicAdd(&trackCandidatesInGPU.nTrackCandidatesT4T4[innerInnerInnerLowerModuleArrayIndex],1);
-	            if(trackCandidateModuleIdx >= N_MAX_TRACK_CANDIDATES_PER_MODULE)
+	            if(trackCandidateModuleIdx >= N_MAX_TRACK_CANDIDATES)
                 {
 #ifdef Warnings
-    		        if(trackCandidateModuleIdx == N_MAX_TRACK_CANDIDATES_PER_MODULE)
+    		        if(trackCandidateModuleIdx == N_MAX_TRACK_CANDIDATES)
                     {
 		                printf("Track Candidate excess alert! lower Module array index = %d\n",innerInnerInnerLowerModuleArrayIndex);
                     }
@@ -1531,10 +1522,10 @@ __global__ void createTrackCandidatesInGPU(struct SDL::modules& modulesInGPU, st
             {
 	            unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[innerInnerInnerLowerModuleArrayIndex],1);
 	            atomicAdd(&trackCandidatesInGPU.nTrackCandidatesT4T3[innerInnerInnerLowerModuleArrayIndex],1);
-	            if(trackCandidateModuleIdx >= N_MAX_TRACK_CANDIDATES_PER_MODULE)
+	            if(trackCandidateModuleIdx >= N_MAX_TRACK_CANDIDATES)
                 {
                     #ifdef Warnings
-		            if(trackCandidateModuleIdx == N_MAX_TRACK_CANDIDATES_PER_MODULE)
+		            if(trackCandidateModuleIdx == N_MAX_TRACK_CANDIDATES)
                     {
 		                printf("Track Candidate excess alert! lower Module array index = %d\n",innerInnerInnerLowerModuleArrayIndex);
                     }
@@ -1573,10 +1564,10 @@ __global__ void createTrackCandidatesInGPU(struct SDL::modules& modulesInGPU, st
             {
 	            unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[innerInnerInnerLowerModuleArrayIndex],1);
 	            atomicAdd(&trackCandidatesInGPU.nTrackCandidatesT3T4[innerInnerInnerLowerModuleArrayIndex],1);
-	            if(trackCandidateModuleIdx >= N_MAX_TRACK_CANDIDATES_PER_MODULE)
+	            if(trackCandidateModuleIdx >= N_MAX_TRACK_CANDIDATES)
                 {
                     #ifdef Warnings
-		            if(trackCandidateModuleIdx == N_MAX_TRACK_CANDIDATES_PER_MODULE)
+		            if(trackCandidateModuleIdx == N_MAX_TRACK_CANDIDATES)
 		            printf("Track Candidate excess alert! Module index = %d\n",innerInnerInnerLowerModuleArrayIndex);
                    #endif
                 }
@@ -1657,10 +1648,10 @@ __global__ void createTrackCandidatesFromInnerInnerInnerLowerModule(struct SDL::
             {
                 unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[innerInnerInnerLowerModuleArrayIndex],1);
                 atomicAdd(&trackCandidatesInGPU.nTrackCandidatesT4T4[innerInnerInnerLowerModuleArrayIndex],1);
-                if(trackCandidateModuleIdx >= N_MAX_TRACK_CANDIDATES_PER_MODULE)
+                if(trackCandidateModuleIdx >= N_MAX_TRACK_CANDIDATES)
                 {
                     #ifdef Warnings
-                    if(trackCandidateModuleIdx == N_MAX_TRACK_CANDIDATES_PER_MODULE)
+                    if(trackCandidateModuleIdx == N_MAX_TRACK_CANDIDATES)
                     {
                         printf("Track Candidate excess alert! lower Module array index = %d\n",innerInnerInnerLowerModuleArrayIndex);
                     }
@@ -1699,10 +1690,10 @@ __global__ void createTrackCandidatesFromInnerInnerInnerLowerModule(struct SDL::
             {
                 unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[innerInnerInnerLowerModuleArrayIndex],1);
                 atomicAdd(&trackCandidatesInGPU.nTrackCandidatesT4T3[innerInnerInnerLowerModuleArrayIndex],1);
-                if(trackCandidateModuleIdx >= N_MAX_TRACK_CANDIDATES_PER_MODULE)
+                if(trackCandidateModuleIdx >= N_MAX_TRACK_CANDIDATES)
                 {
                     #ifdef Warnings
-                    if(trackCandidateModuleIdx == N_MAX_TRACK_CANDIDATES_PER_MODULE)
+                    if(trackCandidateModuleIdx == N_MAX_TRACK_CANDIDATES)
                     {
                         printf("Track Candidate excess alert! lower Module array index = %d\n",innerInnerInnerLowerModuleArrayIndex);
                     }
@@ -1743,10 +1734,10 @@ __global__ void createTrackCandidatesFromInnerInnerInnerLowerModule(struct SDL::
             {
                 unsigned int trackCandidateModuleIdx = atomicAdd(&trackCandidatesInGPU.nTrackCandidates[innerInnerInnerLowerModuleArrayIndex],1);
                 atomicAdd(&trackCandidatesInGPU.nTrackCandidatesT3T4[innerInnerInnerLowerModuleArrayIndex],1);
-	        if(trackCandidateModuleIdx >= N_MAX_TRACK_CANDIDATES_PER_MODULE)
+	        if(trackCandidateModuleIdx >= N_MAX_TRACK_CANDIDATES)
                 {
                    #ifdef Warnings
-                   if(trackCandidateModuleIdx == N_MAX_TRACK_CANDIDATES_PER_MODULE)
+                   if(trackCandidateModuleIdx == N_MAX_TRACK_CANDIDATES)
                        printf("Track Candidate excess alert! Module index = %d\n",innerInnerInnerLowerModuleArrayIndex);
                    #endif
                 }
@@ -2788,30 +2779,30 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU,struct SDL::miniD
 }
 
 
-__global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::trackExtensions& trackExtensionsInGPU)
+__global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::trackExtensions& trackExtensionsInGPU)
 {
-    int moduleIdx = blockIdx.x * blockDim.x + threadIdx.x;
-    //int overlapIndex = blockIdx.x * blockDim.x + threadIdx.x;
-    int tcArrayIdx = blockIdx.y * blockDim.y + threadIdx.y;
-    int t3ArrayIdx = blockIdx.z * blockDim.z + threadIdx.z;
-
-    if(moduleIdx > *modulesInGPU.nLowerModules) return;
-    if(tcArrayIdx >= trackCandidatesInGPU.nTrackCandidates[moduleIdx]) return;
+    int tcIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    int t3ArrayIdx = blockIdx.y * blockDim.y + threadIdx.y;
+    int layerOverlap = blockIdx.z * blockDim.z + threadIdx.z;
+    if(layerOverlap == 0 or layerOverlap >= 3) return;
+    if(tcIdx >= *(trackCandidatesInGPU.nTrackCandidates)) return;
     //get the last but two module index - (2,4) hardcoded
-    unsigned int tcIdx = modulesInGPU.trackCandidateModuleIndices[moduleIdx] + tcArrayIdx;
     short tcType = trackCandidatesInGPU.trackCandidateType[tcIdx];                                
     unsigned int outerT3StartingModuleIndex;
-    if(tcType == 8) return;
+    unsigned int outerT3Index;
 
+    if(tcType == 8) return;
     else if(tcType == 7 or tcType == 4)
     {
-        outerT3StartingModuleIndex = quintupletsInGPU.lowerModuleIndices[5 * trackCandidatesInGPU.objectIndices[2 * tcIdx + 1] + 3];
+        unsigned int outerT5Index = trackCandidatesInGPU.objectIndices[2 * tcIdx + 1];
+        outerT3Index = quintupletsInGPU.tripletIndices[2 * outerT5Index];
+        outerT3StartingModuleIndex = quintupletsInGPU.lowerModuleIndices[5 * outerT5Index + 5 - layerOverlap];
     }
     else if(tcType == 5) //pT3
     {
         unsigned int pT3Index = trackCandidatesInGPU.objectIndices[2 * tcIdx];
-        unsigned int outerT3Index = pixelTripletsInGPU.tripletIndices[pT3Index];
-        outerT3StartingModuleIndex = tripletsInGPU.lowerModuleIndices[3 * outerT3Index + 1];                                                                    
+        outerT3Index = pixelTripletsInGPU.tripletIndices[pT3Index];
+        outerT3StartingModuleIndex = tripletsInGPU.lowerModuleIndices[3 * outerT3Index + 3 - layerOverlap];  
     }
     unsigned int outerT3StartingLowerModuleIndex = modulesInGPU.reverseLookupLowerModuleIndices[outerT3StartingModuleIndex];
     if(t3ArrayIdx >= tripletsInGPU.nTriplets[outerT3StartingLowerModuleIndex]) return;
@@ -2819,7 +2810,7 @@ __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, str
     short constituentTCType[3];
     unsigned int constituentTCIndex[3];
 
-    bool success = runTrackExtensionDefaultAlgo(modulesInGPU, hitsInGPU, tripletsInGPU, trackCandidatesInGPU, tcIdx, t3Idx, tcType, 3, 2, 4, constituentTCType, constituentTCIndex);
+    bool success = runTrackExtensionDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, trackCandidatesInGPU, tcIdx, t3Idx, tcType, 3, outerT3Index, layerOverlap, constituentTCType, constituentTCIndex);
 
     if(success)
     {

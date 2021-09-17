@@ -48,6 +48,7 @@ namespace SDL
         //for track extensions
         unsigned int* logicalLayers;
         unsigned int* hitIndices;
+        unsigned int* lowerModuleIndices;
 
         pixelTriplets();
         ~pixelTriplets();
