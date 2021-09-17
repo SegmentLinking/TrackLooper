@@ -102,7 +102,6 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     //checks for frivolous cases wherein
     pass = pass &  computeLayerAndHitOverlaps(modulesInGPU, anchorLayerIndices, anchorHitIndices, anchorLowerModuleIndices, outerObjectLayerIndices, outerObjectHitIndices, outerObjectLowerModuleIndices, nAnchorLayers, nOuterLayers, nLayerOverlap, nHitOverlap, layerOverlapTarget);
 
-
     pass = pass & runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], tripletsInGPU.segmentIndices[2 * anchorObjectOuterT3Index], tripletsInGPU.segmentIndices[2 * outerObjectIndex], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
 
     pass = pass & runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 2], tripletsInGPU.segmentIndices[2 * anchorObjectOuterT3Index], tripletsInGPU.segmentIndices[2 * outerObjectIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
@@ -114,6 +113,10 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     constituentTCIndex[0] = anchorObjectIndex;
     constituentTCIndex[1] = outerObjectIndex;
 
+    if(pass)
+    {
+        printf("anchor object type = %d, outer object type = %d, nLayerOverlaps = %d, nHitOverlaps = %d\n", anchorObjectType, outerObjectType, nLayerOverlap, nHitOverlap);
+    }
     return pass;
 }
 
@@ -131,7 +134,7 @@ __device__ bool SDL::computeLayerAndHitOverlaps(SDL::modules& modulesInGPU, unsi
     //merge technique!
     size_t j = 0; //outer object tracker
     unsigned int temp; //container variable
-    unsigned int staggeredNeighbours[4];
+    unsigned int staggeredNeighbours[10];
     for(size_t i = 0; i < nAnchorLayers; i++)
     {
         if(anchorLayerIndices[i] == outerObjectLayerIndices[j])
@@ -170,9 +173,9 @@ __device__ bool SDL::computeLayerAndHitOverlaps(SDL::modules& modulesInGPU, unsi
                 //this case should redeem them!
 
                 //find the neighbours of the anchor lower module, if any of those matches the outer lower module, we're done
-                
-                findStaggeredNeighbours(modulesInGPU, anchorLowerModuleIndices[i], staggeredNeighbours);
-                for(size_t idx = 0; idx < 4; idx++)
+                unsigned int nStaggeredModules;                
+                findStaggeredNeighbours(modulesInGPU, anchorLowerModuleIndices[i], staggeredNeighbours, nStaggeredModules);
+                for(size_t idx = 0; idx < nStaggeredModules; idx++)
                 {
                     if(outerObjectLowerModuleIndices[j]  == staggeredNeighbours[idx])
                     {
@@ -189,7 +192,7 @@ __device__ bool SDL::computeLayerAndHitOverlaps(SDL::modules& modulesInGPU, unsi
             }
         }
     }
-    pass = pass & layerOverlapTarget; //not really required, because these cases should be handled by the other conditions
+    pass = pass & (nLayerOverlap == layerOverlapTarget); //not really required, because these cases should be handled by the other conditions
     return pass;
 }
 

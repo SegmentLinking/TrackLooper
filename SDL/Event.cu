@@ -1658,7 +1658,7 @@ void SDL::Event::createExtendedTracks()
     unsigned int* nTrackCandidates;
     unsigned int* nTriplets;
     cudaMallocHost(&nTrackCandidates, sizeof(unsigned int));
-    cudaMallocHost(&nTriplets, (nLowerModules - 1) * sizeof(unsigned int));
+    cudaMallocHost(&nTriplets, nLowerModules * sizeof(unsigned int));
     cudaMemcpy(nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
     cudaMemcpy(nTriplets, tripletsInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
@@ -1666,7 +1666,7 @@ void SDL::Event::createExtendedTracks()
      * most of the threads launched here will exit without running
      */
     dim3 nThreads(16,4,4);
-    unsigned int maxT3s = *std::max_element(nTriplets, nTriplets + nLowerModules - 1); 
+    unsigned int maxT3s = *std::max_element(nTriplets, nTriplets + nLowerModules); 
     unsigned int nOverlaps = 3;
     dim3 nBlocks(*nTrackCandidates % nThreads.x == 0 ? *nTrackCandidates / nThreads.x : *nTrackCandidates / nThreads.x + 1, maxT3s % nThreads.y == 0 ? maxT3s / nThreads.y : maxT3s / nThreads.y + 1, nOverlaps % nThreads.z == 0 ? nOverlaps / nThreads.z : nOverlaps / nThreads.z + 1);
    createExtendedTracksInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, *quintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
@@ -1836,7 +1836,7 @@ void SDL::Event::createPixelTriplets()
     //pT3s can be cleaned here because they're not used in making pT5s!
 #ifdef DUP_pT3
     printf("run dup pT3\n");
-    dim3 nThreads_dup(1024,1,1);
+    dim3 nThreads_dup(512,1,1);
     dim3 nBlocks_dup(64,1,1);
     removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU,false);
 #endif

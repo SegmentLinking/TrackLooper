@@ -1077,12 +1077,12 @@ __device__ const int nEndcapModulesOuter[] = {28,28,32,36,36,40,44,52,56,64,72,7
 __device__ const int nCentralBarrelModules[] = {7,11,15,24,24,24};
 __device__ const int nCentralRods[] = {18, 26, 36, 48, 60, 78};
 
-__device__ void findStaggeredNeighbours(struct SDL::modules& modulesInGPU, unsigned int moduleIdx, unsigned int* staggeredNeighbours)
+__device__ void findStaggeredNeighbours(struct SDL::modules& modulesInGPU, unsigned int moduleIdx, unsigned int* staggeredNeighbours, unsigned int& counter)
 {
     //naive and expensive method
-    size_t counter = 0;
+    counter = 0;
     bool flag = false;
-    for(size_t i = 0; i < *modulesInGPU.nLowerModules; i++)
+    for(size_t i = 0; i < *(modulesInGPU.nLowerModules); i++)
     {
         flag = false;
         unsigned int partnerModuleIdx = modulesInGPU.lowerModuleIndices[i];
@@ -1100,8 +1100,15 @@ __device__ void findStaggeredNeighbours(struct SDL::modules& modulesInGPU, unsig
             unsigned int ring2 = modulesInGPU.rings[partnerModuleIdx];
             if(ring1 != ring2) continue;
 
-            flag = flag or (layer1 <=2) and (fabsf(module1 - module2) == 1 or fabsf(module1 % nEndcapModulesInner[ring1 - 1] - module2 % nEndcapModulesInner[ring2 - 1]));
-            flag = flag or (layer1 > 2) and (fabsf(module1 - module2) == 1 or fabsf(module1 % nEndcapModulesOuter[ring1 - 1] - module2 % nEndcapModulesOuter[ring2 - 1]));
+            if((layer1 <=2) and (fabsf(module1 - module2) == 1 or fabsf(module1 % nEndcapModulesInner[ring1 - 1] - module2 % nEndcapModulesInner[ring2 - 1]) == 1))
+            {
+                flag = true;
+            }
+
+            else if((layer1 > 2) and (fabsf(module1 - module2) == 1 or fabsf(module1 % nEndcapModulesOuter[ring1 - 1] - module2 % nEndcapModulesOuter[ring2 - 1]) == 1))
+            {
+                flag = true;
+            }
         }
         else if(modulesInGPU.subdets[moduleIdx] == 5 and modulesInGPU.subdets[partnerModuleIdx] == 5)
         {

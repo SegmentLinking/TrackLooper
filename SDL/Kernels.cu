@@ -2534,7 +2534,7 @@ __device__ float scorepT3(struct SDL::modules& modulesInGPU,struct SDL::hits& hi
     //printf("pT3 score: %f\n",score);  
     return score;
 }
-__device__ inline int* checkHitspT3(unsigned int ix, unsigned int jx,struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU,struct SDL::hits& hitsInGPU)
+__device__ inline void checkHitspT3(unsigned int ix, unsigned int jx,struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU,struct SDL::hits& hitsInGPU, int* matched)
 {
     int phits1[4] = {-1,-1,-1,-1};
     int phits2[4] = {-1,-1,-1,-1};
@@ -2599,8 +2599,8 @@ __device__ inline int* checkHitspT3(unsigned int ix, unsigned int jx,struct SDL:
     //if((nMatched >= 6) & (npMatched >= 4)){return true;}
     //if((nMatched >= 2) & (npMatched >= 1)){return true;}
      //if((nMatched  + npMatched >= 10)){return true;}
-    int matched[2] = {npMatched, nMatched};
-    return matched;//nMatched+npMatched;
+    matched[0] = npMatched;
+    matched[1] = nMatched;
 }
 
 __device__ int duplicateCounter_pT3 =0;
@@ -2617,7 +2617,8 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesI
             {
                 continue;
             }
-            int* nMatched = checkHitspT3(ix,jx,mdsInGPU,segmentsInGPU,tripletsInGPU,pixelTripletsInGPU,hitsInGPU); 
+            int nMatched[2];
+            checkHitspT3(ix,jx,mdsInGPU,segmentsInGPU,tripletsInGPU,pixelTripletsInGPU,hitsInGPU, nMatched); 
             if(((nMatched[0] + nMatched[1]) >= 5) )        
             {
                 dup_count++;

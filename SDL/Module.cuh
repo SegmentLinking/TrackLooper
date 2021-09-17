@@ -142,7 +142,7 @@ namespace SDL
     void resetObjectRangesExplicit(struct modules& modulesInGPU, unsigned int nModules);
 }
 
-CUDA_DEV void findStaggeredNeighbours(struct SDL::modules& modulesInGPU, unsigned int moduleIdx, unsigned int* staggeredNeighbours);
+CUDA_DEV void findStaggeredNeighbours(struct SDL::modules& modulesInGPU, unsigned int moduleIdx, unsigned int* staggeredNeighbours, unsigned int& counter);
 
 #endif
 
