@@ -2786,4 +2786,195 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU,struct SDL::miniD
 }
 
 
+__global__ void removeDupFishboneSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU)
+{
+    printf("running segment fishbon dup rm\n");
+    int dup_count=0;
+
+    // printf("blockIdx.x = %d blockIdx.y = %d blockIdx.z = %d blockDim.x = %d blockDim.y = %d blockDim.z = %d threadIdx.x = %d threadIdx.y = %d threadIdx.z = %d gridDim.x = %d gridDim.y = %d gridDim.z = %d gmentsInGPU.nSegments[0] = %d\n", blockIdx.x, blockIdx.y, blockIdx.z, blockDim.x, blockDim.y, blockDim.z, threadIdx.x, threadIdx.y, threadIdx.z, gridDim.x, gridDim.y, gridDim.z, segmentsInGPU.nSegments[0]);
+    printf("nModules = %d\n", *modulesInGPU.nLowerModules);
+
+    // unsigned int& nmodules = *modulesInGPU.nLowerModules;
+    // unsigned int imodule = blockIdx.x * blockDim.x + threadIdx.x;
+
+    for (unsigned int ix = 0; ix < *modulesInGPU.nLowerModules; ++ix)
+    {
+        // Only loop over the barrel flat inner lower modules
+        if (modulesInGPU.sides[ix] != 3)
+            continue;
+
+        for (unsigned int iy = 0; iy < segmentsInGPU.nSegments[ix]; ++iy)
+        {
+
+            int iseg = N_MAX_SEGMENTS_PER_MODULE * ix + iy;
+            int iseg_imd = segmentsInGPU.mdIndices[2*iseg];
+            int iseg_omd = segmentsInGPU.mdIndices[2*iseg+1];
+            int iseg_imod = segmentsInGPU.innerLowerModuleIndices[iseg];
+            int iseg_omod = segmentsInGPU.outerLowerModuleIndices[iseg];
+
+            // Require that the outer module is also flat barrel
+            int iseg_osid = modulesInGPU.sides[iseg_omod];
+            if (iseg_osid != 3)
+                continue;
+
+            // Now we will compare with every other segments that is sharing md's and check whether to keep this or to toss this
+            bool is_pass = true;
+
+            // Looping over the segments in the inner lower modules and sharing the md
+            for (unsigned int jy = 0; jy < segmentsInGPU.nSegments[iseg_imod]; ++jy)
+            {
+                int jseg = N_MAX_SEGMENTS_PER_MODULE * iseg_imod + jy;
+                if (iseg == jseg) continue;
+                int jseg_imd = segmentsInGPU.mdIndices[2*jseg];
+                int jseg_omd = segmentsInGPU.mdIndices[2*jseg+1];
+
+                // If the inner md is not shared then forget it no point
+                if (iseg_imd != jseg_imd)
+                    continue;
+
+                // Now retrieve the outer module information
+                int jseg_omod = segmentsInGPU.outerLowerModuleIndices[jseg];
+
+                int irod = modulesInGPU.rods[iseg_omd];
+                int imod = modulesInGPU.modules[iseg_omd];
+                int ilay = modulesInGPU.layers[iseg_omd];
+                int isid = modulesInGPU.sides[iseg_omd];
+
+                int jrod = modulesInGPU.rods[jseg_omd];
+                int jmod = modulesInGPU.modules[jseg_omd];
+                int jlay = modulesInGPU.layers[jseg_omd];
+                int jsid = modulesInGPU.sides[jseg_omd];
+
+                int moddifftype = 0;
+                // rod is same and mod is different
+                if (irod == jrod && imod != jmod)
+                {
+                    moddifftype = 1;
+                }
+                // mod is same and rod is different
+                else if (irod != jrod && imod == jmod)
+                {
+                    moddifftype = 2;
+                }
+                // both are different
+                else if (irod != jrod && imod != jmod)
+                {
+                    moddifftype = 3;
+                }
+                // both ar same (do nothing)
+                else
+                {
+                    moddifftype = 0;
+                }
+
+                int ihit = segmentsInGPU.innerMiniDoubletAnchorHitIndices[jseg];
+                int j_ohit = segmentsInGPU.outerMiniDoubletAnchorHitIndices[jseg];
+                int i_ohit = segmentsInGPU.outerMiniDoubletAnchorHitIndices[iseg];
+
+                float idx = hitsInGPU.xs[i_ohit] - hitsInGPU.xs[ihit];
+                float idy = hitsInGPU.ys[i_ohit] - hitsInGPU.ys[ihit];
+                float idz = hitsInGPU.zs[i_ohit] - hitsInGPU.zs[ihit];
+                float jdx = hitsInGPU.xs[j_ohit] - hitsInGPU.xs[ihit];
+                float jdy = hitsInGPU.ys[j_ohit] - hitsInGPU.ys[ihit];
+                float jdz = hitsInGPU.zs[j_ohit] - hitsInGPU.zs[ihit];
+                float idrt = sqrt(idx*idx + idy*idy);
+                float jdrt = sqrt(jdx*jdx + jdy*jdy);
+                float ir3 = sqrt(idx*idx + idy*idy + idz*idz);
+                float jr3 = sqrt(jdx*jdx + jdy*jdy + jdz*jdz);
+
+                float iphi = (3.141592654f + atan2(-idy, -idx));
+                while (iphi >= 3.141592654f)
+                {
+                    iphi -= 2. * 3.141592654f;
+                }
+                while (iphi < -3.141592654f)
+                {
+                    iphi += 2. * 3.141592654f;
+                }
+
+                float jphi = (3.141592654f + atan2(-jdy, -jdx));
+                while (jphi >= 3.141592654f)
+                {
+                    jphi -= 2. * 3.141592654f;
+                }
+                while (jphi < -3.141592654f)
+                {
+                    jphi += 2. * 3.141592654f;
+                }
+
+                float dphi = iphi - jphi;
+                while (dphi >= 3.141592654f)
+                {
+                    dphi -= 2. * 3.141592654f;
+                }
+                while (dphi < -3.141592654f)
+                {
+                    dphi += 2. * 3.141592654f;
+                }
+
+                float arg = (jdz * idz + jdrt * idrt) / std::sqrt(jdrt * jdrt + jdz * jdz) / std::sqrt(idrt * idrt + idz * idz);
+                float dtheta = 0;
+                if (arg >= 1)
+                {
+                    dtheta = 0.;
+                }
+                else if (arg < 1)
+                {
+                    dtheta = acos(arg);
+                }
+
+                bool overlap = false;
+
+                if (ilay <= 3)
+                {
+                    if (moddifftype == 1 && abs(dphi) < 0.004 && dtheta < 0.014)
+                    {
+                        overlap = true;
+                    }
+                    else if (moddifftype == 2 && abs(dphi) < 0.016 && dtheta < 0.014)
+                    {
+                        overlap = true;
+                    }
+                    else if (moddifftype == 3 && abs(dphi) < 0.02  && dtheta < 0.014)
+                    {
+                        overlap = true;
+                    }
+                }
+                else
+                {
+                    if (moddifftype == 1 && abs(dphi) < 0.004 && dtheta < 0.5)
+                    {
+                        overlap = true;
+                    }
+                    else if (moddifftype == 2 && abs(dphi) < 0.024 && dtheta < 0.15)
+                    {
+                        overlap = true;
+                    }
+                    else if (moddifftype == 3 && abs(dphi) < 0.028 && dtheta < 0.3)
+                    {
+                        overlap = true;
+                    }
+                }
+
+                if (overlap)
+                {
+                    if (ir3 > jr3)
+                    {
+                        is_pass = false;
+                    }
+                }
+
+                if (overlap)
+                    printf("%d %d %d %d %d %f %f %f %f %d %d %d\n", iseg_imd, iseg_omd, jseg_imd, jseg_omd, moddifftype, dphi, dtheta, ir3, jr3, overlap, is_pass, segmentsInGPU.isDup[iy]);
+
+                if (!is_pass)
+                    break;
+
+            }
+
+            segmentsInGPU.isDup[iy] = !is_pass;
+
+        }
+    }
+}
 
