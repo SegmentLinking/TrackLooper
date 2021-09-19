@@ -2791,12 +2791,6 @@ __global__ void removeDupFishboneSegmentsInGPU(struct SDL::modules& modulesInGPU
     printf("running segment fishbon dup rm\n");
     int dup_count=0;
 
-    // printf("blockIdx.x = %d blockIdx.y = %d blockIdx.z = %d blockDim.x = %d blockDim.y = %d blockDim.z = %d threadIdx.x = %d threadIdx.y = %d threadIdx.z = %d gridDim.x = %d gridDim.y = %d gridDim.z = %d gmentsInGPU.nSegments[0] = %d\n", blockIdx.x, blockIdx.y, blockIdx.z, blockDim.x, blockDim.y, blockDim.z, threadIdx.x, threadIdx.y, threadIdx.z, gridDim.x, gridDim.y, gridDim.z, segmentsInGPU.nSegments[0]);
-    printf("nModules = %d\n", *modulesInGPU.nLowerModules);
-
-    // unsigned int& nmodules = *modulesInGPU.nLowerModules;
-    // unsigned int imodule = blockIdx.x * blockDim.x + threadIdx.x;
-
     for (unsigned int ix = 0; ix < *modulesInGPU.nLowerModules; ++ix)
     {
         // Only loop over the barrel flat inner lower modules
@@ -2867,7 +2861,7 @@ __global__ void removeDupFishboneSegmentsInGPU(struct SDL::modules& modulesInGPU
                     moddifftype = 0;
                 }
 
-                int ihit = segmentsInGPU.innerMiniDoubletAnchorHitIndices[jseg];
+                int ihit = segmentsInGPU.innerMiniDoubletAnchorHitIndices[iseg];
                 int j_ohit = segmentsInGPU.outerMiniDoubletAnchorHitIndices[jseg];
                 int i_ohit = segmentsInGPU.outerMiniDoubletAnchorHitIndices[iseg];
 
@@ -2965,14 +2959,14 @@ __global__ void removeDupFishboneSegmentsInGPU(struct SDL::modules& modulesInGPU
                 }
 
                 if (overlap)
-                    printf("%d %d %d %d %d %f %f %f %f %d %d %d\n", iseg_imd, iseg_omd, jseg_imd, jseg_omd, moddifftype, dphi, dtheta, ir3, jr3, overlap, is_pass, segmentsInGPU.isDup[iy]);
+                    printf("%d %d %d %d %d %f %f %f %f %d %d %d\n", iseg_imd, iseg_omd, jseg_imd, jseg_omd, moddifftype, dphi, dtheta, ir3, jr3, overlap, is_pass, segmentsInGPU.isDup[iseg]);
 
                 if (!is_pass)
                     break;
 
             }
 
-            segmentsInGPU.isDup[iy] = !is_pass;
+            segmentsInGPU.isDup[iseg] = !is_pass;
 
         }
     }

@@ -17,7 +17,7 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     segmentsInGPU.dPhis = (float*)cms::cuda::allocate_managed((nMemoryLocations*6 + maxPixelSegments * 8) *sizeof(float),stream);
     segmentsInGPU.superbin = (int*)cms::cuda::allocate_managed((maxPixelSegments) *sizeof(int),stream);
     segmentsInGPU.pixelType = (int*)cms::cuda::allocate_managed((maxPixelSegments) *sizeof(int),stream);
-    segmentsInGPU.isDup = (bool*)cms::cuda::allocate_managed((maxPixelSegments) *sizeof(bool),stream);
+    segmentsInGPU.isDup = (bool*)cms::cuda::allocate_managed((maxPixelSegments + nMemoryLocations) *sizeof(bool),stream);
     segmentsInGPU.circleCenterX = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
     segmentsInGPU.circleCenterY = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
     segmentsInGPU.circleRadius = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
@@ -28,7 +28,7 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     cudaMallocManaged(&segmentsInGPU.dPhis, (nMemoryLocations * 6 + maxPixelSegments * 8)*sizeof(float));
     cudaMallocManaged(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int));
     cudaMallocManaged(&segmentsInGPU.pixelType, (maxPixelSegments )*sizeof(int));
-    cudaMallocManaged(&segmentsInGPU.isDup, (maxPixelSegments )*sizeof(bool));
+    cudaMallocManaged(&segmentsInGPU.isDup, (maxPixelSegments + nMemoryLocations)*sizeof(bool));
     cudaMallocManaged(&segmentsInGPU.circleCenterX, maxPixelSegments * sizeof(float));
     cudaMallocManaged(&segmentsInGPU.circleCenterY, maxPixelSegments * sizeof(float));
     cudaMallocManaged(&segmentsInGPU.circleRadius, maxPixelSegments * sizeof(float));
@@ -96,7 +96,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.dPhis = (float*)cms::cuda::allocate_device(dev,(nMemoryLocations*6 + maxPixelSegments * 8) *sizeof(float),stream);
     segmentsInGPU.superbin = (int*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(int),stream);
     segmentsInGPU.pixelType = (int*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(int),stream);
-    segmentsInGPU.isDup = (bool*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(bool),stream);
+    segmentsInGPU.isDup = (bool*)cms::cuda::allocate_device(dev,(maxPixelSegments + nMemoryLocations) *sizeof(bool),stream);
     segmentsInGPU.circleCenterX = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
     segmentsInGPU.circleCenterY = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
     segmentsInGPU.circleRadius = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
@@ -108,7 +108,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     cudaMalloc(&segmentsInGPU.dPhis, (nMemoryLocations * 6 + maxPixelSegments * 8)*sizeof(float));
     cudaMalloc(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int));
     cudaMalloc(&segmentsInGPU.pixelType, (maxPixelSegments )*sizeof(int));
-    cudaMalloc(&segmentsInGPU.isDup, (maxPixelSegments )*sizeof(bool));
+    cudaMalloc(&segmentsInGPU.isDup, (maxPixelSegments + nMemoryLocations)*sizeof(bool));
     cudaMalloc(&segmentsInGPU.circleCenterX, maxPixelSegments * sizeof(float));
     cudaMalloc(&segmentsInGPU.circleCenterY, maxPixelSegments * sizeof(float));
     cudaMalloc(&segmentsInGPU.circleRadius, maxPixelSegments * sizeof(float));
