@@ -1067,7 +1067,7 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
     unsigned int nPixels = segmentsInGPU.nSegments[pixelModuleIndex];
     if(pixelArrayIndex >= nPixels) return;
 
-    if(segmentsInGPU.isDup[pixelArrayIndex])  
+    if((!segmentsInGPU.isQuad[pixelArrayIndex]) || (segmentsInGPU.isDup[pixelArrayIndex])) 
     {
         return;
     }
@@ -2722,6 +2722,8 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU,struct SDL::miniD
     {
         bool found=false;
         unsigned int phits1[4] ;
+        //bool isQuad_ix = segmentsInGPU.isQuad[ix];
+        //printf("isQuad %d\n",isQuad_ix);
         phits1[0] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+ix)]]];
         phits1[1] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+ix)+1]]];
         phits1[2] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+ix)]+1]];
@@ -2735,13 +2737,15 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU,struct SDL::miniD
             {
                 continue;
             }
-            unsigned int phits2[4] ;
+            //bool isQuad_jx = segmentsInGPU.isQuad[jx];
+            int quad_diff = segmentsInGPU.isQuad[ix] -segmentsInGPU.isQuad[jx];
             float ptErr_diff = segmentsInGPU.ptIn[ix] -segmentsInGPU.ptIn[jx];
-            if (ptErr_diff>0)
+            if( (quad_diff > 0 )|| (ptErr_diff>0 && quad_diff ==0))
             {
                 continue;
-            }// want the significance to be high allows for exact matches to be checked
+            }// always keep quads over trips. If they are the same, we want the object with the lower pt Error
 
+            unsigned int phits2[4] ;
             phits2[0] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+jx)]]];
             phits2[1] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+jx)+1]]];
             phits2[2] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+jx)]+1]];

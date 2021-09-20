@@ -413,7 +413,7 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     cudaFreeHost(module_moduleType);
 
 }
-__global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned int* hitIndices1,unsigned int* hitIndices2,unsigned int* hitIndices3, float* dPhiChange, float* ptIn, float* ptErr, float* px, float* py, float* pz, float* eta, float* etaErr,float* phi, unsigned int pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU,const int size, int* superbin, int* pixelType)
+__global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned int* hitIndices1,unsigned int* hitIndices2,unsigned int* hitIndices3, float* dPhiChange, float* ptIn, float* ptErr, float* px, float* py, float* pz, float* eta, float* etaErr,float* phi, unsigned int pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU,const int size, int* superbin, int* pixelType, short* isQuad)
 {
 
     for( int tid = blockIdx.x * blockDim.x + threadIdx.x; tid < size; tid += blockDim.x*gridDim.x)
@@ -430,10 +430,10 @@ __global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned 
       addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices0[tid], hitIndices1[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,innerMDIndex);
       addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices2[tid], hitIndices3[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,outerMDIndex);
 #endif
-      addPixelSegmentToMemory(segmentsInGPU, mdsInGPU, hitsInGPU, modulesInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hitIndices0[tid], hitIndices2[tid], dPhiChange[tid], ptIn[tid], ptErr[tid], px[tid], py[tid], pz[tid], etaErr[tid], eta[tid], phi[tid], pixelSegmentIndex, tid, superbin[tid], pixelType[tid]);
+      addPixelSegmentToMemory(segmentsInGPU, mdsInGPU, hitsInGPU, modulesInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hitIndices0[tid], hitIndices2[tid], dPhiChange[tid], ptIn[tid], ptErr[tid], px[tid], py[tid], pz[tid], etaErr[tid], eta[tid], phi[tid], pixelSegmentIndex, tid, superbin[tid], pixelType[tid],isQuad[tid]);
     }
 }
-void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> superbin, std::vector<int> pixelType)
+void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> superbin, std::vector<int> pixelType, std::vector<short> isQuad)
 {
     if(mdsInGPU == nullptr)
     {
@@ -470,6 +470,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     float* phi_host = &phi[0];
     int* superbin_host = &superbin[0];
     int* pixelType_host = &pixelType[0];
+    short* isQuad_host = &isQuad[0];
 
     unsigned int* hitIndices0_dev;
     unsigned int* hitIndices1_dev;
@@ -486,6 +487,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     float* phi_dev;
     int* superbin_dev;
     int* pixelType_dev;
+    short* isQuad_dev;
 
     cudaMalloc(&hitIndices0_dev,size*sizeof(unsigned int));
     cudaMalloc(&hitIndices1_dev,size*sizeof(unsigned int));
@@ -502,6 +504,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     cudaMalloc(&phi_dev, size*sizeof(unsigned int));
     cudaMalloc(&superbin_dev,size*sizeof(int));
     cudaMalloc(&pixelType_dev,size*sizeof(int));
+    cudaMalloc(&isQuad_dev,size*sizeof(short));
 
     cudaMemcpy(hitIndices0_dev,hitIndices0_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice);
     cudaMemcpy(hitIndices1_dev,hitIndices1_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice);
@@ -518,11 +521,12 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     cudaMemcpy(phi_dev, phi_host, size*sizeof(unsigned int),cudaMemcpyHostToDevice);
     cudaMemcpy(superbin_dev,superbin_host,size*sizeof(int),cudaMemcpyHostToDevice);
     cudaMemcpy(pixelType_dev,pixelType_host,size*sizeof(int),cudaMemcpyHostToDevice);
+    cudaMemcpy(isQuad_dev,isQuad_host,size*sizeof(short),cudaMemcpyHostToDevice);
 
     unsigned int nThreads = 256;
     unsigned int nBlocks =  size % nThreads == 0 ? size/nThreads : size/nThreads + 1;
 
-    addPixelSegmentToEventKernel<<<nBlocks,nThreads>>>(hitIndices0_dev,hitIndices1_dev,hitIndices2_dev,hitIndices3_dev,dPhiChange_dev,ptIn_dev,ptErr_dev,px_dev,py_dev,pz_dev,eta_dev, etaErr_dev, phi_dev, pixelModuleIndex, *modulesInGPU,*hitsInGPU,*mdsInGPU,*segmentsInGPU,size, superbin_dev, pixelType_dev);
+    addPixelSegmentToEventKernel<<<nBlocks,nThreads>>>(hitIndices0_dev,hitIndices1_dev,hitIndices2_dev,hitIndices3_dev,dPhiChange_dev,ptIn_dev,ptErr_dev,px_dev,py_dev,pz_dev,eta_dev, etaErr_dev, phi_dev, pixelModuleIndex, *modulesInGPU,*hitsInGPU,*mdsInGPU,*segmentsInGPU,size, superbin_dev, pixelType_dev,isQuad_dev);
    //std::cout<<"Number of pixel segments = "<<size<<std::endl;
    cudaDeviceSynchronize();
    cudaMemcpy(&(segmentsInGPU->nSegments)[pixelModuleIndex], &size, sizeof(unsigned int), cudaMemcpyHostToDevice);
@@ -544,6 +548,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     cudaFree(phi_dev);
     cudaFree(superbin_dev);
     cudaFree(pixelType_dev);
+    cudaFree(isQuad_dev);
 }
 
 void SDL::Event::addMiniDoubletsToEvent()
@@ -1654,11 +1659,11 @@ void SDL::Event::createTrackCandidates()
 #endif
 #endif
 
-//int pT2_num = *trackCandidatesInGPU->nTrackCandidatespT2;
-//int pT3_num = *trackCandidatesInGPU->nTrackCandidatespT3;
-//int pT5_num = *trackCandidatesInGPU->nTrackCandidatespT5;
-//int pLS_num = *trackCandidatesInGPU->nTrackCandidatespLS;
-//printf("total: %d %d %d %d\n",pT2_num,pT3_num,pT5_num,pLS_num);
+int pT2_num = *trackCandidatesInGPU->nTrackCandidatespT2;
+int pT3_num = *trackCandidatesInGPU->nTrackCandidatespT3;
+int pT5_num = *trackCandidatesInGPU->nTrackCandidatespT5;
+int pLS_num = *trackCandidatesInGPU->nTrackCandidatespLS;
+printf("total: %d %d %d %d\n",pT2_num,pT3_num,pT5_num,pLS_num);
 }
 
 void SDL::Event::createPixelTriplets()
