@@ -18,6 +18,7 @@ void createOutputBranches()
     ana.tx->createBranch<vector<float>>("sim_vx");
     ana.tx->createBranch<vector<float>>("sim_vy");
     ana.tx->createBranch<vector<float>>("sim_vz");
+    ana.tx->createBranch<vector<bool>>("sim_isGood");
 
     // Sim vertex
     ana.tx->createBranch<vector<float>>("simvtx_x");
@@ -25,6 +26,7 @@ void createOutputBranches()
     ana.tx->createBranch<vector<float>>("simvtx_z");
     ana.tx->createBranch<vector<float>>("sim_len");
     ana.tx->createBranch<vector<float>>("sim_lengap");
+    ana.tx->createBranch<vector<float>>("sim_hits");
 
     ana.tx->createBranch<vector<vector<int>>>("sim_tcIdx");
 
@@ -707,7 +709,7 @@ void fillSimTrackOutputBranches()
 {
 
     // Sim tracks
-//    ana.tx->setBranch<vector<float>>("sim_pt", trk.sim_pt());
+    ana.tx->setBranch<vector<float>>("sim_pt", trk.sim_pt());
     ana.tx->setBranch<vector<float>>("sim_eta", trk.sim_eta());
     ana.tx->setBranch<vector<float>>("sim_phi", trk.sim_phi());
     ana.tx->setBranch<vector<float>>("sim_pca_dxy", trk.sim_pca_dxy());
@@ -721,6 +723,7 @@ void fillSimTrackOutputBranches()
     std::vector<float> sim_vx;
     std::vector<float> sim_vy;
     std::vector<float> sim_vz;
+    std::vector<bool> sim_isGood;
     for (unsigned int isimtrk = 0; isimtrk < trk.sim_pt().size(); ++isimtrk)
     {
         sim_denom.push_back(getDenomSimTrkType(isimtrk));
@@ -728,11 +731,20 @@ void fillSimTrackOutputBranches()
         sim_vx.push_back(trk.simvtx_x()[vtxidx]);
         sim_vy.push_back(trk.simvtx_y()[vtxidx]);
         sim_vz.push_back(trk.simvtx_z()[vtxidx]);
+        bool isgood =0;
+        if((abs(trk.sim_eta()[isimtrk]) < 2.4) && (trk.sim_q()[isimtrk] != 0) &&(trk.sim_bunchCrossing()[isimtrk] ==0) && (trk.sim_event()[isimtrk]==0) && (trk.simvtx_z()[vtxidx]<30) ){
+          float simvtx_xy2 = trk.simvtx_x()[vtxidx]*trk.simvtx_x()[vtxidx] + trk.simvtx_y()[vtxidx]*trk.simvtx_y()[vtxidx];
+          if(simvtx_xy2 < 6.25 ){
+            isgood = 1;
+          }
+        }
+        sim_isGood.push_back(isgood);
     }
     ana.tx->setBranch<vector<int>>("sim_denom", sim_denom);
     ana.tx->setBranch<vector<float>>("sim_vx", sim_vx);
     ana.tx->setBranch<vector<float>>("sim_vy", sim_vy);
     ana.tx->setBranch<vector<float>>("sim_vz", sim_vz);
+    ana.tx->setBranch<vector<bool>>("sim_isGood", sim_isGood);
 
     // simvtx
     ana.tx->setBranch<vector<float>>("simvtx_x", trk.simvtx_x());
@@ -749,6 +761,7 @@ void fillSimTrackOutputBranches()
         //}
     std::vector<float> sim_len;
     std::vector<float> sim_lengap;
+    std::vector<float> sim_hits;
     for(unsigned int isimtrk =0; isimtrk < trk.sim_pt().size(); ++isimtrk)
     {
        //printf("size: %d\n",trk.sim_simHitIdx()[isimtrk].size());
@@ -760,6 +773,7 @@ void fillSimTrackOutputBranches()
        bool lay6 = 0;
         int len =-1;
         int lengap =-1;
+        int hits =0;
        for (unsigned int ith_hit = 0; ith_hit < trk.sim_simHitIdx()[isimtrk].size(); ++ith_hit)
        {
           // Retrieve the sim hit idx
@@ -771,8 +785,11 @@ void fillSimTrackOutputBranches()
           //if (not (trk.simhit_particle()[simhitidx] == trk.sim_pdgId()[isimtrk]))
           //  continue;
 
-          if (isMuonCurlingHit(isimtrk, ith_hit))
+          if (isMuonCurlingHit(isimtrk, ith_hit)){
+            len = -2;
+            lengap = -2;
             break;
+          }
         
           //printf("%d\n",simHitLays->at(simhitidx));
           int lay = simHitLays->at(simhitidx);
@@ -785,6 +802,7 @@ void fillSimTrackOutputBranches()
           if(lay >6){printf("high layer: %d\n",lay);}
           len =0;
           lengap =0;
+          hits++;
         }
         if(lay1){
         len=1;
@@ -803,10 +821,12 @@ void fillSimTrackOutputBranches()
         if(lay5){lengap++;}
         if(lay6){lengap++;}
         sim_lengap.push_back(static_cast<float>(lengap));
+        sim_hits.push_back(static_cast<float>(hits));
     }
-    ana.tx->setBranch<vector<float>>("sim_pt", sim_len);
-    ana.tx->setBranch<vector<float>>("sim_len", trk.sim_pt());
-    ana.tx->setBranch<vector<float>>("sim_lengap", trk.sim_pt());
+    //ana.tx->setBranch<vector<float>>("sim_pt", sim_len);
+    ana.tx->setBranch<vector<float>>("sim_len", sim_len);
+    ana.tx->setBranch<vector<float>>("sim_lengap", sim_lengap);
+    ana.tx->setBranch<vector<float>>("sim_hits", sim_hits);
     //printf("count %d\n",count);
     //printf("%d %d %d\n",simHitIdxs->size(),simHitLays->size(),trk.sim_pt().size());
     ////layer test

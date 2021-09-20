@@ -898,6 +898,11 @@ void trktree::Init(TTree *tree) {
     trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_branch = tree->GetBranch("trk_bestFromFirstHitSimTrkShareFracSimClusterDenom");
     if (trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_branch) { trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_branch->SetAddress(&trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_); }
   }
+  sim_hits_branch = 0;
+  if (tree->GetBranch("sim_hits") != 0) {
+    sim_hits_branch = tree->GetBranch("sim_hits");
+    if (sim_hits_branch) { sim_hits_branch->SetAddress(&sim_hits_); }
+  }
   sim_len_branch = 0;
   if (tree->GetBranch("sim_len") != 0) {
     sim_len_branch = tree->GetBranch("sim_len");
@@ -1696,6 +1701,7 @@ void trktree::GetEntry(unsigned int idx) {
   see_stateTrajGlbPx_isLoaded = false;
   ph2_simType_isLoaded = false;
   trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_isLoaded = false;
+  sim_hits_isLoaded = false;
   sim_len_isLoaded = false;
   sim_lengap_isLoaded = false;
   simvtx_x_isLoaded = false;
@@ -2000,6 +2006,7 @@ void trktree::LoadAllBranches() {
   if (see_stateTrajGlbPx_branch != 0) see_stateTrajGlbPx();
   if (ph2_simType_branch != 0) ph2_simType();
   if (trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_branch != 0) trk_bestFromFirstHitSimTrkShareFracSimClusterDenom();
+  if (sim_hits_branch != 0) sim_hits();
   if (sim_len_branch != 0) sim_len();
   if (sim_lengap_branch != 0) sim_lengap();
   if (simvtx_x_branch != 0) simvtx_x();
@@ -4271,6 +4278,18 @@ const vector<float> &trktree::trk_bestFromFirstHitSimTrkShareFracSimClusterDenom
     trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_isLoaded = true;
   }
   return *trk_bestFromFirstHitSimTrkShareFracSimClusterDenom_;
+}
+const vector<float> &trktree::sim_hits() {
+  if (not sim_hits_isLoaded) {
+    if (sim_hits_branch != 0) {
+      sim_hits_branch->GetEntry(index);
+    } else {
+      printf("branch sim_hits_branch does not exist!\n");
+      exit(1);
+    }
+    sim_hits_isLoaded = true;
+  }
+  return *sim_hits_;
 }
 const vector<float> &trktree::sim_len() {
   if (not sim_len_isLoaded) {
