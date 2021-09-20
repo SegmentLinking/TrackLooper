@@ -172,6 +172,33 @@ float SDL::CPU::Hit::deltaPhiChange(const SDL::CPU::Hit& hit) const
 
 }
 
+float SDL::CPU::Hit::angleRtZ(const SDL::CPU::Hit& hit) const
+{
+    /*
+    Compute the angle between two 2d vectors in R-Z space
+    */
+
+    float arg = (hit.z() * this->z() + hit.rt() * this->rt()) / std::sqrt(hit.rt() * hit.rt() + hit.z() * hit.z()) / std::sqrt(this->rt() * this->rt() + this->z() * this->z());
+    if (arg >= 1)
+    {
+        return 0.;
+    }
+    else if (arg < 1)
+    {
+        return std::acos(arg);
+    }
+    else
+    {
+        float a = (hit.z() * this->z() + hit.rt() * this->rt());
+        float b = std::sqrt(hit.rt() * hit.rt() + hit.z() * hit.z());
+        float c = std::sqrt(this->rt() * this->rt() + this->z() * this->z());
+        // std::cout <<  " a: " << a <<  " b: " << b <<  " c: " << c <<  std::endl;
+        // std::cout <<  " arg: " << arg <<  std::endl;
+        return std::acos(arg);
+    }
+
+}
+
 bool SDL::CPU::Hit::isIdxMatched(const SDL::CPU::Hit& hit) const
 {
     if (idx() == -1)

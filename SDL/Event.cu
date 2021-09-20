@@ -908,10 +908,12 @@ void SDL::Event::createSegmentsWithModuleMap()
     createSegmentsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU);
 
     printf("run fishbone segment\n");
-    // dim3 nThreads_dup(1024,1,1);
-    // dim3 nBlocks_dup(64,1,1);
-    dim3 nThreads_dup(1,1,1);
-    dim3 nBlocks_dup(1,1,1);
+    dim3 nThreads_dup(256,1,1);
+    dim3 nBlocks_dup(256,1,1);
+    // dim3 nThreads_dup(1,1,1);
+    // dim3 nBlocks_dup(1,1,1);
+    // dim3 nThreads_dup(16,16,1);
+    // dim3 nBlocks_dup(16,16,1);
     removeDupFishboneSegmentsInGPU<<<nBlocks_dup,nThreads_dup>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU);
 
     cudaError_t cudaerr = cudaGetLastError();
@@ -1661,11 +1663,11 @@ void SDL::Event::createTrackCandidates()
 #endif
 #endif
 
-//int pT2_num = *trackCandidatesInGPU->nTrackCandidatespT2;
-//int pT3_num = *trackCandidatesInGPU->nTrackCandidatespT3;
-//int pT5_num = *trackCandidatesInGPU->nTrackCandidatespT5;
-//int pLS_num = *trackCandidatesInGPU->nTrackCandidatespLS;
-//printf("total: %d %d %d %d\n",pT2_num,pT3_num,pT5_num,pLS_num);
+int pT2_num = *trackCandidatesInGPU->nTrackCandidatespT2;
+int pT3_num = *trackCandidatesInGPU->nTrackCandidatespT3;
+int pT5_num = *trackCandidatesInGPU->nTrackCandidatespT5;
+int pLS_num = *trackCandidatesInGPU->nTrackCandidatespLS;
+printf("total: %d %d %d %d\n",pT2_num,pT3_num,pT5_num,pLS_num);
 }
 
 void SDL::Event::createPixelTriplets()

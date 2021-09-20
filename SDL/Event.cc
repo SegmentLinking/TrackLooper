@@ -536,6 +536,121 @@ void SDL::CPU::Event::createSegmentsWithModuleMap(SGAlgo algo)
         createSegmentsFromInnerLowerModule(lowerModulePtr->detId(), algo);
 
     }
+
+    // Loop over lower modules
+    for (auto& lowerModulePtr : getLowerModulePtrs())
+    {
+        if (lowerModulePtr->side() != 3)
+            continue;
+        for (auto& iseg : lowerModulePtr->getSegmentPtrs())
+        {
+            for (auto& anotherlowerModulePtr : getLowerModulePtrs())
+            {
+                if (anotherlowerModulePtr->side() != 3)
+                    continue;
+                for (auto& jseg : anotherlowerModulePtr->getSegmentPtrs())
+                {
+                    // if same segment skip
+                    if (iseg == jseg)
+                        continue;
+                    // if nothing shared skip
+                    if (iseg->innerMiniDoubletPtr() != jseg->innerMiniDoubletPtr() and iseg->outerMiniDoubletPtr() != jseg->outerMiniDoubletPtr())
+                    {
+                        continue;
+                    }
+                    int iseg_hit1 = iseg->innerMiniDoubletPtr()->lowerHitPtr()->idx();
+                    int iseg_hit2 = iseg->innerMiniDoubletPtr()->upperHitPtr()->idx();
+                    int iseg_hit3 = iseg->outerMiniDoubletPtr()->lowerHitPtr()->idx();
+                    int iseg_hit4 = iseg->outerMiniDoubletPtr()->upperHitPtr()->idx();
+                    int jseg_hit1 = jseg->innerMiniDoubletPtr()->lowerHitPtr()->idx();
+                    int jseg_hit2 = jseg->innerMiniDoubletPtr()->upperHitPtr()->idx();
+                    int jseg_hit3 = jseg->outerMiniDoubletPtr()->lowerHitPtr()->idx();
+                    int jseg_hit4 = jseg->outerMiniDoubletPtr()->upperHitPtr()->idx();
+
+                    const SDL::CPU::Hit& i_hit0 = (*(iseg->innerMiniDoubletPtr()->lowerHitPtr()));
+                    const SDL::CPU::Hit& i_hit1 = (*(iseg->innerMiniDoubletPtr()->upperHitPtr()));
+                    const SDL::CPU::Hit& i_hit2 = (*(iseg->outerMiniDoubletPtr()->lowerHitPtr()));
+                    const SDL::CPU::Hit& i_hit3 = (*(iseg->outerMiniDoubletPtr()->upperHitPtr()));
+                    const SDL::CPU::Hit& i_hit4 = (*(iseg->innerMiniDoubletPtr()->anchorHitPtr()));
+                    const SDL::CPU::Hit& i_hit5 = (*(iseg->outerMiniDoubletPtr()->anchorHitPtr()));
+                    const SDL::CPU::Hit& j_hit0 = (*(jseg->innerMiniDoubletPtr()->lowerHitPtr()));
+                    const SDL::CPU::Hit& j_hit1 = (*(jseg->innerMiniDoubletPtr()->upperHitPtr()));
+                    const SDL::CPU::Hit& j_hit2 = (*(jseg->outerMiniDoubletPtr()->lowerHitPtr()));
+                    const SDL::CPU::Hit& j_hit3 = (*(jseg->outerMiniDoubletPtr()->upperHitPtr()));
+                    const SDL::CPU::Hit& j_hit4 = (*(jseg->innerMiniDoubletPtr()->anchorHitPtr()));
+                    const SDL::CPU::Hit& j_hit5 = (*(jseg->outerMiniDoubletPtr()->anchorHitPtr()));
+                    const SDL::CPU::Hit sg1 = (i_hit5 - i_hit4);
+                    const SDL::CPU::Hit sg2 = (j_hit5 - j_hit4);
+                    float dphi =  fabs(sg1.deltaPhi(sg2));
+                    float dtheta =  fabs(sg1.angleRtZ(sg2));
+                    bool overlap = false;
+
+                    int i_idx0 = i_hit0.idx();
+                    int i_idx1 = i_hit1.idx();
+                    int i_idx2 = i_hit2.idx();
+                    int i_idx3 = i_hit3.idx();
+                    int i_idx4 = i_hit4.idx();
+                    int i_idx5 = i_hit5.idx();
+
+                    int j_idx0 = j_hit0.idx();
+                    int j_idx1 = j_hit1.idx();
+                    int j_idx2 = j_hit2.idx();
+                    int j_idx3 = j_hit3.idx();
+                    int j_idx4 = j_hit4.idx();
+                    int j_idx5 = j_hit5.idx();
+
+                    const SDL::CPU::Module& i_module0 = i_hit0.getModule();
+                    const SDL::CPU::Module& i_module1 = i_hit2.getModule();
+                    int i_moduleId0                   = i_module0.module();
+                    int i_moduleId1                   = i_module1.module();
+                    int i_rod0                        = i_module0.rod();
+                    int i_rod1                        = i_module1.rod();
+
+                    const SDL::CPU::Module& j_module0 = j_hit0.getModule();
+                    const SDL::CPU::Module& j_module1 = j_hit2.getModule();
+                    int j_moduleId0                   = j_module0.module();
+                    int j_moduleId1                   = j_module1.module();
+                    int j_rod0                        = j_module0.rod();
+                    int j_rod1                        = j_module1.rod();
+
+                    bool is_lower_md_shared = (i_idx0 == j_idx0) and (i_idx1 == j_idx1);
+                    bool is_upper_md_shared = (i_idx2 == j_idx2) and (i_idx3 == j_idx3);
+
+                    int sharemd = -1;
+                    if (is_lower_md_shared and not is_upper_md_shared)
+                    {
+                        sharemd = 1;
+                    }
+                    else if (not is_lower_md_shared and is_upper_md_shared)
+                    {
+                        sharemd = 2;
+                    }
+
+                    if (sharemd < 0)
+                    {
+                        continue;
+                    }
+
+                    int moddiff = -1;
+                    if (sharemd == 2)
+                    {
+                        if (i_moduleId0 != j_moduleId0 and i_rod0 == j_rod0) moddiff = 1;
+                        if (i_rod0 != j_rod0 and i_moduleId0 == j_moduleId0) moddiff = 2;
+                        if (i_rod0 != j_rod0 and i_moduleId0 != j_moduleId0) moddiff = 3;
+                    }
+                    if (sharemd == 1)
+                    {
+                        if (i_moduleId1 != j_moduleId1 and i_rod1 == j_rod1) moddiff = 1;
+                        if (i_rod1 != j_rod1 and i_moduleId1 == j_moduleId1) moddiff = 2;
+                        if (i_rod1 != j_rod1 and i_moduleId1 != j_moduleId1) moddiff = 3;
+                    }
+
+                    std::cout <<  " iseg_hit1: " << iseg_hit1 <<  " iseg_hit2: " << iseg_hit2 <<  " iseg_hit3: " << iseg_hit3 <<  " iseg_hit4: " << iseg_hit4 <<  " jseg_hit1: " << jseg_hit1 <<  " jseg_hit2: " << jseg_hit2 <<  " jseg_hit3: " << jseg_hit3 <<  " jseg_hit4: " << jseg_hit4 <<  " dphi: " << dphi <<  " dtheta: " << dtheta <<  " moddiff: " << moddiff <<  std::endl;
+
+                }
+            }
+        }
+    }
 }
 
 void SDL::CPU::Event::createSegmentsFromInnerLowerModule(unsigned int detId, SDL::CPU::SGAlgo algo)
