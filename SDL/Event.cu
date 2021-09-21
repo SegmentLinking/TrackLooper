@@ -3124,3 +3124,9 @@ SDL::modules* SDL::Event::getFullModules()
     return modulesInGPU;
 }
 #endif
+
+
+SDL::trackExtensions* SDL::Event::getTrackExtensions()
+{
+    return trackExtensionsInGPU;
+}

@@ -42,6 +42,7 @@ namespace SDL
         unsigned int* logicalLayers;
         unsigned int* hitIndices;
         unsigned int* lowerModuleIndices;
+        bool* partOfExtension;
 
         trackCandidates();
         ~trackCandidates();

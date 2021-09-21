@@ -22,6 +22,8 @@ void SDL::createTrackExtensionsInUnifiedMemory(struct trackExtensions& trackExte
 {
     cudaMallocManaged(&trackExtensionsInGPU.constituentTCTypes, sizeof(short) * 3 * maxTrackExtensions);
     cudaMallocManaged(&trackExtensionsInGPU.constituentTCIndices, sizeof(unsigned int) * 3 * maxTrackExtensions);
+    cudaMallocManaged(&trackExtensionsInGPU.nLayerOverlaps, sizeof(unsigned int) * 2 * maxTrackExtensions);
+    cudaMallocManaged(&trackExtensionsInGPU.nHitOverlaps, sizeof(unsigned int) * 2 * maxTrackExtensions);
     cudaMallocManaged(&trackExtensionsInGPU.nTrackExtensions, sizeof(unsigned int));
 
     cudaMemset(trackExtensionsInGPU.nTrackExtensions, 0, sizeof(unsigned int));
@@ -31,12 +33,14 @@ void SDL::createTrackExtensionsInExplicitMemory(struct trackExtensions& trackExt
 {
     cudaMalloc(&trackExtensionsInGPU.constituentTCTypes, sizeof(short) * 3 * maxTrackExtensions);
     cudaMalloc(&trackExtensionsInGPU.constituentTCIndices, sizeof(unsigned int) * 3 * maxTrackExtensions);
+    cudaMalloc(&trackExtensionsInGPU.nLayerOverlaps, sizeof(unsigned int) * 2 * maxTrackExtensions);
+    cudaMalloc(&trackExtensionsInGPU.nHitOverlaps, sizeof(unsigned int) * 2 * maxTrackExtensions);
     cudaMalloc(&trackExtensionsInGPU.nTrackExtensions, sizeof(unsigned int));
     cudaMemset(trackExtensionsInGPU.nTrackExtensions, 0, sizeof(unsigned int));
 
 }
 
-__device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExtensionsInGPU, short* constituentTCType, unsigned int* constituentTCIndex, unsigned int trackExtensionIndex)
+__device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExtensionsInGPU, short* constituentTCType, unsigned int* constituentTCIndex, unsigned int* nLayerOverlaps, unsigned int* nHitOverlaps, unsigned int trackExtensionIndex)
 {
     
     for(size_t i = 0; i < 3 ; i++)
@@ -44,9 +48,15 @@ __device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExte
         trackExtensionsInGPU.constituentTCTypes[3 * trackExtensionIndex + i] = constituentTCType[i];
         trackExtensionsInGPU.constituentTCIndices[3 * trackExtensionIndex + i] = constituentTCIndex[i];
     }
+    for(size_t i = 0; i < 2; i++)
+    {
+        trackExtensionsInGPU.nLayerOverlaps[2 * trackExtensionIndex + i] = nLayerOverlaps[i];
+        trackExtensionsInGPU.nHitOverlaps[2 * trackExtensionIndex + i] = nHitOverlaps[i];
+    }
 }
 
-__device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct trackCandidates& trackCandidatesInGPU, unsigned int anchorObjectIndex, unsigned int outerObjectIndex, short anchorObjectType, short outerObjectType, unsigned int anchorObjectOuterT3Index, unsigned int layerOverlapTarget, short* constituentTCType, unsigned int* constituentTCIndex)
+__device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct trackCandidates& trackCandidatesInGPU, unsigned int anchorObjectIndex, unsigned int outerObjectIndex, short anchorObjectType, short outerObjectType, unsigned int anchorObjectOuterT3Index, unsigned int layerOverlapTarget, short* constituentTCType, unsigned int* constituentTCIndex, unsigned
+        int* nLayerOverlaps, unsigned int* nHitOverlaps)
 {
     /*
        Basic premise:
@@ -107,17 +117,16 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     pass = pass & runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 2], tripletsInGPU.segmentIndices[2 * anchorObjectOuterT3Index], tripletsInGPU.segmentIndices[2 * outerObjectIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
 
 
+    nLayerOverlaps[0] = nLayerOverlap;
+    nHitOverlaps[0] = nHitOverlap;
+
     constituentTCType[0] = anchorObjectType;
     constituentTCType[1] = outerObjectType;
 
     constituentTCIndex[0] = anchorObjectIndex;
     constituentTCIndex[1] = outerObjectIndex;
 
-    if(pass)
-    {
-        printf("anchor object type = %d, outer object type = %d, nLayerOverlaps = %d, nHitOverlaps = %d\n", anchorObjectType, outerObjectType, nLayerOverlap, nHitOverlap);
-    }
-    return pass;
+   return pass;
 }
 
 

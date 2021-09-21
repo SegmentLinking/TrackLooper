@@ -20,6 +20,7 @@ void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCand
     trackCandidatesInGPU.logicalLayers = (unsigned int*)cms::cuda::allocate_managed(7 * maxTrackCandidates * sizeof(unsigned int), stream);
     trackCandidatesInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_managed(7 * maxTrackCandidates * sizeof(unsigned int), stream);
     trackCandidatesInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_managed(14 * maxTrackCandidates * sizeof(unsigned int), stream);
+    trackCandidatesInGPU.partOfExtension = (bool*)cms::cuda::allocate_managed(maxTrackCandidates * sizeof(bool), stream);
     trackCandidatesInGPU.nTrackCandidatespLS= (unsigned int*)cms::cuda::allocate_managed( sizeof(unsigned int),stream);
 
 #else
@@ -37,6 +38,7 @@ void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCand
     cudaMallocManaged(&trackCandidatesInGPU.lowerModuleIndices, maxTrackCandidates * 7 * sizeof(unsigned int));
     cudaMallocManaged(&trackCandidatesInGPU.hitIndices, maxTrackCandidates * 14 * sizeof(unsigned int));
     cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidatespLS, sizeof(unsigned int));
+    cudaMallocManaged(&trackCandidatesInGPU.partOfExtension, maxTrackCandidates*sizeof(bool));
 #endif
 
     cudaMemset(trackCandidatesInGPU.nTrackCandidates,0, sizeof(unsigned int));
@@ -48,6 +50,7 @@ void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCand
     cudaMemset(trackCandidatesInGPU.nTrackCandidatespT3,0, sizeof(unsigned int));
     cudaMemset(trackCandidatesInGPU.nTrackCandidatespT5,0, sizeof(unsigned int));
     cudaMemset(trackCandidatesInGPU.nTrackCandidatespLS,0, sizeof(unsigned int));
+    cudaMemset(trackCandidatesInGPU.partOfExtension, false, maxTrackCandidates * sizeof(bool));
 }
 void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates)
 {
@@ -67,6 +70,7 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     trackCandidatesInGPU.nTrackCandidatesT5= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatespT5= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatespLS= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
+    trackCandidatesInGPU.partOfExtension = (bool*)cms::cuda::allocate_device(dev, maxTrackCandidates * sizeof(bool), stream);
 
     trackCandidatesInGPU.logicalLayers = (unsigned int*)cms::cuda::allocate_device(dev, 7 * maxTrackCandidates * sizeof(unsigned int), stream);
     trackCandidatesInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_device(dev, 7 * maxTrackCandidates * sizeof(unsigned int), stream);
@@ -84,7 +88,7 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     cudaMalloc(&trackCandidatesInGPU.nTrackCandidatesT5, sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.nTrackCandidatespT5, sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.nTrackCandidatespLS, sizeof(unsigned int));
-
+    cudaMalloc(&trackCandidatesInGPU.partOfExtension, maxTrackCandidates * sizeof(bool));
     cudaMalloc(&trackCandidatesInGPU.logicalLayers, 7 * maxTrackCandidates * sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.lowerModuleIndices, 7 * maxTrackCandidates * sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.hitIndices, 14 * maxTrackCandidates * sizeof(unsigned int));
@@ -99,7 +103,7 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     cudaMemset(trackCandidatesInGPU.nTrackCandidatespT3,0, sizeof(unsigned int));
     cudaMemset(trackCandidatesInGPU.nTrackCandidatespT5,0, sizeof(unsigned int));
     cudaMemset(trackCandidatesInGPU.nTrackCandidatespLS,0, sizeof(unsigned int));
-
+    cudaMemset(trackCandidatesInGPU.partOfExtension, false, maxTrackCandidates * sizeof(bool));
 }
 
 __device__ void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, unsigned int trackCandidateIndex)
@@ -165,6 +169,9 @@ SDL::trackCandidates::trackCandidates()
     nTrackCandidatespT3 = nullptr;
     logicalLayers = nullptr;
     hitIndices = nullptr;
+    lowerModuleIndices = nullptr;
+    partOfExtension = nullptr;
+
     nTrackCandidatespT5 = nullptr;
     nTrackCandidatespLS = nullptr;
 }
@@ -222,6 +229,8 @@ void SDL::trackCandidates::freeMemory()
     cudaFree(nTrackCandidatespT5);
     cudaFree(logicalLayers);
     cudaFree(hitIndices);
+    cudaFree(partOfExtension);
+    cudaFree(lowerModuleIndices);
     cudaFree(nTrackCandidatespLS);
 }
 

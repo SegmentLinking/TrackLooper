@@ -168,6 +168,7 @@ namespace SDL
         triplets* getTriplets();
         quintuplets* getQuintuplets();
         trackCandidates* getTrackCandidates();
+        trackExtensions* getTrackExtensions();
         pixelTriplets* getPixelTriplets();
         modules* getModules();
         modules* getFullModules();

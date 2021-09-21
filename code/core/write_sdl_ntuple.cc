@@ -39,6 +39,7 @@ void createOutputBranches()
     ana.tx->createBranch<vector<int>>("tc_sim");
     ana.tx->createBranch<vector<int>>("tc_isFake");
     ana.tx->createBranch<vector<int>>("tc_isDuplicate");
+    ana.tx->createBranch<vector<int>>("tc_partOfExtension");
 
     createOccupancyBranches();
    
@@ -159,6 +160,18 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<int>>("pT5_isFake");
     ana.tx->createBranch<vector<int>>("pT5_isDuplicate");
     ana.tx->createBranch<vector<int>>("pT5_score");
+
+    //TCE
+    ana.tx->createBranch<vector<int>>("sim_tce_matched");
+    ana.tx->createBranch<vector<vector<int>>>("sim_tce_types");
+    ana.tx->createBranch<vector<int>>("tce_isFake");
+    ana.tx->createBranch<vector<int>>("tce_isDuplicate");
+    ana.tx->createBranch<vector<vector<int>>>("tce_matched_simIdx");
+    ana.tx->createBranch<vector<vector<int>>>("tce_nLayerOverlaps");
+    ana.tx->createBranch<vector<vector<int>>>("tce_nHitOverlaps");
+    ana.tx->createBranch<vector<float>>("tce_pt");
+    ana.tx->createBranch<vector<float>>("tce_eta");
+    ana.tx->createBranch<vector<float>>("tce_phi");
 
 #ifdef CUT_VALUE_DEBUG
     createQuadrupletCutValueBranches();
@@ -772,6 +785,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
     std::vector<float> tc_phi;
     std::vector<int> tc_type;
     std::vector<int> tc_sim;
+    std::vector<int> tc_partOfExtension;
 
 #ifdef DO_QUADRUPLET
     const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 50000;
@@ -1210,12 +1224,12 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             }
 
             tc_isFake.push_back(matched_sim_trk_idxs.size() == 0);
+            tc_partOfExtension.push_back(trackCandidatesInGPU.partOfExtension[jdx]);
             tc_pt.push_back(pt);
             tc_eta.push_back(eta);
             tc_phi.push_back(phi);
             tc_matched_simIdx.push_back(matched_sim_trk_idxs);
     }
-
     ana.tx->setBranch<vector<int>>("sim_TC_matched", sim_TC_matched);
     ana.tx->setBranch<vector<vector<int>>>("sim_TC_types", sim_TC_types);
 
@@ -1242,6 +1256,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
     ana.tx->setBranch<vector<int>>("tc_isDuplicate", tc_isDuplicate);
     ana.tx->setBranch<vector<int>>("tc_type", tc_type);
     ana.tx->setBranch<vector<vector<int>>>("tc_matched_simIdx", tc_matched_simIdx);
+    ana.tx->setBranch<vector<int>>("tc_partOfExtension", tc_partOfExtension);
 }
 
 //________________________________________________________________________________________________________________________________
@@ -1551,6 +1566,9 @@ void fillTrackCandidateOutputBranches_v2(SDL::Event& event)
 
 }
 
+
+
+
 //________________________________________________________________________________________________________________________________
 void fillLowerLevelOutputBranches(SDL::Event& event)
 {
@@ -1565,6 +1583,8 @@ void fillLowerLevelOutputBranches(SDL::Event& event)
     fillQuadrupletOutputBranches(event);
 #endif
     fillPixelTripletOutputBranches(event);
+    fillTrackExtensionOutputBranches(event);
+
 }
 
 #ifdef DO_QUINTUPLET
@@ -1885,6 +1905,195 @@ void fillQuintupletOutputBranches(SDL::Event& event)
 
 }
 #endif
+
+void fillTrackExtensionOutputBranches(SDL::Event& event)
+{
+    SDL::trackExtensions& trackExtensionsInGPU = (*event.getTrackExtensions());
+    SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates()); 
+    SDL::triplets& tripletsInGPU = (*event.getTriplets());
+    SDL::hits& hitsInGPU = (*event.getHits());
+
+    std::vector<int> sim_tce_matched(trk.sim_pt().size());
+    std::vector<vector<int>> sim_tce_types(trk.sim_pt().size());
+    std::vector<int> tce_isFake;
+    std::vector<vector<int>> tce_matched_simIdx;
+    std::vector<float> tce_pt;
+    std::vector<float> tce_eta;
+    std::vector<float> tce_phi;
+    std::vector<int> tce_type;
+    std::vector<int> tce_sim;
+    std::vector<int> tce_layer_binary;
+    std::vector<int> tce_moduleType_binary;
+    std::vector<float> tce_rzChiSquared;
+    std::vector<float> tce_rPhiChiSquared;
+    std::vector<float> tce_rPhiChiSquaredInwards;
+    std::vector<float> tce_simpt;
+
+    std::vector<std::vector<int>> tce_nLayerOverlaps;
+    std::vector<std::vector<int>> tce_nHitOverlaps;
+
+    std::vector<float> tc_pt = ana.tx->getBranch<vector<float>>("tc_pt");
+    std::vector<float> tc_eta = ana.tx->getBranch<vector<float>>("tc_eta");
+    std::vector<float> tc_phi = ana.tx->getBranch<vector<float>>("tc_phi");
+
+    std::vector<float> t3_pt = ana.tx->getBranch<vector<float>>("t3_pt");
+    std::vector<float> t3_eta = ana.tx->getBranch<vector<float>>("t3_eta");
+    std::vector<float> t3_phi = ana.tx->getBranch<vector<float>>("t3_phi");
+
+    for(size_t i = 0; i < *(trackExtensionsInGPU.nTrackExtensions); i++)
+    {
+        short anchorType = trackExtensionsInGPU.constituentTCTypes[3*i];
+        short outerType = trackExtensionsInGPU.constituentTCTypes[3*i + 1];
+
+        unsigned int anchorIndex = trackExtensionsInGPU.constituentTCIndices[3*i];
+        unsigned int outerIndex = trackExtensionsInGPU.constituentTCIndices[3*i + 1];
+        unsigned int layer_binary = 0;
+
+        //get the hit indices
+        unsigned int* anchorHitIndices;
+        unsigned int* outerHitIndices;
+        unsigned int* anchorLogicalLayers;
+        unsigned int* outerLogicalLayers;
+        vector<int> hit_idxs;
+        vector<int> module_idxs;
+
+        vector<int> nLayerOverlaps;
+        vector<int> nHitOverlaps;
+    
+        nLayerOverlaps.push_back(trackExtensionsInGPU.nLayerOverlaps[2*i]);
+        nHitOverlaps.push_back(trackExtensionsInGPU.nHitOverlaps[2*i]);
+
+        tce_nLayerOverlaps.push_back(nLayerOverlaps);
+        tce_nHitOverlaps.push_back(nHitOverlaps);
+
+        if(anchorType != 3)
+        {
+            anchorHitIndices = &trackCandidatesInGPU.hitIndices[14 * anchorIndex];
+            anchorLogicalLayers = &trackCandidatesInGPU.logicalLayers[7 * anchorIndex];
+            tce_pt.push_back(tc_pt.at(anchorIndex));
+            tce_eta.push_back(tc_eta.at(anchorIndex));
+            tce_phi.push_back(tc_phi.at(anchorIndex));
+        }
+        
+        else
+        {
+            anchorHitIndices = &tripletsInGPU.hitIndices[6 * anchorIndex];
+            anchorLogicalLayers = &trackCandidatesInGPU.logicalLayers[3 * anchorIndex];
+            tce_pt.push_back(t3_pt.at(anchorIndex));
+            tce_eta.push_back(t3_eta.at(anchorIndex));
+            tce_phi.push_back(t3_phi.at(anchorIndex));
+
+        }
+
+        if(outerType == 3)
+        {
+            outerHitIndices = &tripletsInGPU.hitIndices[6 * outerIndex];
+            outerLogicalLayers = &tripletsInGPU.logicalLayers[3 * outerIndex];
+        }
+        else
+        {
+            outerHitIndices = &trackCandidatesInGPU.hitIndices[14 * anchorIndex];
+            outerLogicalLayers = &trackCandidatesInGPU.logicalLayers[3 * outerIndex];
+        }
+        size_t anchorLimits = anchorType == 7 ? 14 : (anchorType == 3 ? 6 : 10);
+        size_t outerLimits = outerType == 3 ? 6 : (outerType == 7 ? 14 : 10);
+        
+        for(size_t j = 0; j < anchorLimits; j++)
+        {
+            hit_idxs.push_back(hitsInGPU.idxs[anchorHitIndices[j]]);
+            module_idxs.push_back(hitsInGPU.moduleIndices[anchorHitIndices[j]]);
+        }
+        for(size_t j = 0; j < (anchorLimits / 2); j++)
+        {
+            layer_binary |= (1 << anchorLogicalLayers[j]);
+        }
+
+        for(size_t j = 0; j < outerLimits; j++)
+        {
+            hit_idxs.push_back(hitsInGPU.idxs[outerHitIndices[j]]);
+            module_idxs.push_back(hitsInGPU.moduleIndices[outerHitIndices[j]]);
+        }
+        for(size_t j = 0; j < (outerLimits/2); j++)
+        {
+            layer_binary |= (1 << outerLogicalLayers[j]);
+        }
+
+        std::vector<int> hit_types(hit_idxs.size(), 4);
+        if(anchorType == 7 or anchorType == 5)
+        {
+            hit_types[0] = 0;
+            hit_types[1] = 0;
+            hit_types[2] = 0;
+            hit_types[3] = 0;
+        }
+        std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
+        for(auto &isimtrk: matched_sim_trk_idxs)
+        {
+            sim_tce_matched[isimtrk]++;
+            sim_tce_types[isimtrk].push_back(layer_binary);
+        }
+
+        tce_isFake.push_back(matched_sim_trk_idxs.size() == 0);
+        tce_matched_simIdx.push_back(matched_sim_trk_idxs);
+        
+    }
+
+    //CHEAT - fill the rest with Track Candidates
+    std::vector<int> sim_TC_matched = ana.tx->getBranch<vector<int>>("sim_TC_matched");
+    std::vector<int> tc_isFake = ana.tx->getBranch<vector<int>>("tc_isFake");
+    std::vector<std::vector<int>> sim_TC_types = ana.tx->getBranch<vector<vector<int>>>("sim_TC_types");
+    std::vector<std::vector<int>> tc_matched_simIdx = ana.tx->getBranch<vector<vector<int>>>("tc_matched_simIdx");
+    std::vector<int> tc_partOfExtension = ana.tx->getBranch<vector<int>>("tc_partOfExtension");
+
+    for(size_t jdx = 0; jdx < sim_tce_matched.size(); jdx++)
+    {
+        sim_tce_matched[jdx] += sim_TC_matched[jdx];
+        for(auto &jt:sim_TC_types[jdx])
+        {
+            sim_tce_types[jdx].push_back(jt);
+        }
+    }
+   
+    for(unsigned int jdx = 0; jdx < tc_matched_simIdx.size(); jdx++)
+    {
+        if(tc_partOfExtension[jdx]) continue;
+
+        tce_isFake.push_back(tc_isFake[jdx]);
+        std::vector<int> temp;
+        for(auto &jt:tc_matched_simIdx[jdx])
+        {
+            temp.push_back(jt);
+        }
+        tce_matched_simIdx.push_back(temp);
+    }
+
+    vector<int> tce_isDuplicate(tce_matched_simIdx.size());
+    for (unsigned int i = 0; i < tce_matched_simIdx.size(); ++i)
+    {
+        bool isDuplicate = false;
+        for (unsigned int isim = 0; isim < tce_matched_simIdx[i].size(); ++isim)
+        {
+            if (sim_tce_matched[tce_matched_simIdx[i][isim]] > 1)
+            {
+                isDuplicate = true;
+            }
+        }
+        tce_isDuplicate[i] = isDuplicate;
+    }
+
+    ana.tx->setBranch<vector<int>>("sim_tce_matched", sim_tce_matched);
+    ana.tx->setBranch<vector<vector<int>>>("sim_tce_types", sim_tce_types);
+    ana.tx->setBranch<vector<vector<int>>>("tce_matched_simIdx", tce_matched_simIdx);
+    ana.tx->setBranch<vector<int>>("tce_isFake", tce_isFake);
+    ana.tx->setBranch<vector<int>>("tce_isDuplicate", tce_isDuplicate);
+    ana.tx->setBranch<vector<vector<int>>>("tce_nLayerOverlaps", tce_nLayerOverlaps);
+    ana.tx->setBranch<vector<vector<int>>>("tce_nHitOverlaps", tce_nHitOverlaps);
+    ana.tx->setBranch<vector<float>>("tce_pt", tce_pt);
+    ana.tx->setBranch<vector<float>>("tce_eta", tce_eta);
+    ana.tx->setBranch<vector<float>>("tce_phi", tce_phi);
+}
+
+
 
 void fillPixelTripletOutputBranches(SDL::Event& event)
 {

@@ -31,6 +31,8 @@ def parse_plot_name(output_name):
         rtnstr.append("Pixel Quintuplet")
     elif "T3_" in output_name:
         rtnstr.append("Triplet")
+    elif "TCE_" in output_name:
+        rtnstr.append("Extended Track")
     elif "TC_" in output_name:
         rtnstr.append("Track Candidate")
     elif "T4s_" in output_name:
@@ -63,7 +65,7 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
 
         num.SetBinContent(num.GetNbinsX(), lastBin + overFlowBin)
         num.SetBinError(num.GetNbinsX(), sqrt(lastBin + overFlowBin))
-        
+
         overFlowBin = den.GetBinContent(den.GetNbinsX() + 1)
         lastBin = den.GetBinContent(den.GetNbinsX())
 
@@ -220,7 +222,7 @@ if __name__ == "__main__":
             continue
         # if "Set4" not in key.GetName():
         #     continue
-        if "TC_All" not in key.GetName() and "T4s_All" not in key.GetName() and "T3_All" not in key.GetName() and "pLS" not in key.GetName() and "T5" not in key.GetName() and "pT4_All" not in key.GetName() and "pT3_All" not in key.GetName() and "pT5_All" not in key.GetName():
+        if "TC_All" not in key.GetName() and "T4s_All" not in key.GetName() and "T3_All" not in key.GetName() and "pLS" not in key.GetName() and "T5" not in key.GetName() and "pT4_All" not in key.GetName() and "pT3_All" not in key.GetName() and "pT5_All" not in key.GetName() and "TCE_All" not in key.GetName():
             continue
         # if "pLS_P" not in key.GetName():
         #     continue
