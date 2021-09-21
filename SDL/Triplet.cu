@@ -183,15 +183,15 @@ __device__ bool SDL::runTripletDefaultAlgo(struct modules& modulesInGPU, struct 
 {
     bool pass = true;
 
-    if (segmentsInGPU.isDup[innerSegmentIndex])
-    {
-        pass = false;
-    }
+    // if (segmentsInGPU.isDup[innerSegmentIndex])
+    // {
+    //     pass = false;
+    // }
 
-    if (segmentsInGPU.isDup[outerSegmentIndex])
-    {
-        pass = false;
-    }
+    // if (segmentsInGPU.isDup[outerSegmentIndex])
+    // {
+    //     pass = false;
+    // }
 
     //check
     if(not(hasCommonMiniDoublet(segmentsInGPU, innerSegmentIndex, outerSegmentIndex)))

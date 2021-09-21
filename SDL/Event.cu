@@ -1663,11 +1663,11 @@ void SDL::Event::createTrackCandidates()
 #endif
 #endif
 
-int pT2_num = *trackCandidatesInGPU->nTrackCandidatespT2;
-int pT3_num = *trackCandidatesInGPU->nTrackCandidatespT3;
-int pT5_num = *trackCandidatesInGPU->nTrackCandidatespT5;
-int pLS_num = *trackCandidatesInGPU->nTrackCandidatespLS;
-printf("total: %d %d %d %d\n",pT2_num,pT3_num,pT5_num,pLS_num);
+// int pT2_num = *trackCandidatesInGPU->nTrackCandidatespT2;
+// int pT3_num = *trackCandidatesInGPU->nTrackCandidatespT3;
+// int pT5_num = *trackCandidatesInGPU->nTrackCandidatespT5;
+// int pLS_num = *trackCandidatesInGPU->nTrackCandidatespLS;
+// printf("total: %d %d %d %d\n",pT2_num,pT3_num,pT5_num,pLS_num);
 }
 
 void SDL::Event::createPixelTriplets()
