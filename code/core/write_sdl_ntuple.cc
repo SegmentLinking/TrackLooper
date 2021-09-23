@@ -43,6 +43,7 @@ void createOutputBranches()
     ana.tx->createBranch<vector<int>>("tc_sim");
     ana.tx->createBranch<vector<int>>("tc_isFake");
     ana.tx->createBranch<vector<int>>("tc_isDuplicate");
+    ana.tx->createBranch<vector<vector<int>>>("tc_hitIdxs");
 
     createOccupancyBranches();
    
@@ -136,6 +137,7 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("pLS_pt");
     ana.tx->createBranch<vector<float>>("pLS_eta");
     ana.tx->createBranch<vector<float>>("pLS_phi");
+    ana.tx->createBranch<vector<float>>("pLS_score");
 
     //pT3
     ana.tx->createBranch<vector<int>>("sim_pT3_matched");
@@ -873,6 +875,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
     std::vector<float> tc_phi;
     std::vector<int> tc_type;
     std::vector<int> tc_sim;
+    std::vector<vector<int>> tc_hitIdxs;
 
 #ifdef DO_QUADRUPLET
     const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 50000;
@@ -1296,6 +1299,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             if(trackCandidateType == 7) layer_binary |= (1 << logicallayer12);
             /*const float*/ pt = ptAv;
       }// end !pLS
+            tc_hitIdxs.push_back(hit_idx);
             // sim track matched index
             std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idx, hit_types);
 
@@ -1376,6 +1380,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
     ana.tx->setBranch<vector<int>>("tc_isDuplicate", tc_isDuplicate);
     ana.tx->setBranch<vector<int>>("tc_type", tc_type);
     ana.tx->setBranch<vector<vector<int>>>("tc_matched_simIdx", tc_matched_simIdx);
+    ana.tx->setBranch<vector<vector<int>>>("tc_hitIdxs", tc_hitIdxs);
 }
 
 //________________________________________________________________________________________________________________________________
@@ -2532,6 +2537,7 @@ void fillPixelLineSegmentOutputBranches(SDL::Event& event)
     std::vector<float> pLS_pt;
     std::vector<float> pLS_eta;
     std::vector<float> pLS_phi;
+    std::vector<float> pLS_score;
 
     const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000; 
     const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
@@ -2540,6 +2546,8 @@ void fillPixelLineSegmentOutputBranches(SDL::Event& event)
     for(unsigned int jdx = 0; jdx < nPixelSegments; jdx++)
     {
         if(segmentsInGPU.isDup[jdx]) {continue;}
+        if(!segmentsInGPU.isQuad[jdx]) {continue;}
+        pLS_score.push_back(segmentsInGPU.score[jdx]);
         unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + jdx;
         unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
         unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
@@ -2614,6 +2622,7 @@ void fillPixelLineSegmentOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("pLS_pt",pLS_pt);
     ana.tx->setBranch<vector<float>>("pLS_eta",pLS_eta);
     ana.tx->setBranch<vector<float>>("pLS_phi",pLS_phi);
+    ana.tx->setBranch<vector<float>>("pLS_score",pLS_score);
     ana.tx->setBranch<vector<int>>("pLS_isFake",pLS_isFake);
     ana.tx->setBranch<vector<int>>("pLS_isDuplicate",pLS_isDuplicate);
 }
