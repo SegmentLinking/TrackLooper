@@ -68,7 +68,7 @@ SPECIFICGPUVERSION=${2}
 if [ -z ${3} ]; then
     NEVENTS=200 # If no number of events provided, validate on first 200 events
     if [[ ${SAMPLE} == *"PU200"* ]]; then
-        NEVENTS=20 # If PU200 then run 30 events
+        NEVENTS=200 # If PU200 then run 30 events
     fi
 else
     NEVENTS=${3} # If provided set the NEVENTS
