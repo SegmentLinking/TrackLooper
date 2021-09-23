@@ -773,6 +773,12 @@ void fillSimTrackOutputBranches()
        bool lay4 = 0;
        bool lay5 = 0;
        bool lay6 = 0;
+       bool blay1 = 0;
+       bool blay2 = 0;
+       bool blay3 = 0;
+       bool blay4 = 0;
+       bool blay5 = 0;
+       bool blay6 = 0;
         int len =-1;
         int lengap =-1;
         int hits =0;
@@ -792,9 +798,13 @@ void fillSimTrackOutputBranches()
             lengap = -2;
             break;
           }
+          len =0;
+          lengap =0;
+          hits++;
         
           //printf("%d\n",simHitLays->at(simhitidx));
           int lay = simHitLays->at(simhitidx);
+          if(trk.simhit_subdet()[simhitidx] == 4){
           if(lay ==1){lay1=1;}
           if(lay ==2){lay2=1;}
           if(lay ==3){lay3=1;}
@@ -802,17 +812,33 @@ void fillSimTrackOutputBranches()
           if(lay ==5){lay5=1;}
           if(lay ==6){lay6=1;}
           if(lay >6){printf("high layer: %d\n",lay);}
-          len =0;
-          lengap =0;
-          hits++;
+          }
+          if(trk.simhit_subdet()[simhitidx] == 5){
+          if(lay ==1){blay1=1;}
+          if(lay ==2){blay2=1;}
+          if(lay ==3){blay3=1;}
+          if(lay ==4){blay4=1;}
+          if(lay ==5){blay5=1;}
+          if(lay ==6){blay6=1;}
+          if(lay >6){printf("high layer: %d\n",lay);}
+          }
         }
         if(lay1){
-        len=1;
+        len++;
         if(lay2){len++;
         if(lay3){len++;
         if(lay4){len++; 
         if(lay5){len++;
         if(lay6){len++;
+        }}}}} 
+        }
+        if(blay1){
+        len++;
+        if(blay2){len++;
+        if(blay3){len++;
+        if(blay4){len++; 
+        if(blay5){len++;
+        if(blay6){len++;
         }}}}} 
         }
         sim_len.push_back(static_cast<float>(len));
@@ -822,6 +848,12 @@ void fillSimTrackOutputBranches()
         if(lay4){lengap++;} 
         if(lay5){lengap++;}
         if(lay6){lengap++;}
+        if(blay1){lengap++;} 
+        if(blay2){lengap++;}
+        if(blay3){lengap++;}
+        if(blay4){lengap++;} 
+        if(blay5){lengap++;}
+        if(blay6){lengap++;}
         sim_lengap.push_back(static_cast<float>(lengap));
         sim_hits.push_back(static_cast<float>(hits));
     }
