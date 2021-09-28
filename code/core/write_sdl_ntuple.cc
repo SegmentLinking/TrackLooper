@@ -18,11 +18,15 @@ void createOutputBranches()
     ana.tx->createBranch<vector<float>>("sim_vx");
     ana.tx->createBranch<vector<float>>("sim_vy");
     ana.tx->createBranch<vector<float>>("sim_vz");
+    ana.tx->createBranch<vector<bool>>("sim_isGood");
 
     // Sim vertex
     ana.tx->createBranch<vector<float>>("simvtx_x");
     ana.tx->createBranch<vector<float>>("simvtx_y");
     ana.tx->createBranch<vector<float>>("simvtx_z");
+    ana.tx->createBranch<vector<float>>("sim_len");
+    ana.tx->createBranch<vector<float>>("sim_lengap");
+    ana.tx->createBranch<vector<float>>("sim_hits");
 
     ana.tx->createBranch<vector<vector<int>>>("sim_tcIdx");
 
@@ -39,6 +43,7 @@ void createOutputBranches()
     ana.tx->createBranch<vector<int>>("tc_sim");
     ana.tx->createBranch<vector<int>>("tc_isFake");
     ana.tx->createBranch<vector<int>>("tc_isDuplicate");
+    ana.tx->createBranch<vector<vector<int>>>("tc_hitIdxs");
 
     createOccupancyBranches();
    
@@ -132,6 +137,7 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("pLS_pt");
     ana.tx->createBranch<vector<float>>("pLS_eta");
     ana.tx->createBranch<vector<float>>("pLS_phi");
+    ana.tx->createBranch<vector<float>>("pLS_score");
 
     //pT3
     ana.tx->createBranch<vector<int>>("sim_pT3_matched");
@@ -719,6 +725,7 @@ void fillSimTrackOutputBranches()
     std::vector<float> sim_vx;
     std::vector<float> sim_vy;
     std::vector<float> sim_vz;
+    std::vector<bool> sim_isGood;
     for (unsigned int isimtrk = 0; isimtrk < trk.sim_pt().size(); ++isimtrk)
     {
         sim_denom.push_back(getDenomSimTrkType(isimtrk));
@@ -726,16 +733,143 @@ void fillSimTrackOutputBranches()
         sim_vx.push_back(trk.simvtx_x()[vtxidx]);
         sim_vy.push_back(trk.simvtx_y()[vtxidx]);
         sim_vz.push_back(trk.simvtx_z()[vtxidx]);
+        bool isgood =0;
+        if((abs(trk.sim_eta()[isimtrk]) < 2.4) && (trk.sim_q()[isimtrk] != 0) &&(trk.sim_bunchCrossing()[isimtrk] ==0) && (trk.sim_event()[isimtrk]==0) && (trk.simvtx_z()[vtxidx]<30) ){
+          float simvtx_xy2 = trk.simvtx_x()[vtxidx]*trk.simvtx_x()[vtxidx] + trk.simvtx_y()[vtxidx]*trk.simvtx_y()[vtxidx];
+          if(simvtx_xy2 < 6.25 ){
+            isgood = 1;
+          }
+        }
+        sim_isGood.push_back(isgood);
     }
     ana.tx->setBranch<vector<int>>("sim_denom", sim_denom);
     ana.tx->setBranch<vector<float>>("sim_vx", sim_vx);
     ana.tx->setBranch<vector<float>>("sim_vy", sim_vy);
     ana.tx->setBranch<vector<float>>("sim_vz", sim_vz);
+    ana.tx->setBranch<vector<bool>>("sim_isGood", sim_isGood);
 
     // simvtx
     ana.tx->setBranch<vector<float>>("simvtx_x", trk.simvtx_x());
     ana.tx->setBranch<vector<float>>("simvtx_y", trk.simvtx_y());
     ana.tx->setBranch<vector<float>>("simvtx_z", trk.simvtx_z());
+
+    //const auto simHitIdxs = &trk.sim_simHitIdx();
+    const auto simHitLays = &trk.simhit_layer();
+        //count++;
+        //if(hit.size() ==0){continue;}
+        //printf("size: %d\n",hit.size());
+        //for(auto lay: hit){
+        //  printf("%d\n",simHitLays->at(lay));
+        //}
+    std::vector<float> sim_len;
+    std::vector<float> sim_lengap;
+    std::vector<float> sim_hits;
+    for(unsigned int isimtrk =0; isimtrk < trk.sim_pt().size(); ++isimtrk)
+    {
+       //printf("size: %d\n",trk.sim_simHitIdx()[isimtrk].size());
+       bool lay1 = 0;
+       bool lay2 = 0;
+       bool lay3 = 0;
+       bool lay4 = 0;
+       bool lay5 = 0;
+       bool lay6 = 0;
+       bool blay1 = 0;
+       bool blay2 = 0;
+       bool blay3 = 0;
+       bool blay4 = 0;
+       bool blay5 = 0;
+       bool blay6 = 0;
+        int len =-1;
+        int lengap =-1;
+        int hits =0;
+       for (unsigned int ith_hit = 0; ith_hit < trk.sim_simHitIdx()[isimtrk].size(); ++ith_hit)
+       {
+          // Retrieve the sim hit idx
+          unsigned int simhitidx = trk.sim_simHitIdx()[isimtrk][ith_hit];
+          // Select only the hits in the outer tracker
+          if (not (trk.simhit_subdet()[simhitidx] == 4 or trk.simhit_subdet()[simhitidx] == 5))
+            continue;
+
+          //if (not (trk.simhit_particle()[simhitidx] == trk.sim_pdgId()[isimtrk]))
+          //  continue;
+
+          if (isMuonCurlingHit(isimtrk, ith_hit)){
+            len = -2;
+            lengap = -2;
+            break;
+          }
+          len =0;
+          lengap =0;
+          hits++;
+        
+          //printf("%d\n",simHitLays->at(simhitidx));
+          int lay = simHitLays->at(simhitidx);
+          if(trk.simhit_subdet()[simhitidx] == 4){
+          if(lay ==1){lay1=1;}
+          if(lay ==2){lay2=1;}
+          if(lay ==3){lay3=1;}
+          if(lay ==4){lay4=1;}
+          if(lay ==5){lay5=1;}
+          if(lay ==6){lay6=1;}
+          if(lay >6){printf("high layer: %d\n",lay);}
+          }
+          if(trk.simhit_subdet()[simhitidx] == 5){
+          if(lay ==1){blay1=1;}
+          if(lay ==2){blay2=1;}
+          if(lay ==3){blay3=1;}
+          if(lay ==4){blay4=1;}
+          if(lay ==5){blay5=1;}
+          if(lay ==6){blay6=1;}
+          if(lay >6){printf("high layer: %d\n",lay);}
+          }
+        }
+        if(lay1){
+        len++;
+        if(lay2){len++;
+        if(lay3){len++;
+        if(lay4){len++; 
+        if(lay5){len++;
+        if(lay6){len++;
+        }}}}} 
+        }
+        if(blay1){
+        len++;
+        if(blay2){len++;
+        if(blay3){len++;
+        if(blay4){len++; 
+        if(blay5){len++;
+        if(blay6){len++;
+        }}}}} 
+        }
+        sim_len.push_back(static_cast<float>(len));
+        if(lay1){lengap++;} 
+        if(lay2){lengap++;}
+        if(lay3){lengap++;}
+        if(lay4){lengap++;} 
+        if(lay5){lengap++;}
+        if(lay6){lengap++;}
+        if(blay1){lengap++;} 
+        if(blay2){lengap++;}
+        if(blay3){lengap++;}
+        if(blay4){lengap++;} 
+        if(blay5){lengap++;}
+        if(blay6){lengap++;}
+        sim_lengap.push_back(static_cast<float>(lengap));
+        sim_hits.push_back(static_cast<float>(hits));
+    }
+    //ana.tx->setBranch<vector<float>>("sim_pt", sim_len);
+    ana.tx->setBranch<vector<float>>("sim_len", sim_len);
+    ana.tx->setBranch<vector<float>>("sim_lengap", sim_lengap);
+    ana.tx->setBranch<vector<float>>("sim_hits", sim_hits);
+    //printf("count %d\n",count);
+    //printf("%d %d %d\n",simHitIdxs->size(),simHitLays->size(),trk.sim_pt().size());
+    ////layer test
+    //for (unsigned int isimtrk = 0; isimtrk < trk.simhit_hitIdx().size(); ++isimtrk)
+    //{
+    //  for(auto hit: trk.simhit_hitIdx()[isimtrk]){
+    //    printf("layer: %u %d %d\n",isimtrk, hit,trk.simhit_layer()[hit]);
+    //  }
+    //}
 }
 
 //________________________________________________________________________________________________________________________________
@@ -773,6 +907,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
     std::vector<float> tc_phi;
     std::vector<int> tc_type;
     std::vector<int> tc_sim;
+    std::vector<vector<int>> tc_hitIdxs;
 
 #ifdef DO_QUADRUPLET
     const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 50000;
@@ -1196,6 +1331,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             if(trackCandidateType == 7) layer_binary |= (1 << logicallayer12);
             /*const float*/ pt = ptAv;
       }// end !pLS
+            tc_hitIdxs.push_back(hit_idx);
             // sim track matched index
             std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idx, hit_types);
 
@@ -1276,6 +1412,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
     ana.tx->setBranch<vector<int>>("tc_isDuplicate", tc_isDuplicate);
     ana.tx->setBranch<vector<int>>("tc_type", tc_type);
     ana.tx->setBranch<vector<vector<int>>>("tc_matched_simIdx", tc_matched_simIdx);
+    ana.tx->setBranch<vector<vector<int>>>("tc_hitIdxs", tc_hitIdxs);
 }
 
 //________________________________________________________________________________________________________________________________
@@ -2432,6 +2569,7 @@ void fillPixelLineSegmentOutputBranches(SDL::Event& event)
     std::vector<float> pLS_pt;
     std::vector<float> pLS_eta;
     std::vector<float> pLS_phi;
+    std::vector<float> pLS_score;
 
     const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000; 
     const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
@@ -2440,6 +2578,8 @@ void fillPixelLineSegmentOutputBranches(SDL::Event& event)
     for(unsigned int jdx = 0; jdx < nPixelSegments; jdx++)
     {
         if(segmentsInGPU.isDup[jdx]) {continue;}
+        if(!segmentsInGPU.isQuad[jdx]) {continue;}
+        pLS_score.push_back(segmentsInGPU.score[jdx]);
         unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + jdx;
         unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
         unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
@@ -2514,6 +2654,7 @@ void fillPixelLineSegmentOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("pLS_pt",pLS_pt);
     ana.tx->setBranch<vector<float>>("pLS_eta",pLS_eta);
     ana.tx->setBranch<vector<float>>("pLS_phi",pLS_phi);
+    ana.tx->setBranch<vector<float>>("pLS_score",pLS_score);
     ana.tx->setBranch<vector<int>>("pLS_isFake",pLS_isFake);
     ana.tx->setBranch<vector<int>>("pLS_isDuplicate",pLS_isDuplicate);
 }
