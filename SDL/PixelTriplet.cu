@@ -8,6 +8,8 @@ SDL::pixelTriplets::pixelTriplets()
     nPixelTriplets = nullptr;
     pixelRadius = nullptr;
     tripletRadius = nullptr;
+    centerX = nullptr;
+    centerY = nullptr;
     pt = nullptr;
     isDup = nullptr;
     partOfPT5 = nullptr;
@@ -31,6 +33,8 @@ void SDL::pixelTriplets::freeMemory()
     cudaFree(nPixelTriplets);
     cudaFree(pixelRadius);
     cudaFree(tripletRadius);
+    cudaFree(centerX);
+    cudaFree(centerY);
     cudaFree(pt);
     cudaFree(isDup);
     cudaFree(partOfPT5);
@@ -56,6 +60,8 @@ void SDL::createPixelTripletsInUnifiedMemory(struct pixelTriplets& pixelTriplets
     cudaMallocManaged(&pixelTripletsInGPU.nPixelTriplets, sizeof(unsigned int));
     cudaMallocManaged(&pixelTripletsInGPU.pixelRadius, maxPixelTriplets * sizeof(float));
     cudaMallocManaged(&pixelTripletsInGPU.tripletRadius, maxPixelTriplets * sizeof(float));
+    cudaMallocManaged(&pixelTripletsInGPU.centerX, maxPixelTriplets * sizeof(float));
+    cudaMallocManaged(&pixelTripletsInGPU.centerY, maxPixelTriplets * sizeof(float));
     cudaMallocManaged(&pixelTripletsInGPU.pt, maxPixelTriplets * 6*sizeof(float));
     cudaMallocManaged(&pixelTripletsInGPU.isDup, maxPixelTriplets * sizeof(bool));
     cudaMallocManaged(&pixelTripletsInGPU.partOfPT5, maxPixelTriplets * sizeof(bool));
@@ -85,6 +91,8 @@ void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTriplet
     cudaMalloc(&pixelTripletsInGPU.nPixelTriplets, sizeof(unsigned int));
     cudaMalloc(&pixelTripletsInGPU.pixelRadius, maxPixelTriplets * sizeof(float));
     cudaMalloc(&pixelTripletsInGPU.tripletRadius, maxPixelTriplets * sizeof(float));
+    cudaMalloc(&pixelTripletsInGPU.centerX, maxPixelTriplets * sizeof(float));
+    cudaMalloc(&pixelTripletsInGPU.centerY, maxPixelTriplets * sizeof(float));
     cudaMalloc(&pixelTripletsInGPU.pt, maxPixelTriplets * 6*sizeof(float));
     cudaMalloc(&pixelTripletsInGPU.isDup, maxPixelTriplets * sizeof(bool));
     cudaMalloc(&pixelTripletsInGPU.partOfPT5, maxPixelTriplets * sizeof(bool));
@@ -103,15 +111,17 @@ void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTriplet
 }
 
 #ifdef CUT_VALUE_DEBUG
-__device__ void SDL::addPixelTripletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float pixelRadiusError, float tripletRadius, float rPhiChiSquared, float rPhiChiSquaredInwards, float rzChiSquared, unsigned int pixelTripletIndex, float pt, float eta, float phi, float eta_pix, float phi_pix, float score)
+__device__ void SDL::addPixelTripletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float pixelRadiusError, float tripletRadius, float centerX, float centerY, float rPhiChiSquared, float rPhiChiSquaredInwards, float rzChiSquared, unsigned int pixelTripletIndex, float pt, float eta, float phi, float eta_pix, float phi_pix, float score)
 #else
-__device__ void SDL::addPixelTripletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float tripletRadius, unsigned int pixelTripletIndex, float pt, float eta, float phi, float eta_pix, float phi_pix,float score)
+__device__ void SDL::addPixelTripletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float tripletRadius, float centerX, float centerY, unsigned int pixelTripletIndex, float pt, float eta, float phi, float eta_pix, float phi_pix,float score)
 #endif
 {
     pixelTripletsInGPU.pixelSegmentIndices[pixelTripletIndex] = pixelSegmentIndex;
     pixelTripletsInGPU.tripletIndices[pixelTripletIndex] = tripletIndex;
     pixelTripletsInGPU.pixelRadius[pixelTripletIndex] = pixelRadius;
     pixelTripletsInGPU.tripletRadius[pixelTripletIndex] = tripletRadius;
+    pixelTripletsInGPU.centerX[pixelTripletIndex] = centerX;
+    pixelTripletsInGPU.centerY[pixelTripletIndex] = centerY;
     pixelTripletsInGPU.pt[pixelTripletIndex] = pt;
     pixelTripletsInGPU.eta[pixelTripletIndex] = eta;
     pixelTripletsInGPU.phi[pixelTripletIndex] = phi;
@@ -160,7 +170,7 @@ __device__ void SDL::rmPixelTripletToMemory(struct pixelTriplets& pixelTripletsI
     pixelTripletsInGPU.isDup[pixelTripletIndex] = 1;
 }
 
-__device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& pixelSegmentIndex, unsigned int tripletIndex, float& pixelRadius, float& pixelRadiusError, float& tripletRadius, float& rzChiSquared, float& rPhiChiSquared, float& rPhiChiSquaredInwards, bool runChiSquaredCuts)
+__device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& pixelSegmentIndex, unsigned int tripletIndex, float& pixelRadius, float& pixelRadiusError, float& tripletRadius, float& centerX, float& centerY, float& rzChiSquared, float& rPhiChiSquared, float& rPhiChiSquaredInwards, bool runChiSquaredCuts)
 {
     bool pass = true;
 
@@ -224,8 +234,8 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     unsigned int lowerModuleIndices[] = {lowerModuleIndex, middleModuleIndex, upperModuleIndex};
 
     rzChiSquared = computePT3RZChiSquared(modulesInGPU, hitsInGPU, segmentsInGPU, pixelAnchorHitIndex1, pixelAnchorHitIndex2, anchorHits, lowerModuleIndices);
-
-    rPhiChiSquared = computePT3RPhiChiSquared(modulesInGPU, hitsInGPU, segmentsInGPU, pixelSegmentArrayIndex, anchorHits, lowerModuleIndices);
+    
+    rPhiChiSquared = computePT3RPhiChiSquared(modulesInGPU, hitsInGPU, segmentsInGPU, pixelSegmentArrayIndex, anchorHits, lowerModuleIndices, centerX, centerY);
 
     rPhiChiSquaredInwards = computePT3RPhiChiSquaredInwards(modulesInGPU, hitsInGPU, tripletRadius, g, f, pixelAnchorHits);
 
@@ -438,10 +448,10 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, struc
 }
 
 //TODO: merge this one and the pT5 function later into a single function
-__device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, struct segments& segmentsInGPU, unsigned int pixelSegmentArrayIndex, unsigned int* anchorHits, unsigned int* lowerModuleIndices)
+__device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, struct segments& segmentsInGPU, unsigned int pixelSegmentArrayIndex, unsigned int* anchorHits, unsigned int* lowerModuleIndices, float& g, float& f)
 {
-    float g = segmentsInGPU.circleCenterX[pixelSegmentArrayIndex];
-    float f = segmentsInGPU.circleCenterY[pixelSegmentArrayIndex];
+    g = segmentsInGPU.circleCenterX[pixelSegmentArrayIndex];
+    f = segmentsInGPU.circleCenterY[pixelSegmentArrayIndex];
     float radius = segmentsInGPU.circleRadius[pixelSegmentArrayIndex];
     float delta1[3], delta2[3], slopes[3];
     bool isFlat[3];

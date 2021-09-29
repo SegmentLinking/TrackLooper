@@ -23,6 +23,7 @@ void SDL::createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int
     modulesInGPU.sides =                   (short*)cms::cuda::allocate_managed(nModules * sizeof(short),stream);
     modulesInGPU.isInverted =               (bool*)cms::cuda::allocate_managed(nModules * sizeof(bool),stream);
     modulesInGPU.isLower =                  (bool*)cms::cuda::allocate_managed(nModules * sizeof(bool),stream);
+    modulesInGPU.isAnchor = (bool*)cms::cuda::allocate_managed(nModules * sizeof(bool), stream);
     modulesInGPU.nEligibleModules =     (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
     modulesInGPU.nEligibleT5Modules = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
 
@@ -54,6 +55,7 @@ void SDL::createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int
     cudaMallocManaged(&modulesInGPU.sides,nModules * sizeof(short));
     cudaMallocManaged(&modulesInGPU.isInverted, nModules * sizeof(bool));
     cudaMallocManaged(&modulesInGPU.isLower, nModules * sizeof(bool));
+    cudaMallocManaged(&modulesInGPU.isAnchor, nModules * sizeof(bool));
     cudaMallocManaged(&modulesInGPU.nEligibleModules,sizeof(unsigned int));
     cudaMallocManaged(&modulesInGPU.nEligibleT5Modules, sizeof(unsigned int));
 
@@ -94,6 +96,7 @@ void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned in
     modulesInGPU.sides =                    (short*)cms::cuda::allocate_device(dev,nModules * sizeof(short),stream);
     modulesInGPU.isInverted =                (bool*)cms::cuda::allocate_device(dev,nModules * sizeof(bool),stream);
     modulesInGPU.isLower =                   (bool*)cms::cuda::allocate_device(dev,nModules * sizeof(bool),stream);
+    modulesInGPU.isAnchor = (bool*)cms::cuda::allocate_device(dev, nModules * sizeof(bool), stream);
     modulesInGPU.nEligibleModules =     (unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
     modulesInGPU.nEligibleT5Modules = (unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
 
@@ -124,6 +127,7 @@ void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned in
     cudaMalloc(&modulesInGPU.sides,nModules * sizeof(short));
     cudaMalloc(&modulesInGPU.isInverted, nModules * sizeof(bool));
     cudaMalloc(&modulesInGPU.isLower, nModules * sizeof(bool));
+    cudaMalloc(&modulesInGPU.isAnchor, nModules * sizeof(bool));
     cudaMalloc(&modulesInGPU.nEligibleModules,sizeof(unsigned int));
     cudaMalloc(&modulesInGPU.nEligibleT5Modules, sizeof(unsigned int));
 
@@ -162,6 +166,7 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
   cms::cuda::free_device(dev,modulesInGPU.sides);
   cms::cuda::free_device(dev,modulesInGPU.isInverted);
   cms::cuda::free_device(dev,modulesInGPU.isLower);
+  cms::cuda::free_device(dev,modulesInPGPU.isAnchor);
   cms::cuda::free_device(dev,modulesInGPU.hitRanges);
   cms::cuda::free_device(dev,modulesInGPU.mdRanges);
   cms::cuda::free_device(dev,modulesInGPU.segmentRanges);
@@ -194,6 +199,7 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
   cms::cuda::free_managed(modulesInGPU.sides);
   cms::cuda::free_managed(modulesInGPU.isInverted);
   cms::cuda::free_managed(modulesInGPU.isLower);
+  cms::cuda::free_managed(modulesInGPU.isAnchor);
   cms::cuda::free_managed(modulesInGPU.hitRanges);
   cms::cuda::free_managed(modulesInGPU.mdRanges);
   cms::cuda::free_managed(modulesInGPU.segmentRanges);
@@ -235,6 +241,7 @@ void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMappin
   cudaFree(modulesInGPU.sides);
   cudaFree(modulesInGPU.isInverted);
   cudaFree(modulesInGPU.isLower);
+  cudaFree(modulesInGPU.isAnchor);
   cudaFree(modulesInGPU.hitRanges);
   cudaFree(modulesInGPU.mdRanges);
   cudaFree(modulesInGPU.segmentRanges);
@@ -400,6 +407,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     short* host_sides;
     bool* host_isInverted;
     bool* host_isLower;
+    bool* host_isAnchor;
     ModuleType* host_moduleType;
     ModuleLayerType* host_moduleLayerType;
     float* host_slopes;
@@ -413,6 +421,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     cudaMallocHost(&host_sides,sizeof(short)*nModules);
     cudaMallocHost(&host_isInverted,sizeof(bool)*nModules);
     cudaMallocHost(&host_isLower,sizeof(bool)*nModules);
+    cudaMallocHost(&host_isAnchor, sizeof(bool) * nModules);
     cudaMallocHost(&host_moduleType,sizeof(ModuleType)*nModules);
     cudaMallocHost(&host_moduleLayerType,sizeof(ModuleLayerType)*nModules);
     cudaMallocHost(&host_slopes,sizeof(float)*nModules);
@@ -432,6 +441,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
             host_sides[index] = 0;
             host_isInverted[index] = 0;
             host_isLower[index] = false;
+            host_isAnchor[index] = false;
             host_moduleType[index] = PixelModule;
             host_moduleLayerType[index] = SDL::InnerPixelLayer;
             host_slopes[index] = 0;
@@ -454,6 +464,19 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
             host_moduleType[index] = modulesInGPU.parseModuleType(index, subdet, layer, ring);
             host_moduleLayerType[index] = modulesInGPU.parseModuleLayerType(index, host_moduleType[index],host_isInverted[index],host_isLower[index]);
 
+            if(host_moduleType[index] == SDL::PS and host_moduleLayerType[index] == SDL::Pixel)
+            {
+                host_isAnchor[index] = true;
+            }
+            else if(host_moduleType[index] == SDL::TwoS and host_isLower[index])
+            {
+                host_isAnchor[index] = true;   
+            }
+            else
+            {
+                host_isAnchor[index] = false;
+            }
+
             host_slopes[index] = (subdet == Endcap) ? endcapGeometry.getSlopeLower(detId) : tiltedGeometry.getSlope(detId);
             host_drdzs[index] = (subdet == Barrel) ? tiltedGeometry.getDrDz(detId) : 0;
         }
@@ -470,6 +493,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     cudaMemcpy(modulesInGPU.sides,host_sides,sizeof(short)*nModules,cudaMemcpyHostToDevice);
     cudaMemcpy(modulesInGPU.isInverted,host_isInverted,sizeof(bool)*nModules,cudaMemcpyHostToDevice);
     cudaMemcpy(modulesInGPU.isLower,host_isLower,sizeof(bool)*nModules,cudaMemcpyHostToDevice);
+    cudaMemcpy(modulesInGPU.isAnchor, host_isAnchor, sizeof(bool) * nModules, cudaMemcpyHostToDevice);
     cudaMemcpy(modulesInGPU.moduleType,host_moduleType,sizeof(ModuleType)*nModules,cudaMemcpyHostToDevice);
     cudaMemcpy(modulesInGPU.moduleLayerType,host_moduleLayerType,sizeof(ModuleLayerType)*nModules,cudaMemcpyHostToDevice);
     cudaMemcpy(modulesInGPU.slopes,host_slopes,sizeof(float)*nModules,cudaMemcpyHostToDevice);
@@ -483,6 +507,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     cudaFreeHost(host_sides);
     cudaFreeHost(host_isInverted);
     cudaFreeHost(host_isLower);
+    cudaFreeHost(host_isAnchor);
     cudaFreeHost(host_moduleType);
     cudaFreeHost(host_moduleLayerType);
     cudaFreeHost(host_slopes);
@@ -512,6 +537,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
             modulesInGPU.sides[index] = 0;
             modulesInGPU.isInverted[index] = 0;
             modulesInGPU.isLower[index] = false;
+            modulesInGPU.isAnchor[index] = false;
             modulesInGPU.moduleType[index] = PixelModule;
             modulesInGPU.moduleLayerType[index] = SDL::InnerPixelLayer;
             modulesInGPU.slopes[index] = 0;
@@ -533,6 +559,19 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
 
             modulesInGPU.moduleType[index] = modulesInGPU.parseModuleType(index);
             modulesInGPU.moduleLayerType[index] = modulesInGPU.parseModuleLayerType(index);
+
+            if(modulesInGPU.moduleType[index] == SDL::PS and modulesInGPU.moduleLayerType[index] == SDL::Pixel)
+            {
+                modulesInGPU.isAnchor[index] = true;
+            }
+            else if(modulesInGPU.moduleType[index] == SDL::TwoS and modulesInGPU.isLower[index])
+            {
+                modulesInGPU.isAnchor[index] = true;
+            }
+            else
+            {
+                modulesInGPU.isAnchor[index] = false;
+            }
 
             modulesInGPU.slopes[index] = (subdet == Endcap) ? endcapGeometry.getSlopeLower(detId) : tiltedGeometry.getSlope(detId);
             modulesInGPU.drdzs[index] = (subdet == Barrel) ? tiltedGeometry.getDrDz(detId) : 0;

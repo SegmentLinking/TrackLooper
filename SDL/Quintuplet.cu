@@ -1284,7 +1284,7 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
         }
     }
     //divide everyone by the smallest possible values of delta1 and delta2
-    for(size_t i = 0; i < 5; i++)
+    for(size_t i = 0; i < nPoints; i++)
     {
         delta1[i] /= 0.009;
         delta2[i] /= 0.009;
@@ -1417,8 +1417,7 @@ __device__ float SDL::computeChiSquared(int nPoints, float* xs, float* ys, float
             yPrime = ys[i];
         }
         sigma = 2 * sqrtf((xPrime * delta1[i]) * (xPrime * delta1[i]) + (yPrime * delta2[i]) * (yPrime * delta2[i]));
-
-       chiSquared +=  (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) * (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) / (sigma * sigma);
+        chiSquared +=  (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) * (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) / (sigma * sigma);
     }
     return chiSquared; 
 }

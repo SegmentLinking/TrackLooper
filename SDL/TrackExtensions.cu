@@ -5,6 +5,8 @@ SDL::trackExtensions::trackExtensions()
     constituentTCTypes = nullptr;
     constituentTCIndices = nullptr;
     nTrackExtensions = nullptr;
+    rPhiChiSquared = nullptr;
+    isDup = nullptr;
 }
 
 SDL::trackExtensions::~trackExtensions()
@@ -16,33 +18,46 @@ void SDL::trackExtensions::freeMemory()
     cudaFree(constituentTCTypes);
     cudaFree(constituentTCIndices);
     cudaFree(nTrackExtensions);
+    cudaFree(isDup);
+    cudaFree(rPhiChiSquared);
 }
 
-void SDL::createTrackExtensionsInUnifiedMemory(struct trackExtensions& trackExtensionsInGPU, unsigned int maxTrackExtensions)
+/*
+   Track Extensions memory allocation - 10 slots for each TC (will reduce later)
+   Extensions having the same anchor object will be clustered together for easy
+   duplicate cleaning
+*/
+
+void SDL::createTrackExtensionsInUnifiedMemory(struct trackExtensions& trackExtensionsInGPU, unsigned int maxTrackExtensions, unsigned int nTrackCandidates)
 {
     cudaMallocManaged(&trackExtensionsInGPU.constituentTCTypes, sizeof(short) * 3 * maxTrackExtensions);
     cudaMallocManaged(&trackExtensionsInGPU.constituentTCIndices, sizeof(unsigned int) * 3 * maxTrackExtensions);
     cudaMallocManaged(&trackExtensionsInGPU.nLayerOverlaps, sizeof(unsigned int) * 2 * maxTrackExtensions);
     cudaMallocManaged(&trackExtensionsInGPU.nHitOverlaps, sizeof(unsigned int) * 2 * maxTrackExtensions);
-    cudaMallocManaged(&trackExtensionsInGPU.nTrackExtensions, sizeof(unsigned int));
+    cudaMallocManaged(&trackExtensionsInGPU.nTrackExtensions, nTrackCandidates * sizeof(unsigned int));
+    cudaMallocManaged(&trackExtensionsInGPU.rPhiChiSquared, maxTrackExtensions * sizeof(float));
+    cudaMallocManaged(&trackExtensionsInGPU.isDup, maxTrackExtensions * sizeof(bool));
 
-    cudaMemset(trackExtensionsInGPU.nTrackExtensions, 0, sizeof(unsigned int));
+    cudaMemset(trackExtensionsInGPU.nTrackExtensions, 0, nTrackCandidates * sizeof(unsigned int));
+    cudaMemset(trackExtensionsInGPU.isDup, true, maxTrackExtensions * sizeof(bool));
 }
 
-void SDL::createTrackExtensionsInExplicitMemory(struct trackExtensions& trackExtensionsInGPU, unsigned int maxTrackExtensions)
+void SDL::createTrackExtensionsInExplicitMemory(struct trackExtensions& trackExtensionsInGPU, unsigned int maxTrackExtensions, unsigned int nTrackCandidates)
 {
     cudaMalloc(&trackExtensionsInGPU.constituentTCTypes, sizeof(short) * 3 * maxTrackExtensions);
     cudaMalloc(&trackExtensionsInGPU.constituentTCIndices, sizeof(unsigned int) * 3 * maxTrackExtensions);
     cudaMalloc(&trackExtensionsInGPU.nLayerOverlaps, sizeof(unsigned int) * 2 * maxTrackExtensions);
     cudaMalloc(&trackExtensionsInGPU.nHitOverlaps, sizeof(unsigned int) * 2 * maxTrackExtensions);
-    cudaMalloc(&trackExtensionsInGPU.nTrackExtensions, sizeof(unsigned int));
-    cudaMemset(trackExtensionsInGPU.nTrackExtensions, 0, sizeof(unsigned int));
+    cudaMalloc(&trackExtensionsInGPU.nTrackExtensions, nTrackCandidates * sizeof(unsigned int));
+    cudaMalloc(&trackExtensionsInGPU.rPhiChiSquared, maxTrackExtensions * sizeof(float));
+    cudaMalloc(&trackExtensionsInGPU.isDup, maxTrackExtensions * sizeof(bool));
 
+    cudaMemset(trackExtensionsInGPU.nTrackExtensions, 0, nTrackCandidates * sizeof(unsigned int));
+    cudaMemset(trackExtensionsInGPU.isDup, true, maxTrackExtensions * sizeof(bool));
 }
 
-__device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExtensionsInGPU, short* constituentTCType, unsigned int* constituentTCIndex, unsigned int* nLayerOverlaps, unsigned int* nHitOverlaps, unsigned int trackExtensionIndex)
-{
-    
+__device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExtensionsInGPU, short* constituentTCType, unsigned int* constituentTCIndex, unsigned int* nLayerOverlaps, unsigned int* nHitOverlaps, float rPhiChiSquared, unsigned int trackExtensionIndex)
+{ 
     for(size_t i = 0; i < 3 ; i++)
     {
         trackExtensionsInGPU.constituentTCTypes[3 * trackExtensionIndex + i] = constituentTCType[i];
@@ -53,10 +68,11 @@ __device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExte
         trackExtensionsInGPU.nLayerOverlaps[2 * trackExtensionIndex + i] = nLayerOverlaps[i];
         trackExtensionsInGPU.nHitOverlaps[2 * trackExtensionIndex + i] = nHitOverlaps[i];
     }
+    trackExtensionsInGPU.rPhiChiSquared[trackExtensionIndex] = rPhiChiSquared;
 }
 
-__device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct trackCandidates& trackCandidatesInGPU, unsigned int anchorObjectIndex, unsigned int outerObjectIndex, short anchorObjectType, short outerObjectType, unsigned int anchorObjectOuterT3Index, unsigned int layerOverlapTarget, short* constituentTCType, unsigned int* constituentTCIndex, unsigned
-        int* nLayerOverlaps, unsigned int* nHitOverlaps)
+__device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct quintuplets& quintupletsInGPU, struct pixelTriplets& pixelTripletsInGPU, struct pixelQuintuplets& pixelQuintupletsInGPU, struct trackCandidates& trackCandidatesInGPU, unsigned int anchorObjectIndex, unsigned int outerObjectIndex, short anchorObjectType, short outerObjectType, unsigned int anchorObjectOuterT3Index, unsigned int layerOverlapTarget, short* constituentTCType, unsigned int* constituentTCIndex, unsigned
+        int* nLayerOverlaps, unsigned int* nHitOverlaps, float& rPhiChiSquared)
 {
     /*
        Basic premise:
@@ -76,21 +92,41 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     unsigned int* outerObjectLowerModuleIndices = nullptr;
 
     unsigned int nAnchorLayers = (anchorObjectType == 7) ? 7 : (anchorObjectType == 3 ? 3 : 5);
+    unsigned int anchorObjectAnchorHitIndices[7];
+    float centerX, centerY, radius;
+
     if(anchorObjectType != 3) //mostly this
     { 
         anchorLayerIndices = &trackCandidatesInGPU.logicalLayers[7 * anchorObjectIndex];
         anchorHitIndices = &trackCandidatesInGPU.hitIndices[14 * anchorObjectIndex];
         anchorLowerModuleIndices = &trackCandidatesInGPU.lowerModuleIndices[7 * anchorObjectIndex];
+        centerX = trackCandidatesInGPU.centerX[anchorObjectIndex];
+        centerY = trackCandidatesInGPU.centerY[anchorObjectIndex];
+        radius = trackCandidatesInGPU.radius[anchorObjectIndex];
     }
     else //outlier
     {
         anchorLayerIndices = &tripletsInGPU.logicalLayers[3 * anchorObjectIndex];
         anchorHitIndices = &tripletsInGPU.hitIndices[6 * anchorObjectIndex];
         anchorLowerModuleIndices = &tripletsInGPU.lowerModuleIndices[3 * anchorObjectIndex];
+
+    }
+
+    for(size_t i=0; i<nAnchorLayers;i++)
+    {
+        if(modulesInGPU.isAnchor[hitsInGPU.moduleIndices[anchorHitIndices[2*i]]] or modulesInGPU.detIds[hitsInGPU.moduleIndices[anchorHitIndices[2*i]]] == 1)
+        {
+            anchorObjectAnchorHitIndices[i] = anchorHitIndices[2*i];
+        }
+        else
+        {
+            anchorObjectAnchorHitIndices[i] = anchorHitIndices[2*i+1];
+        }
     }
 
     unsigned int nOuterLayers =(outerObjectType == 7) ? 7 : (outerObjectType == 3 ? 3 : 5); 
 
+    unsigned int outerObjectAnchorHitIndices[7];
     if(outerObjectType == 3) //mostly this
     {
         outerObjectLayerIndices = &tripletsInGPU.logicalLayers[3 * outerObjectIndex];
@@ -102,6 +138,18 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
         outerObjectLayerIndices = &trackCandidatesInGPU.logicalLayers[7 * outerObjectIndex];
         outerObjectHitIndices = &trackCandidatesInGPU.hitIndices[14 * outerObjectIndex];
         outerObjectLowerModuleIndices = &tripletsInGPU.lowerModuleIndices[7 * outerObjectIndex];
+    }
+
+    for(size_t i=0; i<nOuterLayers;i++)
+    {
+        if(modulesInGPU.isAnchor[hitsInGPU.moduleIndices[outerObjectHitIndices[2*i]]] or modulesInGPU.detIds[hitsInGPU.moduleIndices[outerObjectHitIndices[2*i]]] == 1)
+        {
+            outerObjectAnchorHitIndices[i] = outerObjectHitIndices[2*i];
+        }
+        else
+        {
+            outerObjectAnchorHitIndices[i] = outerObjectHitIndices[2*i+1];
+        }
     }
     
     unsigned int nLayerOverlap(0), nHitOverlap(0);
@@ -116,6 +164,7 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
 
     pass = pass & runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 2], tripletsInGPU.segmentIndices[2 * anchorObjectOuterT3Index], tripletsInGPU.segmentIndices[2 * outerObjectIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
 
+    rPhiChiSquared = computeTERPhiChiSquared(modulesInGPU, hitsInGPU, centerX, centerY, radius, outerObjectAnchorHitIndices, outerObjectLowerModuleIndices);
 
     nLayerOverlaps[0] = nLayerOverlap;
     nHitOverlaps[0] = nHitOverlap;
@@ -205,3 +254,26 @@ __device__ bool SDL::computeLayerAndHitOverlaps(SDL::modules& modulesInGPU, unsi
     return pass;
 }
 
+
+/* r-z and r-phi chi squared computation*/
+__device__ float computeTERZChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int* anchorHitIndices, unsigned int* anchorLowerModuleIndices, unsigned int* outerHitIndices, unsigned int* outerLowerModuleIndices)
+{
+    //using the pixel hits to create the slope
+    
+}
+
+__device__ float SDL::computeTERPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, float& g, float& f, float& radius, unsigned int* outerObjectAnchorHits, unsigned int* outerObjectLowerModuleIndices)
+{
+    //Three cases
+    float delta1[3], delta2[3], slopes[3], xs[3], ys[3];
+    bool isFlat[3];
+    computeSigmasForRegression(modulesInGPU, outerObjectLowerModuleIndices, delta1, delta2, slopes, isFlat, 3, true);
+
+    for(size_t i = 0; i < 3; i++)
+    {
+        xs[i] = hitsInGPU.xs[outerObjectAnchorHits[i]];
+        ys[i] = hitsInGPU.ys[outerObjectAnchorHits[i]];
+    }
+    float chiSquared = computeChiSquared(3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius);
+    return chiSquared;
+}

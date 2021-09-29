@@ -1651,32 +1651,47 @@ void SDL::Event::createExtendedTracks()
     {
         cudaMallocHost(&trackExtensionsInGPU, sizeof(SDL::trackExtensions));
     }
-    createTrackExtensionsInUnifiedMemory(*trackExtensionsInGPU, N_MAX_TRACK_CANDIDATE_EXTENSIONS);
+
+    unsigned int nTrackCandidates;
+    cudaMemcpy(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+#ifdef Explicit_Extensions
+    createTrackExtensionsInExplicitMemory(*trackExtensionsInGPU, nTrackCandidates * 10, nTrackCandidates); 
+#else
+    createTrackExtensionsInUnifiedMemory(*trackExtensionsInGPU, nTrackCandidates * 10, nTrackCandidates);
+#endif
     unsigned int nLowerModules;    
     cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    std::cout<<"nLowerModules = "<<nLowerModules<<std::endl;
-    unsigned int* nTrackCandidates;
-    unsigned int* nTriplets;
-    cudaMallocHost(&nTrackCandidates, sizeof(unsigned int));
-    cudaMallocHost(&nTriplets, nLowerModules * sizeof(unsigned int));
-    cudaMemcpy(nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(nTriplets, tripletsInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    std::cout<<"nLowerModules = "<<nLowerModules<<" nTrackCandidates = "<<nTrackCandidates<<std::endl;
 
+    unsigned int *nTriplets;
+    cudaMallocHost(&nTriplets, nLowerModules * sizeof(unsigned int));
+    cudaMemcpy(nTriplets, tripletsInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
     /* extremely naive way - 3D grid
      * most of the threads launched here will exit without running
      */
     dim3 nThreads(16,4,4);
     unsigned int maxT3s = *std::max_element(nTriplets, nTriplets + nLowerModules); 
     unsigned int nOverlaps = 3;
-    dim3 nBlocks(*nTrackCandidates % nThreads.x == 0 ? *nTrackCandidates / nThreads.x : *nTrackCandidates / nThreads.x + 1, maxT3s % nThreads.y == 0 ? maxT3s / nThreads.y : maxT3s / nThreads.y + 1, nOverlaps % nThreads.z == 0 ? nOverlaps / nThreads.z : nOverlaps / nThreads.z + 1);
-   createExtendedTracksInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, *quintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
+    dim3 nBlocks(nTrackCandidates % nThreads.x == 0 ? nTrackCandidates / nThreads.x : nTrackCandidates / nThreads.x + 1, maxT3s % nThreads.y == 0 ? maxT3s / nThreads.y : maxT3s / nThreads.y + 1, nOverlaps % nThreads.z == 0 ? nOverlaps / nThreads.z : nOverlaps / nThreads.z + 1);
+    createExtendedTracksInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
 
     cudaError_t cudaerr = cudaDeviceSynchronize();
     if(cudaerr != cudaSuccess)
     {
 	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
     }
-    cudaFreeHost(nTrackCandidates);
+
+    int nThreadsDupCleaning = 512;
+    int nBlocksDupCleaning = (nTrackCandidates % nThreadsDupCleaning == 0) ? nTrackCandidates / nThreadsDupCleaning : nTrackCandidates / nThreadsDupCleaning + 1;
+
+    cleanDuplicateExtendedTracks<<<nThreadsDupCleaning, nBlocksDupCleaning>>>(*trackExtensionsInGPU, nTrackCandidates);
+    cudaerr = cudaDeviceSynchronize();
+    if(cudaerr != cudaSuccess)
+    {
+	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
+    }
+
     cudaFreeHost(nTriplets);
 }
 
@@ -2624,7 +2639,15 @@ unsigned int SDL::Event::getNumberOfPixelTriplets()
 
 unsigned int SDL::Event::getNumberOfExtendedTracks()
 {
-    return *(trackExtensionsInGPU->nTrackExtensions);
+    unsigned int nTrackCandidates;
+    cudaMemcpy(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    unsigned int nTrackExtensions = 0;
+    for(size_t it = 0; it < nTrackCandidates; it++)    
+    {
+        nTrackExtensions += (trackExtensionsInGPU->nTrackExtensions)[it];
+
+    }
+    return nTrackExtensions;
 }
 
 unsigned int SDL::Event::getNumberOfPixelQuintuplets()

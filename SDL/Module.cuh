@@ -71,6 +71,7 @@ namespace SDL
         short* sides;
         bool* isInverted;
         bool* isLower;
+        bool* isAnchor;
         ModuleType* moduleType;
         ModuleLayerType* moduleLayerType;
         
