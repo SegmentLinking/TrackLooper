@@ -1359,7 +1359,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             else
             {
                 SDL::CPU::Hit hitA(trk.pix_x()[hit_idx[0]], trk.pix_y()[hit_idx[0]], trk.pix_z()[hit_idx[0]]);
-                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[11]], trk.ph2_y()[hit_idx[11]], trk.ph2_z()[hit_idx[11]]);
+                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx.back()], trk.ph2_y()[hit_idx.back()], trk.ph2_z()[hit_idx.back()]);
                 eta = hitB.eta();
                 phi = hitA.phi();
             }
