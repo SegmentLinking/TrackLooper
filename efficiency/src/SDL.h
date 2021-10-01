@@ -185,6 +185,15 @@ protected:
   vector<float> *t5_pt_;
   TBranch *t5_pt_branch;
   bool t5_pt_isLoaded;
+  vector<float> *sim_len_;
+  TBranch *sim_len_branch;
+  bool sim_len_isLoaded;
+  vector<float> *sim_lengap_;
+  TBranch *sim_lengap_branch;
+  bool sim_lengap_isLoaded;
+  vector<float> *sim_hits_;
+  TBranch *sim_hits_branch;
+  bool sim_hits_isLoaded;
   vector<float> *simvtx_x_;
   TBranch *simvtx_x_branch;
   bool simvtx_x_isLoaded;
@@ -418,6 +427,9 @@ public:
   const vector<int> &t5_foundDuplicate();
   const vector<vector<int> > &sim_pT4_types();
   const vector<float> &t5_pt();
+  const vector<float> &sim_len();
+  const vector<float> &sim_lengap();
+  const vector<float> &sim_hits();
   const vector<float> &simvtx_x();
   const vector<float> &simvtx_y();
   const vector<float> &simvtx_z();
@@ -540,6 +552,9 @@ namespace tas {
   const vector<int> &t5_foundDuplicate();
   const vector<vector<int> > &sim_pT4_types();
   const vector<float> &t5_pt();
+  const vector<float> &sim_len();
+  const vector<float> &sim_lengap();
+  const vector<float> &sim_hits();
   const vector<float> &simvtx_x();
   const vector<float> &simvtx_y();
   const vector<float> &simvtx_z();

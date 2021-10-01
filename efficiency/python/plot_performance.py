@@ -13,6 +13,8 @@ def parse_plot_name(output_name):
         rtnstr = ["Fake Rate of"]
     elif "duplrate" in output_name:
         rtnstr = ["Duplicate Rate of"]
+    elif "inefficiency" in output_name:
+        rtnstr = ["Inefficiency of"]
     else:
         rtnstr = ["Efficiency of"]
     if "MD_" in output_name:
@@ -95,6 +97,10 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
             title = "d0 [cm]"
         elif "_pt" in output_name:
             title = "p_{T} [GeV]"
+        elif "_hit" in output_name:
+            title = "hits"
+        elif "_lay" in output_name:
+            title = "layers"
         else:
             title = "#eta"
         eff.GetXaxis().SetTitle(title)
@@ -102,6 +108,8 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
             eff.GetYaxis().SetTitle("Fake Rate")
         elif "duplrate" in output_name:
             eff.GetYaxis().SetTitle("Duplicate Rate")
+        elif "inefficiency" in output_name:
+            eff.GetYaxis().SetTitle("Inefficiency")
         else:
             eff.GetYaxis().SetTitle("Efficiency")
         if raw_number:
@@ -122,14 +130,26 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
         if yaxis_min > eff.GetY()[i] and eff.GetY()[i] != 0:
             yaxis_min = eff.GetY()[i]
     # print yaxis_min
-    if "ptzoom" in output_name:
-        eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
-    elif "etazoom" in output_name:
-        eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
-    elif "ptmaxzoom" in output_name:
+    if "maxzoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
-    elif "etamaxzoom" in output_name:
-        eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
+    elif "zoom" in output_name:
+        eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
+    #if "ptzoom" in output_name:
+    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
+    #elif "etazoom" in output_name:
+    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
+    #elif "ptmaxzoom" in output_name:
+    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
+    #elif "etamaxzoom" in output_name:
+    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
+    #elif "layerszoom" in output_name:
+    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.12)
+    #elif "layersgapzoom" in output_name:
+    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.12)
+    #elif "layersmaxzoom" in output_name:
+    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
+    #elif "layersgapmaxzoom" in output_name:
+    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
     else:
         eff.GetYaxis().SetRangeUser(0, 1.02)
 
@@ -158,6 +178,8 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
             fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{xy}| < 2.5 cm"
         elif "_dxy" in output_name:
             fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm"
+        #elif "_lay" in output_name:
+        #    fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
         else:
             fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
         if "fakerate" in output_name or "duplrate" in output_name:
