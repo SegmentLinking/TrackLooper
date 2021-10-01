@@ -1356,6 +1356,13 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
                 eta = hitB.eta();
                 phi = hitA.phi();
             }
+            else if (trackCandidateType == 8)
+            {
+                SDL::CPU::Hit hitA(trk.pix_x()[hit_idx[0]], trk.pix_y()[hit_idx[0]], trk.pix_z()[hit_idx[0]]);
+                SDL::CPU::Hit hitB(trk.pix_x()[hit_idx.back()], trk.pix_y()[hit_idx.back()], trk.pix_z()[hit_idx.back()]);
+                eta = hitB.eta();
+                phi = hitA.phi();
+            }
             else
             {
                 SDL::CPU::Hit hitA(trk.pix_x()[hit_idx[0]], trk.pix_y()[hit_idx[0]], trk.pix_z()[hit_idx[0]]);
@@ -1384,6 +1391,125 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
   
 
       }
+    }
+
+    bool add_higheta_pLS = false;
+    if (add_higheta_pLS)
+    {
+        // Adding high eta tracks outside of the outer tracker
+        for (auto &&[iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
+        {
+            bool good_seed_type = false;
+            if (trk.see_algo()[iSeed] == 4) good_seed_type = true;
+            if (trk.see_algo()[iSeed] == 5) good_seed_type = true;
+            if (trk.see_algo()[iSeed] == 7) good_seed_type = true;
+            if (trk.see_algo()[iSeed] == 22) good_seed_type = true;
+            if (trk.see_algo()[iSeed] == 23) good_seed_type = true;
+            if (trk.see_algo()[iSeed] == 24) good_seed_type = true;
+            if (not good_seed_type) continue;
+
+            TVector3 p3LH(trk.see_stateTrajGlbPx()[iSeed], trk.see_stateTrajGlbPy()[iSeed], trk.see_stateTrajGlbPz()[iSeed]);
+            float ptIn = p3LH.Pt();
+            float ptErr = trk.see_ptErr()[iSeed];
+            float eta = p3LH.Eta();
+
+            if (ptIn < 0.9)
+                continue;
+
+            if (not (ptIn > 1 - 2 * ptErr))
+                continue;
+
+            if (fabs(eta) < 2.6)
+            {
+                continue;
+            }
+
+            // std::cout <<  " ptIn: " << ptIn <<  std::endl;
+            // std::cout <<  " ptErr: " << ptErr <<  std::endl;
+            // std::cout <<  " eta: " << eta <<  std::endl;
+
+            // Get the hits
+            std::vector<int> hit_idx = {trk.see_hitIdx()[iSeed][0], trk.see_hitIdx()[iSeed][1], trk.see_hitIdx()[iSeed][2]};
+            if (trk.see_hitIdx()[iSeed].size() > 3)
+                hit_idx.push_back(trk.see_hitIdx()[iSeed][3]);
+            else
+                hit_idx.push_back(hit_idx.back());
+
+            std::vector<int> hit_types = {0, 0, 0, 0};
+
+            std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idx, hit_types);
+
+            for (auto &isimtrk : matched_sim_trk_idxs)
+            {
+                sim_TC_matched[isimtrk]++;
+            }
+
+            for (auto &isimtrk : matched_sim_trk_idxs)
+            {
+                sim_TC_types[isimtrk].push_back(1);
+            }
+
+            SDL::CPU::Hit hitA(trk.pix_x()[hit_idx[0]], trk.pix_y()[hit_idx[0]], trk.pix_z()[hit_idx[0]]);
+            float phi = hitA.phi();
+
+            tc_pt.push_back(ptIn);
+            tc_eta.push_back(eta);
+            tc_phi.push_back(phi);
+            tc_isFake.push_back(matched_sim_trk_idxs.size() == 0);
+            tc_type.push_back(8); //pLS
+            tc_matched_simIdx.push_back(matched_sim_trk_idxs);
+            tc_hitIdxs.push_back(hit_idx);
+        }
+    }
+
+    bool add_higheta_recotrk = true;
+    if (add_higheta_recotrk)
+    {
+        // Adding high eta tracks outside of the outer tracker
+        for (auto &&[iTrk, _] : iter::enumerate(trk.trk_pt()))
+        {
+            float pt = trk.trk_pt()[iTrk];
+            float eta = trk.trk_eta()[iTrk];
+            float phi = trk.trk_phi()[iTrk];
+
+            int algo = trk.trk_algo()[iTrk];
+            // TODO Which cuts to use for algo?
+
+            if (pt < 0.9)
+                continue;
+
+            if (fabs(eta) < 2.6)
+            {
+                continue;
+            }
+
+            // std::cout <<  " ptIn: " << ptIn <<  std::endl;
+            // std::cout <<  " ptErr: " << ptErr <<  std::endl;
+            // std::cout <<  " eta: " << eta <<  std::endl;
+
+            // Get the hits
+            std::vector<int> hit_idx = trk.trk_hitIdx()[iTrk];
+            std::vector<int> hit_types = trk.trk_hitType()[iTrk];
+            std::vector<int> matched_sim_trk_idxs = trk.trk_simTrkIdx()[iTrk];
+
+            for (auto &isimtrk : matched_sim_trk_idxs)
+            {
+                sim_TC_matched[isimtrk]++;
+            }
+
+            for (auto &isimtrk : matched_sim_trk_idxs)
+            {
+                sim_TC_types[isimtrk].push_back(1); // TODO I need a new layer binary for inner pixel tracker forward region... (or just use 1)
+            }
+
+            tc_pt.push_back(pt);
+            tc_eta.push_back(eta);
+            tc_phi.push_back(phi);
+            tc_isFake.push_back(matched_sim_trk_idxs.size() == 0);
+            tc_type.push_back(20); // reco track
+            tc_matched_simIdx.push_back(matched_sim_trk_idxs);
+            tc_hitIdxs.push_back(hit_idx);
+        }
     }
 
     ana.tx->setBranch<vector<int>>("sim_TC_matched", sim_TC_matched);

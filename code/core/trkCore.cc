@@ -1553,7 +1553,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         float phi = p3LH.Phi();
         //extra bit
 	
-        if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
+        // if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
+        if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 2.6))
         {
             // get pixel superbin
             //int ptbin = -1;
