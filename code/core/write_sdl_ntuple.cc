@@ -32,6 +32,7 @@ void createOutputBranches()
 
     // Matched to track candidate
     ana.tx->createBranch<vector<int>>("sim_TC_matched");
+    ana.tx->createBranch<vector<int>>("sim_TC_matched_nonextended");
     ana.tx->createBranch<vector<vector<int>>>("sim_TC_types");
 
     // Track candidates
@@ -180,6 +181,7 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("tce_eta");
     ana.tx->createBranch<vector<float>>("tce_phi");
     ana.tx->createBranch<vector<int>>("tce_layer_binary");
+    ana.tx->createBranch<vector<int>>("tce_anchorType");
 #ifdef CUT_VALUE_DEBUG
     createQuadrupletCutValueBranches();
     createTripletCutValueBranches();
@@ -912,6 +914,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
     SDL::pixelTriplets& pixelTripletsInGPU = (*event.getPixelTriplets());
     // Did it match to track candidate?
     std::vector<int> sim_TC_matched(trk.sim_pt().size());
+    std::vector<int> sim_TC_matched_nonextended(trk.sim_pt().size());
     std::vector<vector<int>> sim_TC_types(trk.sim_pt().size());
     std::vector<int> tc_isFake;
     std::vector<vector<int>> tc_matched_simIdx;
@@ -1328,6 +1331,11 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             for (auto &isimtrk : matched_sim_trk_idxs)
             {
                 sim_TC_matched[isimtrk]++;
+                if(not trackCandidatesInGPU.partOfExtension[jdx])
+                {
+                    sim_TC_matched_nonextended[isimtrk]++;
+                }
+
             }
 
             for (auto &isimtrk : matched_sim_trk_idxs)
@@ -1368,6 +1376,7 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
             tc_matched_simIdx.push_back(matched_sim_trk_idxs);
     }
     ana.tx->setBranch<vector<int>>("sim_TC_matched", sim_TC_matched);
+    ana.tx->setBranch<vector<int>>("sim_TC_matched_nonextended", sim_TC_matched_nonextended);
     ana.tx->setBranch<vector<vector<int>>>("sim_TC_types", sim_TC_types);
 
     vector<int> tc_isDuplicate(tc_matched_simIdx.size());
@@ -1393,11 +1402,8 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
     ana.tx->setBranch<vector<int>>("tc_isDuplicate", tc_isDuplicate);
     ana.tx->setBranch<vector<int>>("tc_type", tc_type);
     ana.tx->setBranch<vector<vector<int>>>("tc_matched_simIdx", tc_matched_simIdx);
-<<<<<<< HEAD
     ana.tx->setBranch<vector<int>>("tc_partOfExtension", tc_partOfExtension);
-=======
     ana.tx->setBranch<vector<vector<int>>>("tc_hitIdxs", tc_hitIdxs);
->>>>>>> 0e36a4f83a1f41441a2abf8ec56f6a133fa4ef09
 }
 
 //________________________________________________________________________________________________________________________________
@@ -2082,6 +2088,7 @@ void fillTrackExtensionOutputBranches(SDL::Event& event)
     std::vector<float> t3_eta = ana.tx->getBranch<vector<float>>("t3_eta");
     std::vector<float> t3_phi = ana.tx->getBranch<vector<float>>("t3_phi");
 
+    std::vector<int> tce_anchorType;;
     for(size_t i = 0; i < nTrackCandidates; i++)
     {
         unsigned int nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i] > 10 ? 10 : (trackExtensionsInGPU.nTrackExtensions)[i]; 
@@ -2148,6 +2155,7 @@ void fillTrackExtensionOutputBranches(SDL::Event& event)
         
             for(size_t j = 0; j < anchorLimits; j++)
             {
+
                 hit_idxs.push_back(hitsInGPU.idxs[anchorHitIndices[j]]);
                 module_idxs.push_back(hitsInGPU.moduleIndices[anchorHitIndices[j]]);
             }
@@ -2182,19 +2190,21 @@ void fillTrackExtensionOutputBranches(SDL::Event& event)
             tce_layer_binary.push_back(layer_binary);
             tce_isFake.push_back(matched_sim_trk_idxs.size() == 0);
             tce_matched_simIdx.push_back(matched_sim_trk_idxs); 
+            tce_anchorType.push_back(anchorType);
         }
     }
 
     //CHEAT - fill the rest with Track Candidates
-    std::vector<int> sim_TC_matched = ana.tx->getBranch<vector<int>>("sim_TC_matched");
+    std::vector<int> sim_TC_matched_nonextended = ana.tx->getBranch<vector<int>>("sim_TC_matched_nonextended");
     std::vector<int> tc_isFake = ana.tx->getBranch<vector<int>>("tc_isFake");
     std::vector<std::vector<int>> sim_TC_types = ana.tx->getBranch<vector<vector<int>>>("sim_TC_types");
     std::vector<std::vector<int>> tc_matched_simIdx = ana.tx->getBranch<vector<vector<int>>>("tc_matched_simIdx");
     std::vector<int> tc_partOfExtension = ana.tx->getBranch<vector<int>>("tc_partOfExtension");
+    std::vector<int> tc_type = ana.tx->getBranch<vector<int>>("tc_type");
 
     for(size_t jdx = 0; jdx < sim_tce_matched.size(); jdx++)
     {
-        sim_tce_matched[jdx] += sim_TC_matched[jdx];
+        sim_tce_matched[jdx] += sim_TC_matched_nonextended[jdx];
         for(auto &jt:sim_TC_types[jdx])
         {
             sim_tce_types[jdx].push_back(jt);
@@ -2212,6 +2222,11 @@ void fillTrackExtensionOutputBranches(SDL::Event& event)
             temp.push_back(jt);
         }
         tce_matched_simIdx.push_back(temp);
+        tce_anchorType.push_back(tc_type[jdx]);
+
+        tce_pt.push_back(tc_pt[jdx]);
+        tc_eta.push_back(tc_eta[jdx]);
+        tc_phi.push_back(tc_phi[jdx]);
     }
 
     vector<int> tce_isDuplicate(tce_matched_simIdx.size());
@@ -2240,6 +2255,7 @@ void fillTrackExtensionOutputBranches(SDL::Event& event)
     ana.tx->setBranch<vector<float>>("tce_phi", tce_phi);
     ana.tx->setBranch<vector<float>>("tce_rPhiChiSquared", tce_rPhiChiSquared);
     ana.tx->setBranch<vector<int>>("tce_layer_binary", tce_layer_binary);
+    ana.tx->setBranch<vector<int>>("tce_anchorType", tce_anchorType);
 }
 
 

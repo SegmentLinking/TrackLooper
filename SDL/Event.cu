@@ -3191,12 +3191,10 @@ SDL::modules* SDL::Event::getFullModules()
     return modulesInGPU;
 }
 #endif
-<<<<<<< HEAD
 
 
 SDL::trackExtensions* SDL::Event::getTrackExtensions()
 {
     return trackExtensionsInGPU;
 }
-=======
->>>>>>> 0e36a4f83a1f41441a2abf8ec56f6a133fa4ef09
+

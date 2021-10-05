@@ -1073,7 +1073,7 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
     }
 
 
-      //cross cleaning step
+    //cross cleaning step
 
     float eta1 = segmentsInGPU.eta[pixelArrayIndex]; 
     float phi1 = segmentsInGPU.phi[pixelArrayIndex]; 
@@ -1081,28 +1081,13 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
 
     unsigned int loop_bound = *pixelQuintupletsInGPU.nPixelQuintuplets;
     if (loop_bound < *pixelTripletsInGPU.nPixelTriplets) { loop_bound = *pixelTripletsInGPU.nPixelTriplets;}
-    for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
-    {
 
-        if (modulesInGPU.trackCandidateModuleIndices[idx] == -1)
-        {
-            continue;
-        }
 
-        unsigned int nTrackCandidates = trackCandidatesInGPU.nTrackCandidates[idx];
+    unsigned int nTrackCandidates = *(trackCandidatesInGPU.nTrackCandidates);
 
-        if (idx == *(modulesInGPU.nLowerModules) && nTrackCandidates > N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE)
-        {
-            nTrackCandidates = N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE;
-        }
-
-        if (idx < *(modulesInGPU.nLowerModules) && nTrackCandidates > 50000)
-        {
-            nTrackCandidates = 50000;
-        }
     for (unsigned int jx=0; jx<nTrackCandidates; jx++)
     {
-        unsigned int trackCandidateIndex = modulesInGPU.trackCandidateModuleIndices[idx] + jx; // this line causes the issue
+        unsigned int trackCandidateIndex = jx;        
         short type = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
         unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex];
         if(type == 4)
@@ -1115,11 +1100,9 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
             if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
             float dR2 = dEta*dEta + dPhi*dPhi;
             if(dR2 < 1e-3) return;
-
-
         }
     }
-  }
+  
         
     for (unsigned int jx=0; jx<loop_bound; jx++)
     {
