@@ -100,6 +100,9 @@ void SDL::quintuplets::freeMemory()
     cudaFree(layer);
     cudaFree(regressionG);
     cudaFree(regressionF);
+    cudaFree(logicalLayers);
+    cudaFree(hitIndices);
+
 #ifdef CUT_VALUE_DEBUG
     cudaFree(innerRadiusMin);
     cudaFree(innerRadiusMin2S);

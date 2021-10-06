@@ -17,6 +17,8 @@ void SDL::trackExtensions::freeMemory()
 {
     cudaFree(constituentTCTypes);
     cudaFree(constituentTCIndices);
+    cudaFree(nLayerOverlaps);
+    cudaFree(nHitOverlaps);
     cudaFree(nTrackExtensions);
     cudaFree(isDup);
     cudaFree(rPhiChiSquared);

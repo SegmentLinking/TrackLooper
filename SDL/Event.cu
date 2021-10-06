@@ -95,7 +95,6 @@ SDL::Event::~Event()
     cudaFreeHost(pixelTrackletsInGPU);
     cudaFreeHost(trackCandidatesInGPU);
     cudaFreeHost(trackExtensionsInGPU);
-    hitsInGPU->freeMemory();
     cudaFreeHost(hitsInGPU);
 
     pixelTripletsInGPU->freeMemory();

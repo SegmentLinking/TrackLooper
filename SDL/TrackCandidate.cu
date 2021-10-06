@@ -104,11 +104,9 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     cudaMalloc(&trackCandidatesInGPU.nTrackCandidatespT5, sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.nTrackCandidatespLS, sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.partOfExtension, maxTrackCandidates * sizeof(bool));
-
     cudaMalloc(&trackCandidatesInGPU.logicalLayers, 7 * maxTrackCandidates * sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.lowerModuleIndices, 7 * maxTrackCandidates * sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.hitIndices, 14 * maxTrackCandidates * sizeof(unsigned int));
-
     cudaMalloc(&trackCandidatesInGPU.centerX, maxTrackCandidates * sizeof(float));
     cudaMalloc(&trackCandidatesInGPU.centerY, maxTrackCandidates * sizeof(float));
     cudaMalloc(&trackCandidatesInGPU.radius, maxTrackCandidates * sizeof(float));
@@ -267,13 +265,13 @@ void SDL::trackCandidates::freeMemory()
 
     cudaFree(logicalLayers);
     cudaFree(hitIndices);
+    cudaFree(lowerModuleIndices);
     cudaFree(partOfExtension);
 
     cudaFree(centerX);
     cudaFree(centerY);
     cudaFree(radius);
     
-    cudaFree(lowerModuleIndices);
     cudaFree(nTrackCandidatespLS);
 }
 
