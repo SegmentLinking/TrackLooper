@@ -166,7 +166,7 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
   cms::cuda::free_device(dev,modulesInGPU.sides);
   cms::cuda::free_device(dev,modulesInGPU.isInverted);
   cms::cuda::free_device(dev,modulesInGPU.isLower);
-  cms::cuda::free_device(dev,modulesInPGPU.isAnchor);
+  cms::cuda::free_device(dev,modulesInGPU.isAnchor);
   cms::cuda::free_device(dev,modulesInGPU.hitRanges);
   cms::cuda::free_device(dev,modulesInGPU.mdRanges);
   cms::cuda::free_device(dev,modulesInGPU.segmentRanges);

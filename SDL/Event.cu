@@ -31,6 +31,7 @@ SDL::Event::Event()
     quintupletsInCPU = nullptr;
     pixelTripletsInCPU = nullptr;
     pixelQuintupletsInCPU = nullptr;
+    trackExtensionsInCPU = nullptr;
 
     //reset the arrays
     for(int i = 0; i<6; i++)
@@ -170,6 +171,9 @@ SDL::Event::~Event()
         delete[] tripletsInCPU->betaIn;
         delete[] tripletsInCPU->betaOut;
         delete[] tripletsInCPU->pt_beta;
+        delete[] tripletsInCPU->logicalLayers;
+        delete[] tripletsInCPU->lowerModuleIndices;
+        delete[] tripletsInCPU->hitIndices;
         delete tripletsInCPU;
     }
 #endif
@@ -206,7 +210,21 @@ SDL::Event::~Event()
         delete[] trackCandidatesInCPU->objectIndices;
         delete[] trackCandidatesInCPU->trackCandidateType;
         delete[] trackCandidatesInCPU->nTrackCandidates;
+        delete[] trackCandidatesInCPU->logicalLayers;
+        delete[] trackCandidatesInCPU->hitIndices;
+        delete[] trackCandidatesInCPU->lowerModuleIndices;
         delete trackCandidatesInCPU;
+    }
+#endif
+#ifdef Explicit_Extensions
+    if(trackExtensionsInCPU != nullptr)
+    {
+        delete[] trackExtensionsInCPU->nTrackExtensions;
+        delete[] trackExtensionsInCPU->constituentTCTypes;
+        delete[] trackExtensionsInCPU->constituentTCIndices;
+        delete[] trackExtensionsInCPU->nLayerOverlaps;
+        delete[] trackExtensionsInCPU->nHitOverlaps;
+        delete[] trackExtensionsInCPU->isDup;
     }
 #endif
 #ifdef Explicit_Module
@@ -2681,12 +2699,17 @@ unsigned int SDL::Event::getNumberOfExtendedTracks()
 {
     unsigned int nTrackCandidates;
     cudaMemcpy(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+    unsigned int *nTrackExtensionsCPU = new unsigned int[nTrackCandidates];
+    cudaMemcpy(nTrackExtensionsCPU, trackExtensionsInGPU->nTrackExtensions, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
     unsigned int nTrackExtensions = 0;
     for(size_t it = 0; it < nTrackCandidates; it++)    
     {
-        nTrackExtensions += (trackExtensionsInGPU->nTrackExtensions)[it];
+        nTrackExtensions += nTrackExtensionsCPU[it];
 
     }
+    delete[] nTrackExtensionsCPU;
     return nTrackExtensions;
 }
 
@@ -2921,11 +2944,21 @@ SDL::triplets* SDL::Event::getTriplets()
         tripletsInCPU->betaIn = new float[nMemoryLocations];
         tripletsInCPU->betaOut = new float[nMemoryLocations];
         tripletsInCPU->pt_beta = new float[nMemoryLocations];
+
+        tripletsInCPU->logicalLayers = new unsigned int[3 * nMemoryLocations];
+        tripletsInCPU->hitIndices = new unsigned int[6 * nMemoryLocations];
+        tripletsInCPU->lowerModuleIndices = new unsigned int[3 * nMemoryLocations];
+
         cudaMemcpy(tripletsInCPU->segmentIndices, tripletsInGPU->segmentIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost);
         cudaMemcpy(tripletsInCPU->betaIn, tripletsInGPU->betaIn, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost);
         cudaMemcpy(tripletsInCPU->betaOut, tripletsInGPU->betaOut, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost);
         cudaMemcpy(tripletsInCPU->pt_beta, tripletsInGPU->pt_beta, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost);
         cudaMemcpy(tripletsInCPU->nTriplets, tripletsInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+        cudaMemcpy(tripletsInCPU->logicalLayers, tripletsInGPU->logicalLayers, 3 * nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost);
+        cudaMemcpy(tripletsInCPU->lowerModuleIndices, tripletsInGPU->lowerModuleIndices, 3 * nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost);
+        cudaMemcpy(tripletsInCPU->hitIndices, tripletsInGPU->hitIndices, 6 * nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost);
+
     }
     return tripletsInCPU;
 }
@@ -3063,9 +3096,20 @@ SDL::trackCandidates* SDL::Event::getTrackCandidates()
         trackCandidatesInCPU->objectIndices = new unsigned int[2 * nMemoryLocations];
         trackCandidatesInCPU->trackCandidateType = new short[nMemoryLocations];
         trackCandidatesInCPU->nTrackCandidates = new unsigned int;
+
+        trackCandidatesInCPU->logicalLayers = new unsigned int[7 * nMemoryLocations];
+        trackCandidatesInCPU->lowerModuleIndices = new unsigned int[7 * nMemoryLocations];
+        trackCandidatesInCPU->hitIndices = new unsigned int[14 * nMemoryLocations];
+        trackCandidatesInCPU->partOfExtension = new bool[nMemoryLocations];
+
         cudaMemcpy(trackCandidatesInCPU->objectIndices, trackCandidatesInGPU->objectIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost);
         cudaMemcpy(trackCandidatesInCPU->trackCandidateType, trackCandidatesInGPU->trackCandidateType, nMemoryLocations * sizeof(short), cudaMemcpyDeviceToHost);
         cudaMemcpy(trackCandidatesInCPU->nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+        cudaMemcpy(trackCandidatesInCPU->lowerModuleIndices, trackCandidatesInGPU->lowerModuleIndices, 7 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(trackCandidatesInCPU->logicalLayers, trackCandidatesInGPU->logicalLayers, 7 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(trackCandidatesInCPU->hitIndices, trackCandidatesInGPU->hitIndices, 14 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(trackCandidatesInCPU->partOfExtension, trackCandidatesInGPU->partOfExtension, nMemoryLocations * sizeof(bool), cudaMemcpyDeviceToHost);
     }
     return trackCandidatesInCPU;
 }
@@ -3192,9 +3236,38 @@ SDL::modules* SDL::Event::getFullModules()
 }
 #endif
 
+#ifdef Explicit_Extensions
+SDL::trackExtensions* SDL::Event::getTrackExtensions()
+{
+   if(trackExtensionsInCPU == nullptr)
+   {
+       trackExtensionsInCPU = new SDL::trackExtensions;
+       unsigned int nTrackCandidates;
+       cudaMemcpy(&nTrackCandidates, trackCandidatesInCPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+       unsigned int maxTrackExtensions = nTrackCandidates * 10;
 
+       trackExtensionsInCPU->nTrackExtensions = new unsigned int[nTrackCandidates];
+       trackExtensionsInCPU->constituentTCTypes = new short[3 * maxTrackExtensions];
+       trackExtensionsInCPU->constituentTCIndices = new unsigned int[3 * maxTrackExtensions];
+       trackExtensionsInCPU->nLayerOverlaps = new unsigned int[2 * maxTrackExtensions];
+       trackExtensionsInCPU->nHitOverlaps = new unsigned int[2 * maxTrackExtensions];
+       trackExtensionsInCPU->isDup = new bool[maxTrackExtensions];
+
+       cudaMemcpy(trackExtensionsInCPU->nTrackExtensions, trackExtensionsInGPU->nTrackExtensions, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+       cudaMemcpy(trackExtensionsInCPU->constituentTCTypes, trackExtensionsInGPU->constituentTCTypes, 3 * maxTrackExtensions * sizeof(short), cudaMemcpyDeviceToHost);
+       cudaMemcpy(trackExtensionsInCPU->constituentTCIndices, trackExtensionsInGPU->constituentTCIndices, 3 * maxTrackExtensions * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+       cudaMemcpy(trackExtensionsInCPU->nLayerOverlaps, trackExtensionsInGPU->nLayerOverlaps, 2 * maxTrackExtensions * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+       cudaMemcpy(trackExtensionsInCPU->nHitOverlaps, trackExtensionsInGPU->nHitOverlaps, 2 * maxTrackExtensions * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+       cudaMemcpy(trackExtensionsInCPU->isDup, trackExtensionsInGPU->isDup, maxTrackExtensions * sizeof(bool), cudaMemcpyDeviceToHost);
+   }
+
+   return trackExtensionsInCPU;
+}
+#else
 SDL::trackExtensions* SDL::Event::getTrackExtensions()
 {
     return trackExtensionsInGPU;
 }
+#endif
 

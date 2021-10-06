@@ -104,6 +104,7 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     cudaMalloc(&trackCandidatesInGPU.nTrackCandidatespT5, sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.nTrackCandidatespLS, sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.partOfExtension, maxTrackCandidates * sizeof(bool));
+
     cudaMalloc(&trackCandidatesInGPU.logicalLayers, 7 * maxTrackCandidates * sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.lowerModuleIndices, 7 * maxTrackCandidates * sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.hitIndices, 14 * maxTrackCandidates * sizeof(unsigned int));
@@ -193,6 +194,9 @@ SDL::trackCandidates::trackCandidates()
     lowerModuleIndices = nullptr;
     partOfExtension = nullptr;
 
+    centerX = nullptr;
+    centerY = nullptr;
+    radius = nullptr;
     nTrackCandidatespT5 = nullptr;
     nTrackCandidatespLS = nullptr;
 }
@@ -216,9 +220,16 @@ void SDL::trackCandidates::freeMemoryCache()
     cms::cuda::free_device(dev,nTrackCandidatespT3);
     cms::cuda::free_device(dev,nTrackCandidatesT5);
     cms::cuda::free_device(dev,nTrackCandidatespT5);
+
     cms::cuda::free_device(dev, logicalLayers);
     cms::cuda::free_device(dev, hitIndices);
+    cms::cuda::free_device(dev, lowerModuleIndices);
+
     cms::cuda::free_device(dev,nTrackCandidatespLS);
+    cms::cuda::free_device(dev, centerX);
+    cms::cuda::free_device(dev, centerY);
+    cms::cuda::free_device(dev, radius);
+    cms::cuda::free_device(dev, partOfExtension);
 #else
     cms::cuda::free_managed(trackCandidateType);
     cms::cuda::free_managed(nTrackCandidates);
@@ -231,6 +242,11 @@ void SDL::trackCandidates::freeMemoryCache()
     cms::cuda::free_managed(nTrackCandidatespT5);
     cms::cuda::free_managed(logicalLayers);
     cms::cuda::free_managed(hitIndices);
+    cms::cuda::free_managed(lowerModuleIndices);
+    cms::cuda::free_managed(centerX);
+    cms::cuda::free_managed(centerY);
+    cms::cuda::free_managed(radius);
+    cms::cuda::free_managed(partOfExtension);
     cms::cuda::free_managed(nTrackCandidatespLS);
 #endif
     cudaFree(objectIndices);
@@ -248,9 +264,15 @@ void SDL::trackCandidates::freeMemory()
     cudaFree(nTrackCandidatespT3);
     cudaFree(nTrackCandidatesT5);
     cudaFree(nTrackCandidatespT5);
+
     cudaFree(logicalLayers);
     cudaFree(hitIndices);
     cudaFree(partOfExtension);
+
+    cudaFree(centerX);
+    cudaFree(centerY);
+    cudaFree(radius);
+    
     cudaFree(lowerModuleIndices);
     cudaFree(nTrackCandidatespLS);
 }

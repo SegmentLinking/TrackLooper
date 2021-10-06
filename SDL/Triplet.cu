@@ -79,8 +79,7 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
 
 #endif
     cudaMemset(tripletsInGPU.nTriplets,0,nLowerModules * sizeof(unsigned int));
-    tripletsInGPU.lowerModuleIndices = tripletsInGPU.segmentIndices + nLowerModules * maxTriplets *2;
-
+    tripletsInGPU.lowerModuleIndices = tripletsInGPU.segmentIndices + nLowerModules * maxTriplets *2; 
     tripletsInGPU.betaOut = tripletsInGPU.betaIn + nLowerModules * maxTriplets;
     tripletsInGPU.pt_beta = tripletsInGPU.betaIn + nLowerModules * maxTriplets * 2;
 }
