@@ -1838,9 +1838,9 @@ __global__ void createPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGP
         else
         {
 #ifdef CUT_VALUE_DEBUG
-            addPixelTripletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, centerX, centerY, rPhiChiSquared, rPhiChiSquaredInwards, rzChiSquared, pixelTripletIndex, pt, eta, phi, eta_pix, phi_pix, score);
+            addPixelTripletToMemory(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, centerX, centerY, rPhiChiSquared, rPhiChiSquaredInwards, rzChiSquared, pixelTripletIndex, pt, eta, phi, eta_pix, phi_pix, score);
 #else
-            addPixelTripletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius,tripletRadius, centerX, centerY, pixelTripletIndex, pt,eta,phi,eta_pix,phi_pix,score);
+            addPixelTripletToMemory(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius,tripletRadius, centerX, centerY, pixelTripletIndex, pt,eta,phi,eta_pix,phi_pix,score);
 #endif
         }
     }
@@ -2193,10 +2193,10 @@ __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesI
             float phi = quintupletsInGPU.phi[quintupletIndex];
 
 #ifdef CUT_VALUE_DEBUG
-            addPixelQuintupletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, rPhiChiSquared, eta, phi, pixelRadius, quintupletRadius, centerX, centerY);
+            addPixelQuintupletToMemory(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, rPhiChiSquared, eta, phi, pixelRadius, quintupletRadius, centerX, centerY);
 
 #else
-            addPixelQuintupletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquaredInwards+rPhiChiSquared, eta,phi, pixelRadius, quintupletRadius, centerX, centerY);
+            addPixelQuintupletToMemory(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquaredInwards+rPhiChiSquared, eta,phi, pixelRadius, quintupletRadius, centerX, centerY);
 #endif
         }
     }
@@ -2630,12 +2630,19 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesI
             if(((nMatched[0] + nMatched[1]) >= 5) )        
             {
                 dup_count++;
-                if( pixelTripletsInGPU.score[ix] > pixelTripletsInGPU.score[jx])
+                //check the layers
+                if(pixelTripletsInGPU.logicalLayers[5*jx+2] < pixelTripletsInGPU.logicalLayers[5*ix+2])
+                {
+                    rmPixelTripletToMemory(pixelTripletsInGPU, ix);
+                    break;
+                }
+
+                else if( pixelTripletsInGPU.logicalLayers[5*ix+2] == pixelTripletsInGPU.logicalLayers[5*jx+2] && pixelTripletsInGPU.score[ix] > pixelTripletsInGPU.score[jx])
                 {
                     rmPixelTripletToMemory(pixelTripletsInGPU,ix);
                     break;
                 }
-                if( (pixelTripletsInGPU.score[ix] == pixelTripletsInGPU.score[jx]) && (ix<jx))
+                else if( pixelTripletsInGPU.logicalLayers[5*ix+2] == pixelTripletsInGPU.logicalLayers[5*jx+2] && (pixelTripletsInGPU.score[ix] == pixelTripletsInGPU.score[jx]) && (ix<jx))
                 {
                     rmPixelTripletToMemory(pixelTripletsInGPU,ix);
                     break;
@@ -2879,7 +2886,7 @@ __global__ void cleanDuplicateExtendedTracks(struct SDL::trackExtensions& trackE
 {
     int trackCandidateIndex = blockIdx.x * blockDim.x + threadIdx.x;
     if(trackCandidateIndex >= nTrackCandidates) return;
-    float minChiSquared = 123456789;
+    float minChiSquared = 99999999999999;
     unsigned int minIndex = 0;
     for(size_t i = 0; i < trackExtensionsInGPU.nTrackExtensions[trackCandidateIndex]; i++)
     {

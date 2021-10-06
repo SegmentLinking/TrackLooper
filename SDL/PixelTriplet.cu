@@ -111,9 +111,9 @@ void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTriplet
 }
 
 #ifdef CUT_VALUE_DEBUG
-__device__ void SDL::addPixelTripletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float pixelRadiusError, float tripletRadius, float centerX, float centerY, float rPhiChiSquared, float rPhiChiSquaredInwards, float rzChiSquared, unsigned int pixelTripletIndex, float pt, float eta, float phi, float eta_pix, float phi_pix, float score)
+__device__ void SDL::addPixelTripletToMemory(struct modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float pixelRadiusError, float tripletRadius, float centerX, float centerY, float rPhiChiSquared, float rPhiChiSquaredInwards, float rzChiSquared, unsigned int pixelTripletIndex, float pt, float eta, float phi, float eta_pix, float phi_pix, float score)
 #else
-__device__ void SDL::addPixelTripletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float tripletRadius, float centerX, float centerY, unsigned int pixelTripletIndex, float pt, float eta, float phi, float eta_pix, float phi_pix,float score)
+__device__ void SDL::addPixelTripletToMemory(struct modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float tripletRadius, float centerX, float centerY, unsigned int pixelTripletIndex, float pt, float eta, float phi, float eta_pix, float phi_pix,float score)
 #endif
 {
     pixelTripletsInGPU.pixelSegmentIndices[pixelTripletIndex] = pixelSegmentIndex;
@@ -143,8 +143,8 @@ __device__ void SDL::addPixelTripletToMemory(struct modules& modulesInGPU, struc
     pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex + 3] = tripletsInGPU.logicalLayers[tripletIndex * 3 + 1];
     pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex + 4] = tripletsInGPU.logicalLayers[tripletIndex * 3 + 2];
 
-    pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex] = segmentsInGPU.innerMiniDoubletAnchorHitIndices[pixelSegmentIndex];
-    pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex + 1] = segmentsInGPU.outerMiniDoubletAnchorHitIndices[pixelSegmentIndex];
+    pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex] = hitsInGPU.moduleIndices[segmentsInGPU.innerMiniDoubletAnchorHitIndices[pixelSegmentIndex]];
+    pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex + 1] = hitsInGPU.moduleIndices[segmentsInGPU.outerMiniDoubletAnchorHitIndices[pixelSegmentIndex]];
     pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex + 2] = tripletsInGPU.lowerModuleIndices[3 * tripletIndex];
      pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex + 3] = tripletsInGPU.lowerModuleIndices[3 * tripletIndex + 1];
       pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex + 4] = tripletsInGPU.lowerModuleIndices[3 * tripletIndex + 2];
