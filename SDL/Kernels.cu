@@ -1909,7 +1909,7 @@ __global__ void createPixelTripletsFromOuterInnerLowerModule(struct SDL::modules
 #ifdef CUT_VALUE_DEBUG
             addPixelTripletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, centerX, centerY, rPhiChiSquared, rPhiChiSquaredInwards, rzChiSquared, pixelTripletIndex, pt, eta, phi, eta_pix, phi_pix, score);
 #else
-            addPixelTripletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius,tripletRadius, centerX, centerY, pixelTripletIndex,pt,eta,phi,eta_pix,phi_pix,score);
+            addPixelTripletToMemory(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius,tripletRadius, centerX, centerY, pixelTripletIndex,pt,eta,phi,eta_pix,phi_pix,score);
 #endif
         }
     }
@@ -2864,10 +2864,10 @@ __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, str
     if(success)
     {
         unsigned int trackExtensionArrayIndex = atomicAdd(&trackExtensionsInGPU.nTrackExtensions[tcIdx], 1);
-        if(trackExtensionArrayIndex >= 10)
+        if(trackExtensionArrayIndex >= N_MAX_TRACK_EXTENSIONS_PER_TC)
         {
 #ifdef Warnings
-            if(trackExtensionArrayIndex == 10)
+            if(trackExtensionArrayIndex == N_MAX_TRACK_EXTENSIONS_PER_TC)
             {
                 printf("Track extensions overflow for TC index = %d\n", tcIdx);
             }
@@ -2875,7 +2875,7 @@ __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, str
         }
         else
         {
-            unsigned int trackExtensionIndex = tcIdx * 10 + trackExtensionArrayIndex; 
+            unsigned int trackExtensionIndex = tcIdx * N_MAX_TRACK_EXTENSIONS_PER_TC + trackExtensionArrayIndex; 
             addTrackExtensionToMemory(trackExtensionsInGPU, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, trackExtensionIndex);
             trackCandidatesInGPU.partOfExtension[tcIdx] = true;
         }
@@ -2886,15 +2886,15 @@ __global__ void cleanDuplicateExtendedTracks(struct SDL::trackExtensions& trackE
 {
     int trackCandidateIndex = blockIdx.x * blockDim.x + threadIdx.x;
     if(trackCandidateIndex >= nTrackCandidates) return;
-    float minChiSquared = 99999999999999;
+    float minChiSquared = 999999999;
     unsigned int minIndex = 0;
-    for(size_t i = 0; i < trackExtensionsInGPU.nTrackExtensions[trackCandidateIndex]; i++)
+    for(size_t i = 0; i < min(trackExtensionsInGPU.nTrackExtensions[trackCandidateIndex], N_MAX_TRACK_EXTENSIONS_PER_TC); i++)
     {
-        if(trackExtensionsInGPU.rPhiChiSquared[trackCandidateIndex * 10 + i] < minChiSquared)
+        if(trackExtensionsInGPU.rPhiChiSquared[trackCandidateIndex * N_MAX_TRACK_EXTENSIONS_PER_TC + i] < minChiSquared)
         {
             minIndex = i;
-            minChiSquared = trackExtensionsInGPU.rPhiChiSquared[trackCandidateIndex * 10 + i];
+            minChiSquared = trackExtensionsInGPU.rPhiChiSquared[trackCandidateIndex * N_MAX_TRACK_EXTENSIONS_PER_TC + i];
         }
     }
-    trackExtensionsInGPU.isDup[10 * trackCandidateIndex + minIndex] = false;
+    trackExtensionsInGPU.isDup[N_MAX_TRACK_EXTENSIONS_PER_TC * trackCandidateIndex + minIndex] = false;
 }

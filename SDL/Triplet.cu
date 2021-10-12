@@ -198,7 +198,6 @@ void SDL::triplets::freeMemory()
     cudaFree(partOfPT5);
     cudaFree(logicalLayers);
     cudaFree(hitIndices);
-    cudaFree(lowerModuleIndices);
 #ifdef CUT_VALUE_DEBUG
     cudaFree(zOut);
     cudaFree(zLo);

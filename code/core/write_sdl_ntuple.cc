@@ -2087,14 +2087,14 @@ void fillTrackExtensionOutputBranches(SDL::Event& event)
     std::vector<float> t3_pt = ana.tx->getBranch<vector<float>>("t3_pt");
     std::vector<float> t3_eta = ana.tx->getBranch<vector<float>>("t3_eta");
     std::vector<float> t3_phi = ana.tx->getBranch<vector<float>>("t3_phi");
-
+    unsigned int N_MAX_TRACK_EXTENSIONS_PER_TC = 30;
     std::vector<int> tce_anchorType;;
     for(size_t i = 0; i < nTrackCandidates; i++)
     {
-        unsigned int nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i] > 10 ? 10 : (trackExtensionsInGPU.nTrackExtensions)[i]; 
+        unsigned int nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i] > N_MAX_TRACK_EXTENSIONS_PER_TC ? N_MAX_TRACK_EXTENSIONS_PER_TC : (trackExtensionsInGPU.nTrackExtensions)[i]; 
         for(size_t j = 0; j < nTrackExtensions; j++)
         {
-            unsigned int teIdx = i * 10 + j;
+            unsigned int teIdx = i * N_MAX_TRACK_EXTENSIONS_PER_TC + j;
             short anchorType = trackExtensionsInGPU.constituentTCTypes[3*teIdx];
             short outerType = trackExtensionsInGPU.constituentTCTypes[3*teIdx + 1];
     

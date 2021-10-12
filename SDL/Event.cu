@@ -1713,9 +1713,9 @@ void SDL::Event::createExtendedTracks()
     cudaMemcpy(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
 #ifdef Explicit_Extensions
-    createTrackExtensionsInExplicitMemory(*trackExtensionsInGPU, nTrackCandidates * 10, nTrackCandidates); 
+    createTrackExtensionsInExplicitMemory(*trackExtensionsInGPU, nTrackCandidates * N_MAX_TRACK_EXTENSIONS_PER_TC, nTrackCandidates); 
 #else
-    createTrackExtensionsInUnifiedMemory(*trackExtensionsInGPU, nTrackCandidates * 10, nTrackCandidates);
+    createTrackExtensionsInUnifiedMemory(*trackExtensionsInGPU, nTrackCandidates * N_MAX_TRACK_EXTENSIONS_PER_TC, nTrackCandidates);
 #endif
     unsigned int nLowerModules;    
     cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
