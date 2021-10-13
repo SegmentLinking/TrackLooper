@@ -127,7 +127,7 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
     dim3 nThreads(1,16,16);
     dim3 nBlocks(1,nLowerHits % nThreads.y == 0 ? nLowerHits/nThreads.y : nLowerHits/nThreads.y + 1, nUpperHits % nThreads.z == 0 ? nUpperHits/nThreads.z : nUpperHits/nThreads.z + 1);
 
-    createMiniDoubletsFromLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, lowerModuleIndex, upperModuleIndex, nLowerHits, nUpperHits);
+//    createMiniDoubletsFromLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, lowerModuleIndex, upperModuleIndex, nLowerHits, nUpperHits);
 
 
 }
@@ -279,7 +279,7 @@ __global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SD
     dim3 nThreads(1,16,16);
     dim3 nBlocks((nConnectedModules % nThreads.x == 0 ? nConnectedModules/nThreads.x : nConnectedModules/nThreads.x + 1), (nInnerMDs % nThreads.y == 0 ? nInnerMDs/nThreads.y : nInnerMDs/nThreads.y + 1), (N_MAX_MD_PER_MODULES % nThreads.z == 0 ? N_MAX_MD_PER_MODULES/nThreads.z : N_MAX_MD_PER_MODULES/nThreads.z + 1));
 
-    createSegmentsFromInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, innerLowerModuleIndex,nInnerMDs);
+//    createSegmentsFromInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, innerLowerModuleIndex,nInnerMDs);
 
 }
 #endif
@@ -426,7 +426,7 @@ __global__ void createTrackletsInGPU(struct SDL::modules& modulesInGPU, struct S
   dim3 nThreads(1,16,16);
   dim3 nBlocks(MAX_CONNECTED_MODULES % nThreads.x  == 0 ? MAX_CONNECTED_MODULES / nThreads.x : MAX_CONNECTED_MODULES / nThreads.x + 1 ,nInnerSegments % nThreads.y == 0 ? nInnerSegments/nThreads.y : nInnerSegments/nThreads.y + 1,N_MAX_SEGMENTS_PER_MODULE % nThreads.z == 0 ? N_MAX_SEGMENTS_PER_MODULE/nThreads.z : N_MAX_SEGMENTS_PER_MODULE/nThreads.z + 1);
 
-  createTrackletsFromInnerInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,trackletsInGPU,innerInnerLowerModuleIndex,nInnerSegments,innerInnerLowerModuleArrayIndex);
+//  createTrackletsFromInnerInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,trackletsInGPU,innerInnerLowerModuleIndex,nInnerSegments,innerInnerLowerModuleArrayIndex);
 
 }
 #endif
@@ -500,7 +500,7 @@ __global__ void createTrackletsFromTriplets(struct SDL::modules& modulesInGPU, s
   if(nTriplets == 0) return;
     dim3 nThreads(16,16,1);
     dim3 nBlocks(nTriplets % nThreads.x == 0 ? nTriplets / nThreads.x : nTriplets / nThreads.x + 1, N_MAX_TRIPLETS_PER_MODULE % nThreads.y == 0 ? N_MAX_TRIPLETS_PER_MODULE / nThreads.y : N_MAX_TRIPLETS_PER_MODULE / nThreads.y + 1, 1);
-    createTrackletsFromTripletsP2<<<nBlocks,nThreads>>>(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,tripletsInGPU,trackletsInGPU,innerInnerLowerModuleArrayIndex,nTriplets);
+//    createTrackletsFromTripletsP2<<<nBlocks,nThreads>>>(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,tripletsInGPU,trackletsInGPU,innerInnerLowerModuleArrayIndex,nTriplets);
 
 }
 __global__ void createTrackletsFromTripletsP2(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::tracklets& trackletsInGPU/*,unsigned int *index_gpu*/,unsigned int innerInnerLowerModuleArrayIndex, unsigned int nTriplets)
@@ -676,7 +676,7 @@ __global__ void createPixelTrackletsInGPU(struct SDL::modules& modulesInGPU, str
     dim3 nThreads(16,16,1);
     dim3 nBlocks(nInnerSegments % nThreads.x == 0 ? nInnerSegments / nThreads.x : nInnerSegments / nThreads.x + 1, nOuterSegments % nThreads.y == 0 ? nOuterSegments / nThreads.y : nOuterSegments / nThreads.y + 1, 1);
 
-    createPixelTrackletsFromOuterInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelTrackletsInGPU, outerInnerLowerModuleIndex, nInnerSegments, nOuterSegments, pixelModuleIndex, pixelLowerModuleArrayIndex);
+//    createPixelTrackletsFromOuterInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelTrackletsInGPU, outerInnerLowerModuleIndex, nInnerSegments, nOuterSegments, pixelModuleIndex, pixelLowerModuleArrayIndex);
 
 }
 __global__ void createPixelTrackletsFromOuterInnerLowerModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTracklets& pixelTrackletsInGPU, unsigned int outerInnerLowerModuleIndex, unsigned int nInnerSegments, unsigned int nOuterSegments, unsigned int pixelModuleIndex, unsigned int pixelLowerModuleArrayIndex)
@@ -794,7 +794,7 @@ __global__ void createTrackletsWithAGapInGPU(struct SDL::modules& modulesInGPU, 
     dim3 nThreads(1,16,16);
     dim3 nBlocks((MAX_CONNECTED_MODULES * MAX_CONNECTED_MODULES) % nThreads.x  == 0 ? (MAX_CONNECTED_MODULES * MAX_CONNECTED_MODULES) / nThreads.x : (MAX_CONNECTED_MODULES * MAX_CONNECTED_MODULES) / nThreads.x + 1 ,nInnerSegments % nThreads.y == 0 ? nInnerSegments/nThreads.y : nInnerSegments/nThreads.y + 1,N_MAX_SEGMENTS_PER_MODULE % nThreads.z == 0 ? N_MAX_SEGMENTS_PER_MODULE/nThreads.z : N_MAX_SEGMENTS_PER_MODULE/nThreads.z + 1);
 
-    createTrackletsWithAGapFromInnerInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,trackletsInGPU,innerInnerLowerModuleIndex,nInnerSegments,innerInnerLowerModuleArrayIndex);
+//    createTrackletsWithAGapFromInnerInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,trackletsInGPU,innerInnerLowerModuleIndex,nInnerSegments,innerInnerLowerModuleArrayIndex);
 
 }
 
@@ -915,7 +915,7 @@ __global__ void createTripletsInGPU(struct SDL::modules& modulesInGPU, struct SD
     dim3 nThreads(16,16,1);
     dim3 nBlocks(nInnerSegments % nThreads.x == 0 ? nInnerSegments / nThreads.x : nInnerSegments / nThreads.x + 1, N_MAX_SEGMENTS_PER_MODULE % nThreads.y == 0 ? N_MAX_SEGMENTS_PER_MODULE / nThreads.y : N_MAX_SEGMENTS_PER_MODULE / nThreads.y + 1);
 
-    createTripletsFromInnerInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, innerInnerLowerModuleIndex, nInnerSegments, nConnectedModules, innerInnerLowerModuleArrayIndex);
+//    createTripletsFromInnerInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, innerInnerLowerModuleIndex, nInnerSegments, nConnectedModules, innerInnerLowerModuleArrayIndex);
 }
 #endif
 
@@ -1354,7 +1354,7 @@ __global__ void createPixelTrackCandidatesInGPU(struct SDL::modules& modulesInGP
     dim3 nThreads(16,16,1);
     dim3 nBlocks( nPixelTracklets % nThreads.x == 0 ? nPixelTracklets/nThreads.x : nPixelTracklets/nThreads.x + 1, nThreadsForNestedKernel % nThreads.y == 0 ? nThreadsForNestedKernel/nThreads.y : nThreadsForNestedKernel/nThreads.y + 1, 1);
 
-    createPixelTrackCandidatesFromOuterInnerInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, trackletsInGPU, pixelTrackletsInGPU, tripletsInGPU, trackCandidatesInGPU, pixelLowerModuleArrayIndex, outerInnerInnerLowerModuleArrayIndex, nPixelTracklets, nOuterLayerTracklets, nOuterLayerTriplets);
+//    createPixelTrackCandidatesFromOuterInnerInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, trackletsInGPU, pixelTrackletsInGPU, tripletsInGPU, trackCandidatesInGPU, pixelLowerModuleArrayIndex, outerInnerInnerLowerModuleArrayIndex, nPixelTracklets, nOuterLayerTracklets, nOuterLayerTriplets);
 }
 
 
@@ -1649,7 +1649,7 @@ __global__ void createTrackCandidatesInGPU(struct SDL::modules& modulesInGPU, st
     dim3 nThreads(16,16,1);
     dim3 nBlocks(temp % nThreads.x == 0 ? temp / nThreads.x : temp / nThreads.x + 1, MAX_OBJECTS % nThreads.y == 0 ? MAX_OBJECTS / nThreads.y : MAX_OBJECTS / nThreads.y + 1, 1);
 
-    createTrackCandidatesFromInnerInnerInnerLowerModule<<<nBlocks, nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, trackletsInGPU, tripletsInGPU, trackCandidatesInGPU,innerInnerInnerLowerModuleArrayIndex,nTracklets,nTriplets);
+//    createTrackCandidatesFromInnerInnerInnerLowerModule<<<nBlocks, nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, trackletsInGPU, tripletsInGPU, trackCandidatesInGPU,innerInnerInnerLowerModuleArrayIndex,nTracklets,nTriplets);
 }
 
 __global__ void createTrackCandidatesFromInnerInnerInnerLowerModule(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, unsigned int innerInnerInnerLowerModuleArrayIndex, unsigned int nInnerTracklets, unsigned int nInnerTriplets)
@@ -1955,7 +1955,7 @@ __global__ void createPixelTripletsInGPU(struct SDL::modules& modulesInGPU, stru
     dim3 nThreads(16,16,1);
     dim3 nBlocks(nPixelSegments % nThreads.x == 0 ? nPixelSegments / nThreads.x : nPixelSegments / nThreads.x + 1, nOuterTriplets % nThreads.y == 0 ? nOuterTriplets / nThreads.y : nOuterTriplets / nThreads.y + 1, 1);
 
-    createPixelTripletsFromOuterInnerLowerModule<<<nBlocks, nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, outerTripletInnerLowerModuleArrayIndex, nPixelSegments, nOuterTriplets, pixelModuleIndex);
+//    createPixelTripletsFromOuterInnerLowerModule<<<nBlocks, nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, outerTripletInnerLowerModuleArrayIndex, nPixelSegments, nOuterTriplets, pixelModuleIndex);
 }
 
 #endif
@@ -2152,7 +2152,7 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
     dim3 nThreads(16,16,1);
     dim3 nBlocks(nInnerTriplets % nThreads.x == 0 ? nInnerTriplets / nThreads.x : nInnerTriplets / nThreads.x + 1, N_MAX_TRIPLETS_PER_MODULE % nThreads.y == 0 ? N_MAX_TRIPLETS_PER_MODULE / nThreads.y : N_MAX_TRIPLETS_PER_MODULE / nThreads.y + 1);
 
-    createQuintupletsFromInnerInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, innerInnerInnerLowerModuleArrayIndex, nInnerTriplets);
+//    createQuintupletsFromInnerInnerLowerModule<<<nBlocks,nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, innerInnerInnerLowerModuleArrayIndex, nInnerTriplets);
 
 }
 
@@ -2285,7 +2285,7 @@ __global__ void createPixelQuintupletsInGPU(struct SDL::modules& modulesInGPU, s
     dim3 nThreads(16, 16, 1);
     dim3 nBlocks(nPixelSegments % nThreads.x == 0 ? nPixelSegments / nThreads.x : nPixelSegments / nThreads.x + 1, nOuterQuintuplets % nThreads.y == 0 ? nOuterQuintuplets / nThreads.y : nOuterQuintuplets / nThreads.y + 1, 1);
 
-    createPixelQuintupletsFromFirstModule<<<nBlocks, nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, nPixelSegments, nOuterQuintuplets, firstLowerModuleArrayIndex, pixelModuleIndex);
+//    createPixelQuintupletsFromFirstModule<<<nBlocks, nThreads>>>(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, nPixelSegments, nOuterQuintuplets, firstLowerModuleArrayIndex, pixelModuleIndex);
 
 }
 
