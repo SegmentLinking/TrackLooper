@@ -11,7 +11,7 @@ HEADERS=$(SOURCES:.cc=.h)
 
 CC          = nvcc
 CXX         = nvcc
-CXXFLAGS    = -g -O2 --compiler-options -Wall --compiler-options -fPIC --compiler-options -Wshadow --compiler-options -Woverloaded-virtual -G -lineinfo
+CXXFLAGS    = -g -O2 --compiler-options -Wall --compiler-options -fPIC --compiler-options -Wshadow --compiler-options -Woverloaded-virtual -G -lineinfo --default-stream-per-thread
 LD          = g++
 LDFLAGS     = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual -I/mnt/data1/dsr/cub
 SOFLAGS     = -g -shared

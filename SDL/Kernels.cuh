@@ -48,10 +48,14 @@ const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 50000;
 const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 3000000;
 const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 5000000;
 #else
+const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 1000000;
+//const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 500;
+//const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 3000;
 const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 5000;
-const unsigned int N_MAX_PIXEL_TRACKLETS_PER_MODULE = 200000;
 const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 250000;
 #endif
+//const unsigned int N_MAX_PIXEL_TRIPLETS = 15000;
+//const unsigned int N_MAX_PIXEL_QUINTUPLETS = 2500;
 const unsigned int N_MAX_PIXEL_TRIPLETS = 250000;
 const unsigned int N_MAX_PIXEL_QUINTUPLETS = 1000000;
 
