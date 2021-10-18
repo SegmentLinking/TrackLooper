@@ -764,10 +764,6 @@ void SDL::Event::createMiniDoublets()
     unsigned int nLowerModules;
     cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
 
-#ifdef NESTED_PARA
-    int nThreads = 1;
-    int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads + 1;
-#else
 #ifdef NEWGRID_MD
     int maxThreadsPerModule=0;
     #ifdef Explicit_Module
@@ -820,7 +816,7 @@ void SDL::Event::createMiniDoublets()
     dim3 nThreads(1,16,16);
     dim3 nBlocks((nLowerModules % nThreads.x == 0 ? nLowerModules/nThreads.x : nLowerModules/nThreads.x + 1),(N_MAX_HITS_PER_MODULE % nThreads.y == 0 ? N_MAX_HITS_PER_MODULE/nThreads.y : N_MAX_HITS_PER_MODULE/nThreads.y + 1), (N_MAX_HITS_PER_MODULE % nThreads.z == 0 ? N_MAX_HITS_PER_MODULE/nThreads.z : N_MAX_HITS_PER_MODULE/nThreads.z + 1));
 #endif
-#endif
+//#endif
 
     cudaDeviceSynchronize();
     auto syncStart = std::chrono::high_resolution_clock::now();
@@ -862,10 +858,6 @@ void SDL::Event::createSegmentsWithModuleMap()
     unsigned int nLowerModules;
     cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
 
-#ifdef NESTED_PARA
-    unsigned int nThreads = 1;
-    unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads + 1;
-#else
 #ifdef NEWGRID_Seg
     int max_cModules=0;
     int sq_max_nMDs = 0;
@@ -933,7 +925,7 @@ void SDL::Event::createSegmentsWithModuleMap()
     dim3 nThreads(1,16,16);
     dim3 nBlocks(((nLowerModules * MAX_CONNECTED_MODULES)  % nThreads.x == 0 ? (nLowerModules * MAX_CONNECTED_MODULES)/nThreads.x : (nLowerModules * MAX_CONNECTED_MODULES)/nThreads.x + 1),(N_MAX_MD_PER_MODULES % nThreads.y == 0 ? N_MAX_MD_PER_MODULES/nThreads.y : N_MAX_MD_PER_MODULES/nThreads.y + 1), (N_MAX_MD_PER_MODULES % nThreads.z == 0  ? N_MAX_MD_PER_MODULES/nThreads.z : N_MAX_MD_PER_MODULES/nThreads.z + 1));
 #endif
-#endif
+//#endif
 
     createSegmentsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU);
 
@@ -968,17 +960,6 @@ void SDL::Event::createTriplets()
 #endif
     }
 
-#ifdef NESTED_PARA
-    unsigned int nThreads = 1;
-    unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads + 1;
-
-    createTripletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU);
-    cudaError_t cudaerr = cudaGetLastError();
-    if(cudaerr != cudaSuccess)
-      {
-	std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-      }cudaDeviceSynchronize();
-#else
 #ifdef NEWGRID_Trips
   #ifdef Explicit_Module
     unsigned int nonZeroModules=0;
@@ -1045,7 +1026,7 @@ void SDL::Event::createTriplets()
     printf("original 3D grid launching in createTriplets does not exist");
     exit(1);
 #endif
-#endif
+//#endif
 
 #if defined(AddObjects)
 #ifdef Explicit_Trips
@@ -1073,22 +1054,6 @@ void SDL::Event::createTrackletsWithModuleMap()
 #endif
     }
 
-#ifdef NESTED_PARA
-    unsigned int nThreads = 1;
-    unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads + 1;
-
-    #ifdef T4FromT3
-      createTrackletsFromTriplets<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *trackletsInGPU);
-    #else
-      createTrackletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU);
-    #endif
-
-    cudaError_t cudaerr = cudaGetLastError();
-    if(cudaerr != cudaSuccess)
-      {
-	std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-      }cudaDeviceSynchronize();
-#else
 #ifdef NEWGRID_Tracklet
   #ifdef T4FromT3
     int threadSize=230000;
@@ -1220,7 +1185,7 @@ void SDL::Event::createTrackletsWithModuleMap()
     printf("original 3D grid launching in createTracklets does not exist");
     exit(1);
 #endif
-#endif
+//#endif
 #if defined(AddObjects)
 #ifdef Explicit_Tracklet
     addTrackletsToEventExplicit();
@@ -1244,19 +1209,6 @@ void SDL::Event::createPixelTrackletsWithMap()
     }
     unsigned int nLowerModules;
     cudaMemcpy(&nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-#ifdef NESTED_PARA
-    unsigned int nThreads = 1;
-    unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads + 1;
-
-    createPixelTrackletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTrackletsInGPU);
-
-    cudaError_t cudaerr =cudaGetLastError(); 
-    if(cudaerr != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-
-    }cudaDeviceSynchronize();
-#else
 #ifdef NEWGRID_Pixel
     unsigned int pixelModuleIndex;
     unsigned int nInnerSegments;
@@ -1376,117 +1328,116 @@ void SDL::Event::createPixelTrackletsWithMap()
     printf("original 3D grid launching in createPixelTracklets does not exist");
     exit(2);
 #endif
-#endif
 
     unsigned int nPixelTracklets;
     cudaMemcpy(&nPixelTracklets, &(pixelTrackletsInGPU->nPixelTracklets), sizeof(unsigned int), cudaMemcpyDeviceToHost);
 }
-
-void SDL::Event::createPixelTracklets()
-{
-    unsigned int nLowerModules;// = *modulesInGPU->nLowerModules;
-    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    if(pixelTrackletsInGPU == nullptr)
-    {
-        cudaMallocHost(&pixelTrackletsInGPU, sizeof(SDL::pixelTracklets));
-#ifdef Explicit_Tracklet
-        createPixelTrackletsInExplicitMemory(*pixelTrackletsInGPU, N_MAX_PIXEL_TRACKLETS_PER_MODULE);
-#else
-        createPixelTrackletsInUnifiedMemory(*pixelTrackletsInGPU, N_MAX_PIXEL_TRACKLETS_PER_MODULE);
-#endif
-    }
-
-#ifdef NESTED_PARA
-    unsigned int nThreads = 1;
-    unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads + 1;
-
-    createPixelTrackletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTrackletsInGPU);
-
-    cudaError_t cudaerr = cudaGetLastError();
-    if(cudaerr != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-
-    }cudaDeviceSynchronize();
-#else
-#ifdef NEWGRID_Pixel
-#ifdef Explicit_Module
-    unsigned int nModules; //= *modulesInGPU->nModules;
-    cudaMemcpy(&nModules,modulesInGPU->nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
-#else
-    unsigned int nModules = *modulesInGPU->nModules;
-#endif
-    unsigned int *nSegments = (unsigned int*)malloc(nModules*sizeof(unsigned int));
-    cudaMemcpy((void *)nSegments, segmentsInGPU->nSegments, nModules*sizeof(unsigned int), cudaMemcpyDeviceToHost);
-    unsigned int pixelModuleIndex = nModules - 1;
-    unsigned int nInnerSegments = nSegments[pixelModuleIndex] > N_MAX_PIXEL_SEGMENTS_PER_MODULE ? N_MAX_PIXEL_SEGMENTS_PER_MODULE : nSegments[pixelModuleIndex];
-#ifdef Explicit_Module
-    unsigned int* lowerModuleIndices;
-    cudaMallocHost(&lowerModuleIndices, (nLowerModules +1)* sizeof(unsigned int));
-    cudaMemcpy(lowerModuleIndices,modulesInGPU->lowerModuleIndices,(nLowerModules+1)*sizeof(unsigned int),cudaMemcpyDeviceToHost);
-#endif
-    int threadSize = 100000;
-    unsigned int *threadIdx = (unsigned int*)malloc(2*threadSize*sizeof(unsigned int));
-    unsigned int *threadIdx_offset = threadIdx+threadSize;
-    unsigned int *threadIdx_gpu;
-    unsigned int *threadIdx_gpu_offset;
-    cudaMalloc((void **)&threadIdx_gpu, 2*threadSize*sizeof(unsigned int));
-    threadIdx_gpu_offset = threadIdx_gpu + threadSize;
-    cudaMemset(threadIdx_gpu, nLowerModules, threadSize*sizeof(unsigned int));
-    unsigned int totalCand=0;
-    for (int i=0; i<nLowerModules; i++) {
-#ifdef Explicit_Module
-      unsigned int outerInnerLowerModuleIndex = lowerModuleIndices[i];
-#else
-      unsigned int outerInnerLowerModuleIndex = modulesInGPU->lowerModuleIndices[i];
-#endif
-      unsigned int nOuterSegments = nSegments[outerInnerLowerModuleIndex] > N_MAX_SEGMENTS_PER_MODULE ? N_MAX_SEGMENTS_PER_MODULE : nSegments[outerInnerLowerModuleIndex];
-      if (nOuterSegments!=0) {
-	for (int k=0; k<nOuterSegments; k++) {
-          threadIdx[totalCand+k] = i;
-          threadIdx_offset[totalCand+k] = k;
-        }
-	totalCand += nOuterSegments;
-      }
-    }
-
-    if (threadSize < totalCand) {
-      printf("threadSize=%d totalCand=%d: increase buffer size for threadIdx in createPixelTracklets\n", threadSize, totalCand);
-      exit(1);
-    }
-
-    cudaMemcpy(threadIdx_gpu, threadIdx, threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
-    cudaMemcpy(threadIdx_gpu_offset, threadIdx_offset, threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
-
-    dim3 nThreads(16,32,1);
-    dim3 nBlocks((nInnerSegments % nThreads.x == 0 ? nInnerSegments / nThreads.x : nInnerSegments / nThreads.x + 1),(totalCand % nThreads.y == 0 ? totalCand/nThreads.y : totalCand/nThreads.y + 1), 1);
-    createPixelTrackletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTrackletsInGPU, threadIdx_gpu, threadIdx_gpu_offset);
-
-    cudaError_t cudaerr = cudaGetLastError();
-    if(cudaerr != cudaSuccess)
-    {
-    	std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-    }cudaDeviceSynchronize();
-
-    free(nSegments);
-    free(threadIdx);
-    cudaFree(threadIdx_gpu);
-#ifdef Explicit_Module
-    cudaFreeHost(lowerModuleIndices);
-#endif
-
-#else
-    printf("original 3D grid launching in createPixelTracklets does not exist");
-    exit(2);
-#endif
-#endif
-
-    unsigned int nPixelTracklets;
-    cudaMemcpy(&nPixelTracklets, &(pixelTrackletsInGPU->nPixelTracklets), sizeof(unsigned int), cudaMemcpyDeviceToHost);
-#ifdef Warnings
-    std::cout<<"number of pixel tracklets = "<<nPixelTracklets<<std::endl;
-#endif
-}
+//
+//void SDL::Event::createPixelTracklets()
+//{
+//    unsigned int nLowerModules;// = *modulesInGPU->nLowerModules;
+//    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+//    if(pixelTrackletsInGPU == nullptr)
+//    {
+//        cudaMallocHost(&pixelTrackletsInGPU, sizeof(SDL::pixelTracklets));
+//#ifdef Explicit_Tracklet
+//        createPixelTrackletsInExplicitMemory(*pixelTrackletsInGPU, N_MAX_PIXEL_TRACKLETS_PER_MODULE);
+//#else
+//        createPixelTrackletsInUnifiedMemory(*pixelTrackletsInGPU, N_MAX_PIXEL_TRACKLETS_PER_MODULE);
+//#endif
+//    }
+//
+//#ifdef NESTED_PARA
+//    unsigned int nThreads = 1;
+//    unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads + 1;
+//
+//    createPixelTrackletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTrackletsInGPU);
+//
+//    cudaError_t cudaerr = cudaGetLastError();
+//    if(cudaerr != cudaSuccess)
+//    {
+//        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
+//
+//    }cudaDeviceSynchronize();
+//#else
+//#ifdef NEWGRID_Pixel
+//#ifdef Explicit_Module
+//    unsigned int nModules; //= *modulesInGPU->nModules;
+//    cudaMemcpy(&nModules,modulesInGPU->nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+//#else
+//    unsigned int nModules = *modulesInGPU->nModules;
+//#endif
+//    unsigned int *nSegments = (unsigned int*)malloc(nModules*sizeof(unsigned int));
+//    cudaMemcpy((void *)nSegments, segmentsInGPU->nSegments, nModules*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+//    unsigned int pixelModuleIndex = nModules - 1;
+//    unsigned int nInnerSegments = nSegments[pixelModuleIndex] > N_MAX_PIXEL_SEGMENTS_PER_MODULE ? N_MAX_PIXEL_SEGMENTS_PER_MODULE : nSegments[pixelModuleIndex];
+//#ifdef Explicit_Module
+//    unsigned int* lowerModuleIndices;
+//    cudaMallocHost(&lowerModuleIndices, (nLowerModules +1)* sizeof(unsigned int));
+//    cudaMemcpy(lowerModuleIndices,modulesInGPU->lowerModuleIndices,(nLowerModules+1)*sizeof(unsigned int),cudaMemcpyDeviceToHost);
+//#endif
+//    int threadSize = 100000;
+//    unsigned int *threadIdx = (unsigned int*)malloc(2*threadSize*sizeof(unsigned int));
+//    unsigned int *threadIdx_offset = threadIdx+threadSize;
+//    unsigned int *threadIdx_gpu;
+//    unsigned int *threadIdx_gpu_offset;
+//    cudaMalloc((void **)&threadIdx_gpu, 2*threadSize*sizeof(unsigned int));
+//    threadIdx_gpu_offset = threadIdx_gpu + threadSize;
+//    cudaMemset(threadIdx_gpu, nLowerModules, threadSize*sizeof(unsigned int));
+//    unsigned int totalCand=0;
+//    for (int i=0; i<nLowerModules; i++) {
+//#ifdef Explicit_Module
+//      unsigned int outerInnerLowerModuleIndex = lowerModuleIndices[i];
+//#else
+//      unsigned int outerInnerLowerModuleIndex = modulesInGPU->lowerModuleIndices[i];
+//#endif
+//      unsigned int nOuterSegments = nSegments[outerInnerLowerModuleIndex] > N_MAX_SEGMENTS_PER_MODULE ? N_MAX_SEGMENTS_PER_MODULE : nSegments[outerInnerLowerModuleIndex];
+//      if (nOuterSegments!=0) {
+//	for (int k=0; k<nOuterSegments; k++) {
+//          threadIdx[totalCand+k] = i;
+//          threadIdx_offset[totalCand+k] = k;
+//        }
+//	totalCand += nOuterSegments;
+//      }
+//    }
+//
+//    if (threadSize < totalCand) {
+//      printf("threadSize=%d totalCand=%d: increase buffer size for threadIdx in createPixelTracklets\n", threadSize, totalCand);
+//      exit(1);
+//    }
+//
+//    cudaMemcpy(threadIdx_gpu, threadIdx, threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
+//    cudaMemcpy(threadIdx_gpu_offset, threadIdx_offset, threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
+//
+//    dim3 nThreads(16,32,1);
+//    dim3 nBlocks((nInnerSegments % nThreads.x == 0 ? nInnerSegments / nThreads.x : nInnerSegments / nThreads.x + 1),(totalCand % nThreads.y == 0 ? totalCand/nThreads.y : totalCand/nThreads.y + 1), 1);
+//    createPixelTrackletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTrackletsInGPU, threadIdx_gpu, threadIdx_gpu_offset);
+//
+//    cudaError_t cudaerr = cudaGetLastError();
+//    if(cudaerr != cudaSuccess)
+//    {
+//    	std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
+//    }cudaDeviceSynchronize();
+//
+//    free(nSegments);
+//    free(threadIdx);
+//    cudaFree(threadIdx_gpu);
+//#ifdef Explicit_Module
+//    cudaFreeHost(lowerModuleIndices);
+//#endif
+//
+//#else
+//    printf("original 3D grid launching in createPixelTracklets does not exist");
+//    exit(2);
+//#endif
+//#endif
+//
+//    unsigned int nPixelTracklets;
+//    cudaMemcpy(&nPixelTracklets, &(pixelTrackletsInGPU->nPixelTracklets), sizeof(unsigned int), cudaMemcpyDeviceToHost);
+//#ifdef Warnings
+//    std::cout<<"number of pixel tracklets = "<<nPixelTracklets<<std::endl;
+//#endif
+//}
 
 void SDL::Event::createTrackCandidates()
 {
@@ -1588,31 +1539,6 @@ void SDL::Event::createTrackCandidates()
 
 #ifdef FINAL_T3T4
     printf("running final state T3T4\n");
-#ifdef NESTED_PARA
-    //auto t0 = std::chrono::high_resolution_clock::now();
-    unsigned int nThreads = 1;
-    unsigned int nBlocks = (nLowerModules-1) % nThreads == 0 ? (nLowerModules-1)/nThreads : (nLowerModules-1)/nThreads + 1;
-
-    createTrackCandidatesInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU, *tripletsInGPU, *trackCandidatesInGPU);
-
-    cudaError_t cudaerr = cudaGetLastError();
-    if(cudaerr != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-    }cudaDeviceSynchronize();
-
-    //Pixel Track Candidates created separately
-    nThreads = 1;
-    nBlocks = (nLowerModules - 1) % nThreads == 0 ? (nLowerModules - 1)/nThreads : (nLowerModules - 1)/nThreads + 1;
-
-    createPixelTrackCandidatesInGPU<<<nBlocks, nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTrackletsInGPU, *trackletsInGPU, *tripletsInGPU, *trackCandidatesInGPU);
-
-    cudaerr = cudaGetLastError();
-    if(cudaerr != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-    }cudaDeviceSynchronize();
-#else
 #ifdef NEWGRID_Track
     //auto t0 = std::chrono::high_resolution_clock::now();
     int maxOuterTr = max(N_MAX_TRACKLETS_PER_MODULE, N_MAX_TRIPLETS_PER_MODULE);
@@ -1684,7 +1610,7 @@ void SDL::Event::createTrackCandidates()
     printf("original 3D grid launching in createTrackCandidates does not exist");
     exit(3);
 #endif
-#endif
+
 #endif // Final state T3+T4
 #if defined(AddObjects)
 #ifdef Explicit_Track
@@ -1716,19 +1642,6 @@ void SDL::Event::createPixelTriplets()
     createPixelTripletsInUnifiedMemory(*pixelTripletsInGPU, N_MAX_PIXEL_TRIPLETS);
 #endif
 
-#ifdef NESTED_PARA
-    unsigned int nThreads = 1;
-    unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules / nThreads : nLowerModules / nThreads + 1;
-
-    createPixelTripletsInGPU<<<nBlocks, nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU);
-
-    cudaError_t cudaerr = cudaGetLastError();
-    if(cudaerr != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-
-    }cudaDeviceSynchronize();
-#else
 #ifdef NEWGRID_pT3
     unsigned int pixelModuleIndex;
     int* superbins;
@@ -1846,7 +1759,7 @@ void SDL::Event::createPixelTriplets()
     printf("original 3D grid launching in createPixelTriplets does not exist");
     exit(2);
 #endif
-#endif
+//#endif
     unsigned int nPixelTriplets;
     cudaMemcpy(&nPixelTriplets, &(pixelTripletsInGPU->nPixelTriplets),  sizeof(unsigned int), cudaMemcpyDeviceToHost);
 #ifdef Warnings
@@ -1886,18 +1799,6 @@ void SDL::Event::createQuintuplets()
     }
 
 
-#ifdef NESTED_PARA
-    unsigned int nThreads = 1;
-    unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads + 1;
-    createQuintupletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU);
-
-
-    cudaError_t cudaerr = cudaGetLastError();
-    if(cudaerr != cudaSuccess)
-    {
-	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-    }cudaDeviceSynchronize();
-#else
 #ifdef NEWGRID_T5
     int threadSize=N_MAX_TOTAL_TRIPLETS;
     unsigned int *threadIdx = (unsigned int*)malloc(2*threadSize*sizeof(unsigned int));
@@ -1958,7 +1859,7 @@ void SDL::Event::createQuintuplets()
     printf("original 3D grid launching in createQuintuplets does not exist");
     exit(3);
 #endif
-#endif
+//#endif
     free(indicesOfEligibleModules);
 
 #ifdef DUP_T5
@@ -2010,18 +1911,6 @@ void SDL::Event::createPixelQuintuplets()
 #endif  
     
 
-#ifdef NESTED_PARA
-    unsigned int nThreads = 1;
-    unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads/ + 1;
-
-    createPixelQuintupletsInGPU<<<nBlocks, nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU);
-
-    cudaError_t cudaerr = cudaGetLastError();
-    if(cudaerr != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-    }cudaDeviceSynchronize();
-#else
 #ifdef NEWGRID_pT5
     unsigned int pixelModuleIndex;
     int* superbins;
@@ -2140,7 +2029,7 @@ void SDL::Event::createPixelQuintuplets()
     printf("original 3D grid launching in createPixelQuintuplets does not exist");
     exit(2);
 #endif
-#endif
+//#endif
     unsigned int nPixelQuintuplets;
     cudaMemcpy(&nPixelQuintuplets, &(pixelQuintupletsInGPU->nPixelQuintuplets), sizeof(unsigned int), cudaMemcpyDeviceToHost);
     dim3 nThreads_dup(1024,1,1);
@@ -2163,36 +2052,36 @@ void SDL::Event::createPixelQuintuplets()
 }
 
 
-void SDL::Event::createTrackletsWithAGapWithModuleMap()
-{
-    //use the same trackletsInGPU as before if it exists
-    unsigned int nLowerModules;// = *modulesInGPU->nLowerModules;
-    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
-
-    //TRCAKLETS - To conserve memory, we shall be only declaring nLowerModules amount of memory!!!!!!!
-    if(trackletsInGPU == nullptr)
-    {
-        cudaMallocHost(&trackletsInGPU, sizeof(SDL::tracklets));
-#ifdef Explicit_Tracklet
-        createTrackletsInExplicitMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , nLowerModules);
-#else
-        createTrackletsInUnifiedMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , nLowerModules);
-#endif
-    }
-
-    unsigned int nThreads = 1;
-    unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads + 1;
-
-    createTrackletsWithAGapInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU);
-
-    cudaError_t cudaerr = cudaGetLastError();
-    if(cudaerr != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-
-    }cudaDeviceSynchronize();
-
-}
+//void SDL::Event::createTrackletsWithAGapWithModuleMap()
+//{
+//    //use the same trackletsInGPU as before if it exists
+//    unsigned int nLowerModules;// = *modulesInGPU->nLowerModules;
+//    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+//
+//    //TRCAKLETS - To conserve memory, we shall be only declaring nLowerModules amount of memory!!!!!!!
+//    if(trackletsInGPU == nullptr)
+//    {
+//        cudaMallocHost(&trackletsInGPU, sizeof(SDL::tracklets));
+//#ifdef Explicit_Tracklet
+//        createTrackletsInExplicitMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , nLowerModules);
+//#else
+//        createTrackletsInUnifiedMemory(*trackletsInGPU, N_MAX_TRACKLETS_PER_MODULE , nLowerModules);
+//#endif
+//    }
+//
+//    unsigned int nThreads = 1;
+//    unsigned int nBlocks = nLowerModules % nThreads == 0 ? nLowerModules/nThreads : nLowerModules/nThreads + 1;
+//
+//    createTrackletsWithAGapInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *trackletsInGPU);
+//
+//    cudaError_t cudaerr = cudaGetLastError();
+//    if(cudaerr != cudaSuccess)
+//    {
+//        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
+//
+//    }cudaDeviceSynchronize();
+//
+//}
 
 
 void SDL::Event::addTrackletsToEvent()
