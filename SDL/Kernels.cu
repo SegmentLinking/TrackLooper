@@ -2855,7 +2855,7 @@ __global__ void createT3T3ExtendedTracksInGPU(struct SDL::modules& modulesInGPU,
     float rPhiChiSquared, rzChiSquared;
     bool success = runTrackExtensionDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelTripletsInGPU, pixelQuintupletsInGPU, trackCandidatesInGPU, firstT3Idx, secondT3Idx, 3, 3, firstT3Idx, 2, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared); 
 
-    if(success and nLayerOverlaps[0] == 2 and nHitOverlaps[0] != 4)
+    if(success and nLayerOverlaps[0] == 2)
     {
         unsigned int trackExtensionArrayIndex = atomicAdd(&trackExtensionsInGPU.nTrackExtensions[nTrackCandidates], 1);
         if(trackExtensionArrayIndex >= (N_MAX_T3T3_TRACK_EXTENSIONS))
