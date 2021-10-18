@@ -43,8 +43,6 @@ namespace SDL
         std::array<unsigned int, 5> n_minidoublets_by_layer_endcap_;
         std::array<unsigned int, 6> n_segments_by_layer_barrel_;
         std::array<unsigned int, 5> n_segments_by_layer_endcap_;
-        std::array<unsigned int, 6> n_tracklets_by_layer_barrel_;
-        std::array<unsigned int, 5> n_tracklets_by_layer_endcap_;
         std::array<unsigned int, 6> n_triplets_by_layer_barrel_;
         std::array<unsigned int, 5> n_triplets_by_layer_endcap_;
         std::array<unsigned int, 6> n_trackCandidates_by_layer_barrel_;
@@ -57,8 +55,6 @@ namespace SDL
         struct hits* hitsInGPU;
         struct miniDoublets* mdsInGPU;
         struct segments* segmentsInGPU;
-        struct tracklets* trackletsInGPU;
-        struct pixelTracklets* pixelTrackletsInGPU;
         struct triplets* tripletsInGPU;
         struct quintuplets* quintupletsInGPU;
         struct trackCandidates* trackCandidatesInGPU;
@@ -69,8 +65,6 @@ namespace SDL
         hits* hitsInCPU;
         miniDoublets* mdsInCPU;
         segments* segmentsInCPU;
-        tracklets* trackletsInCPU;
-        pixelTracklets* pixelTrackletsInCPU;
         triplets* tripletsInCPU;
         trackCandidates* trackCandidatesInCPU;
         modules* modulesInCPU;
@@ -152,7 +146,6 @@ namespace SDL
         hits* getHits();
         miniDoublets* getMiniDoublets();
         segments* getSegments() ;
-        pixelTracklets* getPixelTracklets();
         triplets* getTriplets();
         quintuplets* getQuintuplets();
         trackCandidates* getTrackCandidates();

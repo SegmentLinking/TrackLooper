@@ -101,37 +101,22 @@ rm -f timing_temp.txt
 
 # Run different GPU configurations
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified" ]]; then
-    #run_gpu unified ${SAMPLE} ${NEVENTS}
+    run_gpu unified ${SAMPLE} ${NEVENTS}
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified_cache" ]]; then
     #run_gpu unified_cache ${SAMPLE} ${NEVENTS} -c
     :
 fi
-if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified_cache_newgrid" ]]; then
-    #run_gpu unified_cache_newgrid ${SAMPLE} ${NEVENTS} -c -g
-    :
-fi
-if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified_newgrid" ]]; then
-    run_gpu unified_newgrid ${SAMPLE} ${NEVENTS} -g
-    :
-fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit" ]]; then
-    #run_gpu explicit ${SAMPLE} ${NEVENTS} -x
+    run_gpu explicit ${SAMPLE} ${NEVENTS} -x
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache" ]]; then
     # run_gpu explicit_cache ${SAMPLE} ${NEVENTS} -x -c # Does not run on phi3
     :
 fi
-if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache_newgrid" ]]; then
-    # run_gpu explicit_cache_newgrid ${SAMPLE} ${NEVENTS} -x -c -g # Does not run on phi3
-    :
-fi
-if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_newgrid" ]]; then
-    run_gpu explicit_newgrid ${SAMPLE} ${NEVENTS} -x -g
-fi
 
 echo "Total Timing Summary"
-echo "Evt     Hits         MD       LS      T4      T4x       pT4       T3       TC       T5      pT3       pT5     pLS     Total    Total(short)"
+echo "Evt     Hits         MD       LS      T3       TC       T5      pT3       pT5     pLS     Total    Total(short)"
 grep -hr "avg " timing_temp.txt # space is needed to not get certain bad lines 

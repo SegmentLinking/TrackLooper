@@ -12,8 +12,6 @@ SDL::Event::Event()
     hitsInGPU = nullptr;
     mdsInGPU = nullptr;
     segmentsInGPU = nullptr;
-    trackletsInGPU = nullptr;
-    pixelTrackletsInGPU = nullptr;
     tripletsInGPU = nullptr;
     quintupletsInGPU = nullptr;
     trackCandidatesInGPU = nullptr;
@@ -23,8 +21,6 @@ SDL::Event::Event()
     hitsInCPU = nullptr;
     mdsInCPU = nullptr;
     segmentsInCPU = nullptr;
-    trackletsInCPU = nullptr;
-    pixelTrackletsInCPU = nullptr;
     tripletsInCPU = nullptr;
     trackCandidatesInCPU = nullptr;
     modulesInCPU = nullptr;
@@ -39,7 +35,6 @@ SDL::Event::Event()
         n_hits_by_layer_barrel_[i] = 0;
         n_minidoublets_by_layer_barrel_[i] = 0;
         n_segments_by_layer_barrel_[i] = 0;
-        n_tracklets_by_layer_barrel_[i] = 0;
         n_triplets_by_layer_barrel_[i] = 0;
         n_trackCandidates_by_layer_barrel_[i] = 0;
         n_quintuplets_by_layer_barrel_[i] = 0;
@@ -48,7 +43,6 @@ SDL::Event::Event()
             n_hits_by_layer_endcap_[i] = 0;
             n_minidoublets_by_layer_endcap_[i] = 0;
             n_segments_by_layer_endcap_[i] = 0;
-            n_tracklets_by_layer_endcap_[i] = 0;
             n_triplets_by_layer_endcap_[i] = 0;
             n_trackCandidates_by_layer_endcap_[i] = 0;
             n_quintuplets_by_layer_endcap_[i] = 0;
@@ -65,7 +59,6 @@ SDL::Event::~Event()
     mdsInGPU->freeMemoryCache();
     segmentsInGPU->freeMemoryCache();
     tripletsInGPU->freeMemoryCache();
-    pixelTrackletsInGPU->freeMemoryCache();
     trackCandidatesInGPU->freeMemoryCache();
     hitsInGPU->freeMemoryCache();
 #ifdef FINAL_T5
@@ -76,7 +69,6 @@ SDL::Event::~Event()
     mdsInGPU->freeMemory();
     segmentsInGPU->freeMemory();
     tripletsInGPU->freeMemory();
-    pixelTrackletsInGPU->freeMemory();
     trackCandidatesInGPU->freeMemory();
 #ifdef FINAL_T5
     quintupletsInGPU->freeMemory();
@@ -85,7 +77,6 @@ SDL::Event::~Event()
     cudaFreeHost(mdsInGPU);
     cudaFreeHost(segmentsInGPU);
     cudaFreeHost(tripletsInGPU);
-    cudaFreeHost(pixelTrackletsInGPU);
     cudaFreeHost(trackCandidatesInGPU);
     cudaFreeHost(hitsInGPU);
 
@@ -215,7 +206,6 @@ SDL::Event::~Event()
         delete[] modulesInCPUFull->hitRanges;
         delete[] modulesInCPUFull->mdRanges;
         delete[] modulesInCPUFull->segmentRanges;
-        delete[] modulesInCPUFull->trackletRanges;
         delete[] modulesInCPUFull->tripletRanges;
         delete[] modulesInCPUFull->trackCandidateRanges;
 
@@ -989,138 +979,6 @@ void SDL::Event::createTriplets()
 #endif
 }
 
-
-void SDL::Event::createPixelTrackletsWithMap()
-{
-    if(pixelTrackletsInGPU == nullptr)
-    {
-        cudaMallocHost(&pixelTrackletsInGPU, sizeof(SDL::pixelTracklets));
-#ifdef Explicit_Tracklet
-        createPixelTrackletsInExplicitMemory(*pixelTrackletsInGPU, N_MAX_PIXEL_TRACKLETS_PER_MODULE);
-#else
-        createPixelTrackletsInUnifiedMemory(*pixelTrackletsInGPU, N_MAX_PIXEL_TRACKLETS_PER_MODULE);
-#endif
-    }
-    unsigned int nLowerModules;
-    cudaMemcpy(&nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-    unsigned int pixelModuleIndex;
-    unsigned int nInnerSegments;
-    int* superbins;
-    int* pixelTypes;
-#ifdef Explicit_Module
-    unsigned int nModules;
-    cudaMemcpy(&nModules,modulesInGPU->nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    pixelModuleIndex = nModules-1;
-    unsigned int* nSegments;
-    cudaMallocHost(& nSegments,nModules*sizeof(unsigned int));
-    cudaMemcpy(nSegments,segmentsInGPU->nSegments,nModules*sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    nInnerSegments = nSegments[pixelModuleIndex] > N_MAX_PIXEL_SEGMENTS_PER_MODULE ? N_MAX_PIXEL_SEGMENTS_PER_MODULE : nSegments[pixelModuleIndex]; // number of pLS
-    cudaMallocHost(& superbins,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int));
-    cudaMallocHost(& pixelTypes,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int));
-    cudaMemcpy(superbins,segmentsInGPU->superbin,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int),cudaMemcpyDeviceToHost);
-    cudaMemcpy(pixelTypes,segmentsInGPU->pixelType,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int),cudaMemcpyDeviceToHost);
-
-#else
-    pixelModuleIndex = *modulesInGPU->nModules - 1; // pixel module index
-    nInnerSegments = segmentsInGPU->nSegments[pixelModuleIndex] > N_MAX_PIXEL_SEGMENTS_PER_MODULE ? N_MAX_PIXEL_SEGMENTS_PER_MODULE : segmentsInGPU->nSegments[pixelModuleIndex]; // number of pLS
-    superbins = segmentsInGPU->superbin;
-    pixelTypes = segmentsInGPU->pixelType;
-#endif
-    unsigned int* connectedPixelSize_host;
-    unsigned int* connectedPixelIndex_host;
-    cudaMallocHost(&connectedPixelSize_host, nInnerSegments* sizeof(unsigned int));
-    cudaMallocHost(&connectedPixelIndex_host, nInnerSegments* sizeof(unsigned int));
-    unsigned int* connectedPixelSize_dev;
-    unsigned int* connectedPixelIndex_dev;
-    cudaMalloc(&connectedPixelSize_dev, nInnerSegments* sizeof(unsigned int));
-    cudaMalloc(&connectedPixelIndex_dev, nInnerSegments* sizeof(unsigned int));
-    unsigned int max_size =0;
-    int threadSize = 1000000;
-    unsigned int *segs_pix = (unsigned int*)malloc(2*threadSize*sizeof(unsigned int));
-    unsigned int *segs_pix_offset = segs_pix+threadSize;
-    unsigned int *segs_pix_gpu;
-    unsigned int *segs_pix_gpu_offset;
-    cudaMalloc((void **)&segs_pix_gpu, 2*threadSize*sizeof(unsigned int));
-    segs_pix_gpu_offset = segs_pix_gpu + threadSize;
-    cudaMemset(segs_pix_gpu, nInnerSegments, threadSize*sizeof(unsigned int)); // so if not set, it will pass in the kernel
-    unsigned int totalSegs=0;
-    int pixelIndexOffsetPos = pixelMapping->connectedPixelsIndex[44999] + pixelMapping->connectedPixelsSizes[44999];
-    int pixelIndexOffsetNeg = pixelMapping->connectedPixelsIndexPos[44999] + pixelMapping->connectedPixelsSizes[44999] + pixelIndexOffsetPos;
-    int i =-1;
-    for (int ix=0; ix < nInnerSegments;ix++){// loop over # pLS
-      int pixelType = pixelTypes[ix];// get pixel type for this pLS
-      int superbin = superbins[ix]; //get superbin for this pixel
-      if(superbin <0) {/*printf("bad neg %d\n",ix);*/continue;}
-      if(superbin >=45000) {/*printf("bad pos %d %d %d\n",ix,superbin,pixelType);*/continue;}// skip any weird out of range values
-      if(pixelType >2 || pixelType < 0){/*printf("bad pixel type %d %d\n",ix,pixelType);*/continue;}
-      i++;
-      if(pixelType ==0){ // used pixel type to select correct size-index arrays
-        connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
-        connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndex[superbin];// index to get start of connected modules for this superbin in map
-        for (int j=0; j < pixelMapping->connectedPixelsSizes[superbin]; j++){ // loop over modules from the size
-          segs_pix[totalSegs+j] = i; // save the pixel index in array to be transfered to kernel
-          segs_pix_offset[totalSegs+j] = j; // save this segment in array to be transfered to kernel
-        }
-        totalSegs += connectedPixelSize_host[i]; // increment counter
-      }
-      else if(pixelType ==1){
-        connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesPos[superbin]; //number of pixel connected modules
-        connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndexPos[superbin]+pixelIndexOffsetPos;// index to get start of connected pixel modules
-        for (int j=0; j < pixelMapping->connectedPixelsSizesPos[superbin]; j++){
-          segs_pix[totalSegs+j] = i;
-          segs_pix_offset[totalSegs+j] = j;
-        }
-        totalSegs += connectedPixelSize_host[i];
-      }
-      else if(pixelType ==2){
-        connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesNeg[superbin]; //number of pixel connected modules
-        connectedPixelIndex_host[i] =pixelMapping->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;// index to get start of connected pixel modules
-        for (int j=0; j < pixelMapping->connectedPixelsSizesNeg[superbin]; j++){
-          segs_pix[totalSegs+j] = i;
-          segs_pix_offset[totalSegs+j] = j;
-        }
-        totalSegs += connectedPixelSize_host[i];
-      }
-      else{continue;}
-    }
-
-    cudaMemcpy(connectedPixelSize_dev, connectedPixelSize_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice);
-    cudaMemcpy(connectedPixelIndex_dev, connectedPixelIndex_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice);
-    cudaMemcpy(segs_pix_gpu,segs_pix,threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
-    cudaMemcpy(segs_pix_gpu_offset,segs_pix_offset,threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
-
-    //nuking max_size
-    max_size = N_MAX_SEGMENTS_PER_MODULE;
-
-    dim3 nThreads(32,16,1);
-    dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
-                  (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
-    createPixelTrackletsInGPUFromMap<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTrackletsInGPU,
-    connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset, totalSegs);
-
-    cudaError_t cudaerr = cudaGetLastError();
-    if(cudaerr != cudaSuccess)
-      {
-	std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-
-      }cudaDeviceSynchronize();
-
-    cudaFreeHost(connectedPixelSize_host);
-    cudaFreeHost(connectedPixelIndex_host);
-    cudaFree(connectedPixelSize_dev);
-    cudaFree(connectedPixelIndex_dev);
-#ifdef Explicit_Module
-    cudaFreeHost(nSegments);
-    cudaFreeHost(superbins);
-    cudaFreeHost(pixelTypes);
-#endif
-    free(segs_pix);
-    cudaFree(segs_pix_gpu);
-
-    unsigned int nPixelTracklets;
-    cudaMemcpy(&nPixelTracklets, &(pixelTrackletsInGPU->nPixelTracklets), sizeof(unsigned int), cudaMemcpyDeviceToHost);
-}
-
 void SDL::Event::createTrackCandidates()
 {
     unsigned int nLowerModules;// = *modulesInGPU->nLowerModules + 1; //including the pixel module
@@ -1183,17 +1041,6 @@ void SDL::Event::createTrackCandidates()
     if(cudaerr_T5 != cudaSuccess)
     {
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_T5)<<std::endl;
-    }cudaDeviceSynchronize();
-#endif // final state T5
-#ifdef FINAL_pT2
-    printf("running final state pT2\n");
-    unsigned int nThreadsx = 1;
-    unsigned int nBlocksx = ( N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE) % nThreadsx == 0 ? N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE/nThreadsx : N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE/nThreadsx + 1;
-    addpT2asTrackCandidateInGPU<<<nBlocksx,nThreadsx>>>(*modulesInGPU,*pixelTrackletsInGPU,*trackCandidatesInGPU);
-    cudaError_t cudaerr_pT2 = cudaGetLastError();
-    if(cudaerr_pT2 != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT2)<<std::endl;
     }cudaDeviceSynchronize();
 #endif // final state T5
 #ifdef FINAL_pLS
@@ -1998,20 +1845,6 @@ unsigned int SDL::Event::getNumberOfSegmentsByLayerEndcap(unsigned int layer)
     return n_segments_by_layer_endcap_[layer];
 }
 
-unsigned int SDL::Event::getNumberOfPixelTracklets()
-{
-#ifdef Explicit_Tracklet
-    unsigned int nLowerModules;// = *(SDL::modulesInGPU->nLowerModules);
-    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    unsigned int nTrackletsInPixelModule;
-    cudaMemcpy(&nTrackletsInPixelModule,pixelTrackletsInGPU->nPixelTracklets,sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    return nTrackletsInPixelModule;
-#else
-    return *(pixelTrackletsInGPU->nPixelTracklets);
-#endif
-
-}
-
 unsigned int SDL::Event::getNumberOfTriplets()
 {
     unsigned int triplets = 0;
@@ -2140,7 +1973,7 @@ unsigned int SDL::Event::getNumberOfTrackCandidatesByLayer(unsigned int layer)
     if(layer == 6)
         return n_trackCandidates_by_layer_barrel_[layer];
     else
-        return n_trackCandidates_by_layer_barrel_[layer] + n_tracklets_by_layer_endcap_[layer];
+        return n_trackCandidates_by_layer_barrel_[layer];// + n_tracklets_by_layer_endcap_[layer];
 }
 
 unsigned int SDL::Event::getNumberOfTrackCandidatesByLayerBarrel(unsigned int layer)
@@ -2242,36 +2075,6 @@ SDL::segments* SDL::Event::getSegments()
 SDL::segments* SDL::Event::getSegments()
 {
     return segmentsInGPU;
-}
-#endif
-
-#ifdef Explicit_Tracklet
-
-SDL::pixelTracklets* SDL::Event::getPixelTracklets()
-{
-    if(pixelTrackletsInCPU == nullptr)
-    {
-        pixelTrackletsInCPU = new SDL::pixelTracklets;
-        pixelTrackletsInCPU->segmentIndices = new unsigned int[2 * N_MAX_PIXEL_TRACKLETS_PER_MODULE];
-        pixelTrackletsInCPU->nPixelTracklets = new unsigned int;
-        pixelTrackletsInCPU->betaIn = new float[N_MAX_PIXEL_TRACKLETS_PER_MODULE];
-        pixelTrackletsInCPU->betaOut = new float[N_MAX_PIXEL_TRACKLETS_PER_MODULE];
-        pixelTrackletsInCPU->pt_beta = new float[N_MAX_PIXEL_TRACKLETS_PER_MODULE];
-
-        cudaMemcpy(pixelTrackletsInCPU->segmentIndices, pixelTrackletsInGPU->segmentIndices, 2 * N_MAX_PIXEL_TRACKLETS_PER_MODULE * sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        cudaMemcpy(pixelTrackletsInCPU->nPixelTracklets, pixelTrackletsInGPU->nPixelTracklets, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        cudaMemcpy(pixelTrackletsInCPU->betaIn, pixelTrackletsInGPU->betaIn, N_MAX_PIXEL_TRACKLETS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost);
-        cudaMemcpy(pixelTrackletsInCPU->betaOut, pixelTrackletsInGPU->betaOut, N_MAX_PIXEL_TRACKLETS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost);
-        cudaMemcpy(pixelTrackletsInCPU->pt_beta, pixelTrackletsInGPU->pt_beta, N_MAX_PIXEL_TRACKLETS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost);
-    }
-    return pixelTrackletsInCPU;
-}
-
-#else
-
-SDL::pixelTracklets* SDL::Event::getPixelTracklets()
-{
-    return pixelTrackletsInGPU;
 }
 #endif
 
@@ -2470,7 +2273,6 @@ SDL::modules* SDL::Event::getFullModules()
     modulesInCPUFull->hitRanges = new int[2*nModules];
     modulesInCPUFull->mdRanges = new int[2*nModules];
     modulesInCPUFull->segmentRanges = new int[2*nModules];
-    modulesInCPUFull->trackletRanges = new int[2*nModules];
     modulesInCPUFull->tripletRanges = new int[2*nModules];
     modulesInCPUFull->trackCandidateRanges = new int[2*nModules];
 
@@ -2500,7 +2302,6 @@ SDL::modules* SDL::Event::getFullModules()
     cudaMemcpy(modulesInCPUFull->hitRanges, modulesInGPU->hitRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(modulesInCPUFull->mdRanges, modulesInGPU->mdRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(modulesInCPUFull->segmentRanges, modulesInGPU->segmentRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(modulesInCPUFull->trackletRanges, modulesInGPU->trackletRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(modulesInCPUFull->tripletRanges, modulesInGPU->tripletRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost);
     cudaMemcpy(modulesInCPUFull->trackCandidateRanges, modulesInGPU->trackCandidateRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost);
 

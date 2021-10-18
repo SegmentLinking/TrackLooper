@@ -639,21 +639,6 @@ float runSegment(SDL::Event& event)
 }
 
 
-float runpT4(SDL::Event& event)
-{
-    TStopwatch my_timer;
-    if (ana.verbose >= 2) std::cout << "Reco Quadruplet pT4 start" << std::endl;
-    my_timer.Start();
-    //event.createPixelTracklets();
-    event.createPixelTrackletsWithMap();
-    float pt4_elapsed = my_timer.RealTime();
-    if (ana.verbose >= 2) std::cout << "Reco pT4 processing time: " << pt4_elapsed << " secs" << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Pixel T4s produced: "<< event.getNumberOfPixelTracklets() << std::endl;
-
-    return pt4_elapsed;
-
-}
-
 float runT3(SDL::Event& event)
 {
     TStopwatch my_timer;
