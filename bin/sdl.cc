@@ -356,7 +356,7 @@ void run_sdl()
 
 #ifdef DO_QUADRUPLET
             // Run T4
-            float timing_T4 = runT4(event);
+            float timing_T4 = 0;//runT4(event);
 #else
             //Don't run T4
             float timing_T4 = 0;
