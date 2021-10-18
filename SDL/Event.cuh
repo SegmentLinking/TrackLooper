@@ -18,7 +18,6 @@
 #include "Hit.cuh"
 #include "MiniDoublet.cuh"
 #include "Segment.cuh"
-#include "Tracklet.cuh"
 #include "PixelTracklet.cuh"
 #include "Triplet.cuh"
 #include "TrackCandidate.cuh"
@@ -92,14 +91,10 @@ namespace SDL
         /*functions that map the objects to the appropriate modules*/
         void addMiniDoubletsToEvent();
         void addSegmentsToEvent();
-        void addTrackletsToEvent();
-        void addTrackletsWithAGapToEvent();
         void addTripletsToEvent();
         void addTrackCandidatesToEvent();
         void addMiniDoubletsToEventExplicit();
         void addSegmentsToEventExplicit();
-        void addTrackletsToEventExplicit();
-        void addTrackletsWithAGapToEventExplicit();
         void addTripletsToEventExplicit();
         void addTrackCandidatesToEventExplicit();
         void addQuintupletsToEvent();
@@ -110,10 +105,8 @@ namespace SDL
         void createMiniDoublets();
         void createSegmentsWithModuleMap();
         void createTriplets();
-        void createTrackletsWithModuleMap();
         void createPixelTracklets();
         void createPixelTrackletsWithMap();
-        void createTrackletsWithAGapWithModuleMap();
         void createTrackCandidates();
         void createQuintuplets();
         void createPixelTriplets();
@@ -135,11 +128,7 @@ namespace SDL
         unsigned int getNumberOfSegmentsByLayerBarrel(unsigned int layer);
         unsigned int getNumberOfSegmentsByLayerEndcap(unsigned int layer);
 
-        unsigned int getNumberOfTracklets();
         unsigned int getNumberOfPixelTracklets();
-        unsigned int getNumberOfTrackletsByLayer(unsigned int layer);
-        unsigned int getNumberOfTrackletsByLayerBarrel(unsigned int layer);
-        unsigned int getNumberOfTrackletsByLayerEndcap(unsigned int layer);
 
         unsigned int getNumberOfTriplets();
         unsigned int getNumberOfTripletsByLayer(unsigned int layer);
@@ -163,7 +152,6 @@ namespace SDL
         hits* getHits();
         miniDoublets* getMiniDoublets();
         segments* getSegments() ;
-        tracklets* getTracklets();
         pixelTracklets* getPixelTracklets();
         triplets* getTriplets();
         quintuplets* getQuintuplets();
