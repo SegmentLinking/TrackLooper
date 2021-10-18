@@ -20,7 +20,7 @@ import pickle
 from matplotlib.collections import LineCollection
 import multiprocessing
 
-ptthresh = 1
+# ptthresh = 1
 ptthresh = 0.8
 
 # Setting up detector geometry (centroids and boundaries)
@@ -507,7 +507,35 @@ if __name__ == "__main__":
     # visualize_connection("data/module_connection_tracing.txt", 442245130)
     # visualize_connection("data/module_connection_tracing.txt", 442252378) # one conn
     # visualize_connection("data/module_connection_tracing.txt", 438043654) # 18 conn
-    visualize_connection("data/module_connection_tracing.txt", 438043670) # 18 conn
+    # visualize_connection("data/module_connection_tracing.txt", 438043670) # 18 conn
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ##########################################################################################3
+    ##########################################################################################3
+    ##########################################################################################3
+    ##########################################################################################3
+    ##########################################################################################3
 
     # visualize_connection_between_reference_and_target(442238042, det_geom.getBarrelLayerDetIds(6) + det_geom.getEndcapLayerDetIds(1))
 
