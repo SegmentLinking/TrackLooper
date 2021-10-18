@@ -2088,10 +2088,21 @@ void fillTrackExtensionOutputBranches(SDL::Event& event)
     std::vector<float> t3_eta = ana.tx->getBranch<vector<float>>("t3_eta");
     std::vector<float> t3_phi = ana.tx->getBranch<vector<float>>("t3_phi");
     unsigned int N_MAX_TRACK_EXTENSIONS_PER_TC = 30;
+    const unsigned int N_MAX_T3T3_TRACK_EXTENSIONS = 10000;
+
     std::vector<int> tce_anchorType;;
-    for(size_t i = 0; i < nTrackCandidates; i++)
+    for(size_t i = 0; i <= nTrackCandidates; i++) //CHEAT - Include the T3T3 extensions!
     {
-        unsigned int nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i] > N_MAX_TRACK_EXTENSIONS_PER_TC ? N_MAX_TRACK_EXTENSIONS_PER_TC : (trackExtensionsInGPU.nTrackExtensions)[i]; 
+        unsigned int nTrackExtensions;
+        if(i < nTrackCandidates)
+        {
+            nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i] > N_MAX_TRACK_EXTENSIONS_PER_TC ? N_MAX_TRACK_EXTENSIONS_PER_TC : (trackExtensionsInGPU.nTrackExtensions)[i];
+        }
+        else
+        {
+            nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i] > N_MAX_T3T3_TRACK_EXTENSIONS ? N_MAX_T3T3_TRACK_EXTENSIONS : (trackExtensionsInGPU.nTrackExtensions)[i]; 
+            cout<<"nTrackExtensions = "<<nTrackExtensions<<endl;
+        }
         for(size_t j = 0; j < nTrackExtensions; j++)
         {
             unsigned int teIdx = i * N_MAX_TRACK_EXTENSIONS_PER_TC + j;
@@ -2133,12 +2144,36 @@ void fillTrackExtensionOutputBranches(SDL::Event& event)
             else
             {
                 anchorHitIndices = &tripletsInGPU.hitIndices[6 * anchorIndex];
-                anchorLogicalLayers = &trackCandidatesInGPU.logicalLayers[3 * anchorIndex];
-                tce_pt.push_back(t3_pt.at(anchorIndex));
-                tce_eta.push_back(t3_eta.at(anchorIndex));
-                tce_phi.push_back(t3_phi.at(anchorIndex));
+                anchorLogicalLayers = &tripletsInGPU.logicalLayers[3 * anchorIndex];
+                
+                float x1 = hitsInGPU.xs[anchorHitIndices[6 * anchorIndex]];
+                float x2 = hitsInGPU.xs[anchorHitIndices[6 * anchorIndex + 2]];
+                float x3 = hitsInGPU.xs[anchorHitIndices[6 * anchorIndex + 4]];
+                float y1 = hitsInGPU.ys[anchorHitIndices[6 * anchorIndex]];
+                float y2 = hitsInGPU.ys[anchorHitIndices[6 * anchorIndex + 2]];
+                float y3 = hitsInGPU.ys[anchorHitIndices[6 * anchorIndex + 4]];
+                float z1 = hitsInGPU.zs[anchorHitIndices[6 * anchorIndex]];
+                float z2 = hitsInGPU.zs[anchorHitIndices[6 * anchorIndex + 2]];
+                float z3 = hitsInGPU.zs[anchorHitIndices[6 * anchorIndex + 4]];
 
-            }
+                float g, f; // not used
+                float innerRadius = SDL::CPU::TrackCandidate::computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3, g, f);
+
+                // Compute pt, eta, phi of T3
+                const float kRinv1GeVf = (2.99792458e-3 * 3.8);
+
+                const float pt = kRinv1GeVf * innerRadius;
+                float eta = -999;
+                float phi = -999;
+                SDL::CPU::Hit hitA(x1,y1,z1);
+                SDL::CPU::Hit hitB(x2,y2,z2);
+                eta = hitB.eta();
+                phi = hitA.phi();
+
+                tce_pt.push_back(pt);
+                tce_eta.push_back(eta);
+                tce_phi.push_back(phi);
+           }
 
             if(outerType == 3)
             {

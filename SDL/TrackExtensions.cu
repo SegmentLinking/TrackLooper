@@ -41,6 +41,7 @@ void SDL::createTrackExtensionsInUnifiedMemory(struct trackExtensions& trackExte
     cudaMallocManaged(&trackExtensionsInGPU.isDup, maxTrackExtensions * sizeof(bool));
 
     cudaMemset(trackExtensionsInGPU.nTrackExtensions, 0, nTrackCandidates * sizeof(unsigned int));
+
     cudaMemset(trackExtensionsInGPU.isDup, true, maxTrackExtensions * sizeof(bool));
 }
 
@@ -111,8 +112,8 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
         anchorLayerIndices = &tripletsInGPU.logicalLayers[3 * anchorObjectIndex];
         anchorHitIndices = &tripletsInGPU.hitIndices[6 * anchorObjectIndex];
         anchorLowerModuleIndices = &tripletsInGPU.lowerModuleIndices[3 * anchorObjectIndex];
-
     }
+
     unsigned int layer_binary = 0;
     for(size_t i=0; i<nAnchorLayers;i++)
     {
@@ -127,6 +128,10 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
         layer_binary |= (1 << anchorLayerIndices[i]);
     }
 
+    if(anchorObjectType == 3)
+    {
+        radius = computeRadiusFromThreeAnchorHits(hitsInGPU.xs[anchorObjectAnchorHitIndices[0]], hitsInGPU.ys[anchorObjectAnchorHitIndices[0]],hitsInGPU.xs[anchorObjectAnchorHitIndices[1]], hitsInGPU.ys[anchorObjectAnchorHitIndices[1]], hitsInGPU.xs[anchorObjectAnchorHitIndices[2]], hitsInGPU.ys[anchorObjectAnchorHitIndices[2]], centerX, centerY);
+    }
     unsigned int nOuterLayers =(outerObjectType == 7) ? 7 : (outerObjectType == 3 ? 3 : 5); 
 
     unsigned int outerObjectAnchorHitIndices[7];
@@ -171,7 +176,7 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
 
     rPhiChiSquared = computeTERPhiChiSquared(modulesInGPU, hitsInGPU, centerX, centerY, radius, outerObjectAnchorHitIndices, outerObjectLowerModuleIndices);
 
-    if(radius < 5.0/(2 * k2Rinv1GeVf))
+    if(anchorObjectType !=3 and radius < 5.0/(2 * k2Rinv1GeVf))
     {
         pass = pass and passTERPhiChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rPhiChiSquared);
     }
@@ -185,10 +190,633 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     constituentTCIndex[0] = anchorObjectIndex;
     constituentTCIndex[1] = outerObjectIndex;
 
-   return pass;
+    return pass;
 }
 
 __device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverlaps, unsigned int layer_binary, float rPhiChiSquared)
+{
+    if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 127)
+    {
+        return rPhiChiSquared < 21.266;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3971)
+    {
+        return rPhiChiSquared < 6.095;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 1927)
+    {
+        return rPhiChiSquared < 4.617;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 415)
+    {
+        return rPhiChiSquared < 9.244;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 191)
+    {
+        return rPhiChiSquared < 18.509;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3973)
+    {
+        return rPhiChiSquared < 2.649;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 911)
+    {
+        return rPhiChiSquared < 5.305;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 31)
+    {
+        return rPhiChiSquared < 12634.215;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 391)
+    {
+        return rPhiChiSquared < 16678.281;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3841)
+    {
+        return rPhiChiSquared < 16678.281;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 61)
+    {
+        return rPhiChiSquared < 3151.615;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 143)
+    {
+        return rPhiChiSquared < 88261.109;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 901)
+    {
+        return rPhiChiSquared < 5492.110;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 1921)
+    {
+        return rPhiChiSquared < 33393.261;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 397)
+    {
+        return rPhiChiSquared < 1037.818;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 899)
+    {
+        return rPhiChiSquared < 153806.756;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3970)
+    {
+        return rPhiChiSquared < 37.058;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 414)
+    {
+        return rPhiChiSquared < 64.579;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 126)
+    {
+        return rPhiChiSquared < 85.250;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 445)
+    {
+        return true;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 1926)
+    {
+        return rPhiChiSquared < 0.436;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 190)
+    {
+        return rPhiChiSquared < 9.244;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3972)
+    {
+        return rPhiChiSquared < 0.010;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 157)
+    {
+        return rPhiChiSquared < 297.446;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 910)
+    {
+        return rPhiChiSquared < 0.759;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 444)
+    {
+        return true;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 127)
+    {
+        return rPhiChiSquared < 14.021;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3971)
+    {
+        return rPhiChiSquared < 2.649;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1927)
+    {
+        return rPhiChiSquared < 7.003;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 415)
+    {
+        return rPhiChiSquared < 2.007;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 191)
+    {
+        return rPhiChiSquared < 3.044;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3973)
+    {
+        return rPhiChiSquared < 0.041;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 911)
+    {
+        return rPhiChiSquared < 1.323;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 31)
+    {
+        return rPhiChiSquared < 203038.514;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 391)
+    {
+        return rPhiChiSquared < 297.446;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3841)
+    {
+        return rPhiChiSquared < 196.111;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 61)
+    {
+        return rPhiChiSquared < 8.046;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 143)
+    {
+        return rPhiChiSquared < 1370.011;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 901)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1921)
+    {
+        return rPhiChiSquared < 42.578;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 397)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 899)
+    {
+        return rPhiChiSquared < 595.546;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 414)
+    {
+        return rPhiChiSquared < 0.000;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 126)
+    {
+        return rPhiChiSquared < 8.046;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3840)
+    {
+        return rPhiChiSquared < 4.617;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1920)
+    {
+        return rPhiChiSquared < 0.872;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 445)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1926)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 190)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3972)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 157)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 910)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 444)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1933)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 127)
+    {
+        return rPhiChiSquared < 10.621;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3971)
+    {
+        return rPhiChiSquared < 3.044;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 1927)
+    {
+        return rPhiChiSquared < 4.018;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 415)
+    {
+        return rPhiChiSquared < 4.617;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 191)
+    {
+        return rPhiChiSquared < 12.203;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3973)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 911)
+    {
+        return rPhiChiSquared < 0.872;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 31)
+    {
+        return rPhiChiSquared < 935179.568;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 391)
+    {
+        return rPhiChiSquared < 0.041;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3841)
+    {
+        return rPhiChiSquared < 8.046;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 61)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 143)
+    {
+        return rPhiChiSquared < 4.018;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 901)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 1921)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 397)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 899)
+    {
+        return rPhiChiSquared < 3621.052;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3970)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 414)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 126)
+    {
+        return rPhiChiSquared < 6.095;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3840)
+    {
+        return rPhiChiSquared < 4.617;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 1920)
+    {
+        return rPhiChiSquared < 0.218;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 1926)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 190)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 157)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 127)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 3971)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 1927)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 415)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 3973)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 911)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 31)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 3841)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 61)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 143)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 899)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 126)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 3840)
+    {
+        return rPhiChiSquared < 0.003;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 1920)
+    {
+        return rPhiChiSquared < 0.010;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 157)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 127)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3971)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 1927)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 415)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 191)
+    {
+        return rPhiChiSquared < 2.649;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3973)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 911)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 31)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 61)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 143)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 901)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 397)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 899)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 414)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 126)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3840)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 1920)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 445)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 1926)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 190)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 910)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 3975)
+    {
+        return rPhiChiSquared < 5.305;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 1923)
+    {
+        return rPhiChiSquared < 44082.056;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 399)
+    {
+        return rPhiChiSquared < 1574.076;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 63)
+    {
+        return rPhiChiSquared < 8329.976;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 125)
+    {
+        return rPhiChiSquared < 4780.108;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 1925)
+    {
+        return rPhiChiSquared < 170.687;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 159)
+    {
+        return rPhiChiSquared < 3621.052;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 3969)
+    {
+        return rPhiChiSquared < 268028.788;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 903)
+    {
+        return rPhiChiSquared < 12634.215;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 413)
+    {
+        return rPhiChiSquared < 684.253;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 189)
+    {
+        return rPhiChiSquared < 1370.011;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 909)
+    {
+        return rPhiChiSquared < 225.322;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 1935)
+    {
+        return rPhiChiSquared < 0.872;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 447)
+    {
+        return true;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 3974)
+    {
+        return rPhiChiSquared < 0.002;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 446)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 3975)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 1923)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 399)
+    {
+        return rPhiChiSquared < 6.095;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 63)
+    {
+        return rPhiChiSquared < 4.018;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 125)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 1925)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 159)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 3969)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 903)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 413)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 189)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 3975)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 1923)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 399)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 63)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 125)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 1925)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 159)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 3969)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 903)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 413)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 189)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 909)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 447)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+/*__device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverlaps, unsigned int layer_binary, float rPhiChiSquared)
 {
     bool pass = true;
     float threshold;
@@ -788,467 +1416,7 @@ __device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverla
 
 }
 
-
-
-/*__device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverlaps, unsigned int layer_binary, float rPhiChiSquared)
-{
-    bool pass = true;
-    float threshold;
-    //giant wall of if conditions - machine generated code!!
-    if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 127)
-    {
-        return rPhiChiSquared < 24.433;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 1927)
-    {
-        return rPhiChiSquared < 4.617;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 911)
-    {
-        return rPhiChiSquared < 5.305;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 415)
-    {
-        return rPhiChiSquared < 9.244;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 191)
-    {
-        return rPhiChiSquared < 16.109;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3971)
-    {
-        return rPhiChiSquared < 7.003;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3973)
-    {
-        return rPhiChiSquared < 3.044;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 126)
-    {
-        return rPhiChiSquared < 97.948;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3970)
-    {
-        return rPhiChiSquared < 37.058;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 414)
-    {
-        return rPhiChiSquared < 10.621;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 445)
-    {
-        return rPhiChiSquared < 14.021;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 190)
-    {
-        return rPhiChiSquared < 9.244;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 1926)
-    {
-        return rPhiChiSquared < 0.759;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3972)
-    {
-        return rPhiChiSquared < 9.244;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 910)
-    {
-        return rPhiChiSquared < 0.872;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 444)
-    {
-        return rPhiChiSquared < 0.501;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 1933)
-    {
-        return true;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 127)
-    {
-        return rPhiChiSquared < 18.509;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1927)
-    {
-        return rPhiChiSquared < 3.498;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 911)
-    {
-        return rPhiChiSquared < 4.617;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 415)
-    {
-        return rPhiChiSquared < 7.003;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 191)
-    {
-        return rPhiChiSquared < 16.109;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3971)
-    {
-        return rPhiChiSquared < 9.244;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3973)
-    {
-        return rPhiChiSquared < 42.578;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 126)
-    {
-        return rPhiChiSquared < 28.073;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3970)
-    {
-        return rPhiChiSquared < 16.109;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 414)
-    {
-        return rPhiChiSquared < 0.379;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 445)
-    {
-        return rPhiChiSquared < 1.747;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 190)
-    {
-        return rPhiChiSquared < 3.044;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1926)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3972)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 910)
-    {
-        return rPhiChiSquared < 0.003;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 444)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1933)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 127)
-    {
-        return rPhiChiSquared < 18.509;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 1927)
-    {
-        return rPhiChiSquared < 4.617;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 911)
-    {
-        return rPhiChiSquared < 3.498;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 415)
-    {
-        return rPhiChiSquared < 10.621;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 191)
-    {
-        return rPhiChiSquared < 12.203;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3971)
-    {
-        return rPhiChiSquared < 97.948;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3973)
-    {
-        return rPhiChiSquared < 1.747;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 126)
-    {
-        return rPhiChiSquared < 21.266;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3970)
-    {
-        return rPhiChiSquared < 0.009;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 414)
-    {
-        return rPhiChiSquared < 4.617;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 445)
-    {
-        return rPhiChiSquared < 0.008;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 190)
-    {
-        return rPhiChiSquared < 0.082;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 1926)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3972)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 910)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 444)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 1933)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 127)
-    {
-        return rPhiChiSquared < 0.125;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 1927)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 911)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 415)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 191)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3971)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3973)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3841)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 61)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 31)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 391)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 1921)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 901)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 143)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 157)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 397)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 899)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 126)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3970)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 414)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 445)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 190)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 1926)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3972)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 910)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 127)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 1927)
-    {
-        return rPhiChiSquared < 0.004;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 911)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 415)
-    {
-        return rPhiChiSquared < 2.007;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 191)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 3971)
-    {
-        return rPhiChiSquared < 1.747;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 3973)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 126)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 414)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 445)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 190)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 1926)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 3972)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 910)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 3975)
-    {
-        return rPhiChiSquared < 3.498;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 1935)
-    {
-        return rPhiChiSquared < 7.003;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 447)
-    {
-        return rPhiChiSquared < 7.003;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 446)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 3974)
-    {
-        return rPhiChiSquared < 0.014;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 1934)
-    {
-        return true;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 3975)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 125)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 399)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 3969)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 63)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 159)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 903)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 1923)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 909)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 1925)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 413)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 189)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 1935)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 447)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 3974)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 3975)
-    {
-        return rPhiChiSquared < 0.436;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 1935)
-    {
-        return false;
-    }
-    return pass; //escape hatch
-}*/
+*/
 
 /*
    If one out of the two hits don't overlap - check if the module indices are identical (case of multiple reco hits)

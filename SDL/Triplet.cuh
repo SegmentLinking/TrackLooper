@@ -39,6 +39,9 @@ namespace SDL
         float* pt_beta;
 
         bool* partOfPT5;
+        bool* partOfT5;
+        bool* partOfPT3;
+        bool* partOfExtension;
 
 #ifdef CUT_VALUE_DEBUG
         //debug variables
