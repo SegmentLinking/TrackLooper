@@ -22,7 +22,6 @@ def parse_plot_name(output_name):
         rtnstr = ["Efficiency of"]
     rtnstr.append("TC vs TE")
     types = "of all types"
-    types = "of set 1 types"
     rtnstr.append(types)
     return " ".join(rtnstr)
 

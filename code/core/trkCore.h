@@ -56,6 +56,7 @@ float runTrackExtensions(SDL::Event& event);
 std::vector<float> getPtBounds();
 bool inTimeTrackWithPdgId(int isimtrk, int pdgid);
 std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes, bool verbose=false);
+std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes, int& maxHitMatchCount, bool verbose=false);
 std::vector<int> matchedSimTrkIdxs(SDL::Segment* sg, bool matchOnlyAnchor=false);
 std::vector<int> matchedSimTrkIdxs(SDL::Tracklet& tl);
 

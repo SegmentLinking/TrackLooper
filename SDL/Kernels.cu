@@ -2915,7 +2915,9 @@ __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, str
     unsigned int outerT3StartingModuleIndex;
     unsigned int outerT3Index;
 
+    if(tcType != 7) return;
     if(tcType == 8) return;
+    //FIXME: temp
     else if(tcType == 7 or tcType == 4)
     {
         unsigned int outerT5Index = trackCandidatesInGPU.objectIndices[2 * tcIdx + 1];

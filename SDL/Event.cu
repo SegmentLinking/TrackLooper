@@ -1741,7 +1741,7 @@ void SDL::Event::createExtendedTracks()
 	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
     }
    
-    dim3 nThreadsT3T3(1,16,16);
+/*    dim3 nThreadsT3T3(1,16,16);
     dim3 nBlocksT3T3(nLowerModules % nThreads.x == 0 ? nLowerModules / nThreads.x: nLowerModules / nThreads.x + 1, maxT3s % nThreads.y == 0 ? maxT3s / nThreads.y : maxT3s / nThreads.y + 1, maxT3s % nThreads.z == 0 ? maxT3s / nThreads.z : maxT3s / nThreads.z + 1);
 
     createT3T3ExtendedTracksInGPU<<<nBlocks, nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, *pixelTripletsInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU, nTrackCandidates);
@@ -1760,7 +1760,7 @@ void SDL::Event::createExtendedTracks()
     if(cudaerr != cudaSuccess)
     {
 	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-    }
+    }*/
 
     cudaFreeHost(nTriplets);
 }
