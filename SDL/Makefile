@@ -26,10 +26,10 @@ FINALSTATE           = -DFINAL_pT5 -DFINAL_pT3 -DFINAL_T5 -DFINAL_pLS
 DUPLICATES           = -DDUP_pLS -DDUP_T5 -DDUP_pT5 -DDUP_pT3 -DCrossclean_T5 -DCrossclean_pT3
 MEMFLAG              =
 CACHEFLAG            =
-CUDALAUNCHFLAG       = -DNESTED_PARA 
+CUDALAUNCHFLAG       = #-DNESTED_PARA 
 MEMFLAG_FLAGS        = -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips -DExplicit_Hit -DExplicit_Track -DExplicit_Module -DExplicit_T5 -DExplicit_PT3 -DExplicit_PT5
 CACHEFLAG_FLAGS      = -DCACHE_ALLOC
-CUDALAUNCHFLAG_FLAGS = -DNEWGRID_MD -DNEWGRID_Seg -DNEWGRID_Trips -DNEWGRID_Tracklet -DNEWGRID_Pixel -DNEWGRID_Track -DNEWGRID_T5 -DNEWGRID_pT3 -DNEWGRID_pT5
+CUDALAUNCHFLAG_FLAGS = #-DNEWGRID_MD -DNEWGRID_Seg -DNEWGRID_Trips -DNEWGRID_Tracklet -DNEWGRID_Pixel -DNEWGRID_Track -DNEWGRID_T5 -DNEWGRID_pT3 -DNEWGRID_pT5
 
 #
 # how to make it 
