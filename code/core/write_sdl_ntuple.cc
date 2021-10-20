@@ -835,12 +835,6 @@ void fillSimTrackOutputBranches()
 //________________________________________________________________________________________________________________________________
 void fillTrackCandidateOutputBranches(SDL::Event& event)
 {
-    fillTrackCandidateOutputBranches_v1(event);
-}
-
-//________________________________________________________________________________________________________________________________
-void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
-{
 
     SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates());
     SDL::triplets& tripletsInGPU = (*event.getTriplets());
@@ -1495,8 +1489,6 @@ void fillQuintupletOutputBranches(SDL::Event& event)
             layer_binary |= (1 << logicallayer8);
             
 
-            // radius values now not covered under CUT_VALUE_DEBUG
-            // using innerRadius and outerRadius to match up with CPU implementation
 
             float pt = k2Rinv1GeVf * (quintupletsInGPU.innerRadius[quintupletIndex] + quintupletsInGPU.outerRadius[quintupletIndex]);
 
