@@ -981,21 +981,17 @@ void SDL::Event::createTriplets()
 
 void SDL::Event::createTrackCandidates()
 {
-    unsigned int nLowerModules;// = *modulesInGPU->nLowerModules + 1; //including the pixel module
+    unsigned int nLowerModules;    
     cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    nLowerModules += 1;// include the pixel module
-
-    //construct the list of eligible modules
-    unsigned int nEligibleModules = 0;
-    createEligibleModulesListForTrackCandidates(*modulesInGPU, nEligibleModules, N_MAX_TRACK_CANDIDATES_PER_MODULE);
 
     if(trackCandidatesInGPU == nullptr)
     {
         cudaMallocHost(&trackCandidatesInGPU, sizeof(SDL::trackCandidates));
 #ifdef Explicit_Track
-        createTrackCandidatesInExplicitMemory(*trackCandidatesInGPU, N_MAX_TRACK_CANDIDATES_PER_MODULE, N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE, nLowerModules, nEligibleModules);
+        createTrackCandidatesInExplicitMemory(*trackCandidatesInGPU, N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES);
 #else
-        createTrackCandidatesInUnifiedMemory(*trackCandidatesInGPU, N_MAX_TRACK_CANDIDATES_PER_MODULE, N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE, nLowerModules, nEligibleModules);
+        createTrackCandidatesInUnifiedMemory(*trackCandidatesInGPU, N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES);
+
 #endif
     }
 
@@ -1003,8 +999,8 @@ void SDL::Event::createTrackCandidates()
     printf("Adding pT5s to TC collection\n");
     unsigned int nThreadsx_pT5 = 1;
     unsigned int nBlocksx_pT5 = (N_MAX_PIXEL_QUINTUPLETS) % nThreadsx_pT5 == 0 ? N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 : N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 + 1;
-    //removeDupPixelQuintupletsInGPUFromMap<<<nBlocksx_pT5,nThreadsx_pT5>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU, *pixelQuintupletsInGPU, *quintupletsInGPU,true);
     addpT5asTrackCandidateInGPU<<<nBlocksx_pT5, nThreadsx_pT5>>>(*modulesInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU);
+
     cudaError_t cudaerr_pT5 = cudaGetLastError();
     if(cudaerr_pT5 != cudaSuccess)
     {
@@ -1015,17 +1011,13 @@ void SDL::Event::createTrackCandidates()
     printf("running final state pT3\n");
     unsigned int nThreadsx = 1;
     unsigned int nBlocksx = (N_MAX_PIXEL_TRIPLETS) % nThreadsx == 0 ? N_MAX_PIXEL_TRIPLETS / nThreadsx : N_MAX_PIXEL_TRIPLETS / nThreadsx + 1;
-    //dim3 nThreads_dup(1024,1,1);
-    //dim3 nBlocks_dup(64,1,1);
-    //removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU,true);
-    cudaDeviceSynchronize();
     addpT3asTrackCandidateInGPU<<<nBlocksx, nThreadsx>>>(*modulesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
     cudaError_t cudaerr_pT3 = cudaGetLastError();
     if(cudaerr_pT3 != cudaSuccess)
     {
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT3)<<std::endl;
     }cudaDeviceSynchronize();
-#endif // final state pT2 and pT3
+#endif
 
 #ifdef FINAL_T5
     printf("running final state T5\n");
@@ -1072,11 +1064,6 @@ void SDL::Event::createTrackCandidates()
 #endif
 #endif
 
-//int pT2_num = *trackCandidatesInGPU->nTrackCandidatespT2;
-//int pT3_num = *trackCandidatesInGPU->nTrackCandidatespT3;
-//int pT5_num = *trackCandidatesInGPU->nTrackCandidatespT5;
-//int pLS_num = *trackCandidatesInGPU->nTrackCandidatespLS;
-//printf("total: %d %d %d %d\n",pT2_num,pT3_num,pT5_num,pLS_num);
 }
 
 void SDL::Event::createPixelTriplets()
@@ -1221,7 +1208,6 @@ void SDL::Event::createPixelTriplets()
 #endif
 
 }
-
 
 void SDL::Event::createQuintuplets()
 {
