@@ -850,12 +850,6 @@ void fillSimTrackOutputBranches()
 //________________________________________________________________________________________________________________________________
 void fillTrackCandidateOutputBranches(SDL::Event& event)
 {
-    fillTrackCandidateOutputBranches_v1(event);
-}
-
-//________________________________________________________________________________________________________________________________
-void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
-{
 
     SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates());
     SDL::triplets& tripletsInGPU = (*event.getTriplets());
@@ -881,8 +875,6 @@ void fillTrackCandidateOutputBranches_v1(SDL::Event& event)
     std::vector<vector<int>> tc_hitIdxs;
     std::vector<int> tc_maxHitMatchedCounts;
 
-    const unsigned int N_MAX_TRACK_CANDIDATES_PER_MODULE = 5000;
-    const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE = 400000;
 
     unsigned int nTrackCandidates = *trackCandidatesInGPU.nTrackCandidates;
     for (unsigned int jdx = 0; jdx < nTrackCandidates; jdx++)
