@@ -2021,8 +2021,6 @@ SDL::segments* SDL::Event::getSegments()
         cudaMemcpy(segmentsInCPU->isDup, segmentsInGPU->isDup, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(bool), cudaMemcpyDeviceToHost);
         cudaMemcpy(segmentsInCPU->isQuad, segmentsInGPU->isQuad, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(bool), cudaMemcpyDeviceToHost);
         cudaMemcpy(segmentsInCPU->score, segmentsInGPU->score, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost);
-
-
     }
     return segmentsInCPU;
 }
@@ -2179,18 +2177,15 @@ SDL::trackCandidates* SDL::Event::getTrackCandidates()
     if(trackCandidatesInCPU == nullptr)
     {
         trackCandidatesInCPU = new SDL::trackCandidates;
-        unsigned int nLowerModules;
-        cudaMemcpy(&nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        unsigned int nEligibleModules;
-        cudaMemcpy(&nEligibleModules, modulesInGPU->nEligibleModules, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        unsigned int nMemoryLocations = (N_MAX_TRACK_CANDIDATES_PER_MODULE) * (nEligibleModules -1) + (N_MAX_PIXEL_TRACK_CANDIDATES_PER_MODULE);
+        trackCandidatesInCPU->nTrackCandidates = new unsigned int;
+        cudaMemcpy(trackCandidatesInCPU->nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
-        trackCandidatesInCPU->objectIndices = new unsigned int[2 * nMemoryLocations];
-        trackCandidatesInCPU->trackCandidateType = new short[nMemoryLocations];
-        trackCandidatesInCPU->nTrackCandidates = new unsigned int[nLowerModules+1];
-        cudaMemcpy(trackCandidatesInCPU->objectIndices, trackCandidatesInGPU->objectIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        cudaMemcpy(trackCandidatesInCPU->trackCandidateType, trackCandidatesInGPU->trackCandidateType, nMemoryLocations * sizeof(short), cudaMemcpyDeviceToHost);
-        cudaMemcpy(trackCandidatesInCPU->nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        unsigned int nTrackCandidates = *(trackCandidatesInCPU->nTrackCandidates);
+
+        trackCandidatesInCPU->objectIndices = new unsigned int[2 * nTrackCandidates];
+        trackCandidatesInCPU->trackCandidateType = new short[nTrackCandidates];                                                                            
+        cudaMemcpy(trackCandidatesInCPU->objectIndices, trackCandidatesInGPU->objectIndices, 2 * nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost);                                                                                    
+        cudaMemcpy(trackCandidatesInCPU->trackCandidateType, trackCandidatesInGPU->trackCandidateType, nTrackCandidates * sizeof(short), cudaMemcpyDeviceToHost);                                                                                                                
     }
     return trackCandidatesInCPU;
 }
