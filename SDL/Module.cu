@@ -7,7 +7,7 @@ void SDL::createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int
 {
     /* modules stucture object will be created in Event.cu*/
 #ifdef CACHE_ALLOC
-    cudaStream_t stream=0; 
+    cudaStream_t stream=0;
     modulesInGPU.detIds =            (unsigned int*)cms::cuda::allocate_managed(nModules * sizeof(unsigned int),stream);
     modulesInGPU.moduleMap =         (unsigned int*)cms::cuda::allocate_managed(nModules * 40 * sizeof(unsigned int),stream);
     modulesInGPU.nConnectedModules = (unsigned int*)cms::cuda::allocate_managed(nModules * sizeof(unsigned int),stream);
@@ -78,7 +78,7 @@ void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned in
 {
     /* modules stucture object will be created in Event.cu*/
 #ifdef CACHE_ALLOC
-    cudaStream_t stream=0; 
+    cudaStream_t stream=0;
     int dev;
     cudaGetDevice(&dev);
     modulesInGPU.detIds =            (unsigned int*)cms::cuda::allocate_device(dev,nModules * sizeof(unsigned int),stream);
@@ -312,7 +312,7 @@ void SDL::createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsign
     #endif
     cudaMemcpy(modulesInGPU.lowerModuleIndices,lowerModuleIndices,sizeof(unsigned int)*(nLowerModules+1),cudaMemcpyHostToDevice);
     cudaMemcpy(modulesInGPU.reverseLookupLowerModuleIndices,reverseLookupLowerModuleIndices,sizeof(int)*nModules,cudaMemcpyHostToDevice);
-   
+
     cudaFreeHost(lowerModuleIndices);
     cudaFreeHost(reverseLookupLowerModuleIndices);
 }
@@ -374,7 +374,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     }
     std::string line;
     unsigned int counter = 0;
-    
+
     while(std::getline(ifile,line))
     {
         std::stringstream ss(line);
@@ -587,7 +587,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
 #endif
 }
 
-void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMapping) 
+void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMapping)
 {
     int size_superbins = 45000;//SDL::moduleConnectionMap_pLStoLayer1Subdet5.size(); //changed to 45000 to reduce memory useage on GPU
     std::vector<unsigned int> connectedModuleDetIds;
@@ -698,7 +698,7 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
     unsigned int* connectedPixels;
     cudaMallocHost(&connectedPixels,(totalSizes+totalSizes_pos+totalSizes_neg) * sizeof(unsigned int));
 #ifdef CACHE_ALLOC
-    cudaStream_t stream=0; 
+    cudaStream_t stream=0;
 #ifdef Explicit_Module
     int dev;
     cudaGetDevice(&dev);
@@ -724,14 +724,14 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
       connectedPixels[icondet+totalSizes+totalSizes_pos] = (*detIdToIndex)[connectedModuleDetIds_neg[icondet]];
     }
     cudaMemcpy(modulesInGPU.connectedPixels,connectedPixels,(totalSizes+totalSizes_pos+totalSizes_neg)*sizeof(unsigned int),cudaMemcpyHostToDevice);
-    
+
     cudaFreeHost(connectedPixels);
 }
 
 void SDL::fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules)
 {
     unsigned int* moduleMap;
-    unsigned int* nConnectedModules; 
+    unsigned int* nConnectedModules;
     cudaMallocHost(&moduleMap,nModules * 40 * sizeof(unsigned int));
     cudaMallocHost(&nConnectedModules,nModules * sizeof(unsigned int));
     for(auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); ++it)
@@ -904,10 +904,10 @@ bool SDL::modules::parseIsLower(unsigned int index)
     return (isInverted[index]) ? !(detIds[index] & 1) : (detIds[index] & 1);
 }
 
+/*
 unsigned int SDL::modules::partnerModuleIndexExplicit(unsigned int index, bool isLowerx, bool isInvertedx)
 {
-    /*We need to ensure modules with successive det Ids are right next to each other
-    or we're dead*/
+    // We need to ensure modules with successive det Ids are right next to each other or we're dead
     if(isLowerx)
     {
         return (isInvertedx ? index - 1: index + 1);
@@ -919,8 +919,7 @@ unsigned int SDL::modules::partnerModuleIndexExplicit(unsigned int index, bool i
 }
 unsigned int SDL::modules::partnerModuleIndex(unsigned int index)
 {
-    /*We need to ensure modules with successive det Ids are right next to each other
-    or we're dead*/
+    // We need to ensure modules with successive det Ids are right next to each other or we're dead
     if(isLower[index])
     {
         return (isInverted[index] ? index - 1: index + 1);
@@ -930,7 +929,7 @@ unsigned int SDL::modules::partnerModuleIndex(unsigned int index)
         return (isInverted[index] ? index + 1 : index - 1);
     }
 }
-
+*/
 SDL::ModuleType SDL::modules::parseModuleType(unsigned int index, short subdet, short layer, short ring)
 {
     if(subdet == Barrel)

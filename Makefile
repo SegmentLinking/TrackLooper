@@ -11,7 +11,7 @@ HEADERS=$(SOURCES:.cc=.h)
 
 CC          = nvcc
 CXX         = nvcc
-CXXFLAGS    = -g -O2 --compiler-options -Wall --compiler-options -fPIC --compiler-options -Wshadow --compiler-options -Woverloaded-virtual -G -lineinfo
+CXXFLAGS    = -g -O2 --compiler-options -Wall --compiler-options -fPIC --compiler-options -Wshadow --compiler-options -Woverloaded-virtual -G -lineinfo --default-stream-per-thread
 LD          = g++
 LDFLAGS     = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual -I/mnt/data1/dsr/cub
 SOFLAGS     = -g -shared
@@ -25,7 +25,7 @@ CXXFLAGS    = $(ROOTCFLAGS) -ISDL -I$(shell pwd) -Icode -Icode/AnalysisInterface
 CFLAGS      = $(ROOTCFLAGS) --compiler-options -Wall --compiler-options -Wno-unused-function --compiler-options -g --compiler-options -O2 --compiler-options -fPIC --compiler-options -fno-var-tracking -ISDL -I$(shell pwd) -Icode -Icode/AnalysisInterface -Icode/core -I/mnt/data1/dsr/cub -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/include --compiler-options -fopenmp
 EXTRACFLAGS = $(shell rooutil-config)
 EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -L/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/lib64 -lcudart -fopenmp
-DOQUINTUPLET = -DDO_QUINTUPLET #-DDO_QUADRUPLET
+DOQUINTUPLET = #-DDO_QUINTUPLET #-DDO_QUADRUPLET
 
 CUTVALUEFLAG = 
 CUTVALUEFLAG_FLAGS = -DCUT_VALUE_DEBUG

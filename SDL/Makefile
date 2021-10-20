@@ -18,7 +18,7 @@ LIB=sdl.so
 
 # AMD Opteron and Intel EM64T (64 bit mode) Linux with gcc 3.x
 CXX                  = nvcc
-CXXFLAGS             =  -g -G --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared -arch=compute_70 -I/mnt/data1/dsr/cub --maxrregcount 128 
+CXXFLAGS             =  -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared -arch=compute_70 -I/mnt/data1/dsr/cub --maxrregcount 64 --use_fast_math
 LD                   = nvcc 
 SOFLAGS              = -g -G -shared --compiler-options -fPIC --cudart shared -arch=compute_70
 PRINTFLAG            = -DAddObjects -DT4FromT3 #-DWarnings
@@ -26,10 +26,10 @@ FINALSTATE           = -DFINAL_pT5 -DFINAL_pT3 -DFINAL_T5 -DFINAL_pLS
 DUPLICATES           = -DDUP_pLS -DDUP_T5 -DDUP_pT5 -DDUP_pT3 -DCrossclean_T5 -DCrossclean_pT3
 MEMFLAG              =
 CACHEFLAG            =
-CUDALAUNCHFLAG       = -DNESTED_PARA 
-MEMFLAG_FLAGS        = -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips -DExplicit_Hit -DExplicit_Track -DExplicit_Module -DExplicit_T5 -DExplicit_PT3 -DExplicit_PT5 -DExplicit_Extensions
+CUDALAUNCHFLAG       = #-DNESTED_PARA 
+MEMFLAG_FLAGS        = -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips -DExplicit_Hit -DExplicit_Track -DExplicit_Module -DExplicit_T5 -DExplicit_PT3 -DExplicit_PT5
 CACHEFLAG_FLAGS      = -DCACHE_ALLOC
-CUDALAUNCHFLAG_FLAGS = -DNEWGRID_MD -DNEWGRID_Seg -DNEWGRID_Trips -DNEWGRID_Tracklet -DNEWGRID_Pixel -DNEWGRID_Track -DNEWGRID_T5 -DNEWGRID_pT3 -DNEWGRID_pT5
+CUDALAUNCHFLAG_FLAGS = #-DNEWGRID_MD -DNEWGRID_Seg -DNEWGRID_Trips -DNEWGRID_Tracklet -DNEWGRID_Pixel -DNEWGRID_Track -DNEWGRID_T5 -DNEWGRID_pT3 -DNEWGRID_pT5
 
 #
 # how to make it 

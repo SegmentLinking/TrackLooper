@@ -35,7 +35,7 @@ while getopts ":cxgsmdph" OPTION; do
   case $OPTION in
     c) MAKECACHE=true;;
     x) MAKEEXPLICIT=true;;
-    g) MAKENEWGRID=true;;
+    #g) MAKENEWGRID=true;;
     s) SHOWLOG=true;;
     m) MAKECLEANBINARIES=true;;
     d) MAKECUTVALUES=true;;
@@ -48,7 +48,7 @@ done
 # If the command line options are not provided set it to default value of false
 if [ -z ${MAKECACHE} ]; then MAKECACHE=false; fi
 if [ -z ${MAKEEXPLICIT}  ]; then MAKEEXPLICIT=false; fi
-if [ -z ${MAKENEWGRID}  ]; then MAKENEWGRID=false; fi
+#if [ -z ${MAKENEWGRID}  ]; then MAKENEWGRID=false; fi
 if [ -z ${SHOWLOG} ]; then SHOWLOG=false; fi
 if [ -z ${MAKECLEANBINARIES} ]; then MAKECLEANBINARIES=false; fi
 if [ -z ${MAKECUTVALUES} ]; then MAKECUTVALUES=false; fi
@@ -72,7 +72,7 @@ echo "Compilation options set to..."                          | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
 echo "  MAKECACHE         : ${MAKECACHE}"                     | tee -a ${LOG}
 echo "  MAKEEXPLICIT      : ${MAKEEXPLICIT}"                  | tee -a ${LOG}
-echo "  MAKENEWGRID       : ${MAKENEWGRID}"                   | tee -a ${LOG}
+#echo "  MAKENEWGRID       : ${MAKENEWGRID}"                   | tee -a ${LOG}
 echo "  SHOWLOG           : ${SHOWLOG}"                       | tee -a ${LOG}
 echo "  MAKECLEANBINARIES : ${MAKECLEANBINARIES}"             | tee -a ${LOG}
 echo "  MAKECUTVALUES     : ${MAKECUTVALUES}"                 | tee -a ${LOG}
@@ -91,7 +91,7 @@ if $MAKEEXPLICIT; then MAKETARGET=explicit; fi
 if $MAKECACHE; then MAKETARGET=${MAKETARGET}_cache; fi
 
 # If make cache is true then make library with cache enabled
-if $MAKENEWGRID; then MAKETARGET=${MAKETARGET}_newgrid; fi
+#if $MAKENEWGRID; then MAKETARGET=${MAKETARGET}_newgrid; fi
 
 # If make clean binaries are called then first make clean before making
 if $MAKECLEANBINARIES; then

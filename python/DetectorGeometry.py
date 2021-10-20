@@ -6,6 +6,8 @@ from tqdm import tqdm
 from Module import Module
 import math
 
+ptthresh = 0.8
+
 # #                       # {
 # #       detId           #     "411309061": [
 # #       boundary 1      #         [
@@ -473,7 +475,7 @@ def printPixelMap_v3():
     nphi = 72.
     nz = 25.
     # pt_bounds = [0.9, 2.0, 4.0, 10., 50.]
-    pt_bounds = [0.9, 2.0, 10000.]
+    pt_bounds = [ptthresh, 2.0, 10000.]
 
     # Grand map object that will hold the mapping of the pixel map
     # maps[(ipt, ieta, iphi, iz)][(layer, subdet)] = [] # for both positive and negative
