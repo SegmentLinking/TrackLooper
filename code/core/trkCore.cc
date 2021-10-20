@@ -747,6 +747,10 @@ float runTrackCandidateTest_v2(SDL::Event& event)
     if (ana.verbose >= 2) std::cout << "Reco TrackCandidate processing time: " << tc_elapsed << " secs" << std::endl;
     if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced: " << event.getNumberOfTrackCandidates() << std::endl;
     if (ana.verbose >= 2) std::cout << "# of Pixel TrackCandidates produced: "<< event.getNumberOfPixelTrackCandidates() << std::endl;
+    if (ana.verbose >= 2) std::cout << "    # of pT5 TrackCandidates produced: "<< event.getNumberOfPT5TrackCandidates() << std::endl;
+    if (ana.verbose >= 2) std::cout << "    # of pT3 TrackCandidates produced: "<< event.getNumberOfPT3TrackCandidates() << std::endl;
+    if (ana.verbose >= 2) std::cout << "    # of pLS TrackCandidates produced: "<< event.getNumberOfPLSTrackCandidates() << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of T5 TrackCandidates produced: "<< event.getNumberOfT5TrackCandidates() << std::endl;
 
     return tc_elapsed;
 

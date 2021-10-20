@@ -86,11 +86,9 @@ namespace SDL
         void addMiniDoubletsToEvent();
         void addSegmentsToEvent();
         void addTripletsToEvent();
-        void addTrackCandidatesToEvent();
         void addMiniDoubletsToEventExplicit();
         void addSegmentsToEventExplicit();
         void addTripletsToEventExplicit();
-        void addTrackCandidatesToEventExplicit();
         void addQuintupletsToEvent();
         void addQuintupletsToEventExplicit();
 
@@ -122,8 +120,6 @@ namespace SDL
         unsigned int getNumberOfSegmentsByLayerBarrel(unsigned int layer);
         unsigned int getNumberOfSegmentsByLayerEndcap(unsigned int layer);
 
-        unsigned int getNumberOfPixelTracklets();
-
         unsigned int getNumberOfTriplets();
         unsigned int getNumberOfTripletsByLayer(unsigned int layer);
         unsigned int getNumberOfTripletsByLayerBarrel(unsigned int layer);
@@ -131,9 +127,10 @@ namespace SDL
 
         unsigned int getNumberOfTrackCandidates();
         unsigned int getNumberOfPixelTrackCandidates();
-        unsigned int getNumberOfTrackCandidatesByLayer(unsigned int layer);
-        unsigned int getNumberOfTrackCandidatesByLayerBarrel(unsigned int layer);
-        unsigned int getNumberOfTrackCandidatesByLayerEndcap(unsigned int layer);
+        unsigned int getNumberOfPT5TrackCandidates();
+        unsigned int getNumberOfPT3TrackCandidates();
+        unsigned int getNumberOfT5TrackCandidates();
+        unsigned int getNumberOfPLSTrackCandidates();
 
         unsigned int getNumberOfQuintuplets();
         unsigned int getNumberOfQuintupletsByLayer(unsigned int layer);
