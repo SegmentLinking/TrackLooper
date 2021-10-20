@@ -49,32 +49,15 @@ unified_cutvalue: CUTVALUEFLAG = $(CUTVALUEFLAG_FLAGS)
 unified_cutvalue: $(LIB) 
 unified: $(LIB)
 
-unified_newgrid: CUDALAUNCHFLAG = $(CUDALAUNCHFLAG_FLAGS)
-unified_newgrid: $(LIB)
-
-
 unified_cache: CACHEFLAG += $(CACHEFLAG_FLAGS)
 unified_cache: $(LIB)
-
-unified_cache_newgrid: CACHEFLAG += $(CACHEFLAG_FLAGS)
-unified_cache_newgrid: CUDALAUNCHFLAG = $(CUDALAUNCHFLAG_FLAGS)
-unified_cache_newgrid: $(LIB)
 
 explicit: MEMFLAG += $(MEMFLAG_FLAGS)
 explicit: $(LIB)
 
-explicit_newgrid: MEMFLAG += $(MEMFLAG_FLAGS)
-explicit_newgrid: CUDALAUNCHFLAG = $(CUDALAUNCHFLAG_FLAGS)
-explicit_newgrid: $(LIB)
-
 explicit_cache: MEMFLAG += $(MEMFLAG_FLAGS)
 explicit_cache: CACHEFLAG += $(CACHEFLAG_FLAGS)
 explicit_cache: $(LIB)
-
-explicit_cache_newgrid: MEMFLAG += $(MEMFLAG_FLAGS)
-explicit_cache_newgrid: CACHEFLAG += $(CACHEFLAG_FLAGS)
-explicit_cache_newgrid: CUDALAUNCHFLAG = $(CUDALAUNCHFLAG_FLAGS)
-explicit_cache_newgrid: $(LIB)
 
 all: unified
 

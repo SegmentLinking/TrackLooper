@@ -116,17 +116,8 @@ if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified" ]]; t
     run_gpu unified ${SAMPLE} ${NEVENTS}
     :
 fi
-if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified_cache" ]]; then
-#    run_gpu unified_cache ${SAMPLE} ${NEVENTS} -c
-    :
-fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit" ]]; then
     run_gpu explicit ${SAMPLE} ${NEVENTS} -x
     :
 fi
-if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache" ]]; then
-#     run_gpu explicit_cache ${SAMPLE} ${NEVENTS} -x -c # Does not run on phi3
-    :
-fi
-
 sdl_compare_efficiencies -i ${SAMPLE} -t ${GITHASH} -f
