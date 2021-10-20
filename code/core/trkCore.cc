@@ -748,18 +748,6 @@ float runTrackCandidateTest_v2(SDL::Event& event)
     if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced: " << event.getNumberOfTrackCandidates() << std::endl;
     if (ana.verbose >= 2) std::cout << "# of Pixel TrackCandidates produced: "<< event.getNumberOfPixelTrackCandidates() << std::endl;
 
-    if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced layer 1-2-3-4-5-6: " << event.getNumberOfTrackCandidatesByLayerBarrel(0) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced layer 2: " << event.getNumberOfTrackCandidatesByLayerBarrel(1) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced layer 3: " << event.getNumberOfTrackCandidatesByLayerBarrel(2) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced layer 4: " << event.getNumberOfTrackCandidatesByLayerBarrel(3) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced layer 5: " << event.getNumberOfTrackCandidatesByLayerBarrel(4) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced layer 6: " << event.getNumberOfTrackCandidatesByLayerBarrel(5) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced endcap layer 1: " << event.getNumberOfTrackCandidatesByLayerEndcap(0) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced endcap layer 2: " << event.getNumberOfTrackCandidatesByLayerEndcap(1) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced endcap layer 3: " << event.getNumberOfTrackCandidatesByLayerEndcap(2) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced endcap layer 4: " << event.getNumberOfTrackCandidatesByLayerEndcap(3) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced endcap layer 5: " << event.getNumberOfTrackCandidatesByLayerEndcap(4) << std::endl;
-
     return tc_elapsed;
 
 }

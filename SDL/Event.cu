@@ -1923,53 +1923,22 @@ unsigned int SDL::Event::getNumberOfQuintupletsByLayerEndcap(unsigned int layer)
 }
 
 unsigned int SDL::Event::getNumberOfTrackCandidates()
-{
-    unsigned int trackCandidates = 0;
-    for(auto &it:n_trackCandidates_by_layer_barrel_)
-    {
-        trackCandidates += it;
-    }
-    for(auto &it:n_trackCandidates_by_layer_endcap_)
-    {
-        trackCandidates += it;
-    }
+{    
+    unsigned int nTrackCandidates;
 
-    //hack - add pixel track candidate multiplicity
-    trackCandidates += getNumberOfPixelTrackCandidates();
+    cudaMemcpy(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
-    return trackCandidates;
-
+    return nTrackCandidates;
 }
 
 unsigned int SDL::Event::getNumberOfPixelTrackCandidates()
 {
-#ifdef Explicit_Track
-    unsigned int nLowerModules;// = *(SDL::modulesInGPU->nLowerModules);
-    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    unsigned int nTrackCandidatesInPixelModule;
-    cudaMemcpy(&nTrackCandidatesInPixelModule,&trackCandidatesInGPU->nTrackCandidates[nLowerModules],sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    return nTrackCandidatesInPixelModule;
-#else
-    return trackCandidatesInGPU->nTrackCandidates[*(modulesInGPU->nLowerModules)];
-#endif
+    unsigned int nTrackCandidates;
+    unsigned int nTrackCandidatesT5;
+    cudaMemcpy(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&nTrackCandidatesT5, trackCandidatesInGPU->nTrackCandidatesT5, sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
-}
-unsigned int SDL::Event::getNumberOfTrackCandidatesByLayer(unsigned int layer)
-{
-    if(layer == 6)
-        return n_trackCandidates_by_layer_barrel_[layer];
-    else
-        return n_trackCandidates_by_layer_barrel_[layer];// + n_tracklets_by_layer_endcap_[layer];
-}
-
-unsigned int SDL::Event::getNumberOfTrackCandidatesByLayerBarrel(unsigned int layer)
-{
-    return n_trackCandidates_by_layer_barrel_[layer];
-}
-
-unsigned int SDL::Event::getNumberOfTrackCandidatesByLayerEndcap(unsigned int layer)
-{
-    return n_trackCandidates_by_layer_endcap_[layer];
+    return nTrackCandidates - nTrackCandidatesT5;
 }
 
 #ifdef Explicit_Hit
