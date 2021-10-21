@@ -35,9 +35,6 @@ void SDL::EventForAnalysisInterface::addModulesToAnalysisInterface(struct module
             if(trackCandidatesInGPU != nullptr)
             {
                 moduleMapByIndex_[idx]->setNumberOfTrackCandidates(trackCandidatesInGPU->nTrackCandidates[lowerModuleIndex]);
-                moduleMapByIndex_[idx]->setNumberOfTrackCandidatesT4T4(trackCandidatesInGPU->nTrackCandidatesT4T4[lowerModuleIndex]);
-                moduleMapByIndex_[idx]->setNumberOfTrackCandidatesT4T3(trackCandidatesInGPU->nTrackCandidatesT4T3[lowerModuleIndex]);
-                moduleMapByIndex_[idx]->setNumberOfTrackCandidatesT3T4(trackCandidatesInGPU->nTrackCandidatesT3T4[lowerModuleIndex]);
             }
 
             lowerModuleIndex++;
