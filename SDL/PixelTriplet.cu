@@ -115,6 +115,47 @@ __device__ void SDL::rmPixelTripletToMemory(struct pixelTriplets& pixelTripletsI
     pixelTripletsInGPU.isDup[pixelTripletIndex] = 1;
 }
 
+__device__ float SDL::computeRadiusFromThreeAnchorHitspT3(float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f)
+{
+    float radius = 0;
+
+    //writing manual code for computing radius, which obviously sucks
+    //TODO:Use fancy inbuilt libraries like cuBLAS or cuSOLVE for this!
+    //(g,f) -> center
+    //first anchor hit - (x1,y1), second anchor hit - (x2,y2), third anchor hit - (x3, y3)
+
+    /*
+    if((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3) == 0)
+    {
+        return -1; //WTF man three collinear points!
+    }
+    */
+
+    float denomInv = 1.0/((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3));
+
+    float xy1sqr = x1 * x1 + y1 * y1;
+
+    float xy2sqr = x2 * x2 + y2 * y2;
+
+    float xy3sqr = x3 * x3 + y3 * y3;
+
+    g = 0.5 * ((y3 - y2) * xy1sqr + (y1 - y3) * xy2sqr + (y2 - y1) * xy3sqr) * denomInv;
+
+    f = 0.5 * ((x2 - x3) * xy1sqr + (x3 - x1) * xy2sqr + (x1 - x2) * xy3sqr) * denomInv;
+
+    float c = ((x2 * y3 - x3 * y2) * xy1sqr + (x3 * y1 - x1 * y3) * xy2sqr + (x1 * y2 - x2 * y1) * xy3sqr) * denomInv;
+
+    if(((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3) == 0) || (g * g + f * f - c < 0))
+    {
+        printf("three collinear points or FATAL! r^2 < 0!\n");
+  radius = -1;
+    }
+    else
+      radius = sqrtf(g * g  + f * f - c);
+
+    return radius;
+}
+
 __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& pixelSegmentIndex, unsigned int tripletIndex, float& pixelRadius, float& pixelRadiusError, float& tripletRadius, float& rzChiSquared, float& rPhiChiSquared, float& rPhiChiSquaredInwards, bool runChiSquaredCuts)
 {
     bool pass = true;
@@ -170,7 +211,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     float y3 = hitsInGPU.ys[outerMDAnchorHitIndex];
     float g,f;
     
-    tripletRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3,g,f);
+    tripletRadius = computeRadiusFromThreeAnchorHitspT3(x1, y1, x2, y2, x3, y3,g,f);
     
     pass = pass & passRadiusCriterion(modulesInGPU, pixelRadius, pixelRadiusError, tripletRadius, lowerModuleIndex, middleModuleIndex, upperModuleIndex);
 
@@ -407,9 +448,9 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, str
     short moduleSubdet, moduleSide;
     ModuleLayerType moduleLayerType;
     float drdz;
-    float inv1 = 0.01f/0.09f;
-    float inv2 = 0.15f/0.09f;
-    float inv3 = 0.24f/0.09f;
+    float inv1 = 0.01/0.009;
+    float inv2 = 0.15/0.009;
+    float inv3 = 2.4/0.009;
     for(size_t i = 0; i < 3; i++)
     {
         xs[i] = hitsInGPU.xs[anchorHits[i]];
@@ -462,13 +503,13 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, str
 
             if(anchorHits)
             {
-                //delta2[i] = (0.15f * drdz/sqrtf(1 + drdz * drdz))*111.1111f;
-                delta2[i] = (inv2 * drdz*rsqrt(1 + drdz * drdz))*100;
+                //delta2[i] = (0.15f * drdz/sqrtf(1 + drdz * drdz));
+                delta2[i] = (inv2 * drdz/sqrtf(1 + drdz * drdz));
             }
             else
             {
-                //delta2[i] = (2.4f * drdz/sqrtf(1 + drdz * drdz))*111.1111f;
-                delta2[i] = (inv3 * drdz*rsqrt(1 + drdz * drdz))*100;
+                //delta2[i] = (2.4f * drdz/sqrtf(1 + drdz * drdz));
+                delta2[i] = (inv3 * drdz/sqrtf(1 + drdz * drdz));
             }
         }
 
@@ -512,6 +553,12 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, str
         {
             printf("ERROR!!!!! I SHOULDN'T BE HERE!!!! subdet = %d, type = %d, side = %d\n", moduleSubdet, moduleType, moduleSide);
         }
+    }
+    // this for loop is kept to keep the physics results the same but I think this is a bug in the original code. This was kept at 5 and not nPoints
+    for(size_t i = 3; i < 5; i++)
+    {
+        delta1[i] /= 0.009;
+        delta2[i] /= 0.009;
     }
     chiSquared = computeChiSquared(3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius);
     

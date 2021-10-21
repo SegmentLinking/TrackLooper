@@ -1154,9 +1154,9 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
     short moduleSubdet, moduleSide;
     ModuleLayerType moduleLayerType;
     float drdz;
-    float inv1 = 0.01f/0.09f;
-    float inv2 = 0.15f/0.09f;
-    float inv3 = 0.24f/0.09f;
+    float inv1 = 0.01f/0.009f;
+    float inv2 = 0.15f/0.009f;
+    float inv3 = 0.24f/0.009f;
     for(size_t i=0; i<nPoints; i++)
     {
         moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
@@ -1203,12 +1203,12 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
             if(anchorHits)
             {
                 //delta2[i] = (0.15f * drdz/sqrtf(1 + drdz * drdz))*111.1111f;
-                delta2[i] = (inv2 * drdz*rsqrt(1 + drdz * drdz))*100;
+                delta2[i] = (inv2 * drdz*rsqrt(1 + drdz * drdz));
             }
             else
             {
                 //delta2[i] = (2.4f * drdz/sqrtf(1 + drdz * drdz))*111.1111f;
-                delta2[i] = (inv3 * drdz*rsqrt(1 + drdz * drdz))*100;
+                delta2[i] = (inv3 * drdz*rsqrt(1 + drdz * drdz));
             }
         }
         //category 4 - endcap PS
