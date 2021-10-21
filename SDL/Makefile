@@ -18,7 +18,7 @@ LIB=sdl.so
 
 # AMD Opteron and Intel EM64T (64 bit mode) Linux with gcc 3.x
 CXX                  = nvcc
-CXXFLAGS             =  -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared -arch=compute_70 -I/mnt/data1/dsr/cub --maxrregcount 64 --use_fast_math
+CXXFLAGS             =  -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared -arch=compute_70 -I/mnt/data1/dsr/cub --maxrregcount 64 --use_fast_math -rdc=true
 LD                   = nvcc 
 SOFLAGS              = -g -shared --compiler-options -fPIC --cudart shared -arch=compute_70
 PRINTFLAG            = -DAddObjects -DT4FromT3 #-DWarnings
