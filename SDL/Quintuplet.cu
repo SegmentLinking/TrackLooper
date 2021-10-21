@@ -1156,104 +1156,110 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
     float drdz;
     for(size_t i=0; i<nPoints; i++)
     {
-        moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
-        moduleSubdet = modulesInGPU.subdets[lowerModuleIndices[i]];
-        moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
-        moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndices[i]];
-        //category 1 - barrel PS flat
-        if(moduleSubdet == Barrel and moduleType == PS and moduleSide == Center)        
-        {
-            delta1[i] = 0.01; 
-            delta2[i] = 0.01;
-            slopes[i] = -999;             
-            isFlat[i] = true;
-        }
+        delta1[i] = 1;
+        delta2[i] = 1;
+        slopes[i] = 1;
+        isFlat[i] = true;
+        //moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
+        //moduleSubdet = modulesInGPU.subdets[lowerModuleIndices[i]];
+        //moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
+        //moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndices[i]];
+        ////category 1 - barrel PS flat
+        //if(moduleSubdet == Barrel and moduleType == PS and moduleSide == Center)        
+        //{
+        //    delta1[i] = 1.1111f;//0.01; 
+        //    delta2[i] = 1.1111f;//0.01;
+        //    slopes[i] = -999;             
+        //    isFlat[i] = true;
+        //}
 
-        //category 2 - barrel 2S
-        else if(moduleSubdet == Barrel and moduleType == TwoS)
-        {
-            delta1[i] = 0.009;
-            delta2[i] = 0.009;
-            slopes[i] = -999;
-            isFlat[i] = true;
-        }
+        ////category 2 - barrel 2S
+        //else if(moduleSubdet == Barrel and moduleType == TwoS)
+        //{
+        //    delta1[i] = 1;//0.009;
+        //    delta2[i] = 1;//0.009;
+        //    slopes[i] = -999;
+        //    isFlat[i] = true;
+        //}
 
-        //category 3 - barrel PS tilted
-        else if(moduleSubdet == Barrel and moduleType == PS and moduleSide != Center)
-        {
+        ////category 3 - barrel PS tilted
+        //else if(moduleSubdet == Barrel and moduleType == PS and moduleSide != Center)
+        //{
 
-            //get drdz
-            if(moduleLayerType == Strip)
-            {
-                drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
-                slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
-            }
-            else
-            {
-                drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
-                slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
-            }
+        //    //get drdz
+        //    if(moduleLayerType == Strip)
+        //    {
+        //        drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
+        //        slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
+        //    }
+        //    else
+        //    {
+        //        drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
+        //        slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
+        //    }
 
-            delta1[i] = 0.01;
-            isFlat[i] = false;
+        //    delta1[i] = 1.1111f;//0.01;
+        //    isFlat[i] = false;
 
-            if(anchorHits)
-            {
-                delta2[i] = (0.15f * drdz/sqrtf(1 + drdz * drdz));
-            }
-            else
-            {
-                delta2[i] = (2.4f * drdz/sqrtf(1 + drdz * drdz));
-            }
-        }
+        //    if(anchorHits)
+        //    {
+        //        //delta2[i] = (0.15f * drdz/sqrtf(1 + drdz * drdz))*111.1111f;
+        //        delta2[i] = (0.15f * drdz*rsqrt(1 + drdz * drdz))*111.1111f;
+        //    }
+        //    else
+        //    {
+        //        //delta2[i] = (2.4f * drdz/sqrtf(1 + drdz * drdz))*111.1111f;
+        //        delta2[i] = (2.4f * drdz*rsqrt(1 + drdz * drdz))*111.1111f;
+        //    }
+        //}
 
-        //category 4 - endcap PS
-        else if(moduleSubdet == Endcap and moduleType == PS)
-        {
-            delta1[i] = 0.01;
-            if(moduleLayerType == Strip)
-            {                
-                slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
-            }
-            else
-            {
-                slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
+        ////category 4 - endcap PS
+        //else if(moduleSubdet == Endcap and moduleType == PS)
+        //{
+        //    delta1[i] = 1.1111f;//0.01;
+        //    if(moduleLayerType == Strip)
+        //    {                
+        //        slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
+        //    }
+        //    else
+        //    {
+        //        slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
 
-            }
-            isFlat[i] = false;
+        //    }
+        //    isFlat[i] = false;
 
-            /*despite the type of the module layer of the lower module index,
-            all anchor hits are on the pixel side and all non-anchor hits are
-            on the strip side!*/
-            if(anchorHits)
-            {
-                delta2[i] = 0.15f;
-            }
-            else
-            {
-                delta2[i] = 2.4f;
-            }
-        }
+        //    /*despite the type of the module layer of the lower module index,
+        //    all anchor hits are on the pixel side and all non-anchor hits are
+        //    on the strip side!*/
+        //    if(anchorHits)
+        //    {
+        //        delta2[i] = 16.6666f;//0.15f;
+        //    }
+        //    else
+        //    {
+        //        delta2[i] = 266.666f;//2.4f;
+        //    }
+        //}
 
-        //category 5 - endcap 2S
-        else if(moduleSubdet == Endcap and moduleType == TwoS)
-        {
-            delta1[i] = 0.009;
-            delta2[i] = 5.f;
-            slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
-            isFlat[i] = false;
-        }
-        else
-        {
-            printf("ERROR!!!!! I SHOULDN'T BE HERE!!!! subdet = %d, type = %d, side = %d\n", moduleSubdet, moduleType, moduleSide);
-        }
+        ////category 5 - endcap 2S
+        //else if(moduleSubdet == Endcap and moduleType == TwoS)
+        //{
+        //    delta1[i] = 1;//0.009;
+        //    delta2[i] = 555.5555f;//5.f;
+        //    slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
+        //    isFlat[i] = false;
+        //}
+        //else
+        //{
+        //    printf("ERROR!!!!! I SHOULDN'T BE HERE!!!! subdet = %d, type = %d, side = %d\n", moduleSubdet, moduleType, moduleSide);
+        //}
     }
     //divide everyone by the smallest possible values of delta1 and delta2
-    for(size_t i = 0; i < 5; i++)
-    {
-        delta1[i] /= 0.009;
-        delta2[i] /= 0.009;
-    }
+//    for(size_t i = 0; i < 5; i++)
+//    {
+//        delta1[i] /= 0.009;
+//        delta2[i] /= 0.009;
+//    }
 }
 
 __device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float* ys, float* delta1, float* delta2, float* slopes, bool* isFlat, float& g, float& f, float* sigmas, float& chiSquared)
