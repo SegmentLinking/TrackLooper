@@ -190,72 +190,72 @@ void SDL::tracklets::freeMemory()
 #endif
 }
 
-__device__ bool SDL::runTrackletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int innerOuterLowerModuleIndex, unsigned int outerInnerLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float&
-        betaOut, float& pt_beta, float& zLo, float& zHi, float& rtLo, float& rtHi, float& zLoPointed, float& zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ, unsigned int N_MAX_SEGMENTS_PER_MODULE)
-{
-
-    bool pass = false;
-
-    zLo = -999;
-    zHi = -999;
-    rtLo = -999;
-    rtHi = -999;
-    zLoPointed = -999;
-    zHiPointed = -999;
-    kZ = -999;
-    betaInCut = -999;
-
-    short innerInnerLowerModuleSubdet = modulesInGPU.subdets[innerInnerLowerModuleIndex];
-    short innerOuterLowerModuleSubdet = modulesInGPU.subdets[innerOuterLowerModuleIndex];
-    short outerInnerLowerModuleSubdet = modulesInGPU.subdets[outerInnerLowerModuleIndex];
-    short outerOuterLowerModuleSubdet = modulesInGPU.subdets[outerOuterLowerModuleIndex];
-
-
-
-    if(innerInnerLowerModuleSubdet == SDL::Barrel
-            and innerOuterLowerModuleSubdet == SDL::Barrel
-            and outerInnerLowerModuleSubdet == SDL::Barrel
-            and outerOuterLowerModuleSubdet == SDL::Barrel)
-    {
-        pass = runTrackletDefaultAlgoBBBB(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,innerInnerLowerModuleIndex,innerOuterLowerModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,innerSegmentIndex,outerSegmentIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,pt_beta, zLo, zHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut);
-    }
-
-    else if(innerInnerLowerModuleSubdet == SDL::Barrel
-            and innerOuterLowerModuleSubdet == SDL::Barrel
-            and outerInnerLowerModuleSubdet == SDL::Endcap
-            and outerOuterLowerModuleSubdet == SDL::Endcap)
-    {
-        pass = runTrackletDefaultAlgoBBEE(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,innerInnerLowerModuleIndex,innerOuterLowerModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,innerSegmentIndex,outerSegmentIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,pt_beta, zLo, rtLo, rtHi, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
-    }
-
-    else if(innerInnerLowerModuleSubdet == SDL::Barrel
-            and innerOuterLowerModuleSubdet == SDL::Barrel
-            and outerInnerLowerModuleSubdet == SDL::Barrel
-            and outerOuterLowerModuleSubdet == SDL::Endcap)
-    {
-        pass = runTrackletDefaultAlgoBBBB(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,innerInnerLowerModuleIndex,innerOuterLowerModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,innerSegmentIndex,outerSegmentIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,pt_beta,zLo, zHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut);
-
-    }
-
-    else if(innerInnerLowerModuleSubdet == SDL::Barrel
-            and innerOuterLowerModuleSubdet == SDL::Endcap
-            and outerInnerLowerModuleSubdet == SDL::Endcap
-            and outerOuterLowerModuleSubdet == SDL::Endcap)
-    {
-        pass = runTrackletDefaultAlgoBBEE(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,innerInnerLowerModuleIndex,innerOuterLowerModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,innerSegmentIndex,outerSegmentIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,pt_beta, zLo, rtLo, rtHi, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
-
-    }
-
-    else if(innerInnerLowerModuleSubdet == SDL::Endcap
-            and innerOuterLowerModuleSubdet == SDL::Endcap
-            and outerInnerLowerModuleSubdet == SDL::Endcap
-            and outerOuterLowerModuleSubdet == SDL::Endcap)
-    {
-        pass = runTrackletDefaultAlgoEEEE(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,innerInnerLowerModuleIndex,innerOuterLowerModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,innerSegmentIndex,outerSegmentIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,pt_beta, zLo, rtLo, rtHi, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
-    }
-    
-    return pass;
-}
+//__device__ bool SDL::runTrackletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int innerOuterLowerModuleIndex, unsigned int outerInnerLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float&
+//        betaOut, float& pt_beta, float& zLo, float& zHi, float& rtLo, float& rtHi, float& zLoPointed, float& zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ, unsigned int N_MAX_SEGMENTS_PER_MODULE)
+//{
+//
+//    bool pass = false;
+//
+//    zLo = -999;
+//    zHi = -999;
+//    rtLo = -999;
+//    rtHi = -999;
+//    zLoPointed = -999;
+//    zHiPointed = -999;
+//    kZ = -999;
+//    betaInCut = -999;
+//
+//    short innerInnerLowerModuleSubdet = modulesInGPU.subdets[innerInnerLowerModuleIndex];
+//    short innerOuterLowerModuleSubdet = modulesInGPU.subdets[innerOuterLowerModuleIndex];
+//    short outerInnerLowerModuleSubdet = modulesInGPU.subdets[outerInnerLowerModuleIndex];
+//    short outerOuterLowerModuleSubdet = modulesInGPU.subdets[outerOuterLowerModuleIndex];
+//
+//
+//
+//    if(innerInnerLowerModuleSubdet == SDL::Barrel
+//            and innerOuterLowerModuleSubdet == SDL::Barrel
+//            and outerInnerLowerModuleSubdet == SDL::Barrel
+//            and outerOuterLowerModuleSubdet == SDL::Barrel)
+//    {
+//        pass = runTrackletDefaultAlgoBBBB(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,innerInnerLowerModuleIndex,innerOuterLowerModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,innerSegmentIndex,outerSegmentIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,pt_beta, zLo, zHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut);
+//    }
+//
+//    else if(innerInnerLowerModuleSubdet == SDL::Barrel
+//            and innerOuterLowerModuleSubdet == SDL::Barrel
+//            and outerInnerLowerModuleSubdet == SDL::Endcap
+//            and outerOuterLowerModuleSubdet == SDL::Endcap)
+//    {
+//        pass = runTrackletDefaultAlgoBBEE(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,innerInnerLowerModuleIndex,innerOuterLowerModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,innerSegmentIndex,outerSegmentIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,pt_beta, zLo, rtLo, rtHi, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
+//    }
+//
+//    else if(innerInnerLowerModuleSubdet == SDL::Barrel
+//            and innerOuterLowerModuleSubdet == SDL::Barrel
+//            and outerInnerLowerModuleSubdet == SDL::Barrel
+//            and outerOuterLowerModuleSubdet == SDL::Endcap)
+//    {
+//        pass = runTrackletDefaultAlgoBBBB(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,innerInnerLowerModuleIndex,innerOuterLowerModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,innerSegmentIndex,outerSegmentIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,pt_beta,zLo, zHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut);
+//
+//    }
+//
+//    else if(innerInnerLowerModuleSubdet == SDL::Barrel
+//            and innerOuterLowerModuleSubdet == SDL::Endcap
+//            and outerInnerLowerModuleSubdet == SDL::Endcap
+//            and outerOuterLowerModuleSubdet == SDL::Endcap)
+//    {
+//        pass = runTrackletDefaultAlgoBBEE(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,innerInnerLowerModuleIndex,innerOuterLowerModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,innerSegmentIndex,outerSegmentIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,pt_beta, zLo, rtLo, rtHi, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
+//
+//    }
+//
+//    else if(innerInnerLowerModuleSubdet == SDL::Endcap
+//            and innerOuterLowerModuleSubdet == SDL::Endcap
+//            and outerInnerLowerModuleSubdet == SDL::Endcap
+//            and outerOuterLowerModuleSubdet == SDL::Endcap)
+//    {
+//        pass = runTrackletDefaultAlgoEEEE(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,innerInnerLowerModuleIndex,innerOuterLowerModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,innerSegmentIndex,outerSegmentIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,pt_beta, zLo, rtLo, rtHi, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
+//    }
+//    
+//    return pass;
+//}
 
 __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int innerOuterLowerModuleIndex, unsigned int outerInnerLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& dPhi, float& betaIn, float&
         betaOut, float& pt_beta, float& zLo, float& zHi, float& zLoPointed, float& zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut)
