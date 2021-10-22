@@ -299,7 +299,7 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsI
     //quintupletsInGPU.score_rzlsq[quintupletIndex] = scores[3];
     quintupletsInGPU.score_rphisum[quintupletIndex] = scores;
     quintupletsInGPU.layer[quintupletIndex] = layer;
-    quintupletsInGPU.isDup[quintupletIndex] = 0;
+    quintupletsInGPU.isDup[quintupletIndex] = false;
     quintupletsInGPU.regressionG[quintupletIndex] = regressionG;
     quintupletsInGPU.regressionF[quintupletIndex] = regressionF;
 
@@ -324,7 +324,7 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsI
 }
 __device__ void SDL::rmQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU,unsigned int quintupletIndex)
 {
-    quintupletsInGPU.isDup[quintupletIndex] = 1;
+    quintupletsInGPU.isDup[quintupletIndex] = true;
 
 }
 
@@ -1154,9 +1154,9 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
     short moduleSubdet, moduleSide;
     ModuleLayerType moduleLayerType;
     float drdz;
-    float inv1 = 0.01f/0.009f;
-    float inv2 = 0.15f/0.009f;
-    float inv3 = 0.24f/0.009f;
+    float inv1 = 0.01/0.009;
+    float inv2 = 0.15/0.009;
+    float inv3 = 2.4/0.009;
     for(size_t i=0; i<nPoints; i++)
     {
         moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
@@ -1166,6 +1166,8 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
         //category 1 - barrel PS flat
         if(moduleSubdet == Barrel and moduleType == PS and moduleSide == Center)
         {
+            //delta1[i] = 0.01;
+            //delta2[i] = 0.01;
             delta1[i] = inv1;//1.1111f;//0.01;
             delta2[i] = inv1;//1.1111f;//0.01;
             slopes[i] = -999;
@@ -1175,6 +1177,8 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
         //category 2 - barrel 2S
         else if(moduleSubdet == Barrel and moduleType == TwoS)
         {
+            //delta1[i] = 0.009;
+            //delta2[i] = 0.009;
             delta1[i] = 1;//0.009;
             delta2[i] = 1;//0.009;
             slopes[i] = -999;
@@ -1197,24 +1201,28 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
                 slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
             }
 
+            //delta1[i] = 0.01;
             delta1[i] = inv1;//1.1111f;//0.01;
             isFlat[i] = false;
 
             if(anchorHits)
             {
-                //delta2[i] = (0.15f * drdz/sqrtf(1 + drdz * drdz))*111.1111f;
-                delta2[i] = (inv2 * drdz*rsqrt(1 + drdz * drdz));
+                //delta2[i] = (0.15f * drdz/sqrtf(1 + drdz * drdz));
+                delta2[i] = (inv2 * drdz/sqrtf(1 + drdz * drdz));
+                //delta2[i] = (inv2 * drdz*rsqrt(1 + drdz * drdz));
             }
             else
             {
-                //delta2[i] = (2.4f * drdz/sqrtf(1 + drdz * drdz))*111.1111f;
-                delta2[i] = (inv3 * drdz*rsqrt(1 + drdz * drdz));
+                //delta2[i] = (2.4f * drdz/sqrtf(1 + drdz * drdz));
+                delta2[i] = (inv3 * drdz/sqrtf(1 + drdz * drdz));
+                //delta2[i] = (inv3 * drdz*rsqrt(1 + drdz * drdz));
             }
         }
         //category 4 - endcap PS
         else if(moduleSubdet == Endcap and moduleType == PS)
         {
             delta1[i] = inv1;//1.1111f;//0.01;
+            //delta1[i] = 0.01;
             if(moduleLayerType == Strip)
             {
                 slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
@@ -1232,9 +1240,11 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
             if(anchorHits)
             {
                 delta2[i] = inv2;//16.6666f;//0.15f;
+                //delta2[i] = 0.15f;
             }
             else
             {
+                //delta2[i] = 2.4f;
                 delta2[i] = inv3;//266.666f;//2.4f;
             }
         }
@@ -1242,6 +1252,8 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
         //category 5 - endcap 2S
         else if(moduleSubdet == Endcap and moduleType == TwoS)
         {
+            //delta1[i] = 0.009;
+            //delta2[i] = 5.f;
             delta1[i] = 1;//0.009;
             delta2[i] = 500*inv1;//555.5555f;//5.f;
             slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
