@@ -202,13 +202,12 @@ __device__ inline int checkHitspT5(unsigned int ix, unsigned int jx,struct SDL::
     return npMatched;
 }
 
-__global__ void addpT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU)
+__global__ void addpT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU,struct SDL::quintuplets& quintupletsInGPU)
 {
-    int pixelQuintupletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    int pixelQuintupletIndex = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned int pixelLowerModuleArrayIndex = *modulesInGPU.nLowerModules;
     unsigned int nPixelQuintuplets = *pixelQuintupletsInGPU.nPixelQuintuplets;
-    if(pixelQuintupletArrayIndex >= nPixelQuintuplets) return;
-    int pixelQuintupletIndex = pixelQuintupletArrayIndex;
+    if(pixelQuintupletIndex >= nPixelQuintuplets) return;
     if(pixelQuintupletsInGPU.isDup[pixelQuintupletIndex])
     {
         return;
@@ -217,6 +216,14 @@ __global__ void addpT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
     atomicAdd(trackCandidatesInGPU.nTrackCandidatespT5,1);
 
     addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex], pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], trackCandidateIdx);
+        unsigned int quintupletIndex = pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex];
+        unsigned int pixelSegmentArrayIndex = pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex]- ((*modulesInGPU.nModules - 1)* N_MAX_SEGMENTS_PER_MODULE);
+        quintupletsInGPU.partOfPT5[quintupletIndex] = true;
+        unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
+        unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
+        tripletsInGPU.partOfPT5[innerTripletIndex] = true;
+        tripletsInGPU.partOfPT5[outerTripletIndex] = true;
+        segmentsInGPU.partOfPT5[pixelSegmentArrayIndex] = true;
 }
 
 __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU,struct SDL::segments& segmentsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU)
