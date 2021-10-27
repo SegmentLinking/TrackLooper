@@ -207,6 +207,9 @@ void SDL::triplets::freeMemory()
     cudaFree(nTriplets);
     cudaFree(betaIn);
     cudaFree(partOfPT5);
+    cudaFree(partOfPT3);
+    cudaFree(partOfT5);
+    cudaFree(partOfExtension);
     cudaFree(logicalLayers);
     cudaFree(hitIndices);
 #ifdef CUT_VALUE_DEBUG

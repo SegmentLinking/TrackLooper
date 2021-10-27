@@ -10,10 +10,6 @@ void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCand
     trackCandidatesInGPU.trackCandidateType = (short*)cms::cuda::allocate_managed(maxTrackCandidates * sizeof(short),stream);
     cudaMallocManaged(&trackCandidatesInGPU.objectIndices, 2 * maxTrackCandidates * sizeof(unsigned int));
     trackCandidatesInGPU.nTrackCandidates= (unsigned int*)cms::cuda::allocate_managed( sizeof(unsigned int),stream);
-    trackCandidatesInGPU.nTrackCandidatesT4T4= (unsigned int*)cms::cuda::allocate_managed( sizeof(unsigned int),stream);
-    trackCandidatesInGPU.nTrackCandidatesT4T3= (unsigned int*)cms::cuda::allocate_managed( sizeof(unsigned int),stream);
-    trackCandidatesInGPU.nTrackCandidatesT3T4= (unsigned int*)cms::cuda::allocate_managed( sizeof(unsigned int),stream);
-    trackCandidatesInGPU.nTrackCandidatespT2= (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatespT3= (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatesT5= (unsigned int*)cms::cuda::allocate_managed( sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatespT5= (unsigned int*)cms::cuda::allocate_managed( sizeof(unsigned int),stream);
@@ -32,32 +28,24 @@ void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCand
     cudaMallocManaged(&trackCandidatesInGPU.trackCandidateType, maxTrackCandidates * sizeof(short));
     cudaMallocManaged(&trackCandidatesInGPU.objectIndices, 2 * maxTrackCandidates * sizeof(unsigned int));
     cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidates, sizeof(unsigned int));
-    cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidatesT4T4, sizeof(unsigned int));
-    cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidatesT4T3, sizeof(unsigned int));
-    cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidatesT3T4, sizeof(unsigned int));
-    cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidatespT2, sizeof(unsigned int));
     cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidatespT3, sizeof(unsigned int));
     cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidatesT5, sizeof(unsigned int));
     cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidatespT5, sizeof(unsigned int));
+    cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidatespLS, sizeof(unsigned int));
 
     cudaMallocManaged(&trackCandidatesInGPU.logicalLayers, maxTrackCandidates * 7 * sizeof(unsigned int));
     cudaMallocManaged(&trackCandidatesInGPU.lowerModuleIndices, maxTrackCandidates * 7 * sizeof(unsigned int));
     cudaMallocManaged(&trackCandidatesInGPU.hitIndices, maxTrackCandidates * 14 * sizeof(unsigned int));
+    cudaMallocManaged(&trackCandidatesInGPU.partOfExtension, maxTrackCandidates*sizeof(bool));
 
     cudaMallocManaged(&trackCandidatesInGPU.centerX, maxTrackCandidates * sizeof(float));
     cudaMallocManaged(&trackCandidatesInGPU.centerY, maxTrackCandidates * sizeof(float));
     cudaMallocManaged(&trackCandidatesInGPU.radius, maxTrackCandidates * sizeof(float));
 
-    cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidatespLS, sizeof(unsigned int));
-    cudaMallocManaged(&trackCandidatesInGPU.partOfExtension, maxTrackCandidates*sizeof(bool));
 #endif
 
     cudaMemset(trackCandidatesInGPU.nTrackCandidates,0, sizeof(unsigned int));
-    cudaMemset(trackCandidatesInGPU.nTrackCandidatesT4T4,0, sizeof(unsigned int));
-    cudaMemset(trackCandidatesInGPU.nTrackCandidatesT4T3,0, sizeof(unsigned int));
-    cudaMemset(trackCandidatesInGPU.nTrackCandidatesT3T4,0, sizeof(unsigned int));
     cudaMemset(trackCandidatesInGPU.nTrackCandidatesT5,0, sizeof(unsigned int));
-    cudaMemset(trackCandidatesInGPU.nTrackCandidatespT2,0, sizeof(unsigned int));
     cudaMemset(trackCandidatesInGPU.nTrackCandidatespT3,0, sizeof(unsigned int));
     cudaMemset(trackCandidatesInGPU.nTrackCandidatespT5,0, sizeof(unsigned int));
     cudaMemset(trackCandidatesInGPU.nTrackCandidatespLS,0, sizeof(unsigned int));
@@ -73,10 +61,6 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     cudaMalloc(&trackCandidatesInGPU.trackCandidateType, maxTrackCandidates * sizeof(short));
     cudaMalloc(&trackCandidatesInGPU.objectIndices, 2 * maxTrackCandidates * sizeof(unsigned int));
     trackCandidatesInGPU.nTrackCandidates= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
-    trackCandidatesInGPU.nTrackCandidatesT4T4= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
-    trackCandidatesInGPU.nTrackCandidatesT4T3= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
-    trackCandidatesInGPU.nTrackCandidatesT3T4= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
-    trackCandidatesInGPU.nTrackCandidatespT2= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatespT3= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatesT5= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatespT5= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
@@ -95,10 +79,6 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     cudaMalloc(&trackCandidatesInGPU.trackCandidateType, maxTrackCandidates * sizeof(short));
     cudaMalloc(&trackCandidatesInGPU.objectIndices, 2 * maxTrackCandidates * sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.nTrackCandidates, sizeof(unsigned int));
-    cudaMalloc(&trackCandidatesInGPU.nTrackCandidatesT4T4, sizeof(unsigned int));
-    cudaMalloc(&trackCandidatesInGPU.nTrackCandidatesT4T3, sizeof(unsigned int));
-    cudaMalloc(&trackCandidatesInGPU.nTrackCandidatesT3T4, sizeof(unsigned int));
-    cudaMalloc(&trackCandidatesInGPU.nTrackCandidatespT2, sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.nTrackCandidatespT3, sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.nTrackCandidatesT5, sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.nTrackCandidatespT5, sizeof(unsigned int));
@@ -112,11 +92,7 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     cudaMalloc(&trackCandidatesInGPU.radius, maxTrackCandidates * sizeof(float));
 #endif
     cudaMemset(trackCandidatesInGPU.nTrackCandidates,0, sizeof(unsigned int));
-    cudaMemset(trackCandidatesInGPU.nTrackCandidatesT4T4,0, sizeof(unsigned int));
-    cudaMemset(trackCandidatesInGPU.nTrackCandidatesT4T3,0, sizeof(unsigned int));
-    cudaMemset(trackCandidatesInGPU.nTrackCandidatesT3T4,0, sizeof(unsigned int));
     cudaMemset(trackCandidatesInGPU.nTrackCandidatesT5,0, sizeof(unsigned int));
-    cudaMemset(trackCandidatesInGPU.nTrackCandidatespT2,0, sizeof(unsigned int));
     cudaMemset(trackCandidatesInGPU.nTrackCandidatespT3,0, sizeof(unsigned int));
     cudaMemset(trackCandidatesInGPU.nTrackCandidatespT5,0, sizeof(unsigned int));
     cudaMemset(trackCandidatesInGPU.nTrackCandidatespLS,0, sizeof(unsigned int));
@@ -153,38 +129,11 @@ __device__ void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCand
     trackCandidatesInGPU.radius[trackCandidateIndex] = radius;
 }
 
-__device__ bool SDL::runTrackCandidateDefaultAlgoTwoTracklets(struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, short& trackCandidateType)
-{
-    bool pass = true;
-    trackCandidateType = 0;
-    if(not hasCommonSegment(trackletsInGPU, tripletsInGPU, innerTrackletIndex, outerTrackletIndex, trackCandidateType))
-    {
-        pass = false;
-    }
-    return pass;
-}
-
-__device__ bool SDL::runTrackCandidateDefaultAlgoTwoTracklets(struct pixelTracklets& pixelTrackletsInGPU, struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, short& trackCandidateType)
-{
-    bool pass = true;
-    trackCandidateType = 0;
-    if(not hasCommonSegment(pixelTrackletsInGPU, trackletsInGPU, tripletsInGPU, innerTrackletIndex, outerTrackletIndex, trackCandidateType))
-    {
-        pass = false;
-    }
-    return pass;
-}
-
-
 SDL::trackCandidates::trackCandidates()
 {
     trackCandidateType = nullptr;
     objectIndices = nullptr;
     nTrackCandidates = nullptr;
-    nTrackCandidatesT4T4 = nullptr;
-    nTrackCandidatesT4T3 = nullptr;
-    nTrackCandidatesT3T4 = nullptr;
-    nTrackCandidatespT2 = nullptr;
     nTrackCandidatesT5 = nullptr;
     nTrackCandidatespT3 = nullptr;
     logicalLayers = nullptr;
@@ -211,10 +160,6 @@ void SDL::trackCandidates::freeMemoryCache()
     //FIXME
     cudaFree(trackCandidateType);
     cms::cuda::free_device(dev,nTrackCandidates);
-    cms::cuda::free_device(dev,nTrackCandidatesT4T4);
-    cms::cuda::free_device(dev,nTrackCandidatesT4T3);
-    cms::cuda::free_device(dev,nTrackCandidatesT3T4);
-    cms::cuda::free_device(dev,nTrackCandidatespT2);
     cms::cuda::free_device(dev,nTrackCandidatespT3);
     cms::cuda::free_device(dev,nTrackCandidatesT5);
     cms::cuda::free_device(dev,nTrackCandidatespT5);
@@ -231,10 +176,6 @@ void SDL::trackCandidates::freeMemoryCache()
 #else
     cms::cuda::free_managed(trackCandidateType);
     cms::cuda::free_managed(nTrackCandidates);
-    cms::cuda::free_managed(nTrackCandidatesT4T4);
-    cms::cuda::free_managed(nTrackCandidatesT4T3);
-    cms::cuda::free_managed(nTrackCandidatesT3T4);
-    cms::cuda::free_managed(nTrackCandidatespT2);
     cms::cuda::free_managed(nTrackCandidatespT3);
     cms::cuda::free_managed(nTrackCandidatesT5);
     cms::cuda::free_managed(nTrackCandidatespT5);
@@ -255,10 +196,6 @@ void SDL::trackCandidates::freeMemory()
     cudaFree(trackCandidateType);
     cudaFree(objectIndices);
     cudaFree(nTrackCandidates);
-    cudaFree(nTrackCandidatesT4T4);
-    cudaFree(nTrackCandidatesT4T3);
-    cudaFree(nTrackCandidatesT3T4);
-    cudaFree(nTrackCandidatespT2);
     cudaFree(nTrackCandidatespT3);
     cudaFree(nTrackCandidatesT5);
     cudaFree(nTrackCandidatespT5);
@@ -273,86 +210,4 @@ void SDL::trackCandidates::freeMemory()
     cudaFree(radius);
     
     cudaFree(nTrackCandidatespLS);
-}
-
-__device__ bool SDL::runTrackCandidateDefaultAlgoTrackletToTriplet(struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTripletIndex, short& trackCandidateType)
-{
-    bool pass = true;
-    trackCandidateType = 1;
-    if(not hasCommonSegment(trackletsInGPU, tripletsInGPU, innerTrackletIndex, outerTripletIndex, trackCandidateType))
-    {
-        pass = false;
-    }
-
-    return pass;
-}
-
-__device__ bool SDL::runTrackCandidateDefaultAlgoTrackletToTriplet(struct pixelTracklets& pixelTrackletsInGPU, struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTrackletIndex, unsigned int outerTripletIndex, short& trackCandidateType)
-{
-    bool pass = true;
-    trackCandidateType = 1;
-    if(not hasCommonSegment(pixelTrackletsInGPU, trackletsInGPU, tripletsInGPU, innerTrackletIndex, outerTripletIndex, trackCandidateType))
-    {
-        pass = false;
-    }
-
-    return pass;
-}
-
-
-__device__ bool SDL::runTrackCandidateDefaultAlgoTripletToTracklet(struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerTripletIndex, unsigned int outerTrackletIndex, short& trackCandidateType)
-{
-    bool pass = true;
-    trackCandidateType = 2;
-    if(not hasCommonSegment(trackletsInGPU, tripletsInGPU, innerTripletIndex, outerTrackletIndex, trackCandidateType))
-    {
-        pass = false;
-    }
-    return pass;
-}
-
-__device__ bool SDL::hasCommonSegment(struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerObjectIndex, unsigned int outerObjectIndex, short trackCandidateType)
-{
-    unsigned int innerObjectOuterSegmentIndex, outerObjectInnerSegmentIndex;
-
-    if(trackCandidateType == 0)
-    {
-        //2 tracklets
-        innerObjectOuterSegmentIndex = trackletsInGPU.segmentIndices[2 * innerObjectIndex + 1];
-        outerObjectInnerSegmentIndex = trackletsInGPU.segmentIndices[2 * outerObjectIndex];
-    }
-    else if(trackCandidateType == 1)
-    {
-        //T4T3
-        innerObjectOuterSegmentIndex = trackletsInGPU.segmentIndices[2 * innerObjectIndex + 1];
-        outerObjectInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * outerObjectIndex];
-    }
-    else if(trackCandidateType == 2)
-    {
-        //T3T4
-        innerObjectOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * innerObjectIndex + 1];
-        outerObjectInnerSegmentIndex = trackletsInGPU.segmentIndices[2 * outerObjectIndex];
-    }
-
-    return (innerObjectOuterSegmentIndex == outerObjectInnerSegmentIndex);
-}
-
-__device__ bool SDL::hasCommonSegment(struct pixelTracklets& pixelTrackletsInGPU, struct tracklets& trackletsInGPU, struct triplets& tripletsInGPU, unsigned int innerObjectIndex, unsigned int outerObjectIndex, short trackCandidateType)
-{
-    unsigned int innerObjectOuterSegmentIndex, outerObjectInnerSegmentIndex;
-
-    if(trackCandidateType == 0)
-    {
-        //2 tracklets
-        innerObjectOuterSegmentIndex = pixelTrackletsInGPU.segmentIndices[2 * innerObjectIndex + 1];
-        outerObjectInnerSegmentIndex = trackletsInGPU.segmentIndices[2 * outerObjectIndex];
-    }
-    else if(trackCandidateType == 1)
-    {
-        //T4T3
-        innerObjectOuterSegmentIndex = pixelTrackletsInGPU.segmentIndices[2 * innerObjectIndex + 1];
-        outerObjectInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * outerObjectIndex];
-    }
-
-    return (innerObjectOuterSegmentIndex == outerObjectInnerSegmentIndex);
 }

@@ -4,8 +4,11 @@ SDL::trackExtensions::trackExtensions()
 {
     constituentTCTypes = nullptr;
     constituentTCIndices = nullptr;
+    nHitOverlaps = nullptr;
+    nLayerOverlaps = nullptr;
     nTrackExtensions = nullptr;
     rPhiChiSquared = nullptr;
+    rzChiSquared = nullptr;
     isDup = nullptr;
 }
 
@@ -22,6 +25,7 @@ void SDL::trackExtensions::freeMemory()
     cudaFree(nTrackExtensions);
     cudaFree(isDup);
     cudaFree(rPhiChiSquared);
+    cudaFree(rzChiSquared);
 }
 
 /*
@@ -38,6 +42,8 @@ void SDL::createTrackExtensionsInUnifiedMemory(struct trackExtensions& trackExte
     cudaMallocManaged(&trackExtensionsInGPU.nHitOverlaps, sizeof(unsigned int) * 2 * maxTrackExtensions);
     cudaMallocManaged(&trackExtensionsInGPU.nTrackExtensions, nTrackCandidates * sizeof(unsigned int));
     cudaMallocManaged(&trackExtensionsInGPU.rPhiChiSquared, maxTrackExtensions * sizeof(float));
+    cudaMallocManaged(&trackExtensionsInGPU.rzChiSquared, maxTrackExtensions * sizeof(float));
+
     cudaMallocManaged(&trackExtensionsInGPU.isDup, maxTrackExtensions * sizeof(bool));
 
     cudaMemset(trackExtensionsInGPU.nTrackExtensions, 0, nTrackCandidates * sizeof(unsigned int));
@@ -53,13 +59,15 @@ void SDL::createTrackExtensionsInExplicitMemory(struct trackExtensions& trackExt
     cudaMalloc(&trackExtensionsInGPU.nHitOverlaps, sizeof(unsigned int) * 2 * maxTrackExtensions);
     cudaMalloc(&trackExtensionsInGPU.nTrackExtensions, nTrackCandidates * sizeof(unsigned int));
     cudaMalloc(&trackExtensionsInGPU.rPhiChiSquared, maxTrackExtensions * sizeof(float));
+    cudaMalloc(&trackExtensionsInGPU.rzChiSquared, maxTrackExtensions * sizeof(float));
+
     cudaMalloc(&trackExtensionsInGPU.isDup, maxTrackExtensions * sizeof(bool));
 
     cudaMemset(trackExtensionsInGPU.nTrackExtensions, 0, nTrackCandidates * sizeof(unsigned int));
     cudaMemset(trackExtensionsInGPU.isDup, true, maxTrackExtensions * sizeof(bool));
 }
 
-__device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExtensionsInGPU, short* constituentTCType, unsigned int* constituentTCIndex, unsigned int* nLayerOverlaps, unsigned int* nHitOverlaps, float rPhiChiSquared, unsigned int trackExtensionIndex)
+__device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExtensionsInGPU, short* constituentTCType, unsigned int* constituentTCIndex, unsigned int* nLayerOverlaps, unsigned int* nHitOverlaps, float rPhiChiSquared, float rzChiSquared, unsigned int trackExtensionIndex)
 { 
     for(size_t i = 0; i < 3 ; i++)
     {
@@ -72,10 +80,11 @@ __device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExte
         trackExtensionsInGPU.nHitOverlaps[2 * trackExtensionIndex + i] = nHitOverlaps[i];
     }
     trackExtensionsInGPU.rPhiChiSquared[trackExtensionIndex] = rPhiChiSquared;
+    trackExtensionsInGPU.rzChiSquared[trackExtensionIndex] = rzChiSquared;
 }
 
 __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct quintuplets& quintupletsInGPU, struct pixelTriplets& pixelTripletsInGPU, struct pixelQuintuplets& pixelQuintupletsInGPU, struct trackCandidates& trackCandidatesInGPU, unsigned int anchorObjectIndex, unsigned int outerObjectIndex, short anchorObjectType, short outerObjectType, unsigned int anchorObjectOuterT3Index, unsigned int layerOverlapTarget, short* constituentTCType, unsigned int* constituentTCIndex, unsigned
-        int* nLayerOverlaps, unsigned int* nHitOverlaps, float& rPhiChiSquared)
+        int* nLayerOverlaps, unsigned int* nHitOverlaps, float& rPhiChiSquared, float& rzChiSquared)
 {
     /*
        Basic premise:
@@ -170,16 +179,23 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     //checks for frivolous cases wherein
     pass = pass &  computeLayerAndHitOverlaps(modulesInGPU, anchorLayerIndices, anchorHitIndices, anchorLowerModuleIndices, outerObjectLayerIndices, outerObjectHitIndices, outerObjectLowerModuleIndices, nAnchorLayers, nOuterLayers, nLayerOverlap, nHitOverlap, layerOverlapTarget);
 
+
     pass = pass & runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], tripletsInGPU.segmentIndices[2 * anchorObjectOuterT3Index], tripletsInGPU.segmentIndices[2 * outerObjectIndex], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
 
     pass = pass & runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 2], tripletsInGPU.segmentIndices[2 * anchorObjectOuterT3Index], tripletsInGPU.segmentIndices[2 * outerObjectIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
 
     rPhiChiSquared = computeTERPhiChiSquared(modulesInGPU, hitsInGPU, centerX, centerY, radius, outerObjectAnchorHitIndices, outerObjectLowerModuleIndices);
+    
+    rzChiSquared = computeTERZChiSquared(modulesInGPU, hitsInGPU, anchorObjectAnchorHitIndices, anchorLowerModuleIndices, outerObjectAnchorHitIndices, outerObjectLowerModuleIndices, anchorObjectType);
 
-    if(radius < 5.0/(2 * k2Rinv1GeVf))
-    {
-        pass = pass and passTERPhiChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rPhiChiSquared);
-    }
+//    if(radius < 5.0/(2 * k2Rinv1GeVf))
+//    {
+        if(anchorObjectType != 3)
+        {
+            pass = pass and passTERPhiChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rPhiChiSquared);
+            pass = pass and passTERZChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rzChiSquared);
+         }
+//    }
 
     nLayerOverlaps[0] = nLayerOverlap;
     nHitOverlaps[0] = nHitOverlap;
@@ -191,6 +207,551 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     constituentTCIndex[1] = outerObjectIndex;
 
     return pass;
+}
+
+__device__ bool SDL::passTERZChiSquaredCuts(int nLayerOverlaps, int nHitOverlaps, unsigned int layer_binary, float rzChiSquared)
+{
+    if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 127)
+    {
+        return rzChiSquared < 7.003;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3971)
+    {
+        return rzChiSquared < 97.948;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 191)
+    {
+        return rzChiSquared < 10.621;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 1927)
+    {
+        return rzChiSquared < 97.948;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 415)
+    {
+        return rzChiSquared < 10.621;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 911)
+    {
+        return rzChiSquared < 97.948;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3973)
+    {
+        return rzChiSquared < 85.250;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 31)
+    {
+        return rzChiSquared < 258.885;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 901)
+    {
+        return rzChiSquared < 148.559;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 61)
+    {
+        return rzChiSquared < 297.446;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 143)
+    {
+        return rzChiSquared < 392.655;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 1921)
+    {
+        return rzChiSquared < 129.300;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 157)
+    {
+        return rzChiSquared < 392.655;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 391)
+    {
+        return rzChiSquared < 258.885;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3841)
+    {
+        return rzChiSquared < 112.537;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 899)
+    {
+        return rzChiSquared < 129.300;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 397)
+    {
+        return rzChiSquared < 518.339;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 126)
+    {
+        return rzChiSquared < 28.073;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3970)
+    {
+        return rzChiSquared < 903.274;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 414)
+    {
+        return rzChiSquared < 56.207;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 445)
+    {
+        return rzChiSquared < 3.044;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 190)
+    {
+        return rzChiSquared < 48.920;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 1926)
+    {
+        return rzChiSquared < 786.173;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 910)
+    {
+        return rzChiSquared < 684.253;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3972)
+    {
+        return rzChiSquared < 595.546;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 444)
+    {
+        return rzChiSquared < 56.207;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 1933)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 127)
+    {
+        return rzChiSquared < 8.046;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3971)
+    {
+        return rzChiSquared < 97.948;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 191)
+    {
+        return rzChiSquared < 10.621;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 1927)
+    {
+        return rzChiSquared < 97.948;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 415)
+    {
+        return rzChiSquared < 4.018;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 911)
+    {
+        return rzChiSquared < 74.198;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3973)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 31)
+    {
+        return rzChiSquared < 297.446;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 901)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 61)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 143)
+    {
+        return rzChiSquared < 56.207;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 1921)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 391)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3841)
+    {
+        return rzChiSquared < 18.509;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 899)
+    {
+        return rzChiSquared < 64.579;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 397)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 126)
+    {
+        return rzChiSquared < 28.073;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 1926)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 910)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3972)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 127)
+    {
+        return rzChiSquared < 5.305;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3971)
+    {
+        return rzChiSquared < 97.948;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 191)
+    {
+        return rzChiSquared < 10.621;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1927)
+    {
+        return rzChiSquared < 85.250;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 415)
+    {
+        return rzChiSquared < 7.003;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 911)
+    {
+        return rzChiSquared < 48.920;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3973)
+    {
+        return rzChiSquared < 37.058;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 31)
+    {
+        return rzChiSquared < 112.537;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 901)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 61)
+    {
+        return rzChiSquared < 32.254;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 143)
+    {
+        return rzChiSquared < 225.322;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1921)
+    {
+        return rzChiSquared < 24.433;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 391)
+    {
+        return rzChiSquared < 196.111;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3841)
+    {
+        return rzChiSquared < 129.300;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 899)
+    {
+        return rzChiSquared < 74.198;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 397)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 126)
+    {
+        return rzChiSquared < 28.073;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3970)
+    {
+        return rzChiSquared < 903.274;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 414)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1926)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3972)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 191)
+    {
+        return rzChiSquared < 9.244;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 1927)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 415)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 3973)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 31)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 143)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 1921)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 391)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 3841)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 899)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 397)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 3970)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 414)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 190)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 1926)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 127)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3971)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 191)
+    {
+        return rzChiSquared < 9.244;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 1927)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 415)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 911)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3973)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 31)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 61)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 1921)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 391)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3841)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 899)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 397)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 1926)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3972)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 3975)
+    {
+        return rzChiSquared < 64.579;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 63)
+    {
+        return rzChiSquared < 258.885;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 125)
+    {
+        return rzChiSquared < 21.266;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 3969)
+    {
+        return rzChiSquared < 129.300;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 1925)
+    {
+        return rzChiSquared < 48.920;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 413)
+    {
+        return rzChiSquared < 10.621;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 903)
+    {
+        return rzChiSquared < 148.559;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 399)
+    {
+        return rzChiSquared < 258.885;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 189)
+    {
+        return rzChiSquared < 12.203;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 1923)
+    {
+        return rzChiSquared < 148.559;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 909)
+    {
+        return rzChiSquared < 97.948;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 159)
+    {
+        return rzChiSquared < 451.141;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 1935)
+    {
+        return rzChiSquared < 24.433;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 447)
+    {
+        return rzChiSquared < 6.095;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 3974)
+    {
+        return true;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 3975)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 63)
+    {
+        return rzChiSquared < 14.021;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 3969)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 1925)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 903)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 399)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 1923)
+    {
+        return rzChiSquared < 14.021;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 909)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 3974)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 3975)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 63)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 125)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 3969)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 903)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 399)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 1923)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 909)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 159)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 1935)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 446)
+    {
+        return false;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 3974)
+    {
+        return false;
+    }
+    return true;
 }
 
 __device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverlaps, unsigned int layer_binary, float rPhiChiSquared)
@@ -816,608 +1377,6 @@ __device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverla
 }
 
 
-/*__device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverlaps, unsigned int layer_binary, float rPhiChiSquared)
-{
-    bool pass = true;
-    float threshold;
-    if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 127)
-    {
-        return rPhiChiSquared < 21.266;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3971)
-    {
-        return rPhiChiSquared < 6.095;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 1927)
-    {
-        return rPhiChiSquared < 4.617;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 191)
-    {
-        return rPhiChiSquared < 16.109;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 415)
-    {
-        return rPhiChiSquared < 9.244;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 911)
-    {
-        return rPhiChiSquared < 5.305;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3973)
-    {
-        return rPhiChiSquared < 3.498;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 143)
-    {
-        return rPhiChiSquared < 153806.756;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 901)
-    {
-        return rPhiChiSquared < 5492.110;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 391)
-    {
-        return rPhiChiSquared < 4160.411;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3841)
-    {
-        return rPhiChiSquared < 16678.281;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 31)
-    {
-        return rPhiChiSquared < 22016.806;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 61)
-    {
-        return rPhiChiSquared < 392.655;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 1921)
-    {
-        return rPhiChiSquared < 33393.261;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 397)
-    {
-        return rPhiChiSquared < 1037.818;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 157)
-    {
-        return rPhiChiSquared < 297.446;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 126)
-    {
-        return rPhiChiSquared < 85.250;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 414)
-    {
-        return rPhiChiSquared < 64.579;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3970)
-    {
-        return rPhiChiSquared < 37.058;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 445)
-    {
-        return true;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 899)
-    {
-        return rPhiChiSquared < 153806.756;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 1926)
-    {
-        return rPhiChiSquared < 0.436;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 190)
-    {
-        return rPhiChiSquared < 9.244;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3972)
-    {
-        return rPhiChiSquared < 0.010;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 910)
-    {
-        return rPhiChiSquared < 0.759;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 444)
-    {
-        return true;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 127)
-    {
-        return rPhiChiSquared < 14.021;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3971)
-    {
-        return rPhiChiSquared < 2.649;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1927)
-    {
-        return rPhiChiSquared < 7.003;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 191)
-    {
-        return rPhiChiSquared < 3.044;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 415)
-    {
-        return rPhiChiSquared < 2.007;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 911)
-    {
-        return rPhiChiSquared < 1.323;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3973)
-    {
-        return rPhiChiSquared < 0.041;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 143)
-    {
-        return rPhiChiSquared < 1370.011;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 901)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 391)
-    {
-        return rPhiChiSquared < 297.446;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3841)
-    {
-        return rPhiChiSquared < 196.111;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 31)
-    {
-        return rPhiChiSquared < 203038.514;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 61)
-    {
-        return rPhiChiSquared < 12.203;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1921)
-    {
-        return rPhiChiSquared < 74.198;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 397)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 157)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 126)
-    {
-        return rPhiChiSquared < 8.046;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 414)
-    {
-        return rPhiChiSquared < 0.000;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 445)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 899)
-    {
-        return rPhiChiSquared < 595.546;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1926)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 190)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3972)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 910)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 444)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1933)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 127)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 3971)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 1927)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 415)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 911)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 3973)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 143)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 901)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 3841)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 31)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 61)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 157)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 126)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 190)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 127)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3971)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 1927)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 191)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 415)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 911)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3973)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 143)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 901)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3841)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 31)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 61)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 126)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 414)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 445)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 899)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 1926)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 190)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 910)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 127)
-    {
-        return rPhiChiSquared < 10.621;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3971)
-    {
-        return rPhiChiSquared < 3.044;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 1927)
-    {
-        return rPhiChiSquared < 4.018;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 191)
-    {
-        return rPhiChiSquared < 9.244;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 415)
-    {
-        return rPhiChiSquared < 4.617;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 911)
-    {
-        return rPhiChiSquared < 0.872;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3973)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 143)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 901)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 391)
-    {
-        return rPhiChiSquared < 0.109;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3841)
-    {
-        return rPhiChiSquared < 32.254;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 31)
-    {
-        return rPhiChiSquared < 64.579;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 61)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 1921)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 397)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 157)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 126)
-    {
-        return rPhiChiSquared < 5.305;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 414)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3970)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 899)
-    {
-        return rPhiChiSquared < 3621.052;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 1926)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 190)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 3975)
-    {
-        return rPhiChiSquared < 5.305;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 399)
-    {
-        return rPhiChiSquared < 1574.076;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 3969)
-    {
-        return rPhiChiSquared < 133867.115;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 63)
-    {
-        return rPhiChiSquared < 7250.071;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 903)
-    {
-        return rPhiChiSquared < 12634.215;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 159)
-    {
-        return rPhiChiSquared < 3621.052;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 125)
-    {
-        return rPhiChiSquared < 4780.108;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 1925)
-    {
-        return rPhiChiSquared < 170.687;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 413)
-    {
-        return rPhiChiSquared < 684.253;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 909)
-    {
-        return rPhiChiSquared < 225.322;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 1923)
-    {
-        return rPhiChiSquared < 935179.568;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 189)
-    {
-        return rPhiChiSquared < 1370.011;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 1935)
-    {
-        return rPhiChiSquared < 0.872;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 447)
-    {
-        return true;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 3974)
-    {
-        return rPhiChiSquared < 0.002;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 2 and layer_binary == 446)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 3975)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 399)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 3969)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 63)
-    {
-        return rPhiChiSquared < 4.018;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 903)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 159)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 125)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 1925)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 413)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 909)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 1923)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 1 and layer_binary == 189)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 3975)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 399)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 3969)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 63)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 903)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 159)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 125)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 1925)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 413)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 909)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 1923)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 189)
-    {
-        return false;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 447)
-    {
-        return false;
-    }
-    return pass; //escape hatch
-
-}
-
-*/
-
 /*
    If one out of the two hits don't overlap - check if the module indices are identical (case of multiple reco hits)
    If both hits don't overlap - check the above, and check for staggered modules using the staggered module neighbours list
@@ -1494,10 +1453,112 @@ __device__ bool SDL::computeLayerAndHitOverlaps(SDL::modules& modulesInGPU, unsi
 
 
 /* r-z and r-phi chi squared computation*/
-__device__ float computeTERZChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int* anchorHitIndices, unsigned int* anchorLowerModuleIndices, unsigned int* outerHitIndices, unsigned int* outerLowerModuleIndices)
+__device__ float SDL::computeTERZChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int* anchorObjectAnchorHitIndices, unsigned int* anchorLowerModuleIndices, unsigned int* outerObjectAnchorHitIndices, unsigned int* outerLowerModuleIndices, short anchorObjectType)
 {
     //using the pixel hits to create the slope
-    
+    float slope = 0, intercept = 0, RMSE = 0;
+    if(anchorObjectType != 4)
+    {
+        //use the first two anchor object anchor hits (i.e., the pixel hits)
+        float& rtPix1 = hitsInGPU.rts[anchorObjectAnchorHitIndices[0]];
+        float& rtPix2 = hitsInGPU.rts[anchorObjectAnchorHitIndices[1]];
+
+        float& zPix1 = hitsInGPU.zs[anchorObjectAnchorHitIndices[0]];
+        float& zPix2 = hitsInGPU.zs[anchorObjectAnchorHitIndices[1]];
+
+        slope = (zPix2 - zPix1)/(rtPix2 - rtPix1);
+        intercept = zPix1 - slope * rtPix1;
+    }
+    else
+    {
+        /*only PS modules taken into consideration*/
+        float rts[5], zs[5];
+        int nPoints = 0;
+        for(size_t i =0; i < 5; i++)
+        {
+            if(modulesInGPU.moduleType[anchorLowerModuleIndices[i]] == SDL::PS)
+            {
+                rts[nPoints] = hitsInGPU.rts[anchorObjectAnchorHitIndices[i]];
+                zs[nPoints] = hitsInGPU.zs[anchorObjectAnchorHitIndices[i]];
+                nPoints++;
+            }
+        }
+        if(nPoints <= 1)
+        {
+            slope = 0;
+            intercept = 0;
+        }
+        else
+        {
+            fitStraightLine(nPoints, rts, zs, slope, intercept);
+        }
+    }
+    if(slope != 0 and intercept != 0)
+    {
+        float rtAnchor, zAnchor, residual, error, drdz;
+        for(size_t i = 0; i < 3; i++)
+        {
+            unsigned int& anchorHitIndex = outerObjectAnchorHitIndices[i];
+            unsigned int& lowerModuleIndex = outerLowerModuleIndices[i];
+            rtAnchor = hitsInGPU.rts[anchorHitIndex];
+            zAnchor = hitsInGPU.zs[anchorHitIndex];
+
+            //outerModuleAnchorHitIndices
+            const int moduleType = modulesInGPU.moduleType[lowerModuleIndex];
+            const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
+            const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
+            const int layer = modulesInGPU.layers[lowerModuleIndex] + 6 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex] == SDL::TwoS);
+        
+            residual = (layer <= 6) ?  zAnchor - (slope * rtAnchor + intercept) : rtAnchor - (zAnchor/slope + intercept/slope);
+        
+            //PS Modules
+            if(moduleType == 0)
+            {
+                error = 0.15;
+            }
+            else //2S modules
+            {
+                error = 5.0;
+            }
+
+            //special dispensation to tilted PS modules!
+            if(moduleType == 0 and layer <= 6 and moduleSide != Center)
+            {
+                if(moduleLayerType == Strip)
+                {
+                    drdz = modulesInGPU.drdzs[lowerModuleIndex];
+                }
+                else
+                {
+                    drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndex)];
+                }
+
+                error *= 1/sqrtf(1 + drdz * drdz);
+            }
+            RMSE += (residual * residual)/(error * error);
+        }
+        RMSE = sqrtf(0.33 * RMSE);
+    }
+    return RMSE;
+}
+
+__device__ void SDL::fitStraightLine(int nPoints, float* xs, float* ys, float& slope, float& intercept)
+{
+    float sigmaX2(0), sigmaXY(0), sigmaX(0), sigmaY(0), sigma1(0);
+    sigma1 = nPoints;
+
+    for(size_t i=0; i<nPoints; i++)
+    {
+        sigmaX2 += (xs[i] * xs[i]);
+        sigmaXY += (xs[i] * ys[i]);
+        sigmaX += xs[i];
+        sigmaY += ys[i];
+        sigma1 ++;
+    }
+
+    float denominator = sigma1 * sigmaX2 - sigmaX * sigmaX;
+    intercept = (sigmaX2 * sigmaY - sigmaX * sigmaXY) / denominator;
+    slope = (sigmaXY - sigmaX * sigmaY) / denominator;
 }
 
 __device__ float SDL::computeTERPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, float& g, float& f, float& radius, unsigned int* outerObjectAnchorHits, unsigned int* outerObjectLowerModuleIndices)
