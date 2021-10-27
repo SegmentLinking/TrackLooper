@@ -583,13 +583,17 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
 
 __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex, unsigned int nPixelSegments, unsigned int* seg_pix_gpu, unsigned int* seg_pix_gpu_offset, unsigned int totalSegs)
 {
-    unsigned int offsetIndex = blockIdx.x * blockDim.x + threadIdx.x;
-    if(offsetIndex >= totalSegs) return;
+    //unsigned int offsetIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    int blockxSize = blockDim.x*gridDim.x;
+    int blockySize = blockDim.y*gridDim.y;
+    for(int offsetIndex = blockIdx.x * blockDim.x + threadIdx.x; offsetIndex< totalSegs; offsetIndex += blockxSize){
+    //printf("offset %d %d %d %d\n",offsetIndex, blockxSize,blockIdx.x,gridDim.x);
+    if(offsetIndex >= totalSegs) continue;//return;
 
     int segmentModuleIndex = seg_pix_gpu_offset[offsetIndex];
     int pixelSegmentArrayIndex = seg_pix_gpu[offsetIndex];
-    if(pixelSegmentArrayIndex >= nPixelSegments) return;
-    if(segmentModuleIndex >= connectedPixelSize[pixelSegmentArrayIndex]) return;
+    if(pixelSegmentArrayIndex >= nPixelSegments) continue;//return;
+    if(segmentModuleIndex >= connectedPixelSize[pixelSegmentArrayIndex]) continue;//return;
 
     unsigned int quintupletLowerModuleIndex; //index of the module that connects to this pixel
     unsigned int tempIndex = connectedPixelIndex[pixelSegmentArrayIndex] + segmentModuleIndex; //gets module array index for segment
@@ -597,22 +601,24 @@ __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesI
     //these are actual module indices
     quintupletLowerModuleIndex = modulesInGPU.connectedPixels[tempIndex];
     unsigned int quintupletLowerModuleArrayIndex = modulesInGPU.reverseLookupLowerModuleIndices[quintupletLowerModuleIndex];
-    if(quintupletLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) return;
+    if(quintupletLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) continue;//return;
 
     unsigned int pixelModuleIndex = *modulesInGPU.nModules - 1;
     unsigned int nOuterQuintuplets = min(quintupletsInGPU.nQuintuplets[quintupletLowerModuleArrayIndex], N_MAX_QUINTUPLETS_PER_MODULE);
 
-    if(nOuterQuintuplets == 0) return;
+    if(nOuterQuintuplets == 0) continue;//return;
 
     //fetch the quintuplet
-    unsigned int outerQuintupletArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
-    if(outerQuintupletArrayIndex >= nOuterQuintuplets) return;
+//    unsigned int outerQuintupletArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
+    for(unsigned int outerQuintupletArrayIndex = blockIdx.y * blockDim.y + threadIdx.y; outerQuintupletArrayIndex< nOuterQuintuplets; outerQuintupletArrayIndex +=blockySize){
+//    printf("outerQuint %u %u\n",outerQuintupletArrayIndex,nOuterQuintuplets);
+    if(outerQuintupletArrayIndex >= nOuterQuintuplets) continue;//return;
     unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + pixelSegmentArrayIndex;
 
     unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[quintupletLowerModuleArrayIndex] + outerQuintupletArrayIndex;
 
-    if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) return;//skip duplicated pLS
-    if(quintupletsInGPU.isDup[quintupletIndex]) return; //skip duplicated T5s
+    if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) continue;//return;//skip duplicated pLS
+    if(quintupletsInGPU.isDup[quintupletIndex]) continue;//return; //skip duplicated T5s
 
     float rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards;
 
@@ -642,6 +648,8 @@ __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesI
 #endif
         }
     }
+}
+}
 }
 
 

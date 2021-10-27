@@ -1429,9 +1429,12 @@ void SDL::Event::createPixelQuintuplets()
 
     //less cheap method to estimate max_size for y axis
     max_size = *std::max_element(nQuintuplets, nQuintuplets + nLowerModules);
-    dim3 nThreads(16,16,1);
-    dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
-                  (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
+    //dim3 nThreads(16,16,1);
+    //dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
+    //              (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
+    dim3 nThreads(128,8,1);
+    dim3 nBlocks(20,1,1);
+                  
     createPixelQuintupletsInGPUFromMap<<<nBlocks, nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, connectedPixelSize_dev, connectedPixelIndex_dev, nInnerSegments, segs_pix_gpu, segs_pix_gpu_offset, totalSegs);
 
     cudaError_t cudaerr = cudaGetLastError();
