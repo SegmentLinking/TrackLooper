@@ -78,11 +78,12 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     segmentsInGPU.eta = segmentsInGPU.dPhis + nMemoryLocations * 6 + maxPixelSegments * 6;
     segmentsInGPU.phi = segmentsInGPU.dPhis + nMemoryLocations * 6 + maxPixelSegments * 7;
     
-#pragma omp parallel for default(shared)
-    for(size_t i = 0; i < nModules; i++)
-    {
-        segmentsInGPU.nSegments[i] = 0;
-    }
+//#pragma omp parallel for default(shared)
+//    for(size_t i = 0; i < nModules; i++)
+//    {
+//        segmentsInGPU.nSegments[i] = 0;
+//    }
+    cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
     cudaMemset(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool));
 
 }
@@ -727,10 +728,10 @@ __device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, s
 __device__ bool SDL::runSegmentDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, unsigned int& innerLowerModuleIndex, unsigned int& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex, float& zIn, float& zOut, float& rtIn, float& rtOut, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, float& dAlphaInnerMDSegment, float& dAlphaOuterMDSegment, float&
         dAlphaInnerMDOuterMD, float& zLo, float& zHi, float& rtLo, float& rtHi, float& sdCut, float& dAlphaInnerMDSegmentThreshold, float& dAlphaOuterMDSegmentThreshold, float& dAlphaInnerMDOuterMDThreshold, unsigned int& innerMiniDoubletAnchorHitIndex, unsigned int& outerMiniDoubletAnchorHitIndex)
 {
-    zLo = -999;
-    zHi = -999;
-    rtLo = -999;
-    rtHi = -999;
+    zLo = -999.f;
+    zHi = -999.f;
+    rtLo = -999.f;
+    rtHi = -999.f;
 
     bool pass = true;
 

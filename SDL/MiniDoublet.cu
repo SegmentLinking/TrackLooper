@@ -49,11 +49,12 @@ void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int m
     mdsInGPU.noShiftedDzs  = mdsInGPU.dphichanges + 6*nMemoryLocations;
     mdsInGPU.noShiftedDphis  = mdsInGPU.dphichanges + 7*nMemoryLocations;
     mdsInGPU.noShiftedDphiChanges  = mdsInGPU.dphichanges + 8*nMemoryLocations;
-#pragma omp parallel for default(shared)
-    for(size_t i = 0; i< nModules; i++)
-    {
-        mdsInGPU.nMDs[i] = 0;
-    }
+//#pragma omp parallel for default(shared)
+//    for(size_t i = 0; i< nModules; i++)
+//    {
+//        mdsInGPU.nMDs[i] = 0;
+//    }
+    cudaMemset(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int));
 }
 
 
@@ -185,7 +186,7 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInGP
     bool pass = true; 
     dz = zLower - zUpper;     
     dzCut = modulesInGPU.moduleType[lowerModuleIndex] == PS ? 2.f : 10.f;
-    drtCut = 0;
+    drtCut = 0.f;
     drt = hitsInGPU.rts[upperHitIndex] - hitsInGPU.rts[lowerHitIndex];
 
     const float sign = ((dz > 0) - (dz < 0)) * ((hitsInGPU.zs[lowerHitIndex] > 0) - (hitsInGPU.zs[lowerHitIndex] < 0));
@@ -201,7 +202,7 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInGP
         pass = false;
     }
 
-    miniCut = 0;
+    miniCut = 0.f;
 
     if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
     {
@@ -215,7 +216,7 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInGP
 
     // Cut #2: dphi difference
     // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3085
-    float xn = 0, yn = 0;// , zn = 0;
+    float xn = 0.f, yn = 0.f;// , zn = 0;
     float shiftedRt;
     if (modulesInGPU.sides[lowerModuleIndex] != Center) // If barrel and not center it is tilted
     {
@@ -338,7 +339,7 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGP
     }
 
     // The new scheme shifts strip hits to be "aligned" along the line of sight from interaction point to the pixel hit (if it is PS modules)
-    float xn = 0, yn = 0, zn = 0;
+    float xn = 0.f, yn = 0.f, zn = 0.f;
 
     float shiftedCoords[3];
     shiftStripHits(modulesInGPU, hitsInGPU, lowerModuleIndex, lowerHitIndex, upperHitIndex, shiftedCoords);
@@ -391,7 +392,7 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGP
         }
     }
 
-    miniCut = 0;
+    miniCut = 0.f;
     if(modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
     {
         miniCut = dPhiThreshold(hitsInGPU, modulesInGPU, lowerHitIndex, lowerModuleIndex,dPhi, dz);
@@ -424,8 +425,8 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGP
 __device__ bool SDL::runMiniDoubletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int lowerModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& drt, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float& dzCut, float& drtCut, float& miniCut)
 {
     bool pass;
-    dzCut = -999;
-    drtCut = -999;
+    dzCut = -999.f;
+    drtCut = -999.f;
    
     if(modulesInGPU.subdets[lowerModuleIndex] == Barrel)
     {
@@ -480,7 +481,7 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInGP
 
     // Cut #2: dphi difference
     // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3085
-    float xn = 0, yn = 0;// , zn = 0;
+    float xn = 0.f, yn = 0.f;// , zn = 0;
     float shiftedRt;
     if (modulesInGPU.sides[lowerModuleIndex] != Center) // If barrel and not center it is tilted
     {
@@ -800,9 +801,9 @@ __device__ inline float SDL::isTighterTiltedModules(struct modules& modulesInGPU
 
 __device__ float SDL::moduleGapSize(struct modules& modulesInGPU, unsigned int moduleIndex)
 {
-    float miniDeltaTilted[3] = {0.26, 0.26, 0.26};
-    float miniDeltaFlat[6] ={0.26, 0.16, 0.16, 0.18, 0.18, 0.18};
-    float miniDeltaLooseTilted[3] = {0.4,0.4,0.4};
+    float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
+    float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
+    float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
     float miniDeltaEndcap[5][15];
 
     for (size_t i = 0; i < 5; i++)
@@ -813,33 +814,33 @@ __device__ float SDL::moduleGapSize(struct modules& modulesInGPU, unsigned int m
             {
                 if (j < 10)
                 {
-                    miniDeltaEndcap[i][j] = 0.4;
+                    miniDeltaEndcap[i][j] = 0.4f;
                 }
                 else
                 {
-                    miniDeltaEndcap[i][j] = 0.18;
+                    miniDeltaEndcap[i][j] = 0.18f;
                 }
             }
             else if (i == 2 || i == 3)
             {
                 if (j < 8)
                 {
-                    miniDeltaEndcap[i][j] = 0.4;
+                    miniDeltaEndcap[i][j] = 0.4f;
                 }
                 else
                 {
-                    miniDeltaEndcap[i][j]  = 0.18;
+                    miniDeltaEndcap[i][j]  = 0.18f;
                 }
             }
             else
             {
                 if (j < 9)
                 {
-                    miniDeltaEndcap[i][j] = 0.4;
+                    miniDeltaEndcap[i][j] = 0.4f;
                 }
                 else
                 {
-                    miniDeltaEndcap[i][j] = 0.18;
+                    miniDeltaEndcap[i][j] = 0.18f;
                 }
             }
         }
@@ -957,7 +958,7 @@ __device__ void SDL::shiftStripHits(struct modules& modulesInGPU, struct hits& h
         drdz_ = modulesInGPU.drdzs[lowerModuleIndex];
         slope = modulesInGPU.slopes[lowerModuleIndex];
     }
-    angleB = ((isEndcap) ? M_PI / 2. : atan(drdz_)); // The tilt module on the postive z-axis has negative drdz slope in r-z plane and vice versa
+    angleB = ((isEndcap) ? float(M_PI) / 2.f : atanf(drdz_)); // The tilt module on the postive z-axis has negative drdz slope in r-z plane and vice versa
 
 
     moduleSeparation = moduleGapSize(modulesInGPU, lowerModuleIndex);
@@ -968,10 +969,10 @@ __device__ void SDL::shiftStripHits(struct modules& modulesInGPU, struct hits& h
         moduleSeparation *= -1;
     }
 
-    drprime = (moduleSeparation / std::sin(angleA + angleB)) * std::sin(angleA);
+    drprime = (moduleSeparation / sinf(angleA + angleB)) * sinf(angleA);
     
     // Compute arctan of the slope and take care of the slope = infinity case
-    absArctanSlope = ((slope != SDL_INF) ? fabs(atanf(slope)) : M_PI / 2); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
+    absArctanSlope = ((slope != SDL_INF) ? fabs(atanf(slope)) : float(M_PI) / 2.f); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
 
     // The pixel hit position
     xp = hitsInGPU.xs[pixelHitIndex];
@@ -984,20 +985,20 @@ __device__ void SDL::shiftStripHits(struct modules& modulesInGPU, struct hits& h
     }
     else if (xp > 0 and yp < 0)
     {
-        angleM = M_PI - absArctanSlope;
+        angleM = float(M_PI) - absArctanSlope;
     }
     else if (xp < 0 and yp < 0)
     {
-        angleM = M_PI + absArctanSlope;
+        angleM = float(M_PI) + absArctanSlope;
     }
     else // if (xp < 0 and yp > 0)
     {
-        angleM = 2 * M_PI - absArctanSlope;
+        angleM = 2.f * float(M_PI) - absArctanSlope;
     }
 
     // Then since the angleM sign is taken care of properly
-    drprime_x = drprime * std::sin(angleM);
-    drprime_y = drprime * std::cos(angleM);
+    drprime_x = drprime * sinf(angleM);
+    drprime_y = drprime * cosf(angleM);
 
     // The new anchor position is
     xa = xp + drprime_x;
@@ -1025,7 +1026,7 @@ __device__ void SDL::shiftStripHits(struct modules& modulesInGPU, struct hits& h
     }
 
     // Computing new Z position
-    absdzprime = fabsf(moduleSeparation / std::sin(angleA + angleB) * std::cos(angleA)); // module separation sign is for shifting in radial direction for z-axis direction take care of the sign later
+    absdzprime = fabsf(moduleSeparation / sinf(angleA + angleB) * cosf(angleA)); // module separation sign is for shifting in radial direction for z-axis direction take care of the sign later
 
     // Depending on which one as closer to the interactin point compute the new z wrt to the pixel properly
     if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
