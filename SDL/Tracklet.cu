@@ -306,7 +306,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
     float coshEta = dr3_InSeg/drt_InSeg;
     float dzErr = (zpitch_InLo + zpitch_OutLo) * (zpitch_InLo + zpitch_OutLo) * 2.f;
 
-    float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2 * (rt_OutLo - rt_InLo) / 50.f) * sqrtf(r3_InLo / rt_InLo);
+    float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2f * (rt_OutLo - rt_InLo) / 50.f) * sqrtf(r3_InLo / rt_InLo);
     float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f; // will need a better guess than x4?
     dzErr += sdlMuls * sdlMuls * drt_OutLo_InLo * drt_OutLo_InLo / 3.f * coshEta * coshEta; //sloppy
     dzErr = sqrtf(dzErr);
@@ -483,7 +483,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
     float pt_betaOut = drt_tl_axis * k2Rinv1GeVf / sinf(betaOut);
     float dBetaRes = 0.02f/fminf(sdOut_d,drt_InSeg);
     float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
-            + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
+            + 0.25f * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
 
     float dBeta = betaIn - betaOut;
     deltaBetaCut = sqrtf(dBetaCut2);    
@@ -569,7 +569,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
     const float zGeom1_another = pixelPSZpitch; //What's this?
     kZ = (z_OutLo - z_InLo) / dzSDIn;
     float drtErr = zGeom1_another * zGeom1_another * drtSDIn * drtSDIn / dzSDIn / dzSDIn * (1.f - 2.f * kZ + 2.f * kZ * kZ); //Notes:122316
-    const float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2 * (rt_OutLo - rt_InLo) / 50.f) * sqrtf(rIn / rt_InLo);
+    const float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2f * (rt_OutLo - rt_InLo) / 50.f) * sqrtf(rIn / rt_InLo);
     const float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f; //will need a better guess than x4?
     drtErr += sdlMuls * sdlMuls * multDzDr * multDzDr / 3.f * coshEta * coshEta; //sloppy: relative muls is 1/3 of total muls
     drtErr = sqrtf(drtErr);
@@ -823,7 +823,7 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
     float multDzDr = dzOutInAbs * coshEta / (coshEta * coshEta - 1.f);
 
     kZ = (z_OutLo - z_InLo) / dzSDIn;
-    float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2 * (rt_OutLo - rt_InLo) / 50.f);
+    float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2f * (rt_OutLo - rt_InLo) / 50.f);
 
     float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f; //will need a better guess than x4?
 
@@ -979,7 +979,7 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
     float pt_betaOut = dr * k2Rinv1GeVf / sinf(betaOut);
     float dBetaRes = 0.02f/fminf(sdOut_d,sdIn_d);
     float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
-            + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
+            + 0.25f * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
     float dBeta = betaIn - betaOut;
     //Cut #7: Cut on dBeta
     deltaBetaCut = sqrtf(dBetaCut2);
@@ -1018,7 +1018,7 @@ __device__ void SDL::runDeltaBetaIterations(float& betaIn, float& betaOut, float
         //update the av and pt
         betaAv = 0.5f * (betaIn + betaOut);
         //2nd update
-        pt_beta = dr * k2Rinv1GeVf / sin(betaAv); //get a better pt estimate
+        pt_beta = dr * k2Rinv1GeVf / sinf(betaAv); //get a better pt estimate
 
         //might need these for future iterations
 
