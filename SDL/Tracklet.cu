@@ -735,7 +735,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
     float pt_betaOut = dr * k2Rinv1GeVf / sinf(betaOut);
     float dBetaRes = 0.02f/fminf(sdOut_d,sdIn_d);
     float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
-            + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
+            + 0.25f * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
     float dBeta = betaIn - betaOut;
     deltaBetaCut = sqrtf(dBetaCut2);
     //Cut #7: Cut on dBet
@@ -1011,7 +1011,7 @@ __device__ void SDL::runDeltaBetaIterations(float& betaIn, float& betaOut, float
         betaAv = 0.5f * (betaInUpd + betaOutUpd);
 
         //1st update
-        pt_beta = dr * k2Rinv1GeVf / sin(betaAv); //get a better pt estimate
+        pt_beta = dr * k2Rinv1GeVf / sinf(betaAv); //get a better pt estimate
 
         betaIn  += copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
         betaOut += copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaOut); //FIXME: need a faster version
@@ -1048,9 +1048,9 @@ __device__ void SDL::runDeltaBetaIterations(float& betaIn, float& betaOut, float
     else if (lIn < 11 && fabsf(betaOut) < 0.2 * fabsf(betaIn) && fabsf(pt_beta) < 12.f * pt_betaMax)   //use betaIn sign as ref
     {
    
-        const float pt_betaIn = dr * k2Rinv1GeVf / sin(betaIn);
-        const float betaInUpd  = betaIn + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabs(pt_betaIn), sinAlphaMax)), betaIn); //FIXME: need a faster version
-        const float betaOutUpd = betaOut + copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabs(pt_betaIn), sinAlphaMax)), betaIn); //FIXME: need a faster version
+        const float pt_betaIn = dr * k2Rinv1GeVf / sinf(betaIn);
+        const float betaInUpd  = betaIn + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_betaIn), sinAlphaMax)), betaIn); //FIXME: need a faster version
+        const float betaOutUpd = betaOut + copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_betaIn), sinAlphaMax)), betaIn); //FIXME: need a faster version
         betaAv = (fabsf(betaOut) > 0.2f * fabsf(betaIn)) ? (0.5f * (betaInUpd + betaOutUpd)) : betaInUpd;
 
         //1st update
