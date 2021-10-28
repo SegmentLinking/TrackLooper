@@ -251,9 +251,9 @@ __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, S
         float phi2 = segmentsInGPU.phi[pLS_jx - prefix];
         float dEta = abs(eta1-eta2);
         float dPhi = abs(phi1-phi2);
-        if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
+        if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
         float dR2 = dEta*dEta + dPhi*dPhi;
-        if(dR2 < 1e-5) return;
+        if(dR2 < 1e-5f) return;
     }
 #endif
 
@@ -301,10 +301,10 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, st
             float phi2 = pixelQuintupletsInGPU.phi[jx];
             float dEta = abs(eta1-eta2);
             float dPhi = abs(phi1-phi2);
-            if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
+            if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
             float dR2 = dEta*dEta + dPhi*dPhi;
             //printf("dR2: %f\n",dR2);
-            if(dR2 < 1e-3) return;
+            if(dR2 < 1e-3f) return;
         }
         if(jx < *pixelTripletsInGPU.nPixelTriplets)
         {
@@ -312,9 +312,9 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, st
             float phi2 = pixelTripletsInGPU.phi[jx]; 
             float dEta = abs(eta1-eta2);
             float dPhi = abs(phi1-phi2);
-            if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
+            if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
             float dR2 = dEta*dEta + dPhi*dPhi;
-            if(dR2 < 1e-3) return;
+            if(dR2 < 1e-3f) return;
         }
     }
 #endif
@@ -362,9 +362,9 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
             float phi2 = quintupletsInGPU.phi[quintupletIndex];
             float dEta = abs(eta1-eta2);
             float dPhi = abs(phi1-phi2);
-            if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
+            if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
             float dR2 = dEta*dEta + dPhi*dPhi;
-            if(dR2 < 1e-3) return;
+            if(dR2 < 1e-3f) return;
         }
     }
 
@@ -384,9 +384,9 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
             float phi2 = segmentsInGPU.phi[pLS_jx - prefix];
             float dEta = abs(eta1-eta2);
             float dPhi = abs(phi1-phi2);
-            if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
+            if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
             float dR2 = dEta*dEta + dPhi*dPhi;
-            if(dR2 < 0.000001) return;
+            if(dR2 < 0.000001f) return;
             }
         }
         if(jx < *pixelTripletsInGPU.nPixelTriplets)
@@ -402,9 +402,9 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
             float phi2 = pixelTripletsInGPU.phi_pix[jx];
             float dEta = abs(eta1-eta2);
             float dPhi = abs(phi1-phi2);
-            if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
+            if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
             float dR2 = dEta*dEta + dPhi*dPhi;
-            if(dR2 < 0.000001) return;
+            if(dR2 < 0.000001f) return;
             }
         }
     }
@@ -735,11 +735,11 @@ __device__ void scoreT5(struct SDL::modules& modulesInGPU, struct SDL::hits& hit
         float err;
         if(modulesInGPU.moduleLayerType[hitsInGPU.moduleIndices[hits1[i]]]==0)
         {
-            err=0.15*cos(atan(drdz));//(1.5mm)^2
+            err=0.15f*cosf(atanf(drdz));//(1.5mm)^2
         }
         else
         {
-            err=5.0*cos(atan(drdz));
+            err=5.0f*cosf(atanf(drdz));
         }//(5cm)^2
         score += (var*var) / (err*err);
         score_lsq += (var_lsq*var_lsq) / (err*err);
@@ -835,15 +835,15 @@ __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, str
                     float dEta = fabsf(eta1-eta2);
                     float dPhi = fabsf(phi1-phi2);
 		    float score_rphisum2 = quintupletsInGPU.score_rphisum[jx];
-                    if (dEta > 0.1)
+                    if (dEta > 0.1f)
                     {
                         continue;
                     }
-                    if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
-                    if (abs(dPhi) > 0.1){continue;}
+                    if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
+                    if (abs(dPhi) > 0.1f){continue;}
                     float dR2 = dEta*dEta + dPhi*dPhi;
                     int nMatched = checkHitsT5(ix,jx,mdsInGPU,segmentsInGPU,tripletsInGPU,quintupletsInGPU);
-                    if(secondPass && (dR2 < 0.001 || nMatched >= 5))
+                    if(secondPass && (dR2 < 0.001f || nMatched >= 5))
                     {
                         if(score_rphisum1 > score_rphisum2 )
                         {
@@ -903,7 +903,7 @@ __device__ float scorepT3(struct SDL::modules& modulesInGPU,struct SDL::hits& hi
         float r = hitsInGPU.rts[hits1[i]]; // cm
         float subdet = modulesInGPU.subdets[hitsInGPU.moduleIndices[hits1[i]]];
         float drdz = modulesInGPU.drdzs[hitsInGPU.moduleIndices[hits1[i]]];
-        float var=0;
+        float var=0.f;
         if(subdet == 5)
         {// 5== barrel
             var = slope_barrel*(r-r1) - (z-z1);
@@ -915,11 +915,11 @@ __device__ float scorepT3(struct SDL::modules& modulesInGPU,struct SDL::hits& hi
         float err;
         if(modulesInGPU.moduleLayerType[hitsInGPU.moduleIndices[hits1[i]]]==0)
         {
-            err=0.15*cos(atan(drdz));//(1.5mm)^2
+            err=0.15f*cosf(atanf(drdz));//(1.5mm)^2
         }
         else
         {
-            err=5.0*cos(atan(drdz));
+            err=5.0f*cosf(atanf(drdz));
         }//(5cm)^2
         score += (var*var) / (err*err);
     }
@@ -1189,12 +1189,12 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU,struct SDL::miniD
               }
               float dEta = abs(eta_pix1-eta_pix2);
               float dPhi = abs(phi_pix1-phi_pix2);
-              if(dPhi > M_PI){dPhi = dPhi - 2*M_PI;}
+              if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
               //if(abs(dPhi) > 0.03){continue;}
               //if(abs(1./pt1 - 1./pt2) > 0.5){continue;}
               float dR2 = dEta*dEta + dPhi*dPhi;
               //if(dR2 <0.0003)
-              if(dR2 <0.00075)
+              if(dR2 <0.00075f)
               {
                   found=true;
                   break;
