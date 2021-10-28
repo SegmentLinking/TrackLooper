@@ -480,7 +480,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     bridgeRadius = computeRadiusFromThreeAnchorHits(x2, y2, x3, y3, x4, y4, g, f);
 
 
-    if(innerRadius < 0.95/(2 * k2Rinv1GeVf))
+    if(innerRadius < 0.95f/(2.f * k2Rinv1GeVf))
     {
         pass = false;
     }
@@ -538,7 +538,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     regressionRadius = computeRadiusUsingRegression(5,xVec, yVec, delta1, delta2, slopes, isFlat, regressionG, regressionF, sigmas, chiSquared);
 
     //extra chi squared cuts!
-    if(regressionRadius < 5.0/(2 * k2Rinv1GeVf))
+    if(regressionRadius < 5.0f/(2.f * k2Rinv1GeVf))
     {
         pass = pass & passChiSquaredConstraint(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, chiSquared);
     }
@@ -566,117 +566,117 @@ __device__ bool SDL::passChiSquaredConstraint(struct SDL::modules& modulesInGPU,
     {
         if(layer4 == 10 and layer5 == 11)
         {
-            return chiSquared < 0.01788;
+            return chiSquared < 0.01788f;
         }
         else if(layer4 == 10 and layer5 == 16)
         {
-            return chiSquared < 0.04725;
+            return chiSquared < 0.04725f;
         }
         else if(layer4 == 15 and layer5 == 16)
         {
-            return chiSquared < 0.04725;
+            return chiSquared < 0.04725f;
         }
     }
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
         if(layer4 == 9 and layer5 == 10)
         {       
-            return chiSquared < 0.01788;
+            return chiSquared < 0.01788f;
         }   
         else if(layer4 == 9 and layer5 == 15)
         {
-            return chiSquared < 0.08234;
+            return chiSquared < 0.08234f;
         }
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
         if(layer4 == 8 and layer5 == 9)
         {
-            return chiSquared < 0.02360;
+            return chiSquared < 0.02360f;
         }
         else if(layer4 == 8 and layer5 == 14)
         {
-            return chiSquared < 0.07167;
+            return chiSquared < 0.07167f;
         }
         else if(layer4 == 13 and layer5 == 14)
         {   
-            return chiSquared < 0.08234;
+            return chiSquared < 0.08234f;
         }
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
         if(layer4 == 7 and layer5 == 8)
         {
-            return chiSquared < 0.01026;
+            return chiSquared < 0.01026f;
         }
         else if(layer4 == 7 and layer5 == 13)
         {
-            return chiSquared < 0.06238;
+            return chiSquared < 0.06238f;
         }
         else if(layer4 == 12 and layer5 == 13)
         {
-            return chiSquared < 0.06238;
+            return chiSquared < 0.06238f;
         }
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4)
     {
         if(layer5 == 12)
         {
-            return chiSquared < 0.09461;
+            return chiSquared < 0.09461f;
         }
         else if(layer5 == 5)
         {
-            return chiSquared < 0.04725;
+            return chiSquared < 0.04725f;
         }
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
         if(layer4 == 9 and layer5 == 10)
         {
-            return chiSquared < 0.00512;
+            return chiSquared < 0.00512f;
         }
         if(layer4 == 9 and layer5 == 15)
         {
-            return chiSquared < 0.04112;
+            return chiSquared < 0.04112f;
         }
         else if(layer4 == 14 and layer5 == 15)
         {
-            return chiSquared < 0.06238;
+            return chiSquared < 0.06238f;
         }
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
         if(layer4 == 8 and layer5 == 14)
         {
-            return chiSquared < 0.07167;
+            return chiSquared < 0.07167f;
         }
         else if(layer4 == 13 and layer5 == 14)
         {
-            return chiSquared < 0.06238;
+            return chiSquared < 0.06238f;
         }
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
         if(layer4 == 12 and layer5 == 13)
         {
-            return chiSquared < 0.10870;
+            return chiSquared < 0.10870f;
         }
         else if(layer4 == 5 and layer5 == 12)
         {
-            return chiSquared < 0.10870;
+            return chiSquared < 0.10870f;
         }
         else if(layer4 == 5 and layer5 == 6)
         {
-            return chiSquared < 0.08234;
+            return chiSquared < 0.08234f;
         }
     }
     else if(layer1 == 3 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
     {
-        return chiSquared < 0.09461;
+        return chiSquared < 0.09461f;
     }
     else if(layer1 == 3 and layer2 == 4 and layer3 == 5 and layer4 == 12 and layer5 == 13)
     {
-        return chiSquared < 0.09461;
+        return chiSquared < 0.09461f;
     }
 
     return true;
@@ -1311,7 +1311,7 @@ __device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float
         }
         else if(xs[i] > 0 and ys[i] < 0)
         {
-            angleM = -(0.5f*(M_PI) - absArctanSlope);
+            angleM = -(0.5f*float(M_PI) - absArctanSlope);
         }
 
         if(not isFlat[i])
