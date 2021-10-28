@@ -184,7 +184,7 @@ __device__ float SDL::computeRadiusFromThreeAnchorHitspT3(float x1, float y1, fl
     }
     */
 
-    float denomInv = 1.0/((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3));
+    float denomInv = 1.f/((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3));
 
     float xy1sqr = x1 * x1 + y1 * y1;
 
@@ -192,9 +192,9 @@ __device__ float SDL::computeRadiusFromThreeAnchorHitspT3(float x1, float y1, fl
 
     float xy3sqr = x3 * x3 + y3 * y3;
 
-    g = 0.5 * ((y3 - y2) * xy1sqr + (y1 - y3) * xy2sqr + (y2 - y1) * xy3sqr) * denomInv;
+    g = 0.5f * ((y3 - y2) * xy1sqr + (y1 - y3) * xy2sqr + (y2 - y1) * xy3sqr) * denomInv;
 
-    f = 0.5 * ((x2 - x3) * xy1sqr + (x3 - x1) * xy2sqr + (x1 - x2) * xy3sqr) * denomInv;
+    f = 0.5f * ((x2 - x3) * xy1sqr + (x3 - x1) * xy2sqr + (x1 - x2) * xy3sqr) * denomInv;
 
     float c = ((x2 * y3 - x3 * y2) * xy1sqr + (x3 * y1 - x1 * y3) * xy2sqr + (x1 * y2 - x2 * y1) * xy3sqr) * denomInv;
 
@@ -246,8 +246,8 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     unsigned int pixelAnchorHitIndex2 = mdsInGPU.hitIndices[2 * pixelOuterMDIndex];
     unsigned int pixelNonAnchorHitIndex2 = mdsInGPU.hitIndices[2 * pixelOuterMDIndex + 1];
 
-    pixelRadius = pixelSegmentPt/(2 * k2Rinv1GeVf);
-    pixelRadiusError = pixelSegmentPtError/(2 * k2Rinv1GeVf);
+    pixelRadius = pixelSegmentPt/(2.f * k2Rinv1GeVf);
+    pixelRadiusError = pixelSegmentPtError/(2.f * k2Rinv1GeVf);
     unsigned int tripletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * tripletIndex];
     unsigned int tripletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * tripletIndex + 1];
 
@@ -278,7 +278,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
 
     rPhiChiSquaredInwards = computePT3RPhiChiSquaredInwards(modulesInGPU, hitsInGPU, tripletRadius, g, f, pixelAnchorHits);
 
-    if(runChiSquaredCuts and pixelSegmentPt < 5.0)
+    if(runChiSquaredCuts and pixelSegmentPt < 5.0f)
     {
         pass = pass & passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
         pass = pass & passPT3RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquared);
@@ -299,51 +299,51 @@ __device__ bool SDL::passPT3RPhiChiSquaredInwardsCuts(struct modules& modulesInG
     
     if(layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
-        return chiSquared < 22016.8055;
+        return chiSquared < 22016.8055f;
     }
     else if(layer1 == 7 and layer2 == 8 and layer3 == 14)
     {
-        return chiSquared < 935179.56807;
+        return chiSquared < 935179.56807f;
     }
     else if(layer1 == 8 and layer2 == 9 and layer3 == 10)
     {
-        return chiSquared < 29064.12959;
+        return chiSquared < 29064.12959f;
     }
     else if(layer1 == 8 and layer2 == 9 and layer3 == 15)
     {
-        return chiSquared < 935179.5681;
+        return chiSquared < 935179.5681f;
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-        return chiSquared < 1370.0113195101474;
+        return chiSquared < 1370.0113195101474f;
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
-        return chiSquared < 5492.110048314815;
+        return chiSquared < 5492.110048314815f;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
-        return chiSquared < 4160.410806470067;
+        return chiSquared < 4160.410806470067f;
     }
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
-        return chiSquared < 29064.129591225726;
+        return chiSquared < 29064.129591225726f;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
-        return chiSquared < 12634.215376250893;
+        return chiSquared < 12634.215376250893f;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 12)
     {
-        return chiSquared < 353821.69361145404;
+        return chiSquared < 353821.69361145404f;
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
-        return chiSquared < 33393.26076341235;
+        return chiSquared < 33393.26076341235f;
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 13)
     {
-        return chiSquared < 935179.5680742573;
+        return chiSquared < 935179.5680742573f;
     }
 
     return true;
@@ -360,7 +360,8 @@ __device__ float SDL::computePT3RPhiChiSquaredInwards(struct modules& modulesInG
         float residual = (x - g) * (x -g) + (y - f) * (y - f) - r * r;
         chiSquared += residual * residual;
     }
-    chiSquared /= 2;
+    //chiSquared /= 2;
+    chiSquared *= 0.5f;
     return chiSquared;
 }
 
@@ -372,56 +373,56 @@ __device__ bool SDL::passPT3RZChiSquaredCuts(struct modules& modulesInGPU, unsig
 
     if(layer1 == 8 and layer2 == 9 and layer3 == 10)
     {
-        return rzChiSquared < 85.2499;
+        return rzChiSquared < 85.2499f;
     }
     else if(layer1 == 8 and layer2 == 9 and layer3 == 15)
     {
-        return rzChiSquared < 85.2499;
+        return rzChiSquared < 85.2499f;
     }
 
     else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
-        return rzChiSquared < 74.19805;
+        return rzChiSquared < 74.19805f;
     }
     else if(layer1 == 7 and layer2 == 8 and layer3 == 14)
     {
-        return rzChiSquared < 97.9479;
+        return rzChiSquared < 97.9479f;
     }
 
     else if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-        return rzChiSquared < 451.1407;;
+        return rzChiSquared < 451.1407f;
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
-        return rzChiSquared < 595.546;
+        return rzChiSquared < 595.546f;
     }
 
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
-        return rzChiSquared < 518.339;
+        return rzChiSquared < 518.339f;
     }
 
     else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
-        return rzChiSquared < 684.253;
+        return rzChiSquared < 684.253f;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 12)
     {
-        return rzChiSquared < 684.253;
+        return rzChiSquared < 684.253f;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
-        return rzChiSquared  < 392.654;
+        return rzChiSquared  < 392.654f;
     }
 
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
-        return rzChiSquared < 518.339;
+        return rzChiSquared < 518.339f;
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 13)
     {
-        return rzChiSquared < 518.339;
+        return rzChiSquared < 518.339f;
     }
 
     //default - category not found!
@@ -458,11 +459,11 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, struc
         //PS Modules
         if(moduleType == 0)
         {
-            error = 0.15;
+            error = 0.15f;
         }
         else //2S modules
         {
-            error = 5.0;
+            error = 5.0f;
         }
 
         //special dispensation to tilted PS modules!
@@ -477,12 +478,12 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, struc
                 drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndex)];
             }
 
-            error *= 1/sqrtf(1 + drdz * drdz);
+            error /= sqrtf(1 + drdz * drdz);
         }
         RMSE += (residual * residual)/(error * error);
     }
 
-    RMSE = sqrtf(0.2 * RMSE); //the constant doesn't really matter....
+    RMSE = sqrtf(0.2f * RMSE); //the constant doesn't really matter....
     return RMSE;
 }
 
@@ -501,9 +502,9 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, str
     short moduleSubdet, moduleSide;
     ModuleLayerType moduleLayerType;
     float drdz;
-    float inv1 = 0.01/0.009;
-    float inv2 = 0.15/0.009;
-    float inv3 = 2.4/0.009;
+    float inv1 = 0.01f/0.009f;
+    float inv2 = 0.15f/0.009f;
+    float inv3 = 2.4f/0.009f;
     for(size_t i = 0; i < 3; i++)
     {
         xs[i] = hitsInGPU.xs[anchorHits[i]];
@@ -610,8 +611,8 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, str
     // this for loop is kept to keep the physics results the same but I think this is a bug in the original code. This was kept at 5 and not nPoints
     for(size_t i = 3; i < 5; i++)
     {
-        delta1[i] /= 0.009;
-        delta2[i] /= 0.009;
+        delta1[i] /= 0.009f;
+        delta2[i] /= 0.009f;
     }
     chiSquared = computeChiSquared(3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius);
     
@@ -629,54 +630,54 @@ __device__ bool SDL::passPT3RPhiChiSquaredCuts(struct modules& modulesInGPU, uns
 
     if(layer1 == 8 and layer2 == 9 and layer3 == 10)
     {
-        return chiSquared < 7.003;
+        return chiSquared < 7.003f;
     }
     else if(layer1 == 8 and layer2 == 9 and layer3 == 15)
     {
-        return chiSquared < 0.5;
+        return chiSquared < 0.5f;
     }
 
     else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
-        return chiSquared < 8.046;
+        return chiSquared < 8.046f;
     }
     else if(layer1 == 7 and layer2 == 8 and layer3 == 14)
     {
-        return chiSquared < 0.575;
+        return chiSquared < 0.575f;
     }
 
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
-        return chiSquared < 5.304;
+        return chiSquared < 5.304f;
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-        return chiSquared < 10.6211;
+        return chiSquared < 10.6211f;
     }
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
-        return chiSquared < 4.617;
+        return chiSquared < 4.617f;
     }
 
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
-        return chiSquared < 8.046;
+        return chiSquared < 8.046f;
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 13)
     {
-        return chiSquared < 0.435;
+        return chiSquared < 0.435f;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
-        return chiSquared < 9.244;
+        return chiSquared < 9.244f;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 12)
     {
-        return chiSquared < 0.287;
+        return chiSquared < 0.287f;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
-        return chiSquared < 18.509;
+        return chiSquared < 18.509f;
     }
 
     return true;
@@ -708,13 +709,13 @@ __device__ bool SDL::passRadiusCriterion(struct modules& modulesInGPU, float& pi
 /*bounds for high Pt taken from : http://uaf-10.t2.ucsd.edu/~bsathian/SDL/T5_efficiency/efficiencies/new_efficiencies/efficiencies_20210513_T5_recovering_high_Pt_efficiencies/highE_radius_matching/highE_bounds.txt */
 __device__ bool SDL::passRadiusCriterionBBB(float& pixelRadius, float& pixelRadiusError, float& tripletRadius)
 {
-    float tripletInvRadiusErrorBound = 0.15624;
-    float pixelInvRadiusErrorBound = 0.17235;
+    float tripletInvRadiusErrorBound = 0.15624f;
+    float pixelInvRadiusErrorBound = 0.17235f;
 
-    if(pixelRadius > 2.0/(2 * k2Rinv1GeVf))
+    if(pixelRadius > 2.0f/(2.f * k2Rinv1GeVf))
     {
-        pixelInvRadiusErrorBound = 0.6375;
-        tripletInvRadiusErrorBound = 0.6588;
+        pixelInvRadiusErrorBound = 0.6375f;
+        tripletInvRadiusErrorBound = 0.6588f;
     }
 
     float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
@@ -728,13 +729,13 @@ __device__ bool SDL::passRadiusCriterionBBB(float& pixelRadius, float& pixelRadi
 
 __device__ bool SDL::passRadiusCriterionBBE(float& pixelRadius, float& pixelRadiusError, float& tripletRadius)
 {
-    float tripletInvRadiusErrorBound = 0.45972;
-    float pixelInvRadiusErrorBound = 0.19644;
+    float tripletInvRadiusErrorBound = 0.45972f;
+    float pixelInvRadiusErrorBound = 0.19644f;
 
-    if(pixelRadius > 2.0/(2 * k2Rinv1GeVf))
+    if(pixelRadius > 2.0f/(2 * k2Rinv1GeVf))
     {
-        pixelInvRadiusErrorBound = 0.6805;
-        tripletInvRadiusErrorBound = 0.8557;
+        pixelInvRadiusErrorBound = 0.6805f;
+        tripletInvRadiusErrorBound = 0.8557f;
     }
 
     float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
@@ -749,13 +750,13 @@ __device__ bool SDL::passRadiusCriterionBBE(float& pixelRadius, float& pixelRadi
 
 __device__ bool SDL::passRadiusCriterionBEE(float& pixelRadius, float& pixelRadiusError, float& tripletRadius)
 {
-    float tripletInvRadiusErrorBound = 1.59294;
-    float pixelInvRadiusErrorBound = 0.255181;
+    float tripletInvRadiusErrorBound = 1.59294f;
+    float pixelInvRadiusErrorBound = 0.255181f;
 
-    if(pixelRadius > 2.0/(2 * k2Rinv1GeVf)) //as good as not having selections
+    if(pixelRadius > 2.0f/(2 * k2Rinv1GeVf)) //as good as not having selections
     {
-        pixelInvRadiusErrorBound = 2.2091;
-        tripletInvRadiusErrorBound = 2.3548;
+        pixelInvRadiusErrorBound = 2.2091f;
+        tripletInvRadiusErrorBound = 2.3548f;
     }
 
     float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
@@ -771,13 +772,13 @@ __device__ bool SDL::passRadiusCriterionBEE(float& pixelRadius, float& pixelRadi
 
 __device__ bool SDL::passRadiusCriterionEEE(float& pixelRadius, float& pixelRadiusError, float& tripletRadius)
 {
-    float tripletInvRadiusErrorBound = 1.7006;
-    float pixelInvRadiusErrorBound = 0.26367;
+    float tripletInvRadiusErrorBound = 1.7006f;
+    float pixelInvRadiusErrorBound = 0.26367f;
 
-    if(pixelRadius > 2.0/(2 * k2Rinv1GeVf)) //as good as not having selections
+    if(pixelRadius > 2.0f/(2 * k2Rinv1GeVf)) //as good as not having selections
     {
-        pixelInvRadiusErrorBound = 2.286;
-        tripletInvRadiusErrorBound = 2.436;
+        pixelInvRadiusErrorBound = 2.286f;
+        tripletInvRadiusErrorBound = 2.436f;
     }
 
     float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
