@@ -1,4 +1,5 @@
 # include "PixelTriplet.cuh"
+# include "PixelTracklet.cuh"
 #include "allocate.h"
 
 SDL::pixelTriplets::pixelTriplets()
@@ -19,6 +20,30 @@ SDL::pixelTriplets::pixelTriplets()
 #endif
 }
 
+void SDL::pixelTriplets::freeMemoryCache()
+{
+#ifdef Explicit_PT3
+    int dev;
+    cudaGetDevice(&dev);
+    cms::cuda::free_device(dev,pixelSegmentIndices);
+    cms::cuda::free_device(dev,tripletIndices);
+    cms::cuda::free_device(dev,nPixelTriplets);
+    cms::cuda::free_device(dev,pixelRadius);
+    cms::cuda::free_device(dev,tripletRadius);
+    cms::cuda::free_device(dev,pt);
+    cms::cuda::free_device(dev,isDup);
+    cms::cuda::free_device(dev,partOfPT5);
+#else
+    cms::cuda::free_managed(pixelSegmentIndices);
+    cms::cuda::free_managed(tripletIndices);
+    cms::cuda::free_managed(nPixelTriplets);
+    cms::cuda::free_managed(pixelRadius);
+    cms::cuda::free_managed(tripletRadius);
+    cms::cuda::free_managed(pt);
+    cms::cuda::free_managed(isDup);
+    cms::cuda::free_managed(partOfPT5);
+#endif
+}
 void SDL::pixelTriplets::freeMemory()
 {
     cudaFree(pixelSegmentIndices);
@@ -43,8 +68,20 @@ SDL::pixelTriplets::~pixelTriplets()
 
 void SDL::createPixelTripletsInUnifiedMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int maxPixelTriplets)
 {
-    cudaMallocManaged(&pixelTripletsInGPU.pixelSegmentIndices, maxPixelTriplets * sizeof(float));
-    cudaMallocManaged(&pixelTripletsInGPU.tripletIndices, maxPixelTriplets * sizeof(float));
+#ifdef CACHE_ALLOC
+    cudaStream_t stream=0;
+    pixelTripletsInGPU.pixelSegmentIndices =(unsigned int*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(unsigned int),stream);
+    pixelTripletsInGPU.tripletIndices      =(unsigned int*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(unsigned int),stream);
+    pixelTripletsInGPU.nPixelTriplets      =(unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
+    pixelTripletsInGPU.pixelRadius         =(float*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(float),stream);
+    pixelTripletsInGPU.tripletRadius       =(float*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(float),stream);
+    pixelTripletsInGPU.pt                  =(float*)cms::cuda::allocate_managed(maxPixelTriplets * 6*sizeof(float),stream);
+    pixelTripletsInGPU.isDup               =(bool*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(bool),stream);
+    pixelTripletsInGPU.partOfPT5           =(bool*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(bool),stream);
+
+#else
+    cudaMallocManaged(&pixelTripletsInGPU.pixelSegmentIndices, maxPixelTriplets * sizeof(unsigned int));
+    cudaMallocManaged(&pixelTripletsInGPU.tripletIndices, maxPixelTriplets * sizeof(unsigned int));
     cudaMallocManaged(&pixelTripletsInGPU.nPixelTriplets, sizeof(unsigned int));
     cudaMallocManaged(&pixelTripletsInGPU.pixelRadius, maxPixelTriplets * sizeof(float));
     cudaMallocManaged(&pixelTripletsInGPU.tripletRadius, maxPixelTriplets * sizeof(float));
@@ -57,6 +94,7 @@ void SDL::createPixelTripletsInUnifiedMemory(struct pixelTriplets& pixelTriplets
     cudaMallocManaged(&pixelTripletsInGPU.rPhiChiSquaredInwards, maxPixelTriplets * sizeof(float));
     cudaMallocManaged(&pixelTripletsInGPU.rzChiSquared, maxPixelTriplets * sizeof(float));
 #endif
+#endif
     pixelTripletsInGPU.eta = pixelTripletsInGPU.pt + maxPixelTriplets;
     pixelTripletsInGPU.phi = pixelTripletsInGPU.pt + maxPixelTriplets * 2;
     pixelTripletsInGPU.eta_pix = pixelTripletsInGPU.pt + maxPixelTriplets *3;
@@ -67,14 +105,29 @@ void SDL::createPixelTripletsInUnifiedMemory(struct pixelTriplets& pixelTriplets
 
 void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int maxPixelTriplets)
 {
-    cudaMalloc(&pixelTripletsInGPU.pixelSegmentIndices, maxPixelTriplets * sizeof(float));
-    cudaMalloc(&pixelTripletsInGPU.tripletIndices, maxPixelTriplets * sizeof(float));
+#ifdef CACHE_ALLOC
+    cudaStream_t stream=0;
+    int dev;
+    cudaGetDevice(&dev);
+    pixelTripletsInGPU.pixelSegmentIndices =(unsigned int*)cms::cuda::allocate_device(dev,maxPixelTriplets * sizeof(unsigned int),stream);
+    pixelTripletsInGPU.tripletIndices      =(unsigned int*)cms::cuda::allocate_device(dev,maxPixelTriplets * sizeof(unsigned int),stream);
+    pixelTripletsInGPU.nPixelTriplets      =(unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
+    pixelTripletsInGPU.pixelRadius         =(float*)cms::cuda::allocate_device(dev,maxPixelTriplets * sizeof(float),stream);
+    pixelTripletsInGPU.tripletRadius       =(float*)cms::cuda::allocate_device(dev,maxPixelTriplets * sizeof(float),stream);
+    pixelTripletsInGPU.pt                  =(float*)cms::cuda::allocate_device(dev,maxPixelTriplets * 6*sizeof(float),stream);
+    pixelTripletsInGPU.isDup               =(bool*)cms::cuda::allocate_device(dev,maxPixelTriplets * sizeof(bool),stream);
+    pixelTripletsInGPU.partOfPT5           =(bool*)cms::cuda::allocate_device(dev,maxPixelTriplets * sizeof(bool),stream);
+
+#else
+    cudaMalloc(&pixelTripletsInGPU.pixelSegmentIndices, maxPixelTriplets * sizeof(unsigned int));
+    cudaMalloc(&pixelTripletsInGPU.tripletIndices, maxPixelTriplets * sizeof(unsigned int));
     cudaMalloc(&pixelTripletsInGPU.nPixelTriplets, sizeof(unsigned int));
     cudaMalloc(&pixelTripletsInGPU.pixelRadius, maxPixelTriplets * sizeof(float));
     cudaMalloc(&pixelTripletsInGPU.tripletRadius, maxPixelTriplets * sizeof(float));
     cudaMalloc(&pixelTripletsInGPU.pt, maxPixelTriplets * 6*sizeof(float));
     cudaMalloc(&pixelTripletsInGPU.isDup, maxPixelTriplets * sizeof(bool));
     cudaMalloc(&pixelTripletsInGPU.partOfPT5, maxPixelTriplets * sizeof(bool));
+#endif
 
     pixelTripletsInGPU.eta = pixelTripletsInGPU.pt + maxPixelTriplets;
     pixelTripletsInGPU.phi = pixelTripletsInGPU.pt + maxPixelTriplets * 2;
@@ -115,6 +168,47 @@ __device__ void SDL::rmPixelTripletToMemory(struct pixelTriplets& pixelTripletsI
     pixelTripletsInGPU.isDup[pixelTripletIndex] = 1;
 }
 
+__device__ float SDL::computeRadiusFromThreeAnchorHitspT3(float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f)
+{
+    float radius = 0;
+
+    //writing manual code for computing radius, which obviously sucks
+    //TODO:Use fancy inbuilt libraries like cuBLAS or cuSOLVE for this!
+    //(g,f) -> center
+    //first anchor hit - (x1,y1), second anchor hit - (x2,y2), third anchor hit - (x3, y3)
+
+    /*
+    if((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3) == 0)
+    {
+        return -1; //WTF man three collinear points!
+    }
+    */
+
+    float denomInv = 1.0/((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3));
+
+    float xy1sqr = x1 * x1 + y1 * y1;
+
+    float xy2sqr = x2 * x2 + y2 * y2;
+
+    float xy3sqr = x3 * x3 + y3 * y3;
+
+    g = 0.5 * ((y3 - y2) * xy1sqr + (y1 - y3) * xy2sqr + (y2 - y1) * xy3sqr) * denomInv;
+
+    f = 0.5 * ((x2 - x3) * xy1sqr + (x3 - x1) * xy2sqr + (x1 - x2) * xy3sqr) * denomInv;
+
+    float c = ((x2 * y3 - x3 * y2) * xy1sqr + (x3 * y1 - x1 * y3) * xy2sqr + (x1 * y2 - x2 * y1) * xy3sqr) * denomInv;
+
+    if(((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3) == 0) || (g * g + f * f - c < 0))
+    {
+        printf("three collinear points or FATAL! r^2 < 0!\n");
+  radius = -1;
+    }
+    else
+      radius = sqrtf(g * g  + f * f - c);
+
+    return radius;
+}
+
 __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& pixelSegmentIndex, unsigned int tripletIndex, float& pixelRadius, float& pixelRadiusError, float& tripletRadius, float& rzChiSquared, float& rPhiChiSquared, float& rPhiChiSquaredInwards, bool runChiSquaredCuts)
 {
     bool pass = true;
@@ -134,10 +228,10 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
 
 
     // pixel segment vs inner segment of the triplet
-    pass = pass & runPixelTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, pixelModuleIndex, lowerModuleIndex, middleModuleIndex, pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
+    pass = pass & runPixelTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, pixelModuleIndex, lowerModuleIndex, middleModuleIndex, pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, 600/*N_MAX_SEGMENTS_PER_MODULE*/);
 
     //pixel segment vs outer segment of triplet
-    pass = pass & runPixelTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, pixelModuleIndex, middleModuleIndex, upperModuleIndex, pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
+    pass = pass & runPixelTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, pixelModuleIndex, middleModuleIndex, upperModuleIndex, pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, 600/*N_MAX_SEGMENTS_PER_MODULE*/);
 
     //pt matching between the pixel ptin and the triplet circle pt
     unsigned int pixelSegmentArrayIndex = pixelSegmentIndex - (pixelModuleIndex * 600);
@@ -170,7 +264,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     float y3 = hitsInGPU.ys[outerMDAnchorHitIndex];
     float g,f;
     
-    tripletRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3,g,f);
+    tripletRadius = computeRadiusFromThreeAnchorHitspT3(x1, y1, x2, y2, x3, y3,g,f);
     
     pass = pass & passRadiusCriterion(modulesInGPU, pixelRadius, pixelRadiusError, tripletRadius, lowerModuleIndex, middleModuleIndex, upperModuleIndex);
 
@@ -403,13 +497,122 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, str
     float xs[3];
     float ys[3];
     float chiSquared = 0;
+    ModuleType moduleType;
+    short moduleSubdet, moduleSide;
+    ModuleLayerType moduleLayerType;
+    float drdz;
+    float inv1 = 0.01/0.009;
+    float inv2 = 0.15/0.009;
+    float inv3 = 2.4/0.009;
     for(size_t i = 0; i < 3; i++)
     {
         xs[i] = hitsInGPU.xs[anchorHits[i]];
         ys[i] = hitsInGPU.ys[anchorHits[i]];
-    }
+    //}
 
-    computeSigmasForRegression(modulesInGPU, lowerModuleIndices, delta1, delta2, slopes, isFlat, 3);
+    ////computeSigmasForRegression(modulesInGPU, lowerModuleIndices, delta1, delta2, slopes, isFlat, 3);
+    //for(size_t i=0; i<3; i++)
+    //{
+        moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
+        moduleSubdet = modulesInGPU.subdets[lowerModuleIndices[i]];
+        moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
+        moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndices[i]];
+        //category 1 - barrel PS flat
+        if(moduleSubdet == Barrel and moduleType == PS and moduleSide == Center)
+        {
+            delta1[i] = inv1;//1.1111f;//0.01;
+            delta2[i] = inv1;//1.1111f;//0.01;
+            slopes[i] = -999;
+            isFlat[i] = true;
+        }
+
+        //category 2 - barrel 2S
+        else if(moduleSubdet == Barrel and moduleType == TwoS)
+        {
+            delta1[i] = 1;//0.009;
+            delta2[i] = 1;//0.009;
+            slopes[i] = -999;
+            isFlat[i] = true;
+        }
+
+        //category 3 - barrel PS tilted
+        else if(moduleSubdet == Barrel and moduleType == PS and moduleSide != Center)
+        {
+
+            //get drdz
+            if(moduleLayerType == Strip)
+            {
+                drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
+                slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
+            }
+            else
+            {
+                drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
+                slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
+            }
+
+            delta1[i] = inv1;//1.1111f;//0.01;
+            isFlat[i] = false;
+
+            if(anchorHits)
+            {
+                //delta2[i] = (0.15f * drdz/sqrtf(1 + drdz * drdz));
+                delta2[i] = (inv2 * drdz/sqrtf(1 + drdz * drdz));
+            }
+            else
+            {
+                //delta2[i] = (2.4f * drdz/sqrtf(1 + drdz * drdz));
+                delta2[i] = (inv3 * drdz/sqrtf(1 + drdz * drdz));
+            }
+        }
+
+        //category 4 - endcap PS
+        else if(moduleSubdet == Endcap and moduleType == PS)
+        {
+            delta1[i] = inv1;//1.1111f;//0.01;
+            if(moduleLayerType == Strip)
+            {
+                slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
+            }
+            else
+            {
+                slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
+
+            }
+            isFlat[i] = false;
+
+            /*despite the type of the module layer of the lower module index,
+            all anchor hits are on the pixel side and all non-anchor hits are
+            on the strip side!*/
+            if(anchorHits)
+            {
+                delta2[i] = inv2;//16.6666f;//0.15f;
+            }
+            else
+            {
+                delta2[i] = inv3;//266.666f;//2.4f;
+            }
+        }
+
+        //category 5 - endcap 2S
+        else if(moduleSubdet == Endcap and moduleType == TwoS)
+        {
+            delta1[i] = 1;//0.009;
+            delta2[i] = 500*inv1;//555.5555f;//5.f;
+            slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
+            isFlat[i] = false;
+        }
+        else
+        {
+            printf("ERROR!!!!! I SHOULDN'T BE HERE!!!! subdet = %d, type = %d, side = %d\n", moduleSubdet, moduleType, moduleSide);
+        }
+    }
+    // this for loop is kept to keep the physics results the same but I think this is a bug in the original code. This was kept at 5 and not nPoints
+    for(size_t i = 3; i < 5; i++)
+    {
+        delta1[i] /= 0.009;
+        delta2[i] /= 0.009;
+    }
     chiSquared = computeChiSquared(3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius);
     
     return chiSquared;
@@ -587,3 +790,4 @@ __device__ bool SDL::passRadiusCriterionEEE(float& pixelRadius, float& pixelRadi
     return checkIntervalOverlap(tripletRadiusInvMin, tripletRadiusInvMax, pixelRadiusInvMin, pixelRadiusInvMax);
 
 }
+

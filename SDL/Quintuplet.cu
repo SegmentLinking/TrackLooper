@@ -299,7 +299,7 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsI
     //quintupletsInGPU.score_rzlsq[quintupletIndex] = scores[3];
     quintupletsInGPU.score_rphisum[quintupletIndex] = scores;
     quintupletsInGPU.layer[quintupletIndex] = layer;
-    quintupletsInGPU.isDup[quintupletIndex] = 0;
+    quintupletsInGPU.isDup[quintupletIndex] = false;
     quintupletsInGPU.regressionG[quintupletIndex] = regressionG;
     quintupletsInGPU.regressionF[quintupletIndex] = regressionF;
 
@@ -324,7 +324,7 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsI
 }
 __device__ void SDL::rmQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU,unsigned int quintupletIndex)
 {
-    quintupletsInGPU.isDup[quintupletIndex] = 1;
+    quintupletsInGPU.isDup[quintupletIndex] = true;
 
 }
 
@@ -347,11 +347,11 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     //apply T4 criteria between segments 1 and 3
     float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta; //temp stuff
     float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ;
-    if(not runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, segmentsInGPU.innerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.outerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.innerLowerModuleIndices[thirdSegmentIndex], segmentsInGPU.outerLowerModuleIndices[thirdSegmentIndex], firstSegmentIndex, thirdSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ))
+    if(not runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, segmentsInGPU.innerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.outerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.innerLowerModuleIndices[thirdSegmentIndex], segmentsInGPU.outerLowerModuleIndices[thirdSegmentIndex], firstSegmentIndex, thirdSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ,600))
     {
         pass = false;
     }
-    if(not runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, segmentsInGPU.innerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.outerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.innerLowerModuleIndices[fourthSegmentIndex], segmentsInGPU.outerLowerModuleIndices[fourthSegmentIndex], firstSegmentIndex, fourthSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ))
+    if(not runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, segmentsInGPU.innerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.outerLowerModuleIndices[firstSegmentIndex], segmentsInGPU.innerLowerModuleIndices[fourthSegmentIndex], segmentsInGPU.outerLowerModuleIndices[fourthSegmentIndex], firstSegmentIndex, fourthSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ,600))
     {
         pass = false;
     }
@@ -1154,6 +1154,9 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
     short moduleSubdet, moduleSide;
     ModuleLayerType moduleLayerType;
     float drdz;
+    float inv1 = 0.01/0.009;
+    float inv2 = 0.15/0.009;
+    float inv3 = 2.4/0.009;
     for(size_t i=0; i<nPoints; i++)
     {
         moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
@@ -1161,19 +1164,23 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
         moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
         moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndices[i]];
         //category 1 - barrel PS flat
-        if(moduleSubdet == Barrel and moduleType == PS and moduleSide == Center)        
+        if(moduleSubdet == Barrel and moduleType == PS and moduleSide == Center)
         {
-            delta1[i] = 0.01; 
-            delta2[i] = 0.01;
-            slopes[i] = -999;             
+            //delta1[i] = 0.01;
+            //delta2[i] = 0.01;
+            delta1[i] = inv1;//1.1111f;//0.01;
+            delta2[i] = inv1;//1.1111f;//0.01;
+            slopes[i] = -999;
             isFlat[i] = true;
         }
 
         //category 2 - barrel 2S
         else if(moduleSubdet == Barrel and moduleType == TwoS)
         {
-            delta1[i] = 0.009;
-            delta2[i] = 0.009;
+            //delta1[i] = 0.009;
+            //delta2[i] = 0.009;
+            delta1[i] = 1;//0.009;
+            delta2[i] = 1;//0.009;
             slopes[i] = -999;
             isFlat[i] = true;
         }
@@ -1194,25 +1201,30 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
                 slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
             }
 
-            delta1[i] = 0.01;
+            //delta1[i] = 0.01;
+            delta1[i] = inv1;//1.1111f;//0.01;
             isFlat[i] = false;
 
             if(anchorHits)
             {
-                delta2[i] = (0.15f * drdz/sqrtf(1 + drdz * drdz));
+                //delta2[i] = (0.15f * drdz/sqrtf(1 + drdz * drdz));
+                delta2[i] = (inv2 * drdz/sqrtf(1 + drdz * drdz));
+                //delta2[i] = (inv2 * drdz*rsqrt(1 + drdz * drdz));
             }
             else
             {
-                delta2[i] = (2.4f * drdz/sqrtf(1 + drdz * drdz));
+                //delta2[i] = (2.4f * drdz/sqrtf(1 + drdz * drdz));
+                delta2[i] = (inv3 * drdz/sqrtf(1 + drdz * drdz));
+                //delta2[i] = (inv3 * drdz*rsqrt(1 + drdz * drdz));
             }
         }
-
         //category 4 - endcap PS
         else if(moduleSubdet == Endcap and moduleType == PS)
         {
-            delta1[i] = 0.01;
+            delta1[i] = inv1;//1.1111f;//0.01;
+            //delta1[i] = 0.01;
             if(moduleLayerType == Strip)
-            {                
+            {
                 slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
             }
             else
@@ -1227,19 +1239,23 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
             on the strip side!*/
             if(anchorHits)
             {
-                delta2[i] = 0.15f;
+                delta2[i] = inv2;//16.6666f;//0.15f;
+                //delta2[i] = 0.15f;
             }
             else
             {
-                delta2[i] = 2.4f;
+                //delta2[i] = 2.4f;
+                delta2[i] = inv3;//266.666f;//2.4f;
             }
         }
 
         //category 5 - endcap 2S
         else if(moduleSubdet == Endcap and moduleType == TwoS)
         {
-            delta1[i] = 0.009;
-            delta2[i] = 5.f;
+            //delta1[i] = 0.009;
+            //delta2[i] = 5.f;
+            delta1[i] = 1;//0.009;
+            delta2[i] = 500*inv1;//555.5555f;//5.f;
             slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
             isFlat[i] = false;
         }
@@ -1249,11 +1265,11 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
         }
     }
     //divide everyone by the smallest possible values of delta1 and delta2
-    for(size_t i = 0; i < 5; i++)
-    {
-        delta1[i] /= 0.009;
-        delta2[i] /= 0.009;
-    }
+//    for(size_t i = 0; i < 5; i++)
+//    {
+//        delta1[i] /= 0.009;
+//        delta2[i] /= 0.009;
+//    }
 }
 
 __device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float* ys, float* delta1, float* delta2, float* slopes, bool* isFlat, float& g, float& f, float* sigmas, float& chiSquared)

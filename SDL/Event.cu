@@ -61,18 +61,18 @@ SDL::Event::~Event()
     tripletsInGPU->freeMemoryCache();
     trackCandidatesInGPU->freeMemoryCache();
     hitsInGPU->freeMemoryCache();
-#ifdef FINAL_T5
     quintupletsInGPU->freeMemoryCache();
-#endif
+    pixelQuintupletsInGPU->freeMemoryCache();
+    pixelTripletsInGPU->freeMemoryCache();
 #else
     hitsInGPU->freeMemory();
     mdsInGPU->freeMemory();
     segmentsInGPU->freeMemory();
     tripletsInGPU->freeMemory();
     trackCandidatesInGPU->freeMemory();
-#ifdef FINAL_T5
     quintupletsInGPU->freeMemory();
-#endif
+    pixelQuintupletsInGPU->freeMemory();
+    pixelTripletsInGPU->freeMemory();
 #endif
     cudaFreeHost(mdsInGPU);
     cudaFreeHost(segmentsInGPU);
@@ -80,9 +80,7 @@ SDL::Event::~Event()
     cudaFreeHost(trackCandidatesInGPU);
     cudaFreeHost(hitsInGPU);
 
-    pixelTripletsInGPU->freeMemory();
     cudaFreeHost(pixelTripletsInGPU);
-    pixelQuintupletsInGPU->freeMemory();
     cudaFreeHost(pixelQuintupletsInGPU);
 
 #ifdef FINAL_T5

@@ -8,7 +8,8 @@ void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCand
 #ifdef CACHE_ALLOC
     cudaStream_t stream=0;
     trackCandidatesInGPU.trackCandidateType = (short*)cms::cuda::allocate_managed(maxTrackCandidates * sizeof(short),stream);
-    cudaMallocManaged(&trackCandidatesInGPU.objectIndices, 2 * maxTrackCandidates * sizeof(unsigned int));
+//    cudaMallocManaged(&trackCandidatesInGPU.objectIndices, 2 * maxTrackCandidates * sizeof(unsigned int));
+    trackCandidatesInGPU.objectIndices = (unsigned int*)cms::cuda::allocate_managed(maxTrackCandidates * 2*sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidates= (unsigned int*)cms::cuda::allocate_managed( sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatespT3= (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatesT5= (unsigned int*)cms::cuda::allocate_managed( sizeof(unsigned int),stream);
@@ -39,14 +40,16 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     int dev;
     cudaGetDevice(&dev);
     //TODO 
-    cudaMalloc(&trackCandidatesInGPU.trackCandidateType, maxTrackCandidates * sizeof(short));
-    cudaMalloc(&trackCandidatesInGPU.objectIndices, 2 * maxTrackCandidates * sizeof(unsigned int));
+    //cudaMalloc(&trackCandidatesInGPU.trackCandidateType, maxTrackCandidates * sizeof(short));
+    //cudaMalloc(&trackCandidatesInGPU.objectIndices, 2 * maxTrackCandidates * sizeof(unsigned int));
+    trackCandidatesInGPU.trackCandidateType = (short*)cms::cuda::allocate_device(dev,maxTrackCandidates * sizeof(short),stream);
+    trackCandidatesInGPU.objectIndices = (unsigned int*)cms::cuda::allocate_device(dev,maxTrackCandidates * 2*sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidates= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatespT3= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatesT5= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatespT5= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatespLS= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
-    trackCandidatesInGPU.partOfExtension = (bool*)cms::cuda::allocate_device(dev, maxTrackCandidates * sizeof(bool), stream);
+    //trackCandidatesInGPU.partOfExtension = (bool*)cms::cuda::allocate_device(dev, maxTrackCandidates * sizeof(bool), stream);
 
 #else
     cudaMalloc(&trackCandidatesInGPU.trackCandidateType, maxTrackCandidates * sizeof(short));
@@ -92,7 +95,9 @@ void SDL::trackCandidates::freeMemoryCache()
     int dev;
     cudaGetDevice(&dev);
     //FIXME
-    cudaFree(trackCandidateType);
+    //cudaFree(trackCandidateType);
+    cms::cuda::free_device(dev,objectIndices);
+    cms::cuda::free_device(dev,trackCandidateType);
     cms::cuda::free_device(dev,nTrackCandidates);
     cms::cuda::free_device(dev,nTrackCandidatespT3);
     cms::cuda::free_device(dev,nTrackCandidatesT5);
@@ -101,6 +106,7 @@ void SDL::trackCandidates::freeMemoryCache()
 
     cms::cuda::free_device(dev,nTrackCandidatespLS);
 #else
+    cms::cuda::free_managed(objectIndices);
     cms::cuda::free_managed(trackCandidateType);
     cms::cuda::free_managed(nTrackCandidates);
     cms::cuda::free_managed(nTrackCandidatespT3);
@@ -108,7 +114,7 @@ void SDL::trackCandidates::freeMemoryCache()
     cms::cuda::free_managed(nTrackCandidatespT5);
     cms::cuda::free_managed(nTrackCandidatespLS);
 #endif
-    cudaFree(objectIndices);
+//    cudaFree(objectIndices);
 
 }
 void SDL::trackCandidates::freeMemory()
