@@ -1163,9 +1163,12 @@ void SDL::Event::createPixelTriplets()
 
     //less cheap method to estimate max_size for y axis
     max_size = *std::max_element(nTriplets, nTriplets + nLowerModules);
-    dim3 nThreads(16,16,1);
-    dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
-                  (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
+    //dim3 nThreads(16,16,1);
+    //dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
+    //              (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
+    //printf("%d %d\n",totalSegs,max_size);
+    dim3 nThreads(64,16,1);
+    dim3 nBlocks(80,1,1);
     createPixelTripletsInGPUFromMap<<<nBlocks, nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset, totalSegs);
 
     cudaError_t cudaerr = cudaGetLastError();
