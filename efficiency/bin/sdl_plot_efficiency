@@ -23,6 +23,7 @@ usage()
   echo "  -i    input eff ntuple       (e.g. -i /path/to/my/eff_ntuple.root (this is the output from sdl binary))"
   echo "  -p    pt boundaries          (Pt bin boundary settings see below for more detail)"
   echo "  -g    pdgid for denom tracks (e.g. -g 13 for muon or -g 0 for all charged particle)"
+  echo "-n Number of events (Default : all events)"
   echo ""
   echo " Use pt boundaries like as follow:"
   echo " -p 0 : pt across 0 to 50 GeV"
@@ -35,12 +36,13 @@ usage()
 }
 
 # Parsing command-line opts
-while getopts ":i:p:g:fh" OPTION; do
+while getopts ":i:p:g:n:fh" OPTION; do
   case $OPTION in
     i) INPUTFILE=${OPTARG};;
     p) PTBOUND=${OPTARG};;
     g) PDGID=${OPTARG};;
     f) FORCE=true;;
+    n) NEVTS=${OPTARG};; 
     h) usage;;
     :) usage;;
   esac
@@ -51,7 +53,7 @@ if [ -z ${INPUTFILE} ]; then usage; fi
 if [ -z ${PTBOUND}  ]; then usage; fi
 if [ -z ${PDGID} ]; then usage; fi
 if [ -z ${FORCE} ]; then FORCE=false; fi
-
+if [ -z ${NEVTS} ]; then NEVTS=-1;fi 
 # Shift away the parsed options
 shift $(($OPTIND - 1))
 
@@ -63,6 +65,7 @@ echo ""
 echo "  INPUTFILE         : ${INPUTFILE}"
 echo "  PTBOUND           : ${PTBOUND}"
 echo "  PDGID             : ${PDGID}"
+echo "  NEVTS             : ${NEVTS}"
 echo "  FORCE             : ${FORCE}"
 echo ""
 
@@ -194,7 +197,7 @@ if [ ! -f $DIR/../bin/createEffNumDenPlots ]; then
 fi
 
 for i in $(seq 0 $((NJOBS-1))); do
-    echo "$DIR/../bin/createEffNumDenPlots -i ${INPUTFILE} -p ${PTBOUND} -g ${PDGID} -t tree -o outputs/output_${i}.root -j ${NJOBS} -I ${i} > outputs/output_${i}.log 2>&1" >> .jobs.txt
+    echo "$DIR/../bin/createEffNumDenPlots -i ${INPUTFILE} -p ${PTBOUND} -g ${PDGID} -n ${NEVTS} -t tree -o outputs/output_${i}.root -j ${NJOBS} -I ${i} > outputs/output_${i}.log 2>&1" >> .jobs.txt
     #echo "gdb --args $DIR/../bin/createEffNumDenPlots -i ${INPUTFILE} -p ${PTBOUND} -g ${PDGID} -t tree -o outputs/output_${i}.root -j ${NJOBS} -I ${i} > outputs/output_${i}.log 2>&1" >> .jobs.txt
 done
 

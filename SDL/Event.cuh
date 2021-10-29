@@ -140,7 +140,9 @@ namespace SDL
 
         unsigned int getNumberOfPixelTriplets();
         unsigned int getNumberOfPixelQuintuplets();
+
         unsigned int getNumberOfExtendedTracks();
+        unsigned int getNumberOfT3T3ExtendedTracks();
 
         hits* getHits();
         miniDoublets* getMiniDoublets();

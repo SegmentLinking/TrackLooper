@@ -1345,7 +1345,6 @@ void fillTrackExtensionOutputBranches(SDL::Event& event)
         else
         {
             nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i] > N_MAX_T3T3_TRACK_EXTENSIONS ? N_MAX_T3T3_TRACK_EXTENSIONS : (trackExtensionsInGPU.nTrackExtensions)[i]; 
-            cout<<"nTrackExtensions = "<<nTrackExtensions<<endl;
         }
         for(size_t j = 0; j < nTrackExtensions; j++)
         {

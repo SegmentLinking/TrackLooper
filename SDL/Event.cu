@@ -1867,17 +1867,27 @@ unsigned int SDL::Event::getNumberOfExtendedTracks()
     unsigned int nTrackCandidates;
     cudaMemcpy(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
-    unsigned int *nTrackExtensionsCPU = new unsigned int[nTrackCandidates];
-    cudaMemcpy(nTrackExtensionsCPU, trackExtensionsInGPU->nTrackExtensions, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    unsigned int *nTrackExtensionsCPU = new unsigned int[nTrackCandidates+1];
+    cudaMemcpy(nTrackExtensionsCPU, trackExtensionsInGPU->nTrackExtensions, (nTrackCandidates + 1)* sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
     unsigned int nTrackExtensions = 0;
-    for(size_t it = 0; it < nTrackCandidates; it++)    
+    for(size_t it = 0; it <= nTrackCandidates; it++)    
     {
         nTrackExtensions += nTrackExtensionsCPU[it];
 
     }
     delete[] nTrackExtensionsCPU;
     return nTrackExtensions;
+}
+
+unsigned int SDL::Event::getNumberOfT3T3ExtendedTracks()
+{
+    unsigned int nTrackCandidates;
+    cudaMemcpy(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+    unsigned int nT3T3Extensions;
+    cudaMemcpy(&nT3T3Extensions, trackExtensionsInGPU->nTrackExtensions + nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    return nT3T3Extensions;
 }
 
 unsigned int SDL::Event::getNumberOfPixelQuintuplets()
