@@ -766,8 +766,10 @@ void SDL::Event::createMiniDoublets()
         }
     }
     #endif
-    dim3 nThreads(1,128);
-    dim3 nBlocks((nLowerModules % nThreads.x == 0 ? nLowerModules/nThreads.x : nLowerModules/nThreads.x + 1), (maxThreadsPerModule % nThreads.y == 0 ? maxThreadsPerModule/nThreads.y : maxThreadsPerModule/nThreads.y + 1));
+    //dim3 nThreads(1,128);
+    //dim3 nBlocks((nLowerModules % nThreads.x == 0 ? nLowerModules/nThreads.x : nLowerModules/nThreads.x + 1), (maxThreadsPerModule % nThreads.y == 0 ? maxThreadsPerModule/nThreads.y : maxThreadsPerModule/nThreads.y + 1));
+    dim3 nThreads(32,32,1);
+    dim3 nBlocks(1,20,1);
 
     createMiniDoubletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU,*hitsInGPU,*mdsInGPU);
 
@@ -864,11 +866,13 @@ void SDL::Event::createSegmentsWithModuleMap()
         sq_max_nMDs = sq_max_nMDs > limit_local ? sq_max_nMDs : limit_local;
     }
   #endif
-    dim3 nThreads(256,1,1);
-    dim3 nBlocks((sq_max_nMDs%nThreads.x==0 ? sq_max_nMDs/nThreads.x : sq_max_nMDs/nThreads.x + 1), (max_cModules%nThreads.y==0 ? max_cModules/nThreads.y : max_cModules/nThreads.y + 1), (nLowerModules%nThreads.z==0 ? nLowerModules/nThreads.z : nLowerModules/nThreads.z + 1));
-    free(nMDs);
+    //dim3 nThreads(256,1,1);
+    //dim3 nBlocks((sq_max_nMDs%nThreads.x==0 ? sq_max_nMDs/nThreads.x : sq_max_nMDs/nThreads.x + 1), (max_cModules%nThreads.y==0 ? max_cModules/nThreads.y : max_cModules/nThreads.y + 1), (nLowerModules%nThreads.z==0 ? nLowerModules/nThreads.z : nLowerModules/nThreads.z + 1));
+    dim3 nThreads(32,32,1);
+    dim3 nBlocks(1,1,20);
 
     createSegmentsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU);
+    free(nMDs);
 
     cudaError_t cudaerr = cudaGetLastError();
     if(cudaerr != cudaSuccess)
@@ -952,9 +956,11 @@ void SDL::Event::createTriplets()
     cudaMemcpy(index_gpu, index, nonZeroModules*sizeof(unsigned int), cudaMemcpyHostToDevice);
     int max_OuterSeg = 0;
     max_OuterSeg = N_MAX_SEGMENTS_PER_MODULE;
-    dim3 nThreads(16,16,1);
-    dim3 nBlocks((max_OuterSeg % nThreads.x == 0 ? max_OuterSeg / nThreads.x : max_OuterSeg / nThreads.x + 1),(max_InnerSeg % nThreads.y == 0 ? max_InnerSeg/nThreads.y : max_InnerSeg/nThreads.y + 1), (nonZeroModules % nThreads.z == 0 ? nonZeroModules/nThreads.z : nonZeroModules/nThreads.z + 1));
-    createTripletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, index_gpu);
+    //dim3 nThreads(16,16,1);
+    //dim3 nBlocks((max_OuterSeg % nThreads.x == 0 ? max_OuterSeg / nThreads.x : max_OuterSeg / nThreads.x + 1),(max_InnerSeg % nThreads.y == 0 ? max_InnerSeg/nThreads.y : max_InnerSeg/nThreads.y + 1), (nonZeroModules % nThreads.z == 0 ? nonZeroModules/nThreads.z : nonZeroModules/nThreads.z + 1));
+    dim3 nThreads(16,64,1);
+    dim3 nBlocks(1,1,20);
+    createTripletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, index_gpu,nonZeroModules);
     cudaError_t cudaerr =cudaGetLastError();
     if(cudaerr != cudaSuccess)
     {
@@ -1006,8 +1012,8 @@ void SDL::Event::createTrackCandidates()
 //#endif
 #ifdef FINAL_pT3
     printf("running final state pT3\n");
-    unsigned int nThreadsx = 1;
-    unsigned int nBlocksx = (N_MAX_PIXEL_TRIPLETS) % nThreadsx == 0 ? N_MAX_PIXEL_TRIPLETS / nThreadsx : N_MAX_PIXEL_TRIPLETS / nThreadsx + 1;
+    unsigned int nThreadsx = 1024;
+    unsigned int nBlocksx = 1;//(N_MAX_PIXEL_TRIPLETS) % nThreadsx == 0 ? N_MAX_PIXEL_TRIPLETS / nThreadsx : N_MAX_PIXEL_TRIPLETS / nThreadsx + 1;
     addpT3asTrackCandidateInGPU<<<nBlocksx, nThreadsx>>>(*modulesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
     cudaError_t cudaerr_pT3 = cudaGetLastError();
     if(cudaerr_pT3 != cudaSuccess)
@@ -1018,10 +1024,12 @@ void SDL::Event::createTrackCandidates()
 
 #ifdef FINAL_T5
     printf("running final state T5\n");
-    dim3 nThreads(32,16,1);
-    dim3 nBlocks(((nLowerModules-1) % nThreads.x == 0 ? (nLowerModules-1)/nThreads.x : (nLowerModules-1)/nThreads.x + 1),((N_MAX_QUINTUPLETS_PER_MODULE-1) % nThreads.y == 0 ? (N_MAX_QUINTUPLETS_PER_MODULE-1)/nThreads.y : (N_MAX_QUINTUPLETS_PER_MODULE-1)/nThreads.y + 1),1);
-    dim3 dupThreads(32,32,1);
-    dim3 dupBlocks(16,16,1);
+    //dim3 nThreads(32,16,1);
+    //dim3 nBlocks(((nLowerModules-1) % nThreads.x == 0 ? (nLowerModules-1)/nThreads.x : (nLowerModules-1)/nThreads.x + 1),((N_MAX_QUINTUPLETS_PER_MODULE-1) % nThreads.y == 0 ? (N_MAX_QUINTUPLETS_PER_MODULE-1)/nThreads.y : (N_MAX_QUINTUPLETS_PER_MODULE-1)/nThreads.y + 1),1);
+    dim3 dupThreads(64,16,1);
+    dim3 dupBlocks(1,20,1);
+    dim3 nThreads(32,32,1);
+    dim3 nBlocks(1,20,1);
     removeDupQuintupletsInGPU<<<dupBlocks,dupThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU,true);
     cudaDeviceSynchronize();
     addT5asTrackCandidateInGPU<<<nBlocks,nThreads>>>(*modulesInGPU,*quintupletsInGPU,*trackCandidatesInGPU,*pixelQuintupletsInGPU,*pixelTripletsInGPU);
@@ -1036,7 +1044,7 @@ void SDL::Event::createTrackCandidates()
     printf("Adding pLSs to TC collection\n");
 #ifdef DUP_pLS
     printf("cleaning pixels\n");
-    checkHitspLS<<<64,1024>>>(*modulesInGPU,*mdsInGPU, *segmentsInGPU, *hitsInGPU, true);
+    checkHitspLS<<<20,1024>>>(*modulesInGPU,*mdsInGPU, *segmentsInGPU, *hitsInGPU, true);
     cudaError_t cudaerrpix = cudaGetLastError();
     if(cudaerrpix != cudaSuccess)
     {
@@ -1044,8 +1052,8 @@ void SDL::Event::createTrackCandidates()
 
     }cudaDeviceSynchronize();
 #endif  
-    unsigned int nThreadsx_pLS = 1;
-    unsigned int nBlocksx_pLS = (20000) % nThreadsx_pLS == 0 ? 20000 / nThreadsx_pLS : 20000 / nThreadsx_pLS + 1;
+    unsigned int nThreadsx_pLS = 1024;
+    unsigned int nBlocksx_pLS = 20;//(20000) % nThreadsx_pLS == 0 ? 20000 / nThreadsx_pLS : 20000 / nThreadsx_pLS + 1;
     addpLSasTrackCandidateInGPU<<<nBlocksx, nThreadsx>>>(*modulesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU,*mdsInGPU,*hitsInGPU,*quintupletsInGPU);
     cudaError_t cudaerr_pLS = cudaGetLastError();
     if(cudaerr_pLS != cudaSuccess)
@@ -1167,8 +1175,8 @@ void SDL::Event::createPixelTriplets()
     //dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
     //              (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
     //printf("%d %d\n",totalSegs,max_size);
-    dim3 nThreads(64,16,1);
-    dim3 nBlocks(80,1,1);
+    dim3 nThreads(16,64,1);
+    dim3 nBlocks(1,20,1);
     createPixelTripletsInGPUFromMap<<<nBlocks, nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset, totalSegs);
 
     cudaError_t cudaerr = cudaGetLastError();
@@ -1196,7 +1204,7 @@ void SDL::Event::createPixelTriplets()
 #ifdef DUP_pT3
     printf("run dup pT3\n");
     dim3 nThreads_dup(1024,1,1);
-    dim3 nBlocks_dup(64,1,1);
+    dim3 nBlocks_dup(20,1,1);
     removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU,false);
 #endif
 
@@ -1261,17 +1269,20 @@ void SDL::Event::createQuintuplets()
     cudaMemcpy(threadIdx_gpu, threadIdx, threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
     cudaMemcpy(threadIdx_gpu_offset, threadIdx_offset, threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice);
 
-    dim3 nThreads(16, 16, 1);
-    int max_outerTriplets = N_MAX_TRIPLETS_PER_MODULE;
+    dim3 nThreads(32, 32, 1);
+    dim3 nBlocks(1,20,1);
 
-    int mp;
-    cudaDeviceGetAttribute(&mp, cudaDevAttrMultiProcessorCount, 0);
-    int m = (nTotalTriplets + nThreads.y*mp - 1)/(nThreads.y*mp);
-    int mPerThread=16;
-    m = (m + mPerThread -1)/mPerThread;
-    int nblocksY = mp*m;
-    printf("cuda multiprocessor #:%d mPerThreads=%d nBlocksY=%d\n", mp, mPerThread, nblocksY);
-    dim3 nBlocks((max_outerTriplets % nThreads.x == 0 ? max_outerTriplets/nThreads.x : max_outerTriplets/nThreads.x + 1), nblocksY, 1);
+//    dim3 nThreads(16, 16, 1);
+//    int max_outerTriplets = N_MAX_TRIPLETS_PER_MODULE;
+//
+//    int mp;
+//    cudaDeviceGetAttribute(&mp, cudaDevAttrMultiProcessorCount, 0);
+//    int m = (nTotalTriplets + nThreads.y*mp - 1)/(nThreads.y*mp);
+//    int mPerThread=16;
+//    m = (m + mPerThread -1)/mPerThread;
+//    int nblocksY = mp*m;
+//    printf("cuda multiprocessor #:%d mPerThreads=%d nBlocksY=%d\n", mp, mPerThread, nblocksY);
+//    dim3 nBlocks((max_outerTriplets % nThreads.x == 0 ? max_outerTriplets/nThreads.x : max_outerTriplets/nThreads.x + 1), nblocksY, 1);
 
     createQuintupletsInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, threadIdx_gpu, threadIdx_gpu_offset, nTotalTriplets);
     cudaError_t cudaerr = cudaGetLastError();
@@ -1286,8 +1297,8 @@ void SDL::Event::createQuintuplets()
     free(indicesOfEligibleModules);
 
 #ifdef DUP_T5
-    dim3 dupThreads(32,32,1);
-    dim3 dupBlocks(16,16,1);
+    dim3 dupThreads(64,16,1);
+    dim3 dupBlocks(1,20,1);
     removeDupQuintupletsInGPU<<<dupBlocks,dupThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU,false);
     cudaDeviceSynchronize();
 #endif
@@ -1305,7 +1316,7 @@ void SDL::Event::pixelLineSegmentCleaning()
 {
 #ifdef DUP_pLS
     printf("cleaning pixels\n");
-    checkHitspLS<<<64,1024>>>(*modulesInGPU,*mdsInGPU, *segmentsInGPU, *hitsInGPU, false);
+    checkHitspLS<<<20,1024>>>(*modulesInGPU,*mdsInGPU, *segmentsInGPU, *hitsInGPU, false);
     cudaError_t cudaerrpix = cudaGetLastError();
     if(cudaerrpix != cudaSuccess)
     {
@@ -1435,8 +1446,8 @@ void SDL::Event::createPixelQuintuplets()
     //dim3 nThreads(16,16,1);
     //dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
     //              (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
-    dim3 nThreads(128,8,1);
-    dim3 nBlocks(20,1,1);
+    dim3 nThreads(16,64,1);
+    dim3 nBlocks(1,20,1);
                   
     createPixelQuintupletsInGPUFromMap<<<nBlocks, nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, connectedPixelSize_dev, connectedPixelIndex_dev, nInnerSegments, segs_pix_gpu, segs_pix_gpu_offset, totalSegs);
 
@@ -1459,7 +1470,7 @@ void SDL::Event::createPixelQuintuplets()
     unsigned int nPixelQuintuplets;
     cudaMemcpy(&nPixelQuintuplets, &(pixelQuintupletsInGPU->nPixelQuintuplets), sizeof(unsigned int), cudaMemcpyDeviceToHost);
     dim3 nThreads_dup(1024,1,1);
-    dim3 nBlocks_dup(64,1,1);
+    dim3 nBlocks_dup(20,1,1);
 #ifdef DUP_pT5
     printf("run dup pT5\n");
     removeDupPixelQuintupletsInGPUFromMap<<<nBlocks_dup,nThreads_dup>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU, *pixelQuintupletsInGPU, *quintupletsInGPU,false);
@@ -1471,8 +1482,8 @@ void SDL::Event::createPixelQuintuplets()
 #endif
 #ifdef FINAL_pT5
     printf("Adding pT5s to TC collection\n");
-    unsigned int nThreadsx_pT5 = 1;
-    unsigned int nBlocksx_pT5 = (N_MAX_PIXEL_QUINTUPLETS) % nThreadsx_pT5 == 0 ? N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 : N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 + 1;
+    unsigned int nThreadsx_pT5 = 256;
+    unsigned int nBlocksx_pT5 = 1;//(N_MAX_PIXEL_QUINTUPLETS) % nThreadsx_pT5 == 0 ? N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 : N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 + 1;
     addpT5asTrackCandidateInGPU<<<nBlocksx_pT5, nThreadsx_pT5>>>(*modulesInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *tripletsInGPU,*quintupletsInGPU);
 
     cudaError_t cudaerr_pT5 = cudaGetLastError();
