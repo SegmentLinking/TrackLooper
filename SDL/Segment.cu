@@ -78,11 +78,12 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     segmentsInGPU.eta = segmentsInGPU.dPhis + nMemoryLocations * 6 + maxPixelSegments * 6;
     segmentsInGPU.phi = segmentsInGPU.dPhis + nMemoryLocations * 6 + maxPixelSegments * 7;
     
-#pragma omp parallel for default(shared)
-    for(size_t i = 0; i < nModules; i++)
-    {
-        segmentsInGPU.nSegments[i] = 0;
-    }
+//#pragma omp parallel for default(shared)
+//    for(size_t i = 0; i < nModules; i++)
+//    {
+//        segmentsInGPU.nSegments[i] = 0;
+//    }
+    cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
     cudaMemset(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool));
 
 }
@@ -405,8 +406,8 @@ __device__ void SDL::dAlphaThreshold(float* dAlphaThresholdValues, struct hits& 
 
     }
 
-    float innerModuleGapSize = SDL::moduleGapSize(modulesInGPU, innerLowerModuleIndex);
-    float outerModuleGapSize = SDL::moduleGapSize(modulesInGPU, outerLowerModuleIndex);
+    float innerModuleGapSize = SDL::moduleGapSize_seg(modulesInGPU, innerLowerModuleIndex);
+    float outerModuleGapSize = SDL::moduleGapSize_seg(modulesInGPU, outerLowerModuleIndex);
     const float innerminiTilt = isInnerTilted ? (0.5f * pixelPSZpitch * drdzInner / sqrtf(1.f + drdzInner * drdzInner) / innerModuleGapSize) : 0;
 
     const float outerminiTilt = isOuterTilted ? (0.5f * pixelPSZpitch * drdzOuter / sqrtf(1.f + drdzOuter * drdzOuter) / outerModuleGapSize) : 0;
@@ -727,10 +728,10 @@ __device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, s
 __device__ bool SDL::runSegmentDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, unsigned int& innerLowerModuleIndex, unsigned int& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex, float& zIn, float& zOut, float& rtIn, float& rtOut, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, float& dAlphaInnerMDSegment, float& dAlphaOuterMDSegment, float&
         dAlphaInnerMDOuterMD, float& zLo, float& zHi, float& rtLo, float& rtHi, float& sdCut, float& dAlphaInnerMDSegmentThreshold, float& dAlphaOuterMDSegmentThreshold, float& dAlphaInnerMDOuterMDThreshold, unsigned int& innerMiniDoubletAnchorHitIndex, unsigned int& outerMiniDoubletAnchorHitIndex)
 {
-    zLo = -999;
-    zHi = -999;
-    rtLo = -999;
-    rtHi = -999;
+    zLo = -999.f;
+    zHi = -999.f;
+    rtLo = -999.f;
+    rtHi = -999.f;
 
     bool pass = true;
 
@@ -777,4 +778,103 @@ void SDL::printSegment(struct SDL::segments& segmentsInGPU, struct SDL::miniDoub
         IndentingOStreambuf indent(std::cout);
         printMD(mdsInGPU, hitsInGPU, modulesInGPU, outerMDIndex);
     }
+}
+__device__ inline float SDL::isTighterTiltedModules_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
+{
+    // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
+    // This is the same as what was previously considered as"isNormalTiltedModules"
+    // See Figure 9.1 of https://cds.cern.ch/record/2272264/files/CMS-TDR-014.pdf
+    short subdet = modulesInGPU.subdets[moduleIndex];
+    short layer = modulesInGPU.layers[moduleIndex];
+    short side = modulesInGPU.sides[moduleIndex];
+    short rod = modulesInGPU.rods[moduleIndex];
+
+    if (
+           (subdet == Barrel and side != Center and layer== 3)
+           or (subdet == Barrel and side == NegZ and layer == 2 and rod > 5)
+           or (subdet == Barrel and side == PosZ and layer == 2 and rod < 8)
+           or (subdet == Barrel and side == NegZ and layer == 1 and rod > 9)
+           or (subdet == Barrel and side == PosZ and layer == 1 and rod < 4)
+       )
+        return true;
+    else
+        return false;
+
+}
+
+
+
+__device__ float SDL::moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
+{
+    float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
+    float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
+    float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
+    float miniDeltaEndcap[5][15];
+
+    for (size_t i = 0; i < 5; i++)
+    {
+        for (size_t j = 0; j < 15; j++)
+        {
+            if (i == 0 || i == 1)
+            {
+                if (j < 10)
+                {
+                    miniDeltaEndcap[i][j] = 0.4f;
+                }
+                else
+                {
+                    miniDeltaEndcap[i][j] = 0.18f;
+                }
+            }
+            else if (i == 2 || i == 3)
+            {
+                if (j < 8)
+                {
+                    miniDeltaEndcap[i][j] = 0.4f;
+                }
+                else
+                {
+                    miniDeltaEndcap[i][j]  = 0.18f;
+                }
+            }
+            else
+            {
+                if (j < 9)
+                {
+                    miniDeltaEndcap[i][j] = 0.4f;
+                }
+                else
+                {
+                    miniDeltaEndcap[i][j] = 0.18f;
+                }
+            }
+        }
+    }
+
+
+    unsigned int iL = modulesInGPU.layers[moduleIndex]-1;
+    unsigned int iR = modulesInGPU.rings[moduleIndex] - 1;
+    short subdet = modulesInGPU.subdets[moduleIndex];
+    short side = modulesInGPU.sides[moduleIndex];
+
+    float moduleSeparation = 0;
+
+    if (subdet == Barrel and side == Center)
+    {
+        moduleSeparation = miniDeltaFlat[iL];
+    }
+    else if (isTighterTiltedModules_seg(modulesInGPU, moduleIndex))
+    {
+        moduleSeparation = miniDeltaTilted[iL];
+    }
+    else if (subdet == Endcap)
+    {
+        moduleSeparation = miniDeltaEndcap[iL][iR];
+    }
+    else //Loose tilted modules
+    {
+        moduleSeparation = miniDeltaLooseTilted[iL];
+    }
+
+    return moduleSeparation;
 }

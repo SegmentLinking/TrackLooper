@@ -79,8 +79,8 @@ namespace SDL
       return test;
     }
     if (y == 0) return  0;
-    if (y >  0) return  M_PI / 2;
-    else        return -M_PI / 2;
+    if (y >  0) return  float(M_PI) / 2.f;
+    else        return -float(M_PI) / 2.f;
     }
     CUDA_HOSTDEV inline float phi_mpi_pi(float x) {
     if (isnan(x))
@@ -89,21 +89,21 @@ namespace SDL
         return x;
     }
 
-    //while (x >= M_PI)
-    //    x -= 2. * M_PI;
+    //while (x >= float(M_PI))
+    //    x -= 2.f * float(M_PI);
 
-    //while (x < -M_PI)
-    //    x += 2. * M_PI;
+    //while (x < -float(M_PI))
+    //    x += 2.f * float(M_PI);
 
     //return x;
-    if (std::abs(x) <= float(M_PI))
+    if (fabsf(x) <= float(M_PI))
       return x;
-    constexpr float o2pi = 1. / (2. * M_PI);
+    constexpr float o2pi = 1.f / (2.f * float(M_PI));
     float n = std::round(x * o2pi);
-    return x - n * float(2. * M_PI);
+    return x - n * float(2.f * float(M_PI));
     }
     CUDA_HOSTDEV inline float phi(float x, float y, float z) {
-        return phi_mpi_pi(M_PI + ATan2(-y, -x));
+        return phi_mpi_pi(float(M_PI) + ATan2(-y, -x));
     }
     CUDA_HOSTDEV inline float deltaPhi(float x1, float y1, float z1, float x2, float y2, float z2) {
     float phi1 = phi(x1,y1,z1);
