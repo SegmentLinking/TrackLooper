@@ -1013,7 +1013,7 @@ void SDL::Event::createTrackCandidates()
 #ifdef FINAL_pT3
     printf("running final state pT3\n");
     unsigned int nThreadsx = 1024;
-    unsigned int nBlocksx = 1;//(N_MAX_PIXEL_TRIPLETS) % nThreadsx == 0 ? N_MAX_PIXEL_TRIPLETS / nThreadsx : N_MAX_PIXEL_TRIPLETS / nThreadsx + 1;
+    unsigned int nBlocksx = MAX_BLOCKS;//(N_MAX_PIXEL_TRIPLETS) % nThreadsx == 0 ? N_MAX_PIXEL_TRIPLETS / nThreadsx : N_MAX_PIXEL_TRIPLETS / nThreadsx + 1;
     addpT3asTrackCandidateInGPU<<<nBlocksx, nThreadsx>>>(*modulesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
     cudaError_t cudaerr_pT3 = cudaGetLastError();
     if(cudaerr_pT3 != cudaSuccess)
@@ -1044,7 +1044,7 @@ void SDL::Event::createTrackCandidates()
     printf("Adding pLSs to TC collection\n");
 #ifdef DUP_pLS
     printf("cleaning pixels\n");
-    checkHitspLS<<<20,1024>>>(*modulesInGPU,*mdsInGPU, *segmentsInGPU, *hitsInGPU, true);
+    checkHitspLS<<<MAX_BLOCKS,1024>>>(*modulesInGPU,*mdsInGPU, *segmentsInGPU, *hitsInGPU, true);
     cudaError_t cudaerrpix = cudaGetLastError();
     if(cudaerrpix != cudaSuccess)
     {
