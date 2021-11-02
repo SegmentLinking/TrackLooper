@@ -311,12 +311,34 @@ void run_sdl()
     // Timing average information
     std::vector<std::vector<float>> timing_information;
 
+                std::vector<std::vector<float>> out_trkX;
+                std::vector<std::vector<float>> out_trkY;
+                std::vector<std::vector<float>> out_trkZ;
+                std::vector<std::vector<unsigned int>>    out_hitId;
+                std::vector<std::vector<unsigned int>>    out_hitIdxs;
+                std::vector<std::vector<unsigned int>>    out_hitIndices_vec0;
+                std::vector<std::vector<unsigned int>>    out_hitIndices_vec1;
+                std::vector<std::vector<unsigned int>>    out_hitIndices_vec2;
+                std::vector<std::vector<unsigned int>>    out_hitIndices_vec3;
+                std::vector<std::vector<float>>    out_deltaPhi_vec;
+                std::vector<std::vector<float>>    out_ptIn_vec;
+                std::vector<std::vector<float>>    out_ptErr_vec;
+                std::vector<std::vector<float>>    out_px_vec;
+                std::vector<std::vector<float>>    out_py_vec;
+                std::vector<std::vector<float>>    out_pz_vec;
+                std::vector<std::vector<float>>    out_eta_vec;
+                std::vector<std::vector<float>>    out_etaErr_vec;
+                std::vector<std::vector<float>>    out_phi_vec;
+                std::vector<std::vector<int>>      out_superbin_vec;
+                std::vector<std::vector<int>>      out_pixelType_vec;
+                std::vector<std::vector<short>>    out_isQuad_vec;
+                std::vector<SDL::Event> events;
     // Looping input file
     while (ana.looper.nextEvent())
     {
 
         if (ana.looper.getCurrentEventIndex() ==49) {continue;}
-        std::cout << "event number = " << ana.looper.getCurrentEventIndex() << std::endl;
+        std::cout << "PreLoading event number = " << ana.looper.getCurrentEventIndex() << std::endl;
 
         if (not goodEvent())
             continue;
@@ -328,137 +350,241 @@ void run_sdl()
             //*******************************************************
 
             // Main instance that will hold modules, hits, minidoublets, etc. (i.e. main data structure)
-            SDL::Event event;
 
             // Add hits to the event
-            float timing_input_loading = 0;
-            if (ana.compilation_target.find("explicit") != std::string::npos)
-                timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
-            else
-                timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
+            //if (ana.compilation_target.find("explicit") != std::string::npos){
+                //timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
+                addInputsToLineSegmentTrackingPreLoad(out_trkX, out_trkY,out_trkZ,
+                out_hitId,
+                out_hitIdxs,
+                out_hitIndices_vec0,
+                out_hitIndices_vec1,
+                out_hitIndices_vec2,
+                out_hitIndices_vec3,
+                out_deltaPhi_vec,
+                out_ptIn_vec,
+                out_ptErr_vec,
+                out_px_vec,
+                out_py_vec,
+                out_pz_vec,
+                out_eta_vec,
+                out_etaErr_vec,
+                out_phi_vec,
+                out_superbin_vec,
+                out_pixelType_vec,
+                out_isQuad_vec
+                );
+                //SDL::Event* event = new SDL::Event();
+                SDL::Event event;// = new SDL::Event();
+                events.push_back(event);
                 //timing_input_loading = addInputsToLineSegmentTrackingUsingUnifiedMemory(event);
-
-            // Run Mini-doublet
-            float timing_MD = runMiniDoublet(event);
-
-            // Run Segment
-            float timing_LS = runSegment(event);
-
-            // Run T3
-            float timing_T3 = runT3(event);
-
-            float timing_T5 = runQuintuplet(event);
-            float timing_pLS = runPixelLineSegment(event);
-            float timing_pT5 = runPixelQuintuplet(event);
-
-            //Run pT3
-            float timing_pT3 = runpT3(event);
-
-            // Run TC
-            float timing_TC = runTrackCandidate(event);
-
-            timing_information.push_back({ timing_input_loading,
-                    timing_MD,
-                    timing_LS,
-                    timing_T3,
-                    timing_TC,
-                    timing_T5,
-                    timing_pT3,
-                    timing_pT5,
-                    timing_pLS
-
-                    });
-
-            if (ana.verbose == 4)
-            {
-                printAllObjects(event);
-            }
-
-            if (ana.verbose == 5)
-            {
-                debugPrintOutlierMultiplicities(event);
-            }
-
-            if (ana.do_write_ntuple)
-            {
-                if (not ana.do_cut_value_ntuple)
-                {
-                    fillOutputBranches(event);
-                }
-            }
-
+            //}else{
+            //    timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
+            //}
         }
-        else
-        {
-            //*******************************************************
-            // CPU VERSION RUN
-            //*******************************************************
-
-            // Main instance that will hold modules, hits, minidoublets, etc. (i.e. main data structure)
-            SDL::CPU::Event event;
-
-            // event.setLogLevel(SDL::CPU::Log_Debug3);
-
-            // Add hits to the event
-            float timing_input_loading = addOuterTrackerHits(event);
-
-            // Add pixel segments
-            timing_input_loading += addPixelSegments(event);
-
-            // Print hit summary
-            printHitSummary(event);
-
-            // Run Mini-doublet
-            float timing_MD = runMiniDoublet_on_CPU(event);
-            printMiniDoubletSummary(event);
-
-            // Run Segment
-            float timing_LS = runSegment_on_CPU(event);
-            printSegmentSummary(event);
-
-            // Run Triplet
-            float timing_T3 = runT3_on_CPU(event);
-            printTripletSummary(event);
-
-            // Run Tracklet
-            float timing_T4 = 0; // runT4_on_CPU(event);
-            printTrackletSummary(event);
-            float timing_T4x = 0; // runT4x_on_CPU(event); // T4x's are turned off right now
-            printTrackletSummary(event);
-            float timing_pT4 = runpT4_on_CPU(event);
-            printTrackletSummary(event);
-            float timing_pT3 = runpT3_on_CPU(event);
-            printTrackletSummary(event);
-
-            // Run T5s
-            float timing_T5 = runT5_on_CPU(event);
-            // Run TrackCandidate
-            float timing_TC = 0; // runTrackCandidate_on_CPU(event); // {T4, T3 based TC's, and no T5};
-            printTrackCandidateSummary(event);
-
-            timing_information.push_back({ timing_input_loading,
-                    timing_MD,
-                    timing_LS,
-                    timing_T4,
-                    timing_T4x,
-                    timing_pT3,
-                    timing_T3,
-                    timing_TC,
-                    timing_T5});
-
-            if (ana.verbose == 4)
-            {
-                printAllObjects_for_CPU(event);
-            }
-
-            if (ana.do_write_ntuple)
-            {
-                fillOutputBranches_for_CPU(event);
-            }
-
-        }
-
     }
+//            SDL::Event event1;
+//            float timing_input_loading = 0;
+//                timing_input_loading = addInputsToEventPreLoad(event1,false,out_trkX.at(0), out_trkY.at(0),out_trkZ.at(0),
+//                out_hitId.at(0),
+//                out_hitIdxs.at(0),
+//                out_hitIndices_vec0.at(0),
+//                out_hitIndices_vec1.at(0),
+//                out_hitIndices_vec2.at(0),
+//                out_hitIndices_vec3.at(0),
+//                out_deltaPhi_vec.at(0),
+//                out_ptIn_vec.at(0),
+//                out_ptErr_vec.at(0),
+//                out_px_vec.at(0),
+//                out_py_vec.at(0),
+//                out_pz_vec.at(0),
+//                out_eta_vec.at(0),
+//                out_etaErr_vec.at(0),
+//                out_phi_vec.at(0),
+//                out_superbin_vec.at(0),
+//                out_pixelType_vec.at(0),
+//                out_isQuad_vec.at(0)
+//                );
+//            float timing_MD = runMiniDoublet(event1);
+//            SDL::Event event2;
+//
+//                timing_input_loading = addInputsToEventPreLoad(event2,false,out_trkX.at(1), out_trkY.at(1),out_trkZ.at(1),
+//                out_hitId.at(1),
+//                out_hitIdxs.at(1),
+//                out_hitIndices_vec0.at(1),
+//                out_hitIndices_vec1.at(1),
+//                out_hitIndices_vec2.at(1),
+//                out_hitIndices_vec3.at(1),
+//                out_deltaPhi_vec.at(1),
+//                out_ptIn_vec.at(1),
+//                out_ptErr_vec.at(1),
+//                out_px_vec.at(1),
+//                out_py_vec.at(1),
+//                out_pz_vec.at(1),
+//                out_eta_vec.at(1),
+//                out_etaErr_vec.at(1),
+//                out_phi_vec.at(1),
+//                out_superbin_vec.at(1),
+//                out_pixelType_vec.at(1),
+//                out_isQuad_vec.at(1)
+//                );
+//            timing_MD = runMiniDoublet(event2);
+
+    #pragma omp parallel for num_threads(2)// private(event)
+    for(int evt=0; evt < 2/*out_trkX.size()*/; evt++){
+            std::cout << "Running Event number = " << evt << std::endl;
+            if (evt==43) continue;
+            if (evt==106) continue;
+            if (evt==155) continue;
+            if (evt==162) continue;
+            // Run Mini-doublet
+            float timing_input_loading = 0;
+            //SDL::Event event();
+            //SDL::Event();
+            //SDL::Event event;
+                timing_input_loading = addInputsToEventPreLoad(events.at(evt),false,out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
+            //    timing_input_loading = addInputsToEventPreLoad(event,false,out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
+                out_hitId.at(evt),
+                out_hitIdxs.at(evt),
+                out_hitIndices_vec0.at(evt),
+                out_hitIndices_vec1.at(evt),
+                out_hitIndices_vec2.at(evt),
+                out_hitIndices_vec3.at(evt),
+                out_deltaPhi_vec.at(evt),
+                out_ptIn_vec.at(evt),
+                out_ptErr_vec.at(evt),
+                out_px_vec.at(evt),
+                out_py_vec.at(evt),
+                out_pz_vec.at(evt),
+                out_eta_vec.at(evt),
+                out_etaErr_vec.at(evt),
+                out_phi_vec.at(evt),
+                out_superbin_vec.at(evt),
+                out_pixelType_vec.at(evt),
+                out_isQuad_vec.at(evt)
+                );
+            //float timing_MD = runMiniDoublet(event);
+            float timing_MD = runMiniDoublet(events.at(evt));
+}
+
+//            // Run Segment
+//            float timing_LS = runSegment(events.at(evt));
+//
+//            // Run T3
+//            float timing_T3 = runT3(events.at(evt));
+//
+//            float timing_T5 = runQuintuplet(events.at(evt));
+//            float timing_pLS = runPixelLineSegment(events.at(evt));
+//            float timing_pT5 = runPixelQuintuplet(events.at(evt));
+//
+//            //Run pT3
+//            float timing_pT3 = runpT3(events.at(evt));
+//
+//            // Run TC
+//            float timing_TC = runTrackCandidate(events.at(evt));
+//
+//            timing_information.push_back({ timing_input_loading,
+//                    timing_MD,
+//                    timing_LS,
+//                    timing_T3,
+//                    timing_TC,
+//                    timing_T5,
+//                    timing_pT3,
+//                    timing_pT5,
+//                    timing_pLS
+//
+//                    });
+//
+//            if (ana.verbose == 4)
+//            {
+//                printAllObjects(events.at(evt));
+//            }
+//
+//            if (ana.verbose == 5)
+//            {
+//                debugPrintOutlierMultiplicities(events.at(evt));
+//            }
+//
+//            if (ana.do_write_ntuple)
+//            {
+//                if (not ana.do_cut_value_ntuple)
+//                {
+//                    fillOutputBranches(events.at(evt));
+//                }
+//            }
+//
+//        }
+        //else
+        //{
+        //    //*******************************************************
+        //    // CPU VERSION RUN
+        //    //*******************************************************
+
+        //    // Main instance that will hold modules, hits, minidoublets, etc. (i.e. main data structure)
+        //    SDL::CPU::Event event;
+
+        //    // event.setLogLevel(SDL::CPU::Log_Debug3);
+
+        //    // Add hits to the event
+        //    float timing_input_loading = addOuterTrackerHits(event);
+
+        //    // Add pixel segments
+        //    timing_input_loading += addPixelSegments(event);
+
+        //    // Print hit summary
+        //    printHitSummary(event);
+
+        //    // Run Mini-doublet
+        //    float timing_MD = runMiniDoublet_on_CPU(event);
+        //    printMiniDoubletSummary(event);
+
+        //    // Run Segment
+        //    float timing_LS = runSegment_on_CPU(event);
+        //    printSegmentSummary(event);
+
+        //    // Run Triplet
+        //    float timing_T3 = runT3_on_CPU(event);
+        //    printTripletSummary(event);
+
+        //    // Run Tracklet
+        //    float timing_T4 = 0; // runT4_on_CPU(event);
+        //    printTrackletSummary(event);
+        //    float timing_T4x = 0; // runT4x_on_CPU(event); // T4x's are turned off right now
+        //    printTrackletSummary(event);
+        //    float timing_pT4 = runpT4_on_CPU(event);
+        //    printTrackletSummary(event);
+        //    float timing_pT3 = runpT3_on_CPU(event);
+        //    printTrackletSummary(event);
+
+        //    // Run T5s
+        //    float timing_T5 = runT5_on_CPU(event);
+        //    // Run TrackCandidate
+        //    float timing_TC = 0; // runTrackCandidate_on_CPU(event); // {T4, T3 based TC's, and no T5};
+        //    printTrackCandidateSummary(event);
+
+        //    timing_information.push_back({ timing_input_loading,
+        //            timing_MD,
+        //            timing_LS,
+        //            timing_T4,
+        //            timing_T4x,
+        //            timing_pT3,
+        //            timing_T3,
+        //            timing_TC,
+        //            timing_T5});
+
+        //    if (ana.verbose == 4)
+        //    {
+        //        printAllObjects_for_CPU(event);
+        //    }
+
+        //    if (ana.do_write_ntuple)
+        //    {
+        //        fillOutputBranches_for_CPU(event);
+        //    }
+
+        //}
+
+    //}
 
     printTimingInformation(timing_information);
 

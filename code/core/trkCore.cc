@@ -1384,6 +1384,287 @@ float distxySimHitConsistentWithHelix(SDLMath::Helix& helix, int isimhitidx)
 }
 
 //__________________________________________________________________________________________
+void addInputsToLineSegmentTrackingPreLoad(
+std::vector<std::vector<float>>& out_trkX,std::vector<std::vector<float>>& out_trkY,std::vector<std::vector<float>>& out_trkZ,
+
+std::vector<std::vector<unsigned int>>&    out_hitId,
+std::vector<std::vector<unsigned int>>&    out_hitIdxs,
+std::vector<std::vector<unsigned int>>&    out_hitIndices_vec0,
+std::vector<std::vector<unsigned int>>&    out_hitIndices_vec1,
+std::vector<std::vector<unsigned int>>&    out_hitIndices_vec2,
+std::vector<std::vector<unsigned int>>&    out_hitIndices_vec3,
+std::vector<std::vector<float>>&    out_deltaPhi_vec,
+std::vector<std::vector<float>>&    out_ptIn_vec,
+std::vector<std::vector<float>>&    out_ptErr_vec,
+std::vector<std::vector<float>>&    out_px_vec,
+std::vector<std::vector<float>>&    out_py_vec,
+std::vector<std::vector<float>>&    out_pz_vec,
+std::vector<std::vector<float>>&    out_eta_vec,
+std::vector<std::vector<float>>&    out_etaErr_vec,
+std::vector<std::vector<float>>&    out_phi_vec,
+std::vector<std::vector<int>>&    out_superbin_vec,
+std::vector<std::vector<int>>&    out_pixelType_vec,
+std::vector<std::vector<short>>&    out_isQuad_vec
+)
+{
+
+//    TStopwatch my_timer;
+//    if (ana.verbose >= 2) std::cout << "Loading Inputs (i.e. outer tracker hits, and pixel line segements) to the Line Segment Tracking.... " << std::endl;
+//    my_timer.Start();
+
+    unsigned int count = 0;
+    std::vector<float> px_vec;
+    std::vector<float> py_vec;
+    std::vector<float> pz_vec;
+    std::vector<unsigned int> hitIndices_vec0;
+    std::vector<unsigned int> hitIndices_vec1;
+    std::vector<unsigned int> hitIndices_vec2;
+    std::vector<unsigned int> hitIndices_vec3;
+    std::vector<float> ptIn_vec;
+    std::vector<float> ptErr_vec;
+    std::vector<float> etaErr_vec;
+    std::vector<float> eta_vec;
+    std::vector<float> phi_vec;
+    std::vector<float> deltaPhi_vec;
+    std::vector<float> trkX = trk.ph2_x();
+    std::vector<float> trkY = trk.ph2_y();
+    std::vector<float> trkZ = trk.ph2_z();
+    std::vector<unsigned int> hitId = trk.ph2_detId();
+    std::vector<unsigned int> hitIdxs(trk.ph2_detId().size());
+    std::vector<int> superbin_vec;
+    std::vector<int> pixelType_vec;
+    std::vector<short> isQuad_vec;
+    std::iota(hitIdxs.begin(), hitIdxs.end(), 0);
+    const int hit_size = trkX.size();
+
+    for (auto &&[iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
+    {
+
+        TVector3 p3LH(trk.see_stateTrajGlbPx()[iSeed], trk.see_stateTrajGlbPy()[iSeed], trk.see_stateTrajGlbPz()[iSeed]);
+        TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
+        TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
+        TVector3 r3PCA(calculateR3FromPCA(p3PCA, trk.see_dxy()[iSeed], trk.see_dz()[iSeed]));
+        auto const &seedHitsV = trk.see_hitIdx()[iSeed];
+        auto const &seedHitTypesV = trk.see_hitType()[iSeed];
+
+        bool good_seed_type = false;
+        if (trk.see_algo()[iSeed] == 4) good_seed_type = true;
+        if (trk.see_algo()[iSeed] == 5) good_seed_type = true;
+        if (trk.see_algo()[iSeed] == 7) good_seed_type = true;
+        if (trk.see_algo()[iSeed] == 22) good_seed_type = true;
+        if (trk.see_algo()[iSeed] == 23) good_seed_type = true;
+        if (trk.see_algo()[iSeed] == 24) good_seed_type = true;
+        if (not good_seed_type) continue;
+
+        int nHits = seedHitsV.size();
+
+        int seedSD_mdRef_pixL = trk.see_hitIdx()[iSeed][0];
+        int seedSD_mdRef_pixU = trk.see_hitIdx()[iSeed][1];
+        TVector3 seedSD_mdRef_r3 = r3PCA;
+        float seedSD_mdRef_rt = r3PCA.Pt();
+        float seedSD_mdRef_z = r3PCA.Z();
+        float seedSD_mdRef_r = r3PCA.Mag();
+        float seedSD_mdRef_phi = r3PCA.Phi();
+        float seedSD_mdRef_alpha = r3PCA.DeltaPhi(p3PCA);
+
+        int seedSD_mdOut_pixL = trk.see_hitIdx()[iSeed][2];
+        int seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
+        TVector3 seedSD_mdOut_r3 = r3LH;
+        float seedSD_mdOut_rt = r3LH.Pt();
+        float seedSD_mdOut_z = r3LH.Z();
+        float seedSD_mdOut_r = r3LH.Mag();
+        float seedSD_mdOut_phi = r3LH.Phi();
+        float seedSD_mdOut_alpha = r3LH.DeltaPhi(p3LH);
+
+        float seedSD_iRef = iSeed;
+        float seedSD_iOut = iSeed;
+        TVector3 seedSD_r3 = r3LH;
+        float seedSD_rt = r3LH.Pt();
+        float seedSD_rtInv = 1.f / seedSD_rt;
+        float seedSD_z = seedSD_r3.Z();
+        TVector3 seedSD_p3 = p3LH;
+        float seedSD_alpha = r3LH.DeltaPhi(p3LH);
+        float seedSD_dr = (r3LH - r3PCA).Pt();
+        float seedSD_d = seedSD_rt - r3PCA.Pt();
+        float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
+
+        float pixelSegmentDeltaPhiChange = r3LH.DeltaPhi(p3LH);
+        float ptIn = p3LH.Pt();
+        float ptErr = trk.see_ptErr()[iSeed];
+        float etaErr = trk.see_etaErr()[iSeed];
+        float px = p3LH.X();
+        float py = p3LH.Y();
+        float pz = p3LH.Z();
+        float eta = p3LH.Eta();
+        float phi = p3LH.Phi();
+        //extra bit
+	
+        if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
+        {
+            // get pixel superbin
+            //int ptbin = -1;
+            int pixtype =-1;
+            //if (p3PCA.Pt() >= 2.0){ /*ptbin = 1;*/pixtype=0;}
+            //else if (p3PCA.Pt() >= 0.9 and p3PCA.Pt() < 2.0){ 
+            //  //ptbin = 0;
+            //  if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
+            //  else{pixtype=2;}
+            //}
+            if (p3LH.Pt() >= 2.0){ /*ptbin = 1;*/pixtype=0;}
+            else if (p3LH.Pt() >= 0.9 and p3LH.Pt() < 2.0){ 
+              //ptbin = 0;
+              if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
+              else{pixtype=2;}
+            }
+            else{continue;}
+            // if(abs(p3PCA.Eta()) >= 2.5){continue;}
+// all continues before pushing back into vectots to avoid strange offsets in indicies. 
+            unsigned int hitIdx0 = hit_size + count;
+            count++; 
+
+            unsigned int hitIdx1 = hit_size + count;
+            count++;
+
+            unsigned int hitIdx2 = hit_size + count;
+            count++;
+
+            unsigned int hitIdx3;
+            if (trk.see_hitIdx()[iSeed].size() <= 3)
+            {
+                hitIdx3 = hitIdx2;
+            }
+            else
+            {
+                hitIdx3 = hit_size + count;
+                count++;
+            }
+
+            trkX.push_back(r3PCA.X());
+            trkY.push_back(r3PCA.Y());
+            trkZ.push_back(r3PCA.Z());
+            trkX.push_back(p3PCA.Pt());
+            trkY.push_back(p3PCA.Eta());
+            trkZ.push_back(p3PCA.Phi());
+            trkX.push_back(r3LH.X());
+            trkY.push_back(r3LH.Y());
+            trkZ.push_back(r3LH.Z());
+            hitId.push_back(1);
+            hitId.push_back(1);
+            hitId.push_back(1);
+            if(trk.see_hitIdx()[iSeed].size() > 3)
+            {
+                trkX.push_back(r3LH.X());
+                trkY.push_back(trk.see_dxy()[iSeed]);
+                trkZ.push_back(trk.see_dz()[iSeed]);
+                hitId.push_back(1);
+            }
+            px_vec.push_back(px);
+            py_vec.push_back(py);
+            pz_vec.push_back(pz);
+
+            hitIndices_vec0.push_back(hitIdx0);
+            hitIndices_vec1.push_back(hitIdx1);
+            hitIndices_vec2.push_back(hitIdx2);
+            hitIndices_vec3.push_back(hitIdx3);
+            ptIn_vec.push_back(ptIn);
+            ptErr_vec.push_back(ptErr);
+            etaErr_vec.push_back(etaErr);
+            eta_vec.push_back(eta);
+            phi_vec.push_back(phi);
+            deltaPhi_vec.push_back(pixelSegmentDeltaPhiChange);
+
+            // For matching with sim tracks
+            hitIdxs.push_back(trk.see_hitIdx()[iSeed][0]);
+            hitIdxs.push_back(trk.see_hitIdx()[iSeed][1]);
+            hitIdxs.push_back(trk.see_hitIdx()[iSeed][2]);
+            bool isQuad = false;
+            if(trk.see_hitIdx()[iSeed].size() > 3)
+            {
+                isQuad = true;
+                hitIdxs.push_back(trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]);
+            }
+            //if (pt < 0){ ptbin = 0;}
+            float neta = 25.;
+            float nphi = 72.;
+            float nz = 25.;
+            int etabin = (p3PCA.Eta() + 2.6) / ((2*2.6)/neta);
+            int phibin = (p3PCA.Phi() + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
+            int dzbin = (trk.see_dz()[iSeed] + 30) / (2*30 / nz);
+            int isuperbin = /*(nz * nphi * neta) * ptbin + (removed since pt bin is determined by pixelType)*/ (nz * nphi) * etabin + (nz) * phibin + dzbin;
+            //if(isuperbin<0 || isuperbin>=44900){printf("isuperbin %d %d %d %d %f\n",isuperbin,etabin,phibin,dzbin,p3PCA.Eta());}
+            superbin_vec.push_back(isuperbin);
+            pixelType_vec.push_back(pixtype);
+            isQuad_vec.push_back(isQuad);
+
+
+
+
+        }
+
+    }
+
+//    event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
+//    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);
+
+    out_trkX.push_back(trkX);
+    out_trkY.push_back(trkY);
+    out_trkZ.push_back(trkZ);
+    out_hitId.push_back(hitId);
+    out_hitIdxs.push_back(hitIdxs);
+    out_hitIndices_vec0.push_back(hitIndices_vec0);
+    out_hitIndices_vec1.push_back(hitIndices_vec1);
+    out_hitIndices_vec2.push_back(hitIndices_vec2);
+    out_hitIndices_vec3.push_back(hitIndices_vec3);
+    out_deltaPhi_vec.push_back(deltaPhi_vec);
+    out_ptIn_vec.push_back(ptIn_vec);
+    out_ptErr_vec.push_back(ptErr_vec);
+    out_px_vec.push_back(px_vec);
+    out_py_vec.push_back(py_vec);
+    out_pz_vec.push_back(pz_vec);
+    out_eta_vec.push_back(eta_vec);
+    out_etaErr_vec.push_back(etaErr_vec);
+    out_phi_vec.push_back(phi_vec);
+    out_superbin_vec.push_back(superbin_vec);
+    out_pixelType_vec.push_back(pixelType_vec);
+    out_isQuad_vec.push_back(isQuad_vec);
+    
+//    float hit_loading_elapsed = my_timer.RealTime();
+//    if (ana.verbose >= 2) std::cout << "Loading inputs processing time: " << hit_loading_elapsed << " secs" << std::endl;
+//    return hit_loading_elapsed;
+}
+
+float addInputsToEventPreLoad(SDL::Event& event, bool useOMP,
+std::vector<float> trkX,std::vector<float> trkY,std::vector<float> trkZ,
+std::vector<unsigned int>    hitId,
+std::vector<unsigned int>    hitIdxs,
+std::vector<unsigned int>    hitIndices_vec0,
+std::vector<unsigned int>    hitIndices_vec1,
+std::vector<unsigned int>    hitIndices_vec2,
+std::vector<unsigned int>    hitIndices_vec3,
+std::vector<float>    deltaPhi_vec,
+std::vector<float>    ptIn_vec,
+std::vector<float>    ptErr_vec,
+std::vector<float>    px_vec,
+std::vector<float>    py_vec,
+std::vector<float>    pz_vec,
+std::vector<float>    eta_vec,
+std::vector<float>    etaErr_vec,
+std::vector<float>    phi_vec,
+std::vector<int>    superbin_vec,
+std::vector<int>    pixelType_vec,
+std::vector<short>    isQuad_vec
+)
+{
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Loading Inputs (i.e. outer tracker hits, and pixel line segements) to the Line Segment Tracking.... " << std::endl;
+    my_timer.Start();
+    event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
+    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);
+    float hit_loading_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Loading inputs processing time: " << hit_loading_elapsed << " secs" << std::endl;
+    return hit_loading_elapsed;
+}
+//__________________________________________________________________________________________
 float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
 {
 
