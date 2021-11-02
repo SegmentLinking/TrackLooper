@@ -94,7 +94,7 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
 
     unsigned int innerOuterAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerSegmentIndex];
     unsigned int outerOuterAnchorHitIndex= segmentsInGPU.outerMiniDoubletAnchorHitIndices[outerSegmentIndex];
-    if(fabsf(deltaPhi(hitsInGPU.xs[innerOuterAnchorHitIndex], hitsInGPU.ys[innerOuterAnchorHitIndex], hitsInGPU.zs[innerOuterAnchorHitIndex], hitsInGPU.xs[outerInnerAnchorHitIndex], hitsInGPU.ys[outerInnerAnchorHitIndex], hitsInGPU.zs[outerInnerAnchorHitIndex])) > M_PI/2.)
+    if(fabsf(deltaPhi(hitsInGPU.xs[innerOuterAnchorHitIndex], hitsInGPU.ys[innerOuterAnchorHitIndex], hitsInGPU.zs[innerOuterAnchorHitIndex], hitsInGPU.xs[outerInnerAnchorHitIndex], hitsInGPU.ys[outerInnerAnchorHitIndex], hitsInGPU.zs[outerInnerAnchorHitIndex])) > 0.5f*float(M_PI))
     {
         pass = false;
     }
@@ -139,14 +139,14 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
     const float coshEta = sqrtf(ptIn * ptIn + pz * pz) / ptIn;
     // const float drt_OutLo_InLo = (rt_OutLo - rt_InLo);
     const float drt_OutLo_InUp = (rt_OutLo - rt_InUp);
-    const float invRt_InLo = 1. / rt_InLo;
+    const float invRt_InLo = 1.f / rt_InLo;
     const float r3_InLo = sqrtf(z_InLo * z_InLo + rt_InLo * rt_InLo);
     const float r3_InUp = sqrtf(z_InUp * z_InUp + rt_InUp * rt_InUp);
     float drt_InSeg = hitsInGPU.rts[innerOuterAnchorHitIndex] - hitsInGPU.rts[innerInnerAnchorHitIndex];
     float dz_InSeg = hitsInGPU.zs[innerOuterAnchorHitIndex] - hitsInGPU.zs[innerInnerAnchorHitIndex];
 
     float dr3_InSeg = sqrtf(hitsInGPU.rts[innerOuterAnchorHitIndex] * hitsInGPU.rts[innerOuterAnchorHitIndex] + hitsInGPU.zs[innerOuterAnchorHitIndex] * hitsInGPU.zs[innerOuterAnchorHitIndex]) - sqrtf(hitsInGPU.rts[innerInnerAnchorHitIndex] * hitsInGPU.rts[innerInnerAnchorHitIndex] + hitsInGPU.zs[innerInnerAnchorHitIndex] * hitsInGPU.zs[innerInnerAnchorHitIndex]);
-    const float sdlThetaMulsF = 0.015f * sqrt(0.1f + 0.2 * (rt_OutLo - rt_InUp) / 50.f) * sqrt(r3_InUp / rt_InUp);
+    const float sdlThetaMulsF = 0.015f * sqrt(0.1f + 0.2f * (rt_OutLo - rt_InUp) / 50.f) * sqrt(r3_InUp / rt_InUp);
     const float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f; // will need a better guess than x4?
 
     float dzErr = drt_OutLo_InUp*etaErr*coshEta; //FIXME: check with the calc in the endcap
@@ -308,7 +308,7 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
     const float pt_betaOut = drt_tl_axis * k2Rinv1GeVf / sin(betaOut);
     const float dBetaRes = 0.02f / fminf(sdOut_d, drt_InSeg);
     const float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
-            + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
+            + 0.25f * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
     float dBeta = betaIn - betaOut;
     deltaBetaCut = sqrtf(dBetaCut2);
     if (not (dBeta * dBeta <= dBetaCut2))
@@ -390,7 +390,7 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
     const float coshEta = hypotf(ptIn, pz) / ptIn;
     const float multDzDr = dzOutInAbs*coshEta/(coshEta*coshEta - 1.f);
     const float r3_InUp = sqrtf(z_InUp * z_InUp + rt_InUp * rt_InUp);
-    const float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2 * (rt_OutLo - rtIn) / 50.f) * sqrtf(r3_InUp / rtIn);
+    const float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2f * (rt_OutLo - rtIn) / 50.f) * sqrtf(r3_InUp / rtIn);
     const float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f; // will need a better guess than x4?
 
     float drtErr = etaErr*multDzDr;
@@ -556,7 +556,7 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
 
     const float dBetaRes = 0.02f / fminf(sdOut_d, drt_InSeg);
     const float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
-            + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
+            + 0.25f * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
     float dBeta = betaIn - betaOut;
     deltaBetaCut = sqrtf(dBetaCut2);
     if (not (dBeta * dBeta <= dBetaCut2))

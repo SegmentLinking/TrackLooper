@@ -3233,7 +3233,7 @@ const int &SDL::pT3_occupancies() {
   }
   return pT3_occupancies_;
 }
-const vector<int> &SDL::tc_occupancies() {
+const int &SDL::tc_occupancies() {
   if (not tc_occupancies_isLoaded) {
     if (tc_occupancies_branch != 0) {
       tc_occupancies_branch->GetEntry(index);
@@ -3852,7 +3852,7 @@ namespace tas {
   const vector<float> &t5_outerRadiusMin2S() { return sdl.t5_outerRadiusMin2S(); }
   const vector<float> &t3_betaIn() { return sdl.t3_betaIn(); }
   const int &pT3_occupancies() { return sdl.pT3_occupancies(); }
-  const vector<int> &tc_occupancies() { return sdl.tc_occupancies(); }
+  const int &tc_occupancies() { return sdl.tc_occupancies(); }
   const vector<float> &t5_innerRadius() { return sdl.t5_innerRadius(); }
   const vector<int> &sim_TC_matched() { return sdl.sim_TC_matched(); }
   const vector<int> &pLS_isDuplicate() { return sdl.pLS_isDuplicate(); }

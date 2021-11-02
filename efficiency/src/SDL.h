@@ -488,7 +488,7 @@ protected:
   int pT3_occupancies_;
   TBranch *pT3_occupancies_branch;
   bool pT3_occupancies_isLoaded;
-  vector<int> *tc_occupancies_;
+  int *tc_occupancies_;
   TBranch *tc_occupancies_branch;
   bool tc_occupancies_isLoaded;
   vector<float> *t5_innerRadius_;
@@ -759,7 +759,7 @@ public:
   const vector<float> &t5_outerRadiusMin2S();
   const vector<float> &t3_betaIn();
   const int &pT3_occupancies();
-  const vector<int> &tc_occupancies();
+  const int &tc_occupancies();
   const vector<float> &t5_innerRadius();
   const vector<int> &sim_TC_matched();
   const vector<int> &pLS_isDuplicate();
@@ -961,7 +961,7 @@ namespace tas {
   const vector<float> &t5_outerRadiusMin2S();
   const vector<float> &t3_betaIn();
   const int &pT3_occupancies();
-  const vector<int> &tc_occupancies();
+  const int &tc_occupancies();
   const vector<float> &t5_innerRadius();
   const vector<int> &sim_TC_matched();
   const vector<int> &pLS_isDuplicate();

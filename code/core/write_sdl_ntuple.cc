@@ -65,7 +65,7 @@ void createOccupancyBranches()
     ana.tx->createBranch<vector<int>>("sg_occupancies");
     ana.tx->createBranch<vector<int>>("t4_occupancies");
     ana.tx->createBranch<vector<int>>("t3_occupancies");
-    ana.tx->createBranch<vector<int>>("tc_occupancies");
+    ana.tx->createBranch<int>("tc_occupancies");
     ana.tx->createBranch<vector<int>>("t5_occupancies");
     ana.tx->createBranch<int>("pT3_occupancies");
     ana.tx->createBranch<int>("pT5_occupancies");
@@ -657,7 +657,7 @@ void fillOccupancyBranches(SDL::Event& event)
         segmentOccupancy.push_back(segmentsInGPU.nSegments[lowerIdx]);
         mdOccupancy.push_back(mdsInGPU.nMDs[lowerIdx]);
 
-        trackCandidateOccupancy.push_back(trackCandidatesInGPU.nTrackCandidates[idx]);
+//        trackCandidateOccupancy.push_back(trackCandidatesInGPU.nTrackCandidates[idx]);
         if(idx < *(modulesInGPU.nLowerModules))
         {
             quintupletOccupancy.push_back(quintupletsInGPU.nQuintuplets[idx]);
@@ -670,7 +670,8 @@ void fillOccupancyBranches(SDL::Event& event)
     ana.tx->setBranch<vector<int>>("md_occupancies",mdOccupancy);
     ana.tx->setBranch<vector<int>>("sg_occupancies",segmentOccupancy);
     ana.tx->setBranch<vector<int>>("t3_occupancies",tripletOccupancy);
-    ana.tx->setBranch<vector<int>>("tc_occupancies",trackCandidateOccupancy);
+    ana.tx->setBranch<int>("tc_occupancies",*(trackCandidatesInGPU.nTrackCandidates));
+    //ana.tx->setBranch<vector<int>>("tc_occupancies",trackCandidateOccupancy);
     ana.tx->setBranch<int>("pT3_occupancies", *(pixelTripletsInGPU.nPixelTriplets));
     ana.tx->setBranch<vector<int>>("t5_occupancies", quintupletOccupancy);
     ana.tx->setBranch<int>("pT5_occupancies", *(pixelQuintupletsInGPU.nPixelQuintuplets));

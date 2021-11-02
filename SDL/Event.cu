@@ -981,6 +981,7 @@ void SDL::Event::createTrackCandidates()
 
     if(trackCandidatesInGPU == nullptr)
     {
+        printf("did this run twice?\n");
         cudaMallocHost(&trackCandidatesInGPU, sizeof(SDL::trackCandidates));
 #ifdef Explicit_Track
         createTrackCandidatesInExplicitMemory(*trackCandidatesInGPU, N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES);
@@ -990,19 +991,19 @@ void SDL::Event::createTrackCandidates()
 #endif
     }
 
-#ifdef FINAL_pT5
-    printf("Adding pT5s to TC collection\n");
-    unsigned int nThreadsx_pT5 = 1;
-    unsigned int nBlocksx_pT5 = (N_MAX_PIXEL_QUINTUPLETS) % nThreadsx_pT5 == 0 ? N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 : N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 + 1;
-    addpT5asTrackCandidateInGPU<<<nBlocksx_pT5, nThreadsx_pT5>>>(*modulesInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU);
-
-    cudaError_t cudaerr_pT5 = cudaGetLastError();
-    if(cudaerr_pT5 != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT5)<<std::endl;
-    }
-    cudaDeviceSynchronize();
-#endif
+//#ifdef FINAL_pT5
+//    printf("Adding pT5s to TC collection\n");
+//    unsigned int nThreadsx_pT5 = 1;
+//    unsigned int nBlocksx_pT5 = (N_MAX_PIXEL_QUINTUPLETS) % nThreadsx_pT5 == 0 ? N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 : N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 + 1;
+//    addpT5asTrackCandidateInGPU<<<nBlocksx_pT5, nThreadsx_pT5>>>(*modulesInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU);
+//
+//    cudaError_t cudaerr_pT5 = cudaGetLastError();
+//    if(cudaerr_pT5 != cudaSuccess)
+//    {
+//        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT5)<<std::endl;
+//    }
+//    cudaDeviceSynchronize();
+//#endif
 #ifdef FINAL_pT3
     printf("running final state pT3\n");
     unsigned int nThreadsx = 1;
@@ -1044,7 +1045,7 @@ void SDL::Event::createTrackCandidates()
     }cudaDeviceSynchronize();
 #endif  
     unsigned int nThreadsx_pLS = 1;
-    unsigned int nBlocksx_pLS = (20000) % nThreadsx_pLS == 0 ? 20000 / nThreadsx_pT5 : 20000 / nThreadsx_pT5 + 1;
+    unsigned int nBlocksx_pLS = (20000) % nThreadsx_pLS == 0 ? 20000 / nThreadsx_pLS : 20000 / nThreadsx_pLS + 1;
     addpLSasTrackCandidateInGPU<<<nBlocksx, nThreadsx>>>(*modulesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU,*mdsInGPU,*hitsInGPU,*quintupletsInGPU);
     cudaError_t cudaerr_pLS = cudaGetLastError();
     if(cudaerr_pLS != cudaSuccess)
@@ -1319,13 +1320,22 @@ void SDL::Event::createPixelQuintuplets()
     if(pixelQuintupletsInGPU == nullptr)
     {
         cudaMallocHost(&pixelQuintupletsInGPU, sizeof(SDL::pixelQuintuplets));
-    }
 #ifdef Explicit_PT5
     createPixelQuintupletsInExplicitMemory(*pixelQuintupletsInGPU, N_MAX_PIXEL_QUINTUPLETS);
 #else
     createPixelQuintupletsInUnifiedMemory(*pixelQuintupletsInGPU, N_MAX_PIXEL_QUINTUPLETS);
 #endif  
-    
+    }
+   if(trackCandidatesInGPU == nullptr)
+    {
+        cudaMallocHost(&trackCandidatesInGPU, sizeof(SDL::trackCandidates));
+#ifdef Explicit_Track
+        createTrackCandidatesInExplicitMemory(*trackCandidatesInGPU, N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES);
+#else
+        createTrackCandidatesInUnifiedMemory(*trackCandidatesInGPU, N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES);
+
+#endif
+    } 
 
     unsigned int pixelModuleIndex;
     int* superbins;
@@ -1453,7 +1463,20 @@ void SDL::Event::createPixelQuintuplets()
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr2)<<std::endl;
     }cudaDeviceSynchronize();
 #endif
-    markUsedObjects<<<nBlocks_dup,nThreads_dup>>>(*modulesInGPU, *segmentsInGPU, *tripletsInGPU, *pixelQuintupletsInGPU, *quintupletsInGPU);
+#ifdef FINAL_pT5
+    printf("Adding pT5s to TC collection\n");
+    unsigned int nThreadsx_pT5 = 1;
+    unsigned int nBlocksx_pT5 = (N_MAX_PIXEL_QUINTUPLETS) % nThreadsx_pT5 == 0 ? N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 : N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 + 1;
+    addpT5asTrackCandidateInGPU<<<nBlocksx_pT5, nThreadsx_pT5>>>(*modulesInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *tripletsInGPU,*quintupletsInGPU);
+
+    cudaError_t cudaerr_pT5 = cudaGetLastError();
+    if(cudaerr_pT5 != cudaSuccess)
+    {
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT5)<<std::endl;
+    }
+    cudaDeviceSynchronize();
+#endif
+    //markUsedObjects<<<nBlocks_dup,nThreads_dup>>>(*modulesInGPU, *segmentsInGPU, *tripletsInGPU, *pixelQuintupletsInGPU, *quintupletsInGPU);
 #ifdef Warnings
     std::cout<<"number of pixel quintuplets = "<<nPixelQuintuplets<<std::endl;
 #endif   

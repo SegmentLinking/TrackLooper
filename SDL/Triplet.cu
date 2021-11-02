@@ -236,7 +236,7 @@ __device__ bool SDL::passRZConstraint(struct SDL::modules& modulesInGPU, struct 
     }
     else if (layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-        return fabsf(residual) < 0.53;
+        return fabsf(residual) < 0.53f;
     }
     else if (layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
@@ -256,23 +256,23 @@ __device__ bool SDL::passRZConstraint(struct SDL::modules& modulesInGPU, struct 
     }
     else if (layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
-        return fabsf(residual) < 1.21;
+        return fabsf(residual) < 1.21f;
     }
     else if (layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
-        return fabsf(residual) < 1.;
+        return fabsf(residual) < 1.f;
     }
     else if (layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
-        return fabsf(residual) < 1.;
+        return fabsf(residual) < 1.f;
     }
     else if (layer1 == 3 and layer2 == 4 and layer3 == 5)
     {
-        return fabsf(residual) < 2.7;
+        return fabsf(residual) < 2.7f;
     }
     else if (layer1 == 4 and layer2 == 5 and layer3 == 6)
     {
-        return fabsf(residual) < 3.06;
+        return fabsf(residual) < 3.06f;
     }
     else if (layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
@@ -377,7 +377,7 @@ __device__ bool SDL::passPointingConstraintBBB(struct SDL::modules& modulesInGPU
     float coshEta = dr3_InSeg/drt_InSeg;
     float dzErr = (zpitch_InLo + zpitch_OutUp) * (zpitch_InLo + zpitch_OutUp) * 2.f;
 
-    float sdlThetaMulsF = 0.015f * sqrt(0.1f + 0.2 * (rt_OutUp - rt_InLo) / 50.f) * sqrt(r3_InLo / rt_InLo);
+    float sdlThetaMulsF = 0.015f * sqrt(0.1f + 0.2f * (rt_OutUp - rt_InLo) / 50.f) * sqrt(r3_InLo / rt_InLo);
     float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f; // will need a better guess than x4?
     dzErr += sdlMuls * sdlMuls * drt_OutUp_InLo * drt_OutUp_InLo / 3.f * coshEta * coshEta; //sloppy
     dzErr = sqrt(dzErr);
@@ -565,7 +565,7 @@ __device__ bool SDL::passPointingConstraintEEE(struct SDL::modules& modulesInGPU
     float multDzDr = dzOutInAbs * coshEta / (coshEta * coshEta - 1.f);
 
     float kZ = (z_OutUp - z_InLo) / dzSDIn;
-    float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2 * (rt_OutUp - rt_InLo) / 50.f);
+    float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2f * (rt_OutUp - rt_InLo) / 50.f);
 
     float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f; //will need a better guess than x4?
 

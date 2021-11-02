@@ -5,7 +5,7 @@
 
 #include "allocate.h"
 
-CUDA_CONST_VAR float SDL::pt_betaMax = 7.0;
+CUDA_CONST_VAR float SDL::pt_betaMax = 7.0f;
 
 
 void SDL::createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules)
@@ -306,7 +306,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
     float coshEta = dr3_InSeg/drt_InSeg;
     float dzErr = (zpitch_InLo + zpitch_OutLo) * (zpitch_InLo + zpitch_OutLo) * 2.f;
 
-    float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2 * (rt_OutLo - rt_InLo) / 50.f) * sqrtf(r3_InLo / rt_InLo);
+    float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2f * (rt_OutLo - rt_InLo) / 50.f) * sqrtf(r3_InLo / rt_InLo);
     float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f; // will need a better guess than x4?
     dzErr += sdlMuls * sdlMuls * drt_OutLo_InLo * drt_OutLo_InLo / 3.f * coshEta * coshEta; //sloppy
     dzErr = sqrtf(dzErr);
@@ -335,9 +335,9 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
         pass = false;
     }
 
-    float midPointX = (hitsInGPU.xs[innerInnerAnchorHitIndex] + hitsInGPU.xs[outerInnerAnchorHitIndex])/2;
-    float midPointY = (hitsInGPU.ys[innerInnerAnchorHitIndex] + hitsInGPU.ys[outerInnerAnchorHitIndex])/2;
-    float midPointZ = (hitsInGPU.zs[innerInnerAnchorHitIndex] + hitsInGPU.zs[outerInnerAnchorHitIndex])/2;
+    float midPointX = 0.5f*(hitsInGPU.xs[innerInnerAnchorHitIndex] + hitsInGPU.xs[outerInnerAnchorHitIndex]);
+    float midPointY = 0.5f*(hitsInGPU.ys[innerInnerAnchorHitIndex] + hitsInGPU.ys[outerInnerAnchorHitIndex]);
+    float midPointZ = 0.5f*(hitsInGPU.zs[innerInnerAnchorHitIndex] + hitsInGPU.zs[outerInnerAnchorHitIndex]);
 
     float diffX = hitsInGPU.xs[outerInnerAnchorHitIndex] - hitsInGPU.xs[innerInnerAnchorHitIndex];
     float diffY = hitsInGPU.ys[outerInnerAnchorHitIndex] - hitsInGPU.ys[innerInnerAnchorHitIndex] ;
@@ -439,8 +439,8 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
 
     runDeltaBetaIterations(betaIn, betaOut, betaAv, pt_beta, rt_InSeg, sdOut_dr, drt_tl_axis, lIn);
 
-     const float betaInMMSF = (fabsf(betaInRHmin + betaInRHmax) > 0) ? (2.f * betaIn / fabsf(betaInRHmin + betaInRHmax)) : 0.; //mean value of min,max is the old betaIn
-    const float betaOutMMSF = (fabsf(betaOutRHmin + betaOutRHmax) > 0) ? (2.f * betaOut / fabsf(betaOutRHmin + betaOutRHmax)) : 0.;
+     const float betaInMMSF = (fabsf(betaInRHmin + betaInRHmax) > 0) ? (2.f * betaIn / fabsf(betaInRHmin + betaInRHmax)) : 0.f; //mean value of min,max is the old betaIn
+    const float betaOutMMSF = (fabsf(betaOutRHmin + betaOutRHmax) > 0) ? (2.f * betaOut / fabsf(betaOutRHmin + betaOutRHmax)) : 0.f;
     betaInRHmin *= betaInMMSF;
     betaInRHmax *= betaInMMSF;
     betaOutRHmin *= betaOutMMSF;
@@ -483,7 +483,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
     float pt_betaOut = drt_tl_axis * k2Rinv1GeVf / sinf(betaOut);
     float dBetaRes = 0.02f/fminf(sdOut_d,drt_InSeg);
     float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
-            + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
+            + 0.25f * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
 
     float dBeta = betaIn - betaOut;
     deltaBetaCut = sqrtf(dBetaCut2);    
@@ -569,7 +569,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
     const float zGeom1_another = pixelPSZpitch; //What's this?
     kZ = (z_OutLo - z_InLo) / dzSDIn;
     float drtErr = zGeom1_another * zGeom1_another * drtSDIn * drtSDIn / dzSDIn / dzSDIn * (1.f - 2.f * kZ + 2.f * kZ * kZ); //Notes:122316
-    const float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2 * (rt_OutLo - rt_InLo) / 50.f) * sqrtf(rIn / rt_InLo);
+    const float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2f * (rt_OutLo - rt_InLo) / 50.f) * sqrtf(rIn / rt_InLo);
     const float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f; //will need a better guess than x4?
     drtErr += sdlMuls * sdlMuls * multDzDr * multDzDr / 3.f * coshEta * coshEta; //sloppy: relative muls is 1/3 of total muls
     drtErr = sqrtf(drtErr);
@@ -735,7 +735,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
     float pt_betaOut = dr * k2Rinv1GeVf / sinf(betaOut);
     float dBetaRes = 0.02f/fminf(sdOut_d,sdIn_d);
     float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
-            + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
+            + 0.25f * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
     float dBeta = betaIn - betaOut;
     deltaBetaCut = sqrtf(dBetaCut2);
     //Cut #7: Cut on dBet
@@ -823,7 +823,7 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
     float multDzDr = dzOutInAbs * coshEta / (coshEta * coshEta - 1.f);
 
     kZ = (z_OutLo - z_InLo) / dzSDIn;
-    float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2 * (rt_OutLo - rt_InLo) / 50.f);
+    float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2f * (rt_OutLo - rt_InLo) / 50.f);
 
     float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f; //will need a better guess than x4?
 
@@ -979,7 +979,7 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
     float pt_betaOut = dr * k2Rinv1GeVf / sinf(betaOut);
     float dBetaRes = 0.02f/fminf(sdOut_d,sdIn_d);
     float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
-            + 0.25 * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
+            + 0.25f * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)) * (fabsf(betaInRHmin - betaInRHmax) + fabsf(betaOutRHmin - betaOutRHmax)));
     float dBeta = betaIn - betaOut;
     //Cut #7: Cut on dBeta
     deltaBetaCut = sqrtf(dBetaCut2);
@@ -1011,14 +1011,17 @@ __device__ void SDL::runDeltaBetaIterations(float& betaIn, float& betaOut, float
         betaAv = 0.5f * (betaInUpd + betaOutUpd);
 
         //1st update
-        pt_beta = dr * k2Rinv1GeVf / sin(betaAv); //get a better pt estimate
+        //pt_beta = dr * k2Rinv1GeVf / sinf(betaAv); //get a better pt estimate
+        const float pt_beta_inv = 1.f/fabsf(dr * k2Rinv1GeVf / sinf(betaAv)); //get a better pt estimate
 
-        betaIn  += copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
-        betaOut += copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaOut); //FIXME: need a faster version
+        //betaIn  += copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
+        //betaOut += copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaOut); //FIXME: need a faster version
+        betaIn  += copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf *pt_beta_inv, sinAlphaMax)), betaIn); //FIXME: need a faster version
+        betaOut += copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf *pt_beta_inv, sinAlphaMax)), betaOut); //FIXME: need a faster version
         //update the av and pt
         betaAv = 0.5f * (betaIn + betaOut);
         //2nd update
-        pt_beta = dr * k2Rinv1GeVf / sin(betaAv); //get a better pt estimate
+        pt_beta = dr * k2Rinv1GeVf / sinf(betaAv); //get a better pt estimate
 
         //might need these for future iterations
 
@@ -1045,12 +1048,12 @@ __device__ void SDL::runDeltaBetaIterations(float& betaIn, float& betaOut, float
 
 
     }
-    else if (lIn < 11 && fabsf(betaOut) < 0.2 * fabsf(betaIn) && fabsf(pt_beta) < 12.f * pt_betaMax)   //use betaIn sign as ref
+    else if (lIn < 11 && fabsf(betaOut) < 0.2f * fabsf(betaIn) && fabsf(pt_beta) < 12.f * pt_betaMax)   //use betaIn sign as ref
     {
    
-        const float pt_betaIn = dr * k2Rinv1GeVf / sin(betaIn);
-        const float betaInUpd  = betaIn + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabs(pt_betaIn), sinAlphaMax)), betaIn); //FIXME: need a faster version
-        const float betaOutUpd = betaOut + copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabs(pt_betaIn), sinAlphaMax)), betaIn); //FIXME: need a faster version
+        const float pt_betaIn = dr * k2Rinv1GeVf / sinf(betaIn);
+        const float betaInUpd  = betaIn + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_betaIn), sinAlphaMax)), betaIn); //FIXME: need a faster version
+        const float betaOutUpd = betaOut + copysignf(asinf(fminf(sdOut_dr * k2Rinv1GeVf / fabsf(pt_betaIn), sinAlphaMax)), betaIn); //FIXME: need a faster version
         betaAv = (fabsf(betaOut) > 0.2f * fabsf(betaIn)) ? (0.5f * (betaInUpd + betaOutUpd)) : betaInUpd;
 
         //1st update
