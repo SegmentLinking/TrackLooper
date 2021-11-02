@@ -114,7 +114,7 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
     //counters
     cudaMalloc(&hitsInGPU.nHits, sizeof(unsigned int));
 #endif
-    cudaMemset(hitsInGPU.nHits,0,sizeof(unsigned int));
+    cudaMemsetAsync(hitsInGPU.nHits,0,sizeof(unsigned int));
 }
 
 __global__ void SDL::addHitToMemoryGPU(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex,float phis)
@@ -178,17 +178,17 @@ void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, f
     hitsInGPU.moduleIndices[idx] = moduleIndex;
 
     unsigned int nModules;
-    cudaMemcpy(&nModules,modulesInGPU.nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(&nModules,modulesInGPU.nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
 
     ModuleType* module_moduleType;
     cudaMallocHost(&module_moduleType, nModules* sizeof(ModuleType));
-    cudaMemcpy(module_moduleType,modulesInGPU.moduleType,nModules*sizeof(ModuleType),cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(module_moduleType,modulesInGPU.moduleType,nModules*sizeof(ModuleType),cudaMemcpyDeviceToHost);
     short* module_subdets;
     cudaMallocHost(&module_subdets, nModules* sizeof(short));
-    cudaMemcpy(module_subdets,modulesInGPU.subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost);
     int* module_hitRanges;
     cudaMallocHost(&module_hitRanges, nModules* 2*sizeof(int));
-    cudaMemcpy(module_hitRanges,modulesInGPU.hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(module_hitRanges,modulesInGPU.hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost);
 
     if(module_subdets[moduleIndex] == Endcap and module_moduleType[moduleIndex] == TwoS)
     {
@@ -220,7 +220,7 @@ void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, f
     }
     //always update the end index
     module_hitRanges[moduleIndex * 2 + 1] = idx;
-    cudaMemcpy(modulesInGPU.hitRanges,module_hitRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice);
+    cudaMemcpyAsync(modulesInGPU.hitRanges,module_hitRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice);
     cudaFreeHost(module_moduleType);
     cudaFreeHost(module_subdets);
     cudaFreeHost(module_hitRanges);

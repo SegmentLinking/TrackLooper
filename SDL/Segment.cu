@@ -83,8 +83,8 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
 //    {
 //        segmentsInGPU.nSegments[i] = 0;
 //    }
-    cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
-    cudaMemset(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool));
+    cudaMemsetAsync(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
+    cudaMemsetAsync(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool));
 
 }
 void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments)
@@ -124,8 +124,8 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     cudaMalloc(&segmentsInGPU.partOfPT5, maxPixelSegments * sizeof(bool));
 
 #endif
-    cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
-    cudaMemset(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool));
+    cudaMemsetAsync(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
+    cudaMemsetAsync(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool));
 
     segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 2;
     segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 3;

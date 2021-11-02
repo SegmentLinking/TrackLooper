@@ -430,8 +430,8 @@ void run_sdl()
 //                );
 //            timing_MD = runMiniDoublet(event2);
 
-    #pragma omp parallel for num_threads(2)// private(event)
-    for(int evt=0; evt < 2/*out_trkX.size()*/; evt++){
+    #pragma omp parallel for num_threads(4)// private(event)
+    for(int evt=0; evt < out_trkX.size(); evt++){
             std::cout << "Running Event number = " << evt << std::endl;
             if (evt==43) continue;
             if (evt==106) continue;
@@ -465,55 +465,54 @@ void run_sdl()
                 );
             //float timing_MD = runMiniDoublet(event);
             float timing_MD = runMiniDoublet(events.at(evt));
-}
 
-//            // Run Segment
-//            float timing_LS = runSegment(events.at(evt));
-//
-//            // Run T3
-//            float timing_T3 = runT3(events.at(evt));
-//
-//            float timing_T5 = runQuintuplet(events.at(evt));
-//            float timing_pLS = runPixelLineSegment(events.at(evt));
-//            float timing_pT5 = runPixelQuintuplet(events.at(evt));
-//
-//            //Run pT3
-//            float timing_pT3 = runpT3(events.at(evt));
-//
-//            // Run TC
-//            float timing_TC = runTrackCandidate(events.at(evt));
-//
-//            timing_information.push_back({ timing_input_loading,
-//                    timing_MD,
-//                    timing_LS,
-//                    timing_T3,
-//                    timing_TC,
-//                    timing_T5,
-//                    timing_pT3,
-//                    timing_pT5,
-//                    timing_pLS
-//
-//                    });
-//
-//            if (ana.verbose == 4)
-//            {
-//                printAllObjects(events.at(evt));
-//            }
-//
-//            if (ana.verbose == 5)
-//            {
-//                debugPrintOutlierMultiplicities(events.at(evt));
-//            }
-//
-//            if (ana.do_write_ntuple)
-//            {
-//                if (not ana.do_cut_value_ntuple)
-//                {
-//                    fillOutputBranches(events.at(evt));
-//                }
-//            }
-//
-//        }
+            // Run Segment
+            float timing_LS = runSegment(events.at(evt));
+
+           // // Run T3
+           // float timing_T3 = runT3(events.at(evt));
+
+           // float timing_T5 = runQuintuplet(events.at(evt));
+           // float timing_pLS = runPixelLineSegment(events.at(evt));
+           // float timing_pT5 = runPixelQuintuplet(events.at(evt));
+
+           // //Run pT3
+           // float timing_pT3 = runpT3(events.at(evt));
+
+           // // Run TC
+           // float timing_TC = runTrackCandidate(events.at(evt));
+
+    //        timing_information.push_back({ timing_input_loading,
+    //                timing_MD,
+    //                timing_LS,
+    //                timing_T3,
+    //                timing_TC,
+    //                timing_T5,
+    //                timing_pT3,
+    //                timing_pT5,
+    //                timing_pLS
+
+    //                });
+
+            if (ana.verbose == 4)
+            {
+                printAllObjects(events.at(evt));
+            }
+
+            if (ana.verbose == 5)
+            {
+                debugPrintOutlierMultiplicities(events.at(evt));
+            }
+
+            if (ana.do_write_ntuple)
+            {
+                if (not ana.do_cut_value_ntuple)
+                {
+                    fillOutputBranches(events.at(evt));
+                }
+            }
+
+        }
         //else
         //{
         //    //*******************************************************
@@ -586,7 +585,7 @@ void run_sdl()
 
     //}
 
-    printTimingInformation(timing_information);
+    //printTimingInformation(timing_information);
 
     if (not ana.do_run_cpu)
         SDL::cleanModules();

@@ -54,7 +54,7 @@ void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int m
 //    {
 //        mdsInGPU.nMDs[i] = 0;
 //    }
-    cudaMemset(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int));
+    cudaMemsetAsync(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int));
 }
 
 
@@ -78,7 +78,7 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     cudaMalloc(&mdsInGPU.dphichanges, nMemoryLocations *9* sizeof(float));
     cudaMalloc(&mdsInGPU.nMDs, nModules * sizeof(unsigned int)); 
 #endif
-    cudaMemset(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int));
+    cudaMemsetAsync(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int));
     mdsInGPU.moduleIndices = mdsInGPU.hitIndices + nMemoryLocations * 2 ;
     mdsInGPU.dzs  = mdsInGPU.dphichanges + nMemoryLocations;
     mdsInGPU.dphis  = mdsInGPU.dphichanges + 2*nMemoryLocations;
