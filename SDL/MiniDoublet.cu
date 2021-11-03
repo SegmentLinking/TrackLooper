@@ -19,11 +19,11 @@ CUDA_CONST_VAR float SDL::deltaZLum = 15.0;
 CUDA_CONST_VAR float SDL::pixelPSZpitch = 0.15;
 CUDA_CONST_VAR float SDL::strip2SZpitch = 5.0;
 
-void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, unsigned int nModules, unsigned int maxPixelMDs)
+void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, unsigned int nModules, unsigned int maxPixelMDs,cudaStream_t stream)
 {
     unsigned int nMemoryLocations = maxMDsPerModule * (nModules - 1) + maxPixelMDs;
 #ifdef CACHE_ALLOC
-    cudaStream_t stream=0;
+   // cudaStream_t stream=0;
     mdsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * 3 * sizeof(unsigned int), stream);
     mdsInGPU.pixelModuleFlag = (short*)cms::cuda::allocate_managed(nMemoryLocations*sizeof(short),stream);
     mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_managed(nModules*sizeof(unsigned int),stream);
@@ -54,17 +54,17 @@ void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int m
 //    {
 //        mdsInGPU.nMDs[i] = 0;
 //    }
-    cudaMemsetAsync(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int));
+    cudaMemsetAsync(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int),stream);
 }
 
 
 //FIXME:Add memory locations for the pixel MDs here!
-void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, unsigned int nModules, unsigned int maxPixelMDs)
+void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, unsigned int nModules, unsigned int maxPixelMDs,cudaStream_t stream)
 {
 
     unsigned int nMemoryLocations = maxMDsPerModule * (nModules - 1) + maxPixelMDs;
 #ifdef CACHE_ALLOC
-    cudaStream_t stream=0;
+//    cudaStream_t stream=0;
     int dev;
     cudaGetDevice(&dev);
     mdsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_device(dev,nMemoryLocations * 3 * sizeof(unsigned int), stream);
@@ -78,7 +78,7 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     cudaMalloc(&mdsInGPU.dphichanges, nMemoryLocations *9* sizeof(float));
     cudaMalloc(&mdsInGPU.nMDs, nModules * sizeof(unsigned int)); 
 #endif
-    cudaMemsetAsync(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int));
+    cudaMemsetAsync(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int),stream);
     mdsInGPU.moduleIndices = mdsInGPU.hitIndices + nMemoryLocations * 2 ;
     mdsInGPU.dzs  = mdsInGPU.dphichanges + nMemoryLocations;
     mdsInGPU.dphis  = mdsInGPU.dphichanges + 2*nMemoryLocations;

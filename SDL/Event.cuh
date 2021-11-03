@@ -37,6 +37,7 @@ namespace SDL
     class Event
     {
     private:
+        cudaStream_t stream;
         std::array<unsigned int, 6> n_hits_by_layer_barrel_;
         std::array<unsigned int, 5> n_hits_by_layer_endcap_;
         std::array<unsigned int, 6> n_minidoublets_by_layer_barrel_;

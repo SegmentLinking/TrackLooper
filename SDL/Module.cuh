@@ -14,6 +14,7 @@
 #include "TiltedGeometry.h"
 #include "EndcapGeometry.h"
 #include "ModuleConnectionMap.h"
+#include "allocate.h"
 
 
 namespace SDL
@@ -144,20 +145,20 @@ namespace SDL
 
 
     //functions
-    void loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModules,struct pixelMap& pixelMapping, const char* moduleMetaDataFilePath="data/centroid.txt");
+    void loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModules,struct pixelMap& pixelMapping,cudaStream_t stream, const char* moduleMetaDataFilePath="data/centroid.txt");
 
-    void createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules);
-    void createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules, bool* isLower);
-    void createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int nModules);
-    void createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned int nModules);
+    void createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules,cudaStream_t stream);
+    void createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules, bool* isLower,cudaStream_t stream);
+    void createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int nModules,cudaStream_t stream);
+    void createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned int nModules,cudaStream_t stream);
     void freeModules(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
     void freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
-    void fillPixelMap(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
-    void fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules);
+    void fillPixelMap(struct modules& modulesInGPU,struct pixelMap& pixelMapping,cudaStream_t stream);
+    void fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);
     void fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nModules);
     void setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side);
-    void resetObjectRanges(struct modules& modulesInGPU, unsigned int nModules);
-    void resetObjectRangesExplicit(struct modules& modulesInGPU, unsigned int nModules);
+    void resetObjectRanges(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);
+    //void resetObjectRangesExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);
 }
 #endif
 

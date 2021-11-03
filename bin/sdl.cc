@@ -430,7 +430,7 @@ void run_sdl()
 //                );
 //            timing_MD = runMiniDoublet(event2);
 
-    #pragma omp parallel for num_threads(4)// private(event)
+    #pragma omp parallel for num_threads(2)// private(event)
     for(int evt=0; evt < out_trkX.size(); evt++){
             std::cout << "Running Event number = " << evt << std::endl;
             if (evt==43) continue;
