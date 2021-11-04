@@ -8,10 +8,10 @@
 #include "allocate.h"
 //#endif
 
-void SDL::createPixelTrackletsInUnifiedMemory(struct pixelTracklets& pixelTrackletsInGPU, unsigned int maxPixelTracklets)
+void SDL::createPixelTrackletsInUnifiedMemory(struct pixelTracklets& pixelTrackletsInGPU, unsigned int maxPixelTracklets,cudaStream_t stream)
 {
 #ifdef CACHE_ALLOC
-    cudaStream_t stream =0;
+//    cudaStream_t stream =0;
     pixelTrackletsInGPU.segmentIndices = (unsigned int*)cms::cuda::allocate_managed(maxPixelTracklets * sizeof(unsigned int) * 2,stream);
     pixelTrackletsInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_managed(maxPixelTracklets * sizeof(unsigned int) * 2,stream);//split up to avoid runtime error of exceeding max byte allocation at a time
     pixelTrackletsInGPU.nPixelTracklets = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
@@ -45,13 +45,13 @@ void SDL::createPixelTrackletsInUnifiedMemory(struct pixelTracklets& pixelTrackl
     pixelTrackletsInGPU.betaOut = pixelTrackletsInGPU.betaIn + maxPixelTracklets;
     pixelTrackletsInGPU.pt_beta = pixelTrackletsInGPU.betaIn + maxPixelTracklets * 2;
 
-    cudaMemset(pixelTrackletsInGPU.nPixelTracklets, 0, sizeof(unsigned int));
+    cudaMemsetAsync(pixelTrackletsInGPU.nPixelTracklets, 0, sizeof(unsigned int),stream);
 }
 
-void SDL::createPixelTrackletsInExplicitMemory(struct pixelTracklets& pixelTrackletsInGPU, unsigned int maxPixelTracklets)
+void SDL::createPixelTrackletsInExplicitMemory(struct pixelTracklets& pixelTrackletsInGPU, unsigned int maxPixelTracklets,cudaStream_t stream)
 {
 #ifdef CACHE_ALLOC
-    cudaStream_t stream = 0;
+//    cudaStream_t stream = 0;
     int dev;
     cudaGetDevice(&dev);
 
@@ -74,7 +74,7 @@ void SDL::createPixelTrackletsInExplicitMemory(struct pixelTracklets& pixelTrack
     pixelTrackletsInGPU.betaOut = pixelTrackletsInGPU.betaIn + maxPixelTracklets;
     pixelTrackletsInGPU.pt_beta = pixelTrackletsInGPU.betaIn + maxPixelTracklets * 2;
 
-    cudaMemset(pixelTrackletsInGPU.nPixelTracklets, 0, sizeof(unsigned int));
+    cudaMemsetAsync(pixelTrackletsInGPU.nPixelTracklets, 0, sizeof(unsigned int),stream);
 }
 
 #ifdef CUT_VALUE_DEBUG

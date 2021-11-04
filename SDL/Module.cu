@@ -76,7 +76,7 @@ void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned in
 {
     /* modules stucture object will be created in Event.cu*/
 #ifdef CACHE_ALLOC
-    cudaStream_t stream=0;
+    //cudaStream_t stream=0;
     int dev;
     cudaGetDevice(&dev);
     modulesInGPU.detIds =            (unsigned int*)cms::cuda::allocate_device(dev,nModules * sizeof(unsigned int),stream);
@@ -288,7 +288,7 @@ void SDL::createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsign
     lowerModuleIndices[nLowerModules] = (*detIdToIndex)[1];
     reverseLookupLowerModuleIndices[(*detIdToIndex)[1]] = nLowerModules;
     #ifdef CACHE_ALLOC
-    cudaStream_t stream =0;
+    //cudaStream_t stream =0;
     int dev;
     cudaGetDevice(&dev);
     modulesInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_device(dev,(nLowerModules + 1) * sizeof(unsigned int),stream);
@@ -659,7 +659,7 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
     unsigned int* connectedPixels;
     cudaMallocHost(&connectedPixels,(totalSizes+totalSizes_pos+totalSizes_neg) * sizeof(unsigned int));
 #ifdef CACHE_ALLOC
-    cudaStream_t stream=0;
+    //cudaStream_t stream=0;
 #ifdef Explicit_Module
     int dev;
     cudaGetDevice(&dev);

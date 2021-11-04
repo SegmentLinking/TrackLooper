@@ -375,8 +375,8 @@ void run_sdl()
                 out_isQuad_vec
                 );
                 //SDL::Event* event = new SDL::Event();
-                SDL::Event event;// = new SDL::Event();
-                events.push_back(event);
+                //SDL::Event event;// = new SDL::Event();
+                //events.push_back(event);
                 //timing_input_loading = addInputsToLineSegmentTrackingUsingUnifiedMemory(event);
             //}else{
             //    timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
@@ -429,8 +429,12 @@ void run_sdl()
 //                out_isQuad_vec.at(1)
 //                );
 //            timing_MD = runMiniDoublet(event2);
-
-    #pragma omp parallel for num_threads(2)// private(event)
+    cudaStream_t streams[4];
+    cudaStreamCreate(&streams[0]);
+    cudaStreamCreate(&streams[1]);
+    cudaStreamCreate(&streams[2]);
+    cudaStreamCreate(&streams[3]);
+    //#pragma omp parallel for num_threads(1)// private(event)
     for(int evt=0; evt < out_trkX.size(); evt++){
             std::cout << "Running Event number = " << evt << std::endl;
             if (evt==43) continue;
@@ -441,9 +445,10 @@ void run_sdl()
             float timing_input_loading = 0;
             //SDL::Event event();
             //SDL::Event();
-            //SDL::Event event;
-                timing_input_loading = addInputsToEventPreLoad(events.at(evt),false,out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
-            //    timing_input_loading = addInputsToEventPreLoad(event,false,out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
+            //SDL::Event event(streams[omp_get_thread_num()]);
+            SDL::Event event(streams[0]);
+            //    timing_input_loading = addInputsToEventPreLoad(events.at(evt),false,out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
+                timing_input_loading = addInputsToEventPreLoad(event,false,out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
                 out_hitId.at(evt),
                 out_hitIdxs.at(evt),
                 out_hitIndices_vec0.at(evt),
@@ -463,14 +468,19 @@ void run_sdl()
                 out_pixelType_vec.at(evt),
                 out_isQuad_vec.at(evt)
                 );
-            //float timing_MD = runMiniDoublet(event);
-            float timing_MD = runMiniDoublet(events.at(evt));
+            float timing_MD = runMiniDoublet(event,evt);
+            //float timing_MD = runMiniDoublet(events.at(evt));
 
             // Run Segment
-            float timing_LS = runSegment(events.at(evt));
+            //float timing_LS = runSegment(events.at(evt));
+            float timing_LS = runSegment(event);
 
            // // Run T3
            // float timing_T3 = runT3(events.at(evt));
+            float timing_T3 = runT3(event);
+            float timing_T5 = runQuintuplet(event);
+            float timing_pLS = runPixelLineSegment(event);
+            float timing_pT5 = runPixelQuintuplet(event);
 
            // float timing_T5 = runQuintuplet(events.at(evt));
            // float timing_pLS = runPixelLineSegment(events.at(evt));
@@ -478,9 +488,11 @@ void run_sdl()
 
            // //Run pT3
            // float timing_pT3 = runpT3(events.at(evt));
+            float timing_pT3 = runpT3(event);
 
            // // Run TC
            // float timing_TC = runTrackCandidate(events.at(evt));
+            float timing_TC = runTrackCandidate(event);
 
     //        timing_information.push_back({ timing_input_loading,
     //                timing_MD,
@@ -496,19 +508,19 @@ void run_sdl()
 
             if (ana.verbose == 4)
             {
-                printAllObjects(events.at(evt));
+                printAllObjects(event);
             }
 
             if (ana.verbose == 5)
             {
-                debugPrintOutlierMultiplicities(events.at(evt));
+                debugPrintOutlierMultiplicities(event);
             }
 
             if (ana.do_write_ntuple)
             {
                 if (not ana.do_cut_value_ntuple)
                 {
-                    fillOutputBranches(events.at(evt));
+                    fillOutputBranches(event);
                 }
             }
 

@@ -77,7 +77,7 @@ namespace SDL
         int* superbinCPU;
         int* pixelTypeCPU;
     public:
-        Event();
+        Event(cudaStream_t estream);
         ~Event();
 
         void addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple); //call the appropriate hit function, then increment the counter here

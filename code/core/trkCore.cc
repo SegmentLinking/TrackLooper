@@ -583,15 +583,15 @@ float addOuterTrackerSimHitsNotFromPVOnly(SDL::CPU::Event& event)
     return hit_loading_elapsed;
 }
 
-float runMiniDoublet(SDL::Event& event)
+float runMiniDoublet(SDL::Event& event, int evt)
 {
     TStopwatch my_timer;
-    if (ana.verbose >= 2) std::cout << "Reco Mini-Doublet start" << std::endl;
+    if (ana.verbose >= 2) std::cout << "Reco Mini-Doublet start " << evt<< std::endl;
     my_timer.Start();
     event.createMiniDoublets();
     float md_elapsed = my_timer.RealTime();
 
-    if (ana.verbose >= 2) std::cout << "Reco Mini-doublet processing time: " << md_elapsed << " secs" << std::endl;
+    if (ana.verbose >= 2) std::cout << evt<< " Reco Mini-doublet processing time: " << md_elapsed << " secs" << std::endl;
 
     if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced: " << event.getNumberOfMiniDoublets() << std::endl;
     if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 1: " << event.getNumberOfMiniDoubletsByLayerBarrel(0) << std::endl;

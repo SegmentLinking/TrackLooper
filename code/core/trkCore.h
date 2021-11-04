@@ -39,7 +39,7 @@ bool hasAll12HitsWithNBarrel(unsigned int isimtrk, int nbarrel);
 bool hasAll12HitsWithNBarrelUsingModuleMap(unsigned int isimtrk, int nbarrel, bool usesimhits=false);
 bool checkModuleConnectionsAreGood(std::array<std::vector<unsigned int>, 6>& layers_good_paired_modules);
 bool goodEvent();
-float runMiniDoublet(SDL::Event& event);
+float runMiniDoublet(SDL::Event& event, int evt);
 float runSegment(SDL::Event& event);
 float runT4(SDL::Event& event);
 float runT4x(SDL::Event& event);
