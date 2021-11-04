@@ -430,10 +430,10 @@ void run_sdl()
 //                );
 //            timing_MD = runMiniDoublet(event2);
     cudaStream_t streams[4];
-    cudaStreamCreate(&streams[0]);
-    cudaStreamCreate(&streams[1]);
-    cudaStreamCreate(&streams[2]);
-    cudaStreamCreate(&streams[3]);
+    cudaStreamCreateWithFlags(&streams[0],cudaStreamNonBlocking);
+    cudaStreamCreateWithFlags(&streams[1],cudaStreamNonBlocking);
+    cudaStreamCreateWithFlags(&streams[2],cudaStreamNonBlocking);
+    cudaStreamCreateWithFlags(&streams[3],cudaStreamNonBlocking);
     //#pragma omp parallel for num_threads(1)// private(event)
     for(int evt=0; evt < out_trkX.size(); evt++){
             std::cout << "Running Event number = " << evt << std::endl;
@@ -479,20 +479,20 @@ void run_sdl()
            // float timing_T3 = runT3(events.at(evt));
             float timing_T3 = runT3(event);
             float timing_T5 = runQuintuplet(event);
-            float timing_pLS = runPixelLineSegment(event);
-            float timing_pT5 = runPixelQuintuplet(event);
-
-           // float timing_T5 = runQuintuplet(events.at(evt));
-           // float timing_pLS = runPixelLineSegment(events.at(evt));
-           // float timing_pT5 = runPixelQuintuplet(events.at(evt));
-
-           // //Run pT3
-           // float timing_pT3 = runpT3(events.at(evt));
-            float timing_pT3 = runpT3(event);
-
-           // // Run TC
-           // float timing_TC = runTrackCandidate(events.at(evt));
-            float timing_TC = runTrackCandidate(event);
+//            float timing_pLS = runPixelLineSegment(event);
+//            float timing_pT5 = runPixelQuintuplet(event);
+//
+//           // float timing_T5 = runQuintuplet(events.at(evt));
+//           // float timing_pLS = runPixelLineSegment(events.at(evt));
+//           // float timing_pT5 = runPixelQuintuplet(events.at(evt));
+//
+//           // //Run pT3
+//           // float timing_pT3 = runpT3(events.at(evt));
+//            float timing_pT3 = runpT3(event);
+//
+//           // // Run TC
+//           // float timing_TC = runTrackCandidate(events.at(evt));
+//            float timing_TC = runTrackCandidate(event);
 
     //        timing_information.push_back({ timing_input_loading,
     //                timing_MD,

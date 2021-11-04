@@ -134,6 +134,7 @@ void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,s
     unsigned int* nTriplets;
     cudaMallocHost(&nTriplets, nLowerModules * sizeof(unsigned int));
     cudaMemcpyAsync(nTriplets, tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+cudaStreamSynchronize(stream);
 
     //start filling
     for(unsigned int i = 0; i < nLowerModules; i++)
@@ -152,6 +153,7 @@ void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,s
     }
     cudaMemcpyAsync(modulesInGPU.quintupletModuleIndices,module_quintupletModuleIndices,nLowerModules*sizeof(int),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.nEligibleT5Modules,&nEligibleModules,sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
+cudaStreamSynchronize(stream);
     cudaFreeHost(module_subdets);
     cudaFreeHost(module_lowerModuleIndices);
     cudaFreeHost(module_layers);
