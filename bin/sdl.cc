@@ -479,32 +479,32 @@ void run_sdl()
            // float timing_T3 = runT3(events.at(evt));
             float timing_T3 = runT3(event);
             float timing_T5 = runQuintuplet(event);
-//            float timing_pLS = runPixelLineSegment(event);
-//            float timing_pT5 = runPixelQuintuplet(event);
-//
-//           // float timing_T5 = runQuintuplet(events.at(evt));
-//           // float timing_pLS = runPixelLineSegment(events.at(evt));
-//           // float timing_pT5 = runPixelQuintuplet(events.at(evt));
-//
-//           // //Run pT3
-//           // float timing_pT3 = runpT3(events.at(evt));
-//            float timing_pT3 = runpT3(event);
-//
-//           // // Run TC
-//           // float timing_TC = runTrackCandidate(events.at(evt));
-//            float timing_TC = runTrackCandidate(event);
+            float timing_pLS = runPixelLineSegment(event);
+            float timing_pT5 = runPixelQuintuplet(event);
 
-    //        timing_information.push_back({ timing_input_loading,
-    //                timing_MD,
-    //                timing_LS,
-    //                timing_T3,
-    //                timing_TC,
-    //                timing_T5,
-    //                timing_pT3,
-    //                timing_pT5,
-    //                timing_pLS
+           // float timing_T5 = runQuintuplet(events.at(evt));
+           // float timing_pLS = runPixelLineSegment(events.at(evt));
+           // float timing_pT5 = runPixelQuintuplet(events.at(evt));
 
-    //                });
+           // //Run pT3
+           // float timing_pT3 = runpT3(events.at(evt));
+            float timing_pT3 = runpT3(event);
+
+           // // Run TC
+           // float timing_TC = runTrackCandidate(events.at(evt));
+            float timing_TC = runTrackCandidate(event);
+
+            timing_information.push_back({ timing_input_loading,
+                    timing_MD,
+                    timing_LS,
+                    timing_T3,
+                    timing_TC,
+                    timing_T5,
+                    timing_pT3,
+                    timing_pT5,
+                    timing_pLS
+
+                    });
 
             if (ana.verbose == 4)
             {
@@ -597,7 +597,7 @@ void run_sdl()
 
     //}
 
-    //printTimingInformation(timing_information);
+    printTimingInformation(timing_information);
 
     if (not ana.do_run_cpu)
         SDL::cleanModules();
