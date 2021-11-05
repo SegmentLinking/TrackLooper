@@ -44,16 +44,16 @@ void SDL::pixelTriplets::freeMemoryCache()
     cms::cuda::free_managed(partOfPT5);
 #endif
 }
-void SDL::pixelTriplets::freeMemory()
+void SDL::pixelTriplets::freeMemory(cudaStream_t stream)
 {
-    cudaFree(pixelSegmentIndices);
-    cudaFree(tripletIndices);
-    cudaFree(nPixelTriplets);
-    cudaFree(pixelRadius);
-    cudaFree(tripletRadius);
-    cudaFree(pt);
-    cudaFree(isDup);
-    cudaFree(partOfPT5);
+    cudaFreeAsync(pixelSegmentIndices,stream);
+    cudaFreeAsync(tripletIndices,stream);
+    cudaFreeAsync(nPixelTriplets,stream);
+    cudaFreeAsync(pixelRadius,stream);
+    cudaFreeAsync(tripletRadius,stream);
+    cudaFreeAsync(pt,stream);
+    cudaFreeAsync(isDup,stream);
+    cudaFreeAsync(partOfPT5,stream);
 #ifdef CUT_VALUE_DEBUG
     cudaFree(pixelRadiusError);
     cudaFree(rPhiChiSquared);
@@ -119,22 +119,23 @@ void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTriplet
     pixelTripletsInGPU.partOfPT5           =(bool*)cms::cuda::allocate_device(dev,maxPixelTriplets * sizeof(bool),stream);
 
 #else
-    cudaMalloc(&pixelTripletsInGPU.pixelSegmentIndices, maxPixelTriplets * sizeof(unsigned int));
-    cudaMalloc(&pixelTripletsInGPU.tripletIndices, maxPixelTriplets * sizeof(unsigned int));
-    cudaMalloc(&pixelTripletsInGPU.nPixelTriplets, sizeof(unsigned int));
-    cudaMalloc(&pixelTripletsInGPU.pixelRadius, maxPixelTriplets * sizeof(float));
-    cudaMalloc(&pixelTripletsInGPU.tripletRadius, maxPixelTriplets * sizeof(float));
-    cudaMalloc(&pixelTripletsInGPU.pt, maxPixelTriplets * 6*sizeof(float));
-    cudaMalloc(&pixelTripletsInGPU.isDup, maxPixelTriplets * sizeof(bool));
-    cudaMalloc(&pixelTripletsInGPU.partOfPT5, maxPixelTriplets * sizeof(bool));
+    cudaMallocAsync(&pixelTripletsInGPU.pixelSegmentIndices, maxPixelTriplets * sizeof(unsigned int),stream);
+    cudaMallocAsync(&pixelTripletsInGPU.tripletIndices, maxPixelTriplets * sizeof(unsigned int),stream);
+    cudaMallocAsync(&pixelTripletsInGPU.nPixelTriplets, sizeof(unsigned int),stream);
+    cudaMallocAsync(&pixelTripletsInGPU.pixelRadius, maxPixelTriplets * sizeof(float),stream);
+    cudaMallocAsync(&pixelTripletsInGPU.tripletRadius, maxPixelTriplets * sizeof(float),stream);
+    cudaMallocAsync(&pixelTripletsInGPU.pt, maxPixelTriplets * 6*sizeof(float),stream);
+    cudaMallocAsync(&pixelTripletsInGPU.isDup, maxPixelTriplets * sizeof(bool),stream);
+    cudaMallocAsync(&pixelTripletsInGPU.partOfPT5, maxPixelTriplets * sizeof(bool),stream);
 #endif
 
+    cudaMemsetAsync(pixelTripletsInGPU.nPixelTriplets, 0, sizeof(unsigned int),stream);
+cudaStreamSynchronize(stream);
     pixelTripletsInGPU.eta = pixelTripletsInGPU.pt + maxPixelTriplets;
     pixelTripletsInGPU.phi = pixelTripletsInGPU.pt + maxPixelTriplets * 2;
     pixelTripletsInGPU.eta_pix = pixelTripletsInGPU.pt + maxPixelTriplets *3;
     pixelTripletsInGPU.phi_pix = pixelTripletsInGPU.pt + maxPixelTriplets * 4;
     pixelTripletsInGPU.score = pixelTripletsInGPU.pt + maxPixelTriplets * 5;
-    cudaMemsetAsync(pixelTripletsInGPU.nPixelTriplets, 0, sizeof(unsigned int),stream);
 
 }
 

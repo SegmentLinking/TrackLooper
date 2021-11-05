@@ -439,9 +439,9 @@ void run_sdl()
     cudaStreamCreate(&streams[2]);
     cudaStreamCreate(&streams[3]);
     //int evtx;
-    #pragma omp parallel for num_threads(4) // private(evt)
+    #pragma omp parallel for num_threads(1) // private(evt)
     for(int evtx=0; evtx < out_trkX.size(); evtx++){
-            int evt =0;
+            int evt =evtx;
             //if (omp_get_thread_num() %2 ==0){continue;}
             cudaSetDevice(0);
             std::cout << "Running Event number = " << evtx << " " << omp_get_thread_num() << std::endl;
@@ -456,7 +456,7 @@ void run_sdl()
             //SDL::Event event();
             //SDL::Event();
             SDL::Event event(streams[omp_get_thread_num()]);
-            #pragma omp critical
+    //        #pragma omp critical
             {
             //#pragma omp barrier
             //SDL::Event event(streams[0]);
@@ -489,25 +489,25 @@ void run_sdl()
             // Run Segment
             //float timing_LS = runSegment(events.at(evt));
             float timing_LS = runSegment(event);
-//
-//           // // Run T3
-//           // float timing_T3 = runT3(events.at(evt));
-//            float timing_T3 = runT3(event);
-//            float timing_T5 = runQuintuplet(event);
-//            float timing_pLS = runPixelLineSegment(event);
-//            float timing_pT5 = runPixelQuintuplet(event);
-//
-//           // float timing_T5 = runQuintuplet(events.at(evt));
-//           // float timing_pLS = runPixelLineSegment(events.at(evt));
-//           // float timing_pT5 = runPixelQuintuplet(events.at(evt));
-//
-//           // //Run pT3
-//           // float timing_pT3 = runpT3(events.at(evt));
-//            float timing_pT3 = runpT3(event);
-//
-//           // // Run TC
-//           // float timing_TC = runTrackCandidate(events.at(evt));
-//            float timing_TC = runTrackCandidate(event);
+
+           // // Run T3
+           // float timing_T3 = runT3(events.at(evt));
+            float timing_T3 = runT3(event);
+            float timing_T5 = runQuintuplet(event);
+            float timing_pLS = runPixelLineSegment(event);
+            float timing_pT5 = runPixelQuintuplet(event);
+
+           // float timing_T5 = runQuintuplet(events.at(evt));
+           // float timing_pLS = runPixelLineSegment(events.at(evt));
+           // float timing_pT5 = runPixelQuintuplet(events.at(evt));
+
+           // //Run pT3
+           // float timing_pT3 = runpT3(events.at(evt));
+            float timing_pT3 = runpT3(event);
+
+           // // Run TC
+           // float timing_TC = runTrackCandidate(events.at(evt));
+            float timing_TC = runTrackCandidate(event);
 //
 //            timing_information.push_back({ timing_input_loading,
 //                    timing_MD,

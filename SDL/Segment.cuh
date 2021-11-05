@@ -78,7 +78,7 @@ namespace SDL
 
         segments();
         ~segments();
-	void freeMemory();
+	void freeMemory(cudaStream_t stream);
 	void freeMemoryCache();
     };
 

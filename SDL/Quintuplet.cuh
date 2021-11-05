@@ -65,7 +65,7 @@ namespace SDL
 
         quintuplets();
         ~quintuplets();
-        void freeMemory();
+        void freeMemory(cudaStream_t stream);
         void freeMemoryCache();
     };
 

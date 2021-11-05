@@ -37,7 +37,7 @@ namespace SDL
 
         trackCandidates();
         ~trackCandidates();
-        void freeMemory();
+        void freeMemory(cudaStream_t stream);
         void freeMemoryCache();
     };
 

@@ -75,20 +75,20 @@ void SDL::quintuplets::freeMemoryCache()
 #endif
 }
 
-void SDL::quintuplets::freeMemory()
+void SDL::quintuplets::freeMemory(cudaStream_t stream)
 {
-    cudaFree(tripletIndices);
-    cudaFree(lowerModuleIndices);
-    cudaFree(nQuintuplets);
-    cudaFree(innerRadius);
-    cudaFree(outerRadius);
-    cudaFree(regressionRadius);
-    cudaFree(partOfPT5);
-    cudaFree(isDup);
-    cudaFree(pt);
-    cudaFree(layer);
-    cudaFree(regressionG);
-    cudaFree(regressionF);
+    cudaFreeAsync(tripletIndices,stream);
+    cudaFreeAsync(lowerModuleIndices,stream);
+    cudaFreeAsync(nQuintuplets,stream);
+    cudaFreeAsync(innerRadius,stream);
+    cudaFreeAsync(outerRadius,stream);
+    cudaFreeAsync(regressionRadius,stream);
+    cudaFreeAsync(partOfPT5,stream);
+    cudaFreeAsync(isDup,stream);
+    cudaFreeAsync(pt,stream);
+    cudaFreeAsync(layer,stream);
+    cudaFreeAsync(regressionG,stream);
+    cudaFreeAsync(regressionF,stream);
 #ifdef CUT_VALUE_DEBUG
     cudaFree(innerRadiusMin);
     cudaFree(innerRadiusMin2S);
@@ -106,6 +106,7 @@ void SDL::quintuplets::freeMemory()
     cudaFree(chiSquared);
     cudaFree(nonAnchorChiSquared);
 #endif
+cudaStreamSynchronize(stream);
 }
 
 //TODO:Reuse the track candidate one instead of this!
@@ -251,26 +252,27 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     quintupletsInGPU.regressionF = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * sizeof(float), stream);
 
 #else
-    cudaMalloc(&quintupletsInGPU.tripletIndices, 2 * nMemoryLocations * sizeof(unsigned int));
-    cudaMalloc(&quintupletsInGPU.lowerModuleIndices, 5 * nMemoryLocations * sizeof(unsigned int));
-    cudaMalloc(&quintupletsInGPU.nQuintuplets, nLowerModules * sizeof(unsigned int));
-    cudaMalloc(&quintupletsInGPU.innerRadius, nMemoryLocations * sizeof(float));
-    cudaMalloc(&quintupletsInGPU.outerRadius, nMemoryLocations * sizeof(float));
-    cudaMalloc(&quintupletsInGPU.regressionRadius, nMemoryLocations * sizeof(float));
-    cudaMalloc(&quintupletsInGPU.pt, nMemoryLocations *4* sizeof(float));
-    cudaMalloc(&quintupletsInGPU.isDup, nMemoryLocations * sizeof(bool));
-    cudaMalloc(&quintupletsInGPU.partOfPT5, nMemoryLocations * sizeof(bool));
-    cudaMalloc(&quintupletsInGPU.layer, nMemoryLocations * sizeof(int));
-    cudaMalloc(&quintupletsInGPU.regressionG, nMemoryLocations * sizeof(float));
-    cudaMalloc(&quintupletsInGPU.regressionF, nMemoryLocations * sizeof(float));
+    cudaMallocAsync(&quintupletsInGPU.tripletIndices, 2 * nMemoryLocations * sizeof(unsigned int),stream);
+    cudaMallocAsync(&quintupletsInGPU.lowerModuleIndices, 5 * nMemoryLocations * sizeof(unsigned int),stream);
+    cudaMallocAsync(&quintupletsInGPU.nQuintuplets, nLowerModules * sizeof(unsigned int),stream);
+    cudaMallocAsync(&quintupletsInGPU.innerRadius, nMemoryLocations * sizeof(float),stream);
+    cudaMallocAsync(&quintupletsInGPU.outerRadius, nMemoryLocations * sizeof(float),stream);
+    cudaMallocAsync(&quintupletsInGPU.regressionRadius, nMemoryLocations * sizeof(float),stream);
+    cudaMallocAsync(&quintupletsInGPU.pt, nMemoryLocations *4* sizeof(float),stream);
+    cudaMallocAsync(&quintupletsInGPU.isDup, nMemoryLocations * sizeof(bool),stream);
+    cudaMallocAsync(&quintupletsInGPU.partOfPT5, nMemoryLocations * sizeof(bool),stream);
+    cudaMallocAsync(&quintupletsInGPU.layer, nMemoryLocations * sizeof(int),stream);
+    cudaMallocAsync(&quintupletsInGPU.regressionG, nMemoryLocations * sizeof(float),stream);
+    cudaMallocAsync(&quintupletsInGPU.regressionF, nMemoryLocations * sizeof(float),stream);
 #endif
+    cudaMemsetAsync(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
+    cudaStreamSynchronize(stream);
     quintupletsInGPU.eta = quintupletsInGPU.pt + nMemoryLocations;
     quintupletsInGPU.phi = quintupletsInGPU.pt + 2*nMemoryLocations;
     //quintupletsInGPU.score_rphi = quintupletsInGPU.pt + 3*nMemoryLocations;
     //quintupletsInGPU.score_rz = quintupletsInGPU.pt + 4*nMemoryLocations;
     quintupletsInGPU.score_rphisum = quintupletsInGPU.pt + 3*nMemoryLocations;
     //quintupletsInGPU.score_rzlsq = quintupletsInGPU.pt + 6*nMemoryLocations;
-    cudaMemsetAsync(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
 }
 
 

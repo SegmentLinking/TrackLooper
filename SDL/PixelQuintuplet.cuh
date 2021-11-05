@@ -43,7 +43,7 @@ namespace SDL
 
         pixelQuintuplets();
         ~pixelQuintuplets();
-        void freeMemory();
+        void freeMemory(cudaStream_t stream);
         void freeMemoryCache();
 
     };
