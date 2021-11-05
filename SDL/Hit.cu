@@ -95,26 +95,27 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
 
     hitsInGPU.nHits = (unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
 #else
-    cudaMalloc(&hitsInGPU.xs, nMaxHits * sizeof(float));
-    cudaMalloc(&hitsInGPU.ys, nMaxHits * sizeof(float));
-    cudaMalloc(&hitsInGPU.zs, nMaxHits * sizeof(float));
+    cudaMallocAsync(&hitsInGPU.xs, nMaxHits * sizeof(float),stream);
+    cudaMallocAsync(&hitsInGPU.ys, nMaxHits * sizeof(float),stream);
+    cudaMallocAsync(&hitsInGPU.zs, nMaxHits * sizeof(float),stream);
 
-    cudaMalloc(&hitsInGPU.moduleIndices, nMaxHits * sizeof(unsigned int));
-    cudaMalloc(&hitsInGPU.idxs, nMaxHits * sizeof(unsigned int));
+    cudaMallocAsync(&hitsInGPU.moduleIndices, nMaxHits * sizeof(unsigned int),stream);
+    cudaMallocAsync(&hitsInGPU.idxs, nMaxHits * sizeof(unsigned int),stream);
 
-    cudaMalloc(&hitsInGPU.rts, nMaxHits * sizeof(float));
-    cudaMalloc(&hitsInGPU.phis, nMaxHits * sizeof(float));
-    cudaMalloc(&hitsInGPU.etas, nMaxHits * sizeof(float));
+    cudaMallocAsync(&hitsInGPU.rts, nMaxHits * sizeof(float),stream);
+    cudaMallocAsync(&hitsInGPU.phis, nMaxHits * sizeof(float),stream);
+    cudaMallocAsync(&hitsInGPU.etas, nMaxHits * sizeof(float),stream);
 
-    cudaMalloc(&hitsInGPU.highEdgeXs, nMaxHits * sizeof(float));
-    cudaMalloc(&hitsInGPU.highEdgeYs, nMaxHits * sizeof(float));
-    cudaMalloc(&hitsInGPU.lowEdgeXs, nMaxHits * sizeof(float));
-    cudaMalloc(&hitsInGPU.lowEdgeYs, nMaxHits * sizeof(float));
+    cudaMallocAsync(&hitsInGPU.highEdgeXs, nMaxHits * sizeof(float),stream);
+    cudaMallocAsync(&hitsInGPU.highEdgeYs, nMaxHits * sizeof(float),stream);
+    cudaMallocAsync(&hitsInGPU.lowEdgeXs, nMaxHits * sizeof(float),stream);
+    cudaMallocAsync(&hitsInGPU.lowEdgeYs, nMaxHits * sizeof(float),stream);
 
-    //counters
-    cudaMalloc(&hitsInGPU.nHits, sizeof(unsigned int));
+    //countersAsync
+    cudaMallocAsync(&hitsInGPU.nHits, sizeof(unsigned int),stream);
 #endif
     cudaMemsetAsync(hitsInGPU.nHits,0,sizeof(unsigned int),stream);
+    cudaStreamSynchronize(stream);
 }
 
 __global__ void SDL::addHitToMemoryGPU(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex,float phis)
@@ -189,6 +190,7 @@ void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, f
     int* module_hitRanges;
     cudaMallocHost(&module_hitRanges, nModules* 2*sizeof(int));
     cudaMemcpyAsync(module_hitRanges,modulesInGPU.hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
+    cudaStreamSynchronize(stream);
 
     if(module_subdets[moduleIndex] == Endcap and module_moduleType[moduleIndex] == TwoS)
     {
@@ -221,6 +223,7 @@ void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, f
     //always update the end index
     module_hitRanges[moduleIndex * 2 + 1] = idx;
     cudaMemcpyAsync(modulesInGPU.hitRanges,module_hitRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice,stream);
+    cudaStreamSynchronize(stream);
     cudaFreeHost(module_moduleType);
     cudaFreeHost(module_subdets);
     cudaFreeHost(module_hitRanges);
@@ -381,20 +384,21 @@ void SDL::hits::freeMemoryCache()
     cms::cuda::free_managed(lowEdgeYs);
 #endif
 }
-void SDL::hits::freeMemory()
+void SDL::hits::freeMemory(cudaStream_t stream)
 {
-    cudaFree(nHits);
-    cudaFree(xs);
-    cudaFree(ys);
-    cudaFree(zs);
-    cudaFree(moduleIndices);
-    cudaFree(rts);
-    cudaFree(idxs);
-    cudaFree(phis);
-    cudaFree(etas);
+    cudaFreeAsync(nHits,stream);
+    cudaFreeAsync(xs,stream);
+    cudaFreeAsync(ys,stream);
+    cudaFreeAsync(zs,stream);
+    cudaFreeAsync(moduleIndices,stream);
+    cudaFreeAsync(rts,stream);
+    cudaFreeAsync(idxs,stream);
+    cudaFreeAsync(phis,stream);
+    cudaFreeAsync(etas,stream);
 
-    cudaFree(highEdgeXs);
-    cudaFree(highEdgeYs);
-    cudaFree(lowEdgeXs);
-    cudaFree(lowEdgeYs);
+    cudaFreeAsync(highEdgeXs,stream);
+    cudaFreeAsync(highEdgeYs,stream);
+    cudaFreeAsync(lowEdgeXs,stream);
+    cudaFreeAsync(lowEdgeYs,stream);
+    cudaStreamSynchronize(stream);
 }

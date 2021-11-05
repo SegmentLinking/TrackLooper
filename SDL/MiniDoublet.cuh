@@ -55,7 +55,7 @@ namespace SDL
 
         miniDoublets();
         ~miniDoublets();
-      	void freeMemory();
+      	void freeMemory(cudaStream_t stream);
       	void freeMemoryCache();
 
     };

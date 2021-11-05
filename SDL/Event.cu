@@ -10,6 +10,11 @@ unsigned int SDL::nModules;
 SDL::Event::Event(cudaStream_t estream)
 {
     //cudaStreamCreate(&stream);
+    int version;
+    int driver;
+            cudaRuntimeGetVersion(&version);
+            cudaDriverGetVersion(&driver);
+    printf("version: %d Driver %d\n",version, driver);
     stream = estream;
     hitsInGPU = nullptr;
     mdsInGPU = nullptr;
@@ -67,8 +72,8 @@ SDL::Event::~Event()
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
 #else
-    if(hitsInGPU){hitsInGPU->freeMemory();}
-    if(mdsInGPU){mdsInGPU->freeMemory();}
+    if(hitsInGPU){hitsInGPU->freeMemory(stream);}
+    if(mdsInGPU){mdsInGPU->freeMemory(stream);}
     if(segmentsInGPU){segmentsInGPU->freeMemory();}
     if(tripletsInGPU){tripletsInGPU->freeMemory();}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemory();}
@@ -266,6 +271,7 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
         createHitsInUnifiedMemory(*hitsInGPU,2*loopsize,0,stream);
         #endif
     }
+cudaStreamSynchronize(stream);
 
 
     float* host_x = &x[0]; // convert from std::vector to host array easily since vectors are ordered
@@ -477,22 +483,22 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     int* pixelType_dev;
     short* isQuad_dev;
 
-    cudaMalloc(&hitIndices0_dev,size*sizeof(unsigned int));
-    cudaMalloc(&hitIndices1_dev,size*sizeof(unsigned int));
-    cudaMalloc(&hitIndices2_dev,size*sizeof(unsigned int));
-    cudaMalloc(&hitIndices3_dev,size*sizeof(unsigned int));
-    cudaMalloc(&dPhiChange_dev,size*sizeof(unsigned int));
-    cudaMalloc(&ptIn_dev,size*sizeof(unsigned int));
-    cudaMalloc(&ptErr_dev,size*sizeof(unsigned int));
-    cudaMalloc(&px_dev,size*sizeof(unsigned int));
-    cudaMalloc(&py_dev,size*sizeof(unsigned int));
-    cudaMalloc(&pz_dev,size*sizeof(unsigned int));
-    cudaMalloc(&etaErr_dev,size*sizeof(unsigned int));
-    cudaMalloc(&eta_dev, size*sizeof(unsigned int));
-    cudaMalloc(&phi_dev, size*sizeof(unsigned int));
-    cudaMalloc(&superbin_dev,size*sizeof(int));
-    cudaMalloc(&pixelType_dev,size*sizeof(int));
-    cudaMalloc(&isQuad_dev,size*sizeof(short));
+    cudaMallocAsync(&hitIndices0_dev,size*sizeof(unsigned int),stream);
+    cudaMallocAsync(&hitIndices1_dev,size*sizeof(unsigned int),stream);
+    cudaMallocAsync(&hitIndices2_dev,size*sizeof(unsigned int),stream);
+    cudaMallocAsync(&hitIndices3_dev,size*sizeof(unsigned int),stream);
+    cudaMallocAsync(&dPhiChange_dev,size*sizeof(unsigned int),stream);
+    cudaMallocAsync(&ptIn_dev,size*sizeof(unsigned int),stream);
+    cudaMallocAsync(&ptErr_dev,size*sizeof(unsigned int),stream);
+    cudaMallocAsync(&px_dev,size*sizeof(unsigned int),stream);
+    cudaMallocAsync(&py_dev,size*sizeof(unsigned int),stream);
+    cudaMallocAsync(&pz_dev,size*sizeof(unsigned int),stream);
+    cudaMallocAsync(&etaErr_dev,size*sizeof(unsigned int),stream);
+    cudaMallocAsync(&eta_dev, size*sizeof(unsigned int),stream);
+    cudaMallocAsync(&phi_dev, size*sizeof(unsigned int),stream);
+    cudaMallocAsync(&superbin_dev,size*sizeof(int),stream);
+    cudaMallocAsync(&pixelType_dev,size*sizeof(int),stream);
+    cudaMallocAsync(&isQuad_dev,size*sizeof(short),stream);
 
     cudaMemcpyAsync(hitIndices0_dev,hitIndices0_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(hitIndices1_dev,hitIndices1_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
@@ -525,22 +531,24 @@ cudaStreamSynchronize(stream);
    cudaMemcpyAsync(&(mdsInGPU->nMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
 cudaStreamSynchronize(stream);
 
-    cudaFree(hitIndices0_dev);
-    cudaFree(hitIndices1_dev);
-    cudaFree(hitIndices2_dev);
-    cudaFree(hitIndices3_dev);
-    cudaFree(dPhiChange_dev);
-    cudaFree(ptIn_dev);
-    cudaFree(ptErr_dev);
-    cudaFree(px_dev);
-    cudaFree(py_dev);
-    cudaFree(pz_dev);
-    cudaFree(etaErr_dev);
-    cudaFree(eta_dev);
-    cudaFree(phi_dev);
-    cudaFree(superbin_dev);
-    cudaFree(pixelType_dev);
-    cudaFree(isQuad_dev);
+    cudaFreeAsync(hitIndices0_dev,stream);
+    cudaFreeAsync(hitIndices1_dev,stream);
+    cudaFreeAsync(hitIndices2_dev,stream);
+    cudaFreeAsync(hitIndices3_dev,stream);
+    cudaFreeAsync(dPhiChange_dev,stream);
+    cudaFreeAsync(ptIn_dev,stream);
+    cudaFreeAsync(ptErr_dev,stream);
+    cudaFreeAsync(px_dev,stream);
+    cudaFreeAsync(py_dev,stream);
+    cudaFreeAsync(pz_dev,stream);
+    cudaFreeAsync(etaErr_dev,stream);
+    cudaFreeAsync(eta_dev,stream);
+    cudaFreeAsync(phi_dev,stream);
+    cudaFreeAsync(superbin_dev,stream);
+    cudaFreeAsync(pixelType_dev,stream);
+    cudaFreeAsync(isQuad_dev,stream);
+  
+cudaStreamSynchronize(stream);
 }
 
 void SDL::Event::addMiniDoubletsToEvent()
@@ -622,6 +630,7 @@ cudaStreamSynchronize(stream);
         }
     }
 cudaMemcpyAsync(modulesInGPU->mdRanges,module_mdRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice,stream);
+cudaStreamSynchronize(stream);
 cudaFreeHost(nMDsCPU);
 cudaFreeHost(module_subdets);
 cudaFreeHost(module_lowerModuleIndices);
@@ -726,10 +735,10 @@ void SDL::Event::createMiniDoublets()
     }
 
     //cudaDeviceSynchronize();
-//    cudaStreamSynchronize(stream);
 
     unsigned int nLowerModules;
     cudaMemcpyAsync(&nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
+    cudaStreamSynchronize(stream);
 
     int maxThreadsPerModule=0;
     #ifdef Explicit_Module
@@ -2302,6 +2311,7 @@ SDL::modules* SDL::Event::getModules()
         modulesInCPU = new SDL::modules;
         unsigned int nLowerModules;
         cudaMemcpyAsync(&nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+cudaStreamSynchronize(stream);
         modulesInCPU->nLowerModules = new unsigned int[1];
         modulesInCPU->nModules = new unsigned int[1];
         modulesInCPU->lowerModuleIndices = new unsigned int[nLowerModules+1];

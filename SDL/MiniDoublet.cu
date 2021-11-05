@@ -73,12 +73,13 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_device(dev,nModules*sizeof(unsigned int),stream);
 
 #else
-    cudaMalloc(&mdsInGPU.hitIndices, nMemoryLocations * 3 * sizeof(unsigned int));
-    cudaMalloc(&mdsInGPU.pixelModuleFlag, nMemoryLocations * sizeof(short));
-    cudaMalloc(&mdsInGPU.dphichanges, nMemoryLocations *9* sizeof(float));
-    cudaMalloc(&mdsInGPU.nMDs, nModules * sizeof(unsigned int)); 
+    cudaMallocAsync(&mdsInGPU.hitIndices, nMemoryLocations * 3 * sizeof(unsigned int),stream);
+    cudaMallocAsync(&mdsInGPU.pixelModuleFlag, nMemoryLocations * sizeof(short),stream);
+    cudaMallocAsync(&mdsInGPU.dphichanges, nMemoryLocations *9* sizeof(float),stream);
+    cudaMallocAsync(&mdsInGPU.nMDs, nModules * sizeof(unsigned int),stream); 
 #endif
     cudaMemsetAsync(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int),stream);
+    cudaStreamSynchronize(stream);
     mdsInGPU.moduleIndices = mdsInGPU.hitIndices + nMemoryLocations * 2 ;
     mdsInGPU.dzs  = mdsInGPU.dphichanges + nMemoryLocations;
     mdsInGPU.dphis  = mdsInGPU.dphichanges + 2*nMemoryLocations;
@@ -1093,12 +1094,12 @@ void SDL::miniDoublets::freeMemoryCache()
 }
 
 
-void SDL::miniDoublets::freeMemory()
+void SDL::miniDoublets::freeMemory(cudaStream_t stream)
 {
-    cudaFree(hitIndices);
-    cudaFree(pixelModuleFlag);
-    cudaFree(nMDs);
-    cudaFree(dphichanges);
+    cudaFreeAsync(hitIndices,stream);
+    cudaFreeAsync(pixelModuleFlag,stream);
+    cudaFreeAsync(nMDs,stream);
+    cudaFreeAsync(dphichanges,stream);
 
 #ifdef CUT_VALUE_DEBUG
     cudaFree(dzCuts);

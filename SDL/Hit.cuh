@@ -45,7 +45,7 @@ namespace SDL
         float *lowEdgeYs;
         
         hits();
-        void freeMemory();
+        void freeMemory(cudaStream_t stream);
         void freeMemoryCache();
         ~hits();
 

@@ -542,7 +542,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     *modulesInGPU.nLowerModules = lowerModuleCounter;
     std::cout<<"number of lower modules (without fake pixel module)= "<<*modulesInGPU.nLowerModules<<std::endl;
     createLowerModuleIndexMap(modulesInGPU,lowerModuleCounter, nModules,stream);
-    fillConnectedModuleArray(modulesInGPU,nModules,stream);
+    fillConnectedModuleArray(modulesInGPU,nModules);
     fillPixelMap(modulesInGPU,pixelMapping,stream);
     resetObjectRanges(modulesInGPU,nModules,stream);
 #endif
