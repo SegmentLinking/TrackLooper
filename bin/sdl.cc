@@ -508,19 +508,19 @@ void run_sdl()
            // // Run TC
            // float timing_TC = runTrackCandidate(events.at(evt));
             float timing_TC = runTrackCandidate(event);
-//
-//            timing_information.push_back({ timing_input_loading,
-//                    timing_MD,
-//                    timing_LS,
-//                    timing_T3,
-//                    timing_TC,
-//                    timing_T5,
-//                    timing_pT3,
-//                    timing_pT5,
-//                    timing_pLS
-//
-//                    });
-//
+
+            timing_information.push_back({ timing_input_loading,
+                    timing_MD,
+                    timing_LS,
+                    timing_T3,
+                    timing_TC,
+                    timing_T5,
+                    timing_pT3,
+                    timing_pT5,
+                    timing_pLS
+
+                    });
+
             if (ana.verbose == 4)
             {
                 printAllObjects(event);
@@ -612,7 +612,7 @@ void run_sdl()
 
     //}
 
-    //printTimingInformation(timing_information);
+    printTimingInformation(timing_information);
 
     if (not ana.do_run_cpu)
         SDL::cleanModules();
