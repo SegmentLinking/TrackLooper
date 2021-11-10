@@ -229,14 +229,18 @@ SDL::Event::~Event()
 
 void SDL::initModules(const char* moduleMetaDataFilePath)
 {
+    cudaStream_t modStream;
+    cudaStreamCreate(&modStream);
     if(modulesInGPU == nullptr)
     {
         cudaMallocHost(&modulesInGPU, sizeof(struct SDL::modules));
         //pixelMapping = new pixelMap;
         cudaMallocHost(&pixelMapping, sizeof(struct SDL::pixelMap));
-        loadModulesFromFile(*modulesInGPU,nModules,*pixelMapping,0,moduleMetaDataFilePath); //nModules gets filled here
+        loadModulesFromFile(*modulesInGPU,nModules,*pixelMapping,modStream,moduleMetaDataFilePath); //nModules gets filled here
     }
-    resetObjectRanges(*modulesInGPU,nModules,0);
+    resetObjectRanges(*modulesInGPU,nModules,modStream);
+    cudaStreamSynchronize(modStream);
+    cudaStreamDestroy(modStream);
 }
 
 void SDL::cleanModules()
@@ -244,7 +248,10 @@ void SDL::cleanModules()
   #ifdef CACHE_ALLOC
   freeModulesCache(*modulesInGPU,*pixelMapping);
   #else
-  freeModules(*modulesInGPU,*pixelMapping,0);
+    cudaStream_t modStream = 0;
+  freeModules(*modulesInGPU,*pixelMapping,modStream);
+    cudaStreamSynchronize(modStream);
+    cudaStreamDestroy(modStream);
   #endif
   cudaFreeHost(modulesInGPU);
   cudaFreeHost(pixelMapping);
@@ -274,13 +281,25 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
 cudaStreamSynchronize(stream);
 
 
-    float* host_x = &x[0]; // convert from std::vector to host array easily since vectors are ordered
-    float* host_y = &y[0];
-    float* host_z = &z[0];
+    float* host_x;// = &x[0]; // convert from std::vector to host array easily since vectors are ordered
+    float* host_y;// = &y[0];
+    float* host_z;// = &z[0];
+    unsigned int* host_detId;// = &detId[0];
+    unsigned int* host_idxs;// = &idxInNtuple[0];
+    cudaMallocHost(&host_x,sizeof(float)*loopsize);
+    cudaMallocHost(&host_y,sizeof(float)*loopsize);
+    cudaMallocHost(&host_z,sizeof(float)*loopsize);
+    cudaMallocHost(&host_detId,sizeof(unsigned int)*loopsize);
+    cudaMallocHost(&host_idxs,sizeof(unsigned int)*loopsize);
+
+    //float* host_x = &x[0]; // convert from std::vector to host array easily since vectors are ordered
+    //float* host_y = &y[0];
+    //float* host_z = &z[0];
+    //unsigned int* host_detId = &detId[0];
+    //unsigned int* host_idxs = &idxInNtuple[0];
+
     float* host_phis;
     float* host_etas;
-    unsigned int* host_detId = &detId[0];
-    unsigned int* host_idxs = &idxInNtuple[0];
     unsigned int* host_moduleIndex;
     float* host_rts;
     //float* host_idxs;
@@ -315,6 +334,12 @@ cudaStreamSynchronize(stream);
 
 
   for (int ihit=0; ihit<loopsize;ihit++){
+    host_x[ihit] = x.at(ihit); // convert from std::vector to host array easily since vectors are ordered
+    host_y[ihit] = y.at(ihit);
+    host_z[ihit] = z.at(ihit);
+    host_detId[ihit] = detId.at(ihit);
+    host_idxs[ihit] = idxInNtuple.at(ihit);
+
     unsigned int moduleLayer = module_layers[(*detIdToIndex)[host_detId[ihit]]];
     unsigned int subdet = module_subdet[(*detIdToIndex)[host_detId[ihit]]];
     host_moduleIndex[ihit] = (*detIdToIndex)[host_detId[ihit]];
@@ -380,6 +405,11 @@ cudaStreamSynchronize(stream);
     cudaFreeHost(module_subdet);
     cudaFreeHost(module_hitRanges);
     cudaFreeHost(module_moduleType);
+    cudaFreeHost(host_x);
+    cudaFreeHost(host_y);
+    cudaFreeHost(host_z);
+    cudaFreeHost(host_detId);
+    cudaFreeHost(host_idxs);
 
 }
 __global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned int* hitIndices1,unsigned int* hitIndices2,unsigned int* hitIndices3, float* dPhiChange, float* ptIn, float* ptErr, float* px, float* py, float* pz, float* eta, float* etaErr,float* phi, unsigned int pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU,const int size, int* superbin, int* pixelType, short* isQuad)
