@@ -61,10 +61,14 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
     tripletsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_device(dev, maxTriplets * nLowerModules * sizeof(bool), stream);
 
 #else
-    cudaMallocAsync(&tripletsInGPU.segmentIndices, 5 * maxTriplets * nLowerModules * sizeof(unsigned int),stream);
-    cudaMallocAsync(&tripletsInGPU.betaIn, maxTriplets * nLowerModules * 3 * sizeof(float),stream);
-    cudaMallocAsync(&tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int),stream);
-    cudaMallocAsync(&tripletsInGPU.partOfPT5, maxTriplets * nLowerModules * sizeof(bool),stream);
+    //cudaMallocAsync(&tripletsInGPU.segmentIndices, 5 * maxTriplets * nLowerModules * sizeof(unsigned int),stream);
+    //cudaMallocAsync(&tripletsInGPU.betaIn, maxTriplets * nLowerModules * 3 * sizeof(float),stream);
+    //cudaMallocAsync(&tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int),stream);
+    //cudaMallocAsync(&tripletsInGPU.partOfPT5, maxTriplets * nLowerModules * sizeof(bool),stream);
+    cudaMalloc(&tripletsInGPU.segmentIndices, 5 * maxTriplets * nLowerModules * sizeof(unsigned int));
+    cudaMalloc(&tripletsInGPU.betaIn, maxTriplets * nLowerModules * 3 * sizeof(float));
+    cudaMalloc(&tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int));
+    cudaMalloc(&tripletsInGPU.partOfPT5, maxTriplets * nLowerModules * sizeof(bool));
 #endif
     cudaMemsetAsync(tripletsInGPU.nTriplets,0,nLowerModules * sizeof(unsigned int),stream);
     cudaStreamSynchronize(stream);
@@ -159,10 +163,14 @@ void SDL::triplets::freeMemoryCache()
 }
 void SDL::triplets::freeMemory(cudaStream_t stream)
 {
-    cudaFreeAsync(segmentIndices,stream);
-    cudaFreeAsync(nTriplets,stream);
-    cudaFreeAsync(betaIn,stream);
-    cudaFreeAsync(partOfPT5,stream);
+    //cudaFreeAsync(segmentIndices,stream);
+    //cudaFreeAsync(nTriplets,stream);
+    //cudaFreeAsync(betaIn,stream);
+    //cudaFreeAsync(partOfPT5,stream);
+    cudaFree(segmentIndices);
+    cudaFree(nTriplets);
+    cudaFree(betaIn);
+    cudaFree(partOfPT5);
 #ifdef CUT_VALUE_DEBUG
     cudaFree(zOut);
     cudaFree(zLo);

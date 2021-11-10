@@ -504,7 +504,7 @@ void run_sdl()
            // // Run T3
            // float timing_T3 = runT3(events.at(evt));
             float timing_T3 = runT3(events.at(omp_get_thread_num()));
-//            float timing_T5 = runQuintuplet(events.at(omp_get_thread_num()));
+            float timing_T5 = runQuintuplet(events.at(omp_get_thread_num()));
 //            float timing_pLS = runPixelLineSegment(events.at(omp_get_thread_num()));
 //            float timing_pT5 = runPixelQuintuplet(events.at(omp_get_thread_num()));
 //
