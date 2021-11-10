@@ -110,18 +110,31 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(bool), stream);
 
 #else
-    cudaMallocAsync(&segmentsInGPU.mdIndices, nMemoryLocations * 6 * sizeof(unsigned int),stream);
-    cudaMallocAsync(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int),stream);
-    cudaMallocAsync(&segmentsInGPU.dPhis, (nMemoryLocations * 6 + maxPixelSegments * 8)*sizeof(float),stream);
-    cudaMallocAsync(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int),stream);
-    cudaMallocAsync(&segmentsInGPU.pixelType, (maxPixelSegments )*sizeof(int),stream);
-    cudaMallocAsync(&segmentsInGPU.isQuad, (maxPixelSegments )*sizeof(bool),stream);
-    cudaMallocAsync(&segmentsInGPU.isDup, (maxPixelSegments )*sizeof(bool),stream);
-    cudaMallocAsync(&segmentsInGPU.score, (maxPixelSegments )*sizeof(float),stream);
-    cudaMallocAsync(&segmentsInGPU.circleCenterX, maxPixelSegments * sizeof(float),stream);
-    cudaMallocAsync(&segmentsInGPU.circleCenterY, maxPixelSegments * sizeof(float),stream);
-    cudaMallocAsync(&segmentsInGPU.circleRadius, maxPixelSegments * sizeof(float),stream);
-    cudaMallocAsync(&segmentsInGPU.partOfPT5, maxPixelSegments * sizeof(bool),stream);
+    //cudaMallocAsync(&segmentsInGPU.mdIndices, nMemoryLocations * 6 * sizeof(unsigned int),stream);
+    //cudaMallocAsync(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int),stream);
+    //cudaMallocAsync(&segmentsInGPU.dPhis, (nMemoryLocations * 6 + maxPixelSegments * 8)*sizeof(float),stream);
+    //cudaMallocAsync(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int),stream);
+    //cudaMallocAsync(&segmentsInGPU.pixelType, (maxPixelSegments )*sizeof(int),stream);
+    //cudaMallocAsync(&segmentsInGPU.isQuad, (maxPixelSegments )*sizeof(bool),stream);
+    //cudaMallocAsync(&segmentsInGPU.isDup, (maxPixelSegments )*sizeof(bool),stream);
+    //cudaMallocAsync(&segmentsInGPU.score, (maxPixelSegments )*sizeof(float),stream);
+    //cudaMallocAsync(&segmentsInGPU.circleCenterX, maxPixelSegments * sizeof(float),stream);
+    //cudaMallocAsync(&segmentsInGPU.circleCenterY, maxPixelSegments * sizeof(float),stream);
+    //cudaMallocAsync(&segmentsInGPU.circleRadius, maxPixelSegments * sizeof(float),stream);
+    //cudaMallocAsync(&segmentsInGPU.partOfPT5, maxPixelSegments * sizeof(bool),stream);
+
+    cudaMalloc(&segmentsInGPU.mdIndices, nMemoryLocations * 6 * sizeof(unsigned int));
+    cudaMalloc(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
+    cudaMalloc(&segmentsInGPU.dPhis, (nMemoryLocations * 6 + maxPixelSegments * 8)*sizeof(float));
+    cudaMalloc(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int));
+    cudaMalloc(&segmentsInGPU.pixelType, (maxPixelSegments )*sizeof(int));
+    cudaMalloc(&segmentsInGPU.isQuad, (maxPixelSegments )*sizeof(bool));
+    cudaMalloc(&segmentsInGPU.isDup, (maxPixelSegments )*sizeof(bool));
+    cudaMalloc(&segmentsInGPU.score, (maxPixelSegments )*sizeof(float));
+    cudaMalloc(&segmentsInGPU.circleCenterX, maxPixelSegments * sizeof(float));
+    cudaMalloc(&segmentsInGPU.circleCenterY, maxPixelSegments * sizeof(float));
+    cudaMalloc(&segmentsInGPU.circleRadius, maxPixelSegments * sizeof(float));
+    cudaMalloc(&segmentsInGPU.partOfPT5, maxPixelSegments * sizeof(bool));
 
 #endif
     cudaMemsetAsync(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int),stream);
@@ -233,18 +246,30 @@ void SDL::segments::freeMemoryCache()
 }
 void SDL::segments::freeMemory(cudaStream_t stream)
 {
-    cudaFreeAsync(mdIndices,stream);
-    cudaFreeAsync(nSegments,stream);
-    cudaFreeAsync(dPhis,stream);
-    cudaFreeAsync(superbin,stream);
-    cudaFreeAsync(pixelType,stream);
-    cudaFreeAsync(isQuad,stream);
-    cudaFreeAsync(isDup,stream);
-    cudaFreeAsync(score,stream);
-    cudaFreeAsync(circleCenterX,stream);
-    cudaFreeAsync(circleCenterY,stream);
-    cudaFreeAsync(circleRadius,stream);
-    cudaFreeAsync(partOfPT5,stream);
+    //cudaFreeAsync(mdIndices,stream);
+    //cudaFreeAsync(nSegments,stream);
+    //cudaFreeAsync(dPhis,stream);
+    //cudaFreeAsync(superbin,stream);
+    //cudaFreeAsync(pixelType,stream);
+    //cudaFreeAsync(isQuad,stream);
+    //cudaFreeAsync(isDup,stream);
+    //cudaFreeAsync(score,stream);
+    //cudaFreeAsync(circleCenterX,stream);
+    //cudaFreeAsync(circleCenterY,stream);
+    //cudaFreeAsync(circleRadius,stream);
+    //cudaFreeAsync(partOfPT5,stream);
+    cudaFree(mdIndices);
+    cudaFree(nSegments);
+    cudaFree(dPhis);
+    cudaFree(superbin);
+    cudaFree(pixelType);
+    cudaFree(isQuad);
+    cudaFree(isDup);
+    cudaFree(score);
+    cudaFree(circleCenterX);
+    cudaFree(circleCenterY);
+    cudaFree(circleRadius);
+    cudaFree(partOfPT5);
 #ifdef CUT_VALUE_DEBUG
     cudaFree(zIns);
     cudaFree(zLo);
