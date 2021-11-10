@@ -52,13 +52,20 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     //trackCandidatesInGPU.partOfExtension = (bool*)cms::cuda::allocate_device(dev, maxTrackCandidates * sizeof(bool), stream);
 
 #else
-    cudaMallocAsync(&trackCandidatesInGPU.trackCandidateType, maxTrackCandidates * sizeof(short),stream);
-    cudaMallocAsync(&trackCandidatesInGPU.objectIndices, 2 * maxTrackCandidates * sizeof(unsigned int),stream);
-    cudaMallocAsync(&trackCandidatesInGPU.nTrackCandidates, sizeof(unsigned int),stream);
-    cudaMallocAsync(&trackCandidatesInGPU.nTrackCandidatespT3, sizeof(unsigned int),stream);
-    cudaMallocAsync(&trackCandidatesInGPU.nTrackCandidatesT5, sizeof(unsigned int),stream);
-    cudaMallocAsync(&trackCandidatesInGPU.nTrackCandidatespT5, sizeof(unsigned int),stream);
-    cudaMallocAsync(&trackCandidatesInGPU.nTrackCandidatespLS, sizeof(unsigned int),stream);
+    //cudaMallocAsync(&trackCandidatesInGPU.trackCandidateType, maxTrackCandidates * sizeof(short),stream);
+    //cudaMallocAsync(&trackCandidatesInGPU.objectIndices, 2 * maxTrackCandidates * sizeof(unsigned int),stream);
+    //cudaMallocAsync(&trackCandidatesInGPU.nTrackCandidates, sizeof(unsigned int),stream);
+    //cudaMallocAsync(&trackCandidatesInGPU.nTrackCandidatespT3, sizeof(unsigned int),stream);
+    //cudaMallocAsync(&trackCandidatesInGPU.nTrackCandidatesT5, sizeof(unsigned int),stream);
+    //cudaMallocAsync(&trackCandidatesInGPU.nTrackCandidatespT5, sizeof(unsigned int),stream);
+    //cudaMallocAsync(&trackCandidatesInGPU.nTrackCandidatespLS, sizeof(unsigned int),stream);
+    cudaMalloc(&trackCandidatesInGPU.trackCandidateType, maxTrackCandidates * sizeof(short));
+    cudaMalloc(&trackCandidatesInGPU.objectIndices, 2 * maxTrackCandidates * sizeof(unsigned int));
+    cudaMalloc(&trackCandidatesInGPU.nTrackCandidates, sizeof(unsigned int));
+    cudaMalloc(&trackCandidatesInGPU.nTrackCandidatespT3, sizeof(unsigned int));
+    cudaMalloc(&trackCandidatesInGPU.nTrackCandidatesT5, sizeof(unsigned int));
+    cudaMalloc(&trackCandidatesInGPU.nTrackCandidatespT5, sizeof(unsigned int));
+    cudaMalloc(&trackCandidatesInGPU.nTrackCandidatespLS, sizeof(unsigned int));
 #endif
     cudaMemsetAsync(trackCandidatesInGPU.nTrackCandidates,0, sizeof(unsigned int),stream);
     cudaMemsetAsync(trackCandidatesInGPU.nTrackCandidatesT5,0, sizeof(unsigned int),stream);
@@ -120,13 +127,20 @@ void SDL::trackCandidates::freeMemoryCache()
 }
 void SDL::trackCandidates::freeMemory(cudaStream_t stream)
 {
-    cudaFreeAsync(trackCandidateType,stream);
-    cudaFreeAsync(objectIndices,stream);
-    cudaFreeAsync(nTrackCandidates,stream);
-    cudaFreeAsync(nTrackCandidatespT3,stream);
-    cudaFreeAsync(nTrackCandidatesT5,stream);
-    cudaFreeAsync(nTrackCandidatespT5,stream);
-    cudaFreeAsync(nTrackCandidatespLS,stream);
+    //cudaFreeAsync(trackCandidateType,stream);
+    //cudaFreeAsync(objectIndices,stream);
+    //cudaFreeAsync(nTrackCandidates,stream);
+    //cudaFreeAsync(nTrackCandidatespT3,stream);
+    //cudaFreeAsync(nTrackCandidatesT5,stream);
+    //cudaFreeAsync(nTrackCandidatespT5,stream);
+    //cudaFreeAsync(nTrackCandidatespLS,stream);
+    cudaFree(trackCandidateType);
+    cudaFree(objectIndices);
+    cudaFree(nTrackCandidates);
+    cudaFree(nTrackCandidatespT3);
+    cudaFree(nTrackCandidatesT5);
+    cudaFree(nTrackCandidatespT5);
+    cudaFree(nTrackCandidatespLS);
 cudaStreamSynchronize(stream);
 }
 

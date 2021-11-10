@@ -41,13 +41,20 @@ void SDL::pixelQuintuplets::freeMemoryCache()
 }
 void SDL::pixelQuintuplets::freeMemory(cudaStream_t stream)
 {
-    cudaFreeAsync(pixelIndices,stream);
-    cudaFreeAsync(T5Indices,stream);
-    cudaFreeAsync(nPixelQuintuplets,stream);
-    cudaFreeAsync(isDup,stream);
-    cudaFreeAsync(score,stream);
-    cudaFreeAsync(eta,stream);
-    cudaFreeAsync(phi,stream);
+    //cudaFreeAsync(pixelIndices,stream);
+    //cudaFreeAsync(T5Indices,stream);
+    //cudaFreeAsync(nPixelQuintuplets,stream);
+    //cudaFreeAsync(isDup,stream);
+    //cudaFreeAsync(score,stream);
+    //cudaFreeAsync(eta,stream);
+    //cudaFreeAsync(phi,stream);
+    cudaFree(pixelIndices);
+    cudaFree(T5Indices);
+    cudaFree(nPixelQuintuplets);
+    cudaFree(isDup);
+    cudaFree(score);
+    cudaFree(eta);
+    cudaFree(phi);
 #ifdef CUT_VALUE_DEBUG
     cudaFree(rzChiSquared);
     cudaFree(rPhiChiSquared);
@@ -100,13 +107,21 @@ void SDL::createPixelQuintupletsInExplicitMemory(struct SDL::pixelQuintuplets& p
     pixelQuintupletsInGPU.eta                 = (float*)cms::cuda::allocate_device(dev,maxPixelQuintuplets * sizeof(float),stream);
     pixelQuintupletsInGPU.phi                 = (float*)cms::cuda::allocate_device(dev,maxPixelQuintuplets * sizeof(float),stream);
 #else
-    cudaMallocAsync(&pixelQuintupletsInGPU.pixelIndices, maxPixelQuintuplets * sizeof(unsigned int),stream);
-    cudaMallocAsync(&pixelQuintupletsInGPU.T5Indices, maxPixelQuintuplets * sizeof(unsigned int),stream);
-    cudaMallocAsync(&pixelQuintupletsInGPU.nPixelQuintuplets, sizeof(unsigned int),stream);
-    cudaMallocAsync(&pixelQuintupletsInGPU.isDup, maxPixelQuintuplets * sizeof(bool),stream);
-    cudaMallocAsync(&pixelQuintupletsInGPU.score, maxPixelQuintuplets * sizeof(float),stream);
-    cudaMallocAsync(&pixelQuintupletsInGPU.eta, maxPixelQuintuplets * sizeof(float),stream);
-    cudaMallocAsync(&pixelQuintupletsInGPU.phi, maxPixelQuintuplets * sizeof(float),stream);
+    //cudaMallocAsync(&pixelQuintupletsInGPU.pixelIndices, maxPixelQuintuplets * sizeof(unsigned int),stream);
+    //cudaMallocAsync(&pixelQuintupletsInGPU.T5Indices, maxPixelQuintuplets * sizeof(unsigned int),stream);
+    //cudaMallocAsync(&pixelQuintupletsInGPU.nPixelQuintuplets, sizeof(unsigned int),stream);
+    //cudaMallocAsync(&pixelQuintupletsInGPU.isDup, maxPixelQuintuplets * sizeof(bool),stream);
+    //cudaMallocAsync(&pixelQuintupletsInGPU.score, maxPixelQuintuplets * sizeof(float),stream);
+    //cudaMallocAsync(&pixelQuintupletsInGPU.eta, maxPixelQuintuplets * sizeof(float),stream);
+    //cudaMallocAsync(&pixelQuintupletsInGPU.phi, maxPixelQuintuplets * sizeof(float),stream);
+
+    cudaMalloc(&pixelQuintupletsInGPU.pixelIndices, maxPixelQuintuplets * sizeof(unsigned int));
+    cudaMalloc(&pixelQuintupletsInGPU.T5Indices, maxPixelQuintuplets * sizeof(unsigned int));
+    cudaMalloc(&pixelQuintupletsInGPU.nPixelQuintuplets, sizeof(unsigned int));
+    cudaMalloc(&pixelQuintupletsInGPU.isDup, maxPixelQuintuplets * sizeof(bool));
+    cudaMalloc(&pixelQuintupletsInGPU.score, maxPixelQuintuplets * sizeof(float));
+    cudaMalloc(&pixelQuintupletsInGPU.eta, maxPixelQuintuplets * sizeof(float));
+    cudaMalloc(&pixelQuintupletsInGPU.phi, maxPixelQuintuplets * sizeof(float));
 
 #endif
     cudaMemsetAsync(pixelQuintupletsInGPU.nPixelQuintuplets, 0, sizeof(unsigned int),stream);

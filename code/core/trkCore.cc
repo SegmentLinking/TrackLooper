@@ -785,8 +785,6 @@ float runPixelLineSegment(SDL::Event* event)
     //event.pixelLineSegmentCleaning();
     float pls_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco Pixel Line Segment processing time: " << pls_elapsed << " secs" << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Pixel Quintuplets produced: " << event.getNumberOfPixelQuintuplets() << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Pixel Quintuplets produced: " << event->getNumberOfPixelQuintuplets() << std::endl;
 
     return pls_elapsed;
 }

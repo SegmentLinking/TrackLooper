@@ -505,20 +505,20 @@ void run_sdl()
            // float timing_T3 = runT3(events.at(evt));
             float timing_T3 = runT3(events.at(omp_get_thread_num()));
             float timing_T5 = runQuintuplet(events.at(omp_get_thread_num()));
-//            float timing_pLS = runPixelLineSegment(events.at(omp_get_thread_num()));
-//            float timing_pT5 = runPixelQuintuplet(events.at(omp_get_thread_num()));
-//
-//           // float timing_T5 = runQuintuplet(events.at(evt));
-//           // float timing_pLS = runPixelLineSegment(events.at(evt));
-//           // float timing_pT5 = runPixelQuintuplet(events.at(evt));
-//
-//           // //Run pT3
-//           // float timing_pT3 = runpT3(events.at(evt));
-//            float timing_pT3 = runpT3(events.at(omp_get_thread_num()));
-//
-//           // // Run TC
-//           // float timing_TC = runTrackCandidate(events.at(evt));
-//            float timing_TC = runTrackCandidate(events.at(omp_get_thread_num()));
+            float timing_pLS = runPixelLineSegment(events.at(omp_get_thread_num()));
+            float timing_pT5 = runPixelQuintuplet(events.at(omp_get_thread_num()));
+
+           // float timing_T5 = runQuintuplet(events.at(evt));
+           // float timing_pLS = runPixelLineSegment(events.at(evt));
+           // float timing_pT5 = runPixelQuintuplet(events.at(evt));
+
+           // //Run pT3
+           // float timing_pT3 = runpT3(events.at(evt));
+            float timing_pT3 = runpT3(events.at(omp_get_thread_num()));
+
+           // // Run TC
+           // float timing_TC = runTrackCandidate(events.at(evt));
+            float timing_TC = runTrackCandidate(events.at(omp_get_thread_num()));
             events.at(omp_get_thread_num())->resetEvent();
 //
 //            timing_information.push_back({ timing_input_loading,
