@@ -61,7 +61,7 @@ SDL::Event::Event(cudaStream_t estream)
 
 SDL::Event::~Event()
 {
-
+printf("DESTRUCTOR\n");
 #ifdef CACHE_ALLOC
     if(hitsInGPU){hitsInGPU->freeMemoryCache();}
     if(mdsInGPU){mdsInGPU->freeMemoryCache();}

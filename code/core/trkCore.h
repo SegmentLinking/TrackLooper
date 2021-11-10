@@ -39,7 +39,20 @@ bool hasAll12HitsWithNBarrel(unsigned int isimtrk, int nbarrel);
 bool hasAll12HitsWithNBarrelUsingModuleMap(unsigned int isimtrk, int nbarrel, bool usesimhits=false);
 bool checkModuleConnectionsAreGood(std::array<std::vector<unsigned int>, 6>& layers_good_paired_modules);
 bool goodEvent();
-float runMiniDoublet(SDL::Event& event, int evt);
+float runMiniDoublet(SDL::Event* event, int evt);
+//float runSegment(SDL::Event* event);
+//float runT4(SDL::Event* event);
+//float runT4x(SDL::Event* event);
+//float runpT4(SDL::Event* event);
+//float runT3(SDL::Event* event);
+//float runTrackCandidate(SDL::Event* event);
+//float runTrackCandidateTest_v2(SDL::Event* event);
+//float runQuintuplet(SDL::Event* event);
+//float runPixelQuintuplet(SDL::Event* event);
+//float runPixelLineSegment(SDL::Event* event);
+//float runpT3(SDL::Event* event);
+//
+//float runMiniDoublet(SDL::Event& event, int evt);
 float runSegment(SDL::Event& event);
 float runT4(SDL::Event& event);
 float runT4x(SDL::Event& event);
@@ -87,7 +100,8 @@ std::vector<std::vector<float>>&    out_phi_vec,
 std::vector<std::vector<int>>&    out_superbin_vec,
 std::vector<std::vector<int>>&    out_pixelType_vec,
 std::vector<std::vector<short>>&    out_isQuad_vec);
-float addInputsToEventPreLoad(SDL::Event& event, bool useOMP,std::vector<float> trkX,std::vector<float> trkY,std::vector<float> trkZ,
+//float addInputsToEventPreLoad(SDL::Event& event, bool useOMP,std::vector<float> trkX,std::vector<float> trkY,std::vector<float> trkZ,
+float addInputsToEventPreLoad(SDL::Event* event, bool useOMP,std::vector<float> trkX,std::vector<float> trkY,std::vector<float> trkZ,
 std::vector<unsigned int>    hitId,
 std::vector<unsigned int>    hitIdxs,
 std::vector<unsigned int>    hitIndices_vec0,
