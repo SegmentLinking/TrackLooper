@@ -62,6 +62,173 @@ SDL::Event::Event(cudaStream_t estream)
 SDL::Event::~Event()
 {
 printf("DESTRUCTOR\n");
+//#ifdef CACHE_ALLOC
+//    if(hitsInGPU){hitsInGPU->freeMemoryCache();}
+//    if(mdsInGPU){mdsInGPU->freeMemoryCache();}
+//    if(segmentsInGPU){segmentsInGPU->freeMemoryCache();}
+//    if(tripletsInGPU){tripletsInGPU->freeMemoryCache();}
+//    if(quintupletsInGPU){quintupletsInGPU->freeMemoryCache();}
+//    if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
+//    if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
+//    if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemoryCache();}
+//#else
+//    if(hitsInGPU){hitsInGPU->freeMemory(stream);}
+//    if(mdsInGPU){mdsInGPU->freeMemory(stream);}
+//    if(segmentsInGPU){segmentsInGPU->freeMemory(stream);}
+//    if(tripletsInGPU){tripletsInGPU->freeMemory(stream);}
+//    if(quintupletsInGPU){quintupletsInGPU->freeMemory(stream);}
+//    if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemory(stream);}
+//    if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
+//    if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemory(stream);}
+//#endif
+//    cudaFreeHost(mdsInGPU);
+//    cudaFreeHost(segmentsInGPU);
+//    cudaFreeHost(tripletsInGPU);
+//    cudaFreeHost(trackCandidatesInGPU);
+//    cudaFreeHost(hitsInGPU);
+//
+//    cudaFreeHost(pixelTripletsInGPU);
+//    cudaFreeHost(pixelQuintupletsInGPU);
+//
+//#ifdef FINAL_T5
+//    cudaFreeHost(quintupletsInGPU);
+//#endif
+//
+//#ifdef Explicit_Hit
+//    if(hitsInCPU != nullptr)
+//    {
+//        delete[] hitsInCPU->idxs;
+//        delete[] hitsInCPU->xs;
+//        delete[] hitsInCPU->ys;
+//        delete[] hitsInCPU->zs;
+//        delete[] hitsInCPU->moduleIndices;
+//        delete hitsInCPU->nHits;
+//        delete hitsInCPU;
+//    }
+//#endif
+//#ifdef Explicit_MD
+//    if(mdsInCPU != nullptr)
+//    {
+//        delete[] mdsInCPU->hitIndices;
+//        delete[] mdsInCPU->nMDs;
+//        delete mdsInCPU;
+//    }
+//#endif
+//#ifdef Explicit_Seg
+//    if(segmentsInCPU != nullptr)
+//    {
+//        delete[] segmentsInCPU->mdIndices;
+//        delete[] segmentsInCPU->nSegments;
+//        delete[] segmentsInCPU->innerMiniDoubletAnchorHitIndices;
+//        delete[] segmentsInCPU->outerMiniDoubletAnchorHitIndices;
+//        delete[] segmentsInCPU->ptIn;
+//        delete[] segmentsInCPU->eta;
+//        delete[] segmentsInCPU->phi;
+//        delete segmentsInCPU;
+//    }
+//#endif
+//#ifdef Explicit_Trips
+//    if(tripletsInCPU != nullptr)
+//    {
+//        delete[] tripletsInCPU->segmentIndices;
+//        delete[] tripletsInCPU->nTriplets;
+//        delete[] tripletsInCPU->betaIn;
+//        delete[] tripletsInCPU->betaOut;
+//        delete[] tripletsInCPU->pt_beta;
+//        delete tripletsInCPU;
+//    }
+//#endif
+//#ifdef Explicit_T5
+//#ifdef FINAL_T5
+//    if(quintupletsInCPU != nullptr)
+//    {
+//        delete[] quintupletsInCPU->tripletIndices;
+//        delete[] quintupletsInCPU->nQuintuplets;
+//        delete[] quintupletsInCPU->lowerModuleIndices;
+//        delete[] quintupletsInCPU->innerRadius;
+//        delete[] quintupletsInCPU->outerRadius;
+//        delete[] quintupletsInCPU->regressionRadius;
+//        delete quintupletsInCPU;
+//    }
+//#endif
+//#endif
+//
+//#ifdef Explicit_PT3
+//    if(pixelTripletsInCPU != nullptr)
+//    {
+//        delete[] pixelTripletsInCPU->tripletIndices;
+//        delete[] pixelTripletsInCPU->pixelSegmentIndices;
+//        delete[] pixelTripletsInCPU->pixelRadius;
+//        delete[] pixelTripletsInCPU->tripletRadius;
+//        delete pixelTripletsInCPU->nPixelTriplets;
+//        delete pixelTripletsInCPU;
+//    }
+//#endif
+//
+//#ifdef Explicit_Track
+//    if(trackCandidatesInCPU != nullptr)
+//    {
+//        delete[] trackCandidatesInCPU->objectIndices;
+//        delete[] trackCandidatesInCPU->trackCandidateType;
+//        delete[] trackCandidatesInCPU->nTrackCandidates;
+//        delete trackCandidatesInCPU;
+//    }
+//#endif
+//#ifdef Explicit_Module
+//    if(modulesInCPU != nullptr)
+//    {
+//        delete[] modulesInCPU->nLowerModules;
+//        delete[] modulesInCPU->nModules;
+//        delete[] modulesInCPU->lowerModuleIndices;
+//        delete[] modulesInCPU->detIds;
+//        delete[] modulesInCPU->hitRanges;
+//        delete[] modulesInCPU->isLower;
+//        delete[] modulesInCPU->trackCandidateModuleIndices;
+//        delete[] modulesInCPU->quintupletModuleIndices;
+//        delete[] modulesInCPU->layers;
+//        delete[] modulesInCPU->subdets;
+//        delete[] modulesInCPU->rings;
+//        delete[] modulesInCPU;
+//    }
+//    if(modulesInCPUFull != nullptr)
+//    {
+//        delete[] modulesInCPUFull->detIds;
+//        delete[] modulesInCPUFull->moduleMap;
+//        delete[] modulesInCPUFull->nConnectedModules;
+//        delete[] modulesInCPUFull->drdzs;
+//        delete[] modulesInCPUFull->slopes;
+//        delete[] modulesInCPUFull->nModules;
+//        delete[] modulesInCPUFull->nLowerModules;
+//        delete[] modulesInCPUFull->layers;
+//        delete[] modulesInCPUFull->rings;
+//        delete[] modulesInCPUFull->modules;
+//        delete[] modulesInCPUFull->rods;
+//        delete[] modulesInCPUFull->subdets;
+//        delete[] modulesInCPUFull->sides;
+//        delete[] modulesInCPUFull->isInverted;
+//        delete[] modulesInCPUFull->isLower;
+//
+//        delete[] modulesInCPUFull->hitRanges;
+//        delete[] modulesInCPUFull->mdRanges;
+//        delete[] modulesInCPUFull->segmentRanges;
+//        delete[] modulesInCPUFull->tripletRanges;
+//        delete[] modulesInCPUFull->trackCandidateRanges;
+//
+//        delete[] modulesInCPUFull->moduleType;
+//        delete[] modulesInCPUFull->moduleLayerType;
+//
+//        delete[] modulesInCPUFull->lowerModuleIndices;
+//        delete[] modulesInCPUFull->reverseLookupLowerModuleIndices;
+//        delete[] modulesInCPUFull->trackCandidateModuleIndices;
+//        delete[] modulesInCPUFull->quintupletModuleIndices;
+//        delete[] modulesInCPUFull;
+//    }
+//#endif
+//    //cudaStreamDestroy(stream);
+}
+void SDL::Event::resetEvent()
+{
+printf("RESET\n");
 #ifdef CACHE_ALLOC
     if(hitsInGPU){hitsInGPU->freeMemoryCache();}
     if(mdsInGPU){mdsInGPU->freeMemoryCache();}
@@ -81,6 +248,25 @@ printf("DESTRUCTOR\n");
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemory(stream);}
 #endif
+    //reset the arrays
+    for(int i = 0; i<6; i++)
+    {
+        n_hits_by_layer_barrel_[i] = 0;
+        n_minidoublets_by_layer_barrel_[i] = 0;
+        n_segments_by_layer_barrel_[i] = 0;
+        n_triplets_by_layer_barrel_[i] = 0;
+        n_trackCandidates_by_layer_barrel_[i] = 0;
+        n_quintuplets_by_layer_barrel_[i] = 0;
+        if(i<5)
+        {
+            n_hits_by_layer_endcap_[i] = 0;
+            n_minidoublets_by_layer_endcap_[i] = 0;
+            n_segments_by_layer_endcap_[i] = 0;
+            n_triplets_by_layer_endcap_[i] = 0;
+            n_trackCandidates_by_layer_endcap_[i] = 0;
+            n_quintuplets_by_layer_endcap_[i] = 0;
+        }
+    }
     cudaFreeHost(mdsInGPU);
     cudaFreeHost(segmentsInGPU);
     cudaFreeHost(tripletsInGPU);
@@ -90,140 +276,147 @@ printf("DESTRUCTOR\n");
     cudaFreeHost(pixelTripletsInGPU);
     cudaFreeHost(pixelQuintupletsInGPU);
 
-#ifdef FINAL_T5
     cudaFreeHost(quintupletsInGPU);
-#endif
 
-#ifdef Explicit_Hit
-    if(hitsInCPU != nullptr)
-    {
-        delete[] hitsInCPU->idxs;
-        delete[] hitsInCPU->xs;
-        delete[] hitsInCPU->ys;
-        delete[] hitsInCPU->zs;
-        delete[] hitsInCPU->moduleIndices;
-        delete hitsInCPU->nHits;
-        delete hitsInCPU;
-    }
-#endif
-#ifdef Explicit_MD
-    if(mdsInCPU != nullptr)
-    {
-        delete[] mdsInCPU->hitIndices;
-        delete[] mdsInCPU->nMDs;
-        delete mdsInCPU;
-    }
-#endif
-#ifdef Explicit_Seg
-    if(segmentsInCPU != nullptr)
-    {
-        delete[] segmentsInCPU->mdIndices;
-        delete[] segmentsInCPU->nSegments;
-        delete[] segmentsInCPU->innerMiniDoubletAnchorHitIndices;
-        delete[] segmentsInCPU->outerMiniDoubletAnchorHitIndices;
-        delete[] segmentsInCPU->ptIn;
-        delete[] segmentsInCPU->eta;
-        delete[] segmentsInCPU->phi;
-        delete segmentsInCPU;
-    }
-#endif
-#ifdef Explicit_Trips
-    if(tripletsInCPU != nullptr)
-    {
-        delete[] tripletsInCPU->segmentIndices;
-        delete[] tripletsInCPU->nTriplets;
-        delete[] tripletsInCPU->betaIn;
-        delete[] tripletsInCPU->betaOut;
-        delete[] tripletsInCPU->pt_beta;
-        delete tripletsInCPU;
-    }
-#endif
-#ifdef Explicit_T5
-#ifdef FINAL_T5
-    if(quintupletsInCPU != nullptr)
-    {
-        delete[] quintupletsInCPU->tripletIndices;
-        delete[] quintupletsInCPU->nQuintuplets;
-        delete[] quintupletsInCPU->lowerModuleIndices;
-        delete[] quintupletsInCPU->innerRadius;
-        delete[] quintupletsInCPU->outerRadius;
-        delete[] quintupletsInCPU->regressionRadius;
-        delete quintupletsInCPU;
-    }
-#endif
-#endif
-
-#ifdef Explicit_PT3
-    if(pixelTripletsInCPU != nullptr)
-    {
-        delete[] pixelTripletsInCPU->tripletIndices;
-        delete[] pixelTripletsInCPU->pixelSegmentIndices;
-        delete[] pixelTripletsInCPU->pixelRadius;
-        delete[] pixelTripletsInCPU->tripletRadius;
-        delete pixelTripletsInCPU->nPixelTriplets;
-        delete pixelTripletsInCPU;
-    }
-#endif
-
-#ifdef Explicit_Track
-    if(trackCandidatesInCPU != nullptr)
-    {
-        delete[] trackCandidatesInCPU->objectIndices;
-        delete[] trackCandidatesInCPU->trackCandidateType;
-        delete[] trackCandidatesInCPU->nTrackCandidates;
-        delete trackCandidatesInCPU;
-    }
-#endif
-#ifdef Explicit_Module
-    if(modulesInCPU != nullptr)
-    {
-        delete[] modulesInCPU->nLowerModules;
-        delete[] modulesInCPU->nModules;
-        delete[] modulesInCPU->lowerModuleIndices;
-        delete[] modulesInCPU->detIds;
-        delete[] modulesInCPU->hitRanges;
-        delete[] modulesInCPU->isLower;
-        delete[] modulesInCPU->trackCandidateModuleIndices;
-        delete[] modulesInCPU->quintupletModuleIndices;
-        delete[] modulesInCPU->layers;
-        delete[] modulesInCPU->subdets;
-        delete[] modulesInCPU->rings;
-        delete[] modulesInCPU;
-    }
-    if(modulesInCPUFull != nullptr)
-    {
-        delete[] modulesInCPUFull->detIds;
-        delete[] modulesInCPUFull->moduleMap;
-        delete[] modulesInCPUFull->nConnectedModules;
-        delete[] modulesInCPUFull->drdzs;
-        delete[] modulesInCPUFull->slopes;
-        delete[] modulesInCPUFull->nModules;
-        delete[] modulesInCPUFull->nLowerModules;
-        delete[] modulesInCPUFull->layers;
-        delete[] modulesInCPUFull->rings;
-        delete[] modulesInCPUFull->modules;
-        delete[] modulesInCPUFull->rods;
-        delete[] modulesInCPUFull->subdets;
-        delete[] modulesInCPUFull->sides;
-        delete[] modulesInCPUFull->isInverted;
-        delete[] modulesInCPUFull->isLower;
-
-        delete[] modulesInCPUFull->hitRanges;
-        delete[] modulesInCPUFull->mdRanges;
-        delete[] modulesInCPUFull->segmentRanges;
-        delete[] modulesInCPUFull->tripletRanges;
-        delete[] modulesInCPUFull->trackCandidateRanges;
-
-        delete[] modulesInCPUFull->moduleType;
-        delete[] modulesInCPUFull->moduleLayerType;
-
-        delete[] modulesInCPUFull->lowerModuleIndices;
-        delete[] modulesInCPUFull->reverseLookupLowerModuleIndices;
-        delete[] modulesInCPUFull->trackCandidateModuleIndices;
-        delete[] modulesInCPUFull->quintupletModuleIndices;
-        delete[] modulesInCPUFull;
-    }
-#endif
+    hitsInGPU = nullptr;
+    mdsInGPU = nullptr;
+    segmentsInGPU = nullptr;
+    tripletsInGPU = nullptr;
+    quintupletsInGPU = nullptr;
+    trackCandidatesInGPU = nullptr;
+    pixelTripletsInGPU = nullptr;
+    pixelQuintupletsInGPU = nullptr;
+//
+//#ifdef Explicit_Hit
+//    if(hitsInCPU != nullptr)
+//    {
+//        delete[] hitsInCPU->idxs;
+//        delete[] hitsInCPU->xs;
+//        delete[] hitsInCPU->ys;
+//        delete[] hitsInCPU->zs;
+//        delete[] hitsInCPU->moduleIndices;
+//        delete hitsInCPU->nHits;
+////        delete hitsInCPU;
+//    }
+//#endif
+//#ifdef Explicit_MD
+//    if(mdsInCPU != nullptr)
+//    {
+//        delete[] mdsInCPU->hitIndices;
+//        delete[] mdsInCPU->nMDs;
+////        delete mdsInCPU;
+//    }
+//#endif
+//#ifdef Explicit_Seg
+//    if(segmentsInCPU != nullptr)
+//    {
+//        delete[] segmentsInCPU->mdIndices;
+//        delete[] segmentsInCPU->nSegments;
+//        delete[] segmentsInCPU->innerMiniDoubletAnchorHitIndices;
+//        delete[] segmentsInCPU->outerMiniDoubletAnchorHitIndices;
+//        delete[] segmentsInCPU->ptIn;
+//        delete[] segmentsInCPU->eta;
+//        delete[] segmentsInCPU->phi;
+////        delete segmentsInCPU;
+//    }
+//#endif
+//#ifdef Explicit_Trips
+//    if(tripletsInCPU != nullptr)
+//    {
+//        delete[] tripletsInCPU->segmentIndices;
+//        delete[] tripletsInCPU->nTriplets;
+//        delete[] tripletsInCPU->betaIn;
+//        delete[] tripletsInCPU->betaOut;
+//        delete[] tripletsInCPU->pt_beta;
+////        delete tripletsInCPU;
+//    }
+//#endif
+//#ifdef Explicit_T5
+//#ifdef FINAL_T5
+//    if(quintupletsInCPU != nullptr)
+//    {
+//        delete[] quintupletsInCPU->tripletIndices;
+//        delete[] quintupletsInCPU->nQuintuplets;
+//        delete[] quintupletsInCPU->lowerModuleIndices;
+//        delete[] quintupletsInCPU->innerRadius;
+//        delete[] quintupletsInCPU->outerRadius;
+//        delete[] quintupletsInCPU->regressionRadius;
+////        delete quintupletsInCPU;
+//    }
+//#endif
+//#endif
+//
+//#ifdef Explicit_PT3
+//    if(pixelTripletsInCPU != nullptr)
+//    {
+//        delete[] pixelTripletsInCPU->tripletIndices;
+//        delete[] pixelTripletsInCPU->pixelSegmentIndices;
+//        delete[] pixelTripletsInCPU->pixelRadius;
+//        delete[] pixelTripletsInCPU->tripletRadius;
+//        delete pixelTripletsInCPU->nPixelTriplets;
+////        delete pixelTripletsInCPU;
+//    }
+//#endif
+//
+//#ifdef Explicit_Track
+//    if(trackCandidatesInCPU != nullptr)
+//    {
+//        delete[] trackCandidatesInCPU->objectIndices;
+//        delete[] trackCandidatesInCPU->trackCandidateType;
+//        delete[] trackCandidatesInCPU->nTrackCandidates;
+////        delete trackCandidatesInCPU;
+//    }
+//#endif
+//#ifdef Explicit_Module
+//    if(modulesInCPU != nullptr)
+//    {
+//        delete[] modulesInCPU->nLowerModules;
+//        delete[] modulesInCPU->nModules;
+//        delete[] modulesInCPU->lowerModuleIndices;
+//        delete[] modulesInCPU->detIds;
+//        delete[] modulesInCPU->hitRanges;
+//        delete[] modulesInCPU->isLower;
+//        delete[] modulesInCPU->trackCandidateModuleIndices;
+//        delete[] modulesInCPU->quintupletModuleIndices;
+//        delete[] modulesInCPU->layers;
+//        delete[] modulesInCPU->subdets;
+//        delete[] modulesInCPU->rings;
+////        delete[] modulesInCPU;
+//    }
+//    if(modulesInCPUFull != nullptr)
+//    {
+//        delete[] modulesInCPUFull->detIds;
+//        delete[] modulesInCPUFull->moduleMap;
+//        delete[] modulesInCPUFull->nConnectedModules;
+//        delete[] modulesInCPUFull->drdzs;
+//        delete[] modulesInCPUFull->slopes;
+//        delete[] modulesInCPUFull->nModules;
+//        delete[] modulesInCPUFull->nLowerModules;
+//        delete[] modulesInCPUFull->layers;
+//        delete[] modulesInCPUFull->rings;
+//        delete[] modulesInCPUFull->modules;
+//        delete[] modulesInCPUFull->rods;
+//        delete[] modulesInCPUFull->subdets;
+//        delete[] modulesInCPUFull->sides;
+//        delete[] modulesInCPUFull->isInverted;
+//        delete[] modulesInCPUFull->isLower;
+//
+//        delete[] modulesInCPUFull->hitRanges;
+//        delete[] modulesInCPUFull->mdRanges;
+//        delete[] modulesInCPUFull->segmentRanges;
+//        delete[] modulesInCPUFull->tripletRanges;
+//        delete[] modulesInCPUFull->trackCandidateRanges;
+//
+//        delete[] modulesInCPUFull->moduleType;
+//        delete[] modulesInCPUFull->moduleLayerType;
+//
+//        delete[] modulesInCPUFull->lowerModuleIndices;
+//        delete[] modulesInCPUFull->reverseLookupLowerModuleIndices;
+//        delete[] modulesInCPUFull->trackCandidateModuleIndices;
+//        delete[] modulesInCPUFull->quintupletModuleIndices;
+//        delete[] modulesInCPUFull;
+//    }
+//#endif
     //cudaStreamDestroy(stream);
 }
 
@@ -278,6 +471,19 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
         createHitsInUnifiedMemory(*hitsInGPU,2*loopsize,0,stream);
         #endif
     }
+//    else{
+//    #ifdef CACHE_ALLOC
+//    hitsInGPU->freeMemoryCache();
+//    #else
+//    hitsInGPU->freeMemory(stream);
+//    #endif
+//        #ifdef Explicit_Hit
+//    	  createHitsInExplicitMemory(*hitsInGPU, 2*loopsize,stream); //unclear why but this has to be 2*loopsize to avoid crashing later (reported in tracklet allocation). seems to do with nHits values as well. this allows nhits to be set to the correct value of loopsize to get correct results without crashing. still beats the "max hits" so i think this is fine.
+//        #else
+//        createHitsInUnifiedMemory(*hitsInGPU,2*loopsize,0,stream);
+//        #endif
+//
+//    }
 cudaStreamSynchronize(stream);
 
 
@@ -467,6 +673,18 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     	createMDsInUnifiedMemory(*mdsInGPU, N_MAX_MD_PER_MODULES, nModules, N_MAX_PIXEL_MD_PER_MODULES,stream);
 #endif
     }
+//    else{
+//    #ifdef CACHE_ALLOC
+//    mdsInGPU->freeMemoryCache();
+//    #else
+//    mdsInGPU->freeMemory(stream);
+//    #endif
+//#ifdef Explicit_MD
+//    	createMDsInExplicitMemory(*mdsInGPU, N_MAX_MD_PER_MODULES, nModules, N_MAX_PIXEL_MD_PER_MODULES,stream);
+//#else
+//    	createMDsInUnifiedMemory(*mdsInGPU, N_MAX_MD_PER_MODULES, nModules, N_MAX_PIXEL_MD_PER_MODULES,stream);
+//#endif
+//    } 
     if(segmentsInGPU == nullptr)
     {
         cudaMallocHost(&segmentsInGPU, sizeof(SDL::segments));
@@ -476,6 +694,19 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         createSegmentsInUnifiedMemory(*segmentsInGPU, N_MAX_SEGMENTS_PER_MODULE, nModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE,stream);
 #endif
     }
+//    else{
+//    #ifdef CACHE_ALLOC
+//    segmentsInGPU->freeMemoryCache();
+//    #else
+//    segmentsInGPU->freeMemory(stream);
+//    #endif
+//#ifdef Explicit_Seg
+//        createSegmentsInExplicitMemory(*segmentsInGPU, N_MAX_SEGMENTS_PER_MODULE, nModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE,stream);
+//#else
+//        createSegmentsInUnifiedMemory(*segmentsInGPU, N_MAX_SEGMENTS_PER_MODULE, nModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE,stream);
+//#endif
+//
+//    }
     cudaStreamSynchronize(stream);
     const int size = ptIn.size();
     unsigned int pixelModuleIndex = (*detIdToIndex)[1];

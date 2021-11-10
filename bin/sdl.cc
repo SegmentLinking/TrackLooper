@@ -332,7 +332,7 @@ void run_sdl()
                 std::vector<std::vector<int>>      out_superbin_vec;
                 std::vector<std::vector<int>>      out_pixelType_vec;
                 std::vector<std::vector<short>>    out_isQuad_vec;
-                std::vector<SDL::Event> events;
+                //std::vector<SDL::Event> events;
     // Looping input file
     while (ana.looper.nextEvent())
     {
@@ -439,11 +439,21 @@ void run_sdl()
     cudaStreamCreate(&streams[2]);
     cudaStreamCreate(&streams[3]);
     //int evtx;
-    #pragma omp parallel for num_threads(1) // private(evt)
+    SDL::Event* event0 = new SDL::Event(streams[0]);;//(streams[omp_get_thread_num()]);
+    SDL::Event* event1 = new SDL::Event(streams[1]);;//(streams[omp_get_thread_num()]);
+    SDL::Event* event2 = new SDL::Event(streams[2]);;//(streams[omp_get_thread_num()]);
+    SDL::Event* event3 = new SDL::Event(streams[3]);;//(streams[omp_get_thread_num()]);
+    std::vector<SDL::Event*> events;
+    events.push_back(event0);
+    events.push_back(event1);
+    events.push_back(event2);
+    events.push_back(event3);
+    
+    #pragma omp parallel for num_threads(2)// private(event)
     for(int evtx=0; evtx < out_trkX.size(); evtx++){
-            int evt =evtx;
+            int evt =1;//evtx;
             //if (omp_get_thread_num() %2 ==0){continue;}
-            cudaSetDevice(0);
+            //cudaSetDevice(0);
             std::cout << "Running Event number = " << evtx << " " << omp_get_thread_num() << std::endl;
             if (evt==10) continue;
             if (evt==12) continue;
@@ -453,15 +463,14 @@ void run_sdl()
             if (evt==162) continue;
             // Run Mini-doublet
             float timing_input_loading = 0;
-            //SDL::Event event();
-            //SDL::Event();
-            SDL::Event event(streams[omp_get_thread_num()]);
-    //        #pragma omp critical
-            {
+            //SDL::Event event(streams[omp_get_thread_num()]);
+            //event = new SDL::Event(streams[omp_get_thread_num()]);
+            //#pragma omp critical
+           // {
             //#pragma omp barrier
             //SDL::Event event(streams[0]);
-            //    timing_input_loading = addInputsToEventPreLoad(events.at(evt),false,out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
-                timing_input_loading = addInputsToEventPreLoad(event,false,out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
+                timing_input_loading = addInputsToEventPreLoad(events.at(omp_get_thread_num()),false,out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
+            //    timing_input_loading = addInputsToEventPreLoad(event,false,out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
                 out_hitId.at(evt),
                 out_hitIdxs.at(evt),
                 out_hitIndices_vec0.at(evt),
@@ -481,63 +490,66 @@ void run_sdl()
                 out_pixelType_vec.at(evt),
                 out_isQuad_vec.at(evt)
                 );
-              }
-            float timing_MD = runMiniDoublet(event,evt);
+             // }
+            //float timing_MD = runMiniDoublet(event,evt);
+            float timing_MD = runMiniDoublet(events.at(omp_get_thread_num()),evt);
+            //delete event;
 //            cudaStreamSynchronize(streams[omp_get_thread_num()]);
             //float timing_MD = runMiniDoublet(events.at(evt));
 
             // Run Segment
             //float timing_LS = runSegment(events.at(evt));
-            float timing_LS = runSegment(event);
+            float timing_LS = runSegment(events.at(omp_get_thread_num()));
 
            // // Run T3
            // float timing_T3 = runT3(events.at(evt));
-            float timing_T3 = runT3(event);
-            float timing_T5 = runQuintuplet(event);
-            float timing_pLS = runPixelLineSegment(event);
-            float timing_pT5 = runPixelQuintuplet(event);
-
-           // float timing_T5 = runQuintuplet(events.at(evt));
-           // float timing_pLS = runPixelLineSegment(events.at(evt));
-           // float timing_pT5 = runPixelQuintuplet(events.at(evt));
-
-           // //Run pT3
-           // float timing_pT3 = runpT3(events.at(evt));
-            float timing_pT3 = runpT3(event);
-
-           // // Run TC
-           // float timing_TC = runTrackCandidate(events.at(evt));
-            float timing_TC = runTrackCandidate(event);
-
-            timing_information.push_back({ timing_input_loading,
-                    timing_MD,
-                    timing_LS,
-                    timing_T3,
-                    timing_TC,
-                    timing_T5,
-                    timing_pT3,
-                    timing_pT5,
-                    timing_pLS
-
-                    });
-
-            if (ana.verbose == 4)
-            {
-                printAllObjects(event);
-            }
-
-            if (ana.verbose == 5)
-            {
-                debugPrintOutlierMultiplicities(event);
-            }
-
-            if (ana.do_write_ntuple)
-            {
-                if (not ana.do_cut_value_ntuple)
-                {
-                    fillOutputBranches(event);
-                }
-            }
+            float timing_T3 = runT3(events.at(omp_get_thread_num()));
+//            float timing_T5 = runQuintuplet(events.at(omp_get_thread_num()));
+//            float timing_pLS = runPixelLineSegment(events.at(omp_get_thread_num()));
+//            float timing_pT5 = runPixelQuintuplet(events.at(omp_get_thread_num()));
+//
+//           // float timing_T5 = runQuintuplet(events.at(evt));
+//           // float timing_pLS = runPixelLineSegment(events.at(evt));
+//           // float timing_pT5 = runPixelQuintuplet(events.at(evt));
+//
+//           // //Run pT3
+//           // float timing_pT3 = runpT3(events.at(evt));
+//            float timing_pT3 = runpT3(events.at(omp_get_thread_num()));
+//
+//           // // Run TC
+//           // float timing_TC = runTrackCandidate(events.at(evt));
+//            float timing_TC = runTrackCandidate(events.at(omp_get_thread_num()));
+            events.at(omp_get_thread_num())->resetEvent();
+//
+//            timing_information.push_back({ timing_input_loading,
+//                    timing_MD,
+//                    timing_LS,
+//                    timing_T3,
+//                    timing_TC,
+//                    timing_T5,
+//                    timing_pT3,
+//                    timing_pT5,
+//                    timing_pLS
+//
+//                    });
+//
+//            if (ana.verbose == 4)
+//            {
+//                printAllObjects(event);
+//            }
+//
+//            if (ana.verbose == 5)
+//            {
+//                debugPrintOutlierMultiplicities(event);
+//            }
+//
+//            if (ana.do_write_ntuple)
+//            {
+//                if (not ana.do_cut_value_ntuple)
+//                {
+//                    fillOutputBranches(event);
+//                }
+//            }
 
         }
         //else
@@ -612,19 +624,19 @@ void run_sdl()
 
     //}
 
-    printTimingInformation(timing_information);
-
-    if (not ana.do_run_cpu)
-        SDL::cleanModules();
-
-    // Writing ttree output to file
-    ana.output_tfile->cd();
-    if (not ana.do_cut_value_ntuple) 
-    {
-        ana.cutflow.saveOutput();
-    }
-
-    ana.output_ttree->Write();
+//    printTimingInformation(timing_information);
+//
+//    if (not ana.do_run_cpu)
+//        SDL::cleanModules();
+//
+//    // Writing ttree output to file
+//    ana.output_tfile->cd();
+//    if (not ana.do_cut_value_ntuple) 
+//    {
+//        ana.cutflow.saveOutput();
+//    }
+//
+//    ana.output_ttree->Write();
 
     // The below can be sometimes crucial
     delete ana.output_tfile;

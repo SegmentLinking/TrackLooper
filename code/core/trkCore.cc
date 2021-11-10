@@ -628,26 +628,40 @@ float runMiniDoublet(SDL::Event* event, int evt)
 
 }
 
-float runSegment(SDL::Event& event)
+//float runSegment(SDL::Event& event)
+float runSegment(SDL::Event* event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Segment start" << std::endl;
     my_timer.Start();
-    event.createSegmentsWithModuleMap();
+    event->createSegmentsWithModuleMap();
+    //event.createSegmentsWithModuleMap();
     float sg_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco Segment processing time: " << sg_elapsed << " secs" << std::endl;
 
-    if (ana.verbose >= 2) std::cout << "# of Segments produced: " << event.getNumberOfSegments() << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Segments produced layer 1-2: " << event.getNumberOfSegmentsByLayerBarrel(0) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Segments produced layer 2-3: " << event.getNumberOfSegmentsByLayerBarrel(1) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Segments produced layer 3-4: " << event.getNumberOfSegmentsByLayerBarrel(2) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Segments produced layer 4-5: " << event.getNumberOfSegmentsByLayerBarrel(3) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Segments produced layer 5-6: " << event.getNumberOfSegmentsByLayerBarrel(4) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 1: " << event.getNumberOfSegmentsByLayerEndcap(0) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 2: " << event.getNumberOfSegmentsByLayerEndcap(1) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 3: " << event.getNumberOfSegmentsByLayerEndcap(2) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 4: " << event.getNumberOfSegmentsByLayerEndcap(3) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 5: " << event.getNumberOfSegmentsByLayerEndcap(4) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of Segments produced: " << event.getNumberOfSegments() << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of Segments produced layer 1-2: " << event.getNumberOfSegmentsByLayerBarrel(0) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of Segments produced layer 2-3: " << event.getNumberOfSegmentsByLayerBarrel(1) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of Segments produced layer 3-4: " << event.getNumberOfSegmentsByLayerBarrel(2) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of Segments produced layer 4-5: " << event.getNumberOfSegmentsByLayerBarrel(3) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of Segments produced layer 5-6: " << event.getNumberOfSegmentsByLayerBarrel(4) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 1: " << event.getNumberOfSegmentsByLayerEndcap(0) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 2: " << event.getNumberOfSegmentsByLayerEndcap(1) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 3: " << event.getNumberOfSegmentsByLayerEndcap(2) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 4: " << event.getNumberOfSegmentsByLayerEndcap(3) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 5: " << event.getNumberOfSegmentsByLayerEndcap(4) << std::endl;
+
+    if (ana.verbose >= 2) std::cout << "# of Segments produced: " << event->getNumberOfSegments() << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Segments produced layer 1-2: " << event->getNumberOfSegmentsByLayerBarrel(0) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Segments produced layer 2-3: " << event->getNumberOfSegmentsByLayerBarrel(1) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Segments produced layer 3-4: " << event->getNumberOfSegmentsByLayerBarrel(2) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Segments produced layer 4-5: " << event->getNumberOfSegmentsByLayerBarrel(3) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Segments produced layer 5-6: " << event->getNumberOfSegmentsByLayerBarrel(4) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 1: " << event->getNumberOfSegmentsByLayerEndcap(0) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 2: " << event->getNumberOfSegmentsByLayerEndcap(1) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 3: " << event->getNumberOfSegmentsByLayerEndcap(2) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 4: " << event->getNumberOfSegmentsByLayerEndcap(3) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 5: " << event->getNumberOfSegmentsByLayerEndcap(4) << std::endl;
 
 
     return sg_elapsed;
@@ -655,118 +669,168 @@ float runSegment(SDL::Event& event)
 }
 
 
-float runT3(SDL::Event& event)
+//float runT3(SDL::Event& event)
+float runT3(SDL::Event* event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco T3 start" << std::endl;
     my_timer.Start();
-    event.createTriplets();
+    event->createTriplets();
+    //event.createTriplets();
     float t3_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco T3 processing time: " << t3_elapsed<< " secs" << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of T3s produced: " << event.getNumberOfTriplets() << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of T3s produced layer 1-2-3: " << event.getNumberOfTripletsByLayerBarrel(0) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of T3s produced layer 2-3-4: " << event.getNumberOfTripletsByLayerBarrel(1) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of T3s produced layer 3-4-5: " << event.getNumberOfTripletsByLayerBarrel(2) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of T3s produced layer 4-5-6: " << event.getNumberOfTripletsByLayerBarrel(3) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 1-2-3: " << event.getNumberOfTripletsByLayerEndcap(0) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 2-3-4: " << event.getNumberOfTripletsByLayerEndcap(1) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 3-4-5: " << event.getNumberOfTripletsByLayerEndcap(2) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 1: " << event.getNumberOfTripletsByLayerEndcap(0) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 2: " << event.getNumberOfTripletsByLayerEndcap(1) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 3: " << event.getNumberOfTripletsByLayerEndcap(2) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 4: " << event.getNumberOfTripletsByLayerEndcap(3) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 5: " << event.getNumberOfTripletsByLayerEndcap(4) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of T3s produced: " << event.getNumberOfTriplets() << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of T3s produced layer 1-2-3: " << event.getNumberOfTripletsByLayerBarrel(0) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of T3s produced layer 2-3-4: " << event.getNumberOfTripletsByLayerBarrel(1) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of T3s produced layer 3-4-5: " << event.getNumberOfTripletsByLayerBarrel(2) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of T3s produced layer 4-5-6: " << event.getNumberOfTripletsByLayerBarrel(3) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 1-2-3: " << event.getNumberOfTripletsByLayerEndcap(0) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 2-3-4: " << event.getNumberOfTripletsByLayerEndcap(1) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 3-4-5: " << event.getNumberOfTripletsByLayerEndcap(2) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 1: " << event.getNumberOfTripletsByLayerEndcap(0) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 2: " << event.getNumberOfTripletsByLayerEndcap(1) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 3: " << event.getNumberOfTripletsByLayerEndcap(2) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 4: " << event.getNumberOfTripletsByLayerEndcap(3) << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 5: " << event.getNumberOfTripletsByLayerEndcap(4) << std::endl;
+
+    if (ana.verbose >= 2) std::cout << "# of T3s produced: " << event->getNumberOfTriplets() << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of T3s produced layer 1-2-3: " << event->getNumberOfTripletsByLayerBarrel(0) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of T3s produced layer 2-3-4: " << event->getNumberOfTripletsByLayerBarrel(1) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of T3s produced layer 3-4-5: " << event->getNumberOfTripletsByLayerBarrel(2) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of T3s produced layer 4-5-6: " << event->getNumberOfTripletsByLayerBarrel(3) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 1-2-3: " << event->getNumberOfTripletsByLayerEndcap(0) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 2-3-4: " << event->getNumberOfTripletsByLayerEndcap(1) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 3-4-5: " << event->getNumberOfTripletsByLayerEndcap(2) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 1: " << event->getNumberOfTripletsByLayerEndcap(0) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 2: " << event->getNumberOfTripletsByLayerEndcap(1) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 3: " << event->getNumberOfTripletsByLayerEndcap(2) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 4: " << event->getNumberOfTripletsByLayerEndcap(3) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 5: " << event->getNumberOfTripletsByLayerEndcap(4) << std::endl;
 
     return t3_elapsed;
 
 }
 
 
-float runpT3(SDL::Event& event)
+//float runpT3(SDL::Event& event)
+float runpT3(SDL::Event* event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Pixel Triplet pT3 start" << std::endl;
     my_timer.Start();
-    event.createPixelTriplets();
+    event->createPixelTriplets();
+    //event.createPixelTriplets();
     float pt3_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco pT3 processing time: " << pt3_elapsed << " secs" << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Pixel T3s produced: "<< event.getNumberOfPixelTriplets() << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Pixel T3s produced: "<< event->getNumberOfPixelTriplets() << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of Pixel T3s produced: "<< event.getNumberOfPixelTriplets() << std::endl;
 
     return pt3_elapsed;
 }
 
-float runTrackCandidate(SDL::Event& event)
+float runTrackCandidate(SDL::Event* event)
+//float runTrackCandidate(SDL::Event& event)
 {
     return runTrackCandidateTest_v2(event);
 }
 
-float runQuintuplet(SDL::Event& event)
+float runQuintuplet(SDL::Event* event)
+//float runQuintuplet(SDL::Event& event)
 {
      TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Quintuplet start" << std::endl;
     my_timer.Start();
-    event.createQuintuplets();
+    //event.createQuintuplets();
+    event->createQuintuplets();
     float t5_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco Quintuplet processing time: " << t5_elapsed << " secs" << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced: " << event.getNumberOfQuintuplets() << std::endl;
 
-    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 1-2-3-4-5-6: " << event.getNumberOfQuintupletsByLayerBarrel(0) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 2: " << event.getNumberOfQuintupletsByLayerBarrel(1) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 3: " << event.getNumberOfQuintupletsByLayerBarrel(2) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 4: " << event.getNumberOfQuintupletsByLayerBarrel(3) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 5: " << event.getNumberOfQuintupletsByLayerBarrel(4) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 6: " << event.getNumberOfQuintupletsByLayerBarrel(5) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 1: " << event.getNumberOfQuintupletsByLayerEndcap(0) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 2: " << event.getNumberOfQuintupletsByLayerEndcap(1) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 3: " << event.getNumberOfQuintupletsByLayerEndcap(2) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 4: " << event.getNumberOfQuintupletsByLayerEndcap(3) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 5: " << event.getNumberOfQuintupletsByLayerEndcap(4) << std::endl;
+//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced: " << event.getNumberOfQuintuplets() << std::endl;
+//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 1-2-3-4-5-6: " << event.getNumberOfQuintupletsByLayerBarrel(0) << std::endl;
+//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 2: " << event.getNumberOfQuintupletsByLayerBarrel(1) << std::endl;
+//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 3: " << event.getNumberOfQuintupletsByLayerBarrel(2) << std::endl;
+//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 4: " << event.getNumberOfQuintupletsByLayerBarrel(3) << std::endl;
+//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 5: " << event.getNumberOfQuintupletsByLayerBarrel(4) << std::endl;
+//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 6: " << event.getNumberOfQuintupletsByLayerBarrel(5) << std::endl;
+//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 1: " << event.getNumberOfQuintupletsByLayerEndcap(0) << std::endl;
+//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 2: " << event.getNumberOfQuintupletsByLayerEndcap(1) << std::endl;
+//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 3: " << event.getNumberOfQuintupletsByLayerEndcap(2) << std::endl;
+//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 4: " << event.getNumberOfQuintupletsByLayerEndcap(3) << std::endl;
+//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 5: " << event.getNumberOfQuintupletsByLayerEndcap(4) << std::endl;
+
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced: " << event->getNumberOfQuintuplets() << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 1-2-3-4-5-6: " << event->getNumberOfQuintupletsByLayerBarrel(0) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 2: " << event->getNumberOfQuintupletsByLayerBarrel(1) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 3: " << event->getNumberOfQuintupletsByLayerBarrel(2) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 4: " << event->getNumberOfQuintupletsByLayerBarrel(3) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 5: " << event->getNumberOfQuintupletsByLayerBarrel(4) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 6: " << event->getNumberOfQuintupletsByLayerBarrel(5) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 1: " << event->getNumberOfQuintupletsByLayerEndcap(0) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 2: " << event->getNumberOfQuintupletsByLayerEndcap(1) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 3: " << event->getNumberOfQuintupletsByLayerEndcap(2) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 4: " << event->getNumberOfQuintupletsByLayerEndcap(3) << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 5: " << event->getNumberOfQuintupletsByLayerEndcap(4) << std::endl;
 
     return t5_elapsed;
    
 }
 
-float runPixelLineSegment(SDL::Event& event)
+//float runPixelLineSegment(SDL::Event& event)
+float runPixelLineSegment(SDL::Event* event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Pixel Line Segment start" << std::endl;
     my_timer.Start();
-    event.pixelLineSegmentCleaning();
+    event->pixelLineSegmentCleaning();
+    //event.pixelLineSegmentCleaning();
     float pls_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco Pixel Line Segment processing time: " << pls_elapsed << " secs" << std::endl;
     //if (ana.verbose >= 2) std::cout << "# of Pixel Quintuplets produced: " << event.getNumberOfPixelQuintuplets() << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Pixel Quintuplets produced: " << event->getNumberOfPixelQuintuplets() << std::endl;
 
     return pls_elapsed;
 }
-float runPixelQuintuplet(SDL::Event& event)
+float runPixelQuintuplet(SDL::Event* event)
+//float runPixelQuintuplet(SDL::Event& event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Pixel Quintuplet start" << std::endl;
     my_timer.Start();
-    event.createPixelQuintuplets();
+    event->createPixelQuintuplets();
+    //event.createPixelQuintuplets();
     float pt5_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco Pixel Quintuplet processing time: " << pt5_elapsed << " secs" << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Pixel Quintuplets produced: " << event.getNumberOfPixelQuintuplets() << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Pixel Quintuplets produced: " << event->getNumberOfPixelQuintuplets() << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of Pixel Quintuplets produced: " << event.getNumberOfPixelQuintuplets() << std::endl;
 
     return pt5_elapsed;
 }
 
 
 
-float runTrackCandidateTest_v2(SDL::Event& event)
+float runTrackCandidateTest_v2(SDL::Event* event)
+//float runTrackCandidateTest_v2(SDL::Event& event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco TrackCandidate start" << std::endl;
     my_timer.Start();
-    event.createTrackCandidates();
+    event->createTrackCandidates();
+    //event.createTrackCandidates();
     float tc_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco TrackCandidate processing time: " << tc_elapsed << " secs" << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced: " << event.getNumberOfTrackCandidates() << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Pixel TrackCandidates produced: "<< event.getNumberOfPixelTrackCandidates() << std::endl;
-    if (ana.verbose >= 2) std::cout << "    # of pT5 TrackCandidates produced: "<< event.getNumberOfPT5TrackCandidates() << std::endl;
-    if (ana.verbose >= 2) std::cout << "    # of pT3 TrackCandidates produced: "<< event.getNumberOfPT3TrackCandidates() << std::endl;
-    if (ana.verbose >= 2) std::cout << "    # of pLS TrackCandidates produced: "<< event.getNumberOfPLSTrackCandidates() << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of T5 TrackCandidates produced: "<< event.getNumberOfT5TrackCandidates() << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced: " << event.getNumberOfTrackCandidates() << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of Pixel TrackCandidates produced: "<< event.getNumberOfPixelTrackCandidates() << std::endl;
+    //if (ana.verbose >= 2) std::cout << "    # of pT5 TrackCandidates produced: "<< event.getNumberOfPT5TrackCandidates() << std::endl;
+    //if (ana.verbose >= 2) std::cout << "    # of pT3 TrackCandidates produced: "<< event.getNumberOfPT3TrackCandidates() << std::endl;
+    //if (ana.verbose >= 2) std::cout << "    # of pLS TrackCandidates produced: "<< event.getNumberOfPLSTrackCandidates() << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of T5 TrackCandidates produced: "<< event.getNumberOfT5TrackCandidates() << std::endl;
+
+    if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced: " << event->getNumberOfTrackCandidates() << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of Pixel TrackCandidates produced: "<< event->getNumberOfPixelTrackCandidates() << std::endl;
+    if (ana.verbose >= 2) std::cout << "    # of pT5 TrackCandidates produced: "<< event->getNumberOfPT5TrackCandidates() << std::endl;
+    if (ana.verbose >= 2) std::cout << "    # of pT3 TrackCandidates produced: "<< event->getNumberOfPT3TrackCandidates() << std::endl;
+    if (ana.verbose >= 2) std::cout << "    # of pLS TrackCandidates produced: "<< event->getNumberOfPLSTrackCandidates() << std::endl;
+    if (ana.verbose >= 2) std::cout << "# of T5 TrackCandidates produced: "<< event->getNumberOfT5TrackCandidates() << std::endl;
 
     return tc_elapsed;
 
