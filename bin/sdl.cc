@@ -451,7 +451,7 @@ void run_sdl()
     
     #pragma omp parallel for num_threads(2)// private(event)
     for(int evtx=0; evtx < out_trkX.size(); evtx++){
-            int evt =1;//evtx;
+            int evt =0;//evtx;
             //if (omp_get_thread_num() %2 ==0){continue;}
             //cudaSetDevice(0);
             std::cout << "Running Event number = " << evtx << " " << omp_get_thread_num() << std::endl;
@@ -628,7 +628,7 @@ void run_sdl()
 //
 //    if (not ana.do_run_cpu)
 //        SDL::cleanModules();
-//
+
 //    // Writing ttree output to file
 //    ana.output_tfile->cd();
 //    if (not ana.do_cut_value_ntuple) 
@@ -639,6 +639,10 @@ void run_sdl()
 //    ana.output_ttree->Write();
 
     // The below can be sometimes crucial
+            delete events.at(0);
+            delete events.at(1);
+            delete events.at(2);
+            delete events.at(3);
     delete ana.output_tfile;
 
 }
