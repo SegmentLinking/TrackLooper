@@ -29,10 +29,10 @@ export PIXELMAPDIR="/data2/segmentlinking/pixelmap_neta20_nphi72_nz24_ipt2"
 export LATEST_CPU_BENCHMARK_EFF_MUONGUN="/data2/segmentlinking/muonGun_cpu_efficiencies.root"
 export LATEST_CPU_BENCHMARK_EFF_PU200="/data2/segmentlinking/pu200_cpu_efficiencies.root"
 
-export CUDA_PATH=/usr/local/cuda
-export CUDABINDIR=${CUDA_PATH}/bin
-export CUDALIBDIR=${CUDA_PATH}/lib64
-export CUDAINCLUDE=${CUDA_PAT}/include
-export PATH=${CUDABINDIR}:${MPIBINDIR}:$PATH
-export LD_LIBRARY_PATH=${CUDAINCLUDE}:${CUDALIBDIR}:${NVIDIALIBDIR}:${MPILIBDIR}:$LD_LIBRARY_PATH
+#export CUDA_PATH=/usr/local/cuda
+#export CUDABINDIR=${CUDA_PATH}/bin
+#export CUDALIBDIR=${CUDA_PATH}/lib64
+#export CUDAINCLUDE=${CUDA_PAT}/include
+#export PATH=${CUDABINDIR}:${MPIBINDIR}:$PATH
+#export LD_LIBRARY_PATH=${CUDAINCLUDE}:${CUDALIBDIR}:${NVIDIALIBDIR}:${MPILIBDIR}:$LD_LIBRARY_PATH
 #eof

@@ -294,7 +294,10 @@ void run_sdl()
     Study* study;
 
     if (not ana.do_run_cpu)
+            //cudaSetDevice(0);
         SDL::initModules(TString::Format("%s/data/centroid.txt", gSystem->Getenv("TRACKLOOPERDIR")));
+            //cudaSetDevice(1);
+       // SDL::initModules(TString::Format("%s/data/centroid.txt", gSystem->Getenv("TRACKLOOPERDIR")));
 
     if (not ana.do_cut_value_ntuple or ana.do_run_cpu)
     {
@@ -430,14 +433,14 @@ void run_sdl()
 //                );
 //            timing_MD = runMiniDoublet(event2);
     cudaStream_t streams[4];
-    //cudaStreamCreateWithFlags(&streams[0],cudaStreamNonBlocking);
-    //cudaStreamCreateWithFlags(&streams[1],cudaStreamNonBlocking);
-    //cudaStreamCreateWithFlags(&streams[2],cudaStreamNonBlocking);
-    //cudaStreamCreateWithFlags(&streams[3],cudaStreamNonBlocking);
-    cudaStreamCreate(&streams[0]);
-    cudaStreamCreate(&streams[1]);
-    cudaStreamCreate(&streams[2]);
-    cudaStreamCreate(&streams[3]);
+    cudaStreamCreateWithFlags(&streams[0],cudaStreamNonBlocking);
+    cudaStreamCreateWithFlags(&streams[1],cudaStreamNonBlocking);
+    cudaStreamCreateWithFlags(&streams[2],cudaStreamNonBlocking);
+    cudaStreamCreateWithFlags(&streams[3],cudaStreamNonBlocking);
+    //cudaStreamCreate(&streams[0]);
+    //cudaStreamCreate(&streams[1]);
+    //cudaStreamCreate(&streams[2]);
+    //cudaStreamCreate(&streams[3]);
     //int evtx;
     SDL::Event* event0 = new SDL::Event(streams[0]);;//(streams[omp_get_thread_num()]);
     SDL::Event* event1 = new SDL::Event(streams[1]);;//(streams[omp_get_thread_num()]);
@@ -453,6 +456,7 @@ void run_sdl()
     for(int evtx=0; evtx < out_trkX.size(); evtx++){
             int evt =0;//evtx;
             //if (omp_get_thread_num() %2 ==0){continue;}
+            //cudaSetDevice(omp_get_thread_num() %2);
             //cudaSetDevice(0);
             std::cout << "Running Event number = " << evtx << " " << omp_get_thread_num() << std::endl;
             if (evt==10) continue;
