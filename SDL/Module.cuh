@@ -55,6 +55,10 @@ namespace SDL
         int* trackCandidateRanges;
         //others will be added later
         int* quintupletRanges;
+
+        unsigned int *nEligibleModules;
+        unsigned int *nEligibleT5Modules; //This number is just nEligibleModules - 1, but still we want this to be independent of the TC kernel
+        int *quintupletModuleIndices;
     
         void freeMemoryCache();
         void freeMemory();
@@ -69,13 +73,13 @@ namespace SDL
         float* slopes;
         unsigned int *nModules; //single number
         unsigned int *nLowerModules;
-        unsigned int *nEligibleModules;
-        unsigned int *nEligibleT5Modules; //This number is just nEligibleModules - 1, but still we want this to be independent of the TC kernel
+      //  unsigned int *nEligibleModules;
+       // unsigned int *nEligibleT5Modules; //This number is just nEligibleModules - 1, but still we want this to be independent of the TC kernel
         unsigned int *lowerModuleIndices;
         int *reverseLookupLowerModuleIndices; //module index to lower module index reverse lookup
 
         int *trackCandidateModuleIndices;
-        int *quintupletModuleIndices;
+        //int *quintupletModuleIndices;
 
         
         short* layers;
@@ -165,8 +169,8 @@ namespace SDL
     void setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side);
     void resetObjectRanges(struct objectRanges& rangesInGPU, unsigned int nModules,cudaStream_t stream);
     //void resetObjectRangesExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);
-    void createRangesInUnifiedMemory(struct objectRanges& rangesInGPU,unsigned int nModules,cudaStream_t stream);
-    void createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned int nModules,cudaStream_t stream);
+    void createRangesInUnifiedMemory(struct objectRanges& rangesInGPU,unsigned int nModules,cudaStream_t stream, unsigned int nLowerModules);
+    void createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned int nModules,cudaStream_t stream, unsigned int nLowerModules);
     //void freeModules(struct modules& modulesInGPU,struct pixelMap& pixelMapping,cudaStream_t stream);
     //void freeRangesCache(struct objectRanges& rangesInGPU);
 }

@@ -1318,10 +1318,10 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     
     for(unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
     {
-        if(modulesInGPU.quintupletModuleIndices[idx] == -1)
-        {
-            continue;
-        }
+//        if(modulesInGPU.quintupletModuleIndices[idx] == -1)
+//        {
+//            continue;
+//        }TODO
 
         unsigned int nQuintuplets = quintupletsInGPU.nQuintuplets[idx];
         
@@ -1332,7 +1332,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
 
         for(unsigned int jdx = 0; jdx < nQuintuplets; jdx++)
         {
-            unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[idx] + jdx;
+            unsigned int quintupletIndex = 0;//TODO//modulesInGPU.quintupletModuleIndices[idx] + jdx;
             unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
             unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
 
