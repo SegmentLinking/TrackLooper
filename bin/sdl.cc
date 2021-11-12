@@ -454,12 +454,12 @@ void run_sdl()
     
     #pragma omp parallel for num_threads(2)// private(event)
     for(int evtx=0; evtx < out_trkX.size(); evtx++){
-            int evt =0;//evtx;
+            int evt =evtx;
             //if (omp_get_thread_num() %2 ==0){continue;}
             //cudaSetDevice(omp_get_thread_num() %2);
             //cudaSetDevice(0);
             std::cout << "Running Event number = " << evtx << " " << omp_get_thread_num() << std::endl;
-            if (evt==10) continue;
+            //if (evt==1) continue;
             if (evt==12) continue;
             if (evt==43) continue;
             if (evt==106) continue;

@@ -55,8 +55,8 @@ namespace SDL
     void createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int maxHits,cudaStream_t stream);
     CUDA_G void addHitToMemoryKernel(struct hits& hitsInGPU,struct modules& modulesInGPU,const float* x,const float* y, const float* z,const unsigned int* moduelIndex,const float* phis, const int loopsize);
     //CUDA_G void checkHits(struct hits& hitsInGPU, const int loopsize);
-    void addHitToMemory(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,cudaStream_t stream);
-    CUDA_G void addHitToMemoryGPU(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex, float phis);
+    void addHitToMemory(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,cudaStream_t stream,struct objectRanges& rangesInGPU);
+    CUDA_G void addHitToMemoryGPU(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex, float phis,struct objectRanges& rangesInGPU);
     
     CUDA_HOSTDEV inline float ATan2(float y, float x) {
     //if (x != 0) return  x * (float(-0xf.8eed2p-4) + x * x * float(0x3.1238p-4)); // degree 3 7 bit accuracy//atan2f(y, x);

@@ -136,7 +136,7 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
     cudaStreamSynchronize(stream);
 }
 
-__global__ void SDL::addHitToMemoryGPU(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex,float phis)
+__global__ void SDL::addHitToMemoryGPU(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex,float phis,struct objectRanges& rangesInGPU)
 {
     unsigned int idx = *(hitsInCPU.nHits);
 //    unsigned int idxEdge2S = *(hitsInCPU.n2SHits);
@@ -174,15 +174,15 @@ __global__ void SDL::addHitToMemoryGPU(struct hits& hitsInCPU, struct modules& m
     //set the hit ranges appropriately in the modules struct
 
     //start the index rolling if the module is encountered for the first time
-    if(modulesInGPU.hitRanges[moduleIndex * 2] == -1)
+    if(rangesInGPU.hitRanges[moduleIndex * 2] == -1)
     {
-        modulesInGPU.hitRanges[moduleIndex * 2] = idx;
+        rangesInGPU.hitRanges[moduleIndex * 2] = idx;
     }
     //always update the end index
-    modulesInGPU.hitRanges[moduleIndex * 2 + 1] = idx;
+    rangesInGPU.hitRanges[moduleIndex * 2 + 1] = idx;
     (*hitsInCPU.nHits)++;
 }
-void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,cudaStream_t stream)
+void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,cudaStream_t stream,struct objectRanges& rangesInGPU)
 {
     unsigned int idx = *(hitsInGPU.nHits);
 //    unsigned int idxEdge2S = *(hitsInCPU.n2SHits);
@@ -207,7 +207,7 @@ void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, f
     cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
     int* module_hitRanges;
     cudaMallocHost(&module_hitRanges, nModules* 2*sizeof(int));
-    cudaMemcpyAsync(module_hitRanges,modulesInGPU.hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(module_hitRanges,rangesInGPU.hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
     cudaStreamSynchronize(stream);
 
     if(module_subdets[moduleIndex] == Endcap and module_moduleType[moduleIndex] == TwoS)
@@ -240,7 +240,7 @@ void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, f
     }
     //always update the end index
     module_hitRanges[moduleIndex * 2 + 1] = idx;
-    cudaMemcpyAsync(modulesInGPU.hitRanges,module_hitRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice,stream);
+    cudaMemcpyAsync(rangesInGPU.hitRanges,module_hitRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
     cudaFreeHost(module_moduleType);
     cudaFreeHost(module_subdets);

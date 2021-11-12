@@ -45,6 +45,20 @@ namespace SDL
         InnerPixelLayer
     };
 
+    struct objectRanges
+    {
+        int* hitRanges;
+        int* mdRanges;
+        int* segmentRanges;
+        int* trackletRanges;
+        int* tripletRanges;
+        int* trackCandidateRanges;
+        //others will be added later
+        int* quintupletRanges;
+    
+        void freeMemoryCache();
+        void freeMemory();
+    };
 
     struct modules
     {
@@ -107,14 +121,6 @@ namespace SDL
         bool parseIsLower(unsigned int index);
         bool parseIsLower(unsigned int index, bool isInvertedx,unsigned int detId);
 
-        int* hitRanges;
-        int* mdRanges;
-        int* segmentRanges;
-        int* trackletRanges;
-        int* tripletRanges;
-        int* trackCandidateRanges;
-        //others will be added later
-        int* quintupletRanges;
         unsigned int* connectedPixels;
         unsigned int* connectedPixelsIndex;
         unsigned int* connectedPixelsSizes;
@@ -157,8 +163,12 @@ namespace SDL
     void fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);
     void fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nModules);
     void setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side);
-    void resetObjectRanges(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);
+    void resetObjectRanges(struct objectRanges& rangesInGPU, unsigned int nModules,cudaStream_t stream);
     //void resetObjectRangesExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);
+    void createRangesInUnifiedMemory(struct objectRanges& rangesInGPU,unsigned int nModules,cudaStream_t stream);
+    void createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned int nModules,cudaStream_t stream);
+    //void freeModules(struct modules& modulesInGPU,struct pixelMap& pixelMapping,cudaStream_t stream);
+    //void freeRangesCache(struct objectRanges& rangesInGPU);
 }
 #endif
 
