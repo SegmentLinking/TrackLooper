@@ -64,6 +64,7 @@ namespace SDL
         struct pixelQuintuplets* pixelQuintupletsInGPU;
 
         //CPU interface stuff
+        objectRanges* rangesInCPU;
         hits* hitsInCPU;
         miniDoublets* mdsInCPU;
         segments* segmentsInCPU;
@@ -143,6 +144,7 @@ namespace SDL
         unsigned int getNumberOfPixelTriplets();
         unsigned int getNumberOfPixelQuintuplets();
 
+        objectRanges* getRanges();
         hits* getHits();
         miniDoublets* getMiniDoublets();
         segments* getSegments() ;

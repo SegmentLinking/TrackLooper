@@ -27,6 +27,7 @@ SDL::Event::Event(cudaStream_t estream)
     rangesInGPU = nullptr;
 
     hitsInCPU = nullptr;
+    rangesInCPU = nullptr;
     mdsInCPU = nullptr;
     segmentsInCPU = nullptr;
     tripletsInCPU = nullptr;
@@ -106,6 +107,19 @@ printf("DESTRUCTOR\n");
         delete[] hitsInCPU->moduleIndices;
         delete hitsInCPU->nHits;
         delete hitsInCPU;
+    }
+    if(rangesInCPU != nullptr)
+    {
+        delete[] rangesInCPU->hitRanges;
+        delete[] rangesInCPU->mdRanges;
+        delete[] rangesInCPU->segmentRanges;
+        delete[] rangesInCPU->trackletRanges;
+        delete[] rangesInCPU->trackCandidateRanges;
+        delete[] rangesInCPU->quintupletRanges;
+        delete rangesInCPU->nEligibleModules;
+        delete rangesInCPU->nEligibleT5Modules;
+        delete[] rangesInCPU->quintupletModuleIndices;
+        delete rangesInCPU;
     }
 #endif
 #ifdef Explicit_MD
@@ -2347,10 +2361,29 @@ cudaStreamSynchronize(stream);
     }
     return hitsInCPU;
 }
+SDL::objectRanges* SDL::Event::getRanges()
+{
+        unsigned int nLowerModules;
+        cudaMemcpyAsync(&nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+        cudaStreamSynchronize(stream);
+    //if(modulesInCPU == nullptr)
+    //{
+        rangesInCPU->hitRanges = new int[2*nModules];
+        rangesInCPU->quintupletModuleIndices = new int[nLowerModules];
+        cudaMemcpyAsync(rangesInCPU->hitRanges, rangesInGPU->hitRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(rangesInCPU->quintupletModuleIndices, rangesInGPU->quintupletModuleIndices, nLowerModules * sizeof(int), cudaMemcpyDeviceToHost,stream);
+cudaStreamSynchronize(stream);
+    //}
+    return rangesInCPU;
+}
 #else
 SDL::hits* SDL::Event::getHits() //std::shared_ptr should take care of garbage collection
 {
     return hitsInGPU;
+}
+SDL::objectRanges* SDL::Event::getRanges()
+{
+    return rangesInGPU;
 }
 #endif
 
@@ -2455,7 +2488,7 @@ SDL::quintuplets* SDL::Event::getQuintuplets()
         unsigned int nLowerModules;
         cudaMemcpyAsync(&nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         unsigned int nEligibleT5Modules;
-        cudaMemcpyAsync(&nEligibleT5Modules, modulesInGPU->nEligibleT5Modules, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(&nEligibleT5Modules, rangesInGPU->nEligibleT5Modules, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         unsigned int nMemoryLocations = nEligibleT5Modules * N_MAX_QUINTUPLETS_PER_MODULE;
 
         quintupletsInCPU->nQuintuplets = new unsigned int[nLowerModules];

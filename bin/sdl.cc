@@ -452,7 +452,7 @@ void run_sdl()
     events.push_back(event2);
     events.push_back(event3);
     
-    #pragma omp parallel for num_threads(2)// private(event)
+    #pragma omp parallel for num_threads(4)// private(event)
     for(int evtx=0; evtx < out_trkX.size(); evtx++){
             int evt =evtx;
             //if (omp_get_thread_num() %2 ==0){continue;}

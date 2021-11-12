@@ -29,7 +29,7 @@ void SDL::createRangesInUnifiedMemory(struct objectRanges& rangesInGPU,unsigned 
     cudaMallocManaged(&rangesInGPU.quintupletRanges, nModules * 2 * sizeof(int));
     cudaMallocManaged(&rangesInGPU.nEligibleModules,sizeof(unsigned int));
     cudaMallocManaged(&rangesInGPU.nEligibleT5Modules, sizeof(unsigned int));
-    cudaMallocManaged(&modulesInGPU.quintupletModuleIndices, nLowerModules * sizeof(int));
+    cudaMallocManaged(&rangesInGPU.quintupletModuleIndices, nLowerModules * sizeof(int));
 #endif
 }
 void SDL::createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned int nModules,cudaStream_t stream, unsigned int nLowerModules)
