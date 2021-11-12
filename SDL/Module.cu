@@ -1098,7 +1098,7 @@ SDL::ModuleLayerType SDL::modules::parseModuleLayerType(unsigned int index)
 
 void SDL::resetObjectRanges(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream)
 {
-#ifdef Explicit_Module
+//#ifdef Explicit_Module
         cudaMemsetAsync(modulesInGPU.hitRanges, -1,nModules*2*sizeof(int),stream);
         cudaMemsetAsync(modulesInGPU.mdRanges, -1,nModules*2*sizeof(int),stream);
         cudaMemsetAsync(modulesInGPU.segmentRanges, -1,nModules*2*sizeof(int),stream);
@@ -1106,18 +1106,19 @@ void SDL::resetObjectRanges(struct modules& modulesInGPU, unsigned int nModules,
         cudaMemsetAsync(modulesInGPU.tripletRanges, -1,nModules*2*sizeof(int),stream);
         cudaMemsetAsync(modulesInGPU.trackCandidateRanges, -1,nModules*2*sizeof(int),stream);
         cudaMemsetAsync(modulesInGPU.quintupletRanges, -1, nModules*2*sizeof(int),stream);
-#else
-
-#pragma omp parallel for default(shared)
-    for(size_t i = 0; i<nModules *2; i++)
-    {
-        modulesInGPU.hitRanges[i] = -1;
-        modulesInGPU.mdRanges[i] = -1;
-        modulesInGPU.segmentRanges[i] = -1;
-        modulesInGPU.trackletRanges[i] = -1;
-        modulesInGPU.tripletRanges[i] = -1;
-        modulesInGPU.trackCandidateRanges[i] = -1;
-        modulesInGPU.quintupletRanges[i] = -1;
-    }
-#endif
+        cudaStreamSynchronize(stream);
+//#else
+//
+//#pragma omp parallel for default(shared)
+//    for(size_t i = 0; i<nModules *2; i++)
+//    {
+//        modulesInGPU.hitRanges[i] = -1;
+//        modulesInGPU.mdRanges[i] = -1;
+//        modulesInGPU.segmentRanges[i] = -1;
+//        modulesInGPU.trackletRanges[i] = -1;
+//        modulesInGPU.tripletRanges[i] = -1;
+//        modulesInGPU.trackCandidateRanges[i] = -1;
+//        modulesInGPU.quintupletRanges[i] = -1;
+//    }
+//#endif
 }
