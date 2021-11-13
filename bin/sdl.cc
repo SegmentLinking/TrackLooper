@@ -393,8 +393,9 @@ void run_sdl()
     events.push_back(event1);
     events.push_back(event2);
     events.push_back(event3);
-    
-    #pragma omp parallel for num_threads(4)// private(event)
+    TStopwatch full_timer;
+    full_timer.Start(); 
+    #pragma omp parallel for num_threads(1)// private(event)
     for(int evtx=0; evtx < out_trkX.size(); evtx++){
             int evt =evtx;
             //cudaSetDevice(omp_get_thread_num() %2);
@@ -406,8 +407,8 @@ void run_sdl()
             //if (evt==155) continue;
             //if (evt==162) continue;
             //Load Hits
-            float timing_input_loading = 0;
-                timing_input_loading = addInputsToEventPreLoad(events.at(omp_get_thread_num()),false,out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
+            float timing_input_loading = addInputsToEventPreLoad(events.at(omp_get_thread_num()),false,
+                out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
                 out_hitId.at(evt),
                 out_hitIdxs.at(evt),
                 out_hitIndices_vec0.at(evt),
@@ -479,7 +480,10 @@ void run_sdl()
         }
 
 //    printTimingInformation(timing_information);
-//
+    float full_elapsed = full_timer.RealTime()*1000.f;
+    float throughput   = out_trkX.size()/full_elapsed; 
+    float avg_elapsed  = full_elapsed/out_trkX.size(); 
+    std::cout<< "Full (avg) time: "<< full_elapsed <<"("<<avg_elapsed<< ") ms; thoughput: "<< throughput<< "evts/ms;"<<std::endl;
     if (not ana.do_run_cpu)
         SDL::cleanModules();
 
@@ -492,7 +496,6 @@ void run_sdl()
 //
 //    ana.output_ttree->Write();
 
-    // The below can be sometimes crucial
             delete events.at(0);
             delete events.at(1);
             delete events.at(2);
