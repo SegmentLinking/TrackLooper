@@ -312,7 +312,6 @@ void run_sdl()
     }
 
     // Timing average information
-    std::vector<std::vector<float>> timing_information;
 
                 std::vector<std::vector<float>> out_trkX;
                 std::vector<std::vector<float>> out_trkY;
@@ -393,21 +392,39 @@ void run_sdl()
     events.push_back(event1);
     events.push_back(event2);
     events.push_back(event3);
+    std::vector<std::vector<float>> timevec;
     TStopwatch full_timer;
     full_timer.Start(); 
-    #pragma omp parallel for num_threads(1)// private(event)
-    for(int evtx=0; evtx < out_trkX.size(); evtx++){
+    float full_elapsed = 0;
+    #pragma omp parallel num_threads(4)// private(event)
+    {
+    std::vector<std::vector<float>> timing_information;
+float timing_input_loading; 
+// Run Mini-doub
+float timing_MD;
+// Run Segment
+float timing_LS ;
+// Run T3
+float timing_T3 ;
+// Run T5
+float timing_T5 ;
+// clean pLS
+float timing_pLS;
+//Run pT5
+float timing_pT5;
+//Run pT3
+float timing_pT3;
+// Run TC
+float timing_TC ;
+
+    #pragma omp for //nowait// private(event)
+    for(int evtx=0; evtx < out_trkX.size(); evtx++)
+    {
             int evt =evtx;
             //cudaSetDevice(omp_get_thread_num() %2);
             std::cout << "Running Event number = " << evtx << " " << omp_get_thread_num() << std::endl;
-            //if (evt==1) continue;
-            //if (evt==12) continue;
-            //if (evt==43) continue;
-            //if (evt==106) continue;
-            //if (evt==155) continue;
-            //if (evt==162) continue;
             //Load Hits
-            float timing_input_loading = addInputsToEventPreLoad(events.at(omp_get_thread_num()),false,
+            timing_input_loading = addInputsToEventPreLoad(events.at(omp_get_thread_num()),false,
                 out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
                 out_hitId.at(evt),
                 out_hitIdxs.at(evt),
@@ -429,35 +446,34 @@ void run_sdl()
                 out_isQuad_vec.at(evt)
                 );
             // Run Mini-doublet
-            float timing_MD = runMiniDoublet(events.at(omp_get_thread_num()),evt);
+            timing_MD = runMiniDoublet(events.at(omp_get_thread_num()),evt);
             // Run Segment
-            float timing_LS = runSegment(events.at(omp_get_thread_num()));
+            timing_LS = runSegment(events.at(omp_get_thread_num()));
             // Run T3
-            float timing_T3 = runT3(events.at(omp_get_thread_num()));
+            timing_T3 = runT3(events.at(omp_get_thread_num()));
             // Run T5
-            float timing_T5 = runQuintuplet(events.at(omp_get_thread_num()));
+            timing_T5 = runQuintuplet(events.at(omp_get_thread_num()));
             // clean pLS
-            float timing_pLS = runPixelLineSegment(events.at(omp_get_thread_num()));
+            timing_pLS = runPixelLineSegment(events.at(omp_get_thread_num()));
             //Run pT5
-            float timing_pT5 = runPixelQuintuplet(events.at(omp_get_thread_num()));
+            timing_pT5 = runPixelQuintuplet(events.at(omp_get_thread_num()));
             //Run pT3
-            float timing_pT3 = runpT3(events.at(omp_get_thread_num()));
+            timing_pT3 = runpT3(events.at(omp_get_thread_num()));
             // Run TC
-            float timing_TC = runTrackCandidate(events.at(omp_get_thread_num()));
+            timing_TC = runTrackCandidate(events.at(omp_get_thread_num()));
             //Clear this event
             events.at(omp_get_thread_num())->resetEvent();
-//
-//            timing_information.push_back({ timing_input_loading,
-//                    timing_MD,
-//                    timing_LS,
-//                    timing_T3,
-//                    timing_TC,
-//                    timing_T5,
-//                    timing_pT3,
-//                    timing_pT5,
-//                    timing_pLS
-//
-//                    });
+            timing_information.push_back({ timing_input_loading,
+                    timing_MD,
+                    timing_LS,
+                    timing_T3,
+                    timing_TC,
+                    timing_T5,
+                    timing_pT3,
+                    timing_pT5,
+                    timing_pLS
+
+                    });
 //
 //            if (ana.verbose == 4)
 //            {
@@ -476,12 +492,15 @@ void run_sdl()
 //                    fillOutputBranches(event);
 //                }
 //            }
-
-        }
-
-//    printTimingInformation(timing_information);
-    float full_elapsed = full_timer.RealTime()*1000.f;
-    float throughput   = out_trkX.size()/full_elapsed; 
+    }
+    full_elapsed = full_timer.RealTime()*1000.f; //for loop has implicit barrier I think. So this stops onces all cpu threads have finished but before the next critical section. 
+    #pragma omp critical
+      timevec.insert(timevec.end(), timing_information.begin(), timing_information.end());
+    }
+    printTimingInformation(timevec);
+    //printTimingInformation(timing_information);
+    //float full_elapsed = full_timer.RealTime()*1000.f;
+    float throughput   = float(out_trkX.size())/full_elapsed; 
     float avg_elapsed  = full_elapsed/out_trkX.size(); 
     std::cout<< "Full (avg) time: "<< full_elapsed <<"("<<avg_elapsed<< ") ms; thoughput: "<< throughput<< "evts/ms;"<<std::endl;
     if (not ana.do_run_cpu)
