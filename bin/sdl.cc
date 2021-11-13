@@ -377,71 +377,13 @@ void run_sdl()
                 out_pixelType_vec,
                 out_isQuad_vec
                 );
-                //SDL::Event* event = new SDL::Event();
-                //SDL::Event event;// = new SDL::Event();
-                //events.push_back(event);
-                //timing_input_loading = addInputsToLineSegmentTrackingUsingUnifiedMemory(event);
-            //}else{
-            //    timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
-            //}
         }
     }
-//            SDL::Event event1;
-//            float timing_input_loading = 0;
-//                timing_input_loading = addInputsToEventPreLoad(event1,false,out_trkX.at(0), out_trkY.at(0),out_trkZ.at(0),
-//                out_hitId.at(0),
-//                out_hitIdxs.at(0),
-//                out_hitIndices_vec0.at(0),
-//                out_hitIndices_vec1.at(0),
-//                out_hitIndices_vec2.at(0),
-//                out_hitIndices_vec3.at(0),
-//                out_deltaPhi_vec.at(0),
-//                out_ptIn_vec.at(0),
-//                out_ptErr_vec.at(0),
-//                out_px_vec.at(0),
-//                out_py_vec.at(0),
-//                out_pz_vec.at(0),
-//                out_eta_vec.at(0),
-//                out_etaErr_vec.at(0),
-//                out_phi_vec.at(0),
-//                out_superbin_vec.at(0),
-//                out_pixelType_vec.at(0),
-//                out_isQuad_vec.at(0)
-//                );
-//            float timing_MD = runMiniDoublet(event1);
-//            SDL::Event event2;
-//
-//                timing_input_loading = addInputsToEventPreLoad(event2,false,out_trkX.at(1), out_trkY.at(1),out_trkZ.at(1),
-//                out_hitId.at(1),
-//                out_hitIdxs.at(1),
-//                out_hitIndices_vec0.at(1),
-//                out_hitIndices_vec1.at(1),
-//                out_hitIndices_vec2.at(1),
-//                out_hitIndices_vec3.at(1),
-//                out_deltaPhi_vec.at(1),
-//                out_ptIn_vec.at(1),
-//                out_ptErr_vec.at(1),
-//                out_px_vec.at(1),
-//                out_py_vec.at(1),
-//                out_pz_vec.at(1),
-//                out_eta_vec.at(1),
-//                out_etaErr_vec.at(1),
-//                out_phi_vec.at(1),
-//                out_superbin_vec.at(1),
-//                out_pixelType_vec.at(1),
-//                out_isQuad_vec.at(1)
-//                );
-//            timing_MD = runMiniDoublet(event2);
     cudaStream_t streams[4];
     cudaStreamCreateWithFlags(&streams[0],cudaStreamNonBlocking);
     cudaStreamCreateWithFlags(&streams[1],cudaStreamNonBlocking);
     cudaStreamCreateWithFlags(&streams[2],cudaStreamNonBlocking);
     cudaStreamCreateWithFlags(&streams[3],cudaStreamNonBlocking);
-    //cudaStreamCreate(&streams[0]);
-    //cudaStreamCreate(&streams[1]);
-    //cudaStreamCreate(&streams[2]);
-    //cudaStreamCreate(&streams[3]);
-    //int evtx;
     SDL::Event* event0 = new SDL::Event(streams[0]);;//(streams[omp_get_thread_num()]);
     SDL::Event* event1 = new SDL::Event(streams[1]);;//(streams[omp_get_thread_num()]);
     SDL::Event* event2 = new SDL::Event(streams[2]);;//(streams[omp_get_thread_num()]);
@@ -455,26 +397,17 @@ void run_sdl()
     #pragma omp parallel for num_threads(4)// private(event)
     for(int evtx=0; evtx < out_trkX.size(); evtx++){
             int evt =evtx;
-            //if (omp_get_thread_num() %2 ==0){continue;}
             //cudaSetDevice(omp_get_thread_num() %2);
-            //cudaSetDevice(0);
             std::cout << "Running Event number = " << evtx << " " << omp_get_thread_num() << std::endl;
             //if (evt==1) continue;
-            if (evt==12) continue;
-            if (evt==43) continue;
-            if (evt==106) continue;
-            if (evt==155) continue;
-            if (evt==162) continue;
-            // Run Mini-doublet
+            //if (evt==12) continue;
+            //if (evt==43) continue;
+            //if (evt==106) continue;
+            //if (evt==155) continue;
+            //if (evt==162) continue;
+            //Load Hits
             float timing_input_loading = 0;
-            //SDL::Event event(streams[omp_get_thread_num()]);
-            //event = new SDL::Event(streams[omp_get_thread_num()]);
-            //#pragma omp critical
-           // {
-            //#pragma omp barrier
-            //SDL::Event event(streams[0]);
                 timing_input_loading = addInputsToEventPreLoad(events.at(omp_get_thread_num()),false,out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
-            //    timing_input_loading = addInputsToEventPreLoad(event,false,out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
                 out_hitId.at(evt),
                 out_hitIdxs.at(evt),
                 out_hitIndices_vec0.at(evt),
@@ -494,35 +427,23 @@ void run_sdl()
                 out_pixelType_vec.at(evt),
                 out_isQuad_vec.at(evt)
                 );
-             // }
-            //float timing_MD = runMiniDoublet(event,evt);
+            // Run Mini-doublet
             float timing_MD = runMiniDoublet(events.at(omp_get_thread_num()),evt);
-            //delete event;
-//            cudaStreamSynchronize(streams[omp_get_thread_num()]);
-            //float timing_MD = runMiniDoublet(events.at(evt));
-
             // Run Segment
-            //float timing_LS = runSegment(events.at(evt));
             float timing_LS = runSegment(events.at(omp_get_thread_num()));
-
-           // // Run T3
-           // float timing_T3 = runT3(events.at(evt));
+            // Run T3
             float timing_T3 = runT3(events.at(omp_get_thread_num()));
+            // Run T5
             float timing_T5 = runQuintuplet(events.at(omp_get_thread_num()));
+            // clean pLS
             float timing_pLS = runPixelLineSegment(events.at(omp_get_thread_num()));
+            //Run pT5
             float timing_pT5 = runPixelQuintuplet(events.at(omp_get_thread_num()));
-
-           // float timing_T5 = runQuintuplet(events.at(evt));
-           // float timing_pLS = runPixelLineSegment(events.at(evt));
-           // float timing_pT5 = runPixelQuintuplet(events.at(evt));
-
-           // //Run pT3
-           // float timing_pT3 = runpT3(events.at(evt));
+            //Run pT3
             float timing_pT3 = runpT3(events.at(omp_get_thread_num()));
-
-           // // Run TC
-           // float timing_TC = runTrackCandidate(events.at(evt));
+            // Run TC
             float timing_TC = runTrackCandidate(events.at(omp_get_thread_num()));
+            //Clear this event
             events.at(omp_get_thread_num())->resetEvent();
 //
 //            timing_information.push_back({ timing_input_loading,
@@ -556,82 +477,11 @@ void run_sdl()
 //            }
 
         }
-        //else
-        //{
-        //    //*******************************************************
-        //    // CPU VERSION RUN
-        //    //*******************************************************
-
-        //    // Main instance that will hold modules, hits, minidoublets, etc. (i.e. main data structure)
-        //    SDL::CPU::Event event;
-
-        //    // event.setLogLevel(SDL::CPU::Log_Debug3);
-
-        //    // Add hits to the event
-        //    float timing_input_loading = addOuterTrackerHits(event);
-
-        //    // Add pixel segments
-        //    timing_input_loading += addPixelSegments(event);
-
-        //    // Print hit summary
-        //    printHitSummary(event);
-
-        //    // Run Mini-doublet
-        //    float timing_MD = runMiniDoublet_on_CPU(event);
-        //    printMiniDoubletSummary(event);
-
-        //    // Run Segment
-        //    float timing_LS = runSegment_on_CPU(event);
-        //    printSegmentSummary(event);
-
-        //    // Run Triplet
-        //    float timing_T3 = runT3_on_CPU(event);
-        //    printTripletSummary(event);
-
-        //    // Run Tracklet
-        //    float timing_T4 = 0; // runT4_on_CPU(event);
-        //    printTrackletSummary(event);
-        //    float timing_T4x = 0; // runT4x_on_CPU(event); // T4x's are turned off right now
-        //    printTrackletSummary(event);
-        //    float timing_pT4 = runpT4_on_CPU(event);
-        //    printTrackletSummary(event);
-        //    float timing_pT3 = runpT3_on_CPU(event);
-        //    printTrackletSummary(event);
-
-        //    // Run T5s
-        //    float timing_T5 = runT5_on_CPU(event);
-        //    // Run TrackCandidate
-        //    float timing_TC = 0; // runTrackCandidate_on_CPU(event); // {T4, T3 based TC's, and no T5};
-        //    printTrackCandidateSummary(event);
-
-        //    timing_information.push_back({ timing_input_loading,
-        //            timing_MD,
-        //            timing_LS,
-        //            timing_T4,
-        //            timing_T4x,
-        //            timing_pT3,
-        //            timing_T3,
-        //            timing_TC,
-        //            timing_T5});
-
-        //    if (ana.verbose == 4)
-        //    {
-        //        printAllObjects_for_CPU(event);
-        //    }
-
-        //    if (ana.do_write_ntuple)
-        //    {
-        //        fillOutputBranches_for_CPU(event);
-        //    }
-
-        //}
-
-    //}
 
 //    printTimingInformation(timing_information);
 //
-//    if (not ana.do_run_cpu)
-//        SDL::cleanModules();
+    if (not ana.do_run_cpu)
+        SDL::cleanModules();
 
 //    // Writing ttree output to file
 //    ana.output_tfile->cd();
