@@ -3,6 +3,9 @@
 
 #include "sdl_types.h"
 
+#define PTCUT 0.9 
+#define ETACUT 4.5
+
 // ./process INPUTFILEPATH OUTPUTFILE [NEVENTS]
 int main(int argc, char** argv)
 {
@@ -182,8 +185,8 @@ void bookEfficiencySet(EfficiencySetDefinition& effset)
     // Histogram utility object that is used to define the histograms
     ana.histograms.addVecHistogram(category_name + "_h_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_denom_pt"); } );
     ana.histograms.addVecHistogram(category_name + "_h_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_numer_pt"); } );
-    ana.histograms.addVecHistogram(category_name + "_h_denom_eta" , 180 , -2.5  , 2.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_denom_eta"); } );
-    ana.histograms.addVecHistogram(category_name + "_h_numer_eta" , 180 , -2.5  , 2.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_numer_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_denom_eta" , 180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_numer_eta" , 180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_numer_eta"); } );
     ana.histograms.addVecHistogram(category_name + "_h_denom_dxy" , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_denom_dxy"); } );
     ana.histograms.addVecHistogram(category_name + "_h_numer_dxy" , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_numer_dxy"); } );
     ana.histograms.addVecHistogram(category_name + "_h_denom_dz"  , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_denom_dz"); } );
@@ -197,12 +200,12 @@ void bookEfficiencySet(EfficiencySetDefinition& effset)
     ana.histograms.addVecHistogram(category_name + "_h_denom_layersgap" , 9 , -2 , 7 , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_denom_layersgap"); } );
     ana.histograms.addVecHistogram(category_name + "_h_numer_layersgap" , 9 , -2 , 7 , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_numer_layersgap"); } );
     ana.histograms.addVecHistogram(category_name + "_h_inefficiency_denom_pt"  , pt_boundaries      , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_denom_pt"); } );
-    ana.histograms.addVecHistogram(category_name + "_h_inefficiency_denom_eta" , 180 , -2.5  , 2.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_inefficiency_denom_eta" , 180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_denom_eta"); } );
     ana.histograms.addVecHistogram(category_name + "_h_inefficiency_denom_dxy" , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_denom_dxy"); } );
     ana.histograms.addVecHistogram(category_name + "_h_inefficiency_denom_dz"  , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_denom_dz"); } );
     ana.histograms.addVecHistogram(category_name + "_h_inefficiency_denom_phi" , 180 , -M_PI , M_PI , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_denom_phi"); } );
     ana.histograms.addVecHistogram(category_name + "_h_inefficiency_numer_pt"  , pt_boundaries      , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_numer_pt"); } );
-    ana.histograms.addVecHistogram(category_name + "_h_inefficiency_numer_eta" , 180 , -2.5  , 2.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_numer_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_inefficiency_numer_eta" , 180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_numer_eta"); } );
     ana.histograms.addVecHistogram(category_name + "_h_inefficiency_numer_dxy" , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_numer_dxy"); } );
     ana.histograms.addVecHistogram(category_name + "_h_inefficiency_numer_dz"  , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_numer_dz"); } );
     ana.histograms.addVecHistogram(category_name + "_h_inefficiency_numer_phi" , 180 , -M_PI , M_PI , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_inefficiency_numer_phi"); } );
@@ -271,22 +274,22 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
     const float vtx_z_thresh = 30;
     const float vtx_perp_thresh = 2.5;
 
-    if (pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+    if (pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_eta", eta);
         ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_eta", eta);}
-    if (abs(eta) < 2.4 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+    if (abs(eta) < ETACUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_pt", pt);
         ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_pt", pt);}
-    if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+    if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_phi", phi);
         ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_phi", phi);}
-    if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh){
+    if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_dxy", dxy);
         ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_dxy", dxy);}
-    if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_perp) < vtx_perp_thresh){
+    if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_dz", dz);
         ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_dz", dz);}
-    if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+    if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_layers", lay);
         ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_layers", lay);
         ana.tx.pushbackToBranch<float>(category_name + "_denom_layersgap", laygap);
@@ -297,18 +300,18 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
 
     if (effset.pass(isimtrk))
     {
-        if (pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
+        if (pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_numer_eta", eta);
-        if (abs(eta) < 2.4 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
+        if (abs(eta) < ETACUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_numer_pt", pt);
-        if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
+        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_numer_phi", phi);
-        if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh)
+        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_numer_dxy", dxy);
-        if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_perp) < vtx_perp_thresh)
+        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_perp) < vtx_perp_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_numer_dz", dz);
         //printf("layer: %f\n",lay);
-        if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
             ana.tx.pushbackToBranch<float>(category_name + "_numer_hits", hits);
             ana.tx.pushbackToBranch<float>(category_name + "_numer_layers", lay);
             ana.tx.pushbackToBranch<float>(category_name + "_numer_layersgap", laygap);}
@@ -316,17 +319,17 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
     //inefficiencies
     else
     {
-        if (pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
+        if (pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_eta", eta);
-        if (abs(eta) < 2.4 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
+        if (abs(eta) < ETACUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_pt", pt);
-        if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
+        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_phi", phi);
-        if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh)
+        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_dxy", dxy);
-        if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_perp) < vtx_perp_thresh)
+        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_perp) < vtx_perp_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_dz", dz);
-        if (abs(eta) < 2.4 and pt > 1.5 and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_hits", hits);
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_layers", lay);
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_layersgap", laygap);}
@@ -486,20 +489,20 @@ void fillFakeRateSet(int itc, FakeRateSetDefinition& FRset)
 
     TString category_name = FRset.set_name;
 
-    if (pt > 1.5)
+    if (pt > PTCUT)
         ana.tx.pushbackToBranch<float>(category_name + "_fakerate_denom_eta", eta);
-    if (abs(eta) < 2.4)
+    if (abs(eta) < ETACUT)
         ana.tx.pushbackToBranch<float>(category_name + "_fakerate_denom_pt", pt);
-    if (abs(eta) < 2.4 and pt > 1.5)
+    if (abs(eta) < ETACUT and pt > PTCUT)
         ana.tx.pushbackToBranch<float>(category_name + "_fakerate_denom_phi", phi);
 
     if (FRset.pass(itc))
     {
-        if (pt > 1.5)
+        if (pt > PTCUT)
             ana.tx.pushbackToBranch<float>(category_name + "_fakerate_numer_eta", eta);
-        if (abs(eta) < 2.4)
+        if (abs(eta) < ETACUT)
             ana.tx.pushbackToBranch<float>(category_name + "_fakerate_numer_pt", pt);
-        if (abs(eta) < 2.4 and pt > 1.5)
+        if (abs(eta) < ETACUT and pt > PTCUT)
             ana.tx.pushbackToBranch<float>(category_name + "_fakerate_numer_phi", phi);
     }
 }
@@ -656,20 +659,20 @@ void fillDuplicateRateSet(int itc, DuplicateRateSetDefinition& DLset)
 
     TString category_name = DLset.set_name;
 
-    if (pt > 1.5)
+    if (pt > PTCUT)
         ana.tx.pushbackToBranch<float>(category_name + "_duplrate_denom_eta", eta);
-    if (abs(eta) < 2.4)
+    if (abs(eta) < ETACUT)
         ana.tx.pushbackToBranch<float>(category_name + "_duplrate_denom_pt", pt);
-    if (abs(eta) < 2.4 and pt > 1.5)
+    if (abs(eta) < ETACUT and pt > PTCUT)
         ana.tx.pushbackToBranch<float>(category_name + "_duplrate_denom_phi", phi);
 
     if (DLset.pass(itc))
     {
-        if (pt > 1.5)
+        if (pt > PTCUT)
             ana.tx.pushbackToBranch<float>(category_name + "_duplrate_numer_eta", eta);
-        if (abs(eta) < 2.4)
+        if (abs(eta) < ETACUT)
             ana.tx.pushbackToBranch<float>(category_name + "_duplrate_numer_pt", pt);
-        if (abs(eta) < 2.4 and pt > 1.5)
+        if (abs(eta) < ETACUT and pt > PTCUT)
             ana.tx.pushbackToBranch<float>(category_name + "_duplrate_numer_phi", phi);
     }
 }

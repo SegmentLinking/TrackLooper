@@ -152,7 +152,7 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
         eff.GetYaxis().SetRangeUser(0, 1.02)
 
     if "eta" in output_name:
-        eff.GetXaxis().SetLimits(-2.5, 2.5)
+        eff.GetXaxis().SetLimits(-4.5, 4.5)
 
     eff.SetTitle(parse_plot_name(output_name))
 
@@ -169,24 +169,24 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
         x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
         y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.045 + 0.03
         if "_pt" in output_name:
-            fiducial_label = "|#eta| < 2.4, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+            fiducial_label = "|#eta| < 4.5, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
         elif "_eta" in output_name:
-            fiducial_label = "p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+            fiducial_label = "p_{T} > 0.9 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
         elif "_dz" in output_name:
-            fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{xy}| < 2.5 cm"
+            fiducial_label = "|#eta| < 4.5, p_{T} > 0.9 GeV, |Vtx_{xy}| < 2.5 cm"
         elif "_dxy" in output_name:
-            fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm"
+            fiducial_label = "|#eta| < 4.5, p_{T} > 0.9 GeV, |Vtx_{z}| < 30 cm"
         #elif "_lay" in output_name:
-        #    fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+        #    fiducial_label = "|#eta| < 4.5, p_{T} > 0.9 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
         else:
-            fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+            fiducial_label = "|#eta| < 4.5, p_{T} > 0.9 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
         if "fakerate" in output_name or "duplrate" in output_name:
             if "_pt" in output_name:
-                fiducial_label = "|#eta| < 2.4"
+                fiducial_label = "|#eta| < 4.5"
             elif "_eta" in output_name:
-                fiducial_label = "p_{T} > 1.5 GeV"
+                fiducial_label = "p_{T} > 0.9 GeV"
             else:
-                fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV"
+                fiducial_label = "|#eta| < 4.5, p_{T} > 0.9 GeV"
         t.DrawLatexNDC(x,y,"#scale[0.9]{#font[42]{%s}}" % fiducial_label)
         cms_label = "Simulation"
         x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
