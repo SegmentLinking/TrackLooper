@@ -326,15 +326,15 @@ void SDL::initModules(const char* moduleMetaDataFilePath)
 
 void SDL::cleanModules()
 {
-  #ifdef CACHE_ALLOC
-  freeModulesCache(*modulesInGPU,*pixelMapping);
-  #else
+  //#ifdef CACHE_ALLOC
+  //freeModulesCache(*modulesInGPU,*pixelMapping); //bug in freeing cached modules. Decided to remove module caching since it doesn't change by event.
+  //#else
     cudaStream_t modStream;
     cudaStreamCreate(&modStream);
   freeModules(*modulesInGPU,*pixelMapping,modStream);
     cudaStreamSynchronize(modStream);
     cudaStreamDestroy(modStream);
-  #endif
+  //#endif
   cudaFreeHost(modulesInGPU);
   cudaFreeHost(pixelMapping);
 //cudaDeviceReset(); // uncomment for leak check "cuda-memcheck --leak-check full --show-backtrace yes" does not work with caching.
