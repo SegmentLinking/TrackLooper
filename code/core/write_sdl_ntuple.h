@@ -67,7 +67,7 @@ void fillPrimitiveBranches_T5_for_CPU_v2(SDL::CPU::Event& event);
 
 
 // Timing
-void printTimingInformation(std::vector<std::vector<float>>& timing_information);
+void printTimingInformation(std::vector<std::vector<float>>& timing_information, float fullTime, float fullavg);
 
 // Print multiplicities
 void printQuadrupletMultiplicities(SDL::Event& event);

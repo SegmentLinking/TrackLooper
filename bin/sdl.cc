@@ -293,12 +293,12 @@ void run_sdl()
     loadMaps();
     Study* study;
 
-    if (not ana.do_run_cpu)
-            //cudaSetDevice(0);
+    if (not ana.do_run_cpu){
+        //    cudaSetDevice(0);
         SDL::initModules(TString::Format("%s/data/centroid.txt", gSystem->Getenv("TRACKLOOPERDIR")));
             //cudaSetDevice(1);
        // SDL::initModules(TString::Format("%s/data/centroid.txt", gSystem->Getenv("TRACKLOOPERDIR")));
-
+    }
     if (not ana.do_cut_value_ntuple or ana.do_run_cpu)
     {
         createOutputBranches();
@@ -396,7 +396,7 @@ void run_sdl()
     TStopwatch full_timer;
     full_timer.Start(); 
     float full_elapsed = 0;
-    #pragma omp parallel num_threads(4)// private(event)
+    #pragma omp parallel num_threads(2)// private(event)
     {
     std::vector<std::vector<float>> timing_information;
 float timing_input_loading; 
@@ -497,15 +497,15 @@ float timing_TC ;
     #pragma omp critical
       timevec.insert(timevec.end(), timing_information.begin(), timing_information.end());
     }
-    printTimingInformation(timevec);
     //printTimingInformation(timing_information);
     //float full_elapsed = full_timer.RealTime()*1000.f;
-    float throughput   = float(out_trkX.size())/full_elapsed; 
+    //float throughput   = float(out_trkX.size())/full_elapsed; 
     float avg_elapsed  = full_elapsed/out_trkX.size(); 
-    std::cout<< "Full (avg) time: "<< full_elapsed <<"("<<avg_elapsed<< ") ms; thoughput: "<< throughput<< "evts/ms;"<<std::endl;
-    if (not ana.do_run_cpu)
+    printTimingInformation(timevec,full_elapsed,avg_elapsed);
+    //std::cout<< "Full (avg) time: "<< full_elapsed <<"("<<avg_elapsed<< ") ms; thoughput: "<< throughput<< "evts/ms;"<<std::endl;
+    if (not ana.do_run_cpu){
         SDL::cleanModules();
-
+    }
 //    // Writing ttree output to file
 //    ana.output_tfile->cd();
 //    if (not ana.do_cut_value_ntuple) 

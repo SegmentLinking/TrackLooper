@@ -4649,7 +4649,7 @@ void fillPrimitiveBranches_MD_for_CPU_v2(SDL::CPU::Event& event)
 
 
 //________________________________________________________________________________________________________________________________
-void printTimingInformation(std::vector<std::vector<float>>& timing_information)
+void printTimingInformation(std::vector<std::vector<float>>& timing_information,float fullTime,float fullavg)
 {
 
     if (ana.verbose == 0)
@@ -4755,6 +4755,9 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information)
     std::cout << "   "<<setw(7) << timing_total_avg; // Average total time
     std::cout << "   "<<setw(7) << timing_totalshort_avg; // Average total time
     std::cout << "+/- "<< stdDev; // Average total time
+    std::cout << "   "<<setw(7) << fullTime; // Full time
+    std::cout << "   "<<setw(7) << fullavg; // Average full time
+    std::cout << "   "<<setw(7) << fullavg*timing_totalshort_avg/timing_total_avg; // Effective time
     std::cout << "   "<<ana.compilation_target;
     std::cout << std::endl;
 
