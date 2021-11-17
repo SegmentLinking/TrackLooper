@@ -1223,7 +1223,7 @@ __global__ void createT3T3ExtendedTracksInGPU(struct SDL::modules& modulesInGPU,
     if(firstT3ArrayIdx >= tripletsInGPU.nTriplets[lowerModuleIdx]) return;
 
     unsigned int firstT3Idx = lowerModuleIdx * N_MAX_TRIPLETS_PER_MODULE + firstT3ArrayIdx;
-//    if(tripletsInGPU.partOfExtension[firstT3Idx] or tripletsInGPU.partOfPT5[firstT3Idx] or tripletsInGPU.partOfT5[firstT3Idx] or tripletsInGPU.partOfPT3[firstT3Idx]) return;
+    if(tripletsInGPU.partOfExtension[firstT3Idx] or tripletsInGPU.partOfPT5[firstT3Idx] or tripletsInGPU.partOfT5[firstT3Idx] or tripletsInGPU.partOfPT3[firstT3Idx]) return;
 
     unsigned int nStaggeredModules;
     unsigned int staggeredModuleIndices[10];
@@ -1242,7 +1242,7 @@ __global__ void createT3T3ExtendedTracksInGPU(struct SDL::modules& modulesInGPU,
         if(secondT3ArrayIdx >= tripletsInGPU.nTriplets[outerT3StartingLowerModuleIdx]) continue;
    
         secondT3Idx = outerT3StartingLowerModuleIdx * N_MAX_TRIPLETS_PER_MODULE + secondT3ArrayIdx;
-//        if(tripletsInGPU.partOfExtension[secondT3Idx] or tripletsInGPU.partOfPT5[secondT3Idx] or tripletsInGPU.partOfT5[secondT3Idx] or tripletsInGPU.partOfPT3[secondT3Idx]) continue;
+        if(tripletsInGPU.partOfExtension[secondT3Idx] or tripletsInGPU.partOfPT5[secondT3Idx] or tripletsInGPU.partOfT5[secondT3Idx] or tripletsInGPU.partOfPT3[secondT3Idx]) continue;
 
         success = runTrackExtensionDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelTripletsInGPU, pixelQuintupletsInGPU, trackCandidatesInGPU, firstT3Idx, secondT3Idx, 3, 3, firstT3Idx, 2, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, radius); 
 
