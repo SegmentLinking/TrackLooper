@@ -51,6 +51,7 @@ int main(int argc, char** argv)
         ("g,pdg_id"         , "The simhit pdgId match option (default = 0)"                                                         , cxxopts::value<int>()->default_value("0"))
         ("v,verbose"        , "Verbose mode (0: no print, 1: only final timing, 2: object multiplitcity"                            , cxxopts::value<int>()->default_value("0"))
         ("w,write_ntuple"   , "Write Ntuple"                                                                                        , cxxopts::value<int>()->default_value("1"))
+        ("s,streams"        , "Set number of streams (default=1)"                                                                   , cxxopts::value<int>()->default_value("1"))
         ("d,debug"          , "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")
         ("c,cpu"            , "Run CPU version of the code.")
         ("p,optimization"   , "write cut optimization ntuple")
@@ -201,6 +202,10 @@ int main(int argc, char** argv)
     ana.verbose = result["verbose"].as<int>();
 
     //_______________________________________________________________________________
+    // --streams
+    ana.streams = result["streams"].as<int>();
+
+    //_______________________________________________________________________________
     // --mode
     ana.mode = result["mode"].as<int>();
 
@@ -259,6 +264,7 @@ int main(int argc, char** argv)
     std::cout <<  " ana.do_run_cpu: " << ana.do_run_cpu <<  std::endl;
     std::cout <<  " ana.do_write_ntuple: " << ana.do_write_ntuple <<  std::endl;
     std::cout <<  " ana.mode: " << ana.mode <<  std::endl;
+    std::cout <<  " ana.streams: " << ana.streams <<  std::endl;
     std::cout <<  " ana.verbose: " << ana.verbose <<  std::endl;
     std::cout <<  " ana.nmatch_threshold: " << ana.nmatch_threshold <<  std::endl;
     std::cout <<  "=========================================================" << std::endl;
@@ -396,7 +402,7 @@ void run_sdl()
     TStopwatch full_timer;
     full_timer.Start(); 
     float full_elapsed = 0;
-    #pragma omp parallel num_threads(4)// private(event)
+    #pragma omp parallel num_threads(ana.streams)// private(event)
     {
     std::vector<std::vector<float>> timing_information;
 float timing_input_loading; 
