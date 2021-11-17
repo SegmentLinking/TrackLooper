@@ -45,6 +45,7 @@ namespace SDL
         ~pixelQuintuplets();
         void freeMemory(cudaStream_t stream);
         void freeMemoryCache();
+        void resetMemory(unsigned int maxPixelQuintuplets,cudaStream_t stream);
 
     };
 

@@ -62,6 +62,7 @@ namespace SDL
         ~triplets();
         void freeMemory(cudaStream_t stream);
         void freeMemoryCache();
+        void resetMemory(unsigned int maxTriplets, unsigned int nLowerModules,cudaStream_t stream);
     };
 
     void createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, unsigned int nLowerModules,cudaStream_t stream);

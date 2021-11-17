@@ -5,6 +5,22 @@
 
 ///FIXME:NOTICE THE NEW maxPixelSegments!
 
+void SDL::segments::resetMemory(unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments,cudaStream_t stream)
+{
+    unsigned int nMemoryLocations = maxSegments * (nModules - 1) + maxPixelSegments;
+    cudaMemsetAsync(mdIndices,0, nMemoryLocations * 6 * sizeof(unsigned int),stream);
+    cudaMemsetAsync(nSegments, 0,nModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(dPhis, 0,(nMemoryLocations * 6 + maxPixelSegments * 8)*sizeof(float),stream);
+    cudaMemsetAsync(superbin, 0,(maxPixelSegments )*sizeof(int),stream);
+    cudaMemsetAsync(pixelType, 0,(maxPixelSegments )*sizeof(int),stream);
+    cudaMemsetAsync(isQuad, 0,(maxPixelSegments )*sizeof(bool),stream);
+    cudaMemsetAsync(isDup, 0,(maxPixelSegments )*sizeof(bool),stream);
+    cudaMemsetAsync(score, 0,(maxPixelSegments )*sizeof(float),stream);
+    cudaMemsetAsync(circleCenterX, 0,maxPixelSegments * sizeof(float),stream);
+    cudaMemsetAsync(circleCenterY, 0,maxPixelSegments * sizeof(float),stream);
+    cudaMemsetAsync(circleRadius, 0,maxPixelSegments * sizeof(float),stream);
+    cudaMemsetAsync(partOfPT5, 0,maxPixelSegments * sizeof(bool),stream);
+}
 void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments,cudaStream_t stream)
 {
     //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide

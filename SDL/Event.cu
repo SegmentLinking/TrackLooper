@@ -6,6 +6,7 @@ unsigned int N_MAX_HITS_PER_MODULE = 100;
 struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::pixelMap* SDL::pixelMapping = nullptr;
 unsigned int SDL::nModules;
+unsigned int SDL::nLowerModules;
 
 SDL::Event::Event(cudaStream_t estream)
 {
@@ -267,6 +268,14 @@ void SDL::Event::resetEvent()
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemory(stream);}
 #endif
+//    if(rangesInGPU){resetObjectsInModule();}
+//    if(mdsInGPU){mdsInGPU->resetMemory(N_MAX_MD_PER_MODULES, nModules, N_MAX_PIXEL_MD_PER_MODULES,stream);}
+//    if(segmentsInGPU){segmentsInGPU->resetMemory( N_MAX_SEGMENTS_PER_MODULE, nModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE,stream);}
+//    if(tripletsInGPU){tripletsInGPU->resetMemory( N_MAX_TRIPLETS_PER_MODULE, nLowerModules,stream);}
+//    //if(quintupletsInGPU){quintupletsInGPU->resetMemory(
+//    if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->resetMemory( N_MAX_PIXEL_QUINTUPLETS,stream);}
+//    if(pixelTripletsInGPU){pixelTripletsInGPU->resetMemory(N_MAX_PIXEL_TRIPLETS,stream);}
+//    if(trackCandidatesInGPU){trackCandidatesInGPU->resetMemory( N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES,stream);}
     //reset the arrays
     for(int i = 0; i<6; i++)
     {
@@ -296,8 +305,8 @@ void SDL::Event::resetEvent()
     segmentsInGPU = nullptr;}
     if(tripletsInGPU){cudaFreeHost(tripletsInGPU);
     tripletsInGPU = nullptr;}
-    if(quintupletsInGPU){cudaFreeHost(quintupletsInGPU);
-    quintupletsInGPU = nullptr;}
+  if(quintupletsInGPU){cudaFreeHost(quintupletsInGPU);
+  quintupletsInGPU = nullptr;}
     if(trackCandidatesInGPU){cudaFreeHost(trackCandidatesInGPU);
     trackCandidatesInGPU = nullptr;}
     if(pixelTripletsInGPU){cudaFreeHost(pixelTripletsInGPU);
@@ -317,7 +326,7 @@ void SDL::initModules(const char* moduleMetaDataFilePath)
         cudaMallocHost(&modulesInGPU, sizeof(struct SDL::modules));
         //pixelMapping = new pixelMap;
         cudaMallocHost(&pixelMapping, sizeof(struct SDL::pixelMap));
-        loadModulesFromFile(*modulesInGPU,nModules,*pixelMapping,modStream,moduleMetaDataFilePath); //nModules gets filled here
+        loadModulesFromFile(*modulesInGPU,nModules,nLowerModules,*pixelMapping,modStream,moduleMetaDataFilePath); //nModules gets filled here
     }
     //resetObjectRanges(*modulesInGPU,nModules,modStream);
     cudaStreamSynchronize(modStream);

@@ -74,6 +74,17 @@ SDL::pixelTriplets::~pixelTriplets()
 {
 }
 
+void SDL::pixelTriplets::resetMemory(unsigned int maxPixelTriplets,cudaStream_t stream)
+{
+    cudaMemsetAsync(pixelSegmentIndices,0, maxPixelTriplets * sizeof(unsigned int),stream);
+    cudaMemsetAsync(tripletIndices, 0,maxPixelTriplets * sizeof(unsigned int),stream);
+    cudaMemsetAsync(nPixelTriplets, 0,sizeof(unsigned int),stream);
+    cudaMemsetAsync(pixelRadius, 0,maxPixelTriplets * sizeof(float),stream);
+    cudaMemsetAsync(tripletRadius, 0,maxPixelTriplets * sizeof(float),stream);
+    cudaMemsetAsync(pt, 0,maxPixelTriplets * 6*sizeof(float),stream);
+    cudaMemsetAsync(isDup, 0,maxPixelTriplets * sizeof(bool),stream);
+    cudaMemsetAsync(partOfPT5, 0,maxPixelTriplets * sizeof(bool),stream);
+}
 void SDL::createPixelTripletsInUnifiedMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int maxPixelTriplets,cudaStream_t stream)
 {
 #ifdef CACHE_ALLOC

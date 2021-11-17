@@ -80,6 +80,7 @@ namespace SDL
         ~segments();
 	void freeMemory(cudaStream_t stream);
 	void freeMemoryCache();
+  void resetMemory(unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments,cudaStream_t stream);
     };
 
     void createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments ,cudaStream_t stream);

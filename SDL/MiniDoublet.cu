@@ -18,6 +18,14 @@ CUDA_CONST_VAR float SDL::ptCut = 1.0;
 CUDA_CONST_VAR float SDL::deltaZLum = 15.0;
 CUDA_CONST_VAR float SDL::pixelPSZpitch = 0.15;
 CUDA_CONST_VAR float SDL::strip2SZpitch = 5.0;
+void SDL::miniDoublets::resetMemory(unsigned int maxMDsPerModule, unsigned int nModules, unsigned int maxPixelMDs,cudaStream_t stream)
+{
+    unsigned int nMemoryLocations = maxMDsPerModule * (nModules - 1) + maxPixelMDs;
+    cudaMemsetAsync(hitIndices,0, nMemoryLocations * 3 * sizeof(unsigned int),stream);
+    cudaMemsetAsync(pixelModuleFlag,0, nMemoryLocations * sizeof(short),stream);
+    cudaMemsetAsync(dphichanges,0, nMemoryLocations * 9 * sizeof(float),stream);
+    cudaMemsetAsync(nMDs,0, nModules * sizeof(unsigned int),stream);
+}
 
 void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, unsigned int nModules, unsigned int maxPixelMDs,cudaStream_t stream)
 {

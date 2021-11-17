@@ -163,6 +163,7 @@ namespace SDL
     extern struct modules* modulesInGPU;
     extern struct modules* modulesInHost;
     extern unsigned int nModules;
+    extern unsigned int nLowerModules;
     void initModules(const char* moduleMetaDataFilePath="data/centroid.txt"); //read from file and init
     void cleanModules();
     void initModulesHost(); //read from file and init

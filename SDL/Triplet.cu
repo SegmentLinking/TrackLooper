@@ -4,6 +4,13 @@
 # include "Triplet.cuh"
 #include "allocate.h"
 
+void SDL::triplets::resetMemory(unsigned int maxTriplets, unsigned int nLowerModules,cudaStream_t stream)
+{
+    cudaMemsetAsync(segmentIndices,0, 5 * maxTriplets * nLowerModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(nTriplets,0, nLowerModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(betaIn,0, maxTriplets * nLowerModules * 3 * sizeof(float),stream);
+    cudaMemsetAsync(partOfPT5,0, maxTriplets * nLowerModules * sizeof(bool),stream);
+}
 void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, unsigned int nLowerModules,cudaStream_t stream)
 {
 #ifdef CACHE_ALLOC

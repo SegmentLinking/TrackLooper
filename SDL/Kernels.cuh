@@ -33,7 +33,7 @@
 #define CUDA_G
 #endif
 
-const unsigned int MAX_BLOCKS = 40;
+const unsigned int MAX_BLOCKS = 80;
 const unsigned int N_MAX_MD_PER_MODULES = 100;
 const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600; //Also used in (pixel)trackletDefualtAlgo in header files-> change there as well (hard coded) 
 const unsigned int MAX_CONNECTED_MODULES = 40;

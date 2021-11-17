@@ -63,6 +63,16 @@ void SDL::pixelQuintuplets::freeMemory(cudaStream_t stream)
 cudaStreamSynchronize(stream);
 }
 
+void SDL::pixelQuintuplets::resetMemory(unsigned int maxPixelQuintuplets,cudaStream_t stream)
+{
+    cudaMemsetAsync(pixelIndices,0, maxPixelQuintuplets * sizeof(unsigned int),stream);
+    cudaMemsetAsync(T5Indices,0, maxPixelQuintuplets * sizeof(unsigned int),stream);
+    cudaMemsetAsync(nPixelQuintuplets,0, sizeof(unsigned int),stream);
+    cudaMemsetAsync(isDup,0, maxPixelQuintuplets * sizeof(bool),stream);
+    cudaMemsetAsync(score,0, maxPixelQuintuplets * sizeof(float),stream);
+    cudaMemsetAsync(eta, 0,maxPixelQuintuplets * sizeof(float),stream);
+    cudaMemsetAsync(phi, 0,maxPixelQuintuplets * sizeof(float),stream);
+}
 void SDL::createPixelQuintupletsInUnifiedMemory(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int maxPixelQuintuplets,cudaStream_t stream)
 {
 #ifdef CACHE_ALLOC

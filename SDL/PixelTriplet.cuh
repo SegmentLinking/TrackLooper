@@ -49,6 +49,7 @@ namespace SDL
         ~pixelTriplets();
         void freeMemory(cudaStream_t stream);
         void freeMemoryCache();
+        void resetMemory(unsigned int maxPixelTriplets,cudaStream_t stream);
     };
 
     void createPixelTripletsInUnifiedMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int maxPixelTriplets, cudaStream_t stream);
