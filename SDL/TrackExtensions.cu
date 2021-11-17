@@ -9,6 +9,7 @@ SDL::trackExtensions::trackExtensions()
     nTrackExtensions = nullptr;
     rPhiChiSquared = nullptr;
     rzChiSquared = nullptr;
+    radius = nullptr;
     isDup = nullptr;
 }
 
@@ -43,6 +44,7 @@ void SDL::createTrackExtensionsInUnifiedMemory(struct trackExtensions& trackExte
     cudaMallocManaged(&trackExtensionsInGPU.nTrackExtensions, nTrackCandidates * sizeof(unsigned int));
     cudaMallocManaged(&trackExtensionsInGPU.rPhiChiSquared, maxTrackExtensions * sizeof(float));
     cudaMallocManaged(&trackExtensionsInGPU.rzChiSquared, maxTrackExtensions * sizeof(float));
+    cudaMallocManaged(&trackExtensionsInGPU.radius, maxTrackExtensions * sizeof(float));
 
     cudaMallocManaged(&trackExtensionsInGPU.isDup, maxTrackExtensions * sizeof(bool));
 
@@ -60,6 +62,7 @@ void SDL::createTrackExtensionsInExplicitMemory(struct trackExtensions& trackExt
     cudaMalloc(&trackExtensionsInGPU.nTrackExtensions, nTrackCandidates * sizeof(unsigned int));
     cudaMalloc(&trackExtensionsInGPU.rPhiChiSquared, maxTrackExtensions * sizeof(float));
     cudaMalloc(&trackExtensionsInGPU.rzChiSquared, maxTrackExtensions * sizeof(float));
+    cudaMalloc(&trackExtensionsInGPU.radius, maxTrackExtensions * sizeof(float));
 
     cudaMalloc(&trackExtensionsInGPU.isDup, maxTrackExtensions * sizeof(bool));
 
@@ -67,7 +70,7 @@ void SDL::createTrackExtensionsInExplicitMemory(struct trackExtensions& trackExt
     cudaMemset(trackExtensionsInGPU.isDup, true, maxTrackExtensions * sizeof(bool));
 }
 
-__device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExtensionsInGPU, short* constituentTCType, unsigned int* constituentTCIndex, unsigned int* nLayerOverlaps, unsigned int* nHitOverlaps, float rPhiChiSquared, float rzChiSquared, unsigned int trackExtensionIndex)
+__device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExtensionsInGPU, short* constituentTCType, unsigned int* constituentTCIndex, unsigned int* nLayerOverlaps, unsigned int* nHitOverlaps, float rPhiChiSquared, float rzChiSquared, float radius, unsigned int trackExtensionIndex)
 { 
     for(size_t i = 0; i < 3 ; i++)
     {
@@ -81,10 +84,11 @@ __device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExte
     }
     trackExtensionsInGPU.rPhiChiSquared[trackExtensionIndex] = rPhiChiSquared;
     trackExtensionsInGPU.rzChiSquared[trackExtensionIndex] = rzChiSquared;
+    trackExtensionsInGPU.radius[trackExtensionIndex] = radius;
 }
 
 __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct quintuplets& quintupletsInGPU, struct pixelTriplets& pixelTripletsInGPU, struct pixelQuintuplets& pixelQuintupletsInGPU, struct trackCandidates& trackCandidatesInGPU, unsigned int anchorObjectIndex, unsigned int outerObjectIndex, short anchorObjectType, short outerObjectType, unsigned int anchorObjectOuterT3Index, unsigned int layerOverlapTarget, short* constituentTCType, unsigned int* constituentTCIndex, unsigned
-        int* nLayerOverlaps, unsigned int* nHitOverlaps, float& rPhiChiSquared, float& rzChiSquared)
+        int* nLayerOverlaps, unsigned int* nHitOverlaps, float& rPhiChiSquared, float& rzChiSquared, float& radius)
 {
     /*
        Basic premise:
@@ -104,9 +108,7 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     unsigned int* outerObjectLowerModuleIndices = nullptr;
 
     unsigned int nAnchorLayers = (anchorObjectType == 7) ? 7 : (anchorObjectType == 3 ? 3 : 5);
-    unsigned int anchorObjectAnchorHitIndices[7];
-    float centerX, centerY, radius;
-
+    float centerX, centerY;
     if(anchorObjectType != 3) //mostly this
     { 
         anchorLayerIndices = &trackCandidatesInGPU.logicalLayers[7 * anchorObjectIndex];
@@ -124,26 +126,9 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     }
 
     unsigned int layer_binary = 0;
-    for(size_t i=0; i<nAnchorLayers;i++)
-    {
-        if(modulesInGPU.isAnchor[hitsInGPU.moduleIndices[anchorHitIndices[2*i]]] or modulesInGPU.detIds[hitsInGPU.moduleIndices[anchorHitIndices[2*i]]] == 1)
-        {
-            anchorObjectAnchorHitIndices[i] = anchorHitIndices[2*i];
-        }
-        else
-        {
-            anchorObjectAnchorHitIndices[i] = anchorHitIndices[2*i+1];
-        }
-        layer_binary |= (1 << anchorLayerIndices[i]);
-    }
 
-    if(anchorObjectType == 3)
-    {
-        radius = computeRadiusFromThreeAnchorHits(hitsInGPU.xs[anchorObjectAnchorHitIndices[0]], hitsInGPU.ys[anchorObjectAnchorHitIndices[0]],hitsInGPU.xs[anchorObjectAnchorHitIndices[1]], hitsInGPU.ys[anchorObjectAnchorHitIndices[1]], hitsInGPU.xs[anchorObjectAnchorHitIndices[2]], hitsInGPU.ys[anchorObjectAnchorHitIndices[2]], centerX, centerY);
-    }
     unsigned int nOuterLayers =(outerObjectType == 7) ? 7 : (outerObjectType == 3 ? 3 : 5); 
 
-    unsigned int outerObjectAnchorHitIndices[7];
     if(outerObjectType == 3) //mostly this
     {
         outerObjectLayerIndices = &tripletsInGPU.logicalLayers[3 * outerObjectIndex];
@@ -155,6 +140,36 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
         outerObjectLayerIndices = &trackCandidatesInGPU.logicalLayers[7 * outerObjectIndex];
         outerObjectHitIndices = &trackCandidatesInGPU.hitIndices[14 * outerObjectIndex];
         outerObjectLowerModuleIndices = &tripletsInGPU.lowerModuleIndices[7 * outerObjectIndex];
+    }
+
+
+    
+    unsigned int nLayerOverlap(0), nHitOverlap(0);
+   
+    float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta; //temp stuff
+    float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ;
+
+    //checks for frivolous cases wherein
+    pass = pass and computeLayerAndHitOverlaps(modulesInGPU, anchorLayerIndices, anchorHitIndices, anchorLowerModuleIndices, outerObjectLayerIndices, outerObjectHitIndices, outerObjectLowerModuleIndices, nAnchorLayers, nOuterLayers, nLayerOverlap, nHitOverlap, layerOverlapTarget);
+
+    pass = pass and runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], tripletsInGPU.segmentIndices[2 * anchorObjectOuterT3Index], tripletsInGPU.segmentIndices[2 * outerObjectIndex], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
+
+    pass = pass and runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 2], tripletsInGPU.segmentIndices[2 * anchorObjectOuterT3Index], tripletsInGPU.segmentIndices[2 * outerObjectIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
+
+
+    unsigned int anchorObjectAnchorHitIndices[7];
+    unsigned int outerObjectAnchorHitIndices[7];
+    for(size_t i=0; i<nAnchorLayers;i++)
+    {
+        if(modulesInGPU.isAnchor[hitsInGPU.moduleIndices[anchorHitIndices[2*i]]] or modulesInGPU.detIds[hitsInGPU.moduleIndices[anchorHitIndices[2*i]]] == 1)
+        {
+            anchorObjectAnchorHitIndices[i] = anchorHitIndices[2*i];
+        }
+        else
+        {
+            anchorObjectAnchorHitIndices[i] = anchorHitIndices[2*i+1];
+        }   
+        layer_binary |= (1 << anchorLayerIndices[i]);
     }
 
     for(size_t i=0; i<nOuterLayers;i++)
@@ -170,27 +185,47 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
 
         layer_binary |= (1 << outerObjectLayerIndices[i]);
     }
-    
-    unsigned int nLayerOverlap(0), nHitOverlap(0);
-   
-    float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta; //temp stuff
-    float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ;
-
-    //checks for frivolous cases wherein
-    pass = pass and computeLayerAndHitOverlaps(modulesInGPU, anchorLayerIndices, anchorHitIndices, anchorLowerModuleIndices, outerObjectLayerIndices, outerObjectHitIndices, outerObjectLowerModuleIndices, nAnchorLayers, nOuterLayers, nLayerOverlap, nHitOverlap, layerOverlapTarget);
-
-
-    pass = pass and runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], tripletsInGPU.segmentIndices[2 * anchorObjectOuterT3Index], tripletsInGPU.segmentIndices[2 * outerObjectIndex], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
-
-    pass = pass and runTrackletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 2], tripletsInGPU.segmentIndices[2 * anchorObjectOuterT3Index], tripletsInGPU.segmentIndices[2 * outerObjectIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
-    rPhiChiSquared = computeTERPhiChiSquared(modulesInGPU, hitsInGPU, centerX, centerY, radius, outerObjectAnchorHitIndices, outerObjectLowerModuleIndices);
-    rzChiSquared = computeTERZChiSquared(modulesInGPU, hitsInGPU, anchorObjectAnchorHitIndices, anchorLowerModuleIndices, outerObjectAnchorHitIndices, outerObjectLowerModuleIndices, anchorObjectType);
 
     if(anchorObjectType != 3)
     {
+        rPhiChiSquared = computeTERPhiChiSquared(modulesInGPU, hitsInGPU, centerX, centerY, radius, outerObjectAnchorHitIndices, outerObjectLowerModuleIndices);
+        rzChiSquared = computeTERZChiSquared(modulesInGPU, hitsInGPU, anchorObjectAnchorHitIndices, anchorLowerModuleIndices, outerObjectAnchorHitIndices, outerObjectLowerModuleIndices, anchorObjectType);
         pass = pass and passTERPhiChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rPhiChiSquared);
         pass = pass and passTERZChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rzChiSquared);
     }
+    else
+    {
+        //create a unified list of hit indices and lower module indices
+        unsigned int overallAnchorIndices[6];
+        unsigned int overallLowerModuleIndices[6];
+        int i = 0, j = 0, nPoints = 0;
+        while(j < 3)
+        {
+            if(i < 3)
+            {
+                overallAnchorIndices[nPoints] = anchorObjectAnchorHitIndices[i];
+                overallLowerModuleIndices[nPoints] = anchorLowerModuleIndices[i];
+                if(anchorObjectAnchorHitIndices[i] == outerObjectAnchorHitIndices[j])
+                {
+                    j++;
+                }
+                i++;
+            }
+            else
+            {
+                overallAnchorIndices[nPoints] = outerObjectAnchorHitIndices[j];
+                overallLowerModuleIndices[nPoints] = outerObjectLowerModuleIndices[j];
+                j++;
+            }
+            nPoints++;
+        }
+        rPhiChiSquared = computeT3T3RPhiChiSquared(modulesInGPU, hitsInGPU, nPoints, overallAnchorIndices, overallLowerModuleIndices, radius);
+        rzChiSquared = computeT3T3RZChiSquared(modulesInGPU, hitsInGPU, nPoints, overallAnchorIndices, overallLowerModuleIndices);
+        pass = pass and (radius > 0.95/(2 * k2Rinv1GeVf));
+        pass = pass and passTERPhiChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rPhiChiSquared);
+        pass = pass and passTERZChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rzChiSquared);
+   }
+    
 
     nLayerOverlaps[0] = nLayerOverlap;
     nHitOverlaps[0] = nHitOverlap;
@@ -746,6 +781,360 @@ __device__ bool SDL::passTERZChiSquaredCuts(int nLayerOverlaps, int nHitOverlaps
     {
         return false;
     }
+
+    //TT3
+
+    else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 1431.299;
+    }
+    else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rzChiSquared < 1431.299;
+    }
+    else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rzChiSquared < 1431.299;
+    }
+    else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rzChiSquared < 1431.299;
+    }
+    else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rzChiSquared < 1082.725;
+    }
+    else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 468.686;
+    }
+    else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rzChiSquared < 619.575;
+    }
+    else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rzChiSquared < 819.042;
+    }
+    else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rzChiSquared < 819.042;
+    }
+    else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rzChiSquared < 819.042;
+    }
+    else if(layer_binary == 62 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 819.042;
+    }
+    else if(layer_binary == 120 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 0.000;
+    }
+    else if(layer_binary == 120 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rzChiSquared < 0.000;
+    }
+    else if(layer_binary == 120 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rzChiSquared < 0.000;
+    }
+    else if(layer_binary == 120 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rzChiSquared < 0.000;
+    }
+    else if(layer_binary == 120 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rzChiSquared < 0.000;
+    }
+    else if(layer_binary == 124 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 619.575;
+    }
+    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 2501.235;
+    }
+    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rzChiSquared < 2501.235;
+    }
+    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rzChiSquared < 2501.235;
+    }
+    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rzChiSquared < 2501.235;
+    }
+    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rzChiSquared < 1892.093;
+    }
+    else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 1431.299;
+    }
+    else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return false;
+    }
+    else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rzChiSquared < 1431.299;
+    }
+    else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rzChiSquared < 1431.299;
+    }
+    else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rzChiSquared < 1431.299;
+    }
+    else if(layer_binary == 158 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 1431.299;
+    }
+    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rzChiSquared < 0.000;
+    }
+    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rzChiSquared < 0.000;
+    }
+    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rzChiSquared < 0.000;
+    }
+    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rzChiSquared < 0.000;
+    }
+    else if(layer_binary == 188 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 819.042;
+    }
+    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 2501.235;
+    }
+    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rzChiSquared < 2501.235;
+    }
+    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rzChiSquared < 2501.235;
+    }
+    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rzChiSquared < 2501.235;
+    }
+    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rzChiSquared < 2501.235;
+    }
+    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 1892.093;
+    }
+    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rzChiSquared < 1892.093;
+    }
+    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rzChiSquared < 1892.093;
+    }
+    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rzChiSquared < 1892.093;
+    }
+    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rzChiSquared < 1892.093;
+    }
+    else if(layer_binary == 398 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 1892.093;
+    }
+    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return false;
+    }
+    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rzChiSquared < 0.000;
+    }
+    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rzChiSquared < 0.000;
+    }
+    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rzChiSquared < 0.000;
+    }
+    else if(layer_binary == 412 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 1431.299;
+    }
+    else if(layer_binary == 432 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 432 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return false;
+    }
+    else if(layer_binary == 432 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return false;
+    }
+    else if(layer_binary == 432 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return false;
+    }
+    else if(layer_binary == 432 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rzChiSquared < 0.000;
+    }
+    else if(layer_binary == 440 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 2501.235;
+    }
+    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rzChiSquared < 2501.235;
+    }
+    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rzChiSquared < 2501.235;
+    }
+    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rzChiSquared < 2501.235;
+    }
+    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rzChiSquared < 2501.235;
+    }
+    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 1892.093;
+    }
+    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rzChiSquared < 1431.299;
+    }
+    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rzChiSquared < 1892.093;
+    }
+    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rzChiSquared < 1892.093;
+    }
+    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rzChiSquared < 1892.093;
+    }
+    else if(layer_binary == 902 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 2501.235;
+    }
+    else if(layer_binary == 904 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 904 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return false;
+    }
+    else if(layer_binary == 904 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rzChiSquared < 1892.093;
+    }
+    else if(layer_binary == 904 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rzChiSquared < 1892.093;
+    }
+    else if(layer_binary == 904 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rzChiSquared < 1892.093;
+    }
+    else if(layer_binary == 908 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 1892.093;
+    }
+    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 819.042;
+    }
+    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rzChiSquared < 819.042;
+    }
+    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rzChiSquared < 819.042;
+    }
+    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rzChiSquared < 819.042;
+    }
+    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rzChiSquared < 819.042;
+    }
+    else if(layer_binary == 1922 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 1892.093;
+    }
+    else if(layer_binary == 1924 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 819.042;
+    }
+    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rzChiSquared < 819.042;
+    }
+    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rzChiSquared < 819.042;
+    }
+    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rzChiSquared < 819.042;
+    }
+    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rzChiSquared < 819.042;
+    }
+    else if(layer_binary == 3968 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rzChiSquared < 819.042;
+    }
+
+
+
     return true;
 }
 
@@ -1368,6 +1757,356 @@ __device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverla
         return false;
     }
 
+    //T3T3
+    if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.062;
+    }
+    else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rPhiChiSquared < 0.143;
+    }
+    else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 0.035;
+    }
+    else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rPhiChiSquared < 0.047;
+    }
+    else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 0.047;
+    }
+    else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.009;
+    }
+    else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rPhiChiSquared < 0.003;
+    }
+    else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 1.765;
+    }
+    else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rPhiChiSquared < 0.143;
+    }
+    else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 1.010;
+    }
+    else if(layer_binary == 62 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.047;
+    }
+    else if(layer_binary == 120 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.189;
+    }
+    else if(layer_binary == 120 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rPhiChiSquared < 4.076;
+    }
+    else if(layer_binary == 120 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 7.124;
+    }
+    else if(layer_binary == 120 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rPhiChiSquared < 0.764;
+    }
+    else if(layer_binary == 120 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 0.764;
+    }
+    else if(layer_binary == 124 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 5.389;
+    }
+    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.027;
+    }
+    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rPhiChiSquared < 0.047;
+    }
+    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 0.035;
+    }
+    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rPhiChiSquared < 0.047;
+    }
+    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 0.062;
+    }
+    else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.027;
+    }
+    else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return false;
+    }
+    else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 0.143;
+    }
+    else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rPhiChiSquared < 0.015;
+    }
+    else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 0.250;
+    }
+    else if(layer_binary == 158 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.062;
+    }
+    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rPhiChiSquared < 0.035;
+    }
+    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 0.082;
+    }
+    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rPhiChiSquared < 0.027;
+    }
+    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 0.082;
+    }
+    else if(layer_binary == 188 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.035;
+    }
+    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.035;
+    }
+    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rPhiChiSquared < 0.012;
+    }
+    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 0.047;
+    }
+    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rPhiChiSquared < 0.062;
+    }
+    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 0.047;
+    }
+    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.002;
+    }
+    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rPhiChiSquared < 0.004;
+    }
+    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 0.035;
+    }
+    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rPhiChiSquared < 0.047;
+    }
+    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 0.062;
+    }
+    else if(layer_binary == 398 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.108;
+    }
+    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return false;
+    }
+    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 1.765;
+    }
+    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rPhiChiSquared < 0.578;
+    }
+    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 0.082;
+    }
+    else if(layer_binary == 412 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 87.823;
+    }
+    else if(layer_binary == 432 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 432 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return false;
+    }
+    else if(layer_binary == 432 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return false;
+    }
+    else if(layer_binary == 432 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return false;
+    }
+    else if(layer_binary == 432 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 0.015;
+    }
+    else if(layer_binary == 440 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.015;
+    }
+    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rPhiChiSquared < 0.012;
+    }
+    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 0.012;
+    }
+    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rPhiChiSquared < 0.012;
+    }
+    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 0.027;
+    }
+    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 1.010;
+    }
+    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rPhiChiSquared < 0.002;
+    }
+    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 0.250;
+    }
+    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rPhiChiSquared < 0.009;
+    }
+    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 0.108;
+    }
+    else if(layer_binary == 902 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.082;
+    }
+    else if(layer_binary == 904 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 904 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return false;
+    }
+    else if(layer_binary == 904 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 0.012;
+    }
+    else if(layer_binary == 904 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rPhiChiSquared < 0.007;
+    }
+    else if(layer_binary == 904 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 0.035;
+    }
+    else if(layer_binary == 908 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.047;
+    }
+    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.007;
+    }
+    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rPhiChiSquared < 0.578;
+    }
+    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 0.027;
+    }
+    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rPhiChiSquared < 0.035;
+    }
+    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 0.035;
+    }
+    else if(layer_binary == 1922 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.250;
+    }
+    else if(layer_binary == 1924 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.012;
+    }
+    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rPhiChiSquared < 0.020;
+    }
+    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 0.082;
+    }
+    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rPhiChiSquared < 0.047;
+    }
+    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 0.062;
+    }
+    else if(layer_binary == 3968 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.062;
+    }
+
     return true;
 }
 
@@ -1571,3 +2310,119 @@ __device__ float SDL::computeTERPhiChiSquared(struct modules& modulesInGPU, stru
     float chiSquared = computeChiSquared(3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius);
     return chiSquared;
 }
+
+
+__device__ float SDL::computeT3T3RPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, int nPoints, unsigned int* anchorHitIndices, unsigned int* lowerModuleIndices, float& regressionRadius)
+{
+    float delta1[6], delta2[6], sigmas[6], slopes[6], xs[6], ys[6], g, f;
+    bool isFlat[6];
+    computeSigmasForRegression(modulesInGPU, lowerModuleIndices, delta1, delta2, slopes, isFlat, nPoints, true);
+
+    for(size_t i = 0; i < nPoints; i++)
+    {
+        xs[i] = hitsInGPU.xs[anchorHitIndices[i]];
+        ys[i] = hitsInGPU.ys[anchorHitIndices[i]];
+    }
+    float chiSquared;
+    regressionRadius = computeRadiusUsingRegression(nPoints, xs, ys, delta1, delta2, slopes, isFlat, g, f, sigmas, chiSquared);
+    return chiSquared;
+}
+
+__device__ float SDL::computeT3T3RZChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, int nPoints, unsigned int* anchorHitIndices, unsigned int* lowerModuleIndices)
+{
+    float rts[6], zs[6];
+    float slope = 0, intercept = 0, RMSE = 0, error, drdz, residual;
+
+    int nPSPoints = 0;
+    int n2SPoints = 0;
+    for(size_t i = 0; i < nPoints; i++)
+    {
+        rts[i] = hitsInGPU.rts[anchorHitIndices[i]];
+        zs[i] = hitsInGPU.zs[anchorHitIndices[i]];
+
+        if(modulesInGPU.moduleType[lowerModuleIndices[i]] == SDL::PS)
+        {
+            nPSPoints++;
+        }
+        else
+        {
+            n2SPoints++;
+        }
+    }
+    if(nPSPoints <= 1)
+    {
+        fitStraightLine(n2SPoints, &rts[nPSPoints], &zs[nPSPoints], slope, intercept);
+        for(size_t i = nPSPoints; i < nPoints; i++) 
+        {
+            //Can pull this off because the PS modules are the first ones in the lower module sequence
+            unsigned int lowerModuleIndex = lowerModuleIndices[i];
+
+            const int moduleType = modulesInGPU.moduleType[lowerModuleIndex];
+            const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
+            const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
+            const int layer = modulesInGPU.layers[lowerModuleIndex] + 6 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex] == SDL::TwoS); 
+            residual = (layer <= 6) ?  zs[i] - (slope * rts[i] + intercept) : rts[i] - (zs[i]/slope + intercept/slope);
+            error = 5.0;
+
+            //special dispensation to tilted PS modules!
+            if(moduleType == 0 and layer <= 6 and moduleSide != Center)
+            {
+                if(moduleLayerType == Strip)
+                {
+                    drdz = modulesInGPU.drdzs[lowerModuleIndex];
+                }
+                else
+                {
+                   drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndex)];
+                }
+
+                error *= 1/sqrtf(1 + drdz * drdz);
+            }
+            RMSE += (residual * residual)/(error * error);
+        }
+
+    }
+    else
+    {
+        fitStraightLine(nPSPoints, rts, zs, slope, intercept);
+        for(size_t i =0; i < nPSPoints; i++) 
+        {
+            //Can pull this off because the PS modules are the first ones in the lower module sequence
+            unsigned int lowerModuleIndex = lowerModuleIndices[i];
+
+            const int moduleType = modulesInGPU.moduleType[lowerModuleIndex];
+            const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
+            const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
+            const int layer = modulesInGPU.layers[lowerModuleIndex] + 6 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex] == SDL::TwoS); 
+            residual = (layer <= 6) ?  zs[i] - (slope * rts[i] + intercept) : rts[i] - (zs[i]/slope + intercept/slope);
+            error = 0.15;
+
+            //special dispensation to tilted PS modules!
+            if(moduleType == 0 and layer <= 6 and moduleSide != Center)
+            {
+                if(moduleLayerType == Strip)
+                {
+                    drdz = modulesInGPU.drdzs[lowerModuleIndex];
+                }
+                else
+                {
+                   drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndex)];
+                }
+
+                error *= 1/sqrtf(1 + drdz * drdz);
+            }
+            RMSE += (residual * residual)/(error * error);
+        }
+    }
+
+    if(nPSPoints <= 1)
+    {
+        RMSE = sqrtf(RMSE/n2SPoints);
+    }
+    else
+    {
+        RMSE = sqrtf(RMSE/nPSPoints);
+    }
+    return RMSE;
+}
+

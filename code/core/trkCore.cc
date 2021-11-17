@@ -767,6 +767,7 @@ float runTrackExtensions(SDL::Event& event)
     {
         std::cout<<"Reco Track Extension processing time: " << tce_elapsed<<" secs "<< std::endl;
         std::cout<<"# of Track Extensions produced: "<<event.getNumberOfExtendedTracks()<<std::endl;
+        std::cout<<"# of T3T3 Track Extensions produced: "<<event.getNumberOfT3T3ExtendedTracks()<<std::endl;
     }
     return tce_elapsed;
 }
@@ -1005,7 +1006,6 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
         if (trkidx < 0)
             continue;
         if (counts[rawidx] > (((float)nhits_input) * 0.75))
-//          if (counts[rawidx] == nhits_input)        
             matched_sim_trk_idxs.push_back(trkidx);
         maxHitMatchCount = std::max(maxHitMatchCount, *std::max_element(counts.begin(), counts.end()));
     }

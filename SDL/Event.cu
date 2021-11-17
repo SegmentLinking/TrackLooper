@@ -1117,9 +1117,10 @@ void SDL::Event::createExtendedTracks()
     }
    
     dim3 nThreadsT3T3(1,16,16);
-    dim3 nBlocksT3T3(nLowerModules % nThreads.x == 0 ? nLowerModules / nThreads.x: nLowerModules / nThreads.x + 1, maxT3s % nThreads.y == 0 ? maxT3s / nThreads.y : maxT3s / nThreads.y + 1, maxT3s % nThreads.z == 0 ? maxT3s / nThreads.z : maxT3s / nThreads.z + 1);
+    dim3 nBlocksT3T3(nLowerModules % nThreadsT3T3.x == 0 ? nLowerModules / nThreadsT3T3.x: nLowerModules / nThreadsT3T3.x + 1, maxT3s % nThreadsT3T3.y == 0 ? maxT3s / nThreadsT3T3.y : maxT3s / nThreadsT3T3.y + 1, maxT3s % nThreadsT3T3.z == 0 ? maxT3s / nThreadsT3T3.z : maxT3s / nThreadsT3T3.z + 1);
 
-    createT3T3ExtendedTracksInGPU<<<nBlocks, nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, *pixelTripletsInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU, nTrackCandidates);
+    createT3T3ExtendedTracksInGPU<<<nBlocksT3T3, nThreadsT3T3>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, *pixelTripletsInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU, nTrackCandidates);
+
     cudaerr = cudaDeviceSynchronize();
     if(cudaerr != cudaSuccess)
     {
@@ -1130,6 +1131,7 @@ void SDL::Event::createExtendedTracks()
     int nBlocksDupCleaning = (nTrackCandidates % nThreadsDupCleaning == 0) ? nTrackCandidates / nThreadsDupCleaning : nTrackCandidates / nThreadsDupCleaning + 1;
 
     cleanDuplicateExtendedTracks<<<nThreadsDupCleaning, nBlocksDupCleaning>>>(*trackExtensionsInGPU, nTrackCandidates);
+
     cudaerr = cudaDeviceSynchronize();
     if(cudaerr != cudaSuccess)
     {
