@@ -4660,9 +4660,10 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
     std::cout << setprecision(2);
     std::cout << right;
     std::cout << "Timing summary" << std::endl;
-    std::cout << "Evt     Hits         MD       LS      T3       TC       T5       pT3      pT5      pLS      Total     Total(short)" << std::endl;
+    std::cout << "   Evt    Hits       MD       LS      T3       TC       T5       pT3      pT5      pLS      Total     Total(short)" << std::endl;
     std::vector<float> timing_sum_information(timing_information[0].size());
     std::vector<float> timing_shortlist;
+    std::vector<float> timing_list;
     for (auto&& [ievt, timing] : iter::enumerate(timing_information))
     {
         float timing_total = 0.f;
@@ -4706,6 +4707,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
         timing_sum_information[7] += timing[7]*1000; //pT5
         timing_sum_information[8] += timing[8]*1000; //pLS
         timing_shortlist.push_back(timing_total_short); //short total
+        timing_list.push_back(timing_total); //short total
     }
     timing_sum_information[0] /= timing_information.size(); // Hits
     timing_sum_information[1] /= timing_information.size(); // MD
@@ -4741,7 +4743,18 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
       standardDeviation += pow(shorttime - timing_totalshort_avg, 2);
     }
     float stdDev = sqrt(standardDeviation/timing_shortlist.size());
+
+    //float standardDeviationFull = 0.0;
+    //for(auto time: timing_list) {
+    //  standardDeviationFull += pow(time - timing_total_avg, 2);
+    //}
+    //float stdDevFull = sqrt(standardDeviationFull/timing_list.size());
+
+    float effectiveThroughput = fullavg*timing_totalshort_avg/timing_total_avg;
+    //float std_throughput = effectiveThroughput * sqrt(pow(stdDevFull/timing_total_avg,2) + pow(stdDev/timing_totalshort_avg,2));
+
     std::cout << setprecision(0);
+    std::cout << "   Evt    Hits       MD       LS      T3       TC       T5       pT3      pT5      pLS      Kernel     Kernel(short)    Loop      throughput" << std::endl;
     std::cout << setw(6) << "avg";
     std::cout << "   "<<setw(6) << timing_sum_information[0]; // Hits
     std::cout << "   "<<setw(6) << timing_sum_information[1]; // MD
@@ -4753,12 +4766,15 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
     std::cout << "   "<<setw(6) << timing_sum_information[7]; //pT5
     std::cout << "   "<<setw(6) << timing_sum_information[8]; //pLS
     std::cout << "   "<<setw(7) << timing_total_avg; // Average total time
+    //std::cout << "+/- "<< stdDevFull;
     std::cout << "   "<<setw(7) << timing_totalshort_avg; // Average total time
-    std::cout << "+/- "<< stdDev; // Average total time
-    std::cout << "   "<<setw(7) << fullTime; // Full time
+    std::cout << "+/- "<< stdDev; 
+    //std::cout << "   "<<setw(7) << fullTime; // Full time
     std::cout << "   "<<setw(7) << fullavg; // Average full time
-    std::cout << "   "<<setw(7) << fullavg*timing_totalshort_avg/timing_total_avg; // Effective time
+    std::cout << "   "<<setw(7) << effectiveThroughput; // Effective time
+    //std::cout << "+/- "<< std_throughput; 
     std::cout << "   "<<ana.compilation_target;
+    std::cout << "[s="<<ana.streams<<"]";
     std::cout << std::endl;
 
     std::cout << left;
