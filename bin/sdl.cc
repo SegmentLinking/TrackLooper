@@ -396,7 +396,7 @@ void run_sdl()
     TStopwatch full_timer;
     full_timer.Start(); 
     float full_elapsed = 0;
-    #pragma omp parallel num_threads(2)// private(event)
+    #pragma omp parallel num_threads(4)// private(event)
     {
     std::vector<std::vector<float>> timing_information;
 float timing_input_loading; 
@@ -418,11 +418,9 @@ float timing_pT3;
 float timing_TC ;
 
     #pragma omp for //nowait// private(event)
-    for(int evtx=0; evtx < out_trkX.size(); evtx++)
+    for(int evt=0; evt < out_trkX.size(); evt++)
     {
-            int evt =evtx;
-            //cudaSetDevice(omp_get_thread_num() %2);
-            std::cout << "Running Event number = " << evtx << " " << omp_get_thread_num() << std::endl;
+            std::cout << "Running Event number = " << evt << " " << omp_get_thread_num() << std::endl;
             //Load Hits
             timing_input_loading = addInputsToEventPreLoad(events.at(omp_get_thread_num()),false,
                 out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
@@ -461,8 +459,6 @@ float timing_TC ;
             timing_pT3 = runpT3(events.at(omp_get_thread_num()));
             // Run TC
             timing_TC = runTrackCandidate(events.at(omp_get_thread_num()));
-            //Clear this event
-            events.at(omp_get_thread_num())->resetEvent();
             timing_information.push_back({ timing_input_loading,
                     timing_MD,
                     timing_LS,
@@ -474,24 +470,37 @@ float timing_TC ;
                     timing_pLS
 
                     });
-//
-//            if (ana.verbose == 4)
-//            {
-//                printAllObjects(event);
-//            }
-//
-//            if (ana.verbose == 5)
-//            {
-//                debugPrintOutlierMultiplicities(event);
-//            }
-//
-//            if (ana.do_write_ntuple)
-//            {
-//                if (not ana.do_cut_value_ntuple)
-//                {
-//                    fillOutputBranches(event);
-//                }
-//            }
+
+            if (ana.verbose == 4)
+            {
+              #pragma omp critical
+              {
+                printAllObjects(events.at(omp_get_thread_num()));
+              }
+            }
+
+            if (ana.verbose == 5)
+            {
+              #pragma omp critical
+              {
+                debugPrintOutlierMultiplicities(events.at(omp_get_thread_num()));
+              }
+            }
+
+            if (ana.do_write_ntuple)
+            {
+              #pragma omp critical
+              {
+                trk.GetEntry(evt);
+                if (not ana.do_cut_value_ntuple)
+                {
+                    fillOutputBranches(events.at(omp_get_thread_num()));
+                }
+              }
+            }
+
+            //Clear this event
+            events.at(omp_get_thread_num())->resetEvent();
     }
     full_elapsed = full_timer.RealTime()*1000.f; //for loop has implicit barrier I think. So this stops onces all cpu threads have finished but before the next critical section. 
     #pragma omp critical
@@ -506,14 +515,14 @@ float timing_TC ;
     if (not ana.do_run_cpu){
         SDL::cleanModules();
     }
-//    // Writing ttree output to file
-//    ana.output_tfile->cd();
-//    if (not ana.do_cut_value_ntuple) 
-//    {
-//        ana.cutflow.saveOutput();
-//    }
-//
-//    ana.output_ttree->Write();
+    // Writing ttree output to file
+    ana.output_tfile->cd();
+    if (not ana.do_cut_value_ntuple) 
+    {
+        ana.cutflow.saveOutput();
+    }
+
+    ana.output_ttree->Write();
 
             delete events.at(0);
             delete events.at(1);
