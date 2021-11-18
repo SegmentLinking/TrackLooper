@@ -110,14 +110,14 @@ SDL::Event::~Event()
     }
     if(rangesInCPU != nullptr)
     {
-        delete[] rangesInCPU->hitRanges;
-        delete[] rangesInCPU->mdRanges;
-        delete[] rangesInCPU->segmentRanges;
-        delete[] rangesInCPU->trackletRanges;
-        delete[] rangesInCPU->trackCandidateRanges;
-        delete[] rangesInCPU->quintupletRanges;
-        delete rangesInCPU->nEligibleModules;
-        delete rangesInCPU->nEligibleT5Modules;
+        //delete[] rangesInCPU->hitRanges;
+        //delete[] rangesInCPU->mdRanges;
+        //delete[] rangesInCPU->segmentRanges;
+        //delete[] rangesInCPU->trackletRanges;
+        //delete[] rangesInCPU->trackCandidateRanges;
+        //delete[] rangesInCPU->quintupletRanges;
+        //delete rangesInCPU->nEligibleModules;
+        //delete rangesInCPU->nEligibleT5Modules;
         delete[] rangesInCPU->quintupletModuleIndices;
         delete rangesInCPU;
     }
@@ -303,6 +303,151 @@ void SDL::Event::resetEvent()
     pixelTripletsInGPU = nullptr;}
     if(pixelQuintupletsInGPU){cudaFreeHost(pixelQuintupletsInGPU);
     pixelQuintupletsInGPU = nullptr;}
+#ifdef Explicit_Hit
+    if(hitsInCPU != nullptr)
+    {
+        delete[] hitsInCPU->idxs;
+        delete[] hitsInCPU->xs;
+        delete[] hitsInCPU->ys;
+        delete[] hitsInCPU->zs;
+        delete[] hitsInCPU->moduleIndices;
+        delete hitsInCPU->nHits;
+        delete hitsInCPU;
+        hitsInCPU = nullptr;
+    }
+    if(rangesInCPU != nullptr)
+    {
+        delete[] rangesInCPU->hitRanges;
+        //delete[] rangesInCPU->mdRanges;
+        //delete[] rangesInCPU->segmentRanges;
+        //delete[] rangesInCPU->trackletRanges;
+        //delete[] rangesInCPU->trackCandidateRanges;
+        //delete[] rangesInCPU->quintupletRanges;
+        //delete rangesInCPU->nEligibleModules;
+        //delete rangesInCPU->nEligibleT5Modules;
+        delete[] rangesInCPU->quintupletModuleIndices;
+        delete rangesInCPU;
+        rangesInCPU = nullptr;
+    }
+#endif
+#ifdef Explicit_MD
+    if(mdsInCPU != nullptr)
+    {
+        delete[] mdsInCPU->hitIndices;
+        delete[] mdsInCPU->nMDs;
+        delete mdsInCPU;
+        mdsInCPU = nullptr;
+    }
+#endif
+#ifdef Explicit_Seg
+    if(segmentsInCPU != nullptr)
+    {
+        delete[] segmentsInCPU->mdIndices;
+        delete[] segmentsInCPU->nSegments;
+        delete[] segmentsInCPU->innerMiniDoubletAnchorHitIndices;
+        delete[] segmentsInCPU->outerMiniDoubletAnchorHitIndices;
+        delete[] segmentsInCPU->ptIn;
+        delete[] segmentsInCPU->eta;
+        delete[] segmentsInCPU->phi;
+        delete segmentsInCPU;
+        segmentsInCPU = nullptr;
+    }
+#endif
+#ifdef Explicit_Trips
+    if(tripletsInCPU != nullptr)
+    {
+        delete[] tripletsInCPU->segmentIndices;
+        delete[] tripletsInCPU->nTriplets;
+        delete[] tripletsInCPU->betaIn;
+        delete[] tripletsInCPU->betaOut;
+        delete[] tripletsInCPU->pt_beta;
+        delete tripletsInCPU;
+        tripletsInCPU = nullptr;
+    }
+#endif
+#ifdef Explicit_T5
+#ifdef FINAL_T5
+    if(quintupletsInCPU != nullptr)
+    {
+        delete[] quintupletsInCPU->tripletIndices;
+        delete[] quintupletsInCPU->nQuintuplets;
+        delete[] quintupletsInCPU->lowerModuleIndices;
+        delete[] quintupletsInCPU->innerRadius;
+        delete[] quintupletsInCPU->outerRadius;
+        delete[] quintupletsInCPU->regressionRadius;
+        delete quintupletsInCPU;
+        quintupletsInCPU = nullptr;
+    }
+#endif
+#endif
+
+#ifdef Explicit_PT3
+    if(pixelTripletsInCPU != nullptr)
+    {
+        delete[] pixelTripletsInCPU->tripletIndices;
+        delete[] pixelTripletsInCPU->pixelSegmentIndices;
+        delete[] pixelTripletsInCPU->pixelRadius;
+        delete[] pixelTripletsInCPU->tripletRadius;
+        delete pixelTripletsInCPU->nPixelTriplets;
+        delete pixelTripletsInCPU;
+        pixelTripletsInCPU = nullptr;
+    }
+#endif
+
+#ifdef Explicit_Track
+    if(trackCandidatesInCPU != nullptr)
+    {
+        delete[] trackCandidatesInCPU->objectIndices;
+        delete[] trackCandidatesInCPU->trackCandidateType;
+        delete[] trackCandidatesInCPU->nTrackCandidates;
+        delete trackCandidatesInCPU;
+        trackCandidatesInCPU = nullptr;
+    }
+#endif
+#ifdef Explicit_Module
+    if(modulesInCPU != nullptr)
+    {
+        delete[] modulesInCPU->nLowerModules;
+        delete[] modulesInCPU->nModules;
+        delete[] modulesInCPU->lowerModuleIndices;
+        delete[] modulesInCPU->detIds;
+        delete[] modulesInCPU->isLower;
+        delete[] modulesInCPU->trackCandidateModuleIndices;
+        delete[] modulesInCPU->layers;
+        delete[] modulesInCPU->subdets;
+        delete[] modulesInCPU->rings;
+        delete[] modulesInCPU;
+        modulesInCPU = nullptr;
+    }
+    if(modulesInCPUFull != nullptr)
+    {
+        delete[] modulesInCPUFull->detIds;
+        delete[] modulesInCPUFull->moduleMap;
+        delete[] modulesInCPUFull->nConnectedModules;
+        delete[] modulesInCPUFull->drdzs;
+        delete[] modulesInCPUFull->slopes;
+        delete[] modulesInCPUFull->nModules;
+        delete[] modulesInCPUFull->nLowerModules;
+        delete[] modulesInCPUFull->layers;
+        delete[] modulesInCPUFull->rings;
+        delete[] modulesInCPUFull->modules;
+        delete[] modulesInCPUFull->rods;
+        delete[] modulesInCPUFull->subdets;
+        delete[] modulesInCPUFull->sides;
+        delete[] modulesInCPUFull->isInverted;
+        delete[] modulesInCPUFull->isLower;
+
+
+        delete[] modulesInCPUFull->moduleType;
+        delete[] modulesInCPUFull->moduleLayerType;
+
+        delete[] modulesInCPUFull->lowerModuleIndices;
+        delete[] modulesInCPUFull->reverseLookupLowerModuleIndices;
+        delete[] modulesInCPUFull->trackCandidateModuleIndices;
+        delete[] modulesInCPUFull;
+        modulesInCPUFull = nullptr;
+    }
+#endif
 
 
 }
@@ -2169,8 +2314,8 @@ unsigned int SDL::Event::getNumberOfT5TrackCandidates()
 #ifdef Explicit_Hit
 SDL::hits* SDL::Event::getHits() //std::shared_ptr should take care of garbage collection
 {
-//    if(hitsInCPU == nullptr)
-//    {
+    if(hitsInCPU == nullptr)
+    {
         hitsInCPU = new SDL::hits;
         hitsInCPU->nHits = new unsigned int;
         unsigned int nHits;
@@ -2188,7 +2333,7 @@ cudaStreamSynchronize(stream);
         cudaMemcpyAsync(hitsInCPU->zs, hitsInGPU->zs, sizeof(float) * nHits, cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(hitsInCPU->moduleIndices, hitsInGPU->moduleIndices, sizeof(unsigned int) * nHits, cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
-//    }
+    }
     return hitsInCPU;
 }
 SDL::objectRanges* SDL::Event::getRanges()
@@ -2196,24 +2341,24 @@ SDL::objectRanges* SDL::Event::getRanges()
         unsigned int nLowerModules;
         cudaMemcpyAsync(&nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaStreamSynchronize(stream);
-//    if(rangesInCPU == nullptr)
-//    {
+    if(rangesInCPU == nullptr)
+    {
         rangesInCPU = new SDL::objectRanges;
         rangesInCPU->hitRanges = new int[2*nModules];
         rangesInCPU->quintupletModuleIndices = new int[nLowerModules];
-        rangesInCPU->mdRanges =                  new int[nModules * 2];
-        rangesInCPU->segmentRanges =             new int[nModules * 2];
-        rangesInCPU->trackletRanges =            new int[nModules * 2];
-        rangesInCPU->tripletRanges =             new int[nModules * 2];
-        rangesInCPU->trackCandidateRanges =      new int[nModules * 2];
-        rangesInCPU->quintupletRanges =          new int[nModules * 2];
-        rangesInCPU->nEligibleModules =     (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
-        rangesInCPU->nEligibleT5Modules = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
-        rangesInCPU->quintupletModuleIndices = (int*)cms::cuda::allocate_managed(nLowerModules * sizeof(int),stream);
+        //rangesInCPU->mdRanges =                  new int[nModules * 2];
+        //rangesInCPU->segmentRanges =             new int[nModules * 2];
+        //rangesInCPU->trackletRanges =            new int[nModules * 2];
+        //rangesInCPU->tripletRanges =             new int[nModules * 2];
+        //rangesInCPU->trackCandidateRanges =      new int[nModules * 2];
+        //rangesInCPU->quintupletRanges =          new int[nModules * 2];
+        //rangesInCPU->nEligibleModules =     (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
+        //rangesInCPU->nEligibleT5Modules = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
+        //rangesInCPU->quintupletModuleIndices = (int*)cms::cuda::allocate_managed(nLowerModules * sizeof(int),stream);
         cudaMemcpyAsync(rangesInCPU->hitRanges, rangesInGPU->hitRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(rangesInCPU->quintupletModuleIndices, rangesInGPU->quintupletModuleIndices, nLowerModules * sizeof(int), cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
-//    }
+    }
     return rangesInCPU;
 }
 #else
@@ -2231,8 +2376,8 @@ SDL::objectRanges* SDL::Event::getRanges()
 #ifdef Explicit_MD
 SDL::miniDoublets* SDL::Event::getMiniDoublets()
 {
-//    if(mdsInCPU == nullptr)
-//    {
+    if(mdsInCPU == nullptr)
+    {
         mdsInCPU = new SDL::miniDoublets;
         unsigned int nMemoryLocations = (N_MAX_MD_PER_MODULES * (nModules - 1) + N_MAX_PIXEL_MD_PER_MODULES);
         mdsInCPU->hitIndices = new unsigned int[2 * nMemoryLocations];
@@ -2240,7 +2385,7 @@ SDL::miniDoublets* SDL::Event::getMiniDoublets()
         cudaMemcpyAsync(mdsInCPU->hitIndices, mdsInGPU->hitIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(mdsInCPU->nMDs, mdsInGPU->nMDs, nModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
-//    }
+    }
     return mdsInCPU;
 }
 #else
@@ -2525,8 +2670,8 @@ cudaStreamSynchronize(stream);
 }
 SDL::modules* SDL::Event::getModules()
 {
-    //if(modulesInCPU == nullptr)
-    //{
+    if(modulesInCPU == nullptr)
+    {
         modulesInCPU = new SDL::modules;
         unsigned int nLowerModules;
         cudaMemcpyAsync(&nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
@@ -2552,7 +2697,7 @@ cudaStreamSynchronize(stream);
         cudaMemcpyAsync(modulesInCPU->subdets, modulesInGPU->subdets, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(modulesInCPU->rings, modulesInGPU->rings, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
-    //}
+    }
     return modulesInCPU;
 }
 #else
