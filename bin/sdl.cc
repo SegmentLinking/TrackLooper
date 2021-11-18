@@ -340,6 +340,7 @@ void run_sdl()
                 std::vector<std::vector<int>>      out_superbin_vec;
                 std::vector<std::vector<int>>      out_pixelType_vec;
                 std::vector<std::vector<short>>    out_isQuad_vec;
+                std::vector<int>    evt_num;
                 //std::vector<SDL::Event> events;
     // Looping input file
     while (ana.looper.nextEvent())
@@ -350,7 +351,6 @@ void run_sdl()
 
         if (not goodEvent())
             continue;
-
         if (not ana.do_run_cpu)
         {
             //*******************************************************
@@ -383,19 +383,14 @@ void run_sdl()
                 out_isQuad_vec
                 );
         }
+        evt_num.push_back(ana.looper.getCurrentEventIndex());
     }
     cudaStream_t streams[ana.streams];
     std::vector<SDL::Event*> events;
     for( int s =0; s<ana.streams; s++){
     
     cudaStreamCreateWithFlags(&streams[s],cudaStreamNonBlocking);
-    //cudaStreamCreateWithFlags(&streams[1],cudaStreamNonBlocking);
-    //cudaStreamCreateWithFlags(&streams[2],cudaStreamNonBlocking);
-    //cudaStreamCreateWithFlags(&streams[3],cudaStreamNonBlocking);
     SDL::Event* event = new SDL::Event(streams[s]);;//(streams[omp_get_thread_num()]);
-    //SDL::Event* event1 = new SDL::Event(streams[1]);;//(streams[omp_get_thread_num()]);
-    //SDL::Event* event2 = new SDL::Event(streams[2]);;//(streams[omp_get_thread_num()]);
-    //SDL::Event* event3 = new SDL::Event(streams[3]);;//(streams[omp_get_thread_num()]);
     events.push_back(event);
     }
     //events.push_back(event1);
@@ -500,8 +495,8 @@ float timing_TC ;
             {
               #pragma omp critical
               {
-                unsigned int trkev = evt;
-                if(evt>48){ trkev +=1;}
+                unsigned int trkev = evt_num.at(evt);
+                //if(evt>=49){ trkev = evt+1;}
                 trk.GetEntry(trkev);
                 if (not ana.do_cut_value_ntuple)
                 {

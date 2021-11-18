@@ -471,6 +471,7 @@ void SDL::createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsign
 //    #endif
     cudaMemcpyAsync(modulesInGPU.lowerModuleIndices,lowerModuleIndices,sizeof(unsigned int)*(nLowerModules+1),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.reverseLookupLowerModuleIndices,reverseLookupLowerModuleIndices,sizeof(int)*nModules,cudaMemcpyHostToDevice,stream);
+    cudaStreamSynchronize(stream);
 
     cudaFreeHost(lowerModuleIndices);
     cudaFreeHost(reverseLookupLowerModuleIndices);
@@ -642,6 +643,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     cudaMemcpyAsync(modulesInGPU.moduleLayerType,host_moduleLayerType,sizeof(ModuleLayerType)*nModules,cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.slopes,host_slopes,sizeof(float)*nModules,cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.drdzs,host_drdzs,sizeof(float)*nModules,cudaMemcpyHostToDevice,stream);
+    cudaStreamSynchronize(stream);
     cudaFreeHost(host_detIds);
     cudaFreeHost(host_layers);
     cudaFreeHost(host_rings);
@@ -854,6 +856,7 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
       connectedPixels[icondet+totalSizes+totalSizes_pos] = (*detIdToIndex)[connectedModuleDetIds_neg[icondet]];
     }
     cudaMemcpyAsync(modulesInGPU.connectedPixels,connectedPixels,(totalSizes+totalSizes_pos+totalSizes_neg)*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
+    cudaStreamSynchronize(stream);
 
     cudaFreeHost(connectedPixels);
 }
@@ -877,6 +880,7 @@ void SDL::fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigne
     }
     cudaMemcpyAsync(modulesInGPU.moduleMap,moduleMap,nModules*40*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.nConnectedModules,nConnectedModules,nModules*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
+    cudaStreamSynchronize(stream);
     cudaFreeHost(moduleMap);
     cudaFreeHost(nConnectedModules);
 }
