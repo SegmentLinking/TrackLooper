@@ -2233,14 +2233,15 @@ SDL::objectRanges* SDL::Event::getRanges()
         unsigned int nLowerModules;
         cudaMemcpyAsync(&nLowerModules, modulesInGPU->nLowerModules, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaStreamSynchronize(stream);
-    //if(modulesInCPU == nullptr)
-    //{
+    if(rangesInCPU == nullptr)
+    {
+        rangesInGPU = new SDL::objectRanges;
         rangesInCPU->hitRanges = new int[2*nModules];
         rangesInCPU->quintupletModuleIndices = new int[nLowerModules];
         cudaMemcpyAsync(rangesInCPU->hitRanges, rangesInGPU->hitRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(rangesInCPU->quintupletModuleIndices, rangesInGPU->quintupletModuleIndices, nLowerModules * sizeof(int), cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
-    //}
+    }
     return rangesInCPU;
 }
 #else
