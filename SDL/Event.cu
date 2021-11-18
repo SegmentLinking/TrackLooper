@@ -2235,7 +2235,7 @@ SDL::objectRanges* SDL::Event::getRanges()
         cudaStreamSynchronize(stream);
     if(rangesInCPU == nullptr)
     {
-        rangesInGPU = new SDL::objectRanges;
+        rangesInCPU = new SDL::objectRanges;
         rangesInCPU->hitRanges = new int[2*nModules];
         rangesInCPU->quintupletModuleIndices = new int[nLowerModules];
         cudaMemcpyAsync(rangesInCPU->hitRanges, rangesInGPU->hitRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost,stream);
