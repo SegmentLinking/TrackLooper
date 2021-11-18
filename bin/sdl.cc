@@ -515,12 +515,9 @@ float timing_TC ;
     #pragma omp critical
       timevec.insert(timevec.end(), timing_information.begin(), timing_information.end());
     }
-    //printTimingInformation(timing_information);
-    //float full_elapsed = full_timer.RealTime()*1000.f;
-    //float throughput   = float(out_trkX.size())/full_elapsed; 
     float avg_elapsed  = full_elapsed/out_trkX.size(); 
     printTimingInformation(timevec,full_elapsed,avg_elapsed);
-    //std::cout<< "Full (avg) time: "<< full_elapsed <<"("<<avg_elapsed<< ") ms; thoughput: "<< throughput<< "evts/ms;"<<std::endl;
+
     if (not ana.do_run_cpu){
         SDL::cleanModules();
     }
@@ -533,7 +530,7 @@ float timing_TC ;
 
     ana.output_ttree->Write();
     for(int s =0; s < ana.streams;s++){
-         delete events.at(0);
+         delete events.at(s);
         cudaStreamDestroy(streams[s]);
     }
     delete ana.output_tfile;
