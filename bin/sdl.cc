@@ -384,20 +384,23 @@ void run_sdl()
                 );
         }
     }
-    cudaStream_t streams[4];
-    cudaStreamCreateWithFlags(&streams[0],cudaStreamNonBlocking);
-    cudaStreamCreateWithFlags(&streams[1],cudaStreamNonBlocking);
-    cudaStreamCreateWithFlags(&streams[2],cudaStreamNonBlocking);
-    cudaStreamCreateWithFlags(&streams[3],cudaStreamNonBlocking);
-    SDL::Event* event0 = new SDL::Event(streams[0]);;//(streams[omp_get_thread_num()]);
-    SDL::Event* event1 = new SDL::Event(streams[1]);;//(streams[omp_get_thread_num()]);
-    SDL::Event* event2 = new SDL::Event(streams[2]);;//(streams[omp_get_thread_num()]);
-    SDL::Event* event3 = new SDL::Event(streams[3]);;//(streams[omp_get_thread_num()]);
+    cudaStream_t streams[ana.streams];
     std::vector<SDL::Event*> events;
-    events.push_back(event0);
-    events.push_back(event1);
-    events.push_back(event2);
-    events.push_back(event3);
+    for( int s =0; s<ana.streams; s++){
+    
+    cudaStreamCreateWithFlags(&streams[s],cudaStreamNonBlocking);
+    //cudaStreamCreateWithFlags(&streams[1],cudaStreamNonBlocking);
+    //cudaStreamCreateWithFlags(&streams[2],cudaStreamNonBlocking);
+    //cudaStreamCreateWithFlags(&streams[3],cudaStreamNonBlocking);
+    SDL::Event* event = new SDL::Event(streams[s]);;//(streams[omp_get_thread_num()]);
+    //SDL::Event* event1 = new SDL::Event(streams[1]);;//(streams[omp_get_thread_num()]);
+    //SDL::Event* event2 = new SDL::Event(streams[2]);;//(streams[omp_get_thread_num()]);
+    //SDL::Event* event3 = new SDL::Event(streams[3]);;//(streams[omp_get_thread_num()]);
+    events.push_back(event);
+    }
+    //events.push_back(event1);
+    //events.push_back(event2);
+    //events.push_back(event3);
     std::vector<std::vector<float>> timevec;
     TStopwatch full_timer;
     full_timer.Start(); 
@@ -529,11 +532,10 @@ float timing_TC ;
     }
 
     ana.output_ttree->Write();
-
-            delete events.at(0);
-            delete events.at(1);
-            delete events.at(2);
-            delete events.at(3);
+    for(int s =0; s < ana.streams;s++){
+         delete events.at(0);
+        cudaStreamDestroy(streams[s]);
+    }
     delete ana.output_tfile;
 
 }

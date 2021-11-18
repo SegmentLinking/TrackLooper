@@ -10,7 +10,6 @@ unsigned int SDL::nLowerModules;
 
 SDL::Event::Event(cudaStream_t estream)
 {
-    //cudaStreamCreate(&stream);
     int version;
     int driver;
             cudaRuntimeGetVersion(&version);
@@ -198,10 +197,8 @@ SDL::Event::~Event()
         delete[] modulesInCPU->nModules;
         delete[] modulesInCPU->lowerModuleIndices;
         delete[] modulesInCPU->detIds;
-        //delete[] modulesInCPU->hitRanges;
         delete[] modulesInCPU->isLower;
         delete[] modulesInCPU->trackCandidateModuleIndices;
-//        delete[] modulesInCPU->quintupletModuleIndices;
         delete[] modulesInCPU->layers;
         delete[] modulesInCPU->subdets;
         delete[] modulesInCPU->rings;
@@ -225,11 +222,6 @@ SDL::Event::~Event()
         delete[] modulesInCPUFull->isInverted;
         delete[] modulesInCPUFull->isLower;
 
-//        delete[] modulesInCPUFull->hitRanges;
-//        delete[] modulesInCPUFull->mdRanges;
-//        delete[] modulesInCPUFull->segmentRanges;
-//        delete[] modulesInCPUFull->tripletRanges;
-//        delete[] modulesInCPUFull->trackCandidateRanges;
 
         delete[] modulesInCPUFull->moduleType;
         delete[] modulesInCPUFull->moduleLayerType;
@@ -237,33 +229,30 @@ SDL::Event::~Event()
         delete[] modulesInCPUFull->lowerModuleIndices;
         delete[] modulesInCPUFull->reverseLookupLowerModuleIndices;
         delete[] modulesInCPUFull->trackCandidateModuleIndices;
-//        delete[] modulesInCPUFull->quintupletModuleIndices;
         delete[] modulesInCPUFull;
     }
 #endif
-    //cudaStreamDestroy(stream);
 }
 void SDL::Event::resetEvent()
 {
 //printf("RESET\n");
-    //resetObjectsInModule();
 #ifdef CACHE_ALLOC
-    if(rangesInGPU){rangesInGPU->freeMemoryCache();}
     if(hitsInGPU){hitsInGPU->freeMemoryCache();}
+    if(quintupletsInGPU){quintupletsInGPU->freeMemoryCache();}
+    if(rangesInGPU){rangesInGPU->freeMemoryCache();}
     if(mdsInGPU){mdsInGPU->freeMemoryCache();}
     if(segmentsInGPU){segmentsInGPU->freeMemoryCache();}
     if(tripletsInGPU){tripletsInGPU->freeMemoryCache();}
-    if(quintupletsInGPU){quintupletsInGPU->freeMemoryCache();}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemoryCache();}
 #else
-    if(rangesInGPU){rangesInGPU->freeMemory();}
     if(hitsInGPU){hitsInGPU->freeMemory(stream);}
+    if(quintupletsInGPU){quintupletsInGPU->freeMemory(stream);}
+    if(rangesInGPU){rangesInGPU->freeMemory();}
     if(mdsInGPU){mdsInGPU->freeMemory(stream);}
     if(segmentsInGPU){segmentsInGPU->freeMemory(stream);}
     if(tripletsInGPU){tripletsInGPU->freeMemory(stream);}
-    if(quintupletsInGPU){quintupletsInGPU->freeMemory(stream);}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemory(stream);}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemory(stream);}
@@ -276,6 +265,7 @@ void SDL::Event::resetEvent()
 //    if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->resetMemory( N_MAX_PIXEL_QUINTUPLETS,stream);}
 //    if(pixelTripletsInGPU){pixelTripletsInGPU->resetMemory(N_MAX_PIXEL_TRIPLETS,stream);}
 //    if(trackCandidatesInGPU){trackCandidatesInGPU->resetMemory( N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES,stream);}
+//    cudaStreamSynchronize(stream);
     //reset the arrays
     for(int i = 0; i<6; i++)
     {
@@ -305,8 +295,8 @@ void SDL::Event::resetEvent()
     segmentsInGPU = nullptr;}
     if(tripletsInGPU){cudaFreeHost(tripletsInGPU);
     tripletsInGPU = nullptr;}
-  if(quintupletsInGPU){cudaFreeHost(quintupletsInGPU);
-  quintupletsInGPU = nullptr;}
+      if(quintupletsInGPU){cudaFreeHost(quintupletsInGPU);
+      quintupletsInGPU = nullptr;}
     if(trackCandidatesInGPU){cudaFreeHost(trackCandidatesInGPU);
     trackCandidatesInGPU = nullptr;}
     if(pixelTripletsInGPU){cudaFreeHost(pixelTripletsInGPU);

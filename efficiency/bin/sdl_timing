@@ -12,6 +12,9 @@ run_gpu()
     sdl_make_tracklooper -m $*
     sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}_s1.root -v 1 -w 0 -i ${sample} | tee -a timing_temp.txt
     sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}_s2.root -v 1 -w 0 -s 2 -i ${sample} | tee -a timing_temp.txt
+    sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}_s4.root -v 1 -w 0 -s 4 -i ${sample} | tee -a timing_temp.txt
+    sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}_s6.root -v 1 -w 0 -s 6 -i ${sample} | tee -a timing_temp.txt
+    sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}_s8.root -v 1 -w 0 -s 8 -i ${sample} | tee -a timing_temp.txt
 }
 
 run_timing_test_usage()

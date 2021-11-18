@@ -34,26 +34,27 @@
 #endif
 
 const unsigned int MAX_BLOCKS = 80;
+const unsigned int MAX_CONNECTED_MODULES = 40;
 const unsigned int N_MAX_MD_PER_MODULES = 100;
 const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600; //Also used in (pixel)trackletDefualtAlgo in header files-> change there as well (hard coded) 
-const unsigned int MAX_CONNECTED_MODULES = 40;
-const unsigned int N_MAX_TRIPLETS_PER_MODULE = 5000;
-const unsigned int N_MAX_TOTAL_TRIPLETS = 200000;
 const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 100000;
 const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
-const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 5000;
-const unsigned int N_MAX_PIXEL_TRIPLETS = 250000;
-const unsigned int N_MAX_PIXEL_QUINTUPLETS = 1000000;
-//const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 10000;
-//const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 5000;
-//const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 1000;
-//const unsigned int N_MAX_PIXEL_TRIPLETS = 1000;
-//const unsigned int N_MAX_PIXEL_QUINTUPLETS = 1000;
 
-//const unsigned int N_MAX_TRACK_CANDIDATES = 500;
-//const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 1000;
+//const unsigned int N_MAX_TRIPLETS_PER_MODULE = 5000;
+//const unsigned int N_MAX_TOTAL_TRIPLETS = 200000;
+//const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 5000;
+//const unsigned int N_MAX_PIXEL_TRIPLETS = 250000;
+//const unsigned int N_MAX_PIXEL_QUINTUPLETS = 1000000;
+//const unsigned int N_MAX_TRACK_CANDIDATES = 10000;
+//const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 400000;
+
+const unsigned int N_MAX_TRIPLETS_PER_MODULE = 1000;
+const unsigned int N_MAX_TOTAL_TRIPLETS = 100000;
+const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 2000;
+const unsigned int N_MAX_PIXEL_TRIPLETS = 2500;
+const unsigned int N_MAX_PIXEL_QUINTUPLETS = 10000;
 const unsigned int N_MAX_TRACK_CANDIDATES = 10000;
-const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 400000;
+const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 10000;
 
 __device__ float scorepT3(struct SDL::modules& modulesInGPU,struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, unsigned int innerPix,unsigned int outerTrip,float pt, float pz);
 __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::triplets& tripletsInGPU, bool secondPass);
