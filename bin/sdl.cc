@@ -500,7 +500,9 @@ float timing_TC ;
             {
               #pragma omp critical
               {
-                trk.GetEntry(evt);
+                unsigned int trkev = evt;
+                if(evt>48){ trkev +=1;}
+                trk.GetEntry(trkev);
                 if (not ana.do_cut_value_ntuple)
                 {
                     fillOutputBranches(events.at(omp_get_thread_num()));
