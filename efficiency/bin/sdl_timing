@@ -122,6 +122,5 @@ if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache
 fi
 
 echo "Total Timing Summary"
-#echo "Evt     Hits         MD       LS      T3       TC       T5      pT3       pT5     pLS     Total    Total(short)         Full       Avg    Effective"
-echo "   Evt    Hits       MD       LS      T3       TC       T5       pT3      pT5      pLS      Kernel     Kernel(short)    Loop      throughput"
+echo "   Evt    Hits       MD       LS      T3       TC       T5       pT3      pT5      pLS      Kernel     Kernel(short)     Loop      Effective"
 grep -hr "avg " timing_temp.txt # space is needed to not get certain bad lines 
