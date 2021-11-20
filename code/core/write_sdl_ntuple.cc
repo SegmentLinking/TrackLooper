@@ -881,6 +881,8 @@ void fillTrackCandidateOutputBranches(SDL::Event& event)
         std::vector<int> hit_types;
         int layer_binary = 0;
         /*const*/ float pt;
+        /*const*/ float eta_pLS = -999;
+        /*const*/ float phi_pLS = -999;
         tc_type.emplace_back(trackCandidateType);
         if (trackCandidateType == 8) //pLS
         {
@@ -888,6 +890,8 @@ void fillTrackCandidateOutputBranches(SDL::Event& event)
             unsigned int pixelModuleIndex = *(modulesInGPU.nModules) - 1;
             unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + innerTrackletIdx;
             pt = segmentsInGPU.ptIn[innerTrackletIdx];
+            eta_pLS = segmentsInGPU.eta[innerTrackletIdx];
+            phi_pLS = segmentsInGPU.phi[innerTrackletIdx];
             unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
             unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
             unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerMiniDoubletIndex];
@@ -1204,6 +1208,11 @@ void fillTrackCandidateOutputBranches(SDL::Event& event)
                 SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[11]], trk.ph2_y()[hit_idx[11]], trk.ph2_z()[hit_idx[11]]);
                 eta = hitB.eta();
                 phi = hitA.phi();
+            }
+            else if (trackCandidateType == 8) // if pLS
+            {
+                eta = eta_pLS;
+                phi = phi_pLS;
             }
             else
             {

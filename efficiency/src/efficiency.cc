@@ -362,8 +362,8 @@ void bookFakeRateSet(FakeRateSetDefinition& FRset)
     // Histogram utility object that is used to define the histograms
     ana.histograms.addVecHistogram(category_name + "_h_fakerate_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakerate_denom_pt"); } );
     ana.histograms.addVecHistogram(category_name + "_h_fakerate_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakerate_numer_pt"); } );
-    ana.histograms.addVecHistogram(category_name + "_h_fakerate_denom_eta" , 180 , -2.5  , 2.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakerate_denom_eta"); } );
-    ana.histograms.addVecHistogram(category_name + "_h_fakerate_numer_eta" , 180 , -2.5  , 2.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakerate_numer_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_fakerate_denom_eta" , 180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakerate_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_fakerate_numer_eta" , 180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakerate_numer_eta"); } );
     ana.histograms.addVecHistogram(category_name + "_h_fakerate_denom_phi" , 180 , -M_PI , M_PI , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakerate_denom_phi"); } );
     ana.histograms.addVecHistogram(category_name + "_h_fakerate_numer_phi" , 180 , -M_PI , M_PI , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakerate_numer_phi"); } );
 
@@ -533,8 +533,8 @@ void bookDuplicateRateSet(DuplicateRateSetDefinition& DLset)
     // Histogram utility object that is used to define the histograms
     ana.histograms.addVecHistogram(category_name + "_h_duplrate_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_duplrate_denom_pt"); } );
     ana.histograms.addVecHistogram(category_name + "_h_duplrate_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_duplrate_numer_pt"); } );
-    ana.histograms.addVecHistogram(category_name + "_h_duplrate_denom_eta" , 180 , -2.5  , 2.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_duplrate_denom_eta"); } );
-    ana.histograms.addVecHistogram(category_name + "_h_duplrate_numer_eta" , 180 , -2.5  , 2.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_duplrate_numer_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_duplrate_denom_eta" , 180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_duplrate_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_h_duplrate_numer_eta" , 180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_duplrate_numer_eta"); } );
     ana.histograms.addVecHistogram(category_name + "_h_duplrate_denom_phi" , 180 , -M_PI , M_PI , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_duplrate_denom_phi"); } );
     ana.histograms.addVecHistogram(category_name + "_h_duplrate_numer_phi" , 180 , -M_PI , M_PI , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_duplrate_numer_phi"); } );
 

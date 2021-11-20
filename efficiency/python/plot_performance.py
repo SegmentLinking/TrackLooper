@@ -59,6 +59,9 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
     if "coarse" in output_name and "ptcoarse" not in output_name:
         num.Rebin(6)
         den.Rebin(6)
+    # if "eta" in output_name and "etacoarse" not in output_name:
+    #     num.Rebin(2)
+    #     den.Rebin(2)
     if "pt" in output_name:
         overFlowBin = num.GetBinContent(num.GetNbinsX() + 1)
         lastBin = num.GetBinContent(num.GetNbinsX())
@@ -128,10 +131,10 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
         if yaxis_min > eff.GetY()[i] and eff.GetY()[i] != 0:
             yaxis_min = eff.GetY()[i]
     # print yaxis_min
-    if "maxzoom" in output_name:
-        eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
-    elif "zoom" in output_name:
-        eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
+    # if "maxzoom" in output_name:
+    #     eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
+    # elif "zoom" in output_name:
+    #     eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
     #if "ptzoom" in output_name:
     #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
     #elif "etazoom" in output_name:
@@ -148,7 +151,10 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
     #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
     #elif "layersgapmaxzoom" in output_name:
     #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
-    else:
+    # else:
+    #     eff.GetYaxis().SetRangeUser(0, 1.02)
+
+    if "zoom" not in output_name:
         eff.GetYaxis().SetRangeUser(0, 1.02)
 
     if "eta" in output_name:
