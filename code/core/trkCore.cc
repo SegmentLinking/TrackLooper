@@ -1056,11 +1056,13 @@ void loadMaps()
     SDL::endcapGeometry.load(TString::Format("%s/data/endcap_orientation_data_v2.txt", TrackLooperDir.Data()).Data()); // centroid values added to the map
     SDL::tiltedGeometry.load(TString::Format("%s/data/tilted_orientation_data.txt", TrackLooperDir.Data()).Data());
 
-    // SDL::moduleConnectionMap.load(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
-    // ana.moduleConnectiongMapLoose.load(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
-
+#ifdef PT0P8
     SDL::moduleConnectionMap.load("/data2/segmentlinking/module_connection_combined_0p8helix_muongun.txt");
     ana.moduleConnectiongMapLoose.load("/data2/segmentlinking/module_connection_combined_0p8helix_muongun.txt");
+#else
+    SDL::moduleConnectionMap.load(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
+    ana.moduleConnectiongMapLoose.load(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
+#endif
 
     // El Cheapo
     // SDL::moduleConnectionMap_pLS_all.load("/nfs-7/userdata/phchang/segmentlinking/pixelmap_charge_split/pLS_map_ElCheapo.txt");
@@ -1069,8 +1071,11 @@ void loadMaps()
 
     // TString pLSMapDir = gSystem->Getenv("PIXELMAPDIR");
     //TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05";
-    // TString pLSMapDir = "/data2/segmentlinking/pixelmap_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05"; // baseline
+#ifdef PT0P8
     TString pLSMapDir = "/data2/segmentlinking/pixelmap_ptmin0p8_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05"; // baseline + 0.8 GeV
+#else
+    TString pLSMapDir = "/data2/segmentlinking/pixelmap_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05"; // baseline
+#endif
 
     std::cout << "Loading pLS maps ... from pLSMapDir = " << pLSMapDir << std::endl;
 
@@ -1482,9 +1487,11 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         float phi = p3LH.Phi();
         //extra bit
 	
-        // if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
-        // if ((ptIn > 0.8 - 2 * ptErr) and (fabs(eta) < 3))
+#ifdef PT0P8
         if ((ptIn > 0.8 - 2 * ptErr))
+#else
+        if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
+#endif
         {
             // get pixel superbin
             //int ptbin = -1;
