@@ -156,6 +156,8 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
 
     if "zoom" not in output_name:
         eff.GetYaxis().SetRangeUser(0, 1.02)
+    else:
+        eff.GetYaxis().SetRangeUser(0.6, 1.02)
 
     if "eta" in output_name:
         eff.GetXaxis().SetLimits(-4.5, 4.5)
