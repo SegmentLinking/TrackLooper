@@ -114,7 +114,7 @@ fi
 
 PT0P8OPT=
 if $PT0P8; then
-    PT0P8OPT="-DPT0P8"
+    PT0P8OPT="PT0P8=-DPT0P8"
 fi
 
 
