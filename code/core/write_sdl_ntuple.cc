@@ -4754,7 +4754,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
     //float std_throughput = effectiveThroughput * sqrt(pow(stdDevFull/timing_total_avg,2) + pow(stdDev/timing_totalshort_avg,2));
 
     std::cout << setprecision(0);
-    std::cout << "   Evt    Hits       MD       LS      T3       TC       T5       pT3      pT5      pLS      Kernel     Kernel(short)     Loop      Effective" << std::endl;
+    std::cout << "   Evt    Hits       MD       LS      T3       TC       T5       pT3      pT5      pLS      Event      Short             Loop      Effective" << std::endl;
     std::cout << setw(6) << "avg";
     std::cout << "   "<<setw(6) << timing_sum_information[0]; // Hits
     std::cout << "   "<<setw(6) << timing_sum_information[1]; // MD
