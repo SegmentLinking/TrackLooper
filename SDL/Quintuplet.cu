@@ -75,8 +75,20 @@ void SDL::quintuplets::freeMemoryCache()
 #endif
 }
 
-void SDL::quintuplets::freeMemory()
+void SDL::quintuplets::freeMemory(cudaStream_t stream)
 {
+    //cudaFreeAsync(tripletIndices,stream);
+    //cudaFreeAsync(lowerModuleIndices,stream);
+    //cudaFreeAsync(nQuintuplets,stream);
+    //cudaFreeAsync(innerRadius,stream);
+    //cudaFreeAsync(outerRadius,stream);
+    //cudaFreeAsync(regressionRadius,stream);
+    //cudaFreeAsync(partOfPT5,stream);
+    //cudaFreeAsync(isDup,stream);
+    //cudaFreeAsync(pt,stream);
+    //cudaFreeAsync(layer,stream);
+    //cudaFreeAsync(regressionG,stream);
+    //cudaFreeAsync(regressionF,stream);
     cudaFree(tripletIndices);
     cudaFree(lowerModuleIndices);
     cudaFree(nQuintuplets);
@@ -106,34 +118,36 @@ void SDL::quintuplets::freeMemory()
     cudaFree(chiSquared);
     cudaFree(nonAnchorChiSquared);
 #endif
+cudaStreamSynchronize(stream);
 }
 
 //TODO:Reuse the track candidate one instead of this!
-void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,struct triplets& tripletsInGPU, unsigned int& nEligibleModules, unsigned int* indicesOfEligibleModules, unsigned int maxQuintuplets, unsigned int& maxTriplets)
+void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,struct triplets& tripletsInGPU, unsigned int& nEligibleModules, unsigned int* indicesOfEligibleModules, unsigned int maxQuintuplets, unsigned int& maxTriplets,cudaStream_t stream,struct objectRanges& rangesInGPU)
 {
     unsigned int nLowerModules;
     maxTriplets = 0;
-    cudaMemcpy(&nLowerModules,modulesInGPU.nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(&nLowerModules,modulesInGPU.nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
     unsigned int nModules;
-    cudaMemcpy(&nModules,modulesInGPU.nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    cudaMemset(modulesInGPU.quintupletModuleIndices, -1, sizeof(int) * (nLowerModules));
+    cudaMemcpyAsync(&nModules,modulesInGPU.nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
+    cudaMemsetAsync(rangesInGPU.quintupletModuleIndices, -1, sizeof(int) * (nLowerModules),stream);
 
     short* module_subdets;
     cudaMallocHost(&module_subdets, nModules* sizeof(short));
-    cudaMemcpy(module_subdets,modulesInGPU.subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
     unsigned int* module_lowerModuleIndices;
     cudaMallocHost(&module_lowerModuleIndices, nLowerModules * sizeof(unsigned int));
-    cudaMemcpy(module_lowerModuleIndices,modulesInGPU.lowerModuleIndices, nLowerModules * sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(module_lowerModuleIndices,modulesInGPU.lowerModuleIndices, nLowerModules * sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
     short* module_layers;
     cudaMallocHost(&module_layers, nModules * sizeof(short));
-    cudaMemcpy(module_layers,modulesInGPU.layers,nModules * sizeof(short),cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(module_layers,modulesInGPU.layers,nModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
     int* module_quintupletModuleIndices;
     cudaMallocHost(&module_quintupletModuleIndices, nLowerModules * sizeof(int));
-    cudaMemcpy(module_quintupletModuleIndices,modulesInGPU.quintupletModuleIndices,nLowerModules *sizeof(int),cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(module_quintupletModuleIndices,rangesInGPU.quintupletModuleIndices,nLowerModules *sizeof(int),cudaMemcpyDeviceToHost,stream);
 
     unsigned int* nTriplets;
     cudaMallocHost(&nTriplets, nLowerModules * sizeof(unsigned int));
-    cudaMemcpy(nTriplets, tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(nTriplets, tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+cudaStreamSynchronize(stream);
 
     //start filling
     for(unsigned int i = 0; i < nLowerModules; i++)
@@ -150,8 +164,9 @@ void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,s
 
         }
     }
-    cudaMemcpy(modulesInGPU.quintupletModuleIndices,module_quintupletModuleIndices,nLowerModules*sizeof(int),cudaMemcpyHostToDevice);
-    cudaMemcpy(modulesInGPU.nEligibleT5Modules,&nEligibleModules,sizeof(unsigned int),cudaMemcpyHostToDevice);
+    cudaMemcpyAsync(rangesInGPU.quintupletModuleIndices,module_quintupletModuleIndices,nLowerModules*sizeof(int),cudaMemcpyHostToDevice,stream);
+    cudaMemcpyAsync(rangesInGPU.nEligibleT5Modules,&nEligibleModules,sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
+cudaStreamSynchronize(stream);
     cudaFreeHost(module_subdets);
     cudaFreeHost(module_lowerModuleIndices);
     cudaFreeHost(module_layers);
@@ -160,13 +175,13 @@ void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,s
 }
 
 
-void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& maxQuintuplets, const unsigned int& nLowerModules, const unsigned int& nEligibleModules)
+void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& maxQuintuplets, const unsigned int& nLowerModules, const unsigned int& nEligibleModules, cudaStream_t stream)
 {
     unsigned int nMemoryLocations = maxQuintuplets * nEligibleModules;
-    std::cout<<"Number of eligible T5 modules = "<<nEligibleModules<<std::endl;
+//    std::cout<<"Number of eligible T5 modules = "<<nEligibleModules<<std::endl;
 
 #ifdef CACHE_ALLOC
-    cudaStream_t stream = 0;
+//    cudaStream_t stream = 0;
     quintupletsInGPU.tripletIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * 2 * sizeof(unsigned int), stream);
     quintupletsInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * 5 * sizeof(unsigned int), stream);
     quintupletsInGPU.nQuintuplets = (unsigned int*)cms::cuda::allocate_managed(nLowerModules * sizeof(unsigned int), stream);
@@ -219,19 +234,20 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     //quintupletsInGPU.score_rz = quintupletsInGPU.pt + 4*nMemoryLocations;
     quintupletsInGPU.score_rphisum = quintupletsInGPU.pt + 3*nMemoryLocations;
     //quintupletsInGPU.score_rzlsq = quintupletsInGPU.pt + 6*nMemoryLocations;
-#pragma omp parallel for
-    for(size_t i = 0; i<nLowerModules;i++)
-    {
-        quintupletsInGPU.nQuintuplets[i] = 0;
-    }
+//#pragma omp parallel for
+//    for(size_t i = 0; i<nLowerModules;i++)
+//    {
+//        quintupletsInGPU.nQuintuplets[i] = 0;
+//    }
 
+    cudaMemsetAsync(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
 }
 
-void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& maxQuintuplets, const unsigned int& nLowerModules, const unsigned int& nEligibleModules)
+void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& maxQuintuplets, const unsigned int& nLowerModules, const unsigned int& nEligibleModules,cudaStream_t stream)
 {
     unsigned int nMemoryLocations = nEligibleModules * maxQuintuplets;
 #ifdef CACHE_ALLOC
-    cudaStream_t stream = 0;
+ //   cudaStream_t stream = 0;
     int dev;
     cudaGetDevice(&dev);
     quintupletsInGPU.tripletIndices = (unsigned int*)cms::cuda::allocate_device(dev, 2 * nMemoryLocations * sizeof(unsigned int), stream);
@@ -248,6 +264,18 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     quintupletsInGPU.regressionF = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * sizeof(float), stream);
 
 #else
+    //cudaMallocAsync(&quintupletsInGPU.tripletIndices, 2 * nMemoryLocations * sizeof(unsigned int),stream);
+    //cudaMallocAsync(&quintupletsInGPU.lowerModuleIndices, 5 * nMemoryLocations * sizeof(unsigned int),stream);
+    //cudaMallocAsync(&quintupletsInGPU.nQuintuplets, nLowerModules * sizeof(unsigned int),stream);
+    //cudaMallocAsync(&quintupletsInGPU.innerRadius, nMemoryLocations * sizeof(float),stream);
+    //cudaMallocAsync(&quintupletsInGPU.outerRadius, nMemoryLocations * sizeof(float),stream);
+    //cudaMallocAsync(&quintupletsInGPU.regressionRadius, nMemoryLocations * sizeof(float),stream);
+    //cudaMallocAsync(&quintupletsInGPU.pt, nMemoryLocations *4* sizeof(float),stream);
+    //cudaMallocAsync(&quintupletsInGPU.isDup, nMemoryLocations * sizeof(bool),stream);
+    //cudaMallocAsync(&quintupletsInGPU.partOfPT5, nMemoryLocations * sizeof(bool),stream);
+    //cudaMallocAsync(&quintupletsInGPU.layer, nMemoryLocations * sizeof(int),stream);
+    //cudaMallocAsync(&quintupletsInGPU.regressionG, nMemoryLocations * sizeof(float),stream);
+    //cudaMallocAsync(&quintupletsInGPU.regressionF, nMemoryLocations * sizeof(float),stream);
     cudaMalloc(&quintupletsInGPU.tripletIndices, 2 * nMemoryLocations * sizeof(unsigned int));
     cudaMalloc(&quintupletsInGPU.lowerModuleIndices, 5 * nMemoryLocations * sizeof(unsigned int));
     cudaMalloc(&quintupletsInGPU.nQuintuplets, nLowerModules * sizeof(unsigned int));
@@ -261,13 +289,14 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     cudaMalloc(&quintupletsInGPU.regressionG, nMemoryLocations * sizeof(float));
     cudaMalloc(&quintupletsInGPU.regressionF, nMemoryLocations * sizeof(float));
 #endif
+    cudaMemsetAsync(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
+    cudaStreamSynchronize(stream);
     quintupletsInGPU.eta = quintupletsInGPU.pt + nMemoryLocations;
     quintupletsInGPU.phi = quintupletsInGPU.pt + 2*nMemoryLocations;
     //quintupletsInGPU.score_rphi = quintupletsInGPU.pt + 3*nMemoryLocations;
     //quintupletsInGPU.score_rz = quintupletsInGPU.pt + 4*nMemoryLocations;
     quintupletsInGPU.score_rphisum = quintupletsInGPU.pt + 3*nMemoryLocations;
     //quintupletsInGPU.score_rzlsq = quintupletsInGPU.pt + 6*nMemoryLocations;
-    cudaMemset(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int));
 }
 
 

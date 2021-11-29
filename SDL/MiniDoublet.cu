@@ -18,12 +18,20 @@ CUDA_CONST_VAR float SDL::ptCut = 1.0;
 CUDA_CONST_VAR float SDL::deltaZLum = 15.0;
 CUDA_CONST_VAR float SDL::pixelPSZpitch = 0.15;
 CUDA_CONST_VAR float SDL::strip2SZpitch = 5.0;
+void SDL::miniDoublets::resetMemory(unsigned int maxMDsPerModule, unsigned int nModules, unsigned int maxPixelMDs,cudaStream_t stream)
+{
+    unsigned int nMemoryLocations = maxMDsPerModule * (nModules - 1) + maxPixelMDs;
+    cudaMemsetAsync(hitIndices,0, nMemoryLocations * 3 * sizeof(unsigned int),stream);
+    cudaMemsetAsync(pixelModuleFlag,0, nMemoryLocations * sizeof(short),stream);
+    cudaMemsetAsync(dphichanges,0, nMemoryLocations * 9 * sizeof(float),stream);
+    cudaMemsetAsync(nMDs,0, nModules * sizeof(unsigned int),stream);
+}
 
-void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, unsigned int nModules, unsigned int maxPixelMDs)
+void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, unsigned int nModules, unsigned int maxPixelMDs,cudaStream_t stream)
 {
     unsigned int nMemoryLocations = maxMDsPerModule * (nModules - 1) + maxPixelMDs;
 #ifdef CACHE_ALLOC
-    cudaStream_t stream=0;
+   // cudaStream_t stream=0;
     mdsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * 3 * sizeof(unsigned int), stream);
     mdsInGPU.pixelModuleFlag = (short*)cms::cuda::allocate_managed(nMemoryLocations*sizeof(short),stream);
     mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_managed(nModules*sizeof(unsigned int),stream);
@@ -54,17 +62,17 @@ void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int m
 //    {
 //        mdsInGPU.nMDs[i] = 0;
 //    }
-    cudaMemset(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int));
+    cudaMemsetAsync(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int),stream);
 }
 
 
 //FIXME:Add memory locations for the pixel MDs here!
-void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, unsigned int nModules, unsigned int maxPixelMDs)
+void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, unsigned int nModules, unsigned int maxPixelMDs,cudaStream_t stream)
 {
 
     unsigned int nMemoryLocations = maxMDsPerModule * (nModules - 1) + maxPixelMDs;
 #ifdef CACHE_ALLOC
-    cudaStream_t stream=0;
+//    cudaStream_t stream=0;
     int dev;
     cudaGetDevice(&dev);
     mdsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_device(dev,nMemoryLocations * 3 * sizeof(unsigned int), stream);
@@ -77,8 +85,13 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     cudaMalloc(&mdsInGPU.pixelModuleFlag, nMemoryLocations * sizeof(short));
     cudaMalloc(&mdsInGPU.dphichanges, nMemoryLocations *9* sizeof(float));
     cudaMalloc(&mdsInGPU.nMDs, nModules * sizeof(unsigned int)); 
+    //cudaMallocAsync(&mdsInGPU.hitIndices, nMemoryLocations * 3 * sizeof(unsigned int),stream);
+    //cudaMallocAsync(&mdsInGPU.pixelModuleFlag, nMemoryLocations * sizeof(short),stream);
+    //cudaMallocAsync(&mdsInGPU.dphichanges, nMemoryLocations *9* sizeof(float),stream);
+    //cudaMallocAsync(&mdsInGPU.nMDs, nModules * sizeof(unsigned int),stream); 
 #endif
-    cudaMemset(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int));
+    cudaMemsetAsync(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int),stream);
+    cudaStreamSynchronize(stream);
     mdsInGPU.moduleIndices = mdsInGPU.hitIndices + nMemoryLocations * 2 ;
     mdsInGPU.dzs  = mdsInGPU.dphichanges + nMemoryLocations;
     mdsInGPU.dphis  = mdsInGPU.dphichanges + 2*nMemoryLocations;
@@ -1093,12 +1106,17 @@ void SDL::miniDoublets::freeMemoryCache()
 }
 
 
-void SDL::miniDoublets::freeMemory()
+void SDL::miniDoublets::freeMemory(cudaStream_t stream)
 {
     cudaFree(hitIndices);
     cudaFree(pixelModuleFlag);
     cudaFree(nMDs);
     cudaFree(dphichanges);
+
+    //cudaFreeAsync(hitIndices,stream);
+    //cudaFreeAsync(pixelModuleFlag,stream);
+    //cudaFreeAsync(nMDs,stream);
+    //cudaFreeAsync(dphichanges,stream);
 
 #ifdef CUT_VALUE_DEBUG
     cudaFree(dzCuts);

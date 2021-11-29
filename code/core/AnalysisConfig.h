@@ -14,6 +14,8 @@ public:
     // Analysis run mode
     int mode;
 
+    int streams;
+
     // TString that holds the input option provided
     TString input_raw_string;
 

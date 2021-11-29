@@ -8,12 +8,12 @@
 CUDA_CONST_VAR float SDL::pt_betaMax = 7.0f;
 
 
-void SDL::createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules)
+void SDL::createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules,cudaStream_t stream)
 {
 
     unsigned int nMemoryLocations = maxTracklets * nLowerModules;
 #ifdef CACHE_ALLOC
-    cudaStream_t stream =0;
+//    cudaStream_t stream =0;
     trackletsInGPU.segmentIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(unsigned int) * 2,stream);
     trackletsInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(unsigned int) * 4,stream);//split up to avoid runtime error of exceeding max byte allocation at a time
     trackletsInGPU.nTracklets = (unsigned int*)cms::cuda::allocate_managed(nLowerModules * sizeof(unsigned int),stream);
@@ -46,19 +46,20 @@ void SDL::createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsig
     trackletsInGPU.deltaPhi = trackletsInGPU.zOut + nMemoryLocations * 3;
     trackletsInGPU.betaOut = trackletsInGPU.betaIn + nMemoryLocations;
     trackletsInGPU.pt_beta = trackletsInGPU.betaIn + nMemoryLocations * 2;
-#pragma omp parallel for
-    for(size_t i = 0; i<nLowerModules;i++)
-    {
-        trackletsInGPU.nTracklets[i] = 0;
-    }
+//#pragma omp parallel for
+//    for(size_t i = 0; i<nLowerModules;i++)
+//    {
+//        trackletsInGPU.nTracklets[i] = 0;
+//    }
 
+    cudaMemsetAsync(trackletsInGPU.nTracklets,0,nLowerModules*sizeof(unsigned int),stream);
 }
-void SDL::createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules)
+void SDL::createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules,cudaStream_t stream)
 {
 
     unsigned int nMemoryLocations = maxTracklets * nLowerModules;
 #ifdef CACHE_ALLOC
-    cudaStream_t stream =0;
+//    cudaStream_t stream =0;
     int dev;
     cudaGetDevice(&dev);
     trackletsInGPU.segmentIndices = (unsigned int*)cms::cuda::allocate_device(dev,nMemoryLocations * sizeof(unsigned int) * 2,stream);
@@ -73,7 +74,7 @@ void SDL::createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, unsi
     cudaMalloc(&trackletsInGPU.zOut, nMemoryLocations *4* sizeof(float));
     cudaMalloc(&trackletsInGPU.betaIn, nMemoryLocations *3* sizeof(float));
 #endif
-    cudaMemset(trackletsInGPU.nTracklets,0,nLowerModules*sizeof(unsigned int));
+    cudaMemsetAsync(trackletsInGPU.nTracklets,0,nLowerModules*sizeof(unsigned int),stream);
     trackletsInGPU.rtOut = trackletsInGPU.zOut + nMemoryLocations;
     trackletsInGPU.deltaPhiPos = trackletsInGPU.zOut + nMemoryLocations * 2;
     trackletsInGPU.deltaPhi = trackletsInGPU.zOut + nMemoryLocations * 3;

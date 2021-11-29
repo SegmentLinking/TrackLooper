@@ -1,6 +1,6 @@
 # include "Kernels.cuh"
 
-__global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU)
+__global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::objectRanges& rangesInGPU)
 {
     int blockxSize = blockDim.x*gridDim.x;
     int blockySize = blockDim.y*gridDim.y;
@@ -11,10 +11,10 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
     int lowerModuleIndex = modulesInGPU.lowerModuleIndices[lowerModuleArrayIndex];
     int upperModuleIndex = modulesInGPU.partnerModuleIndex(lowerModuleIndex);
 
-    if(modulesInGPU.hitRanges[lowerModuleIndex * 2] == -1) continue; //return;
-    if(modulesInGPU.hitRanges[upperModuleIndex * 2] == -1) continue; //return;
-    unsigned int nLowerHits = modulesInGPU.hitRanges[lowerModuleIndex * 2 + 1] - modulesInGPU.hitRanges[lowerModuleIndex * 2] + 1;
-    unsigned int nUpperHits = modulesInGPU.hitRanges[upperModuleIndex * 2 + 1] - modulesInGPU.hitRanges[upperModuleIndex * 2] + 1;
+    if(rangesInGPU.hitRanges[lowerModuleIndex * 2] == -1) continue; //return;
+    if(rangesInGPU.hitRanges[upperModuleIndex * 2] == -1) continue; //return;
+    unsigned int nLowerHits = rangesInGPU.hitRanges[lowerModuleIndex * 2 + 1] - rangesInGPU.hitRanges[lowerModuleIndex * 2] + 1;
+    unsigned int nUpperHits = rangesInGPU.hitRanges[upperModuleIndex * 2 + 1] - rangesInGPU.hitRanges[upperModuleIndex * 2] + 1;
     int limit = nUpperHits*nLowerHits;
     for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize){
     int lowerHitIndex =  hitIndex / nUpperHits;
@@ -26,8 +26,8 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
     //if(lowerHitIndex >= nLowerHits) continue; //return;
     if(upperHitIndex >= nUpperHits) continue; //return;
 
-    unsigned int lowerHitArrayIndex = modulesInGPU.hitRanges[lowerModuleIndex * 2] + lowerHitIndex;
-    unsigned int upperHitArrayIndex = modulesInGPU.hitRanges[upperModuleIndex * 2] + upperHitIndex;
+    unsigned int lowerHitArrayIndex = rangesInGPU.hitRanges[lowerModuleIndex * 2] + lowerHitIndex;
+    unsigned int upperHitArrayIndex = rangesInGPU.hitRanges[upperModuleIndex * 2] + upperHitIndex;
 
     float dz, drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange;
 
@@ -63,7 +63,7 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
 }
 }
 }
-__global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU)
+__global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::objectRanges& rangesInGPU)
 {
     int blockxSize = blockDim.x*gridDim.x;
     int blockySize = blockDim.y*gridDim.y;
@@ -97,8 +97,8 @@ __global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SD
     //if(innerMDArrayIdx >= nInnerMDs) continue;
     if(outerMDArrayIdx >= nOuterMDs) continue;
 
-    unsigned int innerMDIndex = modulesInGPU.mdRanges[innerLowerModuleIndex * 2] + innerMDArrayIdx;
-    unsigned int outerMDIndex = modulesInGPU.mdRanges[outerLowerModuleIndex * 2] + outerMDArrayIdx;
+    unsigned int innerMDIndex = rangesInGPU.mdRanges[innerLowerModuleIndex * 2] + innerMDArrayIdx;
+    unsigned int outerMDIndex = rangesInGPU.mdRanges[outerLowerModuleIndex * 2] + outerMDArrayIdx;
 
     float zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD;
 
@@ -298,7 +298,7 @@ __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, S
 }
 }
 
-__global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::quintuplets& quintupletsInGPU,struct SDL::trackCandidates& trackCandidatesInGPU,struct SDL::pixelQuintuplets& pixelQuintupletsInGPU,struct SDL::pixelTriplets& pixelTripletsInGPU)
+__global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::quintuplets& quintupletsInGPU,struct SDL::trackCandidates& trackCandidatesInGPU,struct SDL::pixelQuintuplets& pixelQuintupletsInGPU,struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::objectRanges& rangesInGPU)
 {
 
     //int innerInnerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -306,7 +306,7 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, st
     int stepy = blockDim.y*gridDim.y;
     for(int innerInnerInnerLowerModuleArrayIndex = blockIdx.y * blockDim.y + threadIdx.y; innerInnerInnerLowerModuleArrayIndex < *(modulesInGPU.nLowerModules); innerInnerInnerLowerModuleArrayIndex+=stepy){
     //if(innerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules or modulesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] == -1) return;
-    if(modulesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] == -1) continue;
+    if(rangesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] == -1) continue;
     unsigned int nQuints = quintupletsInGPU.nQuintuplets[innerInnerInnerLowerModuleArrayIndex];
     if (nQuints > N_MAX_QUINTUPLETS_PER_MODULE) 
     {
@@ -315,7 +315,7 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, st
     //int innerObjectArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
     for(int innerObjectArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;innerObjectArrayIndex < nQuints;innerObjectArrayIndex+=stepx){
     //if(innerObjectArrayIndex >= nQuints) return;
-    int quintupletIndex = modulesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] + innerObjectArrayIndex;
+    int quintupletIndex = rangesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] + innerObjectArrayIndex;
 
     //don't add duplicate T5s or T5s that are accounted in pT5s
     if(quintupletsInGPU.isDup[quintupletIndex] or quintupletsInGPU.partOfPT5[quintupletIndex])
@@ -548,7 +548,7 @@ __global__ void createPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGP
 }
 }
 
-__global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int* threadIdx_gpu, unsigned int* threadIdx_gpu_offset, int nTotalTriplets)
+__global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int* threadIdx_gpu, unsigned int* threadIdx_gpu_offset, int nTotalTriplets, struct SDL::objectRanges& rangesInGPU)
 {
     int gidy = blockIdx.y * blockDim.y + threadIdx.y;
     int np = gridDim.y * blockDim.y;
@@ -619,13 +619,13 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
             else
             {
                 //this if statement should never get executed!
-                if(modulesInGPU.quintupletModuleIndices[lowerModuleArray1] == -1)
+                if(rangesInGPU.quintupletModuleIndices[lowerModuleArray1] == -1)
                 {
                     printf("Quintuplets : no memory for module at module index = %d\n", lowerModuleArray1);
                 }
                 else
                 {
-                    unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[lowerModuleArray1] +  quintupletModuleIndex;
+                    unsigned int quintupletIndex = rangesInGPU.quintupletModuleIndices[lowerModuleArray1] +  quintupletModuleIndex;
                     float phi = hitsInGPU.phis[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]]]];
                     float eta = hitsInGPU.etas[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]]]];
                     float pt = (innerRadius+outerRadius)*3.8f*1.602f/(2*100*5.39f);
@@ -644,7 +644,7 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
 }
 }
 
-__global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex, unsigned int nPixelSegments, unsigned int* seg_pix_gpu, unsigned int* seg_pix_gpu_offset, unsigned int totalSegs)
+__global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex, unsigned int nPixelSegments, unsigned int* seg_pix_gpu, unsigned int* seg_pix_gpu_offset, unsigned int totalSegs, struct SDL::objectRanges& rangesInGPU)
 {
     //unsigned int offsetIndex = blockIdx.x * blockDim.x + threadIdx.x;
     int blockxSize = blockDim.x*gridDim.x;
@@ -678,7 +678,7 @@ __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesI
     //if(outerQuintupletArrayIndex >= nOuterQuintuplets) continue;//return;
     unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + pixelSegmentArrayIndex;
 
-    unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[quintupletLowerModuleArrayIndex] + outerQuintupletArrayIndex;
+    unsigned int quintupletIndex = rangesInGPU.quintupletModuleIndices[quintupletLowerModuleArrayIndex] + outerQuintupletArrayIndex;
 
     if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) continue;//return;//skip duplicated pLS
     if(quintupletsInGPU.isDup[quintupletIndex]) continue;//return; //skip duplicated T5s
@@ -863,7 +863,7 @@ __device__ int inline checkHitsT5(unsigned int ix, unsigned int jx,struct SDL::m
 }
 
 __device__ int duplicateCounter;
-__global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU,bool secondPass)
+__global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU,bool secondPass,struct SDL::objectRanges& rangesInGPU)
 {
     int dup_count=0;
     int nLowerModules = *modulesInGPU.nLowerModules;
@@ -872,7 +872,7 @@ __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, str
     for(unsigned int lowmod1=blockIdx.y*blockDim.y+threadIdx.y; lowmod1<nLowerModules;lowmod1+=blockySize)
     {
         int nQuintuplets_lowmod1 = quintupletsInGPU.nQuintuplets[lowmod1];
-        int quintupletModuleIndices_lowmod1 = modulesInGPU.quintupletModuleIndices[lowmod1];
+        int quintupletModuleIndices_lowmod1 = rangesInGPU.quintupletModuleIndices[lowmod1];
         for(unsigned int ix1=blockIdx.x*blockDim.x+threadIdx.x; ix1<nQuintuplets_lowmod1; ix1+=blockxSize)
         {
             unsigned int ix = quintupletModuleIndices_lowmod1 + ix1;
@@ -888,7 +888,7 @@ __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, str
             for(unsigned int lowmod=0; lowmod<nLowerModules;lowmod++)
             {
 	        int nQuintuplets_lowmod = quintupletsInGPU.nQuintuplets[lowmod];
-                int quintupletModuleIndices_lowmod = modulesInGPU.quintupletModuleIndices[lowmod];
+                int quintupletModuleIndices_lowmod = rangesInGPU.quintupletModuleIndices[lowmod];
                 for(unsigned int jx1=0; jx1<nQuintuplets_lowmod; jx1++)
                 {
                     unsigned int jx = quintupletModuleIndices_lowmod + jx1;

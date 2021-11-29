@@ -607,7 +607,7 @@ void createPrimitiveBranches_v2()
 
 
 //________________________________________________________________________________________________________________________________
-void fillOutputBranches(SDL::Event& event)
+void fillOutputBranches(SDL::Event* event)
 {
     fillSimTrackOutputBranches();
     fillTrackCandidateOutputBranches(event);
@@ -625,17 +625,17 @@ void fillOutputBranches(SDL::Event& event)
 
 
 //________________________________________________________________________________________________________________________________
-void fillOccupancyBranches(SDL::Event& event)
+void fillOccupancyBranches(SDL::Event* event)
 {
-    SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates());
-    SDL::triplets& tripletsInGPU = (*event.getTriplets());
-    SDL::segments& segmentsInGPU = (*event.getSegments());
-    SDL::miniDoublets& mdsInGPU = (*event.getMiniDoublets());
-    SDL::hits& hitsInGPU = (*event.getHits());
-    SDL::modules& modulesInGPU = (*event.getModules());
-    SDL::quintuplets&  quintupletsInGPU = (*event.getQuintuplets());
-    SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event.getPixelQuintuplets());
-    SDL::pixelTriplets& pixelTripletsInGPU = (*event.getPixelTriplets());
+    SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
+    SDL::triplets& tripletsInGPU = (*event->getTriplets());
+    SDL::segments& segmentsInGPU = (*event->getSegments());
+    SDL::miniDoublets& mdsInGPU = (*event->getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event->getHits());
+    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::quintuplets&  quintupletsInGPU = (*event->getQuintuplets());
+    SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
+    SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
     //get the occupancies from these dudes
     std::vector<int> moduleLayer;
     std::vector<int> moduleSubdet;
@@ -835,18 +835,18 @@ void fillSimTrackOutputBranches()
 
 //________________________________________________________________________________________________________________________________
 
-void fillTrackCandidateOutputBranches(SDL::Event& event)
+void fillTrackCandidateOutputBranches(SDL::Event* event)
 {
 
-    SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates());
-    SDL::triplets& tripletsInGPU = (*event.getTriplets());
-    SDL::segments& segmentsInGPU = (*event.getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
-    SDL::hits& hitsInGPU = (*event.getHits());
-    SDL::modules& modulesInGPU = (*event.getModules());
-    SDL::quintuplets& quintupletsInGPU = (*event.getQuintuplets());
-    SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event.getPixelQuintuplets());
-    SDL::pixelTriplets& pixelTripletsInGPU = (*event.getPixelTriplets());
+    SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
+    SDL::triplets& tripletsInGPU = (*event->getTriplets());
+    SDL::segments& segmentsInGPU = (*event->getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event->getHits());
+    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::quintuplets& quintupletsInGPU = (*event->getQuintuplets());
+    SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
+    SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
     // Did it match to track candidate?
     std::vector<int> sim_TC_matched(trk.sim_pt().size());
     std::vector<vector<int>> sim_TC_types(trk.sim_pt().size());
@@ -1255,7 +1255,7 @@ void fillTrackCandidateOutputBranches(SDL::Event& event)
 }
 
 //________________________________________________________________________________________________________________________________
-void fillLowerLevelOutputBranches(SDL::Event& event)
+void fillLowerLevelOutputBranches(SDL::Event* event)
 {
     fillTripletOutputBranches(event);
     fillPixelLineSegmentOutputBranches(event);
@@ -1265,14 +1265,15 @@ void fillLowerLevelOutputBranches(SDL::Event& event)
 }
 
 //________________________________________________________________________________________________________________________________
-void fillQuintupletOutputBranches(SDL::Event& event)
+void fillQuintupletOutputBranches(SDL::Event* event)
 {
-    SDL::quintuplets& quintupletsInGPU = (*event.getQuintuplets());
-    SDL::triplets& tripletsInGPU = (*event.getTriplets());
-    SDL::segments& segmentsInGPU = (*event.getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
-    SDL::hits& hitsInGPU = (*event.getHits());
-    SDL::modules& modulesInGPU = (*event.getModules());
+    SDL::quintuplets& quintupletsInGPU = (*event->getQuintuplets());
+    SDL::triplets& tripletsInGPU = (*event->getTriplets());
+    SDL::segments& segmentsInGPU = (*event->getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event->getHits());
+    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::objectRanges& rangesInGPU = (*event->getRanges());
 
     // Did it match to track candidate?
     std::vector<int> sim_T5_matched(trk.sim_pt().size());
@@ -1312,13 +1313,13 @@ void fillQuintupletOutputBranches(SDL::Event& event)
     std::vector<int> moduleType_binaries;
 #endif
 
-    const int MAX_NQUINTUPLET_PER_MODULE = 5000;
+    const int MAX_NQUINTUPLET_PER_MODULE = 2000;
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     const float k2Rinv1GeVf = kRinv1GeVf / 2.;
     
     for(unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
     {
-        if(modulesInGPU.quintupletModuleIndices[idx] == -1)
+        if(rangesInGPU.quintupletModuleIndices[idx] == -1)
         {
             continue;
         }
@@ -1332,7 +1333,7 @@ void fillQuintupletOutputBranches(SDL::Event& event)
 
         for(unsigned int jdx = 0; jdx < nQuintuplets; jdx++)
         {
-            unsigned int quintupletIndex = modulesInGPU.quintupletModuleIndices[idx] + jdx;
+            unsigned int quintupletIndex = rangesInGPU.quintupletModuleIndices[idx] + jdx;
             unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
             unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
 
@@ -1569,14 +1570,14 @@ void fillQuintupletOutputBranches(SDL::Event& event)
 
 }
 
-void fillPixelTripletOutputBranches(SDL::Event& event)
+void fillPixelTripletOutputBranches(SDL::Event* event)
 {
-    SDL::pixelTriplets& pixelTripletsInGPU = (*event.getPixelTriplets());
-    SDL::triplets& tripletsInGPU = (*event.getTriplets());
-    SDL::segments& segmentsInGPU = (*event.getSegments());
-    SDL::miniDoublets& mdsInGPU = (*event.getMiniDoublets());
-    SDL::hits& hitsInGPU = (*event.getHits());
-    SDL::modules& modulesInGPU = (*event.getModules());
+    SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
+    SDL::triplets& tripletsInGPU = (*event->getTriplets());
+    SDL::segments& segmentsInGPU = (*event->getSegments());
+    SDL::miniDoublets& mdsInGPU = (*event->getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event->getHits());
+    SDL::modules& modulesInGPU = (*event->getModules());
 
     std::vector<int> sim_pT3_matched(trk.sim_pt().size(), 0);
     std::vector<vector<int>> sim_pT3_types(trk.sim_pt().size());
@@ -1603,7 +1604,7 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
     std::vector<float> pT3_rzChiSquared;
 #endif
 
-    const unsigned int N_MAX_PIXEL_TRIPLETS = 250000;
+    const unsigned int N_MAX_PIXEL_TRIPLETS = 2500;
 
     unsigned int nPixelTriplets = std::min(*(pixelTripletsInGPU.nPixelTriplets), N_MAX_PIXEL_TRIPLETS);
 
@@ -1808,15 +1809,15 @@ void fillPixelTripletOutputBranches(SDL::Event& event)
 
 }
 
-void fillPixelQuintupletOutputBranches(SDL::Event& event)
+void fillPixelQuintupletOutputBranches(SDL::Event* event)
 {
-    SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event.getPixelQuintuplets());
-    SDL::quintuplets& quintupletsInGPU = (*event.getQuintuplets());
-    SDL::triplets& tripletsInGPU = (*event.getTriplets());
-    SDL::segments& segmentsInGPU = (*event.getSegments());
-    SDL::miniDoublets& mdsInGPU = (*event.getMiniDoublets());
-    SDL::hits& hitsInGPU = (*event.getHits());
-    SDL::modules& modulesInGPU = (*event.getModules());
+    SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
+    SDL::quintuplets& quintupletsInGPU = (*event->getQuintuplets());
+    SDL::triplets& tripletsInGPU = (*event->getTriplets());
+    SDL::segments& segmentsInGPU = (*event->getSegments());
+    SDL::miniDoublets& mdsInGPU = (*event->getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event->getHits());
+    SDL::modules& modulesInGPU = (*event->getModules());
 
     std::vector<int> sim_pT5_matched(trk.sim_pt().size(), 0);
     std::vector<vector<int>> sim_pT5_types(trk.sim_pt().size());
@@ -1836,7 +1837,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
     std::vector<float> pT5_rPhiChiSquaredInwards;
     std::vector<float> pT5_simpt;
 #endif
-    const unsigned int N_MAX_PIXEL_QUINTUPLETS = 1000000;
+    const unsigned int N_MAX_PIXEL_QUINTUPLETS = 10000;
     unsigned int nPixelQuintuplets = std::min(*(pixelQuintupletsInGPU.nPixelQuintuplets), N_MAX_PIXEL_QUINTUPLETS);
 
     for(unsigned int jdx = 0; jdx < nPixelQuintuplets; jdx++)
@@ -2065,12 +2066,12 @@ void fillPixelQuintupletOutputBranches(SDL::Event& event)
 }
 
 //________________________________________________________________________________________________________________________________
-void fillPixelLineSegmentOutputBranches(SDL::Event& event)
+void fillPixelLineSegmentOutputBranches(SDL::Event* event)
 {
-    SDL::segments& segmentsInGPU = (*event.getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
-    SDL::hits& hitsInGPU = (*event.getHits());
-    SDL::modules& modulesInGPU = (*event.getModules());
+    SDL::segments& segmentsInGPU = (*event->getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event->getHits());
+    SDL::modules& modulesInGPU = (*event->getModules());
 
     std::vector<int> sim_pLS_matched(trk.sim_pt().size(), 0);
     std::vector<vector<int>> sim_pLS_types(trk.sim_pt().size());
@@ -2295,14 +2296,14 @@ void fillPixelLineSegmentOutputBranches_for_CPU(SDL::CPU::Event& event)
 
 }
 
-void fillTripletOutputBranches(SDL::Event& event)
+void fillTripletOutputBranches(SDL::Event* event)
 {
 
-    SDL::triplets& tripletsInGPU = (*event.getTriplets());
-    SDL::segments& segmentsInGPU = (*event.getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
-    SDL::hits& hitsInGPU = (*event.getHits());
-    SDL::modules& modulesInGPU = (*event.getModules());
+    SDL::triplets& tripletsInGPU = (*event->getTriplets());
+    SDL::segments& segmentsInGPU = (*event->getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event->getHits());
+    SDL::modules& modulesInGPU = (*event->getModules());
 
     // Did it match to track candidate?
     std::vector<int> sim_T3_matched(trk.sim_pt().size());
@@ -2335,7 +2336,7 @@ void fillTripletOutputBranches(SDL::Event& event)
     std::vector<int> moduleType_binaries;
 #endif
 
-    const int MAX_NTRIPLET_PER_MODULE = 5000;
+    const int MAX_NTRIPLET_PER_MODULE = 1000;
     for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
 
@@ -4648,7 +4649,7 @@ void fillPrimitiveBranches_MD_for_CPU_v2(SDL::CPU::Event& event)
 
 
 //________________________________________________________________________________________________________________________________
-void printTimingInformation(std::vector<std::vector<float>>& timing_information)
+void printTimingInformation(std::vector<std::vector<float>>& timing_information,float fullTime,float fullavg)
 {
 
     if (ana.verbose == 0)
@@ -4659,9 +4660,10 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information)
     std::cout << setprecision(2);
     std::cout << right;
     std::cout << "Timing summary" << std::endl;
-    std::cout << "Evt     Hits         MD       LS      T3       TC       T5       pT3      pT5      pLS      Total     Total(short)" << std::endl;
+    std::cout << "   Evt    Hits       MD       LS      T3       TC       T5       pT3      pT5      pLS      Total     Total(short)" << std::endl;
     std::vector<float> timing_sum_information(timing_information[0].size());
     std::vector<float> timing_shortlist;
+    std::vector<float> timing_list;
     for (auto&& [ievt, timing] : iter::enumerate(timing_information))
     {
         float timing_total = 0.f;
@@ -4705,6 +4707,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information)
         timing_sum_information[7] += timing[7]*1000; //pT5
         timing_sum_information[8] += timing[8]*1000; //pLS
         timing_shortlist.push_back(timing_total_short); //short total
+        timing_list.push_back(timing_total); //short total
     }
     timing_sum_information[0] /= timing_information.size(); // Hits
     timing_sum_information[1] /= timing_information.size(); // MD
@@ -4740,7 +4743,18 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information)
       standardDeviation += pow(shorttime - timing_totalshort_avg, 2);
     }
     float stdDev = sqrt(standardDeviation/timing_shortlist.size());
+
+    //float standardDeviationFull = 0.0;
+    //for(auto time: timing_list) {
+    //  standardDeviationFull += pow(time - timing_total_avg, 2);
+    //}
+    //float stdDevFull = sqrt(standardDeviationFull/timing_list.size());
+
+    float effectiveThroughput = fullavg*timing_totalshort_avg/timing_total_avg;
+    //float std_throughput = effectiveThroughput * sqrt(pow(stdDevFull/timing_total_avg,2) + pow(stdDev/timing_totalshort_avg,2));
+
     std::cout << setprecision(0);
+    std::cout << "   Evt    Hits       MD       LS      T3       TC       T5       pT3      pT5      pLS      Event      Short             Loop      Effective" << std::endl;
     std::cout << setw(6) << "avg";
     std::cout << "   "<<setw(6) << timing_sum_information[0]; // Hits
     std::cout << "   "<<setw(6) << timing_sum_information[1]; // MD
@@ -4752,9 +4766,15 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information)
     std::cout << "   "<<setw(6) << timing_sum_information[7]; //pT5
     std::cout << "   "<<setw(6) << timing_sum_information[8]; //pLS
     std::cout << "   "<<setw(7) << timing_total_avg; // Average total time
+    //std::cout << "+/- "<< stdDevFull;
     std::cout << "   "<<setw(7) << timing_totalshort_avg; // Average total time
-    std::cout << "+/- "<< stdDev; // Average total time
+    std::cout << "+/- "<< setw(4)<<stdDev; 
+    //std::cout << "   "<<setw(7) << fullTime; // Full time
+    std::cout << "   "<<setw(7) << fullavg; // Average full time
+    std::cout << "   "<<setw(7) << effectiveThroughput; // Effective time
+    //std::cout << "+/- "<< std_throughput; 
     std::cout << "   "<<ana.compilation_target;
+    std::cout << "[s="<<ana.streams<<"]";
     std::cout << std::endl;
 
     std::cout << left;
@@ -4762,25 +4782,26 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information)
 }
 
 //________________________________________________________________________________________________________________________________
-void printHitMultiplicities(SDL::Event& event)
+void printHitMultiplicities(SDL::Event* event)
 {
-    SDL::hits& hitsInGPU = (*event.getHits());
-    SDL::modules& modulesInGPU = (*event.getModules());
+    SDL::hits& hitsInGPU = (*event->getHits());
+    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::objectRanges& rangesInGPU = (*event->getRanges());
 
     int nHits = 0;
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
-        nHits += modulesInGPU.hitRanges[4 * idx + 1] - modulesInGPU.hitRanges[4 * idx] + 1;       
-        nHits += modulesInGPU.hitRanges[4 * idx + 3] - modulesInGPU.hitRanges[4 * idx + 2] + 1;
+        nHits += rangesInGPU.hitRanges[4 * idx + 1] - rangesInGPU.hitRanges[4 * idx] + 1;       
+        nHits += rangesInGPU.hitRanges[4 * idx + 3] - rangesInGPU.hitRanges[4 * idx + 2] + 1;
     }
     std::cout <<  " nHits: " << nHits <<  std::endl;
 }
 
 //________________________________________________________________________________________________________________________________
-void printMiniDoubletMultiplicities(SDL::Event& event)
+void printMiniDoubletMultiplicities(SDL::Event* event)
 {
-    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
-    SDL::modules& modulesInGPU = (*event.getModules());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::modules& modulesInGPU = (*event->getModules());
 
     int nMiniDoublets = 0;
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nModules); idx++) // "<=" because cheating to include pixel track candidate lower module
@@ -4794,7 +4815,7 @@ void printMiniDoubletMultiplicities(SDL::Event& event)
 }
 
 //________________________________________________________________________________________________________________________________
-void printAllObjects(SDL::Event& event)
+void printAllObjects(SDL::Event* event)
 {
     printMDs(event);
     printLSs(event);
@@ -4815,11 +4836,11 @@ void printAllObjects_for_CPU(SDL::CPU::Event& event)
 
 
 //________________________________________________________________________________________________________________________________
-void printMDs(SDL::Event& event)
+void printMDs(SDL::Event* event)
 {
-    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
-    SDL::hits& hitsInGPU = (*event.getHits());
-    SDL::modules& modulesInGPU = (*event.getModules());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event->getHits());
+    SDL::modules& modulesInGPU = (*event->getModules());
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); ++idx)
     {
         for (unsigned int jdx = 0; jdx < miniDoubletsInGPU.nMDs[2*idx]; jdx++)
@@ -4873,12 +4894,12 @@ void printMDs_for_CPU(SDL::CPU::Event& event)
 }
 
 //________________________________________________________________________________________________________________________________
-void printLSs(SDL::Event& event)
+void printLSs(SDL::Event* event)
 {
-    SDL::segments& segmentsInGPU = (*event.getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
-    SDL::hits& hitsInGPU = (*event.getHits());
-    SDL::modules& modulesInGPU = (*event.getModules());
+    SDL::segments& segmentsInGPU = (*event->getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event->getHits());
+    SDL::modules& modulesInGPU = (*event->getModules());
     int nSegments = 0;
     for (unsigned int i = 0; i <  *(modulesInGPU.nLowerModules); ++i)
     {
@@ -4935,12 +4956,12 @@ void printLSs_for_CPU(SDL::CPU::Event& event)
 }
 
 //________________________________________________________________________________________________________________________________
-void printpLSs(SDL::Event& event)
+void printpLSs(SDL::Event* event)
 {
-    SDL::segments& segmentsInGPU = (*event.getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
-    SDL::hits& hitsInGPU = (*event.getHits());
-    SDL::modules& modulesInGPU = (*event.getModules());
+    SDL::segments& segmentsInGPU = (*event->getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event->getHits());
+    SDL::modules& modulesInGPU = (*event->getModules());
     unsigned int i = *(modulesInGPU.nLowerModules);
     unsigned int idx = modulesInGPU.lowerModuleIndices[i];
     int npLS = segmentsInGPU.nSegments[idx];
@@ -4992,13 +5013,13 @@ void printpLSs_for_CPU(SDL::CPU::Event& event)
 }
 
 //________________________________________________________________________________________________________________________________
-void printT3s(SDL::Event& event)
+void printT3s(SDL::Event* event)
 {
-    SDL::triplets& tripletsInGPU = (*event.getTriplets());
-    SDL::segments& segmentsInGPU = (*event.getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
-    SDL::hits& hitsInGPU = (*event.getHits());
-    SDL::modules& modulesInGPU = (*event.getModules());
+    SDL::triplets& tripletsInGPU = (*event->getTriplets());
+    SDL::segments& segmentsInGPU = (*event->getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event->getHits());
+    SDL::modules& modulesInGPU = (*event->getModules());
     int nTriplets = 0;
     for (unsigned int i = 0; i <  *(modulesInGPU.nLowerModules); ++i)
     {
@@ -5106,14 +5127,15 @@ void printTCs_for_CPU(SDL::CPU::Event& event)
 
 
 //________________________________________________________________________________________________________________________________
-void debugPrintOutlierMultiplicities(SDL::Event& event)
+void debugPrintOutlierMultiplicities(SDL::Event* event)
 {
-    SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates());
-    SDL::triplets& tripletsInGPU = (*event.getTriplets());
-    SDL::segments& segmentsInGPU = (*event.getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event.getMiniDoublets());
-    SDL::hits& hitsInGPU = (*event.getHits());
-    SDL::modules& modulesInGPU = (*event.getModules());
+    SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
+    SDL::triplets& tripletsInGPU = (*event->getTriplets());
+    SDL::segments& segmentsInGPU = (*event->getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event->getHits());
+    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::objectRanges& rangesInGPU = (*event->getRanges());
     int nTrackCandidates = 0;
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); ++idx)
     {
@@ -5127,8 +5149,8 @@ void debugPrintOutlierMultiplicities(SDL::Event& event)
             int nMD = miniDoubletsInGPU.nMDs[2*idx]+miniDoubletsInGPU.nMDs[2*idx+1] ;
             std::cout <<  " idx: " << idx <<  " nMD: " << nMD <<  std::endl;
             int nHits = 0;
-            nHits += modulesInGPU.hitRanges[4*idx+1] - modulesInGPU.hitRanges[4*idx] + 1;       
-            nHits += modulesInGPU.hitRanges[4*idx+3] - modulesInGPU.hitRanges[4*idx+2] + 1;
+            nHits += rangesInGPU.hitRanges[4*idx+1] - rangesInGPU.hitRanges[4*idx] + 1;       
+            nHits += rangesInGPU.hitRanges[4*idx+3] - rangesInGPU.hitRanges[4*idx+2] + 1;
             std::cout <<  " idx: " << idx <<  " nHits: " << nHits <<  std::endl;
         }
     }

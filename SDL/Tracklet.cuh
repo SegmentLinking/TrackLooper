@@ -60,8 +60,8 @@ namespace SDL
         void freeMemoryCache();
     };
 
-    void createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules);
-    void createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules);
+     void createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules,cudaStream_t stream);
+    void createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules,cudaStream_t stream);
 
 
 #ifdef CUT_VALUE_DEBUG

@@ -55,15 +55,16 @@ namespace SDL
 
         miniDoublets();
         ~miniDoublets();
-      	void freeMemory();
+      	void freeMemory(cudaStream_t stream);
       	void freeMemoryCache();
+        void resetMemory(unsigned int maxMDsPerModule, unsigned int nModules, unsigned int maxPixelMDs,cudaStream_t stream);
 
     };
 
 
 
-    void createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDs,unsigned int nModules, unsigned int maxPixelMDs);
-    void createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDs,unsigned int nModules, unsigned int maxPixelMDs);
+    void createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDs,unsigned int nModules, unsigned int maxPixelMDs, cudaStream_t stream);
+    void createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDs,unsigned int nModules, unsigned int maxPixelMDs,cudaStream_t stream);
 
 #ifdef CUT_VALUE_DEBUG
     CUDA_HOSTDEV void addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, unsigned int lowerModuleIdx, float dz, float drt, float dphi, float dphichange, float shfitedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, float dzCut, float drtCut, float miniCut, unsigned int idx);

@@ -5,13 +5,29 @@
 
 ///FIXME:NOTICE THE NEW maxPixelSegments!
 
-void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments)
+void SDL::segments::resetMemory(unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments,cudaStream_t stream)
+{
+    unsigned int nMemoryLocations = maxSegments * (nModules - 1) + maxPixelSegments;
+    cudaMemsetAsync(mdIndices,0, nMemoryLocations * 6 * sizeof(unsigned int),stream);
+    cudaMemsetAsync(nSegments, 0,nModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(dPhis, 0,(nMemoryLocations * 6 + maxPixelSegments * 8)*sizeof(float),stream);
+    cudaMemsetAsync(superbin, 0,(maxPixelSegments )*sizeof(int),stream);
+    cudaMemsetAsync(pixelType, 0,(maxPixelSegments )*sizeof(int),stream);
+    cudaMemsetAsync(isQuad, 0,(maxPixelSegments )*sizeof(bool),stream);
+    cudaMemsetAsync(isDup, 0,(maxPixelSegments )*sizeof(bool),stream);
+    cudaMemsetAsync(score, 0,(maxPixelSegments )*sizeof(float),stream);
+    cudaMemsetAsync(circleCenterX, 0,maxPixelSegments * sizeof(float),stream);
+    cudaMemsetAsync(circleCenterY, 0,maxPixelSegments * sizeof(float),stream);
+    cudaMemsetAsync(circleRadius, 0,maxPixelSegments * sizeof(float),stream);
+    cudaMemsetAsync(partOfPT5, 0,maxPixelSegments * sizeof(bool),stream);
+}
+void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments,cudaStream_t stream)
 {
     //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide
     //extra memory to the pixel segments
     unsigned int nMemoryLocations = maxSegments * (nModules - 1) + maxPixelSegments;
 #ifdef CACHE_ALLOC
-    cudaStream_t stream=0; 
+//    cudaStream_t stream=0; 
     segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations*6 *sizeof(unsigned int),stream);
     segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_managed(nModules *sizeof(unsigned int),stream);
     segmentsInGPU.dPhis = (float*)cms::cuda::allocate_managed((nMemoryLocations*6 + maxPixelSegments * 8) *sizeof(float),stream);
@@ -83,17 +99,17 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
 //    {
 //        segmentsInGPU.nSegments[i] = 0;
 //    }
-    cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
-    cudaMemset(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool));
+    cudaMemsetAsync(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool),stream);
 
 }
-void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments)
+void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments, cudaStream_t stream)
 {
     //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide
     //extra memory to the pixel segments
     unsigned int nMemoryLocations = maxSegments * (nModules - 1) + maxPixelSegments;
 #ifdef CACHE_ALLOC
-    cudaStream_t stream=0; 
+//    cudaStream_t stream=0; 
     int dev;
     cudaGetDevice(&dev);
     segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_device(dev,nMemoryLocations*6 *sizeof(unsigned int),stream);
@@ -110,6 +126,19 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(bool), stream);
 
 #else
+    //cudaMallocAsync(&segmentsInGPU.mdIndices, nMemoryLocations * 6 * sizeof(unsigned int),stream);
+    //cudaMallocAsync(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int),stream);
+    //cudaMallocAsync(&segmentsInGPU.dPhis, (nMemoryLocations * 6 + maxPixelSegments * 8)*sizeof(float),stream);
+    //cudaMallocAsync(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int),stream);
+    //cudaMallocAsync(&segmentsInGPU.pixelType, (maxPixelSegments )*sizeof(int),stream);
+    //cudaMallocAsync(&segmentsInGPU.isQuad, (maxPixelSegments )*sizeof(bool),stream);
+    //cudaMallocAsync(&segmentsInGPU.isDup, (maxPixelSegments )*sizeof(bool),stream);
+    //cudaMallocAsync(&segmentsInGPU.score, (maxPixelSegments )*sizeof(float),stream);
+    //cudaMallocAsync(&segmentsInGPU.circleCenterX, maxPixelSegments * sizeof(float),stream);
+    //cudaMallocAsync(&segmentsInGPU.circleCenterY, maxPixelSegments * sizeof(float),stream);
+    //cudaMallocAsync(&segmentsInGPU.circleRadius, maxPixelSegments * sizeof(float),stream);
+    //cudaMallocAsync(&segmentsInGPU.partOfPT5, maxPixelSegments * sizeof(bool),stream);
+
     cudaMalloc(&segmentsInGPU.mdIndices, nMemoryLocations * 6 * sizeof(unsigned int));
     cudaMalloc(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
     cudaMalloc(&segmentsInGPU.dPhis, (nMemoryLocations * 6 + maxPixelSegments * 8)*sizeof(float));
@@ -124,8 +153,9 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     cudaMalloc(&segmentsInGPU.partOfPT5, maxPixelSegments * sizeof(bool));
 
 #endif
-    cudaMemset(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int));
-    cudaMemset(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool));
+    cudaMemsetAsync(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool),stream);
+    cudaStreamSynchronize(stream);
 
     segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 2;
     segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 3;
@@ -230,8 +260,20 @@ void SDL::segments::freeMemoryCache()
     cms::cuda::free_managed(partOfPT5);
 #endif
 }
-void SDL::segments::freeMemory()
+void SDL::segments::freeMemory(cudaStream_t stream)
 {
+    //cudaFreeAsync(mdIndices,stream);
+    //cudaFreeAsync(nSegments,stream);
+    //cudaFreeAsync(dPhis,stream);
+    //cudaFreeAsync(superbin,stream);
+    //cudaFreeAsync(pixelType,stream);
+    //cudaFreeAsync(isQuad,stream);
+    //cudaFreeAsync(isDup,stream);
+    //cudaFreeAsync(score,stream);
+    //cudaFreeAsync(circleCenterX,stream);
+    //cudaFreeAsync(circleCenterY,stream);
+    //cudaFreeAsync(circleRadius,stream);
+    //cudaFreeAsync(partOfPT5,stream);
     cudaFree(mdIndices);
     cudaFree(nSegments);
     cudaFree(dPhis);
