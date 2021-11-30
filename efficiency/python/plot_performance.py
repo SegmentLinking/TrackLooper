@@ -59,6 +59,9 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
     if "coarse" in output_name and "ptcoarse" not in output_name:
         num.Rebin(6)
         den.Rebin(6)
+    # if "eta" in output_name and "etacoarse" not in output_name:
+    #     num.Rebin(2)
+    #     den.Rebin(2)
     if "pt" in output_name:
         overFlowBin = num.GetBinContent(num.GetNbinsX() + 1)
         lastBin = num.GetBinContent(num.GetNbinsX())
@@ -128,10 +131,10 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
         if yaxis_min > eff.GetY()[i] and eff.GetY()[i] != 0:
             yaxis_min = eff.GetY()[i]
     # print yaxis_min
-    if "maxzoom" in output_name:
-        eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
-    elif "zoom" in output_name:
-        eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
+    # if "maxzoom" in output_name:
+    #     eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
+    # elif "zoom" in output_name:
+    #     eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
     #if "ptzoom" in output_name:
     #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
     #elif "etazoom" in output_name:
@@ -148,11 +151,16 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
     #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
     #elif "layersgapmaxzoom" in output_name:
     #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
-    else:
+    # else:
+    #     eff.GetYaxis().SetRangeUser(0, 1.02)
+
+    if "zoom" not in output_name:
         eff.GetYaxis().SetRangeUser(0, 1.02)
+    else:
+        eff.GetYaxis().SetRangeUser(0.6, 1.02)
 
     if "eta" in output_name:
-        eff.GetXaxis().SetLimits(-2.5, 2.5)
+        eff.GetXaxis().SetLimits(-4.5, 4.5)
 
     eff.SetTitle(parse_plot_name(output_name))
 
@@ -169,24 +177,24 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
         x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
         y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.045 + 0.03
         if "_pt" in output_name:
-            fiducial_label = "|#eta| < 2.4, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+            fiducial_label = "|#eta| < 4.5, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
         elif "_eta" in output_name:
-            fiducial_label = "p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+            fiducial_label = "p_{T} > 0.9 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
         elif "_dz" in output_name:
-            fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{xy}| < 2.5 cm"
+            fiducial_label = "|#eta| < 4.5, p_{T} > 0.9 GeV, |Vtx_{xy}| < 2.5 cm"
         elif "_dxy" in output_name:
-            fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm"
+            fiducial_label = "|#eta| < 4.5, p_{T} > 0.9 GeV, |Vtx_{z}| < 30 cm"
         #elif "_lay" in output_name:
-        #    fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+        #    fiducial_label = "|#eta| < 4.5, p_{T} > 0.9 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
         else:
-            fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+            fiducial_label = "|#eta| < 4.5, p_{T} > 0.9 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
         if "fakerate" in output_name or "duplrate" in output_name:
             if "_pt" in output_name:
-                fiducial_label = "|#eta| < 2.4"
+                fiducial_label = "|#eta| < 4.5"
             elif "_eta" in output_name:
-                fiducial_label = "p_{T} > 1.5 GeV"
+                fiducial_label = "p_{T} > 0.9 GeV"
             else:
-                fiducial_label = "|#eta| < 2.4, p_{T} > 1.5 GeV"
+                fiducial_label = "|#eta| < 4.5, p_{T} > 0.9 GeV"
         t.DrawLatexNDC(x,y,"#scale[0.9]{#font[42]{%s}}" % fiducial_label)
         cms_label = "Simulation"
         x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
