@@ -41,20 +41,29 @@ const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 100000;
 const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
 
 //const unsigned int N_MAX_TRIPLETS_PER_MODULE = 5000;
-//const unsigned int N_MAX_TOTAL_TRIPLETS = 200000;
+const unsigned int N_MAX_TOTAL_TRIPLETS = 200000;
 //const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 5000;
 //const unsigned int N_MAX_PIXEL_TRIPLETS = 250000;
 //const unsigned int N_MAX_PIXEL_QUINTUPLETS = 1000000;
 //const unsigned int N_MAX_TRACK_CANDIDATES = 10000;
 //const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 400000;
 
-const unsigned int N_MAX_TRIPLETS_PER_MODULE = 1000;
-const unsigned int N_MAX_TOTAL_TRIPLETS = 100000;
-const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 2000;
-const unsigned int N_MAX_PIXEL_TRIPLETS = 2500;
-const unsigned int N_MAX_PIXEL_QUINTUPLETS = 10000;
+//const unsigned int N_MAX_TRIPLETS_PER_MODULE = 1000;
+//const unsigned int N_MAX_TOTAL_TRIPLETS = 100000;
+//const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 2000;
+//const unsigned int N_MAX_PIXEL_TRIPLETS = 2500;
+//const unsigned int N_MAX_PIXEL_QUINTUPLETS = 10000;
+//const unsigned int N_MAX_TRACK_CANDIDATES = 10000;
+//const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 10000;
+
+const unsigned int N_MAX_TRIPLETS_PER_MODULE = 2500;
+//const unsigned int N_MAX_TOTAL_TRIPLETS = 130000;
+const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 3000;
+const unsigned int N_MAX_PIXEL_TRIPLETS = 5000;
+const unsigned int N_MAX_PIXEL_QUINTUPLETS = 15000;
 const unsigned int N_MAX_TRACK_CANDIDATES = 10000;
-const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 10000;
+const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 15000;
+
 
 __device__ float scorepT3(struct SDL::modules& modulesInGPU,struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, unsigned int innerPix,unsigned int outerTrip,float pt, float pz);
 __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::triplets& tripletsInGPU, bool secondPass);
