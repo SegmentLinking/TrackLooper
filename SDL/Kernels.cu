@@ -635,9 +635,9 @@ __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesI
 #else
             addPixelQuintupletToMemory(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquaredInwards+rPhiChiSquared, eta,phi, pixelRadius, quintupletRadius, centerX, centerY);
 #endif
-/*            tripletsInGPU.partOfPT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex]] = true;
+            tripletsInGPU.partOfPT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex]] = true;
             tripletsInGPU.partOfPT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1]] = true;
-            segmentsInGPU.partOfPT5[pixelSegmentArrayIndex] = true;*/
+            segmentsInGPU.partOfPT5[pixelSegmentArrayIndex] = true;
         }
     }
 }
