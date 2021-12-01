@@ -35,6 +35,8 @@ void fillSimTrackOutputBranches();
 // GPU
 void fillOutputBranches(SDL::Event& event);
 void fillTrackExtensionOutputBranches(SDL::Event& event);
+void fillPureTrackExtensionOutputBranches(SDL::Event& event);
+void fillT3T3TrackExtensionOutputBranches(SDL::Event& event);
 
 void fillTrackCandidateOutputBranches(SDL::Event& event);
 void fillTrackCandidateOutputBranches_v1(SDL::Event& event);

@@ -151,7 +151,7 @@ def make_radius_difference_distributions(obj):
     global tree
     all_obj_arrays = tree.arrays(filter_name = "{}*".format(obj), library = "ak")
     print("abcbcd")
-    
+
 
     master_matchedMask = all_obj_arrays["{}_isFake".format(obj)] == 0
     layers = np.array(list(map(process_layers, ak.flatten(all_obj_arrays["{}_layer_binary".format(obj)]))))
@@ -162,7 +162,7 @@ def make_radius_difference_distributions(obj):
     unique_layerTypes = np.unique(master_layerTypes, axis=0)
     unique_layerTypes = np.append(unique_layerTypes,"")
     print(unique_layerTypes)
-    
+
     innerRadiusVariable = "pT3_pixelRadius" if obj == "pT3" else "t5_innerRadius"
     outerRadiusVariable = "pT3_tripletRadius" if obj == "pT3" else "t5_outerRadius"
     bridgeRadiusVariable = "t5_bridgeRadius" if obj == "t5" else None
@@ -190,15 +190,15 @@ def make_radius_difference_distributions(obj):
                 bridgeRadius = bridgeRadius[mask]
         else:
             matchedMask = ak.flatten(master_matchedMask)
-            layerTypes = master_layerTypes 
-            
+            layerTypes = master_layerTypes
+
         qArrayInner = abs(1.0/innerRadius - 1.0/simRadius)/(1.0/innerRadius)
         qArrayOuter = abs(1.0/outerRadius - 1.0/simRadius)/(1.0/outerRadius)
         if bridgeRadius is not None:
             qArrayBridge = abs(1.0/bridgeRadius - 1.0/simRadius)/(1.0/bridgeRadius)
         else:
             qArrayBridge = None
-             
+
         for name,qArray in {"inner": qArrayInner, "outer": qArrayOuter, "bridge":qArrayBridge}.items():
             if qArray is None:
                 continue
