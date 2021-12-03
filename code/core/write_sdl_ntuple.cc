@@ -1322,7 +1322,7 @@ void fillQuintupletOutputBranches(SDL::Event* event)
     std::vector<int> moduleType_binaries;
 #endif
 
-    const int MAX_NQUINTUPLET_PER_MODULE = 2000;
+    const int MAX_NQUINTUPLET_PER_MODULE = 3000;
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     const float k2Rinv1GeVf = kRinv1GeVf / 2.;
     
@@ -1613,7 +1613,7 @@ void fillPixelTripletOutputBranches(SDL::Event* event)
     std::vector<float> pT3_rzChiSquared;
 #endif
 
-    const unsigned int N_MAX_PIXEL_TRIPLETS = 2500;
+    const unsigned int N_MAX_PIXEL_TRIPLETS = 5000;
 
     unsigned int nPixelTriplets = std::min(*(pixelTripletsInGPU.nPixelTriplets), N_MAX_PIXEL_TRIPLETS);
 
@@ -1846,7 +1846,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
     std::vector<float> pT5_rPhiChiSquaredInwards;
     std::vector<float> pT5_simpt;
 #endif
-    const unsigned int N_MAX_PIXEL_QUINTUPLETS = 10000;
+    const unsigned int N_MAX_PIXEL_QUINTUPLETS = 15000;
     unsigned int nPixelQuintuplets = std::min(*(pixelQuintupletsInGPU.nPixelQuintuplets), N_MAX_PIXEL_QUINTUPLETS);
 
     for(unsigned int jdx = 0; jdx < nPixelQuintuplets; jdx++)
@@ -2345,7 +2345,7 @@ void fillTripletOutputBranches(SDL::Event* event)
     std::vector<int> moduleType_binaries;
 #endif
 
-    const int MAX_NTRIPLET_PER_MODULE = 1000;
+    const int MAX_NTRIPLET_PER_MODULE = 2500;
     for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
 
