@@ -2,6 +2,7 @@
 #define Constants_h
 
 #define PTCUT 1.0f
+#include <cuda_fp16.h>
 
 namespace SDL
 {
