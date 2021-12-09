@@ -30,18 +30,18 @@ namespace SDL
         unsigned int* tripletIndices;
         unsigned int* nPixelTriplets; //size 1
 
-        float* pixelRadius;
-        float* pixelRadiusError;
-        float* rPhiChiSquared;
-        float* rPhiChiSquaredInwards;
-        float* rzChiSquared;
-        float* tripletRadius;
-        float* pt;
-        float* eta;
-        float* phi;
-        float* eta_pix;
-        float* phi_pix;
-        float* score;
+        __half* pixelRadius;
+        __half* pixelRadiusError;
+        __half* rPhiChiSquared;
+        __half* rPhiChiSquaredInwards;
+        __half* rzChiSquared;
+        __half* tripletRadius;
+        __half* pt;
+        __half* eta;
+        __half* phi;
+        __half* eta_pix;
+        __half* phi_pix;
+        __half* score;
         bool* isDup;
         bool* partOfPT5;
 
