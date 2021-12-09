@@ -881,6 +881,8 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
         std::vector<int> hit_types;
         int layer_binary = 0;
         /*const*/ float pt;
+        /*const*/ float eta_pLS = -999;
+        /*const*/ float phi_pLS = -999;
         tc_type.emplace_back(trackCandidateType);
         if (trackCandidateType == 8) //pLS
         {
@@ -888,6 +890,8 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
             unsigned int pixelModuleIndex = *(modulesInGPU.nModules) - 1;
             unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + innerTrackletIdx;
             pt = segmentsInGPU.ptIn[innerTrackletIdx];
+            eta_pLS = segmentsInGPU.eta[innerTrackletIdx];
+            phi_pLS = segmentsInGPU.phi[innerTrackletIdx];
             unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
             unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
             unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerMiniDoubletIndex];
@@ -1205,6 +1209,11 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
                 eta = hitB.eta();
                 phi = hitA.phi();
             }
+            else if (trackCandidateType == 8) // if pLS
+            {
+                eta = eta_pLS;
+                phi = phi_pLS;
+            }
             else
             {
                 SDL::CPU::Hit hitA(trk.pix_x()[hit_idx[0]], trk.pix_y()[hit_idx[0]], trk.pix_z()[hit_idx[0]]);
@@ -1313,7 +1322,7 @@ void fillQuintupletOutputBranches(SDL::Event* event)
     std::vector<int> moduleType_binaries;
 #endif
 
-    const int MAX_NQUINTUPLET_PER_MODULE = 2000;
+    const int MAX_NQUINTUPLET_PER_MODULE = 3000;
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     const float k2Rinv1GeVf = kRinv1GeVf / 2.;
     
@@ -1604,7 +1613,7 @@ void fillPixelTripletOutputBranches(SDL::Event* event)
     std::vector<float> pT3_rzChiSquared;
 #endif
 
-    const unsigned int N_MAX_PIXEL_TRIPLETS = 2500;
+    const unsigned int N_MAX_PIXEL_TRIPLETS = 5000;
 
     unsigned int nPixelTriplets = std::min(*(pixelTripletsInGPU.nPixelTriplets), N_MAX_PIXEL_TRIPLETS);
 
@@ -1837,7 +1846,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
     std::vector<float> pT5_rPhiChiSquaredInwards;
     std::vector<float> pT5_simpt;
 #endif
-    const unsigned int N_MAX_PIXEL_QUINTUPLETS = 10000;
+    const unsigned int N_MAX_PIXEL_QUINTUPLETS = 15000;
     unsigned int nPixelQuintuplets = std::min(*(pixelQuintupletsInGPU.nPixelQuintuplets), N_MAX_PIXEL_QUINTUPLETS);
 
     for(unsigned int jdx = 0; jdx < nPixelQuintuplets; jdx++)
@@ -2336,7 +2345,7 @@ void fillTripletOutputBranches(SDL::Event* event)
     std::vector<int> moduleType_binaries;
 #endif
 
-    const int MAX_NTRIPLET_PER_MODULE = 1000;
+    const int MAX_NTRIPLET_PER_MODULE = 2500;
     for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
 
