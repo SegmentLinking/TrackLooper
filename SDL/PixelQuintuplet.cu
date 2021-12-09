@@ -221,7 +221,7 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
         pass = pass & passPT5RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rPhiChiSquared);
     }
     
-    if(quintupletsInGPU.regressionRadius[quintupletIndex] < 5.0f/(2.f * k2Rinv1GeVf))
+    if(__half2float(quintupletsInGPU.regressionRadius[quintupletIndex]) < 5.0f/(2.f * k2Rinv1GeVf))
     {
         pass = pass & passPT5RPhiChiSquaredInwardsCuts(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rPhiChiSquaredInwards);
     }
@@ -623,9 +623,9 @@ __device__ bool SDL::passPT5RZChiSquaredCuts(struct modules& modulesInGPU, unsig
 __device__ float SDL::computePT5RPhiChiSquaredInwards(struct modules& modulesInGPU, struct hits& hitsInGPU, struct quintuplets& quintupletsInGPU, unsigned int quintupletIndex, unsigned int* pixelHits)
 {
     /*Using the computed regression center and radius, compute the chi squared for the pixels*/
-    float g = quintupletsInGPU.regressionG[quintupletIndex];
-    float f = quintupletsInGPU.regressionF[quintupletIndex];
-    float r = quintupletsInGPU.regressionRadius[quintupletIndex];
+    float g = __half2float(quintupletsInGPU.regressionG[quintupletIndex]);
+    float f = __half2float(quintupletsInGPU.regressionF[quintupletIndex]);
+    float r = __half2float(quintupletsInGPU.regressionRadius[quintupletIndex]);
     float x, y;
     float chiSquared = 0;   
     for(size_t i = 0; i < 2; i++)

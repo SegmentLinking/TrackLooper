@@ -1348,19 +1348,19 @@ void fillQuintupletOutputBranches(SDL::Event* event)
 
             if(quintupletsInGPU.isDup[quintupletIndex]==1){continue;}
             t5_foundDuplicate.emplace_back(quintupletsInGPU.isDup[quintupletIndex]);
-            t5_score_rphisum.emplace_back(quintupletsInGPU.score_rphisum[quintupletIndex]);
-            t5_eta_2.emplace_back(quintupletsInGPU.eta[quintupletIndex]);
-            t5_phi_2.emplace_back(quintupletsInGPU.phi[quintupletIndex]);
+            t5_score_rphisum.emplace_back(__half2float(quintupletsInGPU.score_rphisum[quintupletIndex]));
+            t5_eta_2.emplace_back(__half2float(quintupletsInGPU.eta[quintupletIndex]));
+            t5_phi_2.emplace_back(__half2float(quintupletsInGPU.phi[quintupletIndex]));
 
 #ifdef CUT_VALUE_DEBUG
-            t5_innerRadius.push_back(quintupletsInGPU.innerRadius[quintupletIndex]);
-            t5_innerRadiusMin.push_back(quintupletsInGPU.innerRadiusMin[quintupletIndex]);
-            t5_innerRadiusMax.push_back(quintupletsInGPU.innerRadiusMax[quintupletIndex]);
-            t5_innerRadiusMin2S.push_back(quintupletsInGPU.innerRadiusMin2S[quintupletIndex]);
-            t5_innerRadiusMax2S.push_back(quintupletsInGPU.innerRadiusMax2S[quintupletIndex]);
+            t5_innerRadius.push_back(__half2float(quintupletsInGPU.innerRadius[quintupletIndex]));
+            t5_innerRadiusMin.push_back(__half2float(quintupletsInGPU.innerRadiusMin[quintupletIndex]));
+            t5_innerRadiusMax.push_back(__half2float(quintupletsInGPU.innerRadiusMax[quintupletIndex]));
+            t5_innerRadiusMin2S.push_back(__half2float(quintupletsInGPU.innerRadiusMin2S[quintupletIndex]));
+            t5_innerRadiusMax2S.push_back(__half2float(quintupletsInGPU.innerRadiusMax2S[quintupletIndex]));
 
-            t5_outerRadius.push_back(quintupletsInGPU.outerRadius[quintupletIndex]);
-            t5_regressionRadius.push_back(quintupletsInGPU.regressionRadius[quintupletIndex]);
+            t5_outerRadius.push_back(__half2float(quintupletsInGPU.outerRadius[quintupletIndex]));
+            t5_regressionRadius.push_back(__half2float(quintupletsInGPU.regressionRadius[quintupletIndex]));
             t5_outerRadiusMin.push_back(quintupletsInGPU.outerRadiusMin[quintupletIndex]);
             t5_outerRadiusMax.push_back(quintupletsInGPU.outerRadiusMax[quintupletIndex]);
             t5_outerRadiusMin2S.push_back(quintupletsInGPU.outerRadiusMin2S[quintupletIndex]);
@@ -1464,7 +1464,7 @@ void fillQuintupletOutputBranches(SDL::Event* event)
             
 
 
-            float pt = k2Rinv1GeVf * (quintupletsInGPU.innerRadius[quintupletIndex] + quintupletsInGPU.outerRadius[quintupletIndex]);
+            float pt = k2Rinv1GeVf * (__half2float(quintupletsInGPU.innerRadius[quintupletIndex]) + __half2float(quintupletsInGPU.outerRadius[quintupletIndex]));
 
             //copyting stuff from before for eta and phi
             SDL::CPU::Hit hitA(trk.ph2_x()[hit_idxs[0]], trk.ph2_y()[hit_idxs[0]], trk.ph2_z()[hit_idxs[0]]);
@@ -2024,7 +2024,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
 
         const float kRinv1GeVf = (2.99792458e-3 * 3.8);
 //        std::cout<<"pt in = "<<segmentsInGPU.ptIn[pixelSegmentIndex - ((*(modulesInGPU.nModules))-1)*600] << std::endl;
-        float pt = (segmentsInGPU.ptIn[pixelSegmentIndex - ((*(modulesInGPU.nModules))-1)*600 ] +  quintupletsInGPU.regressionRadius[T5Index] * kRinv1GeVf) / 2;
+        float pt = (segmentsInGPU.ptIn[pixelSegmentIndex - ((*(modulesInGPU.nModules))-1)*600 ] +  __half2float(quintupletsInGPU.regressionRadius[T5Index]) * kRinv1GeVf) / 2;
 
         SDL::CPU::Hit hitA(trk.pix_x()[hit_idxs[0]], trk.pix_y()[hit_idxs[0]], trk.pix_z()[hit_idxs[0]]);
         SDL::CPU::Hit hitB(trk.ph2_x()[hit_idxs[13]], trk.ph2_y()[hit_idxs[13]], trk.ph2_z()[hit_idxs[13]]);
