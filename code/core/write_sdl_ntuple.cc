@@ -1623,9 +1623,9 @@ void fillPixelTripletOutputBranches(SDL::Event* event)
         unsigned int tripletIndex = pixelTripletsInGPU.tripletIndices[jdx];
 
         if(pixelTripletsInGPU.isDup[jdx]==1){continue;}
-        pT3_eta_2.emplace_back(pixelTripletsInGPU.eta[jdx]);
-        pT3_phi_2.emplace_back(pixelTripletsInGPU.phi[jdx]);
-        pT3_score.emplace_back(pixelTripletsInGPU.score[jdx]);
+        pT3_eta_2.emplace_back(__half2float(pixelTripletsInGPU.eta[jdx]));
+        pT3_phi_2.emplace_back(__half2float(pixelTripletsInGPU.phi[jdx]));
+        pT3_score.emplace_back(__half2float(pixelTripletsInGPU.score[jdx]));
         pT3_foundDuplicate.emplace_back(pixelTripletsInGPU.isDup[jdx]);
         
         unsigned int pixelInnerMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
@@ -1749,9 +1749,9 @@ void fillPixelTripletOutputBranches(SDL::Event* event)
         pT3_isFake.push_back(matched_sim_trk_idxs.size() == 0);
         pT3_matched_simIdx.push_back(matched_sim_trk_idxs);
 
-        float pixelRadius = pixelTripletsInGPU.pixelRadius[jdx];
+        float pixelRadius = __half2float(pixelTripletsInGPU.pixelRadius[jdx]);
         float pixelRadiusError = pixelTripletsInGPU.pixelRadiusError[jdx];
-        float tripletRadius = pixelTripletsInGPU.tripletRadius[jdx];
+        float tripletRadius = __half2float(pixelTripletsInGPU.tripletRadius[jdx]);
         const float kRinv1GeVf = (2.99792458e-3 * 3.8);
         const float k2Rinv1GeVf = kRinv1GeVf / 2.;
 

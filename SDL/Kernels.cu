@@ -271,8 +271,8 @@ __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, S
 
 #ifdef Crossclean_pT3
     //cross cleaning step
-    float eta1 = pixelTripletsInGPU.eta_pix[pixelTripletIndex]; 
-    float phi1 = pixelTripletsInGPU.phi_pix[pixelTripletIndex]; 
+    float eta1 = __half2float(pixelTripletsInGPU.eta_pix[pixelTripletIndex]); 
+    float phi1 = __half2float(pixelTripletsInGPU.phi_pix[pixelTripletIndex]); 
     int pixelModuleIndex = *modulesInGPU.nModules - 1;
     unsigned int prefix = pixelModuleIndex*N_MAX_SEGMENTS_PER_MODULE;
     bool end= false;
@@ -348,8 +348,8 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, st
         }
         if(jx < *pixelTripletsInGPU.nPixelTriplets)
         {
-            float eta2 = pixelTripletsInGPU.eta[jx]; 
-            float phi2 = pixelTripletsInGPU.phi[jx]; 
+            float eta2 = __half2float(pixelTripletsInGPU.eta[jx]); 
+            float phi2 = __half2float(pixelTripletsInGPU.phi[jx]); 
             float dEta = abs(eta1-eta2);
             float dPhi = abs(phi1-phi2);
             if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
@@ -447,8 +447,8 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
             {
                 end=true;break;//return;
             }
-            float eta2 = pixelTripletsInGPU.eta_pix[jx];
-            float phi2 = pixelTripletsInGPU.phi_pix[jx];
+            float eta2 = __half2float(pixelTripletsInGPU.eta_pix[jx]);
+            float phi2 = __half2float(pixelTripletsInGPU.phi_pix[jx]);
             float dEta = abs(eta1-eta2);
             float dPhi = abs(phi1-phi2);
             if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
@@ -1073,10 +1073,10 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesI
     for (unsigned int ix=blockIdx.x*blockDim.x+threadIdx.x; ix<nPixelTriplets; ix+=blockxSize)
     {
         bool isDup = false;
-	float score1 = pixelTripletsInGPU.score[ix];
+	float score1 = __half2float(pixelTripletsInGPU.score[ix]);
         for (unsigned int jx=0; jx<nPixelTriplets; jx++)
         {
-	    float score2 = pixelTripletsInGPU.score[jx];
+	    float score2 = __half2float(pixelTripletsInGPU.score[jx]);
             if(ix==jx)
             {
                 continue;
