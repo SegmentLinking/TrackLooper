@@ -1337,7 +1337,9 @@ void fillLowerLevelOutputBranches(SDL::Event* event)
     fillPixelTripletOutputBranches(event);
     fillTrackExtensionOutputBranches(event);
     fillPureTrackExtensionOutputBranches(event);
+#ifdef T3T3_EXTENSIONS
     fillT3T3TrackExtensionOutputBranches(event);
+#endif
 }
 
 void fillT3T3TrackExtensionOutputBranches(SDL::Event* event)
@@ -1518,7 +1520,6 @@ void fillT3T3TrackExtensionOutputBranches(SDL::Event* event)
     ana.tx->setBranch<vector<float>>("T3T3_rzChiSquared", tce_rzChiSquared);
     ana.tx->setBranch<vector<int>>("T3T3_layer_binary", tce_layer_binary);
     ana.tx->setBranch<vector<int>>("T3T3_anchorType", tce_anchorType);
-
     ana.tx->setBranch<vector<float>>("T3T3_innerT3Radius", tce_innerRadius);
     ana.tx->setBranch<vector<float>>("T3T3_outerT3Radius", tce_outerRadius);
     ana.tx->setBranch<vector<float>>("T3T3_regressionRadius", tce_regressionRadius);
@@ -1565,7 +1566,11 @@ void fillPureTrackExtensionOutputBranches(SDL::Event* event)
     const unsigned int N_MAX_T3T3_TRACK_EXTENSIONS = 40000;
 
     std::vector<int> tce_anchorType;;
+#ifdef T3T3_EXTENSIONS
     for(size_t i = 0; i <= nTrackCandidates; i++) //CHEAT - Include the T3T3 extensions!
+#else
+    for(size_t i = 0; i < nTrackCandidates; i++)
+#endif
     {
         unsigned int nTrackExtensions;
         if(i < nTrackCandidates)
@@ -1774,7 +1779,11 @@ void fillTrackExtensionOutputBranches(SDL::Event* event)
     const unsigned int N_MAX_T3T3_TRACK_EXTENSIONS = 40000;
 
     std::vector<int> tce_anchorType;;
+#ifdef T3T3_EXTENSIONS
     for(size_t i = 0; i <= nTrackCandidates; i++) //CHEAT - Include the T3T3 extensions!
+#else
+    for(size_t i = 0; i < nTrackCandidates; i++)
+#endif
     {
         unsigned int nTrackExtensions;
         if(i < nTrackCandidates)
