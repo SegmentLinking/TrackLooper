@@ -255,14 +255,22 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
 
         rPhiChiSquared = computeT3T3RPhiChiSquared(modulesInGPU, hitsInGPU, nPoints, overallAnchorIndices, overallLowerModuleIndices, regressionRadius);
         rzChiSquared = computeT3T3RZChiSquared(modulesInGPU, hitsInGPU, nPoints, overallAnchorIndices, overallLowerModuleIndices);
-        pass = pass and (regressionRadius > 0.95/(2 * k2Rinv1GeVf));
+        
+        if(innerRadius < 2.0/(2 * k2Rinv1GeVf))
+        {
+            pass = pass and passRadiusMatch(nLayerOverlap, nHitOverlap, layer_binary, innerRadius, outerRadius);    
+        }
+        else
+        {
+            pass = pass and passHighPtRadiusMatch(nLayerOverlap, nHitOverlap, layer_binary, innerRadius, outerRadius);
+        }
+        if(innerRadius < 5.0/(2 * k2Rinv1GeVf))
+        {
+            pass = pass and passTERPhiChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rPhiChiSquared);
+            pass = pass and passTERZChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rzChiSquared);
 
-        pass = pass and passRadiusMatch(nLayerOverlap, nHitOverlap, layer_binary, innerRadius, outerRadius);     
-
-
-        pass = pass and passTERPhiChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rPhiChiSquared);
-        pass = pass and passTERZChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rzChiSquared);
-   }
+        }
+    }
     
 
     nLayerOverlaps[0] = nLayerOverlap;
@@ -277,6 +285,442 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     return pass;
 }
 
+
+__device__ bool SDL::passHighPtRadiusMatch(unsigned int& nLayerOverlaps, unsigned int& nHitOverlaps, unsigned int& layer_binary, float& innerRadius, float& outerRadius)
+{
+    float innerInvRadiusPositiveErrorBound, outerInvRadiusPositiveErrorBound;
+    float innerInvRadiusNegativeErrorBound, outerInvRadiusNegativeErrorBound;
+    float innerRadiusInvMin, innerRadiusInvMax, outerRadiusInvMin, outerRadiusInvMax;
+
+    if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 30)
+    {
+        innerInvRadiusPositiveErrorBound = 0.291;
+        innerInvRadiusNegativeErrorBound = 6.291;
+        outerInvRadiusPositiveErrorBound = 0.239;
+        outerInvRadiusNegativeErrorBound = 1.542;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 30)
+    {
+        innerInvRadiusPositiveErrorBound = 0.291;
+        innerInvRadiusNegativeErrorBound = 1.149;
+        outerInvRadiusPositiveErrorBound = 0.239;
+        outerInvRadiusNegativeErrorBound = 0.087;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 30)
+    {
+        innerInvRadiusPositiveErrorBound = 0.681;
+        innerInvRadiusNegativeErrorBound = 7.909;
+        outerInvRadiusPositiveErrorBound = 0.491;
+        outerInvRadiusNegativeErrorBound = 7.909;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 30)
+    {
+        innerInvRadiusPositiveErrorBound = 0.751;
+        innerInvRadiusNegativeErrorBound = 6.291;
+        outerInvRadiusPositiveErrorBound = 0.776;
+        outerInvRadiusNegativeErrorBound = 7.909;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 30)
+    {
+        innerInvRadiusPositiveErrorBound = 0.681;
+        innerInvRadiusNegativeErrorBound = 7.909;
+        outerInvRadiusPositiveErrorBound = 0.751;
+        outerInvRadiusNegativeErrorBound = 5.170;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 60)
+    {
+        innerInvRadiusPositiveErrorBound = 0.975;
+        innerInvRadiusNegativeErrorBound = 0.445;
+        outerInvRadiusPositiveErrorBound = 0.659;
+        outerInvRadiusNegativeErrorBound = 0.944;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 60)
+    {
+        innerInvRadiusPositiveErrorBound = 0.776;
+        innerInvRadiusNegativeErrorBound = 1.701;
+        outerInvRadiusPositiveErrorBound = 0.659;
+        outerInvRadiusNegativeErrorBound = 39.270;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 60)
+    {
+        innerInvRadiusPositiveErrorBound = 0.776;
+        innerInvRadiusNegativeErrorBound = 7.909;
+        outerInvRadiusPositiveErrorBound = 0.659;
+        outerInvRadiusNegativeErrorBound = 4.843;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 62)
+    {
+        innerInvRadiusPositiveErrorBound = 0.291;
+        innerInvRadiusNegativeErrorBound = 6.291;
+        outerInvRadiusPositiveErrorBound = 0.203;
+        outerInvRadiusNegativeErrorBound = 0.113;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 120)
+    {
+        innerInvRadiusPositiveErrorBound = 0.659;
+        innerInvRadiusNegativeErrorBound = 2.138;
+        outerInvRadiusPositiveErrorBound = 0.751;
+        outerInvRadiusNegativeErrorBound = 0.079;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 120)
+    {
+        innerInvRadiusPositiveErrorBound = 0.727;
+        innerInvRadiusNegativeErrorBound = 0.802;
+        outerInvRadiusPositiveErrorBound = 0.703;
+        outerInvRadiusNegativeErrorBound = 0.109;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 120)
+    {
+        innerInvRadiusPositiveErrorBound = 0.914;
+        innerInvRadiusNegativeErrorBound = 39.270;
+        outerInvRadiusPositiveErrorBound = 0.578;
+        outerInvRadiusNegativeErrorBound = 0.491;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 124)
+    {
+        innerInvRadiusPositiveErrorBound = 0.217;
+        innerInvRadiusNegativeErrorBound = 0.217;
+        outerInvRadiusPositiveErrorBound = 0.156;
+        outerInvRadiusNegativeErrorBound = 0.156;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 142)
+    {
+        innerInvRadiusPositiveErrorBound = 0.005;
+        innerInvRadiusNegativeErrorBound = 0.005;
+        outerInvRadiusPositiveErrorBound = 0.366;
+        outerInvRadiusNegativeErrorBound = 0.366;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 142)
+    {
+        innerInvRadiusPositiveErrorBound = 0.037;
+        innerInvRadiusNegativeErrorBound = 0.037;
+        outerInvRadiusPositiveErrorBound = 0.281;
+        outerInvRadiusNegativeErrorBound = 0.281;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 142)
+    {
+        innerInvRadiusPositiveErrorBound = 0.217;
+        innerInvRadiusNegativeErrorBound = 1.008;
+        outerInvRadiusPositiveErrorBound = 0.578;
+        outerInvRadiusNegativeErrorBound = 0.659;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 142)
+    {
+        innerInvRadiusPositiveErrorBound = 0.024;
+        innerInvRadiusNegativeErrorBound = 0.037;
+        outerInvRadiusPositiveErrorBound = 0.281;
+        outerInvRadiusNegativeErrorBound = 0.281;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 142)
+    {
+        innerInvRadiusPositiveErrorBound = 0.378;
+        innerInvRadiusNegativeErrorBound = 6.716;
+        outerInvRadiusPositiveErrorBound = 0.681;
+        outerInvRadiusNegativeErrorBound = 108.230;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 156)
+    {
+        innerInvRadiusPositiveErrorBound = 0.217;
+        innerInvRadiusNegativeErrorBound = 0.001;
+        outerInvRadiusPositiveErrorBound = 0.751;
+        outerInvRadiusNegativeErrorBound = 0.255;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 156)
+    {
+        innerInvRadiusPositiveErrorBound = 0.524;
+        innerInvRadiusNegativeErrorBound = 0.301;
+        outerInvRadiusPositiveErrorBound = 0.239;
+        outerInvRadiusNegativeErrorBound = 1.876;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 156)
+    {
+        innerInvRadiusPositiveErrorBound = 0.524;
+        innerInvRadiusNegativeErrorBound = 0.751;
+        outerInvRadiusPositiveErrorBound = 0.802;
+        outerInvRadiusNegativeErrorBound = 9.314;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 158)
+    {
+        innerInvRadiusPositiveErrorBound = 0.087;
+        innerInvRadiusNegativeErrorBound = 0.087;
+        outerInvRadiusPositiveErrorBound = 0.751;
+        outerInvRadiusNegativeErrorBound = 0.026;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 184)
+    {
+        innerInvRadiusPositiveErrorBound = 0.102;
+        innerInvRadiusNegativeErrorBound = 0.102;
+        outerInvRadiusPositiveErrorBound = 0.491;
+        outerInvRadiusNegativeErrorBound = 6.500;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 184)
+    {
+        innerInvRadiusPositiveErrorBound = 0.035;
+        innerInvRadiusNegativeErrorBound = 0.035;
+        outerInvRadiusPositiveErrorBound = 0.431;
+        outerInvRadiusNegativeErrorBound = 0.431;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 184)
+    {
+        innerInvRadiusPositiveErrorBound = 0.156;
+        innerInvRadiusNegativeErrorBound = 0.255;
+        outerInvRadiusPositiveErrorBound = 0.597;
+        outerInvRadiusNegativeErrorBound = 39.270;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 188)
+    {
+        innerInvRadiusPositiveErrorBound = 0.109;
+        innerInvRadiusNegativeErrorBound = 0.109;
+        outerInvRadiusPositiveErrorBound = 0.491;
+        outerInvRadiusNegativeErrorBound = 6.500;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 390)
+    {
+        innerInvRadiusPositiveErrorBound = 0.224;
+        innerInvRadiusNegativeErrorBound = 2.437;
+        outerInvRadiusPositiveErrorBound = 0.475;
+        outerInvRadiusNegativeErrorBound = 5.893;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 390)
+    {
+        innerInvRadiusPositiveErrorBound = 0.403;
+        innerInvRadiusNegativeErrorBound = 10.274;
+        outerInvRadiusPositiveErrorBound = 0.751;
+        outerInvRadiusNegativeErrorBound = 9.314;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 390)
+    {
+        innerInvRadiusPositiveErrorBound = 0.597;
+        innerInvRadiusNegativeErrorBound = 24.844;
+        outerInvRadiusPositiveErrorBound = 0.751;
+        outerInvRadiusNegativeErrorBound = 108.230;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 396)
+    {
+        innerInvRadiusPositiveErrorBound = 0.507;
+        innerInvRadiusNegativeErrorBound = 0.028;
+        outerInvRadiusPositiveErrorBound = 0.597;
+        outerInvRadiusNegativeErrorBound = 3.271;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 396)
+    {
+        innerInvRadiusPositiveErrorBound = 0.210;
+        innerInvRadiusNegativeErrorBound = 0.146;
+        outerInvRadiusPositiveErrorBound = 0.659;
+        outerInvRadiusNegativeErrorBound = 3.166;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 396)
+    {
+        innerInvRadiusPositiveErrorBound = 0.659;
+        innerInvRadiusNegativeErrorBound = 1.398;
+        outerInvRadiusPositiveErrorBound = 0.856;
+        outerInvRadiusNegativeErrorBound = 13.790;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 398)
+    {
+        innerInvRadiusPositiveErrorBound = 0.178;
+        innerInvRadiusNegativeErrorBound = 0.021;
+        outerInvRadiusPositiveErrorBound = 0.597;
+        outerInvRadiusNegativeErrorBound = 3.271;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 408)
+    {
+        innerInvRadiusPositiveErrorBound = 0.321;
+        innerInvRadiusNegativeErrorBound = 0.321;
+        outerInvRadiusPositiveErrorBound = 0.727;
+        outerInvRadiusNegativeErrorBound = 0.727;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 408)
+    {
+        innerInvRadiusPositiveErrorBound = 0.597;
+        innerInvRadiusNegativeErrorBound = 0.559;
+        outerInvRadiusPositiveErrorBound = 0.703;
+        outerInvRadiusNegativeErrorBound = 0.975;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 408)
+    {
+        innerInvRadiusPositiveErrorBound = 0.239;
+        innerInvRadiusNegativeErrorBound = 1.876;
+        outerInvRadiusPositiveErrorBound = 0.431;
+        outerInvRadiusNegativeErrorBound = 0.301;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 408)
+    {
+        innerInvRadiusPositiveErrorBound = 0.597;
+        innerInvRadiusNegativeErrorBound = 9.314;
+        outerInvRadiusPositiveErrorBound = 0.751;
+        outerInvRadiusNegativeErrorBound = 6.089;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 412)
+    {
+        innerInvRadiusPositiveErrorBound = 0.090;
+        innerInvRadiusNegativeErrorBound = 0.090;
+        outerInvRadiusPositiveErrorBound = 0.146;
+        outerInvRadiusNegativeErrorBound = 0.727;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 898)
+    {
+        innerInvRadiusPositiveErrorBound = 0.703;
+        innerInvRadiusNegativeErrorBound = 0.703;
+        outerInvRadiusPositiveErrorBound = 0.021;
+        outerInvRadiusNegativeErrorBound = 2.602;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 898)
+    {
+        innerInvRadiusPositiveErrorBound = 0.828;
+        innerInvRadiusNegativeErrorBound = 31.235;
+        outerInvRadiusPositiveErrorBound = 0.659;
+        outerInvRadiusNegativeErrorBound = 19.125;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 898)
+    {
+        innerInvRadiusPositiveErrorBound = 0.776;
+        innerInvRadiusNegativeErrorBound = 0.776;
+        outerInvRadiusPositiveErrorBound = 0.659;
+        outerInvRadiusNegativeErrorBound = 0.659;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 898)
+    {
+        innerInvRadiusPositiveErrorBound = 0.828;
+        innerInvRadiusNegativeErrorBound = 24.844;
+        outerInvRadiusPositiveErrorBound = 0.776;
+        outerInvRadiusNegativeErrorBound = 108.230;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 900)
+    {
+        innerInvRadiusPositiveErrorBound = 0.578;
+        innerInvRadiusNegativeErrorBound = 0.491;
+        outerInvRadiusPositiveErrorBound = 0.884;
+        outerInvRadiusNegativeErrorBound = 1.701;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 900)
+    {
+        innerInvRadiusPositiveErrorBound = 0.578;
+        innerInvRadiusNegativeErrorBound = 6.939;
+        outerInvRadiusPositiveErrorBound = 0.884;
+        outerInvRadiusNegativeErrorBound = 2.777;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 900)
+    {
+        innerInvRadiusPositiveErrorBound = 0.597;
+        innerInvRadiusNegativeErrorBound = 0.255;
+        outerInvRadiusPositiveErrorBound = 0.231;
+        outerInvRadiusNegativeErrorBound = 2.358;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 900)
+    {
+        innerInvRadiusPositiveErrorBound = 0.751;
+        innerInvRadiusNegativeErrorBound = 108.230;
+        outerInvRadiusPositiveErrorBound = 0.884;
+        outerInvRadiusNegativeErrorBound = 51.014;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 902)
+    {
+        innerInvRadiusPositiveErrorBound = 0.224;
+        innerInvRadiusNegativeErrorBound = 3.728;
+        outerInvRadiusPositiveErrorBound = 0.884;
+        outerInvRadiusNegativeErrorBound = 2.777;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 904)
+    {
+        innerInvRadiusPositiveErrorBound = 0.828;
+        innerInvRadiusNegativeErrorBound = 2.138;
+        outerInvRadiusPositiveErrorBound = 0.884;
+        outerInvRadiusNegativeErrorBound = 51.014;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 1920)
+    {
+        innerInvRadiusPositiveErrorBound = 1.701;
+        innerInvRadiusNegativeErrorBound = 1.701;
+        outerInvRadiusPositiveErrorBound = 0.802;
+        outerInvRadiusNegativeErrorBound = 47.784;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 1920)
+    {
+        innerInvRadiusPositiveErrorBound = 0.491;
+        innerInvRadiusNegativeErrorBound = 0.491;
+        outerInvRadiusPositiveErrorBound = 2.688;
+        outerInvRadiusNegativeErrorBound = 2.688;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1920)
+    {
+        innerInvRadiusPositiveErrorBound = 0.776;
+        innerInvRadiusNegativeErrorBound = 7.655;
+        outerInvRadiusPositiveErrorBound = 0.802;
+        outerInvRadiusNegativeErrorBound = 47.784;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 1920)
+    {
+        innerInvRadiusPositiveErrorBound = 0.659;
+        innerInvRadiusNegativeErrorBound = 4.249;
+        outerInvRadiusPositiveErrorBound = 0.776;
+        outerInvRadiusNegativeErrorBound = 5.170;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 1920)
+    {
+        innerInvRadiusPositiveErrorBound = 0.776;
+        innerInvRadiusNegativeErrorBound = 98.116;
+        outerInvRadiusPositiveErrorBound = 0.802;
+        outerInvRadiusNegativeErrorBound = 66.269;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 1922)
+    {
+        innerInvRadiusPositiveErrorBound = 0.776;
+        innerInvRadiusNegativeErrorBound = 31.235;
+        outerInvRadiusPositiveErrorBound = 0.802;
+        outerInvRadiusNegativeErrorBound = 24.844;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 1924)
+    {
+        innerInvRadiusPositiveErrorBound = 0.578;
+        innerInvRadiusNegativeErrorBound = 6.939;
+        outerInvRadiusPositiveErrorBound = 0.802;
+        outerInvRadiusNegativeErrorBound = 24.844;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3840)
+    {
+        innerInvRadiusPositiveErrorBound = 1.267;
+        innerInvRadiusNegativeErrorBound = 1.267;
+        outerInvRadiusPositiveErrorBound = 0.040;
+        outerInvRadiusNegativeErrorBound = 0.040;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3840)
+    {
+        innerInvRadiusPositiveErrorBound = 0.460;
+        innerInvRadiusNegativeErrorBound = 4.687;
+        outerInvRadiusPositiveErrorBound = 0.638;
+        outerInvRadiusNegativeErrorBound = 7.909;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3840)
+    {
+        innerInvRadiusPositiveErrorBound = 0.703;
+        innerInvRadiusNegativeErrorBound = 0.366;
+        outerInvRadiusPositiveErrorBound = 0.390;
+        outerInvRadiusNegativeErrorBound = 25.670;
+    }
+    else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3840)
+    {
+        innerInvRadiusPositiveErrorBound = 0.617;
+        innerInvRadiusNegativeErrorBound = 47.784;
+        outerInvRadiusPositiveErrorBound = 0.638;
+        outerInvRadiusNegativeErrorBound = 108.230;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 3968)
+    {
+        innerInvRadiusPositiveErrorBound = 0.491;
+        innerInvRadiusNegativeErrorBound = 4.536;
+        outerInvRadiusPositiveErrorBound = 0.390;
+        outerInvRadiusNegativeErrorBound = 7.909;
+    }
+    innerRadiusInvMin = fmaxf(0.0, (1 - innerInvRadiusPositiveErrorBound) / innerRadius);
+    innerRadiusInvMax = (1 + innerInvRadiusNegativeErrorBound) / innerRadius;
+
+    outerRadiusInvMin = fmaxf(0.0, (1 - outerInvRadiusPositiveErrorBound) / outerRadius);
+    outerRadiusInvMax = (1 + outerInvRadiusNegativeErrorBound) / outerRadius;
+
+    return checkIntervalOverlap(innerRadiusInvMin, innerRadiusInvMax, outerRadiusInvMin, outerRadiusInvMax);
+}
+
 __device__ bool SDL::passRadiusMatch(unsigned int& nLayerOverlaps, unsigned int& nHitOverlaps, unsigned int& layer_binary, float& innerRadius, float& outerRadius)
 {
     float innerInvRadiusPositiveErrorBound, outerInvRadiusPositiveErrorBound;
@@ -285,409 +729,360 @@ __device__ bool SDL::passRadiusMatch(unsigned int& nLayerOverlaps, unsigned int&
 
     if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 30)
     {
-        innerInvRadiusPositiveErrorBound = 0.161;
+        innerInvRadiusPositiveErrorBound = 0.093;
         innerInvRadiusNegativeErrorBound = 1.876;
-        outerInvRadiusPositiveErrorBound = 0.151;
-        outerInvRadiusNegativeErrorBound = 0.120;
+        outerInvRadiusPositiveErrorBound = 0.272;
+        outerInvRadiusNegativeErrorBound = 0.030;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 30)
     {
-        innerInvRadiusPositiveErrorBound = 0.343;
+        innerInvRadiusPositiveErrorBound = 0.217;
         innerInvRadiusNegativeErrorBound = 1.876;
-        outerInvRadiusPositiveErrorBound = 0.128;
-        outerInvRadiusNegativeErrorBound = 0.417;
+        outerInvRadiusPositiveErrorBound = 0.063;
+        outerInvRadiusNegativeErrorBound = 0.203;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 30)
     {
-        innerInvRadiusPositiveErrorBound = 0.196;
-        innerInvRadiusNegativeErrorBound = 0.659;
-        outerInvRadiusPositiveErrorBound = 0.142;
-        outerInvRadiusNegativeErrorBound = 0.178;
+        innerInvRadiusPositiveErrorBound = 0.184;
+        innerInvRadiusNegativeErrorBound = 2.602;
+        outerInvRadiusPositiveErrorBound = 0.331;
+        outerInvRadiusNegativeErrorBound = 0.431;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 30)
     {
-        innerInvRadiusPositiveErrorBound = 0.196;
-        innerInvRadiusNegativeErrorBound = 0.366;
-        outerInvRadiusPositiveErrorBound = 0.146;
-        outerInvRadiusNegativeErrorBound = 0.507;
+        innerInvRadiusPositiveErrorBound = 0.354;
+        innerInvRadiusNegativeErrorBound = 0.597;
+        outerInvRadiusPositiveErrorBound = 0.217;
+        outerInvRadiusNegativeErrorBound = 0.541;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 30)
     {
-        innerInvRadiusPositiveErrorBound = 0.146;
-        innerInvRadiusNegativeErrorBound = 0.255;
-        outerInvRadiusPositiveErrorBound = 0.210;
-        outerInvRadiusNegativeErrorBound = 0.224;
+        innerInvRadiusPositiveErrorBound = 0.291;
+        innerInvRadiusNegativeErrorBound = 0.802;
+        outerInvRadiusPositiveErrorBound = 0.354;
+        outerInvRadiusNegativeErrorBound = 0.431;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 60)
     {
-        innerInvRadiusPositiveErrorBound = 0.019;
-        innerInvRadiusNegativeErrorBound = 0.914;
-        outerInvRadiusPositiveErrorBound = 0.172;
-        outerInvRadiusNegativeErrorBound = 0.007;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 60)
-    {
-        innerInvRadiusPositiveErrorBound = 0.027;
-        innerInvRadiusNegativeErrorBound = 0.021;
-        outerInvRadiusPositiveErrorBound = 0.030;
-        outerInvRadiusNegativeErrorBound = 0.065;
+        innerInvRadiusPositiveErrorBound = 0.005;
+        innerInvRadiusNegativeErrorBound = 0.005;
+        outerInvRadiusPositiveErrorBound = 0.013;
+        outerInvRadiusNegativeErrorBound = 0.013;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 60)
     {
-        innerInvRadiusPositiveErrorBound = 0.196;
-        innerInvRadiusNegativeErrorBound = 1.226;
-        outerInvRadiusPositiveErrorBound = 0.231;
-        outerInvRadiusNegativeErrorBound = 0.247;
+        innerInvRadiusPositiveErrorBound = 0.161;
+        innerInvRadiusNegativeErrorBound = 11.333;
+        outerInvRadiusPositiveErrorBound = 0.146;
+        outerInvRadiusNegativeErrorBound = 0.445;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 60)
     {
-        innerInvRadiusPositiveErrorBound = 0.113;
+        innerInvRadiusPositiveErrorBound = 0.029;
         innerInvRadiusNegativeErrorBound = 0.802;
-        outerInvRadiusPositiveErrorBound = 0.172;
-        outerInvRadiusNegativeErrorBound = 0.172;
+        outerInvRadiusPositiveErrorBound = 0.146;
+        outerInvRadiusNegativeErrorBound = 0.076;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 60)
     {
-        innerInvRadiusPositiveErrorBound = 0.161;
-        innerInvRadiusNegativeErrorBound = 0.390;
-        outerInvRadiusPositiveErrorBound = 0.239;
-        outerInvRadiusNegativeErrorBound = 0.403;
+        innerInvRadiusPositiveErrorBound = 0.184;
+        innerInvRadiusNegativeErrorBound = 4.390;
+        outerInvRadiusPositiveErrorBound = 0.366;
+        outerInvRadiusNegativeErrorBound = 3.271;
     }
     else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 62)
     {
-        innerInvRadiusPositiveErrorBound = 0.084;
-        innerInvRadiusNegativeErrorBound = 0.255;
-        outerInvRadiusPositiveErrorBound = 0.084;
-        outerInvRadiusNegativeErrorBound = 0.247;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 120)
-    {
-        innerInvRadiusPositiveErrorBound = 0.023;
-        innerInvRadiusNegativeErrorBound = 0.231;
-        outerInvRadiusPositiveErrorBound = 0.030;
-        outerInvRadiusNegativeErrorBound = 0.026;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 120)
-    {
-        innerInvRadiusPositiveErrorBound = 0.524;
-        innerInvRadiusNegativeErrorBound = 0.013;
-        outerInvRadiusPositiveErrorBound = 0.172;
-        outerInvRadiusNegativeErrorBound = 0.172;
+        innerInvRadiusPositiveErrorBound = 0.090;
+        innerInvRadiusNegativeErrorBound = 0.047;
+        outerInvRadiusPositiveErrorBound = 0.124;
+        outerInvRadiusNegativeErrorBound = 0.231;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 120)
     {
         innerInvRadiusPositiveErrorBound = 0.460;
-        innerInvRadiusNegativeErrorBound = 3.380;
+        innerInvRadiusNegativeErrorBound = 5.520;
         outerInvRadiusPositiveErrorBound = 0.541;
-        outerInvRadiusNegativeErrorBound = 0.231;
+        outerInvRadiusNegativeErrorBound = 0.106;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 120)
     {
-        innerInvRadiusPositiveErrorBound = 0.172;
-        innerInvRadiusNegativeErrorBound = 0.659;
-        outerInvRadiusPositiveErrorBound = 0.217;
-        outerInvRadiusNegativeErrorBound = 0.151;
+        innerInvRadiusPositiveErrorBound = 0.102;
+        innerInvRadiusNegativeErrorBound = 0.681;
+        outerInvRadiusPositiveErrorBound = 0.184;
+        outerInvRadiusNegativeErrorBound = 0.106;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 120)
     {
-        innerInvRadiusPositiveErrorBound = 0.184;
-        innerInvRadiusNegativeErrorBound = 0.659;
-        outerInvRadiusPositiveErrorBound = 0.239;
-        outerInvRadiusNegativeErrorBound = 0.366;
+        innerInvRadiusPositiveErrorBound = 0.354;
+        innerInvRadiusNegativeErrorBound = 0.776;
+        outerInvRadiusPositiveErrorBound = 0.390;
+        outerInvRadiusNegativeErrorBound = 0.281;
     }
     else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 124)
     {
-        innerInvRadiusPositiveErrorBound = 0.057;
-        innerInvRadiusNegativeErrorBound = 0.040;
-        outerInvRadiusPositiveErrorBound = 0.065;
-        outerInvRadiusNegativeErrorBound = 0.113;
+        innerInvRadiusPositiveErrorBound = 0.217;
+        innerInvRadiusNegativeErrorBound = 0.038;
+        outerInvRadiusPositiveErrorBound = 0.247;
+        outerInvRadiusNegativeErrorBound = 0.009;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 142)
     {
-        innerInvRadiusPositiveErrorBound = 0.120;
+        innerInvRadiusPositiveErrorBound = 0.264;
         innerInvRadiusNegativeErrorBound = 0.106;
-        outerInvRadiusPositiveErrorBound = 0.291;
-        outerInvRadiusNegativeErrorBound = 0.445;
+        outerInvRadiusPositiveErrorBound = 0.272;
+        outerInvRadiusNegativeErrorBound = 0.311;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 142)
     {
-        innerInvRadiusPositiveErrorBound = 0.102;
-        innerInvRadiusNegativeErrorBound = 0.113;
-        outerInvRadiusPositiveErrorBound = 0.167;
-        outerInvRadiusNegativeErrorBound = 0.172;
+        innerInvRadiusPositiveErrorBound = 0.061;
+        innerInvRadiusNegativeErrorBound = 0.013;
+        outerInvRadiusPositiveErrorBound = 0.151;
+        outerInvRadiusNegativeErrorBound = 0.069;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 142)
     {
-        innerInvRadiusPositiveErrorBound = 0.133;
+        innerInvRadiusPositiveErrorBound = 0.264;
         innerInvRadiusNegativeErrorBound = 0.106;
-        outerInvRadiusPositiveErrorBound = 0.301;
-        outerInvRadiusNegativeErrorBound = 0.659;
+        outerInvRadiusPositiveErrorBound = 0.331;
+        outerInvRadiusNegativeErrorBound = 0.703;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 142)
     {
-        innerInvRadiusPositiveErrorBound = 0.321;
-        innerInvRadiusNegativeErrorBound = 0.113;
-        outerInvRadiusPositiveErrorBound = 0.239;
-        outerInvRadiusNegativeErrorBound = 0.659;
+        innerInvRadiusPositiveErrorBound = 0.061;
+        innerInvRadiusNegativeErrorBound = 0.055;
+        outerInvRadiusPositiveErrorBound = 0.151;
+        outerInvRadiusNegativeErrorBound = 0.301;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 142)
     {
-        innerInvRadiusPositiveErrorBound = 0.151;
-        innerInvRadiusNegativeErrorBound = 0.124;
-        outerInvRadiusPositiveErrorBound = 0.291;
-        outerInvRadiusNegativeErrorBound = 0.884;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 156)
-    {
-        innerInvRadiusPositiveErrorBound = 0.021;
-        innerInvRadiusNegativeErrorBound = 0.033;
-        outerInvRadiusPositiveErrorBound = 0.074;
-        outerInvRadiusNegativeErrorBound = 0.802;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 156)
-    {
-        innerInvRadiusPositiveErrorBound = 0.002;
-        innerInvRadiusNegativeErrorBound = 0.002;
-        outerInvRadiusPositiveErrorBound = 0.007;
-        outerInvRadiusNegativeErrorBound = 0.007;
+        innerInvRadiusPositiveErrorBound = 0.343;
+        innerInvRadiusNegativeErrorBound = 0.247;
+        outerInvRadiusPositiveErrorBound = 0.460;
+        outerInvRadiusNegativeErrorBound = 0.975;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 156)
     {
-        innerInvRadiusPositiveErrorBound = 0.167;
-        innerInvRadiusNegativeErrorBound = 0.137;
-        outerInvRadiusPositiveErrorBound = 0.331;
-        outerInvRadiusNegativeErrorBound = 1.076;
+        innerInvRadiusPositiveErrorBound = 0.944;
+        innerInvRadiusNegativeErrorBound = 0.013;
+        outerInvRadiusPositiveErrorBound = 0.975;
+        outerInvRadiusNegativeErrorBound = 0.460;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 156)
     {
-        innerInvRadiusPositiveErrorBound = 0.113;
-        innerInvRadiusNegativeErrorBound = 0.044;
-        outerInvRadiusPositiveErrorBound = 0.331;
-        outerInvRadiusNegativeErrorBound = 0.975;
+        innerInvRadiusPositiveErrorBound = 0.002;
+        innerInvRadiusNegativeErrorBound = 0.042;
+        outerInvRadiusPositiveErrorBound = 0.203;
+        outerInvRadiusNegativeErrorBound = 0.022;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 156)
     {
-        innerInvRadiusPositiveErrorBound = 0.151;
-        innerInvRadiusNegativeErrorBound = 0.239;
-        outerInvRadiusPositiveErrorBound = 0.417;
-        outerInvRadiusNegativeErrorBound = 1.646;
-    }
-    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 158)
-    {
-        innerInvRadiusPositiveErrorBound = 0.366;
-        innerInvRadiusNegativeErrorBound = 0.255;
-        outerInvRadiusPositiveErrorBound = 0.403;
-        outerInvRadiusNegativeErrorBound = 1.187;
+        innerInvRadiusPositiveErrorBound = 0.944;
+        innerInvRadiusNegativeErrorBound = 6.716;
+        outerInvRadiusPositiveErrorBound = 0.975;
+        outerInvRadiusNegativeErrorBound = 0.828;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 184)
     {
         innerInvRadiusPositiveErrorBound = 0.044;
         innerInvRadiusNegativeErrorBound = 0.015;
-        outerInvRadiusPositiveErrorBound = 0.151;
+        outerInvRadiusPositiveErrorBound = 0.093;
         outerInvRadiusNegativeErrorBound = 0.093;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 184)
     {
-        innerInvRadiusPositiveErrorBound = 0.029;
-        innerInvRadiusNegativeErrorBound = 0.029;
-        outerInvRadiusPositiveErrorBound = 0.638;
-        outerInvRadiusNegativeErrorBound = 0.638;
+        innerInvRadiusPositiveErrorBound = 0.015;
+        innerInvRadiusNegativeErrorBound = 0.015;
+        outerInvRadiusPositiveErrorBound = 0.067;
+        outerInvRadiusNegativeErrorBound = 0.067;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 184)
     {
-        innerInvRadiusPositiveErrorBound = 0.343;
-        innerInvRadiusNegativeErrorBound = 2.965;
-        outerInvRadiusPositiveErrorBound = 0.597;
-        outerInvRadiusNegativeErrorBound = 0.802;
+        innerInvRadiusPositiveErrorBound = 0.051;
+        innerInvRadiusNegativeErrorBound = 0.019;
+        outerInvRadiusPositiveErrorBound = 0.057;
+        outerInvRadiusNegativeErrorBound = 0.659;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 184)
     {
-        innerInvRadiusPositiveErrorBound = 0.096;
-        innerInvRadiusNegativeErrorBound = 0.161;
-        outerInvRadiusPositiveErrorBound = 0.541;
-        outerInvRadiusNegativeErrorBound = 0.884;
+        innerInvRadiusPositiveErrorBound = 0.019;
+        innerInvRadiusNegativeErrorBound = 0.019;
+        outerInvRadiusPositiveErrorBound = 0.321;
+        outerInvRadiusNegativeErrorBound = 0.321;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 184)
     {
-        innerInvRadiusPositiveErrorBound = 0.247;
+        innerInvRadiusPositiveErrorBound = 0.231;
         innerInvRadiusNegativeErrorBound = 1.267;
-        outerInvRadiusPositiveErrorBound = 0.597;
-        outerInvRadiusNegativeErrorBound = 1.701;
+        outerInvRadiusPositiveErrorBound = 0.321;
+        outerInvRadiusNegativeErrorBound = 0.884;
     }
     else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 188)
     {
-        innerInvRadiusPositiveErrorBound = 0.030;
-        innerInvRadiusNegativeErrorBound = 0.025;
-        outerInvRadiusPositiveErrorBound = 0.403;
-        outerInvRadiusNegativeErrorBound = 0.378;
+        innerInvRadiusPositiveErrorBound = 0.002;
+        innerInvRadiusNegativeErrorBound = 0.016;
+        outerInvRadiusPositiveErrorBound = 0.063;
+        outerInvRadiusNegativeErrorBound = 0.272;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 390)
     {
-        innerInvRadiusPositiveErrorBound = 0.272;
-        innerInvRadiusNegativeErrorBound = 0.239;
-        outerInvRadiusPositiveErrorBound = 0.321;
-        outerInvRadiusNegativeErrorBound = 1.041;
+        innerInvRadiusPositiveErrorBound = 0.051;
+        innerInvRadiusNegativeErrorBound = 0.036;
+        outerInvRadiusPositiveErrorBound = 0.017;
+        outerInvRadiusNegativeErrorBound = 0.802;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 390)
     {
-        innerInvRadiusPositiveErrorBound = 0.247;
-        innerInvRadiusNegativeErrorBound = 0.190;
-        outerInvRadiusPositiveErrorBound = 0.109;
-        outerInvRadiusNegativeErrorBound = 1.076;
+        innerInvRadiusPositiveErrorBound = 0.040;
+        innerInvRadiusNegativeErrorBound = 0.042;
+        outerInvRadiusPositiveErrorBound = 0.047;
+        outerInvRadiusNegativeErrorBound = 0.617;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 390)
     {
-        innerInvRadiusPositiveErrorBound = 0.331;
-        innerInvRadiusNegativeErrorBound = 0.403;
-        outerInvRadiusPositiveErrorBound = 0.431;
-        outerInvRadiusNegativeErrorBound = 1.267;
+        innerInvRadiusPositiveErrorBound = 0.524;
+        innerInvRadiusNegativeErrorBound = 2.003;
+        outerInvRadiusPositiveErrorBound = 0.638;
+        outerInvRadiusNegativeErrorBound = 3.728;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 390)
     {
         innerInvRadiusPositiveErrorBound = 0.727;
-        innerInvRadiusNegativeErrorBound = 0.217;
-        outerInvRadiusPositiveErrorBound = 0.727;
-        outerInvRadiusNegativeErrorBound = 1.226;
+        innerInvRadiusNegativeErrorBound = 0.507;
+        outerInvRadiusPositiveErrorBound = 0.751;
+        outerInvRadiusNegativeErrorBound = 1.041;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 390)
     {
-        innerInvRadiusPositiveErrorBound = 0.255;
-        innerInvRadiusNegativeErrorBound = 0.431;
-        outerInvRadiusPositiveErrorBound = 0.378;
-        outerInvRadiusNegativeErrorBound = 1.267;
+        innerInvRadiusPositiveErrorBound = 0.417;
+        innerInvRadiusNegativeErrorBound = 2.283;
+        outerInvRadiusPositiveErrorBound = 0.638;
+        outerInvRadiusNegativeErrorBound = 1.757;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 396)
     {
-        innerInvRadiusPositiveErrorBound = 0.063;
-        innerInvRadiusNegativeErrorBound = 0.311;
-        outerInvRadiusPositiveErrorBound = 0.403;
-        outerInvRadiusNegativeErrorBound = 1.938;
+        innerInvRadiusPositiveErrorBound = 0.041;
+        innerInvRadiusNegativeErrorBound = 0.041;
+        outerInvRadiusPositiveErrorBound = 29.258;
+        outerInvRadiusNegativeErrorBound = 29.258;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 396)
     {
-        innerInvRadiusPositiveErrorBound = 0.137;
+        innerInvRadiusPositiveErrorBound = 0.460;
         innerInvRadiusNegativeErrorBound = 0.460;
         outerInvRadiusPositiveErrorBound = 0.475;
-        outerInvRadiusNegativeErrorBound = 0.541;
+        outerInvRadiusNegativeErrorBound = 0.203;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 396)
     {
-        innerInvRadiusPositiveErrorBound = 0.264;
-        innerInvRadiusNegativeErrorBound = 0.460;
-        outerInvRadiusPositiveErrorBound = 0.856;
-        outerInvRadiusNegativeErrorBound = 9.015;
+        innerInvRadiusPositiveErrorBound = 0.291;
+        innerInvRadiusNegativeErrorBound = 0.378;
+        outerInvRadiusPositiveErrorBound = 0.491;
+        outerInvRadiusNegativeErrorBound = 29.258;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 396)
     {
-        innerInvRadiusPositiveErrorBound = 0.291;
+        innerInvRadiusPositiveErrorBound = 0.076;
         innerInvRadiusNegativeErrorBound = 0.445;
-        outerInvRadiusPositiveErrorBound = 0.491;
-        outerInvRadiusNegativeErrorBound = 8.444;
+        outerInvRadiusPositiveErrorBound = 0.475;
+        outerInvRadiusNegativeErrorBound = 0.703;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 396)
     {
-        innerInvRadiusPositiveErrorBound = 0.281;
-        innerInvRadiusNegativeErrorBound = 3.271;
-        outerInvRadiusPositiveErrorBound = 0.597;
-        outerInvRadiusNegativeErrorBound = 9.624;
+        innerInvRadiusPositiveErrorBound = 0.366;
+        innerInvRadiusNegativeErrorBound = 3.608;
+        outerInvRadiusPositiveErrorBound = 0.507;
+        outerInvRadiusNegativeErrorBound = 4.112;
     }
     else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 398)
     {
-        innerInvRadiusPositiveErrorBound = 0.087;
-        innerInvRadiusNegativeErrorBound = 0.093;
-        outerInvRadiusPositiveErrorBound = 0.541;
-        outerInvRadiusNegativeErrorBound = 9.944;
+        innerInvRadiusPositiveErrorBound = 0.061;
+        innerInvRadiusNegativeErrorBound = 0.106;
+        outerInvRadiusPositiveErrorBound = 0.431;
+        outerInvRadiusNegativeErrorBound = 29.258;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 408)
     {
         innerInvRadiusPositiveErrorBound = 0.021;
-        innerInvRadiusNegativeErrorBound = 1.646;
-        outerInvRadiusPositiveErrorBound = 0.491;
+        innerInvRadiusNegativeErrorBound = 0.272;
+        outerInvRadiusPositiveErrorBound = 0.975;
         outerInvRadiusNegativeErrorBound = 0.975;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 408)
     {
-        innerInvRadiusPositiveErrorBound = 0.475;
-        innerInvRadiusNegativeErrorBound = 4.843;
-        outerInvRadiusPositiveErrorBound = 0.541;
-        outerInvRadiusNegativeErrorBound = 24.045;
+        innerInvRadiusPositiveErrorBound = 0.156;
+        innerInvRadiusNegativeErrorBound = 0.944;
+        outerInvRadiusPositiveErrorBound = 0.475;
+        outerInvRadiusNegativeErrorBound = 0.975;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 408)
     {
-        innerInvRadiusPositiveErrorBound = 0.475;
-        innerInvRadiusNegativeErrorBound = 4.843;
-        outerInvRadiusPositiveErrorBound = 0.475;
-        outerInvRadiusNegativeErrorBound = 24.045;
+        innerInvRadiusPositiveErrorBound = 0.828;
+        innerInvRadiusNegativeErrorBound = 0.828;
+        outerInvRadiusPositiveErrorBound = 0.378;
+        outerInvRadiusNegativeErrorBound = 0.378;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 408)
     {
-        innerInvRadiusPositiveErrorBound = 0.524;
-        innerInvRadiusNegativeErrorBound = 0.975;
-        outerInvRadiusPositiveErrorBound = 0.491;
-        outerInvRadiusNegativeErrorBound = 24.045;
+        innerInvRadiusPositiveErrorBound = 0.321;
+        innerInvRadiusNegativeErrorBound = 0.944;
+        outerInvRadiusPositiveErrorBound = 0.460;
+        outerInvRadiusNegativeErrorBound = 2.688;
     }
     else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 412)
     {
         innerInvRadiusPositiveErrorBound = 0.210;
         innerInvRadiusNegativeErrorBound = 0.541;
-        outerInvRadiusPositiveErrorBound = 0.491;
-        outerInvRadiusNegativeErrorBound = 3.492;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 432)
-    {
-        innerInvRadiusPositiveErrorBound = 0.178;
-        innerInvRadiusNegativeErrorBound = 0.178;
-        outerInvRadiusPositiveErrorBound = 0.460;
-        outerInvRadiusNegativeErrorBound = 0.460;
+        outerInvRadiusPositiveErrorBound = 0.366;
+        outerInvRadiusNegativeErrorBound = 0.475;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 432)
     {
-        innerInvRadiusPositiveErrorBound = 0.178;
-        innerInvRadiusNegativeErrorBound = 0.366;
-        outerInvRadiusPositiveErrorBound = 0.524;
-        outerInvRadiusNegativeErrorBound = 0.524;
+        innerInvRadiusPositiveErrorBound = 0.255;
+        innerInvRadiusNegativeErrorBound = 0.255;
+        outerInvRadiusPositiveErrorBound = 0.231;
+        outerInvRadiusNegativeErrorBound = 0.231;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 898)
     {
-        innerInvRadiusPositiveErrorBound = 0.541;
-        innerInvRadiusNegativeErrorBound = 3.728;
-        outerInvRadiusPositiveErrorBound = 0.343;
+        innerInvRadiusPositiveErrorBound = 0.196;
+        innerInvRadiusNegativeErrorBound = 2.870;
+        outerInvRadiusPositiveErrorBound = 0.113;
         outerInvRadiusNegativeErrorBound = 0.431;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 898)
     {
-        innerInvRadiusPositiveErrorBound = 0.390;
-        innerInvRadiusNegativeErrorBound = 2.437;
-        outerInvRadiusPositiveErrorBound = 0.291;
+        innerInvRadiusPositiveErrorBound = 0.311;
+        innerInvRadiusNegativeErrorBound = 0.311;
+        outerInvRadiusPositiveErrorBound = 0.681;
         outerInvRadiusNegativeErrorBound = 0.681;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 898)
     {
-        innerInvRadiusPositiveErrorBound = 0.460;
-        innerInvRadiusNegativeErrorBound = 5.893;
-        outerInvRadiusPositiveErrorBound = 0.247;
-        outerInvRadiusNegativeErrorBound = 0.445;
+        innerInvRadiusPositiveErrorBound = 0.638;
+        innerInvRadiusNegativeErrorBound = 2.870;
+        outerInvRadiusPositiveErrorBound = 0.281;
+        outerInvRadiusNegativeErrorBound = 0.431;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 898)
     {
-        innerInvRadiusPositiveErrorBound = 0.507;
-        innerInvRadiusNegativeErrorBound = 2.437;
-        outerInvRadiusPositiveErrorBound = 0.390;
-        outerInvRadiusNegativeErrorBound = 1.226;
+        innerInvRadiusPositiveErrorBound = 0.124;
+        innerInvRadiusNegativeErrorBound = 0.311;
+        outerInvRadiusPositiveErrorBound = 0.137;
+        outerInvRadiusNegativeErrorBound = 0.727;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 898)
     {
-        innerInvRadiusPositiveErrorBound = 0.417;
-        innerInvRadiusNegativeErrorBound = 2.437;
-        outerInvRadiusPositiveErrorBound = 0.281;
-        outerInvRadiusNegativeErrorBound = 0.491;
+        innerInvRadiusPositiveErrorBound = 0.491;
+        innerInvRadiusNegativeErrorBound = 2.518;
+        outerInvRadiusPositiveErrorBound = 0.460;
+        outerInvRadiusNegativeErrorBound = 0.445;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 900)
     {
         innerInvRadiusPositiveErrorBound = 0.184;
-        innerInvRadiusNegativeErrorBound = 0.093;
+        innerInvRadiusNegativeErrorBound = 0.042;
         outerInvRadiusPositiveErrorBound = 0.042;
-        outerInvRadiusNegativeErrorBound = 2.602;
+        outerInvRadiusNegativeErrorBound = 0.003;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 900)
     {
@@ -698,150 +1093,143 @@ __device__ bool SDL::passRadiusMatch(unsigned int& nLayerOverlaps, unsigned int&
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 900)
     {
-        innerInvRadiusPositiveErrorBound = 0.403;
-        innerInvRadiusNegativeErrorBound = 0.703;
-        outerInvRadiusPositiveErrorBound = 0.524;
-        outerInvRadiusNegativeErrorBound = 14.249;
+        innerInvRadiusPositiveErrorBound = 0.184;
+        innerInvRadiusNegativeErrorBound = 0.475;
+        outerInvRadiusPositiveErrorBound = 0.403;
+        outerInvRadiusNegativeErrorBound = 7.655;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 900)
     {
-        innerInvRadiusPositiveErrorBound = 0.099;
-        innerInvRadiusNegativeErrorBound = 0.378;
-        outerInvRadiusPositiveErrorBound = 0.475;
-        outerInvRadiusNegativeErrorBound = 5.893;
+        innerInvRadiusPositiveErrorBound = 1.149;
+        innerInvRadiusNegativeErrorBound = 1.149;
+        outerInvRadiusPositiveErrorBound = 0.378;
+        outerInvRadiusNegativeErrorBound = 2.138;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 900)
     {
-        innerInvRadiusPositiveErrorBound = 0.343;
-        innerInvRadiusNegativeErrorBound = 0.975;
-        outerInvRadiusPositiveErrorBound = 0.617;
-        outerInvRadiusNegativeErrorBound = 5.520;
+        innerInvRadiusPositiveErrorBound = 0.491;
+        innerInvRadiusNegativeErrorBound = 24.045;
+        outerInvRadiusPositiveErrorBound = 0.524;
+        outerInvRadiusNegativeErrorBound = 4.536;
     }
     else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 902)
     {
-        innerInvRadiusPositiveErrorBound = 0.184;
-        innerInvRadiusNegativeErrorBound = 0.239;
-        outerInvRadiusPositiveErrorBound = 0.460;
-        outerInvRadiusNegativeErrorBound = 3.608;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 904)
-    {
-        innerInvRadiusPositiveErrorBound = 0.113;
-        innerInvRadiusNegativeErrorBound = 0.113;
-        outerInvRadiusPositiveErrorBound = 0.099;
-        outerInvRadiusNegativeErrorBound = 0.099;
+        innerInvRadiusPositiveErrorBound = 0.301;
+        innerInvRadiusNegativeErrorBound = 0.578;
+        outerInvRadiusPositiveErrorBound = 0.431;
+        outerInvRadiusNegativeErrorBound = 2.138;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 904)
     {
-        innerInvRadiusPositiveErrorBound = 0.524;
-        innerInvRadiusNegativeErrorBound = 5.520;
+        innerInvRadiusPositiveErrorBound = 0.036;
+        innerInvRadiusNegativeErrorBound = 3.608;
         outerInvRadiusPositiveErrorBound = 0.578;
-        outerInvRadiusNegativeErrorBound = 1.876;
-    }
-    else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 904)
-    {
-        innerInvRadiusPositiveErrorBound = 0.178;
-        innerInvRadiusNegativeErrorBound = 1.938;
-        outerInvRadiusPositiveErrorBound = 0.460;
-        outerInvRadiusNegativeErrorBound = 0.491;
+        outerInvRadiusNegativeErrorBound = 0.210;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 904)
     {
         innerInvRadiusPositiveErrorBound = 0.524;
-        innerInvRadiusNegativeErrorBound = 4.687;
-        outerInvRadiusPositiveErrorBound = 0.578;
-        outerInvRadiusNegativeErrorBound = 21.798;
+        innerInvRadiusNegativeErrorBound = 15.212;
+        outerInvRadiusPositiveErrorBound = 0.703;
+        outerInvRadiusNegativeErrorBound = 15.718;
     }
     else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 908)
     {
-        innerInvRadiusPositiveErrorBound = 0.045;
-        innerInvRadiusNegativeErrorBound = 0.099;
-        outerInvRadiusPositiveErrorBound = 0.431;
+        innerInvRadiusPositiveErrorBound = 0.016;
+        innerInvRadiusNegativeErrorBound = 0.016;
+        outerInvRadiusPositiveErrorBound = 8.172;
         outerInvRadiusNegativeErrorBound = 8.172;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 1920)
     {
         innerInvRadiusPositiveErrorBound = 0.431;
-        innerInvRadiusNegativeErrorBound = 1.226;
-        outerInvRadiusPositiveErrorBound = 0.541;
-        outerInvRadiusNegativeErrorBound = 1.267;
+        innerInvRadiusNegativeErrorBound = 0.239;
+        outerInvRadiusPositiveErrorBound = 0.491;
+        outerInvRadiusNegativeErrorBound = 0.445;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 1920)
     {
-        innerInvRadiusPositiveErrorBound = 0.184;
-        innerInvRadiusNegativeErrorBound = 0.321;
-        outerInvRadiusPositiveErrorBound = 0.239;
-        outerInvRadiusNegativeErrorBound = 1.267;
+        innerInvRadiusPositiveErrorBound = 0.063;
+        innerInvRadiusNegativeErrorBound = 0.063;
+        outerInvRadiusPositiveErrorBound = 0.311;
+        outerInvRadiusNegativeErrorBound = 0.311;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 1920)
     {
-        innerInvRadiusPositiveErrorBound = 0.378;
-        innerInvRadiusNegativeErrorBound = 0.884;
-        outerInvRadiusPositiveErrorBound = 0.507;
+        innerInvRadiusPositiveErrorBound = 0.617;
+        innerInvRadiusNegativeErrorBound = 0.975;
+        outerInvRadiusPositiveErrorBound = 0.681;
         outerInvRadiusNegativeErrorBound = 2.283;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 1920)
     {
-        innerInvRadiusPositiveErrorBound = 0.445;
-        innerInvRadiusNegativeErrorBound = 0.914;
-        outerInvRadiusPositiveErrorBound = 0.559;
-        outerInvRadiusNegativeErrorBound = 2.777;
+        innerInvRadiusPositiveErrorBound = 0.178;
+        innerInvRadiusNegativeErrorBound = 0.301;
+        outerInvRadiusPositiveErrorBound = 0.210;
+        outerInvRadiusNegativeErrorBound = 1.398;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 1920)
     {
-        innerInvRadiusPositiveErrorBound = 0.431;
-        innerInvRadiusNegativeErrorBound = 0.884;
-        outerInvRadiusPositiveErrorBound = 0.507;
-        outerInvRadiusNegativeErrorBound = 3.380;
+        innerInvRadiusPositiveErrorBound = 0.524;
+        innerInvRadiusNegativeErrorBound = 4.249;
+        outerInvRadiusPositiveErrorBound = 0.659;
+        outerInvRadiusNegativeErrorBound = 2.437;
     }
     else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 1922)
     {
-        innerInvRadiusPositiveErrorBound = 0.093;
-        innerInvRadiusNegativeErrorBound = 0.113;
-        outerInvRadiusPositiveErrorBound = 1.008;
-        outerInvRadiusNegativeErrorBound = 1.008;
+        innerInvRadiusPositiveErrorBound = 0.231;
+        innerInvRadiusNegativeErrorBound = 0.703;
+        outerInvRadiusPositiveErrorBound = 0.102;
+        outerInvRadiusNegativeErrorBound = 0.802;
+    }
+    else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 1924)
+    {
+        innerInvRadiusPositiveErrorBound = 0.120;
+        innerInvRadiusNegativeErrorBound = 3.064;
+        outerInvRadiusPositiveErrorBound = 0.311;
+        outerInvRadiusNegativeErrorBound = 0.944;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 0 and layer_binary == 3840)
     {
         innerInvRadiusPositiveErrorBound = 0.491;
         innerInvRadiusNegativeErrorBound = 0.914;
-        outerInvRadiusPositiveErrorBound = 0.638;
+        outerInvRadiusPositiveErrorBound = 0.178;
         outerInvRadiusNegativeErrorBound = 1.492;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 1 and layer_binary == 3840)
     {
         innerInvRadiusPositiveErrorBound = 0.491;
-        innerInvRadiusNegativeErrorBound = 0.331;
-        outerInvRadiusPositiveErrorBound = 0.203;
-        outerInvRadiusNegativeErrorBound = 0.975;
+        innerInvRadiusNegativeErrorBound = 0.264;
+        outerInvRadiusPositiveErrorBound = 0.071;
+        outerInvRadiusNegativeErrorBound = 0.255;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 2 and layer_binary == 3840)
     {
-        innerInvRadiusPositiveErrorBound = 0.445;
-        innerInvRadiusNegativeErrorBound = 1.267;
-        outerInvRadiusPositiveErrorBound = 0.524;
-        outerInvRadiusNegativeErrorBound = 3.728;
+        innerInvRadiusPositiveErrorBound = 0.491;
+        innerInvRadiusNegativeErrorBound = 108.230;
+        outerInvRadiusPositiveErrorBound = 0.507;
+        outerInvRadiusNegativeErrorBound = 1.816;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 3 and layer_binary == 3840)
     {
         innerInvRadiusPositiveErrorBound = 0.491;
-        innerInvRadiusNegativeErrorBound = 0.417;
-        outerInvRadiusPositiveErrorBound = 0.524;
-        outerInvRadiusNegativeErrorBound = 1.938;
+        innerInvRadiusNegativeErrorBound = 0.638;
+        outerInvRadiusPositiveErrorBound = 0.431;
+        outerInvRadiusNegativeErrorBound = 0.776;
     }
     else if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 3840)
     {
         innerInvRadiusPositiveErrorBound = 0.445;
-        innerInvRadiusNegativeErrorBound = 0.802;
-        outerInvRadiusPositiveErrorBound = 0.524;
-        outerInvRadiusNegativeErrorBound = 3.380;
+        innerInvRadiusNegativeErrorBound = 2.437;
+        outerInvRadiusPositiveErrorBound = 0.460;
+        outerInvRadiusNegativeErrorBound = 1.542;
     }
     else if(nLayerOverlaps == 1 and nHitOverlaps == 0 and layer_binary == 3968)
     {
-        innerInvRadiusPositiveErrorBound = 0.311;
-        innerInvRadiusNegativeErrorBound = 0.311;
-        outerInvRadiusPositiveErrorBound = 0.638;
-        outerInvRadiusNegativeErrorBound = 2.358;
+        innerInvRadiusPositiveErrorBound = 0.113;
+        innerInvRadiusNegativeErrorBound = 0.975;
+        outerInvRadiusPositiveErrorBound = 0.403;
+        outerInvRadiusNegativeErrorBound = 1.076;
     }
 
     innerRadiusInvMin = fmaxf(0.0, (1 - innerInvRadiusPositiveErrorBound) / innerRadius);
@@ -2374,40 +2762,179 @@ __device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverla
     }
 
     //T3T3
-
-    if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 1)
     {
-        return rPhiChiSquared < 0.062;
+        return rPhiChiSquared < 0.002;
     }
-    else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.027;
+    }
+    else if(layer_binary == 1922 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.437;
+    }
+    else if(layer_binary == 1924 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.189;
+    }
+    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 2.333;
+    }
+    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 2.333;
+    }
+    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 2.333;
+    }
+    else if(layer_binary == 902 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 1.010;
+    }
+    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 5.389;
+    }
+    else if(layer_binary == 904 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 0.250;
+    }
+    else if(layer_binary == 3968 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 1.010;
+    }
+    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 1.765;
+    }
+    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return rPhiChiSquared < 0.331;
+    }
+    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rPhiChiSquared < 0.035;
+    }
+    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 2.333;
+    }
+    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 3.084;
+    }
+    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return rPhiChiSquared < 0.189;
+    }
+    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 2.333;
+    }
+    else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return rPhiChiSquared < 2.333;
+    }
+    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 3.084;
+    }
+    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return rPhiChiSquared < 0.035;
+    }
+    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return rPhiChiSquared < 1.765;
+    }
+    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return false;
+    }
+    else if(layer_binary == 62 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return false;
+    }
+    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return false;
+    }
+    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return false;
+    }
+    else if(layer_binary == 904 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return false;
+    }
+    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return false;
+    }
+    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return false;
+    }
+    else if(layer_binary == 398 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return false;
+    }
+    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return false;
+    }
+    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 4)
     {
         return false;
     }
     else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 2)
     {
-        return rPhiChiSquared < 0.047;
+        return false;
     }
-    else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    else if(layer_binary == 432 && nLayerOverlaps == 2 and nHitOverlaps == 4)
     {
         return false;
     }
-    else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    else if(layer_binary == 908 && nLayerOverlaps == 1 and nHitOverlaps == 0)
     {
-        return rPhiChiSquared < 0.062;
+        return false;
     }
     else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 0)
     {
         return false;
     }
-    else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 3)
     {
         return false;
     }
-    else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    else if(layer_binary == 120 && nLayerOverlaps == 2 and nHitOverlaps == 4)
     {
         return false;
     }
-    else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 4)
     {
         return false;
     }
@@ -2415,7 +2942,115 @@ __device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverla
     {
         return false;
     }
-    else if(layer_binary == 62 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return false;
+    }
+    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return false;
+    }
+    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 124 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return false;
+    }
+    else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return false;
+    }
+    else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 4)
+    {
+        return false;
+    }
+    else if(layer_binary == 30 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return false;
+    }
+    else if(layer_binary == 120 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return false;
+    }
+    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return false;
+    }
+    else if(layer_binary == 120 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return false;
+    }
+    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return false;
+    }
+    else if(layer_binary == 188 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return false;
+    }
+    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return false;
+    }
+    else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return false;
+    }
+    else if(layer_binary == 412 && nLayerOverlaps == 1 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 1)
+    {
+        return false;
+    }
+    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return false;
+    }
+    else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return false;
+    }
+    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 3)
+    {
+        return false;
+    }
+    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 0)
+    {
+        return false;
+    }
+    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return false;
+    }
+    else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 2)
+    {
+        return false;
+    }
+    else if(layer_binary == 60 && nLayerOverlaps == 2 and nHitOverlaps == 1)
     {
         return false;
     }
@@ -2427,42 +3062,6 @@ __device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverla
     {
         return false;
     }
-    else if(layer_binary == 120 && nLayerOverlaps == 2 and nHitOverlaps == 2)
-    {
-        return false;
-    }
-    else if(layer_binary == 120 && nLayerOverlaps == 2 and nHitOverlaps == 3)
-    {
-        return false;
-    }
-    else if(layer_binary == 120 && nLayerOverlaps == 2 and nHitOverlaps == 4)
-    {
-        return false;
-    }
-    else if(layer_binary == 124 && nLayerOverlaps == 1 and nHitOverlaps == 0)
-    {
-        return false;
-    }
-    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 0)
-    {
-        return rPhiChiSquared < 0.015;
-    }
-    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 1)
-    {
-        return false;
-    }
-    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 2)
-    {
-        return rPhiChiSquared < 0.035;
-    }
-    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 3)
-    {
-        return false;
-    }
-    else if(layer_binary == 142 && nLayerOverlaps == 2 and nHitOverlaps == 4)
-    {
-        return rPhiChiSquared < 0.062;
-    }
     else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 0)
     {
         return false;
@@ -2471,111 +3070,11 @@ __device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverla
     {
         return false;
     }
-    else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 2)
-    {
-        return false;
-    }
-    else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 3)
-    {
-        return false;
-    }
-    else if(layer_binary == 156 && nLayerOverlaps == 2 and nHitOverlaps == 4)
-    {
-        return false;
-    }
     else if(layer_binary == 158 && nLayerOverlaps == 1 and nHitOverlaps == 0)
     {
         return false;
     }
-    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 0)
-    {
-        return false;
-    }
-    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 1)
-    {
-        return false;
-    }
-    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 2)
-    {
-        return false;
-    }
-    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 3)
-    {
-        return false;
-    }
-    else if(layer_binary == 184 && nLayerOverlaps == 2 and nHitOverlaps == 4)
-    {
-        return false;
-    }
-    else if(layer_binary == 188 && nLayerOverlaps == 1 and nHitOverlaps == 0)
-    {
-        return false;
-    }
-    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 0)
-    {
-        return rPhiChiSquared < 0.035;
-    }
-    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 1)
-    {
-        return false;
-    }
-    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 2)
-    {
-        return rPhiChiSquared < 0.035;
-    }
-    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 3)
-    {
-        return false;
-    }
-    else if(layer_binary == 390 && nLayerOverlaps == 2 and nHitOverlaps == 4)
-    {
-        return rPhiChiSquared < 0.047;
-    }
-    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 0)
-    {
-        return false;
-    }
-    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 1)
-    {
-        return false;
-    }
-    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 2)
-    {
-        return false;
-    }
-    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 3)
-    {
-        return false;
-    }
-    else if(layer_binary == 396 && nLayerOverlaps == 2 and nHitOverlaps == 4)
-    {
-        return false;
-    }
-    else if(layer_binary == 398 && nLayerOverlaps == 1 and nHitOverlaps == 0)
-    {
-        return false;
-    }
-    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 0)
-    {
-        return false;
-    }
     else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 1)
-    {
-        return false;
-    }
-    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 2)
-    {
-        return false;
-    }
-    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 3)
-    {
-        return false;
-    }
-    else if(layer_binary == 408 && nLayerOverlaps == 2 and nHitOverlaps == 4)
-    {
-        return false;
-    }
-    else if(layer_binary == 412 && nLayerOverlaps == 1 and nHitOverlaps == 0)
     {
         return false;
     }
@@ -2595,55 +3094,7 @@ __device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverla
     {
         return false;
     }
-    else if(layer_binary == 432 && nLayerOverlaps == 2 and nHitOverlaps == 4)
-    {
-        return false;
-    }
     else if(layer_binary == 440 && nLayerOverlaps == 1 and nHitOverlaps == 0)
-    {
-        return false;
-    }
-    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 0)
-    {
-        return false;
-    }
-    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 1)
-    {
-        return false;
-    }
-    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 2)
-    {
-        return rPhiChiSquared < 0.012;
-    }
-    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 3)
-    {
-        return false;
-    }
-    else if(layer_binary == 898 && nLayerOverlaps == 2 and nHitOverlaps == 4)
-    {
-        return rPhiChiSquared < 0.020;
-    }
-    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 0)
-    {
-        return false;
-    }
-    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 1)
-    {
-        return false;
-    }
-    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 2)
-    {
-        return false;
-    }
-    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 3)
-    {
-        return false;
-    }
-    else if(layer_binary == 900 && nLayerOverlaps == 2 and nHitOverlaps == 4)
-    {
-        return false;
-    }
-    else if(layer_binary == 902 && nLayerOverlaps == 1 and nHitOverlaps == 0)
     {
         return false;
     }
@@ -2653,73 +3104,9 @@ __device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverla
     }
     else if(layer_binary == 904 && nLayerOverlaps == 2 and nHitOverlaps == 1)
     {
-        return rPhiChiSquared < 0.003;
-    }
-    else if(layer_binary == 904 && nLayerOverlaps == 2 and nHitOverlaps == 2)
-    {
         return false;
     }
     else if(layer_binary == 904 && nLayerOverlaps == 2 and nHitOverlaps == 3)
-    {
-        return false;
-    }
-    else if(layer_binary == 904 && nLayerOverlaps == 2 and nHitOverlaps == 4)
-    {
-        return false;
-    }
-    else if(layer_binary == 908 && nLayerOverlaps == 1 and nHitOverlaps == 0)
-    {
-        return rPhiChiSquared < 0.047;
-    }
-    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 0)
-    {
-        return rPhiChiSquared < 0.007;
-    }
-    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 1)
-    {
-        return false;
-    }
-    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 2)
-    {
-        return rPhiChiSquared < 0.020;
-    }
-    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 3)
-    {
-        return false;
-    }
-    else if(layer_binary == 1920 && nLayerOverlaps == 2 and nHitOverlaps == 4)
-    {
-        return rPhiChiSquared < 0.035;
-    }
-    else if(layer_binary == 1922 && nLayerOverlaps == 1 and nHitOverlaps == 0)
-    {
-        return false;
-    }
-    else if(layer_binary == 1924 && nLayerOverlaps == 1 and nHitOverlaps == 0)
-    {
-        return false;
-    }
-    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 0)
-    {
-        return rPhiChiSquared < 0.015;
-    }
-    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 1)
-    {
-        return false;
-    }
-    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 2)
-    {
-        return false;
-    }
-    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 3)
-    {
-        return false;
-    }
-    else if(layer_binary == 3840 && nLayerOverlaps == 2 and nHitOverlaps == 4)
-    {
-        return rPhiChiSquared < 0.062;
-    }
-    else if(layer_binary == 3968 && nLayerOverlaps == 1 and nHitOverlaps == 0)
     {
         return false;
     }
