@@ -31,7 +31,7 @@ namespace SDL
         unsigned int* nQuintuplets;
         __half* innerRadius;
         __half* outerRadius;
-        __half* regressionRadius;
+        float* regressionRadius;
         __half* pt;
         __half* eta;
         __half* phi;
@@ -40,8 +40,8 @@ namespace SDL
         bool* isDup;
         bool* partOfPT5;
 
-        __half* regressionG;
-        __half* regressionF;
+        float* regressionG;
+        float* regressionF;
 #ifdef CUT_VALUE_DEBUG
         float* innerRadiusMin;
         float* innerRadiusMax;
