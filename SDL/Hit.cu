@@ -26,10 +26,10 @@ SDL::hits::~hits()
 {
 }
 //FIXME:New array!
-void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits,unsigned int nMax2SHits)
+void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits,unsigned int nMax2SHits,cudaStream_t stream)
 {
 #ifdef CACHE_ALLOC
-    cudaStream_t stream=0;
+//    cudaStream_t stream=0;
     hitsInGPU.xs = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
     hitsInGPU.ys = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
     hitsInGPU.zs = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
@@ -71,10 +71,10 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
 #endif
     *hitsInGPU.nHits = 0;
 }
-void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHits)
+void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHits,cudaStream_t stream)
 {
 #ifdef CACHE_ALLOC
-    cudaStream_t stream=0;
+ //   cudaStream_t stream=0;
     int dev;
     cudaGetDevice(&dev);
     hitsInGPU.xs = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
@@ -95,6 +95,24 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
 
     hitsInGPU.nHits = (unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
 #else
+    //cudaMallocAsync(&hitsInGPU.xs, nMaxHits * sizeof(float),stream);
+    //cudaMallocAsync(&hitsInGPU.ys, nMaxHits * sizeof(float),stream);
+    //cudaMallocAsync(&hitsInGPU.zs, nMaxHits * sizeof(float),stream);
+
+    //cudaMallocAsync(&hitsInGPU.moduleIndices, nMaxHits * sizeof(unsigned int),stream);
+    //cudaMallocAsync(&hitsInGPU.idxs, nMaxHits * sizeof(unsigned int),stream);
+
+    //cudaMallocAsync(&hitsInGPU.rts, nMaxHits * sizeof(float),stream);
+    //cudaMallocAsync(&hitsInGPU.phis, nMaxHits * sizeof(float),stream);
+    //cudaMallocAsync(&hitsInGPU.etas, nMaxHits * sizeof(float),stream);
+
+    //cudaMallocAsync(&hitsInGPU.highEdgeXs, nMaxHits * sizeof(float),stream);
+    //cudaMallocAsync(&hitsInGPU.highEdgeYs, nMaxHits * sizeof(float),stream);
+    //cudaMallocAsync(&hitsInGPU.lowEdgeXs, nMaxHits * sizeof(float),stream);
+    //cudaMallocAsync(&hitsInGPU.lowEdgeYs, nMaxHits * sizeof(float),stream);
+
+    ////countersAsync
+    //cudaMallocAsync(&hitsInGPU.nHits, sizeof(unsigned int),stream);
     cudaMalloc(&hitsInGPU.xs, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.ys, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.zs, nMaxHits * sizeof(float));
@@ -114,10 +132,11 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
     //counters
     cudaMalloc(&hitsInGPU.nHits, sizeof(unsigned int));
 #endif
-    cudaMemset(hitsInGPU.nHits,0,sizeof(unsigned int));
+    cudaMemsetAsync(hitsInGPU.nHits,0,sizeof(unsigned int),stream);
+    cudaStreamSynchronize(stream);
 }
 
-__global__ void SDL::addHitToMemoryGPU(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex,float phis)
+__global__ void SDL::addHitToMemoryGPU(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex,float phis,struct objectRanges& rangesInGPU)
 {
     unsigned int idx = *(hitsInCPU.nHits);
 //    unsigned int idxEdge2S = *(hitsInCPU.n2SHits);
@@ -155,15 +174,15 @@ __global__ void SDL::addHitToMemoryGPU(struct hits& hitsInCPU, struct modules& m
     //set the hit ranges appropriately in the modules struct
 
     //start the index rolling if the module is encountered for the first time
-    if(modulesInGPU.hitRanges[moduleIndex * 2] == -1)
+    if(rangesInGPU.hitRanges[moduleIndex * 2] == -1)
     {
-        modulesInGPU.hitRanges[moduleIndex * 2] = idx;
+        rangesInGPU.hitRanges[moduleIndex * 2] = idx;
     }
     //always update the end index
-    modulesInGPU.hitRanges[moduleIndex * 2 + 1] = idx;
+    rangesInGPU.hitRanges[moduleIndex * 2 + 1] = idx;
     (*hitsInCPU.nHits)++;
 }
-void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple)
+void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,cudaStream_t stream,struct objectRanges& rangesInGPU)
 {
     unsigned int idx = *(hitsInGPU.nHits);
 //    unsigned int idxEdge2S = *(hitsInCPU.n2SHits);
@@ -178,17 +197,18 @@ void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, f
     hitsInGPU.moduleIndices[idx] = moduleIndex;
 
     unsigned int nModules;
-    cudaMemcpy(&nModules,modulesInGPU.nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(&nModules,modulesInGPU.nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
 
     ModuleType* module_moduleType;
     cudaMallocHost(&module_moduleType, nModules* sizeof(ModuleType));
-    cudaMemcpy(module_moduleType,modulesInGPU.moduleType,nModules*sizeof(ModuleType),cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(module_moduleType,modulesInGPU.moduleType,nModules*sizeof(ModuleType),cudaMemcpyDeviceToHost,stream);
     short* module_subdets;
     cudaMallocHost(&module_subdets, nModules* sizeof(short));
-    cudaMemcpy(module_subdets,modulesInGPU.subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
     int* module_hitRanges;
     cudaMallocHost(&module_hitRanges, nModules* 2*sizeof(int));
-    cudaMemcpy(module_hitRanges,modulesInGPU.hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(module_hitRanges,rangesInGPU.hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
+    cudaStreamSynchronize(stream);
 
     if(module_subdets[moduleIndex] == Endcap and module_moduleType[moduleIndex] == TwoS)
     {
@@ -220,7 +240,8 @@ void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, f
     }
     //always update the end index
     module_hitRanges[moduleIndex * 2 + 1] = idx;
-    cudaMemcpy(modulesInGPU.hitRanges,module_hitRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice);
+    cudaMemcpyAsync(rangesInGPU.hitRanges,module_hitRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice,stream);
+    cudaStreamSynchronize(stream);
     cudaFreeHost(module_moduleType);
     cudaFreeHost(module_subdets);
     cudaFreeHost(module_hitRanges);
@@ -381,8 +402,22 @@ void SDL::hits::freeMemoryCache()
     cms::cuda::free_managed(lowEdgeYs);
 #endif
 }
-void SDL::hits::freeMemory()
+void SDL::hits::freeMemory(cudaStream_t stream)
 {
+    //cudaFreeAsync(nHits,stream);
+    //cudaFreeAsync(xs,stream);
+    //cudaFreeAsync(ys,stream);
+    //cudaFreeAsync(zs,stream);
+    //cudaFreeAsync(moduleIndices,stream);
+    //cudaFreeAsync(rts,stream);
+    //cudaFreeAsync(idxs,stream);
+    //cudaFreeAsync(phis,stream);
+    //cudaFreeAsync(etas,stream);
+
+    //cudaFreeAsync(highEdgeXs,stream);
+    //cudaFreeAsync(highEdgeYs,stream);
+    //cudaFreeAsync(lowEdgeXs,stream);
+    //cudaFreeAsync(lowEdgeYs,stream);
     cudaFree(nHits);
     cudaFree(xs);
     cudaFree(ys);
@@ -397,4 +432,5 @@ void SDL::hits::freeMemory()
     cudaFree(highEdgeYs);
     cudaFree(lowEdgeXs);
     cudaFree(lowEdgeYs);
+    cudaStreamSynchronize(stream);
 }

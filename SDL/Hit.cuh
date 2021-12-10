@@ -19,6 +19,7 @@
 
 //#include "PrintUtil.h"
 #include "Module.cuh"
+#include "allocate.h"
 
 namespace SDL
 {
@@ -44,18 +45,18 @@ namespace SDL
         float *lowEdgeYs;
         
         hits();
-        void freeMemory();
+        void freeMemory(cudaStream_t stream);
         void freeMemoryCache();
         ~hits();
 
     };
 
-    void createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int maxHits, unsigned int max2SHits);
-    void createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int maxHits);
+    void createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int maxHits, unsigned int max2SHits,cudaStream_t stream);
+    void createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int maxHits,cudaStream_t stream);
     CUDA_G void addHitToMemoryKernel(struct hits& hitsInGPU,struct modules& modulesInGPU,const float* x,const float* y, const float* z,const unsigned int* moduelIndex,const float* phis, const int loopsize);
     //CUDA_G void checkHits(struct hits& hitsInGPU, const int loopsize);
-    void addHitToMemory(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple);
-    CUDA_G void addHitToMemoryGPU(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex, float phis);
+    void addHitToMemory(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,cudaStream_t stream,struct objectRanges& rangesInGPU);
+    CUDA_G void addHitToMemoryGPU(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex, float phis,struct objectRanges& rangesInGPU);
     
     CUDA_HOSTDEV inline float ATan2(float y, float x) {
     //if (x != 0) return  x * (float(-0xf.8eed2p-4) + x * x * float(0x3.1238p-4)); // degree 3 7 bit accuracy//atan2f(y, x);
@@ -79,8 +80,8 @@ namespace SDL
       return test;
     }
     if (y == 0) return  0;
-    if (y >  0) return  M_PI / 2;
-    else        return -M_PI / 2;
+    if (y >  0) return  float(M_PI) / 2.f;
+    else        return -float(M_PI) / 2.f;
     }
     CUDA_HOSTDEV inline float phi_mpi_pi(float x) {
     if (isnan(x))
@@ -89,21 +90,21 @@ namespace SDL
         return x;
     }
 
-    //while (x >= M_PI)
-    //    x -= 2. * M_PI;
+    //while (x >= float(M_PI))
+    //    x -= 2.f * float(M_PI);
 
-    //while (x < -M_PI)
-    //    x += 2. * M_PI;
+    //while (x < -float(M_PI))
+    //    x += 2.f * float(M_PI);
 
     //return x;
-    if (std::abs(x) <= float(M_PI))
+    if (fabsf(x) <= float(M_PI))
       return x;
-    constexpr float o2pi = 1. / (2. * M_PI);
+    constexpr float o2pi = 1.f / (2.f * float(M_PI));
     float n = std::round(x * o2pi);
-    return x - n * float(2. * M_PI);
+    return x - n * float(2.f * float(M_PI));
     }
     CUDA_HOSTDEV inline float phi(float x, float y, float z) {
-        return phi_mpi_pi(M_PI + ATan2(-y, -x));
+        return phi_mpi_pi(float(M_PI) + ATan2(-y, -x));
     }
     CUDA_HOSTDEV inline float deltaPhi(float x1, float y1, float z1, float x2, float y2, float z2) {
     float phi1 = phi(x1,y1,z1);

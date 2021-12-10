@@ -37,6 +37,7 @@ namespace SDL
     class Event
     {
     private:
+        cudaStream_t stream;
         std::array<unsigned int, 6> n_hits_by_layer_barrel_;
         std::array<unsigned int, 5> n_hits_by_layer_endcap_;
         std::array<unsigned int, 6> n_minidoublets_by_layer_barrel_;
@@ -52,6 +53,7 @@ namespace SDL
 
 
         //CUDA stuff
+        struct objectRanges* rangesInGPU;
         struct hits* hitsInGPU;
         struct miniDoublets* mdsInGPU;
         struct segments* segmentsInGPU;
@@ -62,6 +64,7 @@ namespace SDL
         struct pixelQuintuplets* pixelQuintupletsInGPU;
 
         //CPU interface stuff
+        objectRanges* rangesInCPU;
         hits* hitsInCPU;
         miniDoublets* mdsInCPU;
         segments* segmentsInCPU;
@@ -76,8 +79,9 @@ namespace SDL
         int* superbinCPU;
         int* pixelTypeCPU;
     public:
-        Event();
+        Event(cudaStream_t estream);
         ~Event();
+        void resetEvent();
 
         void addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple); //call the appropriate hit function, then increment the counter here
         void addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> superbin, std::vector<int> pixelType, std::vector<short> isQuad);
@@ -86,11 +90,9 @@ namespace SDL
         void addMiniDoubletsToEvent();
         void addSegmentsToEvent();
         void addTripletsToEvent();
-        void addTrackCandidatesToEvent();
         void addMiniDoubletsToEventExplicit();
         void addSegmentsToEventExplicit();
         void addTripletsToEventExplicit();
-        void addTrackCandidatesToEventExplicit();
         void addQuintupletsToEvent();
         void addQuintupletsToEventExplicit();
 
@@ -122,8 +124,6 @@ namespace SDL
         unsigned int getNumberOfSegmentsByLayerBarrel(unsigned int layer);
         unsigned int getNumberOfSegmentsByLayerEndcap(unsigned int layer);
 
-        unsigned int getNumberOfPixelTracklets();
-
         unsigned int getNumberOfTriplets();
         unsigned int getNumberOfTripletsByLayer(unsigned int layer);
         unsigned int getNumberOfTripletsByLayerBarrel(unsigned int layer);
@@ -131,9 +131,10 @@ namespace SDL
 
         unsigned int getNumberOfTrackCandidates();
         unsigned int getNumberOfPixelTrackCandidates();
-        unsigned int getNumberOfTrackCandidatesByLayer(unsigned int layer);
-        unsigned int getNumberOfTrackCandidatesByLayerBarrel(unsigned int layer);
-        unsigned int getNumberOfTrackCandidatesByLayerEndcap(unsigned int layer);
+        unsigned int getNumberOfPT5TrackCandidates();
+        unsigned int getNumberOfPT3TrackCandidates();
+        unsigned int getNumberOfT5TrackCandidates();
+        unsigned int getNumberOfPLSTrackCandidates();
 
         unsigned int getNumberOfQuintuplets();
         unsigned int getNumberOfQuintupletsByLayer(unsigned int layer);
@@ -143,6 +144,7 @@ namespace SDL
         unsigned int getNumberOfPixelTriplets();
         unsigned int getNumberOfPixelQuintuplets();
 
+        objectRanges* getRanges();
         hits* getHits();
         miniDoublets* getMiniDoublets();
         segments* getSegments() ;
@@ -161,6 +163,7 @@ namespace SDL
     extern struct modules* modulesInGPU;
     extern struct modules* modulesInHost;
     extern unsigned int nModules;
+    extern unsigned int nLowerModules;
     void initModules(const char* moduleMetaDataFilePath="data/centroid.txt"); //read from file and init
     void cleanModules();
     void initModulesHost(); //read from file and init

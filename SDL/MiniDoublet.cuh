@@ -36,7 +36,7 @@ namespace SDL
         float* dphichanges;
 
         float* dzs; //will store drt if the module is endcap
-        float*dphis;
+        float* dphis;
 
         float* shiftedXs;
         float* shiftedYs;
@@ -55,15 +55,16 @@ namespace SDL
 
         miniDoublets();
         ~miniDoublets();
-      	void freeMemory();
+      	void freeMemory(cudaStream_t stream);
       	void freeMemoryCache();
+        void resetMemory(unsigned int maxMDsPerModule, unsigned int nModules, unsigned int maxPixelMDs,cudaStream_t stream);
 
     };
 
 
 
-    void createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDs,unsigned int nModules, unsigned int maxPixelMDs);
-    void createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDs,unsigned int nModules, unsigned int maxPixelMDs);
+    void createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDs,unsigned int nModules, unsigned int maxPixelMDs, cudaStream_t stream);
+    void createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDs,unsigned int nModules, unsigned int maxPixelMDs,cudaStream_t stream);
 
 #ifdef CUT_VALUE_DEBUG
     CUDA_HOSTDEV void addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, unsigned int lowerModuleIdx, float dz, float drt, float dphi, float dphichange, float shfitedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, float dzCut, float drtCut, float miniCut, unsigned int idx);
@@ -121,6 +122,81 @@ namespace SDL
     extern CUDA_CONST_VAR float miniDeltaEndcap[5][15];
     extern CUDA_CONST_VAR float pixelPSZpitch;
     extern CUDA_CONST_VAR float strip2SZpitch;
+
+//CUDA_DEV float inline moduleGapSize(struct modules& modulesInGPU, unsigned int moduleIndex)
+//{
+//    float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
+//    float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
+//    float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
+//    float miniDeltaEndcap[5][15];
+//
+//    for (size_t i = 0; i < 5; i++)
+//    {
+//        for (size_t j = 0; j < 15; j++)
+//        {
+//            if (i == 0 || i == 1)
+//            {
+//                if (j < 10)
+//                {
+//                    miniDeltaEndcap[i][j] = 0.4f;
+//                }
+//                else
+//                {
+//                    miniDeltaEndcap[i][j] = 0.18f;
+//                }
+//            }
+//            else if (i == 2 || i == 3)
+//            {
+//                if (j < 8)
+//                {
+//                    miniDeltaEndcap[i][j] = 0.4f;
+//                }
+//                else
+//                {
+//                    miniDeltaEndcap[i][j]  = 0.18f;
+//                }
+//            }
+//            else
+//            {
+//                if (j < 9)
+//                {
+//                    miniDeltaEndcap[i][j] = 0.4f;
+//                }
+//                else
+//                {
+//                    miniDeltaEndcap[i][j] = 0.18f;
+//                }
+//            }
+//        }
+//    }
+//
+//
+//    unsigned int iL = modulesInGPU.layers[moduleIndex]-1;
+//    unsigned int iR = modulesInGPU.rings[moduleIndex] - 1;
+//    short subdet = modulesInGPU.subdets[moduleIndex];
+//    short side = modulesInGPU.sides[moduleIndex];
+//
+//    float moduleSeparation = 0;
+//
+//    if (subdet == Barrel and side == Center)
+//    {
+//        moduleSeparation = miniDeltaFlat[iL];
+//    }
+//    else if (isTighterTiltedModules(modulesInGPU, moduleIndex))
+//    {
+//        moduleSeparation = miniDeltaTilted[iL];
+//    }
+//    else if (subdet == Endcap)
+//    {
+//        moduleSeparation = miniDeltaEndcap[iL][iR];
+//    }
+//    else //Loose tilted modules
+//    {
+//        moduleSeparation = miniDeltaLooseTilted[iL];
+//    }
+//
+//    return moduleSeparation;
+//}
 
 }
 

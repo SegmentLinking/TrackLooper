@@ -78,12 +78,13 @@ namespace SDL
 
         segments();
         ~segments();
-	void freeMemory();
+	void freeMemory(cudaStream_t stream);
 	void freeMemoryCache();
+  void resetMemory(unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments,cudaStream_t stream);
     };
 
-    void createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments);
-    void createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments);
+    void createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments ,cudaStream_t stream);
+    void createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments,cudaStream_t stream);
 
     CUDA_DEV void dAlphaThreshold(float* dAlphaThresholdValues, struct hits& hitsInGPU, struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, unsigned int& innerMiniDoubletAnchorHitIndex, unsigned int& outerMiniDoubletAnchorHitIndex, unsigned int& innerLowerModuleIndex, unsigned int& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex);
 
@@ -109,6 +110,10 @@ namespace SDL
         dAlphaInnerMDOuterMD, unsigned int& innerMiniDoubletAnchorHitIndex, unsigned int& outerMiniDoubletAnchorHitIndex);
 
     void printSegment(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct hits& hitsInPGU, struct modules& modulesInGPU, unsigned int segmentIndex);
+    CUDA_DEV float moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex);
+    
+    CUDA_DEV extern inline float isTighterTiltedModules_seg(struct modules& modulesInGPU, unsigned int moduleIndex);
+    CUDA_DEV float moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex);
 
 }
 

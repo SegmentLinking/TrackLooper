@@ -60,8 +60,8 @@ namespace SDL
         void freeMemoryCache();
     };
 
-    void createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules);
-    void createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules);
+     void createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules,cudaStream_t stream);
+    void createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules,cudaStream_t stream);
 
 
 #ifdef CUT_VALUE_DEBUG
@@ -83,13 +83,79 @@ namespace SDL
     CUDA_DEV bool runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int innerOuterLowerModuleIndex, unsigned int outerInnerLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& dPhi, float& betaIn, float&
         betaOut, float& pt_beta, float& zLo, float& rtLo, float& rtHi, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ);
 
-    CUDA_DEV bool runTrackletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int innerOuterLowerModuleIndex, unsigned int outerInnerLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float&
-        betaOut, float& pt_beta, float& zLo, float& zHi, float& rtLo, float& rtHi, float& zLoPointed, float& zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ, unsigned int N_MAX_SEGMENTS_PER_MODULE = 600);
+//    CUDA_DEV bool runTrackletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int innerOuterLowerModuleIndex, unsigned int outerInnerLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float&
+//        betaOut, float& pt_beta, float& zLo, float& zHi, float& rtLo, float& rtHi, float& zLoPointed, float& zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ, unsigned int N_MAX_SEGMENTS_PER_MODULE = 600);
 
     extern CUDA_CONST_VAR float pt_betaMax;
 
     void printTracklet(struct SDL::tracklets& trackletsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::hits& hitsInGPU, struct SDL::modules& modulesInGPU, unsigned int trackletIndex);
 
+CUDA_DEV bool inline runTrackletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int innerOuterLowerModuleIndex, unsigned int outerInnerLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float&
+        betaOut, float& pt_beta, float& zLo, float& zHi, float& rtLo, float& rtHi, float& zLoPointed, float& zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ, unsigned int N_MAX_SEGMENTS_PER_MODULE)
+{
 
+    bool pass = false;
+
+    zLo = -999;
+    zHi = -999;
+    rtLo = -999;
+    rtHi = -999;
+    zLoPointed = -999;
+    zHiPointed = -999;
+    kZ = -999;
+    betaInCut = -999;
+
+    short innerInnerLowerModuleSubdet = modulesInGPU.subdets[innerInnerLowerModuleIndex];
+    short innerOuterLowerModuleSubdet = modulesInGPU.subdets[innerOuterLowerModuleIndex];
+    short outerInnerLowerModuleSubdet = modulesInGPU.subdets[outerInnerLowerModuleIndex];
+    short outerOuterLowerModuleSubdet = modulesInGPU.subdets[outerOuterLowerModuleIndex];
+
+
+
+    if(innerInnerLowerModuleSubdet == SDL::Barrel
+            and innerOuterLowerModuleSubdet == SDL::Barrel
+            and outerInnerLowerModuleSubdet == SDL::Barrel
+            and outerOuterLowerModuleSubdet == SDL::Barrel)
+    {
+        pass = runTrackletDefaultAlgoBBBB(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,innerInnerLowerModuleIndex,innerOuterLowerModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,innerSegmentIndex,outerSegmentIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,pt_beta, zLo, zHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut);
+    }
+
+    else if(innerInnerLowerModuleSubdet == SDL::Barrel
+            and innerOuterLowerModuleSubdet == SDL::Barrel
+            and outerInnerLowerModuleSubdet == SDL::Endcap
+            and outerOuterLowerModuleSubdet == SDL::Endcap)
+    {
+        pass = runTrackletDefaultAlgoBBEE(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,innerInnerLowerModuleIndex,innerOuterLowerModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,innerSegmentIndex,outerSegmentIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,pt_beta, zLo, rtLo, rtHi, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
+    }
+    
+
+    else if(innerInnerLowerModuleSubdet == SDL::Barrel
+            and innerOuterLowerModuleSubdet == SDL::Barrel
+            and outerInnerLowerModuleSubdet == SDL::Barrel
+            and outerOuterLowerModuleSubdet == SDL::Endcap)
+    {
+        pass = runTrackletDefaultAlgoBBBB(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,innerInnerLowerModuleIndex,innerOuterLowerModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,innerSegmentIndex,outerSegmentIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,pt_beta,zLo, zHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut);
+
+    }
+
+    else if(innerInnerLowerModuleSubdet == SDL::Barrel
+            and innerOuterLowerModuleSubdet == SDL::Endcap
+            and outerInnerLowerModuleSubdet == SDL::Endcap
+            and outerOuterLowerModuleSubdet == SDL::Endcap)
+    {
+        pass = runTrackletDefaultAlgoBBEE(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,innerInnerLowerModuleIndex,innerOuterLowerModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,innerSegmentIndex,outerSegmentIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,pt_beta, zLo, rtLo, rtHi, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
+
+    }
+
+    else if(innerInnerLowerModuleSubdet == SDL::Endcap
+            and innerOuterLowerModuleSubdet == SDL::Endcap
+            and outerInnerLowerModuleSubdet == SDL::Endcap
+            and outerOuterLowerModuleSubdet == SDL::Endcap)
+    {
+        pass = runTrackletDefaultAlgoEEEE(modulesInGPU,hitsInGPU,mdsInGPU,segmentsInGPU,innerInnerLowerModuleIndex,innerOuterLowerModuleIndex,outerInnerLowerModuleIndex,outerOuterLowerModuleIndex,innerSegmentIndex,outerSegmentIndex,zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,pt_beta, zLo, rtLo, rtHi, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
+    }
+
+    return pass;
+}
 }
 #endif
