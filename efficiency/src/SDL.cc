@@ -503,6 +503,21 @@ void SDL::Init(TTree *tree) {
     t5_pt_branch = tree->GetBranch("t5_pt");
     if (t5_pt_branch) { t5_pt_branch->SetAddress(&t5_pt_); }
   }
+  sim_len_branch = 0;
+  if (tree->GetBranch("sim_len") != 0) {
+    sim_len_branch = tree->GetBranch("sim_len");
+    if (sim_len_branch) { sim_len_branch->SetAddress(&sim_len_); }
+  }
+  sim_lengap_branch = 0;
+  if (tree->GetBranch("sim_lengap") != 0) {
+    sim_lengap_branch = tree->GetBranch("sim_lengap");
+    if (sim_lengap_branch) { sim_lengap_branch->SetAddress(&sim_lengap_); }
+  }
+  sim_hits_branch = 0;
+  if (tree->GetBranch("sim_hits") != 0) {
+    sim_hits_branch = tree->GetBranch("sim_hits");
+    if (sim_hits_branch) { sim_hits_branch->SetAddress(&sim_hits_); }
+  }
   simvtx_x_branch = 0;
   if (tree->GetBranch("simvtx_x") != 0) {
     simvtx_x_branch = tree->GetBranch("simvtx_x");
@@ -1057,6 +1072,9 @@ void SDL::GetEntry(unsigned int idx) {
   sim_pT4_types_isLoaded = false;
   t4_deltaBetaCut_isLoaded = false;
   t5_pt_isLoaded = false;
+  sim_len_isLoaded = false;
+  sim_lengap_isLoaded = false;
+  sim_hits_isLoaded = false;
   simvtx_x_isLoaded = false;
   simvtx_y_isLoaded = false;
   simvtx_z_isLoaded = false;
@@ -1249,6 +1267,9 @@ void SDL::LoadAllBranches() {
   if (sim_pT4_types_branch != 0) sim_pT4_types();
   if (t4_deltaBetaCut_branch != 0) t4_deltaBetaCut();
   if (t5_pt_branch != 0) t5_pt();
+  if (sim_len_branch != 0) sim_len();
+  if (sim_lengap_branch != 0) sim_lengap();
+  if (sim_hits_branch != 0) sim_hits();
   if (simvtx_x_branch != 0) simvtx_x();
   if (simvtx_y_branch != 0) simvtx_y();
   if (simvtx_z_branch != 0) simvtx_z();
@@ -2540,6 +2561,42 @@ const vector<float> &SDL::t5_pt() {
   }
   return *t5_pt_;
 }
+const vector<float> &SDL::sim_hits() {
+  if (not sim_hits_isLoaded) {
+    if (sim_hits_branch != 0) {
+      sim_hits_branch->GetEntry(index);
+    } else {
+      printf("branch sim_hits_branch does not exist!\n");
+      exit(1);
+    }
+    sim_hits_isLoaded = true;
+  }
+  return *sim_hits_;
+}
+const vector<float> &SDL::sim_len() {
+  if (not sim_len_isLoaded) {
+    if (sim_len_branch != 0) {
+      sim_len_branch->GetEntry(index);
+    } else {
+      printf("branch sim_len_branch does not exist!\n");
+      exit(1);
+    }
+    sim_len_isLoaded = true;
+  }
+  return *sim_len_;
+}
+const vector<float> &SDL::sim_lengap() {
+  if (not sim_lengap_isLoaded) {
+    if (sim_lengap_branch != 0) {
+      sim_lengap_branch->GetEntry(index);
+    } else {
+      printf("branch sim_lengap_branch does not exist!\n");
+      exit(1);
+    }
+    sim_lengap_isLoaded = true;
+  }
+  return *sim_lengap_;
+}
 const vector<float> &SDL::simvtx_x() {
   if (not simvtx_x_isLoaded) {
     if (simvtx_x_branch != 0) {
@@ -3739,6 +3796,9 @@ namespace tas {
   const vector<vector<int> > &sim_pT4_types() { return sdl.sim_pT4_types(); }
   const vector<float> &t4_deltaBetaCut() { return sdl.t4_deltaBetaCut(); }
   const vector<float> &t5_pt() { return sdl.t5_pt(); }
+  const vector<float> &sim_len() { return sdl.sim_len(); }
+  const vector<float> &sim_lengap() { return sdl.sim_lengap(); }
+  const vector<float> &sim_hits() { return sdl.sim_hits(); }
   const vector<float> &simvtx_x() { return sdl.simvtx_x(); }
   const vector<float> &simvtx_y() { return sdl.simvtx_y(); }
   const vector<float> &simvtx_z() { return sdl.simvtx_z(); }

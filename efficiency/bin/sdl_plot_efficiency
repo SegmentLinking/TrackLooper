@@ -195,6 +195,7 @@ fi
 
 for i in $(seq 0 $((NJOBS-1))); do
     echo "$DIR/../bin/createEffNumDenPlots -i ${INPUTFILE} -p ${PTBOUND} -g ${PDGID} -t tree -o outputs/output_${i}.root -j ${NJOBS} -I ${i} > outputs/output_${i}.log 2>&1" >> .jobs.txt
+    #echo "gdb --args $DIR/../bin/createEffNumDenPlots -i ${INPUTFILE} -p ${PTBOUND} -g ${PDGID} -t tree -o outputs/output_${i}.root -j ${NJOBS} -I ${i} > outputs/output_${i}.log 2>&1" >> .jobs.txt
 done
 
 xargs.sh .jobs.txt > run.log 2>&1

@@ -638,73 +638,6 @@ float runSegment(SDL::Event& event)
 
 }
 
-float runT4(SDL::Event& event)
-{
-    TStopwatch my_timer;
-    if (ana.verbose >= 2) std::cout << "Reco Quadruplet T4 start" << std::endl;
-    my_timer.Start();
-    event.createTrackletsWithModuleMap();
-    float t4_elapsed = my_timer.RealTime();
-    if (ana.verbose >= 2) std::cout << "Reco T4 (just T4) processing time: " << t4_elapsed << " secs" << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced: " << event.getNumberOfTracklets() << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced layer 1-2-3-4: " << event.getNumberOfTrackletsByLayerBarrel(0) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced layer 2-3-4-5: " << event.getNumberOfTrackletsByLayerBarrel(1) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced layer 3-4-5-6: " << event.getNumberOfTrackletsByLayerBarrel(2) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced layer 4: " << event.getNumberOfTrackletsByLayerBarrel(3) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced layer 5: " << event.getNumberOfTrackletsByLayerBarrel(4) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced layer 6: " << event.getNumberOfTrackletsByLayerBarrel(5) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced endcap layer 1: " << event.getNumberOfTrackletsByLayerEndcap(0) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced endcap layer 2: " << event.getNumberOfTrackletsByLayerEndcap(1) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced endcap layer 3: " << event.getNumberOfTrackletsByLayerEndcap(2) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced endcap layer 4: " << event.getNumberOfTrackletsByLayerEndcap(3) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced endcap layer 5: " << event.getNumberOfTrackletsByLayerEndcap(4) << std::endl;
-
-    return t4_elapsed;
-
-}
-
-float runT4x(SDL::Event& event)
-{
-    TStopwatch my_timer;
-    if (ana.verbose >= 2) std::cout << "Reco Quadruplet T4x start" << std::endl;
-    my_timer.Start();
-    event.createTrackletsWithAGapWithModuleMap();
-    float t4x_elapsed = my_timer.RealTime();
-    if (ana.verbose >= 2) std::cout << "Reco T4x (just T4x) processing time: " << t4x_elapsed << " secs" << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced: " << event.getNumberOfTracklets() << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced layer 1-2-3-4: " << event.getNumberOfTrackletsByLayerBarrel(0) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced layer 2-3-4-5: " << event.getNumberOfTrackletsByLayerBarrel(1) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced layer 3-4-5-6: " << event.getNumberOfTrackletsByLayerBarrel(2) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced layer 4: " << event.getNumberOfTrackletsByLayerBarrel(3) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced layer 5: " << event.getNumberOfTrackletsByLayerBarrel(4) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced layer 6: " << event.getNumberOfTrackletsByLayerBarrel(5) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced layer 5: " << event.getNumberOfTrackletsByLayerBarrel(4) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced layer 6: " << event.getNumberOfTrackletsByLayerBarrel(5) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced endcap layer 1: " << event.getNumberOfTrackletsByLayerEndcap(0) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced endcap layer 2: " << event.getNumberOfTrackletsByLayerEndcap(1) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced endcap layer 3: " << event.getNumberOfTrackletsByLayerEndcap(2) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced endcap layer 4: " << event.getNumberOfTrackletsByLayerEndcap(3) << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of all T4s (both T4 and T4x) produced endcap layer 5: " << event.getNumberOfTrackletsByLayerEndcap(4) << std::endl;
-
-
-    return t4x_elapsed;
-
-}
-
-float runpT4(SDL::Event& event)
-{
-    TStopwatch my_timer;
-    if (ana.verbose >= 2) std::cout << "Reco Quadruplet pT4 start" << std::endl;
-    my_timer.Start();
-    //event.createPixelTracklets();
-    event.createPixelTrackletsWithMap();
-    float pt4_elapsed = my_timer.RealTime();
-    if (ana.verbose >= 2) std::cout << "Reco pT4 processing time: " << pt4_elapsed << " secs" << std::endl;
-    if (ana.verbose >= 2) std::cout << "# of Pixel T4s produced: "<< event.getNumberOfPixelTracklets() << std::endl;
-
-    return pt4_elapsed;
-
-}
 
 float runT3(SDL::Event& event)
 {
@@ -777,6 +710,18 @@ float runQuintuplet(SDL::Event& event)
    
 }
 
+float runPixelLineSegment(SDL::Event& event)
+{
+    TStopwatch my_timer;
+    if (ana.verbose >= 2) std::cout << "Reco Pixel Line Segment start" << std::endl;
+    my_timer.Start();
+    event.pixelLineSegmentCleaning();
+    float pls_elapsed = my_timer.RealTime();
+    if (ana.verbose >= 2) std::cout << "Reco Pixel Line Segment processing time: " << pls_elapsed << " secs" << std::endl;
+    //if (ana.verbose >= 2) std::cout << "# of Pixel Quintuplets produced: " << event.getNumberOfPixelQuintuplets() << std::endl;
+
+    return pls_elapsed;
+}
 float runPixelQuintuplet(SDL::Event& event)
 {
     TStopwatch my_timer;
@@ -1057,6 +1002,10 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
             matched_sim_trk_idxs.push_back(trkidx);
     }
 
+    set<int> s;
+    unsigned size = matched_sim_trk_idxs.size();
+    for( unsigned i = 0; i < size; ++i ) s.insert( matched_sim_trk_idxs[i] );
+    matched_sim_trk_idxs.assign( s.begin(), s.end() );
     return matched_sim_trk_idxs;
 }
 
@@ -1471,6 +1420,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
     std::vector<unsigned int> hitIdxs(trk.ph2_detId().size());
     std::vector<int> superbin_vec;
     std::vector<int> pixelType_vec;
+    std::vector<short> isQuad_vec;
     std::iota(hitIdxs.begin(), hitIdxs.end(), 0);
     const int hit_size = trkX.size();
 
@@ -1614,8 +1564,10 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][0]);
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][1]);
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][2]);
+            bool isQuad = false;
             if(trk.see_hitIdx()[iSeed].size() > 3)
             {
+                isQuad = true;
                 hitIdxs.push_back(trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]);
             }
             //if (pt < 0){ ptbin = 0;}
@@ -1629,6 +1581,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             //if(isuperbin<0 || isuperbin>=44900){printf("isuperbin %d %d %d %d %f\n",isuperbin,etabin,phibin,dzbin,p3PCA.Eta());}
             superbin_vec.push_back(isuperbin);
             pixelType_vec.push_back(pixtype);
+            isQuad_vec.push_back(isQuad);
 
 
 
@@ -1638,7 +1591,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
     }
 
     event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
-    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec);
+    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);
 
     float hit_loading_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Loading inputs processing time: " << hit_loading_elapsed << " secs" << std::endl;

@@ -61,11 +61,6 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
     cudaMallocManaged(&hitsInGPU.phis, nMaxHits * sizeof(float));
     cudaMallocManaged(&hitsInGPU.etas, nMaxHits * sizeof(float));
 
-//    cudaMallocManaged(&hitsInGPU.edge2SMap, nMaxHits * sizeof(int)); //hits to edge hits map. Signed int
-    //cudaMallocManaged(&hitsInGPU.highEdgeXs, nMax2SHits * sizeof(float)); // due to changes made for the explicit version
-    //cudaMallocManaged(&hitsInGPU.highEdgeYs, nMax2SHits * sizeof(float)); // higher memory usage but timing is comparable and results are correct.
-    //cudaMallocManaged(&hitsInGPU.lowEdgeXs, nMax2SHits * sizeof(float));
-    //cudaMallocManaged(&hitsInGPU.lowEdgeYs, nMax2SHits * sizeof(float));
     cudaMallocManaged(&hitsInGPU.highEdgeXs, nMaxHits * sizeof(float));
     cudaMallocManaged(&hitsInGPU.highEdgeYs, nMaxHits * sizeof(float));
     cudaMallocManaged(&hitsInGPU.lowEdgeXs, nMaxHits * sizeof(float));
@@ -75,8 +70,6 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
     cudaMallocManaged(&hitsInGPU.nHits, sizeof(unsigned int));
 #endif
     *hitsInGPU.nHits = 0;
-//    cudaMallocManaged(&hitsInGPU.n2SHits, sizeof(unsigned int));
-//    *hitsInGPU.n2SHits = 0;
 }
 void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHits)
 {
@@ -144,7 +137,7 @@ __global__ void SDL::addHitToMemoryGPU(struct hits& hitsInCPU, struct modules& m
         getEdgeHitsK(phis,x,y,xhigh,yhigh,xlow,ylow);
         //hitsInCPU.edge2SMap[idx] = idxEdge2S;
         //hitsInCPU.highEdgeXs[idxEdge2S] = xhigh; // due to changes to support the explicit version
-        //hitsInCPU.highEdgeYs[idxEdge2S] = yhigh; 
+        //hitsInCPU.highEdgeYs[idxEdge2S] = yhigh;
         //hitsInCPU.lowEdgeXs[idxEdge2S] = xlow;
         //hitsInCPU.lowEdgeYs[idxEdge2S] = ylow;
         hitsInCPU.highEdgeXs[idx] = xhigh;
@@ -183,10 +176,10 @@ void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, f
     hitsInGPU.idxs[idx] = idxInNtuple;
     unsigned int moduleIndex = (*detIdToIndex)[detId];
     hitsInGPU.moduleIndices[idx] = moduleIndex;
-    
+
     unsigned int nModules;
     cudaMemcpy(&nModules,modulesInGPU.nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost);
-    
+
     ModuleType* module_moduleType;
     cudaMallocHost(&module_moduleType, nModules* sizeof(ModuleType));
     cudaMemcpy(module_moduleType,modulesInGPU.moduleType,nModules*sizeof(ModuleType),cudaMemcpyDeviceToHost);
@@ -203,7 +196,7 @@ void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, f
         getEdgeHits(detId,x,y,xhigh,yhigh,xlow,ylow);
         //hitsInCPU.edge2SMap[idx] = idxEdge2S;
         //hitsInCPU.highEdgeXs[idxEdge2S] = xhigh; // due to changes to support the explicit version
-        //hitsInCPU.highEdgeYs[idxEdge2S] = yhigh; 
+        //hitsInCPU.highEdgeYs[idxEdge2S] = yhigh;
         //hitsInCPU.lowEdgeXs[idxEdge2S] = xlow;
         //hitsInCPU.lowEdgeYs[idxEdge2S] = ylow;
         hitsInGPU.highEdgeXs[idx] = xhigh;
@@ -227,7 +220,7 @@ void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, f
     }
     //always update the end index
     module_hitRanges[moduleIndex * 2 + 1] = idx;
-    cudaMemcpy(modulesInGPU.hitRanges,module_hitRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice); 
+    cudaMemcpy(modulesInGPU.hitRanges,module_hitRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice);
     cudaFreeHost(module_moduleType);
     cudaFreeHost(module_subdets);
     cudaFreeHost(module_hitRanges);
@@ -239,7 +232,7 @@ __global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules
   //if(ihit < loopsize)
   {
       unsigned int idx = ihit;//*(hitsInGPU.nHits);
-  
+
       hitsInGPU.xs[idx] = x[ihit];
       hitsInGPU.ys[idx] = y[ihit];
       hitsInGPU.zs[idx] = z[ihit];
@@ -260,12 +253,12 @@ __global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules
     //      hitsInGPU.highEdgeYs[idx] = yhigh;
     //      hitsInGPU.lowEdgeXs[idx] = xlow;
     //      hitsInGPU.lowEdgeYs[idx] = ylow;
-  
+
     //   //   (*hitsInGPU.n2SHits)++;
     //  }
-  
+
     //  //set the hit ranges appropriately in the modules struct
-  
+
     //  //start the index rolling if the module is encountered for the first time
     //  if(modulesInGPU.hitRanges[moduleIndex[ihit] * 2] == -1)
     //  {
@@ -282,6 +275,8 @@ __global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules
 //    printf("checkHits: %d %f %f %f %f %f %u %u %f %f %f %f\n",ihit,hitsInGPU.xs[ihit],hitsInGPU.ys[ihit],hitsInGPU.zs[ihit],hitsInGPU.rts[ihit],hitsInGPU.phis[ihit],hitsInGPU.moduleIndices[ihit],hitsInGPU.idxs[ihit],hitsInGPU.highEdgeXs[ihit],hitsInGPU.highEdgeYs[ihit],hitsInGPU.lowEdgeXs[ihit],hitsInGPU.lowEdgeYs[ihit]);
 //  }
 //}
+
+/*
 float SDL::ATan2(float y, float x)
 {
     if (x != 0) return  atan2(y, x);
@@ -293,7 +288,7 @@ float SDL::ATan2(float y, float x)
 //TODO:Check if cuda atan2f will work here
 float SDL::phi(float x, float y, float z)
 {
-    return phi_mpi_pi(M_PI + ATan2(-y, -x)); 
+    return phi_mpi_pi(M_PI + ATan2(-y, -x));
 }
 
 
@@ -325,6 +320,7 @@ float SDL::deltaPhiChange(float x1, float y1, float z1, float x2, float y2, floa
 {
     return deltaPhi(x1,y1,z1,x2-x1, y2-y1, z2-z1);
 }
+*/
 
 __device__ void SDL::getEdgeHitsK(float phi,float x, float y, float& xhigh, float& yhigh, float& xlow, float& ylow)
 {
@@ -343,16 +339,51 @@ void SDL::getEdgeHits(unsigned int detId,float x, float y, float& xhigh, float& 
     ylow = y - 2.5 * sin(phi);
 }
 
-void SDL::printHit(struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int hitIndex) 
+void SDL::printHit(struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int hitIndex)
 {
     std::cout << "Hit(x=" << hitsInGPU.xs[hitIndex] << ", y=" << hitsInGPU.ys[hitIndex] << ", z=" << hitsInGPU.zs[hitIndex] << ", rt=" << hitsInGPU.rts[hitIndex] << ", phi=" << hitsInGPU.phis[hitIndex] <<", module subdet = "<<modulesInGPU.subdets[hitsInGPU.moduleIndices[hitIndex]]<<", module layer = "<< modulesInGPU.layers[hitsInGPU.moduleIndices[hitIndex]]<<", module ring = "<< modulesInGPU.rings[hitsInGPU.moduleIndices[hitIndex]]<<" )"<<std::endl;
 }
 
 
+void SDL::hits::freeMemoryCache()
+{
+#ifdef Explicit_Hit
+    int dev;
+    cudaGetDevice(&dev);
+    cms::cuda::free_device(dev,nHits);
+    cms::cuda::free_device(dev,xs);
+    cms::cuda::free_device(dev,ys);
+    cms::cuda::free_device(dev,zs);
+    cms::cuda::free_device(dev,moduleIndices);
+    cms::cuda::free_device(dev,rts);
+    cms::cuda::free_device(dev,idxs);
+    cms::cuda::free_device(dev,phis);
+    cms::cuda::free_device(dev,etas);
+
+    cms::cuda::free_device(dev,highEdgeXs);
+    cms::cuda::free_device(dev,highEdgeYs);
+    cms::cuda::free_device(dev,lowEdgeXs);
+    cms::cuda::free_device(dev,lowEdgeYs);
+#else
+    cms::cuda::free_managed(nHits);
+    cms::cuda::free_managed(xs);
+    cms::cuda::free_managed(ys);
+    cms::cuda::free_managed(zs);
+    cms::cuda::free_managed(moduleIndices);
+    cms::cuda::free_managed(rts);
+    cms::cuda::free_managed(idxs);
+    cms::cuda::free_managed(phis);
+    cms::cuda::free_managed(etas);
+
+    cms::cuda::free_managed(highEdgeXs);
+    cms::cuda::free_managed(highEdgeYs);
+    cms::cuda::free_managed(lowEdgeXs);
+    cms::cuda::free_managed(lowEdgeYs);
+#endif
+}
 void SDL::hits::freeMemory()
 {
     cudaFree(nHits);
-//    cudaFree(n2SHits);
     cudaFree(xs);
     cudaFree(ys);
     cudaFree(zs);
@@ -362,7 +393,6 @@ void SDL::hits::freeMemory()
     cudaFree(phis);
     cudaFree(etas);
 
-//    cudaFree(edge2SMap);
     cudaFree(highEdgeXs);
     cudaFree(highEdgeYs);
     cudaFree(lowEdgeXs);

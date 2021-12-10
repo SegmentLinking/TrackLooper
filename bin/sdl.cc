@@ -315,6 +315,7 @@ void run_sdl()
     while (ana.looper.nextEvent())
     {
 
+        //if (ana.looper.getCurrentEventIndex() ==49) {continue;}
         std::cout << "event number = " << ana.looper.getCurrentEventIndex() << std::endl;
 
         if (not goodEvent())
@@ -343,30 +344,13 @@ void run_sdl()
             // Run Segment
             float timing_LS = runSegment(event);
 
-            // Run pT4
-            float timing_pT4 = runpT4(event);
-
-            // Run T4x
-            float timing_T4x = 0; // runT4x(event);
-
             // Run T3
             float timing_T3 = runT3(event);
 
-
-#ifdef DO_QUADRUPLET
-            // Run T4
-            float timing_T4 = runT4(event);
-#else
-            //Don't run T4
-            float timing_T4 = 0;
-#endif
-#ifdef DO_QUINTUPLET
             float timing_T5 = runQuintuplet(event);
+            float timing_pLS = runPixelLineSegment(event);
             float timing_pT5 = runPixelQuintuplet(event);
-#else
-            float timing_T5 = 0;
-            float timing_pT5 = 0;
-#endif
+
             //Run pT3
             float timing_pT3 = runpT3(event);
 
@@ -376,14 +360,14 @@ void run_sdl()
             timing_information.push_back({ timing_input_loading,
                     timing_MD,
                     timing_LS,
-                    timing_T4,
-                    timing_T4x,
-                    timing_pT4,
                     timing_T3,
                     timing_TC,
                     timing_T5,
                     timing_pT3,
-                    timing_pT5});
+                    timing_pT5,
+                    timing_pLS
+
+                    });
 
             if (ana.verbose == 4)
             {
