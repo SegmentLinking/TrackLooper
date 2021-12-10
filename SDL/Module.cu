@@ -169,7 +169,6 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
   cms::cuda::free_device(dev,modulesInGPU.moduleLayerType);
   cms::cuda::free_device(dev,modulesInGPU.lowerModuleIndices);
   cms::cuda::free_device(dev,modulesInGPU.reverseLookupLowerModuleIndices);
-  cms::cuda::free_device(dev,modulesInGPU.nEligibleT5Modules);
   cms::cuda::free_device(dev,modulesInGPU.connectedPixels);
 #else
   cms::cuda::free_managed(modulesInGPU.detIds);
@@ -336,9 +335,6 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     std::cout<<"Number of modules = "<<nModules<<std::endl;
 #ifdef Explicit_Module
     createModulesInExplicitMemory(modulesInGPU,nModules,stream);
-    /*unsigned int**/ lowerModuleCounter;// = 0;
-    //cudaMallocHost(&lowerModuleCounter,sizeof(unsigned int));
-    //cudaMemsetAsync(lowerModuleCounter,0,sizeof(unsigned int),stream);
     unsigned int* host_detIds;
     short* host_layers;
     short* host_rings;
@@ -425,9 +421,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
           lowerModuleCounter += host_isLower[index];
     }
 
-=======
     cudaMemcpyAsync(modulesInGPU.nLowerModules,&lowerModuleCounter,sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
-    //cudaMemcpyAsync(modulesInGPU.nLowerModules,lowerModuleCounter,sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.detIds,host_detIds,nModules*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.layers,host_layers,nModules*sizeof(short),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.rings,host_rings,sizeof(short)*nModules,cudaMemcpyHostToDevice,stream);
@@ -440,7 +434,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     cudaMemcpyAsync(modulesInGPU.moduleType,host_moduleType,sizeof(ModuleType)*nModules,cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.moduleLayerType,host_moduleLayerType,sizeof(ModuleLayerType)*nModules,cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.slopes,host_slopes,sizeof(float)*nModules,cudaMemcpyHostToDevice,stream);
-    cudaMemcpy(modulesInGPU.isAnchor, host_isAnchor, sizeof(bool) * nModules, cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(modulesInGPU.isAnchor, host_isAnchor, sizeof(bool) * nModules, cudaMemcpyHostToDevice, stream);
     cudaMemcpyAsync(modulesInGPU.drdzs,host_drdzs,sizeof(float)*nModules,cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
     cudaFreeHost(host_detIds);
