@@ -33,23 +33,21 @@ void createPrimitiveBranches_v2();
 // Common
 void fillSimTrackOutputBranches();
 // GPU
-void fillOutputBranches(SDL::Event& event);
-void fillTrackExtensionOutputBranches(SDL::Event& event);
-void fillPureTrackExtensionOutputBranches(SDL::Event& event);
-void fillT3T3TrackExtensionOutputBranches(SDL::Event& event);
 
-void fillTrackCandidateOutputBranches(SDL::Event& event);
-void fillTrackCandidateOutputBranches_v1(SDL::Event& event);
-void fillTrackCandidateOutputBranches_v2(SDL::Event& event);
-void fillLowerLevelOutputBranches(SDL::Event& event);
-void fillQuadrupletOutputBranches(SDL::Event& event);
-void fillTripletOutputBranches(SDL::Event& event);
-void fillPixelTripletOutputBranches(SDL::Event& event);
-void fillQuintupletOutputBranches(SDL::Event& event);
-void fillPixelQuintupletOutputBranches(SDL::Event& event);
-void fillPixelLineSegmentOutputBranches(SDL::Event& event);
-void fillOccupancyBranches(SDL::Event& event);
-void fillPixelQuadrupletOutputBranches(SDL::Event& event);
+void fillOutputBranches(SDL::Event* event);
+void fillTrackCandidateOutputBranches(SDL::Event* event);
+void fillTrackExtensionOutputBranches(SDL::Event* event);
+void fillPureTrackExtensionOutputBranches(SDL::Event* event);
+void fillT3T3TrackExtensionOutputBranches(SDL::Event* event);
+void fillLowerLevelOutputBranches(SDL::Event* event);
+void fillQuadrupletOutputBranches(SDL::Event* event);
+void fillTripletOutputBranches(SDL::Event* event);
+void fillPixelTripletOutputBranches(SDL::Event* event);
+void fillQuintupletOutputBranches(SDL::Event* event);
+void fillPixelQuintupletOutputBranches(SDL::Event* event);
+void fillPixelLineSegmentOutputBranches(SDL::Event* event);
+void fillOccupancyBranches(SDL::Event* event);
+void fillPixelQuadrupletOutputBranches(SDL::Event* event);
 // CPU
 void fillOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event);
@@ -71,22 +69,22 @@ void fillPrimitiveBranches_T5_for_CPU_v2(SDL::CPU::Event& event);
 
 
 // Timing
-void printTimingInformation(std::vector<std::vector<float>>& timing_information);
+void printTimingInformation(std::vector<std::vector<float>>& timing_information, float fullTime, float fullavg);
 
 // Print multiplicities
-void printQuadrupletMultiplicities(SDL::Event& event);
-void printMiniDoubletMultiplicities(SDL::Event& event);
-void printHitMultiplicities(SDL::Event& event);
+void printQuadrupletMultiplicities(SDL::Event* event);
+void printMiniDoubletMultiplicities(SDL::Event* event);
+void printHitMultiplicities(SDL::Event* event);
 
 // Print objects (GPU)
-void printAllObjects(SDL::Event& event);
-void printpT4s(SDL::Event& event);
-void printMDs(SDL::Event& event);
-void printLSs(SDL::Event& event);
-void printpLSs(SDL::Event& event);
-void printT3s(SDL::Event& event);
-void printT4s(SDL::Event& event);
-void printTCs(SDL::Event& event);
+void printAllObjects(SDL::Event* event);
+void printpT4s(SDL::Event* event);
+void printMDs(SDL::Event* event);
+void printLSs(SDL::Event* event);
+void printpLSs(SDL::Event* event);
+void printT3s(SDL::Event* event);
+void printT4s(SDL::Event* event);
+void printTCs(SDL::Event* event);
 
 // Print objects (CPU)
 void printAllObjects_for_CPU(SDL::CPU::Event& event);
@@ -99,6 +97,6 @@ void printT4s_for_CPU(SDL::CPU::Event& event);
 void printTCs_for_CPU(SDL::CPU::Event& event);
 
 // Print anomalous multiplicities
-void debugPrintOutlierMultiplicities(SDL::Event& event);
+void debugPrintOutlierMultiplicities(SDL::Event* event);
 
 #endif

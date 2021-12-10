@@ -27,7 +27,7 @@ namespace SDL
 {
     struct trackCandidates
     {
-        short* trackCandidateType; //3 types : 0-T4T4, 1-T4T3, 2-T3T4 3-pT2 4-T5 5-pT3 6-pT2T3 7-pT5 8-pLS
+        short* trackCandidateType; //4-T5 5-pT3 7-pT5 8-pLS
         unsigned int* objectIndices; //will hold tracklet and  triplet indices  - check the type!!
         unsigned int* nTrackCandidates;
         unsigned int* nTrackCandidatespT3;
@@ -46,13 +46,14 @@ namespace SDL
 
         trackCandidates();
         ~trackCandidates();
-        void freeMemory();
+        void freeMemory(cudaStream_t stream);
         void freeMemoryCache();
+        void resetMemory(unsigned int maxTrackCandidates,cudaStream_t stream);
     };
 
-    void createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates);
+    void createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates,cudaStream_t stream);
 
-    void createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates);
+    void createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates,cudaStream_t stream);
     
     CUDA_DEV void addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, unsigned int trackCandidateIndex);
 

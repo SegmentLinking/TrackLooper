@@ -14,6 +14,7 @@
 #include "TiltedGeometry.h"
 #include "EndcapGeometry.h"
 #include "ModuleConnectionMap.h"
+#include "allocate.h"
 
 
 namespace SDL
@@ -44,6 +45,24 @@ namespace SDL
         InnerPixelLayer
     };
 
+    struct objectRanges
+    {
+        int* hitRanges;
+        int* mdRanges;
+        int* segmentRanges;
+        int* trackletRanges;
+        int* tripletRanges;
+        int* trackCandidateRanges;
+        //others will be added later
+        int* quintupletRanges;
+
+        unsigned int *nEligibleModules;
+        unsigned int *nEligibleT5Modules; //This number is just nEligibleModules - 1, but still we want this to be independent of the TC kernel
+        int *quintupletModuleIndices;
+    
+        void freeMemoryCache();
+        void freeMemory();
+    };
 
     struct modules
     {
@@ -54,14 +73,11 @@ namespace SDL
         float* slopes;
         unsigned int *nModules; //single number
         unsigned int *nLowerModules;
-        unsigned int *nEligibleModules;
-        unsigned int *nEligibleT5Modules; //This number is just nEligibleModules - 1, but still we want this to be independent of the TC kernel
+      //  unsigned int *nEligibleModules;
+       // unsigned int *nEligibleT5Modules; //This number is just nEligibleModules - 1, but still we want this to be independent of the TC kernel
         unsigned int *lowerModuleIndices;
         int *reverseLookupLowerModuleIndices; //module index to lower module index reverse lookup
-
-        int *quintupletModuleIndices;
-
-        
+       
         short* layers;
         short* rings;
         short* modules;
@@ -74,8 +90,6 @@ namespace SDL
         ModuleType* moduleType;
         ModuleLayerType* moduleLayerType;
         
-//        CUDA_HOSTDEV bool isInverted(unsigned int index);
-//        CUDA_HOSTDEV bool isLower(unsigned int index);
         CUDA_HOSTDEV inline unsigned int partnerModuleIndex(unsigned int index) {
         if(isLower[index])
         {	
@@ -106,14 +120,6 @@ namespace SDL
         bool parseIsLower(unsigned int index);
         bool parseIsLower(unsigned int index, bool isInvertedx,unsigned int detId);
 
-        int* hitRanges;
-        int* mdRanges;
-        int* segmentRanges;
-        int* trackletRanges;
-        int* tripletRanges;
-        int* trackCandidateRanges;
-        //others will be added later
-        int* quintupletRanges;
         unsigned int* connectedPixels;
         unsigned int* connectedPixelsIndex;
         unsigned int* connectedPixelsSizes;
@@ -144,20 +150,24 @@ namespace SDL
 
 
     //functions
-    void loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModules,struct pixelMap& pixelMapping, const char* moduleMetaDataFilePath="data/centroid.txt");
+    void loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModules,unsigned int& lowerModuleCounter,struct pixelMap& pixelMapping,cudaStream_t stream, const char* moduleMetaDataFilePath="data/centroid.txt");
 
-    void createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules);
-    void createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules, bool* isLower);
-    void createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int nModules);
-    void createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned int nModules);
-    void freeModules(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
+    void createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules,cudaStream_t stream);
+    void createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules, bool* isLower,cudaStream_t stream);
+    void createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int nModules,cudaStream_t stream);
+    void createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned int nModules,cudaStream_t stream);
+    void freeModules(struct modules& modulesInGPU,struct pixelMap& pixelMapping,cudaStream_t stream);
     void freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
-    void fillPixelMap(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
-    void fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules);
+    void fillPixelMap(struct modules& modulesInGPU,struct pixelMap& pixelMapping,cudaStream_t stream);
+    void fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);
     void fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nModules);
     void setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side);
-    void resetObjectRanges(struct modules& modulesInGPU, unsigned int nModules);
-    void resetObjectRangesExplicit(struct modules& modulesInGPU, unsigned int nModules);
+    void resetObjectRanges(struct objectRanges& rangesInGPU, unsigned int nModules,cudaStream_t stream);
+    //void resetObjectRangesExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);
+    void createRangesInUnifiedMemory(struct objectRanges& rangesInGPU,unsigned int nModules,cudaStream_t stream, unsigned int nLowerModules);
+    void createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned int nModules,cudaStream_t stream, unsigned int nLowerModules);
+    //void freeModules(struct modules& modulesInGPU,struct pixelMap& pixelMapping,cudaStream_t stream);
+    //void freeRangesCache(struct objectRanges& rangesInGPU);
 }
 
 CUDA_DEV void findStaggeredNeighbours(struct SDL::modules& modulesInGPU, unsigned int moduleIdx, unsigned int* staggeredNeighbours, unsigned int& counter);

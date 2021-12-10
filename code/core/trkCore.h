@@ -39,24 +39,35 @@ bool hasAll12HitsWithNBarrel(unsigned int isimtrk, int nbarrel);
 bool hasAll12HitsWithNBarrelUsingModuleMap(unsigned int isimtrk, int nbarrel, bool usesimhits=false);
 bool checkModuleConnectionsAreGood(std::array<std::vector<unsigned int>, 6>& layers_good_paired_modules);
 bool goodEvent();
-float runMiniDoublet(SDL::Event& event);
-float runSegment(SDL::Event& event);
-float runT4(SDL::Event& event);
-float runT4x(SDL::Event& event);
-float runpT4(SDL::Event& event);
-float runT3(SDL::Event& event);
-float runTrackCandidate(SDL::Event& event);
-float runTrackCandidateTest_v2(SDL::Event& event);
-float runQuintuplet(SDL::Event& event);
-float runPixelQuintuplet(SDL::Event& event);
-float runPixelLineSegment(SDL::Event& event);
-float runpT3(SDL::Event& event);
-float runTrackExtensions(SDL::Event& event);
+float runMiniDoublet(SDL::Event* event, int evt);
+float runSegment(SDL::Event* event);
+float runT4(SDL::Event* event);
+float runT4x(SDL::Event* event);
+float runpT4(SDL::Event* event);
+float runT3(SDL::Event* event);
+float runTrackCandidate(SDL::Event* event);
+float runTrackCandidateTest_v2(SDL::Event* event);
+float runQuintuplet(SDL::Event* event);
+float runPixelQuintuplet(SDL::Event* event);
+float runPixelLineSegment(SDL::Event* event);
+float runpT3(SDL::Event* event);
+float runTrackExtensions(SDL::Event* event);
+//float runMiniDoublet(SDL::Event& event, int evt);
+//float runSegment(SDL::Event& event);
+//float runT4(SDL::Event& event);
+//float runT4x(SDL::Event& event);
+//float runpT4(SDL::Event& event);
+//float runT3(SDL::Event& event);
+//float runTrackCandidate(SDL::Event& event);
+//float runTrackCandidateTest_v2(SDL::Event& event);
+//float runQuintuplet(SDL::Event& event);
+//float runPixelQuintuplet(SDL::Event& event);
+//float runPixelLineSegment(SDL::Event& event);
+//float runpT3(SDL::Event& event);
 
 std::vector<float> getPtBounds();
 bool inTimeTrackWithPdgId(int isimtrk, int pdgid);
 std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes, bool verbose=false);
-std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes, int& maxHitMatchCount, bool verbose=false);
 std::vector<int> matchedSimTrkIdxs(SDL::Segment* sg, bool matchOnlyAnchor=false);
 std::vector<int> matchedSimTrkIdxs(SDL::Tracklet& tl);
 
@@ -70,6 +81,45 @@ float distxySimHitConsistentWithHelix(SDLMath::Helix& helix, int isimhitidx);
 float addInputsToLineSegmentTrackingUsingUnifiedMemory(SDL::Event &event);
 float addInputsToLineSegmentTrackingUsingExplicitMemory(SDL::Event &event);
 float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP);
+void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>>& out_trkX,std::vector<std::vector<float>>& out_trkY,std::vector<std::vector<float>>& out_trkZ,
+std::vector<std::vector<unsigned int>>&    out_hitId,
+std::vector<std::vector<unsigned int>>&    out_hitIdxs,
+std::vector<std::vector<unsigned int>>&    out_hitIndices_vec0,
+std::vector<std::vector<unsigned int>>&    out_hitIndices_vec1,
+std::vector<std::vector<unsigned int>>&    out_hitIndices_vec2,
+std::vector<std::vector<unsigned int>>&    out_hitIndices_vec3,
+std::vector<std::vector<float>>&    out_deltaPhi_vec,
+std::vector<std::vector<float>>&    out_ptIn_vec,
+std::vector<std::vector<float>>&    out_ptErr_vec,
+std::vector<std::vector<float>>&    out_px_vec,
+std::vector<std::vector<float>>&    out_py_vec,
+std::vector<std::vector<float>>&    out_pz_vec,
+std::vector<std::vector<float>>&    out_eta_vec,
+std::vector<std::vector<float>>&    out_etaErr_vec,
+std::vector<std::vector<float>>&    out_phi_vec,
+std::vector<std::vector<int>>&    out_superbin_vec,
+std::vector<std::vector<int>>&    out_pixelType_vec,
+std::vector<std::vector<short>>&    out_isQuad_vec);
+//float addInputsToEventPreLoad(SDL::Event& event, bool useOMP,std::vector<float> trkX,std::vector<float> trkY,std::vector<float> trkZ,
+float addInputsToEventPreLoad(SDL::Event* event, bool useOMP,std::vector<float> trkX,std::vector<float> trkY,std::vector<float> trkZ,
+std::vector<unsigned int>    hitId,
+std::vector<unsigned int>    hitIdxs,
+std::vector<unsigned int>    hitIndices_vec0,
+std::vector<unsigned int>    hitIndices_vec1,
+std::vector<unsigned int>    hitIndices_vec2,
+std::vector<unsigned int>    hitIndices_vec3,
+std::vector<float>    deltaPhi_vec,
+std::vector<float>    ptIn_vec,
+std::vector<float>    ptErr_vec,
+std::vector<float>    px_vec,
+std::vector<float>    py_vec,
+std::vector<float>    pz_vec,
+std::vector<float>    eta_vec,
+std::vector<float>    etaErr_vec,
+std::vector<float>    phi_vec,
+std::vector<int>    superbin_vec,
+std::vector<int>    pixelType_vec,
+std::vector<short>   isQuad_vec);
 
 TVector3 calculateR3FromPCA(const TVector3& p3, const float dxy, const float dz);
 

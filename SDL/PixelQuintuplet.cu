@@ -24,8 +24,37 @@ SDL::pixelQuintuplets::~pixelQuintuplets()
 {
 }
 
-void SDL::pixelQuintuplets::freeMemory()
+void SDL::pixelQuintuplets::freeMemoryCache()
 {
+#ifdef Explicit_PT5
+    int dev;
+    cudaGetDevice(&dev);
+    cms::cuda::free_device(dev,pixelIndices);
+    cms::cuda::free_device(dev,T5Indices);
+    cms::cuda::free_device(dev,nPixelQuintuplets);
+    cms::cuda::free_device(dev,isDup);
+    cms::cuda::free_device(dev,score);
+    cms::cuda::free_device(dev,eta);
+    cms::cuda::free_device(dev,phi);
+#else
+    cms::cuda::free_managed(pixelIndices);
+    cms::cuda::free_managed(T5Indices);
+    cms::cuda::free_managed(nPixelQuintuplets);
+    cms::cuda::free_managed(isDup);
+    cms::cuda::free_managed(score);
+    cms::cuda::free_managed(eta);
+    cms::cuda::free_managed(phi);
+#endif
+}
+void SDL::pixelQuintuplets::freeMemory(cudaStream_t stream)
+{
+    //cudaFreeAsync(pixelIndices,stream);
+    //cudaFreeAsync(T5Indices,stream);
+    //cudaFreeAsync(nPixelQuintuplets,stream);
+    //cudaFreeAsync(isDup,stream);
+    //cudaFreeAsync(score,stream);
+    //cudaFreeAsync(eta,stream);
+    //cudaFreeAsync(phi,stream);
     cudaFree(pixelIndices);
     cudaFree(T5Indices);
     cudaFree(nPixelQuintuplets);
@@ -45,10 +74,31 @@ void SDL::pixelQuintuplets::freeMemory()
     cudaFree(rPhiChiSquared);
     cudaFree(rPhiChiSquaredInwards);
 #endif
+cudaStreamSynchronize(stream);
 }
 
-void SDL::createPixelQuintupletsInUnifiedMemory(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int maxPixelQuintuplets)
+void SDL::pixelQuintuplets::resetMemory(unsigned int maxPixelQuintuplets,cudaStream_t stream)
 {
+    cudaMemsetAsync(pixelIndices,0, maxPixelQuintuplets * sizeof(unsigned int),stream);
+    cudaMemsetAsync(T5Indices,0, maxPixelQuintuplets * sizeof(unsigned int),stream);
+    cudaMemsetAsync(nPixelQuintuplets,0, sizeof(unsigned int),stream);
+    cudaMemsetAsync(isDup,0, maxPixelQuintuplets * sizeof(bool),stream);
+    cudaMemsetAsync(score,0, maxPixelQuintuplets * sizeof(float),stream);
+    cudaMemsetAsync(eta, 0,maxPixelQuintuplets * sizeof(float),stream);
+    cudaMemsetAsync(phi, 0,maxPixelQuintuplets * sizeof(float),stream);
+}
+void SDL::createPixelQuintupletsInUnifiedMemory(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int maxPixelQuintuplets,cudaStream_t stream)
+{
+#ifdef CACHE_ALLOC
+ //   cudaStream_t stream=0;
+    pixelQuintupletsInGPU.pixelIndices        = (unsigned int*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(unsigned int),stream);
+    pixelQuintupletsInGPU.T5Indices           = (unsigned int*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(unsigned int),stream);
+    pixelQuintupletsInGPU.nPixelQuintuplets   = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
+    pixelQuintupletsInGPU.isDup               = (bool*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(bool),stream);
+    pixelQuintupletsInGPU.score               = (float*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(float),stream);
+    pixelQuintupletsInGPU.eta                 = (float*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(float),stream);
+    pixelQuintupletsInGPU.phi                 = (float*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(float),stream);
+#else
     cudaMallocManaged(&pixelQuintupletsInGPU.pixelIndices, maxPixelQuintuplets * sizeof(unsigned int));
     cudaMallocManaged(&pixelQuintupletsInGPU.T5Indices, maxPixelQuintuplets * sizeof(unsigned int));
     cudaMallocManaged(&pixelQuintupletsInGPU.nPixelQuintuplets, sizeof(unsigned int));
@@ -68,12 +118,28 @@ void SDL::createPixelQuintupletsInUnifiedMemory(struct SDL::pixelQuintuplets& pi
     cudaMallocManaged(&pixelQuintupletsInGPU.rPhiChiSquared, maxPixelQuintuplets * sizeof(unsigned int));
     cudaMallocManaged(&pixelQuintupletsInGPU.rPhiChiSquaredInwards, maxPixelQuintuplets * sizeof(unsigned int));
 #endif
+#endif
 
-    cudaMemset(pixelQuintupletsInGPU.nPixelQuintuplets, 0, sizeof(unsigned int));
+    cudaMemsetAsync(pixelQuintupletsInGPU.nPixelQuintuplets, 0, sizeof(unsigned int),stream);
+  cudaStreamSynchronize(stream);
 }
 
-void SDL::createPixelQuintupletsInExplicitMemory(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int maxPixelQuintuplets)
+void SDL::createPixelQuintupletsInExplicitMemory(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int maxPixelQuintuplets,cudaStream_t stream)
 {
+#ifdef CACHE_ALLOC
+//    cudaStream_t stream=0;
+    int dev;
+    cudaGetDevice(&dev);
+    pixelQuintupletsInGPU.pixelIndices        = (unsigned int*)cms::cuda::allocate_device(dev,maxPixelQuintuplets * sizeof(unsigned int),stream);
+    pixelQuintupletsInGPU.T5Indices           = (unsigned int*)cms::cuda::allocate_device(dev,maxPixelQuintuplets * sizeof(unsigned int),stream);
+    pixelQuintupletsInGPU.nPixelQuintuplets   = (unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
+    pixelQuintupletsInGPU.isDup               = (bool*)cms::cuda::allocate_device(dev,maxPixelQuintuplets * sizeof(bool),stream);
+    pixelQuintupletsInGPU.score               = (float*)cms::cuda::allocate_device(dev,maxPixelQuintuplets * sizeof(float),stream);
+    pixelQuintupletsInGPU.eta                 = (float*)cms::cuda::allocate_device(dev,maxPixelQuintuplets * sizeof(float),stream);
+    pixelQuintupletsInGPU.phi                 = (float*)cms::cuda::allocate_device(dev,maxPixelQuintuplets * sizeof(float),stream);
+    pixelQuintupletsInGPU.logicalLayers = (unsigned int*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * 7 * sizeof(unsigned int), stream);
+#else
+
     cudaMalloc(&pixelQuintupletsInGPU.pixelIndices, maxPixelQuintuplets * sizeof(unsigned int));
     cudaMalloc(&pixelQuintupletsInGPU.T5Indices, maxPixelQuintuplets * sizeof(unsigned int));
     cudaMalloc(&pixelQuintupletsInGPU.nPixelQuintuplets, sizeof(unsigned int));
@@ -89,8 +155,9 @@ void SDL::createPixelQuintupletsInExplicitMemory(struct SDL::pixelQuintuplets& p
     cudaMalloc(&pixelQuintupletsInGPU.quintupletRadius, maxPixelQuintuplets * sizeof(float));
     cudaMalloc(&pixelQuintupletsInGPU.centerX, maxPixelQuintuplets * sizeof(float));
     cudaMalloc(&pixelQuintupletsInGPU.centerY, maxPixelQuintuplets * sizeof(float));
-
-    cudaMemset(pixelQuintupletsInGPU.nPixelQuintuplets, 0, sizeof(unsigned int));
+#endif
+    cudaMemsetAsync(pixelQuintupletsInGPU.nPixelQuintuplets, 0, sizeof(unsigned int),stream);
+  cudaStreamSynchronize(stream);
 }
 
 __device__ void SDL::rmPixelQuintupletToMemory(struct pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pixelQuintupletIndex)
@@ -214,14 +281,14 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
     pixelRadius = segmentsInGPU.circleRadius[pixelSegmentArrayIndex];
     quintupletRadius = quintupletsInGPU.regressionRadius[quintupletIndex];
 
-    if(segmentsInGPU.circleRadius[pixelSegmentArrayIndex] < 5.0/(2 * k2Rinv1GeVf))
+    if(segmentsInGPU.circleRadius[pixelSegmentArrayIndex] < 5.0f/(2.f * k2Rinv1GeVf))
     {
         pass = pass & passPT5RZChiSquaredCuts(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared);
 
         pass = pass & passPT5RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rPhiChiSquared);
     }
     
-    if(quintupletsInGPU.regressionRadius[quintupletIndex] < 5.0/(2 * k2Rinv1GeVf))
+    if(quintupletsInGPU.regressionRadius[quintupletIndex] < 5.0f/(2.f * k2Rinv1GeVf))
     {
         pass = pass & passPT5RPhiChiSquaredInwardsCuts(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rPhiChiSquaredInwards);
     }
@@ -246,109 +313,109 @@ __device__ bool SDL::passPT5RPhiChiSquaredCuts(struct modules& modulesInGPU, uns
     {
         if(layer4 == 12 and layer5 == 13)
         {
-            return rPhiChiSquared < 48.921;
+            return rPhiChiSquared < 48.921f;
         }
         else if(layer4 == 4 and layer5 == 12)
         {
-            return rPhiChiSquared < 97.948;
+            return rPhiChiSquared < 97.948f;
         }
         else if(layer4 == 4 and layer5 == 5)
         {
-            return rPhiChiSquared < 129.3;
+            return rPhiChiSquared < 129.3f;
         }
         else if(layer4 == 7 and layer5 == 13)
         {
-            return rPhiChiSquared < 56.21;
+            return rPhiChiSquared < 56.21f;
         }
         else if(layer4 == 7 and layer5 == 8)
         {
-            return rPhiChiSquared < 74.198;
+            return rPhiChiSquared < 74.198f;
         }
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
         if(layer4 == 13 and layer5 == 14)
         {
-            return rPhiChiSquared < 21.265;
+            return rPhiChiSquared < 21.265f;
         }
         else if(layer4 == 8 and layer5 == 14)
         {
-            return rPhiChiSquared < 37.058;
+            return rPhiChiSquared < 37.058f;
         }
         else if(layer4 == 8 and layer5 == 9)
         {
-            return rPhiChiSquared < 42.578;
+            return rPhiChiSquared < 42.578f;
         }
     }
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
         if(layer4 == 9 and layer5 == 10)
         {
-            return rPhiChiSquared < 32.253;
+            return rPhiChiSquared < 32.253f;
         }
         else if(layer4 == 9 and layer5 == 15)
         {
-            return rPhiChiSquared < 37.058;
+            return rPhiChiSquared < 37.058f;
         }
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
         if(layer4 == 12 and layer5 == 13)
         {
-            return rPhiChiSquared < 97.947;
+            return rPhiChiSquared < 97.947f;
         }
         else if(layer4 == 5 and layer5 == 12)
         {
-            return rPhiChiSquared < 129.3;
+            return rPhiChiSquared < 129.3f;
         }
         else if(layer4 == 5 and layer5 == 6)
         {
-            return rPhiChiSquared < 170.68;
+            return rPhiChiSquared < 170.68f;
         }
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
         if(layer4 == 13 and layer5 == 14)
         {   
-            return rPhiChiSquared < 48.92;
+            return rPhiChiSquared < 48.92f;
         }
         else if(layer4 == 8 and layer5 == 14)
         {
-            return rPhiChiSquared < 74.2;
+            return rPhiChiSquared < 74.2f;
         }
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
         if(layer4 == 14 and layer5 == 15)
         {
-            return rPhiChiSquared < 42.58;
+            return rPhiChiSquared < 42.58f;
         }
         else if(layer4 == 9 and layer5 == 10)
         {
-            return rPhiChiSquared < 37.06;
+            return rPhiChiSquared < 37.06f;
         }
         else if(layer4 == 9 and layer5 == 15)
         {
-            return rPhiChiSquared < 48.92;
+            return rPhiChiSquared < 48.92f;
         }
     }
     else if(layer1 == 3 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
     {
-        return rPhiChiSquared < 85.25;
+        return rPhiChiSquared < 85.25f;
     }
     else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
         if(layer4 == 10 and layer5 == 11)
         {
-            return rPhiChiSquared < 42.58;
+            return rPhiChiSquared < 42.58f;
         }
         else if(layer4 == 10 and layer5 == 16)
         {
-            return rPhiChiSquared < 37.06;
+            return rPhiChiSquared < 37.06f;
         }
         else if(layer4 == 15 and layer5 == 16)
         {
-            return rPhiChiSquared < 37.06;
+            return rPhiChiSquared < 37.06f;
         }
     }
     return true;
@@ -368,109 +435,109 @@ __device__ bool SDL::passPT5RPhiChiSquaredInwardsCuts(struct modules& modulesInG
     {
         if(layer4 == 12 and layer5 == 13)
         {
-            return rPhiChiSquared < 451.141;
+            return rPhiChiSquared < 451.141f;
         }
         else if(layer4 == 4 and layer5 == 12)
         {
-            return rPhiChiSquared < 786.173;
+            return rPhiChiSquared < 786.173f;
         }
         else if(layer4 == 4 and layer5 == 5)
         {
-            return rPhiChiSquared < 595.545;
+            return rPhiChiSquared < 595.545f;
         }
         else if(layer4 == 7 and layer5 == 13)
         {
-            return rPhiChiSquared < 581.339;
+            return rPhiChiSquared < 581.339f;
         }
         else if(layer4 == 7 and layer5 == 8)
         {
-            return rPhiChiSquared < 112.537;
+            return rPhiChiSquared < 112.537f;
         }
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
         if(layer4 == 13 and layer5 == 14)
         {
-            return rPhiChiSquared < 225.322;
+            return rPhiChiSquared < 225.322f;
         }
         else if(layer4 == 8 and layer5 == 14)
         {
-            return rPhiChiSquared < 1192.402;
+            return rPhiChiSquared < 1192.402f;
         }
         else if(layer4 == 8 and layer5 == 9)
         {
-            return rPhiChiSquared < 786.173;
+            return rPhiChiSquared < 786.173f;
         }
     }
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
         if(layer4 == 9 and layer5 == 10)
         {
-            return rPhiChiSquared < 1037.817;
+            return rPhiChiSquared < 1037.817f;
         }
         else if(layer4 == 9 and layer5 == 15)
         {
-            return rPhiChiSquared < 1808.536;
+            return rPhiChiSquared < 1808.536f;
         }
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
         if(layer4 == 12 and layer5 == 13)
         {
-            return rPhiChiSquared < 684.253;
+            return rPhiChiSquared < 684.253f;
         }
         else if(layer4 == 5 and layer5 == 12)
         {
-            return rPhiChiSquared < 684.253;
+            return rPhiChiSquared < 684.253f;
         }
         else if(layer4 == 5 and layer5 == 6)
         {
-            return rPhiChiSquared < 684.253;
+            return rPhiChiSquared < 684.253f;
         }
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
         if(layer4 == 13 and layer5 == 14)
         {   
-            return rPhiChiSquared < 451.141;
+            return rPhiChiSquared < 451.141f;
         }
         else if(layer4 == 8 and layer5 == 14)
         {
-            return rPhiChiSquared < 518.34;
+            return rPhiChiSquared < 518.34f;
         }
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
         if(layer4 == 14 and layer5 == 15)
         {
-            return rPhiChiSquared < 2077.92;
+            return rPhiChiSquared < 2077.92f;
         }
         else if(layer4 == 9 and layer5 == 10)
         {
-            return rPhiChiSquared < 74.20;
+            return rPhiChiSquared < 74.20f;
         }
         else if(layer4 == 9 and layer5 == 15)
         {
-            return rPhiChiSquared < 1808.536;
+            return rPhiChiSquared < 1808.536f;
         }
     }
     else if(layer1 == 3 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
     {
-        return rPhiChiSquared < 786.173;
+        return rPhiChiSquared < 786.173f;
     }
     else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
         if(layer4 == 10 and layer5 == 11)
         {
-            return rPhiChiSquared < 1574.076;
+            return rPhiChiSquared < 1574.076f;
         }
         else if(layer4 == 10 and layer5 == 16)
         {
-            return rPhiChiSquared < 5492.11;
+            return rPhiChiSquared < 5492.11f;
         }
         else if(layer4 == 15 and layer5 == 16)
         {
-            return rPhiChiSquared < 2743.037;
+            return rPhiChiSquared < 2743.037f;
         }
     }
     return true;
@@ -496,7 +563,7 @@ __device__ float SDL::computePT5RPhiChiSquared(struct modules& modulesInGPU, str
         ys[i] = hitsInGPU.ys[anchorHits[i]];
     }
 
-    computeSigmasForRegression(modulesInGPU, lowerModuleIndices, delta1, delta2, slopes, isFlat);
+    computeSigmasForRegression_pT5(modulesInGPU, lowerModuleIndices, delta1, delta2, slopes, isFlat);
     chiSquared = computeChiSquared(5, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius);
 
     return chiSquared;
@@ -515,109 +582,109 @@ __device__ bool SDL::passPT5RZChiSquaredCuts(struct modules& modulesInGPU, unsig
     {
         if(layer4 == 12 and layer5 == 13)
         {
-            return rzChiSquared < 451.141;
+            return rzChiSquared < 451.141f;
         }
         else if(layer4 == 4 and layer5 == 12)
         {
-            return rzChiSquared < 392.654;
+            return rzChiSquared < 392.654f;
         }
         else if(layer4 == 4 and layer5 == 5)
         {
-            return rzChiSquared < 225.322;
+            return rzChiSquared < 225.322f;
         }
         else if(layer4 == 7 and layer5 == 13)
         {
-            return rzChiSquared < 595.546;
+            return rzChiSquared < 595.546f;
         }
         else if(layer4 == 7 and layer5 == 8)
         {
-            return rzChiSquared < 196.111;
+            return rzChiSquared < 196.111f;
         }
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
         if(layer4 == 13 and layer5 == 14)
         {
-            return rzChiSquared < 297.446;
+            return rzChiSquared < 297.446f;
         }
         else if(layer4 == 8 and layer5 == 14)
         {   
-            return rzChiSquared < 451.141;
+            return rzChiSquared < 451.141f;
         }
         else if(layer4 == 8 and layer5 == 9)
         {
-            return rzChiSquared < 518.339;
+            return rzChiSquared < 518.339f;
         }
     }
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
         if(layer4 == 9 and layer5 == 10)
         {
-            return rzChiSquared < 341.75;
+            return rzChiSquared < 341.75f;
         }
         else if(layer4 == 9 and layer5 == 15)
         {
-            return rzChiSquared < 341.75;
+            return rzChiSquared < 341.75f;
         }
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
         if(layer4 == 12 and layer5 == 13)
         {
-            return rzChiSquared < 392.655;
+            return rzChiSquared < 392.655f;
         }
         else if(layer4 == 5 and layer5 == 12)
         {
-            return rzChiSquared < 341.75;
+            return rzChiSquared < 341.75f;
         }
         else if(layer4 == 5 and layer5 == 6)
         {
-            return rzChiSquared < 112.537;
+            return rzChiSquared < 112.537f;
         }
     }
     else if(layer1 == 2 and layer2 == 3 and layer4 == 7)
     {
         if(layer4 == 13 and layer5 == 14)
         {
-            return rzChiSquared < 595.545;
+            return rzChiSquared < 595.545f;
         }
         else if(layer4 == 8 and layer5 == 14)
         {
-            return rzChiSquared < 74.198;
+            return rzChiSquared < 74.198f;
         }
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
         if(layer4 == 14 and layer5 == 15)
         {
-            return rzChiSquared < 518.339;
+            return rzChiSquared < 518.339f;
         }
         else if(layer4 == 9 and layer5 == 10)
         {
-            return rzChiSquared < 8.046;
+            return rzChiSquared < 8.046f;
         }
         else if(layer4 == 9 and layer5 == 15)
         {
-            return rzChiSquared < 451.141;
+            return rzChiSquared < 451.141f;
         }
     }
     else if(layer1 == 3 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
     {
-        return rzChiSquared < 56.207;
+        return rzChiSquared < 56.207f;
     }
     else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
         if(layer4 == 10 and layer5 == 11)
         {
-            return rzChiSquared < 64.578;
+            return rzChiSquared < 64.578f;
         }
         else if(layer4 == 10 and layer5 == 16)
         {
-            return rzChiSquared < 85.250;
+            return rzChiSquared < 85.250f;
         }
         else if(layer4 == 15 and layer5 == 16)
         {
-            return rzChiSquared < 85.250;
+            return rzChiSquared < 85.250f;
         }
     }
     return true;
@@ -638,7 +705,8 @@ __device__ float SDL::computePT5RPhiChiSquaredInwards(struct modules& modulesInG
         float residual = (x - g) * (x -g) + (y - f) * (y - f) - r * r;
         chiSquared += residual * residual;
     }
-    chiSquared /= 2;
+    //chiSquared /= 2;
+    chiSquared *= 0.5f;
     return chiSquared;
 }
 
@@ -675,11 +743,11 @@ __device__ float SDL::computePT5RZChiSquared(struct modules& modulesInGPU, struc
         //PS Modules
         if(moduleType == 0)
         {
-            error = 0.15;
+            error = 0.15f;
         }
         else //2S modules
         {
-            error = 5.0;
+            error = 5.0f;
         }
 
         //special dispensation to tilted PS modules!
@@ -694,12 +762,142 @@ __device__ float SDL::computePT5RZChiSquared(struct modules& modulesInGPU, struc
                 drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndex)];
             }
 
-            error *= 1/sqrtf(1 + drdz * drdz);
+            //error *= 1.f/sqrtf(1.f + drdz * drdz);
+            error /= sqrtf(1.f + drdz * drdz);
         }
         RMSE += (residual * residual)/(error * error);
     }
 
-    RMSE = sqrtf(0.2 * RMSE);
+    RMSE = sqrtf(0.2f * RMSE);
     return RMSE;
 }
+__device__ void SDL::computeSigmasForRegression_pT5(SDL::modules& modulesInGPU, const unsigned int* lowerModuleIndices, float* delta1, float* delta2, float* slopes, bool* isFlat, int nPoints, bool anchorHits)
+{
+   /*bool anchorHits required to deal with a weird edge case wherein
+     the hits ultimately used in the regression are anchor hits, but the
+     lower modules need not all be Pixel Modules (in case of PS). Similarly,
+     when we compute the chi squared for the non-anchor hits, the "partner module"
+     need not always be a PS strip module, but all non-anchor hits sit on strip
+     modules.
+    */
+    ModuleType moduleType;
+    short moduleSubdet, moduleSide;
+    ModuleLayerType moduleLayerType;
+    float drdz;
+    float inv1 = 0.01f/0.009f;
+    float inv2 = 0.15f/0.009f;
+    float inv3 = 2.4f/0.009f;
+    for(size_t i=0; i<nPoints; i++)
+    {
+        moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
+        moduleSubdet = modulesInGPU.subdets[lowerModuleIndices[i]];
+        moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
+        moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndices[i]];
+        //category 1 - barrel PS flat
+        if(moduleSubdet == Barrel and moduleType == PS and moduleSide == Center)
+        {
+            //delta1[i] = 0.01;
+            //delta2[i] = 0.01;
+            delta1[i] = inv1;//1.1111f;//0.01;
+            delta2[i] = inv1;//1.1111f;//0.01;
+            slopes[i] = -999.f;
+            isFlat[i] = true;
+        }
 
+        //category 2 - barrel 2S
+        else if(moduleSubdet == Barrel and moduleType == TwoS)
+        {
+            //delta1[i] = 0.009;
+            //delta2[i] = 0.009;
+            delta1[i] = 1.f;//0.009;
+            delta2[i] = 1.f;//0.009;
+            slopes[i] = -999.f;
+            isFlat[i] = true;
+        }
+
+        //category 3 - barrel PS tilted
+        else if(moduleSubdet == Barrel and moduleType == PS and moduleSide != Center)
+        {
+
+            //get drdz
+            if(moduleLayerType == Strip)
+            {
+                drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
+                slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
+            }
+            else
+            {
+                drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
+                slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
+            }
+
+            //delta1[i] = 0.01;
+            delta1[i] = inv1;//1.1111f;//0.01;
+            isFlat[i] = false;
+
+            if(anchorHits)
+            {
+                //delta2[i] = (0.15f * drdz/sqrtf(1 + drdz * drdz));
+                delta2[i] = (inv2 * drdz/sqrtf(1 + drdz * drdz));
+                //delta2[i] = (inv2 * drdz*rsqrt(1 + drdz * drdz));
+            }
+            else
+            {
+                //delta2[i] = (2.4f * drdz/sqrtf(1 + drdz * drdz));
+                delta2[i] = (inv3 * drdz/sqrtf(1 + drdz * drdz));
+                //delta2[i] = (inv3 * drdz*rsqrt(1 + drdz * drdz));
+            }
+        }
+        //category 4 - endcap PS
+        else if(moduleSubdet == Endcap and moduleType == PS)
+        {
+            delta1[i] = inv1;//1.1111f;//0.01;
+            //delta1[i] = 0.01;
+            if(moduleLayerType == Strip)
+            {
+                slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
+            }
+            else
+            {
+                slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
+
+            }
+            isFlat[i] = false;
+
+            /*despite the type of the module layer of the lower module index,
+            all anchor hits are on the pixel side and all non-anchor hits are
+            on the strip side!*/
+            if(anchorHits)
+            {
+                delta2[i] = inv2;//16.6666f;//0.15f;
+                //delta2[i] = 0.15f;
+            }
+            else
+            {
+                //delta2[i] = 2.4f;
+                delta2[i] = inv3;//266.666f;//2.4f;
+            }
+        }
+
+        //category 5 - endcap 2S
+        else if(moduleSubdet == Endcap and moduleType == TwoS)
+        {
+            //delta1[i] = 0.009;
+            //delta2[i] = 5.f;
+            delta1[i] = 1.f;//0.009;
+            delta2[i] = 500.f*inv1;//555.5555f;//5.f;
+            slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
+            isFlat[i] = false;
+        }
+        else
+        {
+            printf("ERROR!!!!! I SHOULDN'T BE HERE!!!! subdet = %d, type = %d, side = %d\n", moduleSubdet, moduleType, moduleSide);
+        }
+    }
+    //divide everyone by the smallest possible values of delta1 and delta2
+//    for(size_t i = 0; i < 5; i++)
+//    {
+//        delta1[i] /= 0.009;
+//        delta2[i] /= 0.009;
+//    }
+}

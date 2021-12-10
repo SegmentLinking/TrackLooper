@@ -308,6 +308,11 @@ void SDL::Init(TTree *tree) {
     sim_pureTCE_types_branch = tree->GetBranch("sim_pureTCE_types");
     if (sim_pureTCE_types_branch) { sim_pureTCE_types_branch->SetAddress(&sim_pureTCE_types_); }
   }
+  T3T3_hitIdxs_branch = 0;
+  if (tree->GetBranch("T3T3_hitIdxs") != 0) {
+    T3T3_hitIdxs_branch = tree->GetBranch("T3T3_hitIdxs");
+    if (T3T3_hitIdxs_branch) { T3T3_hitIdxs_branch->SetAddress(&T3T3_hitIdxs_); }
+  }
   t4_phi_branch = 0;
   if (tree->GetBranch("t4_phi") != 0) {
     t4_phi_branch = tree->GetBranch("t4_phi");
@@ -522,6 +527,11 @@ void SDL::Init(TTree *tree) {
   if (tree->GetBranch("sim_pca_dz") != 0) {
     sim_pca_dz_branch = tree->GetBranch("sim_pca_dz");
     if (sim_pca_dz_branch) { sim_pca_dz_branch->SetAddress(&sim_pca_dz_); }
+  }
+  pureTCE_hitIdxs_branch = 0;
+  if (tree->GetBranch("pureTCE_hitIdxs") != 0) {
+    pureTCE_hitIdxs_branch = tree->GetBranch("pureTCE_hitIdxs");
+    if (pureTCE_hitIdxs_branch) { pureTCE_hitIdxs_branch->SetAddress(&pureTCE_hitIdxs_); }
   }
   pureTCE_nHitOverlaps_branch = 0;
   if (tree->GetBranch("pureTCE_nHitOverlaps") != 0) {
@@ -888,6 +898,7 @@ void SDL::GetEntry(unsigned int idx) {
   t5_hitIdxs_isLoaded = false;
   sim_pT3_types_isLoaded = false;
   sim_pureTCE_types_isLoaded = false;
+  T3T3_hitIdxs_isLoaded = false;
   t4_phi_isLoaded = false;
   t5_phi_isLoaded = false;
   pT5_hitIdxs_isLoaded = false;
@@ -931,6 +942,7 @@ void SDL::GetEntry(unsigned int idx) {
   T3T3_phi_isLoaded = false;
   pureTCE_nLayerOverlaps_isLoaded = false;
   sim_pca_dz_isLoaded = false;
+  pureTCE_hitIdxs_isLoaded = false;
   pureTCE_nHitOverlaps_isLoaded = false;
   sim_pLS_matched_isLoaded = false;
   tc_matched_simIdx_isLoaded = false;
@@ -1054,6 +1066,7 @@ void SDL::LoadAllBranches() {
   if (t5_hitIdxs_branch != 0) t5_hitIdxs();
   if (sim_pT3_types_branch != 0) sim_pT3_types();
   if (sim_pureTCE_types_branch != 0) sim_pureTCE_types();
+  if (T3T3_hitIdxs_branch != 0) T3T3_hitIdxs();
   if (t4_phi_branch != 0) t4_phi();
   if (t5_phi_branch != 0) t5_phi();
   if (pT5_hitIdxs_branch != 0) pT5_hitIdxs();
@@ -1097,6 +1110,7 @@ void SDL::LoadAllBranches() {
   if (T3T3_phi_branch != 0) T3T3_phi();
   if (pureTCE_nLayerOverlaps_branch != 0) pureTCE_nLayerOverlaps();
   if (sim_pca_dz_branch != 0) sim_pca_dz();
+  if (pureTCE_hitIdxs_branch != 0) pureTCE_hitIdxs();
   if (pureTCE_nHitOverlaps_branch != 0) pureTCE_nHitOverlaps();
   if (sim_pLS_matched_branch != 0) sim_pLS_matched();
   if (tc_matched_simIdx_branch != 0) tc_matched_simIdx();
@@ -1890,6 +1904,18 @@ const vector<vector<int> > &SDL::sim_pureTCE_types() {
   }
   return *sim_pureTCE_types_;
 }
+const vector<vector<int> > &SDL::T3T3_hitIdxs() {
+  if (not T3T3_hitIdxs_isLoaded) {
+    if (T3T3_hitIdxs_branch != 0) {
+      T3T3_hitIdxs_branch->GetEntry(index);
+    } else {
+      printf("branch T3T3_hitIdxs_branch does not exist!\n");
+      exit(1);
+    }
+    T3T3_hitIdxs_isLoaded = true;
+  }
+  return *T3T3_hitIdxs_;
+}
 const vector<float> &SDL::t4_phi() {
   if (not t4_phi_isLoaded) {
     if (t4_phi_branch != 0) {
@@ -2405,6 +2431,18 @@ const vector<float> &SDL::sim_pca_dz() {
     sim_pca_dz_isLoaded = true;
   }
   return *sim_pca_dz_;
+}
+const vector<vector<int> > &SDL::pureTCE_hitIdxs() {
+  if (not pureTCE_hitIdxs_isLoaded) {
+    if (pureTCE_hitIdxs_branch != 0) {
+      pureTCE_hitIdxs_branch->GetEntry(index);
+    } else {
+      printf("branch pureTCE_hitIdxs_branch does not exist!\n");
+      exit(1);
+    }
+    pureTCE_hitIdxs_isLoaded = true;
+  }
+  return *pureTCE_hitIdxs_;
 }
 const vector<vector<int> > &SDL::pureTCE_nHitOverlaps() {
   if (not pureTCE_nHitOverlaps_isLoaded) {
@@ -3206,6 +3244,7 @@ namespace tas {
   const vector<vector<int> > &t5_hitIdxs() { return sdl.t5_hitIdxs(); }
   const vector<vector<int> > &sim_pT3_types() { return sdl.sim_pT3_types(); }
   const vector<vector<int> > &sim_pureTCE_types() { return sdl.sim_pureTCE_types(); }
+  const vector<vector<int> > &T3T3_hitIdxs() { return sdl.T3T3_hitIdxs(); }
   const vector<float> &t4_phi() { return sdl.t4_phi(); }
   const vector<float> &t5_phi() { return sdl.t5_phi(); }
   const vector<vector<int> > &pT5_hitIdxs() { return sdl.pT5_hitIdxs(); }
@@ -3249,6 +3288,7 @@ namespace tas {
   const vector<float> &T3T3_phi() { return sdl.T3T3_phi(); }
   const vector<vector<int> > &pureTCE_nLayerOverlaps() { return sdl.pureTCE_nLayerOverlaps(); }
   const vector<float> &sim_pca_dz() { return sdl.sim_pca_dz(); }
+  const vector<vector<int> > &pureTCE_hitIdxs() { return sdl.pureTCE_hitIdxs(); }
   const vector<vector<int> > &pureTCE_nHitOverlaps() { return sdl.pureTCE_nHitOverlaps(); }
   const vector<int> &sim_pLS_matched() { return sdl.sim_pLS_matched(); }
   const vector<vector<int> > &tc_matched_simIdx() { return sdl.tc_matched_simIdx(); }

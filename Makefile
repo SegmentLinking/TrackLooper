@@ -11,7 +11,7 @@ HEADERS=$(SOURCES:.cc=.h)
 
 CC          = nvcc
 CXX         = nvcc
-CXXFLAGS    = -g -O2 --compiler-options -Wall --compiler-options -fPIC --compiler-options -Wshadow --compiler-options -Woverloaded-virtual -G -lineinfo --default-stream-per-thread
+CXXFLAGS    = -g -O2 --compiler-options -Wall --compiler-options -fPIC --compiler-options -Wshadow --compiler-options -Woverloaded-virtual -G -lineinfo  -fopenmp -lgomp --default-stream per-thread
 LD          = g++
 LDFLAGS     = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual -I/mnt/data1/dsr/cub
 SOFLAGS     = -g -shared
@@ -26,6 +26,7 @@ CFLAGS      = $(ROOTCFLAGS) --compiler-options -Wall --compiler-options -Wno-unu
 EXTRACFLAGS = $(shell rooutil-config)
 EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -L/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/lib64 -lcudart -fopenmp
 DOQUINTUPLET = #-DDO_QUINTUPLET #-DDO_QUADRUPLET
+PT0P8       =
 
 CUTVALUEFLAG = 
 CUTVALUEFLAG_FLAGS = -DCUT_VALUE_DEBUG
@@ -48,13 +49,13 @@ cutvalue_primitive: $(ROOUTIL) efficiency $(EXES)
 
 
 bin/doAnalysis: bin/doAnalysis.o $(OBJECTS)
-	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) -o $@
+	$(LD) $(PT0P8) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) -o $@
 
 bin/sdl: bin/sdl.o $(OBJECTS)
-	$(LD) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) -o $@
+	$(LD) $(PT0P8) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) -o $@
 
 %.o: %.cc
-	$(CC) $(CFLAGS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(DOQUINTUPLET) $< -dc -o $@
+	$(CC) $(PT0P8) $(CFLAGS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(DOQUINTUPLET) $< -dc -o $@
 
 $(ROOUTIL):
 	$(MAKE) -C code/rooutil/
