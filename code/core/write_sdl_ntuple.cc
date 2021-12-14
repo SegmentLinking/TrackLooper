@@ -930,8 +930,8 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
 
                 betaIn_in = 0;
                 betaOut_in = 0;
-                betaIn_out = tripletsInGPU.betaIn[pixelTripletsInGPU.tripletIndices[innerTrackletIdx]];
-                betaOut_out = tripletsInGPU.betaOut[pixelTripletsInGPU.tripletIndices[innerTrackletIdx]];
+                betaIn_out  = __half2float(tripletsInGPU.betaIn[pixelTripletsInGPU.tripletIndices[innerTrackletIdx]]);
+                betaOut_out = __half2float(tripletsInGPU.betaOut[pixelTripletsInGPU.tripletIndices[innerTrackletIdx]]);
 
             }
             if (trackCandidateType == 4) // T5
@@ -941,10 +941,10 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
                 innerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTrackletIndex];
                 innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTrackletIndex + 1];
                 outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTrackletIndex + 1];
-                betaIn_in = tripletsInGPU.betaIn[innerTrackletIndex];
-                betaOut_in = tripletsInGPU.betaOut[innerTrackletIndex];
-                betaIn_out = tripletsInGPU.betaIn[outerTrackletIndex];
-                betaOut_out = tripletsInGPU.betaOut[outerTrackletIndex];
+                betaIn_in   = __half2float(tripletsInGPU.betaIn[innerTrackletIndex]);
+                betaOut_in  = __half2float(tripletsInGPU.betaOut[innerTrackletIndex]);
+                betaIn_out  = __half2float(tripletsInGPU.betaIn[outerTrackletIndex]);
+                betaOut_out = __half2float(tripletsInGPU.betaOut[outerTrackletIndex]);
             }
             if(trackCandidateType == 7) //pT5
             {
@@ -961,11 +961,11 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
                 outermostSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1] + 1];
 
                 //betaIn only has the beta values of the T5s. Use the TC type = 7 criterion to then get the pixel pT value to add together with these later!!!!!!
-                betaIn_in = tripletsInGPU.betaIn[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]];
-                betaOut_in = tripletsInGPU.betaOut[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]];
+                betaIn_in  = __half2float(tripletsInGPU.betaIn[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]]);
+                betaOut_in = __half2float(tripletsInGPU.betaOut[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]]);
 
-                betaIn_out = tripletsInGPU.betaIn[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]];
-                betaOut_out = tripletsInGPU.betaOut[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]];
+                betaIn_out = __half2float(tripletsInGPU.betaIn[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]]);
+                betaOut_out =__half2float( tripletsInGPU.betaOut[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]]);
 
             }
             unsigned int innerTrackletInnerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletInnerSegmentIndex];
@@ -2364,8 +2364,8 @@ void fillTripletOutputBranches(SDL::Event* event)
 
             innerSegmentIndex = tripletsInGPU.segmentIndices[2 * tripletIndex];
             outerSegmentIndex = tripletsInGPU.segmentIndices[2 * tripletIndex + 1];
-            float betaIn = tripletsInGPU.betaIn[tripletIndex];
-            float betaOut = tripletsInGPU.betaOut[tripletIndex];
+            float betaIn  = __half2float(tripletsInGPU.betaIn[tripletIndex]);
+            float betaOut = __half2float(tripletsInGPU.betaOut[tripletIndex]);
 
             unsigned int innerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerSegmentIndex];
             unsigned int innerSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerSegmentIndex + 1];

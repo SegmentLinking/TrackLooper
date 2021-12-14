@@ -30,9 +30,9 @@ namespace SDL
         unsigned int* nTriplets;
         
         //delta beta = betaIn - betaOut
-        float* betaIn;
-        float* betaOut;
-        float* pt_beta;
+        __half* betaIn;
+        __half* betaOut;
+        __half* pt_beta;
 
         bool* partOfPT5;
 
