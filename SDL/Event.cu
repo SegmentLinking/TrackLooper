@@ -2487,6 +2487,7 @@ cudaStreamSynchronize(stream);
         quintupletsInCPU->score_rphisum = new __half[nMemoryLocations];
         quintupletsInCPU->eta = new __half[nMemoryLocations];
         quintupletsInCPU->phi = new __half[nMemoryLocations];
+        //quintupletsInCPU->regressionRadius = new __half[nMemoryLocations];
         quintupletsInCPU->regressionRadius = new float[nMemoryLocations];
         cudaMemcpyAsync(quintupletsInCPU->nQuintuplets, quintupletsInGPU->nQuintuplets,  nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(quintupletsInCPU->tripletIndices, quintupletsInGPU->tripletIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
@@ -2497,6 +2498,7 @@ cudaStreamSynchronize(stream);
         cudaMemcpyAsync(quintupletsInCPU->score_rphisum, quintupletsInGPU->score_rphisum, nMemoryLocations * sizeof(__half), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(quintupletsInCPU->eta, quintupletsInGPU->eta, nMemoryLocations * sizeof(__half), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(quintupletsInCPU->phi, quintupletsInGPU->phi, nMemoryLocations * sizeof(__half), cudaMemcpyDeviceToHost,stream);
+        //cudaMemcpyAsync(quintupletsInCPU->regressionRadius, quintupletsInGPU->regressionRadius, nMemoryLocations * sizeof(__half), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(quintupletsInCPU->regressionRadius, quintupletsInGPU->regressionRadius, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
     }

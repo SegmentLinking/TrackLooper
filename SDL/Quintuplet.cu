@@ -319,15 +319,18 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsI
     quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex + 4] = lowerModule5;
     quintupletsInGPU.innerRadius[quintupletIndex] = __float2half(innerRadius);
     quintupletsInGPU.outerRadius[quintupletIndex] = __float2half(outerRadius);
-    quintupletsInGPU.regressionRadius[quintupletIndex] = regressionRadius;
     quintupletsInGPU.pt[quintupletIndex] = __float2half(pt);
     quintupletsInGPU.eta[quintupletIndex] = __float2half(eta);
     quintupletsInGPU.phi[quintupletIndex] = __float2half(phi);
     quintupletsInGPU.score_rphisum[quintupletIndex] = __float2half(scores);
     quintupletsInGPU.layer[quintupletIndex] = layer;
     quintupletsInGPU.isDup[quintupletIndex] = false;
+    quintupletsInGPU.regressionRadius[quintupletIndex] = regressionRadius;
     quintupletsInGPU.regressionG[quintupletIndex] = regressionG;
     quintupletsInGPU.regressionF[quintupletIndex] = regressionF;
+    //quintupletsInGPU.regressionRadius[quintupletIndex] = __float2half(regressionRadius);
+    //quintupletsInGPU.regressionG[quintupletIndex] = __float2half(regressionG);
+    //quintupletsInGPU.regressionF[quintupletIndex] = __float2half(regressionF);
 
 #ifdef CUT_VALUE_DEBUG
     quintupletsInGPU.innerRadiusMin[quintupletIndex] = innerRadiusMin;
