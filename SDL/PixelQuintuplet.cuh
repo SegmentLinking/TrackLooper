@@ -32,9 +32,9 @@ namespace SDL
         unsigned int* T5Indices;
         unsigned int* nPixelQuintuplets;
         bool* isDup;
-        __half* score;
-        __half* eta;
-        __half* phi;
+        FPX* score;
+        FPX* eta;
+        FPX* phi;
 #ifdef CUT_VALUE_DEBUG
         float* rzChiSquared;
         float* rPhiChiSquared;

@@ -4,6 +4,16 @@
 #define PTCUT 1.0f
 #include <cuda_fp16.h>
 
+#ifdef FP16_Base
+#define __F2H __float2half  
+#define __H2F __half2float  
+typedef __half FPX;
+#else
+#define __F2H
+#define __H2F
+typedef float FPX; 
+#endif
+
 namespace SDL
 {
     namespace CPU

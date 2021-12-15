@@ -6,6 +6,7 @@
 
 #include "SDL/MathUtil.h"
 #include "SDL/Event.cuh"
+#include "SDL/Constants.h"
 
 // Efficiency study modules
 #include "Study.h"
@@ -14,6 +15,7 @@
 #include "trkCore.h"
 #include "WriteSDLNtuplev2.h"
 #include "AnalysisInterface/EventForAnalysisInterface.h"
+
 
 // Common
 void createOutputBranches();

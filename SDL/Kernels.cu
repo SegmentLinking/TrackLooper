@@ -271,8 +271,8 @@ __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, S
 
 #ifdef Crossclean_pT3
     //cross cleaning step
-    float eta1 = __half2float(pixelTripletsInGPU.eta_pix[pixelTripletIndex]); 
-    float phi1 = __half2float(pixelTripletsInGPU.phi_pix[pixelTripletIndex]); 
+    float eta1 = __H2F(pixelTripletsInGPU.eta_pix[pixelTripletIndex]); 
+    float phi1 = __H2F(pixelTripletsInGPU.phi_pix[pixelTripletIndex]); 
     int pixelModuleIndex = *modulesInGPU.nModules - 1;
     unsigned int prefix = pixelModuleIndex*N_MAX_SEGMENTS_PER_MODULE;
     bool end= false;
@@ -329,16 +329,16 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, st
         loop_bound = *pixelTripletsInGPU.nPixelTriplets;
     }
     //cross cleaning step
-    float eta1 = __half2float(quintupletsInGPU.eta[quintupletIndex]); 
-    float phi1 = __half2float(quintupletsInGPU.phi[quintupletIndex]); 
+    float eta1 = __H2F(quintupletsInGPU.eta[quintupletIndex]); 
+    float phi1 = __H2F(quintupletsInGPU.phi[quintupletIndex]); 
     bool end = false;
 
     for (unsigned int jx=0; jx<loop_bound; jx++)
     {
         if(jx < *pixelQuintupletsInGPU.nPixelQuintuplets)
         {
-            float eta2 = __half2float(pixelQuintupletsInGPU.eta[jx]);
-            float phi2 = __half2float(pixelQuintupletsInGPU.phi[jx]);
+            float eta2 = __H2F(pixelQuintupletsInGPU.eta[jx]);
+            float phi2 = __H2F(pixelQuintupletsInGPU.phi[jx]);
             float dEta = abs(eta1-eta2);
             float dPhi = abs(phi1-phi2);
             if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
@@ -348,8 +348,8 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, st
         }
         if(jx < *pixelTripletsInGPU.nPixelTriplets)
         {
-            float eta2 = __half2float(pixelTripletsInGPU.eta[jx]); 
-            float phi2 = __half2float(pixelTripletsInGPU.phi[jx]); 
+            float eta2 = __H2F(pixelTripletsInGPU.eta[jx]); 
+            float phi2 = __H2F(pixelTripletsInGPU.phi[jx]); 
             float dEta = abs(eta1-eta2);
             float dPhi = abs(phi1-phi2);
             if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
@@ -405,8 +405,8 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
         if(type == 4)
         {
             unsigned int quintupletIndex = innerTrackletIdx;//trackCandidatesInGPU.objectIndices[2*jx];//T5 index
-            float eta2 = __half2float(quintupletsInGPU.eta[quintupletIndex]);
-            float phi2 = __half2float(quintupletsInGPU.phi[quintupletIndex]);
+            float eta2 = __H2F(quintupletsInGPU.eta[quintupletIndex]);
+            float phi2 = __H2F(quintupletsInGPU.phi[quintupletIndex]);
             float dEta = abs(eta1-eta2);
             float dPhi = abs(phi1-phi2);
             if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
@@ -447,8 +447,8 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
             {
                 end=true;break;//return;
             }
-            float eta2 = __half2float(pixelTripletsInGPU.eta_pix[jx]);
-            float phi2 = __half2float(pixelTripletsInGPU.phi_pix[jx]);
+            float eta2 = __H2F(pixelTripletsInGPU.eta_pix[jx]);
+            float phi2 = __H2F(pixelTripletsInGPU.phi_pix[jx]);
             float dEta = abs(eta1-eta2);
             float dPhi = abs(phi1-phi2);
             if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
@@ -705,8 +705,8 @@ __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesI
             addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, rPhiChiSquared);
 
 #else
-            float eta = __half2float(quintupletsInGPU.eta[quintupletIndex]);
-            float phi = __half2float(quintupletsInGPU.phi[quintupletIndex]);
+            float eta = __H2F(quintupletsInGPU.eta[quintupletIndex]);
+            float phi = __H2F(quintupletsInGPU.phi[quintupletIndex]);
             addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquaredInwards+rPhiChiSquared, eta,phi);
 #endif
         }
@@ -880,11 +880,11 @@ __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, str
             {
                 continue;
             }
-            float pt1  = __half2float(quintupletsInGPU.pt[ix]);
-            float eta1 = __half2float(quintupletsInGPU.eta[ix]);
-            float phi1 = __half2float(quintupletsInGPU.phi[ix]);
+            float pt1  = __H2F(quintupletsInGPU.pt[ix]);
+            float eta1 = __H2F(quintupletsInGPU.eta[ix]);
+            float phi1 = __H2F(quintupletsInGPU.phi[ix]);
             bool isDup = false;
-	    float score_rphisum1 = __half2float(quintupletsInGPU.score_rphisum[ix]);
+	    float score_rphisum1 = __H2F(quintupletsInGPU.score_rphisum[ix]);
             for(unsigned int lowmod=0; lowmod<nLowerModules;lowmod++)
             {
 	        int nQuintuplets_lowmod = quintupletsInGPU.nQuintuplets[lowmod];
@@ -900,12 +900,12 @@ __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, str
                     {
                         continue;
                     }
-                    float pt2  = __half2float(quintupletsInGPU.pt[jx]);
-                    float eta2 = __half2float(quintupletsInGPU.eta[jx]);
-                    float phi2 = __half2float(quintupletsInGPU.phi[jx]);
+                    float pt2  = __H2F(quintupletsInGPU.pt[jx]);
+                    float eta2 = __H2F(quintupletsInGPU.eta[jx]);
+                    float phi2 = __H2F(quintupletsInGPU.phi[jx]);
                     float dEta = fabsf(eta1-eta2);
                     float dPhi = fabsf(phi1-phi2);
-		    float score_rphisum2 = __half2float(quintupletsInGPU.score_rphisum[jx]);
+		    float score_rphisum2 = __H2F(quintupletsInGPU.score_rphisum[jx]);
                     if (dEta > 0.1f)
                     {
                         continue;
@@ -1073,10 +1073,10 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesI
     for (unsigned int ix=blockIdx.x*blockDim.x+threadIdx.x; ix<nPixelTriplets; ix+=blockxSize)
     {
         bool isDup = false;
-	float score1 = __half2float(pixelTripletsInGPU.score[ix]);
+	float score1 = __H2F(pixelTripletsInGPU.score[ix]);
         for (unsigned int jx=0; jx<nPixelTriplets; jx++)
         {
-	    float score2 = __half2float(pixelTripletsInGPU.score[jx]);
+	    float score2 = __H2F(pixelTripletsInGPU.score[jx]);
             if(ix==jx)
             {
                 continue;
@@ -1134,7 +1134,7 @@ __global__ void removeDupPixelQuintupletsInGPUFromMap(struct SDL::modules& modul
         {
             continue;
         }
-	float score1 = __half2float(pixelQuintupletsInGPU.score[ix]);
+	float score1 = __H2F(pixelQuintupletsInGPU.score[ix]);
         for (unsigned int jx=0; jx<nPixelQuintuplets; jx++)
         {
             if(ix==jx)
@@ -1151,7 +1151,7 @@ __global__ void removeDupPixelQuintupletsInGPUFromMap(struct SDL::modules& modul
             unsigned int pLS_jx = pixelQuintupletsInGPU.pixelIndices[jx];
             int nMatched = checkHitsT5(T5_ix,T5_jx,mdsInGPU,segmentsInGPU,tripletsInGPU,quintupletsInGPU);
             int npMatched = checkHitspT5(pLS_ix,pLS_jx,mdsInGPU,segmentsInGPU,hitsInGPU);
-	    float score2 = __half2float(pixelQuintupletsInGPU.score[jx]);
+	    float score2 = __H2F(pixelQuintupletsInGPU.score[jx]);
             if(((nMatched + npMatched) >=7))// || (secondPass && ((nMatched + npMatched) >=1)))
             {
                 dup_count++;
