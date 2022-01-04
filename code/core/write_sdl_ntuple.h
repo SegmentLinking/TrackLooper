@@ -6,7 +6,7 @@
 
 #include "SDL/MathUtil.h"
 #include "SDL/Event.cuh"
-#include "SDL/Constants.h"
+#include "../../SDL/Constants.h"
 
 // Efficiency study modules
 #include "Study.h"
