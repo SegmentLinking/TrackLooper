@@ -125,7 +125,7 @@ SDL::Event::~Event()
 #ifdef Explicit_MD
     if(mdsInCPU != nullptr)
     {
-        delete[] mdsInCPU->hitIndices;
+        delete[] mdsInCPU->anchorHitIndices;
         delete[] mdsInCPU->nMDs;
         delete mdsInCPU;
     }
@@ -333,7 +333,7 @@ void SDL::Event::resetEvent()
 #ifdef Explicit_MD
     if(mdsInCPU != nullptr)
     {
-        delete[] mdsInCPU->hitIndices;
+        delete[] mdsInCPU->anchorHitIndices;
         delete[] mdsInCPU->nMDs;
         delete mdsInCPU;
         mdsInCPU = nullptr;
@@ -672,10 +672,10 @@ __global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned 
 #endif
 
     int hits1[4];
-    hits1[0] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*innerMDIndex]];
-    hits1[1] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*outerMDIndex]];
-    hits1[2] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*innerMDIndex+1]];
-    hits1[3] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*outerMDIndex+1]];
+    hits1[0] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[innerMDIndex]];
+    hits1[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[outerMDIndex]];
+    hits1[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[innerMDIndex]];
+    hits1[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[outerMDIndex]];
     float rsum=0, zsum=0, r2sum=0,rzsum=0;
     for(int i =0; i < 4; i++)
     {

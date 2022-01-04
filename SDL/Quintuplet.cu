@@ -416,11 +416,11 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     unsigned int fourthMDIndex = segmentsInGPU.mdIndices[2 * thirdSegmentIndex + 1];
     unsigned int fifthMDIndex = segmentsInGPU.mdIndices[2 * fourthSegmentIndex + 1];
 
-    unsigned int nonAnchor1 = mdsInGPU.hitIndices[2 * firstMDIndex] == innerTripletFirstSegmentAnchorHitIndex ? mdsInGPU.hitIndices[2 * firstMDIndex + 1] : mdsInGPU.hitIndices[2 * firstMDIndex];
-    unsigned int nonAnchor2 = mdsInGPU.hitIndices[2 * secondMDIndex] == innerTripletSecondSegmentAnchorHitIndex ? mdsInGPU.hitIndices[2 * secondMDIndex + 1] : mdsInGPU.hitIndices[2 * secondMDIndex];
-    unsigned int nonAnchor3 = mdsInGPU.hitIndices[2 * thirdMDIndex] == innerTripletThirdSegmentAnchorHitIndex ? mdsInGPU.hitIndices[2 * thirdMDIndex + 1] : mdsInGPU.hitIndices[2 * thirdMDIndex];
-    unsigned int nonAnchor4 = mdsInGPU.hitIndices[2 * fourthMDIndex] == outerTripletSecondSegmentAnchorHitIndex ? mdsInGPU.hitIndices[2 * fourthMDIndex + 1] : mdsInGPU.hitIndices[2 * fourthMDIndex];
-    unsigned int nonAnchor5 = mdsInGPU.hitIndices[2 * fifthMDIndex] == outerTripletThirdSegmentAnchorHitIndex ? mdsInGPU.hitIndices[2 * fifthMDIndex + 1] : mdsInGPU.hitIndices[2 * fifthMDIndex];
+    unsigned int nonAnchor1 = mdsInGPU.outerHitIndices[firstMDIndex];
+    unsigned int nonAnchor2 = mdsInGPU.outerHitIndices[secondMDIndex];
+    unsigned int nonAnchor3 = mdsInGPU.outerHitIndices[thirdMDIndex];
+    unsigned int nonAnchor4 = mdsInGPU.outerHitIndices[fourthMDIndex];
+    unsigned int nonAnchor5 = mdsInGPU.outerHitIndices[fifthMDIndex];
 
     //non anchor is always shifted for tilted and endcap!
 
