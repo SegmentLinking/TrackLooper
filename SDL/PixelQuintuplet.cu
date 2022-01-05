@@ -214,7 +214,7 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
 
     rPhiChiSquaredInwards = computePT5RPhiChiSquaredInwards(modulesInGPU, hitsInGPU, quintupletsInGPU, quintupletIndex, pixelHits);
 
-    if(segmentsInGPU.circleRadius[pixelSegmentArrayIndex] < 5.0f/(2.f * k2Rinv1GeVf))
+    if(__H2F_circle(segmentsInGPU.circleRadius[pixelSegmentArrayIndex]) < 5.0f/(2.f * k2Rinv1GeVf))
     {
         pass = pass & passPT5RZChiSquaredCuts(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared);
 
@@ -481,9 +481,9 @@ __device__ float SDL::computePT5RPhiChiSquared(struct modules& modulesInGPU, str
        Compute circle parameters from 3 pixel hits, and then use them to compute the chi squared for the outer hits
     */
 
-    float g = segmentsInGPU.circleCenterX[pixelSegmentArrayIndex];
-    float f = segmentsInGPU.circleCenterY[pixelSegmentArrayIndex];
-    float radius = segmentsInGPU.circleRadius[pixelSegmentArrayIndex];
+    float g = __H2F_circle(segmentsInGPU.circleCenterX[pixelSegmentArrayIndex]);
+    float f = __H2F_circle(segmentsInGPU.circleCenterY[pixelSegmentArrayIndex]);
+    float radius = __H2F_circle(segmentsInGPU.circleRadius[pixelSegmentArrayIndex]);
     float delta1[5], delta2[5], slopes[5];
     bool isFlat[5];
     float xs[5];

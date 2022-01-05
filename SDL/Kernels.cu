@@ -279,8 +279,8 @@ __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, S
     for (unsigned int jx=0; jx<*pixelQuintupletsInGPU.nPixelQuintuplets; jx++)
     {
         unsigned int pLS_jx = pixelQuintupletsInGPU.pixelIndices[jx];
-        float eta2 = segmentsInGPU.eta[pLS_jx - prefix];
-        float phi2 = segmentsInGPU.phi[pLS_jx - prefix];
+        float eta2 = __H2F_seg(segmentsInGPU.eta[pLS_jx - prefix]);
+        float phi2 = __H2F_seg(segmentsInGPU.phi[pLS_jx - prefix]);
         float dEta = abs(eta1-eta2);
         float dPhi = abs(phi1-phi2);
         if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
@@ -381,13 +381,13 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
     {
         continue;//return;
     }
-    if(segmentsInGPU.score[pixelArrayIndex] > 120){continue;}
+    if(__H2F_seg(segmentsInGPU.score[pixelArrayIndex]) > 120){continue;}
 
 
     //cross cleaning step
 
-    float eta1 = segmentsInGPU.eta[pixelArrayIndex];
-    float phi1 = segmentsInGPU.phi[pixelArrayIndex];
+    float eta1 = __H2F_seg(segmentsInGPU.eta[pixelArrayIndex]);
+    float phi1 = __H2F_seg(segmentsInGPU.phi[pixelArrayIndex]);
     unsigned int prefix = pixelModuleIndex*N_MAX_SEGMENTS_PER_MODULE;
 
     unsigned int loop_bound = *pixelQuintupletsInGPU.nPixelQuintuplets;
@@ -429,8 +429,8 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
             //    return;
             end=true;break;//return;
             }
-            float eta2 = segmentsInGPU.eta[pLS_jx - prefix];
-            float phi2 = segmentsInGPU.phi[pLS_jx - prefix];
+            float eta2 = __H2F_seg(segmentsInGPU.eta[pLS_jx - prefix]);
+            float phi2 = __H2F_seg(segmentsInGPU.phi[pLS_jx - prefix]);
             float dEta = abs(eta1-eta2);
             float dPhi = abs(phi1-phi2);
             if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
@@ -520,9 +520,9 @@ __global__ void createPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGP
         else{continue;}//return;} // ignore anything else
         float phi = hitsInGPU.phis[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*outerTripletIndex]+layer2_adjustment]]];
         float eta = hitsInGPU.etas[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*outerTripletIndex]+layer2_adjustment]]];
-        float eta_pix = segmentsInGPU.eta[pixelSegmentArrayIndex];
-        float phi_pix = segmentsInGPU.phi[pixelSegmentArrayIndex];
-        float pt = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
+        float eta_pix = __H2F_seg(segmentsInGPU.eta[pixelSegmentArrayIndex]);
+        float phi_pix = __H2F_seg(segmentsInGPU.phi[pixelSegmentArrayIndex]);
+        float pt = __H2F_seg(segmentsInGPU.ptIn[pixelSegmentArrayIndex]);
         float score = rPhiChiSquared+rPhiChiSquaredInwards;
         unsigned int pixelTripletIndex = atomicAdd(pixelTripletsInGPU.nPixelTriplets, 1);
         if(pixelTripletIndex >= N_MAX_PIXEL_TRIPLETS)
@@ -1191,9 +1191,9 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU,struct SDL::miniD
         phits1[1] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+ix)+1]]];
         phits1[2] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+ix)]+1]];
         phits1[3] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+ix)+1]+1]];
-        float eta_pix1 = segmentsInGPU.eta[ix];
-        float phi_pix1 = segmentsInGPU.phi[ix];
-        float pt1 = segmentsInGPU.ptIn[ix];
+        float eta_pix1 = __H2F_seg(segmentsInGPU.eta[ix]);
+        float phi_pix1 = __H2F_seg(segmentsInGPU.phi[ix]);
+        float pt1 = __H2F_seg(segmentsInGPU.ptIn[ix]);
         for(int jx=0;jx<nPixelSegments;jx++)
         {
             if(secondpass && (!segmentsInGPU.isQuad[jx] || segmentsInGPU.isDup[jx])){continue;}
@@ -1203,8 +1203,8 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU,struct SDL::miniD
             }
             //bool isQuad_jx = segmentsInGPU.isQuad[jx];
             int quad_diff = segmentsInGPU.isQuad[ix] -segmentsInGPU.isQuad[jx];
-            float ptErr_diff = segmentsInGPU.ptIn[ix] -segmentsInGPU.ptIn[jx];
-            float score_diff = segmentsInGPU.score[ix] -segmentsInGPU.score[jx];
+            float ptErr_diff = __H2F_seg(segmentsInGPU.ptIn[ix]) - __H2F_seg(segmentsInGPU.ptIn[jx]);
+            float score_diff = __H2F_seg(segmentsInGPU.score[ix]) - __H2F_seg(segmentsInGPU.score[jx]);
             if( (quad_diff > 0 )|| (score_diff<0 && quad_diff ==0))
             //if( (quad_diff > 0 )|| (ptErr_diff>0 && quad_diff ==0))
             {
@@ -1216,9 +1216,9 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU,struct SDL::miniD
             phits2[1] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+jx)+1]]];
             phits2[2] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+jx)]+1]];
             phits2[3] = hitsInGPU.idxs[mdsInGPU.hitIndices[2*segmentsInGPU.mdIndices[2*(prefix+jx)+1]+1]];
-            float eta_pix2 = segmentsInGPU.eta[jx];
-            float phi_pix2 = segmentsInGPU.phi[jx];
-            float pt2 = segmentsInGPU.ptIn[jx];
+            float eta_pix2 = __H2F_seg(segmentsInGPU.eta[jx]);
+            float phi_pix2 = __H2F_seg(segmentsInGPU.phi[jx]);
+            float pt2 = __H2F_seg(segmentsInGPU.ptIn[jx]);
             //if(abs(1/pt1 - 1/pt2)> 0.1)
             //{
             //    continue;

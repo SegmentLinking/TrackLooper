@@ -100,13 +100,13 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
     }
 
     unsigned int pixelSegmentArrayIndex = innerSegmentIndex - (pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE);
-    float ptIn = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
+    float ptIn = __H2F_seg(segmentsInGPU.ptIn[pixelSegmentArrayIndex]);
     float ptSLo = ptIn;
-    float px = segmentsInGPU.px[pixelSegmentArrayIndex];
-    float py = segmentsInGPU.py[pixelSegmentArrayIndex];
-    float pz = segmentsInGPU.pz[pixelSegmentArrayIndex];
-    float ptErr = segmentsInGPU.ptErr[pixelSegmentArrayIndex];
-    float etaErr = segmentsInGPU.etaErr[pixelSegmentArrayIndex];
+    float px = __H2F_seg(segmentsInGPU.px[pixelSegmentArrayIndex]);
+    float py = __H2F_seg(segmentsInGPU.py[pixelSegmentArrayIndex]);
+    float pz = __H2F_seg(segmentsInGPU.pz[pixelSegmentArrayIndex]);
+    float ptErr = __H2F_seg(segmentsInGPU.ptErr[pixelSegmentArrayIndex]);
+    float etaErr = __H2F_seg(segmentsInGPU.etaErr[pixelSegmentArrayIndex]);
     ptSLo = fmaxf(PTCUT, ptSLo - 10.0f*fmaxf(ptErr, 0.005f*ptSLo));
     ptSLo = fminf(10.0f, ptSLo);
 
@@ -189,8 +189,8 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
         pass = false;
     }
 
-    float alpha_InLo = segmentsInGPU.dPhiChanges[innerSegmentIndex];
-    float alpha_OutLo = segmentsInGPU.dPhiChanges[outerSegmentIndex];
+    float alpha_InLo = __H2F_dPhi(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
+    float alpha_OutLo = __H2F_dPhi(segmentsInGPU.dPhiChanges[outerSegmentIndex]);
 
     bool isEC_lastLayer = modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS;
 
@@ -332,13 +332,13 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
     unsigned int innerOuterAnchorHitIndex = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerSegmentIndex];
     unsigned int outerOuterAnchorHitIndex= segmentsInGPU.outerMiniDoubletAnchorHitIndices[outerSegmentIndex];
     unsigned int pixelSegmentArrayIndex = innerSegmentIndex - (pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE);
-    float ptIn = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
+    float ptIn = __H2F_seg(segmentsInGPU.ptIn[pixelSegmentArrayIndex]);
     float ptSLo = ptIn;
-    float px = segmentsInGPU.px[pixelSegmentArrayIndex];
-    float py = segmentsInGPU.py[pixelSegmentArrayIndex];
-    float pz = segmentsInGPU.pz[pixelSegmentArrayIndex];
-    float ptErr = segmentsInGPU.ptErr[pixelSegmentArrayIndex];
-    float etaErr = segmentsInGPU.etaErr[pixelSegmentArrayIndex];
+    float px = __H2F_seg(segmentsInGPU.px[pixelSegmentArrayIndex]);
+    float py = __H2F_seg(segmentsInGPU.py[pixelSegmentArrayIndex]);
+    float pz = __H2F_seg(segmentsInGPU.pz[pixelSegmentArrayIndex]);
+    float ptErr = __H2F_seg(segmentsInGPU.ptErr[pixelSegmentArrayIndex]);
+    float etaErr = __H2F_seg(segmentsInGPU.etaErr[pixelSegmentArrayIndex]);
 
     ptSLo = fmaxf(PTCUT, ptSLo - 10.0f*fmaxf(ptErr, 0.005f*ptSLo));
     ptSLo = fminf(10.0f, ptSLo);
@@ -437,8 +437,8 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
     {
         pass = false;
     }
-    float alpha_InLo = segmentsInGPU.dPhiChanges[innerSegmentIndex];
-    float alpha_OutLo = segmentsInGPU.dPhiChanges[outerSegmentIndex];
+    float alpha_InLo = __H2F_dPhi(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
+    float alpha_OutLo = __H2F_dPhi(segmentsInGPU.dPhiChanges[outerSegmentIndex]);
 
     bool isEC_lastLayer = modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS;
 

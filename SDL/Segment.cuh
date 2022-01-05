@@ -31,31 +31,49 @@ namespace SDL
         unsigned int* outerMiniDoubletAnchorHitIndices;
         
         unsigned int* nSegments; //number of segments per inner lower module
-        float* dPhis;
-        float* dPhiMins;
-        float* dPhiMaxs;
-        float* dPhiChanges;
-        float* dPhiChangeMins;
-        float* dPhiChangeMaxs;
+        //float* dPhis;
+        //float* dPhiMins;
+        //float* dPhiMaxs;
+        //float* dPhiChanges;
+        //float* dPhiChangeMins;
+        //float* dPhiChangeMaxs;
+        FPX_dPhi* dPhis;
+        FPX_dPhi* dPhiMins;
+        FPX_dPhi* dPhiMaxs;
+        FPX_dPhi* dPhiChanges;
+        FPX_dPhi* dPhiChangeMins;
+        FPX_dPhi* dPhiChangeMaxs;
 
 
         //not so optional pixel dudes
-        float* ptIn;
-        float* ptErr;
-        float* px;
-        float* py;
-        float* pz;
-        float* etaErr;
-        float* eta;
-        float* phi;
+        FPX_seg* ptIn;
+        FPX_seg* ptErr;
+        FPX_seg* px;
+        FPX_seg* py;
+        FPX_seg* pz;
+        FPX_seg* etaErr;
+        FPX_seg* eta;
+        FPX_seg* phi;
+        FPX_seg* score;
+        //float* ptIn;
+        //float* ptErr;
+        //float* px;
+        //float* py;
+        //float* pz;
+        //float* etaErr;
+        //float* eta;
+        //float* phi;
+        //float* score;
         int* superbin;
         int* pixelType;
         bool* isQuad;
         bool* isDup;
-        float* score;
-        float* circleCenterX;
-        float* circleCenterY;
-        float* circleRadius;
+        FPX_circle* circleCenterX;
+        FPX_circle* circleCenterY;
+        FPX_circle* circleRadius;
+        //float* circleCenterX;
+        //float* circleCenterY;
+        //float* circleRadius;
         bool* partOfPT5;
 
 #ifdef CUT_VALUE_DEBUG

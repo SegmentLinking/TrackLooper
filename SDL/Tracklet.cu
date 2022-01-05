@@ -354,8 +354,8 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
 
     // First obtaining the raw betaIn and betaOut values without any correction and just purely based on the mini-doublet hit positions
 
-    float alpha_InLo = segmentsInGPU.dPhiChanges[innerSegmentIndex];
-    float alpha_OutLo = segmentsInGPU.dPhiChanges[outerSegmentIndex];
+    float alpha_InLo  = __H2F_dPhi(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
+    float alpha_OutLo = __H2F_dPhi(segmentsInGPU.dPhiChanges[outerSegmentIndex]);
 
     bool isEC_lastLayer = modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS;
 
@@ -611,15 +611,15 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
         pass = false;
     }
     
-    float sdIn_alpha = segmentsInGPU.dPhiChanges[innerSegmentIndex];
-    float sdIn_alpha_min = segmentsInGPU.dPhiChangeMins[innerSegmentIndex];
-    float sdIn_alpha_max = segmentsInGPU.dPhiChangeMaxs[innerSegmentIndex];
+    float sdIn_alpha     = __H2F_dPhi(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
+    float sdIn_alpha_min = __H2F_dPhi(segmentsInGPU.dPhiChangeMins[innerSegmentIndex]);
+    float sdIn_alpha_max = __H2F_dPhi(segmentsInGPU.dPhiChangeMaxs[innerSegmentIndex]);
     float sdOut_alpha = sdIn_alpha; //weird
 
     float sdOut_alphaOut = deltaPhi(hitsInGPU.xs[outerOuterAnchorHitIndex], hitsInGPU.ys[outerOuterAnchorHitIndex], hitsInGPU.zs[outerOuterAnchorHitIndex], hitsInGPU.xs[outerOuterAnchorHitIndex] - hitsInGPU.xs[outerInnerAnchorHitIndex], hitsInGPU.ys[outerOuterAnchorHitIndex] - hitsInGPU.ys[outerInnerAnchorHitIndex], hitsInGPU.zs[outerOuterAnchorHitIndex] - hitsInGPU.zs[outerInnerAnchorHitIndex]);/*outerOuterAnchor, outerOuterAnchor - outerInnerAnchor*/
 
-    float sdOut_alphaOut_min = phi_mpi_pi(segmentsInGPU.dPhiChangeMins[outerSegmentIndex] - segmentsInGPU.dPhiMins[outerSegmentIndex]);
-    float sdOut_alphaOut_max = phi_mpi_pi(segmentsInGPU.dPhiChangeMaxs[outerSegmentIndex] - segmentsInGPU.dPhiMaxs[outerSegmentIndex]);
+    float sdOut_alphaOut_min = phi_mpi_pi(__H2F_dPhi(segmentsInGPU.dPhiChangeMins[outerSegmentIndex]) - __H2F_dPhi(segmentsInGPU.dPhiMins[outerSegmentIndex]));
+    float sdOut_alphaOut_max = phi_mpi_pi(__H2F_dPhi(segmentsInGPU.dPhiChangeMaxs[outerSegmentIndex]) - __H2F_dPhi(segmentsInGPU.dPhiMaxs[outerSegmentIndex]));
 
     float tl_axis_x = hitsInGPU.xs[outerOuterAnchorHitIndex] - hitsInGPU.xs[innerInnerAnchorHitIndex];
     float tl_axis_y = hitsInGPU.ys[outerOuterAnchorHitIndex] - hitsInGPU.ys[innerInnerAnchorHitIndex];
@@ -872,12 +872,12 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
         pass = false;
     }
 
-    float sdIn_alpha = segmentsInGPU.dPhiChanges[innerSegmentIndex];
+    float sdIn_alpha = __H2F_dPhi(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
     float sdOut_alpha = sdIn_alpha; //weird
     float sdOut_dPhiPos = deltaPhi(hitsInGPU.xs[outerInnerAnchorHitIndex], hitsInGPU.ys[outerInnerAnchorHitIndex], hitsInGPU.zs[outerInnerAnchorHitIndex], hitsInGPU.xs[outerOuterAnchorHitIndex], hitsInGPU.ys[outerOuterAnchorHitIndex], hitsInGPU.zs[outerOuterAnchorHitIndex]);
-    float sdOut_dPhiChange = segmentsInGPU.dPhiChanges[outerSegmentIndex];
-    float sdOut_dPhiChange_min = segmentsInGPU.dPhiChangeMins[outerSegmentIndex];
-    float sdOut_dPhiChange_max = segmentsInGPU.dPhiChangeMaxs[outerSegmentIndex];
+    float sdOut_dPhiChange = __H2F_dPhi(segmentsInGPU.dPhiChanges[outerSegmentIndex]);
+    float sdOut_dPhiChange_min = __H2F_dPhi(segmentsInGPU.dPhiChangeMins[outerSegmentIndex]);
+    float sdOut_dPhiChange_max = __H2F_dPhi(segmentsInGPU.dPhiChangeMaxs[outerSegmentIndex]);
 
     float sdOut_alphaOutRHmin = phi_mpi_pi(sdOut_dPhiChange_min - sdOut_dPhiPos);
     float sdOut_alphaOutRHmax = phi_mpi_pi(sdOut_dPhiChange_max - sdOut_dPhiPos);
@@ -888,8 +888,8 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
     float tl_axis_z = hitsInGPU.zs[outerOuterAnchorHitIndex] - hitsInGPU.zs[innerInnerAnchorHitIndex];
 
     betaIn = sdIn_alpha - deltaPhi(hitsInGPU.xs[innerInnerAnchorHitIndex], hitsInGPU.ys[innerInnerAnchorHitIndex], hitsInGPU.zs[innerInnerAnchorHitIndex], tl_axis_x, tl_axis_y, tl_axis_z);
-    float sdIn_alphaRHmin = segmentsInGPU.dPhiChangeMins[innerSegmentIndex];
-    float sdIn_alphaRHmax = segmentsInGPU.dPhiChangeMaxs[innerSegmentIndex];
+    float sdIn_alphaRHmin = __H2F_dPhi(segmentsInGPU.dPhiChangeMins[innerSegmentIndex]);
+    float sdIn_alphaRHmax = __H2F_dPhi(segmentsInGPU.dPhiChangeMaxs[innerSegmentIndex]);
 
     float betaInRHmin = betaIn + sdIn_alphaRHmin - sdIn_alpha;
     float betaInRHmax = betaIn + sdIn_alphaRHmax - sdIn_alpha;

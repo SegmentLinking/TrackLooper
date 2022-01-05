@@ -891,9 +891,9 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
             const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
             unsigned int pixelModuleIndex = *(modulesInGPU.nModules) - 1;
             unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + innerTrackletIdx;
-            pt = segmentsInGPU.ptIn[innerTrackletIdx];
-            eta_pLS = segmentsInGPU.eta[innerTrackletIdx];
-            phi_pLS = segmentsInGPU.phi[innerTrackletIdx];
+            pt = __H2F_seg(segmentsInGPU.ptIn[innerTrackletIdx]);
+            eta_pLS = __H2F_seg(segmentsInGPU.eta[innerTrackletIdx]);
+            phi_pLS = __H2F_seg(segmentsInGPU.phi[innerTrackletIdx]);
             unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
             unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
             unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerMiniDoubletIndex];
@@ -1054,7 +1054,7 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
             const float kRinv1GeVf = (2.99792458e-3 * 3.8);
             const float k2Rinv1GeVf = kRinv1GeVf / 2.;
 
-            const float ptAv_in = (trackCandidateType == 7 or trackCandidateType == 5) ? segmentsInGPU.ptIn[innerTrackletInnerSegmentIndex-((*(modulesInGPU.nModules))-1)*600] : dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.);
+            const float ptAv_in = (trackCandidateType == 7 or trackCandidateType == 5) ? __H2F_seg(segmentsInGPU.ptIn[innerTrackletInnerSegmentIndex-((*(modulesInGPU.nModules))-1)*600]) : dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.);
 
             const float ptAv_out = dr_out * k2Rinv1GeVf / sin((betaIn_out + betaOut_out) / 2.);
             float ptAv;
@@ -2027,7 +2027,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
 
         const float kRinv1GeVf = (2.99792458e-3 * 3.8);
 //        std::cout<<"pt in = "<<segmentsInGPU.ptIn[pixelSegmentIndex - ((*(modulesInGPU.nModules))-1)*600] << std::endl;
-        float pt = (segmentsInGPU.ptIn[pixelSegmentIndex - ((*(modulesInGPU.nModules))-1)*600 ] +  __H2F_T5(quintupletsInGPU.regressionRadius[T5Index]) * kRinv1GeVf) / 2;
+        float pt = (__H2F_seg(segmentsInGPU.ptIn[pixelSegmentIndex - ((*(modulesInGPU.nModules))-1)*600 ]) +  __H2F_T5(quintupletsInGPU.regressionRadius[T5Index]) * kRinv1GeVf) / 2;
         //float pt = (segmentsInGPU.ptIn[pixelSegmentIndex - ((*(modulesInGPU.nModules))-1)*600 ] +  /*__H2F(*/quintupletsInGPU.regressionRadius[T5Index] * kRinv1GeVf) / 2;
 
         SDL::CPU::Hit hitA(trk.pix_x()[hit_idxs[0]], trk.pix_y()[hit_idxs[0]], trk.pix_z()[hit_idxs[0]]);
@@ -2153,9 +2153,9 @@ void fillPixelLineSegmentOutputBranches(SDL::Event* event)
         pLS_isFake.push_back(matched_sim_trk_idxs.size() == 0);
         pLS_matched_simIdx.push_back(matched_sim_trk_idxs);
 
-        pLS_pt.push_back(segmentsInGPU.ptIn[jdx]);
-        pLS_eta.push_back(segmentsInGPU.eta[jdx]);
-        pLS_phi.push_back(segmentsInGPU.phi[jdx]);
+        pLS_pt.push_back(__H2F_seg(segmentsInGPU.ptIn[jdx]));
+        pLS_eta.push_back(__H2F_seg(segmentsInGPU.eta[jdx]));
+        pLS_phi.push_back(__H2F_seg(segmentsInGPU.phi[jdx]));
 
     }
     vector<int> pLS_isDuplicate(pLS_matched_simIdx.size());

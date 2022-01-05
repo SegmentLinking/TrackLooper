@@ -263,8 +263,8 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
 
     //pt matching between the pixel ptin and the triplet circle pt
     unsigned int pixelSegmentArrayIndex = pixelSegmentIndex - (pixelModuleIndex * 600);
-    float pixelSegmentPt = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
-    float pixelSegmentPtError = segmentsInGPU.ptErr[pixelSegmentArrayIndex];
+    float pixelSegmentPt = __H2F_seg(segmentsInGPU.ptIn[pixelSegmentArrayIndex]);
+    float pixelSegmentPtError = __H2F_seg(segmentsInGPU.ptErr[pixelSegmentArrayIndex]);
 
     unsigned int pixelInnerMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
     unsigned int pixelOuterMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
@@ -518,9 +518,9 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, struc
 //TODO: merge this one and the pT5 function later into a single function
 __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, struct segments& segmentsInGPU, unsigned int pixelSegmentArrayIndex, unsigned int* anchorHits, unsigned int* lowerModuleIndices)
 {
-    float g = segmentsInGPU.circleCenterX[pixelSegmentArrayIndex];
-    float f = segmentsInGPU.circleCenterY[pixelSegmentArrayIndex];
-    float radius = segmentsInGPU.circleRadius[pixelSegmentArrayIndex];
+    float g = __H2F_circle(segmentsInGPU.circleCenterX[pixelSegmentArrayIndex]);
+    float f = __H2F_circle(segmentsInGPU.circleCenterY[pixelSegmentArrayIndex]);
+    float radius = __H2F_circle(segmentsInGPU.circleRadius[pixelSegmentArrayIndex]);
     float delta1[3], delta2[3], slopes[3];
     bool isFlat[3];
     float xs[3];
