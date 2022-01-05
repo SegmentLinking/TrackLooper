@@ -42,9 +42,12 @@ namespace SDL
         //FPX* regressionRadius;
         //FPX* regressionG;
         //FPX* regressionF;
-        float* regressionRadius;
-        float* regressionG;
-        float* regressionF;
+        //float* regressionRadius;
+        //float* regressionG;
+        //float* regressionF;
+        FPX_T5* regressionRadius;
+        FPX_T5* regressionG;
+        FPX_T5* regressionF;
 #ifdef CUT_VALUE_DEBUG
         float* innerRadiusMin;
         float* innerRadiusMax;

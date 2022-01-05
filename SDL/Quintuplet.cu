@@ -191,9 +191,9 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     quintupletsInGPU.layer = (int*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(int), stream);
     quintupletsInGPU.isDup = (bool*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(bool), stream);
     quintupletsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(bool), stream);
-    quintupletsInGPU.regressionRadius = (float*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(float), stream);
-    quintupletsInGPU.regressionG = (float*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(float), stream);
-    quintupletsInGPU.regressionF = (float*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(float), stream);
+    quintupletsInGPU.regressionRadius = (FPX_T5*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(FPX_T5), stream);
+    quintupletsInGPU.regressionG = (FPX_T5*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(FPX_T5), stream);
+    quintupletsInGPU.regressionF = (FPX_T5*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(FPX_T5), stream);
 
 #else
     cudaMallocManaged(&quintupletsInGPU.tripletIndices, 2 * nMemoryLocations * sizeof(unsigned int));
@@ -202,13 +202,13 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     cudaMallocManaged(&quintupletsInGPU.nQuintuplets, nLowerModules * sizeof(unsigned int));
     cudaMallocManaged(&quintupletsInGPU.innerRadius, nMemoryLocations * sizeof(FPX));
     cudaMallocManaged(&quintupletsInGPU.outerRadius, nMemoryLocations * sizeof(FPX));
-    cudaMallocManaged(&quintupletsInGPU.regressionRadius, nMemoryLocations * sizeof(float));
+    cudaMallocManaged(&quintupletsInGPU.regressionRadius, nMemoryLocations * sizeof(FPX_T5));
     cudaMallocManaged(&quintupletsInGPU.pt, nMemoryLocations *4* sizeof(FPX));
     cudaMallocManaged(&quintupletsInGPU.layer, nMemoryLocations * sizeof(int));
     cudaMallocManaged(&quintupletsInGPU.isDup, nMemoryLocations * sizeof(bool));
     cudaMallocManaged(&quintupletsInGPU.partOfPT5, nMemoryLocations * sizeof(bool));
-    cudaMallocManaged(&quintupletsInGPU.regressionG, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&quintupletsInGPU.regressionF, nMemoryLocations * sizeof(float));
+    cudaMallocManaged(&quintupletsInGPU.regressionG, nMemoryLocations * sizeof(FPX_T5));
+    cudaMallocManaged(&quintupletsInGPU.regressionF, nMemoryLocations * sizeof(FPX_T5));
 
 #ifdef CUT_VALUE_DEBUG
     cudaMallocManaged(&quintupletsInGPU.innerRadiusMin, nMemoryLocations * sizeof(float));
@@ -259,9 +259,9 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     quintupletsInGPU.layer = (int*)cms::cuda::allocate_device(dev, nMemoryLocations * sizeof(int), stream);
     quintupletsInGPU.isDup = (bool*)cms::cuda::allocate_device(dev, nMemoryLocations * sizeof(bool), stream);
     quintupletsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_device(dev, nMemoryLocations * sizeof(bool), stream);
-    quintupletsInGPU.regressionRadius = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * sizeof(float), stream);
-    quintupletsInGPU.regressionG = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * sizeof(float), stream);
-    quintupletsInGPU.regressionF = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * sizeof(float), stream);
+    quintupletsInGPU.regressionRadius = (FPX_T5*)cms::cuda::allocate_device(dev, nMemoryLocations * sizeof(FPX_T5), stream);
+    quintupletsInGPU.regressionG = (FPX_T5*)cms::cuda::allocate_device(dev, nMemoryLocations * sizeof(FPX_T5), stream);
+    quintupletsInGPU.regressionF = (FPX_T5*)cms::cuda::allocate_device(dev, nMemoryLocations * sizeof(FPX_T5), stream);
 
 #else
     //cudaMallocAsync(&quintupletsInGPU.tripletIndices, 2 * nMemoryLocations * sizeof(unsigned int),stream);
@@ -281,13 +281,13 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     cudaMalloc(&quintupletsInGPU.nQuintuplets, nLowerModules * sizeof(unsigned int));
     cudaMalloc(&quintupletsInGPU.innerRadius, nMemoryLocations * sizeof(FPX));
     cudaMalloc(&quintupletsInGPU.outerRadius, nMemoryLocations * sizeof(FPX));
-    cudaMalloc(&quintupletsInGPU.regressionRadius, nMemoryLocations * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.regressionRadius, nMemoryLocations * sizeof(FPX_T5));
     cudaMalloc(&quintupletsInGPU.pt, nMemoryLocations *4* sizeof(FPX));
     cudaMalloc(&quintupletsInGPU.isDup, nMemoryLocations * sizeof(bool));
     cudaMalloc(&quintupletsInGPU.partOfPT5, nMemoryLocations * sizeof(bool));
     cudaMalloc(&quintupletsInGPU.layer, nMemoryLocations * sizeof(int));
-    cudaMalloc(&quintupletsInGPU.regressionG, nMemoryLocations * sizeof(float));
-    cudaMalloc(&quintupletsInGPU.regressionF, nMemoryLocations * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.regressionG, nMemoryLocations * sizeof(FPX_T5));
+    cudaMalloc(&quintupletsInGPU.regressionF, nMemoryLocations * sizeof(FPX_T5));
 #endif
     cudaMemsetAsync(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
     cudaStreamSynchronize(stream);
@@ -325,9 +325,12 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::quintuplets& quintupletsI
     quintupletsInGPU.score_rphisum[quintupletIndex] = __F2H(scores);
     quintupletsInGPU.layer[quintupletIndex] = layer;
     quintupletsInGPU.isDup[quintupletIndex] = false;
-    quintupletsInGPU.regressionRadius[quintupletIndex] = regressionRadius;
-    quintupletsInGPU.regressionG[quintupletIndex] = regressionG;
-    quintupletsInGPU.regressionF[quintupletIndex] = regressionF;
+    quintupletsInGPU.regressionRadius[quintupletIndex] = __F2H_T5(regressionRadius);
+    quintupletsInGPU.regressionG[quintupletIndex]      = __F2H_T5(regressionG);
+    quintupletsInGPU.regressionF[quintupletIndex]      = __F2H_T5(regressionF);
+    //quintupletsInGPU.regressionRadius[quintupletIndex] = regressionRadius;
+    //quintupletsInGPU.regressionG[quintupletIndex]      = regressionG;
+    //quintupletsInGPU.regressionF[quintupletIndex]      = regressionF;
     //quintupletsInGPU.regressionRadius[quintupletIndex] = __F2H(regressionRadius);
     //quintupletsInGPU.regressionG[quintupletIndex] = __F2H(regressionG);
     //quintupletsInGPU.regressionF[quintupletIndex] = __F2H(regressionF);
