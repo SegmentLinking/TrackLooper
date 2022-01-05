@@ -1753,7 +1753,6 @@ void fillPixelTripletOutputBranches(SDL::Event* event)
         pT3_matched_simIdx.push_back(matched_sim_trk_idxs);
 
         float pixelRadius = __H2F(pixelTripletsInGPU.pixelRadius[jdx]);
-        float pixelRadiusError = pixelTripletsInGPU.pixelRadiusError[jdx];
         float tripletRadius = __H2F(pixelTripletsInGPU.tripletRadius[jdx]);
         const float kRinv1GeVf = (2.99792458e-3 * 3.8);
         const float k2Rinv1GeVf = kRinv1GeVf / 2.;
@@ -1770,6 +1769,7 @@ void fillPixelTripletOutputBranches(SDL::Event* event)
         pT3_eta.push_back(eta);
         pT3_phi.push_back(phi);
 #ifdef CUT_VALUE_DEBUG
+        float pixelRadiusError = __H2F(pixelTripletsInGPU.pixelRadiusError[jdx]);
         pT3_pixelRadius.push_back(pixelRadius);
         pT3_pixelRadiusError.push_back(pixelRadiusError);
         pT3_tripletRadius.push_back(tripletRadius);
