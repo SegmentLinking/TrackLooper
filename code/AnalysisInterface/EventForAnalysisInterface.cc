@@ -73,8 +73,8 @@ void SDL::EventForAnalysisInterface::addMDsToAnalysisInterface(struct miniDouble
         {
 
             unsigned int mdIndex = idx * N_MAX_MD_PER_MODULES + jdx;
-            std::shared_ptr<Hit> lowerHitPtr = hits_[mdsInGPU.hitIndices[2 * mdIndex]];
-            std::shared_ptr<Hit> upperHitPtr = hits_[mdsInGPU.hitIndices[2 * mdIndex + 1]];
+            std::shared_ptr<Hit> lowerHitPtr = hits_[mdsInGPU.anchorHitIndices[mdIndex]];
+            std::shared_ptr<Hit> upperHitPtr = hits_[mdsInGPU.outerHitIndices[mdIndex]];
 #ifdef CUT_VALUE_DEBUG
             miniDoublets_[mdIndex] = std::make_shared<SDL::MiniDoublet>(mdsInGPU.dzs[mdIndex], mdsInGPU.drts[mdIndex], mdsInGPU.dphis[mdIndex], mdsInGPU.dphichanges[mdIndex], mdsInGPU.noShiftedDphis[mdIndex], mdsInGPU.noShiftedDphiChanges[mdIndex], mdsInGPU.dzCuts[mdIndex], mdsInGPU.drtCuts[mdIndex], mdsInGPU.miniCuts[mdIndex], lowerHitPtr, upperHitPtr);
 #else
