@@ -2380,9 +2380,12 @@ SDL::miniDoublets* SDL::Event::getMiniDoublets()
     {
         mdsInCPU = new SDL::miniDoublets;
         unsigned int nMemoryLocations = (N_MAX_MD_PER_MODULES * (nModules - 1) + N_MAX_PIXEL_MD_PER_MODULES);
-        mdsInCPU->hitIndices = new unsigned int[2 * nMemoryLocations];
+        mdsInCPU->anchorHitIndices = new unsigned int[nMemoryLocations];
+        mdsInCPU->outerHitIndices = new unsigned int[nMemoryLocations];
         mdsInCPU->nMDs = new unsigned int[nModules];
-        cudaMemcpyAsync(mdsInCPU->hitIndices, mdsInGPU->hitIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(mdsInCPU->anchorHitIndices, mdsInGPU->anchorHitIndices, nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(mdsInCPU->outerHitIndices, mdsInGPU->outerHitIndices, nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+
         cudaMemcpyAsync(mdsInCPU->nMDs, mdsInGPU->nMDs, nModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
     }
