@@ -377,7 +377,7 @@ __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, str
     /*
        The two anchor hits are r3PCA and r3LH. p3PCA pt, eta, phi is hitIndex1 x, y, z
     */
-    float circleRadius = hitsInGPU.xs[mdsInGPU.outerHitIndices[innerMDIndex]];
+    float circleRadius = hitsInGPU.xs[mdsInGPU.outerHitIndices[innerMDIndex]] / (2 * k2Rinv1GeVf);
     float circlePhi = hitsInGPU.zs[mdsInGPU.outerHitIndices[innerMDIndex]];
 
     float candidateCenterXs[] = {hitsInGPU.xs[innerAnchorHitIndex] + circleRadius * sinf(circlePhi), hitsInGPU.xs[innerAnchorHitIndex] - circleRadius * sinf(circlePhi)};

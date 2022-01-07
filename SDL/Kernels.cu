@@ -196,13 +196,13 @@ __device__ inline int checkHitspT5(unsigned int ix, unsigned int jx,struct SDL::
     int phits2[4] = {-1,-1,-1,-1};
     phits1[0] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*ix]]];
     phits1[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*ix+1]]];
-    phits1[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*ix]+1]];
-    phits1[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[2*segmentsInGPU.mdIndices[2*ix+1]]];
+    phits1[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*ix]]];
+    phits1[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*ix+1]]];
 
     phits2[0] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*jx]]];
     phits2[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*jx+1]]];
-    phits2[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*jx]+1]];
-    phits2[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[2*segmentsInGPU.mdIndices[2*jx+1]]];
+    phits2[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*jx]]];
+    phits2[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*jx+1]]];
 
     int npMatched =0;
 
@@ -428,6 +428,7 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
             if(dR2 < 0.000001f) {end=true; break;}//return;
             }
         }
+
         if(jx < *pixelTripletsInGPU.nPixelTriplets)
         {
             if(!pixelTripletsInGPU.isDup[jx]){
@@ -452,7 +453,6 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
     unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
     atomicAdd(trackCandidatesInGPU.nTrackCandidatespLS,1);
     addTrackCandidateToMemory(trackCandidatesInGPU, 8/*track candidate type pLS=8*/, pixelArrayIndex, pixelArrayIndex, trackCandidateIdx);
-
 
 }
 }
@@ -717,7 +717,7 @@ __device__ void scoreT5(struct SDL::modules& modulesInGPU, struct SDL::hits& hit
     hits1[6] = mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*outerTrip+1]]]; // outer triplet outersegment inner md inner hit
     hits1[7] = mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*outerTrip+1]]]; // outer triplet outersegment inner md outer hit
     hits1[8] = mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*outerTrip+1]+1]]; // outer triplet outersegment outer md inner hit
-    hits1[9] = mdsInGPU.outerHitIndices[2*segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*outerTrip+1]+1]]; // outer triplet outersegment outer md outer hit
+    hits1[9] = mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*outerTrip+1]+1]]; // outer triplet outersegment outer md outer hit
 
     unsigned int mod1 = hitsInGPU.moduleIndices[hits1[0]];
     SDL::ModuleLayerType type1 = modulesInGPU.moduleLayerType[mod1];
