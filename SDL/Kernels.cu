@@ -196,12 +196,12 @@ __device__ inline int checkHitspT5(unsigned int ix, unsigned int jx,struct SDL::
     int phits2[4] = {-1,-1,-1,-1};
     phits1[0] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*ix]]];
     phits1[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*ix+1]]];
-    phits1[2] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*ix]+1]];
+    phits1[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*ix]+1]];
     phits1[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[2*segmentsInGPU.mdIndices[2*ix+1]]];
 
     phits2[0] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*jx]]];
     phits2[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*jx+1]]];
-    phits2[2] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*jx]+1]];
+    phits2[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*jx]+1]];
     phits2[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[2*segmentsInGPU.mdIndices[2*jx+1]]];
 
     int npMatched =0;
