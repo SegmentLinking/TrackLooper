@@ -236,9 +236,12 @@ __global__ void addpT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
 
 
         float radius = 0.5f*(pixelQuintupletsInGPU.pixelRadius[pixelQuintupletIndex] + pixelQuintupletsInGPU.quintupletRadius[pixelQuintupletIndex]);
-
+#ifdef TRACK_EXTENSIONS
         addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex], pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], &pixelQuintupletsInGPU.logicalLayers[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.lowerModuleIndices[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.hitIndices[14 * pixelQuintupletIndex], pixelQuintupletsInGPU.centerX[pixelQuintupletIndex],
                             pixelQuintupletsInGPU.centerY[pixelQuintupletIndex],radius , trackCandidateIdx);        
+#else
+        addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex], pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], trackCandidateIdx);        
+#endif
     }
 }
 
@@ -336,7 +339,13 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, st
 #endif
             unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
             atomicAdd(trackCandidatesInGPU.nTrackCandidatesT5,1);
+
+#ifdef TRACK_EXTENSIONS
             addTrackCandidateToMemory(trackCandidatesInGPU, 4/*track candidate type T5=4*/, quintupletIndex, quintupletIndex, &quintupletsInGPU.logicalLayers[5 * quintupletIndex], &quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex], &quintupletsInGPU.hitIndices[10 * quintupletIndex], quintupletsInGPU.regressionG[quintupletIndex], quintupletsInGPU.regressionF[quintupletIndex], quintupletsInGPU.regressionRadius[quintupletIndex], trackCandidateIdx);
+#else
+            addTrackCandidateToMemory(trackCandidatesInGPU, 4/*track candidate type T5=4*/, quintupletIndex, quintupletIndex, trackCandidateIdx);
+
+#endif
         }
     }
 }
@@ -1248,6 +1257,7 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU,struct SDL::miniD
     }
 }
 
+#ifdef TRACK_EXTENSIONS
 #ifdef T3T3_EXTENSIONS
 __global__ void createT3T3ExtendedTracksInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::trackExtensions& trackExtensionsInGPU, unsigned int nTrackCandidates)
 {
@@ -1307,7 +1317,12 @@ __global__ void createT3T3ExtendedTracksInGPU(struct SDL::modules& modulesInGPU,
             else
             {
                 unsigned int trackExtensionIndex = nTrackCandidates * N_MAX_TRACK_EXTENSIONS_PER_TC + trackExtensionArrayIndex;
+#ifdef CUT_VALUE_DEBUG
                 addTrackExtensionToMemory(trackExtensionsInGPU, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius,  innerRadius, outerRadius, trackExtensionIndex);
+#else
+                addTrackExtensionToMemory(trackExtensionsInGPU, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius, trackExtensionIndex);
+
+#endif
                 trackExtensionsInGPU.isDup[trackExtensionIndex] = false;
                 tripletsInGPU.partOfExtension[firstT3Idx] = true;
                 tripletsInGPU.partOfExtension[secondT3Idx] = true;
@@ -1344,7 +1359,11 @@ __global__ void createT3T3ExtendedTracksInGPU(struct SDL::modules& modulesInGPU,
             else
             {
                 unsigned int trackExtensionIndex = nTrackCandidates * N_MAX_TRACK_EXTENSIONS_PER_TC + trackExtensionArrayIndex;
+#ifdef CUT_VALUE_DEBUG
                 addTrackExtensionToMemory(trackExtensionsInGPU, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius,  innerRadius, outerRadius, trackExtensionIndex);
+#else
+                addTrackExtensionToMemory(trackExtensionsInGPU, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius, trackExtensionIndex);
+#endif
                 trackExtensionsInGPU.isDup[trackExtensionIndex] = false;
                 tripletsInGPU.partOfExtension[firstT3Idx] = true;
                 tripletsInGPU.partOfExtension[secondT3Idx] = true;
@@ -1354,6 +1373,7 @@ __global__ void createT3T3ExtendedTracksInGPU(struct SDL::modules& modulesInGPU,
     }
 }
 #endif
+
 __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::trackExtensions& trackExtensionsInGPU)
 {
     int tcIdx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1405,7 +1425,11 @@ __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, str
         else
         {
             unsigned int trackExtensionIndex = tcIdx * N_MAX_TRACK_EXTENSIONS_PER_TC + trackExtensionArrayIndex; 
+#ifdef CUT_VALUE_DEBUG
             addTrackExtensionToMemory(trackExtensionsInGPU, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius, innerRadius, outerRadius, trackExtensionIndex);
+#else
+            addTrackExtensionToMemory(trackExtensionsInGPU, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius, trackExtensionIndex);
+#endif
             trackCandidatesInGPU.partOfExtension[tcIdx] = true;
             tripletsInGPU.partOfExtension[t3Idx] = true;
         }
@@ -1439,4 +1463,4 @@ __global__ void cleanDuplicateExtendedTracks(struct SDL::trackExtensions& trackE
     }
     trackExtensionsInGPU.isDup[N_MAX_TRACK_EXTENSIONS_PER_TC * trackCandidateIndex + minIndex] = false;
 }
-
+#endif

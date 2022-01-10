@@ -55,6 +55,23 @@ const unsigned int N_MAX_TRACK_CANDIDATE_EXTENSIONS = 200000;
 const unsigned int N_MAX_TRACK_EXTENSIONS_PER_TC = 30;
 const unsigned int N_MAX_T3T3_TRACK_EXTENSIONS = 40000;
 
+//old numbers
+//const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 5000;
+//const unsigned int N_MAX_PIXEL_TRIPLETS = 250000;
+//const unsigned int N_MAX_PIXEL_QUINTUPLETS = 1000000;
+//const unsigned int N_MAX_TRACK_CANDIDATES = 10000;
+//const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 400000;
+
+//const unsigned int N_MAX_TRIPLETS_PER_MODULE = 1000;
+//const unsigned int N_MAX_TOTAL_TRIPLETS = 100000;
+//const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 2000;
+//const unsigned int N_MAX_PIXEL_TRIPLETS = 2500;
+//const unsigned int N_MAX_PIXEL_QUINTUPLETS = 10000;
+//const unsigned int N_MAX_TRACK_CANDIDATES = 10000;
+//const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 10000;
+//const unsigned int N_MAX_TOTAL_TRIPLETS = 130000;
+
+
 __device__ float scorepT3(struct SDL::modules& modulesInGPU,struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, unsigned int innerPix,unsigned int outerTrip,float pt, float pz);
 __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::triplets& tripletsInGPU, bool secondPass);
 __device__ int* checkHitspT3(unsigned int ix, unsigned int jx,struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU);

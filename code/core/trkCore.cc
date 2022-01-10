@@ -828,7 +828,7 @@ float runTrackCandidateTest_v2(SDL::Event* event)
 
 }
 
-
+#ifdef TRACK_EXTENSIONS
 float runTrackExtensions(SDL::Event* event)
 {
     TStopwatch my_timer;
@@ -851,6 +851,7 @@ float runTrackExtensions(SDL::Event* event)
     }
     return tce_elapsed;
 }
+#endif
 
 bool goodEvent()
 {

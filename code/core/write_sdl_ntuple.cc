@@ -164,6 +164,7 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<int>>("pT5_score");
 
     //TCE
+#ifdef TRACK_EXTENSIONS
     ana.tx->createBranch<vector<int>>("tce_anchorIndex");
     ana.tx->createBranch<vector<int>>("sim_tce_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_tce_types");
@@ -172,8 +173,6 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<vector<int>>>("tce_matched_simIdx");
     ana.tx->createBranch<vector<vector<int>>>("tce_nLayerOverlaps");
     ana.tx->createBranch<vector<vector<int>>>("tce_nHitOverlaps");
-    ana.tx->createBranch<vector<float>>("tce_rPhiChiSquared");
-    ana.tx->createBranch<vector<float>>("tce_rzChiSquared");
     ana.tx->createBranch<vector<float>>("tce_pt");
     ana.tx->createBranch<vector<float>>("tce_eta");
     ana.tx->createBranch<vector<float>>("tce_phi");
@@ -191,12 +190,10 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("pureTCE_pt");
     ana.tx->createBranch<vector<float>>("pureTCE_eta");
     ana.tx->createBranch<vector<float>>("pureTCE_phi");
-    ana.tx->createBranch<vector<float>>("pureTCE_rPhiChiSquared");
-    ana.tx->createBranch<vector<float>>("pureTCE_rzChiSquared");
     ana.tx->createBranch<vector<int>>("pureTCE_layer_binary");
     ana.tx->createBranch<vector<int>>("pureTCE_anchorType");
     ana.tx->createBranch<vector<vector<int>>>("pureTCE_hitIdxs");
-
+#ifdef T3T3_EXTENSIONS
     ana.tx->createBranch<vector<int>>("T3T3_anchorIndex");
     ana.tx->createBranch<vector<int>>("sim_T3T3_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_T3T3_types");
@@ -205,18 +202,15 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<vector<int>>>("T3T3_matched_simIdx");
     ana.tx->createBranch<vector<vector<int>>>("T3T3_nLayerOverlaps");
     ana.tx->createBranch<vector<vector<int>>>("T3T3_nHitOverlaps");
-    ana.tx->createBranch<vector<float>>("T3T3_rPhiChiSquared");
-    ana.tx->createBranch<vector<float>>("T3T3_rzChiSquared");
     ana.tx->createBranch<vector<float>>("T3T3_pt");
     ana.tx->createBranch<vector<float>>("T3T3_eta");
     ana.tx->createBranch<vector<float>>("T3T3_phi");
     ana.tx->createBranch<vector<int>>("T3T3_layer_binary");
     ana.tx->createBranch<vector<int>>("T3T3_anchorType");
-    ana.tx->createBranch<vector<float>>("T3T3_regressionRadius");
-    ana.tx->createBranch<vector<float>>("T3T3_innerT3Radius");
-    ana.tx->createBranch<vector<float>>("T3T3_outerT3Radius");
     ana.tx->createBranch<vector<float>>("T3T3_matched_pt"); 
     ana.tx->createBranch<vector<vector<int>>>("T3T3_hitIdxs");
+#endif
+#endif
 
 #ifdef CUT_VALUE_DEBUG
     createQuadrupletCutValueBranches();
@@ -227,11 +221,34 @@ void createLowerLevelOutputBranches()
     createPixelTripletCutValueBranches();
     createQuintupletCutValueBranches();
     createPixelQuintupletCutValueBranches();
+#ifdef TRACK_EXTENSIONS
+    createTrackExtensionCutValueBranches();
+#ifdef T3T3_EXTENSIONS
+    createT3T3CutvalueBranches();
+#endif
+#endif
 #endif
 
 #ifdef PRIMITIVE_STUDY
     createPrimitiveBranches();
 #endif
+}
+
+void createTrackExtensionCutValueBranches()
+{
+    ana.tx->createBranch<vector<float>>("tce_rPhiChiSquared");
+    ana.tx->createBranch<vector<float>>("tce_rzChiSquared");
+    ana.tx->createBranch<vector<float>>("pureTCE_rPhiChiSquared");
+    ana.tx->createBranch<vector<float>>("pureTCE_rzChiSquared");
+
+}
+void createT3T3CutValueBranches()
+{
+    ana.tx->createBranch<vector<float>>("T3T3_rPhiChiSquared");
+    ana.tx->createBranch<vector<float>>("T3T3_rzChiSquared");
+    ana.tx->createBranch<vector<float>>("T3T3_regressionRadius");
+    ana.tx->createBranch<vector<float>>("T3T3_innerT3Radius");
+    ana.tx->createBranch<vector<float>>("T3T3_outerT3Radius");
 }
 
 void createQuintupletCutValueBranches()
@@ -1247,10 +1264,12 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
             for (auto &isimtrk : matched_sim_trk_idxs)
             {
                 sim_TC_matched[isimtrk]++;
+#ifdef TRACK_EXTENSIONS
                 if(not trackCandidatesInGPU.partOfExtension[jdx])
                 {
                     sim_TC_matched_nonextended[isimtrk]++;
                 }
+#endif
 
             }
 
@@ -1290,14 +1309,18 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
             }
 
             tc_isFake.push_back(matched_sim_trk_idxs.size() == 0);
+#ifdef TRACK_EXTENSIONS
             tc_partOfExtension.push_back(trackCandidatesInGPU.partOfExtension[jdx]);
+#endif
             tc_pt.push_back(pt);
             tc_eta.push_back(eta);
             tc_phi.push_back(phi);
             tc_matched_simIdx.push_back(matched_sim_trk_idxs);
     }
     ana.tx->setBranch<vector<int>>("sim_TC_matched", sim_TC_matched);
+#ifdef TRACK_EXTENSIONS
     ana.tx->setBranch<vector<int>>("sim_TC_matched_nonextended", sim_TC_matched_nonextended);
+#endif
     ana.tx->setBranch<vector<vector<int>>>("sim_TC_types", sim_TC_types);
 
     vector<int> tc_isDuplicate(tc_matched_simIdx.size());
@@ -1335,13 +1358,17 @@ void fillLowerLevelOutputBranches(SDL::Event* event)
     fillQuintupletOutputBranches(event);
     fillPixelQuintupletOutputBranches(event);
     fillPixelTripletOutputBranches(event);
+#ifdef TRACK_EXTENSIONS
     fillTrackExtensionOutputBranches(event);
     fillPureTrackExtensionOutputBranches(event);
 #ifdef T3T3_EXTENSIONS
     fillT3T3TrackExtensionOutputBranches(event);
 #endif
+#endif
 }
 
+#ifdef TRACK_EXTENSIONS
+#ifdef T3T3_EXTENSIONS
 void fillT3T3TrackExtensionOutputBranches(SDL::Event* event)
 {
     SDL::trackExtensions& trackExtensionsInGPU = (*event->getTrackExtensions());
@@ -1362,19 +1389,19 @@ void fillT3T3TrackExtensionOutputBranches(SDL::Event* event)
     std::vector<int> tce_sim;
     std::vector<int> tce_layer_binary;
     std::vector<int> tce_moduleType_binary;
+
+#ifdef CUT_VALUE_DEBUG
     std::vector<float> tce_rzChiSquared;
     std::vector<float> tce_rPhiChiSquared;
-    std::vector<float> tce_regressionRadius;
     std::vector<float> tce_innerRadius;
     std::vector<float> tce_outerRadius;
+#endif
 
     std::vector<float> tce_simpt;
     std::vector<std::vector<int>> tce_nLayerOverlaps;
     std::vector<std::vector<int>> tce_nHitOverlaps;
     std::vector<int> tce_anchorIndex;
-    
-    std::vector<float> tce_innerT3Radius;
-    std::vector<float> tce_outerT3Radius;
+    std::vector<float> tce_regressionRadius;
 
     std::vector<float> t3_pt = ana.tx->getBranch<vector<float>>("t3_pt");
     std::vector<float> t3_eta = ana.tx->getBranch<vector<float>>("t3_eta");
@@ -1414,14 +1441,15 @@ void fillT3T3TrackExtensionOutputBranches(SDL::Event* event)
 
         tce_nLayerOverlaps.push_back(nLayerOverlaps);
         tce_nHitOverlaps.push_back(nHitOverlaps);
+        float regressionRadius = trackExtensionsInGPU.regressionRadius[teIdx];
+
+#ifdef CUT_VALUE_DEBUG
         tce_rPhiChiSquared.push_back(trackExtensionsInGPU.rPhiChiSquared[teIdx]);
         tce_rzChiSquared.push_back(trackExtensionsInGPU.rzChiSquared[teIdx]);
-
-        float regressionRadius = trackExtensionsInGPU.regressionRadius[teIdx];
         tce_regressionRadius.push_back(regressionRadius);
         tce_innerRadius.push_back(trackExtensionsInGPU.innerRadius[teIdx]);
         tce_outerRadius.push_back(trackExtensionsInGPU.outerRadius[teIdx]);
-       
+#endif       
         anchorHitIndices = &tripletsInGPU.hitIndices[6 * anchorIndex];
         anchorLogicalLayers = &tripletsInGPU.logicalLayers[3 * anchorIndex];
         outerHitIndices = &tripletsInGPU.hitIndices[6 * outerIndex];        
@@ -1516,16 +1544,20 @@ void fillT3T3TrackExtensionOutputBranches(SDL::Event* event)
     ana.tx->setBranch<vector<float>>("T3T3_pt", tce_pt);
     ana.tx->setBranch<vector<float>>("T3T3_eta", tce_eta);
     ana.tx->setBranch<vector<float>>("T3T3_phi", tce_phi);
-    ana.tx->setBranch<vector<float>>("T3T3_rPhiChiSquared", tce_rPhiChiSquared);
-    ana.tx->setBranch<vector<float>>("T3T3_rzChiSquared", tce_rzChiSquared);
     ana.tx->setBranch<vector<int>>("T3T3_layer_binary", tce_layer_binary);
     ana.tx->setBranch<vector<int>>("T3T3_anchorType", tce_anchorType);
+
+#ifdef CUT_VALUE_DEBUG
+    ana.tx->setBranch<vector<float>>("T3T3_regressionRadius", tce_regressionRadius);
+    ana.tx->setBranch<vector<float>>("T3T3_rPhiChiSquared", tce_rPhiChiSquared);
+    ana.tx->setBranch<vector<float>>("T3T3_rzChiSquared", tce_rzChiSquared);
     ana.tx->setBranch<vector<float>>("T3T3_innerT3Radius", tce_innerRadius);
     ana.tx->setBranch<vector<float>>("T3T3_outerT3Radius", tce_outerRadius);
-    ana.tx->setBranch<vector<float>>("T3T3_regressionRadius", tce_regressionRadius);
+#endif
     ana.tx->setBranch<vector<float>>("T3T3_matched_pt", tce_simpt);
     ana.tx->setBranch<vector<vector<int>>>("T3T3_hitIdxs", hitIndices);
 }
+#endif
 
 void fillPureTrackExtensionOutputBranches(SDL::Event* event)
 {
@@ -1734,13 +1766,14 @@ void fillPureTrackExtensionOutputBranches(SDL::Event* event)
     ana.tx->setBranch<vector<float>>("pureTCE_pt", tce_pt);
     ana.tx->setBranch<vector<float>>("pureTCE_eta", tce_eta);
     ana.tx->setBranch<vector<float>>("pureTCE_phi", tce_phi);
+#ifdef CUT_VALUE_DEBUG
     ana.tx->setBranch<vector<float>>("pureTCE_rPhiChiSquared", tce_rPhiChiSquared);
     ana.tx->setBranch<vector<float>>("pureTCE_rzChiSquared", tce_rzChiSquared);
+#endif
     ana.tx->setBranch<vector<int>>("pureTCE_layer_binary", tce_layer_binary);
     ana.tx->setBranch<vector<int>>("pureTCE_anchorType", tce_anchorType);
     ana.tx->setBranch<vector<vector<int>>>("pureTCE_hitIdxs", tce_hitIndices);
 }
-
 
 void fillTrackExtensionOutputBranches(SDL::Event* event)
 {
@@ -1811,7 +1844,6 @@ void fillTrackExtensionOutputBranches(SDL::Event* event)
             unsigned int* outerLogicalLayers;
             vector<int> hit_idxs;
             vector<int> module_idxs;
-
             vector<int> nLayerOverlaps;
             vector<int> nHitOverlaps;
     
@@ -1822,8 +1854,10 @@ void fillTrackExtensionOutputBranches(SDL::Event* event)
 
             tce_nLayerOverlaps.push_back(nLayerOverlaps);
             tce_nHitOverlaps.push_back(nHitOverlaps);
+#ifdef CUT_VALUE_DEBUG
             tce_rPhiChiSquared.push_back(trackExtensionsInGPU.rPhiChiSquared[teIdx]);
             tce_rzChiSquared.push_back(trackExtensionsInGPU.rzChiSquared[teIdx]);
+#endif
             if(anchorType != 3)
             {
                 anchorHitIndices = &trackCandidatesInGPU.hitIndices[14 * anchorIndex];
@@ -1849,12 +1883,11 @@ void fillTrackExtensionOutputBranches(SDL::Event* event)
                 float z3 = hitsInGPU.zs[anchorHitIndices[4]];
 
                 float g, f; // not used
-                float innerRadius = SDL::CPU::TrackCandidate::computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3, g, f);
-
+                float regressionRadius = trackExtensionsInGPU.regressionRadius[teIdx];
                 // Compute pt, eta, phi of T3
                 const float kRinv1GeVf = (2.99792458e-3 * 3.8);
 
-                const float pt = kRinv1GeVf * innerRadius;
+                const float pt = kRinv1GeVf * regressionRadius;
                 float eta = -999;
                 float phi = -999;
                 SDL::CPU::Hit hitA(x1,y1,z1);
@@ -1882,7 +1915,6 @@ void fillTrackExtensionOutputBranches(SDL::Event* event)
         
             for(size_t j = 0; j < anchorLimits; j++)
             {
-
                 hit_idxs.push_back(hitsInGPU.idxs[anchorHitIndices[j]]);
                 module_idxs.push_back(hitsInGPU.moduleIndices[anchorHitIndices[j]]);
             }
@@ -1985,7 +2017,7 @@ void fillTrackExtensionOutputBranches(SDL::Event* event)
     ana.tx->setBranch<vector<int>>("tce_layer_binary", tce_layer_binary);
     ana.tx->setBranch<vector<int>>("tce_anchorType", tce_anchorType);
 }
-
+#endif
 //________________________________________________________________________________________________________________________________
 void fillQuintupletOutputBranches(SDL::Event* event)
 {

@@ -35,6 +35,7 @@ namespace SDL
         unsigned int* nTrackCandidatespLS;
         unsigned int* nTrackCandidatesT5;
 
+#ifdef TRACK_EXTENSIONS
         unsigned int* logicalLayers;
         unsigned int* hitIndices;
         unsigned int* lowerModuleIndices;
@@ -43,6 +44,7 @@ namespace SDL
         float* centerX;
         float* centerY;
         float* radius;
+#endif
 
         trackCandidates();
         ~trackCandidates();
