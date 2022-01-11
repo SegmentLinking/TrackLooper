@@ -97,8 +97,8 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
     cudaMalloc(&tripletsInGPU.segmentIndices, 5 * maxTriplets * nLowerModules * sizeof(unsigned int));
     cudaMalloc(&tripletsInGPU.betaIn, maxTriplets * nLowerModules * 3 * sizeof(float));
     cudaMalloc(&tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int));
-#ifdef TRACK_EXTENSIONS
     cudaMalloc(&tripletsInGPU.partOfPT5, maxTriplets * nLowerModules * sizeof(bool));
+#ifdef TRACK_EXTENSIONS
     cudaMalloc(&tripletsInGPU.partOfPT3, maxTriplets * nLowerModules * sizeof(bool));
     cudaMalloc(&tripletsInGPU.partOfT5, maxTriplets * nLowerModules * sizeof(bool));
     cudaMalloc(&tripletsInGPU.partOfExtension, maxTriplets * nLowerModules * sizeof(bool));
@@ -222,8 +222,8 @@ void SDL::triplets::freeMemoryCache()
     cms::cuda::free_managed(segmentIndices);
     cms::cuda::free_managed(betaIn);
     cms::cuda::free_managed(nTriplets);
-#ifdef TRACK_EXTENSIONS
     cms::cuda::free_managed(partOfPT5);
+#ifdef TRACK_EXTENSIONS
     cms::cuda::free_managed(partOfPT3);
     cms::cuda::free_managed(partOfExtension);
     cms::cuda::free_managed(logicalLayers);
@@ -240,8 +240,8 @@ void SDL::triplets::freeMemory(cudaStream_t stream)
     cudaFree(segmentIndices);
     cudaFree(nTriplets);
     cudaFree(betaIn);
-#ifdef TRACK_EXTENSIONS
     cudaFree(partOfPT5);
+#ifdef TRACK_EXTENSIONS
     cudaFree(partOfPT3);
     cudaFree(partOfT5);
     cudaFree(partOfExtension);
