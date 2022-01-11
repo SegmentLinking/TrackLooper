@@ -180,6 +180,17 @@ SDL::Event::~Event()
         delete pixelTripletsInCPU;
     }
 #endif
+#ifdef Explicit_PT5
+    if(pixelQuintupletsInCPU != nullptr)
+    {
+        delete[] pixelQuintupletsInCPU->pixelIndices;
+        delete[] pixelQuintupletsInCPU->T5Indices;
+        delete[] pixelQuintupletsInCPU->isDup;
+        delete[] pixelQuintupletsInCPU->score;
+        delete pixelQuintupletsInCPU->nPixelQuintuplets;
+        delete pixelQuintupletsInCPU;
+    }
+#endif
 
 #ifdef Explicit_Track
     if(trackCandidatesInCPU != nullptr)
@@ -402,7 +413,18 @@ void SDL::Event::resetEvent()
         pixelTripletsInCPU = nullptr;
     }
 #endif
-
+#ifdef Explicit_PT5
+    if(pixelQuintupletsInCPU != nullptr)
+    {
+        delete[] pixelQuintupletsInCPU->pixelIndices;
+        delete[] pixelQuintupletsInCPU->T5Indices;
+        delete[] pixelQuintupletsInCPU->isDup;
+        delete[] pixelQuintupletsInCPU->score;
+        delete pixelQuintupletsInCPU->nPixelQuintuplets;
+        delete pixelQuintupletsInCPU;
+        pixelQuintupletsInCPU = nullptr;
+    }
+#endif
 #ifdef Explicit_Track
     if(trackCandidatesInCPU != nullptr)
     {
