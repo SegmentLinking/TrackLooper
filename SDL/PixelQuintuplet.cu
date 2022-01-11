@@ -39,13 +39,13 @@ void SDL::pixelQuintuplets::freeMemoryCache()
     cms::cuda::free_device(dev,eta);
     cms::cuda::free_device(dev,phi);
 #ifdef TRACK_EXTENSIONS
-    cms::cuda::free_device(dev, pixelRadius);
-    cms::cuda::free_device(dev, quintupletRadius);
+    cms::cuda::free_device(dev, hitIndices);
+    cms::cuda::free_device(dev, logicalLayers);
+    cms::cuda::free_device(dev, lowerModuleIndices);
     cms::cuda::free_device(dev, centerX);
     cms::cuda::free_device(dev, centerY);
-    cms::cuda::free_device(dev, logicalLayers);
-    cms::cuda::free_device(dev, hitIndices);
-    cms::cuda::free_device(dev, lowerModuleIndices);
+    cms::cuda::free_device(dev, pixelRadius);
+    cms::cuda::free_device(dev, quintupletRadius);
 #endif
 #else
     cms::cuda::free_managed(pixelIndices);
@@ -56,13 +56,13 @@ void SDL::pixelQuintuplets::freeMemoryCache()
     cms::cuda::free_managed(eta);
     cms::cuda::free_managed(phi);
 #ifdef TRACK_EXTENSIONS
-    cms::cuda::free_managed(pixelRadius);
-    cms::cuda::free_managed(quintupletRadius);
+    cms::cuda::free_managed(hitIndices);
+    cms::cuda::free_managed(logicalLayers);
+    cms::cuda::free_managed(lowerModuleIndices);
     cms::cuda::free_managed(centerX);
     cms::cuda::free_managed(centerY);
-    cms::cuda::free_managed(logicalLayers);
-    cms::cuda::free_managed(hitIndices);
-    cms::cuda::free_managed(lowerModuleIndices);
+    cms::cuda::free_managed(pixelRadius);
+    cms::cuda::free_managed(quintupletRadius);
 #endif
 #endif
 }

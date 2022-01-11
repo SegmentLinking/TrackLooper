@@ -27,7 +27,6 @@ void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned
     tripletsInGPU.partOfPT3 = (bool*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(bool), stream);
     tripletsInGPU.partOfT5 = (bool*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(bool), stream);
     tripletsInGPU.partOfExtension = (bool*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(bool), stream);
-
     tripletsInGPU.logicalLayers = (unsigned int*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * 3 * sizeof(unsigned int), stream);
     tripletsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * 6 * sizeof(unsigned int), stream);
 #endif
@@ -225,6 +224,7 @@ void SDL::triplets::freeMemoryCache()
     cms::cuda::free_managed(partOfPT5);
 #ifdef TRACK_EXTENSIONS
     cms::cuda::free_managed(partOfPT3);
+    cms::cuda::free_managed(partOfT5);
     cms::cuda::free_managed(partOfExtension);
     cms::cuda::free_managed(logicalLayers);
     cms::cuda::free_managed(hitIndices);
