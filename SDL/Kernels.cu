@@ -235,8 +235,8 @@ __global__ void addpT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
         atomicAdd(trackCandidatesInGPU.nTrackCandidatespT5,1);
 
 
-        float radius = 0.5f*(pixelQuintupletsInGPU.pixelRadius[pixelQuintupletIndex] + pixelQuintupletsInGPU.quintupletRadius[pixelQuintupletIndex]);
 #ifdef TRACK_EXTENSIONS
+        float radius = 0.5f*(pixelQuintupletsInGPU.pixelRadius[pixelQuintupletIndex] + pixelQuintupletsInGPU.quintupletRadius[pixelQuintupletIndex]);
         addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex], pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], &pixelQuintupletsInGPU.logicalLayers[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.lowerModuleIndices[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.hitIndices[14 * pixelQuintupletIndex], pixelQuintupletsInGPU.centerX[pixelQuintupletIndex],
                             pixelQuintupletsInGPU.centerY[pixelQuintupletIndex],radius , trackCandidateIdx);        
 #else
@@ -527,7 +527,9 @@ __global__ void createPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGP
 #else
                     addPixelTripletToMemory(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius,tripletRadius, centerX, centerY, pixelTripletIndex, pt,eta,phi,eta_pix,phi_pix,score);
 #endif
+#ifdef TRACK_EXTENSIONS
                     tripletsInGPU.partOfPT3[outerTripletIndex] = true;
+#endif
                 }
             }
         }
@@ -620,8 +622,10 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
 #else
                         addQuintupletToMemory(tripletsInGPU, quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, outerRadius, regressionG, regressionF, regressionRadius, pt,eta,phi,scores,layer,quintupletIndex);
 #endif
+#ifdef  TRACK_EXTENSIONS
                         tripletsInGPU.partOfT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex]] = true;
                         tripletsInGPU.partOfT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1]] = true;
+#endif
 
                     }
                 }
@@ -1055,8 +1059,10 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesI
     for (unsigned int ix=blockIdx.x*blockDim.x+threadIdx.x; ix<*pixelTripletsInGPU.nPixelTriplets; ix+=blockDim.x*gridDim.x)
     {
         bool isDup = false;
+        float score1 = pixelTripletsInGPU.score[ix];
         for (unsigned int jx=0; jx<*pixelTripletsInGPU.nPixelTriplets; jx++)
         {
+            float score2 = pixelTripletsInGPU.score[jx];
             if(ix==jx)
             {
                 continue;
@@ -1066,6 +1072,7 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesI
             if(((nMatched[0] + nMatched[1]) >= 5) )
             {
                 dup_count++;
+#ifdef TRACK_EXTENSIONS
                 //check the layers
                 if(pixelTripletsInGPU.logicalLayers[5*jx+2] < pixelTripletsInGPU.logicalLayers[5*ix+2])
                 {
@@ -1083,6 +1090,19 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesI
                     rmPixelTripletToMemory(pixelTripletsInGPU,ix);
                     break;
                 }
+#else
+                 if( score1 > score2 )
+                 {
+                    rmPixelTripletToMemory(pixelTripletsInGPU,ix);
+                    break;                                                         
+                 }
+             
+                 if( (score1 == score2) && (ix<jx) )
+                 { 
+                    rmPixelTripletToMemory(pixelTripletsInGPU,ix);
+                    break;                                                                           
+                }
+#endif
             }
         }
     }

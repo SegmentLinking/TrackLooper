@@ -1579,8 +1579,10 @@ void fillPureTrackExtensionOutputBranches(SDL::Event* event)
     std::vector<int> tce_sim;
     std::vector<int> tce_layer_binary;
     std::vector<int> tce_moduleType_binary;
+#ifdef CUT_VALUE_DEBUG
     std::vector<float> tce_rzChiSquared;
     std::vector<float> tce_rPhiChiSquared;
+#endif
     std::vector<float> tce_simpt;
     std::vector<std::vector<int>> tce_nLayerOverlaps;
     std::vector<std::vector<int>> tce_nHitOverlaps;
@@ -1641,8 +1643,10 @@ void fillPureTrackExtensionOutputBranches(SDL::Event* event)
 
             tce_nLayerOverlaps.push_back(nLayerOverlaps);
             tce_nHitOverlaps.push_back(nHitOverlaps);
+#ifdef CUT_VALUE_DEBUG
             tce_rPhiChiSquared.push_back(trackExtensionsInGPU.rPhiChiSquared[teIdx]);
             tce_rzChiSquared.push_back(trackExtensionsInGPU.rzChiSquared[teIdx]);
+#endif
             if(anchorType != 3)
             {
                 anchorHitIndices = &trackCandidatesInGPU.hitIndices[14 * anchorIndex];
@@ -1795,8 +1799,10 @@ void fillTrackExtensionOutputBranches(SDL::Event* event)
     std::vector<int> tce_sim;
     std::vector<int> tce_layer_binary;
     std::vector<int> tce_moduleType_binary;
+#ifdef CUT_VALUE_DEBUG
     std::vector<float> tce_rzChiSquared;
     std::vector<float> tce_rPhiChiSquared;
+#endif
     std::vector<float> tce_simpt;
     std::vector<std::vector<int>> tce_nLayerOverlaps;
     std::vector<std::vector<int>> tce_nHitOverlaps;
@@ -2603,7 +2609,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
     
         unsigned int T5InnerTripletIndex = quintupletsInGPU.tripletIndices[2 * T5Index];
         unsigned int T5OuterTripletIndex = quintupletsInGPU.tripletIndices[2 * T5Index + 1];
-
+        cout<<"T5 inner triplet index = "<<T5InnerTripletIndex<<"T5 outer triplet index = "<<T5OuterTripletIndex<<endl;
         unsigned int pixelSegmentIndex = pixelQuintupletsInGPU.pixelIndices[jdx];
         unsigned int T5InnerTripletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * T5InnerTripletIndex]; 
         unsigned int T5InnerTripletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * T5InnerTripletIndex + 1];

@@ -94,9 +94,9 @@ void SDL::createTrackExtensionsInUnifiedMemory(struct trackExtensions& trackExte
     trackExtensionsInGPU.nHitOverlaps = (unsigned int*)cms::cuda::allocate_managed(maxTrackExtensions * 2 * sizeof(unsigned int), stream);
 
     trackExtensionsInGPU.rPhiChiSquared = (float*)cms::cuda::allocate_managed(maxTrackExtensions * sizeof(float), stream);
-    trackExtensionsInGPU.rzChiSquared = (unsigned int*)cms::cuda::allocate_managed(maxTrackExtensions * sizeof(float), stream);
+    trackExtensionsInGPU.rzChiSquared = (float*)cms::cuda::allocate_managed(maxTrackExtensions * sizeof(float), stream);
     trackExtensionsInGPU.isDup = (bool*) cms::cuda::allocate_managed(maxTrackExtensions * sizeof(bool), stream);
-    trackExtensionsInGPU.regressionRadius = (float*)cms::cuda::allocate_managed(maxTrackExtensions * sizeof(float));
+    trackExtensionsInGPU.regressionRadius = (float*)cms::cuda::allocate_managed(maxTrackExtensions * sizeof(float), stream);
     trackExtensionsInGPU.nTrackExtensions = (unsigned int*)cms::cuda::allocate_managed(nTrackCandidates * sizeof(unsigned int), stream);
 
 #else
@@ -131,10 +131,10 @@ void SDL::createTrackExtensionsInExplicitMemory(struct trackExtensions& trackExt
     trackExtensionsInGPU.nHitOverlaps = (unsigned int*)cms::cuda::allocate_device(dev,maxTrackExtensions * 2 * sizeof(unsigned int), stream);
 
     trackExtensionsInGPU.rPhiChiSquared = (float*)cms::cuda::allocate_device(dev,maxTrackExtensions * sizeof(float), stream);
-    trackExtensionsInGPU.rzChiSquared = (unsigned int*)cms::cuda::allocate_device(dev,maxTrackExtensions * sizeof(float), stream);
+    trackExtensionsInGPU.rzChiSquared = (float*)cms::cuda::allocate_device(dev,maxTrackExtensions * sizeof(float), stream);
     trackExtensionsInGPU.isDup = (bool*) cms::cuda::allocate_device(dev,maxTrackExtensions * sizeof(bool), stream);
     trackExtensionsInGPU.nTrackExtensions = (unsigned int*)cms::cuda::allocate_device(dev,nTrackCandidates * sizeof(unsigned int), stream);
-    trackExtensionsInGPU.regressonRadius = (float*)cms::cuda::allocate_device(dev, nTrackExtensions * sizeof(float), stream);
+    trackExtensionsInGPU.regressionRadius = (float*)cms::cuda::allocate_device(dev, maxTrackExtensions * sizeof(float), stream);
 #else
     cudaMalloc(&trackExtensionsInGPU.constituentTCTypes, sizeof(short) * 3 * maxTrackExtensions);
     cudaMalloc(&trackExtensionsInGPU.constituentTCIndices, sizeof(unsigned int) * 3 * maxTrackExtensions);
