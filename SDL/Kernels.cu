@@ -281,7 +281,13 @@ __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, S
         unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
         atomicAdd(trackCandidatesInGPU.nTrackCandidatespT3,1);
 
+#ifdef TRACK_EXTENSIONS
+        float radius = 0.5f * (pixelTripletsInGPU.pixelRadius[pixelTripletIndex] + pixelTripletsInGPU.tripletRadius[pixelTripletIndex]);
+        addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, &pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex], &pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex], &pixelTripletsInGPU.hitIndices[10 * pixelTripletIndex], pixelTripletsInGPU.centerX[pixelTripletIndex], pixelTripletsInGPU.centerY[pixelTripletIndex],radius,
+                trackCandidateIdx);
+#else
         addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, trackCandidateIdx);
+#endif
     }
 }
 

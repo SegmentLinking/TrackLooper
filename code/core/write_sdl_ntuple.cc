@@ -2609,7 +2609,6 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
     
         unsigned int T5InnerTripletIndex = quintupletsInGPU.tripletIndices[2 * T5Index];
         unsigned int T5OuterTripletIndex = quintupletsInGPU.tripletIndices[2 * T5Index + 1];
-        cout<<"T5 inner triplet index = "<<T5InnerTripletIndex<<"T5 outer triplet index = "<<T5OuterTripletIndex<<endl;
         unsigned int pixelSegmentIndex = pixelQuintupletsInGPU.pixelIndices[jdx];
         unsigned int T5InnerTripletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * T5InnerTripletIndex]; 
         unsigned int T5InnerTripletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * T5InnerTripletIndex + 1];
