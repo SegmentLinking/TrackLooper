@@ -38,7 +38,7 @@ usage()
 }
 
 # Parsing command-line opts
-while getopts ":i:p:g:n:f:e:3:h" OPTION; do
+while getopts ":i:p:g:n:fe3h" OPTION; do
   case $OPTION in
     i) INPUTFILE=${OPTARG};;
     p) PTBOUND=${OPTARG};;
@@ -210,10 +210,9 @@ if $T3T3EXTENSION; then
 fi
 
 
-if [ ! -f $DIR/../bin/createEffNumDenPlots ]; then
-    echo "Need to make efficiency code first"
-    make clean; make ${TRACKEXTENSIONOPT} ${T3T3EXTENSIONOPT} -j
-fi
+pushd $DIR/../
+make clean; make ${TRACKEXTENSIONOPT} ${T3T3EXTENSIONOPT} -j; cd -
+popd
 
 for i in $(seq 0 $((NJOBS-1))); do
     echo "$DIR/../bin/createEffNumDenPlots -i ${INPUTFILE} -p ${PTBOUND} -g ${PDGID} -n ${NEVTS} -t tree -o outputs/output_${i}.root -j ${NJOBS} -I ${i} > outputs/output_${i}.log 2>&1" >> .jobs.txt
