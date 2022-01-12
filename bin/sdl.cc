@@ -467,7 +467,7 @@ float timing_TCE;
 #ifdef TRACK_EXTENSIONS
             timing_TCE = runTrackExtensions(events.at(omp_get_thread_num()));
 #else
-            timing_TCE = 0
+            timing_TCE = 0;
 #endif
             timing_information.push_back({ timing_input_loading,
                     timing_MD,
