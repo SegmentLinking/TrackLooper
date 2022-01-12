@@ -1,4 +1,7 @@
 #!/bin/bash
+#runExtension=""
+runExtension="-e"
+#runExtension="-e3"
 
 run_gpu()
 {
@@ -17,11 +20,11 @@ run_gpu()
     fi
     sdl -v 3 -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}.root -i ${sample} -v 0 -l
     if [[ ${PDGID} == 0 ]]; then
-        sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 0 -f
+        sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 0 -f ${runExtension}
     elif [[ ${sample} == *"highE"* ]]; then
-        sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 0 -f
+        sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 0 -f ${runExtension}
     else
-        sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 4 -f
+        sdl_plot_efficiency -i ${OUTDIR}/gpu_${version}.root -g ${PDGID} -p 4 -f ${runExtension}
 
     fi
 }
@@ -113,11 +116,11 @@ mkdir -p ${OUTDIR}
 
 # Run different GPU configurations
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified" ]]; then
-    run_gpu unified ${SAMPLE} ${NEVENTS} -8
+    run_gpu unified ${SAMPLE} ${NEVENTS} -8 ${runExtension}
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit" ]]; then
-    run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 
+    run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 ${runExtension}
     :
 fi
 sdl_compare_efficiencies -i ${SAMPLE} -t ${GITHASH} -f

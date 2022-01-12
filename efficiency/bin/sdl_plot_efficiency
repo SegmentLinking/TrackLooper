@@ -57,7 +57,7 @@ if [ -z ${INPUTFILE} ]; then usage; fi
 if [ -z ${PTBOUND}  ]; then usage; fi
 if [ -z ${PDGID} ]; then usage; fi
 if [ -z ${FORCE} ]; then FORCE=false; fi
-if [ -z ${NEVTS} ]; then NEVTS=-1;fi 
+if [ -z ${NEVTS} ]; then NEVTS=-1; fi 
 if [ -z ${TRACKEXTENSION} ]; then TRACKEXTENSION=false; fi
 if [ -z ${T3T3EXTENSION} ]; then T3T3EXTENSION=false; fi
 # Shift away the parsed options
