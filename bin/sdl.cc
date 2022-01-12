@@ -466,17 +466,19 @@ float timing_TCE;
             timing_TC = runTrackCandidate(events.at(omp_get_thread_num()));
 #ifdef TRACK_EXTENSIONS
             timing_TCE = runTrackExtensions(events.at(omp_get_thread_num()));
+#else
+            timing_TCE = 0
 #endif
             timing_information.push_back({ timing_input_loading,
                     timing_MD,
                     timing_LS,
                     timing_T3,
-                    timing_TC,
                     timing_T5,
-                    timing_pT3,
+                    timing_pLS,
                     timing_pT5,
-                    timing_pLS
-
+                    timing_pT3,
+                    timing_TC,
+                    timing_TCE
                     });
 
             if (ana.verbose == 4)
