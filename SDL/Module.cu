@@ -14,11 +14,8 @@ void SDL::createRangesInUnifiedMemory(struct objectRanges& rangesInGPU,unsigned 
     rangesInGPU.tripletRanges =             (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
     rangesInGPU.trackCandidateRanges =      (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
     rangesInGPU.quintupletRanges =          (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
-    rangesInGPU.nEligibleModules =     (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
     rangesInGPU.nEligibleT5Modules = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
     rangesInGPU.quintupletModuleIndices = (int*)cms::cuda::allocate_managed(nLowerModules * sizeof(int),stream);
-
-
 #else
     cudaMallocManaged(&rangesInGPU.hitRanges,nModules * 2 * sizeof(int));
     cudaMallocManaged(&rangesInGPU.mdRanges,nModules * 2 * sizeof(int));
@@ -27,7 +24,6 @@ void SDL::createRangesInUnifiedMemory(struct objectRanges& rangesInGPU,unsigned 
     cudaMallocManaged(&rangesInGPU.tripletRanges,nModules * 2 * sizeof(int));
     cudaMallocManaged(&rangesInGPU.trackCandidateRanges, nModules * 2 * sizeof(int));
     cudaMallocManaged(&rangesInGPU.quintupletRanges, nModules * 2 * sizeof(int));
-    cudaMallocManaged(&rangesInGPU.nEligibleModules,sizeof(unsigned int));
     cudaMallocManaged(&rangesInGPU.nEligibleT5Modules, sizeof(unsigned int));
     cudaMallocManaged(&rangesInGPU.quintupletModuleIndices, nLowerModules * sizeof(int));
 #endif
@@ -45,7 +41,6 @@ void SDL::createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned
     rangesInGPU.tripletRanges =              (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
     rangesInGPU.trackCandidateRanges =       (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
     rangesInGPU.quintupletRanges =       (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
-    rangesInGPU.nEligibleModules =     (unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
     rangesInGPU.nEligibleT5Modules = (unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
     rangesInGPU.quintupletModuleIndices = (int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(int),stream);
 #else
@@ -56,47 +51,12 @@ void SDL::createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned
     cudaMalloc(&rangesInGPU.tripletRanges,nModules * 2 * sizeof(int));
     cudaMalloc(&rangesInGPU.trackCandidateRanges, nModules * 2 * sizeof(int));
     cudaMalloc(&rangesInGPU.quintupletRanges, nModules * 2 * sizeof(int));
-    cudaMalloc(&rangesInGPU.nEligibleModules,sizeof(unsigned int));
     cudaMalloc(&rangesInGPU.nEligibleT5Modules, sizeof(unsigned int));
     cudaMalloc(&rangesInGPU.quintupletModuleIndices, nLowerModules * sizeof(int));
 #endif
 }
 void SDL::createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int nModules,cudaStream_t stream)
 {
-    /* modules stucture object will be created in Event.cu*/
-//#ifdef CACHE_ALLOC
-// //   cudaStream_t stream=0;
-//    modulesInGPU.detIds =            (unsigned int*)cms::cuda::allocate_managed(nModules * sizeof(unsigned int),stream);
-//    modulesInGPU.moduleMap =         (unsigned int*)cms::cuda::allocate_managed(nModules * 40 * sizeof(unsigned int),stream);
-//    modulesInGPU.nConnectedModules = (unsigned int*)cms::cuda::allocate_managed(nModules * sizeof(unsigned int),stream);
-//    modulesInGPU.drdzs =                    (float*)cms::cuda::allocate_managed(nModules * sizeof(float),stream);
-//    modulesInGPU.slopes =                   (float*)cms::cuda::allocate_managed(nModules * sizeof(float),stream);
-//    modulesInGPU.nModules =          (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
-//    modulesInGPU.nLowerModules =     (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
-//    modulesInGPU.layers =                   (short*)cms::cuda::allocate_managed(nModules * sizeof(short),stream);
-//    modulesInGPU.rings =                    (short*)cms::cuda::allocate_managed(nModules * sizeof(short),stream);
-//    modulesInGPU.modules =                  (short*)cms::cuda::allocate_managed(nModules * sizeof(short),stream);
-//    modulesInGPU.rods =                    (short*)cms::cuda::allocate_managed(nModules * sizeof(short),stream);
-//    modulesInGPU.subdets =                 (short*)cms::cuda::allocate_managed(nModules * sizeof(short),stream);
-//    modulesInGPU.sides =                   (short*)cms::cuda::allocate_managed(nModules * sizeof(short),stream);
-//    modulesInGPU.isInverted =               (bool*)cms::cuda::allocate_managed(nModules * sizeof(bool),stream);
-//    modulesInGPU.isLower =                  (bool*)cms::cuda::allocate_managed(nModules * sizeof(bool),stream);
-////    modulesInGPU.nEligibleModules =     (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
-////    modulesInGPU.nEligibleT5Modules = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
-//
-//
-////    modulesInGPU.hitRanges =                 (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
-////    modulesInGPU.mdRanges =                  (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
-////    modulesInGPU.segmentRanges =             (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
-////    modulesInGPU.trackletRanges =            (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
-////    modulesInGPU.tripletRanges =             (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
-////    modulesInGPU.trackCandidateRanges =      (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
-////    modulesInGPU.quintupletRanges =          (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
-//
-//
-//    modulesInGPU.moduleType =         (ModuleType*)cms::cuda::allocate_managed(nModules * sizeof(ModuleType),stream);
-//    modulesInGPU.moduleLayerType=(ModuleLayerType*)cms::cuda::allocate_managed(nModules * sizeof(ModuleLayerType),stream);
-//#else
     cudaMallocManaged(&modulesInGPU.detIds,nModules * sizeof(unsigned int));
     cudaMallocManaged(&modulesInGPU.moduleMap,nModules * 40 * sizeof(unsigned int));
     cudaMallocManaged(&modulesInGPU.nConnectedModules,nModules * sizeof(unsigned int));
@@ -112,89 +72,16 @@ void SDL::createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int
     cudaMallocManaged(&modulesInGPU.sides,nModules * sizeof(short));
     cudaMallocManaged(&modulesInGPU.isInverted, nModules * sizeof(bool));
     cudaMallocManaged(&modulesInGPU.isLower, nModules * sizeof(bool));
-//    cudaMallocManaged(&modulesInGPU.nEligibleModules,sizeof(unsigned int));
-//    cudaMallocManaged(&modulesInGPU.nEligibleT5Modules, sizeof(unsigned int));
-
-//    cudaMallocManaged(&modulesInGPU.hitRanges,nModules * 2 * sizeof(int));
-//    cudaMallocManaged(&modulesInGPU.mdRanges,nModules * 2 * sizeof(int));
-//    cudaMallocManaged(&modulesInGPU.segmentRanges,nModules * 2 * sizeof(int));
-//    cudaMallocManaged(&modulesInGPU.trackletRanges,nModules * 2 * sizeof(int));
-//    cudaMallocManaged(&modulesInGPU.tripletRanges,nModules * 2 * sizeof(int));
-//    cudaMallocManaged(&modulesInGPU.trackCandidateRanges, nModules * 2 * sizeof(int));
-//    cudaMallocManaged(&modulesInGPU.quintupletRanges, nModules * 2 * sizeof(int));
+    cudaMallocManaged(&modulesInGPU.isAnchor, nModules * sizeof(bool));
 
     cudaMallocManaged(&modulesInGPU.moduleType,nModules * sizeof(ModuleType));
     cudaMallocManaged(&modulesInGPU.moduleLayerType,nModules * sizeof(ModuleLayerType));
-//#endif
-
 
     *modulesInGPU.nModules = nModules;
 }
 void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned int nModules,cudaStream_t stream)
 {
     /* modules stucture object will be created in Event.cu*/
-//#ifdef CACHE_ALLOC
-//    //cudaStream_t stream=0;
-//    int dev;
-//    cudaGetDevice(&dev);
-//    modulesInGPU.detIds =            (unsigned int*)cms::cuda::allocate_device(dev,nModules * sizeof(unsigned int),stream);
-//    modulesInGPU.moduleMap =         (unsigned int*)cms::cuda::allocate_device(dev,nModules * 40 * sizeof(unsigned int),stream);
-//    modulesInGPU.nConnectedModules = (unsigned int*)cms::cuda::allocate_device(dev,nModules * sizeof(unsigned int),stream);
-//    modulesInGPU.drdzs =                    (float*)cms::cuda::allocate_device(dev,nModules * sizeof(float),stream);
-//    modulesInGPU.slopes =                   (float*)cms::cuda::allocate_device(dev,nModules * sizeof(float),stream);
-//    modulesInGPU.nModules =          (unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
-//    modulesInGPU.nLowerModules =     (unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
-//    modulesInGPU.layers =                   (short*)cms::cuda::allocate_device(dev,nModules * sizeof(short),stream);
-//    modulesInGPU.rings =                    (short*)cms::cuda::allocate_device(dev,nModules * sizeof(short),stream);
-//    modulesInGPU.modules =                  (short*)cms::cuda::allocate_device(dev,nModules * sizeof(short),stream);
-//    modulesInGPU.rods =                     (short*)cms::cuda::allocate_device(dev,nModules * sizeof(short),stream);
-//    modulesInGPU.subdets =                  (short*)cms::cuda::allocate_device(dev,nModules * sizeof(short),stream);
-//    modulesInGPU.sides =                    (short*)cms::cuda::allocate_device(dev,nModules * sizeof(short),stream);
-//    modulesInGPU.isInverted =                (bool*)cms::cuda::allocate_device(dev,nModules * sizeof(bool),stream);
-//    modulesInGPU.isLower =                   (bool*)cms::cuda::allocate_device(dev,nModules * sizeof(bool),stream);
-////    modulesInGPU.nEligibleModules =     (unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
-////    modulesInGPU.nEligibleT5Modules = (unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
-//
-//
-////    modulesInGPU.hitRanges =                  (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
-////    modulesInGPU.mdRanges =                   (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
-////    modulesInGPU.segmentRanges =              (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
-////    modulesInGPU.trackletRanges =             (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
-////    modulesInGPU.tripletRanges =              (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
-////    modulesInGPU.trackCandidateRanges =       (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
-////    modulesInGPU.quintupletRanges =       (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
-//
-//    modulesInGPU.moduleType =          (ModuleType*)cms::cuda::allocate_device(dev,nModules * sizeof(ModuleType),stream);
-//    modulesInGPU.moduleLayerType= (ModuleLayerType*)cms::cuda::allocate_device(dev,nModules * sizeof(ModuleLayerType),stream);
-//#else
-    //cudaMallocAsync(&(modulesInGPU.detIds),nModules * sizeof(unsigned int),stream);
-    //cudaMallocAsync(&modulesInGPU.moduleMap,nModules * 40 * sizeof(unsigned int),stream);
-    //cudaMallocAsync(&modulesInGPU.nConnectedModules,nModules * sizeof(unsigned int),stream);
-    //cudaMallocAsync(&modulesInGPU.drdzs,nModules * sizeof(float),stream);
-    //cudaMallocAsync(&modulesInGPU.slopes,nModules * sizeof(float),stream);
-    //cudaMallocAsync(&modulesInGPU.nModules,sizeof(unsigned int),stream);
-    //cudaMallocAsync(&modulesInGPU.nLowerModules,sizeof(unsigned int),stream);
-    //cudaMallocAsync(&modulesInGPU.layers,nModules * sizeof(short),stream);
-    //cudaMallocAsync(&modulesInGPU.rings,nModules * sizeof(short),stream);
-    //cudaMallocAsync(&modulesInGPU.modules,nModules * sizeof(short),stream);
-    //cudaMallocAsync(&modulesInGPU.rods,nModules * sizeof(short),stream);
-    //cudaMallocAsync(&modulesInGPU.subdets,nModules * sizeof(short),stream);
-    //cudaMallocAsync(&modulesInGPU.sides,nModules * sizeof(short),stream);
-    //cudaMallocAsync(&modulesInGPU.isInverted, nModules * sizeof(bool),stream);
-    //cudaMallocAsync(&modulesInGPU.isLower, nModules * sizeof(bool),stream);
-    //cudaMallocAsync(&modulesInGPU.nEligibleModules,sizeof(unsigned int),stream);
-    //cudaMallocAsync(&modulesInGPU.nEligibleT5Modules, sizeof(unsigned int),stream);
-
-    //cudaMallocAsync(&modulesInGPU.hitRanges,nModules * 2 * sizeof(int),stream);
-    //cudaMallocAsync(&modulesInGPU.mdRanges,nModules * 2 * sizeof(int),stream);
-    //cudaMallocAsync(&modulesInGPU.segmentRanges,nModules * 2 * sizeof(int),stream);
-    //cudaMallocAsync(&modulesInGPU.trackletRanges,nModules * 2 * sizeof(int),stream);
-    //cudaMallocAsync(&modulesInGPU.tripletRanges,nModules * 2 * sizeof(int),stream);
-    //cudaMallocAsync(&modulesInGPU.trackCandidateRanges, nModules * 2 * sizeof(int),stream);
-    //cudaMallocAsync(&modulesInGPU.quintupletRanges, nModules * 2 * sizeof(int),stream);
-
-    //cudaMallocAsync(&modulesInGPU.moduleType,nModules * sizeof(ModuleType),stream);
-    //cudaMallocAsync(&modulesInGPU.moduleLayerType,nModules * sizeof(ModuleLayerType),stream);
     cudaMalloc(&(modulesInGPU.detIds),nModules * sizeof(unsigned int));
     cudaMalloc(&modulesInGPU.moduleMap,nModules * 40 * sizeof(unsigned int));
     cudaMalloc(&modulesInGPU.nConnectedModules,nModules * sizeof(unsigned int));
@@ -210,20 +97,9 @@ void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned in
     cudaMalloc(&modulesInGPU.sides,nModules * sizeof(short));
     cudaMalloc(&modulesInGPU.isInverted, nModules * sizeof(bool));
     cudaMalloc(&modulesInGPU.isLower, nModules * sizeof(bool));
-//    cudaMalloc(&modulesInGPU.nEligibleModules,sizeof(unsigned int));
-//    cudaMalloc(&modulesInGPU.nEligibleT5Modules, sizeof(unsigned int));
-
-//    cudaMalloc(&modulesInGPU.hitRanges,nModules * 2 * sizeof(int));
-//    cudaMalloc(&modulesInGPU.mdRanges,nModules * 2 * sizeof(int));
-//    cudaMalloc(&modulesInGPU.segmentRanges,nModules * 2 * sizeof(int));
-//    cudaMalloc(&modulesInGPU.trackletRanges,nModules * 2 * sizeof(int));
-//    cudaMalloc(&modulesInGPU.tripletRanges,nModules * 2 * sizeof(int));
-//    cudaMalloc(&modulesInGPU.trackCandidateRanges, nModules * 2 * sizeof(int));
-//    cudaMalloc(&modulesInGPU.quintupletRanges, nModules * 2 * sizeof(int));
-
+    cudaMalloc(&modulesInGPU.isAnchor, nModules * sizeof(bool));
     cudaMalloc(&modulesInGPU.moduleType,nModules * sizeof(ModuleType));
     cudaMalloc(&modulesInGPU.moduleLayerType,nModules * sizeof(ModuleLayerType));
-//#endif
 
     cudaMemcpyAsync(modulesInGPU.nModules,&nModules,sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
@@ -241,7 +117,6 @@ void SDL::objectRanges::freeMemoryCache()//struct objectRanges& rangesInGPU)
   cms::cuda::free_device(dev,tripletRanges);
   cms::cuda::free_device(dev,trackCandidateRanges);
   cms::cuda::free_device(dev,quintupletRanges);
-  cms::cuda::free_device(dev,nEligibleModules);
   cms::cuda::free_device(dev,nEligibleT5Modules);
   cms::cuda::free_device(dev,quintupletModuleIndices);
 #else
@@ -253,7 +128,6 @@ void SDL::objectRanges::freeMemoryCache()//struct objectRanges& rangesInGPU)
   cms::cuda::free_managed(tripletRanges);
   cms::cuda::free_managed(trackCandidateRanges);
   cms::cuda::free_managed(quintupletRanges);
-  cms::cuda::free_managed(nEligibleModules);
   cms::cuda::free_managed(nEligibleT5Modules);
   cms::cuda::free_managed(quintupletModuleIndices);
 #endif
@@ -267,7 +141,6 @@ void SDL::objectRanges::freeMemory()//struct objectRanges& rangesInGPU)
   cudaFree(tripletRanges);
   cudaFree(trackCandidateRanges);
   cudaFree(quintupletRanges);
-  cudaFree(nEligibleModules);
   cudaFree(nEligibleT5Modules);
   cudaFree(quintupletModuleIndices);
 }
@@ -291,21 +164,11 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
   cms::cuda::free_device(dev,modulesInGPU.sides);
   cms::cuda::free_device(dev,modulesInGPU.isInverted);
   cms::cuda::free_device(dev,modulesInGPU.isLower);
-//  cms::cuda::free_device(dev,modulesInGPU.hitRanges);
-//  cms::cuda::free_device(dev,modulesInGPU.mdRanges);
-//  cms::cuda::free_device(dev,modulesInGPU.segmentRanges);
-//  cms::cuda::free_device(dev,modulesInGPU.trackletRanges);
-//  cms::cuda::free_device(dev,modulesInGPU.tripletRanges);
-//  cms::cuda::free_device(dev,modulesInGPU.trackCandidateRanges);
-//  cms::cuda::free_device(dev,modulesInGPU.quintupletRanges);
+  cms::cuda::free_device(dev,modulesInGPU.isAnchor);
   cms::cuda::free_device(dev,modulesInGPU.moduleType);
   cms::cuda::free_device(dev,modulesInGPU.moduleLayerType);
   cms::cuda::free_device(dev,modulesInGPU.lowerModuleIndices);
   cms::cuda::free_device(dev,modulesInGPU.reverseLookupLowerModuleIndices);
-  cms::cuda::free_device(dev,modulesInGPU.trackCandidateModuleIndices);
-//  cms::cuda::free_device(dev,modulesInGPU.quintupletModuleIndices);
-//  cms::cuda::free_device(dev,modulesInGPU.nEligibleModules);
-//  cms::cuda::free_device(dev,modulesInGPU.nEligibleT5Modules);
   cms::cuda::free_device(dev,modulesInGPU.connectedPixels);
 #else
   cms::cuda::free_managed(modulesInGPU.detIds);
@@ -323,21 +186,11 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
   cms::cuda::free_managed(modulesInGPU.sides);
   cms::cuda::free_managed(modulesInGPU.isInverted);
   cms::cuda::free_managed(modulesInGPU.isLower);
-//  cms::cuda::free_managed(modulesInGPU.hitRanges);
-//  cms::cuda::free_managed(modulesInGPU.mdRanges);
-//  cms::cuda::free_managed(modulesInGPU.segmentRanges);
-//  cms::cuda::free_managed(modulesInGPU.trackletRanges);
-//  cms::cuda::free_managed(modulesInGPU.tripletRanges);
-//  cms::cuda::free_managed(modulesInGPU.trackCandidateRanges);
-//  cms::cuda::free_managed(modulesInGPU.quintupletRanges);
+  cms::cuda::free_managed(modulesInGPU.isAnchor);
   cms::cuda::free_managed(modulesInGPU.moduleType);
   cms::cuda::free_managed(modulesInGPU.moduleLayerType);
   cms::cuda::free_managed(modulesInGPU.lowerModuleIndices);
   cms::cuda::free_managed(modulesInGPU.reverseLookupLowerModuleIndices);
-  cms::cuda::free_managed(modulesInGPU.trackCandidateModuleIndices);
-//  cms::cuda::free_managed(modulesInGPU.quintupletModuleIndices);
-//  cms::cuda::free_managed(modulesInGPU.nEligibleModules);
-//  cms::cuda::free_managed(modulesInGPU.nEligibleT5Modules);
   cms::cuda::free_managed(modulesInGPU.connectedPixels);
 #endif
   cudaFreeHost(pixelMapping.connectedPixelsSizes);
@@ -349,37 +202,6 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
 }
 void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMapping,cudaStream_t stream)
 {
-  //cudaFreeAsync(modulesInGPU.detIds,stream);
-  //cudaFreeAsync(modulesInGPU.moduleMap,stream);
-  //cudaFreeAsync(modulesInGPU.nConnectedModules,stream);
-  //cudaFreeAsync(modulesInGPU.drdzs,stream);
-  //cudaFreeAsync(modulesInGPU.slopes,stream);
-  //cudaFreeAsync(modulesInGPU.nModules,stream);
-  //cudaFreeAsync(modulesInGPU.nLowerModules,stream);
-  //cudaFreeAsync(modulesInGPU.layers,stream);
-  //cudaFreeAsync(modulesInGPU.rings,stream);
-  //cudaFreeAsync(modulesInGPU.modules,stream);
-  //cudaFreeAsync(modulesInGPU.rods,stream);
-  //cudaFreeAsync(modulesInGPU.subdets,stream);
-  //cudaFreeAsync(modulesInGPU.sides,stream);
-  //cudaFreeAsync(modulesInGPU.isInverted,stream);
-  //cudaFreeAsync(modulesInGPU.isLower,stream);
-  //cudaFreeAsync(modulesInGPU.hitRanges,stream);
-  //cudaFreeAsync(modulesInGPU.mdRanges,stream);
-  //cudaFreeAsync(modulesInGPU.segmentRanges,stream);
-  //cudaFreeAsync(modulesInGPU.trackletRanges,stream);
-  //cudaFreeAsync(modulesInGPU.tripletRanges,stream);
-  //cudaFreeAsync(modulesInGPU.trackCandidateRanges,stream);
-  //cudaFreeAsync(modulesInGPU.quintupletRanges,stream);
-  //cudaFreeAsync(modulesInGPU.moduleType,stream);
-  //cudaFreeAsync(modulesInGPU.moduleLayerType,stream);
-  //cudaFreeAsync(modulesInGPU.lowerModuleIndices,stream);
-  //cudaFreeAsync(modulesInGPU.reverseLookupLowerModuleIndices,stream);
-  //cudaFreeAsync(modulesInGPU.trackCandidateModuleIndices,stream);
-  //cudaFreeAsync(modulesInGPU.quintupletModuleIndices,stream);
-  //cudaFreeAsync(modulesInGPU.nEligibleModules,stream);
-  //cudaFreeAsync(modulesInGPU.nEligibleT5Modules,stream);
-  //cudaFreeAsync(modulesInGPU.connectedPixels,stream);
 
   cudaFree(modulesInGPU.detIds);
   cudaFree(modulesInGPU.moduleMap);
@@ -396,21 +218,11 @@ void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMappin
   cudaFree(modulesInGPU.sides);
   cudaFree(modulesInGPU.isInverted);
   cudaFree(modulesInGPU.isLower);
-//  cudaFree(modulesInGPU.hitRanges);
-//  cudaFree(modulesInGPU.mdRanges);
-//  cudaFree(modulesInGPU.segmentRanges);
-//  cudaFree(modulesInGPU.trackletRanges);
-//  cudaFree(modulesInGPU.tripletRanges);
-//  cudaFree(modulesInGPU.trackCandidateRanges);
-//  cudaFree(modulesInGPU.quintupletRanges);
+  cudaFree(modulesInGPU.isAnchor);
   cudaFree(modulesInGPU.moduleType);
   cudaFree(modulesInGPU.moduleLayerType);
   cudaFree(modulesInGPU.lowerModuleIndices);
   cudaFree(modulesInGPU.reverseLookupLowerModuleIndices);
-  cudaFree(modulesInGPU.trackCandidateModuleIndices);
-//  cudaFree(modulesInGPU.quintupletModuleIndices);
-//  cudaFree(modulesInGPU.nEligibleModules);
-//  cudaFree(modulesInGPU.nEligibleT5Modules);
   cudaFree(modulesInGPU.connectedPixels);
 
   cudaFreeHost(pixelMapping.connectedPixelsSizes);
@@ -449,26 +261,9 @@ void SDL::createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsign
     //hacky stuff "beyond the index" for the pixel module. nLowerModules will *NOT* cover the pixel module!
     lowerModuleIndices[nLowerModules] = (*detIdToIndex)[1];
     reverseLookupLowerModuleIndices[(*detIdToIndex)[1]] = nLowerModules;
-//    #ifdef CACHE_ALLOC
-//    //cudaStream_t stream =0;
-//    int dev;
-//    cudaGetDevice(&dev);
-//    modulesInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_device(dev,(nLowerModules + 1) * sizeof(unsigned int),stream);
-//    modulesInGPU.reverseLookupLowerModuleIndices = (int*)cms::cuda::allocate_device(dev,nModules * sizeof(int),stream);
-//    modulesInGPU.trackCandidateModuleIndices = (int*)cms::cuda::allocate_device(dev,(nLowerModules + 1) * sizeof(int),stream);
-//    //modulesInGPU.quintupletModuleIndices = (int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(int),stream);
-//
-//    #else
-    //cudaMallocAsync(&modulesInGPU.lowerModuleIndices,(nLowerModules + 1) * sizeof(unsigned int),stream);
-    //cudaMallocAsync(&modulesInGPU.reverseLookupLowerModuleIndices,nModules * sizeof(int),stream);
-    //cudaMallocAsync(&modulesInGPU.trackCandidateModuleIndices, (nLowerModules + 1) * sizeof(int),stream);
-    //cudaMallocAsync(&modulesInGPU.quintupletModuleIndices, nLowerModules * sizeof(int),stream);
     cudaMalloc(&modulesInGPU.lowerModuleIndices,(nLowerModules + 1) * sizeof(unsigned int));
     cudaMalloc(&modulesInGPU.reverseLookupLowerModuleIndices,nModules * sizeof(int));
-    cudaMalloc(&modulesInGPU.trackCandidateModuleIndices, (nLowerModules + 1) * sizeof(int));
-    //cudaMalloc(&modulesInGPU.quintupletModuleIndices, nLowerModules * sizeof(int));
 
-//    #endif
     cudaMemcpyAsync(modulesInGPU.lowerModuleIndices,lowerModuleIndices,sizeof(unsigned int)*(nLowerModules+1),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.reverseLookupLowerModuleIndices,reverseLookupLowerModuleIndices,sizeof(int)*nModules,cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
@@ -480,22 +275,8 @@ void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int n
 {
     //FIXME:some hacks to get the pixel module in the lower modules index without incrementing nLowerModules counter!
     //Reproduce these hacks in the explicit memory for identical results (or come up with a better method)
-//    #ifdef CACHE_ALLOC
-//   // cudaStream_t stream =0;
-//    modulesInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_managed((nLowerModules + 1) * sizeof(unsigned int),stream);
-//    modulesInGPU.reverseLookupLowerModuleIndices = (int*)cms::cuda::allocate_managed(nModules * sizeof(int),stream);
-//    modulesInGPU.trackCandidateModuleIndices = (int*)cms::cuda::allocate_managed((nLowerModules + 1) * sizeof(int),stream);
-//    //modulesInGPU.quintupletModuleIndices = (int*)cms::cuda::allocate_managed(nLowerModules * sizeof(int),stream);
-//
-//    #else
     cudaMallocManaged(&modulesInGPU.lowerModuleIndices,(nLowerModules + 1) * sizeof(unsigned int));
     cudaMallocManaged(&modulesInGPU.reverseLookupLowerModuleIndices,nModules * sizeof(int));
-    cudaMallocManaged(&modulesInGPU.trackCandidateModuleIndices, (nLowerModules + 1) * sizeof(int));
-    //cudaMallocManaged(&modulesInGPU.quintupletModuleIndices, nLowerModules * sizeof(int));
-
-//    #endif
-
-
 
     unsigned int lowerModuleCounter = 0;
     for(auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); it++)
@@ -516,7 +297,6 @@ void SDL::createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int n
     //hacky stuff "beyond the index" for the pixel module. nLowerModules will *NOT* cover the pixel module!
     modulesInGPU.lowerModuleIndices[nLowerModules] = (*detIdToIndex)[1];
     modulesInGPU.reverseLookupLowerModuleIndices[(*detIdToIndex)[1]] = nLowerModules;
-
 }
 
 void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModules,unsigned int& lowerModuleCounter, struct pixelMap& pixelMapping,cudaStream_t stream, const char* moduleMetaDataFilePath)
@@ -555,9 +335,6 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     std::cout<<"Number of modules = "<<nModules<<std::endl;
 #ifdef Explicit_Module
     createModulesInExplicitMemory(modulesInGPU,nModules,stream);
-    /*unsigned int**/ lowerModuleCounter;// = 0;
-    //cudaMallocHost(&lowerModuleCounter,sizeof(unsigned int));
-    //cudaMemsetAsync(lowerModuleCounter,0,sizeof(unsigned int),stream);
     unsigned int* host_detIds;
     short* host_layers;
     short* host_rings;
@@ -567,6 +344,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     short* host_sides;
     bool* host_isInverted;
     bool* host_isLower;
+    bool* host_isAnchor;
     ModuleType* host_moduleType;
     ModuleLayerType* host_moduleLayerType;
     float* host_slopes;
@@ -580,6 +358,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     cudaMallocHost(&host_sides,sizeof(short)*nModules);
     cudaMallocHost(&host_isInverted,sizeof(bool)*nModules);
     cudaMallocHost(&host_isLower,sizeof(bool)*nModules);
+    cudaMallocHost(&host_isAnchor, sizeof(bool) * nModules);
     cudaMallocHost(&host_moduleType,sizeof(ModuleType)*nModules);
     cudaMallocHost(&host_moduleLayerType,sizeof(ModuleLayerType)*nModules);
     cudaMallocHost(&host_slopes,sizeof(float)*nModules);
@@ -599,6 +378,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
             host_sides[index] = 0;
             host_isInverted[index] = 0;
             host_isLower[index] = false;
+            host_isAnchor[index] = false;
             host_moduleType[index] = PixelModule;
             host_moduleLayerType[index] = SDL::InnerPixelLayer;
             host_slopes[index] = 0;
@@ -621,6 +401,19 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
             host_moduleType[index] = modulesInGPU.parseModuleType(index, subdet, layer, ring);
             host_moduleLayerType[index] = modulesInGPU.parseModuleLayerType(index, host_moduleType[index],host_isInverted[index],host_isLower[index]);
 
+            if(host_moduleType[index] == SDL::PS and host_moduleLayerType[index] == SDL::Pixel)
+            {
+                host_isAnchor[index] = true;
+            }
+            else if(host_moduleType[index] == SDL::TwoS and host_isLower[index])
+            {
+                host_isAnchor[index] = true;   
+            }
+            else
+            {
+                host_isAnchor[index] = false;
+            }
+
             host_slopes[index] = (subdet == Endcap) ? endcapGeometry.getSlopeLower(detId) : tiltedGeometry.getSlope(detId);
             host_drdzs[index] = (subdet == Barrel) ? tiltedGeometry.getDrDz(detId) : 0;
         }
@@ -629,7 +422,6 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     }
 
     cudaMemcpyAsync(modulesInGPU.nLowerModules,&lowerModuleCounter,sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
-    //cudaMemcpyAsync(modulesInGPU.nLowerModules,lowerModuleCounter,sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.detIds,host_detIds,nModules*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.layers,host_layers,nModules*sizeof(short),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.rings,host_rings,sizeof(short)*nModules,cudaMemcpyHostToDevice,stream);
@@ -642,6 +434,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     cudaMemcpyAsync(modulesInGPU.moduleType,host_moduleType,sizeof(ModuleType)*nModules,cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.moduleLayerType,host_moduleLayerType,sizeof(ModuleLayerType)*nModules,cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.slopes,host_slopes,sizeof(float)*nModules,cudaMemcpyHostToDevice,stream);
+    cudaMemcpyAsync(modulesInGPU.isAnchor, host_isAnchor, sizeof(bool) * nModules, cudaMemcpyHostToDevice, stream);
     cudaMemcpyAsync(modulesInGPU.drdzs,host_drdzs,sizeof(float)*nModules,cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
     cudaFreeHost(host_detIds);
@@ -653,20 +446,19 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     cudaFreeHost(host_sides);
     cudaFreeHost(host_isInverted);
     cudaFreeHost(host_isLower);
+    cudaFreeHost(host_isAnchor);
     cudaFreeHost(host_moduleType);
     cudaFreeHost(host_moduleLayerType);
     cudaFreeHost(host_slopes);
     cudaFreeHost(host_drdzs);
-    //cudaFreeHost(lowerModuleCounter);
     std::cout<<"number of lower modules (without fake pixel module)= "<<lowerModuleCounter<<std::endl;
     createLowerModuleIndexMapExplicit(modulesInGPU,lowerModuleCounter, nModules,host_isLower,stream);
     fillConnectedModuleArrayExplicit(modulesInGPU,nModules,stream);
     fillPixelMap(modulesInGPU,pixelMapping,stream);
-    //resetObjectRanges(modulesInGPU,nModules,stream);
 
 #else
     createModulesInUnifiedMemory(modulesInGPU,nModules,stream);
-    /*unsigned int*/ lowerModuleCounter = 0;
+    lowerModuleCounter = 0;
     for(auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); it++)
     {
         unsigned int detId = it->first;
@@ -682,6 +474,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
             modulesInGPU.sides[index] = 0;
             modulesInGPU.isInverted[index] = 0;
             modulesInGPU.isLower[index] = false;
+            modulesInGPU.isAnchor[index] = false;
             modulesInGPU.moduleType[index] = PixelModule;
             modulesInGPU.moduleLayerType[index] = SDL::InnerPixelLayer;
             modulesInGPU.slopes[index] = 0;
@@ -704,6 +497,19 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
             modulesInGPU.moduleType[index] = modulesInGPU.parseModuleType(index);
             modulesInGPU.moduleLayerType[index] = modulesInGPU.parseModuleLayerType(index);
 
+            if(modulesInGPU.moduleType[index] == SDL::PS and modulesInGPU.moduleLayerType[index] == SDL::Pixel)
+            {
+                modulesInGPU.isAnchor[index] = true;
+            }
+            else if(modulesInGPU.moduleType[index] == SDL::TwoS and modulesInGPU.isLower[index])
+            {
+                modulesInGPU.isAnchor[index] = true;
+            }
+            else
+            {
+                modulesInGPU.isAnchor[index] = false;
+            }
+
             modulesInGPU.slopes[index] = (subdet == Endcap) ? endcapGeometry.getSlopeLower(detId) : tiltedGeometry.getSlope(detId);
             modulesInGPU.drdzs[index] = (subdet == Barrel) ? tiltedGeometry.getDrDz(detId) : 0;
         }
@@ -714,8 +520,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     createLowerModuleIndexMap(modulesInGPU,lowerModuleCounter, nModules,stream);
     fillConnectedModuleArray(modulesInGPU,nModules);
     fillPixelMap(modulesInGPU,pixelMapping,stream);
-    //resetObjectRanges(modulesInGPU,nModules,stream);
-#endif
+    #endif
 }
 
 void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMapping,cudaStream_t stream)
@@ -1213,18 +1018,109 @@ void SDL::resetObjectRanges(struct objectRanges& rangesInGPU, unsigned int nModu
         cudaMemsetAsync(rangesInGPU.trackCandidateRanges, -1,nModules*2*sizeof(int),stream);
         cudaMemsetAsync(rangesInGPU.quintupletRanges, -1, nModules*2*sizeof(int),stream);
         cudaStreamSynchronize(stream);
-//#else
-//
-//#pragma omp parallel for default(shared)
-//    for(size_t i = 0; i<nModules *2; i++)
-//    {
-//        modulesInGPU.hitRanges[i] = -1;
-//        modulesInGPU.mdRanges[i] = -1;
-//        modulesInGPU.segmentRanges[i] = -1;
-//        modulesInGPU.trackletRanges[i] = -1;
-//        modulesInGPU.tripletRanges[i] = -1;
-//        modulesInGPU.trackCandidateRanges[i] = -1;
-//        modulesInGPU.quintupletRanges[i] = -1;
-//    }
-//#endif
+}
+
+
+/*
+   Find the modules that are "staggered neighbours" to a given module
+   
+   Both barrel central : same module, adjacent rod (modulo number of rods) 
+   Both barrel tilted :  same rod, adjacent module (modulo number of modules, which is the same as number of rods for flat)
+   One Barrel flat, One Barrel tilted : 
+      Left and Center : Left module's rod = 12, center module's module = 1, and left module's module = center module's rod
+      Center and Right : Right module's rod = 1 center module's module = max module number, and right module's module = center module's rod
+
+   Endcap : Same ring -> Adjacent modules,
+   TODO: Endcap different ring, and tilted->endcap
+*/
+
+
+__device__ const int nEndcapModulesInner[] = {20,24,24,28,32,32,36,40,40,44,52,60,64,72,76};
+__device__ const int nEndcapModulesOuter[] = {28,28,32,36,36,40,44,52,56,64,72,76};
+
+__device__ const int nCentralBarrelModules[] = {7,11,15,24,24,24};
+__device__ const int nCentralRods[] = {18, 26, 36, 48, 60, 78};
+
+__device__ void findStaggeredNeighbours(struct SDL::modules& modulesInGPU, unsigned int moduleIdx, unsigned int* staggeredNeighbours, unsigned int& counter)
+{
+    //naive and expensive method
+    counter = 0;
+    bool flag = false;
+    for(size_t i = 0; i < *(modulesInGPU.nLowerModules); i++)
+    {
+        flag = false;
+        unsigned int partnerModuleIdx = modulesInGPU.lowerModuleIndices[i];
+        //start
+        unsigned int layer1 = modulesInGPU.layers[moduleIdx];
+        unsigned int layer2 = modulesInGPU.layers[partnerModuleIdx];
+        unsigned int module1 = modulesInGPU.modules[moduleIdx];
+        unsigned int module2 = modulesInGPU.modules[partnerModuleIdx];
+
+        if(layer1 != layer2) continue;
+
+        if(modulesInGPU.subdets[moduleIdx] == 4 and modulesInGPU.subdets[partnerModuleIdx] == 4)
+        {
+            unsigned int ring1 = modulesInGPU.rings[moduleIdx];
+            unsigned int ring2 = modulesInGPU.rings[partnerModuleIdx];
+            if(ring1 != ring2) continue;
+
+            if((layer1 <=2) and (fabsf(module1 - module2) == 1 or fabsf(module1 % nEndcapModulesInner[ring1 - 1] - module2 % nEndcapModulesInner[ring2 - 1]) == 1))
+            {
+                flag = true;
+            }
+
+            else if((layer1 > 2) and (fabsf(module1 - module2) == 1 or fabsf(module1 % nEndcapModulesOuter[ring1 - 1] - module2 % nEndcapModulesOuter[ring2 - 1]) == 1))
+            {
+                flag = true;
+            }
+        }
+        else if(modulesInGPU.subdets[moduleIdx] == 5 and modulesInGPU.subdets[partnerModuleIdx] == 5)
+        {
+            unsigned int rod1 = modulesInGPU.rods[moduleIdx];
+            unsigned int rod2 = modulesInGPU.rods[partnerModuleIdx];
+            unsigned int side1 = modulesInGPU.sides[moduleIdx];
+            unsigned int side2 = modulesInGPU.sides[partnerModuleIdx];
+            
+
+            if(side1 == side2)             
+            {
+                if((fabsf(rod1 - rod2) == 1 and module1 == module2) or (fabsf(module1 - module2) == 1 and rod1 == rod2))
+                {
+                    flag = true;
+                }
+                else if(side1 == 3 and side2 == 3 and fabsf(rod1 % nCentralRods[layer1 - 1] - rod2 % nCentralRods[layer2 - 1]) == 1 and module1 == module2)
+                {
+                    flag = true;
+                }
+                else if(side1 != 3 and  fabsf(module1 % nCentralRods[layer1 - 1] - module2 % nCentralRods[layer2 - 1]) == 1 and rod1 == rod2)
+                {
+                    flag = true;
+                }
+            }
+            else
+            {
+                if(side1 == 1 and side2 == 3 and rod1 == 12 and module2 == 1 and module1 == rod2)
+                {
+                    flag = true;
+                }
+                else if(side1 == 3 and side2 == 1 and rod2 == 12 and module1 == 1 and module1 == rod2)
+                {
+                    flag = true;
+                }
+                else if(side1 == 2 and side2 == 3 and rod1 == 1 and module2 == nCentralBarrelModules[layer2 - 1] and module1 == rod2)
+                {
+                    flag = true;
+                }
+                else if(side1 == 3 and side2 == 2 and module1 == nCentralBarrelModules[layer1 - 1] and rod2 == 1 and rod1 == module2)
+                {
+                    flag = true;
+                }
+            }
+        }
+        if(flag)
+        {
+            staggeredNeighbours[counter] = modulesInGPU.lowerModuleIndices[i]; //deal in lower module indices
+            counter++;
+        }
+    }
 }

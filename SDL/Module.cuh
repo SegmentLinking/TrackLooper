@@ -77,11 +77,7 @@ namespace SDL
        // unsigned int *nEligibleT5Modules; //This number is just nEligibleModules - 1, but still we want this to be independent of the TC kernel
         unsigned int *lowerModuleIndices;
         int *reverseLookupLowerModuleIndices; //module index to lower module index reverse lookup
-
-        int *trackCandidateModuleIndices;
-        //int *quintupletModuleIndices;
-
-        
+       
         short* layers;
         short* rings;
         short* modules;
@@ -90,11 +86,10 @@ namespace SDL
         short* sides;
         bool* isInverted;
         bool* isLower;
+        bool* isAnchor;
         ModuleType* moduleType;
         ModuleLayerType* moduleLayerType;
         
-//        CUDA_HOSTDEV bool isInverted(unsigned int index);
-//        CUDA_HOSTDEV bool isLower(unsigned int index);
         CUDA_HOSTDEV inline unsigned int partnerModuleIndex(unsigned int index) {
         if(isLower[index])
         {	
@@ -174,5 +169,8 @@ namespace SDL
     //void freeModules(struct modules& modulesInGPU,struct pixelMap& pixelMapping,cudaStream_t stream);
     //void freeRangesCache(struct objectRanges& rangesInGPU);
 }
+
+CUDA_DEV void findStaggeredNeighbours(struct SDL::modules& modulesInGPU, unsigned int moduleIdx, unsigned int* staggeredNeighbours, unsigned int& counter);
+
 #endif
 

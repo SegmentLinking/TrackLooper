@@ -25,3 +25,5 @@ movetoweb.sh
 *.nvvp
 *.ipynb
 *.log
+
+*.nfs*

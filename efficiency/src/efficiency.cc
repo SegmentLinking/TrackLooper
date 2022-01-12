@@ -32,7 +32,13 @@ int main(int argc, char** argv)
         list_effSetDef.push_back(EfficiencySetDefinition("T5_AllTypes", 13, [&](int isim) {return sdl.sim_T5_matched().size() > isim ? sdl.sim_T5_matched()[isim] > 0 : false;}));
         list_effSetDef.push_back(EfficiencySetDefinition("pT3_AllTypes", 13, [&](int isim) {return sdl.sim_pT3_matched().size() > isim ? sdl.sim_pT3_matched()[isim] > 0 : false;}));
         list_effSetDef.push_back(EfficiencySetDefinition("pT5_AllTypes", 13, [&](int isim) {return sdl.sim_pT5_matched().size() > isim ? sdl.sim_pT5_matched()[isim] > 0 : false;}));
-
+#ifdef TRACK_EXTENSIONS
+        list_effSetDef.push_back(EfficiencySetDefinition("TCE_AllTypes", 13, [&](int isim) {return sdl.sim_tce_matched().size() > isim ? sdl.sim_tce_matched()[isim] > 0 : false;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("pureTCE_AllTypes", 13, [&](int isim) {return sdl.sim_pureTCE_matched().size() > isim ? sdl.sim_pureTCE_matched()[isim] > 0 : false;}));
+#ifdef T3T3_EXTENSIONS
+        list_effSetDef.push_back(EfficiencySetDefinition("T3T3_AllTypes", 13, [&](int isim) {return sdl.sim_T3T3_matched().size() > isim ? sdl.sim_T3T3_matched()[isim] > 0 : false;}));
+#endif
+#endif
     }
 
     bookEfficiencySets(list_effSetDef);
@@ -51,7 +57,13 @@ int main(int argc, char** argv)
         list_FRSetDef.push_back(FakeRateSetDefinition("T5_AllTypes", 13, [&](int iT5) {return sdl.t5_isFake().size() > iT5 ? sdl.t5_isFake()[iT5] > 0 : false;}, sdl.t5_pt(), sdl.t5_eta(), sdl.t5_phi()));
         list_FRSetDef.push_back(FakeRateSetDefinition("pT3_AllTypes", 13, [&](int ipT3) {return sdl.pT3_isFake().size() > ipT3 ? sdl.pT3_isFake()[ipT3] > 0 : false;}, sdl.pT3_pt(), sdl.pT3_eta(), sdl.pT3_phi()));
         list_FRSetDef.push_back(FakeRateSetDefinition("pT5_AllTypes", 13, [&](int ipT5) {return sdl.pT5_isFake().size() > ipT5 ? sdl.pT5_isFake()[ipT5] > 0 : false;}, sdl.pT5_pt(), sdl.pT5_eta(), sdl.pT5_phi()));
-
+#ifdef TRACK_EXTENSIONS
+        list_FRSetDef.push_back(FakeRateSetDefinition("TCE_AllTypes", 13, [&](int iTCE) {return sdl.tce_isFake().size() > iTCE ? sdl.tce_isFake()[iTCE] > 0 : false;}, sdl.tce_pt(), sdl.tce_eta(), sdl.tce_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("pureTCE_AllTypes", 13, [&](int ipureTCE) {return sdl.tce_isFake().size() > ipureTCE ? sdl.tce_isFake()[ipureTCE] > 0 : false;}, sdl.pureTCE_pt(), sdl.pureTCE_eta(), sdl.pureTCE_phi()));
+#ifdef T3T3_EXTENSIONS
+        list_FRSetDef.push_back(FakeRateSetDefinition("T3T3_AllTypes", 13, [&](int iT3T3) {return sdl.T3T3_isFake().size() > iT3T3 ? sdl.T3T3_isFake()[iT3T3] > 0 : false;}, sdl.T3T3_pt(), sdl.T3T3_eta(), sdl.T3T3_phi()));
+#endif
+#endif
     }
 
     bookFakeRateSets(list_FRSetDef);
@@ -69,6 +81,13 @@ int main(int argc, char** argv)
         list_DLSetDef.push_back(DuplicateRateSetDefinition("T5_AllTypes", 13, [&](int iT5) {return sdl.t5_isDuplicate().size() > iT5 ? sdl.t5_isDuplicate()[iT5] > 0 : false;}, sdl.t5_pt(), sdl.t5_eta(), sdl.t5_phi()));
         list_DLSetDef.push_back(DuplicateRateSetDefinition("pT3_AllTypes", 13, [&](int ipT3) {return sdl.pT3_isDuplicate().size() > ipT3 ? sdl.pT3_isDuplicate()[ipT3] > 0 : false;}, sdl.pT3_pt(), sdl.pT3_eta(), sdl.pT3_phi()));
         list_DLSetDef.push_back(DuplicateRateSetDefinition("pT5_AllTypes", 13, [&](int ipT5) {return sdl.pT5_isDuplicate().size() > ipT5 ? sdl.pT5_isDuplicate()[ipT5] > 0 : false;}, sdl.pT5_pt(), sdl.pT5_eta(), sdl.pT5_phi()));
+#ifdef TRACK_EXTENSIONS
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("TCE_AllTypes", 13, [&](int iTCE) {return sdl.tce_isDuplicate().size() > iTCE ? sdl.tce_isDuplicate()[iTCE] > 0 : false;}, sdl.tce_pt(), sdl.tce_eta(), sdl.tce_phi()));  
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("pureTCE_AllTypes", 13, [&](int ipureTCE) {return sdl.tce_isDuplicate().size() > ipureTCE ? sdl.tce_isDuplicate()[ipureTCE] > 0 : false;}, sdl.pureTCE_pt(), sdl.pureTCE_eta(), sdl.pureTCE_phi()));   
+#ifdef T3T3_EXTENSIONS
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("T3T3_AllTypes", 13, [&](int iT3T3) {return sdl.T3T3_isDuplicate().size() > iT3T3 ? sdl.T3T3_isDuplicate()[iT3T3] > 0 : false;}, sdl.T3T3_pt(), sdl.T3T3_eta(), sdl.T3T3_phi()));   
+#endif
+#endif
 
     }
 
@@ -430,6 +449,13 @@ void fillFakeRateSets(std::vector<FakeRateSetDefinition>& FRsets)
                 fillFakeRateSet(it5, FRset);
             }
         }
+        else if(FRset.set_name.Contains("TCE_"))
+        {
+            for(unsigned int iTCE = 0; iTCE < sdl.tce_pt().size(); ++iTCE)
+            {
+                fillFakeRateSet(iTCE, FRset);
+            }
+        }
     }
 }
 
@@ -485,6 +511,12 @@ void fillFakeRateSet(int itc, FakeRateSetDefinition& FRset)
         pt = sdl.t5_pt()[itc];
         eta = sdl.t5_eta()[itc];
         phi = sdl.t5_phi()[itc];
+    }
+    else if (FRset.set_name.Contains("TCE_"))
+    {
+        pt = sdl.tce_pt()[itc];
+        eta = sdl.tce_eta()[itc];
+        phi = sdl.tce_phi()[itc];
     }
 
     TString category_name = FRset.set_name;
@@ -600,6 +632,13 @@ void fillDuplicateRateSets(std::vector<DuplicateRateSetDefinition>& DLsets)
                 fillDuplicateRateSet(it5, DLset);
             }
         }
+        else if(DLset.set_name.Contains("TCE_"))
+        {
+            for(unsigned int itce = 0; itce < sdl.tce_pt().size(); ++itce)
+            {
+                fillDuplicateRateSet(itce, DLset);
+            }
+        }
     }
 }
 
@@ -613,6 +652,12 @@ void fillDuplicateRateSet(int itc, DuplicateRateSetDefinition& DLset)
         pt = sdl.tc_pt()[itc];
         eta = sdl.tc_eta()[itc];
         phi = sdl.tc_phi()[itc];
+    }
+    else if(DLset.set_name.Contains("TCE_"))
+    {
+        pt = sdl.tce_pt()[itc];
+        eta = sdl.tce_eta()[itc];
+        phi = sdl.tce_phi()[itc];
     }
     else if (DLset.set_name.Contains("T4s_"))
     {

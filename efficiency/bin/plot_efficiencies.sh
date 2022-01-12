@@ -16,4 +16,5 @@ then
 fi
 
 python $DIR/../python/plot_performance.py $1 $2
+python $DIR/../python/plot_tc_te_compare.py $1 $2
 cp $DIR/../misc/index.html plots/
