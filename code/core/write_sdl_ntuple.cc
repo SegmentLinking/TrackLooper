@@ -2099,9 +2099,9 @@ void fillQuintupletOutputBranches(SDL::Event* event)
 
             if(quintupletsInGPU.isDup[quintupletIndex]==1){continue;}
             t5_foundDuplicate.emplace_back(quintupletsInGPU.isDup[quintupletIndex]);
-            t5_score_rphisum.emplace_back(quintupletsInGPU.score_rphisum[quintupletIndex]);
-            t5_eta_2.emplace_back(quintupletsInGPU.eta[quintupletIndex]);
-            t5_phi_2.emplace_back(quintupletsInGPU.phi[quintupletIndex]);
+            t5_score_rphisum.emplace_back(__H2F(quintupletsInGPU.score_rphisum[quintupletIndex]));
+            t5_eta_2.emplace_back(__H2F(quintupletsInGPU.eta[quintupletIndex]));
+            t5_phi_2.emplace_back(__H2F(quintupletsInGPU.phi[quintupletIndex]));
 
 #ifdef CUT_VALUE_DEBUG
             t5_innerRadius.push_back(quintupletsInGPU.innerRadius[quintupletIndex]);
@@ -2215,7 +2215,7 @@ void fillQuintupletOutputBranches(SDL::Event* event)
             
 
 
-            float pt = k2Rinv1GeVf * (quintupletsInGPU.innerRadius[quintupletIndex] + quintupletsInGPU.outerRadius[quintupletIndex]);
+            float pt = k2Rinv1GeVf * (__H2F(quintupletsInGPU.innerRadius[quintupletIndex]) + __H2F(quintupletsInGPU.outerRadius[quintupletIndex]));
 
             //copyting stuff from before for eta and phi
             SDL::CPU::Hit hitA(trk.ph2_x()[hit_idxs[0]], trk.ph2_y()[hit_idxs[0]], trk.ph2_z()[hit_idxs[0]]);
