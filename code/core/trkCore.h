@@ -51,7 +51,7 @@ float runQuintuplet(SDL::Event* event);
 float runPixelQuintuplet(SDL::Event* event);
 float runPixelLineSegment(SDL::Event* event);
 float runpT3(SDL::Event* event);
-//
+float runTrackExtensions(SDL::Event* event);
 //float runMiniDoublet(SDL::Event& event, int evt);
 //float runSegment(SDL::Event& event);
 //float runT4(SDL::Event& event);

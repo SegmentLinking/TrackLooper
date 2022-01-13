@@ -13,7 +13,7 @@
 #include <unistd.h>
 typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > LorentzVector;
 
-// Generated with file: /mnt/data1/bsathian/tce_work/t3t3/20211202-forSlides/withT3T3/output/outputs_2f04df9DIRTY_PU200/gpu_unified.root
+// Generated with file: /mnt/data1/bsathian/tce_work/t3t3/20211123_new_cuts/output/outputs_a7aa967DIRTY_PU200/gpu_unified.root
 
 using namespace std;
 class SDL {
@@ -203,9 +203,6 @@ protected:
   vector<vector<int> > *sim_pureTCE_types_;
   TBranch *sim_pureTCE_types_branch;
   bool sim_pureTCE_types_isLoaded;
-  vector<vector<int> > *T3T3_hitIdxs_;
-  TBranch *T3T3_hitIdxs_branch;
-  bool T3T3_hitIdxs_isLoaded;
   vector<float> *t4_phi_;
   TBranch *t4_phi_branch;
   bool t4_phi_isLoaded;
@@ -335,9 +332,6 @@ protected:
   vector<float> *sim_pca_dz_;
   TBranch *sim_pca_dz_branch;
   bool sim_pca_dz_isLoaded;
-  vector<vector<int> > *pureTCE_hitIdxs_;
-  TBranch *pureTCE_hitIdxs_branch;
-  bool pureTCE_hitIdxs_isLoaded;
   vector<vector<int> > *pureTCE_nHitOverlaps_;
   TBranch *pureTCE_nHitOverlaps_branch;
   bool pureTCE_nHitOverlaps_isLoaded;
@@ -583,7 +577,6 @@ public:
   const vector<vector<int> > &t5_hitIdxs();
   const vector<vector<int> > &sim_pT3_types();
   const vector<vector<int> > &sim_pureTCE_types();
-  const vector<vector<int> > &T3T3_hitIdxs();
   const vector<float> &t4_phi();
   const vector<float> &t5_phi();
   const vector<vector<int> > &pT5_hitIdxs();
@@ -627,7 +620,6 @@ public:
   const vector<float> &T3T3_phi();
   const vector<vector<int> > &pureTCE_nLayerOverlaps();
   const vector<float> &sim_pca_dz();
-  const vector<vector<int> > &pureTCE_hitIdxs();
   const vector<vector<int> > &pureTCE_nHitOverlaps();
   const vector<int> &sim_pLS_matched();
   const vector<vector<int> > &tc_matched_simIdx();
@@ -758,7 +750,6 @@ namespace tas {
   const vector<vector<int> > &t5_hitIdxs();
   const vector<vector<int> > &sim_pT3_types();
   const vector<vector<int> > &sim_pureTCE_types();
-  const vector<vector<int> > &T3T3_hitIdxs();
   const vector<float> &t4_phi();
   const vector<float> &t5_phi();
   const vector<vector<int> > &pT5_hitIdxs();
@@ -802,7 +793,6 @@ namespace tas {
   const vector<float> &T3T3_phi();
   const vector<vector<int> > &pureTCE_nLayerOverlaps();
   const vector<float> &sim_pca_dz();
-  const vector<vector<int> > &pureTCE_hitIdxs();
   const vector<vector<int> > &pureTCE_nHitOverlaps();
   const vector<int> &sim_pLS_matched();
   const vector<vector<int> > &tc_matched_simIdx();

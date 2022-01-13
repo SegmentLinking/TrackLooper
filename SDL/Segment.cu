@@ -101,6 +101,7 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
 //    }
     cudaMemsetAsync(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool),stream);
+    cudaStreamSynchronize(stream);
 
 }
 void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments, cudaStream_t stream)
@@ -153,9 +154,6 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     cudaMalloc(&segmentsInGPU.partOfPT5, maxPixelSegments * sizeof(bool));
 
 #endif
-    cudaMemsetAsync(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int),stream);
-    cudaMemsetAsync(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool),stream);
-    cudaStreamSynchronize(stream);
 
     segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 2;
     segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 3;
@@ -176,6 +174,10 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.etaErr = segmentsInGPU.dPhis + nMemoryLocations * 6 + maxPixelSegments * 5;
     segmentsInGPU.eta = segmentsInGPU.dPhis + nMemoryLocations * 6 + maxPixelSegments * 6;
     segmentsInGPU.phi = segmentsInGPU.dPhis + nMemoryLocations * 6 + maxPixelSegments * 7;
+
+    cudaMemsetAsync(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool),stream);
+    cudaStreamSynchronize(stream);
 
 }
 
@@ -349,7 +351,6 @@ __device__ void SDL::rmPixelSegmentFromMemory(struct segments& segmentsInGPU,uns
     segmentsInGPU.isDup[pixelSegmentArrayIndex] = 1;
 }
 __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, unsigned int pixelModuleIndex, unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr, float eta, float phi, unsigned int idx, unsigned int pixelSegmentArrayIndex, int superbin, int pixelType, short isQuad, float score)
-
 {
     segmentsInGPU.mdIndices[idx * 2] = innerMDIndex;
     segmentsInGPU.mdIndices[idx * 2 + 1] = outerMDIndex;

@@ -420,7 +420,8 @@ float timing_pT5;
 float timing_pT3;
 // Run TC
 float timing_TC ;
-
+//Run Track Extensions
+float timing_TCE;
     #pragma omp for //nowait// private(event)
     for(int evt=0; evt < out_trkX.size(); evt++)
     {
@@ -463,16 +464,21 @@ float timing_TC ;
             timing_pT3 = runpT3(events.at(omp_get_thread_num()));
             // Run TC
             timing_TC = runTrackCandidate(events.at(omp_get_thread_num()));
+#ifdef TRACK_EXTENSIONS
+            timing_TCE = runTrackExtensions(events.at(omp_get_thread_num()));
+#else
+            timing_TCE = 0;
+#endif
             timing_information.push_back({ timing_input_loading,
                     timing_MD,
                     timing_LS,
                     timing_T3,
-                    timing_TC,
                     timing_T5,
-                    timing_pT3,
+                    timing_pLS,
                     timing_pT5,
-                    timing_pLS
-
+                    timing_pT3,
+                    timing_TC,
+                    timing_TCE
                     });
 
             if (ana.verbose == 4)
@@ -540,14 +546,14 @@ void writeMetaData()
 
     // Write out metadata of the code to the output_tfile
     ana.output_tfile->cd();
-    gSystem->Exec(TString::Format("echo '' > %s.gitversion.txt", ana.output_tfile->GetName()));
-    gSystem->Exec(TString::Format("git rev-parse HEAD >> %s.gitversion.txt", ana.output_tfile->GetName()));
-    gSystem->Exec(TString::Format("echo 'git status' >> %s.gitversion.txt", ana.output_tfile->GetName()));
-    gSystem->Exec(TString::Format("git status >> %s.gitversion.txt", ana.output_tfile->GetName()));
-    gSystem->Exec(TString::Format("echo 'git log -n5' >> .%s.gitversion.txt", ana.output_tfile->GetName()));
-    gSystem->Exec(TString::Format("git log >> %s.gitversion.txt", ana.output_tfile->GetName()));
-    gSystem->Exec(TString::Format("echo 'git diff' >> %s.gitversion.txt", ana.output_tfile->GetName()));
-    gSystem->Exec(TString::Format("git diff >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("(cd $TRACKLOOPERDIR && echo '' && (cd - > /dev/null) ) > %s.gitversion.txt ", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("(cd $TRACKLOOPERDIR && git rev-parse HEAD && (cd - > /dev/null)) >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("(cd $TRACKLOOPERDIR && echo 'git status' && (cd - > /dev/null)) >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("(cd $TRACKLOOPERDIR && git  --no-pager status && (cd - > /dev/null)) >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("(cd $TRACKLOOPERDIR && echo 'git log -n5' && (cd - > /dev/null)) >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("(cd $TRACKLOOPERDIR && git --no-pager log  && (cd - > /dev/null)) >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("(cd $TRACKLOOPERDIR && echo 'git diff' && (cd - > /dev/null)) >> %s.gitversion.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("(cd $TRACKLOOPERDIR && git --no-pager diff  && (cd - > /dev/null)) >> %s.gitversion.txt", ana.output_tfile->GetName()));
     std::ifstream t(TString::Format("%s.gitversion.txt", ana.output_tfile->GetName()));
     std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
     TString tstr = str.c_str();
@@ -564,7 +570,7 @@ void writeMetaData()
     ana.output_tfile->WriteObject(&maketobjstr, "make_log");
 
     // Write git diff output in a separate string to gauge the difference
-    gSystem->Exec(TString::Format("git diff > %s.gitdiff.txt", ana.output_tfile->GetName()));
+    gSystem->Exec(TString::Format("(cd $TRACKLOOPERDIR && git --no-pager diff  && (cd - > /dev/null)) > %s.gitdiff.txt", ana.output_tfile->GetName()));
     std::ifstream gitdiff(TString::Format("%s.gitdiff.txt", ana.output_tfile->GetName()));
     std::string strgitdiff((std::istreambuf_iterator<char>(gitdiff)), std::istreambuf_iterator<char>());
     TString tstrgitdiff = strgitdiff.c_str();
@@ -572,7 +578,6 @@ void writeMetaData()
     tobjstrgitdiff.SetString(tstrgitdiff.Data());
     ana.output_tfile->WriteObject(&tobjstrgitdiff, "gitdiff");
     gSystem->Exec(TString::Format("rm %s.gitdiff.txt", ana.output_tfile->GetName()));
-
     // Parse from makestr the TARGET
     TString rawstrdata = maketstr.ReplaceAll("MAKETARGET=", "%");
     TString targetrawdata = RooUtil::StringUtil::rsplit(rawstrdata,"%")[1];

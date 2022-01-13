@@ -51,6 +51,8 @@ def parse_plot_name(output_name):
         rtnstr.append("Pixel Line Segment")
     elif "T5_" in output_name:
         rtnstr.append("Quintuplet")
+    elif "TCE_" in output_name:
+        rtnstr.append("Track Extension")
     types = "of type " + os.path.basename(output_name).split("_")[1]
     if "AllTypes" in types:
         types = "of all types"
@@ -67,7 +69,7 @@ else:
     eff_file_cpu = glob.glob("efficiencies/eff_plots__GPU_{}_{}_{}/efficiencies.root".format(refRunType, refgithash, sample))
 
 eff_files_gpu = glob.glob("efficiencies/eff_plots__GPU_{}_{}_{}/efficiencies.root".format(runType, githash, sample))
-   
+
 
 # Get cpu efficiency graph files
 cpu_file = r.TFile(eff_file_cpu[0])
@@ -137,7 +139,7 @@ for key in keys:
     eff.GetXaxis().SetLabelSize(0.05)
     eff.GetYaxis().SetLabelSize(0.05)
     yaxis_max = 0
-    
+
     if "fakerate" in key or "duplrate" in keys:
         leg1 = r.TLegend(0.63, 0.67, 0.93, 0.87)
     else:

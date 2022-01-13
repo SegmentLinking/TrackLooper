@@ -24,6 +24,7 @@
 #include "Quintuplet.cuh"
 #include "PixelTriplet.cuh"
 #include "PixelQuintuplet.cuh"
+#include "TrackExtensions.cuh"
 #include "Kernels.cuh"
 
 #include "cuda_profiler_api.h"
@@ -62,6 +63,7 @@ namespace SDL
         struct trackCandidates* trackCandidatesInGPU;
         struct pixelTriplets* pixelTripletsInGPU;
         struct pixelQuintuplets* pixelQuintupletsInGPU;
+        struct trackExtensions* trackExtensionsInGPU;
 
         //CPU interface stuff
         objectRanges* rangesInCPU;
@@ -75,6 +77,7 @@ namespace SDL
         quintuplets* quintupletsInCPU;
         pixelTriplets* pixelTripletsInCPU;
         pixelQuintuplets* pixelQuintupletsInCPU;
+        trackExtensions* trackExtensionsInCPU;
 
         int* superbinCPU;
         int* pixelTypeCPU;
@@ -95,7 +98,6 @@ namespace SDL
         void addTripletsToEventExplicit();
         void addQuintupletsToEvent();
         void addQuintupletsToEventExplicit();
-
         void resetObjectsInModule();
 
         void createMiniDoublets();
@@ -104,6 +106,7 @@ namespace SDL
         void createPixelTracklets();
         void createPixelTrackletsWithMap();
         void createTrackCandidates();
+        void createExtendedTracks();
         void createQuintuplets();
         void createPixelTriplets();
         void createPixelQuintuplets();
@@ -144,6 +147,9 @@ namespace SDL
         unsigned int getNumberOfPixelTriplets();
         unsigned int getNumberOfPixelQuintuplets();
 
+        unsigned int getNumberOfExtendedTracks();
+        unsigned int getNumberOfT3T3ExtendedTracks();
+
         objectRanges* getRanges();
         hits* getHits();
         miniDoublets* getMiniDoublets();
@@ -151,6 +157,7 @@ namespace SDL
         triplets* getTriplets();
         quintuplets* getQuintuplets();
         trackCandidates* getTrackCandidates();
+        trackExtensions* getTrackExtensions();
         pixelTriplets* getPixelTriplets();
         modules* getModules();
         modules* getFullModules();
@@ -170,5 +177,4 @@ namespace SDL
     extern struct pixelMap* pixelMapping;
 
 }
-
 #endif

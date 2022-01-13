@@ -4,55 +4,55 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
 {
     int blockxSize = blockDim.x*gridDim.x;
     int blockySize = blockDim.y*gridDim.y;
-    for(int lowerModuleArrayIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerModuleArrayIndex< (*modulesInGPU.nLowerModules); lowerModuleArrayIndex += blockySize){
-    //int lowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
-    //if(lowerModuleArrayIndex >= (*modulesInGPU.nLowerModules)) continue; //return; //extra precaution
-
-    int lowerModuleIndex = modulesInGPU.lowerModuleIndices[lowerModuleArrayIndex];
-    int upperModuleIndex = modulesInGPU.partnerModuleIndex(lowerModuleIndex);
-
-    if(rangesInGPU.hitRanges[lowerModuleIndex * 2] == -1) continue; //return;
-    if(rangesInGPU.hitRanges[upperModuleIndex * 2] == -1) continue; //return;
-    unsigned int nLowerHits = rangesInGPU.hitRanges[lowerModuleIndex * 2 + 1] - rangesInGPU.hitRanges[lowerModuleIndex * 2] + 1;
-    unsigned int nUpperHits = rangesInGPU.hitRanges[upperModuleIndex * 2 + 1] - rangesInGPU.hitRanges[upperModuleIndex * 2] + 1;
-    int limit = nUpperHits*nLowerHits;
-    for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize){
-    int lowerHitIndex =  hitIndex / nUpperHits;
-    int upperHitIndex =  hitIndex % nUpperHits;
-    if(upperHitIndex >= nUpperHits) continue; //return;
-
-    unsigned int lowerHitArrayIndex = rangesInGPU.hitRanges[lowerModuleIndex * 2] + lowerHitIndex;
-    unsigned int upperHitArrayIndex = rangesInGPU.hitRanges[upperModuleIndex * 2] + upperHitIndex;
-
-    float dz, drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange;
-
-    float dzCut, drtCut, miniCut;
-    bool success = runMiniDoubletDefaultAlgo(modulesInGPU, hitsInGPU, lowerModuleIndex, lowerHitArrayIndex, upperHitArrayIndex, dz,  drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, dzCut, drtCut, miniCut);
-
-    if(success)
+    for(int lowerModuleArrayIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerModuleArrayIndex< (*modulesInGPU.nLowerModules); lowerModuleArrayIndex += blockySize)
     {
-        unsigned int mdModuleIndex = atomicAdd(&mdsInGPU.nMDs[lowerModuleIndex],1);
-        if(mdModuleIndex >= N_MAX_MD_PER_MODULES)
+
+        int lowerModuleIndex = modulesInGPU.lowerModuleIndices[lowerModuleArrayIndex];
+        int upperModuleIndex = modulesInGPU.partnerModuleIndex(lowerModuleIndex);
+
+        if(rangesInGPU.hitRanges[lowerModuleIndex * 2] == -1) continue; //return;
+        if(rangesInGPU.hitRanges[upperModuleIndex * 2] == -1) continue; //return;
+        unsigned int nLowerHits = rangesInGPU.hitRanges[lowerModuleIndex * 2 + 1] - rangesInGPU.hitRanges[lowerModuleIndex * 2] + 1;
+        unsigned int nUpperHits = rangesInGPU.hitRanges[upperModuleIndex * 2 + 1] - rangesInGPU.hitRanges[upperModuleIndex * 2] + 1;
+        int limit = nUpperHits*nLowerHits;
+        for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize)
         {
-            #ifdef Warnings
-            if(mdModuleIndex == N_MAX_MD_PER_MODULES)
-                printf("Mini-doublet excess alert! Module index =  %d\n",lowerModuleIndex);
-            #endif
-        }
-        else
-        {
-            unsigned int mdIndex = lowerModuleIndex * N_MAX_MD_PER_MODULES + mdModuleIndex;
+            int lowerHitIndex =  hitIndex / nUpperHits;
+            int upperHitIndex =  hitIndex % nUpperHits;
+            if(upperHitIndex >= nUpperHits) continue; //return;
+
+            unsigned int lowerHitArrayIndex = rangesInGPU.hitRanges[lowerModuleIndex * 2] + lowerHitIndex;
+            unsigned int upperHitArrayIndex = rangesInGPU.hitRanges[upperModuleIndex * 2] + upperHitIndex;
+
+            float dz, drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange;
+
+            float dzCut, drtCut, miniCut;
+            bool success = runMiniDoubletDefaultAlgo(modulesInGPU, hitsInGPU, lowerModuleIndex, lowerHitArrayIndex, upperHitArrayIndex, dz,  drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, dzCut, drtCut, miniCut);
+
+            if(success)
+            {
+                unsigned int mdModuleIndex = atomicAdd(&mdsInGPU.nMDs[lowerModuleIndex],1);
+                if(mdModuleIndex >= N_MAX_MD_PER_MODULES)
+                {
+                    #ifdef Warnings
+                    if(mdModuleIndex == N_MAX_MD_PER_MODULES)
+                        printf("Mini-doublet excess alert! Module index =  %d\n",lowerModuleIndex);
+                    #endif
+                }
+                else
+                {
+                    unsigned int mdIndex = lowerModuleIndex * N_MAX_MD_PER_MODULES + mdModuleIndex;
 #ifdef CUT_VALUE_DEBUG
-            addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz,drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, dzCut, drtCut, miniCut, mdIndex);
+                    addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz,drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, dzCut, drtCut, miniCut, mdIndex);
 #else
-        addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, mdIndex);
+                    addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, mdIndex);
 #endif
 
-        }
+                }
 
+            }
+        }
     }
-}
-}
 }
 __global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::objectRanges& rangesInGPU)
 {
@@ -60,10 +60,6 @@ __global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SD
     int blockySize = blockDim.y*gridDim.y;
     int blockzSize = blockDim.z*gridDim.z;
     for(int innerLowerModuleArrayIdx = blockIdx.z * blockDim.z + threadIdx.z; innerLowerModuleArrayIdx< (*modulesInGPU.nLowerModules); innerLowerModuleArrayIdx += blockzSize){
-    //int innerLowerModuleArrayIdx = blockIdx.z * blockDim.z + threadIdx.z;
-    //int outerLowerModuleArrayIdx = blockIdx.y * blockDim.y + threadIdx.y;
-   // if(innerLowerModuleArrayIdx >= *modulesInGPU.nLowerModules) continue;//return;
-
     unsigned int innerLowerModuleIndex = modulesInGPU.lowerModuleIndices[innerLowerModuleArrayIdx];
 
     unsigned int nConnectedModules = modulesInGPU.nConnectedModules[innerLowerModuleIndex];
@@ -182,10 +178,10 @@ __global__ void createTripletsInGPU(struct SDL::modules& modulesInGPU, struct SD
       unsigned int tripletIndex = innerInnerLowerModuleArrayIndex * N_MAX_TRIPLETS_PER_MODULE + tripletModuleIndex;
 #ifdef CUT_VALUE_DEBUG
 
-        addTripletToMemory(tripletsInGPU, innerSegmentIndex, outerSegmentIndex, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut,pt_beta, zLo,zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, tripletIndex);
+        addTripletToMemory(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, innerSegmentIndex, outerSegmentIndex, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut,pt_beta, zLo,zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, tripletIndex);
 
 #else
-      addTripletToMemory(tripletsInGPU, innerSegmentIndex, outerSegmentIndex, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, betaIn, betaOut, pt_beta, tripletIndex);
+      addTripletToMemory(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, innerSegmentIndex, outerSegmentIndex, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, betaIn, betaOut, pt_beta, tripletIndex);
 #endif
     }
 }
@@ -222,139 +218,137 @@ __device__ inline int checkHitspT5(unsigned int ix, unsigned int jx,struct SDL::
 
 __global__ void addpT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU,struct SDL::quintuplets& quintupletsInGPU)
 {
-    //int pixelQuintupletIndex = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned int pixelLowerModuleArrayIndex = *modulesInGPU.nLowerModules;
     unsigned int nPixelQuintuplets = *pixelQuintupletsInGPU.nPixelQuintuplets;
-    for(int pixelQuintupletIndex = blockIdx.x * blockDim.x + threadIdx.x; pixelQuintupletIndex < nPixelQuintuplets; pixelQuintupletIndex += blockDim.x*gridDim.x){
-    //if(pixelQuintupletIndex >= nPixelQuintuplets) return;
-    if(pixelQuintupletsInGPU.isDup[pixelQuintupletIndex])
+    for(int pixelQuintupletIndex = blockIdx.x * blockDim.x + threadIdx.x; pixelQuintupletIndex < nPixelQuintuplets; pixelQuintupletIndex += blockDim.x*gridDim.x)
     {
-        continue;
-    }
-    unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
-    atomicAdd(trackCandidatesInGPU.nTrackCandidatespT5,1);
+        if(pixelQuintupletsInGPU.isDup[pixelQuintupletIndex])
+        {
+            continue;
+        }
+        unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
+        atomicAdd(trackCandidatesInGPU.nTrackCandidatespT5,1);
 
-    addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex], pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], trackCandidateIdx);
-        unsigned int quintupletIndex = pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex];
-        unsigned int pixelSegmentArrayIndex = pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex]- ((*modulesInGPU.nModules - 1)* N_MAX_SEGMENTS_PER_MODULE);
-        quintupletsInGPU.partOfPT5[quintupletIndex] = true;
-        unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
-        unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
-        tripletsInGPU.partOfPT5[innerTripletIndex] = true;
-        tripletsInGPU.partOfPT5[outerTripletIndex] = true;
-        segmentsInGPU.partOfPT5[pixelSegmentArrayIndex] = true;
-}
+
+#ifdef TRACK_EXTENSIONS
+        float radius = 0.5f*(pixelQuintupletsInGPU.pixelRadius[pixelQuintupletIndex] + pixelQuintupletsInGPU.quintupletRadius[pixelQuintupletIndex]);
+        addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex], pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], &pixelQuintupletsInGPU.logicalLayers[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.lowerModuleIndices[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.hitIndices[14 * pixelQuintupletIndex], pixelQuintupletsInGPU.centerX[pixelQuintupletIndex],
+                            pixelQuintupletsInGPU.centerY[pixelQuintupletIndex],radius , trackCandidateIdx);        
+#else
+        addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex], pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], trackCandidateIdx);        
+#endif
+    }
 }
 
 __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU,struct SDL::segments& segmentsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU)
 {
-    //int pixelTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
     unsigned int pixelLowerModuleArrayIndex = *modulesInGPU.nLowerModules;
     unsigned int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets;
-    for(int pixelTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; pixelTripletArrayIndex < nPixelTriplets; pixelTripletArrayIndex += blockDim.x*gridDim.x){
-    //if(pixelTripletArrayIndex >= nPixelTriplets) return;
-    int pixelTripletIndex = pixelTripletArrayIndex;
-    if(pixelTripletsInGPU.isDup[pixelTripletIndex])  
+    for(int pixelTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; pixelTripletArrayIndex < nPixelTriplets; pixelTripletArrayIndex += blockDim.x*gridDim.x)
     {
-        continue;
-    }
-
+        //if(pixelTripletArrayIndex >= nPixelTriplets) return;
+        int pixelTripletIndex = pixelTripletArrayIndex;
+        if(pixelTripletsInGPU.isDup[pixelTripletIndex])  
+        {
+            continue;
+        }
 #ifdef Crossclean_pT3
     //cross cleaning step
-    float eta1 = pixelTripletsInGPU.eta_pix[pixelTripletIndex]; 
-    float phi1 = pixelTripletsInGPU.phi_pix[pixelTripletIndex]; 
-    int pixelModuleIndex = *modulesInGPU.nModules - 1;
-    unsigned int prefix = pixelModuleIndex*N_MAX_SEGMENTS_PER_MODULE;
-    bool end= false;
-    for (unsigned int jx=0; jx<*pixelQuintupletsInGPU.nPixelQuintuplets; jx++)
-    {
-        unsigned int pLS_jx = pixelQuintupletsInGPU.pixelIndices[jx];
-        float eta2 = segmentsInGPU.eta[pLS_jx - prefix];
-        float phi2 = segmentsInGPU.phi[pLS_jx - prefix];
-        float dEta = abs(eta1-eta2);
-        float dPhi = abs(phi1-phi2);
-        if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
-        float dR2 = dEta*dEta + dPhi*dPhi;
-        if(dR2 < 1e-5f) {end=true; break;}//return;}
-    }
-    if(end) continue;
+        float eta1 = pixelTripletsInGPU.eta_pix[pixelTripletIndex]; 
+        float phi1 = pixelTripletsInGPU.phi_pix[pixelTripletIndex]; 
+        int pixelModuleIndex = *modulesInGPU.nModules - 1;
+        unsigned int prefix = pixelModuleIndex*N_MAX_SEGMENTS_PER_MODULE;
+        bool end= false;
+        for (unsigned int jx=0; jx<*pixelQuintupletsInGPU.nPixelQuintuplets; jx++)
+        {
+            unsigned int pLS_jx = pixelQuintupletsInGPU.pixelIndices[jx];
+            float eta2 = segmentsInGPU.eta[pLS_jx - prefix];
+            float phi2 = segmentsInGPU.phi[pLS_jx - prefix];
+            float dEta = abs(eta1-eta2);
+            float dPhi = abs(phi1-phi2);
+            if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
+            float dR2 = dEta*dEta + dPhi*dPhi;
+            if(dR2 < 1e-5f) {end=true; break;}
+        }
+        if(end) continue;
 #endif
     
-    unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
-    atomicAdd(trackCandidatesInGPU.nTrackCandidatespT3,1);
+        unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
+        atomicAdd(trackCandidatesInGPU.nTrackCandidatespT3,1);
 
-    addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, trackCandidateIdx);
-
-}
+#ifdef TRACK_EXTENSIONS
+        float radius = 0.5f * (pixelTripletsInGPU.pixelRadius[pixelTripletIndex] + pixelTripletsInGPU.tripletRadius[pixelTripletIndex]);
+        addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, &pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex], &pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex], &pixelTripletsInGPU.hitIndices[10 * pixelTripletIndex], pixelTripletsInGPU.centerX[pixelTripletIndex], pixelTripletsInGPU.centerY[pixelTripletIndex],radius,
+                trackCandidateIdx);
+#else
+        addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, trackCandidateIdx);
+#endif
+    }
 }
 
 __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::quintuplets& quintupletsInGPU,struct SDL::trackCandidates& trackCandidatesInGPU,struct SDL::pixelQuintuplets& pixelQuintupletsInGPU,struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::objectRanges& rangesInGPU)
 {
-
-    //int innerInnerInnerLowerModuleArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
     int stepx = blockDim.x*gridDim.x;
     int stepy = blockDim.y*gridDim.y;
-    for(int innerInnerInnerLowerModuleArrayIndex = blockIdx.y * blockDim.y + threadIdx.y; innerInnerInnerLowerModuleArrayIndex < *(modulesInGPU.nLowerModules); innerInnerInnerLowerModuleArrayIndex+=stepy){
-    //if(innerInnerInnerLowerModuleArrayIndex >= *modulesInGPU.nLowerModules or modulesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] == -1) return;
-    if(rangesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] == -1) continue;
-    unsigned int nQuints = quintupletsInGPU.nQuintuplets[innerInnerInnerLowerModuleArrayIndex];
-    if (nQuints > N_MAX_QUINTUPLETS_PER_MODULE) 
+    for(int innerInnerInnerLowerModuleArrayIndex = blockIdx.y * blockDim.y + threadIdx.y; innerInnerInnerLowerModuleArrayIndex < *(modulesInGPU.nLowerModules); innerInnerInnerLowerModuleArrayIndex+=stepy)
     {
-        nQuints = N_MAX_QUINTUPLETS_PER_MODULE;
-    }
-    //int innerObjectArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
-    for(int innerObjectArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;innerObjectArrayIndex < nQuints;innerObjectArrayIndex+=stepx){
-    //if(innerObjectArrayIndex >= nQuints) return;
-    int quintupletIndex = rangesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] + innerObjectArrayIndex;
+        if(rangesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] == -1) continue;
+        unsigned int nQuints = min(quintupletsInGPU.nQuintuplets[innerInnerInnerLowerModuleArrayIndex], N_MAX_QUINTUPLETS_PER_MODULE);
+        for(int innerObjectArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;innerObjectArrayIndex < nQuints;innerObjectArrayIndex+=stepx)
+        {
+            int quintupletIndex = rangesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] + innerObjectArrayIndex;
 
     //don't add duplicate T5s or T5s that are accounted in pT5s
-    if(quintupletsInGPU.isDup[quintupletIndex] or quintupletsInGPU.partOfPT5[quintupletIndex])
-    {
-        continue;//return;
-    }
+            if(quintupletsInGPU.isDup[quintupletIndex] or quintupletsInGPU.partOfPT5[quintupletIndex])
+            {
+                continue;//return;
+            }
 #ifdef Crossclean_T5
-    unsigned int loop_bound = *pixelQuintupletsInGPU.nPixelQuintuplets;
-    if (loop_bound < *pixelTripletsInGPU.nPixelTriplets) 
-    { 
-        loop_bound = *pixelTripletsInGPU.nPixelTriplets;
-    }
-    //cross cleaning step
-    float eta1 = quintupletsInGPU.eta[quintupletIndex]; 
-    float phi1 = quintupletsInGPU.phi[quintupletIndex]; 
-    bool end = false;
-
-    for (unsigned int jx=0; jx<loop_bound; jx++)
-    {
-        if(jx < *pixelQuintupletsInGPU.nPixelQuintuplets)
-        {
-            float eta2 = pixelQuintupletsInGPU.eta[jx];
-            float phi2 = pixelQuintupletsInGPU.phi[jx];
-            float dEta = abs(eta1-eta2);
-            float dPhi = abs(phi1-phi2);
-            if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
-            float dR2 = dEta*dEta + dPhi*dPhi;
-            //printf("dR2: %f\n",dR2);
-            if(dR2 < 1e-3f) {end=true; break;}//return;
-        }
-        if(jx < *pixelTripletsInGPU.nPixelTriplets)
-        {
-            float eta2 = pixelTripletsInGPU.eta[jx]; 
-            float phi2 = pixelTripletsInGPU.phi[jx]; 
-            float dEta = abs(eta1-eta2);
-            float dPhi = abs(phi1-phi2);
-            if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
-            float dR2 = dEta*dEta + dPhi*dPhi;
-            if(dR2 < 1e-3f) {end=true; break;}//return;
-        }
-    }
-    if(end) continue;
+            unsigned int loop_bound = *pixelQuintupletsInGPU.nPixelQuintuplets;
+            if (loop_bound < *pixelTripletsInGPU.nPixelTriplets) 
+            { 
+                loop_bound = *pixelTripletsInGPU.nPixelTriplets;
+            }
+            //cross cleaning step
+            float eta1 = quintupletsInGPU.eta[quintupletIndex]; 
+            float phi1 = quintupletsInGPU.phi[quintupletIndex]; 
+            bool end = false;
+            for (unsigned int jx=0; jx<loop_bound; jx++)
+            {
+                if(jx < *pixelQuintupletsInGPU.nPixelQuintuplets)
+                {
+                    float eta2 = pixelQuintupletsInGPU.eta[jx];
+                    float phi2 = pixelQuintupletsInGPU.phi[jx];
+                    float dEta = abs(eta1-eta2);
+                    float dPhi = abs(phi1-phi2);
+                    if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
+                    float dR2 = dEta*dEta + dPhi*dPhi;
+                    if(dR2 < 1e-3f) {end=true; break;}//return;
+                }
+                if(jx < *pixelTripletsInGPU.nPixelTriplets)
+                {
+                    float eta2 = pixelTripletsInGPU.eta[jx]; 
+                    float phi2 = pixelTripletsInGPU.phi[jx]; 
+                    float dEta = abs(eta1-eta2);
+                    float dPhi = abs(phi1-phi2);
+                    if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
+                    float dR2 = dEta*dEta + dPhi*dPhi;
+                    if(dR2 < 1e-3f) {end=true; break;}//return;
+                }
+            }
+            if(end) continue;
 #endif
-    unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
-    atomicAdd(trackCandidatesInGPU.nTrackCandidatesT5,1);
-    addTrackCandidateToMemory(trackCandidatesInGPU, 4/*track candidate type T5=4*/, quintupletIndex, quintupletIndex, trackCandidateIdx);
+            unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
+            atomicAdd(trackCandidatesInGPU.nTrackCandidatesT5,1);
 
-}
-}
+#ifdef TRACK_EXTENSIONS
+            addTrackCandidateToMemory(trackCandidatesInGPU, 4/*track candidate type T5=4*/, quintupletIndex, quintupletIndex, &quintupletsInGPU.logicalLayers[5 * quintupletIndex], &quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex], &quintupletsInGPU.hitIndices[10 * quintupletIndex], quintupletsInGPU.regressionG[quintupletIndex], quintupletsInGPU.regressionF[quintupletIndex], quintupletsInGPU.regressionRadius[quintupletIndex], trackCandidateIdx);
+#else
+            addTrackCandidateToMemory(trackCandidatesInGPU, 4/*track candidate type T5=4*/, quintupletIndex, quintupletIndex, trackCandidateIdx);
+
+#endif
+        }
+    }
 }
 
 __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU,struct SDL::segments& segmentsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU,struct SDL::miniDoublets& mdsInGPU, struct SDL::hits& hitsInGPU, struct SDL::quintuplets& quintupletsInGPU)
@@ -364,97 +358,94 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
     unsigned int pixelLowerModuleArrayIndex = *modulesInGPU.nLowerModules;
     int pixelModuleIndex = *modulesInGPU.nModules - 1;
     unsigned int nPixels = segmentsInGPU.nSegments[pixelModuleIndex];
-    for(int pixelArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;pixelArrayIndex < nPixels;  pixelArrayIndex +=step){
-    //if(pixelArrayIndex >= nPixels) return;
-
-    if((!segmentsInGPU.isQuad[pixelArrayIndex]) || (segmentsInGPU.isDup[pixelArrayIndex]))
+    for(int pixelArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;pixelArrayIndex < nPixels;  pixelArrayIndex +=step)
     {
-        continue;//return;
-    }
-    if(segmentsInGPU.score[pixelArrayIndex] > 120){continue;}
 
-
-    //cross cleaning step
-
-    float eta1 = segmentsInGPU.eta[pixelArrayIndex];
-    float phi1 = segmentsInGPU.phi[pixelArrayIndex];
-    unsigned int prefix = pixelModuleIndex*N_MAX_SEGMENTS_PER_MODULE;
-
-    unsigned int loop_bound = *pixelQuintupletsInGPU.nPixelQuintuplets;
-    if (loop_bound < *pixelTripletsInGPU.nPixelTriplets) { loop_bound = *pixelTripletsInGPU.nPixelTriplets;}
-
-
-    unsigned int nTrackCandidates = *(trackCandidatesInGPU.nTrackCandidates);
-
-    bool end = false;
-    for (unsigned int jx=0; jx<nTrackCandidates; jx++)
-    {
-        unsigned int trackCandidateIndex = jx;
-        short type = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
-        unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex];
-        if(type == 4)
+        if((!segmentsInGPU.isQuad[pixelArrayIndex]) || (segmentsInGPU.isDup[pixelArrayIndex]))
         {
-            unsigned int quintupletIndex = innerTrackletIdx;//trackCandidatesInGPU.objectIndices[2*jx];//T5 index
-            float eta2 = quintupletsInGPU.eta[quintupletIndex];
-            float phi2 = quintupletsInGPU.phi[quintupletIndex];
-            float dEta = abs(eta1-eta2);
-            float dPhi = abs(phi1-phi2);
-            if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
-            float dR2 = dEta*dEta + dPhi*dPhi;
-            if(dR2 < 1e-3f) {end=true;break;}//return;
+            continue;//return;
         }
-    }
-    if(end) continue;
+        if(segmentsInGPU.score[pixelArrayIndex] > 120){continue;}
+        //cross cleaning step
 
+        float eta1 = segmentsInGPU.eta[pixelArrayIndex];
+        float phi1 = segmentsInGPU.phi[pixelArrayIndex];
+        unsigned int prefix = pixelModuleIndex*N_MAX_SEGMENTS_PER_MODULE;
 
-    for (unsigned int jx=0; jx<loop_bound; jx++)
-    {
-        if(jx < *pixelQuintupletsInGPU.nPixelQuintuplets)
+        unsigned int loop_bound = *pixelQuintupletsInGPU.nPixelQuintuplets;
+        if (loop_bound < *pixelTripletsInGPU.nPixelTriplets) { loop_bound = *pixelTripletsInGPU.nPixelTriplets;}
+
+        unsigned int nTrackCandidates = *(trackCandidatesInGPU.nTrackCandidates);
+        bool end = false;
+        for (unsigned int jx=0; jx<nTrackCandidates; jx++)
         {
-            if(!pixelQuintupletsInGPU.isDup[jx]){
-            unsigned int pLS_jx = pixelQuintupletsInGPU.pixelIndices[jx];
-            int npMatched = checkHitspT5(prefix+pixelArrayIndex,pLS_jx,mdsInGPU,segmentsInGPU,hitsInGPU);
-            if(npMatched >0)
+            unsigned int trackCandidateIndex = jx;
+            short type = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
+            unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex];
+            if(type == 4)
             {
-            //    return;
-            end=true;break;//return;
-            }
-            float eta2 = segmentsInGPU.eta[pLS_jx - prefix];
-            float phi2 = segmentsInGPU.phi[pLS_jx - prefix];
-            float dEta = abs(eta1-eta2);
-            float dPhi = abs(phi1-phi2);
-            if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
-            float dR2 = dEta*dEta + dPhi*dPhi;
-            if(dR2 < 0.000001f) {end=true; break;}//return;
+                unsigned int quintupletIndex = innerTrackletIdx;//trackCandidatesInGPU.objectIndices[2*jx];//T5 index
+                float eta2 = quintupletsInGPU.eta[quintupletIndex];
+                float phi2 = quintupletsInGPU.phi[quintupletIndex];
+                float dEta = abs(eta1-eta2);
+                float dPhi = abs(phi1-phi2);
+                if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
+                float dR2 = dEta*dEta + dPhi*dPhi;
+                if(dR2 < 1e-3f) {end=true;break;}//return;
             }
         }
+        if(end) continue;
 
-        if(jx < *pixelTripletsInGPU.nPixelTriplets)
+        for (unsigned int jx=0; jx<loop_bound; jx++)
         {
-            if(!pixelTripletsInGPU.isDup[jx]){
-            int pLS_jx = pixelTripletsInGPU.pixelSegmentIndices[jx];
-            int npMatched = checkHitspT5(prefix+pixelArrayIndex,pLS_jx,mdsInGPU,segmentsInGPU,hitsInGPU);
-            if(npMatched >0)
+            if(jx < *pixelQuintupletsInGPU.nPixelQuintuplets)
             {
-                end=true;break;//return;
+                if(!pixelQuintupletsInGPU.isDup[jx])
+                {
+                    unsigned int pLS_jx = pixelQuintupletsInGPU.pixelIndices[jx];
+                    int npMatched = checkHitspT5(prefix+pixelArrayIndex,pLS_jx,mdsInGPU,segmentsInGPU,hitsInGPU);
+                    if(npMatched >0)
+                    {
+                        end=true;
+                        break;
+                    }
+                    float eta2 = segmentsInGPU.eta[pLS_jx - prefix];
+                    float phi2 = segmentsInGPU.phi[pLS_jx - prefix];
+                    float dEta = abs(eta1-eta2);
+                    float dPhi = abs(phi1-phi2);
+                    if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
+                    float dR2 = dEta*dEta + dPhi*dPhi;
+                    if(dR2 < 0.000001f) {end=true; break;}//return;
+                }
             }
-            float eta2 = pixelTripletsInGPU.eta_pix[jx];
-            float phi2 = pixelTripletsInGPU.phi_pix[jx];
-            float dEta = abs(eta1-eta2);
-            float dPhi = abs(phi1-phi2);
-            if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
-            float dR2 = dEta*dEta + dPhi*dPhi;
-            if(dR2 < 0.000001f) {end=true; break;}//return;
+            if(jx < *pixelTripletsInGPU.nPixelTriplets)
+            {
+                if(!pixelTripletsInGPU.isDup[jx])
+                {
+                    int pLS_jx = pixelTripletsInGPU.pixelSegmentIndices[jx];
+                    int npMatched = checkHitspT5(prefix+pixelArrayIndex,pLS_jx,mdsInGPU,segmentsInGPU,hitsInGPU);
+                    if(npMatched >0)
+                    {
+                        end=true;
+                        break;
+                    }
+                    float eta2 = pixelTripletsInGPU.eta_pix[jx];
+                    float phi2 = pixelTripletsInGPU.phi_pix[jx];
+                    float dEta = abs(eta1-eta2);
+                    float dPhi = abs(phi1-phi2);
+                    if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
+                    float dR2 = dEta*dEta + dPhi*dPhi;
+                    if(dR2 < 0.000001f) {end=true; break;}//return;
+                }
             }
         }
+        if(end) continue;
+
+        unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
+        atomicAdd(trackCandidatesInGPU.nTrackCandidatespLS,1);
+        addTrackCandidateToMemory(trackCandidatesInGPU, 8/*track candidate type pLS=8*/, pixelArrayIndex, pixelArrayIndex, trackCandidateIdx);
+
     }
-    if(end) continue;
-
-    unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
-    atomicAdd(trackCandidatesInGPU.nTrackCandidatespLS,1);
-    addTrackCandidateToMemory(trackCandidatesInGPU, 8/*track candidate type pLS=8*/, pixelArrayIndex, pixelArrayIndex, trackCandidateIdx);
-
-}
 }
 
 __global__ void createPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex, unsigned int nPixelSegments, unsigned int* seg_pix_gpu, unsigned int* seg_pix_gpu_offset, unsigned int totalSegs)
@@ -463,79 +454,87 @@ __global__ void createPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGP
     int blockxSize = blockDim.x*gridDim.x;
     int blockySize = blockDim.y*gridDim.y;
     //unsigned int offsetIndex = blockIdx.x * blockDim.x + threadIdx.x;
-    for(int offsetIndex = blockIdx.y * blockDim.y + threadIdx.y; offsetIndex< totalSegs; offsetIndex += blockySize){
-    //if(offsetIndex >= totalSegs)  continue;//return;
-
-    int segmentModuleIndex = seg_pix_gpu_offset[offsetIndex];
-    int pixelSegmentArrayIndex = seg_pix_gpu[offsetIndex];
-    if(pixelSegmentArrayIndex >= nPixelSegments) continue;//return;
-    if(segmentModuleIndex >= connectedPixelSize[pixelSegmentArrayIndex]) continue;//return;
-
-    unsigned int tripletLowerModuleIndex; //index of the module that connects to this pixel
-    unsigned int tempIndex = connectedPixelIndex[pixelSegmentArrayIndex] + segmentModuleIndex; //gets module array index for segment
-
-    //these are actual module indices
-    tripletLowerModuleIndex = modulesInGPU.connectedPixels[tempIndex];
-    unsigned int tripletLowerModuleArrayIndex = modulesInGPU.reverseLookupLowerModuleIndices[tripletLowerModuleIndex];
-    if(tripletLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) continue;//return;
-
-    unsigned int pixelModuleIndex = *modulesInGPU.nModules - 1;
-    unsigned int nOuterTriplets = min(tripletsInGPU.nTriplets[tripletLowerModuleArrayIndex], N_MAX_TRIPLETS_PER_MODULE);
-
-    if(nOuterTriplets == 0) continue;//return;
-    if(modulesInGPU.moduleType[tripletLowerModuleIndex] == SDL::TwoS) continue;//return; //Removes 2S-2S
-
-    //fetch the triplet
-    //unsigned int outerTripletArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
-    for(unsigned int outerTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; outerTripletArrayIndex< nOuterTriplets; outerTripletArrayIndex +=blockxSize){
-    //printf("nOuterTrips %d\n",nOuterTriplets);
-    //if(outerTripletArrayIndex >= nOuterTriplets) continue;//return;
-    unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + pixelSegmentArrayIndex;
-    unsigned int outerTripletIndex = tripletLowerModuleArrayIndex * N_MAX_TRIPLETS_PER_MODULE + outerTripletArrayIndex;
-    if(modulesInGPU.moduleType[tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1]] == SDL::TwoS) continue;//return; //REMOVES PS-2S
-
-    if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) continue;//return;
-    if(segmentsInGPU.partOfPT5[pixelSegmentArrayIndex]) continue;//return; //don't make pT3s for those pixels that are part of pT5
-    if(tripletsInGPU.partOfPT5[outerTripletIndex]) continue;//return; //don't create pT3s for T3s accounted in pT5s
-
-    float pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared, rzChiSquared, rPhiChiSquaredInwards;
-    bool success = runPixelTripletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
-
-    if(success)
+    for(int offsetIndex = blockIdx.y * blockDim.y + threadIdx.y; offsetIndex< totalSegs; offsetIndex += blockySize)
     {
 
-        short layer2_adjustment;
-        if(modulesInGPU.layers[tripletLowerModuleIndex] == 1){layer2_adjustment = 1;} //get upper segment to be in second layer
-        else if( modulesInGPU.layers[tripletLowerModuleIndex] == 2){layer2_adjustment = 0;} // get lower segment to be in second layer
-        else{continue;}//return;} // ignore anything else
-        float phi = hitsInGPU.phis[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*outerTripletIndex]+layer2_adjustment]]];
-        float eta = hitsInGPU.etas[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*outerTripletIndex]+layer2_adjustment]]];
-        float eta_pix = segmentsInGPU.eta[pixelSegmentArrayIndex];
-        float phi_pix = segmentsInGPU.phi[pixelSegmentArrayIndex];
-        float pt = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
-        float score = rPhiChiSquared+rPhiChiSquaredInwards;
-        unsigned int pixelTripletIndex = atomicAdd(pixelTripletsInGPU.nPixelTriplets, 1);
-        if(pixelTripletIndex >= N_MAX_PIXEL_TRIPLETS)
+        int segmentModuleIndex = seg_pix_gpu_offset[offsetIndex];
+        int pixelSegmentArrayIndex = seg_pix_gpu[offsetIndex];
+        if(pixelSegmentArrayIndex >= nPixelSegments) continue;//return;
+        if(segmentModuleIndex >= connectedPixelSize[pixelSegmentArrayIndex]) continue;//return;
+
+        unsigned int tripletLowerModuleIndex; //index of the module that connects to this pixel
+        unsigned int tempIndex = connectedPixelIndex[pixelSegmentArrayIndex] + segmentModuleIndex; //gets module array index for segment
+
+        //these are actual module indices
+        tripletLowerModuleIndex = modulesInGPU.connectedPixels[tempIndex];
+        unsigned int tripletLowerModuleArrayIndex = modulesInGPU.reverseLookupLowerModuleIndices[tripletLowerModuleIndex];
+        if(tripletLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) continue;//return;
+
+        unsigned int pixelModuleIndex = *modulesInGPU.nModules - 1;
+        unsigned int nOuterTriplets = min(tripletsInGPU.nTriplets[tripletLowerModuleArrayIndex], N_MAX_TRIPLETS_PER_MODULE);
+
+        if(nOuterTriplets == 0) continue;//return;
+        if(modulesInGPU.moduleType[tripletLowerModuleIndex] == SDL::TwoS) continue;//return; //Removes 2S-2S
+
+        //fetch the triplet
+        for(unsigned int outerTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; outerTripletArrayIndex< nOuterTriplets; outerTripletArrayIndex +=blockxSize)
         {
-            #ifdef Warnings
-            if(pixelTripletIndex == N_MAX_PIXEL_TRIPLETS)
+            unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + pixelSegmentArrayIndex;
+            unsigned int outerTripletIndex = tripletLowerModuleArrayIndex * N_MAX_TRIPLETS_PER_MODULE + outerTripletArrayIndex;
+            if(modulesInGPU.moduleType[tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1]] == SDL::TwoS) continue;//REMOVES PS-2S
+
+            if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) continue;//return;
+            if(segmentsInGPU.partOfPT5[pixelSegmentArrayIndex]) continue;//return; //don't make pT3s for those pixels that are part of pT5
+            if(tripletsInGPU.partOfPT5[outerTripletIndex]) continue;//return; //don't create pT3s for T3s accounted in pT5s
+
+            float pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared, rzChiSquared, rPhiChiSquaredInwards, centerX, centerY;
+            bool success = runPixelTripletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, centerX, centerY, rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
+
+            if(success)
             {
-               printf("Pixel Triplet excess alert!\n");
-            }
-            #endif
-        }
-        else
-        {
+                short layer2_adjustment;
+                if(modulesInGPU.layers[tripletLowerModuleIndex] == 1)
+                {
+                    layer2_adjustment = 1;
+                } //get upper segment to be in second layer
+                else if( modulesInGPU.layers[tripletLowerModuleIndex] == 2)
+                {
+                    layer2_adjustment = 0;
+                } // get lower segment to be in second layer
+                else
+                {
+                    continue;
+                }        
+                float phi = hitsInGPU.phis[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*outerTripletIndex]+layer2_adjustment]]];
+                float eta = hitsInGPU.etas[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*outerTripletIndex]+layer2_adjustment]]];
+                float eta_pix = segmentsInGPU.eta[pixelSegmentArrayIndex];
+                float phi_pix = segmentsInGPU.phi[pixelSegmentArrayIndex];
+                float pt = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
+                float score = rPhiChiSquared+rPhiChiSquaredInwards;
+                unsigned int pixelTripletIndex = atomicAdd(pixelTripletsInGPU.nPixelTriplets, 1);
+                if(pixelTripletIndex >= N_MAX_PIXEL_TRIPLETS)
+                {
+                    #ifdef Warnings
+                    if(pixelTripletIndex == N_MAX_PIXEL_TRIPLETS)
+                    {
+                        printf("Pixel Triplet excess alert!\n");
+                    }
+                    #endif
+                }
+                else
+                {
 #ifdef CUT_VALUE_DEBUG
-            addPixelTripletToMemory(pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared, rPhiChiSquaredInwards, rzChiSquared, pixelTripletIndex, pt, eta, phi, eta_pix, phi_pix, score);
+                    addPixelTripletToMemory(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, centerX, centerY, rPhiChiSquared, rPhiChiSquaredInwards, rzChiSquared, pixelTripletIndex, pt, eta, phi, eta_pix, phi_pix, score);
 #else
-            addPixelTripletToMemory(pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius,tripletRadius, pixelTripletIndex, pt,eta,phi,eta_pix,phi_pix,score);
+                    addPixelTripletToMemory(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius,tripletRadius, centerX, centerY, pixelTripletIndex, pt,eta,phi,eta_pix,phi_pix,score);
 #endif
+#ifdef TRACK_EXTENSIONS
+                    tripletsInGPU.partOfPT3[outerTripletIndex] = true;
+#endif
+                }
+            }
         }
     }
-
-}
-}
 }
 
 __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int* threadIdx_gpu, unsigned int* threadIdx_gpu_offset, int nTotalTriplets, struct SDL::objectRanges& rangesInGPU)
@@ -555,7 +554,6 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
         unsigned int nInnerTriplets = tripletsInGPU.nTriplets[lowerModuleArray1];
 
         unsigned int innerTripletArrayIndex = threadIdx_gpu_offset[iter];
-     //   unsigned int outerTripletArrayIndex = gidx;
 
         if(innerTripletArrayIndex >= nInnerTriplets) continue;
 
@@ -567,71 +565,74 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
         unsigned int lowerModuleArray3 = modulesInGPU.reverseLookupLowerModuleIndices[lowerModule3];
         unsigned int nOuterTriplets = min(tripletsInGPU.nTriplets[lowerModuleArray3], N_MAX_TRIPLETS_PER_MODULE);
     //int outerTripletArrayIndex=gidx;
-    for (int outerTripletArrayIndex=gidx; outerTripletArrayIndex < nOuterTriplets; outerTripletArrayIndex+=npx)
-    {
-    //    if(outerTripletArrayIndex >= nOuterTriplets) continue;
-        unsigned int outerTripletIndex = lowerModuleArray3 * N_MAX_TRIPLETS_PER_MODULE + outerTripletArrayIndex;
-        //these are actual module indices!!
-        unsigned int lowerModule4 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1];
-        unsigned int lowerModule5 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 2];
+        for (int outerTripletArrayIndex=gidx; outerTripletArrayIndex < nOuterTriplets; outerTripletArrayIndex+=npx)
+        {
+            unsigned int outerTripletIndex = lowerModuleArray3 * N_MAX_TRIPLETS_PER_MODULE + outerTripletArrayIndex;
+            //these are actual module indices!!
+            unsigned int lowerModule4 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1];
+            unsigned int lowerModule5 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 2];
 
-        float innerRadius, innerRadiusMin, innerRadiusMin2S, innerRadiusMax, innerRadiusMax2S, outerRadius, outerRadiusMin, outerRadiusMin2S, outerRadiusMax, outerRadiusMax2S, bridgeRadius, bridgeRadiusMin, bridgeRadiusMin2S, bridgeRadiusMax, bridgeRadiusMax2S, regressionG, regressionF, regressionRadius, chiSquared, nonAnchorChiSquared; //required for making distributions
+            float innerRadius, innerRadiusMin, innerRadiusMin2S, innerRadiusMax, innerRadiusMax2S, outerRadius, outerRadiusMin, outerRadiusMin2S, outerRadiusMax, outerRadiusMax2S, bridgeRadius, bridgeRadiusMin, bridgeRadiusMin2S, bridgeRadiusMax, bridgeRadiusMax2S, regressionG, regressionF, regressionRadius, chiSquared, nonAnchorChiSquared; //required for making distributions
 
-        bool success = runQuintupletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletIndex, outerTripletIndex, innerRadius, innerRadiusMin, innerRadiusMax, outerRadius, outerRadiusMin, outerRadiusMax, bridgeRadius, bridgeRadiusMin, bridgeRadiusMax, innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S,
+            bool success = runQuintupletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletIndex, outerTripletIndex, innerRadius, innerRadiusMin, innerRadiusMax, outerRadius, outerRadiusMin, outerRadiusMax, bridgeRadius, bridgeRadiusMin, bridgeRadiusMax, innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S,
             outerRadiusMax2S, regressionG, regressionF, regressionRadius, chiSquared, nonAnchorChiSquared);
 
-        if(success)
-        {
-            short layer2_adjustment;
-            int layer = modulesInGPU.layers[lowerModule1];
-            if(layer == 1)
+            if(success)
             {
-                layer2_adjustment = 1;
-            } //get upper segment to be in second layer
-            else if(layer == 2)
-            {
-                layer2_adjustment = 0;
-            } // get lower segment to be in second layer
-            else
-            {
-                return;
-            } // ignore anything else TODO: move this to start, before object is made (faster)
-            unsigned int quintupletModuleIndex = atomicAdd(&quintupletsInGPU.nQuintuplets[lowerModuleArray1], 1);
-            if(quintupletModuleIndex >= N_MAX_QUINTUPLETS_PER_MODULE)
-            {
-#ifdef Warnings
-                if(quintupletModuleIndex ==  N_MAX_QUINTUPLETS_PER_MODULE)
+                short layer2_adjustment;
+                int layer = modulesInGPU.layers[lowerModule1];
+                if(layer == 1)
                 {
-                   printf("Quintuplet excess alert! Module index = %d\n", lowerModuleArray1);
-                }
-#endif
-            }
-            else
-            {
-                //this if statement should never get executed!
-                if(rangesInGPU.quintupletModuleIndices[lowerModuleArray1] == -1)
+                    layer2_adjustment = 1;
+                } //get upper segment to be in second layer
+                else if(layer == 2)
                 {
-                    printf("Quintuplets : no memory for module at module index = %d\n", lowerModuleArray1);
+                    layer2_adjustment = 0;
+                } // get lower segment to be in second layer
+                else
+                {
+                    return;
+                } // ignore anything else TODO: move this to start, before object is made (faster)
+                unsigned int quintupletModuleIndex = atomicAdd(&quintupletsInGPU.nQuintuplets[lowerModuleArray1], 1);
+                if(quintupletModuleIndex >= N_MAX_QUINTUPLETS_PER_MODULE)
+                {
+                    #ifdef Warnings
+                    if(quintupletModuleIndex ==  N_MAX_QUINTUPLETS_PER_MODULE)
+                    {
+                    printf("Quintuplet excess alert! Module index = %d\n", lowerModuleArray1);
+                    }
+                    #endif
                 }
                 else
                 {
-                    unsigned int quintupletIndex = rangesInGPU.quintupletModuleIndices[lowerModuleArray1] +  quintupletModuleIndex;
-                    float phi = hitsInGPU.phis[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]]]];
-                    float eta = hitsInGPU.etas[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]]]];
-                    float pt = (innerRadius+outerRadius)*3.8f*1.602f/(2*100*5.39f);
-                    float scores = chiSquared + nonAnchorChiSquared;
+                    //this if statement should never get executed!
+                    if(rangesInGPU.quintupletModuleIndices[lowerModuleArray1] == -1)
+                    {
+                        printf("Quintuplets : no memory for module at module index = %d\n", lowerModuleArray1);
+                    }
+                    else
+                    {
+                        unsigned int quintupletIndex = rangesInGPU.quintupletModuleIndices[lowerModuleArray1] +  quintupletModuleIndex;
+                        float phi = hitsInGPU.phis[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]]]];
+                        float eta = hitsInGPU.etas[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]]]];
+                        float pt = (innerRadius+outerRadius)*3.8f*1.602f/(2*100*5.39f);
+                        float scores = chiSquared + nonAnchorChiSquared;
 #ifdef CUT_VALUE_DEBUG
-                    addQuintupletToMemory(quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, innerRadiusMin, innerRadiusMax, outerRadius, outerRadiusMin, outerRadiusMax, bridgeRadius, bridgeRadiusMin, bridgeRadiusMax, innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S, outerRadiusMax2S, regressionG, regressionF, regressionRadius, chiSquared, nonAnchorChiSquared,
+                        addQuintupletToMemory(tripletsInGPU, quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, innerRadiusMin, innerRadiusMax, outerRadius, outerRadiusMin, outerRadiusMax, bridgeRadius, bridgeRadiusMin, bridgeRadiusMax, innerRadiusMin2S, innerRadiusMax2S, bridgeRadiusMin2S, bridgeRadiusMax2S, outerRadiusMin2S, outerRadiusMax2S, regressionG, regressionF, regressionRadius, chiSquared, nonAnchorChiSquared,
                         pt, eta, phi, scores, layer, quintupletIndex);
 #else
-                    addQuintupletToMemory(quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, outerRadius, regressionG, regressionF, regressionRadius, pt,eta,phi,scores,layer,quintupletIndex);
+                        addQuintupletToMemory(tripletsInGPU, quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, outerRadius, regressionG, regressionF, regressionRadius, pt,eta,phi,scores,layer,quintupletIndex);
 #endif
+#ifdef  TRACK_EXTENSIONS
+                        tripletsInGPU.partOfT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex]] = true;
+                        tripletsInGPU.partOfT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1]] = true;
+#endif
+
+                    }
                 }
             }
         }
     }
-
-}
 }
 
 __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex, unsigned int nPixelSegments, unsigned int* seg_pix_gpu, unsigned int* seg_pix_gpu_offset, unsigned int totalSegs, struct SDL::objectRanges& rangesInGPU)
@@ -639,71 +640,72 @@ __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesI
     //unsigned int offsetIndex = blockIdx.x * blockDim.x + threadIdx.x;
     int blockxSize = blockDim.x*gridDim.x;
     int blockySize = blockDim.y*gridDim.y;
-    for(int offsetIndex = blockIdx.y * blockDim.y + threadIdx.y; offsetIndex< totalSegs; offsetIndex += blockySize){
+    for(int offsetIndex = blockIdx.y * blockDim.y + threadIdx.y; offsetIndex< totalSegs; offsetIndex += blockySize)
+    {
+        int segmentModuleIndex = seg_pix_gpu_offset[offsetIndex];
+        int pixelSegmentArrayIndex = seg_pix_gpu[offsetIndex];
+        if(pixelSegmentArrayIndex >= nPixelSegments) continue;//return;
+        if(segmentModuleIndex >= connectedPixelSize[pixelSegmentArrayIndex]) continue;//return;
 
-    int segmentModuleIndex = seg_pix_gpu_offset[offsetIndex];
-    int pixelSegmentArrayIndex = seg_pix_gpu[offsetIndex];
-    if(pixelSegmentArrayIndex >= nPixelSegments) continue;//return;
-    if(segmentModuleIndex >= connectedPixelSize[pixelSegmentArrayIndex]) continue;//return;
-
-    unsigned int quintupletLowerModuleIndex; //index of the module that connects to this pixel
-    unsigned int tempIndex = connectedPixelIndex[pixelSegmentArrayIndex] + segmentModuleIndex; //gets module array index for segment
+        unsigned int quintupletLowerModuleIndex; //index of the module that connects to this pixel
+        unsigned int tempIndex = connectedPixelIndex[pixelSegmentArrayIndex] + segmentModuleIndex; //gets module array index for segment
 
     //these are actual module indices
-    quintupletLowerModuleIndex = modulesInGPU.connectedPixels[tempIndex];
-    unsigned int quintupletLowerModuleArrayIndex = modulesInGPU.reverseLookupLowerModuleIndices[quintupletLowerModuleIndex];
-    if(quintupletLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) continue;//return;
+        quintupletLowerModuleIndex = modulesInGPU.connectedPixels[tempIndex];
+        unsigned int quintupletLowerModuleArrayIndex = modulesInGPU.reverseLookupLowerModuleIndices[quintupletLowerModuleIndex];
+        if(quintupletLowerModuleArrayIndex >= *modulesInGPU.nLowerModules) continue;//return;
 
-    unsigned int pixelModuleIndex = *modulesInGPU.nModules - 1;
-    unsigned int nOuterQuintuplets = min(quintupletsInGPU.nQuintuplets[quintupletLowerModuleArrayIndex], N_MAX_QUINTUPLETS_PER_MODULE);
+        unsigned int pixelModuleIndex = *modulesInGPU.nModules - 1;
+        unsigned int nOuterQuintuplets = min(quintupletsInGPU.nQuintuplets[quintupletLowerModuleArrayIndex], N_MAX_QUINTUPLETS_PER_MODULE);
 
-    if(nOuterQuintuplets == 0) continue;//return;
+        if(nOuterQuintuplets == 0) continue;//return;
 
-    //fetch the quintuplet
-//    unsigned int outerQuintupletArrayIndex = blockIdx.y * blockDim.y + threadIdx.y;
-    for(unsigned int outerQuintupletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; outerQuintupletArrayIndex< nOuterQuintuplets; outerQuintupletArrayIndex +=blockxSize){
-//    printf("outerQuint %u %u\n",outerQuintupletArrayIndex,nOuterQuintuplets);
-    //if(outerQuintupletArrayIndex >= nOuterQuintuplets) continue;//return;
-    unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + pixelSegmentArrayIndex;
-
-    unsigned int quintupletIndex = rangesInGPU.quintupletModuleIndices[quintupletLowerModuleArrayIndex] + outerQuintupletArrayIndex;
-
-    if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) continue;//return;//skip duplicated pLS
-    if(quintupletsInGPU.isDup[quintupletIndex]) continue;//return; //skip duplicated T5s
-
-    float rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards;
-
-    bool success = runPixelQuintupletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelSegmentIndex, quintupletIndex, rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
-
-    if(success)
-    {
-        unsigned int pixelQuintupletIndex = atomicAdd(pixelQuintupletsInGPU.nPixelQuintuplets, 1);
-        if(pixelQuintupletIndex >= N_MAX_PIXEL_QUINTUPLETS)
+        //fetch the quintuplet
+        for(unsigned int outerQuintupletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; outerQuintupletArrayIndex< nOuterQuintuplets; outerQuintupletArrayIndex +=blockxSize)
         {
-            #ifdef Warnings
-            if(pixelQuintupletIndex == N_MAX_PIXEL_QUINTUPLETS)
+            unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + pixelSegmentArrayIndex;
+
+            unsigned int quintupletIndex = rangesInGPU.quintupletModuleIndices[quintupletLowerModuleArrayIndex] + outerQuintupletArrayIndex;
+
+            if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) continue;//return;//skip duplicated pLS
+            if(quintupletsInGPU.isDup[quintupletIndex]) continue;//return; //skip duplicated T5s
+
+            float rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, pixelRadius, quintupletRadius, centerX, centerY;
+
+            bool success = runPixelQuintupletDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelSegmentIndex, quintupletIndex, rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, pixelRadius, quintupletRadius, centerX, centerY);
+
+            if(success)
             {
-               printf("Pixel Quintuplet excess alert!\n");
-            }
-            #endif
-        }
-        else
-        {
+                unsigned int pixelQuintupletIndex = atomicAdd(pixelQuintupletsInGPU.nPixelQuintuplets, 1);
+                if(pixelQuintupletIndex >= N_MAX_PIXEL_QUINTUPLETS)
+                {
+                    #ifdef Warnings
+                    if(pixelQuintupletIndex == N_MAX_PIXEL_QUINTUPLETS)
+                    {
+                        printf("Pixel Quintuplet excess alert!\n");
+                    }
+                    #endif
+                }
+                else
+                {
+                    float eta = quintupletsInGPU.eta[quintupletIndex];
+                    float phi = quintupletsInGPU.phi[quintupletIndex];
+
 #ifdef CUT_VALUE_DEBUG
-            addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, rPhiChiSquared);
+                    addPixelQuintupletToMemory(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, rPhiChiSquared, eta, phi, pixelRadius, quintupletRadius, centerX, centerY);
 
 #else
-            float eta = quintupletsInGPU.eta[quintupletIndex];
-            float phi = quintupletsInGPU.phi[quintupletIndex];
-            addPixelQuintupletToMemory(pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquaredInwards+rPhiChiSquared, eta,phi);
+                    addPixelQuintupletToMemory(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquaredInwards+rPhiChiSquared, eta,phi, pixelRadius, quintupletRadius, centerX, centerY);
 #endif
+                    tripletsInGPU.partOfPT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex]] = true;
+                    tripletsInGPU.partOfPT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1]] = true;
+                    segmentsInGPU.partOfPT5[pixelSegmentArrayIndex] = true;
+                    quintupletsInGPU.partOfPT5[quintupletIndex] = true;
+                }
+            }
         }
     }
 }
-}
-}
-
-
 
 __device__ void scoreT5(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU,struct SDL::segments& segmentsInGPU,struct SDL::triplets& tripletsInGPU, unsigned int innerTrip, unsigned int outerTrip, int layer, float* scores)
 {
@@ -803,11 +805,10 @@ __device__ void scoreT5(struct SDL::modules& modulesInGPU, struct SDL::hits& hit
         score += (var*var) / (err*err);
         score_lsq += (var_lsq*var_lsq) / (err*err);
     }
-    //printf("%f %f\n",score,score_lsq);
     scores[1] = score;
     scores[3] = score_lsq;
-    //return score;
 }
+
 __device__ int inline checkHitsT5(unsigned int ix, unsigned int jx,struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU,struct SDL::quintuplets& quintupletsInGPU)
 {
     unsigned int hits1[10];// = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
@@ -1058,15 +1059,13 @@ __device__ int duplicateCounter_pT3 =0;
 __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::triplets& tripletsInGPU, bool secondPass)
 {
     int dup_count=0;
-    int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets;
-    int blockxSize = blockDim.x*gridDim.x;
-    for (unsigned int ix=blockIdx.x*blockDim.x+threadIdx.x; ix<nPixelTriplets; ix+=blockxSize)
+    for (unsigned int ix=blockIdx.x*blockDim.x+threadIdx.x; ix<*pixelTripletsInGPU.nPixelTriplets; ix+=blockDim.x*gridDim.x)
     {
         bool isDup = false;
-	float score1 = pixelTripletsInGPU.score[ix];
-        for (unsigned int jx=0; jx<nPixelTriplets; jx++)
+        float score1 = pixelTripletsInGPU.score[ix];
+        for (unsigned int jx=0; jx<*pixelTripletsInGPU.nPixelTriplets; jx++)
         {
-	    float score2 = pixelTripletsInGPU.score[jx];
+            float score2 = pixelTripletsInGPU.score[jx];
             if(ix==jx)
             {
                 continue;
@@ -1076,16 +1075,37 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesI
             if(((nMatched[0] + nMatched[1]) >= 5) )
             {
                 dup_count++;
-                if( score1 > score2)
+#ifdef TRACK_EXTENSIONS
+                //check the layers
+                if(pixelTripletsInGPU.logicalLayers[5*jx+2] < pixelTripletsInGPU.logicalLayers[5*ix+2])
+                {
+                    rmPixelTripletToMemory(pixelTripletsInGPU, ix);
+                    break;
+                }
+
+                else if( pixelTripletsInGPU.logicalLayers[5*ix+2] == pixelTripletsInGPU.logicalLayers[5*jx+2] && pixelTripletsInGPU.score[ix] > pixelTripletsInGPU.score[jx])
                 {
                     rmPixelTripletToMemory(pixelTripletsInGPU,ix);
                     break;
                 }
-                if( (score1 == score2) && (ix<jx))
+                else if( pixelTripletsInGPU.logicalLayers[5*ix+2] == pixelTripletsInGPU.logicalLayers[5*jx+2] && (pixelTripletsInGPU.score[ix] == pixelTripletsInGPU.score[jx]) && (ix<jx))
                 {
                     rmPixelTripletToMemory(pixelTripletsInGPU,ix);
                     break;
                 }
+#else
+                 if( score1 > score2 )
+                 {
+                    rmPixelTripletToMemory(pixelTripletsInGPU,ix);
+                    break;                                                         
+                 }
+             
+                 if( (score1 == score2) && (ix<jx) )
+                 { 
+                    rmPixelTripletToMemory(pixelTripletsInGPU,ix);
+                    break;                                                                           
+                }
+#endif
             }
         }
     }
@@ -1102,12 +1122,6 @@ __global__ void markUsedObjects(struct SDL::modules& modulesInGPU, struct SDL::s
         }
         unsigned int quintupletIndex = pixelQuintupletsInGPU.T5Indices[ix];
         unsigned int pixelSegmentArrayIndex = pixelQuintupletsInGPU.pixelIndices[ix]- ((*modulesInGPU.nModules - 1)* N_MAX_SEGMENTS_PER_MODULE);
-        quintupletsInGPU.partOfPT5[quintupletIndex] = true;
-        unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
-        unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
-        tripletsInGPU.partOfPT5[innerTripletIndex] = true;
-        tripletsInGPU.partOfPT5[outerTripletIndex] = true;
-        segmentsInGPU.partOfPT5[pixelSegmentArrayIndex] = true;
     }
 }
 
@@ -1265,3 +1279,211 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU,struct SDL::miniD
         if(found){counter++;rmPixelSegmentFromMemory(segmentsInGPU,ix);continue;}
     }
 }
+
+#ifdef TRACK_EXTENSIONS
+#ifdef T3T3_EXTENSIONS
+__global__ void createT3T3ExtendedTracksInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::trackExtensions& trackExtensionsInGPU, unsigned int nTrackCandidates)
+{
+    /*
+       Changes to storage. T3-T3 extensions will be stored in contiguous (random) order!
+    */
+    int lowerModuleIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    int firstT3ArrayIdx = blockIdx.y * blockDim.y + threadIdx.y;
+    int secondT3ArrayIdx = blockIdx.z * blockDim.z + threadIdx.z;
+
+    short constituentTCType[3];
+    unsigned int constituentTCIndex[3];
+    unsigned int nLayerOverlaps[2], nHitOverlaps[2];
+    float rPhiChiSquared, rzChiSquared, regressionRadius, innerRadius, outerRadius;
+    bool success;
+
+    //targeting layer overlap = 2
+    if(lowerModuleIdx >= *modulesInGPU.nLowerModules) return;
+    if(firstT3ArrayIdx >= tripletsInGPU.nTriplets[lowerModuleIdx]) return;
+
+    unsigned int firstT3Idx = lowerModuleIdx * N_MAX_TRIPLETS_PER_MODULE + firstT3ArrayIdx;
+    if(tripletsInGPU.partOfExtension[firstT3Idx] or tripletsInGPU.partOfPT5[firstT3Idx] or tripletsInGPU.partOfT5[firstT3Idx] or tripletsInGPU.partOfPT3[firstT3Idx]) return;
+
+    unsigned int nStaggeredModules;
+    unsigned int staggeredModuleIndices[10];
+
+    unsigned int outerLowerModuleIndex = tripletsInGPU.lowerModuleIndices[3 * firstT3Idx + 1];
+
+    findStaggeredNeighbours(modulesInGPU, outerLowerModuleIndex, staggeredModuleIndices, nStaggeredModules);
+    staggeredModuleIndices[nStaggeredModules] = outerLowerModuleIndex;
+    nStaggeredModules++;
+
+    unsigned int outerT3StartingLowerModuleIdx, secondT3Idx;
+
+    for(size_t i = 0; i < nStaggeredModules; i++)
+    {
+        outerT3StartingLowerModuleIdx = modulesInGPU.reverseLookupLowerModuleIndices[staggeredModuleIndices[i]];
+        if(secondT3ArrayIdx >= tripletsInGPU.nTriplets[outerT3StartingLowerModuleIdx]) continue;
+   
+        secondT3Idx = outerT3StartingLowerModuleIdx * N_MAX_TRIPLETS_PER_MODULE + secondT3ArrayIdx;
+       if(tripletsInGPU.partOfExtension[secondT3Idx] or tripletsInGPU.partOfPT5[secondT3Idx] or tripletsInGPU.partOfT5[secondT3Idx] or tripletsInGPU.partOfPT3[secondT3Idx]) continue;
+
+        success = runTrackExtensionDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelTripletsInGPU, pixelQuintupletsInGPU, trackCandidatesInGPU, firstT3Idx, secondT3Idx, 3, 3, firstT3Idx, 2, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius, innerRadius, outerRadius); 
+
+        if(success and nLayerOverlaps[0] == 2)
+        {
+            unsigned int trackExtensionArrayIndex = atomicAdd(&trackExtensionsInGPU.nTrackExtensions[nTrackCandidates], 1);
+            if(trackExtensionArrayIndex >= (N_MAX_T3T3_TRACK_EXTENSIONS))
+            {
+#ifdef Warnings
+                if(trackExtensionArrayIndex == N_MAX_T3T3_TRACK_EXTENSIONS)
+                {
+                    printf("T3T3 track extensions overflow!\n");
+                }
+#endif
+            }
+            else
+            {
+                unsigned int trackExtensionIndex = nTrackCandidates * N_MAX_TRACK_EXTENSIONS_PER_TC + trackExtensionArrayIndex;
+#ifdef CUT_VALUE_DEBUG
+                addTrackExtensionToMemory(trackExtensionsInGPU, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius,  innerRadius, outerRadius, trackExtensionIndex);
+#else
+                addTrackExtensionToMemory(trackExtensionsInGPU, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius, trackExtensionIndex);
+
+#endif
+                trackExtensionsInGPU.isDup[trackExtensionIndex] = false;
+                tripletsInGPU.partOfExtension[firstT3Idx] = true;
+                tripletsInGPU.partOfExtension[secondT3Idx] = true;
+            }
+        }
+    }
+
+    outerLowerModuleIndex = tripletsInGPU.lowerModuleIndices[3 * firstT3Idx + 2];
+    nStaggeredModules = 0;
+    findStaggeredNeighbours(modulesInGPU, outerLowerModuleIndex, staggeredModuleIndices, nStaggeredModules);
+    
+    for(size_t i = 0; i < nStaggeredModules; i++)
+    {
+        outerT3StartingLowerModuleIdx = modulesInGPU.reverseLookupLowerModuleIndices[staggeredModuleIndices[i]];
+        if(secondT3ArrayIdx >= tripletsInGPU.nTriplets[outerT3StartingLowerModuleIdx]) continue;
+   
+        secondT3Idx = outerT3StartingLowerModuleIdx * N_MAX_TRIPLETS_PER_MODULE + secondT3ArrayIdx;
+        if(tripletsInGPU.partOfExtension[secondT3Idx] or tripletsInGPU.partOfPT5[secondT3Idx] or tripletsInGPU.partOfT5[secondT3Idx] or tripletsInGPU.partOfPT3[secondT3Idx]) continue;
+
+        success = runTrackExtensionDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelTripletsInGPU, pixelQuintupletsInGPU, trackCandidatesInGPU, firstT3Idx, secondT3Idx, 3, 3, firstT3Idx, 1, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius, innerRadius, outerRadius); 
+
+        if(success and nLayerOverlaps[0] == 1 and nHitOverlaps[0] != 2)        
+        {
+            unsigned int trackExtensionArrayIndex = atomicAdd(&trackExtensionsInGPU.nTrackExtensions[nTrackCandidates], 1);
+            if(trackExtensionArrayIndex >= (N_MAX_T3T3_TRACK_EXTENSIONS))
+            {
+#ifdef Warnings
+                if(trackExtensionArrayIndex == N_MAX_T3T3_TRACK_EXTENSIONS)
+                {
+                    printf("T3T3 track extensions overflow!\n");
+                }
+#endif
+            }
+            else
+            {
+                unsigned int trackExtensionIndex = nTrackCandidates * N_MAX_TRACK_EXTENSIONS_PER_TC + trackExtensionArrayIndex;
+#ifdef CUT_VALUE_DEBUG
+                addTrackExtensionToMemory(trackExtensionsInGPU, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius,  innerRadius, outerRadius, trackExtensionIndex);
+#else
+                addTrackExtensionToMemory(trackExtensionsInGPU, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius, trackExtensionIndex);
+#endif
+                trackExtensionsInGPU.isDup[trackExtensionIndex] = false;
+                tripletsInGPU.partOfExtension[firstT3Idx] = true;
+                tripletsInGPU.partOfExtension[secondT3Idx] = true;
+
+            }
+        }
+    }
+}
+#endif
+
+__global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::trackExtensions& trackExtensionsInGPU)
+{
+    int tcIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    int t3ArrayIdx = blockIdx.y * blockDim.y + threadIdx.y;
+    int layerOverlap = blockIdx.z * blockDim.z + threadIdx.z;
+    //layerOverlap
+    if(layerOverlap == 0 or layerOverlap >= 3) return;
+    if(tcIdx >= *(trackCandidatesInGPU.nTrackCandidates)) return;
+    short tcType = trackCandidatesInGPU.trackCandidateType[tcIdx];                                
+    unsigned int outerT3StartingModuleIndex;
+    unsigned int outerT3Index;
+    if(tcType == 8) return;
+    //FIXME: Need to use staggering modules for the first outer T3 module itself!
+    else if(tcType == 7 or tcType == 4)
+    {
+        unsigned int outerT5Index = trackCandidatesInGPU.objectIndices[2 * tcIdx + 1];
+        outerT3Index = quintupletsInGPU.tripletIndices[2 * outerT5Index];
+        outerT3StartingModuleIndex = quintupletsInGPU.lowerModuleIndices[5 * outerT5Index + 5 - layerOverlap];
+    }
+    else if(tcType == 5) //pT3
+    {
+        unsigned int pT3Index = trackCandidatesInGPU.objectIndices[2 * tcIdx];
+        outerT3Index = pixelTripletsInGPU.tripletIndices[pT3Index];
+        outerT3StartingModuleIndex = tripletsInGPU.lowerModuleIndices[3 * outerT3Index + 3 - layerOverlap];  
+    }
+
+
+    unsigned int outerT3StartingLowerModuleIndex = modulesInGPU.reverseLookupLowerModuleIndices[outerT3StartingModuleIndex];
+    if(t3ArrayIdx >= tripletsInGPU.nTriplets[outerT3StartingLowerModuleIndex]) return;
+    unsigned int t3Idx =  outerT3StartingLowerModuleIndex * N_MAX_TRIPLETS_PER_MODULE + t3ArrayIdx;
+    short constituentTCType[3];
+    unsigned int constituentTCIndex[3];
+    unsigned int nLayerOverlaps[2], nHitOverlaps[2];
+    float rzChiSquared, rPhiChiSquared, regressionRadius, innerRadius, outerRadius;
+
+    bool success = runTrackExtensionDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelTripletsInGPU, pixelQuintupletsInGPU, trackCandidatesInGPU, tcIdx, t3Idx, tcType, 3, outerT3Index, layerOverlap, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius, innerRadius, outerRadius);
+    if(success)
+    {
+        unsigned int trackExtensionArrayIndex = atomicAdd(&trackExtensionsInGPU.nTrackExtensions[tcIdx], 1);
+        if(trackExtensionArrayIndex >= N_MAX_TRACK_EXTENSIONS_PER_TC)
+        {
+#ifdef Warnings
+            if(trackExtensionArrayIndex == N_MAX_TRACK_EXTENSIONS_PER_TC)
+            {
+                printf("Track extensions overflow for TC index = %d\n", tcIdx);
+            }
+#endif
+        }
+        else
+        {
+            unsigned int trackExtensionIndex = tcIdx * N_MAX_TRACK_EXTENSIONS_PER_TC + trackExtensionArrayIndex; 
+#ifdef CUT_VALUE_DEBUG
+            addTrackExtensionToMemory(trackExtensionsInGPU, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius, innerRadius, outerRadius, trackExtensionIndex);
+#else
+            addTrackExtensionToMemory(trackExtensionsInGPU, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius, trackExtensionIndex);
+#endif
+            trackCandidatesInGPU.partOfExtension[tcIdx] = true;
+            tripletsInGPU.partOfExtension[t3Idx] = true;
+        }
+    }
+}
+
+__global__ void cleanDuplicateExtendedTracks(struct SDL::trackExtensions& trackExtensionsInGPU, unsigned int nTrackCandidates)
+{
+    int trackCandidateIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    if(trackCandidateIndex >= nTrackCandidates) return;
+    float minRPhiChiSquared = 999999999;
+    float minRZChiSquared = 0; //rz chi squared corresponding to the minimum r-phi chi squared
+    unsigned int minIndex = 0;
+    for(size_t i = 0; i < min(trackExtensionsInGPU.nTrackExtensions[trackCandidateIndex], N_MAX_TRACK_EXTENSIONS_PER_TC); i++)
+    {
+        float candidateRPhiChiSquared = trackExtensionsInGPU.rPhiChiSquared[trackCandidateIndex * N_MAX_TRACK_EXTENSIONS_PER_TC + i];
+        float candidateRZChiSquared = trackExtensionsInGPU.rzChiSquared[trackCandidateIndex * N_MAX_TRACK_EXTENSIONS_PER_TC + i];
+
+        if( candidateRPhiChiSquared < minRPhiChiSquared)
+        {
+            minIndex = i;
+            minRPhiChiSquared = candidateRPhiChiSquared;
+            minRZChiSquared = candidateRZChiSquared;
+        }
+        else if(candidateRPhiChiSquared == minRPhiChiSquared and candidateRZChiSquared > 0 and  candidateRZChiSquared < minRZChiSquared )
+        {
+            minIndex = i;
+            minRPhiChiSquared = candidateRPhiChiSquared;
+            minRZChiSquared = candidateRZChiSquared;
+        }
+    }
+    trackExtensionsInGPU.isDup[N_MAX_TRACK_EXTENSIONS_PER_TC * trackCandidateIndex + minIndex] = false;
+}
+#endif

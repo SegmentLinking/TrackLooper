@@ -107,22 +107,22 @@ rm -f timing_temp.txt
 
 # Run different GPU configurations
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified" ]]; then
-    run_gpu unified ${SAMPLE} ${NEVENTS} -8
+    run_gpu unified ${SAMPLE} ${NEVENTS} -8 -e
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified_cache" ]]; then
-    run_gpu unified_cache ${SAMPLE} ${NEVENTS} -c -8
+    run_gpu unified_cache ${SAMPLE} ${NEVENTS} -c -8 -e
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit" ]]; then
-    run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8
+    run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 -e
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache" ]]; then
-     run_gpu explicit_cache ${SAMPLE} ${NEVENTS} -x -c -8 # Does not run on phi3
+     run_gpu explicit_cache ${SAMPLE} ${NEVENTS} -x -c -8 -e 
     :
 fi
 
 echo "Total Timing Summary"
-echo "   Evt    Hits       MD       LS      T3       TC       T5       pT3      pT5      pLS      Event      Short             Loop      Effective"
+echo "   Evt    Hits       MD       LS      T3       T5       pLS       pT5      pT3      TC       TCE      Event      Short             Loop      Effective"
 grep -hr "avg " timing_temp.txt # space is needed to not get certain bad lines 
