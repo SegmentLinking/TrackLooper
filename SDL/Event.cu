@@ -2697,12 +2697,12 @@ cudaStreamSynchronize(stream);
         pixelQuintupletsInCPU->pixelIndices = new unsigned int[nPixelQuintuplets];
         pixelQuintupletsInCPU->T5Indices = new unsigned int[nPixelQuintuplets];
         pixelQuintupletsInCPU->isDup = new bool[nPixelQuintuplets];
-        pixelQuintupletsInCPU->score = new float[nPixelQuintuplets];
+        pixelQuintupletsInCPU->score = new FPX[nPixelQuintuplets];
 
         cudaMemcpyAsync(pixelQuintupletsInCPU->pixelIndices, pixelQuintupletsInGPU->pixelIndices, nPixelQuintuplets * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(pixelQuintupletsInCPU->T5Indices, pixelQuintupletsInGPU->T5Indices, nPixelQuintuplets * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(pixelQuintupletsInCPU->isDup, pixelQuintupletsInGPU->isDup, nPixelQuintuplets * sizeof(bool), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(pixelQuintupletsInCPU->score, pixelQuintupletsInGPU->score, nPixelQuintuplets * sizeof(float), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(pixelQuintupletsInCPU->score, pixelQuintupletsInGPU->score, nPixelQuintuplets * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
     }
     return pixelQuintupletsInCPU;

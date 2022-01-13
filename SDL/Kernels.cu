@@ -322,8 +322,8 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, st
             {
                 if(jx < *pixelQuintupletsInGPU.nPixelQuintuplets)
                 {
-                    float eta2 = pixelQuintupletsInGPU.eta[jx];
-                    float phi2 = pixelQuintupletsInGPU.phi[jx];
+                    float eta2 = __H2F(pixelQuintupletsInGPU.eta[jx]);
+                    float phi2 = __H2F(pixelQuintupletsInGPU.phi[jx]);
                     float dEta = abs(eta1-eta2);
                     float dPhi = abs(phi1-phi2);
                     if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
@@ -1141,7 +1141,7 @@ __global__ void removeDupPixelQuintupletsInGPUFromMap(struct SDL::modules& modul
         {
             continue;
         }
-	float score1 = pixelQuintupletsInGPU.score[ix];
+	float score1 = __H2F(pixelQuintupletsInGPU.score[ix]);
         for (unsigned int jx=0; jx<nPixelQuintuplets; jx++)
         {
             if(ix==jx)
@@ -1158,7 +1158,7 @@ __global__ void removeDupPixelQuintupletsInGPUFromMap(struct SDL::modules& modul
             unsigned int pLS_jx = pixelQuintupletsInGPU.pixelIndices[jx];
             int nMatched = checkHitsT5(T5_ix,T5_jx,mdsInGPU,segmentsInGPU,tripletsInGPU,quintupletsInGPU);
             int npMatched = checkHitspT5(pLS_ix,pLS_jx,mdsInGPU,segmentsInGPU,hitsInGPU);
-	    float score2 = pixelQuintupletsInGPU.score[jx];
+	    float score2 = __H2F(pixelQuintupletsInGPU.score[jx]);
             if(((nMatched + npMatched) >=7))// || (secondPass && ((nMatched + npMatched) >=1)))
             {
                 dup_count++;

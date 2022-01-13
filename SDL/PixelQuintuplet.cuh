@@ -32,9 +32,9 @@ namespace SDL
         unsigned int* T5Indices;
         unsigned int* nPixelQuintuplets;
         bool* isDup;
-        float* score;
-        float* eta;
-        float* phi;
+        FPX* score;
+        FPX* eta;
+        FPX* phi;
 #ifdef TRACK_EXTENSIONS
         //for track extensions
         unsigned int* logicalLayers;

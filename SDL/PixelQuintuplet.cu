@@ -106,9 +106,9 @@ void SDL::pixelQuintuplets::resetMemory(unsigned int maxPixelQuintuplets,cudaStr
     cudaMemsetAsync(T5Indices,0, maxPixelQuintuplets * sizeof(unsigned int),stream);
     cudaMemsetAsync(nPixelQuintuplets,0, sizeof(unsigned int),stream);
     cudaMemsetAsync(isDup,0, maxPixelQuintuplets * sizeof(bool),stream);
-    cudaMemsetAsync(score,0, maxPixelQuintuplets * sizeof(float),stream);
-    cudaMemsetAsync(eta, 0,maxPixelQuintuplets * sizeof(float),stream);
-    cudaMemsetAsync(phi, 0,maxPixelQuintuplets * sizeof(float),stream);
+    cudaMemsetAsync(score,0, maxPixelQuintuplets * sizeof(FPX),stream);
+    cudaMemsetAsync(eta , 0, maxPixelQuintuplets * sizeof(FPX),stream);
+    cudaMemsetAsync(phi , 0, maxPixelQuintuplets * sizeof(FPX),stream);
 }
 void SDL::createPixelQuintupletsInUnifiedMemory(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int maxPixelQuintuplets,cudaStream_t stream)
 {
@@ -117,9 +117,9 @@ void SDL::createPixelQuintupletsInUnifiedMemory(struct SDL::pixelQuintuplets& pi
     pixelQuintupletsInGPU.T5Indices           = (unsigned int*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(unsigned int),stream);
     pixelQuintupletsInGPU.nPixelQuintuplets   = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
     pixelQuintupletsInGPU.isDup               = (bool*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(bool),stream);
-    pixelQuintupletsInGPU.score               = (float*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(float),stream);
-    pixelQuintupletsInGPU.eta                 = (float*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(float),stream);
-    pixelQuintupletsInGPU.phi                 = (float*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(float),stream);
+    pixelQuintupletsInGPU.score               = (FPX*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(FPX),stream);
+    pixelQuintupletsInGPU.eta                 = (FPX*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(FPX),stream);
+    pixelQuintupletsInGPU.phi                 = (FPX*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(FPX),stream);
 #ifdef TRACK_EXTENSIONS
     pixelQuintupletsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_managed(maxPixelQuintuplets * 14 * sizeof(unsigned int), stream);
     pixelQuintupletsInGPU.logicalLayers = (unsigned int*)cms::cuda::allocate_managed(maxPixelQuintuplets * 7 * sizeof(unsigned int), stream);
@@ -134,9 +134,9 @@ void SDL::createPixelQuintupletsInUnifiedMemory(struct SDL::pixelQuintuplets& pi
     cudaMallocManaged(&pixelQuintupletsInGPU.T5Indices, maxPixelQuintuplets * sizeof(unsigned int));
     cudaMallocManaged(&pixelQuintupletsInGPU.nPixelQuintuplets, sizeof(unsigned int));
     cudaMallocManaged(&pixelQuintupletsInGPU.isDup, maxPixelQuintuplets * sizeof(bool));
-    cudaMallocManaged(&pixelQuintupletsInGPU.score, maxPixelQuintuplets * sizeof(float));
-    cudaMallocManaged(&pixelQuintupletsInGPU.eta, maxPixelQuintuplets * sizeof(float));
-    cudaMallocManaged(&pixelQuintupletsInGPU.phi, maxPixelQuintuplets * sizeof(float));
+    cudaMallocManaged(&pixelQuintupletsInGPU.score, maxPixelQuintuplets * sizeof(FPX));
+    cudaMallocManaged(&pixelQuintupletsInGPU.eta  , maxPixelQuintuplets * sizeof(FPX));
+    cudaMallocManaged(&pixelQuintupletsInGPU.phi  , maxPixelQuintuplets * sizeof(FPX));
 
 #ifdef TRACK_EXTENSIONS
     cudaMallocManaged(&pixelQuintupletsInGPU.logicalLayers, maxPixelQuintuplets * 7 * sizeof(unsigned int));
@@ -169,9 +169,9 @@ void SDL::createPixelQuintupletsInExplicitMemory(struct SDL::pixelQuintuplets& p
     pixelQuintupletsInGPU.T5Indices           = (unsigned int*)cms::cuda::allocate_device(dev,maxPixelQuintuplets * sizeof(unsigned int),stream);
     pixelQuintupletsInGPU.nPixelQuintuplets   = (unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
     pixelQuintupletsInGPU.isDup               = (bool*)cms::cuda::allocate_device(dev,maxPixelQuintuplets * sizeof(bool),stream);
-    pixelQuintupletsInGPU.score               = (float*)cms::cuda::allocate_device(dev,maxPixelQuintuplets * sizeof(float),stream);
-    pixelQuintupletsInGPU.eta                 = (float*)cms::cuda::allocate_device(dev,maxPixelQuintuplets * sizeof(float),stream);
-    pixelQuintupletsInGPU.phi                 = (float*)cms::cuda::allocate_device(dev,maxPixelQuintuplets * sizeof(float),stream);
+    pixelQuintupletsInGPU.score               = (FPX*)cms::cuda::allocate_device(dev,maxPixelQuintuplets * sizeof(FPX),stream);
+    pixelQuintupletsInGPU.eta                 = (FPX*)cms::cuda::allocate_device(dev,maxPixelQuintuplets * sizeof(FPX),stream);
+    pixelQuintupletsInGPU.phi                 = (FPX*)cms::cuda::allocate_device(dev,maxPixelQuintuplets * sizeof(FPX),stream);
 #ifdef TRACK_EXTENSIONS
     pixelQuintupletsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * 14 * sizeof(unsigned int), stream);
     pixelQuintupletsInGPU.logicalLayers = (unsigned int*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * 7 * sizeof(unsigned int), stream);
@@ -186,9 +186,9 @@ void SDL::createPixelQuintupletsInExplicitMemory(struct SDL::pixelQuintuplets& p
     cudaMalloc(&pixelQuintupletsInGPU.T5Indices, maxPixelQuintuplets * sizeof(unsigned int));
     cudaMalloc(&pixelQuintupletsInGPU.nPixelQuintuplets, sizeof(unsigned int));
     cudaMalloc(&pixelQuintupletsInGPU.isDup, maxPixelQuintuplets * sizeof(bool));
-    cudaMalloc(&pixelQuintupletsInGPU.score, maxPixelQuintuplets * sizeof(float));
-    cudaMalloc(&pixelQuintupletsInGPU.eta, maxPixelQuintuplets * sizeof(float));
-    cudaMalloc(&pixelQuintupletsInGPU.phi, maxPixelQuintuplets * sizeof(float));
+    cudaMalloc(&pixelQuintupletsInGPU.score, maxPixelQuintuplets * sizeof(FPX));
+    cudaMalloc(&pixelQuintupletsInGPU.eta  , maxPixelQuintuplets * sizeof(FPX));
+    cudaMalloc(&pixelQuintupletsInGPU.phi  , maxPixelQuintuplets * sizeof(FPX));
 
 #ifdef TRACK_EXTENSIONS
     cudaMalloc(&pixelQuintupletsInGPU.logicalLayers, maxPixelQuintuplets * 7 *sizeof(unsigned int));
@@ -219,9 +219,9 @@ __device__ void SDL::addPixelQuintupletToMemory(struct modules& modulesInGPU, st
     pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex] = pixelIndex;
     pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex] = T5Index;
     pixelQuintupletsInGPU.isDup[pixelQuintupletIndex] = 0;
-    pixelQuintupletsInGPU.score[pixelQuintupletIndex] = score;
-    pixelQuintupletsInGPU.eta[pixelQuintupletIndex] = eta;
-    pixelQuintupletsInGPU.phi[pixelQuintupletIndex] = phi;
+    pixelQuintupletsInGPU.score[pixelQuintupletIndex] = __F2H(score);
+    pixelQuintupletsInGPU.eta[pixelQuintupletIndex]   = __F2H(eta);
+    pixelQuintupletsInGPU.phi[pixelQuintupletIndex]   = __F2H(phi);
 
 #ifdef TRACK_EXTENSIONS
     pixelQuintupletsInGPU.pixelRadius[pixelQuintupletIndex] = pixelRadius;
