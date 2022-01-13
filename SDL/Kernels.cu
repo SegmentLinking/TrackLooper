@@ -259,8 +259,8 @@ __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, S
         }
 #ifdef Crossclean_pT3
     //cross cleaning step
-        float eta1 = pixelTripletsInGPU.eta_pix[pixelTripletIndex]; 
-        float phi1 = pixelTripletsInGPU.phi_pix[pixelTripletIndex]; 
+        float eta1 = __H2F(pixelTripletsInGPU.eta_pix[pixelTripletIndex]); 
+        float phi1 = __H2F(pixelTripletsInGPU.phi_pix[pixelTripletIndex]); 
         int pixelModuleIndex = *modulesInGPU.nModules - 1;
         unsigned int prefix = pixelModuleIndex*N_MAX_SEGMENTS_PER_MODULE;
         bool end= false;
@@ -282,7 +282,7 @@ __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, S
         atomicAdd(trackCandidatesInGPU.nTrackCandidatespT3,1);
 
 #ifdef TRACK_EXTENSIONS
-        float radius = 0.5f * (pixelTripletsInGPU.pixelRadius[pixelTripletIndex] + pixelTripletsInGPU.tripletRadius[pixelTripletIndex]);
+        float radius = 0.5f * (__H2F(pixelTripletsInGPU.pixelRadius[pixelTripletIndex]) + __H2F(pixelTripletsInGPU.tripletRadius[pixelTripletIndex]));
         addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, &pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex], &pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex], &pixelTripletsInGPU.hitIndices[10 * pixelTripletIndex], pixelTripletsInGPU.centerX[pixelTripletIndex], pixelTripletsInGPU.centerY[pixelTripletIndex],radius,
                 trackCandidateIdx);
 #else
@@ -332,8 +332,8 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, st
                 }
                 if(jx < *pixelTripletsInGPU.nPixelTriplets)
                 {
-                    float eta2 = pixelTripletsInGPU.eta[jx]; 
-                    float phi2 = pixelTripletsInGPU.phi[jx]; 
+                    float eta2 = __H2F(pixelTripletsInGPU.eta[jx]); 
+                    float phi2 = __H2F(pixelTripletsInGPU.phi[jx]); 
                     float dEta = abs(eta1-eta2);
                     float dPhi = abs(phi1-phi2);
                     if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
@@ -434,8 +434,8 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
                         end=true;
                         break;
                     }
-                    float eta2 = pixelTripletsInGPU.eta_pix[jx];
-                    float phi2 = pixelTripletsInGPU.phi_pix[jx];
+                    float eta2 = __H2F(pixelTripletsInGPU.eta_pix[jx]);
+                    float phi2 = __H2F(pixelTripletsInGPU.phi_pix[jx]);
                     float dEta = abs(eta1-eta2);
                     float dPhi = abs(phi1-phi2);
                     if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
@@ -1065,10 +1065,10 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesI
     for (unsigned int ix=blockIdx.x*blockDim.x+threadIdx.x; ix<*pixelTripletsInGPU.nPixelTriplets; ix+=blockDim.x*gridDim.x)
     {
         bool isDup = false;
-        float score1 = pixelTripletsInGPU.score[ix];
+        float score1 = __H2F(pixelTripletsInGPU.score[ix]);
         for (unsigned int jx=0; jx<*pixelTripletsInGPU.nPixelTriplets; jx++)
         {
-            float score2 = pixelTripletsInGPU.score[jx];
+            float score2 = __H2F(pixelTripletsInGPU.score[jx]);
             if(ix==jx)
             {
                 continue;
@@ -1086,12 +1086,12 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::modules& modulesI
                     break;
                 }
 
-                else if( pixelTripletsInGPU.logicalLayers[5*ix+2] == pixelTripletsInGPU.logicalLayers[5*jx+2] && pixelTripletsInGPU.score[ix] > pixelTripletsInGPU.score[jx])
+                else if( pixelTripletsInGPU.logicalLayers[5*ix+2] == pixelTripletsInGPU.logicalLayers[5*jx+2] && __H2F(pixelTripletsInGPU.score[ix]) > __H2F(pixelTripletsInGPU.score[jx]))
                 {
                     rmPixelTripletToMemory(pixelTripletsInGPU,ix);
                     break;
                 }
-                else if( pixelTripletsInGPU.logicalLayers[5*ix+2] == pixelTripletsInGPU.logicalLayers[5*jx+2] && (pixelTripletsInGPU.score[ix] == pixelTripletsInGPU.score[jx]) && (ix<jx))
+                else if( pixelTripletsInGPU.logicalLayers[5*ix+2] == pixelTripletsInGPU.logicalLayers[5*jx+2] && (__H2F(pixelTripletsInGPU.score[ix]) == __H2F(pixelTripletsInGPU.score[jx])) && (ix<jx))
                 {
                     rmPixelTripletToMemory(pixelTripletsInGPU,ix);
                     break;
