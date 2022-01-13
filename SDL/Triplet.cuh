@@ -34,9 +34,9 @@ namespace SDL
         unsigned int* hitIndices;
         
         //delta beta = betaIn - betaOut
-        float* betaIn;
-        float* betaOut;
-        float* pt_beta;
+        FPX* betaIn;
+        FPX* betaOut;
+        FPX* pt_beta;
 
         bool* partOfPT5;
         bool* partOfT5;

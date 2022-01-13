@@ -2571,9 +2571,9 @@ cudaStreamSynchronize(stream);
         unsigned int nMemoryLocations = (N_MAX_TRIPLETS_PER_MODULE) * (nLowerModules);
         tripletsInCPU->segmentIndices = new unsigned[2 * nMemoryLocations];
         tripletsInCPU->nTriplets = new unsigned int[nLowerModules];
-        tripletsInCPU->betaIn = new float[nMemoryLocations];
-        tripletsInCPU->betaOut = new float[nMemoryLocations];
-        tripletsInCPU->pt_beta = new float[nMemoryLocations];
+        tripletsInCPU->betaIn  = new FPX[nMemoryLocations];
+        tripletsInCPU->betaOut = new FPX[nMemoryLocations];
+        tripletsInCPU->pt_beta = new FPX[nMemoryLocations];
 #ifdef TRACK_EXTENSIONS
         tripletsInCPU->hitIndices = new unsigned int[6 * nMemoryLocations];
         tripletsInCPU->logicalLayers = new unsigned int[3 * nMemoryLocations];
@@ -2581,9 +2581,9 @@ cudaStreamSynchronize(stream);
         cudaMemcpyAsync(tripletsInCPU->logicalLayers, tripletsInGPU->logicalLayers, 3 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
 #endif
         cudaMemcpyAsync(tripletsInCPU->segmentIndices, tripletsInGPU->segmentIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(tripletsInCPU->betaIn, tripletsInGPU->betaIn, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(tripletsInCPU->betaOut, tripletsInGPU->betaOut, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(tripletsInCPU->pt_beta, tripletsInGPU->pt_beta, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(tripletsInCPU->betaIn, tripletsInGPU->betaIn,   nMemoryLocations * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(tripletsInCPU->betaOut, tripletsInGPU->betaOut, nMemoryLocations * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(tripletsInCPU->pt_beta, tripletsInGPU->pt_beta, nMemoryLocations * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(tripletsInCPU->nTriplets, tripletsInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 
 cudaStreamSynchronize(stream);
