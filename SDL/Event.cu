@@ -2868,7 +2868,7 @@ SDL::trackExtensions* SDL::Event::getTrackExtensions()
        trackExtensionsInCPU->nLayerOverlaps = new unsigned int[2 * maxTrackExtensions];
        trackExtensionsInCPU->nHitOverlaps = new unsigned int[2 * maxTrackExtensions];
        trackExtensionsInCPU->isDup = new bool[maxTrackExtensions];
-        trackExtensionsInCPU->regressionRadius = new float[maxTrackExtensions];
+       trackExtensionsInCPU->regressionRadius = new FPX[maxTrackExtensions];
 
        cudaMemcpyAsync(trackExtensionsInCPU->nTrackExtensions, trackExtensionsInGPU->nTrackExtensions, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
        cudaMemcpy(trackExtensionsInCPU->constituentTCTypes, trackExtensionsInGPU->constituentTCTypes, 3 * maxTrackExtensions * sizeof(short), cudaMemcpyDeviceToHost);
@@ -2877,7 +2877,7 @@ SDL::trackExtensions* SDL::Event::getTrackExtensions()
        cudaMemcpyAsync(trackExtensionsInCPU->nLayerOverlaps, trackExtensionsInGPU->nLayerOverlaps, 2 * maxTrackExtensions * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
        cudaMemcpyAsync(trackExtensionsInCPU->nHitOverlaps, trackExtensionsInGPU->nHitOverlaps, 2 * maxTrackExtensions * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
        cudaMemcpyAsync(trackExtensionsInCPU->isDup, trackExtensionsInGPU->isDup, maxTrackExtensions * sizeof(bool), cudaMemcpyDeviceToHost, stream);
-       cudaMemcpyAsync(trackExtensionsInCPU->regressionRadius, trackExtensionsInGPU->regressionRadius, maxTrackExtensions * sizeof(float), cudaMemcpyDeviceToHost, stream);
+       cudaMemcpyAsync(trackExtensionsInCPU->regressionRadius, trackExtensionsInGPU->regressionRadius, maxTrackExtensions * sizeof(FPX), cudaMemcpyDeviceToHost, stream);
        cudaStreamSynchronize(stream);
    }
 

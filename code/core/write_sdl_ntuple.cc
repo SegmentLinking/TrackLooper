@@ -1441,11 +1441,11 @@ void fillT3T3TrackExtensionOutputBranches(SDL::Event* event)
 
         tce_nLayerOverlaps.push_back(nLayerOverlaps);
         tce_nHitOverlaps.push_back(nHitOverlaps);
-        float regressionRadius = trackExtensionsInGPU.regressionRadius[teIdx];
+        float regressionRadius = __H2F(trackExtensionsInGPU.regressionRadius[teIdx]);
 
 #ifdef CUT_VALUE_DEBUG
-        tce_rPhiChiSquared.push_back(trackExtensionsInGPU.rPhiChiSquared[teIdx]);
-        tce_rzChiSquared.push_back(trackExtensionsInGPU.rzChiSquared[teIdx]);
+        tce_rPhiChiSquared.push_back(__H2F(trackExtensionsInGPU.rPhiChiSquared[teIdx]));
+        tce_rzChiSquared.push_back(__H2F(trackExtensionsInGPU.rzChiSquared[teIdx]));
         tce_regressionRadius.push_back(regressionRadius);
         tce_innerRadius.push_back(trackExtensionsInGPU.innerRadius[teIdx]);
         tce_outerRadius.push_back(trackExtensionsInGPU.outerRadius[teIdx]);
@@ -1644,8 +1644,8 @@ void fillPureTrackExtensionOutputBranches(SDL::Event* event)
             tce_nLayerOverlaps.push_back(nLayerOverlaps);
             tce_nHitOverlaps.push_back(nHitOverlaps);
 #ifdef CUT_VALUE_DEBUG
-            tce_rPhiChiSquared.push_back(trackExtensionsInGPU.rPhiChiSquared[teIdx]);
-            tce_rzChiSquared.push_back(trackExtensionsInGPU.rzChiSquared[teIdx]);
+            tce_rPhiChiSquared.push_back(__H2F(trackExtensionsInGPU.rPhiChiSquared[teIdx]));
+            tce_rzChiSquared.push_back(__H2F(trackExtensionsInGPU.rzChiSquared[teIdx]));
 #endif
             if(anchorType != 3)
             {
@@ -1861,8 +1861,8 @@ void fillTrackExtensionOutputBranches(SDL::Event* event)
             tce_nLayerOverlaps.push_back(nLayerOverlaps);
             tce_nHitOverlaps.push_back(nHitOverlaps);
 #ifdef CUT_VALUE_DEBUG
-            tce_rPhiChiSquared.push_back(trackExtensionsInGPU.rPhiChiSquared[teIdx]);
-            tce_rzChiSquared.push_back(trackExtensionsInGPU.rzChiSquared[teIdx]);
+            tce_rPhiChiSquared.push_back(__H2F(trackExtensionsInGPU.rPhiChiSquared[teIdx]));
+            tce_rzChiSquared.push_back(__H2F(trackExtensionsInGPU.rzChiSquared[teIdx]));
 #endif
             if(anchorType != 3)
             {
@@ -1889,7 +1889,7 @@ void fillTrackExtensionOutputBranches(SDL::Event* event)
                 float z3 = hitsInGPU.zs[anchorHitIndices[4]];
 
                 float g, f; // not used
-                float regressionRadius = trackExtensionsInGPU.regressionRadius[teIdx];
+                float regressionRadius = __H2F(trackExtensionsInGPU.regressionRadius[teIdx]);
                 // Compute pt, eta, phi of T3
                 const float kRinv1GeVf = (2.99792458e-3 * 3.8);
 

@@ -1471,8 +1471,8 @@ __global__ void cleanDuplicateExtendedTracks(struct SDL::trackExtensions& trackE
     unsigned int minIndex = 0;
     for(size_t i = 0; i < min(trackExtensionsInGPU.nTrackExtensions[trackCandidateIndex], N_MAX_TRACK_EXTENSIONS_PER_TC); i++)
     {
-        float candidateRPhiChiSquared = trackExtensionsInGPU.rPhiChiSquared[trackCandidateIndex * N_MAX_TRACK_EXTENSIONS_PER_TC + i];
-        float candidateRZChiSquared = trackExtensionsInGPU.rzChiSquared[trackCandidateIndex * N_MAX_TRACK_EXTENSIONS_PER_TC + i];
+        float candidateRPhiChiSquared = __H2F(trackExtensionsInGPU.rPhiChiSquared[trackCandidateIndex * N_MAX_TRACK_EXTENSIONS_PER_TC + i]);
+        float candidateRZChiSquared = __H2F(trackExtensionsInGPU.rzChiSquared[trackCandidateIndex * N_MAX_TRACK_EXTENSIONS_PER_TC + i]);
 
         if( candidateRPhiChiSquared < minRPhiChiSquared)
         {

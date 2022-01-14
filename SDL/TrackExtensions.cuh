@@ -33,9 +33,9 @@ namespace SDL
         unsigned int* nLayerOverlaps;
         unsigned int* nHitOverlaps;
         unsigned int* nTrackExtensions; //overall counter!
-        float* rPhiChiSquared;
-        float* rzChiSquared;
-        float* regressionRadius;
+        FPX* rPhiChiSquared;
+        FPX* rzChiSquared;
+        FPX* regressionRadius;
         float* innerRadius;
         float* outerRadius;
         bool* isDup;

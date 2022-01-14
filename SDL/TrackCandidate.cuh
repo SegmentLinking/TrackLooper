@@ -41,9 +41,9 @@ namespace SDL
         unsigned int* lowerModuleIndices;
         bool* partOfExtension;
 
-        float* centerX;
-        float* centerY;
-        float* radius;
+        FPX* centerX;
+        FPX* centerY;
+        FPX* radius;
 #endif
 
         trackCandidates();
