@@ -40,10 +40,10 @@ namespace SDL
         unsigned int* logicalLayers;
         unsigned int* hitIndices;
         unsigned int* lowerModuleIndices;
-        float* pixelRadius;
-        float* quintupletRadius;
-        float* centerX;
-        float* centerY;
+        FPX* pixelRadius;
+        FPX* quintupletRadius;
+        FPX* centerX;
+        FPX* centerY;
 #endif
 #ifdef CUT_VALUE_DEBUG
         float* rzChiSquared;

@@ -124,10 +124,10 @@ void SDL::createPixelQuintupletsInUnifiedMemory(struct SDL::pixelQuintuplets& pi
     pixelQuintupletsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_managed(maxPixelQuintuplets * 14 * sizeof(unsigned int), stream);
     pixelQuintupletsInGPU.logicalLayers = (unsigned int*)cms::cuda::allocate_managed(maxPixelQuintuplets * 7 * sizeof(unsigned int), stream);
     pixelQuintupletsInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_managed(maxPixelQuintuplets * 7 * sizeof(unsigned int), stream);
-    pixelQuintupletsInGPU.centerX = (float*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(float), stream);
-    pixelQuintupletsInGPU.centerY = (float*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(float), stream);
-    pixelQuintupletsInGPU.pixelRadius = (float*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(float), stream);
-    pixelQuintupletsInGPU.quintupletRadius = (float*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(float), stream);
+    pixelQuintupletsInGPU.centerX          = (FPX*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(FPX), stream);
+    pixelQuintupletsInGPU.centerY          = (FPX*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(FPX), stream);
+    pixelQuintupletsInGPU.pixelRadius      = (FPX*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(FPX), stream);
+    pixelQuintupletsInGPU.quintupletRadius = (FPX*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(FPX), stream);
 #endif
 #else
     cudaMallocManaged(&pixelQuintupletsInGPU.pixelIndices, maxPixelQuintuplets * sizeof(unsigned int));
@@ -142,10 +142,10 @@ void SDL::createPixelQuintupletsInUnifiedMemory(struct SDL::pixelQuintuplets& pi
     cudaMallocManaged(&pixelQuintupletsInGPU.logicalLayers, maxPixelQuintuplets * 7 * sizeof(unsigned int));
     cudaMallocManaged(&pixelQuintupletsInGPU.lowerModuleIndices, maxPixelQuintuplets * 7 * sizeof(unsigned int));
     cudaMallocManaged(&pixelQuintupletsInGPU.hitIndices, maxPixelQuintuplets * 14 * sizeof(unsigned int));
-    cudaMallocManaged(&pixelQuintupletsInGPU.pixelRadius, maxPixelQuintuplets * sizeof(float));
-    cudaMallocManaged(&pixelQuintupletsInGPU.quintupletRadius, maxPixelQuintuplets * sizeof(float));
-    cudaMallocManaged(&pixelQuintupletsInGPU.centerX, maxPixelQuintuplets * sizeof(float));
-    cudaMallocManaged(&pixelQuintupletsInGPU.centerY, maxPixelQuintuplets * sizeof(float));
+    cudaMallocManaged(&pixelQuintupletsInGPU.pixelRadius, maxPixelQuintuplets * sizeof(FPX));
+    cudaMallocManaged(&pixelQuintupletsInGPU.quintupletRadius, maxPixelQuintuplets * sizeof(FPX));
+    cudaMallocManaged(&pixelQuintupletsInGPU.centerX, maxPixelQuintuplets * sizeof(FPX));
+    cudaMallocManaged(&pixelQuintupletsInGPU.centerY, maxPixelQuintuplets * sizeof(FPX));
 #endif
 
 #ifdef CUT_VALUE_DEBUG
@@ -176,10 +176,10 @@ void SDL::createPixelQuintupletsInExplicitMemory(struct SDL::pixelQuintuplets& p
     pixelQuintupletsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * 14 * sizeof(unsigned int), stream);
     pixelQuintupletsInGPU.logicalLayers = (unsigned int*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * 7 * sizeof(unsigned int), stream);
     pixelQuintupletsInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * 7 * sizeof(unsigned int), stream);
-    pixelQuintupletsInGPU.centerX = (float*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * sizeof(float), stream);
-    pixelQuintupletsInGPU.centerY = (float*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * sizeof(float), stream);
-    pixelQuintupletsInGPU.pixelRadius = (float*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * sizeof(float), stream);
-    pixelQuintupletsInGPU.quintupletRadius = (float*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * sizeof(float), stream);
+    pixelQuintupletsInGPU.centerX          = (FPX*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * sizeof(FPX), stream);
+    pixelQuintupletsInGPU.centerY          = (FPX*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * sizeof(FPX), stream);
+    pixelQuintupletsInGPU.pixelRadius      = (FPX*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * sizeof(FPX), stream);
+    pixelQuintupletsInGPU.quintupletRadius = (FPX*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * sizeof(FPX), stream);
 #endif
 #else
     cudaMalloc(&pixelQuintupletsInGPU.pixelIndices, maxPixelQuintuplets * sizeof(unsigned int));
@@ -194,10 +194,10 @@ void SDL::createPixelQuintupletsInExplicitMemory(struct SDL::pixelQuintuplets& p
     cudaMalloc(&pixelQuintupletsInGPU.logicalLayers, maxPixelQuintuplets * 7 *sizeof(unsigned int));
     cudaMalloc(&pixelQuintupletsInGPU.hitIndices, maxPixelQuintuplets * 14 * sizeof(unsigned int));
     cudaMalloc(&pixelQuintupletsInGPU.lowerModuleIndices, maxPixelQuintuplets * 7 * sizeof(unsigned int));
-    cudaMalloc(&pixelQuintupletsInGPU.pixelRadius, maxPixelQuintuplets * sizeof(float));
-    cudaMalloc(&pixelQuintupletsInGPU.quintupletRadius, maxPixelQuintuplets * sizeof(float));
-    cudaMalloc(&pixelQuintupletsInGPU.centerX, maxPixelQuintuplets * sizeof(float));
-    cudaMalloc(&pixelQuintupletsInGPU.centerY, maxPixelQuintuplets * sizeof(float));
+    cudaMalloc(&pixelQuintupletsInGPU.pixelRadius, maxPixelQuintuplets * sizeof(FPX));
+    cudaMalloc(&pixelQuintupletsInGPU.quintupletRadius, maxPixelQuintuplets * sizeof(FPX));
+    cudaMalloc(&pixelQuintupletsInGPU.centerX, maxPixelQuintuplets * sizeof(FPX));
+    cudaMalloc(&pixelQuintupletsInGPU.centerY, maxPixelQuintuplets * sizeof(FPX));
 #endif
 #endif
     cudaMemsetAsync(pixelQuintupletsInGPU.nPixelQuintuplets, 0, sizeof(unsigned int),stream);
@@ -224,10 +224,10 @@ __device__ void SDL::addPixelQuintupletToMemory(struct modules& modulesInGPU, st
     pixelQuintupletsInGPU.phi[pixelQuintupletIndex]   = __F2H(phi);
 
 #ifdef TRACK_EXTENSIONS
-    pixelQuintupletsInGPU.pixelRadius[pixelQuintupletIndex] = pixelRadius;
-    pixelQuintupletsInGPU.quintupletRadius[pixelQuintupletIndex] = quintupletRadius;
-    pixelQuintupletsInGPU.centerX[pixelQuintupletIndex] = centerX;
-    pixelQuintupletsInGPU.centerY[pixelQuintupletIndex] = centerY;
+    pixelQuintupletsInGPU.pixelRadius[pixelQuintupletIndex] = __F2H(pixelRadius);
+    pixelQuintupletsInGPU.quintupletRadius[pixelQuintupletIndex] = __F2H(quintupletRadius);
+    pixelQuintupletsInGPU.centerX[pixelQuintupletIndex] = __F2H(centerX);
+    pixelQuintupletsInGPU.centerY[pixelQuintupletIndex] = __F2H(centerY);
 
     pixelQuintupletsInGPU.logicalLayers[7 * pixelQuintupletIndex] = 0;
     pixelQuintupletsInGPU.logicalLayers[7 * pixelQuintupletIndex + 1] = 0;
