@@ -35,9 +35,6 @@ namespace SDL
         float* rPhiChiSquaredInwards;
         float* rzChiSquared;
 
-        float* centerX;
-        float* centerY;
-
         FPX* pixelRadius;
         FPX* tripletRadius;
         FPX* pt;
@@ -53,6 +50,9 @@ namespace SDL
         unsigned int* logicalLayers;
         unsigned int* hitIndices;
         unsigned int* lowerModuleIndices;
+        FPX* centerX;
+        FPX* centerY;
+
 
         pixelTriplets();
         ~pixelTriplets();

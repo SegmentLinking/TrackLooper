@@ -120,8 +120,8 @@ void SDL::createPixelTripletsInUnifiedMemory(struct pixelTriplets& pixelTriplets
     pixelTripletsInGPU.partOfPT5           =(bool*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(bool),stream);
 
 #ifdef TRACK_EXTENSIONS
-    pixelTripletsInGPU.centerX = (float*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(float),stream);
-    pixelTripletsInGPU.centerY = (float*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(float),stream);
+    pixelTripletsInGPU.centerX = (FPX*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(FPX),stream);
+    pixelTripletsInGPU.centerY = (FPX*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(FPX),stream);
     pixelTripletsInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(unsigned int) * 5, stream);
     pixelTripletsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(unsigned int) * 10, stream);
     pixelTripletsInGPU.logicalLayers = (unsigned int*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(unsigned int) * 5, stream);
@@ -138,8 +138,8 @@ void SDL::createPixelTripletsInUnifiedMemory(struct pixelTriplets& pixelTriplets
     cudaMallocManaged(&pixelTripletsInGPU.partOfPT5, maxPixelTriplets * sizeof(bool));
 
 #ifdef TRACK_EXTENSIONS
-    cudaMallocManaged(&pixelTripletsInGPU.centerX, maxPixelTriplets * sizeof(float));
-    cudaMallocManaged(&pixelTripletsInGPU.centerY, maxPixelTriplets * sizeof(float));
+    cudaMallocManaged(&pixelTripletsInGPU.centerX, maxPixelTriplets * sizeof(FPX));
+    cudaMallocManaged(&pixelTripletsInGPU.centerY, maxPixelTriplets * sizeof(FPX));
     cudaMallocManaged(&pixelTripletsInGPU.logicalLayers, maxPixelTriplets * sizeof(unsigned int) * 5);
     cudaMallocManaged(&pixelTripletsInGPU.hitIndices, maxPixelTriplets * sizeof(unsigned int) * 10);
     cudaMallocManaged(&pixelTripletsInGPU.lowerModuleIndices, maxPixelTriplets * sizeof(unsigned int) * 5);
@@ -174,8 +174,8 @@ void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTriplet
     pixelTripletsInGPU.isDup               =(bool*)cms::cuda::allocate_device(dev,maxPixelTriplets * sizeof(bool),stream);
     pixelTripletsInGPU.partOfPT5           =(bool*)cms::cuda::allocate_device(dev,maxPixelTriplets * sizeof(bool),stream);
 #ifdef TRACK_EXTENSIONS
-    pixelTripletsInGPU.centerX = (float*)cms::cuda::allocate_device(dev, maxPixelTriplets * sizeof(float), stream);
-    pixelTripletsInGPU.centerY = (float*)cms::cuda::allocate_device(dev, maxPixelTriplets * sizeof(float), stream);
+    pixelTripletsInGPU.centerX = (FPX*)cms::cuda::allocate_device(dev, maxPixelTriplets * sizeof(FPX), stream);
+    pixelTripletsInGPU.centerY = (FPX*)cms::cuda::allocate_device(dev, maxPixelTriplets * sizeof(FPX), stream);
     pixelTripletsInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_device(dev, maxPixelTriplets * sizeof(unsigned int) * 5, stream);
     pixelTripletsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_device(dev, maxPixelTriplets * sizeof(unsigned int) * 10, stream);
     pixelTripletsInGPU.logicalLayers = (unsigned int*)cms::cuda::allocate_device(dev, maxPixelTriplets * sizeof(unsigned int) * 5, stream);
@@ -190,8 +190,8 @@ void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTriplet
     cudaMalloc(&pixelTripletsInGPU.isDup, maxPixelTriplets * sizeof(bool));
     cudaMalloc(&pixelTripletsInGPU.partOfPT5, maxPixelTriplets * sizeof(bool));
 #ifdef TRACK_EXTENSIONS
-    cudaMalloc(&pixelTripletsInGPU.centerX, maxPixelTriplets * sizeof(float));
-    cudaMalloc(&pixelTripletsInGPU.centerY, maxPixelTriplets * sizeof(float));
+    cudaMalloc(&pixelTripletsInGPU.centerX, maxPixelTriplets * sizeof(FPX));
+    cudaMalloc(&pixelTripletsInGPU.centerY, maxPixelTriplets * sizeof(FPX));
     cudaMalloc(&pixelTripletsInGPU.logicalLayers, maxPixelTriplets * sizeof(unsigned int) * 5);
     cudaMalloc(&pixelTripletsInGPU.hitIndices, maxPixelTriplets * sizeof(unsigned int) * 10);
     cudaMalloc(&pixelTripletsInGPU.lowerModuleIndices, maxPixelTriplets * sizeof(unsigned int) * 5);
@@ -227,8 +227,8 @@ __device__ void SDL::addPixelTripletToMemory(struct modules& modulesInGPU, struc
     pixelTripletsInGPU.score[pixelTripletIndex] = __F2H(score);
 
 #ifdef TRACK_EXTENSIONS
-    pixelTripletsInGPU.centerX[pixelTripletIndex] = centerX;
-    pixelTripletsInGPU.centerY[pixelTripletIndex] = centerY;
+    pixelTripletsInGPU.centerX[pixelTripletIndex] = __F2H(centerX);
+    pixelTripletsInGPU.centerY[pixelTripletIndex] = __F2H(centerY);
     pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex] = 0;
     pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex + 1] = 0;
     pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex + 2] = tripletsInGPU.logicalLayers[tripletIndex * 3];
