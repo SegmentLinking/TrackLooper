@@ -1,5 +1,36 @@
 # include "Kernels.cuh"
 
+
+typedef struct
+{
+    unsigned int index;
+    short layer, subdet, side, moduleType, moduleLayerType, ring, rod;
+    float sdMuls, drdz, moduleGapSize, miniTilt;
+    bool isTilted;
+    int moduleIndex, nConnectedModules;
+}sharedModule;
+
+__device__ void importModuleInfo(struct SDL::modules& modulesInGPU, sharedModule& module, int moduleArrayIndex)
+{
+        unsigned int moduleIndex = modulesInGPU.lowerModuleIndices[moduleArrayIndex];
+        module.index = moduleIndex;
+        module.nConnectedModules = modulesInGPU.nConnectedModules[moduleIndex];
+        module.layer = modulesInGPU.layers[moduleIndex];
+        module.ring = modulesInGPU.rings[moduleIndex];
+        module.subdet = modulesInGPU.subdets[moduleIndex];
+        module.rod = modulesInGPU.rods[moduleIndex];
+        module.side = modulesInGPU.sides[moduleIndex];
+        module.moduleType = modulesInGPU.moduleType[moduleIndex];
+        module.moduleLayerType = modulesInGPU.moduleLayerType[moduleIndex];
+        module.isTilted = modulesInGPU.subdets[moduleIndex] == SDL::Barrel and modulesInGPU.sides[moduleIndex] != SDL::Center;
+        module.drdz = module.moduleLayerType == SDL::Strip ? modulesInGPU.drdzs[moduleIndex] : modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(moduleIndex)];
+//        module.moduleGapSize = SDL::moduleGapSize_seg(modulesInGPU, moduleIndex);
+        module.moduleGapSize = SDL::moduleGapSize_seg(module.layer, module.ring, module.subdet, module.side, module.rod);
+        module.miniTilt =  module.isTilted ? (0.5f * SDL::pixelPSZpitch * module.drdz / sqrtf(1.f + module.drdz * module.drdz) / module.moduleGapSize) : 0;
+ 
+}
+
+
 __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::objectRanges& rangesInGPU)
 {
     int blockxSize = blockDim.x*gridDim.x;
@@ -59,7 +90,15 @@ __global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SD
     int blockxSize = blockDim.x*gridDim.x;
     int blockySize = blockDim.y*gridDim.y;
     int blockzSize = blockDim.z*gridDim.z;
+    __shared__ sharedModule innerLowerModule, outerLowerModule;
     for(int innerLowerModuleArrayIdx = blockIdx.z * blockDim.z + threadIdx.z; innerLowerModuleArrayIdx< (*modulesInGPU.nLowerModules); innerLowerModuleArrayIdx += blockzSize){
+
+        __syncthreads();
+        if(threadIdx.z == 0)
+        {
+            importModuleInfo(modulesInGPU, innerLowerModule, innerLowerModuleArrayIdx);
+        }
+        __syncthreads();
     unsigned int innerLowerModuleIndex = modulesInGPU.lowerModuleIndices[innerLowerModuleArrayIdx];
 
     unsigned int nConnectedModules = modulesInGPU.nConnectedModules[innerLowerModuleIndex];

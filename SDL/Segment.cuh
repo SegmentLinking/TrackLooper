@@ -113,7 +113,10 @@ namespace SDL
     CUDA_DEV float moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex);
     
     CUDA_DEV extern inline float isTighterTiltedModules_seg(struct modules& modulesInGPU, unsigned int moduleIndex);
+    CUDA_DEV inline float isTighterTiltedModules_seg(short subdet, short layer, short side, short rod);
+
     CUDA_DEV float moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex);
+    CUDA_DEV float moduleGapSize_seg(short layer, short ring, short subdet, short side, short rod);
 
 }
 

@@ -735,6 +735,97 @@ __device__ inline float SDL::isTighterTiltedModules_seg(struct modules& modulesI
 
 }
 
+__device__ inline float SDL::isTighterTiltedModules_seg(short subdet, short layer, short side, short rod)
+{
+    // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
+    // This is the same as what was previously considered as"isNormalTiltedModules"
+    // See Figure 9.1 of https://cds.cern.ch/record/2272264/files/CMS-TDR-014.pdf
+    if (
+           (subdet == Barrel and side != Center and layer== 3)
+           or (subdet == Barrel and side == NegZ and layer == 2 and rod > 5)
+           or (subdet == Barrel and side == PosZ and layer == 2 and rod < 8)
+           or (subdet == Barrel and side == NegZ and layer == 1 and rod > 9)
+           or (subdet == Barrel and side == PosZ and layer == 1 and rod < 4)
+       )
+        return true;
+    else
+        return false;
+
+}
+
+//__device__ float SDL::moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
+__device__ float SDL::moduleGapSize_seg(short layer, short ring, short subdet, short side, short rod)
+{
+    float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
+    float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
+    float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
+    float miniDeltaEndcap[5][15];
+
+    for (size_t i = 0; i < 5; i++)
+    {
+        for (size_t j = 0; j < 15; j++)
+        {
+            if (i == 0 || i == 1)
+            {
+                if (j < 10)
+                {
+                    miniDeltaEndcap[i][j] = 0.4f;
+                }
+                else
+                {
+                    miniDeltaEndcap[i][j] = 0.18f;
+                }
+            }
+            else if (i == 2 || i == 3)
+            {
+                if (j < 8)
+                {
+                    miniDeltaEndcap[i][j] = 0.4f;
+                }
+                else
+                {
+                    miniDeltaEndcap[i][j]  = 0.18f;
+                }
+            }
+            else
+            {
+                if (j < 9)
+                {
+                    miniDeltaEndcap[i][j] = 0.4f;
+                }
+                else
+                {
+                    miniDeltaEndcap[i][j] = 0.18f;
+                }
+            }
+        }
+    }
+
+
+    unsigned int iL = layer-1;
+    unsigned int iR = ring - 1;
+
+    float moduleSeparation = 0;
+
+    if (subdet == Barrel and side == Center)
+    {
+        moduleSeparation = miniDeltaFlat[iL];
+    }
+    else if (isTighterTiltedModules_seg(subdet, layer, side, rod))
+    {
+        moduleSeparation = miniDeltaTilted[iL];
+    }
+    else if (subdet == Endcap)
+    {
+        moduleSeparation = miniDeltaEndcap[iL][iR];
+    }
+    else //Loose tilted modules
+    {
+        moduleSeparation = miniDeltaLooseTilted[iL];
+    }
+
+    return moduleSeparation;
+}
 
 
 __device__ float SDL::moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
