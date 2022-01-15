@@ -378,11 +378,11 @@ __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, str
     /*
        The two anchor hits are r3PCA and r3LH. p3PCA pt, eta, phi is hitIndex1 x, y, z
     */
-    float circleRadius = mdsInGPU.outerX[innerMDIndex] / (2 * k2Rinv1GeVf);
-    float circlePhi = mdsInGPU.outerZ[innerMDIndex];
+    float circleRadius = hitsInGPU.xs[mdsInGPU.outerHitIndices[innerMDIndex]] / (2 * k2Rinv1GeVf);
+    float circlePhi = hitsInGPU.zs[mdsInGPU.outerHitIndices[innerMDIndex]];
 
-    float candidateCenterXs[] = {mdsInGPU.anchorX[innerMDIndex] + circleRadius * sinf(circlePhi), mdsInGPU.anchorX[innerMDIndex] - circleRadius * sinf(circlePhi)};
-    float candidateCenterYs[] = {mdsInGPU.anchorY[innerMDIndex] - circleRadius * cosf(circlePhi), mdsInGPU.anchorY[innerMDIndex] + circleRadius * cosf(circlePhi)};
+    float candidateCenterXs[] = {hitsInGPU.xs[innerAnchorHitIndex] + circleRadius * sinf(circlePhi), hitsInGPU.xs[innerAnchorHitIndex] - circleRadius * sinf(circlePhi)};
+    float candidateCenterYs[] = {hitsInGPU.ys[innerAnchorHitIndex] - circleRadius * cosf(circlePhi), hitsInGPU.ys[innerAnchorHitIndex] + circleRadius * cosf(circlePhi)};
 
     //check which of the circles can accommodate r3LH better (we won't get perfect agreement)
     float bestChiSquared = 123456789.f;
@@ -390,7 +390,7 @@ __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, str
     size_t bestIndex;
     for(size_t i = 0; i < 2; i++)
     {
-        chiSquared = fabsf(sqrtf((mdsInGPU.anchorX[outerMDIndex] - candidateCenterXs[i]) * (mdsInGPU.anchorX[outerMDIndex] - candidateCenterXs[i]) + (mdsInGPU.anchorY[outerMDIndex] - candidateCenterYs[i]) * (mdsInGPU.anchorY[outerMDIndex] - candidateCenterYs[i])) - circleRadius);
+        chiSquared = fabsf(sqrtf((hitsInGPU.xs[outerAnchorHitIndex] - candidateCenterXs[i]) * (hitsInGPU.xs[outerAnchorHitIndex] - candidateCenterXs[i]) + (hitsInGPU.ys[outerAnchorHitIndex] - candidateCenterYs[i]) * (hitsInGPU.ys[outerAnchorHitIndex] - candidateCenterYs[i])) - circleRadius);
         if(chiSquared < bestChiSquared)
         {
             bestChiSquared = chiSquared;
@@ -508,23 +508,28 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
     bool pass = true;
    
 
+    unsigned int innerMiniDoubletAnchorHitIndex = mdsInGPU.anchorHitIndices[innerMDIndex];
+    unsigned int outerMiniDoubletAnchorHitIndex = mdsInGPU.anchorHitIndices[outerMDIndex];
+
     float xIn, yIn;    
     float xOut, yOut, xOutHigh, yOutHigh, xOutLow, yOutLow;
 
-    xIn = mdsInGPU.anchorX[innerMDIndex];
-    yIn = mdsInGPU.anchorY[innerMDIndex];
-    zIn = mdsInGPU.anchorZ[innerMDIndex];
-    rtIn = mdsInGPU.anchorRt[innerMDIndex];
+    xIn = hitsInGPU.xs[innerMiniDoubletAnchorHitIndex];
+    yIn = hitsInGPU.ys[innerMiniDoubletAnchorHitIndex];
+    rtIn = hitsInGPU.rts[innerMiniDoubletAnchorHitIndex];
+    zIn = hitsInGPU.zs[innerMiniDoubletAnchorHitIndex];
 
-    xOut = mdsInGPU.anchorX[outerMDIndex];
-    yOut = mdsInGPU.anchorY[outerMDIndex];
-    zOut = mdsInGPU.anchorZ[outerMDIndex];
-    rtOut = mdsInGPU.anchorRt[outerMDIndex];
+    xOut = hitsInGPU.xs[outerMiniDoubletAnchorHitIndex];
+    yOut = hitsInGPU.ys[outerMiniDoubletAnchorHitIndex];
+    zOut = hitsInGPU.zs[outerMiniDoubletAnchorHitIndex];
+    rtOut = hitsInGPU.rts[outerMiniDoubletAnchorHitIndex];
+    zOut = hitsInGPU.zs[outerMiniDoubletAnchorHitIndex];
 
-    xOutHigh = mdsInGPU.anchorHighEdgeX[outerMDIndex];
-    yOutHigh = mdsInGPU.anchorHighEdgeY[outerMDIndex];
-    xOutLow = mdsInGPU.anchorLowEdgeX[outerMDIndex];
-    yOutLow = mdsInGPU.anchorLowEdgeY[outerMDIndex];
+    xOutHigh = hitsInGPU.highEdgeXs[outerMiniDoubletAnchorHitIndex];
+    yOutHigh = hitsInGPU.highEdgeYs[outerMiniDoubletAnchorHitIndex];
+    xOutLow = hitsInGPU.lowEdgeXs[outerMiniDoubletAnchorHitIndex];
+    yOutLow = hitsInGPU.lowEdgeYs[outerMiniDoubletAnchorHitIndex];
+
 
     bool outerLayerEndcapTwoS = (modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Endcap) & (modulesInGPU.moduleType[outerLowerModuleIndex] == SDL::TwoS);
 
@@ -606,17 +611,22 @@ __device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, s
     float sdMuls = (modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel) ? miniMulsPtScaleBarrel[modulesInGPU.layers[innerLowerModuleIndex]-1] * 3.f/ptCut : miniMulsPtScaleEndcap[modulesInGPU.layers[innerLowerModuleIndex]-1] * 3.f/ptCut;
 
 
+    unsigned int innerMiniDoubletAnchorHitIndex = mdsInGPU.anchorHitIndices[innerMDIndex];
+    unsigned int outerMiniDoubletAnchorHitIndex = mdsInGPU.anchorHitIndices[outerMDIndex];
+
     float xIn, yIn, xOut, yOut;
 
-    xIn = mdsInGPU.anchorX[innerMDIndex];
-    yIn = mdsInGPU.anchorY[innerMDIndex];
-    zIn = mdsInGPU.anchorZ[innerMDIndex];
-    rtIn = mdsInGPU.anchorRt[innerMDIndex];
 
-    xOut = mdsInGPU.anchorX[outerMDIndex];
-    yOut = mdsInGPU.anchorY[outerMDIndex];
-    zOut = mdsInGPU.anchorZ[outerMDIndex];
-    rtOut = mdsInGPU.anchorRt[outerMDIndex];
+    xIn = hitsInGPU.xs[innerMiniDoubletAnchorHitIndex];
+    yIn = hitsInGPU.ys[innerMiniDoubletAnchorHitIndex];
+    rtIn = hitsInGPU.rts[innerMiniDoubletAnchorHitIndex];
+    zIn = hitsInGPU.zs[innerMiniDoubletAnchorHitIndex];
+
+    xOut = hitsInGPU.xs[outerMiniDoubletAnchorHitIndex];
+    yOut = hitsInGPU.ys[outerMiniDoubletAnchorHitIndex];
+    rtOut = hitsInGPU.rts[outerMiniDoubletAnchorHitIndex];
+    zOut = hitsInGPU.zs[outerMiniDoubletAnchorHitIndex];
+
 
     float sdSlope = asinf(fminf(rtOut * k2Rinv1GeVf / ptCut, sinAlphaMax));
     float sdPVoff = 0.1f/rtOut;
@@ -630,6 +640,7 @@ __device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, s
     pass = pass & ((zOut >= zLo) & (zOut <= zHi));
 
     
+
     sdCut = sdSlope + sqrtf(sdMuls * sdMuls + sdPVoff * sdPVoff);
 
     dPhi  = deltaPhi(xIn, yIn, zIn, xOut, yOut, zOut);
@@ -701,11 +712,15 @@ void SDL::printSegment(struct SDL::segments& segmentsInGPU, struct SDL::miniDoub
         printMD(mdsInGPU, hitsInGPU, modulesInGPU, outerMDIndex);
     }
 }
-__device__ inline float SDL::isTighterTiltedModules_seg(short subdet, short layer, short side, short rod)
+__device__ inline float SDL::isTighterTiltedModules_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
 {
     // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
     // This is the same as what was previously considered as"isNormalTiltedModules"
     // See Figure 9.1 of https://cds.cern.ch/record/2272264/files/CMS-TDR-014.pdf
+    short subdet = modulesInGPU.subdets[moduleIndex];
+    short layer = modulesInGPU.layers[moduleIndex];
+    short side = modulesInGPU.sides[moduleIndex];
+    short rod = modulesInGPU.rods[moduleIndex];
 
     if (
            (subdet == Barrel and side != Center and layer== 3)
@@ -720,7 +735,9 @@ __device__ inline float SDL::isTighterTiltedModules_seg(short subdet, short laye
 
 }
 
-__device__ float SDL::moduleGapSize_seg(short layer, short ring, short subdet, short side, short rod)
+
+
+__device__ float SDL::moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
 {
     float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
     float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
@@ -768,8 +785,10 @@ __device__ float SDL::moduleGapSize_seg(short layer, short ring, short subdet, s
     }
 
 
-    unsigned int iL = layer-1;
-    unsigned int iR = ring-1;
+    unsigned int iL = modulesInGPU.layers[moduleIndex]-1;
+    unsigned int iR = modulesInGPU.rings[moduleIndex] - 1;
+    short subdet = modulesInGPU.subdets[moduleIndex];
+    short side = modulesInGPU.sides[moduleIndex];
 
     float moduleSeparation = 0;
 
@@ -777,7 +796,7 @@ __device__ float SDL::moduleGapSize_seg(short layer, short ring, short subdet, s
     {
         moduleSeparation = miniDeltaFlat[iL];
     }
-    else if (isTighterTiltedModules_seg(subdet, layer, side, rod))
+    else if (isTighterTiltedModules_seg(modulesInGPU, moduleIndex))
     {
         moduleSeparation = miniDeltaTilted[iL];
     }

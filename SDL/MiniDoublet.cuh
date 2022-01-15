@@ -31,29 +31,6 @@ namespace SDL
     {
         unsigned int* anchorHitIndices;
         unsigned int* outerHitIndices;
-
-        float* anchorX;
-        float* anchorY;
-        float* anchorZ;
-        float* anchorRt;
-        float* anchorPhi;
-        float* anchorEta;
-        float* anchorHighEdgeX;
-        float* anchorHighEdgeY;
-        float* anchorLowEdgeX;
-        float* anchorLowEdgeY;
-
-        float* outerX;
-        float* outerY;
-        float* outerZ;
-        float* outerRt;
-        float* outerPhi;
-        float* outerEta;
-        float* outerHighEdgeX;
-        float* outerHighEdgeY;
-        float* outerLowEdgeX;
-        float* outerLowEdgeY;
-
         unsigned int* moduleIndices;
         unsigned int* nMDs; //counter per module
         float* dphichanges;
