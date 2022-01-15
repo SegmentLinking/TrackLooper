@@ -110,9 +110,11 @@ namespace SDL
         float& rtLo, float& rtHi, float& sdCut, float& dAlphaInnerMDSegmentThreshold, float& dAlphaOuterMDSegmentThreshold, float& dAlphaInnerMDOuterMDThreshold, float& dAlphaInnerMDOuterMD);
 
     void printSegment(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct hits& hitsInPGU, struct modules& modulesInGPU, unsigned int segmentIndex);
-    CUDA_DEV float moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex);
-    
+    CUDA_DEV float moduleGapSize_seg(short layer, short ring, short subdet, short side, short rod);
+
     CUDA_DEV extern inline float isTighterTiltedModules_seg(struct modules& modulesInGPU, unsigned int moduleIndex);
+    CUDA_DEV extern inline float isTighterTiltedModules_seg(short subdet, short layer, short side, short rod);
+
     CUDA_DEV float moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex);
 
 }

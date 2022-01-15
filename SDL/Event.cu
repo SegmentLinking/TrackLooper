@@ -1256,8 +1256,8 @@ cudaStreamSynchronize(stream);
   #endif
     //dim3 nThreads(256,1,1);
     //dim3 nBlocks((sq_max_nMDs%nThreads.x==0 ? sq_max_nMDs/nThreads.x : sq_max_nMDs/nThreads.x + 1), (max_cModules%nThreads.y==0 ? max_cModules/nThreads.y : max_cModules/nThreads.y + 1), (nLowerModules%nThreads.z==0 ? nLowerModules/nThreads.z : nLowerModules/nThreads.z + 1));
-    dim3 nThreads(32,32,1);
-    dim3 nBlocks(1,1,MAX_BLOCKS);
+    dim3 nThreads(512, 1, 1);
+    dim3 nBlocks(1,MAX_BLOCKS,1);
 
     createSegmentsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *rangesInGPU);
     cudaFreeHost(nMDs);

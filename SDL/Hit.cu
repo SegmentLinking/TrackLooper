@@ -7,7 +7,6 @@
 SDL::hits::hits()
 {
     nHits = nullptr;
-//    n2SHits = nullptr;
     xs = nullptr;
     ys = nullptr;
     zs = nullptr;
@@ -15,7 +14,6 @@ SDL::hits::hits()
     rts = nullptr;
     phis = nullptr;
     etas = nullptr;
-//    edge2SMap = nullptr;
     highEdgeXs = nullptr;
     highEdgeYs = nullptr;
     lowEdgeXs = nullptr;

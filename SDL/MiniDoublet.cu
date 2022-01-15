@@ -38,10 +38,15 @@ void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int m
     mdsInGPU.anchorHitIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * 3 * sizeof(unsigned int), stream);
     mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_managed(nModules*sizeof(unsigned int),stream);
     mdsInGPU.dphichanges = (float*)cms::cuda::allocate_managed(nMemoryLocations*9*sizeof(float),stream);
+    mdsInGPU.anchorX = (float*)cms::cuda::allocate_managed(nMemoryLocations * 10 * sizeof(float), stream);
+    mdsInGPU.outerX = (float*)cms::cuda::allocate_managed(nMemoryLocations * 10 * sizeof(float), stream);
+
 #else
     cudaMallocManaged(&mdsInGPU.anchorHitIndices, nMemoryLocations * 3 * sizeof(unsigned int));
     cudaMallocManaged(&mdsInGPU.dphichanges, nMemoryLocations * 9 * sizeof(float));
     cudaMallocManaged(&mdsInGPU.nMDs, nModules * sizeof(unsigned int));
+    cudaMallocManaged(&mdsInGPU.anchorX, nMemoryLocations * 10 * sizeof(float));
+    cudaMallocManaged(&mdsInGPU.outerX, nMemoryLocations * 10 * sizeof(float));
 #ifdef CUT_VALUE_DEBUG
     cudaMallocManaged(&mdsInGPU.dzCuts, nMemoryLocations * sizeof(float));
     cudaMallocManaged(&mdsInGPU.drtCuts, nMemoryLocations * sizeof(float));
@@ -59,11 +64,28 @@ void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int m
     mdsInGPU.noShiftedDzs  = mdsInGPU.dphichanges + 6*nMemoryLocations;
     mdsInGPU.noShiftedDphis  = mdsInGPU.dphichanges + 7*nMemoryLocations;
     mdsInGPU.noShiftedDphiChanges  = mdsInGPU.dphichanges + 8*nMemoryLocations;
-//#pragma omp parallel for default(shared)
-//    for(size_t i = 0; i< nModules; i++)
-//    {
-//        mdsInGPU.nMDs[i] = 0;
-//    }
+
+    //hits
+    mdsInGPU.anchorY = mdsInGPU.anchorX + nMemoryLocations;
+    mdsInGPU.anchorZ = mdsInGPU.anchorX + 2 * nMemoryLocations;
+    mdsInGPU.anchorRt = mdsInGPU.anchorX + 3 * nMemoryLocations;
+    mdsInGPU.anchorPhi = mdsInGPU.anchorX + 4 * nMemoryLocations;
+    mdsInGPU.anchorEta = mdsInGPU.anchorX + 5 * nMemoryLocations;
+    mdsInGPU.anchorHighEdgeX = mdsInGPU.anchorX + 6 * nMemoryLocations;
+    mdsInGPU.anchorHighEdgeY = mdsInGPU.anchorX + 7 * nMemoryLocations;
+    mdsInGPU.anchorLowEdgeX = mdsInGPU.anchorX + 8 * nMemoryLocations;
+    mdsInGPU.anchorLowEdgeY = mdsInGPU.anchorX + 9 * nMemoryLocations;
+
+    mdsInGPU.outerY = mdsInGPU.outerX + nMemoryLocations;
+    mdsInGPU.outerZ = mdsInGPU.outerX + 2 * nMemoryLocations;
+    mdsInGPU.outerRt = mdsInGPU.outerX + 3 * nMemoryLocations;
+    mdsInGPU.outerPhi = mdsInGPU.outerX + 4 * nMemoryLocations;
+    mdsInGPU.outerEta = mdsInGPU.outerX + 5 * nMemoryLocations;
+    mdsInGPU.outerHighEdgeX = mdsInGPU.outerX + 6 * nMemoryLocations;
+    mdsInGPU.outerHighEdgeY = mdsInGPU.outerX + 7 * nMemoryLocations;
+    mdsInGPU.outerLowEdgeX = mdsInGPU.outerX + 8 * nMemoryLocations;
+    mdsInGPU.outerLowEdgeY = mdsInGPU.outerX + 9 * nMemoryLocations;
+
     cudaMemsetAsync(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int),stream);
 }
 
@@ -80,11 +102,15 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     mdsInGPU.anchorHitIndices = (unsigned int*)cms::cuda::allocate_device(dev,nMemoryLocations * 3 * sizeof(unsigned int), stream);
     mdsInGPU.dphichanges = (float*)cms::cuda::allocate_device(dev,nMemoryLocations*9*sizeof(float),stream);
     mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_device(dev,nModules*sizeof(unsigned int),stream);
+    mdsInGPU.anchorX = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * 10 * sizeof(float), stream);
+    mdsInGPU.outerX = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * 10 * sizeof(float), stream);
 
 #else
     cudaMalloc(&mdsInGPU.anchorHitIndices, nMemoryLocations * 3 * sizeof(unsigned int));
     cudaMalloc(&mdsInGPU.dphichanges, nMemoryLocations *9* sizeof(float));
     cudaMalloc(&mdsInGPU.nMDs, nModules * sizeof(unsigned int)); 
+    cudaMalloc(&mdsInGPU.anchorX, nMemoryLocations * 10 * sizeof(float));
+    cudaMalloc(&mdsInGPU.anchorY, nMemoryLocations * 10 * sizeof(float));
 #endif
     cudaMemsetAsync(mdsInGPU.nMDs,0,nModules *sizeof(unsigned int),stream);
     cudaStreamSynchronize(stream);
@@ -99,6 +125,26 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     mdsInGPU.noShiftedDphis  = mdsInGPU.dphichanges + 7*nMemoryLocations;
     mdsInGPU.noShiftedDphiChanges  = mdsInGPU.dphichanges + 8*nMemoryLocations;
 
+    //hits
+    mdsInGPU.anchorY = mdsInGPU.anchorX + nMemoryLocations;
+    mdsInGPU.anchorZ = mdsInGPU.anchorX + 2 * nMemoryLocations;
+    mdsInGPU.anchorRt = mdsInGPU.anchorX + 3 * nMemoryLocations;
+    mdsInGPU.anchorPhi = mdsInGPU.anchorX + 4 * nMemoryLocations;
+    mdsInGPU.anchorEta = mdsInGPU.anchorX + 5 * nMemoryLocations;
+    mdsInGPU.anchorHighEdgeX = mdsInGPU.anchorX + 6 * nMemoryLocations;
+    mdsInGPU.anchorHighEdgeY = mdsInGPU.anchorX + 7 * nMemoryLocations;
+    mdsInGPU.anchorLowEdgeX = mdsInGPU.anchorX + 8 * nMemoryLocations;
+    mdsInGPU.anchorLowEdgeY = mdsInGPU.anchorX + 9 * nMemoryLocations;
+
+    mdsInGPU.outerY = mdsInGPU.outerX + nMemoryLocations;
+    mdsInGPU.outerZ = mdsInGPU.outerX + 2 * nMemoryLocations;
+    mdsInGPU.outerRt = mdsInGPU.outerX + 3 * nMemoryLocations;
+    mdsInGPU.outerPhi = mdsInGPU.outerX + 4 * nMemoryLocations;
+    mdsInGPU.outerEta = mdsInGPU.outerX + 5 * nMemoryLocations;
+    mdsInGPU.outerHighEdgeX = mdsInGPU.outerX + 6 * nMemoryLocations;
+    mdsInGPU.outerHighEdgeY = mdsInGPU.outerX + 7 * nMemoryLocations;
+    mdsInGPU.outerLowEdgeX = mdsInGPU.outerX + 8 * nMemoryLocations;
+    mdsInGPU.outerLowEdgeY = mdsInGPU.outerX + 9 * nMemoryLocations;
 }
 
 #ifdef CUT_VALUE_DEBUG
@@ -109,19 +155,48 @@ __device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& h
 {
     //the index into which this MD needs to be written will be computed in the kernel
     //nMDs variable will be incremented in the kernel, no need to worry about that here
-    
-    mdsInGPU.moduleIndices[idx] = lowerModuleIdx;
 
+    unsigned int anchorHitIndex, outerHitIndex;
+
+    mdsInGPU.moduleIndices[idx] = lowerModuleIdx;
     if(modulesInGPU.moduleType[lowerModuleIdx] == PS and modulesInGPU.moduleLayerType[lowerModuleIdx] == Strip)
     {
         mdsInGPU.anchorHitIndices[idx] = upperHitIdx;
         mdsInGPU.outerHitIndices[idx] = lowerHitIdx;
+
+        anchorHitIndex = upperHitIdx;
+        outerHitIndex = lowerHitIdx;
     }
     else
     {
         mdsInGPU.anchorHitIndices[idx] = lowerHitIdx;
         mdsInGPU.outerHitIndices[idx] = upperHitIdx;
+
+        anchorHitIndex = lowerHitIdx;
+        outerHitIndex = upperHitIdx;
     }
+
+    mdsInGPU.anchorX[idx] = hitsInGPU.xs[anchorHitIndex];
+    mdsInGPU.anchorY[idx] = hitsInGPU.ys[anchorHitIndex];
+    mdsInGPU.anchorZ[idx] = hitsInGPU.zs[anchorHitIndex];
+    mdsInGPU.anchorRt[idx] = hitsInGPU.rts[anchorHitIndex];
+    mdsInGPU.anchorPhi[idx] = hitsInGPU.phis[anchorHitIndex];
+    mdsInGPU.anchorEta[idx] = hitsInGPU.etas[anchorHitIndex];
+    mdsInGPU.anchorHighEdgeX[idx] = hitsInGPU.highEdgeXs[anchorHitIndex];
+    mdsInGPU.anchorHighEdgeY[idx] = hitsInGPU.highEdgeYs[anchorHitIndex];
+    mdsInGPU.anchorLowEdgeX[idx] = hitsInGPU.lowEdgeXs[anchorHitIndex];
+    mdsInGPU.anchorLowEdgeY[idx] = hitsInGPU.lowEdgeYs[anchorHitIndex];
+
+    mdsInGPU.outerX[idx] = hitsInGPU.xs[outerHitIndex];
+    mdsInGPU.outerY[idx] = hitsInGPU.ys[outerHitIndex];
+    mdsInGPU.outerZ[idx] = hitsInGPU.zs[outerHitIndex];
+    mdsInGPU.outerRt[idx] = hitsInGPU.rts[outerHitIndex];
+    mdsInGPU.outerPhi[idx] = hitsInGPU.phis[outerHitIndex];
+    mdsInGPU.outerEta[idx] = hitsInGPU.etas[outerHitIndex];
+    mdsInGPU.outerHighEdgeX[idx] = hitsInGPU.highEdgeXs[outerHitIndex];
+    mdsInGPU.outerHighEdgeY[idx] = hitsInGPU.highEdgeYs[outerHitIndex];
+    mdsInGPU.outerLowEdgeX[idx] = hitsInGPU.lowEdgeXs[outerHitIndex];
+    mdsInGPU.outerLowEdgeY[idx] = hitsInGPU.lowEdgeYs[outerHitIndex];
 
     mdsInGPU.dphichanges[idx] = dPhiChange;
 
@@ -793,6 +868,8 @@ void SDL::miniDoublets::freeMemory(cudaStream_t stream)
     cudaFree(anchorHitIndices);
     cudaFree(nMDs);
     cudaFree(dphichanges);
+    cudaFree(anchorX);
+    cudaFree(outerX);
 
 #ifdef CUT_VALUE_DEBUG
     cudaFree(dzCuts);
