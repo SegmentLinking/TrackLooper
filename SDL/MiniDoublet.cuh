@@ -45,6 +45,31 @@ namespace SDL
         float* noShiftedDphis; //if shifted module
         float* noShiftedDphiChanges; //if shifted module
 
+        //hit stuff
+        float* anchorX;
+        float* anchorY;
+        float* anchorZ;
+        float* anchorRt;
+        float* anchorPhi;
+        float* anchorEta;
+        unsigned int* anchorHitIdx; //idx in ntuple
+        float* anchorHighEdgeX;
+        float* anchorHighEdgeY;
+        float* anchorLowEdgeX;
+        float* anchorLowEdgeY;
+
+        float* outerX;
+        float* outerY;
+        float* outerZ;
+        float* outerRt;
+        float* outerPhi;
+        float* outerEta;
+        unsigned int* outerHitIdx;
+        float* outerHighEdgeX;
+        float* outerHighEdgeY;
+        float* outerLowEdgeX;
+        float* outerLowEdgeY;
+
 #ifdef CUT_VALUE_DEBUG
         //CUT VALUES
         float* dzCuts;
