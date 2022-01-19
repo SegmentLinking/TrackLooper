@@ -869,10 +869,18 @@ void SDL::miniDoublets::freeMemoryCache()
     cms::cuda::free_device(dev,anchorHitIndices);
     cms::cuda::free_device(dev,dphichanges);
     cms::cuda::free_device(dev,nMDs);
+    cms::cuda::free_device(dev, anchorX);
+    cms::cuda::free_device(dev, anchorHitIdx);
+    cms::cuda::free_device(dev, outerX);
+    cms::cuda::free_device(dev, outerHitIdx);
 #else
     cms::cuda::free_managed(anchorHitIndices);
     cms::cuda::free_managed(dphichanges);
     cms::cuda::free_managed(nMDs);
+    cms::cuda::free_managed(anchorX);
+    cms::cuda::free_managed(anchorHitIdx);
+    cms::cuda::free_managed(outerX);
+    cms::cuda::free_managed(outerHitIdx);
 #endif
 }
 
