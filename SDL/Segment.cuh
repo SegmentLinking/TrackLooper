@@ -31,12 +31,12 @@ namespace SDL
         unsigned int* outerMiniDoubletAnchorHitIndices;
         
         unsigned int* nSegments; //number of segments per inner lower module
-        float* dPhis;
-        float* dPhiMins;
-        float* dPhiMaxs;
-        float* dPhiChanges;
-        float* dPhiChangeMins;
-        float* dPhiChangeMaxs;
+        FPX* dPhis;
+        FPX* dPhiMins;
+        FPX* dPhiMaxs;
+        FPX* dPhiChanges;
+        FPX* dPhiChangeMins;
+        FPX* dPhiChangeMaxs;
 
 
         //not so optional pixel dudes

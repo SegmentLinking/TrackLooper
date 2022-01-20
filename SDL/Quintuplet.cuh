@@ -29,20 +29,17 @@ namespace SDL
         unsigned int* tripletIndices;
         unsigned int* lowerModuleIndices;
         unsigned int* nQuintuplets;
-        float* innerRadius;
-        float* outerRadius;
-        float* regressionRadius;
-        float* pt;
-        float* eta;
-        float* phi;
-        //float* score_rphi;
-        //float* score_rz;
-        //float* score_rzlsq;
-        float* score_rphisum;
+        FPX* innerRadius;
+        FPX* outerRadius;
+        FPX* pt;
+        FPX* eta;
+        FPX* phi;
+        FPX* score_rphisum;
         int* layer;
         bool* isDup;
         bool* partOfPT5;
 
+        float* regressionRadius;
         float* regressionG;
         float* regressionF;
 

@@ -30,20 +30,19 @@ namespace SDL
         unsigned int* tripletIndices;
         unsigned int* nPixelTriplets; //size 1
 
-        float* pixelRadius;
         float* pixelRadiusError;
         float* rPhiChiSquared;
         float* rPhiChiSquaredInwards;
         float* rzChiSquared;
-        float* tripletRadius;
-        float* centerX;
-        float* centerY;
-        float* pt;
-        float* eta;
-        float* phi;
-        float* eta_pix;
-        float* phi_pix;
-        float* score;
+
+        FPX* pixelRadius;
+        FPX* tripletRadius;
+        FPX* pt;
+        FPX* eta;
+        FPX* phi;
+        FPX* eta_pix;
+        FPX* phi_pix;
+        FPX* score;
         bool* isDup;
         bool* partOfPT5;
 
@@ -51,6 +50,9 @@ namespace SDL
         unsigned int* logicalLayers;
         unsigned int* hitIndices;
         unsigned int* lowerModuleIndices;
+        FPX* centerX;
+        FPX* centerY;
+
 
         pixelTriplets();
         ~pixelTriplets();
