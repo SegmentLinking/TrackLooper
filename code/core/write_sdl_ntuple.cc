@@ -2449,11 +2449,6 @@ void fillPixelTripletOutputBranches(SDL::Event* event)
         int subdet6 = modulesInGPU.subdets[module_idxs[6]];
         int subdet8 = modulesInGPU.subdets[module_idxs[8]];
 
-        int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
-        int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
-        int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
-        int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
-        int moduleType8 = modulesInGPU.moduleType[module_idxs[8]];
 
         int logicallayer0 = 0;
         int logicallayer2 = 0;
@@ -2467,11 +2462,6 @@ void fillPixelTripletOutputBranches(SDL::Event* event)
         layer_binary |= (1 << logicallayer4);
         layer_binary |= (1 << logicallayer6);
         layer_binary |= (1 << logicallayer8);
-
-        int moduleType_binary = 0;
-        moduleType_binary |= (moduleType4 << 0);
-        moduleType_binary |= (moduleType6 << 2);
-        moduleType_binary |= (moduleType8 << 4);
           
         //bare bones implementation only
         std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
@@ -2481,6 +2471,17 @@ void fillPixelTripletOutputBranches(SDL::Event* event)
         }
 #ifdef CUT_VALUE_DEBUG
         pT3_layer_binary.push_back(layer_binary);
+        int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
+        int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
+        int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
+        int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
+        int moduleType8 = modulesInGPU.moduleType[module_idxs[8]];
+
+        int moduleType_binary = 0;
+        moduleType_binary |= (moduleType4 << 0);
+        moduleType_binary |= (moduleType6 << 2);
+        moduleType_binary |= (moduleType8 << 4);
+
         pT3_moduleType_binary.push_back(moduleType_binary);
         std::vector<float> sim_pt_per_pT3;
         if(matched_sim_trk_idxs.size() == 0)
@@ -2628,16 +2629,16 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
         unsigned int hitIndex2 = mdsInGPU.outerHitIndices[pixelInnerMDIndex];
         unsigned int hitIndex3 = mdsInGPU.anchorHitIndices[pixelOuterMDIndex];
         unsigned int hitIndex4 = mdsInGPU.outerHitIndices[pixelOuterMDIndex];
-        unsigned int hitIndex5 = mdsInGPU.anchorHitIndices[2 * T5MDIndex1];
-        unsigned int hitIndex6 = mdsInGPU.outerHitIndices[2 * T5MDIndex1 + 1];
-        unsigned int hitIndex7 = mdsInGPU.anchorHitIndices[2 * T5MDIndex2];
-        unsigned int hitIndex8 = mdsInGPU.outerHitIndices[2 * T5MDIndex2 + 1];
-        unsigned int hitIndex9 = mdsInGPU.anchorHitIndices[2 * T5MDIndex3];
-        unsigned int hitIndex10 = mdsInGPU.outerHitIndices[2 * T5MDIndex3 + 1];
-        unsigned int hitIndex11 = mdsInGPU.anchorHitIndices[2 * T5MDIndex4];
-        unsigned int hitIndex12 = mdsInGPU.outerHitIndices[2 * T5MDIndex4 + 1];
-        unsigned int hitIndex13 = mdsInGPU.anchorHitIndices[2 * T5MDIndex5];
-        unsigned int hitIndex14 = mdsInGPU.outerHitIndices[2 * T5MDIndex5 + 1];
+        unsigned int hitIndex5 = mdsInGPU.anchorHitIndices[T5MDIndex1];
+        unsigned int hitIndex6 = mdsInGPU.outerHitIndices[T5MDIndex1];
+        unsigned int hitIndex7 = mdsInGPU.anchorHitIndices[T5MDIndex2];
+        unsigned int hitIndex8 = mdsInGPU.outerHitIndices[T5MDIndex2];
+        unsigned int hitIndex9 = mdsInGPU.anchorHitIndices[T5MDIndex3];
+        unsigned int hitIndex10 = mdsInGPU.outerHitIndices[T5MDIndex3];
+        unsigned int hitIndex11 = mdsInGPU.anchorHitIndices[T5MDIndex4];
+        unsigned int hitIndex12 = mdsInGPU.outerHitIndices[T5MDIndex4];
+        unsigned int hitIndex13 = mdsInGPU.anchorHitIndices[T5MDIndex5];
+        unsigned int hitIndex14 = mdsInGPU.outerHitIndices[T5MDIndex5];
 
         std::vector<int> hit_idxs = {
             (int) hitsInGPU.idxs[hitIndex1],
@@ -2706,14 +2707,6 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
         int subdet10 = modulesInGPU.subdets[module_idxs[10]];
         int subdet12 = modulesInGPU.subdets[module_idxs[12]];
 
-        int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
-        int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
-        int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
-        int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
-        int moduleType8 = modulesInGPU.moduleType[module_idxs[8]];
-        int moduleType10 = modulesInGPU.moduleType[module_idxs[10]];
-        int moduleType12 = modulesInGPU.moduleType[module_idxs[12]];
-
 
         int logicallayer0 = 0;
         int logicallayer2 = 0;
@@ -2732,12 +2725,6 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
         layer_binary |= (1 << logicallayer10);
         layer_binary |= (1 << logicallayer12);
 
-        int moduleType_binary = 0;
-        moduleType_binary |= (moduleType4 << 0);
-        moduleType_binary |= (moduleType6 << 2);
-        moduleType_binary |= (moduleType8 << 4);
-        moduleType_binary |= (moduleType10 << 6);
-        moduleType_binary |= (moduleType12 << 8);
        
  
 
@@ -2749,6 +2736,23 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
 
 #ifdef CUT_VALUE_DEBUG
         pT5_layer_binary.push_back(layer_binary);
+
+        int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
+        int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
+        int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
+        int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
+        int moduleType8 = modulesInGPU.moduleType[module_idxs[8]];
+        int moduleType10 = modulesInGPU.moduleType[module_idxs[10]];
+        int moduleType12 = modulesInGPU.moduleType[module_idxs[12]];
+
+
+        int moduleType_binary = 0;
+        moduleType_binary |= (moduleType4 << 0);
+        moduleType_binary |= (moduleType6 << 2);
+        moduleType_binary |= (moduleType8 << 4);
+        moduleType_binary |= (moduleType10 << 6);
+        moduleType_binary |= (moduleType12 << 8);
+
         pT5_moduleType_binary.push_back(moduleType_binary);
         pT5_rzChiSquared.push_back(pixelQuintupletsInGPU.rzChiSquared[jdx]);
         pT5_rPhiChiSquared.push_back(pixelQuintupletsInGPU.rPhiChiSquared[jdx]);
