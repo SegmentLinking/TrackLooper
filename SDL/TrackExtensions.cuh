@@ -30,12 +30,12 @@ namespace SDL
     {
         short* constituentTCTypes;
         unsigned int* constituentTCIndices;
-        unsigned int* nLayerOverlaps;
-        unsigned int* nHitOverlaps;
+        uint8_t* nLayerOverlaps;
+        uint8_t* nHitOverlaps;
         unsigned int* nTrackExtensions; //overall counter!
-        float* rPhiChiSquared;
-        float* rzChiSquared;
-        float* regressionRadius;
+        FPX* rPhiChiSquared;
+        FPX* rzChiSquared;
+        FPX* regressionRadius;
         float* innerRadius;
         float* outerRadius;
         bool* isDup;

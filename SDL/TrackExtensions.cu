@@ -70,12 +70,12 @@ void SDL::trackExtensions::resetMemory(unsigned int maxTrackExtensions, unsigned
 {
     cudaMemsetAsync(constituentTCTypes, 0, sizeof(short) * 3 * maxTrackExtensions);
     cudaMemsetAsync(constituentTCIndices, 0, sizeof(unsigned int) * 3 * maxTrackExtensions);
-    cudaMemsetAsync(nLayerOverlaps, 0, sizeof(unsigned int) * 2 * maxTrackExtensions);
-    cudaMemsetAsync(nHitOverlaps, 0, sizeof(unsigned int) * 2 * maxTrackExtensions);
-    cudaMemsetAsync(rPhiChiSquared, 0, sizeof(float) * maxTrackExtensions);
-    cudaMemsetAsync(rzChiSquared, 0, sizeof(float) * maxTrackExtensions);
+    cudaMemsetAsync(nLayerOverlaps, 0, sizeof(uint8_t) * 2 * maxTrackExtensions);
+    cudaMemsetAsync(nHitOverlaps, 0, sizeof(uint8_t) * 2 * maxTrackExtensions);
+    cudaMemsetAsync(rPhiChiSquared, 0, sizeof(FPX) * maxTrackExtensions);
+    cudaMemsetAsync(rzChiSquared, 0, sizeof(FPX) * maxTrackExtensions);
     cudaMemsetAsync(isDup, 0, sizeof(bool) * maxTrackExtensions);
-    cudaMemsetAsync(regressionRadius, 0, sizeof(float) * maxTrackExtensions);
+    cudaMemsetAsync(regressionRadius, 0, sizeof(FPX) * maxTrackExtensions);
     cudaMemsetAsync(nTrackExtensions, 0, sizeof(unsigned int) * nTrackCandidates);
 }
 
@@ -90,24 +90,24 @@ void SDL::createTrackExtensionsInUnifiedMemory(struct trackExtensions& trackExte
 #ifdef CACHE_ALLOC
     trackExtensionsInGPU.constituentTCTypes = (short*)cms::cuda::allocate_managed(maxTrackExtensions * 3 * sizeof(short), stream);
     trackExtensionsInGPU.constituentTCIndices = (unsigned int*)cms::cuda::allocate_managed(maxTrackExtensions * 3 * sizeof(unsigned int), stream);
-    trackExtensionsInGPU.nLayerOverlaps = (unsigned int*)cms::cuda::allocate_managed(maxTrackExtensions * 2 * sizeof(unsigned int), stream);
-    trackExtensionsInGPU.nHitOverlaps = (unsigned int*)cms::cuda::allocate_managed(maxTrackExtensions * 2 * sizeof(unsigned int), stream);
+    trackExtensionsInGPU.nLayerOverlaps = (uint8_t*)cms::cuda::allocate_managed(maxTrackExtensions * 2 * sizeof(uint8_t), stream);
+    trackExtensionsInGPU.nHitOverlaps = (uint8_t*)cms::cuda::allocate_managed(maxTrackExtensions * 2 * sizeof(uint8_t), stream);
 
-    trackExtensionsInGPU.rPhiChiSquared = (float*)cms::cuda::allocate_managed(maxTrackExtensions * sizeof(float), stream);
-    trackExtensionsInGPU.rzChiSquared = (float*)cms::cuda::allocate_managed(maxTrackExtensions * sizeof(float), stream);
+    trackExtensionsInGPU.rPhiChiSquared = (FPX*)cms::cuda::allocate_managed(maxTrackExtensions * sizeof(FPX), stream);
+    trackExtensionsInGPU.rzChiSquared = (FPX*)cms::cuda::allocate_managed(maxTrackExtensions * sizeof(FPX), stream);
     trackExtensionsInGPU.isDup = (bool*) cms::cuda::allocate_managed(maxTrackExtensions * sizeof(bool), stream);
-    trackExtensionsInGPU.regressionRadius = (float*)cms::cuda::allocate_managed(maxTrackExtensions * sizeof(float), stream);
+    trackExtensionsInGPU.regressionRadius = (FPX*)cms::cuda::allocate_managed(maxTrackExtensions * sizeof(FPX), stream);
     trackExtensionsInGPU.nTrackExtensions = (unsigned int*)cms::cuda::allocate_managed(nTrackCandidates * sizeof(unsigned int), stream);
 
 #else
     cudaMallocManaged(&trackExtensionsInGPU.constituentTCTypes, sizeof(short) * 3 * maxTrackExtensions);
     cudaMallocManaged(&trackExtensionsInGPU.constituentTCIndices, sizeof(unsigned int) * 3 * maxTrackExtensions);
-    cudaMallocManaged(&trackExtensionsInGPU.nLayerOverlaps, sizeof(unsigned int) * 2 * maxTrackExtensions);
-    cudaMallocManaged(&trackExtensionsInGPU.nHitOverlaps, sizeof(unsigned int) * 2 * maxTrackExtensions);
-    cudaMallocManaged(&trackExtensionsInGPU.rPhiChiSquared, maxTrackExtensions * sizeof(float));
-    cudaMallocManaged(&trackExtensionsInGPU.rzChiSquared, maxTrackExtensions * sizeof(float));
+    cudaMallocManaged(&trackExtensionsInGPU.nLayerOverlaps, sizeof(uint8_t) * 2 * maxTrackExtensions);
+    cudaMallocManaged(&trackExtensionsInGPU.nHitOverlaps, sizeof(uint8_t) * 2 * maxTrackExtensions);
+    cudaMallocManaged(&trackExtensionsInGPU.rPhiChiSquared, maxTrackExtensions * sizeof(FPX));
+    cudaMallocManaged(&trackExtensionsInGPU.rzChiSquared, maxTrackExtensions * sizeof(FPX));
     cudaMallocManaged(&trackExtensionsInGPU.isDup, maxTrackExtensions * sizeof(bool));
-    cudaMallocManaged(&trackExtensionsInGPU.regressionRadius, maxTrackExtensions * sizeof(float));
+    cudaMallocManaged(&trackExtensionsInGPU.regressionRadius, maxTrackExtensions * sizeof(FPX));
     cudaMallocManaged(&trackExtensionsInGPU.nTrackExtensions, nTrackCandidates * sizeof(unsigned int));
 
 #ifdef CUT_VALUE_DEBUG
@@ -127,23 +127,23 @@ void SDL::createTrackExtensionsInExplicitMemory(struct trackExtensions& trackExt
     cudaGetDevice(&dev);
     trackExtensionsInGPU.constituentTCTypes = (short*)cms::cuda::allocate_device(dev,maxTrackExtensions * 3 * sizeof(short), stream);
     trackExtensionsInGPU.constituentTCIndices = (unsigned int*)cms::cuda::allocate_device(dev,maxTrackExtensions * 3 * sizeof(unsigned int), stream);
-    trackExtensionsInGPU.nLayerOverlaps = (unsigned int*)cms::cuda::allocate_device(dev,maxTrackExtensions * 2 * sizeof(unsigned int), stream);
-    trackExtensionsInGPU.nHitOverlaps = (unsigned int*)cms::cuda::allocate_device(dev,maxTrackExtensions * 2 * sizeof(unsigned int), stream);
+    trackExtensionsInGPU.nLayerOverlaps = (uint8_t*)cms::cuda::allocate_device(dev,maxTrackExtensions * 2 * sizeof(uint8_t), stream);
+    trackExtensionsInGPU.nHitOverlaps = (uint8_t*)cms::cuda::allocate_device(dev,maxTrackExtensions * 2 * sizeof(uint8_t), stream);
 
-    trackExtensionsInGPU.rPhiChiSquared = (float*)cms::cuda::allocate_device(dev,maxTrackExtensions * sizeof(float), stream);
-    trackExtensionsInGPU.rzChiSquared = (float*)cms::cuda::allocate_device(dev,maxTrackExtensions * sizeof(float), stream);
+    trackExtensionsInGPU.rPhiChiSquared = (FPX*)cms::cuda::allocate_device(dev,maxTrackExtensions * sizeof(FPX), stream);
+    trackExtensionsInGPU.rzChiSquared   = (FPX*)cms::cuda::allocate_device(dev,maxTrackExtensions * sizeof(FPX), stream);
     trackExtensionsInGPU.isDup = (bool*) cms::cuda::allocate_device(dev,maxTrackExtensions * sizeof(bool), stream);
     trackExtensionsInGPU.nTrackExtensions = (unsigned int*)cms::cuda::allocate_device(dev,nTrackCandidates * sizeof(unsigned int), stream);
-    trackExtensionsInGPU.regressionRadius = (float*)cms::cuda::allocate_device(dev, maxTrackExtensions * sizeof(float), stream);
+    trackExtensionsInGPU.regressionRadius = (FPX*)cms::cuda::allocate_device(dev, maxTrackExtensions * sizeof(FPX), stream);
 #else
     cudaMalloc(&trackExtensionsInGPU.constituentTCTypes, sizeof(short) * 3 * maxTrackExtensions);
     cudaMalloc(&trackExtensionsInGPU.constituentTCIndices, sizeof(unsigned int) * 3 * maxTrackExtensions);
-    cudaMalloc(&trackExtensionsInGPU.nLayerOverlaps, sizeof(unsigned int) * 2 * maxTrackExtensions);
-    cudaMalloc(&trackExtensionsInGPU.nHitOverlaps, sizeof(unsigned int) * 2 * maxTrackExtensions);
+    cudaMalloc(&trackExtensionsInGPU.nLayerOverlaps, sizeof(uint8_t) * 2 * maxTrackExtensions);
+    cudaMalloc(&trackExtensionsInGPU.nHitOverlaps, sizeof(uint8_t) * 2 * maxTrackExtensions);
     cudaMalloc(&trackExtensionsInGPU.nTrackExtensions, nTrackCandidates * sizeof(unsigned int));
-    cudaMalloc(&trackExtensionsInGPU.rPhiChiSquared, maxTrackExtensions * sizeof(float));
-    cudaMalloc(&trackExtensionsInGPU.rzChiSquared, maxTrackExtensions * sizeof(float));
-    cudaMalloc(&trackExtensionsInGPU.regressionRadius, maxTrackExtensions * sizeof(float));
+    cudaMalloc(&trackExtensionsInGPU.rPhiChiSquared, maxTrackExtensions * sizeof(FPX));
+    cudaMalloc(&trackExtensionsInGPU.rzChiSquared,   maxTrackExtensions * sizeof(FPX));
+    cudaMalloc(&trackExtensionsInGPU.regressionRadius, maxTrackExtensions * sizeof(FPX));
     cudaMalloc(&trackExtensionsInGPU.isDup, maxTrackExtensions * sizeof(bool));
 #endif
 
@@ -168,9 +168,9 @@ __device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExte
         trackExtensionsInGPU.nLayerOverlaps[2 * trackExtensionIndex + i] = nLayerOverlaps[i];
         trackExtensionsInGPU.nHitOverlaps[2 * trackExtensionIndex + i] = nHitOverlaps[i];
     }
-    trackExtensionsInGPU.rPhiChiSquared[trackExtensionIndex] = rPhiChiSquared;
-    trackExtensionsInGPU.rzChiSquared[trackExtensionIndex] = rzChiSquared;
-    trackExtensionsInGPU.regressionRadius[trackExtensionIndex] = regressionRadius;
+    trackExtensionsInGPU.rPhiChiSquared[trackExtensionIndex]   = __F2H(rPhiChiSquared);
+    trackExtensionsInGPU.rzChiSquared[trackExtensionIndex]     = __F2H(rzChiSquared);
+    trackExtensionsInGPU.regressionRadius[trackExtensionIndex] = __F2H(regressionRadius);
 
 #ifdef CUT_VALUE_DEBUG
     trackExtensionsInGPU.innerRadius[trackExtensionIndex] = innerRadius;
@@ -206,9 +206,9 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
         anchorLayerIndices = &trackCandidatesInGPU.logicalLayers[7 * anchorObjectIndex];
         anchorHitIndices = &trackCandidatesInGPU.hitIndices[14 * anchorObjectIndex];
         anchorLowerModuleIndices = &trackCandidatesInGPU.lowerModuleIndices[7 * anchorObjectIndex];
-        centerX = trackCandidatesInGPU.centerX[anchorObjectIndex];
-        centerY = trackCandidatesInGPU.centerY[anchorObjectIndex];
-        innerRadius = trackCandidatesInGPU.radius[anchorObjectIndex];
+        centerX = __H2F(trackCandidatesInGPU.centerX[anchorObjectIndex]);
+        centerY = __H2F(trackCandidatesInGPU.centerY[anchorObjectIndex]);
+        innerRadius = __H2F(trackCandidatesInGPU.radius[anchorObjectIndex]);
         outerRadius = -999;
         regressionRadius = -999;
     }

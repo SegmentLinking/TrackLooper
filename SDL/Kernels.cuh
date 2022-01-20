@@ -48,8 +48,8 @@ const unsigned int N_MAX_PIXEL_TRIPLETS = 5000;
 const unsigned int N_MAX_PIXEL_QUINTUPLETS = 15000;
 const unsigned int N_MAX_TOTAL_TRIPLETS = 200000;
 
-const unsigned int N_MAX_TRACK_CANDIDATES = 10000;
-const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 400000;
+const unsigned int N_MAX_TRACK_CANDIDATES = 1000;
+const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 4000;
 
 const unsigned int N_MAX_TRACK_CANDIDATE_EXTENSIONS = 200000;  
 const unsigned int N_MAX_TRACK_EXTENSIONS_PER_TC = 30;

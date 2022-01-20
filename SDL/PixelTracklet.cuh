@@ -189,8 +189,8 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
         pass = false;
     }
 
-    float alpha_InLo = segmentsInGPU.dPhiChanges[innerSegmentIndex];
-    float alpha_OutLo = segmentsInGPU.dPhiChanges[outerSegmentIndex];
+    float alpha_InLo  = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
+    float alpha_OutLo = __H2F(segmentsInGPU.dPhiChanges[outerSegmentIndex]);
 
     bool isEC_lastLayer = modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS;
 
@@ -437,8 +437,8 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
     {
         pass = false;
     }
-    float alpha_InLo = segmentsInGPU.dPhiChanges[innerSegmentIndex];
-    float alpha_OutLo = segmentsInGPU.dPhiChanges[outerSegmentIndex];
+    float alpha_InLo  = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
+    float alpha_OutLo = __H2F(segmentsInGPU.dPhiChanges[outerSegmentIndex]);
 
     bool isEC_lastLayer = modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS;
 
