@@ -123,4 +123,12 @@ if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit" ]]; 
     run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 ${runExtension}
     :
 fi
+if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified_cache" ]]; then
+    run_gpu unified ${SAMPLE} ${NEVENTS} -8 -c ${runExtension}
+    :
+fi
+if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache" ]]; then
+    run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 -c ${runExtension}
+    :
+fi
 sdl_compare_efficiencies -i ${SAMPLE} -t ${GITHASH} -f
