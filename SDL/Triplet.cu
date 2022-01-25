@@ -427,12 +427,7 @@ __device__ bool SDL::passPointingConstraintBBB(struct SDL::modules& modulesInGPU
     const float zLo = zIn + (zIn - deltaZLum) * (rtRatio_OutIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - (zpitchIn + zpitchOut); //slope-correction only on outer end
 
     //Cut 1 - z compatibility
-    zOut = zOut;
-    if (not (zOut >= zLo and zOut <= zHi))
-    {
-        pass = false;
-    }
-
+    pass = pass & ((zOut >= zLo) & (zOut <= zHi));
     float drt_OutIn = (rtOut - rtIn);
     float invRtIn = 1. / rtIn;
 
@@ -458,10 +453,7 @@ __device__ bool SDL::passPointingConstraintBBB(struct SDL::modules& modulesInGPU
     // Constructing upper and lower bound
 
     // Cut #2: Pointed Z (Inner segment two MD points to outer segment inner MD)
-    if (not (zOut >= zLoPointed and zOut <= zHiPointed))
-    {
-        pass = false;
-    }
+    pass = pass & ((zOut >= zLoPointed) & (zOut <= zHiPointed));
 
     return pass;
 }
@@ -494,10 +486,7 @@ __device__ bool SDL::passPointingConstraintBBE(struct SDL::modules& modulesInGPU
     float zLo = zIn + (zIn - deltaZLum) * (rtRatio_OutIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - zGeom; 
 
     // Cut #0: Preliminary (Only here in endcap case)
-    if(not(zIn * zOut > 0))
-    {
-        pass = false;
-    }
+    pass = pass & (zIn * zOut > 0);
     float dLum = copysignf(deltaZLum, zIn);
     bool isOutSgInnerMDPS = modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS;
     float rtGeom1 = isOutSgInnerMDPS ? pixelPSZpitch : strip2SZpitch;
@@ -507,11 +496,6 @@ __device__ bool SDL::passPointingConstraintBBE(struct SDL::modules& modulesInGPU
     rtOut = rtOut;
 
     //Cut #1: rt condition
-    if (not (rtOut >= rtLo))
-    {
-        pass = false;
-    }
-
     float zInForHi = zIn - zGeom1 - dLum;
     if(zInForHi * zIn < 0)
     {
@@ -520,11 +504,7 @@ __device__ bool SDL::passPointingConstraintBBE(struct SDL::modules& modulesInGPU
     float rtHi = rtIn * (1.f + (zOut - zIn + zGeom1) / zInForHi) + rtGeom1;
 
     //Cut #2: rt condition
-    if (not (rtOut >= rtLo and rtOut <= rtHi))
-    {
-        pass = false;
-    }
-
+    pass = pass & ((rtOut >= rtLo) & (rtOut <= rtHi));
     float rIn = sqrtf(zIn * zIn + rtIn * rtIn);
 
     const float drtSDIn = rtMid - rtIn;
@@ -626,10 +606,7 @@ __device__ bool SDL::passPointingConstraintEEE(struct SDL::modules& modulesInGPU
 
     if (isInSgInnerMDPS and isInSgOuterMDPS) // If both PS then we can point
     {
-        if (not (kZ >= 0 and rtOut >= rtLo_point and rtOut <= rtHi_point))
-        {
-            pass = false;
-        }
+        pass = pass & ((kZ >= 0) &  (rtOut >= rtLo_point) & (rtOut <= rtHi_point));
     }
 
     return pass;
