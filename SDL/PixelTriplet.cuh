@@ -49,7 +49,7 @@ namespace SDL
         //for track extensions
         unsigned int* logicalLayers;
         unsigned int* hitIndices;
-        unsigned int* lowerModuleIndices;
+        uint16_t* lowerModuleIndices;
         FPX* centerX;
         FPX* centerY;
 

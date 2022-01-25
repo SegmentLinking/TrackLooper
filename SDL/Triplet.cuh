@@ -26,7 +26,7 @@ namespace SDL
     struct triplets
     {
         unsigned int* segmentIndices;
-        unsigned int* lowerModuleIndices; //3 of them now
+        uint16_t* lowerModuleIndices; //3 of them now
         unsigned int* nTriplets;
 
         //for track extensions
