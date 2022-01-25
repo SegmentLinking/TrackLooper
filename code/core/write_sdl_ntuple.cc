@@ -2707,7 +2707,6 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
         int subdet10 = modulesInGPU.subdets[module_idxs[10]];
         int subdet12 = modulesInGPU.subdets[module_idxs[12]];
 
-
         int logicallayer0 = 0;
         int logicallayer2 = 0;
         int logicallayer4 = layer4 + 6 * (subdet4 == 4);
@@ -2725,9 +2724,6 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
         layer_binary |= (1 << logicallayer10);
         layer_binary |= (1 << logicallayer12);
 
-       
- 
-
         std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
         for (auto &isimtrk : matched_sim_trk_idxs)
         {
@@ -2735,6 +2731,22 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
         }
 
 #ifdef CUT_VALUE_DEBUG
+
+        int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
+        int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
+        int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
+        int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
+        int moduleType8 = modulesInGPU.moduleType[module_idxs[8]];
+        int moduleType10 = modulesInGPU.moduleType[module_idxs[10]];
+        int moduleType12 = modulesInGPU.moduleType[module_idxs[12]];
+
+        int moduleType_binary = 0;
+        moduleType_binary |= (moduleType4 << 0);
+        moduleType_binary |= (moduleType6 << 2);
+        moduleType_binary |= (moduleType8 << 4);
+        moduleType_binary |= (moduleType10 << 6);
+        moduleType_binary |= (moduleType12 << 8);
+
         pT5_layer_binary.push_back(layer_binary);
 
         int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
