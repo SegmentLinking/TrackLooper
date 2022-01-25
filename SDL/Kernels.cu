@@ -64,14 +64,14 @@ __global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SD
     int blockySize = blockDim.y*gridDim.y;
     int blockzSize = blockDim.z*gridDim.z;
     for(int innerLowerModuleArrayIdx = blockIdx.z * blockDim.z + threadIdx.z; innerLowerModuleArrayIdx< (*modulesInGPU.nLowerModules); innerLowerModuleArrayIdx += blockzSize){
-    unsigned int innerLowerModuleIndex = modulesInGPU.lowerModuleIndices[innerLowerModuleArrayIdx];
+    uint16_t innerLowerModuleIndex = modulesInGPU.lowerModuleIndices[innerLowerModuleArrayIdx];
 
     unsigned int nConnectedModules = modulesInGPU.nConnectedModules[innerLowerModuleIndex];
 
     for(int outerLowerModuleArrayIdx = blockIdx.y * blockDim.y + threadIdx.y; outerLowerModuleArrayIdx< nConnectedModules; outerLowerModuleArrayIdx += blockySize){
     //if(outerLowerModuleArrayIdx >= nConnectedModules) continue;//return;
 
-    unsigned int outerLowerModuleIndex = modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + outerLowerModuleArrayIdx];
+    uint16_t outerLowerModuleIndex = modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + outerLowerModuleArrayIdx];
 
     unsigned int nInnerMDs = mdsInGPU.nMDs[innerLowerModuleIndex] > N_MAX_MD_PER_MODULES ? N_MAX_MD_PER_MODULES : mdsInGPU.nMDs[innerLowerModuleIndex];
     unsigned int nOuterMDs = mdsInGPU.nMDs[outerLowerModuleIndex] > N_MAX_MD_PER_MODULES ? N_MAX_MD_PER_MODULES : mdsInGPU.nMDs[outerLowerModuleIndex];
