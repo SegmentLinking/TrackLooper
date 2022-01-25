@@ -44,7 +44,7 @@ namespace SDL
         float* regressionF;
 
         //for track extensions
-        unsigned int* logicalLayers;
+        uint8_t* logicalLayers;
         unsigned int* hitIndices;
 
 #ifdef CUT_VALUE_DEBUG

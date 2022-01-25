@@ -37,7 +37,7 @@ namespace SDL
         FPX* phi;
 #ifdef TRACK_EXTENSIONS
         //for track extensions
-        unsigned int* logicalLayers;
+        uint8_t* logicalLayers;
         unsigned int* hitIndices;
         uint16_t* lowerModuleIndices;
         FPX* pixelRadius;

@@ -191,11 +191,11 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     */
 
     bool pass = true;
-    unsigned int* anchorLayerIndices = nullptr;
+    uint8_t* anchorLayerIndices = nullptr;
     unsigned int* anchorHitIndices = nullptr;
     uint16_t* anchorLowerModuleIndices = nullptr;
 
-    unsigned int* outerObjectLayerIndices = nullptr;
+    uint8_t* outerObjectLayerIndices = nullptr;
     unsigned int* outerObjectHitIndices = nullptr;
     uint16_t* outerObjectLowerModuleIndices = nullptr;
 
@@ -3204,7 +3204,7 @@ __device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverla
 
    This function i complicated - computes layer overlaps and checks if layer matches and hit matches are "compatible" i.e., layer overlap = 2 * hit overlap, or if that's not the case, we know why (multiple reco hits/staggered modules)
 */
-__device__ bool SDL::computeLayerAndHitOverlaps(SDL::modules& modulesInGPU, unsigned int* anchorLayerIndices, unsigned int* anchorHitIndices, uint16_t* anchorLowerModuleIndices, unsigned int* outerObjectLayerIndices, unsigned int* outerObjectHitIndices, uint16_t* outerObjectLowerModuleIndices, unsigned int nAnchorLayers, unsigned int nOuterLayers, unsigned int& nLayerOverlap, unsigned int& nHitOverlap, unsigned int& layerOverlapTarget)
+__device__ bool SDL::computeLayerAndHitOverlaps(SDL::modules& modulesInGPU, uint8_t* anchorLayerIndices, unsigned int* anchorHitIndices, uint16_t* anchorLowerModuleIndices, uint8_t* outerObjectLayerIndices, unsigned int* outerObjectHitIndices, uint16_t* outerObjectLowerModuleIndices, unsigned int nAnchorLayers, unsigned int nOuterLayers, unsigned int& nLayerOverlap, unsigned int& nHitOverlap, unsigned int& layerOverlapTarget)
 {
     bool pass = true;
     //merge technique!

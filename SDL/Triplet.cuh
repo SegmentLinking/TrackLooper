@@ -30,7 +30,7 @@ namespace SDL
         unsigned int* nTriplets;
 
         //for track extensions
-        unsigned int* logicalLayers;
+        uint8_t* logicalLayers;
         unsigned int* hitIndices;
         
         //delta beta = betaIn - betaOut

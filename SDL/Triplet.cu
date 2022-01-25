@@ -28,7 +28,7 @@ void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned
     tripletsInGPU.partOfPT3 = (bool*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(bool), stream);
     tripletsInGPU.partOfT5 = (bool*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(bool), stream);
     tripletsInGPU.partOfExtension = (bool*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(bool), stream);
-    tripletsInGPU.logicalLayers = (unsigned int*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * 3 * sizeof(unsigned int), stream);
+    tripletsInGPU.logicalLayers = (uint8_t*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * 3 * sizeof(uint8_t), stream);
     tripletsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * 6 * sizeof(unsigned int), stream);
 #endif
 #else
@@ -42,7 +42,7 @@ void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned
     cudaMallocManaged(&tripletsInGPU.partOfPT3, maxTriplets * nLowerModules * sizeof(bool));
     cudaMallocManaged(&tripletsInGPU.partOfT5, maxTriplets * nLowerModules * sizeof(bool));
     cudaMallocManaged(&tripletsInGPU.partOfExtension, maxTriplets * nLowerModules * sizeof(bool));
-    cudaMallocManaged(&tripletsInGPU.logicalLayers, maxTriplets * nLowerModules * 3 * sizeof(unsigned int));
+    cudaMallocManaged(&tripletsInGPU.logicalLayers, maxTriplets * nLowerModules * 3 * sizeof(uint8_t));
     cudaMallocManaged(&tripletsInGPU.hitIndices, maxTriplets * nLowerModules * 6 * sizeof(unsigned int));
 #endif
 #ifdef CUT_VALUE_DEBUG
@@ -88,7 +88,7 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
     tripletsInGPU.partOfT5 = (bool*)cms::cuda::allocate_device(dev, maxTriplets * nLowerModules * sizeof(bool), stream);
     tripletsInGPU.partOfExtension = (bool*)cms::cuda::allocate_device(dev, maxTriplets * nLowerModules * sizeof(bool), stream);
 
-    tripletsInGPU.logicalLayers = (unsigned int*)cms::cuda::allocate_device(dev, maxTriplets * nLowerModules * 3 * sizeof(unsigned int), stream);
+    tripletsInGPU.logicalLayers = (uint8_t*)cms::cuda::allocate_device(dev, maxTriplets * nLowerModules * 3 * sizeof(uint8_t), stream);
     tripletsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_device(dev, maxTriplets * nLowerModules * 6 * sizeof(unsigned int), stream);
 #endif
 #else
@@ -102,7 +102,7 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
     cudaMalloc(&tripletsInGPU.partOfT5, maxTriplets * nLowerModules * sizeof(bool));
     cudaMalloc(&tripletsInGPU.partOfExtension, maxTriplets * nLowerModules * sizeof(bool));
 
-    cudaMalloc(&tripletsInGPU.logicalLayers, maxTriplets * nLowerModules * 3 * sizeof(unsigned int));
+    cudaMalloc(&tripletsInGPU.logicalLayers, maxTriplets * nLowerModules * 3 * sizeof(uint8_t));
     cudaMalloc(&tripletsInGPU.hitIndices, maxTriplets * nLowerModules * 6 * sizeof(unsigned int));
 #endif
 #endif
