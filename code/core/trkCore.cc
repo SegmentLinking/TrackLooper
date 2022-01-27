@@ -1508,7 +1508,7 @@ std::vector<std::vector<float>>&    out_eta_vec,
 std::vector<std::vector<float>>&    out_etaErr_vec,
 std::vector<std::vector<float>>&    out_phi_vec,
 std::vector<std::vector<int>>&    out_superbin_vec,
-std::vector<std::vector<int>>&    out_pixelType_vec,
+std::vector<std::vector<int8_t>>&    out_pixelType_vec,
 std::vector<std::vector<short>>&    out_isQuad_vec
 )
 {
@@ -1537,7 +1537,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec
     std::vector<unsigned int> hitId = trk.ph2_detId();
     std::vector<unsigned int> hitIdxs(trk.ph2_detId().size());
     std::vector<int> superbin_vec;
-    std::vector<int> pixelType_vec;
+    std::vector<int8_t> pixelType_vec;
     std::vector<short> isQuad_vec;
     std::iota(hitIdxs.begin(), hitIdxs.end(), 0);
     const int hit_size = trkX.size();
@@ -1757,7 +1757,7 @@ std::vector<float>    eta_vec,
 std::vector<float>    etaErr_vec,
 std::vector<float>    phi_vec,
 std::vector<int>    superbin_vec,
-std::vector<int>    pixelType_vec,
+std::vector<int8_t>    pixelType_vec,
 std::vector<short>    isQuad_vec
 )
 {
@@ -1800,7 +1800,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
     std::vector<unsigned int> hitId = trk.ph2_detId();
     std::vector<unsigned int> hitIdxs(trk.ph2_detId().size());
     std::vector<int> superbin_vec;
-    std::vector<int> pixelType_vec;
+    std::vector<int8_t> pixelType_vec;
     std::vector<short> isQuad_vec;
     std::iota(hitIdxs.begin(), hitIdxs.end(), 0);
     const int hit_size = trkX.size();
