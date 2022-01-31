@@ -10,7 +10,8 @@ void SDL::segments::resetMemory(unsigned int maxSegments, unsigned int nModules,
     unsigned int nMemoryLocations = maxSegments * (nModules - 1) + maxPixelSegments;
     cudaMemsetAsync(mdIndices,0, nMemoryLocations * 6 * sizeof(unsigned int),stream);
     cudaMemsetAsync(nSegments, 0,nModules * sizeof(unsigned int),stream);
-    cudaMemsetAsync(dPhis, 0,(nMemoryLocations * 6 + maxPixelSegments * 8)*sizeof(float),stream);
+    cudaMemsetAsync(dPhis, 0,(nMemoryLocations * 6 )*sizeof(FPX),stream);
+    cudaMemsetAsync(ptIn, 0,(maxPixelSegments * 8)*sizeof(float),stream);
     cudaMemsetAsync(superbin, 0,(maxPixelSegments )*sizeof(int),stream);
     cudaMemsetAsync(pixelType, 0,(maxPixelSegments )*sizeof(int),stream);
     cudaMemsetAsync(isQuad, 0,(maxPixelSegments )*sizeof(bool),stream);
@@ -226,6 +227,7 @@ void SDL::segments::freeMemoryCache()
     cudaGetDevice(&dev);
     cms::cuda::free_device(dev,mdIndices);
     cms::cuda::free_device(dev,dPhis);
+    cms::cuda::free_device(dev,ptIn);
     cms::cuda::free_device(dev,nSegments);
     cms::cuda::free_device(dev,superbin);
     cms::cuda::free_device(dev,pixelType);
@@ -239,6 +241,7 @@ void SDL::segments::freeMemoryCache()
 #else
     cms::cuda::free_managed(mdIndices);
     cms::cuda::free_managed(dPhis);
+    cms::cuda::free_managed(ptIn);
     cms::cuda::free_managed(nSegments);
     cms::cuda::free_managed(superbin);
     cms::cuda::free_managed(pixelType);
@@ -256,6 +259,7 @@ void SDL::segments::freeMemory(cudaStream_t stream)
     cudaFree(mdIndices);
     cudaFree(nSegments);
     cudaFree(dPhis);
+    cudaFree(ptIn);
     cudaFree(superbin);
     cudaFree(pixelType);
     cudaFree(isQuad);
