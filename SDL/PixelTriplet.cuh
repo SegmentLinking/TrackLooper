@@ -47,9 +47,9 @@ namespace SDL
         bool* partOfPT5;
 
         //for track extensions
-        unsigned int* logicalLayers;
+        uint8_t* logicalLayers;
         unsigned int* hitIndices;
-        unsigned int* lowerModuleIndices;
+        uint16_t* lowerModuleIndices;
         FPX* centerX;
         FPX* centerY;
 

@@ -338,7 +338,7 @@ void run_sdl()
                 std::vector<std::vector<float>>    out_etaErr_vec;
                 std::vector<std::vector<float>>    out_phi_vec;
                 std::vector<std::vector<int>>      out_superbin_vec;
-                std::vector<std::vector<int>>      out_pixelType_vec;
+                std::vector<std::vector<int8_t>>      out_pixelType_vec;
                 std::vector<std::vector<short>>    out_isQuad_vec;
                 std::vector<int>    evt_num;
                 //std::vector<SDL::Event> events;

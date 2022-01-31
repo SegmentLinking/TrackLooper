@@ -1426,8 +1426,8 @@ void fillT3T3TrackExtensionOutputBranches(SDL::Event* event)
         //get the hit indices
         unsigned int* anchorHitIndices;
         unsigned int* outerHitIndices;
-        unsigned int* anchorLogicalLayers;
-        unsigned int* outerLogicalLayers;
+        uint8_t* anchorLogicalLayers;
+        uint8_t* outerLogicalLayers;
         vector<int> hit_idxs;
         vector<int> module_idxs;
 
@@ -1628,8 +1628,8 @@ void fillPureTrackExtensionOutputBranches(SDL::Event* event)
             //get the hit indices
             unsigned int* anchorHitIndices;
             unsigned int* outerHitIndices;
-            unsigned int* anchorLogicalLayers;
-            unsigned int* outerLogicalLayers;
+            uint8_t* anchorLogicalLayers;
+            uint8_t* outerLogicalLayers;
             vector<int> hit_idxs;
             vector<int> module_idxs;
 
@@ -1846,8 +1846,8 @@ void fillTrackExtensionOutputBranches(SDL::Event* event)
             //get the hit indices
             unsigned int* anchorHitIndices;
             unsigned int* outerHitIndices;
-            unsigned int* anchorLogicalLayers;
-            unsigned int* outerLogicalLayers;
+            uint8_t* anchorLogicalLayers;
+            uint8_t* outerLogicalLayers;
             vector<int> hit_idxs;
             vector<int> module_idxs;
             vector<int> nLayerOverlaps;
