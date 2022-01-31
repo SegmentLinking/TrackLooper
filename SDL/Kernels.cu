@@ -8,12 +8,17 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
     {
 
         int lowerModuleIndex = modulesInGPU.lowerModuleIndices[lowerModuleArrayIndex];
-        int upperModuleIndex = modulesInGPU.partnerModuleIndex(lowerModuleIndex);
+        //int upperModuleIndex = modulesInGPU.partnerModuleIndex(lowerModuleIndex);
 
-        if(rangesInGPU.hitRanges[lowerModuleIndex * 2] == -1) continue; //return;
-        if(rangesInGPU.hitRanges[upperModuleIndex * 2] == -1) continue; //return;
-        unsigned int nLowerHits = rangesInGPU.hitRanges[lowerModuleIndex * 2 + 1] - rangesInGPU.hitRanges[lowerModuleIndex * 2] + 1;
-        unsigned int nUpperHits = rangesInGPU.hitRanges[upperModuleIndex * 2 + 1] - rangesInGPU.hitRanges[upperModuleIndex * 2] + 1;
+        //if(rangesInGPU.hitRanges[lowerModuleIndex * 2] == -1) continue; //return;
+        //if(rangesInGPU.hitRanges[upperModuleIndex * 2] == -1) continue; //return;
+        //unsigned int nLowerHits = rangesInGPU.hitRanges[lowerModuleIndex * 2 + 1] - rangesInGPU.hitRanges[lowerModuleIndex * 2] + 1;
+        //unsigned int nUpperHits = rangesInGPU.hitRanges[upperModuleIndex * 2 + 1] - rangesInGPU.hitRanges[upperModuleIndex * 2] + 1;
+        if(rangesInGPU.hitRangesLower[lowerModuleArrayIndex] == -1) continue; //return;
+        if(rangesInGPU.hitRangesUpper[lowerModuleArrayIndex] == -1) continue; //return;
+        unsigned int nLowerHits = rangesInGPU.hitRangesnLower[lowerModuleArrayIndex];
+        unsigned int nUpperHits = rangesInGPU.hitRangesnUpper[lowerModuleArrayIndex];
+        //printf("hits %d %d %d\n",lowerModuleArrayIndex,nLowerHits,nUpperHits);
         int limit = nUpperHits*nLowerHits;
         for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize)
         {
@@ -21,8 +26,10 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
             int upperHitIndex =  hitIndex % nUpperHits;
             if(upperHitIndex >= nUpperHits) continue; //return;
 
-            unsigned int lowerHitArrayIndex = rangesInGPU.hitRanges[lowerModuleIndex * 2] + lowerHitIndex;
-            unsigned int upperHitArrayIndex = rangesInGPU.hitRanges[upperModuleIndex * 2] + upperHitIndex;
+            //unsigned int lowerHitArrayIndex = rangesInGPU.hitRanges[lowerModuleIndex * 2] + lowerHitIndex;
+            //unsigned int upperHitArrayIndex = rangesInGPU.hitRanges[upperModuleIndex * 2] + upperHitIndex;
+            unsigned int lowerHitArrayIndex = rangesInGPU.hitRangesLower[lowerModuleArrayIndex] + lowerHitIndex;
+            unsigned int upperHitArrayIndex = rangesInGPU.hitRangesUpper[lowerModuleArrayIndex] + upperHitIndex;
 
             float dz, drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange;
 

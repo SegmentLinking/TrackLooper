@@ -18,6 +18,10 @@ void SDL::createRangesInUnifiedMemory(struct objectRanges& rangesInGPU,unsigned 
     rangesInGPU.quintupletModuleIndices = (int*)cms::cuda::allocate_managed(nLowerModules * sizeof(int),stream);
 #else
     cudaMallocManaged(&rangesInGPU.hitRanges,nModules * 2 * sizeof(int));
+    cudaMallocManaged(&rangesInGPU.hitRangesLower,nModules  * sizeof(int));
+    cudaMallocManaged(&rangesInGPU.hitRangesUpper,nModules  * sizeof(int));
+    cudaMallocManaged(&rangesInGPU.hitRangesnLower,nModules  * sizeof(int8_t));
+    cudaMallocManaged(&rangesInGPU.hitRangesnUpper,nModules  * sizeof(int8_t));
     cudaMallocManaged(&rangesInGPU.mdRanges,nModules * 2 * sizeof(int));
     cudaMallocManaged(&rangesInGPU.segmentRanges,nModules * 2 * sizeof(int));
     cudaMallocManaged(&rangesInGPU.trackletRanges,nModules * 2 * sizeof(int));
@@ -45,6 +49,10 @@ void SDL::createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned
     rangesInGPU.quintupletModuleIndices = (int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(int),stream);
 #else
     cudaMalloc(&rangesInGPU.hitRanges,nModules * 2 * sizeof(int));
+    cudaMalloc(&rangesInGPU.hitRangesLower,nModules  * sizeof(int));
+    cudaMalloc(&rangesInGPU.hitRangesUpper,nModules  * sizeof(int));
+    cudaMalloc(&rangesInGPU.hitRangesnLower,nModules  * sizeof(int8_t));
+    cudaMalloc(&rangesInGPU.hitRangesnUpper,nModules  * sizeof(int8_t));
     cudaMalloc(&rangesInGPU.mdRanges,nModules * 2 * sizeof(int));
     cudaMalloc(&rangesInGPU.segmentRanges,nModules * 2 * sizeof(int));
     cudaMalloc(&rangesInGPU.trackletRanges,nModules * 2 * sizeof(int));
@@ -135,6 +143,10 @@ void SDL::objectRanges::freeMemoryCache()//struct objectRanges& rangesInGPU)
 void SDL::objectRanges::freeMemory()//struct objectRanges& rangesInGPU)
 {
   cudaFree(hitRanges);
+  cudaFree(hitRangesLower);
+  cudaFree(hitRangesUpper);
+  cudaFree(hitRangesnLower);
+  cudaFree(hitRangesnUpper);
   cudaFree(mdRanges);
   cudaFree(segmentRanges);
   cudaFree(trackletRanges);
@@ -252,10 +264,12 @@ void SDL::createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsign
             lowerModuleIndices[lowerModuleCounter] = index;
             reverseLookupLowerModuleIndices[index] = lowerModuleCounter;
             lowerModuleCounter++;
+        //printf("modules %u %u %u \n",index,lowerModuleIndices[lowerModuleCounter-1],reverseLookupLowerModuleIndices[index]);
         }
         else
         {
            reverseLookupLowerModuleIndices[index] = -1;
+        //printf("modules %u %u %u \n",index,0,reverseLookupLowerModuleIndices[index]);
         }
     }
     //hacky stuff "beyond the index" for the pixel module. nLowerModules will *NOT* cover the pixel module!
@@ -1011,6 +1025,10 @@ void SDL::resetObjectRanges(struct objectRanges& rangesInGPU, unsigned int nModu
 {
 //#ifdef Explicit_Module
         cudaMemsetAsync(rangesInGPU.hitRanges, -1,nModules*2*sizeof(int),stream);
+        cudaMemsetAsync(rangesInGPU.hitRangesLower, -1,nModules*sizeof(int),stream);
+        cudaMemsetAsync(rangesInGPU.hitRangesUpper, -1,nModules*sizeof(int),stream);
+        cudaMemsetAsync(rangesInGPU.hitRangesnLower, -1,nModules*sizeof(int8_t),stream);
+        cudaMemsetAsync(rangesInGPU.hitRangesnUpper, -1,nModules*sizeof(int8_t),stream);
         cudaMemsetAsync(rangesInGPU.mdRanges, -1,nModules*2*sizeof(int),stream);
         cudaMemsetAsync(rangesInGPU.segmentRanges, -1,nModules*2*sizeof(int),stream);
         cudaMemsetAsync(rangesInGPU.trackletRanges, -1,nModules*2*sizeof(int),stream);
