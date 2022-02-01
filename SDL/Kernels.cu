@@ -7,7 +7,7 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
     for(int lowerModuleArrayIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerModuleArrayIndex< (*modulesInGPU.nLowerModules); lowerModuleArrayIndex += blockySize)
     {
 
-        int lowerModuleIndex = modulesInGPU.lowerModuleIndices[lowerModuleArrayIndex];
+        //int lowerModuleIndex = modulesInGPU.lowerModuleIndices[lowerModuleArrayIndex];
         //int upperModuleIndex = modulesInGPU.partnerModuleIndex(lowerModuleIndex);
 
         //if(rangesInGPU.hitRanges[lowerModuleIndex * 2] == -1) continue; //return;
@@ -15,16 +15,18 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
         //unsigned int nLowerHits = rangesInGPU.hitRanges[lowerModuleIndex * 2 + 1] - rangesInGPU.hitRanges[lowerModuleIndex * 2] + 1;
         //unsigned int nUpperHits = rangesInGPU.hitRanges[upperModuleIndex * 2 + 1] - rangesInGPU.hitRanges[upperModuleIndex * 2] + 1;
         if(rangesInGPU.hitRangesLower[lowerModuleArrayIndex] == -1) continue; //return;
-        if(rangesInGPU.hitRangesUpper[lowerModuleArrayIndex] == -1) continue; //return;
+        //if(rangesInGPU.hitRangesUpper[lowerModuleArrayIndex] == -1) continue; //return; //only need the one check since this follows the same pattern
         unsigned int nLowerHits = rangesInGPU.hitRangesnLower[lowerModuleArrayIndex];
         unsigned int nUpperHits = rangesInGPU.hitRangesnUpper[lowerModuleArrayIndex];
         //printf("hits %d %d %d\n",lowerModuleArrayIndex,nLowerHits,nUpperHits);
         int limit = nUpperHits*nLowerHits;
+        int lowerModuleIndex = modulesInGPU.lowerModuleIndices[lowerModuleArrayIndex];
         for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize)
-        {
+        { // maybe change to 2 loops? is the division and mod less expensive?
             int lowerHitIndex =  hitIndex / nUpperHits;
             int upperHitIndex =  hitIndex % nUpperHits;
-            if(upperHitIndex >= nUpperHits) continue; //return;
+//            if(upperHitIndex >= nUpperHits) continue; //return; this check doesn't seem necessary due to the loop bounds and calculation of the lower and upper hits. does this actually help the timing? it seems to?
+            //if(lowerHitIndex >= nLowerHits) continue; //return;
 
             //unsigned int lowerHitArrayIndex = rangesInGPU.hitRanges[lowerModuleIndex * 2] + lowerHitIndex;
             //unsigned int upperHitArrayIndex = rangesInGPU.hitRanges[upperModuleIndex * 2] + upperHitIndex;
