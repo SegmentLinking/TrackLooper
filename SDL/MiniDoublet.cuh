@@ -71,7 +71,7 @@ namespace SDL
 
 #else
     //for successful MDs
-    CUDA_HOSTDEV void addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, unsigned int lowerModuleIdx, float dz, float dphi, float dphichange, float shfitedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx);
+    CUDA_HOSTDEV void addMDToMemory(struct miniDoublets& mdsInGPU, /*struct hits& hitsInGPU,*/ struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, unsigned int lowerModuleIdx, float dz, float dphi, float dphichange, float shfitedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx);
 
 #endif
 
@@ -80,7 +80,7 @@ namespace SDL
     CUDA_DEV extern inline float isTighterTiltedModules(struct modules& modulesInGPU, unsigned int moduleIndex);
     CUDA_DEV void initModuleGapSize();
 
-    CUDA_DEV float moduleGapSize(struct modules& modulesInGPU, unsigned int moduleIndex);
+    CUDA_DEV extern inline float moduleGapSize(struct modules& modulesInGPU, unsigned int moduleIndex);
 
 
     CUDA_DEV bool runMiniDoubletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, float& dz, float& dphi, float& dphichange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange);

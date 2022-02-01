@@ -4,7 +4,9 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
 {
     int blockxSize = blockDim.x*gridDim.x;
     int blockySize = blockDim.y*gridDim.y;
-    for(int lowerModuleArrayIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerModuleArrayIndex< (*modulesInGPU.nLowerModules); lowerModuleArrayIndex += blockySize)
+    int blockzSize = blockDim.z*gridDim.z;
+    for(int lowerModuleArrayIndex = blockIdx.z * blockDim.z + threadIdx.z; lowerModuleArrayIndex< (*modulesInGPU.nLowerModules); lowerModuleArrayIndex += blockzSize)
+//    for(int lowerModuleArrayIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerModuleArrayIndex< (*modulesInGPU.nLowerModules); lowerModuleArrayIndex += blockySize)
     {
 
         //int lowerModuleIndex = modulesInGPU.lowerModuleIndices[lowerModuleArrayIndex];
@@ -21,16 +23,21 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
         //printf("hits %d %d %d\n",lowerModuleArrayIndex,nLowerHits,nUpperHits);
         int limit = nUpperHits*nLowerHits;
         int lowerModuleIndex = modulesInGPU.lowerModuleIndices[lowerModuleArrayIndex];
-        for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize)
+        for(int lowerHitIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerHitIndex< nLowerHits; lowerHitIndex += blockySize)
         { // maybe change to 2 loops? is the division and mod less expensive?
-            int lowerHitIndex =  hitIndex / nUpperHits;
-            int upperHitIndex =  hitIndex % nUpperHits;
+            unsigned int lowerHitArrayIndex = rangesInGPU.hitRangesLower[lowerModuleArrayIndex] + lowerHitIndex;
+        for(int upperHitIndex = blockIdx.x * blockDim.x + threadIdx.x; upperHitIndex< nUpperHits; upperHitIndex += blockxSize)
+        { // maybe change to 2 loops? is the division and mod less expensive?
+        //for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize)
+        //{ // maybe change to 2 loops? is the division and mod less expensive?
+        //    int lowerHitIndex =  hitIndex / nUpperHits;
+        //    int upperHitIndex =  hitIndex % nUpperHits;
 //            if(upperHitIndex >= nUpperHits) continue; //return; this check doesn't seem necessary due to the loop bounds and calculation of the lower and upper hits. does this actually help the timing? it seems to?
             //if(lowerHitIndex >= nLowerHits) continue; //return;
 
             //unsigned int lowerHitArrayIndex = rangesInGPU.hitRanges[lowerModuleIndex * 2] + lowerHitIndex;
             //unsigned int upperHitArrayIndex = rangesInGPU.hitRanges[upperModuleIndex * 2] + upperHitIndex;
-            unsigned int lowerHitArrayIndex = rangesInGPU.hitRangesLower[lowerModuleArrayIndex] + lowerHitIndex;
+ //           unsigned int lowerHitArrayIndex = rangesInGPU.hitRangesLower[lowerModuleArrayIndex] + lowerHitIndex;
             unsigned int upperHitArrayIndex = rangesInGPU.hitRangesUpper[lowerModuleArrayIndex] + upperHitIndex;
 
             float dz, drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange;
@@ -58,7 +65,7 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
 #ifdef CUT_VALUE_DEBUG
                     addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz,drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, dzCut, drtCut, miniCut, mdIndex);
 #else
-                    addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, mdIndex);
+                    addMDToMemory(mdsInGPU,/*hitsInGPU,*/ modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, mdIndex);
 #endif
 
                 }
@@ -66,6 +73,7 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
             }
         }
     }
+}
 }
 __global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::objectRanges& rangesInGPU)
 {

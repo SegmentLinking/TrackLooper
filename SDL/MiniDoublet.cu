@@ -150,7 +150,7 @@ __device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& h
 }
 
 #else
-/*__host__*/ __device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, unsigned int lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
+/*__host__*/ __device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, /*struct hits& hitsInGPU,*/ struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, unsigned int lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
 {
     //the index into which this MD needs to be written will be computed in the kernel
     //nMDs variable will be incremented in the kernel, no need to worry about that here
@@ -208,7 +208,7 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInGP
     drtCut = 0.f;
     drt = rtUpper - rtLower;
 
-    const float sign = ((dz > 0) - (dz < 0)) * ((hitsInGPU.zs[lowerHitIndex] > 0) - (hitsInGPU.zs[lowerHitIndex] < 0));
+    const float sign = ((dz > 0) - (dz < 0)) * ((zLower > 0) - (zLower < 0));
     const float invertedcrossercut = (fabsf(dz) > 2) * sign;
 
 
@@ -468,7 +468,7 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
     float yLower = hitsInGPU.ys[lowerHitIndex];
     float zLower = hitsInGPU.zs[lowerHitIndex];
     float rtLower = hitsInGPU.rts[lowerHitIndex];
-    //printf("upperHitIndex %u\n",upperHitIndex); 
+    //printf("upperHitIndex %u %u %u\n",lowerModuleIndex,lowerHitIndex,upperHitIndex); 
     float xUpper = hitsInGPU.xs[upperHitIndex];
     float yUpper = hitsInGPU.ys[upperHitIndex];
     float zUpper = hitsInGPU.zs[upperHitIndex];
@@ -829,7 +829,7 @@ __device__ inline float SDL::isTighterTiltedModules(struct modules& modulesInGPU
 
 
 
-__device__ float SDL::moduleGapSize(struct modules& modulesInGPU, unsigned int moduleIndex)
+__device__ inline float SDL::moduleGapSize(struct modules& modulesInGPU, unsigned int moduleIndex)
 {
     float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
     float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
@@ -925,6 +925,7 @@ __device__ void SDL::shiftStripHits(struct modules& modulesInGPU, struct hits& h
     // Some variables relevant to the function
     float xp; // pixel x (pixel hit x)
     float yp; // pixel y (pixel hit y)
+    float zp; // pixel y (pixel hit y)
     float xa; // "anchor" x (the anchor position on the strip module plane from pixel hit)
     float ya; // "anchor" y (the anchor position on the strip module plane from pixel hit)
     float xo; // old x (before the strip hit is moved up or down)
@@ -977,7 +978,12 @@ __device__ void SDL::shiftStripHits(struct modules& modulesInGPU, struct hits& h
     // The pixel hit is used to compute the angleA which is the theta in polar coordinate
     // angleA = atanf(pixelHitPtr->rt() / pixelHitPtr->z() + (pixelHitPtr->z() < 0 ? M_PI : 0)); // Shift by pi if the z is negative so that the value of the angleA stays between 0 to pi and not -pi/2 to pi/2
 
-    angleA = fabsf(atanf(hitsInGPU.rts[pixelHitIndex] / hitsInGPU.zs[pixelHitIndex]));
+    // The pixel hit position
+    xp = hitsInGPU.xs[pixelHitIndex];
+    yp = hitsInGPU.ys[pixelHitIndex];
+    zp = hitsInGPU.zs[pixelHitIndex];
+
+    angleA = fabsf(atanf(hitsInGPU.rts[pixelHitIndex] / zp));
     if(modulesInGPU.moduleType[lowerModuleIndex] == PS and modulesInGPU.moduleLayerType[upperModuleIndex] == Strip)
     {
         drdz_ = modulesInGPU.drdzs[upperModuleIndex];
@@ -1004,9 +1010,6 @@ __device__ void SDL::shiftStripHits(struct modules& modulesInGPU, struct hits& h
     // Compute arctan of the slope and take care of the slope = infinity case
     absArctanSlope = ((slope != SDL_INF) ? fabs(atanf(slope)) : float(M_PI) / 2.f); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
 
-    // The pixel hit position
-    xp = hitsInGPU.xs[pixelHitIndex];
-    yp = hitsInGPU.ys[pixelHitIndex];
 
     // Depending on which quadrant the pixel hit lies, we define the angleM by shifting them slightly differently
     if (xp > 0 and yp > 0)
@@ -1061,14 +1064,14 @@ __device__ void SDL::shiftStripHits(struct modules& modulesInGPU, struct hits& h
     // Depending on which one as closer to the interactin point compute the new z wrt to the pixel properly
     if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
     {
-        abszn = fabsf(hitsInGPU.zs[pixelHitIndex]) + absdzprime;
+        abszn = fabsf(zp) + absdzprime;
     }
     else
     {
-        abszn = fabsf(hitsInGPU.zs[pixelHitIndex]) - absdzprime;
+        abszn = fabsf(zp) - absdzprime;
     }
 
-    zn = abszn * ((hitsInGPU.zs[pixelHitIndex] > 0) ? 1 : -1); // Apply the sign of the zn
+    zn = abszn * ((zp > 0) ? 1 : -1); // Apply the sign of the zn
 
 
     shiftedCoords[0] = xn;
