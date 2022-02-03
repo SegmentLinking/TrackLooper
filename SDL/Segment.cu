@@ -533,7 +533,6 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
     dPhi = deltaPhi(xIn, yIn, zIn, xOut, yOut, zOut);
 
     sdCut = sdSlope;
-    unsigned int outerEdgeIndex;
     if(outerLayerEndcapTwoS)
     {
         float dPhiPos_high = deltaPhi(xIn, yIn, zIn, xOutHigh, yOutHigh, zOut);
