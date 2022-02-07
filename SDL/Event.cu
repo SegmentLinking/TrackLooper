@@ -617,9 +617,13 @@ cudaStreamSynchronize(stream);
     int* module_hitRangesLower;
     int8_t* module_hitRangesnUpper;
     int8_t* module_hitRangesnLower;
+    int* module_lowerModuleIndices;
+    int* module_reverseModuleIndices;
     ModuleType* module_moduleType;
     cudaMallocHost(&module_layers,sizeof(short)*nModules);
     cudaMallocHost(&module_subdet,sizeof(short)*nModules);
+    cudaMallocHost(&module_lowerModuleIndices,sizeof(int)*(1+nLowerModules));
+    cudaMallocHost(&module_reverseModuleIndices,sizeof(int)*(nModules));
     cudaMallocHost(&module_hitRanges,sizeof(int)*2*nModules);
     cudaMallocHost(&module_hitRangesUpper,sizeof(int)*nModules);
     cudaMallocHost(&module_hitRangesLower,sizeof(int)*nModules);
@@ -629,11 +633,19 @@ cudaStreamSynchronize(stream);
     cudaMemcpyAsync(module_layers,modulesInGPU->layers,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_subdet,modulesInGPU->subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_hitRanges,rangesInGPU->hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(module_lowerModuleIndices,modulesInGPU->lowerModuleIndices,(nLowerModules+1)*sizeof(int),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(module_reverseModuleIndices,modulesInGPU->reverseLookupLowerModuleIndices,(nModules)*sizeof(int),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_hitRangesLower,rangesInGPU->hitRangesLower,nModules*sizeof(int),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_hitRangesUpper,rangesInGPU->hitRangesUpper,nModules*sizeof(int),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_hitRangesnLower,rangesInGPU->hitRangesnLower,nModules*sizeof(int8_t),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_hitRangesnUpper,rangesInGPU->hitRangesnUpper,nModules*sizeof(int8_t),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_moduleType,modulesInGPU->moduleType,nModules*sizeof(ModuleType),cudaMemcpyDeviceToHost,stream);
+    bool* module_isLower;
+    cudaMallocHost(&module_isLower, nModules*sizeof(bool));
+    cudaMemcpyAsync(module_isLower,modulesInGPU->isLower,nModules*sizeof(bool),cudaMemcpyDeviceToHost,stream);
+    bool* module_isInverted;
+    cudaMallocHost(&module_isInverted, nModules*sizeof(bool));
+    cudaMemcpyAsync(module_isInverted,modulesInGPU->isInverted,nModules*sizeof(bool),cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
 
 
@@ -684,8 +696,11 @@ cudaStreamSynchronize(stream);
 for(int lowerModuleArrayIndex = 0; lowerModuleArrayIndex< nLowerModules; lowerModuleArrayIndex++)
     {
 
-        int lowerModuleIndex = modulesInGPU->lowerModuleIndices[lowerModuleArrayIndex];
-        int upperModuleIndex = modulesInGPU->partnerModuleIndex(lowerModuleIndex);
+        //int lowerModuleIndex = modulesInGPU->lowerModuleIndices[lowerModuleArrayIndex];
+        int lowerModuleIndex = module_lowerModuleIndices[lowerModuleArrayIndex];
+        //int upperModuleIndex = module_lowerModuleIndices[lowerModuleIndex];
+        //int upperModuleIndex = modulesInGPU->partnerModuleIndex(lowerModuleIndex);
+        int upperModuleIndex = modulesInGPU->partnerModuleIndexExplicit(lowerModuleIndex,module_isLower[lowerModuleIndex],module_isInverted[lowerModuleIndex]);
         int lowerHitRanges = module_hitRanges[lowerModuleIndex*2];
         int upperHitRanges = module_hitRanges[upperModuleIndex*2];
 
@@ -1186,9 +1201,12 @@ cudaStreamSynchronize(stream);
     #endif
     //dim3 nThreads(1,128);
     //dim3 nBlocks((nLowerModules % nThreads.x == 0 ? nLowerModules/nThreads.x : nLowerModules/nThreads.x + 1), (maxThreadsPerModule % nThreads.y == 0 ? maxThreadsPerModule/nThreads.y : maxThreadsPerModule/nThreads.y + 1));
-    dim3 nThreads(16,16,4);
+    //dim3 nThreads(16,16,4);
+    dim3 nThreads(32,32,1);
+    //dim3 nThreads(1024,1,1);
     //dim3 nBlocks(1,MAX_BLOCKS,1);
     dim3 nBlocks(1,1,MAX_BLOCKS);
+    //dim3 nBlocks(1,1,1);
 
     createMiniDoubletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU,*hitsInGPU,*mdsInGPU,*rangesInGPU);
 
