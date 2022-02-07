@@ -5,6 +5,8 @@
 
 #define PTCUT 0.9 
 #define ETACUT 4.5
+// #define PTCUT 1.5
+// #define ETACUT 2.4
 
 // ./process INPUTFILEPATH OUTPUTFILE [NEVENTS]
 int main(int argc, char** argv)

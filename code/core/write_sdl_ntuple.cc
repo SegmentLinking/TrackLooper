@@ -212,6 +212,20 @@ void createLowerLevelOutputBranches()
 #endif
 #endif
 
+    ana.tx->createBranch<vector<float>>("T2_x1");
+    ana.tx->createBranch<vector<float>>("T2_x2");
+    ana.tx->createBranch<vector<float>>("T2_y1");
+    ana.tx->createBranch<vector<float>>("T2_y2");
+    ana.tx->createBranch<vector<float>>("T2_z1");
+    ana.tx->createBranch<vector<float>>("T2_z2");
+
+    ana.tx->createBranch<vector<float>>("good_T2_x1");
+    ana.tx->createBranch<vector<float>>("good_T2_x2");
+    ana.tx->createBranch<vector<float>>("good_T2_y1");
+    ana.tx->createBranch<vector<float>>("good_T2_y2");
+    ana.tx->createBranch<vector<float>>("good_T2_z1");
+    ana.tx->createBranch<vector<float>>("good_T2_z2");
+
 #ifdef CUT_VALUE_DEBUG
     createQuadrupletCutValueBranches();
     createTripletCutValueBranches();
@@ -835,7 +849,8 @@ void fillSimTrackOutputBranches()
           //if (not (trk.simhit_particle()[simhitidx] == trk.sim_pdgId()[isimtrk]))
           //  continue;
 
-          if (isMuonCurlingHit(isimtrk, ith_hit)){
+          // if (isMuonCurlingHit(isimtrk, ith_hit)){
+          if (false) {
             len = -2;
             lengap = -2;
             break;
@@ -1365,6 +1380,104 @@ void fillLowerLevelOutputBranches(SDL::Event* event)
     fillT3T3TrackExtensionOutputBranches(event);
 #endif
 #endif
+    fillSegmentBranches(event);
+
+}
+
+//________________________________________________________________________________________________________________________________
+void fillSegmentBranches(SDL::Event* event)
+{
+    SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
+    SDL::triplets& tripletsInGPU = (*event->getTriplets());
+    SDL::segments& segmentsInGPU = (*event->getSegments());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::hits& hitsInGPU = (*event->getHits());
+    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::quintuplets& quintupletsInGPU = (*event->getQuintuplets());
+    SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
+    SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
+    const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
+    for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
+    {
+        unsigned int lowerIdx = modulesInGPU.lowerModuleIndices[idx];
+        unsigned int nSegments = segmentsInGPU.nSegments[lowerIdx];
+
+        for (unsigned int iseg = 0; iseg < nSegments; ++iseg)
+        {
+
+            unsigned idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[lowerIdx*N_MAX_SEGMENTS_PER_MODULE+iseg];
+            unsigned jdx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[lowerIdx*N_MAX_SEGMENTS_PER_MODULE+iseg];
+
+            ana.tx->pushbackToBranch<float>("T2_x1", hitsInGPU.xs[idx]);
+            ana.tx->pushbackToBranch<float>("T2_y1", hitsInGPU.ys[idx]);
+            ana.tx->pushbackToBranch<float>("T2_z1", hitsInGPU.zs[idx]);
+            ana.tx->pushbackToBranch<float>("T2_x2", hitsInGPU.xs[jdx]);
+            ana.tx->pushbackToBranch<float>("T2_y2", hitsInGPU.ys[jdx]);
+            ana.tx->pushbackToBranch<float>("T2_z2", hitsInGPU.zs[jdx]);
+
+        }
+    }
+
+    std::vector<unsigned int> good_T2s;
+
+    unsigned int nTrackCandidates = *trackCandidatesInGPU.nTrackCandidates;
+    for (unsigned int jdx = 0; jdx < nTrackCandidates; jdx++)
+    {
+        short trackCandidateType = trackCandidatesInGPU.trackCandidateType[jdx];
+        unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * jdx];
+        unsigned int outerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * jdx + 1];
+
+        if (trackCandidateType == 8) // pLS
+        {
+            continue;
+        }
+
+        if (trackCandidateType == 5) // pT3
+        {
+            unsigned int iseg = tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[innerTrackletIdx]+1];
+            unsigned int jseg = tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[innerTrackletIdx]];
+            if (std::find(good_T2s.begin(), good_T2s.end(), iseg) == good_T2s.end()) good_T2s.push_back(iseg);
+            if (std::find(good_T2s.begin(), good_T2s.end(), jseg) == good_T2s.end()) good_T2s.push_back(jseg);
+        }
+        else if (trackCandidateType == 4) // T5
+        {
+            unsigned int innerTrackletIndex = quintupletsInGPU.tripletIndices[2 * innerTrackletIdx];
+            unsigned int outerTrackletIndex = quintupletsInGPU.tripletIndices[2 * innerTrackletIdx + 1];
+            unsigned seg1 = tripletsInGPU.segmentIndices[2 * innerTrackletIndex];
+            unsigned seg2 = tripletsInGPU.segmentIndices[2 * innerTrackletIndex + 1];
+            unsigned seg3 = tripletsInGPU.segmentIndices[2 * outerTrackletIndex];
+            unsigned seg4 = tripletsInGPU.segmentIndices[2 * outerTrackletIndex + 1];
+            if (std::find(good_T2s.begin(), good_T2s.end(), seg1) == good_T2s.end()) good_T2s.push_back(seg1);
+            if (std::find(good_T2s.begin(), good_T2s.end(), seg2) == good_T2s.end()) good_T2s.push_back(seg2);
+            if (std::find(good_T2s.begin(), good_T2s.end(), seg3) == good_T2s.end()) good_T2s.push_back(seg3);
+            if (std::find(good_T2s.begin(), good_T2s.end(), seg4) == good_T2s.end()) good_T2s.push_back(seg4);
+        }
+        else if(trackCandidateType == 7) //pT5
+        {
+            unsigned int seg1 = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]];
+            unsigned int seg2 = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx] + 1];
+            unsigned int seg3 = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]];
+            unsigned int seg4 = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1] + 1];
+            if (std::find(good_T2s.begin(), good_T2s.end(), seg1) == good_T2s.end()) good_T2s.push_back(seg1);
+            if (std::find(good_T2s.begin(), good_T2s.end(), seg2) == good_T2s.end()) good_T2s.push_back(seg2);
+            if (std::find(good_T2s.begin(), good_T2s.end(), seg3) == good_T2s.end()) good_T2s.push_back(seg3);
+            if (std::find(good_T2s.begin(), good_T2s.end(), seg4) == good_T2s.end()) good_T2s.push_back(seg4);
+        }
+    }
+
+    for (auto& iseg : good_T2s)
+    {
+        unsigned int imd_iseg = segmentsInGPU.innerMiniDoubletAnchorHitIndices[iseg];
+        unsigned int jmd_iseg = segmentsInGPU.outerMiniDoubletAnchorHitIndices[iseg];
+        ana.tx->pushbackToBranch<float>("good_T2_x1", hitsInGPU.xs[imd_iseg]);
+        ana.tx->pushbackToBranch<float>("good_T2_y1", hitsInGPU.ys[imd_iseg]);
+        ana.tx->pushbackToBranch<float>("good_T2_z1", hitsInGPU.zs[imd_iseg]);
+        ana.tx->pushbackToBranch<float>("good_T2_x2", hitsInGPU.xs[jmd_iseg]);
+        ana.tx->pushbackToBranch<float>("good_T2_y2", hitsInGPU.ys[jmd_iseg]);
+        ana.tx->pushbackToBranch<float>("good_T2_z2", hitsInGPU.zs[jmd_iseg]);
+    }
+
+
 }
 
 #ifdef TRACK_EXTENSIONS
