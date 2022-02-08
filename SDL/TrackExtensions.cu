@@ -193,13 +193,13 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     */
 
     bool pass = true;
-    unsigned int* anchorLayerIndices = nullptr;
+    uint8_t* anchorLayerIndices = nullptr;
     unsigned int* anchorHitIndices = nullptr;
-    unsigned int* anchorLowerModuleIndices = nullptr;
+    uint16_t* anchorLowerModuleIndices = nullptr;
 
-    unsigned int* outerObjectLayerIndices = nullptr;
+    uint8_t* outerObjectLayerIndices = nullptr;
     unsigned int* outerObjectHitIndices = nullptr;
-    unsigned int* outerObjectLowerModuleIndices = nullptr;
+    uint16_t* outerObjectLowerModuleIndices = nullptr;
 
     unsigned int nAnchorLayers = (anchorObjectType == 7) ? 7 : (anchorObjectType == 3 ? 3 : 5);
     float centerX, centerY;
@@ -288,7 +288,7 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     {
         //create a unified list of hit indices and lower module indices
         unsigned int overallAnchorIndices[6];
-        unsigned int overallLowerModuleIndices[6];
+        uint16_t overallLowerModuleIndices[6];
         int i = 0, j = 0, nPoints = 0;
         while(j < 3)
         {
@@ -3199,7 +3199,7 @@ __device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverla
 
    This function i complicated - computes layer overlaps and checks if layer matches and hit matches are "compatible" i.e., layer overlap = 2 * hit overlap, or if that's not the case, we know why (multiple reco hits/staggered modules)
 */
-__device__ bool SDL::computeLayerAndHitOverlaps(SDL::modules& modulesInGPU, unsigned int* anchorLayerIndices, unsigned int* anchorHitIndices, unsigned int* anchorLowerModuleIndices, unsigned int* outerObjectLayerIndices, unsigned int* outerObjectHitIndices, unsigned int* outerObjectLowerModuleIndices, unsigned int nAnchorLayers, unsigned int nOuterLayers, unsigned int& nLayerOverlap, unsigned int& nHitOverlap, unsigned int& layerOverlapTarget)
+__device__ bool SDL::computeLayerAndHitOverlaps(SDL::modules& modulesInGPU, uint8_t* anchorLayerIndices, unsigned int* anchorHitIndices, uint16_t* anchorLowerModuleIndices, uint8_t* outerObjectLayerIndices, unsigned int* outerObjectHitIndices, uint16_t* outerObjectLowerModuleIndices, unsigned int nAnchorLayers, unsigned int nOuterLayers, unsigned int& nLayerOverlap, unsigned int& nHitOverlap, unsigned int& layerOverlapTarget)
 {
     bool pass = true;
     //merge technique!
@@ -3269,7 +3269,7 @@ __device__ bool SDL::computeLayerAndHitOverlaps(SDL::modules& modulesInGPU, unsi
 
 
 /* r-z and r-phi chi squared computation*/
-__device__ float SDL::computeTERZChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int* anchorObjectAnchorHitIndices, unsigned int* anchorLowerModuleIndices, unsigned int* outerObjectAnchorHitIndices, unsigned int* outerLowerModuleIndices, short anchorObjectType)
+__device__ float SDL::computeTERZChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int* anchorObjectAnchorHitIndices, uint16_t* anchorLowerModuleIndices, unsigned int* outerObjectAnchorHitIndices, uint16_t* outerLowerModuleIndices, short anchorObjectType)
 {
     //using the pixel hits to create the slope
     float slope = 0, intercept = 0, RMSE = 0;
@@ -3315,7 +3315,7 @@ __device__ float SDL::computeTERZChiSquared(struct modules& modulesInGPU, struct
         for(size_t i = 0; i < 3; i++)
         {
             unsigned int& anchorHitIndex = outerObjectAnchorHitIndices[i];
-            unsigned int& lowerModuleIndex = outerLowerModuleIndices[i];
+            uint16_t& lowerModuleIndex = outerLowerModuleIndices[i];
             rtAnchor = hitsInGPU.rts[anchorHitIndex];
             zAnchor = hitsInGPU.zs[anchorHitIndex];
 
@@ -3377,7 +3377,7 @@ __device__ void SDL::fitStraightLine(int nPoints, float* xs, float* ys, float& s
     slope = (sigmaXY - sigmaX * sigmaY) * invDenominator;
 }
 
-__device__ float SDL::computeTERPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, float& g, float& f, float& radius, unsigned int* outerObjectAnchorHits, unsigned int* outerObjectLowerModuleIndices)
+__device__ float SDL::computeTERPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, float& g, float& f, float& radius, unsigned int* outerObjectAnchorHits, uint16_t* outerObjectLowerModuleIndices)
 {
     //Three cases
     float delta1[3], delta2[3], slopes[3], xs[3], ys[3];
@@ -3394,7 +3394,7 @@ __device__ float SDL::computeTERPhiChiSquared(struct modules& modulesInGPU, stru
 }
 
 
-__device__ float SDL::computeT3T3RPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, int nPoints, unsigned int* anchorHitIndices, unsigned int* lowerModuleIndices, float& regressionRadius)
+__device__ float SDL::computeT3T3RPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, int nPoints, unsigned int* anchorHitIndices, uint16_t* lowerModuleIndices, float& regressionRadius)
 {
     float delta1[6], delta2[6], sigmas[6], slopes[6], xs[6], ys[6], g, f;
     bool isFlat[6];
@@ -3410,7 +3410,7 @@ __device__ float SDL::computeT3T3RPhiChiSquared(struct modules& modulesInGPU, st
     return chiSquared;
 }
 
-__device__ float SDL::computeT3T3RZChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, int nPoints, unsigned int* anchorHitIndices, unsigned int* lowerModuleIndices)
+__device__ float SDL::computeT3T3RZChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, int nPoints, unsigned int* anchorHitIndices, uint16_t* lowerModuleIndices)
 {
     float rts[6], zs[6];
     float slope = 0, intercept = 0, RMSE = 0, error, drdz, residual;
