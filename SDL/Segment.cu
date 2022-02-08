@@ -339,8 +339,7 @@ __device__ void SDL::addSegmentToMemory(struct segments& segmentsInGPU, unsigned
 __device__ void SDL::rmPixelSegmentFromMemory(struct segments& segmentsInGPU,unsigned int pixelSegmentArrayIndex){
     segmentsInGPU.isDup[pixelSegmentArrayIndex] = 1;
 }
-__device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct modules& modulesInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, uint16_t pixelModuleIndex, unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr, float eta, float phi, unsigned int idx, unsigned int pixelSegmentArrayIndex, int superbin,
-            int8_t pixelType, short isQuad, float score)
+__device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, uint16_t pixelModuleIndex, unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr, float eta, float phi, unsigned int idx, unsigned int pixelSegmentArrayIndex, int superbin, int8_t pixelType, short isQuad, float score)
 {
     segmentsInGPU.mdIndices[idx * 2] = innerMDIndex;
     segmentsInGPU.mdIndices[idx * 2 + 1] = outerMDIndex;
@@ -361,17 +360,18 @@ __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, str
     segmentsInGPU.superbin[pixelSegmentArrayIndex] = superbin;
     segmentsInGPU.pixelType[pixelSegmentArrayIndex] = pixelType;
     segmentsInGPU.isQuad[pixelSegmentArrayIndex] = isQuad;
-    segmentsInGPU.isDup[pixelSegmentArrayIndex] = false;
+    segmentsInGPU.isDup[pixelSegmentArrayIndex] = 0;
     segmentsInGPU.score[pixelSegmentArrayIndex] = score;
 
     //computing circle parameters
     /*
-       The two anchor hits are r3PCA and r3LH. p3PCA pt, eta, phi is hitIndex1 x, y, z
+       The two anchor hits are r3PCA and r3LH. p3PCA pt, eta, phi is hitIndex1
     */
-    float circleRadius = mdsInGPU.outerX[innerMDIndex] / (2 * k2Rinv1GeVf);
-    float circlePhi = mdsInGPU.outerZ[innerMDIndex];
-    float candidateCenterXs[] = {mdsInGPU.anchorX[innerMDIndex] + circleRadius * sinf(circlePhi), mdsInGPU.anchorX[innerMDIndex] - circleRadius * sinf(circlePhi)};
-    float candidateCenterYs[] = {mdsInGPU.anchorY[innerMDIndex] - circleRadius * cosf(circlePhi), mdsInGPU.anchorY[innerMDIndex] + circleRadius * cosf(circlePhi)};
+    float circleRadius = hitsInGPU.xs[mdsInGPU.hitIndices[2 * innerMDIndex + 1]] / (2 * k2Rinv1GeVf);
+    float circlePhi = hitsInGPU.zs[mdsInGPU.hitIndices[2 * innerMDIndex + 1]];
+
+    float candidateCenterXs[] = {hitsInGPU.xs[innerAnchorHitIndex] + circleRadius * sinf(circlePhi), hitsInGPU.xs[innerAnchorHitIndex] - circleRadius * sinf(circlePhi)};
+    float candidateCenterYs[] = {hitsInGPU.ys[innerAnchorHitIndex] - circleRadius * cosf(circlePhi), hitsInGPU.ys[innerAnchorHitIndex] + circleRadius * cosf(circlePhi)};
 
     //check which of the circles can accommodate r3LH better (we won't get perfect agreement)
     float bestChiSquared = 123456789.f;
@@ -379,7 +379,7 @@ __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, str
     size_t bestIndex;
     for(size_t i = 0; i < 2; i++)
     {
-        chiSquared = fabsf(sqrtf((mdsInGPU.anchorX[outerMDIndex] - candidateCenterXs[i]) * (mdsInGPU.anchorX[outerMDIndex] - candidateCenterXs[i]) + (mdsInGPU.anchorY[outerMDIndex] - candidateCenterYs[i]) * (mdsInGPU.anchorY[outerMDIndex] - candidateCenterYs[i])) - circleRadius);
+        chiSquared = fabsf(sqrtf((hitsInGPU.xs[outerAnchorHitIndex] - candidateCenterXs[i]) * (hitsInGPU.xs[outerAnchorHitIndex] - candidateCenterXs[i]) + (hitsInGPU.ys[outerAnchorHitIndex] - candidateCenterYs[i]) * (hitsInGPU.ys[outerAnchorHitIndex] - candidateCenterYs[i])) - circleRadius);
         if(chiSquared < bestChiSquared)
         {
             bestChiSquared = chiSquared;
@@ -391,12 +391,22 @@ __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, str
     segmentsInGPU.circleRadius[pixelSegmentArrayIndex] = circleRadius;
 }
 
-__device__ void SDL::dAlphaThreshold(float* dAlphaThresholdValues, struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, float& xIn, float& yIn, float& zIn, float& rtIn, float& xOut, float& yOut, float& zOut, float& rtOut, uint16_t& innerLowerModuleIndex, uint16_t& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex)
+__device__ void SDL::dAlphaThreshold(float* dAlphaThresholdValues, struct hits& hitsInGPU, struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, unsigned int& innerMiniDoubletAnchorHitIndex, unsigned int& outerMiniDoubletAnchorHitIndex, uint16_t& innerLowerModuleIndex, uint16_t& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex)
 {
     float sdMuls = (modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel) ? miniMulsPtScaleBarrel[modulesInGPU.layers[innerLowerModuleIndex]-1] * 3.f/ptCut : miniMulsPtScaleEndcap[modulesInGPU.layers[innerLowerModuleIndex]-1] * 3.f/ptCut;
 
+    // BField dAlpha
+
+    float innerMiniDoubletAnchorHitRt = hitsInGPU.rts[innerMiniDoubletAnchorHitIndex];
+    float outerMiniDoubletAnchorHitRt = hitsInGPU.rts[outerMiniDoubletAnchorHitIndex];
+    float innerMiniDoubletAnchorHitZ = hitsInGPU.zs[innerMiniDoubletAnchorHitIndex];
+    float outerMiniDoubletAnchorHitZ = hitsInGPU.zs[outerMiniDoubletAnchorHitIndex];
+
     //more accurate then outer rt - inner rt
-    float segmentDr = sqrtf((yOut - yIn) * (yOut - yIn) + (xOut - xIn) * (xOut - xIn));
+    float segmentY = hitsInGPU.ys[outerMiniDoubletAnchorHitIndex] - hitsInGPU.ys[innerMiniDoubletAnchorHitIndex];
+    float segmentX = hitsInGPU.xs[outerMiniDoubletAnchorHitIndex]- hitsInGPU.xs[innerMiniDoubletAnchorHitIndex]; 
+    float segmentDr = sqrtf((segmentY * segmentY) + (segmentX * segmentX));
+    
 
     const float dAlpha_Bfield = asinf(fminf(segmentDr * k2Rinv1GeVf/ptCut, sinAlphaMax));
 
@@ -461,8 +471,8 @@ __device__ void SDL::dAlphaThreshold(float* dAlphaThresholdValues, struct module
 
     //Unique stuff for the segment dudes alone
 
-    float dAlpha_res_inner = 0.02f/miniDelta * (modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel ? 1.0f : fabsf(zIn)/rtIn);
-    float dAlpha_res_outer = 0.02f/miniDelta * (modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel ? 1.0f : fabsf(zOut)/rtOut);
+    float dAlpha_res_inner = 0.02f/miniDelta * (modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel ? 1.0f : fabsf(innerMiniDoubletAnchorHitZ/innerMiniDoubletAnchorHitRt));
+    float dAlpha_res_outer = 0.02f/miniDelta * (modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel ? 1.0f : fabsf(outerMiniDoubletAnchorHitZ/outerMiniDoubletAnchorHitRt));
 
  
     float dAlpha_res = dAlpha_res_inner + dAlpha_res_outer;
@@ -490,30 +500,51 @@ __device__ void SDL::dAlphaThreshold(float* dAlphaThresholdValues, struct module
 
 }
 
-__device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, uint16_t& innerLowerModuleIndex, uint16_t& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex, float& zIn, float& zOut, float& rtIn, float& rtOut, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, float& dAlphaInnerMDSegment, float& dAlphaOuterMDSegment,
+
+__device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, uint16_t& innerLowerModuleIndex, uint16_t& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex, float& zIn, float& zOut, float& rtIn, float& rtOut, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, float& dAlphaInnerMDSegment, float& dAlphaOuterMDSegment,
         float& rtLo, float& rtHi, float& sdCut, float& dAlphaInnerMDSegmentThreshold, float& dAlphaOuterMDSegmentThreshold, float& dAlphaInnerMDOuterMDThreshold, float&
-        dAlphaInnerMDOuterMD)
+        dAlphaInnerMDOuterMD, unsigned int& innerMiniDoubletAnchorHitIndex, unsigned int& outerMiniDoubletAnchorHitIndex)
 {
     bool pass = true;
-   
-    float xIn, yIn;    
-    float xOut, yOut, xOutHigh, yOutHigh, xOutLow, yOutLow;
+    
+    if(mdsInGPU.pixelModuleFlag[innerMDIndex] >= 0)
+    {
+        if(mdsInGPU.pixelModuleFlag[innerMDIndex] == 0)
+        {    
+            innerMiniDoubletAnchorHitIndex = mdsInGPU.hitIndices[innerMDIndex * 2]; 
+        }
+        else
+        {
+            innerMiniDoubletAnchorHitIndex = mdsInGPU.hitIndices[innerMDIndex * 2 + 1];
+        }
+    }
+    else
+    {
+        innerMiniDoubletAnchorHitIndex = mdsInGPU.hitIndices[innerMDIndex * 2];
+    }
 
-    xIn = mdsInGPU.anchorX[innerMDIndex];
-    yIn = mdsInGPU.anchorY[innerMDIndex];
-    zIn = mdsInGPU.anchorZ[innerMDIndex];
-    rtIn = mdsInGPU.anchorRt[innerMDIndex];
+    if(mdsInGPU.pixelModuleFlag[outerMDIndex] >= 0)
+    {
+        if(mdsInGPU.pixelModuleFlag[outerMDIndex] == 0)
+        {    
+            outerMiniDoubletAnchorHitIndex = mdsInGPU.hitIndices[outerMDIndex * 2]; 
+        }
+        else
+        {
+            outerMiniDoubletAnchorHitIndex = mdsInGPU.hitIndices[outerMDIndex * 2 + 1];
+        }
+    }
+    else
+    {
+        outerMiniDoubletAnchorHitIndex = mdsInGPU.hitIndices[outerMDIndex * 2];
+    }
 
-    xOut = mdsInGPU.anchorX[outerMDIndex];
-    yOut = mdsInGPU.anchorY[outerMDIndex];
-    zOut = mdsInGPU.anchorZ[outerMDIndex];
-    rtOut = mdsInGPU.anchorRt[outerMDIndex];
+    rtIn = hitsInGPU.rts[innerMiniDoubletAnchorHitIndex];
+    rtOut = hitsInGPU.rts[outerMiniDoubletAnchorHitIndex];
+    zIn = hitsInGPU.zs[innerMiniDoubletAnchorHitIndex];
+    zOut = hitsInGPU.zs[outerMiniDoubletAnchorHitIndex];
 
-    xOutHigh = mdsInGPU.anchorHighEdgeX[outerMDIndex];
-    yOutHigh = mdsInGPU.anchorHighEdgeY[outerMDIndex];
-    xOutLow = mdsInGPU.anchorLowEdgeX[outerMDIndex];
-    yOutLow = mdsInGPU.anchorLowEdgeY[outerMDIndex];
-    bool outerLayerEndcapTwoS = (modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Endcap) & (modulesInGPU.moduleType[outerLowerModuleIndex] == SDL::TwoS);
+    bool outerLayerEndcapTwoS = (modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Endcap) and (modulesInGPU.moduleType[outerLowerModuleIndex] == SDL::TwoS);
 
     
     float sdSlope = asinf(fminf(rtOut * k2Rinv1GeVf / ptCut, sinAlphaMax));
@@ -526,7 +557,11 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
 
 
     //cut 0 - z compatibility
-    pass = pass & (zIn * zOut >= 0);
+    if(zIn * zOut < 0)
+    {
+        pass = false;
+    }
+
     float dz = zOut - zIn;
     float dLum = copysignf(deltaZLum, zIn);
     float drtDzScale = sdSlope/tanf(sdSlope);
@@ -536,17 +571,23 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
 
     //completeness
 
-    pass = pass & ((rtOut >= rtLo) & (rtOut <= rtHi));
+    if(not(rtOut >= rtLo and rtOut <= rtHi))
+    {
+        pass = false;
+    }
 
-
-    dPhi = deltaPhi(xIn, yIn, zIn, xOut, yOut, zOut);
+    dPhi = deltaPhi(hitsInGPU.xs[innerMiniDoubletAnchorHitIndex], hitsInGPU.ys[innerMiniDoubletAnchorHitIndex], hitsInGPU.zs[innerMiniDoubletAnchorHitIndex], hitsInGPU.xs[outerMiniDoubletAnchorHitIndex], hitsInGPU.ys[outerMiniDoubletAnchorHitIndex], hitsInGPU.zs[outerMiniDoubletAnchorHitIndex]);
 
     sdCut = sdSlope;
+    unsigned int outerEdgeIndex;
     if(outerLayerEndcapTwoS)
     {
-        float dPhiPos_high = deltaPhi(xIn, yIn, zIn, xOutHigh, yOutHigh, zOut);
-        float dPhiPos_low = deltaPhi(xIn, yIn, zIn, xOutLow, yOutLow, zOut);
-        
+        outerEdgeIndex = outerMiniDoubletAnchorHitIndex;
+
+        float dPhiPos_high = deltaPhi(hitsInGPU.xs[innerMiniDoubletAnchorHitIndex], hitsInGPU.ys[innerMiniDoubletAnchorHitIndex], hitsInGPU.zs[innerMiniDoubletAnchorHitIndex], hitsInGPU.highEdgeXs[outerEdgeIndex], hitsInGPU.highEdgeYs[outerEdgeIndex], hitsInGPU.zs[outerMiniDoubletAnchorHitIndex]);
+
+        float dPhiPos_low = deltaPhi(hitsInGPU.xs[innerMiniDoubletAnchorHitIndex], hitsInGPU.ys[innerMiniDoubletAnchorHitIndex], hitsInGPU.zs[innerMiniDoubletAnchorHitIndex], hitsInGPU.lowEdgeXs[outerEdgeIndex], hitsInGPU.lowEdgeYs[outerEdgeIndex], hitsInGPU.zs[outerMiniDoubletAnchorHitIndex]);
+
         dPhiMax = fabsf(dPhiPos_high) > fabsf(dPhiPos_low) ? dPhiPos_high : dPhiPos_low;
         dPhiMin = fabsf(dPhiPos_high) > fabsf(dPhiPos_low) ? dPhiPos_low : dPhiPos_high;
     }
@@ -555,17 +596,26 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
         dPhiMax = dPhi;
         dPhiMin = dPhi;
     }
-    pass = pass & (fabsf(dPhi) <= sdCut);
+
+    if(fabsf(dPhi) > sdCut)
+    {
+        pass = false;
+    }
 
     float dzFrac = dz/zIn;
     dPhiChange = dPhi/dzFrac * (1.f + dzFrac);
     dPhiChangeMin = dPhiMin/dzFrac * (1.f + dzFrac);
     dPhiChangeMax = dPhiMax/dzFrac * (1.f + dzFrac);
-    
-    pass = pass & (fabsf(dPhiChange) <= sdCut);
+
+    if(fabsf(dPhiChange) > sdCut)
+    {
+        pass = false;
+    }
+
+
 
     float dAlphaThresholdValues[3];
-    dAlphaThreshold(dAlphaThresholdValues, modulesInGPU, mdsInGPU, xIn, yIn, zIn, rtIn, xOut, yOut, zOut, rtOut,innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex);
+    dAlphaThreshold(dAlphaThresholdValues, hitsInGPU, modulesInGPU, mdsInGPU, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex);
 
     dAlphaInnerMDSegmentThreshold = dAlphaThresholdValues[0];
     dAlphaOuterMDSegmentThreshold = dAlphaThresholdValues[1];
@@ -577,33 +627,73 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
     dAlphaOuterMDSegment = outerMDAlpha - dPhiChange;
     dAlphaInnerMDOuterMD = innerMDAlpha - outerMDAlpha;
    
-    pass = pass & (fabsf(dAlphaInnerMDSegment) < dAlphaThresholdValues[0]);
-    pass = pass & (fabsf(dAlphaOuterMDSegment) < dAlphaThresholdValues[1]);
-    pass = pass & (fabsf(dAlphaInnerMDOuterMD) < dAlphaThresholdValues[2]);
+ 
+    if(fabsf(dAlphaInnerMDSegment) >= dAlphaThresholdValues[0])
+    {
+        pass = false;
+    }
+
+    if(fabsf(dAlphaOuterMDSegment) >= dAlphaThresholdValues[1])
+    {
+        pass = false;
+    }
+
+    if(fabsf(dAlphaInnerMDOuterMD) >= dAlphaThresholdValues[2])
+    {
+        pass = false;
+    }
+
 
     return pass;
 }
 
-
-__device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, uint16_t& innerLowerModuleIndex, uint16_t& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex, float& zIn, float& zOut, float& rtIn, float& rtOut, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, float& dAlphaInnerMDSegment, float& dAlphaOuterMDSegment, float&
-        dAlphaInnerMDOuterMD, float& zLo, float& zHi, float& sdCut, float& dAlphaInnerMDSegmentThreshold, float& dAlphaOuterMDSegmentThreshold, float& dAlphaInnerMDOuterMDThreshold)
+__device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, uint16_t& innerLowerModuleIndex, uint16_t& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex, float& zIn, float& zOut, float& rtIn, float& rtOut, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, float& dAlphaInnerMDSegment, float& dAlphaOuterMDSegment, float&
+        dAlphaInnerMDOuterMD, float& zLo, float& zHi, float& sdCut, float& dAlphaInnerMDSegmentThreshold, float& dAlphaOuterMDSegmentThreshold, float& dAlphaInnerMDOuterMDThreshold, unsigned int& innerMiniDoubletAnchorHitIndex, unsigned int& outerMiniDoubletAnchorHitIndex)
 {
     bool pass = true;
    
     float sdMuls = (modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel) ? miniMulsPtScaleBarrel[modulesInGPU.layers[innerLowerModuleIndex]-1] * 3.f/ptCut : miniMulsPtScaleEndcap[modulesInGPU.layers[innerLowerModuleIndex]-1] * 3.f/ptCut;
 
 
-    float xIn, yIn, xOut, yOut;
+    if(mdsInGPU.pixelModuleFlag[innerMDIndex] >= 0)
+    {
+        if(mdsInGPU.pixelModuleFlag[innerMDIndex] == 0)
+        {    
+            innerMiniDoubletAnchorHitIndex = mdsInGPU.hitIndices[innerMDIndex * 2];
+        }
+        else
+        {
+            innerMiniDoubletAnchorHitIndex = mdsInGPU.hitIndices[innerMDIndex * 2 + 1]; 
+        }
+    }
+    else
+    {
+        innerMiniDoubletAnchorHitIndex = mdsInGPU.hitIndices[innerMDIndex * 2];
+    }
 
-    xIn = mdsInGPU.anchorX[innerMDIndex];
-    yIn = mdsInGPU.anchorY[innerMDIndex];
-    zIn = mdsInGPU.anchorZ[innerMDIndex];
-    rtIn = mdsInGPU.anchorRt[innerMDIndex];
+    if(mdsInGPU.pixelModuleFlag[outerMDIndex] >= 0)
+    {
+        if(mdsInGPU.pixelModuleFlag[outerMDIndex] == 0)
+        {    
+            outerMiniDoubletAnchorHitIndex = mdsInGPU.hitIndices[outerMDIndex * 2];
+ 		
+        }
+        else
+        {
+            outerMiniDoubletAnchorHitIndex = mdsInGPU.hitIndices[outerMDIndex * 2 + 1];
+	    
+        }
+    }
+    else
+    {
+        outerMiniDoubletAnchorHitIndex = mdsInGPU.hitIndices[outerMDIndex * 2];
+    }
 
-    xOut = mdsInGPU.anchorX[outerMDIndex];
-    yOut = mdsInGPU.anchorY[outerMDIndex];
-    zOut = mdsInGPU.anchorZ[outerMDIndex];
-    rtOut = mdsInGPU.anchorRt[outerMDIndex];
+
+    rtIn = hitsInGPU.rts[innerMiniDoubletAnchorHitIndex];
+    rtOut = hitsInGPU.rts[outerMiniDoubletAnchorHitIndex];
+    zIn = hitsInGPU.zs[innerMiniDoubletAnchorHitIndex];
+    zOut = hitsInGPU.zs[outerMiniDoubletAnchorHitIndex];
 
     float sdSlope = asinf(fminf(rtOut * k2Rinv1GeVf / ptCut, sinAlphaMax));
     float sdPVoff = 0.1f/rtOut;
@@ -614,22 +704,30 @@ __device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, s
     zLo = zIn + (zIn - deltaZLum) * (rtOut / rtIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - zGeom; //slope-correction only on outer end
     zHi = zIn + (zIn + deltaZLum) * (rtOut / rtIn - 1.f) * (zIn < 0.f ? 1.f : dzDrtScale) + zGeom;
 
-    pass = pass & ((zOut >= zLo) & (zOut <= zHi));
+    //cut 1 - z compatibility
+    if(not(zOut >= zLo and zOut <= zHi))
+    {
+        pass = false;
+    }
 
-    
 
+    dPhi = deltaPhi(hitsInGPU.xs[innerMiniDoubletAnchorHitIndex], hitsInGPU.ys[innerMiniDoubletAnchorHitIndex], hitsInGPU.zs[innerMiniDoubletAnchorHitIndex], hitsInGPU.xs[outerMiniDoubletAnchorHitIndex], hitsInGPU.ys[outerMiniDoubletAnchorHitIndex], hitsInGPU.zs[outerMiniDoubletAnchorHitIndex]);
     sdCut = sdSlope + sqrtf(sdMuls * sdMuls + sdPVoff * sdPVoff);
 
-    dPhi  = deltaPhi(xIn, yIn, zIn, xOut, yOut, zOut);
+    if(not( fabsf(dPhi) <= sdCut ))
+    {
+        pass = false;
+    }
 
-    pass = pass & (fabsf(dPhi) <= sdCut);
+    dPhiChange = deltaPhiChange(hitsInGPU.xs[innerMiniDoubletAnchorHitIndex], hitsInGPU.ys[innerMiniDoubletAnchorHitIndex], hitsInGPU.zs[innerMiniDoubletAnchorHitIndex], hitsInGPU.xs[outerMiniDoubletAnchorHitIndex], hitsInGPU.ys[outerMiniDoubletAnchorHitIndex], hitsInGPU.zs[outerMiniDoubletAnchorHitIndex]);
 
-    dPhiChange = deltaPhiChange(xIn, yIn, zIn, xOut, yOut, zOut);
-
-    pass = pass & (fabsf(dPhiChange) <= sdCut);
-
+    if(not( fabsf(dPhiChange) <= sdCut ))
+    {
+        pass = false;
+    }
+    
     float dAlphaThresholdValues[3];
-    dAlphaThreshold(dAlphaThresholdValues, modulesInGPU, mdsInGPU, xIn, yIn, zIn, rtIn, xOut, yOut, zOut, rtOut, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex);
+    dAlphaThreshold(dAlphaThresholdValues, hitsInGPU, modulesInGPU, mdsInGPU, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex);
 
     float innerMDAlpha = mdsInGPU.dphichanges[innerMDIndex];
     float outerMDAlpha = mdsInGPU.dphichanges[outerMDIndex];
@@ -641,15 +739,26 @@ __device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, s
     dAlphaOuterMDSegmentThreshold = dAlphaThresholdValues[1];
     dAlphaInnerMDOuterMDThreshold = dAlphaThresholdValues[2];
     
-    pass = pass & (fabsf(dAlphaInnerMDSegment) < dAlphaThresholdValues[0]);
-    pass = pass & (fabsf(dAlphaOuterMDSegment) < dAlphaThresholdValues[1]);
-    pass = pass & (fabsf(dAlphaInnerMDOuterMD) < dAlphaThresholdValues[2]);
+    if(fabsf(dAlphaInnerMDSegment) >= dAlphaThresholdValues[0])
+    {
+        pass = false;
+    }
+
+    if(fabsf(dAlphaOuterMDSegment) >= dAlphaThresholdValues[1])
+    {
+        pass = false;
+    }
+
+    if(fabsf(dAlphaInnerMDOuterMD) >= dAlphaThresholdValues[2])
+    {
+        pass = false;
+    }
 
     return pass;
 }
 
-__device__ bool SDL::runSegmentDefaultAlgo(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, uint16_t& innerLowerModuleIndex, uint16_t& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex, float& zIn, float& zOut, float& rtIn, float& rtOut, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, float& dAlphaInnerMDSegment, float& dAlphaOuterMDSegment, float&
-        dAlphaInnerMDOuterMD, float& zLo, float& zHi, float& rtLo, float& rtHi, float& sdCut, float& dAlphaInnerMDSegmentThreshold, float& dAlphaOuterMDSegmentThreshold, float& dAlphaInnerMDOuterMDThreshold)
+__device__ bool SDL::runSegmentDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, uint16_t& innerLowerModuleIndex, uint16_t& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex, float& zIn, float& zOut, float& rtIn, float& rtOut, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, float& dAlphaInnerMDSegment, float& dAlphaOuterMDSegment, float&
+        dAlphaInnerMDOuterMD, float& zLo, float& zHi, float& rtLo, float& rtHi, float& sdCut, float& dAlphaInnerMDSegmentThreshold, float& dAlphaOuterMDSegmentThreshold, float& dAlphaInnerMDOuterMDThreshold, unsigned int& innerMiniDoubletAnchorHitIndex, unsigned int& outerMiniDoubletAnchorHitIndex)
 {
     zLo = -999.f;
     zHi = -999.f;
@@ -658,13 +767,26 @@ __device__ bool SDL::runSegmentDefaultAlgo(struct modules& modulesInGPU, struct 
 
     bool pass = true;
 
-    if(modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel and modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel)
+    if(modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel)
     {
-        pass = runSegmentDefaultAlgoBarrel(modulesInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold);
-    }
+        if(modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel)
+        {
+            pass = runSegmentDefaultAlgoBarrel(modulesInGPU, hitsInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex);
+        }
+        else
+        {
+            pass = runSegmentDefaultAlgoEndcap(modulesInGPU, hitsInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex);
+
+        }
+    }  
+
     else
     {
-        pass = runSegmentDefaultAlgoEndcap(modulesInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold);
+        if(modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Endcap)
+            pass = runSegmentDefaultAlgoEndcap(modulesInGPU, hitsInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex);
+        else
+            pass = runSegmentDefaultAlgoBarrel(modulesInGPU, hitsInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex);
+
     }
 
     return pass;
@@ -712,97 +834,6 @@ __device__ inline float SDL::isTighterTiltedModules_seg(struct modules& modulesI
 
 }
 
-__device__ inline float SDL::isTighterTiltedModules_seg(short subdet, short layer, short side, short rod)
-{
-    // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
-    // This is the same as what was previously considered as"isNormalTiltedModules"
-    // See Figure 9.1 of https://cds.cern.ch/record/2272264/files/CMS-TDR-014.pdf
-    if (
-           (subdet == Barrel and side != Center and layer== 3)
-           or (subdet == Barrel and side == NegZ and layer == 2 and rod > 5)
-           or (subdet == Barrel and side == PosZ and layer == 2 and rod < 8)
-           or (subdet == Barrel and side == NegZ and layer == 1 and rod > 9)
-           or (subdet == Barrel and side == PosZ and layer == 1 and rod < 4)
-       )
-        return true;
-    else
-        return false;
-
-}
-
-//__device__ float SDL::moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
-__device__ float SDL::moduleGapSize_seg(short layer, short ring, short subdet, short side, short rod)
-{
-    float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
-    float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
-    float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
-    float miniDeltaEndcap[5][15];
-
-    for (size_t i = 0; i < 5; i++)
-    {
-        for (size_t j = 0; j < 15; j++)
-        {
-            if (i == 0 || i == 1)
-            {
-                if (j < 10)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j] = 0.18f;
-                }
-            }
-            else if (i == 2 || i == 3)
-            {
-                if (j < 8)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j]  = 0.18f;
-                }
-            }
-            else
-            {
-                if (j < 9)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j] = 0.18f;
-                }
-            }
-        }
-    }
-
-
-    unsigned int iL = layer-1;
-    unsigned int iR = ring - 1;
-
-    float moduleSeparation = 0;
-
-    if (subdet == Barrel and side == Center)
-    {
-        moduleSeparation = miniDeltaFlat[iL];
-    }
-    else if (isTighterTiltedModules_seg(subdet, layer, side, rod))
-    {
-        moduleSeparation = miniDeltaTilted[iL];
-    }
-    else if (subdet == Endcap)
-    {
-        moduleSeparation = miniDeltaEndcap[iL][iR];
-    }
-    else //Loose tilted modules
-    {
-        moduleSeparation = miniDeltaLooseTilted[iL];
-    }
-
-    return moduleSeparation;
-}
 
 
 __device__ float SDL::moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex)

@@ -967,10 +967,10 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
             phi_pLS = segmentsInGPU.phi[innerTrackletIdx];
             unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
             unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
-            unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerMiniDoubletIndex];
-            unsigned int innerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[innerMiniDoubletIndex];
-            unsigned int outerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[outerMiniDoubletIndex];
-            unsigned int outerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[outerMiniDoubletIndex];
+            unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerMiniDoubletIndex];
+            unsigned int innerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerMiniDoubletIndex + 1];
+            unsigned int outerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerMiniDoubletIndex];
+            unsigned int outerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerMiniDoubletIndex + 1];
 
             /*std::vector<int>*/ hit_idx = {
                 (int) hitsInGPU.idxs[innerMiniDoubletLowerHitIndex],
@@ -1056,26 +1056,26 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
                outermostSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outermostSegmentIndex + 1];
             }
 
-            unsigned int innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerTrackletInnerSegmentInnerMiniDoubletIndex];
-            unsigned int innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[innerTrackletInnerSegmentInnerMiniDoubletIndex];
-            unsigned int innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ innerTrackletInnerSegmentOuterMiniDoubletIndex];
-            unsigned int innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ innerTrackletInnerSegmentOuterMiniDoubletIndex];
-            unsigned int innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ innerTrackletOuterSegmentInnerMiniDoubletIndex];
-            unsigned int innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ innerTrackletOuterSegmentInnerMiniDoubletIndex];
-            unsigned int innerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ innerTrackletOuterSegmentOuterMiniDoubletIndex];
-            unsigned int innerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ innerTrackletOuterSegmentOuterMiniDoubletIndex];
-            unsigned int outerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outerTrackletOuterSegmentInnerMiniDoubletIndex];
-            unsigned int outerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outerTrackletOuterSegmentInnerMiniDoubletIndex];
-            unsigned int outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outerTrackletOuterSegmentOuterMiniDoubletIndex];
-            unsigned int outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outerTrackletOuterSegmentOuterMiniDoubletIndex];
+            unsigned int innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentInnerMiniDoubletIndex];
+            unsigned int innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentInnerMiniDoubletIndex + 1];
+            unsigned int innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentOuterMiniDoubletIndex];
+            unsigned int innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletInnerSegmentOuterMiniDoubletIndex + 1];
+            unsigned int innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletOuterSegmentInnerMiniDoubletIndex];
+            unsigned int innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletOuterSegmentInnerMiniDoubletIndex + 1];
+            unsigned int innerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletOuterSegmentOuterMiniDoubletIndex];
+            unsigned int innerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTrackletOuterSegmentOuterMiniDoubletIndex + 1];
+            unsigned int outerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentInnerMiniDoubletIndex];
+            unsigned int outerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentInnerMiniDoubletIndex + 1];
+            unsigned int outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentOuterMiniDoubletIndex];
+            unsigned int outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTrackletOuterSegmentOuterMiniDoubletIndex + 1];
 
             unsigned int outermostSegmentOuterMiniDoubletLowerHitIndex;
             unsigned int outermostSegmentOuterMiniDoubletUpperHitIndex;
 
             if(trackCandidateType == 7)
             {
-                outermostSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outermostSegmentOuterMiniDoubletIndex];
-                outermostSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outermostSegmentOuterMiniDoubletIndex];
+                outermostSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outermostSegmentOuterMiniDoubletIndex];
+                outermostSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outermostSegmentOuterMiniDoubletIndex + 1];
             }
 
             /*std::vector<int>*/ hit_idx = {
@@ -2145,20 +2145,20 @@ void fillQuintupletOutputBranches(SDL::Event* event)
 
             unsigned int outerTripletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTripletOuterSegmentIndex + 1];
 
-            unsigned int innerTripletInnerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerTripletInnerSegmentInnerMiniDoubletIndex];
-            unsigned int innerTripletInnerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ innerTripletInnerSegmentInnerMiniDoubletIndex];
+            unsigned int innerTripletInnerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTripletInnerSegmentInnerMiniDoubletIndex];
+            unsigned int innerTripletInnerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTripletInnerSegmentInnerMiniDoubletIndex + 1];
 
-            unsigned int innerTripletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ innerTripletInnerSegmentOuterMiniDoubletIndex];
-            unsigned int innerTripletInnerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ innerTripletInnerSegmentOuterMiniDoubletIndex];
+            unsigned int innerTripletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTripletInnerSegmentOuterMiniDoubletIndex];
+            unsigned int innerTripletInnerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTripletInnerSegmentOuterMiniDoubletIndex + 1];
 
-            unsigned int innerTripletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ innerTripletOuterSegmentOuterMiniDoubletIndex];
-            unsigned int innerTripletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ innerTripletOuterSegmentOuterMiniDoubletIndex];
+            unsigned int innerTripletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTripletOuterSegmentOuterMiniDoubletIndex];
+            unsigned int innerTripletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerTripletOuterSegmentOuterMiniDoubletIndex + 1];
 
-            unsigned int outerTripletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outerTripletInnerSegmentOuterMiniDoubletIndex];
-            unsigned int outerTripletInnerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outerTripletInnerSegmentOuterMiniDoubletIndex];
+            unsigned int outerTripletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTripletInnerSegmentOuterMiniDoubletIndex];
+            unsigned int outerTripletInnerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTripletInnerSegmentOuterMiniDoubletIndex + 1];
     
-            unsigned int outerTripletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outerTripletOuterSegmentOuterMiniDoubletIndex];
-            unsigned int outerTripletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outerTripletOuterSegmentOuterMiniDoubletIndex];
+            unsigned int outerTripletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTripletOuterSegmentOuterMiniDoubletIndex];
+            unsigned int outerTripletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerTripletOuterSegmentOuterMiniDoubletIndex + 1];
 
             std::vector<int> hit_idxs = {
                 (int) hitsInGPU.idxs[innerTripletInnerSegmentInnerMiniDoubletLowerHitIndex],
@@ -2387,17 +2387,17 @@ void fillPixelTripletOutputBranches(SDL::Event* event)
         unsigned int tripletInnerMDIndex = segmentsInGPU.mdIndices[2 * tripletInnerSegmentIndex];
         unsigned int tripletMiddleMDIndex = segmentsInGPU.mdIndices[2 * tripletInnerSegmentIndex + 1];
         unsigned int tripletOuterMDIndex = segmentsInGPU.mdIndices[2 * tripletOuterSegmentIndex + 1];
-        unsigned int pixelInnerMDLowerHitIndex = mdsInGPU.anchorHitIndices[pixelInnerMDIndex];
-        unsigned int pixelInnerMDUpperHitIndex = mdsInGPU.outerHitIndices[pixelInnerMDIndex];
-        unsigned int pixelOuterMDLowerHitIndex = mdsInGPU.anchorHitIndices[pixelOuterMDIndex];
-        unsigned int pixelOuterMDUpperHitIndex = mdsInGPU.outerHitIndices[pixelOuterMDIndex];
+        unsigned int pixelInnerMDLowerHitIndex = mdsInGPU.hitIndices[2 * pixelInnerMDIndex];
+        unsigned int pixelInnerMDUpperHitIndex = mdsInGPU.hitIndices[2 * pixelInnerMDIndex + 1];
+        unsigned int pixelOuterMDLowerHitIndex = mdsInGPU.hitIndices[2 * pixelOuterMDIndex];
+        unsigned int pixelOuterMDUpperHitIndex = mdsInGPU.hitIndices[2 * pixelOuterMDIndex + 1];
 
-        unsigned int tripletInnerMDLowerHitIndex = mdsInGPU.anchorHitIndices[tripletInnerMDIndex];
-        unsigned int tripletInnerMDUpperHitIndex = mdsInGPU.outerHitIndices[tripletInnerMDIndex];
-        unsigned int tripletMiddleMDLowerHitIndex = mdsInGPU.anchorHitIndices[tripletMiddleMDIndex];
-        unsigned int tripletMiddleMDUpperHitIndex = mdsInGPU.outerHitIndices[tripletMiddleMDIndex];
-        unsigned int tripletOuterMDLowerHitIndex = mdsInGPU.anchorHitIndices[tripletOuterMDIndex];
-        unsigned int tripletOuterMDUpperHitIndex = mdsInGPU.outerHitIndices[tripletOuterMDIndex];
+        unsigned int tripletInnerMDLowerHitIndex = mdsInGPU.hitIndices[2 * tripletInnerMDIndex];
+        unsigned int tripletInnerMDUpperHitIndex = mdsInGPU.hitIndices[2 * tripletInnerMDIndex + 1];
+        unsigned int tripletMiddleMDLowerHitIndex = mdsInGPU.hitIndices[2 * tripletMiddleMDIndex];
+        unsigned int tripletMiddleMDUpperHitIndex = mdsInGPU.hitIndices[2 * tripletMiddleMDIndex + 1];
+        unsigned int tripletOuterMDLowerHitIndex = mdsInGPU.hitIndices[2 * tripletOuterMDIndex];
+        unsigned int tripletOuterMDUpperHitIndex = mdsInGPU.hitIndices[2 * tripletOuterMDIndex + 1];
 
         std::vector<int> hit_idxs = {
             (int) hitsInGPU.idxs[pixelInnerMDLowerHitIndex],
@@ -2462,6 +2462,7 @@ void fillPixelTripletOutputBranches(SDL::Event* event)
         layer_binary |= (1 << logicallayer4);
         layer_binary |= (1 << logicallayer6);
         layer_binary |= (1 << logicallayer8);
+
           
         //bare bones implementation only
         std::vector<int> matched_sim_trk_idxs = matchedSimTrkIdxs(hit_idxs, hit_types);
@@ -2471,6 +2472,7 @@ void fillPixelTripletOutputBranches(SDL::Event* event)
         }
 #ifdef CUT_VALUE_DEBUG
         pT3_layer_binary.push_back(layer_binary);
+
         int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
         int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
         int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
@@ -2625,20 +2627,20 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
         unsigned int T5MDIndex4 = segmentsInGPU.mdIndices[2 * T5OuterTripletInnerSegmentIndex + 1];
         unsigned int T5MDIndex5 = segmentsInGPU.mdIndices[2 * T5OuterTripletOuterSegmentIndex + 1];
 
-        unsigned int hitIndex1 = mdsInGPU.anchorHitIndices[pixelInnerMDIndex];
-        unsigned int hitIndex2 = mdsInGPU.outerHitIndices[pixelInnerMDIndex];
-        unsigned int hitIndex3 = mdsInGPU.anchorHitIndices[pixelOuterMDIndex];
-        unsigned int hitIndex4 = mdsInGPU.outerHitIndices[pixelOuterMDIndex];
-        unsigned int hitIndex5 = mdsInGPU.anchorHitIndices[T5MDIndex1];
-        unsigned int hitIndex6 = mdsInGPU.outerHitIndices[T5MDIndex1];
-        unsigned int hitIndex7 = mdsInGPU.anchorHitIndices[T5MDIndex2];
-        unsigned int hitIndex8 = mdsInGPU.outerHitIndices[T5MDIndex2];
-        unsigned int hitIndex9 = mdsInGPU.anchorHitIndices[T5MDIndex3];
-        unsigned int hitIndex10 = mdsInGPU.outerHitIndices[T5MDIndex3];
-        unsigned int hitIndex11 = mdsInGPU.anchorHitIndices[T5MDIndex4];
-        unsigned int hitIndex12 = mdsInGPU.outerHitIndices[T5MDIndex4];
-        unsigned int hitIndex13 = mdsInGPU.anchorHitIndices[T5MDIndex5];
-        unsigned int hitIndex14 = mdsInGPU.outerHitIndices[T5MDIndex5];
+        unsigned int hitIndex1 = mdsInGPU.hitIndices[2 * pixelInnerMDIndex];
+        unsigned int hitIndex2 = mdsInGPU.hitIndices[2 * pixelInnerMDIndex + 1];
+        unsigned int hitIndex3 = mdsInGPU.hitIndices[2 * pixelOuterMDIndex];
+        unsigned int hitIndex4 = mdsInGPU.hitIndices[2 * pixelOuterMDIndex + 1];
+        unsigned int hitIndex5 = mdsInGPU.hitIndices[2 * T5MDIndex1];
+        unsigned int hitIndex6 = mdsInGPU.hitIndices[2 * T5MDIndex1 + 1];
+        unsigned int hitIndex7 = mdsInGPU.hitIndices[2 * T5MDIndex2];
+        unsigned int hitIndex8 = mdsInGPU.hitIndices[2 * T5MDIndex2 + 1];
+        unsigned int hitIndex9 = mdsInGPU.hitIndices[2 * T5MDIndex3];
+        unsigned int hitIndex10 = mdsInGPU.hitIndices[2 * T5MDIndex3 + 1];
+        unsigned int hitIndex11 = mdsInGPU.hitIndices[2 * T5MDIndex4];
+        unsigned int hitIndex12 = mdsInGPU.hitIndices[2 * T5MDIndex4 + 1];
+        unsigned int hitIndex13 = mdsInGPU.hitIndices[2 * T5MDIndex5];
+        unsigned int hitIndex14 = mdsInGPU.hitIndices[2 * T5MDIndex5 + 1];
 
         std::vector<int> hit_idxs = {
             (int) hitsInGPU.idxs[hitIndex1],
@@ -2748,23 +2750,6 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
         moduleType_binary |= (moduleType12 << 8);
 
         pT5_layer_binary.push_back(layer_binary);
-
-        int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
-        int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
-        int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
-        int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
-        int moduleType8 = modulesInGPU.moduleType[module_idxs[8]];
-        int moduleType10 = modulesInGPU.moduleType[module_idxs[10]];
-        int moduleType12 = modulesInGPU.moduleType[module_idxs[12]];
-
-
-        int moduleType_binary = 0;
-        moduleType_binary |= (moduleType4 << 0);
-        moduleType_binary |= (moduleType6 << 2);
-        moduleType_binary |= (moduleType8 << 4);
-        moduleType_binary |= (moduleType10 << 6);
-        moduleType_binary |= (moduleType12 << 8);
-
         pT5_moduleType_binary.push_back(moduleType_binary);
         pT5_rzChiSquared.push_back(pixelQuintupletsInGPU.rzChiSquared[jdx]);
         pT5_rPhiChiSquared.push_back(pixelQuintupletsInGPU.rPhiChiSquared[jdx]);
@@ -2869,10 +2854,10 @@ void fillPixelLineSegmentOutputBranches(SDL::Event* event)
         unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + jdx;
         unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
         unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
-        unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerMiniDoubletIndex];
-        unsigned int innerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[innerMiniDoubletIndex];
-        unsigned int outerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[outerMiniDoubletIndex];
-        unsigned int outerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[outerMiniDoubletIndex];
+        unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerMiniDoubletIndex];
+        unsigned int innerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerMiniDoubletIndex + 1];
+        unsigned int outerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerMiniDoubletIndex];
+        unsigned int outerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerMiniDoubletIndex + 1];
 
         std::vector<int> hit_idxs = {
             (int) hitsInGPU.idxs[innerMiniDoubletLowerHitIndex], 
@@ -3138,14 +3123,14 @@ void fillTripletOutputBranches(SDL::Event* event)
             unsigned int outerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerSegmentIndex];
             unsigned int outerSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerSegmentIndex + 1];
 
-            unsigned int innerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerSegmentInnerMiniDoubletIndex];
-            unsigned int innerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[innerSegmentInnerMiniDoubletIndex];
-            unsigned int innerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerSegmentOuterMiniDoubletIndex];
-            unsigned int innerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[innerSegmentOuterMiniDoubletIndex];
-            unsigned int outerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[outerSegmentInnerMiniDoubletIndex];
-            unsigned int outerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[outerSegmentInnerMiniDoubletIndex];
-            unsigned int outerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[outerSegmentOuterMiniDoubletIndex];
-            unsigned int outerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[outerSegmentOuterMiniDoubletIndex];
+            unsigned int innerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerSegmentInnerMiniDoubletIndex];
+            unsigned int innerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerSegmentInnerMiniDoubletIndex + 1];
+            unsigned int innerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * innerSegmentOuterMiniDoubletIndex];
+            unsigned int innerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * innerSegmentOuterMiniDoubletIndex + 1];
+            unsigned int outerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerSegmentInnerMiniDoubletIndex];
+            unsigned int outerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerSegmentInnerMiniDoubletIndex + 1];
+            unsigned int outerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * outerSegmentOuterMiniDoubletIndex];
+            unsigned int outerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * outerSegmentOuterMiniDoubletIndex + 1];
 
             std::vector<int> hit_idxs = {
                 (int) hitsInGPU.idxs[innerSegmentInnerMiniDoubletLowerHitIndex],
@@ -5630,8 +5615,8 @@ void printMDs(SDL::Event* event)
         for (unsigned int jdx = 0; jdx < miniDoubletsInGPU.nMDs[2*idx]; jdx++)
         {
             unsigned int mdIdx = (2*idx) * 100 + jdx;
-            unsigned int LowerHitIndex = miniDoubletsInGPU.anchorHitIndices[mdIdx];
-            unsigned int UpperHitIndex = miniDoubletsInGPU.outerHitIndices[mdIdx];
+            unsigned int LowerHitIndex = miniDoubletsInGPU.hitIndices[2 * mdIdx];
+            unsigned int UpperHitIndex = miniDoubletsInGPU.hitIndices[2 * mdIdx + 1];
             unsigned int hit0 = hitsInGPU.idxs[LowerHitIndex];
             unsigned int hit1 = hitsInGPU.idxs[UpperHitIndex];
             std::cout <<  "VALIDATION 'MD': " << "MD" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  std::endl;
@@ -5639,8 +5624,8 @@ void printMDs(SDL::Event* event)
         for (unsigned int jdx = 0; jdx < miniDoubletsInGPU.nMDs[2*idx+1]; jdx++)
         {
             unsigned int mdIdx = (2*idx+1) * 100 + jdx;
-            unsigned int LowerHitIndex = miniDoubletsInGPU.anchorHitIndices[mdIdx];
-            unsigned int UpperHitIndex = miniDoubletsInGPU.outerHitIndices[mdIdx];
+            unsigned int LowerHitIndex = miniDoubletsInGPU.hitIndices[2 * mdIdx];
+            unsigned int UpperHitIndex = miniDoubletsInGPU.hitIndices[2 * mdIdx + 1];
             unsigned int hit0 = hitsInGPU.idxs[LowerHitIndex];
             unsigned int hit1 = hitsInGPU.idxs[UpperHitIndex];
             std::cout <<  "VALIDATION 'MD': " << "MD" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  std::endl;
@@ -5694,10 +5679,10 @@ void printLSs(SDL::Event* event)
             unsigned int sgIdx = idx * 600 + jdx;
             unsigned int InnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * sgIdx];
             unsigned int OuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * sgIdx + 1];
-            unsigned int InnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[InnerMiniDoubletIndex];
-            unsigned int InnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[InnerMiniDoubletIndex];
-            unsigned int OuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[OuterMiniDoubletIndex];
-            unsigned int OuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[OuterMiniDoubletIndex];
+            unsigned int InnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * InnerMiniDoubletIndex];
+            unsigned int InnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * InnerMiniDoubletIndex + 1];
+            unsigned int OuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * OuterMiniDoubletIndex];
+            unsigned int OuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * OuterMiniDoubletIndex + 1];
             unsigned int hit0 = hitsInGPU.idxs[InnerMiniDoubletLowerHitIndex];
             unsigned int hit1 = hitsInGPU.idxs[InnerMiniDoubletUpperHitIndex];
             unsigned int hit2 = hitsInGPU.idxs[OuterMiniDoubletLowerHitIndex];
@@ -5754,10 +5739,10 @@ void printpLSs(SDL::Event* event)
         unsigned int sgIdx = idx * 600 + jdx;
         unsigned int InnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * sgIdx];
         unsigned int OuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * sgIdx + 1];
-        unsigned int InnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[InnerMiniDoubletIndex];
-        unsigned int InnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[InnerMiniDoubletIndex];
-        unsigned int OuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[OuterMiniDoubletIndex];
-        unsigned int OuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[OuterMiniDoubletIndex];
+        unsigned int InnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * InnerMiniDoubletIndex];
+        unsigned int InnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * InnerMiniDoubletIndex + 1];
+        unsigned int OuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.hitIndices[2 * OuterMiniDoubletIndex];
+        unsigned int OuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.hitIndices[2 * OuterMiniDoubletIndex + 1];
         unsigned int hit0 = hitsInGPU.idxs[InnerMiniDoubletLowerHitIndex];
         unsigned int hit1 = hitsInGPU.idxs[InnerMiniDoubletUpperHitIndex];
         unsigned int hit2 = hitsInGPU.idxs[OuterMiniDoubletLowerHitIndex];
@@ -5819,12 +5804,12 @@ void printT3s(SDL::Event* event)
             unsigned int InnerSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * InnerSegmentIndex + 1];
             unsigned int OuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * OuterSegmentIndex + 1];
 
-            unsigned int hit_idx0 = miniDoubletsInGPU.anchorHitIndices[InnerSegmentInnerMiniDoubletIndex];
-            unsigned int hit_idx1 = miniDoubletsInGPU.outerHitIndices[InnerSegmentInnerMiniDoubletIndex];
-            unsigned int hit_idx2 = miniDoubletsInGPU.anchorHitIndices[InnerSegmentOuterMiniDoubletIndex];
-            unsigned int hit_idx3 = miniDoubletsInGPU.outerHitIndices[InnerSegmentOuterMiniDoubletIndex];
-            unsigned int hit_idx4 = miniDoubletsInGPU.anchorHitIndices[OuterSegmentOuterMiniDoubletIndex];
-            unsigned int hit_idx5 = miniDoubletsInGPU.outerHitIndices[OuterSegmentOuterMiniDoubletIndex];
+            unsigned int hit_idx0 = miniDoubletsInGPU.hitIndices[2 * InnerSegmentInnerMiniDoubletIndex];
+            unsigned int hit_idx1 = miniDoubletsInGPU.hitIndices[2 * InnerSegmentInnerMiniDoubletIndex + 1];
+            unsigned int hit_idx2 = miniDoubletsInGPU.hitIndices[2 * InnerSegmentOuterMiniDoubletIndex];
+            unsigned int hit_idx3 = miniDoubletsInGPU.hitIndices[2 * InnerSegmentOuterMiniDoubletIndex + 1];
+            unsigned int hit_idx4 = miniDoubletsInGPU.hitIndices[2 * OuterSegmentOuterMiniDoubletIndex];
+            unsigned int hit_idx5 = miniDoubletsInGPU.hitIndices[2 * OuterSegmentOuterMiniDoubletIndex + 1];
 
             unsigned int hit0 = hitsInGPU.idxs[hit_idx0];
             unsigned int hit1 = hitsInGPU.idxs[hit_idx1];
