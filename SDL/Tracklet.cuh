@@ -108,8 +108,6 @@ CUDA_DEV bool inline runTrackletDefaultAlgo(struct modules& modulesInGPU, struct
     short outerInnerLowerModuleSubdet = modulesInGPU.subdets[outerInnerLowerModuleIndex];
     short outerOuterLowerModuleSubdet = modulesInGPU.subdets[outerOuterLowerModuleIndex];
 
-
-
     if(innerInnerLowerModuleSubdet == SDL::Barrel
             and innerOuterLowerModuleSubdet == SDL::Barrel
             and outerInnerLowerModuleSubdet == SDL::Barrel

@@ -137,12 +137,12 @@ __device__ void SDL::addTripletToMemory(struct modules& modulesInGPU, struct min
     unsigned int secondMDIndex = segmentsInGPU.mdIndices[2 * innerSegmentIndex + 1];
     unsigned int thirdMDIndex = segmentsInGPU.mdIndices[2 * outerSegmentIndex + 1];
 
-    tripletsInGPU.hitIndices[tripletIndex * 6] = mdsInGPU.hitIndices[2 * firstMDIndex];
-    tripletsInGPU.hitIndices[tripletIndex * 6 + 1] = mdsInGPU.hitIndices[2 * firstMDIndex + 1];
-    tripletsInGPU.hitIndices[tripletIndex * 6 + 2] = mdsInGPU.hitIndices[2 * secondMDIndex];
-    tripletsInGPU.hitIndices[tripletIndex * 6 + 3] = mdsInGPU.hitIndices[2 * secondMDIndex + 1];
-    tripletsInGPU.hitIndices[tripletIndex * 6 + 4] = mdsInGPU.hitIndices[2 * thirdMDIndex];
-    tripletsInGPU.hitIndices[tripletIndex * 6 + 5] = mdsInGPU.hitIndices[2 * thirdMDIndex + 1];
+    tripletsInGPU.hitIndices[tripletIndex * 6] = mdsInGPU.anchorHitIndices[firstMDIndex];
+    tripletsInGPU.hitIndices[tripletIndex * 6 + 1] = mdsInGPU.outerHitIndices[firstMDIndex];
+    tripletsInGPU.hitIndices[tripletIndex * 6 + 2] = mdsInGPU.anchorHitIndices[secondMDIndex];
+    tripletsInGPU.hitIndices[tripletIndex * 6 + 3] = mdsInGPU.outerHitIndices[secondMDIndex];
+    tripletsInGPU.hitIndices[tripletIndex * 6 + 4] = mdsInGPU.anchorHitIndices[thirdMDIndex];
+    tripletsInGPU.hitIndices[tripletIndex * 6 + 5] = mdsInGPU.outerHitIndices[thirdMDIndex];
 #endif
 #ifdef CUT_VALUE_DEBUG
     tripletsInGPU.zOut[tripletIndex] = zOut;
