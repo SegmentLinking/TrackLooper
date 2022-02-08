@@ -52,7 +52,6 @@ namespace SDL
         float* anchorRt;
         float* anchorPhi;
         float* anchorEta;
-        unsigned int* anchorHitIdx; //idx in ntuple
         float* anchorHighEdgeX;
         float* anchorHighEdgeY;
         float* anchorLowEdgeX;
@@ -64,7 +63,6 @@ namespace SDL
         float* outerRt;
         float* outerPhi;
         float* outerEta;
-        unsigned int* outerHitIdx;
         float* outerHighEdgeX;
         float* outerHighEdgeY;
         float* outerLowEdgeX;

@@ -10,8 +10,8 @@ SDL::Event::Event(cudaStream_t estream)
 {
     int version;
     int driver;
-            cudaRuntimeGetVersion(&version);
-            cudaDriverGetVersion(&driver);
+    cudaRuntimeGetVersion(&version);
+    cudaDriverGetVersion(&driver);
     //printf("version: %d Driver %d\n",version, driver);
     stream = estream;
     hitsInGPU = nullptr;
@@ -265,15 +265,16 @@ void SDL::Event::resetEvent()
 {
 #ifdef CACHE_ALLOC
     if(hitsInGPU){hitsInGPU->freeMemoryCache();}
+    if(mdsInGPU){mdsInGPU->freeMemoryCache();}
     if(quintupletsInGPU){quintupletsInGPU->freeMemoryCache();}
     if(rangesInGPU){rangesInGPU->freeMemoryCache();}
-    if(mdsInGPU){mdsInGPU->freeMemoryCache();}
     if(segmentsInGPU){segmentsInGPU->freeMemoryCache();}
     if(tripletsInGPU){tripletsInGPU->freeMemoryCache();}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemoryCache();}
     if(trackExtensionsInGPU){trackExtensionsInGPU->freeMemoryCache();}
+
 #else
     if(hitsInGPU){hitsInGPU->freeMemory(stream);}
     if(quintupletsInGPU){quintupletsInGPU->freeMemory(stream);}
