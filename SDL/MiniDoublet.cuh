@@ -29,9 +29,9 @@ namespace SDL
 {
     struct miniDoublets
     {
-        unsigned int* hitIndices;
+        unsigned int* anchorHitIndices;
+        unsigned int* outerHitIndices;
         unsigned int* moduleIndices;
-        short* pixelModuleFlag;
         unsigned int* nMDs; //counter per module
         float* dphichanges;
 
@@ -44,6 +44,29 @@ namespace SDL
         float* noShiftedDzs; //if shifted module
         float* noShiftedDphis; //if shifted module
         float* noShiftedDphiChanges; //if shifted module
+
+        //hit stuff
+        float* anchorX;
+        float* anchorY;
+        float* anchorZ;
+        float* anchorRt;
+        float* anchorPhi;
+        float* anchorEta;
+        float* anchorHighEdgeX;
+        float* anchorHighEdgeY;
+        float* anchorLowEdgeX;
+        float* anchorLowEdgeY;
+
+        float* outerX;
+        float* outerY;
+        float* outerZ;
+        float* outerRt;
+        float* outerPhi;
+        float* outerEta;
+        float* outerHighEdgeX;
+        float* outerHighEdgeY;
+        float* outerLowEdgeX;
+        float* outerLowEdgeY;
 
 #ifdef CUT_VALUE_DEBUG
         //CUT VALUES
@@ -81,27 +104,13 @@ namespace SDL
 
     CUDA_DEV float moduleGapSize(struct modules& modulesInGPU, unsigned int moduleIndex);
 
-
-    CUDA_DEV bool runMiniDoubletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, float& dz, float& dphi, float& dphichange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange);
-
     CUDA_DEV void shiftStripHits(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int lowerModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float* shiftedCoords);
 
-#ifdef CUT_VALUE_DEBUG
     CUDA_DEV bool runMiniDoubletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int lowerModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& drt, float& dphi, float& dphichange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float& dzCut, float& drtCut, float& miniCut);
 
     CUDA_DEV bool runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int lowerModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& drt, float& dphi, float& dphichange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float& dzCut, float& drtCut, float& miniCut);
 
     CUDA_DEV bool runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int lowerModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& drt, float& dphi, float& dphichange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float& dzCut, float& drtCut, float& miniCut);
-
-#else
-
-    CUDA_DEV bool runMiniDoubletDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int lowerModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dphi, float& dphichange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange);
-
-    CUDA_DEV bool runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int lowerModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dphi, float& dphichange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange);
-
-    CUDA_DEV bool runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int lowerModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& drt, float& dphi, float& dphichange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange);
-
-#endif
 
     void printMD(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, SDL::modules& modulesInGPU, unsigned int mdIndex);
 
