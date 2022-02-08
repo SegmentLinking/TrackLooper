@@ -1,5 +1,17 @@
 # include "Kernels.cuh"
 
+       // extern __shared__ float  sxUpper[];
+       // extern __shared__ float  syUpper[];
+       // extern __shared__ float  szUpper[];
+       // extern __shared__ float srtUpper[];
+        __shared__ float  sxUpper[4*64];
+        __shared__ float  syUpper[4*64];
+        __shared__ float  szUpper[4*64];
+        __shared__ float srtUpper[4*64];
+        __shared__ float  sxLower[4*64];
+        __shared__ float  syLower[4*64];
+        __shared__ float  szLower[4*64];
+        __shared__ float srtLower[4*64];
 __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::objectRanges& rangesInGPU)
 {
     int blockxSize = blockDim.x*gridDim.x;
@@ -9,48 +21,36 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
 //    for(int lowerModuleArrayIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerModuleArrayIndex< (*modulesInGPU.nLowerModules); lowerModuleArrayIndex += blockySize)
     {
 
-        //int lowerModuleIndex = modulesInGPU.lowerModuleIndices[lowerModuleArrayIndex];
-        //int upperModuleIndex = modulesInGPU.partnerModuleIndex(lowerModuleIndex);
-
-        //if(rangesInGPU.hitRanges[lowerModuleIndex * 2] == -1) continue; //return;
-        //if(rangesInGPU.hitRanges[upperModuleIndex * 2] == -1) continue; //return;
-        //unsigned int nLowerHits = rangesInGPU.hitRanges[lowerModuleIndex * 2 + 1] - rangesInGPU.hitRanges[lowerModuleIndex * 2] + 1;
-        //unsigned int nUpperHits = rangesInGPU.hitRanges[upperModuleIndex * 2 + 1] - rangesInGPU.hitRanges[upperModuleIndex * 2] + 1;
-        //if(rangesInGPU.hitRangesLower[lowerModuleArrayIndex] == -1) continue; //return;
-        //if(rangesInGPU.hitRangesUpper[lowerModuleArrayIndex] == -1) continue; //return; //only need the one check since this follows the same pattern
         int nLowerHits = rangesInGPU.hitRangesnLower[lowerModuleArrayIndex];
         int nUpperHits = rangesInGPU.hitRangesnUpper[lowerModuleArrayIndex];
-        //unsigned int upHitArrayIndex = rangesInGPU.hitRangesUpper[lowerModuleArrayIndex];// + lowerHitIndex;
-        //__shared__ float sxUpper[64];
-        //__shared__ float syUpper[64];
-        //__shared__ float szUpper[64];
-        //__shared__ float srtUpper[64];
-        //if(threadIdx.z < nUpperHits){
-        // sxUpper[threadIdx.z] = hitsInGPU.xs[upHitArrayIndex+threadIdx.z];
-        // syUpper[threadIdx.z] = hitsInGPU.ys[upHitArrayIndex+threadIdx.z];
-        // szUpper[threadIdx.z] = hitsInGPU.zs[upHitArrayIndex+threadIdx.z];
-        //srtUpper[threadIdx.z] = hitsInGPU.rts[upHitArrayIndex+threadIdx.z];
-        //if(2*threadIdx.z < nUpperHits){
-        // sxUpper[2*threadIdx.z] = hitsInGPU.xs[upHitArrayIndex+2*threadIdx.z];
-        // syUpper[2*threadIdx.z] = hitsInGPU.ys[upHitArrayIndex+2*threadIdx.z];
-        // szUpper[2*threadIdx.z] = hitsInGPU.zs[upHitArrayIndex+2*threadIdx.z];
-        //srtUpper[2*threadIdx.z] = hitsInGPU.rts[upHitArrayIndex+2*threadIdx.z];
-        //}
-        //}
-        //__syncthreads();
-       //if(lowerModuleArrayIndex ==0){printf("thread: %f %f %f %f %f",sxUpper[0],sxUpper[1],sxUpper[2],sxUpper[3],sxUpper[4]);}
-        //printf("hits %d %d %d\n",lowerModuleArrayIndex,nLowerHits,nUpperHits);
         if(rangesInGPU.hitRangesLower[lowerModuleArrayIndex] == -1) continue; //return;
         //int limit = nUpperHits*nLowerHits;
-        //const int maxHits = max(32,nLowerHits);
+        const int maxHits = max(nUpperHits,nLowerHits);
+        //printf("max: %d\n",maxHits);
         int lowerModuleIndex = modulesInGPU.lowerModuleIndices[lowerModuleArrayIndex];
         unsigned int upHitArrayIndex = rangesInGPU.hitRangesUpper[lowerModuleArrayIndex];// + lowerHitIndex;
         unsigned int loHitArrayIndex = rangesInGPU.hitRangesLower[lowerModuleArrayIndex];// + lowerHitIndex;
         //for(int lowerHitIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerHitIndex< nLowerHits; lowerHitIndex += blockySize)
-        //__shared__ float  sxUpper[32];
-        //__shared__ float  syUpper[32];
-        //__shared__ float  szUpper[32];
-        //__shared__ float srtUpper[32];
+        //for(int lowerHitIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerHitIndex< nLowerHits; lowerHitIndex += blockySize)
+
+        for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< maxHits; hitIndex += blockxSize)
+        { // maybe change to 2 loops? is the division and mod less expensive?
+        if(hitIndex<nUpperHits){
+         sxUpper[hitIndex+64*threadIdx.z] = hitsInGPU.xs[upHitArrayIndex+hitIndex];
+         syUpper[hitIndex+64*threadIdx.z] = hitsInGPU.ys[upHitArrayIndex+hitIndex];
+         szUpper[hitIndex+64*threadIdx.z] = hitsInGPU.zs[upHitArrayIndex+hitIndex];
+        srtUpper[hitIndex+64*threadIdx.z] =hitsInGPU.rts[upHitArrayIndex+hitIndex];
+        }if(hitIndex<nLowerHits){
+         sxLower[hitIndex+64*threadIdx.z] = hitsInGPU.xs[loHitArrayIndex+hitIndex];
+         syLower[hitIndex+64*threadIdx.z] = hitsInGPU.ys[loHitArrayIndex+hitIndex];
+         szLower[hitIndex+64*threadIdx.z] = hitsInGPU.zs[loHitArrayIndex+hitIndex];
+        srtLower[hitIndex+64*threadIdx.z] =hitsInGPU.rts[loHitArrayIndex+hitIndex];
+        }
+        //__syncthreads();
+        }
+        __syncthreads();
+        //if(upHitArrayIndex==0){printf("first %f %f\n", sxUpper[0],hitsInGPU.xs[0]);}
+        //if( upHitArrayIndex==0){printf("%u %u %f %f %f %f %f %f %f %f %f %f\n",upHitArrayIndex,maxHits,sxUpper[0],sxUpper[1],sxUpper[2],sxUpper[3],sxUpper[4],hitsInGPU.xs[upHitArrayIndex],hitsInGPU.xs[upHitArrayIndex+1],hitsInGPU.xs[upHitArrayIndex+2],hitsInGPU.xs[upHitArrayIndex+3],hitsInGPU.xs[upHitArrayIndex+4]);}
         for(int lowerHitIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerHitIndex< nLowerHits; lowerHitIndex += blockySize)
         { // maybe change to 2 loops? is the division and mod less expensive?
         //int limit = nUpperHits*nLowerHits;
@@ -58,20 +58,8 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
         //{
 
 
-            //unsigned int upHitArrayIndex = rangesInGPU.hitRangesUpper[lowerModuleArrayIndex] + lowerHitIndex;
-            //__shared__ float sxUpper[50];
-            //__shared__ float syUpper[50];
-            //__shared__ float szUpper[50];
-            //__shared__ float srtUpper[50];
-            //printf("lower hit index: %d\n",lowerHitIndex);
-            //sxUpper[lowerHitIndex] = hitsInGPU.xs[upHitArrayIndex];
-            //syUpper[lowerHitIndex] = hitsInGPU.ys[upHitArrayIndex];
-            //szUpper[lowerHitIndex] = hitsInGPU.zs[upHitArrayIndex];
-            //srtUpper[lowerHitIndex] = hitsInGPU.rts[upHitArrayIndex];
-            //__syncthreads();
-            //if(lowerHitIndex > nLowerHits){continue;}
         //if(threadIdx.y <32){
-//        if(lowerHitIndex <32){
+//        if(lowerHitIndex <nUpperHits){
 //        // sxUpper[threadIdx.y] = hitsInGPU.xs[upHitArrayIndex+threadIdx.y];
 //        // syUpper[threadIdx.y] = hitsInGPU.ys[upHitArrayIndex+threadIdx.y];
 //        // szUpper[threadIdx.y] = hitsInGPU.zs[upHitArrayIndex+threadIdx.y];
@@ -81,11 +69,6 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
 //         szUpper[lowerHitIndex] = hitsInGPU.zs[upHitArrayIndex+lowerHitIndex];
 //        srtUpper[lowerHitIndex] =hitsInGPU.rts[upHitArrayIndex+lowerHitIndex];
 //
-////         sxUpper[2*threadIdx.y+1] = hitsInGPU.xs[upHitArrayIndex+2*threadIdx.y+1];
-////         syUpper[2*threadIdx.y+1] = hitsInGPU.ys[upHitArrayIndex+2*threadIdx.y+1];
-////         szUpper[2*threadIdx.y+1] = hitsInGPU.zs[upHitArrayIndex+2*threadIdx.y+1];
-////        srtUpper[2*threadIdx.y+1] = hitsInGPU.rts[upHitArrayIndex+2*threadIdx.y+1];
-//        //}
 //       } 
 //        __syncthreads();
             //int lowerHitIndex =  hitIndex / nUpperHits;
@@ -94,10 +77,15 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
             if(lowerHitIndex >= nLowerHits) continue; //return;
        //if(lowerModuleArrayIndex ==0){printf("thread: %f %f %f %f %f",sxUpper[0],sxUpper[1],sxUpper[2],sxUpper[3],sxUpper[4]);}
             unsigned int lowerHitArrayIndex = loHitArrayIndex + lowerHitIndex;
-            float xLower = hitsInGPU.xs[lowerHitArrayIndex];
-            float yLower = hitsInGPU.ys[lowerHitArrayIndex];
-            float zLower = hitsInGPU.zs[lowerHitArrayIndex];
-            float rtLower = hitsInGPU.rts[lowerHitArrayIndex];
+            //float xLower = hitsInGPU.xs[lowerHitArrayIndex];
+            //float yLower = hitsInGPU.ys[lowerHitArrayIndex];
+            //float zLower = hitsInGPU.zs[lowerHitArrayIndex];
+            //float rtLower = hitsInGPU.rts[lowerHitArrayIndex];
+            float xLower =  sxLower[lowerHitIndex+64*threadIdx.z];
+            float yLower =  syLower[lowerHitIndex+64*threadIdx.z];
+            float zLower =  szLower[lowerHitIndex+64*threadIdx.z];
+            float rtLower =srtLower[lowerHitIndex+64*threadIdx.z];
+            
         for(int upperHitIndex = blockIdx.x * blockDim.x + threadIdx.x; upperHitIndex< nUpperHits; upperHitIndex += blockxSize)
         { // maybe change to 2 loops? is the division and mod less expensive?
         //for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize)
@@ -117,25 +105,24 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
             float zUpper; 
             float rtUpper;
 
-//            if(upperHitIndex<32){
-//            //float xUpper = hitsInGPU.xs[upHitArrayIndex+upperHitIndex];
-//            //float yUpper = hitsInGPU.ys[upHitArrayIndex+upperHitIndex];
-//            //float zUpper = hitsInGPU.zs[upHitArrayIndex+upperHitIndex];
-//            //float rtUpper = hitsInGPU.rts[upHitArrayIndex+upperHitIndex];
-//            //if(nUpperHits > 64){printf("nUpperHits %u\n",nUpperHits);}
-//            xUpper = sxUpper[upperHitIndex];
-//            yUpper = syUpper[upperHitIndex];
-//            zUpper = szUpper[upperHitIndex];
-//            rtUpper =srtUpper[upperHitIndex];
-//            }
-//            else{
-             xUpper = hitsInGPU.xs[upHitArrayIndex+upperHitIndex];
-             yUpper = hitsInGPU.ys[upHitArrayIndex+upperHitIndex];
-             zUpper = hitsInGPU.zs[upHitArrayIndex+upperHitIndex];
-             rtUpper = hitsInGPU.rts[upHitArrayIndex+upperHitIndex];
+            //if(upperHitIndex<32){
+            //float xUpper = hitsInGPU.xs[upHitArrayIndex+upperHitIndex];
+            //float yUpper = hitsInGPU.ys[upHitArrayIndex+upperHitIndex];
+            //float zUpper = hitsInGPU.zs[upHitArrayIndex+upperHitIndex];
+            //float rtUpper = hitsInGPU.rts[upHitArrayIndex+upperHitIndex];
+            //if(nUpperHits > 64){printf("nUpperHits %u\n",nUpperHits);}
+            xUpper =  sxUpper[upperHitIndex+64*threadIdx.z];
+            yUpper =  syUpper[upperHitIndex+64*threadIdx.z];
+            zUpper =  szUpper[upperHitIndex+64*threadIdx.z];
+            rtUpper =srtUpper[upperHitIndex+64*threadIdx.z];
+           // }
+           // else{
+           //  xUpper = hitsInGPU.xs[upHitArrayIndex+upperHitIndex];
+           //  yUpper = hitsInGPU.ys[upHitArrayIndex+upperHitIndex];
+           //  zUpper = hitsInGPU.zs[upHitArrayIndex+upperHitIndex];
+           //  rtUpper = hitsInGPU.rts[upHitArrayIndex+upperHitIndex];
 
-//            }
-            //if( upperHitIndex==0){printf("%u %u %f %f %f %f %f %f %f %f %f %f\n",upHitArrayIndex,threadIdx.y,sxUpper[0],sxUpper[1],sxUpper[2],sxUpper[3],sxUpper[4],hitsInGPU.xs[upHitArrayIndex],hitsInGPU.xs[upHitArrayIndex+1],hitsInGPU.xs[upHitArrayIndex+2],hitsInGPU.xs[upHitArrayIndex+3],hitsInGPU.xs[upHitArrayIndex+4]);}
+           // }
             //if(xUpper != sxUpper[0]){
             //printf("upper hit index: %f %f %u %u %u %u %u %u\n",xUpper,xUpper1,lowerModuleArrayIndex,upperHitIndex,upperHitArrayIndex,upHitArrayIndex,blockIdx.x,blockDim.x);
             //}

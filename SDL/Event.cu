@@ -1208,7 +1208,7 @@ cudaStreamSynchronize(stream);
     dim3 nBlocks(1,1,MAX_BLOCKS);
     //dim3 nBlocks(1,1,1);
 
-    createMiniDoubletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU,*hitsInGPU,*mdsInGPU,*rangesInGPU);
+    createMiniDoubletsInGPU<<<nBlocks,nThreads,1024*sizeof(float),stream>>>(*modulesInGPU,*hitsInGPU,*mdsInGPU,*rangesInGPU);
 
     cudaError_t cudaerr = cudaGetLastError(); 
     if(cudaerr != cudaSuccess)
