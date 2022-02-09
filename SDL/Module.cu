@@ -8,6 +8,10 @@ void SDL::createRangesInUnifiedMemory(struct objectRanges& rangesInGPU,unsigned 
     /* modules stucture object will be created in Event.cu*/
 #ifdef CACHE_ALLOC
     rangesInGPU.hitRanges =                 (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
+    rangesInGPU.hitRangesLower =                 (int*)cms::cuda::allocate_managed(nModules * sizeof(int),stream);
+    rangesInGPU.hitRangesUpper =                 (int*)cms::cuda::allocate_managed(nModules * sizeof(int),stream);
+    rangesInGPU.hitRangesnLower =                 (int8_t*)cms::cuda::allocate_managed(nModules * sizeof(int8_t),stream);
+    rangesInGPU.hitRangesnUpper =                 (int8_t*)cms::cuda::allocate_managed(nModules * sizeof(int8_t),stream);
     rangesInGPU.mdRanges =                  (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
     rangesInGPU.segmentRanges =             (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
     rangesInGPU.trackletRanges =            (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
@@ -39,6 +43,10 @@ void SDL::createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned
     int dev;
     cudaGetDevice(&dev);
     rangesInGPU.hitRanges =                  (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
+    rangesInGPU.hitRangesLower =                  (int*)cms::cuda::allocate_device(dev,nModules * sizeof(int),stream);
+    rangesInGPU.hitRangesUpper =                  (int*)cms::cuda::allocate_device(dev,nModules * sizeof(int),stream);
+    rangesInGPU.hitRangesnLower =                  (int8_t*)cms::cuda::allocate_device(dev,nModules * sizeof(int8_t),stream);
+    rangesInGPU.hitRangesnUpper =                  (int8_t*)cms::cuda::allocate_device(dev,nModules * sizeof(int8_t),stream);
     rangesInGPU.mdRanges =                   (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
     rangesInGPU.segmentRanges =              (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
     rangesInGPU.trackletRanges =             (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
