@@ -1,130 +1,39 @@
 # include "Kernels.cuh"
 
-       // extern __shared__ float  sxUpper[];
-       // extern __shared__ float  syUpper[];
-       // extern __shared__ float  szUpper[];
-       // extern __shared__ float srtUpper[];
-       // __shared__ float  sxUpper[16*32];
-       // __shared__ float  syUpper[16*32];
-       // __shared__ float  szUpper[16*32];
-       // __shared__ float srtUpper[16*32];
-        //__shared__ float  sxLower[8*64];
-        //__shared__ float  syLower[8*64];
-        //__shared__ float  szLower[8*64];
-        //__shared__ float srtLower[8*64];
 __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::objectRanges& rangesInGPU)
 {
     int blockxSize = blockDim.x*gridDim.x;
     int blockySize = blockDim.y*gridDim.y;
     int blockzSize = blockDim.z*gridDim.z;
-//    for(int lowerModuleArrayIndex = blockIdx.z * blockDim.z + threadIdx.z; lowerModuleArrayIndex< (*modulesInGPU.nLowerModules); lowerModuleArrayIndex += blockzSize)
     for(int lowerModuleArrayIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerModuleArrayIndex< (*modulesInGPU.nLowerModules); lowerModuleArrayIndex += blockySize)
     {
 
         int nLowerHits = rangesInGPU.hitRangesnLower[lowerModuleArrayIndex];
         int nUpperHits = rangesInGPU.hitRangesnUpper[lowerModuleArrayIndex];
-        if(rangesInGPU.hitRangesLower[lowerModuleArrayIndex] == -1) continue; //return;
-        //int limit = nUpperHits*nLowerHits;
+        if(rangesInGPU.hitRangesLower[lowerModuleArrayIndex] == -1) continue;
         const int maxHits = max(nUpperHits,nLowerHits);
-        //printf("max: %d\n",maxHits);
         int lowerModuleIndex = modulesInGPU.lowerModuleIndices[lowerModuleArrayIndex];
-        unsigned int upHitArrayIndex = rangesInGPU.hitRangesUpper[lowerModuleArrayIndex];// + lowerHitIndex;
-        unsigned int loHitArrayIndex = rangesInGPU.hitRangesLower[lowerModuleArrayIndex];// + lowerHitIndex;
-        //for(int lowerHitIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerHitIndex< nLowerHits; lowerHitIndex += blockySize)
-        //for(int lowerHitIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerHitIndex< nLowerHits; lowerHitIndex += blockySize)
-
-        //for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< maxHits; hitIndex += blockxSize)
-        //{ // maybe change to 2 loops? is the division and mod less expensive?
-        //if(hitIndex>32){continue;}
-        //if(hitIndex<nUpperHits){
-        // sxUpper[hitIndex+32*threadIdx.y] = hitsInGPU.xs[upHitArrayIndex+hitIndex];
-        // syUpper[hitIndex+32*threadIdx.y] = hitsInGPU.ys[upHitArrayIndex+hitIndex];
-        // szUpper[hitIndex+32*threadIdx.y] = hitsInGPU.zs[upHitArrayIndex+hitIndex];
-        //srtUpper[hitIndex+32*threadIdx.y] =hitsInGPU.rts[upHitArrayIndex+hitIndex];
-        ////}if(hitIndex<nLowerHits){
-        //// sxLower[hitIndex+32*threadIdx.y] = hitsInGPU.xs[loHitArrayIndex+hitIndex];
-        //// syLower[hitIndex+32*threadIdx.y] = hitsInGPU.ys[loHitArrayIndex+hitIndex];
-        //// szLower[hitIndex+32*threadIdx.y] = hitsInGPU.zs[loHitArrayIndex+hitIndex];
-        ////srtLower[hitIndex+32*threadIdx.y] =hitsInGPU.rts[loHitArrayIndex+hitIndex];
-        //}
-        ////__syncthreads();
-        //}
-        //__syncthreads();
-        //for(int lowerHitIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerHitIndex< nLowerHits; lowerHitIndex += blockySize)
-        //{ // maybe change to 2 loops? is the division and mod less expensive?
+        unsigned int upHitArrayIndex = rangesInGPU.hitRangesUpper[lowerModuleArrayIndex];
+        unsigned int loHitArrayIndex = rangesInGPU.hitRangesLower[lowerModuleArrayIndex];
         int limit = nUpperHits*nLowerHits;
         for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize)
         {
 
 
-        //if(threadIdx.y <32){
-//        if(lowerHitIndex <nUpperHits){
-//        // sxUpper[threadIdx.y] = hitsInGPU.xs[upHitArrayIndex+threadIdx.y];
-//        // syUpper[threadIdx.y] = hitsInGPU.ys[upHitArrayIndex+threadIdx.y];
-//        // szUpper[threadIdx.y] = hitsInGPU.zs[upHitArrayIndex+threadIdx.y];
-//        //srtUpper[threadIdx.y] = hitsInGPU.rts[upHitArrayIndex+threadIdx.y];
-//         sxUpper[lowerHitIndex] = hitsInGPU.xs[upHitArrayIndex+lowerHitIndex];
-//         syUpper[lowerHitIndex] = hitsInGPU.ys[upHitArrayIndex+lowerHitIndex];
-//         szUpper[lowerHitIndex] = hitsInGPU.zs[upHitArrayIndex+lowerHitIndex];
-//        srtUpper[lowerHitIndex] =hitsInGPU.rts[upHitArrayIndex+lowerHitIndex];
-//
-//       } 
-//        __syncthreads();
             int lowerHitIndex =  hitIndex / nUpperHits;
             int upperHitIndex =  hitIndex % nUpperHits;
-            if(upperHitIndex >= nUpperHits) continue; //return;
-            if(lowerHitIndex >= nLowerHits) continue; //return;
-       //if(lowerModuleArrayIndex ==0){printf("thread: %f %f %f %f %f",sxUpper[0],sxUpper[1],sxUpper[2],sxUpper[3],sxUpper[4]);}
+            if(upperHitIndex >= nUpperHits) continue;
+            if(lowerHitIndex >= nLowerHits) continue;
             unsigned int lowerHitArrayIndex = loHitArrayIndex + lowerHitIndex;
             float xLower = hitsInGPU.xs[lowerHitArrayIndex];
             float yLower = hitsInGPU.ys[lowerHitArrayIndex];
             float zLower = hitsInGPU.zs[lowerHitArrayIndex];
             float rtLower = hitsInGPU.rts[lowerHitArrayIndex];
-            //float xLower =  sxLower[lowerHitIndex+32*threadIdx.y];
-            //float yLower =  syLower[lowerHitIndex+32*threadIdx.y];
-            //float zLower =  szLower[lowerHitIndex+32*threadIdx.y];
-            //float rtLower =srtLower[lowerHitIndex+32*threadIdx.y];
-            
-        //for(int upperHitIndex = blockIdx.x * blockDim.x + threadIdx.x; upperHitIndex< nUpperHits; upperHitIndex += blockxSize)
-        //{ // maybe change to 2 loops? is the division and mod less expensive?
-        //for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize)
-        //{ // maybe change to 2 loops? is the division and mod less expensive?
-        //    int lowerHitIndex =  hitIndex / nUpperHits;
-        //    int upperHitIndex =  hitIndex % nUpperHits;
-//            if(upperHitIndex >= nUpperHits) continue; //return; this check doesn't seem necessary due to the loop bounds and calculation of the lower and upper hits. does this actually help the timing? it seems to?
-            //if(lowerHitIndex >= nLowerHits) continue; //return;
-
-            //unsigned int lowerHitArrayIndex = rangesInGPU.hitRanges[lowerModuleIndex * 2] + lowerHitIndex;
-            //unsigned int upperHitArrayIndex = rangesInGPU.hitRanges[upperModuleIndex * 2] + upperHitIndex;
- //           unsigned int lowerHitArrayIndex = rangesInGPU.hitRangesLower[lowerModuleArrayIndex] + lowerHitIndex;
-            //unsigned int upperHitArrayIndex = rangesInGPU.hitRangesUpper[lowerModuleArrayIndex];// + upperHitIndex;
-            unsigned int upperHitArrayIndex = upHitArrayIndex+upperHitIndex;//rangesInGPU.hitRangesUpper[lowerModuleArrayIndex] + upperHitIndex;
-            //float xUpper; 
-            //float yUpper;
-            //float zUpper; 
-            //float rtUpper;
-
-            //if(upperHitIndex<32){
+            unsigned int upperHitArrayIndex = upHitArrayIndex+upperHitIndex;
             float xUpper = hitsInGPU.xs[upperHitArrayIndex];
             float yUpper = hitsInGPU.ys[upperHitArrayIndex];
             float zUpper = hitsInGPU.zs[upperHitArrayIndex];
             float rtUpper = hitsInGPU.rts[upperHitArrayIndex];
-            //if(nUpperHits > 64){printf("nUpperHits %u\n",nUpperHits);}
-            //xUpper =  sxUpper[upperHitIndex+32*threadIdx.y];
-            //yUpper =  syUpper[upperHitIndex+32*threadIdx.y];
-            //zUpper =  szUpper[upperHitIndex+32*threadIdx.y];
-            //rtUpper =srtUpper[upperHitIndex+32*threadIdx.y];
-           // }
-           // else{
-           //  xUpper = hitsInGPU.xs[upHitArrayIndex+upperHitIndex];
-           //  yUpper = hitsInGPU.ys[upHitArrayIndex+upperHitIndex];
-           //  zUpper = hitsInGPU.zs[upHitArrayIndex+upperHitIndex];
-           //  rtUpper = hitsInGPU.rts[upHitArrayIndex+upperHitIndex];
-
-           // }
-            //if(xUpper != sxUpper[0]){
-            //printf("upper hit index: %f %f %u %u %u %u %u %u\n",xUpper,xUpper1,lowerModuleArrayIndex,upperHitIndex,upperHitArrayIndex,upHitArrayIndex,blockIdx.x,blockDim.x);
-            //}
 
             float dz, drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange;
 
