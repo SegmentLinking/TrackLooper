@@ -8,6 +8,10 @@ void SDL::createRangesInUnifiedMemory(struct objectRanges& rangesInGPU,unsigned 
     /* modules stucture object will be created in Event.cu*/
 #ifdef CACHE_ALLOC
     rangesInGPU.hitRanges =                 (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
+    rangesInGPU.hitRangesLower =                 (int*)cms::cuda::allocate_managed(nModules * sizeof(int),stream);
+    rangesInGPU.hitRangesUpper =                 (int*)cms::cuda::allocate_managed(nModules * sizeof(int),stream);
+    rangesInGPU.hitRangesnLower =                 (int8_t*)cms::cuda::allocate_managed(nModules * sizeof(int8_t),stream);
+    rangesInGPU.hitRangesnUpper =                 (int8_t*)cms::cuda::allocate_managed(nModules * sizeof(int8_t),stream);
     rangesInGPU.mdRanges =                  (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
     rangesInGPU.segmentRanges =             (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
     rangesInGPU.trackletRanges =            (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
@@ -18,6 +22,10 @@ void SDL::createRangesInUnifiedMemory(struct objectRanges& rangesInGPU,unsigned 
     rangesInGPU.quintupletModuleIndices = (int*)cms::cuda::allocate_managed(nLowerModules * sizeof(int),stream);
 #else
     cudaMallocManaged(&rangesInGPU.hitRanges,nModules * 2 * sizeof(int));
+    cudaMallocManaged(&rangesInGPU.hitRangesLower,nModules  * sizeof(int));
+    cudaMallocManaged(&rangesInGPU.hitRangesUpper,nModules  * sizeof(int));
+    cudaMallocManaged(&rangesInGPU.hitRangesnLower,nModules  * sizeof(int8_t));
+    cudaMallocManaged(&rangesInGPU.hitRangesnUpper,nModules  * sizeof(int8_t));
     cudaMallocManaged(&rangesInGPU.mdRanges,nModules * 2 * sizeof(int));
     cudaMallocManaged(&rangesInGPU.segmentRanges,nModules * 2 * sizeof(int));
     cudaMallocManaged(&rangesInGPU.trackletRanges,nModules * 2 * sizeof(int));
@@ -35,6 +43,10 @@ void SDL::createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned
     int dev;
     cudaGetDevice(&dev);
     rangesInGPU.hitRanges =                  (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
+    rangesInGPU.hitRangesLower =                  (int*)cms::cuda::allocate_device(dev,nModules * sizeof(int),stream);
+    rangesInGPU.hitRangesUpper =                  (int*)cms::cuda::allocate_device(dev,nModules * sizeof(int),stream);
+    rangesInGPU.hitRangesnLower =                  (int8_t*)cms::cuda::allocate_device(dev,nModules * sizeof(int8_t),stream);
+    rangesInGPU.hitRangesnUpper =                  (int8_t*)cms::cuda::allocate_device(dev,nModules * sizeof(int8_t),stream);
     rangesInGPU.mdRanges =                   (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
     rangesInGPU.segmentRanges =              (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
     rangesInGPU.trackletRanges =             (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
@@ -45,6 +57,10 @@ void SDL::createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned
     rangesInGPU.quintupletModuleIndices = (int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(int),stream);
 #else
     cudaMalloc(&rangesInGPU.hitRanges,nModules * 2 * sizeof(int));
+    cudaMalloc(&rangesInGPU.hitRangesLower,nModules  * sizeof(int));
+    cudaMalloc(&rangesInGPU.hitRangesUpper,nModules  * sizeof(int));
+    cudaMalloc(&rangesInGPU.hitRangesnLower,nModules  * sizeof(int8_t));
+    cudaMalloc(&rangesInGPU.hitRangesnUpper,nModules  * sizeof(int8_t));
     cudaMalloc(&rangesInGPU.mdRanges,nModules * 2 * sizeof(int));
     cudaMalloc(&rangesInGPU.segmentRanges,nModules * 2 * sizeof(int));
     cudaMalloc(&rangesInGPU.trackletRanges,nModules * 2 * sizeof(int));
@@ -139,6 +155,10 @@ void SDL::objectRanges::freeMemoryCache()//struct objectRanges& rangesInGPU)
 void SDL::objectRanges::freeMemory()//struct objectRanges& rangesInGPU)
 {
   cudaFree(hitRanges);
+  cudaFree(hitRangesLower);
+  cudaFree(hitRangesUpper);
+  cudaFree(hitRangesnLower);
+  cudaFree(hitRangesnUpper);
   cudaFree(mdRanges);
   cudaFree(segmentRanges);
   cudaFree(trackletRanges);
@@ -1019,6 +1039,10 @@ void SDL::resetObjectRanges(struct objectRanges& rangesInGPU, unsigned int nModu
 {
 //#ifdef Explicit_Module
         cudaMemsetAsync(rangesInGPU.hitRanges, -1,nModules*2*sizeof(int),stream);
+        cudaMemsetAsync(rangesInGPU.hitRangesLower, -1,nModules*sizeof(int),stream);
+        cudaMemsetAsync(rangesInGPU.hitRangesUpper, -1,nModules*sizeof(int),stream);
+        cudaMemsetAsync(rangesInGPU.hitRangesnLower, -1,nModules*sizeof(int8_t),stream);
+        cudaMemsetAsync(rangesInGPU.hitRangesnUpper, -1,nModules*sizeof(int8_t),stream);
         cudaMemsetAsync(rangesInGPU.mdRanges, -1,nModules*2*sizeof(int),stream);
         cudaMemsetAsync(rangesInGPU.segmentRanges, -1,nModules*2*sizeof(int),stream);
         cudaMemsetAsync(rangesInGPU.trackletRanges, -1,nModules*2*sizeof(int),stream);

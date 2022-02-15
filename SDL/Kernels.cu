@@ -23,7 +23,6 @@ __device__ void importModuleInfo(struct SDL::modules& modulesInGPU, sharedModule
     module.moduleLayerType = modulesInGPU.moduleLayerType[moduleArrayIndex];
     module.isTilted = modulesInGPU.subdets[moduleArrayIndex] == SDL::Barrel and modulesInGPU.sides[moduleArrayIndex] != SDL::Center;
     module.drdz = module.moduleLayerType == SDL::Strip ? modulesInGPU.drdzs[moduleArrayIndex] : modulesInGPU.drdzs[modulesInGPU.partnerModuleIndices[moduleArrayIndex]];
-//        module.moduleGapSize = SDL::moduleGapSize_seg(modulesInGPU, moduleIndex);
     module.moduleGapSize = SDL::moduleGapSize_seg(module.layer, module.ring, module.subdet, module.side, module.rod);
     module.miniTilt =  module.isTilted ? (0.5f * SDL::pixelPSZpitch * module.drdz / sqrtf(1.f + module.drdz * module.drdz) / module.moduleGapSize) : 0;
  
@@ -34,27 +33,39 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
 {
     int blockxSize = blockDim.x*gridDim.x;
     int blockySize = blockDim.y*gridDim.y;
+    int blockzSize = blockDim.z*gridDim.z;
     for(int lowerModuleIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerModuleIndex< (*modulesInGPU.nLowerModules); lowerModuleIndex += blockySize)
     {
         int upperModuleIndex = modulesInGPU.partnerModuleIndices[lowerModuleIndex];
-        if(rangesInGPU.hitRanges[lowerModuleIndex * 2] == -1) continue;
-        if(rangesInGPU.hitRanges[upperModuleIndex * 2] == -1) continue;
-        unsigned int nLowerHits = rangesInGPU.hitRanges[lowerModuleIndex * 2 + 1] - rangesInGPU.hitRanges[lowerModuleIndex * 2] + 1;
-        unsigned int nUpperHits = rangesInGPU.hitRanges[upperModuleIndex * 2 + 1] - rangesInGPU.hitRanges[upperModuleIndex * 2] + 1;
+        int nLowerHits = rangesInGPU.hitRangesnLower[lowerModuleIndex];
+        int nUpperHits = rangesInGPU.hitRangesnUpper[lowerModuleIndex];
+        if(rangesInGPU.hitRangesLower[lowerModuleIndex] == -1) continue;
+        const int maxHits = max(nUpperHits,nLowerHits);
+        unsigned int upHitArrayIndex = rangesInGPU.hitRangesUpper[lowerModuleIndex];
+        unsigned int loHitArrayIndex = rangesInGPU.hitRangesLower[lowerModuleIndex];
         int limit = nUpperHits*nLowerHits;
         for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize)
         {
+
             int lowerHitIndex =  hitIndex / nUpperHits;
             int upperHitIndex =  hitIndex % nUpperHits;
             if(upperHitIndex >= nUpperHits) continue;
-
-            unsigned int lowerHitArrayIndex = rangesInGPU.hitRanges[lowerModuleIndex * 2] + lowerHitIndex;
-            unsigned int upperHitArrayIndex = rangesInGPU.hitRanges[upperModuleIndex * 2] + upperHitIndex;
+            if(lowerHitIndex >= nLowerHits) continue;
+            unsigned int lowerHitArrayIndex = loHitArrayIndex + lowerHitIndex;
+            float xLower = hitsInGPU.xs[lowerHitArrayIndex];
+            float yLower = hitsInGPU.ys[lowerHitArrayIndex];
+            float zLower = hitsInGPU.zs[lowerHitArrayIndex];
+            float rtLower = hitsInGPU.rts[lowerHitArrayIndex];
+            unsigned int upperHitArrayIndex = upHitArrayIndex+upperHitIndex;
+            float xUpper = hitsInGPU.xs[upperHitArrayIndex];
+            float yUpper = hitsInGPU.ys[upperHitArrayIndex];
+            float zUpper = hitsInGPU.zs[upperHitArrayIndex];
+            float rtUpper = hitsInGPU.rts[upperHitArrayIndex];
 
             float dz, drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange;
 
             float dzCut, drtCut, miniCut;
-            bool success = runMiniDoubletDefaultAlgo(modulesInGPU, hitsInGPU, lowerModuleIndex, upperModuleIndex, lowerHitArrayIndex, upperHitArrayIndex, dz,  drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, dzCut, drtCut, miniCut);
+            bool success = runMiniDoubletDefaultAlgo(modulesInGPU, /*hitsInGPU,*/ lowerModuleIndex, upperModuleIndex, lowerHitArrayIndex, upperHitArrayIndex, dz,  /*drt,*/ dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
 
             if(success)
             {
@@ -80,6 +91,7 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
             }
         }
     }
+//}
 }
 __global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::objectRanges& rangesInGPU)
 {
