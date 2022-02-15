@@ -139,9 +139,6 @@ void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,s
     short* module_subdets;
     cudaMallocHost(&module_subdets, nModules* sizeof(short));
     cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-    unsigned int* module_lowerModuleIndices;
-    cudaMallocHost(&module_lowerModuleIndices, nLowerModules * sizeof(unsigned int));
-    cudaMemcpyAsync(module_lowerModuleIndices,modulesInGPU.lowerModuleIndices, nLowerModules * sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
     short* module_layers;
     cudaMallocHost(&module_layers, nModules * sizeof(short));
     cudaMemcpyAsync(module_layers,modulesInGPU.layers,nModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
@@ -159,7 +156,7 @@ cudaStreamSynchronize(stream);
     {
         //condition for a quintuple to exist for a module
         //TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap
-        unsigned int idx = module_lowerModuleIndices[i];
+        unsigned int idx = i;//module_lowerModuleIndices[i];
         if(((module_subdets[idx] == SDL::Barrel and module_layers[idx] < 5) or (module_subdets[idx] == SDL::Endcap and module_layers[idx] == 1)) and nTriplets[i] != 0)
         {
             module_quintupletModuleIndices[i] = nEligibleModules * maxQuintuplets;
@@ -173,7 +170,6 @@ cudaStreamSynchronize(stream);
     cudaMemcpyAsync(rangesInGPU.nEligibleT5Modules,&nEligibleModules,sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
 cudaStreamSynchronize(stream);
     cudaFreeHost(module_subdets);
-    cudaFreeHost(module_lowerModuleIndices);
     cudaFreeHost(module_layers);
     cudaFreeHost(module_quintupletModuleIndices);
     cudaFreeHost(nTriplets);
@@ -1171,8 +1167,6 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
     */
     ModuleType moduleType;
     short moduleSubdet, moduleSide;
-    ModuleLayerType moduleLayerType;
-    float drdz;
     float inv1 = 0.01f/0.009f;
     float inv2 = 0.15f/0.009f;
     float inv3 = 2.4f/0.009f;
@@ -1181,7 +1175,8 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
         moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
         moduleSubdet = modulesInGPU.subdets[lowerModuleIndices[i]];
         moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
-        moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndices[i]];
+        float& drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
+        slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]]; 
         //category 1 - barrel PS flat
         if(moduleSubdet == Barrel and moduleType == PS and moduleSide == Center)
         {
@@ -1204,18 +1199,6 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
         else if(moduleSubdet == Barrel and moduleType == PS and moduleSide != Center)
         {
 
-            //get drdz
-            if(moduleLayerType == Strip)
-            {
-                drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
-                slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
-            }
-            else
-            {
-                drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
-                slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
-            }
-
             //delta1[i] = 0.01;
             delta1[i] = inv1;//1.1111f;//0.01;
             isFlat[i] = false;
@@ -1233,15 +1216,6 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
         else if(moduleSubdet == Endcap and moduleType == PS)
         {
             delta1[i] = inv1;//1.1111f;//0.01;
-            if(moduleLayerType == Strip)
-            {
-                slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
-            }
-            else
-            {
-                slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
-
-            }
             isFlat[i] = false;
 
             /*despite the type of the module layer of the lower module index,
@@ -1262,7 +1236,6 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
         {
             delta1[i] = 1.f;//0.009;
             delta2[i] = 500.f*inv1;//555.5555f;//5.f;
-            slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
             isFlat[i] = false;
         }
         else

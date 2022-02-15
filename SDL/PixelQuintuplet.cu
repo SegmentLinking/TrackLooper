@@ -129,6 +129,7 @@ void SDL::createPixelQuintupletsInUnifiedMemory(struct SDL::pixelQuintuplets& pi
     pixelQuintupletsInGPU.pixelRadius      = (FPX*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(FPX), stream);
     pixelQuintupletsInGPU.quintupletRadius = (FPX*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(FPX), stream);
 #endif
+
 #else
     cudaMallocManaged(&pixelQuintupletsInGPU.pixelIndices, maxPixelQuintuplets * sizeof(unsigned int));
     cudaMallocManaged(&pixelQuintupletsInGPU.T5Indices, maxPixelQuintuplets * sizeof(unsigned int));
@@ -139,15 +140,14 @@ void SDL::createPixelQuintupletsInUnifiedMemory(struct SDL::pixelQuintuplets& pi
     cudaMallocManaged(&pixelQuintupletsInGPU.phi  , maxPixelQuintuplets * sizeof(FPX));
 
 #ifdef TRACK_EXTENSIONS
-    cudaMallocManaged(&pixelQuintupletsInGPU.logicalLayers, maxPixelQuintuplets * 7 * sizeof(uint8_t));
-    cudaMallocManaged(&pixelQuintupletsInGPU.lowerModuleIndices, maxPixelQuintuplets * 7 * sizeof(uint16_t));
+    cudaMallocManaged(&pixelQuintupletsInGPU.logicalLayers, maxPixelQuintuplets * 7 *sizeof(uint8_t));
     cudaMallocManaged(&pixelQuintupletsInGPU.hitIndices, maxPixelQuintuplets * 14 * sizeof(unsigned int));
+    cudaMallocManaged(&pixelQuintupletsInGPU.lowerModuleIndices, maxPixelQuintuplets * 7 * sizeof(uint16_t));
     cudaMallocManaged(&pixelQuintupletsInGPU.pixelRadius, maxPixelQuintuplets * sizeof(FPX));
     cudaMallocManaged(&pixelQuintupletsInGPU.quintupletRadius, maxPixelQuintuplets * sizeof(FPX));
     cudaMallocManaged(&pixelQuintupletsInGPU.centerX, maxPixelQuintuplets * sizeof(FPX));
     cudaMallocManaged(&pixelQuintupletsInGPU.centerY, maxPixelQuintuplets * sizeof(FPX));
 #endif
-
 #ifdef CUT_VALUE_DEBUG
     cudaMallocManaged(&pixelQuintupletsInGPU.rzChiSquared, maxPixelQuintuplets * sizeof(unsigned int));
     cudaMallocManaged(&pixelQuintupletsInGPU.rPhiChiSquared, maxPixelQuintuplets * sizeof(unsigned int));
@@ -752,12 +752,10 @@ __device__ float SDL::computePT5RZChiSquared(struct modules& modulesInGPU, uint1
     //then compute the pseudo chi squared of the five outer hits
 
     float slope = (zPix[1] - zPix[0]) / (rtPix[1] - rtPix[0]);
-    float rtAnchor, zAnchor;
     float residual = 0;
     float error = 0;
     //hardcoded array indices!!!
     float RMSE = 0;
-    float drdz;
     for(size_t i = 0; i < 5; i++)
     {
         uint16_t& lowerModuleIndex = lowerModuleIndices[i];
@@ -767,7 +765,7 @@ __device__ float SDL::computePT5RZChiSquared(struct modules& modulesInGPU, uint1
         const int layer = modulesInGPU.layers[lowerModuleIndex] + 6 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex] == SDL::TwoS);
         
         residual = (layer <= 6) ? (zs[i] - zPix[0]) - slope * (rts[i] - rtPix[0]) : (rts[i] - rtPix[0]) - (zs[i] - zPix[0])/slope;
-        
+        float& drdz = modulesInGPU.drdzs[lowerModuleIndex]; 
         //PS Modules
         if(moduleType == 0)
         {
@@ -781,15 +779,6 @@ __device__ float SDL::computePT5RZChiSquared(struct modules& modulesInGPU, uint1
         //special dispensation to tilted PS modules!
         if(moduleType == 0 and layer <= 6 and moduleSide != Center)
         {
-            if(moduleLayerType == Strip)
-            {
-                drdz = modulesInGPU.drdzs[lowerModuleIndex];
-            }
-            else
-            {
-                drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndex)];
-            }
-
             //error *= 1.f/sqrtf(1.f + drdz * drdz);
             error /= sqrtf(1.f + drdz * drdz);
         }
@@ -811,7 +800,6 @@ __device__ void SDL::computeSigmasForRegression_pT5(SDL::modules& modulesInGPU, 
     ModuleType moduleType;
     short moduleSubdet, moduleSide;
     ModuleLayerType moduleLayerType;
-    float drdz;
     float inv1 = 0.01f/0.009f;
     float inv2 = 0.15f/0.009f;
     float inv3 = 2.4f/0.009f;
@@ -821,6 +809,8 @@ __device__ void SDL::computeSigmasForRegression_pT5(SDL::modules& modulesInGPU, 
         moduleSubdet = modulesInGPU.subdets[lowerModuleIndices[i]];
         moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
         moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndices[i]];
+        float& drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
+        slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
         //category 1 - barrel PS flat
         if(moduleSubdet == Barrel and moduleType == PS and moduleSide == Center)
         {
@@ -847,18 +837,6 @@ __device__ void SDL::computeSigmasForRegression_pT5(SDL::modules& modulesInGPU, 
         else if(moduleSubdet == Barrel and moduleType == PS and moduleSide != Center)
         {
 
-            //get drdz
-            if(moduleLayerType == Strip)
-            {
-                drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
-                slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
-            }
-            else
-            {
-                drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
-                slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
-            }
-
             //delta1[i] = 0.01;
             delta1[i] = inv1;//1.1111f;//0.01;
             isFlat[i] = false;
@@ -881,15 +859,6 @@ __device__ void SDL::computeSigmasForRegression_pT5(SDL::modules& modulesInGPU, 
         {
             delta1[i] = inv1;//1.1111f;//0.01;
             //delta1[i] = 0.01;
-            if(moduleLayerType == Strip)
-            {
-                slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
-            }
-            else
-            {
-                slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
-
-            }
             isFlat[i] = false;
 
             /*despite the type of the module layer of the lower module index,
@@ -914,7 +883,6 @@ __device__ void SDL::computeSigmasForRegression_pT5(SDL::modules& modulesInGPU, 
             //delta2[i] = 5.f;
             delta1[i] = 1.f;//0.009;
             delta2[i] = 500.f*inv1;//555.5555f;//5.f;
-            slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
             isFlat[i] = false;
         }
         else

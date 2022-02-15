@@ -92,7 +92,6 @@ void SDL::createTrackExtensionsInUnifiedMemory(struct trackExtensions& trackExte
     trackExtensionsInGPU.constituentTCIndices = (unsigned int*)cms::cuda::allocate_managed(maxTrackExtensions * 3 * sizeof(unsigned int), stream);
     trackExtensionsInGPU.nLayerOverlaps = (uint8_t*)cms::cuda::allocate_managed(maxTrackExtensions * 2 * sizeof(uint8_t), stream);
     trackExtensionsInGPU.nHitOverlaps = (uint8_t*)cms::cuda::allocate_managed(maxTrackExtensions * 2 * sizeof(uint8_t), stream);
-
     trackExtensionsInGPU.rPhiChiSquared = (FPX*)cms::cuda::allocate_managed(maxTrackExtensions * sizeof(FPX), stream);
     trackExtensionsInGPU.rzChiSquared = (FPX*)cms::cuda::allocate_managed(maxTrackExtensions * sizeof(FPX), stream);
     trackExtensionsInGPU.isDup = (bool*) cms::cuda::allocate_managed(maxTrackExtensions * sizeof(bool), stream);
@@ -251,14 +250,14 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     unsigned int innerSegmentIndex = tripletsInGPU.segmentIndices[2 * anchorObjectOuterT3Index];
     unsigned int outerSegmentIndex = tripletsInGPU.segmentIndices[2 * outerObjectIndex];
 
-    pass = pass and runTrackletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], innerSegmentIndex, outerSegmentIndex, 
+    pass = pass & runTrackletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], innerSegmentIndex, outerSegmentIndex, 
             segmentsInGPU.mdIndices[2 * innerSegmentIndex], segmentsInGPU.mdIndices[2 * innerSegmentIndex + 1], segmentsInGPU.mdIndices[2 * outerSegmentIndex], segmentsInGPU.mdIndices[2 * outerSegmentIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn,
             betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, 600);
 
     innerSegmentIndex = tripletsInGPU.segmentIndices[2 * anchorObjectOuterT3Index];
     outerSegmentIndex = tripletsInGPU.segmentIndices[2 * outerObjectIndex + 1];
 
-    pass = pass and runTrackletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 2], innerSegmentIndex, outerSegmentIndex, segmentsInGPU.mdIndices[2 * innerSegmentIndex], segmentsInGPU.mdIndices[2 *
+    pass = pass & runTrackletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 2], innerSegmentIndex, outerSegmentIndex, segmentsInGPU.mdIndices[2 * innerSegmentIndex], segmentsInGPU.mdIndices[2 *
             innerSegmentIndex + 1], segmentsInGPU.mdIndices[2 * outerSegmentIndex], segmentsInGPU.mdIndices[2 * outerSegmentIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi,
             betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, 600);
 
@@ -3340,15 +3339,7 @@ __device__ float SDL::computeTERZChiSquared(struct modules& modulesInGPU, struct
             //special dispensation to tilted PS modules!
             if(moduleType == 0 and layer <= 6 and moduleSide != Center)
             {
-                if(moduleLayerType == Strip)
-                {
-                    drdz = modulesInGPU.drdzs[lowerModuleIndex];
-                }
-                else
-                {
-                    drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndex)];
-                }
-
+                drdz = modulesInGPU.drdzs[lowerModuleIndex];
                 error *= 1/sqrtf(1 + drdz * drdz);
             }
             RMSE += (residual * residual)/(error * error);
@@ -3460,15 +3451,7 @@ __device__ float SDL::computeT3T3RZChiSquared(struct modules& modulesInGPU, stru
         //special dispensation to tilted PS modules!
         if(moduleType == 0 and layer <= 6 and moduleSide != Center)
         {
-            if(moduleLayerType == Strip)
-            {
-                drdz = modulesInGPU.drdzs[lowerModuleIndex];
-            }
-            else
-            {
-                drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndex)];
-            }
-
+            drdz = modulesInGPU.drdzs[lowerModuleIndex];
             error *= 1/sqrtf(1 + drdz * drdz);
         }
         RMSE += (residual * residual)/(error * error);

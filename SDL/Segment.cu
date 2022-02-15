@@ -5,12 +5,12 @@
 
 ///FIXME:NOTICE THE NEW maxPixelSegments!
 
-void SDL::segments::resetMemory(unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments,cudaStream_t stream)
+void SDL::segments::resetMemory(unsigned int maxSegments, unsigned int nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
 {
-    unsigned int nMemoryLocations = maxSegments * (nModules - 1) + maxPixelSegments;
+    unsigned int nMemoryLocations = maxSegments * nLowerModules + maxPixelSegments;
     cudaMemsetAsync(mdIndices,0, nMemoryLocations * 4 * sizeof(unsigned int),stream);
     cudaMemsetAsync(innerLowerModuleIndices,0, nMemoryLocations * 2 * sizeof(uint16_t),stream);
-    cudaMemsetAsync(nSegments, 0,nModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(nSegments, 0,(nLowerModules+1) * sizeof(unsigned int),stream);
     cudaMemsetAsync(dPhis, 0,(nMemoryLocations * 6 )*sizeof(FPX),stream);
     cudaMemsetAsync(ptIn, 0,(maxPixelSegments * 8)*sizeof(float),stream);
     cudaMemsetAsync(superbin, 0,(maxPixelSegments )*sizeof(int),stream);
@@ -23,16 +23,16 @@ void SDL::segments::resetMemory(unsigned int maxSegments, unsigned int nModules,
     cudaMemsetAsync(circleRadius, 0,maxPixelSegments * sizeof(float),stream);
     cudaMemsetAsync(partOfPT5, 0,maxPixelSegments * sizeof(bool),stream);
 }
-void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments,cudaStream_t stream)
+void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
 {
     //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide
     //extra memory to the pixel segments
-    unsigned int nMemoryLocations = maxSegments * (nModules - 1) + maxPixelSegments;
+    unsigned int nMemoryLocations = maxSegments * nLowerModules + maxPixelSegments;
 #ifdef CACHE_ALLOC
 //    cudaStream_t stream=0; 
     segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations*4 *sizeof(unsigned int),stream);
     segmentsInGPU.innerLowerModuleIndices = (uint16_t*)cms::cuda::allocate_managed(nMemoryLocations*2 *sizeof(uint16_t),stream);
-    segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_managed(nModules *sizeof(unsigned int),stream);
+    segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_managed((nLowerModules + 1) *sizeof(unsigned int),stream);
     segmentsInGPU.dPhis = (FPX*)cms::cuda::allocate_managed(nMemoryLocations*6  *sizeof(FPX),stream);
     segmentsInGPU.ptIn = (float*)cms::cuda::allocate_managed(maxPixelSegments * 8 *sizeof(float),stream);
     segmentsInGPU.superbin = (int*)cms::cuda::allocate_managed((maxPixelSegments) *sizeof(int),stream);
@@ -47,7 +47,7 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
 #else
     cudaMallocManaged(&segmentsInGPU.mdIndices, nMemoryLocations * 4 * sizeof(unsigned int));
     cudaMallocManaged(&segmentsInGPU.innerLowerModuleIndices, nMemoryLocations * 2 * sizeof(uint16_t));
-    cudaMallocManaged(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
+    cudaMallocManaged(&segmentsInGPU.nSegments, (nLowerModules + 1) * sizeof(unsigned int));
     cudaMallocManaged(&segmentsInGPU.dPhis, nMemoryLocations * 6 *sizeof(FPX));
     cudaMallocManaged(&segmentsInGPU.ptIn, maxPixelSegments * 8*sizeof(float));
     cudaMallocManaged(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int));
@@ -99,28 +99,23 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     segmentsInGPU.eta    = segmentsInGPU.ptIn + maxPixelSegments * 6;
     segmentsInGPU.phi    = segmentsInGPU.ptIn + maxPixelSegments * 7;
     
-//#pragma omp parallel for default(shared)
-//    for(size_t i = 0; i < nModules; i++)
-//    {
-//        segmentsInGPU.nSegments[i] = 0;
-//    }
-    cudaMemsetAsync(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(segmentsInGPU.nSegments,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
     cudaMemsetAsync(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool),stream);
     cudaStreamSynchronize(stream);
 
 }
-void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nModules, unsigned int maxPixelSegments, cudaStream_t stream)
+void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nLowerModules, unsigned int maxPixelSegments, cudaStream_t stream)
 {
     //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide
     //extra memory to the pixel segments
-    unsigned int nMemoryLocations = maxSegments * (nModules - 1) + maxPixelSegments;
+    unsigned int nMemoryLocations = maxSegments * nLowerModules + maxPixelSegments;
 #ifdef CACHE_ALLOC
 //    cudaStream_t stream=0; 
     int dev;
     cudaGetDevice(&dev);
     segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_device(dev,nMemoryLocations*4 *sizeof(unsigned int),stream);
     segmentsInGPU.innerLowerModuleIndices = (uint16_t*)cms::cuda::allocate_device(dev,nMemoryLocations*2 *sizeof(uint16_t),stream);
-    segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_device(dev,nModules *sizeof(unsigned int),stream);
+    segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) *sizeof(unsigned int),stream);
     segmentsInGPU.dPhis = (FPX*)cms::cuda::allocate_device(dev,nMemoryLocations*6 *sizeof(FPX),stream);
     segmentsInGPU.ptIn = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * 8 *sizeof(float),stream);
     segmentsInGPU.superbin = (int*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(int),stream);
@@ -136,7 +131,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
 #else
     cudaMalloc(&segmentsInGPU.mdIndices, nMemoryLocations * 4 * sizeof(unsigned int));
     cudaMalloc(&segmentsInGPU.innerLowerModuleIndices, nMemoryLocations * 2 * sizeof(uint16_t));
-    cudaMalloc(&segmentsInGPU.nSegments, nModules * sizeof(unsigned int));
+    cudaMalloc(&segmentsInGPU.nSegments, (nLowerModules + 1) * sizeof(unsigned int));
     cudaMalloc(&segmentsInGPU.dPhis, nMemoryLocations * 6 *sizeof(FPX));
     cudaMalloc(&segmentsInGPU.ptIn, maxPixelSegments * 8*sizeof(float));
     cudaMalloc(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int));
@@ -170,7 +165,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.eta    = segmentsInGPU.ptIn + maxPixelSegments * 6;
     segmentsInGPU.phi    = segmentsInGPU.ptIn + maxPixelSegments * 7;
 
-    cudaMemsetAsync(segmentsInGPU.nSegments,0,nModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(segmentsInGPU.nSegments,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
     cudaMemsetAsync(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool),stream);
     cudaStreamSynchronize(stream);
 
@@ -402,32 +397,9 @@ __device__ void SDL::dAlphaThreshold(float* dAlphaThresholdValues, struct module
 
     bool isInnerTilted = modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel and modulesInGPU.sides[innerLowerModuleIndex] != SDL::Center;
     bool isOuterTilted = modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel and modulesInGPU.sides[outerLowerModuleIndex] != SDL::Center;
-    float drdzInner = -1.f;
-    float drdzOuter = -1.f;
-    if(isInnerTilted)
-    {
-        if(modulesInGPU.moduleLayerType[innerLowerModuleIndex] == Strip)
-        {
-            drdzInner = modulesInGPU.drdzs[innerLowerModuleIndex];
-        }
-        else
-        {
-            drdzInner = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(innerLowerModuleIndex)];
-        }
-    }
-    if(isOuterTilted)
-    {
-        if(modulesInGPU.moduleLayerType[outerLowerModuleIndex] == Strip)
-        {
-            drdzOuter = modulesInGPU.drdzs[outerLowerModuleIndex];
-        }
-        else
-        {
-            drdzOuter = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(outerLowerModuleIndex)];
-        }
 
-    }
-
+    float& drdzInner = modulesInGPU.drdzs[innerLowerModuleIndex];
+    float& drdzOuter = modulesInGPU.drdzs[outerLowerModuleIndex];
     float innerModuleGapSize = SDL::moduleGapSize_seg(modulesInGPU, innerLowerModuleIndex);
     float outerModuleGapSize = SDL::moduleGapSize_seg(modulesInGPU, outerLowerModuleIndex);
     const float innerminiTilt = isInnerTilted ? (0.5f * pixelPSZpitch * drdzInner / sqrtf(1.f + drdzInner * drdzInner) / innerModuleGapSize) : 0;
