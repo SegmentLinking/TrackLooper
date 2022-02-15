@@ -48,6 +48,10 @@ namespace SDL
     struct objectRanges
     {
         int* hitRanges;
+        int* hitRangesLower;
+        int* hitRangesUpper;
+        int8_t* hitRangesnLower;
+        int8_t* hitRangesnUpper;
         int* mdRanges;
         int* segmentRanges;
         int* trackletRanges;

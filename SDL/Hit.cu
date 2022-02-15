@@ -136,117 +136,119 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
     cudaStreamSynchronize(stream);
 }
 
-__global__ void SDL::addHitToMemoryGPU(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex,float phis,struct objectRanges& rangesInGPU)
-{
-    unsigned int idx = *(hitsInCPU.nHits);
-//    unsigned int idxEdge2S = *(hitsInCPU.n2SHits);
-
-    hitsInCPU.xs[idx] = x;
-    hitsInCPU.ys[idx] = y;
-    hitsInCPU.zs[idx] = z;
-    hitsInCPU.rts[idx] = sqrt(x*x + y*y);
-    hitsInCPU.phis[idx] = phi(x,y,z);
-    hitsInCPU.idxs[idx] = idxInNtuple;
- //   unsigned int moduleIndex = (*detIdToIndex)[detId];
-    hitsInCPU.moduleIndices[idx] = moduleIndex;
-    if(modulesInGPU.subdets[moduleIndex] == Endcap and modulesInGPU.moduleType[moduleIndex] == TwoS)
-    {
-        float xhigh, yhigh, xlow, ylow;
-        //getEdgeHits(detId,x,y,xhigh,yhigh,xlow,ylow);
-        getEdgeHitsK(phis,x,y,xhigh,yhigh,xlow,ylow);
-        //hitsInCPU.edge2SMap[idx] = idxEdge2S;
-        //hitsInCPU.highEdgeXs[idxEdge2S] = xhigh; // due to changes to support the explicit version
-        //hitsInCPU.highEdgeYs[idxEdge2S] = yhigh;
-        //hitsInCPU.lowEdgeXs[idxEdge2S] = xlow;
-        //hitsInCPU.lowEdgeYs[idxEdge2S] = ylow;
-        hitsInCPU.highEdgeXs[idx] = xhigh;
-        hitsInCPU.highEdgeYs[idx] = yhigh;
-        hitsInCPU.lowEdgeXs[idx] = xlow;
-        hitsInCPU.lowEdgeYs[idx] = ylow;
-
-        //(*hitsInCPU.n2SHits)++;
-    }
-//    else
+//__global__ void SDL::addHitToMemoryGPU(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex,float phis,struct objectRanges& rangesInGPU) // TODO: delete I don't think this function is used any more.
+//{
+//    unsigned int idx = *(hitsInCPU.nHits);
+////    unsigned int idxEdge2S = *(hitsInCPU.n2SHits);
+//
+//    hitsInCPU.xs[idx] = x;
+//    hitsInCPU.ys[idx] = y;
+//    hitsInCPU.zs[idx] = z;
+//    hitsInCPU.rts[idx] = sqrt(x*x + y*y);
+//    hitsInCPU.phis[idx] = phi(x,y,z);
+//    hitsInCPU.idxs[idx] = idxInNtuple;
+// //   unsigned int moduleIndex = (*detIdToIndex)[detId];
+//    hitsInCPU.moduleIndices[idx] = moduleIndex;
+//    if(modulesInGPU.subdets[moduleIndex] == Endcap and modulesInGPU.moduleType[moduleIndex] == TwoS)
 //    {
-//        hitsInCPU.edge2SMap[idx] = -1;
+//        float xhigh, yhigh, xlow, ylow;
+//        //getEdgeHits(detId,x,y,xhigh,yhigh,xlow,ylow);
+//        getEdgeHitsK(phis,x,y,xhigh,yhigh,xlow,ylow);
+//        //hitsInCPU.edge2SMap[idx] = idxEdge2S;
+//        //hitsInCPU.highEdgeXs[idxEdge2S] = xhigh; // due to changes to support the explicit version
+//        //hitsInCPU.highEdgeYs[idxEdge2S] = yhigh;
+//        //hitsInCPU.lowEdgeXs[idxEdge2S] = xlow;
+//        //hitsInCPU.lowEdgeYs[idxEdge2S] = ylow;
+//        hitsInCPU.highEdgeXs[idx] = xhigh;
+//        hitsInCPU.highEdgeYs[idx] = yhigh;
+//        hitsInCPU.lowEdgeXs[idx] = xlow;
+//        hitsInCPU.lowEdgeYs[idx] = ylow;
+//
+//        //(*hitsInCPU.n2SHits)++;
 //    }
-
-    //set the hit ranges appropriately in the modules struct
-
-    //start the index rolling if the module is encountered for the first time
-    if(rangesInGPU.hitRanges[moduleIndex * 2] == -1)
-    {
-        rangesInGPU.hitRanges[moduleIndex * 2] = idx;
-    }
-    //always update the end index
-    rangesInGPU.hitRanges[moduleIndex * 2 + 1] = idx;
-    (*hitsInCPU.nHits)++;
-}
-void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,cudaStream_t stream,struct objectRanges& rangesInGPU)
-{
-    unsigned int idx = *(hitsInGPU.nHits);
-//    unsigned int idxEdge2S = *(hitsInCPU.n2SHits);
-
-    hitsInGPU.xs[idx] = x;
-    hitsInGPU.ys[idx] = y;
-    hitsInGPU.zs[idx] = z;
-    hitsInGPU.rts[idx] = sqrt(x*x + y*y);
-    hitsInGPU.phis[idx] = phi(x,y,z);
-    hitsInGPU.idxs[idx] = idxInNtuple;
-    unsigned int moduleIndex = (*detIdToIndex)[detId];
-    hitsInGPU.moduleIndices[idx] = moduleIndex;
-
-    unsigned int nModules;
-    cudaMemcpyAsync(&nModules,modulesInGPU.nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
-
-    ModuleType* module_moduleType;
-    cudaMallocHost(&module_moduleType, nModules* sizeof(ModuleType));
-    cudaMemcpyAsync(module_moduleType,modulesInGPU.moduleType,nModules*sizeof(ModuleType),cudaMemcpyDeviceToHost,stream);
-    short* module_subdets;
-    cudaMallocHost(&module_subdets, nModules* sizeof(short));
-    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-    int* module_hitRanges;
-    cudaMallocHost(&module_hitRanges, nModules* 2*sizeof(int));
-    cudaMemcpyAsync(module_hitRanges,rangesInGPU.hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
-
-    if(module_subdets[moduleIndex] == Endcap and module_moduleType[moduleIndex] == TwoS)
-    {
-        float xhigh, yhigh, xlow, ylow;
-        getEdgeHits(detId,x,y,xhigh,yhigh,xlow,ylow);
-        //hitsInCPU.edge2SMap[idx] = idxEdge2S;
-        //hitsInCPU.highEdgeXs[idxEdge2S] = xhigh; // due to changes to support the explicit version
-        //hitsInCPU.highEdgeYs[idxEdge2S] = yhigh;
-        //hitsInCPU.lowEdgeXs[idxEdge2S] = xlow;
-        //hitsInCPU.lowEdgeYs[idxEdge2S] = ylow;
-        hitsInGPU.highEdgeXs[idx] = xhigh;
-        hitsInGPU.highEdgeYs[idx] = yhigh;
-        hitsInGPU.lowEdgeXs[idx] = xlow;
-        hitsInGPU.lowEdgeYs[idx] = ylow;
-
-        //(*hitsInCPU.n2SHits)++;
-    }
-//    else
+////    else
+////    {
+////        hitsInCPU.edge2SMap[idx] = -1;
+////    }
+//
+//    //set the hit ranges appropriately in the modules struct
+//
+//    //start the index rolling if the module is encountered for the first time
+//    if(rangesInGPU.hitRanges[moduleIndex * 2] == -1)
 //    {
-//        hitsInCPU.edge2SMap[idx] = -1;
+//        rangesInGPU.hitRanges[moduleIndex * 2] = idx;
 //    }
-
-    //set the hit ranges appropriately in the modules struct
-
-    //start the index rolling if the module is encountered for the first time
-    if(module_hitRanges[moduleIndex * 2] == -1)
-    {
-        module_hitRanges[moduleIndex * 2] = idx;
-    }
-    //always update the end index
-    module_hitRanges[moduleIndex * 2 + 1] = idx;
-    cudaMemcpyAsync(rangesInGPU.hitRanges,module_hitRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice,stream);
-    cudaStreamSynchronize(stream);
-    cudaFreeHost(module_moduleType);
-    cudaFreeHost(module_subdets);
-    cudaFreeHost(module_hitRanges);
-   (*hitsInGPU.nHits)++;
-}
+//    //always update the end index
+//    rangesInGPU.hitRanges[moduleIndex * 2 + 1] = idx;
+//    //printf("ranges: %u %u\n",idx,rangesInGPU.hitRanges[moduleIndex * 2]);
+//    (*hitsInCPU.nHits)++;
+//}
+//void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,cudaStream_t stream,struct objectRanges& rangesInGPU)
+//{ //TODO: I don't think this used either
+//    unsigned int idx = *(hitsInGPU.nHits);
+////    unsigned int idxEdge2S = *(hitsInCPU.n2SHits);
+//
+//    hitsInGPU.xs[idx] = x;
+//    hitsInGPU.ys[idx] = y;
+//    hitsInGPU.zs[idx] = z;
+//    hitsInGPU.rts[idx] = sqrt(x*x + y*y);
+//    hitsInGPU.phis[idx] = phi(x,y,z);
+//    hitsInGPU.idxs[idx] = idxInNtuple;
+//    unsigned int moduleIndex = (*detIdToIndex)[detId];
+//    hitsInGPU.moduleIndices[idx] = moduleIndex;
+//
+//    unsigned int nModules;
+//    cudaMemcpyAsync(&nModules,modulesInGPU.nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
+//
+//    ModuleType* module_moduleType;
+//    cudaMallocHost(&module_moduleType, nModules* sizeof(ModuleType));
+//    cudaMemcpyAsync(module_moduleType,modulesInGPU.moduleType,nModules*sizeof(ModuleType),cudaMemcpyDeviceToHost,stream);
+//    short* module_subdets;
+//    cudaMallocHost(&module_subdets, nModules* sizeof(short));
+//    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
+//    int* module_hitRanges;
+//    cudaMallocHost(&module_hitRanges, nModules* 2*sizeof(int));
+//    cudaMemcpyAsync(module_hitRanges,rangesInGPU.hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
+//    cudaStreamSynchronize(stream);
+//
+//    if(module_subdets[moduleIndex] == Endcap and module_moduleType[moduleIndex] == TwoS)
+//    {
+//        float xhigh, yhigh, xlow, ylow;
+//        getEdgeHits(detId,x,y,xhigh,yhigh,xlow,ylow);
+//        //hitsInCPU.edge2SMap[idx] = idxEdge2S;
+//        //hitsInCPU.highEdgeXs[idxEdge2S] = xhigh; // due to changes to support the explicit version
+//        //hitsInCPU.highEdgeYs[idxEdge2S] = yhigh;
+//        //hitsInCPU.lowEdgeXs[idxEdge2S] = xlow;
+//        //hitsInCPU.lowEdgeYs[idxEdge2S] = ylow;
+//        hitsInGPU.highEdgeXs[idx] = xhigh;
+//        hitsInGPU.highEdgeYs[idx] = yhigh;
+//        hitsInGPU.lowEdgeXs[idx] = xlow;
+//        hitsInGPU.lowEdgeYs[idx] = ylow;
+//
+//        //(*hitsInCPU.n2SHits)++;
+//    }
+////    else
+////    {
+////        hitsInCPU.edge2SMap[idx] = -1;
+////    }
+//
+//    //set the hit ranges appropriately in the modules struct
+//
+//    //start the index rolling if the module is encountered for the first time
+//    if(module_hitRanges[moduleIndex * 2] == -1)
+//    {
+//        module_hitRanges[moduleIndex * 2] = idx;
+//    }
+//    //always update the end index
+//    module_hitRanges[moduleIndex * 2 + 1] = idx;
+//    printf("ranges: %u %u\n",idx,rangesInGPU.hitRanges[moduleIndex * 2]);
+//    cudaMemcpyAsync(rangesInGPU.hitRanges,module_hitRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice,stream);
+//    cudaStreamSynchronize(stream);
+//    cudaFreeHost(module_moduleType);
+//    cudaFreeHost(module_subdets);
+//    cudaFreeHost(module_hitRanges);
+//   (*hitsInGPU.nHits)++;
+//}
 __global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules& modulesInGPU,const float* x,const  float* y,const  float* z, const unsigned int* moduleIndex,const float* phis, const int loopsize)
 {
   for (unsigned int ihit = blockIdx.x*blockDim.x + threadIdx.x; ihit <loopsize; ihit += blockDim.x*gridDim.x)

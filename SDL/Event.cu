@@ -614,15 +614,39 @@ cudaStreamSynchronize(stream);
     short* module_layers;
     short* module_subdet;
     int* module_hitRanges;
+    int* module_hitRangesUpper;
+    int* module_hitRangesLower;
+    int8_t* module_hitRangesnUpper;
+    int8_t* module_hitRangesnLower;
+    int* module_lowerModuleIndices;
+    int* module_reverseModuleIndices;
     ModuleType* module_moduleType;
     cudaMallocHost(&module_layers,sizeof(short)*nModules);
     cudaMallocHost(&module_subdet,sizeof(short)*nModules);
+    cudaMallocHost(&module_lowerModuleIndices,sizeof(int)*(1+nLowerModules));
+    cudaMallocHost(&module_reverseModuleIndices,sizeof(int)*(nModules));
     cudaMallocHost(&module_hitRanges,sizeof(int)*2*nModules);
+    cudaMallocHost(&module_hitRangesUpper,sizeof(int)*nModules);
+    cudaMallocHost(&module_hitRangesLower,sizeof(int)*nModules);
+    cudaMallocHost(&module_hitRangesnUpper,sizeof(int8_t)*nModules);
+    cudaMallocHost(&module_hitRangesnLower,sizeof(int8_t)*nModules);
     cudaMallocHost(&module_moduleType,sizeof(ModuleType)*nModules);
     cudaMemcpyAsync(module_layers,modulesInGPU->layers,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_subdet,modulesInGPU->subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_hitRanges,rangesInGPU->hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(module_lowerModuleIndices,modulesInGPU->lowerModuleIndices,(nLowerModules+1)*sizeof(int),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(module_reverseModuleIndices,modulesInGPU->reverseLookupLowerModuleIndices,(nModules)*sizeof(int),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(module_hitRangesLower,rangesInGPU->hitRangesLower,nModules*sizeof(int),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(module_hitRangesUpper,rangesInGPU->hitRangesUpper,nModules*sizeof(int),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(module_hitRangesnLower,rangesInGPU->hitRangesnLower,nModules*sizeof(int8_t),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(module_hitRangesnUpper,rangesInGPU->hitRangesnUpper,nModules*sizeof(int8_t),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_moduleType,modulesInGPU->moduleType,nModules*sizeof(ModuleType),cudaMemcpyDeviceToHost,stream);
+    bool* module_isLower;
+    cudaMallocHost(&module_isLower, nModules*sizeof(bool));
+    cudaMemcpyAsync(module_isLower,modulesInGPU->isLower,nModules*sizeof(bool),cudaMemcpyDeviceToHost,stream);
+    bool* module_isInverted;
+    cudaMallocHost(&module_isInverted, nModules*sizeof(bool));
+    cudaMemcpyAsync(module_isInverted,modulesInGPU->isInverted,nModules*sizeof(bool),cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
 
 
@@ -666,8 +690,29 @@ cudaStreamSynchronize(stream);
       }
       //always update the end index
       module_hitRanges[this_index * 2 + 1] = ihit;
+      //printf("ranges: %u %u %u\n",this_index,module_hitRanges[this_index * 2],module_hitRanges[this_index * 2+1]);
 
   }
+//range testing
+for(int lowerModuleArrayIndex = 0; lowerModuleArrayIndex< nLowerModules; lowerModuleArrayIndex++)
+    {
+
+        //int lowerModuleIndex = modulesInGPU->lowerModuleIndices[lowerModuleArrayIndex];
+        int lowerModuleIndex = module_lowerModuleIndices[lowerModuleArrayIndex];
+        //int upperModuleIndex = module_lowerModuleIndices[lowerModuleIndex];
+        //int upperModuleIndex = modulesInGPU->partnerModuleIndex(lowerModuleIndex);
+        int upperModuleIndex = modulesInGPU->partnerModuleIndexExplicit(lowerModuleIndex,module_isLower[lowerModuleIndex],module_isInverted[lowerModuleIndex]);
+        int lowerHitRanges = module_hitRanges[lowerModuleIndex*2];
+        int upperHitRanges = module_hitRanges[upperModuleIndex*2];
+
+        if(module_hitRanges[lowerModuleIndex * 2] == -1) continue; //return;
+        if(module_hitRanges[upperModuleIndex * 2] == -1) continue; //return;
+        module_hitRangesLower[lowerModuleArrayIndex] =  module_hitRanges[lowerModuleIndex * 2]; 
+        module_hitRangesUpper[lowerModuleArrayIndex] =  module_hitRanges[upperModuleIndex * 2];
+        module_hitRangesnLower[lowerModuleArrayIndex] = module_hitRanges[lowerModuleIndex * 2 + 1] - module_hitRanges[lowerModuleIndex * 2] + 1;
+        module_hitRangesnUpper[lowerModuleArrayIndex] = module_hitRanges[upperModuleIndex * 2 + 1] - module_hitRanges[upperModuleIndex * 2] + 1;
+    //    printf("hits %d %d %d\n",lowerModuleArrayIndex,module_hitRangesLower[lowerModuleArrayIndex],module_hitRangesUpper[lowerModuleArrayIndex]);
+}
 //simply copy the host arrays to the hitsInGPU struct
     cudaMemcpyAsync(hitsInGPU->xs,host_x,loopsize*sizeof(float),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(hitsInGPU->ys,host_y,loopsize*sizeof(float),cudaMemcpyHostToDevice,stream);
@@ -683,6 +728,10 @@ cudaStreamSynchronize(stream);
     cudaMemcpyAsync(hitsInGPU->lowEdgeYs,host_lowEdgeYs,loopsize*sizeof(float),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(hitsInGPU->nHits,&loopsize,sizeof(unsigned int),cudaMemcpyHostToDevice,stream);// value can't correctly be set in hit allocation
     cudaMemcpyAsync(rangesInGPU->hitRanges,module_hitRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice,stream);// value can't correctly be set in hit allocation
+    cudaMemcpyAsync(rangesInGPU->hitRangesLower,module_hitRangesLower,nModules*sizeof(int),cudaMemcpyHostToDevice,stream);// value can't correctly be set in hit allocation
+    cudaMemcpyAsync(rangesInGPU->hitRangesUpper,module_hitRangesUpper,nModules*sizeof(int),cudaMemcpyHostToDevice,stream);// value can't correctly be set in hit allocation
+    cudaMemcpyAsync(rangesInGPU->hitRangesnLower,module_hitRangesnLower,nModules*sizeof(int8_t),cudaMemcpyHostToDevice,stream);// value can't correctly be set in hit allocation
+    cudaMemcpyAsync(rangesInGPU->hitRangesnUpper,module_hitRangesnUpper,nModules*sizeof(int8_t),cudaMemcpyHostToDevice,stream);// value can't correctly be set in hit allocation
 cudaStreamSynchronize(stream);
 
     cudaFreeHost(host_rts);
@@ -697,6 +746,10 @@ cudaStreamSynchronize(stream);
     cudaFreeHost(module_layers);
     cudaFreeHost(module_subdet);
     cudaFreeHost(module_hitRanges);
+    cudaFreeHost(module_hitRangesLower);
+    cudaFreeHost(module_hitRangesUpper);
+    cudaFreeHost(module_hitRangesnLower);
+    cudaFreeHost(module_hitRangesnUpper);
     cudaFreeHost(module_moduleType);
     cudaFreeHost(host_x);
     cudaFreeHost(host_y);
@@ -1149,10 +1202,14 @@ cudaStreamSynchronize(stream);
     #endif
     //dim3 nThreads(1,128);
     //dim3 nBlocks((nLowerModules % nThreads.x == 0 ? nLowerModules/nThreads.x : nLowerModules/nThreads.x + 1), (maxThreadsPerModule % nThreads.y == 0 ? maxThreadsPerModule/nThreads.y : maxThreadsPerModule/nThreads.y + 1));
-    dim3 nThreads(32,32,1);
+    //dim3 nThreads(16,16,4);
+    //dim3 nThreads(32,32,1);
+    dim3 nThreads(64,16,1);
     dim3 nBlocks(1,MAX_BLOCKS,1);
+    //dim3 nBlocks(1,1,MAX_BLOCKS);
+    //dim3 nBlocks(1,1,1);
 
-    createMiniDoubletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU,*hitsInGPU,*mdsInGPU,*rangesInGPU);
+    createMiniDoubletsInGPU<<<nBlocks,nThreads,64*4*16*sizeof(float),stream>>>(*modulesInGPU,*hitsInGPU,*mdsInGPU,*rangesInGPU);
 
     cudaError_t cudaerr = cudaGetLastError(); 
     if(cudaerr != cudaSuccess)
