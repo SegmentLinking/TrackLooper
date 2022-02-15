@@ -840,7 +840,6 @@ cudaStreamSynchronize(stream);
 
    //cudaDeviceSynchronize();
    cudaStreamSynchronize(stream);
-   std::cout<<"pixelModuleIndex = "<<pixelModuleIndex<<std::endl;
    cudaMemcpyAsync(&(segmentsInGPU->nSegments)[pixelModuleIndex], &size, sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
    unsigned int mdSize = 2 * size;
    cudaMemcpyAsync(&(mdsInGPU->nMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
