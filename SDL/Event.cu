@@ -525,7 +525,7 @@ void SDL::cleanModules()
   //#endif
     cudaFreeHost(modulesInGPU);
     cudaFreeHost(pixelMapping);
-//cudaDeviceReset(); // uncomment for leak check "cuda-memcheck --leak-check full --show-backtrace yes" does not work with caching.
+//    cudaDeviceReset(); // uncomment for leak check "cuda-memcheck --leak-check full --show-backtrace yes" does not work with caching.
 }
 
 void SDL::Event::resetObjectsInModule()
@@ -621,6 +621,7 @@ cudaStreamSynchronize(stream);
     cudaMallocHost(&module_hitRangesnUpper,sizeof(int8_t)*nModules);
     cudaMallocHost(&module_hitRangesnLower,sizeof(int8_t)*nModules);
     cudaMallocHost(&module_moduleType,sizeof(ModuleType)*nModules);
+
     cudaMemcpyAsync(module_layers,modulesInGPU->layers,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_subdet,modulesInGPU->subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_partnerModuleIndices, modulesInGPU->partnerModuleIndices, nModules * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
@@ -630,12 +631,6 @@ cudaStreamSynchronize(stream);
     cudaMemcpyAsync(module_hitRangesnLower,rangesInGPU->hitRangesnLower,nModules*sizeof(int8_t),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_hitRangesnUpper,rangesInGPU->hitRangesnUpper,nModules*sizeof(int8_t),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_moduleType,modulesInGPU->moduleType,nModules*sizeof(ModuleType),cudaMemcpyDeviceToHost,stream);
-    bool* module_isLower;
-    cudaMallocHost(&module_isLower, nModules*sizeof(bool));
-    cudaMemcpyAsync(module_isLower,modulesInGPU->isLower,nModules*sizeof(bool),cudaMemcpyDeviceToHost,stream);
-    bool* module_isInverted;
-    cudaMallocHost(&module_isInverted, nModules*sizeof(bool));
-    cudaMemcpyAsync(module_isInverted,modulesInGPU->isInverted,nModules*sizeof(bool),cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
 
 
@@ -721,7 +716,6 @@ for(int lowerModuleIndex = 0; lowerModuleIndex< nLowerModules; lowerModuleIndex+
 cudaStreamSynchronize(stream);
 
     cudaFreeHost(host_rts);
-    //cudaFreeHost(host_idxs);
     cudaFreeHost(host_phis);
     cudaFreeHost(host_etas);
     cudaFreeHost(host_moduleIndex);
@@ -731,6 +725,7 @@ cudaStreamSynchronize(stream);
     cudaFreeHost(host_lowEdgeYs);
     cudaFreeHost(module_layers);
     cudaFreeHost(module_subdet);
+    cudaFreeHost(module_partnerModuleIndices);
     cudaFreeHost(module_hitRanges);
     cudaFreeHost(module_hitRangesLower);
     cudaFreeHost(module_hitRangesUpper);
