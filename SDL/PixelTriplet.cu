@@ -557,11 +557,9 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, unsig
     float error = 0;
     //hardcoded array indices!!!
     float RMSE = 0;
-    float drdz;
     for(size_t i = 0; i < 3; i++)
     {
-            unsigned int& lowerModuleIndex = lowerModuleIndices[i];
-    
+        unsigned int& lowerModuleIndex = lowerModuleIndices[i];
         const int moduleType = modulesInGPU.moduleType[lowerModuleIndex];
         const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
         const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
@@ -579,18 +577,11 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, unsig
             error = 5.0f;
         }
 
+
         //special dispensation to tilted PS modules!
         if(moduleType == 0 and layer <= 6 and moduleSide != Center)
         {
-            if(moduleLayerType == Strip)
-            {
-                drdz = modulesInGPU.drdzs[lowerModuleIndex];
-            }
-            else
-            {
-                drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndex)];
-            }
-
+            float& drdz = modulesInGPU.drdzs[lowerModuleIndex];
             error /= sqrtf(1 + drdz * drdz);
         }
         RMSE += (residual * residual)/(error * error);
@@ -619,6 +610,8 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, uns
         moduleSubdet = modulesInGPU.subdets[lowerModuleIndices[i]];
         moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
         moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndices[i]];
+        float& drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
+        slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
         //category 1 - barrel PS flat
         if(moduleSubdet == Barrel and moduleType == PS and moduleSide == Center)
         {
@@ -641,21 +634,8 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, uns
         else if(moduleSubdet == Barrel and moduleType == PS and moduleSide != Center)
         {
 
-            //get drdz
-            if(moduleLayerType == Strip)
-            {
-                drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
-                slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
-            }
-            else
-            {
-                drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
-                slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
-            }
-
             delta1[i] = inv1;//1.1111f;//0.01;
             isFlat[i] = false;
-
             delta2[i] = (inv2 * drdz/sqrtf(1 + drdz * drdz));
         }
 
@@ -663,21 +643,11 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, uns
         else if(moduleSubdet == Endcap and moduleType == PS)
         {
             delta1[i] = inv1;//1.1111f;//0.01;
-            if(moduleLayerType == Strip)
-            {
-                slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
-            }
-            else
-            {
-                slopes[i] = modulesInGPU.slopes[modulesInGPU.partnerModuleIndex(lowerModuleIndices[i])];
-
-            }
             isFlat[i] = false;
 
             /*despite the type of the module layer of the lower module index,
             all anchor hits are on the pixel side and all non-anchor hits are
-            on the strip side!*/
-        
+            on the strip side!*/        
             delta2[i] = inv2;//16.6666f;//0.15f;
         }
 
@@ -686,7 +656,6 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, uns
         {
             delta1[i] = 1;//0.009;
             delta2[i] = 500*inv1;//555.5555f;//5.f;
-            slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
             isFlat[i] = false;
         }
         else

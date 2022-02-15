@@ -420,11 +420,9 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
 
     float tl_axis_highEdge_x = tl_axis_x;
     float tl_axis_highEdge_y = tl_axis_y;
-    float tl_axis_highEdge_z = tl_axis_z;
 
     float tl_axis_lowEdge_x = tl_axis_x;
     float tl_axis_lowEdge_y = tl_axis_y;
-    float tl_axis_lowEdge_z = tl_axis_z;
 
     betaIn = -deltaPhi(px, py, pz, tl_axis_x, tl_axis_y, tl_axis_z);
     float betaInRHmin = betaIn;

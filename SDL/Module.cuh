@@ -75,8 +75,9 @@ namespace SDL
         unsigned int *nLowerModules;
       //  unsigned int *nEligibleModules;
        // unsigned int *nEligibleT5Modules; //This number is just nEligibleModules - 1, but still we want this to be independent of the TC kernel
-        unsigned int *lowerModuleIndices;
-        int *reverseLookupLowerModuleIndices; //module index to lower module index reverse lookup
+//        unsigned int *lowerModuleIndices;
+        unsigned int* partnerModuleIndices;
+//        int *reverseLookupLowerModuleIndices; //module index to lower module index reverse lookup
        
         short* layers;
         short* rings;
@@ -89,36 +90,17 @@ namespace SDL
         bool* isAnchor;
         ModuleType* moduleType;
         ModuleLayerType* moduleLayerType;
-        
-        CUDA_HOSTDEV inline unsigned int partnerModuleIndex(unsigned int index) {
-        if(isLower[index])
-        {	
-          return (isInverted[index] ? index - 1: index + 1);
-        }
-        else
-        {
-          return (isInverted[index] ? index + 1 : index - 1);
-        }
-        }
-        CUDA_HOSTDEV inline unsigned int partnerModuleIndexExplicit(unsigned int index,bool isLowerx, bool isInvertedx){
-        if(isLowerx)
-        {
-            return (isInvertedx ? index - 1: index + 1);
-        }
-        else
-        {
-            return (isInvertedx ? index + 1 : index - 1);
-        }
-        }
+       
         CUDA_HOSTDEV ModuleType parseModuleType(unsigned int index);
-        CUDA_HOSTDEV ModuleType parseModuleType(unsigned int index, short subdet, short layer, short ring);
+        CUDA_HOSTDEV ModuleType parseModuleType(short subdet, short layer, short ring);
+        CUDA_HOSTDEV unsigned int parsePartnerModuleId(unsigned int detId, bool isLowerx, bool isInvertedx);
         CUDA_HOSTDEV ModuleLayerType parseModuleLayerType(unsigned int index);
-        CUDA_HOSTDEV ModuleLayerType parseModuleLayerType(unsigned int index, ModuleType moduleType, bool isInvertedx, bool isLowerx);
+        CUDA_HOSTDEV ModuleLayerType parseModuleLayerType(ModuleType moduleType, bool isInvertedx, bool isLowerx);
 
         bool parseIsInverted(unsigned int index);
-        bool parseIsInverted(unsigned int index,short subdet, short side, short module, short layer);
+        bool parseIsInverted(short subdet, short side, short module, short layer);
         bool parseIsLower(unsigned int index);
-        bool parseIsLower(unsigned int index, bool isInvertedx,unsigned int detId);
+        bool parseIsLower(bool isInvertedx,unsigned int detId);
 
         unsigned int* connectedPixels;
         unsigned int* connectedPixelsIndex;
