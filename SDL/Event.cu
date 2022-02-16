@@ -1655,7 +1655,7 @@ cudaStreamSynchronize(stream);
 
     //pT3s can be cleaned here because they're not used in making pT5s!
 #ifdef DUP_pT3
-    dim3 nThreads_dup(1024,1,1);
+    dim3 nThreads_dup(512,1,1);
     dim3 nBlocks_dup(MAX_BLOCKS,1,1);
     removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup,0,stream>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU,false);
 cudaStreamSynchronize(stream);
@@ -1944,7 +1944,7 @@ cudaStreamSynchronize(stream);
     cudaFree(segs_pix_gpu);
     //cudaFreeAsync(segs_pix_gpu,stream);
 
-    dim3 nThreads_dup(1024,1,1);
+    dim3 nThreads_dup(512,1,1);
     dim3 nBlocks_dup(MAX_BLOCKS,1,1);
 #ifdef DUP_pT5
     //printf("run dup pT5\n");
