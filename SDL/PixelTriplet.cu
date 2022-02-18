@@ -157,6 +157,8 @@ void SDL::createPixelTripletsInUnifiedMemory(struct pixelTriplets& pixelTriplets
     pixelTripletsInGPU.phi_pix = pixelTripletsInGPU.pt + maxPixelTriplets * 4;
     pixelTripletsInGPU.score = pixelTripletsInGPU.pt + maxPixelTriplets * 5;
     cudaMemsetAsync(pixelTripletsInGPU.nPixelTriplets, 0, sizeof(unsigned int),stream);
+    cudaMemsetAsync(pixelTripletsInGPU.partOfPT5, 0, maxPixelTriplets*sizeof(bool),stream);
+    cudaStreamSynchronize(stream);
 }
 
 void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int maxPixelTriplets, cudaStream_t stream)
@@ -198,6 +200,7 @@ void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTriplet
 #endif
 #endif
     cudaMemsetAsync(pixelTripletsInGPU.nPixelTriplets, 0, sizeof(unsigned int),stream);
+    cudaMemsetAsync(pixelTripletsInGPU.partOfPT5, 0, maxPixelTriplets*sizeof(bool),stream);
     cudaStreamSynchronize(stream);
 
     pixelTripletsInGPU.eta = pixelTripletsInGPU.pt + maxPixelTriplets;

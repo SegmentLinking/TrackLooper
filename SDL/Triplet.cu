@@ -71,6 +71,11 @@ void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned
 
 
     cudaMemsetAsync(tripletsInGPU.nTriplets,0,nLowerModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(tripletsInGPU.partOfPT5,0,maxTriplets*nLowerModules * sizeof(bool),stream);
+    cudaMemsetAsync(tripletsInGPU.partOfPT3,0,maxTriplets*nLowerModules * sizeof(bool),stream);
+    cudaMemsetAsync(tripletsInGPU.partOfT5,0,maxTriplets*nLowerModules * sizeof(bool),stream);
+    cudaMemsetAsync(tripletsInGPU.partOfExtension,0,maxTriplets*nLowerModules * sizeof(bool),stream);
+    cudaStreamSynchronize(stream);
 }
 void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, unsigned int nLowerModules, cudaStream_t stream)
 {
@@ -107,6 +112,10 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
 #endif
 #endif
     cudaMemsetAsync(tripletsInGPU.nTriplets,0,nLowerModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(tripletsInGPU.partOfPT5,0,maxTriplets*nLowerModules * sizeof(bool),stream);
+    cudaMemsetAsync(tripletsInGPU.partOfPT3,0,maxTriplets*nLowerModules * sizeof(bool),stream);
+    cudaMemsetAsync(tripletsInGPU.partOfT5,0,maxTriplets*nLowerModules * sizeof(bool),stream);
+    cudaMemsetAsync(tripletsInGPU.partOfExtension,0,maxTriplets*nLowerModules * sizeof(bool),stream);
     cudaStreamSynchronize(stream);
  //   tripletsInGPU.lowerModuleIndices = tripletsInGPU.segmentIndices + nLowerModules * maxTriplets *2;
 

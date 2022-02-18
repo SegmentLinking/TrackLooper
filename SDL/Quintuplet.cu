@@ -248,6 +248,9 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
 //    }
 
     cudaMemsetAsync(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(quintupletsInGPU.isDup,0,nMemoryLocations * sizeof(bool),stream);
+    cudaMemsetAsync(quintupletsInGPU.partOfPT5,0,nMemoryLocations * sizeof(bool),stream);
+    cudaStreamSynchronize(stream);
 }
 
 void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& maxQuintuplets, const unsigned int& nLowerModules, const unsigned int& nEligibleModules,cudaStream_t stream)
@@ -292,6 +295,8 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
 #endif
 #endif
     cudaMemsetAsync(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(quintupletsInGPU.isDup,0,nMemoryLocations * sizeof(bool),stream);
+    cudaMemsetAsync(quintupletsInGPU.partOfPT5,0,nMemoryLocations * sizeof(bool),stream);
     cudaStreamSynchronize(stream);
     quintupletsInGPU.eta = quintupletsInGPU.pt + nMemoryLocations;
     quintupletsInGPU.phi = quintupletsInGPU.pt + 2*nMemoryLocations;

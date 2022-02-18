@@ -1194,7 +1194,7 @@ void SDL::Event::createSegmentsWithModuleMap()
     int nonZeroModules = 0;
   #ifdef Explicit_Module
     unsigned int* nMDs;// = (unsigned int*)malloc(nModules*sizeof(unsigned int));
-    cudaMallocHost(&nMDs, (nModules +1)* sizeof(unsigned int));
+    cudaMallocHost(&nMDs, (nLowerModules +1)* sizeof(unsigned int));
     cudaMemcpyAsync((void *)nMDs, mdsInGPU->nMDs, nLowerModules*sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 
     unsigned int* module_nConnectedModules;
@@ -2468,14 +2468,14 @@ SDL::miniDoublets* SDL::Event::getMiniDoublets()
     if(mdsInCPU == nullptr)
     {
         mdsInCPU = new SDL::miniDoublets;
-        unsigned int nMemoryLocations = (N_MAX_MD_PER_MODULES * (nModules - 1) + N_MAX_PIXEL_MD_PER_MODULES);
+        unsigned int nMemoryLocations = (N_MAX_MD_PER_MODULES * (nLowerModules ) + N_MAX_PIXEL_MD_PER_MODULES);
         mdsInCPU->anchorHitIndices = new unsigned int[nMemoryLocations];
         mdsInCPU->outerHitIndices = new unsigned int[nMemoryLocations];
-        mdsInCPU->nMDs = new unsigned int[nModules];
+        mdsInCPU->nMDs = new unsigned int[nLowerModules+1];
         cudaMemcpyAsync(mdsInCPU->anchorHitIndices, mdsInGPU->anchorHitIndices, nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(mdsInCPU->outerHitIndices, mdsInGPU->outerHitIndices, nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 
-        cudaMemcpyAsync(mdsInCPU->nMDs, mdsInGPU->nMDs, nModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(mdsInCPU->nMDs, mdsInGPU->nMDs, (nLowerModules+1) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
     }
     return mdsInCPU;
@@ -2494,9 +2494,9 @@ SDL::segments* SDL::Event::getSegments()
     if(segmentsInCPU == nullptr)
     {
         segmentsInCPU = new SDL::segments;
-        unsigned int nMemoryLocations = (N_MAX_SEGMENTS_PER_MODULE) * (nModules - 1) + N_MAX_PIXEL_SEGMENTS_PER_MODULE;
+        unsigned int nMemoryLocations = (N_MAX_SEGMENTS_PER_MODULE) * (nLowerModules ) + N_MAX_PIXEL_SEGMENTS_PER_MODULE;
         segmentsInCPU->mdIndices = new unsigned int[2 * nMemoryLocations];
-        segmentsInCPU->nSegments = new unsigned int[nModules];
+        segmentsInCPU->nSegments = new unsigned int[nLowerModules+1];
         segmentsInCPU->innerMiniDoubletAnchorHitIndices = new unsigned int[nMemoryLocations];
         segmentsInCPU->outerMiniDoubletAnchorHitIndices = new unsigned int[nMemoryLocations];
         segmentsInCPU->ptIn = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
@@ -2506,7 +2506,7 @@ SDL::segments* SDL::Event::getSegments()
         segmentsInCPU->isQuad = new bool[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
         segmentsInCPU->score = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
         cudaMemcpyAsync(segmentsInCPU->mdIndices, segmentsInGPU->mdIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(segmentsInCPU->nSegments, segmentsInGPU->nSegments, nModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(segmentsInCPU->nSegments, segmentsInGPU->nSegments, (nLowerModules+1) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(segmentsInCPU->innerMiniDoubletAnchorHitIndices, segmentsInGPU->innerMiniDoubletAnchorHitIndices, nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(segmentsInCPU->outerMiniDoubletAnchorHitIndices, segmentsInGPU->outerMiniDoubletAnchorHitIndices, nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(segmentsInCPU->ptIn, segmentsInGPU->ptIn, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost,stream);
