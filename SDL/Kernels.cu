@@ -1018,15 +1018,15 @@ __device__ void checkHitspT3(unsigned int ix, unsigned int jx,struct SDL::miniDo
 {
     int phits1[4] = {-1,-1,-1,-1};
     int phits2[4] = {-1,-1,-1,-1};
-    phits1[0] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[ix]]]];
-    phits1[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[ix]+1]]];
-    phits1[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[ix]]]];
-    phits1[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[ix]+1]]];
+    phits1[0] = pixelTripletsInGPU.hitIndices[10*ix];//hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[ix]]]];
+    phits1[1] = pixelTripletsInGPU.hitIndices[10*ix+1];//hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[ix]+1]]];
+    phits1[2] = pixelTripletsInGPU.hitIndices[10*ix+2];//hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[ix]]]];
+    phits1[3] = pixelTripletsInGPU.hitIndices[10*ix+3];//hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[ix]+1]]];
 
-    phits2[0] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[jx]]]];
-    phits2[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[jx]+1]]];
-    phits2[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[jx]]]];
-    phits2[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[jx]+1]]];
+    phits2[0] = pixelTripletsInGPU.hitIndices[10*jx];//hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[jx]]]];
+    phits2[1] = pixelTripletsInGPU.hitIndices[10*jx+1];//hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[jx]+1]]];
+    phits2[2] = pixelTripletsInGPU.hitIndices[10*jx+2];//hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[jx]]]];
+    phits2[3] = pixelTripletsInGPU.hitIndices[10*jx+3];//hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*pixelTripletsInGPU.pixelSegmentIndices[jx]+1]]];
 
     int npMatched =0;
     for (int i =0; i<4;i++)
@@ -1047,19 +1047,19 @@ __device__ void checkHitspT3(unsigned int ix, unsigned int jx,struct SDL::miniDo
     }
     int hits1[6] = {-1,-1,-1,-1,-1,-1};
     int hits2[6] = {-1,-1,-1,-1,-1,-1};
-    hits1[0] = mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[ix]]]];// outer trip, inner seg, inner md, inner hit
-    hits1[1] = mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[ix]]]];// o t, is, im oh
-    hits1[2] = mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[ix]]+1]]; //ot is om ih
-    hits1[3] = mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[ix]]+1]];
-    hits1[4] = mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[ix]+1]+1]];// ot os om ih
-    hits1[5] = mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[ix]+1]+1]];
+    hits1[0] = pixelTripletsInGPU.hitIndices[10*ix+4];//mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[ix]]]];// outer trip, inner seg, inner md, inner hit
+    hits1[1] = pixelTripletsInGPU.hitIndices[10*ix+5];//mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[ix]]]];// o t, is, im oh
+    hits1[2] = pixelTripletsInGPU.hitIndices[10*ix+6];//mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[ix]]+1]]; //ot is om ih
+    hits1[3] = pixelTripletsInGPU.hitIndices[10*ix+7];//mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[ix]]+1]];
+    hits1[4] = pixelTripletsInGPU.hitIndices[10*ix+8];//mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[ix]+1]+1]];// ot os om ih
+    hits1[5] = pixelTripletsInGPU.hitIndices[10*ix+9];//mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[ix]+1]+1]];
 
-    hits2[0] = mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[jx]]]];// outer trip, inner seg, inner md, inner hit
-    hits2[1] = mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[jx]]]];// o t, is, im oh
-    hits2[2] = mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[jx]]+1]]; //ot is om ih
-    hits2[3] = mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[jx]]+1]];
-    hits2[4] = mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[jx]+1]+1]];// ot os om ih
-    hits2[5] = mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[jx]+1]+1]];
+    hits2[0] = pixelTripletsInGPU.hitIndices[10*jx+4];//mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[jx]]]];// outer trip, inner seg, inner md, inner hit
+    hits2[1] = pixelTripletsInGPU.hitIndices[10*jx+5];//mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[jx]]]];// o t, is, im oh
+    hits2[2] = pixelTripletsInGPU.hitIndices[10*jx+6];//mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[jx]]+1]]; //ot is om ih
+    hits2[3] = pixelTripletsInGPU.hitIndices[10*jx+7];//mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[jx]]+1]];
+    hits2[4] = pixelTripletsInGPU.hitIndices[10*jx+8];//mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[jx]+1]+1]];// ot os om ih
+    hits2[5] = pixelTripletsInGPU.hitIndices[10*jx+9];//mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*pixelTripletsInGPU.tripletIndices[jx]+1]+1]];
 
     int nMatched =0;
     for (int i =0; i<6;i++)
