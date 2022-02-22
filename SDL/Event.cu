@@ -1390,7 +1390,7 @@ void SDL::Event::createTrackCandidates()
     dim3 dupBlocks(1,MAX_BLOCKS,1);
     dim3 nThreads(32,32,1);
     dim3 nBlocks(1,MAX_BLOCKS,1);
-    removeDupQuintupletsInGPU<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU,true,*rangesInGPU);
+    removeDupQuintupletsInGPU<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,true,*rangesInGPU);
     //cudaDeviceSynchronize();
     cudaStreamSynchronize(stream);
     addT5asTrackCandidateInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,*trackCandidatesInGPU,*pixelQuintupletsInGPU,*pixelTripletsInGPU,*rangesInGPU);
@@ -1645,7 +1645,7 @@ cudaStreamSynchronize(stream);
 #ifdef DUP_pT3
     dim3 nThreads_dup(512,1,1);
     dim3 nBlocks_dup(MAX_BLOCKS,1,1);
-    removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup,0,stream>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU,false);
+    removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup,0,stream>>>(*pixelTripletsInGPU,false);
 cudaStreamSynchronize(stream);
 #endif
 
@@ -1747,7 +1747,7 @@ cudaStreamSynchronize(stream);
 #ifdef DUP_T5
     dim3 dupThreads(64,16,1);
     dim3 dupBlocks(1,MAX_BLOCKS,1);
-    removeDupQuintupletsInGPU<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU,false,*rangesInGPU);
+    removeDupQuintupletsInGPU<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,false,*rangesInGPU);
     //cudaDeviceSynchronize();
     cudaStreamSynchronize(stream);
 #endif
@@ -1936,7 +1936,7 @@ cudaStreamSynchronize(stream);
     dim3 nBlocks_dup(MAX_BLOCKS,1,1);
 #ifdef DUP_pT5
     //printf("run dup pT5\n");
-    removeDupPixelQuintupletsInGPUFromMap<<<nBlocks_dup,nThreads_dup,0,stream>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *pixelTripletsInGPU,*tripletsInGPU, *pixelQuintupletsInGPU, *quintupletsInGPU,false);
+    removeDupPixelQuintupletsInGPUFromMap<<<nBlocks_dup,nThreads_dup,0,stream>>>(*pixelQuintupletsInGPU, false);
     cudaError_t cudaerr2 = cudaGetLastError(); 
     if(cudaerr2 != cudaSuccess)
     {
