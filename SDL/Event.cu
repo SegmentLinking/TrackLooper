@@ -146,11 +146,9 @@ SDL::Event::~Event()
         delete[] tripletsInCPU->betaIn;
         delete[] tripletsInCPU->betaOut;
         delete[] tripletsInCPU->pt_beta;
-#ifdef TRACK_EXTENSIONS
         delete[] tripletsInCPU->hitIndices;
         delete[] tripletsInCPU->logicalLayers;
         delete[] tripletsInCPU->lowerModuleIndices;
-#endif
         delete tripletsInCPU;
     }
 #endif
@@ -198,11 +196,9 @@ SDL::Event::~Event()
         delete[] trackCandidatesInCPU->objectIndices;
         delete[] trackCandidatesInCPU->trackCandidateType;
         delete[] trackCandidatesInCPU->nTrackCandidates;
-#ifdef TRACK_EXTENSIONS
         delete[] trackCandidatesInCPU->hitIndices;
         delete[] trackCandidatesInCPU->logicalLayers;
         delete[] trackCandidatesInCPU->partOfExtension;
-#endif
         delete trackCandidatesInCPU;
     }
 #endif
@@ -373,11 +369,9 @@ void SDL::Event::resetEvent()
         delete[] tripletsInCPU->betaIn;
         delete[] tripletsInCPU->betaOut;
         delete[] tripletsInCPU->pt_beta;
-#ifdef TRACK_EXTENSIONS
         delete[] tripletsInCPU->logicalLayers;
         delete[] tripletsInCPU->lowerModuleIndices;
         delete[] tripletsInCPU->hitIndices;
-#endif
         delete tripletsInCPU;
         tripletsInCPU = nullptr;
     }
@@ -428,16 +422,13 @@ void SDL::Event::resetEvent()
         delete[] trackCandidatesInCPU->objectIndices;
         delete[] trackCandidatesInCPU->trackCandidateType;
         delete[] trackCandidatesInCPU->nTrackCandidates;
-#ifdef TRACK_EXTENSIONS
         delete[] trackCandidatesInCPU->logicalLayers;
         delete[] trackCandidatesInCPU->hitIndices;
         delete[] trackCandidatesInCPU->lowerModuleIndices;
-#endif
         delete trackCandidatesInCPU;
         trackCandidatesInCPU = nullptr;
     }
 #endif
-#ifdef TRACK_EXTENSIONS
 #ifdef Explicit_Extensions
     if(trackExtensionsInCPU != nullptr)
     {
@@ -452,7 +443,6 @@ void SDL::Event::resetEvent()
         delete trackExtensionsInCPU;
         trackExtensionsInCPU = nullptr;
     }
-#endif
 #endif
 #ifdef Explicit_Module
     if(modulesInCPU != nullptr)
@@ -1434,7 +1424,6 @@ void SDL::Event::createTrackCandidates()
 #endif
 }
 
-#ifdef TRACK_EXTENSIONS
 void SDL::Event::createExtendedTracks()
 {
     if(trackExtensionsInGPU == nullptr)
@@ -1456,7 +1445,6 @@ void SDL::Event::createExtendedTracks()
     createTrackExtensionsInExplicitMemory(*trackExtensionsInGPU, nTrackCandidates * N_MAX_TRACK_EXTENSIONS_PER_TC, nTrackCandidates, stream); 
 #else
     createTrackExtensionsInUnifiedMemory(*trackExtensionsInGPU, nTrackCandidates * N_MAX_TRACK_EXTENSIONS_PER_TC, nTrackCandidates, stream);
-#endif
 #endif
 
     unsigned int nLowerModules;    
@@ -2541,12 +2529,10 @@ cudaStreamSynchronize(stream);
         tripletsInCPU->betaIn  = new FPX[nMemoryLocations];
         tripletsInCPU->betaOut = new FPX[nMemoryLocations];
         tripletsInCPU->pt_beta = new FPX[nMemoryLocations];
-#ifdef TRACK_EXTENSIONS
         tripletsInCPU->hitIndices = new unsigned int[6 * nMemoryLocations];
         tripletsInCPU->logicalLayers = new uint8_t[3 * nMemoryLocations];
         cudaMemcpyAsync(tripletsInCPU->hitIndices, tripletsInGPU->hitIndices, 6 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
         cudaMemcpyAsync(tripletsInCPU->logicalLayers, tripletsInGPU->logicalLayers, 3 * nMemoryLocations * sizeof(uint8_t), cudaMemcpyDeviceToHost, stream);
-#endif
         cudaMemcpyAsync(tripletsInCPU->segmentIndices, tripletsInGPU->segmentIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(tripletsInCPU->betaIn, tripletsInGPU->betaIn,   nMemoryLocations * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(tripletsInCPU->betaOut, tripletsInGPU->betaOut, nMemoryLocations * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
@@ -2694,7 +2680,6 @@ cudaStreamSynchronize(stream);
 
         trackCandidatesInCPU->objectIndices = new unsigned int[2 * nTrackCandidates];
         trackCandidatesInCPU->trackCandidateType = new short[nTrackCandidates];
-#ifdef TRACK_EXTENSIONS
         trackCandidatesInCPU->partOfExtension = new bool[nTrackCandidates];
         trackCandidatesInCPU->hitIndices = new unsigned int[14 * nTrackCandidates];
         trackCandidatesInCPU->logicalLayers = new uint8_t[7 * nTrackCandidates];
@@ -2702,7 +2687,6 @@ cudaStreamSynchronize(stream);
         cudaMemcpyAsync(trackCandidatesInCPU->partOfExtension, trackCandidatesInGPU->partOfExtension, nTrackCandidates * sizeof(bool), cudaMemcpyDeviceToHost, stream);
         cudaMemcpyAsync(trackCandidatesInCPU->hitIndices, trackCandidatesInGPU->hitIndices, 14 * nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
         cudaMemcpyAsync(trackCandidatesInCPU->logicalLayers, trackCandidatesInGPU->logicalLayers, 7 * nTrackCandidates * sizeof(uint8_t), cudaMemcpyDeviceToHost, stream);
-#endif
         cudaMemcpyAsync(trackCandidatesInCPU->objectIndices, trackCandidatesInGPU->objectIndices, 2 * nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);                                                                                    
         cudaMemcpyAsync(trackCandidatesInCPU->trackCandidateType, trackCandidatesInGPU->trackCandidateType, nTrackCandidates * sizeof(short), cudaMemcpyDeviceToHost,stream);                                                                                                                
 cudaStreamSynchronize(stream);

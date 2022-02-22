@@ -177,7 +177,7 @@ __device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExte
 #endif
 }
 
-#ifdef TRACK_EXTENSIONS
+//#ifdef TRACK_EXTENSIONS
 //SPECIAL DISPENSATION - hitsinGPU will be used here!
 
 __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct quintuplets& quintupletsInGPU, struct pixelTriplets& pixelTripletsInGPU, struct pixelQuintuplets& pixelQuintupletsInGPU, struct trackCandidates& trackCandidatesInGPU, unsigned int anchorObjectIndex, unsigned int outerObjectIndex, short anchorObjectType, short outerObjectType, unsigned int anchorObjectOuterT3Index, unsigned int layerOverlapTarget, short* constituentTCType, unsigned int* constituentTCIndex, unsigned
@@ -360,7 +360,7 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
 
     return pass;
 }
-#endif
+//#endif
 
 __device__ bool SDL::passHighPtRadiusMatch(unsigned int& nLayerOverlaps, unsigned int& nHitOverlaps, unsigned int& layer_binary, float& innerRadius, float& outerRadius)
 {
