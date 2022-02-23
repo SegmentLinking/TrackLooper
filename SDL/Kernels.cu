@@ -1422,7 +1422,7 @@ __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, str
     if(layerOverlap == 0 or layerOverlap >= 3) return;
     if(tcIdx >= *(trackCandidatesInGPU.nTrackCandidates)) return;
     short tcType = trackCandidatesInGPU.trackCandidateType[tcIdx];                                
-    unsigned int outerT3StartingModuleIndex;
+    uint16_t outerT3StartingModuleIndex;
     unsigned int outerT3Index;
     if(tcType == 8) return;
     //FIXME: Need to use staggering modules for the first outer T3 module itself!
@@ -1440,9 +1440,8 @@ __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, str
     }
 
 
-    unsigned int outerT3StartingLowerModuleIndex = outerT3StartingModuleIndex;
-    if(t3ArrayIdx >= tripletsInGPU.nTriplets[outerT3StartingLowerModuleIndex]) return;
-    unsigned int t3Idx =  outerT3StartingLowerModuleIndex * N_MAX_TRIPLETS_PER_MODULE + t3ArrayIdx;
+    if(t3ArrayIdx >= tripletsInGPU.nTriplets[outerT3StartingModuleIndex]) return;
+    unsigned int t3Idx =  outerT3StartingModuleIndex * N_MAX_TRIPLETS_PER_MODULE + t3ArrayIdx;
     short constituentTCType[3];
     unsigned int constituentTCIndex[3];
     unsigned int nLayerOverlaps[2], nHitOverlaps[2];
