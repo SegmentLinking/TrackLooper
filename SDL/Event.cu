@@ -1386,11 +1386,13 @@ void SDL::Event::createTrackCandidates()
 #endif
 
 #ifdef FINAL_T5
-    dim3 dupThreads(64,16,1);
-    dim3 dupBlocks(1,MAX_BLOCKS,1);
+    //dim3 dupThreads(64,16,1);
+    //dim3 dupBlocks(1,MAX_BLOCKS,1);
+    dim3 dupThreads(32,32,1);
+    dim3 dupBlocks(1,1,MAX_BLOCKS);
     dim3 nThreads(32,32,1);
     dim3 nBlocks(1,MAX_BLOCKS,1);
-    removeDupQuintupletsInGPU<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,true,*rangesInGPU);
+    removeDupQuintupletsInGPUv2<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,true,*rangesInGPU);
     //cudaDeviceSynchronize();
     cudaStreamSynchronize(stream);
     addT5asTrackCandidateInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,*trackCandidatesInGPU,*pixelQuintupletsInGPU,*pixelTripletsInGPU,*rangesInGPU);
@@ -1745,8 +1747,10 @@ cudaStreamSynchronize(stream);
     free(indicesOfEligibleModules);
 
 #ifdef DUP_T5
-    dim3 dupThreads(64,16,1);
-    dim3 dupBlocks(1,MAX_BLOCKS,1);
+    dim3 dupThreads(32,32,1);
+    //dim3 dupThreads(64,16,1);
+    //dim3 dupBlocks(1,MAX_BLOCKS,1);
+    dim3 dupBlocks(1,1,MAX_BLOCKS);
     removeDupQuintupletsInGPU<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,false,*rangesInGPU);
     //cudaDeviceSynchronize();
     cudaStreamSynchronize(stream);

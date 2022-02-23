@@ -938,11 +938,14 @@ __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, str
     int nLowerModules = *modulesInGPU.nLowerModules;
     int blockxSize = blockDim.x*gridDim.x;
     int blockySize = blockDim.y*gridDim.y;
-    for(unsigned int lowmod1=blockIdx.y*blockDim.y+threadIdx.y; lowmod1<nLowerModules;lowmod1+=blockySize)
+    int blockzSize = blockDim.z*gridDim.z;
+    for(unsigned int lowmod1=blockIdx.z*blockDim.z+threadIdx.z; lowmod1<nLowerModules;lowmod1+=blockzSize)
+    //for(unsigned int lowmod1=blockIdx.y*blockDim.y+threadIdx.y; lowmod1<nLowerModules;lowmod1+=blockySize)
     {
         int nQuintuplets_lowmod1 = quintupletsInGPU.nQuintuplets[lowmod1];
         int quintupletModuleIndices_lowmod1 = rangesInGPU.quintupletModuleIndices[lowmod1];
-        for(unsigned int ix1=blockIdx.x*blockDim.x+threadIdx.x; ix1<nQuintuplets_lowmod1; ix1+=blockxSize)
+        //for(unsigned int ix1=blockIdx.x*blockDim.x+threadIdx.x; ix1<nQuintuplets_lowmod1; ix1+=blockxSize)
+        for(unsigned int ix1=blockIdx.y*blockDim.y+threadIdx.y; ix1<nQuintuplets_lowmod1; ix1+=blockySize)
         {
             unsigned int ix = quintupletModuleIndices_lowmod1 + ix1;
             if(secondPass && (quintupletsInGPU.partOfPT5[ix] || quintupletsInGPU.isDup[ix]))
@@ -954,10 +957,102 @@ __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, str
             float phi1 = __H2F(quintupletsInGPU.phi[ix]);
             bool isDup = false;
 	    float score_rphisum1 = __H2F(quintupletsInGPU.score_rphisum[ix]);
-            for(unsigned int lowmod=0; lowmod<nLowerModules;lowmod++)
+            //for(unsigned int lowmod=blockIdx.x*blockDim.x+threadIdx.x; lowmod<nLowerModules; lowmod+=blockxSize)
+            //for(unsigned int lowmod=blockIdx.x*blockDim.x+threadIdx.x; lowmod<nLowerModules;lowmod+=blockxSize)
+            for(unsigned int lowmod=blockIdx.z*blockDim.z+threadIdx.z; lowmod<nLowerModules;lowmod+=blockzSize)
+            //for(unsigned int lowmod=0; lowmod<nLowerModules;lowmod++)
             {
 	        int nQuintuplets_lowmod = quintupletsInGPU.nQuintuplets[lowmod];
                 int quintupletModuleIndices_lowmod = rangesInGPU.quintupletModuleIndices[lowmod];
+                for(unsigned int jx1=blockIdx.x*blockDim.x+threadIdx.x; jx1<nQuintuplets_lowmod; jx1+=blockxSize)
+                //for(unsigned int jx1=0; jx1<nQuintuplets_lowmod; jx1++)
+                {
+                    unsigned int jx = quintupletModuleIndices_lowmod + jx1;
+                    if(ix==jx)
+                    {
+                        continue;
+                    }
+                    if(secondPass && (quintupletsInGPU.partOfPT5[jx] || quintupletsInGPU.isDup[jx]))
+                    {
+                        continue;
+                    }
+                    float pt2  = __H2F(quintupletsInGPU.pt[jx]);
+                    float eta2 = __H2F(quintupletsInGPU.eta[jx]);
+                    float phi2 = __H2F(quintupletsInGPU.phi[jx]);
+                    float dEta = fabsf(eta1-eta2);
+                    float dPhi = fabsf(phi1-phi2);
+		    float score_rphisum2 = __H2F(quintupletsInGPU.score_rphisum[jx]);
+                    if (dEta > 0.1f)
+                    {
+                        continue;
+                    }
+                    if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
+                    if (abs(dPhi) > 0.1f){continue;}
+                    float dR2 = dEta*dEta + dPhi*dPhi;
+                    int nMatched = checkHitsT5(ix,jx,quintupletsInGPU);
+                    if(secondPass && (dR2 < 0.001f || nMatched >= 5))
+                    {
+                        if(score_rphisum1 > score_rphisum2 )
+                        {
+                            rmQuintupletToMemory(quintupletsInGPU,ix);
+                            continue;
+                        }
+                        if( (score_rphisum1 == score_rphisum2) && (ix<jx))
+                        {
+                            rmQuintupletToMemory(quintupletsInGPU,ix);
+                            continue;
+                         }
+                    }
+                    if(nMatched >=7)
+                    {
+                        dup_count++;
+                        if( score_rphisum1 > score_rphisum2 )
+                        {
+                            rmQuintupletToMemory(quintupletsInGPU,ix);continue;
+                        }
+                        if( (score_rphisum1 == score_rphisum2) && (ix<jx))
+                        {
+                            rmQuintupletToMemory(quintupletsInGPU,ix);continue;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+__global__ void removeDupQuintupletsInGPUv2(struct SDL::modules& modulesInGPU, struct SDL::quintuplets& quintupletsInGPU,bool secondPass,struct SDL::objectRanges& rangesInGPU)
+{
+    int dup_count=0;
+    int nLowerModules = *modulesInGPU.nLowerModules;
+    int blockxSize = blockDim.x*gridDim.x;
+    int blockySize = blockDim.y*gridDim.y;
+    int blockzSize = blockDim.z*gridDim.z;
+    for(unsigned int lowmod1=blockIdx.z*blockDim.z+threadIdx.z; lowmod1<nLowerModules;lowmod1+=blockzSize)
+    //for(unsigned int lowmod1=blockIdx.y*blockDim.y+threadIdx.y; lowmod1<nLowerModules;lowmod1+=blockySize)
+    {
+        int nQuintuplets_lowmod1 = quintupletsInGPU.nQuintuplets[lowmod1];
+        int quintupletModuleIndices_lowmod1 = rangesInGPU.quintupletModuleIndices[lowmod1];
+        //for(unsigned int ix1=blockIdx.x*blockDim.x+threadIdx.x; ix1<nQuintuplets_lowmod1; ix1+=blockxSize)
+        for(unsigned int ix1=blockIdx.y*blockDim.y+threadIdx.y; ix1<nQuintuplets_lowmod1; ix1+=blockySize)
+        {
+            unsigned int ix = quintupletModuleIndices_lowmod1 + ix1;
+            if(secondPass && (quintupletsInGPU.partOfPT5[ix] || quintupletsInGPU.isDup[ix]))
+            {
+                continue;
+            }
+            float pt1  = __H2F(quintupletsInGPU.pt[ix]);
+            float eta1 = __H2F(quintupletsInGPU.eta[ix]);
+            float phi1 = __H2F(quintupletsInGPU.phi[ix]);
+            bool isDup = false;
+	    float score_rphisum1 = __H2F(quintupletsInGPU.score_rphisum[ix]);
+            //for(unsigned int lowmod=blockIdx.x*blockDim.x+threadIdx.x; lowmod<nLowerModules; lowmod+=blockxSize)
+            for(unsigned int lowmod=blockIdx.x*blockDim.x+threadIdx.x; lowmod<nLowerModules;lowmod+=blockxSize)
+            //for(unsigned int lowmod=blockIdx.z*blockDim.z+threadIdx.z; lowmod<nLowerModules;lowmod+=blockzSize)
+            //for(unsigned int lowmod=0; lowmod<nLowerModules;lowmod++)
+            {
+	        int nQuintuplets_lowmod = quintupletsInGPU.nQuintuplets[lowmod];
+                int quintupletModuleIndices_lowmod = rangesInGPU.quintupletModuleIndices[lowmod];
+                //for(unsigned int jx1=blockIdx.x*blockDim.x+threadIdx.x; jx1<nQuintuplets_lowmod; jx1+=blockxSize)
                 for(unsigned int jx1=0; jx1<nQuintuplets_lowmod; jx1++)
                 {
                     unsigned int jx = quintupletModuleIndices_lowmod + jx1;
