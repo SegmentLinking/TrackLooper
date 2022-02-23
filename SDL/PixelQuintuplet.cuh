@@ -76,15 +76,15 @@ namespace SDL
 
     CUDA_DEV float computePT5RZChiSquared(struct modules& modulesInGPU, uint16_t* lowerModuleIndices, float* rtPix, float* zPix, float* rts, float* zs);
 
-    CUDA_DEV bool passPT5RZChiSquaredCuts(struct modules& modulesInGPU, uint16_t lowerModuleIndex1, uint16_t lowerModuleIndex2, uint16_t lowerModuleIndex3, uint16_t lowerModuleIndex4, uint16_t lowerModuleIndex5, float& rzChiSquared);
+    CUDA_DEV bool passPT5RZChiSquaredCuts(struct modules& modulesInGPU, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared);
 
     CUDA_DEV float computePT5RPhiChiSquared(struct modules& modulesInGPU, uint16_t* lowerModuleIndices, float& g, float& f, float& radius, float* xs, float* ys);
 
     CUDA_DEV float computePT5RPhiChiSquaredInwards(struct modules& modulesInGPU, float& g, float& f, float& r, float* xPix, float* yPix);
 
-    CUDA_DEV bool passPT5RPhiChiSquaredInwardsCuts(struct modules& modulesInGPU, uint16_t lowerModuleIndex1, uint16_t lowerModuleIndex2, uint16_t lowerModuleIndex3, uint16_t lowerModuleIndex4, uint16_t lowerModuleIndex5, float rPhiChiSquared);
+    CUDA_DEV bool passPT5RPhiChiSquaredInwardsCuts(struct modules& modulesInGPU, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float rPhiChiSquared);
 
-    CUDA_DEV bool passPT5RPhiChiSquaredCuts(struct modules& modulesInGPU, uint16_t lowerModuleIndex1, uint16_t lowerModuleIndex2, uint16_t lowerModuleIndex3, uint16_t lowerModuleIndex4, uint16_t lowerModuleIndex5, float rPhiChiSquared);
+    CUDA_DEV bool passPT5RPhiChiSquaredCuts(struct modules& modulesInGPU, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float rPhiChiSquared);
     CUDA_DEV void computeSigmasForRegression_pT5(SDL::modules& modulesInGPU, const uint16_t* lowerModuleIndices, float* delta1, float* delta2, float* slopes, bool* isFlat, int nPoints = 5, bool anchorHits = true);
 
 

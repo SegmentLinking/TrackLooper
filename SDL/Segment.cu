@@ -8,7 +8,7 @@
 void SDL::segments::resetMemory(unsigned int maxSegments, unsigned int nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
 {
     unsigned int nMemoryLocations = maxSegments * nLowerModules + maxPixelSegments;
-    cudaMemsetAsync(mdIndices,0, nMemoryLocations * 4 * sizeof(unsigned int),stream);
+    cudaMemsetAsync(mdIndices,0, nMemoryLocations * 2 * sizeof(unsigned int),stream);
     cudaMemsetAsync(innerLowerModuleIndices,0, nMemoryLocations * 2 * sizeof(uint16_t),stream);
     cudaMemsetAsync(nSegments, 0,(nLowerModules+1) * sizeof(unsigned int),stream);
     cudaMemsetAsync(dPhis, 0,(nMemoryLocations * 6 )*sizeof(FPX),stream);
@@ -23,7 +23,7 @@ void SDL::segments::resetMemory(unsigned int maxSegments, unsigned int nLowerMod
     cudaMemsetAsync(circleRadius, 0,maxPixelSegments * sizeof(float),stream);
     cudaMemsetAsync(partOfPT5, 0,maxPixelSegments * sizeof(bool),stream);
 }
-void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
+void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int maxSegments, uint16_t nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
 {
     //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide
     //extra memory to the pixel segments
@@ -104,7 +104,7 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     cudaStreamSynchronize(stream);
 
 }
-void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, unsigned int nLowerModules, unsigned int maxPixelSegments, cudaStream_t stream)
+void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, uint16_t nLowerModules, unsigned int maxPixelSegments, cudaStream_t stream)
 {
     //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide
     //extra memory to the pixel segments

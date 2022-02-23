@@ -353,7 +353,7 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
     return pass;
 }
 
-__device__ bool SDL::passPT5RPhiChiSquaredCuts(struct modules& modulesInGPU, uint16_t lowerModuleIndex1, uint16_t lowerModuleIndex2, uint16_t lowerModuleIndex3, uint16_t lowerModuleIndex4, uint16_t lowerModuleIndex5, float rPhiChiSquared)
+__device__ bool SDL::passPT5RPhiChiSquaredCuts(struct modules& modulesInGPU, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float rPhiChiSquared)
 {
     const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
     const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
@@ -475,7 +475,7 @@ __device__ bool SDL::passPT5RPhiChiSquaredCuts(struct modules& modulesInGPU, uin
 
 
 
-__device__ bool SDL::passPT5RPhiChiSquaredInwardsCuts(struct modules& modulesInGPU, uint16_t lowerModuleIndex1, uint16_t lowerModuleIndex2, uint16_t lowerModuleIndex3, uint16_t lowerModuleIndex4, uint16_t lowerModuleIndex5, float rPhiChiSquared)
+__device__ bool SDL::passPT5RPhiChiSquaredInwardsCuts(struct modules& modulesInGPU, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float rPhiChiSquared)
 {
     const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
     const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
@@ -611,7 +611,7 @@ __device__ float SDL::computePT5RPhiChiSquared(struct modules& modulesInGPU, uin
     return chiSquared;
 }
 
-__device__ bool SDL::passPT5RZChiSquaredCuts(struct modules& modulesInGPU, uint16_t lowerModuleIndex1, uint16_t lowerModuleIndex2, uint16_t lowerModuleIndex3, uint16_t lowerModuleIndex4, uint16_t lowerModuleIndex5, float& rzChiSquared)
+__device__ bool SDL::passPT5RZChiSquaredCuts(struct modules& modulesInGPU, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared)
 {
     const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
     const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
