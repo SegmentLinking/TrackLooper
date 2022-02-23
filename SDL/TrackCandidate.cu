@@ -63,6 +63,10 @@ void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCand
     cudaMemsetAsync(trackCandidatesInGPU.nTrackCandidatespT5,0, sizeof(unsigned int),stream);
     cudaMemsetAsync(trackCandidatesInGPU.nTrackCandidatespLS,0, sizeof(unsigned int),stream);
     cudaMemsetAsync(trackCandidatesInGPU.partOfExtension, false, maxTrackCandidates * sizeof(bool));
+    cudaMemsetAsync(trackCandidatesInGPU.logicalLayers, 0, 7 * maxTrackCandidates * sizeof(uint8_t), stream);
+    cudaMemsetAsync(trackCandidatesInGPU.lowerModuleIndices, 0, 7 * maxTrackCandidates * sizeof(uint16_t), stream);
+    cudaMemsetAsync(trackCandidatesInGPU.hitIndices, 0, 14 * maxTrackCandidates * sizeof(unsigned int), stream);
+    cudaStreamSynchronize(stream);
 }
 void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates,cudaStream_t stream)
 {
@@ -108,6 +112,9 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     cudaMemsetAsync(trackCandidatesInGPU.nTrackCandidatespT5,0, sizeof(unsigned int));
     cudaMemsetAsync(trackCandidatesInGPU.nTrackCandidatespLS,0, sizeof(unsigned int));
     cudaMemsetAsync(trackCandidatesInGPU.partOfExtension, false, maxTrackCandidates * sizeof(bool));
+    cudaMemsetAsync(trackCandidatesInGPU.logicalLayers, 0, 7 * maxTrackCandidates * sizeof(uint8_t), stream);
+    cudaMemsetAsync(trackCandidatesInGPU.lowerModuleIndices, 0, 7 * maxTrackCandidates * sizeof(uint16_t), stream);
+    cudaMemsetAsync(trackCandidatesInGPU.hitIndices, 0, 14 * maxTrackCandidates * sizeof(unsigned int), stream);
     cudaStreamSynchronize(stream);
 }
 
