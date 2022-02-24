@@ -952,10 +952,9 @@ __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, str
             float phi1 = __H2F(quintupletsInGPU.phi[ix]);
             bool isDup = false;
 	          float score_rphisum1 = __H2F(quintupletsInGPU.score_rphisum[ix]);
-            for(unsigned int lowmod=blockIdx.z*blockDim.z+threadIdx.z; lowmod<nLowerModules;lowmod+=blockzSize)
             {
-	              int nQuintuplets_lowmod = quintupletsInGPU.nQuintuplets[lowmod];
-                int quintupletModuleIndices_lowmod = rangesInGPU.quintupletModuleIndices[lowmod];
+	              int nQuintuplets_lowmod = quintupletsInGPU.nQuintuplets[lowmod1];
+                int quintupletModuleIndices_lowmod = rangesInGPU.quintupletModuleIndices[lowmod1];
                 for(unsigned int jx1=blockIdx.x*blockDim.x+threadIdx.x; jx1<nQuintuplets_lowmod; jx1+=blockxSize)
                 {
                     unsigned int jx = quintupletModuleIndices_lowmod + jx1;
