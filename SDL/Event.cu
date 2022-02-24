@@ -1747,9 +1747,9 @@ cudaStreamSynchronize(stream);
     free(indicesOfEligibleModules);
 
 #ifdef DUP_T5
-    dim3 dupThreads(32,32,1);
     //dim3 dupThreads(64,16,1);
     //dim3 dupBlocks(1,MAX_BLOCKS,1);
+    dim3 dupThreads(32,32,1);
     dim3 dupBlocks(1,1,MAX_BLOCKS);
     removeDupQuintupletsInGPU<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,false,*rangesInGPU);
     //cudaDeviceSynchronize();
