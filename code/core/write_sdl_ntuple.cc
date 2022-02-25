@@ -164,7 +164,6 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<int>>("pT5_score");
 
     //TCE
-#ifdef TRACK_EXTENSIONS
     ana.tx->createBranch<vector<int>>("tce_anchorIndex");
     ana.tx->createBranch<vector<int>>("sim_tce_matched");
     ana.tx->createBranch<vector<vector<int>>>("sim_tce_types");
@@ -210,7 +209,6 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<float>>("T3T3_matched_pt"); 
     ana.tx->createBranch<vector<vector<int>>>("T3T3_hitIdxs");
 #endif
-#endif
 
 #ifdef CUT_VALUE_DEBUG
     createQuadrupletCutValueBranches();
@@ -221,11 +219,9 @@ void createLowerLevelOutputBranches()
     createPixelTripletCutValueBranches();
     createQuintupletCutValueBranches();
     createPixelQuintupletCutValueBranches();
-#ifdef TRACK_EXTENSIONS
     createTrackExtensionCutValueBranches();
 #ifdef T3T3_EXTENSIONS
     createT3T3CutvalueBranches();
-#endif
 #endif
 #endif
 
@@ -1264,12 +1260,10 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
             for (auto &isimtrk : matched_sim_trk_idxs)
             {
                 sim_TC_matched[isimtrk]++;
-#ifdef TRACK_EXTENSIONS
                 if(not trackCandidatesInGPU.partOfExtension[jdx])
                 {
                     sim_TC_matched_nonextended[isimtrk]++;
                 }
-#endif
 
             }
 
@@ -1309,18 +1303,14 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
             }
 
             tc_isFake.push_back(matched_sim_trk_idxs.size() == 0);
-#ifdef TRACK_EXTENSIONS
             tc_partOfExtension.push_back(trackCandidatesInGPU.partOfExtension[jdx]);
-#endif
             tc_pt.push_back(pt);
             tc_eta.push_back(eta);
             tc_phi.push_back(phi);
             tc_matched_simIdx.push_back(matched_sim_trk_idxs);
     }
     ana.tx->setBranch<vector<int>>("sim_TC_matched", sim_TC_matched);
-#ifdef TRACK_EXTENSIONS
     ana.tx->setBranch<vector<int>>("sim_TC_matched_nonextended", sim_TC_matched_nonextended);
-#endif
     ana.tx->setBranch<vector<vector<int>>>("sim_TC_types", sim_TC_types);
 
     vector<int> tc_isDuplicate(tc_matched_simIdx.size());
@@ -1358,16 +1348,13 @@ void fillLowerLevelOutputBranches(SDL::Event* event)
     fillQuintupletOutputBranches(event);
     fillPixelQuintupletOutputBranches(event);
     fillPixelTripletOutputBranches(event);
-#ifdef TRACK_EXTENSIONS
     fillTrackExtensionOutputBranches(event);
     fillPureTrackExtensionOutputBranches(event);
 #ifdef T3T3_EXTENSIONS
     fillT3T3TrackExtensionOutputBranches(event);
 #endif
-#endif
 }
 
-#ifdef TRACK_EXTENSIONS
 #ifdef T3T3_EXTENSIONS
 void fillT3T3TrackExtensionOutputBranches(SDL::Event* event)
 {
@@ -2023,7 +2010,7 @@ void fillTrackExtensionOutputBranches(SDL::Event* event)
     ana.tx->setBranch<vector<int>>("tce_layer_binary", tce_layer_binary);
     ana.tx->setBranch<vector<int>>("tce_anchorType", tce_anchorType);
 }
-#endif
+
 //________________________________________________________________________________________________________________________________
 void fillQuintupletOutputBranches(SDL::Event* event)
 {
