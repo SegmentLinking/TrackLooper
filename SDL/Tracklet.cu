@@ -8,7 +8,7 @@
 CUDA_CONST_VAR float SDL::pt_betaMax = 7.0f;
 
 
-void SDL::createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules,cudaStream_t stream)
+void SDL::createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, uint16_t nLowerModules,cudaStream_t stream)
 {
 
     unsigned int nMemoryLocations = maxTracklets * nLowerModules;
@@ -38,7 +38,6 @@ void SDL::createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsig
     cudaMallocManaged(&trackletsInGPU.rtLo, nMemoryLocations * sizeof(float));
     cudaMallocManaged(&trackletsInGPU.rtHi, nMemoryLocations * sizeof(float));
     cudaMallocManaged(&trackletsInGPU.kZ, nMemoryLocations * sizeof(float));
-
 #endif
 #endif
     trackletsInGPU.rtOut = trackletsInGPU.zOut + nMemoryLocations;
@@ -54,7 +53,7 @@ void SDL::createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsig
 
     cudaMemsetAsync(trackletsInGPU.nTracklets,0,nLowerModules*sizeof(unsigned int),stream);
 }
-void SDL::createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, unsigned int nLowerModules,cudaStream_t stream)
+void SDL::createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, uint16_t nLowerModules,cudaStream_t stream)
 {
 
     unsigned int nMemoryLocations = maxTracklets * nLowerModules;
@@ -258,7 +257,7 @@ void SDL::tracklets::freeMemory()
 //    return pass;
 //}
 
-__device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, unsigned int& innerInnerLowerModuleIndex, unsigned int& innerOuterLowerModuleIndex, unsigned int& outerInnerLowerModuleIndex, unsigned int& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex,
+__device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& innerOuterLowerModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex,
         unsigned int& fourthMDIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& dPhi, float& betaIn, float&
         betaOut, float& pt_beta, float& zLo, float& zHi, float& zLoPointed, float& zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut)
 {
@@ -448,7 +447,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
     return pass;
 }
 
-__device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, unsigned int& innerInnerLowerModuleIndex, unsigned int& innerOuterLowerModuleIndex, unsigned int& outerInnerLowerModuleIndex, unsigned int& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex,
+__device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& innerOuterLowerModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex,
         unsigned int& fourthMDIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& dPhi, float& betaIn, float&
         betaOut, float& pt_beta, float& zLo, float& rtLo, float& rtHi, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ)
 {
@@ -657,7 +656,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
     return pass;
 }
 
-__device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, unsigned int& innerInnerLowerModuleIndex, unsigned int& innerOuterLowerModuleIndex, unsigned int& outerInnerLowerModuleIndex, unsigned int& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex,
+__device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& innerOuterLowerModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex,
         unsigned int& fourthMDIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& dPhi, float& betaIn, float&
         betaOut, float& pt_beta, float& zLo, float& rtLo, float& rtHi, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ)
 {

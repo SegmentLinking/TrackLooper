@@ -30,12 +30,13 @@ void SDL::miniDoublets::resetMemory(unsigned int maxMDsPerModule, unsigned int n
     cudaMemsetAsync(nMDs,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
 }
 
-void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, unsigned int nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
+void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
 {
     unsigned int nMemoryLocations = maxMDsPerModule * nLowerModules + maxPixelMDs;
 #ifdef CACHE_ALLOC
    // cudaStream_t stream=0;
-    mdsInGPU.anchorHitIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * 3 * sizeof(unsigned int), stream);
+    mdsInGPU.anchorHitIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * 2 * sizeof(unsigned int), stream);
+    mdsInGPU.moduleIndices = (uint16_t*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(uint16_t), stream);
     mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_managed((nLowerModules + 1)*sizeof(unsigned int),stream);
     mdsInGPU.dphichanges = (float*)cms::cuda::allocate_managed(nMemoryLocations*9*sizeof(float),stream);
     mdsInGPU.anchorX = (float*)cms::cuda::allocate_managed(nMemoryLocations * 6 * sizeof(float), stream);
@@ -43,7 +44,8 @@ void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int m
     mdsInGPU.outerX = (float*)cms::cuda::allocate_managed(nMemoryLocations * 6 * sizeof(float), stream);
     mdsInGPU.outerHighEdgeX = (float*)cms::cuda::allocate_managed(nMemoryLocations * 4 * sizeof(float), stream);
 #else
-    cudaMallocManaged(&mdsInGPU.anchorHitIndices, nMemoryLocations * 3 * sizeof(unsigned int));
+    cudaMallocManaged(&mdsInGPU.anchorHitIndices, nMemoryLocations * 2 * sizeof(unsigned int));
+    cudaMallocManaged(&mdsInGPU.moduleIndices, nMemoryLocations * sizeof(uint16_t));
     cudaMallocManaged(&mdsInGPU.dphichanges, nMemoryLocations * 9 * sizeof(float));
     cudaMallocManaged(&mdsInGPU.nMDs, (nLowerModules + 1) * sizeof(unsigned int));
     cudaMallocManaged(&mdsInGPU.anchorX, nMemoryLocations * 6 * sizeof(float));
@@ -59,7 +61,6 @@ void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int m
 #endif
 #endif
     mdsInGPU.outerHitIndices = mdsInGPU.anchorHitIndices + nMemoryLocations;
-    mdsInGPU.moduleIndices = mdsInGPU.anchorHitIndices + nMemoryLocations * 2 ;
     mdsInGPU.dzs  = mdsInGPU.dphichanges + nMemoryLocations;
     mdsInGPU.dphis  = mdsInGPU.dphichanges + 2*nMemoryLocations;
     mdsInGPU.shiftedXs  = mdsInGPU.dphichanges + 3*nMemoryLocations;
@@ -93,14 +94,15 @@ void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int m
 
 
 //FIXME:Add memory locations for the pixel MDs here!
-void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, unsigned int nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
+void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
 {
     unsigned int nMemoryLocations = maxMDsPerModule * nLowerModules + maxPixelMDs;
 #ifdef CACHE_ALLOC
 //    cudaStream_t stream=0;
     int dev;
     cudaGetDevice(&dev);
-    mdsInGPU.anchorHitIndices = (unsigned int*)cms::cuda::allocate_device(dev,nMemoryLocations * 3 * sizeof(unsigned int), stream);
+    mdsInGPU.anchorHitIndices = (unsigned int*)cms::cuda::allocate_device(dev,nMemoryLocations * 2 * sizeof(unsigned int), stream);
+    mdsInGPU.moduleIndices = (uint16_t*)cms::cuda::allocate_device(dev, nMemoryLocations * sizeof(uint16_t), stream);
     mdsInGPU.dphichanges = (float*)cms::cuda::allocate_device(dev,nMemoryLocations*9*sizeof(float),stream);
     mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) *sizeof(unsigned int),stream);
     mdsInGPU.anchorX = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * 6 * sizeof(float), stream);
@@ -109,7 +111,8 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     mdsInGPU.outerHighEdgeX = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * 4 * sizeof(float), stream);
 
 #else
-    cudaMalloc(&mdsInGPU.anchorHitIndices, nMemoryLocations * 3 * sizeof(unsigned int));
+    cudaMalloc(&mdsInGPU.anchorHitIndices, nMemoryLocations * 2 * sizeof(unsigned int));
+    cudaMalloc(&mdsInGPU.moduleIndices, nMemoryLocations * sizeof(uint16_t));
     cudaMalloc(&mdsInGPU.dphichanges, nMemoryLocations *9* sizeof(float));
     cudaMalloc(&mdsInGPU.nMDs, (nLowerModules + 1) * sizeof(unsigned int)); 
     cudaMalloc(&mdsInGPU.anchorX, nMemoryLocations * 6 * sizeof(float));
@@ -120,7 +123,6 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     cudaMemsetAsync(mdsInGPU.nMDs,0, (nLowerModules + 1) *sizeof(unsigned int),stream);
     cudaStreamSynchronize(stream);
     mdsInGPU.outerHitIndices = mdsInGPU.anchorHitIndices + nMemoryLocations;
-    mdsInGPU.moduleIndices = mdsInGPU.anchorHitIndices + nMemoryLocations * 2 ;
     mdsInGPU.dzs  = mdsInGPU.dphichanges + nMemoryLocations;
     mdsInGPU.dphis  = mdsInGPU.dphichanges + 2*nMemoryLocations;
     mdsInGPU.shiftedXs  = mdsInGPU.dphichanges + 3*nMemoryLocations;
@@ -152,9 +154,9 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
 }
 
 #ifdef CUT_VALUE_DEBUG
-__device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, unsigned int lowerModuleIdx, float dz, float drt, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, float dzCut, float drtCut, float miniCut, unsigned int idx)
+__device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float drt, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, float dzCut, float drtCut, float miniCut, unsigned int idx)
 #else
-__device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, unsigned int lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
+__device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
 #endif
 {
     //the index into which this MD needs to be written will be computed in the kernel
@@ -194,8 +196,6 @@ __device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& h
     mdsInGPU.dzCuts[idx] = dzCut;
     mdsInGPU.drtCuts[idx] = drtCut;
     mdsInGPU.miniCuts[idx] = miniCut;
-
-//#else
 #endif
 
     mdsInGPU.anchorX[idx] = hitsInGPU.xs[anchorHitIndex];
@@ -221,7 +221,7 @@ __device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& h
     mdsInGPU.outerLowEdgeY[idx] = hitsInGPU.lowEdgeYs[outerHitIndex];
 }
 
-__device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ unsigned int lowerModuleIndex, unsigned int upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noshiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower,float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
+__device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noshiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower,float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
 {
 
     bool pass = true; 
@@ -236,11 +236,7 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
     //but all cuts will be checked even if a previous cut has failed, this is
     //to prevent thread divergence
 
-    if (not (fabsf(dz) < dzCut and invertedcrossercut <= 0)) // Adding inverted crosser rejection
-    {
-        pass = false;
-    }
-
+    pass = pass &  (fabsf(dz) < dzCut and invertedcrossercut <= 0);
     float miniCut = 0;
 
     if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
@@ -261,7 +257,7 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
     {
         // Shift the hits and calculate new xn, yn position
         float shiftedCoords[3];
-        shiftStripHits(modulesInGPU, /*hitsInGPU,*/ lowerModuleIndex, upperModuleIndex, lowerHitIndex, upperHitIndex, shiftedCoords,xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
+        shiftStripHits(modulesInGPU, lowerModuleIndex, upperModuleIndex, lowerHitIndex, upperHitIndex, shiftedCoords,xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
         xn = shiftedCoords[0];
         yn = shiftedCoords[1];
 
@@ -293,11 +289,7 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
         noShiftedDphi = dPhi;
     }
 
-
-    if (not (fabsf(dPhi) < miniCut)) // If cut fails continue
-    {
-        pass = false;
-    }
+    pass = pass & (fabsf(dPhi) < miniCut);
 
     // Cut #3: The dphi change going from lower Hit to upper Hit
     // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3076
@@ -315,8 +307,6 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
 
             dPhiChange = (rtLower < shiftedRt) ? deltaPhiChange(xLower, yLower, zLower, shiftedX, shiftedY, shiftedZ) : deltaPhiChange(shiftedX, shiftedY, shiftedZ, xLower, yLower, zLower); 
             noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange(xLower,yLower, zLower, xUpper, yUpper, zUpper) : deltaPhiChange(xUpper, yUpper, zUpper, xLower, yLower, zLower);
-            //dPhiChange = (hitsInGPU.rts[lowerHitIndex] < shiftedRt) ? deltaPhiChange(xLower, yLower, zLower, shiftedX, shiftedY, shiftedZ) : deltaPhiChange(shiftedX, shiftedY, shiftedZ, xLower, yLower, zLower); 
-            //noShiftedDphiChange = hitsInGPU.rts[lowerHitIndex] < hitsInGPU.rts[upperHitIndex] ? deltaPhiChange(xLower,yLower, zLower, xUpper, yUpper, zUpper) : deltaPhiChange(xUpper, yUpper, zUpper, xLower, yLower, zLower);
         }
         else
         {
@@ -327,8 +317,6 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
 
             dPhiChange = (shiftedRt < rtUpper) ? deltaPhiChange(shiftedX, shiftedY, shiftedZ, xUpper, yUpper, zUpper) : deltaPhiChange(xUpper, yUpper, zUpper, shiftedX, shiftedY, shiftedZ);
             noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange(xLower,yLower, zLower, xUpper, yUpper, zUpper) : deltaPhiChange(xUpper, yUpper, zUpper, xLower, yLower, zLower);
-            //dPhiChange = (shiftedRt < hitsInGPU.rts[upperHitIndex]) ? deltaPhiChange(shiftedX, shiftedY, shiftedZ, xUpper, yUpper, zUpper) : deltaPhiChange(xUpper, yUpper, zUpper, shiftedX, shiftedY, shiftedZ);
-            //noShiftedDphiChange = hitsInGPU.rts[lowerHitIndex] < hitsInGPU.rts[upperHitIndex] ? deltaPhiChange(xLower,yLower, zLower, xUpper, yUpper, zUpper) : deltaPhiChange(xUpper, yUpper, zUpper, xLower, yLower, zLower);
         }
     }
     else
@@ -338,15 +326,12 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
         noShiftedDphiChange = dPhiChange;
     }
 
-    if (not (fabsf(dPhiChange) < miniCut)) // If cut fails continue
-    {
-        pass = false;
-    }
+    pass = pass & (fabsf(dPhiChange) < miniCut);
 
     return pass;
 }
 
-__device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGPU, unsigned int lowerModuleIndex, unsigned int upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noshiftedDz, float& noShiftedDphi, float& noShiftedDphichange,float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
+__device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGPU, uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noshiftedDz, float& noShiftedDphi, float& noShiftedDphichange,float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
 {
 
     bool pass = true; 
@@ -361,19 +346,13 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGP
     dz = zLower - zUpper; // Not const since later it might change depending on the type of module
 
     const float dzCut = ((modulesInGPU.sides[lowerModuleIndex] == Endcap) ?  1.f : 10.f);
-    if (not (fabsf(dz) < dzCut)) // If cut fails continue
-    {
-        pass = false;
-    }
 
+    pass = pass & (fabsf(dz) < dzCut);
     // Cut #2 : drt cut. The dz difference can't be larger than 1cm. (max separation is 4mm for modules in the endcap)
     // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3100
     const float drtCut = modulesInGPU.moduleType[lowerModuleIndex] == PS ? 2.f : 10.f;
     float drt = rtLower - rtUpper;
-    if (not (fabs(drt) < drtCut)) // If cut fails continue
-    {
-        pass = false;
-    }
+    pass = pass & (fabs(drt) < drtCut);
 
     // The new scheme shifts strip hits to be "aligned" along the line of sight from interaction point to the pixel hit (if it is PS modules)
     float xn = 0, yn = 0, zn = 0;
@@ -444,11 +423,7 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGP
         miniCut = dPhiThreshold(rtUpper, modulesInGPU, lowerModuleIndex, dPhi, dz);
     }
 
-    if (not (fabsf(dPhi) < miniCut)) // If cut fails continue
-    {
-        pass = false;
-    }
-
+    pass = pass & (fabsf(dPhi) < miniCut);
     // Cut #4: Another cut on the dphi after some modification
     // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3119-L3124
 
@@ -456,15 +431,12 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGP
     float dzFrac = fabsf(dz) / fabsf(zLower);
     dPhiChange = dPhi / dzFrac * (1.f + dzFrac);
     noShiftedDphichange = noShiftedDphi / dzFrac * (1.f + dzFrac);
-    if (not (fabsf(dPhiChange) < miniCut)) // If cut fails continue
-    {
-        pass = false;
-    }
+    pass = pass & (fabsf(dPhiChange) < miniCut);
 
     return pass;
 }
 
-__device__ bool SDL::runMiniDoubletDefaultAlgo(struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ unsigned int lowerModuleIndex, unsigned int upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
+__device__ bool SDL::runMiniDoubletDefaultAlgo(struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
 {
    bool pass;
    if(modulesInGPU.subdets[lowerModuleIndex] == Barrel)
@@ -479,9 +451,7 @@ __device__ bool SDL::runMiniDoubletDefaultAlgo(struct modules& modulesInGPU, /*s
    return pass;
 }
 
-//#endif
-
-__device__ inline float SDL::dPhiThreshold(/*struct hits& hitsInGPU,*/float rt, struct modules& modulesInGPU, /*unsigned int hitIndex,*/ unsigned int moduleIndex, float dPhi, float dz)
+__device__ inline float SDL::dPhiThreshold(/*struct hits& hitsInGPU,*/float rt, struct modules& modulesInGPU, /*unsigned int hitIndex,*/ uint16_t& moduleIndex, float dPhi, float dz)
 {
     // =================================================================
     // Various constants
@@ -529,7 +499,7 @@ __device__ inline float SDL::dPhiThreshold(/*struct hits& hitsInGPU,*/float rt, 
     }
 }
 
-__device__ inline float SDL::isTighterTiltedModules(struct modules& modulesInGPU, unsigned int moduleIndex)
+__device__ inline float SDL::isTighterTiltedModules(struct modules& modulesInGPU, uint16_t& moduleIndex)
 {
     // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
     // This is the same as what was previously considered as"isNormalTiltedModules"
@@ -552,9 +522,7 @@ __device__ inline float SDL::isTighterTiltedModules(struct modules& modulesInGPU
 
 }
 
-
-
-__device__ inline float SDL::moduleGapSize(struct modules& modulesInGPU, unsigned int moduleIndex)
+__device__ inline float SDL::moduleGapSize(struct modules& modulesInGPU, uint16_t& moduleIndex)
 {
     float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
     float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
@@ -629,7 +597,7 @@ __device__ inline float SDL::moduleGapSize(struct modules& modulesInGPU, unsigne
     return moduleSeparation;
 }
 
-__device__ void SDL::shiftStripHits(struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ unsigned int lowerModuleIndex, unsigned int upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float* shiftedCoords, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
+__device__ void SDL::shiftStripHits(struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float* shiftedCoords, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
 {
 
     // This is the strip shift scheme that is explained in http://uaf-10.t2.ucsd.edu/~phchang/talks/PhilipChang20190607_SDL_Update.pdf (see backup slides)
@@ -878,6 +846,7 @@ void SDL::miniDoublets::freeMemoryCache()
     int dev;
     cudaGetDevice(&dev);
     cms::cuda::free_device(dev,anchorHitIndices);
+    cms::cuda::free_device(dev, moduleIndices);
     cms::cuda::free_device(dev,dphichanges);
     cms::cuda::free_device(dev,nMDs);
     cms::cuda::free_device(dev, anchorX);
@@ -886,6 +855,7 @@ void SDL::miniDoublets::freeMemoryCache()
     cms::cuda::free_device(dev, outerHighEdgeX);
 #else
     cms::cuda::free_managed(anchorHitIndices);
+    cms::cuda::free_managed(moduleIndices);
     cms::cuda::free_managed(dphichanges);
     cms::cuda::free_managed(nMDs);
     cms::cuda::free_managed(anchorX);
@@ -899,6 +869,7 @@ void SDL::miniDoublets::freeMemoryCache()
 void SDL::miniDoublets::freeMemory(cudaStream_t stream)
 {
     cudaFree(anchorHitIndices);
+    cudaFree(moduleIndices);
     cudaFree(nMDs);
     cudaFree(dphichanges);
     cudaFree(anchorX);

@@ -119,21 +119,21 @@ cudaStreamSynchronize(stream);
 }
 
 //TODO:Reuse the track candidate one instead of this!
-void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,struct triplets& tripletsInGPU, unsigned int& nEligibleModules, unsigned int* indicesOfEligibleModules, unsigned int maxQuintuplets, unsigned int& maxTriplets,cudaStream_t stream,struct objectRanges& rangesInGPU)
+void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,struct triplets& tripletsInGPU, uint16_t& nEligibleModules, uint16_t* indicesOfEligibleModules, unsigned int maxQuintuplets, unsigned int& maxTriplets,cudaStream_t stream,struct objectRanges& rangesInGPU)
 {
-    unsigned int nLowerModules;
+    uint16_t nLowerModules;
     maxTriplets = 0;
-    cudaMemcpyAsync(&nLowerModules,modulesInGPU.nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
-    unsigned int nModules;
-    cudaMemcpyAsync(&nModules,modulesInGPU.nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(&nLowerModules,modulesInGPU.nLowerModules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
+
     cudaMemsetAsync(rangesInGPU.quintupletModuleIndices, -1, sizeof(int) * (nLowerModules),stream);
 
     short* module_subdets;
-    cudaMallocHost(&module_subdets, nModules* sizeof(short));
-    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
+    cudaMallocHost(&module_subdets, nLowerModules* sizeof(short));
+    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
     short* module_layers;
-    cudaMallocHost(&module_layers, nModules * sizeof(short));
-    cudaMemcpyAsync(module_layers,modulesInGPU.layers,nModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
+    cudaMallocHost(&module_layers, nLowerModules * sizeof(short));
+    cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
+
     int* module_quintupletModuleIndices;
     cudaMallocHost(&module_quintupletModuleIndices, nLowerModules * sizeof(int));
     cudaMemcpyAsync(module_quintupletModuleIndices,rangesInGPU.quintupletModuleIndices,nLowerModules *sizeof(int),cudaMemcpyDeviceToHost,stream);
@@ -144,22 +144,20 @@ void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,s
 cudaStreamSynchronize(stream);
 
     //start filling
-    for(unsigned int i = 0; i < nLowerModules; i++)
+    for(uint16_t i = 0; i < nLowerModules; i++)
     {
         //condition for a quintuple to exist for a module
         //TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap
-        unsigned int idx = i;//module_lowerModuleIndices[i];
-        if(((module_subdets[idx] == SDL::Barrel and module_layers[idx] < 5) or (module_subdets[idx] == SDL::Endcap and module_layers[idx] == 1)) and nTriplets[i] != 0)
+        if(((module_subdets[i] == SDL::Barrel and module_layers[i] < 5) or (module_subdets[i] == SDL::Endcap and module_layers[i] == 1)) and nTriplets[i] != 0)
         {
             module_quintupletModuleIndices[i] = nEligibleModules * maxQuintuplets;
             indicesOfEligibleModules[nEligibleModules] = i;
             nEligibleModules++;
             maxTriplets = max(nTriplets[i], maxTriplets);
-
         }
     }
     cudaMemcpyAsync(rangesInGPU.quintupletModuleIndices,module_quintupletModuleIndices,nLowerModules*sizeof(int),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(rangesInGPU.nEligibleT5Modules,&nEligibleModules,sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
+    cudaMemcpyAsync(rangesInGPU.nEligibleT5Modules,&nEligibleModules,sizeof(uint16_t),cudaMemcpyHostToDevice,stream);
 cudaStreamSynchronize(stream);
     cudaFreeHost(module_subdets);
     cudaFreeHost(module_layers);
@@ -168,7 +166,7 @@ cudaStreamSynchronize(stream);
 }
 
 
-void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& maxQuintuplets, const unsigned int& nLowerModules, const unsigned int& nEligibleModules, cudaStream_t stream)
+void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& maxQuintuplets, const uint16_t& nLowerModules, const uint16_t& nEligibleModules, cudaStream_t stream)
 {
     unsigned int nMemoryLocations = maxQuintuplets * nEligibleModules;
 //    std::cout<<"Number of eligible T5 modules = "<<nEligibleModules<<std::endl;
@@ -241,7 +239,7 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     cudaStreamSynchronize(stream);
 }
 
-void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& maxQuintuplets, const unsigned int& nLowerModules, const unsigned int& nEligibleModules,cudaStream_t stream)
+void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& maxQuintuplets, const uint16_t& nLowerModules, const uint16_t& nEligibleModules,cudaStream_t stream)
 {
     unsigned int nMemoryLocations = nEligibleModules * maxQuintuplets;
 #ifdef CACHE_ALLOC
@@ -284,18 +282,15 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     cudaStreamSynchronize(stream);
     quintupletsInGPU.eta = quintupletsInGPU.pt + nMemoryLocations;
     quintupletsInGPU.phi = quintupletsInGPU.pt + 2*nMemoryLocations;
-    //quintupletsInGPU.score_rphi = quintupletsInGPU.pt + 3*nMemoryLocations;
-    //quintupletsInGPU.score_rz = quintupletsInGPU.pt + 4*nMemoryLocations;
     quintupletsInGPU.score_rphisum = quintupletsInGPU.pt + 3*nMemoryLocations;
-    //quintupletsInGPU.score_rzlsq = quintupletsInGPU.pt + 6*nMemoryLocations;
 }
 
 
 #ifdef CUT_VALUE_DEBUG
-__device__ void SDL::addQuintupletToMemory(struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerRadius, float innerRadiusMin, float innerRadiusMax, float outerRadius, float outerRadiusMin, float outerRadiusMax, float bridgeRadius, float bridgeRadiusMin, float bridgeRadiusMax,
+__device__ void SDL::addQuintupletToMemory(struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, uint16_t& lowerModule1, uint16_t& lowerModule2, uint16_t& lowerModule3, uint16_t& lowerModule4, uint16_t& lowerModule5, float innerRadius, float innerRadiusMin, float innerRadiusMax, float outerRadius, float outerRadiusMin, float outerRadiusMax, float bridgeRadius, float bridgeRadiusMin, float bridgeRadiusMax,
         float innerRadiusMin2S, float innerRadiusMax2S, float bridgeRadiusMin2S, float bridgeRadiusMax2S, float outerRadiusMin2S, float outerRadiusMax2S, float regressionG, float regressionF, float regressionRadius, float chiSquared, float nonAnchorChiSquared, float pt, float eta, float phi, float scores, uint8_t layer, unsigned int quintupletIndex)
 #else
-__device__ void SDL::addQuintupletToMemory(struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, unsigned int lowerModule1, unsigned int lowerModule2, unsigned int lowerModule3, unsigned int lowerModule4, unsigned int lowerModule5, float innerRadius, float outerRadius, float regressionG, float regressionF, float regressionRadius, float pt, float eta, float phi, float scores, uint8_t layer, unsigned int quintupletIndex)
+__device__ void SDL::addQuintupletToMemory(struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, uint16_t& lowerModule1, uint16_t& lowerModule2, uint16_t& lowerModule3, uint16_t& lowerModule4, uint16_t& lowerModule5, float innerRadius, float outerRadius, float regressionG, float regressionF, float regressionRadius, float pt, float eta, float phi, float scores, uint8_t layer, unsigned int quintupletIndex)
 #endif
 
 {
@@ -360,7 +355,7 @@ __device__ void SDL::rmQuintupletToMemory(struct SDL::quintuplets& quintupletsIn
 
 }
 
-__device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5, unsigned int innerTripletIndex, unsigned int outerTripletIndex, float& innerRadius, float& innerInvRadiusMin, float&
+__device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, unsigned int& innerTripletIndex, unsigned int& outerTripletIndex, float& innerRadius, float& innerInvRadiusMin, float&
     innerInvRadiusMax, float& outerRadius, float& outerInvRadiusMin, float& outerInvRadiusMax, float& bridgeRadius, float& bridgeInvRadiusMin, float& bridgeInvRadiusMax, float& innerRadiusMin2S, float& innerRadiusMax2S, float& bridgeRadiusMin2S, float& bridgeRadiusMax2S, float& outerRadiusMin2S, float& outerRadiusMax2S, float& regressionG, float& regressionF, float& regressionRadius, float& chiSquared, float& nonAnchorChiSquared)
 {
     bool pass = true;
@@ -559,7 +554,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
 }
 
 //90% constraint
-__device__ bool SDL::passChiSquaredConstraint(struct SDL::modules& modulesInGPU, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5, float& chiSquared)
+__device__ bool SDL::passChiSquaredConstraint(struct SDL::modules& modulesInGPU, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& chiSquared)
 {
     //following Philip's layer number prescription
     const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
@@ -689,7 +684,7 @@ __device__ bool SDL::passChiSquaredConstraint(struct SDL::modules& modulesInGPU,
 }
 
 //bounds can be found at http://uaf-10.t2.ucsd.edu/~bsathian/SDL/T5_RZFix/t5_rz_thresholds.txt
-__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, unsigned int lowerModuleIndex1, unsigned int lowerModuleIndex2, unsigned int lowerModuleIndex3, unsigned int lowerModuleIndex4, unsigned int lowerModuleIndex5) 
+__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5) 
 {
     const float& rt1 = mdsInGPU.anchorRt[firstMDIndex];
     const float& rt2 = mdsInGPU.anchorRt[secondMDIndex];

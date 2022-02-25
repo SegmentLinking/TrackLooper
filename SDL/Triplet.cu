@@ -13,7 +13,7 @@ void SDL::triplets::resetMemory(unsigned int maxTriplets, unsigned int nLowerMod
     cudaMemsetAsync(partOfT5,0, maxTriplets * nLowerModules * sizeof(bool));
     cudaMemsetAsync(partOfPT3, 0, maxTriplets * nLowerModules * sizeof(bool));
 }
-void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, unsigned int nLowerModules,cudaStream_t stream)
+void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, uint16_t nLowerModules,cudaStream_t stream)
 {
 #ifdef CACHE_ALLOC
  //   cudaStream_t stream=0;
@@ -56,28 +56,26 @@ void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned
     tripletsInGPU.rtOut = tripletsInGPU.zOut + nLowerModules * maxTriplets;
     tripletsInGPU.deltaPhiPos = tripletsInGPU.zOut + nLowerModules * maxTriplets *2;
     tripletsInGPU.deltaPhi = tripletsInGPU.zOut + nLowerModules * maxTriplets *3;
-
 #endif
 #endif
- //   tripletsInGPU.lowerModuleIndices = tripletsInGPU.segmentIndices + nLowerModules * maxTriplets *2;
     tripletsInGPU.betaOut = tripletsInGPU.betaIn + nLowerModules * maxTriplets ;
     tripletsInGPU.pt_beta = tripletsInGPU.betaIn + nLowerModules * maxTriplets * 2;
-
-
     cudaMemsetAsync(tripletsInGPU.nTriplets,0,nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(tripletsInGPU.partOfPT5,0,maxTriplets*nLowerModules * sizeof(bool),stream);
+#ifdef TRACK_EXTENSIONS
     cudaMemsetAsync(tripletsInGPU.partOfPT3,0,maxTriplets*nLowerModules * sizeof(bool),stream);
     cudaMemsetAsync(tripletsInGPU.partOfT5,0,maxTriplets*nLowerModules * sizeof(bool),stream);
     cudaMemsetAsync(tripletsInGPU.partOfExtension,0,maxTriplets*nLowerModules * sizeof(bool),stream);
+#endif
     cudaStreamSynchronize(stream);
 }
-void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, unsigned int nLowerModules, cudaStream_t stream)
+void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, uint16_t nLowerModules, cudaStream_t stream)
 {
 #ifdef CACHE_ALLOC
     //cudaStream_t stream=0;
     int dev;
     cudaGetDevice(&dev);
-    tripletsInGPU.segmentIndices = (unsigned int*)cms::cuda::allocate_device(dev,maxTriplets * nLowerModules * sizeof(unsigned int) *2/*5*/,stream);
+    tripletsInGPU.segmentIndices = (unsigned int*)cms::cuda::allocate_device(dev,maxTriplets * nLowerModules * sizeof(unsigned int) *2,stream);
     tripletsInGPU.lowerModuleIndices = (uint16_t*)cms::cuda::allocate_device(dev,maxTriplets * nLowerModules * sizeof(uint16_t) *3,stream);
     tripletsInGPU.betaIn = (FPX*)cms::cuda::allocate_device(dev,maxTriplets * nLowerModules * sizeof(FPX) *3,stream);
     tripletsInGPU.nTriplets = (unsigned int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(unsigned int),stream);
@@ -107,17 +105,16 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
     cudaMemsetAsync(tripletsInGPU.partOfT5,0,maxTriplets*nLowerModules * sizeof(bool),stream);
     cudaMemsetAsync(tripletsInGPU.partOfExtension,0,maxTriplets*nLowerModules * sizeof(bool),stream);
     cudaStreamSynchronize(stream);
- //   tripletsInGPU.lowerModuleIndices = tripletsInGPU.segmentIndices + nLowerModules * maxTriplets *2;
 
     tripletsInGPU.betaOut = tripletsInGPU.betaIn + nLowerModules * maxTriplets;
     tripletsInGPU.pt_beta = tripletsInGPU.betaIn + nLowerModules * maxTriplets * 2;
 }
 
 #ifdef CUT_VALUE_DEBUG
-__device__ void SDL::addTripletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float& pt_beta, float& zLo, float& zHi, float& rtLo, float& rtHi, float& zLoPointed, float&
-        zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ, unsigned int tripletIndex)
+__device__ void SDL::addTripletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float& pt_beta, float& zLo, float& zHi, float& rtLo, float& rtHi, float& zLoPointed, float&
+        zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ, unsigned int& tripletIndex)
 #else
-__device__ void SDL::addTripletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, float& betaIn, float& betaOut, float& pt_beta, unsigned int tripletIndex)
+__device__ void SDL::addTripletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, float& betaIn, float& betaOut, float& pt_beta, unsigned int& tripletIndex)
 #endif
 {
     tripletsInGPU.segmentIndices[tripletIndex * 2] = innerSegmentIndex;
@@ -254,7 +251,7 @@ cudaStreamSynchronize(stream);
 }
 
 
-__device__ bool SDL::runTripletDefaultAlgo(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, unsigned int innerInnerLowerModuleIndex, unsigned int middleLowerModuleIndex, unsigned int outerOuterLowerModuleIndex, unsigned int innerSegmentIndex, unsigned int outerSegmentIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float& pt_beta, float &zLo, float& zHi, float& rtLo, float& rtHi,
+__device__ bool SDL::runTripletDefaultAlgo(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float& pt_beta, float &zLo, float& zHi, float& rtLo, float& rtHi,
         float& zLoPointed, float& zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ)
 {
     bool pass = true;
@@ -275,8 +272,7 @@ __device__ bool SDL::runTripletDefaultAlgo(struct modules& modulesInGPU, struct 
     return pass;
 }
 
-
-__device__ bool SDL::passRZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, unsigned int& innerInnerLowerModuleIndex, unsigned int& middleLowerModuleIndex, unsigned int& outerOuterLowerModuleIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex) 
+__device__ bool SDL::passRZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex) 
 {
     //get the rt and z
     const float& r1 = mdsInGPU.anchorRt[firstMDIndex];
@@ -356,7 +352,7 @@ __device__ bool SDL::passRZConstraint(struct SDL::modules& modulesInGPU, struct 
     }
 }
 
-__device__ bool SDL::passPointingConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, unsigned int& innerInnerLowerModuleIndex, unsigned int& middleLowerModuleIndex, unsigned int& outerOuterLowerModuleIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex, float& zOut, float& rtOut)
+__device__ bool SDL::passPointingConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex, float& zOut, float& rtOut)
 {
     short innerInnerLowerModuleSubdet = modulesInGPU.subdets[innerInnerLowerModuleIndex];
     short middleLowerModuleSubdet = modulesInGPU.subdets[middleLowerModuleIndex];
@@ -394,7 +390,7 @@ __device__ bool SDL::passPointingConstraint(struct SDL::modules& modulesInGPU, s
     return pass;
 }
 
-__device__ bool SDL::passPointingConstraintBBB(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, unsigned int& innerInnerLowerModuleIndex, unsigned int& middleLowerModuleIndex, unsigned int& outerOuterLowerModuleIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex, float& zOut, float& rtOut)
+__device__ bool SDL::passPointingConstraintBBB(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex, float& zOut, float& rtOut)
 {
     bool pass = true;
     bool isPSIn = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
@@ -450,7 +446,7 @@ __device__ bool SDL::passPointingConstraintBBB(struct SDL::modules& modulesInGPU
     return pass;
 }
 
-__device__ bool SDL::passPointingConstraintBBE(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, unsigned int& innerInnerLowerModuleIndex, unsigned int& middleLowerModuleIndex, unsigned int& outerOuterLowerModuleIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex, float& zOut, float& rtOut)
+__device__ bool SDL::passPointingConstraintBBE(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex, float& zOut, float& rtOut)
 {
     bool pass = true;
     unsigned int outerInnerLowerModuleIndex = middleLowerModuleIndex;
@@ -524,8 +520,7 @@ __device__ bool SDL::passPointingConstraintBBE(struct SDL::modules& modulesInGPU
     return pass;
 }
 
-
-__device__ bool SDL::passPointingConstraintEEE(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, unsigned int& innerInnerLowerModuleIndex, unsigned int& middleLowerModuleIndex, unsigned int& outerOuterLowerModuleIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex, float& zOut, float& rtOut)
+__device__ bool SDL::passPointingConstraintEEE(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex, float& zOut, float& rtOut)
 {
     bool pass = true;
     bool isPSIn = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
@@ -603,14 +598,3 @@ __device__ bool SDL::passPointingConstraintEEE(struct SDL::modules& modulesInGPU
 
     return pass;
 }
-
-__device__ bool SDL::hasCommonMiniDoublet(struct segments& segmentsInGPU, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex)
-{
-
-    if(segmentsInGPU.mdIndices[innerSegmentIndex * 2 + 1] == segmentsInGPU.mdIndices[outerSegmentIndex * 2])
-    {
-        return true;
-    }
-    else return false;
-}
-
