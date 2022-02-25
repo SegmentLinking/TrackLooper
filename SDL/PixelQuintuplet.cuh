@@ -35,7 +35,6 @@ namespace SDL
         FPX* score;
         FPX* eta;
         FPX* phi;
-#ifdef TRACK_EXTENSIONS
         //for track extensions
         uint8_t* logicalLayers;
         unsigned int* hitIndices;
@@ -44,7 +43,6 @@ namespace SDL
         FPX* quintupletRadius;
         FPX* centerX;
         FPX* centerY;
-#endif
 #ifdef CUT_VALUE_DEBUG
         float* rzChiSquared;
         float* rPhiChiSquared;

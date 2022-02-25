@@ -23,7 +23,6 @@ usage()
   echo "  -i    input eff ntuple       (e.g. -i /path/to/my/eff_ntuple.root (this is the output from sdl binary))"
   echo "  -p    pt boundaries          (Pt bin boundary settings see below for more detail)"
   echo "  -g    pdgid for denom tracks (e.g. -g 13 for muon or -g 0 for all charged particle)"
-  echo "  -e    do extensions"
   echo "  -3    do t3t3 extensions"
   echo "-n Number of events (Default : all events)"
   echo ""
@@ -45,7 +44,6 @@ while getopts ":i:p:g:n:fe3h" OPTION; do
     g) PDGID=${OPTARG};;
     f) FORCE=true;;
     n) NEVTS=${OPTARG};; 
-    e) TRACKEXTENSION=true;;
     3) T3T3EXTENSION=true;; 
     h) usage;;
     :) usage;;
@@ -58,7 +56,6 @@ if [ -z ${PTBOUND}  ]; then usage; fi
 if [ -z ${PDGID} ]; then usage; fi
 if [ -z ${FORCE} ]; then FORCE=false; fi
 if [ -z ${NEVTS} ]; then NEVTS=-1; fi 
-if [ -z ${TRACKEXTENSION} ]; then TRACKEXTENSION=false; fi
 if [ -z ${T3T3EXTENSION} ]; then T3T3EXTENSION=false; fi
 # Shift away the parsed options
 shift $(($OPTIND - 1))
@@ -73,7 +70,6 @@ echo "  PTBOUND           : ${PTBOUND}"
 echo "  PDGID             : ${PDGID}"
 echo "  NEVTS             : ${NEVTS}"
 echo "  FORCE             : ${FORCE}"
-echo "  TRACKEXTENSION    : ${TRACKEXTENSION}"
 echo "  T3T3EXTENSION     : ${T3T3EXTENSION}"
 echo ""
 
@@ -199,19 +195,14 @@ NJOBS=16
 rm -rf outputs/
 mkdir -p outputs/
 
-TRACKEXTENSIONOPT=
-if $TRACKEXTENSION; then
-    TRACKEXTENSIONOPT="TRACKEXTENSION=-DTRACK_EXTENSIONS"
-fi
 T3T3EXTENSIONOPT=
 if $T3T3EXTENSION; then
-    TRACKEXTENSIONOPT="TRACKEXTENSION=-DTRACK_EXTENSIONS"
     T3T3EXTENSIONOPT="T3T3EXTENSION=-DT3T3_EXTENSIONS"
 fi
 
 
 pushd $DIR/../
-make clean; make ${TRACKEXTENSIONOPT} ${T3T3EXTENSIONOPT} -j; cd -
+make clean; make ${T3T3EXTENSIONOPT} -j; cd -
 popd
 
 for i in $(seq 0 $((NJOBS-1))); do
