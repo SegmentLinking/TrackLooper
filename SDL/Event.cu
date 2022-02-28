@@ -1434,12 +1434,16 @@ void SDL::Event::createExtendedTracks()
     /* extremely naive way - 3D grid
      * most of the threads launched here will exit without running
      */
-    dim3 nThreads(256,4,1);
-    //dim3 nThreads(16,4,4);
+//    dim3 nThreads(256,4,1);
+//    dim3 nThreads(16,4,4);
 //    unsigned int maxT3s = *std::max_element(nTriplets, nTriplets + nLowerModules); 
 //    unsigned int nOverlaps = 3;
-    dim3 nBlocks(1,80,1); 
-    //dim3 nBlocks(nTrackCandidates % nThreads.x == 0 ? nTrackCandidates / nThreads.x : nTrackCandidates / nThreads.x + 1, maxT3s % nThreads.y == 0 ? maxT3s / nThreads.y : maxT3s / nThreads.y + 1, nOverlaps % nThreads.z == 0 ? nOverlaps / nThreads.z : nOverlaps / nThreads.z + 1);
+//    dim3 nBlocks(1,80,1); 
+    dim3 nThreads(32,1,16);
+    dim3 nBlocks(80,1,200); 
+    //dim3 nThreads(32,16,1);
+    //dim3 nBlocks(80,200,1); 
+//    dim3 nBlocks(nTrackCandidates % nThreads.x == 0 ? nTrackCandidates / nThreads.x : nTrackCandidates / nThreads.x + 1, maxT3s % nThreads.y == 0 ? maxT3s / nThreads.y : maxT3s / nThreads.y + 1, nOverlaps % nThreads.z == 0 ? nOverlaps / nThreads.z : nOverlaps / nThreads.z + 1);
     createExtendedTracksInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
 
     cudaError_t cudaerr = cudaGetLastError();
@@ -1473,6 +1477,7 @@ void SDL::Event::createExtendedTracks()
     }cudaStreamSynchronize(stream);
 
  //   cudaFreeHost(nTriplets); 
+    cudaDeviceSynchronize();
 }
 #endif
 

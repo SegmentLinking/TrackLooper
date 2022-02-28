@@ -1532,15 +1532,17 @@ __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, str
     //int layerOverlap = blockIdx.z * blockDim.z + threadIdx.z;
     //layerOverlap
     //if(layerOverlap == 0 or layerOverlap >= 3) return;
-    for(int layerOverlap = 1+blockIdx.z*blockDim.z+threadIdx.z; layerOverlap < 3; layerOverlap+= blockDim.z*gridDim.z){
+    //for(int layerOverlap = 1+blockIdx.z*blockDim.z+threadIdx.z; layerOverlap < 3; layerOverlap+= blockDim.z*gridDim.z){
     //if(tcIdx >= *(trackCandidatesInGPU.nTrackCandidates)) return;
-    for(int tcIdx = blockIdx.y*blockDim.y+threadIdx.y; tcIdx < *(trackCandidatesInGPU.nTrackCandidates); tcIdx+= blockDim.y*gridDim.y){
+    for(int tcIdx = blockIdx.z*blockDim.z+threadIdx.z; tcIdx < *(trackCandidatesInGPU.nTrackCandidates); tcIdx+= blockDim.z*gridDim.z){
+    //for(int tcIdx = blockIdx.y*blockDim.y+threadIdx.y; tcIdx < *(trackCandidatesInGPU.nTrackCandidates); tcIdx+= blockDim.y*gridDim.y){
     short tcType = trackCandidatesInGPU.trackCandidateType[tcIdx];                                
     uint16_t outerT3StartingModuleIndex;
     unsigned int outerT3Index;
     if(tcType == 8) continue;//return;
+    for(int layerOverlap = 1+blockIdx.y*blockDim.y+threadIdx.y; layerOverlap < 3; layerOverlap+= blockDim.y*gridDim.y){
     //FIXME: Need to use staggering modules for the first outer T3 module itself!
-    else if(tcType == 7 or tcType == 4)
+    if(tcType == 7 or tcType == 4)
     {
         unsigned int outerT5Index = trackCandidatesInGPU.objectIndices[2 * tcIdx + 1];
         outerT3Index = quintupletsInGPU.tripletIndices[2 * outerT5Index];
