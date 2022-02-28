@@ -1425,26 +1425,28 @@ void SDL::Event::createExtendedTracks()
     createTrackExtensionsInUnifiedMemory(*trackExtensionsInGPU, nTrackCandidates * N_MAX_TRACK_EXTENSIONS_PER_TC, nTrackCandidates, stream);
 #endif
 
-    uint16_t nLowerModules;    
-    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(uint16_t),cudaMemcpyDeviceToHost);
-    
-    unsigned int *nTriplets;
-    cudaMallocHost(&nTriplets, nLowerModules * sizeof(unsigned int));
-    cudaMemcpy(nTriplets, tripletsInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+//    uint16_t nLowerModules;    
+//    cudaMemcpy(&nLowerModules,modulesInGPU->nLowerModules,sizeof(uint16_t),cudaMemcpyDeviceToHost);
+//    
+//    unsigned int *nTriplets;
+//    cudaMallocHost(&nTriplets, nLowerModules * sizeof(unsigned int));
+//    cudaMemcpy(nTriplets, tripletsInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost);
     /* extremely naive way - 3D grid
      * most of the threads launched here will exit without running
      */
-    dim3 nThreads(16,4,4);
-    unsigned int maxT3s = *std::max_element(nTriplets, nTriplets + nLowerModules); 
-    unsigned int nOverlaps = 3;
-    dim3 nBlocks(nTrackCandidates % nThreads.x == 0 ? nTrackCandidates / nThreads.x : nTrackCandidates / nThreads.x + 1, maxT3s % nThreads.y == 0 ? maxT3s / nThreads.y : maxT3s / nThreads.y + 1, nOverlaps % nThreads.z == 0 ? nOverlaps / nThreads.z : nOverlaps / nThreads.z + 1);
+    dim3 nThreads(256,4,1);
+    //dim3 nThreads(16,4,4);
+//    unsigned int maxT3s = *std::max_element(nTriplets, nTriplets + nLowerModules); 
+//    unsigned int nOverlaps = 3;
+    dim3 nBlocks(1,80,1); 
+    //dim3 nBlocks(nTrackCandidates % nThreads.x == 0 ? nTrackCandidates / nThreads.x : nTrackCandidates / nThreads.x + 1, maxT3s % nThreads.y == 0 ? maxT3s / nThreads.y : maxT3s / nThreads.y + 1, nOverlaps % nThreads.z == 0 ? nOverlaps / nThreads.z : nOverlaps / nThreads.z + 1);
     createExtendedTracksInGPU<<<nBlocks,nThreads>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
 
-    cudaError_t cudaerr = cudaDeviceSynchronize();
+    cudaError_t cudaerr = cudaGetLastError();
     if(cudaerr != cudaSuccess)
     {
 	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-    }
+    }cudaStreamSynchronize(stream);
 
 #ifdef T3T3_EXTENSIONS
     dim3 nThreadsT3T3(1,16,16);
@@ -1464,13 +1466,13 @@ void SDL::Event::createExtendedTracks()
 
     cleanDuplicateExtendedTracks<<<nThreadsDupCleaning, nBlocksDupCleaning>>>(*trackExtensionsInGPU, nTrackCandidates);
 
-    cudaerr = cudaDeviceSynchronize();
+    cudaerr = cudaGetLastError();
     if(cudaerr != cudaSuccess)
     {
 	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-    }
+    }cudaStreamSynchronize(stream);
 
-    cudaFreeHost(nTriplets); 
+ //   cudaFreeHost(nTriplets); 
 }
 #endif
 
