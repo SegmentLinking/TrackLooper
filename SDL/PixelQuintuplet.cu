@@ -3,6 +3,7 @@
 #endif
 # include "PixelQuintuplet.cuh"
 #include "allocate.h"
+#include "Kernels.cuh"
 
 SDL::pixelQuintuplets::pixelQuintuplets()
 {
@@ -260,7 +261,7 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
     
     unsigned int pixelModuleIndex = segmentsInGPU.innerLowerModuleIndices[pixelSegmentIndex];
 
-    unsigned int pixelSegmentArrayIndex = pixelSegmentIndex - (600 * pixelModuleIndex);
+    unsigned int pixelSegmentArrayIndex = pixelSegmentIndex - (N_MAX_SEGMENTS_PER_MODULE * pixelModuleIndex);
 
     unsigned int T5InnerT3Index = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
     unsigned int T5OuterT3Index = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
