@@ -43,7 +43,7 @@ const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
 
 
 const unsigned int N_MAX_TRIPLETS_PER_MODULE = 1170;
-const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 1026;
+const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 513;
 const unsigned int N_MAX_PIXEL_TRIPLETS = 5000;
 const unsigned int N_MAX_PIXEL_QUINTUPLETS = 15000;
 const unsigned int N_MAX_TOTAL_TRIPLETS = 200000;
