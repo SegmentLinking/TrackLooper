@@ -1527,18 +1527,14 @@ __global__ void createT3T3ExtendedTracksInGPU(struct SDL::modules& modulesInGPU,
 
 __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::trackExtensions& trackExtensionsInGPU)
 {
-    int tcIdx = blockIdx.x * blockDim.x + threadIdx.x;
-    int t3ArrayIdx = blockIdx.y * blockDim.y + threadIdx.y;
-    int layerOverlap = blockIdx.z * blockDim.z + threadIdx.z;
-    //layerOverlap
-    if(layerOverlap == 0 or layerOverlap >= 3) return;
-    if(tcIdx >= *(trackCandidatesInGPU.nTrackCandidates)) return;
+    for(int tcIdx = blockIdx.z*blockDim.z+threadIdx.z; tcIdx < *(trackCandidatesInGPU.nTrackCandidates); tcIdx+= blockDim.z*gridDim.z){
     short tcType = trackCandidatesInGPU.trackCandidateType[tcIdx];                                
     uint16_t outerT3StartingModuleIndex;
     unsigned int outerT3Index;
-    if(tcType == 8) return;
+    if(tcType == 8) continue;//return;
+    for(int layerOverlap = 1+blockIdx.y*blockDim.y+threadIdx.y; layerOverlap < 3; layerOverlap+= blockDim.y*gridDim.y){
     //FIXME: Need to use staggering modules for the first outer T3 module itself!
-    else if(tcType == 7 or tcType == 4)
+    if(tcType == 7 or tcType == 4)
     {
         unsigned int outerT5Index = trackCandidatesInGPU.objectIndices[2 * tcIdx + 1];
         outerT3Index = quintupletsInGPU.tripletIndices[2 * outerT5Index];
@@ -1552,7 +1548,8 @@ __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, str
     }
 
 
-    if(t3ArrayIdx >= tripletsInGPU.nTriplets[outerT3StartingModuleIndex]) return;
+    //if(t3ArrayIdx >= tripletsInGPU.nTriplets[outerT3StartingModuleIndex]) return;
+    for(int t3ArrayIdx = blockIdx.x*blockDim.x+threadIdx.x; t3ArrayIdx < tripletsInGPU.nTriplets[outerT3StartingModuleIndex]; t3ArrayIdx+= blockDim.x*gridDim.x){
     unsigned int t3Idx =  outerT3StartingModuleIndex * N_MAX_TRIPLETS_PER_MODULE + t3ArrayIdx;
     short constituentTCType[3];
     unsigned int constituentTCIndex[3];
@@ -1583,7 +1580,7 @@ __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, str
             trackCandidatesInGPU.partOfExtension[tcIdx] = true;
             tripletsInGPU.partOfExtension[t3Idx] = true;
         }
-    }
+    }}}}
 }
 
 __global__ void cleanDuplicateExtendedTracks(struct SDL::trackExtensions& trackExtensionsInGPU, unsigned int nTrackCandidates)
