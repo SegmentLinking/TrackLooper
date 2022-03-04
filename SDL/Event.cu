@@ -1216,14 +1216,14 @@ cudaStreamSynchronize(stream);
     for (uint16_t innerLowerModuleIndex =0; innerLowerModuleIndex <nLowerModules; innerLowerModuleIndex++) 
     {
         uint16_t nConnectedModules = modulesInGPU->nConnectedModules[innerLowerModuleIndex];
-        unsigned int nInnerMDs = nMDs[innerLowerModuleIndex] > N_MAX_MD_PER_MODULES ? N_MAX_MD_PER_MODULES : nMDs[innerLowerModuleIndex];
+        unsigned int nInnerMDs = nMDs[innerLowerModuleIndex];
         max_cModules = max(max_cModules, nConnectedModules); 
         int limit_local = 0;
         if (nConnectedModules!=0) nonZeroModules++;
         for (uint16_t j=0; j<nConnectedModules; j++) 
         {
             uint16_t outerLowerModuleIndex = modulesInGPU->moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + j];
-            int nOuterMDs = nMDs[outerLowerModuleIndex] > N_MAX_MD_PER_MODULES ? N_MAX_MD_PER_MODULES : nMDs[outerLowerModuleIndex];
+            int nOuterMDs = nMDs[outerLowerModuleIndex];
             int total = nInnerMDs*nOuterMDs;
             limit_local = limit_local > total ? limit_local : total;
         }
@@ -1300,7 +1300,7 @@ void SDL::Event::createTriplets()
     for (uint16_t innerLowerModuleIndex = 0; innerLowerModuleIndex < nLowerModules; innerLowerModuleIndex++) 
     {
         uint16_t nConnectedModules = modulesInGPU->nConnectedModules[innerLowerModuleIndex];
-        unsigned int nInnerSegments = nSegments[innerLowerModuleIndex] > N_MAX_SEGMENTS_PER_MODULE ? N_MAX_SEGMENTS_PER_MODULE : nSegments[innerLowerModuleIndex];
+        unsigned int nInnerSegments = nSegments[innerLowerModuleIndex];
         if (nConnectedModules != 0 and nInnerSegments != 0) 
         {
             index[nonZeroModules] = innerLowerModuleIndex;
@@ -1312,7 +1312,6 @@ void SDL::Event::createTriplets()
     cudaMemcpyAsync(index_gpu, index, nonZeroModules*sizeof(uint16_t), cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
 
-    unsigned int max_OuterSeg = N_MAX_SEGMENTS_PER_MODULE;
     dim3 nThreads(16,64,1);
     dim3 nBlocks(1,1,MAX_BLOCKS);
     createTripletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, index_gpu,nonZeroModules);
@@ -1657,8 +1656,7 @@ cudaStreamSynchronize(stream);
     for (int i=0; i<nEligibleT5Modules; i++) 
     {
         int index = indicesOfEligibleModules[i];
-        unsigned int nInnerTriplets = min(nTriplets[index], N_MAX_TRIPLETS_PER_MODULE);
-//        if (nInnerTriplets > N_MAX_TRIPLETS_PER_MODULE) nInnerTriplets = N_MAX_TRIPLETS_PER_MODULE;
+        unsigned int nInnerTriplets = nTriplets[index];
         if (nInnerTriplets !=0) 
         {
             for (int j=0; j<nInnerTriplets; j++) 
@@ -1776,7 +1774,6 @@ void SDL::Event::createPixelQuintuplets()
     pixelModuleIndex = nLowerModules;
     unsigned int nInnerSegments = 0;
     cudaMemcpyAsync(&nInnerSegments, &(segmentsInGPU->nSegments[pixelModuleIndex]), sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-    nInnerSegments = std::min(nInnerSegments, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
 
 
     cudaMallocHost(&connectedPixelSize_host, nInnerSegments* sizeof(unsigned int));

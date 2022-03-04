@@ -2353,7 +2353,7 @@ void fillPixelTripletOutputBranches(SDL::Event* event)
 
     const unsigned int N_MAX_PIXEL_TRIPLETS = 5000;
 
-    unsigned int nPixelTriplets = std::min(*(pixelTripletsInGPU.nPixelTriplets), N_MAX_PIXEL_TRIPLETS);
+    unsigned int nPixelTriplets = *(pixelTripletsInGPU.nPixelTriplets);
 
     for(unsigned int jdx = 0; jdx < nPixelTriplets; jdx++)
     {
@@ -2586,7 +2586,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
     std::vector<float> pT5_simpt;
 #endif
     const unsigned int N_MAX_PIXEL_QUINTUPLETS = 15000;
-    unsigned int nPixelQuintuplets = std::min(*(pixelQuintupletsInGPU.nPixelQuintuplets), N_MAX_PIXEL_QUINTUPLETS);
+    unsigned int nPixelQuintuplets = *(pixelQuintupletsInGPU.nPixelQuintuplets);
 
     for(unsigned int jdx = 0; jdx < nPixelQuintuplets; jdx++)
     {
@@ -2846,7 +2846,7 @@ void fillPixelLineSegmentOutputBranches(SDL::Event* event)
     const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000; 
     const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
     unsigned int pixelModuleIndex = *(modulesInGPU.nLowerModules);
-    unsigned int nPixelSegments = std::min(segmentsInGPU.nSegments[pixelModuleIndex], N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+    unsigned int nPixelSegments = segmentsInGPU.nSegments[pixelModuleIndex];
     for(unsigned int jdx = 0; jdx < nPixelSegments; jdx++)
     {
         if(segmentsInGPU.isDup[jdx]) {continue;}
