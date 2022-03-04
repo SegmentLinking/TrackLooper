@@ -30,9 +30,32 @@ void SDL::miniDoublets::resetMemory(unsigned int maxMDsPerModule, unsigned int n
     cudaMemsetAsync(nMDs,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
 }
 
-void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
+
+void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, uint16_t& nLowerModules, unsigned int& nTotalMDs, cudaStream_t stream, const unsigned int& maxMDsPerModule, const unsigned int& maxPixelMDs)
 {
-    unsigned int nMemoryLocations = maxMDsPerModule * nLowerModules + maxPixelMDs;
+    /*
+        write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!*/
+
+    unsigned int *module_miniDoubletModuleIndices;
+    cudaMallocHost(&module_miniDoubletModuleIndices, (nLowerModules + 1) * sizeof(unsigned int));
+    module_miniDoubletModuleIndices[0] = 0;
+    nTotalMDs = maxMDsPerModule; //start!   
+    for(uint16_t i = 1; i <= nLowerModules; i++)
+    {
+        module_miniDoubletModuleIndices[i] = nTotalMDs; //running counter - we start at the previous index!
+
+        unsigned int occupancy = maxMDsPerModule; //placeholder! this will change from module to module
+        if(i == nLowerModules)
+        {
+            occupancy = maxPixelMDs;
+        }
+        nTotalMDs += occupancy;
+    }
+    cudaMemcpyAsync(rangesInGPU.miniDoubletModuleIndices, &module_miniDoubletModuleIndices,  (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+}
+
+void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
+{
 #ifdef CACHE_ALLOC
    // cudaStream_t stream=0;
     mdsInGPU.anchorHitIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * 2 * sizeof(unsigned int), stream);
@@ -92,11 +115,9 @@ void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int m
     cudaStreamSynchronize(stream);
 }
 
-
 //FIXME:Add memory locations for the pixel MDs here!
-void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
+void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
 {
-    unsigned int nMemoryLocations = maxMDsPerModule * nLowerModules + maxPixelMDs;
 #ifdef CACHE_ALLOC
 //    cudaStream_t stream=0;
     int dev;

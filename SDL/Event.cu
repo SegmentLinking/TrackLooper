@@ -1070,16 +1070,26 @@ void SDL::Event::addSegmentsToEventExplicit()
 void SDL::Event::createMiniDoublets()
 {
     uint16_t nLowerModules;
+
+
     cudaMemcpyAsync(&nLowerModules,modulesInGPU->nLowerModules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
     cudaStreamSynchronize(stream);
+
+    //hardcoded range numbers for this will come from studies!
+    unsigned int nTotalMDs;
+    createMDArrayRanges(*modulesInGPU, *rangesInGPU, nLowerModules, nTotalMDs, stream, N_MAX_MD_PER_MODULES, N_MAX_PIXEL_MD_PER_MODULES);
+
     if(mdsInGPU == nullptr)
     {
         cudaMallocHost(&mdsInGPU, sizeof(SDL::miniDoublets));
 #ifdef Explicit_MD
         //FIXME: Add memory locations for pixel MDs
-    	createMDsInExplicitMemory(*mdsInGPU, N_MAX_MD_PER_MODULES, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES,stream);
+        createMDsInExplicitMemory(*mdsInGPU, nTotalMDs, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES, stream);
+
+    	//createMDsInExplicitMemory(*mdsInGPU, N_MAX_MD_PER_MODULES, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES,stream);
 #else
-    	createMDsInUnifiedMemory(*mdsInGPU, N_MAX_MD_PER_MODULES, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES,stream);
+        createMDsInUnifiedMemory(*mdsInGPU, nTotalMDs, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES, stream);
+//    	createMDsInUnifiedMemory(*mdsInGPU, N_MAX_MD_PER_MODULES, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES,stream);
 #endif
     }
 

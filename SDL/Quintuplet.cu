@@ -150,7 +150,7 @@ cudaStreamSynchronize(stream);
         //TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap
         if(((module_subdets[i] == SDL::Barrel and module_layers[i] < 5) or (module_subdets[i] == SDL::Endcap and module_layers[i] == 1)) and nTriplets[i] != 0)
         {
-            module_quintupletModuleIndices[i] = nEligibleModules * maxQuintuplets;
+            module_quintupletModuleIndices[i] = nEligibleModules * maxQuintuplets; //for variable occupancy change this to module_quintupletModuleIndices[i-1] + blah
             indicesOfEligibleModules[nEligibleModules] = i;
             nEligibleModules++;
             maxTriplets = max(nTriplets[i], maxTriplets);
