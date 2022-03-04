@@ -724,7 +724,7 @@ void fillOccupancyBranches(SDL::Event* event)
         moduleSubdet.push_back(modulesInGPU.subdets[lowerIdx]);
         moduleRing.push_back(modulesInGPU.rings[lowerIdx]);
         segmentOccupancy.push_back(segmentsInGPU.nSegments[lowerIdx]);
-        mdOccupancy.push_back(mdsInGPU.nMDs[lowerIdx]);
+        mdOccupancy.push_back(mdsInGPU.totOccupancyMDs[lowerIdx]);
 
         if(idx < *(modulesInGPU.nLowerModules))
         {
@@ -5574,14 +5574,17 @@ void printMiniDoubletMultiplicities(SDL::Event* event)
     SDL::modules& modulesInGPU = (*event->getModules());
 
     int nMiniDoublets = 0;
+    int totOccupancyMiniDoublets = 0;
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
         if(modulesInGPU.isLower[idx])
         {
             nMiniDoublets += miniDoubletsInGPU.nMDs[idx];
+            totOccupancyMiniDoublets += miniDoubletsInGPU.totOccupancyMDs[idx];
         }
     }
     std::cout <<  " nMiniDoublets: " << nMiniDoublets <<  std::endl;
+    std::cout <<  " totOccupancyMiniDoublets (including trucated ones): " << totOccupancyMiniDoublets <<  std::endl;
 }
 
 //________________________________________________________________________________________________________________________________

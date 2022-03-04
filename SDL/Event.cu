@@ -122,6 +122,7 @@ SDL::Event::~Event()
     {
         delete[] mdsInCPU->anchorHitIndices;
         delete[] mdsInCPU->nMDs;
+        delete[] mdsInCPU->totOccupancyMDs;
         delete mdsInCPU;
     }
 #endif
@@ -343,6 +344,7 @@ void SDL::Event::resetEvent()
     {
         delete[] mdsInCPU->anchorHitIndices;
         delete[] mdsInCPU->nMDs;
+        delete[] mdsInCPU->totOccupancyMDs;
         delete mdsInCPU;
         mdsInCPU = nullptr;
     }
@@ -875,6 +877,7 @@ cudaStreamSynchronize(stream);
    cudaMemcpyAsync(&(segmentsInGPU->nSegments)[pixelModuleIndex], &size, sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
    unsigned int mdSize = 2 * size;
    cudaMemcpyAsync(&(mdsInGPU->nMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
+   cudaMemcpyAsync(&(mdsInGPU->totOccupancyMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
 cudaStreamSynchronize(stream);
 
     //cudaFreeAsync(hitIndices0_dev,stream);
@@ -2399,10 +2402,12 @@ SDL::miniDoublets* SDL::Event::getMiniDoublets()
         mdsInCPU->anchorHitIndices = new unsigned int[nMemoryLocations];
         mdsInCPU->outerHitIndices = new unsigned int[nMemoryLocations];
         mdsInCPU->nMDs = new unsigned int[nLowerModules+1];
+        mdsInCPU->totOccupancyMDs = new unsigned int[nLowerModules+1];
         cudaMemcpyAsync(mdsInCPU->anchorHitIndices, mdsInGPU->anchorHitIndices, nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(mdsInCPU->outerHitIndices, mdsInGPU->outerHitIndices, nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 
         cudaMemcpyAsync(mdsInCPU->nMDs, mdsInGPU->nMDs, (nLowerModules+1) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(mdsInCPU->totOccupancyMDs, mdsInGPU->totOccupancyMDs, (nLowerModules+1) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
     }
     return mdsInCPU;
