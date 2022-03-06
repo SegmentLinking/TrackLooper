@@ -609,6 +609,7 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
                 {
                     return;
                 } // ignore anything else TODO: move this to start, before object is made (faster)
+                atomicAdd(&quintupletsInGPU.totOccupancyQuintuplets[lowerModule1], 1);
                 if(quintupletsInGPU.nQuintuplets[lowerModule1] >= N_MAX_QUINTUPLETS_PER_MODULE)
                 {
 #ifdef Warnings

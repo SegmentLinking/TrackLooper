@@ -161,6 +161,7 @@ SDL::Event::~Event()
     {
         delete[] quintupletsInCPU->tripletIndices;
         delete[] quintupletsInCPU->nQuintuplets;
+        delete[] quintupletsInCPU->totOccupancyQuintuplets;
         delete[] quintupletsInCPU->lowerModuleIndices;
         delete[] quintupletsInCPU->innerRadius;
         delete[] quintupletsInCPU->outerRadius;
@@ -389,6 +390,7 @@ void SDL::Event::resetEvent()
     {
         delete[] quintupletsInCPU->tripletIndices;
         delete[] quintupletsInCPU->nQuintuplets;
+        delete[] quintupletsInCPU->totOccupancyQuintuplets;
         delete[] quintupletsInCPU->lowerModuleIndices;
         delete[] quintupletsInCPU->innerRadius;
         delete[] quintupletsInCPU->outerRadius;
@@ -2518,6 +2520,7 @@ cudaStreamSynchronize(stream);
         unsigned int nMemoryLocations = nEligibleT5Modules * N_MAX_QUINTUPLETS_PER_MODULE;
 
         quintupletsInCPU->nQuintuplets = new unsigned int[nLowerModules];
+        quintupletsInCPU->totOccupancyQuintuplets = new unsigned int[nLowerModules];
         quintupletsInCPU->tripletIndices = new unsigned int[2 * nMemoryLocations];
         quintupletsInCPU->lowerModuleIndices = new uint16_t[5 * nMemoryLocations];
         quintupletsInCPU->innerRadius = new FPX[nMemoryLocations];
@@ -2528,6 +2531,7 @@ cudaStreamSynchronize(stream);
         quintupletsInCPU->phi = new FPX[nMemoryLocations];
         quintupletsInCPU->regressionRadius = new float[nMemoryLocations];
         cudaMemcpyAsync(quintupletsInCPU->nQuintuplets, quintupletsInGPU->nQuintuplets,  nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(quintupletsInCPU->totOccupancyQuintuplets, quintupletsInGPU->totOccupancyQuintuplets,  nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(quintupletsInCPU->tripletIndices, quintupletsInGPU->tripletIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(quintupletsInCPU->lowerModuleIndices, quintupletsInGPU->lowerModuleIndices, 5 * nMemoryLocations * sizeof(uint16_t), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(quintupletsInCPU->innerRadius, quintupletsInGPU->innerRadius, nMemoryLocations * sizeof(FPX), cudaMemcpyDeviceToHost,stream);

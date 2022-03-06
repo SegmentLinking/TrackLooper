@@ -728,7 +728,7 @@ void fillOccupancyBranches(SDL::Event* event)
 
         if(idx < *(modulesInGPU.nLowerModules))
         {
-            quintupletOccupancy.push_back(quintupletsInGPU.nQuintuplets[idx]);
+            quintupletOccupancy.push_back(quintupletsInGPU.totOccupancyQuintuplets[idx]);
             tripletOccupancy.push_back(tripletsInGPU.totOccupancyTriplets[idx]);
         }
     }
@@ -2072,11 +2072,6 @@ void fillQuintupletOutputBranches(SDL::Event* event)
         }
 
         unsigned int nQuintuplets = quintupletsInGPU.nQuintuplets[idx];
-        
-        if(nQuintuplets > MAX_NQUINTUPLET_PER_MODULE)
-        {
-            nQuintuplets = MAX_NQUINTUPLET_PER_MODULE;
-        }
 
         for(unsigned int jdx = 0; jdx < nQuintuplets; jdx++)
         {
