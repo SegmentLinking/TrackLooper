@@ -729,7 +729,7 @@ void fillOccupancyBranches(SDL::Event* event)
         if(idx < *(modulesInGPU.nLowerModules))
         {
             quintupletOccupancy.push_back(quintupletsInGPU.nQuintuplets[idx]);
-            tripletOccupancy.push_back(tripletsInGPU.nTriplets[idx]);
+            tripletOccupancy.push_back(tripletsInGPU.totOccupancyTriplets[idx]);
         }
     }
     ana.tx->setBranch<vector<int>>("module_layers",moduleLayer);
@@ -3102,11 +3102,6 @@ void fillTripletOutputBranches(SDL::Event* event)
     {
 
         unsigned int nTriplets = tripletsInGPU.nTriplets[idx];
-
-        if (idx < *(modulesInGPU.nLowerModules) and nTriplets > MAX_NTRIPLET_PER_MODULE)
-        {
-            nTriplets = MAX_NTRIPLET_PER_MODULE;
-        }
 
         for (unsigned int jdx = 0; jdx < nTriplets; jdx++)
         {

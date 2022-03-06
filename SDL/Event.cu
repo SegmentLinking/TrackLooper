@@ -145,6 +145,7 @@ SDL::Event::~Event()
     {
         delete[] tripletsInCPU->segmentIndices;
         delete[] tripletsInCPU->nTriplets;
+        delete[] tripletsInCPU->totOccupancyTriplets;
         delete[] tripletsInCPU->betaIn;
         delete[] tripletsInCPU->betaOut;
         delete[] tripletsInCPU->pt_beta;
@@ -370,6 +371,7 @@ void SDL::Event::resetEvent()
     {
         delete[] tripletsInCPU->segmentIndices;
         delete[] tripletsInCPU->nTriplets;
+        delete[] tripletsInCPU->totOccupancyTriplets;
         delete[] tripletsInCPU->betaIn;
         delete[] tripletsInCPU->betaOut;
         delete[] tripletsInCPU->pt_beta;
@@ -2474,6 +2476,7 @@ cudaStreamSynchronize(stream);
         unsigned int nMemoryLocations = (N_MAX_TRIPLETS_PER_MODULE) * (nLowerModules);
         tripletsInCPU->segmentIndices = new unsigned[2 * nMemoryLocations];
         tripletsInCPU->nTriplets = new unsigned int[nLowerModules];
+        tripletsInCPU->totOccupancyTriplets = new unsigned int[nLowerModules];
         tripletsInCPU->betaIn  = new FPX[nMemoryLocations];
         tripletsInCPU->betaOut = new FPX[nMemoryLocations];
         tripletsInCPU->pt_beta = new FPX[nMemoryLocations];
@@ -2486,6 +2489,7 @@ cudaStreamSynchronize(stream);
         cudaMemcpyAsync(tripletsInCPU->betaOut, tripletsInGPU->betaOut, nMemoryLocations * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(tripletsInCPU->pt_beta, tripletsInGPU->pt_beta, nMemoryLocations * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(tripletsInCPU->nTriplets, tripletsInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(tripletsInCPU->totOccupancyTriplets, tripletsInGPU->totOccupancyTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 
 cudaStreamSynchronize(stream);
     }
