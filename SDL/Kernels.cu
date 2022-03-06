@@ -133,6 +133,7 @@ __global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SD
 
             if(success)
             {
+                atomicAdd(&segmentsInGPU.totOccupancySegments[innerLowerModuleIndex],1);
                 if(segmentsInGPU.nSegments[innerLowerModuleIndex] >= N_MAX_SEGMENTS_PER_MODULE)
                 {
 #ifdef Warnings

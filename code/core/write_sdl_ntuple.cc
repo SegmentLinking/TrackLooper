@@ -723,7 +723,7 @@ void fillOccupancyBranches(SDL::Event* event)
         moduleLayer.push_back(modulesInGPU.layers[lowerIdx]);
         moduleSubdet.push_back(modulesInGPU.subdets[lowerIdx]);
         moduleRing.push_back(modulesInGPU.rings[lowerIdx]);
-        segmentOccupancy.push_back(segmentsInGPU.nSegments[lowerIdx]);
+        segmentOccupancy.push_back(segmentsInGPU.totOccupancySegments[lowerIdx]);
         mdOccupancy.push_back(mdsInGPU.totOccupancyMDs[lowerIdx]);
 
         if(idx < *(modulesInGPU.nLowerModules))

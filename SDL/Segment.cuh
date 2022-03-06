@@ -31,6 +31,7 @@ namespace SDL
         unsigned int* outerMiniDoubletAnchorHitIndices;
         
         unsigned int* nSegments; //number of segments per inner lower module
+        unsigned int* totOccupancySegments; //number of segments per inner lower module
         FPX* dPhis;
         FPX* dPhiMins;
         FPX* dPhiMaxs;
