@@ -688,6 +688,7 @@ __global__ void createPixelQuintupletsInGPUFromMap(struct SDL::modules& modulesI
 
             if(success)
             {
+                atomicAdd(pixelQuintupletsInGPU.totOccupancyPixelQuintuplets, 1);
                 if(*pixelQuintupletsInGPU.nPixelQuintuplets >= N_MAX_PIXEL_QUINTUPLETS)
                 {
 #ifdef Warnings

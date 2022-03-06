@@ -191,6 +191,7 @@ SDL::Event::~Event()
         delete[] pixelQuintupletsInCPU->isDup;
         delete[] pixelQuintupletsInCPU->score;
         delete pixelQuintupletsInCPU->nPixelQuintuplets;
+        delete pixelQuintupletsInCPU->totOccupancyPixelQuintuplets;
         delete pixelQuintupletsInCPU;
     }
 #endif
@@ -422,6 +423,7 @@ void SDL::Event::resetEvent()
         delete[] pixelQuintupletsInCPU->isDup;
         delete[] pixelQuintupletsInCPU->score;
         delete pixelQuintupletsInCPU->nPixelQuintuplets;
+        delete pixelQuintupletsInCPU->totOccupancyPixelQuintuplets;
         delete pixelQuintupletsInCPU;
         pixelQuintupletsInCPU = nullptr;
     }
@@ -2603,7 +2605,9 @@ SDL::pixelQuintuplets* SDL::Event::getPixelQuintuplets()
         pixelQuintupletsInCPU = new SDL::pixelQuintuplets;
 
         pixelQuintupletsInCPU->nPixelQuintuplets = new unsigned int;
+        pixelQuintupletsInCPU->totOccupancyPixelQuintuplets = new unsigned int;
         cudaMemcpyAsync(pixelQuintupletsInCPU->nPixelQuintuplets, pixelQuintupletsInGPU->nPixelQuintuplets, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(pixelQuintupletsInCPU->totOccupancyPixelQuintuplets, pixelQuintupletsInGPU->totOccupancyPixelQuintuplets, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
         unsigned int nPixelQuintuplets = *(pixelQuintupletsInCPU->nPixelQuintuplets);
 

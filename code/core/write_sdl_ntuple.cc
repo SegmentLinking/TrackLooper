@@ -741,7 +741,7 @@ void fillOccupancyBranches(SDL::Event* event)
     ana.tx->setBranch<int>("tc_occupancies",*(trackCandidatesInGPU.nTrackCandidates));
     ana.tx->setBranch<int>("pT3_occupancies", *(pixelTripletsInGPU.totOccupancyPixelTriplets));
     ana.tx->setBranch<vector<int>>("t5_occupancies", quintupletOccupancy);
-    ana.tx->setBranch<int>("pT5_occupancies", *(pixelQuintupletsInGPU.nPixelQuintuplets));
+    ana.tx->setBranch<int>("pT5_occupancies", *(pixelQuintupletsInGPU.totOccupancyPixelQuintuplets));
 }
 
 //________________________________________________________________________________________________________________________________
