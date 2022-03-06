@@ -178,6 +178,7 @@ SDL::Event::~Event()
         delete[] pixelTripletsInCPU->pixelRadius;
         delete[] pixelTripletsInCPU->tripletRadius;
         delete pixelTripletsInCPU->nPixelTriplets;
+        delete pixelTripletsInCPU->totOccupancyPixelTriplets;
         delete pixelTripletsInCPU;
     }
 #endif
@@ -406,6 +407,7 @@ void SDL::Event::resetEvent()
         delete[] pixelTripletsInCPU->pixelRadius;
         delete[] pixelTripletsInCPU->tripletRadius;
         delete pixelTripletsInCPU->nPixelTriplets;
+        delete pixelTripletsInCPU->totOccupancyPixelTriplets;
         delete pixelTripletsInCPU;
         pixelTripletsInCPU = nullptr;
     }
@@ -2555,7 +2557,9 @@ SDL::pixelTriplets* SDL::Event::getPixelTriplets()
         pixelTripletsInCPU = new SDL::pixelTriplets;
 
         pixelTripletsInCPU->nPixelTriplets = new unsigned int;
+        pixelTripletsInCPU->totOccupancyPixelTriplets = new unsigned int;
         cudaMemcpyAsync(pixelTripletsInCPU->nPixelTriplets, pixelTripletsInGPU->nPixelTriplets, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(pixelTripletsInCPU->totOccupancyPixelTriplets, pixelTripletsInGPU->totOccupancyPixelTriplets, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
         unsigned int nPixelTriplets = *(pixelTripletsInCPU->nPixelTriplets);
         pixelTripletsInCPU->tripletIndices = new unsigned int[nPixelTriplets];

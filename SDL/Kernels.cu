@@ -531,6 +531,7 @@ __global__ void createPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGP
                 float phi_pix = segmentsInGPU.phi[pixelSegmentArrayIndex];
                 float pt = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
                 float score = rPhiChiSquared+rPhiChiSquaredInwards;
+                atomicAdd(pixelTripletsInGPU.totOccupancyPixelTriplets, 1);
                 if(*pixelTripletsInGPU.nPixelTriplets >= N_MAX_PIXEL_TRIPLETS)
                 {
 #ifdef Warnings
