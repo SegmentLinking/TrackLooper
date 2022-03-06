@@ -1396,7 +1396,7 @@ void fillT3T3TrackExtensionOutputBranches(SDL::Event* event)
     const unsigned int N_MAX_T3T3_TRACK_EXTENSIONS = 40000;
 
     std::vector<int> tce_anchorType;;
-    unsigned int nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[nTrackCandidates] > N_MAX_T3T3_TRACK_EXTENSIONS ? N_MAX_T3T3_TRACK_EXTENSIONS : (trackExtensionsInGPU.nTrackExtensions)[nTrackCandidates]; 
+    unsigned int nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[nTrackCandidates]; 
 
     std::vector<std::vector<int>> hitIndices;
 
@@ -1593,15 +1593,7 @@ void fillPureTrackExtensionOutputBranches(SDL::Event* event)
     for(size_t i = 0; i < nTrackCandidates; i++)
 #endif
     {
-        unsigned int nTrackExtensions;
-        if(i < nTrackCandidates)
-        {
-            nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i] > N_MAX_TRACK_EXTENSIONS_PER_TC ? N_MAX_TRACK_EXTENSIONS_PER_TC : (trackExtensionsInGPU.nTrackExtensions)[i];
-        }
-        else
-        {
-            nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i] > N_MAX_T3T3_TRACK_EXTENSIONS ? N_MAX_T3T3_TRACK_EXTENSIONS : (trackExtensionsInGPU.nTrackExtensions)[i]; 
-        }
+        unsigned int nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i];
         for(size_t j = 0; j < nTrackExtensions; j++)
         {
             unsigned int teIdx = i * N_MAX_TRACK_EXTENSIONS_PER_TC + j;
@@ -1811,15 +1803,7 @@ void fillTrackExtensionOutputBranches(SDL::Event* event)
     for(size_t i = 0; i < nTrackCandidates; i++)
 #endif
     {
-        unsigned int nTrackExtensions;
-        if(i < nTrackCandidates)
-        {
-            nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i] > N_MAX_TRACK_EXTENSIONS_PER_TC ? N_MAX_TRACK_EXTENSIONS_PER_TC : (trackExtensionsInGPU.nTrackExtensions)[i];
-        }
-        else
-        {
-            nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i] > N_MAX_T3T3_TRACK_EXTENSIONS ? N_MAX_T3T3_TRACK_EXTENSIONS : (trackExtensionsInGPU.nTrackExtensions)[i]; 
-        }
+        unsigned int nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i];
         for(size_t j = 0; j < nTrackExtensions; j++)
         {
             unsigned int teIdx = i * N_MAX_TRACK_EXTENSIONS_PER_TC + j;

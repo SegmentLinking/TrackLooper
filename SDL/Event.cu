@@ -212,6 +212,7 @@ SDL::Event::~Event()
     if(trackExtensionsInCPU != nullptr)
     {
         delete[] trackExtensionsInCPU->nTrackExtensions;
+        delete[] trackExtensionsInCPU->totOccupancyTrackExtensions;
         delete[] trackExtensionsInCPU->constituentTCTypes;
         delete[] trackExtensionsInCPU->constituentTCIndices;
         delete[] trackExtensionsInCPU->nLayerOverlaps;
@@ -445,6 +446,7 @@ void SDL::Event::resetEvent()
     if(trackExtensionsInCPU != nullptr)
     {
         delete[] trackExtensionsInCPU->nTrackExtensions;
+        delete[] trackExtensionsInCPU->totOccupancyTrackExtensions;
         delete[] trackExtensionsInCPU->constituentTCTypes;
         delete[] trackExtensionsInCPU->constituentTCIndices;
         delete[] trackExtensionsInCPU->nLayerOverlaps;
@@ -2767,6 +2769,7 @@ SDL::trackExtensions* SDL::Event::getTrackExtensions()
 #endif
        std::cout<<"nTrackCandidates = "<<nTrackCandidates<<std::endl;
        trackExtensionsInCPU->nTrackExtensions = new unsigned int[nTrackCandidates];
+       trackExtensionsInCPU->totOccupancyTrackExtensions = new unsigned int[nTrackCandidates];
        trackExtensionsInCPU->constituentTCTypes = new short[3 * maxTrackExtensions];
        trackExtensionsInCPU->constituentTCIndices = new unsigned int[3 * maxTrackExtensions];
        trackExtensionsInCPU->nLayerOverlaps = new uint8_t[2 * maxTrackExtensions];
@@ -2775,6 +2778,7 @@ SDL::trackExtensions* SDL::Event::getTrackExtensions()
        trackExtensionsInCPU->regressionRadius = new FPX[maxTrackExtensions];
 
        cudaMemcpyAsync(trackExtensionsInCPU->nTrackExtensions, trackExtensionsInGPU->nTrackExtensions, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+       cudaMemcpyAsync(trackExtensionsInCPU->totOccupancyTrackExtensions, trackExtensionsInGPU->totOccupancyTrackExtensions, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
        cudaMemcpy(trackExtensionsInCPU->constituentTCTypes, trackExtensionsInGPU->constituentTCTypes, 3 * maxTrackExtensions * sizeof(short), cudaMemcpyDeviceToHost);
        cudaMemcpyAsync(trackExtensionsInCPU->constituentTCIndices, trackExtensionsInGPU->constituentTCIndices, 3 * maxTrackExtensions * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
 

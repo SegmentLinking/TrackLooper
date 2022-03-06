@@ -1449,6 +1449,7 @@ __global__ void createT3T3ExtendedTracksInGPU(struct SDL::modules& modulesInGPU,
 
         if(success and nLayerOverlaps[0] == 2)
         {
+            atomicAdd(&trackExtensionsInGPU.totOccupancyTrackExtensions[nTrackCandidates], 1);
             if(trackExtensionsInGPU.nTrackExtensions[nTrackCandidates] >= N_MAX_T3T3_TRACK_EXTENSIONS)
             {
 #ifdef Warnings
@@ -1487,6 +1488,7 @@ __global__ void createT3T3ExtendedTracksInGPU(struct SDL::modules& modulesInGPU,
 
         if(success and nLayerOverlaps[0] == 1 and nHitOverlaps[0] != 2)        
         {
+            atomicAdd(&trackExtensionsInGPU.totOccupancyTrackExtensions[nTrackCandidates], 1);
             if(trackExtensionsInGPU.nTrackExtensions[nTrackCandidates] >= N_MAX_T3T3_TRACK_EXTENSIONS)
             {
 #ifdef Warnings
@@ -1546,6 +1548,7 @@ __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, str
     bool success = runTrackExtensionDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelTripletsInGPU, pixelQuintupletsInGPU, trackCandidatesInGPU, tcIdx, t3Idx, tcType, 3, outerT3Index, layerOverlap, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius, innerRadius, outerRadius);
     if(success)
     {
+        atomicAdd(&trackExtensionsInGPU.nTrackExtensions[tcIdx], 1);
         if(trackExtensionsInGPU.nTrackExtensions[tcIdx] >= N_MAX_TRACK_EXTENSIONS_PER_TC)
         {
 #ifdef Warnings
