@@ -1548,7 +1548,7 @@ __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, str
     bool success = runTrackExtensionDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelTripletsInGPU, pixelQuintupletsInGPU, trackCandidatesInGPU, tcIdx, t3Idx, tcType, 3, outerT3Index, layerOverlap, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius, innerRadius, outerRadius);
     if(success)
     {
-        atomicAdd(&trackExtensionsInGPU.nTrackExtensions[tcIdx], 1);
+        atomicAdd(&trackExtensionsInGPU.totOccupancyTrackExtensions[tcIdx], 1);
         if(trackExtensionsInGPU.nTrackExtensions[tcIdx] >= N_MAX_TRACK_EXTENSIONS_PER_TC)
         {
 #ifdef Warnings
