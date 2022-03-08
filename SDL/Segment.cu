@@ -25,7 +25,7 @@ void SDL::segments::resetMemory(unsigned int maxSegments, unsigned int nLowerMod
 }
 
 
-void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsinGPU, uint16_t& nLowerModules, unsigned int& nTotalSegments, cudaStream_t stream, uint16_t& maxSegmentsPerModule, uint16_t& maxPixelSegments)
+void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU, uint16_t& nLowerModules, unsigned int& nTotalSegments, cudaStream_t stream, const uint16_t& maxSegmentsPerModule, const uint16_t& maxPixelSegments)
 {
     /*
         write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!*/
@@ -33,10 +33,9 @@ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRa
     int *module_segmentModuleIndices;
     cudaMallocHost(&module_segmentModuleIndices, (nLowerModules + 1) * sizeof(unsigned int));
     module_segmentModuleIndices[0] = 0;
-
-    int *nMDs;
-    cudaMallocHost(&nMDs, (nLowerModules) * sizeof(unsigned int));
-    cudaMemcpyAsync(nMDs, mdsInGPU.nMDs, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+    uint16_t* module_nConnectedModules;
+    cudaMallocHost(&module_nConnectedModules, modulesInGPU.nConnectedModules, nLowerModules * sizeof(uint16_t));
+    cudaMemcpyAsync(module_nConnectedModules,modulesInGPU->nConnectedModules,nLowerModules*sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
     cudaStreamSynchronize(stream);
 
     nTotalSegments = maxSegmentsPerModule; //start!   
@@ -49,16 +48,21 @@ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRa
         {
             occupancy = maxPixelSegments;
         }
-        else if(nMDs[i] == 0)
+        else if(module_nConnectedModules[i] == 0)
         {
             occupancy = 0;
         }
+        //since we allocate memory to segments even before any object is created, nMDs[i] will always be zero!!!
+/*        else if(nMDs[i] == 0)
+        {
+            occupancy = 0;
+        }*/
         nTotalSegments += occupancy;
     }
     cudaMemcpyAsync(rangesInGPU.segmentModuleIndices, module_segmentModuleIndices,  (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
     cudaFreeHost(module_segmentModuleIndices);
-    cudaFree(nMDs);
+    cudaFreeHost(nConnectedModules);
 }
 
 void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)

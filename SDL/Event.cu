@@ -729,7 +729,7 @@ cudaStreamSynchronize(stream);
     cudaFreeHost(host_idxs);
 
 }
-__global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned int* hitIndices1,unsigned int* hitIndices2,unsigned int* hitIndices3, float* dPhiChange, float* ptIn, float* ptErr, float* px, float* py, float* pz, float* eta, float* etaErr,float* phi, uint16_t pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU,const int size, int* superbin, int8_t* pixelType, short* isQuad)
+__global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned int* hitIndices1,unsigned int* hitIndices2,unsigned int* hitIndices3, float* dPhiChange, float* ptIn, float* ptErr, float* px, float* py, float* pz, float* eta, float* etaErr,float* phi, uint16_t pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU,const int size, int* superbin, int8_t* pixelType, short* isQuad)
 {
 
     for( int tid = blockIdx.x * blockDim.x + threadIdx.x; tid < size; tid += blockDim.x*gridDim.x)
@@ -793,7 +793,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         cudaMallocHost(&segmentsInGPU, sizeof(SDL::segments));
         //hardcoded range numbers for this will come from studies!
         unsigned int nTotalSegments;
-        createSegmentArrayRanges(*modulesInGPU, *rangesInGPU, *mdsInGPU, nLowerModules, nTotalSegments, stream, N_MAX_SEGMENTS_PER_MODULE, N_MAX_PIXEL_SEGMENTS_PER_MODULES);
+        createSegmentArrayRanges(*modulesInGPU, *rangesInGPU, *mdsInGPU, nLowerModules, nTotalSegments, stream, N_MAX_SEGMENTS_PER_MODULE, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
 
 #ifdef Explicit_Seg
         createSegmentsInExplicitMemory(*segmentsInGPU, nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE,stream);
@@ -876,7 +876,7 @@ cudaStreamSynchronize(stream);
     unsigned int nThreads = 256;
     unsigned int nBlocks =  MAX_BLOCKS;//size % nThreads == 0 ? size/nThreads : size/nThreads + 1;
 
-    addPixelSegmentToEventKernel<<<nBlocks,nThreads,0,stream>>>(hitIndices0_dev,hitIndices1_dev,hitIndices2_dev,hitIndices3_dev,dPhiChange_dev,ptIn_dev,ptErr_dev,px_dev,py_dev,pz_dev,eta_dev, etaErr_dev, phi_dev, pixelModuleIndex, *modulesInGPU,*hitsInGPU,*mdsInGPU,*segmentsInGPU,size, superbin_dev, pixelType_dev,isQuad_dev);
+    addPixelSegmentToEventKernel<<<nBlocks,nThreads,0,stream>>>(hitIndices0_dev,hitIndices1_dev,hitIndices2_dev,hitIndices3_dev,dPhiChange_dev,ptIn_dev,ptErr_dev,px_dev,py_dev,pz_dev,eta_dev, etaErr_dev, phi_dev, pixelModuleIndex, *modulesInGPU, *rangesInGPU, *hitsInGPU,*mdsInGPU,*segmentsInGPU,size, superbin_dev, pixelType_dev,isQuad_dev);
 
    //cudaDeviceSynchronize();
    cudaStreamSynchronize(stream);
@@ -970,7 +970,7 @@ void SDL::Event::addMiniDoubletsToEventExplicit()
     cudaMemcpyAsync(module_hitRanges,rangesInGPU->hitRanges,nLowerModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
 
     int* module_miniDoubletModuleIndices;
-    cudaMallochost(module_miniDoubletModuleIndices, nLowerModules * sizeof(int));
+    cudaMallocHost(&module_miniDoubletModuleIndices, nLowerModules * sizeof(int));
     cudaMemcpyAsync(module_miniDoubletModuleIndices, rangesInGPU->miniDoubletModuleIndices, nLowerModules * sizeof(int), cudaMemcpyDeviceToHost, stream);
     cudaStreamSynchronize(stream);
 
@@ -1052,7 +1052,7 @@ void SDL::Event::addSegmentsToEventExplicit()
     cudaMemcpyAsync(module_layers,modulesInGPU->layers,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
 
     int* module_segmentModuleIndices;
-    cudaMallochost(module_segmentModuleIndices, nLowerModules * sizeof(int));
+    cudaMallocHost(&module_segmentModuleIndices, nLowerModules * sizeof(int));
     cudaMemcpyAsync(module_segmentModuleIndices, rangesInGPU->segmentModuleIndices, nLowerModules * sizeof(int), cudaMemcpyDeviceToHost, stream);
     cudaStreamSynchronize(stream);
     for(unsigned int i = 0; i<nLowerModules; i++)
@@ -1077,6 +1077,9 @@ void SDL::Event::addSegmentsToEventExplicit()
             }
         }
     }
+    cudaMemcpyAsync(rangesInGPU->segmentRanges, module_segmentRanges, nLowerModules * 2 * sizeof(int), cudaMemcpyHostToDevice, stream);
+    cudaStreamSynchronize(stream);
+
     cudaFreeHost(nSegmentsCPU);
     cudaFreeHost(module_subdets);
     cudaFreeHost(module_segmentRanges);
@@ -1339,7 +1342,7 @@ void SDL::Event::createTriplets()
     unsigned int max_OuterSeg = N_MAX_SEGMENTS_PER_MODULE;
     dim3 nThreads(16,64,1);
     dim3 nBlocks(1,1,MAX_BLOCKS);
-    createTripletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, index_gpu,nonZeroModules);
+    createTripletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *rangesInGPU, index_gpu,nonZeroModules);
     cudaError_t cudaerr =cudaGetLastError();
     if(cudaerr != cudaSuccess)
     {
