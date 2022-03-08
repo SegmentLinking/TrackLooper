@@ -36,7 +36,7 @@ void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges&
     /*
         write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!*/
 
-    unsigned int *module_miniDoubletModuleIndices;
+    int *module_miniDoubletModuleIndices;
     cudaMallocHost(&module_miniDoubletModuleIndices, (nLowerModules + 1) * sizeof(unsigned int));
     module_miniDoubletModuleIndices[0] = 0;
     nTotalMDs = maxMDsPerModule; //start!   
@@ -51,7 +51,9 @@ void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges&
         }
         nTotalMDs += occupancy;
     }
-    cudaMemcpyAsync(rangesInGPU.miniDoubletModuleIndices, &module_miniDoubletModuleIndices,  (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(rangesInGPU.miniDoubletModuleIndices, module_miniDoubletModuleIndices,  (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+    cudaStreamSynchronize(stream);
+    cudaFreeHost(module_miniDoubletModuleIndices);
 }
 
 void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)

@@ -23,11 +23,48 @@ void SDL::segments::resetMemory(unsigned int maxSegments, unsigned int nLowerMod
     cudaMemsetAsync(circleRadius, 0,maxPixelSegments * sizeof(float),stream);
     cudaMemsetAsync(partOfPT5, 0,maxPixelSegments * sizeof(bool),stream);
 }
-void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int maxSegments, uint16_t nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
+
+
+void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsinGPU, uint16_t& nLowerModules, unsigned int& nTotalSegments, cudaStream_t stream, uint16_t& maxSegmentsPerModule, uint16_t& maxPixelSegments)
+{
+    /*
+        write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!*/
+
+    int *module_segmentModuleIndices;
+    cudaMallocHost(&module_segmentModuleIndices, (nLowerModules + 1) * sizeof(unsigned int));
+    module_segmentModuleIndices[0] = 0;
+
+    int *nMDs;
+    cudaMallocHost(&nMDs, (nLowerModules) * sizeof(unsigned int));
+    cudaMemcpyAsync(nMDs, mdsInGPU.nMDs, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+    cudaStreamSynchronize(stream);
+
+    nTotalSegments = maxSegmentsPerModule; //start!   
+    for(uint16_t i = 1; i <= nLowerModules; i++)
+    {
+        module_segmentModuleIndices[i] = nTotalSegments; //running counter - we start at the previous index!
+
+        unsigned int occupancy = maxSegmentsPerModule; //placeholder! this will change from module to module
+        if(i == nLowerModules)
+        {
+            occupancy = maxPixelSegments;
+        }
+        else if(nMDs[i] == 0)
+        {
+            occupancy = 0;
+        }
+        nTotalSegments += occupancy;
+    }
+    cudaMemcpyAsync(rangesInGPU.segmentModuleIndices, module_segmentModuleIndices,  (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+    cudaStreamSynchronize(stream);
+    cudaFreeHost(module_segmentModuleIndices);
+    cudaFree(nMDs);
+}
+
+void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
 {
     //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide
     //extra memory to the pixel segments
-    unsigned int nMemoryLocations = maxSegments * nLowerModules + maxPixelSegments;
 #ifdef CACHE_ALLOC
 //    cudaStream_t stream=0; 
     segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations*4 *sizeof(unsigned int),stream);
@@ -104,11 +141,10 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     cudaStreamSynchronize(stream);
 
 }
-void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, uint16_t nLowerModules, unsigned int maxPixelSegments, cudaStream_t stream)
+void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelSegments, cudaStream_t stream)
 {
     //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide
     //extra memory to the pixel segments
-    unsigned int nMemoryLocations = maxSegments * nLowerModules + maxPixelSegments;
 #ifdef CACHE_ALLOC
 //    cudaStream_t stream=0; 
     int dev;

@@ -194,6 +194,9 @@ void SDL::objectRanges::freeMemory()
   cudaFree(quintupletRanges);
   cudaFree(nEligibleT5Modules);
   cudaFree(quintupletModuleIndices);
+  cudaFree(miniDoubletModuleIndices);
+  cudaFree(segmentModuleIndices);
+  cudaFree(tripletModuleIndices);
 }
 void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMapping)
 {

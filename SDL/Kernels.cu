@@ -141,7 +141,7 @@ __global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SD
                 }
                 else
                 {
-                    unsigned int segmentIdx = innerLowerModuleIndex * N_MAX_SEGMENTS_PER_MODULE + segmentModuleIdx;
+                    unsigned int segmentIdx = rangesInGPU.segmentModuleIndices[innerLowerModuleIndex] + segmentModuleIdx;
 #ifdef CUT_VALUE_DEBUG
                     addSegmentToMemory(segmentsInGPU,innerMDIndex, outerMDIndex,innerLowerModuleIndex, outerLowerModuleIndex, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, zIn, zOut, rtIn, rtOut, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold,
                 dAlphaInnerMDOuterMDThreshold, segmentIdx);
@@ -201,7 +201,6 @@ __global__ void createTripletsInGPU(struct SDL::modules& modulesInGPU, struct SD
       }
       unsigned int tripletIndex = innerInnerLowerModuleIndex * N_MAX_TRIPLETS_PER_MODULE + tripletModuleIndex;
 #ifdef CUT_VALUE_DEBUG
-
         addTripletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, innerSegmentIndex, outerSegmentIndex, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut,pt_beta, zLo,zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, tripletIndex);
 
 #else
