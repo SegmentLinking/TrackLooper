@@ -3077,7 +3077,7 @@ void fillTripletOutputBranches(SDL::Event* event)
 #endif
 
     const int MAX_NTRIPLET_PER_MODULE = 2500;
-    for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
+    for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
     {
 
         unsigned int nTriplets = tripletsInGPU.nTriplets[idx];
