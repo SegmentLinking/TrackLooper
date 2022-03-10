@@ -1,5 +1,10 @@
 #include "write_sdl_ntuple.h"
 
+#define N_MAX_MD_PER_MODULES 89
+#define N_MAX_SEGMENTS_PER_MODULE 537
+#define MAX_NTRIPLET_PER_MODULE = 1170
+#define MAX_NQUINTUPLET_PER_MODULE = 513
+
 //________________________________________________________________________________________________________________________________
 void createOutputBranches()
 {
@@ -955,7 +960,6 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
         tc_type.emplace_back(trackCandidateType);
         if (trackCandidateType == 8) //pLS
         {
-            const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
             unsigned int pixelModuleIndex = *(modulesInGPU.nLowerModules);
             unsigned int pixelSegmentIndex = pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE + innerTrackletIdx;
             pt = segmentsInGPU.ptIn[innerTrackletIdx];
@@ -1121,7 +1125,7 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
             const float kRinv1GeVf = (2.99792458e-3 * 3.8);
             const float k2Rinv1GeVf = kRinv1GeVf / 2.;
 
-            const float ptAv_in = (trackCandidateType == 7 or trackCandidateType == 5) ? segmentsInGPU.ptIn[innerTrackletInnerSegmentIndex-(*(modulesInGPU.nLowerModules))*600] : dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.);
+            const float ptAv_in = (trackCandidateType == 7 or trackCandidateType == 5) ? segmentsInGPU.ptIn[innerTrackletInnerSegmentIndex-(*(modulesInGPU.nLowerModules))*N_MAX_SEGMENTS_PER_MODULE] : dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.);
 
             const float ptAv_out = dr_out * k2Rinv1GeVf / sin((betaIn_out + betaOut_out) / 2.);
             float ptAv;
@@ -2060,7 +2064,6 @@ void fillQuintupletOutputBranches(SDL::Event* event)
     std::vector<int> moduleType_binaries;
 #endif
 
-    const int MAX_NQUINTUPLET_PER_MODULE = 51;
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     const float k2Rinv1GeVf = kRinv1GeVf / 2.;
     
@@ -2776,7 +2779,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
         pT5_matched_simIdx.push_back(matched_sim_trk_idxs);
 
         const float kRinv1GeVf = (2.99792458e-3 * 3.8);
-        float pt = (segmentsInGPU.ptIn[pixelSegmentIndex - (*(modulesInGPU.nLowerModules))*600] +  quintupletsInGPU.regressionRadius[T5Index] * kRinv1GeVf) / 2;
+        float pt = (segmentsInGPU.ptIn[pixelSegmentIndex - (*(modulesInGPU.nLowerModules))*N_MAX_SEGMENTS_PER_MODULE] +  quintupletsInGPU.regressionRadius[T5Index] * kRinv1GeVf) / 2;
 
         SDL::CPU::Hit hitA(trk.pix_x()[hit_idxs[0]], trk.pix_y()[hit_idxs[0]], trk.pix_z()[hit_idxs[0]]);
         SDL::CPU::Hit hitB(trk.ph2_x()[hit_idxs[13]], trk.ph2_y()[hit_idxs[13]], trk.ph2_z()[hit_idxs[13]]);
@@ -2844,7 +2847,6 @@ void fillPixelLineSegmentOutputBranches(SDL::Event* event)
     std::vector<float> pLS_score;
 
     const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000; 
-    const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
     unsigned int pixelModuleIndex = *(modulesInGPU.nLowerModules);
     unsigned int nPixelSegments = std::min(segmentsInGPU.nSegments[pixelModuleIndex], N_MAX_PIXEL_SEGMENTS_PER_MODULE);
     for(unsigned int jdx = 0; jdx < nPixelSegments; jdx++)
@@ -3097,7 +3099,6 @@ void fillTripletOutputBranches(SDL::Event* event)
     std::vector<int> moduleType_binaries;
 #endif
 
-    const int MAX_NTRIPLET_PER_MODULE = 174;
     for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
 
@@ -5615,7 +5616,7 @@ void printMDs(SDL::Event* event)
     {
         for (unsigned int jdx = 0; jdx < miniDoubletsInGPU.nMDs[2*idx]; jdx++)
         {
-            unsigned int mdIdx = (2*idx) * 100 + jdx;
+            unsigned int mdIdx = (2*idx) * N_MAX_MD_PER_MODULES + jdx;
             unsigned int LowerHitIndex = miniDoubletsInGPU.anchorHitIndices[mdIdx];
             unsigned int UpperHitIndex = miniDoubletsInGPU.outerHitIndices[mdIdx];
             unsigned int hit0 = hitsInGPU.idxs[LowerHitIndex];
@@ -5624,7 +5625,7 @@ void printMDs(SDL::Event* event)
         }
         for (unsigned int jdx = 0; jdx < miniDoubletsInGPU.nMDs[2*idx+1]; jdx++)
         {
-            unsigned int mdIdx = (2*idx+1) * 100 + jdx;
+            unsigned int mdIdx = (2*idx+1) * N_MAX_MD_PER_MODULES + jdx;
             unsigned int LowerHitIndex = miniDoubletsInGPU.anchorHitIndices[mdIdx];
             unsigned int UpperHitIndex = miniDoubletsInGPU.outerHitIndices[mdIdx];
             unsigned int hit0 = hitsInGPU.idxs[LowerHitIndex];
@@ -5677,7 +5678,7 @@ void printLSs(SDL::Event* event)
         nSegments += segmentsInGPU.nSegments[idx];
         for (unsigned int jdx = 0; jdx < segmentsInGPU.nSegments[idx]; jdx++)
         {
-            unsigned int sgIdx = idx * 600 + jdx;
+            unsigned int sgIdx = idx * N_MAX_SEGMENTS_PER_MODULE + jdx;
             unsigned int InnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * sgIdx];
             unsigned int OuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * sgIdx + 1];
             unsigned int InnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[InnerMiniDoubletIndex];
@@ -5737,7 +5738,7 @@ void printpLSs(SDL::Event* event)
     int npLS = segmentsInGPU.nSegments[idx];
     for (unsigned int jdx = 0; jdx < segmentsInGPU.nSegments[idx]; jdx++)
     {
-        unsigned int sgIdx = idx * 600 + jdx;
+        unsigned int sgIdx = idx * N_MAX_SEGMENTS_PER_MODULE + jdx;
         unsigned int InnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * sgIdx];
         unsigned int OuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * sgIdx + 1];
         unsigned int InnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[InnerMiniDoubletIndex];
