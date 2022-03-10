@@ -2,8 +2,8 @@
 
 #define N_MAX_MD_PER_MODULES 89
 #define N_MAX_SEGMENTS_PER_MODULE 537
-#define MAX_NTRIPLET_PER_MODULE = 1170
-#define MAX_NQUINTUPLET_PER_MODULE = 513
+#define MAX_NTRIPLET_PER_MODULE 1170
+#define MAX_NQUINTUPLET_PER_MODULE 513
 
 //________________________________________________________________________________________________________________________________
 void createOutputBranches()
