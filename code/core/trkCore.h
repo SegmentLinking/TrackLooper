@@ -99,7 +99,9 @@ std::vector<std::vector<float>>&    out_etaErr_vec,
 std::vector<std::vector<float>>&    out_phi_vec,
 std::vector<std::vector<int>>&    out_superbin_vec,
 std::vector<std::vector<int8_t>>&    out_pixelType_vec,
-std::vector<std::vector<short>>&    out_isQuad_vec);
+std::vector<std::vector<short>>&    out_isQuad_vec,
+std::vector<unsigned int>&    hitOffset
+);
 //float addInputsToEventPreLoad(SDL::Event& event, bool useOMP,std::vector<float> trkX,std::vector<float> trkY,std::vector<float> trkZ,
 float addInputsToEventPreLoad(SDL::Event* event, bool useOMP,std::vector<float> trkX,std::vector<float> trkY,std::vector<float> trkZ,
 std::vector<unsigned int>    hitId,

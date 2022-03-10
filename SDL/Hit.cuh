@@ -43,6 +43,12 @@ namespace SDL
         float *highEdgeYs;
         float *lowEdgeXs;
         float *lowEdgeYs;
+
+        int* hitRanges;
+        int* hitRangesLower;
+        int* hitRangesUpper;
+        int8_t* hitRangesnLower;
+        int8_t* hitRangesnUpper;
         
         hits();
         void freeMemory(cudaStream_t stream);

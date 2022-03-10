@@ -1510,6 +1510,7 @@ std::vector<std::vector<float>>&    out_phi_vec,
 std::vector<std::vector<int>>&    out_superbin_vec,
 std::vector<std::vector<int8_t>>&    out_pixelType_vec,
 std::vector<std::vector<short>>&    out_isQuad_vec
+,std::vector<unsigned int>&    hitOffset
 )
 {
 
@@ -1732,6 +1733,8 @@ std::vector<std::vector<short>>&    out_isQuad_vec
     out_superbin_vec.push_back(superbin_vec);
     out_pixelType_vec.push_back(pixelType_vec);
     out_isQuad_vec.push_back(isQuad_vec);
+    hitOffset.push_back(hitOffset.back()+trkX.size());
+    printf("hitOffset %u\n",hitOffset.back());
     
 //    float hit_loading_elapsed = my_timer.RealTime();
 //    if (ana.verbose >= 2) std::cout << "Loading inputs processing time: " << hit_loading_elapsed << " secs" << std::endl;
@@ -1764,7 +1767,8 @@ std::vector<short>    isQuad_vec
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Loading Inputs (i.e. outer tracker hits, and pixel line segements) to the Line Segment Tracking.... " << std::endl;
     my_timer.Start();
-    event->addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
+    event->preloadHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
+    //event->addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
     event->addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);
     //event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
     //event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);

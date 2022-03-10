@@ -341,8 +341,10 @@ void run_sdl()
                 std::vector<std::vector<int8_t>>      out_pixelType_vec;
                 std::vector<std::vector<short>>    out_isQuad_vec;
                 std::vector<int>    evt_num;
+                std::vector<unsigned int>    hitOffset;
                 //std::vector<SDL::Event> events;
     // Looping input file
+    hitOffset.push_back(0); // start the offset. events shifted by one..
     while (ana.looper.nextEvent())
     {
 
@@ -381,6 +383,7 @@ void run_sdl()
                 out_superbin_vec,
                 out_pixelType_vec,
                 out_isQuad_vec
+                ,hitOffset
                 );
         }
         evt_num.push_back(ana.looper.getCurrentEventIndex());

@@ -37,12 +37,12 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
     for(uint16_t lowerModuleIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerModuleIndex< (*modulesInGPU.nLowerModules); lowerModuleIndex += blockySize)
     {
         uint16_t upperModuleIndex = modulesInGPU.partnerModuleIndices[lowerModuleIndex];
-        int nLowerHits = rangesInGPU.hitRangesnLower[lowerModuleIndex];
-        int nUpperHits = rangesInGPU.hitRangesnUpper[lowerModuleIndex];
-        if(rangesInGPU.hitRangesLower[lowerModuleIndex] == -1) continue;
+        int nLowerHits = hitsInGPU.hitRangesnLower[lowerModuleIndex];
+        int nUpperHits = hitsInGPU.hitRangesnUpper[lowerModuleIndex];
+        if(hitsInGPU.hitRangesLower[lowerModuleIndex] == -1) continue;
         const int maxHits = max(nUpperHits,nLowerHits);
-        unsigned int upHitArrayIndex = rangesInGPU.hitRangesUpper[lowerModuleIndex];
-        unsigned int loHitArrayIndex = rangesInGPU.hitRangesLower[lowerModuleIndex];
+        unsigned int upHitArrayIndex = hitsInGPU.hitRangesUpper[lowerModuleIndex];
+        unsigned int loHitArrayIndex = hitsInGPU.hitRangesLower[lowerModuleIndex];
         int limit = nUpperHits*nLowerHits;
         for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize)
         {
