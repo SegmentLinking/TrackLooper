@@ -33,6 +33,7 @@ namespace SDL
         unsigned int* outerHitIndices;
         uint16_t* moduleIndices;
         unsigned int* nMDs; //counter per module
+        unsigned int* totOccupancyMDs; //counter per module
         float* dphichanges;
 
         float* dzs; //will store drt if the module is endcap

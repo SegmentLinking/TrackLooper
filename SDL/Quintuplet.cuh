@@ -29,6 +29,7 @@ namespace SDL
         unsigned int* tripletIndices;
         uint16_t* lowerModuleIndices;
         unsigned int* nQuintuplets;
+        unsigned int* totOccupancyQuintuplets;
         FPX* innerRadius;
         FPX* outerRadius;
         FPX* pt;

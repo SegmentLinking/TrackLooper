@@ -8,6 +8,7 @@ void SDL::triplets::resetMemory(unsigned int maxTriplets, unsigned int nLowerMod
 {
     cudaMemsetAsync(segmentIndices,0, 5 * maxTriplets * nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(nTriplets,0, nLowerModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(totOccupancyTriplets,0, nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(betaIn,0, maxTriplets * nLowerModules * 3 * sizeof(FPX),stream);
     cudaMemsetAsync(partOfPT5,0, maxTriplets * nLowerModules * sizeof(bool),stream);
     cudaMemsetAsync(partOfT5,0, maxTriplets * nLowerModules * sizeof(bool));
@@ -20,6 +21,7 @@ void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned
     tripletsInGPU.segmentIndices = (unsigned int*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(unsigned int) *2/*5*/,stream);
     tripletsInGPU.lowerModuleIndices = (uint16_t*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(uint16_t) *3,stream);
     tripletsInGPU.nTriplets = (unsigned int*)cms::cuda::allocate_managed(nLowerModules * sizeof(unsigned int),stream);
+    tripletsInGPU.totOccupancyTriplets = (unsigned int*)cms::cuda::allocate_managed(nLowerModules * sizeof(unsigned int),stream);
     tripletsInGPU.betaIn = (FPX*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(FPX) * 3,stream);
     tripletsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(bool), stream);
     tripletsInGPU.partOfPT3 = (bool*)cms::cuda::allocate_managed(maxTriplets * nLowerModules * sizeof(bool), stream);
@@ -31,6 +33,7 @@ void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned
     cudaMallocManaged(&tripletsInGPU.segmentIndices, /*5*/2 * maxTriplets * nLowerModules * sizeof(unsigned int));
     cudaMallocManaged(&tripletsInGPU.lowerModuleIndices, 3 * maxTriplets * nLowerModules * sizeof(uint16_t));
     cudaMallocManaged(&tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int));
+    cudaMallocManaged(&tripletsInGPU.totOccupancyTriplets, nLowerModules * sizeof(unsigned int));
     cudaMallocManaged(&tripletsInGPU.betaIn, maxTriplets * nLowerModules * 3 * sizeof(FPX));
 
     cudaMallocManaged(&tripletsInGPU.partOfPT5, maxTriplets * nLowerModules * sizeof(bool));
@@ -61,6 +64,7 @@ void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned
     tripletsInGPU.betaOut = tripletsInGPU.betaIn + nLowerModules * maxTriplets ;
     tripletsInGPU.pt_beta = tripletsInGPU.betaIn + nLowerModules * maxTriplets * 2;
     cudaMemsetAsync(tripletsInGPU.nTriplets,0,nLowerModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(tripletsInGPU.totOccupancyTriplets,0,nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(tripletsInGPU.partOfPT5,0,maxTriplets*nLowerModules * sizeof(bool),stream);
 #ifdef TRACK_EXTENSIONS
     cudaMemsetAsync(tripletsInGPU.partOfPT3,0,maxTriplets*nLowerModules * sizeof(bool),stream);
@@ -79,6 +83,7 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
     tripletsInGPU.lowerModuleIndices = (uint16_t*)cms::cuda::allocate_device(dev,maxTriplets * nLowerModules * sizeof(uint16_t) *3,stream);
     tripletsInGPU.betaIn = (FPX*)cms::cuda::allocate_device(dev,maxTriplets * nLowerModules * sizeof(FPX) *3,stream);
     tripletsInGPU.nTriplets = (unsigned int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(unsigned int),stream);
+    tripletsInGPU.totOccupancyTriplets = (unsigned int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(unsigned int),stream);
     tripletsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_device(dev, maxTriplets * nLowerModules * sizeof(bool), stream);
     tripletsInGPU.partOfPT3 = (bool*)cms::cuda::allocate_device(dev, maxTriplets * nLowerModules * sizeof(bool), stream);
     tripletsInGPU.partOfT5 = (bool*)cms::cuda::allocate_device(dev, maxTriplets * nLowerModules * sizeof(bool), stream);
@@ -91,6 +96,7 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
     cudaMalloc(&tripletsInGPU.lowerModuleIndices, 3 * maxTriplets * nLowerModules * sizeof(uint16_t));
     cudaMalloc(&tripletsInGPU.betaIn, maxTriplets * nLowerModules * 3 * sizeof(FPX));
     cudaMalloc(&tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int));
+    cudaMalloc(&tripletsInGPU.totOccupancyTriplets, nLowerModules * sizeof(unsigned int));
     cudaMalloc(&tripletsInGPU.partOfPT5, maxTriplets * nLowerModules * sizeof(bool));
     cudaMalloc(&tripletsInGPU.partOfPT3, maxTriplets * nLowerModules * sizeof(bool));
     cudaMalloc(&tripletsInGPU.partOfT5, maxTriplets * nLowerModules * sizeof(bool));
@@ -100,6 +106,7 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
     cudaMalloc(&tripletsInGPU.hitIndices, maxTriplets * nLowerModules * 6 * sizeof(unsigned int));
 #endif
     cudaMemsetAsync(tripletsInGPU.nTriplets,0,nLowerModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(tripletsInGPU.totOccupancyTriplets,0,nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(tripletsInGPU.partOfPT5,0,maxTriplets*nLowerModules * sizeof(bool),stream);
     cudaMemsetAsync(tripletsInGPU.partOfPT3,0,maxTriplets*nLowerModules * sizeof(bool),stream);
     cudaMemsetAsync(tripletsInGPU.partOfT5,0,maxTriplets*nLowerModules * sizeof(bool),stream);
@@ -202,6 +209,7 @@ void SDL::triplets::freeMemoryCache()
     cms::cuda::free_device(dev,lowerModuleIndices);
     cms::cuda::free_device(dev,betaIn);
     cms::cuda::free_device(dev,nTriplets);
+    cms::cuda::free_device(dev,totOccupancyTriplets);
     cms::cuda::free_device(dev, partOfPT5);
     cms::cuda::free_device(dev, partOfPT3);
     cms::cuda::free_device(dev, partOfT5);
@@ -213,6 +221,7 @@ void SDL::triplets::freeMemoryCache()
     cms::cuda::free_managed(lowerModuleIndices);
     cms::cuda::free_managed(betaIn);
     cms::cuda::free_managed(nTriplets);
+    cms::cuda::free_managed(totOccupancyTriplets);
     cms::cuda::free_managed(partOfPT5);
     cms::cuda::free_managed(partOfPT3);
     cms::cuda::free_managed(partOfT5);
@@ -226,6 +235,7 @@ void SDL::triplets::freeMemory(cudaStream_t stream)
     cudaFree(segmentIndices);
     cudaFree(lowerModuleIndices);
     cudaFree(nTriplets);
+    cudaFree(totOccupancyTriplets);
     cudaFree(betaIn);
     cudaFree(partOfPT5);
     cudaFree(partOfPT3);

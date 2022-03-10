@@ -31,6 +31,7 @@ namespace SDL
         unsigned int* pixelIndices;
         unsigned int* T5Indices;
         unsigned int* nPixelQuintuplets;
+        unsigned int* totOccupancyPixelQuintuplets;
         bool* isDup;
         FPX* score;
         FPX* eta;
