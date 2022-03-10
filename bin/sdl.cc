@@ -388,6 +388,7 @@ void run_sdl()
         }
         evt_num.push_back(ana.looper.getCurrentEventIndex());
     }
+    SDL::initHits(hitOffset.back());
     cudaStream_t streams[ana.streams];
     std::vector<SDL::Event*> events;
     for( int s =0; s<ana.streams; s++){
@@ -449,7 +450,7 @@ float timing_TCE;
                 out_phi_vec.at(evt),
                 out_superbin_vec.at(evt),
                 out_pixelType_vec.at(evt),
-                out_isQuad_vec.at(evt)
+                out_isQuad_vec.at(evt),hitOffset.at(evt)
                 );
             // Run Mini-doublet
             timing_MD = runMiniDoublet(events.at(omp_get_thread_num()),evt);
