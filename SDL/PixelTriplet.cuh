@@ -29,6 +29,7 @@ namespace SDL
         unsigned int* pixelSegmentIndices;         
         unsigned int* tripletIndices;
         unsigned int* nPixelTriplets; //size 1
+        unsigned int* totOccupancyPixelTriplets; //size 1
 
         float* pixelRadiusError;
         float* rPhiChiSquared;

@@ -11,6 +11,7 @@ void SDL::segments::resetMemory(unsigned int maxSegments, unsigned int nLowerMod
     cudaMemsetAsync(mdIndices,0, nMemoryLocations * 2 * sizeof(unsigned int),stream);
     cudaMemsetAsync(innerLowerModuleIndices,0, nMemoryLocations * 2 * sizeof(uint16_t),stream);
     cudaMemsetAsync(nSegments, 0,(nLowerModules+1) * sizeof(unsigned int),stream);
+    cudaMemsetAsync(totOccupancySegments, 0,(nLowerModules+1) * sizeof(unsigned int),stream);
     cudaMemsetAsync(dPhis, 0,(nMemoryLocations * 6 )*sizeof(FPX),stream);
     cudaMemsetAsync(ptIn, 0,(maxPixelSegments * 8)*sizeof(float),stream);
     cudaMemsetAsync(superbin, 0,(maxPixelSegments )*sizeof(int),stream);
@@ -74,6 +75,7 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations*4 *sizeof(unsigned int),stream);
     segmentsInGPU.innerLowerModuleIndices = (uint16_t*)cms::cuda::allocate_managed(nMemoryLocations*2 *sizeof(uint16_t),stream);
     segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_managed((nLowerModules + 1) *sizeof(unsigned int),stream);
+    segmentsInGPU.totOccupancySegments = (unsigned int*)cms::cuda::allocate_managed((nLowerModules + 1) *sizeof(unsigned int),stream);
     segmentsInGPU.dPhis = (FPX*)cms::cuda::allocate_managed(nMemoryLocations*6  *sizeof(FPX),stream);
     segmentsInGPU.ptIn = (float*)cms::cuda::allocate_managed(maxPixelSegments * 8 *sizeof(float),stream);
     segmentsInGPU.superbin = (int*)cms::cuda::allocate_managed((maxPixelSegments) *sizeof(int),stream);
@@ -90,6 +92,7 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     cudaMallocManaged(&segmentsInGPU.mdIndices, nMemoryLocations * 4 * sizeof(unsigned int));
     cudaMallocManaged(&segmentsInGPU.innerLowerModuleIndices, nMemoryLocations * 2 * sizeof(uint16_t));
     cudaMallocManaged(&segmentsInGPU.nSegments, (nLowerModules + 1) * sizeof(unsigned int));
+    cudaMallocManaged(&segmentsInGPU.totOccupancySegments, (nLowerModules + 1) * sizeof(unsigned int));
     cudaMallocManaged(&segmentsInGPU.dPhis, nMemoryLocations * 6 *sizeof(FPX));
     cudaMallocManaged(&segmentsInGPU.ptIn, maxPixelSegments * 8*sizeof(float));
     cudaMallocManaged(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int));
@@ -142,6 +145,7 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     segmentsInGPU.phi    = segmentsInGPU.ptIn + maxPixelSegments * 7;
     
     cudaMemsetAsync(segmentsInGPU.nSegments,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
+    cudaMemsetAsync(segmentsInGPU.totOccupancySegments,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
     cudaMemsetAsync(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool),stream);
     cudaStreamSynchronize(stream);
 
@@ -157,6 +161,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_device(dev,nMemoryLocations*4 *sizeof(unsigned int),stream);
     segmentsInGPU.innerLowerModuleIndices = (uint16_t*)cms::cuda::allocate_device(dev,nMemoryLocations*2 *sizeof(uint16_t),stream);
     segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) *sizeof(unsigned int),stream);
+    segmentsInGPU.totOccupancySegments = (unsigned int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) *sizeof(unsigned int),stream);
     segmentsInGPU.dPhis = (FPX*)cms::cuda::allocate_device(dev,nMemoryLocations*6 *sizeof(FPX),stream);
     segmentsInGPU.ptIn = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * 8 *sizeof(float),stream);
     segmentsInGPU.superbin = (int*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(int),stream);
@@ -173,6 +178,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     cudaMalloc(&segmentsInGPU.mdIndices, nMemoryLocations * 4 * sizeof(unsigned int));
     cudaMalloc(&segmentsInGPU.innerLowerModuleIndices, nMemoryLocations * 2 * sizeof(uint16_t));
     cudaMalloc(&segmentsInGPU.nSegments, (nLowerModules + 1) * sizeof(unsigned int));
+    cudaMalloc(&segmentsInGPU.totOccupancySegments, (nLowerModules + 1) * sizeof(unsigned int));
     cudaMalloc(&segmentsInGPU.dPhis, nMemoryLocations * 6 *sizeof(FPX));
     cudaMalloc(&segmentsInGPU.ptIn, maxPixelSegments * 8*sizeof(float));
     cudaMalloc(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int));
@@ -207,6 +213,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.phi    = segmentsInGPU.ptIn + maxPixelSegments * 7;
 
     cudaMemsetAsync(segmentsInGPU.nSegments,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
+    cudaMemsetAsync(segmentsInGPU.totOccupancySegments,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
     cudaMemsetAsync(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool),stream);
     cudaMemsetAsync(segmentsInGPU.nMemoryLocations, nMemoryLocations, sizeof(unsigned int), stream);
     cudaStreamSynchronize(stream);
@@ -230,6 +237,7 @@ SDL::segments::segments()
     outerMiniDoubletAnchorHitIndices = nullptr;
 
     nSegments = nullptr;
+    totOccupancySegments = nullptr;
     dPhis = nullptr;
     dPhiMins = nullptr;
     dPhiMaxs = nullptr;
@@ -272,6 +280,7 @@ void SDL::segments::freeMemoryCache()
     cms::cuda::free_device(dev,dPhis);
     cms::cuda::free_device(dev,ptIn);
     cms::cuda::free_device(dev,nSegments);
+    cms::cuda::free_device(dev,totOccupancySegments);
     cms::cuda::free_device(dev,superbin);
     cms::cuda::free_device(dev,pixelType);
     cms::cuda::free_device(dev,isQuad);
@@ -288,6 +297,7 @@ void SDL::segments::freeMemoryCache()
     cms::cuda::free_managed(dPhis);
     cms::cuda::free_managed(ptIn);
     cms::cuda::free_managed(nSegments);
+    cms::cuda::free_managed(totOccupancySegments);
     cms::cuda::free_managed(superbin);
     cms::cuda::free_managed(pixelType);
     cms::cuda::free_managed(isQuad);
@@ -305,6 +315,7 @@ void SDL::segments::freeMemory(cudaStream_t stream)
     cudaFree(mdIndices);
     cudaFree(innerLowerModuleIndices);
     cudaFree(nSegments);
+    cudaFree(totOccupancySegments);
     cudaFree(dPhis);
     cudaFree(ptIn);
     cudaFree(superbin);
