@@ -24,6 +24,8 @@ namespace SDL
 {
     struct segments
     {
+        unsigned int* nMemoryLocations;
+
         unsigned int* mdIndices;
         uint16_t* innerLowerModuleIndices;
         uint16_t* outerLowerModuleIndices;

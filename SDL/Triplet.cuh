@@ -29,6 +29,8 @@ namespace SDL
         uint16_t* lowerModuleIndices; //3 of them now
         unsigned int* nTriplets;
 
+        unsigned int* nMemoryLocations;
+
         //for track extensions
         uint8_t* logicalLayers;
         unsigned int* hitIndices;
@@ -71,6 +73,8 @@ namespace SDL
         void freeMemoryCache();
         void resetMemory(unsigned int maxTriplets, unsigned int nLowerModules,cudaStream_t stream);
     };
+
+    void createTripletArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct segments& segmentsInGPU, uint16_t& nLowerModules, unsigned int& nTotalTriplets, cudaStream_t stream, const uint16_t& maxTripletsPerModule);
 
     void createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, uint16_t nLowerModules,cudaStream_t stream);
     void createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, uint16_t nLowerModules,cudaStream_t stream);

@@ -163,6 +163,9 @@ void SDL::objectRanges::freeMemoryCache()//struct objectRanges& rangesInGPU)
   cms::cuda::free_device(dev, hitRangesUpper);
   cms::cuda::free_device(dev, hitRangesnLower);
   cms::cuda::free_device(dev, hitRangesnUpper);
+  cms::cuda::free_device(dev, miniDoubletModuleIndices);
+  cms::cuda::free_device(dev, segmentModuleIndices);
+  cms::cuda::free_device(dev, tripletModuleIndices);
 #else
   cms::cuda::free_managed(hitRanges);
   cms::cuda::free_managed(mdRanges);
@@ -177,6 +180,10 @@ void SDL::objectRanges::freeMemoryCache()//struct objectRanges& rangesInGPU)
   cms::cuda::free_managed(hitRangesUpper);
   cms::cuda::free_managed(hitRangesnLower);
   cms::cuda::free_managed(hitRangesnUpper);
+  cms::cuda::free_managed(miniDoubletModuleIndices);
+  cms::cuda::free_managed(segmentModuleIndices);
+  cms::cuda::free_managed(tripletModuleIndices);
+
 #endif
 }
 void SDL::objectRanges::freeMemory()

@@ -29,6 +29,8 @@ namespace SDL
 {
     struct miniDoublets
     {
+        unsigned int* nMemoryLocations;
+
         unsigned int* anchorHitIndices;
         unsigned int* outerHitIndices;
         uint16_t* moduleIndices;
