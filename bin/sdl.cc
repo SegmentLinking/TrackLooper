@@ -339,7 +339,7 @@ void run_sdl()
                 std::vector<std::vector<float>>    out_etaErr_vec;
                 std::vector<std::vector<float>>    out_phi_vec;
                 std::vector<std::vector<int>>      out_superbin_vec;
-                std::vector<std::vector<int>>      out_pixelType_vec;
+                std::vector<std::vector<int8_t>>      out_pixelType_vec;
                 std::vector<std::vector<short>>    out_isQuad_vec;
                 std::vector<int>    evt_num;
                 //std::vector<SDL::Event> events;
@@ -465,11 +465,7 @@ float timing_TCE;
             timing_pT3 = runpT3(events.at(omp_get_thread_num()));
             // Run TC
             timing_TC = runTrackCandidate(events.at(omp_get_thread_num()));
-#ifdef TRACK_EXTENSIONS
             timing_TCE = runTrackExtensions(events.at(omp_get_thread_num()));
-#else
-            timing_TCE = 0;
-#endif
             timing_information.push_back({ timing_input_loading,
                     timing_MD,
                     timing_LS,

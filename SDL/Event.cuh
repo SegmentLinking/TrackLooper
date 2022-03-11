@@ -80,14 +80,14 @@ namespace SDL
         trackExtensions* trackExtensionsInCPU;
 
         int* superbinCPU;
-        int* pixelTypeCPU;
+        int8_t* pixelTypeCPU;
     public:
         Event(cudaStream_t estream);
         ~Event();
         void resetEvent();
 
         void addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple); //call the appropriate hit function, then increment the counter here
-        void addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> superbin, std::vector<int> pixelType, std::vector<short> isQuad);
+        void addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<short> isQuad);
 
         /*functions that map the objects to the appropriate modules*/
         void addMiniDoubletsToEvent();
@@ -169,8 +169,8 @@ namespace SDL
 
     extern struct modules* modulesInGPU;
     extern struct modules* modulesInHost;
-    extern unsigned int nModules;
-    extern unsigned int nLowerModules;
+    extern uint16_t nModules;
+    extern uint16_t nLowerModules;
     void initModules(const char* moduleMetaDataFilePath="data/centroid.txt"); //read from file and init
     void cleanModules();
     void initModulesHost(); //read from file and init

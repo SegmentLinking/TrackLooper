@@ -13,15 +13,13 @@ void SDL::trackCandidates::resetMemory(unsigned int maxTrackCandidates,cudaStrea
     cudaMemsetAsync(nTrackCandidatespT5,0, sizeof(unsigned int),stream);
     cudaMemsetAsync(nTrackCandidatespLS, 0,sizeof(unsigned int),stream);
 
-#ifdef TRACK_EXTENSIONS
-    cudaMemsetAsync(logicalLayers, 0, 7 * maxTrackCandidates * sizeof(unsigned int), stream);
-    cudaMemsetAsync(lowerModuleIndices, 0, 7 * maxTrackCandidates * sizeof(unsigned int), stream);
+    cudaMemsetAsync(logicalLayers, 0, 7 * maxTrackCandidates * sizeof(uint8_t), stream);
+    cudaMemsetAsync(lowerModuleIndices, 0, 7 * maxTrackCandidates * sizeof(uint16_t), stream);
     cudaMemsetAsync(hitIndices, 0, 14 * maxTrackCandidates * sizeof(unsigned int), stream);
-    cudaMemsetAsync(centerX, 0, maxTrackCandidates * sizeof(float), stream);
-    cudaMemsetAsync(centerY, 0, maxTrackCandidates * sizeof(float), stream);
-    cudaMemsetAsync(radius, 0, maxTrackCandidates * sizeof(float), stream);
+    cudaMemsetAsync(centerX, 0, maxTrackCandidates * sizeof(FPX), stream);
+    cudaMemsetAsync(centerY, 0, maxTrackCandidates * sizeof(FPX), stream);
+    cudaMemsetAsync(radius , 0, maxTrackCandidates * sizeof(FPX), stream);
     cudaMemsetAsync(partOfExtension, 0, maxTrackCandidates * sizeof(bool), stream);
-#endif
 }
 void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates,cudaStream_t stream)
 {
@@ -33,15 +31,13 @@ void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCand
     trackCandidatesInGPU.nTrackCandidatesT5= (unsigned int*)cms::cuda::allocate_managed( sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatespT5= (unsigned int*)cms::cuda::allocate_managed( sizeof(unsigned int),stream);
 
-#ifdef TRACK_EXTENSIONS
-    trackCandidatesInGPU.logicalLayers = (unsigned int*)cms::cuda::allocate_managed(7 * maxTrackCandidates * sizeof(unsigned int), stream);
-    trackCandidatesInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_managed(7 * maxTrackCandidates * sizeof(unsigned int), stream);
+    trackCandidatesInGPU.logicalLayers = (uint8_t*)cms::cuda::allocate_managed(7 * maxTrackCandidates * sizeof(uint8_t), stream);
+    trackCandidatesInGPU.lowerModuleIndices = (uint16_t*)cms::cuda::allocate_managed(7 * maxTrackCandidates * sizeof(uint16_t), stream);
     trackCandidatesInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_managed(14 * maxTrackCandidates * sizeof(unsigned int), stream);
-    trackCandidatesInGPU.centerX = (float*)cms::cuda::allocate_managed(maxTrackCandidates * sizeof(float), stream);
-    trackCandidatesInGPU.centerY = (float*)cms::cuda::allocate_managed(maxTrackCandidates * sizeof(float), stream);
-    trackCandidatesInGPU.radius = (float*)cms::cuda::allocate_managed(maxTrackCandidates * sizeof(float), stream);
+    trackCandidatesInGPU.centerX = (FPX*)cms::cuda::allocate_managed(maxTrackCandidates * sizeof(FPX), stream);
+    trackCandidatesInGPU.centerY = (FPX*)cms::cuda::allocate_managed(maxTrackCandidates * sizeof(FPX), stream);
+    trackCandidatesInGPU.radius  = (FPX*)cms::cuda::allocate_managed(maxTrackCandidates * sizeof(FPX), stream);
     trackCandidatesInGPU.partOfExtension = (bool*)cms::cuda::allocate_managed(maxTrackCandidates * sizeof(bool), stream);
-#endif
 
     trackCandidatesInGPU.nTrackCandidatespLS= (unsigned int*)cms::cuda::allocate_managed( sizeof(unsigned int),stream);
 #else
@@ -53,24 +49,24 @@ void SDL::createTrackCandidatesInUnifiedMemory(struct trackCandidates& trackCand
     cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidatespT5, sizeof(unsigned int));
 
     cudaMallocManaged(&trackCandidatesInGPU.nTrackCandidatespLS, sizeof(unsigned int));
-#ifdef TRACK_EXTENSIONS
-    cudaMallocManaged(&trackCandidatesInGPU.logicalLayers, maxTrackCandidates * 7 * sizeof(unsigned int));
-    cudaMallocManaged(&trackCandidatesInGPU.lowerModuleIndices, maxTrackCandidates * 7 * sizeof(unsigned int));
+    cudaMallocManaged(&trackCandidatesInGPU.logicalLayers, maxTrackCandidates * 7 * sizeof(uint8_t));
+    cudaMallocManaged(&trackCandidatesInGPU.lowerModuleIndices, maxTrackCandidates * 7 * sizeof(uint16_t));
     cudaMallocManaged(&trackCandidatesInGPU.hitIndices, maxTrackCandidates * 14 * sizeof(unsigned int));
     cudaMallocManaged(&trackCandidatesInGPU.partOfExtension, maxTrackCandidates*sizeof(bool));
-    cudaMallocManaged(&trackCandidatesInGPU.centerX, maxTrackCandidates * sizeof(float));
-    cudaMallocManaged(&trackCandidatesInGPU.centerY, maxTrackCandidates * sizeof(float));
-    cudaMallocManaged(&trackCandidatesInGPU.radius, maxTrackCandidates * sizeof(float));
-#endif
+    cudaMallocManaged(&trackCandidatesInGPU.centerX, maxTrackCandidates * sizeof(FPX));
+    cudaMallocManaged(&trackCandidatesInGPU.centerY, maxTrackCandidates * sizeof(FPX));
+    cudaMallocManaged(&trackCandidatesInGPU.radius , maxTrackCandidates * sizeof(FPX));
 #endif
     cudaMemsetAsync(trackCandidatesInGPU.nTrackCandidates,0, sizeof(unsigned int),stream);
     cudaMemsetAsync(trackCandidatesInGPU.nTrackCandidatesT5,0, sizeof(unsigned int),stream);
     cudaMemsetAsync(trackCandidatesInGPU.nTrackCandidatespT3,0, sizeof(unsigned int),stream);
     cudaMemsetAsync(trackCandidatesInGPU.nTrackCandidatespT5,0, sizeof(unsigned int),stream);
     cudaMemsetAsync(trackCandidatesInGPU.nTrackCandidatespLS,0, sizeof(unsigned int),stream);
-#ifdef TRACK_EXTENSIONS
     cudaMemsetAsync(trackCandidatesInGPU.partOfExtension, false, maxTrackCandidates * sizeof(bool));
-#endif
+    cudaMemsetAsync(trackCandidatesInGPU.logicalLayers, 0, 7 * maxTrackCandidates * sizeof(uint8_t), stream);
+    cudaMemsetAsync(trackCandidatesInGPU.lowerModuleIndices, 0, 7 * maxTrackCandidates * sizeof(uint16_t), stream);
+    cudaMemsetAsync(trackCandidatesInGPU.hitIndices, 0, 14 * maxTrackCandidates * sizeof(unsigned int), stream);
+    cudaStreamSynchronize(stream);
 }
 void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates,cudaStream_t stream)
 {
@@ -85,15 +81,13 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     trackCandidatesInGPU.nTrackCandidatespT5= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatespLS= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
 
-#ifdef TRACK_EXTENSIONS
     trackCandidatesInGPU.partOfExtension = (bool*)cms::cuda::allocate_device(dev, maxTrackCandidates * sizeof(bool), stream);
-    trackCandidatesInGPU.logicalLayers = (unsigned int*)cms::cuda::allocate_device(dev, 7 * maxTrackCandidates * sizeof(unsigned int), stream);
-    trackCandidatesInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_device(dev, 7 * maxTrackCandidates * sizeof(unsigned int), stream);
+    trackCandidatesInGPU.logicalLayers = (uint8_t*)cms::cuda::allocate_device(dev, 7 * maxTrackCandidates * sizeof(uint8_t), stream);
+    trackCandidatesInGPU.lowerModuleIndices = (uint16_t*)cms::cuda::allocate_device(dev, 7 * maxTrackCandidates * sizeof(uint16_t), stream);
     trackCandidatesInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_device(dev, 14 * maxTrackCandidates * sizeof(unsigned int), stream);
-    trackCandidatesInGPU.centerX = (float*)cms::cuda::allocate_device(dev, maxTrackCandidates * sizeof(float), stream);
-    trackCandidatesInGPU.centerY = (float*)cms::cuda::allocate_device(dev, maxTrackCandidates * sizeof(float), stream);
-    trackCandidatesInGPU.radius = (float*)cms::cuda::allocate_device(dev, maxTrackCandidates * sizeof(float), stream);
-#endif
+    trackCandidatesInGPU.centerX = (FPX*)cms::cuda::allocate_device(dev, maxTrackCandidates * sizeof(FPX), stream);
+    trackCandidatesInGPU.centerY = (FPX*)cms::cuda::allocate_device(dev, maxTrackCandidates * sizeof(FPX), stream);
+    trackCandidatesInGPU.radius  = (FPX*)cms::cuda::allocate_device(dev, maxTrackCandidates * sizeof(FPX), stream);
 
 #else
     cudaMalloc(&trackCandidatesInGPU.trackCandidateType, maxTrackCandidates * sizeof(short));
@@ -104,24 +98,23 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     cudaMalloc(&trackCandidatesInGPU.nTrackCandidatespT5, sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.nTrackCandidatespLS, sizeof(unsigned int));
 
-#ifdef TRACK_EXTENSIONS
     cudaMalloc(&trackCandidatesInGPU.partOfExtension, maxTrackCandidates * sizeof(bool));
-    cudaMalloc(&trackCandidatesInGPU.logicalLayers, 7 * maxTrackCandidates * sizeof(unsigned int));
-    cudaMalloc(&trackCandidatesInGPU.lowerModuleIndices, 7 * maxTrackCandidates * sizeof(unsigned int));
+    cudaMalloc(&trackCandidatesInGPU.logicalLayers, 7 * maxTrackCandidates * sizeof(uint8_t));
+    cudaMalloc(&trackCandidatesInGPU.lowerModuleIndices, 7 * maxTrackCandidates * sizeof(uint16_t));
     cudaMalloc(&trackCandidatesInGPU.hitIndices, 14 * maxTrackCandidates * sizeof(unsigned int));
-    cudaMalloc(&trackCandidatesInGPU.centerX, maxTrackCandidates * sizeof(float));
-    cudaMalloc(&trackCandidatesInGPU.centerY, maxTrackCandidates * sizeof(float));
-    cudaMalloc(&trackCandidatesInGPU.radius, maxTrackCandidates * sizeof(float));
-#endif
+    cudaMalloc(&trackCandidatesInGPU.centerX, maxTrackCandidates * sizeof(FPX));
+    cudaMalloc(&trackCandidatesInGPU.centerY, maxTrackCandidates * sizeof(FPX));
+    cudaMalloc(&trackCandidatesInGPU.radius , maxTrackCandidates * sizeof(FPX));
 #endif
     cudaMemsetAsync(trackCandidatesInGPU.nTrackCandidates,0, sizeof(unsigned int));
     cudaMemsetAsync(trackCandidatesInGPU.nTrackCandidatesT5,0, sizeof(unsigned int));
     cudaMemsetAsync(trackCandidatesInGPU.nTrackCandidatespT3,0, sizeof(unsigned int));
     cudaMemsetAsync(trackCandidatesInGPU.nTrackCandidatespT5,0, sizeof(unsigned int));
     cudaMemsetAsync(trackCandidatesInGPU.nTrackCandidatespLS,0, sizeof(unsigned int));
-#ifdef TRACK_EXTENSIONS
     cudaMemsetAsync(trackCandidatesInGPU.partOfExtension, false, maxTrackCandidates * sizeof(bool));
-#endif
+    cudaMemsetAsync(trackCandidatesInGPU.logicalLayers, 0, 7 * maxTrackCandidates * sizeof(uint8_t), stream);
+    cudaMemsetAsync(trackCandidatesInGPU.lowerModuleIndices, 0, 7 * maxTrackCandidates * sizeof(uint16_t), stream);
+    cudaMemsetAsync(trackCandidatesInGPU.hitIndices, 0, 14 * maxTrackCandidates * sizeof(unsigned int), stream);
     cudaStreamSynchronize(stream);
 }
 
@@ -132,8 +125,7 @@ __device__ void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCand
     trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1] = outerTrackletIndex;
 }
 
-#ifdef TRACK_EXTENSIONS
-__device__ void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, unsigned int* logicalLayerIndices, unsigned int* lowerModuleIndices, unsigned int* hitIndices, float& centerX, float& centerY, float& radius, unsigned int trackCandidateIndex)
+__device__ void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, uint8_t* logicalLayerIndices, uint16_t* lowerModuleIndices, unsigned int* hitIndices, float centerX, float centerY, float radius, unsigned int trackCandidateIndex)
 {
     trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = trackCandidateType;
     trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex] = innerTrackletIndex;
@@ -151,11 +143,10 @@ __device__ void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCand
     {
         trackCandidatesInGPU.hitIndices[14 * trackCandidateIndex + i] = hitIndices[i];
     }
-    trackCandidatesInGPU.centerX[trackCandidateIndex] = centerX;
-    trackCandidatesInGPU.centerY[trackCandidateIndex] = centerY;
-    trackCandidatesInGPU.radius[trackCandidateIndex] = radius;
+    trackCandidatesInGPU.centerX[trackCandidateIndex] = __F2H(centerX);
+    trackCandidatesInGPU.centerY[trackCandidateIndex] = __F2H(centerY);
+    trackCandidatesInGPU.radius[trackCandidateIndex]  = __F2H(radius);
 }
-#endif
 
 SDL::trackCandidates::trackCandidates()
 {
@@ -167,7 +158,6 @@ SDL::trackCandidates::trackCandidates()
     nTrackCandidatespT5 = nullptr;
     nTrackCandidatespLS = nullptr;
 
-#ifdef TRACK_EXTENSIONS
     logicalLayers = nullptr;
     hitIndices = nullptr;
     lowerModuleIndices = nullptr;
@@ -175,7 +165,6 @@ SDL::trackCandidates::trackCandidates()
     centerX = nullptr;
     centerY = nullptr;
     radius = nullptr;
-#endif
 }
 
 SDL::trackCandidates::~trackCandidates()
@@ -197,7 +186,6 @@ void SDL::trackCandidates::freeMemoryCache()
     cms::cuda::free_device(dev,nTrackCandidatespT5);
     cms::cuda::free_device(dev,nTrackCandidatespLS);
 
-#ifdef TRACK_EXTENSIONS
     cms::cuda::free_device(dev, logicalLayers);
     cms::cuda::free_device(dev, hitIndices);
     cms::cuda::free_device(dev, lowerModuleIndices);
@@ -205,7 +193,6 @@ void SDL::trackCandidates::freeMemoryCache()
     cms::cuda::free_device(dev, centerY);
     cms::cuda::free_device(dev, radius);
     cms::cuda::free_device(dev, partOfExtension);
-#endif
 #else
     cms::cuda::free_managed(objectIndices);
     cms::cuda::free_managed(trackCandidateType);
@@ -215,7 +202,6 @@ void SDL::trackCandidates::freeMemoryCache()
     cms::cuda::free_managed(nTrackCandidatespT5);
     cms::cuda::free_managed(nTrackCandidatespLS);
 
-#ifdef TRACK_EXTENSIONS
     cms::cuda::free_managed(logicalLayers);
     cms::cuda::free_managed(hitIndices);
     cms::cuda::free_managed(lowerModuleIndices);
@@ -223,7 +209,6 @@ void SDL::trackCandidates::freeMemoryCache()
     cms::cuda::free_managed(centerY);
     cms::cuda::free_managed(radius);
     cms::cuda::free_managed(partOfExtension);
-#endif
 #endif
 }
 void SDL::trackCandidates::freeMemory(cudaStream_t stream)
@@ -236,7 +221,6 @@ void SDL::trackCandidates::freeMemory(cudaStream_t stream)
     cudaFree(nTrackCandidatespT5);
     cudaFree(nTrackCandidatespLS);
 
-#ifdef TRACK_EXTENSIONS
     cudaFree(logicalLayers);
     cudaFree(hitIndices);
     cudaFree(lowerModuleIndices);
@@ -244,7 +228,6 @@ void SDL::trackCandidates::freeMemory(cudaStream_t stream)
     cudaFree(centerX);
     cudaFree(centerY);
     cudaFree(radius);
-#endif
     
     cudaStreamSynchronize(stream);
 }

@@ -15,7 +15,6 @@ SDL::hits::hits()
     rts = nullptr;
     phis = nullptr;
     etas = nullptr;
-//    edge2SMap = nullptr;
     highEdgeXs = nullptr;
     highEdgeYs = nullptr;
     lowEdgeXs = nullptr;
@@ -38,7 +37,7 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
     hitsInGPU.phis = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
     hitsInGPU.etas = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
 
-    hitsInGPU.moduleIndices = (unsigned int*)cms::cuda::allocate_managed(nMaxHits*sizeof(unsigned int),stream);
+    hitsInGPU.moduleIndices = (uint16_t*)cms::cuda::allocate_managed(nMaxHits*sizeof(uint16_t),stream);
     hitsInGPU.idxs = (unsigned int*)cms::cuda::allocate_managed(nMaxHits*sizeof(unsigned int),stream);
 
     hitsInGPU.highEdgeXs = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
@@ -52,7 +51,7 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
     cudaMallocManaged(&hitsInGPU.xs, nMaxHits * sizeof(float));
     cudaMallocManaged(&hitsInGPU.ys, nMaxHits * sizeof(float));
     cudaMallocManaged(&hitsInGPU.zs, nMaxHits * sizeof(float));
-    cudaMallocManaged(&hitsInGPU.moduleIndices, nMaxHits * sizeof(unsigned int));
+    cudaMallocManaged(&hitsInGPU.moduleIndices, nMaxHits * sizeof(uint16_t));
     //TODO:This dude (idxs) is not used in the GPU at all. It is only used for simhit matching to make efficiency plots
     //We can even skip this one later
     cudaMallocManaged(&hitsInGPU.idxs, nMaxHits * sizeof(unsigned int));
@@ -85,7 +84,7 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
     hitsInGPU.phis = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
     hitsInGPU.etas = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
 
-    hitsInGPU.moduleIndices = (unsigned int*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(unsigned int),stream);
+    hitsInGPU.moduleIndices = (uint16_t*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(uint16_t),stream);
     hitsInGPU.idxs = (unsigned int*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(unsigned int),stream);
 
     hitsInGPU.highEdgeXs = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
@@ -95,29 +94,11 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
 
     hitsInGPU.nHits = (unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
 #else
-    //cudaMallocAsync(&hitsInGPU.xs, nMaxHits * sizeof(float),stream);
-    //cudaMallocAsync(&hitsInGPU.ys, nMaxHits * sizeof(float),stream);
-    //cudaMallocAsync(&hitsInGPU.zs, nMaxHits * sizeof(float),stream);
-
-    //cudaMallocAsync(&hitsInGPU.moduleIndices, nMaxHits * sizeof(unsigned int),stream);
-    //cudaMallocAsync(&hitsInGPU.idxs, nMaxHits * sizeof(unsigned int),stream);
-
-    //cudaMallocAsync(&hitsInGPU.rts, nMaxHits * sizeof(float),stream);
-    //cudaMallocAsync(&hitsInGPU.phis, nMaxHits * sizeof(float),stream);
-    //cudaMallocAsync(&hitsInGPU.etas, nMaxHits * sizeof(float),stream);
-
-    //cudaMallocAsync(&hitsInGPU.highEdgeXs, nMaxHits * sizeof(float),stream);
-    //cudaMallocAsync(&hitsInGPU.highEdgeYs, nMaxHits * sizeof(float),stream);
-    //cudaMallocAsync(&hitsInGPU.lowEdgeXs, nMaxHits * sizeof(float),stream);
-    //cudaMallocAsync(&hitsInGPU.lowEdgeYs, nMaxHits * sizeof(float),stream);
-
-    ////countersAsync
-    //cudaMallocAsync(&hitsInGPU.nHits, sizeof(unsigned int),stream);
     cudaMalloc(&hitsInGPU.xs, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.ys, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.zs, nMaxHits * sizeof(float));
 
-    cudaMalloc(&hitsInGPU.moduleIndices, nMaxHits * sizeof(unsigned int));
+    cudaMalloc(&hitsInGPU.moduleIndices, nMaxHits * sizeof(uint16_t));
     cudaMalloc(&hitsInGPU.idxs, nMaxHits * sizeof(unsigned int));
 
     cudaMalloc(&hitsInGPU.rts, nMaxHits * sizeof(float));
@@ -136,118 +117,7 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
     cudaStreamSynchronize(stream);
 }
 
-__global__ void SDL::addHitToMemoryGPU(struct hits& hitsInCPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex,float phis,struct objectRanges& rangesInGPU)
-{
-    unsigned int idx = *(hitsInCPU.nHits);
-//    unsigned int idxEdge2S = *(hitsInCPU.n2SHits);
-
-    hitsInCPU.xs[idx] = x;
-    hitsInCPU.ys[idx] = y;
-    hitsInCPU.zs[idx] = z;
-    hitsInCPU.rts[idx] = sqrt(x*x + y*y);
-    hitsInCPU.phis[idx] = phi(x,y,z);
-    hitsInCPU.idxs[idx] = idxInNtuple;
- //   unsigned int moduleIndex = (*detIdToIndex)[detId];
-    hitsInCPU.moduleIndices[idx] = moduleIndex;
-    if(modulesInGPU.subdets[moduleIndex] == Endcap and modulesInGPU.moduleType[moduleIndex] == TwoS)
-    {
-        float xhigh, yhigh, xlow, ylow;
-        //getEdgeHits(detId,x,y,xhigh,yhigh,xlow,ylow);
-        getEdgeHitsK(phis,x,y,xhigh,yhigh,xlow,ylow);
-        //hitsInCPU.edge2SMap[idx] = idxEdge2S;
-        //hitsInCPU.highEdgeXs[idxEdge2S] = xhigh; // due to changes to support the explicit version
-        //hitsInCPU.highEdgeYs[idxEdge2S] = yhigh;
-        //hitsInCPU.lowEdgeXs[idxEdge2S] = xlow;
-        //hitsInCPU.lowEdgeYs[idxEdge2S] = ylow;
-        hitsInCPU.highEdgeXs[idx] = xhigh;
-        hitsInCPU.highEdgeYs[idx] = yhigh;
-        hitsInCPU.lowEdgeXs[idx] = xlow;
-        hitsInCPU.lowEdgeYs[idx] = ylow;
-
-        //(*hitsInCPU.n2SHits)++;
-    }
-//    else
-//    {
-//        hitsInCPU.edge2SMap[idx] = -1;
-//    }
-
-    //set the hit ranges appropriately in the modules struct
-
-    //start the index rolling if the module is encountered for the first time
-    if(rangesInGPU.hitRanges[moduleIndex * 2] == -1)
-    {
-        rangesInGPU.hitRanges[moduleIndex * 2] = idx;
-    }
-    //always update the end index
-    rangesInGPU.hitRanges[moduleIndex * 2 + 1] = idx;
-    (*hitsInCPU.nHits)++;
-}
-void SDL::addHitToMemory(struct hits& hitsInGPU, struct modules& modulesInGPU, float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,cudaStream_t stream,struct objectRanges& rangesInGPU)
-{
-    unsigned int idx = *(hitsInGPU.nHits);
-//    unsigned int idxEdge2S = *(hitsInCPU.n2SHits);
-
-    hitsInGPU.xs[idx] = x;
-    hitsInGPU.ys[idx] = y;
-    hitsInGPU.zs[idx] = z;
-    hitsInGPU.rts[idx] = sqrt(x*x + y*y);
-    hitsInGPU.phis[idx] = phi(x,y,z);
-    hitsInGPU.idxs[idx] = idxInNtuple;
-    unsigned int moduleIndex = (*detIdToIndex)[detId];
-    hitsInGPU.moduleIndices[idx] = moduleIndex;
-
-    unsigned int nModules;
-    cudaMemcpyAsync(&nModules,modulesInGPU.nModules,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
-
-    ModuleType* module_moduleType;
-    cudaMallocHost(&module_moduleType, nModules* sizeof(ModuleType));
-    cudaMemcpyAsync(module_moduleType,modulesInGPU.moduleType,nModules*sizeof(ModuleType),cudaMemcpyDeviceToHost,stream);
-    short* module_subdets;
-    cudaMallocHost(&module_subdets, nModules* sizeof(short));
-    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-    int* module_hitRanges;
-    cudaMallocHost(&module_hitRanges, nModules* 2*sizeof(int));
-    cudaMemcpyAsync(module_hitRanges,rangesInGPU.hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
-
-    if(module_subdets[moduleIndex] == Endcap and module_moduleType[moduleIndex] == TwoS)
-    {
-        float xhigh, yhigh, xlow, ylow;
-        getEdgeHits(detId,x,y,xhigh,yhigh,xlow,ylow);
-        //hitsInCPU.edge2SMap[idx] = idxEdge2S;
-        //hitsInCPU.highEdgeXs[idxEdge2S] = xhigh; // due to changes to support the explicit version
-        //hitsInCPU.highEdgeYs[idxEdge2S] = yhigh;
-        //hitsInCPU.lowEdgeXs[idxEdge2S] = xlow;
-        //hitsInCPU.lowEdgeYs[idxEdge2S] = ylow;
-        hitsInGPU.highEdgeXs[idx] = xhigh;
-        hitsInGPU.highEdgeYs[idx] = yhigh;
-        hitsInGPU.lowEdgeXs[idx] = xlow;
-        hitsInGPU.lowEdgeYs[idx] = ylow;
-
-        //(*hitsInCPU.n2SHits)++;
-    }
-//    else
-//    {
-//        hitsInCPU.edge2SMap[idx] = -1;
-//    }
-
-    //set the hit ranges appropriately in the modules struct
-
-    //start the index rolling if the module is encountered for the first time
-    if(module_hitRanges[moduleIndex * 2] == -1)
-    {
-        module_hitRanges[moduleIndex * 2] = idx;
-    }
-    //always update the end index
-    module_hitRanges[moduleIndex * 2 + 1] = idx;
-    cudaMemcpyAsync(rangesInGPU.hitRanges,module_hitRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice,stream);
-    cudaStreamSynchronize(stream);
-    cudaFreeHost(module_moduleType);
-    cudaFreeHost(module_subdets);
-    cudaFreeHost(module_hitRanges);
-   (*hitsInGPU.nHits)++;
-}
-__global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules& modulesInGPU,const float* x,const  float* y,const  float* z, const unsigned int* moduleIndex,const float* phis, const int loopsize)
+__global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules& modulesInGPU,const float* x,const  float* y,const  float* z, const uint16_t* moduleIndex,const float* phis, const int loopsize)
 {
   for (unsigned int ihit = blockIdx.x*blockDim.x + threadIdx.x; ihit <loopsize; ihit += blockDim.x*gridDim.x)
   //if(ihit < loopsize)
@@ -261,91 +131,11 @@ __global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules
       hitsInGPU.phis[idx] = phi(x[ihit],y[ihit],z[ihit]);
       hitsInGPU.moduleIndices[idx] = moduleIndex[ihit];
       hitsInGPU.idxs[idx] = ihit;
-    //  if(modulesInGPU.subdets[moduleIndex[ihit]] == Endcap && modulesInGPU.moduleType[moduleIndex[ihit]] == TwoS)
-    //  {
-    //      float xhigh, yhigh, xlow, ylow;
-    //      getEdgeHitsK(phis[ihit],x[ihit],y[ihit],xhigh,yhigh,xlow,ylow);
-    ////      hitsInGPU.edge2SMap[idx] = idxEdge2S;
-    //      //hitsInGPU.highEdgeXs[idxEdge2S] = xhigh;
-    //      //hitsInGPU.highEdgeYs[idxEdge2S] = yhigh;
-    //      //hitsInGPU.lowEdgeXs[idxEdge2S] = xlow;
-    //      //hitsInGPU.lowEdgeYs[idxEdge2S] = ylow;
-    //      hitsInGPU.highEdgeXs[idx] = xhigh;
-    //      hitsInGPU.highEdgeYs[idx] = yhigh;
-    //      hitsInGPU.lowEdgeXs[idx] = xlow;
-    //      hitsInGPU.lowEdgeYs[idx] = ylow;
-
-    //   //   (*hitsInGPU.n2SHits)++;
-    //  }
-
-    //  //set the hit ranges appropriately in the modules struct
-
-    //  //start the index rolling if the module is encountered for the first time
-    //  if(modulesInGPU.hitRanges[moduleIndex[ihit] * 2] == -1)
-    //  {
-    //      modulesInGPU.hitRanges[moduleIndex[ihit] * 2] = idx;
-    //  }
-    //  //always update the end index
-    //  modulesInGPU.hitRanges[moduleIndex[ihit] * 2 + 1] = idx;
   }
 }
-//__global__ void SDL::checkHits(struct hits& hitsInGPU, const int loopsize){
-//  //for (unsigned int ihit = blockIdx.x*blockDim.x + threadIdx.x; ihit <loopsize; ihit += blockDim.x*gridDim.x)
-//  for (int ihit = 0; ihit <loopsize; ihit ++ )
-//  {
-//    printf("checkHits: %d %f %f %f %f %f %u %u %f %f %f %f\n",ihit,hitsInGPU.xs[ihit],hitsInGPU.ys[ihit],hitsInGPU.zs[ihit],hitsInGPU.rts[ihit],hitsInGPU.phis[ihit],hitsInGPU.moduleIndices[ihit],hitsInGPU.idxs[ihit],hitsInGPU.highEdgeXs[ihit],hitsInGPU.highEdgeYs[ihit],hitsInGPU.lowEdgeXs[ihit],hitsInGPU.lowEdgeYs[ihit]);
-//  }
-//}
-
-/*
-float SDL::ATan2(float y, float x)
-{
-    if (x != 0) return  atan2(y, x);
-    if (y == 0) return  0;
-    if (y >  0) return  M_PI / 2;
-    else        return -M_PI / 2;
-}
-
-//TODO:Check if cuda atan2f will work here
-float SDL::phi(float x, float y, float z)
-{
-    return phi_mpi_pi(M_PI + ATan2(-y, -x));
-}
-
-
-float SDL::phi_mpi_pi(float x)
-{
-    if (isnan(x))
-    {
-       printf("phi_mpi_pi() function called with NaN\n");
-        return x;
-    }
-
-    while (x >= M_PI)
-        x -= 2. * M_PI;
-
-    while (x < -M_PI)
-        x += 2. * M_PI;
-
-    return x;
-}
-
-float SDL::deltaPhi(float x1, float y1, float z1, float x2, float y2, float z2)
-{
-    float phi1 = phi(x1,y1,z1);
-    float phi2 = phi(x2,y2,z2);
-    return phi_mpi_pi((phi2 - phi1));
-}
-
-float SDL::deltaPhiChange(float x1, float y1, float z1, float x2, float y2, float z2)
-{
-    return deltaPhi(x1,y1,z1,x2-x1, y2-y1, z2-z1);
-}
-*/
 
 __device__ void SDL::getEdgeHitsK(float phi,float x, float y, float& xhigh, float& yhigh, float& xlow, float& ylow)
 {
-//    float phi = endcapGeometry.getCentroidPhi(detId);
     xhigh = x + 2.5 * cos(phi);
     yhigh = y + 2.5 * sin(phi);
     xlow = x - 2.5 * cos(phi);
@@ -404,20 +194,6 @@ void SDL::hits::freeMemoryCache()
 }
 void SDL::hits::freeMemory(cudaStream_t stream)
 {
-    //cudaFreeAsync(nHits,stream);
-    //cudaFreeAsync(xs,stream);
-    //cudaFreeAsync(ys,stream);
-    //cudaFreeAsync(zs,stream);
-    //cudaFreeAsync(moduleIndices,stream);
-    //cudaFreeAsync(rts,stream);
-    //cudaFreeAsync(idxs,stream);
-    //cudaFreeAsync(phis,stream);
-    //cudaFreeAsync(etas,stream);
-
-    //cudaFreeAsync(highEdgeXs,stream);
-    //cudaFreeAsync(highEdgeYs,stream);
-    //cudaFreeAsync(lowEdgeXs,stream);
-    //cudaFreeAsync(lowEdgeYs,stream);
     cudaFree(nHits);
     cudaFree(xs);
     cudaFree(ys);
