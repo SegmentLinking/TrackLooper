@@ -364,7 +364,8 @@ void run_sdl()
             // Add hits to the event
             //if (ana.compilation_target.find("explicit") != std::string::npos){
                 //timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
-                addInputsToLineSegmentTrackingPreLoad(out_trkX, out_trkY,out_trkZ,
+                addInputsToLineSegmentTrackingPreLoad(
+                out_trkX, out_trkY,out_trkZ,
                 out_hitId,
                 out_hitIdxs,
                 out_hitIndices_vec0,
@@ -388,7 +389,32 @@ void run_sdl()
         }
         evt_num.push_back(ana.looper.getCurrentEventIndex());
     }
-    SDL::initHits(hitOffset.back());
+    SDL::initHits(hitOffset,
+
+                out_trkX, out_trkY,out_trkZ,
+                out_hitId,
+                out_hitIdxs,
+                out_hitIndices_vec0,
+                out_hitIndices_vec1,
+                out_hitIndices_vec2,
+                out_hitIndices_vec3,
+                out_deltaPhi_vec,
+                out_ptIn_vec,
+                out_ptErr_vec,
+                out_px_vec,
+                out_py_vec,
+                out_pz_vec,
+                out_eta_vec,
+                out_etaErr_vec,
+                out_phi_vec,
+                out_superbin_vec,
+                out_pixelType_vec,
+                out_isQuad_vec
+
+
+    );
+
+
     cudaStream_t streams[ana.streams];
     std::vector<SDL::Event*> events;
     for( int s =0; s<ana.streams; s++){

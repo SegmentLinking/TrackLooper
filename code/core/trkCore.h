@@ -121,7 +121,9 @@ std::vector<float>    etaErr_vec,
 std::vector<float>    phi_vec,
 std::vector<int>    superbin_vec,
 std::vector<int8_t>    pixelType_vec,
-std::vector<short>   isQuad_vec);
+std::vector<short>   isQuad_vec,
+unsigned int hitOffset
+);
 
 TVector3 calculateR3FromPCA(const TVector3& p3, const float dxy, const float dz);
 
