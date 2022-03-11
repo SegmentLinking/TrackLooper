@@ -367,6 +367,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, unsigned int& nModul
     {
         unsigned int detId = it->first;
         unsigned int index = it->second;
+        printf("detId: %d -> index: %d\n", detId, index);
         host_detIds[index] = detId;
         if(detId == 1)
         {

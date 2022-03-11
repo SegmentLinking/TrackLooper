@@ -49,6 +49,7 @@ void fillPixelLineSegmentOutputBranches(SDL::Event* event);
 void fillOccupancyBranches(SDL::Event* event);
 void fillPixelQuadrupletOutputBranches(SDL::Event* event);
 void fillSegmentBranches(SDL::Event* event);
+void fillMiniDoubletBranches(SDL::Event* event);
 // CPU
 void fillOutputBranches_for_CPU(SDL::CPU::Event& event);
 void fillTrackCandidateOutputBranches_for_CPU(SDL::CPU::Event& event);

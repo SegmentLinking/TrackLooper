@@ -1149,15 +1149,21 @@ bool isMTVMatch(unsigned int isimtrk, std::vector<unsigned int> hit_idxs, bool v
 void loadMaps()
 {
     TString TrackLooperDir = gSystem->Getenv("TRACKLOOPERDIR");
-    SDL::endcapGeometry.load(TString::Format("%s/data/endcap_orientation_data_v2.txt", TrackLooperDir.Data()).Data()); // centroid values added to the map
-    SDL::tiltedGeometry.load(TString::Format("%s/data/tilted_orientation_data.txt", TrackLooperDir.Data()).Data());
+    // SDL::endcapGeometry.load(TString::Format("%s/data/endcap_orientation_data_v2.txt", TrackLooperDir.Data()).Data()); // centroid values added to the map
+    // SDL::tiltedGeometry.load(TString::Format("%s/data/tilted_orientation_data.txt", TrackLooperDir.Data()).Data());
+    SDL::endcapGeometry.load(TString::Format("%s/data/endcap_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data()); // centroid values added to the map
+    SDL::tiltedGeometry.load(TString::Format("%s/data/tilted_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data());
 
 #ifdef PT0P8
-    SDL::moduleConnectionMap.load("/data2/segmentlinking/module_connection_combined_0p8helix_muongun.txt");
-    ana.moduleConnectiongMapLoose.load("/data2/segmentlinking/module_connection_combined_0p8helix_muongun.txt");
+    // SDL::moduleConnectionMap.load("/data2/segmentlinking/module_connection_combined_0p8helix_muongun.txt");
+    // ana.moduleConnectiongMapLoose.load("/data2/segmentlinking/module_connection_combined_0p8helix_muongun.txt");
+    SDL::moduleConnectionMap.load("data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt");
+    ana.moduleConnectiongMapLoose.load("data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt");
 #else
-    SDL::moduleConnectionMap.load(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
-    ana.moduleConnectiongMapLoose.load(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
+    // SDL::moduleConnectionMap.load(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
+    // ana.moduleConnectiongMapLoose.load(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
+    SDL::moduleConnectionMap.load("data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt");
+    ana.moduleConnectiongMapLoose.load("data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt");
 #endif
 
     // El Cheapo

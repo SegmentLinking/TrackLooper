@@ -1047,6 +1047,7 @@ cudaStreamSynchronize(stream);
     unsigned int idx;
     for(unsigned int i = 0; i<nLowerModules; i++)
     {
+        printf("i: %d", i);
         idx = module_lowerModuleIndices[i];
         if(nSegmentsCPU[idx] == 0)
         {
