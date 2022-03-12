@@ -1,4 +1,5 @@
 # include "TrackExtensions.cuh"
+# include "Kernels.cuh"
 
 SDL::trackExtensions::trackExtensions()
 {

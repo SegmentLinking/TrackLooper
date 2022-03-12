@@ -1,6 +1,7 @@
 # include "PixelTriplet.cuh"
 # include "PixelTracklet.cuh"
 #include "allocate.h"
+#include "Kernels.cuh"
 
 SDL::pixelTriplets::pixelTriplets()
 {

@@ -3,6 +3,7 @@
 #endif
 # include "Quintuplet.cuh"
 #include "allocate.h"
+#include "Kernels.cuh"
 
 SDL::quintuplets::quintuplets()
 {
