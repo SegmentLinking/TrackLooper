@@ -32,7 +32,8 @@ namespace SDL
         unsigned int* constituentTCIndices;
         uint8_t* nLayerOverlaps;
         uint8_t* nHitOverlaps;
-        unsigned int* nTrackExtensions; //overall counter!
+        unsigned int* nTrackExtensions;
+        unsigned int* totOccupancyTrackExtensions; //overall counter!
         FPX* rPhiChiSquared;
         FPX* rzChiSquared;
         FPX* regressionRadius;

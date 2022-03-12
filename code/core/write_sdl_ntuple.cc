@@ -728,13 +728,13 @@ void fillOccupancyBranches(SDL::Event* event)
         moduleLayer.push_back(modulesInGPU.layers[lowerIdx]);
         moduleSubdet.push_back(modulesInGPU.subdets[lowerIdx]);
         moduleRing.push_back(modulesInGPU.rings[lowerIdx]);
-        segmentOccupancy.push_back(segmentsInGPU.nSegments[lowerIdx]);
-        mdOccupancy.push_back(mdsInGPU.nMDs[lowerIdx]);
+        segmentOccupancy.push_back(segmentsInGPU.totOccupancySegments[lowerIdx]);
+        mdOccupancy.push_back(mdsInGPU.totOccupancyMDs[lowerIdx]);
 
         if(idx < *(modulesInGPU.nLowerModules))
         {
-            quintupletOccupancy.push_back(quintupletsInGPU.nQuintuplets[idx]);
-            tripletOccupancy.push_back(tripletsInGPU.nTriplets[idx]);
+            quintupletOccupancy.push_back(quintupletsInGPU.totOccupancyQuintuplets[idx]);
+            tripletOccupancy.push_back(tripletsInGPU.totOccupancyTriplets[idx]);
         }
     }
     ana.tx->setBranch<vector<int>>("module_layers",moduleLayer);
@@ -744,9 +744,9 @@ void fillOccupancyBranches(SDL::Event* event)
     ana.tx->setBranch<vector<int>>("sg_occupancies",segmentOccupancy);
     ana.tx->setBranch<vector<int>>("t3_occupancies",tripletOccupancy);
     ana.tx->setBranch<int>("tc_occupancies",*(trackCandidatesInGPU.nTrackCandidates));
-    ana.tx->setBranch<int>("pT3_occupancies", *(pixelTripletsInGPU.nPixelTriplets));
+    ana.tx->setBranch<int>("pT3_occupancies", *(pixelTripletsInGPU.totOccupancyPixelTriplets));
     ana.tx->setBranch<vector<int>>("t5_occupancies", quintupletOccupancy);
-    ana.tx->setBranch<int>("pT5_occupancies", *(pixelQuintupletsInGPU.nPixelQuintuplets));
+    ana.tx->setBranch<int>("pT5_occupancies", *(pixelQuintupletsInGPU.totOccupancyPixelQuintuplets));
 }
 
 //________________________________________________________________________________________________________________________________
@@ -1400,7 +1400,7 @@ void fillT3T3TrackExtensionOutputBranches(SDL::Event* event)
     const unsigned int N_MAX_T3T3_TRACK_EXTENSIONS = 40000;
 
     std::vector<int> tce_anchorType;;
-    unsigned int nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[nTrackCandidates] > N_MAX_T3T3_TRACK_EXTENSIONS ? N_MAX_T3T3_TRACK_EXTENSIONS : (trackExtensionsInGPU.nTrackExtensions)[nTrackCandidates]; 
+    unsigned int nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[nTrackCandidates]; 
 
     std::vector<std::vector<int>> hitIndices;
 
@@ -1597,15 +1597,7 @@ void fillPureTrackExtensionOutputBranches(SDL::Event* event)
     for(size_t i = 0; i < nTrackCandidates; i++)
 #endif
     {
-        unsigned int nTrackExtensions;
-        if(i < nTrackCandidates)
-        {
-            nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i] > N_MAX_TRACK_EXTENSIONS_PER_TC ? N_MAX_TRACK_EXTENSIONS_PER_TC : (trackExtensionsInGPU.nTrackExtensions)[i];
-        }
-        else
-        {
-            nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i] > N_MAX_T3T3_TRACK_EXTENSIONS ? N_MAX_T3T3_TRACK_EXTENSIONS : (trackExtensionsInGPU.nTrackExtensions)[i]; 
-        }
+        unsigned int nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i];
         for(size_t j = 0; j < nTrackExtensions; j++)
         {
             unsigned int teIdx = i * N_MAX_TRACK_EXTENSIONS_PER_TC + j;
@@ -1815,15 +1807,7 @@ void fillTrackExtensionOutputBranches(SDL::Event* event)
     for(size_t i = 0; i < nTrackCandidates; i++)
 #endif
     {
-        unsigned int nTrackExtensions;
-        if(i < nTrackCandidates)
-        {
-            nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i] > N_MAX_TRACK_EXTENSIONS_PER_TC ? N_MAX_TRACK_EXTENSIONS_PER_TC : (trackExtensionsInGPU.nTrackExtensions)[i];
-        }
-        else
-        {
-            nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i] > N_MAX_T3T3_TRACK_EXTENSIONS ? N_MAX_T3T3_TRACK_EXTENSIONS : (trackExtensionsInGPU.nTrackExtensions)[i]; 
-        }
+        unsigned int nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[i];
         for(size_t j = 0; j < nTrackExtensions; j++)
         {
             unsigned int teIdx = i * N_MAX_TRACK_EXTENSIONS_PER_TC + j;
@@ -2075,11 +2059,6 @@ void fillQuintupletOutputBranches(SDL::Event* event)
         }
 
         unsigned int nQuintuplets = quintupletsInGPU.nQuintuplets[idx];
-        
-        if(nQuintuplets > MAX_NQUINTUPLET_PER_MODULE)
-        {
-            nQuintuplets = MAX_NQUINTUPLET_PER_MODULE;
-        }
 
         for(unsigned int jdx = 0; jdx < nQuintuplets; jdx++)
         {
@@ -2356,7 +2335,7 @@ void fillPixelTripletOutputBranches(SDL::Event* event)
 
     const unsigned int N_MAX_PIXEL_TRIPLETS = 5000;
 
-    unsigned int nPixelTriplets = std::min(*(pixelTripletsInGPU.nPixelTriplets), N_MAX_PIXEL_TRIPLETS);
+    unsigned int nPixelTriplets = *(pixelTripletsInGPU.nPixelTriplets);
 
     for(unsigned int jdx = 0; jdx < nPixelTriplets; jdx++)
     {
@@ -2589,7 +2568,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
     std::vector<float> pT5_simpt;
 #endif
     const unsigned int N_MAX_PIXEL_QUINTUPLETS = 15000;
-    unsigned int nPixelQuintuplets = std::min(*(pixelQuintupletsInGPU.nPixelQuintuplets), N_MAX_PIXEL_QUINTUPLETS);
+    unsigned int nPixelQuintuplets = *(pixelQuintupletsInGPU.nPixelQuintuplets);
 
     for(unsigned int jdx = 0; jdx < nPixelQuintuplets; jdx++)
     {
@@ -2848,7 +2827,7 @@ void fillPixelLineSegmentOutputBranches(SDL::Event* event)
 
     const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000; 
     unsigned int pixelModuleIndex = *(modulesInGPU.nLowerModules);
-    unsigned int nPixelSegments = std::min(segmentsInGPU.nSegments[pixelModuleIndex], N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+    unsigned int nPixelSegments = segmentsInGPU.nSegments[pixelModuleIndex];
     for(unsigned int jdx = 0; jdx < nPixelSegments; jdx++)
     {
         if(segmentsInGPU.isDup[jdx]) {continue;}
@@ -3100,14 +3079,10 @@ void fillTripletOutputBranches(SDL::Event* event)
 #endif
 
     for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
+
     {
 
         unsigned int nTriplets = tripletsInGPU.nTriplets[idx];
-
-        if (idx < *(modulesInGPU.nLowerModules) and nTriplets > MAX_NTRIPLET_PER_MODULE)
-        {
-            nTriplets = MAX_NTRIPLET_PER_MODULE;
-        }
 
         for (unsigned int jdx = 0; jdx < nTriplets; jdx++)
         {
@@ -5575,14 +5550,17 @@ void printMiniDoubletMultiplicities(SDL::Event* event)
     SDL::modules& modulesInGPU = (*event->getModules());
 
     int nMiniDoublets = 0;
+    int totOccupancyMiniDoublets = 0;
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
         if(modulesInGPU.isLower[idx])
         {
             nMiniDoublets += miniDoubletsInGPU.nMDs[idx];
+            totOccupancyMiniDoublets += miniDoubletsInGPU.totOccupancyMDs[idx];
         }
     }
     std::cout <<  " nMiniDoublets: " << nMiniDoublets <<  std::endl;
+    std::cout <<  " totOccupancyMiniDoublets (including trucated ones): " << totOccupancyMiniDoublets <<  std::endl;
 }
 
 //________________________________________________________________________________________________________________________________

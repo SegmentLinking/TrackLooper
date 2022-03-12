@@ -28,6 +28,7 @@ namespace SDL
         unsigned int* segmentIndices;
         uint16_t* lowerModuleIndices; //3 of them now
         unsigned int* nTriplets;
+        unsigned int* totOccupancyTriplets;
 
         //for track extensions
         uint8_t* logicalLayers;

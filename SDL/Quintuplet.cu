@@ -10,6 +10,7 @@ SDL::quintuplets::quintuplets()
     tripletIndices = nullptr;
     lowerModuleIndices = nullptr;
     nQuintuplets = nullptr;
+    totOccupancyQuintuplets = nullptr;
     innerRadius = nullptr;
     outerRadius = nullptr;
     regressionRadius = nullptr;
@@ -53,6 +54,7 @@ void SDL::quintuplets::freeMemoryCache()
     cms::cuda::free_device(dev,tripletIndices);
     cms::cuda::free_device(dev, lowerModuleIndices);
     cms::cuda::free_device(dev, nQuintuplets);
+    cms::cuda::free_device(dev, totOccupancyQuintuplets);
     cms::cuda::free_device(dev, innerRadius);
     cms::cuda::free_device(dev, outerRadius);
     cms::cuda::free_device(dev, partOfPT5);
@@ -68,6 +70,7 @@ void SDL::quintuplets::freeMemoryCache()
     cms::cuda::free_managed(tripletIndices);
     cms::cuda::free_managed(lowerModuleIndices);
     cms::cuda::free_managed(nQuintuplets);
+    cms::cuda::free_managed(totOccupancyQuintuplets);
     cms::cuda::free_managed(innerRadius);
     cms::cuda::free_managed(outerRadius);
     cms::cuda::free_managed(partOfPT5);
@@ -88,6 +91,7 @@ void SDL::quintuplets::freeMemory(cudaStream_t stream)
     cudaFree(tripletIndices);
     cudaFree(lowerModuleIndices);
     cudaFree(nQuintuplets);
+    cudaFree(totOccupancyQuintuplets);
     cudaFree(innerRadius);
     cudaFree(outerRadius);
     cudaFree(regressionRadius);
@@ -177,6 +181,7 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     quintupletsInGPU.tripletIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * 2 * sizeof(unsigned int), stream);
     quintupletsInGPU.lowerModuleIndices = (uint16_t*)cms::cuda::allocate_managed(nMemoryLocations * 5 * sizeof(uint16_t), stream);
     quintupletsInGPU.nQuintuplets = (unsigned int*)cms::cuda::allocate_managed(nLowerModules * sizeof(unsigned int), stream);
+    quintupletsInGPU.totOccupancyQuintuplets = (unsigned int*)cms::cuda::allocate_managed(nLowerModules * sizeof(unsigned int), stream);
     quintupletsInGPU.innerRadius = (FPX*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(FPX), stream);
     quintupletsInGPU.outerRadius = (FPX*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(FPX), stream);
     quintupletsInGPU.pt = (FPX*)cms::cuda::allocate_managed(nMemoryLocations *4* sizeof(FPX), stream);
@@ -193,6 +198,7 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     cudaMallocManaged(&quintupletsInGPU.lowerModuleIndices, 5 * nMemoryLocations * sizeof(uint16_t));
 
     cudaMallocManaged(&quintupletsInGPU.nQuintuplets, nLowerModules * sizeof(unsigned int));
+    cudaMallocManaged(&quintupletsInGPU.totOccupancyQuintuplets, nLowerModules * sizeof(unsigned int));
     cudaMallocManaged(&quintupletsInGPU.innerRadius, nMemoryLocations * sizeof(FPX));
     cudaMallocManaged(&quintupletsInGPU.outerRadius, nMemoryLocations * sizeof(FPX));
     cudaMallocManaged(&quintupletsInGPU.pt, nMemoryLocations *4* sizeof(FPX));
@@ -235,6 +241,7 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
 //    }
 
     cudaMemsetAsync(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(quintupletsInGPU.totOccupancyQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(quintupletsInGPU.isDup,0,nMemoryLocations * sizeof(bool),stream);
     cudaMemsetAsync(quintupletsInGPU.partOfPT5,0,nMemoryLocations * sizeof(bool),stream);
     cudaStreamSynchronize(stream);
@@ -250,6 +257,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     quintupletsInGPU.tripletIndices = (unsigned int*)cms::cuda::allocate_device(dev, 2 * nMemoryLocations * sizeof(unsigned int), stream);
     quintupletsInGPU.lowerModuleIndices = (uint16_t*)cms::cuda::allocate_device(dev, 5 * nMemoryLocations * sizeof(uint16_t), stream);
     quintupletsInGPU.nQuintuplets = (unsigned int*)cms::cuda::allocate_device(dev, nLowerModules * sizeof(unsigned int), stream);
+    quintupletsInGPU.totOccupancyQuintuplets = (unsigned int*)cms::cuda::allocate_device(dev, nLowerModules * sizeof(unsigned int), stream);
     quintupletsInGPU.innerRadius = (FPX*)cms::cuda::allocate_device(dev, nMemoryLocations * sizeof(FPX), stream);
     quintupletsInGPU.outerRadius = (FPX*)cms::cuda::allocate_device(dev, nMemoryLocations * sizeof(FPX), stream);
     quintupletsInGPU.pt = (FPX*)cms::cuda::allocate_device(dev, nMemoryLocations *4* sizeof(FPX), stream);
@@ -265,6 +273,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     cudaMalloc(&quintupletsInGPU.tripletIndices, 2 * nMemoryLocations * sizeof(unsigned int));
     cudaMalloc(&quintupletsInGPU.lowerModuleIndices, 5 * nMemoryLocations * sizeof(uint16_t));
     cudaMalloc(&quintupletsInGPU.nQuintuplets, nLowerModules * sizeof(unsigned int));
+    cudaMalloc(&quintupletsInGPU.totOccupancyQuintuplets, nLowerModules * sizeof(unsigned int));
     cudaMalloc(&quintupletsInGPU.innerRadius, nMemoryLocations * sizeof(FPX));
     cudaMalloc(&quintupletsInGPU.outerRadius, nMemoryLocations * sizeof(FPX));
     cudaMalloc(&quintupletsInGPU.pt, nMemoryLocations *4* sizeof(FPX));
@@ -278,6 +287,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     cudaMalloc(&quintupletsInGPU.hitIndices, nMemoryLocations * 10 * sizeof(unsigned int));
 #endif
     cudaMemsetAsync(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
+    cudaMemsetAsync(quintupletsInGPU.totOccupancyQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(quintupletsInGPU.isDup,0,nMemoryLocations * sizeof(bool),stream);
     cudaMemsetAsync(quintupletsInGPU.partOfPT5,0,nMemoryLocations * sizeof(bool),stream);
     cudaStreamSynchronize(stream);
