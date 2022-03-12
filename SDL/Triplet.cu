@@ -23,7 +23,7 @@ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, struct objectRa
     cudaMallocHost(&nSegments, nLowerModules * sizeof(unsigned int));
     cudaMemcpyAsync(nSegments, segmentsInGPU.nSegments, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
     cudaStreamSynchronize(stream);
-
+    module_tripletModuleIndices[0] = 0; 
     nTotalTriplets = maxTripletsPerModule; //start!
     for(uint16_t i = 1; i < nLowerModules; i++)
     {
