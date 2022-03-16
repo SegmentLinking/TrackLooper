@@ -501,7 +501,7 @@ __global__ void createPixelTripletsInGPUFromMap(struct SDL::modules& modulesInGP
         for(unsigned int outerTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; outerTripletArrayIndex< nOuterTriplets; outerTripletArrayIndex +=blockxSize)
         {
             unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + pixelSegmentArrayIndex;
-            unsigned int outerTripletIndex = rangesInGPU.tripletRanges[2 * tripletLowerModuleIndex] + outerTripletArrayIndex;
+            unsigned int outerTripletIndex = rangesInGPU.tripletModuleIndices[tripletLowerModuleIndex] + outerTripletArrayIndex;
             if(modulesInGPU.moduleType[tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1]] == SDL::TwoS) continue;//REMOVES PS-2S
 
             if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) continue;//return;
@@ -578,15 +578,14 @@ __global__ void createQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct
 
         if(innerTripletArrayIndex >= nInnerTriplets) continue;
 
-        unsigned int innerTripletIndex = rangesInGPU.tripletRanges[2 * lowerModule1] + innerTripletArrayIndex;
+        unsigned int innerTripletIndex = rangesInGPU.tripletModuleIndices[lowerModule1] + innerTripletArrayIndex;
         //these are actual module indices!! not lower module indices!
         uint16_t lowerModule2 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 1];
         uint16_t lowerModule3 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 2];
         unsigned int nOuterTriplets = tripletsInGPU.nTriplets[lowerModule3];
-    //int outerTripletArrayIndex=gidx;
         for (int outerTripletArrayIndex=gidx; outerTripletArrayIndex < nOuterTriplets; outerTripletArrayIndex+=npx)
         {
-            unsigned int outerTripletIndex = rangesInGPU.tripletRanges[2 * lowerModule3] + outerTripletArrayIndex;
+            unsigned int outerTripletIndex = rangesInGPU.tripletModuleIndices[lowerModule3] + outerTripletArrayIndex;
             //these are actual module indices!!
             uint16_t lowerModule4 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1];
             uint16_t lowerModule5 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 2];
@@ -1412,7 +1411,7 @@ __global__ void createT3T3ExtendedTracksInGPU(struct SDL::modules& modulesInGPU,
     if(lowerModuleIdx >= *modulesInGPU.nLowerModules) return;
     if(firstT3ArrayIdx >= tripletsInGPU.nTriplets[lowerModuleIdx]) return;
 
-    unsigned int firstT3Idx = rangesInGPU.tripletRanges[2 * lowerModuleIdx] + firstT3ArrayIdx;
+    unsigned int firstT3Idx = rangesInGPU.tripletModuleIndices[lowerModuleIdx] + firstT3ArrayIdx;
 
     if(tripletsInGPU.partOfExtension[firstT3Idx] or tripletsInGPU.partOfPT5[firstT3Idx] or tripletsInGPU.partOfT5[firstT3Idx] or tripletsInGPU.partOfPT3[firstT3Idx]) return;
 
@@ -1432,7 +1431,7 @@ __global__ void createT3T3ExtendedTracksInGPU(struct SDL::modules& modulesInGPU,
         outerT3StartingLowerModuleIdx = staggeredModuleIndices[i];
         if(secondT3ArrayIdx >= tripletsInGPU.nTriplets[outerT3StartingLowerModuleIdx]) continue;
    
-       secondT3Idx = rangesInGPU.tripletRanges[2 * outerT3StarterLowerModuleIdx] + secondT3ArrayIdx;
+       secondT3Idx = rangesInGPU.tripletModuleIndices[outerT3StarterLowerModuleIdx] + secondT3ArrayIdx;
         if(tripletsInGPU.partOfExtension[secondT3Idx] or tripletsInGPU.partOfPT5[secondT3Idx] or tripletsInGPU.partOfT5[secondT3Idx] or tripletsInGPU.partOfPT3[secondT3Idx]) continue;
 
         success = runTrackExtensionDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelTripletsInGPU, pixelQuintupletsInGPU, trackCandidatesInGPU, firstT3Idx, secondT3Idx, 3, 3, firstT3Idx, 2, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius, innerRadius, outerRadius); 
@@ -1471,7 +1470,7 @@ __global__ void createT3T3ExtendedTracksInGPU(struct SDL::modules& modulesInGPU,
         outerT3StartingLowerModuleIdx = staggeredModuleIndices[i];
         if(secondT3ArrayIdx >= tripletsInGPU.nTriplets[outerT3StartingLowerModuleIdx]) continue;
    
-    secondT3Idx = rangesInGPU.tripletRanges[2 * outerT3StartingLowerModuleIdx] + secondT3ArrayIdx;
+    secondT3Idx = rangesInGPU.tripletModuleIndices[outerT3StartingLowerModuleIdx] + secondT3ArrayIdx;
         if(tripletsInGPU.partOfExtension[secondT3Idx] or tripletsInGPU.partOfPT5[secondT3Idx] or tripletsInGPU.partOfT5[secondT3Idx] or tripletsInGPU.partOfPT3[secondT3Idx]) continue;
 
         success = runTrackExtensionDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelTripletsInGPU, pixelQuintupletsInGPU, trackCandidatesInGPU, firstT3Idx, secondT3Idx, 3, 3, firstT3Idx, 1, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius, innerRadius, outerRadius); 
@@ -1529,7 +1528,7 @@ __global__ void createExtendedTracksInGPU(struct SDL::modules& modulesInGPU, str
 
     //if(t3ArrayIdx >= tripletsInGPU.nTriplets[outerT3StartingModuleIndex]) return;
     for(int t3ArrayIdx = blockIdx.x*blockDim.x+threadIdx.x; t3ArrayIdx < tripletsInGPU.nTriplets[outerT3StartingModuleIndex]; t3ArrayIdx+= blockDim.x*gridDim.x){
-    unsigned int t3Idx =  rangesInGPU.tripletRanges[2 * outerT3StartingModuleIndex] + t3ArrayIdx;
+    unsigned int t3Idx =  rangesInGPU.tripletModuleIndices[outerT3StartingModuleIndex] + t3ArrayIdx;
     short constituentTCType[3];
     unsigned int constituentTCIndex[3];
     unsigned int nLayerOverlaps[2], nHitOverlaps[2];
