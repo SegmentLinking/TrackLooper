@@ -1149,34 +1149,60 @@ bool isMTVMatch(unsigned int isimtrk, std::vector<unsigned int> hit_idxs, bool v
 void loadMaps()
 {
     TString TrackLooperDir = gSystem->Getenv("TRACKLOOPERDIR");
-    // SDL::endcapGeometry.load(TString::Format("%s/data/endcap_orientation_data_v2.txt", TrackLooperDir.Data()).Data()); // centroid values added to the map
-    // SDL::tiltedGeometry.load(TString::Format("%s/data/tilted_orientation_data.txt", TrackLooperDir.Data()).Data());
-    SDL::endcapGeometry.load(TString::Format("%s/data/endcap_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data()); // centroid values added to the map
-    SDL::tiltedGeometry.load(TString::Format("%s/data/tilted_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data());
 
-#ifdef PT0P8
-    // SDL::moduleConnectionMap.load("/data2/segmentlinking/module_connection_combined_0p8helix_muongun.txt");
-    // ana.moduleConnectiongMapLoose.load("/data2/segmentlinking/module_connection_combined_0p8helix_muongun.txt");
-    SDL::moduleConnectionMap.load("data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt");
-    ana.moduleConnectiongMapLoose.load("data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt");
+#ifdef CMSSW12GEOM
+    std::cout << "Loading CMSSW_12_2_0_pre2 geometry" << std::endl;
 #else
-    // SDL::moduleConnectionMap.load(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
-    // ana.moduleConnectiongMapLoose.load(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
-    SDL::moduleConnectionMap.load("data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt");
-    ana.moduleConnectiongMapLoose.load("data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt");
+    std::cout << "Loading MTD TDR geometry" << std::endl;
 #endif
 
-    // El Cheapo
-    // SDL::moduleConnectionMap_pLS_all.load("/nfs-7/userdata/phchang/segmentlinking/pixelmap_charge_split/pLS_map_ElCheapo.txt");
-    // SDL::moduleConnectionMap_pLS_pos.load("/nfs-7/userdata/phchang/segmentlinking/pixelmap_charge_split/pLS_map_pos_ElCheapo.txt");
-    // SDL::moduleConnectionMap_pLS_neg.load("/nfs-7/userdata/phchang/segmentlinking/pixelmap_charge_split/pLS_map_neg_ElCheapo.txt");
+    // Module orientation information (DrDz or phi angles)
+#ifdef CMSSW12GEOM
+    TString endcap_geom = TString::Format("%s/data/endcap_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data();
+    TString tilted_geom = TString::Format("%s/data/tilted_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data();
+#else
+    TString endcap_geom = TString::Format("%s/data/endcap_orientation_data_v2.txt", TrackLooperDir.Data()).Data(); // centroid values added to the map
+    TString tilted_geom = TString::Format("%s/data/tilted_orientation_data.txt", TrackLooperDir.Data()).Data();
+#endif
+    std::cout << "Loading module orientation information...." << std::endl;
+    std::cout << "endcap orientation:" << endcap_geom << std::endl;
+    std::cout << "tilted orientation:" << tilted_geom << std::endl;
+    SDL::endcapGeometry.load(endcap_geom.Data()); // centroid values added to the map
+    SDL::tiltedGeometry.load(tilted_geom.Data());
 
-    // TString pLSMapDir = gSystem->Getenv("PIXELMAPDIR");
-    //TString pLSMapDir = "/nfs-7/userdata/phchang/segmentlinking/pixelmap_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05";
+    // Module connection map (for line segment building)
 #ifdef PT0P8
+#ifdef CMSSW12GEOM
+    TString mappath = TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir.Data()).Data();
+#else
+    TString mappath = "/data2/segmentlinking/module_connection_combined_0p8helix_muongun.txt";
+#endif
+#else
+#ifdef CMSSW12GEOM
+    // TODO: The CMSSW_12_2_0_pre2 is by default 0.8 module map
+    TString mappath = TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir.Data()).Data();
+#else
+    TString mappath = TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data();
+#endif
+#endif
+    std::cout << "Loading module map...." << std::endl;
+    std::cout << "module map path:" << mappath << std::endl;
+    SDL::moduleConnectionMap.load(mappath.Data());
+    ana.moduleConnectiongMapLoose.load(mappath.Data());
+
+#ifdef PT0P8
+#ifdef CMSSW12GEOM
+    TString pLSMapDir = "/data2/phchang/pixelmap"; // baseline + 0.8 GeV
+#else
     TString pLSMapDir = "/data2/segmentlinking/pixelmap_ptmin0p8_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05"; // baseline + 0.8 GeV
+#endif
+#else
+#ifdef CMSSW12GEOM
+    // TODO: The CMSSW_12_2_0_pre2 is by default 0.8 module map
+    TString pLSMapDir = "/data2/phchang/pixelmap"; // baseline
 #else
     TString pLSMapDir = "/data2/segmentlinking/pixelmap_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05"; // baseline
+#endif
 #endif
 
     std::cout << "Loading pLS maps ... from pLSMapDir = " << pLSMapDir << std::endl;
@@ -1542,14 +1568,52 @@ std::vector<std::vector<short>>&    out_isQuad_vec
     std::vector<float> trkZ = trk.ph2_z();
     std::vector<unsigned int> hitId = trk.ph2_detId();
     std::vector<unsigned int> hitIdxs(trk.ph2_detId().size());
+
+    ////==============================
+    //std::vector<float> trkX;
+    //std::vector<float> trkY;
+    //std::vector<float> trkZ;
+    //std::vector<unsigned int> hitId;
+    //unsigned int selected_trk = 1;
+    //for (unsigned int ihit = 0; ihit < trk.ph2_x().size(); ++ihit)
+    //{
+
+    //    bool is_hit_from_selected_trk = false;
+    //    for (unsigned int isimhit = 0; isimhit < trk.ph2_simHitIdx()[ihit].size(); ++isimhit)
+    //    {
+    //        if (trk.simhit_simTrkIdx()[isimhit] == 1)
+    //            is_hit_from_selected_trk = true;
+    //    }
+
+    //    if (is_hit_from_selected_trk)
+    //    {
+    //        std::cout <<  " ihit: " << ihit <<  std::endl;
+    //        // for (auto& itrk : trk.ph2_simTrkIdx()[ihit])
+    //        //     std::cout <<  " itrk: " << itrk <<  std::endl;
+    //        trkX.push_back(trk.ph2_x()[ihit]);
+    //        trkY.push_back(trk.ph2_y()[ihit]);
+    //        trkZ.push_back(trk.ph2_z()[ihit]);
+    //        hitId.push_back(trk.ph2_detId()[ihit]);
+    //    }
+    //}
+    //std::vector<unsigned int> hitIdxs(hitId.size());
+    //// ===============================
+
     std::vector<int> superbin_vec;
     std::vector<int8_t> pixelType_vec;
     std::vector<short> isQuad_vec;
     std::iota(hitIdxs.begin(), hitIdxs.end(), 0);
     const int hit_size = trkX.size();
 
+    // std::cout <<  " selected_trk: " << selected_trk <<  std::endl;
+    // std::cout <<  " trk.sim_pt()[selected_trk]: " << trk.sim_pt()[selected_trk] <<  std::endl;
+    // std::cout <<  " trk.sim_eta()[selected_trk]: " << trk.sim_eta()[selected_trk] <<  std::endl;
+
     for (auto &&[iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
     {
+
+        // if (std::find(trk.see_simTrkIdx()[iSeed].begin(), trk.see_simTrkIdx()[iSeed].end(), selected_trk) == trk.see_simTrkIdx()[iSeed].end())
+        //     continue;
 
         TVector3 p3LH(trk.see_stateTrajGlbPx()[iSeed], trk.see_stateTrajGlbPy()[iSeed], trk.see_stateTrajGlbPz()[iSeed]);
         TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);

@@ -10,9 +10,13 @@
 //defining the constant host device variables right up here
 CUDA_CONST_VAR float SDL::miniMulsPtScaleBarrel[6] = {0.0052, 0.0038, 0.0034, 0.0034, 0.0032, 0.0034};
 CUDA_CONST_VAR float SDL::miniMulsPtScaleEndcap[5] = {0.006, 0.006, 0.006, 0.006, 0.006}; 
+#ifdef CMSSW12GEOM
+CUDA_CONST_VAR float SDL::miniRminMeanBarrel[6] = {25.007152356, 37.2186993757, 52.3104270826, 68.6658656666, 85.9770373007, 108.301772384};
+CUDA_CONST_VAR float SDL::miniRminMeanEndcap[5] = {130.992832231, 154.813883559, 185.352604327, 221.635123002, 265.022076742};
+#else
 CUDA_CONST_VAR float SDL::miniRminMeanBarrel[6] = {21.8, 34.6, 49.6, 67.4, 87.6, 106.8};
-// CUDA_CONST_VAR float SDL::miniRminMeanBarrel[6] = {25.0, 34.6, 49.6, 67.4, 87.6, 106.8};
 CUDA_CONST_VAR float SDL::miniRminMeanEndcap[5] = {131.4, 156.2, 185.6, 220.3, 261.5};
+#endif
 CUDA_CONST_VAR float SDL::k2Rinv1GeVf = (2.99792458e-3 * 3.8) / 2;
 CUDA_CONST_VAR float SDL::sinAlphaMax = 0.95;
 #ifdef PT0P8
@@ -290,25 +294,6 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
             noShiftedDphi = deltaPhi(xLower,yLower,zLower,xUpper,yUpper,zUpper);
 
         }
-        // detId: 437519365 -> index: 11920
-        // detId: 437519366 -> index: 11921
-        if (lowerModuleIndex == 11920 or lowerModuleIndex == 11921)
-        {
-            printf("lowerModuleIndex: %d\n", lowerModuleIndex);
-            printf("xLower: %f\n", xLower);
-            printf("yLower: %f\n", yLower);
-            printf("zLower: %f\n", zLower);
-            printf("xUpper: %f\n", xUpper);
-            printf("yUpper: %f\n", yUpper);
-            printf("zUpper: %f\n", zUpper);
-            printf("shiftedX: %f\n", shiftedX);
-            printf("shiftedY: %f\n", shiftedY);
-            printf("shiftedZ: %f\n", shiftedZ);
-            printf("shiftedRt: %f\n", shiftedRt);
-            printf("dPhi: %f\n", dPhi);
-            printf("noShiftedDphi: %f\n", noShiftedDphi);
-            printf("miniCut: %f\n", miniCut);
-        }
     }
     else
     {
@@ -322,11 +307,12 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
     // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3076
     if (modulesInGPU.sides[lowerModuleIndex]!= Center)
     {
-        if (lowerModuleIndex == 11921)
-            printf("modulesInGPU.moduleLayerType[lowerModuleIndex]: %d\n", modulesInGPU.moduleLayerType[lowerModuleIndex]);
         // When it is tilted, use the new shifted positions
-        // if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
+#ifdef CMSSW12GEOM // TODO: This is somewhat of an mystery.... somewhat confused why this is the case
         if (modulesInGPU.moduleLayerType[lowerModuleIndex] != Pixel)
+#else
+        if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
+#endif
         {
             // dPhi Change should be calculated so that the upper hit has higher rt.
             // In principle, this kind of check rt_lower < rt_upper should not be necessary because the hit shifting should have taken care of this.
@@ -347,17 +333,6 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
 
             dPhiChange = (shiftedRt < rtUpper) ? deltaPhiChange(shiftedX, shiftedY, shiftedZ, xUpper, yUpper, zUpper) : deltaPhiChange(xUpper, yUpper, zUpper, shiftedX, shiftedY, shiftedZ);
             noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange(xLower,yLower, zLower, xUpper, yUpper, zUpper) : deltaPhiChange(xUpper, yUpper, zUpper, xLower, yLower, zLower);
-        }
-        // detId: 437519365 -> index: 11920
-        // detId: 437519366 -> index: 11921
-        if (lowerModuleIndex == 11920 or lowerModuleIndex == 11921)
-        {
-            printf("lowerModuleIndex: %d\n", lowerModuleIndex);
-            printf("dPhiChange: %f\n", dPhiChange);
-            printf("noShiftedDphiChange: %f\n", noShiftedDphiChange);
-            printf("shiftedRt: %f\n", shiftedRt);
-            printf("modulesInGPU.moduleLayerType[lowerModuleIndex]: %d\n", modulesInGPU.moduleLayerType[lowerModuleIndex]);
-            printf("miniCut: %f\n", miniCut);
         }
     }
     else
@@ -524,9 +499,9 @@ __device__ inline float SDL::dPhiThreshold(/*struct hits& hitsInGPU,*/float rt, 
         {
             // printf("moduleIndex: %d\n", moduleIndex);
             // printf("partnerModuleIndex: %d\n", modulesInGPU.partnerModuleIndex(moduleIndex));
-            drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndex(moduleIndex)];
+            drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndices[moduleIndex]];
             // printf("drdz: %f\n", drdz);
-        }  
+        }
     }
     else
     {

@@ -902,8 +902,8 @@ void fillSimTrackOutputBranches()
           //if (not (trk.simhit_particle()[simhitidx] == trk.sim_pdgId()[isimtrk]))
           //  continue;
 
-          // if (isMuonCurlingHit(isimtrk, ith_hit)){
-          if (false) {
+          if (isMuonCurlingHit(isimtrk, ith_hit)){
+          // if (false) {
             len = -2;
             lengap = -2;
             break;
@@ -1445,7 +1445,7 @@ void fillSegmentBranches(SDL::Event* event)
     const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
     for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
     {
-        unsigned int lowerIdx = modulesInGPU.lowerModuleIndices[idx];
+        unsigned int lowerIdx = idx; //modulesInGPU.lowerModuleIndices[idx];
         unsigned int nSegments = segmentsInGPU.nSegments[lowerIdx];
 
         for (unsigned int iseg = 0; iseg < nSegments; ++iseg)
@@ -1581,7 +1581,7 @@ void fillMiniDoubletBranches(SDL::Event* event)
     for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
     {
         // The obtain the lower module index
-        unsigned int lowerIdx = modulesInGPU.lowerModuleIndices[idx];
+        unsigned int lowerIdx = idx; // modulesInGPU.lowerModuleIndices[idx];
         // Then obtain the number of mini-doublets formed in that module
         unsigned int nMDs = miniDoubletsInGPU.nMDs[lowerIdx];
 
@@ -1591,8 +1591,8 @@ void fillMiniDoubletBranches(SDL::Event* event)
 
             // The indexing is done so that each module can store up to N_MAX_MD_PER_MODULES, and then 2 hits are stored per MD
             // So we do 2 * idx + 1-like indexing
-            unsigned idx = miniDoubletsInGPU.hitIndices[(lowerIdx*N_MAX_MD_PER_MODULES+iMD)*2];
-            unsigned jdx = miniDoubletsInGPU.hitIndices[(lowerIdx*N_MAX_MD_PER_MODULES+iMD)*2+1];
+            unsigned idx = miniDoubletsInGPU.anchorHitIndices[(lowerIdx*N_MAX_MD_PER_MODULES+iMD)];
+            unsigned jdx = miniDoubletsInGPU.outerHitIndices[(lowerIdx*N_MAX_MD_PER_MODULES+iMD)];
 
             // Obtain the x y z positions of the hits
             ana.tx->pushbackToBranch<float>("MD_x1", hitsInGPU.xs[idx]);
