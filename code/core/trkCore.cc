@@ -1192,14 +1192,14 @@ void loadMaps()
 
 #ifdef PT0P8
 #ifdef CMSSW12GEOM
-    TString pLSMapDir = "/data2/phchang/pixelmap"; // baseline + 0.8 GeV
+    TString pLSMapDir = "/data2/segmentlinking/pixelmap_CMSSW_12_2_0_pre2_0p8minPt"; // baseline + 0.8 GeV
 #else
     TString pLSMapDir = "/data2/segmentlinking/pixelmap_ptmin0p8_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05"; // baseline + 0.8 GeV
 #endif
 #else
 #ifdef CMSSW12GEOM
     // TODO: The CMSSW_12_2_0_pre2 is by default 0.8 module map
-    TString pLSMapDir = "/data2/phchang/pixelmap"; // baseline
+    TString pLSMapDir = "/data2/segmentlinking/pixelmap_CMSSW_12_2_0_pre2_0p8minPt"; // baseline
 #else
     TString pLSMapDir = "/data2/segmentlinking/pixelmap_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05"; // baseline
 #endif
