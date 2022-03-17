@@ -1,6 +1,7 @@
 # include "PixelTriplet.cuh"
 # include "PixelTracklet.cuh"
 #include "allocate.h"
+#include "Kernels.cuh"
 
 SDL::pixelTriplets::pixelTriplets()
 {
@@ -326,13 +327,13 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
 
 
     // pixel segment vs inner segment of the triplet
-    pass = pass & runPixelTrackletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, lowerModuleIndex, middleModuleIndex, pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, 600/*N_MAX_SEGMENTS_PER_MODULE*/);
+    pass = pass & runPixelTrackletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, lowerModuleIndex, middleModuleIndex, pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, N_MAX_SEGMENTS_PER_MODULE);
 
     //pixel segment vs outer segment of triplet
-    pass = pass & runPixelTrackletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, middleModuleIndex, upperModuleIndex, pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, 600/*N_MAX_SEGMENTS_PER_MODULE*/);
+    pass = pass & runPixelTrackletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, middleModuleIndex, upperModuleIndex, pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, N_MAX_SEGMENTS_PER_MODULE);
 
     //pt matching between the pixel ptin and the triplet circle pt
-    unsigned int pixelSegmentArrayIndex = pixelSegmentIndex - (pixelModuleIndex * 600);
+    unsigned int pixelSegmentArrayIndex = pixelSegmentIndex - (pixelModuleIndex * N_MAX_SEGMENTS_PER_MODULE);
     float pixelSegmentPt = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
     float pixelSegmentPtError = segmentsInGPU.ptErr[pixelSegmentArrayIndex];
 
