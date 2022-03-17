@@ -3,6 +3,7 @@
 #endif
 # include "PixelQuintuplet.cuh"
 #include "allocate.h"
+#include "Kernels.cuh"
 
 SDL::pixelQuintuplets::pixelQuintuplets()
 {

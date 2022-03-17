@@ -2,7 +2,8 @@
 #define CUDA_CONST_VAR __device__
 #endif
 # include "Triplet.cuh"
-#include "allocate.h"
+# include "allocate.h"
+# include "Kernels.cuh"
 
 void SDL::triplets::resetMemory(unsigned int maxTriplets, unsigned int nLowerModules,cudaStream_t stream)
 {

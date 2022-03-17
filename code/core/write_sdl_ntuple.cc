@@ -1,5 +1,10 @@
 #include "write_sdl_ntuple.h"
 
+#define N_MAX_MD_PER_MODULES 89
+#define N_MAX_SEGMENTS_PER_MODULE 537
+#define MAX_NTRIPLET_PER_MODULE 1170
+#define MAX_NQUINTUPLET_PER_MODULE 513
+
 //________________________________________________________________________________________________________________________________
 void createOutputBranches()
 {
@@ -1122,7 +1127,6 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
             const float k2Rinv1GeVf = kRinv1GeVf / 2.;
 
             const float ptAv_in = (trackCandidateType == 7 or trackCandidateType == 5) ? segmentsInGPU.ptIn[innerTrackletInnerSegmentIndex - rangesInGPU.segmentModuleIndices[*(modulesInGPU.nLowerModules)]] : dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.);
-            //const float ptAv_in = (trackCandidateType == 7 or trackCandidateType == 5) ? segmentsInGPU.ptIn[innerTrackletInnerSegmentIndex-(*(modulesInGPU.nLowerModules))*600] : dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.);
 
             const float ptAv_out = dr_out * k2Rinv1GeVf / sin((betaIn_out + betaOut_out) / 2.);
             float ptAv;
@@ -2045,7 +2049,6 @@ void fillQuintupletOutputBranches(SDL::Event* event)
     std::vector<int> moduleType_binaries;
 #endif
 
-    const int MAX_NQUINTUPLET_PER_MODULE = 3000;
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     const float k2Rinv1GeVf = kRinv1GeVf / 2.;
     
@@ -3077,8 +3080,8 @@ void fillTripletOutputBranches(SDL::Event* event)
     std::vector<int> moduleType_binaries;
 #endif
 
-    const int MAX_NTRIPLET_PER_MODULE = 2500;
-    for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
+    for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
+
     {
 
         unsigned int nTriplets = tripletsInGPU.nTriplets[idx];
@@ -5594,7 +5597,7 @@ void printMDs(SDL::Event* event)
     {
         for (unsigned int jdx = 0; jdx < miniDoubletsInGPU.nMDs[2*idx]; jdx++)
         {
-            unsigned int mdIdx = (2*idx) * 100 + jdx;
+            unsigned int mdIdx = (2*idx) * N_MAX_MD_PER_MODULES + jdx;
             unsigned int LowerHitIndex = miniDoubletsInGPU.anchorHitIndices[mdIdx];
             unsigned int UpperHitIndex = miniDoubletsInGPU.outerHitIndices[mdIdx];
             unsigned int hit0 = hitsInGPU.idxs[LowerHitIndex];
@@ -5603,7 +5606,7 @@ void printMDs(SDL::Event* event)
         }
         for (unsigned int jdx = 0; jdx < miniDoubletsInGPU.nMDs[2*idx+1]; jdx++)
         {
-            unsigned int mdIdx = (2*idx+1) * 100 + jdx;
+            unsigned int mdIdx = (2*idx+1) * N_MAX_MD_PER_MODULES + jdx;
             unsigned int LowerHitIndex = miniDoubletsInGPU.anchorHitIndices[mdIdx];
             unsigned int UpperHitIndex = miniDoubletsInGPU.outerHitIndices[mdIdx];
             unsigned int hit0 = hitsInGPU.idxs[LowerHitIndex];
