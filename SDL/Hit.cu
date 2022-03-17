@@ -30,7 +30,7 @@ SDL::hits::~hits()
 {
 }
 //FIXME:New array!
-void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits,unsigned int nMax2SHits,cudaStream_t stream)
+void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits,unsigned int nMax2SHits,cudaStream_t stream, unsigned int evtnum)
 {
     int nModules= 26593;
 #ifdef CACHE_ALLOC
@@ -51,13 +51,13 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
     hitsInGPU.lowEdgeXs = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
     hitsInGPU.lowEdgeYs = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
 
-    hitsInGPU.nHits = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
+    hitsInGPU.nHits = (unsigned int*)cms::cuda::allocate_managed(evtnum*sizeof(unsigned int),stream);
     
-    hitsInGPU.hitRanges =                 (int*)cms::cuda::allocate_managed(nModules * 2 * sizeof(int),stream);
-    hitsInGPU.hitRangesLower =                 (int*)cms::cuda::allocate_managed(nModules * sizeof(int),stream);
-    hitsInGPU.hitRangesUpper =                 (int*)cms::cuda::allocate_managed(nModules * sizeof(int),stream);
-    hitsInGPU.hitRangesnLower =                 (int8_t*)cms::cuda::allocate_managed(nModules * sizeof(int8_t),stream);
-    hitsInGPU.hitRangesnUpper =                 (int8_t*)cms::cuda::allocate_managed(nModules * sizeof(int8_t),stream);
+    hitsInGPU.hitRanges =                 (int*)cms::cuda::allocate_managed(evtnum*nModules * 2 * sizeof(int),stream);
+    hitsInGPU.hitRangesLower =                 (int*)cms::cuda::allocate_managed(    evtnum*nModules * sizeof(int),stream);
+    hitsInGPU.hitRangesUpper =                 (int*)cms::cuda::allocate_managed(    evtnum*nModules * sizeof(int),stream);
+    hitsInGPU.hitRangesnLower =                 (int8_t*)cms::cuda::allocate_managed(evtnum*nModules * sizeof(int8_t),stream);
+    hitsInGPU.hitRangesnUpper =                 (int8_t*)cms::cuda::allocate_managed(evtnum*nModules * sizeof(int8_t),stream);
 #else
     //nMaxHits and nMax2SHits are the maximum possible numbers
     cudaMallocManaged(&hitsInGPU.xs, nMaxHits * sizeof(float));
@@ -78,23 +78,24 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
     cudaMallocManaged(&hitsInGPU.lowEdgeYs, nMaxHits * sizeof(float));
 
     //counters
-    cudaMallocManaged(&hitsInGPU.nHits, sizeof(unsigned int));
+    cudaMallocManaged(&hitsInGPU.nHits, evtnum*sizeof(unsigned int));
 
-    cudaMallocManaged(&hitsInGPU.hitRanges,nModules * 2 * sizeof(int));
-    cudaMallocManaged(&hitsInGPU.hitRangesLower,nModules  * sizeof(int));
-    cudaMallocManaged(&hitsInGPU.hitRangesUpper,nModules  * sizeof(int));
-    cudaMallocManaged(&hitsInGPU.hitRangesnLower,nModules  * sizeof(int8_t));
-    cudaMallocManaged(&hitsInGPU.hitRangesnUpper,nModules  * sizeof(int8_t));
+    cudaMallocManaged(&hitsInGPU.hitRanges,      evtnum*nModules * 2 * sizeof(int));
+    cudaMallocManaged(&hitsInGPU.hitRangesLower, evtnum*nModules  * sizeof(int));
+    cudaMallocManaged(&hitsInGPU.hitRangesUpper, evtnum*nModules  * sizeof(int));
+    cudaMallocManaged(&hitsInGPU.hitRangesnLower,evtnum*nModules  * sizeof(int8_t));
+    cudaMallocManaged(&hitsInGPU.hitRangesnUpper,evtnum*nModules  * sizeof(int8_t));
 #endif
-    *hitsInGPU.nHits = 0;
-    cudaMemsetAsync(hitsInGPU.hitRanges, -1,nModules*2*sizeof(int),stream);
-    cudaMemsetAsync(hitsInGPU.hitRangesLower, -1,nModules*sizeof(int),stream);
-    cudaMemsetAsync(hitsInGPU.hitRangesUpper, -1,nModules*sizeof(int),stream);
-    cudaMemsetAsync(hitsInGPU.hitRangesnLower, -1,nModules*sizeof(int8_t),stream);
-    cudaMemsetAsync(hitsInGPU.hitRangesnUpper, -1,nModules*sizeof(int8_t),stream);
+    //*hitsInGPU.nHits = 0;
+    cudaMemsetAsync(hitsInGPU.nHits, 0,      evtnum*sizeof(unsigned int),stream);
+    cudaMemsetAsync(hitsInGPU.hitRanges, -1,      evtnum*nModules*2*sizeof(int),stream);
+    cudaMemsetAsync(hitsInGPU.hitRangesLower, -1, evtnum*nModules*sizeof(int),stream);
+    cudaMemsetAsync(hitsInGPU.hitRangesUpper, -1, evtnum*nModules*sizeof(int),stream);
+    cudaMemsetAsync(hitsInGPU.hitRangesnLower, -1,evtnum*nModules*sizeof(int8_t),stream);
+    cudaMemsetAsync(hitsInGPU.hitRangesnUpper, -1,evtnum*nModules*sizeof(int8_t),stream);
     cudaStreamSynchronize(stream);
 }
-void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHits,cudaStream_t stream)
+void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHits,cudaStream_t stream,unsigned int evtnum)
 {
     int nModules= 26593;
 #ifdef CACHE_ALLOC
@@ -117,13 +118,13 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
     hitsInGPU.lowEdgeXs = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
     hitsInGPU.lowEdgeYs = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
 
-    hitsInGPU.nHits = (unsigned int*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
+    hitsInGPU.nHits = (unsigned int*)cms::cuda::allocate_device(dev,evtnum*sizeof(unsigned int),stream);
 
-    hitsInGPU.hitRanges =                  (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
-    hitsInGPU.hitRangesLower =                  (int*)cms::cuda::allocate_device(dev,nModules * sizeof(int),stream);
-    hitsInGPU.hitRangesUpper =                  (int*)cms::cuda::allocate_device(dev,nModules * sizeof(int),stream);
-    hitsInGPU.hitRangesnLower =                  (int8_t*)cms::cuda::allocate_device(dev,nModules * sizeof(int8_t),stream);
-    hitsInGPU.hitRangesnUpper =                  (int8_t*)cms::cuda::allocate_device(dev,nModules * sizeof(int8_t),stream);
+    hitsInGPU.hitRanges =                  (int*)cms::cuda::allocate_device(dev,         evtnum*nModules * 2 * sizeof(int),stream);
+    hitsInGPU.hitRangesLower =                  (int*)cms::cuda::allocate_device(dev,    evtnum*nModules * sizeof(int),stream);
+    hitsInGPU.hitRangesUpper =                  (int*)cms::cuda::allocate_device(dev,    evtnum*nModules * sizeof(int),stream);
+    hitsInGPU.hitRangesnLower =                  (int8_t*)cms::cuda::allocate_device(dev,evtnum*nModules * sizeof(int8_t),stream);
+    hitsInGPU.hitRangesnUpper =                  (int8_t*)cms::cuda::allocate_device(dev,evtnum*nModules * sizeof(int8_t),stream);
 #else
     cudaMalloc(&hitsInGPU.xs, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.ys, nMaxHits * sizeof(float));
@@ -142,20 +143,20 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
     cudaMalloc(&hitsInGPU.lowEdgeYs, nMaxHits * sizeof(float));
 
     //counters
-    cudaMalloc(&hitsInGPU.nHits, sizeof(unsigned int));
+    cudaMalloc(&hitsInGPU.nHits,evtnum* sizeof(unsigned int));
 
-    cudaMalloc(&hitsInGPU.hitRanges,nModules * 2 * sizeof(int));
-    cudaMalloc(&hitsInGPU.hitRangesLower,nModules  * sizeof(int));
-    cudaMalloc(&hitsInGPU.hitRangesUpper,nModules  * sizeof(int));
-    cudaMalloc(&hitsInGPU.hitRangesnLower,nModules  * sizeof(int8_t));
-    cudaMalloc(&hitsInGPU.hitRangesnUpper,nModules  * sizeof(int8_t));
+    cudaMalloc(&hitsInGPU.hitRanges,evtnum*nModules * 2 * sizeof(int));
+    cudaMalloc(&hitsInGPU.hitRangesLower,evtnum*nModules  * sizeof(int));
+    cudaMalloc(&hitsInGPU.hitRangesUpper,evtnum*nModules  * sizeof(int));
+    cudaMalloc(&hitsInGPU.hitRangesnLower,evtnum*nModules  * sizeof(int8_t));
+    cudaMalloc(&hitsInGPU.hitRangesnUpper,evtnum* nModules  * sizeof(int8_t));
 #endif
-    cudaMemsetAsync(hitsInGPU.nHits,0,sizeof(unsigned int),stream);
-    cudaMemsetAsync(hitsInGPU.hitRanges, -1,nModules*2*sizeof(int),stream);
-    cudaMemsetAsync(hitsInGPU.hitRangesLower, -1,nModules*sizeof(int),stream);
-    cudaMemsetAsync(hitsInGPU.hitRangesUpper, -1,nModules*sizeof(int),stream);
-    cudaMemsetAsync(hitsInGPU.hitRangesnLower, -1,nModules*sizeof(int8_t),stream);
-    cudaMemsetAsync(hitsInGPU.hitRangesnUpper, -1,nModules*sizeof(int8_t),stream);
+    cudaMemsetAsync(hitsInGPU.nHits,0,evtnum*sizeof(unsigned int),stream);
+    cudaMemsetAsync(hitsInGPU.hitRanges, -1,      evtnum*nModules*2*sizeof(int),stream);
+    cudaMemsetAsync(hitsInGPU.hitRangesLower, -1, evtnum*nModules*sizeof(int),stream);
+    cudaMemsetAsync(hitsInGPU.hitRangesUpper, -1, evtnum*nModules*sizeof(int),stream);
+    cudaMemsetAsync(hitsInGPU.hitRangesnLower, -1,evtnum*nModules*sizeof(int8_t),stream);
+    cudaMemsetAsync(hitsInGPU.hitRangesnUpper, -1,evtnum*nModules*sizeof(int8_t),stream);
     cudaStreamSynchronize(stream);
 }
 

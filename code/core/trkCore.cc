@@ -1762,51 +1762,16 @@ std::vector<float>    phi_vec,
 std::vector<int>    superbin_vec,
 std::vector<int8_t>    pixelType_vec,
 std::vector<short>    isQuad_vec,
-unsigned int hitOffset
+unsigned int hitOffset, unsigned int evt
 )
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Loading Inputs (i.e. outer tracker hits, and pixel line segements) to the Line Segment Tracking.... " << std::endl;
     my_timer.Start();
-    event->setHits(hitOffset,trkX.size());
+    event->setHits(hitOffset,trkX.size(),evt);
     //event->preloadHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs,hitOffset); // TODO : Need to fix the hitIdxs
     //event->addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
     event->addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);
-    //event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
-    //event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);
-    float hit_loading_elapsed = my_timer.RealTime();
-    if (ana.verbose >= 2) std::cout << "Loading inputs processing time: " << hit_loading_elapsed << " secs" << std::endl;
-    return hit_loading_elapsed;
-}
-float addInputsToEventPreLoadAll(SDL::Event* event, bool useOMP,
-std::vector<float> trkX,std::vector<float> trkY,std::vector<float> trkZ,
-std::vector<unsigned int>    hitId,
-std::vector<unsigned int>    hitIdxs,
-std::vector<unsigned int>    hitIndices_vec0,
-std::vector<unsigned int>    hitIndices_vec1,
-std::vector<unsigned int>    hitIndices_vec2,
-std::vector<unsigned int>    hitIndices_vec3,
-std::vector<float>    deltaPhi_vec,
-std::vector<float>    ptIn_vec,
-std::vector<float>    ptErr_vec,
-std::vector<float>    px_vec,
-std::vector<float>    py_vec,
-std::vector<float>    pz_vec,
-std::vector<float>    eta_vec,
-std::vector<float>    etaErr_vec,
-std::vector<float>    phi_vec,
-std::vector<int>    superbin_vec,
-std::vector<int8_t>    pixelType_vec,
-std::vector<short>    isQuad_vec,
-unsigned int hitOffset
-)
-{
-    TStopwatch my_timer;
-    if (ana.verbose >= 2) std::cout << "Loading Inputs (i.e. outer tracker hits, and pixel line segements) to the Line Segment Tracking.... " << std::endl;
-    my_timer.Start();
-    //event->preloadHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs,hitOffset); // TODO : Need to fix the hitIdxs
-    //event->addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
-    //event->addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);
     //event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
     //event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);
     float hit_loading_elapsed = my_timer.RealTime();

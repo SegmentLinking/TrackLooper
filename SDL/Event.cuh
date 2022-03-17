@@ -87,7 +87,7 @@ namespace SDL
         ~Event();
         void resetEvent();
 
-        void setHits(unsigned int offset,unsigned int loopsize);
+        void setHits(unsigned int offset,unsigned int loopsize,unsigned int evtnum);
         void addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple); //call the appropriate hit function, then increment the counter here
         //void preloadHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple,unsigned int offset); 
         void addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<short> isQuad);
@@ -202,7 +202,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec
     void cleanModules();
     void initModulesHost(); //read from file and init
     extern struct pixelMap* pixelMapping;
-    void preloadHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple,unsigned int offset); 
+    void preloadHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple,unsigned int offset, unsigned int evtnum); 
 
 }
 #endif
