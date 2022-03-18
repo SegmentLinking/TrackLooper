@@ -1689,7 +1689,7 @@ void SDL::Event::createExtendedTracks()
     }
 
     unsigned int nTrackCandidates;
-    cudaMemcpy(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 
 #ifdef T3T3_EXTENSIONS
 #ifdef Explicit_Extensions
@@ -2486,10 +2486,10 @@ cudaStreamSynchronize(stream);
 unsigned int SDL::Event::getNumberOfExtendedTracks()
 {
     unsigned int nTrackCandidates;
-    cudaMemcpy(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 
     unsigned int *nTrackExtensionsCPU = new unsigned int[nTrackCandidates];
-    cudaMemcpy(nTrackExtensionsCPU, trackExtensionsInGPU->nTrackExtensions, (nTrackCandidates)* sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(nTrackExtensionsCPU, trackExtensionsInGPU->nTrackExtensions, (nTrackCandidates)* sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 
     unsigned int nTrackExtensions = 0;
     for(size_t it = 0; it < nTrackCandidates; it++)    
@@ -2499,7 +2499,7 @@ unsigned int SDL::Event::getNumberOfExtendedTracks()
     }
 #ifdef T3T3_EXTENSIONS
     unsigned int nT3T3Extensions;
-    cudaMemcpy(&nT3T3Extensions,&(trackExtensionsInGPU->nTrackExtensions[nTrackCandidates]), sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(&nT3T3Extensions,&(trackExtensionsInGPU->nTrackExtensions[nTrackCandidates]), sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
     nTrackExtensions += nT3T3Extensions;
 #endif
     delete[] nTrackExtensionsCPU;
@@ -2509,10 +2509,10 @@ unsigned int SDL::Event::getNumberOfExtendedTracks()
 unsigned int SDL::Event::getNumberOfT3T3ExtendedTracks()
 {
     unsigned int nTrackCandidates;
-    cudaMemcpy(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 
     unsigned int nT3T3Extensions;
-    cudaMemcpy(&nT3T3Extensions, trackExtensionsInGPU->nTrackExtensions + nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    cudaMemcpyAsync(&nT3T3Extensions, trackExtensionsInGPU->nTrackExtensions + nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
     return nT3T3Extensions;
 }
 
@@ -3043,7 +3043,7 @@ SDL::trackExtensions* SDL::Event::getTrackExtensions()
 
        cudaMemcpyAsync(trackExtensionsInCPU->nTrackExtensions, trackExtensionsInGPU->nTrackExtensions, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
        cudaMemcpyAsync(trackExtensionsInCPU->totOccupancyTrackExtensions, trackExtensionsInGPU->totOccupancyTrackExtensions, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-       cudaMemcpy(trackExtensionsInCPU->constituentTCTypes, trackExtensionsInGPU->constituentTCTypes, 3 * maxTrackExtensions * sizeof(short), cudaMemcpyDeviceToHost);
+       cudaMemcpyAsync(trackExtensionsInCPU->constituentTCTypes, trackExtensionsInGPU->constituentTCTypes, 3 * maxTrackExtensions * sizeof(short), cudaMemcpyDeviceToHost,stream);
        cudaMemcpyAsync(trackExtensionsInCPU->constituentTCIndices, trackExtensionsInGPU->constituentTCIndices, 3 * maxTrackExtensions * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
 
        cudaMemcpyAsync(trackExtensionsInCPU->nLayerOverlaps, trackExtensionsInGPU->nLayerOverlaps, 2 * maxTrackExtensions * sizeof(uint8_t), cudaMemcpyDeviceToHost, stream);
