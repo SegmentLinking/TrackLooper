@@ -1446,7 +1446,7 @@ void fillSegmentBranches(SDL::Event* event)
     SDL::quintuplets& quintupletsInGPU = (*event->getQuintuplets());
     SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
     SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
-    const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
+    // const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
     for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
     {
         unsigned int lowerIdx = idx; //modulesInGPU.lowerModuleIndices[idx];
@@ -1546,8 +1546,8 @@ void fillMiniDoubletBranches(SDL::Event* event)
     // SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
 
     // Some boundary conditions to loop over the objects from the GPU
-    const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
-    const unsigned int N_MAX_MD_PER_MODULES = 100;
+    // const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
+    // const unsigned int N_MAX_MD_PER_MODULES = 100;
 
     // Creating a fixed size vector where the length of the vector is the same as the N sim tracks
     // Each entry will contain whether there are matched sim tracks
