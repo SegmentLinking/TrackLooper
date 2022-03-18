@@ -25,7 +25,8 @@ CXXFLAGS    = $(ROOTCFLAGS) -ISDL -I$(shell pwd) -Icode -Icode/AnalysisInterface
 CFLAGS      = $(ROOTCFLAGS) --compiler-options -Wall --compiler-options -Wno-unused-function --compiler-options -g --compiler-options -O2 --compiler-options -fPIC --compiler-options -fno-var-tracking -ISDL -I$(shell pwd) -Icode -Icode/AnalysisInterface -Icode/core -I/mnt/data1/dsr/cub -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/include --compiler-options -fopenmp
 EXTRACFLAGS = $(shell rooutil-config)
 EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -L/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/lib64 -lcudart -fopenmp
-DOQUINTUPLET = -DFP16_Base -DFP16_dPhi -DPreload_hits#-DFP16_circle -DFP16_seg -DFP16_T5 #-DDO_QUINTUPLET #-DDO_QUADRUPLET
+DOQUINTUPLET = -DFP16_Base -DFP16_dPhi #-DPreload_hits#-DFP16_circle -DFP16_seg -DFP16_T5 #-DDO_QUINTUPLET #-DDO_QUADRUPLET
+PRELOAD     =
 PT0P8       =
 T3T3EXTENSION=
 CUTVALUEFLAG = 
@@ -49,13 +50,13 @@ cutvalue_primitive: $(ROOUTIL) efficiency $(EXES)
 
 
 bin/doAnalysis: bin/doAnalysis.o $(OBJECTS)
-	$(LD) $(PT0P8) $(T3T3EXTENSION) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) -o $@
+	$(LD) $(PT0P8) $(T3T3EXTENSION) ${PRELOAD} $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) -o $@
 
 bin/sdl: bin/sdl.o $(OBJECTS)
-	$(LD) $(PT0P8) $(T3T3EXTENSION) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) -o $@
+	$(LD) $(PT0P8) $(T3T3EXTENSION) ${PRELOAD} $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) -o $@
 
 %.o: %.cc
-	$(CC) $(PT0P8) $(T3T3EXTENSION) $(CFLAGS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(DOQUINTUPLET) $< -dc -o $@
+	$(CC) $(PT0P8) $(T3T3EXTENSION) ${PRELOAD} $(CFLAGS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(DOQUINTUPLET) $< -dc -o $@
 
 $(ROOUTIL):
 	$(MAKE) -C code/rooutil/
