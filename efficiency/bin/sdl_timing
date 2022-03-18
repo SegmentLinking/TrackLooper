@@ -12,11 +12,9 @@ run_gpu()
     sdl_make_tracklooper -m $*
     sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}_s1.root -v 1 -w 0 -i ${sample} | tee -a timing_temp.txt
     sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}_s2.root -v 1 -w 0 -s 2 -i ${sample} | tee -a timing_temp.txt
-    #if [ ${version} != "explicit_cache" ]; then
-      sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}_s4.root -v 1 -w 0 -s 4 -i ${sample} | tee -a timing_temp.txt
-      sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}_s6.root -v 1 -w 0 -s 6 -i ${sample} | tee -a timing_temp.txt
-      sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}_s8.root -v 1 -w 0 -s 8 -i ${sample} | tee -a timing_temp.txt
-    #fi
+    sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}_s4.root -v 1 -w 0 -s 4 -i ${sample} | tee -a timing_temp.txt
+    sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}_s6.root -v 1 -w 0 -s 6 -i ${sample} | tee -a timing_temp.txt
+    sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}_s8.root -v 1 -w 0 -s 8 -i ${sample} | tee -a timing_temp.txt
 }
 
 run_timing_test_usage()
@@ -106,20 +104,20 @@ mkdir -p ${OUTDIR}
 rm -f timing_temp.txt
 
 # Run different GPU configurations
-if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified" ]]; then
-    run_gpu unified ${SAMPLE} ${NEVENTS} -8 -e
+if [[ "${SPECIFICGPUVERSION}" == "unified" ]]; then
+    run_gpu unified ${SAMPLE} ${NEVENTS} -8 -e -l
     :
 fi
-if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified_cache" ]]; then
-    run_gpu unified_cache ${SAMPLE} ${NEVENTS} -c -8 -e
+if [[ "${SPECIFICGPUVERSION}" == "unified_cache" ]]; then
+    run_gpu unified_cache ${SAMPLE} ${NEVENTS} -c -8 -e -l
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit" ]]; then
-    run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 -e
+    run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 -e -l
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache" ]]; then
-     run_gpu explicit_cache ${SAMPLE} ${NEVENTS} -x -c -8 -e 
+     run_gpu explicit_cache ${SAMPLE} ${NEVENTS} -x -c -8 -e -l 
     :
 fi
 
