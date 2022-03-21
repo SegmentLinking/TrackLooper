@@ -301,7 +301,11 @@ void run_sdl()
 
     if (not ana.do_run_cpu){
         //    cudaSetDevice(0);
+#ifdef CMSSW12GEOM
+        SDL::initModules(TString::Format("%s/data/centroid_CMSSW_12_2_0_pre2.txt", gSystem->Getenv("TRACKLOOPERDIR")));
+#else
         SDL::initModules(TString::Format("%s/data/centroid.txt", gSystem->Getenv("TRACKLOOPERDIR")));
+#endif
             //cudaSetDevice(1);
        // SDL::initModules(TString::Format("%s/data/centroid.txt", gSystem->Getenv("TRACKLOOPERDIR")));
     }

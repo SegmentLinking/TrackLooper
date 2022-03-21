@@ -10,8 +10,13 @@
 //defining the constant host device variables right up here
 CUDA_CONST_VAR float SDL::miniMulsPtScaleBarrel[6] = {0.0052, 0.0038, 0.0034, 0.0034, 0.0032, 0.0034};
 CUDA_CONST_VAR float SDL::miniMulsPtScaleEndcap[5] = {0.006, 0.006, 0.006, 0.006, 0.006}; 
+#ifdef CMSSW12GEOM
+CUDA_CONST_VAR float SDL::miniRminMeanBarrel[6] = {25.007152356, 37.2186993757, 52.3104270826, 68.6658656666, 85.9770373007, 108.301772384};
+CUDA_CONST_VAR float SDL::miniRminMeanEndcap[5] = {130.992832231, 154.813883559, 185.352604327, 221.635123002, 265.022076742};
+#else
 CUDA_CONST_VAR float SDL::miniRminMeanBarrel[6] = {21.8, 34.6, 49.6, 67.4, 87.6, 106.8};
 CUDA_CONST_VAR float SDL::miniRminMeanEndcap[5] = {131.4, 156.2, 185.6, 220.3, 261.5};
+#endif
 CUDA_CONST_VAR float SDL::k2Rinv1GeVf = (2.99792458e-3 * 3.8) / 2;
 CUDA_CONST_VAR float SDL::sinAlphaMax = 0.95;
 #ifdef PT0P8
@@ -336,7 +341,11 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
     if (modulesInGPU.sides[lowerModuleIndex]!= Center)
     {
         // When it is tilted, use the new shifted positions
+#ifdef CMSSW12GEOM // TODO: This is somewhat of an mystery.... somewhat confused why this is the case
+        if (modulesInGPU.moduleLayerType[lowerModuleIndex] != Pixel)
+#else
         if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
+#endif
         {
             // dPhi Change should be calculated so that the upper hit has higher rt.
             // In principle, this kind of check rt_lower < rt_upper should not be necessary because the hit shifting should have taken care of this.
@@ -510,9 +519,28 @@ __device__ inline float SDL::dPhiThreshold(/*struct hits& hitsInGPU,*/float rt, 
     const bool isTilted = modulesInGPU.subdets[moduleIndex] == Barrel and modulesInGPU.sides[moduleIndex] != Center;
     //the lower module is sent in irrespective of its layer type. We need to fetch the drdz properly
 
-    const float& drdz = modulesInGPU.drdzs[moduleIndex];
-
-   const float miniTilt = ((isTilted) ? 0.5f * pixelPSZpitch * drdz / sqrt(1.f + drdz * drdz) / moduleGapSize(modulesInGPU,moduleIndex) : 0);
+    float drdz;
+    if(isTilted)
+    {
+        if(modulesInGPU.moduleType[moduleIndex] == PS and modulesInGPU.moduleLayerType[moduleIndex] == Strip)
+        {
+            // printf("moduleIndex: %d\n", moduleIndex);
+            drdz = modulesInGPU.drdzs[moduleIndex];
+            // printf("drdz: %f\n", drdz);
+        }
+        else
+        {
+            // printf("moduleIndex: %d\n", moduleIndex);
+            // printf("partnerModuleIndex: %d\n", modulesInGPU.partnerModuleIndex(moduleIndex));
+            drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndices[moduleIndex]];
+            // printf("drdz: %f\n", drdz);
+        }
+    }
+    else
+    {
+        drdz = 0;
+    }
+    const float miniTilt = ((isTilted) ? 0.5f * pixelPSZpitch * drdz / sqrt(1.f + drdz * drdz) / moduleGapSize(modulesInGPU,moduleIndex) : 0);
 
     // Compute luminous region requirement for endcap
     const float miniLum = fabsf(dPhi * deltaZLum/dz); // Balaji's new error
