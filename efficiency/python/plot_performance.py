@@ -6,6 +6,11 @@ import os
 import sys
 from math import sqrt
 
+# ptcut = 1.5
+# etacut = 2.4
+ptcut = 0.9
+etacut = 4.5
+
 r.gROOT.SetBatch(True)
 
 def parse_plot_name(output_name):
@@ -183,24 +188,24 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
         x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
         y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.045 + 0.03
         if "_pt" in output_name:
-            fiducial_label = "|#eta| < 4.5, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+            fiducial_label = "|#eta| < {eta}, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(eta=etacut)
         elif "_eta" in output_name:
-            fiducial_label = "p_{T} > 0.9 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+            fiducial_label = "p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut)
         elif "_dz" in output_name:
-            fiducial_label = "|#eta| < 4.5, p_{T} > 0.9 GeV, |Vtx_{xy}| < 2.5 cm"
+            fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut, eta=etacut)
         elif "_dxy" in output_name:
-            fiducial_label = "|#eta| < 4.5, p_{T} > 0.9 GeV, |Vtx_{z}| < 30 cm"
+            fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm".format(pt=ptcut, eta=etacut)
         #elif "_lay" in output_name:
-        #    fiducial_label = "|#eta| < 4.5, p_{T} > 0.9 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+        #    fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut, eta=etacut)
         else:
-            fiducial_label = "|#eta| < 4.5, p_{T} > 0.9 GeV, |Vtx_{z}| < 30 cm, |Vtx_{xy}| < 2.5 cm"
+            fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut, eta=etacut)
         if "fakerate" in output_name or "duplrate" in output_name:
             if "_pt" in output_name:
-                fiducial_label = "|#eta| < 4.5"
+                fiducial_label = "|#eta| < {eta}".format(eta=etacut)
             elif "_eta" in output_name:
-                fiducial_label = "p_{T} > 0.9 GeV"
+                fiducial_label = "p_{{T}} > {pt} GeV".format(pt=ptcut)
             else:
-                fiducial_label = "|#eta| < 4.5, p_{T} > 0.9 GeV"
+                fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV".format(pt=ptcut, eta=etacut)
         t.DrawLatexNDC(x,y,"#scale[0.9]{#font[42]{%s}}" % fiducial_label)
         cms_label = "Simulation"
         x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
