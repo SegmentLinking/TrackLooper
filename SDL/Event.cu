@@ -561,17 +561,17 @@ cudaStreamSynchronize(stream);
         #endif
     resetObjectsInModule();
     }
-    if(hitsInGPU == nullptr)
-    {
-
-        cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
-        #ifdef Explicit_Hit
-    	  createHitsInExplicitMemory(*hitsInGPU, 2*loopsize,stream,1); //unclear why but this has to be 2*loopsize to avoid crashing later (reported in tracklet allocation). seems to do with nHits values as well. this allows nhits to be set to the correct value of loopsize to get correct results without crashing. still beats the "max hits" so i think this is fine.
-        #else
-        createHitsInUnifiedMemory(*hitsInGPU,2*loopsize,0,stream,1);
-        #endif
-    }
-cudaStreamSynchronize(stream);
+//    if(hitsInGPU == nullptr)
+//    {
+//
+//        cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
+//        #ifdef Explicit_Hit
+//    	  createHitsInExplicitMemory(*hitsInGPU, 2*loopsize,stream,1); //unclear why but this has to be 2*loopsize to avoid crashing later (reported in tracklet allocation). seems to do with nHits values as well. this allows nhits to be set to the correct value of loopsize to get correct results without crashing. still beats the "max hits" so i think this is fine.
+//        #else
+//        createHitsInUnifiedMemory(*hitsInGPU,2*loopsize,0,stream,1);
+//        #endif
+//    }
+//cudaStreamSynchronize(stream);
         hitsInGPU = hitsInGPU_event;
 //      cudaMemcpyAsync(hitsInGPU->xs,                  hitsInGPU_event->xs,2*loopsize*sizeof(float),cudaMemcpyDeviceToDevice,stream);
 //      cudaMemcpyAsync(hitsInGPU->ys,                  hitsInGPU_event->ys,2*loopsize*sizeof(float),cudaMemcpyDeviceToDevice,stream);
