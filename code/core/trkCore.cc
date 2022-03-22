@@ -1762,14 +1762,14 @@ std::vector<float>    phi_vec,
 std::vector<int>    superbin_vec,
 std::vector<int8_t>    pixelType_vec,
 std::vector<short>    isQuad_vec,
-unsigned int hitOffset, unsigned int evt
+unsigned int hitOffset, unsigned int evt, struct SDL::hits* hitsInGPU_event
 )
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Loading Inputs (i.e. outer tracker hits, and pixel line segements) to the Line Segment Tracking.... " << std::endl;
     my_timer.Start();
     #ifdef Preload_hits
-    event->setHits(hitOffset,trkX.size(),evt);
+    event->setHits(hitOffset,trkX.size(),evt,hitsInGPU_event);
     #else
     event->addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
     #endif

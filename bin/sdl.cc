@@ -342,6 +342,7 @@ void run_sdl()
                 std::vector<std::vector<short>>    out_isQuad_vec;
                 std::vector<int>    evt_num;
                 std::vector<unsigned int>    hitOffset;
+                std::vector<SDL::hits*>    hitsInGPUAll;
                 //std::vector<SDL::Event> events;
     // Looping input file
     hitOffset.push_back(0); // start the offset. events shifted by one..
@@ -411,6 +412,7 @@ void run_sdl()
                 out_superbin_vec,
                 out_pixelType_vec,
                 out_isQuad_vec
+                , hitsInGPUAll
 
 
     );
@@ -478,7 +480,7 @@ float timing_TCE;
                 out_phi_vec.at(evt),
                 out_superbin_vec.at(evt),
                 out_pixelType_vec.at(evt),
-                out_isQuad_vec.at(evt),hitOffset.at(evt),evt
+                out_isQuad_vec.at(evt),hitOffset.at(evt),evt, hitsInGPUAll.at(evt)
                 );
             // Run Mini-doublet
             timing_MD = runMiniDoublet(events.at(omp_get_thread_num()),evt);
