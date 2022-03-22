@@ -1733,7 +1733,8 @@ std::vector<std::vector<short>>&    out_isQuad_vec
     out_superbin_vec.push_back(superbin_vec);
     out_pixelType_vec.push_back(pixelType_vec);
     out_isQuad_vec.push_back(isQuad_vec);
-    hitOffset.push_back(hitOffset.back()+2*trkX.size()); // revisit factor of 2
+    hitOffset.push_back(2*trkX.size()); // revisit factor of 2
+    //hitOffset.push_back(hitOffset.back()+2*trkX.size()); // revisit factor of 2
     printf("hitOffset %u\n",hitOffset.back());
     
 //    float hit_loading_elapsed = my_timer.RealTime();
