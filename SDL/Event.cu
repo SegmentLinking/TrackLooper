@@ -67,7 +67,7 @@ SDL::Event::~Event()
 {
 #ifdef CACHE_ALLOC
     if(rangesInGPU){rangesInGPU->freeMemoryCache();}
-//    if(hitsInGPU){hitsInGPU->freeMemoryCache();}
+    if(hitsInGPU){hitsInGPU->freeMemoryCache();}
     if(mdsInGPU){mdsInGPU->freeMemoryCache();}
     if(segmentsInGPU){segmentsInGPU->freeMemoryCache();}
     if(tripletsInGPU){tripletsInGPU->freeMemoryCache();}
@@ -79,7 +79,7 @@ SDL::Event::~Event()
 #else
 
     if(rangesInGPU){rangesInGPU->freeMemory();}
-//    if(hitsInGPU){hitsInGPU->freeMemory(stream);}
+    if(hitsInGPU){hitsInGPU->freeMemory(stream);}
     if(mdsInGPU){mdsInGPU->freeMemory(stream);}
     if(segmentsInGPU){segmentsInGPU->freeMemory(stream);}
     if(tripletsInGPU){tripletsInGPU->freeMemory(stream);}
@@ -94,7 +94,7 @@ SDL::Event::~Event()
     if(segmentsInGPU!= nullptr){cudaFreeHost(segmentsInGPU);}
     if(tripletsInGPU!= nullptr){cudaFreeHost(tripletsInGPU);}
     if(trackCandidatesInGPU!= nullptr){cudaFreeHost(trackCandidatesInGPU);}
-//    if(hitsInGPU!= nullptr){cudaFreeHost(hitsInGPU);}
+    if(hitsInGPU!= nullptr){cudaFreeHost(hitsInGPU);}
 
     if(pixelTripletsInGPU!= nullptr){cudaFreeHost(pixelTripletsInGPU);}
     if(pixelQuintupletsInGPU!= nullptr){cudaFreeHost(pixelQuintupletsInGPU);}
@@ -310,8 +310,8 @@ void SDL::Event::resetEvent()
             n_quintuplets_by_layer_endcap_[i] = 0;
         }
     }
-//    if(hitsInGPU){cudaFreeHost(hitsInGPU);
-//    hitsInGPU = nullptr;}
+    if(hitsInGPU){cudaFreeHost(hitsInGPU);
+    hitsInGPU = nullptr;}
     if(mdsInGPU){cudaFreeHost(mdsInGPU);
     mdsInGPU = nullptr;}
     if(rangesInGPU){cudaFreeHost(rangesInGPU);
