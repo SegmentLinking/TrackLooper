@@ -484,7 +484,12 @@ float timing_TCE;
                 out_phi_vec.at(evt),
                 out_superbin_vec.at(evt),
                 out_pixelType_vec.at(evt),
-                out_isQuad_vec.at(evt),hitOffset.at(evt),evt, hitsInGPUAll.at(evt)
+                out_isQuad_vec.at(evt),hitOffset.at(evt),evt, 
+                #ifdef Preload_hits
+                hitsInGPUAll.at(evt)
+                #else
+                nullptr
+                #endif
                 );
             // Run Mini-doublet
             timing_MD = runMiniDoublet(events.at(omp_get_thread_num()),evt);

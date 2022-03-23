@@ -51,7 +51,8 @@ namespace SDL
         int8_t* hitRangesnUpper;
         
         hits();
-        void freeMemory(cudaStream_t stream);
+        void freeMemory();
+        //void freeMemory(cudaStream_t stream);
         void freeMemoryCache();
         ~hits();
 

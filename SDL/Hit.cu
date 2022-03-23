@@ -33,7 +33,8 @@ SDL::hits::~hits()
 void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits,unsigned int nMax2SHits,cudaStream_t stream, unsigned int evtnum)
 {
     int nModules= 26593;
-#ifdef CACHE_ALLOC
+//#ifdef CACHE_ALLOC
+#if defined(CACHE_ALLOC) && !defined(Preload_hits)
 //    cudaStream_t stream=0;
     hitsInGPU.xs = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
     hitsInGPU.ys = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
@@ -98,7 +99,8 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
 void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHits,cudaStream_t stream,unsigned int evtnum)
 {
     int nModules= 26593;
-#ifdef CACHE_ALLOC
+//#ifdef CACHE_ALLOC
+#if defined(CACHE_ALLOC) && !defined(Preload_hits)
  //   cudaStream_t stream=0;
     int dev;
     cudaGetDevice(&dev);
@@ -247,7 +249,8 @@ void SDL::hits::freeMemoryCache()
     cms::cuda::free_managed(hitRangesnUpper);
 #endif
 }
-void SDL::hits::freeMemory(cudaStream_t stream)
+void SDL::hits::freeMemory()
+//void SDL::hits::freeMemory(cudaStream_t stream)
 {
     cudaFree(nHits);
     cudaFree(xs);
@@ -269,5 +272,5 @@ void SDL::hits::freeMemory(cudaStream_t stream)
     cudaFree(hitRangesnLower);
     cudaFree(hitRangesUpper);
     cudaFree(hitRangesnUpper);
-    cudaStreamSynchronize(stream);
+//    cudaStreamSynchronize(stream);
 }

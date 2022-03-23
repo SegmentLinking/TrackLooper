@@ -5,7 +5,7 @@ struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::pixelMap* SDL::pixelMapping = nullptr;
 uint16_t SDL::nModules;
 uint16_t SDL::nLowerModules;
-struct SDL::hits* SDL::hitsInGPUAll = nullptr;
+//struct SDL::hits* SDL::hitsInGPUAll = nullptr;
 
 SDL::Event::Event(cudaStream_t estream)
 {
@@ -67,7 +67,12 @@ SDL::Event::~Event()
 {
 #ifdef CACHE_ALLOC
     if(rangesInGPU){rangesInGPU->freeMemoryCache();}
+    //if(hitsInGPU){hitsInGPU->freeMemoryCache();}
+    #ifdef Preload_hits
+    if(hitsInGPU){hitsInGPU->freeMemory();}
+    #else
     if(hitsInGPU){hitsInGPU->freeMemoryCache();}
+    #endif
     if(mdsInGPU){mdsInGPU->freeMemoryCache();}
     if(segmentsInGPU){segmentsInGPU->freeMemoryCache();}
     if(tripletsInGPU){tripletsInGPU->freeMemoryCache();}
@@ -79,7 +84,7 @@ SDL::Event::~Event()
 #else
 
     if(rangesInGPU){rangesInGPU->freeMemory();}
-    if(hitsInGPU){hitsInGPU->freeMemory(stream);}
+    if(hitsInGPU){hitsInGPU->freeMemory();}
     if(mdsInGPU){mdsInGPU->freeMemory(stream);}
     if(segmentsInGPU){segmentsInGPU->freeMemory(stream);}
     if(tripletsInGPU){tripletsInGPU->freeMemory(stream);}
@@ -268,7 +273,11 @@ SDL::Event::~Event()
 void SDL::Event::resetEvent()
 {
 #ifdef CACHE_ALLOC
-//    if(hitsInGPU){hitsInGPU->freeMemoryCache();}
+    #ifdef Preload_hits
+    if(hitsInGPU){hitsInGPU->freeMemory();}
+    #else
+    if(hitsInGPU){hitsInGPU->freeMemoryCache();}
+    #endif
     if(mdsInGPU){mdsInGPU->freeMemoryCache();}
     if(quintupletsInGPU){quintupletsInGPU->freeMemoryCache();}
     if(rangesInGPU){rangesInGPU->freeMemoryCache();}
@@ -280,7 +289,7 @@ void SDL::Event::resetEvent()
     if(trackExtensionsInGPU){trackExtensionsInGPU->freeMemoryCache();}
 
 #else
-//    if(hitsInGPU){hitsInGPU->freeMemory(stream);}
+    if(hitsInGPU){hitsInGPU->freeMemory();}
     if(quintupletsInGPU){quintupletsInGPU->freeMemory(stream);}
     if(rangesInGPU){rangesInGPU->freeMemory();}
     if(mdsInGPU){mdsInGPU->freeMemory(stream);}
