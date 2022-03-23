@@ -17,18 +17,34 @@ intree = infile.Get("tree")
 def simTrkInfo(event,dict_):
   dict_["N"] = dict_["N"] + len(event.sim_pt)
   for simTrk in range(len(event.sim_pt)):
-    if event.sim_isGood[simTrk]: dict_["N_good"] = dict_["N_good"] + 1
+    isGood = False
+    if event.sim_isGood[simTrk]:
+      isGood = True
+      dict_["N_good"] = dict_["N_good"] + 1
     if event.sim_TC_matched[simTrk] > 0:
       dict_["N_matched"] = dict_["N_matched"] + 1
-      if event.sim_TC_matched[simTrk] == 1: dict_["N_singleMatched"] = dict_["N_singleMatched"] + 1
-      if event.sim_TC_matched[simTrk] > 1: dict_["N_dup"] = dict_["N_dup"] + 1
+      if isGood: dict_["N_goodMatched"] = dict_["N_goodMatched"] + 1
+      if event.sim_TC_matched[simTrk] == 1:
+        dict_["N_singleMatched"] = dict_["N_singleMatched"] + 1
+        if isGood: dict_["N_goodSingleMatched"] = dict_["N_goodSingleMatched"] + 1
+      if event.sim_TC_matched[simTrk] > 1:
+        dict_["N_dup"] = dict_["N_dup"] + 1
+        if isGood: dict_["N_goodDup"] = dict_["N_goodDup"] + 1
       for tc in range(len(event.tc_matched_simIdx)):
         for simIdxOther in range(len(event.tc_matched_simIdx[tc])):
           if event.tc_matched_simIdx[tc][simIdxOther] == simTrk:
-            if event.tc_type[tc] == 7: dict_["N_matchedWpT5"] = dict_["N_matchedWpT5"] + 1
-            if event.tc_type[tc] == 5: dict_["N_matchedWpT3"] = dict_["N_matchedWpT3"] + 1
-            if event.tc_type[tc] == 4: dict_["N_matchedWT5"] = dict_["N_matchedWT5"] + 1
-            if event.tc_type[tc] == 8: dict_["N_matchedWpLS"] = dict_["N_matchedWpLS"] + 1
+            if event.tc_type[tc] == 7:
+              dict_["N_matchedWpT5"] = dict_["N_matchedWpT5"] + 1
+              if isGood: dict_["N_goodMatchedWpT5"] = dict_["N_goodMatchedWpT5"] + 1
+            if event.tc_type[tc] == 5:
+              dict_["N_matchedWpT3"] = dict_["N_matchedWpT3"] + 1
+              if isGood: dict_["N_goodMatchedWpT3"] = dict_["N_goodMatchedWpT3"] + 1
+            if event.tc_type[tc] == 4:
+              dict_["N_matchedWT5"] = dict_["N_matchedWT5"] + 1
+              if isGood: dict_["N_goodMatchedWT5"] = dict_["N_goodMatchedWT5"] + 1
+            if event.tc_type[tc] == 8:
+              dict_["N_matchedWpLS"] = dict_["N_matchedWpLS"] + 1
+              if isGood: dict_["N_goodMatchedWpLS"] = dict_["N_goodMatchedWpLS"] + 1
 
   return dict_
 
@@ -287,7 +303,6 @@ def printSimComp(dict_):
 
   print ""
   print "Total sim multiplicity = %d" %dict_["N"]
-  print "Good sim = %d (%.2f%%)" %( dict_["N_good"], float(dict_["N_good"])/float(dict_["N"])*100 )
   print "Matched sim = %d (%.2f%%)" %( dict_["N_matched"], float(dict_["N_matched"])/float(dict_["N"])*100 )
   print "Single matched sim = %d (%.2f%%)" %( dict_["N_singleMatched"], float(dict_["N_singleMatched"])/float(dict_["N"])*100 )
   print "Duplicate sim = %d (%.2f%%)" %( dict_["N_dup"], float(dict_["N_dup"])/float(dict_["N"])*100 )
@@ -295,6 +310,15 @@ def printSimComp(dict_):
   print "Matched with pT3 = %d (%.2f%%)" %( dict_["N_matchedWpT3"], float(dict_["N_matchedWpT3"])/float(dict_["N"])*100 )
   print "Matched with T5 = %d (%.2f%%)" %( dict_["N_matchedWT5"], float(dict_["N_matchedWT5"])/float(dict_["N"])*100 )
   print "Matched with pLS = %d (%.2f%%)" %( dict_["N_matchedWpLS"], float(dict_["N_matchedWpLS"])/float(dict_["N"])*100 )
+  print ""
+  print "Good sim = %d (%.2f%%)" %( dict_["N_good"], float(dict_["N_good"])/float(dict_["N"])*100 )
+  print "Matched good sim = %d (%.2f%%)" %( dict_["N_goodMatched"], float(dict_["N_goodMatched"])/float(dict_["N_good"])*100 )
+  print "Single matched good sim = %d (%.2f%%)" %( dict_["N_goodSingleMatched"], float(dict_["N_goodSingleMatched"])/float(dict_["N_good"])*100 )
+  print "Duplicate good sim = %d (%.2f%%)" %( dict_["N_goodDup"], float(dict_["N_goodDup"])/float(dict_["N_good"])*100 )
+  print "Good sim matched with pT5 = %d (%.2f%%)" %( dict_["N_goodMatchedWpT5"], float(dict_["N_goodMatchedWpT5"])/float(dict_["N_good"])*100 )
+  print "Good sim matched with pT3 = %d (%.2f%%)" %( dict_["N_goodMatchedWpT3"], float(dict_["N_goodMatchedWpT3"])/float(dict_["N_good"])*100 )
+  print "Good sim matched with T5 = %d (%.2f%%)" %( dict_["N_goodMatchedWT5"], float(dict_["N_goodMatchedWT5"])/float(dict_["N_good"])*100 )
+  print "Good sim matched with pLS = %d (%.2f%%)" %( dict_["N_goodMatchedWpLS"], float(dict_["N_goodMatchedWpLS"])/float(dict_["N_good"])*100 )
   print ""
   return
 
@@ -341,7 +365,8 @@ def printObjComp(objType,dict_):
   return
 
 
-dict_sim = { "N": 0, "N_good": 0, "N_matched": 0, "N_singleMatched": 0, "N_dup": 0, "N_matchedWpT5": 0, "N_matchedWpT3": 0, "N_matchedWT5": 0, "N_matchedWpLS": 0 }
+dict_sim = { "N": 0, "N_matched": 0, "N_singleMatched": 0, "N_dup": 0, "N_matchedWpT5": 0, "N_matchedWpT3": 0, "N_matchedWT5": 0, "N_matchedWpLS": 0,\
+    "N_good": 0, "N_goodMatched": 0, "N_goodSingleMatched": 0, "N_goodDup": 0, "N_goodMatchedWpT5": 0, "N_goodMatchedWpT3": 0, "N_goodMatchedWT5": 0, "N_goodMatchedWpLS": 0 }
 dict_TC = { "N_pT5": 0, "N_pT5fakes": 0, "Ndup_pT5WpT5": 0, "Ndup_pT5WpT3": 0, "Ndup_pT5WT5": 0, "Ndup_pT5WpLS": 0, "Ndup_pT5Total": 0, "N_pT5singleMatched": 0,\
     "N_pT3": 0, "N_pT3fakes": 0, "Ndup_pT3WpT5": 0, "Ndup_pT3WpT3": 0, "Ndup_pT3WT5": 0, "Ndup_pT3WpLS": 0, "Ndup_pT3Total": 0, "N_pT3singleMatched": 0,\
     "N_T5": 0, "N_T5fakes": 0, "Ndup_T5WpT5": 0, "Ndup_T5WpT3": 0, "Ndup_T5WT5": 0, "Ndup_T5WpLS": 0, "Ndup_T5Total": 0, "N_T5singleMatched": 0,\
