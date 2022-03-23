@@ -1447,6 +1447,7 @@ void fillSegmentBranches(SDL::Event* event)
     SDL::quintuplets& quintupletsInGPU = (*event->getQuintuplets());
     SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
     SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
+    SDL::objectRanges& rangesInGPU = (*event->getRanges());
     // const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
     for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
     {
@@ -1455,9 +1456,10 @@ void fillSegmentBranches(SDL::Event* event)
 
         for (unsigned int iseg = 0; iseg < nSegments; ++iseg)
         {
+            unsigned int segmentIndex = rangesInGPU.segmentModuleIndices[idx] + iseg;
 
-            unsigned idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[lowerIdx*N_MAX_SEGMENTS_PER_MODULE+iseg];
-            unsigned jdx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[lowerIdx*N_MAX_SEGMENTS_PER_MODULE+iseg];
+            unsigned idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[segmentIndex];
+            unsigned jdx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[segmentIndex];
 
             ana.tx->pushbackToBranch<float>("T2_x1", hitsInGPU.xs[idx]);
             ana.tx->pushbackToBranch<float>("T2_y1", hitsInGPU.ys[idx]);
@@ -1542,6 +1544,7 @@ void fillMiniDoubletBranches(SDL::Event* event)
     SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hits& hitsInGPU = (*event->getHits());
     SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::objectRanges& rangesInGPU = (*event->getRanges());
     // SDL::quintuplets& quintupletsInGPU = (*event->getQuintuplets());
     // SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
     // SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
@@ -1596,8 +1599,9 @@ void fillMiniDoubletBranches(SDL::Event* event)
 
             // The indexing is done so that each module can store up to N_MAX_MD_PER_MODULES, and then 2 hits are stored per MD
             // So we do 2 * idx + 1-like indexing
-            unsigned idx = miniDoubletsInGPU.anchorHitIndices[(lowerIdx*N_MAX_MD_PER_MODULES+iMD)];
-            unsigned jdx = miniDoubletsInGPU.outerHitIndices[(lowerIdx*N_MAX_MD_PER_MODULES+iMD)];
+            unsigned int mdIndex = rangesInGPU.miniDoubletModuleIndices[lowerIdx] + iMD;
+            unsigned idx = miniDoubletsInGPU.anchorHitIndices[mdIndex];
+            unsigned jdx = miniDoubletsInGPU.outerHitIndices[mdIndex];
 
             // Obtain the x y z positions of the hits
             ana.tx->pushbackToBranch<float>("MD_x1", hitsInGPU.xs[idx]);
