@@ -826,7 +826,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec
     cudaStreamDestroy(modStream);
 }
 
-// Best working hit loading method. Previously named OMP
+// Best working hit loading method. Previously named OMP For Non hitpreload
 void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple)
 {
     const int loopsize = x.size();// use the actual number of hits instead of a "max"
