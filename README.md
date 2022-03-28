@@ -25,6 +25,7 @@ Compile the code with option flags
     -l: toggle on preloading of hits
     -h: show help screen with all options
  Run the code
+ 
     ./bin/sdl -n <nevents> -v <verbose> -w <writeout> -s <streams> -i <dataset>
     -i: PU200; muonGun, etc
     -n: number of events
