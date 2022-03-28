@@ -9,10 +9,12 @@ Go to your working directory
     cd /go/to/your/working/directory
     
 Clone the repository
+
     git clone git@github.com:SegmentLinking/TrackLooper.git
     cd TrackLooper/
 
 Once every new shell, source the setup script to initilaize the enviornment.
+
     source setup.sh
 
 
