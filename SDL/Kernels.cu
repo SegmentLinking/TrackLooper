@@ -1157,8 +1157,8 @@ __device__ void inline checkHitspT3(unsigned int ix, unsigned int jx,struct SDL:
         }
     }
 
-    unsigned int hits1[6] = {-1,-1,-1,-1,-1,-1};
-    unsigned int hits2[6] = {-1,-1,-1,-1,-1,-1};
+    unsigned int hits1[6];
+    unsigned int hits2[6];
     hits1[0] = pixelTripletsInGPU.hitIndices[10*ix+4];
     hits1[1] = pixelTripletsInGPU.hitIndices[10*ix+5];
     hits1[2] = pixelTripletsInGPU.hitIndices[10*ix+6];

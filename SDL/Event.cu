@@ -1334,7 +1334,7 @@ void SDL::Event::createTriplets()
         unsigned int maxTriplets;
         createInwardTripletArrayRanges(*modulesInGPU, *rangesInGPU, *segmentsInGPU, nLowerModules, maxTriplets, stream, N_MAX_INWARD_TRIPLETS_PER_MODULE);
 #ifdef Explicit_Trips
-        createTripletsInExcplicitMemory(*tripletsInwardInGPU, maxTriplets, nLowerModules, stream, true);
+        createTripletsInExplicitMemory(*tripletsInwardInGPU, maxTriplets, nLowerModules, stream, true);
 #else
         createTripletsInUnifiedMemory(*tripletsInwardInGPU, maxTriplets, nLowerModules, stream, true);
 #endif
