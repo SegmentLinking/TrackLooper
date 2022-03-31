@@ -16,7 +16,6 @@
 #include "ModuleConnectionMap.h"
 #include "allocate.h"
 
-
 namespace SDL
 {
     enum SubDet
@@ -66,6 +65,7 @@ namespace SDL
         int *miniDoubletModuleIndices;
         int *segmentModuleIndices;
         int *tripletModuleIndices;
+        int *tripletInwardModuleIndices;
     
         void freeMemoryCache();
         void freeMemory();

@@ -59,6 +59,7 @@ namespace SDL
         struct miniDoublets* mdsInGPU;
         struct segments* segmentsInGPU;
         struct triplets* tripletsInGPU;
+        struct triplets* tripletsInwardInGPU;
         struct quintuplets* quintupletsInGPU;
         struct trackCandidates* trackCandidatesInGPU;
         struct pixelTriplets* pixelTripletsInGPU;

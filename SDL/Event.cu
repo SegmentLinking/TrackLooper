@@ -18,6 +18,7 @@ SDL::Event::Event(cudaStream_t estream)
     mdsInGPU = nullptr;
     segmentsInGPU = nullptr;
     tripletsInGPU = nullptr;
+    tripletsInwardInGPU = nullptr;
     quintupletsInGPU = nullptr;
     trackCandidatesInGPU = nullptr;
     pixelTripletsInGPU = nullptr;
@@ -91,6 +92,7 @@ SDL::Event::~Event()
     if(mdsInGPU != nullptr){cudaFreeHost(mdsInGPU);}
     if(segmentsInGPU!= nullptr){cudaFreeHost(segmentsInGPU);}
     if(tripletsInGPU!= nullptr){cudaFreeHost(tripletsInGPU);}
+    if(tripletsInwardInGPU != nullptr){cudaFreeHost(tripletsInwardInGPU);}
     if(trackCandidatesInGPU!= nullptr){cudaFreeHost(trackCandidatesInGPU);}
     if(hitsInGPU!= nullptr){cudaFreeHost(hitsInGPU);}
 
@@ -272,6 +274,7 @@ void SDL::Event::resetEvent()
     if(rangesInGPU){rangesInGPU->freeMemoryCache();}
     if(segmentsInGPU){segmentsInGPU->freeMemoryCache();}
     if(tripletsInGPU){tripletsInGPU->freeMemoryCache();}
+    if(tripletsInwardInGPU){tripletsInwardInGPU->freeMemoryCache();}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemoryCache();}
@@ -284,6 +287,7 @@ void SDL::Event::resetEvent()
     if(mdsInGPU){mdsInGPU->freeMemory(stream);}
     if(segmentsInGPU){segmentsInGPU->freeMemory(stream);}
     if(tripletsInGPU){tripletsInGPU->freeMemory(stream);}
+    if(tripletsInwardInGPU){tripletsInwardInGPU->freeMemory(stream);}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemory(stream);}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemory(stream);}
@@ -1324,6 +1328,20 @@ void SDL::Event::createTriplets()
         cudaStreamSynchronize(stream);
 
     }
+    if(tripletsInwardInGPU == nullptr)
+    {
+        cudaMallocHost(&tripletsInwardInGPU, sizeof(SDL::triplets));
+        unsigned int maxTriplets;
+        createInwardTripletArrayRanges(*modulesInGPU, *rangesInGPU, *segmentsInGPU, nLowerModules, maxTriplets, stream, N_MAX_INWARD_TRIPLETS_PER_MODULE);
+#ifdef Explicit_Trips
+        createTripletsInExcplicitMemory(*tripletsInwardInGPU, maxTriplets, nLowerModules, stream, true);
+#else
+        createTripletsInUnifiedMemory(*tripletsInwardInGPU, maxTriplets, nLowerModules, stream, true);
+#endif
+        cudaMemcpyAsync(tripletsInwardInGPU->nMemoryLocations, &maxTriplets, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+        cudaStreamSynchronize(stream);
+    }
+
     //TODO:Move this also inside the ranges function
     uint16_t nonZeroModules=0;
     unsigned int max_InnerSeg=0;
@@ -1370,7 +1388,7 @@ void SDL::Event::createTriplets()
 
     dim3 nThreads(16,64,1);
     dim3 nBlocks(1,1,MAX_BLOCKS);
-    createTripletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *rangesInGPU, index_gpu,nonZeroModules);
+    createTripletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *tripletsInwardInGPU, *rangesInGPU, index_gpu,nonZeroModules);
     cudaError_t cudaerr =cudaGetLastError();
     if(cudaerr != cudaSuccess)
     {
@@ -1690,7 +1708,7 @@ cudaStreamSynchronize(stream);
         createQuintupletsInUnifiedMemory(*quintupletsInGPU, N_MAX_QUINTUPLETS_PER_MODULE, nLowerModules, nEligibleT5Modules,stream);
 #endif
     }
-cudaStreamSynchronize(stream);
+    cudaStreamSynchronize(stream);
 
 
     int threadSize=N_MAX_TOTAL_TRIPLETS;

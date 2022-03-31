@@ -24,7 +24,7 @@ void SDL::createRangesInUnifiedMemory(struct objectRanges& rangesInGPU,unsigned 
     rangesInGPU.miniDoubletModuleIndices = (int*)cms::cuda::allocate_managed((nLowerModules + 1) * sizeof(int), stream);
     rangesInGPU.segmentModuleIndices = (int*)cms::cuda::allocate_managed((nLowerModules + 1) * sizeof(int), stream);
     rangesInGPU.tripletModuleIndices = (int*)cms::cuda::allocate_managed(nLowerModules * sizeof(int), stream);
-
+    rangesInGPU.tripletInwardModuleIndices = (int*)cms::cuda::allocate_managed(nLowerModules * sizeof(int), stream);
 #else
     cudaMallocManaged(&rangesInGPU.hitRanges,nModules * 2 * sizeof(int));
     cudaMallocManaged(&rangesInGPU.hitRangesLower,nModules  * sizeof(int));
@@ -43,6 +43,7 @@ void SDL::createRangesInUnifiedMemory(struct objectRanges& rangesInGPU,unsigned 
     cudaMallocManaged(&rangesInGPU.miniDoubletModuleIndices, (nLowerModules + 1) * sizeof(int));
     cudaMallocManaged(&rangesInGPU.segmentModuleIndices, (nLowerModules + 1) * sizeof(int));
     cudaMallocManaged(&rangesInGPU.tripletModuleIndices, nLowerModules * sizeof(int));
+    cudaMallocManaged(&rangesInGPU.tripletInwardModuleIndices, nLowerModules * sizeof(int));
 
 #endif
 }
@@ -1086,6 +1087,7 @@ void SDL::resetObjectRanges(struct objectRanges& rangesInGPU, unsigned int nModu
         cudaMemsetAsync(rangesInGPU.segmentRanges, -1,nModules*2*sizeof(int),stream);
         cudaMemsetAsync(rangesInGPU.trackletRanges, -1,nModules*2*sizeof(int),stream);
         cudaMemsetAsync(rangesInGPU.tripletRanges, -1,nModules*2*sizeof(int),stream);
+        cudaMemsetAsync(rangesInGPU.tripletInwardModuleIndices, -1,nModules*2*sizeof(int),stream);
         cudaMemsetAsync(rangesInGPU.trackCandidateRanges, -1,nModules*2*sizeof(int),stream);
         cudaMemsetAsync(rangesInGPU.quintupletRanges, -1, nModules*2*sizeof(int),stream);
         cudaStreamSynchronize(stream);

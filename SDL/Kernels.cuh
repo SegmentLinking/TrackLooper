@@ -42,6 +42,8 @@ const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 100000;
 const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
 
 const unsigned int N_MAX_TRIPLETS_PER_MODULE = 1170;
+const unsigned int N_MAX_INWARD_TRIPLETS_PER_MODULE = 1170;
+
 const unsigned int N_MAX_QUINTUPLETS_PER_MODULE = 513;
 const unsigned int N_MAX_PIXEL_TRIPLETS = 5000;
 const unsigned int N_MAX_PIXEL_QUINTUPLETS = 15000;
@@ -100,7 +102,7 @@ __global__ void addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, st
 
 __global__ void addpT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU,struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU,struct SDL::quintuplets& quintupletsInGPU);
 
-__global__ void createTripletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::objectRanges& rangesInGPU, uint16_t* index_gpu, uint16_t nonZeroModules);
+__global__ void createTripletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::triplets& tripletsInwardInGPU, struct SDL::objectRanges& rangesInGPU, uint16_t* index_gpu, uint16_t nonZeroModules);
 
 __global__ void createTrackCandidatesInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::tracklets& trackletsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, unsigned int *threadIdx_gpu, unsigned int* threadIdx_gpu_offset);
 
