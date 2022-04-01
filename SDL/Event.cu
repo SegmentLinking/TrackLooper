@@ -1711,36 +1711,40 @@ cudaStreamSynchronize(stream);
     cudaStreamSynchronize(stream);
 
 
+    //FIXME: threadIdx and threadIdx_offset need to loop over the "intermediate" modules, i.e., those modules that have
+    //both inner and outer T3s
     int threadSize=N_MAX_TOTAL_TRIPLETS;
     unsigned int *threadIdx = (unsigned int*)malloc(2*threadSize*sizeof(unsigned int));
     unsigned int *threadIdx_offset = threadIdx+threadSize;
     unsigned int *threadIdx_gpu;
     unsigned int *threadIdx_gpu_offset;
     cudaMalloc((void **)&threadIdx_gpu, 2*threadSize*sizeof(unsigned int));
-    //cudaMallocAsync((void **)&threadIdx_gpu, 2*threadSize*sizeof(unsigned int),stream);
     cudaMemsetAsync(threadIdx_gpu, nLowerModules, threadSize*sizeof(unsigned int),stream);
 
     unsigned int *nTriplets = (unsigned int*)malloc(nLowerModules*sizeof(unsigned int));
     cudaMemcpyAsync(nTriplets, tripletsInGPU->nTriplets, nLowerModules*sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-cudaStreamSynchronize(stream);
+    cudaStreamSynchronize(stream);
+    unsigned int* nInwardTriplets = (unsigned int*)malloc(nLowerModules * sizeof(unsigned int));
+    cudaMemcpyAsync(nInwardTriplets, tripletsInwardInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+
     threadIdx_gpu_offset = threadIdx_gpu + threadSize;
 
     int nTotalTriplets = 0;
-    for (int i=0; i<nEligibleT5Modules; i++) 
+    
+
+    for (int i=0; i<nLowerModules; i++) 
     {
-        int index = indicesOfEligibleModules[i];
-        unsigned int nInnerTriplets = nTriplets[index];
-        if (nInnerTriplets !=0) 
+        if(nTriplets[i] != 0 and nInwardTriplets[i] != 0) //only a subset of the eligible modules!!!
         {
-            for (int j=0; j<nInnerTriplets; j++) 
+            for (int j=0; j<nTriplets[i]; j++) 
             {
-                threadIdx[nTotalTriplets + j] = index;
+                threadIdx[nTotalTriplets + j] = i;
                 threadIdx_offset[nTotalTriplets + j] = j;
             }
-            nTotalTriplets += nInnerTriplets;
+            nTotalTriplets += nTriplets[i];
         }
     }
-    //printf("T5: nTotalTriplets=%d nEligibleT5Modules=%d\n", nTotalTriplets, nEligibleT5Modules);
+    printf("T5: nTotalTriplets=%d nEligibleT5Modules=%d\n", nTotalTriplets, nEligibleT5Modules);
     if (threadSize < nTotalTriplets) 
     {
         printf("threadSize=%d nTotalTriplets=%d: Increase buffer size for threadIdx in createQuintuplets\n", threadSize, nTotalTriplets);
@@ -1753,7 +1757,7 @@ cudaStreamSynchronize(stream);
     dim3 nThreads(32, 32, 1);
     dim3 nBlocks(1,MAX_BLOCKS,1);
 
-    createQuintupletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, threadIdx_gpu, threadIdx_gpu_offset, nTotalTriplets,*rangesInGPU);
+    createQuintupletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *tripletsInwardInGPU, *quintupletsInGPU, threadIdx_gpu, threadIdx_gpu_offset, nTotalTriplets,*rangesInGPU);
     cudaError_t cudaerr = cudaGetLastError();
     if(cudaerr != cudaSuccess)
     {
@@ -1762,6 +1766,7 @@ cudaStreamSynchronize(stream);
     cudaStreamSynchronize(stream);
     free(threadIdx);
     free(nTriplets);
+    free(nInwardTriplets);
     cudaFree(threadIdx_gpu);
     free(indicesOfEligibleModules);
 
