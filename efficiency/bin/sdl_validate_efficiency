@@ -116,19 +116,19 @@ mkdir -p ${OUTDIR}
 
 # Run different GPU configurations
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified" ]]; then
-    run_gpu unified ${SAMPLE} ${NEVENTS} -8 ${runExtension}
+    run_gpu unified ${SAMPLE} ${NEVENTS} -8 -l ${runExtension}
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit" ]]; then
-    run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 ${runExtension}
+    run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 -l ${runExtension}
     :
 fi
-if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified_cache" ]]; then
-    run_gpu unified ${SAMPLE} ${NEVENTS} -8 -c ${runExtension}
+if [[ "${SPECIFICGPUVERSION}" == "unified_cache" ]]; then
+    run_gpu unified ${SAMPLE} ${NEVENTS} -8 -c -l ${runExtension}
     :
 fi
-if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache" ]]; then
-    run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 -c ${runExtension}
+if [[ "${SPECIFICGPUVERSION}" == "explicit_cache" ]]; then
+    run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 -c -l ${runExtension}
     :
 fi
 sdl_compare_efficiencies -i ${SAMPLE} -t ${GITHASH} -f
