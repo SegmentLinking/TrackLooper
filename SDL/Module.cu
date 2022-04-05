@@ -2,6 +2,9 @@
 #include "ModuleConnectionMap.h"
 #include "allocate.h"
 std::map <unsigned int, uint16_t> *SDL::detIdToIndex;
+std::map <unsigned int, float> *SDL::module_x;
+std::map <unsigned int, float> *SDL::module_y;
+std::map <unsigned int, float> *SDL::module_z;
 
 void SDL::createRangesInUnifiedMemory(struct objectRanges& rangesInGPU,unsigned int nModules,cudaStream_t stream, unsigned int nLowerModules)
 {
@@ -88,6 +91,8 @@ void SDL::createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int
     cudaMallocManaged(&modulesInGPU.rods,nModules * sizeof(short));
     cudaMallocManaged(&modulesInGPU.subdets,nModules * sizeof(short));
     cudaMallocManaged(&modulesInGPU.sides,nModules * sizeof(short));
+    cudaMallocManaged(&modulesInGPU.eta,nModules * sizeof(float));
+    cudaMallocManaged(&modulesInGPU.r,nModules * sizeof(float));
     cudaMallocManaged(&modulesInGPU.isInverted, nModules * sizeof(bool));
     cudaMallocManaged(&modulesInGPU.isLower, nModules * sizeof(bool));
     cudaMallocManaged(&modulesInGPU.isAnchor, nModules * sizeof(bool));
@@ -115,6 +120,8 @@ void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned in
     cudaMalloc(&modulesInGPU.rods,nModules * sizeof(short));
     cudaMalloc(&modulesInGPU.subdets,nModules * sizeof(short));
     cudaMalloc(&modulesInGPU.sides,nModules * sizeof(short));
+    cudaMalloc(&modulesInGPU.eta,nModules * sizeof(float));
+    cudaMalloc(&modulesInGPU.r,nModules * sizeof(float));
     cudaMalloc(&modulesInGPU.isInverted, nModules * sizeof(bool));
     cudaMalloc(&modulesInGPU.isLower, nModules * sizeof(bool));
     cudaMalloc(&modulesInGPU.isAnchor, nModules * sizeof(bool));
@@ -262,6 +269,9 @@ void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMappin
 void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, uint16_t& nLowerModules, struct pixelMap& pixelMapping,cudaStream_t stream, const char* moduleMetaDataFilePath)
 {
     detIdToIndex = new std::map<unsigned int, uint16_t>;
+    module_x = new std::map<unsigned int, float>;
+    module_y = new std::map<unsigned int, float>;
+    module_z = new std::map<unsigned int, float>;
 
     /*modules structure object will be created in Event.cu*/
     /* Load the whole text file into the unordered_map first*/
@@ -279,15 +289,30 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     {
         std::stringstream ss(line);
         std::string token;
-        bool flag = 0;
+        int count_number = 0;
 
+        unsigned int temp_detId;
         while(std::getline(ss,token,','))
         {
-            if(flag == 1) break;
-            (*detIdToIndex)[stoi(token)] = counter;
-            flag = 1;
-            counter++;
+            if(count_number == 0)
+            {
+                temp_detId = stoi(token);
+                (*detIdToIndex)[temp_detId] = counter;
+            }
+            if(count_number == 1)
+                (*module_x)[temp_detId] = std::stof(token);
+            if(count_number == 2)
+                (*module_y)[temp_detId] = std::stof(token);
+            if(count_number == 3)
+            {
+                (*module_z)[temp_detId] = std::stof(token);
+                counter++;
+            }
+            count_number++;
+            if(count_number>3)
+                break;
         }
+
     }
     (*detIdToIndex)[1] = counter; //pixel module is the last module in the module list
     counter++;
@@ -302,6 +327,8 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     short* host_modules;
     short* host_subdets;
     short* host_sides;
+    float* host_eta;
+    float* host_r;
     bool* host_isInverted;
     bool* host_isLower;
     bool* host_isAnchor;
@@ -318,6 +345,8 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     cudaMallocHost(&host_modules,sizeof(short)*nModules);
     cudaMallocHost(&host_subdets,sizeof(short)*nModules);
     cudaMallocHost(&host_sides,sizeof(short)*nModules);
+    cudaMallocHost(&host_eta,sizeof(float)*nModules);
+    cudaMallocHost(&host_r,sizeof(float)*nModules);
     cudaMallocHost(&host_isInverted,sizeof(bool)*nModules);
     cudaMallocHost(&host_isLower,sizeof(bool)*nModules);
     cudaMallocHost(&host_isAnchor, sizeof(bool) * nModules);
@@ -335,6 +364,12 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     for(auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); it++)
     {
         unsigned int detId = it->first;
+        float m_x = (*module_x)[detId];
+        float m_y = (*module_y)[detId];
+        float m_z = (*module_z)[detId];
+
+        float eta,r;
+
         uint16_t index;
         unsigned short layer,ring,rod,module,subdet,side;
         bool isInverted, isLower;
@@ -351,7 +386,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
         }
         else
         {
-            setDerivedQuantities(detId,layer,ring,rod,module,subdet,side);
+            setDerivedQuantities(detId,layer,ring,rod,module,subdet,side,m_x,m_y,m_z,eta,r);
             isInverted = modulesInGPU.parseIsInverted(subdet, side, module, layer);
             isLower = modulesInGPU.parseIsLower(isInverted, detId);
         }
@@ -378,6 +413,8 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
         host_modules[index] = module;
         host_subdets[index] = subdet;
         host_sides[index] = side;
+        host_eta[index] = eta;
+        host_r[index] = r;
         host_isInverted[index] = isInverted;
         host_isLower[index] = isLower;
 
@@ -443,6 +480,8 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     cudaMemcpyAsync(modulesInGPU.modules,host_modules,sizeof(short)*nModules,cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.subdets,host_subdets,sizeof(short)*nModules,cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.sides,host_sides,sizeof(short)*nModules,cudaMemcpyHostToDevice,stream);
+    cudaMemcpyAsync(modulesInGPU.eta,host_eta,sizeof(float)*nModules,cudaMemcpyHostToDevice,stream);
+    cudaMemcpyAsync(modulesInGPU.r,host_r,sizeof(float)*nModules,cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.isInverted,host_isInverted,sizeof(bool)*nModules,cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.isLower,host_isLower,sizeof(bool)*nModules,cudaMemcpyHostToDevice,stream);
 
@@ -462,6 +501,8 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     cudaFreeHost(host_modules);
     cudaFreeHost(host_subdets);
     cudaFreeHost(host_sides);
+    cudaFreeHost(host_eta);
+    cudaFreeHost(host_r);
     cudaFreeHost(host_isInverted);
     cudaFreeHost(host_isLower);
     cudaFreeHost(host_isAnchor);
@@ -499,7 +540,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
         }
         else
         {
-            setDerivedQuantities(detId,layer,ring,rod,module,subdet,side);
+            setDerivedQuantities(detId,layer,ring,rod,module,subdet,side,m_x,m_y,m_z,eta,r);
             isInverted = modulesInGPU.parseIsInverted(subdet, side, module, layer);
             isLower = modulesInGPU.parseIsLower(isInverted, detId);
         }
@@ -761,7 +802,7 @@ void SDL::fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigne
     cudaFreeHost(nConnectedModules);
 }
 
-void SDL::setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side)
+void SDL::setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side, float m_x, float m_y, float m_z, float& eta, float& r)
 {
     subdet = (detId & (7 << 25)) >> 25;
     side = (subdet == Endcap) ? (detId & (3 << 23)) >> 23 : (detId & (3 << 18)) >> 18;
@@ -769,6 +810,9 @@ void SDL::setDerivedQuantities(unsigned int detId, unsigned short& layer, unsign
     ring = (subdet == Endcap) ? (detId & (15 << 12)) >> 12 : 0;
     module = (detId & (127 << 2)) >> 2;
     rod = (subdet == Endcap) ? 0 : (detId & (127 << 10)) >> 10;
+
+    r = std::sqrt(m_x * m_x + m_y * m_y + m_z * m_z);
+    eta = ((m_z > 0) - ( m_z < 0)) * std::acosh(r / std::sqrt(m_x * m_x + m_y * m_y));
 }
 
 //auxilliary functions - will be called as needed

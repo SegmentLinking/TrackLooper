@@ -68,6 +68,11 @@ void createOccupancyBranches()
     ana.tx->createBranch<vector<int>>("module_layers");
     ana.tx->createBranch<vector<int>>("module_subdets");
     ana.tx->createBranch<vector<int>>("module_rings");
+    ana.tx->createBranch<vector<int>>("module_rods");
+    ana.tx->createBranch<vector<int>>("module_modules");
+    ana.tx->createBranch<vector<bool>>("module_isTilted");
+    ana.tx->createBranch<vector<float>>("module_eta");
+    ana.tx->createBranch<vector<float>>("module_r");
     ana.tx->createBranch<vector<int>>("md_occupancies");
     ana.tx->createBranch<vector<int>>("sg_occupancies");
     ana.tx->createBranch<vector<int>>("t4_occupancies");
@@ -714,11 +719,18 @@ void fillOccupancyBranches(SDL::Event* event)
     std::vector<int> moduleLayer;
     std::vector<int> moduleSubdet;
     std::vector<int> moduleRing;
+    std::vector<int> moduleRod;
+    std::vector<int> moduleModule;
+    std::vector<float> moduleEta;
+    std::vector<float> moduleR;
+    std::vector<bool> moduleIsTilted;
     std::vector<int> trackCandidateOccupancy;
     std::vector<int> tripletOccupancy;
     std::vector<int> segmentOccupancy;
     std::vector<int> mdOccupancy;
     std::vector<int> quintupletOccupancy;
+
+    bool isTilted;
 
     for(unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); idx++)
     {
@@ -728,6 +740,12 @@ void fillOccupancyBranches(SDL::Event* event)
         moduleLayer.push_back(modulesInGPU.layers[lowerIdx]);
         moduleSubdet.push_back(modulesInGPU.subdets[lowerIdx]);
         moduleRing.push_back(modulesInGPU.rings[lowerIdx]);
+        moduleRod.push_back(modulesInGPU.rods[lowerIdx]);
+        moduleEta.push_back(modulesInGPU.eta[lowerIdx]);
+        moduleR.push_back(modulesInGPU.r[lowerIdx]);
+        isTilted = (modulesInGPU.subdets[lowerIdx] == 5 and modulesInGPU.sides[lowerIdx] != 3);
+        moduleIsTilted.push_back(isTilted);
+        moduleModule.push_back(modulesInGPU.modules[lowerIdx]);
         segmentOccupancy.push_back(segmentsInGPU.totOccupancySegments[lowerIdx]);
         mdOccupancy.push_back(mdsInGPU.totOccupancyMDs[lowerIdx]);
 
@@ -740,6 +758,11 @@ void fillOccupancyBranches(SDL::Event* event)
     ana.tx->setBranch<vector<int>>("module_layers",moduleLayer);
     ana.tx->setBranch<vector<int>>("module_subdets",moduleSubdet);
     ana.tx->setBranch<vector<int>>("module_rings",moduleRing);
+    ana.tx->setBranch<vector<int>>("module_rods",moduleRod);
+    ana.tx->setBranch<vector<int>>("module_modules",moduleModule);
+    ana.tx->setBranch<vector<bool>>("module_isTilted",moduleIsTilted);
+    ana.tx->setBranch<vector<float>>("module_eta",moduleEta);
+    ana.tx->setBranch<vector<float>>("module_r",moduleR);
     ana.tx->setBranch<vector<int>>("md_occupancies",mdOccupancy);
     ana.tx->setBranch<vector<int>>("sg_occupancies",segmentOccupancy);
     ana.tx->setBranch<vector<int>>("t3_occupancies",tripletOccupancy);
