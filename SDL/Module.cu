@@ -553,6 +553,12 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     for(auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); it++)
     {
         unsigned int detId = it->first;
+        float m_x = (*module_x)[detId];
+        float m_y = (*module_y)[detId];
+        float m_z = (*module_z)[detId];
+
+        float eta,r;
+
         uint16_t index;
         unsigned short layer,ring,rod,module,subdet,side;
         bool isInverted, isLower;
