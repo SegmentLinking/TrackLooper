@@ -301,7 +301,11 @@ void run_sdl()
 
     if (not ana.do_run_cpu){
         //    cudaSetDevice(0);
+#ifdef CMSSW12GEOM
+        SDL::initModules(TString::Format("%s/data/centroid_CMSSW_12_2_0_pre2.txt", gSystem->Getenv("TRACKLOOPERDIR")));
+#else
         SDL::initModules(TString::Format("%s/data/centroid.txt", gSystem->Getenv("TRACKLOOPERDIR")));
+#endif
             //cudaSetDevice(1);
        // SDL::initModules(TString::Format("%s/data/centroid.txt", gSystem->Getenv("TRACKLOOPERDIR")));
     }
@@ -341,8 +345,11 @@ void run_sdl()
                 std::vector<std::vector<int8_t>>      out_pixelType_vec;
                 std::vector<std::vector<short>>    out_isQuad_vec;
                 std::vector<int>    evt_num;
+                std::vector<unsigned int>    hitOffset;
+                std::vector<SDL::hits*>    hitsInGPUAll;
                 //std::vector<SDL::Event> events;
     // Looping input file
+    hitOffset.push_back(0); // start the offset. events shifted by one..
     while (ana.looper.nextEvent())
     {
 
@@ -362,7 +369,8 @@ void run_sdl()
             // Add hits to the event
             //if (ana.compilation_target.find("explicit") != std::string::npos){
                 //timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
-                addInputsToLineSegmentTrackingPreLoad(out_trkX, out_trkY,out_trkZ,
+                addInputsToLineSegmentTrackingPreLoad(
+                out_trkX, out_trkY,out_trkZ,
                 out_hitId,
                 out_hitIdxs,
                 out_hitIndices_vec0,
@@ -381,10 +389,40 @@ void run_sdl()
                 out_superbin_vec,
                 out_pixelType_vec,
                 out_isQuad_vec
+                ,hitOffset
                 );
         }
         evt_num.push_back(ana.looper.getCurrentEventIndex());
     }
+#ifdef Preload_hits
+    SDL::initHits(hitOffset,
+
+                out_trkX, out_trkY,out_trkZ,
+                out_hitId,
+                out_hitIdxs,
+                out_hitIndices_vec0,
+                out_hitIndices_vec1,
+                out_hitIndices_vec2,
+                out_hitIndices_vec3,
+                out_deltaPhi_vec,
+                out_ptIn_vec,
+                out_ptErr_vec,
+                out_px_vec,
+                out_py_vec,
+                out_pz_vec,
+                out_eta_vec,
+                out_etaErr_vec,
+                out_phi_vec,
+                out_superbin_vec,
+                out_pixelType_vec,
+                out_isQuad_vec
+                , hitsInGPUAll
+
+
+    );
+#endif
+
+
     cudaStream_t streams[ana.streams];
     std::vector<SDL::Event*> events;
     for( int s =0; s<ana.streams; s++){
@@ -446,7 +484,12 @@ float timing_TCE;
                 out_phi_vec.at(evt),
                 out_superbin_vec.at(evt),
                 out_pixelType_vec.at(evt),
-                out_isQuad_vec.at(evt)
+                out_isQuad_vec.at(evt),hitOffset.at(evt),evt, 
+                #ifdef Preload_hits
+                hitsInGPUAll.at(evt)
+                #else
+                nullptr
+                #endif
                 );
             // Run Mini-doublet
             timing_MD = runMiniDoublet(events.at(omp_get_thread_num()),evt);

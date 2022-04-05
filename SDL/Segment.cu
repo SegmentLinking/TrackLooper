@@ -24,11 +24,52 @@ void SDL::segments::resetMemory(unsigned int maxSegments, unsigned int nLowerMod
     cudaMemsetAsync(circleRadius, 0,maxPixelSegments * sizeof(float),stream);
     cudaMemsetAsync(partOfPT5, 0,maxPixelSegments * sizeof(bool),stream);
 }
-void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int maxSegments, uint16_t nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
+
+
+void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU, uint16_t& nLowerModules, unsigned int& nTotalSegments, cudaStream_t stream, const uint16_t& maxSegmentsPerModule, const uint16_t& maxPixelSegments)
+{
+    /*
+        write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!*/
+
+    int *module_segmentModuleIndices;
+    cudaMallocHost(&module_segmentModuleIndices, (nLowerModules + 1) * sizeof(unsigned int));
+    module_segmentModuleIndices[0] = 0;
+    uint16_t* module_nConnectedModules;
+    cudaMallocHost(&module_nConnectedModules, nLowerModules * sizeof(uint16_t));
+    cudaMemcpyAsync(module_nConnectedModules,modulesInGPU.nConnectedModules,nLowerModules*sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
+    cudaStreamSynchronize(stream);
+
+    nTotalSegments = maxSegmentsPerModule; //start!   
+    for(uint16_t i = 1; i <= nLowerModules; i++)
+    {
+        module_segmentModuleIndices[i] = nTotalSegments; //running counter - we start at the previous index!
+
+        unsigned int occupancy = maxSegmentsPerModule; //placeholder! this will change from module to module
+        if(i == nLowerModules)
+        {
+            occupancy = maxPixelSegments;
+        }
+        else if(module_nConnectedModules[i] == 0)
+        {
+            occupancy = 0;
+        }
+        //since we allocate memory to segments even before any object is created, nMDs[i] will always be zero!!!
+/*        else if(nMDs[i] == 0)
+        {
+            occupancy = 0;
+        }*/
+        nTotalSegments += occupancy;
+    }
+    cudaMemcpyAsync(rangesInGPU.segmentModuleIndices, module_segmentModuleIndices,  (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+    cudaStreamSynchronize(stream);
+    cudaFreeHost(module_segmentModuleIndices);
+    cudaFreeHost(module_nConnectedModules);
+}
+
+void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
 {
     //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide
     //extra memory to the pixel segments
-    unsigned int nMemoryLocations = maxSegments * nLowerModules + maxPixelSegments;
 #ifdef CACHE_ALLOC
 //    cudaStream_t stream=0; 
     segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations*4 *sizeof(unsigned int),stream);
@@ -46,6 +87,7 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     segmentsInGPU.circleCenterY = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
     segmentsInGPU.circleRadius = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
     segmentsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_managed(maxPixelSegments * sizeof(bool), stream);
+    segmentsInGPU.nMemoryLocations = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int), stream);
 #else
     cudaMallocManaged(&segmentsInGPU.mdIndices, nMemoryLocations * 4 * sizeof(unsigned int));
     cudaMallocManaged(&segmentsInGPU.innerLowerModuleIndices, nMemoryLocations * 2 * sizeof(uint16_t));
@@ -62,7 +104,7 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     cudaMallocManaged(&segmentsInGPU.circleCenterY, maxPixelSegments * sizeof(float));
     cudaMallocManaged(&segmentsInGPU.circleRadius, maxPixelSegments * sizeof(float));
     cudaMallocManaged(&segmentsInGPU.partOfPT5, maxPixelSegments * sizeof(bool));
-
+    cudaMallocManaged(&segmentsInGPU.nMemoryLocations, sizeof(unsigned int));
 #ifdef CUT_VALUE_DEBUG
     cudaMallocManaged(&segmentsInGPU.zIns, nMemoryLocations * 7 * sizeof(float));
     cudaMallocManaged(&segmentsInGPU.zLo, nMemoryLocations * sizeof(float));
@@ -108,11 +150,10 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     cudaStreamSynchronize(stream);
 
 }
-void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, uint16_t nLowerModules, unsigned int maxPixelSegments, cudaStream_t stream)
+void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelSegments, cudaStream_t stream)
 {
     //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide
     //extra memory to the pixel segments
-    unsigned int nMemoryLocations = maxSegments * nLowerModules + maxPixelSegments;
 #ifdef CACHE_ALLOC
 //    cudaStream_t stream=0; 
     int dev;
@@ -132,7 +173,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.circleCenterY = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
     segmentsInGPU.circleRadius = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
     segmentsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(bool), stream);
-
+    segmentsInGPU.nMemoryLocations = (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int), stream);
 #else
     cudaMalloc(&segmentsInGPU.mdIndices, nMemoryLocations * 4 * sizeof(unsigned int));
     cudaMalloc(&segmentsInGPU.innerLowerModuleIndices, nMemoryLocations * 2 * sizeof(uint16_t));
@@ -149,7 +190,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     cudaMalloc(&segmentsInGPU.circleCenterY, maxPixelSegments * sizeof(float));
     cudaMalloc(&segmentsInGPU.circleRadius, maxPixelSegments * sizeof(float));
     cudaMalloc(&segmentsInGPU.partOfPT5, maxPixelSegments * sizeof(bool));
-
+    cudaMalloc(&segmentsInGPU.nMemoryLocations, sizeof(unsigned int));
 #endif
 
     //segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 2;
@@ -174,6 +215,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     cudaMemsetAsync(segmentsInGPU.nSegments,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
     cudaMemsetAsync(segmentsInGPU.totOccupancySegments,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
     cudaMemsetAsync(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool),stream);
+    cudaMemsetAsync(segmentsInGPU.nMemoryLocations, nMemoryLocations, sizeof(unsigned int), stream);
     cudaStreamSynchronize(stream);
 
 }
@@ -248,6 +290,7 @@ void SDL::segments::freeMemoryCache()
     cms::cuda::free_device(dev, circleCenterY);
     cms::cuda::free_device(dev, circleRadius);
     cms::cuda::free_device(dev, partOfPT5);
+    cms::cuda::free_device(dev, nMemoryLocations);
 #else
     cms::cuda::free_managed(mdIndices);
     cms::cuda::free_managed(innerLowerModuleIndices);
@@ -264,6 +307,7 @@ void SDL::segments::freeMemoryCache()
     cms::cuda::free_managed(circleCenterY);
     cms::cuda::free_managed(circleRadius);
     cms::cuda::free_managed(partOfPT5);
+    cms::cuda::free_managed(nMemoryLocations);
 #endif
 }
 void SDL::segments::freeMemory(cudaStream_t stream)
@@ -283,6 +327,7 @@ void SDL::segments::freeMemory(cudaStream_t stream)
     cudaFree(circleCenterY);
     cudaFree(circleRadius);
     cudaFree(partOfPT5);
+    cudaFree(nMemoryLocations);
 #ifdef CUT_VALUE_DEBUG
     cudaFree(zIns);
     cudaFree(zLo);

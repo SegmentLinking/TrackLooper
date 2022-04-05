@@ -2,61 +2,52 @@
 
 ## Quick start guide
 
-Log on to phi3
-
-    git clone git@github.com:SegmentLinking/TrackLooper.git
-    cd TrackLooper/
-    source setup.sh
-
+Log on to phi3 or lnx7188
 Go to your working directory
 
     mkdir /go/to/your/working/directory
     cd /go/to/your/working/directory
+    
+Clone the repository
 
-Run the code
+    git clone git@github.com:SegmentLinking/TrackLooper.git
+    cd TrackLooper/
 
-    sdl_make_tracklooper -m
-    sdl -i muonGun -o muonGun_200evt_gpu.root -n 200
-    sdl -i muonGun -o muonGun_200evt_cpu.root -n 200 --cpu
-    sdl_plot_efficiency -i ../muonGun_200evt_gpu.root -p 4 -g 13
-    sdl_plot_efficiency -i ../muonGun_200evt_cpu.root -p 4 -g 13
+Once every new shell, source the setup script to initilaize the enviornment.
+
+    source setup.sh
+
+
+
+Compile the code with option flags
+
+    sdl_make_tracklooper -m8
+    -x: run with explicit instead of unified memory
+    -c: run with the cmssw caching allocator
+    -l: toggle on preloading of hits
+    -h: show help screen with all options
+ Run the code
+ 
+    ./bin/sdl -n <nevents> -v <verbose> -w <writeout> -s <streams> -i <dataset>
+    -i: PU200; muonGun, etc
+    -n: number of events
+    -v: 0-no printout; 1- timing printout only; 2- multiplicity printout
+    -s: number of streams/events in flight
+    -w: 0- no writout; 2- full ntuple writeout
+    
+
 
 ## Validation
+Run the validation on sample
 
-Log on to phi3
-
-    git clone git@github.com:SegmentLinking/TrackLooper.git
-    cd TrackLooper/
-    source setup.sh
-
-Go to your working directory
-
-    mkdir /go/to/your/working/directory
-    cd /go/to/your/working/directory
-
-Run the validation on muonGun sample for all 6 different configurations
-
-    sdl_validate_segment_linking muonGun
+    sdl_validate_segment_linking <dataset> 
+    Runs Explicit and unified versions over 200 events by default
+    dataset: PU200, muonGun, pionGun, etc
 
 Run the validation on specific version of GPU implementation
 
-    sdl_validate_segment_linking muonGun unified
-    sdl_validate_segment_linking muonGun unified_cache
-    sdl_validate_segment_linking muonGun unified_newgrid
-    sdl_validate_segment_linking muonGun unified_cache_newgrid
-    sdl_validate_segment_linking muonGun explicit
-    sdl_validate_segment_linking muonGun explicit_newgrid
-
-Run the validation on pionGun sample for all 6 different configurations
-
-    sdl_validate_segment_linking pionGun
-
-Run the validation on specific version of GPU implementation
-
-    sdl_validate_segment_linking pionGun unified
-
-    sdl_validate_segment_linking pionGun unified_cache
-    sdl_validate_segment_linking pionGun unified_newgrid
-    sdl_validate_segment_linking pionGun unified_cache_newgrid
-    sdl_validate_segment_linking pionGun explicit
-    sdl_validate_segment_linking pionGun explicit_newgrid
+    sdl_validate_segment_linking <dataset> unified
+    sdl_validate_segment_linking <dataset> unified_cache
+    sdl_validate_segment_linking <dataset> explicit
+    sdl_validate_segment_linking <dataset> explicit_newgrid
+    (can optionally add in number of events as 3rd option)

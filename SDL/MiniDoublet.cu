@@ -10,8 +10,13 @@
 //defining the constant host device variables right up here
 CUDA_CONST_VAR float SDL::miniMulsPtScaleBarrel[6] = {0.0052, 0.0038, 0.0034, 0.0034, 0.0032, 0.0034};
 CUDA_CONST_VAR float SDL::miniMulsPtScaleEndcap[5] = {0.006, 0.006, 0.006, 0.006, 0.006}; 
+#ifdef CMSSW12GEOM
+CUDA_CONST_VAR float SDL::miniRminMeanBarrel[6] = {25.007152356, 37.2186993757, 52.3104270826, 68.6658656666, 85.9770373007, 108.301772384};
+CUDA_CONST_VAR float SDL::miniRminMeanEndcap[5] = {130.992832231, 154.813883559, 185.352604327, 221.635123002, 265.022076742};
+#else
 CUDA_CONST_VAR float SDL::miniRminMeanBarrel[6] = {21.8, 34.6, 49.6, 67.4, 87.6, 106.8};
 CUDA_CONST_VAR float SDL::miniRminMeanEndcap[5] = {131.4, 156.2, 185.6, 220.3, 261.5};
+#endif
 CUDA_CONST_VAR float SDL::k2Rinv1GeVf = (2.99792458e-3 * 3.8) / 2;
 CUDA_CONST_VAR float SDL::sinAlphaMax = 0.95;
 #ifdef PT0P8
@@ -31,9 +36,34 @@ void SDL::miniDoublets::resetMemory(unsigned int maxMDsPerModule, unsigned int n
     cudaMemsetAsync(totOccupancyMDs,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
 }
 
-void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
+
+void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, uint16_t& nLowerModules, unsigned int& nTotalMDs, cudaStream_t stream, const unsigned int& maxMDsPerModule, const unsigned int& maxPixelMDs)
 {
-    unsigned int nMemoryLocations = maxMDsPerModule * nLowerModules + maxPixelMDs;
+    /*
+        write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!*/
+
+    int *module_miniDoubletModuleIndices;
+    cudaMallocHost(&module_miniDoubletModuleIndices, (nLowerModules + 1) * sizeof(unsigned int));
+    module_miniDoubletModuleIndices[0] = 0;
+    nTotalMDs = maxMDsPerModule; //start!   
+    for(uint16_t i = 1; i <= nLowerModules; i++)
+    {
+        module_miniDoubletModuleIndices[i] = nTotalMDs; //running counter - we start at the previous index!
+
+        unsigned int occupancy = maxMDsPerModule; //placeholder! this will change from module to module
+        if(i == nLowerModules)
+        {
+            occupancy = maxPixelMDs;
+        }
+        nTotalMDs += occupancy;
+    }
+    cudaMemcpyAsync(rangesInGPU.miniDoubletModuleIndices, module_miniDoubletModuleIndices,  (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+    cudaStreamSynchronize(stream);
+    cudaFreeHost(module_miniDoubletModuleIndices);
+}
+
+void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
+{
 #ifdef CACHE_ALLOC
    // cudaStream_t stream=0;
     mdsInGPU.anchorHitIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * 2 * sizeof(unsigned int), stream);
@@ -45,6 +75,8 @@ void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int m
     mdsInGPU.anchorHighEdgeX = (float*)cms::cuda::allocate_managed(nMemoryLocations * 4 * sizeof(float), stream);
     mdsInGPU.outerX = (float*)cms::cuda::allocate_managed(nMemoryLocations * 6 * sizeof(float), stream);
     mdsInGPU.outerHighEdgeX = (float*)cms::cuda::allocate_managed(nMemoryLocations * 4 * sizeof(float), stream);
+
+    mdsInGPU.nMemoryLocations = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int), stream);
 #else
     cudaMallocManaged(&mdsInGPU.anchorHitIndices, nMemoryLocations * 2 * sizeof(unsigned int));
     cudaMallocManaged(&mdsInGPU.moduleIndices, nMemoryLocations * sizeof(uint16_t));
@@ -55,6 +87,8 @@ void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int m
     cudaMallocManaged(&mdsInGPU.anchorHighEdgeX, nMemoryLocations * 4 * sizeof(float));
     cudaMallocManaged(&mdsInGPU.outerX, nMemoryLocations * 10 * sizeof(float));
     cudaMallocManaged(&mdsInGPU.outerHighEdgeX, nMemoryLocations * 4 * sizeof(float));
+
+    cudaMallocManaged(&mdsInGPU.nMemoryLocations, sizeof(unsigned int));
 
 #ifdef CUT_VALUE_DEBUG
     cudaMallocManaged(&mdsInGPU.dzCuts, nMemoryLocations * sizeof(float));
@@ -96,11 +130,9 @@ void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int m
     cudaStreamSynchronize(stream);
 }
 
-
 //FIXME:Add memory locations for the pixel MDs here!
-void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDsPerModule, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
+void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
 {
-    unsigned int nMemoryLocations = maxMDsPerModule * nLowerModules + maxPixelMDs;
 #ifdef CACHE_ALLOC
 //    cudaStream_t stream=0;
     int dev;
@@ -115,6 +147,8 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     mdsInGPU.outerX = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * 6 * sizeof(float), stream);
     mdsInGPU.outerHighEdgeX = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * 4 * sizeof(float), stream);
 
+    mdsInGPU.nMemoryLocations = (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int), stream);
+
 #else
     cudaMalloc(&mdsInGPU.anchorHitIndices, nMemoryLocations * 2 * sizeof(unsigned int));
     cudaMalloc(&mdsInGPU.moduleIndices, nMemoryLocations * sizeof(uint16_t));
@@ -125,10 +159,14 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     cudaMalloc(&mdsInGPU.anchorHighEdgeX, nMemoryLocations * 4 * sizeof(float));
     cudaMalloc(&mdsInGPU.outerX, nMemoryLocations * 6 * sizeof(float));
     cudaMalloc(&mdsInGPU.outerHighEdgeX, nMemoryLocations * 4 * sizeof(float));
+
+    cudaMalloc(&mdsInGPU.nMemoryLocations, sizeof(unsigned int));
+
 #endif
     cudaMemsetAsync(mdsInGPU.nMDs,0, (nLowerModules + 1) *sizeof(unsigned int),stream);
     cudaMemsetAsync(mdsInGPU.totOccupancyMDs,0, (nLowerModules + 1) *sizeof(unsigned int),stream);
     cudaStreamSynchronize(stream);
+
     mdsInGPU.outerHitIndices = mdsInGPU.anchorHitIndices + nMemoryLocations;
     mdsInGPU.dzs  = mdsInGPU.dphichanges + nMemoryLocations;
     mdsInGPU.dphis  = mdsInGPU.dphichanges + 2*nMemoryLocations;
@@ -303,7 +341,11 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
     if (modulesInGPU.sides[lowerModuleIndex]!= Center)
     {
         // When it is tilted, use the new shifted positions
+#ifdef CMSSW12GEOM // TODO: This is somewhat of an mystery.... somewhat confused why this is the case
+        if (modulesInGPU.moduleLayerType[lowerModuleIndex] != Pixel)
+#else
         if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
+#endif
         {
             // dPhi Change should be calculated so that the upper hit has higher rt.
             // In principle, this kind of check rt_lower < rt_upper should not be necessary because the hit shifting should have taken care of this.
@@ -477,9 +519,28 @@ __device__ inline float SDL::dPhiThreshold(/*struct hits& hitsInGPU,*/float rt, 
     const bool isTilted = modulesInGPU.subdets[moduleIndex] == Barrel and modulesInGPU.sides[moduleIndex] != Center;
     //the lower module is sent in irrespective of its layer type. We need to fetch the drdz properly
 
-    const float& drdz = modulesInGPU.drdzs[moduleIndex];
-
-   const float miniTilt = ((isTilted) ? 0.5f * pixelPSZpitch * drdz / sqrt(1.f + drdz * drdz) / moduleGapSize(modulesInGPU,moduleIndex) : 0);
+    float drdz;
+    if(isTilted)
+    {
+        if(modulesInGPU.moduleType[moduleIndex] == PS and modulesInGPU.moduleLayerType[moduleIndex] == Strip)
+        {
+            // printf("moduleIndex: %d\n", moduleIndex);
+            drdz = modulesInGPU.drdzs[moduleIndex];
+            // printf("drdz: %f\n", drdz);
+        }
+        else
+        {
+            // printf("moduleIndex: %d\n", moduleIndex);
+            // printf("partnerModuleIndex: %d\n", modulesInGPU.partnerModuleIndex(moduleIndex));
+            drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndices[moduleIndex]];
+            // printf("drdz: %f\n", drdz);
+        }
+    }
+    else
+    {
+        drdz = 0;
+    }
+    const float miniTilt = ((isTilted) ? 0.5f * pixelPSZpitch * drdz / sqrt(1.f + drdz * drdz) / moduleGapSize(modulesInGPU,moduleIndex) : 0);
 
     // Compute luminous region requirement for endcap
     const float miniLum = fabsf(dPhi * deltaZLum/dz); // Balaji's new error
@@ -862,6 +923,7 @@ void SDL::miniDoublets::freeMemoryCache()
     cms::cuda::free_device(dev, anchorHighEdgeX);
     cms::cuda::free_device(dev, outerX);
     cms::cuda::free_device(dev, outerHighEdgeX);
+    cms::cuda::free_device(dev, nMemoryLocations);
 #else
     cms::cuda::free_managed(anchorHitIndices);
     cms::cuda::free_managed(moduleIndices);
@@ -872,6 +934,7 @@ void SDL::miniDoublets::freeMemoryCache()
     cms::cuda::free_managed(anchorHighEdgeX);
     cms::cuda::free_managed(outerX);
     cms::cuda::free_managed(outerHighEdgeX);
+    cms::cuda::free_managed(nMemoryLocations);
 #endif
 }
 
@@ -887,6 +950,7 @@ void SDL::miniDoublets::freeMemory(cudaStream_t stream)
     cudaFree(anchorHighEdgeX);
     cudaFree(outerX);
     cudaFree(outerHighEdgeX);
+    cudaFree(nMemoryLocations);
 #ifdef CUT_VALUE_DEBUG
     cudaFree(dzCuts);
     cudaFree(drtCuts);
