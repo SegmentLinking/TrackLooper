@@ -305,18 +305,19 @@ __device__ bool SDL::runTripletDefaultAlgo(struct modules& modulesInGPU, struct 
 {
     bool pass = true;
     //check
-    pass = pass & (segmentsInGPU.mdIndices[2 * innerSegmentIndex+ 1] == segmentsInGPU.mdIndices[2 * outerSegmentIndex]);
-   
+
+    //this cut reduces the number of candidates by a factor of 4, i.e., 3 out of 4 warps can end right here!
+    if(segmentsInGPU.mdIndices[2 * innerSegmentIndex+ 1] != segmentsInGPU.mdIndices[2 * outerSegmentIndex]) return false;
+
     unsigned int firstMDIndex = segmentsInGPU.mdIndices[2 *innerSegmentIndex];
     unsigned int secondMDIndex = segmentsInGPU.mdIndices[2 * outerSegmentIndex];
     unsigned int thirdMDIndex = segmentsInGPU.mdIndices[2 * outerSegmentIndex + 1];
 
-    pass = pass & (passRZConstraint(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, thirdMDIndex));
+    pass = pass and (passRZConstraint(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, thirdMDIndex));
+    pass = pass and (passPointingConstraint(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, thirdMDIndex, zOut, rtOut));
 
-    pass = pass & (passPointingConstraint(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, thirdMDIndex, zOut, rtOut));
-    //now check tracklet algo
-     
-    pass = pass & (runTrackletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, firstMDIndex, secondMDIndex, secondMDIndex, thirdMDIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ));
+    //this one has a lot of array accesses. So using "and" instead of bitwise & might give us gains 
+    pass = pass and (runTrackletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, firstMDIndex, secondMDIndex, secondMDIndex, thirdMDIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ));
 
     return pass;
 }
