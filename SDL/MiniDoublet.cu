@@ -82,6 +82,7 @@ void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges&
         if (category_number == 0 && eta_number == 1) occupancy = 42;
         if (category_number == 0 && eta_number == 2) occupancy = 37;
         if (category_number == 0 && eta_number == 3) occupancy = 41;
+        if (category_number == 1) occupancy = 100;
         if (category_number == 2 && eta_number == 1) occupancy = 16;
         if (category_number == 2 && eta_number == 2) occupancy = 19;
         if (category_number == 3 && eta_number == 1) occupancy = 14;
