@@ -14,6 +14,16 @@
 #include <cppitertools/enumerate.hpp>
 #include <cppitertools/zip.hpp>
 #include <numeric>
+#include <filesystem>
+
+inline void check_file_exists(const std::string& name)
+{
+    if (not std::filesystem::exists(name.c_str()))
+    {
+        std::cout << "ERROR: Could not find the file = " << name.c_str() << std::endl;
+        abort();
+    }
+}
 
 enum TrackletType {
     BB1BB3 = 0,
