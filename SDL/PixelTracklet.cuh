@@ -100,7 +100,9 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
     float& rt_InOut = rt_InUp;
     float& z_InOut = z_InUp;
 
-    pass = pass & (fabsf(deltaPhi(x_InUp, y_InUp, z_InUp, x_OutLo, y_OutLo, z_OutLo)) <= 0.5f * float(M_PI));;
+    pass = pass and (fabsf(deltaPhi(x_InUp, y_InUp, z_InUp, x_OutLo, y_OutLo, z_OutLo)) <= 0.5f * float(M_PI));;
+
+    if(not pass) return pass;
 
     unsigned int pixelSegmentArrayIndex = innerSegmentIndex - rangesInGPU.segmentModuleIndices[pixelModuleIndex]; 
     float ptIn = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
@@ -126,7 +128,9 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
     zHi = z_InUp + (z_InUp + deltaZLum) * (rtRatio_OutLoInOut - 1.f) * (z_InUp < 0.f ? 1.f : dzDrtScale) + (zpitch_InOut + zpitch_OutLo);
     zLo = z_InUp + (z_InUp - deltaZLum) * (rtRatio_OutLoInOut - 1.f) * (z_InUp > 0.f ? 1.f : dzDrtScale) - (zpitch_InOut + zpitch_OutLo); //slope-correction only on outer end
 
-    pass = pass & ((z_OutLo >= zLo) & (z_OutLo <= zHi));
+    pass = pass and ((z_OutLo >= zLo) & (z_OutLo <= zHi));
+    if(not pass) return pass;
+
     const float coshEta = sqrtf(ptIn * ptIn + pz * pz) / ptIn;
     // const float drt_OutLo_InLo = (rt_OutLo - rt_InLo);
     const float drt_OutLo_InUp = (rt_OutLo - rt_InUp);
@@ -158,7 +162,7 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
     zLoPointed = z_InUp + dzMean - zWindow;
     zHiPointed = z_InUp + dzMean + zWindow;
 
-    pass = pass & ((z_OutLo >= zLoPointed) & (z_OutLo <= zHiPointed));
+    pass =  pass and ((z_OutLo >= zLoPointed) & (z_OutLo <= zHiPointed));
     const float sdlPVoff = 0.1f / rt_OutLo;
     sdlCut = alpha1GeV_OutLo + sqrtf(sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
 
@@ -176,7 +180,11 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
 
     dPhi = deltaPhi(midPointX, midPointY, midPointZ, diffX, diffY, diffZ);
 
-    pass = pass & (fabsf(dPhi) <= sdlCut);
+    pass = pass and (fabsf(dPhi) <= sdlCut);
+
+    if(not pass) return pass;
+
+    //lots of array accesses below this...
 
     float alpha_InLo  = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
     float alpha_OutLo = __H2F(segmentsInGPU.dPhiChanges[outerSegmentIndex]);
@@ -245,7 +253,7 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
 
     runDeltaBetaIterations(betaIn, betaOut, betaAv, pt_beta, rt_InSeg, sdOut_dr, drt_tl_axis, lIn);
 
-     const float betaInMMSF = (fabsf(betaInRHmin + betaInRHmax) > 0) ? (2.f * betaIn / fabsf(betaInRHmin + betaInRHmax)) : 0.; //mean value of min,max is the old betaIn
+    const float betaInMMSF = (fabsf(betaInRHmin + betaInRHmax) > 0) ? (2.f * betaIn / fabsf(betaInRHmin + betaInRHmax)) : 0.; //mean value of min,max is the old betaIn
     const float betaOutMMSF = (fabsf(betaOutRHmin + betaOutRHmax) > 0) ? (2.f * betaOut / fabsf(betaOutRHmin + betaOutRHmax)) : 0.;
     betaInRHmin *= betaInMMSF;
     betaInRHmax *= betaInMMSF;
@@ -274,7 +282,7 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
         + (0.02f / sdOut_d) + sqrtf(dBetaLum2 + dBetaMuls*dBetaMuls);
 
     //Cut #6: The real beta cut
-    pass = pass & (fabsf(betaOut) < betaOutCut);
+    pass = pass and (fabsf(betaOut) < betaOutCut);
 
     const float pt_betaOut = drt_tl_axis * k2Rinv1GeVf / sin(betaOut);
     const float dBetaRes = 0.02f / fminf(sdOut_d, drt_InSeg);
@@ -283,7 +291,7 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
     float dBeta = betaIn - betaOut;
     deltaBetaCut = sqrtf(dBetaCut2);
 
-    pass = pass & (dBeta * dBeta <= dBetaCut2);
+    pass = pass and (dBeta * dBeta <= dBetaCut2);
 
     return pass;
 }
@@ -294,15 +302,19 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
     bool pass = true;
     bool isPS_OutLo = (modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS);
 
-    float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
-    float rt_InUp = mdsInGPU.anchorRt[secondMDIndex];
-    rt_OutLo = mdsInGPU.anchorRt[thirdMDIndex];
-    float rt_OutUp = mdsInGPU.anchorRt[fourthMDIndex];
 
     float z_InLo = mdsInGPU.anchorZ[firstMDIndex];
     float z_InUp = mdsInGPU.anchorZ[secondMDIndex];
     z_OutLo = mdsInGPU.anchorZ[thirdMDIndex];
     float z_OutUp = mdsInGPU.anchorZ[fourthMDIndex];
+
+    pass =  pass and (z_InUp * z_OutLo > 0);
+    if(not pass) return pass;
+
+    float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
+    float rt_InUp = mdsInGPU.anchorRt[secondMDIndex];
+    rt_OutLo = mdsInGPU.anchorRt[thirdMDIndex];
+    float rt_OutUp = mdsInGPU.anchorRt[fourthMDIndex];
 
     float x_InLo = mdsInGPU.anchorX[firstMDIndex];
     float x_InUp = mdsInGPU.anchorX[secondMDIndex];
@@ -336,7 +348,6 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
     const float dzDrtScale = tanf(sdlSlope) / sdlSlope;//FIXME: need approximate value
     zLo = z_InUp + (z_InUp - deltaZLum) * (rtOut_o_rtIn - 1.f) * (z_InUp > 0.f ? 1.f : dzDrtScale) - zGeom; //slope-correction only on outer end
 
-    pass = pass & (z_InUp * z_OutLo > 0);
 
     const float dLum = copysignf(deltaZLum, z_InUp);
     bool isOutSgInnerMDPS = modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS;
@@ -345,8 +356,6 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
     const float zGeom1 = copysignf(zGeom, z_InUp); //used in B-E region
     rtLo = rt_InUp * (1.f + (z_OutLo- z_InUp - zGeom1) / (z_InUp + zGeom1 + dLum) / dzDrtScale) - rtGeom1; //slope correction only on the lower end
 
-    pass = pass & (rt_OutLo >= rtLo);
-
 
     float zInForHi = z_InUp - zGeom1 - dLum;
     if (zInForHi * z_InUp < 0)
@@ -354,7 +363,8 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
     rtHi = rt_InUp * (1.f + (z_OutLo - z_InUp + zGeom1) / zInForHi) + rtGeom1;
 
     // Cut #2: rt condition
-    pass = pass & ((rt_OutLo >= rtLo) & (rt_OutLo <= rtHi));
+    pass =  pass and ((rt_OutLo >= rtLo) & (rt_OutLo <= rtHi));
+    if(not pass) return pass;
 
     const float dzOutInAbs = fabsf(z_OutLo - z_InUp);
     const float coshEta = hypotf(ptIn, pz) / ptIn;
@@ -381,14 +391,12 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
     const float rtHi_point = rt_InUp + drtMean + rtWindow;
 
     // Cut #3: rt-z pointed
-    pass = pass & ((rt_OutLo >= rtLo_point) & (rt_OutLo <= rtHi_point));
+    pass =  pass and ((rt_OutLo >= rtLo_point) and (rt_OutLo <= rtHi_point));
     const float alpha1GeV_OutLo = asinf(fminf(rt_OutLo * k2Rinv1GeVf / ptCut, sinAlphaMax));
     const float sdlPVoff = 0.1f / rt_OutLo;
     sdlCut = alpha1GeV_OutLo + sqrtf(sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
 
     deltaPhiPos = deltaPhi(x_InUp, y_InUp, z_InUp, x_OutUp, y_OutUp, z_OutUp);
-
-    //no deltaphipos cut
 
     float midPointX = 0.5f * (x_InLo + x_OutLo);
     float midPointY = 0.5f * (y_InLo + y_OutLo);
@@ -401,7 +409,9 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
     dPhi = deltaPhi(midPointX, midPointY, midPointZ, diffX, diffY, diffZ);
 
     // Cut #5: deltaPhiChange
-    pass = pass & (fabsf(dPhi) <= sdlCut);
+    pass =  pass and (fabsf(dPhi) <= sdlCut);
+
+    if(not pass) return pass;
 
     float alpha_InLo  = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
     float alpha_OutLo = __H2F(segmentsInGPU.dPhiChanges[outerSegmentIndex]);
@@ -498,7 +508,7 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
         + (0.02f / sdOut_d) + sqrtf(dBetaLum2 + dBetaMuls*dBetaMuls);
 
     //Cut #6: The real beta cut
-    pass = pass & (fabsf(betaOut) < betaOutCut);
+    pass =  pass and (fabsf(betaOut) < betaOutCut);
 
     const float pt_betaOut = drt_tl_axis * k2Rinv1GeVf / sin(betaOut);
     float drt_InSeg = rt_InUp - rt_InLo;
@@ -509,7 +519,7 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
     float dBeta = betaIn - betaOut;
     deltaBetaCut = sqrtf(dBetaCut2);
 
-    pass = pass & (dBeta * dBeta <= dBetaCut2);
+    pass =  pass and (dBeta * dBeta <= dBetaCut2);
     return pass;
 }
 

@@ -189,7 +189,6 @@ __device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExte
 #endif
 }
 
-//#ifdef TRACK_EXTENSIONS
 //SPECIAL DISPENSATION - hitsinGPU will be used here!
 
 __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct quintuplets& quintupletsInGPU, struct pixelTriplets& pixelTripletsInGPU, struct pixelQuintuplets& pixelQuintupletsInGPU, struct trackCandidates& trackCandidatesInGPU, unsigned int anchorObjectIndex, unsigned int outerObjectIndex, short anchorObjectType, short outerObjectType, unsigned int anchorObjectOuterT3Index, unsigned int layerOverlapTarget, short* constituentTCType, unsigned int* constituentTCIndex, unsigned
@@ -248,9 +247,7 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
         outerObjectHitIndices = &trackCandidatesInGPU.hitIndices[14 * outerObjectIndex];
         outerObjectLowerModuleIndices = &tripletsInGPU.lowerModuleIndices[7 * outerObjectIndex];
     }
-
-
-    
+ 
     unsigned int nLayerOverlap(0), nHitOverlap(0);
    
     float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta; //temp stuff
@@ -259,20 +256,26 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     //checks for frivolous cases wherein
     pass = pass and computeLayerAndHitOverlaps(modulesInGPU, anchorLayerIndices, anchorHitIndices, anchorLowerModuleIndices, outerObjectLayerIndices, outerObjectHitIndices, outerObjectLowerModuleIndices, nAnchorLayers, nOuterLayers, nLayerOverlap, nHitOverlap, layerOverlapTarget);
 
+    //lots of array accesses below, cut here
+    if(not pass) return pass;
+
     unsigned int innerSegmentIndex = tripletsInGPU.segmentIndices[2 * anchorObjectOuterT3Index];
     unsigned int outerSegmentIndex = tripletsInGPU.segmentIndices[2 * outerObjectIndex];
 
-    pass = pass & runTrackletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], innerSegmentIndex, outerSegmentIndex, 
+    pass =  pass and runTrackletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], innerSegmentIndex, outerSegmentIndex, 
             segmentsInGPU.mdIndices[2 * innerSegmentIndex], segmentsInGPU.mdIndices[2 * innerSegmentIndex + 1], segmentsInGPU.mdIndices[2 * outerSegmentIndex], segmentsInGPU.mdIndices[2 * outerSegmentIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn,
             betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
+
+    if(not pass) return pass;
 
     innerSegmentIndex = tripletsInGPU.segmentIndices[2 * anchorObjectOuterT3Index];
     outerSegmentIndex = tripletsInGPU.segmentIndices[2 * outerObjectIndex + 1];
 
-    pass = pass & runTrackletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 2], innerSegmentIndex, outerSegmentIndex, segmentsInGPU.mdIndices[2 * innerSegmentIndex], segmentsInGPU.mdIndices[2 *
+    pass =  pass and runTrackletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index], tripletsInGPU.lowerModuleIndices[3 * anchorObjectOuterT3Index + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 1], tripletsInGPU.lowerModuleIndices[3 * outerObjectIndex + 2], innerSegmentIndex, outerSegmentIndex, segmentsInGPU.mdIndices[2 * innerSegmentIndex], segmentsInGPU.mdIndices[2 *
             innerSegmentIndex + 1], segmentsInGPU.mdIndices[2 * outerSegmentIndex], segmentsInGPU.mdIndices[2 * outerSegmentIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi,
             betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
 
+    if(not pass) return pass;
 
     unsigned int anchorObjectAnchorHitIndices[7];
     unsigned int outerObjectAnchorHitIndices[7];
@@ -291,8 +294,9 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     if(anchorObjectType != 3)
     {
         rPhiChiSquared = computeTERPhiChiSquared(modulesInGPU, hitsInGPU, centerX, centerY, innerRadius, outerObjectAnchorHitIndices, outerObjectLowerModuleIndices);
-        rzChiSquared = computeTERZChiSquared(modulesInGPU, hitsInGPU, anchorObjectAnchorHitIndices, anchorLowerModuleIndices, outerObjectAnchorHitIndices, outerObjectLowerModuleIndices, anchorObjectType);
         pass = pass and passTERPhiChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rPhiChiSquared);
+
+        rzChiSquared = computeTERZChiSquared(modulesInGPU, hitsInGPU, anchorObjectAnchorHitIndices, anchorLowerModuleIndices, outerObjectAnchorHitIndices, outerObjectLowerModuleIndices, anchorObjectType);
         pass = pass and passTERZChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rzChiSquared);
     }
     else
@@ -359,7 +363,7 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
 
         }
     }
-    
+   
 
     nLayerOverlaps[0] = nLayerOverlap;
     nHitOverlaps[0] = nHitOverlap;
@@ -372,7 +376,6 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
 
     return pass;
 }
-//#endif
 
 __device__ bool SDL::passHighPtRadiusMatch(unsigned int& nLayerOverlaps, unsigned int& nHitOverlaps, unsigned int& layer_binary, float& innerRadius, float& outerRadius)
 {
@@ -3274,7 +3277,7 @@ __device__ bool SDL::computeLayerAndHitOverlaps(SDL::modules& modulesInGPU, uint
             }
         }
     }
-    pass = pass & (nLayerOverlap == layerOverlapTarget); //not really required, because these cases should be handled by the other conditions
+    pass =  pass and (nLayerOverlap == layerOverlapTarget); //not really required, because these cases should be handled by the other conditions
     return pass;
 }
 
