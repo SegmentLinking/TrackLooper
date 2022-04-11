@@ -1158,38 +1158,35 @@ void loadMaps()
 
     // Module orientation information (DrDz or phi angles)
 #ifdef CMSSW12GEOM
-    TString endcap_geom = TString::Format("%s/data/endcap_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data();
-    TString tilted_geom = TString::Format("%s/data/tilted_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data();
+    TString endcap_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/endcap_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data());
+    TString tilted_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/tilted_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data());
 #else
-    TString endcap_geom = TString::Format("%s/data/endcap_orientation_data_v2.txt", TrackLooperDir.Data()).Data(); // centroid values added to the map
-    TString tilted_geom = TString::Format("%s/data/tilted_orientation_data.txt", TrackLooperDir.Data()).Data();
+    TString endcap_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/endcap_orientation_data_v2.txt", TrackLooperDir.Data()).Data()); // centroid values added to the map
+    TString tilted_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/tilted_orientation_data.txt", TrackLooperDir.Data()).Data());
 #endif
     std::cout << "Loading module orientation information...." << std::endl;
     std::cout << "endcap orientation:" << endcap_geom << std::endl;
     std::cout << "tilted orientation:" << tilted_geom << std::endl;
-    check_file_exists(endcap_geom.Data());
-    check_file_exists(tilted_geom.Data());
     SDL::endcapGeometry.load(endcap_geom.Data()); // centroid values added to the map
     SDL::tiltedGeometry.load(tilted_geom.Data());
 
     // Module connection map (for line segment building)
 #ifdef PT0P8
 #ifdef CMSSW12GEOM
-    TString mappath = TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir.Data()).Data();
+    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir.Data()).Data());
 #else
-    TString mappath = "/data2/segmentlinking/module_connection_combined_0p8helix_muongun.txt";
+    TString mappath = get_absolute_path_after_check_file_exists("/data2/segmentlinking/module_connection_combined_0p8helix_muongun.txt");
 #endif
 #else
 #ifdef CMSSW12GEOM
     // TODO: The CMSSW_12_2_0_pre2 is by default 0.8 module map
-    TString mappath = TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir.Data()).Data();
+    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir.Data()).Data());
 #else
-    TString mappath = TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data();
+    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
 #endif
 #endif
     std::cout << "Loading module map...." << std::endl;
     std::cout << "module map path:" << mappath << std::endl;
-    check_file_exists(mappath.Data());
     SDL::moduleConnectionMap.load(mappath.Data());
     ana.moduleConnectiongMapLoose.load(mappath.Data());
 
@@ -1211,29 +1208,29 @@ void loadMaps()
     std::cout << "Loading pLS maps ... from pLSMapDir = " << pLSMapDir << std::endl;
 
     TString path;
-    path = TString::Format("%s/pLS_map_layer1_subdet5.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer1Subdet5.load(path.Data());
-    path = TString::Format("%s/pLS_map_layer2_subdet5.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer2Subdet5.load(path.Data());
-    path = TString::Format("%s/pLS_map_layer3_subdet5.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer3Subdet5.load(path.Data());
-    path = TString::Format("%s/pLS_map_layer1_subdet4.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer1Subdet4.load(path.Data());
-    path = TString::Format("%s/pLS_map_layer2_subdet4.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer2Subdet4.load(path.Data());
-    path = TString::Format("%s/pLS_map_layer3_subdet4.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer3Subdet4.load(path.Data());
-    path = TString::Format("%s/pLS_map_layer4_subdet4.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer4Subdet4.load(path.Data());
+    path = TString::Format("%s/pLS_map_layer1_subdet5.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer1Subdet5.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_layer2_subdet5.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer2Subdet5.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_layer3_subdet5.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer3Subdet5.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_layer1_subdet4.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer1Subdet4.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_layer2_subdet4.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer2Subdet4.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_layer3_subdet4.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer3Subdet4.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_layer4_subdet4.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer4Subdet4.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
 
-    path = TString::Format("%s/pLS_map_neg_layer1_subdet5.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer1Subdet5_neg.load(path.Data());
-    path = TString::Format("%s/pLS_map_neg_layer2_subdet5.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer2Subdet5_neg.load(path.Data());
-    path = TString::Format("%s/pLS_map_neg_layer3_subdet5.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer3Subdet5_neg.load(path.Data());
-    path = TString::Format("%s/pLS_map_neg_layer1_subdet4.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer1Subdet4_neg.load(path.Data());
-    path = TString::Format("%s/pLS_map_neg_layer2_subdet4.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer2Subdet4_neg.load(path.Data());
-    path = TString::Format("%s/pLS_map_neg_layer3_subdet4.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer3Subdet4_neg.load(path.Data());
-    path = TString::Format("%s/pLS_map_neg_layer4_subdet4.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer4Subdet4_neg.load(path.Data());
+    path = TString::Format("%s/pLS_map_neg_layer1_subdet5.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer1Subdet5_neg.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_neg_layer2_subdet5.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer2Subdet5_neg.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_neg_layer3_subdet5.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer3Subdet5_neg.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_neg_layer1_subdet4.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer1Subdet4_neg.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_neg_layer2_subdet4.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer2Subdet4_neg.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_neg_layer3_subdet4.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer3Subdet4_neg.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_neg_layer4_subdet4.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer4Subdet4_neg.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
 
-    path = TString::Format("%s/pLS_map_pos_layer1_subdet5.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer1Subdet5_pos.load(path.Data());
-    path = TString::Format("%s/pLS_map_pos_layer2_subdet5.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer2Subdet5_pos.load(path.Data());
-    path = TString::Format("%s/pLS_map_pos_layer3_subdet5.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer3Subdet5_pos.load(path.Data());
-    path = TString::Format("%s/pLS_map_pos_layer1_subdet4.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer1Subdet4_pos.load(path.Data());
-    path = TString::Format("%s/pLS_map_pos_layer2_subdet4.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer2Subdet4_pos.load(path.Data());
-    path = TString::Format("%s/pLS_map_pos_layer3_subdet4.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer3Subdet4_pos.load(path.Data());
-    path = TString::Format("%s/pLS_map_pos_layer4_subdet4.txt", pLSMapDir.Data()).Data(); check_file_exists(path.Data()); SDL::moduleConnectionMap_pLStoLayer4Subdet4_pos.load(path.Data());
+    path = TString::Format("%s/pLS_map_pos_layer1_subdet5.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer1Subdet5_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_pos_layer2_subdet5.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer2Subdet5_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_pos_layer3_subdet5.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer3Subdet5_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_pos_layer1_subdet4.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer1Subdet4_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_pos_layer2_subdet4.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer2Subdet4_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_pos_layer3_subdet4.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer3Subdet4_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_pos_layer4_subdet4.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer4Subdet4_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
 
     // SDL::moduleConnectionMap.load("/home/users/phchang/public_html/analysis/sdl/TrackLooper_/scripts/module_connection_map_data_10_e0_200_100_pt0p8_2p0_400_pt0p8_2p0_nolossers_dxy35cm_endcaplayer2.txt");
     // ana.moduleConnectiongMapLoose.load("/home/users/phchang/public_html/analysis/sdl/TrackLooper_/scripts/module_connection_map_data_10_e0_200_100_pt0p8_2p0_400_pt0p8_2p0_nolossers_dxy35cm_endcaplayer2.txt");
@@ -2784,4 +2781,18 @@ int isAnchorLayer(const SDL::CPU::Module& module)
     {
         return module.isLower();
     }
+}
+
+//__________________________________________________________________________________________
+TString get_absolute_path_after_check_file_exists(const std::string name)
+{
+    std::filesystem::path fullpath = std::filesystem::absolute(name.c_str());
+    // std::cout << "Checking file path = " << fullpath << std::endl;
+    // std::cout <<  " fullpath.string().c_str(): " << fullpath.string().c_str() <<  std::endl;
+    if (not std::filesystem::exists(fullpath))
+    {
+        std::cout << "ERROR: Could not find the file = " << fullpath << std::endl;
+        exit(2);
+    }
+    return TString(fullpath.string().c_str());
 }

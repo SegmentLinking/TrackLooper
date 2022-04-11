@@ -16,15 +16,6 @@
 #include <numeric>
 #include <filesystem>
 
-inline void check_file_exists(const std::string& name)
-{
-    if (not std::filesystem::exists(name.c_str()))
-    {
-        std::cout << "ERROR: Could not find the file = " << name.c_str() << std::endl;
-        abort();
-    }
-}
-
 enum TrackletType {
     BB1BB3 = 0,
     BB2BB4,
@@ -167,5 +158,7 @@ int getDenomSimTrkType(int isimtrk);
 int bestSimHitMatch(int irecohit);
 int logicalLayer(const SDL::CPU::Module& module);
 int isAnchorLayer(const SDL::CPU::Module& module);
+
+TString get_absolute_path_after_check_file_exists(const std::string name);
 
 #endif
