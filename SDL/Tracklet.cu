@@ -752,6 +752,7 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
     if (isInSgInnerMDPS and isInSgOuterMDPS) // If both PS then we can point
     {
         pass =  pass and (kZ >= 0 and rtOut >= rtLo_point and rtOut <= rtHi_point);
+        if(not pass) return pass;
     }
 
     float sdlPVoff = 0.1f/rtOut;

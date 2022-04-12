@@ -295,9 +295,11 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     {
         rPhiChiSquared = computeTERPhiChiSquared(modulesInGPU, hitsInGPU, centerX, centerY, innerRadius, outerObjectAnchorHitIndices, outerObjectLowerModuleIndices);
         pass = pass and passTERPhiChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rPhiChiSquared);
+        if(not pass) return pass;
 
         rzChiSquared = computeTERZChiSquared(modulesInGPU, hitsInGPU, anchorObjectAnchorHitIndices, anchorLowerModuleIndices, outerObjectAnchorHitIndices, outerObjectLowerModuleIndices, anchorObjectType);
         pass = pass and passTERZChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rzChiSquared);
+        if(not pass) return pass;
     }
     else
     {
@@ -350,17 +352,20 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
         
         if(innerRadius < 2.0/(2 * k2Rinv1GeVf))
         {
-            pass = pass and passRadiusMatch(nLayerOverlap, nHitOverlap, layer_binary, innerRadius, outerRadius);    
+            pass = pass and passRadiusMatch(nLayerOverlap, nHitOverlap, layer_binary, innerRadius, outerRadius);   
+            if(not pass) return pass;
         }
         else
         {
             pass = pass and passHighPtRadiusMatch(nLayerOverlap, nHitOverlap, layer_binary, innerRadius, outerRadius);
+            if(not pass) return pass;
         }
         if(innerRadius < 5.0/(2 * k2Rinv1GeVf))
         {
             pass = pass and passTERPhiChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rPhiChiSquared);
+            if(not pass) return pass;
             pass = pass and passTERZChiSquaredCuts(nLayerOverlap, nHitOverlap, layer_binary, rzChiSquared);
-
+            if(not pass) return pass;
         }
     }
    

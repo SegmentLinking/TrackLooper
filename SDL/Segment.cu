@@ -555,6 +555,8 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
 
     //cut 0 - z compatibility
     pass =  pass and (zIn * zOut >= 0);
+    if(not pass) return pass;
+
     float dz = zOut - zIn;
     float dLum = copysignf(deltaZLum, zIn);
     float drtDzScale = sdSlope/tanf(sdSlope);
@@ -565,7 +567,7 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
     //completeness
 
     pass =  pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
-
+    if(not pass) return pass;
 
     dPhi = deltaPhi(xIn, yIn, zIn, xOut, yOut, zOut);
 
@@ -584,6 +586,7 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
         dPhiMin = dPhi;
     }
     pass =  pass and (fabsf(dPhi) <= sdCut);
+    if(not pass) return pass;
 
     float dzFrac = dz/zIn;
     dPhiChange = dPhi/dzFrac * (1.f + dzFrac);
@@ -591,8 +594,8 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
     dPhiChangeMax = dPhiMax/dzFrac * (1.f + dzFrac);
     
     pass =  pass and (fabsf(dPhiChange) <= sdCut);
-
     if(not pass) return pass;
+
     float dAlphaThresholdValues[3];
     dAlphaThreshold(dAlphaThresholdValues, modulesInGPU, mdsInGPU, xIn, yIn, zIn, rtIn, xOut, yOut, zOut, rtOut,innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex);
 
@@ -646,13 +649,14 @@ __device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, s
     zHi = zIn + (zIn + deltaZLum) * (rtOut / rtIn - 1.f) * (zIn < 0.f ? 1.f : dzDrtScale) + zGeom;
 
     pass =  pass and ((zOut >= zLo) & (zOut <= zHi));
-
+    if(not pass) return pass;
 
     sdCut = sdSlope + sqrtf(sdMuls * sdMuls + sdPVoff * sdPVoff);
 
     dPhi  = deltaPhi(xIn, yIn, zIn, xOut, yOut, zOut);
 
     pass =  pass and (fabsf(dPhi) <= sdCut);
+    if(not pass) return pass;
 
     dPhiChange = deltaPhiChange(xIn, yIn, zIn, xOut, yOut, zOut);
 
