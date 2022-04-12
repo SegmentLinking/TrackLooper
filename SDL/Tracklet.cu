@@ -289,6 +289,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
     zOut = z_OutLo;
     rtOut = rt_OutLo;
     pass = pass and ((z_OutLo >= zLo) & (z_OutLo <= zHi));
+    if(not pass) return pass;
 
     float drt_OutLo_InLo = (rt_OutLo - rt_InLo);
     float r3_InLo = sqrtf(z_InLo * z_InLo + rt_InLo * rt_InLo);
@@ -312,12 +313,15 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
 
     // Cut #2: Pointed Z (Inner segment two MD points to outer segment inner MD)
     pass =  pass and ((z_OutLo >= zLoPointed) & (z_OutLo <= zHiPointed));
+    if(not pass) return pass;
+
     float sdlPVoff = 0.1f/rt_OutLo;
     sdlCut = alpha1GeV_OutLo + sqrtf(sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
     
     deltaPhiPos = deltaPhi(mdsInGPU.anchorX[secondMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorZ[secondMDIndex], mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex], mdsInGPU.anchorZ[fourthMDIndex]); 
     // Cut #3: FIXME:deltaPhiPos can be tighter
     pass = pass and (fabsf(deltaPhiPos) <= sdlCut);
+    if(not pass) return pass;
 
     float midPointX = 0.5f*(mdsInGPU.anchorX[firstMDIndex] + mdsInGPU.anchorX[thirdMDIndex]);
     float midPointY = 0.5f* (mdsInGPU.anchorY[firstMDIndex] + mdsInGPU.anchorY[thirdMDIndex]);
@@ -330,7 +334,6 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
 
     // Cut #4: deltaPhiChange
     pass = pass and (fabsf(dPhi) <= sdlCut);
-
     //lots of array accesses below. Cut here!
     if(not pass) return pass;
 
@@ -392,6 +395,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
 
     //Cut #5: first beta cut
     pass = pass and (fabsf(betaInRHmin) < betaInCut);
+    if(not pass) return pass;
 
     float betaAv = 0.5f * (betaIn + betaOut);
     pt_beta = drt_tl_axis * k2Rinv1GeVf/sinf(betaAv);
@@ -436,6 +440,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
 
     //Cut #6: The real beta cut
     pass =  pass and ((fabsf(betaOut) < betaOutCut));
+    if(not pass) return pass;
     
     float pt_betaIn = drt_tl_axis * k2Rinv1GeVf/sinf(betaIn);
     float pt_betaOut = drt_tl_axis * k2Rinv1GeVf / sinf(betaOut);
@@ -478,6 +483,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
 
     // Cut #0: Preliminary (Only here in endcap case)
     pass = pass and (z_InLo * z_OutLo > 0);
+    if(not pass) return pass;
 
     float dLum = copysignf(deltaZLum, z_InLo);
     bool isOutSgInnerMDPS = modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS;
@@ -489,6 +495,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
 
     //Cut #1: rt condition
     pass =  pass and (rtOut >= rtLo);
+    if(not pass) return pass;
 
     float zInForHi = z_InLo - zGeom1 - dLum;
     if(zInForHi * z_InLo < 0)
@@ -499,6 +506,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
 
     //Cut #2: rt condition
     pass =  pass and ((rt_OutLo >= rtLo) & (rt_OutLo <= rtHi));
+    if(not pass) return pass;
 
     float rIn = sqrtf(z_InLo * z_InLo + rt_InLo * rt_InLo);
     const float drtSDIn = rt_InOut - rt_InLo;
@@ -522,6 +530,8 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
 
     //Cut #3: rt-z pointed
     pass =  pass and ((kZ >= 0) & (rtOut >= rtLo) & (rtOut <= rtHi));
+    if(not pass) return pass;
+
     const float sdlPVoff = 0.1f / rt_OutLo;
     sdlCut = alpha1GeV_OutLo + sqrtf(sdlMuls * sdlMuls + sdlPVoff*sdlPVoff);
 
@@ -531,6 +541,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
 
     //Cut #4: deltaPhiPos can be tighter
     pass =  pass and (fabsf(deltaPhiPos) <= sdlCut);
+    if(not pass) return pass;
 
     float midPointX = 0.5f*(mdsInGPU.anchorX[firstMDIndex] + mdsInGPU.anchorX[thirdMDIndex]);
     float midPointY = 0.5f* (mdsInGPU.anchorY[firstMDIndex] + mdsInGPU.anchorY[thirdMDIndex]);
@@ -542,7 +553,6 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
     dPhi = deltaPhi(midPointX, midPointY, midPointZ, diffX, diffY, diffZ);
     // Cut #5: deltaPhiChange
     pass =  pass and (fabsf(dPhi) <= sdlCut);
-
     if(not pass) return pass;
 
     float sdIn_alpha     = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
@@ -603,6 +613,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
 
     //Cut #6: first beta cut
     pass =  pass and (fabsf(betaInRHmin) < betaInCut);
+    if(not pass) return pass;
 
     float betaAv = 0.5f * (betaIn + betaOut);
     pt_beta = dr * k2Rinv1GeVf / sinf(betaAv);
@@ -647,6 +658,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
 
     //Cut #6: The real beta cut
     pass =  pass and (fabsf(betaOut) < betaOutCut);
+    if(not pass) return pass;
 
     float pt_betaIn = dr * k2Rinv1GeVf/sinf(betaIn);
     float pt_betaOut = dr * k2Rinv1GeVf / sinf(betaOut);
@@ -690,6 +702,7 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
 
     // Cut #0: Preliminary (Only here in endcap case)
     pass =  pass and ((z_InLo * z_OutLo) > 0);
+    if(not pass) return pass;
     
     float dLum = copysignf(deltaZLum, z_InLo);
     bool isOutSgInnerMDPS = modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS;
@@ -709,6 +722,7 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
     rtHi = rt_InLo * (1.f + dz / (z_InLo - dLum)) + rtGeom;
 
     pass =  pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
+    if(not pass) return pass;
 
     bool isInSgOuterMDPS = modulesInGPU.moduleType[innerOuterLowerModuleIndex] == SDL::PS;
 
@@ -746,6 +760,7 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
     deltaPhiPos = deltaPhi(mdsInGPU.anchorX[secondMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorZ[secondMDIndex], mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex], mdsInGPU.anchorZ[fourthMDIndex]); 
 
     pass =  pass and (fabsf(deltaPhiPos) <= sdlCut);
+    if(not pass) return pass;
 
     float midPointX = 0.5f*(mdsInGPU.anchorX[firstMDIndex] + mdsInGPU.anchorX[thirdMDIndex]);
     float midPointY = 0.5f* (mdsInGPU.anchorY[firstMDIndex] + mdsInGPU.anchorY[thirdMDIndex]);
@@ -758,7 +773,6 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
 
     // Cut #5: deltaPhiChange
     pass =  pass and ((fabsf(dPhi) <= sdlCut));
-
     if(not pass) return pass;
 
     float sdIn_alpha = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
@@ -812,6 +826,8 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
 
     //Cut #6: first beta cut
     pass =  pass and (fabsf(betaInRHmin) < betaInCut);
+    if(not pass) return pass;
+
     float betaAv = 0.5f * (betaIn + betaOut);
     pt_beta = dr * k2Rinv1GeVf / sinf(betaAv);
 
@@ -850,6 +866,7 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
 
     //Cut #6: The real beta cut
     pass =  pass and (fabsf(betaOut) < betaOutCut);
+    if(not pass) return pass;
 
     float pt_betaIn = dr * k2Rinv1GeVf/sinf(betaIn);
     float pt_betaOut = dr * k2Rinv1GeVf / sinf(betaOut);
@@ -861,7 +878,7 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
     deltaBetaCut = sqrtf(dBetaCut2);
 
     pass =  pass and (dBeta * dBeta <= dBetaCut2);
-
+    
     return pass;
 }
 

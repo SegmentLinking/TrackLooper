@@ -313,8 +313,9 @@ __device__ bool SDL::runTripletDefaultAlgo(struct modules& modulesInGPU, struct 
     unsigned int thirdMDIndex = segmentsInGPU.mdIndices[2 * outerSegmentIndex + 1];
 
     pass = pass and (passRZConstraint(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, thirdMDIndex));
+    if(not pass) return pass;
     pass = pass and (passPointingConstraint(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, thirdMDIndex, zOut, rtOut));
-
+    if(not pass) return pass;
     pass = pass and (runTrackletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, firstMDIndex, secondMDIndex, secondMDIndex, thirdMDIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ));
 
     return pass;
@@ -406,25 +407,23 @@ __device__ bool SDL::passPointingConstraint(struct SDL::modules& modulesInGPU, s
     short middleLowerModuleSubdet = modulesInGPU.subdets[middleLowerModuleIndex];
     short outerOuterLowerModuleSubdet = modulesInGPU.subdets[outerOuterLowerModuleIndex];
 
-    bool pass = false;
-
     if(innerInnerLowerModuleSubdet == SDL::Barrel
             and middleLowerModuleSubdet == SDL::Barrel
             and outerOuterLowerModuleSubdet == SDL::Barrel)
     {
-        pass = passPointingConstraintBBB(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, thirdMDIndex, zOut, rtOut);
+        return passPointingConstraintBBB(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, thirdMDIndex, zOut, rtOut);
     }
     else if(innerInnerLowerModuleSubdet == SDL::Barrel
             and middleLowerModuleSubdet == SDL::Barrel
             and outerOuterLowerModuleSubdet == SDL::Endcap)
     {
-        pass = passPointingConstraintBBE(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, thirdMDIndex, zOut, rtOut);
+        return passPointingConstraintBBE(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, thirdMDIndex, zOut, rtOut);
     }
     else if(innerInnerLowerModuleSubdet == SDL::Barrel
             and middleLowerModuleSubdet == SDL::Endcap
             and outerOuterLowerModuleSubdet == SDL::Endcap)
     {
-        pass = passPointingConstraintBBE(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, thirdMDIndex, zOut, rtOut);
+        return passPointingConstraintBBE(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, thirdMDIndex, zOut, rtOut);
 
     }
 
@@ -432,10 +431,9 @@ __device__ bool SDL::passPointingConstraint(struct SDL::modules& modulesInGPU, s
             and middleLowerModuleSubdet == SDL::Endcap
             and outerOuterLowerModuleSubdet == SDL::Endcap)
     {
-        pass = passPointingConstraintEEE(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, thirdMDIndex, zOut, rtOut);
+        return passPointingConstraintEEE(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, thirdMDIndex, zOut, rtOut);
     }
     
-    return pass;
 }
 
 __device__ bool SDL::passPointingConstraintBBB(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex, float& zOut, float& rtOut)
@@ -463,7 +461,9 @@ __device__ bool SDL::passPointingConstraintBBB(struct SDL::modules& modulesInGPU
     const float zLo = zIn + (zIn - deltaZLum) * (rtRatio_OutIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - (zpitchIn + zpitchOut); //slope-correction only on outer end
 
     //Cut 1 - z compatibility
-    pass = pass & ((zOut >= zLo) & (zOut <= zHi));
+    pass = pass and ((zOut >= zLo) & (zOut <= zHi));
+    if(not pass) return pass;
+
     float drt_OutIn = (rtOut - rtIn);
     float invRtIn = 1. / rtIn;
 
@@ -489,7 +489,7 @@ __device__ bool SDL::passPointingConstraintBBB(struct SDL::modules& modulesInGPU
     // Constructing upper and lower bound
 
     // Cut #2: Pointed Z (Inner segment two MD points to outer segment inner MD)
-    pass = pass & ((zOut >= zLoPointed) & (zOut <= zHiPointed));
+    pass = pass and ((zOut >= zLoPointed) & (zOut <= zHiPointed));
 
     return pass;
 }
@@ -522,7 +522,9 @@ __device__ bool SDL::passPointingConstraintBBE(struct SDL::modules& modulesInGPU
     float zLo = zIn + (zIn - deltaZLum) * (rtRatio_OutIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - zGeom; 
 
     // Cut #0: Preliminary (Only here in endcap case)
-    pass = pass & (zIn * zOut > 0);
+    pass = pass and (zIn * zOut > 0);
+    if(not pass) return pass;
+
     float dLum = copysignf(deltaZLum, zIn);
     bool isOutSgInnerMDPS = modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS;
     float rtGeom1 = isOutSgInnerMDPS ? pixelPSZpitch : strip2SZpitch;
@@ -540,7 +542,9 @@ __device__ bool SDL::passPointingConstraintBBE(struct SDL::modules& modulesInGPU
     float rtHi = rtIn * (1.f + (zOut - zIn + zGeom1) / zInForHi) + rtGeom1;
 
     //Cut #2: rt condition
-    pass = pass & ((rtOut >= rtLo) & (rtOut <= rtHi));
+    pass = pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
+    if(not pass) return pass;
+
     float rIn = sqrtf(zIn * zIn + rtIn * rtIn);
 
     const float drtSDIn = rtMid - rtIn;
@@ -564,7 +568,7 @@ __device__ bool SDL::passPointingConstraintBBE(struct SDL::modules& modulesInGPU
 
     //Cut #3: rt-z pointed
 
-    pass = pass & (kZ >=0) & (rtOut >= rtLo) & (rtOut <= rtHi);
+    pass = pass and (kZ >=0) & (rtOut >= rtLo) & (rtOut <= rtHi);
     return pass;
 }
 
@@ -595,8 +599,9 @@ __device__ bool SDL::passPointingConstraintEEE(struct SDL::modules& modulesInGPU
 
 
     // Cut #0: Preliminary (Only here in endcap case)
-    pass = pass & (zIn * zOut > 0);
-    
+    pass = pass and (zIn * zOut > 0);
+    if(not pass) return pass;
+
     float dLum = copysignf(deltaZLum, zIn);
     bool isOutSgOuterMDPS = modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS;
     bool isInSgInnerMDPS = modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS;
@@ -606,12 +611,11 @@ __device__ bool SDL::passPointingConstraintEEE(struct SDL::modules& modulesInGPU
     float zGeom1 = copysignf(zGeom,zIn);
     float dz = zOut - zIn;
     const float rtLo = rtIn * (1.f + dz / (zIn + dLum) / dzDrtScale) - rtGeom; //slope correction only on the lower end
-
+    const float rtHi = rtIn * (1.f + dz / (zIn - dLum)) + rtGeom;
 
     //Cut #1: rt condition
-    pass = pass & (rtOut >= rtLo);
-    float rtHi = rtIn * (1.f + dz / (zIn - dLum)) + rtGeom;
-    pass = pass & (rtOut <= rtHi);
+    pass = pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
+    if(not pass) return pass;
     
     bool isInSgOuterMDPS = modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS;
 
@@ -641,7 +645,7 @@ __device__ bool SDL::passPointingConstraintEEE(struct SDL::modules& modulesInGPU
 
     if (isInSgInnerMDPS and isInSgOuterMDPS) // If both PS then we can point
     {
-        pass = pass & ((kZ >= 0) &  (rtOut >= rtLo_point) & (rtOut <= rtHi_point));
+        pass = pass and ((kZ >= 0) &  (rtOut >= rtLo_point) & (rtOut <= rtHi_point));
     }
 
     return pass;

@@ -314,7 +314,6 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
 
     //run pT4 compatibility between the pixel segment and inner segment, and between the pixel and outer segment of the triplet
 
-
     //placeholder
     float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta; //temp stuff
     float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ;
@@ -325,14 +324,12 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     uint16_t middleModuleIndex = tripletsInGPU.lowerModuleIndices[3 * tripletIndex + 1];
     uint16_t upperModuleIndex = tripletsInGPU.lowerModuleIndices[3 * tripletIndex + 2];
 
-
     // pixel segment vs inner segment of the triplet
     pass = pass and runPixelTrackletDefaultAlgo(modulesInGPU, rangesInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, lowerModuleIndex, middleModuleIndex, pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
+    if(not pass) return pass;
 
     //pixel segment vs outer segment of triplet
     pass = pass and runPixelTrackletDefaultAlgo(modulesInGPU, rangesInGPU, mdsInGPU, segmentsInGPU, pixelModuleIndex, middleModuleIndex, upperModuleIndex, pixelSegmentIndex, tripletsInGPU.segmentIndices[2 * tripletIndex + 1], zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
-
-    //cut here before other memory accesses
     if(not pass) return pass;
 
     //pt matching between the pixel ptin and the triplet circle pt
@@ -344,9 +341,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     unsigned int pixelOuterMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
 
     unsigned int pixelAnchorHitIndex1 = mdsInGPU.anchorHitIndices[pixelInnerMDIndex];
-    unsigned int pixelNonAnchorHitIndex1 = mdsInGPU.outerHitIndices[pixelInnerMDIndex];
     unsigned int pixelAnchorHitIndex2 = mdsInGPU.anchorHitIndices[pixelOuterMDIndex];
-    unsigned int pixelNonAnchorHitIndex2 = mdsInGPU.outerHitIndices[pixelOuterMDIndex];
 
     pixelRadius = pixelSegmentPt/(2.f * k2Rinv1GeVf);
     pixelRadiusError = pixelSegmentPtError/(2.f * k2Rinv1GeVf);
@@ -357,56 +352,48 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     unsigned int secondMDIndex = segmentsInGPU.mdIndices[2 * tripletInnerSegmentIndex + 1];
     unsigned int thirdMDIndex = segmentsInGPU.mdIndices[2 * tripletOuterSegmentIndex + 1];
 
-    float x1 = mdsInGPU.anchorX[firstMDIndex];
-    float x2 = mdsInGPU.anchorX[secondMDIndex];
-    float x3 = mdsInGPU.anchorX[thirdMDIndex];
-
-    float y1 = mdsInGPU.anchorY[firstMDIndex];
-    float y2 = mdsInGPU.anchorY[secondMDIndex];
-    float y3 = mdsInGPU.anchorY[thirdMDIndex];
-
-    float z1 = mdsInGPU.anchorZ[firstMDIndex];
-    float z2 = mdsInGPU.anchorZ[secondMDIndex];
-    float z3 = mdsInGPU.anchorZ[thirdMDIndex];
-
-    float rt1 = mdsInGPU.anchorRt[firstMDIndex];
-    float rt2 = mdsInGPU.anchorRt[secondMDIndex];
-    float rt3 = mdsInGPU.anchorRt[thirdMDIndex];
-
     float g,f;
-    float xs[] = {x1, x2, x3};
-    float ys[] = {y1, y2, y3};
+    float xs[] = {mdsInGPU.anchorX[firstMDIndex], mdsInGPU.anchorX[secondMDIndex], mdsInGPU.anchorX[thirdMDIndex]};
+    float ys[] = {mdsInGPU.anchorY[firstMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorY[thirdMDIndex]};
 
     tripletRadius = computeRadiusFromThreeAnchorHitspT3(xs, ys, g,f);    
     pass = pass and passRadiusCriterion(modulesInGPU, pixelRadius, pixelRadiusError, tripletRadius, lowerModuleIndex, middleModuleIndex, upperModuleIndex);
     if(not pass) return pass;
-    //more array accesses!!!
-    float rts[] = {rt1, rt2, rt3};
-    float zs[] = {z1, z2, z3};
-    float xPix[] = {mdsInGPU.anchorX[pixelInnerMDIndex], mdsInGPU.anchorX[pixelOuterMDIndex]};
-    float yPix[] = {mdsInGPU.anchorY[pixelInnerMDIndex], mdsInGPU.anchorY[pixelOuterMDIndex]};
-    float zPix[] = {mdsInGPU.anchorZ[pixelInnerMDIndex], mdsInGPU.anchorZ[pixelOuterMDIndex]};
+
+    float rts[] = {mdsInGPU.anchorRt[firstMDIndex], mdsInGPU.anchorRt[secondMDIndex], mdsInGPU.anchorRt[thirdMDIndex]};
+    float zs[] = {mdsInGPU.anchorZ[firstMDIndex], mdsInGPU.anchorZ[secondMDIndex], mdsInGPU.anchorZ[thirdMDIndex]};
     float rtPix[] = {mdsInGPU.anchorRt[pixelInnerMDIndex], mdsInGPU.anchorRt[pixelOuterMDIndex]};
+    float zPix[] = {mdsInGPU.anchorZ[pixelInnerMDIndex], mdsInGPU.anchorZ[pixelOuterMDIndex]};
+
+    uint16_t lowerModuleIndices[] = {lowerModuleIndex, middleModuleIndex, upperModuleIndex};
+    rzChiSquared = computePT3RZChiSquared(modulesInGPU, lowerModuleIndices, rtPix, zPix, rts, zs);
+
+    if(runChiSquaredCuts and pixelSegmentPt < 5.0f)
+    {
+        pass = pass and passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
+        if(not pass) return pass;
+    }
 
     float pixelG = segmentsInGPU.circleCenterX[pixelSegmentArrayIndex];
     float pixelF = segmentsInGPU.circleCenterY[pixelSegmentArrayIndex];
     float pixelRadiusPCA = segmentsInGPU.circleRadius[pixelSegmentArrayIndex];
 
-
-    unsigned int pixelAnchorHits[] = {pixelAnchorHitIndex1, pixelAnchorHitIndex2};
-    uint16_t lowerModuleIndices[] = {lowerModuleIndex, middleModuleIndex, upperModuleIndex};
-
-    rzChiSquared = computePT3RZChiSquared(modulesInGPU, lowerModuleIndices, rtPix, zPix, rts, zs);
-
     rPhiChiSquared = computePT3RPhiChiSquared(modulesInGPU, lowerModuleIndices, pixelG, pixelF, pixelRadiusPCA, xs, ys);
 
+    if(runChiSquaredCuts and pixelSegmentPt < 5.0f)
+    {
+        pass = pass and passPT3RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquared);
+        if(not pass) return pass;
+    }
+
+    float xPix[] = {mdsInGPU.anchorX[pixelInnerMDIndex], mdsInGPU.anchorX[pixelOuterMDIndex]};
+    float yPix[] = {mdsInGPU.anchorY[pixelInnerMDIndex], mdsInGPU.anchorY[pixelOuterMDIndex]};
     rPhiChiSquaredInwards = computePT3RPhiChiSquaredInwards(modulesInGPU, g, f, tripletRadius, xPix, yPix);
 
     if(runChiSquaredCuts and pixelSegmentPt < 5.0f)
     {
-        pass = pass and passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
-        pass = pass and passPT3RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquared);
         pass = pass and passPT3RPhiChiSquaredInwardsCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquaredInwards);
+        if(not pass) return pass;
     }
 
     return pass;
@@ -472,12 +459,11 @@ __device__ bool SDL::passPT3RPhiChiSquaredInwardsCuts(struct modules& modulesInG
 
 __device__ float SDL::computePT3RPhiChiSquaredInwards(struct modules& modulesInGPU, float& g, float& f, float& r, float* xPix, float* yPix)
 {
-    float chiSquared = 0;
-    for(size_t i = 0; i < 2; i++)
-    {
-        float residual = (xPix[i] - g) * (xPix[i] -g) + (yPix[i] - f) * (yPix[i] - f) - r * r;
-        chiSquared += residual * residual;
-    }
+    float residual = (xPix[0] - g) * (xPix[0] -g) + (yPix[0] - f) * (yPix[0] - f) - r * r;
+    float chiSquared = residual * residual;
+    residual = (xPix[1] - g) * (xPix[1] -g) + (yPix[1] - f) * (yPix[1] - f) - r * r;
+    chiSquared += residual * residual;
+
     //chiSquared /= 2;
     chiSquared *= 0.5f;
     return chiSquared;
@@ -560,10 +546,10 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
         const int moduleType = modulesInGPU.moduleType[lowerModuleIndex];
         const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
         const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
-        const int layer = modulesInGPU.layers[lowerModuleIndex] + 6 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex] == SDL::TwoS);
-        
-        residual = (layer <= 6) ?  (zs[i] - zPix[0]) - slope * (rts[i] - rtPix[0]) : (rts[i] - rtPix[0]) - (zs[i] - zPix[0])/slope;
-        
+        const int moduleSubdet = modulesInGPU.subdets[lowerModuleIndex];
+
+        residual = moduleSubdet == SDL::Barrel ? (zs[i] - zPix[0]) - slope * (rts[i] - rtPix[0]) : (rts[i] - rtPix[0]) - (zs[i] - zPix[0])/slope;
+ 
         //PS Modules
         if(moduleType == 0)
         {
@@ -574,9 +560,8 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
             error = 5.0f;
         }
 
-
         //special dispensation to tilted PS modules!
-        if(moduleType == 0 and layer <= 6 and moduleSide != Center)
+        if(moduleType == 0 and moduleSubdet == SDL::Barrel and moduleSide != Center)
         {
             float& drdz = modulesInGPU.drdzs[lowerModuleIndex];
             error /= sqrtf(1 + drdz * drdz);
@@ -754,8 +739,6 @@ __device__ bool SDL::passRadiusCriterion(struct modules& modulesInGPU, float& pi
         return passRadiusCriterionBBB(pixelRadius, pixelRadiusError, tripletRadius);
     }
 
-    //return ((modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap) & (passRadiusCriterionEEE(pixelRadius, pixelRadiusError, tripletRadius))) | ((modulesInGPU.subdets[middleModuleIndex] == SDL::Endcap) & (passRadiusCriterionBEE(pixelRadius, pixelRadiusError, tripletRadius))) | ((modulesInGPU.subdets[upperModuleIndex] == SDL::Endcap) & (passRadiusCriterionBBE(pixelRadius, pixelRadiusError, tripletRadius))) |  (passRadiusCriterionBBB(pixelRadius, pixelRadiusError, tripletRadius));
-
 }
 
 /*bounds for high Pt taken from : http://uaf-10.t2.ucsd.edu/~bsathian/SDL/T5_efficiency/efficiencies/new_efficiencies/efficiencies_20210513_T5_recovering_high_Pt_efficiencies/highE_radius_matching/highE_bounds.txt */
@@ -841,6 +824,5 @@ __device__ bool SDL::passRadiusCriterionEEE(float& pixelRadius, float& pixelRadi
     pixelRadiusInvMin = fmaxf(0, pixelRadiusInvMin);
 
     return checkIntervalOverlap(tripletRadiusInvMin, tripletRadiusInvMax, pixelRadiusInvMin, pixelRadiusInvMax);
-
 }
 
