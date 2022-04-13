@@ -14,6 +14,7 @@
 #include <cppitertools/enumerate.hpp>
 #include <cppitertools/zip.hpp>
 #include <numeric>
+#include <filesystem>
 
 enum TrackletType {
     BB1BB3 = 0,
@@ -157,5 +158,7 @@ int getDenomSimTrkType(int isimtrk);
 int bestSimHitMatch(int irecohit);
 int logicalLayer(const SDL::CPU::Module& module);
 int isAnchorLayer(const SDL::CPU::Module& module);
+
+TString get_absolute_path_after_check_file_exists(const std::string name);
 
 #endif
