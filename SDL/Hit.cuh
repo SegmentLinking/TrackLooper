@@ -43,16 +43,23 @@ namespace SDL
         float *highEdgeYs;
         float *lowEdgeXs;
         float *lowEdgeYs;
+
+        int* hitRanges;
+        int* hitRangesLower;
+        int* hitRangesUpper;
+        int8_t* hitRangesnLower;
+        int8_t* hitRangesnUpper;
         
         hits();
-        void freeMemory(cudaStream_t stream);
+        void freeMemory();
+        //void freeMemory(cudaStream_t stream);
         void freeMemoryCache();
         ~hits();
 
     };
 
-    void createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int maxHits, unsigned int max2SHits,cudaStream_t stream);
-    void createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int maxHits,cudaStream_t stream);
+    void createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int maxHits, unsigned int max2SHits,cudaStream_t stream,unsigned int evtnum);
+    void createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int maxHits,cudaStream_t stream,unsigned int evtnum);
     CUDA_G void addHitToMemoryKernel(struct hits& hitsInGPU,struct modules& modulesInGPU,const float* x,const float* y, const float* z,const uint16_t* moduleIndex,const float* phis, const int loopsize);
     //CUDA_G void checkHits(struct hits& hitsInGPU, const int loopsize);
     void addHitToMemory(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,cudaStream_t stream,struct objectRanges& rangesInGPU);

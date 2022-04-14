@@ -26,6 +26,7 @@ usage()
   echo "  -d    cut value ntuple        (With extra variables in a debug ntuple file)"
   echo "  -p    primitive object ntuple (With extra variables related to primitive objects)"
   echo "  -8    pt 0.8 cut              (Make pt cut to 0.8 GeV)"
+  echo "  -l    preload hits            (use hit preloading)"
   echo "  -2    CMSSW 12_2_0_pre2 geom  (Run geometry maps made from CMSSW_12_2_0_pre2)"
   echo "  -3    do T3T3 extensions      (-e turned on if not specified)"
   echo
@@ -33,7 +34,7 @@ usage()
 }
 
 # Parsing command-line opts
-while getopts ":cxgsmdp823eh" OPTION; do
+while getopts ":cxgsmdp8l23eh" OPTION; do
   case $OPTION in
     c) MAKECACHE=true;;
     x) MAKEEXPLICIT=true;;
@@ -42,6 +43,7 @@ while getopts ":cxgsmdp823eh" OPTION; do
     d) MAKECUTVALUES=true;;
     p) PRIMITIVE=true;;
     8) PT0P8=true;;
+    l) PRELOAD=true;;
     2) CMSSW12GEOM=true;;
     3) T3T3EXTENSION=true;;
     h) usage;;
@@ -57,6 +59,7 @@ if [ -z ${MAKECLEANBINARIES} ]; then MAKECLEANBINARIES=false; fi
 if [ -z ${MAKECUTVALUES} ]; then MAKECUTVALUES=false; fi
 if [ -z ${PRIMITIVE} ]; then PRIMITIVE=false; fi
 if [ -z ${PT0P8} ]; then PT0P8=false; fi
+if [ -z ${PRELOAD} ]; then PRELOAD=false; fi
 if [ -z ${CMSSW12GEOM} ]; then CMSSW12GEOM=false; fi
 if [ -z ${T3T3EXTENSION} ]; then T3T3EXTENSION=false; fi
 
@@ -83,6 +86,7 @@ echo "  MAKECLEANBINARIES : ${MAKECLEANBINARIES}"             | tee -a ${LOG}
 echo "  MAKECUTVALUES     : ${MAKECUTVALUES}"                 | tee -a ${LOG}
 echo "  PRIMITIVE         : ${PRIMITIVE}"                     | tee -a ${LOG}
 echo "  PT0P8             : ${PT0P8}"                         | tee -a ${LOG}
+echo "  Preload Hits      : ${PRELOAD}"                       | tee -a ${LOG}
 echo "  CMSSW12GEOM       : ${CMSSW12GEOM}"                   | tee -a ${LOG}
 echo "  T3T3EXTENSION     : ${T3T3EXTENSION}"                 | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
@@ -120,6 +124,10 @@ if $PRIMITIVE; then
     echo "debug : MAKETARGET=${MAKETARGET}"
 fi
 
+PreloadOPT=
+if $PRELOAD; then
+    PRELOADOPT="PRELOAD=-DPreload_hits"
+fi
 PT0P8OPT=
 if $PT0P8; then
     PT0P8OPT="PT0P8=-DPT0P8"
@@ -145,9 +153,9 @@ echo "--------------------------------------------------------------------------
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 if $SHOWLOG; then
-    (cd SDL && make clean && make ${CMSSW12GEOMOPT} ${PT0P8OPT} ${T3T3EXTENSIONOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
+    (cd SDL && make clean && make ${CMSSW12GEOMOPT} ${PT0P8OPT} ${T3T3EXTENSIONOPT} ${PRELOADOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
 else
-    (cd SDL && make clean && make ${CMSSW12GEOMOPT} ${PT0P8OPT} ${T3T3EXTENSIONOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
+    (cd SDL && make clean && make ${CMSSW12GEOMOPT} ${PT0P8OPT} ${T3T3EXTENSIONOPT} ${PRELOADOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
 fi
 
 if [ ! -f SDL/sdl.so ]; then
@@ -174,9 +182,9 @@ echo "--------------------------------------------------------------------------
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 if $SHOWLOG; then
-    make ${CMSSW12GEOMOPT} ${PT0P8OPT} ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} -j 2>&1 | tee -a ${LOG}
+    make ${CMSSW12GEOMOPT} ${PT0P8OPT} ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} ${PRELOADOPT} -j 2>&1 | tee -a ${LOG}
 else
-    make ${CMSSW12GEOMOPT} ${PT0P8OPT} ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} -j >> ${LOG} 2>&1
+    make ${CMSSW12GEOMOPT} ${PT0P8OPT} ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} ${PRELOADOPT} -j >> ${LOG} 2>&1
 fi
 
 if [ ! -f bin/sdl ]; then
