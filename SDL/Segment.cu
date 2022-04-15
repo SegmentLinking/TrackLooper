@@ -554,7 +554,9 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
 
 
     //cut 0 - z compatibility
-    pass = pass & (zIn * zOut >= 0);
+    pass =  pass and (zIn * zOut >= 0);
+    if(not pass) return pass;
+
     float dz = zOut - zIn;
     float dLum = copysignf(deltaZLum, zIn);
     float drtDzScale = sdSlope/tanf(sdSlope);
@@ -564,8 +566,8 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
 
     //completeness
 
-    pass = pass & ((rtOut >= rtLo) & (rtOut <= rtHi));
-
+    pass =  pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
+    if(not pass) return pass;
 
     dPhi = deltaPhi(xIn, yIn, zIn, xOut, yOut, zOut);
 
@@ -583,14 +585,16 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
         dPhiMax = dPhi;
         dPhiMin = dPhi;
     }
-    pass = pass & (fabsf(dPhi) <= sdCut);
+    pass =  pass and (fabsf(dPhi) <= sdCut);
+    if(not pass) return pass;
 
     float dzFrac = dz/zIn;
     dPhiChange = dPhi/dzFrac * (1.f + dzFrac);
     dPhiChangeMin = dPhiMin/dzFrac * (1.f + dzFrac);
     dPhiChangeMax = dPhiMax/dzFrac * (1.f + dzFrac);
     
-    pass = pass & (fabsf(dPhiChange) <= sdCut);
+    pass =  pass and (fabsf(dPhiChange) <= sdCut);
+    if(not pass) return pass;
 
     float dAlphaThresholdValues[3];
     dAlphaThreshold(dAlphaThresholdValues, modulesInGPU, mdsInGPU, xIn, yIn, zIn, rtIn, xOut, yOut, zOut, rtOut,innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex);
@@ -605,9 +609,11 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
     dAlphaOuterMDSegment = outerMDAlpha - dPhiChange;
     dAlphaInnerMDOuterMD = innerMDAlpha - outerMDAlpha;
    
-    pass = pass & (fabsf(dAlphaInnerMDSegment) < dAlphaThresholdValues[0]);
-    pass = pass & (fabsf(dAlphaOuterMDSegment) < dAlphaThresholdValues[1]);
-    pass = pass & (fabsf(dAlphaInnerMDOuterMD) < dAlphaThresholdValues[2]);
+    pass =  pass and (fabsf(dAlphaInnerMDSegment) < dAlphaThresholdValues[0]);
+    if(not pass) return pass;
+    pass =  pass and (fabsf(dAlphaOuterMDSegment) < dAlphaThresholdValues[1]);
+    if(not pass) return pass;
+    pass =  pass and (fabsf(dAlphaInnerMDOuterMD) < dAlphaThresholdValues[2]);
 
     return pass;
 }
@@ -642,19 +648,20 @@ __device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, s
     zLo = zIn + (zIn - deltaZLum) * (rtOut / rtIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - zGeom; //slope-correction only on outer end
     zHi = zIn + (zIn + deltaZLum) * (rtOut / rtIn - 1.f) * (zIn < 0.f ? 1.f : dzDrtScale) + zGeom;
 
-    pass = pass & ((zOut >= zLo) & (zOut <= zHi));
-
-    
+    pass =  pass and ((zOut >= zLo) & (zOut <= zHi));
+    if(not pass) return pass;
 
     sdCut = sdSlope + sqrtf(sdMuls * sdMuls + sdPVoff * sdPVoff);
 
     dPhi  = deltaPhi(xIn, yIn, zIn, xOut, yOut, zOut);
 
-    pass = pass & (fabsf(dPhi) <= sdCut);
+    pass =  pass and (fabsf(dPhi) <= sdCut);
+    if(not pass) return pass;
 
     dPhiChange = deltaPhiChange(xIn, yIn, zIn, xOut, yOut, zOut);
 
-    pass = pass & (fabsf(dPhiChange) <= sdCut);
+    pass =  pass and (fabsf(dPhiChange) <= sdCut);
+    if(not pass) return pass;
 
     float dAlphaThresholdValues[3];
     dAlphaThreshold(dAlphaThresholdValues, modulesInGPU, mdsInGPU, xIn, yIn, zIn, rtIn, xOut, yOut, zOut, rtOut, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex);
@@ -669,9 +676,11 @@ __device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, s
     dAlphaOuterMDSegmentThreshold = dAlphaThresholdValues[1];
     dAlphaInnerMDOuterMDThreshold = dAlphaThresholdValues[2];
     
-    pass = pass & (fabsf(dAlphaInnerMDSegment) < dAlphaThresholdValues[0]);
-    pass = pass & (fabsf(dAlphaOuterMDSegment) < dAlphaThresholdValues[1]);
-    pass = pass & (fabsf(dAlphaInnerMDOuterMD) < dAlphaThresholdValues[2]);
+    pass =  pass and (fabsf(dAlphaInnerMDSegment) < dAlphaThresholdValues[0]);
+    if(not pass) return pass;
+    pass =  pass and (fabsf(dAlphaOuterMDSegment) < dAlphaThresholdValues[1]);
+    if(not pass) return pass;
+    pass =  pass and (fabsf(dAlphaInnerMDOuterMD) < dAlphaThresholdValues[2]);
 
     return pass;
 }
@@ -688,14 +697,13 @@ __device__ bool SDL::runSegmentDefaultAlgo(struct modules& modulesInGPU, struct 
 
     if(modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel and modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel)
     {
-        pass = runSegmentDefaultAlgoBarrel(modulesInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold);
+        return runSegmentDefaultAlgoBarrel(modulesInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold);
     }
     else
     {
-        pass = runSegmentDefaultAlgoEndcap(modulesInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold);
+        return runSegmentDefaultAlgoEndcap(modulesInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold);
     }
 
-    return pass;
 }
 void SDL::printSegment(struct SDL::segments& segmentsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::hits& hitsInGPU, struct SDL::modules& modulesInGPU, unsigned int segmentIndex)
 {
