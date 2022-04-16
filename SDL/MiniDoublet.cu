@@ -320,23 +320,16 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
     const float sign = ((dz > 0) - (dz < 0)) * ((zLower > 0) - (zLower < 0));
     const float invertedcrossercut = (fabsf(dz) > 2) * sign;
 
-
     //cut convention - when a particular cut fails, the pass variable goes to false
     //but all cuts will be checked even if a previous cut has failed, this is
     //to prevent thread divergence
 
-    pass = pass &  (fabsf(dz) < dzCut and invertedcrossercut <= 0);
+    pass = pass  and ((fabsf(dz) < dzCut) & (invertedcrossercut <= 0));
+    if(not pass) return pass;
+
     float miniCut = 0;
 
-    if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
-    {
-        miniCut = dPhiThreshold(rtLower, modulesInGPU, lowerModuleIndex); 
-    }
-    else
-    {
-        miniCut = dPhiThreshold(rtUpper, modulesInGPU, lowerModuleIndex);
- 
-    }
+    miniCut = modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel ?  dPhiThreshold(rtLower, modulesInGPU, lowerModuleIndex) : dPhiThreshold(rtUpper, modulesInGPU, lowerModuleIndex); 
 
     // Cut #2: dphi difference
     // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3085
@@ -379,6 +372,7 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
     }
 
     pass = pass & (fabsf(dPhi) < miniCut);
+    if(not pass) return pass;
 
     // Cut #3: The dphi change going from lower Hit to upper Hit
     // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3076
@@ -441,12 +435,13 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGP
     const float dzCut = ((modulesInGPU.sides[lowerModuleIndex] == Endcap) ?  1.f : 10.f);
 
     pass = pass & (fabsf(dz) < dzCut);
+    if(not pass) return pass;
     // Cut #2 : drt cut. The dz difference can't be larger than 1cm. (max separation is 4mm for modules in the endcap)
     // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3100
     const float drtCut = modulesInGPU.moduleType[lowerModuleIndex] == PS ? 2.f : 10.f;
     float drt = rtLower - rtUpper;
     pass = pass & (fabs(drt) < drtCut);
-
+    if(not pass) return pass;
     // The new scheme shifts strip hits to be "aligned" along the line of sight from interaction point to the pixel hit (if it is PS modules)
     float xn = 0, yn = 0, zn = 0;
 
@@ -496,27 +491,15 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGP
     // if it was an endcap it will have zero effect
     if (modulesInGPU.moduleType[lowerModuleIndex] == PS)
     {
-        if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
-        {
-            dz = zLower - zn;
-        }
-        else
-        {
-            dz = zUpper - zn;
-        }
+        dz = modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel ? zLower - zn : zUpper - zn; 
     }
 
     float miniCut = 0;
-    if(modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
-    {
-        miniCut = dPhiThreshold(rtLower, modulesInGPU, lowerModuleIndex,dPhi, dz);
-    }
-    else
-    {
-        miniCut = dPhiThreshold(rtUpper, modulesInGPU, lowerModuleIndex, dPhi, dz);
-    }
+    miniCut = modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel ?  dPhiThreshold(rtLower, modulesInGPU, lowerModuleIndex,dPhi, dz) :  dPhiThreshold(rtUpper, modulesInGPU, lowerModuleIndex, dPhi, dz);
 
     pass = pass & (fabsf(dPhi) < miniCut);
+    if(not pass) return pass;
+
     // Cut #4: Another cut on the dphi after some modification
     // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3119-L3124
 
@@ -534,11 +517,11 @@ __device__ bool SDL::runMiniDoubletDefaultAlgo(struct modules& modulesInGPU, /*s
    bool pass;
    if(modulesInGPU.subdets[lowerModuleIndex] == Barrel)
    {
-        pass = runMiniDoubletDefaultAlgoBarrel(modulesInGPU, /*hitsInGPU,*/ lowerModuleIndex, upperModuleIndex, lowerHitIndex, upperHitIndex, dz, dPhi, dPhiChange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange,xLower,yLower,zLower,rtLower, xUpper,yUpper,zUpper,rtUpper);
+        return runMiniDoubletDefaultAlgoBarrel(modulesInGPU, /*hitsInGPU,*/ lowerModuleIndex, upperModuleIndex, lowerHitIndex, upperHitIndex, dz, dPhi, dPhiChange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange,xLower,yLower,zLower,rtLower, xUpper,yUpper,zUpper,rtUpper);
    } 
    else
    {
-       pass = runMiniDoubletDefaultAlgoEndcap(modulesInGPU, /*hitsInGPU,*/ lowerModuleIndex, upperModuleIndex, lowerHitIndex, upperHitIndex, dz, dPhi, dPhiChange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange,xLower,yLower,zLower,rtLower, xUpper,yUpper,zUpper,rtUpper);
+       return runMiniDoubletDefaultAlgoEndcap(modulesInGPU, /*hitsInGPU,*/ lowerModuleIndex, upperModuleIndex, lowerHitIndex, upperHitIndex, dz, dPhi, dPhiChange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange,xLower,yLower,zLower,rtLower, xUpper,yUpper,zUpper,rtUpper);
 
    }
    return pass;

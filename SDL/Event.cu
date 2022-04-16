@@ -831,7 +831,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec
         createHitsInUnifiedMemory(*hitsInGPU_event,hitOffset.at(evt+1),0,modStream,1);
         #endif
     //}
-            std::cout << "Running Event number = " << evt << " " << omp_get_thread_num() << std::endl;
+            std::cout << "Loading hits for Event number = " << evt << " " << omp_get_thread_num() << std::endl;
             //Load Hits
             preloadHitToEvent(out_trkX.at(evt), out_trkY.at(evt), out_trkZ.at(evt), out_hitId.at(evt),out_hitIdxs.at(evt),hitOffset.at(evt),evt,*hitsInGPU_event);
             hitsInGPUAll.push_back(hitsInGPU_event);
