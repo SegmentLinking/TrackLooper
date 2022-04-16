@@ -11,7 +11,7 @@
 #define CUDA_CONST_VAR
 #endif
 
-#include "Constants.h"
+#include "Constants.cuh"
 #include "EndcapGeometry.h"
 #include "TiltedGeometry.h"
 #include "Tracklet.cuh"
