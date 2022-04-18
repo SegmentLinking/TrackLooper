@@ -1862,7 +1862,7 @@ cudaStreamSynchronize(stream);
         { // used pixel type to select correct size-index arrays
             connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
             connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndex[superbin];// index to get start of connected modules for this superbin in map
-            for (int j=0; j < pixelMapping->connectedPixelsSizes[superbin]; j++)
+            for (int j=0; j < static_cast<int>(pixelMapping->connectedPixelsSizes[superbin]); j++)
             { // loop over modules from the size
                 segs_pix[totalSegs+j] = i; // save the pixel index in array to be transfered to kernel
                 segs_pix_offset[totalSegs+j] = j; // save this segment in array to be transfered to kernel
