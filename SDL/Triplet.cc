@@ -396,7 +396,7 @@ bool SDL::CPU::Triplet::passPointingConstraintBarrelBarrelEndcap(SDL::CPU::LogLe
     const float rtOut = outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->rt();
     const float zIn = innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->z();
     const float zOut = outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->z();
-    const float rtOut_o_rtIn = rtOut / rtIn;
+    //const float rtOut_o_rtIn = rtOut / rtIn;
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     const float k2Rinv1GeVf = kRinv1GeVf / 2.;
     const float ptCut = PTCUT;
@@ -474,8 +474,8 @@ bool SDL::CPU::Triplet::passPointingConstraintBarrelBarrelEndcap(SDL::CPU::LogLe
     const float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f; //will need a better guess than x4?
     drtErr += sdlMuls * sdlMuls * multDzDr * multDzDr / 3.f * coshEta * coshEta; //sloppy: relative muls is 1/3 of total muls
     drtErr = sqrt(drtErr);
-    const float drtMean = drtSDIn * dzOutInAbs / std::abs(dzSDIn); //
-    const float rtWindow = drtErr + rtGeom1;
+    //const float drtMean = drtSDIn * dzOutInAbs / std::abs(dzSDIn); //
+    //const float rtWindow = drtErr + rtGeom1;
     //const float rtLo_another = rtIn + drtMean / dzDrtScale - rtWindow;
     //const float rtHi_another = rtIn + drtMean + rtWindow;
 
@@ -509,15 +509,15 @@ bool SDL::CPU::Triplet::passPointingConstraintEndcapEndcapEndcap(SDL::CPU::LogLe
     const float deltaZLum = 15.f;
     const float pixelPSZpitch = 0.15;
     const float strip2SZpitch = 5.0;
-    const float zGeom =
-        ((innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->getModule()).moduleType() == SDL::CPU::Module::PS ? pixelPSZpitch : strip2SZpitch)
-        +
-        ((outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->getModule()).moduleType() == SDL::CPU::Module::PS ? pixelPSZpitch : strip2SZpitch);
+    //const float zGeom =
+    //    ((innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->getModule()).moduleType() == SDL::CPU::Module::PS ? pixelPSZpitch : strip2SZpitch)
+    //    +
+    //    ((outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->getModule()).moduleType() == SDL::CPU::Module::PS ? pixelPSZpitch : strip2SZpitch);
     const float rtIn = innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->rt();
     const float rtOut = outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->rt();
     const float zIn = innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->z();
     const float zOut = outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->z();
-    const float rtOut_o_rtIn = rtOut / rtIn;
+    //const float rtOut_o_rtIn = rtOut / rtIn;
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     const float k2Rinv1GeVf = kRinv1GeVf / 2.;
     const float ptCut = PTCUT;

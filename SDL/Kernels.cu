@@ -63,7 +63,7 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
 
             float dz, /*drt,*/ dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange;
 
-            float dzCut, drtCut;//, miniCut;
+            //float dzCut, drtCut;//, miniCut;
             bool success = runMiniDoubletDefaultAlgo(modulesInGPU, lowerModuleIndex, upperModuleIndex, lowerHitArrayIndex, upperHitArrayIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
 
             if(success)

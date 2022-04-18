@@ -523,7 +523,7 @@ void SDL::CPU::Tracklet::runTrackletDefaultAlgoBarrelBarrelBarrelBarrel_v1(SDL::
     const Hit& sdOut_mdOut_hit = (*outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr());
 
     // Cut #4: deltaPhiPos can be tighter
-    float deltaPhiPos = sdIn_mdOut_hit.deltaPhi(sdOut_mdOut_hit);
+    //float deltaPhiPos = sdIn_mdOut_hit.deltaPhi(sdOut_mdOut_hit);
     if (not (std::abs(deltaPhiPos) <= sdlCut) )
     {
         if (logLevel >= SDL::CPU::Log_Debug3)
@@ -797,7 +797,7 @@ void SDL::CPU::Tracklet::runTrackletDefaultAlgoBarrelBarrelBarrelBarrel_v1(SDL::
     const float dBetaRes = 0.02f / std::min(sdOut_d, sdIn_d);
     const float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
             + 0.25 * std::pow(std::abs(betaInRHmin - betaInRHmax) + std::abs(betaOutRHmin - betaOutRHmax), 2));
-    float dBeta = betaIn - betaOut;
+    //float dBeta = betaIn - betaOut;
     // const float dZeta = sdIn.zeta - sdOut.zeta;
 
     const float innerSgInnerMdDetId = (innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->getModule()).detId();

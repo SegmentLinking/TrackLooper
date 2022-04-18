@@ -677,7 +677,7 @@ void SDL::CPU::Segment::runSegmentDefaultAlgoEndcap(SDL::CPU::LogLevel logLevel)
     const float ptCut = PTCUT;
     const float sinAlphaMax = 0.95;
     const float deltaZLum = 15.f;
-    std::array<float, 5> miniMulsPtScaleEndcap {0.006, 0.006, 0.006, 0.006, 0.006}; //inter/extra-polated from L11 and L13 both roughly 0.006 [larger R have smaller value by ~50%]
+    //std::array<float, 5> miniMulsPtScaleEndcap {0.006, 0.006, 0.006, 0.006, 0.006}; //inter/extra-polated from L11 and L13 both roughly 0.006 [larger R have smaller value by ~50%]
 
     //float sdMuls;
 
