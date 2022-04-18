@@ -19,7 +19,7 @@
 #include "SDL/EndcapGeometry.h" // SDL::EndcapGeometr
 #include "SDL/ModuleConnectionMap.h" // SDL::ModuleConnectionMap
 #include "SDL/Event.cuh"
-#include "SDL/MathUtil.h"
+//#include "SDL/MathUtil.h"
 
 // Efficiency study modules
 #include "Study.h"
