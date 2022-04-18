@@ -693,7 +693,7 @@ __device__ bool SDL::runSegmentDefaultAlgo(struct modules& modulesInGPU, struct 
     rtLo = -999.f;
     rtHi = -999.f;
 
-    bool pass = true;
+    //bool pass = true;
 
     if(modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel and modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel)
     {

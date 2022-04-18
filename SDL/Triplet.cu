@@ -433,7 +433,7 @@ __device__ bool SDL::passPointingConstraint(struct SDL::modules& modulesInGPU, s
     {
         return passPointingConstraintEEE(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, thirdMDIndex, zOut, rtOut);
     }
-    
+    return false; // failsafe    
 }
 
 __device__ bool SDL::passPointingConstraintBBB(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex, float& zOut, float& rtOut)

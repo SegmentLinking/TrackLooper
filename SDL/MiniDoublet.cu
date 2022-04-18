@@ -470,7 +470,7 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGP
 
 __device__ bool SDL::runMiniDoubletDefaultAlgo(struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
 {
-   bool pass;
+   //bool pass;
    if(modulesInGPU.subdets[lowerModuleIndex] == Barrel)
    {
         return runMiniDoubletDefaultAlgoBarrel(modulesInGPU, /*hitsInGPU,*/ lowerModuleIndex, upperModuleIndex, lowerHitIndex, upperHitIndex, dz, dPhi, dPhiChange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange,xLower,yLower,zLower,rtLower, xUpper,yUpper,zUpper,rtUpper);
@@ -480,7 +480,7 @@ __device__ bool SDL::runMiniDoubletDefaultAlgo(struct modules& modulesInGPU, /*s
        return runMiniDoubletDefaultAlgoEndcap(modulesInGPU, /*hitsInGPU,*/ lowerModuleIndex, upperModuleIndex, lowerHitIndex, upperHitIndex, dz, dPhi, dPhiChange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange,xLower,yLower,zLower,rtLower, xUpper,yUpper,zUpper,rtUpper);
 
    }
-   return pass;
+   //return pass;
 }
 
 __device__ inline float SDL::dPhiThreshold(/*struct hits& hitsInGPU,*/float rt, struct modules& modulesInGPU, /*unsigned int hitIndex,*/ uint16_t& moduleIndex, float dPhi, float dz)
@@ -682,8 +682,8 @@ __device__ void SDL::shiftStripHits(struct modules& modulesInGPU, /*struct hits&
     float angleA; // in r-z plane the theta of the pixel hit in polar coordinate is the angleA
     float angleB; // this is the angle of tilted module in r-z plane ("drdz"), for endcap this is 90 degrees
     bool isEndcap; // If endcap, drdz = infinity
-    unsigned int pixelHitIndex; // Pointer to the pixel hit
-    unsigned int stripHitIndex; // Pointer to the strip hit
+    //unsigned int pixelHitIndex; // Pointer to the pixel hit
+    //unsigned int stripHitIndex; // Pointer to the strip hit
     float moduleSeparation;
     float drprime; // The radial shift size in x-y plane projection
     float drprime_x; // x-component of drprime

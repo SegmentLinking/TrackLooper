@@ -621,8 +621,8 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
 
 void SDL::fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nModules)
 {
-    uint16_t* moduleMap;
-    uint16_t* nConnectedModules;
+    //uint16_t* moduleMap;
+    //uint16_t* nConnectedModules;
     for(auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); ++it)
     {
         unsigned int detId = it->first;
@@ -642,12 +642,12 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
     std::vector<unsigned int> connectedModuleDetIds;
     std::vector<unsigned int> connectedModuleDetIds_pos;
     std::vector<unsigned int> connectedModuleDetIds_neg;
-    unsigned int* connectedPixelsIndex;
-    unsigned int* connectedPixelsIndexPos;
-    unsigned int* connectedPixelsIndexNeg;
-    unsigned int* connectedPixelsSizes;
-    unsigned int* connectedPixelsSizesPos;
-    unsigned int* connectedPixelsSizesNeg;
+    //unsigned int* connectedPixelsIndex;
+    //unsigned int* connectedPixelsIndexPos;
+    //unsigned int* connectedPixelsIndexNeg;
+    //unsigned int* connectedPixelsSizes;
+    //unsigned int* connectedPixelsSizesPos;
+    //unsigned int* connectedPixelsSizesNeg;
     cudaMallocHost(&pixelMapping.connectedPixelsIndex,size_superbins * sizeof(unsigned int));
     cudaMallocHost(&pixelMapping.connectedPixelsSizes,size_superbins * sizeof(unsigned int));
     cudaMallocHost(&pixelMapping.connectedPixelsIndexPos,size_superbins * sizeof(unsigned int));

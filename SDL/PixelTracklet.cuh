@@ -558,6 +558,7 @@ CUDA_DEV bool inline runPixelTrackletDefaultAlgo(struct modules& modulesInGPU, s
     {
         return runTrackletDefaultAlgoPPEE(modulesInGPU, rangesInGPU, mdsInGPU, segmentsInGPU, pixelLowerModuleIndex, outerInnerLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut,pt_beta, zLo, rtLo, rtHi, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
     }
+    return false;
 
 }
 }

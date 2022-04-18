@@ -389,8 +389,8 @@ bool hasAll12HitsWithNBarrel(unsigned int isimtrk, int nbarrel)
     }
 
 
-    float pt = trk.sim_pt()[isimtrk];
-    float eta = trk.sim_eta()[isimtrk];
+    //float pt = trk.sim_pt()[isimtrk];
+    //float eta = trk.sim_eta()[isimtrk];
 
     // if (abs((trk.sim_pt()[isimtrk] - 0.71710)) < 0.00001)
     // {
@@ -968,7 +968,7 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
         else
             simHitIdxs = &trk.pix_simHitIdx();
 
-        if ( (*simHitIdxs).size() <= hitidx)
+        if ( static_cast<const int>((*simHitIdxs).size()) <= hitidx)
         {
             std::cout << "ERROR" << std::endl;
             std::cout <<  " hittype: " << hittype <<  std::endl;
@@ -980,7 +980,7 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
 
         for (auto& simhit_idx : (*simHitIdxs).at(hitidx))
         {
-            if (trk.simhit_simTrkIdx().size() <= simhit_idx)
+            if (static_cast<const int>(trk.simhit_simTrkIdx().size()) <= simhit_idx)
             {
                 std::cout << (*simHitIdxs).size() << " " << hittype << std::endl;
                 std::cout << hitidx << " " << hittype << std::endl;
@@ -1119,7 +1119,7 @@ bool isMTVMatch(unsigned int isimtrk, std::vector<unsigned int> hit_idxs, bool v
 
     if (verbose)
     {
-        if (v_intersection.size() > ana.nmatch_threshold)
+        if (static_cast<int>(v_intersection.size()) > ana.nmatch_threshold)
         {
             std::cout << "Matched" << std::endl;
         }
@@ -1512,7 +1512,7 @@ float distxySimHitConsistentWithHelix(SDLMath::Helix& helix, int isimhitidx)
         return 999;
 
     // Expected hit position with given z
-    auto [x, y, z, r] = helix.get_helix_point(t);
+    //auto [x, y, z, r] = helix.get_helix_point(t);
 
     // ( expected_r - simhit_r ) / expected_r
     float distxy = helix.compare_xy(point);
@@ -1621,8 +1621,8 @@ std::vector<std::vector<short>>&    out_isQuad_vec
         TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
         TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
         TVector3 r3PCA(calculateR3FromPCA(p3PCA, trk.see_dxy()[iSeed], trk.see_dz()[iSeed]));
-        auto const &seedHitsV = trk.see_hitIdx()[iSeed];
-        auto const &seedHitTypesV = trk.see_hitType()[iSeed];
+        //auto const &seedHitsV = trk.see_hitIdx()[iSeed];
+        //auto const &seedHitTypesV = trk.see_hitType()[iSeed];
 
         bool good_seed_type = false;
         if (trk.see_algo()[iSeed] == 4) good_seed_type = true;
@@ -1633,37 +1633,37 @@ std::vector<std::vector<short>>&    out_isQuad_vec
         if (trk.see_algo()[iSeed] == 24) good_seed_type = true;
         if (not good_seed_type) continue;
 
-        int nHits = seedHitsV.size();
+        //int nHits = seedHitsV.size();
 
-        int seedSD_mdRef_pixL = trk.see_hitIdx()[iSeed][0];
-        int seedSD_mdRef_pixU = trk.see_hitIdx()[iSeed][1];
+        //int seedSD_mdRef_pixL = trk.see_hitIdx()[iSeed][0];
+        //int seedSD_mdRef_pixU = trk.see_hitIdx()[iSeed][1];
         TVector3 seedSD_mdRef_r3 = r3PCA;
-        float seedSD_mdRef_rt = r3PCA.Pt();
-        float seedSD_mdRef_z = r3PCA.Z();
-        float seedSD_mdRef_r = r3PCA.Mag();
-        float seedSD_mdRef_phi = r3PCA.Phi();
-        float seedSD_mdRef_alpha = r3PCA.DeltaPhi(p3PCA);
+        //float seedSD_mdRef_rt = r3PCA.Pt();
+        //float seedSD_mdRef_z = r3PCA.Z();
+        //float seedSD_mdRef_r = r3PCA.Mag();
+        //float seedSD_mdRef_phi = r3PCA.Phi();
+        //float seedSD_mdRef_alpha = r3PCA.DeltaPhi(p3PCA);
 
-        int seedSD_mdOut_pixL = trk.see_hitIdx()[iSeed][2];
-        int seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
+        //int seedSD_mdOut_pixL = trk.see_hitIdx()[iSeed][2];
+        //int seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
         TVector3 seedSD_mdOut_r3 = r3LH;
-        float seedSD_mdOut_rt = r3LH.Pt();
-        float seedSD_mdOut_z = r3LH.Z();
-        float seedSD_mdOut_r = r3LH.Mag();
-        float seedSD_mdOut_phi = r3LH.Phi();
-        float seedSD_mdOut_alpha = r3LH.DeltaPhi(p3LH);
+        //float seedSD_mdOut_rt = r3LH.Pt();
+        //float seedSD_mdOut_z = r3LH.Z();
+        //float seedSD_mdOut_r = r3LH.Mag();
+        //float seedSD_mdOut_phi = r3LH.Phi();
+        //float seedSD_mdOut_alpha = r3LH.DeltaPhi(p3LH);
 
-        float seedSD_iRef = iSeed;
-        float seedSD_iOut = iSeed;
+        //float seedSD_iRef = iSeed;
+        //float seedSD_iOut = iSeed;
         TVector3 seedSD_r3 = r3LH;
-        float seedSD_rt = r3LH.Pt();
-        float seedSD_rtInv = 1.f / seedSD_rt;
-        float seedSD_z = seedSD_r3.Z();
+        //float seedSD_rt = r3LH.Pt();
+        //float seedSD_rtInv = 1.f / seedSD_rt;
+        //float seedSD_z = seedSD_r3.Z();
         TVector3 seedSD_p3 = p3LH;
-        float seedSD_alpha = r3LH.DeltaPhi(p3LH);
-        float seedSD_dr = (r3LH - r3PCA).Pt();
-        float seedSD_d = seedSD_rt - r3PCA.Pt();
-        float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
+        //float seedSD_alpha = r3LH.DeltaPhi(p3LH);
+        //float seedSD_dr = (r3LH - r3PCA).Pt();
+        //float seedSD_d = seedSD_rt - r3PCA.Pt();
+        //float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
 
         float pixelSegmentDeltaPhiChange = r3LH.DeltaPhi(p3LH);
         float ptIn = p3LH.Pt();
@@ -1893,8 +1893,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
         TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
         TVector3 r3PCA(calculateR3FromPCA(p3PCA, trk.see_dxy()[iSeed], trk.see_dz()[iSeed]));
-        auto const &seedHitsV = trk.see_hitIdx()[iSeed];
-        auto const &seedHitTypesV = trk.see_hitType()[iSeed];
+        //auto const &seedHitsV = trk.see_hitIdx()[iSeed];
+        //auto const &seedHitTypesV = trk.see_hitType()[iSeed];
 
         bool good_seed_type = false;
         if (trk.see_algo()[iSeed] == 4) good_seed_type = true;
@@ -1905,37 +1905,37 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         if (trk.see_algo()[iSeed] == 24) good_seed_type = true;
         if (not good_seed_type) continue;
 
-        int nHits = seedHitsV.size();
+        //int nHits = seedHitsV.size();
 
-        int seedSD_mdRef_pixL = trk.see_hitIdx()[iSeed][0];
-        int seedSD_mdRef_pixU = trk.see_hitIdx()[iSeed][1];
+        //int seedSD_mdRef_pixL = trk.see_hitIdx()[iSeed][0];
+        //int seedSD_mdRef_pixU = trk.see_hitIdx()[iSeed][1];
         TVector3 seedSD_mdRef_r3 = r3PCA;
-        float seedSD_mdRef_rt = r3PCA.Pt();
-        float seedSD_mdRef_z = r3PCA.Z();
-        float seedSD_mdRef_r = r3PCA.Mag();
-        float seedSD_mdRef_phi = r3PCA.Phi();
-        float seedSD_mdRef_alpha = r3PCA.DeltaPhi(p3PCA);
+        //float seedSD_mdRef_rt = r3PCA.Pt();
+        //float seedSD_mdRef_z = r3PCA.Z();
+        //float seedSD_mdRef_r = r3PCA.Mag();
+        //float seedSD_mdRef_phi = r3PCA.Phi();
+        //float seedSD_mdRef_alpha = r3PCA.DeltaPhi(p3PCA);
 
-        int seedSD_mdOut_pixL = trk.see_hitIdx()[iSeed][2];
-        int seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
+        //int seedSD_mdOut_pixL = trk.see_hitIdx()[iSeed][2];
+        //int seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
         TVector3 seedSD_mdOut_r3 = r3LH;
-        float seedSD_mdOut_rt = r3LH.Pt();
-        float seedSD_mdOut_z = r3LH.Z();
-        float seedSD_mdOut_r = r3LH.Mag();
-        float seedSD_mdOut_phi = r3LH.Phi();
-        float seedSD_mdOut_alpha = r3LH.DeltaPhi(p3LH);
+        //float seedSD_mdOut_rt = r3LH.Pt();
+        //float seedSD_mdOut_z = r3LH.Z();
+        //float seedSD_mdOut_r = r3LH.Mag();
+        //float seedSD_mdOut_phi = r3LH.Phi();
+        //float seedSD_mdOut_alpha = r3LH.DeltaPhi(p3LH);
 
-        float seedSD_iRef = iSeed;
-        float seedSD_iOut = iSeed;
+        //float seedSD_iRef = iSeed;
+        //float seedSD_iOut = iSeed;
         TVector3 seedSD_r3 = r3LH;
-        float seedSD_rt = r3LH.Pt();
-        float seedSD_rtInv = 1.f / seedSD_rt;
-        float seedSD_z = seedSD_r3.Z();
+        //float seedSD_rt = r3LH.Pt();
+        //float seedSD_rtInv = 1.f / seedSD_rt;
+        //float seedSD_z = seedSD_r3.Z();
         TVector3 seedSD_p3 = p3LH;
-        float seedSD_alpha = r3LH.DeltaPhi(p3LH);
-        float seedSD_dr = (r3LH - r3PCA).Pt();
-        float seedSD_d = seedSD_rt - r3PCA.Pt();
-        float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
+        //float seedSD_alpha = r3LH.DeltaPhi(p3LH);
+        //float seedSD_dr = (r3LH - r3PCA).Pt();
+        //float seedSD_d = seedSD_rt - r3PCA.Pt();
+        //float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
 
         float pixelSegmentDeltaPhiChange = r3LH.DeltaPhi(p3LH);
         float ptIn = p3LH.Pt();
@@ -2132,8 +2132,8 @@ float addPixelSegments(SDL::CPU::Event& event, int isimtrk)
         TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
         TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
         TVector3 r3PCA(calculateR3FromPCA(p3PCA, trk.see_dxy()[iSeed], trk.see_dz()[iSeed]));
-        auto const& seedHitsV = trk.see_hitIdx()[iSeed];
-        auto const& seedHitTypesV = trk.see_hitType()[iSeed];
+        //auto const& seedHitsV = trk.see_hitIdx()[iSeed];
+        //auto const& seedHitTypesV = trk.see_hitType()[iSeed];
 
         // /// track algorithm; partial copy from TrackBase.h
         // enum class TrackAlgorithm {
@@ -2176,7 +2176,7 @@ float addPixelSegments(SDL::CPU::Event& event, int isimtrk)
         // if (trk.see_algo()[iSeed] < 4 and trk.see_algo()[iSeed] > 8)
         //     continue;
 
-        int nHits = seedHitsV.size();
+        //int nHits = seedHitsV.size();
 
         //assert(nHits == 4);
         //for (int iH = 0; iH < nHits; ++iH){
@@ -2186,14 +2186,14 @@ float addPixelSegments(SDL::CPU::Event& event, int isimtrk)
 
         // float seedSD_mdRef_pixL = HitIndexWithType(trk.see_hitIdx()[iSeed][0], HitType(trk.see_hitType()[iSeed][0])).indexWithType;
         // float seedSD_mdRef_pixU = HitIndexWithType(trk.see_hitIdx()[iSeed][1], HitType(trk.see_hitType()[iSeed][1])).indexWithType;
-        int seedSD_mdRef_pixL = trk.see_hitIdx()[iSeed][0];
-        int seedSD_mdRef_pixU = trk.see_hitIdx()[iSeed][1];
+        //int seedSD_mdRef_pixL = trk.see_hitIdx()[iSeed][0];
+        //int seedSD_mdRef_pixU = trk.see_hitIdx()[iSeed][1];
         TVector3 seedSD_mdRef_r3 = r3PCA;
-        float seedSD_mdRef_rt = r3PCA.Pt();
-        float seedSD_mdRef_z = r3PCA.Z();
-        float seedSD_mdRef_r = r3PCA.Mag();
-        float seedSD_mdRef_phi = r3PCA.Phi();
-        float seedSD_mdRef_alpha = r3PCA.DeltaPhi(p3PCA);
+        //float seedSD_mdRef_rt = r3PCA.Pt();
+        //float seedSD_mdRef_z = r3PCA.Z();
+        //float seedSD_mdRef_r = r3PCA.Mag();
+        //float seedSD_mdRef_phi = r3PCA.Phi();
+        //float seedSD_mdRef_alpha = r3PCA.DeltaPhi(p3PCA);
         // const int itpRL = simsPerHitAll(seedSD_mdRef_pixL); // TODO: best sim trk idx SO PERHAPS NOT NEEDED
         // const int itpRU = simsPerHitAll(seedSD_mdRef_pixU); // TODO: best sim trk idx
         // float seedSD_mdRef_itp = itpRL;
@@ -2216,16 +2216,16 @@ float addPixelSegments(SDL::CPU::Event& event, int isimtrk)
         //     seedSD_mdRef_itp = itpRU;
         // }
 
-        int seedSD_mdOut_pixL = trk.see_hitIdx()[iSeed][2];
-        int seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
+        //int seedSD_mdOut_pixL = trk.see_hitIdx()[iSeed][2];
+        //int seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
         // if (nPix >= 4)
         //     seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
         TVector3 seedSD_mdOut_r3 = r3LH;
-        float seedSD_mdOut_rt = r3LH.Pt();
-        float seedSD_mdOut_z = r3LH.Z();
-        float seedSD_mdOut_r = r3LH.Mag();
-        float seedSD_mdOut_phi = r3LH.Phi();
-        float seedSD_mdOut_alpha = r3LH.DeltaPhi(p3LH);
+        //float seedSD_mdOut_rt = r3LH.Pt();
+        //float seedSD_mdOut_z = r3LH.Z();
+        //float seedSD_mdOut_r = r3LH.Mag();
+        //float seedSD_mdOut_phi = r3LH.Phi();
+        //float seedSD_mdOut_alpha = r3LH.DeltaPhi(p3LH);
         // const int itpOL = simsPerHitAll(seedSD_mdOut_pixL);
         // const int itpOU = simsPerHitAll(seedSD_mdOut_pixU);
         // float seedSD_mdOut_itp = itpOL;
@@ -2247,17 +2247,17 @@ float addPixelSegments(SDL::CPU::Event& event, int isimtrk)
         //     seedSD_mdOut_itp = itpOU;
         // }
 
-        float seedSD_iRef = iSeed;
-        float seedSD_iOut = iSeed;
+        //float seedSD_iRef = iSeed;
+        //float seedSD_iOut = iSeed;
         TVector3 seedSD_r3 = r3LH;
-        float seedSD_rt = r3LH.Pt();
-        float seedSD_rtInv = 1.f / seedSD_rt;
-        float seedSD_z = seedSD_r3.Z();
+        //float seedSD_rt = r3LH.Pt();
+        //float seedSD_rtInv = 1.f / seedSD_rt;
+        //float seedSD_z = seedSD_r3.Z();
         TVector3 seedSD_p3 = p3LH;
-        float seedSD_alpha = r3LH.DeltaPhi(p3LH);
-        float seedSD_dr = (r3LH - r3PCA).Pt();
-        float seedSD_d = seedSD_rt - r3PCA.Pt();
-        float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
+        //float seedSD_alpha = r3LH.DeltaPhi(p3LH);
+        //float seedSD_dr = (r3LH - r3PCA).Pt();
+        //float seedSD_d = seedSD_rt - r3PCA.Pt();
+        //float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
 
         // std::map<int, int> tps;
         // int seedSD_itp = -1;
@@ -2327,24 +2327,24 @@ float addPixelSegments(SDL::CPU::Event& event, int isimtrk)
         // Inner most hit
         std::vector<SDL::CPU::Hit> hits;
         int hitidx0 = trk.see_hitIdx()[iSeed][0];
-        int hittype0 = trk.see_hitType()[iSeed][0];
+        //int hittype0 = trk.see_hitType()[iSeed][0];
         // hits.push_back(SDL::CPU::Hit(trk.pix_x()[hitidx0], trk.pix_y()[hitidx0], trk.pix_z()[hitidx0], hitidx0));
         // hits.push_back(SDL::CPU::Hit(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), hitidx0));
         hits.push_back(SDL::CPU::Hit(p3PCA.Pt(), p3PCA.Eta(), p3PCA.Phi(), hitidx0));
         // hits.push_back(SDL::CPU::Hit(1, 2, 3, hitidx0));
         int hitidx1 = trk.see_hitIdx()[iSeed][1];
-        int hittype1 = trk.see_hitType()[iSeed][1];
+        //int hittype1 = trk.see_hitType()[iSeed][1];
         // hits.push_back(SDL::CPU::Hit(trk.pix_x()[hitidx1], trk.pix_y()[hitidx1], trk.pix_z()[hitidx1], hitidx1));
         hits.push_back(SDL::CPU::Hit(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), hitidx1));
         // hits.push_back(SDL::CPU::Hit(4, 5, 6, hitidx1));
         int hitidx2 = trk.see_hitIdx()[iSeed][2];
-        int hittype2 = trk.see_hitType()[iSeed][2];
+        //int hittype2 = trk.see_hitType()[iSeed][2];
         // hits.push_back(SDL::CPU::Hit(trk.pix_x()[hitidx2], trk.pix_y()[hitidx2], trk.pix_z()[hitidx2], hitidx2));
         hits.push_back(SDL::CPU::Hit(r3LH.X(), trk.see_dxy()[iSeed], trk.see_dz()[iSeed], hitidx2));
         // hits.push_back(SDL::CPU::Hit(r3LH.X(), r3LH.Y(), r3LH.Z(), hitidx2));
         // hits.push_back(SDL::CPU::Hit(7, 8, 9, hitidx2));
         int hitidx3 = trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]; // repeat last one if triplet
-        int hittype3 = trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitType()[iSeed][3] : trk.see_hitIdx()[iSeed][2]; // repeat last one if triplet
+        //int hittype3 = trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitType()[iSeed][3] : trk.see_hitIdx()[iSeed][2]; // repeat last one if triplet
         // hits.push_back(SDL::CPU::Hit(trk.pix_x()[hitidx3], trk.pix_y()[hitidx3], trk.pix_z()[hitidx3], hitidx3));
         hits.push_back(SDL::CPU::Hit(r3LH.X(), r3LH.Y(), r3LH.Z(), hitidx3));
         // hits.push_back(SDL::CPU::Hit(10, 11, 12, hitidx3));
@@ -2631,20 +2631,20 @@ bool isDenomSimTrk(int isimtrk)
 {
     if (isimtrk < 0)
         return false;
-    const float& pt = trk.sim_pt()[isimtrk];
-    const float& eta = trk.sim_eta()[isimtrk];
-    const float& dz = trk.sim_pca_dz()[isimtrk];
-    const float& dxy = trk.sim_pca_dxy()[isimtrk];
-    const float& phi = trk.sim_phi()[isimtrk];
+    //const float& pt = trk.sim_pt()[isimtrk];
+    //const float& eta = trk.sim_eta()[isimtrk];
+    //const float& dz = trk.sim_pca_dz()[isimtrk];
+    //const float& dxy = trk.sim_pca_dxy()[isimtrk];
+    //const float& phi = trk.sim_phi()[isimtrk];
     const int& bunch = trk.sim_bunchCrossing()[isimtrk];
     const int& event = trk.sim_event()[isimtrk];
-    const int& vtxIdx = trk.sim_parentVtxIdx()[isimtrk];
-    const int& pdgidtrk = trk.sim_pdgId()[isimtrk];
+    //const int& vtxIdx = trk.sim_parentVtxIdx()[isimtrk];
+    //const int& pdgidtrk = trk.sim_pdgId()[isimtrk];
     const int& q = trk.sim_q()[isimtrk];
-    const float& vtx_x = trk.simvtx_x()[vtxIdx];
-    const float& vtx_y = trk.simvtx_y()[vtxIdx];
-    const float& vtx_z = trk.simvtx_z()[vtxIdx];
-    const float& vtx_perp = sqrt(vtx_x * vtx_x + vtx_y * vtx_y);
+    //const float& vtx_x = trk.simvtx_x()[vtxIdx];
+    //const float& vtx_y = trk.simvtx_y()[vtxIdx];
+    //const float& vtx_z = trk.simvtx_z()[vtxIdx];
+    //const float& vtx_perp = sqrt(vtx_x * vtx_x + vtx_y * vtx_y);
 
     if (bunch != 0)
         return false;
@@ -2666,14 +2666,14 @@ bool isDenomOfInterestSimTrk(int isimtrk)
     const float& pt = trk.sim_pt()[isimtrk];
     if (pt < 1)
         return false;
-    const float& eta = trk.sim_eta()[isimtrk];
-    const float& dz = trk.sim_pca_dz()[isimtrk];
-    const float& dxy = trk.sim_pca_dxy()[isimtrk];
-    const float& phi = trk.sim_phi()[isimtrk];
+    //const float& eta = trk.sim_eta()[isimtrk];
+    //const float& dz = trk.sim_pca_dz()[isimtrk];
+    //const float& dxy = trk.sim_pca_dxy()[isimtrk];
+    //const float& phi = trk.sim_phi()[isimtrk];
     const int& bunch = trk.sim_bunchCrossing()[isimtrk];
-    const int& event = trk.sim_event()[isimtrk];
+    //const int& event = trk.sim_event()[isimtrk];
     const int& vtxIdx = trk.sim_parentVtxIdx()[isimtrk];
-    const int& pdgidtrk = trk.sim_pdgId()[isimtrk];
+    //const int& pdgidtrk = trk.sim_pdgId()[isimtrk];
     const int& q = trk.sim_q()[isimtrk];
     const float& vtx_x = trk.simvtx_x()[vtxIdx];
     const float& vtx_y = trk.simvtx_y()[vtxIdx];
@@ -2708,13 +2708,13 @@ int getDenomSimTrkType(int isimtrk)
     const float& eta = trk.sim_eta()[isimtrk];
     if (pt < 1 or abs(eta) > 2.4)
         return 2; // sim and charged
-    const float& dz = trk.sim_pca_dz()[isimtrk];
-    const float& dxy = trk.sim_pca_dxy()[isimtrk];
-    const float& phi = trk.sim_phi()[isimtrk];
+    //const float& dz = trk.sim_pca_dz()[isimtrk];
+    //const float& dxy = trk.sim_pca_dxy()[isimtrk];
+    //const float& phi = trk.sim_phi()[isimtrk];
     const int& bunch = trk.sim_bunchCrossing()[isimtrk];
     const int& event = trk.sim_event()[isimtrk];
     const int& vtxIdx = trk.sim_parentVtxIdx()[isimtrk];
-    const int& pdgidtrk = trk.sim_pdgId()[isimtrk];
+    //const int& pdgidtrk = trk.sim_pdgId()[isimtrk];
     const float& vtx_x = trk.simvtx_x()[vtxIdx];
     const float& vtx_y = trk.simvtx_y()[vtxIdx];
     const float& vtx_z = trk.simvtx_z()[vtxIdx];
