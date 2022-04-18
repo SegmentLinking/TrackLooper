@@ -340,8 +340,8 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     unsigned int pixelInnerMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
     unsigned int pixelOuterMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
 
-    unsigned int pixelAnchorHitIndex1 = mdsInGPU.anchorHitIndices[pixelInnerMDIndex];
-    unsigned int pixelAnchorHitIndex2 = mdsInGPU.anchorHitIndices[pixelOuterMDIndex];
+    //unsigned int pixelAnchorHitIndex1 = mdsInGPU.anchorHitIndices[pixelInnerMDIndex];
+    //unsigned int pixelAnchorHitIndex2 = mdsInGPU.anchorHitIndices[pixelOuterMDIndex];
 
     pixelRadius = pixelSegmentPt/(2.f * k2Rinv1GeVf);
     pixelRadiusError = pixelSegmentPtError/(2.f * k2Rinv1GeVf);
@@ -545,7 +545,7 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
         uint16_t& lowerModuleIndex = lowerModuleIndices[i];
         const int moduleType = modulesInGPU.moduleType[lowerModuleIndex];
         const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
-        const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
+        //const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
         const int moduleSubdet = modulesInGPU.subdets[lowerModuleIndex];
 
         residual = moduleSubdet == SDL::Barrel ? (zs[i] - zPix[0]) - slope * (rts[i] - rtPix[0]) : (rts[i] - rtPix[0]) - (zs[i] - zPix[0])/slope;
@@ -581,17 +581,17 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, uin
     float chiSquared = 0;
     ModuleType moduleType;
     short moduleSubdet, moduleSide;
-    ModuleLayerType moduleLayerType;
-    float drdz;
+    //ModuleLayerType moduleLayerType;
+    //float drdz;
     float inv1 = 0.01f/0.009f;
     float inv2 = 0.15f/0.009f;
-    float inv3 = 2.4f/0.009f;
+    //float inv3 = 2.4f/0.009f;
     for(size_t i = 0; i < 3; i++)
     {
         moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
         moduleSubdet = modulesInGPU.subdets[lowerModuleIndices[i]];
         moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
-        moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndices[i]];
+        //moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndices[i]];
         float& drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
         slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
         //category 1 - barrel PS flat

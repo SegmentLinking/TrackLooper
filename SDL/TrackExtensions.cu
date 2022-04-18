@@ -3341,7 +3341,7 @@ __device__ float SDL::computeTERZChiSquared(struct modules& modulesInGPU, struct
             //outerModuleAnchorHitIndices
             const int moduleType = modulesInGPU.moduleType[lowerModuleIndex];
             const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
-            const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
+            //const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
             const int layer = modulesInGPU.layers[lowerModuleIndex] + 6 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex] == SDL::TwoS);
         
             residual = (layer <= 6) ?  zAnchor - (slope * rtAnchor + intercept) : rtAnchor - (zAnchor/slope + intercept/slope);
@@ -3457,7 +3457,7 @@ __device__ float SDL::computeT3T3RZChiSquared(struct modules& modulesInGPU, stru
 
         const int moduleType = modulesInGPU.moduleType[lowerModuleIndex];
         const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
-        const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
+        //const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
         const int layer = modulesInGPU.layers[lowerModuleIndex] + 6 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex] == SDL::TwoS); 
         residual = (layer <= 6) ?  zs[i] - (slope * rts[i] + intercept) : rts[i] - (zs[i]/slope + intercept/slope);
         if(moduleType == 0)

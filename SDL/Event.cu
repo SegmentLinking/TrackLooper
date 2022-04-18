@@ -721,8 +721,8 @@ cudaStreamSynchronize(stream);
 
         uint16_t upperModuleIndex = module_partnerModuleIndices[lowerModuleIndex];
 
-        int lowerHitRanges = module_hitRanges[lowerModuleIndex*2];
-        int upperHitRanges = module_hitRanges[upperModuleIndex*2];
+        //int lowerHitRanges = module_hitRanges[lowerModuleIndex*2];
+        //int upperHitRanges = module_hitRanges[upperModuleIndex*2];
 
         if(module_hitRanges[lowerModuleIndex * 2] == -1) continue; //return;
         if(module_hitRanges[upperModuleIndex * 2] == -1) continue; //return;

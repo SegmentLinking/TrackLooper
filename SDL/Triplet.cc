@@ -226,9 +226,9 @@ bool SDL::CPU::Triplet::passPointingConstraintBarrelBarrelBarrel(SDL::CPU::LogLe
     // NOTE in triplet InUp == OutLo
 
     const bool isPS_InLo = ((innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->getModule()).moduleType() == SDL::CPU::Module::PS);
-    const bool isPS_OutLo = ((outerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->getModule()).moduleType() == SDL::CPU::Module::PS);
+    //const bool isPS_OutLo = ((outerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->getModule()).moduleType() == SDL::CPU::Module::PS);
     const bool isPS_OutUp = ((outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->getModule()).moduleType() == SDL::CPU::Module::PS);
-    const bool isEC_OutUp = ((outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->getModule()).subdet() == SDL::CPU::Module::Endcap);
+    //const bool isEC_OutUp = ((outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->getModule()).subdet() == SDL::CPU::Module::Endcap);
 
     const float rt_InLo = innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->rt();
     const float rt_OutUp = outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->rt();
@@ -310,7 +310,7 @@ bool SDL::CPU::Triplet::passPointingConstraintBarrelBarrelBarrel(SDL::CPU::LogLe
     //--------------------------------------------------------------------------
 
     const float drt_OutUp_InLo = (rt_OutUp - rt_InLo);
-    const float invRt_InLo = 1. / rt_InLo;
+    //const float invRt_InLo = 1. / rt_InLo;
     const float r3_InLo = sqrt(z_InLo * z_InLo + rt_InLo * rt_InLo);
     const float drt_InSeg = innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->rt() - innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->rt();
     const float dz_InSeg  = innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->z() - innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->z();
@@ -403,7 +403,7 @@ bool SDL::CPU::Triplet::passPointingConstraintBarrelBarrelEndcap(SDL::CPU::LogLe
     const float sinAlphaMax = 0.95;
     const float sdlSlope = std::asin(std::min(rtOut * k2Rinv1GeVf / ptCut, sinAlphaMax));
     const float dzDrtScale = tan(sdlSlope) / sdlSlope;//FIXME: need approximate value
-    const float zLo = zIn + (zIn - deltaZLum) * (rtOut_o_rtIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - zGeom; //slope-correction only on outer end
+    //const float zLo = zIn + (zIn - deltaZLum) * (rtOut_o_rtIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - zGeom; //slope-correction only on outer end
 
     // Cut #0: Preliminary
     // (Only here in endcap case)
@@ -476,8 +476,8 @@ bool SDL::CPU::Triplet::passPointingConstraintBarrelBarrelEndcap(SDL::CPU::LogLe
     drtErr = sqrt(drtErr);
     const float drtMean = drtSDIn * dzOutInAbs / std::abs(dzSDIn); //
     const float rtWindow = drtErr + rtGeom1;
-    const float rtLo_another = rtIn + drtMean / dzDrtScale - rtWindow;
-    const float rtHi_another = rtIn + drtMean + rtWindow;
+    //const float rtLo_another = rtIn + drtMean / dzDrtScale - rtWindow;
+    //const float rtHi_another = rtIn + drtMean + rtWindow;
 
     // Cut #3: rt-z pointed
     if (not (kZ >= 0 and rtOut >= rtLo and rtOut <= rtHi))
@@ -524,7 +524,7 @@ bool SDL::CPU::Triplet::passPointingConstraintEndcapEndcapEndcap(SDL::CPU::LogLe
     const float sinAlphaMax = 0.95;
     const float sdlSlope = std::asin(std::min(rtOut * k2Rinv1GeVf / ptCut, sinAlphaMax));
     const float dzDrtScale = tan(sdlSlope) / sdlSlope;//FIXME: need approximate value
-    const float zLo = zIn + (zIn - deltaZLum) * (rtOut_o_rtIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - zGeom; //slope-correction only on outer end
+    //const float zLo = zIn + (zIn - deltaZLum) * (rtOut_o_rtIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - zGeom; //slope-correction only on outer end
 
     // Cut #0: Preliminary
     // (Only here in endcap case)
@@ -550,8 +550,8 @@ bool SDL::CPU::Triplet::passPointingConstraintEndcapEndcapEndcap(SDL::CPU::LogLe
     const float rtGeom = (isInSgInnerMDPS && isOutSgInnerMDPS ? 2.f * pixelPSZpitch
                  : (isInSgInnerMDPS || isOutSgInnerMDPS ) ? (pixelPSZpitch + strip2SZpitch)
                             : 2.f * strip2SZpitch);
-    const float rtGeom1 = isOutSgInnerMDPS ? pixelPSZpitch : strip2SZpitch;//FIXME: make this chosen by configuration for lay11,12 full PS
-    const float zGeom1 = std::copysign(zGeom, zIn); //used in B-E region
+    //const float rtGeom1 = isOutSgInnerMDPS ? pixelPSZpitch : strip2SZpitch;//FIXME: make this chosen by configuration for lay11,12 full PS
+    //const float zGeom1 = std::copysign(zGeom, zIn); //used in B-E region
     const float dz = zOut - zIn;
     const float rtLo = rtIn * (1.f + dz / (zIn + dLum) / dzDrtScale) - rtGeom; //slope correction only on the lower end
 
@@ -589,7 +589,7 @@ bool SDL::CPU::Triplet::passPointingConstraintEndcapEndcapEndcap(SDL::CPU::LogLe
 
     const bool isInSgOuterMDPS = (innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->getModule()).moduleType() == SDL::CPU::Module::PS;
 
-    const float drOutIn = (rtOut - rtIn);
+    //const float drOutIn = (rtOut - rtIn);
     const float drtSDIn = innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->rt() - innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->rt();
     const float dzSDIn = innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->z() - innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->z();
     const float dr3SDIn = innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->r3() - innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->r3();
