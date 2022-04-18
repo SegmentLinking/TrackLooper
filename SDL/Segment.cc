@@ -336,11 +336,11 @@ void SDL::CPU::Segment::runSegmentAllCombAlgo()
     passAlgo_ |= (1 << SDL::CPU::AllComb_SGAlgo);
     // return;
 
-    const MiniDoublet& innerMiniDoublet = (*innerMiniDoubletPtr());
-    const MiniDoublet& outerMiniDoublet = (*outerMiniDoubletPtr());
+    //const MiniDoublet& innerMiniDoublet = (*innerMiniDoubletPtr());
+    //const MiniDoublet& outerMiniDoublet = (*outerMiniDoubletPtr());
 
-    const Hit& innerAnchorHit = (*innerMiniDoublet.anchorHitPtr());
-    const Hit& outerAnchorHit = (*outerMiniDoublet.anchorHitPtr());
+    //const Hit& innerAnchorHit = (*innerMiniDoublet.anchorHitPtr());
+    //const Hit& outerAnchorHit = (*outerMiniDoublet.anchorHitPtr());
 
     //float dr = outerAnchorHit.rt() - innerAnchorHit.rt();
 

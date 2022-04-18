@@ -1117,8 +1117,8 @@ __device__ float scorepT3(struct SDL::modules& modulesInGPU,struct SDL::hits& hi
 }
 __device__ void inline checkHitspT3(unsigned int ix, unsigned int jx,struct SDL::pixelTriplets& pixelTripletsInGPU, int* matched)
 {
-    unsigned int phits1[4] = {-1,-1,-1,-1};
-    unsigned int phits2[4] = {-1,-1,-1,-1};
+    /*unsigned*/ int phits1[4] = {-1,-1,-1,-1};
+    /*unsigned*/ int phits2[4] = {-1,-1,-1,-1};
     phits1[0] = pixelTripletsInGPU.hitIndices[10*ix];
     phits1[1] = pixelTripletsInGPU.hitIndices[10*ix+1];
     phits1[2] = pixelTripletsInGPU.hitIndices[10*ix+2];
@@ -1147,8 +1147,8 @@ __device__ void inline checkHitspT3(unsigned int ix, unsigned int jx,struct SDL:
         }
     }
 
-    unsigned int hits1[6] = {-1,-1,-1,-1,-1,-1};
-    unsigned int hits2[6] = {-1,-1,-1,-1,-1,-1};
+    int hits1[6] = {-1,-1,-1,-1,-1,-1};
+    int hits2[6] = {-1,-1,-1,-1,-1,-1};
     hits1[0] = pixelTripletsInGPU.hitIndices[10*ix+4];
     hits1[1] = pixelTripletsInGPU.hitIndices[10*ix+5];
     hits1[2] = pixelTripletsInGPU.hitIndices[10*ix+6];
@@ -1270,7 +1270,7 @@ __global__ void removeDupPixelQuintupletsInGPUFromMap( struct SDL::pixelQuintupl
     }
 }
 
-__global__ void inline checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::hits& hitsInGPU,bool secondpass)
+__global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::hits& hitsInGPU,bool secondpass)
 {
     int counter=0;
     int pixelModuleIndex = *modulesInGPU.nLowerModules;

@@ -69,8 +69,8 @@ SDL::Hit SDL::MathUtil::getCenterFromThreePoints(SDL::Hit& hitA, SDL::Hit& hitB,
     float x_mid_AB = (xA + xB) / 2.;
     float y_mid_AB = (yA + yB) / 2.;
 
-    float x_mid_BC = (xB + xC) / 2.;
-    float y_mid_BC = (yB + yC) / 2.;
+    //float x_mid_BC = (xB + xC) / 2.;
+    //float y_mid_BC = (yB + yC) / 2.;
 
     bool slope_AB_inf = (xB - xA) == 0;
     bool slope_BC_inf = (xC - xB) == 0;
@@ -82,7 +82,7 @@ SDL::Hit SDL::MathUtil::getCenterFromThreePoints(SDL::Hit& hitA, SDL::Hit& hitB,
     float slope_BC = slope_BC_inf ? 0 : (yC - yB) / (xC - xB);
 
     float slope_perp_AB = slope_AB_inf or slope_AB_zero ? 0. : -1. / (slope_AB);
-    float slope_perp_BC = slope_BC_inf or slope_BC_zero ? 0. : -1. / (slope_BC);
+    //float slope_perp_BC = slope_BC_inf or slope_BC_zero ? 0. : -1. / (slope_BC);
 
     if ((slope_AB - slope_BC) == 0)
     {
