@@ -6,6 +6,7 @@
 #include "TSystem.h"
 //#include "AnalysisInterface/EventForAnalysisInterface.h"
 //#include "AnalysisInterface/Module.h"
+#include "Module.h"
 #include "AnalysisConfig.h"
 #include "SDL/ModuleConnectionMap.h"
 #include "SDLMath.h"
