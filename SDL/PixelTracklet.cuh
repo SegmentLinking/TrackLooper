@@ -11,7 +11,7 @@
 #define CUDA_CONST_VAR
 #endif
 
-#include "Constants.h"
+#include "Constants.cuh"
 #include "EndcapGeometry.h"
 #include "TiltedGeometry.h"
 #include "Segment.cuh"
@@ -100,7 +100,7 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
     float& rt_InOut = rt_InUp;
     //float& z_InOut = z_InUp;
 
-    pass = pass and (fabsf(deltaPhi(x_InUp, y_InUp, z_InUp, x_OutLo, y_OutLo, z_OutLo)) <= 0.5f * float(M_PI));;
+    pass = pass and (fabsf(deltaPhi(x_InUp, y_InUp, z_InUp, x_OutLo, y_OutLo, z_OutLo)) <= 0.5f * float(M_PI));
     if(not pass) return pass;
 
     unsigned int pixelSegmentArrayIndex = innerSegmentIndex - rangesInGPU.segmentModuleIndices[pixelModuleIndex]; 
@@ -111,7 +111,7 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
     float pz = segmentsInGPU.pz[pixelSegmentArrayIndex];
     float ptErr = segmentsInGPU.ptErr[pixelSegmentArrayIndex];
     float etaErr = segmentsInGPU.etaErr[pixelSegmentArrayIndex];
-    ptSLo = fmaxf(PTCUT, ptSLo - 10.0f*fmaxf(ptErr, 0.005f*ptSLo));
+    ptSLo = fmaxf(ptCut, ptSLo - 10.0f*fmaxf(ptErr, 0.005f*ptSLo));
     ptSLo = fminf(10.0f, ptSLo);
 
 
@@ -141,7 +141,7 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPBB(struct modules& modulesInGPU, st
     //float dz_InSeg = z_InOut - z_InLo;
     //float dr3_InSeg = sqrtf(rt_InOut * rt_InOut + z_InOut * z_InOut) - sqrtf(rt_InLo * rt_InLo + z_InLo * z_InLo);
 
-    const float sdlThetaMulsF = 0.015f * sqrt(0.1f + 0.2f * (rt_OutLo - rt_InUp) / 50.f) * sqrt(r3_InUp / rt_InUp);
+    const float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2f * (rt_OutLo - rt_InUp) / 50.f) * sqrtf(r3_InUp / rt_InUp);
     const float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f; // will need a better guess than x4?
 
     float dzErr = drt_OutLo_InUp*etaErr*coshEta; //FIXME: check with the calc in the endcap
@@ -337,7 +337,7 @@ CUDA_DEV bool inline runTrackletDefaultAlgoPPEE(struct modules& modulesInGPU, st
     float ptErr = segmentsInGPU.ptErr[pixelSegmentArrayIndex];
     float etaErr = segmentsInGPU.etaErr[pixelSegmentArrayIndex];
 
-    ptSLo = fmaxf(PTCUT, ptSLo - 10.0f*fmaxf(ptErr, 0.005f*ptSLo));
+    ptSLo = fmaxf(ptCut, ptSLo - 10.0f*fmaxf(ptErr, 0.005f*ptSLo));
     ptSLo = fminf(10.0f, ptSLo);
 
     float rtOut_o_rtIn = rt_OutLo/rt_InUp;

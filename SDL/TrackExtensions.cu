@@ -3342,9 +3342,8 @@ __device__ float SDL::computeTERZChiSquared(struct modules& modulesInGPU, struct
             const int moduleType = modulesInGPU.moduleType[lowerModuleIndex];
             const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
             //const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
-            const int layer = modulesInGPU.layers[lowerModuleIndex] + 6 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex] == SDL::TwoS);
-        
-            residual = (layer <= 6) ?  zAnchor - (slope * rtAnchor + intercept) : rtAnchor - (zAnchor/slope + intercept/slope);
+            const int moduleSubdet = modulesInGPU.subdets[lowerModuleIndex]; 
+            residual = (moduleSubdet == SDL::Barrel) ?  zAnchor - (slope * rtAnchor + intercept) : rtAnchor - (zAnchor/slope + intercept/slope);
         
             //PS Modules
             if(moduleType == 0)
@@ -3357,7 +3356,7 @@ __device__ float SDL::computeTERZChiSquared(struct modules& modulesInGPU, struct
             }
 
             //special dispensation to tilted PS modules!
-            if(moduleType == 0 and layer <= 6 and moduleSide != Center)
+            if(moduleType == 0 and moduleSubdet == SDL::Barrel and moduleSide != Center)
             {
                 drdz = modulesInGPU.drdzs[lowerModuleIndex];
                 error *= 1/sqrtf(1 + drdz * drdz);
@@ -3457,9 +3456,9 @@ __device__ float SDL::computeT3T3RZChiSquared(struct modules& modulesInGPU, stru
 
         const int moduleType = modulesInGPU.moduleType[lowerModuleIndex];
         const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
-        //const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
-        const int layer = modulesInGPU.layers[lowerModuleIndex] + 6 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex] == SDL::TwoS); 
-        residual = (layer <= 6) ?  zs[i] - (slope * rts[i] + intercept) : rts[i] - (zs[i]/slope + intercept/slope);
+        const int moduleSubdet = modulesInGPU.subdets[lowerModuleIndex];
+
+        residual = (moduleSubdet == SDL::Barrel) ?  zs[i] - (slope * rts[i] + intercept) : rts[i] - (zs[i]/slope + intercept/slope);
         if(moduleType == 0)
         {
             error = 0.15;
@@ -3469,7 +3468,7 @@ __device__ float SDL::computeT3T3RZChiSquared(struct modules& modulesInGPU, stru
             error = 5;
         }
         //special dispensation to tilted PS modules!
-        if(moduleType == 0 and layer <= 6 and moduleSide != Center)
+        if(moduleType == 0 and moduleSubdet == SDL::Barrel and moduleSide != Center)
         {
             drdz = modulesInGPU.drdzs[lowerModuleIndex];
             error *= 1/sqrtf(1 + drdz * drdz);

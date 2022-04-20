@@ -545,7 +545,6 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
         uint16_t& lowerModuleIndex = lowerModuleIndices[i];
         const int moduleType = modulesInGPU.moduleType[lowerModuleIndex];
         const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
-        //const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
         const int moduleSubdet = modulesInGPU.subdets[lowerModuleIndex];
 
         residual = moduleSubdet == SDL::Barrel ? (zs[i] - zPix[0]) - slope * (rts[i] - rtPix[0]) : (rts[i] - rtPix[0]) - (zs[i] - zPix[0])/slope;
@@ -581,8 +580,7 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, uin
     float chiSquared = 0;
     ModuleType moduleType;
     short moduleSubdet, moduleSide;
-    //ModuleLayerType moduleLayerType;
-    //float drdz;
+    float drdz;
     float inv1 = 0.01f/0.009f;
     float inv2 = 0.15f/0.009f;
     //float inv3 = 2.4f/0.009f;
@@ -591,7 +589,6 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, uin
         moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
         moduleSubdet = modulesInGPU.subdets[lowerModuleIndices[i]];
         moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
-        //moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndices[i]];
         float& drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
         slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
         //category 1 - barrel PS flat

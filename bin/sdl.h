@@ -22,12 +22,12 @@
 //#include "SDL/MathUtil.h"
 
 // Efficiency study modules
-#include "Study.h"
+//#include "Study.h"
 #include "constants.h"
 #include "AnalysisConfig.h"
 #include "trkCore.h"
-#include "WriteSDLNtuplev2.h"
-#include "AnalysisInterface/EventForAnalysisInterface.h"
+//#include "WriteSDLNtuplev2.h"
+//#include "AnalysisInterface/EventForAnalysisInterface.h"
 #include "write_sdl_ntuple.h"
 
 #include "TSystem.h"

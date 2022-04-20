@@ -9,7 +9,7 @@
 #define CUDA_DEV
 #endif
 
-#include "Constants.h"
+#include "Constants.cuh"
 #include "EndcapGeometry.h"
 #include "TiltedGeometry.h"
 #include "Tracklet.cuh"

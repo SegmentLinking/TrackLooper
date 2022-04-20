@@ -4,8 +4,8 @@
 #include "trktree.h"
 #include "TCanvas.h"
 #include "TSystem.h"
-#include "AnalysisInterface/EventForAnalysisInterface.h"
-#include "AnalysisInterface/Module.h"
+//#include "AnalysisInterface/EventForAnalysisInterface.h"
+//#include "AnalysisInterface/Module.h"
 #include "AnalysisConfig.h"
 #include "SDL/ModuleConnectionMap.h"
 #include "SDLMath.h"
@@ -69,8 +69,6 @@ float runTrackExtensions(SDL::Event* event);
 std::vector<float> getPtBounds();
 bool inTimeTrackWithPdgId(int isimtrk, int pdgid);
 std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes, bool verbose=false);
-std::vector<int> matchedSimTrkIdxs(SDL::Segment* sg, bool matchOnlyAnchor=false);
-std::vector<int> matchedSimTrkIdxs(SDL::Tracklet& tl);
 
 bool isMTVMatch(unsigned int isimtrk, std::vector<unsigned int> hit_idxs, bool verbose=false);
 void loadMaps();

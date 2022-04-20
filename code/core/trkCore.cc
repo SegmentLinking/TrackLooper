@@ -71,7 +71,7 @@ bool isMuonCurlingHit(unsigned int isimtrk, unsigned int ith_hit)
 
     // Retrieve the module where the hit lies
     int detid = trk.simhit_detId()[simhitidx];
-    SDL::Module module = SDL::Module(detid);
+    SDL::CPU::Module module = SDL::CPU::Module(detid);
 
     // Calculate the momentum
     float p = simhit_p(simhitidx);
@@ -91,7 +91,7 @@ bool isMuonCurlingHit(unsigned int isimtrk, unsigned int ith_hit)
 
         // Retrieve the module where the previous candidate hit lies
         int detid = trk.simhit_detId()[simhitidx_previous_candidate];
-        SDL::Module module = SDL::Module(detid);
+        SDL::CPU::Module module = SDL::CPU::Module(detid);
 
         // If the module is lower, then we get the index
         if (module.isLower())
@@ -129,8 +129,8 @@ bool hasAll12HitsWithNBarrelUsingModuleMap(unsigned int isimtrk, int nbarrel, bo
 {
 
     // Select only tracks that left all 12 hits in the barrel
-    std::array<std::vector<SDL::Module>, 6> layers_modules_barrel; // Watch out for duplicates in this vector, do not count with this for unique count.
-    std::array<std::vector<SDL::Module>, 6> layers_modules_endcap; // Watch out for duplicates in this vector, do not count with this for unique count.
+    std::array<std::vector<SDL::CPU::Module>, 6> layers_modules_barrel; // Watch out for duplicates in this vector, do not count with this for unique count.
+    std::array<std::vector<SDL::CPU::Module>, 6> layers_modules_endcap; // Watch out for duplicates in this vector, do not count with this for unique count.
 
     std::vector<float> ps;
 
@@ -167,11 +167,11 @@ bool hasAll12HitsWithNBarrelUsingModuleMap(unsigned int isimtrk, int nbarrel, bo
 
                     if (trk.ph2_subdet()[ihit] == 5)
                     {
-                        layers_modules_barrel[trk.ph2_layer()[ihit] - 1].push_back(SDL::Module(trk.ph2_detId()[ihit]));
+                        layers_modules_barrel[trk.ph2_layer()[ihit] - 1].push_back(SDL::CPU::Module(trk.ph2_detId()[ihit]));
                     }
                     if (trk.ph2_subdet()[ihit] == 4)
                     {
-                        layers_modules_endcap[trk.ph2_layer()[ihit] - 1].push_back(SDL::Module(trk.ph2_detId()[ihit]));
+                        layers_modules_endcap[trk.ph2_layer()[ihit] - 1].push_back(SDL::CPU::Module(trk.ph2_detId()[ihit]));
                     }
 
                 }
@@ -187,11 +187,11 @@ bool hasAll12HitsWithNBarrelUsingModuleMap(unsigned int isimtrk, int nbarrel, bo
 
                 if (trk.simhit_subdet()[simhitidx] == 5)
                 {
-                    layers_modules_barrel[trk.simhit_layer()[simhitidx] - 1].push_back(SDL::Module(trk.simhit_detId()[simhitidx]));
+                    layers_modules_barrel[trk.simhit_layer()[simhitidx] - 1].push_back(SDL::CPU::Module(trk.simhit_detId()[simhitidx]));
                 }
                 if (trk.simhit_subdet()[simhitidx] == 4)
                 {
-                    layers_modules_endcap[trk.simhit_layer()[simhitidx] - 1].push_back(SDL::Module(trk.simhit_detId()[simhitidx]));
+                    layers_modules_endcap[trk.simhit_layer()[simhitidx] - 1].push_back(SDL::CPU::Module(trk.simhit_detId()[simhitidx]));
                 }
             }
 
@@ -232,7 +232,7 @@ bool hasAll12HitsWithNBarrelUsingModuleMap(unsigned int isimtrk, int nbarrel, bo
         // Raw layer number
         bool is_ilayer_barrel = logical_ilayer < nbarrel;
         int raw_ilayer = is_ilayer_barrel ? logical_ilayer: logical_ilayer - nbarrel;
-        const std::array<std::vector<SDL::Module>, 6>& layers_modules = is_ilayer_barrel ? layers_modules_barrel : layers_modules_endcap;
+        const std::array<std::vector<SDL::CPU::Module>, 6>& layers_modules = is_ilayer_barrel ? layers_modules_barrel : layers_modules_endcap;
 
         // Then get the module in the ilayer and check that it has a good module pair
         // Loop over modules in the given raw_ilayer and match the pairs and if a good pair of modules have hits in each module
@@ -278,8 +278,8 @@ bool hasAll12HitsWithNBarrel(unsigned int isimtrk, int nbarrel)
 {
 
     // Select only tracks that left all 12 hits in the barrel
-    std::array<std::vector<SDL::Module>, 6> layers_modules_barrel;
-    std::array<std::vector<SDL::Module>, 6> layers_modules_endcap;
+    std::array<std::vector<SDL::CPU::Module>, 6> layers_modules_barrel;
+    std::array<std::vector<SDL::CPU::Module>, 6> layers_modules_endcap;
 
     std::vector<float> ps;
 
@@ -313,11 +313,11 @@ bool hasAll12HitsWithNBarrel(unsigned int isimtrk, int nbarrel)
 
                 if (trk.ph2_subdet()[ihit] == 5)
                 {
-                    layers_modules_barrel[trk.ph2_layer()[ihit] - 1].push_back(SDL::Module(trk.ph2_detId()[ihit]));
+                    layers_modules_barrel[trk.ph2_layer()[ihit] - 1].push_back(SDL::CPU::Module(trk.ph2_detId()[ihit]));
                 }
                 if (trk.ph2_subdet()[ihit] == 4)
                 {
-                    layers_modules_endcap[trk.ph2_layer()[ihit] - 1].push_back(SDL::Module(trk.ph2_detId()[ihit]));
+                    layers_modules_endcap[trk.ph2_layer()[ihit] - 1].push_back(SDL::CPU::Module(trk.ph2_detId()[ihit]));
                 }
 
             }
@@ -1243,198 +1243,6 @@ void loadMaps()
 
 }
 
-std::vector<int> matchedSimTrkIdxs(SDL::Tracklet& tl)
-{
-    std::vector<int> hitidxs = {
-        tl.innerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->idx(),
-        tl.innerSegmentPtr()->innerMiniDoubletPtr()->upperHitPtr()->idx(),
-        tl.innerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->idx(),
-        tl.innerSegmentPtr()->outerMiniDoubletPtr()->upperHitPtr()->idx(),
-        tl.outerSegmentPtr()->innerMiniDoubletPtr()->lowerHitPtr()->idx(),
-        tl.outerSegmentPtr()->innerMiniDoubletPtr()->upperHitPtr()->idx(),
-        tl.outerSegmentPtr()->outerMiniDoubletPtr()->lowerHitPtr()->idx(),
-        tl.outerSegmentPtr()->outerMiniDoubletPtr()->upperHitPtr()->idx()
-        };
-
-    std::vector<vector<int>> simtrk_idxs;
-    std::vector<int> unique_idxs; // to aggregate which ones to count and test
-
-    for (auto& hitidx : hitidxs)
-    {
-        std::vector<int> simtrk_idxs_per_hit;
-        for (auto& simhit_idx : trk.ph2_simHitIdx()[hitidx])
-        {
-            int simtrk_idx = trk.simhit_simTrkIdx()[simhit_idx];
-            simtrk_idxs_per_hit.push_back(simtrk_idx);
-            if (std::find(unique_idxs.begin(), unique_idxs.end(), simtrk_idx) == unique_idxs.end())
-                unique_idxs.push_back(simtrk_idx);
-        }
-        if (simtrk_idxs_per_hit.size() == 0)
-        {
-            simtrk_idxs_per_hit.push_back(-1);
-            if (std::find(unique_idxs.begin(), unique_idxs.end(), -1) == unique_idxs.end())
-                unique_idxs.push_back(-1);
-        }
-        simtrk_idxs.push_back(simtrk_idxs_per_hit);
-    }
-
-    // // print
-    // std::cout << "va print" << std::endl;
-    // for (auto& vec : simtrk_idxs)
-    // {
-    //     for (auto& idx : vec)
-    //     {
-    //         std::cout << idx << " ";
-    //     }
-    //     std::cout << std::endl;
-    // }
-    // std::cout << "va print end" << std::endl;
-
-    // Compute all permutations
-    std::function<void(vector<vector<int>>&, vector<int>, size_t, vector<vector<int>>&)> perm = [&](vector<vector<int>>& result, vector<int> intermediate, size_t n, vector<vector<int>>& va)
-    {
-        if (va.size() > n)
-        {
-            for (auto x : va[n])
-            {
-                intermediate.push_back(x);
-                perm(result, intermediate, n+1, va);
-            }
-        }
-        else
-        {
-            result.push_back(intermediate);
-        }
-    };
-
-    vector<vector<int>> allperms;
-    perm(allperms, vector<int>(), 0, simtrk_idxs);
-
-    // for (auto& iperm : allperms)
-    // {
-    //     for (auto& idx : iperm)
-    //         std::cout << idx << " ";
-    //     std::cout << std::endl;
-    // }
-
-    std::vector<int> matched_sim_trk_idxs;
-    for (auto& trkidx_perm : allperms)
-    {
-        std::vector<int> counts;
-        for (auto& unique_idx : unique_idxs)
-        {
-            int cnt = std::count(trkidx_perm.begin(), trkidx_perm.end(), unique_idx);
-            counts.push_back(cnt);
-        }
-        auto result = std::max_element(counts.begin(), counts.end());
-        int rawidx = std::distance(counts.begin(), result);
-        int trkidx = unique_idxs[rawidx];
-        if (trkidx < 0)
-            continue;
-        if (counts[rawidx] > 6)
-            matched_sim_trk_idxs.push_back(trkidx);
-    }
-
-    return matched_sim_trk_idxs;
-
-}
-
-vector<int> matchedSimTrkIdxs(SDL::Segment* sg, bool matchOnlyAnchor)
-{
-    std::vector<int> hitidxs_all = {
-        sg->innerMiniDoubletPtr()->lowerHitPtr()->idx(),
-        sg->innerMiniDoubletPtr()->upperHitPtr()->idx(),
-        sg->outerMiniDoubletPtr()->lowerHitPtr()->idx(),
-        sg->outerMiniDoubletPtr()->upperHitPtr()->idx()
-    };
-
-    std::vector<int> hitidxs_onlyAnchor = {
-        sg->innerMiniDoubletPtr()->anchorHitPtr()->idx(),
-        sg->outerMiniDoubletPtr()->anchorHitPtr()->idx()
-    };
-
-    std::vector<int> hitidxs;
-    if (matchOnlyAnchor)
-    {
-        hitidxs = hitidxs_onlyAnchor;
-    }
-    else
-    {
-        hitidxs = hitidxs_all;
-    }
-
-    int threshold = matchOnlyAnchor ? 1 : 3;
-
-    std::vector<vector<int>> simtrk_idxs;
-    std::vector<int> unique_idxs; // to aggregate which ones to count and test
-
-    for (auto& hitidx : hitidxs)
-    {
-        std::vector<int> simtrk_idxs_per_hit;
-        for (auto& simhit_idx : trk.ph2_simHitIdx()[hitidx])
-        {
-            int simtrk_idx = trk.simhit_simTrkIdx()[simhit_idx];
-            simtrk_idxs_per_hit.push_back(simtrk_idx);
-            if (std::find(unique_idxs.begin(), unique_idxs.end(), simtrk_idx) == unique_idxs.end())
-                unique_idxs.push_back(simtrk_idx);
-        }
-        if (simtrk_idxs_per_hit.size() == 0)
-        {
-            simtrk_idxs_per_hit.push_back(-1);
-            if (std::find(unique_idxs.begin(), unique_idxs.end(), -1) == unique_idxs.end())
-                unique_idxs.push_back(-1);
-        }
-        simtrk_idxs.push_back(simtrk_idxs_per_hit);
-    }
-
-    // Compute all permutations
-    std::function<void(vector<vector<int>>&, vector<int>, size_t, vector<vector<int>>&)> perm = [&](vector<vector<int>>& result, vector<int> intermediate, size_t n, vector<vector<int>>& va)
-    {
-        if (va.size() > n)
-        {
-            for (auto x : va[n])
-            {
-                intermediate.push_back(x);
-                perm(result, intermediate, n+1, va);
-            }
-        }
-        else
-        {
-            result.push_back(intermediate);
-        }
-    };
-
-    vector<vector<int>> allperms;
-    perm(allperms, vector<int>(), 0, simtrk_idxs);
-
-    // for (auto& iperm : allperms)
-    // {
-    //     for (auto& idx : iperm)
-    //         std::cout << idx << " ";
-    //     std::cout << std::endl;
-    // }
-
-    std::vector<int> matched_sim_trk_idxs;
-    for (auto& trkidx_perm : allperms)
-    {
-        std::vector<int> counts;
-        for (auto& unique_idx : unique_idxs)
-        {
-            int cnt = std::count(trkidx_perm.begin(), trkidx_perm.end(), unique_idx);
-            counts.push_back(cnt);
-        }
-        auto result = std::max_element(counts.begin(), counts.end());
-        int rawidx = std::distance(counts.begin(), result);
-        int trkidx = unique_idxs[rawidx];
-        if (trkidx < 0)
-            continue;
-        if (counts[rawidx] > threshold)
-            matched_sim_trk_idxs.push_back(trkidx);
-    }
-
-    return matched_sim_trk_idxs;
-
-}
 
 float drfracSimHitConsistentWithHelix(int isimtrk, int isimhitidx)
 {
@@ -1675,8 +1483,11 @@ std::vector<std::vector<short>>&    out_isQuad_vec
         float eta = p3LH.Eta();
         float phi = p3LH.Phi();
         //extra bit
-	
+#ifdef PT0P8
+        if ((ptIn > 0.8 - 2 * ptErr))
+#else
         if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
+#endif
         {
             // get pixel superbin
             //int ptbin = -1;
