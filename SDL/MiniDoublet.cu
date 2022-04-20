@@ -7,7 +7,7 @@
 
 #include "allocate.h"
 
-void SDL::miniDoublets::resetMemory(unsigned int maxMDsPerModule, unsigned int nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
+void SDL::miniDoublets::resetMemory(unsigned int nMemoryLocations, unsigned int nLowerModules,cudaStream_t stream)
 
 {
     //unsigned int nMemoryLocations = maxMDsPerModule * nLowerModules + maxPixelMDs;
