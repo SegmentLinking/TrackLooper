@@ -273,7 +273,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
     float z_InLo = mdsInGPU.anchorZ[firstMDIndex];
     float z_InOut = mdsInGPU.anchorZ[secondMDIndex];
     float z_OutLo = mdsInGPU.anchorZ[thirdMDIndex];
-    
+   
     float alpha1GeV_OutLo = asinf(fminf(rt_OutLo * k2Rinv1GeVf / ptCut, sinAlphaMax));
 
     float rtRatio_OutLoInLo = rt_OutLo / rt_InLo; // Outer segment beginning rt divided by inner segment beginning rt;
@@ -295,7 +295,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
     float r3_InLo = sqrtf(z_InLo * z_InLo + rt_InLo * rt_InLo);
     float drt_InSeg = rt_InOut - rt_InLo;
     float dz_InSeg = z_InOut - z_InLo;
-    float dr3_InSeg = sqrtf(rt_InOut * rt_InOut + z_InOut * z_InOut) -sqrtf(rt_InLo * rt_InLo + z_InLo * z_InLo);
+    float dr3_InSeg = sqrtf(rt_InOut * rt_InOut + z_InOut * z_InOut) - sqrtf(rt_InLo * rt_InLo + z_InLo * z_InLo);
 
     float coshEta = dr3_InSeg/drt_InSeg;
     float dzErr = (zpitch_InLo + zpitch_OutLo) * (zpitch_InLo + zpitch_OutLo) * 2.f;
@@ -647,9 +647,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
     float dBetaROut = 0;
     if(modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS)
     {
-
         dBetaROut = (sqrtf(mdsInGPU.anchorHighEdgeX[fourthMDIndex] * mdsInGPU.anchorHighEdgeX[fourthMDIndex] + mdsInGPU.anchorHighEdgeY[fourthMDIndex] * mdsInGPU.anchorHighEdgeY[fourthMDIndex]) - sqrtf(mdsInGPU.anchorLowEdgeX[fourthMDIndex] * mdsInGPU.anchorLowEdgeX[fourthMDIndex] + mdsInGPU.anchorLowEdgeY[fourthMDIndex] * mdsInGPU.anchorLowEdgeY[fourthMDIndex])) * sinDPhi / dr; 
-
     }
 
     const float dBetaROut2 = dBetaROut * dBetaROut;

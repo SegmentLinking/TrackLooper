@@ -54,7 +54,6 @@ int main(int argc, char** argv)
         ("s,streams"        , "Set number of streams (default=1)"                                                                   , cxxopts::value<int>()->default_value("1"))
         ("d,debug"          , "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")
         ("c,cpu"            , "Run CPU version of the code.")
-        ("p,optimization"   , "write cut optimization ntuple")
         ("l,lower_level"    , "write lower level objects ntuple results")
         ("j,nsplit_jobs"    , "Enable splitting jobs by N blocks (--job_index must be set)", cxxopts::value<int>())
         ("I,job_index"      , "job_index of split jobs (--nsplit_jobs must be set. index starts from 0. i.e. 0, 1, 2, 3, etc...)", cxxopts::value<int>())
@@ -226,14 +225,6 @@ int main(int argc, char** argv)
 
     //_______________________________________________________________________________
     // --optimization
-    if (result.count("optimization"))
-    {
-        ana.do_cut_value_ntuple = true;
-    }
-    else
-    {
-        ana.do_cut_value_ntuple = false;
-    }
 
     //_______________________________________________________________________________
     // --lower_level
@@ -260,7 +251,6 @@ int main(int argc, char** argv)
     std::cout <<  " ana.nsplit_jobs: " << ana.nsplit_jobs <<  std::endl;
     std::cout <<  " ana.job_index: " << ana.job_index <<  std::endl;
     std::cout <<  " ana.specific_event_index: " << ana.specific_event_index <<  std::endl;
-    std::cout <<  " ana.do_cut_value_ntuple: " << ana.do_cut_value_ntuple <<  std::endl;
     std::cout <<  " ana.do_run_cpu: " << ana.do_run_cpu <<  std::endl;
     std::cout <<  " ana.do_write_ntuple: " << ana.do_write_ntuple <<  std::endl;
     std::cout <<  " ana.mode: " << ana.mode <<  std::endl;
@@ -297,7 +287,6 @@ void run_sdl()
 
     // Load various maps used in the SDL reconstruction
     loadMaps();
-    Study* study;
 
     if (not ana.do_run_cpu){
         //    cudaSetDevice(0);
@@ -316,17 +305,8 @@ void run_sdl()
             //cudaSetDevice(1);
        // SDL::initModules(TString::Format("%s/data/centroid.txt", gSystem->Getenv("TRACKLOOPERDIR")));
     }
-    if (not ana.do_cut_value_ntuple or ana.do_run_cpu)
-    {
-        createOutputBranches();
-    }
-    else
-    {
-        //call the function from WriteSDLNtuplev2.cc
-        study = new WriteSDLNtuplev2("WriteSDLNtuple");
-        study->bookStudy();
-        ana.cutflow.bookHistograms(ana.histograms);
-    }
+    
+    createOutputBranches();
 
     // Timing average information
 

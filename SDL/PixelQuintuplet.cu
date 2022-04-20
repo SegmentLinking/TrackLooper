@@ -762,10 +762,9 @@ __device__ float SDL::computePT5RZChiSquared(struct modules& modulesInGPU, uint1
         uint16_t& lowerModuleIndex = lowerModuleIndices[i];
         const int moduleType = modulesInGPU.moduleType[lowerModuleIndex];
         const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
-        const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
-        const int layer = modulesInGPU.layers[lowerModuleIndex] + 6 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex] == SDL::TwoS);
-        
-        residual = (layer <= 6) ? (zs[i] - zPix[0]) - slope * (rts[i] - rtPix[0]) : (rts[i] - rtPix[0]) - (zs[i] - zPix[0])/slope;
+        const int moduleSubdet = modulesInGPU.subdets[lowerModuleIndex];
+ 
+        residual = (moduleSubdet == SDL::Barrel) ? (zs[i] - zPix[0]) - slope * (rts[i] - rtPix[0]) : (rts[i] - rtPix[0]) - (zs[i] - zPix[0])/slope;
         float& drdz = modulesInGPU.drdzs[lowerModuleIndex]; 
         //PS Modules
         if(moduleType == 0)
@@ -778,7 +777,7 @@ __device__ float SDL::computePT5RZChiSquared(struct modules& modulesInGPU, uint1
         }
 
         //special dispensation to tilted PS modules!
-        if(moduleType == 0 and layer <= 6 and moduleSide != Center)
+        if(moduleType == 0 and moduleSubdet == SDL::Barrel and moduleSide != Center)
         {
             //error *= 1.f/sqrtf(1.f + drdz * drdz);
             error /= sqrtf(1.f + drdz * drdz);
@@ -800,7 +799,6 @@ __device__ void SDL::computeSigmasForRegression_pT5(SDL::modules& modulesInGPU, 
     */
     ModuleType moduleType;
     short moduleSubdet, moduleSide;
-    ModuleLayerType moduleLayerType;
     float inv1 = 0.01f/0.009f;
     float inv2 = 0.15f/0.009f;
     float inv3 = 2.4f/0.009f;
@@ -809,7 +807,6 @@ __device__ void SDL::computeSigmasForRegression_pT5(SDL::modules& modulesInGPU, 
         moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
         moduleSubdet = modulesInGPU.subdets[lowerModuleIndices[i]];
         moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
-        moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndices[i]];
         float& drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
         slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
         //category 1 - barrel PS flat
