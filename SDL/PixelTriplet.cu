@@ -580,7 +580,6 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, uin
     float chiSquared = 0;
     ModuleType moduleType;
     short moduleSubdet, moduleSide;
-    float drdz;
     float inv1 = 0.01f/0.009f;
     float inv2 = 0.15f/0.009f;
     //float inv3 = 2.4f/0.009f;
