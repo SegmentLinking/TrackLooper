@@ -8,6 +8,7 @@
 #include "allocate.h"
 
 void SDL::miniDoublets::resetMemory(unsigned int maxMDsPerModule, unsigned int nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
+
 {
     //unsigned int nMemoryLocations = maxMDsPerModule * nLowerModules + maxPixelMDs;
     cudaMemsetAsync(anchorHitIndices,0, nMemoryLocations * 3 * sizeof(unsigned int),stream);
