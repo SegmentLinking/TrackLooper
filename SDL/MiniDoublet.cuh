@@ -83,7 +83,7 @@ namespace SDL
         ~miniDoublets();
       	void freeMemory(cudaStream_t stream);
       	void freeMemoryCache();
-        void resetMemory(unsigned int maxMDsPerModule, unsigned int nModules, unsigned int maxPixelMDs,cudaStream_t stream);
+        void resetMemory(unsigned int nMemoryLocations, unsigned int nModules,cudaStream_t stream);
 
     };
 
