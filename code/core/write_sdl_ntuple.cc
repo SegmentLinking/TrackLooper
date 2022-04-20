@@ -5966,8 +5966,8 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
     float effectiveThroughput = fullavg*timing_totalshort_avg/timing_total_avg;
     //float std_throughput = effectiveThroughput * sqrt(pow(stdDevFull/timing_total_avg,2) + pow(stdDev/timing_totalshort_avg,2));
 
-    std::cout << setprecision(0);
-    std::cout << "   Evt    Hits       MD       LS      T3       T5       pLS       pT5      pT3      TC       TCE      Event      Short             Loop      Effective" << std::endl;
+    std::cout << setprecision(1);
+    std::cout << "   Evt    Hits       MD       LS      T3       T5       pLS       pT5      pT3      TC       TCE      Event      Short             Rate" << std::endl;
     std::cout << setw(6) << "avg";
     std::cout << "   "<<setw(6) << timing_sum_information[0]; // Hits
     std::cout << "   "<<setw(6) << timing_sum_information[1]; // MD
@@ -5985,7 +5985,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
     std::cout << "+/- "<< setw(4)<<stdDev; 
     //std::cout << "   "<<setw(7) << fullTime; // Full time
     std::cout << "   "<<setw(7) << fullavg; // Average full time
-    std::cout << "   "<<setw(7) << effectiveThroughput; // Effective time
+//    std::cout << "   "<<setw(7) << effectiveThroughput; // Effective time
     //std::cout << "+/- "<< std_throughput; 
     std::cout << "   "<<ana.compilation_target;
     std::cout << "[s="<<ana.streams<<"]";
