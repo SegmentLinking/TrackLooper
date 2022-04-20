@@ -88,8 +88,6 @@ namespace SDL
         short* rods;
         short* subdets;
         short* sides;
-        float* eta;
-        float* r;
         bool* isInverted;
         bool* isLower;
         bool* isAnchor;
@@ -134,9 +132,7 @@ namespace SDL
     };
 
     extern std::map <unsigned int, uint16_t>* detIdToIndex;
-    extern std::map <unsigned int, float> *module_x;
-    extern std::map <unsigned int, float> *module_y;
-    extern std::map <unsigned int, float> *module_z;
+
 
     //functions
     void loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules,uint16_t& nLowerModules,struct pixelMap& pixelMapping,cudaStream_t stream, const char* moduleMetaDataFilePath="data/centroid.txt");
@@ -150,7 +146,7 @@ namespace SDL
     void fillPixelMap(struct modules& modulesInGPU,struct pixelMap& pixelMapping,cudaStream_t stream);
     void fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);
     void fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nModules);
-    void setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side, float m_x, float m_y, float m_z, float& eta, float& r);
+    void setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side);
     void resetObjectRanges(struct objectRanges& rangesInGPU, unsigned int nModules,cudaStream_t stream);
     //void resetObjectRangesExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);
     void createRangesInUnifiedMemory(struct objectRanges& rangesInGPU,unsigned int nModules,cudaStream_t stream, unsigned int nLowerModules);

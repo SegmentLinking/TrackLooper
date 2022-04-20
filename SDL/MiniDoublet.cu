@@ -8,9 +8,8 @@
 #include "allocate.h"
 
 void SDL::miniDoublets::resetMemory(unsigned int maxMDsPerModule, unsigned int nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
-
 {
-    //unsigned int nMemoryLocations = maxMDsPerModule * nLowerModules + maxPixelMDs;
+    unsigned int nMemoryLocations = maxMDsPerModule * nLowerModules + maxPixelMDs;
     cudaMemsetAsync(anchorHitIndices,0, nMemoryLocations * 3 * sizeof(unsigned int),stream);
     cudaMemsetAsync(dphichanges,0, nMemoryLocations * 9 * sizeof(float),stream);
     cudaMemsetAsync(nMDs,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
@@ -25,66 +24,22 @@ void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges&
 
     int *module_miniDoubletModuleIndices;
     cudaMallocHost(&module_miniDoubletModuleIndices, (nLowerModules + 1) * sizeof(unsigned int));
-    short* module_subdets;
-    cudaMallocHost(&module_subdets, nLowerModules* sizeof(short));
-    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-    short* module_layers;
-    cudaMallocHost(&module_layers, nLowerModules * sizeof(short));
-    cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
-    short* module_rings;
-    cudaMallocHost(&module_rings, nLowerModules * sizeof(short));
-    cudaMemcpyAsync(module_rings,modulesInGPU.rings,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
-    float* module_eta;
-    cudaMallocHost(&module_eta, nLowerModules * sizeof(float));
-    cudaMemcpyAsync(module_eta,modulesInGPU.eta,nLowerModules * sizeof(float),cudaMemcpyDeviceToHost,stream);
-
-    cudaStreamSynchronize(stream);
-
-    nTotalMDs = 0; //start!   
-    for(uint16_t i = 0; i < nLowerModules; i++)
+    module_miniDoubletModuleIndices[0] = 0;
+    nTotalMDs = maxMDsPerModule; //start!   
+    for(uint16_t i = 1; i <= nLowerModules; i++)
     {
         module_miniDoubletModuleIndices[i] = nTotalMDs; //running counter - we start at the previous index!
 
-        unsigned int category_number, eta_number;
-        if (module_layers[i]<=3 && module_subdets[i]==5) category_number = 0;
-        if (module_layers[i]>=4 && module_subdets[i]==5) category_number = 1;
-        if (module_layers[i]<=2 && module_subdets[i]==4 && module_rings[i]>=11) category_number = 2;
-        if (module_layers[i]>=3 && module_subdets[i]==4 && module_rings[i]>=8) category_number = 2;
-        if (module_layers[i]<=2 && module_subdets[i]==4 && module_rings[i]<=10) category_number = 3;
-        if (module_layers[i]>=3 && module_subdets[i]==4 && module_rings[i]<=7) category_number = 3;
-
-        if (abs(module_eta[i])<0.75) eta_number=0;
-        if (abs(module_eta[i])>0.75 && abs(module_eta[i])<1.5) eta_number=1;
-        if (abs(module_eta[i])>1.5 && abs(module_eta[i])<2.25) eta_number=2;
-        if (abs(module_eta[i])>2.25 && abs(module_eta[i])<3) eta_number=3;
-
-        unsigned int occupancy;
-        if (category_number == 0 && eta_number == 0) occupancy = 49;
-        if (category_number == 0 && eta_number == 1) occupancy = 42;
-        if (category_number == 0 && eta_number == 2) occupancy = 37;
-        if (category_number == 0 && eta_number == 3) occupancy = 41;
-        if (category_number == 1) occupancy = 100;
-        if (category_number == 2 && eta_number == 1) occupancy = 16;
-        if (category_number == 2 && eta_number == 2) occupancy = 19;
-        if (category_number == 3 && eta_number == 1) occupancy = 14;
-        if (category_number == 3 && eta_number == 2) occupancy = 20;
-        if (category_number == 3 && eta_number == 3) occupancy = 25;
-
-        //occupancy = maxMDsPerModule;
-
+        unsigned int occupancy = maxMDsPerModule; //placeholder! this will change from module to module
+        if(i == nLowerModules)
+        {
+            occupancy = maxPixelMDs;
+        }
         nTotalMDs += occupancy;
     }
-
-    module_miniDoubletModuleIndices[nLowerModules] = nTotalMDs;
-    nTotalMDs+=maxPixelMDs;
-
     cudaMemcpyAsync(rangesInGPU.miniDoubletModuleIndices, module_miniDoubletModuleIndices,  (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
     cudaFreeHost(module_miniDoubletModuleIndices);
-    cudaFreeHost(module_subdets);
-    cudaFreeHost(module_layers);
-    cudaFreeHost(module_rings);
-    cudaFreeHost(module_eta);
 }
 
 void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)

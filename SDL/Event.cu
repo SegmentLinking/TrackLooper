@@ -243,11 +243,6 @@ SDL::Event::~Event()
         delete[] modulesInCPU->layers;
         delete[] modulesInCPU->subdets;
         delete[] modulesInCPU->rings;
-        delete[] modulesInCPU->rods;
-        delete[] modulesInCPU->modules;
-        delete[] modulesInCPU->sides;
-        delete[] modulesInCPU->eta;
-        delete[] modulesInCPU->r;
         delete[] modulesInCPU;
     }
     if(modulesInCPUFull != nullptr)
@@ -265,8 +260,6 @@ SDL::Event::~Event()
         delete[] modulesInCPUFull->rods;
         delete[] modulesInCPUFull->subdets;
         delete[] modulesInCPUFull->sides;
-        delete[] modulesInCPUFull->eta;
-        delete[] modulesInCPUFull->r;
         delete[] modulesInCPUFull->isInverted;
         delete[] modulesInCPUFull->isLower;
 
@@ -489,11 +482,6 @@ void SDL::Event::resetEvent()
         delete[] modulesInCPU->layers;
         delete[] modulesInCPU->subdets;
         delete[] modulesInCPU->rings;
-        delete[] modulesInCPU->rods;
-        delete[] modulesInCPU->modules;
-        delete[] modulesInCPU->sides;
-        delete[] modulesInCPU->eta;
-        delete[] modulesInCPU->r;
         delete[] modulesInCPU;
         modulesInCPU = nullptr;
     }
@@ -510,10 +498,8 @@ void SDL::Event::resetEvent()
         delete[] modulesInCPUFull->rings;
         delete[] modulesInCPUFull->modules;
         delete[] modulesInCPUFull->rods;
-        delete[] modulesInCPUFull->sides;
         delete[] modulesInCPUFull->subdets;
-        delete[] modulesInCPUFull->eta;
-        delete[] modulesInCPUFull->r;
+        delete[] modulesInCPUFull->sides;
         delete[] modulesInCPUFull->isInverted;
         delete[] modulesInCPUFull->isLower;
 
@@ -3090,11 +3076,7 @@ cudaStreamSynchronize(stream);
         modulesInCPU->layers = new short[nModules];
         modulesInCPU->subdets = new short[nModules];
         modulesInCPU->rings = new short[nModules];
-        modulesInCPU->rods = new short[nModules];
-        modulesInCPU->modules = new short[nModules];
-        modulesInCPU->sides = new short[nModules];
-        modulesInCPU->eta = new float[nModules];
-        modulesInCPU->r = new float[nModules];
+
 
         cudaMemcpyAsync(modulesInCPU->nLowerModules, modulesInGPU->nLowerModules, sizeof(uint16_t), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(modulesInCPU->nModules, modulesInGPU->nModules, sizeof(uint16_t), cudaMemcpyDeviceToHost,stream);
@@ -3103,12 +3085,6 @@ cudaStreamSynchronize(stream);
         cudaMemcpyAsync(modulesInCPU->layers, modulesInGPU->layers, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(modulesInCPU->subdets, modulesInGPU->subdets, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(modulesInCPU->rings, modulesInGPU->rings, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->rods, modulesInGPU->rods, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->modules, modulesInGPU->modules, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->sides, modulesInGPU->sides, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->eta, modulesInGPU->eta, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->r, modulesInGPU->r, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
-
 cudaStreamSynchronize(stream);
     }
     return modulesInCPU;
