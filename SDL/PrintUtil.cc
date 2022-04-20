@@ -31,12 +31,12 @@ int SDL::prefixbuf::overflow(int c)
     return this->sbuf->sputc(c);
 }
 
-SDL::prefixbuf::prefixbuf(std::string const& prefix, std::streambuf* sbuf) : prefix(prefix) , sbuf(sbuf) , need_prefix(true)
+SDL::prefixbuf::prefixbuf(std::string const& prefix1, std::streambuf* sbuf1) : prefix(prefix1) , sbuf(sbuf1) , need_prefix(true)
 {
 }
 
-SDL::oprefixstream::oprefixstream(std::string const& prefix, std::ostream& out):
-    prefixbuf(prefix, out.rdbuf()),
+SDL::oprefixstream::oprefixstream(std::string const& prefix1, std::ostream& out1):
+    prefixbuf(prefix1, out1.rdbuf()),
     std::ios(static_cast<std::streambuf*>(this)),
     std::ostream(static_cast<std::streambuf*>(this))
 {
