@@ -44,7 +44,7 @@ void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges&
     for(uint16_t i = 0; i < nLowerModules; i++)
     {
         module_miniDoubletModuleIndices[i] = nTotalMDs; //running counter - we start at the previous index!
-
+        unsigned int occupancy;
         unsigned int category_number, eta_number;
         if (module_layers[i]<=3 && module_subdets[i]==5) category_number = 0;
         if (module_layers[i]>=4 && module_subdets[i]==5) category_number = 1;
@@ -58,7 +58,6 @@ void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges&
         if (abs(module_eta[i])>1.5 && abs(module_eta[i])<2.25) eta_number=2;
         if (abs(module_eta[i])>2.25 && abs(module_eta[i])<3) eta_number=3;
 
-        unsigned int occupancy;
         if (category_number == 0 && eta_number == 0) occupancy = 49;
         if (category_number == 0 && eta_number == 1) occupancy = 42;
         if (category_number == 0 && eta_number == 2) occupancy = 37;
@@ -70,7 +69,7 @@ void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges&
         if (category_number == 3 && eta_number == 2) occupancy = 20;
         if (category_number == 3 && eta_number == 3) occupancy = 25;
 
-        //occupancy = maxMDsPerModule;
+        // occupancy = maxMDsPerModule;
 
         nTotalMDs += occupancy;
     }
