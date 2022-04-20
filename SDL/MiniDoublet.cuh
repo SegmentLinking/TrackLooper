@@ -15,7 +15,7 @@
 #include <array>
 #include <tuple>
 #include <cmath>
-#include "Constants.h"
+#include "Constants.cuh"
 #include "EndcapGeometry.h"
 #include "TiltedGeometry.h"
 #include "Module.cuh"
@@ -123,22 +123,6 @@ namespace SDL
     void printMD(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, SDL::modules& modulesInGPU, unsigned int mdIndex);
 
 
-    //constant variables
-    extern CUDA_CONST_VAR float sinAlphaMax;
-    extern CUDA_CONST_VAR float k2Rinv1GeVf;
-    extern CUDA_CONST_VAR float ptCut;
-    extern CUDA_CONST_VAR float deltaZLum;
-
-    extern CUDA_CONST_VAR float miniMulsPtScaleBarrel[6];
-    extern CUDA_CONST_VAR float miniMulsPtScaleEndcap[5];
-    extern CUDA_CONST_VAR float miniRminMeanBarrel[6];
-    extern CUDA_CONST_VAR float miniRminMeanEndcap[5];
-    extern CUDA_CONST_VAR float miniDeltaTilted[3];
-    extern CUDA_CONST_VAR float miniDeltaFlat[6];
-    extern CUDA_CONST_VAR float miniDeltaLooseTilted[3];
-    extern CUDA_CONST_VAR float miniDeltaEndcap[5][15];
-    extern CUDA_CONST_VAR float pixelPSZpitch;
-    extern CUDA_CONST_VAR float strip2SZpitch;
 
 //CUDA_DEV float inline moduleGapSize(struct modules& modulesInGPU, unsigned int moduleIndex)
 //{
