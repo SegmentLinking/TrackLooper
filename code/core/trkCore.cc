@@ -1,3 +1,5 @@
+#include "trkCore.h"
+
 //float simhit_p(unsigned int simhitidx)
 //{
 //
