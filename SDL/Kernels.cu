@@ -70,7 +70,7 @@ __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struc
             if(success)
             {
                 atomicAdd(&mdsInGPU.totOccupancyMDs[lowerModuleIndex],1);
-                if(mdsInGPU.nMDs[lowerModuleIndex] >= N_MAX_MD_PER_MODULES)
+                if(mdsInGPU.nMDs[lowerModuleIndex] >= (rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex + 1] - rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex]))
                 {
 #ifdef Warnings
                     printf("Mini-doublet excess alert! Module index =  %d\n",lowerModuleIndex);
