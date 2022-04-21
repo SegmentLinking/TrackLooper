@@ -280,6 +280,8 @@ void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMappin
   cudaFree(modulesInGPU.rods);
   cudaFree(modulesInGPU.subdets);
   cudaFree(modulesInGPU.sides);
+  cudaFree(modulesInGPU.eta);
+  cudaFree(modulesInGPU.r);
   cudaFree(modulesInGPU.isInverted);
   cudaFree(modulesInGPU.isLower);
   cudaFree(modulesInGPU.isAnchor);
@@ -605,6 +607,8 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
         modulesInGPU.sides[index] = side;
         modulesInGPU.isInverted[index] = isInverted;
         modulesInGPU.isLower[index] = isLower;
+        modulesInGPU.eta[index] = eta;
+        modulesInGPU.r[index] = r;
 
         if(detId == 1)
         {
