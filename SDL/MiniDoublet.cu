@@ -720,7 +720,11 @@ __device__ void SDL::shiftStripHits(struct modules& modulesInGPU, /*struct hits&
     // Assign hit pointers based on their hit type
     if (modulesInGPU.moduleType[lowerModuleIndex] == PS)
     {
-        if (modulesInGPU.moduleLayerType[lowerModuleIndex]== Pixel)
+#ifdef CMSSW12GEOM // TODO: This is somewhat of an mystery.... somewhat confused why this is the case
+        if (modulesInGPU.subdets[lowerModuleIndex] == Barrel ? modulesInGPU.moduleLayerType[lowerModuleIndex] != Pixel : modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
+#else
+        if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
+#endif
         {
             //old to delete
        //     pixelHitIndex = lowerHitIndex;
