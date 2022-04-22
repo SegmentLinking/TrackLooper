@@ -7,12 +7,12 @@
 
 void SDL::segments::resetMemory(unsigned int maxSegments, unsigned int nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
 {
-    unsigned int nMemoryLocations = maxSegments * nLowerModules + maxPixelSegments;
-    cudaMemsetAsync(mdIndices,0, nMemoryLocations * 2 * sizeof(unsigned int),stream);
-    cudaMemsetAsync(innerLowerModuleIndices,0, nMemoryLocations * 2 * sizeof(uint16_t),stream);
+    unsigned int nMemoryLocationsx = maxSegments * nLowerModules + maxPixelSegments;
+    cudaMemsetAsync(mdIndices,0, nMemoryLocationsx * 2 * sizeof(unsigned int),stream);
+    cudaMemsetAsync(innerLowerModuleIndices,0, nMemoryLocationsx * 2 * sizeof(uint16_t),stream);
     cudaMemsetAsync(nSegments, 0,(nLowerModules+1) * sizeof(unsigned int),stream);
     cudaMemsetAsync(totOccupancySegments, 0,(nLowerModules+1) * sizeof(unsigned int),stream);
-    cudaMemsetAsync(dPhis, 0,(nMemoryLocations * 6 )*sizeof(FPX),stream);
+    cudaMemsetAsync(dPhis, 0,(nMemoryLocationsx * 6 )*sizeof(FPX),stream);
     cudaMemsetAsync(ptIn, 0,(maxPixelSegments * 8)*sizeof(float),stream);
     cudaMemsetAsync(superbin, 0,(maxPixelSegments )*sizeof(int),stream);
     cudaMemsetAsync(pixelType, 0,(maxPixelSegments )*sizeof(int8_t),stream);
@@ -693,7 +693,7 @@ __device__ bool SDL::runSegmentDefaultAlgo(struct modules& modulesInGPU, struct 
     rtLo = -999.f;
     rtHi = -999.f;
 
-    bool pass = true;
+    //bool pass = true;
 
     if(modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel and modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel)
     {

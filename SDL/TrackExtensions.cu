@@ -3341,7 +3341,7 @@ __device__ float SDL::computeTERZChiSquared(struct modules& modulesInGPU, struct
             //outerModuleAnchorHitIndices
             const int moduleType = modulesInGPU.moduleType[lowerModuleIndex];
             const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
-            const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
+            //const int moduleLayerType = modulesInGPU.moduleLayerType[lowerModuleIndex];
             const int moduleSubdet = modulesInGPU.subdets[lowerModuleIndex]; 
             residual = (moduleSubdet == SDL::Barrel) ?  zAnchor - (slope * rtAnchor + intercept) : rtAnchor - (zAnchor/slope + intercept/slope);
         

@@ -735,8 +735,8 @@ cudaStreamSynchronize(stream);
 
         uint16_t upperModuleIndex = module_partnerModuleIndices[lowerModuleIndex];
 
-        int lowerHitRanges = module_hitRanges[lowerModuleIndex*2];
-        int upperHitRanges = module_hitRanges[upperModuleIndex*2];
+        //int lowerHitRanges = module_hitRanges[lowerModuleIndex*2];
+        //int upperHitRanges = module_hitRanges[upperModuleIndex*2];
 
         if(module_hitRanges[lowerModuleIndex * 2] == -1) continue; //return;
         if(module_hitRanges[upperModuleIndex * 2] == -1) continue; //return;
@@ -821,7 +821,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec
     cudaStreamCreate(&modStream);
     //if(hitsInGPUAll == nullptr)
     //{
-    for(int evt=0; evt < out_trkX.size(); evt++)
+    for(int evt=0; evt < static_cast<int>(out_trkX.size()); evt++)
     {
         struct SDL::hits* hitsInGPU_event;
         cudaMallocHost(&hitsInGPU_event, sizeof(struct SDL::hits));
@@ -981,8 +981,8 @@ cudaStreamSynchronize(stream);
 
         uint16_t upperModuleIndex = module_partnerModuleIndices[lowerModuleIndex];
 
-        int lowerHitRanges = module_hitRanges[lowerModuleIndex*2];
-        int upperHitRanges = module_hitRanges[upperModuleIndex*2];
+        //int lowerHitRanges = module_hitRanges[lowerModuleIndex*2];
+        //int upperHitRanges = module_hitRanges[upperModuleIndex*2];
 
         if(module_hitRanges[lowerModuleIndex * 2] == -1) continue; //return;
         if(module_hitRanges[upperModuleIndex * 2] == -1) continue; //return;
@@ -1452,8 +1452,8 @@ void SDL::Event::createMiniDoublets()
         int upperHitRanges = module_hitRanges[upperModuleIndex*2];
         if(lowerHitRanges!=-1 && upperHitRanges!=-1) 
         {
-            unsigned int nLowerHits = module_hitRanges[lowerModuleIndex * 2 + 1] - lowerHitRanges + 1;
-            unsigned int nUpperHits = module_hitRanges[upperModuleIndex * 2 + 1] - upperHitRanges + 1;
+            int nLowerHits = module_hitRanges[lowerModuleIndex * 2 + 1] - lowerHitRanges + 1;
+            int nUpperHits = module_hitRanges[upperModuleIndex * 2 + 1] - upperHitRanges + 1;
             maxThreadsPerModule = maxThreadsPerModule > (nLowerHits*nUpperHits) ? maxThreadsPerModule : nLowerHits*nUpperHits;
         }
     }
@@ -1470,8 +1470,8 @@ void SDL::Event::createMiniDoublets()
         int upperHitRanges = hitsInGPU->hitRanges[upperModuleIndex*2];
         if(lowerHitRanges!=-1&&upperHitRanges!=-1) 
         {
-            unsigned int nLowerHits = hitsInGPU->hitRanges[lowerModuleIndex * 2 + 1] - lowerHitRanges + 1;
-            unsigned int nUpperHits = hitsInGPU->hitRanges[upperModuleIndex * 2 + 1] - upperHitRanges + 1;
+            int nLowerHits = hitsInGPU->hitRanges[lowerModuleIndex * 2 + 1] - lowerHitRanges + 1;
+            int nUpperHits = hitsInGPU->hitRanges[upperModuleIndex * 2 + 1] - upperHitRanges + 1;
             maxThreadsPerModule = maxThreadsPerModule > (nLowerHits*nUpperHits) ? maxThreadsPerModule : nLowerHits*nUpperHits;
         }
     }
@@ -1736,8 +1736,8 @@ void SDL::Event::createTrackCandidates()
 
     }cudaStreamSynchronize(stream);
 #endif  
-    unsigned int nThreadsx_pLS = 1024;
-    unsigned int nBlocksx_pLS = MAX_BLOCKS;//(20000) % nThreadsx_pLS == 0 ? 20000 / nThreadsx_pLS : 20000 / nThreadsx_pLS + 1;
+    //unsigned int nThreadsx_pLS = 1024;
+    //unsigned int nBlocksx_pLS = MAX_BLOCKS;//(20000) % nThreadsx_pLS == 0 ? 20000 / nThreadsx_pLS : 20000 / nThreadsx_pLS + 1;
     addpLSasTrackCandidateInGPU<<<nBlocksx, nThreadsx,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU,*mdsInGPU,*hitsInGPU,*quintupletsInGPU);
     cudaError_t cudaerr_pLS = cudaGetLastError();
     if(cudaerr_pLS != cudaSuccess)
@@ -1848,7 +1848,7 @@ void SDL::Event::createPixelTriplets()
     unsigned int* connectedPixelIndex_dev;
     cudaMalloc(&connectedPixelSize_dev, nInnerSegments* sizeof(unsigned int));
     cudaMalloc(&connectedPixelIndex_dev, nInnerSegments* sizeof(unsigned int));
-    unsigned int max_size =0;
+    //unsigned int max_size =0;
     int threadSize = 1000000;
     unsigned int *segs_pix = (unsigned int*)malloc(2*threadSize*sizeof(unsigned int));
     unsigned int *segs_pix_offset = segs_pix+threadSize;
@@ -1863,7 +1863,7 @@ cudaStreamSynchronize(stream);
     int pixelIndexOffsetPos = pixelMapping->connectedPixelsIndex[44999] + pixelMapping->connectedPixelsSizes[44999];
     int pixelIndexOffsetNeg = pixelMapping->connectedPixelsIndexPos[44999] + pixelMapping->connectedPixelsSizes[44999] + pixelIndexOffsetPos;
 
-    for (int i = 0; i < nInnerSegments; i++)
+    for (int i = 0; i < static_cast<int>(nInnerSegments); i++)
     {// loop over # pLS
         int8_t pixelType = pixelTypes[i];// get pixel type for this pLS
         int superbin = superbins[i]; //get superbin for this pixel
@@ -1876,7 +1876,7 @@ cudaStreamSynchronize(stream);
         { // used pixel type to select correct size-index arrays
             connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
             connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndex[superbin];// index to get start of connected modules for this superbin in map
-            for (int j=0; j < pixelMapping->connectedPixelsSizes[superbin]; j++)
+            for (int j=0; j < static_cast<int>(pixelMapping->connectedPixelsSizes[superbin]); j++)
             { // loop over modules from the size
                 segs_pix[totalSegs+j] = i; // save the pixel index in array to be transfered to kernel
                 segs_pix_offset[totalSegs+j] = j; // save this segment in array to be transfered to kernel
@@ -1887,7 +1887,7 @@ cudaStreamSynchronize(stream);
         {
             connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesPos[superbin]; //number of pixel connected modules
             connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndexPos[superbin]+pixelIndexOffsetPos;// index to get start of connected pixel modules
-            for (int j=0; j < pixelMapping->connectedPixelsSizesPos[superbin]; j++)
+            for (int j=0; j < static_cast<int>(pixelMapping->connectedPixelsSizesPos[superbin]); j++)
             {
                 segs_pix[totalSegs+j] = i;
                 segs_pix_offset[totalSegs+j] = j;
@@ -1898,7 +1898,7 @@ cudaStreamSynchronize(stream);
         {
             connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesNeg[superbin]; //number of pixel connected modules
             connectedPixelIndex_host[i] =pixelMapping->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;// index to get start of connected pixel modules
-            for (int j=0; j < pixelMapping->connectedPixelsSizesNeg[superbin]; j++)
+            for (int j=0; j < static_cast<int>(pixelMapping->connectedPixelsSizesNeg[superbin]); j++)
             {
                 segs_pix[totalSegs+j] = i;
                 segs_pix_offset[totalSegs+j] = j;
@@ -1914,7 +1914,7 @@ cudaStreamSynchronize(stream);
 cudaStreamSynchronize(stream);
 
     //less cheap method to estimate max_size for y axis
-    max_size = *std::max_element(nTriplets, nTriplets + nLowerModules);
+    unsigned int max_size = *std::max_element(nTriplets, nTriplets + nLowerModules);
     //dim3 nThreads(16,16,1);
     //dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
     //              (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
@@ -2004,7 +2004,7 @@ cudaStreamSynchronize(stream);
         unsigned int nInnerTriplets = nTriplets[index];
         if (nInnerTriplets !=0) 
         {
-            for (int j=0; j<nInnerTriplets; j++) 
+            for (int j=0; j<static_cast<int>(nInnerTriplets); j++) 
             {
                 threadIdx[nTotalTriplets + j] = index;
                 threadIdx_offset[nTotalTriplets + j] = j;
@@ -2126,7 +2126,7 @@ void SDL::Event::createPixelQuintuplets()
     cudaMalloc(&connectedPixelSize_dev, nInnerSegments* sizeof(unsigned int));
     cudaMalloc(&connectedPixelIndex_dev, nInnerSegments* sizeof(unsigned int));
 
-    unsigned int max_size =0;
+    //unsigned int max_size =0;
     int threadSize = 1000000;
     unsigned int *segs_pix = (unsigned int*)malloc(2*threadSize*sizeof(unsigned int));
     unsigned int *segs_pix_offset = segs_pix+threadSize;
@@ -2143,7 +2143,7 @@ void SDL::Event::createPixelQuintuplets()
     int pixelIndexOffsetPos = pixelMapping->connectedPixelsIndex[44999] + pixelMapping->connectedPixelsSizes[44999];
     int pixelIndexOffsetNeg = pixelMapping->connectedPixelsIndexPos[44999] + pixelMapping->connectedPixelsSizes[44999] + pixelIndexOffsetPos;
 
-    for (int i = 0; i < nInnerSegments; i++)
+    for (int i = 0; i < static_cast<int>(nInnerSegments); i++)
     {// loop over # pLS
         int8_t pixelType = pixelTypes[i];// get pixel type for this pLS
         int superbin = superbins[i]; //get superbin for this pixel
@@ -2156,7 +2156,7 @@ void SDL::Event::createPixelQuintuplets()
         { // used pixel type to select correct size-index arrays
             connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
             connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndex[superbin];// index to get start of connected modules for this superbin in map
-            for (int j=0; j < pixelMapping->connectedPixelsSizes[superbin]; j++)
+            for (int j=0; j < static_cast<int>(pixelMapping->connectedPixelsSizes[superbin]); j++)
             { // loop over modules from the size
                 segs_pix[totalSegs+j] = i; // save the pixel index in array to be transfered to kernel
                 segs_pix_offset[totalSegs+j] = j; // save this segment in array to be transfered to kernel
@@ -2167,7 +2167,7 @@ void SDL::Event::createPixelQuintuplets()
         {
             connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesPos[superbin]; //number of pixel connected modules
             connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndexPos[superbin]+pixelIndexOffsetPos;// index to get start of connected pixel modules
-            for (int j=0; j < pixelMapping->connectedPixelsSizesPos[superbin]; j++)
+            for (int j=0; j < static_cast<int>(pixelMapping->connectedPixelsSizesPos[superbin]); j++)
             {
                 segs_pix[totalSegs+j] = i;
                 segs_pix_offset[totalSegs+j] = j;
@@ -2178,7 +2178,7 @@ void SDL::Event::createPixelQuintuplets()
         {
             connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesNeg[superbin]; //number of pixel connected modules
             connectedPixelIndex_host[i] =pixelMapping->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;// index to get start of connected pixel modules
-            for (int j=0; j < pixelMapping->connectedPixelsSizesNeg[superbin]; j++)
+            for (int j=0; j < static_cast<int>(pixelMapping->connectedPixelsSizesNeg[superbin]); j++)
             {
                 segs_pix[totalSegs+j] = i;
                 segs_pix_offset[totalSegs+j] = j;
@@ -2194,7 +2194,7 @@ void SDL::Event::createPixelQuintuplets()
 cudaStreamSynchronize(stream);
 
     //less cheap method to estimate max_size for y axis
-    max_size = *std::max_element(nQuintuplets, nQuintuplets + nLowerModules);
+    unsigned int max_size = *std::max_element(nQuintuplets, nQuintuplets + nLowerModules);
     dim3 nThreads(16,64,1);
     dim3 nBlocks(1,MAX_BLOCKS,1);
                   

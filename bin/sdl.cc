@@ -448,7 +448,7 @@ float timing_TC ;
 //Run Track Extensions
 float timing_TCE;
     #pragma omp for //nowait// private(event)
-    for(int evt=0; evt < out_trkX.size(); evt++)
+    for(int evt=0; evt < static_cast<int>(out_trkX.size()); evt++)
     {
             std::cout << "Running Event number = " << evt << " " << omp_get_thread_num() << std::endl;
             //Load Hits

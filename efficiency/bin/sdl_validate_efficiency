@@ -115,19 +115,19 @@ rm -rf ${OUTDIR}
 mkdir -p ${OUTDIR}
 
 # Run different GPU configurations
-if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified" ]]; then
+if [[ "${SPECIFICGPUVERSION}" == "unified" ]]; then
     run_gpu unified ${SAMPLE} ${NEVENTS} -8 -l ${runExtension}
     :
 fi
-if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit" ]]; then
+if [[ "${SPECIFICGPUVERSION}" == "explicit" ]]; then
     run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 -l ${runExtension}
     :
 fi
-if [[ "${SPECIFICGPUVERSION}" == "unified_cache" ]]; then
+if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified_cache" ]]; then
     run_gpu unified ${SAMPLE} ${NEVENTS} -8 -c -l ${runExtension}
     :
 fi
-if [[ "${SPECIFICGPUVERSION}" == "explicit_cache" ]]; then
+if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache" ]]; then
     run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 -c -l ${runExtension}
     :
 fi

@@ -352,14 +352,14 @@ void SDL::CPU::Event::createMiniDoubletsFromLowerModule(unsigned int detId, SDL:
     {
 
         // Get reference to lower Hit
-        SDL::CPU::Hit& lowerHit = *lowerHitPtr;
+        //SDL::CPU::Hit& lowerHit = *lowerHitPtr;
 
         // Loop over upper module hits
         for (auto& upperHitPtr : upperModule.getHitPtrs())
         {
 
             // Get reference to upper Hit
-            SDL::CPU::Hit& upperHit = *upperHitPtr;
+            //SDL::CPU::Hit& upperHit = *upperHitPtr;
 
             // Create a mini-doublet candidate
             SDL::CPU::MiniDoublet mdCand(lowerHitPtr, upperHitPtr);
@@ -427,14 +427,14 @@ void SDL::CPU::Event::createPseudoMiniDoubletsFromAnchorModule(SDL::CPU::MDAlgo 
             for (auto& lowerHitPtr : lowerModule.getHitPtrs())
             {
                 // Get reference to lower Hit
-                SDL::CPU::Hit& lowerHit = *lowerHitPtr;
+                //SDL::CPU::Hit& lowerHit = *lowerHitPtr;
 
                 // Loop over upper module hits
                 for (auto& upperHitPtr : upperModule.getHitPtrs())
                 {
 
                     // Get reference to upper Hit
-                    SDL::CPU::Hit& upperHit = *upperHitPtr;
+                    //SDL::CPU::Hit& upperHit = *upperHitPtr;
 
                     // Create a mini-doublet candidate
                     SDL::CPU::MiniDoublet mdCand(lowerHitPtr, upperHitPtr);
@@ -471,14 +471,14 @@ void SDL::CPU::Event::createPseudoMiniDoubletsFromAnchorModule(SDL::CPU::MDAlgo 
             for (auto& upperHitPtr : upperModule.getHitPtrs())
             {
                 // Get reference to upper Hit
-                SDL::CPU::Hit& upperHit = *upperHitPtr;
+                //SDL::CPU::Hit& upperHit = *upperHitPtr;
 
                 // Loop over upper module hits
                 for (auto& lowerHitPtr : lowerModule.getHitPtrs())
                 {
 
                     // Get reference to lower Hit
-                    SDL::CPU::Hit& lowerHit = *lowerHitPtr;
+                    //SDL::CPU::Hit& lowerHit = *lowerHitPtr;
 
                     // Create a mini-doublet candidate
                     SDL::CPU::MiniDoublet mdCand(lowerHitPtr, upperHitPtr);

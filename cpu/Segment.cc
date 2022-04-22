@@ -336,13 +336,13 @@ void SDL::CPU::Segment::runSegmentAllCombAlgo()
     passAlgo_ |= (1 << SDL::CPU::AllComb_SGAlgo);
     // return;
 
-    const MiniDoublet& innerMiniDoublet = (*innerMiniDoubletPtr());
-    const MiniDoublet& outerMiniDoublet = (*outerMiniDoubletPtr());
+    //const MiniDoublet& innerMiniDoublet = (*innerMiniDoubletPtr());
+    //const MiniDoublet& outerMiniDoublet = (*outerMiniDoubletPtr());
 
-    const Hit& innerAnchorHit = (*innerMiniDoublet.anchorHitPtr());
-    const Hit& outerAnchorHit = (*outerMiniDoublet.anchorHitPtr());
+    //const Hit& innerAnchorHit = (*innerMiniDoublet.anchorHitPtr());
+    //const Hit& outerAnchorHit = (*outerMiniDoublet.anchorHitPtr());
 
-    float dr = outerAnchorHit.rt() - innerAnchorHit.rt();
+    //float dr = outerAnchorHit.rt() - innerAnchorHit.rt();
 
     // // Cut #0: Module compatibility
     // if (not (dr < 35.))
@@ -394,7 +394,7 @@ void SDL::CPU::Segment::runSegmentDefaultAlgoBarrel(SDL::CPU::LogLevel logLevel)
     passBitsDefaultAlgo_ = 0;
 
     // Get connected outer lower module detids
-    const std::vector<unsigned int>& connectedModuleDetIds = moduleConnectionMap.getConnectedModuleDetIds(innerLowerModule.detId());
+    //const std::vector<unsigned int>& connectedModuleDetIds = moduleConnectionMap.getConnectedModuleDetIds(innerLowerModule.detId());
 
 
     // set default values
@@ -677,11 +677,11 @@ void SDL::CPU::Segment::runSegmentDefaultAlgoEndcap(SDL::CPU::LogLevel logLevel)
     const float ptCut = PTCUT;
     const float sinAlphaMax = 0.95;
     const float deltaZLum = 15.f;
-    std::array<float, 5> miniMulsPtScaleEndcap {0.006, 0.006, 0.006, 0.006, 0.006}; //inter/extra-polated from L11 and L13 both roughly 0.006 [larger R have smaller value by ~50%]
+    //std::array<float, 5> miniMulsPtScaleEndcap {0.006, 0.006, 0.006, 0.006, 0.006}; //inter/extra-polated from L11 and L13 both roughly 0.006 [larger R have smaller value by ~50%]
 
-    float sdMuls;
+    //float sdMuls;
 
-    sdMuls = miniMulsPtScaleEndcap[innerLowerModule.layer()-1] * 3.f / ptCut;//will need a better guess than x2?
+    //sdMuls = miniMulsPtScaleEndcap[innerLowerModule.layer()-1] * 3.f / ptCut;//will need a better guess than x2?
     
 
     // Get the relevant anchor hits
@@ -702,7 +702,7 @@ void SDL::CPU::Segment::runSegmentDefaultAlgoEndcap(SDL::CPU::LogLevel logLevel)
     setRtIn(innerMiniDoubletAnchorHitRt);
 
     const float sdSlope = std::asin(std::min(outerMiniDoubletAnchorHitRt * k2Rinv1GeVf / ptCut, sinAlphaMax));
-     const float sdPVoff = 0.1f / outerMiniDoubletAnchorHitRt;
+     //const float sdPVoff = 0.1f / outerMiniDoubletAnchorHitRt;
     // const float dzDrtScale = std::tan(sdSlope) / sdSlope; //FIXME: need approximate value
     const float pixelPSZpitch = 0.15;
     const float strip2SZpitch = 5.0;
@@ -756,7 +756,7 @@ void SDL::CPU::Segment::runSegmentDefaultAlgoEndcap(SDL::CPU::LogLevel logLevel)
     // const float sdCut = sdSlope + sqrt(sdMuls * sdMuls + sdPVoff * sdPVoff + sdLum * sdLum);
     //const float sdCut = sdSlope;
     const float dPhiPos = innerMiniDoubletAnchorHit.deltaPhi(outerMiniDoubletAnchorHit);
-    const float sdLum = dPhiPos * deltaZLum / dz; 
+    //const float sdLum = dPhiPos * deltaZLum / dz; 
     const float sdCut = sdSlope;	
     const float dPhiPos_high = innerMiniDoubletAnchorHit.deltaPhi(outerMiniDoubletAnchorHitHighEdge);
     const float dPhiPos_low = innerMiniDoubletAnchorHit.deltaPhi(outerMiniDoubletAnchorHitLowEdge);
