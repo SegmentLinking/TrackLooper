@@ -1520,63 +1520,63 @@ void SDL::Event::createSegmentsWithModuleMap()
 #endif
     }
 //    cudaStreamSynchronize(stream);
-    int max_cModules=0;
-    int sq_max_nMDs = 0;
-    int nonZeroModules = 0;
-    unsigned int* nMDs;
-    cudaMallocHost(&nMDs, (nLowerModules +1)* sizeof(unsigned int));
-    cudaMemcpyAsync((void *)nMDs, mdsInGPU->nMDs, nLowerModules*sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
-
-#ifdef Explicit_Module
-    uint16_t* module_nConnectedModules;
-    cudaMallocHost(&module_nConnectedModules, nLowerModules* sizeof(uint16_t));
-    cudaMemcpyAsync(module_nConnectedModules,modulesInGPU->nConnectedModules,nLowerModules*sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
-    uint16_t* module_moduleMap;
-    cudaMallocHost(&module_moduleMap, nLowerModules*40* sizeof(uint16_t));
-    cudaMemcpyAsync(module_moduleMap,modulesInGPU->moduleMap,nLowerModules*40*sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
-cudaStreamSynchronize(stream);
-    for (uint16_t innerLowerModuleIndex = 0; innerLowerModuleIndex <nLowerModules; innerLowerModuleIndex++) 
-    {
-        uint16_t nConnectedModules = module_nConnectedModules[innerLowerModuleIndex];
-        unsigned int nInnerMDs = nMDs[innerLowerModuleIndex];
-        max_cModules = max(max_cModules, nConnectedModules);
-        int limit_local = 0;
-        if (nConnectedModules!=0) nonZeroModules++;
-        for (uint16_t j=0; j<nConnectedModules; j++) 
-        {
-            uint16_t outerLowerModuleIndex = module_moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + j];
-            int nOuterMDs = nMDs[outerLowerModuleIndex];
-            int total = nInnerMDs*nOuterMDs;
-            limit_local = max(limit_local,  total);
-        }
-        sq_max_nMDs = max(sq_max_nMDs, limit_local);
-    }
-    cudaFreeHost(module_nConnectedModules);
-    cudaFreeHost(module_moduleMap);
-#else
-    for (uint16_t innerLowerModuleIndex =0; innerLowerModuleIndex <nLowerModules; innerLowerModuleIndex++) 
-    {
-        uint16_t nConnectedModules = modulesInGPU->nConnectedModules[innerLowerModuleIndex];
-        unsigned int nInnerMDs = nMDs[innerLowerModuleIndex];
-        max_cModules = max(max_cModules, nConnectedModules); 
-        int limit_local = 0;
-        if (nConnectedModules!=0) nonZeroModules++;
-        for (uint16_t j=0; j<nConnectedModules; j++) 
-        {
-            uint16_t outerLowerModuleIndex = modulesInGPU->moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + j];
-            int nOuterMDs = nMDs[outerLowerModuleIndex];
-            int total = nInnerMDs*nOuterMDs;
-            limit_local = limit_local > total ? limit_local : total;
-        }
-        sq_max_nMDs = sq_max_nMDs > limit_local ? sq_max_nMDs : limit_local;
-    }
-  #endif
-    dim3 nThreads(32,32,1);
+//    int max_cModules=0;
+//    int sq_max_nMDs = 0;
+//    int nonZeroModules = 0;
+//    unsigned int* nMDs;
+//    cudaMallocHost(&nMDs, (nLowerModules +1)* sizeof(unsigned int));
+//    cudaMemcpyAsync((void *)nMDs, mdsInGPU->nMDs, nLowerModules*sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+//    cudaStreamSynchronize(stream);
+//
+//#ifdef Explicit_Module
+//    uint16_t* module_nConnectedModules;
+//    cudaMallocHost(&module_nConnectedModules, nLowerModules* sizeof(uint16_t));
+//    cudaMemcpyAsync(module_nConnectedModules,modulesInGPU->nConnectedModules,nLowerModules*sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
+//    uint16_t* module_moduleMap;
+//    cudaMallocHost(&module_moduleMap, nLowerModules*40* sizeof(uint16_t));
+//    cudaMemcpyAsync(module_moduleMap,modulesInGPU->moduleMap,nLowerModules*40*sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
+//cudaStreamSynchronize(stream);
+//    for (uint16_t innerLowerModuleIndex = 0; innerLowerModuleIndex <nLowerModules; innerLowerModuleIndex++) 
+//    {
+//        uint16_t nConnectedModules = module_nConnectedModules[innerLowerModuleIndex];
+//        unsigned int nInnerMDs = nMDs[innerLowerModuleIndex];
+//        max_cModules = max(max_cModules, nConnectedModules);
+//        int limit_local = 0;
+//        if (nConnectedModules!=0) nonZeroModules++;
+//        for (uint16_t j=0; j<nConnectedModules; j++) 
+//        {
+//            uint16_t outerLowerModuleIndex = module_moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + j];
+//            int nOuterMDs = nMDs[outerLowerModuleIndex];
+//            int total = nInnerMDs*nOuterMDs;
+//            limit_local = max(limit_local,  total);
+//        }
+//        sq_max_nMDs = max(sq_max_nMDs, limit_local);
+//    }
+//    cudaFreeHost(module_nConnectedModules);
+//    cudaFreeHost(module_moduleMap);
+//#else
+//    for (uint16_t innerLowerModuleIndex =0; innerLowerModuleIndex <nLowerModules; innerLowerModuleIndex++) 
+//    {
+//        uint16_t nConnectedModules = modulesInGPU->nConnectedModules[innerLowerModuleIndex];
+//        unsigned int nInnerMDs = nMDs[innerLowerModuleIndex];
+//        max_cModules = max(max_cModules, nConnectedModules); 
+//        int limit_local = 0;
+//        if (nConnectedModules!=0) nonZeroModules++;
+//        for (uint16_t j=0; j<nConnectedModules; j++) 
+//        {
+//            uint16_t outerLowerModuleIndex = modulesInGPU->moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + j];
+//            int nOuterMDs = nMDs[outerLowerModuleIndex];
+//            int total = nInnerMDs*nOuterMDs;
+//            limit_local = limit_local > total ? limit_local : total;
+//        }
+//        sq_max_nMDs = sq_max_nMDs > limit_local ? sq_max_nMDs : limit_local;
+//    }
+//  #endif
+    dim3 nThreads(32,16,1);
     dim3 nBlocks(1,1,MAX_BLOCKS);
 
     createSegmentsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *rangesInGPU);
-    cudaFreeHost(nMDs);
+//    cudaFreeHost(nMDs);
     cudaError_t cudaerr = cudaGetLastError();
     if(cudaerr != cudaSuccess)
     {
@@ -1658,7 +1658,7 @@ void SDL::Event::createTriplets()
     cudaMemcpyAsync(index_gpu, index, nonZeroModules*sizeof(uint16_t), cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
 
-    dim3 nThreads(16,64,1);
+    dim3 nThreads(16,32,1);
     dim3 nBlocks(1,1,MAX_BLOCKS);
     createTripletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *rangesInGPU, index_gpu,nonZeroModules);
     cudaError_t cudaerr =cudaGetLastError();
@@ -1696,7 +1696,7 @@ void SDL::Event::createTrackCandidates()
 
 #ifdef FINAL_pT3
     //printf("running final state pT3\n");
-    unsigned int nThreadsx = 1024;
+    unsigned int nThreadsx = 384;//1024;
     unsigned int nBlocksx = MAX_BLOCKS;//(N_MAX_PIXEL_TRIPLETS) % nThreadsx == 0 ? N_MAX_PIXEL_TRIPLETS / nThreadsx : N_MAX_PIXEL_TRIPLETS / nThreadsx + 1;
     addpT3asTrackCandidateInGPU<<<nBlocksx, nThreadsx,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
     cudaError_t cudaerr_pT3 = cudaGetLastError();
@@ -1709,7 +1709,7 @@ void SDL::Event::createTrackCandidates()
 #ifdef FINAL_T5
     //dim3 dupThreads(64,16,1);
     //dim3 dupBlocks(1,MAX_BLOCKS,1);
-    dim3 dupThreads(32,32,1);
+    dim3 dupThreads(32,16,1);
     dim3 dupBlocks(1,1,MAX_BLOCKS);
     dim3 nThreads(32,32,1);
     dim3 nBlocks(1,MAX_BLOCKS,1);
@@ -1728,7 +1728,7 @@ void SDL::Event::createTrackCandidates()
     //printf("Adding pLSs to TC collection\n");
 #ifdef DUP_pLS
     //printf("cleaning pixels\n");
-    checkHitspLS<<<MAX_BLOCKS,1024,0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *hitsInGPU, true);
+    checkHitspLS<<<MAX_BLOCKS,320,0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *hitsInGPU, true);
     cudaError_t cudaerrpix = cudaGetLastError();
     if(cudaerrpix != cudaSuccess)
     {
@@ -1738,7 +1738,7 @@ void SDL::Event::createTrackCandidates()
 #endif  
     //unsigned int nThreadsx_pLS = 1024;
     //unsigned int nBlocksx_pLS = MAX_BLOCKS;//(20000) % nThreadsx_pLS == 0 ? 20000 / nThreadsx_pLS : 20000 / nThreadsx_pLS + 1;
-    addpLSasTrackCandidateInGPU<<<nBlocksx, nThreadsx,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU,*mdsInGPU,*hitsInGPU,*quintupletsInGPU);
+    addpLSasTrackCandidateInGPU<<<nBlocksx, 384,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU,*mdsInGPU,*hitsInGPU,*quintupletsInGPU);
     cudaError_t cudaerr_pLS = cudaGetLastError();
     if(cudaerr_pLS != cudaSuccess)
     {
@@ -1951,7 +1951,7 @@ cudaStreamSynchronize(stream);
 
     //pT3s can be cleaned here because they're not used in making pT5s!
 #ifdef DUP_pT3
-    dim3 nThreads_dup(512,1,1);
+    dim3 nThreads_dup(160,1,1);
     dim3 nBlocks_dup(MAX_BLOCKS,1,1);
     removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup,0,stream>>>(*pixelTripletsInGPU,false);
 cudaStreamSynchronize(stream);
@@ -2060,7 +2060,7 @@ void SDL::Event::pixelLineSegmentCleaning()
 {
 #ifdef DUP_pLS
     //printf("cleaning pixels\n");
-    checkHitspLS<<<MAX_BLOCKS,1024,0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *hitsInGPU, false);
+    checkHitspLS<<<MAX_BLOCKS,320,0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *hitsInGPU, false);
     cudaError_t cudaerrpix = cudaGetLastError();
     if(cudaerrpix != cudaSuccess)
     {
@@ -2195,7 +2195,7 @@ cudaStreamSynchronize(stream);
 
     //less cheap method to estimate max_size for y axis
     unsigned int max_size = *std::max_element(nQuintuplets, nQuintuplets + nLowerModules);
-    dim3 nThreads(16,64,1);
+    dim3 nThreads(16,32,1);
     dim3 nBlocks(1,MAX_BLOCKS,1);
                   
     createPixelQuintupletsInGPUFromMap<<<nBlocks, nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, connectedPixelSize_dev, connectedPixelIndex_dev, nInnerSegments, segs_pix_gpu, segs_pix_gpu_offset, totalSegs,*rangesInGPU);
@@ -2217,7 +2217,7 @@ cudaStreamSynchronize(stream);
     free(segs_pix);
     cudaFree(segs_pix_gpu);
 
-    dim3 nThreads_dup(512,1,1);
+    dim3 nThreads_dup(256,1,1);
     dim3 nBlocks_dup(MAX_BLOCKS,1,1);
 #ifdef DUP_pT5
     //printf("run dup pT5\n");
