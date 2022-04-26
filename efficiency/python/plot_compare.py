@@ -105,7 +105,7 @@ for key in keys:
             yaxis_min = eff.GetY()[i]
     # print yaxis_min
     if "eta" in output_name:
-        eff.GetXaxis().SetLimits(-2.5, 2.5)
+        eff.GetXaxis().SetLimits(-4.5, 4.5)
     if "ptzoom" in output_name:
         eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
     if "etazoom" in output_name:

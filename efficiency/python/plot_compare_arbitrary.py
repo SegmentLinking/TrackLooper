@@ -166,7 +166,7 @@ for key in keys:
         eff.GetYaxis().SetRangeUser(0, 1.02)
 
     if "eta" in output_name:
-        eff.GetXaxis().SetLimits(-2.5, 2.5)
+        eff.GetXaxis().SetLimits(-4.5, 4.5)
 
     eff.SetTitle(parse_plot_name(output_name))
     if len(sys.argv) > 5:
