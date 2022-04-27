@@ -226,7 +226,7 @@ sh $DIR/plot_efficiencies.sh $(basename ${SAMPLE}) ${TAG}_${VERSION} > plots.log
 
 # copy the plots
 echo "Copying plots..."
-cp -r plots ${OUTDIR}
+mv -r plots ${OUTDIR}
 
 # copy the source code info
 mv gitversion.txt ${OUTDIR}/
@@ -237,9 +237,6 @@ mv num_den_histograms.root ${OUTDIR}/
 mv efficiencies.root ${OUTDIR}/
 mv outputs ${OUTDIR}/
 mv cmdline.txt ${OUTDIR}/
-
-# clean up so that the next run would be spoiled
-rm -rf plots
 
 # Output
 echo "Done! Output is located at ${OUTDIR}/index.html"
