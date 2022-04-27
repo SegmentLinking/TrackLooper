@@ -127,7 +127,7 @@ __global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SD
             dPhiChangeMin = 0;
             dPhiChangeMax = 0;
             float zLo, zHi, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold;
-
+            
             bool success = runSegmentDefaultAlgo(modulesInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold);
 
             if(success)
@@ -375,11 +375,12 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
         {
             continue;//return;
         }
-        if(segmentsInGPU.score[pixelArrayIndex] > 120){continue;}
-        //cross cleaning step
-
         float eta1 = segmentsInGPU.eta[pixelArrayIndex];
         float phi1 = segmentsInGPU.phi[pixelArrayIndex];
+
+//        if(fabsf(eta1) > 2 and segmentsInGPU.score[pixelArrayIndex] > 381){continue;}
+        //cross cleaning step
+
         unsigned int prefix = rangesInGPU.segmentModuleIndices[pixelModuleIndex];//*N_MAX_SEGMENTS_PER_MODULE;
 
         unsigned int loop_bound = *pixelQuintupletsInGPU.nPixelQuintuplets;

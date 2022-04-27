@@ -226,7 +226,7 @@ sh $DIR/plot_efficiencies.sh $(basename ${SAMPLE}) ${TAG}_${VERSION} > plots.log
 
 # copy the plots
 echo "Copying plots..."
-mv -r plots ${OUTDIR}
+mv plots ${OUTDIR}
 
 # copy the source code info
 mv gitversion.txt ${OUTDIR}/

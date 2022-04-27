@@ -140,7 +140,7 @@ for key in keys:
     eff.GetYaxis().SetLabelSize(0.05)
     yaxis_max = 0
 
-    if "fakerate" in key or "duplrate" in keys:
+    if "fakerate" in key or "duplrate" in key or "pT3" in key:
         leg1 = r.TLegend(0.63, 0.67, 0.93, 0.87)
     else:
         leg1 = r.TLegend(0.63, 0.18, 0.93, 0.38)
