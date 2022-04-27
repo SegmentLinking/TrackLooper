@@ -340,8 +340,8 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     unsigned int pixelInnerMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
     unsigned int pixelOuterMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
 
-    unsigned int pixelAnchorHitIndex1 = mdsInGPU.anchorHitIndices[pixelInnerMDIndex];
-    unsigned int pixelAnchorHitIndex2 = mdsInGPU.anchorHitIndices[pixelOuterMDIndex];
+    //unsigned int pixelAnchorHitIndex1 = mdsInGPU.anchorHitIndices[pixelInnerMDIndex];
+    //unsigned int pixelAnchorHitIndex2 = mdsInGPU.anchorHitIndices[pixelOuterMDIndex];
 
     pixelRadius = pixelSegmentPt/(2.f * k2Rinv1GeVf);
     pixelRadiusError = pixelSegmentPtError/(2.f * k2Rinv1GeVf);
@@ -580,10 +580,9 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, uin
     float chiSquared = 0;
     ModuleType moduleType;
     short moduleSubdet, moduleSide;
-    float drdz;
     float inv1 = 0.01f/0.009f;
     float inv2 = 0.15f/0.009f;
-    float inv3 = 2.4f/0.009f;
+    //float inv3 = 2.4f/0.009f;
     for(size_t i = 0; i < 3; i++)
     {
         moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];

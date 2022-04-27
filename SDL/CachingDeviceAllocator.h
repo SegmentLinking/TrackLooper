@@ -130,15 +130,15 @@ namespace notcub {
       cudaEvent_t ready_event;  // Signal when associated stream has run to the point at which this block was freed
 
       // Constructor (suitable for searching maps for a specific block, given its pointer and device)
-      BlockDescriptor(void *d_ptr, int device)
-          : d_ptr(d_ptr), bytes(0), bin(INVALID_BIN), device(device), associated_stream(nullptr), ready_event(nullptr) {}
+      BlockDescriptor(void *d_ptr1, int device1)
+          : d_ptr(d_ptr1), bytes(0), bin(INVALID_BIN), device(device1), associated_stream(nullptr), ready_event(nullptr) {}
 
       // Constructor (suitable for searching maps for a range of suitable blocks, given a device)
-      BlockDescriptor(int device)
+      BlockDescriptor(int device1)
           : d_ptr(nullptr),
             bytes(0),
             bin(INVALID_BIN),
-            device(device),
+            device(device1),
             associated_stream(nullptr),
             ready_event(nullptr) {}
 
@@ -249,21 +249,21 @@ namespace notcub {
      * \brief Constructor.
      */
     CachingDeviceAllocator(
-        unsigned int bin_growth,                 ///< Geometric growth factor for bin-sizes
-        unsigned int min_bin = 1,                ///< Minimum bin (default is bin_growth ^ 1)
-        unsigned int max_bin = INVALID_BIN,      ///< Maximum bin (default is no max bin)
-        size_t max_cached_bytes = INVALID_SIZE,  ///< Maximum aggregate cached bytes per device (default is no limit)
-        bool skip_cleanup =
+        unsigned int bin_growthx,                 ///< Geometric growth factor for bin-sizes
+        unsigned int min_binx = 1,                ///< Minimum bin (default is bin_growth ^ 1)
+        unsigned int max_binx = INVALID_BIN,      ///< Maximum bin (default is no max bin)
+        size_t max_cached_bytesx = INVALID_SIZE,  ///< Maximum aggregate cached bytes per device (default is no limit)
+        bool skip_cleanupx =
             false,  ///< Whether or not to skip a call to \p FreeAllCached() when the destructor is called (default is to deallocate)
-        bool debug = false)  ///< Whether or not to print (de)allocation events to stdout (default is no stderr output)
-        : bin_growth(bin_growth),
-          min_bin(min_bin),
-          max_bin(max_bin),
-          min_bin_bytes(IntPow(bin_growth, min_bin)),
-          max_bin_bytes(IntPow(bin_growth, max_bin)),
-          max_cached_bytes(max_cached_bytes),
-          skip_cleanup(skip_cleanup),
-          debug(debug),
+        bool debugx = false)  ///< Whether or not to print (de)allocation events to stdout (default is no stderr output)
+        : bin_growth(bin_growthx),
+          min_bin(min_binx),
+          max_bin(max_binx),
+          min_bin_bytes(IntPow(bin_growthx, min_binx)),
+          max_bin_bytes(IntPow(bin_growthx, max_binx)),
+          max_cached_bytes(max_cached_bytesx),
+          skip_cleanup(skip_cleanupx),
+          debug(debugx),
           cached_blocks(BlockDescriptor::SizeCompare),
           live_blocks(BlockDescriptor::PtrCompare) {}
 
@@ -280,15 +280,15 @@ namespace notcub {
      * which delineates five bin-sizes: 512B, 4KB, 32KB, 256KB, and 2MB and
      * sets a maximum of 6,291,455 cached bytes per device
      */
-    CachingDeviceAllocator(bool skip_cleanup = false, bool debug = false)
+    CachingDeviceAllocator(bool skip_cleanupx = false, bool debugx = false)
         : bin_growth(8),
           min_bin(3),
           max_bin(7),
           min_bin_bytes(IntPow(bin_growth, min_bin)),
           max_bin_bytes(IntPow(bin_growth, max_bin)),
           max_cached_bytes((max_bin_bytes * 3) - 1),
-          skip_cleanup(skip_cleanup),
-          debug(debug),
+          skip_cleanup(skip_cleanupx),
+          debug(debugx),
           cached_blocks(BlockDescriptor::SizeCompare),
           live_blocks(BlockDescriptor::PtrCompare) {}
 
@@ -298,16 +298,16 @@ namespace notcub {
      * Changing the ceiling of cached bytes does not cause any allocations (in-use or
      * cached-in-reserve) to be freed.  See \p FreeAllCached().
      */
-    cudaError_t SetMaxCachedBytes(size_t max_cached_bytes) {
+    cudaError_t SetMaxCachedBytes(size_t max_cached_bytesx) {
       // Lock
       mutex.Lock();
 
       if (debug)
         _CubLog("Changing max_cached_bytes (%lld -> %lld)\n",
                 (long long)this->max_cached_bytes,
-                (long long)max_cached_bytes);
+                (long long)max_cached_bytesx);
 
-      this->max_cached_bytes = max_cached_bytes;
+      this->max_cached_bytes = max_cached_bytesx;
 
       // Unlock
       mutex.Unlock();

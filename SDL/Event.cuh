@@ -26,6 +26,7 @@
 #include "PixelQuintuplet.cuh"
 #include "TrackExtensions.cuh"
 #include "Kernels.cuh"
+#include "Constants.h"
 
 #include "cuda_profiler_api.h"
 #ifdef __CUDACC__

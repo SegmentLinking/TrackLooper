@@ -122,5 +122,6 @@ if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache
 fi
 
 echo "Total Timing Summary"
-echo "   Evt    Hits       MD       LS      T3       T5       pLS       pT5      pT3      TC       TCE      Event      Short           Loop      Effective"
+echo "   Evt    Hits       MD       LS      T3       T5       pLS       pT5      pT3      TC       TCE      Event      Short           Rate"
+#echo "   Evt    Hits       MD       LS      T3       T5       pLS       pT5      pT3      TC       TCE      Event      Short           Loop      Effective"
 grep -hr "avg " timing_temp.txt # space is needed to not get certain bad lines 

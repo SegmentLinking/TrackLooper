@@ -6,11 +6,12 @@
 #include "TSystem.h"
 //#include "AnalysisInterface/EventForAnalysisInterface.h"
 //#include "AnalysisInterface/Module.h"
+#include "Module.h"
 #include "AnalysisConfig.h"
 #include "SDL/ModuleConnectionMap.h"
 #include "SDLMath.h"
 #include "SDL/Event.cuh"
-#include "SDL/Event.h"
+//#include "SDL/Event.h"
 #include <cppitertools/enumerate.hpp>
 #include <cppitertools/zip.hpp>
 #include <numeric>
@@ -126,36 +127,36 @@ unsigned int hitOffset, unsigned int evt, struct SDL::hits* hitsInGPU_event
 
 TVector3 calculateR3FromPCA(const TVector3& p3, const float dxy, const float dz);
 
-float addOuterTrackerHits(SDL::CPU::Event& event);
-float addOuterTrackerSimHits(SDL::CPU::Event& event);
-float addOuterTrackerSimHitsFromPVOnly(SDL::CPU::Event& event);
-float addOuterTrackerSimHitsNotFromPVOnly(SDL::CPU::Event& event);
-float addPixelSegments(SDL::CPU::Event& event, int isimtrk=-1);
-float runMiniDoublet_on_CPU(SDL::CPU::Event& event);
-float runSegment_on_CPU(SDL::CPU::Event& event);
-float runT4_on_CPU(SDL::CPU::Event& event);
-float runT4x_on_CPU(SDL::CPU::Event& event);
-float runpT4_on_CPU(SDL::CPU::Event& event);
-float runT3_on_CPU(SDL::CPU::Event& event);
-float runTrackCandidate_on_CPU(SDL::CPU::Event& event);
-float runT5_on_CPU(SDL::CPU::Event& event);
-float runpT3_on_CPU(SDL::CPU::Event& event);
-
-// Printing SDL information
-void printHitSummary(SDL::CPU::Event& event);
-void printMiniDoubletSummary(SDL::CPU::Event& event);
-void printSegmentSummary(SDL::CPU::Event& event);
-void printTrackletSummary(SDL::CPU::Event& event);
-void printTripletSummary(SDL::CPU::Event& event);
-void printTrackCandidateSummary(SDL::CPU::Event& event);
+//float addOuterTrackerHits(SDL::CPU::Event& event);
+//float addOuterTrackerSimHits(SDL::CPU::Event& event);
+//float addOuterTrackerSimHitsFromPVOnly(SDL::CPU::Event& event);
+//float addOuterTrackerSimHitsNotFromPVOnly(SDL::CPU::Event& event);
+//float addPixelSegments(SDL::CPU::Event& event, int isimtrk=-1);
+//float runMiniDoublet_on_CPU(SDL::CPU::Event& event);
+//float runSegment_on_CPU(SDL::CPU::Event& event);
+//float runT4_on_CPU(SDL::CPU::Event& event);
+//float runT4x_on_CPU(SDL::CPU::Event& event);
+//float runpT4_on_CPU(SDL::CPU::Event& event);
+//float runT3_on_CPU(SDL::CPU::Event& event);
+//float runTrackCandidate_on_CPU(SDL::CPU::Event& event);
+//float runT5_on_CPU(SDL::CPU::Event& event);
+//float runpT3_on_CPU(SDL::CPU::Event& event);
+//
+//// Printing SDL information
+//void printHitSummary(SDL::CPU::Event& event);
+//void printMiniDoubletSummary(SDL::CPU::Event& event);
+//void printSegmentSummary(SDL::CPU::Event& event);
+//void printTrackletSummary(SDL::CPU::Event& event);
+//void printTripletSummary(SDL::CPU::Event& event);
+//void printTrackCandidateSummary(SDL::CPU::Event& event);
 
 // trk tool
 bool isDenomSimTrk(int isimtrk);
 bool isDenomOfInterestSimTrk(int isimtrk);
 int getDenomSimTrkType(int isimtrk);
 int bestSimHitMatch(int irecohit);
-int logicalLayer(const SDL::CPU::Module& module);
-int isAnchorLayer(const SDL::CPU::Module& module);
+//int logicalLayer(const SDL::CPU::Module& module);
+//int isAnchorLayer(const SDL::CPU::Module& module);
 
 TString get_absolute_path_after_check_file_exists(const std::string name);
 
