@@ -91,7 +91,7 @@ namespace SDL
     else        return -float(M_PI) / 2.f;
     }
     CUDA_HOSTDEV inline float phi_mpi_pi(float x) {
-    if (isnan(x))
+    if (std::isnan(x))
     {
       //printf("phi_mpi_pi() function called with NaN\n");                                                
         return x;
