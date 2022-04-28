@@ -125,7 +125,7 @@ const std::vector<unsigned int>& SDL::ModuleConnectionMap::getConnectedModuleDet
 {
     return moduleConnections_[detid];
 }
-const int SDL::ModuleConnectionMap::size()
+/*const*/ int SDL::ModuleConnectionMap::size()
 {
     return moduleConnections_.size();
 }

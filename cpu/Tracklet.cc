@@ -482,7 +482,7 @@ void SDL::CPU::Tracklet::runTrackletDefaultAlgoBarrelBarrelBarrelBarrel_v1(SDL::
 
     const float drOutIn = (rtOut - rtIn);
 
-    const float rtInvIn = 1. / rtIn;
+    //const float rtInvIn = 1. / rtIn;
     // const float ptIn = sdIn.p3.Pt(); // For Pixel Seeds
     const float rIn = sqrt(zIn*zIn + rtIn*rtIn);
     const float drtSDIn = innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->rt() - innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->rt();
@@ -517,13 +517,13 @@ void SDL::CPU::Tracklet::runTrackletDefaultAlgoBarrelBarrelBarrelBarrel_v1(SDL::
 
     const float sdlPVoff = 0.1f / rtOut;
     const float sdlCut = sdlSlope + sqrt(sdlMuls * sdlMuls + sdlPVoff*sdlPVoff);
-    const MiniDoublet& sdIn_mdOut = (*innerSegmentPtr()->outerMiniDoubletPtr());
-    const MiniDoublet& sdOut_mdOut = (*outerSegmentPtr()->outerMiniDoubletPtr());
+    //const MiniDoublet& sdIn_mdOut = (*innerSegmentPtr()->outerMiniDoubletPtr());
+    //const MiniDoublet& sdOut_mdOut = (*outerSegmentPtr()->outerMiniDoubletPtr());
     const Hit& sdIn_mdOut_hit = (*innerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr());
     const Hit& sdOut_mdOut_hit = (*outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr());
 
     // Cut #4: deltaPhiPos can be tighter
-    float deltaPhiPos = sdIn_mdOut_hit.deltaPhi(sdOut_mdOut_hit);
+    //float deltaPhiPos = sdIn_mdOut_hit.deltaPhi(sdOut_mdOut_hit);
     if (not (std::abs(deltaPhiPos) <= sdlCut) )
     {
         if (logLevel >= SDL::CPU::Log_Debug3)
@@ -562,8 +562,8 @@ void SDL::CPU::Tracklet::runTrackletDefaultAlgoBarrelBarrelBarrelBarrel_v1(SDL::
     const Hit& sdOut_mdRef_hit = (*outerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr());
     const float sdIn_alpha = innerSegmentPtr()->getDeltaPhiChange();
     const float sdOut_alpha = outerSegmentPtr()->getDeltaPhiChange();
-    const float sdOut_alpha_min = outerSegmentPtr()->getDeltaPhiMinChange();
-    const float sdOut_alpha_max = outerSegmentPtr()->getDeltaPhiMaxChange();
+    //const float sdOut_alpha_min = outerSegmentPtr()->getDeltaPhiMinChange();
+    //const float sdOut_alpha_max = outerSegmentPtr()->getDeltaPhiMaxChange();
     const bool isEC_lastLayer = (outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->getModule().subdet() == SDL::CPU::Module::Endcap) and (outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->getModule().moduleType() == SDL::CPU::Module::TwoS);
     // const float sdOut_alphaOut = (isEC_lastLayer ? SDL::CPU::MathUtil::Phi_mpi_pi(outerSegmentPtr()->getDeltaPhiChange() - outerSegmentPtr()->getDeltaPhi()) : (sdOut_mdOut_hit.deltaPhi(sdOut_mdOut_hit  - sdOut_mdRef_hit)));
     const float sdOut_alphaOut = sdOut_mdOut_hit.deltaPhi(sdOut_mdOut_hit  - sdOut_mdRef_hit);
@@ -667,7 +667,7 @@ void SDL::CPU::Tracklet::runTrackletDefaultAlgoBarrelBarrelBarrelBarrel_v1(SDL::
 
     const float sdOut_dr = (sdOut_mdOut_hit - sdOut_mdRef_hit).rt();
     const float sdOut_d = sdOut_mdOut_hit.rt() - sdOut_mdRef_hit.rt();
-    const float diffDr = std::abs(sdIn_dr - sdOut_dr) / std::abs(sdIn_dr + sdOut_dr);
+    //const float diffDr = std::abs(sdIn_dr - sdOut_dr) / std::abs(sdIn_dr + sdOut_dr);
     if (true //do it for all//diffDr > 0.05 //only if segment length is different significantly
             && (not isEC_lastLayer)
             && betaIn * betaOut > 0.f
@@ -765,7 +765,7 @@ void SDL::CPU::Tracklet::runTrackletDefaultAlgoBarrelBarrelBarrelBarrel_v1(SDL::
     const float dBetaOutLum = (lOut < 11) && (not isEC_lastLayer) ? 0.0f : std::abs(alphaOutAbsReg*deltaZLum / sdOut_z);
     const float dBetaLum2 = (dBetaInLum + dBetaOutLum) * (dBetaInLum + dBetaOutLum);
 
-    const float sinDPhi = std::sin(dPhi);
+    //const float sinDPhi = std::sin(dPhi);
     // const float dBetaRIn2 = std::pow((sdIn.mdRef.rtRHout - sdIn.mdRef.rtRHin) * sinDPhi / dr, 2); //TODO-RH: Ask Slava about this rtRHout? rtRHin?
     // const float dBetaROut2 = std::pow((sdOut.mdOut.rtRHout - sdOut.mdOut.rtRHin) * sinDPhi / dr, 2); //TODO-RH
     const float dBetaRIn2 = 0; // TODO-RH
@@ -797,7 +797,7 @@ void SDL::CPU::Tracklet::runTrackletDefaultAlgoBarrelBarrelBarrelBarrel_v1(SDL::
     const float dBetaRes = 0.02f / std::min(sdOut_d, sdIn_d);
     const float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
             + 0.25 * std::pow(std::abs(betaInRHmin - betaInRHmax) + std::abs(betaOutRHmin - betaOutRHmax), 2));
-    float dBeta = betaIn - betaOut;
+    //float dBeta = betaIn - betaOut;
     // const float dZeta = sdIn.zeta - sdOut.zeta;
 
     const float innerSgInnerMdDetId = (innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->getModule()).detId();
@@ -940,7 +940,7 @@ void SDL::CPU::Tracklet::runTrackletDefaultAlgoBarrelBarrelBarrelBarrel_v3(SDL::
     // Uncertainty terms
     //******************
     // Luminous region fiducial region. +- 15 cm
-    const float deltaZLum = 15.f;
+    //const float deltaZLum = 15.f;
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     const float k2Rinv1GeVf = kRinv1GeVf / 2.;
     const float ptCut = PTCUT;
@@ -953,7 +953,7 @@ void SDL::CPU::Tracklet::runTrackletDefaultAlgoBarrelBarrelBarrelBarrel_v3(SDL::
     //******************
     const bool isPS__inner_LS_innerMD = ((innerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->getModule()).moduleType() == SDL::CPU::Module::PS);
     const bool isPS__outer_LS_innerMD = ((outerSegmentPtr()->innerMiniDoubletPtr()->anchorHitPtr()->getModule()).moduleType() == SDL::CPU::Module::PS);
-    const bool isEC__outer_LS_outerMD = ((outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->getModule()).subdet() == SDL::CPU::Module::Endcap);
+    //const bool isEC__outer_LS_outerMD = ((outerSegmentPtr()->outerMiniDoubletPtr()->anchorHitPtr()->getModule()).subdet() == SDL::CPU::Module::Endcap);
     const float zpitch__inner_LS_innerMD = (isPS__inner_LS_innerMD ? pixelPSZpitch : strip2SZpitch);
     const float zpitch__outer_LS_innerMD = (isPS__outer_LS_innerMD ? pixelPSZpitch : strip2SZpitch);
     const float zpitch__err = zpitch__inner_LS_innerMD + zpitch__outer_LS_innerMD;

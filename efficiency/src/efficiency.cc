@@ -24,20 +24,20 @@ int main(int argc, char** argv)
     // creating a set of efficiency plots
     std::vector<EfficiencySetDefinition> list_effSetDef;
 
-    list_effSetDef.push_back(EfficiencySetDefinition("TC_AllTypes", 13, [&](int isim) {return sdl.sim_TC_matched().size() > isim ? sdl.sim_TC_matched()[isim] > 0 : false;}));
+    list_effSetDef.push_back(EfficiencySetDefinition("TC_AllTypes", 13, [&](int isim) {return static_cast<int>(sdl.sim_TC_matched().size()) > isim ? sdl.sim_TC_matched()[isim] > 0 : false;}));
     if (ana.do_lower_level)
     {
-        list_effSetDef.push_back(EfficiencySetDefinition("T4s_AllTypes", 13, [&](int isim) {return sdl.sim_T4_matched().size() > isim ? sdl.sim_T4_matched()[isim] > 0 : false;}));
-        list_effSetDef.push_back(EfficiencySetDefinition("T3_AllTypes", 13, [&](int isim) {return sdl.sim_T3_matched().size() > isim ? sdl.sim_T3_matched()[isim] > 0 : false;}));
-        list_effSetDef.push_back(EfficiencySetDefinition("pT4_AllTypes", 13, [&](int isim) {return sdl.sim_pT4_matched().size() > isim ? sdl.sim_pT4_matched()[isim] > 0 : false;}));
-        list_effSetDef.push_back(EfficiencySetDefinition("pLS_AllTypes", 13, [&](int isim) {return sdl.sim_pLS_matched().size() > isim ? sdl.sim_pLS_matched()[isim] > 0 : false;}));
-        list_effSetDef.push_back(EfficiencySetDefinition("T5_AllTypes", 13, [&](int isim) {return sdl.sim_T5_matched().size() > isim ? sdl.sim_T5_matched()[isim] > 0 : false;}));
-        list_effSetDef.push_back(EfficiencySetDefinition("pT3_AllTypes", 13, [&](int isim) {return sdl.sim_pT3_matched().size() > isim ? sdl.sim_pT3_matched()[isim] > 0 : false;}));
-        list_effSetDef.push_back(EfficiencySetDefinition("pT5_AllTypes", 13, [&](int isim) {return sdl.sim_pT5_matched().size() > isim ? sdl.sim_pT5_matched()[isim] > 0 : false;}));
-        list_effSetDef.push_back(EfficiencySetDefinition("TCE_AllTypes", 13, [&](int isim) {return sdl.sim_tce_matched().size() > isim ? sdl.sim_tce_matched()[isim] > 0 : false;}));
-        list_effSetDef.push_back(EfficiencySetDefinition("pureTCE_AllTypes", 13, [&](int isim) {return sdl.sim_pureTCE_matched().size() > isim ? sdl.sim_pureTCE_matched()[isim] > 0 : false;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("T4s_AllTypes", 13, [&](int isim) {return static_cast<int>(sdl.sim_T4_matched().size()) > isim ? sdl.sim_T4_matched()[isim] > 0 : false;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("T3_AllTypes", 13, [&](int isim) {return static_cast<int>(sdl.sim_T3_matched().size()) > isim ? sdl.sim_T3_matched()[isim] > 0 : false;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("pT4_AllTypes", 13, [&](int isim) {return static_cast<int>(sdl.sim_pT4_matched().size()) > isim ? sdl.sim_pT4_matched()[isim] > 0 : false;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("pLS_AllTypes", 13, [&](int isim) {return static_cast<int>(sdl.sim_pLS_matched().size()) > isim ? sdl.sim_pLS_matched()[isim] > 0 : false;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("T5_AllTypes", 13, [&](int isim) {return static_cast<int>(sdl.sim_T5_matched().size()) > isim ? sdl.sim_T5_matched()[isim] > 0 : false;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("pT3_AllTypes", 13, [&](int isim) {return static_cast<int>(sdl.sim_pT3_matched().size()) > isim ? sdl.sim_pT3_matched()[isim] > 0 : false;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("pT5_AllTypes", 13, [&](int isim) {return static_cast<int>(sdl.sim_pT5_matched().size()) > isim ? sdl.sim_pT5_matched()[isim] > 0 : false;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("TCE_AllTypes", 13, [&](int isim) {return static_cast<int>(sdl.sim_tce_matched().size()) > isim ? sdl.sim_tce_matched()[isim] > 0 : false;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("pureTCE_AllTypes", 13, [&](int isim) {return static_cast<int>(sdl.sim_pureTCE_matched().size()) > isim ? sdl.sim_pureTCE_matched()[isim] > 0 : false;}));
 #ifdef T3T3_EXTENSIONS
-        list_effSetDef.push_back(EfficiencySetDefinition("T3T3_AllTypes", 13, [&](int isim) {return sdl.sim_T3T3_matched().size() > isim ? sdl.sim_T3T3_matched()[isim] > 0 : false;}));
+        list_effSetDef.push_back(EfficiencySetDefinition("T3T3_AllTypes", 13, [&](int isim) {return static_cast<int>(sdl.sim_T3T3_matched().size()) > isim ? sdl.sim_T3T3_matched()[isim] > 0 : false;}));
 #endif
     }
 
@@ -47,20 +47,20 @@ int main(int argc, char** argv)
     std::vector<FakeRateSetDefinition> list_FRSetDef;
 
     // TODO FIXME the passing of the pt eta phi's are not implemented properly. (It's like half finished....)
-    list_FRSetDef.push_back(FakeRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isFake().size() > itc ? sdl.tc_isFake()[itc] > 0 : false;}, sdl.tc_pt(), sdl.tc_eta(), sdl.tc_phi()));
+    list_FRSetDef.push_back(FakeRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return static_cast<int>(sdl.tc_isFake().size()) > itc ? sdl.tc_isFake()[itc] > 0 : false;}, sdl.tc_pt(), sdl.tc_eta(), sdl.tc_phi()));
     if (ana.do_lower_level)
     {
-        list_FRSetDef.push_back(FakeRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isFake().size() > it4 ? sdl.t4_isFake()[it4] > 0 : false;}, sdl.t4_pt(), sdl.t4_eta(), sdl.t4_phi()));
-        list_FRSetDef.push_back(FakeRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isFake().size() > it3 ? sdl.t3_isFake()[it3] > 0 : false;}, sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi()));
-        list_FRSetDef.push_back(FakeRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return sdl.pT4_isFake().size() > ipT4 ? sdl.pT4_isFake()[ipT4] > 0 : false;}, sdl.pT4_pt(), sdl.pT4_eta(), sdl.pT4_phi()));
-        list_FRSetDef.push_back(FakeRateSetDefinition("pLS_AllTypes", 13, [&](int itls) {return sdl.pLS_isFake().size() > itls ? sdl.pLS_isFake()[itls] > 0 : false;}, sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi()));
-        list_FRSetDef.push_back(FakeRateSetDefinition("T5_AllTypes", 13, [&](int iT5) {return sdl.t5_isFake().size() > iT5 ? sdl.t5_isFake()[iT5] > 0 : false;}, sdl.t5_pt(), sdl.t5_eta(), sdl.t5_phi()));
-        list_FRSetDef.push_back(FakeRateSetDefinition("pT3_AllTypes", 13, [&](int ipT3) {return sdl.pT3_isFake().size() > ipT3 ? sdl.pT3_isFake()[ipT3] > 0 : false;}, sdl.pT3_pt(), sdl.pT3_eta(), sdl.pT3_phi()));
-        list_FRSetDef.push_back(FakeRateSetDefinition("pT5_AllTypes", 13, [&](int ipT5) {return sdl.pT5_isFake().size() > ipT5 ? sdl.pT5_isFake()[ipT5] > 0 : false;}, sdl.pT5_pt(), sdl.pT5_eta(), sdl.pT5_phi()));
-        list_FRSetDef.push_back(FakeRateSetDefinition("TCE_AllTypes", 13, [&](int iTCE) {return sdl.tce_isFake().size() > iTCE ? sdl.tce_isFake()[iTCE] > 0 : false;}, sdl.tce_pt(), sdl.tce_eta(), sdl.tce_phi()));
-        list_FRSetDef.push_back(FakeRateSetDefinition("pureTCE_AllTypes", 13, [&](int ipureTCE) {return sdl.tce_isFake().size() > ipureTCE ? sdl.tce_isFake()[ipureTCE] > 0 : false;}, sdl.pureTCE_pt(), sdl.pureTCE_eta(), sdl.pureTCE_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return static_cast<int>(sdl.t4_isFake().size()) > it4 ? sdl.t4_isFake()[it4] > 0 : false;}, sdl.t4_pt(), sdl.t4_eta(), sdl.t4_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return static_cast<int>(sdl.t3_isFake().size()) > it3 ? sdl.t3_isFake()[it3] > 0 : false;}, sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return static_cast<int>(sdl.pT4_isFake().size()) > ipT4 ? sdl.pT4_isFake()[ipT4] > 0 : false;}, sdl.pT4_pt(), sdl.pT4_eta(), sdl.pT4_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("pLS_AllTypes", 13, [&](int itls) {return static_cast<int>(sdl.pLS_isFake().size()) > itls ? sdl.pLS_isFake()[itls] > 0 : false;}, sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("T5_AllTypes", 13, [&](int iT5) {return static_cast<int>(sdl.t5_isFake().size()) > iT5 ? sdl.t5_isFake()[iT5] > 0 : false;}, sdl.t5_pt(), sdl.t5_eta(), sdl.t5_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("pT3_AllTypes", 13, [&](int ipT3) {return static_cast<int>(sdl.pT3_isFake().size()) > ipT3 ? sdl.pT3_isFake()[ipT3] > 0 : false;}, sdl.pT3_pt(), sdl.pT3_eta(), sdl.pT3_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("pT5_AllTypes", 13, [&](int ipT5) {return static_cast<int>(sdl.pT5_isFake().size()) > ipT5 ? sdl.pT5_isFake()[ipT5] > 0 : false;}, sdl.pT5_pt(), sdl.pT5_eta(), sdl.pT5_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("TCE_AllTypes", 13, [&](int iTCE) {return static_cast<int>(sdl.tce_isFake().size()) > iTCE ? sdl.tce_isFake()[iTCE] > 0 : false;}, sdl.tce_pt(), sdl.tce_eta(), sdl.tce_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("pureTCE_AllTypes", 13, [&](int ipureTCE) {return static_cast<int>(sdl.tce_isFake().size()) > ipureTCE ? sdl.tce_isFake()[ipureTCE] > 0 : false;}, sdl.pureTCE_pt(), sdl.pureTCE_eta(), sdl.pureTCE_phi()));
 #ifdef T3T3_EXTENSIONS
-        list_FRSetDef.push_back(FakeRateSetDefinition("T3T3_AllTypes", 13, [&](int iT3T3) {return sdl.T3T3_isFake().size() > iT3T3 ? sdl.T3T3_isFake()[iT3T3] > 0 : false;}, sdl.T3T3_pt(), sdl.T3T3_eta(), sdl.T3T3_phi()));
+        list_FRSetDef.push_back(FakeRateSetDefinition("T3T3_AllTypes", 13, [&](int iT3T3) {return static_cast<int>(sdl.T3T3_isFake().size()) > iT3T3 ? sdl.T3T3_isFake()[iT3T3] > 0 : false;}, sdl.T3T3_pt(), sdl.T3T3_eta(), sdl.T3T3_phi()));
 #endif
     }
 
@@ -69,20 +69,20 @@ int main(int argc, char** argv)
     // creating a set of fake rate plots
     std::vector<DuplicateRateSetDefinition> list_DLSetDef;
 
-    list_DLSetDef.push_back(DuplicateRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return sdl.tc_isDuplicate().size() > itc ? sdl.tc_isDuplicate()[itc] > 0 : false;}, sdl.tc_pt(), sdl.tc_eta(), sdl.tc_phi()));
+    list_DLSetDef.push_back(DuplicateRateSetDefinition("TC_AllTypes", 13, [&](int itc) {return static_cast<int>(sdl.tc_isDuplicate().size()) > itc ? sdl.tc_isDuplicate()[itc] > 0 : false;}, sdl.tc_pt(), sdl.tc_eta(), sdl.tc_phi()));
     if (ana.do_lower_level)
     {
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return sdl.t4_isDuplicate().size() > it4 ? sdl.t4_isDuplicate()[it4] > 0 : false;}, sdl.t4_pt(), sdl.t4_eta(), sdl.t4_phi()));
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return sdl.t3_isDuplicate().size() > it3 ? sdl.t3_isDuplicate()[it3] > 0 : false;}, sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi()));
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return sdl.pT4_isDuplicate().size() > ipT4 ? sdl.pT4_isDuplicate()[ipT4] > 0 : false;}, sdl.pT4_pt(), sdl.pT4_eta(), sdl.pT4_phi()));
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("pLS_AllTypes", 13, [&](int itls) {return sdl.pLS_isDuplicate().size() > itls ? sdl.pLS_isDuplicate()[itls] > 0 : false;}, sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi()));
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("T5_AllTypes", 13, [&](int iT5) {return sdl.t5_isDuplicate().size() > iT5 ? sdl.t5_isDuplicate()[iT5] > 0 : false;}, sdl.t5_pt(), sdl.t5_eta(), sdl.t5_phi()));
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("pT3_AllTypes", 13, [&](int ipT3) {return sdl.pT3_isDuplicate().size() > ipT3 ? sdl.pT3_isDuplicate()[ipT3] > 0 : false;}, sdl.pT3_pt(), sdl.pT3_eta(), sdl.pT3_phi()));
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("pT5_AllTypes", 13, [&](int ipT5) {return sdl.pT5_isDuplicate().size() > ipT5 ? sdl.pT5_isDuplicate()[ipT5] > 0 : false;}, sdl.pT5_pt(), sdl.pT5_eta(), sdl.pT5_phi()));
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("TCE_AllTypes", 13, [&](int iTCE) {return sdl.tce_isDuplicate().size() > iTCE ? sdl.tce_isDuplicate()[iTCE] > 0 : false;}, sdl.tce_pt(), sdl.tce_eta(), sdl.tce_phi()));  
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("pureTCE_AllTypes", 13, [&](int ipureTCE) {return sdl.tce_isDuplicate().size() > ipureTCE ? sdl.tce_isDuplicate()[ipureTCE] > 0 : false;}, sdl.pureTCE_pt(), sdl.pureTCE_eta(), sdl.pureTCE_phi()));   
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("T4s_AllTypes", 13, [&](int it4) {return static_cast<int>(sdl.t4_isDuplicate().size()) > it4 ? sdl.t4_isDuplicate()[it4] > 0 : false;}, sdl.t4_pt(), sdl.t4_eta(), sdl.t4_phi()));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("T3_AllTypes", 13, [&](int it3) {return static_cast<int>(sdl.t3_isDuplicate().size()) > it3 ? sdl.t3_isDuplicate()[it3] > 0 : false;}, sdl.t3_pt(), sdl.t3_eta(), sdl.t3_phi()));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("pT4_AllTypes", 13, [&](int ipT4) {return static_cast<int>(sdl.pT4_isDuplicate().size()) > ipT4 ? sdl.pT4_isDuplicate()[ipT4] > 0 : false;}, sdl.pT4_pt(), sdl.pT4_eta(), sdl.pT4_phi()));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("pLS_AllTypes", 13, [&](int itls) {return static_cast<int>(sdl.pLS_isDuplicate().size()) > itls ? sdl.pLS_isDuplicate()[itls] > 0 : false;}, sdl.pLS_pt(), sdl.pLS_eta(), sdl.pLS_phi()));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("T5_AllTypes", 13, [&](int iT5) {return static_cast<int>(sdl.t5_isDuplicate().size()) > iT5 ? sdl.t5_isDuplicate()[iT5] > 0 : false;}, sdl.t5_pt(), sdl.t5_eta(), sdl.t5_phi()));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("pT3_AllTypes", 13, [&](int ipT3) {return static_cast<int>(sdl.pT3_isDuplicate().size()) > ipT3 ? sdl.pT3_isDuplicate()[ipT3] > 0 : false;}, sdl.pT3_pt(), sdl.pT3_eta(), sdl.pT3_phi()));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("pT5_AllTypes", 13, [&](int ipT5) {return static_cast<int>(sdl.pT5_isDuplicate().size()) > ipT5 ? sdl.pT5_isDuplicate()[ipT5] > 0 : false;}, sdl.pT5_pt(), sdl.pT5_eta(), sdl.pT5_phi()));
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("TCE_AllTypes", 13, [&](int iTCE) {return static_cast<int>(sdl.tce_isDuplicate().size()) > iTCE ? sdl.tce_isDuplicate()[iTCE] > 0 : false;}, sdl.tce_pt(), sdl.tce_eta(), sdl.tce_phi()));  
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("pureTCE_AllTypes", 13, [&](int ipureTCE) {return static_cast<int>(sdl.tce_isDuplicate().size()) > ipureTCE ? sdl.tce_isDuplicate()[ipureTCE] > 0 : false;}, sdl.pureTCE_pt(), sdl.pureTCE_eta(), sdl.pureTCE_phi()));   
 #ifdef T3T3_EXTENSIONS
-        list_DLSetDef.push_back(DuplicateRateSetDefinition("T3T3_AllTypes", 13, [&](int iT3T3) {return sdl.T3T3_isDuplicate().size() > iT3T3 ? sdl.T3T3_isDuplicate()[iT3T3] > 0 : false;}, sdl.T3T3_pt(), sdl.T3T3_eta(), sdl.T3T3_phi()));   
+        list_DLSetDef.push_back(DuplicateRateSetDefinition("T3T3_AllTypes", 13, [&](int iT3T3) {return static_cast<int>(sdl.T3T3_isDuplicate().size()) > iT3T3 ? sdl.T3T3_isDuplicate()[iT3T3] > 0 : false;}, sdl.T3T3_pt(), sdl.T3T3_eta(), sdl.T3T3_phi()));   
 #endif
 
     }
