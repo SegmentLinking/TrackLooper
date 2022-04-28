@@ -4,9 +4,7 @@
 # Setup environments
 ###########################################################################################################
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $DIR/code/rooutil && source thisrooutil.sh && cd -
-export SCRAM_ARCH=slc7_amd64_gcc900
-export CMSSW_VERSION=CMSSW_11_2_0_pre5
+source $DIR/code/rooutil/thisrooutil.sh
 which root
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
