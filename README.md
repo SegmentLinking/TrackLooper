@@ -67,7 +67,7 @@ Run the validation on sample
 
     sdl_validate_segment_linking <dataset> 
     Runs Explicit and unified versions over 200 events by default
-    dataset: PU200, muonGun, pionGun, etc
+    dataset: location of input root file
 
 Run the validation on specific version of GPU implementation
 
