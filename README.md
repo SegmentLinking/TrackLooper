@@ -1,23 +1,45 @@
-# TrackLooper
+# TrackLooper for Hackathon
+
+## Pre-requisites
+### Nvidia machine specific instructions
+
+* Immediately after login, type `set +T` otherwise none of the `source` commands will work!
+
+### ROOT Install instructions
+
+* Install the .tar.gz version of root from the instructions (https://root.cern/install/#download-a-pre-compiled-binary-distribution)
+* Change the C++ standard to `c++14` to `c++17` in `root/bin/root-config` file
+* Activate ROOT using `source root/bin/thisroot.sh`
+
+### Load CUDA modules provided by the cluster
+* Type `module load cuda/11.4.4` (Version number is important!)
 
 ## Quick start guide
 
-Log on to phi3 or lnx7188
-Go to your working directory
+### Download the input file that contains the hits
+
+    wget http://uaf-10.t2.ucsd.edu/~bsathian/LST_files/trackingNtuple_with_PUinfo_500_evts.root
+
+### Go to your working directory
 
     mkdir /go/to/your/working/directory
     cd /go/to/your/working/directory
     
-Clone the repository
+### Clone the repository
 
     git clone git@github.com:SegmentLinking/TrackLooper.git
     cd TrackLooper/
+    git checkout hackathon
+
+Download the new module maps
+
+    cd data/
+    wget http://uaf-10.t2.ucsd.edu/~bsathian/LST_files/lst_module_maps.tar.gz
+    tar -xzvf lst_module_maps.tar.gz 
 
 Once every new shell, source the setup script to initilaize the enviornment.
 
     source setup.sh
-
-
 
 Compile the code with option flags
 
