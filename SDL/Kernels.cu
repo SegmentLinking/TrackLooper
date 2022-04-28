@@ -134,7 +134,7 @@ __global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SD
             if(success)
             {
                 atomicAdd(&segmentsInGPU.totOccupancySegments[innerLowerModuleIndex],1);
-                if(segmentsInGPU.nSegments[innerLowerModuleIndex] >= N_MAX_SEGMENTS_PER_MODULE)
+                if(segmentsInGPU.nSegments[innerLowerModuleIndex] >= (rangesInGPU.segmentModuleIndices[innerLowerModuleIndex + 1] - rangesInGPU.segmentModuleIndices[innerLowerModuleIndex]))
                 {
 #ifdef Warnings
                     printf("Segment excess alert! Module index = %d\n",innerLowerModuleIndex);
