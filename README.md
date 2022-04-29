@@ -7,9 +7,9 @@
 
 ### ROOT Install instructions
 
-* Install the .tar.gz version of root from the instructions (https://root.cern/install/#download-a-pre-compiled-binary-distribution)
+* Install the .tar.gz version of root from the instructions (https://root.cern/download/root_v6.26.02.Linux-ubuntu20-x86_64-gcc9.4.tar.gz)
 * Change the C++ standard to `c++14` to `c++17` in `root/bin/root-config` file
-* Activate ROOT using `source root/bin/thisroot.sh`
+* Activate ROOT using `source root/bin/thisroot.sh` (can add this to your `.bashrc` if you're going to use this regularly)
 
 ### Load CUDA modules provided by the cluster
 * Type `module load cuda/11.4.4` (Version number is important!)
