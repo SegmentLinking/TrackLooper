@@ -48,6 +48,9 @@ Compile the code with option flags
     -c: run with the cmssw caching allocator
     -l: toggle on preloading of hits
     -h: show help screen with all options
+    
+ Request for resources (if required)
+ Use the relevant resource request method (usually `srun...`)
  Run the code
  
     ./bin/sdl -n <nevents> -v <verbose> -w <writeout> -s <streams> -i <dataset>
@@ -64,7 +67,7 @@ Run the validation on sample
 
     sdl_validate_segment_linking <dataset> 
     Runs Explicit and unified versions over 200 events by default
-    dataset: PU200, muonGun, pionGun, etc
+    dataset: location of input root file
 
 Run the validation on specific version of GPU implementation
 
