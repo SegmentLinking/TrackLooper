@@ -80,17 +80,14 @@ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRa
         if (category_number == 3 && eta_number == 2) occupancy = 79;
         if (category_number == 3 && eta_number == 3) occupancy = 85;
 
-        if(i == nLowerModules)
-        {
-            occupancy = maxPixelSegments;
-        }
-        else if(module_nConnectedModules[i] == 0)
-        {
-            occupancy = 0;
-        }
+        if(module_nConnectedModules[i] == 0) occupancy = 0;
 
         nTotalSegments += occupancy;
     }
+
+    module_segmentModuleIndices[nLowerModules] = nTotalSegments;
+    nTotalSegments += maxPixelSegments;
+
     cudaMemcpyAsync(rangesInGPU.segmentModuleIndices, module_segmentModuleIndices,  (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
     cudaFreeHost(module_segmentModuleIndices);
