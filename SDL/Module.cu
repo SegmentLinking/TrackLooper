@@ -1,4 +1,4 @@
-# include "Module.cuh"
+#include "Module.cuh"
 #include "ModuleConnectionMap.h"
 #include "allocate.h"
 std::map <unsigned int, uint16_t> *SDL::detIdToIndex;
@@ -257,12 +257,12 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
   cms::cuda::free_managed(modulesInGPU.moduleLayerType);
   cms::cuda::free_managed(modulesInGPU.connectedPixels);
 #endif
-  cudaFreeHost(pixelMapping.connectedPixelsSizes);
-  cudaFreeHost(pixelMapping.connectedPixelsSizesPos);
-  cudaFreeHost(pixelMapping.connectedPixelsSizesNeg);
-  cudaFreeHost(pixelMapping.connectedPixelsIndex);
-  cudaFreeHost(pixelMapping.connectedPixelsIndexPos);
-  cudaFreeHost(pixelMapping.connectedPixelsIndexNeg);
+  cms::cuda::free_host(pixelMapping.connectedPixelsSizes);
+  cms::cuda::free_host(pixelMapping.connectedPixelsSizesPos);
+  cms::cuda::free_host(pixelMapping.connectedPixelsSizesNeg);
+  cms::cuda::free_host(pixelMapping.connectedPixelsIndex);
+  cms::cuda::free_host(pixelMapping.connectedPixelsIndexPos);
+  cms::cuda::free_host(pixelMapping.connectedPixelsIndexNeg);
 }
 void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMapping,cudaStream_t stream)
 {
@@ -296,6 +296,12 @@ void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMappin
   cudaFreeHost(pixelMapping.connectedPixelsIndex);
   cudaFreeHost(pixelMapping.connectedPixelsIndexPos);
   cudaFreeHost(pixelMapping.connectedPixelsIndexNeg);
+  //cms::cuda::free_host(pixelMapping.connectedPixelsSizes);
+  //cms::cuda::free_host(pixelMapping.connectedPixelsSizesPos);
+  //cms::cuda::free_host(pixelMapping.connectedPixelsSizesNeg);
+  //cms::cuda::free_host(pixelMapping.connectedPixelsIndex);
+  //cms::cuda::free_host(pixelMapping.connectedPixelsIndexPos);
+  //cms::cuda::free_host(pixelMapping.connectedPixelsIndexNeg);
 }
 
 void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, uint16_t& nLowerModules, struct pixelMap& pixelMapping,cudaStream_t stream, const char* moduleMetaDataFilePath)
@@ -370,23 +376,23 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     float* host_drdzs;
     uint16_t* host_partnerModuleIndices;
 
-    cudaMallocHost(&host_detIds,sizeof(unsigned int)*nModules);
-    cudaMallocHost(&host_layers,sizeof(short)*nModules);
-    cudaMallocHost(&host_rings,sizeof(short)*nModules);
-    cudaMallocHost(&host_rods,sizeof(short)*nModules);
-    cudaMallocHost(&host_modules,sizeof(short)*nModules);
-    cudaMallocHost(&host_subdets,sizeof(short)*nModules);
-    cudaMallocHost(&host_sides,sizeof(short)*nModules);
-    cudaMallocHost(&host_eta,sizeof(float)*nModules);
-    cudaMallocHost(&host_r,sizeof(float)*nModules);
-    cudaMallocHost(&host_isInverted,sizeof(bool)*nModules);
-    cudaMallocHost(&host_isLower,sizeof(bool)*nModules);
-    cudaMallocHost(&host_isAnchor, sizeof(bool) * nModules);
-    cudaMallocHost(&host_moduleType,sizeof(ModuleType)*nModules);
-    cudaMallocHost(&host_moduleLayerType,sizeof(ModuleLayerType)*nModules);
-    cudaMallocHost(&host_slopes,sizeof(float)*nModules);
-    cudaMallocHost(&host_drdzs,sizeof(float)*nModules);
-    cudaMallocHost(&host_partnerModuleIndices, sizeof(uint16_t) * nModules);
+    host_detIds = (unsigned int*)cms::cuda::allocate_host(sizeof(unsigned int)*nModules, stream);
+    host_layers = (short*)cms::cuda::allocate_host(sizeof(short)*nModules, stream);
+    host_rings = (short*)cms::cuda::allocate_host(sizeof(short)*nModules, stream);
+    host_rods = (short*)cms::cuda::allocate_host(sizeof(short)*nModules, stream);
+    host_modules = (short*)cms::cuda::allocate_host(sizeof(short)*nModules, stream);
+    host_subdets = (short*)cms::cuda::allocate_host(sizeof(short)*nModules, stream);
+    host_sides = (short*)cms::cuda::allocate_host(sizeof(short)*nModules, stream);
+    host_eta = (float*)cms::cuda::allocate_host(sizeof(float)*nModules, stream);
+    host_r = (float*)cms::cuda::allocate_host(sizeof(float)*nModules, stream);
+    host_isInverted = (bool*)cms::cuda::allocate_host(sizeof(bool)*nModules, stream);
+    host_isLower = (bool*)cms::cuda::allocate_host(sizeof(bool)*nModules, stream);
+    host_isAnchor = (bool*)cms::cuda::allocate_host(sizeof(bool)*nModules, stream);
+    host_moduleType = (ModuleType*)cms::cuda::allocate_host(sizeof(ModuleType)*nModules, stream);
+    host_moduleLayerType = (ModuleLayerType*)cms::cuda::allocate_host(sizeof(ModuleLayerType)*nModules, stream);
+    host_slopes = (float*)cms::cuda::allocate_host(sizeof(float)*nModules, stream);
+    host_drdzs = (float*)cms::cuda::allocate_host(sizeof(float)*nModules, stream);
+    host_partnerModuleIndices = (uint16_t*)cms::cuda::allocate_host(sizeof(uint16_t) * nModules, stream);
     
     //reassign detIdToIndex indices here
     nLowerModules = (nModules - 1) / 2;
@@ -526,23 +532,21 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     cudaMemcpyAsync(modulesInGPU.partnerModuleIndices, host_partnerModuleIndices, sizeof(uint16_t) * nModules, cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
 
-    cudaFreeHost(host_detIds);
-    cudaFreeHost(host_layers);
-    cudaFreeHost(host_rings);
-    cudaFreeHost(host_rods);
-    cudaFreeHost(host_modules);
-    cudaFreeHost(host_subdets);
-    cudaFreeHost(host_sides);
-    cudaFreeHost(host_eta);
-    cudaFreeHost(host_r);
-    cudaFreeHost(host_isInverted);
-    cudaFreeHost(host_isLower);
-    cudaFreeHost(host_isAnchor);
-    cudaFreeHost(host_moduleType);
-    cudaFreeHost(host_moduleLayerType);
-    cudaFreeHost(host_slopes);
-    cudaFreeHost(host_drdzs);
-    cudaFreeHost(host_partnerModuleIndices);
+    cms::cuda::free_host(host_detIds);
+    cms::cuda::free_host(host_layers);
+    cms::cuda::free_host(host_rings);
+    cms::cuda::free_host(host_rods);
+    cms::cuda::free_host(host_modules);
+    cms::cuda::free_host(host_subdets);
+    cms::cuda::free_host(host_sides);
+    cms::cuda::free_host(host_isInverted);
+    cms::cuda::free_host(host_isLower);
+    cms::cuda::free_host(host_isAnchor);
+    cms::cuda::free_host(host_moduleType);
+    cms::cuda::free_host(host_moduleLayerType);
+    cms::cuda::free_host(host_slopes);
+    cms::cuda::free_host(host_drdzs);
+    cms::cuda::free_host(host_partnerModuleIndices);
     std::cout<<"number of lower modules (without fake pixel module)= "<<lowerModuleCounter<<std::endl;
     fillConnectedModuleArrayExplicit(modulesInGPU,nModules,stream);
     fillPixelMap(modulesInGPU,pixelMapping,stream);
@@ -699,12 +703,13 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
     //unsigned int* connectedPixelsSizes;
     //unsigned int* connectedPixelsSizesPos;
     //unsigned int* connectedPixelsSizesNeg;
-    cudaMallocHost(&pixelMapping.connectedPixelsIndex,size_superbins * sizeof(unsigned int));
-    cudaMallocHost(&pixelMapping.connectedPixelsSizes,size_superbins * sizeof(unsigned int));
-    cudaMallocHost(&pixelMapping.connectedPixelsIndexPos,size_superbins * sizeof(unsigned int));
-    cudaMallocHost(&pixelMapping.connectedPixelsSizesPos,size_superbins * sizeof(unsigned int));
-    cudaMallocHost(&pixelMapping.connectedPixelsIndexNeg,size_superbins * sizeof(unsigned int));
-    cudaMallocHost(&pixelMapping.connectedPixelsSizesNeg,size_superbins * sizeof(unsigned int));
+
+    pixelMapping.connectedPixelsIndex = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
+    pixelMapping.connectedPixelsSizes = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
+    pixelMapping.connectedPixelsIndexPos = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
+    pixelMapping.connectedPixelsSizesPos = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
+    pixelMapping.connectedPixelsIndexNeg = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
+    pixelMapping.connectedPixelsSizesNeg = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
     int totalSizes=0;
     int totalSizes_pos=0;
     int totalSizes_neg=0;
@@ -796,7 +801,7 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
     }
 
     unsigned int* connectedPixels;
-    cudaMallocHost(&connectedPixels,(totalSizes+totalSizes_pos+totalSizes_neg) * sizeof(unsigned int));
+    connectedPixels = (unsigned int*)cms::cuda::allocate_host((totalSizes+totalSizes_pos+totalSizes_neg) * sizeof(unsigned int), stream);
 #ifdef Explicit_Module
     cudaMalloc(&modulesInGPU.connectedPixels,(totalSizes+totalSizes_pos+totalSizes_neg)* sizeof(unsigned int));
 #else
@@ -815,15 +820,15 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
     cudaMemcpyAsync(modulesInGPU.connectedPixels,connectedPixels,(totalSizes+totalSizes_pos+totalSizes_neg)*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
 
-    cudaFreeHost(connectedPixels);
+    cms::cuda::free_host(connectedPixels);
 }
 
 void SDL::fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream)
 {
     uint16_t* moduleMap;
     uint16_t* nConnectedModules;
-    cudaMallocHost(&moduleMap,nModules * 40 * sizeof(uint16_t));
-    cudaMallocHost(&nConnectedModules,nModules * sizeof(uint16_t));
+    moduleMap = (uint16_t*)cms::cuda::allocate_host(nModules * 40 * sizeof(uint16_t), stream);
+    nConnectedModules = (uint16_t*)cms::cuda::allocate_host(nModules * sizeof(uint16_t), stream);
     for(auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); ++it)
     {
         unsigned int detId = it->first;
@@ -838,8 +843,8 @@ void SDL::fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigne
     cudaMemcpyAsync(modulesInGPU.moduleMap,moduleMap,nModules*40*sizeof(uint16_t),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(modulesInGPU.nConnectedModules,nConnectedModules,nModules*sizeof(uint16_t),cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
-    cudaFreeHost(moduleMap);
-    cudaFreeHost(nConnectedModules);
+    cms::cuda::free_host(moduleMap);
+    cms::cuda::free_host(nConnectedModules);
 }
 
 void SDL::setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side, float m_x, float m_y, float m_z, float& eta, float& r)
