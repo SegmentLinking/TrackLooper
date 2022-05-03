@@ -26,6 +26,7 @@
 #include "PixelTriplet.cuh"
 #include "PixelQuintuplet.cuh"
 #include "TrackExtensions.cuh"
+#include "Constants.cuh"
 
 #include "cuda_profiler_api.h"
 #ifdef __CUDACC__
@@ -52,10 +53,6 @@ __global__ void removeDupQuintupletsInGPUv2(struct SDL::modules& modulesInGPU, s
 
 __global__ void testMiniDoublets(struct SDL::miniDoublets& mdsInGPU);
 __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::objectRanges& rangesInGPU);
-
-__global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::objectRanges& rangesInGPU);
-
- __global__ void createSegmentsFromInnerLowerModule(struct SDL::modules&modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, unsigned int innerLowerModuleIndex, unsigned int nInnerMDs);
 
 __global__ void addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU,struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU);
 
