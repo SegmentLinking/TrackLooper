@@ -1577,7 +1577,7 @@ void SDL::Event::createSegmentsWithModuleMap()
 //        sq_max_nMDs = sq_max_nMDs > limit_local ? sq_max_nMDs : limit_local;
 //    }
 //  #endif
-    dim3 nThreads(32,16,1);
+    dim3 nThreads(1024,1,1);
     dim3 nBlocks(1,1,MAX_BLOCKS);
 
     createSegmentsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *rangesInGPU);
@@ -1958,8 +1958,9 @@ cudaStreamSynchronize(stream);
 
     //pT3s can be cleaned here because they're not used in making pT5s!
 #ifdef DUP_pT3
-    dim3 nThreads_dup(160,1,1);
-    dim3 nBlocks_dup(MAX_BLOCKS,1,1);
+    //dim3 nThreads_dup(160,1,1);
+    dim3 nThreads_dup(32,32,1);
+    dim3 nBlocks_dup(1,MAX_BLOCKS,1);
     removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup,0,stream>>>(*pixelTripletsInGPU,false);
 cudaStreamSynchronize(stream);
 #endif
@@ -2223,8 +2224,8 @@ cudaStreamSynchronize(stream);
     free(segs_pix);
     cudaFree(segs_pix_gpu);
 
-    dim3 nThreads_dup(256,1,1);
-    dim3 nBlocks_dup(MAX_BLOCKS,1,1);
+    dim3 nThreads_dup(32,32,1);
+    dim3 nBlocks_dup(1,MAX_BLOCKS,1);
 #ifdef DUP_pT5
     //printf("run dup pT5\n");
     removeDupPixelQuintupletsInGPUFromMap<<<nBlocks_dup,nThreads_dup,0,stream>>>(*pixelQuintupletsInGPU, false);
