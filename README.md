@@ -43,7 +43,7 @@ Once every new shell, source the setup script to initilaize the enviornment.
 
 Compile the code with option flags
 
-    sdl_make_tracklooper -m8
+    sdl_make_tracklooper -m8xcl
     -x: run with explicit instead of unified memory
     -c: run with the cmssw caching allocator
     -l: toggle on preloading of hits
