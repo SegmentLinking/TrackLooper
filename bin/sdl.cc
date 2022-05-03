@@ -79,6 +79,31 @@ int main(int argc, char** argv)
     ana.input_raw_string = result["input"].as<std::string>();
 
     // A default value one
+#ifdef CMSSW12GEOM
+    if (ana.input_raw_string.EqualTo("muonGun"))
+        ana.input_file_list_tstring = "/data2/phchang/trackingNtuple_100MuGun_Pt_0p5_2_CMSSW_12_2_0_pre2.root";
+    else if (ana.input_raw_string.EqualTo("muonGun_highE"))
+        ana.input_file_list_tstring = "/data2/phchang/trackingNtuple_10MuGun_CMSSW_12_2_0_pre2.root";
+    else if (ana.input_raw_string.EqualTo("pionGun"))
+    {
+        std::cout << "ERROR: The input file does not exist for the CMSSW 12 geometry!" << std::endl;
+        exit(2);
+    }
+    else if (ana.input_raw_string.EqualTo("PU200"))
+        ana.input_file_list_tstring = "/data2/phchang/trackingNtuple_ttbar_PU200.root";
+    else if (ana.input_raw_string.EqualTo("cube"))
+    {
+        std::cout << "ERROR: The input file does not exist for the CMSSW 12 geometry!" << std::endl;
+        exit(2);
+    }
+    else if (ana.input_raw_string.EqualTo("cube50cm"))
+    {
+        std::cout << "ERROR: The input file does not exist for the CMSSW 12 geometry!" << std::endl;
+        exit(2);
+    }
+    else
+        ana.input_file_list_tstring = ana.input_raw_string;
+#else
     if (ana.input_raw_string.EqualTo("muonGun"))
         ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_100_pt0p5_2p0.root";
     else if (ana.input_raw_string.EqualTo("muonGun_highE"))
@@ -93,6 +118,7 @@ int main(int argc, char** argv)
         ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_10_pt0p5_50_50cm_cube.root";
     else
         ana.input_file_list_tstring = ana.input_raw_string;
+#endif
 
     //_______________________________________________________________________________
     // --tree
