@@ -125,6 +125,7 @@ namespace SDL
     CUDA_DEV float moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex);
     CUDA_DEV float moduleGapSize_seg(short layer, short ring, short subdet, short side, short rod);
 
+__global__ void createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::objectRanges& rangesInGPU);
 }
 
 #endif

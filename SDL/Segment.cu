@@ -1,6 +1,7 @@
 # include "Segment.cuh"
 //#ifdef CACHE_ALLOC
 #include "allocate.h"
+#include "Constants.h"
 //#endif
 
 ///FIXME:NOTICE THE NEW maxPixelSegments!
@@ -914,4 +915,69 @@ __device__ float SDL::moduleGapSize_seg(struct modules& modulesInGPU, unsigned i
     }
 
     return moduleSeparation;
+}
+__global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::objectRanges& rangesInGPU)
+{
+    int blockxSize = blockDim.x*gridDim.x;
+    int blockySize = blockDim.y*gridDim.y;
+    int blockzSize = blockDim.z*gridDim.z;
+    for(uint16_t innerLowerModuleIndex = blockIdx.z * blockDim.z + threadIdx.z; innerLowerModuleIndex< (*modulesInGPU.nLowerModules); innerLowerModuleIndex += blockzSize){
+
+    unsigned int nConnectedModules = modulesInGPU.nConnectedModules[innerLowerModuleIndex];
+
+    for(uint16_t outerLowerModuleArrayIdx = blockIdx.y * blockDim.y + threadIdx.y; outerLowerModuleArrayIdx< nConnectedModules; outerLowerModuleArrayIdx += blockySize){
+
+        uint16_t outerLowerModuleIndex = modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + outerLowerModuleArrayIdx];
+
+        unsigned int nInnerMDs = mdsInGPU.nMDs[innerLowerModuleIndex];
+        unsigned int nOuterMDs = mdsInGPU.nMDs[outerLowerModuleIndex];
+
+        int limit = nInnerMDs*nOuterMDs;
+        if (limit == 0) continue;
+        for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize)
+        {
+            int innerMDArrayIdx = hitIndex / nOuterMDs;
+            int outerMDArrayIdx = hitIndex % nOuterMDs;
+            if(outerMDArrayIdx >= nOuterMDs) continue;
+
+            unsigned int innerMDIndex = rangesInGPU.mdRanges[innerLowerModuleIndex * 2] + innerMDArrayIdx;
+            unsigned int outerMDIndex = rangesInGPU.mdRanges[outerLowerModuleIndex * 2] + outerMDArrayIdx;
+
+            float zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD;
+
+            unsigned int innerMiniDoubletAnchorHitIndex = mdsInGPU.anchorHitIndices[innerMDIndex];
+            unsigned int outerMiniDoubletAnchorHitIndex = mdsInGPU.anchorHitIndices[outerMDIndex];
+            dPhiMin = 0;
+            dPhiMax = 0;
+            dPhiChangeMin = 0;
+            dPhiChangeMax = 0;
+            float zLo, zHi, rtLo, rtHi, sdCut , dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold;
+            bool pass = runSegmentDefaultAlgo(modulesInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold);
+
+            if(pass)
+            {
+                atomicAdd(&segmentsInGPU.totOccupancySegments[innerLowerModuleIndex],1);
+                if(segmentsInGPU.nSegments[innerLowerModuleIndex] >= N_MAX_SEGMENTS_PER_MODULE)
+                {
+#ifdef Warnings
+                    printf("Segment excess alert! Module index = %d\n",innerLowerModuleIndex);
+#endif
+                }
+                else
+                {
+                    unsigned int segmentModuleIdx = atomicAdd(&segmentsInGPU.nSegments[innerLowerModuleIndex],1);
+                    unsigned int segmentIdx = rangesInGPU.segmentModuleIndices[innerLowerModuleIndex] + segmentModuleIdx;
+
+#ifdef CUT_VALUE_DEBUG
+                    addSegmentToMemory(segmentsInGPU,innerMDIndex, outerMDIndex,innerLowerModuleIndex, outerLowerModuleIndex, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, zIn, zOut, rtIn, rtOut, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold,
+                dAlphaInnerMDOuterMDThreshold, segmentIdx);
+#else
+                    addSegmentToMemory(segmentsInGPU,innerMDIndex, outerMDIndex,innerLowerModuleIndex, outerLowerModuleIndex, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, segmentIdx);
+#endif
+
+                }
+            }
+        }
+    }
+    }
 }

@@ -1,5 +1,7 @@
 # include "Kernels.cuh"
 # include "Constants.h"
+# include "Constants.cuh"
+# include "Hit.cuh"
 
 
 typedef struct
@@ -127,11 +129,170 @@ __global__ void createSegmentsInGPU(struct SDL::modules& modulesInGPU, struct SD
             dPhiMax = 0;
             dPhiChangeMin = 0;
             dPhiChangeMax = 0;
-            float zLo, zHi, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold;
+            float zLo, zHi, rtLo, rtHi, sdCut;//, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold;
 
-            bool success = runSegmentDefaultAlgo(modulesInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold);
+            bool pass = true; //runSegmentDefaultAlgo(modulesInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold);
+            zLo = -999.f;
+            zHi = -999.f;
+            rtLo = -999.f;
+            rtHi = -999.f;
+            if(modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel and modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel)
+            {
+              //pass= runSegmentDefaultAlgoBarrel(modulesInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold);
+                float sdMuls = (modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel) ? SDL::miniMulsPtScaleBarrel[modulesInGPU.layers[innerLowerModuleIndex]-1] * 3.f/SDL::ptCut : SDL::miniMulsPtScaleEndcap[modulesInGPU.layers[innerLowerModuleIndex]-1] * 3.f/SDL::ptCut;
 
-            if(success)
+
+    float xIn, yIn, xOut, yOut;
+
+    xIn = mdsInGPU.anchorX[innerMDIndex];
+    yIn = mdsInGPU.anchorY[innerMDIndex];
+    zIn = mdsInGPU.anchorZ[innerMDIndex];
+    rtIn = mdsInGPU.anchorRt[innerMDIndex];
+
+    xOut = mdsInGPU.anchorX[outerMDIndex];
+    yOut = mdsInGPU.anchorY[outerMDIndex];
+    zOut = mdsInGPU.anchorZ[outerMDIndex];
+    rtOut = mdsInGPU.anchorRt[outerMDIndex];
+
+    float sdSlope = asinf(fminf(rtOut * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax));
+    float sdPVoff = 0.1f/rtOut;
+    float dzDrtScale = tanf(sdSlope)/sdSlope; //FIXME: need appropriate value
+
+    const float zGeom = modulesInGPU.layers[innerLowerModuleIndex] <= 2 ? 2.f * SDL::pixelPSZpitch : 2.f * SDL::strip2SZpitch;
+
+    zLo = zIn + (zIn - SDL::deltaZLum) * (rtOut / rtIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - zGeom; //slope-correction only on outer end
+    zHi = zIn + (zIn + SDL::deltaZLum) * (rtOut / rtIn - 1.f) * (zIn < 0.f ? 1.f : dzDrtScale) + zGeom;
+
+             pass =  pass and ((zOut >= zLo) & (zOut <= zHi));
+    if(not pass) continue;// return pass;
+
+    sdCut = sdSlope + sqrtf(sdMuls * sdMuls + sdPVoff * sdPVoff);
+
+    dPhi  = SDL::deltaPhi(xIn, yIn, zIn, xOut, yOut, zOut);
+
+    pass =  pass and (fabsf(dPhi) <= sdCut);
+    if(not pass)  continue;//return pass;
+
+    dPhiChange = SDL::deltaPhiChange(xIn, yIn, zIn, xOut, yOut, zOut);
+
+    pass =  pass and (fabsf(dPhiChange) <= sdCut);
+    if(not pass)  continue;//return pass;
+
+    float dAlphaThresholdValues[3];
+    dAlphaThreshold(dAlphaThresholdValues, modulesInGPU, mdsInGPU, xIn, yIn, zIn, rtIn, xOut, yOut, zOut, rtOut, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex);
+
+    float innerMDAlpha = mdsInGPU.dphichanges[innerMDIndex];
+    float outerMDAlpha = mdsInGPU.dphichanges[outerMDIndex];
+    dAlphaInnerMDSegment = innerMDAlpha - dPhiChange;
+    dAlphaOuterMDSegment = outerMDAlpha - dPhiChange;
+    dAlphaInnerMDOuterMD = innerMDAlpha - outerMDAlpha;
+
+//    dAlphaInnerMDSegmentThreshold = dAlphaThresholdValues[0];
+//    dAlphaOuterMDSegmentThreshold = dAlphaThresholdValues[1];
+//    dAlphaInnerMDOuterMDThreshold = dAlphaThresholdValues[2];
+
+    pass =  pass and (fabsf(dAlphaInnerMDSegment) < dAlphaThresholdValues[0]);
+    if(not pass)  continue;//return pass;
+    pass =  pass and (fabsf(dAlphaOuterMDSegment) < dAlphaThresholdValues[1]);
+    if(not pass)  continue;//return pass;
+    pass =  pass and (fabsf(dAlphaInnerMDOuterMD) < dAlphaThresholdValues[2]); 
+            }
+            else
+            {
+              //success= runSegmentDefaultAlgoEndcap(modulesInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold);
+
+         float xIn, yIn;
+    float xOut, yOut, xOutHigh, yOutHigh, xOutLow, yOutLow;
+
+    xIn = mdsInGPU.anchorX[innerMDIndex];
+    yIn = mdsInGPU.anchorY[innerMDIndex];
+    zIn = mdsInGPU.anchorZ[innerMDIndex];
+    rtIn = mdsInGPU.anchorRt[innerMDIndex];
+
+    xOut = mdsInGPU.anchorX[outerMDIndex];
+    yOut = mdsInGPU.anchorY[outerMDIndex];
+    zOut = mdsInGPU.anchorZ[outerMDIndex];
+    rtOut = mdsInGPU.anchorRt[outerMDIndex];
+
+    xOutHigh = mdsInGPU.anchorHighEdgeX[outerMDIndex];
+    yOutHigh = mdsInGPU.anchorHighEdgeY[outerMDIndex];
+    xOutLow = mdsInGPU.anchorLowEdgeX[outerMDIndex];
+    yOutLow = mdsInGPU.anchorLowEdgeY[outerMDIndex];
+    bool outerLayerEndcapTwoS = (modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Endcap) & (modulesInGPU.moduleType[outerLowerModuleIndex] == SDL::TwoS);
+
+
+    float sdSlope = asinf(fminf(rtOut * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax));
+    float sdPVoff = 0.1/rtOut;
+    float disks2SMinRadius = 60.f;
+
+    float rtGeom =  ((rtIn < disks2SMinRadius && rtOut < disks2SMinRadius) ? (2.f * SDL::pixelPSZpitch)
+            : ((rtIn < disks2SMinRadius || rtOut < disks2SMinRadius) ? (SDL::pixelPSZpitch + SDL::strip2SZpitch)
+            : (2.f * SDL::strip2SZpitch)));
+
+pass =  pass and (zIn * zOut >= 0);
+    if(not pass) continue;//return pass;
+
+    float dz = zOut - zIn;
+    float dLum = copysignf(SDL::deltaZLum, zIn);
+    float drtDzScale = sdSlope/tanf(sdSlope);
+
+    rtLo = fmaxf(rtIn * (1.f + dz / (zIn + dLum) * drtDzScale) - rtGeom,  rtIn - 0.5f * rtGeom); //rt should increase
+    rtHi = rtIn * (zOut - dLum) / (zIn - dLum) + rtGeom; //dLum for luminous; rGeom for measurement size; no tanTheta_loc(pt) correction
+
+    //completeness
+
+    pass =  pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
+    if(not pass) continue;// return pass;
+
+    dPhi = SDL::deltaPhi(xIn, yIn, zIn, xOut, yOut, zOut);
+
+    sdCut = sdSlope;
+    if(outerLayerEndcapTwoS)
+    {
+        float dPhiPos_high = SDL::deltaPhi(xIn, yIn, zIn, xOutHigh, yOutHigh, zOut);
+        float dPhiPos_low = SDL::deltaPhi(xIn, yIn, zIn, xOutLow, yOutLow, zOut);
+
+        dPhiMax = fabsf(dPhiPos_high) > fabsf(dPhiPos_low) ? dPhiPos_high : dPhiPos_low;
+        dPhiMin = fabsf(dPhiPos_high) > fabsf(dPhiPos_low) ? dPhiPos_low : dPhiPos_high;
+    }
+    else
+    {
+        dPhiMax = dPhi;
+        dPhiMin = dPhi;
+    }
+    pass =  pass and (fabsf(dPhi) <= sdCut);
+    if(not pass) continue;// return pass;
+
+    float dzFrac = dz/zIn;
+    dPhiChange = dPhi/dzFrac * (1.f + dzFrac);
+    dPhiChangeMin = dPhiMin/dzFrac * (1.f + dzFrac);
+    dPhiChangeMax = dPhiMax/dzFrac * (1.f + dzFrac);
+
+    pass =  pass and (fabsf(dPhiChange) <= sdCut);
+    if(not pass) continue;// return pass;
+ float dAlphaThresholdValues[3];
+    dAlphaThreshold(dAlphaThresholdValues, modulesInGPU, mdsInGPU, xIn, yIn, zIn, rtIn, xOut, yOut, zOut, rtOut,innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex);
+
+    //dAlphaInnerMDSegmentThreshold = dAlphaThresholdValues[0];
+    //dAlphaOuterMDSegmentThreshold = dAlphaThresholdValues[1];
+    //dAlphaInnerMDOuterMDThreshold = dAlphaThresholdValues[2];
+
+    float innerMDAlpha = mdsInGPU.dphichanges[innerMDIndex];
+    float outerMDAlpha = mdsInGPU.dphichanges[outerMDIndex];
+    dAlphaInnerMDSegment = innerMDAlpha - dPhiChange;
+    dAlphaOuterMDSegment = outerMDAlpha - dPhiChange;
+    dAlphaInnerMDOuterMD = innerMDAlpha - outerMDAlpha;
+
+    pass =  pass and (fabsf(dAlphaInnerMDSegment) < dAlphaThresholdValues[0]);
+    if(not pass) continue;// return pass;
+    pass =  pass and (fabsf(dAlphaOuterMDSegment) < dAlphaThresholdValues[1]);
+    if(not pass) continue;// return pass;
+    pass =  pass and (fabsf(dAlphaInnerMDOuterMD) < dAlphaThresholdValues[2]);
+
+    //return pass; 
+            } 
+
+            if(pass)
             {
                 atomicAdd(&segmentsInGPU.totOccupancySegments[innerLowerModuleIndex],1);
                 if(segmentsInGPU.nSegments[innerLowerModuleIndex] >= N_MAX_SEGMENTS_PER_MODULE)

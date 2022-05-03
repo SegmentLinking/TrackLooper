@@ -1575,7 +1575,8 @@ void SDL::Event::createSegmentsWithModuleMap()
     dim3 nThreads(32,16,1);
     dim3 nBlocks(1,1,MAX_BLOCKS);
 
-    createSegmentsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *rangesInGPU);
+    //createSegmentsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *rangesInGPU);
+    SDL::createSegmentsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *rangesInGPU);
 //    cudaFreeHost(nMDs);
     cudaError_t cudaerr = cudaGetLastError();
     if(cudaerr != cudaSuccess)
