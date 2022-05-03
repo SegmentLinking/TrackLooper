@@ -24,18 +24,18 @@ void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges&
         write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!*/
 
     int *module_miniDoubletModuleIndices;
-    cudaMallocHost(&module_miniDoubletModuleIndices, (nLowerModules + 1) * sizeof(unsigned int));
+    module_miniDoubletModuleIndices = (int*)cms::cuda::allocate_host((nLowerModules + 1) * sizeof(unsigned int), stream);
     short* module_subdets;
-    cudaMallocHost(&module_subdets, nLowerModules* sizeof(short));
+    module_subdets = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
     cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
     short* module_layers;
-    cudaMallocHost(&module_layers, nLowerModules * sizeof(short));
+    module_layers = (short*)cms::cuda::allocate_host(nLowerModules * sizeof(short), stream);
     cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
     short* module_rings;
-    cudaMallocHost(&module_rings, nLowerModules * sizeof(short));
+    module_rings = (short*)cms::cuda::allocate_host(nLowerModules * sizeof(short), stream);
     cudaMemcpyAsync(module_rings,modulesInGPU.rings,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
     float* module_eta;
-    cudaMallocHost(&module_eta, nLowerModules * sizeof(float));
+    module_eta = (float*)cms::cuda::allocate_host(nLowerModules * sizeof(float), stream);
     cudaMemcpyAsync(module_eta,modulesInGPU.eta,nLowerModules * sizeof(float),cudaMemcpyDeviceToHost,stream);
 
     cudaStreamSynchronize(stream);
@@ -79,11 +79,11 @@ void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges&
 
     cudaMemcpyAsync(rangesInGPU.miniDoubletModuleIndices, module_miniDoubletModuleIndices,  (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
-    cudaFreeHost(module_miniDoubletModuleIndices);
-    cudaFreeHost(module_subdets);
-    cudaFreeHost(module_layers);
-    cudaFreeHost(module_rings);
-    cudaFreeHost(module_eta);
+    cms::cuda::free_host(module_miniDoubletModuleIndices);
+    cms::cuda::free_host(module_subdets);
+    cms::cuda::free_host(module_layers);
+    cms::cuda::free_host(module_rings);
+    cms::cuda::free_host(module_eta);
 }
 
 void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
@@ -720,7 +720,11 @@ __device__ void SDL::shiftStripHits(struct modules& modulesInGPU, /*struct hits&
     // Assign hit pointers based on their hit type
     if (modulesInGPU.moduleType[lowerModuleIndex] == PS)
     {
-        if (modulesInGPU.moduleLayerType[lowerModuleIndex]== Pixel)
+#ifdef CMSSW12GEOM // TODO: This is somewhat of an mystery.... somewhat confused why this is the case
+        if (modulesInGPU.subdets[lowerModuleIndex] == Barrel ? modulesInGPU.moduleLayerType[lowerModuleIndex] != Pixel : modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
+#else
+        if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
+#endif
         {
             //old to delete
        //     pixelHitIndex = lowerHitIndex;

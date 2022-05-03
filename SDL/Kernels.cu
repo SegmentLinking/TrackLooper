@@ -1348,12 +1348,11 @@ __device__ int duplicateCounter_pT3 =0;
 
 __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::pixelTriplets& pixelTripletsInGPU, bool secondPass)
 {
-    int dup_count=0;
-    for (unsigned int ix=blockIdx.x*blockDim.x+threadIdx.x; ix<*pixelTripletsInGPU.nPixelTriplets; ix+=blockDim.x*gridDim.x)
+    for (unsigned int ix=blockIdx.y*blockDim.y+threadIdx.y; ix<*pixelTripletsInGPU.nPixelTriplets; ix+=blockDim.y*gridDim.y)
     {
         //bool isDup = false;
         float score1 = __H2F(pixelTripletsInGPU.score[ix]);
-        for (unsigned int jx=0; jx<*pixelTripletsInGPU.nPixelTriplets; jx++)
+        for(unsigned int jx=blockIdx.x * blockDim.x + threadIdx.x; jx < *pixelTripletsInGPU.nPixelTriplets; jx += blockDim.x * gridDim.x)
         {
             float score2 = __H2F(pixelTripletsInGPU.score[jx]);
             if(ix==jx)
@@ -1364,14 +1363,12 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::pixelTriplets& pi
             checkHitspT3(ix,jx,pixelTripletsInGPU,nMatched);
             if(((nMatched[0] + nMatched[1]) >= 5) )
             {
-                dup_count++;
                 //check the layers
                 if(pixelTripletsInGPU.logicalLayers[5*jx+2] < pixelTripletsInGPU.logicalLayers[5*ix+2])
                 {
                     rmPixelTripletToMemory(pixelTripletsInGPU, ix);
                     break;
                 }
-
                 else if( pixelTripletsInGPU.logicalLayers[5*ix+2] == pixelTripletsInGPU.logicalLayers[5*jx+2] && __H2F(pixelTripletsInGPU.score[ix]) > __H2F(pixelTripletsInGPU.score[jx]))
                 {
                     rmPixelTripletToMemory(pixelTripletsInGPU,ix);
@@ -1387,7 +1384,7 @@ __global__ void removeDupPixelTripletsInGPUFromMap(struct SDL::pixelTriplets& pi
     }
 }
 
-__global__ void removeDupPixelQuintupletsInGPUFromMap( struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, bool secondPass)
+/*__global__ void removeDupPixelQuintupletsInGPUFromMap( struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, bool secondPass)
 {
     //printf("running pT5 duprm\n");
     int dup_count=0;
@@ -1430,7 +1427,44 @@ __global__ void removeDupPixelQuintupletsInGPUFromMap( struct SDL::pixelQuintupl
             }
         }
     }
+}*/
+
+
+__global__ void removeDupPixelQuintupletsInGPUFromMap(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, bool secondPass)
+{
+    int nPixelQuintuplets = *pixelQuintupletsInGPU.nPixelQuintuplets;
+
+    for(unsigned int ix = blockIdx.y * blockDim.y + threadIdx.y; ix < nPixelQuintuplets; ix += blockDim.y * gridDim.y)
+    {
+        if(secondPass && pixelQuintupletsInGPU.isDup[ix])
+        {
+            continue;
+        }
+	    float score1 = __H2F(pixelQuintupletsInGPU.score[ix]);
+        for(unsigned int jx = blockIdx.x * blockDim.x + threadIdx.x; jx < nPixelQuintuplets; jx += blockDim.x * gridDim.x)
+        {
+            if(ix == jx)
+            {
+                continue;
+            }
+            if(secondPass && pixelQuintupletsInGPU.isDup[jx])
+            {
+                continue;
+            }
+            int nMatched = checkHitspT5(ix, jx, pixelQuintupletsInGPU);
+            float score2 = __H2F(pixelQuintupletsInGPU.score[jx]);
+            if(nMatched >= 7)
+            {
+                if(score1 > score2 or ((score1 == score2) and (ix > jx)))
+                {
+                    rmPixelQuintupletToMemory(pixelQuintupletsInGPU, ix);
+                    break;
+                }
+            }
+        }
+    }
 }
+
 
 __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::hits& hitsInGPU,bool secondpass)
 {
