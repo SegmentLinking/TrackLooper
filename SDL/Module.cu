@@ -539,6 +539,8 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     cms::cuda::free_host(host_modules);
     cms::cuda::free_host(host_subdets);
     cms::cuda::free_host(host_sides);
+    cms::cuda::free_host(host_eta);
+    cms::cuda::free_host(host_r);
     cms::cuda::free_host(host_isInverted);
     cms::cuda::free_host(host_isLower);
     cms::cuda::free_host(host_isAnchor);

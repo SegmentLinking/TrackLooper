@@ -1852,8 +1852,8 @@ void SDL::Event::createPixelTriplets()
 
     unsigned int* connectedPixelSize_dev;
     unsigned int* connectedPixelIndex_dev;
-    connectedPixelSize_dev = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
-    connectedPixelIndex_dev = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
+    cudaMalloc(&connectedPixelSize_dev, nInnerSegments* sizeof(unsigned int));
+    cudaMalloc(&connectedPixelIndex_dev, nInnerSegments* sizeof(unsigned int));
 
     // unsigned int max_size =0;
     int threadSize = 1000000;
