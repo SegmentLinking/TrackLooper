@@ -133,18 +133,18 @@ void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,s
     cudaMemsetAsync(rangesInGPU.quintupletModuleIndices, -1, sizeof(int) * (nLowerModules),stream);
 
     short* module_subdets;
-    cudaMallocHost(&module_subdets, nLowerModules* sizeof(short));
+    module_subdets = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
     cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
     short* module_layers;
-    cudaMallocHost(&module_layers, nLowerModules * sizeof(short));
+    module_layers = (short*)cms::cuda::allocate_host(nLowerModules * sizeof(short), stream);
     cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
 
     int* module_quintupletModuleIndices;
-    cudaMallocHost(&module_quintupletModuleIndices, nLowerModules * sizeof(int));
+    module_quintupletModuleIndices = (int*)cms::cuda::allocate_host(nLowerModules * sizeof(int), stream);
     cudaMemcpyAsync(module_quintupletModuleIndices,rangesInGPU.quintupletModuleIndices,nLowerModules *sizeof(int),cudaMemcpyDeviceToHost,stream);
 
     unsigned int* nTriplets;
-    cudaMallocHost(&nTriplets, nLowerModules * sizeof(unsigned int));
+    nTriplets = (unsigned int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
     cudaMemcpyAsync(nTriplets, tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
 
@@ -164,10 +164,10 @@ cudaStreamSynchronize(stream);
     cudaMemcpyAsync(rangesInGPU.quintupletModuleIndices,module_quintupletModuleIndices,nLowerModules*sizeof(int),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(rangesInGPU.nEligibleT5Modules,&nEligibleModules,sizeof(uint16_t),cudaMemcpyHostToDevice,stream);
 cudaStreamSynchronize(stream);
-    cudaFreeHost(module_subdets);
-    cudaFreeHost(module_layers);
-    cudaFreeHost(module_quintupletModuleIndices);
-    cudaFreeHost(nTriplets);
+    cms::cuda::free_host(module_subdets);
+    cms::cuda::free_host(module_layers);
+    cms::cuda::free_host(module_quintupletModuleIndices);
+    cms::cuda::free_host(nTriplets);
 }
 
 
