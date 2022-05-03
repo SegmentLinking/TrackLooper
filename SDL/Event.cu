@@ -1524,64 +1524,10 @@ void SDL::Event::createSegmentsWithModuleMap()
         createSegmentsInUnifiedMemory(*segmentsInGPU, N_MAX_SEGMENTS_PER_MODULE, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE,stream);
 #endif
     }
-//    cudaStreamSynchronize(stream);
-//    int max_cModules=0;
-//    int sq_max_nMDs = 0;
-//    int nonZeroModules = 0;
-//    unsigned int* nMDs;
-//    cudaMallocHost(&nMDs, (nLowerModules +1)* sizeof(unsigned int));
-//    cudaMemcpyAsync((void *)nMDs, mdsInGPU->nMDs, nLowerModules*sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-//    cudaStreamSynchronize(stream);
-//
-//#ifdef Explicit_Module
-//    uint16_t* module_nConnectedModules;
-//    cudaMallocHost(&module_nConnectedModules, nLowerModules* sizeof(uint16_t));
-//    cudaMemcpyAsync(module_nConnectedModules,modulesInGPU->nConnectedModules,nLowerModules*sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
-//    uint16_t* module_moduleMap;
-//    cudaMallocHost(&module_moduleMap, nLowerModules*40* sizeof(uint16_t));
-//    cudaMemcpyAsync(module_moduleMap,modulesInGPU->moduleMap,nLowerModules*40*sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
-//cudaStreamSynchronize(stream);
-//    for (uint16_t innerLowerModuleIndex = 0; innerLowerModuleIndex <nLowerModules; innerLowerModuleIndex++) 
-//    {
-//        uint16_t nConnectedModules = module_nConnectedModules[innerLowerModuleIndex];
-//        unsigned int nInnerMDs = nMDs[innerLowerModuleIndex];
-//        max_cModules = max(max_cModules, nConnectedModules);
-//        int limit_local = 0;
-//        if (nConnectedModules!=0) nonZeroModules++;
-//        for (uint16_t j=0; j<nConnectedModules; j++) 
-//        {
-//            uint16_t outerLowerModuleIndex = module_moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + j];
-//            int nOuterMDs = nMDs[outerLowerModuleIndex];
-//            int total = nInnerMDs*nOuterMDs;
-//            limit_local = max(limit_local,  total);
-//        }
-//        sq_max_nMDs = max(sq_max_nMDs, limit_local);
-//    }
-//    cudaFreeHost(module_nConnectedModules);
-//    cudaFreeHost(module_moduleMap);
-//#else
-//    for (uint16_t innerLowerModuleIndex =0; innerLowerModuleIndex <nLowerModules; innerLowerModuleIndex++) 
-//    {
-//        uint16_t nConnectedModules = modulesInGPU->nConnectedModules[innerLowerModuleIndex];
-//        unsigned int nInnerMDs = nMDs[innerLowerModuleIndex];
-//        max_cModules = max(max_cModules, nConnectedModules); 
-//        int limit_local = 0;
-//        if (nConnectedModules!=0) nonZeroModules++;
-//        for (uint16_t j=0; j<nConnectedModules; j++) 
-//        {
-//            uint16_t outerLowerModuleIndex = modulesInGPU->moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + j];
-//            int nOuterMDs = nMDs[outerLowerModuleIndex];
-//            int total = nInnerMDs*nOuterMDs;
-//            limit_local = limit_local > total ? limit_local : total;
-//        }
-//        sq_max_nMDs = sq_max_nMDs > limit_local ? sq_max_nMDs : limit_local;
-//    }
-//  #endif
     dim3 nThreads(1024,1,1);
     dim3 nBlocks(1,1,MAX_BLOCKS);
 
-    createSegmentsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *rangesInGPU);
-//    cudaFreeHost(nMDs);
+    SDL::createSegmentsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *rangesInGPU);
     cudaError_t cudaerr = cudaGetLastError();
     if(cudaerr != cudaSuccess)
     {
