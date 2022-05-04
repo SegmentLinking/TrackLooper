@@ -20,7 +20,6 @@
 #include "Segment.cuh"
 #include "MiniDoublet.cuh"
 #include "PixelTriplet.cuh"
-#include "PixelQuintuplet.cuh"
 #include "Quintuplet.cuh"
 #include "Module.cuh"
 #include "Hit.cuh"

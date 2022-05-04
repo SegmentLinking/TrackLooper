@@ -16,7 +16,6 @@
 #include "TiltedGeometry.h"
 
 #include "TrackCandidate.cuh"
-#include "PixelQuintuplet.cuh"
 #include "PixelTriplet.cuh"
 #include "Triplet.cuh"
 #include "Quintuplet.cuh"

@@ -2,7 +2,6 @@
 #ifdef __CUDACC__
 #define CUDA_CONST_VAR __device__
 #endif
-# include "PixelQuintuplet.cuh"
 # include "PixelTriplet.cuh"
 # include "PixelTracklet.cuh"
 #include "allocate.h"
@@ -266,10 +265,6 @@ __device__ void SDL::addPixelTripletToMemory(struct modules& modulesInGPU, struc
 #endif
 
 }
-//__device__ void SDL::rmPixelTripletToMemory(struct pixelTriplets& pixelTripletsInGPU,unsigned int pixelTripletIndex)
-//{
-//    pixelTripletsInGPU.isDup[pixelTripletIndex] = 1;
-//}
 
 __device__ float SDL::computeRadiusFromThreeAnchorHitspT3(float* xs, float* ys, float& g, float& f)
 {
