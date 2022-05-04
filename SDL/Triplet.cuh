@@ -11,6 +11,7 @@
 #define CUDA_CONST_VAR
 #endif
 
+#include "Constants.h"
 #include "Constants.cuh"
 #include "EndcapGeometry.h"
 #include "TiltedGeometry.h"
@@ -102,6 +103,8 @@ CUDA_DEV void addTripletToMemory(struct modules& modulesInGPU, struct miniDouble
     CUDA_DEV bool hasCommonMiniDoublet(struct segments& segmentsInGPU, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex);
 
     void printTriplet(struct triplets& tripletsInGPU, struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int tripletIndex);
+
+    __global__ void createTripletsInGPUv2(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::objectRanges& rangesInGPU, uint16_t* index_gpu, uint16_t nonZeroModules);
 
 }
 

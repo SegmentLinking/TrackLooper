@@ -32,123 +32,123 @@ __device__ void importModuleInfo(struct SDL::modules& modulesInGPU, sharedModule
 }
 
 
-__global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::objectRanges& rangesInGPU)
-{
-    int blockxSize = blockDim.x*gridDim.x;
-    int blockySize = blockDim.y*gridDim.y;
-    //int blockzSize = blockDim.z*gridDim.z;
-    for(uint16_t lowerModuleIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerModuleIndex< (*modulesInGPU.nLowerModules); lowerModuleIndex += blockySize)
-    {
-        uint16_t upperModuleIndex = modulesInGPU.partnerModuleIndices[lowerModuleIndex];
-        int nLowerHits = hitsInGPU.hitRangesnLower[lowerModuleIndex];
-        int nUpperHits = hitsInGPU.hitRangesnUpper[lowerModuleIndex];
-        if(hitsInGPU.hitRangesLower[lowerModuleIndex] == -1) continue;
-        const int maxHits = max(nUpperHits,nLowerHits);
-        unsigned int upHitArrayIndex = hitsInGPU.hitRangesUpper[lowerModuleIndex];
-        unsigned int loHitArrayIndex = hitsInGPU.hitRangesLower[lowerModuleIndex];
-        int limit = nUpperHits*nLowerHits;
-        for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize)
-        {
-            int lowerHitIndex =  hitIndex / nUpperHits;
-            int upperHitIndex =  hitIndex % nUpperHits;
-            if(upperHitIndex >= nUpperHits) continue;
-            if(lowerHitIndex >= nLowerHits) continue;
-            unsigned int lowerHitArrayIndex = loHitArrayIndex + lowerHitIndex;
-            float xLower = hitsInGPU.xs[lowerHitArrayIndex];
-            float yLower = hitsInGPU.ys[lowerHitArrayIndex];
-            float zLower = hitsInGPU.zs[lowerHitArrayIndex];
-            float rtLower = hitsInGPU.rts[lowerHitArrayIndex];
-            unsigned int upperHitArrayIndex = upHitArrayIndex+upperHitIndex;
-            float xUpper = hitsInGPU.xs[upperHitArrayIndex];
-            float yUpper = hitsInGPU.ys[upperHitArrayIndex];
-            float zUpper = hitsInGPU.zs[upperHitArrayIndex];
-            float rtUpper = hitsInGPU.rts[upperHitArrayIndex];
+//__global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::objectRanges& rangesInGPU)
+//{
+//    int blockxSize = blockDim.x*gridDim.x;
+//    int blockySize = blockDim.y*gridDim.y;
+//    //int blockzSize = blockDim.z*gridDim.z;
+//    for(uint16_t lowerModuleIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerModuleIndex< (*modulesInGPU.nLowerModules); lowerModuleIndex += blockySize)
+//    {
+//        uint16_t upperModuleIndex = modulesInGPU.partnerModuleIndices[lowerModuleIndex];
+//        int nLowerHits = hitsInGPU.hitRangesnLower[lowerModuleIndex];
+//        int nUpperHits = hitsInGPU.hitRangesnUpper[lowerModuleIndex];
+//        if(hitsInGPU.hitRangesLower[lowerModuleIndex] == -1) continue;
+//        const int maxHits = max(nUpperHits,nLowerHits);
+//        unsigned int upHitArrayIndex = hitsInGPU.hitRangesUpper[lowerModuleIndex];
+//        unsigned int loHitArrayIndex = hitsInGPU.hitRangesLower[lowerModuleIndex];
+//        int limit = nUpperHits*nLowerHits;
+//        for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize)
+//        {
+//            int lowerHitIndex =  hitIndex / nUpperHits;
+//            int upperHitIndex =  hitIndex % nUpperHits;
+//            if(upperHitIndex >= nUpperHits) continue;
+//            if(lowerHitIndex >= nLowerHits) continue;
+//            unsigned int lowerHitArrayIndex = loHitArrayIndex + lowerHitIndex;
+//            float xLower = hitsInGPU.xs[lowerHitArrayIndex];
+//            float yLower = hitsInGPU.ys[lowerHitArrayIndex];
+//            float zLower = hitsInGPU.zs[lowerHitArrayIndex];
+//            float rtLower = hitsInGPU.rts[lowerHitArrayIndex];
+//            unsigned int upperHitArrayIndex = upHitArrayIndex+upperHitIndex;
+//            float xUpper = hitsInGPU.xs[upperHitArrayIndex];
+//            float yUpper = hitsInGPU.ys[upperHitArrayIndex];
+//            float zUpper = hitsInGPU.zs[upperHitArrayIndex];
+//            float rtUpper = hitsInGPU.rts[upperHitArrayIndex];
+//
+//            float dz, /*drt,*/ dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange;
+//
+//            //float dzCut, drtCut;//, miniCut;
+//            bool success = runMiniDoubletDefaultAlgo(modulesInGPU, lowerModuleIndex, upperModuleIndex, lowerHitArrayIndex, upperHitArrayIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
+//
+//            if(success)
+//            {
+//                atomicAdd(&mdsInGPU.totOccupancyMDs[lowerModuleIndex],1);
+//                if(mdsInGPU.nMDs[lowerModuleIndex] >= (rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex + 1] - rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex]))
+//                {
+//#ifdef Warnings
+//                    printf("Mini-doublet excess alert! Module index =  %d\n",lowerModuleIndex);
+//#endif
+//                }
+//                else
+//                {
+//                    unsigned int mdModuleIndex = atomicAdd(&mdsInGPU.nMDs[lowerModuleIndex],1);
+//                    unsigned int mdIndex = rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex] + mdModuleIndex;
+//
+//#ifdef CUT_VALUE_DEBUG
+//                    addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz,drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, dzCut, drtCut, miniCut, mdIndex);
+//#else
+//                    addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, mdIndex);
+//#endif
+//                }
+//
+//            }
+//        }
+//    }
+//}
 
-            float dz, /*drt,*/ dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange;
-
-            //float dzCut, drtCut;//, miniCut;
-            bool success = runMiniDoubletDefaultAlgo(modulesInGPU, lowerModuleIndex, upperModuleIndex, lowerHitArrayIndex, upperHitArrayIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
-
-            if(success)
-            {
-                atomicAdd(&mdsInGPU.totOccupancyMDs[lowerModuleIndex],1);
-                if(mdsInGPU.nMDs[lowerModuleIndex] >= (rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex + 1] - rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex]))
-                {
-#ifdef Warnings
-                    printf("Mini-doublet excess alert! Module index =  %d\n",lowerModuleIndex);
-#endif
-                }
-                else
-                {
-                    unsigned int mdModuleIndex = atomicAdd(&mdsInGPU.nMDs[lowerModuleIndex],1);
-                    unsigned int mdIndex = rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex] + mdModuleIndex;
-
-#ifdef CUT_VALUE_DEBUG
-                    addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz,drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, dzCut, drtCut, miniCut, mdIndex);
-#else
-                    addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, mdIndex);
-#endif
-                }
-
-            }
-        }
-    }
-}
-
-__global__ void createTripletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::objectRanges& rangesInGPU, uint16_t *index_gpu, uint16_t nonZeroModules)
-{
-  int blockxSize = blockDim.x*gridDim.x;
-  int blockySize = blockDim.y*gridDim.y;
-  int blockzSize = blockDim.z*gridDim.z;
-  for(uint16_t innerLowerModuleArrayIdx = blockIdx.z * blockDim.z + threadIdx.z; innerLowerModuleArrayIdx< nonZeroModules; innerLowerModuleArrayIdx += blockzSize) {
-    uint16_t innerInnerLowerModuleIndex = index_gpu[innerLowerModuleArrayIdx];
-    if(innerInnerLowerModuleIndex >= *modulesInGPU.nLowerModules) continue;
-
-    uint16_t nConnectedModules = modulesInGPU.nConnectedModules[innerInnerLowerModuleIndex];
-    if(nConnectedModules == 0) continue;
-
-    unsigned int nInnerSegments = segmentsInGPU.nSegments[innerInnerLowerModuleIndex];
-
-    for(int innerSegmentArrayIndex = blockIdx.y * blockDim.y + threadIdx.y; innerSegmentArrayIndex< nInnerSegments; innerSegmentArrayIndex += blockySize) {
-      unsigned int innerSegmentIndex = rangesInGPU.segmentRanges[innerInnerLowerModuleIndex * 2] + innerSegmentArrayIndex;
-
-      //middle lower module - outer lower module of inner segment
-      uint16_t middleLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[innerSegmentIndex];
-
-      unsigned int nOuterSegments = segmentsInGPU.nSegments[middleLowerModuleIndex];
-      for(int outerSegmentArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; outerSegmentArrayIndex< nOuterSegments; outerSegmentArrayIndex += blockxSize){
-        //if(outerSegmentArrayIndex >= nOuterSegments) continue;
-  unsigned int outerSegmentIndex = rangesInGPU.segmentRanges[2 * middleLowerModuleIndex] + outerSegmentArrayIndex;
-
-        uint16_t outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex];
-
-        float zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut, pt_beta;
-        float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ;
-
-        bool success = runTripletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
-
-        if(success) {
-          atomicAdd(&tripletsInGPU.totOccupancyTriplets[innerInnerLowerModuleIndex], 1);
-          if(tripletsInGPU.nTriplets[innerInnerLowerModuleIndex] >= N_MAX_TRIPLETS_PER_MODULE) {
-#ifdef Warnings
-            printf("Triplet excess alert! Module index = %d\n",innerInnerLowerModuleIndex);
-#endif
-          }
-          else {
-            unsigned int tripletModuleIndex = atomicAdd(&tripletsInGPU.nTriplets[innerInnerLowerModuleIndex], 1);
-            unsigned int tripletIndex = rangesInGPU.tripletModuleIndices[innerInnerLowerModuleIndex] + tripletModuleIndex;
-
-#ifdef CUT_VALUE_DEBUG
-            addTripletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, innerSegmentIndex, outerSegmentIndex, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut,pt_beta, zLo,zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, tripletIndex);
-#else
-            addTripletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, innerSegmentIndex, outerSegmentIndex, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, betaIn, betaOut, pt_beta, tripletIndex);
-#endif
-          }
-        }
-      }
-    }
-  }
-}
+//__global__ void createTripletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::objectRanges& rangesInGPU, uint16_t *index_gpu, uint16_t nonZeroModules)
+//{
+//  int blockxSize = blockDim.x*gridDim.x;
+//  int blockySize = blockDim.y*gridDim.y;
+//  int blockzSize = blockDim.z*gridDim.z;
+//  for(uint16_t innerLowerModuleArrayIdx = blockIdx.z * blockDim.z + threadIdx.z; innerLowerModuleArrayIdx< nonZeroModules; innerLowerModuleArrayIdx += blockzSize) {
+//    uint16_t innerInnerLowerModuleIndex = index_gpu[innerLowerModuleArrayIdx];
+//    if(innerInnerLowerModuleIndex >= *modulesInGPU.nLowerModules) continue;
+//
+//    uint16_t nConnectedModules = modulesInGPU.nConnectedModules[innerInnerLowerModuleIndex];
+//    if(nConnectedModules == 0) continue;
+//
+//    unsigned int nInnerSegments = segmentsInGPU.nSegments[innerInnerLowerModuleIndex];
+//
+//    for(int innerSegmentArrayIndex = blockIdx.y * blockDim.y + threadIdx.y; innerSegmentArrayIndex< nInnerSegments; innerSegmentArrayIndex += blockySize) {
+//      unsigned int innerSegmentIndex = rangesInGPU.segmentRanges[innerInnerLowerModuleIndex * 2] + innerSegmentArrayIndex;
+//
+//      //middle lower module - outer lower module of inner segment
+//      uint16_t middleLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[innerSegmentIndex];
+//
+//      unsigned int nOuterSegments = segmentsInGPU.nSegments[middleLowerModuleIndex];
+//      for(int outerSegmentArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; outerSegmentArrayIndex< nOuterSegments; outerSegmentArrayIndex += blockxSize){
+//        //if(outerSegmentArrayIndex >= nOuterSegments) continue;
+//  unsigned int outerSegmentIndex = rangesInGPU.segmentRanges[2 * middleLowerModuleIndex] + outerSegmentArrayIndex;
+//
+//        uint16_t outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex];
+//
+//        float zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut, pt_beta;
+//        float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ;
+//
+//        bool success = runTripletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
+//
+//        if(success) {
+//          atomicAdd(&tripletsInGPU.totOccupancyTriplets[innerInnerLowerModuleIndex], 1);
+//          if(tripletsInGPU.nTriplets[innerInnerLowerModuleIndex] >= N_MAX_TRIPLETS_PER_MODULE) {
+//#ifdef Warnings
+//            printf("Triplet excess alert! Module index = %d\n",innerInnerLowerModuleIndex);
+//#endif
+//          }
+//          else {
+//            unsigned int tripletModuleIndex = atomicAdd(&tripletsInGPU.nTriplets[innerInnerLowerModuleIndex], 1);
+//            unsigned int tripletIndex = rangesInGPU.tripletModuleIndices[innerInnerLowerModuleIndex] + tripletModuleIndex;
+//
+//#ifdef CUT_VALUE_DEBUG
+//            addTripletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, innerSegmentIndex, outerSegmentIndex, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut,pt_beta, zLo,zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ, tripletIndex);
+//#else
+//            addTripletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, innerSegmentIndex, outerSegmentIndex, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, betaIn, betaOut, pt_beta, tripletIndex);
+//#endif
+//          }
+//        }
+//      }
+//    }
+//  }
+//}
 
 __device__ inline int checkPixelHits(unsigned int ix, unsigned int jx,struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::hits& hitsInGPU)
 {
