@@ -1651,7 +1651,7 @@ void SDL::Event::createTrackCandidates()
     //printf("running final state pT3\n");
     unsigned int nThreadsx = 384;//1024;
     unsigned int nBlocksx = MAX_BLOCKS;//(N_MAX_PIXEL_TRIPLETS) % nThreadsx == 0 ? N_MAX_PIXEL_TRIPLETS / nThreadsx : N_MAX_PIXEL_TRIPLETS / nThreadsx + 1;
-    addpT3asTrackCandidateInGPU<<<nBlocksx, nThreadsx,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
+    SDL::addpT3asTrackCandidateInGPU<<<nBlocksx, nThreadsx,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
     cudaError_t cudaerr_pT3 = cudaGetLastError();
     if(cudaerr_pT3 != cudaSuccess)
     {
@@ -1669,7 +1669,7 @@ void SDL::Event::createTrackCandidates()
     removeDupQuintupletsInGPUv2<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,true,*rangesInGPU);
     //cudaDeviceSynchronize();
     cudaStreamSynchronize(stream);
-    addT5asTrackCandidateInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,*trackCandidatesInGPU,*pixelQuintupletsInGPU,*pixelTripletsInGPU,*rangesInGPU);
+    SDL::addT5asTrackCandidateInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,*trackCandidatesInGPU,*pixelQuintupletsInGPU,*pixelTripletsInGPU,*rangesInGPU);
 
     cudaError_t cudaerr_T5 =cudaGetLastError(); 
     if(cudaerr_T5 != cudaSuccess)
@@ -1691,7 +1691,7 @@ void SDL::Event::createTrackCandidates()
 #endif  
     //unsigned int nThreadsx_pLS = 1024;
     //unsigned int nBlocksx_pLS = MAX_BLOCKS;//(20000) % nThreadsx_pLS == 0 ? 20000 / nThreadsx_pLS : 20000 / nThreadsx_pLS + 1;
-    addpLSasTrackCandidateInGPU<<<nBlocksx, 384,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU,*mdsInGPU,*hitsInGPU,*quintupletsInGPU);
+    SDL::addpLSasTrackCandidateInGPU<<<nBlocksx, 384,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU,*mdsInGPU,*hitsInGPU,*quintupletsInGPU);
     cudaError_t cudaerr_pLS = cudaGetLastError();
     if(cudaerr_pLS != cudaSuccess)
     {
@@ -2192,7 +2192,7 @@ cudaStreamSynchronize(stream);
     //printf("Adding pT5s to TC collection\n");
     unsigned int nThreadsx_pT5 = 256;
     unsigned int nBlocksx_pT5 = 1;//(N_MAX_PIXEL_QUINTUPLETS) % nThreadsx_pT5 == 0 ? N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 : N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 + 1;
-    addpT5asTrackCandidateInGPU<<<nBlocksx_pT5, nThreadsx_pT5,0,stream>>>(*modulesInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *tripletsInGPU,*quintupletsInGPU);
+    SDL::addpT5asTrackCandidateInGPU<<<nBlocksx_pT5, nThreadsx_pT5,0,stream>>>(*modulesInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *tripletsInGPU,*quintupletsInGPU);
 
     cudaError_t cudaerr_pT5 = cudaGetLastError();
     if(cudaerr_pT5 != cudaSuccess)
