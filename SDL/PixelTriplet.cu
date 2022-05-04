@@ -266,10 +266,10 @@ __device__ void SDL::addPixelTripletToMemory(struct modules& modulesInGPU, struc
 #endif
 
 }
-__device__ void SDL::rmPixelTripletToMemory(struct pixelTriplets& pixelTripletsInGPU,unsigned int pixelTripletIndex)
-{
-    pixelTripletsInGPU.isDup[pixelTripletIndex] = 1;
-}
+//__device__ void SDL::rmPixelTripletToMemory(struct pixelTriplets& pixelTripletsInGPU,unsigned int pixelTripletIndex)
+//{
+//    pixelTripletsInGPU.isDup[pixelTripletIndex] = 1;
+//}
 
 __device__ float SDL::computeRadiusFromThreeAnchorHitspT3(float* xs, float* ys, float& g, float& f)
 {
@@ -1694,11 +1694,11 @@ void SDL::createPixelQuintupletsInExplicitMemory(struct SDL::pixelQuintuplets& p
   cudaStreamSynchronize(stream);
 }
 
-__device__ void SDL::rmPixelQuintupletToMemory(struct pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pixelQuintupletIndex)
-{
-
-    pixelQuintupletsInGPU.isDup[pixelQuintupletIndex] = 1;
-}
+//__device__ void SDL::rmPixelQuintupletToMemory(struct pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pixelQuintupletIndex)
+//{
+//
+//    pixelQuintupletsInGPU.isDup[pixelQuintupletIndex] = 1;
+//}
 #ifdef CUT_VALUE_DEBUG
 __device__ void SDL::addPixelQuintupletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct quintuplets& quintupletsInGPU, struct pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pixelIndex, unsigned int T5Index, unsigned int pixelQuintupletIndex, float& rzChiSquared, float& rPhiChiSquared, float& rPhiChiSquaredInwards, float score, float eta, float phi, float& pixelRadius, float& quintupletRadius,
         float& centerX, float& centerY)

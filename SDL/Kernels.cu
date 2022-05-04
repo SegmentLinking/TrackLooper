@@ -31,6 +31,23 @@ __device__ void importModuleInfo(struct SDL::modules& modulesInGPU, sharedModule
  
 }
 
+__device__ void rmQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU,unsigned int quintupletIndex)
+{
+    quintupletsInGPU.isDup[quintupletIndex] = true;
+
+}
+__device__ void rmPixelTripletToMemory(struct SDL::pixelTriplets& pixelTripletsInGPU,unsigned int pixelTripletIndex)
+{
+    pixelTripletsInGPU.isDup[pixelTripletIndex] = 1;
+}
+__device__ void rmPixelQuintupletToMemory(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pixelQuintupletIndex)
+{
+
+    pixelQuintupletsInGPU.isDup[pixelQuintupletIndex] = 1;
+}
+__device__ void rmPixelSegmentFromMemory(struct SDL::segments& segmentsInGPU,unsigned int pixelSegmentArrayIndex){
+    segmentsInGPU.isDup[pixelSegmentArrayIndex] = 1;
+}
 
 //__global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::objectRanges& rangesInGPU)
 //{
