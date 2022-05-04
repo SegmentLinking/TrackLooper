@@ -895,3 +895,70 @@ __device__ void SDL::computeSigmasForRegression_pT5(SDL::modules& modulesInGPU, 
 //        delta2[i] /= 0.009;
 //    }
 }
+
+__global__ void SDL::createPixelQuintupletsInGPUFromMapv2(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex, unsigned int nPixelSegments, unsigned int* seg_pix_gpu, unsigned int* seg_pix_gpu_offset, unsigned int totalSegs, struct SDL::objectRanges& rangesInGPU)
+{
+    //unsigned int offsetIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    int blockxSize = blockDim.x*gridDim.x;
+    int blockySize = blockDim.y*gridDim.y;
+    for(int offsetIndex = blockIdx.y * blockDim.y + threadIdx.y; offsetIndex< totalSegs; offsetIndex += blockySize)
+    {
+        int segmentModuleIndex = seg_pix_gpu_offset[offsetIndex];
+        int pixelSegmentArrayIndex = seg_pix_gpu[offsetIndex];
+        if(pixelSegmentArrayIndex >= nPixelSegments) continue;//return;
+        if(segmentModuleIndex >= connectedPixelSize[pixelSegmentArrayIndex]) continue;//return;
+
+        unsigned int tempIndex = connectedPixelIndex[pixelSegmentArrayIndex] + segmentModuleIndex; //gets module array index for segment
+
+    //these are actual module indices
+        uint16_t quintupletLowerModuleIndex = modulesInGPU.connectedPixels[tempIndex];
+        if(quintupletLowerModuleIndex >= *modulesInGPU.nLowerModules) continue;//return;
+
+        uint16_t pixelModuleIndex = *modulesInGPU.nLowerModules;
+        unsigned int nOuterQuintuplets = quintupletsInGPU.nQuintuplets[quintupletLowerModuleIndex];
+
+        if(nOuterQuintuplets == 0) continue;//return;
+
+        //fetch the quintuplet
+        for(unsigned int outerQuintupletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; outerQuintupletArrayIndex< nOuterQuintuplets; outerQuintupletArrayIndex +=blockxSize)
+        {
+            unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + pixelSegmentArrayIndex;
+
+            unsigned int quintupletIndex = rangesInGPU.quintupletModuleIndices[quintupletLowerModuleIndex] + outerQuintupletArrayIndex;
+
+            if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) continue;//return;//skip duplicated pLS
+            if(quintupletsInGPU.isDup[quintupletIndex]) continue;//return; //skip duplicated T5s
+
+            float rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, pixelRadius, quintupletRadius, centerX, centerY;
+
+            bool success = runPixelQuintupletDefaultAlgo(modulesInGPU, rangesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelSegmentIndex, quintupletIndex, rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, pixelRadius, quintupletRadius, centerX, centerY);
+            if(success)
+            {
+                atomicAdd(pixelQuintupletsInGPU.totOccupancyPixelQuintuplets, 1);
+                if(*pixelQuintupletsInGPU.nPixelQuintuplets >= N_MAX_PIXEL_QUINTUPLETS)
+                {
+#ifdef Warnings
+                    printf("Pixel Quintuplet excess alert!\n");
+#endif
+                }
+                else
+                {
+                    unsigned int pixelQuintupletIndex = atomicAdd(pixelQuintupletsInGPU.nPixelQuintuplets, 1);
+                    float eta = __H2F(quintupletsInGPU.eta[quintupletIndex]);
+                    float phi = __H2F(quintupletsInGPU.phi[quintupletIndex]);
+
+#ifdef CUT_VALUE_DEBUG
+                    addPixelQuintupletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, rPhiChiSquared, eta, phi, pixelRadius, quintupletRadius, centerX, centerY);
+
+#else
+                    addPixelQuintupletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rPhiChiSquaredInwards+rPhiChiSquared, eta,phi, pixelRadius, quintupletRadius, centerX, centerY);
+#endif
+                    tripletsInGPU.partOfPT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex]] = true;
+                    tripletsInGPU.partOfPT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1]] = true;
+                    segmentsInGPU.partOfPT5[pixelSegmentArrayIndex] = true;
+                    quintupletsInGPU.partOfPT5[quintupletIndex] = true;
+                }
+            }
+        }
+    }
+}

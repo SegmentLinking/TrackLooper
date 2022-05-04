@@ -822,3 +822,87 @@ __device__ bool SDL::passRadiusCriterionEEE(float& pixelRadius, float& pixelRadi
     return checkIntervalOverlap(tripletRadiusInvMin, tripletRadiusInvMax, pixelRadiusInvMin, pixelRadiusInvMax);
 }
 
+__global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex, unsigned int nPixelSegments, unsigned int* seg_pix_gpu, unsigned int* seg_pix_gpu_offset, unsigned int totalSegs)
+{
+    //newgrid with map
+    int blockxSize = blockDim.x*gridDim.x;
+    int blockySize = blockDim.y*gridDim.y;
+    //unsigned int offsetIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    for(int offsetIndex = blockIdx.y * blockDim.y + threadIdx.y; offsetIndex< totalSegs; offsetIndex += blockySize)
+    {
+
+        int segmentModuleIndex = seg_pix_gpu_offset[offsetIndex];
+        int pixelSegmentArrayIndex = seg_pix_gpu[offsetIndex];
+        if(pixelSegmentArrayIndex >= nPixelSegments) continue;//return;
+        if(segmentModuleIndex >= connectedPixelSize[pixelSegmentArrayIndex]) continue;//return;
+
+        unsigned int tempIndex = connectedPixelIndex[pixelSegmentArrayIndex] + segmentModuleIndex; //gets module array index for segment
+
+        uint16_t tripletLowerModuleIndex = modulesInGPU.connectedPixels[tempIndex]; //connected pixels will have the appopriate lower module index by default!
+        if(tripletLowerModuleIndex >= *modulesInGPU.nLowerModules) continue;//return;
+
+        uint16_t pixelModuleIndex = *modulesInGPU.nLowerModules;
+        unsigned int nOuterTriplets = tripletsInGPU.nTriplets[tripletLowerModuleIndex];
+
+        if(nOuterTriplets == 0) continue;//return;
+        if(modulesInGPU.moduleType[tripletLowerModuleIndex] == SDL::TwoS) continue;//return; //Removes 2S-2S
+
+        //fetch the triplet
+        for(unsigned int outerTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; outerTripletArrayIndex< nOuterTriplets; outerTripletArrayIndex +=blockxSize)
+        {
+            unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + pixelSegmentArrayIndex;
+            unsigned int outerTripletIndex = rangesInGPU.tripletModuleIndices[tripletLowerModuleIndex] + outerTripletArrayIndex;
+            if(modulesInGPU.moduleType[tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1]] == SDL::TwoS) continue;//REMOVES PS-2S
+
+            if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) continue;//return;
+            if(segmentsInGPU.partOfPT5[pixelSegmentArrayIndex]) continue;//return; //don't make pT3s for those pixels that are part of pT5
+            if(tripletsInGPU.partOfPT5[outerTripletIndex]) continue;//return; //don't create pT3s for T3s accounted in pT5s
+
+            float pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared, rzChiSquared, rPhiChiSquaredInwards, centerX, centerY;
+            bool success = runPixelTripletDefaultAlgo(modulesInGPU, rangesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, centerX, centerY, rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
+            if(success)
+            {
+                short layer2_adjustment;// = 2 - modulesInGPU.layers[tripletLowerModuleIndex];
+                //if(layer2_adjustment < 0) continue;
+                if(modulesInGPU.layers[tripletLowerModuleIndex] == 1)
+                {
+                    layer2_adjustment = 1;
+                } //get upper segment to be in second layer
+                else if( modulesInGPU.layers[tripletLowerModuleIndex] == 2)
+                {
+                    layer2_adjustment = 0;
+                } // get lower segment to be in second layer
+
+                else
+                {
+                    continue;
+                }
+                float phi = mdsInGPU.anchorPhi[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*outerTripletIndex]+layer2_adjustment]];
+                float eta = mdsInGPU.anchorEta[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*outerTripletIndex]+layer2_adjustment]];
+                float eta_pix = segmentsInGPU.eta[pixelSegmentArrayIndex];
+                float phi_pix = segmentsInGPU.phi[pixelSegmentArrayIndex];
+                float pt = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
+                float score = rPhiChiSquared+rPhiChiSquaredInwards;
+                atomicAdd(pixelTripletsInGPU.totOccupancyPixelTriplets, 1);
+                if(*pixelTripletsInGPU.nPixelTriplets >= N_MAX_PIXEL_TRIPLETS)
+                {
+#ifdef Warnings
+                    printf("Pixel Triplet excess alert!\n");
+#endif
+                }
+                else
+                {
+                    unsigned int pixelTripletIndex = atomicAdd(pixelTripletsInGPU.nPixelTriplets, 1);
+#ifdef CUT_VALUE_DEBUG
+                    addPixelTripletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, centerX, centerY, rPhiChiSquared, rPhiChiSquaredInwards, rzChiSquared, pixelTripletIndex, pt, eta, phi, eta_pix, phi_pix, score);
+#else
+                    addPixelTripletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius,tripletRadius, centerX, centerY, pixelTripletIndex, pt,eta,phi,eta_pix,phi_pix,score);
+#endif
+//#ifdef TRACK_EXTENSIONS
+                    tripletsInGPU.partOfPT3[outerTripletIndex] = true;
+//#endif
+                }
+            }
+        }
+    }
+}
