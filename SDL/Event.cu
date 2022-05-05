@@ -5,7 +5,6 @@ struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::pixelMap* SDL::pixelMapping = nullptr;
 uint16_t SDL::nModules;
 uint16_t SDL::nLowerModules;
-//struct SDL::hits* SDL::hitsInGPUAll = nullptr;
 
 SDL::Event::Event(cudaStream_t estream)
 {
@@ -13,7 +12,6 @@ SDL::Event::Event(cudaStream_t estream)
     int driver;
     cudaRuntimeGetVersion(&version);
     cudaDriverGetVersion(&driver);
-//    hitOffset=0;
     //printf("version: %d Driver %d\n",version, driver);
     stream = estream;
     hitsInGPU = nullptr;
@@ -593,36 +591,7 @@ cudaStreamSynchronize(stream);
         #endif
     resetObjectsInModule();
     }
-//    if(hitsInGPU == nullptr)
-//    {
-//
-//        cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
-//        #ifdef Explicit_Hit
-//    	  createHitsInExplicitMemory(*hitsInGPU, 2*loopsize,stream,1); //unclear why but this has to be 2*loopsize to avoid crashing later (reported in tracklet allocation). seems to do with nHits values as well. this allows nhits to be set to the correct value of loopsize to get correct results without crashing. still beats the "max hits" so i think this is fine.
-//        #else
-//        createHitsInUnifiedMemory(*hitsInGPU,2*loopsize,0,stream,1);
-//        #endif
-//    }
-//cudaStreamSynchronize(stream);
     hitsInGPU = hitsInGPU_event;
-//      cudaMemcpyAsync(hitsInGPU->xs,                  hitsInGPU_event->xs,2*loopsize*sizeof(float),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->ys,                  hitsInGPU_event->ys,2*loopsize*sizeof(float),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->zs,                  hitsInGPU_event->zs,2*loopsize*sizeof(float),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->rts,                 hitsInGPU_event->rts,2*loopsize*sizeof(float),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->phis,                hitsInGPU_event->phis,2*loopsize*sizeof(float),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->etas,                hitsInGPU_event->etas,2*loopsize*sizeof(float),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->moduleIndices,       hitsInGPU_event->moduleIndices,2*loopsize*sizeof(uint16_t),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->idxs,                hitsInGPU_event->idxs,2*loopsize*sizeof(unsigned int),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->highEdgeXs,          hitsInGPU_event->highEdgeXs,2*loopsize*sizeof(float),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->highEdgeYs,          hitsInGPU_event->highEdgeYs,2*loopsize*sizeof(float),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->lowEdgeXs,           hitsInGPU_event->lowEdgeXs,2*loopsize*sizeof(float),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->lowEdgeYs,           hitsInGPU_event->lowEdgeYs,2*loopsize*sizeof(float),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->nHits,               hitsInGPU_event->nHits,sizeof(unsigned int),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->hitRanges,           hitsInGPU_event->hitRanges,2*nModules*sizeof(int),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->hitRangesLower,      hitsInGPU_event->hitRangesLower,nModules*sizeof(int),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->hitRangesUpper,      hitsInGPU_event->hitRangesUpper,nModules*sizeof(int),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->hitRangesnLower,     hitsInGPU_event->hitRangesnLower,nModules*sizeof(int8_t),cudaMemcpyDeviceToDevice,stream);
-//      cudaMemcpyAsync(hitsInGPU->hitRangesnUpper,     hitsInGPU_event->hitRangesnUpper,nModules*sizeof(int8_t),cudaMemcpyDeviceToDevice,stream);
 cudaStreamSynchronize(stream);
 }
 // used for preloading hits within initHits
@@ -827,8 +796,6 @@ std::vector<std::vector<short>>&    out_isQuad_vec
     printf("hitOffset Main %u\n",hitOffset.back());
     cudaStream_t modStream;
     cudaStreamCreate(&modStream);
-    //if(hitsInGPUAll == nullptr)
-    //{
     for(int evt=0; evt < static_cast<int>(out_trkX.size()); evt++)
     {
         struct SDL::hits* hitsInGPU_event;
@@ -838,7 +805,6 @@ std::vector<std::vector<short>>&    out_isQuad_vec
         #else
         createHitsInUnifiedMemory(*hitsInGPU_event,hitOffset.at(evt+1),0,modStream,1);
         #endif
-    //}
             std::cout << "Loading hits for Event number = " << evt << " " << omp_get_thread_num() << std::endl;
             //Load Hits
             preloadHitToEvent(out_trkX.at(evt), out_trkY.at(evt), out_trkZ.at(evt), out_hitId.at(evt),out_hitIdxs.at(evt),hitOffset.at(evt),evt,*hitsInGPU_event);
@@ -1490,7 +1456,8 @@ void SDL::Event::createMiniDoublets()
     //dim3 nBlocks(1,1,MAX_BLOCKS);
     //dim3 nBlocks(1,1,1);
 
-    createMiniDoubletsInGPU<<<nBlocks,nThreads,64*4*16*sizeof(float),stream>>>(*modulesInGPU,*hitsInGPU,*mdsInGPU,*rangesInGPU);
+    SDL::createMiniDoubletsInGPUv2<<<nBlocks,nThreads,64*4*16*sizeof(float),stream>>>(*modulesInGPU,*hitsInGPU,*mdsInGPU,*rangesInGPU);
+    //createMiniDoubletsInGPU<<<nBlocks,nThreads,64*4*16*sizeof(float),stream>>>(*modulesInGPU,*hitsInGPU,*mdsInGPU,*rangesInGPU);
 
     cudaError_t cudaerr = cudaGetLastError(); 
     if(cudaerr != cudaSuccess)
@@ -1611,7 +1578,8 @@ void SDL::Event::createTriplets()
 
     dim3 nThreads(16,32,1);
     dim3 nBlocks(1,1,MAX_BLOCKS);
-    createTripletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *rangesInGPU, index_gpu,nonZeroModules);
+    //createTripletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *rangesInGPU, index_gpu,nonZeroModules);
+    SDL::createTripletsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *rangesInGPU, index_gpu,nonZeroModules);
     cudaError_t cudaerr =cudaGetLastError();
     if(cudaerr != cudaSuccess)
     {
@@ -1649,7 +1617,7 @@ void SDL::Event::createTrackCandidates()
     //printf("running final state pT3\n");
     unsigned int nThreadsx = 384;//1024;
     unsigned int nBlocksx = MAX_BLOCKS;//(N_MAX_PIXEL_TRIPLETS) % nThreadsx == 0 ? N_MAX_PIXEL_TRIPLETS / nThreadsx : N_MAX_PIXEL_TRIPLETS / nThreadsx + 1;
-    addpT3asTrackCandidateInGPU<<<nBlocksx, nThreadsx,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
+    SDL::addpT3asTrackCandidateInGPU<<<nBlocksx, nThreadsx,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
     cudaError_t cudaerr_pT3 = cudaGetLastError();
     if(cudaerr_pT3 != cudaSuccess)
     {
@@ -1667,7 +1635,7 @@ void SDL::Event::createTrackCandidates()
     removeDupQuintupletsInGPUv2<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,true,*rangesInGPU);
     //cudaDeviceSynchronize();
     cudaStreamSynchronize(stream);
-    addT5asTrackCandidateInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,*trackCandidatesInGPU,*pixelQuintupletsInGPU,*pixelTripletsInGPU,*rangesInGPU);
+    SDL::addT5asTrackCandidateInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,*trackCandidatesInGPU,*pixelQuintupletsInGPU,*pixelTripletsInGPU,*rangesInGPU);
 
     cudaError_t cudaerr_T5 =cudaGetLastError(); 
     if(cudaerr_T5 != cudaSuccess)
@@ -1689,7 +1657,7 @@ void SDL::Event::createTrackCandidates()
 #endif  
     //unsigned int nThreadsx_pLS = 1024;
     //unsigned int nBlocksx_pLS = MAX_BLOCKS;//(20000) % nThreadsx_pLS == 0 ? 20000 / nThreadsx_pLS : 20000 / nThreadsx_pLS + 1;
-    addpLSasTrackCandidateInGPU<<<nBlocksx, 384,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU,*mdsInGPU,*hitsInGPU,*quintupletsInGPU);
+    SDL::addpLSasTrackCandidateInGPU<<<nBlocksx, 384,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU,*mdsInGPU,*hitsInGPU,*quintupletsInGPU);
     cudaError_t cudaerr_pLS = cudaGetLastError();
     if(cudaerr_pLS != cudaSuccess)
     {
@@ -1724,7 +1692,8 @@ void SDL::Event::createExtendedTracks()
 
     dim3 nThreads(32,1,16);
     dim3 nBlocks(80,1,200); 
-    createExtendedTracksInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
+    //createExtendedTracksInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
+    SDL::createExtendedTracksInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
 
     cudaError_t cudaerr = cudaGetLastError();
     if(cudaerr != cudaSuccess)
@@ -1874,7 +1843,8 @@ cudaStreamSynchronize(stream);
     //printf("%d %d\n",totalSegs,max_size);
     dim3 nThreads(16,64,1);
     dim3 nBlocks(1,MAX_BLOCKS,1);
-    createPixelTripletsInGPUFromMap<<<nBlocks, nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset, totalSegs);
+    //createPixelTripletsInGPUFromMap<<<nBlocks, nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset, totalSegs);
+    SDL::createPixelTripletsInGPUFromMapv2<<<nBlocks, nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset, totalSegs);
 
     cudaError_t cudaerr = cudaGetLastError();
     if(cudaerr != cudaSuccess)
@@ -1979,7 +1949,8 @@ cudaStreamSynchronize(stream);
     dim3 nThreads(32, 32, 1);
     dim3 nBlocks(1,MAX_BLOCKS,1);
 
-    createQuintupletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, threadIdx_gpu, threadIdx_gpu_offset, nTotalTriplets,*rangesInGPU);
+    SDL::createQuintupletsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, threadIdx_gpu, threadIdx_gpu_offset, nTotalTriplets,*rangesInGPU);
+    //createQuintupletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, threadIdx_gpu, threadIdx_gpu_offset, nTotalTriplets,*rangesInGPU);
     cudaError_t cudaerr = cudaGetLastError();
     if(cudaerr != cudaSuccess)
     {
@@ -2151,7 +2122,8 @@ cudaStreamSynchronize(stream);
     dim3 nThreads(16,32,1);
     dim3 nBlocks(1,MAX_BLOCKS,1);
                   
-    createPixelQuintupletsInGPUFromMap<<<nBlocks, nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, connectedPixelSize_dev, connectedPixelIndex_dev, nInnerSegments, segs_pix_gpu, segs_pix_gpu_offset, totalSegs,*rangesInGPU);
+    //createPixelQuintupletsInGPUFromMap<<<nBlocks, nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, connectedPixelSize_dev, connectedPixelIndex_dev, nInnerSegments, segs_pix_gpu, segs_pix_gpu_offset, totalSegs,*rangesInGPU);
+    SDL::createPixelQuintupletsInGPUFromMapv2<<<nBlocks, nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, connectedPixelSize_dev, connectedPixelIndex_dev, nInnerSegments, segs_pix_gpu, segs_pix_gpu_offset, totalSegs,*rangesInGPU);
 
     cudaError_t cudaerr = cudaGetLastError();
     if(cudaerr != cudaSuccess)
@@ -2186,7 +2158,7 @@ cudaStreamSynchronize(stream);
     //printf("Adding pT5s to TC collection\n");
     unsigned int nThreadsx_pT5 = 256;
     unsigned int nBlocksx_pT5 = 1;//(N_MAX_PIXEL_QUINTUPLETS) % nThreadsx_pT5 == 0 ? N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 : N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 + 1;
-    addpT5asTrackCandidateInGPU<<<nBlocksx_pT5, nThreadsx_pT5,0,stream>>>(*modulesInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *tripletsInGPU,*quintupletsInGPU);
+    SDL::addpT5asTrackCandidateInGPU<<<nBlocksx_pT5, nThreadsx_pT5,0,stream>>>(*modulesInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *tripletsInGPU,*quintupletsInGPU);
 
     cudaError_t cudaerr_pT5 = cudaGetLastError();
     if(cudaerr_pT5 != cudaSuccess)

@@ -23,7 +23,6 @@
 #include "TrackCandidate.cuh"
 #include "Quintuplet.cuh"
 #include "PixelTriplet.cuh"
-#include "PixelQuintuplet.cuh"
 #include "TrackExtensions.cuh"
 #include "Kernels.cuh"
 #include "Constants.h"
