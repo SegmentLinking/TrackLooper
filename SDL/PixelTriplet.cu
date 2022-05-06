@@ -647,7 +647,8 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, uin
         delta1[i] /= 0.009f;
         delta2[i] /= 0.009f;
     }
-    chiSquared = computeChiSquaredpT5(3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius); //unclear why but the pT3 version doesn't work despite being copy and pasted
+    chiSquared = computeChiSquared(3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius); //unclear why but the pT3 version doesn't work despite being copy and pasted
+    //chiSquared = computeChiSquaredpT5(3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius); //unclear why but the pT3 version doesn't work despite being copy and pasted
     
     return chiSquared;
 }
