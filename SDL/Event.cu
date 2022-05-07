@@ -1491,10 +1491,10 @@ void SDL::Event::createSegmentsWithModuleMap()
         createSegmentsInUnifiedMemory(*segmentsInGPU, N_MAX_SEGMENTS_PER_MODULE, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE,stream);
 #endif
     }
-    dim3 nThreads(1024,1,1);
-    dim3 nBlocks(1,1,MAX_BLOCKS);
+    dim3 nThreads(32,16,1);
+    dim3 nBlocks(1,1,13296);
 
-    SDL::createSegmentsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *rangesInGPU);
+    createSegmentsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *rangesInGPU);
     cudaError_t cudaerr = cudaGetLastError();
     if(cudaerr != cudaSuccess)
     {
