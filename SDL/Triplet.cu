@@ -684,8 +684,8 @@ __global__ void SDL::createTripletsInGPUv2(struct SDL::modules& modulesInGPU, st
         bool success = runTripletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, innerSegmentIndex, outerSegmentIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
 
         if(success) {
-          atomicAdd(&tripletsInGPU.totOccupancyTriplets[innerInnerLowerModuleIndex], 1);
-          if(tripletsInGPU.nTriplets[innerInnerLowerModuleIndex] >= N_MAX_TRIPLETS_PER_MODULE) {
+          unsigned int totOccupancyTriplets = atomicAdd(&tripletsInGPU.totOccupancyTriplets[innerInnerLowerModuleIndex], 1);
+          if(totOccupancyTriplets >= N_MAX_TRIPLETS_PER_MODULE) {
 #ifdef Warnings
             printf("Triplet excess alert! Module index = %d\n",innerInnerLowerModuleIndex);
 #endif

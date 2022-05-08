@@ -883,8 +883,8 @@ __global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modu
                 float phi_pix = segmentsInGPU.phi[pixelSegmentArrayIndex];
                 float pt = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
                 float score = rPhiChiSquared+rPhiChiSquaredInwards;
-                atomicAdd(pixelTripletsInGPU.totOccupancyPixelTriplets, 1);
-                if(*pixelTripletsInGPU.nPixelTriplets >= N_MAX_PIXEL_TRIPLETS)
+                unsigned int totOccupancyPixelTriplets = atomicAdd(pixelTripletsInGPU.totOccupancyPixelTriplets, 1);
+                if(totOccupancyPixelTriplets >= N_MAX_PIXEL_TRIPLETS)
                 {
 #ifdef Warnings
                     printf("Pixel Triplet excess alert!\n");
@@ -2423,8 +2423,8 @@ __global__ void SDL::createPixelQuintupletsInGPUFromMapv2(struct SDL::modules& m
             bool success = runPixelQuintupletDefaultAlgo(modulesInGPU, rangesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelSegmentIndex, quintupletIndex, rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, pixelRadius, quintupletRadius, centerX, centerY);
             if(success)
             {
-                atomicAdd(pixelQuintupletsInGPU.totOccupancyPixelQuintuplets, 1);
-                if(*pixelQuintupletsInGPU.nPixelQuintuplets >= N_MAX_PIXEL_QUINTUPLETS)
+                unsigned int totOccupancyPixelQuintuplets = atomicAdd(pixelQuintupletsInGPU.totOccupancyPixelQuintuplets, 1);
+                if(totOccupancyPixelQuintuplets >= N_MAX_PIXEL_QUINTUPLETS)
                 {
 #ifdef Warnings
                     printf("Pixel Quintuplet excess alert!\n");
