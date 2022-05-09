@@ -1492,8 +1492,8 @@ void SDL::Event::createSegmentsWithModuleMap()
 #endif
     }
     dim3 nThreads(1024,1,1);
-    dim3 nBlocks(1,1,MAX_BLOCKS);
-
+//    dim3 nBlocks(1,1,MAX_BLOCKS);
+    dim3 nBlocks(1,1,13296);
     SDL::createSegmentsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *rangesInGPU);
     cudaError_t cudaerr = cudaGetLastError();
     if(cudaerr != cudaSuccess)
@@ -1577,7 +1577,8 @@ void SDL::Event::createTriplets()
     cudaStreamSynchronize(stream);
 
     dim3 nThreads(16,32,1);
-    dim3 nBlocks(1,1,MAX_BLOCKS);
+//    dim3 nBlocks(1,1,MAX_BLOCKS);
+    dim3 nBlocks(1,1,13296);
     //createTripletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *rangesInGPU, index_gpu,nonZeroModules);
     SDL::createTripletsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *rangesInGPU, index_gpu,nonZeroModules);
     cudaError_t cudaerr =cudaGetLastError();
