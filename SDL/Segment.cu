@@ -938,7 +938,7 @@ __global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, st
     if(nConnectedModules == 0) continue;
     //shared memory stuff
     __syncthreads();
-    for(unsigned int i = threadIdx.y; i < nConnectedModules; i+=blockDim.y)
+    for(unsigned int i = threadIdx.x; i < nConnectedModules; i+=blockDim.x)
     {
         subdets[i] = modulesInGPU.subdets[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
         layers[i] = modulesInGPU.layers[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
@@ -958,7 +958,6 @@ __global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, st
     short& innerRing = modulesInGPU.rings[innerLowerModuleIndex];
     float& innerDrdz = modulesInGPU.drdzs[innerLowerModuleIndex];
     ModuleType& innerModuleType = modulesInGPU.moduleType[innerLowerModuleIndex];
-
 
     for(uint16_t outerLowerModuleArrayIdx = blockIdx.y * blockDim.y + threadIdx.y; outerLowerModuleArrayIdx< nConnectedModules; outerLowerModuleArrayIdx += blockySize){
 
