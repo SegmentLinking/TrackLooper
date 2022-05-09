@@ -1948,7 +1948,7 @@ cudaStreamSynchronize(stream);
 cudaStreamSynchronize(stream);
 
     dim3 nThreads(32, 32, 1);
-    dim3 nBlocks(1,MAX_BLOCKS,1);
+    dim3 nBlocks(1,nTotalTriplets/32+1,1);
 
     SDL::createQuintupletsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, threadIdx_gpu, threadIdx_gpu_offset, nTotalTriplets,*rangesInGPU);
     //createQuintupletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, threadIdx_gpu, threadIdx_gpu_offset, nTotalTriplets,*rangesInGPU);
