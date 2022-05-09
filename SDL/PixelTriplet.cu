@@ -642,13 +642,13 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, uin
         }
     }
     // this for loop is kept to keep the physics results the same but I think this is a bug in the original code. This was kept at 5 and not nPoints
-    for(size_t i = 3; i < 5; i++)
-    {
-        delta1[i] /= 0.009f;
-        delta2[i] /= 0.009f;
-    }
-    chiSquared = computeChiSquared(3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius); //unclear why but the pT3 version doesn't work despite being copy and pasted
-    //chiSquared = computeChiSquaredpT5(3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius); //unclear why but the pT3 version doesn't work despite being copy and pasted
+    //for(size_t i = 3; i < 5; i++)
+    //{
+    //    delta1[i] /= 0.009f;
+    //    delta2[i] /= 0.009f;
+    //}
+    //chiSquared = computeChiSquared(3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius); //unclear why but the pT3 version doesn't work despite being copy and pasted
+    chiSquared = computeChiSquaredpT3(3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius); //unclear why but the pT3 version doesn't work despite being copy and pasted
     
     return chiSquared;
 }
