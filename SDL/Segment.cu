@@ -948,15 +948,16 @@ __global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, st
             drdzs[i] = modulesInGPU.drdzs[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
             moduleType[i] = modulesInGPU.moduleType[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
         }
-
-        innerSubdet = modulesInGPU.subdets[innerLowerModuleIndex];
-        innerLayer = modulesInGPU.layers[innerLowerModuleIndex];
-        innerSide = modulesInGPU.sides[innerLowerModuleIndex];
-        innerRod = modulesInGPU.rods[innerLowerModuleIndex];
-        innerRing = modulesInGPU.rings[innerLowerModuleIndex];
-        innerDrdz = modulesInGPU.drdzs[innerLowerModuleIndex];
-        innerModuleType = modulesInGPU.moduleType[innerLowerModuleIndex];
-
+        if(threadIdx.y == 0)
+        {
+            innerSubdet = modulesInGPU.subdets[innerLowerModuleIndex];
+            innerLayer = modulesInGPU.layers[innerLowerModuleIndex];
+            innerSide = modulesInGPU.sides[innerLowerModuleIndex];
+            innerRod = modulesInGPU.rods[innerLowerModuleIndex];
+            innerRing = modulesInGPU.rings[innerLowerModuleIndex];
+            innerDrdz = modulesInGPU.drdzs[innerLowerModuleIndex];
+            innerModuleType = modulesInGPU.moduleType[innerLowerModuleIndex];
+        }
     }
     __syncthreads();
 
