@@ -923,10 +923,9 @@ __global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, st
     int blockySize = blockDim.y*gridDim.y;
     int blockzSize = blockDim.z*gridDim.z;
 
-    __shared__ short subdets[MAX_CONNECTED_MODULES], layers[MAX_CONNECTED_MODULES], sides[MAX_CONNECTED_MODULES], rods[MAX_CONNECTED_MODULES], rings[MAX_CONNECTED_MODULES];
-    __shared__ float drdzs[MAX_CONNECTED_MODULES];
-    __shared__ unsigned int mdModuleIndices[MAX_CONNECTED_MODULES];
-    __shared__ ModuleType moduleType[MAX_CONNECTED_MODULES];
+    __shared__ short subdets[MAX_CONNECTED_MODULES], layers[MAX_CONNECTED_MODULES], sides[MAX_CONNECTED_MODULES], rods[MAX_CONNECTED_MODULES], rings[MAX_CONNECTED_MODULES], innerSubdet, innerLayer, innerSide, innerRod, innerRing;
+    __shared__ float drdzs[MAX_CONNECTED_MODULES], innerDrdz;
+    __shared__ ModuleType moduleType[MAX_CONNECTED_MODULES], innerModuleType;
 
     for(uint16_t innerLowerModuleIndex = blockIdx.z * blockDim.z + threadIdx.z; innerLowerModuleIndex< (*modulesInGPU.nLowerModules); innerLowerModuleIndex += blockzSize){
 
@@ -937,27 +936,37 @@ __global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, st
     unsigned int nConnectedModules = modulesInGPU.nConnectedModules[innerLowerModuleIndex];
     if(nConnectedModules == 0) continue;
     //shared memory stuff
-    __syncthreads();
-    for(unsigned int i = threadIdx.x; i < nConnectedModules; i+=blockDim.x)
+    if(threadIdx.x == 0 and threadIdx.z == 0)
     {
-        subdets[i] = modulesInGPU.subdets[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
-        layers[i] = modulesInGPU.layers[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
-        sides[i] = modulesInGPU.sides[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
-        rods[i] = modulesInGPU.rods[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
-        rings[i] = modulesInGPU.rings[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
-        drdzs[i] = modulesInGPU.drdzs[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
-        moduleType[i] = modulesInGPU.moduleType[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
-        mdModuleIndices[i] = rangesInGPU.miniDoubletModuleIndices[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
+        for(unsigned int i = threadIdx.y; i < nConnectedModules; i+=blockDim.y)
+        {
+            subdets[i] = modulesInGPU.subdets[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
+            layers[i] = modulesInGPU.layers[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
+            sides[i] = modulesInGPU.sides[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
+            rods[i] = modulesInGPU.rods[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
+            rings[i] = modulesInGPU.rings[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
+            drdzs[i] = modulesInGPU.drdzs[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
+            moduleType[i] = modulesInGPU.moduleType[modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + i]];
+        }
+
+        innerSubdet = modulesInGPU.subdets[innerLowerModuleIndex];
+        innerLayer = modulesInGPU.layers[innerLowerModuleIndex];
+        innerSide = modulesInGPU.sides[innerLowerModuleIndex];
+        innerRod = modulesInGPU.rods[innerLowerModuleIndex];
+        innerRing = modulesInGPU.rings[innerLowerModuleIndex];
+        innerDrdz = modulesInGPU.drdzs[innerLowerModuleIndex];
+        innerModuleType = modulesInGPU.moduleType[innerLowerModuleIndex];
+
     }
     __syncthreads();
 
-    short& innerSubdet = modulesInGPU.subdets[innerLowerModuleIndex];
+/*    short& innerSubdet = modulesInGPU.subdets[innerLowerModuleIndex];
     short& innerLayer = modulesInGPU.layers[innerLowerModuleIndex];
     short& innerSide = modulesInGPU.sides[innerLowerModuleIndex];
     short& innerRod = modulesInGPU.rods[innerLowerModuleIndex];
     short& innerRing = modulesInGPU.rings[innerLowerModuleIndex];
     float& innerDrdz = modulesInGPU.drdzs[innerLowerModuleIndex];
-    ModuleType& innerModuleType = modulesInGPU.moduleType[innerLowerModuleIndex];
+    ModuleType& innerModuleType = modulesInGPU.moduleType[innerLowerModuleIndex];*/
 
     for(uint16_t outerLowerModuleArrayIdx = blockIdx.y * blockDim.y + threadIdx.y; outerLowerModuleArrayIdx< nConnectedModules; outerLowerModuleArrayIdx += blockySize){
 
@@ -973,7 +982,7 @@ __global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, st
             if(outerMDArrayIdx >= nOuterMDs) continue;
 
             unsigned int innerMDIndex = innerMDPrefix + innerMDArrayIdx;
-            unsigned int outerMDIndex = mdModuleIndices[outerLowerModuleArrayIdx] + outerMDArrayIdx;
+            unsigned int outerMDIndex = rangesInGPU.miniDoubletModuleIndices[outerLowerModuleIndex] + outerMDArrayIdx;
 
             float zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD;
 
