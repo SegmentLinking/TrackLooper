@@ -607,7 +607,6 @@ __global__ void removeDupPixelQuintupletsInGPUFromMap(struct SDL::pixelQuintuple
 
 __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::hits& hitsInGPU,bool secondpass)
 {
-    int counter=0;
     int pixelModuleIndex = *modulesInGPU.nLowerModules;
     unsigned int prefix = rangesInGPU.segmentModuleIndices[pixelModuleIndex];
     unsigned int nPixelSegments = segmentsInGPU.nSegments[pixelModuleIndex];
@@ -615,13 +614,11 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::obje
     {
         nPixelSegments =  N_MAX_PIXEL_SEGMENTS_PER_MODULE;
     }
-    for(int ix=blockIdx.x*blockDim.x+threadIdx.x;ix<nPixelSegments;ix+=blockDim.x*gridDim.x)
+    for(int ix=blockIdx.y*blockDim.y+threadIdx.y;ix<nPixelSegments;ix+=blockDim.y*gridDim.y)
     {
         if(secondpass && (!segmentsInGPU.isQuad[ix] || segmentsInGPU.isDup[ix])){continue;}
         bool found=false;
-        unsigned int phits1[4] ;
-  
- 
+        unsigned int phits1[4];  
         phits1[0] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*(prefix+ix)]]];
         phits1[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*(prefix+ix)+1]]];
         phits1[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*(prefix+ix)]]];
@@ -629,7 +626,7 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::obje
         float eta_pix1 = segmentsInGPU.eta[ix];
         float phi_pix1 = segmentsInGPU.phi[ix];
         //float pt1 = segmentsInGPU.ptIn[ix];
-        for(int jx=0;jx<nPixelSegments;jx++)
+        for(int jx = blockIdx.x * blockDim.x + threadIdx.x; jx < nPixelSegments; jx += blockDim.x * gridDim.x)
         {
             if(secondpass && (!segmentsInGPU.isQuad[jx] || segmentsInGPU.isDup[jx])){continue;}
             if(ix==jx)
@@ -637,7 +634,7 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::obje
                 continue;
             }
 
-            int quad_diff = segmentsInGPU.isQuad[ix] -segmentsInGPU.isQuad[jx];
+            char quad_diff = segmentsInGPU.isQuad[ix] -segmentsInGPU.isQuad[jx];
             float ptErr_diff = segmentsInGPU.ptIn[ix] -segmentsInGPU.ptIn[jx];
             float score_diff = segmentsInGPU.score[ix] -segmentsInGPU.score[jx];
             if( (quad_diff > 0 )|| (score_diff<0 && quad_diff ==0))
@@ -646,20 +643,16 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::obje
                 continue;
             }// always keep quads over trips. If they are the same, we want the object with the lower pt Error
 
-            unsigned int phits2[4] ;
+            unsigned int phits2[4];
             phits2[0] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*(prefix+jx)]]];
             phits2[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*(prefix+jx)+1]]];
             phits2[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*(prefix+jx)]]];
             phits2[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*(prefix+jx)+1]]];
             float eta_pix2 = segmentsInGPU.eta[jx];
             float phi_pix2 = segmentsInGPU.phi[jx];
-            //float pt2 = segmentsInGPU.ptIn[jx];
-            //if(abs(1/pt1 - 1/pt2)> 0.1)
-            //{
-            //    continue;
-            //}
+
             int npMatched =0;
-            for (int i =0; i<4;i++)
+            for (int i=0; i<4;i++)
             {
                 bool pmatched = false;
                 for (int j =0; j<4; j++)
@@ -677,37 +670,26 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::obje
             }
             if((npMatched ==4) && (ix < jx))
             { // if exact match, remove only 1
-                found=true;
-                break;
+                rmPixelSegmentFromMemory(segmentsInGPU,ix);
             }
             if(npMatched ==3)
             //if(npMatched >=2)
             {
-                found=true;
-                break;
+                rmPixelSegmentFromMemory(segmentsInGPU,ix);
             }
-            if(secondpass){
-              //printf("secondpass\n");
-              if(npMatched >=1)
-              {
-                  found=true;
-                  break;
-              }
-              float dEta = abs(eta_pix1-eta_pix2);
-              float dPhi = abs(phi_pix1-phi_pix2);
-              if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
-              //if(abs(dPhi) > 0.03){continue;}
-              //if(abs(1./pt1 - 1./pt2) > 0.5){continue;}
-              float dR2 = dEta*dEta + dPhi*dPhi;
-              //if(dR2 <0.0003)
-              if(dR2 <0.00075f)
-              {
-                  found=true;
-                  break;
-              }
+            if(secondpass)
+            {
+                float dEta = abs(eta_pix1-eta_pix2);
+                float dPhi = abs(phi_pix1-phi_pix2);
+                if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
+                float dR2 = dEta*dEta + dPhi*dPhi;
+
+                if(npMatched >=1 or dR2 < 0.00075f and (ix < jx))
+                {
+                    rmPixelSegmentFromMemory(segmentsInGPU,ix); 
+                }
             }
         }
-        if(found){counter++;rmPixelSegmentFromMemory(segmentsInGPU,ix);continue;}
     }
 }
 
