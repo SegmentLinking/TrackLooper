@@ -829,6 +829,7 @@ __global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modu
     int blockxSize = blockDim.x*gridDim.x;
     int blockySize = blockDim.y*gridDim.y;
     //unsigned int offsetIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    // loop over pLS mapped to all connected inner modules (array size totalSegs is n pLS times average nConnected)
     for(int offsetIndex = blockIdx.y * blockDim.y + threadIdx.y; offsetIndex< totalSegs; offsetIndex += blockySize)
     {
 
@@ -846,7 +847,7 @@ __global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modu
         unsigned int nOuterTriplets = tripletsInGPU.nTriplets[tripletLowerModuleIndex];
 
         if(nOuterTriplets == 0) continue;//return;
-        if(modulesInGPU.moduleType[tripletLowerModuleIndex] == SDL::TwoS) continue;//return; //Removes 2S-2S
+        if(modulesInGPU.moduleType[tripletLowerModuleIndex] == SDL::TwoS) continue;//return; //Removes 2S-2S :FIXME: filter these out in the pixel map
 
         //fetch the triplet
         for(unsigned int outerTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; outerTripletArrayIndex< nOuterTriplets; outerTripletArrayIndex +=blockxSize)
