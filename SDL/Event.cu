@@ -1644,7 +1644,9 @@ void SDL::Event::createTrackCandidates()
     //printf("Adding pLSs to TC collection\n");
 #ifdef DUP_pLS
     //printf("cleaning pixels\n");
-    checkHitspLS<<<MAX_BLOCKS,320,0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *hitsInGPU, true);
+    dim3 nThreadspLS(32,32,1);
+    dim3 nBlockspLS(MAX_BLOCKS, MAX_BLOCKS, 1);
+    checkHitspLS<<<nBlockspLS, nThreadspLS, 0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *hitsInGPU, true);
     cudaError_t cudaerrpix = cudaGetLastError();
     if(cudaerrpix != cudaSuccess)
     {
@@ -1982,7 +1984,10 @@ void SDL::Event::pixelLineSegmentCleaning()
 {
 #ifdef DUP_pLS
     //printf("cleaning pixels\n");
-    checkHitspLS<<<MAX_BLOCKS,320,0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *hitsInGPU, false);
+    dim3 nThreadspLS(32,32,1);
+    dim3 nBlockspLS(MAX_BLOCKS, MAX_BLOCKS, 1);
+
+    checkHitspLS<<<nBlockspLS, nThreadspLS, 0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *hitsInGPU, false);
     cudaError_t cudaerrpix = cudaGetLastError();
     if(cudaerrpix != cudaSuccess)
     {
