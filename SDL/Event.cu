@@ -1447,17 +1447,11 @@ void SDL::Event::createMiniDoublets()
         }
     }
 #endif
-    //dim3 nThreads(1,128);
-    //dim3 nBlocks((nLowerModules % nThreads.x == 0 ? nLowerModules/nThreads.x : nLowerModules/nThreads.x + 1), (maxThreadsPerModule % nThreads.y == 0 ? maxThreadsPerModule/nThreads.y : maxThreadsPerModule/nThreads.y + 1));
-    //dim3 nThreads(16,16,4);
-    //dim3 nThreads(32,32,1);
-    dim3 nThreads(64,16,1);
+    dim3 nThreads(32,16,1);
+    //dim3 nThreads(64,16,1);
     dim3 nBlocks(1,MAX_BLOCKS,1);
-    //dim3 nBlocks(1,1,MAX_BLOCKS);
-    //dim3 nBlocks(1,1,1);
 
     SDL::createMiniDoubletsInGPUv2<<<nBlocks,nThreads,64*4*16*sizeof(float),stream>>>(*modulesInGPU,*hitsInGPU,*mdsInGPU,*rangesInGPU);
-    //createMiniDoubletsInGPU<<<nBlocks,nThreads,64*4*16*sizeof(float),stream>>>(*modulesInGPU,*hitsInGPU,*mdsInGPU,*rangesInGPU);
 
     cudaError_t cudaerr = cudaGetLastError(); 
     if(cudaerr != cudaSuccess)
@@ -1491,7 +1485,7 @@ void SDL::Event::createSegmentsWithModuleMap()
         createSegmentsInUnifiedMemory(*segmentsInGPU, N_MAX_SEGMENTS_PER_MODULE, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE,stream);
 #endif
     }
-    dim3 nThreads(1024,1,1);
+    dim3 nThreads(512,1,1);
     dim3 nBlocks(1,1,MAX_BLOCKS);
 
     SDL::createSegmentsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *rangesInGPU);
@@ -1690,7 +1684,7 @@ void SDL::Event::createExtendedTracks()
     createTrackExtensionsInUnifiedMemory(*trackExtensionsInGPU, nTrackCandidates * N_MAX_TRACK_EXTENSIONS_PER_TC, nTrackCandidates, stream);
 #endif
 
-    dim3 nThreads(32,1,16);
+    dim3 nThreads(16,1,16);
     dim3 nBlocks(80,1,200); 
     //createExtendedTracksInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
     SDL::createExtendedTracksInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
@@ -1841,7 +1835,7 @@ cudaStreamSynchronize(stream);
     //dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
     //              (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
     //printf("%d %d\n",totalSegs,max_size);
-    dim3 nThreads(16,64,1);
+    dim3 nThreads(16,16,1);
     dim3 nBlocks(1,MAX_BLOCKS,1);
     //createPixelTripletsInGPUFromMap<<<nBlocks, nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset, totalSegs);
     SDL::createPixelTripletsInGPUFromMapv2<<<nBlocks, nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset, totalSegs);
@@ -1946,7 +1940,7 @@ cudaStreamSynchronize(stream);
     cudaMemcpyAsync(threadIdx_gpu_offset, threadIdx_offset, threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
 cudaStreamSynchronize(stream);
 
-    dim3 nThreads(32, 32, 1);
+    dim3 nThreads(16, 16, 1);
     dim3 nBlocks(1,MAX_BLOCKS,1);
 
     SDL::createQuintupletsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, threadIdx_gpu, threadIdx_gpu_offset, nTotalTriplets,*rangesInGPU);
@@ -2119,7 +2113,7 @@ cudaStreamSynchronize(stream);
 
     //less cheap method to estimate max_size for y axis
     unsigned int max_size = *std::max_element(nQuintuplets, nQuintuplets + nLowerModules);
-    dim3 nThreads(16,32,1);
+    dim3 nThreads(16,16,1);
     dim3 nBlocks(1,MAX_BLOCKS,1);
                   
     //createPixelQuintupletsInGPUFromMap<<<nBlocks, nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, connectedPixelSize_dev, connectedPixelIndex_dev, nInnerSegments, segs_pix_gpu, segs_pix_gpu_offset, totalSegs,*rangesInGPU);
