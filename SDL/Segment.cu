@@ -915,14 +915,15 @@ __device__ float SDL::moduleGapSize_seg(struct modules& modulesInGPU, unsigned i
 }
 __global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::objectRanges& rangesInGPU)
 {
-    int blockxSize = blockDim.x*gridDim.x;
-    int blockySize = blockDim.y*gridDim.y;
-    int blockzSize = blockDim.z*gridDim.z;
-    for(uint16_t innerLowerModuleIndex = blockIdx.z * blockDim.z + threadIdx.z; innerLowerModuleIndex< (*modulesInGPU.nLowerModules); innerLowerModuleIndex += blockzSize){
+    int blockxSize = gridDim.x;
+    int blockySize = blockDim.y;
+    int blockzSize = blockDim.x;
+    for(uint16_t innerLowerModuleIndex = blockIdx.x ; innerLowerModuleIndex< (*modulesInGPU.nLowerModules); innerLowerModuleIndex += blockxSize){
 
     unsigned int nConnectedModules = modulesInGPU.nConnectedModules[innerLowerModuleIndex];
+//printf("HERE:  %d nConnectedModules = %d\n", innerLowerModuleIndex, nConnectedModules);
 
-    for(uint16_t outerLowerModuleArrayIdx = blockIdx.y * blockDim.y + threadIdx.y; outerLowerModuleArrayIdx< nConnectedModules; outerLowerModuleArrayIdx += blockySize){
+    for(uint16_t outerLowerModuleArrayIdx = threadIdx.y; outerLowerModuleArrayIdx< nConnectedModules; outerLowerModuleArrayIdx += blockySize){
 
         uint16_t outerLowerModuleIndex = modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + outerLowerModuleArrayIdx];
 
@@ -930,8 +931,10 @@ __global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, st
         unsigned int nOuterMDs = mdsInGPU.nMDs[outerLowerModuleIndex];
 
         int limit = nInnerMDs*nOuterMDs;
+//printf("HERE:  %d %d limit %d\n", innerLowerModuleIndex, outerLowerModuleArrayIdx, limit);
+
         if (limit == 0) continue;
-        for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize)
+        for(int hitIndex = threadIdx.x; hitIndex< limit; hitIndex += blockzSize)
         {
             int innerMDArrayIdx = hitIndex / nOuterMDs;
             int outerMDArrayIdx = hitIndex % nOuterMDs;
