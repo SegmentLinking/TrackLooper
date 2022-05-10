@@ -1936,6 +1936,7 @@ cudaStreamSynchronize(stream);
         }
     }
     //printf("T5: nTotalTriplets=%d nEligibleT5Modules=%d\n", nTotalTriplets, nEligibleT5Modules);
+    // nTotTrips: 36551, nEligibleT5: 1707
     if (threadSize < nTotalTriplets) 
     {
         printf("threadSize=%d nTotalTriplets=%d: Increase buffer size for threadIdx in createQuintuplets\n", threadSize, nTotalTriplets);
@@ -1945,8 +1946,10 @@ cudaStreamSynchronize(stream);
     cudaMemcpyAsync(threadIdx_gpu_offset, threadIdx_offset, threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
 cudaStreamSynchronize(stream);
 
-    dim3 nThreads(16, 16, 1);
-    dim3 nBlocks(1,MAX_BLOCKS,1);
+    dim3 nThreads(32, 8, 1);
+    dim3 nBlocks(1,5000,1);
+    //dim3 nThreads(16, 16, 1);
+    //dim3 nBlocks(1,MAX_BLOCKS,1);
 
     SDL::createQuintupletsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, threadIdx_gpu, threadIdx_gpu_offset, nTotalTriplets,*rangesInGPU);
     //createQuintupletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, threadIdx_gpu, threadIdx_gpu_offset, nTotalTriplets,*rangesInGPU);
