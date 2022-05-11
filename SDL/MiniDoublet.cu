@@ -1032,8 +1032,8 @@ __global__ void SDL::createMiniDoubletsInGPUv2(struct SDL::modules& modulesInGPU
             bool success = runMiniDoubletDefaultAlgo(modulesInGPU, lowerModuleIndex, upperModuleIndex, lowerHitArrayIndex, upperHitArrayIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
 if(success)
             {
-                atomicAdd(&mdsInGPU.totOccupancyMDs[lowerModuleIndex],1);
-                if(mdsInGPU.nMDs[lowerModuleIndex] >= (rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex + 1] - rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex]))
+                unsigned int totOccupancyMDs = atomicAdd(&mdsInGPU.totOccupancyMDs[lowerModuleIndex],1);
+                if(totOccupancyMDs >= (rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex + 1] - rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex]))
                 {
 #ifdef Warnings
                     printf("Mini-doublet excess alert! Module index =  %d\n",lowerModuleIndex);

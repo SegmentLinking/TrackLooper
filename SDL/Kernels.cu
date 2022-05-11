@@ -741,8 +741,8 @@ __global__ void createT3T3ExtendedTracksInGPU(struct SDL::modules& modulesInGPU,
 
         if(success and nLayerOverlaps[0] == 2)
         {
-            atomicAdd(&trackExtensionsInGPU.totOccupancyTrackExtensions[nTrackCandidates], 1);
-            if(trackExtensionsInGPU.nTrackExtensions[nTrackCandidates] >= N_MAX_T3T3_TRACK_EXTENSIONS)
+            unsigned int totOccupancyTrackExtensions = atomicAdd(&trackExtensionsInGPU.totOccupancyTrackExtensions[nTrackCandidates], 1);
+            if(totOccupancyTrackExtensions >= N_MAX_T3T3_TRACK_EXTENSIONS)
             {
 #ifdef Warnings
                 printf("T3T3 track extensions overflow!\n");
@@ -780,8 +780,8 @@ __global__ void createT3T3ExtendedTracksInGPU(struct SDL::modules& modulesInGPU,
 
         if(success and nLayerOverlaps[0] == 1 and nHitOverlaps[0] != 2)        
         {
-            atomicAdd(&trackExtensionsInGPU.totOccupancyTrackExtensions[nTrackCandidates], 1);
-            if(trackExtensionsInGPU.nTrackExtensions[nTrackCandidates] >= N_MAX_T3T3_TRACK_EXTENSIONS)
+            unsigned int totOccupancyTrackExtensions = atomicAdd(&trackExtensionsInGPU.totOccupancyTrackExtensions[nTrackCandidates], 1);
+            if(totOccupancyTrackExtensions >= N_MAX_T3T3_TRACK_EXTENSIONS)
             {
 #ifdef Warnings
                 printf("T3T3 track extensions overflow!\n");
