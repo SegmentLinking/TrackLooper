@@ -250,52 +250,13 @@ __global__ void SDL::addpT5asTrackCandidateInGPU(struct SDL::modules& modulesInG
                             __H2F(pixelQuintupletsInGPU.centerY[pixelQuintupletIndex]),radius , trackCandidateIdx);
     }
 }
-//__global__ void SDL::addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU,struct SDL::segments& segmentsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU)
-//{
-//    unsigned int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets;
-//    for(int pixelTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; pixelTripletArrayIndex < nPixelTriplets; pixelTripletArrayIndex += blockDim.x*gridDim.x)
-//    {
-//        int pixelTripletIndex = pixelTripletArrayIndex;
-//        if(pixelTripletsInGPU.isDup[pixelTripletIndex])
-//        {
-//            continue;
-//        }
-//#ifdef Crossclean_pT3
-//    //cross cleaning step
-//        float eta1 = __H2F(pixelTripletsInGPU.eta_pix[pixelTripletIndex]);
-//        float phi1 = __H2F(pixelTripletsInGPU.phi_pix[pixelTripletIndex]);
-//        int pixelModuleIndex = *modulesInGPU.nLowerModules;
-//        unsigned int prefix = rangesInGPU.segmentModuleIndices[pixelModuleIndex];
-//        bool end= false;
-//        for (unsigned int jx=0; jx<*pixelQuintupletsInGPU.nPixelQuintuplets; jx++)
-//        {
-//            unsigned int pLS_jx = pixelQuintupletsInGPU.pixelIndices[jx];
-//            float eta2 = segmentsInGPU.eta[pLS_jx - prefix];
-//            float phi2 = segmentsInGPU.phi[pLS_jx - prefix];
-//            float dEta = abs(eta1-eta2);
-//            float dPhi = abs(phi1-phi2);
-//            if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
-//            float dR2 = dEta*dEta + dPhi*dPhi;
-//            if(dR2 < 1e-5f) {end=true; break;}
-//        }
-//        if(end) continue;
-//#endif
-//
-//        unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
-//        atomicAdd(trackCandidatesInGPU.nTrackCandidatespT3,1);
-//
-//        float radius = 0.5f * (__H2F(pixelTripletsInGPU.pixelRadius[pixelTripletIndex]) + __H2F(pixelTripletsInGPU.tripletRadius[pixelTripletIndex]));
-//        addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, &pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex], &pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex], &pixelTripletsInGPU.hitIndices[10 * pixelTripletIndex], __H2F(pixelTripletsInGPU.centerX[pixelTripletIndex]), __H2F(pixelTripletsInGPU.centerY[pixelTripletIndex]),radius,
-//                trackCandidateIdx);
-//    }
-//}
-__global__ void SDL::addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU,struct SDL::segments& segmentsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU)
+
+__global__ void SDL::crosscleanpT3(struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU)
 {
     unsigned int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets;
     for(int pixelTripletIndex = blockIdx.x * blockDim.x + threadIdx.x; pixelTripletIndex < nPixelTriplets; pixelTripletIndex += blockDim.x*gridDim.x)
     {
         if(pixelTripletsInGPU.isDup[pixelTripletIndex]) continue;
-#ifdef Crossclean_pT3
         //cross cleaning step
         float eta1 = __H2F(pixelTripletsInGPU.eta_pix[pixelTripletIndex]);
         float phi1 = __H2F(pixelTripletsInGPU.phi_pix[pixelTripletIndex]);
@@ -315,8 +276,14 @@ __global__ void SDL::addpT3asTrackCandidateInGPU(struct SDL::modules& modulesInG
             float dR2 = dEta*dEta + dPhi*dPhi;
             if(dR2 < 1e-5f) pixelTripletsInGPU.isDup[pixelTripletIndex] = true;
         }
+    }
+}
+__global__ void SDL::addpT3asTrackCandidateInGPU(struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU)
+{
+    unsigned int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets;
+    for(int pixelTripletIndex = blockIdx.x * blockDim.x + threadIdx.x; pixelTripletIndex < nPixelTriplets; pixelTripletIndex += blockDim.x*gridDim.x)
+    {
         if(pixelTripletsInGPU.isDup[pixelTripletIndex]) continue;
-#endif
 
         unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
         atomicAdd(trackCandidatesInGPU.nTrackCandidatespT3,1);

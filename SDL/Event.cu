@@ -1609,11 +1609,14 @@ void SDL::Event::createTrackCandidates()
 
 #ifdef FINAL_pT3
     //printf("running final state pT3\n");
-    //unsigned int nThreadsx = 384;//1024;
-    //unsigned int nBlocksx = MAX_BLOCKS;//(N_MAX_PIXEL_TRIPLETS) % nThreadsx == 0 ? N_MAX_PIXEL_TRIPLETS / nThreadsx : N_MAX_PIXEL_TRIPLETS / nThreadsx + 1;
-    dim3 nThreads(16,16,1);
-    dim3 nBlocks(8,8,1);
-    SDL::addpT3asTrackCandidateInGPU<<<nBlocks, nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
+    unsigned int nThreadsx = 384;//1024;
+    unsigned int nBlocksx = MAX_BLOCKS;//(N_MAX_PIXEL_TRIPLETS) % nThreadsx == 0 ? N_MAX_PIXEL_TRIPLETS / nThreadsx : N_MAX_PIXEL_TRIPLETS / nThreadsx + 1;
+    dim3 nThreadsTEST(16,16,1);
+    dim3 nBlocksTEST(8,8,1);
+#ifdef Crossclean_pT3
+    SDL::crosscleanpT3<<<nBlocksTEST, nThreadsTEST,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
+#endif
+    SDL::addpT3asTrackCandidateInGPU<<<nBlocksx, nThreadsx,0,stream>>>(*pixelTripletsInGPU, *trackCandidatesInGPU);
     cudaError_t cudaerr_pT3 = cudaGetLastError();
     if(cudaerr_pT3 != cudaSuccess)
     {
