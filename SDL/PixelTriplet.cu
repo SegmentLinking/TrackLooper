@@ -829,6 +829,7 @@ __global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modu
     int blockxSize = blockDim.x*gridDim.x;
     int blockySize = blockDim.y*gridDim.y;
     //unsigned int offsetIndex = blockIdx.x * blockDim.x + threadIdx.x;
+    // loop over pLS mapped to all connected inner modules (array size totalSegs is n pLS times average nConnected)
     for(int offsetIndex = blockIdx.y * blockDim.y + threadIdx.y; offsetIndex< totalSegs; offsetIndex += blockySize)
     {
 
@@ -846,7 +847,7 @@ __global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modu
         unsigned int nOuterTriplets = tripletsInGPU.nTriplets[tripletLowerModuleIndex];
 
         if(nOuterTriplets == 0) continue;//return;
-        if(modulesInGPU.moduleType[tripletLowerModuleIndex] == SDL::TwoS) continue;//return; //Removes 2S-2S
+        if(modulesInGPU.moduleType[tripletLowerModuleIndex] == SDL::TwoS) continue;//return; //Removes 2S-2S :FIXME: filter these out in the pixel map
 
         //fetch the triplet
         for(unsigned int outerTripletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; outerTripletArrayIndex< nOuterTriplets; outerTripletArrayIndex +=blockxSize)
@@ -884,8 +885,8 @@ __global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modu
                 float phi_pix = segmentsInGPU.phi[pixelSegmentArrayIndex];
                 float pt = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
                 float score = rPhiChiSquared+rPhiChiSquaredInwards;
-                atomicAdd(pixelTripletsInGPU.totOccupancyPixelTriplets, 1);
-                if(*pixelTripletsInGPU.nPixelTriplets >= N_MAX_PIXEL_TRIPLETS)
+                unsigned int totOccupancyPixelTriplets = atomicAdd(pixelTripletsInGPU.totOccupancyPixelTriplets, 1);
+                if(totOccupancyPixelTriplets >= N_MAX_PIXEL_TRIPLETS)
                 {
 #ifdef Warnings
                     printf("Pixel Triplet excess alert!\n");
@@ -2424,8 +2425,8 @@ __global__ void SDL::createPixelQuintupletsInGPUFromMapv2(struct SDL::modules& m
             bool success = runPixelQuintupletDefaultAlgo(modulesInGPU, rangesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelSegmentIndex, quintupletIndex, rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, pixelRadius, quintupletRadius, centerX, centerY);
             if(success)
             {
-                atomicAdd(pixelQuintupletsInGPU.totOccupancyPixelQuintuplets, 1);
-                if(*pixelQuintupletsInGPU.nPixelQuintuplets >= N_MAX_PIXEL_QUINTUPLETS)
+                unsigned int totOccupancyPixelQuintuplets = atomicAdd(pixelQuintupletsInGPU.totOccupancyPixelQuintuplets, 1);
+                if(totOccupancyPixelQuintuplets >= N_MAX_PIXEL_QUINTUPLETS)
                 {
 #ifdef Warnings
                     printf("Pixel Quintuplet excess alert!\n");

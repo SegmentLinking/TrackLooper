@@ -3513,8 +3513,8 @@ __global__ void SDL::createExtendedTracksInGPUv2(struct SDL::modules& modulesInG
     bool success = runTrackExtensionDefaultAlgo(modulesInGPU, hitsInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelTripletsInGPU, pixelQuintupletsInGPU, trackCandidatesInGPU, tcIdx, t3Idx, tcType, 3, outerT3Index, layerOverlap, constituentTCType, constituentTCIndex, nLayerOverlaps, nHitOverlaps, rPhiChiSquared, rzChiSquared, regressionRadius, innerRadius, outerRadius);
     if(success)
     {
-        atomicAdd(&trackExtensionsInGPU.totOccupancyTrackExtensions[tcIdx], 1);
-        if(trackExtensionsInGPU.nTrackExtensions[tcIdx] >= N_MAX_TRACK_EXTENSIONS_PER_TC)
+        unsigned int totOccupancyTrackExtensions = atomicAdd(&trackExtensionsInGPU.totOccupancyTrackExtensions[tcIdx], 1);
+        if(totOccupancyTrackExtensions >= N_MAX_TRACK_EXTENSIONS_PER_TC)
         {
 #ifdef Warnings
             printf("Track extensions overflow for TC index = %d\n", tcIdx);
