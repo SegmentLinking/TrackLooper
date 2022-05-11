@@ -695,7 +695,7 @@ cudaStreamSynchronize(stream);
       if(module_subdet[this_index] == Endcap && module_moduleType[this_index] == TwoS)
       {
           float xhigh, yhigh, xlow, ylow;
-          getEdgeHits(iDetId,ihit_x,ihit_x+ihit_y,xhigh,yhigh,xlow,ylow);
+          getEdgeHits(iDetId,ihit_x,ihit_y,xhigh,yhigh,xlow,ylow);
           host_highEdgeXs[ihit] = xhigh;
           host_highEdgeYs[ihit] = yhigh;
           host_lowEdgeXs[ihit] = xlow;
@@ -945,7 +945,7 @@ cudaStreamSynchronize(stream);
       if(module_subdet[this_index] == Endcap && module_moduleType[this_index] == TwoS)
       {
           float xhigh, yhigh, xlow, ylow;
-          getEdgeHits(iDetId,ihit_x,ihit_x+ihit_y,xhigh,yhigh,xlow,ylow);
+          getEdgeHits(iDetId,ihit_x,ihit_y,xhigh,yhigh,xlow,ylow);
           host_highEdgeXs[ihit] = xhigh;
           host_highEdgeYs[ihit] = yhigh;
           host_lowEdgeXs[ihit] = xlow;
