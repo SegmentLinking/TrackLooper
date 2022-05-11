@@ -665,28 +665,37 @@ cudaStreamSynchronize(stream);
     cudaMemcpyAsync(module_moduleType,modulesInGPU->moduleType,nModules*sizeof(ModuleType),cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
 
-
+   unsigned int lastDetId = 0;
+   uint16_t lastModuleIndex = 0;
   for (int ihit=0; ihit<loopsize;ihit++){
-    host_x[ihit] = x.at(ihit); // convert from std::vector to host array easily since vectors are ordered
-    host_y[ihit] = y.at(ihit);
-    host_z[ihit] = z.at(ihit);
-    host_detId[ihit] = detId.at(ihit);
+    float ihit_x = x[ihit];
+    float ihit_y = y[ihit];
+    float ihit_z = z[ihit];
+    host_x[ihit] = ihit_x; // convert from std::vector to host array easily since vectors are ordered
+    host_y[ihit] = ihit_y;
+    host_z[ihit] = ihit_z;
+    auto iDetId = detId[ihit];
+    if (lastDetId != iDetId) { //hits are mostly ordered by module
+      lastDetId = iDetId;
+      lastModuleIndex = (*detIdToIndex)[iDetId];
+    }
+    host_detId[ihit] = iDetId;
     host_idxs[ihit] = idxInNtuple.at(ihit);
 
-    unsigned int moduleLayer = module_layers[(*detIdToIndex)[host_detId[ihit]]];
-    unsigned int subdet = module_subdet[(*detIdToIndex)[host_detId[ihit]]];
-    host_moduleIndex[ihit] = (*detIdToIndex)[host_detId[ihit]]; //module indices appropriately done
+    unsigned int moduleLayer = module_layers[lastModuleIndex];
+    unsigned int subdet = module_subdet[lastModuleIndex];
+    host_moduleIndex[ihit] = lastModuleIndex; //module indices appropriately done
 
 
-      host_rts[ihit] = sqrt(host_x[ihit]*host_x[ihit] + host_y[ihit]*host_y[ihit]);
-      host_phis[ihit] = phi(host_x[ihit],host_y[ihit],host_z[ihit]);
-      host_etas[ihit] = ((host_z[ihit]>0)-(host_z[ihit]<0))* std::acosh(sqrt(host_x[ihit]*host_x[ihit]+host_y[ihit]*host_y[ihit]+host_z[ihit]*host_z[ihit])/host_rts[ihit]);
+      host_rts[ihit] = sqrt(ihit_x*ihit_x + ihit_y*ihit_y);
+      host_phis[ihit] = phi(ihit_x,ihit_y,ihit_z);
+      host_etas[ihit] = ((ihit_z>0)-(ihit_z<0))* std::acosh(sqrt(ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/host_rts[ihit]);
 //// This part i think has a race condition. so this is not run in parallel.
-      unsigned int this_index = host_moduleIndex[ihit];
+      unsigned int this_index = lastModuleIndex;
       if(module_subdet[this_index] == Endcap && module_moduleType[this_index] == TwoS)
       {
           float xhigh, yhigh, xlow, ylow;
-          getEdgeHits(host_detId[ihit],host_x[ihit],host_y[ihit],xhigh,yhigh,xlow,ylow);
+          getEdgeHits(iDetId,ihit_x,ihit_x+ihit_y,xhigh,yhigh,xlow,ylow);
           host_highEdgeXs[ihit] = xhigh;
           host_highEdgeYs[ihit] = yhigh;
           host_lowEdgeXs[ihit] = xlow;
@@ -913,9 +922,10 @@ cudaStreamSynchronize(stream);
     host_detId[ihit] = detId.at(ihit);
     host_idxs[ihit] = idxInNtuple.at(ihit);
 
-    unsigned int moduleLayer = module_layers[(*detIdToIndex)[host_detId[ihit]]];
-    unsigned int subdet = module_subdet[(*detIdToIndex)[host_detId[ihit]]];
-    host_moduleIndex[ihit] = (*detIdToIndex)[host_detId[ihit]]; //module indices appropriately done
+    auto moduleIndex = (*detIdToIndex)[host_detId[ihit]];
+    unsigned int moduleLayer = module_layers[moduleIndex];
+    unsigned int subdet = module_subdet[moduleIndex];
+    host_moduleIndex[ihit] = moduleIndex; //module indices appropriately done
 
 
       host_rts[ihit] = sqrt(host_x[ihit]*host_x[ihit] + host_y[ihit]*host_y[ihit]);
