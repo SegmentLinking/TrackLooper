@@ -1384,6 +1384,7 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
         uint16_t lowerModule2 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 1];
         uint16_t lowerModule3 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 2];
         unsigned int nOuterTriplets = tripletsInGPU.nTriplets[lowerModule3];
+        //printf("nOuterTriplets %d\n",nOuterTriplets);
         for (int outerTripletArrayIndex=gidx; outerTripletArrayIndex < nOuterTriplets; outerTripletArrayIndex+=npx)
         {
             unsigned int outerTripletIndex = rangesInGPU.tripletModuleIndices[lowerModule3] + outerTripletArrayIndex;
@@ -1412,8 +1413,8 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
                 {
                     return;
                 } // ignore anything else TODO: move this to start, before object is made (faster)
-                atomicAdd(&quintupletsInGPU.totOccupancyQuintuplets[lowerModule1], 1);
-                if(quintupletsInGPU.nQuintuplets[lowerModule1] >= N_MAX_QUINTUPLETS_PER_MODULE)
+                unsigned int totOccupancyQuintuplets = atomicAdd(&quintupletsInGPU.totOccupancyQuintuplets[lowerModule1], 1);
+                if(totOccupancyQuintuplets >= N_MAX_QUINTUPLETS_PER_MODULE)
                 {
 #ifdef Warnings
                     printf("Quintuplet excess alert! Module index = %d\n", lowerModule1);

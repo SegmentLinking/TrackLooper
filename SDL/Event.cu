@@ -1840,8 +1840,8 @@ cudaStreamSynchronize(stream);
     //dim3 nBlocks((totalSegs % nThreads.x == 0 ? totalSegs / nThreads.x : totalSegs / nThreads.x + 1),
     //              (max_size % nThreads.y == 0 ? max_size/nThreads.y : max_size/nThreads.y + 1),1);
     //printf("%d %d\n",totalSegs,max_size);
-    dim3 nThreads(16,16,1);
-    dim3 nBlocks(1,MAX_BLOCKS,1);
+    dim3 nThreads(32,4,1);
+    dim3 nBlocks(1,4096,1);
     //createPixelTripletsInGPUFromMap<<<nBlocks, nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset, totalSegs);
     SDL::createPixelTripletsInGPUFromMapv2<<<nBlocks, nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments,segs_pix_gpu,segs_pix_gpu_offset, totalSegs);
 
@@ -1864,10 +1864,11 @@ cudaStreamSynchronize(stream);
     free(segs_pix);
     //cudaFreeAsync(segs_pix_gpu,stream);
     cudaFree(segs_pix_gpu);
+
 #ifdef Warnings
     unsigned int nPixelTriplets;
-    cudaMemcpyAsync(&nPixelTriplets, &(pixelTripletsInGPU->nPixelTriplets),  sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynhronize(stream);
+    cudaMemcpyAsync(&nPixelTriplets, pixelTripletsInGPU->nPixelTriplets,  sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+    cudaStreamSynchronize(stream);
     std::cout<<"number of pixel triplets = "<<nPixelTriplets<<std::endl;
 #endif
 
@@ -1875,7 +1876,7 @@ cudaStreamSynchronize(stream);
 #ifdef DUP_pT3
     //dim3 nThreads_dup(160,1,1);
     dim3 nThreads_dup(32,32,1);
-    dim3 nBlocks_dup(1,MAX_BLOCKS,1);
+    dim3 nBlocks_dup(1,40,1); //seems like more blocks lead to conflicting writes
     removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup,0,stream>>>(*pixelTripletsInGPU,false);
 cudaStreamSynchronize(stream);
 #endif
@@ -1936,6 +1937,7 @@ cudaStreamSynchronize(stream);
         }
     }
     //printf("T5: nTotalTriplets=%d nEligibleT5Modules=%d\n", nTotalTriplets, nEligibleT5Modules);
+    // nTotTrips: 36551, nEligibleT5: 1707
     if (threadSize < nTotalTriplets) 
     {
         printf("threadSize=%d nTotalTriplets=%d: Increase buffer size for threadIdx in createQuintuplets\n", threadSize, nTotalTriplets);
@@ -1945,8 +1947,10 @@ cudaStreamSynchronize(stream);
     cudaMemcpyAsync(threadIdx_gpu_offset, threadIdx_offset, threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
 cudaStreamSynchronize(stream);
 
-    dim3 nThreads(16, 16, 1);
-    dim3 nBlocks(1,MAX_BLOCKS,1);
+    dim3 nThreads(32, 8, 1);
+    dim3 nBlocks(1,5000,1);
+    //dim3 nThreads(16, 16, 1);
+    //dim3 nBlocks(1,MAX_BLOCKS,1);
 
     SDL::createQuintupletsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, threadIdx_gpu, threadIdx_gpu_offset, nTotalTriplets,*rangesInGPU);
     //createQuintupletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, threadIdx_gpu, threadIdx_gpu_offset, nTotalTriplets,*rangesInGPU);
