@@ -1859,10 +1859,11 @@ cudaStreamSynchronize(stream);
     free(segs_pix);
     //cudaFreeAsync(segs_pix_gpu,stream);
     cudaFree(segs_pix_gpu);
+
 #ifdef Warnings
     unsigned int nPixelTriplets;
-    cudaMemcpyAsync(&nPixelTriplets, &(pixelTripletsInGPU->nPixelTriplets),  sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynhronize(stream);
+    cudaMemcpyAsync(&nPixelTriplets, pixelTripletsInGPU->nPixelTriplets,  sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+    cudaStreamSynchronize(stream);
     std::cout<<"number of pixel triplets = "<<nPixelTriplets<<std::endl;
 #endif
 
@@ -1870,7 +1871,7 @@ cudaStreamSynchronize(stream);
 #ifdef DUP_pT3
     //dim3 nThreads_dup(160,1,1);
     dim3 nThreads_dup(32,32,1);
-    dim3 nBlocks_dup(1,MAX_BLOCKS,1);
+    dim3 nBlocks_dup(1,40,1); //seems like more blocks lead to conflicting writes
     removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup,0,stream>>>(*pixelTripletsInGPU,false);
 cudaStreamSynchronize(stream);
 #endif
