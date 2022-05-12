@@ -1633,10 +1633,10 @@ void SDL::Event::createTrackCandidates()
 
 #ifdef FINAL_pT3
     //printf("running final state pT3\n");
-    dim3 nThreadsTEST(64,16,1);
-    dim3 nBlocksTEST(20,4,1);
+    dim3 nThreadsT3(64,16,1);
+    dim3 nBlocksT3(20,4,1);
 #ifdef Crossclean_pT3
-    SDL::crosscleanpT3<<<nBlocksTEST, nThreadsTEST,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
+    SDL::crossCleanpT3<<<nBlocksT3, nThreadsT3,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
     cudaError_t cudaerr_pT3 = cudaGetLastError();
     if(cudaerr_pT3 != cudaSuccess)
     {
@@ -1663,11 +1663,10 @@ void SDL::Event::createTrackCandidates()
     removeDupQuintupletsInGPUv2<<<dupBlocks,dupThreads,0,stream>>>(*quintupletsInGPU,*rangesInGPU);
     //cudaDeviceSynchronize();
     cudaStreamSynchronize(stream);
+
     dim3 nThreads(32,1,32);
     dim3 nBlocks(MAX_BLOCKS,1,(13296/32) + 1);
-
     crossCleanT5<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU,*pixelTripletsInGPU,*rangesInGPU);
-
     cudaError_t cudaerr_T5 =cudaGetLastError(); 
     if(cudaerr_T5 != cudaSuccess)
     {
@@ -1682,14 +1681,11 @@ void SDL::Event::createTrackCandidates()
     {
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_T5TC)<<std::endl;
     }cudaStreamSynchronize(stream);
-
 #endif // final state T5
 
 
 #ifdef FINAL_pLS
-    //printf("Adding pLSs to TC collection\n");
 #ifdef DUP_pLS
-    //printf("cleaning pixels\n");
     dim3 nThreadspLS(32,32,1);
     dim3 nBlockspLS(MAX_BLOCKS, MAX_BLOCKS, 1);
     checkHitspLS<<<nBlockspLS, nThreadspLS, 0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *hitsInGPU, true);
@@ -1700,11 +1696,21 @@ void SDL::Event::createTrackCandidates()
 
     }cudaStreamSynchronize(stream);
 #endif  
-    unsigned int nThreadsx_pLS = 1024;
-    unsigned int nBlocksx_pLS = MAX_BLOCKS;//(20000) % nThreadsx_pLS == 0 ? 20000 / nThreadsx_pLS : 20000 / nThreadsx_pLS + 1;
-    SDL::addpLSasTrackCandidateInGPU<<<nBlocksx_pLS, 384,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU,*mdsInGPU,*hitsInGPU,*quintupletsInGPU);
+
+    dim3 nThreads_pLS(64,16,1);
+    dim3 nBlocks_pLS(20,4,1);
+    SDL::crossCleanpLS<<<nBlocks_pLS, nThreads_pLS, 0, stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *mdsInGPU,*hitsInGPU, *quintupletsInGPU);
     cudaError_t cudaerr_pLS = cudaGetLastError();
     if(cudaerr_pLS != cudaSuccess)
+    {
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pLS)<<std::endl;
+    }cudaStreamSynchronize(stream);
+
+    unsigned int nThreadsx_pLS = 384;
+    unsigned int nBlocksx_pLS = MAX_BLOCKS;//(20000) % nThreadsx_pLS == 0 ? 20000 / nThreadsx_pLS : 20000 / nThreadsx_pLS + 1;
+    SDL::addpLSasTrackCandidateInGPU<<<nBlocksx_pLS, nThreadsx_pLS, 0, stream>>>(*modulesInGPU, *trackCandidatesInGPU, *segmentsInGPU);
+    cudaError_t cudaerr_pLSTC = cudaGetLastError();
+    if(cudaerr_pLSTC != cudaSuccess)
     {
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pLS)<<std::endl;
     }cudaStreamSynchronize(stream);
