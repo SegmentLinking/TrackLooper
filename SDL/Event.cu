@@ -1840,33 +1840,36 @@ cudaStreamSynchronize(stream);
         if(pixelType ==0)
         { // used pixel type to select correct size-index arrays
             connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
-            connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndex[superbin];// index to get start of connected modules for this superbin in map
+            auto connectedIdxBase = pixelMapping->connectedPixelsIndex[superbin];
+            connectedPixelIndex_host[i] = connectedIdxBase;// index to get start of connected modules for this superbin in map
             for (int j=0; j < static_cast<int>(pixelMapping->connectedPixelsSizes[superbin]); j++)
             { // loop over modules from the size
-                segs_pix[totalSegs+j] = i; // save the pixel index in array to be transfered to kernel
-                segs_pix_offset[totalSegs+j] = j; // save this segment in array to be transfered to kernel
+                segs_pix[totalSegs+j] = i; // save the pLS index in array to be transfered to kernel
+                segs_pix_offset[totalSegs+j] = connectedIdxBase + j; // save the T2 module index among the pLS's superbin connected modules
             }
             totalSegs += connectedPixelSize_host[i]; // increment counter
         }
         else if(pixelType ==1)
         {
             connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesPos[superbin]; //number of pixel connected modules
-            connectedPixelIndex_host[i] = pixelMapping->connectedPixelsIndexPos[superbin]+pixelIndexOffsetPos;// index to get start of connected pixel modules
+            auto connectedIdxBase = pixelMapping->connectedPixelsIndexPos[superbin]+pixelIndexOffsetPos;
+            connectedPixelIndex_host[i] = connectedIdxBase;// index to get start of connected pixel modules
             for (int j=0; j < static_cast<int>(pixelMapping->connectedPixelsSizesPos[superbin]); j++)
             {
                 segs_pix[totalSegs+j] = i;
-                segs_pix_offset[totalSegs+j] = j;
+                segs_pix_offset[totalSegs+j] = connectedIdxBase + j;
             }
             totalSegs += connectedPixelSize_host[i];
         }
         else if(pixelType ==2)
         {
             connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesNeg[superbin]; //number of pixel connected modules
-            connectedPixelIndex_host[i] =pixelMapping->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;// index to get start of connected pixel modules
+            auto connectedIdxBase = pixelMapping->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;
+            connectedPixelIndex_host[i] = connectedIdxBase;// index to get start of connected pixel modules
             for (int j=0; j < static_cast<int>(pixelMapping->connectedPixelsSizesNeg[superbin]); j++)
             {
                 segs_pix[totalSegs+j] = i;
-                segs_pix_offset[totalSegs+j] = j;
+                segs_pix_offset[totalSegs+j] = connectedIdxBase + j;
             }
             totalSegs += connectedPixelSize_host[i];
         }

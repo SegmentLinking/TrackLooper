@@ -839,15 +839,22 @@ __global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modu
     for(int offsetIndex = blockIdx.y * blockDim.y + threadIdx.y; offsetIndex< totalSegs; offsetIndex += blockySize)
     {
 
-        int segmentModuleIndex = seg_pix_gpu_offset[offsetIndex];
+        auto segmentModuleIndex = seg_pix_gpu_offset[offsetIndex];
         int pixelSegmentArrayIndex = seg_pix_gpu[offsetIndex];
-        if(pixelSegmentArrayIndex >= nPixelSegments) continue;//sanity check
-        if(segmentModuleIndex >= connectedPixelSize[pixelSegmentArrayIndex]) continue;//sanity check
+#ifdef Warnings
+        if(pixelSegmentArrayIndex >= nPixelSegments) {
+          printf("pixelSegmentArrayIndex %d >= nPixelSegments %d\n", pixelSegmentArrayIndex, nPixelSegments);
+          continue;//sanity check
+        }
+#endif
 
-        unsigned int tempIndex = connectedPixelIndex[pixelSegmentArrayIndex] + segmentModuleIndex; //gets module array index for segment
-
-        uint16_t tripletLowerModuleIndex = modulesInGPU.connectedPixels[tempIndex]; //connected pixels will have the appopriate lower module index by default!
-        if(tripletLowerModuleIndex >= *modulesInGPU.nLowerModules) continue;//sanity check
+        uint16_t tripletLowerModuleIndex = modulesInGPU.connectedPixels[segmentModuleIndex]; //connected pixels will have the appopriate lower module index by default!
+#ifdef Warnings
+        if(tripletLowerModuleIndex >= *modulesInGPU.nLowerModules) {
+          printf("tripletLowerModuleIndex %d >= modulesInGPU.nLowerModules %d \n", tripletLowerModuleIndex, modulesInGPU.nLowerModules);
+          continue;//sanity check
+        }
+#endif
         if(modulesInGPU.moduleType[tripletLowerModuleIndex] == SDL::TwoS) continue;//return; //Removes 2S-2S :FIXME: filter these out in the pixel map
 
         uint16_t pixelModuleIndex = *modulesInGPU.nLowerModules;
