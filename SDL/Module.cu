@@ -1,10 +1,10 @@
 #include "Module.cuh"
 #include "ModuleConnectionMap.h"
 #include "allocate.h"
-std::unordered_map <unsigned int, uint16_t> *SDL::detIdToIndex;
-std::unordered_map <unsigned int, float> *SDL::module_x;
-std::unordered_map <unsigned int, float> *SDL::module_y;
-std::unordered_map <unsigned int, float> *SDL::module_z;
+std::map <unsigned int, uint16_t> *SDL::detIdToIndex;
+std::map <unsigned int, float> *SDL::module_x;
+std::map <unsigned int, float> *SDL::module_y;
+std::map <unsigned int, float> *SDL::module_z;
 
 void SDL::createRangesInUnifiedMemory(struct objectRanges& rangesInGPU,unsigned int nModules,cudaStream_t stream, unsigned int nLowerModules)
 {
@@ -310,13 +310,13 @@ void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMappin
 
 void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, uint16_t& nLowerModules, struct pixelMap& pixelMapping,cudaStream_t stream, const char* moduleMetaDataFilePath)
 {
-    detIdToIndex = new std::unordered_map<unsigned int, uint16_t>;
-    module_x = new std::unordered_map<unsigned int, float>;
-    module_y = new std::unordered_map<unsigned int, float>;
-    module_z = new std::unordered_map<unsigned int, float>;
+    detIdToIndex = new std::map<unsigned int, uint16_t>;
+    module_x = new std::map<unsigned int, float>;
+    module_y = new std::map<unsigned int, float>;
+    module_z = new std::map<unsigned int, float>;
 
     /*modules structure object will be created in Event.cu*/
-    /* Load the whole text file into the unordered_map first*/
+    /* Load the whole text file into the map first*/
 
     std::ifstream ifile;
     ifile.open(moduleMetaDataFilePath);
