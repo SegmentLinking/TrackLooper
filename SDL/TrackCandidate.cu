@@ -398,29 +398,25 @@ __global__ void SDL::crossCleanT5(struct SDL::modules& modulesInGPU, struct SDL:
             //cross cleaning step
             float eta1 = __H2F(quintupletsInGPU.eta[quintupletIndex]);
             float phi1 = __H2F(quintupletsInGPU.phi[quintupletIndex]);
-            float dR2;
 
             for (unsigned int jx=blockIdx.x * blockDim.x + threadIdx.x; jx<loop_bound; jx+=stepx)
             {
+                float eta2, phi2;
                 if(jx < *pixelQuintupletsInGPU.nPixelQuintuplets)
                 {
-                    float eta2 = __H2F(pixelQuintupletsInGPU.eta[jx]);
-                    float phi2 = __H2F(pixelQuintupletsInGPU.phi[jx]);
-                    float dEta = abs(eta1-eta2);
-                    float dPhi = abs(phi1-phi2);
-                    if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
-                    dR2 = dEta*dEta + dPhi*dPhi;
+                    eta2 = __H2F(pixelQuintupletsInGPU.eta[jx]);
+                    phi2 = __H2F(pixelQuintupletsInGPU.phi[jx]);
                 }
                 else
                 {
-                   float eta2 = __H2F(pixelTripletsInGPU.eta[jx]);
-                    float phi2 = __H2F(pixelTripletsInGPU.phi[jx]);
-                    float dEta = abs(eta1-eta2);
-                    float dPhi = abs(phi1-phi2);
-                    if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
-                    dR2 = dEta*dEta + dPhi*dPhi;
+                    eta2 = __H2F(pixelTripletsInGPU.eta[jx]);
+                    phi2 = __H2F(pixelTripletsInGPU.phi[jx]);
                 }
 
+                float dEta = abs(eta1-eta2);
+                float dPhi = abs(phi1-phi2);
+                if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
+                float dR2 = dEta*dEta + dPhi*dPhi;
                 if(dR2 < 1e-3f) {quintupletsInGPU.isDup[quintupletIndex] = true;}//return;
 
             }
