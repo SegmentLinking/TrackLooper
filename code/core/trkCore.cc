@@ -1,126 +1,125 @@
 #include "trkCore.h"
 
-//__________________________________________________________________________________________
-float simhit_p(unsigned int simhitidx)
-{
-
-    // |momentum| calculation
-
-    float px = trk.simhit_px()[simhitidx];
-    float py = trk.simhit_py()[simhitidx];
-    float pz = trk.simhit_pz()[simhitidx];
-    return sqrt(px*px + py*py + pz*pz);
-}
-
-//__________________________________________________________________________________________
-float hitAngle(unsigned int simhitidx)
-{
-
-    // This is the angle calculation between position vector and the momentum vector
-
-    float x = trk.simhit_x()[simhitidx];
-    float y = trk.simhit_y()[simhitidx];
-    float z = trk.simhit_z()[simhitidx];
-    float r3 = sqrt(x*x + y*y + z*z);
-    float px = trk.simhit_px()[simhitidx];
-    float py = trk.simhit_py()[simhitidx];
-    float pz = trk.simhit_pz()[simhitidx];
-    float p = sqrt(px*px + py*py + pz*pz);
-    float rdotp = x*px + y*py + z*pz;
-    rdotp = rdotp / r3;
-    rdotp = rdotp / p;
-    float angle = acos(rdotp);
-    return angle;
-}
-
-//__________________________________________________________________________________________
-bool isMuonCurlingHit(unsigned int isimtrk, unsigned int ith_hit)
-{
-
-    // To assess whether the ith_hit for isimtrk is a "curling" hit
-
-    // Retrieve the sim hit idx
-    unsigned int simhitidx = trk.sim_simHitIdx()[isimtrk][ith_hit];
-
-    // We're only concerned about hits in the outer tracker
-    // This is more of a sanity check
-    if (not (trk.simhit_subdet()[simhitidx] == 4 or trk.simhit_subdet()[simhitidx] == 5))
-        return false;
-
-    // Retrieve the sim hit pdgId
-    int simhit_particle = trk.simhit_particle()[simhitidx];
-
-    // If the hit is not muon then we can't tell anything
-    if (abs(simhit_particle) != 13)
-        return false;
-
-    // Get the angle
-    float angle = hitAngle(simhitidx);
-
-    // If the angle is quite different then it's the last hit
-    if (abs(angle) > 1.6)
-        return true;
-
-    // Afterwards, we check the energy loss
-    //
-    // If it is the first hit without any previous hit present,
-    // we can't tell whether it is last hit or not
-    // so we just say false to be conservative
-    if (ith_hit == 0)
-        return false;
-
-    // Retrieve the module where the hit lies
-    int detid = trk.simhit_detId()[simhitidx];
-    SDL::CPU::Module module = SDL::CPU::Module(detid);
-
-    // Calculate the momentum
-    float p = simhit_p(simhitidx);
-
-    // Find the previous simhit that is on the lower side of the module
-    int simhitidx_previous = -999;
-    for (unsigned int ith_back = 1; ith_back <= ith_hit; ith_back++)
-    {
-        // Retrieve the hit idx of ith_hit - ith_back;
-        unsigned int simhitidx_previous_candidate = trk.sim_simHitIdx()[isimtrk][ith_hit-ith_back];
-
-        if (not (trk.simhit_subdet()[simhitidx_previous_candidate] == 4 or trk.simhit_subdet()[simhitidx_previous_candidate] == 5))
-            continue;
-
-        if (not (trk.simhit_particle()[simhitidx_previous_candidate] == 13))
-            continue;
-
-        // Retrieve the module where the previous candidate hit lies
-        int detid = trk.simhit_detId()[simhitidx_previous_candidate];
-        SDL::CPU::Module module = SDL::CPU::Module(detid);
-
-        // If the module is lower, then we get the index
-        if (module.isLower())
-        {
-            simhitidx_previous = simhitidx_previous_candidate;
-            break;
-        }
-
-    }
-
-    // If no previous layer is found then can't do much
-    if (simhitidx_previous == -999)
-        return false;
-
-    // Get the previous layer momentum
-    float p_previous = simhit_p(simhitidx_previous);
-
-    // Calculate the momentum loss
-    float loss = fabs(p_previous - p) / p_previous;
-
-    // If the momentum loss is large it is the last hit
-    if (loss > 0.35)
-        return true;
-
-    // If it reaches this point again, we're not sure what this hit is
-    // So we return false
-    return false;
-
-}
+//float simhit_p(unsigned int simhitidx)
+//{
+//
+//    // |momentum| calculation
+//
+//    float px = trk.simhit_px()[simhitidx];
+//    float py = trk.simhit_py()[simhitidx];
+//    float pz = trk.simhit_pz()[simhitidx];
+//    return sqrt(px*px + py*py + pz*pz);
+//}
+//
+////__________________________________________________________________________________________
+//float hitAngle(unsigned int simhitidx)
+//{
+//
+//    // This is the angle calculation between position vector and the momentum vector
+//
+//    float x = trk.simhit_x()[simhitidx];
+//    float y = trk.simhit_y()[simhitidx];
+//    float z = trk.simhit_z()[simhitidx];
+//    float r3 = sqrt(x*x + y*y + z*z);
+//    float px = trk.simhit_px()[simhitidx];
+//    float py = trk.simhit_py()[simhitidx];
+//    float pz = trk.simhit_pz()[simhitidx];
+//    float p = sqrt(px*px + py*py + pz*pz);
+//    float rdotp = x*px + y*py + z*pz;
+//    rdotp = rdotp / r3;
+//    rdotp = rdotp / p;
+//    float angle = acos(rdotp);
+//    return angle;
+//}
+//
+////__________________________________________________________________________________________
+//bool isMuonCurlingHit(unsigned int isimtrk, unsigned int ith_hit)
+//{
+//
+//    // To assess whether the ith_hit for isimtrk is a "curling" hit
+//
+//    // Retrieve the sim hit idx
+//    unsigned int simhitidx = trk.sim_simHitIdx()[isimtrk][ith_hit];
+//
+//    // We're only concerned about hits in the outer tracker
+//    // This is more of a sanity check
+//    if (not (trk.simhit_subdet()[simhitidx] == 4 or trk.simhit_subdet()[simhitidx] == 5))
+//        return false;
+//
+//    // Retrieve the sim hit pdgId
+//    int simhit_particle = trk.simhit_particle()[simhitidx];
+//
+//    // If the hit is not muon then we can't tell anything
+//    if (abs(simhit_particle) != 13)
+//        return false;
+//
+//    // Get the angle
+//    float angle = hitAngle(simhitidx);
+//
+//    // If the angle is quite different then it's the last hit
+//    if (abs(angle) > 1.6)
+//        return true;
+//
+//    // Afterwards, we check the energy loss
+//    //
+//    // If it is the first hit without any previous hit present,
+//    // we can't tell whether it is last hit or not
+//    // so we just say false to be conservative
+//    if (ith_hit == 0)
+//        return false;
+//
+//    // Retrieve the module where the hit lies
+//    int detid = trk.simhit_detId()[simhitidx];
+//    SDL::Module module = SDL::Module(detid);
+//
+//    // Calculate the momentum
+//    float p = simhit_p(simhitidx);
+//
+//    // Find the previous simhit that is on the lower side of the module
+//    int simhitidx_previous = -999;
+//    for (unsigned int ith_back = 1; ith_back <= ith_hit; ith_back++)
+//    {
+//        // Retrieve the hit idx of ith_hit - ith_back;
+//        unsigned int simhitidx_previous_candidate = trk.sim_simHitIdx()[isimtrk][ith_hit-ith_back];
+//
+//        if (not (trk.simhit_subdet()[simhitidx_previous_candidate] == 4 or trk.simhit_subdet()[simhitidx_previous_candidate] == 5))
+//            continue;
+//
+//        if (not (trk.simhit_particle()[simhitidx_previous_candidate] == 13))
+//            continue;
+//
+//        // Retrieve the module where the previous candidate hit lies
+//        int detid = trk.simhit_detId()[simhitidx_previous_candidate];
+//        SDL::Module module = SDL::Module(detid);
+//
+//        // If the module is lower, then we get the index
+//        if (module.isLower())
+//        {
+//            simhitidx_previous = simhitidx_previous_candidate;
+//            break;
+//        }
+//
+//    }
+//
+//    // If no previous layer is found then can't do much
+//    if (simhitidx_previous == -999)
+//        return false;
+//
+//    // Get the previous layer momentum
+//    float p_previous = simhit_p(simhitidx_previous);
+//
+//    // Calculate the momentum loss
+//    float loss = fabs(p_previous - p) / p_previous;
+//
+//    // If the momentum loss is large it is the last hit
+//    if (loss > 0.35)
+//        return true;
+//
+//    // If it reaches this point again, we're not sure what this hit is
+//    // So we return false
+//    return false;
+//
+//}
 
 
 
@@ -147,8 +146,8 @@ bool hasAll12HitsWithNBarrelUsingModuleMap(unsigned int isimtrk, int nbarrel, bo
         if (not (trk.simhit_particle()[simhitidx] == trk.sim_pdgId()[isimtrk]))
             continue;
 
-        if (isMuonCurlingHit(isimtrk, ith_hit))
-            break;
+        //if (isMuonCurlingHit(isimtrk, ith_hit))
+        //    break;
 
         if (not usesimhits)
         {
@@ -296,8 +295,8 @@ bool hasAll12HitsWithNBarrel(unsigned int isimtrk, int nbarrel)
         // if (not (trk.simhit_particle()[simhitidx] == trk.sim_pdgId()[isimtrk]))
         //     continue;
 
-        if (isMuonCurlingHit(isimtrk, ith_hit))
-            break;
+        //if (isMuonCurlingHit(isimtrk, ith_hit))
+        //    break;
 
         // list of reco hit matched to this sim hit
         for (unsigned int irecohit = 0; irecohit < trk.simhit_hitIdx()[simhitidx].size(); ++irecohit)
@@ -1360,19 +1359,20 @@ std::vector<std::vector<short>>&    out_isQuad_vec
 //    my_timer.Start();
 
     unsigned int count = 0;
-    std::vector<float> px_vec;
-    std::vector<float> py_vec;
-    std::vector<float> pz_vec;
-    std::vector<unsigned int> hitIndices_vec0;
-    std::vector<unsigned int> hitIndices_vec1;
-    std::vector<unsigned int> hitIndices_vec2;
-    std::vector<unsigned int> hitIndices_vec3;
-    std::vector<float> ptIn_vec;
-    std::vector<float> ptErr_vec;
-    std::vector<float> etaErr_vec;
-    std::vector<float> eta_vec;
-    std::vector<float> phi_vec;
-    std::vector<float> deltaPhi_vec;
+    auto n_see = trk.see_stateTrajGlbPx().size();
+    std::vector<float> px_vec; px_vec.reserve(n_see);
+    std::vector<float> py_vec; py_vec.reserve(n_see);
+    std::vector<float> pz_vec; pz_vec.reserve(n_see);
+    std::vector<unsigned int> hitIndices_vec0; hitIndices_vec0.reserve(n_see);
+    std::vector<unsigned int> hitIndices_vec1; hitIndices_vec1.reserve(n_see);
+    std::vector<unsigned int> hitIndices_vec2; hitIndices_vec2.reserve(n_see);
+    std::vector<unsigned int> hitIndices_vec3; hitIndices_vec3.reserve(n_see);
+    std::vector<float> ptIn_vec;   ptIn_vec.reserve(n_see);
+    std::vector<float> ptErr_vec;  ptErr_vec.reserve(n_see);
+    std::vector<float> etaErr_vec; etaErr_vec.reserve(n_see);
+    std::vector<float> eta_vec;    eta_vec.reserve(n_see);
+    std::vector<float> phi_vec;    phi_vec.reserve(n_see);
+    std::vector<float> deltaPhi_vec; deltaPhi_vec.reserve(n_see);
     std::vector<float> trkX = trk.ph2_x();
     std::vector<float> trkY = trk.ph2_y();
     std::vector<float> trkZ = trk.ph2_z();
@@ -1425,12 +1425,6 @@ std::vector<std::vector<short>>&    out_isQuad_vec
         // if (std::find(trk.see_simTrkIdx()[iSeed].begin(), trk.see_simTrkIdx()[iSeed].end(), selected_trk) == trk.see_simTrkIdx()[iSeed].end())
         //     continue;
 
-        TVector3 p3LH(trk.see_stateTrajGlbPx()[iSeed], trk.see_stateTrajGlbPy()[iSeed], trk.see_stateTrajGlbPz()[iSeed]);
-        TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
-        TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
-        TVector3 r3PCA(calculateR3FromPCA(p3PCA, trk.see_dxy()[iSeed], trk.see_dz()[iSeed]));
-        //auto const &seedHitsV = trk.see_hitIdx()[iSeed];
-        //auto const &seedHitTypesV = trk.see_hitType()[iSeed];
 
         bool good_seed_type = false;
         if (trk.see_algo()[iSeed] == 4) good_seed_type = true;
@@ -1440,6 +1434,23 @@ std::vector<std::vector<short>>&    out_isQuad_vec
         if (trk.see_algo()[iSeed] == 23) good_seed_type = true;
         if (trk.see_algo()[iSeed] == 24) good_seed_type = true;
         if (not good_seed_type) continue;
+
+        TVector3 p3LH(trk.see_stateTrajGlbPx()[iSeed], trk.see_stateTrajGlbPy()[iSeed], trk.see_stateTrajGlbPz()[iSeed]);
+        float ptIn = p3LH.Pt();
+        float eta = p3LH.Eta();
+        float ptErr = trk.see_ptErr()[iSeed];
+
+#ifdef PT0P8
+        if ((ptIn > 0.8 - 2 * ptErr))
+#else
+        if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
+#endif
+        {
+        TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
+        TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
+        TVector3 r3PCA(calculateR3FromPCA(p3PCA, trk.see_dxy()[iSeed], trk.see_dz()[iSeed]));
+        //auto const &seedHitsV = trk.see_hitIdx()[iSeed];
+        //auto const &seedHitTypesV = trk.see_hitType()[iSeed];
 
         //int nHits = seedHitsV.size();
 
@@ -1474,21 +1485,11 @@ std::vector<std::vector<short>>&    out_isQuad_vec
         //float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
 
         float pixelSegmentDeltaPhiChange = r3LH.DeltaPhi(p3LH);
-        float ptIn = p3LH.Pt();
-        float ptErr = trk.see_ptErr()[iSeed];
         float etaErr = trk.see_etaErr()[iSeed];
         float px = p3LH.X();
         float py = p3LH.Y();
         float pz = p3LH.Z();
-        float eta = p3LH.Eta();
-        float phi = p3LH.Phi();
         //extra bit
-#ifdef PT0P8
-        if ((ptIn > 0.8 - 2 * ptErr))
-#else
-        if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
-#endif
-        {
             // get pixel superbin
             //int ptbin = -1;
             int pixtype =-1;
@@ -1498,8 +1499,8 @@ std::vector<std::vector<short>>&    out_isQuad_vec
             //  if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
             //  else{pixtype=2;}
             //}
-            if (p3LH.Pt() >= 2.0){ /*ptbin = 1;*/pixtype=0;}
-            else if (p3LH.Pt() >= 0.9 and p3LH.Pt() < 2.0){ 
+            if (ptIn >= 2.0){ /*ptbin = 1;*/pixtype=0;}
+            else if (ptIn >= 0.9 and ptIn < 2.0){ 
               //ptbin = 0;
               if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
               else{pixtype=2;}
@@ -1531,8 +1532,10 @@ std::vector<std::vector<short>>&    out_isQuad_vec
             trkY.push_back(r3PCA.Y());
             trkZ.push_back(r3PCA.Z());
             trkX.push_back(p3PCA.Pt());
-            trkY.push_back(p3PCA.Eta());
-            trkZ.push_back(p3PCA.Phi());
+            float p3PCA_Eta = p3PCA.Eta();
+            trkY.push_back(p3PCA_Eta);
+            float p3PCA_Phi = p3PCA.Phi();
+            trkZ.push_back(p3PCA_Phi);
             trkX.push_back(r3LH.X());
             trkY.push_back(r3LH.Y());
             trkZ.push_back(r3LH.Z());
@@ -1558,6 +1561,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec
             ptErr_vec.push_back(ptErr);
             etaErr_vec.push_back(etaErr);
             eta_vec.push_back(eta);
+            float phi = p3LH.Phi();
             phi_vec.push_back(phi);
             deltaPhi_vec.push_back(pixelSegmentDeltaPhiChange);
 
@@ -1575,8 +1579,8 @@ std::vector<std::vector<short>>&    out_isQuad_vec
             float neta = 25.;
             float nphi = 72.;
             float nz = 25.;
-            int etabin = (p3PCA.Eta() + 2.6) / ((2*2.6)/neta);
-            int phibin = (p3PCA.Phi() + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
+            int etabin = (p3PCA_Eta + 2.6) / ((2*2.6)/neta);
+            int phibin = (p3PCA_Phi + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
             int dzbin = (trk.see_dz()[iSeed] + 30) / (2*30 / nz);
             int isuperbin = /*(nz * nphi * neta) * ptbin + (removed since pt bin is determined by pixelType)*/ (nz * nphi) * etabin + (nz) * phibin + dzbin;
             //if(isuperbin<0 || isuperbin>=44900){printf("isuperbin %d %d %d %d %f\n",isuperbin,etabin,phibin,dzbin,p3PCA.Eta());}
@@ -1589,7 +1593,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec
 
         }
 
-    }
+    } // iter::enumerate(trk.see_stateTrajGlbPx
 
 //    event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
 //    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);
@@ -1700,13 +1704,6 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
     for (auto &&[iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
     {
 
-        TVector3 p3LH(trk.see_stateTrajGlbPx()[iSeed], trk.see_stateTrajGlbPy()[iSeed], trk.see_stateTrajGlbPz()[iSeed]);
-        TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
-        TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
-        TVector3 r3PCA(calculateR3FromPCA(p3PCA, trk.see_dxy()[iSeed], trk.see_dz()[iSeed]));
-        //auto const &seedHitsV = trk.see_hitIdx()[iSeed];
-        //auto const &seedHitTypesV = trk.see_hitType()[iSeed];
-
         bool good_seed_type = false;
         if (trk.see_algo()[iSeed] == 4) good_seed_type = true;
         if (trk.see_algo()[iSeed] == 5) good_seed_type = true;
@@ -1715,6 +1712,23 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         if (trk.see_algo()[iSeed] == 23) good_seed_type = true;
         if (trk.see_algo()[iSeed] == 24) good_seed_type = true;
         if (not good_seed_type) continue;
+
+        TVector3 p3LH(trk.see_stateTrajGlbPx()[iSeed], trk.see_stateTrajGlbPy()[iSeed], trk.see_stateTrajGlbPz()[iSeed]);
+        float ptIn = p3LH.Pt();
+        float ptErr = trk.see_ptErr()[iSeed];
+        float eta = p3LH.Eta();
+
+#ifdef PT0P8
+        if ((ptIn > 0.8 - 2 * ptErr))
+#else
+        if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
+#endif
+        {
+        TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
+        TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
+        TVector3 r3PCA(calculateR3FromPCA(p3PCA, trk.see_dxy()[iSeed], trk.see_dz()[iSeed]));
+        //auto const &seedHitsV = trk.see_hitIdx()[iSeed];
+        //auto const &seedHitTypesV = trk.see_hitType()[iSeed];
 
         //int nHits = seedHitsV.size();
 
@@ -1749,22 +1763,13 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         //float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
 
         float pixelSegmentDeltaPhiChange = r3LH.DeltaPhi(p3LH);
-        float ptIn = p3LH.Pt();
-        float ptErr = trk.see_ptErr()[iSeed];
         float etaErr = trk.see_etaErr()[iSeed];
         float px = p3LH.X();
         float py = p3LH.Y();
         float pz = p3LH.Z();
-        float eta = p3LH.Eta();
         float phi = p3LH.Phi();
         //extra bit
 	
-#ifdef PT0P8
-        if ((ptIn > 0.8 - 2 * ptErr))
-#else
-        if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
-#endif
-        {
             // get pixel superbin
             //int ptbin = -1;
             int pixtype =-1;
@@ -1774,9 +1779,9 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             //  if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
             //  else{pixtype=2;}
             //}
-            if (p3LH.Pt() >= 2.0){ /*ptbin = 1;*/pixtype=0;}
+            if (ptIn >= 2.0){ /*ptbin = 1;*/pixtype=0;}
             // else if (p3LH.Pt() >= 0.9 and p3LH.Pt() < 2.0){ 
-            else if (p3LH.Pt() >= 0.8 and p3LH.Pt() < 2.0){ 
+            else if (ptIn >= 0.8 and ptIn < 2.0){ 
               //ptbin = 0;
               if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
               else{pixtype=2;}
@@ -1808,8 +1813,10 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             trkY.push_back(r3PCA.Y());
             trkZ.push_back(r3PCA.Z());
             trkX.push_back(p3PCA.Pt());
-            trkY.push_back(p3PCA.Eta());
-            trkZ.push_back(p3PCA.Phi());
+            float p3PCA_Eta = p3PCA.Eta();
+            trkY.push_back(p3PCA_Eta);
+            float p3PCA_Phi = p3PCA.Phi();
+            trkZ.push_back(p3PCA_Phi);
             trkX.push_back(r3LH.X());
             trkY.push_back(r3LH.Y());
             trkZ.push_back(r3LH.Z());
@@ -1852,8 +1859,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             float neta = 25.;
             float nphi = 72.;
             float nz = 25.;
-            int etabin = (p3PCA.Eta() + 2.6) / ((2*2.6)/neta);
-            int phibin = (p3PCA.Phi() + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
+            int etabin = (p3PCA_Eta + 2.6) / ((2*2.6)/neta);
+            int phibin = (p3PCA_Phi + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
             int dzbin = (trk.see_dz()[iSeed] + 30) / (2*30 / nz);
             int isuperbin = /*(nz * nphi * neta) * ptbin + (removed since pt bin is determined by pixelType)*/ (nz * nphi) * etabin + (nz) * phibin + dzbin;
             //if(isuperbin<0 || isuperbin>=44900){printf("isuperbin %d %d %d %d %f\n",isuperbin,etabin,phibin,dzbin,p3PCA.Eta());}
