@@ -829,26 +829,24 @@ __device__ bool SDL::passRadiusCriterionEEE(float& pixelRadius, float& pixelRadi
     return checkIntervalOverlappT3(tripletRadiusInvMin, tripletRadiusInvMax, pixelRadiusInvMin, pixelRadiusInvMax);
 }
 
-__global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex, unsigned int nPixelSegments, unsigned int* seg_pix_gpu, unsigned int* seg_pix_gpu_offset, unsigned int totalSegs)
+__global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex, unsigned int nPixelSegments)
 {
     //newgrid with map
     int blockxSize = blockDim.x*gridDim.x;
     int blockySize = blockDim.y*gridDim.y;
     //unsigned int offsetIndex = blockIdx.x * blockDim.x + threadIdx.x;
-    // loop over pLS mapped to all connected inner modules (array size totalSegs is n pLS times average nConnected)
-    for(int offsetIndex = blockIdx.y * blockDim.y + threadIdx.y; offsetIndex< totalSegs; offsetIndex += blockySize)
+    // loop over pLS  and inside loop over outer T3s in modules.connectedPixels[[0, connectedPixelSize[i_pLS]) + connectedPixelIndex[i_pLS]]
+    for(int i_pLS = blockIdx.y * blockDim.y + threadIdx.y; i_pLS < nPixelSegments; i_pLS += blockySize)
     {
 
-        auto segmentModuleIndex = seg_pix_gpu_offset[offsetIndex];
-        int pixelSegmentArrayIndex = seg_pix_gpu[offsetIndex];
-#ifdef Warnings
-        if(pixelSegmentArrayIndex >= nPixelSegments) {
-          printf("pixelSegmentArrayIndex %d >= nPixelSegments %d\n", pixelSegmentArrayIndex, nPixelSegments);
-          continue;//sanity check
-        }
-#endif
-
-        uint16_t tripletLowerModuleIndex = modulesInGPU.connectedPixels[segmentModuleIndex]; //connected pixels will have the appopriate lower module index by default!
+      auto iLSModule_max = connectedPixelIndex[i_pLS] + connectedPixelSize[i_pLS];
+      // if (blockIdx.z == 0 && threadIdx.x == 0) {
+      //   printf("i_pLS %d out of nPixelSegments %d : connectedPixelIndex %d connectedPixelSize %d\n",
+      //          i_pLS, nPixelSegments, connectedPixelIndex[i_pLS], connectedPixelSize[i_pLS]);
+      // }
+      for (int iLSModule = connectedPixelIndex[i_pLS] + blockIdx.z; iLSModule < iLSModule_max; iLSModule += gridDim.z)
+      {
+        uint16_t tripletLowerModuleIndex = modulesInGPU.connectedPixels[iLSModule]; //connected pixels will have the appopriate lower module index by default!
 #ifdef Warnings
         if(tripletLowerModuleIndex >= *modulesInGPU.nLowerModules) {
           printf("tripletLowerModuleIndex %d >= modulesInGPU.nLowerModules %d \n", tripletLowerModuleIndex, modulesInGPU.nLowerModules);
@@ -861,10 +859,10 @@ __global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modu
         unsigned int nOuterTriplets = tripletsInGPU.nTriplets[tripletLowerModuleIndex];
         if(nOuterTriplets == 0) continue;//return;
 
-        unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + pixelSegmentArrayIndex;
+        unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + i_pLS;
 
-        if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) continue;
-        if(segmentsInGPU.partOfPT5[pixelSegmentArrayIndex]) continue;//don't make pT3s for those pixels that are part of pT5
+        if(segmentsInGPU.isDup[i_pLS]) continue;
+        if(segmentsInGPU.partOfPT5[i_pLS]) continue;//don't make pT3s for those pixels that are part of pT5
 
         short layer2_adjustment;// = 2 - modulesInGPU.layers[tripletLowerModuleIndex];
         //if(layer2_adjustment < 0) continue;
@@ -896,9 +894,9 @@ __global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modu
             {
                 float phi = mdsInGPU.anchorPhi[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*outerTripletIndex]+layer2_adjustment]];
                 float eta = mdsInGPU.anchorEta[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*outerTripletIndex]+layer2_adjustment]];
-                float eta_pix = segmentsInGPU.eta[pixelSegmentArrayIndex];
-                float phi_pix = segmentsInGPU.phi[pixelSegmentArrayIndex];
-                float pt = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
+                float eta_pix = segmentsInGPU.eta[i_pLS];
+                float phi_pix = segmentsInGPU.phi[i_pLS];
+                float pt = segmentsInGPU.ptIn[i_pLS];
                 float score = rPhiChiSquared+rPhiChiSquaredInwards;
                 unsigned int totOccupancyPixelTriplets = atomicAdd(pixelTripletsInGPU.totOccupancyPixelTriplets, 1);
                 if(totOccupancyPixelTriplets >= N_MAX_PIXEL_TRIPLETS)
@@ -920,8 +918,9 @@ __global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modu
 //#endif
                 }
             }
-        }
-    }
+        } // for outerTripletArrayIndex
+      } // for iLSModule < iLSModule_max
+    } // for i_pLS
 }
 
 __device__ void SDL::runDeltaBetaIterationspT3(float& betaIn, float& betaOut, float& betaAv, float & pt_beta, float sdIn_dr, float sdOut_dr, float dr, float lIn)
