@@ -165,6 +165,7 @@ void SDL::objectRanges::freeMemoryCache()//struct objectRanges& rangesInGPU)
   cms::cuda::free_device(dev,trackCandidateRanges);
   cms::cuda::free_device(dev,quintupletRanges);
   cms::cuda::free_device(dev,nEligibleT5Modules);
+  cms::cuda::free_device(dev, indicesOfEligibleT5Modules);
   cms::cuda::free_device(dev,quintupletModuleIndices);
   cms::cuda::free_device(dev, hitRangesLower);
   cms::cuda::free_device(dev, hitRangesUpper);
@@ -182,6 +183,7 @@ void SDL::objectRanges::freeMemoryCache()//struct objectRanges& rangesInGPU)
   cms::cuda::free_managed(trackCandidateRanges);
   cms::cuda::free_managed(quintupletRanges);
   cms::cuda::free_managed(nEligibleT5Modules);
+  cms::cuda::free_managed(indicesOfEligibleT5Modules);
   cms::cuda::free_managed(quintupletModuleIndices);
   cms::cuda::free_managed(hitRangesLower);
   cms::cuda::free_managed(hitRangesUpper);
@@ -207,6 +209,8 @@ void SDL::objectRanges::freeMemory()
   cudaFree(trackCandidateRanges);
   cudaFree(quintupletRanges);
   cudaFree(nEligibleT5Modules);
+  cudaFree(indicesOfEligibleT5Modules);
+  cudaFree(indicesOfEligibleT5Modules);
   cudaFree(quintupletModuleIndices);
   cudaFree(miniDoubletModuleIndices);
   cudaFree(segmentModuleIndices);
