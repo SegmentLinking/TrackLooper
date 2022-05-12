@@ -61,15 +61,16 @@ typedef float FPX_seg;
 namespace SDL
 {
     //defining the constant host device variables right up here
-    extern CUDA_CONST_VAR float miniMulsPtScaleBarrel[6];
-    extern CUDA_CONST_VAR float miniMulsPtScaleEndcap[5]; 
-    extern CUDA_CONST_VAR float miniRminMeanBarrel[6];
-    extern CUDA_CONST_VAR float miniRminMeanEndcap[5];
-    extern CUDA_CONST_VAR float k2Rinv1GeVf;
-    extern CUDA_CONST_VAR float sinAlphaMax;
-    extern CUDA_CONST_VAR float ptCut;
-    extern CUDA_CONST_VAR float deltaZLum;
-    extern CUDA_CONST_VAR float pixelPSZpitch;
-    extern CUDA_CONST_VAR float strip2SZpitch;
+    extern CUDA_CONST_VAR const float miniMulsPtScaleBarrel[6];
+    extern CUDA_CONST_VAR const float miniMulsPtScaleEndcap[5]; 
+    extern CUDA_CONST_VAR const float miniRminMeanBarrel[6];
+    extern CUDA_CONST_VAR const float miniRminMeanEndcap[5];
+    extern CUDA_CONST_VAR const float k2Rinv1GeVf;
+    extern CUDA_CONST_VAR const float kR1GeVf;
+    extern CUDA_CONST_VAR const float sinAlphaMax;
+    extern CUDA_CONST_VAR const float ptCut;
+    extern CUDA_CONST_VAR const float deltaZLum;
+    extern CUDA_CONST_VAR const float pixelPSZpitch;
+    extern CUDA_CONST_VAR const float strip2SZpitch;
 }
 #endif
