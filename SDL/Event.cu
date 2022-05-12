@@ -665,28 +665,37 @@ cudaStreamSynchronize(stream);
     cudaMemcpyAsync(module_moduleType,modulesInGPU->moduleType,nModules*sizeof(ModuleType),cudaMemcpyDeviceToHost,stream);
 cudaStreamSynchronize(stream);
 
-
+   unsigned int lastDetId = 0;
+   uint16_t lastModuleIndex = 0;
   for (int ihit=0; ihit<loopsize;ihit++){
-    host_x[ihit] = x.at(ihit); // convert from std::vector to host array easily since vectors are ordered
-    host_y[ihit] = y.at(ihit);
-    host_z[ihit] = z.at(ihit);
-    host_detId[ihit] = detId.at(ihit);
+    float ihit_x = x[ihit];
+    float ihit_y = y[ihit];
+    float ihit_z = z[ihit];
+    host_x[ihit] = ihit_x; // convert from std::vector to host array easily since vectors are ordered
+    host_y[ihit] = ihit_y;
+    host_z[ihit] = ihit_z;
+    auto iDetId = detId[ihit];
+    if (lastDetId != iDetId) { //hits are mostly ordered by module
+      lastDetId = iDetId;
+      lastModuleIndex = (*detIdToIndex)[iDetId];
+    }
+    host_detId[ihit] = iDetId;
     host_idxs[ihit] = idxInNtuple.at(ihit);
 
-    unsigned int moduleLayer = module_layers[(*detIdToIndex)[host_detId[ihit]]];
-    unsigned int subdet = module_subdet[(*detIdToIndex)[host_detId[ihit]]];
-    host_moduleIndex[ihit] = (*detIdToIndex)[host_detId[ihit]]; //module indices appropriately done
+    unsigned int moduleLayer = module_layers[lastModuleIndex];
+    unsigned int subdet = module_subdet[lastModuleIndex];
+    host_moduleIndex[ihit] = lastModuleIndex; //module indices appropriately done
 
 
-      host_rts[ihit] = sqrt(host_x[ihit]*host_x[ihit] + host_y[ihit]*host_y[ihit]);
-      host_phis[ihit] = phi(host_x[ihit],host_y[ihit],host_z[ihit]);
-      host_etas[ihit] = ((host_z[ihit]>0)-(host_z[ihit]<0))* std::acosh(sqrt(host_x[ihit]*host_x[ihit]+host_y[ihit]*host_y[ihit]+host_z[ihit]*host_z[ihit])/host_rts[ihit]);
+      host_rts[ihit] = sqrt(ihit_x*ihit_x + ihit_y*ihit_y);
+      host_phis[ihit] = phi(ihit_x,ihit_y,ihit_z);
+      host_etas[ihit] = ((ihit_z>0)-(ihit_z<0))* std::acosh(sqrt(ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/host_rts[ihit]);
 //// This part i think has a race condition. so this is not run in parallel.
-      unsigned int this_index = host_moduleIndex[ihit];
+      unsigned int this_index = lastModuleIndex;
       if(module_subdet[this_index] == Endcap && module_moduleType[this_index] == TwoS)
       {
           float xhigh, yhigh, xlow, ylow;
-          getEdgeHits(host_detId[ihit],host_x[ihit],host_y[ihit],xhigh,yhigh,xlow,ylow);
+          getEdgeHits(iDetId,ihit_x,ihit_y,xhigh,yhigh,xlow,ylow);
           host_highEdgeXs[ihit] = xhigh;
           host_highEdgeYs[ihit] = yhigh;
           host_lowEdgeXs[ihit] = xlow;
@@ -906,27 +915,37 @@ cudaStreamSynchronize(stream);
     cudaStreamSynchronize(stream);
 
 
+   unsigned int lastDetId = 0;
+   uint16_t lastModuleIndex = 0;
   for (int ihit=0; ihit<loopsize;ihit++){
-    host_x[ihit] = x.at(ihit); // convert from std::vector to host array easily since vectors are ordered
-    host_y[ihit] = y.at(ihit);
-    host_z[ihit] = z.at(ihit);
-    host_detId[ihit] = detId.at(ihit);
+    float ihit_x = x[ihit];
+    float ihit_y = y[ihit];
+    float ihit_z = z[ihit];
+    host_x[ihit] = ihit_x; // convert from std::vector to host array easily since vectors are ordered
+    host_y[ihit] = ihit_y;
+    host_z[ihit] = ihit_z;
+    auto iDetId = detId[ihit];
+    if (lastDetId != iDetId) { //hits are mostly ordered by module
+      lastDetId = iDetId;
+      lastModuleIndex = (*detIdToIndex)[iDetId];
+    }
+    host_detId[ihit] = iDetId;
     host_idxs[ihit] = idxInNtuple.at(ihit);
 
-    unsigned int moduleLayer = module_layers[(*detIdToIndex)[host_detId[ihit]]];
-    unsigned int subdet = module_subdet[(*detIdToIndex)[host_detId[ihit]]];
-    host_moduleIndex[ihit] = (*detIdToIndex)[host_detId[ihit]]; //module indices appropriately done
+    unsigned int moduleLayer = module_layers[lastModuleIndex];
+    unsigned int subdet = module_subdet[lastModuleIndex];
+    host_moduleIndex[ihit] = lastModuleIndex; //module indices appropriately done
 
 
-      host_rts[ihit] = sqrt(host_x[ihit]*host_x[ihit] + host_y[ihit]*host_y[ihit]);
-      host_phis[ihit] = phi(host_x[ihit],host_y[ihit],host_z[ihit]);
-      host_etas[ihit] = ((host_z[ihit]>0)-(host_z[ihit]<0))* std::acosh(sqrt(host_x[ihit]*host_x[ihit]+host_y[ihit]*host_y[ihit]+host_z[ihit]*host_z[ihit])/host_rts[ihit]);
+      host_rts[ihit] = sqrt(ihit_x*ihit_x + ihit_y*ihit_y);
+      host_phis[ihit] = phi(ihit_x,ihit_y,ihit_z);
+      host_etas[ihit] = ((ihit_z>0)-(ihit_z<0))* std::acosh(sqrt(ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/host_rts[ihit]);
 //// This part i think has a race condition. so this is not run in parallel.
-      unsigned int this_index = host_moduleIndex[ihit];
+      unsigned int this_index = lastModuleIndex;
       if(module_subdet[this_index] == Endcap && module_moduleType[this_index] == TwoS)
       {
           float xhigh, yhigh, xlow, ylow;
-          getEdgeHits(host_detId[ihit],host_x[ihit],host_y[ihit],xhigh,yhigh,xlow,ylow);
+          getEdgeHits(iDetId,ihit_x,ihit_y,xhigh,yhigh,xlow,ylow);
           host_highEdgeXs[ihit] = xhigh;
           host_highEdgeYs[ihit] = yhigh;
           host_lowEdgeXs[ihit] = xlow;
@@ -1612,34 +1631,59 @@ void SDL::Event::createTrackCandidates()
 
 #ifdef FINAL_pT3
     //printf("running final state pT3\n");
-    unsigned int nThreadsx = 384;//1024;
-    unsigned int nBlocksx = MAX_BLOCKS;//(N_MAX_PIXEL_TRIPLETS) % nThreadsx == 0 ? N_MAX_PIXEL_TRIPLETS / nThreadsx : N_MAX_PIXEL_TRIPLETS / nThreadsx + 1;
-    SDL::addpT3asTrackCandidateInGPU<<<nBlocksx, nThreadsx,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
+    dim3 nThreadsTEST(64,16,1);
+    dim3 nBlocksTEST(20,4,1);
+#ifdef Crossclean_pT3
+    SDL::crosscleanpT3<<<nBlocksTEST, nThreadsTEST,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
     cudaError_t cudaerr_pT3 = cudaGetLastError();
     if(cudaerr_pT3 != cudaSuccess)
     {
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT3)<<std::endl;
     }cudaStreamSynchronize(stream);
+
+#endif
+    //adding objects
+    SDL::addpT3asTrackCandidatesInGPU<<<1,512,0,stream>>>(*pixelTripletsInGPU, *trackCandidatesInGPU);
+    cudaError_t cudaerr_pT3TC = cudaGetLastError();
+    if(cudaerr_pT3TC != cudaSuccess)
+    {
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT3TC)<<std::endl;
+    }cudaStreamSynchronize(stream);
+
 #endif
 
 #ifdef FINAL_T5
     //dim3 dupThreads(64,16,1);
     //dim3 dupBlocks(1,MAX_BLOCKS,1);
-    dim3 dupThreads(32,16,1);
+    dim3 dupThreads(32,16,2);
     dim3 dupBlocks(1,1,MAX_BLOCKS);
-    dim3 nThreads(32,32,1);
-    dim3 nBlocks(1,MAX_BLOCKS,1);
+
     removeDupQuintupletsInGPUv2<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,true,*rangesInGPU);
     //cudaDeviceSynchronize();
     cudaStreamSynchronize(stream);
-    SDL::addT5asTrackCandidateInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,*trackCandidatesInGPU,*pixelQuintupletsInGPU,*pixelTripletsInGPU,*rangesInGPU);
+    dim3 nThreads(32,1,32);
+    dim3 nBlocks(MAX_BLOCKS,1,(13296/32) + 1);
+
+    crossCleanT5<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU,*pixelTripletsInGPU,*rangesInGPU);
 
     cudaError_t cudaerr_T5 =cudaGetLastError(); 
     if(cudaerr_T5 != cudaSuccess)
     {
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_T5)<<std::endl;
     }cudaStreamSynchronize(stream);
+
+    dim3 nThreadsAddT5(128,8,1);
+    dim3 nBlocksAddT5(10,8,1);
+    addT5asTrackCandidateInGPU<<<nBlocksAddT5, nThreadsAddT5, 0, stream>>>(*modulesInGPU, *rangesInGPU, *quintupletsInGPU, *trackCandidatesInGPU);
+    cudaError_t cudaerr_T5TC =cudaGetLastError(); 
+    if(cudaerr_T5TC != cudaSuccess)
+    {
+        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_T5TC)<<std::endl;
+    }cudaStreamSynchronize(stream);
+
 #endif // final state T5
+
+
 #ifdef FINAL_pLS
     //printf("Adding pLSs to TC collection\n");
 #ifdef DUP_pLS
@@ -1654,9 +1698,9 @@ void SDL::Event::createTrackCandidates()
 
     }cudaStreamSynchronize(stream);
 #endif  
-    //unsigned int nThreadsx_pLS = 1024;
-    //unsigned int nBlocksx_pLS = MAX_BLOCKS;//(20000) % nThreadsx_pLS == 0 ? 20000 / nThreadsx_pLS : 20000 / nThreadsx_pLS + 1;
-    SDL::addpLSasTrackCandidateInGPU<<<nBlocksx, 384,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU,*mdsInGPU,*hitsInGPU,*quintupletsInGPU);
+    unsigned int nThreadsx_pLS = 1024;
+    unsigned int nBlocksx_pLS = MAX_BLOCKS;//(20000) % nThreadsx_pLS == 0 ? 20000 / nThreadsx_pLS : 20000 / nThreadsx_pLS + 1;
+    SDL::addpLSasTrackCandidateInGPU<<<nBlocksx_pLS, 384,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *pixelQuintupletsInGPU,*mdsInGPU,*hitsInGPU,*quintupletsInGPU);
     cudaError_t cudaerr_pLS = cudaGetLastError();
     if(cudaerr_pLS != cudaSuccess)
     {
@@ -1689,8 +1733,8 @@ void SDL::Event::createExtendedTracks()
     createTrackExtensionsInUnifiedMemory(*trackExtensionsInGPU, nTrackCandidates * N_MAX_TRACK_EXTENSIONS_PER_TC, nTrackCandidates, stream);
 #endif
 
-    dim3 nThreads(16,1,16);
-    dim3 nBlocks(80,1,200); 
+    dim3 nThreads(16,1,1);
+    dim3 nBlocks(80,1,nTrackCandidates); 
     //createExtendedTracksInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
     SDL::createExtendedTracksInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
 
@@ -1900,8 +1944,24 @@ cudaStreamSynchronize(stream);
         quintupletsInGPU = (SDL::quintuplets*)cms::cuda::allocate_host(sizeof(SDL::quintuplets), stream);
 #ifdef Explicit_T5
         createQuintupletsInExplicitMemory(*quintupletsInGPU, N_MAX_QUINTUPLETS_PER_MODULE, nLowerModules, nEligibleT5Modules,stream);
+
+#ifdef CACHE_ALLOC 
+        int dev;
+        cudaGetDevice(&dev);
+        rangesInGPU->indicesOfEligibleT5Modules = (uint16_t*)cms::cuda::allocate_device(dev, nEligibleT5Modules * sizeof(uint16_t), stream);
+#else
+        cudaMalloc(&(rangesInGPU->indicesOfEligibleT5Modules), nEligibleT5Modules * sizeof(uint16_t));
+#endif
+
 #else
         createQuintupletsInUnifiedMemory(*quintupletsInGPU, N_MAX_QUINTUPLETS_PER_MODULE, nLowerModules, nEligibleT5Modules,stream);
+
+#ifdef CACHE_ALLOC
+        rangesInGPU->indicesOfEligibleT5Modules = (uint16_t*)cms::cuda::allocate_managed(nEligibleT5Modules * sizeof(uint16_t), stream);
+#else
+        cudaMalloc(&(rangesInGPU->indicesOfEligibleT5Modules), nEligibleT5Modules * sizeof(uint16_t));
+#endif
+
 #endif
     }
 cudaStreamSynchronize(stream);
@@ -1946,6 +2006,8 @@ cudaStreamSynchronize(stream);
     cudaMemcpyAsync(threadIdx_gpu, threadIdx, threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(threadIdx_gpu_offset, threadIdx_offset, threadSize*sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
 cudaStreamSynchronize(stream);
+    cudaMemcpyAsync(rangesInGPU->indicesOfEligibleT5Modules, indicesOfEligibleModules, nEligibleT5Modules * sizeof(uint16_t), cudaMemcpyHostToDevice, stream);
+    cudaStreamSynchronize(stream);
 
     dim3 nThreads(32, 8, 1);
     dim3 nBlocks(1,5000,1);
