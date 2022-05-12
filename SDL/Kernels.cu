@@ -325,36 +325,29 @@ __global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, str
         }
     }
 }
-__global__ void removeDupQuintupletsInGPUv2(struct SDL::modules& modulesInGPU, struct SDL::quintuplets& quintupletsInGPU,bool secondPass,struct SDL::objectRanges& rangesInGPU)
+__global__ void removeDupQuintupletsInGPUv2(struct SDL::quintuplets& quintupletsInGPU,struct SDL::objectRanges& rangesInGPU)
 {
     int dup_count=0;
-    int nLowerModules = *modulesInGPU.nLowerModules;
-    int blockxSize = blockDim.x*gridDim.x;
-    int blockySize = blockDim.y*gridDim.y;
-    int blockzSize = blockDim.z*gridDim.z;
-    for(unsigned int lowmodIdx1=blockIdx.z*blockDim.z+threadIdx.z; lowmodIdx1<*(rangesInGPU.nEligibleT5Modules);lowmodIdx1+=blockzSize)
+    for(unsigned int lowmodIdx1=threadIdx.y+blockDim.y*blockIdx.y; lowmodIdx1<*(rangesInGPU.nEligibleT5Modules);lowmodIdx1+=gridDim.y*blockDim.y)
     {
         uint16_t lowmod1 = rangesInGPU.indicesOfEligibleT5Modules[lowmodIdx1];
         int nQuintuplets_lowmod1 = quintupletsInGPU.nQuintuplets[lowmod1];
+        if(nQuintuplets_lowmod1 ==0) {continue;}
         int quintupletModuleIndices_lowmod1 = rangesInGPU.quintupletModuleIndices[lowmod1];
-        for(unsigned int ix1=blockIdx.y*blockDim.y+threadIdx.y; ix1<nQuintuplets_lowmod1; ix1+=blockySize)
+        for(unsigned int lowmodIdx=threadIdx.x+blockDim.x*blockIdx.x; lowmodIdx<*(rangesInGPU.nEligibleT5Modules);lowmodIdx+=gridDim.x*blockDim.x)
         {
-            unsigned int ix = quintupletModuleIndices_lowmod1 + ix1;
-            if(secondPass && (quintupletsInGPU.partOfPT5[ix] || quintupletsInGPU.isDup[ix]))
-            {
-                continue;
-            }
-            float pt1  = __H2F(quintupletsInGPU.pt[ix]);
-            float eta1 = __H2F(quintupletsInGPU.eta[ix]);
-            float phi1 = __H2F(quintupletsInGPU.phi[ix]);
-            //bool isDup = false;
-	          float score_rphisum1 = __H2F(quintupletsInGPU.score_rphisum[ix]);
-            for(unsigned int lowmodIdx=blockIdx.x*blockDim.x+threadIdx.x; lowmodIdx<*(rangesInGPU.nEligibleT5Modules);lowmodIdx+=blockxSize)
-            {
-                    uint16_t lowmod = rangesInGPU.indicesOfEligibleT5Modules[lowmodIdx];
+            uint16_t lowmod = rangesInGPU.indicesOfEligibleT5Modules[lowmodIdx];
 
-	              int nQuintuplets_lowmod = quintupletsInGPU.nQuintuplets[lowmod];
-                int quintupletModuleIndices_lowmod = rangesInGPU.quintupletModuleIndices[lowmod];
+	          int nQuintuplets_lowmod = quintupletsInGPU.nQuintuplets[lowmod];
+            if(nQuintuplets_lowmod ==0) {continue;}
+            int quintupletModuleIndices_lowmod = rangesInGPU.quintupletModuleIndices[lowmod];
+            for(unsigned int ix1=0/*threadIdx.y*/; ix1<nQuintuplets_lowmod1; ix1+=1/*blockDim.y*/)
+            {
+              unsigned int ix = quintupletModuleIndices_lowmod1 + ix1;
+              if(quintupletsInGPU.partOfPT5[ix] || quintupletsInGPU.isDup[ix])
+              {
+                continue;
+              }
                 for(unsigned int jx1=0; jx1<nQuintuplets_lowmod; jx1++)
                 {
                     unsigned int jx = quintupletModuleIndices_lowmod + jx1;
@@ -362,10 +355,14 @@ __global__ void removeDupQuintupletsInGPUv2(struct SDL::modules& modulesInGPU, s
                     {
                         continue;
                     }
-                    if(secondPass && (quintupletsInGPU.partOfPT5[jx] || quintupletsInGPU.isDup[jx]))
+                    if(quintupletsInGPU.partOfPT5[jx] || quintupletsInGPU.isDup[jx])
                     {
                         continue;
                     }
+                    float pt1  = __H2F(quintupletsInGPU.pt[ix]);
+                    float eta1 = __H2F(quintupletsInGPU.eta[ix]);
+                    float phi1 = __H2F(quintupletsInGPU.phi[ix]);
+	                  float score_rphisum1 = __H2F(quintupletsInGPU.score_rphisum[ix]);
                     float pt2  = __H2F(quintupletsInGPU.pt[jx]);
                     float eta2 = __H2F(quintupletsInGPU.eta[jx]);
                     float phi2 = __H2F(quintupletsInGPU.phi[jx]);
@@ -380,7 +377,7 @@ __global__ void removeDupQuintupletsInGPUv2(struct SDL::modules& modulesInGPU, s
                     if (abs(dPhi) > 0.1f){continue;}
                     float dR2 = dEta*dEta + dPhi*dPhi;
                     int nMatched = checkHitsT5(ix,jx,quintupletsInGPU);
-                    if(secondPass && (dR2 < 0.001f || nMatched >= 5))
+                    if(dR2 < 0.001f || nMatched >= 5)
                     {
                         if(score_rphisum1 > score_rphisum2 )
                         {
@@ -393,18 +390,18 @@ __global__ void removeDupQuintupletsInGPUv2(struct SDL::modules& modulesInGPU, s
                             continue;
                          }
                     }
-                    if(nMatched >=7)
-                    {
-                        dup_count++;
-                        if( score_rphisum1 > score_rphisum2 )
-                        {
-                            rmQuintupletToMemory(quintupletsInGPU,ix);continue;
-                        }
-                        if( (score_rphisum1 == score_rphisum2) && (ix<jx))
-                        {
-                            rmQuintupletToMemory(quintupletsInGPU,ix);continue;
-                        }
-                    }
+//                    if(nMatched >=7)
+//                    {
+//                        dup_count++;
+//                        if( score_rphisum1 > score_rphisum2 )
+//                        {
+//                            rmQuintupletToMemory(quintupletsInGPU,ix);continue;
+//                        }
+//                        if( (score_rphisum1 == score_rphisum2) && (ix<jx))
+//                        {
+//                            rmQuintupletToMemory(quintupletsInGPU,ix);continue;
+//                        }
+//                    }
                 }
             }
         }

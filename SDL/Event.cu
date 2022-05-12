@@ -1617,6 +1617,8 @@ void SDL::Event::createTriplets()
 
 void SDL::Event::createTrackCandidates()
 {
+    uint16_t nEligibleModules;
+    cudaMemcpyAsync(&nEligibleModules,rangesInGPU->nEligibleT5Modules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
     if(trackCandidatesInGPU == nullptr)
     {
         //printf("did this run twice?\n");
@@ -1653,12 +1655,12 @@ void SDL::Event::createTrackCandidates()
 #endif
 
 #ifdef FINAL_T5
-    //dim3 dupThreads(64,16,1);
-    //dim3 dupBlocks(1,MAX_BLOCKS,1);
-    dim3 dupThreads(32,16,2);
-    dim3 dupBlocks(1,1,MAX_BLOCKS);
+    //dim3 dupThreads(32,16,2);
+    //dim3 dupBlocks(1,1,MAX_BLOCKS);
+    dim3 dupThreads(32,16,1);
+    dim3 dupBlocks(nEligibleModules/32,nEligibleModules/16,1);
 
-    removeDupQuintupletsInGPUv2<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,true,*rangesInGPU);
+    removeDupQuintupletsInGPUv2<<<dupBlocks,dupThreads,0,stream>>>(*quintupletsInGPU,*rangesInGPU);
     //cudaDeviceSynchronize();
     cudaStreamSynchronize(stream);
     dim3 nThreads(32,1,32);
