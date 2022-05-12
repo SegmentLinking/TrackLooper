@@ -8,7 +8,7 @@
 #endif
 
 #include <iostream>
-#include <map>
+#include <unordered_map>
 #include "MiniDoublet.cuh"
 #include "Hit.cuh"
 #include "TiltedGeometry.h"
@@ -133,10 +133,10 @@ namespace SDL
         int* pixelType;
     };
 
-    extern std::map <unsigned int, uint16_t>* detIdToIndex;
-    extern std::map <unsigned int, float> *module_x;
-    extern std::map <unsigned int, float> *module_y;
-    extern std::map <unsigned int, float> *module_z;
+    extern std::unordered_map <unsigned int, uint16_t>* detIdToIndex;
+    extern std::unordered_map <unsigned int, float> *module_x;
+    extern std::unordered_map <unsigned int, float> *module_y;
+    extern std::unordered_map <unsigned int, float> *module_z;
 
     //functions
     void loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules,uint16_t& nLowerModules,struct pixelMap& pixelMapping,cudaStream_t stream, const char* moduleMetaDataFilePath="data/centroid.txt");
