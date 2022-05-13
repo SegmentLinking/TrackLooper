@@ -74,7 +74,8 @@ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRa
         if (category_number == 0 && eta_number == 1) occupancy = 300;
         if (category_number == 0 && eta_number == 2) occupancy = 183;
         if (category_number == 0 && eta_number == 3) occupancy = 62;
-        if (category_number == 1) occupancy = 600;
+        if (category_number == 1 && eta_number == 0) occupancy = 191;
+        if (category_number == 1 && eta_number == 1) occupancy = 128;
         if (category_number == 2 && eta_number == 1) occupancy = 107;
         if (category_number == 2 && eta_number == 2) occupancy = 102;
         if (category_number == 3 && eta_number == 1) occupancy = 64;
