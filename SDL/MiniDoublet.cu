@@ -24,18 +24,18 @@ void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges&
         write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!*/
 
     int *module_miniDoubletModuleIndices;
-    cudaMallocHost(&module_miniDoubletModuleIndices, (nLowerModules + 1) * sizeof(unsigned int));
+    module_miniDoubletModuleIndices = (int*)cms::cuda::allocate_host((nLowerModules + 1) * sizeof(unsigned int), stream);
     short* module_subdets;
-    cudaMallocHost(&module_subdets, nLowerModules* sizeof(short));
+    module_subdets = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
     cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
     short* module_layers;
-    cudaMallocHost(&module_layers, nLowerModules * sizeof(short));
+    module_layers = (short*)cms::cuda::allocate_host(nLowerModules * sizeof(short), stream);
     cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
     short* module_rings;
-    cudaMallocHost(&module_rings, nLowerModules * sizeof(short));
+    module_rings = (short*)cms::cuda::allocate_host(nLowerModules * sizeof(short), stream);
     cudaMemcpyAsync(module_rings,modulesInGPU.rings,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
     float* module_eta;
-    cudaMallocHost(&module_eta, nLowerModules * sizeof(float));
+    module_eta = (float*)cms::cuda::allocate_host(nLowerModules * sizeof(float), stream);
     cudaMemcpyAsync(module_eta,modulesInGPU.eta,nLowerModules * sizeof(float),cudaMemcpyDeviceToHost,stream);
 
     cudaStreamSynchronize(stream);
@@ -79,11 +79,11 @@ void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges&
 
     cudaMemcpyAsync(rangesInGPU.miniDoubletModuleIndices, module_miniDoubletModuleIndices,  (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
-    cudaFreeHost(module_miniDoubletModuleIndices);
-    cudaFreeHost(module_subdets);
-    cudaFreeHost(module_layers);
-    cudaFreeHost(module_rings);
-    cudaFreeHost(module_eta);
+    cms::cuda::free_host(module_miniDoubletModuleIndices);
+    cms::cuda::free_host(module_subdets);
+    cms::cuda::free_host(module_layers);
+    cms::cuda::free_host(module_rings);
+    cms::cuda::free_host(module_eta);
 }
 
 void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
@@ -720,7 +720,11 @@ __device__ void SDL::shiftStripHits(struct modules& modulesInGPU, /*struct hits&
     // Assign hit pointers based on their hit type
     if (modulesInGPU.moduleType[lowerModuleIndex] == PS)
     {
-        if (modulesInGPU.moduleLayerType[lowerModuleIndex]== Pixel)
+#ifdef CMSSW12GEOM // TODO: This is somewhat of an mystery.... somewhat confused why this is the case
+        if (modulesInGPU.subdets[lowerModuleIndex] == Barrel ? modulesInGPU.moduleLayerType[lowerModuleIndex] != Pixel : modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
+#else
+        if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
+#endif
         {
             //old to delete
        //     pixelHitIndex = lowerHitIndex;
@@ -987,5 +991,67 @@ void SDL::printMD(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, SDL::mo
     {
         IndentingOStreambuf indent(std::cout);
         printHit(hitsInGPU, modulesInGPU, upperHitIndex);
+    }
+}
+
+__global__ void SDL::createMiniDoubletsInGPUv2(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::objectRanges& rangesInGPU)
+{
+    int blockxSize = blockDim.x*gridDim.x;
+    int blockySize = blockDim.y*gridDim.y;
+    //int blockzSize = blockDim.z*gridDim.z;
+    for(uint16_t lowerModuleIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerModuleIndex< (*modulesInGPU.nLowerModules); lowerModuleIndex += blockySize)
+    {
+        uint16_t upperModuleIndex = modulesInGPU.partnerModuleIndices[lowerModuleIndex];
+        int nLowerHits = hitsInGPU.hitRangesnLower[lowerModuleIndex];
+        int nUpperHits = hitsInGPU.hitRangesnUpper[lowerModuleIndex];
+        if(hitsInGPU.hitRangesLower[lowerModuleIndex] == -1) continue;
+        const int maxHits = max(nUpperHits,nLowerHits);
+        unsigned int upHitArrayIndex = hitsInGPU.hitRangesUpper[lowerModuleIndex];
+        unsigned int loHitArrayIndex = hitsInGPU.hitRangesLower[lowerModuleIndex];
+        int limit = nUpperHits*nLowerHits;
+        for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize)
+        {
+            int lowerHitIndex =  hitIndex / nUpperHits;
+            int upperHitIndex =  hitIndex % nUpperHits;
+            if(upperHitIndex >= nUpperHits) continue;
+            if(lowerHitIndex >= nLowerHits) continue;
+            unsigned int lowerHitArrayIndex = loHitArrayIndex + lowerHitIndex;
+            float xLower = hitsInGPU.xs[lowerHitArrayIndex];
+            float yLower = hitsInGPU.ys[lowerHitArrayIndex];
+            float zLower = hitsInGPU.zs[lowerHitArrayIndex];
+            float rtLower = hitsInGPU.rts[lowerHitArrayIndex];
+            unsigned int upperHitArrayIndex = upHitArrayIndex+upperHitIndex;
+            float xUpper = hitsInGPU.xs[upperHitArrayIndex];
+            float yUpper = hitsInGPU.ys[upperHitArrayIndex];
+            float zUpper = hitsInGPU.zs[upperHitArrayIndex];
+            float rtUpper = hitsInGPU.rts[upperHitArrayIndex];
+
+            float dz, /*drt,*/ dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange;
+
+            //float dzCut, drtCut;//, miniCut;
+            bool success = runMiniDoubletDefaultAlgo(modulesInGPU, lowerModuleIndex, upperModuleIndex, lowerHitArrayIndex, upperHitArrayIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
+if(success)
+            {
+                unsigned int totOccupancyMDs = atomicAdd(&mdsInGPU.totOccupancyMDs[lowerModuleIndex],1);
+                if(totOccupancyMDs >= (rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex + 1] - rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex]))
+                {
+#ifdef Warnings
+                    printf("Mini-doublet excess alert! Module index =  %d\n",lowerModuleIndex);
+#endif
+                }
+                else
+                {
+                    unsigned int mdModuleIndex = atomicAdd(&mdsInGPU.nMDs[lowerModuleIndex],1);
+                    unsigned int mdIndex = rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex] + mdModuleIndex;
+
+#ifdef CUT_VALUE_DEBUG
+                    addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz,drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, dzCut, drtCut, miniCut, mdIndex);
+#else
+                    addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, mdIndex);
+#endif
+                }
+
+            }
+        }
     }
 }

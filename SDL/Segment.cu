@@ -1,6 +1,7 @@
 # include "Segment.cuh"
 //#ifdef CACHE_ALLOC
 #include "allocate.h"
+#include "Constants.h"
 //#endif
 
 ///FIXME:NOTICE THE NEW maxPixelSegments!
@@ -32,10 +33,10 @@ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRa
         write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!*/
 
     int *module_segmentModuleIndices;
-    cudaMallocHost(&module_segmentModuleIndices, (nLowerModules + 1) * sizeof(unsigned int));
+    module_segmentModuleIndices = (int*)cms::cuda::allocate_host((nLowerModules + 1) * sizeof(unsigned int), stream);
     module_segmentModuleIndices[0] = 0;
     uint16_t* module_nConnectedModules;
-    cudaMallocHost(&module_nConnectedModules, nLowerModules * sizeof(uint16_t));
+    module_nConnectedModules = (uint16_t*)cms::cuda::allocate_host(nLowerModules * sizeof(uint16_t), stream);
     cudaMemcpyAsync(module_nConnectedModules,modulesInGPU.nConnectedModules,nLowerModules*sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
     cudaStreamSynchronize(stream);
 
@@ -62,8 +63,8 @@ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRa
     }
     cudaMemcpyAsync(rangesInGPU.segmentModuleIndices, module_segmentModuleIndices,  (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
-    cudaFreeHost(module_segmentModuleIndices);
-    cudaFreeHost(module_nConnectedModules);
+    cms::cuda::free_host(module_segmentModuleIndices);
+    cms::cuda::free_host(module_nConnectedModules);
 }
 
 void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
@@ -387,9 +388,6 @@ __device__ void SDL::addSegmentToMemory(struct segments& segmentsInGPU, unsigned
 #endif
 }
 
-__device__ void SDL::rmPixelSegmentFromMemory(struct segments& segmentsInGPU,unsigned int pixelSegmentArrayIndex){
-    segmentsInGPU.isDup[pixelSegmentArrayIndex] = 1;
-}
 __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct modules& modulesInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, uint16_t pixelModuleIndex, unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr, float eta, float phi, unsigned int idx, unsigned int pixelSegmentArrayIndex, int superbin,
             int8_t pixelType, short isQuad, float score)
 {
@@ -914,4 +912,72 @@ __device__ float SDL::moduleGapSize_seg(struct modules& modulesInGPU, unsigned i
     }
 
     return moduleSeparation;
+}
+__global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::objectRanges& rangesInGPU)
+{
+    int blockxSize = gridDim.x;
+    int blockySize = blockDim.y;
+    int blockzSize = blockDim.x;
+    for(uint16_t innerLowerModuleIndex = blockIdx.x ; innerLowerModuleIndex< (*modulesInGPU.nLowerModules); innerLowerModuleIndex += blockxSize){
+
+    unsigned int nConnectedModules = modulesInGPU.nConnectedModules[innerLowerModuleIndex];
+//printf("HERE:  %d nConnectedModules = %d\n", innerLowerModuleIndex, nConnectedModules);
+
+    for(uint16_t outerLowerModuleArrayIdx = threadIdx.y; outerLowerModuleArrayIdx< nConnectedModules; outerLowerModuleArrayIdx += blockySize){
+
+        uint16_t outerLowerModuleIndex = modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + outerLowerModuleArrayIdx];
+
+        unsigned int nInnerMDs = mdsInGPU.nMDs[innerLowerModuleIndex];
+        unsigned int nOuterMDs = mdsInGPU.nMDs[outerLowerModuleIndex];
+
+        int limit = nInnerMDs*nOuterMDs;
+//printf("HERE:  %d %d limit %d\n", innerLowerModuleIndex, outerLowerModuleArrayIdx, limit);
+
+        if (limit == 0) continue;
+        for(int hitIndex = threadIdx.x; hitIndex< limit; hitIndex += blockzSize)
+        {
+            int innerMDArrayIdx = hitIndex / nOuterMDs;
+            int outerMDArrayIdx = hitIndex % nOuterMDs;
+            if(outerMDArrayIdx >= nOuterMDs) continue;
+
+            unsigned int innerMDIndex = rangesInGPU.mdRanges[innerLowerModuleIndex * 2] + innerMDArrayIdx;
+            unsigned int outerMDIndex = rangesInGPU.mdRanges[outerLowerModuleIndex * 2] + outerMDArrayIdx;
+
+            float zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD;
+
+            unsigned int innerMiniDoubletAnchorHitIndex = mdsInGPU.anchorHitIndices[innerMDIndex];
+            unsigned int outerMiniDoubletAnchorHitIndex = mdsInGPU.anchorHitIndices[outerMDIndex];
+            dPhiMin = 0;
+            dPhiMax = 0;
+            dPhiChangeMin = 0;
+            dPhiChangeMax = 0;
+            float zLo, zHi, rtLo, rtHi, sdCut , dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold;
+            bool pass = runSegmentDefaultAlgo(modulesInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold);
+
+            if(pass)
+            {
+                unsigned int totOccupancySegments = atomicAdd(&segmentsInGPU.totOccupancySegments[innerLowerModuleIndex],1);
+                if(totOccupancySegments >= N_MAX_SEGMENTS_PER_MODULE)
+                {
+#ifdef Warnings
+                    printf("Segment excess alert! Module index = %d\n",innerLowerModuleIndex);
+#endif
+                }
+                else
+                {
+                    unsigned int segmentModuleIdx = atomicAdd(&segmentsInGPU.nSegments[innerLowerModuleIndex],1);
+                    unsigned int segmentIdx = rangesInGPU.segmentModuleIndices[innerLowerModuleIndex] + segmentModuleIdx;
+
+#ifdef CUT_VALUE_DEBUG
+                    addSegmentToMemory(segmentsInGPU,innerMDIndex, outerMDIndex,innerLowerModuleIndex, outerLowerModuleIndex, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, zIn, zOut, rtIn, rtOut, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold,
+                dAlphaInnerMDOuterMDThreshold, segmentIdx);
+#else
+                    addSegmentToMemory(segmentsInGPU,innerMDIndex, outerMDIndex,innerLowerModuleIndex, outerLowerModuleIndex, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, segmentIdx);
+#endif
+
+                }
+            }
+        }
+    }
+    }
 }

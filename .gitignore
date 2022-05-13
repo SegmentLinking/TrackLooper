@@ -27,3 +27,4 @@ movetoweb.sh
 *.log
 
 *.nfs*
+.directoryhash
