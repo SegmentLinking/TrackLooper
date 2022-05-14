@@ -619,10 +619,10 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::obje
         if(secondpass && (!segmentsInGPU.isQuad[ix] || segmentsInGPU.isDup[ix])){continue;}
         bool found=false;
         unsigned int phits1[4];  
-        phits1[0] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*(prefix+ix)]]];
-        phits1[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*(prefix+ix)+1]]];
-        phits1[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*(prefix+ix)]]];
-        phits1[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*(prefix+ix)+1]]];
+        phits1[0] = segmentsInGPU.pLSHitsIdxs[ix].x;
+        phits1[1] = segmentsInGPU.pLSHitsIdxs[ix].y;
+        phits1[2] = segmentsInGPU.pLSHitsIdxs[ix].z;
+        phits1[3] = segmentsInGPU.pLSHitsIdxs[ix].w;
         float eta_pix1 = segmentsInGPU.eta[ix];
         float phi_pix1 = segmentsInGPU.phi[ix];
         //float pt1 = segmentsInGPU.ptIn[ix];
@@ -644,10 +644,10 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::obje
             }// always keep quads over trips. If they are the same, we want the object with the lower pt Error
 
             unsigned int phits2[4];
-            phits2[0] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*(prefix+jx)]]];
-            phits2[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*(prefix+jx)+1]]];
-            phits2[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*(prefix+jx)]]];
-            phits2[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[segmentsInGPU.mdIndices[2*(prefix+jx)+1]]];
+            phits2[0] = segmentsInGPU.pLSHitsIdxs[jx].x;
+            phits2[1] = segmentsInGPU.pLSHitsIdxs[jx].y;
+            phits2[2] = segmentsInGPU.pLSHitsIdxs[jx].z;
+            phits2[3] = segmentsInGPU.pLSHitsIdxs[jx].w;
             float eta_pix2 = segmentsInGPU.eta[jx];
             float phi_pix2 = segmentsInGPU.phi[jx];
 
