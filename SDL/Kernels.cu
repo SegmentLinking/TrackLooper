@@ -617,7 +617,7 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::obje
     for(int ix=blockIdx.y*blockDim.y+threadIdx.y;ix<nPixelSegments;ix+=blockDim.y*gridDim.y)
     {
         if(secondpass && (!segmentsInGPU.isQuad[ix] || segmentsInGPU.isDup[ix])){continue;}
-        bool found=false;
+
         unsigned int phits1[4];  
         phits1[0] = segmentsInGPU.pLSHitsIdxs[ix].x;
         phits1[1] = segmentsInGPU.pLSHitsIdxs[ix].y;
@@ -625,7 +625,7 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::obje
         phits1[3] = segmentsInGPU.pLSHitsIdxs[ix].w;
         float eta_pix1 = segmentsInGPU.eta[ix];
         float phi_pix1 = segmentsInGPU.phi[ix];
-        //float pt1 = segmentsInGPU.ptIn[ix];
+
         for(int jx = blockIdx.x * blockDim.x + threadIdx.x; jx < nPixelSegments; jx += blockDim.x * gridDim.x)
         {
             if(secondpass && (!segmentsInGPU.isQuad[jx] || segmentsInGPU.isDup[jx])){continue;}
@@ -634,11 +634,13 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::obje
                 continue;
             }
 
+            float eta_pix2 = segmentsInGPU.eta[jx];
+            if (fabsf(eta_pix2 - eta_pix1) > 0.1 ) continue;
+
             char quad_diff = segmentsInGPU.isQuad[ix] -segmentsInGPU.isQuad[jx];
             float ptErr_diff = segmentsInGPU.ptIn[ix] -segmentsInGPU.ptIn[jx];
             float score_diff = segmentsInGPU.score[ix] -segmentsInGPU.score[jx];
             if( (quad_diff > 0 )|| (score_diff<0 && quad_diff ==0))
-
             {
                 continue;
             }// always keep quads over trips. If they are the same, we want the object with the lower pt Error
@@ -648,7 +650,7 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::obje
             phits2[1] = segmentsInGPU.pLSHitsIdxs[jx].y;
             phits2[2] = segmentsInGPU.pLSHitsIdxs[jx].z;
             phits2[3] = segmentsInGPU.pLSHitsIdxs[jx].w;
-            float eta_pix2 = segmentsInGPU.eta[jx];
+
             float phi_pix2 = segmentsInGPU.phi[jx];
 
             int npMatched =0;
