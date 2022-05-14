@@ -668,6 +668,7 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::obje
                 if(pmatched)
                 {
                     npMatched++;
+                    if (secondpass) break; // only one hit is enough
                 }
             }
             if((npMatched ==4) && (ix < jx))
