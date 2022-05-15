@@ -628,14 +628,14 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::obje
 
         for(int jx = blockIdx.x * blockDim.x + threadIdx.x; jx < nPixelSegments; jx += blockDim.x * gridDim.x)
         {
+            float eta_pix2 = segmentsInGPU.eta[jx];
+            if (fabsf(eta_pix2 - eta_pix1) > 0.1 ) continue;
+
             if(secondpass && (!segmentsInGPU.isQuad[jx] || segmentsInGPU.isDup[jx])){continue;}
             if(ix==jx)
             {
                 continue;
             }
-
-            float eta_pix2 = segmentsInGPU.eta[jx];
-            if (fabsf(eta_pix2 - eta_pix1) > 0.1 ) continue;
 
             char quad_diff = segmentsInGPU.isQuad[ix] -segmentsInGPU.isQuad[jx];
             float ptErr_diff = segmentsInGPU.ptIn[ix] -segmentsInGPU.ptIn[jx];
