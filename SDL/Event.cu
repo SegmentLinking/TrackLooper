@@ -1688,7 +1688,7 @@ void SDL::Event::createTrackCandidates()
 #ifdef FINAL_pLS
 #ifdef DUP_pLS
     dim3 nThreadspLS(32,32,1);
-    dim3 nBlockspLS(MAX_BLOCKS, MAX_BLOCKS, 1);
+    dim3 nBlockspLS(MAX_BLOCKS/4, MAX_BLOCKS*4, 1);
     checkHitspLS<<<nBlockspLS, nThreadspLS, 0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *hitsInGPU, true);
     cudaError_t cudaerrpix = cudaGetLastError();
     if(cudaerrpix != cudaSuccess)
@@ -2031,7 +2031,7 @@ void SDL::Event::pixelLineSegmentCleaning()
 #ifdef DUP_pLS
     //printf("cleaning pixels\n");
     dim3 nThreadspLS(32,32,1);
-    dim3 nBlockspLS(MAX_BLOCKS, MAX_BLOCKS, 1);
+    dim3 nBlockspLS(MAX_BLOCKS/4, MAX_BLOCKS*4, 1);
 
     checkHitspLS<<<nBlockspLS, nThreadspLS, 0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *hitsInGPU, false);
     cudaError_t cudaerrpix = cudaGetLastError();
