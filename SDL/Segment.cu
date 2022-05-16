@@ -6,9 +6,9 @@
 
 ///FIXME:NOTICE THE NEW maxPixelSegments!
 
-void SDL::segments::resetMemory(unsigned int maxSegments, unsigned int nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
+void SDL::segments::resetMemory(unsigned int nMemoryLocationsx, unsigned int nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
 {
-    unsigned int nMemoryLocationsx = maxSegments * nLowerModules + maxPixelSegments;
+    // unsigned int nMemoryLocationsx = maxSegments * nLowerModules + maxPixelSegments;
     cudaMemsetAsync(mdIndices,0, nMemoryLocationsx * 2 * sizeof(unsigned int),stream);
     cudaMemsetAsync(innerLowerModuleIndices,0, nMemoryLocationsx * 2 * sizeof(uint16_t),stream);
     cudaMemsetAsync(nSegments, 0,(nLowerModules+1) * sizeof(unsigned int),stream);
@@ -35,37 +35,70 @@ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRa
 
     int *module_segmentModuleIndices;
     module_segmentModuleIndices = (int*)cms::cuda::allocate_host((nLowerModules + 1) * sizeof(unsigned int), stream);
-    module_segmentModuleIndices[0] = 0;
+    short* module_subdets;
+    cudaMallocHost(&module_subdets, nLowerModules* sizeof(short));
+    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
+    short* module_layers;
+    cudaMallocHost(&module_layers, nLowerModules * sizeof(short));
+    cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
+    short* module_rings;
+    cudaMallocHost(&module_rings, nLowerModules * sizeof(short));
+    cudaMemcpyAsync(module_rings,modulesInGPU.rings,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
+    float* module_eta;
+    cudaMallocHost(&module_eta, nLowerModules * sizeof(float));
+    cudaMemcpyAsync(module_eta,modulesInGPU.eta,nLowerModules * sizeof(float),cudaMemcpyDeviceToHost,stream);
     uint16_t* module_nConnectedModules;
     module_nConnectedModules = (uint16_t*)cms::cuda::allocate_host(nLowerModules * sizeof(uint16_t), stream);
     cudaMemcpyAsync(module_nConnectedModules,modulesInGPU.nConnectedModules,nLowerModules*sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
+ 
     cudaStreamSynchronize(stream);
 
-    nTotalSegments = maxSegmentsPerModule; //start!   
-    for(uint16_t i = 1; i <= nLowerModules; i++)
+    nTotalSegments = 0; //start!   
+    for(uint16_t i = 0; i < nLowerModules; i++)
     {
         module_segmentModuleIndices[i] = nTotalSegments; //running counter - we start at the previous index!
 
-        unsigned int occupancy = maxSegmentsPerModule; //placeholder! this will change from module to module
-        if(i == nLowerModules)
-        {
-            occupancy = maxPixelSegments;
-        }
-        else if(module_nConnectedModules[i] == 0)
-        {
-            occupancy = 0;
-        }
-        //since we allocate memory to segments even before any object is created, nMDs[i] will always be zero!!!
-/*        else if(nMDs[i] == 0)
-        {
-            occupancy = 0;
-        }*/
+        unsigned int occupancy;
+        unsigned int category_number, eta_number;
+        if (module_layers[i]<=3 && module_subdets[i]==5) category_number = 0;
+        if (module_layers[i]>=4 && module_subdets[i]==5) category_number = 1;
+        if (module_layers[i]<=2 && module_subdets[i]==4 && module_rings[i]>=11) category_number = 2;
+        if (module_layers[i]>=3 && module_subdets[i]==4 && module_rings[i]>=8) category_number = 2;
+        if (module_layers[i]<=2 && module_subdets[i]==4 && module_rings[i]<=10) category_number = 3;
+        if (module_layers[i]>=3 && module_subdets[i]==4 && module_rings[i]<=7) category_number = 3;
+        if (abs(module_eta[i])<0.75) eta_number=0;
+        if (abs(module_eta[i])>0.75 && abs(module_eta[i])<1.5) eta_number=1;
+        if (abs(module_eta[i])>1.5 && abs(module_eta[i])<2.25) eta_number=2;
+        if (abs(module_eta[i])>2.25 && abs(module_eta[i])<3) eta_number=3;
+
+        if (category_number == 0 && eta_number == 0) occupancy = 572;
+        if (category_number == 0 && eta_number == 1) occupancy = 300;
+        if (category_number == 0 && eta_number == 2) occupancy = 183;
+        if (category_number == 0 && eta_number == 3) occupancy = 62;
+        if (category_number == 1 && eta_number == 0) occupancy = 191;
+        if (category_number == 1 && eta_number == 1) occupancy = 128;
+        if (category_number == 2 && eta_number == 1) occupancy = 107;
+        if (category_number == 2 && eta_number == 2) occupancy = 102;
+        if (category_number == 3 && eta_number == 1) occupancy = 64;
+        if (category_number == 3 && eta_number == 2) occupancy = 79;
+        if (category_number == 3 && eta_number == 3) occupancy = 85;
+
+        if(module_nConnectedModules[i] == 0) occupancy = 0;
+
         nTotalSegments += occupancy;
     }
+
+    module_segmentModuleIndices[nLowerModules] = nTotalSegments;
+    nTotalSegments += maxPixelSegments;
+
     cudaMemcpyAsync(rangesInGPU.segmentModuleIndices, module_segmentModuleIndices,  (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
     cms::cuda::free_host(module_segmentModuleIndices);
     cms::cuda::free_host(module_nConnectedModules);
+    cudaFreeHost(module_subdets);
+    cudaFreeHost(module_layers);
+    cudaFreeHost(module_rings);
+    cudaFreeHost(module_eta);
 }
 
 void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
