@@ -127,13 +127,14 @@ def parse_plot_name(output_name):
 #    eff.GetYaxis().SetTitleSize(0.05)
 #    eff.GetXaxis().SetLabelSize(0.05)
 #    eff.GetYaxis().SetLabelSize(0.05)
-def draw_stack(num1,num2,num3,num4, den, output_name, sample_name, version_tag, outputfile=None):
+def draw_stack(num1,num2,num3,num4,num5, den, output_name, sample_name, version_tag, outputfile=None):
 
     if "scalar" in output_name and "ptscalar" not in output_name:
         num1.Rebin(180)
         num2.Rebin(180)
         num3.Rebin(180)
         num4.Rebin(180)
+        num5.Rebin(180)
         den.Rebin(180)
 
     if "coarse" in output_name and "ptcoarse" not in output_name:
@@ -141,6 +142,7 @@ def draw_stack(num1,num2,num3,num4, den, output_name, sample_name, version_tag, 
         num2.Rebin(6)
         num3.Rebin(6)
         num4.Rebin(6)
+        num5.Rebin(6)
         den.Rebin(6)
     # if "eta" in output_name and "etacoarse" not in output_name:
     #     num.Rebin(2)
@@ -162,10 +164,12 @@ def draw_stack(num1,num2,num3,num4, den, output_name, sample_name, version_tag, 
     teff2 = r.TEfficiency(num2, den)
     teff3 = r.TEfficiency(num3, den)
     teff4 = r.TEfficiency(num4, den)
+    teff5 = r.TEfficiency(num5, den)
     eff = teff.CreateGraph()
     eff2 = teff2.CreateGraph()
     eff3 = teff3.CreateGraph()
     eff4 = teff4.CreateGraph()
+    eff5 = teff5.CreateGraph()
     c1 = r.TCanvas()
     c1.SetBottomMargin(0.15)
     c1.SetLeftMargin(0.15)
@@ -177,6 +181,7 @@ def draw_stack(num1,num2,num3,num4, den, output_name, sample_name, version_tag, 
     eff2.Draw("epsame")
     eff3.Draw("epsame")
     eff4.Draw("epsame")
+    eff5.Draw("epsame")
     eff.SetMarkerColor(1)
     eff.SetLineColor(1)
     eff.SetMarkerStyle(19)
@@ -197,12 +202,18 @@ def draw_stack(num1,num2,num3,num4, den, output_name, sample_name, version_tag, 
     eff4.SetLineWidth(2)
     eff4.SetMarkerColor(4)
     eff4.SetLineColor(4)
+    eff5.SetMarkerStyle(19)
+    eff5.SetMarkerSize(1.2)
+    eff5.SetLineWidth(2)
+    eff5.SetMarkerColor(6)
+    eff5.SetLineColor(6)
 
     legend = r.TLegend(0.15,0.55,0.25,0.75)
-    legend.AddEntry(eff,"pT5")
-    legend.AddEntry(eff2,"pT3")
-    legend.AddEntry(eff3,"T5")
-    legend.AddEntry(eff4,"pLS")
+    legend.AddEntry(eff,"TCE")
+    legend.AddEntry(eff2,"pT5")
+    legend.AddEntry(eff3,"pT3")
+    legend.AddEntry(eff4,"T5")
+    legend.AddEntry(eff5,"pLS")
     legend.Draw("same")
 
     def set_label(eff, raw_number):
@@ -574,21 +585,15 @@ if __name__ == "__main__":
         draw_ratio(numer.Clone(), denom.Clone(), "plots/mtv/{}scalar.pdf".format(nice_name), sample_name, version_tag, of)
         draw_ratio(numer.Clone(), denom.Clone(), "plots/mtv/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
 
-    #for key in f.GetListOfKeys():
-    #  if "stack" in key.GetName():
-    #    print(key.GetName())
+    hist0 = f.Get("Root__TCE_AllTypes_h_numer_pt")
     hist1 = f.Get("Root__TCE_AllTypes_stackpT5_numer_pt")
     hist2 = f.Get("Root__TCE_AllTypes_stackpT3_numer_pt")
     hist3 = f.Get("Root__TCE_AllTypes_stackT5_numer_pt")
     hist4 = f.Get("Root__TCE_AllTypes_stackpLS_numer_pt")
-    denom = f.Get("Root__TCE_AllTypes_stackpT5_denom_pt")
+    denom = f.Get("Root__TCE_AllTypes_h_denom_pt")
     nice_name = "TCE_AllTypes_stack_pt"
-    print("THIS IS IT !!!!!!!!!!!!!!!!!!!!!!")
-    draw_stack(hist1.Clone(),hist2.Clone(),hist3.Clone(),hist4.Clone(),denom.Clone(),"plots/mtv/{}.pdf".format(nice_name), sample_name, version_tag, of)
-    print("THIS IS AFTER IT !!!!!!!!!!!!!!!!!!!!!!")
+    draw_stack(hist0.Clone(),hist1.Clone(),hist2.Clone(),hist3.Clone(),hist4.Clone(),denom.Clone(),"plots/mtv/{}.pdf".format(nice_name), sample_name, version_tag, of)
     of.Write()
     
-#    hist1.SetLinColor(kRed)
-#    hist.DrawCopy()
     of.Close()
 
