@@ -61,6 +61,295 @@ def parse_plot_name(output_name):
     return " ".join(rtnstr)
 
 
+#def draw_label():
+#    # Label
+#    t = r.TLatex()
+#    t.SetTextAlign(11) # align bottom left corner of text
+#    t.SetTextColor(r.kBlack)
+#    t.SetTextSize(0.04)
+#    x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
+#    y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.09 + 0.03
+#    sample_name_label = "Sample: " + sample_name + "   Version tag:" + version_tag
+#    t.DrawLatexNDC(x,y,"#scale[0.9]{#font[42]{%s}}" % sample_name_label)
+#    x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
+#    y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.045 + 0.03
+#    if "_pt" in output_name:
+#        fiducial_label = "|#eta| < {eta}, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(eta=etacut)
+#    elif "_eta" in output_name:
+#        fiducial_label = "p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut)
+#    elif "_dz" in output_name:
+#        fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut, eta=etacut)
+#    elif "_dxy" in output_name:
+#        fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm".format(pt=ptcut, eta=etacut)
+#    #elif "_lay" in output_name:
+#    #    fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut, eta=etacut)
+#    else:
+#        fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut, eta=etacut)
+#    if "fakerate" in output_name or "duplrate" in output_name:
+#        if "_pt" in output_name:
+#            fiducial_label = "|#eta| < {eta}".format(eta=etacut)
+#        elif "_eta" in output_name:
+#            fiducial_label = "p_{{T}} > {pt} GeV".format(pt=ptcut)
+#        else:
+#            fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV".format(pt=ptcut, eta=etacut)
+#    t.DrawLatexNDC(x,y,"#scale[0.9]{#font[42]{%s}}" % fiducial_label)
+#    cms_label = "Simulation"
+#    x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
+#    y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.005
+#    t.DrawLatexNDC(x,y,"#scale[1.25]{#font[61]{CMS}} #scale[1.1]{#font[52]{%s}}" % cms_label)
+#def set_label(eff, raw_number):
+#    if "phi" in output_name:
+#        title = "#phi"
+#    elif "_dz" in output_name:
+#        title = "z [cm]"
+#    elif "_dxy" in output_name:
+#        title = "d0 [cm]"
+#    elif "_pt" in output_name:
+#        title = "p_{T} [GeV]"
+#    elif "_hit" in output_name:
+#        title = "hits"
+#    elif "_lay" in output_name:
+#        title = "layers"
+#    else:
+#        title = "#eta"
+#    eff.GetXaxis().SetTitle(title)
+#    if "fakerate" in output_name:
+#        eff.GetYaxis().SetTitle("Fake Rate")
+#    elif "duplrate" in output_name:
+#        eff.GetYaxis().SetTitle("Duplicate Rate")
+#    elif "inefficiency" in output_name:
+#        eff.GetYaxis().SetTitle("Inefficiency")
+#    else:
+#        eff.GetYaxis().SetTitle("Efficiency")
+#    if raw_number:
+#        eff.GetYaxis().SetTitle("# of objects of interest")
+#    eff.GetXaxis().SetTitleSize(0.05)
+#    eff.GetYaxis().SetTitleSize(0.05)
+#    eff.GetXaxis().SetLabelSize(0.05)
+#    eff.GetYaxis().SetLabelSize(0.05)
+def draw_stack(num1,num2,num3,num4, den, output_name, sample_name, version_tag, outputfile=None):
+
+    if "scalar" in output_name and "ptscalar" not in output_name:
+        num1.Rebin(180)
+        num2.Rebin(180)
+        num3.Rebin(180)
+        num4.Rebin(180)
+        den.Rebin(180)
+
+    if "coarse" in output_name and "ptcoarse" not in output_name:
+        num1.Rebin(6)
+        num2.Rebin(6)
+        num3.Rebin(6)
+        num4.Rebin(6)
+        den.Rebin(6)
+    # if "eta" in output_name and "etacoarse" not in output_name:
+    #     num.Rebin(2)
+    #     den.Rebin(2)
+    if "pt" in output_name:
+        overFlowBin = num1.GetBinContent(num1.GetNbinsX() + 1)
+        lastBin = num1.GetBinContent(num1.GetNbinsX())
+
+        num1.SetBinContent(num1.GetNbinsX(), lastBin + overFlowBin)
+        num1.SetBinError(num1.GetNbinsX(), sqrt(lastBin + overFlowBin))
+
+        overFlowBin = den.GetBinContent(den.GetNbinsX() + 1)
+        lastBin = den.GetBinContent(den.GetNbinsX())
+
+        den.SetBinContent(den.GetNbinsX(), lastBin + overFlowBin)
+        den.SetBinError(den.GetNbinsX(), sqrt(lastBin + overFlowBin))
+
+    teff = r.TEfficiency(num1, den)
+    teff2 = r.TEfficiency(num2, den)
+    teff3 = r.TEfficiency(num3, den)
+    teff4 = r.TEfficiency(num4, den)
+    eff = teff.CreateGraph()
+    eff2 = teff2.CreateGraph()
+    eff3 = teff3.CreateGraph()
+    eff4 = teff4.CreateGraph()
+    c1 = r.TCanvas()
+    c1.SetBottomMargin(0.15)
+    c1.SetLeftMargin(0.15)
+    c1.SetTopMargin(0.22)
+    c1.SetRightMargin(0.15)
+    if "_pt" in output_name:
+        c1.SetLogx()
+    eff.Draw("epa")
+    eff2.Draw("epsame")
+    eff3.Draw("epsame")
+    eff4.Draw("epsame")
+    eff.SetMarkerColor(1)
+    eff.SetLineColor(1)
+    eff.SetMarkerStyle(19)
+    eff.SetMarkerSize(1.2)
+    eff.SetLineWidth(2)
+    eff2.SetMarkerStyle(19)
+    eff2.SetMarkerSize(1.2)
+    eff2.SetLineWidth(2)
+    eff2.SetMarkerColor(2)
+    eff2.SetLineColor(2)
+    eff3.SetMarkerStyle(19)
+    eff3.SetMarkerSize(1.2)
+    eff3.SetLineWidth(2)
+    eff3.SetMarkerColor(3)
+    eff3.SetLineColor(3)
+    eff4.SetMarkerStyle(19)
+    eff4.SetMarkerSize(1.2)
+    eff4.SetLineWidth(2)
+    eff4.SetMarkerColor(4)
+    eff4.SetLineColor(4)
+
+    legend = r.TLegend(0.15,0.55,0.25,0.75)
+    legend.AddEntry(eff,"pT5")
+    legend.AddEntry(eff2,"pT3")
+    legend.AddEntry(eff3,"T5")
+    legend.AddEntry(eff4,"pLS")
+    legend.Draw("same")
+
+    def set_label(eff, raw_number):
+        if "phi" in output_name:
+            title = "#phi"
+        elif "_dz" in output_name:
+            title = "z [cm]"
+        elif "_dxy" in output_name:
+            title = "d0 [cm]"
+        elif "_pt" in output_name:
+            title = "p_{T} [GeV]"
+        elif "_hit" in output_name:
+            title = "hits"
+        elif "_lay" in output_name:
+            title = "layers"
+        else:
+            title = "#eta"
+        eff.GetXaxis().SetTitle(title)
+        if "fakerate" in output_name:
+            eff.GetYaxis().SetTitle("Fake Rate")
+        elif "duplrate" in output_name:
+            eff.GetYaxis().SetTitle("Duplicate Rate")
+        elif "inefficiency" in output_name:
+            eff.GetYaxis().SetTitle("Inefficiency")
+        else:
+            eff.GetYaxis().SetTitle("Efficiency")
+        if raw_number:
+            eff.GetYaxis().SetTitle("# of objects of interest")
+        eff.GetXaxis().SetTitleSize(0.05)
+        eff.GetYaxis().SetTitleSize(0.05)
+        eff.GetXaxis().SetLabelSize(0.05)
+        eff.GetYaxis().SetLabelSize(0.05)
+    set_label(eff, raw_number=False)
+
+    yaxis_max = 0
+    for i in xrange(0, eff.GetN()):
+        if yaxis_max < eff.GetY()[i]:
+            yaxis_max = eff.GetY()[i]
+    # print yaxis_max
+    yaxis_min = 999
+    for i in xrange(0, eff.GetN()):
+        if yaxis_min > eff.GetY()[i] and eff.GetY()[i] != 0:
+            yaxis_min = eff.GetY()[i]
+    # print yaxis_min
+    # if "maxzoom" in output_name:
+    #     eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
+    # elif "zoom" in output_name:
+    #     eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
+    #if "ptzoom" in output_name:
+    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
+    #elif "etazoom" in output_name:
+    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
+    #elif "ptmaxzoom" in output_name:
+    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
+    #elif "etamaxzoom" in output_name:
+    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
+    #elif "layerszoom" in output_name:
+    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.12)
+    #elif "layersgapzoom" in output_name:
+    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.12)
+    #elif "layersmaxzoom" in output_name:
+    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
+    #elif "layersgapmaxzoom" in output_name:
+    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
+    # else:
+    #     eff.GetYaxis().SetRangeUser(0, 1.02)
+
+    if "zoom" not in output_name:
+        eff.GetYaxis().SetRangeUser(0, 1.02)
+    else:
+        eff.GetYaxis().SetRangeUser(0.6, 1.02)
+
+    if "eta" in output_name:
+        eff.GetXaxis().SetLimits(-4.5, 4.5)
+
+    eff.SetTitle(parse_plot_name(output_name))
+
+    def draw_label():
+        # Label
+        t = r.TLatex()
+        t.SetTextAlign(11) # align bottom left corner of text
+        t.SetTextColor(r.kBlack)
+        t.SetTextSize(0.04)
+        x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
+        y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.09 + 0.03
+        sample_name_label = "Sample: " + sample_name + "   Version tag:" + version_tag
+        t.DrawLatexNDC(x,y,"#scale[0.9]{#font[42]{%s}}" % sample_name_label)
+        x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
+        y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.045 + 0.03
+        if "_pt" in output_name:
+            fiducial_label = "|#eta| < {eta}, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(eta=etacut)
+        elif "_eta" in output_name:
+            fiducial_label = "p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut)
+        elif "_dz" in output_name:
+            fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut, eta=etacut)
+        elif "_dxy" in output_name:
+            fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm".format(pt=ptcut, eta=etacut)
+        #elif "_lay" in output_name:
+        #    fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut, eta=etacut)
+        else:
+            fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut, eta=etacut)
+        if "fakerate" in output_name or "duplrate" in output_name:
+            if "_pt" in output_name:
+                fiducial_label = "|#eta| < {eta}".format(eta=etacut)
+            elif "_eta" in output_name:
+                fiducial_label = "p_{{T}} > {pt} GeV".format(pt=ptcut)
+            else:
+                fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV".format(pt=ptcut, eta=etacut)
+        t.DrawLatexNDC(x,y,"#scale[0.9]{#font[42]{%s}}" % fiducial_label)
+        cms_label = "Simulation"
+        x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
+        y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.005
+        t.DrawLatexNDC(x,y,"#scale[1.25]{#font[61]{CMS}} #scale[1.1]{#font[52]{%s}}" % cms_label)
+    draw_label()
+    # Save
+    c1.SetGrid()
+    c1.SaveAs("{}".format(output_name.replace(".pdf", "_effstack.pdf")))
+    c1.SaveAs("{}".format(output_name.replace(".pdf", "_effstack.png")))
+    eff.SetName(output_name.replace(".png",""))
+    if outputfile:
+        outputfile.cd()
+        basename = os.path.basename(output_name)
+        outputname = basename.replace(".pdf","")
+        print(outputname)
+        eff.SetName(outputname)
+        eff.Write()
+        eff_num = r.TGraphAsymmErrors(num1)
+        eff_den = r.TGraphAsymmErrors(den)
+        eff_num.SetName(outputname+"_num")
+        eff_den.SetName(outputname+"_den")
+        eff_num.Write()
+        eff_den.Write()
+        outputfile.ls()
+
+    set_label(num1, raw_number=True)
+    num1.Draw("hist")
+    draw_label()
+    c1.SaveAs("{}".format(output_name.replace(".pdf", "_numstack.pdf")))
+    c1.SaveAs("{}".format(output_name.replace(".pdf", "_numstack.png")))
+
+    set_label(den, raw_number=True)
+    den.Draw("hist")
+    draw_label()
+    c1.SaveAs("{}".format(output_name.replace(".pdf", "_denstack.pdf")))
+    c1.SaveAs("{}".format(output_name.replace(".pdf", "_denstrack.png")))
+
+    return eff
 def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None):
 
     if "scalar" in output_name and "ptscalar" not in output_name:
@@ -285,6 +574,21 @@ if __name__ == "__main__":
         draw_ratio(numer.Clone(), denom.Clone(), "plots/mtv/{}scalar.pdf".format(nice_name), sample_name, version_tag, of)
         draw_ratio(numer.Clone(), denom.Clone(), "plots/mtv/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
 
+    #for key in f.GetListOfKeys():
+    #  if "stack" in key.GetName():
+    #    print(key.GetName())
+    hist1 = f.Get("Root__TCE_AllTypes_stackpT5_numer_pt")
+    hist2 = f.Get("Root__TCE_AllTypes_stackpT3_numer_pt")
+    hist3 = f.Get("Root__TCE_AllTypes_stackT5_numer_pt")
+    hist4 = f.Get("Root__TCE_AllTypes_stackpLS_numer_pt")
+    denom = f.Get("Root__TCE_AllTypes_stackpT5_denom_pt")
+    nice_name = "TCE_AllTypes_stack_pt"
+    print("THIS IS IT !!!!!!!!!!!!!!!!!!!!!!")
+    draw_stack(hist1.Clone(),hist2.Clone(),hist3.Clone(),hist4.Clone(),denom.Clone(),"plots/mtv/{}.pdf".format(nice_name), sample_name, version_tag, of)
+    print("THIS IS AFTER IT !!!!!!!!!!!!!!!!!!!!!!")
     of.Write()
+    
+#    hist1.SetLinColor(kRed)
+#    hist.DrawCopy()
     of.Close()
 
