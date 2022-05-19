@@ -1500,7 +1500,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec
             //  else{pixtype=2;}
             //}
             if (ptIn >= 2.0){ /*ptbin = 1;*/pixtype=0;}
-            else if (ptIn >= 0.8 and ptIn < 2.0){ 
+            else if (ptIn >= 0.9 and ptIn < 2.0){ 
               //ptbin = 0;
               if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
               else{pixtype=2;}
