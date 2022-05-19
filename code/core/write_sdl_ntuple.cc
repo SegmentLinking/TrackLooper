@@ -1563,10 +1563,6 @@ void fillMiniDoubletBranches(SDL::Event* event)
     // SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
     // SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
 
-    // Some boundary conditions to loop over the objects from the GPU
-    // const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
-    // const unsigned int N_MAX_MD_PER_MODULES = 100;
-
     // Creating a fixed size vector where the length of the vector is the same as the N sim tracks
     // Each entry will contain whether there are matched sim tracks
     std::vector<int> sim_MD1_matched(trk.sim_pt().size());
@@ -1610,7 +1606,6 @@ void fillMiniDoubletBranches(SDL::Event* event)
         // Then loop over the mini-doublets
         for (unsigned int iMD = 0; iMD < nMDs; ++iMD)
         {
-
             // The indexing is done so that each module can store up to N_MAX_MD_PER_MODULES, and then 2 hits are stored per MD
             // So we do 2 * idx + 1-like indexing
             unsigned int mdIndex = rangesInGPU.miniDoubletModuleIndices[lowerIdx] + iMD;

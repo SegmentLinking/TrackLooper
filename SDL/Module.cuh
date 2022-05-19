@@ -61,6 +61,7 @@ namespace SDL
         int* quintupletRanges;
 
         uint16_t *nEligibleT5Modules; //This number is just nEligibleModules - 1, but still we want this to be independent of the TC kernel
+        uint16_t* indicesOfEligibleT5Modules;// will be allocated in createQuintuplets kernel!!!!
         //to store different starting points for variable occupancy stuff
         int *quintupletModuleIndices;
         int *miniDoubletModuleIndices;
