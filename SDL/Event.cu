@@ -1046,29 +1046,17 @@ __global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned 
       addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices2[tid], hitIndices3[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,outerMDIndex);
 #endif
 
+    //in outer hits - pt, eta, phi
+    float slope = sinhf(hitsInGPU.ys[mdsInGPU.outerHitIndices[innerMDIndex]]);
+    float intercept = hitsInGPU.zs[mdsInGPU.anchorHitIndices[innerMDIndex]] - slope * hitsInGPU.rts[mdsInGPU.anchorHitIndices[innerMDIndex]];
+    float score_lsq=(hitsInGPU.rts[mdsInGPU.anchorHitIndices[outerMDIndex]] * slope + intercept) - (hitsInGPU.zs[mdsInGPU.anchorHitIndices[outerMDIndex]]);
+    score_lsq = score_lsq * score_lsq;
+
     unsigned int hits1[4];
     hits1[0] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[innerMDIndex]];
     hits1[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[outerMDIndex]];
     hits1[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[innerMDIndex]];
     hits1[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[outerMDIndex]];
-    float rsum=0, zsum=0, r2sum=0,rzsum=0;
-    for(int i =0; i < 4; i++)
-    {
-        rsum += hitsInGPU.rts[hits1[i]];
-        zsum += hitsInGPU.zs[hits1[i]];
-        r2sum += hitsInGPU.rts[hits1[i]]*hitsInGPU.rts[hits1[i]];
-        rzsum += hitsInGPU.rts[hits1[i]]*hitsInGPU.zs[hits1[i]];
-    }
-    float slope_lsq = (4*rzsum - rsum*zsum)/(4*r2sum-rsum*rsum);
-    float b = (r2sum*zsum-rsum*rzsum)/(r2sum*4-rsum*rsum);
-    float score_lsq=0;
-    for( int i=0; i <4; i++)
-    {
-        float z = hitsInGPU.zs[hits1[i]];
-        float r = hitsInGPU.rts[hits1[i]];
-        float var_lsq = slope_lsq*(r)+b - z;
-        score_lsq += abs(var_lsq);//(var_lsq*var_lsq) / (err*err);
-    }
     addPixelSegmentToMemory(segmentsInGPU, mdsInGPU, modulesInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hits1, hitIndices0[tid], hitIndices2[tid], dPhiChange[tid], ptIn[tid], ptErr[tid], px[tid], py[tid], pz[tid], etaErr[tid], eta[tid], phi[tid], pixelSegmentIndex, tid, superbin[tid], pixelType[tid],isQuad[tid],score_lsq);
     }
 }
