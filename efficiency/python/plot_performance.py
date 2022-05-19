@@ -14,9 +14,9 @@ etacut = 4.5
 r.gROOT.SetBatch(True)
 
 def parse_plot_name(output_name):
-    if "fakerate" in output_name:
+    if "fake" in output_name:
         rtnstr = ["Fake Rate of"]
-    elif "duplrate" in output_name:
+    elif "dup" in output_name:
         rtnstr = ["Duplicate Rate of"]
     elif "inefficiency" in output_name:
         rtnstr = ["Inefficiency of"]
