@@ -338,7 +338,6 @@ __global__ void SDL::crossCleanpLS(struct SDL::modules& modulesInGPU, struct SDL
     for(int pixelArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; pixelArrayIndex < nPixels; pixelArrayIndex+=blockDim.x*gridDim.x)
     {
         if((!segmentsInGPU.isQuad[pixelArrayIndex]) || (segmentsInGPU.isDup[pixelArrayIndex])) {continue;}
-        if(segmentsInGPU.score[pixelArrayIndex] > 120) {continue;}
 
         float eta1 = segmentsInGPU.eta[pixelArrayIndex];
         float phi1 = segmentsInGPU.phi[pixelArrayIndex];
@@ -444,7 +443,6 @@ __global__ void SDL::addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInG
         {
             continue;//return;
         }
-//        if(segmentsInGPU.score[pixelArrayIndex] > 120){continue;}
 
         unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
         atomicAdd(trackCandidatesInGPU.nTrackCandidatespLS,1);
