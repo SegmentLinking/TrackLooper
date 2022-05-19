@@ -369,7 +369,7 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
           ana.tx.pushbackToBranch<float>(category_name + "_stackpT3_denom_phi", phi);
           ana.tx.pushbackToBranch<float>(category_name + "_stackT5_denom_phi", phi);
           ana.tx.pushbackToBranch<float>(category_name + "_stackpLS_denom_phi", phi);
-    {
+    }
     if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_dxy", dxy);
         ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_dxy", dxy);}
@@ -625,11 +625,20 @@ void fillFakeRateSet(int itc, FakeRateSetDefinition& FRset)
     float pt = 0;
     float eta = 0;
     float phi = 0;
+    bool pT5Found = false;// sdl.sim_pT5_matched()[isimtrk];
+    bool pT3Found = false;// sdl.sim_pT3_matched()[isimtrk];
+    bool T5Found  = false;// sdl.sim_T5_matched()[isimtrk];
+    bool pLSFound = false;// sdl.sim_pLS_matched()[isimtrk];
     if (FRset.set_name.Contains("TC_"))
     {
         pt = sdl.tc_pt()[itc];
         eta = sdl.tc_eta()[itc];
         phi = sdl.tc_phi()[itc];
+        auto type = sdl.tc_type()[itc];
+        if(type==7){pT5Found = true;}
+        if(type==5){pT3Found = true;}
+        if(type==4){T5Found = true;}
+        if(type==8){pLSFound = true;}
     }
     else if (FRset.set_name.Contains("T4s_"))
     {
@@ -678,11 +687,6 @@ void fillFakeRateSet(int itc, FakeRateSetDefinition& FRset)
         pt = sdl.tce_pt()[itc];
         eta = sdl.tce_eta()[itc];
         phi = sdl.tce_phi()[itc];
-        int type = sdl.tce_type()[itc];
-        if(type==){Found = true;}
-        if(type==){Found = true;}
-        if(type==){Found = true;}
-        if(type==){Found = true;}
     }
 
     TString category_name = FRset.set_name;
@@ -925,15 +929,20 @@ void fillDuplicateRateSet(int itc, DuplicateRateSetDefinition& DLset)
     float pt = 0;
     float eta = 0;
     float phi = 0;
-    const float& pT5Found = false;// sdl.sim_pT5_matched()[isimtrk];
-    const float& pT3Found = false;// sdl.sim_pT3_matched()[isimtrk];
-    const float& T5Found  = false;// sdl.sim_T5_matched()[isimtrk];
-    const float& pLSFound = false;// sdl.sim_pLS_matched()[isimtrk];
+    bool pT5Found = false;// sdl.sim_pT5_matched()[isimtrk];
+    bool pT3Found = false;// sdl.sim_pT3_matched()[isimtrk];
+    bool T5Found  = false;// sdl.sim_T5_matched()[isimtrk];
+    bool pLSFound = false;// sdl.sim_pLS_matched()[isimtrk];
     if (DLset.set_name.Contains("TC_"))
     {
         pt = sdl.tc_pt()[itc];
         eta = sdl.tc_eta()[itc];
         phi = sdl.tc_phi()[itc];
+        auto type = sdl.tc_type()[itc];
+        if(type==7){pT5Found = true;}
+        if(type==5){pT3Found = true;}
+        if(type==4){T5Found = true;}
+        if(type==8){pLSFound = true;}
     }
     else if(DLset.set_name.Contains("TCE_"))
     {
@@ -991,21 +1000,21 @@ void fillDuplicateRateSet(int itc, DuplicateRateSetDefinition& DLset)
         ana.tx.pushbackToBranch<float>(category_name + "_duplrate_denom_eta", eta);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT5_denom_eta", eta);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT3_denom_eta", eta);
-           ana.tx.pushbackToBranch<float>(category_name + "dupstackT5_denom_eta", eta);
+           ana.tx.pushbackToBranch<float>(category_name + "_dupstackT5_denom_eta", eta);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpLS_denom_eta", eta);
     }
     if (abs(eta) < ETACUT){
         ana.tx.pushbackToBranch<float>(category_name + "_duplrate_denom_pt", pt);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT5_denom_pt", pt);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT3_denom_pt", pt);
-           ana.tx.pushbackToBranch<float>(category_name + "dupstackT5_denom_pt", pt);
+           ana.tx.pushbackToBranch<float>(category_name + "_dupstackT5_denom_pt", pt);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpLS_denom_pt", pt);
     }
     if (abs(eta) < ETACUT and pt > PTCUT){
         ana.tx.pushbackToBranch<float>(category_name + "_duplrate_denom_phi", phi);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT5_denom_phi", phi);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT3_denom_phi", phi);
-           ana.tx.pushbackToBranch<float>(category_name +  "dupstackT5_denom_phi", phi);
+           ana.tx.pushbackToBranch<float>(category_name +  "_dupstackT5_denom_phi", phi);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpLS_denom_phi", phi);
     }
 

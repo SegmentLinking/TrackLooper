@@ -232,9 +232,9 @@ def draw_stack(num1,num2,num3,num4,num5, den, output_name, sample_name, version_
         else:
             title = "#eta"
         eff.GetXaxis().SetTitle(title)
-        if "fakerate" in output_name:
+        if "fake" in output_name:
             eff.GetYaxis().SetTitle("Fake Rate")
-        elif "duplrate" in output_name:
+        elif "dup" in output_name:
             eff.GetYaxis().SetTitle("Duplicate Rate")
         elif "inefficiency" in output_name:
             eff.GetYaxis().SetTitle("Inefficiency")
@@ -257,29 +257,6 @@ def draw_stack(num1,num2,num3,num4,num5, den, output_name, sample_name, version_
     for i in xrange(0, eff.GetN()):
         if yaxis_min > eff.GetY()[i] and eff.GetY()[i] != 0:
             yaxis_min = eff.GetY()[i]
-    # print yaxis_min
-    # if "maxzoom" in output_name:
-    #     eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
-    # elif "zoom" in output_name:
-    #     eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
-    #if "ptzoom" in output_name:
-    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
-    #elif "etazoom" in output_name:
-    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.02)
-    #elif "ptmaxzoom" in output_name:
-    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
-    #elif "etamaxzoom" in output_name:
-    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
-    #elif "layerszoom" in output_name:
-    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.12)
-    #elif "layersgapzoom" in output_name:
-    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.12, yaxis_max + 0.12)
-    #elif "layersmaxzoom" in output_name:
-    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
-    #elif "layersgapmaxzoom" in output_name:
-    #    eff.GetYaxis().SetRangeUser(yaxis_max - 0.02, yaxis_max + 0.02)
-    # else:
-    #     eff.GetYaxis().SetRangeUser(0, 1.02)
 
     if "zoom" not in output_name:
         eff.GetYaxis().SetRangeUser(0, 1.02)
@@ -585,14 +562,37 @@ if __name__ == "__main__":
         draw_ratio(numer.Clone(), denom.Clone(), "plots/mtv/{}scalar.pdf".format(nice_name), sample_name, version_tag, of)
         draw_ratio(numer.Clone(), denom.Clone(), "plots/mtv/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
 
-    hist0 = f.Get("Root__TCE_AllTypes_h_numer_pt")
-    hist1 = f.Get("Root__TCE_AllTypes_stackpT5_numer_pt")
-    hist2 = f.Get("Root__TCE_AllTypes_stackpT3_numer_pt")
-    hist3 = f.Get("Root__TCE_AllTypes_stackT5_numer_pt")
-    hist4 = f.Get("Root__TCE_AllTypes_stackpLS_numer_pt")
-    denom = f.Get("Root__TCE_AllTypes_h_denom_pt")
-    nice_name = "TCE_AllTypes_stack_pt"
-    draw_stack(hist0.Clone(),hist1.Clone(),hist2.Clone(),hist3.Clone(),hist4.Clone(),denom.Clone(),"plots/mtv/{}.pdf".format(nice_name), sample_name, version_tag, of)
+    for key in f.GetListOfKeys():
+        if "TC_All" in key.GetName() and "stack" in key.GetName():
+          print("xxx:",key.GetName())
+    for kin in ["pt","eta","phi"]:
+      hist0 = f.Get("Root__TC_AllTypes_h_numer_%s"%kin)
+      hist1 = f.Get("Root__TC_AllTypes_stackpT5_numer_%s"%kin)
+      hist2 = f.Get("Root__TC_AllTypes_stackpT3_numer_%s"%kin)
+      hist3 = f.Get("Root__TC_AllTypes_stackT5_numer_%s"%kin)
+      hist4 = f.Get("Root__TC_AllTypes_stackpLS_numer_%s"%kin)
+      denom = f.Get("Root__TC_AllTypes_h_denom_%s"%kin)
+      nice_name = "TC_AllTypes_stack_%s"%kin
+      print("HERE !!!!!!!!!!!!")
+      draw_stack(hist0.Clone(),hist1.Clone(),hist2.Clone(),hist3.Clone(),hist4.Clone(),denom.Clone(),"plots/mtv/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
+      print("HERE 2 !!!!!!!!!!!!")
+      hist0 = f.Get("Root__TC_AllTypes_h_fakerate_numer_%s"%kin)
+      hist1 = f.Get("Root__TC_AllTypes_fakestackpT5_numer_%s"%kin)
+      hist2 = f.Get("Root__TC_AllTypes_fakestackpT3_numer_%s"%kin)
+      hist3 = f.Get("Root__TC_AllTypes_fakestackT5_numer_%s"%kin)
+      hist4 = f.Get("Root__TC_AllTypes_fakestackpLS_numer_%s"%kin)
+      denom = f.Get("Root__TC_AllTypes_h_fakerate_denom_%s"%kin)
+      nice_name = "TC_AllTypes_fakestack_%s"%kin
+      draw_stack(hist0.Clone(),hist1.Clone(),hist2.Clone(),hist3.Clone(),hist4.Clone(),denom.Clone(),"plots/mtv/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
+      hist0 = f.Get("Root__TC_AllTypes_h_duplrate_numer_%s"%kin)
+      hist1 = f.Get("Root__TC_AllTypes_dupstackpT5_numer_%s"%kin)
+      hist2 = f.Get("Root__TC_AllTypes_dupstackpT3_numer_%s"%kin)
+      hist3 = f.Get("Root__TC_AllTypes_dupstackT5_numer_%s"%kin)
+      hist4 = f.Get("Root__TC_AllTypes_dupstackpLS_numer_%s"%kin)
+      denom = f.Get("Root__TC_AllTypes_h_duplrate_denom_%s"%kin)
+      nice_name = "TC_AllTypes_dupstack_%s"%kin
+      draw_stack(hist0.Clone(),hist1.Clone(),hist2.Clone(),hist3.Clone(),hist4.Clone(),denom.Clone(),"plots/mtv/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
+      print("HERE 3 !!!!!!!!!!!!")
     of.Write()
     
     of.Close()
