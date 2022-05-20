@@ -95,10 +95,10 @@ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRa
     cudaStreamSynchronize(stream);
     cms::cuda::free_host(module_segmentModuleIndices);
     cms::cuda::free_host(module_nConnectedModules);
-    cms::cuda::free_host(module_subdets);
-    cms::cuda::free_host(module_layers);
-    cms::cuda::free_host(module_rings);
-    cms::cuda::free_host(module_eta);
+    cudaFreeHost(module_subdets);
+    cudaFreeHost(module_layers);
+    cudaFreeHost(module_rings);
+    cudaFreeHost(module_eta);
 }
 
 void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)

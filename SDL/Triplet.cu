@@ -75,10 +75,10 @@ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, struct objectRa
     cudaStreamSynchronize(stream);
     cms::cuda::free_host(module_tripletModuleIndices);
     cms::cuda::free_host(nSegments);
-    cms::cuda::free_host(module_subdets);
-    cms::cuda::free_host(module_layers);
-    cms::cuda::free_host(module_rings);
-    cms::cuda::free_host(module_eta);
+    cudaFreeHost(module_subdets);
+    cudaFreeHost(module_layers);
+    cudaFreeHost(module_rings);
+    cudaFreeHost(module_eta);
 }
 
 void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, uint16_t nLowerModules,cudaStream_t stream)
