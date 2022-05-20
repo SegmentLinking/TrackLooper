@@ -20,26 +20,65 @@ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, struct objectRa
 {
     int* module_tripletModuleIndices;
     module_tripletModuleIndices = (int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
+
+    short* module_subdets;
+    cudaMallocHost(&module_subdets, nLowerModules* sizeof(short));
+    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
+    short* module_layers;
+    cudaMallocHost(&module_layers, nLowerModules * sizeof(short));
+    cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
+    short* module_rings;
+    cudaMallocHost(&module_rings, nLowerModules * sizeof(short));
+    cudaMemcpyAsync(module_rings,modulesInGPU.rings,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
+    float* module_eta;
+    cudaMallocHost(&module_eta, nLowerModules * sizeof(float));
+    cudaMemcpyAsync(module_eta,modulesInGPU.eta,nLowerModules * sizeof(float),cudaMemcpyDeviceToHost,stream);
+
     unsigned int* nSegments;
     nSegments = (unsigned int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
     cudaMemcpyAsync(nSegments, segmentsInGPU.nSegments, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
     cudaStreamSynchronize(stream);
-    module_tripletModuleIndices[0] = 0; 
-    nTotalTriplets = maxTripletsPerModule; //start!
-    for(uint16_t i = 1; i < nLowerModules; i++)
+
+    nTotalTriplets = 0; //start!   
+    for(uint16_t i = 0; i < nLowerModules; i++)
     {
-        module_tripletModuleIndices[i] = nTotalTriplets;
-        unsigned int occupancy = maxTripletsPerModule;
-        if(nSegments[i] == 0)
-        {
-            occupancy = 0;
-        }
+        module_tripletModuleIndices[i] = nTotalTriplets; //running counter - we start at the previous index!
+        unsigned int occupancy;
+        unsigned int category_number, eta_number;
+        if (module_layers[i]<=3 && module_subdets[i]==5) category_number = 0;
+        if (module_layers[i]>=4 && module_subdets[i]==5) category_number = 1;
+        if (module_layers[i]<=2 && module_subdets[i]==4 && module_rings[i]>=11) category_number = 2;
+        if (module_layers[i]>=3 && module_subdets[i]==4 && module_rings[i]>=8) category_number = 2;
+        if (module_layers[i]<=2 && module_subdets[i]==4 && module_rings[i]<=10) category_number = 3;
+        if (module_layers[i]>=3 && module_subdets[i]==4 && module_rings[i]<=7) category_number = 3;
+        if (abs(module_eta[i])<0.75) eta_number=0;
+        if (abs(module_eta[i])>0.75 && abs(module_eta[i])<1.5) eta_number=1;
+        if (abs(module_eta[i])>1.5 && abs(module_eta[i])<2.25) eta_number=2;
+        if (abs(module_eta[i])>2.25 && abs(module_eta[i])<3) eta_number=3;
+
+        if (category_number == 0 && eta_number == 0) occupancy = 891;
+        if (category_number == 0 && eta_number == 1) occupancy = 575;
+        if (category_number == 0 && eta_number == 2) occupancy = 150;
+        if (category_number == 0 && eta_number == 3) occupancy = 58;
+        if (category_number == 1 && eta_number == 0) occupancy = 1150;
+        if (category_number == 1 && eta_number == 1) occupancy = 725;
+        if (category_number == 2 && eta_number == 1) occupancy = 0;
+        if (category_number == 2 && eta_number == 2) occupancy = 0;
+        if (category_number == 3 && eta_number == 1) occupancy = 79;
+        if (category_number == 3 && eta_number == 2) occupancy = 107;
+        if (category_number == 3 && eta_number == 3) occupancy = 124;
+
+        if(nSegments[i] == 0) occupancy = 0;
         nTotalTriplets += occupancy;
     }
     cudaMemcpyAsync(rangesInGPU.tripletModuleIndices, module_tripletModuleIndices, nLowerModules * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
     cms::cuda::free_host(module_tripletModuleIndices);
     cms::cuda::free_host(nSegments);
+    cms::cuda::free_host(module_subdets);
+    cms::cuda::free_host(module_layers);
+    cms::cuda::free_host(module_rings);
+    cms::cuda::free_host(module_eta);
 }
 
 void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, uint16_t nLowerModules,cudaStream_t stream)
