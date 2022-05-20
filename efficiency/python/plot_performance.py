@@ -127,32 +127,26 @@ def parse_plot_name(output_name):
 #    eff.GetYaxis().SetTitleSize(0.05)
 #    eff.GetXaxis().SetLabelSize(0.05)
 #    eff.GetYaxis().SetLabelSize(0.05)
-def draw_stack(num1,num2,num3,num4,num5, den, output_name, sample_name, version_tag, outputfile=None):
+def draw_stack(nums, den, output_name, sample_name, version_tag, outputfile=None):
 
     if "scalar" in output_name and "ptscalar" not in output_name:
-        num1.Rebin(180)
-        num2.Rebin(180)
-        num3.Rebin(180)
-        num4.Rebin(180)
-        num5.Rebin(180)
+        for i in range(len(nums)):
+            nums[i].Rebin(180)
         den.Rebin(180)
 
     if "coarse" in output_name and "ptcoarse" not in output_name:
-        num1.Rebin(6)
-        num2.Rebin(6)
-        num3.Rebin(6)
-        num4.Rebin(6)
-        num5.Rebin(6)
+        for i in range(len(nums)):
+            nums[i].Rebin(6)
         den.Rebin(6)
     # if "eta" in output_name and "etacoarse" not in output_name:
     #     num.Rebin(2)
     #     den.Rebin(2)
     if "pt" in output_name:
-        overFlowBin = num1.GetBinContent(num1.GetNbinsX() + 1)
-        lastBin = num1.GetBinContent(num1.GetNbinsX())
-
-        num1.SetBinContent(num1.GetNbinsX(), lastBin + overFlowBin)
-        num1.SetBinError(num1.GetNbinsX(), sqrt(lastBin + overFlowBin))
+        for i in range(len(nums)):
+            overFlowBin = nums[i].GetBinContent(nums[i].GetNbinsX() + 1)
+            lastBin = nums[i].GetBinContent(nums[i].GetNbinsX())
+            nums[i].SetBinContent(nums[i].GetNbinsX(), lastBin + overFlowBin)
+            nums[i].SetBinError(nums[i].GetNbinsX(), sqrt(lastBin + overFlowBin))
 
         overFlowBin = den.GetBinContent(den.GetNbinsX() + 1)
         lastBin = den.GetBinContent(den.GetNbinsX())
@@ -160,6 +154,7 @@ def draw_stack(num1,num2,num3,num4,num5, den, output_name, sample_name, version_
         den.SetBinContent(den.GetNbinsX(), lastBin + overFlowBin)
         den.SetBinError(den.GetNbinsX(), sqrt(lastBin + overFlowBin))
 
+    num1, num2, num3, num4, num5 = nums
     teff = r.TEfficiency(num1, den)
     teff2 = r.TEfficiency(num2, den)
     teff3 = r.TEfficiency(num3, den)
@@ -209,7 +204,7 @@ def draw_stack(num1,num2,num3,num4,num5, den, output_name, sample_name, version_
     eff5.SetLineColor(6)
 
     legend = r.TLegend(0.15,0.55,0.25,0.75)
-    legend.AddEntry(eff,"TCE")
+    legend.AddEntry(eff,"TC")
     legend.AddEntry(eff2,"pT5")
     legend.AddEntry(eff3,"pT3")
     legend.AddEntry(eff4,"T5")
@@ -544,6 +539,8 @@ if __name__ == "__main__":
         #     continue
         # if "pix_P" not in key.GetName():
         #     continue
+        if "stack" in key.GetName():
+            continue
         numer_name = key.GetName()
         print(numer_name)
         denom_name = numer_name.replace("numer", "denom")
@@ -565,7 +562,7 @@ if __name__ == "__main__":
     for key in f.GetListOfKeys():
         if "TC_All" in key.GetName() and "stack" in key.GetName():
           print("xxx:",key.GetName())
-    for kin in ["pt","eta","phi"]:
+    for kin in ["pt","eta","phi", "dz", "dxy"]:
       hist0 = f.Get("Root__TC_AllTypes_h_numer_%s"%kin)
       hist1 = f.Get("Root__TC_AllTypes_stackpT5_numer_%s"%kin)
       hist2 = f.Get("Root__TC_AllTypes_stackpT3_numer_%s"%kin)
@@ -573,9 +570,9 @@ if __name__ == "__main__":
       hist4 = f.Get("Root__TC_AllTypes_stackpLS_numer_%s"%kin)
       denom = f.Get("Root__TC_AllTypes_h_denom_%s"%kin)
       nice_name = "TC_AllTypes_stack_%s"%kin
-      print("HERE !!!!!!!!!!!!")
-      draw_stack(hist0.Clone(),hist1.Clone(),hist2.Clone(),hist3.Clone(),hist4.Clone(),denom.Clone(),"plots/mtv/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
-      print("HERE 2 !!!!!!!!!!!!")
+      draw_stack([hist0.Clone(),hist1.Clone(),hist2.Clone(),hist3.Clone(),hist4.Clone()],denom.Clone(),"plots/mtv/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
+      if kin == "dz" or kin == "dxy":
+          continue
       hist0 = f.Get("Root__TC_AllTypes_h_fakerate_numer_%s"%kin)
       hist1 = f.Get("Root__TC_AllTypes_fakestackpT5_numer_%s"%kin)
       hist2 = f.Get("Root__TC_AllTypes_fakestackpT3_numer_%s"%kin)
@@ -583,7 +580,7 @@ if __name__ == "__main__":
       hist4 = f.Get("Root__TC_AllTypes_fakestackpLS_numer_%s"%kin)
       denom = f.Get("Root__TC_AllTypes_h_fakerate_denom_%s"%kin)
       nice_name = "TC_AllTypes_fakestack_%s"%kin
-      draw_stack(hist0.Clone(),hist1.Clone(),hist2.Clone(),hist3.Clone(),hist4.Clone(),denom.Clone(),"plots/mtv/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
+      draw_stack([hist0.Clone(),hist1.Clone(),hist2.Clone(),hist3.Clone(),hist4.Clone()],denom.Clone(),"plots/mtv/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
       hist0 = f.Get("Root__TC_AllTypes_h_duplrate_numer_%s"%kin)
       hist1 = f.Get("Root__TC_AllTypes_dupstackpT5_numer_%s"%kin)
       hist2 = f.Get("Root__TC_AllTypes_dupstackpT3_numer_%s"%kin)
@@ -591,9 +588,9 @@ if __name__ == "__main__":
       hist4 = f.Get("Root__TC_AllTypes_dupstackpLS_numer_%s"%kin)
       denom = f.Get("Root__TC_AllTypes_h_duplrate_denom_%s"%kin)
       nice_name = "TC_AllTypes_dupstack_%s"%kin
-      draw_stack(hist0.Clone(),hist1.Clone(),hist2.Clone(),hist3.Clone(),hist4.Clone(),denom.Clone(),"plots/mtv/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
+      draw_stack([hist0.Clone(),hist1.Clone(),hist2.Clone(),hist3.Clone(),hist4.Clone()],denom.Clone(),"plots/mtv/{}coarse.pdf".format(nice_name), sample_name, version_tag, of)
       print("HERE 3 !!!!!!!!!!!!")
     of.Write()
-    
+
     of.Close()
 
