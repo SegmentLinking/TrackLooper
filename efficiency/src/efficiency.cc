@@ -195,9 +195,62 @@ void bookEfficiencySet(EfficiencySetDefinition& effset)
     ana.tx.createBranch<vector<float>>(category_name + "_inefficiency_numer_hits");
     ana.tx.createBranch<vector<float>>(category_name + "_inefficiency_numer_layers");
     ana.tx.createBranch<vector<float>>(category_name + "_inefficiency_numer_layersgap");
-
+    
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpT5_denom_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpT5_numer_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpT3_denom_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpT3_numer_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackT5_denom_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackT5_numer_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpLS_denom_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpLS_numer_eta");
 
     // Histogram utility object that is used to define the histograms
+    ana.histograms.addVecHistogram(category_name + "_stackpT5_denom_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpT5_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackpT5_numer_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpT5_numer_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackpT3_denom_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpT3_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackpT3_numer_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpT3_numer_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackT5_denom_eta"  ,  180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name +  "_stackT5_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackT5_numer_eta"  ,  180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name +  "_stackT5_numer_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackpLS_denom_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpLS_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackpLS_numer_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpLS_numer_eta"); } );
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpT5_denom_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpT5_numer_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpT3_denom_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpT3_numer_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackT5_denom_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackT5_numer_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpLS_denom_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpLS_numer_phi");
+
+    // Histogram utility object that is used to define the histograms
+    ana.histograms.addVecHistogram(category_name + "_stackpT5_denom_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpT5_denom_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackpT5_numer_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpT5_numer_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackpT3_denom_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpT3_denom_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackpT3_numer_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpT3_numer_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackT5_denom_phi"  ,  180 , -M_PI , M_PI   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name +  "_stackT5_denom_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackT5_numer_phi"  ,  180 , -M_PI , M_PI   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name +  "_stackT5_numer_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackpLS_denom_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpLS_denom_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackpLS_numer_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpLS_numer_phi"); } );
+
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpT5_denom_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpT5_numer_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpT3_denom_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpT3_numer_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackT5_denom_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackT5_numer_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpLS_denom_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_stackpLS_numer_pt");
+
+    // Histogram utility object that is used to define the histograms
+    ana.histograms.addVecHistogram(category_name + "_stackpT5_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpT5_denom_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackpT5_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpT5_numer_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackpT3_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpT3_denom_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackpT3_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpT3_numer_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackT5_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackT5_denom_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackT5_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackT5_numer_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackpLS_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpLS_denom_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_stackpLS_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_stackpLS_numer_pt"); } );
     ana.histograms.addVecHistogram(category_name + "_h_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_denom_pt"); } );
     ana.histograms.addVecHistogram(category_name + "_h_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_numer_pt"); } );
     ana.histograms.addVecHistogram(category_name + "_h_denom_eta" , 180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_denom_eta"); } );
@@ -266,6 +319,9 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
     const float& hits = sdl.sim_hits()[isimtrk];
 
     const float& pT5Found = sdl.sim_pT5_matched()[isimtrk];
+    const float& pT3Found = sdl.sim_pT3_matched()[isimtrk];
+    const float& T5Found  = sdl.sim_T5_matched()[isimtrk];
+    const float& pLSFound = sdl.sim_pLS_matched()[isimtrk];
 
     if (bunch != 0)
         return;
@@ -291,13 +347,29 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
 
     if (pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_eta", eta);
-        ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_eta", eta);}
+        ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_eta", eta);
+          ana.tx.pushbackToBranch<float>(category_name + "_stackpT5_denom_pt", eta);
+          ana.tx.pushbackToBranch<float>(category_name + "_stackpT3_denom_pt", eta);
+          ana.tx.pushbackToBranch<float>(category_name + "_stackT5_denom_pt", eta);
+          ana.tx.pushbackToBranch<float>(category_name + "_stackpLS_denom_pt", eta);
+
+    }
     if (abs(eta) < ETACUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_pt", pt);
-        ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_pt", pt);}
+        ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_pt", pt);
+          ana.tx.pushbackToBranch<float>(category_name + "_stackpT5_denom_pt", pt);
+          ana.tx.pushbackToBranch<float>(category_name + "_stackpT3_denom_pt", pt);
+          ana.tx.pushbackToBranch<float>(category_name + "_stackT5_denom_pt", pt);
+          ana.tx.pushbackToBranch<float>(category_name + "_stackpLS_denom_pt", pt);
+    }
     if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_phi", phi);
-        ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_phi", phi);}
+        ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_phi", phi);
+          ana.tx.pushbackToBranch<float>(category_name + "_stackpT5_denom_phi", phi);
+          ana.tx.pushbackToBranch<float>(category_name + "_stackpT3_denom_phi", phi);
+          ana.tx.pushbackToBranch<float>(category_name + "_stackT5_denom_phi", phi);
+          ana.tx.pushbackToBranch<float>(category_name + "_stackpLS_denom_phi", phi);
+    }
     if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_dxy", dxy);
         ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_dxy", dxy);}
@@ -315,12 +387,51 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
 
     if (effset.pass(isimtrk))
     {
-        if (pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
+        if (pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
             ana.tx.pushbackToBranch<float>(category_name + "_numer_eta", eta);
-        if (abs(eta) < ETACUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
+            if(pT5Found){
+              ana.tx.pushbackToBranch<float>(category_name + "_stackpT5_numer_eta", eta);
+            }
+            else if(pT3Found){
+              ana.tx.pushbackToBranch<float>(category_name + "_stackpT3_numer_eta", eta);
+            }
+            else if(T5Found){
+              ana.tx.pushbackToBranch<float>(category_name + "_stackT5_numer_eta", eta);
+            }
+            else if(pLSFound){
+              ana.tx.pushbackToBranch<float>(category_name + "_stackpLS_numer_eta", eta);
+            }
+        }
+        if (abs(eta) < ETACUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
             ana.tx.pushbackToBranch<float>(category_name + "_numer_pt", pt);
-        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
+            if(pT5Found){
+              ana.tx.pushbackToBranch<float>(category_name + "_stackpT5_numer_pt", pt);
+            }
+            else if(pT3Found){
+              ana.tx.pushbackToBranch<float>(category_name + "_stackpT3_numer_pt", pt);
+            }
+            else if(T5Found){
+              ana.tx.pushbackToBranch<float>(category_name + "_stackT5_numer_pt", pt);
+            }
+            else if(pLSFound){
+              ana.tx.pushbackToBranch<float>(category_name + "_stackpLS_numer_pt", pt);
+            }
+        }
+        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
             ana.tx.pushbackToBranch<float>(category_name + "_numer_phi", phi);
+            if(pT5Found){
+              ana.tx.pushbackToBranch<float>(category_name + "_stackpT5_numer_phi", phi);
+            }
+            else if(pT3Found){
+              ana.tx.pushbackToBranch<float>(category_name + "_stackpT3_numer_phi", phi);
+            }
+            else if(T5Found){
+              ana.tx.pushbackToBranch<float>(category_name + "_stackT5_numer_phi", phi);
+            }
+            else if(pLSFound){
+              ana.tx.pushbackToBranch<float>(category_name + "_stackpLS_numer_phi", phi);
+            }
+        }
         if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_numer_dxy", dxy);
         if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_perp) < vtx_perp_thresh)
@@ -373,7 +484,61 @@ void bookFakeRateSet(FakeRateSetDefinition& FRset)
     ana.tx.createBranch<vector<float>>(category_name + "_fakerate_numer_pt");
     ana.tx.createBranch<vector<float>>(category_name + "_fakerate_numer_eta");
     ana.tx.createBranch<vector<float>>(category_name + "_fakerate_numer_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpT5_denom_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpT5_numer_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpT3_denom_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpT3_numer_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackT5_denom_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackT5_numer_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpLS_denom_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpLS_numer_pt");
 
+    // Histogram utility object that is used to define the histograms
+    ana.histograms.addVecHistogram(category_name + "_fakestackpT5_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpT5_denom_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackpT5_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpT5_numer_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackpT3_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpT3_denom_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackpT3_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpT3_numer_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackT5_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name +  "_fakestackT5_denom_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackT5_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name +  "_fakestackT5_numer_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackpLS_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpLS_denom_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackpLS_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpLS_numer_pt"); } );
+
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpT5_denom_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpT5_numer_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpT3_denom_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpT3_numer_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackT5_denom_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackT5_numer_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpLS_denom_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpLS_numer_eta");
+
+    // Histogram utility object that is used to define the histograms
+    ana.histograms.addVecHistogram(category_name + "_fakestackpT5_denom_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpT5_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackpT5_numer_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpT5_numer_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackpT3_denom_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpT3_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackpT3_numer_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpT3_numer_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackT5_denom_eta"  ,  180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name +  "_fakestackT5_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackT5_numer_eta"  ,  180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name +  "_fakestackT5_numer_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackpLS_denom_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpLS_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackpLS_numer_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpLS_numer_eta"); } );
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpT5_denom_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpT5_numer_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpT3_denom_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpT3_numer_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackT5_denom_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackT5_numer_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpLS_denom_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_fakestackpLS_numer_phi");
+
+    // Histogram utility object that is used to define the histograms
+    ana.histograms.addVecHistogram(category_name + "_fakestackpT5_denom_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpT5_denom_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackpT5_numer_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpT5_numer_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackpT3_denom_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpT3_denom_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackpT3_numer_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpT3_numer_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackT5_denom_phi"  ,  180 , -M_PI , M_PI   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name +  "_fakestackT5_denom_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackT5_numer_phi"  ,  180 , -M_PI , M_PI   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name +  "_fakestackT5_numer_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackpLS_denom_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpLS_denom_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_fakestackpLS_numer_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakestackpLS_numer_phi"); } );
     // Histogram utility object that is used to define the histograms
     ana.histograms.addVecHistogram(category_name + "_h_fakerate_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakerate_denom_pt"); } );
     ana.histograms.addVecHistogram(category_name + "_h_fakerate_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_fakerate_numer_pt"); } );
@@ -460,11 +625,20 @@ void fillFakeRateSet(int itc, FakeRateSetDefinition& FRset)
     float pt = 0;
     float eta = 0;
     float phi = 0;
+    bool pT5Found = false;// sdl.sim_pT5_matched()[isimtrk];
+    bool pT3Found = false;// sdl.sim_pT3_matched()[isimtrk];
+    bool T5Found  = false;// sdl.sim_T5_matched()[isimtrk];
+    bool pLSFound = false;// sdl.sim_pLS_matched()[isimtrk];
     if (FRset.set_name.Contains("TC_"))
     {
         pt = sdl.tc_pt()[itc];
         eta = sdl.tc_eta()[itc];
         phi = sdl.tc_phi()[itc];
+        auto type = sdl.tc_type()[itc];
+        if(type==7){pT5Found = true;}
+        if(type==5){pT3Found = true;}
+        if(type==4){T5Found = true;}
+        if(type==8){pLSFound = true;}
     }
     else if (FRset.set_name.Contains("T4s_"))
     {
@@ -517,21 +691,78 @@ void fillFakeRateSet(int itc, FakeRateSetDefinition& FRset)
 
     TString category_name = FRset.set_name;
 
-    if (pt > PTCUT)
+    if (pt > PTCUT){
         ana.tx.pushbackToBranch<float>(category_name + "_fakerate_denom_eta", eta);
-    if (abs(eta) < ETACUT)
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT5_denom_eta", eta);
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT3_denom_eta", eta);
+           ana.tx.pushbackToBranch<float>(category_name + "_fakestackT5_denom_eta", eta);
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpLS_denom_eta", eta);
+    }
+    if (abs(eta) < ETACUT){
         ana.tx.pushbackToBranch<float>(category_name + "_fakerate_denom_pt", pt);
-    if (abs(eta) < ETACUT and pt > PTCUT)
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT5_denom_pt", pt);
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT3_denom_pt", pt);
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackT5_denom_pt", pt);
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpLS_denom_pt", pt);
+    }
+    if (abs(eta) < ETACUT and pt > PTCUT){
         ana.tx.pushbackToBranch<float>(category_name + "_fakerate_denom_phi", phi);
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT5_denom_phi", phi);
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT3_denom_phi", phi);
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackT5_denom_phi", phi);
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpLS_denom_phi", phi);
+    }
 
     if (FRset.pass(itc))
     {
-        if (pt > PTCUT)
+        if (pt > PTCUT){
             ana.tx.pushbackToBranch<float>(category_name + "_fakerate_numer_eta", eta);
-        if (abs(eta) < ETACUT)
+            if(pT5Found){
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT5_numer_eta", eta);
+          }
+          if(pT3Found){
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT3_numer_eta", eta);
+          }
+            if(T5Found){
+          ana.tx.pushbackToBranch<float>(category_name +  "_fakestackT5_numer_eta", eta);
+          }
+            if(pLSFound){
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpLS_numer_eta", eta);
+          }
+
+        }
+        if (abs(eta) < ETACUT){
             ana.tx.pushbackToBranch<float>(category_name + "_fakerate_numer_pt", pt);
-        if (abs(eta) < ETACUT and pt > PTCUT)
+            if(pT5Found){
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT5_numer_pt", pt);
+          }
+            if(pT3Found){
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT3_numer_pt", pt);
+          }
+            if(T5Found){
+          ana.tx.pushbackToBranch<float>(category_name +  "_fakestackT5_numer_pt", pt);
+          }
+            if(pLSFound){
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpLS_numer_pt", pt);
+          }
+
+        }
+        if (abs(eta) < ETACUT and pt > PTCUT){
             ana.tx.pushbackToBranch<float>(category_name + "_fakerate_numer_phi", phi);
+            if(pT5Found){
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT5_numer_phi", phi);
+          }
+            if(pT3Found){
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT3_numer_phi", phi);
+          }
+            if(T5Found){
+          ana.tx.pushbackToBranch<float>(category_name +  "_fakestackT5_numer_phi", phi);
+          }
+            if(pLSFound){
+          ana.tx.pushbackToBranch<float>(category_name + "_fakestackpLS_numer_phi", phi);
+          }
+
+        }
     }
 }
 
@@ -557,6 +788,61 @@ void bookDuplicateRateSet(DuplicateRateSetDefinition& DLset)
     ana.tx.createBranch<vector<float>>(category_name + "_duplrate_numer_pt");
     ana.tx.createBranch<vector<float>>(category_name + "_duplrate_numer_eta");
     ana.tx.createBranch<vector<float>>(category_name + "_duplrate_numer_phi");
+    
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpT5_denom_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpT5_numer_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpT3_denom_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpT3_numer_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackT5_denom_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackT5_numer_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpLS_denom_pt");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpLS_numer_pt");
+
+    // Histogram utility object that is used to define the histograms
+    ana.histograms.addVecHistogram(category_name + "_dupstackpT5_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpT5_denom_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackpT5_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpT5_numer_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackpT3_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpT3_denom_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackpT3_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpT3_numer_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackT5_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name +  "_dupstackT5_denom_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackT5_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name +  "_dupstackT5_numer_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackpLS_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpLS_denom_pt"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackpLS_numer_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpLS_numer_pt"); } );
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpT5_denom_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpT5_numer_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpT3_denom_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpT3_numer_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackT5_denom_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackT5_numer_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpLS_denom_eta");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpLS_numer_eta");
+
+    // Histogram utility object that is used to define the histograms
+    ana.histograms.addVecHistogram(category_name + "_dupstackpT5_denom_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpT5_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackpT5_numer_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpT5_numer_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackpT3_denom_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpT3_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackpT3_numer_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpT3_numer_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackT5_denom_eta"  ,  180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name +  "_dupstackT5_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackT5_numer_eta"  ,  180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name +  "_dupstackT5_numer_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackpLS_denom_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpLS_denom_eta"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackpLS_numer_eta"  , 180 , -4.5  , 4.5   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpLS_numer_eta"); } );
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpT5_denom_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpT5_numer_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpT3_denom_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpT3_numer_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackT5_denom_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackT5_numer_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpLS_denom_phi");
+    ana.tx.createBranch<vector<float>>(category_name + "_dupstackpLS_numer_phi");
+
+    // Histogram utility object that is used to define the histograms
+    ana.histograms.addVecHistogram(category_name + "_dupstackpT5_denom_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpT5_denom_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackpT5_numer_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpT5_numer_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackpT3_denom_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpT3_denom_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackpT3_numer_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpT3_numer_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackT5_denom_phi"  ,  180 , -M_PI , M_PI   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name +  "_dupstackT5_denom_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackT5_numer_phi"  ,  180 , -M_PI , M_PI   , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name +  "_dupstackT5_numer_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackpLS_denom_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpLS_denom_phi"); } );
+    ana.histograms.addVecHistogram(category_name + "_dupstackpLS_numer_phi"  , 180 , -M_PI , M_PI    , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_dupstackpLS_numer_phi"); } );
 
     // Histogram utility object that is used to define the histograms
     ana.histograms.addVecHistogram(category_name + "_h_duplrate_denom_pt"  , pt_boundaries     , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_duplrate_denom_pt"); } );
@@ -643,17 +929,27 @@ void fillDuplicateRateSet(int itc, DuplicateRateSetDefinition& DLset)
     float pt = 0;
     float eta = 0;
     float phi = 0;
+    bool pT5Found = false;// sdl.sim_pT5_matched()[isimtrk];
+    bool pT3Found = false;// sdl.sim_pT3_matched()[isimtrk];
+    bool T5Found  = false;// sdl.sim_T5_matched()[isimtrk];
+    bool pLSFound = false;// sdl.sim_pLS_matched()[isimtrk];
     if (DLset.set_name.Contains("TC_"))
     {
         pt = sdl.tc_pt()[itc];
         eta = sdl.tc_eta()[itc];
         phi = sdl.tc_phi()[itc];
+        auto type = sdl.tc_type()[itc];
+        if(type==7){pT5Found = true;}
+        if(type==5){pT3Found = true;}
+        if(type==4){T5Found = true;}
+        if(type==8){pLSFound = true;}
     }
     else if(DLset.set_name.Contains("TCE_"))
     {
         pt = sdl.tce_pt()[itc];
         eta = sdl.tce_eta()[itc];
         phi = sdl.tce_phi()[itc];
+        
     }
     else if (DLset.set_name.Contains("T4s_"))
     {
@@ -700,21 +996,51 @@ void fillDuplicateRateSet(int itc, DuplicateRateSetDefinition& DLset)
 
     TString category_name = DLset.set_name;
 
-    if (pt > PTCUT)
+    if (pt > PTCUT){
         ana.tx.pushbackToBranch<float>(category_name + "_duplrate_denom_eta", eta);
-    if (abs(eta) < ETACUT)
+          ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT5_denom_eta", eta);
+          ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT3_denom_eta", eta);
+           ana.tx.pushbackToBranch<float>(category_name + "_dupstackT5_denom_eta", eta);
+          ana.tx.pushbackToBranch<float>(category_name + "_dupstackpLS_denom_eta", eta);
+    }
+    if (abs(eta) < ETACUT){
         ana.tx.pushbackToBranch<float>(category_name + "_duplrate_denom_pt", pt);
-    if (abs(eta) < ETACUT and pt > PTCUT)
+          ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT5_denom_pt", pt);
+          ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT3_denom_pt", pt);
+           ana.tx.pushbackToBranch<float>(category_name + "_dupstackT5_denom_pt", pt);
+          ana.tx.pushbackToBranch<float>(category_name + "_dupstackpLS_denom_pt", pt);
+    }
+    if (abs(eta) < ETACUT and pt > PTCUT){
         ana.tx.pushbackToBranch<float>(category_name + "_duplrate_denom_phi", phi);
+          ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT5_denom_phi", phi);
+          ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT3_denom_phi", phi);
+           ana.tx.pushbackToBranch<float>(category_name +  "_dupstackT5_denom_phi", phi);
+          ana.tx.pushbackToBranch<float>(category_name + "_dupstackpLS_denom_phi", phi);
+    }
 
     if (DLset.pass(itc))
     {
-        if (pt > PTCUT)
+        if (pt > PTCUT){
             ana.tx.pushbackToBranch<float>(category_name + "_duplrate_numer_eta", eta);
-        if (abs(eta) < ETACUT)
+            if(pT5Found){ ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT5_numer_eta", eta);}
+          if(pT3Found){ana.tx.pushbackToBranch<float>(category_name +   "_dupstackpT3_numer_eta", eta);}
+            if(T5Found){ana.tx.pushbackToBranch<float>(category_name +  "_dupstackT5_numer_eta", eta);}
+            if(pLSFound){ana.tx.pushbackToBranch<float>(category_name + "_dupstackpLS_numer_eta", eta);}
+        }
+        if (abs(eta) < ETACUT){
             ana.tx.pushbackToBranch<float>(category_name + "_duplrate_numer_pt", pt);
-        if (abs(eta) < ETACUT and pt > PTCUT)
+            if(pT5Found){ ana.tx.pushbackToBranch<float>(category_name +"_dupstackpT5_numer_pt", pt);}
+          if(pT3Found){ana.tx.pushbackToBranch<float>(category_name +   "_dupstackpT3_numer_pt", pt);}
+            if(T5Found){ana.tx.pushbackToBranch<float>(category_name +   "_dupstackT5_numer_pt", pt);}
+            if(pLSFound){ana.tx.pushbackToBranch<float>(category_name + "_dupstackpLS_numer_pt", pt);}
+        }
+        if (abs(eta) < ETACUT and pt > PTCUT){
             ana.tx.pushbackToBranch<float>(category_name + "_duplrate_numer_phi", phi);
+            if(pT5Found){ ana.tx.pushbackToBranch<float>(category_name +"_dupstackpT5_numer_phi", phi);}
+          if(pT3Found){ana.tx.pushbackToBranch<float>(category_name +   "_dupstackpT3_numer_phi", phi);}
+            if(T5Found){ana.tx.pushbackToBranch<float>(category_name +   "_dupstackT5_numer_phi", phi);}
+            if(pLSFound){ana.tx.pushbackToBranch<float>(category_name + "_dupstackpLS_numer_phi", phi);}
+        }
     }
 }
 
