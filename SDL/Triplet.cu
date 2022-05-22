@@ -56,17 +56,17 @@ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, struct objectRa
         if (abs(module_eta[i])>1.5 && abs(module_eta[i])<2.25) eta_number=2;
         if (abs(module_eta[i])>2.25 && abs(module_eta[i])<3) eta_number=3;
 
-        if (category_number == 0 && eta_number == 0) occupancy = 891;
-        if (category_number == 0 && eta_number == 1) occupancy = 575;
-        if (category_number == 0 && eta_number == 2) occupancy = 150;
-        if (category_number == 0 && eta_number == 3) occupancy = 58;
-        if (category_number == 1 && eta_number == 0) occupancy = 1150;
-        if (category_number == 1 && eta_number == 1) occupancy = 725;
+        if (category_number == 0 && eta_number == 0) occupancy = 543;
+        if (category_number == 0 && eta_number == 1) occupancy = 235;
+        if (category_number == 0 && eta_number == 2) occupancy = 88;
+        if (category_number == 0 && eta_number == 3) occupancy = 46;
+        if (category_number == 1 && eta_number == 0) occupancy = 755;
+        if (category_number == 1 && eta_number == 1) occupancy = 347;
         if (category_number == 2 && eta_number == 1) occupancy = 0;
         if (category_number == 2 && eta_number == 2) occupancy = 0;
-        if (category_number == 3 && eta_number == 1) occupancy = 79;
-        if (category_number == 3 && eta_number == 2) occupancy = 107;
-        if (category_number == 3 && eta_number == 3) occupancy = 124;
+        if (category_number == 3 && eta_number == 1) occupancy = 38;
+        if (category_number == 3 && eta_number == 2) occupancy = 46;
+        if (category_number == 3 && eta_number == 3) occupancy = 39;
 
         if(nSegments[i] == 0) occupancy = 0;
         nTotalTriplets += occupancy;
