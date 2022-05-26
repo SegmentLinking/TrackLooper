@@ -1647,7 +1647,7 @@ void SDL::Event::createTrackCandidates()
     //dim3 dupThreads(32,16,2);
     //dim3 dupBlocks(1,1,MAX_BLOCKS);
     dim3 dupThreads(32,16,1);
-    dim3 dupBlocks(nEligibleModules/32,nEligibleModules/16,1);
+    dim3 dupBlocks(max(nEligibleModules/32,1),max(nEligibleModules/16,1),1);
 
     removeDupQuintupletsInGPUv2<<<dupBlocks,dupThreads,0,stream>>>(*quintupletsInGPU,*rangesInGPU);
     //cudaDeviceSynchronize();
