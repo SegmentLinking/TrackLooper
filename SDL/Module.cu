@@ -261,12 +261,18 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
   cms::cuda::free_managed(modulesInGPU.moduleLayerType);
   cms::cuda::free_managed(modulesInGPU.connectedPixels);
 #endif
-  cms::cuda::free_host(pixelMapping.connectedPixelsSizes);
-  cms::cuda::free_host(pixelMapping.connectedPixelsSizesPos);
-  cms::cuda::free_host(pixelMapping.connectedPixelsSizesNeg);
-  cms::cuda::free_host(pixelMapping.connectedPixelsIndex);
-  cms::cuda::free_host(pixelMapping.connectedPixelsIndexPos);
-  cms::cuda::free_host(pixelMapping.connectedPixelsIndexNeg);
+  cudaFreeHost(pixelMapping.connectedPixelsSizes);
+  cudaFreeHost(pixelMapping.connectedPixelsSizesPos);
+  cudaFreeHost(pixelMapping.connectedPixelsSizesNeg);
+  cudaFreeHost(pixelMapping.connectedPixelsIndex);
+  cudaFreeHost(pixelMapping.connectedPixelsIndexPos);
+  cudaFreeHost(pixelMapping.connectedPixelsIndexNeg);
+  //cms::cuda::free_host(pixelMapping.connectedPixelsSizes);
+  //cms::cuda::free_host(pixelMapping.connectedPixelsSizesPos);
+  //cms::cuda::free_host(pixelMapping.connectedPixelsSizesNeg);
+  //cms::cuda::free_host(pixelMapping.connectedPixelsIndex);
+  //cms::cuda::free_host(pixelMapping.connectedPixelsIndexPos);
+  //cms::cuda::free_host(pixelMapping.connectedPixelsIndexNeg);
 }
 void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMapping,cudaStream_t stream)
 {
@@ -703,19 +709,24 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
     std::vector<unsigned int> connectedModuleDetIds;
     std::vector<unsigned int> connectedModuleDetIds_pos;
     std::vector<unsigned int> connectedModuleDetIds_neg;
-    //unsigned int* connectedPixelsIndex;
-    //unsigned int* connectedPixelsIndexPos;
-    //unsigned int* connectedPixelsIndexNeg;
-    //unsigned int* connectedPixelsSizes;
-    //unsigned int* connectedPixelsSizesPos;
-    //unsigned int* connectedPixelsSizesNeg;
-
-    pixelMapping.connectedPixelsIndex = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
-    pixelMapping.connectedPixelsSizes = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
-    pixelMapping.connectedPixelsIndexPos = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
-    pixelMapping.connectedPixelsSizesPos = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
-    pixelMapping.connectedPixelsIndexNeg = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
-    pixelMapping.connectedPixelsSizesNeg = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
+    unsigned int* connectedPixelsIndex;
+    unsigned int* connectedPixelsIndexPos;
+    unsigned int* connectedPixelsIndexNeg;
+    unsigned int* connectedPixelsSizes;
+    unsigned int* connectedPixelsSizesPos;
+    unsigned int* connectedPixelsSizesNeg;
+    cudaMallocHost(&pixelMapping.connectedPixelsIndex,size_superbins * sizeof(unsigned int));
+    cudaMallocHost(&pixelMapping.connectedPixelsSizes,size_superbins * sizeof(unsigned int));
+    cudaMallocHost(&pixelMapping.connectedPixelsIndexPos,size_superbins * sizeof(unsigned int));
+    cudaMallocHost(&pixelMapping.connectedPixelsSizesPos,size_superbins * sizeof(unsigned int));
+    cudaMallocHost(&pixelMapping.connectedPixelsIndexNeg,size_superbins * sizeof(unsigned int));
+    cudaMallocHost(&pixelMapping.connectedPixelsSizesNeg,size_superbins * sizeof(unsigned int));
+    //pixelMapping.connectedPixelsIndex = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
+    //pixelMapping.connectedPixelsSizes = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
+    //pixelMapping.connectedPixelsIndexPos = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
+    //pixelMapping.connectedPixelsSizesPos = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
+    //pixelMapping.connectedPixelsIndexNeg = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
+    //pixelMapping.connectedPixelsSizesNeg = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
     int totalSizes=0;
     int totalSizes_pos=0;
     int totalSizes_neg=0;
