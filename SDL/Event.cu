@@ -808,7 +808,8 @@ std::vector<std::vector<short>>&    out_isQuad_vec
     for(int evt=0; evt < static_cast<int>(out_trkX.size()); evt++)
     {
         struct SDL::hits* hitsInGPU_event;
-        hitsInGPU_event = (struct SDL::hits*)cms::cuda::allocate_host(sizeof(struct SDL::hits), modStream);
+        //hitsInGPU_event = (struct SDL::hits*)cms::cuda::allocate_host(sizeof(struct SDL::hits), modStream);
+        cudaMallocHost(&hitsInGPU_event, sizeof(struct SDL::hits));
         #ifdef Explicit_Hit
         createHitsInExplicitMemory(*hitsInGPU_event, hitOffset.at(evt+1),modStream,1); //unclear why but this has to be 2*loopsize to avoid crashing later (reported in tracklet allocation). seems to do with nHits values as well. this allows nhits to be set to the correct value of loopsize to get correct results without crashing. still beats the "max hits" so i think this is fine.
         #else
@@ -844,8 +845,8 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     }
     if(hitsInGPU == nullptr)
     {
-        //cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
-        hitsInGPU = (SDL::hits*)cms::cuda::allocate_host(sizeof(SDL::hits), stream);
+        cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
+        //hitsInGPU = (SDL::hits*)cms::cuda::allocate_host(sizeof(SDL::hits), stream);
         #ifdef Explicit_Hit
     	  createHitsInExplicitMemory(*hitsInGPU, 2*loopsize,stream,1); //unclear why but this has to be 2*loopsize to avoid crashing later (reported in tracklet allocation). seems to do with nHits values as well. this allows nhits to be set to the correct value of loopsize to get correct results without crashing. still beats the "max hits" so i think this is fine.
         #else
