@@ -808,7 +808,8 @@ std::vector<std::vector<short>>&    out_isQuad_vec
     for(int evt=0; evt < static_cast<int>(out_trkX.size()); evt++)
     {
         struct SDL::hits* hitsInGPU_event;
-        hitsInGPU_event = (struct SDL::hits*)cms::cuda::allocate_host(sizeof(struct SDL::hits), modStream);
+        //hitsInGPU_event = (struct SDL::hits*)cms::cuda::allocate_host(sizeof(struct SDL::hits), modStream);
+        cudaMallocHost(&hitsInGPU_event, sizeof(struct SDL::hits));
         #ifdef Explicit_Hit
         createHitsInExplicitMemory(*hitsInGPU_event, hitOffset.at(evt+1),modStream,1); //unclear why but this has to be 2*loopsize to avoid crashing later (reported in tracklet allocation). seems to do with nHits values as well. this allows nhits to be set to the correct value of loopsize to get correct results without crashing. still beats the "max hits" so i think this is fine.
         #else
@@ -844,8 +845,8 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     }
     if(hitsInGPU == nullptr)
     {
-        //cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
-        hitsInGPU = (SDL::hits*)cms::cuda::allocate_host(sizeof(SDL::hits), stream);
+        cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
+        //hitsInGPU = (SDL::hits*)cms::cuda::allocate_host(sizeof(SDL::hits), stream);
         #ifdef Explicit_Hit
     	  createHitsInExplicitMemory(*hitsInGPU, 2*loopsize,stream,1); //unclear why but this has to be 2*loopsize to avoid crashing later (reported in tracklet allocation). seems to do with nHits values as well. this allows nhits to be set to the correct value of loopsize to get correct results without crashing. still beats the "max hits" so i think this is fine.
         #else
@@ -1650,7 +1651,7 @@ void SDL::Event::createTrackCandidates()
     //dim3 dupThreads(32,16,2);
     //dim3 dupBlocks(1,1,MAX_BLOCKS);
     dim3 dupThreads(32,16,1);
-    dim3 dupBlocks(nEligibleModules/32,nEligibleModules/16,1);
+    dim3 dupBlocks(max(nEligibleModules/32,1),max(nEligibleModules/16,1),1);
 
     removeDupQuintupletsInGPUv2<<<dupBlocks,dupThreads,0,stream>>>(*quintupletsInGPU,*rangesInGPU);
     //cudaDeviceSynchronize();
@@ -1805,8 +1806,10 @@ void SDL::Event::createPixelTriplets()
 
     unsigned int* connectedPixelSize_host;
     unsigned int* connectedPixelIndex_host;
-    connectedPixelSize_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
-    connectedPixelIndex_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
+    cudaMallocHost(&connectedPixelSize_host, nInnerSegments* sizeof(unsigned int));
+    cudaMallocHost(&connectedPixelIndex_host, nInnerSegments* sizeof(unsigned int));
+    //connectedPixelSize_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
+    //connectedPixelIndex_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
 
     unsigned int* connectedPixelSize_dev;
     unsigned int* connectedPixelIndex_dev;
@@ -1857,8 +1860,10 @@ void SDL::Event::createPixelTriplets()
     cudaMemcpyAsync(connectedPixelIndex_dev, connectedPixelIndex_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
 
-    cms::cuda::free_host(connectedPixelSize_host);
-    cms::cuda::free_host(connectedPixelIndex_host);
+    cudaFreeHost(connectedPixelSize_host);
+    cudaFreeHost(connectedPixelIndex_host);
+    //cms::cuda::free_host(connectedPixelSize_host);
+    //cms::cuda::free_host(connectedPixelIndex_host);
     cms::cuda::free_host(superbins);
     cms::cuda::free_host(pixelTypes);
     cms::cuda::free_host(nTriplets);
@@ -2084,8 +2089,10 @@ void SDL::Event::createPixelQuintuplets()
     unsigned int nInnerSegments = 0;
     cudaMemcpyAsync(&nInnerSegments, &(segmentsInGPU->nSegments[pixelModuleIndex]), sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 
-    connectedPixelSize_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
-    connectedPixelIndex_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
+    cudaMallocHost(&connectedPixelSize_host, nInnerSegments* sizeof(unsigned int));
+    cudaMallocHost(&connectedPixelIndex_host, nInnerSegments* sizeof(unsigned int));
+    //connectedPixelSize_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
+    //connectedPixelIndex_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
     cudaMalloc(&connectedPixelSize_dev, nInnerSegments* sizeof(unsigned int));
     cudaMalloc(&connectedPixelIndex_dev, nInnerSegments* sizeof(unsigned int));
 
@@ -2171,8 +2178,10 @@ cudaStreamSynchronize(stream);
 
     }
     cudaStreamSynchronize(stream);
-    cms::cuda::free_host(connectedPixelSize_host);
-    cms::cuda::free_host(connectedPixelIndex_host);
+    cudaFreeHost(connectedPixelSize_host);
+    cudaFreeHost(connectedPixelIndex_host);
+    //cms::cuda::free_host(connectedPixelSize_host);
+    //cms::cuda::free_host(connectedPixelIndex_host);
     cudaFree(connectedPixelSize_dev);
     cudaFree(connectedPixelIndex_dev);
     cms::cuda::free_host(superbins);
