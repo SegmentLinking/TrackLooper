@@ -1773,13 +1773,11 @@ __device__ void SDL::addPixelQuintupletToMemory(struct modules& modulesInGPU, st
 #endif
 }
 
-__device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct quintuplets& quintupletsInGPU, unsigned int& pixelSegmentIndex, unsigned int& quintupletIndex, float& rzChiSquared, float& rPhiChiSquared, float& rPhiChiSquaredInwards, float& pixelRadius, float& quintupletRadius, float& centerX, float& centerY)
+__device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct quintuplets& quintupletsInGPU, unsigned int& pixelSegmentIndex, unsigned int& quintupletIndex, float& rzChiSquared, float& rPhiChiSquared, float& rPhiChiSquaredInwards, float& pixelRadius, float& quintupletRadius, float& centerX, float& centerY, unsigned int pixelSegmentArrayIndex)
 {
     bool pass = true;
     
-    unsigned int pixelModuleIndex = segmentsInGPU.innerLowerModuleIndices[pixelSegmentIndex];
-
-    unsigned int pixelSegmentArrayIndex = pixelSegmentIndex - rangesInGPU.segmentModuleIndices[pixelModuleIndex];
+//    unsigned int pixelModuleIndex = *modulesInGPU.nLowerModules;//segmentsInGPU.innerLowerModuleIndices[pixelSegmentIndex];
 
     unsigned int T5InnerT3Index = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
     unsigned int T5OuterT3Index = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
@@ -1808,12 +1806,12 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
     uint16_t lowerModuleIndex4 = quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex + 3];
     uint16_t lowerModuleIndex5 = quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex + 4];
 
-    uint16_t lowerModuleIndices[] = {lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5};
+    uint16_t lowerModuleIndices[5] = {lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5};
     
-    float zPix[] = {mdsInGPU.anchorZ[pixelInnerMDIndex], mdsInGPU.anchorZ[pixelOuterMDIndex]};
-    float rtPix[] = {mdsInGPU.anchorRt[pixelInnerMDIndex], mdsInGPU.anchorRt[pixelOuterMDIndex]};
-    float zs[] = {mdsInGPU.anchorZ[firstMDIndex], mdsInGPU.anchorZ[secondMDIndex], mdsInGPU.anchorZ[thirdMDIndex], mdsInGPU.anchorZ[fourthMDIndex], mdsInGPU.anchorZ[fifthMDIndex]};
-    float rts[] = {mdsInGPU.anchorRt[firstMDIndex], mdsInGPU.anchorRt[secondMDIndex], mdsInGPU.anchorRt[thirdMDIndex], mdsInGPU.anchorRt[fourthMDIndex], mdsInGPU.anchorRt[fifthMDIndex]};
+    float zPix[2] = {mdsInGPU.anchorZ[pixelInnerMDIndex], mdsInGPU.anchorZ[pixelOuterMDIndex]};
+    float rtPix[2] = {mdsInGPU.anchorRt[pixelInnerMDIndex], mdsInGPU.anchorRt[pixelOuterMDIndex]};
+    float zs[5] = {mdsInGPU.anchorZ[firstMDIndex], mdsInGPU.anchorZ[secondMDIndex], mdsInGPU.anchorZ[thirdMDIndex], mdsInGPU.anchorZ[fourthMDIndex], mdsInGPU.anchorZ[fifthMDIndex]};
+    float rts[5] = {mdsInGPU.anchorRt[firstMDIndex], mdsInGPU.anchorRt[secondMDIndex], mdsInGPU.anchorRt[thirdMDIndex], mdsInGPU.anchorRt[fourthMDIndex], mdsInGPU.anchorRt[fifthMDIndex]};
 
     rzChiSquared = computePT5RZChiSquared(modulesInGPU, lowerModuleIndices, rtPix, zPix, rts, zs);
 
@@ -1824,10 +1822,11 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
     }
 
     //outer T5
-    float xs[] = {mdsInGPU.anchorX[firstMDIndex], mdsInGPU.anchorX[secondMDIndex], mdsInGPU.anchorX[thirdMDIndex], mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorX[fifthMDIndex]};
-    float ys[] = {mdsInGPU.anchorY[firstMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorY[thirdMDIndex], mdsInGPU.anchorY[fourthMDIndex], mdsInGPU.anchorY[fifthMDIndex]};
+    float xs[5] = {mdsInGPU.anchorX[firstMDIndex], mdsInGPU.anchorX[secondMDIndex], mdsInGPU.anchorX[thirdMDIndex], mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorX[fifthMDIndex]};
+    float ys[5] = {mdsInGPU.anchorY[firstMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorY[thirdMDIndex], mdsInGPU.anchorY[fourthMDIndex], mdsInGPU.anchorY[fifthMDIndex]};
 
     //get the appropriate radii and centers
+    centerX  = segmentsInGPU.circleCenterX[1];
     centerX  = segmentsInGPU.circleCenterX[pixelSegmentArrayIndex];
     centerY = segmentsInGPU.circleCenterY[pixelSegmentArrayIndex];
     pixelRadius = segmentsInGPU.circleRadius[pixelSegmentArrayIndex];
@@ -2405,42 +2404,39 @@ __device__ void SDL::computeSigmasForRegression_pT5(SDL::modules& modulesInGPU, 
 //    }
 }
 
-__global__ void SDL::createPixelQuintupletsInGPUFromMapv2(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex, unsigned int nPixelSegments, unsigned int* seg_pix_gpu, unsigned int* seg_pix_gpu_offset, unsigned int totalSegs, struct SDL::objectRanges& rangesInGPU)
+__global__ void SDL::createPixelQuintupletsInGPUFromMapv2(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex, unsigned int nPixelSegments, struct SDL::objectRanges& rangesInGPU)
 {
-    //unsigned int offsetIndex = blockIdx.x * blockDim.x + threadIdx.x;
     int blockxSize = blockDim.x*gridDim.x;
     int blockySize = blockDim.y*gridDim.y;
-    for(int offsetIndex = blockIdx.y * blockDim.y + threadIdx.y; offsetIndex< totalSegs; offsetIndex += blockySize)
+    for(int i_pLS = blockIdx.y * blockDim.y + threadIdx.y; i_pLS< nPixelSegments; i_pLS += blockySize)
     {
-        int segmentModuleIndex = seg_pix_gpu_offset[offsetIndex];
-        int pixelSegmentArrayIndex = seg_pix_gpu[offsetIndex];
-        if(pixelSegmentArrayIndex >= nPixelSegments) continue;//return;
-        if(segmentModuleIndex >= connectedPixelSize[pixelSegmentArrayIndex]) continue;//return;
+          auto iLSModule_max = connectedPixelIndex[i_pLS] + connectedPixelSize[i_pLS];
+      for( int iLSModule = connectedPixelIndex[i_pLS] + blockIdx.z; iLSModule<iLSModule_max; iLSModule += gridDim.z)
+      {
 
-        unsigned int tempIndex = connectedPixelIndex[pixelSegmentArrayIndex] + segmentModuleIndex; //gets module array index for segment
-
-    //these are actual module indices
-        uint16_t quintupletLowerModuleIndex = modulesInGPU.connectedPixels[tempIndex];
-        if(quintupletLowerModuleIndex >= *modulesInGPU.nLowerModules) continue;//return;
-
+        //these are actual module indices
+        uint16_t quintupletLowerModuleIndex = modulesInGPU.connectedPixels[iLSModule];
+        if(quintupletLowerModuleIndex >= *modulesInGPU.nLowerModules) continue;
+        if( modulesInGPU.moduleType[quintupletLowerModuleIndex] == SDL::TwoS) continue;
         uint16_t pixelModuleIndex = *modulesInGPU.nLowerModules;
+        if(segmentsInGPU.isDup[i_pLS]) continue;
         unsigned int nOuterQuintuplets = quintupletsInGPU.nQuintuplets[quintupletLowerModuleIndex];
 
-        if(nOuterQuintuplets == 0) continue;//return;
+        if(nOuterQuintuplets == 0) continue;
+
+        unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + i_pLS;
 
         //fetch the quintuplet
         for(unsigned int outerQuintupletArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; outerQuintupletArrayIndex< nOuterQuintuplets; outerQuintupletArrayIndex +=blockxSize)
         {
-            unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + pixelSegmentArrayIndex;
 
             unsigned int quintupletIndex = rangesInGPU.quintupletModuleIndices[quintupletLowerModuleIndex] + outerQuintupletArrayIndex;
 
-            if(segmentsInGPU.isDup[pixelSegmentArrayIndex]) continue;//return;//skip duplicated pLS
-            if(quintupletsInGPU.isDup[quintupletIndex]) continue;//return; //skip duplicated T5s
+            if(quintupletsInGPU.isDup[quintupletIndex]) continue;
 
             float rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, pixelRadius, quintupletRadius, centerX, centerY;
 
-            bool success = runPixelQuintupletDefaultAlgo(modulesInGPU, rangesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelSegmentIndex, quintupletIndex, rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, pixelRadius, quintupletRadius, centerX, centerY);
+            bool success = runPixelQuintupletDefaultAlgo(modulesInGPU, rangesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelSegmentIndex, quintupletIndex, rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, pixelRadius, quintupletRadius, centerX, centerY,static_cast<unsigned int>(i_pLS));
             if(success)
             {
                 unsigned int totOccupancyPixelQuintuplets = atomicAdd(pixelQuintupletsInGPU.totOccupancyPixelQuintuplets, 1);
@@ -2464,13 +2460,14 @@ __global__ void SDL::createPixelQuintupletsInGPUFromMapv2(struct SDL::modules& m
 #endif
                     tripletsInGPU.partOfPT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex]] = true;
                     tripletsInGPU.partOfPT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1]] = true;
-                    segmentsInGPU.partOfPT5[pixelSegmentArrayIndex] = true;
+                    segmentsInGPU.partOfPT5[i_pLS] = true;
                     quintupletsInGPU.partOfPT5[quintupletIndex] = true;
-                }
-            }
-        }
-    }
-}
+                }// tot occupancy
+            }//end success
+        } //end T5
+      }//end iLS
+    }// end i_pLS
+}// 
 __device__ void SDL::runDeltaBetaIterationspT5(float& betaIn, float& betaOut, float& betaAv, float & pt_beta, float sdIn_dr, float sdOut_dr, float dr, float lIn)
 {
     if (lIn == 0)
