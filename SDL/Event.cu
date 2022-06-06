@@ -1803,10 +1803,10 @@ void SDL::Event::createPixelTriplets()
 
     unsigned int* connectedPixelSize_host;
     unsigned int* connectedPixelIndex_host;
-    cudaMallocHost(&connectedPixelSize_host, nInnerSegments* sizeof(unsigned int));
-    cudaMallocHost(&connectedPixelIndex_host, nInnerSegments* sizeof(unsigned int));
-    //connectedPixelSize_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
-    //connectedPixelIndex_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
+    //cudaMallocHost(&connectedPixelSize_host, nInnerSegments* sizeof(unsigned int));
+    //cudaMallocHost(&connectedPixelIndex_host, nInnerSegments* sizeof(unsigned int));
+    connectedPixelSize_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
+    connectedPixelIndex_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
 
     unsigned int* connectedPixelSize_dev;
     unsigned int* connectedPixelIndex_dev;
@@ -1857,10 +1857,10 @@ void SDL::Event::createPixelTriplets()
     cudaMemcpyAsync(connectedPixelIndex_dev, connectedPixelIndex_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
 
-    cudaFreeHost(connectedPixelSize_host);
-    cudaFreeHost(connectedPixelIndex_host);
-    //cms::cuda::free_host(connectedPixelSize_host);
-    //cms::cuda::free_host(connectedPixelIndex_host);
+    //cudaFreeHost(connectedPixelSize_host);
+    //cudaFreeHost(connectedPixelIndex_host);
+    cms::cuda::free_host(connectedPixelSize_host);
+    cms::cuda::free_host(connectedPixelIndex_host);
     cms::cuda::free_host(superbins);
     cms::cuda::free_host(pixelTypes);
     cms::cuda::free_host(nTriplets);
@@ -2086,10 +2086,12 @@ void SDL::Event::createPixelQuintuplets()
     unsigned int nInnerSegments = 0;
     cudaMemcpyAsync(&nInnerSegments, &(segmentsInGPU->nSegments[pixelModuleIndex]), sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 
-    cudaMallocHost(&connectedPixelSize_host, nInnerSegments* sizeof(unsigned int));
-    cudaMallocHost(&connectedPixelIndex_host, nInnerSegments* sizeof(unsigned int));
-    //connectedPixelSize_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
-    //connectedPixelIndex_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
+    //cudaMallocHost(&connectedPixelSize_host, nInnerSegments* sizeof(unsigned int));
+    //cudaMallocHost(&connectedPixelIndex_host, nInnerSegments* sizeof(unsigned int));
+    connectedPixelSize_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
+    connectedPixelIndex_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
+    //connectedPixelSize_dev = (unsigned int*)cms::cuda::allocate_device(dev,nInnerSegments* sizeof(unsigned int),stream);
+    //connectedPixelSize_dev = (unsigned int*)cms::cuda::allocate_device(dev,nInnerSegments* sizeof(unsigned int),stream);
     cudaMalloc(&connectedPixelSize_dev, nInnerSegments* sizeof(unsigned int));
     cudaMalloc(&connectedPixelIndex_dev, nInnerSegments* sizeof(unsigned int));
     cudaStreamSynchronize(stream);
@@ -2146,10 +2148,10 @@ cudaStreamSynchronize(stream);
 
     }
     cudaStreamSynchronize(stream);
-    cudaFreeHost(connectedPixelSize_host);
-    cudaFreeHost(connectedPixelIndex_host);
-    //cms::cuda::free_host(connectedPixelSize_host);
-    //cms::cuda::free_host(connectedPixelIndex_host);
+    //cudaFreeHost(connectedPixelSize_host);
+    //cudaFreeHost(connectedPixelIndex_host);
+    cms::cuda::free_host(connectedPixelSize_host);
+    cms::cuda::free_host(connectedPixelIndex_host);
     cudaFree(connectedPixelSize_dev);
     cudaFree(connectedPixelIndex_dev);
     cms::cuda::free_host(superbins);
