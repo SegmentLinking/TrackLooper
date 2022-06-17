@@ -1085,6 +1085,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         //hardcoded range numbers for this will come from studies!
         unsigned int nTotalSegments;
         createSegmentArrayRanges(*modulesInGPU, *rangesInGPU, *mdsInGPU, nLowerModules, nTotalSegments, stream, N_MAX_SEGMENTS_PER_MODULE, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+//        cout<<"nTotalSegments: "<<nTotalSegments<<std::endl; // for memory usage
 
 #ifdef Explicit_Seg
         createSegmentsInExplicitMemory(*segmentsInGPU, nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE,stream);
@@ -1394,6 +1395,7 @@ void SDL::Event::createMiniDoublets()
     //hardcoded range numbers for this will come from studies!
     unsigned int nTotalMDs;
     createMDArrayRanges(*modulesInGPU, *rangesInGPU, nLowerModules, nTotalMDs, stream, N_MAX_MD_PER_MODULES, N_MAX_PIXEL_MD_PER_MODULES);
+//    cout<<"nTotalMDs: "<<nTotalMDs<<std::endl; // for memory usage
 
     if(mdsInGPU == nullptr)
     {
@@ -1529,6 +1531,7 @@ void SDL::Event::createTriplets()
         tripletsInGPU = (SDL::triplets*)cms::cuda::allocate_host(sizeof(SDL::triplets), stream);
         unsigned int maxTriplets;
         createTripletArrayRanges(*modulesInGPU, *rangesInGPU, *segmentsInGPU, nLowerModules, maxTriplets, stream, N_MAX_TRIPLETS_PER_MODULE);
+//        cout<<"nTotalTriplets: "<<maxTriplets<<std::endl; // for memory usage
 #ifdef Explicit_Trips
         createTripletsInExplicitMemory(*tripletsInGPU, maxTriplets, nLowerModules,stream);
 #else
