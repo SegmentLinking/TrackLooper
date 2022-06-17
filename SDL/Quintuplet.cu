@@ -163,6 +163,14 @@ cudaStreamSynchronize(stream);
     }
     cudaMemcpyAsync(rangesInGPU.quintupletModuleIndices,module_quintupletModuleIndices,nLowerModules*sizeof(int),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(rangesInGPU.nEligibleT5Modules,&nEligibleModules,sizeof(uint16_t),cudaMemcpyHostToDevice,stream);
+#ifdef CACHE_ALLOC
+        int dev;
+        cudaGetDevice(&dev);
+        rangesInGPU.indicesOfEligibleT5Modules = (uint16_t*)cms::cuda::allocate_device(dev, nEligibleModules * sizeof(uint16_t), stream);
+#else
+        cudaMalloc(&(rangesInGPU.indicesOfEligibleT5Modules), nEligibleModules * sizeof(uint16_t));
+#endif
+cudaMemcpyAsync(rangesInGPU.indicesOfEligibleT5Modules, indicesOfEligibleModules, nEligibleModules * sizeof(uint16_t), cudaMemcpyHostToDevice, stream);
 cudaStreamSynchronize(stream);
     cms::cuda::free_host(module_subdets);
     cms::cuda::free_host(module_layers);
@@ -1359,25 +1367,32 @@ __device__ float SDL::computeChiSquared(int nPoints, float* xs, float* ys, float
     return chiSquared; 
 }
 
-__global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int* threadIdx_gpu, unsigned int* threadIdx_gpu_offset, int nTotalTriplets, struct SDL::objectRanges& rangesInGPU)
+__global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, /*unsigned int* threadIdx_gpu, unsigned int* threadIdx_gpu_offset, int nTotalTriplets,*/ struct SDL::objectRanges& rangesInGPU, uint16_t nEligibleT5Modules)
 {
     int gidy = blockIdx.y * blockDim.y + threadIdx.y;
-    int np = gridDim.y * blockDim.y;
+    int npy = gridDim.y * blockDim.y;
     int gidx = blockIdx.x * blockDim.x + threadIdx.x;
     int npx = gridDim.x * blockDim.x;
+    int gidz = blockIdx.z * blockDim.z + threadIdx.z;
+    int npz = gridDim.z * blockDim.z;
 
-    for (int iter=gidy; iter < nTotalTriplets; iter+=np)
-    {
-        uint16_t lowerModule1 = threadIdx_gpu[iter];
+    for (int iter=gidz; iter < nEligibleT5Modules; iter+=npz){
+      uint16_t lowerModule1 = rangesInGPU.indicesOfEligibleT5Modules[iter];
 
-        //this if statement never gets executed!
-        if(lowerModule1  >= *modulesInGPU.nLowerModules) continue;
+    //for (int iter=gidy; iter < nTotalTriplets; iter+=np)
+    //{
+    //    uint16_t lowerModule1 = threadIdx_gpu[iter];
+
+    //    //this if statement never gets executed!
+    //    if(lowerModule1  >= *modulesInGPU.nLowerModules) continue;
 
         unsigned int nInnerTriplets = tripletsInGPU.nTriplets[lowerModule1];
+        //printf("nInnerTriplets: %u\n",nInnerTriplets);
 
-        unsigned int innerTripletArrayIndex = threadIdx_gpu_offset[iter];
+        //unsigned int innerTripletArrayIndex = threadIdx_gpu_offset[iter];
 
-        if(innerTripletArrayIndex >= nInnerTriplets) continue;
+        //if(innerTripletArrayIndex >= nInnerTriplets) continue;
+        for( unsigned int innerTripletArrayIndex =gidy; innerTripletArrayIndex < nInnerTriplets; innerTripletArrayIndex+=npy){
 
         unsigned int innerTripletIndex = rangesInGPU.tripletModuleIndices[lowerModule1] + innerTripletArrayIndex;
         //these are actual module indices!! not lower module indices!
@@ -1450,7 +1465,7 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
                 }
             }
         }
-    }
+    }}
 }
 
 __device__ bool SDL::runQuintupletDefaultAlgoBBBB(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& innerOuterLowerModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex,
