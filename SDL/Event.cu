@@ -1913,7 +1913,9 @@ cudaStreamSynchronize(stream);
     uint16_t *indicesOfEligibleModules = (uint16_t*)malloc(nLowerModules*sizeof(uint16_t));
 
     unsigned int maxTriplets;
-    createEligibleModulesListForQuintuplets(*modulesInGPU, *tripletsInGPU, nEligibleT5Modules, indicesOfEligibleModules, N_MAX_QUINTUPLETS_PER_MODULE, maxTriplets,stream,*rangesInGPU);
+    unsigned int nTotalQuintuplets;
+    createEligibleModulesListForQuintuplets(*modulesInGPU, *tripletsInGPU, nEligibleT5Modules, indicesOfEligibleModules, nTotalQuintuplets, maxTriplets,stream,*rangesInGPU);
+    cout<<"nTotalQuintuplets: "<<nTotalQuintuplets<<std::endl; // for memory usage
 
     if(quintupletsInGPU == nullptr)
     {
