@@ -1913,7 +1913,20 @@ cudaStreamSynchronize(stream);
     uint16_t *indicesOfEligibleModules = (uint16_t*)malloc(nLowerModules*sizeof(uint16_t));
 
     unsigned int maxTriplets;
-    createEligibleModulesListForQuintuplets(*modulesInGPU, *tripletsInGPU, nEligibleT5Modules, indicesOfEligibleModules, N_MAX_QUINTUPLETS_PER_MODULE, maxTriplets,stream,*rangesInGPU);
+#ifdef CACHE_ALLOC
+        int dev;
+        cudaGetDevice(&dev);
+        rangesInGPU->indicesOfEligibleT5Modules = (uint16_t*)cms::cuda::allocate_device(dev, nLowerModules * sizeof(uint16_t), stream);
+#else
+        cudaMalloc(&(rangesInGPU->indicesOfEligibleT5Modules), nLowerModules * sizeof(uint16_t));
+#endif
+cudaStreamSynchronize(stream);
+    createEligibleModulesListForQuintupletsGPU(*modulesInGPU, *tripletsInGPU, nEligibleT5Modules, indicesOfEligibleModules, N_MAX_QUINTUPLETS_PER_MODULE, maxTriplets,stream,*rangesInGPU);
+    //createEligibleModulesListForQuintuplets(*modulesInGPU, *tripletsInGPU, nEligibleT5Modules, indicesOfEligibleModules, N_MAX_QUINTUPLETS_PER_MODULE, maxTriplets,stream,*rangesInGPU);
+cudaStreamSynchronize(stream);
+    cudaMemcpyAsync(rangesInGPU->nEligibleT5Modules,&nEligibleT5Modules,sizeof(uint16_t),cudaMemcpyHostToDevice,stream);
+cudaMemcpyAsync(rangesInGPU->indicesOfEligibleT5Modules, indicesOfEligibleModules, nEligibleT5Modules * sizeof(uint16_t), cudaMemcpyHostToDevice, stream);
+cudaStreamSynchronize(stream);
 
     if(quintupletsInGPU == nullptr)
     {

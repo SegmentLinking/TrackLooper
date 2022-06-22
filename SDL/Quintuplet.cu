@@ -124,6 +124,49 @@ cudaStreamSynchronize(stream);
 }
 
 //TODO:Reuse the track candidate one instead of this!
+void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU,struct triplets& tripletsInGPU, uint16_t& nEligibleModules, uint16_t* indicesOfEligibleModules, unsigned int maxQuintuplets, unsigned int& maxTriplets,cudaStream_t stream,struct objectRanges& rangesInGPU)
+{
+    uint16_t nLowerModules;
+    maxTriplets = 0;
+    cudaMemcpyAsync(&nLowerModules,modulesInGPU.nLowerModules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
+
+    cudaMemsetAsync(rangesInGPU.quintupletModuleIndices, -1, sizeof(int) * (nLowerModules),stream);
+
+    short* module_subdets;
+    module_subdets = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
+    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
+    short* module_layers;
+    module_layers = (short*)cms::cuda::allocate_host(nLowerModules * sizeof(short), stream);
+    cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
+
+    int* module_quintupletModuleIndices;
+    module_quintupletModuleIndices = (int*)cms::cuda::allocate_host(nLowerModules * sizeof(int), stream);
+    cudaMemcpyAsync(module_quintupletModuleIndices,rangesInGPU.quintupletModuleIndices,nLowerModules *sizeof(int),cudaMemcpyDeviceToHost,stream);
+
+    unsigned int* nTriplets;
+    nTriplets = (unsigned int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
+    cudaMemcpyAsync(nTriplets, tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+cudaStreamSynchronize(stream);
+
+    //start filling
+    for(uint16_t i = 0; i < nLowerModules; i++)
+    {
+        //condition for a quintuple to exist for a module
+        //TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap
+        if(((module_subdets[i] == SDL::Barrel and module_layers[i] < 3) or (module_subdets[i] == SDL::Endcap and module_layers[i] == 1)) and nTriplets[i] != 0)
+        {
+            module_quintupletModuleIndices[i] = nEligibleModules * maxQuintuplets; //for variable occupancy change this to module_quintupletModuleIndices[i-1] + blah
+            indicesOfEligibleModules[nEligibleModules] = i;
+            nEligibleModules++;
+            maxTriplets = max(nTriplets[i], maxTriplets);
+        }
+    }
+    cudaMemcpyAsync(rangesInGPU.quintupletModuleIndices,module_quintupletModuleIndices,nLowerModules*sizeof(int),cudaMemcpyHostToDevice,stream);
+    cms::cuda::free_host(module_subdets);
+    cms::cuda::free_host(module_layers);
+    cms::cuda::free_host(module_quintupletModuleIndices);
+    cms::cuda::free_host(nTriplets);
+}
 void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,struct triplets& tripletsInGPU, uint16_t& nEligibleModules, uint16_t* indicesOfEligibleModules, unsigned int maxQuintuplets, unsigned int& maxTriplets,cudaStream_t stream,struct objectRanges& rangesInGPU)
 {
     uint16_t nLowerModules;
