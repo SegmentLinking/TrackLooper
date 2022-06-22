@@ -193,7 +193,7 @@ void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,s
         nEligibleModules++;
         maxTriplets = max(nTriplets[i], maxTriplets);
     }
-
+    cout<<nTotalQuintuplets<<std::endl;
     cudaMemcpyAsync(rangesInGPU.quintupletModuleIndices,module_quintupletModuleIndices,nLowerModules*sizeof(int),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(rangesInGPU.nEligibleT5Modules,&nEligibleModules,sizeof(uint16_t),cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
