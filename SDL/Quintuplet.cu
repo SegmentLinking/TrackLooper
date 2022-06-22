@@ -125,9 +125,10 @@ cudaStreamSynchronize(stream);
 
 //TODO:Reuse the track candidate one instead of this!
 //void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,struct triplets& tripletsInGPU, uint16_t& nEligibleModules, uint16_t* indicesOfEligibleModules, unsigned int& maxTriplets,cudaStream_t stream,struct objectRanges& rangesInGPU)
-void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,struct triplets& tripletsInGPU, uint16_t& nEligibleModules, uint16_t* indicesOfEligibleModules, unsigned int nTotalQuintuplets, unsigned int& maxTriplets,cudaStream_t stream,struct objectRanges& rangesInGPU)
+void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,struct triplets& tripletsInGPU, uint16_t& nEligibleModules, uint16_t* indicesOfEligibleModules, unsigned int& nTotalQuintuplets, unsigned int& maxTriplets,cudaStream_t stream,struct objectRanges& rangesInGPU)
 {
     uint16_t nLowerModules;
+    nTotalQuintuplets = 0; //start!
     maxTriplets = 0;
     cudaMemcpyAsync(&nLowerModules,modulesInGPU.nLowerModules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
 
@@ -155,7 +156,6 @@ void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,s
     cudaMemcpyAsync(nTriplets, tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
     cudaStreamSynchronize(stream);
 
-    nTotalQuintuplets = 0; //start!
     //start filling
     for(uint16_t i = 0; i < nLowerModules; i++)
     {
@@ -193,7 +193,7 @@ void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,s
         nEligibleModules++;
         maxTriplets = max(nTriplets[i], maxTriplets);
     }
-
+    cout<<nTotalQuintuplets<<std::endl;
     cudaMemcpyAsync(rangesInGPU.quintupletModuleIndices,module_quintupletModuleIndices,nLowerModules*sizeof(int),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(rangesInGPU.nEligibleT5Modules,&nEligibleModules,sizeof(uint16_t),cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
