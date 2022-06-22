@@ -1922,7 +1922,7 @@ cudaStreamSynchronize(stream);
 #endif
     cudaMemsetAsync(rangesInGPU->quintupletModuleIndices, -1, sizeof(int) * (nLowerModules),stream);
 cudaStreamSynchronize(stream);
-    createEligibleModulesListForQuintupletsGPU<<<1,1,0,stream>>>(*modulesInGPU, *tripletsInGPU, N_MAX_QUINTUPLETS_PER_MODULE,stream,*rangesInGPU);
+    createEligibleModulesListForQuintupletsGPU<<<1,1024,0,stream>>>(*modulesInGPU, *tripletsInGPU, N_MAX_QUINTUPLETS_PER_MODULE,stream,*rangesInGPU);
     //createEligibleModulesListForQuintuplets(*modulesInGPU, *tripletsInGPU, nEligibleT5Modules, indicesOfEligibleModules, N_MAX_QUINTUPLETS_PER_MODULE, maxTriplets,stream,*rangesInGPU);
 cudaStreamSynchronize(stream);
     cudaMemcpyAsync(&nEligibleT5Modules,rangesInGPU->nEligibleT5Modules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);

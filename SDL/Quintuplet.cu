@@ -156,7 +156,9 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
 {
     //uint16_t nLowerModules= *modulesInGPU.nLowerModules;
   //  unsigned int maxTriplets = 0;
-    uint16_t nEligibleT5Modules =0;
+    __shared__ int nEligibleT5Modulesx;
+    //__shared__ uint16_t nEligibleT5Modules;
+    nEligibleT5Modulesx =-1;
     //cudaMemcpyAsync(&nLowerModules,modulesInGPU.nLowerModules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
 
 
@@ -187,14 +189,15 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
         if(((modulesInGPU.subdets[i] == SDL::Barrel and modulesInGPU.layers[i] < 3) or (modulesInGPU.subdets[i] == SDL::Endcap and modulesInGPU.layers[i] == 1)) and tripletsInGPU.nTriplets[i] != 0)
         {
     //printf("test\n");
+            int nEligibleT5Modules = atomicAdd(&nEligibleT5Modulesx,1);
             rangesInGPU.quintupletModuleIndices[i] = nEligibleT5Modules * maxQuintuplets; //for variable occupancy change this to module_quintupletModuleIndices[i-1] + blah
             rangesInGPU.indicesOfEligibleT5Modules[nEligibleT5Modules] = i;
-            nEligibleT5Modules++;
+            //nEligibleT5Modules++;
             //maxTriplets = max(tripletsInGPU.nTriplets[i], maxTriplets);
         }
     }
     //printf("test %u\n",nEligibleT5Modules);
-    *rangesInGPU.nEligibleT5Modules = nEligibleT5Modules;
+    *rangesInGPU.nEligibleT5Modules = static_cast<uint16_t>(nEligibleT5Modulesx);
 //    cudaMemcpyAsync(rangesInGPU.quintupletModuleIndices,module_quintupletModuleIndices,nLowerModules*sizeof(int),cudaMemcpyHostToDevice,stream);
 //    cms::cuda::free_host(module_subdets);
 //    cms::cuda::free_host(module_layers);
