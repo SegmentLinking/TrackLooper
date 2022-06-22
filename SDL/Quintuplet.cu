@@ -122,35 +122,6 @@ void SDL::quintuplets::freeMemory(cudaStream_t stream)
 #endif
 cudaStreamSynchronize(stream);
 }
-__device__ uint16_t atomicAddShort(uint16_t* address, short val)
-
-{
-
-    unsigned int *base_address = (unsigned int *)((size_t)address & ~2);
-
-    val = val ^ 0x8000; // 2's complement to biased
-
-    unsigned int long_val = ((size_t)address & 2) ? ((unsigned int)val << 16) : (unsigned short)val;
-
-unsigned int long_old = atomicAdd(base_address, long_val);
-
-    if((size_t)address & 2) {
-
-        return (short)((long_old >> 16) ^ 0x8000);  // biased to 2's complement
-
-    } else {
-
-        unsigned int overflow = ((long_old & 0xffff) + long_val) & 0xffff0000;
-
-        if (overflow)
-
-            atomicSub(base_address, 1);
-
-        return (short)((long_old & 0xffff) ^ 0x8000);  // biased to 2's complement
-
-    }
-
-}
 //TODO:Reuse the track candidate one instead of this!
 __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU,struct triplets& tripletsInGPU, unsigned int maxQuintuplets, cudaStream_t stream,struct objectRanges& rangesInGPU)
 {
