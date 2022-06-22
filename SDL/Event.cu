@@ -1920,13 +1920,16 @@ cudaStreamSynchronize(stream);
 #else
         cudaMalloc(&(rangesInGPU->indicesOfEligibleT5Modules), nLowerModules * sizeof(uint16_t));
 #endif
+    cudaMemsetAsync(rangesInGPU->quintupletModuleIndices, -1, sizeof(int) * (nLowerModules),stream);
 cudaStreamSynchronize(stream);
-    createEligibleModulesListForQuintupletsGPU(*modulesInGPU, *tripletsInGPU, nEligibleT5Modules, indicesOfEligibleModules, N_MAX_QUINTUPLETS_PER_MODULE, maxTriplets,stream,*rangesInGPU);
+    createEligibleModulesListForQuintupletsGPU<<<1,1,0,stream>>>(*modulesInGPU, *tripletsInGPU, N_MAX_QUINTUPLETS_PER_MODULE,stream,*rangesInGPU);
     //createEligibleModulesListForQuintuplets(*modulesInGPU, *tripletsInGPU, nEligibleT5Modules, indicesOfEligibleModules, N_MAX_QUINTUPLETS_PER_MODULE, maxTriplets,stream,*rangesInGPU);
 cudaStreamSynchronize(stream);
-    cudaMemcpyAsync(rangesInGPU->nEligibleT5Modules,&nEligibleT5Modules,sizeof(uint16_t),cudaMemcpyHostToDevice,stream);
-cudaMemcpyAsync(rangesInGPU->indicesOfEligibleT5Modules, indicesOfEligibleModules, nEligibleT5Modules * sizeof(uint16_t), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(&nEligibleT5Modules,rangesInGPU->nEligibleT5Modules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
+//    cudaMemcpyAsync(rangesInGPU->nEligibleT5Modules,&nEligibleT5Modules,sizeof(uint16_t),cudaMemcpyHostToDevice,stream);
+//cudaMemcpyAsync(rangesInGPU->indicesOfEligibleT5Modules, indicesOfEligibleModules, nEligibleT5Modules * sizeof(uint16_t), cudaMemcpyHostToDevice, stream);
 cudaStreamSynchronize(stream);
+//    printf("nEligible %u\n",nEligibleT5Modules);
 
     if(quintupletsInGPU == nullptr)
     {
