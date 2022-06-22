@@ -76,8 +76,8 @@ namespace SDL
 
     void createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& maxQuintuplets, const uint16_t& nLowerModules, const uint16_t& nEligibleModules,cudaStream_t stream);
 
-    void createEligibleModulesListForQuintuplets(struct modules& modulesInGPU, struct triplets& tripletsInGPU, uint16_t& nEligibleModules, uint16_t* indicesOfEligibleModules, unsigned int maxQuintuplets, unsigned int& maxTriplets,cudaStream_t stream, struct objectRanges& rangesInGPU);
-    __global__ void createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU, struct triplets& tripletsInGPU, unsigned int nTotalQuintuplets,cudaStream_t stream, struct objectRanges& rangesInGPU);
+    void createEligibleModulesListForQuintuplets(struct modules& modulesInGPU, struct triplets& tripletsInGPU, uint16_t& nEligibleModules, uint16_t* indicesOfEligibleModules, unsigned int& nTotalQuintuplets, unsigned int& maxTriplets,cudaStream_t stream, struct objectRanges& rangesInGPU);
+    __global__ void createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU, struct triplets& tripletsInGPU, unsigned int& nTotalQuintuplets,cudaStream_t stream, struct objectRanges& rangesInGPU);
 
 //  CUDA_DEV void rmQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU, unsigned int quintupletIndex);
 

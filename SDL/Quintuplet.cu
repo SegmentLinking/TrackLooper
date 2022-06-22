@@ -123,7 +123,6 @@ void SDL::quintuplets::freeMemory(cudaStream_t stream)
 cudaStreamSynchronize(stream);
 }
 //TODO:Reuse the track candidate one instead of this!
-<<<<<<< HEAD
 __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU,struct triplets& tripletsInGPU, unsigned int nTotalQuintuplets, cudaStream_t stream,struct objectRanges& rangesInGPU)
 {
     __shared__ int nEligibleT5Modulesx;
@@ -133,40 +132,6 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
     nTotalQuintuplets = 0; //start!
     unsigned int occupancy;
     unsigned int category_number, eta_number;
-=======
-//void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,struct triplets& tripletsInGPU, uint16_t& nEligibleModules, uint16_t* indicesOfEligibleModules, unsigned int& maxTriplets,cudaStream_t stream,struct objectRanges& rangesInGPU)
-void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,struct triplets& tripletsInGPU, uint16_t& nEligibleModules, uint16_t* indicesOfEligibleModules, unsigned int& nTotalQuintuplets, unsigned int& maxTriplets,cudaStream_t stream,struct objectRanges& rangesInGPU)
-{
-    uint16_t nLowerModules;
-    nTotalQuintuplets = 0; //start!
-    maxTriplets = 0;
-    cudaMemcpyAsync(&nLowerModules,modulesInGPU.nLowerModules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
-
-    cudaMemsetAsync(rangesInGPU.quintupletModuleIndices, -1, sizeof(int) * (nLowerModules),stream);
-
-    short* module_subdets;
-    cudaMallocHost(&module_subdets, nLowerModules* sizeof(short));
-    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-    short* module_layers;
-    cudaMallocHost(&module_layers, nLowerModules * sizeof(short));
-    cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
-    short* module_rings;
-    cudaMallocHost(&module_rings, nLowerModules * sizeof(short));
-    cudaMemcpyAsync(module_rings,modulesInGPU.rings,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
-    float* module_eta;
-    cudaMallocHost(&module_eta, nLowerModules * sizeof(float));
-    cudaMemcpyAsync(module_eta,modulesInGPU.eta,nLowerModules * sizeof(float),cudaMemcpyDeviceToHost,stream);
-
-    int* module_quintupletModuleIndices;
-    module_quintupletModuleIndices = (int*)cms::cuda::allocate_host(nLowerModules * sizeof(int), stream);
-    cudaMemcpyAsync(module_quintupletModuleIndices,rangesInGPU.quintupletModuleIndices,nLowerModules *sizeof(int),cudaMemcpyDeviceToHost,stream);
-
-    unsigned int* nTriplets;
-    nTriplets = (unsigned int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
-    cudaMemcpyAsync(nTriplets, tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
-
->>>>>>> add nTotalQuintuplets counter
     //start filling
     int gid = blockIdx.x * blockDim.x + threadIdx.x;
     int np = gridDim.x * blockDim.x;
