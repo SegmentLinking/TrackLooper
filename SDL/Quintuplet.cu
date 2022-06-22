@@ -1418,7 +1418,7 @@ __device__ float SDL::computeChiSquared(int nPoints, float* xs, float* ys, float
     return chiSquared; 
 }
 
-__global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, /*unsigned int* threadIdx_gpu, unsigned int* threadIdx_gpu_offset, int nTotalTriplets,*/ struct SDL::objectRanges& rangesInGPU, uint16_t nEligibleT5Modules)
+__global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::objectRanges& rangesInGPU, uint16_t nEligibleT5Modules)
 {
     int gidy = blockIdx.y * blockDim.y + threadIdx.y;
     int npy = gridDim.y * blockDim.y;
@@ -1430,19 +1430,8 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
     for (int iter=gidz; iter < nEligibleT5Modules; iter+=npz){
       uint16_t lowerModule1 = rangesInGPU.indicesOfEligibleT5Modules[iter];
 
-    //for (int iter=gidy; iter < nTotalTriplets; iter+=np)
-    //{
-    //    uint16_t lowerModule1 = threadIdx_gpu[iter];
-
-    //    //this if statement never gets executed!
-    //    if(lowerModule1  >= *modulesInGPU.nLowerModules) continue;
 
         unsigned int nInnerTriplets = tripletsInGPU.nTriplets[lowerModule1];
-        //printf("nInnerTriplets: %u\n",nInnerTriplets);
-
-        //unsigned int innerTripletArrayIndex = threadIdx_gpu_offset[iter];
-
-        //if(innerTripletArrayIndex >= nInnerTriplets) continue;
         for( unsigned int innerTripletArrayIndex =gidy; innerTripletArrayIndex < nInnerTriplets; innerTripletArrayIndex+=npy){
 
         unsigned int innerTripletIndex = rangesInGPU.tripletModuleIndices[lowerModule1] + innerTripletArrayIndex;
@@ -1450,7 +1439,6 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
         uint16_t lowerModule2 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 1];
         uint16_t lowerModule3 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 2];
         unsigned int nOuterTriplets = tripletsInGPU.nTriplets[lowerModule3];
-        //printf("nOuterTriplets %d\n",nOuterTriplets);
         for (int outerTripletArrayIndex=gidx; outerTripletArrayIndex < nOuterTriplets; outerTripletArrayIndex+=npx)
         {
             unsigned int outerTripletIndex = rangesInGPU.tripletModuleIndices[lowerModule3] + outerTripletArrayIndex;
@@ -1507,10 +1495,8 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
 #else
                         addQuintupletToMemory(tripletsInGPU, quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, outerRadius, regressionG, regressionF, regressionRadius, pt,eta,phi,scores,layer,quintupletIndex);
 #endif
-//#ifdef  TRACK_EXTENSIONS
                         tripletsInGPU.partOfT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex]] = true;
                         tripletsInGPU.partOfT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1]] = true;
-//#endif
 
                     }
                 }
