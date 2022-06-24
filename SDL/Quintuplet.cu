@@ -127,6 +127,7 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
 {
     __shared__ int nEligibleT5Modulesx;
     nEligibleT5Modulesx =-1;
+    __syncthreads();
 
 
 
@@ -135,8 +136,6 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
     int np = gridDim.x * blockDim.x;
     for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
     {
-        //condition for a quintuple to exist for a module
-        //TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap
         if(((modulesInGPU.subdets[i] == SDL::Barrel and modulesInGPU.layers[i] < 3) or (modulesInGPU.subdets[i] == SDL::Endcap and modulesInGPU.layers[i] == 1)) and tripletsInGPU.nTriplets[i] != 0)
         {
             int nEligibleT5Modules = atomicAdd(&nEligibleT5Modulesx,1);
@@ -144,62 +143,11 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
             rangesInGPU.indicesOfEligibleT5Modules[nEligibleT5Modules] = i;
         }
     }
-    *rangesInGPU.nEligibleT5Modules = static_cast<uint16_t>(nEligibleT5Modulesx);
-}
-void SDL::createEligibleModulesListForQuintuplets(struct modules& modulesInGPU,struct triplets& tripletsInGPU, uint16_t& nEligibleModules, uint16_t* indicesOfEligibleModules, unsigned int maxQuintuplets, unsigned int& maxTriplets,cudaStream_t stream,struct objectRanges& rangesInGPU)
-{
-    uint16_t nLowerModules;
-    maxTriplets = 0;
-    cudaMemcpyAsync(&nLowerModules,modulesInGPU.nLowerModules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
-
-    cudaMemsetAsync(rangesInGPU.quintupletModuleIndices, -1, sizeof(int) * (nLowerModules),stream);
-
-    short* module_subdets;
-    module_subdets = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
-    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-    short* module_layers;
-    module_layers = (short*)cms::cuda::allocate_host(nLowerModules * sizeof(short), stream);
-    cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
-
-    int* module_quintupletModuleIndices;
-    module_quintupletModuleIndices = (int*)cms::cuda::allocate_host(nLowerModules * sizeof(int), stream);
-    cudaMemcpyAsync(module_quintupletModuleIndices,rangesInGPU.quintupletModuleIndices,nLowerModules *sizeof(int),cudaMemcpyDeviceToHost,stream);
-
-    unsigned int* nTriplets;
-    nTriplets = (unsigned int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
-    cudaMemcpyAsync(nTriplets, tripletsInGPU.nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-cudaStreamSynchronize(stream);
-
-    //start filling
-    for(uint16_t i = 0; i < nLowerModules; i++)
-    {
-        //condition for a quintuple to exist for a module
-        //TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap
-        if(((module_subdets[i] == SDL::Barrel and module_layers[i] < 3) or (module_subdets[i] == SDL::Endcap and module_layers[i] == 1)) and nTriplets[i] != 0)
-        {
-            module_quintupletModuleIndices[i] = nEligibleModules * maxQuintuplets; //for variable occupancy change this to module_quintupletModuleIndices[i-1] + blah
-            indicesOfEligibleModules[nEligibleModules] = i;
-            nEligibleModules++;
-            maxTriplets = max(nTriplets[i], maxTriplets);
-        }
+    __syncthreads();
+    if(threadIdx.x==0){
+      *rangesInGPU.nEligibleT5Modules = static_cast<uint16_t>(nEligibleT5Modulesx);
     }
-    cudaMemcpyAsync(rangesInGPU.quintupletModuleIndices,module_quintupletModuleIndices,nLowerModules*sizeof(int),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(rangesInGPU.nEligibleT5Modules,&nEligibleModules,sizeof(uint16_t),cudaMemcpyHostToDevice,stream);
-//#ifdef CACHE_ALLOC
-//        int dev;
-//        cudaGetDevice(&dev);
-//        rangesInGPU.indicesOfEligibleT5Modules = (uint16_t*)cms::cuda::allocate_device(dev, nEligibleModules * sizeof(uint16_t), stream);
-//#else
-//        cudaMalloc(&(rangesInGPU.indicesOfEligibleT5Modules), nEligibleModules * sizeof(uint16_t));
-//#endif
-cudaMemcpyAsync(rangesInGPU.indicesOfEligibleT5Modules, indicesOfEligibleModules, nEligibleModules * sizeof(uint16_t), cudaMemcpyHostToDevice, stream);
-cudaStreamSynchronize(stream);
-    cms::cuda::free_host(module_subdets);
-    cms::cuda::free_host(module_layers);
-    cms::cuda::free_host(module_quintupletModuleIndices);
-    cms::cuda::free_host(nTriplets);
 }
-
 
 void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& maxQuintuplets, const uint16_t& nLowerModules, const uint16_t& nEligibleModules, cudaStream_t stream)
 {
@@ -1402,18 +1350,16 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
       uint16_t lowerModule1 = rangesInGPU.indicesOfEligibleT5Modules[iter];
 
 
-        unsigned int nInnerTriplets = tripletsInGPU.nTriplets[lowerModule1];
-        for( unsigned int innerTripletArrayIndex =gidy; innerTripletArrayIndex < nInnerTriplets; innerTripletArrayIndex+=npy){
+      unsigned int nInnerTriplets = tripletsInGPU.nTriplets[lowerModule1];
+      for( unsigned int innerTripletArrayIndex =gidy; innerTripletArrayIndex < nInnerTriplets; innerTripletArrayIndex+=npy){
 
-        unsigned int innerTripletIndex = rangesInGPU.tripletModuleIndices[lowerModule1] + innerTripletArrayIndex;
-        //these are actual module indices!! not lower module indices!
-        uint16_t lowerModule2 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 1];
-        uint16_t lowerModule3 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 2];
-        unsigned int nOuterTriplets = tripletsInGPU.nTriplets[lowerModule3];
+      unsigned int innerTripletIndex = rangesInGPU.tripletModuleIndices[lowerModule1] + innerTripletArrayIndex;
+      uint16_t lowerModule2 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 1];
+      uint16_t lowerModule3 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 2];
+      unsigned int nOuterTriplets = tripletsInGPU.nTriplets[lowerModule3];
         for (int outerTripletArrayIndex=gidx; outerTripletArrayIndex < nOuterTriplets; outerTripletArrayIndex+=npx)
         {
             unsigned int outerTripletIndex = rangesInGPU.tripletModuleIndices[lowerModule3] + outerTripletArrayIndex;
-            //these are actual module indices!!
             uint16_t lowerModule4 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1];
             uint16_t lowerModule5 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 2];
 
@@ -1473,7 +1419,8 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
                 }
             }
         }
-    }}
+      }
+    }
 }
 
 __device__ bool SDL::runQuintupletDefaultAlgoBBBB(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& innerOuterLowerModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex,

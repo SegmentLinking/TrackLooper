@@ -1945,7 +1945,7 @@ cudaStreamSynchronize(stream);
 
 
     dim3 nThreads(32, 8, 1);
-    dim3 nBlocks(1,1,nEligibleT5Modules);
+    dim3 nBlocks(1,1,max(nEligibleT5Modules,1));
 
     SDL::createQuintupletsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, *rangesInGPU,nEligibleT5Modules);
     cudaError_t cudaerr = cudaGetLastError();
