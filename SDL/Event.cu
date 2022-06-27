@@ -1530,7 +1530,7 @@ void SDL::Event::createTriplets()
     {
         tripletsInGPU = (SDL::triplets*)cms::cuda::allocate_host(sizeof(SDL::triplets), stream);
         unsigned int maxTriplets;
-        createTripletArrayRanges(*modulesInGPU, *rangesInGPU, *segmentsInGPU, nLowerModules, maxTriplets, stream, N_MAX_TRIPLETS_PER_MODULE);
+        createTripletArrayRanges(*modulesInGPU, *rangesInGPU, *segmentsInGPU, nLowerModules, maxTriplets, stream);
 //        cout<<"nTotalTriplets: "<<maxTriplets<<std::endl; // for memory usage
 #ifdef Explicit_Trips
         createTripletsInExplicitMemory(*tripletsInGPU, maxTriplets, nLowerModules,stream);
