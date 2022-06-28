@@ -1,6 +1,7 @@
 #include "Module.cuh"
 #include "ModuleConnectionMap.h"
 #include "allocate.h"
+#include <unordered_map>
 std::map <unsigned int, uint16_t> *SDL::detIdToIndex;
 std::map <unsigned int, float> *SDL::module_x;
 std::map <unsigned int, float> *SDL::module_y;
@@ -102,6 +103,8 @@ void SDL::createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int
 {
     cudaMallocManaged(&modulesInGPU.detIds,nModules * sizeof(unsigned int));
     cudaMallocManaged(&modulesInGPU.moduleMap,nModules * 40 * sizeof(uint16_t));
+    cudaMallocManaged(&modulesInGPU.mapIdx, nModules*sizeof(uint16_t));
+    cudaMallocManaged(&modulesInGPU.mapdetId, nModules*sizeof(unsigned int));
     cudaMallocManaged(&modulesInGPU.nConnectedModules,nModules * sizeof(uint16_t));
     cudaMallocManaged(&modulesInGPU.drdzs,nModules * sizeof(float));
     cudaMallocManaged(&modulesInGPU.slopes,nModules * sizeof(float));
@@ -131,6 +134,8 @@ void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned in
     /* modules stucture object will be created in Event.cu*/
     cudaMalloc(&(modulesInGPU.detIds),nModules * sizeof(unsigned int));
     cudaMalloc(&modulesInGPU.moduleMap,nModules * 40 * sizeof(uint16_t));
+    cudaMalloc(&modulesInGPU.mapIdx, nModules*sizeof(uint16_t));
+    cudaMalloc(&modulesInGPU.mapdetId, nModules*sizeof(unsigned int));
     cudaMalloc(&modulesInGPU.nConnectedModules,nModules * sizeof(uint16_t));
     cudaMalloc(&modulesInGPU.drdzs,nModules * sizeof(float));
     cudaMalloc(&modulesInGPU.slopes,nModules * sizeof(float));
@@ -227,6 +232,8 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
   cudaGetDevice(&dev);
   cms::cuda::free_device(dev,modulesInGPU.detIds);
   cms::cuda::free_device(dev,modulesInGPU.moduleMap);
+  cms::cuda::free_device(dev,modulesInGPU.mapIdx);
+  cms::cuda::free_device(dev,modulesInGPU.mapdetId);
   cms::cuda::free_device(dev,modulesInGPU.nConnectedModules);
   cms::cuda::free_device(dev,modulesInGPU.drdzs);
   cms::cuda::free_device(dev,modulesInGPU.slopes);
@@ -247,6 +254,8 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
 #else
   cms::cuda::free_managed(modulesInGPU.detIds);
   cms::cuda::free_managed(modulesInGPU.moduleMap);
+  cms::cuda::free_managed(modulesInGPU.mapIdx);
+  cms::cuda::free_managed(modulesInGPU.mapdetId);
   cms::cuda::free_managed(modulesInGPU.nConnectedModules);
   cms::cuda::free_managed(modulesInGPU.drdzs);
   cms::cuda::free_managed(modulesInGPU.slopes);
@@ -283,6 +292,8 @@ void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMappin
 
   cudaFree(modulesInGPU.detIds);
   cudaFree(modulesInGPU.moduleMap);
+  cudaFree(modulesInGPU.mapIdx);
+  cudaFree(modulesInGPU.mapdetId);
   cudaFree(modulesInGPU.nConnectedModules);
   cudaFree(modulesInGPU.drdzs);
   cudaFree(modulesInGPU.slopes);
@@ -589,6 +600,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     cms::cuda::free_host(host_partnerModuleIndices);
     std::cout<<"number of lower modules (without fake pixel module)= "<<lowerModuleCounter<<std::endl;
     fillConnectedModuleArrayExplicit(modulesInGPU,nModules,stream);
+    fillMapArraysExplicit(modulesInGPU, nModules, stream);
     fillPixelMap(modulesInGPU,pixelMapping,stream);
 
 #else
@@ -898,6 +910,28 @@ void SDL::fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigne
     cudaStreamSynchronize(stream);
     cms::cuda::free_host(moduleMap);
     cms::cuda::free_host(nConnectedModules);
+}
+
+void SDL::fillMapArraysExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream)
+{
+    uint16_t* mapIdx;
+    unsigned int* mapdetId;
+    unsigned int counter = 0;
+    mapIdx = (uint16_t*)cms::cuda::allocate_host(nModules * sizeof(uint16_t), stream);
+    mapdetId = (unsigned int*)cms::cuda::allocate_host(nModules * sizeof(unsigned int), stream);
+    for(auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); ++it)
+    {
+        unsigned int detId = it->first;
+        unsigned int index = it->second;
+        mapIdx[counter] = index;
+        mapdetId[counter] = detId;
+        counter++;
+    }
+    cudaMemcpyAsync(modulesInGPU.mapIdx,mapIdx,nModules*sizeof(uint16_t),cudaMemcpyHostToDevice,stream);
+    cudaMemcpyAsync(modulesInGPU.mapdetId,mapdetId,nModules*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
+    cudaStreamSynchronize(stream);
+    cms::cuda::free_host(mapIdx);
+    cms::cuda::free_host(mapdetId);
 }
 
 void SDL::setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side, float m_x, float m_y, float m_z, float& eta, float& r)

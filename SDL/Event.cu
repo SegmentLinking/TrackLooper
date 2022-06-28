@@ -1,4 +1,4 @@
-# include "Event.cuh"
+#include "Event.cuh"
 #include "allocate.h"
 
 struct SDL::modules* SDL::modulesInGPU = nullptr;
@@ -63,6 +63,7 @@ SDL::Event::Event(cudaStream_t estream)
 
 SDL::Event::~Event()
 {
+SDL::freeEndCapMapMemory();
 #ifdef CACHE_ALLOC
     if(rangesInGPU){rangesInGPU->freeMemoryCache();}
     //if(hitsInGPU){hitsInGPU->freeMemoryCache();}
@@ -811,9 +812,9 @@ std::vector<std::vector<short>>&    out_isQuad_vec
         //hitsInGPU_event = (struct SDL::hits*)cms::cuda::allocate_host(sizeof(struct SDL::hits), modStream);
         cudaMallocHost(&hitsInGPU_event, sizeof(struct SDL::hits));
         #ifdef Explicit_Hit
-        createHitsInExplicitMemory(*hitsInGPU_event, hitOffset.at(evt+1),modStream,1); //unclear why but this has to be 2*loopsize to avoid crashing later (reported in tracklet allocation). seems to do with nHits values as well. this allows nhits to be set to the correct value of loopsize to get correct results without crashing. still beats the "max hits" so i think this is fine.
+        createHitsInExplicitMemory(*hitsInGPU_event, nModules, hitOffset.at(evt+1),modStream,1); //unclear why but this has to be 2*loopsize to avoid crashing later (reported in tracklet allocation). seems to do with nHits values as well. this allows nhits to be set to the correct value of loopsize to get correct results without crashing. still beats the "max hits" so i think this is fine.
         #else
-        createHitsInUnifiedMemory(*hitsInGPU_event,hitOffset.at(evt+1),0,modStream,1);
+        createHitsInUnifiedMemory(*hitsInGPU_event, nModules, hitOffset.at(evt+1),0,modStream,1);
         #endif
             std::cout << "Loading hits for Event number = " << evt << " " << omp_get_thread_num() << std::endl;
             //Load Hits
@@ -824,214 +825,148 @@ std::vector<std::vector<short>>&    out_isQuad_vec
     cudaStreamDestroy(modStream);
 }
 
-// Best working hit loading method. Previously named OMP For Non hitpreload
+__device__ int binary_search(
+                            unsigned int *data, // Array that we are searching over
+                            unsigned int search_val, // Value we want to find in data array
+                            unsigned int ndata) // Number of elements in data array
+{
+    unsigned int low = 0;
+    unsigned int high = ndata - 1;
+
+    while(low <= high)
+    {
+        unsigned int mid = (low + high)/2;
+        unsigned int test_val = data[mid];
+        if (test_val == search_val)
+            return mid;
+        else if (test_val > search_val)
+            high = mid - 1;
+        else
+            low = mid + 1;
+    }
+    // Couldn't find search value in array.
+    return -1;
+}
+
+__global__ void moduleRangesKernel(uint16_t nLower, struct SDL::modules *modulesInGPU, struct SDL::hits *hitsInGPU)
+{
+    for ( int lowerIndex = blockIdx.x * blockDim.x + threadIdx.x; lowerIndex < nLower; lowerIndex += blockDim.x*gridDim.x )
+    {
+        uint16_t upperIndex = modulesInGPU->partnerModuleIndices[lowerIndex];
+        if (hitsInGPU->hitRanges[lowerIndex * 2] != -1 && hitsInGPU->hitRanges[upperIndex * 2] != -1)
+        {
+            hitsInGPU->hitRangesLower[lowerIndex] =  hitsInGPU->hitRanges[lowerIndex * 2]; 
+            hitsInGPU->hitRangesUpper[lowerIndex] =  hitsInGPU->hitRanges[upperIndex * 2];
+            hitsInGPU->hitRangesnLower[lowerIndex] = hitsInGPU->hitRanges[lowerIndex * 2 + 1] - hitsInGPU->hitRanges[lowerIndex * 2] + 1;
+            hitsInGPU->hitRangesnUpper[lowerIndex] = hitsInGPU->hitRanges[upperIndex * 2 + 1] - hitsInGPU->hitRanges[upperIndex * 2] + 1;
+        }
+    }
+}
+
+__global__ void hitLoopKernel(
+                            uint16_t Endcap,
+                            uint16_t TwoS,
+                            int nHits,
+                            unsigned int nModules,
+                            unsigned int nEndCapMap,
+                            unsigned int* geoMapDetId,
+                            float* geoMapPhi,
+                            struct SDL::modules *modulesInGPU,
+                            struct SDL::hits *hitsInGPU)
+{
+    for( int ihit = blockIdx.x * blockDim.x + threadIdx.x; ihit < nHits; ihit += blockDim.x * gridDim.x )
+    {
+        float ihit_x = hitsInGPU->xs[ihit];
+        float ihit_y = hitsInGPU->ys[ihit];
+        float ihit_z = hitsInGPU->zs[ihit];
+        int iDetId = hitsInGPU->detid[ihit];
+
+        hitsInGPU->rts[ihit] = sqrt(ihit_x*ihit_x + ihit_y*ihit_y);
+        hitsInGPU->phis[ihit] = SDL::phi(ihit_x,ihit_y,ihit_z);
+        hitsInGPU->etas[ihit] = ((ihit_z>0)-(ihit_z<0))*acosh(sqrt(ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/hitsInGPU->rts[ihit]);
+
+        int found_index = binary_search(modulesInGPU->mapdetId, iDetId, nModules);
+        uint16_t lastModuleIndex = modulesInGPU->mapIdx[found_index];
+
+        hitsInGPU->moduleIndices[ihit] = lastModuleIndex;
+
+        if(modulesInGPU->subdets[lastModuleIndex] == Endcap && modulesInGPU->moduleType[lastModuleIndex] == TwoS)
+        {
+            int found_index = binary_search(geoMapDetId, iDetId, nEndCapMap);
+            float phi = 0;
+            // Unclear why these are not in map, but CPU map returns phi = 0 for all exceptions.
+            if (found_index != -1)
+                phi = geoMapPhi[found_index];
+            hitsInGPU->highEdgeXs[ihit] = ihit_x + 2.5 * cos(phi);;
+            hitsInGPU->highEdgeYs[ihit] = ihit_y + 2.5 * sin(phi);
+            hitsInGPU->lowEdgeXs[ihit] = ihit_x - 2.5 * cos(phi);
+            hitsInGPU->lowEdgeYs[ihit] = ihit_y - 2.5 * sin(phi);
+        }
+        // Need to set initial value if index hasn't been seen before.
+        int old = atomicCAS(&hitsInGPU->hitRanges[lastModuleIndex * 2], -1, ihit);
+        // For subsequent visits, stores the min value.
+        if (old != -1)
+            atomicMin(&hitsInGPU->hitRanges[lastModuleIndex * 2], ihit);
+
+        atomicMax(&hitsInGPU->hitRanges[lastModuleIndex * 2 + 1], ihit);
+    }
+}
+
 void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple)
 {
-    const int loopsize = x.size();// use the actual number of hits instead of a "max"
-    uint16_t nLowerModules;
-    cudaMemcpyAsync(&nLowerModules,modulesInGPU->nLowerModules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
-    //printf("loopsize %i\n",loopsize);
+    // Use the actual number of hits instead of a max.
+    const int nHits = x.size();
 
-    if(rangesInGPU == nullptr)
-    {
-        rangesInGPU = (SDL::objectRanges*)cms::cuda::allocate_host(sizeof(SDL::objectRanges), stream);
-        #ifdef Explicit_Hit
-    	  createRangesInExplicitMemory(*rangesInGPU, nModules,stream,nLowerModules); //unclear why but this has to be 2*loopsize to avoid crashing later (reported in tracklet allocation). seems to do with nHits values as well. this allows nhits to be set to the correct value of loopsize to get correct results without crashing. still beats the "max hits" so i think this is fine.
-        #else
-        createRangesInUnifiedMemory(*rangesInGPU,nModules,stream,nLowerModules);
-        #endif
-    resetObjectsInModule();
-    }
-    if(hitsInGPU == nullptr)
+    if (hitsInGPU == nullptr)
     {
         cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
         //hitsInGPU = (SDL::hits*)cms::cuda::allocate_host(sizeof(SDL::hits), stream);
         #ifdef Explicit_Hit
-    	  createHitsInExplicitMemory(*hitsInGPU, 2*loopsize,stream,1); //unclear why but this has to be 2*loopsize to avoid crashing later (reported in tracklet allocation). seems to do with nHits values as well. this allows nhits to be set to the correct value of loopsize to get correct results without crashing. still beats the "max hits" so i think this is fine.
+            // Unclear why but this has to be 2*nHits to avoid crashing.
+    	    createHitsInExplicitMemory(*hitsInGPU, nModules, 2*nHits, stream, 1);
         #else
-        createHitsInUnifiedMemory(*hitsInGPU,2*loopsize,0,stream,1);
+            createHitsInUnifiedMemory(*hitsInGPU, nModules, 2*nHits, 0, stream, 1);
         #endif
     }
-cudaStreamSynchronize(stream);
-
-
-    float* host_x;// = &x[0]; // convert from std::vector to host array easily since vectors are ordered
-    float* host_y;// = &y[0];
-    float* host_z;// = &z[0];
-    unsigned int* host_detId;// = &detId[0];
-    unsigned int* host_idxs;// = &idxInNtuple[0];
-    host_x = (float*)cms::cuda::allocate_host(sizeof(float)*loopsize, stream);
-    host_y = (float*)cms::cuda::allocate_host(sizeof(float)*loopsize, stream);
-    host_z = (float*)cms::cuda::allocate_host(sizeof(float)*loopsize, stream);
-    host_detId = (unsigned int*)cms::cuda::allocate_host(sizeof(unsigned int)*loopsize, stream);
-    host_idxs = (unsigned int*)cms::cuda::allocate_host(sizeof(unsigned int)*loopsize, stream);
-
-    float* host_phis;
-    float* host_etas;
-    unsigned int* host_moduleIndex;
-    float* host_rts;
-    float* host_highEdgeXs;
-    float* host_highEdgeYs;
-    float* host_lowEdgeXs;
-    float* host_lowEdgeYs;
-    host_moduleIndex = (unsigned int*)cms::cuda::allocate_host(sizeof(unsigned int)*loopsize, stream);
-    host_phis = (float*)cms::cuda::allocate_host(sizeof(float)*loopsize, stream);
-    host_etas = (float*)cms::cuda::allocate_host(sizeof(float)*loopsize, stream);
-    host_rts = (float*)cms::cuda::allocate_host(sizeof(float)*loopsize, stream);
-    host_highEdgeXs = (float*)cms::cuda::allocate_host(sizeof(float)*loopsize, stream);
-    host_highEdgeYs = (float*)cms::cuda::allocate_host(sizeof(float)*loopsize, stream);
-    host_lowEdgeXs = (float*)cms::cuda::allocate_host(sizeof(float)*loopsize, stream);
-    host_lowEdgeYs = (float*)cms::cuda::allocate_host(sizeof(float)*loopsize, stream);
-
-
-    short* module_layers;
-    short* module_subdet;
-    uint16_t* module_partnerModuleIndices;
-    int* module_hitRanges;
-    int* module_hitRangesUpper;
-    int* module_hitRangesLower;
-    int8_t* module_hitRangesnUpper;
-    int8_t* module_hitRangesnLower;
-    ModuleType* module_moduleType;
-    module_layers = (short*)cms::cuda::allocate_host(sizeof(short)*nModules, stream);
-    module_subdet = (short*)cms::cuda::allocate_host(sizeof(short)*nModules, stream);
-    module_partnerModuleIndices = (uint16_t*)cms::cuda::allocate_host(sizeof(uint16_t) * nModules, stream);
-    module_hitRanges = (int*)cms::cuda::allocate_host(sizeof(int)*2*nModules, stream);
-    module_hitRangesUpper = (int*)cms::cuda::allocate_host(sizeof(int)*nModules, stream);
-    module_hitRangesLower = (int*)cms::cuda::allocate_host(sizeof(int)*nModules, stream);
-    module_hitRangesnUpper = (int8_t*)cms::cuda::allocate_host(sizeof(int8_t) * nModules, stream);
-    module_hitRangesnLower = (int8_t*)cms::cuda::allocate_host(sizeof(int8_t) * nModules, stream);
-    module_moduleType = (ModuleType*)cms::cuda::allocate_host(sizeof(ModuleType) * nModules, stream);
-
-    cudaMemcpyAsync(module_layers,modulesInGPU->layers,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(module_subdet,modulesInGPU->subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(module_partnerModuleIndices, modulesInGPU->partnerModuleIndices, nModules * sizeof(uint16_t), cudaMemcpyDeviceToHost, stream);
-    cudaMemcpyAsync(module_hitRanges,hitsInGPU->hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(module_hitRangesLower,hitsInGPU->hitRangesLower,nModules*sizeof(int),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(module_hitRangesUpper,hitsInGPU->hitRangesUpper,nModules*sizeof(int),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(module_hitRangesnLower,hitsInGPU->hitRangesnLower,nModules*sizeof(int8_t),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(module_hitRangesnUpper,hitsInGPU->hitRangesnUpper,nModules*sizeof(int8_t),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(module_moduleType,modulesInGPU->moduleType,nModules*sizeof(ModuleType),cudaMemcpyDeviceToHost,stream);
+    if (rangesInGPU == nullptr)
+    {
+        rangesInGPU = (SDL::objectRanges*)cms::cuda::allocate_host(sizeof(SDL::objectRanges), stream);
+        #ifdef Explicit_Hit
+    	    createRangesInExplicitMemory(*rangesInGPU, nModules, stream, nLowerModules);
+        #else
+            createRangesInUnifiedMemory(*rangesInGPU, nModules, stream, nLowerModules);
+        #endif
+        resetObjectsInModule();
+    }
+    cudaStreamSynchronize(stream);
+    // Copy the host arrays to the GPU.
+    cudaMemcpyAsync(hitsInGPU->xs, &x[0], nHits*sizeof(float), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(hitsInGPU->ys, &y[0], nHits*sizeof(float), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(hitsInGPU->zs, &z[0], nHits*sizeof(float), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(hitsInGPU->detid, &detId[0], nHits*sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(hitsInGPU->idxs, &idxInNtuple[0], nHits*sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(hitsInGPU->nHits, &nHits, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
 
+    hitLoopKernel<<<MAX_BLOCKS,256,0,stream>>>(
+                                            Endcap,
+                                            TwoS,
+                                            nHits,
+                                            nModules,
+                                            SDL::endcapGeometry.nEndCapMap,
+                                            SDL::endcapGeometry.geoMapDetId,
+                                            SDL::endcapGeometry.geoMapPhi,
+                                            modulesInGPU,
+                                            hitsInGPU);
+    //std::cout << cudaGetLastError() << std::endl;
+    cudaStreamSynchronize(stream);
 
-   unsigned int lastDetId = 0;
-   uint16_t lastModuleIndex = 0;
-  for (int ihit=0; ihit<loopsize;ihit++){
-    float ihit_x = x[ihit];
-    float ihit_y = y[ihit];
-    float ihit_z = z[ihit];
-    host_x[ihit] = ihit_x; // convert from std::vector to host array easily since vectors are ordered
-    host_y[ihit] = ihit_y;
-    host_z[ihit] = ihit_z;
-    auto iDetId = detId[ihit];
-    if (lastDetId != iDetId) { //hits are mostly ordered by module
-      lastDetId = iDetId;
-      lastModuleIndex = (*detIdToIndex)[iDetId];
-    }
-    host_detId[ihit] = iDetId;
-    host_idxs[ihit] = idxInNtuple.at(ihit);
-
-    unsigned int moduleLayer = module_layers[lastModuleIndex];
-    unsigned int subdet = module_subdet[lastModuleIndex];
-    host_moduleIndex[ihit] = lastModuleIndex; //module indices appropriately done
-
-
-      host_rts[ihit] = sqrt(ihit_x*ihit_x + ihit_y*ihit_y);
-      host_phis[ihit] = phi(ihit_x,ihit_y,ihit_z);
-      host_etas[ihit] = ((ihit_z>0)-(ihit_z<0))* std::acosh(sqrt(ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/host_rts[ihit]);
-//// This part i think has a race condition. so this is not run in parallel.
-      unsigned int this_index = lastModuleIndex;
-      if(module_subdet[this_index] == Endcap && module_moduleType[this_index] == TwoS)
-      {
-          float xhigh, yhigh, xlow, ylow;
-          getEdgeHits(iDetId,ihit_x,ihit_y,xhigh,yhigh,xlow,ylow);
-          host_highEdgeXs[ihit] = xhigh;
-          host_highEdgeYs[ihit] = yhigh;
-          host_lowEdgeXs[ihit] = xlow;
-          host_lowEdgeYs[ihit] = ylow;
-
-      }
-
-      //set the hit ranges appropriately in the modules struct
-
-      ////start the index rolling if the module is encountered for the first time
-      ////always update the end index
-      //modulesInGPU->hitRanges[this_index * 2 + 1] = ihit;
-      //start the index rolling if the module is encountered for the first time
-      if(module_hitRanges[this_index * 2] == -1)
-      {
-          module_hitRanges[this_index * 2] = ihit;
-      }
-      //always update the end index
-      module_hitRanges[this_index * 2 + 1] = ihit;
-
-  }
-//range testing
-    for(uint16_t lowerModuleIndex = 0; lowerModuleIndex< nLowerModules; lowerModuleIndex++)
-    {
-
-        uint16_t upperModuleIndex = module_partnerModuleIndices[lowerModuleIndex];
-
-        //int lowerHitRanges = module_hitRanges[lowerModuleIndex*2];
-        //int upperHitRanges = module_hitRanges[upperModuleIndex*2];
-
-        if(module_hitRanges[lowerModuleIndex * 2] == -1) continue; //return;
-        if(module_hitRanges[upperModuleIndex * 2] == -1) continue; //return;
-        module_hitRangesLower[lowerModuleIndex] =  module_hitRanges[lowerModuleIndex * 2]; 
-        module_hitRangesUpper[lowerModuleIndex] =  module_hitRanges[upperModuleIndex * 2];
-        module_hitRangesnLower[lowerModuleIndex] = module_hitRanges[lowerModuleIndex * 2 + 1] - module_hitRanges[lowerModuleIndex * 2] + 1;
-        module_hitRangesnUpper[lowerModuleIndex] = module_hitRanges[upperModuleIndex * 2 + 1] - module_hitRanges[upperModuleIndex * 2] + 1;
-    }
-//simply copy the host arrays to the hitsInGPU struct
-    cudaMemcpyAsync(hitsInGPU->xs,host_x,loopsize*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(hitsInGPU->ys,host_y,loopsize*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(hitsInGPU->zs,host_z,loopsize*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(hitsInGPU->rts,host_rts,loopsize*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(hitsInGPU->phis,host_phis,loopsize*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(hitsInGPU->etas,host_etas,loopsize*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(hitsInGPU->idxs,host_idxs,loopsize*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(hitsInGPU->moduleIndices,host_moduleIndex,loopsize*sizeof(uint16_t),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(hitsInGPU->highEdgeXs,host_highEdgeXs,loopsize*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(hitsInGPU->highEdgeYs,host_highEdgeYs,loopsize*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(hitsInGPU->lowEdgeXs,host_lowEdgeXs,loopsize*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(hitsInGPU->lowEdgeYs,host_lowEdgeYs,loopsize*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(hitsInGPU->nHits,&loopsize,sizeof(unsigned int),cudaMemcpyHostToDevice,stream);// value can't correctly be set in hit allocation
-    cudaMemcpyAsync(hitsInGPU->hitRanges,module_hitRanges,nModules*2*sizeof(int),cudaMemcpyHostToDevice,stream);// value can't correctly be set in hit allocation
-    cudaMemcpyAsync(hitsInGPU->hitRangesLower,module_hitRangesLower,nModules*sizeof(int),cudaMemcpyHostToDevice,stream);// value can't correctly be set in hit allocation
-    cudaMemcpyAsync(hitsInGPU->hitRangesUpper,module_hitRangesUpper,nModules*sizeof(int),cudaMemcpyHostToDevice,stream);// value can't correctly be set in hit allocation
-    cudaMemcpyAsync(hitsInGPU->hitRangesnLower,module_hitRangesnLower,nModules*sizeof(int8_t),cudaMemcpyHostToDevice,stream);// value can't correctly be set in hit allocation
-    cudaMemcpyAsync(hitsInGPU->hitRangesnUpper,module_hitRangesnUpper,nModules*sizeof(int8_t),cudaMemcpyHostToDevice,stream);// value can't correctly be set in hit allocation
-cudaStreamSynchronize(stream);
-
-    cms::cuda::free_host(host_rts);
-    cms::cuda::free_host(host_phis);
-    cms::cuda::free_host(host_etas);
-    cms::cuda::free_host(host_moduleIndex);
-    cms::cuda::free_host(host_highEdgeXs);
-    cms::cuda::free_host(host_highEdgeYs);
-    cms::cuda::free_host(host_lowEdgeXs);
-    cms::cuda::free_host(host_lowEdgeYs);
-    cms::cuda::free_host(module_layers);
-    cms::cuda::free_host(module_subdet);
-    cms::cuda::free_host(module_partnerModuleIndices);
-    cms::cuda::free_host(module_hitRanges);
-    cms::cuda::free_host(module_hitRangesLower);
-    cms::cuda::free_host(module_hitRangesUpper);
-    cms::cuda::free_host(module_hitRangesnLower);
-    cms::cuda::free_host(module_hitRangesnUpper);
-    cms::cuda::free_host(module_moduleType);
-    cms::cuda::free_host(host_x);
-    cms::cuda::free_host(host_y);
-    cms::cuda::free_host(host_z);
-    cms::cuda::free_host(host_detId);
-    cms::cuda::free_host(host_idxs);
-
+    moduleRangesKernel<<<MAX_BLOCKS,256,0,stream>>>(nLowerModules, modulesInGPU, hitsInGPU);
+    //std::cout << cudaGetLastError() << std::endl;
 }
+
 __global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned int* hitIndices1,unsigned int* hitIndices2,unsigned int* hitIndices3, float* dPhiChange, float* ptIn, float* ptErr, float* px, float* py, float* pz, float* eta, float* etaErr,float* phi, uint16_t pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU,const int size, int* superbin, int8_t* pixelType, short* isQuad)
 {
-
     for( int tid = blockIdx.x * blockDim.x + threadIdx.x; tid < size; tid += blockDim.x*gridDim.x)
     {
 
