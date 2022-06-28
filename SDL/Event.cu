@@ -1921,7 +1921,7 @@ cudaStreamSynchronize(stream);
     {
         quintupletsInGPU = (SDL::quintuplets*)cms::cuda::allocate_host(sizeof(SDL::quintuplets), stream);
 #ifdef Explicit_T5
-        createQuintupletsInExplicitMemory(*quintupletsInGPU, N_MAX_QUINTUPLETS_PER_MODULE, nLowerModules, nEligibleT5Modules,stream);
+        createQuintupletsInExplicitMemory(*quintupletsInGPU, nTotalQuintuplets, nLowerModules, nEligibleT5Modules,stream);
 
 #ifdef CACHE_ALLOC 
         int dev;
