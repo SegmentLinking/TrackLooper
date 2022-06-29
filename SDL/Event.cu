@@ -63,7 +63,6 @@ SDL::Event::Event(cudaStream_t estream)
 
 SDL::Event::~Event()
 {
-SDL::freeEndCapMapMemory();
 #ifdef CACHE_ALLOC
     if(rangesInGPU){rangesInGPU->freeMemoryCache();}
     //if(hitsInGPU){hitsInGPU->freeMemoryCache();}
@@ -278,6 +277,7 @@ SDL::freeEndCapMapMemory();
         delete[] modulesInCPUFull;
     }
 #endif
+SDL::freeEndCapMapMemory();
 }
 void SDL::Event::resetEvent()
 {
@@ -683,8 +683,8 @@ cudaStreamSynchronize(stream);
     host_detId[ihit] = iDetId;
     host_idxs[ihit] = idxInNtuple.at(ihit);
 
-    unsigned int moduleLayer = module_layers[lastModuleIndex];
-    unsigned int subdet = module_subdet[lastModuleIndex];
+    //unsigned int moduleLayer = module_layers[lastModuleIndex];
+    //unsigned int subdet = module_subdet[lastModuleIndex];
     host_moduleIndex[ihit] = lastModuleIndex; //module indices appropriately done
 
 
@@ -864,13 +864,13 @@ __global__ void moduleRangesKernel(uint16_t nLower, struct SDL::modules *modules
 }
 
 __global__ void hitLoopKernel(
-                            uint16_t Endcap,
-                            uint16_t TwoS,
-                            int nHits,
-                            unsigned int nModules,
-                            unsigned int nEndCapMap,
-                            unsigned int* geoMapDetId,
-                            float* geoMapPhi,
+                            uint16_t Endcap, // Integer corresponding to endcap in module subdets
+                            uint16_t TwoS, // Integer corresponding to TwoS in moduleType
+                            int nHits, // Total number of hits in event
+                            unsigned int nModules, // Number of modules
+                            unsigned int nEndCapMap, // Number of elements in endcap map
+                            unsigned int* geoMapDetId, // DetId's from endcap map
+                            float* geoMapPhi, // Phi values from endcap map
                             struct SDL::modules *modulesInGPU,
                             struct SDL::hits *hitsInGPU)
 {
@@ -917,6 +917,7 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     // Use the actual number of hits instead of a max.
     const int nHits = x.size();
 
+    // Initialize space on device/host for next event.
     if (hitsInGPU == nullptr)
     {
         cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
@@ -948,6 +949,7 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     cudaMemcpyAsync(hitsInGPU->nHits, &nHits, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
 
+    // Calculate secondary variables on the GPU.
     hitLoopKernel<<<MAX_BLOCKS,256,0,stream>>>(
                                             Endcap,
                                             TwoS,
@@ -961,6 +963,7 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     //std::cout << cudaGetLastError() << std::endl;
     cudaStreamSynchronize(stream);
 
+    // No stream synchronize needed after second kernel call. Saves ~100 us.
     moduleRangesKernel<<<MAX_BLOCKS,256,0,stream>>>(nLowerModules, modulesInGPU, hitsInGPU);
     //std::cout << cudaGetLastError() << std::endl;
 }
