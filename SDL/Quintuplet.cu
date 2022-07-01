@@ -289,7 +289,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
  //   cudaStream_t stream = 0;
     int dev;
     cudaGetDevice(&dev);
-    quintupletsInGPU.tripletIndices = (unsigned int*)cms::cuda::allocate_device(dev, 2 * nEligibleModules*513 * sizeof(unsigned int), stream);
+    quintupletsInGPU.tripletIndices = (unsigned int*)cms::cuda::allocate_device(dev, 2 * nTotalQuintuplets * sizeof(unsigned int), stream);
     quintupletsInGPU.lowerModuleIndices = (uint16_t*)cms::cuda::allocate_device(dev, 5 * nTotalQuintuplets * sizeof(uint16_t), stream);
     quintupletsInGPU.nQuintuplets = (unsigned int*)cms::cuda::allocate_device(dev, nLowerModules * sizeof(unsigned int), stream);
     quintupletsInGPU.totOccupancyQuintuplets = (unsigned int*)cms::cuda::allocate_device(dev, nLowerModules * sizeof(unsigned int), stream);
@@ -1451,7 +1451,7 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
                     return;
                 } // ignore anything else TODO: move this to start, before object is made (faster)
                 unsigned int totOccupancyQuintuplets = atomicAdd(&quintupletsInGPU.totOccupancyQuintuplets[lowerModule1], 1);
-                if(totOccupancyQuintuplets >= N_MAX_QUINTUPLETS_PER_MODULE)
+                if(totOccupancyQuintuplets >= (rangesInGPU.quintupletModuleIndices[lowerModule1 + 1] - rangesInGPU.quintupletModuleIndices[lowerModule1]))
                 {
 #ifdef Warnings
                     printf("Quintuplet excess alert! Module index = %d\n", lowerModule1);
