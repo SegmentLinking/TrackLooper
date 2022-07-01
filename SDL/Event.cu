@@ -1585,7 +1585,7 @@ void SDL::Event::createTriplets()
     cudaMemcpyAsync(index_gpu, index, nonZeroModules*sizeof(uint16_t), cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
 
-    dim3 nThreads(16,32,1);
+    dim3 nThreads(16,16,1);
     dim3 nBlocks(1,1,MAX_BLOCKS);
     //createTripletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *rangesInGPU, index_gpu,nonZeroModules);
     SDL::createTripletsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *rangesInGPU, index_gpu,nonZeroModules);
@@ -1690,7 +1690,7 @@ void SDL::Event::createTrackCandidates()
     }cudaStreamSynchronize(stream);
 #endif  
 
-    dim3 nThreads_pLS(64,16,1);
+    dim3 nThreads_pLS(32,16,1);
     dim3 nBlocks_pLS(20,4,1);
     SDL::crossCleanpLS<<<nBlocks_pLS, nThreads_pLS, 0, stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *mdsInGPU,*hitsInGPU, *quintupletsInGPU);
     cudaError_t cudaerr_pLS = cudaGetLastError();
