@@ -39,7 +39,6 @@ namespace SDL
     {
     private:
         cudaStream_t stream;
-//        unsigned int hitOffset;
         std::array<unsigned int, 6> n_hits_by_layer_barrel_;
         std::array<unsigned int, 5> n_hits_by_layer_endcap_;
         std::array<unsigned int, 6> n_minidoublets_by_layer_barrel_;
@@ -87,9 +86,7 @@ namespace SDL
         ~Event();
         void resetEvent();
 
-        void setHits(unsigned int offset,unsigned int loopsize,unsigned int evtnum, struct SDL::hits* hitsInGPU_event);
         void addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple); //call the appropriate hit function, then increment the counter here
-        //void preloadHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple,unsigned int offset); 
         void addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<short> isQuad);
 
         /*functions that map the objects to the appropriate modules*/
@@ -170,39 +167,13 @@ namespace SDL
 
     //global stuff
 
-    extern struct hits* hitsInGPUAll;
     extern struct modules* modulesInGPU;
     extern struct modules* modulesInHost;
     extern uint16_t nModules;
     extern uint16_t nLowerModules;
     void initModules(const char* moduleMetaDataFilePath="data/centroid.txt"); //read from file and init
-    void initHits(std::vector<unsigned int> hitOffset,
-std::vector<std::vector<float>>& out_trkX,std::vector<std::vector<float>>& out_trkY,std::vector<std::vector<float>>& out_trkZ,
-
-std::vector<std::vector<unsigned int>>&    out_hitId,
-std::vector<std::vector<unsigned int>>&    out_hitIdxs,
-std::vector<std::vector<unsigned int>>&    out_hitIndices_vec0,
-std::vector<std::vector<unsigned int>>&    out_hitIndices_vec1,
-std::vector<std::vector<unsigned int>>&    out_hitIndices_vec2,
-std::vector<std::vector<unsigned int>>&    out_hitIndices_vec3,
-std::vector<std::vector<float>>&    out_deltaPhi_vec,
-std::vector<std::vector<float>>&    out_ptIn_vec,
-std::vector<std::vector<float>>&    out_ptErr_vec,
-std::vector<std::vector<float>>&    out_px_vec,
-std::vector<std::vector<float>>&    out_py_vec,
-std::vector<std::vector<float>>&    out_pz_vec,
-std::vector<std::vector<float>>&    out_eta_vec,
-std::vector<std::vector<float>>&    out_etaErr_vec,
-std::vector<std::vector<float>>&    out_phi_vec,
-std::vector<std::vector<int>>&    out_superbin_vec,
-std::vector<std::vector<int8_t>>&    out_pixelType_vec,
-std::vector<std::vector<short>>&    out_isQuad_vec
-,std::vector<SDL::hits*>& hitsInGPUAll
-);
     void cleanModules();
     void initModulesHost(); //read from file and init
     extern struct pixelMap* pixelMapping;
-    void preloadHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple,unsigned int offset, unsigned int evtnum, struct SDL::hits& hitsInGPU_event); 
-
 }
 #endif

@@ -34,7 +34,7 @@ SDL::hits::~hits()
 void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU, int nModules, unsigned int nMaxHits,unsigned int nMax2SHits,cudaStream_t stream, unsigned int evtnum)
 {
 //#ifdef CACHE_ALLOC
-#if defined(CACHE_ALLOC) && !defined(Preload_hits)
+#if defined(CACHE_ALLOC)
 //    cudaStream_t stream=0;
     hitsInGPU.xs = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
     hitsInGPU.ys = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
@@ -101,7 +101,7 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU, int nModules, unsign
 void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, int nModules, unsigned int nMaxHits,cudaStream_t stream,unsigned int evtnum)
 {
 //#ifdef CACHE_ALLOC
-#if defined(CACHE_ALLOC) && !defined(Preload_hits)
+#if defined(CACHE_ALLOC)
  //   cudaStream_t stream=0;
     int dev;
     cudaGetDevice(&dev);

@@ -24,7 +24,6 @@ Compile the code with option flags
     sdl_make_tracklooper -m8
     -x: run with explicit instead of unified memory
     -c: run with the cmssw caching allocator
-    -l: toggle on preloading of hits
     -h: show help screen with all options
  Run the code
  
