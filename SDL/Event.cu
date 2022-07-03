@@ -92,8 +92,7 @@ SDL::Event::~Event()
     if(segmentsInGPU!= nullptr){cms::cuda::free_host(segmentsInGPU);}
     if(tripletsInGPU!= nullptr){cms::cuda::free_host(tripletsInGPU);}
     if(trackCandidatesInGPU!= nullptr){cms::cuda::free_host(trackCandidatesInGPU);}
-    if(hitsInGPU!= nullptr){//cms::cuda::free_host(hitsInGPU);
-        cudaFreeHost(hitsInGPU);}
+    if(hitsInGPU!= nullptr){cms::cuda::free_host(hitsInGPU);}
 
     if(pixelTripletsInGPU!= nullptr){//cms::cuda::free_host(pixelTripletsInGPU);
         cudaFreeHost(pixelTripletsInGPU);}
@@ -319,8 +318,7 @@ void SDL::Event::resetEvent()
             n_quintuplets_by_layer_endcap_[i] = 0;
         }
     }
-    if(hitsInGPU){//cms::cuda::free_host(hitsInGPU);
-    cudaFreeHost(hitsInGPU);
+    if(hitsInGPU){cms::cuda::free_host(hitsInGPU);
     hitsInGPU = nullptr;}
     if(mdsInGPU){cms::cuda::free_host(mdsInGPU);
     mdsInGPU = nullptr;}
@@ -638,10 +636,12 @@ __global__ void hitLoopKernel(
             // Unclear why these are not in map, but CPU map returns phi = 0 for all exceptions.
             if (found_index != -1)
                 phi = geoMapPhi[found_index];
-            hitsInGPU->highEdgeXs[ihit] = ihit_x + 2.5 * cos(phi);;
-            hitsInGPU->highEdgeYs[ihit] = ihit_y + 2.5 * sin(phi);
-            hitsInGPU->lowEdgeXs[ihit] = ihit_x - 2.5 * cos(phi);
-            hitsInGPU->lowEdgeYs[ihit] = ihit_y - 2.5 * sin(phi);
+            float cos_phi = cos(phi);
+            hitsInGPU->highEdgeXs[ihit] = ihit_x + 2.5 * cos_phi;
+            hitsInGPU->lowEdgeXs[ihit] = ihit_x - 2.5 * cos_phi;
+            float sin_phi = sin(phi);
+            hitsInGPU->highEdgeYs[ihit] = ihit_y + 2.5 * sin_phi;
+            hitsInGPU->lowEdgeYs[ihit] = ihit_y - 2.5 * sin_phi;
         }
         // Need to set initial value if index hasn't been seen before.
         int old = atomicCAS(&hitsInGPU->hitRanges[lastModuleIndex * 2], -1, ihit);
@@ -661,8 +661,7 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     // Initialize space on device/host for next event.
     if (hitsInGPU == nullptr)
     {
-        cudaMallocHost(&hitsInGPU, sizeof(SDL::hits));
-        //hitsInGPU = (SDL::hits*)cms::cuda::allocate_host(sizeof(SDL::hits), stream);
+        hitsInGPU = (SDL::hits*)cms::cuda::allocate_host(sizeof(SDL::hits), stream);
         #ifdef Explicit_Hit
             // Unclear why but this has to be 2*nHits to avoid crashing.
     	    createHitsInExplicitMemory(*hitsInGPU, nModules, 2*nHits, stream, 1);
@@ -705,6 +704,8 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     cudaStreamSynchronize(stream);
 
     // No stream synchronize needed after second kernel call. Saves ~100 us.
+    // This is because addPixelSegmentToEvent (which is run next) doesn't rely on hitsinGPU->hitrange variables.
+    // Also, modulesInGPU->partnerModuleIndices is not alterned in addPixelSegmentToEvent.
     moduleRangesKernel<<<MAX_BLOCKS,256,0,stream>>>(nLowerModules, modulesInGPU, hitsInGPU);
     //std::cout << cudaGetLastError() << std::endl;
 }
