@@ -636,10 +636,10 @@ __global__ void hitLoopKernel(
             // Unclear why these are not in map, but CPU map returns phi = 0 for all exceptions.
             if (found_index != -1)
                 phi = geoMapPhi[found_index];
-            float cos_phi = cos(phi);
+            float cos_phi = cosf(phi);
             hitsInGPU->highEdgeXs[ihit] = ihit_x + 2.5 * cos_phi;
             hitsInGPU->lowEdgeXs[ihit] = ihit_x - 2.5 * cos_phi;
-            float sin_phi = sin(phi);
+            float sin_phi = sinf(phi);
             hitsInGPU->highEdgeYs[ihit] = ihit_y + 2.5 * sin_phi;
             hitsInGPU->lowEdgeYs[ihit] = ihit_y - 2.5 * sin_phi;
         }
