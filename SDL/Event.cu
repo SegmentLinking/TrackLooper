@@ -637,11 +637,11 @@ __global__ void hitLoopKernel(
             if (found_index != -1)
                 phi = geoMapPhi[found_index];
             float cos_phi = cosf(phi);
-            hitsInGPU->highEdgeXs[ihit] = ihit_x + 2.5 * cos_phi;
-            hitsInGPU->lowEdgeXs[ihit] = ihit_x - 2.5 * cos_phi;
+            hitsInGPU->highEdgeXs[ihit] = ihit_x + 2.5f * cos_phi;
+            hitsInGPU->lowEdgeXs[ihit] = ihit_x - 2.5f * cos_phi;
             float sin_phi = sinf(phi);
-            hitsInGPU->highEdgeYs[ihit] = ihit_y + 2.5 * sin_phi;
-            hitsInGPU->lowEdgeYs[ihit] = ihit_y - 2.5 * sin_phi;
+            hitsInGPU->highEdgeYs[ihit] = ihit_y + 2.5f * sin_phi;
+            hitsInGPU->lowEdgeYs[ihit] = ihit_y - 2.5f * sin_phi;
         }
         // Need to set initial value if index hasn't been seen before.
         int old = atomicCAS(&hitsInGPU->hitRanges[lastModuleIndex * 2], -1, ihit);
