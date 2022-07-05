@@ -132,6 +132,7 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
     nTotalQuintuplets = 0; //start!
     unsigned int occupancy;
     unsigned int category_number, eta_number;
+    unsigned int layers, subdets, eta;
     //start filling
     int gid = blockIdx.x * blockDim.x + threadIdx.x;
     int np = gridDim.x * blockDim.x;
@@ -145,17 +146,19 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
 
         int nEligibleT5Modules = atomicAdd(&nEligibleT5Modulesx,1);
         rangesInGPU.quintupletModuleIndices[i] = nTotalQuintuplets; //for variable occupancy change this to module_quintupletModuleIndices[i-1] + blah
-
-        if (module_layers[i]<=3 && module_subdets[i]==5) category_number = 0;
-        if (module_layers[i]>=4 && module_subdets[i]==5) category_number = 1;
-        if (module_layers[i]<=2 && module_subdets[i]==4 && module_rings[i]>=11) category_number = 2;
-        if (module_layers[i]>=3 && module_subdets[i]==4 && module_rings[i]>=8) category_number = 2;
-        if (module_layers[i]<=2 && module_subdets[i]==4 && module_rings[i]<=10) category_number = 3;
-        if (module_layers[i]>=3 && module_subdets[i]==4 && module_rings[i]<=7) category_number = 3;
-        if (abs(module_eta[i])<0.75) eta_number=0;
-        if (abs(module_eta[i])>0.75 && abs(module_eta[i])<1.5) eta_number=1;
-        if (abs(module_eta[i])>1.5 && abs(module_eta[i])<2.25) eta_number=2;
-        if (abs(module_eta[i])>2.25 && abs(module_eta[i])<3) eta_number=3;
+        layers = rangesInGPU.layers[i];
+        subdets = rangesInGPU.subdets[i];
+        eta = rangesInGPU.eta[i];
+        if (layers<=3 && subdets==5) category_number = 0;
+        if (layers>=4 && subdets==5) category_number = 1;
+        if (layers<=2 && subdets==4 && rings>=11) category_number = 2;
+        if (layers>=3 && subdets==4 && rings>=8) category_number = 2;
+        if (layers<=2 && subdets==4 && rings<=10) category_number = 3;
+        if (layers>=3 && subdets==4 && rings<=7) category_number = 3;
+        if (abs(eta)<0.75) eta_number=0;
+        if (abs(eta)>0.75 && abs(eta)<1.5) eta_number=1;
+        if (abs(eta)>1.5 && abs(eta)<2.25) eta_number=2;
+        if (abs(eta)>2.25 && abs(eta)<3) eta_number=3;
 
         if (category_number == 0 && eta_number == 0) occupancy = 152;
         if (category_number == 0 && eta_number == 1) occupancy = 170;
