@@ -132,7 +132,8 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
     nTotalQuintuplets = 0; //start!
     unsigned int occupancy;
     unsigned int category_number, eta_number;
-    unsigned int layers, subdets, eta;
+    unsigned int layers, subdets, rings;
+    float eta;
     //start filling
     int gid = blockIdx.x * blockDim.x + threadIdx.x;
     int np = gridDim.x * blockDim.x;
@@ -146,9 +147,10 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
 
         int nEligibleT5Modules = atomicAdd(&nEligibleT5Modulesx,1);
         rangesInGPU.quintupletModuleIndices[i] = nTotalQuintuplets; //for variable occupancy change this to module_quintupletModuleIndices[i-1] + blah
-        layers = rangesInGPU.layers[i];
-        subdets = rangesInGPU.subdets[i];
-        eta = rangesInGPU.eta[i];
+        layers = modulesInGPU.layers[i];
+        subdets = modulesInGPU.subdets[i];
+        rings = modulesInGPU.rings[i];
+        eta = modulesInGPU.eta[i];
         if (layers<=3 && subdets==5) category_number = 0;
         if (layers>=4 && subdets==5) category_number = 1;
         if (layers<=2 && subdets==4 && rings>=11) category_number = 2;
