@@ -123,25 +123,51 @@ void SDL::quintuplets::freeMemory(cudaStream_t stream)
 cudaStreamSynchronize(stream);
 }
 //TODO:Reuse the track candidate one instead of this!
-__global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU,struct triplets& tripletsInGPU, unsigned int maxQuintuplets, cudaStream_t stream,struct objectRanges& rangesInGPU)
+__global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU,struct triplets& tripletsInGPU, unsigned int nTotalQuintuplets, cudaStream_t stream,struct objectRanges& rangesInGPU)
 {
     __shared__ int nEligibleT5Modulesx;
     nEligibleT5Modulesx =-1;
     __syncthreads();
 
-
-
+    nTotalQuintuplets = 0; //start!
+    unsigned int occupancy;
+    unsigned int category_number, eta_number;
     //start filling
     int gid = blockIdx.x * blockDim.x + threadIdx.x;
     int np = gridDim.x * blockDim.x;
     for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
     {
-        if(((modulesInGPU.subdets[i] == SDL::Barrel and modulesInGPU.layers[i] < 3) or (modulesInGPU.subdets[i] == SDL::Endcap and modulesInGPU.layers[i] == 1)) and tripletsInGPU.nTriplets[i] != 0)
-        {
-            int nEligibleT5Modules = atomicAdd(&nEligibleT5Modulesx,1);
-            rangesInGPU.quintupletModuleIndices[i] = nEligibleT5Modules * maxQuintuplets; //for variable occupancy change this to module_quintupletModuleIndices[i-1] + blah
-            rangesInGPU.indicesOfEligibleT5Modules[nEligibleT5Modules] = i;
-        }
+        //condition for a quintuple to exist for a module
+        //TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap        
+        if (tripletsInGPU.nTriplets[i] == 0) continue;
+        if (modulesInGPU.subdets[i] == SDL::Barrel and modulesInGPU.layers[i] >= 3) continue;
+        if (modulesInGPU.subdets[i] == SDL::Endcap and modulesInGPU.layers[i] > 1) continue;
+
+        int nEligibleT5Modules = atomicAdd(&nEligibleT5Modulesx,1);
+        rangesInGPU.quintupletModuleIndices[i] = nTotalQuintuplets; //for variable occupancy change this to module_quintupletModuleIndices[i-1] + blah
+
+        if (module_layers[i]<=3 && module_subdets[i]==5) category_number = 0;
+        if (module_layers[i]>=4 && module_subdets[i]==5) category_number = 1;
+        if (module_layers[i]<=2 && module_subdets[i]==4 && module_rings[i]>=11) category_number = 2;
+        if (module_layers[i]>=3 && module_subdets[i]==4 && module_rings[i]>=8) category_number = 2;
+        if (module_layers[i]<=2 && module_subdets[i]==4 && module_rings[i]<=10) category_number = 3;
+        if (module_layers[i]>=3 && module_subdets[i]==4 && module_rings[i]<=7) category_number = 3;
+        if (abs(module_eta[i])<0.75) eta_number=0;
+        if (abs(module_eta[i])>0.75 && abs(module_eta[i])<1.5) eta_number=1;
+        if (abs(module_eta[i])>1.5 && abs(module_eta[i])<2.25) eta_number=2;
+        if (abs(module_eta[i])>2.25 && abs(module_eta[i])<3) eta_number=3;
+
+        if (category_number == 0 && eta_number == 0) occupancy = 152;
+        if (category_number == 0 && eta_number == 1) occupancy = 170;
+        if (category_number == 0 && eta_number == 2) occupancy = 94;
+        if (category_number == 0 && eta_number == 3) occupancy = 63;
+        if (category_number == 3 && eta_number == 1) occupancy = 0;
+        if (category_number == 3 && eta_number == 2) occupancy = 70;
+        if (category_number == 3 && eta_number == 3) occupancy = 75;
+
+        nTotalQuintuplets+=occupancy;
+
+        rangesInGPU.indicesOfEligibleT5Modules[nEligibleT5Modules] = i;
     }
     __syncthreads();
     if(threadIdx.x==0){
