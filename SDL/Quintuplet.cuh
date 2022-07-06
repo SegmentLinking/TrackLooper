@@ -30,6 +30,8 @@ namespace SDL
         uint16_t* lowerModuleIndices;
         unsigned int* nQuintuplets;
         unsigned int* totOccupancyQuintuplets;
+        unsigned int* nMemoryLocations;
+
         FPX* innerRadius;
         FPX* outerRadius;
         FPX* pt;
@@ -47,7 +49,6 @@ namespace SDL
         //for track extensions
         uint8_t* logicalLayers;
         unsigned int* hitIndices;
-
 #ifdef CUT_VALUE_DEBUG
         float* innerRadiusMin;
         float* innerRadiusMax;

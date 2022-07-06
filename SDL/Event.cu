@@ -1585,7 +1585,7 @@ void SDL::Event::createTriplets()
     cudaMemcpyAsync(index_gpu, index, nonZeroModules*sizeof(uint16_t), cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
 
-    dim3 nThreads(16,32,1);
+    dim3 nThreads(16,16,1);
     dim3 nBlocks(1,1,MAX_BLOCKS);
     //createTripletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *rangesInGPU, index_gpu,nonZeroModules);
     SDL::createTripletsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *rangesInGPU, index_gpu,nonZeroModules);
@@ -1690,7 +1690,7 @@ void SDL::Event::createTrackCandidates()
     }cudaStreamSynchronize(stream);
 #endif  
 
-    dim3 nThreads_pLS(64,16,1);
+    dim3 nThreads_pLS(32,16,1);
     dim3 nBlocks_pLS(20,4,1);
     SDL::crossCleanpLS<<<nBlocks_pLS, nThreads_pLS, 0, stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *mdsInGPU,*hitsInGPU, *quintupletsInGPU);
     cudaError_t cudaerr_pLS = cudaGetLastError();
@@ -1935,12 +1935,14 @@ cudaStreamSynchronize(stream);
 #ifdef Explicit_T5
         createQuintupletsInExplicitMemory(*quintupletsInGPU, nTotalQuintuplets, nLowerModules, nEligibleT5Modules,stream);
 
-
 #else
         createQuintupletsInUnifiedMemory(*quintupletsInGPU, nTotalQuintuplets, nLowerModules, nEligibleT5Modules,stream);
 
 
 #endif
+        cudaMemcpyAsync(quintupletsInGPU->nMemoryLocations, &nTotalQuintuplets, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+        cudaStreamSynchronize(stream);
+
     }
 cudaStreamSynchronize(stream);
 
@@ -2781,8 +2783,10 @@ SDL::quintuplets* SDL::Event::getQuintuplets()
         cudaMemcpyAsync(&nLowerModules, modulesInGPU->nLowerModules, sizeof(uint16_t), cudaMemcpyDeviceToHost,stream);
         uint16_t nEligibleT5Modules;
         cudaMemcpyAsync(&nEligibleT5Modules, rangesInGPU->nEligibleT5Modules, sizeof(uint16_t), cudaMemcpyDeviceToHost,stream);
-cudaStreamSynchronize(stream);
-        unsigned int nMemoryLocations = nEligibleT5Modules * N_MAX_QUINTUPLETS_PER_MODULE;
+        cudaStreamSynchronize(stream);
+        unsigned int nMemoryLocations;
+        cudaMemcpyAsync(&nMemoryLocations, quintupletsInGPU->nMemoryLocations, sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+        cudaStreamSynchronize(stream);
 
         quintupletsInCPU->nQuintuplets = new unsigned int[nLowerModules];
         quintupletsInCPU->totOccupancyQuintuplets = new unsigned int[nLowerModules];
