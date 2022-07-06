@@ -2831,7 +2831,7 @@ SDL::quintuplets* SDL::Event::getQuintuplets()
         cudaMemcpyAsync(&nLowerModules, modulesInGPU->nLowerModules, sizeof(uint16_t), cudaMemcpyDeviceToHost,stream);
         uint16_t nEligibleT5Modules;
         cudaMemcpyAsync(&nEligibleT5Modules, rangesInGPU->nEligibleT5Modules, sizeof(uint16_t), cudaMemcpyDeviceToHost,stream);
-cudaStreamSynchronize(stream);
+        cudaStreamSynchronize(stream);
         unsigned int nMemoryLocations;
         cudaMemcpyAsync(&nMemoryLocations, quintupletsInGPU->nMemoryLocations, sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
         cudaStreamSynchronize(stream);

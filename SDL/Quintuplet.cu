@@ -66,6 +66,7 @@ void SDL::quintuplets::freeMemoryCache()
     cms::cuda::free_device(dev, regressionRadius);
     cms::cuda::free_device(dev, logicalLayers);
     cms::cuda::free_device(dev, hitIndices);
+    cms::cuda::free_device(dev, nMemoryLocations);
 #else
     cms::cuda::free_managed(tripletIndices);
     cms::cuda::free_managed(lowerModuleIndices);
@@ -83,6 +84,7 @@ void SDL::quintuplets::freeMemoryCache()
 
     cms::cuda::free_managed(logicalLayers);
     cms::cuda::free_managed(hitIndices);
+    cms::cuda::free_managed(nMemoryLocations);
 #endif
 }
 
@@ -103,6 +105,7 @@ void SDL::quintuplets::freeMemory(cudaStream_t stream)
     cudaFree(regressionF);
     cudaFree(logicalLayers);
     cudaFree(hitIndices);
+    cudaFree(nMemoryLocations);
 #ifdef CUT_VALUE_DEBUG
     cudaFree(innerRadiusMin);
     cudaFree(innerRadiusMin2S);
@@ -228,7 +231,6 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     quintupletsInGPU.regressionF = (float*)cms::cuda::allocate_managed(nTotalQuintuplets * sizeof(float), stream);
     quintupletsInGPU.logicalLayers = (uint8_t*)cms::cuda::allocate_managed(nTotalQuintuplets * sizeof(uint8_t) * 5, stream);
     quintupletsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_managed(nTotalQuintuplets * sizeof(unsigned int) * 10, stream);
-
     quintupletsInGPU.nMemoryLocations = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int), stream);
 #else
     cudaMallocManaged(&quintupletsInGPU.tripletIndices, 2 * nTotalQuintuplets * sizeof(unsigned int));
@@ -247,6 +249,7 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     cudaMallocManaged(&quintupletsInGPU.regressionF, nTotalQuintuplets * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.logicalLayers, nTotalQuintuplets * sizeof(uint8_t) * 5);
     cudaMallocManaged(&quintupletsInGPU.hitIndices, nTotalQuintuplets * sizeof(unsigned int) * 10);
+    cudaMallocManaged(&quintupletsInGPU.nMemoryLocations, sizeof(unsigned int));
 #ifdef CUT_VALUE_DEBUG
     cudaMallocManaged(&quintupletsInGPU.innerRadiusMin, nTotalQuintuplets * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.innerRadiusMax, nTotalQuintuplets * sizeof(float));
