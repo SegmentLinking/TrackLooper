@@ -144,17 +144,19 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
     for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
     {
         //condition for a quintuple to exist for a module
-        //TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap        
-        if (tripletsInGPU.nTriplets[i] == 0) continue;
-        if (modulesInGPU.subdets[i] == SDL::Barrel and modulesInGPU.layers[i] >= 3) continue;
-        if (modulesInGPU.subdets[i] == SDL::Endcap and modulesInGPU.layers[i] > 1) continue;
-
-        int nEligibleT5Modules = atomicAdd(&nEligibleT5Modulesx,1);
-//        rangesInGPU.quintupletModuleIndices[i] = nTotalQuintuplets; //for variable occupancy change this to module_quintupletModuleIndices[i-1] + blah
+        //TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap   
         layers = modulesInGPU.layers[i];
         subdets = modulesInGPU.subdets[i];
         rings = modulesInGPU.rings[i];
-        eta = modulesInGPU.eta[i];
+        eta = modulesInGPU.eta[i];  
+        occupancy = 0;
+
+        if (tripletsInGPU.nTriplets[i] == 0) continue;
+        if (subdets == SDL::Barrel and layers >= 3) continue;
+        if (subdets == SDL::Endcap and layers > 1) continue;
+
+        int nEligibleT5Modules = atomicAdd(&nEligibleT5Modulesx,1);
+        if (nEligibleT5Modules < 0) printf("%u\n",nEligibleT5Modules);
         if (layers<=3 && subdets==5) category_number = 0;
         if (layers>=4 && subdets==5) category_number = 1;
         if (layers<=2 && subdets==4 && rings>=11) category_number = 2;
@@ -175,14 +177,15 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
         if (category_number == 3 && eta_number == 3) occupancy = 75;
 
         unsigned int nTotQ = atomicAdd(&nTotalQuintupletsx,occupancy);
-//        nTotalQuintuplets+=occupancy;
-        rangesInGPU.quintupletModuleIndices[i] = nTotQ-occupancy;
+//        if (nTotQ == 0) printf("%u\n",occupancy);
+//        rangesInGPU.quintupletModuleIndices[i] = nTotQ-occupancy;
+        rangesInGPU.quintupletModuleIndices[i] = nTotQ;
         rangesInGPU.indicesOfEligibleT5Modules[nEligibleT5Modules] = i;
     }
     __syncthreads();
     if(threadIdx.x==0){
         *rangesInGPU.nEligibleT5Modules = static_cast<uint16_t>(nEligibleT5Modulesx);
-        printf("nTotalT5 %u\n",nTotalQuintupletsx);
+//        printf("nTotalT5 %u\n",nTotalQuintupletsx);
         *device_nTotalQuintuplets = nTotalQuintupletsx;
     }
 }
