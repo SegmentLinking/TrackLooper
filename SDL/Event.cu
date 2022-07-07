@@ -1923,10 +1923,13 @@ cudaStreamSynchronize(stream);
     cudaMemsetAsync(rangesInGPU->quintupletModuleIndices, -1, sizeof(int) * (nLowerModules),stream);
 cudaStreamSynchronize(stream);
     unsigned int nTotalQuintuplets;
-    createEligibleModulesListForQuintupletsGPU<<<1,1024,0,stream>>>(*modulesInGPU, *tripletsInGPU, nTotalQuintuplets,stream,*rangesInGPU);
-    cout<<"nTotalQuintuplets: "<<nTotalQuintuplets<<std::endl; // for memory usage
+    unsigned int *device_nTotalQuintuplets;
+    cudaMalloc((void **)&device_nTotalQuintuplets, sizeof(unsigned int));
+    createEligibleModulesListForQuintupletsGPU<<<1,1024,0,stream>>>(*modulesInGPU, *tripletsInGPU, device_nTotalQuintuplets, stream, *rangesInGPU);
 cudaStreamSynchronize(stream);
     cudaMemcpyAsync(&nEligibleT5Modules,rangesInGPU->nEligibleT5Modules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(&nTotalQuintuplets,device_nTotalQuintuplets,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
+    cudaFree(device_nTotalQuintuplets);
 cudaStreamSynchronize(stream);
 
     if(quintupletsInGPU == nullptr)

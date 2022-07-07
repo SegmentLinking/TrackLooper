@@ -126,13 +126,14 @@ void SDL::quintuplets::freeMemory(cudaStream_t stream)
 cudaStreamSynchronize(stream);
 }
 //TODO:Reuse the track candidate one instead of this!
-__global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU,struct triplets& tripletsInGPU, unsigned int& nTotalQuintuplets, cudaStream_t stream,struct objectRanges& rangesInGPU)
+__global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU,struct triplets& tripletsInGPU, unsigned int* device_nTotalQuintuplets, cudaStream_t stream,struct objectRanges& rangesInGPU)
 {
     __shared__ int nEligibleT5Modulesx;
+    __shared__ unsigned int nTotalQuintupletsx;
+    nTotalQuintupletsx = 0; //start!
     nEligibleT5Modulesx =-1;
     __syncthreads();
 
-    nTotalQuintuplets = 0; //start!
     unsigned int occupancy;
     unsigned int category_number, eta_number;
     unsigned int layers, subdets, rings;
@@ -149,7 +150,7 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
         if (modulesInGPU.subdets[i] == SDL::Endcap and modulesInGPU.layers[i] > 1) continue;
 
         int nEligibleT5Modules = atomicAdd(&nEligibleT5Modulesx,1);
-        rangesInGPU.quintupletModuleIndices[i] = nTotalQuintuplets; //for variable occupancy change this to module_quintupletModuleIndices[i-1] + blah
+//        rangesInGPU.quintupletModuleIndices[i] = nTotalQuintuplets; //for variable occupancy change this to module_quintupletModuleIndices[i-1] + blah
         layers = modulesInGPU.layers[i];
         subdets = modulesInGPU.subdets[i];
         rings = modulesInGPU.rings[i];
@@ -173,13 +174,16 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
         if (category_number == 3 && eta_number == 2) occupancy = 70;
         if (category_number == 3 && eta_number == 3) occupancy = 75;
 
-        nTotalQuintuplets+=occupancy;
-
+        unsigned int nTotQ = atomicAdd(&nTotalQuintupletsx,occupancy);
+//        nTotalQuintuplets+=occupancy;
+        rangesInGPU.quintupletModuleIndices[i] = nTotQ-occupancy;
         rangesInGPU.indicesOfEligibleT5Modules[nEligibleT5Modules] = i;
     }
     __syncthreads();
     if(threadIdx.x==0){
-      *rangesInGPU.nEligibleT5Modules = static_cast<uint16_t>(nEligibleT5Modulesx);
+        *rangesInGPU.nEligibleT5Modules = static_cast<uint16_t>(nEligibleT5Modulesx);
+        printf("nTotalT5 %u\n",nTotalQuintupletsx);
+        *device_nTotalQuintuplets = nTotalQuintupletsx;
     }
 }
 
@@ -187,7 +191,6 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
 {
 //    unsigned int nMemoryLocations = maxQuintuplets * nEligibleModules;
 //    std::cout<<"Number of eligible T5 modules = "<<nEligibleModules<<std::endl;
-
 #ifdef CACHE_ALLOC
 //    cudaStream_t stream = 0;
     quintupletsInGPU.tripletIndices = (unsigned int*)cms::cuda::allocate_managed(nTotalQuintuplets * 2 * sizeof(unsigned int), stream);
