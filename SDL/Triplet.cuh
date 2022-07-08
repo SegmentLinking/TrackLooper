@@ -13,7 +13,7 @@
 
 #include "Constants.h"
 #include "Constants.cuh"
-#include "EndcapGeometry.h"
+#include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"
 #include "Tracklet.cuh"
 #include "Segment.cuh"

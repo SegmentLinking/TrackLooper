@@ -12,6 +12,7 @@ SDL::hits::hits()
     ys = nullptr;
     zs = nullptr;
     moduleIndices = nullptr;
+    detid = nullptr;
     rts = nullptr;
     phis = nullptr;
     etas = nullptr;
@@ -30,11 +31,10 @@ SDL::hits::~hits()
 {
 }
 //FIXME:New array!
-void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits,unsigned int nMax2SHits,cudaStream_t stream, unsigned int evtnum)
+void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU, int nModules, unsigned int nMaxHits,unsigned int nMax2SHits,cudaStream_t stream, unsigned int evtnum)
 {
-    int nModules= 26593;
 //#ifdef CACHE_ALLOC
-#if defined(CACHE_ALLOC) && !defined(Preload_hits)
+#if defined(CACHE_ALLOC)
 //    cudaStream_t stream=0;
     hitsInGPU.xs = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
     hitsInGPU.ys = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
@@ -46,6 +46,7 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
 
     hitsInGPU.moduleIndices = (uint16_t*)cms::cuda::allocate_managed(nMaxHits*sizeof(uint16_t),stream);
     hitsInGPU.idxs = (unsigned int*)cms::cuda::allocate_managed(nMaxHits*sizeof(unsigned int),stream);
+    hitsInGPU.detid = (unsigned int*)cms::cuda::allocate_managed(nMaxHits*sizeof(unsigned int),stream);
 
     hitsInGPU.highEdgeXs = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
     hitsInGPU.highEdgeYs = (float*)cms::cuda::allocate_managed(nMaxHits*sizeof(float),stream);
@@ -68,6 +69,7 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
     //TODO:This dude (idxs) is not used in the GPU at all. It is only used for simhit matching to make efficiency plots
     //We can even skip this one later
     cudaMallocManaged(&hitsInGPU.idxs, nMaxHits * sizeof(unsigned int));
+    cudaMallocManaged(&hitsInGPU.detid, nMaxHits * sizeof(unsigned int));
 
     cudaMallocManaged(&hitsInGPU.rts, nMaxHits * sizeof(float));
     cudaMallocManaged(&hitsInGPU.phis, nMaxHits * sizeof(float));
@@ -96,11 +98,10 @@ void SDL::createHitsInUnifiedMemory(struct hits& hitsInGPU,unsigned int nMaxHits
     cudaMemsetAsync(hitsInGPU.hitRangesnUpper, -1,evtnum*nModules*sizeof(int8_t),stream);
     cudaStreamSynchronize(stream);
 }
-void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHits,cudaStream_t stream,unsigned int evtnum)
+void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, int nModules, unsigned int nMaxHits,cudaStream_t stream,unsigned int evtnum)
 {
-    int nModules= 26593;
 //#ifdef CACHE_ALLOC
-#if defined(CACHE_ALLOC) && !defined(Preload_hits)
+#if defined(CACHE_ALLOC)
  //   cudaStream_t stream=0;
     int dev;
     cudaGetDevice(&dev);
@@ -114,6 +115,7 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
 
     hitsInGPU.moduleIndices = (uint16_t*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(uint16_t),stream);
     hitsInGPU.idxs = (unsigned int*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(unsigned int),stream);
+    hitsInGPU.detid = (unsigned int*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(unsigned int),stream);
 
     hitsInGPU.highEdgeXs = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
     hitsInGPU.highEdgeYs = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
@@ -134,6 +136,7 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, unsigned int nMaxHi
 
     cudaMalloc(&hitsInGPU.moduleIndices, nMaxHits * sizeof(uint16_t));
     cudaMalloc(&hitsInGPU.idxs, nMaxHits * sizeof(unsigned int));
+    cudaMalloc(&hitsInGPU.detid, nMaxHits * sizeof(unsigned int));
 
     cudaMalloc(&hitsInGPU.rts, nMaxHits * sizeof(float));
     cudaMalloc(&hitsInGPU.phis, nMaxHits * sizeof(float));
@@ -213,6 +216,7 @@ void SDL::hits::freeMemoryCache()
     cms::cuda::free_device(dev,moduleIndices);
     cms::cuda::free_device(dev,rts);
     cms::cuda::free_device(dev,idxs);
+    cms::cuda::free_device(dev,detid);
     cms::cuda::free_device(dev,phis);
     cms::cuda::free_device(dev,etas);
 
@@ -234,6 +238,7 @@ void SDL::hits::freeMemoryCache()
     cms::cuda::free_managed(moduleIndices);
     cms::cuda::free_managed(rts);
     cms::cuda::free_managed(idxs);
+    cms::cuda::free_managed(detid);
     cms::cuda::free_managed(phis);
     cms::cuda::free_managed(etas);
 
@@ -259,6 +264,7 @@ void SDL::hits::freeMemory()
     cudaFree(moduleIndices);
     cudaFree(rts);
     cudaFree(idxs);
+    cudaFree(detid);
     cudaFree(phis);
     cudaFree(etas);
 

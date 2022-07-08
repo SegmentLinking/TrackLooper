@@ -1,4 +1,4 @@
-#include "EndcapGeometry.h"
+#include "EndcapGeometry.cuh"
 
 SDL::EndcapGeometry SDL::endcapGeometry;
 
@@ -58,6 +58,48 @@ void SDL::EndcapGeometry::load(std::string filename)
         centroid_phis_[detid] = cr;
         centroid_zs_[detid] = cz;
     }
+    CreateGeoMapArraysExplicit();
+    fillGeoMapArraysExplicit();
+}
+
+void SDL::freeEndCapMapMemory()
+{
+    cudaFree(SDL::endcapGeometry.geoMapPhi);
+    cudaFree(SDL::endcapGeometry.geoMapDetId);
+}
+
+void SDL::EndcapGeometry::CreateGeoMapArraysExplicit()
+{
+    int phi_size = centroid_phis_.size();
+    cudaMalloc(&geoMapPhi, phi_size * sizeof(float));
+    cudaMalloc(&geoMapDetId, phi_size * sizeof(unsigned int));
+}
+
+void SDL::EndcapGeometry::fillGeoMapArraysExplicit()
+{
+    float* mapPhi;
+    unsigned int* mapDetId;
+    int phi_size = centroid_phis_.size();
+    cudaMallocHost(&mapPhi, phi_size * sizeof(float));
+    cudaMallocHost(&mapDetId, phi_size * sizeof(unsigned int));
+
+    unsigned int counter = 0;
+    for(auto it = centroid_phis_.begin(); it != centroid_phis_.end(); ++it)
+    {
+        unsigned int detId = it->first;
+        float Phi = it->second;
+        mapPhi[counter] = Phi;
+        mapDetId[counter] = detId;
+        counter++;
+    }
+
+    nEndCapMap = counter;
+
+    cudaMemcpy(geoMapPhi, mapPhi, phi_size*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(geoMapDetId, mapDetId, phi_size*sizeof(unsigned int), cudaMemcpyHostToDevice);
+
+    cudaFreeHost(mapPhi);
+    cudaFreeHost(mapDetId);
 }
 
 float SDL::EndcapGeometry::getAverageR2(unsigned int detid)

@@ -99,9 +99,7 @@ std::vector<std::vector<float>>&    out_etaErr_vec,
 std::vector<std::vector<float>>&    out_phi_vec,
 std::vector<std::vector<int>>&    out_superbin_vec,
 std::vector<std::vector<int8_t>>&    out_pixelType_vec,
-std::vector<std::vector<short>>&    out_isQuad_vec,
-std::vector<unsigned int>&    hitOffset
-);
+std::vector<std::vector<short>>&    out_isQuad_vec);
 //float addInputsToEventPreLoad(SDL::Event& event, bool useOMP,std::vector<float> trkX,std::vector<float> trkY,std::vector<float> trkZ,
 float addInputsToEventPreLoad(SDL::Event* event, bool useOMP,std::vector<float> trkX,std::vector<float> trkY,std::vector<float> trkZ,
 std::vector<unsigned int>    hitId,
@@ -121,9 +119,7 @@ std::vector<float>    etaErr_vec,
 std::vector<float>    phi_vec,
 std::vector<int>    superbin_vec,
 std::vector<int8_t>    pixelType_vec,
-std::vector<short>   isQuad_vec,
-unsigned int hitOffset, unsigned int evt, struct SDL::hits* hitsInGPU_event
-);
+std::vector<short>   isQuad_vec);
 
 TVector3 calculateR3FromPCA(const TVector3& p3, const float dxy, const float dz);
 

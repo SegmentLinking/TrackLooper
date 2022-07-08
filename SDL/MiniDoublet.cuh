@@ -16,7 +16,7 @@
 #include <tuple>
 #include <cmath>
 #include "Constants.cuh"
-#include "EndcapGeometry.h"
+#include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"
 #include "Module.cuh"
 #include "Hit.cuh"

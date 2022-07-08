@@ -10,7 +10,7 @@
 #endif
 
 #include "Constants.cuh"
-#include "EndcapGeometry.h"
+#include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"
 #include "MiniDoublet.cuh"
 #include "Module.cuh"

@@ -9,10 +9,11 @@
 
 #include <iostream>
 #include <map>
+#include <unordered_map>
 #include "MiniDoublet.cuh"
 #include "Hit.cuh"
 #include "TiltedGeometry.h"
-#include "EndcapGeometry.h"
+#include "EndcapGeometry.cuh"
 #include "ModuleConnectionMap.h"
 #include "allocate.h"
 
@@ -76,6 +77,8 @@ namespace SDL
     {
         unsigned int* detIds;
         uint16_t* moduleMap;
+        unsigned int* mapdetId;
+        uint16_t* mapIdx;
         uint16_t* nConnectedModules;
         float* drdzs;
         float* slopes;
@@ -153,6 +156,7 @@ namespace SDL
     void freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
     void fillPixelMap(struct modules& modulesInGPU,struct pixelMap& pixelMapping,cudaStream_t stream);
     void fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);
+    void fillMapArraysExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);
     void fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nModules);
     void setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side, float m_x, float m_y, float m_z, float& eta, float& r);
     void resetObjectRanges(struct objectRanges& rangesInGPU, unsigned int nModules,cudaStream_t stream);

@@ -8,7 +8,7 @@
 #include "Algo.h"
 #include "PrintUtil.h"
 #include "MathUtil.h"
-#include "EndcapGeometry.h"
+#include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"
 #include "Hit.h"
 #include "Module.h"

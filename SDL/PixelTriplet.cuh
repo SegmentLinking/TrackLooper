@@ -10,7 +10,7 @@
 #endif
 
 #include "Constants.cuh"
-#include "EndcapGeometry.h"
+#include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"
 #include "Tracklet.cuh"
 #include "Triplet.cuh"
@@ -130,7 +130,7 @@ namespace SDL
 #endif
 
 #include "Constants.cuh"
-#include "EndcapGeometry.h"
+#include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"
 #include "Segment.cuh"
 #include "MiniDoublet.cuh"

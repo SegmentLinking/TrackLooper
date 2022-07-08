@@ -12,7 +12,7 @@
 #endif
 
 #include "Constants.cuh"
-#include "EndcapGeometry.h"
+#include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"
 
 #include "TrackCandidate.cuh"

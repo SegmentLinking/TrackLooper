@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 namespace SDL
 {
@@ -24,12 +25,18 @@ namespace SDL
             std::map<unsigned int, float> centroid_zs_; // centroid z
 
         public:
+            unsigned int* geoMapDetId;
+            float* geoMapPhi;
+            unsigned int nEndCapMap;
+
             EndcapGeometry();
             EndcapGeometry(std::string filename);
             ~EndcapGeometry();
 
             void load(std::string);
 
+        void fillGeoMapArraysExplicit();
+        void CreateGeoMapArraysExplicit();
         float getAverageR2(unsigned int detid);
         float getYInterceptLower(unsigned int detid);
         float getSlopeLower(unsigned int detid);
@@ -40,7 +47,7 @@ namespace SDL
         float getCentroidZ(unsigned int detid);
 
     };
-
+    void freeEndCapMapMemory();
     extern EndcapGeometry endcapGeometry;
 }
 
