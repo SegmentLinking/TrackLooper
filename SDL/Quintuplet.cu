@@ -131,7 +131,7 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
     __shared__ int nEligibleT5Modulesx;
     __shared__ unsigned int nTotalQuintupletsx;
     nTotalQuintupletsx = 0; //start!
-    nEligibleT5Modulesx =-1;
+    nEligibleT5Modulesx = 0;
     __syncthreads();
 
     unsigned int occupancy;
@@ -168,13 +168,13 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
         if (abs(eta)>1.5 && abs(eta)<2.25) eta_number=2;
         if (abs(eta)>2.25 && abs(eta)<3) eta_number=3;
 
-        if (category_number == 0 && eta_number == 0) occupancy = 152;
-        if (category_number == 0 && eta_number == 1) occupancy = 170;
-        if (category_number == 0 && eta_number == 2) occupancy = 94;
-        if (category_number == 0 && eta_number == 3) occupancy = 63;
+        if (category_number == 0 && eta_number == 0) occupancy = 336;
+        if (category_number == 0 && eta_number == 1) occupancy = 414;
+        if (category_number == 0 && eta_number == 2) occupancy = 231;
+        if (category_number == 0 && eta_number == 3) occupancy = 146;
         if (category_number == 3 && eta_number == 1) occupancy = 0;
-        if (category_number == 3 && eta_number == 2) occupancy = 70;
-        if (category_number == 3 && eta_number == 3) occupancy = 75;
+        if (category_number == 3 && eta_number == 2) occupancy = 191;
+        if (category_number == 3 && eta_number == 3) occupancy = 106;
 
         unsigned int nTotQ = atomicAdd(&nTotalQuintupletsx,occupancy);
 //        if (nTotQ == 0) printf("%u\n",occupancy);
