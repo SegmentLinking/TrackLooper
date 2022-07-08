@@ -524,17 +524,19 @@ void SDL::Event::resetEvent()
 
 void SDL::initModules(const char* moduleMetaDataFilePath)
 {
+    cudaStream_t default_stream = 0;
     if(modulesInGPU == nullptr)
     {
-        //modulesInGPU = (SDL::modules*)cms::cuda::allocate_host(sizeof(struct SDL::modules), 0);
+        //modulesInGPU = (SDL::modules*)cms::cuda::allocate_host(sizeof(struct SDL::modules), default_stream);
         cudaMallocHost(&modulesInGPU, sizeof(struct SDL::modules));
         //pixelMapping = new pixelMap;
         cudaMallocHost(&pixelMapping, sizeof(struct SDL::pixelMap));
-        //pixelMapping = (SDL::pixelMap*)cms::cuda::allocate_host(sizeof(struct SDL::pixelMap), 0);
-        loadModulesFromFile(*modulesInGPU,nModules,nLowerModules, *pixelMapping, 0, moduleMetaDataFilePath); //nModules gets filled here
-        cudaStreamSynchronize(0);
+        //pixelMapping = (SDL::pixelMap*)cms::cuda::allocate_host(sizeof(struct SDL::pixelMap), default_stream);
+        //nModules gets filled here
+        loadModulesFromFile(*modulesInGPU,nModules,nLowerModules, *pixelMapping, default_stream, moduleMetaDataFilePath);
+        cudaStreamSynchronize(default_stream);
     }
-    //resetObjectRanges(*modulesInGPU,nModules,modStream);
+    //resetObjectRanges(*modulesInGPU,nModules, default_stream);
 }
 
 

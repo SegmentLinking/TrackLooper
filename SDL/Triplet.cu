@@ -12,8 +12,8 @@ void SDL::triplets::resetMemory(unsigned int maxTriplets, unsigned int nLowerMod
     cudaMemsetAsync(totOccupancyTriplets,0, nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(betaIn,0, maxTriplets * 3 * sizeof(FPX),stream);
     cudaMemsetAsync(partOfPT5,0, maxTriplets * sizeof(bool),stream);
-    cudaMemsetAsync(partOfT5,0, maxTriplets * sizeof(bool));
-    cudaMemsetAsync(partOfPT3, 0, maxTriplets * sizeof(bool));
+    cudaMemsetAsync(partOfT5,0, maxTriplets * sizeof(bool), stream);
+    cudaMemsetAsync(partOfPT3, 0, maxTriplets * sizeof(bool), stream);
 }
 
 void SDL::createTripletArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct segments& segmentsInGPU, uint16_t& nLowerModules, unsigned int& nTotalTriplets, cudaStream_t stream, const uint16_t& maxTripletsPerModule)
