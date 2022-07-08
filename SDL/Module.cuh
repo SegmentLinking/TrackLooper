@@ -152,7 +152,7 @@ namespace SDL
     void createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules, bool* isLower,cudaStream_t stream);
     void createModulesInUnifiedMemory(struct modules& modulesInGPU,unsigned int nModules,cudaStream_t stream);
     void createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned int nModules,cudaStream_t stream);
-    void freeModules(struct modules& modulesInGPU,struct pixelMap& pixelMapping,cudaStream_t stream);
+    void freeModules(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
     void freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
     void fillPixelMap(struct modules& modulesInGPU,struct pixelMap& pixelMapping,cudaStream_t stream);
     void fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);

@@ -526,16 +526,13 @@ void SDL::initModules(const char* moduleMetaDataFilePath)
 {
     if(modulesInGPU == nullptr)
     {
-    cudaStream_t modStream;
-    cudaStreamCreate(&modStream);
-        //modulesInGPU = (SDL::modules*)cms::cuda::allocate_host(sizeof(struct SDL::modules), modStream);
+        //modulesInGPU = (SDL::modules*)cms::cuda::allocate_host(sizeof(struct SDL::modules), 0);
         cudaMallocHost(&modulesInGPU, sizeof(struct SDL::modules));
         //pixelMapping = new pixelMap;
         cudaMallocHost(&pixelMapping, sizeof(struct SDL::pixelMap));
-        //pixelMapping = (SDL::pixelMap*)cms::cuda::allocate_host(sizeof(struct SDL::pixelMap), modStream);
-        loadModulesFromFile(*modulesInGPU,nModules,nLowerModules, *pixelMapping,modStream,moduleMetaDataFilePath); //nModules gets filled here
-    cudaStreamSynchronize(modStream);
-    cudaStreamDestroy(modStream);
+        //pixelMapping = (SDL::pixelMap*)cms::cuda::allocate_host(sizeof(struct SDL::pixelMap), 0);
+        loadModulesFromFile(*modulesInGPU,nModules,nLowerModules, *pixelMapping, 0, moduleMetaDataFilePath); //nModules gets filled here
+        cudaStreamSynchronize(0);
     }
     //resetObjectRanges(*modulesInGPU,nModules,modStream);
 }
@@ -546,17 +543,12 @@ void SDL::cleanModules()
   //#ifdef CACHE_ALLOC
   //freeModulesCache(*modulesInGPU,*pixelMapping); //bug in freeing cached modules. Decided to remove module caching since it doesn't change by event.
   //#else
-    cudaStream_t modStream;
-    cudaStreamCreate(&modStream);
-    freeModules(*modulesInGPU,*pixelMapping,modStream);
-    cudaStreamSynchronize(modStream);
-    cudaStreamDestroy(modStream);
+    freeModules(*modulesInGPU, *pixelMapping);
   //#endif
     cudaFreeHost(modulesInGPU);
     cudaFreeHost(pixelMapping);
     //cms::cuda::free_host(modulesInGPU);
     //cms::cuda::free_host(pixelMapping);
-//    cudaDeviceReset(); // uncomment for leak check "cuda-memcheck --leak-check full --show-backtrace yes" does not work with caching.
 }
 
 void SDL::Event::resetObjectsInModule()
