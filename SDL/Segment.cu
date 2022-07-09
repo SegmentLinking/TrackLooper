@@ -34,21 +34,21 @@ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRa
         write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!*/
 
     int *module_segmentModuleIndices;
-    module_segmentModuleIndices = (int*)cms::cuda::allocate_host((nLowerModules + 1) * sizeof(unsigned int), stream);
     short* module_subdets;
-    cudaMallocHost(&module_subdets, nLowerModules* sizeof(short));
-    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
     short* module_layers;
-    cudaMallocHost(&module_layers, nLowerModules * sizeof(short));
-    cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
     short* module_rings;
-    cudaMallocHost(&module_rings, nLowerModules * sizeof(short));
-    cudaMemcpyAsync(module_rings,modulesInGPU.rings,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
     float* module_eta;
-    cudaMallocHost(&module_eta, nLowerModules * sizeof(float));
-    cudaMemcpyAsync(module_eta,modulesInGPU.eta,nLowerModules * sizeof(float),cudaMemcpyDeviceToHost,stream);
     uint16_t* module_nConnectedModules;
+    module_segmentModuleIndices = (int*)cms::cuda::allocate_host((nLowerModules + 1) * sizeof(unsigned int), stream);
+    module_subdets = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
+    module_layers = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
+    module_rings = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
+    module_eta = (float*)cms::cuda::allocate_host(nLowerModules* sizeof(float), stream);
     module_nConnectedModules = (uint16_t*)cms::cuda::allocate_host(nLowerModules * sizeof(uint16_t), stream);
+    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(module_rings,modulesInGPU.rings,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(module_eta,modulesInGPU.eta,nLowerModules * sizeof(float),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_nConnectedModules,modulesInGPU.nConnectedModules,nLowerModules*sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
  
     cudaStreamSynchronize(stream);
@@ -95,10 +95,10 @@ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRa
     cudaStreamSynchronize(stream);
     cms::cuda::free_host(module_segmentModuleIndices);
     cms::cuda::free_host(module_nConnectedModules);
-    cudaFreeHost(module_subdets);
-    cudaFreeHost(module_layers);
-    cudaFreeHost(module_rings);
-    cudaFreeHost(module_eta);
+    cms::cuda::free_host(module_subdets);
+    cms::cuda::free_host(module_layers);
+    cms::cuda::free_host(module_rings);
+    cms::cuda::free_host(module_eta);
 }
 
 void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
