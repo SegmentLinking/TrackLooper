@@ -68,6 +68,8 @@ namespace SDL
         int *miniDoubletModuleIndices;
         int *segmentModuleIndices;
         int *tripletModuleIndices;
+
+//        unsigned int nTotalQuintuplets;
     
         void freeMemoryCache();
         void freeMemory();

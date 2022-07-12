@@ -16,7 +16,7 @@ void SDL::triplets::resetMemory(unsigned int maxTriplets, unsigned int nLowerMod
     cudaMemsetAsync(partOfPT3, 0, maxTriplets * sizeof(bool));
 }
 
-void SDL::createTripletArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct segments& segmentsInGPU, uint16_t& nLowerModules, unsigned int& nTotalTriplets, cudaStream_t stream, const uint16_t& maxTripletsPerModule)
+void SDL::createTripletArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct segments& segmentsInGPU, uint16_t& nLowerModules, unsigned int& nTotalTriplets, cudaStream_t stream)
 {
     int* module_tripletModuleIndices;
     module_tripletModuleIndices = (int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
@@ -712,8 +712,8 @@ __global__ void SDL::createTripletsInGPUv2(struct SDL::modules& modulesInGPU, st
       unsigned int nOuterSegments = segmentsInGPU.nSegments[middleLowerModuleIndex];
       for(int outerSegmentArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; outerSegmentArrayIndex< nOuterSegments; outerSegmentArrayIndex += blockxSize){
         //if(outerSegmentArrayIndex >= nOuterSegments) continue;
-  unsigned int outerSegmentIndex = rangesInGPU.segmentRanges[2 * middleLowerModuleIndex] + outerSegmentArrayIndex;
-
+         unsigned int outerSegmentIndex = rangesInGPU.segmentRanges[2 * middleLowerModuleIndex] + outerSegmentArrayIndex;
+    
         uint16_t outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex];
 
         float zOut,rtOut,deltaPhiPos,deltaPhi,betaIn,betaOut, pt_beta;
@@ -723,7 +723,7 @@ __global__ void SDL::createTripletsInGPUv2(struct SDL::modules& modulesInGPU, st
 
         if(success) {
           unsigned int totOccupancyTriplets = atomicAdd(&tripletsInGPU.totOccupancyTriplets[innerInnerLowerModuleIndex], 1);
-          if(totOccupancyTriplets >= N_MAX_TRIPLETS_PER_MODULE) {
+          if(totOccupancyTriplets >= (rangesInGPU.tripletModuleIndices[innerInnerLowerModuleIndex + 1] - rangesInGPU.tripletModuleIndices[innerInnerLowerModuleIndex])) {
 #ifdef Warnings
             printf("Triplet excess alert! Module index = %d\n",innerInnerLowerModuleIndex);
 #endif
