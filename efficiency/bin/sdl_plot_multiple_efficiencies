@@ -85,14 +85,14 @@ else
     exit
 fi
 
-# Create output directory
-mkdir -p efficiencies/
-
 # Set output directory
 OUTDIR=efficiencies/eff_comparison_plots__${TAG}_${MODE}_${SECONDTAG}_${REFMODE}_${SAMPLE}
 
 # Delete the output if already existing
 rm -rf ${OUTDIR}
+
+# Create output directory
+mkdir -p ${OUTDIR}
 
 # Make plots
 mkdir -p plots
@@ -102,15 +102,16 @@ echo "Available runs to compare...:"
 for i in $(ls -d efficiencies/*_GPU_${MODE}_${TAG}_${SAMPLE}); do echo $i; done
 python $DIR/../python/plot_compare_arbitrary.py ${TAG} ${SECONDTAG} ${SAMPLE} ${MODE} ${REFMODE} ${REFLEGENDTAG} ${LEGENDTAG} > plots.log 2>&1
 
-grep "VALIDATION FAILED" plots.log
+#grep "VALIDATION FAILED" plots.log
 
 # copy the plots
 echo "Copying plots..."
-cp -r plots ${OUTDIR}
+cp -r plots ${OUTDIR}/mtv
 
 # copy the source code info
 mv plots.log ${OUTDIR}/
-cp $DIR/../misc/index.php ${OUTDIR}/
+cp $DIR/../misc/index_comp.html ${OUTDIR}/index.html
+cp $DIR/../misc/index.php ${OUTDIR}/mtv
 
 # clean up so that the next run would be spoiled
 rm -rf plots
