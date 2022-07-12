@@ -73,16 +73,16 @@ void SDL::trackExtensions::freeMemoryCache()
 
 void SDL::trackExtensions::resetMemory(unsigned int maxTrackExtensions, unsigned int nTrackCandidates, cudaStream_t stream)
 {
-    cudaMemsetAsync(constituentTCTypes, 0, sizeof(short) * 3 * maxTrackExtensions);
-    cudaMemsetAsync(constituentTCIndices, 0, sizeof(unsigned int) * 3 * maxTrackExtensions);
-    cudaMemsetAsync(nLayerOverlaps, 0, sizeof(uint8_t) * 2 * maxTrackExtensions);
-    cudaMemsetAsync(nHitOverlaps, 0, sizeof(uint8_t) * 2 * maxTrackExtensions);
-    cudaMemsetAsync(rPhiChiSquared, 0, sizeof(FPX) * maxTrackExtensions);
-    cudaMemsetAsync(rzChiSquared, 0, sizeof(FPX) * maxTrackExtensions);
-    cudaMemsetAsync(isDup, 0, sizeof(bool) * maxTrackExtensions);
-    cudaMemsetAsync(regressionRadius, 0, sizeof(FPX) * maxTrackExtensions);
-    cudaMemsetAsync(nTrackExtensions, 0, sizeof(unsigned int) * nTrackCandidates);
-    cudaMemsetAsync(totOccupancyTrackExtensions, 0, sizeof(unsigned int) * nTrackCandidates);
+    cudaMemsetAsync(constituentTCTypes, 0, sizeof(short) * 3 * maxTrackExtensions, stream);
+    cudaMemsetAsync(constituentTCIndices, 0, sizeof(unsigned int) * 3 * maxTrackExtensions, stream);
+    cudaMemsetAsync(nLayerOverlaps, 0, sizeof(uint8_t) * 2 * maxTrackExtensions, stream);
+    cudaMemsetAsync(nHitOverlaps, 0, sizeof(uint8_t) * 2 * maxTrackExtensions, stream);
+    cudaMemsetAsync(rPhiChiSquared, 0, sizeof(FPX) * maxTrackExtensions, stream);
+    cudaMemsetAsync(rzChiSquared, 0, sizeof(FPX) * maxTrackExtensions, stream);
+    cudaMemsetAsync(isDup, 0, sizeof(bool) * maxTrackExtensions, stream);
+    cudaMemsetAsync(regressionRadius, 0, sizeof(FPX) * maxTrackExtensions, stream);
+    cudaMemsetAsync(nTrackExtensions, 0, sizeof(unsigned int) * nTrackCandidates, stream);
+    cudaMemsetAsync(totOccupancyTrackExtensions, 0, sizeof(unsigned int) * nTrackCandidates, stream);
 }
 
 

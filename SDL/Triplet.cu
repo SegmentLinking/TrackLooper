@@ -12,30 +12,28 @@ void SDL::triplets::resetMemory(unsigned int maxTriplets, unsigned int nLowerMod
     cudaMemsetAsync(totOccupancyTriplets,0, nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(betaIn,0, maxTriplets * 3 * sizeof(FPX),stream);
     cudaMemsetAsync(partOfPT5,0, maxTriplets * sizeof(bool),stream);
-    cudaMemsetAsync(partOfT5,0, maxTriplets * sizeof(bool));
-    cudaMemsetAsync(partOfPT3, 0, maxTriplets * sizeof(bool));
+    cudaMemsetAsync(partOfT5,0, maxTriplets * sizeof(bool), stream);
+    cudaMemsetAsync(partOfPT3, 0, maxTriplets * sizeof(bool), stream);
 }
 
 void SDL::createTripletArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct segments& segmentsInGPU, uint16_t& nLowerModules, unsigned int& nTotalTriplets, cudaStream_t stream)
 {
     int* module_tripletModuleIndices;
-    module_tripletModuleIndices = (int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
-
     short* module_subdets;
-    cudaMallocHost(&module_subdets, nLowerModules* sizeof(short));
-    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
     short* module_layers;
-    cudaMallocHost(&module_layers, nLowerModules * sizeof(short));
-    cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
     short* module_rings;
-    cudaMallocHost(&module_rings, nLowerModules * sizeof(short));
-    cudaMemcpyAsync(module_rings,modulesInGPU.rings,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
     float* module_eta;
-    cudaMallocHost(&module_eta, nLowerModules * sizeof(float));
-    cudaMemcpyAsync(module_eta,modulesInGPU.eta,nLowerModules * sizeof(float),cudaMemcpyDeviceToHost,stream);
-
     unsigned int* nSegments;
+    module_tripletModuleIndices = (int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
+    module_subdets = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
+    module_layers = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
+    module_rings = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
+    module_eta = (float*)cms::cuda::allocate_host(nLowerModules* sizeof(float), stream);
     nSegments = (unsigned int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
+    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(module_rings,modulesInGPU.rings,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(module_eta,modulesInGPU.eta,nLowerModules * sizeof(float),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(nSegments, segmentsInGPU.nSegments, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
     cudaStreamSynchronize(stream);
 
@@ -75,10 +73,10 @@ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, struct objectRa
     cudaStreamSynchronize(stream);
     cms::cuda::free_host(module_tripletModuleIndices);
     cms::cuda::free_host(nSegments);
-    cudaFreeHost(module_subdets);
-    cudaFreeHost(module_layers);
-    cudaFreeHost(module_rings);
-    cudaFreeHost(module_eta);
+    cms::cuda::free_host(module_subdets);
+    cms::cuda::free_host(module_layers);
+    cms::cuda::free_host(module_rings);
+    cms::cuda::free_host(module_eta);
 }
 
 void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, uint16_t nLowerModules,cudaStream_t stream)

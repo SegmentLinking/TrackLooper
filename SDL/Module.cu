@@ -287,7 +287,7 @@ void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMa
   //cms::cuda::free_host(pixelMapping.connectedPixelsIndexPos);
   //cms::cuda::free_host(pixelMapping.connectedPixelsIndexNeg);
 }
-void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMapping,cudaStream_t stream)
+void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMapping)
 {
 
   cudaFree(modulesInGPU.detIds);
