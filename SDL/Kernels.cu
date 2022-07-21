@@ -266,7 +266,7 @@ __global__ void removeDupQuintupletsInGPUAfterBuild(struct SDL::modules& modules
             float pt1  = __H2F(quintupletsInGPU.pt[ix]);
             float eta1 = __H2F(quintupletsInGPU.eta[ix]);
             float phi1 = __H2F(quintupletsInGPU.phi[ix]);
-	          float score_rphisum1 = __H2F(quintupletsInGPU.score_rphisum[ix]);
+            float score_rphisum1 = __H2F(quintupletsInGPU.score_rphisum[ix]);
             int nQuintuplets_lowmod = quintupletsInGPU.nQuintuplets[lowmod1];
             int quintupletModuleIndices_lowmod = rangesInGPU.quintupletModuleIndices[lowmod1];
 
