@@ -45,8 +45,8 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::obje
 
 
 __device__ void scoreT5(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU,unsigned int innerTrip,unsigned int outerTrip, int layer, float* scores);
-__global__ void removeDupQuintupletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::quintuplets& quintupletsInGPU, bool secondPass, struct SDL::objectRanges& rangesInGPU);
-__global__ void removeDupQuintupletsInGPUv2(struct SDL::quintuplets& quintupletsInGPU, struct SDL::objectRanges& rangesInGPU);
+__global__ void removeDupQuintupletsInGPUAfterBuild(struct SDL::modules& modulesInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::objectRanges& rangesInGPU);
+__global__ void removeDupQuintupletsInGPUBeforeTC(struct SDL::quintuplets& quintupletsInGPU, struct SDL::objectRanges& rangesInGPU);
 
 __global__ void testMiniDoublets(struct SDL::miniDoublets& mdsInGPU);
 __global__ void createMiniDoubletsInGPU(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::objectRanges& rangesInGPU);

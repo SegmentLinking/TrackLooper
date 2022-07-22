@@ -300,10 +300,6 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
     const float sign = ((dz > 0) - (dz < 0)) * ((zLower > 0) - (zLower < 0));
     const float invertedcrossercut = (fabsf(dz) > 2) * sign;
 
-    //cut convention - when a particular cut fails, the pass variable goes to false
-    //but all cuts will be checked even if a previous cut has failed, this is
-    //to prevent thread divergence
-
     pass = pass  and ((fabsf(dz) < dzCut) & (invertedcrossercut <= 0));
     if(not pass) return pass;
 
@@ -408,11 +404,10 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGP
     // Cut #1 : dz cut. The dz difference can't be larger than 1cm. (max separation is 4mm for modules in the endcap)
     // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3093
     // For PS module in case when it is tilted a different dz (after the strip hit shift) is calculated later.
-    // This is because the 10.f cut is meant more for sanity check (most will pass this cut anyway) (TODO: Maybe revisit this cut later?)
 
     dz = zLower - zUpper; // Not const since later it might change depending on the type of module
 
-    const float dzCut = ((modulesInGPU.sides[lowerModuleIndex] == Endcap) ?  1.f : 10.f);
+    const float dzCut = 1.f;
 
     pass = pass & (fabsf(dz) < dzCut);
     if(not pass) return pass;

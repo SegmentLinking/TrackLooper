@@ -1174,7 +1174,7 @@ void loadMaps()
 #ifdef CMSSW12GEOM
     TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir.Data()).Data());
 #else
-    TString mappath = get_absolute_path_after_check_file_exists("/data2/segmentlinking/module_connection_combined_0p8helix_muongun.txt");
+    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_combined_0p8helix_muongun.txt", TrackLooperDir.Data()).Data());
 #endif
 #else
 #ifdef CMSSW12GEOM

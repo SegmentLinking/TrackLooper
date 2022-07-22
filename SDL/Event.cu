@@ -1324,8 +1324,7 @@ void SDL::Event::createTrackCandidates()
     dim3 dupThreads(32,16,1);
     dim3 dupBlocks(max(nEligibleModules/32,1),max(nEligibleModules/16,1),1);
 
-    removeDupQuintupletsInGPUv2<<<dupBlocks,dupThreads,0,stream>>>(*quintupletsInGPU,*rangesInGPU);
-    //cudaDeviceSynchronize();
+    removeDupQuintupletsInGPUBeforeTC<<<dupBlocks,dupThreads,0,stream>>>(*quintupletsInGPU,*rangesInGPU);
     cudaStreamSynchronize(stream);
 
     dim3 nThreads(32,1,32);
@@ -1576,7 +1575,6 @@ cudaStreamSynchronize(stream);
     uint16_t nEligibleT5Modules = 0;
     //uint16_t *indicesOfEligibleModules = (uint16_t*)malloc(nLowerModules*sizeof(uint16_t));
 
-    unsigned int maxTriplets;
 #ifdef CACHE_ALLOC
         rangesInGPU->indicesOfEligibleT5Modules = (uint16_t*)cms::cuda::allocate_device(dev, nLowerModules * sizeof(uint16_t), stream);
 #else
@@ -1628,7 +1626,7 @@ cudaStreamSynchronize(stream);
 #ifdef DUP_T5
     dim3 dupThreads(32,32,1);
     dim3 dupBlocks(1,1,MAX_BLOCKS);
-    removeDupQuintupletsInGPU<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,false,*rangesInGPU);
+    removeDupQuintupletsInGPUAfterBuild<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,*rangesInGPU);
     cudaStreamSynchronize(stream);
 #endif
 
