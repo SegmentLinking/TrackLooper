@@ -28,6 +28,7 @@ void createMiniDoubletCutValueBranches();
 void createOccupancyBranches();
 void createPixelQuadrupletCutValueBranches();
 void createPixelTripletCutValueBranches();
+void createTrackExtensionCutValueBranches();
 void createPrimitiveBranches();
 void createPrimitiveBranches_v1();
 void createPrimitiveBranches_v2();

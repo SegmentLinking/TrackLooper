@@ -110,25 +110,6 @@ void SDL::createTripletsInUnifiedMemory(struct triplets& tripletsInGPU, unsigned
     cudaMallocManaged(&tripletsInGPU.logicalLayers, maxTriplets * 3 * sizeof(uint8_t));
     cudaMallocManaged(&tripletsInGPU.hitIndices, maxTriplets * 6 * sizeof(unsigned int));
     cudaMallocManaged(&tripletsInGPU.nMemoryLocations, sizeof(unsigned int));
-
-#ifdef CUT_VALUE_DEBUG
-    cudaMallocManaged(&tripletsInGPU.zOut, maxTriplets * 4*sizeof(unsigned int));
-    cudaMallocManaged(&tripletsInGPU.zLo, maxTriplets * sizeof(float));
-    cudaMallocManaged(&tripletsInGPU.zHi, maxTriplets * sizeof(float));
-    cudaMallocManaged(&tripletsInGPU.zLoPointed, maxTriplets * sizeof(float));
-    cudaMallocManaged(&tripletsInGPU.zHiPointed, maxTriplets * sizeof(float));
-    cudaMallocManaged(&tripletsInGPU.sdlCut, maxTriplets * sizeof(float));
-    cudaMallocManaged(&tripletsInGPU.betaInCut, maxTriplets * sizeof(float));
-    cudaMallocManaged(&tripletsInGPU.betaOutCut, maxTriplets * sizeof(float));
-    cudaMallocManaged(&tripletsInGPU.deltaBetaCut, maxTriplets * sizeof(float));
-    cudaMallocManaged(&tripletsInGPU.rtLo, maxTriplets * sizeof(float));
-    cudaMallocManaged(&tripletsInGPU.rtHi, maxTriplets * sizeof(float));
-    cudaMallocManaged(&tripletsInGPU.kZ, maxTriplets * sizeof(float));
-
-    tripletsInGPU.rtOut = tripletsInGPU.zOut + maxTriplets;
-    tripletsInGPU.deltaPhiPos = tripletsInGPU.zOut + maxTriplets *2;
-    tripletsInGPU.deltaPhi = tripletsInGPU.zOut + maxTriplets *3;
-#endif
 #endif
     tripletsInGPU.betaOut = tripletsInGPU.betaIn + maxTriplets ;
     tripletsInGPU.pt_beta = tripletsInGPU.betaIn + maxTriplets * 2;
@@ -161,6 +142,25 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
     tripletsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_device(dev, maxTriplets * 6 * sizeof(unsigned int), stream);
     tripletsInGPU.nMemoryLocations = (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int), stream);
 
+#ifdef CUT_VALUE_DEBUG
+    tripletsInGPU.zOut = (float*)cms::cuda::allocate_device(dev, maxTriplets * 4 * sizeof(float), stream);
+    tripletsInGPU.zLo = (float*)cms::cuda::allocate_device(dev, maxTriplets * sizeof(float), stream);
+    tripletsInGPU.zHi = (float*)cms::cuda::allocate_device(dev, maxTriplets * sizeof(float), stream);
+    tripletsInGPU.zLoPointed = (float*)cms::cuda::allocate_device(dev, maxTriplets * sizeof(float), stream);
+    tripletsInGPU.zHiPointed = (float*)cms::cuda::allocate_device(dev, maxTriplets * sizeof(float), stream);
+    tripletsInGPU.sdlCut = (float*)cms::cuda::allocate_device(dev, maxTriplets * sizeof(float), stream);
+    tripletsInGPU.betaInCut = (float*)cms::cuda::allocate_device(dev, maxTriplets * sizeof(float), stream);
+    tripletsInGPU.betaOutCut = (float*)cms::cuda::allocate_device(dev, maxTriplets * sizeof(float), stream);
+    tripletsInGPU.deltaBetaCut = (float*)cms::cuda::allocate_device(dev, maxTriplets * sizeof(float), stream);
+    tripletsInGPU.rtLo = (float*)cms::cuda::allocate_device(dev, maxTriplets * sizeof(float), stream);
+    tripletsInGPU.rtHi = (float*)cms::cuda::allocate_device(dev, maxTriplets * sizeof(float), stream);
+    tripletsInGPU.kZ = (float*)cms::cuda::allocate_device(dev, maxTriplets * sizeof(float), stream);
+    tripletsInGPU.rtOut = tripletsInGPU.zOut + maxTriplets;
+    tripletsInGPU.deltaPhiPos = tripletsInGPU.zOut + maxTriplets *2;
+    tripletsInGPU.deltaPhi = tripletsInGPU.zOut + maxTriplets *3;
+#endif
+
+
 #else
     cudaMalloc(&tripletsInGPU.segmentIndices, /*5*/2 * maxTriplets * sizeof(unsigned int));
     cudaMalloc(&tripletsInGPU.lowerModuleIndices, 3 * maxTriplets * sizeof(uint16_t));
@@ -175,6 +175,26 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
     cudaMalloc(&tripletsInGPU.logicalLayers, maxTriplets * 3 * sizeof(uint8_t));
     cudaMalloc(&tripletsInGPU.hitIndices, maxTriplets * 6 * sizeof(unsigned int));
     cudaMalloc(&tripletsInGPU.nMemoryLocations, sizeof(unsigned int));
+
+#ifdef CUT_VALUE_DEBUG
+    cudaMalloc(&tripletsInGPU.zOut, maxTriplets * 4*sizeof(unsigned int));
+    cudaMalloc(&tripletsInGPU.zLo, maxTriplets * sizeof(float));
+    cudaMalloc(&tripletsInGPU.zHi, maxTriplets * sizeof(float));
+    cudaMalloc(&tripletsInGPU.zLoPointed, maxTriplets * sizeof(float));
+    cudaMalloc(&tripletsInGPU.zHiPointed, maxTriplets * sizeof(float));
+    cudaMalloc(&tripletsInGPU.sdlCut, maxTriplets * sizeof(float));
+    cudaMalloc(&tripletsInGPU.betaInCut, maxTriplets * sizeof(float));
+    cudaMalloc(&tripletsInGPU.betaOutCut, maxTriplets * sizeof(float));
+    cudaMalloc(&tripletsInGPU.deltaBetaCut, maxTriplets * sizeof(float));
+    cudaMalloc(&tripletsInGPU.rtLo, maxTriplets * sizeof(float));
+    cudaMalloc(&tripletsInGPU.rtHi, maxTriplets * sizeof(float));
+    cudaMalloc(&tripletsInGPU.kZ, maxTriplets * sizeof(float));
+
+    tripletsInGPU.rtOut = tripletsInGPU.zOut + maxTriplets;
+    tripletsInGPU.deltaPhiPos = tripletsInGPU.zOut + maxTriplets *2;
+    tripletsInGPU.deltaPhi = tripletsInGPU.zOut + maxTriplets *3;
+#endif
+
 #endif
     cudaMemsetAsync(tripletsInGPU.nTriplets,0,nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(tripletsInGPU.totOccupancyTriplets,0,nLowerModules * sizeof(unsigned int),stream);
@@ -289,6 +309,19 @@ void SDL::triplets::freeMemoryCache()
     cms::cuda::free_device(dev, logicalLayers);
     cms::cuda::free_device(dev, hitIndices);
     cms::cuda::free_device(dev, nMemoryLocations);
+#ifdef CUT_VALUE_DEBUG
+    cms::cuda::free_device(dev, zOut);
+    cms::cuda::free_device(dev, zLo);
+    cms::cuda::free_device(dev, zHi);
+    cms::cuda::free_device(dev, zLoPointed);
+    cms::cuda::free_device(dev, zHiPointed);
+    cms::cuda::free_device(dev, betaInCut);
+    cms::cuda::free_device(dev, betaOutCut);
+    cms::cuda::free_device(dev, deltaBetaCut);
+    cms::cuda::free_device(dev, rtLo);
+    cms::cuda::free_device(dev, rtHi);
+    cms::cuda::free_device(dev, kZ);
+#endif
 #else
     cms::cuda::free_managed(segmentIndices);
     cms::cuda::free_managed(lowerModuleIndices);

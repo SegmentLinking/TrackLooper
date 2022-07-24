@@ -1,4 +1,5 @@
 #include "write_sdl_ntuple.h"
+#include "write_sdl_ntuple.h"
 
 #define N_MAX_MD_PER_MODULES 89
 #define N_MAX_SEGMENTS_PER_MODULE 537
@@ -3201,24 +3202,6 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
         moduleType_binary |= (moduleType12 << 8);
 
         pT5_layer_binary.push_back(layer_binary);
-
-        int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
-        int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
-        int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
-        int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
-        int moduleType8 = modulesInGPU.moduleType[module_idxs[8]];
-        int moduleType10 = modulesInGPU.moduleType[module_idxs[10]];
-        int moduleType12 = modulesInGPU.moduleType[module_idxs[12]];
-
-
-        int moduleType_binary = 0;
-        moduleType_binary |= (moduleType4 << 0);
-        moduleType_binary |= (moduleType6 << 2);
-        moduleType_binary |= (moduleType8 << 4);
-        moduleType_binary |= (moduleType10 << 6);
-        moduleType_binary |= (moduleType12 << 8);
-
-        pT5_moduleType_binary.push_back(moduleType_binary);
         pT5_rzChiSquared.push_back(pixelQuintupletsInGPU.rzChiSquared[jdx]);
         pT5_rPhiChiSquared.push_back(pixelQuintupletsInGPU.rPhiChiSquared[jdx]);
         pT5_rPhiChiSquaredInwards.push_back(pixelQuintupletsInGPU.rPhiChiSquaredInwards[jdx]);
@@ -3661,7 +3644,6 @@ void fillTripletOutputBranches(SDL::Event* event)
             int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
             int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
             int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
-            
             moduleType_binary |= (moduleType0 << 0);
             moduleType_binary |= (moduleType2 << 2);
             moduleType_binary |= (moduleType4 << 4);
@@ -3726,7 +3708,7 @@ void fillTripletOutputBranches(SDL::Event* event)
             float deltaPhiPos = tripletsInGPU.deltaPhiPos[tripletIndex];
             float deltaPhi = tripletsInGPU.deltaPhi[tripletIndex];
             //betaIn and betaOut already defined!
-            float deltaBeta = betaIn - betaOut;
+            float deltaBeta = tripletsInGPU.betaIn[tripletIndex] - tripletsInGPU.betaOut[tripletIndex];
             float zLo = tripletsInGPU.zLo[tripletIndex];
             float zHi = tripletsInGPU.zHi[tripletIndex];
             float rtLo = tripletsInGPU.rtLo[tripletIndex];
@@ -3743,8 +3725,8 @@ void fillTripletOutputBranches(SDL::Event* event)
             t3_RtOut.push_back(rtOut);
             t3_deltaPhiPos.push_back(deltaPhiPos);
             t3_deltaPhi.push_back(deltaPhi);
-            t3_betaIn.push_back(betaIn);
-            t3_betaOut.push_back(betaOut);
+            t3_betaIn.push_back(tripletsInGPU.betaIn[tripletIndex]);
+            t3_betaOut.push_back(tripletsInGPU.betaOut[tripletIndex]);
             t3_deltaBeta.push_back(deltaBeta);
             t3_ZLo.push_back(zLo);
             t3_ZHi.push_back(zHi);

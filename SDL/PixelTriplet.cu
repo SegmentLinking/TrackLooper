@@ -50,6 +50,12 @@ void SDL::pixelTriplets::freeMemoryCache()
     cms::cuda::free_device(dev, hitIndices);
     cms::cuda::free_device(dev, logicalLayers);
     cms::cuda::free_device(dev, lowerModuleIndices);
+#ifdef CUT_VALUE_DEBUG
+    cms::cuda::free_device(dev, pixelRadiusError);
+    cms::cuda::free_device(dev, rPhiChiSquared);
+    cms::cuda::free_device(dev, rPhiChiSquaredInwards);
+    cms::cuda::free_device(dev, rzChiSquared);
+#endif
 #else
     cms::cuda::free_managed(pixelSegmentIndices);
     cms::cuda::free_managed(tripletIndices);
@@ -182,6 +188,13 @@ void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTriplet
     pixelTripletsInGPU.lowerModuleIndices        = (uint16_t*)cms::cuda::allocate_device(dev, maxPixelTriplets * sizeof(uint16_t) * 5, stream);
     pixelTripletsInGPU.hitIndices                = (unsigned int*)cms::cuda::allocate_device(dev, maxPixelTriplets * sizeof(unsigned int) * 10, stream);
     pixelTripletsInGPU.logicalLayers             = (uint8_t*)cms::cuda::allocate_device(dev, maxPixelTriplets * sizeof(uint8_t) * 5, stream);
+
+#ifdef CUT_VALUE_DEBUG
+    pixelTripletsInGPU.pixelRadiusError = (float*)cms::cuda::allocate_device(dev, maxPixelTriplets * sizeof(float), stream);
+    pixelTripletsInGPU.rPhiChiSquared = (float*)cms::cuda::allocate_device(dev, maxPixelTriplets * sizeof(float), stream);
+    pixelTripletsInGPU.rPhiChiSquaredInwards = (float*)cms::cuda::allocate_device(dev, maxPixelTriplets * sizeof(float), stream);
+    pixelTripletsInGPU.rzChiSquared = (float*)cms::cuda::allocate_device(dev, maxPixelTriplets * sizeof(float), stream);
+#endif
 #else
     cudaMalloc(&pixelTripletsInGPU.pixelSegmentIndices, maxPixelTriplets * sizeof(unsigned int));
     cudaMalloc(&pixelTripletsInGPU.tripletIndices, maxPixelTriplets * sizeof(unsigned int));
@@ -197,6 +210,13 @@ void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTriplet
     cudaMalloc(&pixelTripletsInGPU.logicalLayers, maxPixelTriplets * sizeof(uint8_t) * 5);
     cudaMalloc(&pixelTripletsInGPU.hitIndices, maxPixelTriplets * sizeof(unsigned int) * 10);
     cudaMalloc(&pixelTripletsInGPU.lowerModuleIndices, maxPixelTriplets * sizeof(uint16_t) * 5);
+
+#ifdef CUT_VALUE_DEBUG
+    cudaMalloc(&pixelTripletsInGPU.pixelRadiusError, maxPixelTriplets * sizeof(float));
+    cudaMalloc(&pixelTripletsInGPU.rPhiChiSquared, maxPixelTriplets * sizeof(float));
+    cudaMalloc(&pixelTripletsInGPU.rPhiChiSquaredInwards, maxPixelTriplets * sizeof(float));
+    cudaMalloc(&pixelTripletsInGPU.rzChiSquared, maxPixelTriplets * sizeof(float));
+#endif
 #endif
     cudaMemsetAsync(pixelTripletsInGPU.nPixelTriplets, 0, sizeof(unsigned int),stream);
     cudaMemsetAsync(pixelTripletsInGPU.totOccupancyPixelTriplets, 0, sizeof(unsigned int),stream);
@@ -1553,6 +1573,12 @@ void SDL::pixelQuintuplets::freeMemoryCache()
     cms::cuda::free_device(dev, centerY);
     cms::cuda::free_device(dev, pixelRadius);
     cms::cuda::free_device(dev, quintupletRadius);
+#ifdef CUT_VALUE_DEBUG
+    cms::cuda::free_device(dev, rzChiSquared);
+    cms::cuda::free_device(dev, rPhiChiSquared);
+    cms::cuda::free_device(dev, rPhiChiSquaredInwards);
+#endif
+
 #else
     cms::cuda::free_managed(pixelIndices);
     cms::cuda::free_managed(T5Indices);
@@ -1657,7 +1683,6 @@ void SDL::createPixelQuintupletsInUnifiedMemory(struct SDL::pixelQuintuplets& pi
     cudaMallocManaged(&pixelQuintupletsInGPU.rPhiChiSquaredInwards, maxPixelQuintuplets * sizeof(unsigned int));
 #endif
 #endif
-
     cudaMemsetAsync(pixelQuintupletsInGPU.nPixelQuintuplets, 0, sizeof(unsigned int),stream);
     cudaMemsetAsync(pixelQuintupletsInGPU.totOccupancyPixelQuintuplets, 0, sizeof(unsigned int),stream);
   cudaStreamSynchronize(stream);
@@ -1684,6 +1709,12 @@ void SDL::createPixelQuintupletsInExplicitMemory(struct SDL::pixelQuintuplets& p
     pixelQuintupletsInGPU.centerY          = (FPX*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * sizeof(FPX), stream);
     pixelQuintupletsInGPU.pixelRadius      = (FPX*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * sizeof(FPX), stream);
     pixelQuintupletsInGPU.quintupletRadius = (FPX*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * sizeof(FPX), stream);
+#ifdef CUT_VALUE_DEBUG
+     pixelQuintupletsInGPU.rzChiSquared          = (float*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * sizeof(float), stream);
+    pixelQuintupletsInGPU.rPhiChiSquared      = (float*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * sizeof(float), stream);
+    pixelQuintupletsInGPU.rPhiChiSquaredInwards = (float*)cms::cuda::allocate_device(dev, maxPixelQuintuplets * sizeof(float), stream);
+   
+#endif
 #else
     cudaMalloc(&pixelQuintupletsInGPU.pixelIndices, maxPixelQuintuplets * sizeof(unsigned int));
     cudaMalloc(&pixelQuintupletsInGPU.T5Indices, maxPixelQuintuplets * sizeof(unsigned int));
@@ -1701,6 +1732,11 @@ void SDL::createPixelQuintupletsInExplicitMemory(struct SDL::pixelQuintuplets& p
     cudaMalloc(&pixelQuintupletsInGPU.quintupletRadius, maxPixelQuintuplets * sizeof(FPX));
     cudaMalloc(&pixelQuintupletsInGPU.centerX, maxPixelQuintuplets * sizeof(FPX));
     cudaMalloc(&pixelQuintupletsInGPU.centerY, maxPixelQuintuplets * sizeof(FPX));
+#ifdef CUT_VALUE_DEBUG
+    cudaMalloc(&pixelQuintupletsInGPU.rzChiSquared, maxPixelQuintuplets * sizeof(unsigned int));
+    cudaMalloc(&pixelQuintupletsInGPU.rPhiChiSquared, maxPixelQuintuplets * sizeof(unsigned int));
+    cudaMalloc(&pixelQuintupletsInGPU.rPhiChiSquaredInwards, maxPixelQuintuplets * sizeof(unsigned int));
+#endif
 #endif
     cudaMemsetAsync(pixelQuintupletsInGPU.nPixelQuintuplets, 0, sizeof(unsigned int),stream);
     cudaMemsetAsync(pixelQuintupletsInGPU.totOccupancyPixelQuintuplets, 0, sizeof(unsigned int),stream);
@@ -1979,8 +2015,6 @@ __device__ bool SDL::passPT5RPhiChiSquaredCuts(struct modules& modulesInGPU, uin
     }
     return true;
 }
-
-
 
 __device__ bool SDL::passPT5RPhiChiSquaredInwardsCuts(struct modules& modulesInGPU, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float rPhiChiSquared)
 {
