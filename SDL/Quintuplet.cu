@@ -305,7 +305,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     quintupletsInGPU.innerRadiusMax2S = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
     quintupletsInGPU.bridgeRadiusMin2S = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
     quintupletsInGPU.bridgeRadiusMax2S = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
-     quintupletsInGPU.outerRadiusMin2S = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
+    quintupletsInGPU.outerRadiusMin2S = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
     quintupletsInGPU.outerRadiusMax2S = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
 
     quintupletsInGPU.chiSquared = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
