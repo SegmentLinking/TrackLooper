@@ -2449,9 +2449,7 @@ SDL::triplets* SDL::Event::getTriplets()
         tripletsInCPU->pt_beta = new FPX[*(tripletsInCPU->nMemoryLocations)];
         tripletsInCPU->hitIndices = new unsigned int[6 * *(tripletsInCPU->nMemoryLocations)];
         tripletsInCPU->logicalLayers = new uint8_t[3 * *(tripletsInCPU->nMemoryLocations)];
-        std::cout<<"rinkiya ke papa"<<std::endl;
 #ifdef CUT_VALUE_DEBUG
-        std::cout<<"memory locations created!"<<std::endl;
 
         tripletsInCPU->zOut = new float[4 * *(tripletsInCPU->nMemoryLocations)];
         tripletsInCPU->zLo = new float[*(tripletsInCPU->nMemoryLocations)];
