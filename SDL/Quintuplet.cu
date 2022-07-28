@@ -67,6 +67,23 @@ void SDL::quintuplets::freeMemoryCache()
     cms::cuda::free_device(dev, logicalLayers);
     cms::cuda::free_device(dev, hitIndices);
     cms::cuda::free_device(dev, nMemoryLocations);
+#ifdef CUT_VALUE_DEBUG
+    cms::cuda::free_device(dev, innerRadiusMin);
+    cms::cuda::free_device(dev, innerRadiusMax);
+    cms::cuda::free_device(dev, bridgeRadius);
+    cms::cuda::free_device(dev, bridgeRadiusMin);
+    cms::cuda::free_device(dev, bridgeRadiusMax);
+    cms::cuda::free_device(dev, outerRadiusMin);
+    cms::cuda::free_device(dev, outerRadiusMax);
+    cms::cuda::free_device(dev, innerRadiusMin2S);
+    cms::cuda::free_device(dev, innerRadiusMax2S);
+    cms::cuda::free_device(dev, bridgeRadiusMin2S);
+    cms::cuda::free_device(dev, bridgeRadiusMax2S);
+    cms::cuda::free_device(dev, outerRadiusMin2S);
+    cms::cuda::free_device(dev, outerRadiusMax2S);
+    cms::cuda::free_device(dev, chiSquared);
+    cms::cuda::free_device(dev, nonAnchorChiSquared);
+#endif
 #else
     cms::cuda::free_managed(tripletIndices);
     cms::cuda::free_managed(lowerModuleIndices);

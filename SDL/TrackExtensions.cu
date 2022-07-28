@@ -57,6 +57,10 @@ void SDL::trackExtensions::freeMemoryCache()
     cms::cuda::free_device(dev, nTrackExtensions);
     cms::cuda::free_device(dev, totOccupancyTrackExtensions);
     cms::cuda::free_device(dev, regressionRadius);
+#ifdef CUT_VALUE_DEBUG
+    cms::cuda::free_device(dev, innerRadius);
+    cms::cuda::free_device(dev, outerRadius);
+#endif
 #else
     cms::cuda::free_managed(constituentTCTypes);
     cms::cuda::free_managed(constituentTCIndices);

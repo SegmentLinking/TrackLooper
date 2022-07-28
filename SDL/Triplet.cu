@@ -315,6 +315,7 @@ void SDL::triplets::freeMemoryCache()
     cms::cuda::free_device(dev, zHi);
     cms::cuda::free_device(dev, zLoPointed);
     cms::cuda::free_device(dev, zHiPointed);
+    cms::cuda::free_device(dev, sdlCut);
     cms::cuda::free_device(dev, betaInCut);
     cms::cuda::free_device(dev, betaOutCut);
     cms::cuda::free_device(dev, deltaBetaCut);
