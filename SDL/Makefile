@@ -63,6 +63,12 @@ explicit_cache: MEMFLAG += $(MEMFLAG_FLAGS)
 explicit_cache: CACHEFLAG += $(CACHEFLAG_FLAGS)
 explicit_cache: $(LIB)
 
+explicit_cache_cutvalue: CUTVALUEFLAG = $(CUTVALUEFLAG_FLAGS)
+explicit_cache_cutvalue: MEMFLAG += $(MEMFLAG_FLAGS)
+explicit_cache_cutvalue: CACHEFLAG += $(CACHEFLAG_FLAGS)
+explicit_cache_cutvalue: $(LIB)
+
+
 all: unified
 
 clean:

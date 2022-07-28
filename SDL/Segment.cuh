@@ -62,23 +62,6 @@ namespace SDL
         bool* partOfPT5;
         uint4* pLSHitsIdxs;
 
-#ifdef CUT_VALUE_DEBUG
-        float* zIns;
-        float* zOuts;
-        float* rtIns;
-        float* rtOuts;
-        float* dAlphaInnerMDSegments;
-        float* dAlphaOuterMDSegments;
-        float* dAlphaInnerMDOuterMDs;
-        float* zLo;
-        float* zHi;
-        float* rtLo;
-        float* rtHi;
-        float* sdCut;
-        float* dAlphaInnerMDSegmentThreshold;
-        float* dAlphaOuterMDSegmentThreshold;
-        float* dAlphaInnerMDOuterMDThreshold;
-#endif
 
         segments();
         ~segments();
@@ -94,12 +77,7 @@ namespace SDL
 
 
     CUDA_DEV void dAlphaThreshold(float* dAlphaThresholdValues, struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, float& xIn, float& yIn, float& zIn, float& rtIn, float& xOut, float& yOut, float& zOut, float& rtOut, uint16_t& innerLowerModuleIndex, uint16_t& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex);
-#ifdef CUT_VALUE_DEBUG
-    CUDA_DEV void addSegmentToMemory(struct segments& segmentsInGPU, unsigned int lowerMDIndex, unsigned int upperMDIndex, uint16_t innerLowerModuleIndex, uint16_t outerLowerModuleIndex, unsigned int innerMDAnchorHitIndex, unsigned int outerMDAnchorHitIndex, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, float& zIn, float& zOut, float& rtIn, float& rtOut, float& dAlphaInnerMDSegment, float& dAlphaOuterMDSegment, float&
-        dAlphaInnerMDOuterMD, float& zLo, float& zHi, float& rtLo, float& rtHi, float& sdCut, float& dAlphaInnerMDSegmentThreshold, float& dAlphaOuterMDSegmentThreshold, float& dAlphaInnerMDOuterMDThreshold, unsigned int idx);
-#else
     CUDA_DEV void addSegmentToMemory(struct segments& segmentsInGPU, unsigned int lowerMDIndex, unsigned int upperMDIndex, uint16_t innerLowerModuleIndex, uint16_t outerLowerModuleIndex, unsigned int innerMDAnchorHitIndex, unsigned int outerMDAnchorHitIndex, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, unsigned int idx);
-#endif
 
 //    CUDA_DEV void rmPixelSegmentFromMemory(struct segments& segmentsInGPU, unsigned int pixelSegmentArrayIndex);
 

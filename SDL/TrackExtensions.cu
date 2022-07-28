@@ -57,6 +57,10 @@ void SDL::trackExtensions::freeMemoryCache()
     cms::cuda::free_device(dev, nTrackExtensions);
     cms::cuda::free_device(dev, totOccupancyTrackExtensions);
     cms::cuda::free_device(dev, regressionRadius);
+#ifdef CUT_VALUE_DEBUG
+    cms::cuda::free_device(dev, innerRadius);
+    cms::cuda::free_device(dev, outerRadius);
+#endif
 #else
     cms::cuda::free_managed(constituentTCTypes);
     cms::cuda::free_managed(constituentTCIndices);
@@ -144,6 +148,10 @@ void SDL::createTrackExtensionsInExplicitMemory(struct trackExtensions& trackExt
     trackExtensionsInGPU.nTrackExtensions = (unsigned int*)cms::cuda::allocate_device(dev,nTrackCandidates * sizeof(unsigned int), stream);
     trackExtensionsInGPU.totOccupancyTrackExtensions = (unsigned int*)cms::cuda::allocate_device(dev,nTrackCandidates * sizeof(unsigned int), stream);
     trackExtensionsInGPU.regressionRadius = (FPX*)cms::cuda::allocate_device(dev, maxTrackExtensions * sizeof(FPX), stream);
+#ifdef CUT_VALUE_DEBUG
+    trackExtensionsInGPU.innerRadius = (float*)cms::cuda::allocate_device(dev, maxTrackExtensions * sizeof(float), stream);
+    trackExtensionsInGPU.outerRadius = (float*)cms::cuda::allocate_device(dev, maxTrackExtensions * sizeof(float), stream);
+#endif
 #else
     cudaMalloc(&trackExtensionsInGPU.constituentTCTypes, sizeof(short) * 3 * maxTrackExtensions);
     cudaMalloc(&trackExtensionsInGPU.constituentTCIndices, sizeof(unsigned int) * 3 * maxTrackExtensions);

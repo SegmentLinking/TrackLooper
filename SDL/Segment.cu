@@ -142,25 +142,6 @@ void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned
     cudaMallocManaged(&segmentsInGPU.partOfPT5, maxPixelSegments * sizeof(bool));
     cudaMallocManaged(&segmentsInGPU.pLSHitsIdxs, maxPixelSegments * sizeof(uint4));
     cudaMallocManaged(&segmentsInGPU.nMemoryLocations, sizeof(unsigned int));
-#ifdef CUT_VALUE_DEBUG
-    cudaMallocManaged(&segmentsInGPU.zIns, nMemoryLocations * 7 * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.zLo, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.zHi, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.rtLo, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.rtHi, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.sdCut, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.dAlphaInnerMDSegmentThreshold, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.dAlphaOuterMDSegmentThreshold, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.dAlphaInnerMDOuterMDThreshold, nMemoryLocations * sizeof(float));
-
-    segmentsInGPU.zOuts = segmentsInGPU.zIns + nMemoryLocations;
-    segmentsInGPU.rtIns = segmentsInGPU.zIns + nMemoryLocations * 2;
-    segmentsInGPU.rtOuts = segmentsInGPU.zIns + nMemoryLocations * 3;
-    segmentsInGPU.dAlphaInnerMDSegments = segmentsInGPU.zIns + nMemoryLocations * 4;
-    segmentsInGPU.dAlphaOuterMDSegments = segmentsInGPU.zIns + nMemoryLocations * 5;
-    segmentsInGPU.dAlphaInnerMDOuterMDs = segmentsInGPU.zIns + nMemoryLocations * 6;
-
-#endif
 #endif
     //segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 2;
     segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.innerLowerModuleIndices + nMemoryLocations;
@@ -288,24 +269,6 @@ SDL::segments::segments()
     partOfPT5 = nullptr;
     pLSHitsIdxs = nullptr;
 
-#ifdef CUT_VALUE_DEBUG
-    zIns = nullptr;
-    zOuts = nullptr;
-    rtIns = nullptr;
-    rtOuts = nullptr;
-    dAlphaInnerMDSegments = nullptr;
-    dAlphaOuterMDSegments = nullptr;
-    dAlphaInnerMDOuterMDs = nullptr;
-
-    zLo = nullptr;
-    zHi = nullptr;
-    rtLo = nullptr;
-    rtHi = nullptr;
-    sdCut = nullptr;
-    dAlphaInnerMDSegmentThreshold = nullptr;
-    dAlphaOuterMDSegmentThreshold = nullptr;
-    dAlphaInnerMDOuterMDThreshold = nullptr;
-#endif
 }
 
 SDL::segments::~segments()
@@ -373,26 +336,10 @@ void SDL::segments::freeMemory(cudaStream_t stream)
     cudaFree(partOfPT5);
     cudaFree(pLSHitsIdxs);
     cudaFree(nMemoryLocations);
-#ifdef CUT_VALUE_DEBUG
-    cudaFree(zIns);
-    cudaFree(zLo);
-    cudaFree(zHi);
-    cudaFree(rtLo);
-    cudaFree(rtHi);
-    cudaFree(sdCut);
-    cudaFree(dAlphaInnerMDSegmentThreshold);
-    cudaFree(dAlphaOuterMDSegmentThreshold);
-    cudaFree(dAlphaInnerMDOuterMDThreshold);
-#endif
 }
 
 
-#ifdef CUT_VALUE_DEBUG
-__device__ void SDL::addSegmentToMemory(struct segments& segmentsInGPU, unsigned int lowerMDIndex, unsigned int upperMDIndex, uint16_t innerLowerModuleIndex, uint16_t outerLowerModuleIndex, unsigned int innerMDAnchorHitIndex, unsigned int outerMDAnchorHitIndex, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, float& zIn, float& zOut, float& rtIn, float& rtOut, float& dAlphaInnerMDSegment, float& dAlphaOuterMDSegment, float&
-        dAlphaInnerMDOuterMD, float& zLo, float& zHi, float& rtLo, float& rtHi, float& sdCut, float& dAlphaInnerMDSegmentThreshold, float& dAlphaOuterMDSegmentThreshold, float& dAlphaInnerMDOuterMDThreshold, unsigned int idx)
-#else
 __device__ void SDL::addSegmentToMemory(struct segments& segmentsInGPU, unsigned int lowerMDIndex, unsigned int upperMDIndex, uint16_t innerLowerModuleIndex, uint16_t outerLowerModuleIndex, unsigned int innerMDAnchorHitIndex, unsigned int outerMDAnchorHitIndex, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, unsigned int idx)
-#endif
 {
     //idx will be computed in the kernel, which is the index into which the 
     //segment will be written
@@ -412,24 +359,6 @@ __device__ void SDL::addSegmentToMemory(struct segments& segmentsInGPU, unsigned
     segmentsInGPU.dPhiChangeMins[idx] = __F2H(dPhiChangeMin);
     segmentsInGPU.dPhiChangeMaxs[idx] = __F2H(dPhiChangeMax);
 
-#ifdef CUT_VALUE_DEBUG
-    segmentsInGPU.zIns[idx] = zIn;
-    segmentsInGPU.zOuts[idx] = zOut;
-    segmentsInGPU.rtIns[idx] = rtIn;
-    segmentsInGPU.rtOuts[idx] = rtOut;
-    segmentsInGPU.dAlphaInnerMDSegments[idx] = dAlphaInnerMDSegment;
-    segmentsInGPU.dAlphaOuterMDSegments[idx] = dAlphaOuterMDSegment;
-    segmentsInGPU.dAlphaInnerMDOuterMDs[idx] = dAlphaInnerMDOuterMD;
-
-    segmentsInGPU.zLo[idx] = zLo;
-    segmentsInGPU.zHi[idx] = zHi;
-    segmentsInGPU.rtLo[idx] = rtLo;
-    segmentsInGPU.rtHi[idx] = rtHi;
-    segmentsInGPU.sdCut[idx] = sdCut;
-    segmentsInGPU.dAlphaInnerMDSegmentThreshold[idx] = dAlphaInnerMDSegmentThreshold;
-    segmentsInGPU.dAlphaOuterMDSegmentThreshold[idx] = dAlphaOuterMDSegmentThreshold;
-    segmentsInGPU.dAlphaInnerMDOuterMDThreshold[idx] = dAlphaInnerMDOuterMDThreshold;
-#endif
 }
 
 __device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct modules& modulesInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, uint16_t pixelModuleIndex, unsigned int hitIdxs[4], unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr, float eta, float phi, unsigned int idx, unsigned int pixelSegmentArrayIndex, int superbin,
@@ -1017,12 +946,7 @@ __global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, st
                     unsigned int segmentModuleIdx = atomicAdd(&segmentsInGPU.nSegments[innerLowerModuleIndex],1);
                     unsigned int segmentIdx = rangesInGPU.segmentModuleIndices[innerLowerModuleIndex] + segmentModuleIdx;
 
-#ifdef CUT_VALUE_DEBUG
-                    addSegmentToMemory(segmentsInGPU,innerMDIndex, outerMDIndex,innerLowerModuleIndex, outerLowerModuleIndex, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, zIn, zOut, rtIn, rtOut, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold,
-                dAlphaInnerMDOuterMDThreshold, segmentIdx);
-#else
                     addSegmentToMemory(segmentsInGPU,innerMDIndex, outerMDIndex,innerLowerModuleIndex, outerLowerModuleIndex, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, segmentIdx);
-#endif
 
                 }
             }

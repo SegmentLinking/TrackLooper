@@ -67,6 +67,23 @@ void SDL::quintuplets::freeMemoryCache()
     cms::cuda::free_device(dev, logicalLayers);
     cms::cuda::free_device(dev, hitIndices);
     cms::cuda::free_device(dev, nMemoryLocations);
+#ifdef CUT_VALUE_DEBUG
+    cms::cuda::free_device(dev, innerRadiusMin);
+    cms::cuda::free_device(dev, innerRadiusMax);
+    cms::cuda::free_device(dev, bridgeRadius);
+    cms::cuda::free_device(dev, bridgeRadiusMin);
+    cms::cuda::free_device(dev, bridgeRadiusMax);
+    cms::cuda::free_device(dev, outerRadiusMin);
+    cms::cuda::free_device(dev, outerRadiusMax);
+    cms::cuda::free_device(dev, innerRadiusMin2S);
+    cms::cuda::free_device(dev, innerRadiusMax2S);
+    cms::cuda::free_device(dev, bridgeRadiusMin2S);
+    cms::cuda::free_device(dev, bridgeRadiusMax2S);
+    cms::cuda::free_device(dev, outerRadiusMin2S);
+    cms::cuda::free_device(dev, outerRadiusMax2S);
+    cms::cuda::free_device(dev, chiSquared);
+    cms::cuda::free_device(dev, nonAnchorChiSquared);
+#endif
 #else
     cms::cuda::free_managed(tripletIndices);
     cms::cuda::free_managed(lowerModuleIndices);
@@ -230,6 +247,7 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     cudaMallocManaged(&quintupletsInGPU.logicalLayers, nTotalQuintuplets * sizeof(uint8_t) * 5);
     cudaMallocManaged(&quintupletsInGPU.hitIndices, nTotalQuintuplets * sizeof(unsigned int) * 10);
     cudaMallocManaged(&quintupletsInGPU.nMemoryLocations, sizeof(unsigned int));
+
 #ifdef CUT_VALUE_DEBUG
     cudaMallocManaged(&quintupletsInGPU.innerRadiusMin, nTotalQuintuplets * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.innerRadiusMax, nTotalQuintuplets * sizeof(float));
@@ -246,8 +264,8 @@ void SDL::createQuintupletsInUnifiedMemory(struct SDL::quintuplets& quintupletsI
     cudaMallocManaged(&quintupletsInGPU.outerRadiusMax2S, nTotalQuintuplets * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.chiSquared, nTotalQuintuplets * sizeof(float));
     cudaMallocManaged(&quintupletsInGPU.nonAnchorChiSquared, nTotalQuintuplets * sizeof(float));
-    cudaMallocManaged(&quintupletsInGPU.nMemoryLocations, sizeof(unsigned int));
 #endif
+
 #endif
     quintupletsInGPU.eta = quintupletsInGPU.pt + nTotalQuintuplets;
     quintupletsInGPU.phi = quintupletsInGPU.pt + 2*nTotalQuintuplets;
@@ -292,6 +310,24 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     quintupletsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(unsigned int) * 10, stream);
     quintupletsInGPU.nMemoryLocations = (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int), stream);
 
+#ifdef CUT_VALUE_DEBUG
+    quintupletsInGPU.innerRadiusMin = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
+    quintupletsInGPU.innerRadiusMax = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
+    quintupletsInGPU.bridgeRadius = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
+    quintupletsInGPU.bridgeRadiusMin = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
+    quintupletsInGPU.bridgeRadiusMax = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
+    quintupletsInGPU.outerRadiusMin = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
+    quintupletsInGPU.outerRadiusMax = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
+    quintupletsInGPU.innerRadiusMin2S = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
+    quintupletsInGPU.innerRadiusMax2S = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
+    quintupletsInGPU.bridgeRadiusMin2S = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
+    quintupletsInGPU.bridgeRadiusMax2S = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
+    quintupletsInGPU.outerRadiusMin2S = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
+    quintupletsInGPU.outerRadiusMax2S = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
+
+    quintupletsInGPU.chiSquared = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
+    quintupletsInGPU.nonAnchorChiSquared = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
+#endif
 #else
     cudaMalloc(&quintupletsInGPU.tripletIndices, 2 * nTotalQuintuplets * sizeof(unsigned int));
     cudaMalloc(&quintupletsInGPU.lowerModuleIndices, 5 * nTotalQuintuplets * sizeof(uint16_t));
@@ -309,6 +345,25 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     cudaMalloc(&quintupletsInGPU.logicalLayers, nTotalQuintuplets * 5 * sizeof(uint8_t));
     cudaMalloc(&quintupletsInGPU.hitIndices, nTotalQuintuplets * 10 * sizeof(unsigned int));
     cudaMalloc(&quintupletsInGPU.nMemoryLocations, sizeof(unsigned int));
+
+#ifdef CUT_VALUE_DEBUG
+    cudaMalloc(&quintupletsInGPU.innerRadiusMin, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.innerRadiusMax, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.bridgeRadius, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.bridgeRadiusMin, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.bridgeRadiusMax, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.outerRadiusMin, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.outerRadiusMax, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.innerRadiusMin2S, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.innerRadiusMax2S, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.bridgeRadiusMin2S, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.bridgeRadiusMax2S, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.outerRadiusMin2S, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.outerRadiusMax2S, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.chiSquared, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.nonAnchorChiSquared, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.nMemoryLocations, sizeof(unsigned int));
+#endif
 #endif
     cudaMemsetAsync(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(quintupletsInGPU.totOccupancyQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
@@ -366,13 +421,13 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::triplets& tripletsInGPU, 
     quintupletsInGPU.hitIndices[10 * quintupletIndex + 8] = tripletsInGPU.hitIndices[6 * outerTripletIndex + 4];
     quintupletsInGPU.hitIndices[10 * quintupletIndex + 9] = tripletsInGPU.hitIndices[6 * outerTripletIndex + 5];
 #ifdef CUT_VALUE_DEBUG
-    quintupletsInGPU.innerRadiusMin[quintupletIndex] = 1.0/innerInvRadiusMin;
-    quintupletsInGPU.innerRadiusMax[quintupletIndex] = 1.0/innerInvRadiusMax;
-    quintupletsInGPU.outerRadiusMin[quintupletIndex] = 1.0/outerInvRadiusMin;
-    quintupletsInGPU.outerRadiusMax[quintupletIndex] = 1.0/outerInvRadiusMax;
+    quintupletsInGPU.innerRadiusMin[quintupletIndex] = innerRadiusMin;
+    quintupletsInGPU.innerRadiusMax[quintupletIndex] = innerRadiusMax;
+    quintupletsInGPU.outerRadiusMin[quintupletIndex] = outerRadiusMin;
+    quintupletsInGPU.outerRadiusMax[quintupletIndex] = outerRadiusMax;
     quintupletsInGPU.bridgeRadius[quintupletIndex] = bridgeRadius;
-    quintupletsInGPU.bridgeRadiusMin[quintupletIndex] = 1.0/bridgeInvRadiusMin;
-    quintupletsInGPU.bridgeRadiusMax[quintupletIndex] = 1.0/bridgeInvRadiusMax;
+    quintupletsInGPU.bridgeRadiusMin[quintupletIndex] = bridgeRadiusMin;
+    quintupletsInGPU.bridgeRadiusMax[quintupletIndex] = bridgeRadiusMax;
     quintupletsInGPU.innerRadiusMin2S[quintupletIndex] = innerRadiusMin2S;
     quintupletsInGPU.innerRadiusMax2S[quintupletIndex] = innerRadiusMax2S;
     quintupletsInGPU.bridgeRadiusMin2S[quintupletIndex] = bridgeRadiusMin2S;

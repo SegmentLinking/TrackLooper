@@ -153,6 +153,20 @@ SDL::Event::~Event()
         delete[] tripletsInCPU->logicalLayers;
         delete[] tripletsInCPU->lowerModuleIndices;
         delete tripletsInCPU->nMemoryLocations;
+#ifdef CUT_VALUE_DEBUG
+        delete[] tripletsInCPU->zOut;
+        delete[] tripletsInCPU->zLo;
+        delete[] tripletsInCPU->zHi;
+        delete[] tripletsInCPU->zLoPointed;
+        delete[] tripletsInCPU->zHiPointed;
+        delete[] tripletsInCPU->sdlCut;
+        delete[] tripletsInCPU->betaInCut;
+        delete[] tripletsInCPU->betaOutCut;
+        delete[] tripletsInCPU->deltaBetaCut;
+        delete[] tripletsInCPU->rtLo;
+        delete[] tripletsInCPU->rtHi;
+        delete[] tripletsInCPU->kZ;
+#endif
         delete tripletsInCPU;
     }
 #endif
@@ -167,6 +181,23 @@ SDL::Event::~Event()
         delete[] quintupletsInCPU->innerRadius;
         delete[] quintupletsInCPU->outerRadius;
         delete[] quintupletsInCPU->regressionRadius;
+#ifdef CUT_VALUE_DEBUG
+        delete[] quintupletsInCPU->innerRadiusMin;
+        delete[] quintupletsInCPU->innerRadiusMin2S;
+        delete[] quintupletsInCPU->innerRadiusMax;
+        delete[] quintupletsInCPU->innerRadiusMax2S;
+        delete[] quintupletsInCPU->bridgeRadius;
+        delete[] quintupletsInCPU->bridgeRadiusMin;
+        delete[] quintupletsInCPU->bridgeRadiusMin2S;
+        delete[] quintupletsInCPU->bridgeRadiusMax;
+        delete[] quintupletsInCPU->bridgeRadiusMax2S;
+        delete[] quintupletsInCPU->outerRadiusMin;
+        delete[] quintupletsInCPU->outerRadiusMin2S;
+        delete[] quintupletsInCPU->outerRadiusMax;
+        delete[] quintupletsInCPU->outerRadiusMax2S;
+        delete[] quintupletsInCPU->chiSquared;
+        delete[] quintupletsInCPU->nonAnchorChiSquared;
+#endif
         delete quintupletsInCPU;
     }
 #endif
@@ -181,6 +212,12 @@ SDL::Event::~Event()
         delete[] pixelTripletsInCPU->tripletRadius;
         delete pixelTripletsInCPU->nPixelTriplets;
         delete pixelTripletsInCPU->totOccupancyPixelTriplets;
+#ifdef CUT_VALUE_DEBUG
+        delete[] pixelTripletsInCPU->pixelRadiusError;
+        delete[] pixelTripletsInCPU->rzChiSquared;
+        delete[] pixelTripletsInCPU->rPhiChiSquared;
+        delete[] pixelTripletsInCPU->rPhiChiSquaredInwards;
+#endif
         delete pixelTripletsInCPU;
     }
 #endif
@@ -193,6 +230,11 @@ SDL::Event::~Event()
         delete[] pixelQuintupletsInCPU->score;
         delete pixelQuintupletsInCPU->nPixelQuintuplets;
         delete pixelQuintupletsInCPU->totOccupancyPixelQuintuplets;
+#ifdef CUT_VALUE_DEBUG
+        delete[] pixelQuintupletsInCPU->rzChiSquared;
+        delete[] pixelQuintupletsInCPU->rPhiChiSquared;
+        delete[] pixelQuintupletsInCPU->rPhiChiSquaredInwards;
+#endif
         delete pixelQuintupletsInCPU;
     }
 #endif
@@ -220,6 +262,12 @@ SDL::Event::~Event()
         delete[] trackExtensionsInCPU->nHitOverlaps;
         delete[] trackExtensionsInCPU->isDup;
         delete[] trackExtensionsInCPU->regressionRadius;
+#ifdef CUT_VALUE_DEBUG
+        delete[] trackExtensionsInCPU->rPhiChiSquared;
+        delete[] trackExtensionsInCPU->rzChiSquared;
+        delete[] trackExtensionsInCPU->innerRadius;
+        delete[] trackExtensionsInCPU->outerRadius;
+#endif
 
         delete trackExtensionsInCPU;
     }
@@ -633,7 +681,7 @@ __global__ void hitLoopKernel(
             hitsInGPU->lowEdgeYs[ihit] = ihit_y - 2.5f * sin_phi;
         }
         // Need to set initial value if index hasn't been seen before.
-        int old = atomicCAS(&hitsInGPU->hitRanges[lastModuleIndex * 2], -1, ihit);
+        int old = atomicCAS(&(hitsInGPU->hitRanges[lastModuleIndex * 2]), -1, ihit);
         // For subsequent visits, stores the min value.
         if (old != -1)
             atomicMin(&hitsInGPU->hitRanges[lastModuleIndex * 2], ihit);
@@ -680,7 +728,6 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     cudaMemcpyAsync(hitsInGPU->idxs, &idxInNtuple[0], nHits*sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaMemcpyAsync(hitsInGPU->nHits, &nHits, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
-
     // Calculate secondary variables on the GPU.
     hitLoopKernel<<<MAX_BLOCKS,256,0,stream>>>(
                                             Endcap,
@@ -711,13 +758,8 @@ __global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned 
       unsigned int outerMDIndex = rangesInGPU.miniDoubletModuleIndices[pixelModuleIndex] + 2*(tid) +1;
       unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + tid;
 
-#ifdef CUT_VALUE_DEBUG
-      addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices0[tid], hitIndices1[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,0,0,0,0,innerMDIndex);
-      addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices2[tid], hitIndices3[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,0,0,0,0,outerMDIndex);
-#else
       addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices0[tid], hitIndices1[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,innerMDIndex);
       addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices2[tid], hitIndices3[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,outerMDIndex);
-#endif
 
     //in outer hits - pt, eta, phi
     float slope = sinhf(hitsInGPU.ys[mdsInGPU.outerHitIndices[innerMDIndex]]);
@@ -2407,6 +2449,38 @@ SDL::triplets* SDL::Event::getTriplets()
         tripletsInCPU->pt_beta = new FPX[*(tripletsInCPU->nMemoryLocations)];
         tripletsInCPU->hitIndices = new unsigned int[6 * *(tripletsInCPU->nMemoryLocations)];
         tripletsInCPU->logicalLayers = new uint8_t[3 * *(tripletsInCPU->nMemoryLocations)];
+#ifdef CUT_VALUE_DEBUG
+
+        tripletsInCPU->zOut = new float[4 * *(tripletsInCPU->nMemoryLocations)];
+        tripletsInCPU->zLo = new float[*(tripletsInCPU->nMemoryLocations)];
+        tripletsInCPU->zHi = new float[*(tripletsInCPU->nMemoryLocations)];
+        tripletsInCPU->zLoPointed = new float[*(tripletsInCPU->nMemoryLocations)];
+        tripletsInCPU->zHiPointed = new float[*(tripletsInCPU->nMemoryLocations)];
+        tripletsInCPU->sdlCut = new float[*(tripletsInCPU->nMemoryLocations)];
+        tripletsInCPU->betaInCut = new float[*(tripletsInCPU->nMemoryLocations)];
+        tripletsInCPU->betaOutCut = new float[*(tripletsInCPU->nMemoryLocations)];
+        tripletsInCPU->deltaBetaCut = new float[*(tripletsInCPU->nMemoryLocations)];
+        tripletsInCPU->rtLo = new float[*(tripletsInCPU->nMemoryLocations)];
+        tripletsInCPU->rtHi = new float[*(tripletsInCPU->nMemoryLocations)];
+        tripletsInCPU->kZ = new float[*(tripletsInCPU->nMemoryLocations)];
+
+        tripletsInCPU->rtOut = tripletsInCPU->zOut + *(tripletsInCPU->nMemoryLocations);
+        tripletsInCPU->deltaPhiPos = tripletsInCPU->zOut + 2 * *(tripletsInCPU->nMemoryLocations);
+        tripletsInCPU->deltaPhi = tripletsInCPU->zOut + 3 * *(tripletsInCPU->nMemoryLocations);
+
+        cudaMemcpyAsync(tripletsInCPU->zOut, tripletsInGPU->zOut, 4 * * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(tripletsInCPU->zLo, tripletsInGPU->zLo, * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(tripletsInCPU->zHi, tripletsInGPU->zHi, * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(tripletsInCPU->zLoPointed, tripletsInGPU->zLoPointed, 4 * * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(tripletsInCPU->zHiPointed, tripletsInGPU->zHiPointed, * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(tripletsInCPU->sdlCut, tripletsInGPU->sdlCut, *(tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(tripletsInCPU->betaInCut, tripletsInGPU->betaInCut,  * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(tripletsInCPU->betaOutCut, tripletsInGPU->betaOutCut,  * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(tripletsInCPU->deltaBetaCut, tripletsInGPU->deltaBetaCut, *(tripletsInCPU->nMemoryLocations)*sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaMemcpyAsync(tripletsInCPU->rtLo, tripletsInGPU->rtLo,  * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(tripletsInCPU->rtHi, tripletsInGPU->rtHi,  * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(tripletsInCPU->kZ, tripletsInGPU->kZ,  * (tripletsInCPU->nMemoryLocations) * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+#endif
 
         cudaMemcpyAsync(tripletsInCPU->hitIndices, tripletsInGPU->hitIndices, 6 * *(tripletsInCPU->nMemoryLocations) * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
         cudaMemcpyAsync(tripletsInCPU->logicalLayers, tripletsInGPU->logicalLayers, 3 * *(tripletsInCPU->nMemoryLocations) * sizeof(uint8_t), cudaMemcpyDeviceToHost, stream);
@@ -2417,7 +2491,6 @@ SDL::triplets* SDL::Event::getTriplets()
         tripletsInCPU->totOccupancyTriplets = new unsigned int[nLowerModules];
         cudaMemcpyAsync(tripletsInCPU->nTriplets, tripletsInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(tripletsInCPU->totOccupancyTriplets, tripletsInGPU->totOccupancyTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-
         cudaStreamSynchronize(stream);
     }
     return tripletsInCPU;
@@ -2455,6 +2528,37 @@ SDL::quintuplets* SDL::Event::getQuintuplets()
         quintupletsInCPU->eta = new FPX[nMemoryLocations];
         quintupletsInCPU->phi = new FPX[nMemoryLocations];
         quintupletsInCPU->regressionRadius = new float[nMemoryLocations];
+#ifdef CUT_VALUE_DEBUG
+        quintupletsInCPU->innerRadiusMin = new float[nMemoryLocations];
+        quintupletsInCPU->innerRadiusMin2S = new float[nMemoryLocations];
+        quintupletsInCPU->innerRadiusMax = new float[nMemoryLocations];
+        quintupletsInCPU->innerRadiusMax2S = new float[nMemoryLocations];
+        quintupletsInCPU->bridgeRadius = new float[nMemoryLocations];
+        quintupletsInCPU->bridgeRadiusMin = new float[nMemoryLocations];
+        quintupletsInCPU->bridgeRadiusMin2S = new float[nMemoryLocations];
+        quintupletsInCPU->bridgeRadiusMax = new float[nMemoryLocations];
+        quintupletsInCPU->bridgeRadiusMax2S = new float[nMemoryLocations];
+        quintupletsInCPU->outerRadiusMin = new float[nMemoryLocations];
+        quintupletsInCPU->outerRadiusMin2S = new float[nMemoryLocations];
+        quintupletsInCPU->outerRadiusMax = new float[nMemoryLocations];
+        quintupletsInCPU->outerRadiusMax2S = new float[nMemoryLocations];
+        quintupletsInCPU->chiSquared = new float[nMemoryLocations];
+        quintupletsInCPU->nonAnchorChiSquared = new float[nMemoryLocations];
+
+        cudaMemcpyAsync(quintupletsInCPU->innerRadiusMin, quintupletsInGPU->innerRadiusMin, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->innerRadiusMax, quintupletsInGPU->innerRadiusMax, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->bridgeRadius, quintupletsInGPU->bridgeRadius, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->bridgeRadiusMin, quintupletsInGPU->bridgeRadiusMin, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->bridgeRadiusMin2S, quintupletsInGPU->bridgeRadiusMin2S, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->bridgeRadiusMax, quintupletsInGPU->bridgeRadiusMax, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->bridgeRadiusMax2S, quintupletsInGPU->bridgeRadiusMax2S, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->outerRadiusMin, quintupletsInGPU->outerRadiusMin, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->outerRadiusMin2S, quintupletsInGPU->outerRadiusMin2S, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->outerRadiusMax, quintupletsInGPU->outerRadiusMax, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->outerRadiusMax2S, quintupletsInGPU->outerRadiusMax2S, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->chiSquared, quintupletsInGPU->chiSquared, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->nonAnchorChiSquared, quintupletsInGPU->nonAnchorChiSquared, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+#endif
         cudaMemcpyAsync(quintupletsInCPU->nQuintuplets, quintupletsInGPU->nQuintuplets,  nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(quintupletsInCPU->totOccupancyQuintuplets, quintupletsInGPU->totOccupancyQuintuplets,  nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(quintupletsInCPU->tripletIndices, quintupletsInGPU->tripletIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
@@ -2499,6 +2603,17 @@ cudaStreamSynchronize(stream);
         pixelTripletsInCPU->eta = new  FPX[nPixelTriplets];
         pixelTripletsInCPU->phi = new  FPX[nPixelTriplets];
         pixelTripletsInCPU->score =new FPX[nPixelTriplets];
+#ifdef CUT_VALUE_DEBUG
+        pixelTripletsInCPU->pixelRadiusError = new float[nPixelTriplets];
+        pixelTripletsInCPU->rzChiSquared = new float[nPixelTriplets];
+        pixelTripletsInCPU->rPhiChiSquared = new float[nPixelTriplets];
+        pixelTripletsInCPU->rPhiChiSquaredInwards = new float[nPixelTriplets];
+
+        cudaMemcpyAsync(pixelTripletsInCPU->pixelRadiusError, pixelTripletsInGPU->pixelRadiusError, nPixelTriplets * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(pixelTripletsInCPU->rzChiSquared, pixelTripletsInGPU->rzChiSquared, nPixelTriplets * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(pixelTripletsInCPU->rPhiChiSquared, pixelTripletsInGPU->rPhiChiSquared, nPixelTriplets * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(pixelTripletsInCPU->rPhiChiSquaredInwards, pixelTripletsInGPU->rPhiChiSquaredInwards, nPixelTriplets * sizeof(float), cudaMemcpyDeviceToHost, stream);
+#endif
 
         cudaMemcpyAsync(pixelTripletsInCPU->tripletIndices, pixelTripletsInGPU->tripletIndices, nPixelTriplets * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(pixelTripletsInCPU->pixelSegmentIndices, pixelTripletsInGPU->pixelSegmentIndices, nPixelTriplets * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
@@ -2537,12 +2652,21 @@ cudaStreamSynchronize(stream);
         pixelQuintupletsInCPU->T5Indices = new unsigned int[nPixelQuintuplets];
         pixelQuintupletsInCPU->isDup = new bool[nPixelQuintuplets];
         pixelQuintupletsInCPU->score = new FPX[nPixelQuintuplets];
+#ifdef CUT_VALUE_DEBUG
+        pixelQuintupletsInCPU->rzChiSquared = new float[nPixelQuintuplets];
+        pixelQuintupletsInCPU->rPhiChiSquared = new float[nPixelQuintuplets];
+        pixelQuintupletsInCPU->rPhiChiSquaredInwards = new float[nPixelQuintuplets];
 
+        cudaMemcpyAsync(pixelQuintupletsInCPU->rzChiSquared, pixelQuintupletsInGPU->rzChiSquared, nPixelQuintuplets * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(pixelQuintupletsInCPU->rPhiChiSquared, pixelQuintupletsInGPU->rPhiChiSquared, nPixelQuintuplets * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(pixelQuintupletsInCPU->rPhiChiSquaredInwards, pixelQuintupletsInGPU->rPhiChiSquaredInwards, nPixelQuintuplets * sizeof(float), cudaMemcpyDeviceToHost, stream);
+
+#endif
         cudaMemcpyAsync(pixelQuintupletsInCPU->pixelIndices, pixelQuintupletsInGPU->pixelIndices, nPixelQuintuplets * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(pixelQuintupletsInCPU->T5Indices, pixelQuintupletsInGPU->T5Indices, nPixelQuintuplets * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(pixelQuintupletsInCPU->isDup, pixelQuintupletsInGPU->isDup, nPixelQuintuplets * sizeof(bool), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(pixelQuintupletsInCPU->score, pixelQuintupletsInGPU->score, nPixelQuintuplets * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
-cudaStreamSynchronize(stream);
+        cudaStreamSynchronize(stream);
     }
     return pixelQuintupletsInCPU;
 }
@@ -2654,6 +2778,7 @@ cudaStreamSynchronize(stream);
         modulesInCPU->sides = new short[nModules];
         modulesInCPU->eta = new float[nModules];
         modulesInCPU->r = new float[nModules];
+        modulesInCPU->moduleType = new ModuleType[nModules];
 
         cudaMemcpyAsync(modulesInCPU->nLowerModules, modulesInGPU->nLowerModules, sizeof(uint16_t), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(modulesInCPU->nModules, modulesInGPU->nModules, sizeof(uint16_t), cudaMemcpyDeviceToHost,stream);
@@ -2667,7 +2792,7 @@ cudaStreamSynchronize(stream);
         cudaMemcpyAsync(modulesInCPU->sides, modulesInGPU->sides, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(modulesInCPU->eta, modulesInGPU->eta, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(modulesInCPU->r, modulesInGPU->r, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
-
+        cudaMemcpyAsync(modulesInCPU->moduleType, modulesInGPU->moduleType, nModules * sizeof(ModuleType), cudaMemcpyDeviceToHost, stream);
 cudaStreamSynchronize(stream);
     }
     return modulesInCPU;
@@ -2706,6 +2831,18 @@ SDL::trackExtensions* SDL::Event::getTrackExtensions()
        trackExtensionsInCPU->nHitOverlaps = new uint8_t[2 * maxTrackExtensions];
        trackExtensionsInCPU->isDup = new bool[maxTrackExtensions];
        trackExtensionsInCPU->regressionRadius = new FPX[maxTrackExtensions];
+#ifdef CUT_VALUE_DEBUG
+       trackExtensionsInCPU->rPhiChiSquared = new FPX[maxTrackExtensions];
+       trackExtensionsInCPU->rzChiSquared = new FPX[maxTrackExtensions];
+       trackExtensionsInCPU->innerRadius = new float[maxTrackExtensions];
+       trackExtensionsInCPU->outerRadius = new float[maxTrackExtensions];
+       
+       cudaMemcpyAsync(trackExtensionsInCPU->rPhiChiSquared, trackExtensionsInGPU->rPhiChiSquared, maxTrackExtensions * sizeof(FPX), cudaMemcpyDeviceToHost, stream);
+       cudaMemcpyAsync(trackExtensionsInCPU->rzChiSquared, trackExtensionsInGPU->rzChiSquared, maxTrackExtensions * sizeof(FPX), cudaMemcpyDeviceToHost, stream);
+       cudaMemcpyAsync(trackExtensionsInCPU->innerRadius, trackExtensionsInGPU->innerRadius, maxTrackExtensions * sizeof(float), cudaMemcpyDeviceToHost, stream);
+       cudaMemcpyAsync(trackExtensionsInCPU->outerRadius, trackExtensionsInGPU->outerRadius, maxTrackExtensions * sizeof(float), cudaMemcpyDeviceToHost, stream);
+
+#endif
 
        cudaMemcpyAsync(trackExtensionsInCPU->nTrackExtensions, trackExtensionsInGPU->nTrackExtensions, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
        cudaMemcpyAsync(trackExtensionsInCPU->totOccupancyTrackExtensions, trackExtensionsInGPU->totOccupancyTrackExtensions, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);

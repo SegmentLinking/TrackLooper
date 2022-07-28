@@ -1,4 +1,5 @@
 #include "write_sdl_ntuple.h"
+#include "write_sdl_ntuple.h"
 
 #define N_MAX_MD_PER_MODULES 89
 #define N_MAX_SEGMENTS_PER_MODULE 537
@@ -333,21 +334,21 @@ void createQuintupletCutValueBranches()
     ana.tx->createBranch<vector<int>>("t5_layer_binary");
     ana.tx->createBranch<vector<vector<float>>>("t5_matched_pt");
     ana.tx->createBranch<vector<float>>("t5_innerRadius");
-    ana.tx->createBranch<vector<float>>("t5_innerRadiusMin");
-    ana.tx->createBranch<vector<float>>("t5_innerRadiusMax");
+    ana.tx->createBranch<vector<float>>("t5_innerInvRadiusMin");
+    ana.tx->createBranch<vector<float>>("t5_innerInvRadiusMax");
     ana.tx->createBranch<vector<float>>("t5_outerRadius");
     ana.tx->createBranch<vector<float>>("t5_regressionRadius");
-    ana.tx->createBranch<vector<float>>("t5_outerRadiusMin");
-    ana.tx->createBranch<vector<float>>("t5_outerRadiusMax");
+    ana.tx->createBranch<vector<float>>("t5_outerInvRadiusMin");
+    ana.tx->createBranch<vector<float>>("t5_outerInvRadiusMax");
     ana.tx->createBranch<vector<float>>("t5_bridgeRadius");
-    ana.tx->createBranch<vector<float>>("t5_bridgeRadiusMin");
-    ana.tx->createBranch<vector<float>>("t5_bridgeRadiusMax");
-    ana.tx->createBranch<vector<float>>("t5_innerRadiusMin2S");
-    ana.tx->createBranch<vector<float>>("t5_innerRadiusMax2S");
-    ana.tx->createBranch<vector<float>>("t5_bridgeRadiusMin2S");
-    ana.tx->createBranch<vector<float>>("t5_bridgeRadiusMax2S");
-    ana.tx->createBranch<vector<float>>("t5_outerRadiusMin2S");
-    ana.tx->createBranch<vector<float>>("t5_outerRadiusMax2S");
+    ana.tx->createBranch<vector<float>>("t5_bridgeInvRadiusMin");
+    ana.tx->createBranch<vector<float>>("t5_bridgeInvRadiusMax");
+    ana.tx->createBranch<vector<float>>("t5_innerInvRadiusMin2S");
+    ana.tx->createBranch<vector<float>>("t5_innerInvRadiusMax2S");
+    ana.tx->createBranch<vector<float>>("t5_bridgeInvRadiusMin2S");
+    ana.tx->createBranch<vector<float>>("t5_bridgeInvRadiusMax2S");
+    ana.tx->createBranch<vector<float>>("t5_outerInvRadiusMin2S");
+    ana.tx->createBranch<vector<float>>("t5_outerInvRadiusMax2S");
     ana.tx->createBranch<vector<int>>("t5_moduleType_binary");
     ana.tx->createBranch<vector<float>>("t5_chiSquared");
     ana.tx->createBranch<vector<float>>("t5_nonAnchorChiSquared");
@@ -2549,7 +2550,7 @@ void fillQuintupletOutputBranches(SDL::Event* event)
             unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
             unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1];
 
-            if(quintupletsInGPU.isDup[quintupletIndex]==1){continue;}
+     //       if(quintupletsInGPU.isDup[quintupletIndex]==1){continue;}
             t5_foundDuplicate.emplace_back(quintupletsInGPU.isDup[quintupletIndex]);
             t5_score_rphisum.emplace_back(__H2F(quintupletsInGPU.score_rphisum[quintupletIndex]));
             t5_eta_2.emplace_back(__H2F(quintupletsInGPU.eta[quintupletIndex]));
@@ -2759,23 +2760,23 @@ void fillQuintupletOutputBranches(SDL::Event* event)
 
     ana.tx->setBranch<vector<float>>("t5_outerRadius",t5_outerRadius);
     ana.tx->setBranch<vector<float>>("t5_regressionRadius", t5_regressionRadius);
-    ana.tx->setBranch<vector<float>>("t5_outerRadiusMin",t5_outerRadiusMin);
-    ana.tx->setBranch<vector<float>>("t5_outerRadiusMax",t5_outerRadiusMax);
-    ana.tx->setBranch<vector<float>>("t5_outerRadiusMin2S",t5_outerRadiusMin2S);
-    ana.tx->setBranch<vector<float>>("t5_outerRadiusMax2S",t5_outerRadiusMax2S);
+    ana.tx->setBranch<vector<float>>("t5_outerInvRadiusMin",t5_outerRadiusMin);
+    ana.tx->setBranch<vector<float>>("t5_outerInvRadiusMax",t5_outerRadiusMax);
+    ana.tx->setBranch<vector<float>>("t5_outerInvRadiusMin2S",t5_outerRadiusMin2S);
+    ana.tx->setBranch<vector<float>>("t5_outerInvRadiusMax2S",t5_outerRadiusMax2S);
     ana.tx->setBranch<vector<float>>("t5_chiSquared", t5_chiSquared);
     ana.tx->setBranch<vector<float>>("t5_nonAnchorChiSquared", t5_nonAnchorChiSquared);
 
     ana.tx->setBranch<vector<float>>("t5_innerRadius",t5_innerRadius);
-    ana.tx->setBranch<vector<float>>("t5_innerRadiusMin",t5_innerRadiusMin);
-    ana.tx->setBranch<vector<float>>("t5_innerRadiusMax",t5_innerRadiusMax);
-    ana.tx->setBranch<vector<float>>("t5_innerRadiusMin2S",t5_innerRadiusMin2S);
-    ana.tx->setBranch<vector<float>>("t5_innerRadiusMax2S",t5_innerRadiusMax2S);
+    ana.tx->setBranch<vector<float>>("t5_innerInvRadiusMin",t5_innerRadiusMin);
+    ana.tx->setBranch<vector<float>>("t5_innerInvRadiusMax",t5_innerRadiusMax);
+    ana.tx->setBranch<vector<float>>("t5_innerInvRadiusMin2S",t5_innerRadiusMin2S);
+    ana.tx->setBranch<vector<float>>("t5_innerInvRadiusMax2S",t5_innerRadiusMax2S);
     ana.tx->setBranch<vector<float>>("t5_bridgeRadius",t5_bridgeRadius);
-    ana.tx->setBranch<vector<float>>("t5_bridgeRadiusMin",t5_bridgeRadiusMin);
-    ana.tx->setBranch<vector<float>>("t5_bridgeRadiusMax",t5_bridgeRadiusMax);
-    ana.tx->setBranch<vector<float>>("t5_bridgeRadiusMin2S",t5_bridgeRadiusMin2S);
-    ana.tx->setBranch<vector<float>>("t5_bridgeRadiusMax2S",t5_bridgeRadiusMax2S);
+    ana.tx->setBranch<vector<float>>("t5_bridgeInvRadiusMin",t5_bridgeRadiusMin);
+    ana.tx->setBranch<vector<float>>("t5_bridgeInvRadiusMax",t5_bridgeRadiusMax);
+    ana.tx->setBranch<vector<float>>("t5_bridgeInvRadiusMin2S",t5_bridgeRadiusMin2S);
+    ana.tx->setBranch<vector<float>>("t5_bridgeInvRadiusMax2S",t5_bridgeRadiusMax2S);
     ana.tx->setBranch<vector<int>>("t5_layer_binary",layer_binaries); 
     ana.tx->setBranch<vector<int>>("t5_moduleType_binary", moduleType_binaries);
 #endif
@@ -2825,7 +2826,7 @@ void fillPixelTripletOutputBranches(SDL::Event* event)
         unsigned int pixelSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[jdx];
         unsigned int tripletIndex = pixelTripletsInGPU.tripletIndices[jdx];
 
-        if(pixelTripletsInGPU.isDup[jdx]==1){continue;}
+     //   if(pixelTripletsInGPU.isDup[jdx]==1){continue;}
         pT3_eta_2.emplace_back(__H2F(pixelTripletsInGPU.eta[jdx]));
         pT3_phi_2.emplace_back(__H2F(pixelTripletsInGPU.phi[jdx]));
         pT3_score.emplace_back(__H2F(pixelTripletsInGPU.score[jdx]));
@@ -3057,7 +3058,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
     for(unsigned int jdx = 0; jdx < nPixelQuintuplets; jdx++)
     {
         //obtain the hits
-        if(pixelQuintupletsInGPU.isDup[jdx]) {continue;};
+//        if(pixelQuintupletsInGPU.isDup[jdx]) {continue;};
         pT5_score.emplace_back(__H2F(pixelQuintupletsInGPU.score[jdx]));
         unsigned int T5Index = pixelQuintupletsInGPU.T5Indices[jdx];
     
@@ -3201,24 +3202,6 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
         moduleType_binary |= (moduleType12 << 8);
 
         pT5_layer_binary.push_back(layer_binary);
-
-        int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
-        int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
-        int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
-        int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
-        int moduleType8 = modulesInGPU.moduleType[module_idxs[8]];
-        int moduleType10 = modulesInGPU.moduleType[module_idxs[10]];
-        int moduleType12 = modulesInGPU.moduleType[module_idxs[12]];
-
-
-        int moduleType_binary = 0;
-        moduleType_binary |= (moduleType4 << 0);
-        moduleType_binary |= (moduleType6 << 2);
-        moduleType_binary |= (moduleType8 << 4);
-        moduleType_binary |= (moduleType10 << 6);
-        moduleType_binary |= (moduleType12 << 8);
-
-        pT5_moduleType_binary.push_back(moduleType_binary);
         pT5_rzChiSquared.push_back(pixelQuintupletsInGPU.rzChiSquared[jdx]);
         pT5_rPhiChiSquared.push_back(pixelQuintupletsInGPU.rPhiChiSquared[jdx]);
         pT5_rPhiChiSquaredInwards.push_back(pixelQuintupletsInGPU.rPhiChiSquaredInwards[jdx]);
@@ -3661,7 +3644,6 @@ void fillTripletOutputBranches(SDL::Event* event)
             int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
             int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
             int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
-            
             moduleType_binary |= (moduleType0 << 0);
             moduleType_binary |= (moduleType2 << 2);
             moduleType_binary |= (moduleType4 << 4);
@@ -3726,7 +3708,7 @@ void fillTripletOutputBranches(SDL::Event* event)
             float deltaPhiPos = tripletsInGPU.deltaPhiPos[tripletIndex];
             float deltaPhi = tripletsInGPU.deltaPhi[tripletIndex];
             //betaIn and betaOut already defined!
-            float deltaBeta = betaIn - betaOut;
+            float deltaBeta = tripletsInGPU.betaIn[tripletIndex] - tripletsInGPU.betaOut[tripletIndex];
             float zLo = tripletsInGPU.zLo[tripletIndex];
             float zHi = tripletsInGPU.zHi[tripletIndex];
             float rtLo = tripletsInGPU.rtLo[tripletIndex];
@@ -3743,8 +3725,8 @@ void fillTripletOutputBranches(SDL::Event* event)
             t3_RtOut.push_back(rtOut);
             t3_deltaPhiPos.push_back(deltaPhiPos);
             t3_deltaPhi.push_back(deltaPhi);
-            t3_betaIn.push_back(betaIn);
-            t3_betaOut.push_back(betaOut);
+            t3_betaIn.push_back(tripletsInGPU.betaIn[tripletIndex]);
+            t3_betaOut.push_back(tripletsInGPU.betaOut[tripletIndex]);
             t3_deltaBeta.push_back(deltaBeta);
             t3_ZLo.push_back(zLo);
             t3_ZHi.push_back(zHi);
