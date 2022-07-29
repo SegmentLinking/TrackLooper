@@ -37,7 +37,7 @@ validate_efficiency_usage()
     echo
     echo "Arguments:"
     echo "   SAMPLETYPE                          muonGun, PU200, or pionGun"
-    echo "   SPECIFICGPUVERSION (optional)       Run only one of the unified, unified_cache, ... , explicit, explicit_newgrid, ... , etc."
+    echo "   SPECIFICGPUVERSION (optional)       Run only one of the cache, etc."
     echo "                                       If nothing provided, then it checks all possible tests."
     echo "   NEVENTS            (optional)       200, 10000, -1, etc."
     echo ""
@@ -115,20 +115,11 @@ rm -rf ${OUTDIR}
 mkdir -p ${OUTDIR}
 
 # Run different GPU configurations
-if [[ "${SPECIFICGPUVERSION}" == "unified" ]]; then
-    run_gpu unified ${SAMPLE} ${NEVENTS} -8 ${runExtension}
-    :
-fi
 if [[ "${SPECIFICGPUVERSION}" == "explicit" ]]; then
     run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 ${runExtension}
     :
 fi
-if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "unified_cache" ]]; then
-    run_gpu unified ${SAMPLE} ${NEVENTS} -8 -c ${runExtension}
-    :
-fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache" ]]; then
-    run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 -c ${runExtension}
+    run_gpu explicit ${SAMPLE} ${NEVENTS} -x -c ${runExtension}
     :
 fi
-sdl_compare_efficiencies -i ${SAMPLE} -t ${GITHASH} -f

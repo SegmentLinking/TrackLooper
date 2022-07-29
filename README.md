@@ -22,7 +22,6 @@ Once every new shell, source the setup script to initilaize the enviornment.
 Compile the code with option flags
 
     sdl_make_tracklooper -m8
-    -x: run with explicit instead of unified memory
     -c: run with the cmssw caching allocator
     -h: show help screen with all options
  Run the code
@@ -40,13 +39,10 @@ Compile the code with option flags
 Run the validation on sample
 
     sdl_validate_segment_linking <dataset> 
-    Runs Explicit and unified versions over 200 events by default
+    Runs Explicit version over 200 events by default
     dataset: PU200, muonGun, pionGun, etc
 
 Run the validation on specific version of GPU implementation
 
-    sdl_validate_segment_linking <dataset> unified
-    sdl_validate_segment_linking <dataset> unified_cache
-    sdl_validate_segment_linking <dataset> explicit
-    sdl_validate_segment_linking <dataset> explicit_newgrid
+    sdl_validate_segment_linking <dataset> cache
     (can optionally add in number of events as 3rd option)

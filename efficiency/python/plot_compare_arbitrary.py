@@ -95,7 +95,7 @@ cs = [2, 3, 4, 6, 7, 8, 9, 30, 46, 38, 40]
 gpu_tgraphs = {}
 configurations = []
 for eff_file_gpu in eff_files_gpu:
-    configuration = os.path.basename(os.path.dirname(eff_file_gpu)).split("GPU_")[1].split("_{}".format(githash))[0] # e.g. unified_cache ...
+    configuration = os.path.basename(os.path.dirname(eff_file_gpu)).split("GPU_")[1].split("_{}".format(githash))[0]
     configurations.append(configuration)
     gpu_file = r.TFile(eff_file_gpu)
     gpu_tgraphs[configuration] = {}

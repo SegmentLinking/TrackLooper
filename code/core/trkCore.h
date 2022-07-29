@@ -78,7 +78,6 @@ float drfracSimHitConsistentWithHelix(SDLMath::Helix& helix, int isimhitidx);
 float distxySimHitConsistentWithHelix(int isimtrk, int isimhitidx);
 float distxySimHitConsistentWithHelix(SDLMath::Helix& helix, int isimhitidx);
 
-float addInputsToLineSegmentTrackingUsingUnifiedMemory(SDL::Event &event);
 float addInputsToLineSegmentTrackingUsingExplicitMemory(SDL::Event &event);
 float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP);
 void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>>& out_trkX,std::vector<std::vector<float>>& out_trkY,std::vector<std::vector<float>>& out_trkZ,

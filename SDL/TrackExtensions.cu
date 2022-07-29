@@ -44,7 +44,6 @@ void SDL::trackExtensions::freeMemory(cudaStream_t stream)
 
 void SDL::trackExtensions::freeMemoryCache()
 {
-#ifdef Explicit_Extensions
     int dev;
     cudaGetDevice(&dev);
     cms::cuda::free_device(dev, constituentTCTypes);
@@ -60,18 +59,6 @@ void SDL::trackExtensions::freeMemoryCache()
 #ifdef CUT_VALUE_DEBUG
     cms::cuda::free_device(dev, innerRadius);
     cms::cuda::free_device(dev, outerRadius);
-#endif
-#else
-    cms::cuda::free_managed(constituentTCTypes);
-    cms::cuda::free_managed(constituentTCIndices);
-    cms::cuda::free_managed(nLayerOverlaps);
-    cms::cuda::free_managed(nHitOverlaps);
-    cms::cuda::free_managed(rPhiChiSquared);
-    cms::cuda::free_managed(rzChiSquared);
-    cms::cuda::free_managed(isDup);
-    cms::cuda::free_managed(nTrackExtensions);
-    cms::cuda::free_managed(totOccupancyTrackExtensions);
-    cms::cuda::free_managed(regressionRadius);
 #endif
 }
 
@@ -95,42 +82,6 @@ void SDL::trackExtensions::resetMemory(unsigned int maxTrackExtensions, unsigned
    Extensions having the same anchor object will be clustered together for easy
    duplicate cleaning
 */
-void SDL::createTrackExtensionsInUnifiedMemory(struct trackExtensions& trackExtensionsInGPU, unsigned int maxTrackExtensions, unsigned int nTrackCandidates, cudaStream_t stream)
-{
-#ifdef CACHE_ALLOC
-    trackExtensionsInGPU.constituentTCTypes = (short*)cms::cuda::allocate_managed(maxTrackExtensions * 3 * sizeof(short), stream);
-    trackExtensionsInGPU.constituentTCIndices = (unsigned int*)cms::cuda::allocate_managed(maxTrackExtensions * 3 * sizeof(unsigned int), stream);
-    trackExtensionsInGPU.nLayerOverlaps = (uint8_t*)cms::cuda::allocate_managed(maxTrackExtensions * 2 * sizeof(uint8_t), stream);
-    trackExtensionsInGPU.nHitOverlaps = (uint8_t*)cms::cuda::allocate_managed(maxTrackExtensions * 2 * sizeof(uint8_t), stream);
-    trackExtensionsInGPU.rPhiChiSquared = (FPX*)cms::cuda::allocate_managed(maxTrackExtensions * sizeof(FPX), stream);
-    trackExtensionsInGPU.rzChiSquared = (FPX*)cms::cuda::allocate_managed(maxTrackExtensions * sizeof(FPX), stream);
-    trackExtensionsInGPU.isDup = (bool*) cms::cuda::allocate_managed(maxTrackExtensions * sizeof(bool), stream);
-    trackExtensionsInGPU.regressionRadius = (FPX*)cms::cuda::allocate_managed(maxTrackExtensions * sizeof(FPX), stream);
-    trackExtensionsInGPU.nTrackExtensions = (unsigned int*)cms::cuda::allocate_managed(nTrackCandidates * sizeof(unsigned int), stream);
-    trackExtensionsInGPU.totOccupancyTrackExtensions = (unsigned int*)cms::cuda::allocate_managed(nTrackCandidates * sizeof(unsigned int), stream);
-
-#else
-    cudaMallocManaged(&trackExtensionsInGPU.constituentTCTypes, sizeof(short) * 3 * maxTrackExtensions);
-    cudaMallocManaged(&trackExtensionsInGPU.constituentTCIndices, sizeof(unsigned int) * 3 * maxTrackExtensions);
-    cudaMallocManaged(&trackExtensionsInGPU.nLayerOverlaps, sizeof(uint8_t) * 2 * maxTrackExtensions);
-    cudaMallocManaged(&trackExtensionsInGPU.nHitOverlaps, sizeof(uint8_t) * 2 * maxTrackExtensions);
-    cudaMallocManaged(&trackExtensionsInGPU.rPhiChiSquared, maxTrackExtensions * sizeof(FPX));
-    cudaMallocManaged(&trackExtensionsInGPU.rzChiSquared, maxTrackExtensions * sizeof(FPX));
-    cudaMallocManaged(&trackExtensionsInGPU.isDup, maxTrackExtensions * sizeof(bool));
-    cudaMallocManaged(&trackExtensionsInGPU.regressionRadius, maxTrackExtensions * sizeof(FPX));
-    cudaMallocManaged(&trackExtensionsInGPU.nTrackExtensions, nTrackCandidates * sizeof(unsigned int));
-    cudaMallocManaged(&trackExtensionsInGPU.totOccupancyTrackExtensions, nTrackCandidates * sizeof(unsigned int));
-
-#ifdef CUT_VALUE_DEBUG
-    cudaMallocManaged(&trackExtensionsInGPU.innerRadius, maxTrackExtensions * sizeof(float));
-    cudaMallocManaged(&trackExtensionsInGPU.outerRadius, maxTrackExtensions * sizeof(float));
-#endif
-#endif
-
-    cudaMemsetAsync(trackExtensionsInGPU.nTrackExtensions, 0, nTrackCandidates * sizeof(unsigned int), stream);
-    cudaMemsetAsync(trackExtensionsInGPU.totOccupancyTrackExtensions, 0, nTrackCandidates * sizeof(unsigned int), stream);
-    cudaMemsetAsync(trackExtensionsInGPU.isDup, true, maxTrackExtensions * sizeof(bool), stream);
-}
 
 void SDL::createTrackExtensionsInExplicitMemory(struct trackExtensions& trackExtensionsInGPU, unsigned int maxTrackExtensions, unsigned int nTrackCandidates, cudaStream_t stream)
 {
