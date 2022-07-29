@@ -44,5 +44,6 @@ Run the validation on sample
 
 Run the validation on specific version of GPU implementation
 
-    sdl_validate_segment_linking <dataset> cache
+    sdl_validate_segment_linking <dataset> explicit
+    sdl_validate_segment_linking <dataset> explicit_cache
     (can optionally add in number of events as 3rd option)
