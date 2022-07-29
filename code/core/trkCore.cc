@@ -1426,11 +1426,11 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
 
         bool good_seed_type = false;
         if (trk.see_algo()[iSeed] == 4) good_seed_type = true;
-        if (trk.see_algo()[iSeed] == 5) good_seed_type = true;
-        if (trk.see_algo()[iSeed] == 7) good_seed_type = true;
+        //if (trk.see_algo()[iSeed] == 5) good_seed_type = true;
+        //if (trk.see_algo()[iSeed] == 7) good_seed_type = true;
         if (trk.see_algo()[iSeed] == 22) good_seed_type = true;
-        if (trk.see_algo()[iSeed] == 23) good_seed_type = true;
-        if (trk.see_algo()[iSeed] == 24) good_seed_type = true;
+        //if (trk.see_algo()[iSeed] == 23) good_seed_type = true;
+        //if (trk.see_algo()[iSeed] == 24) good_seed_type = true;
         if (not good_seed_type) continue;
 
         TVector3 p3LH(trk.see_stateTrajGlbPx()[iSeed], trk.see_stateTrajGlbPy()[iSeed], trk.see_stateTrajGlbPz()[iSeed]);
