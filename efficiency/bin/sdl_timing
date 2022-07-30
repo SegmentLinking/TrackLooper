@@ -105,11 +105,11 @@ rm -f timing_temp.txt
 
 # Run different GPU configurations
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit" ]]; then
-    run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 -e
+    run_gpu explicit ${SAMPLE} ${NEVENTS} -8 -e
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache" ]]; then
-     run_gpu explicit_cache ${SAMPLE} ${NEVENTS} -x -c -8 -e
+     run_gpu explicit_cache ${SAMPLE} ${NEVENTS} -c -8 -e
     :
 fi
 

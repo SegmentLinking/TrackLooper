@@ -116,10 +116,10 @@ mkdir -p ${OUTDIR}
 
 # Run different GPU configurations
 if [[ "${SPECIFICGPUVERSION}" == "explicit" ]]; then
-    run_gpu explicit ${SAMPLE} ${NEVENTS} -x -8 ${runExtension}
+    run_gpu explicit ${SAMPLE} ${NEVENTS} -8 ${runExtension}
     :
 fi
 if [ -z ${SPECIFICGPUVERSION} ] || [[ "${SPECIFICGPUVERSION}" == "explicit_cache" ]]; then
-    run_gpu explicit ${SAMPLE} ${NEVENTS} -x -c ${runExtension}
+    run_gpu explicit ${SAMPLE} ${NEVENTS} -c -8 ${runExtension}
     :
 fi
