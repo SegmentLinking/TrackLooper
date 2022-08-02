@@ -330,7 +330,7 @@ __device__ float SDL::computeRadiusFromThreeAnchorHitspT3(float* xs, float* ys, 
 }
 
 
-__device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& pixelSegmentIndex, unsigned int tripletIndex, float& pixelRadius, float& pixelRadiusError, float& tripletRadius, float& centerX, float& centerY, float& /*rzChiSquared*/, float& rPhiChiSquared, float& rPhiChiSquaredInwards, bool runChiSquaredCuts)
+__device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& pixelSegmentIndex, unsigned int tripletIndex, float& pixelRadius, float& pixelRadiusError, float& tripletRadius, float& centerX, float& centerY, float& rzChiSquared, float& rPhiChiSquared, float& rPhiChiSquaredInwards, bool runChiSquaredCuts)
 {
     bool pass = true;
 
@@ -430,56 +430,57 @@ __device__ bool SDL::passPT3RPhiChiSquaredInwardsCuts(struct modules& modulesInG
     const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
     const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
     const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
-    
-    if(layer1 == 7 and layer2 == 8 and layer3 == 9)
+/*    
+    if(layer1 == 7 and layer2 == 8 and layer3 == 9) // endcap layer 1,2,3, ps
     {
         return chiSquared < 22016.8055f;
     }
-    else if(layer1 == 7 and layer2 == 8 and layer3 == 14)
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 14) // endcap layer 1,2,3 layer3->2s
     {
         return chiSquared < 935179.56807f;
     }
-    else if(layer1 == 8 and layer2 == 9 and layer3 == 10)
+    else if(layer1 == 8 and layer2 == 9 and layer3 == 10) // endcap layer 2,3,4
     {
         return chiSquared < 29064.12959f;
     }
-    else if(layer1 == 8 and layer2 == 9 and layer3 == 15)
+    else if(layer1 == 8 and layer2 == 9 and layer3 == 15) // endcap layer 2,3,4, layer3->2s      
+    // why don't we have endcap 3,4,5 for 3 ps modules? that's 9,10,11
     {
         return chiSquared < 935179.5681f;
     }
-    else if(layer1 == 1 and layer2 == 2 and layer3 == 3)
+    else if(layer1 == 1 and layer2 == 2 and layer3 == 3) // barrel 1,2,3
     {
         return chiSquared < 1370.0113195101474f;
     }
-    else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
+    else if(layer1 == 1 and layer2 == 2 and layer3 == 7) // barrel 1,2 endcap 1
     {
         return chiSquared < 5492.110048314815f;
     }
-    else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 4) // barrel 2,3,4
     {
         return chiSquared < 4160.410806470067f;
     }
-    else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
+    else if(layer1 == 1 and layer2 == 7 and layer3 == 8) // barrel 1, endcap 1,2
     {
         return chiSquared < 29064.129591225726f;
     }
-    else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 7) // barrel 2,3 endcap 1
     {
         return chiSquared < 12634.215376250893f;
     }
-    else if(layer1 == 2 and layer2 == 3 and layer3 == 12)
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 12) // barrel 2,3, endcap 1->2s
     {
         return chiSquared < 353821.69361145404f;
     }
-    else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 8) // barrel2, endcap 1,2
     {
         return chiSquared < 33393.26076341235f;
     }
-    else if(layer1 == 2 and layer2 == 7 and layer3 == 13)
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 13) //barrel 2, endcap 1, endcap2->2s
     {
         return chiSquared < 935179.5680742573f;
     }
-
+*/
     return true;
 }
 
@@ -500,7 +501,7 @@ __device__ bool SDL::passPT3RZChiSquaredCuts(struct modules& modulesInGPU, uint1
     const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
     const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
     const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
-
+/*
     if(layer1 == 8 and layer2 == 9 and layer3 == 10)
     {
         return rzChiSquared < 85.2499f;
@@ -554,7 +555,7 @@ __device__ bool SDL::passPT3RZChiSquaredCuts(struct modules& modulesInGPU, uint1
     {
         return rzChiSquared < 518.339f;
     }
-
+*/
     //default - category not found!
     return true;
 }
@@ -688,7 +689,7 @@ __device__ bool SDL::passPT3RPhiChiSquaredCuts(struct modules& modulesInGPU, uin
     const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
     const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
 
-    if(layer1 == 8 and layer2 == 9 and layer3 == 10)
+/*    if(layer1 == 8 and layer2 == 9 and layer3 == 10)
     {
         return chiSquared < 7.003f;
     }
@@ -739,7 +740,7 @@ __device__ bool SDL::passPT3RPhiChiSquaredCuts(struct modules& modulesInGPU, uin
     {
         return chiSquared < 18.509f;
     }
-
+*/
     return true;
 }
 
