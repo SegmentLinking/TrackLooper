@@ -8,51 +8,6 @@
 CUDA_CONST_VAR float SDL::pt_betaMax = 7.0f;
 
 
-void SDL::createTrackletsInUnifiedMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, uint16_t nLowerModules,cudaStream_t stream)
-{
-
-    unsigned int nMemoryLocations = maxTracklets * nLowerModules;
-#ifdef CACHE_ALLOC
-//    cudaStream_t stream =0;
-    trackletsInGPU.segmentIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(unsigned int) * 2,stream);
-    trackletsInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(unsigned int) * 4,stream);//split up to avoid runtime error of exceeding max byte allocation at a time
-    trackletsInGPU.nTracklets = (unsigned int*)cms::cuda::allocate_managed(nLowerModules * sizeof(unsigned int),stream);
-    trackletsInGPU.zOut = (float*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(float) * 4,stream);
-    trackletsInGPU.betaIn = (float*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(float) * 3,stream);
-#else
-    cudaMallocManaged(&trackletsInGPU.segmentIndices, 2 * nMemoryLocations * sizeof(unsigned int));
-    cudaMallocManaged(&trackletsInGPU.lowerModuleIndices, 4 * nMemoryLocations * sizeof(unsigned int));
-    cudaMallocManaged(&trackletsInGPU.nTracklets,nLowerModules * sizeof(unsigned int));
-    cudaMallocManaged(&trackletsInGPU.zOut, nMemoryLocations *4* sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.betaIn, nMemoryLocations *3* sizeof(float));
-
-#ifdef CUT_VALUE_DEBUG
-    cudaMallocManaged(&trackletsInGPU.zLo, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.zHi, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.zLoPointed, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.zHiPointed, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.sdlCut, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.betaInCut, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.betaOutCut, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.deltaBetaCut, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.rtLo, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.rtHi, nMemoryLocations * sizeof(float));
-    cudaMallocManaged(&trackletsInGPU.kZ, nMemoryLocations * sizeof(float));
-#endif
-#endif
-    trackletsInGPU.rtOut = trackletsInGPU.zOut + nMemoryLocations;
-    trackletsInGPU.deltaPhiPos = trackletsInGPU.zOut + nMemoryLocations * 2;
-    trackletsInGPU.deltaPhi = trackletsInGPU.zOut + nMemoryLocations * 3;
-    trackletsInGPU.betaOut = trackletsInGPU.betaIn + nMemoryLocations;
-    trackletsInGPU.pt_beta = trackletsInGPU.betaIn + nMemoryLocations * 2;
-//#pragma omp parallel for
-//    for(size_t i = 0; i<nLowerModules;i++)
-//    {
-//        trackletsInGPU.nTracklets[i] = 0;
-//    }
-
-    cudaMemsetAsync(trackletsInGPU.nTracklets,0,nLowerModules*sizeof(unsigned int),stream);
-}
 void SDL::createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, uint16_t nLowerModules,cudaStream_t stream)
 {
 
@@ -152,7 +107,6 @@ SDL::tracklets::~tracklets()
 
 void SDL::tracklets::freeMemoryCache()
 {
-#ifdef Explicit_Tracklet
     int dev;
     cudaGetDevice(&dev);
     cms::cuda::free_device(dev,segmentIndices);
@@ -160,13 +114,6 @@ void SDL::tracklets::freeMemoryCache()
     cms::cuda::free_device(dev,zOut);
     cms::cuda::free_device(dev,betaIn);
     cms::cuda::free_device(dev,nTracklets);
-#else
-    cms::cuda::free_managed(segmentIndices);
-    cms::cuda::free_managed(lowerModuleIndices);
-    cms::cuda::free_managed(zOut);
-    cms::cuda::free_managed(betaIn);
-    cms::cuda::free_managed(nTracklets);
-#endif
 }
 void SDL::tracklets::freeMemory()
 {

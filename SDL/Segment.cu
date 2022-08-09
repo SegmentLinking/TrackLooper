@@ -101,74 +101,6 @@ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRa
     cms::cuda::free_host(module_eta);
 }
 
-void SDL::createSegmentsInUnifiedMemory(struct segments& segmentsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
-{
-    //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide
-    //extra memory to the pixel segments
-#ifdef CACHE_ALLOC
-//    cudaStream_t stream=0; 
-    segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations*4 *sizeof(unsigned int),stream);
-    segmentsInGPU.innerLowerModuleIndices = (uint16_t*)cms::cuda::allocate_managed(nMemoryLocations*2 *sizeof(uint16_t),stream);
-    segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_managed((nLowerModules + 1) *sizeof(unsigned int),stream);
-    segmentsInGPU.totOccupancySegments = (unsigned int*)cms::cuda::allocate_managed((nLowerModules + 1) *sizeof(unsigned int),stream);
-    segmentsInGPU.dPhis = (FPX*)cms::cuda::allocate_managed(nMemoryLocations*6  *sizeof(FPX),stream);
-    segmentsInGPU.ptIn = (float*)cms::cuda::allocate_managed(maxPixelSegments * 8 *sizeof(float),stream);
-    segmentsInGPU.superbin = (int*)cms::cuda::allocate_managed((maxPixelSegments) *sizeof(int),stream);
-    segmentsInGPU.pixelType = (int8_t*)cms::cuda::allocate_managed((maxPixelSegments) *sizeof(int8_t),stream);
-    segmentsInGPU.isQuad = (bool*)cms::cuda::allocate_managed((maxPixelSegments) *sizeof(bool),stream);
-    segmentsInGPU.isDup = (bool*)cms::cuda::allocate_managed((maxPixelSegments) *sizeof(bool),stream);
-    segmentsInGPU.score = (float*)cms::cuda::allocate_managed((maxPixelSegments) *sizeof(float),stream);
-    segmentsInGPU.circleCenterX = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
-    segmentsInGPU.circleCenterY = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
-    segmentsInGPU.circleRadius = (float*)cms::cuda::allocate_managed((maxPixelSegments) * sizeof(float), stream);
-    segmentsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_managed(maxPixelSegments * sizeof(bool), stream);
-    segmentsInGPU.pLSHitsIdxs = (uint4*)cms::cuda::allocate_managed(maxPixelSegments * sizeof(uint4), stream);
-    segmentsInGPU.nMemoryLocations = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int), stream);
-#else
-    cudaMallocManaged(&segmentsInGPU.mdIndices, nMemoryLocations * 4 * sizeof(unsigned int));
-    cudaMallocManaged(&segmentsInGPU.innerLowerModuleIndices, nMemoryLocations * 2 * sizeof(uint16_t));
-    cudaMallocManaged(&segmentsInGPU.nSegments, (nLowerModules + 1) * sizeof(unsigned int));
-    cudaMallocManaged(&segmentsInGPU.totOccupancySegments, (nLowerModules + 1) * sizeof(unsigned int));
-    cudaMallocManaged(&segmentsInGPU.dPhis, nMemoryLocations * 6 *sizeof(FPX));
-    cudaMallocManaged(&segmentsInGPU.ptIn, maxPixelSegments * 8*sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int));
-    cudaMallocManaged(&segmentsInGPU.pixelType, (maxPixelSegments )*sizeof(int8_t));
-    cudaMallocManaged(&segmentsInGPU.isQuad, (maxPixelSegments )*sizeof(bool));
-    cudaMallocManaged(&segmentsInGPU.isDup, (maxPixelSegments )*sizeof(bool));
-    cudaMallocManaged(&segmentsInGPU.score, (maxPixelSegments )*sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.circleCenterX, maxPixelSegments * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.circleCenterY, maxPixelSegments * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.circleRadius, maxPixelSegments * sizeof(float));
-    cudaMallocManaged(&segmentsInGPU.partOfPT5, maxPixelSegments * sizeof(bool));
-    cudaMallocManaged(&segmentsInGPU.pLSHitsIdxs, maxPixelSegments * sizeof(uint4));
-    cudaMallocManaged(&segmentsInGPU.nMemoryLocations, sizeof(unsigned int));
-#endif
-    //segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 2;
-    segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.innerLowerModuleIndices + nMemoryLocations;
-    segmentsInGPU.innerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + nMemoryLocations * 2;
-    segmentsInGPU.outerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + nMemoryLocations * 3;
-
-    segmentsInGPU.dPhiMins = segmentsInGPU.dPhis + nMemoryLocations;
-    segmentsInGPU.dPhiMaxs = segmentsInGPU.dPhis + nMemoryLocations * 2;
-    segmentsInGPU.dPhiChanges = segmentsInGPU.dPhis + nMemoryLocations * 3;
-    segmentsInGPU.dPhiChangeMins = segmentsInGPU.dPhis + nMemoryLocations * 4;
-    segmentsInGPU.dPhiChangeMaxs = segmentsInGPU.dPhis + nMemoryLocations * 5;
-
-    segmentsInGPU.ptErr  = segmentsInGPU.ptIn + maxPixelSegments;
-    segmentsInGPU.px     = segmentsInGPU.ptIn + maxPixelSegments * 2;
-    segmentsInGPU.py     = segmentsInGPU.ptIn + maxPixelSegments * 3;
-    segmentsInGPU.pz     = segmentsInGPU.ptIn + maxPixelSegments * 4;
-    segmentsInGPU.etaErr = segmentsInGPU.ptIn + maxPixelSegments * 5;
-    segmentsInGPU.eta    = segmentsInGPU.ptIn + maxPixelSegments * 6;
-    segmentsInGPU.phi    = segmentsInGPU.ptIn + maxPixelSegments * 7;
-    
-    cudaMemsetAsync(segmentsInGPU.nSegments,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
-    cudaMemsetAsync(segmentsInGPU.totOccupancySegments,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
-    cudaMemsetAsync(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool),stream);
-    cudaMemsetAsync(segmentsInGPU.pLSHitsIdxs, 0, maxPixelSegments * sizeof(uint4),stream);
-    cudaStreamSynchronize(stream);
-
-}
 void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelSegments, cudaStream_t stream)
 {
     //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide
@@ -277,7 +209,6 @@ SDL::segments::~segments()
 
 void SDL::segments::freeMemoryCache()
 {
-#ifdef Explicit_Seg
     int dev;
     cudaGetDevice(&dev);
     cms::cuda::free_device(dev,mdIndices);
@@ -297,25 +228,6 @@ void SDL::segments::freeMemoryCache()
     cms::cuda::free_device(dev, partOfPT5);
     cms::cuda::free_device(dev, pLSHitsIdxs);
     cms::cuda::free_device(dev, nMemoryLocations);
-#else
-    cms::cuda::free_managed(mdIndices);
-    cms::cuda::free_managed(innerLowerModuleIndices);
-    cms::cuda::free_managed(dPhis);
-    cms::cuda::free_managed(ptIn);
-    cms::cuda::free_managed(nSegments);
-    cms::cuda::free_managed(totOccupancySegments);
-    cms::cuda::free_managed(superbin);
-    cms::cuda::free_managed(pixelType);
-    cms::cuda::free_managed(isQuad);
-    cms::cuda::free_managed(isDup);
-    cms::cuda::free_managed(score);
-    cms::cuda::free_managed(circleCenterX);
-    cms::cuda::free_managed(circleCenterY);
-    cms::cuda::free_managed(circleRadius);
-    cms::cuda::free_managed(partOfPT5);
-    cms::cuda::free_managed(pLSHitsIdxs);
-    cms::cuda::free_managed(nMemoryLocations);
-#endif
 }
 void SDL::segments::freeMemory(cudaStream_t stream)
 {

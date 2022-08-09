@@ -19,7 +19,6 @@ usage()
   echo
   echo "Options:"
   echo "  -h    Help                    (Display this message)"
-  echo "  -x    explicit memory         (Make library with explicit memory enabled)"
   echo "  -c    cache                   (Make library with cache enabled)"
   echo "  -s    show log                (Full compilation script to stdout)"
   echo "  -m    make clean binaries     (Make clean binaries before remake. e.g. when header files changed in SDL/*.cuh)"
@@ -36,7 +35,6 @@ usage()
 while getopts ":cxgsmdp823eh" OPTION; do
   case $OPTION in
     c) MAKECACHE=true;;
-    x) MAKEEXPLICIT=true;;
     s) SHOWLOG=true;;
     m) MAKECLEANBINARIES=true;;
     d) MAKECUTVALUES=true;;
@@ -51,7 +49,6 @@ done
 
 # If the command line options are not provided set it to default value of false
 if [ -z ${MAKECACHE} ]; then MAKECACHE=false; fi
-if [ -z ${MAKEEXPLICIT}  ]; then MAKEEXPLICIT=false; fi
 if [ -z ${SHOWLOG} ]; then SHOWLOG=false; fi
 if [ -z ${MAKECLEANBINARIES} ]; then MAKECLEANBINARIES=false; fi
 if [ -z ${MAKECUTVALUES} ]; then MAKECUTVALUES=false; fi
@@ -77,7 +74,6 @@ echo "====================================================="  | tee -a ${LOG}
 echo "Compilation options set to..."                          | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
 echo "  MAKECACHE         : ${MAKECACHE}"                     | tee -a ${LOG}
-echo "  MAKEEXPLICIT      : ${MAKEEXPLICIT}"                  | tee -a ${LOG}
 echo "  SHOWLOG           : ${SHOWLOG}"                       | tee -a ${LOG}
 echo "  MAKECLEANBINARIES : ${MAKECLEANBINARIES}"             | tee -a ${LOG}
 echo "  MAKECUTVALUES     : ${MAKECUTVALUES}"                 | tee -a ${LOG}
@@ -89,11 +85,10 @@ echo ""                                                       | tee -a ${LOG}
 echo "  (cf. Run > sh $(basename $0) -h to see all options)"  | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
 
-# Target to make default is unified
-MAKETARGET=unified
+
 TRACKLOOPERTARGET=
 # If make explicit is true then make library with explicit memory on GPU
-if $MAKEEXPLICIT; then MAKETARGET=explicit; fi
+MAKETARGET=explicit;
 
 # If make cache is true then make library with cache enabled
 if $MAKECACHE; then MAKETARGET=${MAKETARGET}_cache; fi

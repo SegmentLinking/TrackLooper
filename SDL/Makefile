@@ -27,7 +27,7 @@ DUPLICATES           = -DDUP_pLS -DDUP_T5 -DDUP_pT5 -DDUP_pT3 -DCrossclean_T5 -D
 MEMFLAG              =
 CACHEFLAG            =
 CUDALAUNCHFLAG       = #-DNESTED_PARA 
-MEMFLAG_FLAGS        = -DExplicit_MD -DExplicit_Seg -DExplicit_Tracklet -DExplicit_Trips -DExplicit_Hit -DExplicit_Track -DExplicit_Module -DExplicit_T5 -DExplicit_PT3 -DExplicit_PT5 -DExplicit_Extensions
+MEMFLAG_FLAGS        =
 CACHEFLAG_FLAGS      = -DCACHE_ALLOC
 CUDALAUNCHFLAG_FLAGS = #-DNEWGRID_MD -DNEWGRID_Seg -DNEWGRID_Trips -DNEWGRID_Tracklet -DNEWGRID_Pixel -DNEWGRID_Track -DNEWGRID_T5 -DNEWGRID_pT3 -DNEWGRID_pT5
 PT0P8       =
@@ -49,13 +49,6 @@ $(LIB):$(CCOBJECTS) $(CUOBJECTS)
 #$(LIB):$(CUOBJECTS)
 	$(LD)  $(SOFLAGS) $^ -o $@
 
-unified_cutvalue: CUTVALUEFLAG = $(CUTVALUEFLAG_FLAGS)
-unified_cutvalue: $(LIB) 
-unified: $(LIB)
-
-unified_cache: CACHEFLAG += $(CACHEFLAG_FLAGS)
-unified_cache: $(LIB)
-
 explicit: MEMFLAG += $(MEMFLAG_FLAGS)
 explicit: $(LIB)
 
@@ -67,9 +60,6 @@ explicit_cache_cutvalue: CUTVALUEFLAG = $(CUTVALUEFLAG_FLAGS)
 explicit_cache_cutvalue: MEMFLAG += $(MEMFLAG_FLAGS)
 explicit_cache_cutvalue: CACHEFLAG += $(CACHEFLAG_FLAGS)
 explicit_cache_cutvalue: $(LIB)
-
-
-all: unified
 
 clean:
 	rm -f *.opp \
