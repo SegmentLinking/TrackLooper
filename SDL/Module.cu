@@ -126,7 +126,6 @@ void SDL::objectRanges::freeMemory()
   cudaFree(quintupletRanges);
   cudaFree(nEligibleT5Modules);
   cudaFree(indicesOfEligibleT5Modules);
-  cudaFree(indicesOfEligibleT5Modules);
   cudaFree(quintupletModuleIndices);
   cudaFree(miniDoubletModuleIndices);
   cudaFree(segmentModuleIndices);
