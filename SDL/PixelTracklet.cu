@@ -8,46 +8,6 @@
 #include "allocate.h"
 //#endif
 
-void SDL::createPixelTrackletsInUnifiedMemory(struct pixelTracklets& pixelTrackletsInGPU, unsigned int maxPixelTracklets,cudaStream_t stream)
-{
-#ifdef CACHE_ALLOC
-//    cudaStream_t stream =0;
-    pixelTrackletsInGPU.segmentIndices = (unsigned int*)cms::cuda::allocate_managed(maxPixelTracklets * sizeof(unsigned int) * 2,stream);
-    pixelTrackletsInGPU.lowerModuleIndices = (unsigned int*)cms::cuda::allocate_managed(maxPixelTracklets * sizeof(unsigned int) * 2,stream);//split up to avoid runtime error of exceeding max byte allocation at a time
-    pixelTrackletsInGPU.nPixelTracklets = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
-    pixelTrackletsInGPU.zOut = (float*)cms::cuda::allocate_managed(maxPixelTracklets * sizeof(float) * 4,stream);
-    pixelTrackletsInGPU.betaIn = (float*)cms::cuda::allocate_managed(maxPixelTracklets * sizeof(float) * 3,stream);
-#else
-    cudaMallocManaged(&pixelTrackletsInGPU.segmentIndices, 2 * maxPixelTracklets * sizeof(unsigned int));
-    cudaMallocManaged(&pixelTrackletsInGPU.lowerModuleIndices, 2 * maxPixelTracklets * sizeof(unsigned int));
-    cudaMallocManaged(&pixelTrackletsInGPU.nPixelTracklets, sizeof(unsigned int));
-    cudaMallocManaged(&pixelTrackletsInGPU.zOut, maxPixelTracklets *4* sizeof(float));
-    cudaMallocManaged(&pixelTrackletsInGPU.betaIn, maxPixelTracklets *3* sizeof(float));
-
-#ifdef CUT_VALUE_DEBUG
-    cudaMallocManaged(&pixelTrackletsInGPU.zLo, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&pixelTrackletsInGPU.zHi, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&pixelTrackletsInGPU.zLoPointed, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&pixelTrackletsInGPU.zHiPointed, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&pixelTrackletsInGPU.sdlCut, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&pixelTrackletsInGPU.betaInCut, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&pixelTrackletsInGPU.betaOutCut, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&pixelTrackletsInGPU.deltaBetaCut, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&pixelTrackletsInGPU.rtLo, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&pixelTrackletsInGPU.rtHi, maxPixelTracklets * sizeof(float));
-    cudaMallocManaged(&pixelTrackletsInGPU.kZ, maxPixelTracklets * sizeof(float));
-
-#endif
-#endif
-    pixelTrackletsInGPU.rtOut = pixelTrackletsInGPU.zOut + maxPixelTracklets;
-    pixelTrackletsInGPU.deltaPhiPos = pixelTrackletsInGPU.zOut + maxPixelTracklets * 2;
-    pixelTrackletsInGPU.deltaPhi = pixelTrackletsInGPU.zOut + maxPixelTracklets * 3;
-    pixelTrackletsInGPU.betaOut = pixelTrackletsInGPU.betaIn + maxPixelTracklets;
-    pixelTrackletsInGPU.pt_beta = pixelTrackletsInGPU.betaIn + maxPixelTracklets * 2;
-
-    cudaMemsetAsync(pixelTrackletsInGPU.nPixelTracklets, 0, sizeof(unsigned int),stream);
-}
-
 void SDL::createPixelTrackletsInExplicitMemory(struct pixelTracklets& pixelTrackletsInGPU, unsigned int maxPixelTracklets,cudaStream_t stream)
 {
 #ifdef CACHE_ALLOC
@@ -116,7 +76,6 @@ __device__ void SDL::addPixelTrackletToMemory(struct pixelTracklets& pixelTrackl
 
 void SDL::pixelTracklets::freeMemoryCache()
 {
-#ifdef Explicit_Tracklet
     int dev;
     cudaGetDevice(&dev);
     cms::cuda::free_device(dev,segmentIndices);
@@ -124,13 +83,6 @@ void SDL::pixelTracklets::freeMemoryCache()
     cms::cuda::free_device(dev,zOut);
     cms::cuda::free_device(dev,betaIn);
     cms::cuda::free_device(dev,nPixelTracklets);
-#else
-    cms::cuda::free_managed(segmentIndices);
-    cms::cuda::free_managed(lowerModuleIndices);
-    cms::cuda::free_managed(zOut);
-    cms::cuda::free_managed(betaIn);
-    cms::cuda::free_managed(nPixelTracklets);
-#endif
 }
 
 void SDL::pixelTracklets::freeMemory()

@@ -1872,11 +1872,6 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
     return hit_loading_elapsed;
 }
 
-//__________________________________________________________________________________________
-float addInputsToLineSegmentTrackingUsingUnifiedMemory(SDL::Event &event)
-{
-    return addInputsToLineSegmentTracking(event, true);
-}
 
 //__________________________________________________________________________________________
 float addInputsToLineSegmentTrackingUsingExplicitMemory(SDL::Event &event)

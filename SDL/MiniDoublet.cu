@@ -86,67 +86,6 @@ void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges&
     cms::cuda::free_host(module_eta);
 }
 
-void SDL::createMDsInUnifiedMemory(struct miniDoublets& mdsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
-{
-#ifdef CACHE_ALLOC
-   // cudaStream_t stream=0;
-    mdsInGPU.anchorHitIndices = (unsigned int*)cms::cuda::allocate_managed(nMemoryLocations * 2 * sizeof(unsigned int), stream);
-    mdsInGPU.moduleIndices = (uint16_t*)cms::cuda::allocate_managed(nMemoryLocations * sizeof(uint16_t), stream);
-    mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_managed((nLowerModules + 1)*sizeof(unsigned int),stream);
-    mdsInGPU.totOccupancyMDs = (unsigned int*)cms::cuda::allocate_managed((nLowerModules + 1)*sizeof(unsigned int),stream);
-    mdsInGPU.dphichanges = (float*)cms::cuda::allocate_managed(nMemoryLocations*9*sizeof(float),stream);
-    mdsInGPU.anchorX = (float*)cms::cuda::allocate_managed(nMemoryLocations * 6 * sizeof(float), stream);
-    mdsInGPU.anchorHighEdgeX = (float*)cms::cuda::allocate_managed(nMemoryLocations * 4 * sizeof(float), stream);
-    mdsInGPU.outerX = (float*)cms::cuda::allocate_managed(nMemoryLocations * 6 * sizeof(float), stream);
-    mdsInGPU.outerHighEdgeX = (float*)cms::cuda::allocate_managed(nMemoryLocations * 4 * sizeof(float), stream);
-
-    mdsInGPU.nMemoryLocations = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int), stream);
-#else
-    cudaMallocManaged(&mdsInGPU.anchorHitIndices, nMemoryLocations * 2 * sizeof(unsigned int));
-    cudaMallocManaged(&mdsInGPU.moduleIndices, nMemoryLocations * sizeof(uint16_t));
-    cudaMallocManaged(&mdsInGPU.dphichanges, nMemoryLocations * 9 * sizeof(float));
-    cudaMallocManaged(&mdsInGPU.nMDs, (nLowerModules + 1) * sizeof(unsigned int));
-    cudaMallocManaged(&mdsInGPU.totOccupancyMDs, (nLowerModules + 1) * sizeof(unsigned int));
-    cudaMallocManaged(&mdsInGPU.anchorX, nMemoryLocations * 6 * sizeof(float));
-    cudaMallocManaged(&mdsInGPU.anchorHighEdgeX, nMemoryLocations * 4 * sizeof(float));
-    cudaMallocManaged(&mdsInGPU.outerX, nMemoryLocations * 10 * sizeof(float));
-    cudaMallocManaged(&mdsInGPU.outerHighEdgeX, nMemoryLocations * 4 * sizeof(float));
-
-    cudaMallocManaged(&mdsInGPU.nMemoryLocations, sizeof(unsigned int));
-#endif
-    mdsInGPU.outerHitIndices = mdsInGPU.anchorHitIndices + nMemoryLocations;
-    mdsInGPU.dzs  = mdsInGPU.dphichanges + nMemoryLocations;
-    mdsInGPU.dphis  = mdsInGPU.dphichanges + 2*nMemoryLocations;
-    mdsInGPU.shiftedXs  = mdsInGPU.dphichanges + 3*nMemoryLocations;
-    mdsInGPU.shiftedYs  = mdsInGPU.dphichanges + 4*nMemoryLocations;
-    mdsInGPU.shiftedZs  = mdsInGPU.dphichanges + 5*nMemoryLocations;
-    mdsInGPU.noShiftedDzs  = mdsInGPU.dphichanges + 6*nMemoryLocations;
-    mdsInGPU.noShiftedDphis  = mdsInGPU.dphichanges + 7*nMemoryLocations;
-    mdsInGPU.noShiftedDphiChanges  = mdsInGPU.dphichanges + 8*nMemoryLocations;
-
-    mdsInGPU.anchorY = mdsInGPU.anchorX + nMemoryLocations;
-    mdsInGPU.anchorZ = mdsInGPU.anchorX + 2 * nMemoryLocations;
-    mdsInGPU.anchorRt = mdsInGPU.anchorX + 3 * nMemoryLocations;
-    mdsInGPU.anchorPhi = mdsInGPU.anchorX + 4 * nMemoryLocations;
-    mdsInGPU.anchorEta = mdsInGPU.anchorX + 5 * nMemoryLocations;
-    mdsInGPU.anchorHighEdgeY = mdsInGPU.anchorHighEdgeX + nMemoryLocations;
-    mdsInGPU.anchorLowEdgeX = mdsInGPU.anchorHighEdgeX + 2 * nMemoryLocations;
-    mdsInGPU.anchorLowEdgeY = mdsInGPU.anchorHighEdgeX + 3 * nMemoryLocations;
-
-    mdsInGPU.outerY = mdsInGPU.outerX + nMemoryLocations;
-    mdsInGPU.outerZ = mdsInGPU.outerX + 2 * nMemoryLocations;
-    mdsInGPU.outerRt = mdsInGPU.outerX + 3 * nMemoryLocations;
-    mdsInGPU.outerPhi = mdsInGPU.outerX + 4 * nMemoryLocations;
-    mdsInGPU.outerEta = mdsInGPU.outerX + 5 * nMemoryLocations;
-    mdsInGPU.outerHighEdgeY = mdsInGPU.outerHighEdgeX + nMemoryLocations;
-    mdsInGPU.outerLowEdgeX = mdsInGPU.outerHighEdgeX + 2 * nMemoryLocations;
-    mdsInGPU.outerLowEdgeY = mdsInGPU.outerHighEdgeX + 3 * nMemoryLocations;
-
-    cudaMemsetAsync(mdsInGPU.nMDs,0, (nLowerModules + 1) *sizeof(unsigned int),stream);
-    cudaMemsetAsync(mdsInGPU.totOccupancyMDs,0, (nLowerModules + 1) *sizeof(unsigned int),stream);
-    cudaStreamSynchronize(stream);
-}
-
 //FIXME:Add memory locations for the pixel MDs here!
 void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
 {
@@ -905,7 +844,6 @@ SDL::miniDoublets::~miniDoublets()
 
 void SDL::miniDoublets::freeMemoryCache()
 {
-#ifdef Explicit_MD
     int dev;
     cudaGetDevice(&dev);
     cms::cuda::free_device(dev,anchorHitIndices);
@@ -918,18 +856,6 @@ void SDL::miniDoublets::freeMemoryCache()
     cms::cuda::free_device(dev, outerX);
     cms::cuda::free_device(dev, outerHighEdgeX);
     cms::cuda::free_device(dev, nMemoryLocations);
-#else
-    cms::cuda::free_managed(anchorHitIndices);
-    cms::cuda::free_managed(moduleIndices);
-    cms::cuda::free_managed(dphichanges);
-    cms::cuda::free_managed(nMDs);
-    cms::cuda::free_managed(totOccupancyMDs);
-    cms::cuda::free_managed(anchorX);
-    cms::cuda::free_managed(anchorHighEdgeX);
-    cms::cuda::free_managed(outerX);
-    cms::cuda::free_managed(outerHighEdgeX);
-    cms::cuda::free_managed(nMemoryLocations);
-#endif
 }
 
 

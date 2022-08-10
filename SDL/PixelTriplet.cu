@@ -33,7 +33,6 @@ SDL::pixelTriplets::pixelTriplets()
 
 void SDL::pixelTriplets::freeMemoryCache()
 {
-#ifdef Explicit_PT3
     int dev;
     cudaGetDevice(&dev);
     cms::cuda::free_device(dev,pixelSegmentIndices);
@@ -55,23 +54,6 @@ void SDL::pixelTriplets::freeMemoryCache()
     cms::cuda::free_device(dev, rPhiChiSquared);
     cms::cuda::free_device(dev, rPhiChiSquaredInwards);
     cms::cuda::free_device(dev, rzChiSquared);
-#endif
-#else
-    cms::cuda::free_managed(pixelSegmentIndices);
-    cms::cuda::free_managed(tripletIndices);
-    cms::cuda::free_managed(nPixelTriplets);
-    cms::cuda::free_managed(totOccupancyPixelTriplets);
-    cms::cuda::free_managed(pixelRadius);
-    cms::cuda::free_managed(tripletRadius);
-    cms::cuda::free_managed(pt);
-    cms::cuda::free_managed(isDup);
-    cms::cuda::free_managed(partOfPT5);
-    cms::cuda::free_managed(centerX);
-    cms::cuda::free_managed(centerY);
-    cms::cuda::free_managed(hitIndices);
-    cms::cuda::free_managed(logicalLayers);
-    cms::cuda::free_managed(lowerModuleIndices);
-
 #endif
 }
 void SDL::pixelTriplets::freeMemory(cudaStream_t stream)
@@ -113,59 +95,6 @@ void SDL::pixelTriplets::resetMemory(unsigned int maxPixelTriplets,cudaStream_t 
     cudaMemsetAsync(pt, 0,maxPixelTriplets * 6*sizeof(FPX),stream);
     cudaMemsetAsync(isDup, 0,maxPixelTriplets * sizeof(bool),stream);
     cudaMemsetAsync(partOfPT5, 0,maxPixelTriplets * sizeof(bool),stream);
-}
-void SDL::createPixelTripletsInUnifiedMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int maxPixelTriplets,cudaStream_t stream)
-{
-#ifdef CACHE_ALLOC
-//    cudaStream_t stream=0;
-    pixelTripletsInGPU.pixelSegmentIndices       =(unsigned int*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(unsigned int),stream);
-    pixelTripletsInGPU.tripletIndices            =(unsigned int*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(unsigned int),stream);
-    pixelTripletsInGPU.nPixelTriplets            =(unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
-    pixelTripletsInGPU.totOccupancyPixelTriplets =(unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
-    pixelTripletsInGPU.pixelRadius               =(FPX*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(FPX),stream);
-    pixelTripletsInGPU.tripletRadius             =(FPX*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(FPX),stream);
-    pixelTripletsInGPU.pt                        =(FPX*)cms::cuda::allocate_managed(maxPixelTriplets * 6*sizeof(FPX),stream);
-    pixelTripletsInGPU.isDup                     =(bool*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(bool),stream);
-    pixelTripletsInGPU.partOfPT5                 =(bool*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(bool),stream);
-
-    pixelTripletsInGPU.centerX = (FPX*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(FPX),stream);
-    pixelTripletsInGPU.centerY = (FPX*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(FPX),stream);
-    pixelTripletsInGPU.lowerModuleIndices = (uint16_t*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(uint16_t) * 5, stream);
-    pixelTripletsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(unsigned int) * 10, stream);
-    pixelTripletsInGPU.logicalLayers = (uint8_t*)cms::cuda::allocate_managed(maxPixelTriplets * sizeof(uint8_t) * 5, stream);
-
-#else
-    cudaMallocManaged(&pixelTripletsInGPU.pixelSegmentIndices, maxPixelTriplets * sizeof(unsigned int));
-    cudaMallocManaged(&pixelTripletsInGPU.tripletIndices, maxPixelTriplets * sizeof(unsigned int));
-    cudaMallocManaged(&pixelTripletsInGPU.nPixelTriplets, sizeof(unsigned int));
-    cudaMallocManaged(&pixelTripletsInGPU.totOccupancyPixelTriplets, sizeof(unsigned int));
-    cudaMallocManaged(&pixelTripletsInGPU.pixelRadius, maxPixelTriplets * sizeof(FPX));
-    cudaMallocManaged(&pixelTripletsInGPU.tripletRadius, maxPixelTriplets * sizeof(FPX));
-    cudaMallocManaged(&pixelTripletsInGPU.pt, maxPixelTriplets * 6*sizeof(FPX));
-    cudaMallocManaged(&pixelTripletsInGPU.isDup, maxPixelTriplets * sizeof(bool));
-    cudaMallocManaged(&pixelTripletsInGPU.partOfPT5, maxPixelTriplets * sizeof(bool));
-
-    cudaMallocManaged(&pixelTripletsInGPU.centerX, maxPixelTriplets * sizeof(FPX));
-    cudaMallocManaged(&pixelTripletsInGPU.centerY, maxPixelTriplets * sizeof(FPX));
-    cudaMallocManaged(&pixelTripletsInGPU.logicalLayers, maxPixelTriplets * sizeof(uint8_t) * 5);
-    cudaMallocManaged(&pixelTripletsInGPU.hitIndices, maxPixelTriplets * sizeof(unsigned int) * 10);
-    cudaMallocManaged(&pixelTripletsInGPU.lowerModuleIndices, maxPixelTriplets * sizeof(uint16_t) * 5);
-#ifdef CUT_VALUE_DEBUG
-    cudaMallocManaged(&pixelTripletsInGPU.pixelRadiusError, maxPixelTriplets * sizeof(float));
-    cudaMallocManaged(&pixelTripletsInGPU.rPhiChiSquared, maxPixelTriplets * sizeof(float));
-    cudaMallocManaged(&pixelTripletsInGPU.rPhiChiSquaredInwards, maxPixelTriplets * sizeof(float));
-    cudaMallocManaged(&pixelTripletsInGPU.rzChiSquared, maxPixelTriplets * sizeof(float));
-#endif
-#endif
-    pixelTripletsInGPU.eta = pixelTripletsInGPU.pt + maxPixelTriplets;
-    pixelTripletsInGPU.phi = pixelTripletsInGPU.pt + maxPixelTriplets * 2;
-    pixelTripletsInGPU.eta_pix = pixelTripletsInGPU.pt + maxPixelTriplets *3;
-    pixelTripletsInGPU.phi_pix = pixelTripletsInGPU.pt + maxPixelTriplets * 4;
-    pixelTripletsInGPU.score = pixelTripletsInGPU.pt + maxPixelTriplets * 5;
-    cudaMemsetAsync(pixelTripletsInGPU.nPixelTriplets, 0, sizeof(unsigned int),stream);
-    cudaMemsetAsync(pixelTripletsInGPU.totOccupancyPixelTriplets, 0, sizeof(unsigned int),stream);
-    cudaMemsetAsync(pixelTripletsInGPU.partOfPT5, 0, maxPixelTriplets*sizeof(bool),stream);
-    cudaStreamSynchronize(stream);
 }
 
 void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int maxPixelTriplets, cudaStream_t stream)
@@ -1556,7 +1485,6 @@ SDL::pixelQuintuplets::~pixelQuintuplets()
 
 void SDL::pixelQuintuplets::freeMemoryCache()
 {
-#ifdef Explicit_PT5
     int dev;
     cudaGetDevice(&dev);
     cms::cuda::free_device(dev,pixelIndices);
@@ -1578,24 +1506,6 @@ void SDL::pixelQuintuplets::freeMemoryCache()
     cms::cuda::free_device(dev, rzChiSquared);
     cms::cuda::free_device(dev, rPhiChiSquared);
     cms::cuda::free_device(dev, rPhiChiSquaredInwards);
-#endif
-
-#else
-    cms::cuda::free_managed(pixelIndices);
-    cms::cuda::free_managed(T5Indices);
-    cms::cuda::free_managed(nPixelQuintuplets);
-    cms::cuda::free_managed(totOccupancyPixelQuintuplets);
-    cms::cuda::free_managed(isDup);
-    cms::cuda::free_managed(score);
-    cms::cuda::free_managed(eta);
-    cms::cuda::free_managed(phi);
-    cms::cuda::free_managed(hitIndices);
-    cms::cuda::free_managed(logicalLayers);
-    cms::cuda::free_managed(lowerModuleIndices);
-    cms::cuda::free_managed(centerX);
-    cms::cuda::free_managed(centerY);
-    cms::cuda::free_managed(pixelRadius);
-    cms::cuda::free_managed(quintupletRadius);
 #endif
 }
 void SDL::pixelQuintuplets::freeMemory(cudaStream_t stream)
@@ -1641,52 +1551,6 @@ void SDL::pixelQuintuplets::resetMemory(unsigned int maxPixelQuintuplets,cudaStr
     cudaMemsetAsync(score,0, maxPixelQuintuplets * sizeof(FPX),stream);
     cudaMemsetAsync(eta , 0, maxPixelQuintuplets * sizeof(FPX),stream);
     cudaMemsetAsync(phi , 0, maxPixelQuintuplets * sizeof(FPX),stream);
-}
-void SDL::createPixelQuintupletsInUnifiedMemory(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int maxPixelQuintuplets,cudaStream_t stream)
-{
-#ifdef CACHE_ALLOC
-    pixelQuintupletsInGPU.pixelIndices        = (unsigned int*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(unsigned int),stream);
-    pixelQuintupletsInGPU.T5Indices           = (unsigned int*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(unsigned int),stream);
-    pixelQuintupletsInGPU.nPixelQuintuplets   = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
-    pixelQuintupletsInGPU.totOccupancyPixelQuintuplets   = (unsigned int*)cms::cuda::allocate_managed(sizeof(unsigned int),stream);
-    pixelQuintupletsInGPU.isDup               = (bool*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(bool),stream);
-    pixelQuintupletsInGPU.score               = (FPX*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(FPX),stream);
-    pixelQuintupletsInGPU.eta                 = (FPX*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(FPX),stream);
-    pixelQuintupletsInGPU.phi                 = (FPX*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(FPX),stream);
-    pixelQuintupletsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_managed(maxPixelQuintuplets * 14 * sizeof(unsigned int), stream);
-    pixelQuintupletsInGPU.logicalLayers = (uint8_t*)cms::cuda::allocate_managed(maxPixelQuintuplets * 7 * sizeof(uint8_t), stream);
-    pixelQuintupletsInGPU.lowerModuleIndices = (uint16_t*)cms::cuda::allocate_managed(maxPixelQuintuplets * 7 * sizeof(uint16_t), stream);
-    pixelQuintupletsInGPU.centerX          = (FPX*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(FPX), stream);
-    pixelQuintupletsInGPU.centerY          = (FPX*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(FPX), stream);
-    pixelQuintupletsInGPU.pixelRadius      = (FPX*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(FPX), stream);
-    pixelQuintupletsInGPU.quintupletRadius = (FPX*)cms::cuda::allocate_managed(maxPixelQuintuplets * sizeof(FPX), stream);
-
-#else
-    cudaMallocManaged(&pixelQuintupletsInGPU.pixelIndices, maxPixelQuintuplets * sizeof(unsigned int));
-    cudaMallocManaged(&pixelQuintupletsInGPU.T5Indices, maxPixelQuintuplets * sizeof(unsigned int));
-    cudaMallocManaged(&pixelQuintupletsInGPU.nPixelQuintuplets, sizeof(unsigned int));
-    cudaMallocManaged(&pixelQuintupletsInGPU.totOccupancyPixelQuintuplets, sizeof(unsigned int));
-    cudaMallocManaged(&pixelQuintupletsInGPU.isDup, maxPixelQuintuplets * sizeof(bool));
-    cudaMallocManaged(&pixelQuintupletsInGPU.score, maxPixelQuintuplets * sizeof(FPX));
-    cudaMallocManaged(&pixelQuintupletsInGPU.eta  , maxPixelQuintuplets * sizeof(FPX));
-    cudaMallocManaged(&pixelQuintupletsInGPU.phi  , maxPixelQuintuplets * sizeof(FPX));
-
-    cudaMallocManaged(&pixelQuintupletsInGPU.logicalLayers, maxPixelQuintuplets * 7 *sizeof(uint8_t));
-    cudaMallocManaged(&pixelQuintupletsInGPU.hitIndices, maxPixelQuintuplets * 14 * sizeof(unsigned int));
-    cudaMallocManaged(&pixelQuintupletsInGPU.lowerModuleIndices, maxPixelQuintuplets * 7 * sizeof(uint16_t));
-    cudaMallocManaged(&pixelQuintupletsInGPU.pixelRadius, maxPixelQuintuplets * sizeof(FPX));
-    cudaMallocManaged(&pixelQuintupletsInGPU.quintupletRadius, maxPixelQuintuplets * sizeof(FPX));
-    cudaMallocManaged(&pixelQuintupletsInGPU.centerX, maxPixelQuintuplets * sizeof(FPX));
-    cudaMallocManaged(&pixelQuintupletsInGPU.centerY, maxPixelQuintuplets * sizeof(FPX));
-#ifdef CUT_VALUE_DEBUG
-    cudaMallocManaged(&pixelQuintupletsInGPU.rzChiSquared, maxPixelQuintuplets * sizeof(unsigned int));
-    cudaMallocManaged(&pixelQuintupletsInGPU.rPhiChiSquared, maxPixelQuintuplets * sizeof(unsigned int));
-    cudaMallocManaged(&pixelQuintupletsInGPU.rPhiChiSquaredInwards, maxPixelQuintuplets * sizeof(unsigned int));
-#endif
-#endif
-    cudaMemsetAsync(pixelQuintupletsInGPU.nPixelQuintuplets, 0, sizeof(unsigned int),stream);
-    cudaMemsetAsync(pixelQuintupletsInGPU.totOccupancyPixelQuintuplets, 0, sizeof(unsigned int),stream);
-  cudaStreamSynchronize(stream);
 }
 
 void SDL::createPixelQuintupletsInExplicitMemory(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int maxPixelQuintuplets,cudaStream_t stream)
