@@ -328,14 +328,14 @@ __global__ void SDL::crossCleanpLS(struct SDL::modules& modulesInGPU, struct SDL
     }
 }
 
-__global__ void SDL::addpT3asTrackCandidatesInGPU(struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU)
+__global__ void SDL::addpT3asTrackCandidatesInGPU(struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::segments& segmentsInGPU)
 {
     unsigned int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets;
 
     for(int pixelTripletIndex = blockIdx.x * blockDim.x + threadIdx.x; pixelTripletIndex < nPixelTriplets; pixelTripletIndex += blockDim.x*gridDim.x)
     {
-        if(pixelTripletsInGPU.isDup[pixelTripletIndex]) continue;
-
+//        if((!segmentsInGPU.isQuad[pixelTripletIndex]) || (pixelTripletsInGPU.isDup[pixelTripletIndex])) continue;//return;
+        if((pixelTripletsInGPU.isDup[pixelTripletIndex])) continue;//return;
         unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
         atomicAdd(trackCandidatesInGPU.nTrackCandidatespT3,1);
     

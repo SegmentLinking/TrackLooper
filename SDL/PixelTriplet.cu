@@ -289,6 +289,10 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     unsigned int pixelSegmentArrayIndex = pixelSegmentIndex - rangesInGPU.segmentModuleIndices[pixelModuleIndex];
     float pixelSegmentPt = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
     float pixelSegmentPtError = segmentsInGPU.ptErr[pixelSegmentArrayIndex];
+    float pixelSegmentEta = segmentsInGPU.eta[pixelSegmentArrayIndex];
+    float pixelSegmentEtaError = segmentsInGPU.etaErr[pixelSegmentArrayIndex];
+//    if (fabs(pixelSegmentEta)>1.5 && fabs(pixelSegmentEta) < 1.8) printf("eta error: %f\n", pixelSegmentEtaError);
+//    printf("pt error: %f\n", pixelSegmentPtError);
 
     unsigned int pixelInnerMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
     unsigned int pixelOuterMDIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
@@ -2506,6 +2510,7 @@ __device__ bool inline SDL::runpT5DefaultAlgoPPBB(struct modules& modulesInGPU, 
     float pz = segmentsInGPU.pz[pixelSegmentArrayIndex];
     float ptErr = segmentsInGPU.ptErr[pixelSegmentArrayIndex];
     float etaErr = segmentsInGPU.etaErr[pixelSegmentArrayIndex];
+    printf("%f\n",etaErr);
     ptSLo = fmaxf(ptCut, ptSLo - 10.0f*fmaxf(ptErr, 0.005f*ptSLo));
     ptSLo = fminf(10.0f, ptSLo);
 

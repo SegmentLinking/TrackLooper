@@ -1259,7 +1259,7 @@ void SDL::Event::createTrackCandidates()
 
 #endif
     //adding objects
-    SDL::addpT3asTrackCandidatesInGPU<<<1,512,0,stream>>>(*pixelTripletsInGPU, *trackCandidatesInGPU);
+    SDL::addpT3asTrackCandidatesInGPU<<<1,512,0,stream>>>(*pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU);
     cudaError_t cudaerr_pT3TC = cudaGetLastError();
     if(cudaerr_pT3TC != cudaSuccess)
     {
