@@ -1149,20 +1149,11 @@ void loadMaps()
 {
     TString TrackLooperDir = gSystem->Getenv("TRACKLOOPERDIR");
 
-#ifdef CMSSW12GEOM
     std::cout << "Loading CMSSW_12_2_0_pre2 geometry" << std::endl;
-#else
-    std::cout << "Loading MTD TDR geometry" << std::endl;
-#endif
 
     // Module orientation information (DrDz or phi angles)
-#ifdef CMSSW12GEOM
     TString endcap_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/endcap_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data());
     TString tilted_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/tilted_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data());
-#else
-    TString endcap_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/endcap_orientation_data_v2.txt", TrackLooperDir.Data()).Data()); // centroid values added to the map
-    TString tilted_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/tilted_orientation_data.txt", TrackLooperDir.Data()).Data());
-#endif
     std::cout << "Loading module orientation information...." << std::endl;
     std::cout << "endcap orientation:" << endcap_geom << std::endl;
     std::cout << "tilted orientation:" << tilted_geom << std::endl;
@@ -1171,18 +1162,10 @@ void loadMaps()
 
     // Module connection map (for line segment building)
 #ifdef PT0P8
-#ifdef CMSSW12GEOM
     TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir.Data()).Data());
 #else
-    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_combined_0p8helix_muongun.txt", TrackLooperDir.Data()).Data());
-#endif
-#else
-#ifdef CMSSW12GEOM
     // TODO: The CMSSW_12_2_0_pre2 is by default 0.8 module map
     TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir.Data()).Data());
-#else
-    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
-#endif
 #endif
     std::cout << "Loading module map...." << std::endl;
     std::cout << "module map path:" << mappath << std::endl;
@@ -1190,18 +1173,10 @@ void loadMaps()
     ana.moduleConnectiongMapLoose.load(mappath.Data());
 
 #ifdef PT0P8
-#ifdef CMSSW12GEOM
-    TString pLSMapDir = "/data2/segmentlinking/pixelmap_CMSSW_12_2_0_pre2_0p8minPt"; // baseline + 0.8 GeV
+    TString pLSMapDir = "/data2/segmentlinking/pixelmap_CMSSW_12_2_0_pre2_0p8minPt";
 #else
-    TString pLSMapDir = "/data2/segmentlinking/pixelmap_ptmin0p8_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05"; // baseline + 0.8 GeV
-#endif
-#else
-#ifdef CMSSW12GEOM
     // TODO: The CMSSW_12_2_0_pre2 is by default 0.8 module map
-    TString pLSMapDir = "/data2/segmentlinking/pixelmap_CMSSW_12_2_0_pre2_0p8minPt"; // baseline
-#else
-    TString pLSMapDir = "/data2/segmentlinking/pixelmap_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05"; // baseline
-#endif
+    TString pLSMapDir = "/data2/segmentlinking/pixelmap_CMSSW_12_2_0_pre2_0p8minPt";
 #endif
 
     std::cout << "Loading pLS maps ... from pLSMapDir = " << pLSMapDir << std::endl;
@@ -1351,10 +1326,6 @@ std::vector<std::vector<int>>&    out_superbin_vec,
 std::vector<std::vector<int8_t>>&    out_pixelType_vec,
 std::vector<std::vector<short>>&    out_isQuad_vec)
 {
-
-//    TStopwatch my_timer;
-//    if (ana.verbose >= 2) std::cout << "Loading Inputs (i.e. outer tracker hits, and pixel line segements) to the Line Segment Tracking.... " << std::endl;
-//    my_timer.Start();
 
     unsigned int count = 0;
     auto n_see = trk.see_stateTrajGlbPx().size();
