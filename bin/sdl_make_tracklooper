@@ -24,21 +24,19 @@ usage()
   echo "  -m    make clean binaries     (Make clean binaries before remake. e.g. when header files changed in SDL/*.cuh)"
   echo "  -d    cut value ntuple        (With extra variables in a debug ntuple file)"
   echo "  -p    primitive object ntuple (With extra variables related to primitive objects)"
-  echo "  -8    pt 0.8 cut              (Make pt cut to 0.8 GeV)"
   echo "  -3    do T3T3 extensions      (-e turned on if not specified)"
   echo
   exit
 }
 
 # Parsing command-line opts
-while getopts ":cxgsmdp83eh" OPTION; do
+while getopts ":cxgsmdp3eh" OPTION; do
   case $OPTION in
     c) MAKECACHE=true;;
     s) SHOWLOG=true;;
     m) MAKECLEANBINARIES=true;;
     d) MAKECUTVALUES=true;;
     p) PRIMITIVE=true;;
-    8) PT0P8=true;;
     3) T3T3EXTENSION=true;;
     h) usage;;
     :) usage;;
@@ -51,7 +49,6 @@ if [ -z ${SHOWLOG} ]; then SHOWLOG=false; fi
 if [ -z ${MAKECLEANBINARIES} ]; then MAKECLEANBINARIES=false; fi
 if [ -z ${MAKECUTVALUES} ]; then MAKECUTVALUES=false; fi
 if [ -z ${PRIMITIVE} ]; then PRIMITIVE=false; fi
-if [ -z ${PT0P8} ]; then PT0P8=false; fi
 if [ -z ${T3T3EXTENSION} ]; then T3T3EXTENSION=false; fi
 
 # Shift away the parsed options
@@ -75,7 +72,6 @@ echo "  SHOWLOG           : ${SHOWLOG}"                       | tee -a ${LOG}
 echo "  MAKECLEANBINARIES : ${MAKECLEANBINARIES}"             | tee -a ${LOG}
 echo "  MAKECUTVALUES     : ${MAKECUTVALUES}"                 | tee -a ${LOG}
 echo "  PRIMITIVE         : ${PRIMITIVE}"                     | tee -a ${LOG}
-echo "  PT0P8             : ${PT0P8}"                         | tee -a ${LOG}
 echo "  T3T3EXTENSION     : ${T3T3EXTENSION}"                 | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
 echo "  (cf. Run > sh $(basename $0) -h to see all options)"  | tee -a ${LOG}
@@ -112,10 +108,6 @@ if $PRIMITIVE; then
 fi
 
 
-PT0P8OPT=
-if $PT0P8; then
-    PT0P8OPT="PT0P8=-DPT0P8"
-fi
 T3T3EXTENSIONOPT=
 if $T3T3EXTENSION; then
     T3T3EXTENSIONOPT="T3T3EXTENSION=-DT3T3_EXTENSIONS"
@@ -133,9 +125,9 @@ echo "--------------------------------------------------------------------------
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 if $SHOWLOG; then
-    (cd SDL && make clean && make ${PT0P8OPT} ${T3T3EXTENSIONOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
+    (cd SDL && make clean && make ${T3T3EXTENSIONOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
 else
-    (cd SDL && make clean && make ${PT0P8OPT} ${T3T3EXTENSIONOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
+    (cd SDL && make clean && make ${T3T3EXTENSIONOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
 fi
 
 if [ ! -f SDL/sdl.so ]; then
@@ -162,9 +154,9 @@ echo "--------------------------------------------------------------------------
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 if $SHOWLOG; then
-    make ${PT0P8OPT} ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} -j 2>&1 | tee -a ${LOG}
+    make ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} -j 2>&1 | tee -a ${LOG}
 else
-    make ${PT0P8OPT} ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} -j >> ${LOG} 2>&1
+    make ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} -j >> ${LOG} 2>&1
 fi
 
 if [ ! -f bin/sdl ]; then

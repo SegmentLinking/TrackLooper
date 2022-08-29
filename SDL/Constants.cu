@@ -12,11 +12,7 @@ CUDA_CONST_VAR const float SDL::miniRminMeanEndcap[5] = {130.992832231, 154.8138
 CUDA_CONST_VAR const float SDL::k2Rinv1GeVf = (2.99792458e-3 * 3.8) / 2;
 CUDA_CONST_VAR const float SDL::kR1GeVf = 1./(2.99792458e-3 * 3.8);
 CUDA_CONST_VAR const float SDL::sinAlphaMax = 0.95;
-#ifdef PT0P8
 CUDA_CONST_VAR const float SDL::ptCut = 0.8;
-#else
-CUDA_CONST_VAR const float SDL::ptCut = 1.0;
-#endif
 CUDA_CONST_VAR const float SDL::deltaZLum = 15.0;
 CUDA_CONST_VAR const float SDL::pixelPSZpitch = 0.15;
 CUDA_CONST_VAR const float SDL::strip2SZpitch = 5.0;

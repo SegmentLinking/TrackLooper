@@ -1031,23 +1031,13 @@ void loadMaps()
     SDL::tiltedGeometry.load(tilted_geom.Data());
 
     // Module connection map (for line segment building)
-#ifdef PT0P8
     TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir.Data()).Data());
-#else
-    // TODO: The CMSSW_12_2_0_pre2 is by default 0.8 module map
-    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir.Data()).Data());
-#endif
     std::cout << "Loading module map...." << std::endl;
     std::cout << "module map path:" << mappath << std::endl;
     SDL::moduleConnectionMap.load(mappath.Data());
     ana.moduleConnectiongMapLoose.load(mappath.Data());
 
-#ifdef PT0P8
     TString pLSMapDir = "/data2/segmentlinking/pixelmap_CMSSW_12_2_0_pre2_0p8minPt";
-#else
-    // TODO: The CMSSW_12_2_0_pre2 is by default 0.8 module map
-    TString pLSMapDir = "/data2/segmentlinking/pixelmap_CMSSW_12_2_0_pre2_0p8minPt";
-#endif
 
     std::cout << "Loading pLS maps ... from pLSMapDir = " << pLSMapDir << std::endl;
 
@@ -1241,11 +1231,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
         float eta = p3LH.Eta();
         float ptErr = trk.see_ptErr()[iSeed];
 
-#ifdef PT0P8
         if ((ptIn > 0.8 - 2 * ptErr))
-#else
-        if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
-#endif
         {
         TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
         TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
@@ -1294,12 +1280,6 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
             // get pixel superbin
             //int ptbin = -1;
             int pixtype =-1;
-            //if (p3PCA.Pt() >= 2.0){ /*ptbin = 1;*/pixtype=0;}
-            //else if (p3PCA.Pt() >= 0.9 and p3PCA.Pt() < 2.0){ 
-            //  //ptbin = 0;
-            //  if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
-            //  else{pixtype=2;}
-            //}
             if (ptIn >= 2.0){ /*ptbin = 1;*/pixtype=0;}
             else if (ptIn >= (0.8 - 2 * ptErr) and ptIn < 2.0){ 
               //ptbin = 0;
@@ -1509,11 +1489,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         float ptErr = trk.see_ptErr()[iSeed];
         float eta = p3LH.Eta();
 
-#ifdef PT0P8
         if ((ptIn > 0.8 - 2 * ptErr))
-#else
-        if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
-#endif
         {
         TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
         TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
@@ -1564,14 +1540,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             // get pixel superbin
             //int ptbin = -1;
             int pixtype =-1;
-            //if (p3PCA.Pt() >= 2.0){ /*ptbin = 1;*/pixtype=0;}
-            //else if (p3PCA.Pt() >= 0.9 and p3PCA.Pt() < 2.0){ 
-            //  //ptbin = 0;
-            //  if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
-            //  else{pixtype=2;}
-            //}
             if (ptIn >= 2.0){ /*ptbin = 1;*/pixtype=0;}
-            // else if (p3LH.Pt() >= 0.9 and p3LH.Pt() < 2.0){ 
             else if (ptIn >= (0.8 - 2 * ptErr) and ptIn < 2.0){ 
               //ptbin = 0;
               if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
