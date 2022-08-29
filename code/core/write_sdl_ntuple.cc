@@ -931,12 +931,6 @@ void fillSimTrackOutputBranches()
           //if (not (trk.simhit_particle()[simhitidx] == trk.sim_pdgId()[isimtrk]))
           //  continue;
 
-          //if (isMuonCurlingHit(isimtrk, ith_hit)){
-          //// if (false) {
-          //  len = -2;
-          //  lengap = -2;
-          //  break;
-          //}
           len =0;
           lengap =0;
           hits++;
