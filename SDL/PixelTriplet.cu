@@ -820,6 +820,7 @@ __global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modu
 
         if(segmentsInGPU.isDup[i_pLS]) continue;
         if(segmentsInGPU.partOfPT5[i_pLS]) continue;//don't make pT3s for those pixels that are part of pT5
+        if(!segmentsInGPU.isQuad[i_pLS]) continue;
 
         short layer2_adjustment;// = 2 - modulesInGPU.layers[tripletLowerModuleIndex];
         //if(layer2_adjustment < 0) continue;

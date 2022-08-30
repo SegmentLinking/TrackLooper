@@ -334,8 +334,8 @@ __global__ void SDL::addpT3asTrackCandidatesInGPU(struct SDL::pixelTriplets& pix
 
     for(int pixelTripletIndex = blockIdx.x * blockDim.x + threadIdx.x; pixelTripletIndex < nPixelTriplets; pixelTripletIndex += blockDim.x*gridDim.x)
     {
-        if((!segmentsInGPU.isQuad[pixelTripletsInGPU.pixelSegmentIndices[pixelTripletIndex]]) || (pixelTripletsInGPU.isDup[pixelTripletIndex])) continue;//return;
-//        if((pixelTripletsInGPU.isDup[pixelTripletIndex])) continue;//return;
+//        if((!segmentsInGPU.isQuad[pixelTripletsInGPU.pixelSegmentIndices[pixelTripletIndex]]) || (pixelTripletsInGPU.isDup[pixelTripletIndex])) continue;//return;
+        if((pixelTripletsInGPU.isDup[pixelTripletIndex])) continue;//return;
         unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
         atomicAdd(trackCandidatesInGPU.nTrackCandidatespT3,1);
     
