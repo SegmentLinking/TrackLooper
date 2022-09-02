@@ -291,8 +291,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     float pixelSegmentPtError = segmentsInGPU.ptErr[pixelSegmentArrayIndex];
     float pixelSegmentEta = segmentsInGPU.eta[pixelSegmentArrayIndex];
     float pixelSegmentEtaError = segmentsInGPU.etaErr[pixelSegmentArrayIndex];
-    float pixelSegmentPz = segmentsInGPU.pzIn[pixelSegmentArrayIndex];
-    float pixelSegmentPzError = segmentsInGPU.pzErr[pixelSegmentArrayIndex];    
+    float pixelSegmentPz = segmentsInGPU.pz[pixelSegmentArrayIndex];
 //    if (fabs(pixelSegmentEta)>1.5 && fabs(pixelSegmentEta) < 1.8) printf("eta error: %f\n", pixelSegmentEtaError);
 //    printf("pt error: %f\n", pixelSegmentPtError);
 
@@ -332,7 +331,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
         float zPix[2] = {mdsInGPU.anchorZ[pixelInnerMDIndex], mdsInGPU.anchorZ[pixelOuterMDIndex]};
 
         rzChiSquared = computePT3RZChiSquared(modulesInGPU, lowerModuleIndices, rtPix, zPix, rts, zs, pixelSegmentPt, pixelSegmentPz);
-        pass = pass and passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
+//        pass = pass and passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
         if(not pass) return pass;
     }
 //    printf("%f ",rzChiSquared);
@@ -345,7 +344,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     if(runChiSquaredCuts and pixelSegmentPt < 5.0f)
 //    if(runChiSquaredCuts)
     {
-        pass = pass and passPT3RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquared);
+//        pass = pass and passPT3RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquared);
         if(not pass) return pass;
     }
 
@@ -356,7 +355,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     if(runChiSquaredCuts and pixelSegmentPt < 5.0f)
 //    if(runChiSquaredCuts)
     {
-        pass = pass and passPT3RPhiChiSquaredInwardsCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquaredInwards);
+//        pass = pass and passPT3RPhiChiSquaredInwardsCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquaredInwards);
         if(not pass) return pass;
     }
 //    printf("%f ",rzChiSquared);
@@ -512,10 +511,10 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
         const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
         const int moduleSubdet = modulesInGPU.subdets[lowerModuleIndex];
 
-        float diffz=0; diffr=0;
+        float diffz=0, diffr=0;
         float Pt=pixelSegmentPt, Pz=pixelSegmentPz;
         float z0 = zPix[0],z1 = zPix[1];
-        float r0 = rPix[0],r1 = rPix[1];
+        float r0 = rtPix[0],r1 = rtPix[1];
 
 //        float phi = (dz-z0)*Bq/(2*pZ);
 //        float radius = pT/Bq;
@@ -543,8 +542,9 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
         diffz = dz-zs[i];
         diffr = dr-rts[i];
 
-        residual = moduleSubdet == SDL::Barrel ? diffz : diffr ;
- 
+//        residual = moduleSubdet == SDL::Barrel ? diffz : diffr ;
+        residual = moduleSubdet == SDL::Barrel ? (zs[i] - zPix[0]) - slope * (rts[i] - rtPix[0]) : (rts[i] - rtPix[0]) - (zs[i] - zPix[0])/slope; 
+
         //PS Modules
         if(moduleType == 0)
         {
