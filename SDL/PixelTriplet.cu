@@ -291,6 +291,8 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     float pixelSegmentPtError = segmentsInGPU.ptErr[pixelSegmentArrayIndex];
     float pixelSegmentEta = segmentsInGPU.eta[pixelSegmentArrayIndex];
     float pixelSegmentEtaError = segmentsInGPU.etaErr[pixelSegmentArrayIndex];
+    float pixelSegmentPz = segmentsInGPU.pzIn[pixelSegmentArrayIndex];
+    float pixelSegmentPzError = segmentsInGPU.pzErr[pixelSegmentArrayIndex];    
 //    if (fabs(pixelSegmentEta)>1.5 && fabs(pixelSegmentEta) < 1.8) printf("eta error: %f\n", pixelSegmentEtaError);
 //    printf("pt error: %f\n", pixelSegmentPtError);
 
@@ -329,7 +331,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
         float rtPix[2] = {mdsInGPU.anchorRt[pixelInnerMDIndex], mdsInGPU.anchorRt[pixelOuterMDIndex]};
         float zPix[2] = {mdsInGPU.anchorZ[pixelInnerMDIndex], mdsInGPU.anchorZ[pixelOuterMDIndex]};
 
-        rzChiSquared = computePT3RZChiSquared(modulesInGPU, lowerModuleIndices, rtPix, zPix, rts, zs);
+        rzChiSquared = computePT3RZChiSquared(modulesInGPU, lowerModuleIndices, rtPix, zPix, rts, zs, pixelSegmentPt, pixelSegmentPz);
         pass = pass and passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
         if(not pass) return pass;
     }
@@ -496,7 +498,7 @@ __device__ bool SDL::passPT3RZChiSquaredCuts(struct modules& modulesInGPU, uint1
     return true;
 }
 
-__device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint16_t* lowerModuleIndices, float* rtPix, float* zPix, float* rts, float* zs)
+__device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint16_t* lowerModuleIndices, float* rtPix, float* zPix, float* rts, float* zs, float pixelSegmentPt, float pixelSegmentPz)
 { 
     float slope = (zPix[1] - zPix[0])/(rtPix[1] - rtPix[0]);
     float residual = 0;
@@ -510,7 +512,38 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
         const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
         const int moduleSubdet = modulesInGPU.subdets[lowerModuleIndex];
 
-        residual = moduleSubdet == SDL::Barrel ? (zs[i] - zPix[0]) - slope * (rts[i] - rtPix[0]) : (rts[i] - rtPix[0]) - (zs[i] - zPix[0])/slope;
+        float diffz=0; diffr=0;
+        float Pt=pixelSegmentPt, Pz=pixelSegmentPz;
+        float z0 = zPix[0],z1 = zPix[1];
+        float r0 = rPix[0],r1 = rPix[1];
+
+//        float phi = (dz-z0)*Bq/(2*pZ);
+//        float radius = pT/Bq;
+//        dr = 2*radius*sin(phi/2)+r0*cos(phi/2); // expand to linear
+
+//        r1 - r0 = Pt/(2*Pz)*(z1-z0) - Pt/(2*Pz)*(z1-z0)^3/(96*Pz^2)*Bq2-r0*(z1-z0)^2/(32*Pz^2)*Bq2; //Bq2 = Bq^2
+//        Pt*Pz*(z1-z0)+(r0-r1)*2*Pz*Pz = (Pt*(z1-z0)*(z1-z0)*(z1-z0)/(96*Pz)+r0*(z1-z0)*(z1-z0)/16)*Bq2
+//        (Pt*Pz*(z1-z0)*96+(r0-r1)*192*Pz*Pz) = (Pt*(z1-z0)*(z1-z0)*(z1-z0)/Pz+r0*(z1-z0)*(z1-z0)*6)*Bq2
+
+        float Bq2 = (Pt*Pz*(z1-z0)*96+(r0-r1)*192*Pz*Pz)/(Pt*(z1-z0)*(z1-z0)*(z1-z0)/Pz+r0*(z1-z0)*(z1-z0)*6);
+
+//        diffz = (zs[i] - zPix[0]) - slope * (rts[i] - rtPix[0]);
+//        diffr = (rts[i] - rtPix[0]) - (zs[i] - zPix[0])/slope;
+        float dr = r0 + Pt/(2*Pz)*(zs[i]-z0) - Pt/(2*Pz)*(zs[i]-z0)*(zs[i]-z0)*(zs[i]-z0)/(96*Pz*Pz)*Bq2-r0*(zs[i]-z0)*(zs[i]-z0)/(32*Pz*Pz)*Bq2;
+
+//      remove 2 orders of approxi, for (zs[i]-z0)^3 term
+//        (Pt*Pz*(z1-z0)*96+(r0-r1)*192*Pz*Pz) = r0*(z1-z0)*(z1-z0)*6*Bq2
+//         ax^2+bx+c=0;
+//        (-b(+/-)sqrt(b^2-4ac))/(2a)  sqrt(1+x) = 1+x/2-x^2/8
+//        (-b+b*sqrt(1-4ac/b^2))/(2a)  sqrt(1+x) = 1+x/2-x^2/8
+//        (-b+b*(1-2ac/b^2-2*a*a*c*c/b^4))/(2a)
+        
+        float a = 6*Bq2*r0, b = -96*Pt*Pz, c = (r1-r0)*192*Pz*Pz;
+        float dz = -c/b - a*c*c/(b*b*b)+z0;
+        diffz = dz-zs[i];
+        diffr = dr-rts[i];
+
+        residual = moduleSubdet == SDL::Barrel ? diffz : diffr ;
  
         //PS Modules
         if(moduleType == 0)
@@ -820,7 +853,7 @@ __global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modu
 
         if(segmentsInGPU.isDup[i_pLS]) continue;
         if(segmentsInGPU.partOfPT5[i_pLS]) continue;//don't make pT3s for those pixels that are part of pT5
-        if(!segmentsInGPU.isQuad[i_pLS]) continue;
+//        if(!segmentsInGPU.isQuad[i_pLS]) continue;
 
         short layer2_adjustment;// = 2 - modulesInGPU.layers[tripletLowerModuleIndex];
         //if(layer2_adjustment < 0) continue;
