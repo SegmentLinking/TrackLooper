@@ -291,6 +291,8 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     float pixelSegmentPtError = segmentsInGPU.ptErr[pixelSegmentArrayIndex];
     float pixelSegmentEta = segmentsInGPU.eta[pixelSegmentArrayIndex];
     float pixelSegmentEtaError = segmentsInGPU.etaErr[pixelSegmentArrayIndex];
+    float pixelSegmentPx = segmentsInGPU.px[pixelSegmentArrayIndex];
+    float pixelSegmentPy = segmentsInGPU.py[pixelSegmentArrayIndex];
     float pixelSegmentPz = segmentsInGPU.pz[pixelSegmentArrayIndex];
 
     float pixelG = segmentsInGPU.circleCenterX[pixelSegmentArrayIndex];
@@ -331,11 +333,15 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
 //    if(runChiSquaredCuts)
     {
         float rts[3] = {mdsInGPU.anchorRt[firstMDIndex], mdsInGPU.anchorRt[secondMDIndex], mdsInGPU.anchorRt[thirdMDIndex]};
+        float xs[3] = {mdsInGPU.anchorX[firstMDIndex], mdsInGPU.anchorX[secondMDIndex], mdsInGPU.anchorX[thirdMDIndex]};
+        float ys[3] = {mdsInGPU.anchorY[firstMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorY[thirdMDIndex]};
         float zs[3] = {mdsInGPU.anchorZ[firstMDIndex], mdsInGPU.anchorZ[secondMDIndex], mdsInGPU.anchorZ[thirdMDIndex]};
         float rtPix[2] = {mdsInGPU.anchorRt[pixelInnerMDIndex], mdsInGPU.anchorRt[pixelOuterMDIndex]};
+        float xPix[2] = {mdsInGPU.anchorX[pixelInnerMDIndex], mdsInGPU.anchorX[pixelOuterMDIndex]};
+        float yPix[2] = {mdsInGPU.anchorY[pixelInnerMDIndex], mdsInGPU.anchorY[pixelOuterMDIndex]};
         float zPix[2] = {mdsInGPU.anchorZ[pixelInnerMDIndex], mdsInGPU.anchorZ[pixelOuterMDIndex]};
 
-        rzChiSquared = computePT3RZChiSquared(modulesInGPU, lowerModuleIndices, rtPix, zPix, rts, zs, pixelSegmentPt, pixelSegmentPz, pixelG, pixelF, pixelRadiusPCA);
+        rzChiSquared = computePT3RZChiSquared(modulesInGPU, lowerModuleIndices, rtPix, xPix, yPix, zPix, rts, xs, ys, zs, pixelSegmentPt, pixelSegmentPx, pixelSegmentPy, pixelSegmentPz, pixelG, pixelF, pixelRadiusPCA);
 //        pass = pass and passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
         if(not pass) return pass;
     }
@@ -499,7 +505,7 @@ __device__ bool SDL::passPT3RZChiSquaredCuts(struct modules& modulesInGPU, uint1
     return true;
 }
 
-__device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint16_t* lowerModuleIndices, float* rtPix, float* zPix, float* rts, float* zs, float pixelSegmentPt, float pixelSegmentPz, float pixelG, float pixelF, float pixelRadiusPCA)
+__device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint16_t* lowerModuleIndices, float* rtPix, float* xPix, float* yPix, float* zPix, float* rts, float* xs, float* ys, float* zs, float pixelSegmentPt, float pixelSegmentPx, float pixelSegmentPy, float pixelSegmentPz, float pixelG, float pixelF, float pixelRadiusPCA)
 { 
     float slope = (zPix[1] - zPix[0])/(rtPix[1] - rtPix[0]);
     float residual = 0;
@@ -507,14 +513,17 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
     //hardcoded array indices!!!
     float RMSE = 0;
 
-    float Pt=pixelSegmentPt, Pz=pixelSegmentPz;
+    float Pt=pixelSegmentPt, Px=pixelSegmentPx, Py=pixelSegmentPy, Pz=pixelSegmentPz;
     float CenterX=pixelG/100, CenterY=pixelF/100, CircleRadius=pixelRadiusPCA/100; // for calculating initial state corrections
+    float x0 = xPix[0]/100,x1 = xPix[1]/100;
+    float y0 = yPix[0]/100,y1 = yPix[1]/100;
     float z0 = zPix[0]/100,z1 = zPix[1]/100;
     float r0 = rtPix[0]/100,r1 = rtPix[1]/100;
 
     float B = 3.8112;
     float q = 1;
     float a = -0.299792*B*q;
+//    a = Pt/CircleRadius;
 
     // initial state corrections (if use dr1 and dr2)
 //    float edge = sqrt(CenterX*CenterX+CenterY*CenterY);
@@ -524,6 +533,8 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
 
     for(size_t i = 0; i < 3; i++)
     {
+        float xsi = xs[i]/100;
+        float ysi = ys[i]/100;
         float zsi = zs[i]/100;
         float rtsi = rts[i]/100;
         uint16_t lowerModuleIndex = lowerModuleIndices[i];
@@ -531,9 +542,34 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
         const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
         const int moduleSubdet = modulesInGPU.subdets[lowerModuleIndex];
 
-        float diffz=0, diffr=0;
-//        edge*edge+CircleRadius*CircleRadius-2*edge*CircleRadius*cos(2*half_phi+alpha)=rtsi*rtsi;
+        float p = sqrt(Px*Px+Py*Py+Pz*Pz);
+        float rou = a/p;
+        float s = (zsi-z1)*p/Pz;
+        float x = x1 + Px/a*sin(rou*s)-Py/a*(1-cos(rou*s));
+        float y = y1 + Py/a*sin(rou*s)+Px/a*(1-cos(rou*s));
+//        float z = z1+Pz/p*s;
+        float diffr1 = fabs(rtsi-sqrt(x*x+y*y))*100;
 
+        float A=-((xsi-x1)*(xsi-x1)+(ysi-y1)*(ysi-y1)-2*(Py/a)*(Py/a)-2*(Px/a)*(Px/a))/2*a*a;
+//        float A=(xsi-x1)*(xsi-x1)+(ysi-y1)*(ysi-y1)-2*(Py/a)*(Py/a)-2*(Px/a)*(Px/a);
+        float dz = acos(A/(Px*Px+Py*Py))/rou*Pz/p+z1;
+        float diffz1 = fabs(dz-zsi)*100;
+
+        a = -a;
+        rou = a/p;
+        s = (zsi-z1)*p/Pz;
+        x = x1 + Px/a*sin(rou*s)-Py/a*(1-cos(rou*s));
+        y = y1 + Py/a*sin(rou*s)+Px/a*(1-cos(rou*s));
+        float diffr2 = fabs(rtsi-sqrt(x*x+y*y))*100;
+        float diffr = min(diffr1, diffr2);
+
+        A=-((xsi-x1)*(xsi-x1)+(ysi-y1)*(ysi-y1)-2*(Py/a)*(Py/a)-2*(Px/a)*(Px/a))/2*a*a;
+        dz = acos(A/(Px*Px+Py*Py))/rou*Pz/p+z1;
+        float diffz2 = fabs(dz-zsi)*100;
+        float diffz = min(diffz1, diffz2);
+       
+/*
+//        edge*edge+CircleRadius*CircleRadius-2*edge*CircleRadius*cos(2*half_phi+alpha)=rtsi*rtsi;
 
         float dr0 = 2*Pt/a*sin(a*zsi/2/Pz);
 //        float dr1 = sqrt(edge*edge+CircleRadius*CircleRadius-2*edge*CircleRadius*cos(2*half_phi+alpha)); //dr1 and dr2 are also useful, for further study of initial points correction
@@ -543,12 +579,14 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
         float rtsi_deduc = rtsi-r1*cos(half_phi);
         float dz = asin(rtsi_deduc*a/(2*Pt))*2*Pz/a+z1;
 
+        dr0 = 2*CircleRadius*sqrt(sin(half_phi)*sin(half_phi)+r0/2/CircleRadius*sin(2*half_phi)+r0*r0/4/CircleRadius/CircleRadius);
+
         float diffz1 = fabs(dz-zsi);
         float diffz2 = fabs(-dz-zsi);
         diffr = fabs(dr0-rtsi)*100;
         diffz = min(diffz1, diffz2)*100;
 //        printf("%f, %f, %f, %f, %f, %f, %f, %f, %f, %f \n", dr, dr0, dr1, dr2, rtsi, r1, zsi, z1, Pt, Pz);
-
+*/
         residual = moduleSubdet == SDL::Barrel ? diffz : diffr ;
 
         //PS Modules
