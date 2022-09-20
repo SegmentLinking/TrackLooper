@@ -342,7 +342,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
         float zPix[2] = {mdsInGPU.anchorZ[pixelInnerMDIndex], mdsInGPU.anchorZ[pixelOuterMDIndex]};
 
         rzChiSquared = computePT3RZChiSquared(modulesInGPU, lowerModuleIndices, rtPix, xPix, yPix, zPix, rts, xs, ys, zs, pixelSegmentPt, pixelSegmentPx, pixelSegmentPy, pixelSegmentPz, pixelG, pixelF, pixelRadiusPCA);
-//        pass = pass and passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
+        pass = pass and passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
         if(not pass) return pass;
     }
 //    printf("%f ",rzChiSquared);
@@ -352,7 +352,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     if(runChiSquaredCuts and pixelSegmentPt < 5.0f)
 //    if(runChiSquaredCuts)
     {
-//        pass = pass and passPT3RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquared);
+        pass = pass and passPT3RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquared);
         if(not pass) return pass;
     }
 
@@ -363,7 +363,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     if(runChiSquaredCuts and pixelSegmentPt < 5.0f)
 //    if(runChiSquaredCuts)
     {
-//        pass = pass and passPT3RPhiChiSquaredInwardsCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquaredInwards);
+        pass = pass and passPT3RPhiChiSquaredInwardsCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquaredInwards);
         if(not pass) return pass;
     }
 //    printf("%f ",rzChiSquared);
@@ -449,56 +449,68 @@ __device__ bool SDL::passPT3RZChiSquaredCuts(struct modules& modulesInGPU, uint1
 
     if(layer1 == 8 and layer2 == 9 and layer3 == 10)
     {
-        return rzChiSquared < 85.2499f;
+//        return rzChiSquared < 85.2499f;
+        return rzChiSquared < 13.7527f;
     }
     else if(layer1 == 8 and layer2 == 9 and layer3 == 15)
     {
-        return rzChiSquared < 85.2499f;
+//        return rzChiSquared < 85.2499f;
+        return rzChiSquared < 15.2033f;
     }
 
     else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
-        return rzChiSquared < 74.19805f;
+//        return rzChiSquared < 74.19805f;
+        return rzChiSquared < 15.1785f;
     }
     else if(layer1 == 7 and layer2 == 8 and layer3 == 14)
     {
-        return rzChiSquared < 97.9479f;
+//        return rzChiSquared < 97.9479f;
+        return rzChiSquared < 17.3333f;
     }
 
     else if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-        return rzChiSquared < 451.1407f;
+//        return rzChiSquared < 451.1407f;
+        return rzChiSquared < 9.6535f;
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
-        return rzChiSquared < 595.546f;
+//        return rzChiSquared < 595.546f;
+        return rzChiSquared < 27.7156f; 
     }
 
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
-        return rzChiSquared < 518.339f;
+//        return rzChiSquared < 518.339f;
+        return rzChiSquared < 7.9731f;
     }
 
     else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
-        return rzChiSquared < 684.253f;
+//        return rzChiSquared < 684.253f;
+        return rzChiSquared < 44.0833f;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 12)
     {
-        return rzChiSquared < 684.253f;
+//        return rzChiSquared < 684.253f;
+        return rzChiSquared < 34.37f;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
-        return rzChiSquared  < 392.654f;
+//        return rzChiSquared  < 392.654f;
+        return rzChiSquared  < 29.7f;
     }
 
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
-        return rzChiSquared < 518.339f;
+//        return rzChiSquared < 518.339f;
+        return rzChiSquared < 38.7867f;
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 13)
     {
-        return rzChiSquared < 518.339f;
+//        return rzChiSquared < 518.339f;
+        return rzChiSquared < 28.97f;
     }
 
     //default - category not found!
