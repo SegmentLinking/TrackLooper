@@ -88,6 +88,8 @@ int main(int argc, char** argv)
         ana.input_file_list_tstring = "/data2/segmentlinking/CMSSW_12_2_0_pre2/trackingNtuple_6pion_1k_pt_0p5_50.root";
     else if (ana.input_raw_string.EqualTo("PU200"))
         ana.input_file_list_tstring = "/data2/segmentlinking/CMSSW_12_2_0_pre2/trackingNtuple_ttbar_PU200.root";
+    else if (ana.input_raw_string.EqualTo("PU200RelVal"))
+        ana.input_file_list_tstring = "/data2/segmentlinking/CMSSW_12_5_0_pre3/RelValTTbar_14TeV_CMSSW_12_5_0_pre3/";
     else if (ana.input_raw_string.EqualTo("cube"))
         ana.input_file_list_tstring = "/data2/segmentlinking/CMSSW_12_2_0_pre2/trackingNtuple_10mu_pt_0p5_50_5cm_cube.root";
     else if (ana.input_raw_string.EqualTo("cube50cm"))
