@@ -36,5 +36,6 @@ void run_sdl();
 void run_sdl_CMSSW();
 // Write metadata
 void writeMetaData();
+void pre_running();
 
 #endif
