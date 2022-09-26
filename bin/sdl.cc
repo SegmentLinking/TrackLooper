@@ -292,19 +292,26 @@ int main(int argc, char** argv)
     // Write metadata related to this run
     writeMetaData();
 
+    // Load various maps used in the SDL reconstruction
+    loadMaps();
+
     // Run the code
+#ifdef PORTTOCMSSW
+    run_sdl_CMSSW();
+#else
     run_sdl();
+#endif
 
     return 0;
 }
 
 //________________________________________________________________________________________________________________________________
-void run_sdl()
+void run_sdl_CMSSW()
 {
 
-    // Load various maps used in the SDL reconstruction
-    loadMaps();
-
+}
+void run_sdl()
+{
     if (not ana.do_run_cpu){
         //    cudaSetDevice(0);
         TString path;

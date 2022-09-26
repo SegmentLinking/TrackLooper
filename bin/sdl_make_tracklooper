@@ -35,13 +35,14 @@ usage()
 while getopts ":cxgsmdp823eh" OPTION; do
   case $OPTION in
     c) MAKECACHE=true;;
-    s) SHOWLOG=true;;
     m) MAKECLEANBINARIES=true;;
+    s) SHOWLOG=true;;
     d) MAKECUTVALUES=true;;
     p) PRIMITIVE=true;;
     8) PT0P8=true;;
     2) CMSSW12GEOM=true;;
     3) T3T3EXTENSION=true;;
+    w) PORTTOCMSSW=true;;
     h) usage;;
     :) usage;;
   esac
@@ -56,6 +57,7 @@ if [ -z ${PRIMITIVE} ]; then PRIMITIVE=false; fi
 if [ -z ${PT0P8} ]; then PT0P8=false; fi
 if [ -z ${CMSSW12GEOM} ]; then CMSSW12GEOM=false; fi
 if [ -z ${T3T3EXTENSION} ]; then T3T3EXTENSION=false; fi
+if [ -z ${PORTTOCMSSW} ]; then PORTTOCMSSW=false; fi
 
 # Shift away the parsed options
 shift $(($OPTIND - 1))
@@ -81,6 +83,7 @@ echo "  PRIMITIVE         : ${PRIMITIVE}"                     | tee -a ${LOG}
 echo "  PT0P8             : ${PT0P8}"                         | tee -a ${LOG}
 echo "  CMSSW12GEOM       : ${CMSSW12GEOM}"                   | tee -a ${LOG}
 echo "  T3T3EXTENSION     : ${T3T3EXTENSION}"                 | tee -a ${LOG}
+echo "  PORTTOCMSSW       : ${PORTTOCMSSW}"                   | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
 echo "  (cf. Run > sh $(basename $0) -h to see all options)"  | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
@@ -120,14 +123,20 @@ PT0P8OPT=
 if $PT0P8; then
     PT0P8OPT="PT0P8=-DPT0P8"
 fi
+
 CMSSW12GEOMOPT=
 if $CMSSW12GEOM; then
     CMSSW12GEOMOPT="CMSSW12GEOM=-DCMSSW12GEOM"
 fi
+
 T3T3EXTENSIONOPT=
 if $T3T3EXTENSION; then
     T3T3EXTENSIONOPT="T3T3EXTENSION=-DT3T3_EXTENSIONS"
+fi
 
+PORTTOCMSSWOPT=
+if $PORTTOCMSSW; then
+    PORTTOCMSSWOPT="PORTTOCMSSW=-DPORTTOCMSSW"
 fi
 ###
 ###
@@ -141,9 +150,9 @@ echo "--------------------------------------------------------------------------
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 if $SHOWLOG; then
-    (cd SDL && make clean && make ${CMSSW12GEOMOPT} ${PT0P8OPT} ${T3T3EXTENSIONOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
+    (cd SDL && make clean && make ${CMSSW12GEOMOPT} ${PT0P8OPT} ${T3T3EXTENSIONOPT} ${PORTTOCMSSWOPTOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
 else
-    (cd SDL && make clean && make ${CMSSW12GEOMOPT} ${PT0P8OPT} ${T3T3EXTENSIONOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
+    (cd SDL && make clean && make ${CMSSW12GEOMOPT} ${PT0P8OPT} ${T3T3EXTENSIONOPT} ${PORTTOCMSSWOPTOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
 fi
 
 if [ ! -f SDL/sdl.so ]; then

@@ -18,7 +18,6 @@
 #include "SDL/Module.cuh" // SDL::Module
 #include "SDL/EndcapGeometry.cuh" // SDL::EndcapGeometr
 #include "SDL/ModuleConnectionMap.h" // SDL::ModuleConnectionMap
-#include "SDL/Event.cuh"
 //#include "SDL/MathUtil.h"
 
 // Efficiency study modules
@@ -34,6 +33,7 @@
 
 // Main code
 void run_sdl();
+void run_sdl_CMSSW();
 // Write metadata
 void writeMetaData();
 
