@@ -449,68 +449,82 @@ __device__ bool SDL::passPT3RZChiSquaredCuts(struct modules& modulesInGPU, uint1
 
     if(layer1 == 8 and layer2 == 9 and layer3 == 10)
     {
-//        return rzChiSquared < 85.2499f;
-        return rzChiSquared < 13.7527f;
+//        return rzChiSquared < 85.2499f; //Balaji's linear
+//        return rzChiSquared < 13.7527f; // using xy in barrel
+        return rzChiSquared < 14.0f;
     }
     else if(layer1 == 8 and layer2 == 9 and layer3 == 15)
     {
-//        return rzChiSquared < 85.2499f;
-        return rzChiSquared < 15.2033f;
+//        return rzChiSquared < 85.2499f; //Balaji's linear
+//        return rzChiSquared < 15.2033f; // using xy in barrel
+        return rzChiSquared < 15.2f;
     }
 
     else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
-//        return rzChiSquared < 74.19805f;
-        return rzChiSquared < 15.1785f;
+//        return rzChiSquared < 74.19805f; //Balaji's linear
+//        return rzChiSquared < 15.1785f; // using xy in barrel
+        return rzChiSquared < 14.6117f;
     }
     else if(layer1 == 7 and layer2 == 8 and layer3 == 14)
     {
-//        return rzChiSquared < 97.9479f;
-        return rzChiSquared < 17.3333f;
+//        return rzChiSquared < 97.9479f; //Balaji's linear
+//        return rzChiSquared < 17.3333f; // using xy in barrel
+        return rzChiSquared < 16.9833f;        
     }
 
     else if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-//        return rzChiSquared < 451.1407f;
-        return rzChiSquared < 9.6535f;
+//        return rzChiSquared < 451.1407f; //Balaji's linear
+//        return rzChiSquared < 9.6535f; // using xy in barrel
+        return rzChiSquared < 9.0672f;
+        
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
-//        return rzChiSquared < 595.546f;
-        return rzChiSquared < 27.7156f; 
+//        return rzChiSquared < 595.546f; //Balaji's linear
+//        return rzChiSquared < 27.7156f;  // using xy in barrel
+        return rzChiSquared < 27.076f;
+        
     }
 
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
-//        return rzChiSquared < 518.339f;
-        return rzChiSquared < 7.9731f;
+//        return rzChiSquared < 518.339f; //Balaji's linear
+//        return rzChiSquared < 7.9731f; // using xy in barrel
+        return rzChiSquared < 7.441f;
     }
 
     else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
-//        return rzChiSquared < 684.253f;
-        return rzChiSquared < 44.0833f;
+//        return rzChiSquared < 684.253f; //Balaji's linear
+//        return rzChiSquared < 44.0833f; // using xy in barrel
+        return rzChiSquared < 40.54f;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 12)
     {
-//        return rzChiSquared < 684.253f;
-        return rzChiSquared < 34.37f;
+//        return rzChiSquared < 684.253f; //Balaji's linear
+//        return rzChiSquared < 34.37f; // using xy in barrel
+        return rzChiSquared < 35.36f;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
-//        return rzChiSquared  < 392.654f;
-        return rzChiSquared  < 29.7f;
+//        return rzChiSquared  < 392.654f; //Balaji's linear
+//        return rzChiSquared  < 29.7f; // using xy in barrel
+        return rzChiSquared  < 32.38f;
     }
 
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
-//        return rzChiSquared < 518.339f;
-        return rzChiSquared < 38.7867f;
+//        return rzChiSquared < 518.339f; //Balaji's linear
+//        return rzChiSquared < 38.7867f; // using xy in barrel
+        return rzChiSquared < 44.24f;
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 13)
     {
-//        return rzChiSquared < 518.339f;
-        return rzChiSquared < 28.97f;
+//        return rzChiSquared < 518.339f; //Balaji's linear
+//        return rzChiSquared < 28.97f; // using xy in barrel
+        return rzChiSquared < 27.88f; 
     }
 
     //default - category not found!
@@ -554,52 +568,57 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
         const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
         const int moduleSubdet = modulesInGPU.subdets[lowerModuleIndex];
 
+        float diffr[2],diffz[2];
         float p = sqrt(Px*Px+Py*Py+Pz*Pz);
-        float rou = a/p;
-        float s = (zsi-z1)*p/Pz;
-        float x = x1 + Px/a*sin(rou*s)-Py/a*(1-cos(rou*s));
-        float y = y1 + Py/a*sin(rou*s)+Px/a*(1-cos(rou*s));
-//        float z = z1+Pz/p*s;
-        float diffr1 = fabs(rtsi-sqrt(x*x+y*y))*100;
-
-        float A=-((xsi-x1)*(xsi-x1)+(ysi-y1)*(ysi-y1)-2*(Py/a)*(Py/a)-2*(Px/a)*(Px/a))/2*a*a;
-//        float A=(xsi-x1)*(xsi-x1)+(ysi-y1)*(ysi-y1)-2*(Py/a)*(Py/a)-2*(Px/a)*(Px/a);
-        float dz = acos(A/(Px*Px+Py*Py))/rou*Pz/p+z1;
-        float diffz1 = fabs(dz-zsi)*100;
-
+        for (int iq=0; iq<2; iq++){ // unknown charge
+            if(iq==1) a=-a;
+            float rou = a/p;
+            if (moduleSubdet == SDL::Endcap){
+                float s = (zsi-z1)*p/Pz;
+                float x = x1 + Px/a*sin(rou*s)-Py/a*(1-cos(rou*s));
+                float y = y1 + Py/a*sin(rou*s)+Px/a*(1-cos(rou*s));
+//              float z = z1+Pz/p*s;
+                diffr[iq] = fabs(rtsi-sqrt(x*x+y*y))*100;
+            }
+/*
+            float A=-((xsi-x1)*(xsi-x1)+(ysi-y1)*(ysi-y1)-2*(Py/a)*(Py/a)-2*(Px/a)*(Px/a))/2*a*a;
+            float dz = acos(A/(Px*Px+Py*Py))/rou*Pz/p+z1;
+            diffz[iq] = fabs(dz-zsi)*100;
+*/
+            if (moduleSubdet == SDL::Barrel){
+                float paraA = r1*r1 + 2*(Px*Px+Py*Py)/(a*a) + 2*(y1*Px-x1*Py)/a - rtsi*rtsi;
+                float paraB = 2*(x1*Px+y1*Py)/a;
+                float paraC = 2*(y1*Px-x1*Py)/a+2*(Px*Px+Py*Py)/(a*a);
+                //termA+paraB*sin(\rho s)  = paraC*sqrt(1-sin(\rho s)*sin(\rho s))
+                float A=paraB*paraB+paraC*paraC;
+                float B=2*paraA*paraB;
+                float C=paraA*paraA-paraC*paraC;
+                //A*sin(\rho s)*sin(\rho s)+B*sin(\rho s)+C=0;
+                float sol1 = (-B+sqrt(B*B-4*A*C))/(2*A);
+                float sol2 = (-B-sqrt(B*B-4*A*C))/(2*A);
+                float solz1 = asin(sol1)/rou*Pz/p+z1;
+                float solz2 = asin(sol2)/rou*Pz/p+z1;
+                float diffz1 = fabs(solz1-zsi)*100;
+                float diffz2 = fabs(solz2-zsi)*100;
+                diffz[iq] = min(diffz1,diffz2);
+            }
+        }
+/*
         a = -a;
         rou = a/p;
         s = (zsi-z1)*p/Pz;
         x = x1 + Px/a*sin(rou*s)-Py/a*(1-cos(rou*s));
         y = y1 + Py/a*sin(rou*s)+Px/a*(1-cos(rou*s));
         float diffr2 = fabs(rtsi-sqrt(x*x+y*y))*100;
-        float diffr = min(diffr1, diffr2);
 
         A=-((xsi-x1)*(xsi-x1)+(ysi-y1)*(ysi-y1)-2*(Py/a)*(Py/a)-2*(Px/a)*(Px/a))/2*a*a;
         dz = acos(A/(Px*Px+Py*Py))/rou*Pz/p+z1;
         float diffz2 = fabs(dz-zsi)*100;
-        float diffz = min(diffz1, diffz2);
-       
-/*
-//        edge*edge+CircleRadius*CircleRadius-2*edge*CircleRadius*cos(2*half_phi+alpha)=rtsi*rtsi;
-
-        float dr0 = 2*Pt/a*sin(a*zsi/2/Pz);
-//        float dr1 = sqrt(edge*edge+CircleRadius*CircleRadius-2*edge*CircleRadius*cos(2*half_phi+alpha)); //dr1 and dr2 are also useful, for further study of initial points correction
-//        float dr2 = sqrt(edge*edge+CircleRadius*CircleRadius-2*edge*CircleRadius*cos(2*half_phi-alpha));
-
-        float half_phi = a*(zsi-z1)/(2*Pz);
-        float rtsi_deduc = rtsi-r1*cos(half_phi);
-        float dz = asin(rtsi_deduc*a/(2*Pt))*2*Pz/a+z1;
-
-        dr0 = 2*CircleRadius*sqrt(sin(half_phi)*sin(half_phi)+r0/2/CircleRadius*sin(2*half_phi)+r0*r0/4/CircleRadius/CircleRadius);
-
-        float diffz1 = fabs(dz-zsi);
-        float diffz2 = fabs(-dz-zsi);
-        diffr = fabs(dr0-rtsi)*100;
-        diffz = min(diffz1, diffz2)*100;
-//        printf("%f, %f, %f, %f, %f, %f, %f, %f, %f, %f \n", dr, dr0, dr1, dr2, rtsi, r1, zsi, z1, Pt, Pz);
 */
-        residual = moduleSubdet == SDL::Barrel ? diffz : diffr ;
+        float diffr_f = min(diffr[0], diffr[1]);
+        float diffz_f = min(diffz[0], diffz[1]);
+
+        residual = moduleSubdet == SDL::Barrel ? diffz_f : diffr_f ;
 
         //PS Modules
         if(moduleType == 0)
