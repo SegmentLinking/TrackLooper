@@ -296,11 +296,7 @@ int main(int argc, char** argv)
     pre_running();
 
     // Run the code
-#ifdef PORTTOCMSSW
-    run_sdl_CMSSW();
-#else
     run_sdl();
-#endif
 
     return 0;
 }
@@ -328,159 +324,16 @@ void pre_running()
     }
 }
 
-void run_sdl_CMSSW()
-{
-    // take inputs from CMSSW
-    std::vector<std::vector<float>> in_trkX;
-    std::vector<std::vector<float>> in_trkY;
-    std::vector<std::vector<float>> in_trkZ;
-    std::vector<std::vector<unsigned int>>    in_hitId;
-    std::vector<std::vector<unsigned int>>    in_hitIdxs;
-    std::vector<std::vector<unsigned int>>    in_hitIndices_vec0;
-    std::vector<std::vector<unsigned int>>    in_hitIndices_vec1;
-    std::vector<std::vector<unsigned int>>    in_hitIndices_vec2;
-    std::vector<std::vector<unsigned int>>    in_hitIndices_vec3;
-    std::vector<std::vector<float>>    in_deltaPhi_vec;
-    std::vector<std::vector<float>>    in_ptIn_vec;
-    std::vector<std::vector<float>>    in_ptErr_vec;
-    std::vector<std::vector<float>>    in_px_vec;
-    std::vector<std::vector<float>>    in_py_vec;
-    std::vector<std::vector<float>>    in_pz_vec;
-    std::vector<std::vector<float>>    in_eta_vec;
-    std::vector<std::vector<float>>    in_etaErr_vec;
-    std::vector<std::vector<float>>    in_phi_vec;
-    std::vector<std::vector<float>>    in_charge_vec;
-    std::vector<std::vector<int>>      in_superbin_vec;
-    std::vector<std::vector<int8_t>>   in_pixelType_vec;
-    std::vector<std::vector<short>>    in_isQuad_vec;
-    std::vector<int>    evt_num;
-
-    // Looping input file
-    while (ana.looper.nextEvent())
-    {
-        if (ana.looper.getCurrentEventIndex() ==49) {continue;}
-        std::cout << "PreLoading event number = " << ana.looper.getCurrentEventIndex() << std::endl;
-
-        if (not goodEvent())
-            continue;
-        if (not ana.do_run_cpu)
-        {
-            addInputsToLineSegmentTrackingPreLoad(
-            in_trkX, in_trkY,in_trkZ,
-            in_hitId,
-            in_hitIdxs,
-            in_hitIndices_vec0,
-            in_hitIndices_vec1,
-            in_hitIndices_vec2,
-            in_hitIndices_vec3,
-            in_deltaPhi_vec,
-            in_ptIn_vec,
-            in_ptErr_vec,
-            in_px_vec,
-            in_py_vec,
-            in_pz_vec,
-            in_eta_vec,
-            in_etaErr_vec,
-            in_phi_vec,
-            in_charge_vec,
-            in_superbin_vec,
-            in_pixelType_vec,
-            in_isQuad_vec
-            );
-        }
-        evt_num.push_back(ana.looper.getCurrentEventIndex());
-    }
-
-    cudaStream_t streams[ana.streams];
-    std::vector<SDL::Event*> events;
-    for( int s =0; s<ana.streams; s++){
-    cudaStreamCreateWithFlags(&streams[s],cudaStreamNonBlocking);
-    SDL::Event* event = new SDL::Event(streams[s]);;//(streams[omp_get_thread_num()]);
-    events.push_back(event);
-    }
-
-    #pragma omp parallel num_threads(ana.streams)// private(event)
-    {
-
-    //will remove timing for CMSSW version later
-float timing_input_loading; 
-// Run Mini-doub
-float timing_MD;
-// Run Segment
-float timing_LS ;
-// Run T3
-float timing_T3 ;
-// Run T5
-float timing_T5 ;
-// clean pLS
-float timing_pLS;
-//Run pT5
-float timing_pT5;
-//Run pT3
-float timing_pT3;
-// Run TC
-float timing_TC ;
-//Run Track Extensions
-float timing_TCE;
-    #pragma omp for //nowait// private(event)
-    for(int evt=0; evt < static_cast<int>(in_trkX.size()); evt++)
-    {
-            std::cout << "Running Event number = " << evt << " " << omp_get_thread_num() << std::endl;
-            //Load Hits
-            timing_input_loading = addInputsToEventPreLoad(events.at(omp_get_thread_num()),false,
-                in_trkX.at(evt), in_trkY.at(evt),in_trkZ.at(evt),
-                in_hitId.at(evt),
-                in_hitIdxs.at(evt),
-                in_hitIndices_vec0.at(evt),
-                in_hitIndices_vec1.at(evt),
-                in_hitIndices_vec2.at(evt),
-                in_hitIndices_vec3.at(evt),
-                in_deltaPhi_vec.at(evt),
-                in_ptIn_vec.at(evt),
-                in_ptErr_vec.at(evt),
-                in_px_vec.at(evt),
-                in_py_vec.at(evt),
-                in_pz_vec.at(evt),
-                in_eta_vec.at(evt),
-                in_etaErr_vec.at(evt),
-                in_phi_vec.at(evt),
-                in_charge_vec.at(evt),
-                in_superbin_vec.at(evt),
-                in_pixelType_vec.at(evt),
-                in_isQuad_vec.at(evt));
-            // Run Mini-doublet
-            timing_MD = runMiniDoublet(events.at(omp_get_thread_num()),evt);
-            // Run Segment
-            timing_LS = runSegment(events.at(omp_get_thread_num()));
-            // Run T3
-            timing_T3 = runT3(events.at(omp_get_thread_num()));
-            // Run T5
-            timing_T5 = runQuintuplet(events.at(omp_get_thread_num()));
-            // clean pLS
-            timing_pLS = runPixelLineSegment(events.at(omp_get_thread_num()));
-            //Run pT5
-            timing_pT5 = runPixelQuintuplet(events.at(omp_get_thread_num()));
-            //Run pT3
-            timing_pT3 = runpT3(events.at(omp_get_thread_num()));
-            // Run TC
-            timing_TC = runTrackCandidate(events.at(omp_get_thread_num()));
-            timing_TCE = runTrackExtensions(events.at(omp_get_thread_num()));
-
-            verbose_and_write(events.at(omp_get_thread_num()), evt_num.at(evt));
-
-            //Clear this event
-            events.at(omp_get_thread_num())->resetEvent();
-    }
-    }
-
-    do_delete(events, streams);
-
-}
+/*#ifdef PORTTOCMSSW
+void run_sdl(**** event)
+#else
+void run_sdl()
+#endif
+*/
 void run_sdl()
 {
 #ifndef PORTTOCMSSW
     createOutputBranches();
-#endif
     // Timing average information
     std::vector<std::vector<float>> out_trkX;
     std::vector<std::vector<float>> out_trkY;
@@ -552,22 +405,20 @@ void run_sdl()
         evt_num.push_back(ana.looper.getCurrentEventIndex());
     }
 
-
-    cudaStream_t streams[ana.streams];
-    std::vector<SDL::Event*> events;
-    for( int s =0; s<ana.streams; s++){
-    
-    cudaStreamCreateWithFlags(&streams[s],cudaStreamNonBlocking);
-    SDL::Event* event = new SDL::Event(streams[s]);;//(streams[omp_get_thread_num()]);
-    events.push_back(event);
-    }
-    //events.push_back(event1);
-    //events.push_back(event2);
-    //events.push_back(event3);
     std::vector<std::vector<float>> timevec;
     TStopwatch full_timer;
     full_timer.Start(); 
     float full_elapsed = 0;
+#endif
+
+    cudaStream_t streams[ana.streams];
+    std::vector<SDL::Event*> events;
+    for( int s =0; s<ana.streams; s++){
+    cudaStreamCreateWithFlags(&streams[s],cudaStreamNonBlocking);
+    SDL::Event* event = new SDL::Event(streams[s]);;//(streams[omp_get_thread_num()]);
+    events.push_back(event);
+    }
+
     #pragma omp parallel num_threads(ana.streams)// private(event)
     {
     std::vector<std::vector<float>> timing_information;
@@ -633,33 +484,28 @@ float timing_TCE;
             // Run TC
             timing_TC = runTrackCandidate(events.at(omp_get_thread_num()));
             timing_TCE = runTrackExtensions(events.at(omp_get_thread_num()));
-            timing_information.push_back({ timing_input_loading,
-                    timing_MD,
-                    timing_LS,
-                    timing_T3,
-                    timing_T5,
-                    timing_pLS,
-                    timing_pT5,
-                    timing_pT3,
-                    timing_TC,
-                    timing_TCE
-                    });
-
+#ifndef PORTTOCMSSW
+            timing_information.push_back({ timing_input_loading, timing_MD, timing_LS, timing_T3, timing_T5, timing_pLS, timing_pT5, timing_pT3, timing_TC, timing_TCE});
             verbose_and_write(events.at(omp_get_thread_num()), evt_num.at(evt));
-
+#endif
             //Clear this event
             events.at(omp_get_thread_num())->resetEvent();
     }
+#ifndef PORTTOCMSSW
     full_elapsed = full_timer.RealTime()*1000.f; //for loop has implicit barrier I think. So this stops onces all cpu threads have finished but before the next critical section. 
     #pragma omp critical
       timevec.insert(timevec.end(), timing_information.begin(), timing_information.end());
+#endif
+
     }
+
+#ifndef PORTTOCMSSW    
     float avg_elapsed  = full_elapsed/out_trkX.size(); 
     printTimingInformation(timevec,full_elapsed,avg_elapsed);
 
     // if not running CMSSW, do output
     do_output();
-
+#endif
     // delete streams and clean modules
     do_delete(events, streams);
 }
@@ -682,7 +528,6 @@ void verbose_and_write(SDL::Event* get_event, int evtnum){
         }
     }
 
-#ifndef PORTTOCMSSW
     if (ana.do_write_ntuple)
     {
         #pragma omp critical
@@ -695,7 +540,6 @@ void verbose_and_write(SDL::Event* get_event, int evtnum){
             }
         }
     }
-#endif
 
 }
 
