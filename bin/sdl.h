@@ -1,6 +1,7 @@
 #ifndef sdl_h
 #define sdl_h
 
+
 #include <vector>
 #include <map>
 #include <tuple>
@@ -36,6 +37,11 @@ void run_sdl();
 void run_sdl_CMSSW();
 // Write metadata
 void writeMetaData();
+
+//running functions declare
 void pre_running();
+void verbose_and_write(SDL::Event* events, int evtnum);
+void do_output();
+void do_delete(std::vector<SDL::Event*> events, cudaStream_t* streams);
 
 #endif

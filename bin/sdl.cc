@@ -292,10 +292,7 @@ int main(int argc, char** argv)
     // Write metadata related to this run
     writeMetaData();
 
-    // Load various maps used in the SDL reconstruction
-    loadMaps();
-
-    // before running the sdl code
+    // before running the sdl code, preloading maps and init modules
     pre_running();
 
     // Run the code
@@ -311,6 +308,9 @@ int main(int argc, char** argv)
 //________________________________________________________________________________________________________________________________
 void pre_running()
 {
+    // Load various maps used in the SDL reconstruction
+    loadMaps();
+
     //init modules
     if (not ana.do_run_cpu){
         TString path;
@@ -365,13 +365,6 @@ void run_sdl_CMSSW()
             continue;
         if (not ana.do_run_cpu)
         {
-            //*******************************************************
-            // GPU VERSION RUN
-            //*******************************************************
-
-            // Main instance that will hold modules, hits, minidoublets, etc. (i.e. main data structure)
-
-            // Add hits to the event
             addInputsToLineSegmentTrackingPreLoad(
             in_trkX, in_trkY,in_trkZ,
             in_hitId,
@@ -473,73 +466,46 @@ float timing_TCE;
             timing_TC = runTrackCandidate(events.at(omp_get_thread_num()));
             timing_TCE = runTrackExtensions(events.at(omp_get_thread_num()));
 
-            if (ana.verbose == 4)
-            {
-              #pragma omp critical
-              {
-                printAllObjects(events.at(omp_get_thread_num()));
-              }
-            }
-
-            if (ana.verbose == 5)
-            {
-              #pragma omp critical
-              {
-                debugPrintOutlierMultiplicities(events.at(omp_get_thread_num()));
-              }
-            }
+            verbose_and_write(events.at(omp_get_thread_num()), evt_num.at(evt));
 
             //Clear this event
             events.at(omp_get_thread_num())->resetEvent();
     }
     }
 
-    if (not ana.do_run_cpu){
-        SDL::cleanModules();
-    }
-    // Writing ttree output to file
-    ana.output_tfile->cd();
-    if (not ana.do_cut_value_ntuple) 
-    {
-        ana.cutflow.saveOutput();
-    }
-
-    ana.output_ttree->Write();
-    for(int s =0; s < ana.streams;s++){
-         delete events.at(s);
-        cudaStreamDestroy(streams[s]);
-    }
-    delete ana.output_tfile;
+    do_delete(events, streams);
 
 }
 void run_sdl()
 {
+#ifndef PORTTOCMSSW
     createOutputBranches();
+#endif
     // Timing average information
-                std::vector<std::vector<float>> out_trkX;
-                std::vector<std::vector<float>> out_trkY;
-                std::vector<std::vector<float>> out_trkZ;
-                std::vector<std::vector<unsigned int>>    out_hitId;
-                std::vector<std::vector<unsigned int>>    out_hitIdxs;
-                std::vector<std::vector<unsigned int>>    out_hitIndices_vec0;
-                std::vector<std::vector<unsigned int>>    out_hitIndices_vec1;
-                std::vector<std::vector<unsigned int>>    out_hitIndices_vec2;
-                std::vector<std::vector<unsigned int>>    out_hitIndices_vec3;
-                std::vector<std::vector<float>>    out_deltaPhi_vec;
-                std::vector<std::vector<float>>    out_ptIn_vec;
-                std::vector<std::vector<float>>    out_ptErr_vec;
-                std::vector<std::vector<float>>    out_px_vec;
-                std::vector<std::vector<float>>    out_py_vec;
-                std::vector<std::vector<float>>    out_pz_vec;
-                std::vector<std::vector<float>>    out_eta_vec;
-                std::vector<std::vector<float>>    out_etaErr_vec;
-                std::vector<std::vector<float>>    out_phi_vec;
-                std::vector<std::vector<float>>    out_charge_vec;
-                std::vector<std::vector<int>>      out_superbin_vec;
-                std::vector<std::vector<int8_t>>      out_pixelType_vec;
-                std::vector<std::vector<short>>    out_isQuad_vec;
-                std::vector<int>    evt_num;
-                //std::vector<SDL::Event> events;
+    std::vector<std::vector<float>> out_trkX;
+    std::vector<std::vector<float>> out_trkY;
+    std::vector<std::vector<float>> out_trkZ;
+    std::vector<std::vector<unsigned int>>    out_hitId;
+    std::vector<std::vector<unsigned int>>    out_hitIdxs;
+    std::vector<std::vector<unsigned int>>    out_hitIndices_vec0;
+    std::vector<std::vector<unsigned int>>    out_hitIndices_vec1;
+    std::vector<std::vector<unsigned int>>    out_hitIndices_vec2;
+    std::vector<std::vector<unsigned int>>    out_hitIndices_vec3;
+    std::vector<std::vector<float>>    out_deltaPhi_vec;
+    std::vector<std::vector<float>>    out_ptIn_vec;
+    std::vector<std::vector<float>>    out_ptErr_vec;
+    std::vector<std::vector<float>>    out_px_vec;
+    std::vector<std::vector<float>>    out_py_vec;
+    std::vector<std::vector<float>>    out_pz_vec;
+    std::vector<std::vector<float>>    out_eta_vec;
+    std::vector<std::vector<float>>    out_etaErr_vec;
+    std::vector<std::vector<float>>    out_phi_vec;
+    std::vector<std::vector<float>>    out_charge_vec;
+    std::vector<std::vector<int>>      out_superbin_vec;
+    std::vector<std::vector<int8_t>>      out_pixelType_vec;
+    std::vector<std::vector<short>>    out_isQuad_vec;
+    std::vector<int>    evt_num;
+
     // Looping input file
     while (ana.looper.nextEvent())
     {
@@ -679,35 +645,7 @@ float timing_TCE;
                     timing_TCE
                     });
 
-            if (ana.verbose == 4)
-            {
-              #pragma omp critical
-              {
-                printAllObjects(events.at(omp_get_thread_num()));
-              }
-            }
-
-            if (ana.verbose == 5)
-            {
-              #pragma omp critical
-              {
-                debugPrintOutlierMultiplicities(events.at(omp_get_thread_num()));
-              }
-            }
-
-            if (ana.do_write_ntuple)
-            {
-              #pragma omp critical
-              {
-                unsigned int trkev = evt_num.at(evt);
-                //if(evt>=49){ trkev = evt+1;}
-                trk.GetEntry(trkev);
-                if (not ana.do_cut_value_ntuple)
-                {
-                    fillOutputBranches(events.at(omp_get_thread_num()));
-                }
-              }
-            }
+            verbose_and_write(events.at(omp_get_thread_num()), evt_num.at(evt));
 
             //Clear this event
             events.at(omp_get_thread_num())->resetEvent();
@@ -719,9 +657,52 @@ float timing_TCE;
     float avg_elapsed  = full_elapsed/out_trkX.size(); 
     printTimingInformation(timevec,full_elapsed,avg_elapsed);
 
-    if (not ana.do_run_cpu){
-        SDL::cleanModules();
+    // if not running CMSSW, do output
+    do_output();
+
+    // delete streams and clean modules
+    do_delete(events, streams);
+}
+
+//________________________________________________________________________________
+void verbose_and_write(SDL::Event* get_event, int evtnum){
+    if (ana.verbose == 4)
+    {
+        #pragma omp critical
+        {
+            printAllObjects(get_event);
+        }
     }
+
+    if (ana.verbose == 5)
+    {
+        #pragma omp critical
+        {
+            debugPrintOutlierMultiplicities(get_event);
+        }
+    }
+
+#ifndef PORTTOCMSSW
+    if (ana.do_write_ntuple)
+    {
+        #pragma omp critical
+        {
+            unsigned int trkev = evtnum;
+            trk.GetEntry(trkev);
+            if (not ana.do_cut_value_ntuple)
+            {
+                fillOutputBranches(get_event);
+            }
+        }
+    }
+#endif
+
+}
+
+//________________________________________________________________________________
+void do_output()
+{
+
     // Writing ttree output to file
     ana.output_tfile->cd();
     if (not ana.do_cut_value_ntuple) 
@@ -730,12 +711,20 @@ float timing_TCE;
     }
 
     ana.output_ttree->Write();
-    for(int s =0; s < ana.streams;s++){
-         delete events.at(s);
-        cudaStreamDestroy(streams[s]);
+}
+
+//________________________________________________________________________________
+void do_delete(std::vector<SDL::Event*> events, cudaStream_t* streams)
+{
+    if (not ana.do_run_cpu){
+        SDL::cleanModules();
     }
     delete ana.output_tfile;
 
+    for(int s =0; s < ana.streams;s++){
+        delete events.at(s);
+        cudaStreamDestroy(streams[s]);
+    }
 }
 
 //_______________________________________________________________________________
