@@ -583,30 +583,15 @@ bool checkModuleConnectionsAreGood(std::array<std::vector<unsigned int>, 6>& lay
 //}
 
 //float runMiniDoublet(SDL::Event& event, int evt)
-float runMiniDoublet(SDL::Event* event, int evt)
+float runMiniDoublet(SDL::Event* event)
 {
     TStopwatch my_timer;
-    if (ana.verbose >= 2) std::cout << "Reco Mini-Doublet start " << evt<< std::endl;
+//    if (ana.verbose >= 2) std::cout << "Reco Mini-Doublet start " << evt<< std::endl;
     my_timer.Start();
-    //event.createMiniDoublets();
     event->createMiniDoublets();
     float md_elapsed = my_timer.RealTime();
 
-    if (ana.verbose >= 2) std::cout << evt<< " Reco Mini-doublet processing time: " << md_elapsed << " secs" << std::endl;
-
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced: " << event.getNumberOfMiniDoublets() << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 1: " << event.getNumberOfMiniDoubletsByLayerBarrel(0) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 2: " << event.getNumberOfMiniDoubletsByLayerBarrel(1) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 3: " << event.getNumberOfMiniDoubletsByLayerBarrel(2) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 4: " << event.getNumberOfMiniDoubletsByLayerBarrel(3) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 5: " << event.getNumberOfMiniDoubletsByLayerBarrel(4) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 6: " << event.getNumberOfMiniDoubletsByLayerBarrel(5) << std::endl;
-
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 1: " << event.getNumberOfMiniDoubletsByLayerEndcap(0) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 2: " << event.getNumberOfMiniDoubletsByLayerEndcap(1) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 3: " << event.getNumberOfMiniDoubletsByLayerEndcap(2) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 4: " << event.getNumberOfMiniDoubletsByLayerEndcap(3) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 5: " << event.getNumberOfMiniDoubletsByLayerEndcap(4) << std::endl;
+//    if (ana.verbose >= 2) std::cout << evt<< " Reco Mini-doublet processing time: " << md_elapsed << " secs" << std::endl;
 
     if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced: " << event->getNumberOfMiniDoublets() << std::endl;
     if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 1: " << event->getNumberOfMiniDoubletsByLayerBarrel(0) << std::endl;
@@ -621,8 +606,7 @@ float runMiniDoublet(SDL::Event* event, int evt)
     if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 3: " << event->getNumberOfMiniDoubletsByLayerEndcap(2) << std::endl;
     if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 4: " << event->getNumberOfMiniDoubletsByLayerEndcap(3) << std::endl;
     if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 5: " << event->getNumberOfMiniDoubletsByLayerEndcap(4) << std::endl;
-
-
+    
     return md_elapsed;
 
 }

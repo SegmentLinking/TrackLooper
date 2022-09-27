@@ -335,34 +335,33 @@ void run_sdl()
 #ifndef PORTTOCMSSW
     createOutputBranches();
     // Timing average information
-    std::vector<std::vector<float>> out_trkX;
-    std::vector<std::vector<float>> out_trkY;
-    std::vector<std::vector<float>> out_trkZ;
-    std::vector<std::vector<unsigned int>>    out_hitId;
-    std::vector<std::vector<unsigned int>>    out_hitIdxs;
-    std::vector<std::vector<unsigned int>>    out_hitIndices_vec0;
-    std::vector<std::vector<unsigned int>>    out_hitIndices_vec1;
-    std::vector<std::vector<unsigned int>>    out_hitIndices_vec2;
-    std::vector<std::vector<unsigned int>>    out_hitIndices_vec3;
-    std::vector<std::vector<float>>    out_deltaPhi_vec;
-    std::vector<std::vector<float>>    out_ptIn_vec;
-    std::vector<std::vector<float>>    out_ptErr_vec;
-    std::vector<std::vector<float>>    out_px_vec;
-    std::vector<std::vector<float>>    out_py_vec;
-    std::vector<std::vector<float>>    out_pz_vec;
-    std::vector<std::vector<float>>    out_eta_vec;
-    std::vector<std::vector<float>>    out_etaErr_vec;
-    std::vector<std::vector<float>>    out_phi_vec;
-    std::vector<std::vector<float>>    out_charge_vec;
-    std::vector<std::vector<int>>      out_superbin_vec;
-    std::vector<std::vector<int8_t>>      out_pixelType_vec;
-    std::vector<std::vector<short>>    out_isQuad_vec;
+    std::vector<std::vector<float>> in_trkX;
+    std::vector<std::vector<float>> in_trkY;
+    std::vector<std::vector<float>> in_trkZ;
+    std::vector<std::vector<unsigned int>>    in_hitId;
+    std::vector<std::vector<unsigned int>>    in_hitIdxs;
+    std::vector<std::vector<unsigned int>>    in_hitIndices_vec0;
+    std::vector<std::vector<unsigned int>>    in_hitIndices_vec1;
+    std::vector<std::vector<unsigned int>>    in_hitIndices_vec2;
+    std::vector<std::vector<unsigned int>>    in_hitIndices_vec3;
+    std::vector<std::vector<float>>    in_deltaPhi_vec;
+    std::vector<std::vector<float>>    in_ptIn_vec;
+    std::vector<std::vector<float>>    in_ptErr_vec;
+    std::vector<std::vector<float>>    in_px_vec;
+    std::vector<std::vector<float>>    in_py_vec;
+    std::vector<std::vector<float>>    in_pz_vec;
+    std::vector<std::vector<float>>    in_eta_vec;
+    std::vector<std::vector<float>>    in_etaErr_vec;
+    std::vector<std::vector<float>>    in_phi_vec;
+    std::vector<std::vector<float>>    in_charge_vec;
+    std::vector<std::vector<int>>      in_superbin_vec;
+    std::vector<std::vector<int8_t>>      in_pixelType_vec;
+    std::vector<std::vector<short>>    in_isQuad_vec;
     std::vector<int>    evt_num;
 
     // Looping input file
     while (ana.looper.nextEvent())
     {
-
         if (ana.looper.getCurrentEventIndex() ==49) {continue;}
         std::cout << "PreLoading event number = " << ana.looper.getCurrentEventIndex() << std::endl;
 
@@ -375,32 +374,29 @@ void run_sdl()
             //*******************************************************
 
             // Main instance that will hold modules, hits, minidoublets, etc. (i.e. main data structure)
-
             // Add hits to the event
-            //if (ana.compilation_target.find("explicit") != std::string::npos){
-                //timing_input_loading = addInputsToLineSegmentTrackingUsingExplicitMemory(event);
-                addInputsToLineSegmentTrackingPreLoad(
-                out_trkX, out_trkY,out_trkZ,
-                out_hitId,
-                out_hitIdxs,
-                out_hitIndices_vec0,
-                out_hitIndices_vec1,
-                out_hitIndices_vec2,
-                out_hitIndices_vec3,
-                out_deltaPhi_vec,
-                out_ptIn_vec,
-                out_ptErr_vec,
-                out_px_vec,
-                out_py_vec,
-                out_pz_vec,
-                out_eta_vec,
-                out_etaErr_vec,
-                out_phi_vec,
-                out_charge_vec,
-                out_superbin_vec,
-                out_pixelType_vec,
-                out_isQuad_vec
-                );
+            addInputsToLineSegmentTrackingPreLoad(
+                in_trkX, in_trkY,in_trkZ,
+                in_hitId,
+                in_hitIdxs,
+                in_hitIndices_vec0,
+                in_hitIndices_vec1,
+                in_hitIndices_vec2,
+                in_hitIndices_vec3,
+                in_deltaPhi_vec,
+                in_ptIn_vec,
+                in_ptErr_vec,
+                in_px_vec,
+                in_py_vec,
+                in_pz_vec,
+                in_eta_vec,
+                in_etaErr_vec,
+                in_phi_vec,
+                in_charge_vec,
+                in_superbin_vec,
+                in_pixelType_vec,
+                in_isQuad_vec
+            );
         }
         evt_num.push_back(ana.looper.getCurrentEventIndex());
     }
@@ -421,54 +417,40 @@ void run_sdl()
 
     #pragma omp parallel num_threads(ana.streams)// private(event)
     {
+        float timing_input_loading, timing_MD, timing_LS, timing_T3, timing_T5, timing_pLS, timing_pT5, timing_pT3, timing_TC, timing_TCE; 
+
+#ifndef PORTTOCMSSW
     std::vector<std::vector<float>> timing_information;
-float timing_input_loading; 
-// Run Mini-doub
-float timing_MD;
-// Run Segment
-float timing_LS ;
-// Run T3
-float timing_T3 ;
-// Run T5
-float timing_T5 ;
-// clean pLS
-float timing_pLS;
-//Run pT5
-float timing_pT5;
-//Run pT3
-float timing_pT3;
-// Run TC
-float timing_TC ;
-//Run Track Extensions
-float timing_TCE;
+#endif
+
     #pragma omp for //nowait// private(event)
-    for(int evt=0; evt < static_cast<int>(out_trkX.size()); evt++)
+    for(int evt=0; evt < static_cast<int>(in_trkX.size()); evt++)
     {
-            std::cout << "Running Event number = " << evt << " " << omp_get_thread_num() << std::endl;
-            //Load Hits
-            timing_input_loading = addInputsToEventPreLoad(events.at(omp_get_thread_num()),false,
-                out_trkX.at(evt), out_trkY.at(evt),out_trkZ.at(evt),
-                out_hitId.at(evt),
-                out_hitIdxs.at(evt),
-                out_hitIndices_vec0.at(evt),
-                out_hitIndices_vec1.at(evt),
-                out_hitIndices_vec2.at(evt),
-                out_hitIndices_vec3.at(evt),
-                out_deltaPhi_vec.at(evt),
-                out_ptIn_vec.at(evt),
-                out_ptErr_vec.at(evt),
-                out_px_vec.at(evt),
-                out_py_vec.at(evt),
-                out_pz_vec.at(evt),
-                out_eta_vec.at(evt),
-                out_etaErr_vec.at(evt),
-                out_phi_vec.at(evt),
-                out_charge_vec.at(evt),
-                out_superbin_vec.at(evt),
-                out_pixelType_vec.at(evt),
-                out_isQuad_vec.at(evt));
+        std::cout << "Running Event number = " << evt << " " << omp_get_thread_num() << std::endl;
+        //Load Hits
+        timing_input_loading = addInputsToEventPreLoad(events.at(omp_get_thread_num()),false,
+            in_trkX.at(evt), in_trkY.at(evt),in_trkZ.at(evt),
+            in_hitId.at(evt),
+            in_hitIdxs.at(evt),
+            in_hitIndices_vec0.at(evt),
+            in_hitIndices_vec1.at(evt),
+            in_hitIndices_vec2.at(evt),
+            in_hitIndices_vec3.at(evt),
+            in_deltaPhi_vec.at(evt),
+            in_ptIn_vec.at(evt),
+            in_ptErr_vec.at(evt),
+            in_px_vec.at(evt),
+            in_py_vec.at(evt),
+            in_pz_vec.at(evt),
+            in_eta_vec.at(evt),
+            in_etaErr_vec.at(evt),
+            in_phi_vec.at(evt),
+            in_charge_vec.at(evt),
+            in_superbin_vec.at(evt),
+            in_pixelType_vec.at(evt),
+            in_isQuad_vec.at(evt));
             // Run Mini-doublet
-            timing_MD = runMiniDoublet(events.at(omp_get_thread_num()),evt);
+            timing_MD = runMiniDoublet(events.at(omp_get_thread_num()));
             // Run Segment
             timing_LS = runSegment(events.at(omp_get_thread_num()));
             // Run T3
@@ -500,12 +482,13 @@ float timing_TCE;
     }
 
 #ifndef PORTTOCMSSW    
-    float avg_elapsed  = full_elapsed/out_trkX.size(); 
+    float avg_elapsed  = full_elapsed/in_trkX.size(); 
     printTimingInformation(timevec,full_elapsed,avg_elapsed);
 
     // if not running CMSSW, do output
     do_output();
 #endif
+
     // delete streams and clean modules
     do_delete(events, streams);
 }
