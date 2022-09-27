@@ -384,13 +384,9 @@ void run_sdl()
                 in_hitIndices_vec2,
                 in_hitIndices_vec3,
                 in_deltaPhi_vec,
-                in_ptIn_vec,
-                in_ptErr_vec,
-                in_px_vec,
-                in_py_vec,
-                in_pz_vec,
-                in_eta_vec,
-                in_etaErr_vec,
+                in_ptIn_vec, in_ptErr_vec,
+                in_px_vec, in_py_vec, in_pz_vec,
+                in_eta_vec, in_etaErr_vec,
                 in_phi_vec,
                 in_charge_vec,
                 in_superbin_vec,
@@ -421,34 +417,77 @@ void run_sdl()
 
 #ifndef PORTTOCMSSW
     std::vector<std::vector<float>> timing_information;
-#endif
 
     #pragma omp for //nowait// private(event)
     for(int evt=0; evt < static_cast<int>(in_trkX.size()); evt++)
     {
         std::cout << "Running Event number = " << evt << " " << omp_get_thread_num() << std::endl;
+        std::vector<float> this_trkX = in_trkX.at(evt);
+        std::vector<float> this_trkY = in_trkY.at(evt);
+        std::vector<float> this_trkZ = in_trkZ.at(evt);
+        std::vector<unsigned int> this_hitId = in_hitId.at(evt);
+        std::vector<unsigned int> this_hitIdxs = in_hitIdxs.at(evt);
+        std::vector<unsigned int> this_hitIndices_vec0 = in_hitIndices_vec0.at(evt);
+        std::vector<unsigned int> this_hitIndices_vec1 = in_hitIndices_vec1.at(evt);
+        std::vector<unsigned int> this_hitIndices_vec2 = in_hitIndices_vec2.at(evt);
+        std::vector<unsigned int> this_hitIndices_vec3 = in_hitIndices_vec3.at(evt);
+        std::vector<float> this_deltaPhi_vec = in_deltaPhi_vec.at(evt);
+        std::vector<float> this_ptIn_vec = in_ptIn_vec.at(evt);
+        std::vector<float> this_ptErr_vec = in_ptErr_vec.at(evt);
+        std::vector<float> this_px_vec = in_px_vec.at(evt);
+        std::vector<float> this_py_vec = in_py_vec.at(evt);
+        std::vector<float> this_pz_vec = in_pz_vec.at(evt);
+        std::vector<float> this_eta_vec = in_eta_vec.at(evt);
+        std::vector<float> this_etaErr_vec = in_etaErr_vec.at(evt);
+        std::vector<float> this_phi_vec = in_phi_vec.at(evt);
+        std::vector<float> this_charge_vec = in_charge_vec.at(evt);
+        std::vector<int> this_superbin_vec = in_superbin_vec.at(evt);
+        std::vector<int8_t> this_pixelType_vec = in_pixelType_vec.at(evt);
+        std::vector<short> this_isQuad_vec = in_isQuad_vec.at(evt);
+#else
+// should correspondingly transport from EDProducer
+/*
+        std::vector<float> this_trkX = in_trkX.at(evt);
+        std::vector<float> this_trkY = in_trkY.at(evt);
+        std::vector<float> this_trkZ = in_trkZ.at(evt);
+        std::vector<unsigned int> this_hitId = in_hitId.at(evt);
+        std::vector<unsigned int> this_hitIdxs = in_hitIdxs.at(evt);
+        std::vector<unsigned int> this_hitIndices_vec0 = in_hitIndices_vec0.at(evt);
+        std::vector<unsigned int> this_hitIndices_vec1 = in_hitIndices_vec1.at(evt);
+        std::vector<unsigned int> this_hitIndices_vec2 = in_hitIndices_vec2.at(evt);
+        std::vector<unsigned int> this_hitIndices_vec3 = in_hitIndices_vec3.at(evt);
+        std::vector<float> this_deltaPhi_vec = in_deltaPhi_vec.at(evt);
+        std::vector<float> this_ptIn_vec = in_ptIn_vec.at(evt);
+        std::vector<float> this_ptErr_vec = in_ptErr_vec.at(evt);
+        std::vector<float> this_px_vec = in_px_vec.at(evt);
+        std::vector<float> this_py_vec = in_py_vec.at(evt);
+        std::vector<float> this_pz_vec = in_pz_vec.at(evt);
+        std::vector<float> this_eta_vec = in_eta_vec.at(evt);
+        std::vector<float> this_etaErr_vec = in_etaErr_vec.at(evt);
+        std::vector<float> this_phi_vec = in_phi_vec.at(evt);
+        std::vector<float> this_charge_vec = in_charge_vec.at(evt);
+        std::vector<int> this_superbin_vec = in_superbin_vec.at(evt);
+        std::vector<int8_t> this_pixelType_vec = in_pixelType_vec.at(evt);
+        std::vector<short> this_isQuad_vec = in_isQuad_vec.at(evt);
+*/
+#endif
         //Load Hits
         timing_input_loading = addInputsToEventPreLoad(events.at(omp_get_thread_num()),false,
-            in_trkX.at(evt), in_trkY.at(evt),in_trkZ.at(evt),
-            in_hitId.at(evt),
-            in_hitIdxs.at(evt),
-            in_hitIndices_vec0.at(evt),
-            in_hitIndices_vec1.at(evt),
-            in_hitIndices_vec2.at(evt),
-            in_hitIndices_vec3.at(evt),
-            in_deltaPhi_vec.at(evt),
-            in_ptIn_vec.at(evt),
-            in_ptErr_vec.at(evt),
-            in_px_vec.at(evt),
-            in_py_vec.at(evt),
-            in_pz_vec.at(evt),
-            in_eta_vec.at(evt),
-            in_etaErr_vec.at(evt),
-            in_phi_vec.at(evt),
-            in_charge_vec.at(evt),
-            in_superbin_vec.at(evt),
-            in_pixelType_vec.at(evt),
-            in_isQuad_vec.at(evt));
+            this_trkX, this_trkY, this_trkZ,
+            this_hitId, this_hitIdxs,
+            this_hitIndices_vec0,
+            this_hitIndices_vec1,
+            this_hitIndices_vec2,
+            this_hitIndices_vec3,
+            this_deltaPhi_vec,
+            this_ptIn_vec, this_ptErr_vec,
+            this_px_vec, this_py_vec, this_pz_vec,
+            this_eta_vec, this_etaErr_vec,
+            this_phi_vec,
+            this_charge_vec,
+            this_superbin_vec,
+            this_pixelType_vec,
+            this_isQuad_vec);
             // Run Mini-doublet
             timing_MD = runMiniDoublet(events.at(omp_get_thread_num()));
             // Run Segment
@@ -466,22 +505,29 @@ void run_sdl()
             // Run TC
             timing_TC = runTrackCandidate(events.at(omp_get_thread_num()));
             timing_TCE = runTrackExtensions(events.at(omp_get_thread_num()));
+
 #ifndef PORTTOCMSSW
             timing_information.push_back({ timing_input_loading, timing_MD, timing_LS, timing_T3, timing_T5, timing_pLS, timing_pT5, timing_pT3, timing_TC, timing_TCE});
             verbose_and_write(events.at(omp_get_thread_num()), evt_num.at(evt));
 #endif
+
             //Clear this event
             events.at(omp_get_thread_num())->resetEvent();
-    }
+
+
 #ifndef PORTTOCMSSW
+    } // this bracket is for loopping over events in the standalone package
+
     full_elapsed = full_timer.RealTime()*1000.f; //for loop has implicit barrier I think. So this stops onces all cpu threads have finished but before the next critical section. 
     #pragma omp critical
       timevec.insert(timevec.end(), timing_information.begin(), timing_information.end());
 #endif
 
-    }
 
-#ifndef PORTTOCMSSW    
+    } //this bracket if for multistreaming
+
+
+#ifndef PORTTOCMSSW 
     float avg_elapsed  = full_elapsed/in_trkX.size(); 
     printTimingInformation(timevec,full_elapsed,avg_elapsed);
 
