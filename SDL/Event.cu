@@ -670,6 +670,8 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     // Use the actual number of hits instead of a max.
     const int nHits = x.size();
 
+//    for (int i=0; i<25; i++) printf("%f \n",x[i]);
+
     // Get current device for future use.
     cudaGetDevice(&dev);
 
@@ -739,7 +741,7 @@ __global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned 
     hits1[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[outerMDIndex]];
     hits1[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[innerMDIndex]];
     hits1[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[outerMDIndex]];
-    addPixelSegmentToMemory(segmentsInGPU, mdsInGPU, modulesInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hits1, hitIndices0[tid], hitIndices2[tid], dPhiChange[tid], ptIn[tid], ptErr[tid], px[tid], py[tid], pz[tid], etaErr[tid], eta[tid], phi[tid], pixelSegmentIndex, tid, superbin[tid], pixelType[tid],isQuad[tid],score_lsq);
+    addPixelSegmentToMemory(segmentsInGPU, mdsInGPU, modulesInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hits1, hitIndices0[tid], hitIndices2[tid], dPhiChange[tid], ptIn[tid], ptErr[tid], px[tid], py[tid], pz[tid], etaErr[tid], eta[tid], phi[tid], charge[tid], pixelSegmentIndex, tid, superbin[tid], pixelType[tid],isQuad[tid],score_lsq);
     }
 }
 void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<float> charge, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<short> isQuad)
@@ -769,7 +771,6 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
 
         cudaMemcpyAsync(segmentsInGPU->nMemoryLocations, &nTotalSegments, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);;
         cudaStreamSynchronize(stream);
-
 
     }
     cudaStreamSynchronize(stream);
@@ -860,23 +861,6 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
    cudaMemcpyAsync(&(mdsInGPU->nMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
    cudaMemcpyAsync(&(mdsInGPU->totOccupancyMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
    cudaStreamSynchronize(stream);
-
-    //cudaFreeAsync(hitIndices0_dev,stream);
-    //cudaFreeAsync(hitIndices1_dev,stream);
-    //cudaFreeAsync(hitIndices2_dev,stream);
-    //cudaFreeAsync(hitIndices3_dev,stream);
-    //cudaFreeAsync(dPhiChange_dev,stream);
-    //cudaFreeAsync(ptIn_dev,stream);
-    //cudaFreeAsync(ptErr_dev,stream);
-    //cudaFreeAsync(px_dev,stream);
-    //cudaFreeAsync(py_dev,stream);
-    //cudaFreeAsync(pz_dev,stream);
-    //cudaFreeAsync(etaErr_dev,stream);
-    //cudaFreeAsync(eta_dev,stream);
-    //cudaFreeAsync(phi_dev,stream);
-    //cudaFreeAsync(superbin_dev,stream);
-    //cudaFreeAsync(pixelType_dev,stream);
-    //cudaFreeAsync(isQuad_dev,stream);
   
     cms::cuda::free_device(dev, hitIndices0_dev);
     cms::cuda::free_device(dev, hitIndices1_dev);
