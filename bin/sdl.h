@@ -33,13 +33,33 @@
 #include "TSystem.h"
 
 // Main code
-/*#ifdef PORTTOCMSSW
-void run_sdl(**** event)
+#ifdef PORTTOCMSSW
+void run_sdl(
+    std::vector<float> this_trkX,
+    std::vector<float> this_trkY,
+    std::vector<float> this_trkZ,
+    std::vector<unsigned int> this_hitId,
+    std::vector<unsigned int> this_hitIdxs,
+    std::vector<unsigned int> this_hitIndices_vec0,
+    std::vector<unsigned int> this_hitIndices_vec1,
+    std::vector<unsigned int> this_hitIndices_vec2,
+    std::vector<unsigned int> this_hitIndices_vec3,
+    std::vector<float> this_deltaPhi_vec,
+    std::vector<float> this_ptIn_vec,
+    std::vector<float> this_ptErr_vec,
+    std::vector<float> this_px_vec,
+    std::vector<float> this_py_vec,
+    std::vector<float> this_pz_vec,
+    std::vector<float> this_eta_vec,
+    std::vector<float> this_etaErr_vec,
+    std::vector<float> this_phi_vec,
+    std::vector<float> this_charge_vec,
+    std::vector<int> this_superbin_vec,
+    std::vector<int8_t> this_pixelType_vec,
+    std::vector<short> this_isQuad_vec);
 #else
-void run_sdl()
-#endif
-*/
 void run_sdl();
+#endif
 
 // Write metadata
 void writeMetaData();

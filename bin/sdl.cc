@@ -296,8 +296,25 @@ int main(int argc, char** argv)
     pre_running();
 
     // Run the code
+#ifdef PORTTOCMSSW
+    run_sdl(this_trkX, this_trkY, this_trkZ,
+    this_hitId, this_hitIdxs,
+    this_hitIndices_vec0,
+    this_hitIndices_vec1,
+    this_hitIndices_vec2,
+    this_hitIndices_vec3,
+    this_deltaPhi_vec,
+    this_ptIn_vec, this_ptErr_vec,
+    this_px_vec, this_py_vec, this_pz_vec,
+    this_eta_vec, this_etaErr_vec,
+    this_phi_vec,
+    this_charge_vec,
+    this_superbin_vec,
+    this_pixelType_vec,
+    this_isQuad_vec);
+#else
     run_sdl();
-
+#endif
     return 0;
 }
 
@@ -324,13 +341,33 @@ void pre_running()
     }
 }
 
-/*#ifdef PORTTOCMSSW
-void run_sdl(**** event)
+#ifdef PORTTOCMSSW
+void run_sdl(
+    std::vector<float> this_trkX,
+    std::vector<float> this_trkY,
+    std::vector<float> this_trkZ,
+    std::vector<unsigned int> this_hitId,
+    std::vector<unsigned int> this_hitIdxs,
+    std::vector<unsigned int> this_hitIndices_vec0,
+    std::vector<unsigned int> this_hitIndices_vec1,
+    std::vector<unsigned int> this_hitIndices_vec2,
+    std::vector<unsigned int> this_hitIndices_vec3,
+    std::vector<float> this_deltaPhi_vec,
+    std::vector<float> this_ptIn_vec,
+    std::vector<float> this_ptErr_vec,
+    std::vector<float> this_px_vec,
+    std::vector<float> this_py_vec,
+    std::vector<float> this_pz_vec,
+    std::vector<float> this_eta_vec,
+    std::vector<float> this_etaErr_vec,
+    std::vector<float> this_phi_vec,
+    std::vector<float> this_charge_vec,
+    std::vector<int> this_superbin_vec,
+    std::vector<int8_t> this_pixelType_vec,
+    std::vector<short> this_isQuad_vec)
 #else
 void run_sdl()
 #endif
-*/
-void run_sdl()
 {
 #ifndef PORTTOCMSSW
     createOutputBranches();
@@ -444,33 +481,8 @@ void run_sdl()
         std::vector<int> this_superbin_vec = in_superbin_vec.at(evt);
         std::vector<int8_t> this_pixelType_vec = in_pixelType_vec.at(evt);
         std::vector<short> this_isQuad_vec = in_isQuad_vec.at(evt);
-#else
-// should correspondingly transport from EDProducer
-/*
-        std::vector<float> this_trkX = in_trkX.at(evt);
-        std::vector<float> this_trkY = in_trkY.at(evt);
-        std::vector<float> this_trkZ = in_trkZ.at(evt);
-        std::vector<unsigned int> this_hitId = in_hitId.at(evt);
-        std::vector<unsigned int> this_hitIdxs = in_hitIdxs.at(evt);
-        std::vector<unsigned int> this_hitIndices_vec0 = in_hitIndices_vec0.at(evt);
-        std::vector<unsigned int> this_hitIndices_vec1 = in_hitIndices_vec1.at(evt);
-        std::vector<unsigned int> this_hitIndices_vec2 = in_hitIndices_vec2.at(evt);
-        std::vector<unsigned int> this_hitIndices_vec3 = in_hitIndices_vec3.at(evt);
-        std::vector<float> this_deltaPhi_vec = in_deltaPhi_vec.at(evt);
-        std::vector<float> this_ptIn_vec = in_ptIn_vec.at(evt);
-        std::vector<float> this_ptErr_vec = in_ptErr_vec.at(evt);
-        std::vector<float> this_px_vec = in_px_vec.at(evt);
-        std::vector<float> this_py_vec = in_py_vec.at(evt);
-        std::vector<float> this_pz_vec = in_pz_vec.at(evt);
-        std::vector<float> this_eta_vec = in_eta_vec.at(evt);
-        std::vector<float> this_etaErr_vec = in_etaErr_vec.at(evt);
-        std::vector<float> this_phi_vec = in_phi_vec.at(evt);
-        std::vector<float> this_charge_vec = in_charge_vec.at(evt);
-        std::vector<int> this_superbin_vec = in_superbin_vec.at(evt);
-        std::vector<int8_t> this_pixelType_vec = in_pixelType_vec.at(evt);
-        std::vector<short> this_isQuad_vec = in_isQuad_vec.at(evt);
-*/
 #endif
+
         //Load Hits
         timing_input_loading = addInputsToEventPreLoad(events.at(omp_get_thread_num()),false,
             this_trkX, this_trkY, this_trkZ,
@@ -603,7 +615,6 @@ void do_delete(std::vector<SDL::Event*> events, cudaStream_t* streams)
 //_______________________________________________________________________________
 void writeMetaData()
 {
-
     // Write out metadata of the code to the output_tfile
     ana.output_tfile->cd();
     gSystem->Exec(TString::Format("(cd $TRACKLOOPERDIR && echo '' && (cd - > /dev/null) ) > %s.gitversion.txt ", ana.output_tfile->GetName()));
