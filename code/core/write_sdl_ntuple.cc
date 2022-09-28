@@ -1419,7 +1419,8 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
 
 
 
-void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<float>& tc_eta, std::vector<float>& tc_phi)
+
+void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<float>& tc_eta, std::vector<float>& tc_phi, std::vector<vector<int>>& tc_hitIdxs, std::vector<int>& tc_lengths)
 {
     SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
     SDL::triplets& tripletsInGPU = (*event->getTriplets());
@@ -1432,12 +1433,10 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
     SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
     SDL::objectRanges& rangesInGPU = (*event->getRanges());
 
-    std::vector<int> tc_type;
-    std::vector<vector<int>> tc_hitIdxs;
-
     unsigned int nTrackCandidates = *trackCandidatesInGPU.nTrackCandidates;
     for (unsigned int jdx = 0; jdx < nTrackCandidates; jdx++)
     {
+        float hit_array_length=0;
         short trackCandidateType = trackCandidatesInGPU.trackCandidateType[jdx];
         unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * jdx];
         unsigned int outerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * jdx + 1];
@@ -1453,18 +1452,18 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
         float betaOut_out = 0;
 
         std::vector<int> hit_idx;
-        std::vector<int> hit_types;
         float pt;
         float eta_pLS = -999;
         float phi_pLS = -999;
-        tc_type.emplace_back(trackCandidateType);
         if (trackCandidateType == 8) //pLS
         {
+            hit_array_length = 3;
             unsigned int pixelModuleIndex = *(modulesInGPU.nLowerModules);
             unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + innerTrackletIdx;
             pt = segmentsInGPU.ptIn[innerTrackletIdx];
             eta_pLS = segmentsInGPU.eta[innerTrackletIdx];
             phi_pLS = segmentsInGPU.phi[innerTrackletIdx];
+
             unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
             unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
             unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerMiniDoubletIndex];
@@ -1475,12 +1474,13 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
             hit_idx = {
                 (int) hitsInGPU.idxs[innerMiniDoubletLowerHitIndex],
                 (int) hitsInGPU.idxs[innerMiniDoubletUpperHitIndex],
-                (int) hitsInGPU.idxs[outerMiniDoubletLowerHitIndex],
                 (int) hitsInGPU.idxs[outerMiniDoubletUpperHitIndex]
             };
 
-            hit_types = {0,0,0,0};
-            std::vector<int> module_idxs(4, pixelModuleIndex);        
+            if(segmentsInGPU.isQuad[innerTrackletIdx]){
+                hit_idx.push_back((int)hitsInGPU.idxs[outerMiniDoubletLowerHitIndex]);
+                hit_array_length = 4;
+            }     
 
        }else{
             if (trackCandidateType == 5) //pT3
@@ -1541,6 +1541,7 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
             unsigned int innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[innerTrackletInnerSegmentInnerMiniDoubletIndex];
             unsigned int innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ innerTrackletInnerSegmentOuterMiniDoubletIndex];
             unsigned int innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ innerTrackletInnerSegmentOuterMiniDoubletIndex];
+
             unsigned int innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ innerTrackletOuterSegmentInnerMiniDoubletIndex];
             unsigned int innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ innerTrackletOuterSegmentInnerMiniDoubletIndex];
             unsigned int innerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ innerTrackletOuterSegmentOuterMiniDoubletIndex];
@@ -1555,6 +1556,7 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
                 (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex],
                 (int) hitsInGPU.idxs[innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex],
                 (int) hitsInGPU.idxs[innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex],
+
                 (int) hitsInGPU.idxs[innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex],
                 (int) hitsInGPU.idxs[innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex],
                 (int) hitsInGPU.idxs[innerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex],
@@ -1564,20 +1566,6 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
                 (int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex],
                 (int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
             };
-            std::vector<int> module_idxs = {
-                (int) hitsInGPU.moduleIndices[innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex],
-                (int) hitsInGPU.moduleIndices[innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex],
-                (int) hitsInGPU.moduleIndices[innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex],
-                (int) hitsInGPU.moduleIndices[innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex],
-                (int) hitsInGPU.moduleIndices[innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex],
-                (int) hitsInGPU.moduleIndices[innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex],
-                (int) hitsInGPU.moduleIndices[innerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex],
-                (int) hitsInGPU.moduleIndices[innerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
-                (int) hitsInGPU.moduleIndices[outerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex],
-                (int) hitsInGPU.moduleIndices[outerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex],
-                (int) hitsInGPU.moduleIndices[outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex],
-                (int) hitsInGPU.moduleIndices[outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
-            };
 
             if(trackCandidateType == 7)
             {
@@ -1586,8 +1574,6 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
                 unsigned int outermostSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outermostSegmentOuterMiniDoubletIndex];
                 hit_idx.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletLowerHitIndex]);
                 hit_idx.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletUpperHitIndex]);
-                module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostSegmentOuterMiniDoubletLowerHitIndex]);
-                module_idxs.push_back((int) hitsInGPU.moduleIndices[outermostSegmentOuterMiniDoubletUpperHitIndex]);
             }
 
             unsigned int iiia_idx = -1;
@@ -1630,30 +1616,15 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
                 ptAv = (ptAv_in + ptAv_out) / 2.;
             }
 
-            if (trackCandidateType != 4) // Then this means this track candidate is a pLS-based
-            {
-                hit_types.push_back(0);
-                hit_types.push_back(0);
-                hit_types.push_back(0);
-                hit_types.push_back(0);
-            }
-            else
-            {
-                hit_types.push_back(4);
-                hit_types.push_back(4);
-                hit_types.push_back(4);
-                hit_types.push_back(4);
-            }
-
             pt = ptAv;
       }// end !pLS
-            tc_hitIdxs.push_back(hit_idx);
 
+            tc_hitIdxs.push_back(hit_idx);
 
             // Compute pt, eta, phi of TC
             float eta = -999;
             float phi = -999;
-            if (hit_types[0] == 4)
+            if (trackCandidateType == 4)
             {
                 SDL::CPU::Hit hitA(trk.ph2_x()[hit_idx[0]], trk.ph2_y()[hit_idx[0]], trk.ph2_z()[hit_idx[0]]);
                 SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[11]], trk.ph2_y()[hit_idx[11]], trk.ph2_z()[hit_idx[11]]);
@@ -1682,9 +1653,15 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
             tc_pt.push_back(pt);
             tc_eta.push_back(eta);
             tc_phi.push_back(phi);
+            tc_lengths.push_back(hit_array_length);
     }
 
 }
+
+
+
+
+
 
 
 
