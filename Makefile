@@ -6,7 +6,7 @@ EXES=bin/sdl
 ROOUTIL=code/rooutil/
 
 SOURCES=$(wildcard code/core/*.cc) $(wildcard code/AnalysisInterface/*.cc) #$(wildcard SDL/*.cc)
-OBJECTS=$(SOURCES:.cc=.o) $(wildcard ${TRACKLOOPERDIR}/SDL/sdl.so)
+OBJECTS=$(SOURCES:.cc=.o) $(wildcard ${TRACKLOOPERDIR}/SDL/libsdl.so)
 HEADERS=$(SOURCES:.cc=.h)
 
 CC          = nvcc

@@ -47,3 +47,48 @@ Run the validation on specific version of GPU implementation
     sdl_validate_segment_linking <dataset> explicit
     sdl_validate_segment_linking <dataset> explicit_cache
     (can optionally add in number of events as 3rd option)
+
+
+## CMSSW Integration
+This is the a complete set of instruction on how the TrackLooper code
+can be linked as an external tool in CMSSW:
+
+### Build TrackLooper
+```bash
+git clone git@github.com:SegmentLinking/TrackLooper.git
+cd TrackLooper/
+source setup.sh
+sdl_make_tracklooper -m8xc2
+cd ..
+```
+
+### Set up `TrackLooper` as an external
+```bash
+export SCRAM_ARCH=slc7_amd64_gcc10
+cmsrel CMSSW_12_6_0_pre2
+cd CMSSW_12_6_0_pre2/src
+cmsenv
+git cms-init
+cat <<EOF >lst.xml
+<tool name="lst" version="1.0">
+  <client>
+    <environment name="LSTBASE" default="$PWD/../../TrackLooper"/>
+    <environment name="LIBDIR" default="\$LSTBASE/SDL"/>
+    <environment name="INCLUDE" default="\$LSTBASE/SDL"/>
+  </client>
+  <runtime name="LST_BASE" value="\$LSTBASE"/>
+  <lib name="sdl"/>
+</tool>
+EOF
+scram setup lst.xml
+cmsenv
+git cms-checkdeps -a
+scram b -j 12
+```
+
+Including the line
+```
+<use name="lst"/>
+```
+in the relevant package `BuildFile.xml` allows for
+including our headers in the code of that package.

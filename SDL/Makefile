@@ -10,7 +10,7 @@ CCHEADERS=$(CCSOURCES:.cc=.h)
 CUSOURCES=$(wildcard *.cu)
 CUOBJECTS=$(CUSOURCES:.cu=_cuda.o)
 CUHEADERS=$(CUSOURCES:.cu=.cuh)
-LIB=sdl.so
+LIB=libsdl.so
 
 #
 # flags to keep track of
