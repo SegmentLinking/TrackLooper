@@ -1500,9 +1500,6 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
 
     } // iter::enumerate(trk.see_stateTrajGlbPx
 
-//    event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
-//    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, charge_vec, superbin_vec, pixelType_vec,isQuad_vec);
-
     out_trkX.push_back(trkX);
     out_trkY.push_back(trkY);
     out_trkZ.push_back(trkZ);

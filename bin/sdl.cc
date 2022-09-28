@@ -521,8 +521,32 @@ void run_sdl()
 #ifndef PORTTOCMSSW
             timing_information.push_back({ timing_input_loading, timing_MD, timing_LS, timing_T3, timing_T5, timing_pLS, timing_pT5, timing_pT3, timing_TC, timing_TCE});
             verbose_and_write(events.at(omp_get_thread_num()), evt_num.at(evt));
+#else
+            #pragma omp critical
+            {
+                trk.GetEntry(evt_num.at(evt));
+                std::vector<float> tc_pt;
+                std::vector<float> tc_eta;
+                std::vector<float> tc_phi;
+                get_output_CMSSW(events.at(omp_get_thread_num()), tc_pt, tc_eta, tc_phi);
+                printf("%f %f %f", tc_pt[0], tc_eta[0], tc_phi[0]);
+                printf("%f %f %f", tc_pt[1], tc_eta[1], tc_phi[1]);
+                printf("%f %f %f", tc_pt[2], tc_eta[2], tc_phi[2]);
+            }
 #endif
-
+            #pragma omp critical
+            {
+                trk.GetEntry(evt_num.at(evt));
+                std::vector<float> tc_pt;
+                std::vector<float> tc_eta;
+                std::vector<float> tc_phi;
+                get_output_CMSSW(events.at(omp_get_thread_num()), tc_pt, tc_eta, tc_phi);
+                printf("%f %f %f\n", tc_pt[0], tc_eta[0], tc_phi[0]);
+                printf("%f %f %f\n", tc_pt[1], tc_eta[1], tc_phi[1]);
+                printf("%f %f %f\n", tc_pt[2], tc_eta[2], tc_phi[2]);
+                printf("%f %f %f\n", tc_pt[3], tc_eta[3], tc_phi[3]);
+                printf("%f %f %f\n", tc_pt[4], tc_eta[4], tc_phi[4]);
+            }
             //Clear this event
             events.at(omp_get_thread_num())->resetEvent();
 
@@ -587,7 +611,6 @@ void verbose_and_write(SDL::Event* get_event, int evtnum){
 //________________________________________________________________________________
 void do_output()
 {
-
     // Writing ttree output to file
     ana.output_tfile->cd();
     if (not ana.do_cut_value_ntuple) 
