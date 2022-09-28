@@ -97,7 +97,7 @@ if $MAKECACHE; then MAKETARGET=${MAKETARGET}_cache; fi
 
 # If make clean binaries are called then first make clean before making
 if $MAKECLEANBINARIES; then
-    echo "First make cleaning all of TrackLooper objects and sdl.so" | tee -a ${LOG}
+    echo "First make cleaning all of TrackLooper objects and libsdl.so" | tee -a ${LOG}
     cd SDL;make clean >>${LOG} 2>&1;cd -;
     make clean >> ${LOG} 2>&1
 fi
@@ -146,8 +146,8 @@ else
     (cd SDL && make clean && make ${CMSSW12GEOMOPT} ${PT0P8OPT} ${T3T3EXTENSIONOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
 fi
 
-if [ ! -f SDL/sdl.so ]; then
-    echo "ERROR: SDL/sdl.so failed to compile!" | tee -a ${LOG}
+if [ ! -f SDL/libsdl.so ]; then
+    echo "ERROR: SDL/libsdl.so failed to compile!" | tee -a ${LOG}
     echo "See ${LOG} file for more detail..." | tee -a ${LOG}
     exit
 fi
