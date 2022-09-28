@@ -1482,7 +1482,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
             if(trk.see_hitIdx()[iSeed].size() > 3)
             {
                 isQuad = true;
-                hitIdxs.push_back(trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]);
+                hitIdxs.push_back(trk.see_hitIdx()[iSeed][3]);
             }
             //if (pt < 0){ ptbin = 0;}
             float neta = 25.;

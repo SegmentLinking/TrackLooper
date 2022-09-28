@@ -34,7 +34,7 @@ void fillSimTrackOutputBranches();
 // GPU
 
 void fillOutputBranches(SDL::Event* event);
-void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<float>& tc_eta, std::vector<float>& tc_phi);
+void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<float>& tc_eta, std::vector<float>& tc_phi, std::vector<vector<int>>& tc_hitIdxs, std::vector<int>& tc_hit_array_lengths);
 void fillTrackCandidateOutputBranches(SDL::Event* event);
 void fillTrackExtensionOutputBranches(SDL::Event* event);
 void fillPureTrackExtensionOutputBranches(SDL::Event* event);
