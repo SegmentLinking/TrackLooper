@@ -1432,10 +1432,6 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
     SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
     SDL::objectRanges& rangesInGPU = (*event->getRanges());
 
-    std::vector<int> tc_isFake;
-//    std::vector<float> tc_pt;
-//    std::vector<float> tc_eta;
-//    std::vector<float> tc_phi;
     std::vector<int> tc_type;
     std::vector<vector<int>> tc_hitIdxs;
 
@@ -1458,10 +1454,9 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
 
         std::vector<int> hit_idx;
         std::vector<int> hit_types;
-        int layer_binary = 0;
-        /*const*/ float pt;
-        /*const*/ float eta_pLS = -999;
-        /*const*/ float phi_pLS = -999;
+        float pt;
+        float eta_pLS = -999;
+        float phi_pLS = -999;
         tc_type.emplace_back(trackCandidateType);
         if (trackCandidateType == 8) //pLS
         {
@@ -1477,27 +1472,21 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
             unsigned int outerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[outerMiniDoubletIndex];
             unsigned int outerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[outerMiniDoubletIndex];
 
-            /*std::vector<int>*/ hit_idx = {
+            hit_idx = {
                 (int) hitsInGPU.idxs[innerMiniDoubletLowerHitIndex],
                 (int) hitsInGPU.idxs[innerMiniDoubletUpperHitIndex],
                 (int) hitsInGPU.idxs[outerMiniDoubletLowerHitIndex],
                 (int) hitsInGPU.idxs[outerMiniDoubletUpperHitIndex]
             };
 
-            /*std::vector<int>*/ hit_types = {0,0,0,0};
+            hit_types = {0,0,0,0};
             std::vector<int> module_idxs(4, pixelModuleIndex);        
 
-            int logicallayer0 = 0;
-            int logicallayer2 = 0;
-
-        layer_binary |= (1 << logicallayer0);
-        layer_binary |= (1 << logicallayer2);
        }else{
             if (trackCandidateType == 5) //pT3
             {
                 innerTrackletInnerSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[innerTrackletIdx];
                 innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx]]; //lower segment of the outer triplet
-                
                 outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx] + 1]; //upper segment of the outer triplet
 
                 betaIn_in = 0;
@@ -1520,7 +1509,6 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
             }
             if(trackCandidateType == 7) //pT5
             {
-                //unsigned int outerTrackletInnerSegmentIndex = -1;
                 //innerTrackletIndex = pLS
                 //outerTrackletIndex = T5
                 innerTrackletInnerSegmentIndex = innerTrackletIdx;
@@ -1562,7 +1550,7 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
             unsigned int outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outerTrackletOuterSegmentOuterMiniDoubletIndex];
             unsigned int outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outerTrackletOuterSegmentOuterMiniDoubletIndex];
 
-            /*std::vector<int>*/ hit_idx = {
+            hit_idx = {
                 (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex],
                 (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex],
                 (int) hitsInGPU.idxs[innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex],
@@ -1593,9 +1581,6 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
 
             if(trackCandidateType == 7)
             {
-            //unsigned int outermostSegmentInnerMiniDoubletIndex;            
-            //unsigned int outermostSegmentOuterMiniDoubletIndex;
-              // outermostSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outermostSegmentIndex];
                 unsigned int outermostSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outermostSegmentIndex + 1];
                 unsigned int outermostSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outermostSegmentOuterMiniDoubletIndex];
                 unsigned int outermostSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outermostSegmentOuterMiniDoubletIndex];
@@ -1645,7 +1630,6 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
                 ptAv = (ptAv_in + ptAv_out) / 2.;
             }
 
-            ///*std::vector<int>*/ hit_types;
             if (trackCandidateType != 4) // Then this means this track candidate is a pLS-based
             {
                 hit_types.push_back(0);
@@ -1661,88 +1645,7 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
                 hit_types.push_back(4);
             }
 
-            hit_types.push_back(4);
-            hit_types.push_back(4);
-            hit_types.push_back(4);
-            hit_types.push_back(4);
-            hit_types.push_back(4);
-            hit_types.push_back(4);
-            hit_types.push_back(4);
-            hit_types.push_back(4);
-            if(trackCandidateType == 7)
-            {
-                hit_types.push_back(4);
-                hit_types.push_back(4);
-            }
-
-
-            bool isPixel0 = (trackCandidateType != 4);
-            // bool isPixel1 = (idx == *(modulesInGPU.nLowerModules));
-            bool isPixel2 = (trackCandidateType != 4);
-            // bool isPixel3 = (idx == *(modulesInGPU.nLowerModules));
-            bool isPixel4 = false;
-            // bool isPixel5 = false;
-            bool isPixel6 = false;
-            // bool isPixel7 = false;
-            bool isPixel8 = false;
-            // bool isPixel9 = false;
-            bool isPixel10 = false;
-            // bool isPixel11 = false;
-            bool isPixel12 = false;
-
-            int layer0 = modulesInGPU.layers[module_idxs[0]];
-            // int layer1 = modulesInGPU.layers[module_idxs[1]];
-            int layer2 = modulesInGPU.layers[module_idxs[2]];
-            // int layer3 = modulesInGPU.layers[module_idxs[3]];
-            int layer4 = modulesInGPU.layers[module_idxs[4]];
-            // int layer5 = modulesInGPU.layers[module_idxs[5]];
-            int layer6 = modulesInGPU.layers[module_idxs[6]];
-            // int layer7 = modulesInGPU.layers[module_idxs[7]];
-            int layer8 = modulesInGPU.layers[module_idxs[8]];
-            // int layer9 = modulesInGPU.layers[module_idxs[9]];
-            int layer10 = modulesInGPU.layers[module_idxs[10]];
-            // int layer11 = modulesInGPU.layers[module_idxs[11]];
-            int layer12 = trackCandidateType == 7 ? modulesInGPU.layers[module_idxs[12]] : 0;
-
-
-            int subdet0 = modulesInGPU.subdets[module_idxs[0]];
-            // int subdet1 = modulesInGPU.subdets[module_idxs[1]];
-            int subdet2 = modulesInGPU.subdets[module_idxs[2]];
-            // int subdet3 = modulesInGPU.subdets[module_idxs[3]];
-            int subdet4 = modulesInGPU.subdets[module_idxs[4]];
-            // int subdet5 = modulesInGPU.subdets[module_idxs[5]];
-            int subdet6 = modulesInGPU.subdets[module_idxs[6]];
-            // int subdet7 = modulesInGPU.subdets[module_idxs[7]];
-            int subdet8 = modulesInGPU.subdets[module_idxs[8]];
-            // int subdet9 = modulesInGPU.subdets[module_idxs[9]];
-            int subdet10 = modulesInGPU.subdets[module_idxs[10]];
-            // int subdet11 = modulesInGPU.subdets[module_idxs[11]];
-            int subdet12 = trackCandidateType == 7 ? modulesInGPU.subdets[module_idxs[12]] : 0;
-
-
-            int logicallayer0 = isPixel0 ? 0 : layer0 + 6 * (subdet0 == 4);
-            // int logicallayer1 = isPixel1 ? 0 : layer1 + 6 * (subdet1 == 4);
-            int logicallayer2 = isPixel2 ? 0 : layer2 + 6 * (subdet2 == 4);
-            // int logicallayer3 = isPixel3 ? 0 : layer3 + 6 * (subdet3 == 4);
-            int logicallayer4 = isPixel4 ? 0 : layer4 + 6 * (subdet4 == 4);
-            // int logicallayer5 = isPixel5 ? 0 : layer5 + 6 * (subdet5 == 4);
-            int logicallayer6 = isPixel6 ? 0 : layer6 + 6 * (subdet6 == 4);
-            // int logicallayer7 = isPixel7 ? 0 : layer7 + 6 * (subdet7 == 4);
-            int logicallayer8 = isPixel8 ? 0 : layer8 + 6 * (subdet8 == 4);
-            // int logicallayer9 = isPixel9 ? 0 : layer9 + 6 * (subdet9 == 4);
-            int logicallayer10 = isPixel10 ? 0 : layer10 + 6 * (subdet10 == 4);
-            // int logicallayer11 = isPixel11 ? 0 : layer11 + 6 * (subdet11 == 4);
-            int logicallayer12 = trackCandidateType == 7 ? (isPixel12 == 0 ? 0 : layer12 + 6 * (subdet12 == 4)) : 0;
-
-            //int layer_binary = 0;
-            layer_binary |= (1 << logicallayer0);
-            layer_binary |= (1 << logicallayer2);
-            layer_binary |= (1 << logicallayer4);
-            layer_binary |= (1 << logicallayer6);
-            layer_binary |= (1 << logicallayer8);
-            layer_binary |= (1 << logicallayer10);
-            if(trackCandidateType == 7) layer_binary |= (1 << logicallayer12);
-            /*const float*/ pt = ptAv;
+            pt = ptAv;
       }// end !pLS
             tc_hitIdxs.push_back(hit_idx);
 
