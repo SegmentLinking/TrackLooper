@@ -1431,6 +1431,7 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
             phi_pLS = segmentsInGPU.phi[innerTrackletIdx];
 
             GetpLSHitIndex(modulesInGPU, rangesInGPU, segmentsInGPU, miniDoubletsInGPU, hitsInGPU, hit_idx, hit_types, hit_array_length, innerTrackletIdx, module_idxs);
+//            printf("%d ",segmentsInGPU.isQuad[innerTrackletIdx]);
 
         }
         else
@@ -1447,6 +1448,9 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
                 innerTrackletInnerSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[innerTrackletIdx]; // pixel segments
                 innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx]]; //lower segment of the outer triplet
                 outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx] + 1]; //upper segment of the outer triplet
+//                printf("%d ",segmentsInGPU.isQuad[innerTrackletInnerSegmentIndex]);
+//                printf("%d ",segmentsInGPU.isQuad[innerTrackletOuterSegmentIndex]);
+//                printf("%d ",segmentsInGPU.isQuad[outerTrackletOuterSegmentIndex]);
                 }
 
                 if (trackCandidateType == 7){ //pT5
@@ -1463,6 +1467,7 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
                 innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]]; // 1,2
                 outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx] + 1]; // 2,3
                 outermostSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1] + 1]; // 4,5
+//                printf("%d ",segmentsInGPU.isQuad[innerTrackletInnerSegmentIndex]);
                 }
 
                 //getting MDs
@@ -1495,7 +1500,8 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
                 (int) hitsInGPU.idxs[innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex]
                 };
 
-                if(segmentsInGPU.isQuad[innerTrackletInnerSegmentIndex])
+//                if(segmentsInGPU.isQuad[innerTrackletInnerSegmentIndex])
+                if (innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex != innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex)
                     hit_idx.push_back((int)hitsInGPU.idxs[innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex]);
 
                 //outer hits
@@ -1521,11 +1527,16 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
                     hit_idx.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletLowerHitIndex]);
                     hit_idx.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletUpperHitIndex]);
                 }
-                                
+/*
                 if(segmentsInGPU.isQuad[innerTrackletInnerSegmentIndex] && trackCandidateType == 5) hit_array_length = 10;
                 if(!segmentsInGPU.isQuad[innerTrackletInnerSegmentIndex] && trackCandidateType == 5) hit_array_length = 9;
                 if(segmentsInGPU.isQuad[innerTrackletInnerSegmentIndex] && trackCandidateType == 7) hit_array_length = 14;
                 if(!segmentsInGPU.isQuad[innerTrackletInnerSegmentIndex] && trackCandidateType == 7) hit_array_length = 13;
+*/
+                if(innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex != innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex && trackCandidateType == 5) hit_array_length = 10;
+                if(innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex == innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex && trackCandidateType == 5) hit_array_length = 9;
+                if(innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex != innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex && trackCandidateType == 7) hit_array_length = 14;
+                if(innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex == innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex && trackCandidateType == 7) hit_array_length = 13;
             }
 
             if (trackCandidateType == 4) // T5
