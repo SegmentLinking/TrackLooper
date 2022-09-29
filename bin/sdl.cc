@@ -512,6 +512,7 @@ void run_sdl()
             this_superbin_vec,
             this_pixelType_vec,
             this_isQuad_vec);
+            
             // Run Mini-doublet
             timing_MD = runMiniDoublet(events.at(omp_get_thread_num()));
             // Run Segment
@@ -552,7 +553,7 @@ void run_sdl()
                 for (int itc=0; itc<5; itc++)
                 {
                     for (int ilength=0; ilength<tc_hit_array_lengths[itc]; ilength++)
-                        printf("%d %d %f \n", tc_hitIdxs[itc][ilength],  tc_hit_array_lengths[itc],  tc_pt[itc]);
+                        printf("%d %d %f %f \n", tc_hitIdxs[itc][ilength],  tc_hit_array_lengths[itc], tc_pt[itc], tc_eta[itc]);
                 }
             }
 */
