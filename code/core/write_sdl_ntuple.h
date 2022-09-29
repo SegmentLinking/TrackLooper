@@ -33,9 +33,12 @@ void createPrimitiveBranches_v2();
 void fillSimTrackOutputBranches();
 // GPU
 
+//get hit index
+void GetpLSHitIndex(SDL::modules& modulesInGPU, SDL::objectRanges& rangesInGPU, SDL::segments& segmentsInGPU, SDL::miniDoublets& miniDoubletsInGPU, SDL::hits& hitsInGPU, vector<int>& hit_idx, vector<int>& hit_types, int& hit_array_length, unsigned int innerTrackletIdx, vector<int>& module_idxs);
+void GetT5HitIndex(SDL::modules& modulesInGPU, SDL::objectRanges& rangesInGPU, SDL::triplets& tripletsInGPU, SDL::segments& segmentsInGPU, SDL::miniDoublets& miniDoubletsInGPU, SDL::hits& hitsInGPU, vector<int>& hit_idx, vector<int>& hit_types, int& hit_array_length, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, int innerTrackletInnerSegmentIndex, int innerTrackletOuterSegmentIndex, int outerTrackletOuterSegmentIndex, vector<int>& module_idxs);
+
 void fillOutputBranches(SDL::Event* event);
 void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<float>& tc_eta, std::vector<float>& tc_phi, std::vector<vector<int>>& tc_hitIdxs, std::vector<int>& tc_hit_array_lengths);
-void GetpLSHitIndex(SDL::modules& modulesInGPU, SDL::objectRanges& rangesInGPU, SDL::segments& segmentsInGPU, SDL::miniDoublets& miniDoubletsInGPU, SDL::hits& hitsInGPU, vector<int>& hit_idx, vector<int>& hit_types, int& hit_array_length, unsigned int innerTrackletIdx, vector<int>& module_idxs);
 void fillTrackCandidateOutputBranches(SDL::Event* event);
 void fillTrackExtensionOutputBranches(SDL::Event* event);
 void fillPureTrackExtensionOutputBranches(SDL::Event* event);
