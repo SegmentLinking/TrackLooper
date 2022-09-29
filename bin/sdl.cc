@@ -311,7 +311,13 @@ int main(int argc, char** argv)
     this_charge_vec,
     this_superbin_vec,
     this_pixelType_vec,
-    this_isQuad_vec);
+    this_isQuad_vec,
+    tc_pt,
+    tc_eta,
+    tc_phi,
+    tc_hitIdxs,
+    tc_hit_array_lengths
+    );
 #else
     run_sdl();
 #endif
