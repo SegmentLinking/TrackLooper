@@ -889,18 +889,12 @@ void fillSimTrackOutputBranches()
 
     //const auto simHitIdxs = &trk.sim_simHitIdx();
     const auto simHitLays = &trk.simhit_layer();
-        //count++;
-        //if(hit.size() ==0){continue;}
-        //printf("size: %d\n",hit.size());
-        //for(auto lay: hit){
-        //  printf("%d\n",simHitLays->at(lay));
-        //}
+
     std::vector<float> sim_len;
     std::vector<float> sim_lengap;
     std::vector<float> sim_hits;
     for(unsigned int isimtrk =0; isimtrk < trk.sim_pt().size(); ++isimtrk)
     {
-       //printf("size: %d\n",trk.sim_simHitIdx()[isimtrk].size());
        bool lay1 = 0;
        bool lay2 = 0;
        bool lay3 = 0;
@@ -924,20 +918,10 @@ void fillSimTrackOutputBranches()
           if (not (trk.simhit_subdet()[simhitidx] == 4 or trk.simhit_subdet()[simhitidx] == 5))
             continue;
 
-          //if (not (trk.simhit_particle()[simhitidx] == trk.sim_pdgId()[isimtrk]))
-          //  continue;
-
-          //if (isMuonCurlingHit(isimtrk, ith_hit)){
-          //// if (false) {
-          //  len = -2;
-          //  lengap = -2;
-          //  break;
-          //}
           len =0;
           lengap =0;
           hits++;
-        
-          //printf("%d\n",simHitLays->at(simhitidx));
+
           int lay = simHitLays->at(simhitidx);
           if(trk.simhit_subdet()[simhitidx] == 4){
           if(lay ==1){lay1=1;}
@@ -1435,7 +1419,7 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
     unsigned int nTrackCandidates = *trackCandidatesInGPU.nTrackCandidates;
     for (unsigned int jdx = 0; jdx < nTrackCandidates; jdx++)
     {
-        float hit_array_length=0;
+        int hit_array_length=0;
         short trackCandidateType = trackCandidatesInGPU.trackCandidateType[jdx];
         unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * jdx];
         unsigned int outerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * jdx + 1];
@@ -1479,7 +1463,7 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
             if(segmentsInGPU.isQuad[innerTrackletIdx]){
                 hit_idx.push_back((int)hitsInGPU.idxs[outerMiniDoubletLowerHitIndex]);
                 hit_array_length = 4;
-            }     
+            }  
         }
         else
         {
@@ -1623,6 +1607,7 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
                 (int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex],
                 (int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
                 };
+                hit_array_length = 10;
             }
 
             unsigned int iiia_idx = -1;
@@ -1704,6 +1689,8 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
             tc_phi.push_back(phi);
             tc_hitIdxs.push_back(hit_idx);
             tc_hit_array_lengths.push_back(hit_array_length);
+//            printf("%d \n", hit_array_length);
+
     }
 
 }

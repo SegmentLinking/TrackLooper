@@ -56,7 +56,13 @@ void run_sdl(
     std::vector<float> this_charge_vec,
     std::vector<int> this_superbin_vec,
     std::vector<int8_t> this_pixelType_vec,
-    std::vector<short> this_isQuad_vec);
+    std::vector<short> this_isQuad_vec,
+    std::vector<float>& tc_pt,
+    std::vector<float>& tc_eta,
+    std::vector<float>& tc_phi,
+    std::vector<vector<int>>& tc_hitIdxs,
+    std::vector<int>& tc_hit_array_lengths
+    );
 #else
 void run_sdl();
 #endif

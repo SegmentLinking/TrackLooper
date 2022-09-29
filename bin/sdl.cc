@@ -364,7 +364,13 @@ void run_sdl(
     std::vector<float> this_charge_vec,
     std::vector<int> this_superbin_vec,
     std::vector<int8_t> this_pixelType_vec,
-    std::vector<short> this_isQuad_vec)
+    std::vector<short> this_isQuad_vec,
+    std::vector<float>& tc_pt,
+    std::vector<float>& tc_eta,
+    std::vector<float>& tc_phi,
+    std::vector<vector<int>>& tc_hitIdxs,
+    std::vector<int>& tc_hit_array_lengths
+    )
 #else
 void run_sdl()
 #endif
@@ -525,16 +531,10 @@ void run_sdl()
             #pragma omp critical
             {
                 trk.GetEntry(evt_num.at(evt));
-                std::vector<float> tc_pt;
-                std::vector<float> tc_eta;
-                std::vector<float> tc_phi;
-                get_output_CMSSW(events.at(omp_get_thread_num()), tc_pt, tc_eta, tc_phi);
-                printf("%f %f %f", tc_pt[0], tc_eta[0], tc_phi[0]);
-                printf("%f %f %f", tc_pt[1], tc_eta[1], tc_phi[1]);
-                printf("%f %f %f", tc_pt[2], tc_eta[2], tc_phi[2]);
+                get_output_CMSSW(events.at(omp_get_thread_num()), tc_pt, tc_eta, tc_phi, tc_hitIdxs, tc_hit_array_lengths);
             }
 #endif
-            #pragma omp critical
+/*            #pragma omp critical
             {
                 trk.GetEntry(evt_num.at(evt));
                 std::vector<float> tc_pt;
@@ -543,20 +543,13 @@ void run_sdl()
                 std::vector<vector<int>> tc_hitIdxs;
                 std::vector<int> tc_hit_array_lengths;
                 get_output_CMSSW(events.at(omp_get_thread_num()), tc_pt, tc_eta, tc_phi, tc_hitIdxs, tc_hit_array_lengths);
-/*                for (int itc=0; itc<tc_pt.size(); itc++)
+                for (int itc=0; itc<5; itc++)
                 {
-                    if (fabs(tc_pt[itc]-3.058696)<0.01)
-                        for (int ilength=0; ilength<tc_hit_array_lengths[itc]; ilength++)
-                        printf("%f %f %f \n", tc_hitIdxs[itc][ilength],  tc_hitIdxs[itc][ilength],  tc_hitIdxs[itc][ilength])
+                    for (int ilength=0; ilength<tc_hit_array_lengths[itc]; ilength++)
+                        printf("%d %d %f \n", tc_hitIdxs[itc][ilength],  tc_hit_array_lengths[itc],  tc_pt[itc]);
                 }
-*/
-/*                printf("%f %f %f\n", tc_pt[0], tc_eta[0], tc_phi[0]);
-                printf("%f %f %f\n", tc_pt[1], tc_eta[1], tc_phi[1]);
-                printf("%f %f %f\n", tc_pt[2], tc_eta[2], tc_phi[2]);
-                printf("%f %f %f\n", tc_pt[3], tc_eta[3], tc_phi[3]);
-                printf("%f %f %f\n", tc_pt[4], tc_eta[4], tc_phi[4]);
-*/
             }
+*/
             //Clear this event
             events.at(omp_get_thread_num())->resetEvent();
 
