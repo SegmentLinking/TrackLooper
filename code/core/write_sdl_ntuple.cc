@@ -1599,7 +1599,7 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
             if (trackCandidateType == 4)
             {
                 SDL::CPU::Hit hitA(trk.ph2_x()[hit_idx[0]], trk.ph2_y()[hit_idx[0]], trk.ph2_z()[hit_idx[0]]);
-                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[11]], trk.ph2_y()[hit_idx[11]], trk.ph2_z()[hit_idx[11]]);
+                SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[9]], trk.ph2_y()[hit_idx[9]], trk.ph2_z()[hit_idx[9]]);
                 eta = hitB.eta();
                 phi = hitA.phi();
             }
