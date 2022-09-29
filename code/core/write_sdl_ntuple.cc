@@ -991,7 +991,6 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
     SDL::hits& hitsInGPU = (*event->getHits());
     SDL::modules& modulesInGPU = (*event->getModules());
     SDL::quintuplets& quintupletsInGPU = (*event->getQuintuplets());
-    //SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
     SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
     SDL::objectRanges& rangesInGPU = (*event->getRanges());
     // Did it match to track candidate?
@@ -1011,6 +1010,7 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
     unsigned int nTrackCandidates = *trackCandidatesInGPU.nTrackCandidates;
     for (unsigned int jdx = 0; jdx < nTrackCandidates; jdx++)
     {
+        int hit_array_length=0;
         short trackCandidateType = trackCandidatesInGPU.trackCandidateType[jdx];
         unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * jdx];
         unsigned int outerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * jdx + 1];
@@ -1027,6 +1027,7 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
 
         std::vector<int> hit_idx;
         std::vector<int> hit_types;
+        std::vector<int> module_idxs; 
         int layer_binary = 0;
         /*const*/ float pt;
         /*const*/ float eta_pLS = -999;
@@ -1034,34 +1035,21 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
         tc_type.emplace_back(trackCandidateType);
         if (trackCandidateType == 8) //pLS
         {
-            unsigned int pixelModuleIndex = *(modulesInGPU.nLowerModules);
-            unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + innerTrackletIdx;
             pt = segmentsInGPU.ptIn[innerTrackletIdx];
             eta_pLS = segmentsInGPU.eta[innerTrackletIdx];
-            phi_pLS = segmentsInGPU.phi[innerTrackletIdx];
-            unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
-            unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
-            unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerMiniDoubletIndex];
-            unsigned int innerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[innerMiniDoubletIndex];
-            unsigned int outerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[outerMiniDoubletIndex];
-            unsigned int outerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[outerMiniDoubletIndex];
-
-            /*std::vector<int>*/ hit_idx = {
-                (int) hitsInGPU.idxs[innerMiniDoubletLowerHitIndex],
-                (int) hitsInGPU.idxs[innerMiniDoubletUpperHitIndex],
-                (int) hitsInGPU.idxs[outerMiniDoubletLowerHitIndex],
-                (int) hitsInGPU.idxs[outerMiniDoubletUpperHitIndex]
-            };
-
-            /*std::vector<int>*/ hit_types = {0,0,0,0};
-            std::vector<int> module_idxs(4, pixelModuleIndex);        
+            phi_pLS = segmentsInGPU.phi[innerTrackletIdx];      
 
             int logicallayer0 = 0;
             int logicallayer2 = 0;
 
-        layer_binary |= (1 << logicallayer0);
-        layer_binary |= (1 << logicallayer2);
-       }else{
+            layer_binary |= (1 << logicallayer0);
+            layer_binary |= (1 << logicallayer2);
+
+            GetpLSHitIndex(modulesInGPU, rangesInGPU, segmentsInGPU, miniDoubletsInGPU, hitsInGPU, hit_idx, hit_types, hit_array_length, innerTrackletIdx, module_idxs);
+
+       }
+       else
+       {
             if (trackCandidateType == 5) //pT3
             {
                 innerTrackletInnerSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[innerTrackletIdx];
@@ -1162,9 +1150,6 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
 
             if(trackCandidateType == 7)
             {
-            //unsigned int outermostSegmentInnerMiniDoubletIndex;            
-            //unsigned int outermostSegmentOuterMiniDoubletIndex;
-              // outermostSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outermostSegmentIndex];
                 unsigned int outermostSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outermostSegmentIndex + 1];
                 unsigned int outermostSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outermostSegmentOuterMiniDoubletIndex];
                 unsigned int outermostSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outermostSegmentOuterMiniDoubletIndex];
@@ -1214,7 +1199,6 @@ void fillTrackCandidateOutputBranches(SDL::Event* event)
                 ptAv = (ptAv_in + ptAv_out) / 2.;
             }
 
-            ///*std::vector<int>*/ hit_types;
             if (trackCandidateType != 4) // Then this means this track candidate is a pLS-based
             {
                 hit_types.push_back(0);
@@ -1435,35 +1419,19 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
         float betaOut_out = 0;
 
         std::vector<int> hit_idx;
+        std::vector<int> hit_types;
+        std::vector<int> module_idxs; 
         float pt;
         float eta_pLS = -999;
         float phi_pLS = -999;
         if (trackCandidateType == 8) //pLS
         {
-            unsigned int pixelModuleIndex = *(modulesInGPU.nLowerModules);
-            unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + innerTrackletIdx;
             pt = segmentsInGPU.ptIn[innerTrackletIdx];
             eta_pLS = segmentsInGPU.eta[innerTrackletIdx];
             phi_pLS = segmentsInGPU.phi[innerTrackletIdx];
 
-            unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
-            unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
-            unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerMiniDoubletIndex];
-            unsigned int innerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[innerMiniDoubletIndex];
-            unsigned int outerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[outerMiniDoubletIndex];
-            unsigned int outerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[outerMiniDoubletIndex];
+            GetpLSHitIndex(modulesInGPU, rangesInGPU, segmentsInGPU, miniDoubletsInGPU, hitsInGPU, hit_idx, hit_types, hit_array_length, innerTrackletIdx, module_idxs);
 
-            hit_idx = {
-                (int) hitsInGPU.idxs[innerMiniDoubletLowerHitIndex],
-                (int) hitsInGPU.idxs[innerMiniDoubletUpperHitIndex],
-                (int) hitsInGPU.idxs[outerMiniDoubletUpperHitIndex]
-            };
-
-            hit_array_length = 3;
-            if(segmentsInGPU.isQuad[innerTrackletIdx]){
-                hit_idx.push_back((int)hitsInGPU.idxs[outerMiniDoubletLowerHitIndex]);
-                hit_array_length = 4;
-            }  
         }
         else
         {
@@ -1696,8 +1664,46 @@ void get_output_CMSSW(SDL::Event* event, std::vector<float>& tc_pt, std::vector<
 }
 
 
+void GetpLSHitIndex(
+    SDL::modules& modulesInGPU,
+    SDL::objectRanges& rangesInGPU,
+    SDL::segments& segmentsInGPU,
+    SDL::miniDoublets& miniDoubletsInGPU,
+    SDL::hits& hitsInGPU,
+    vector<int>& hit_idx,
+    vector<int>& hit_types,
+    int& hit_array_length,
+    unsigned int innerTrackletIdx,
+    vector<int>& module_idxs)
+    {
 
+    unsigned int pixelModuleIndex = *(modulesInGPU.nLowerModules);
+    unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + innerTrackletIdx;
 
+    unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
+    unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
+    unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerMiniDoubletIndex];
+    unsigned int innerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[innerMiniDoubletIndex];
+    unsigned int outerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[outerMiniDoubletIndex];
+    unsigned int outerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[outerMiniDoubletIndex];
+
+    hit_idx = {
+        (int) hitsInGPU.idxs[innerMiniDoubletLowerHitIndex],
+        (int) hitsInGPU.idxs[innerMiniDoubletUpperHitIndex],
+        (int) hitsInGPU.idxs[outerMiniDoubletUpperHitIndex]
+    };
+
+    hit_array_length = 3;
+    hit_types = {0,0,0};
+    module_idxs = {pixelModuleIndex, pixelModuleIndex, pixelModuleIndex}; 
+    if(segmentsInGPU.isQuad[innerTrackletIdx]){
+        hit_idx.push_back((int)hitsInGPU.idxs[outerMiniDoubletLowerHitIndex]);
+        hit_array_length = 4;
+        hit_types.push_back(0);
+        module_idxs.push_back(pixelModuleIndex);
+    }  
+
+}
 
 
 

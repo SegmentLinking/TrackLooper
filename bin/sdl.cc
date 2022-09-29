@@ -541,7 +541,7 @@ void run_sdl()
                 get_output_CMSSW(events.at(omp_get_thread_num()), tc_pt, tc_eta, tc_phi, tc_hitIdxs, tc_hit_array_lengths);
             }
 #endif
-/*            #pragma omp critical
+            #pragma omp critical
             {
                 trk.GetEntry(evt_num.at(evt));
                 std::vector<float> tc_pt;
@@ -550,13 +550,14 @@ void run_sdl()
                 std::vector<vector<int>> tc_hitIdxs;
                 std::vector<int> tc_hit_array_lengths;
                 get_output_CMSSW(events.at(omp_get_thread_num()), tc_pt, tc_eta, tc_phi, tc_hitIdxs, tc_hit_array_lengths);
-                for (int itc=0; itc<5; itc++)
+                for (int itc=0; itc<tc_pt.size(); itc++)
                 {
+                    if (tc_hit_array_lengths[itc]!=4 && tc_hit_array_lengths[itc]!=3) continue;
                     for (int ilength=0; ilength<tc_hit_array_lengths[itc]; ilength++)
                         printf("%d %d %f %f \n", tc_hitIdxs[itc][ilength],  tc_hit_array_lengths[itc], tc_pt[itc], tc_eta[itc]);
                 }
             }
-*/
+
             //Clear this event
             events.at(omp_get_thread_num())->resetEvent();
 
