@@ -277,11 +277,8 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
     if (modulesInGPU.sides[lowerModuleIndex]!= Center)
     {
         // When it is tilted, use the new shifted positions
-#ifdef CMSSW12GEOM // TODO: This is somewhat of an mystery.... somewhat confused why this is the case
+// TODO: This is somewhat of an mystery.... somewhat confused why this is the case
         if (modulesInGPU.moduleLayerType[lowerModuleIndex] != Pixel)
-#else
-        if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
-#endif
         {
             // dPhi Change should be calculated so that the upper hit has higher rt.
             // In principle, this kind of check rt_lower < rt_upper should not be necessary because the hit shifting should have taken care of this.
@@ -637,11 +634,8 @@ __device__ void SDL::shiftStripHits(struct modules& modulesInGPU, /*struct hits&
     // Assign hit pointers based on their hit type
     if (modulesInGPU.moduleType[lowerModuleIndex] == PS)
     {
-#ifdef CMSSW12GEOM // TODO: This is somewhat of an mystery.... somewhat confused why this is the case
+// TODO: This is somewhat of an mystery.... somewhat confused why this is the case
         if (modulesInGPU.subdets[lowerModuleIndex] == Barrel ? modulesInGPU.moduleLayerType[lowerModuleIndex] != Pixel : modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
-#else
-        if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
-#endif
         {
             //old to delete
        //     pixelHitIndex = lowerHitIndex;
