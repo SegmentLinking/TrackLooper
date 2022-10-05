@@ -189,8 +189,8 @@ __device__ void SDL::addPixelTripletToMemory(struct modules& modulesInGPU, struc
     pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex] = segmentsInGPU.innerLowerModuleIndices[pixelSegmentIndex];
     pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex + 1] = segmentsInGPU.outerLowerModuleIndices[pixelSegmentIndex];
     pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex + 2] = tripletsInGPU.lowerModuleIndices[3 * tripletIndex];
-     pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex + 3] = tripletsInGPU.lowerModuleIndices[3 * tripletIndex + 1];
-      pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex + 4] = tripletsInGPU.lowerModuleIndices[3 * tripletIndex + 2];
+    pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex + 3] = tripletsInGPU.lowerModuleIndices[3 * tripletIndex + 1];
+    pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex + 4] = tripletsInGPU.lowerModuleIndices[3 * tripletIndex + 2];
  
     unsigned int pixelInnerMD = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
     unsigned int pixelOuterMD = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
@@ -342,7 +342,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
         float zPix[2] = {mdsInGPU.anchorZ[pixelInnerMDIndex], mdsInGPU.anchorZ[pixelOuterMDIndex]};
 
         rzChiSquared = computePT3RZChiSquared(modulesInGPU, lowerModuleIndices, rtPix, xPix, yPix, zPix, rts, xs, ys, zs, pixelSegmentPt, pixelSegmentPx, pixelSegmentPy, pixelSegmentPz, pixelG, pixelF, pixelRadiusPCA);
-        pass = pass and passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
+//        pass = pass and passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
         if(not pass) return pass;
     }
 //    printf("%f ",rzChiSquared);
@@ -352,7 +352,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     if(runChiSquaredCuts and pixelSegmentPt < 5.0f)
 //    if(runChiSquaredCuts)
     {
-        pass = pass and passPT3RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquared);
+//        pass = pass and passPT3RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquared);
         if(not pass) return pass;
     }
 
@@ -363,7 +363,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     if(runChiSquaredCuts and pixelSegmentPt < 5.0f)
 //    if(runChiSquaredCuts)
     {
-        pass = pass and passPT3RPhiChiSquaredInwardsCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquaredInwards);
+//        pass = pass and passPT3RPhiChiSquaredInwardsCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquaredInwards);
         if(not pass) return pass;
     }
 //    printf("%f ",rzChiSquared);
@@ -450,81 +450,92 @@ __device__ bool SDL::passPT3RZChiSquaredCuts(struct modules& modulesInGPU, uint1
     if(layer1 == 8 and layer2 == 9 and layer3 == 10)
     {
 //        return rzChiSquared < 85.2499f; //Balaji's linear
-//        return rzChiSquared < 13.7527f; // using xy in barrel
-        return rzChiSquared < 14.0f;
+//        return rzChiSquared < 13.7527f; // using xy in barrel, CMSSW 10 geo
+//        return rzChiSquared < 14.0f; //using r, CMSSW 10 geo
+        return rzChiSquared < 13.2084f; //CMSSW 12 geo
     }
     else if(layer1 == 8 and layer2 == 9 and layer3 == 15)
     {
 //        return rzChiSquared < 85.2499f; //Balaji's linear
-//        return rzChiSquared < 15.2033f; // using xy in barrel
-        return rzChiSquared < 15.2f;
+//        return rzChiSquared < 15.2033f; // using xy in barrel, CMSSW 10 geo
+//        return rzChiSquared < 15.2f; //using r, CMSSW 10 geo
+        return rzChiSquared < 14.6133f; //CMSSW 12 geo
     }
 
     else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
 //        return rzChiSquared < 74.19805f; //Balaji's linear
-//        return rzChiSquared < 15.1785f; // using xy in barrel
-        return rzChiSquared < 14.6117f;
+//        return rzChiSquared < 15.1785f; // using xy in barrel, CMSSW 10 geo
+//        return rzChiSquared < 14.6117f; //using r, CMSSW 10 geo
+        return rzChiSquared < 10.9557f; //CMSSW 12 geo
     }
     else if(layer1 == 7 and layer2 == 8 and layer3 == 14)
     {
 //        return rzChiSquared < 97.9479f; //Balaji's linear
-//        return rzChiSquared < 17.3333f; // using xy in barrel
-        return rzChiSquared < 16.9833f;        
+//        return rzChiSquared < 17.3333f; // using xy in barrel, CMSSW 10 geo
+//        return rzChiSquared < 16.9833f; //using r, CMSSW 10 geo    
+        return rzChiSquared < 16.896f; //CMSSW 12 geo  
     }
 
     else if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
 //        return rzChiSquared < 451.1407f; //Balaji's linear
-//        return rzChiSquared < 9.6535f; // using xy in barrel
-        return rzChiSquared < 9.0672f;
-        
+//        return rzChiSquared < 9.6535f; // using xy in barrel, CMSSW 10 geo
+//        return rzChiSquared < 9.0672f; //using r, CMSSW 10 geo
+        return rzChiSquared < 8.182f; //CMSSW 12 geo        
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
 //        return rzChiSquared < 595.546f; //Balaji's linear
-//        return rzChiSquared < 27.7156f;  // using xy in barrel
-        return rzChiSquared < 27.076f;
-        
+//        return rzChiSquared < 27.7156f;  // using xy in barrel, CMSSW 10 geo
+//        return rzChiSquared < 27.076f; //using r, CMSSW 10 geo
+        return rzChiSquared < 42.336f; //CMSSW 12 geo
     }
 
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
 //        return rzChiSquared < 518.339f; //Balaji's linear
-//        return rzChiSquared < 7.9731f; // using xy in barrel
-        return rzChiSquared < 7.441f;
+//        return rzChiSquared < 7.9731f; // using xy in barrel, CMSSW 10 geo
+//        return rzChiSquared < 7.441f; //using r, CMSSW 10 geo
+        return rzChiSquared < 7.7367f; //CMSSW 12 geo
     }
 
     else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
 //        return rzChiSquared < 684.253f; //Balaji's linear
-//        return rzChiSquared < 44.0833f; // using xy in barrel
-        return rzChiSquared < 40.54f;
+//        return rzChiSquared < 44.0833f; // using xy in barrel, CMSSW 10 geo
+//        return rzChiSquared < 40.54f; //using r, CMSSW 10 geo
+        return rzChiSquared < 34.68f; //CMSSW 12 geo
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 12)
     {
 //        return rzChiSquared < 684.253f; //Balaji's linear
-//        return rzChiSquared < 34.37f; // using xy in barrel
-        return rzChiSquared < 35.36f;
+//        return rzChiSquared < 34.37f; // using xy in barrel, CMSSW 10 geo
+//        return rzChiSquared < 35.36f; //using r, CMSSW 10 geo
+        return rzChiSquared < 51.76f; //CMSSW 12 geo
     }
+    
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
 //        return rzChiSquared  < 392.654f; //Balaji's linear
-//        return rzChiSquared  < 29.7f; // using xy in barrel
-        return rzChiSquared  < 32.38f;
+//        return rzChiSquared  < 29.7f; // using xy in barrel, CMSSW 10 geo
+//        return rzChiSquared  < 32.38f; //using r, CMSSW 10 geo
+        return rzChiSquared < 35.22f; //CMSSW 12 geo
     }
 
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
 //        return rzChiSquared < 518.339f; //Balaji's linear
-//        return rzChiSquared < 38.7867f; // using xy in barrel
-        return rzChiSquared < 44.24f;
+//        return rzChiSquared < 38.7867f; // using xy in barrel, CMSSW 10 geo
+//        return rzChiSquared < 44.24f; //using r, CMSSW 10 geo
+        return rzChiSquared < 37.9f; //CMSSW 12 geo
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 13)
     {
 //        return rzChiSquared < 518.339f; //Balaji's linear
-//        return rzChiSquared < 28.97f; // using xy in barrel
-        return rzChiSquared < 27.88f; 
+//        return rzChiSquared < 28.97f; // using xy in barrel, CMSSW 10 geo
+//        return rzChiSquared < 27.88f; //using r, CMSSW 10 geo
+        return rzChiSquared < 15.9667f; //CMSSW 12 geo
     }
 
     //default - category not found!
@@ -601,7 +612,12 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
                 float diffz1 = fabs(solz1-zsi)*100;
                 float diffz2 = fabs(solz2-zsi)*100;
                 diffz[iq] = min(diffz1,diffz2);
-            }
+/*                if (diffz1<diffz2){
+                float x_test=x1+Px/a*sol1-Py/a*(1-sqrt(1-sol1*sol1));
+                float y_test=y1+Py/a*sol1+Px/a*(1-sqrt(1-sol1*sol1));
+                printf("r hit:%f, xhit: %f, x: %f, yhit: %f, y:%f, r:%f, \n", sqrt(xsi*xsi+ysi*ysi), xsi, x_test, ysi, y_test, sqrt(x_test*x_test+y_test*y_test));
+                }
+*/            }
         }
 /*
         a = -a;
