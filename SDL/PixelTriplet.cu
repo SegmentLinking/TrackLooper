@@ -342,7 +342,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
         float zPix[2] = {mdsInGPU.anchorZ[pixelInnerMDIndex], mdsInGPU.anchorZ[pixelOuterMDIndex]};
 
         rzChiSquared = computePT3RZChiSquared(modulesInGPU, lowerModuleIndices, rtPix, xPix, yPix, zPix, rts, xs, ys, zs, pixelSegmentPt, pixelSegmentPx, pixelSegmentPy, pixelSegmentPz, pixelG, pixelF, pixelRadiusPCA);
-//        pass = pass and passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
+        pass = pass and passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
         if(not pass) return pass;
     }
 //    printf("%f ",rzChiSquared);
@@ -352,7 +352,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     if(runChiSquaredCuts and pixelSegmentPt < 5.0f)
 //    if(runChiSquaredCuts)
     {
-//        pass = pass and passPT3RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquared);
+        pass = pass and passPT3RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquared);
         if(not pass) return pass;
     }
 
@@ -363,7 +363,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     if(runChiSquaredCuts and pixelSegmentPt < 5.0f)
 //    if(runChiSquaredCuts)
     {
-//        pass = pass and passPT3RPhiChiSquaredInwardsCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquaredInwards);
+        pass = pass and passPT3RPhiChiSquaredInwardsCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquaredInwards);
         if(not pass) return pass;
     }
 //    printf("%f ",rzChiSquared);
