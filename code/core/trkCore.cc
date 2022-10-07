@@ -966,7 +966,7 @@ void loadMaps()
     SDL::moduleConnectionMap.load(mappath.Data());
     ana.moduleConnectiongMapLoose.load(mappath.Data());
 
-    TString pLSMapDir = "/data2/segmentlinking/pixelmap_CMSSW_12_2_0_pre2_0p8minPt";
+    TString pLSMapDir = TrackLooperDir+"/data/pixelmaps_CMSSW_12_2_0_pre2_0p8minPt";
 
     std::cout << "Loading pLS maps ... from pLSMapDir = " << pLSMapDir << std::endl;
 
