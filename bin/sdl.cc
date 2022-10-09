@@ -330,12 +330,13 @@ void run_sdl()
                 std::vector<std::vector<int8_t>>      out_pixelType_vec;
                 std::vector<std::vector<short>>    out_isQuad_vec;
                 std::vector<int>    evt_num;
+                std::vector<TString> file_name;
                 //std::vector<SDL::Event> events;
     // Looping input file
     while (ana.looper.nextEvent())
     {
 
-        if (ana.looper.getCurrentEventIndex() ==49) {continue;}
+        // if (ana.looper.getCurrentEventIndex() ==49) {continue;}
         std::cout << "PreLoading event number = " << ana.looper.getCurrentEventIndex() << std::endl;
 
         if (not goodEvent())
@@ -374,6 +375,7 @@ void run_sdl()
                 );
         }
         evt_num.push_back(ana.looper.getCurrentEventIndex());
+        file_name.push_back(ana.looper.getCurrentFileName());
     }
 
 
@@ -489,12 +491,17 @@ float timing_TCE;
               #pragma omp critical
               {
                 unsigned int trkev = evt_num.at(evt);
+                TString fname = file_name.at(evt);
+                TFile* f = TFile::Open(fname.Data(), "open");
+                TTree* t = (TTree*) f->Get(ana.input_tree_name.Data());
                 //if(evt>=49){ trkev = evt+1;}
+                trk.Init(t);
                 trk.GetEntry(trkev);
                 if (not ana.do_cut_value_ntuple)
                 {
                     fillOutputBranches(events.at(omp_get_thread_num()));
                 }
+                f->Close();
               }
             }
 
