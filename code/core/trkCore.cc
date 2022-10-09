@@ -1169,10 +1169,6 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
             // get pixel superbin
             //int ptbin = -1;
             int pixtype =-1;
-<<<<<<< HEAD
-=======
-
->>>>>>> 8806ec9... add charge information from ntuple to kernels
             if (ptIn >= 2.0){ /*ptbin = 1;*/pixtype=0;}
             else if (ptIn >= (0.8 - 2 * ptErr) and ptIn < 2.0){ 
               //ptbin = 0;
