@@ -124,12 +124,13 @@ END
 )
 
 FULLSTRSAMPLE=$(python -c "$PYTHON_CODE")
-SAMPLE=${FULLSTRSAMPLE//"TObjString = "/}
+SAMPLE=PU200
+# SAMPLE=${FULLSTRSAMPLE//"TObjString = "/}
 
-if [[ "$SAMPLE" == *"/"* ]]; then
-    SAMPLE=${SAMPLE//\//_-_}
-    SAMPLE=${SAMPLE//./_}
-fi
+# if [[ "$SAMPLE" == *"/"* ]]; then
+#     SAMPLE=${SAMPLE//\//_-_}
+#     SAMPLE=${SAMPLE//./_}
+# fi
 
 # Get whether it is GPU or CPU
 echo "Parsing code version..."
