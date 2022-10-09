@@ -1007,7 +1007,7 @@ float drfracSimHitConsistentWithHelix(int isimtrk, int isimhitidx)
     float pt = trk.sim_pt()[isimtrk];
     float eta = trk.sim_eta()[isimtrk];
     float phi = trk.sim_phi()[isimtrk];
-    float charge = trk.sim_q()[isimtrk];
+    int charge = trk.sim_q()[isimtrk];
 
     // Construct helix object
     SDLMath::Helix helix(pt, eta, phi, vx, vy, vz, charge);
@@ -1050,7 +1050,7 @@ float distxySimHitConsistentWithHelix(int isimtrk, int isimhitidx)
     float pt = trk.sim_pt()[isimtrk];
     float eta = trk.sim_eta()[isimtrk];
     float phi = trk.sim_phi()[isimtrk];
-    float charge = trk.sim_q()[isimtrk];
+    int charge = trk.sim_q()[isimtrk];
 
     // Construct helix object
     SDLMath::Helix helix(pt, eta, phi, vx, vy, vz, charge);
@@ -1102,7 +1102,7 @@ std::vector<std::vector<float>>&    out_pz_vec,
 std::vector<std::vector<float>>&    out_eta_vec,
 std::vector<std::vector<float>>&    out_etaErr_vec,
 std::vector<std::vector<float>>&    out_phi_vec,
-std::vector<std::vector<float>>&    out_charge_vec,
+std::vector<std::vector<int>>&    out_charge_vec,
 std::vector<std::vector<int>>&    out_superbin_vec,
 std::vector<std::vector<int8_t>>&    out_pixelType_vec,
 std::vector<std::vector<short>>&    out_isQuad_vec)
@@ -1122,7 +1122,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
     std::vector<float> etaErr_vec; etaErr_vec.reserve(n_see);
     std::vector<float> eta_vec;    eta_vec.reserve(n_see);
     std::vector<float> phi_vec;    phi_vec.reserve(n_see);
-    std::vector<float> charge_vec;    charge_vec.reserve(n_see);
+    std::vector<int> charge_vec;    charge_vec.reserve(n_see);
     std::vector<float> deltaPhi_vec; deltaPhi_vec.reserve(n_see);
     std::vector<float> trkX = trk.ph2_x();
     std::vector<float> trkY = trk.ph2_y();
@@ -1164,7 +1164,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
         float py = p3LH.Y();
         float pz = p3LH.Z();
 
-        float charge = trk.see_q()[iSeed];
+        int charge = trk.see_q()[iSeed];
         //extra bit
             // get pixel superbin
             //int ptbin = -1;
@@ -1308,7 +1308,7 @@ std::vector<float>    pz_vec,
 std::vector<float>    eta_vec,
 std::vector<float>    etaErr_vec,
 std::vector<float>    phi_vec,
-std::vector<float>    charge_vec,
+std::vector<int>    charge_vec,
 std::vector<int>    superbin_vec,
 std::vector<int8_t>    pixelType_vec,
 std::vector<short>    isQuad_vec)
@@ -1344,7 +1344,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
     std::vector<float> etaErr_vec;
     std::vector<float> eta_vec;
     std::vector<float> phi_vec; 
-    std::vector<float> charge_vec;
+    std::vector<int> charge_vec;
     std::vector<float> deltaPhi_vec;
     std::vector<float> trkX = trk.ph2_x();
     std::vector<float> trkY = trk.ph2_y();
@@ -1386,7 +1386,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         float py = p3LH.Y();
         float pz = p3LH.Z();
         float phi = p3LH.Phi();
-        float charge = trk.see_q()[iSeed];
+        int charge = trk.see_q()[iSeed];
         //extra bit
 	
             // get pixel superbin

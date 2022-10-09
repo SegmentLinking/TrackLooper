@@ -20,7 +20,7 @@ void SDL::segments::resetMemory(unsigned int nMemoryLocationsx, unsigned int nLo
     cudaMemsetAsync(isQuad, 0,(maxPixelSegments )*sizeof(bool),stream);
     cudaMemsetAsync(isDup, 0,(maxPixelSegments )*sizeof(bool),stream);
     cudaMemsetAsync(score, 0,(maxPixelSegments )*sizeof(float),stream);
-    cudaMemsetAsync(charge, 0,maxPixelSegments * sizeof(float),stream);
+    cudaMemsetAsync(charge, 0,maxPixelSegments * sizeof(int),stream);
     cudaMemsetAsync(circleCenterX, 0,maxPixelSegments * sizeof(float),stream);
     cudaMemsetAsync(circleCenterY, 0,maxPixelSegments * sizeof(float),stream);
     cudaMemsetAsync(circleRadius, 0,maxPixelSegments * sizeof(float),stream);
@@ -121,7 +121,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.isQuad = (bool*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(bool),stream);
     segmentsInGPU.isDup = (bool*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(bool),stream);
     segmentsInGPU.score = (float*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(float),stream);
-    segmentsInGPU.charge = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
+    segmentsInGPU.charge = (int*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(int), stream);
     segmentsInGPU.circleCenterX = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
     segmentsInGPU.circleCenterY = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
     segmentsInGPU.circleRadius = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(float), stream);
@@ -140,7 +140,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     cudaMalloc(&segmentsInGPU.isQuad, (maxPixelSegments )*sizeof(bool));
     cudaMalloc(&segmentsInGPU.isDup, (maxPixelSegments )*sizeof(bool));
     cudaMalloc(&segmentsInGPU.score, (maxPixelSegments )*sizeof(float));
-    cudaMalloc(&segmentsInGPU.charge, maxPixelSegments * sizeof(float));
+    cudaMalloc(&segmentsInGPU.charge, maxPixelSegments * sizeof(int));
     cudaMalloc(&segmentsInGPU.circleCenterX, maxPixelSegments * sizeof(float));
     cudaMalloc(&segmentsInGPU.circleCenterY, maxPixelSegments * sizeof(float));
     cudaMalloc(&segmentsInGPU.circleRadius, maxPixelSegments * sizeof(float));
@@ -279,7 +279,7 @@ __device__ void SDL::addSegmentToMemory(struct segments& segmentsInGPU, unsigned
 
 }
 
-__device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct modules& modulesInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, uint16_t pixelModuleIndex, unsigned int hitIdxs[4], unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr, float eta, float phi, float charge, unsigned int idx, unsigned int pixelSegmentArrayIndex, int superbin,
+__device__ void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct modules& modulesInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, uint16_t pixelModuleIndex, unsigned int hitIdxs[4], unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr, float eta, float phi, int charge, unsigned int idx, unsigned int pixelSegmentArrayIndex, int superbin,
             int8_t pixelType, short isQuad, float score)
 {
     segmentsInGPU.mdIndices[idx * 2] = innerMDIndex;
