@@ -567,7 +567,7 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
         const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
         const int moduleSubdet = modulesInGPU.subdets[lowerModuleIndex];
 
-        float diffr[2],diffz[2];
+        float diffr,diffz;
         float p = sqrt(Px*Px+Py*Py+Pz*Pz);
 
         float rou = a/p;
@@ -578,7 +578,7 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
 //          float z = z1+Pz/p*s;
             diffr = fabs(rtsi-sqrt(x*x+y*y))*100;
         }
-        
+
         if (moduleSubdet == SDL::Barrel){
             float paraA = r1*r1 + 2*(Px*Px+Py*Py)/(a*a) + 2*(y1*Px-x1*Py)/a - rtsi*rtsi;
             float paraB = 2*(x1*Px+y1*Py)/a;
