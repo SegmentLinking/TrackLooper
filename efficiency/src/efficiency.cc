@@ -356,10 +356,10 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
     const float& laygap = sdl.sim_lengap()[isimtrk];
     const float& hits = sdl.sim_hits()[isimtrk];
 
-    const float& pT5Found = sdl.sim_pT5_matched()[isimtrk];
-    const float& pT3Found = sdl.sim_pT3_matched()[isimtrk];
-    const float& T5Found  = sdl.sim_T5_matched()[isimtrk];
-    const float& pLSFound = sdl.sim_pLS_matched()[isimtrk];
+    const int pT5Found = ana.do_lower_level ? sdl.sim_pT5_matched()[isimtrk] : false;
+    const int pT3Found = ana.do_lower_level ? sdl.sim_pT3_matched()[isimtrk] : false;
+    const int T5Found  = ana.do_lower_level ? sdl.sim_T5_matched()[isimtrk] : false;
+    const int pLSFound = ana.do_lower_level ? sdl.sim_pLS_matched()[isimtrk] : false;
 
     if (bunch != 0)
         return;
