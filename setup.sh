@@ -29,3 +29,5 @@ export PIXELMAPDIR="/data2/segmentlinking/pixelmap_neta20_nphi72_nz24_ipt2"
 export LATEST_CPU_BENCHMARK_EFF_MUONGUN="/data2/segmentlinking/muonGun_cpu_efficiencies.root"
 export LATEST_CPU_BENCHMARK_EFF_PU200="/data2/segmentlinking/pu200_cpu_efficiencies.root"
 #eof
+
+source /cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/alpaka/0.5.0/etc/profile.d/init.sh
