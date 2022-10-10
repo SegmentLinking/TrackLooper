@@ -340,6 +340,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
         float xPix[2] = {mdsInGPU.anchorX[pixelInnerMDIndex], mdsInGPU.anchorX[pixelOuterMDIndex]};
         float yPix[2] = {mdsInGPU.anchorY[pixelInnerMDIndex], mdsInGPU.anchorY[pixelOuterMDIndex]};
         float zPix[2] = {mdsInGPU.anchorZ[pixelInnerMDIndex], mdsInGPU.anchorZ[pixelOuterMDIndex]};
+        int chargePix = segmentsInGPU.charge[pixelSegmentArrayIndex];
 
         rzChiSquared = computePT3RZChiSquared(modulesInGPU, lowerModuleIndices, rtPix, xPix, yPix, zPix, rts, xs, ys, zs, pixelSegmentPt, pixelSegmentPx, pixelSegmentPy, pixelSegmentPz, pixelG, pixelF, pixelRadiusPCA);
         pass = pass and passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);

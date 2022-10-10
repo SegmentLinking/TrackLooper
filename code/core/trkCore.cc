@@ -1,129 +1,5 @@
 #include "trkCore.h"
 
-//float simhit_p(unsigned int simhitidx)
-//{
-//
-//    // |momentum| calculation
-//
-//    float px = trk.simhit_px()[simhitidx];
-//    float py = trk.simhit_py()[simhitidx];
-//    float pz = trk.simhit_pz()[simhitidx];
-//    return sqrt(px*px + py*py + pz*pz);
-//}
-//
-////__________________________________________________________________________________________
-//float hitAngle(unsigned int simhitidx)
-//{
-//
-//    // This is the angle calculation between position vector and the momentum vector
-//
-//    float x = trk.simhit_x()[simhitidx];
-//    float y = trk.simhit_y()[simhitidx];
-//    float z = trk.simhit_z()[simhitidx];
-//    float r3 = sqrt(x*x + y*y + z*z);
-//    float px = trk.simhit_px()[simhitidx];
-//    float py = trk.simhit_py()[simhitidx];
-//    float pz = trk.simhit_pz()[simhitidx];
-//    float p = sqrt(px*px + py*py + pz*pz);
-//    float rdotp = x*px + y*py + z*pz;
-//    rdotp = rdotp / r3;
-//    rdotp = rdotp / p;
-//    float angle = acos(rdotp);
-//    return angle;
-//}
-//
-////__________________________________________________________________________________________
-//bool isMuonCurlingHit(unsigned int isimtrk, unsigned int ith_hit)
-//{
-//
-//    // To assess whether the ith_hit for isimtrk is a "curling" hit
-//
-//    // Retrieve the sim hit idx
-//    unsigned int simhitidx = trk.sim_simHitIdx()[isimtrk][ith_hit];
-//
-//    // We're only concerned about hits in the outer tracker
-//    // This is more of a sanity check
-//    if (not (trk.simhit_subdet()[simhitidx] == 4 or trk.simhit_subdet()[simhitidx] == 5))
-//        return false;
-//
-//    // Retrieve the sim hit pdgId
-//    int simhit_particle = trk.simhit_particle()[simhitidx];
-//
-//    // If the hit is not muon then we can't tell anything
-//    if (abs(simhit_particle) != 13)
-//        return false;
-//
-//    // Get the angle
-//    float angle = hitAngle(simhitidx);
-//
-//    // If the angle is quite different then it's the last hit
-//    if (abs(angle) > 1.6)
-//        return true;
-//
-//    // Afterwards, we check the energy loss
-//    //
-//    // If it is the first hit without any previous hit present,
-//    // we can't tell whether it is last hit or not
-//    // so we just say false to be conservative
-//    if (ith_hit == 0)
-//        return false;
-//
-//    // Retrieve the module where the hit lies
-//    int detid = trk.simhit_detId()[simhitidx];
-//    SDL::Module module = SDL::Module(detid);
-//
-//    // Calculate the momentum
-//    float p = simhit_p(simhitidx);
-//
-//    // Find the previous simhit that is on the lower side of the module
-//    int simhitidx_previous = -999;
-//    for (unsigned int ith_back = 1; ith_back <= ith_hit; ith_back++)
-//    {
-//        // Retrieve the hit idx of ith_hit - ith_back;
-//        unsigned int simhitidx_previous_candidate = trk.sim_simHitIdx()[isimtrk][ith_hit-ith_back];
-//
-//        if (not (trk.simhit_subdet()[simhitidx_previous_candidate] == 4 or trk.simhit_subdet()[simhitidx_previous_candidate] == 5))
-//            continue;
-//
-//        if (not (trk.simhit_particle()[simhitidx_previous_candidate] == 13))
-//            continue;
-//
-//        // Retrieve the module where the previous candidate hit lies
-//        int detid = trk.simhit_detId()[simhitidx_previous_candidate];
-//        SDL::Module module = SDL::Module(detid);
-//
-//        // If the module is lower, then we get the index
-//        if (module.isLower())
-//        {
-//            simhitidx_previous = simhitidx_previous_candidate;
-//            break;
-//        }
-//
-//    }
-//
-//    // If no previous layer is found then can't do much
-//    if (simhitidx_previous == -999)
-//        return false;
-//
-//    // Get the previous layer momentum
-//    float p_previous = simhit_p(simhitidx_previous);
-//
-//    // Calculate the momentum loss
-//    float loss = fabs(p_previous - p) / p_previous;
-//
-//    // If the momentum loss is large it is the last hit
-//    if (loss > 0.35)
-//        return true;
-//
-//    // If it reaches this point again, we're not sure what this hit is
-//    // So we return false
-//    return false;
-//
-//}
-
-
-
-
 bool hasAll12HitsWithNBarrelUsingModuleMap(unsigned int isimtrk, int nbarrel, bool usesimhits)
 {
 
@@ -145,9 +21,6 @@ bool hasAll12HitsWithNBarrelUsingModuleMap(unsigned int isimtrk, int nbarrel, bo
 
         if (not (trk.simhit_particle()[simhitidx] == trk.sim_pdgId()[isimtrk]))
             continue;
-
-        //if (isMuonCurlingHit(isimtrk, ith_hit))
-        //    break;
 
         if (not usesimhits)
         {
@@ -294,9 +167,6 @@ bool hasAll12HitsWithNBarrel(unsigned int isimtrk, int nbarrel)
 
         // if (not (trk.simhit_particle()[simhitidx] == trk.sim_pdgId()[isimtrk]))
         //     continue;
-
-        //if (isMuonCurlingHit(isimtrk, ith_hit))
-        //    break;
 
         // list of reco hit matched to this sim hit
         for (unsigned int irecohit = 0; irecohit < trk.simhit_hitIdx()[simhitidx].size(); ++irecohit)
@@ -582,31 +452,15 @@ bool checkModuleConnectionsAreGood(std::array<std::vector<unsigned int>, 6>& lay
 //    return hit_loading_elapsed;
 //}
 
-//float runMiniDoublet(SDL::Event& event, int evt)
 float runMiniDoublet(SDL::Event* event, int evt)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Mini-Doublet start " << evt<< std::endl;
     my_timer.Start();
-    //event.createMiniDoublets();
     event->createMiniDoublets();
     float md_elapsed = my_timer.RealTime();
 
     if (ana.verbose >= 2) std::cout << evt<< " Reco Mini-doublet processing time: " << md_elapsed << " secs" << std::endl;
-
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced: " << event.getNumberOfMiniDoublets() << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 1: " << event.getNumberOfMiniDoubletsByLayerBarrel(0) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 2: " << event.getNumberOfMiniDoubletsByLayerBarrel(1) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 3: " << event.getNumberOfMiniDoubletsByLayerBarrel(2) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 4: " << event.getNumberOfMiniDoubletsByLayerBarrel(3) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 5: " << event.getNumberOfMiniDoubletsByLayerBarrel(4) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 6: " << event.getNumberOfMiniDoubletsByLayerBarrel(5) << std::endl;
-
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 1: " << event.getNumberOfMiniDoubletsByLayerEndcap(0) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 2: " << event.getNumberOfMiniDoubletsByLayerEndcap(1) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 3: " << event.getNumberOfMiniDoubletsByLayerEndcap(2) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 4: " << event.getNumberOfMiniDoubletsByLayerEndcap(3) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 5: " << event.getNumberOfMiniDoubletsByLayerEndcap(4) << std::endl;
 
     if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced: " << event->getNumberOfMiniDoublets() << std::endl;
     if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 1: " << event->getNumberOfMiniDoubletsByLayerBarrel(0) << std::endl;
@@ -627,28 +481,14 @@ float runMiniDoublet(SDL::Event* event, int evt)
 
 }
 
-//float runSegment(SDL::Event& event)
 float runSegment(SDL::Event* event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Segment start" << std::endl;
     my_timer.Start();
     event->createSegmentsWithModuleMap();
-    //event.createSegmentsWithModuleMap();
     float sg_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco Segment processing time: " << sg_elapsed << " secs" << std::endl;
-
-    //if (ana.verbose >= 2) std::cout << "# of Segments produced: " << event.getNumberOfSegments() << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Segments produced layer 1-2: " << event.getNumberOfSegmentsByLayerBarrel(0) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Segments produced layer 2-3: " << event.getNumberOfSegmentsByLayerBarrel(1) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Segments produced layer 3-4: " << event.getNumberOfSegmentsByLayerBarrel(2) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Segments produced layer 4-5: " << event.getNumberOfSegmentsByLayerBarrel(3) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Segments produced layer 5-6: " << event.getNumberOfSegmentsByLayerBarrel(4) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 1: " << event.getNumberOfSegmentsByLayerEndcap(0) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 2: " << event.getNumberOfSegmentsByLayerEndcap(1) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 3: " << event.getNumberOfSegmentsByLayerEndcap(2) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 4: " << event.getNumberOfSegmentsByLayerEndcap(3) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 5: " << event.getNumberOfSegmentsByLayerEndcap(4) << std::endl;
 
     if (ana.verbose >= 2) std::cout << "# of Segments produced: " << event->getNumberOfSegments() << std::endl;
     if (ana.verbose >= 2) std::cout << "# of Segments produced layer 1-2: " << event->getNumberOfSegmentsByLayerBarrel(0) << std::endl;
@@ -668,29 +508,14 @@ float runSegment(SDL::Event* event)
 }
 
 
-//float runT3(SDL::Event& event)
 float runT3(SDL::Event* event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco T3 start" << std::endl;
     my_timer.Start();
     event->createTriplets();
-    //event.createTriplets();
     float t3_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco T3 processing time: " << t3_elapsed<< " secs" << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of T3s produced: " << event.getNumberOfTriplets() << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of T3s produced layer 1-2-3: " << event.getNumberOfTripletsByLayerBarrel(0) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of T3s produced layer 2-3-4: " << event.getNumberOfTripletsByLayerBarrel(1) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of T3s produced layer 3-4-5: " << event.getNumberOfTripletsByLayerBarrel(2) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of T3s produced layer 4-5-6: " << event.getNumberOfTripletsByLayerBarrel(3) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 1-2-3: " << event.getNumberOfTripletsByLayerEndcap(0) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 2-3-4: " << event.getNumberOfTripletsByLayerEndcap(1) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 3-4-5: " << event.getNumberOfTripletsByLayerEndcap(2) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 1: " << event.getNumberOfTripletsByLayerEndcap(0) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 2: " << event.getNumberOfTripletsByLayerEndcap(1) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 3: " << event.getNumberOfTripletsByLayerEndcap(2) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 4: " << event.getNumberOfTripletsByLayerEndcap(3) << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of T3s produced endcap layer 5: " << event.getNumberOfTripletsByLayerEndcap(4) << std::endl;
 
     if (ana.verbose >= 2) std::cout << "# of T3s produced: " << event->getNumberOfTriplets() << std::endl;
     if (ana.verbose >= 2) std::cout << "# of T3s produced layer 1-2-3: " << event->getNumberOfTripletsByLayerBarrel(0) << std::endl;
@@ -711,51 +536,32 @@ float runT3(SDL::Event* event)
 }
 
 
-//float runpT3(SDL::Event& event)
 float runpT3(SDL::Event* event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Pixel Triplet pT3 start" << std::endl;
     my_timer.Start();
     event->createPixelTriplets();
-    //event.createPixelTriplets();
     float pt3_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco pT3 processing time: " << pt3_elapsed << " secs" << std::endl;
     if (ana.verbose >= 2) std::cout << "# of Pixel T3s produced: "<< event->getNumberOfPixelTriplets() << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Pixel T3s produced: "<< event.getNumberOfPixelTriplets() << std::endl;
 
     return pt3_elapsed;
 }
 
 float runTrackCandidate(SDL::Event* event)
-//float runTrackCandidate(SDL::Event& event)
 {
     return runTrackCandidateTest_v2(event);
 }
 
 float runQuintuplet(SDL::Event* event)
-//float runQuintuplet(SDL::Event& event)
 {
      TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Quintuplet start" << std::endl;
     my_timer.Start();
-    //event.createQuintuplets();
     event->createQuintuplets();
     float t5_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco Quintuplet processing time: " << t5_elapsed << " secs" << std::endl;
-
-//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced: " << event.getNumberOfQuintuplets() << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 1-2-3-4-5-6: " << event.getNumberOfQuintupletsByLayerBarrel(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 2: " << event.getNumberOfQuintupletsByLayerBarrel(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 3: " << event.getNumberOfQuintupletsByLayerBarrel(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 4: " << event.getNumberOfQuintupletsByLayerBarrel(3) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 5: " << event.getNumberOfQuintupletsByLayerBarrel(4) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 6: " << event.getNumberOfQuintupletsByLayerBarrel(5) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 1: " << event.getNumberOfQuintupletsByLayerEndcap(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 2: " << event.getNumberOfQuintupletsByLayerEndcap(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 3: " << event.getNumberOfQuintupletsByLayerEndcap(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 4: " << event.getNumberOfQuintupletsByLayerEndcap(3) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Quintuplets produced endcap layer 5: " << event.getNumberOfQuintupletsByLayerEndcap(4) << std::endl;
 
     if (ana.verbose >= 2) std::cout << "# of Quintuplets produced: " << event->getNumberOfQuintuplets() << std::endl;
     if (ana.verbose >= 2) std::cout << "# of Quintuplets produced layer 1-2-3-4-5-6: " << event->getNumberOfQuintupletsByLayerBarrel(0) << std::endl;
@@ -774,31 +580,26 @@ float runQuintuplet(SDL::Event* event)
    
 }
 
-//float runPixelLineSegment(SDL::Event& event)
 float runPixelLineSegment(SDL::Event* event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Pixel Line Segment start" << std::endl;
     my_timer.Start();
     event->pixelLineSegmentCleaning();
-    //event.pixelLineSegmentCleaning();
     float pls_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco Pixel Line Segment processing time: " << pls_elapsed << " secs" << std::endl;
 
     return pls_elapsed;
 }
 float runPixelQuintuplet(SDL::Event* event)
-//float runPixelQuintuplet(SDL::Event& event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Pixel Quintuplet start" << std::endl;
     my_timer.Start();
     event->createPixelQuintuplets();
-    //event.createPixelQuintuplets();
     float pt5_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco Pixel Quintuplet processing time: " << pt5_elapsed << " secs" << std::endl;
     if (ana.verbose >= 2) std::cout << "# of Pixel Quintuplets produced: " << event->getNumberOfPixelQuintuplets() << std::endl;
-    //if (ana.verbose >= 2) std::cout << "# of Pixel Quintuplets produced: " << event.getNumberOfPixelQuintuplets() << std::endl;
 
     return pt5_elapsed;
 }
@@ -806,13 +607,11 @@ float runPixelQuintuplet(SDL::Event* event)
 
 
 float runTrackCandidateTest_v2(SDL::Event* event)
-//float runTrackCandidateTest_v2(SDL::Event& event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco TrackCandidate start" << std::endl;
     my_timer.Start();
     event->createTrackCandidates();
-    //event.createTrackCandidates();
     float tc_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco TrackCandidate processing time: " << tc_elapsed << " secs" << std::endl;
 
@@ -1150,20 +949,11 @@ void loadMaps()
 {
     TString TrackLooperDir = gSystem->Getenv("TRACKLOOPERDIR");
 
-#ifdef CMSSW12GEOM
     std::cout << "Loading CMSSW_12_2_0_pre2 geometry" << std::endl;
-#else
-    std::cout << "Loading MTD TDR geometry" << std::endl;
-#endif
 
     // Module orientation information (DrDz or phi angles)
-#ifdef CMSSW12GEOM
     TString endcap_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/endcap_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data());
     TString tilted_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/tilted_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data());
-#else
-    TString endcap_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/endcap_orientation_data_v2.txt", TrackLooperDir.Data()).Data()); // centroid values added to the map
-    TString tilted_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/tilted_orientation_data.txt", TrackLooperDir.Data()).Data());
-#endif
     std::cout << "Loading module orientation information...." << std::endl;
     std::cout << "endcap orientation:" << endcap_geom << std::endl;
     std::cout << "tilted orientation:" << tilted_geom << std::endl;
@@ -1171,39 +961,13 @@ void loadMaps()
     SDL::tiltedGeometry.load(tilted_geom.Data());
 
     // Module connection map (for line segment building)
-#ifdef PT0P8
-#ifdef CMSSW12GEOM
     TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir.Data()).Data());
-#else
-    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_combined_0p8helix_muongun.txt", TrackLooperDir.Data()).Data());
-#endif
-#else
-#ifdef CMSSW12GEOM
-    // TODO: The CMSSW_12_2_0_pre2 is by default 0.8 module map
-    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir.Data()).Data());
-#else
-    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_combined_2020_0520_helixray.txt", TrackLooperDir.Data()).Data());
-#endif
-#endif
     std::cout << "Loading module map...." << std::endl;
     std::cout << "module map path:" << mappath << std::endl;
     SDL::moduleConnectionMap.load(mappath.Data());
     ana.moduleConnectiongMapLoose.load(mappath.Data());
 
-#ifdef PT0P8
-#ifdef CMSSW12GEOM
-    TString pLSMapDir = "/data2/segmentlinking/pixelmap_CMSSW_12_2_0_pre2_0p8minPt"; // baseline + 0.8 GeV
-#else
-    TString pLSMapDir = "/data2/segmentlinking/pixelmap_ptmin0p8_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05"; // baseline + 0.8 GeV
-#endif
-#else
-#ifdef CMSSW12GEOM
-    // TODO: The CMSSW_12_2_0_pre2 is by default 0.8 module map
-    TString pLSMapDir = "/data2/segmentlinking/pixelmap_CMSSW_12_2_0_pre2_0p8minPt"; // baseline
-#else
-    TString pLSMapDir = "/data2/segmentlinking/pixelmap_neta25_nphi72_nz25_ipt2_etapm0p05_zpm0p05"; // baseline
-#endif
-#endif
+    TString pLSMapDir = "/data2/segmentlinking/pixelmap_CMSSW_12_2_0_pre2_0p8minPt";
 
     std::cout << "Loading pLS maps ... from pLSMapDir = " << pLSMapDir << std::endl;
 
@@ -1232,15 +996,6 @@ void loadMaps()
     path = TString::Format("%s/pLS_map_pos_layer3_subdet4.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer3Subdet4_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
     path = TString::Format("%s/pLS_map_pos_layer4_subdet4.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer4Subdet4_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
 
-    // SDL::moduleConnectionMap.load("/home/users/phchang/public_html/analysis/sdl/TrackLooper_/scripts/module_connection_map_data_10_e0_200_100_pt0p8_2p0_400_pt0p8_2p0_nolossers_dxy35cm_endcaplayer2.txt");
-    // ana.moduleConnectiongMapLoose.load("/home/users/phchang/public_html/analysis/sdl/TrackLooper_/scripts/module_connection_map_data_10_e0_200_100_pt0p8_2p0_400_pt0p8_2p0_nolossers_dxy35cm_endcaplayer2.txt");
-
-    // SDL::moduleConnectionMap.load("data/module_connection_2020_0429.txt");
-    // ana.moduleConnectiongMapLoose.load("data/module_connection_2020_0429.txt");
-
-    // SDL::moduleConnectionMap.load("data/module_connection_tracing_2020_0514.txt");
-    // SDL::moduleConnectionMap.load("data/module_connection_combined_2020_0518_helixray.txt");
-
 }
 
 
@@ -1253,7 +1008,7 @@ float drfracSimHitConsistentWithHelix(int isimtrk, int isimhitidx)
     float pt = trk.sim_pt()[isimtrk];
     float eta = trk.sim_eta()[isimtrk];
     float phi = trk.sim_phi()[isimtrk];
-    float charge = trk.sim_q()[isimtrk];
+    int charge = trk.sim_q()[isimtrk];
 
     // Construct helix object
     SDLMath::Helix helix(pt, eta, phi, vx, vy, vz, charge);
@@ -1296,7 +1051,7 @@ float distxySimHitConsistentWithHelix(int isimtrk, int isimhitidx)
     float pt = trk.sim_pt()[isimtrk];
     float eta = trk.sim_eta()[isimtrk];
     float phi = trk.sim_phi()[isimtrk];
-    float charge = trk.sim_q()[isimtrk];
+    int charge = trk.sim_q()[isimtrk];
 
     // Construct helix object
     SDLMath::Helix helix(pt, eta, phi, vx, vy, vz, charge);
@@ -1348,14 +1103,11 @@ std::vector<std::vector<float>>&    out_pz_vec,
 std::vector<std::vector<float>>&    out_eta_vec,
 std::vector<std::vector<float>>&    out_etaErr_vec,
 std::vector<std::vector<float>>&    out_phi_vec,
+std::vector<std::vector<int>>&    out_charge_vec,
 std::vector<std::vector<int>>&    out_superbin_vec,
 std::vector<std::vector<int8_t>>&    out_pixelType_vec,
 std::vector<std::vector<short>>&    out_isQuad_vec)
 {
-
-//    TStopwatch my_timer;
-//    if (ana.verbose >= 2) std::cout << "Loading Inputs (i.e. outer tracker hits, and pixel line segements) to the Line Segment Tracking.... " << std::endl;
-//    my_timer.Start();
 
     unsigned int count = 0;
     auto n_see = trk.see_stateTrajGlbPx().size();
@@ -1371,6 +1123,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
     std::vector<float> etaErr_vec; etaErr_vec.reserve(n_see);
     std::vector<float> eta_vec;    eta_vec.reserve(n_see);
     std::vector<float> phi_vec;    phi_vec.reserve(n_see);
+    std::vector<int> charge_vec;    charge_vec.reserve(n_see);
     std::vector<float> deltaPhi_vec; deltaPhi_vec.reserve(n_see);
     std::vector<float> trkX = trk.ph2_x();
     std::vector<float> trkY = trk.ph2_y();
@@ -1378,60 +1131,17 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
     std::vector<unsigned int> hitId = trk.ph2_detId();
     std::vector<unsigned int> hitIdxs(trk.ph2_detId().size());
 
-    ////==============================
-    //std::vector<float> trkX;
-    //std::vector<float> trkY;
-    //std::vector<float> trkZ;
-    //std::vector<unsigned int> hitId;
-    //unsigned int selected_trk = 1;
-    //for (unsigned int ihit = 0; ihit < trk.ph2_x().size(); ++ihit)
-    //{
-
-    //    bool is_hit_from_selected_trk = false;
-    //    for (unsigned int isimhit = 0; isimhit < trk.ph2_simHitIdx()[ihit].size(); ++isimhit)
-    //    {
-    //        if (trk.simhit_simTrkIdx()[isimhit] == 1)
-    //            is_hit_from_selected_trk = true;
-    //    }
-
-    //    if (is_hit_from_selected_trk)
-    //    {
-    //        std::cout <<  " ihit: " << ihit <<  std::endl;
-    //        // for (auto& itrk : trk.ph2_simTrkIdx()[ihit])
-    //        //     std::cout <<  " itrk: " << itrk <<  std::endl;
-    //        trkX.push_back(trk.ph2_x()[ihit]);
-    //        trkY.push_back(trk.ph2_y()[ihit]);
-    //        trkZ.push_back(trk.ph2_z()[ihit]);
-    //        hitId.push_back(trk.ph2_detId()[ihit]);
-    //    }
-    //}
-    //std::vector<unsigned int> hitIdxs(hitId.size());
-    //// ===============================
-
     std::vector<int> superbin_vec;
     std::vector<int8_t> pixelType_vec;
     std::vector<short> isQuad_vec;
     std::iota(hitIdxs.begin(), hitIdxs.end(), 0);
     const int hit_size = trkX.size();
 
-    // std::cout <<  " selected_trk: " << selected_trk <<  std::endl;
-    // std::cout <<  " trk.sim_pt()[selected_trk]: " << trk.sim_pt()[selected_trk] <<  std::endl;
-    // std::cout <<  " trk.sim_eta()[selected_trk]: " << trk.sim_eta()[selected_trk] <<  std::endl;
-
     for (auto &&[iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
     {
-
-        // if (std::find(trk.see_simTrkIdx()[iSeed].begin(), trk.see_simTrkIdx()[iSeed].end(), selected_trk) == trk.see_simTrkIdx()[iSeed].end())
-        //     continue;
-
-
         bool good_seed_type = false;
         if (trk.see_algo()[iSeed] == 4) good_seed_type = true;
-        //if (trk.see_algo()[iSeed] == 5) good_seed_type = true;
-        //if (trk.see_algo()[iSeed] == 7) good_seed_type = true;
         if (trk.see_algo()[iSeed] == 22) good_seed_type = true;
-        //if (trk.see_algo()[iSeed] == 23) good_seed_type = true;
-        //if (trk.see_algo()[iSeed] == 24) good_seed_type = true;
         if (not good_seed_type) continue;
 
         TVector3 p3LH(trk.see_stateTrajGlbPx()[iSeed], trk.see_stateTrajGlbPy()[iSeed], trk.see_stateTrajGlbPz()[iSeed]);
@@ -1439,65 +1149,27 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
         float eta = p3LH.Eta();
         float ptErr = trk.see_ptErr()[iSeed];
 
-#ifdef PT0P8
         if ((ptIn > 0.8 - 2 * ptErr))
-#else
-        if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
-#endif
         {
         TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
         TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
         TVector3 r3PCA(calculateR3FromPCA(p3PCA, trk.see_dxy()[iSeed], trk.see_dz()[iSeed]));
-        //auto const &seedHitsV = trk.see_hitIdx()[iSeed];
-        //auto const &seedHitTypesV = trk.see_hitType()[iSeed];
-
-        //int nHits = seedHitsV.size();
-
-        //int seedSD_mdRef_pixL = trk.see_hitIdx()[iSeed][0];
-        //int seedSD_mdRef_pixU = trk.see_hitIdx()[iSeed][1];
         TVector3 seedSD_mdRef_r3 = r3PCA;
-        //float seedSD_mdRef_rt = r3PCA.Pt();
-        //float seedSD_mdRef_z = r3PCA.Z();
-        //float seedSD_mdRef_r = r3PCA.Mag();
-        //float seedSD_mdRef_phi = r3PCA.Phi();
-        //float seedSD_mdRef_alpha = r3PCA.DeltaPhi(p3PCA);
-
-        //int seedSD_mdOut_pixL = trk.see_hitIdx()[iSeed][2];
-        //int seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
         TVector3 seedSD_mdOut_r3 = r3LH;
-        //float seedSD_mdOut_rt = r3LH.Pt();
-        //float seedSD_mdOut_z = r3LH.Z();
-        //float seedSD_mdOut_r = r3LH.Mag();
-        //float seedSD_mdOut_phi = r3LH.Phi();
-        //float seedSD_mdOut_alpha = r3LH.DeltaPhi(p3LH);
-
-        //float seedSD_iRef = iSeed;
-        //float seedSD_iOut = iSeed;
         TVector3 seedSD_r3 = r3LH;
-        //float seedSD_rt = r3LH.Pt();
-        //float seedSD_rtInv = 1.f / seedSD_rt;
-        //float seedSD_z = seedSD_r3.Z();
         TVector3 seedSD_p3 = p3LH;
-        //float seedSD_alpha = r3LH.DeltaPhi(p3LH);
-        //float seedSD_dr = (r3LH - r3PCA).Pt();
-        //float seedSD_d = seedSD_rt - r3PCA.Pt();
-        //float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
 
         float pixelSegmentDeltaPhiChange = r3LH.DeltaPhi(p3LH);
         float etaErr = trk.see_etaErr()[iSeed];
         float px = p3LH.X();
         float py = p3LH.Y();
         float pz = p3LH.Z();
+
+        int charge = trk.see_q()[iSeed];
         //extra bit
             // get pixel superbin
             //int ptbin = -1;
             int pixtype =-1;
-            //if (p3PCA.Pt() >= 2.0){ /*ptbin = 1;*/pixtype=0;}
-            //else if (p3PCA.Pt() >= 0.9 and p3PCA.Pt() < 2.0){ 
-            //  //ptbin = 0;
-            //  if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
-            //  else{pixtype=2;}
-            //}
             if (ptIn >= 2.0){ /*ptbin = 1;*/pixtype=0;}
             else if (ptIn >= (0.8 - 2 * ptErr) and ptIn < 2.0){ 
               //ptbin = 0;
@@ -1505,7 +1177,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
               else{pixtype=2;}
             }
             else{continue;}
-            // if(abs(p3PCA.Eta()) >= 2.5){continue;}
+
 // all continues before pushing back into vectots to avoid strange offsets in indicies. 
             unsigned int hitIdx0 = hit_size + count;
             count++; 
@@ -1562,6 +1234,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
             eta_vec.push_back(eta);
             float phi = p3LH.Phi();
             phi_vec.push_back(phi);
+            charge_vec.push_back(charge);
             deltaPhi_vec.push_back(pixelSegmentDeltaPhiChange);
 
             // For matching with sim tracks
@@ -1582,20 +1255,16 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
             int phibin = (p3PCA_Phi + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
             int dzbin = (trk.see_dz()[iSeed] + 30) / (2*30 / nz);
             int isuperbin = /*(nz * nphi * neta) * ptbin + (removed since pt bin is determined by pixelType)*/ (nz * nphi) * etabin + (nz) * phibin + dzbin;
-            //if(isuperbin<0 || isuperbin>=44900){printf("isuperbin %d %d %d %d %f\n",isuperbin,etabin,phibin,dzbin,p3PCA.Eta());}
             superbin_vec.push_back(isuperbin);
             pixelType_vec.push_back(pixtype);
             isQuad_vec.push_back(isQuad);
-
-
-
 
         }
 
     } // iter::enumerate(trk.see_stateTrajGlbPx
 
 //    event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
-//    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);
+//    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, charge_vec, superbin_vec, pixelType_vec,isQuad_vec);
 
     out_trkX.push_back(trkX);
     out_trkY.push_back(trkY);
@@ -1615,13 +1284,11 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
     out_eta_vec.push_back(eta_vec);
     out_etaErr_vec.push_back(etaErr_vec);
     out_phi_vec.push_back(phi_vec);
+    out_charge_vec.push_back(charge_vec);
     out_superbin_vec.push_back(superbin_vec);
     out_pixelType_vec.push_back(pixelType_vec);
     out_isQuad_vec.push_back(isQuad_vec);
     
-//    float hit_loading_elapsed = my_timer.RealTime();
-//    if (ana.verbose >= 2) std::cout << "Loading inputs processing time: " << hit_loading_elapsed << " secs" << std::endl;
-//    return hit_loading_elapsed;
 }
 
 //float addInputsToEventPreLoad(SDL::Event& event, bool useOMP,
@@ -1642,6 +1309,7 @@ std::vector<float>    pz_vec,
 std::vector<float>    eta_vec,
 std::vector<float>    etaErr_vec,
 std::vector<float>    phi_vec,
+std::vector<int>    charge_vec,
 std::vector<int>    superbin_vec,
 std::vector<int8_t>    pixelType_vec,
 std::vector<short>    isQuad_vec)
@@ -1650,13 +1318,12 @@ std::vector<short>    isQuad_vec)
     if (ana.verbose >= 2) std::cout << "Loading Inputs (i.e. outer tracker hits, and pixel line segements) to the Line Segment Tracking.... " << std::endl;
     my_timer.Start();
     event->addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
-    //float hit_loading_elapsed = my_timer.RealTime();
-    //my_timer.Start();
-    event->addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);
+    event->addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, charge_vec, superbin_vec, pixelType_vec,isQuad_vec);
     float hit_loading_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Loading inputs processing time: " << hit_loading_elapsed << " secs" << std::endl;
     return hit_loading_elapsed;
 }
+
 //__________________________________________________________________________________________
 float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
 {
@@ -1677,7 +1344,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
     std::vector<float> ptErr_vec;
     std::vector<float> etaErr_vec;
     std::vector<float> eta_vec;
-    std::vector<float> phi_vec;
+    std::vector<float> phi_vec; 
+    std::vector<int> charge_vec;
     std::vector<float> deltaPhi_vec;
     std::vector<float> trkX = trk.ph2_x();
     std::vector<float> trkY = trk.ph2_y();
@@ -1692,14 +1360,9 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
 
     for (auto &&[iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
     {
-
         bool good_seed_type = false;
         if (trk.see_algo()[iSeed] == 4) good_seed_type = true;
-        //if (trk.see_algo()[iSeed] == 5) good_seed_type = true;
-        //if (trk.see_algo()[iSeed] == 7) good_seed_type = true;
         if (trk.see_algo()[iSeed] == 22) good_seed_type = true;
-        //if (trk.see_algo()[iSeed] == 23) good_seed_type = true;
-        //if (trk.see_algo()[iSeed] == 24) good_seed_type = true;
         if (not good_seed_type) continue;
 
         TVector3 p3LH(trk.see_stateTrajGlbPx()[iSeed], trk.see_stateTrajGlbPy()[iSeed], trk.see_stateTrajGlbPz()[iSeed]);
@@ -1707,49 +1370,16 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         float ptErr = trk.see_ptErr()[iSeed];
         float eta = p3LH.Eta();
 
-#ifdef PT0P8
         if ((ptIn > 0.8 - 2 * ptErr))
-#else
-        if ((ptIn > 1 - 2 * ptErr) and (fabs(eta) < 3))
-#endif
         {
         TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
         TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
         TVector3 r3PCA(calculateR3FromPCA(p3PCA, trk.see_dxy()[iSeed], trk.see_dz()[iSeed]));
-        //auto const &seedHitsV = trk.see_hitIdx()[iSeed];
-        //auto const &seedHitTypesV = trk.see_hitType()[iSeed];
 
-        //int nHits = seedHitsV.size();
-
-        //int seedSD_mdRef_pixL = trk.see_hitIdx()[iSeed][0];
-        //int seedSD_mdRef_pixU = trk.see_hitIdx()[iSeed][1];
         TVector3 seedSD_mdRef_r3 = r3PCA;
-        //float seedSD_mdRef_rt = r3PCA.Pt();
-        //float seedSD_mdRef_z = r3PCA.Z();
-        //float seedSD_mdRef_r = r3PCA.Mag();
-        //float seedSD_mdRef_phi = r3PCA.Phi();
-        //float seedSD_mdRef_alpha = r3PCA.DeltaPhi(p3PCA);
-
-        //int seedSD_mdOut_pixL = trk.see_hitIdx()[iSeed][2];
-        //int seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
         TVector3 seedSD_mdOut_r3 = r3LH;
-        //float seedSD_mdOut_rt = r3LH.Pt();
-        //float seedSD_mdOut_z = r3LH.Z();
-        //float seedSD_mdOut_r = r3LH.Mag();
-        //float seedSD_mdOut_phi = r3LH.Phi();
-        //float seedSD_mdOut_alpha = r3LH.DeltaPhi(p3LH);
-
-        //float seedSD_iRef = iSeed;
-        //float seedSD_iOut = iSeed;
         TVector3 seedSD_r3 = r3LH;
-        //float seedSD_rt = r3LH.Pt();
-        //float seedSD_rtInv = 1.f / seedSD_rt;
-        //float seedSD_z = seedSD_r3.Z();
         TVector3 seedSD_p3 = p3LH;
-        //float seedSD_alpha = r3LH.DeltaPhi(p3LH);
-        //float seedSD_dr = (r3LH - r3PCA).Pt();
-        //float seedSD_d = seedSD_rt - r3PCA.Pt();
-        //float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
 
         float pixelSegmentDeltaPhiChange = r3LH.DeltaPhi(p3LH);
         float etaErr = trk.see_etaErr()[iSeed];
@@ -1757,26 +1387,20 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         float py = p3LH.Y();
         float pz = p3LH.Z();
         float phi = p3LH.Phi();
+        int charge = trk.see_q()[iSeed];
         //extra bit
 	
             // get pixel superbin
             //int ptbin = -1;
             int pixtype =-1;
-            //if (p3PCA.Pt() >= 2.0){ /*ptbin = 1;*/pixtype=0;}
-            //else if (p3PCA.Pt() >= 0.9 and p3PCA.Pt() < 2.0){ 
-            //  //ptbin = 0;
-            //  if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
-            //  else{pixtype=2;}
-            //}
             if (ptIn >= 2.0){ /*ptbin = 1;*/pixtype=0;}
-            // else if (p3LH.Pt() >= 0.9 and p3LH.Pt() < 2.0){ 
             else if (ptIn >= (0.8 - 2 * ptErr) and ptIn < 2.0){ 
               //ptbin = 0;
               if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
               else{pixtype=2;}
             }
             else{continue;}
-            // if(abs(p3PCA.Eta()) >= 2.5){continue;}
+
 // all continues before pushing back into vectots to avoid strange offsets in indicies. 
             unsigned int hitIdx0 = hit_size + count;
             count++; 
@@ -1832,6 +1456,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             etaErr_vec.push_back(etaErr);
             eta_vec.push_back(eta);
             phi_vec.push_back(phi);
+            charge_vec.push_back(charge);
             deltaPhi_vec.push_back(pixelSegmentDeltaPhiChange);
 
             // For matching with sim tracks
@@ -1852,20 +1477,14 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             int phibin = (p3PCA_Phi + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
             int dzbin = (trk.see_dz()[iSeed] + 30) / (2*30 / nz);
             int isuperbin = /*(nz * nphi * neta) * ptbin + (removed since pt bin is determined by pixelType)*/ (nz * nphi) * etabin + (nz) * phibin + dzbin;
-            //if(isuperbin<0 || isuperbin>=44900){printf("isuperbin %d %d %d %d %f\n",isuperbin,etabin,phibin,dzbin,p3PCA.Eta());}
             superbin_vec.push_back(isuperbin);
             pixelType_vec.push_back(pixtype);
             isQuad_vec.push_back(isQuad);
-
-
-
-
         }
-
     }
 
     event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
-    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);
+    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, charge_vec, superbin_vec, pixelType_vec,isQuad_vec);
 
     float hit_loading_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Loading inputs processing time: " << hit_loading_elapsed << " secs" << std::endl;
@@ -1891,544 +1510,6 @@ TVector3 calculateR3FromPCA(const TVector3& p3, const float dxy, const float dz)
   return TVector3(vx, vy, vz);
 }
 
-//__________________________________________________________________________________________
-//float addPixelSegments(SDL::CPU::Event& event, int isimtrk)
-//{
-//
-//    TStopwatch my_timer;
-//    if (ana.verbose >= 2) std::cout << "Loading pixel line segments for CPU...." << std::endl;
-//    my_timer.Start();
-//
-//    for (auto&& [iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
-//    {
-//
-//        if (isimtrk >= 0)
-//        {
-//            bool match = false;
-//            for (auto& seed_simtrkidx : trk.see_simTrkIdx()[iSeed])
-//            {
-//                if (seed_simtrkidx == isimtrk)
-//                {
-//                    match = true;
-//                }
-//            }
-//            if (not match)
-//                continue;
-//        }
-//
-//        if (abs(ana.pdg_id) != 0)
-//        {
-//            bool match = false;
-//            for (auto& seed_simtrkidx : trk.see_simTrkIdx()[iSeed])
-//            {
-//                if (abs(trk.sim_pdgId()[seed_simtrkidx]) == ana.pdg_id)
-//                {
-//                    match = true;
-//                }
-//            }
-//            if (not match)
-//                continue;
-//        }
-//
-//        TVector3 p3LH(trk.see_stateTrajGlbPx()[iSeed], trk.see_stateTrajGlbPy()[iSeed], trk.see_stateTrajGlbPz()[iSeed]);
-//        TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
-//        TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
-//        TVector3 r3PCA(calculateR3FromPCA(p3PCA, trk.see_dxy()[iSeed], trk.see_dz()[iSeed]));
-//        //auto const& seedHitsV = trk.see_hitIdx()[iSeed];
-//        //auto const& seedHitTypesV = trk.see_hitType()[iSeed];
-//
-//        // /// track algorithm; partial copy from TrackBase.h
-//        // enum class TrackAlgorithm {
-//        //     undefAlgorithm = 0,
-//        //     ctf = 1,
-//        //     duplicateMerge = 2,
-//        //     cosmics = 3,
-//        //     initialStep = 4,
-//        //     lowPtTripletStep = 5,
-//        //     pixelPairStep = 6,
-//        //     detachedTripletStep = 7,
-//        //     mixedTripletStep = 8,
-//        //     pixelLessStep = 9,
-//        //     tobTecStep = 10,
-//        //     jetCoreRegionalStep = 11,
-//        //     conversionStep = 12,
-//        //     muonSeededStepInOut = 13,
-//        //     muonSeededStepOutIn = 14,
-//        //     outInEcalSeededConv = 15, inOutEcalSeededConv = 16,
-//        //     nuclInter = 17,
-//        //     standAloneMuon = 18, globalMuon = 19, cosmicStandAloneMuon = 20, cosmicGlobalMuon = 21,
-//        //     // Phase1
-//        //     highPtTripletStep = 22, lowPtQuadStep = 23, detachedQuadStep = 24,
-//        //     reservedForUpgrades1 = 25, reservedForUpgrades2 = 26,
-//        //     bTagGhostTracks = 27,
-//        //     beamhalo = 28,
-//        //     gsf = 29
-//        // };
-//        bool good_seed_type = false;
-//        if (trk.see_algo()[iSeed] == 4) good_seed_type = true;
-//        if (trk.see_algo()[iSeed] == 5) good_seed_type = true;
-//        if (trk.see_algo()[iSeed] == 7) good_seed_type = true;
-//        if (trk.see_algo()[iSeed] == 22) good_seed_type = true;
-//        if (trk.see_algo()[iSeed] == 23) good_seed_type = true;
-//        if (trk.see_algo()[iSeed] == 24) good_seed_type = true;
-//        if (not good_seed_type)
-//            continue;
-//        // if (trk.see_algo()[iSeed] != 4 and trk.see_algo()[iSeed] != 5)
-//        //     continue;
-//        // if (trk.see_algo()[iSeed] < 4 and trk.see_algo()[iSeed] > 8)
-//        //     continue;
-//
-//        //int nHits = seedHitsV.size();
-//
-//        //assert(nHits == 4);
-//        //for (int iH = 0; iH < nHits; ++iH){
-//        //    //FIXME: make this configurable
-//        //    assert(seedHitTypesV[iH] == 0);
-//        //}
-//
-//        // float seedSD_mdRef_pixL = HitIndexWithType(trk.see_hitIdx()[iSeed][0], HitType(trk.see_hitType()[iSeed][0])).indexWithType;
-//        // float seedSD_mdRef_pixU = HitIndexWithType(trk.see_hitIdx()[iSeed][1], HitType(trk.see_hitType()[iSeed][1])).indexWithType;
-//        //int seedSD_mdRef_pixL = trk.see_hitIdx()[iSeed][0];
-//        //int seedSD_mdRef_pixU = trk.see_hitIdx()[iSeed][1];
-//        TVector3 seedSD_mdRef_r3 = r3PCA;
-//        //float seedSD_mdRef_rt = r3PCA.Pt();
-//        //float seedSD_mdRef_z = r3PCA.Z();
-//        //float seedSD_mdRef_r = r3PCA.Mag();
-//        //float seedSD_mdRef_phi = r3PCA.Phi();
-//        //float seedSD_mdRef_alpha = r3PCA.DeltaPhi(p3PCA);
-//        // const int itpRL = simsPerHitAll(seedSD_mdRef_pixL); // TODO: best sim trk idx SO PERHAPS NOT NEEDED
-//        // const int itpRU = simsPerHitAll(seedSD_mdRef_pixU); // TODO: best sim trk idx
-//        // float seedSD_mdRef_itp = itpRL;
-//        // float seedSD_mdRef_ntp = 1;
-//        // float seedSD_mdRef_itpLL = itpRL;
-//
-//        // if (itpRL >= 0 && itpRU >= 0)
-//        // {
-//        //     if (itpRL == itpRU)
-//        //     {
-//        //         seedSD_mdRef_ntp = 2;
-//        //     }
-//        // }
-//        // else if (itpRL == -1 && itpRU == -1)
-//        // {
-//        //     seedSD_mdRef_ntp = 0;
-//        // }
-//        // else if (itpRU >= 0)
-//        // {
-//        //     seedSD_mdRef_itp = itpRU;
-//        // }
-//
-//        //int seedSD_mdOut_pixL = trk.see_hitIdx()[iSeed][2];
-//        //int seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
-//        // if (nPix >= 4)
-//        //     seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
-//        TVector3 seedSD_mdOut_r3 = r3LH;
-//        //float seedSD_mdOut_rt = r3LH.Pt();
-//        //float seedSD_mdOut_z = r3LH.Z();
-//        //float seedSD_mdOut_r = r3LH.Mag();
-//        //float seedSD_mdOut_phi = r3LH.Phi();
-//        //float seedSD_mdOut_alpha = r3LH.DeltaPhi(p3LH);
-//        // const int itpOL = simsPerHitAll(seedSD_mdOut_pixL);
-//        // const int itpOU = simsPerHitAll(seedSD_mdOut_pixU);
-//        // float seedSD_mdOut_itp = itpOL;
-//        // float seedSD_mdOut_ntp = 1;
-//        // float seedSD_mdOut_itpLL = itpOL;
-//        // if (itpOL >= 0 && itpOU >= 0)
-//        // {
-//        //     if (itpOL == itpOU)
-//        //     {
-//        //         seedSD_mdOut_ntp = 2;
-//        //     }
-//        // }
-//        // else if (itpOL == -1 && itpOU == -1)
-//        // {
-//        //     seedSD_mdOut_ntp = 0;
-//        // }
-//        // else if (itpOU >= 0)
-//        // {
-//        //     seedSD_mdOut_itp = itpOU;
-//        // }
-//
-//        //float seedSD_iRef = iSeed;
-//        //float seedSD_iOut = iSeed;
-//        TVector3 seedSD_r3 = r3LH;
-//        //float seedSD_rt = r3LH.Pt();
-//        //float seedSD_rtInv = 1.f / seedSD_rt;
-//        //float seedSD_z = seedSD_r3.Z();
-//        TVector3 seedSD_p3 = p3LH;
-//        //float seedSD_alpha = r3LH.DeltaPhi(p3LH);
-//        //float seedSD_dr = (r3LH - r3PCA).Pt();
-//        //float seedSD_d = seedSD_rt - r3PCA.Pt();
-//        //float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
-//
-//        // std::map<int, int> tps;
-//        // int seedSD_itp = -1;
-//        // int seedSD_ntp = 0;
-//        // tps[itpRL]++;
-//        // tps[itpRU]++;
-//        // tps[itpOL]++;
-//        // tps[itpOU]++;
-//
-//        // for (auto m : tps)
-//        // {
-//        //     if (m.first >= 0 && m.second > seedSD_ntp)
-//        //     {
-//        //         seedSD_itp = m.first;
-//        //         seedSD_ntp = m.second;
-//        //     }
-//        // }
-//
-//        // // LL indexing is not very useful for seeds; to it anyways for "full" coverage
-//        // int seedSD_itpLL = -1;
-//        // int seedSD_ntpLL = 0;
-//        // tps.clear();
-//        // tps[itpRL]++;
-//        // tps[itpOL]++;
-//        // for (auto m : tps)
-//        // {
-//        //     if (m.first >= 0 && m.second > seedSD_ntpLL)
-//        //     {
-//        //         seedSD_itpLL = m.first;
-//        //         seedSD_ntpLL = m.second;
-//        //     }
-//        // }
-//
-//        // For this segment in this layer, I need to add this many
-//        // I suppose for now... I can have a SDL::Module of ginormous size
-//        // with a special detId of ... 1? (does this require Module.h modification?)
-//        // SDL::Hit
-//        // SDL::Hit
-//        // SDL::MiniDoublet
-//        // SDL::Hit
-//        // SDL::Hit
-//        // SDL::MiniDoublet
-//        // SDL::Segment
-//        // std::cout <<  " seedSD_mdRef_rt: " << seedSD_mdRef_rt <<  std::endl;
-//        // std::cout <<  " seedSD_mdRef_z: " << seedSD_mdRef_z <<  std::endl;
-//        // std::cout <<  " seedSD_mdRef_alpha: " << seedSD_mdRef_alpha <<  std::endl;
-//        // std::cout <<  " seedSD_mdOut_rt: " << seedSD_mdOut_rt <<  std::endl;
-//        // std::cout <<  " seedSD_mdOut_z: " << seedSD_mdOut_z <<  std::endl;
-//        // std::cout <<  " seedSD_mdOut_alpha: " << seedSD_mdOut_alpha <<  std::endl;
-//        // std::cout <<  " trk.pix_x()[trk.see_hitIdx()[iSeed][0]]: " << trk.pix_x()[trk.see_hitIdx()[iSeed][0]] <<  std::endl;
-//        // std::cout <<  " trk.pix_y()[trk.see_hitIdx()[iSeed][0]]: " << trk.pix_y()[trk.see_hitIdx()[iSeed][0]] <<  std::endl;
-//        // std::cout <<  " sqrt(pow(trk.pix_x()[trk.see_hitIdx()[iSeed][0]],2)+pow(trk.pix_y()[trk.see_hitIdx()[iSeed][0]],2)): " << sqrt(pow(trk.pix_x()[trk.see_hitIdx()[iSeed][0]],2)+pow(trk.pix_y()[trk.see_hitIdx()[iSeed][0]],2)) <<  std::endl;
-//        // std::cout <<  " trk.pix_z()[trk.see_hitIdx()[iSeed][0]]: " << trk.pix_z()[trk.see_hitIdx()[iSeed][0]] <<  std::endl;
-//        // std::cout <<  " trk.pix_x()[trk.see_hitIdx()[iSeed][1]]: " << trk.pix_x()[trk.see_hitIdx()[iSeed][1]] <<  std::endl;
-//        // std::cout <<  " trk.pix_y()[trk.see_hitIdx()[iSeed][1]]: " << trk.pix_y()[trk.see_hitIdx()[iSeed][1]] <<  std::endl;
-//        // std::cout <<  " sqrt(pow(trk.pix_x()[trk.see_hitIdx()[iSeed][1]],2)+pow(trk.pix_y()[trk.see_hitIdx()[iSeed][1]],2)): " << sqrt(pow(trk.pix_x()[trk.see_hitIdx()[iSeed][1]],2)+pow(trk.pix_y()[trk.see_hitIdx()[iSeed][1]],2)) <<  std::endl;
-//        // std::cout <<  " trk.pix_z()[trk.see_hitIdx()[iSeed][1]]: " << trk.pix_z()[trk.see_hitIdx()[iSeed][1]] <<  std::endl;
-//        // std::cout <<  " trk.pix_x()[trk.see_hitIdx()[iSeed][2]]: " << trk.pix_x()[trk.see_hitIdx()[iSeed][2]] <<  std::endl;
-//        // std::cout <<  " trk.pix_y()[trk.see_hitIdx()[iSeed][2]]: " << trk.pix_y()[trk.see_hitIdx()[iSeed][2]] <<  std::endl;
-//        // std::cout <<  " sqrt(pow(trk.pix_x()[trk.see_hitIdx()[iSeed][2]],2)+pow(trk.pix_y()[trk.see_hitIdx()[iSeed][2]],2)): " << sqrt(pow(trk.pix_x()[trk.see_hitIdx()[iSeed][2]],2)+pow(trk.pix_y()[trk.see_hitIdx()[iSeed][2]],2)) <<  std::endl;
-//        // std::cout <<  " trk.pix_z()[trk.see_hitIdx()[iSeed][2]]: " << trk.pix_z()[trk.see_hitIdx()[iSeed][2]] <<  std::endl;
-//        // std::cout <<  " trk.pix_x()[trk.see_hitIdx()[iSeed][3]]: " << trk.pix_x()[trk.see_hitIdx()[iSeed][3]] <<  std::endl;
-//        // std::cout <<  " trk.pix_y()[trk.see_hitIdx()[iSeed][3]]: " << trk.pix_y()[trk.see_hitIdx()[iSeed][3]] <<  std::endl;
-//        // std::cout <<  " sqrt(pow(trk.pix_x()[trk.see_hitIdx()[iSeed][3]],2)+pow(trk.pix_y()[trk.see_hitIdx()[iSeed][3]],2)): " << sqrt(pow(trk.pix_x()[trk.see_hitIdx()[iSeed][3]],2)+pow(trk.pix_y()[trk.see_hitIdx()[iSeed][3]],2)) <<  std::endl;
-//        // std::cout <<  " trk.pix_z()[trk.see_hitIdx()[iSeed][3]]: " << trk.pix_z()[trk.see_hitIdx()[iSeed][3]] <<  std::endl;
-//
-//        // Inner most hit
-//        std::vector<SDL::CPU::Hit> hits;
-//        int hitidx0 = trk.see_hitIdx()[iSeed][0];
-//        //int hittype0 = trk.see_hitType()[iSeed][0];
-//        // hits.push_back(SDL::CPU::Hit(trk.pix_x()[hitidx0], trk.pix_y()[hitidx0], trk.pix_z()[hitidx0], hitidx0));
-//        // hits.push_back(SDL::CPU::Hit(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), hitidx0));
-//        hits.push_back(SDL::CPU::Hit(p3PCA.Pt(), p3PCA.Eta(), p3PCA.Phi(), hitidx0));
-//        // hits.push_back(SDL::CPU::Hit(1, 2, 3, hitidx0));
-//        int hitidx1 = trk.see_hitIdx()[iSeed][1];
-//        //int hittype1 = trk.see_hitType()[iSeed][1];
-//        // hits.push_back(SDL::CPU::Hit(trk.pix_x()[hitidx1], trk.pix_y()[hitidx1], trk.pix_z()[hitidx1], hitidx1));
-//        hits.push_back(SDL::CPU::Hit(r3PCA.X(), r3PCA.Y(), r3PCA.Z(), hitidx1));
-//        // hits.push_back(SDL::CPU::Hit(4, 5, 6, hitidx1));
-//        int hitidx2 = trk.see_hitIdx()[iSeed][2];
-//        //int hittype2 = trk.see_hitType()[iSeed][2];
-//        // hits.push_back(SDL::CPU::Hit(trk.pix_x()[hitidx2], trk.pix_y()[hitidx2], trk.pix_z()[hitidx2], hitidx2));
-//        hits.push_back(SDL::CPU::Hit(r3LH.X(), trk.see_dxy()[iSeed], trk.see_dz()[iSeed], hitidx2));
-//        // hits.push_back(SDL::CPU::Hit(r3LH.X(), r3LH.Y(), r3LH.Z(), hitidx2));
-//        // hits.push_back(SDL::CPU::Hit(7, 8, 9, hitidx2));
-//        int hitidx3 = trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitIdx()[iSeed][3] : trk.see_hitIdx()[iSeed][2]; // repeat last one if triplet
-//        //int hittype3 = trk.see_hitIdx()[iSeed].size() > 3 ? trk.see_hitType()[iSeed][3] : trk.see_hitIdx()[iSeed][2]; // repeat last one if triplet
-//        // hits.push_back(SDL::CPU::Hit(trk.pix_x()[hitidx3], trk.pix_y()[hitidx3], trk.pix_z()[hitidx3], hitidx3));
-//        hits.push_back(SDL::CPU::Hit(r3LH.X(), r3LH.Y(), r3LH.Z(), hitidx3));
-//        // hits.push_back(SDL::CPU::Hit(10, 11, 12, hitidx3));
-//
-//        float pixelSegmentDeltaPhiChange = r3LH.DeltaPhi(p3LH);
-//        float ptIn = p3LH.Pt();
-//        float ptErr = trk.see_ptErr()[iSeed];
-//        float etaErr = trk.see_etaErr()[iSeed];
-//        float px = p3LH.X();
-//        float py = p3LH.Y();
-//        float pz = p3LH.Z();
-//
-//        if ((ptIn > 1 - 2 * ptErr) and (fabs(p3LH.Eta()) < 3))
-//            event.addPixelSegmentsToEvent(hits, pixelSegmentDeltaPhiChange, ptIn, ptErr, px, py, pz, etaErr, iSeed);
-//
-//    }
-//
-//    float pls_loading_elapsed = my_timer.RealTime();
-//    if (ana.verbose >= 2) std::cout << "Loading pixel line segments processing time: " << pls_loading_elapsed << " secs" << std::endl;
-//    return pls_loading_elapsed;
-//}
-//
-////__________________________________________________________________________________________
-//float runMiniDoublet_on_CPU(SDL::CPU::Event& event)
-//{
-//    TStopwatch my_timer;
-//    if (ana.verbose >= 2) std::cout << "Reco Mini-Doublet start" << std::endl;
-//    my_timer.Start();
-//    event.createMiniDoublets();
-//    float md_elapsed = my_timer.RealTime();
-//    if (ana.verbose >= 2) std::cout << "Reco Mini-doublet processing time: " << md_elapsed << " secs" << std::endl;
-//    return md_elapsed;
-//}
-//
-////__________________________________________________________________________________________
-//float runSegment_on_CPU(SDL::CPU::Event& event)
-//{
-//    TStopwatch my_timer;
-//    if (ana.verbose >= 2) std::cout << "Reco Segment start" << std::endl;
-//    my_timer.Start();
-//    event.createSegmentsWithModuleMap();
-//    float sg_elapsed = my_timer.RealTime();
-//    if (ana.verbose >= 2) std::cout << "Reco Segment processing time: " << sg_elapsed << " secs" << std::endl;
-//    return sg_elapsed;
-//}
-//
-////__________________________________________________________________________________________
-//float runT4_on_CPU(SDL::CPU::Event& event)
-//{
-//    TStopwatch my_timer;
-//    if (ana.verbose >= 2) std::cout << "Reco Quadruplet T4 start" << std::endl;
-//    my_timer.Start();
-//    event.createTrackletsWithModuleMap();
-//    float t4_elapsed = my_timer.RealTime();
-//    if (ana.verbose >= 2) std::cout << "Reco T4 (just T4) processing time: " << t4_elapsed << " secs" << std::endl;
-//    return t4_elapsed;
-//}
-//
-////__________________________________________________________________________________________
-//float runT4x_on_CPU(SDL::CPU::Event& event)
-//{
-//    TStopwatch my_timer;
-//    if (ana.verbose >= 2) std::cout << "Reco Quadruplet T4x start" << std::endl;
-//    my_timer.Start();
-//    event.createTrackletsWithAGapWithModuleMap();
-//    float t4x_elapsed = my_timer.RealTime();
-//    if (ana.verbose >= 2) std::cout << "Reco T4x (just T4x) processing time: " << t4x_elapsed << " secs" << std::endl;
-//    return t4x_elapsed;
-//}
-//
-////__________________________________________________________________________________________
-//float runpT4_on_CPU(SDL::CPU::Event& event)
-//{
-//    TStopwatch my_timer;
-//    if (ana.verbose >= 2) std::cout << "Reco Quadruplet pT4 start" << std::endl;
-//    my_timer.Start();
-//    // event.createTrackletsWithPixelLineSegments();
-//    event.createTrackletsWithPixelLineSegments_v2();
-//    float pt4_elapsed = my_timer.RealTime();
-//    if (ana.verbose >= 2) std::cout << "Reco pT4 processing time: " << pt4_elapsed << " secs" << std::endl;
-//    return pt4_elapsed;
-//}
-//
-////__________________________________________________________________________________________
-//float runT3_on_CPU(SDL::CPU::Event& event)
-//{
-//    TStopwatch my_timer;
-//    if (ana.verbose >= 2) std::cout << "Reco T3 start" << std::endl;
-//    my_timer.Start();
-//    event.createTriplets();
-//    float t3_elapsed = my_timer.RealTime();
-//    if (ana.verbose >= 2) std::cout << "Reco T3 processing time: " << t3_elapsed<< " secs" << std::endl;
-//    return t3_elapsed;
-//}
-//
-////__________________________________________________________________________________________
-//float runTrackCandidate_on_CPU(SDL::CPU::Event& event)
-//{
-//    TStopwatch my_timer;
-//    if (ana.verbose >= 2) std::cout << "Reco TrackCandidate start" << std::endl;
-//    my_timer.Start();
-//    event.createTrackCandidates();
-//    float tc_elapsed = my_timer.RealTime();
-//    if (ana.verbose >= 2) std::cout << "Reco TrackCandidate processing time: " << tc_elapsed << " secs" << std::endl;
-//    return tc_elapsed;
-//}
-//
-////__________________________________________________________________________________________
-//float runT5_on_CPU(SDL::CPU::Event& event)
-//{
-//    TStopwatch my_timer;
-//    if (ana.verbose >= 2) std::cout << "Reco T5 start" << std::endl;
-//    my_timer.Start();
-//    event.createT5s();
-//    float t5_elapsed = my_timer.RealTime();
-//    if (ana.verbose >= 2) std::cout << "Reco T5 processing time: " << t5_elapsed << " secs" << std::endl;
-//    return t5_elapsed;
-//}
-//
-////__________________________________________________________________________________________
-//float runpT3_on_CPU(SDL::CPU::Event& event)
-//{
-//    TStopwatch my_timer;
-//    if (ana.verbose >= 2) std::cout << "Reco pT3 start" << std::endl;
-//    my_timer.Start();
-//    event.createpT3s();
-//    float pt3_elapsed = my_timer.RealTime();
-//    if (ana.verbose >= 2) std::cout << "Reco pT3 processing time: " << pt3_elapsed << " secs" << std::endl;
-//    return pt3_elapsed;
-//}
-//
-////__________________________________________________________________________________________
-//void printHitSummary(SDL::CPU::Event& event)
-//{
-//    if (ana.verbose >= 2) std::cout << "Summary of hits" << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits: " << event.getNumberOfHits() << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits in barrel layer 1: " << event.getNumberOfHitsByLayerBarrel(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits in barrel layer 2: " << event.getNumberOfHitsByLayerBarrel(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits in barrel layer 3: " << event.getNumberOfHitsByLayerBarrel(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits in barrel layer 4: " << event.getNumberOfHitsByLayerBarrel(3) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits in barrel layer 5: " << event.getNumberOfHitsByLayerBarrel(4) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits in barrel layer 6: " << event.getNumberOfHitsByLayerBarrel(5) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits in endcap layer 1: " << event.getNumberOfHitsByLayerEndcap(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits in endcap layer 2: " << event.getNumberOfHitsByLayerEndcap(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits in endcap layer 3: " << event.getNumberOfHitsByLayerEndcap(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits in endcap layer 4: " << event.getNumberOfHitsByLayerEndcap(3) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits in endcap layer 5: " << event.getNumberOfHitsByLayerEndcap(4) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits Upper Module in layer 1: " << event.getNumberOfHitsByLayerBarrelUpperModule(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits Upper Module in layer 2: " << event.getNumberOfHitsByLayerBarrelUpperModule(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits Upper Module in layer 3: " << event.getNumberOfHitsByLayerBarrelUpperModule(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits Upper Module in layer 4: " << event.getNumberOfHitsByLayerBarrelUpperModule(3) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits Upper Module in layer 5: " << event.getNumberOfHitsByLayerBarrelUpperModule(4) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Hits Upper Module in layer 6: " << event.getNumberOfHitsByLayerBarrelUpperModule(5) << std::endl;
-//}
-//
-////__________________________________________________________________________________________
-//void printMiniDoubletSummary(SDL::CPU::Event& event)
-//{
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced: " << event.getNumberOfMiniDoublets() << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 1: " << event.getNumberOfMiniDoubletsByLayerBarrel(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 2: " << event.getNumberOfMiniDoubletsByLayerBarrel(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 3: " << event.getNumberOfMiniDoubletsByLayerBarrel(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 4: " << event.getNumberOfMiniDoubletsByLayerBarrel(3) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 5: " << event.getNumberOfMiniDoubletsByLayerBarrel(4) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced barrel layer 6: " << event.getNumberOfMiniDoubletsByLayerBarrel(5) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 1: " << event.getNumberOfMiniDoubletsByLayerEndcap(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 2: " << event.getNumberOfMiniDoubletsByLayerEndcap(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 3: " << event.getNumberOfMiniDoubletsByLayerEndcap(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 4: " << event.getNumberOfMiniDoubletsByLayerEndcap(3) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets produced endcap layer 5: " << event.getNumberOfMiniDoubletsByLayerEndcap(4) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets considered: " << event.getNumberOfMiniDoubletCandidates() << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets considered barrel layer 1: " << event.getNumberOfMiniDoubletCandidatesByLayerBarrel(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets considered barrel layer 2: " << event.getNumberOfMiniDoubletCandidatesByLayerBarrel(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets considered barrel layer 3: " << event.getNumberOfMiniDoubletCandidatesByLayerBarrel(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets considered barrel layer 4: " << event.getNumberOfMiniDoubletCandidatesByLayerBarrel(3) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets considered barrel layer 5: " << event.getNumberOfMiniDoubletCandidatesByLayerBarrel(4) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets considered barrel layer 6: " << event.getNumberOfMiniDoubletCandidatesByLayerBarrel(5) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets considered endcap layer 1: " << event.getNumberOfMiniDoubletCandidatesByLayerEndcap(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets considered endcap layer 2: " << event.getNumberOfMiniDoubletCandidatesByLayerEndcap(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets considered endcap layer 3: " << event.getNumberOfMiniDoubletCandidatesByLayerEndcap(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets considered endcap layer 4: " << event.getNumberOfMiniDoubletCandidatesByLayerEndcap(3) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Mini-doublets considered endcap layer 5: " << event.getNumberOfMiniDoubletCandidatesByLayerEndcap(4) << std::endl;
-//}
-//
-////__________________________________________________________________________________________
-//void printSegmentSummary(SDL::CPU::Event& event)
-//{
-//    if (ana.verbose >= 2) std::cout << "# of Pixel Segments: " << event.getPixelLayer().getSegmentPtrs().size() << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments produced: " << event.getNumberOfSegments() << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments produced barrel layer 1-2: " << event.getNumberOfSegmentsByLayerBarrel(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments produced barrel layer 2-3: " << event.getNumberOfSegmentsByLayerBarrel(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments produced barrel layer 3-4: " << event.getNumberOfSegmentsByLayerBarrel(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments produced barrel layer 4-5: " << event.getNumberOfSegmentsByLayerBarrel(3) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments produced barrel layer 5-6: " << event.getNumberOfSegmentsByLayerBarrel(4) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 1-2: " << event.getNumberOfSegmentsByLayerEndcap(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 2-3: " << event.getNumberOfSegmentsByLayerEndcap(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 3-4: " << event.getNumberOfSegmentsByLayerEndcap(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments produced endcap layer 4-5: " << event.getNumberOfSegmentsByLayerEndcap(3) << std::endl;
-//    // if (ana.verbose 2= 1) std::cout << "# of Segments produced layer 6: " << event.getNumberOfSegmentsByLayerBarrel(5) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments considered: " << event.getNumberOfSegmentCandidates() << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments considered layer 1-2: " << event.getNumberOfSegmentCandidatesByLayerBarrel(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments considered layer 2-3: " << event.getNumberOfSegmentCandidatesByLayerBarrel(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments considered layer 3-4: " << event.getNumberOfSegmentCandidatesByLayerBarrel(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments considered layer 4-5: " << event.getNumberOfSegmentCandidatesByLayerBarrel(3) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments considered layer 5-6: " << event.getNumberOfSegmentCandidatesByLayerBarrel(4) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments considered layer 1-2: " << event.getNumberOfSegmentCandidatesByLayerEndcap(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments considered layer 2-3: " << event.getNumberOfSegmentCandidatesByLayerEndcap(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments considered layer 3-4: " << event.getNumberOfSegmentCandidatesByLayerEndcap(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Segments considered layer 4-5: " << event.getNumberOfSegmentCandidatesByLayerEndcap(3) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of Segments considered layer 6: " << event.getNumberOfSegmentCandidatesByLayerBarrel(5) << std::endl;
-//}
-//
-////__________________________________________________________________________________________
-//void printTripletSummary(SDL::CPU::Event& event)
-//{
-//    // ----------------
-//    if (ana.verbose >= 2) std::cout << "# of Triplets produced: " << event.getNumberOfTriplets() << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Triplets produced layer 1-2-3: " << event.getNumberOfTripletsByLayerBarrel(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Triplets produced layer 2-3-4: " << event.getNumberOfTripletsByLayerBarrel(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Triplets produced layer 3-4-5: " << event.getNumberOfTripletsByLayerBarrel(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Triplets produced layer 4-5-6: " << event.getNumberOfTripletsByLayerBarrel(3) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of Triplets produced layer 5: " << event.getNumberOfTripletsByLayerBarrel(4) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of Triplets produced layer 6: " << event.getNumberOfTripletsByLayerBarrel(5) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Triplets considered: " << event.getNumberOfTripletCandidates() << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Triplets considered layer 1-2-3: " << event.getNumberOfTripletCandidatesByLayerBarrel(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Triplets considered layer 2-3-4: " << event.getNumberOfTripletCandidatesByLayerBarrel(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Triplets considered layer 3-4-5: " << event.getNumberOfTripletCandidatesByLayerBarrel(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Triplets considered layer 4-5-6: " << event.getNumberOfTripletCandidatesByLayerBarrel(3) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of Triplets considered layer 5: " << event.getNumberOfTripletCandidatesByLayerBarrel(4) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of Triplets considered layer 6: " << event.getNumberOfTripletCandidatesByLayerBarrel(5) << std::endl;
-//    // ----------------
-//}
-//
-////__________________________________________________________________________________________
-//void printTrackletSummary(SDL::CPU::Event& event)
-//{
-//    // ----------------
-//    if (ana.verbose >= 2) std::cout << "# of Tracklets produced with pixel segment: " << event.getPixelLayer().getTrackletPtrs().size() << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Tracklets produced: " << event.getNumberOfTracklets() << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Tracklets produced layer 1-2-3-4: " << event.getNumberOfTrackletsByLayerBarrel(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Tracklets produced layer 2-3-4-5: " << event.getNumberOfTrackletsByLayerBarrel(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Tracklets produced layer 3-4-5-6: " << event.getNumberOfTrackletsByLayerBarrel(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Tracklets produced layer 1-2-3-4: " << event.getNumberOfTrackletsByLayerEndcap(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Tracklets produced layer 2-3-4-5: " << event.getNumberOfTrackletsByLayerEndcap(1) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of Tracklets produced layer 4: " << event.getNumberOfTrackletsByLayerBarrel(3) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of Tracklets produced layer 5: " << event.getNumberOfTrackletsByLayerBarrel(4) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of Tracklets produced layer 6: " << event.getNumberOfTrackletsByLayerBarrel(5) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Tracklets considered: " << event.getNumberOfTrackletCandidates() << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Tracklets considered layer 1-2-3-4: " << event.getNumberOfTrackletCandidatesByLayerBarrel(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Tracklets considered layer 2-3-4-5: " << event.getNumberOfTrackletCandidatesByLayerBarrel(1) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Tracklets considered layer 3-4-5-6: " << event.getNumberOfTrackletCandidatesByLayerBarrel(2) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Tracklets considered layer 1-2-3-4: " << event.getNumberOfTrackletCandidatesByLayerEndcap(0) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of Tracklets considered layer 2-3-4-5: " << event.getNumberOfTrackletCandidatesByLayerEndcap(1) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of Tracklets considered layer 4: " << event.getNumberOfTrackletCandidatesByLayerBarrel(3) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of Tracklets considered layer 5: " << event.getNumberOfTrackletCandidatesByLayerBarrel(4) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of Tracklets considered layer 6: " << event.getNumberOfTrackletCandidatesByLayerBarrel(5) << std::endl;
-//    // ----------------
-//}
-//
-////__________________________________________________________________________________________
-//void printTrackCandidateSummary(SDL::CPU::Event& event)
-//{
-//    // ----------------
-//    if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced: " << event.getNumberOfTrackCandidates() << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of TrackCandidates produced layer 1-2-3-4-5-6: " << event.getNumberOfTrackCandidatesByLayerBarrel(0) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of TrackCandidates produced layer 2: " << event.getNumberOfTrackCandidatesByLayerBarrel(1) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of TrackCandidates produced layer 3: " << event.getNumberOfTrackCandidatesByLayerBarrel(2) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of TrackCandidates produced layer 4: " << event.getNumberOfTrackCandidatesByLayerBarrel(3) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of TrackCandidates produced layer 5: " << event.getNumberOfTrackCandidatesByLayerBarrel(4) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of TrackCandidates produced layer 6: " << event.getNumberOfTrackCandidatesByLayerBarrel(5) << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of TrackCandidates considered: " << event.getNumberOfTrackCandidateCandidates() << std::endl;
-//    if (ana.verbose >= 2) std::cout << "# of TrackCandidates considered layer 1-2-3-4-5-6: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(0) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of TrackCandidates considered layer 2: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(1) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of TrackCandidates considered layer 3: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(2) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of TrackCandidates considered layer 4: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(3) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of TrackCandidates considered layer 5: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(4) << std::endl;
-//    // if (ana.verbose >= 1) std::cout << "# of TrackCandidates considered layer 6: " << event.getNumberOfTrackCandidateCandidatesByLayerBarrel(5) << std::endl;
-//    // ----------------
-//
-//}
-
-//__________________________________________________________________________________________
 bool isDenomSimTrk(int isimtrk)
 {
     if (isimtrk < 0)

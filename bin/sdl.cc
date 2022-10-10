@@ -79,7 +79,6 @@ int main(int argc, char** argv)
     ana.input_raw_string = result["input"].as<std::string>();
 
     // A default value one
-#ifdef CMSSW12GEOM
     if (ana.input_raw_string.EqualTo("muonGun"))
         ana.input_file_list_tstring = "/data2/segmentlinking/CMSSW_12_2_0_pre2/trackingNtuple_10mu_pt_0p5_2.root";
     else if (ana.input_raw_string.EqualTo("muonGun_highE"))
@@ -88,28 +87,14 @@ int main(int argc, char** argv)
         ana.input_file_list_tstring = "/data2/segmentlinking/CMSSW_12_2_0_pre2/trackingNtuple_6pion_1k_pt_0p5_50.root";
     else if (ana.input_raw_string.EqualTo("PU200"))
         ana.input_file_list_tstring = "/data2/segmentlinking/CMSSW_12_2_0_pre2/trackingNtuple_ttbar_PU200.root";
+    else if (ana.input_raw_string.EqualTo("PU200RelVal"))
+        ana.input_file_list_tstring = "/data2/segmentlinking/CMSSW_12_5_0_pre3/RelValTTbar_14TeV_CMSSW_12_5_0_pre3/";
     else if (ana.input_raw_string.EqualTo("cube"))
         ana.input_file_list_tstring = "/data2/segmentlinking/CMSSW_12_2_0_pre2/trackingNtuple_10mu_pt_0p5_50_5cm_cube.root";
     else if (ana.input_raw_string.EqualTo("cube50cm"))
         ana.input_file_list_tstring = "/data2/segmentlinking/CMSSW_12_2_0_pre2/trackingNtuple_10mu_pt_0p5_50_50cm_cube.root";
     else
         ana.input_file_list_tstring = ana.input_raw_string;
-#else
-    if (ana.input_raw_string.EqualTo("muonGun"))
-        ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_100_pt0p5_2p0.root";
-    else if (ana.input_raw_string.EqualTo("muonGun_highE"))
-        ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_10MuGun.root";
-    else if (ana.input_raw_string.EqualTo("pionGun"))
-        ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_1pion_10k_pt0p5_50p0.root";
-    else if (ana.input_raw_string.EqualTo("PU200"))
-        ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_with_PUinfo_500_evts.root";
-    else if (ana.input_raw_string.EqualTo("cube"))
-        ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_10_pt0p5_50_5cm_cube.root";
-    else if (ana.input_raw_string.EqualTo("cube50cm"))
-        ana.input_file_list_tstring = "/data2/segmentlinking/trackingNtuple_10_pt0p5_50_50cm_cube.root";
-    else
-        ana.input_file_list_tstring = ana.input_raw_string;
-#endif
 
     //_______________________________________________________________________________
     // --tree
@@ -310,11 +295,7 @@ void run_sdl()
         TString path;
         path = get_absolute_path_after_check_file_exists(
             TString::Format(
-#ifdef CMSSW12GEOM
                 "%s/data/centroid_CMSSW_12_2_0_pre2.txt",
-#else
-                "%s/data/centroid.txt",
-#endif
                 gSystem->Getenv("TRACKLOOPERDIR")
                 ).Data()
             );
@@ -345,6 +326,7 @@ void run_sdl()
                 std::vector<std::vector<float>>    out_eta_vec;
                 std::vector<std::vector<float>>    out_etaErr_vec;
                 std::vector<std::vector<float>>    out_phi_vec;
+                std::vector<std::vector<int>>    out_charge_vec;
                 std::vector<std::vector<int>>      out_superbin_vec;
                 std::vector<std::vector<int8_t>>      out_pixelType_vec;
                 std::vector<std::vector<short>>    out_isQuad_vec;
@@ -387,6 +369,7 @@ void run_sdl()
                 out_eta_vec,
                 out_etaErr_vec,
                 out_phi_vec,
+                out_charge_vec,
                 out_superbin_vec,
                 out_pixelType_vec,
                 out_isQuad_vec
@@ -455,6 +438,7 @@ float timing_TCE;
                 out_eta_vec.at(evt),
                 out_etaErr_vec.at(evt),
                 out_phi_vec.at(evt),
+                out_charge_vec.at(evt),
                 out_superbin_vec.at(evt),
                 out_pixelType_vec.at(evt),
                 out_isQuad_vec.at(evt));

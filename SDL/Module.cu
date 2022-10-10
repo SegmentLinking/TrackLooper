@@ -6,10 +6,8 @@ std::map <unsigned int, uint16_t> *SDL::detIdToIndex;
 std::map <unsigned int, float> *SDL::module_x;
 std::map <unsigned int, float> *SDL::module_y;
 std::map <unsigned int, float> *SDL::module_z;
-#ifdef CMSSW12GEOM
-// https://github.com/cms-sw/cmssw/blob/5e809e8e0a625578aa265dc4b128a93830cb5429/Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h#L29
 std::map <unsigned int, unsigned int> *SDL::module_type; // 23 : Ph2PSP, 24 : Ph2PSS, 25 : Ph2SS
-#endif
+// https://github.com/cms-sw/cmssw/blob/5e809e8e0a625578aa265dc4b128a93830cb5429/Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h#L29
 
 void SDL::createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned int nModules,cudaStream_t stream, unsigned int nLowerModules)
 {
@@ -217,9 +215,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     module_x = new std::map<unsigned int, float>;
     module_y = new std::map<unsigned int, float>;
     module_z = new std::map<unsigned int, float>;
-#ifdef CMSSW12GEOM
     module_type = new std::map<unsigned int, unsigned int>;
-#endif
 
     /*modules structure object will be created in Event.cu*/
     /* Load the whole text file into the map first*/
@@ -251,7 +247,6 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
                 (*module_x)[temp_detId] = std::stof(token);
             if(count_number == 2)
                 (*module_y)[temp_detId] = std::stof(token);
-#ifdef CMSSW12GEOM
             if(count_number == 3)
                 (*module_z)[temp_detId] = std::stof(token);
             if(count_number == 4)
@@ -262,16 +257,6 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
             count_number++;
             if(count_number>4)
                 break;
-#else
-            if(count_number == 3)
-            {
-                (*module_z)[temp_detId] = std::stof(token);
-                counter++;
-            }
-            count_number++;
-            if(count_number>3)
-                break;
-#endif
         }
 
     }
@@ -327,9 +312,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
         float m_x = (*module_x)[detId];
         float m_y = (*module_y)[detId];
         float m_z = (*module_z)[detId];
-#ifdef CMSSW12GEOM
         unsigned int m_t = (*module_type)[detId];
-#endif
 
         float eta,r;
 
@@ -393,13 +376,8 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
         else
         {
 
-#ifdef CMSSW12GEOM
             host_moduleType[index] = ( m_t == 25 ? SDL::TwoS : SDL::PS );
             host_moduleLayerType[index] = ( m_t == 23 ? SDL::Pixel : SDL::Strip );
-#else
-            host_moduleType[index] = modulesInGPU.parseModuleType(subdet, layer, ring);
-            host_moduleLayerType[index] = modulesInGPU.parseModuleLayerType(host_moduleType[index],host_isInverted[index],host_isLower[index]);
-#endif
 
             if(host_moduleType[index] == SDL::PS and host_moduleLayerType[index] == SDL::Pixel)
             {

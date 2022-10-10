@@ -143,9 +143,7 @@ namespace SDL
     extern std::map <unsigned int, float> *module_x;
     extern std::map <unsigned int, float> *module_y;
     extern std::map  <unsigned int, float> *module_z;
-#ifdef CMSSW12GEOM
     extern std::map  <unsigned int, unsigned int> *module_type;
-#endif
 
     //functions
     void loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules,uint16_t& nLowerModules,struct pixelMap& pixelMapping,cudaStream_t stream, const char* moduleMetaDataFilePath="data/centroid.txt");
