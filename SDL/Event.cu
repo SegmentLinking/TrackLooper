@@ -670,8 +670,6 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     // Use the actual number of hits instead of a max.
     const int nHits = x.size();
 
-//    for (int i=0; i<25; i++) printf("%f \n",x[i]);
-
     // Get current device for future use.
     cudaGetDevice(&dev);
 
@@ -875,6 +873,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     cms::cuda::free_device(dev, etaErr_dev);
     cms::cuda::free_device(dev, eta_dev);
     cms::cuda::free_device(dev, phi_dev);
+    cms::cuda::free_device(dev, charge_dev);
     cms::cuda::free_device(dev, superbin_dev);
     cms::cuda::free_device(dev, pixelType_dev);
     cms::cuda::free_device(dev, isQuad_dev);

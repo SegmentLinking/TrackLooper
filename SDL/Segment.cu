@@ -221,12 +221,12 @@ void SDL::segments::freeMemoryCache()
     cms::cuda::free_device(dev,ptIn);
     cms::cuda::free_device(dev,nSegments);
     cms::cuda::free_device(dev,totOccupancySegments);
+    cms::cuda::free_device(dev, charge);
     cms::cuda::free_device(dev,superbin);
     cms::cuda::free_device(dev,pixelType);
     cms::cuda::free_device(dev,isQuad);
     cms::cuda::free_device(dev,isDup);
     cms::cuda::free_device(dev,score);
-    cms::cuda::free_device(dev, charge);
     cms::cuda::free_device(dev, circleCenterX);
     cms::cuda::free_device(dev, circleCenterY);
     cms::cuda::free_device(dev, circleRadius);
