@@ -444,93 +444,57 @@ __device__ bool SDL::passPT3RZChiSquaredCuts(struct modules& modulesInGPU, uint1
 
     if(layer1 == 8 and layer2 == 9 and layer3 == 10)
     {
-//        return rzChiSquared < 85.2499f; //Balaji's linear
-//        return rzChiSquared < 13.7527f; // using xy in barrel, CMSSW 10 geo
-//        return rzChiSquared < 14.0f; //using r, CMSSW 10 geo
-        return rzChiSquared < 13.2084f; //CMSSW 12 geo
+        return rzChiSquared < 13.4733f; //CMSSW 12 geo, add charge
     }
     else if(layer1 == 8 and layer2 == 9 and layer3 == 15)
     {
-//        return rzChiSquared < 85.2499f; //Balaji's linear
-//        return rzChiSquared < 15.2033f; // using xy in barrel, CMSSW 10 geo
-//        return rzChiSquared < 15.2f; //using r, CMSSW 10 geo
-        return rzChiSquared < 14.6133f; //CMSSW 12 geo
+        return rzChiSquared < 15.2533f; //CMSSW 12 geo, add charge
     }
 
     else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
-//        return rzChiSquared < 74.19805f; //Balaji's linear
-//        return rzChiSquared < 15.1785f; // using xy in barrel, CMSSW 10 geo
-//        return rzChiSquared < 14.6117f; //using r, CMSSW 10 geo
-        return rzChiSquared < 10.9557f; //CMSSW 12 geo
+        return rzChiSquared < 11.7439f; //CMSSW 12 geo, add charge
     }
     else if(layer1 == 7 and layer2 == 8 and layer3 == 14)
-    {
-//        return rzChiSquared < 97.9479f; //Balaji's linear
-//        return rzChiSquared < 17.3333f; // using xy in barrel, CMSSW 10 geo
-//        return rzChiSquared < 16.9833f; //using r, CMSSW 10 geo    
-        return rzChiSquared < 16.896f; //CMSSW 12 geo  
+    {   
+        return rzChiSquared < 16.836f; //CMSSW 12 geo, add charge
     }
 
     else if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-//        return rzChiSquared < 451.1407f; //Balaji's linear
-//        return rzChiSquared < 9.6535f; // using xy in barrel, CMSSW 10 geo
-//        return rzChiSquared < 9.0672f; //using r, CMSSW 10 geo
-        return rzChiSquared < 8.182f; //CMSSW 12 geo        
+        return rzChiSquared < 9.3866f; //CMSSW 12 geo, add charge
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
-//        return rzChiSquared < 595.546f; //Balaji's linear
-//        return rzChiSquared < 27.7156f;  // using xy in barrel, CMSSW 10 geo
-//        return rzChiSquared < 27.076f; //using r, CMSSW 10 geo
-        return rzChiSquared < 42.336f; //CMSSW 12 geo
+        return rzChiSquared < 42.8617f; //CMSSW 12 geo, add charge
     }
 
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
-//        return rzChiSquared < 518.339f; //Balaji's linear
-//        return rzChiSquared < 7.9731f; // using xy in barrel, CMSSW 10 geo
-//        return rzChiSquared < 7.441f; //using r, CMSSW 10 geo
-        return rzChiSquared < 7.7367f; //CMSSW 12 geo
+        return rzChiSquared < 8.3363f; //CMSSW 12 geo, add charge
     }
 
     else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
-//        return rzChiSquared < 684.253f; //Balaji's linear
-//        return rzChiSquared < 44.0833f; // using xy in barrel, CMSSW 10 geo
-//        return rzChiSquared < 40.54f; //using r, CMSSW 10 geo
-        return rzChiSquared < 34.68f; //CMSSW 12 geo
+        return rzChiSquared < 39.2367f; //CMSSW 12 geo, add charge
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 12)
     {
-//        return rzChiSquared < 684.253f; //Balaji's linear
-//        return rzChiSquared < 34.37f; // using xy in barrel, CMSSW 10 geo
-//        return rzChiSquared < 35.36f; //using r, CMSSW 10 geo
-        return rzChiSquared < 51.76f; //CMSSW 12 geo
+        return rzChiSquared < 51.76f; //CMSSW 12 geo, add charge
     }
     
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
-//        return rzChiSquared  < 392.654f; //Balaji's linear
-//        return rzChiSquared  < 29.7f; // using xy in barrel, CMSSW 10 geo
-//        return rzChiSquared  < 32.38f; //using r, CMSSW 10 geo
-        return rzChiSquared < 35.22f; //CMSSW 12 geo
+        return rzChiSquared < 38.7867f; //CMSSW 12 geo, add charge
     }
 
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
-//        return rzChiSquared < 518.339f; //Balaji's linear
-//        return rzChiSquared < 38.7867f; // using xy in barrel, CMSSW 10 geo
-//        return rzChiSquared < 44.24f; //using r, CMSSW 10 geo
-        return rzChiSquared < 37.9f; //CMSSW 12 geo
+        return rzChiSquared < 342.315f; //CMSSW 12 geo, add charge
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 13)
     {
-//        return rzChiSquared < 518.339f; //Balaji's linear
-//        return rzChiSquared < 28.97f; // using xy in barrel, CMSSW 10 geo
-//        return rzChiSquared < 27.88f; //using r, CMSSW 10 geo
-        return rzChiSquared < 15.9667f; //CMSSW 12 geo
+        return rzChiSquared < 17.2667f; //CMSSW 12 geo, add charge
     }
 
     //default - category not found!
