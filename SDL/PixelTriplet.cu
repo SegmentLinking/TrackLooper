@@ -2564,7 +2564,6 @@ __device__ bool inline SDL::runpT5DefaultAlgoPPBB(struct modules& modulesInGPU, 
     float pz = segmentsInGPU.pz[pixelSegmentArrayIndex];
     float ptErr = segmentsInGPU.ptErr[pixelSegmentArrayIndex];
     float etaErr = segmentsInGPU.etaErr[pixelSegmentArrayIndex];
-    printf("%f\n",etaErr);
     ptSLo = fmaxf(ptCut, ptSLo - 10.0f*fmaxf(ptErr, 0.005f*ptSLo));
     ptSLo = fminf(10.0f, ptSLo);
 
