@@ -966,7 +966,7 @@ void loadMaps()
     SDL::moduleConnectionMap.load(mappath.Data());
     ana.moduleConnectiongMapLoose.load(mappath.Data());
 
-    TString pLSMapDir = "/data2/segmentlinking/pixelmap_CMSSW_12_2_0_pre2_0p8minPt";
+    TString pLSMapDir = TrackLooperDir+"/data/pixelmaps_CMSSW_12_2_0_pre2_0p8minPt";
 
     std::cout << "Loading pLS maps ... from pLSMapDir = " << pLSMapDir << std::endl;
 
@@ -1007,7 +1007,7 @@ float drfracSimHitConsistentWithHelix(int isimtrk, int isimhitidx)
     float pt = trk.sim_pt()[isimtrk];
     float eta = trk.sim_eta()[isimtrk];
     float phi = trk.sim_phi()[isimtrk];
-    float charge = trk.sim_q()[isimtrk];
+    int charge = trk.sim_q()[isimtrk];
 
     // Construct helix object
     SDLMath::Helix helix(pt, eta, phi, vx, vy, vz, charge);
@@ -1050,7 +1050,7 @@ float distxySimHitConsistentWithHelix(int isimtrk, int isimhitidx)
     float pt = trk.sim_pt()[isimtrk];
     float eta = trk.sim_eta()[isimtrk];
     float phi = trk.sim_phi()[isimtrk];
-    float charge = trk.sim_q()[isimtrk];
+    int charge = trk.sim_q()[isimtrk];
 
     // Construct helix object
     SDLMath::Helix helix(pt, eta, phi, vx, vy, vz, charge);
@@ -1102,6 +1102,7 @@ std::vector<std::vector<float>>&    out_pz_vec,
 std::vector<std::vector<float>>&    out_eta_vec,
 std::vector<std::vector<float>>&    out_etaErr_vec,
 std::vector<std::vector<float>>&    out_phi_vec,
+std::vector<std::vector<int>>&    out_charge_vec,
 std::vector<std::vector<int>>&    out_superbin_vec,
 std::vector<std::vector<int8_t>>&    out_pixelType_vec,
 std::vector<std::vector<short>>&    out_isQuad_vec)
@@ -1121,6 +1122,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
     std::vector<float> etaErr_vec; etaErr_vec.reserve(n_see);
     std::vector<float> eta_vec;    eta_vec.reserve(n_see);
     std::vector<float> phi_vec;    phi_vec.reserve(n_see);
+    std::vector<int> charge_vec;    charge_vec.reserve(n_see);
     std::vector<float> deltaPhi_vec; deltaPhi_vec.reserve(n_see);
     std::vector<float> trkX = trk.ph2_x();
     std::vector<float> trkY = trk.ph2_y();
@@ -1136,41 +1138,9 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
 
     for (auto &&[iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
     {
-
-        //// track algorithm; partial copy from TrackBase.h
-        //enum class TrackAlgorithm {
-        //    undefAlgorithm = 0,
-        //    ctf = 1,
-        //    duplicateMerge = 2,
-        //    cosmics = 3,
-        //    initialStep = 4,
-        //    lowPtTripletStep = 5,
-        //    pixelPairStep = 6,
-        //    detachedTripletStep = 7,
-        //    mixedTripletStep = 8,
-        //    pixelLessStep = 9,
-        //    tobTecStep = 10,
-        //    jetCoreRegionalStep = 11,
-        //    conversionStep = 12,
-        //    muonSeededStepInOut = 13,
-        //    muonSeededStepOutIn = 14,
-        //    outInEcalSeededConv = 15, inOutEcalSeededConv = 16,
-        //    nuclInter = 17,
-        //    standAloneMuon = 18, globalMuon = 19, cosmicStandAloneMuon = 20, cosmicGlobalMuon = 21,
-        //    // Phase1
-        //    highPtTripletStep = 22, lowPtQuadStep = 23, detachedQuadStep = 24,
-        //    reservedForUpgrades1 = 25, reservedForUpgrades2 = 26,
-        //    bTagGhostTracks = 27,
-        //    beamhalo = 28,
-        //    gsf = 29
-        //};
         bool good_seed_type = false;
         if (trk.see_algo()[iSeed] == 4) good_seed_type = true;
-        //if (trk.see_algo()[iSeed] == 5) good_seed_type = true;
-        //if (trk.see_algo()[iSeed] == 7) good_seed_type = true;
         if (trk.see_algo()[iSeed] == 22) good_seed_type = true;
-        //if (trk.see_algo()[iSeed] == 23) good_seed_type = true;
-        //if (trk.see_algo()[iSeed] == 24) good_seed_type = true;
         if (not good_seed_type) continue;
 
         TVector3 p3LH(trk.see_stateTrajGlbPx()[iSeed], trk.see_stateTrajGlbPy()[iSeed], trk.see_stateTrajGlbPz()[iSeed]);
@@ -1183,46 +1153,18 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
         TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
         TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
         TVector3 r3PCA(calculateR3FromPCA(p3PCA, trk.see_dxy()[iSeed], trk.see_dz()[iSeed]));
-        //auto const &seedHitsV = trk.see_hitIdx()[iSeed];
-        //auto const &seedHitTypesV = trk.see_hitType()[iSeed];
-
-        //int nHits = seedHitsV.size();
-
-        //int seedSD_mdRef_pixL = trk.see_hitIdx()[iSeed][0];
-        //int seedSD_mdRef_pixU = trk.see_hitIdx()[iSeed][1];
         TVector3 seedSD_mdRef_r3 = r3PCA;
-        //float seedSD_mdRef_rt = r3PCA.Pt();
-        //float seedSD_mdRef_z = r3PCA.Z();
-        //float seedSD_mdRef_r = r3PCA.Mag();
-        //float seedSD_mdRef_phi = r3PCA.Phi();
-        //float seedSD_mdRef_alpha = r3PCA.DeltaPhi(p3PCA);
-
-        //int seedSD_mdOut_pixL = trk.see_hitIdx()[iSeed][2];
-        //int seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
         TVector3 seedSD_mdOut_r3 = r3LH;
-        //float seedSD_mdOut_rt = r3LH.Pt();
-        //float seedSD_mdOut_z = r3LH.Z();
-        //float seedSD_mdOut_r = r3LH.Mag();
-        //float seedSD_mdOut_phi = r3LH.Phi();
-        //float seedSD_mdOut_alpha = r3LH.DeltaPhi(p3LH);
-
-        //float seedSD_iRef = iSeed;
-        //float seedSD_iOut = iSeed;
         TVector3 seedSD_r3 = r3LH;
-        //float seedSD_rt = r3LH.Pt();
-        //float seedSD_rtInv = 1.f / seedSD_rt;
-        //float seedSD_z = seedSD_r3.Z();
         TVector3 seedSD_p3 = p3LH;
-        //float seedSD_alpha = r3LH.DeltaPhi(p3LH);
-        //float seedSD_dr = (r3LH - r3PCA).Pt();
-        //float seedSD_d = seedSD_rt - r3PCA.Pt();
-        //float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
 
         float pixelSegmentDeltaPhiChange = r3LH.DeltaPhi(p3LH);
         float etaErr = trk.see_etaErr()[iSeed];
         float px = p3LH.X();
         float py = p3LH.Y();
         float pz = p3LH.Z();
+
+        int charge = trk.see_q()[iSeed];
         //extra bit
             // get pixel superbin
             //int ptbin = -1;
@@ -1234,7 +1176,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
               else{pixtype=2;}
             }
             else{continue;}
-            // if(abs(p3PCA.Eta()) >= 2.5){continue;}
+
 // all continues before pushing back into vectots to avoid strange offsets in indicies. 
             unsigned int hitIdx0 = hit_size + count;
             count++; 
@@ -1291,6 +1233,7 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
             eta_vec.push_back(eta);
             float phi = p3LH.Phi();
             phi_vec.push_back(phi);
+            charge_vec.push_back(charge);
             deltaPhi_vec.push_back(pixelSegmentDeltaPhiChange);
 
             // For matching with sim tracks
@@ -1311,20 +1254,16 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
             int phibin = (p3PCA_Phi + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
             int dzbin = (trk.see_dz()[iSeed] + 30) / (2*30 / nz);
             int isuperbin = /*(nz * nphi * neta) * ptbin + (removed since pt bin is determined by pixelType)*/ (nz * nphi) * etabin + (nz) * phibin + dzbin;
-            //if(isuperbin<0 || isuperbin>=44900){printf("isuperbin %d %d %d %d %f\n",isuperbin,etabin,phibin,dzbin,p3PCA.Eta());}
             superbin_vec.push_back(isuperbin);
             pixelType_vec.push_back(pixtype);
             isQuad_vec.push_back(isQuad);
-
-
-
 
         }
 
     } // iter::enumerate(trk.see_stateTrajGlbPx
 
 //    event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
-//    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);
+//    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, charge_vec, superbin_vec, pixelType_vec,isQuad_vec);
 
     out_trkX.push_back(trkX);
     out_trkY.push_back(trkY);
@@ -1344,13 +1283,11 @@ std::vector<std::vector<short>>&    out_isQuad_vec)
     out_eta_vec.push_back(eta_vec);
     out_etaErr_vec.push_back(etaErr_vec);
     out_phi_vec.push_back(phi_vec);
+    out_charge_vec.push_back(charge_vec);
     out_superbin_vec.push_back(superbin_vec);
     out_pixelType_vec.push_back(pixelType_vec);
     out_isQuad_vec.push_back(isQuad_vec);
     
-//    float hit_loading_elapsed = my_timer.RealTime();
-//    if (ana.verbose >= 2) std::cout << "Loading inputs processing time: " << hit_loading_elapsed << " secs" << std::endl;
-//    return hit_loading_elapsed;
 }
 
 //float addInputsToEventPreLoad(SDL::Event& event, bool useOMP,
@@ -1371,6 +1308,7 @@ std::vector<float>    pz_vec,
 std::vector<float>    eta_vec,
 std::vector<float>    etaErr_vec,
 std::vector<float>    phi_vec,
+std::vector<int>    charge_vec,
 std::vector<int>    superbin_vec,
 std::vector<int8_t>    pixelType_vec,
 std::vector<short>    isQuad_vec)
@@ -1379,13 +1317,12 @@ std::vector<short>    isQuad_vec)
     if (ana.verbose >= 2) std::cout << "Loading Inputs (i.e. outer tracker hits, and pixel line segements) to the Line Segment Tracking.... " << std::endl;
     my_timer.Start();
     event->addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
-    //float hit_loading_elapsed = my_timer.RealTime();
-    //my_timer.Start();
-    event->addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);
+    event->addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, charge_vec, superbin_vec, pixelType_vec,isQuad_vec);
     float hit_loading_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Loading inputs processing time: " << hit_loading_elapsed << " secs" << std::endl;
     return hit_loading_elapsed;
 }
+
 //__________________________________________________________________________________________
 float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
 {
@@ -1406,7 +1343,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
     std::vector<float> ptErr_vec;
     std::vector<float> etaErr_vec;
     std::vector<float> eta_vec;
-    std::vector<float> phi_vec;
+    std::vector<float> phi_vec; 
+    std::vector<int> charge_vec;
     std::vector<float> deltaPhi_vec;
     std::vector<float> trkX = trk.ph2_x();
     std::vector<float> trkY = trk.ph2_y();
@@ -1421,14 +1359,9 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
 
     for (auto &&[iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
     {
-
         bool good_seed_type = false;
         if (trk.see_algo()[iSeed] == 4) good_seed_type = true;
-        //if (trk.see_algo()[iSeed] == 5) good_seed_type = true;
-        //if (trk.see_algo()[iSeed] == 7) good_seed_type = true;
         if (trk.see_algo()[iSeed] == 22) good_seed_type = true;
-        //if (trk.see_algo()[iSeed] == 23) good_seed_type = true;
-        //if (trk.see_algo()[iSeed] == 24) good_seed_type = true;
         if (not good_seed_type) continue;
 
         TVector3 p3LH(trk.see_stateTrajGlbPx()[iSeed], trk.see_stateTrajGlbPy()[iSeed], trk.see_stateTrajGlbPz()[iSeed]);
@@ -1441,40 +1374,11 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
         TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
         TVector3 r3PCA(calculateR3FromPCA(p3PCA, trk.see_dxy()[iSeed], trk.see_dz()[iSeed]));
-        //auto const &seedHitsV = trk.see_hitIdx()[iSeed];
-        //auto const &seedHitTypesV = trk.see_hitType()[iSeed];
 
-        //int nHits = seedHitsV.size();
-
-        //int seedSD_mdRef_pixL = trk.see_hitIdx()[iSeed][0];
-        //int seedSD_mdRef_pixU = trk.see_hitIdx()[iSeed][1];
         TVector3 seedSD_mdRef_r3 = r3PCA;
-        //float seedSD_mdRef_rt = r3PCA.Pt();
-        //float seedSD_mdRef_z = r3PCA.Z();
-        //float seedSD_mdRef_r = r3PCA.Mag();
-        //float seedSD_mdRef_phi = r3PCA.Phi();
-        //float seedSD_mdRef_alpha = r3PCA.DeltaPhi(p3PCA);
-
-        //int seedSD_mdOut_pixL = trk.see_hitIdx()[iSeed][2];
-        //int seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
         TVector3 seedSD_mdOut_r3 = r3LH;
-        //float seedSD_mdOut_rt = r3LH.Pt();
-        //float seedSD_mdOut_z = r3LH.Z();
-        //float seedSD_mdOut_r = r3LH.Mag();
-        //float seedSD_mdOut_phi = r3LH.Phi();
-        //float seedSD_mdOut_alpha = r3LH.DeltaPhi(p3LH);
-
-        //float seedSD_iRef = iSeed;
-        //float seedSD_iOut = iSeed;
         TVector3 seedSD_r3 = r3LH;
-        //float seedSD_rt = r3LH.Pt();
-        //float seedSD_rtInv = 1.f / seedSD_rt;
-        //float seedSD_z = seedSD_r3.Z();
         TVector3 seedSD_p3 = p3LH;
-        //float seedSD_alpha = r3LH.DeltaPhi(p3LH);
-        //float seedSD_dr = (r3LH - r3PCA).Pt();
-        //float seedSD_d = seedSD_rt - r3PCA.Pt();
-        //float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
 
         float pixelSegmentDeltaPhiChange = r3LH.DeltaPhi(p3LH);
         float etaErr = trk.see_etaErr()[iSeed];
@@ -1482,6 +1386,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
         float py = p3LH.Y();
         float pz = p3LH.Z();
         float phi = p3LH.Phi();
+        int charge = trk.see_q()[iSeed];
         //extra bit
 	
             // get pixel superbin
@@ -1494,7 +1399,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
               else{pixtype=2;}
             }
             else{continue;}
-            // if(abs(p3PCA.Eta()) >= 2.5){continue;}
+
 // all continues before pushing back into vectots to avoid strange offsets in indicies. 
             unsigned int hitIdx0 = hit_size + count;
             count++; 
@@ -1550,6 +1455,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             etaErr_vec.push_back(etaErr);
             eta_vec.push_back(eta);
             phi_vec.push_back(phi);
+            charge_vec.push_back(charge);
             deltaPhi_vec.push_back(pixelSegmentDeltaPhiChange);
 
             // For matching with sim tracks
@@ -1570,20 +1476,14 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             int phibin = (p3PCA_Phi + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
             int dzbin = (trk.see_dz()[iSeed] + 30) / (2*30 / nz);
             int isuperbin = /*(nz * nphi * neta) * ptbin + (removed since pt bin is determined by pixelType)*/ (nz * nphi) * etabin + (nz) * phibin + dzbin;
-            //if(isuperbin<0 || isuperbin>=44900){printf("isuperbin %d %d %d %d %f\n",isuperbin,etabin,phibin,dzbin,p3PCA.Eta());}
             superbin_vec.push_back(isuperbin);
             pixelType_vec.push_back(pixtype);
             isQuad_vec.push_back(isQuad);
-
-
-
-
         }
-
     }
 
     event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
-    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);
+    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, charge_vec, superbin_vec, pixelType_vec,isQuad_vec);
 
     float hit_loading_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Loading inputs processing time: " << hit_loading_elapsed << " secs" << std::endl;
