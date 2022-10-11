@@ -19,11 +19,15 @@ LIB=libsdl.so
 # AMD Opteron and Intel EM64T (64 bit mode) Linux with gcc 3.x
 CXX                  = nvcc
 <<<<<<< HEAD
+<<<<<<< HEAD
 CXXFLAGS             =  -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared -arch=compute_70 -I/mnt/data1/dsr/cub --use_fast_math --default-stream per-thread -I..
 ROOTCFLAGS           = --compiler-options -pthread --compiler-options -std=c++17 -m64 -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/cms/cmssw/CMSSW_11_2_0_pre5/external/slc7_amd64_gcc900/bin/../../../../../../../slc7_amd64_gcc900/lcg/root/6.20.06-ghbfee3/include
 =======
 CXXFLAGS             = -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared -arch=compute_70 -I/mnt/data1/dsr/cub --use_fast_math --default-stream per-thread -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/alpaka/0.5.0/include -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/boost/1.72.0-ghbfee3/include -DALPAKA_ACC_GPU_CUDA_ENABLED -DALPAKA_ACC_GPU_CUDA_ONLY -L${CUDALIBDIR} -lcudart  --expt-relaxed-constexpr --expt-extended-lambda -DALPAKA_DEBUG=2
 >>>>>>> setup and makefile changes
+=======
+CXXFLAGS             = -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared -arch=compute_70 -I/mnt/data1/dsr/cub --use_fast_math --default-stream per-thread -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/alpaka/0.5.0/include -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/boost/1.72.0-ghbfee3/include -DALPAKA_ACC_GPU_CUDA_ENABLED -DALPAKA_ACC_GPU_CUDA_ONLY  --expt-relaxed-constexpr -DALPAKA_DEBUG=0
+>>>>>>> first kernel working
 LD                   = nvcc 
 SOFLAGS              = -g -shared --compiler-options -fPIC --cudart shared -arch=compute_70 -code=sm_72
 PRINTFLAG            = -DAddObjects -DT4FromT3 #-DWarnings
@@ -37,7 +41,6 @@ CACHEFLAG_FLAGS      = -DCACHE_ALLOC
 CUDALAUNCHFLAG_FLAGS = #-DNEWGRID_MD -DNEWGRID_Seg -DNEWGRID_Trips -DNEWGRID_Tracklet -DNEWGRID_Pixel -DNEWGRID_Track -DNEWGRID_T5 -DNEWGRID_pT3 -DNEWGRID_pT5
 PT0P8       =
 PRELOAD       =
-CMSSW12GEOM =
 T3T3EXTENSION=
 #
 # how to make it 
@@ -45,14 +48,18 @@ T3T3EXTENSION=
 CUTVALUEFLAG = 
 CUTVALUEFLAG_FLAGS = -DCUT_VALUE_DEBUG
 %_cuda.o : %.cu %.cuh
-	$(LD) -x cu $(PT0P8) $(PRELOAD) $(CMSSW12GEOM) $(T3T3EXTENSION) $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $(CUTVALUEFLAG) $(FINALSTATE) $(DUPLICATES) $< -o $@
+	$(LD) -x cu $(PT0P8) $(PRELOAD) $(T3T3EXTENSION) $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $(CUTVALUEFLAG) $(FINALSTATE) $(DUPLICATES) $< -o $@
 
 %_cpu.o : %.cc %.h
+<<<<<<< HEAD
 <<<<<<< HEAD
 	$(LD) -O2   $(PT0P8) $(PRELOAD) $(T3T3EXTENSION) $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $(FINALSTATE) $(DUPLICATES) $(ROOTCFLAGS) $< -o $@
 =======
 	$(LD) -O2  $(PT0P8) $(PRELOAD) $(CMSSW12GEOM) $(T3T3EXTENSION) $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $(FINALSTATE) $(DUPLICATES) $< -o $@
 >>>>>>> setup and makefile changes
+=======
+	$(LD) -O2  $(PT0P8) $(PRELOAD) $(T3T3EXTENSION) $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $(FINALSTATE) $(DUPLICATES) $< -o $@
+>>>>>>> first kernel working
 
 $(LIB):$(CCOBJECTS) $(CUOBJECTS)
 #$(LIB):$(CUOBJECTS)
