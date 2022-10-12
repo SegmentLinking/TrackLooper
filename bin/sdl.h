@@ -34,7 +34,5 @@
 
 // Main code
 void run_sdl();
-// Write metadata
-void writeMetaData();
 
 #endif

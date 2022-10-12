@@ -6,8 +6,59 @@
 #define MAX_NTRIPLET_PER_MODULE 1170
 #define MAX_NQUINTUPLET_PER_MODULE 513
 
+
 //________________________________________________________________________________________________________________________________
 void createOutputBranches()
+{
+    createOutputBranches();
+}
+
+//________________________________________________________________________________________________________________________________
+void createOutputBranches_v2()
+{
+    // Setup output TTree
+    ana.tx->createBranch<vector<float>>("sim_pt");
+    ana.tx->createBranch<vector<float>>("sim_eta");
+    ana.tx->createBranch<vector<float>>("sim_phi");
+    ana.tx->createBranch<vector<float>>("sim_pca_dxy");
+    ana.tx->createBranch<vector<float>>("sim_pca_dz");
+    ana.tx->createBranch<vector<int>>("sim_q");
+    ana.tx->createBranch<vector<int>>("sim_event");
+    ana.tx->createBranch<vector<int>>("sim_pdgId");
+    ana.tx->createBranch<vector<float>>("sim_vx");
+    ana.tx->createBranch<vector<float>>("sim_vy");
+    ana.tx->createBranch<vector<float>>("sim_vz");
+    ana.tx->createBranch<vector<float>>("sim_trkNtupIdx");
+    ana.tx->createBranch<vector<float>>("sim_hits");
+    ana.tx->createBranch<vector<float>>("sim_len");
+    ana.tx->createBranch<vector<float>>("sim_lengap");
+    ana.tx->createBranch<vector<int>>("sim_TC_matched");
+
+    // Track candidates
+    ana.tx->createBranch<vector<float>>("tc_pt");
+    ana.tx->createBranch<vector<float>>("tc_eta");
+    ana.tx->createBranch<vector<float>>("tc_phi");
+    ana.tx->createBranch<vector<int>>("tc_type");
+    ana.tx->createBranch<vector<int>>("tc_isFake");
+    ana.tx->createBranch<vector<int>>("tc_isDuplicate");
+    ana.tx->createBranch<vector<vector<int>>>("tc_matched_simIdx");
+}
+
+//________________________________________________________________________________________________________________________________
+void fillOutputBranches(SDL::Event* event)
+{
+    fillOutputBranches_v2(event);
+}
+
+//________________________________________________________________________________________________________________________________
+void fillOutputBranches_v2(SDL::Event* event)
+{
+    ana.tx->fill();
+    ana.tx->clear();
+}
+
+//________________________________________________________________________________________________________________________________
+void createOutputBranches_v1()
 {
     // Setup output TTree
     ana.tx->createBranch<vector<float>>("sim_pt");
@@ -758,7 +809,7 @@ void createPrimitiveBranches_v2()
 
 
 //________________________________________________________________________________________________________________________________
-void fillOutputBranches(SDL::Event* event)
+void fillOutputBranches_v1(SDL::Event* event)
 {
     fillSimTrackOutputBranches();
     fillTrackCandidateOutputBranches(event);
@@ -5848,146 +5899,6 @@ void fillTripletOutputBranches(SDL::Event* event)
 //}
 
 
-//________________________________________________________________________________________________________________________________
-void printTimingInformation(std::vector<std::vector<float>>& timing_information,float fullTime,float fullavg)
-{
-
-    if (ana.verbose == 0)
-        return;
-
-    std::cout << showpoint;
-    std::cout << fixed;
-    std::cout << setprecision(2);
-    std::cout << right;
-    std::cout << "Timing summary" << std::endl;
-    std::cout << "   Evt    Hits       MD       LS      T3       T5       pLS       pT5      pT3      TC      TCE        Total     Total(short)" << std::endl;
-    std::vector<float> timing_sum_information(timing_information[0].size());
-    std::vector<float> timing_shortlist;
-    std::vector<float> timing_list;
-    for (auto&& [ievt, timing] : iter::enumerate(timing_information))
-    {
-        float timing_total = 0.f;
-        float timing_total_short = 0.f;
-        timing_total += timing[0]*1000; // Hits
-        timing_total += timing[1]*1000; // MD
-        timing_total += timing[2]*1000; // LS
-        timing_total += timing[3]*1000; // T3
-        timing_total += timing[4]*1000; // T5
-        timing_total += timing[5]*1000; // pLS
-        timing_total += timing[6]*1000; // pT5
-        timing_total += timing[7]*1000; // pT3
-        timing_total += timing[8]*1000; // TC
-        timing_total += timing[9]*1000; // TCE
-        timing_total_short += timing[1]*1000; // MD
-        timing_total_short += timing[2]*1000; // LS
-        timing_total_short += timing[3]*1000; // T3
-        timing_total_short += timing[4]*1000; // T5
-        timing_total_short += timing[6]*1000; //pT5
-        timing_total_short += timing[7]*1000; //pT3
-        timing_total_short += timing[8]*1000; //TC
-        timing_total_short += timing[9]*1000; //TCE
-        std::cout << setw(6) << ievt;
-        std::cout << "   "<<setw(6) << timing[0]*1000; // Hits
-        std::cout << "   "<<setw(6) << timing[1]*1000; // MD
-        std::cout << "   "<<setw(6) << timing[2]*1000; // LS
-        std::cout << "   "<<setw(6) << timing[3]*1000; // T3
-        std::cout << "   "<<setw(6) << timing[4]*1000; // T5
-        std::cout << "   "<<setw(6) << timing[5]*1000; //pLS
-        std::cout << "   "<<setw(6) << timing[6]*1000; //pT5
-        std::cout << "   "<<setw(6) << timing[7]*1000; //pT3
-        std::cout << "   "<<setw(6) << timing[8]*1000; //TC
-        std::cout << "   "<<setw(6) << timing[9]*1000; //TCE
-        std::cout << "   "<<setw(7) << timing_total; // Total time
-        std::cout << "   "<<setw(7) << timing_total_short; // Total time
-        std::cout << std::endl;
-        timing_sum_information[0] += timing[0]*1000; // Hits
-        timing_sum_information[1] += timing[1]*1000; // MD
-        timing_sum_information[2] += timing[2]*1000; // LS
-        timing_sum_information[3] += timing[3]*1000; // T3
-        timing_sum_information[4] += timing[4]*1000; // T5
-        timing_sum_information[5] += timing[5]*1000; // pLS
-        timing_sum_information[6] += timing[6]*1000; // pT5
-        timing_sum_information[7] += timing[7]*1000; // pT3
-        timing_sum_information[8] += timing[8]*1000; // TC
-        timing_sum_information[9] += timing[9]*1000; // TCE
-        timing_shortlist.push_back(timing_total_short); //short total
-        timing_list.push_back(timing_total); //short total
-    }
-    timing_sum_information[0] /= timing_information.size(); // Hits
-    timing_sum_information[1] /= timing_information.size(); // MD
-    timing_sum_information[2] /= timing_information.size(); // LS
-    timing_sum_information[3] /= timing_information.size(); // T3
-    timing_sum_information[4] /= timing_information.size(); // T5
-    timing_sum_information[5] /= timing_information.size(); // pLS
-    timing_sum_information[6] /= timing_information.size(); // pT5
-    timing_sum_information[7] /= timing_information.size(); // pT3
-    timing_sum_information[8] /= timing_information.size(); // TC
-    timing_sum_information[9] /= timing_information.size(); // TCE
-
-    float timing_total_avg = 0.0;
-    timing_total_avg += timing_sum_information[0]; // Hits
-    timing_total_avg += timing_sum_information[1]; // MD
-    timing_total_avg += timing_sum_information[2]; // LS
-    timing_total_avg += timing_sum_information[3]; // T3
-    timing_total_avg += timing_sum_information[4]; // T5
-    timing_total_avg += timing_sum_information[5]; // pLS
-    timing_total_avg += timing_sum_information[6]; // pT5
-    timing_total_avg += timing_sum_information[7]; // pT3
-    timing_total_avg += timing_sum_information[8]; // TC
-    timing_total_avg += timing_sum_information[9]; // TCE
-    float timing_totalshort_avg = 0.0;
-    timing_totalshort_avg += timing_sum_information[1]; // MD
-    timing_totalshort_avg += timing_sum_information[2]; // LS
-    timing_totalshort_avg += timing_sum_information[3]; // T3
-    timing_totalshort_avg += timing_sum_information[4]; // T5
-    timing_totalshort_avg += timing_sum_information[6]; // pT5
-    timing_totalshort_avg += timing_sum_information[7]; // pT3
-    timing_totalshort_avg += timing_sum_information[8]; // TC
-    timing_totalshort_avg += timing_sum_information[9]; // TCE
-
-    float standardDeviation = 0.0;
-    for(auto shorttime: timing_shortlist) {
-      standardDeviation += pow(shorttime - timing_totalshort_avg, 2);
-    }
-    float stdDev = sqrt(standardDeviation/timing_shortlist.size());
-
-    //float standardDeviationFull = 0.0;
-    //for(auto time: timing_list) {
-    //  standardDeviationFull += pow(time - timing_total_avg, 2);
-    //}
-    //float stdDevFull = sqrt(standardDeviationFull/timing_list.size());
-
-    //float effectiveThroughput = fullavg*timing_totalshort_avg/timing_total_avg;
-    //float std_throughput = effectiveThroughput * sqrt(pow(stdDevFull/timing_total_avg,2) + pow(stdDev/timing_totalshort_avg,2));
-
-    std::cout << setprecision(1);
-    std::cout << "   Evt    Hits       MD       LS      T3       T5       pLS       pT5      pT3      TC       TCE      Event      Short             Rate" << std::endl;
-    std::cout << setw(6) << "avg";
-    std::cout << "   "<<setw(6) << timing_sum_information[0]; // Hits
-    std::cout << "   "<<setw(6) << timing_sum_information[1]; // MD
-    std::cout << "   "<<setw(6) << timing_sum_information[2]; // LS
-    std::cout << "   "<<setw(6) << timing_sum_information[3]; // T3
-    std::cout << "   "<<setw(6) << timing_sum_information[4]; // T5
-    std::cout << "   "<<setw(6) << timing_sum_information[5]; // pLS
-    std::cout << "   "<<setw(6) << timing_sum_information[6]; // pT5
-    std::cout << "   "<<setw(6) << timing_sum_information[7]; // pT3
-    std::cout << "   "<<setw(6) << timing_sum_information[8]; // TC
-    std::cout << "   "<<setw(6) << timing_sum_information[9]; // TCE
-    std::cout << "   "<<setw(7) << timing_total_avg; // Average total time
-    //std::cout << "+/- "<< stdDevFull;
-    std::cout << "   "<<setw(7) << timing_totalshort_avg; // Average total time
-    std::cout << "+/- "<< setw(4)<<stdDev; 
-    //std::cout << "   "<<setw(7) << fullTime; // Full time
-    std::cout << "   "<<setw(7) << fullavg; // Average full time
-//    std::cout << "   "<<setw(7) << effectiveThroughput; // Effective time
-    //std::cout << "+/- "<< std_throughput; 
-    std::cout << "   "<<ana.compilation_target;
-    std::cout << "[s="<<ana.streams<<"]";
-    std::cout << std::endl;
-
-    std::cout << left;
-
-}
 
 //________________________________________________________________________________________________________________________________
 void printHitMultiplicities(SDL::Event* event)

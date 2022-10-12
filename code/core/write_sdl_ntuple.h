@@ -18,6 +18,8 @@
 
 // Common
 void createOutputBranches();
+void createOutputBranches_v1();
+void createOutputBranches_v2();
 void createLowerLevelOutputBranches();
 void createQuintupletCutValueBranches();
 void createPixelQuintupletCutValueBranches();
@@ -37,6 +39,8 @@ void fillSimTrackOutputBranches();
 // GPU
 
 void fillOutputBranches(SDL::Event* event);
+void fillOutputBranches_v1(SDL::Event* event);
+void fillOutputBranches_v2(SDL::Event* event);
 void fillTrackCandidateOutputBranches(SDL::Event* event);
 void fillTrackExtensionOutputBranches(SDL::Event* event);
 void fillPureTrackExtensionOutputBranches(SDL::Event* event);
@@ -72,8 +76,6 @@ void fillMiniDoubletBranches(SDL::Event* event);
 //void fillPrimitiveBranches_T5_for_CPU_v2(SDL::CPU::Event& event);
 
 
-// Timing
-void printTimingInformation(std::vector<std::vector<float>>& timing_information, float fullTime, float fullavg);
 
 // Print multiplicities
 void printQuadrupletMultiplicities(SDL::Event* event);
