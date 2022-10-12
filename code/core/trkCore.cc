@@ -20,11 +20,9 @@ void loadMaps()
     std::cout << "pLS map: " << pLSMapDir << std::endl;
     std::cout << "centroid: " << centroid << std::endl;
 
-    SDL::initModules(centroid.Data());
     SDL::endcapGeometry.load(endcap_geom.Data()); // centroid values added to the map
     SDL::tiltedGeometry.load(tilted_geom.Data());
     SDL::moduleConnectionMap.load(mappath.Data());
-    ana.moduleConnectiongMapLoose.load(mappath.Data());
 
     TString path;
     path = TString::Format("%s/pLS_map_layer1_subdet5.txt", pLSMapDir.Data()).Data();
@@ -72,6 +70,8 @@ void loadMaps()
     path = TString::Format("%s/pLS_map_pos_layer4_subdet4.txt", pLSMapDir.Data()).Data();
     SDL::moduleConnectionMap_pLStoLayer4Subdet4_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
 
+    // WARNING: initModules must come after above load commands!! keep it at the last line here!
+    SDL::initModules(centroid.Data());
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
