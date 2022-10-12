@@ -1,7 +1,6 @@
 #include "Event.cuh"
 #include "allocate.h"
 #include <alpaka/alpaka.hpp>
-#include <random>
 
 struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::pixelMap* SDL::pixelMapping = nullptr;
@@ -600,22 +599,7 @@ __device__ int binary_search(
     return -1;
 }
 
-__global__ void moduleRangesKernel(uint16_t nLower, struct SDL::modules *modulesInGPU, struct SDL::hits *hitsInGPU)
-{
-    for ( int lowerIndex = blockIdx.x * blockDim.x + threadIdx.x; lowerIndex < nLower; lowerIndex += blockDim.x*gridDim.x )
-    {
-        uint16_t upperIndex = modulesInGPU->partnerModuleIndices[lowerIndex];
-        if (hitsInGPU->hitRanges[lowerIndex * 2] != -1 && hitsInGPU->hitRanges[upperIndex * 2] != -1)
-        {
-            hitsInGPU->hitRangesLower[lowerIndex] =  hitsInGPU->hitRanges[lowerIndex * 2]; 
-            hitsInGPU->hitRangesUpper[lowerIndex] =  hitsInGPU->hitRanges[upperIndex * 2];
-            hitsInGPU->hitRangesnLower[lowerIndex] = hitsInGPU->hitRanges[lowerIndex * 2 + 1] - hitsInGPU->hitRanges[lowerIndex * 2] + 1;
-            hitsInGPU->hitRangesnUpper[lowerIndex] = hitsInGPU->hitRanges[upperIndex * 2 + 1] - hitsInGPU->hitRanges[upperIndex * 2] + 1;
-        }
-    }
-}
-
-class VectorAddKernel
+class moduleRangesKernel
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
@@ -784,7 +768,7 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
             alpaka::workdiv::GridBlockExtentSubDivRestrictions::Unrestricted));
 
     // Instantiate the kernel function object
-    VectorAddKernel kernel;
+    moduleRangesKernel kernel;
 
     // Create the kernel execution task.
     auto const taskKernel(alpaka::kernel::createTaskKernel<Acc>(
