@@ -10,13 +10,13 @@
 //________________________________________________________________________________________________________________________________
 void createOutputBranches()
 {
-    createOutputBranches_v1();
+    createOutputBranches_v2();
 }
 
 //________________________________________________________________________________________________________________________________
 void fillOutputBranches(SDL::Event* event)
 {
-    fillOutputBranches_v1(event);
+    fillOutputBranches_v2(event);
 }
 
 //________________________________________________________________________________________________________________________________
@@ -97,7 +97,10 @@ void fillOutputBranches_v2(SDL::Event* event)
     for (unsigned int idx = 0; idx < nTrackCandidates; idx++)
     {
         // Compute reco quantities of track candidate based on final object
-        auto [type, pt, eta, phi, isFake, simidx] = parseTrackCandidate(event, idx);
+        int type, isFake;
+        float pt, eta, phi;
+        std::vector<int> simidx;
+        std::tie(type, pt, eta, phi, isFake, simidx) = parseTrackCandidate(event, idx);
         ana.tx->pushbackToBranch<float>("tc_pt", pt);
         ana.tx->pushbackToBranch<float>("tc_eta", eta);
         ana.tx->pushbackToBranch<float>("tc_phi", phi);
@@ -110,7 +113,9 @@ void fillOutputBranches_v2(SDL::Event* event)
         {
             // NOTE Important to note that the idx of the std::vector<> is same
             // as the tracking-ntuple's sim track idx ONLY because event==0 and bunchCrossing==0 condition is applied!!
-            sim_TC_matched[idx]++;
+            // Also do not try to access beyond the event and bunchCrossing
+            if (idx < n_accepted_simtrk)
+                sim_TC_matched.at(idx) += 1;
         }
     }
 
@@ -124,9 +129,13 @@ void fillOutputBranches_v2(SDL::Event* event)
         for (unsigned int isim = 0; isim < tc_matched_simIdx[i].size(); ++isim)
         {
             // Using the sim_TC_matched to see whether this track candidate is matched to a sim track that is matched to more than one
-            if (sim_TC_matched[tc_matched_simIdx[i][isim]] > 1)
+            int simidx = tc_matched_simIdx[i][isim];
+            if (simidx < n_accepted_simtrk)
             {
-                isDuplicate = true;
+                if (sim_TC_matched[simidx] > 1)
+                {
+                    isDuplicate = true;
+                }
             }
         }
         tc_isDuplicate[i] = isDuplicate;
@@ -136,7 +145,6 @@ void fillOutputBranches_v2(SDL::Event* event)
     ana.tx->setBranch<vector<int>>("sim_TC_matched", sim_TC_matched);
     ana.tx->setBranch<vector<vector<int>>>("tc_matched_simIdx", tc_matched_simIdx);
     ana.tx->setBranch<vector<int>>("tc_isDuplicate", tc_isDuplicate);
-
 
     ana.tx->fill();
     ana.tx->clear();

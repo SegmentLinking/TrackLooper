@@ -431,16 +431,14 @@ void run_sdl()
             {
                 #pragma omp critical
                 {
-                    // sleep(10);//sleeps for 3 second
                     unsigned int trkev = evt_num.at(evt);
-                    // TString fname = file_name.at(evt);
-                    // TFile *f = TFile::Open(fname.Data(), "open");
-                    // TTree *t = (TTree *)f->Get(ana.input_tree_name.Data());
-                    // trk.Init(t);
+                    TString fname = file_name.at(evt);
+                    TFile *f = TFile::Open(fname.Data(), "open");
+                    TTree *t = (TTree *)f->Get(ana.input_tree_name.Data());
+                    trk.Init(t);
                     trk.GetEntry(trkev);
                     fillOutputBranches(events.at(omp_get_thread_num()));
-                    // f->Close();
-                    // sleep(10);//sleeps for 3 second
+                    f->Close();
                 }
             }
 
