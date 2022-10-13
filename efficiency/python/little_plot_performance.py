@@ -567,6 +567,9 @@ def plot_standard_performance_plots():
                         else:
                             plot(variable, ybin, xbin, typ, metricsuffix, False)
 
+    DIR = os.path.realpath(os.path.dirname(__file__))
+    os.system("cp -r {}/../misc/summary plots/".format(DIR))
+
 def plot(variable, ybinning, xbinning, objecttype, metricsuffix, is_stack):
 
     metric = "eff"
@@ -721,3 +724,5 @@ if __name__ == "__main__":
                 # of # TGraph output rootfile
                 )
 
+    DIR = os.path.realpath(os.path.dirname(__file__))
+    os.system("cp -r {}/../misc/summary plots/".format(DIR))

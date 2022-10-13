@@ -1,0 +1,20 @@
+# pT5 Fake Rate vs. pt
+
+## Ratio
+
+[![Ratio](../mtv/var/pT5_fakerate_pt.png){ width=600px }](../mtv/var/pT5_fakerate_pt.pdf)
+
+## Numerator
+
+[![Numerator](../mtv/num/pT5_fakerate_pt_num.png){ width=600px }](../mtv/num/pT5_fakerate_pt_num.pdf)
+
+## Denominator
+
+[![Denominator](../mtv/den/pT5_fakerate_pt_den.png){ width=600px }](../mtv/den/pT5_fakerate_pt_den.pdf)
+
+
+``` {=html}
+<style>
+body { min-width: 100% !important; }
+</style>
+```
