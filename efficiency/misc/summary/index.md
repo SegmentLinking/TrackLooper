@@ -1,6 +1,6 @@
 # Summary Plots of LST Performance
 
-[1.1 TC Efficiency](#1.1)<br/>[1.2 TC Fake Rate](#1.2)<br/>[1.3 TC Duplicate Rate](#1.3)<br/>[2.1 TC Efficiency Stacked](#2.1)<br/>[2.2 TC Fake Rate Stacked](#2.2)<br/>[2.3 TC Duplicate Rate Stacked](#2.3)<br/>[3.1 pT5 Efficiency](#3.1)<br/>[3.2 pT5 Fake Rate](#3.2)<br/>[3.3 pT5 Duplicate Rate](#3.3)<br/>[4.1 pT3 Efficiency](#4.1)<br/>[4.2 pT3 Fake Rate](#4.2)<br/>[4.3 pT3 Duplicate Rate](#4.3)<br/>[5.1 T5 Efficiency](#5.1)<br/>[5.2 T5 Fake Rate](#5.2)<br/>[5.3 T5 Duplicate Rate](#5.3)<br/>[6.1 pLS Efficiency](#6.1)<br/>[6.2 pLS Fake Rate](#6.2)<br/>[6.3 pLS Duplicate Rate](#6.3)<br/>
+[1.1 TC Efficiency](#1.1)<br/>[1.2 TC Fake Rate](#1.2)<br/>[1.3 TC Duplicate Rate](#1.3)<br/>[2.1 TC Efficiency Breakdown](#2.1)<br/>[2.2 TC Fake Rate Breakdown](#2.2)<br/>[2.3 TC Duplicate Rate Breakdown](#2.3)<br/>[3.1 pT5 Efficiency](#3.1)<br/>[3.2 pT5 Fake Rate](#3.2)<br/>[3.3 pT5 Duplicate Rate](#3.3)<br/>[4.1 pT3 Efficiency](#4.1)<br/>[4.2 pT3 Fake Rate](#4.2)<br/>[4.3 pT3 Duplicate Rate](#4.3)<br/>[5.1 T5 Efficiency](#5.1)<br/>[5.2 T5 Fake Rate](#5.2)<br/>[5.3 T5 Duplicate Rate](#5.3)<br/>[6.1 pLS Efficiency](#6.1)<br/>[6.2 pLS Fake Rate](#6.2)<br/>[6.3 pLS Duplicate Rate](#6.3)<br/>
 
 ## <a name="1.1"></a> 1.1 TC Efficiency
 
@@ -28,7 +28,7 @@
 [![](../mtv/var/TC_duplrate_etacoarsezoom.png){ width=450px }](TC_duplrate_etacoarsezoom.html)
 [![](../mtv/var/TC_duplrate_phi.png){ width=450px }](TC_duplrate_phi.html)
 
-## <a name="2.1"></a> 2.1 TC Efficiency Stacked
+## <a name="2.1"></a> 2.1 TC Efficiency Breakdown
 
 [![](../mtv/var/TC_eff_stack_pt.png){ width=450px }](TCStack_eff_stack_pt.html)
 [![](../mtv/var/TC_eff_stack_ptzoom.png){ width=450px }](TCStack_eff_stack_ptzoom.html)
@@ -38,7 +38,7 @@
 [![](../mtv/var/TC_eff_stack_dzcoarse.png){ width=450px }](TCStack_eff_stack_dzcoarse.html)
 [![](../mtv/var/TC_eff_stack_phi.png){ width=450px }](TCStack_eff_stack_phi.html)
 
-## <a name="2.2"></a> 2.2 TC Fake Rate Stacked
+## <a name="2.2"></a> 2.2 TC Fake Rate Breakdown
 
 [![](../mtv/var/TC_fakerate_stack_pt.png){ width=450px }](TCStack_fakerate_stack_pt.html)
 [![](../mtv/var/TC_fakerate_stack_ptzoom.png){ width=450px }](TCStack_fakerate_stack_ptzoom.html)
@@ -46,7 +46,7 @@
 [![](../mtv/var/TC_fakerate_stack_etacoarsezoom.png){ width=450px }](TCStack_fakerate_stack_etacoarsezoom.html)
 [![](../mtv/var/TC_fakerate_stack_phi.png){ width=450px }](TCStack_fakerate_stack_phi.html)
 
-## <a name="2.3"></a> 2.3 TC Duplicate Rate Stacked
+## <a name="2.3"></a> 2.3 TC Duplicate Rate Breakdown
 
 [![](../mtv/var/TC_duplrate_stack_pt.png){ width=450px }](TCStack_duplrate_stack_pt.html)
 [![](../mtv/var/TC_duplrate_stack_ptzoom.png){ width=450px }](TCStack_duplrate_stack_ptzoom.html)

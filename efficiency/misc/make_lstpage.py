@@ -75,7 +75,7 @@ for ObjectType in Sections:
         if "Stack" in ObjectType:
             objectTypeShortName = ObjectType.replace("Stack", "")
             prefix = prefix + "_stack"
-            Stacked = " Stacked"
+            Stacked = " Breakdown"
         SectionTitle = "{SectionID}.{SectionSubID} {objectTypeShortName} {Metric}{Stacked}".format(SectionID=SectionID, SectionSubID=SectionSubID, objectTypeShortName=objectTypeShortName, Metric=Metric, Stacked=Stacked)
         summary_markdown.write("## <a name=\"{SectionID}.{SectionSubID}\"></a> {SectionTitle}\n".format(SectionTitle=SectionTitle, SectionID=SectionID, SectionSubID=SectionSubID))
         TOC["#{SectionID}.{SectionSubID}".format(SectionID=SectionID, SectionSubID=SectionSubID)] = SectionTitle
