@@ -2,6 +2,7 @@
 #define write_sdl_ntuple_h
 
 #include <iostream>
+#include <tuple>
 #include <cppitertools/enumerate.hpp>
 
 //#include "SDL/MathUtil.h"
@@ -41,6 +42,11 @@ void fillSimTrackOutputBranches();
 void fillOutputBranches(SDL::Event* event);
 void fillOutputBranches_v1(SDL::Event* event);
 void fillOutputBranches_v2(SDL::Event* event);
+std::tuple<int, float, float, float, int, vector<int>> parseTrackCandidate(SDL::Event* event, unsigned int);
+std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parsepT5(SDL::Event* event, unsigned int);
+std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parsepT3(SDL::Event* event, unsigned int);
+std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parseT5(SDL::Event* event, unsigned int);
+std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parsepLS(SDL::Event* event, unsigned int);
 void fillTrackCandidateOutputBranches(SDL::Event* event);
 void fillTrackExtensionOutputBranches(SDL::Event* event);
 void fillPureTrackExtensionOutputBranches(SDL::Event* event);

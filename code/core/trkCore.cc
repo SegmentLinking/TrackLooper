@@ -293,9 +293,16 @@ float runTrackCandidateTest_v2(SDL::Event* event)
 
 
 
-
 //___________________________________________________________________________________________________________________________________________________________________________________________
 std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes, bool verbose)
+{
+    std::vector<unsigned int> hitidxs_(std::begin(hitidxs), std::end(hitidxs));
+    std::vector<unsigned int> hittypes_(std::begin(hittypes), std::end(hittypes));
+    return matchedSimTrkIdxs(hitidxs_, hittypes_, verbose);
+}
+
+//___________________________________________________________________________________________________________________________________________________________________________________________
+std::vector<int> matchedSimTrkIdxs(std::vector<unsigned int> hitidxs, std::vector<unsigned int> hittypes, bool verbose)
 {
     if (hitidxs.size() != hittypes.size())
     {
@@ -304,7 +311,7 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
         std::cout << "hittypes.size(): " << hittypes.size() << std::endl;
     }
 
-    std::vector<std::pair<int, int>> to_check_duplicate;
+    std::vector<std::pair<unsigned int, unsigned int>> to_check_duplicate;
     for (auto &&[ihit, ihitdata] : iter::enumerate(iter::zip(hitidxs, hittypes)))
     {
         auto &&[hitidx, hittype] = ihitdata;
@@ -337,12 +344,13 @@ std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hi
 
         std::vector<int> simtrk_idxs_per_hit;
 
-        const std::vector<vector<int>> *simHitIdxs;
+        const std::vector<vector<int>> *simHitIdxs = hittype == 4 ? &trk.ph2_simHitIdx() : &trk.pix_simHitIdx();
 
-        if (hittype == 4)
-            simHitIdxs = &trk.ph2_simHitIdx();
-        else
-            simHitIdxs = &trk.pix_simHitIdx();
+        if (verbose)
+        {
+            std::cout <<  " trk.ph2_simHitIdx().size(): " << trk.ph2_simHitIdx().size() <<  std::endl;
+            std::cout <<  " trk.pix_simHitIdx().size(): " << trk.pix_simHitIdx().size() <<  std::endl;
+        }
 
         if (static_cast<const int>((*simHitIdxs).size()) <= hitidx)
         {

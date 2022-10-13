@@ -9,6 +9,7 @@
 #include <streambuf>
 #include <iostream>
 #include <cppitertools/enumerate.hpp>
+#include <unistd.h>
 
 #include "trktree.h"
 #include "rooutil.h"

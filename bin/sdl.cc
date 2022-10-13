@@ -347,7 +347,7 @@ void run_sdl()
     TStopwatch full_timer;
     full_timer.Start();
     float full_elapsed = 0;
-#pragma omp parallel num_threads(ana.streams) // private(event)
+    #pragma omp parallel num_threads(ana.streams) // private(event)
     {
         std::vector<std::vector<float>> timing_information;
         float timing_input_loading;
@@ -360,7 +360,7 @@ void run_sdl()
         float timing_pT3;
         float timing_TC;
 
-#pragma omp for // nowait// private(event)
+        #pragma omp for // nowait// private(event)
         for (int evt = 0; evt < static_cast<int>(out_trkX.size()); evt++)
         {
 
@@ -412,7 +412,7 @@ void run_sdl()
 
             if (ana.verbose == 4)
             {
-#pragma omp critical
+                #pragma omp critical
                 {
                     // TODO BROKEN //
                     // printAllObjects(events.at(omp_get_thread_num()));
@@ -421,7 +421,7 @@ void run_sdl()
 
             if (ana.verbose == 5)
             {
-#pragma omp critical
+                #pragma omp critical
                 {
                     debugPrintOutlierMultiplicities(events.at(omp_get_thread_num()));
                 }
@@ -429,16 +429,18 @@ void run_sdl()
 
             if (ana.do_write_ntuple)
             {
-#pragma omp critical
+                #pragma omp critical
                 {
+                    // sleep(10);//sleeps for 3 second
                     unsigned int trkev = evt_num.at(evt);
-                    TString fname = file_name.at(evt);
-                    TFile *f = TFile::Open(fname.Data(), "open");
-                    TTree *t = (TTree *)f->Get(ana.input_tree_name.Data());
-                    trk.Init(t);
+                    // TString fname = file_name.at(evt);
+                    // TFile *f = TFile::Open(fname.Data(), "open");
+                    // TTree *t = (TTree *)f->Get(ana.input_tree_name.Data());
+                    // trk.Init(t);
                     trk.GetEntry(trkev);
                     fillOutputBranches(events.at(omp_get_thread_num()));
-                    f->Close();
+                    // f->Close();
+                    // sleep(10);//sleeps for 3 second
                 }
             }
 
@@ -447,7 +449,7 @@ void run_sdl()
         }
 
         full_elapsed = full_timer.RealTime() * 1000.f; // for loop has implicit barrier I think. So this stops onces all cpu threads have finished but before the next critical section.
-#pragma omp critical
+        #pragma omp critical
         timevec.insert(timevec.end(), timing_information.begin(), timing_information.end());
     }
 
