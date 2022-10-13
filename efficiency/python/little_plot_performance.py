@@ -257,7 +257,12 @@ def draw_stack(nums, den, output_name, sample_name, version_tag, outputfile=None
     if "zoom" not in output_name:
         eff.GetYaxis().SetRangeUser(0, 1.02)
     else:
-        eff.GetYaxis().SetRangeUser(0.6, 1.02)
+        if "fakerate" in output_name:
+            eff.GetYaxis().SetRangeUser(0.0, yaxis_max * 1.1)
+        elif "duplrate" in output_name:
+            eff.GetYaxis().SetRangeUser(0.0, yaxis_max * 1.1)
+        else:
+            eff.GetYaxis().SetRangeUser(0.6, 1.02)
 
     if "eta" in output_name:
         eff.GetXaxis().SetLimits(-4.5, 4.5)
@@ -444,6 +449,12 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
         eff.GetYaxis().SetRangeUser(0, 1.02)
     else:
         eff.GetYaxis().SetRangeUser(0.6, 1.02)
+        if "fakerate" in output_name:
+            eff.GetYaxis().SetRangeUser(0.0, yaxis_max * 1.1)
+        elif "duplrate" in output_name:
+            eff.GetYaxis().SetRangeUser(0.0, yaxis_max * 1.1)
+        else:
+            eff.GetYaxis().SetRangeUser(0.6, 1.02)
 
     if "eta" in output_name:
         eff.GetXaxis().SetLimits(-4.5, 4.5)
@@ -521,6 +532,101 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
 
     return eff
 
+def plot_standard_performance_plots():
+
+    # Create output directory
+    os.system("mkdir -p plots/mtv/var")
+    os.system("mkdir -p plots/mtv/num")
+    os.system("mkdir -p plots/mtv/den")
+
+    # Efficiency plots
+    metricsuffixs = ["ef_", "fr_", "dr_"]
+    ybins = ["", "zoom"]
+    variables = {
+            "ef_": ["pt", "eta", "phi", "dxy", "dz"],
+            "fr_": ["pt", "eta", "phi"],
+            "dr_": ["pt", "eta", "phi"],
+            }
+    xbins = {
+            "pt": [""],
+            "eta": ["", "coarse"],
+            "phi": ["", "coarse"],
+            "dxy": ["", "coarse"],
+            "dz": ["", "coarse"],
+            }
+    types = ["TC", "pT5", "pT3", "T5", "pLS"]
+
+    for metricsuffix in metricsuffixs:
+        for variable in variables[metricsuffix]:
+            for ybin in ybins:
+                for xbin in xbins[variable]:
+                    for typ in types:
+                        if typ == "TC":
+                            plot(variable, ybin, xbin, typ, metricsuffix, True)
+                            plot(variable, ybin, xbin, typ, metricsuffix, False)
+                        else:
+                            plot(variable, ybin, xbin, typ, metricsuffix, False)
+
+def plot(variable, ybinning, xbinning, objecttype, metricsuffix, is_stack):
+
+    metric = "eff"
+    if metricsuffix == "fr_":
+        metric = "fakerate"
+    if metricsuffix == "dr_":
+        metric = "duplrate"
+
+    # Get denominator histogram
+    denom_histname = "Root__{objecttype}_{metricsuffix}denom_{variable}".format(objecttype=objecttype, metricsuffix=metricsuffix, variable=variable)
+    try:
+        denom = f.Get(denom_histname).Clone()
+    except:
+        print(denom_histname)
+        sys.exit("ERROR: Did not find denominator histogram = {}".format(denom_histname))
+
+    # Get numerator histograms
+    numer_histname = "Root__{objecttype}_{metricsuffix}numer_{variable}".format(objecttype=objecttype, metricsuffix=metricsuffix, variable=variable)
+    numer = f.Get(numer_histname).Clone()
+    try:
+        numer = f.Get(numer_histname).Clone()
+    except:
+        print(numer_histname)
+        sys.exit("ERROR: Did not find numerator histogram = {}".format(numer_histname))
+
+    stack_hist_types = ["pT5", "pT3", "T5", "pLS"]
+    stack_hists = []
+    if is_stack:
+        for stack_hist_type in stack_hist_types:
+            stack_histname = numer_histname.replace("TC", stack_hist_type)
+            hist = f.Get(stack_histname)
+            stack_hists.append(hist.Clone())
+
+    output_plot_name = "{objecttype}_{metric}{stackvar}_{variable}".format(objecttype=objecttype, metric=metric, stackvar="_stack" if is_stack else "", variable=variable)
+    if xbinning == "coarse":
+        output_plot_name += "coarse"
+    if ybinning == "zoom":
+        output_plot_name += "zoom"
+
+    if is_stack:
+        draw_stack(
+                [numer] + stack_hists, # numerator histograms
+                denom, # denominator histogram
+                "plots/mtv/{0}.pdf".format(output_plot_name), # output plot name
+                sample_name, # sample type
+                git_hash, # version tag
+                # of # TGraph output rootfile
+                )
+    else:
+
+        draw_ratio(
+                numer, # numerator histogram
+                denom, # denominator histogram
+                "plots/mtv/{0}.pdf".format(output_plot_name), # output plot name
+                sample_name, # sample type
+                git_hash, # version tag
+                # of # TGraph output rootfile
+                )
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="What are we wanting to graph?")
@@ -533,10 +639,9 @@ if __name__ == "__main__":
     parser.add_argument('--sample_name' , '-sn' , dest='sample_name' , type=str , default='DEFAULT' , help='sample name')
     parser.add_argument('--git_hash' , '-gh' , dest='git_hash' , type=str , default='12345' , help='git hash')
     parser.add_argument('--is_stack' , '-is_t' , dest='is_stack' , action="store_true", help='is stack - default is True')
+    parser.add_argument('--standard_perf_plots' , '-std' , dest='std' , action="store_true", help='plot a full set of standard plots - default is True')
 
     args = parser.parse_args()
-
-
 
     #############
     variable = args.variable
@@ -547,11 +652,15 @@ if __name__ == "__main__":
     sample_name = args.sample_name
     git_hash = args.git_hash
     is_stack = args.is_stack
+    std = args.std
     #############
 
     root_file_name = args.input
     f = r.TFile(root_file_name)
-    of = r.TFile("efficiencies.root", "RECREATE")
+
+    if std:
+        plot_standard_performance_plots()
+        sys.exit()
 
     if is_stack:
         print("Warning! objecttype is set to \"TC\" because is_stack is True!")
@@ -572,8 +681,8 @@ if __name__ == "__main__":
 
     # Get denominator histogram
     denom_histname = "Root__{objecttype}_{metricsuffix}denom_{variable}".format(objecttype=objecttype, metricsuffix=metricsuffix, variable=variable)
-    denom = f.Get(denom_histname).Clone()
     print(denom_histname)
+    denom = f.Get(denom_histname).Clone()
 
     # Get numerator histograms
     numer_histname = "Root__{objecttype}_{metricsuffix}numer_{variable}".format(objecttype=objecttype, metricsuffix=metricsuffix, variable=variable)
@@ -583,12 +692,15 @@ if __name__ == "__main__":
     stack_hists = []
     if is_stack:
         for stack_hist_type in stack_hist_types:
-            stack_histname = numer_histname.replace("h{metricsuffix}".format(metricsuffix=metricsuffix), "{}stack{}_".format(stackmetricsuffix, stack_hist_type))
+            stack_histname = numer_histname.replace("TC", stack_hist_type)
             print(stack_histname)
             hist = f.Get(stack_histname)
             stack_hists.append(hist.Clone())
 
     output_plot_name = "{objecttype}_{metric}{stackvar}_{variable}".format(objecttype=objecttype, metric=metric, stackvar="_stack" if is_stack else "", variable=variable)
+    if xbinning == "coarse":
+        output_plot_name += "coarse"
+
     if is_stack:
         draw_stack(
                 [numer] + stack_hists, # numerator histograms
@@ -596,7 +708,7 @@ if __name__ == "__main__":
                 "plots/mtv/{0}.pdf".format(output_plot_name), # output plot name
                 sample_name, # sample type
                 git_hash, # version tag
-                of # TGraph output rootfile
+                # of # TGraph output rootfile
                 )
     else:
 
@@ -606,6 +718,6 @@ if __name__ == "__main__":
                 "plots/mtv/{0}.pdf".format(output_plot_name), # output plot name
                 sample_name, # sample type
                 git_hash, # version tag
-                of # TGraph output rootfile
+                # of # TGraph output rootfile
                 )
 

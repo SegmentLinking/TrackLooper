@@ -76,6 +76,7 @@ public:
     TString set_name;
     int pdgid;
     std::function<bool(int)> pass;
+    std::function<bool(int)> sel;
     std::function<const std::vector<float>()> pt;
     std::function<const std::vector<float>()> eta;
     std::function<const std::vector<float>()> phi;
@@ -84,6 +85,7 @@ public:
         TString,
         int,
         std::function<bool(unsigned int)>,
+        std::function<bool(unsigned int)>, // subsect of reco track selection
         std::function<const std::vector<float>()>,
         std::function<const std::vector<float>()>,
         std::function<const std::vector<float>()>,

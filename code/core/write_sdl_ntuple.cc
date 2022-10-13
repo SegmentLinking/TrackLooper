@@ -36,6 +36,7 @@ void createOutputBranches_v2()
     ana.tx->createBranch<vector<float>>("sim_vz");
     ana.tx->createBranch<vector<float>>("sim_trkNtupIdx");
     ana.tx->createBranch<vector<int>>("sim_TC_matched");
+    ana.tx->createBranch<vector<int>>("sim_TC_matched_mask");
 
     // Track candidates
     ana.tx->createBranch<vector<float>>("tc_pt");
@@ -87,6 +88,7 @@ void fillOutputBranches_v2(SDL::Event* event)
 
     // Intermediate variables to keep track of matched track candidates for a given sim track
     std::vector<int> sim_TC_matched(n_accepted_simtrk);
+    std::vector<int> sim_TC_matched_mask(n_accepted_simtrk);
 
     // Intermediate variables to keep track of matched sim tracks for a given track candidate
     std::vector<std::vector<int>> tc_matched_simIdx;
@@ -115,7 +117,10 @@ void fillOutputBranches_v2(SDL::Event* event)
             // as the tracking-ntuple's sim track idx ONLY because event==0 and bunchCrossing==0 condition is applied!!
             // Also do not try to access beyond the event and bunchCrossing
             if (idx < n_accepted_simtrk)
+            {
                 sim_TC_matched.at(idx) += 1;
+                sim_TC_matched_mask.at(idx) |= (1 << type);
+            }
         }
     }
 
@@ -143,6 +148,7 @@ void fillOutputBranches_v2(SDL::Event* event)
 
     // Now set the last remaining branches
     ana.tx->setBranch<vector<int>>("sim_TC_matched", sim_TC_matched);
+    ana.tx->setBranch<vector<int>>("sim_TC_matched_mask", sim_TC_matched_mask);
     ana.tx->setBranch<vector<vector<int>>>("tc_matched_simIdx", tc_matched_simIdx);
     ana.tx->setBranch<vector<int>>("tc_isDuplicate", tc_isDuplicate);
 

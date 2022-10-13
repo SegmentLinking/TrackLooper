@@ -203,6 +203,7 @@ RecoTrackSetDefinition::RecoTrackSetDefinition(
     TString set_name_,
     int pdgid_,
     std::function<bool(unsigned int)> pass_,
+    std::function<bool(unsigned int)> sel_,
     std::function<const std::vector<float>()> pt_,
     std::function<const std::vector<float>()> eta_,
     std::function<const std::vector<float>()> phi_,
@@ -212,6 +213,7 @@ RecoTrackSetDefinition::RecoTrackSetDefinition(
     set_name = set_name_;
     pdgid = pdgid_;
     pass = pass_;
+    sel = sel_;
 }
 
 void initializeInputsAndOutputs()
@@ -225,7 +227,6 @@ void initializeInputsAndOutputs()
     // Set the cutflow object output file
     ana.cutflow.setTFile(ana.output_tfile);
 
-    // Determine whether the sample being run over is a EFT sample or not by checking whether a branch exist with the name "LHEWeight_mg_reweighting"
     ana.do_lower_level = false; // default is false
     TObjArray* brobjArray = ana.events_tchain->GetListOfBranches();
     for (unsigned int ibr = 0; ibr < (unsigned int) brobjArray->GetEntries(); ++ibr)

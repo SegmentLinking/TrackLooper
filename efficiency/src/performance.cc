@@ -8,6 +8,14 @@
 // #define PTCUT 1.5
 // #define ETACUT 2.4
 
+enum
+{
+    pT5 = 7,
+    pT3 = 5,
+    T5 = 4,
+    pLS = 8
+};
+
 //__________________________________________________________________________________________________________________________________________________________________________
 int main(int argc, char** argv)
 {
@@ -24,7 +32,31 @@ int main(int argc, char** argv)
                                   /* pdgid */ 0,
                                   /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched().at(isim) > 0;}
                                   )
-        );
+            );
+    list_effSetDef.push_back(
+            SimTrackSetDefinition(/* name  */ "pT5",
+                                  /* pdgid */ 0,
+                                  /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pT5);}
+                                  )
+            );
+    list_effSetDef.push_back(
+            SimTrackSetDefinition(/* name  */ "pT3",
+                                  /* pdgid */ 0,
+                                  /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pT3);}
+                                  )
+            );
+    list_effSetDef.push_back(
+            SimTrackSetDefinition(/* name  */ "T5",
+                                  /* pdgid */ 0,
+                                  /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << T5);}
+                                  )
+            );
+    list_effSetDef.push_back(
+            SimTrackSetDefinition(/* name  */ "pLS",
+                                  /* pdgid */ 0,
+                                  /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pLS);}
+                                  )
+            );
     bookEfficiencySets(list_effSetDef);
 
     // creating a set of fake rate plots
@@ -33,6 +65,51 @@ int main(int argc, char** argv)
             RecoTrackSetDefinition(/* name  */ "TC",
                                    /* pdgid */ 0,
                                    /* pass  */ [&](unsigned int itc) {return sdl.tc_isFake().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return 1;},
+                                   /* pt    */ tas::tc_pt,
+                                   /* eta   */ tas::tc_eta,
+                                   /* phi   */ tas::tc_phi,
+                                   /* type  */ tas::tc_type
+                                   )
+        );
+    list_FRSetDef.push_back(
+            RecoTrackSetDefinition(/* name  */ "pT5",
+                                   /* pdgid */ 0,
+                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isFake().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pT5;},
+                                   /* pt    */ tas::tc_pt,
+                                   /* eta   */ tas::tc_eta,
+                                   /* phi   */ tas::tc_phi,
+                                   /* type  */ tas::tc_type
+                                   )
+        );
+    list_FRSetDef.push_back(
+            RecoTrackSetDefinition(/* name  */ "pT3",
+                                   /* pdgid */ 0,
+                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isFake().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pT3;},
+                                   /* pt    */ tas::tc_pt,
+                                   /* eta   */ tas::tc_eta,
+                                   /* phi   */ tas::tc_phi,
+                                   /* type  */ tas::tc_type
+                                   )
+        );
+    list_FRSetDef.push_back(
+            RecoTrackSetDefinition(/* name  */ "T5",
+                                   /* pdgid */ 0,
+                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isFake().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == T5;},
+                                   /* pt    */ tas::tc_pt,
+                                   /* eta   */ tas::tc_eta,
+                                   /* phi   */ tas::tc_phi,
+                                   /* type  */ tas::tc_type
+                                   )
+        );
+    list_FRSetDef.push_back(
+            RecoTrackSetDefinition(/* name  */ "pLS",
+                                   /* pdgid */ 0,
+                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isFake().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pLS;},
                                    /* pt    */ tas::tc_pt,
                                    /* eta   */ tas::tc_eta,
                                    /* phi   */ tas::tc_phi,
@@ -47,6 +124,51 @@ int main(int argc, char** argv)
             RecoTrackSetDefinition(/* name  */ "TC",
                                    /* pdgid */ 0,
                                    /* pass  */ [&](unsigned int itc) {return sdl.tc_isDuplicate().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return 1;},
+                                   /* pt    */ tas::tc_pt,
+                                   /* eta   */ tas::tc_eta,
+                                   /* phi   */ tas::tc_phi,
+                                   /* type  */ tas::tc_type
+                                   )
+        );
+    list_DRSetDef.push_back(
+            RecoTrackSetDefinition(/* name  */ "pT5",
+                                   /* pdgid */ 0,
+                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isDuplicate().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pT5;},
+                                   /* pt    */ tas::tc_pt,
+                                   /* eta   */ tas::tc_eta,
+                                   /* phi   */ tas::tc_phi,
+                                   /* type  */ tas::tc_type
+                                   )
+        );
+    list_DRSetDef.push_back(
+            RecoTrackSetDefinition(/* name  */ "pT3",
+                                   /* pdgid */ 0,
+                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isDuplicate().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pT3;},
+                                   /* pt    */ tas::tc_pt,
+                                   /* eta   */ tas::tc_eta,
+                                   /* phi   */ tas::tc_phi,
+                                   /* type  */ tas::tc_type
+                                   )
+        );
+    list_DRSetDef.push_back(
+            RecoTrackSetDefinition(/* name  */ "T5",
+                                   /* pdgid */ 0,
+                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isDuplicate().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == T5;},
+                                   /* pt    */ tas::tc_pt,
+                                   /* eta   */ tas::tc_eta,
+                                   /* phi   */ tas::tc_phi,
+                                   /* type  */ tas::tc_type
+                                   )
+        );
+    list_DRSetDef.push_back(
+            RecoTrackSetDefinition(/* name  */ "pLS",
+                                   /* pdgid */ 0,
+                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isDuplicate().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pLS;},
                                    /* pt    */ tas::tc_pt,
                                    /* eta   */ tas::tc_eta,
                                    /* phi   */ tas::tc_phi,
@@ -408,28 +530,15 @@ void fillFakeRateSets(std::vector<RecoTrackSetDefinition>& FRsets)
 //__________________________________________________________________________________________________________________________________________________________________________
 void fillFakeRateSet(int itc, RecoTrackSetDefinition& FRset)
 {
-    float pt = 0;
-    float eta = 0;
-    float phi = 0;
-    int type = 0;
-    bool pT5Found = false;
-    bool pT3Found = false;
-    bool T5Found = false;
-    bool pLSFound = false;
-    if (FRset.set_name.Contains("TC_"))
-    {
-        pt = FRset.pt().at(itc);
-        eta = FRset.eta().at(itc);
-        phi = FRset.phi().at(itc);
-        type = FRset.type().at(itc);
-        if (type == 7) pT5Found = true;
-        if (type == 5) pT3Found = true;
-        if (type == 4) T5Found = true;
-        if (type == 8) pLSFound = true;
-    }
-
+    float pt = FRset.pt().at(itc);
+    float eta = FRset.eta().at(itc);
+    float phi = FRset.phi().at(itc);
     TString category_name = FRset.set_name;
     bool pass = FRset.pass(itc);
+    bool sel = FRset.sel(itc);
+
+    if (not sel)
+        return;
 
     if (pt > PTCUT)
     {
@@ -468,28 +577,15 @@ void fillDuplicateRateSets(std::vector<RecoTrackSetDefinition>& DRsets)
 //__________________________________________________________________________________________________________________________________________________________________________
 void fillDuplicateRateSet(int itc, RecoTrackSetDefinition& DRset)
 {
-    float pt = 0;
-    float eta = 0;
-    float phi = 0;
-    int type = 0;
-    bool pT5Found = false;
-    bool pT3Found = false;
-    bool T5Found = false;
-    bool pLSFound = false;
-    if (DRset.set_name.Contains("TC_"))
-    {
-        pt = DRset.pt().at(itc);
-        eta = DRset.eta().at(itc);
-        phi = DRset.phi().at(itc);
-        type = DRset.type().at(itc);
-        if (type == 7) pT5Found = true;
-        if (type == 5) pT3Found = true;
-        if (type == 4) T5Found = true;
-        if (type == 8) pLSFound = true;
-    }
-
+    float pt = DRset.pt().at(itc);
+    float eta = DRset.eta().at(itc);
+    float phi = DRset.phi().at(itc);
     TString category_name = DRset.set_name;
     bool pass = DRset.pass(itc);
+    bool sel = DRset.sel(itc);
+
+    if (not sel)
+        return;
 
     if (pt > PTCUT)
     {
