@@ -131,4 +131,3 @@ cp $DIR/../misc/index.php ${OUTDIR}/mtv
 
 # Output
 echo "Done! Output is located at ${OUTDIR}/"
-cp -r ${OUTDIR} /cdat/tem/evourlio/www/SDL_GPU/${PATHNAME}/.
