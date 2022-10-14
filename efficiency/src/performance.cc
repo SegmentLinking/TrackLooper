@@ -25,45 +25,52 @@ int main(int argc, char** argv)
     // Initialize input and output root files
     initializeInputsAndOutputs();
 
-    // creating a set of efficiency plots
+    // Set of pdgids
+    std::vector<int> pdgids = {0, 11, 211, 13};
+
     std::vector<SimTrackSetDefinition> list_effSetDef;
-    list_effSetDef.push_back(
+
+    // creating a set of efficiency plots for each pdgids being considered
+    for (auto& pdgid : pdgids)
+    {
+        list_effSetDef.push_back(
             SimTrackSetDefinition(/* name  */ "TC",
-                                  /* pdgid */ 0,
+                                  /* pdgid */ pdgid,
                                   /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched().at(isim) > 0;}
-                                  )
+                                 )
             );
-    list_effSetDef.push_back(
+        list_effSetDef.push_back(
             SimTrackSetDefinition(/* name  */ "pT5",
-                                  /* pdgid */ 0,
+                                  /* pdgid */ pdgid,
                                   /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pT5);}
-                                  )
+                                 )
             );
-    list_effSetDef.push_back(
+        list_effSetDef.push_back(
             SimTrackSetDefinition(/* name  */ "pT3",
-                                  /* pdgid */ 0,
+                                  /* pdgid */ pdgid,
                                   /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pT3);}
-                                  )
+                                 )
             );
-    list_effSetDef.push_back(
+        list_effSetDef.push_back(
             SimTrackSetDefinition(/* name  */ "T5",
-                                  /* pdgid */ 0,
+                                  /* pdgid */ pdgid,
                                   /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << T5);}
-                                  )
+                                 )
             );
-    list_effSetDef.push_back(
+        list_effSetDef.push_back(
             SimTrackSetDefinition(/* name  */ "pLS",
-                                  /* pdgid */ 0,
+                                  /* pdgid */ pdgid,
                                   /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pLS);}
-                                  )
+                                 )
             );
+    }
+
     bookEfficiencySets(list_effSetDef);
 
     // creating a set of fake rate plots
     std::vector<RecoTrackSetDefinition> list_FRSetDef;
     list_FRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "TC",
-                                   /* pdgid */ 0,
                                    /* pass  */ [&](unsigned int itc) {return sdl.tc_isFake().at(itc) > 0;},
                                    /* sel   */ [&](unsigned int itc) {return 1;},
                                    /* pt    */ tas::tc_pt,
@@ -74,7 +81,6 @@ int main(int argc, char** argv)
         );
     list_FRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "pT5",
-                                   /* pdgid */ 0,
                                    /* pass  */ [&](unsigned int itc) {return sdl.tc_isFake().at(itc) > 0;},
                                    /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pT5;},
                                    /* pt    */ tas::tc_pt,
@@ -85,7 +91,6 @@ int main(int argc, char** argv)
         );
     list_FRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "pT3",
-                                   /* pdgid */ 0,
                                    /* pass  */ [&](unsigned int itc) {return sdl.tc_isFake().at(itc) > 0;},
                                    /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pT3;},
                                    /* pt    */ tas::tc_pt,
@@ -96,7 +101,6 @@ int main(int argc, char** argv)
         );
     list_FRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "T5",
-                                   /* pdgid */ 0,
                                    /* pass  */ [&](unsigned int itc) {return sdl.tc_isFake().at(itc) > 0;},
                                    /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == T5;},
                                    /* pt    */ tas::tc_pt,
@@ -107,7 +111,6 @@ int main(int argc, char** argv)
         );
     list_FRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "pLS",
-                                   /* pdgid */ 0,
                                    /* pass  */ [&](unsigned int itc) {return sdl.tc_isFake().at(itc) > 0;},
                                    /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pLS;},
                                    /* pt    */ tas::tc_pt,
@@ -122,7 +125,6 @@ int main(int argc, char** argv)
     std::vector<RecoTrackSetDefinition> list_DRSetDef;
     list_DRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "TC",
-                                   /* pdgid */ 0,
                                    /* pass  */ [&](unsigned int itc) {return sdl.tc_isDuplicate().at(itc) > 0;},
                                    /* sel   */ [&](unsigned int itc) {return 1;},
                                    /* pt    */ tas::tc_pt,
@@ -133,7 +135,6 @@ int main(int argc, char** argv)
         );
     list_DRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "pT5",
-                                   /* pdgid */ 0,
                                    /* pass  */ [&](unsigned int itc) {return sdl.tc_isDuplicate().at(itc) > 0;},
                                    /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pT5;},
                                    /* pt    */ tas::tc_pt,
@@ -144,7 +145,6 @@ int main(int argc, char** argv)
         );
     list_DRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "pT3",
-                                   /* pdgid */ 0,
                                    /* pass  */ [&](unsigned int itc) {return sdl.tc_isDuplicate().at(itc) > 0;},
                                    /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pT3;},
                                    /* pt    */ tas::tc_pt,
@@ -155,7 +155,6 @@ int main(int argc, char** argv)
         );
     list_DRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "T5",
-                                   /* pdgid */ 0,
                                    /* pass  */ [&](unsigned int itc) {return sdl.tc_isDuplicate().at(itc) > 0;},
                                    /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == T5;},
                                    /* pt    */ tas::tc_pt,
@@ -166,7 +165,6 @@ int main(int argc, char** argv)
         );
     list_DRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "pLS",
-                                   /* pdgid */ 0,
                                    /* pass  */ [&](unsigned int itc) {return sdl.tc_isDuplicate().at(itc) > 0;},
                                    /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pLS;},
                                    /* pt    */ tas::tc_pt,
@@ -179,6 +177,8 @@ int main(int argc, char** argv)
 
     // Book Histograms
     ana.cutflow.bookHistograms(ana.histograms); // if just want to book everywhere
+
+    int nevts = 0;
 
     // Looping input file
     while (ana.looper.nextEvent())
@@ -201,7 +201,16 @@ int main(int argc, char** argv)
 
         // Reset all temporary variables necessary for histogramming
         ana.cutflow.fill();
+
+        // Counting number of events processed
+        nevts++;
     }
+
+    // Write number of events processed
+    ana.output_tfile->cd();
+    TH1F* h_nevts = new TH1F("nevts", "nevts", 1, 0, 1);
+    h_nevts->SetBinContent(1, nevts);
+    h_nevts->Write();
 
     // Writing output file
     ana.cutflow.saveOutput();
@@ -252,7 +261,7 @@ void bookEfficiencySet(SimTrackSetDefinition& effset)
 
     std::vector<float> pt_boundaries = getPtBounds();
 
-    TString category_name = effset.set_name;
+    TString category_name = TString::Format("%s_%d", effset.set_name.Data(), effset.pdgid);
 
     // Denominator tracks' quantities
     ana.tx.createBranch<vector<float>>(category_name + "_ef_denom_pt");
@@ -443,13 +452,13 @@ void fillEfficiencySet(int isimtrk, SimTrackSetDefinition& effset)
     const float &vtx_perp = sqrt(vtx_x * vtx_x + vtx_y * vtx_y);
 
 
-    if (ana.pdgid != 0 and abs(pdgidtrk) != abs(ana.pdgid))
+    if (effset.pdgid != 0 and abs(pdgidtrk) != abs(effset.pdgid))
         return;
 
-    if (ana.pdgid == 0 and q == 0)
+    if (effset.pdgid == 0 and q == 0)
         return;
 
-    TString category_name = effset.set_name;
+    TString category_name = TString::Format("%s_%d", effset.set_name.Data(), effset.pdgid);
 
     // https://github.com/cms-sw/cmssw/blob/7cbdb18ec6d11d5fd17ca66c1153f0f4e869b6b0/SimTracker/Common/python/trackingParticleSelector_cfi.py
     // https://github.com/cms-sw/cmssw/blob/7cbdb18ec6d11d5fd17ca66c1153f0f4e869b6b0/SimTracker/Common/interface/TrackingParticleSelector.h#L122-L124

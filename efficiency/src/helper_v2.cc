@@ -25,7 +25,6 @@ void parseArguments(int argc, char** argv)
         ("j,nsplit_jobs" , "Enable splitting jobs by N blocks (--job_index must be set)"                                         , cxxopts::value<int>())
         ("I,job_index"   , "job_index of split jobs (--nsplit_jobs must be set. index starts from 0. i.e. 0, 1, 2, 3, etc...)"   , cxxopts::value<int>())
         ("p,ptbound_mode", "Pt bound mode (i.e. 0 = default, 1 = pt~1, 2 = pt~0.95-1.5, 3 = pt~0.5-1.5, 4 = pt~0.5-2.0"          , cxxopts::value<int>()->default_value("0"))
-        ("g,pdgid"       , "pdgid to parse for efficiency"                                                                       , cxxopts::value<int>()->default_value("13"))
         ("d,debug"       , "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")
         ("h,help"        , "Print help")
         ;
@@ -171,7 +170,6 @@ void parseArguments(int argc, char** argv)
     //  3 upto segment is default tracklet is all-comb
     //  4 upto tracklet is default trackcandidate is all-comb
     ana.ptbound_mode = result["ptbound_mode"].as<int>();
-    ana.pdgid = result["pdgid"].as<int>();
 
     //
     // Printing out the option settings overview
@@ -201,7 +199,6 @@ SimTrackSetDefinition::SimTrackSetDefinition(TString set_name_, int pdgid_, std:
 
 RecoTrackSetDefinition::RecoTrackSetDefinition(
     TString set_name_,
-    int pdgid_,
     std::function<bool(unsigned int)> pass_,
     std::function<bool(unsigned int)> sel_,
     std::function<const std::vector<float>()> pt_,
@@ -211,7 +208,6 @@ RecoTrackSetDefinition::RecoTrackSetDefinition(
     ) : pt(pt_), eta(eta_), phi(phi_), type(type_)
 {
     set_name = set_name_;
-    pdgid = pdgid_;
     pass = pass_;
     sel = sel_;
 }
@@ -230,10 +226,16 @@ void initializeInputsAndOutputs()
     // Copy the information of the code
     std::vector<TString> vstr = RooUtil::StringUtil::split(ana.input_file_list_tstring, ",");
     TFile* firstFile = new TFile(vstr[0]);
+
+    // Obtain the info from the input file
     TString code_tag_data = ((TObjString*) firstFile->Get("code_tag_data"))->GetString();
     TString gitdiff = ((TObjString*) firstFile->Get("gitdiff"))->GetString();
     TString input = ((TObjString*) firstFile->Get("input"))->GetString();
+
+    // cd to output file
     ana.output_tfile->cd();
+
+    // Write the githash after parsing whether there is any gitdiff
     TObjString tobjstr("tobjstring");
     TString githash = RooUtil::StringUtil::split(code_tag_data, "\n")[0];
     githash = githash(0, 6);
@@ -243,20 +245,14 @@ void initializeInputsAndOutputs()
     std::cout <<  " githash: " << githash <<  std::endl;
     tobjstr.SetString(githash.Data());
     ana.output_tfile->WriteObject(&tobjstr, "githash");
+
+    // Write the sample information
     if (input.Contains("PU200"))
         input = "PU200";
     tobjstr.SetString(input.Data());
     std::cout <<  " input: " << input <<  std::endl;
     ana.output_tfile->WriteObject(&tobjstr, "input");
 
-    ana.do_lower_level = false; // default is false
-    TObjArray* brobjArray = ana.events_tchain->GetListOfBranches();
-    for (unsigned int ibr = 0; ibr < (unsigned int) brobjArray->GetEntries(); ++ibr)
-    {
-        TString brname = brobjArray->At(ibr)->GetName();
-        if (brname.EqualTo("sim_T4_matched"))
-            ana.do_lower_level = true; // if it has the branch it is set to true
-    }
 }
 
 

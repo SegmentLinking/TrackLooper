@@ -1,6 +1,6 @@
 #!/bin/env python
 
-import argparse 
+import argparse
 import ROOT as r
 from array import array
 import os
@@ -53,12 +53,12 @@ def parse_plot_name(output_name):
         rtnstr.append("Pixel Line Segment")
     elif "T5_" in output_name:
         rtnstr.append("Quintuplet")
-    types = "of type " + os.path.basename(output_name).split("_")[1]
-    if "AllTypes" in types:
-        types = "of all types"
-    if "Set1Types" in types:
-        types = "of set 1 types"
-    rtnstr.append(types)
+    # types = "of type " + os.path.basename(output_name).split("_")[1]
+    # if "AllTypes" in types:
+    #     types = "of all types"
+    # if "Set1Types" in types:
+    #     types = "of set 1 types"
+    # rtnstr.append(types)
     return " ".join(rtnstr)
 
 
@@ -128,7 +128,7 @@ def parse_plot_name(output_name):
 #    eff.GetYaxis().SetTitleSize(0.05)
 #    eff.GetXaxis().SetLabelSize(0.05)
 #    eff.GetYaxis().SetLabelSize(0.05)
-def draw_stack(nums, den, output_name, sample_name, version_tag, outputfile=None):
+def draw_stack(nums, den, output_name, sample_name, version_tag, pdgidstr, outputfile=None):
 
     if "scalar" in output_name and "ptscalar" not in output_name:
         for i in range(len(nums)):
@@ -277,7 +277,7 @@ def draw_stack(nums, den, output_name, sample_name, version_tag, outputfile=None
         t.SetTextSize(0.04)
         x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
         y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.09 + 0.03
-        sample_name_label = "Sample: " + sample_name + "   Version tag:" + version_tag
+        sample_name_label = "Sample:" + sample_name + "   Version tag:" + version_tag + (("  Particle:" + pdgidstr) if pdgidstr else "" )+ "  N_{evt}:" + n_events_processed
         t.DrawLatexNDC(x,y,"#scale[0.9]{#font[42]{%s}}" % sample_name_label)
         x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
         y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.045 + 0.03
@@ -339,7 +339,7 @@ def draw_stack(nums, den, output_name, sample_name, version_tag, outputfile=None
     c1.SaveAs("{}".format(output_name.replace("/mtv/", "/mtv/den/").replace(".pdf", "_den.png")))
 
     return eff
-def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None):
+def draw_ratio(num, den, output_name, sample_name, version_tag, pdgidstr, outputfile=None):
 
     # num.Rebin(6)
     # den.Rebin(6)
@@ -469,7 +469,7 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
         t.SetTextSize(0.04)
         x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
         y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.09 + 0.03
-        sample_name_label = "Sample: " + sample_name + "   Version tag:" + version_tag
+        sample_name_label = "Sample:" + sample_name + "   Version tag:" + version_tag + (("  Particle:" + pdgidstr) if pdgidstr else "" )+ "  N_{evt}:" + n_events_processed
         t.DrawLatexNDC(x,y,"#scale[0.9]{#font[42]{%s}}" % sample_name_label)
         x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
         y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.045 + 0.03
@@ -555,28 +555,37 @@ def plot_standard_performance_plots():
             "dz": ["", "coarse"],
             }
     types = ["TC", "pT5", "pT3", "T5", "pLS"]
+    pdgids = [0, 11, 13, 211]
 
     for metricsuffix in metricsuffixs:
         for variable in variables[metricsuffix]:
             for ybin in ybins:
                 for xbin in xbins[variable]:
                     for typ in types:
-                        if typ == "TC":
-                            plot(variable, ybin, xbin, typ, metricsuffix, True)
-                            plot(variable, ybin, xbin, typ, metricsuffix, False)
-                        else:
-                            plot(variable, ybin, xbin, typ, metricsuffix, False)
+                        for pdgid in pdgids:
+                            objtyp = typ
+                            pdgidstr = None
+                            if metricsuffix == "ef_":
+                                objtyp += "_{}".format(pdgid)
+                                if pdgid == 0:
+                                    pdgidstr = "All"
+                                elif pdgid == 11:
+                                    pdgidstr = "Electron"
+                                elif pdgid == 13:
+                                    pdgidstr = "Muon"
+                                elif pdgid == 211:
+                                    pdgidstr = "Pion"
+                            if typ == "TC":
+                                plot(variable, ybin, xbin, objtyp, metricsuffix, True, pdgidstr)
+                                plot(variable, ybin, xbin, objtyp, metricsuffix, False, pdgidstr)
+                            else:
+                                plot(variable, ybin, xbin, objtyp, metricsuffix, False, pdgidstr)
 
-    DIR = os.path.realpath(os.path.dirname(__file__))
-    os.system("cp -r {}/../misc/summary plots/".format(DIR))
+def plot(variable, ybinning, xbinning, objecttype, metricsuffix, is_stack, pdgidstr):
 
-def plot(variable, ybinning, xbinning, objecttype, metricsuffix, is_stack):
-
-    metric = "eff"
-    if metricsuffix == "fr_":
-        metric = "fakerate"
-    if metricsuffix == "dr_":
-        metric = "duplrate"
+    if metricsuffix == "ef_": metric = "eff"
+    elif metricsuffix == "dr_": metric = "duplrate"
+    elif metricsuffix == "fr_": metric = "fakerate"
 
     # Get denominator histogram
     denom_histname = "Root__{objecttype}_{metricsuffix}denom_{variable}".format(objecttype=objecttype, metricsuffix=metricsuffix, variable=variable)
@@ -609,13 +618,19 @@ def plot(variable, ybinning, xbinning, objecttype, metricsuffix, is_stack):
     if ybinning == "zoom":
         output_plot_name += "zoom"
 
+    # print(variable, ybinning, xbinning, objecttype, metricsuffix, is_stack, pdgidstr)
+    # print(denom_histname)
+    # print(output_plot_name)
+    # return
+
     if is_stack:
         draw_stack(
                 [numer] + stack_hists, # numerator histograms
                 denom, # denominator histogram
-                "plots/mtv/{0}.pdf".format(output_plot_name), # output plot name
+                "{0}/mtv/{1}.pdf".format(output_dir, output_plot_name), # output plot name
                 sample_name, # sample type
                 git_hash, # version tag
+                pdgidstr, # pdgid
                 # of # TGraph output rootfile
                 )
     else:
@@ -623,9 +638,10 @@ def plot(variable, ybinning, xbinning, objecttype, metricsuffix, is_stack):
         draw_ratio(
                 numer, # numerator histogram
                 denom, # denominator histogram
-                "plots/mtv/{0}.pdf".format(output_plot_name), # output plot name
+                "{0}/mtv/{1}.pdf".format(output_dir, output_plot_name), # output plot name
                 sample_name, # sample type
                 git_hash, # version tag
+                pdgidstr, # pdgid
                 # of # TGraph output rootfile
                 )
 
@@ -633,97 +649,71 @@ def plot(variable, ybinning, xbinning, objecttype, metricsuffix, is_stack):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="What are we wanting to graph?")
-    parser.add_argument('--input' , '-i' , dest='input' , type=str , default='num_den_hist.root' , help='input file name, -- default is input')
-    parser.add_argument('--variable' , '-v' , dest='variable' , type=str , default='pt' , help='pt, eta, phi, dxy, dz, layers, hits, layersgap, -- default is pt')
-    parser.add_argument('--yrange' , '-y' , dest='yrange' , type=str , default='normal' , help='yrange - default is normal')
-    parser.add_argument('--xbinning' , '-x' , dest='xbinning' , type=str , default='normal' , help='xbinning - default is normal')
-    parser.add_argument('--objecttype' , '-ot' , dest='objecttype' , type=str , default='TC' , help='TC, TCE, T3, pT3, T5, pT5, pureTCE, pT4, pT3, pLS -- deafult is TC')
-    parser.add_argument('--metric' , '-m' , dest='metric' , type=str , default='eff' , help='metric - default is eff (e.g. eff, duplrate, fakerate)')
-    parser.add_argument('--is_stack' , '-is_t' , dest='is_stack' , action="store_true", help='is stack - default is True')
-    parser.add_argument('--sample_name' , '-sn' , dest='sample_name' , type=str , default='DEFAULT' , help='sample name')
-    parser.add_argument('--standard_perf_plots' , '-std' , dest='std' , action="store_true", help='plot a full set of standard plots - default is True')
+    parser.add_argument('--input'       , '-i'   , dest='input'       , type=str , default='num_den_hist.root' , help='input file name [DEFAULT=num_den_hist.root]')
+    parser.add_argument('--variable'    , '-v'   , dest='variable'    , type=str , default='pt'                , help='pt, eta, phi, dxy, dz [DEFAULT=pt]')
+    parser.add_argument('--xbinning'    , '-x'   , dest='xbinning'    , type=str , default='normal'            , help='xbinning [DEFAULT=normal]')
+    parser.add_argument('--objecttype'  , '-ot'  , dest='objecttype'  , type=str , default='TC'                , help='TC, pT3, T5, pT5, pLS [DEFAULT=TC]')
+    parser.add_argument('--metric'      , '-m'   , dest='metric'      , type=str , default='eff'               , help='eff, duplrate, fakerate [DEFAULT=eff]')
+    parser.add_argument('--sample_name' , '-sn'  , dest='sample_name' , type=str , default='DEFAULT'           , help='sample name [DEFAULT=sampleName]')
+    parser.add_argument('--output_dir'  , '-od'  , dest='output_dir'  , type=str , default='plots'             , help='output dir name [DEFAULT=plots]')
+    parser.add_argument('--pdgid'       , '-p'   , dest='pdgid'       , type=int , default=0                   , help='pdgid (efficiency plots only) [DEFAULT=0]')
+    parser.add_argument('--is_stack'    , '-is_t', dest='is_stack'    , action="store_true" , help='is stack')
+    parser.add_argument('--yzoom'       , '-yz'  , dest='yzoom'       , action="store_true" , help='zoom in y')
+    parser.add_argument('--xcoarse'     , '-xc'  , dest='xcoarse'     , action="store_true" , help='coarse in x')
+    parser.add_argument('--standard_perf_plots' , '-std'  , dest='std'         , action="store_true" , help='plot a full set of standard plots')
 
     args = parser.parse_args()
 
     #############
-    variable = args.variable
-    yrange = args.yrange
-    xbinning = args.xbinning
+    variable   = args.variable
+    yzoom      = args.yzoom
+    xcoarse    = args.xcoarse
     objecttype = args.objecttype
-    metric = args.metric
-    is_stack = args.is_stack
-    std = args.std
+    metric     = args.metric
+    is_stack   = args.is_stack
+    std        = args.std
+    output_dir = args.output_dir
+    pdgid      = args.pdgid
     #############
 
+    # Parse from input file
     root_file_name = args.input
     f = r.TFile(root_file_name)
+
+    # git version hash
     git_hash = f.Get("githash").GetString().Data()
+
+    # sample name
     sample_name = f.Get("input").GetString().Data()
     if args.sample_name:
         sample_name = args.sample_name
 
-    if std:
-        plot_standard_performance_plots()
-        sys.exit()
+    # parse nevents
+    n_events_processed = str(int(f.Get("nevts").GetBinContent(1)))
 
+    # parse metric suffix
+    if metric == "eff": metricsuffix = "ef_"
+    elif metric == "duplrate": metricsuffix = "dr_"
+    elif metric == "fakerate": metricsuffix = "fr_"
+    else:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
+    # If is_stack it must be object type of TC
     if is_stack:
         print("Warning! objecttype is set to \"TC\" because is_stack is True!")
         objecttype = "TC"
 
-    # SPECIAL CARE on how we deal with different metric
-    if metric == "eff": metricsuffix = "ef_"
-    if metric == "duplrate": metricsuffix = "dr_"
-    if metric == "fakerate": metricsuffix = "fr_"
-    if metric == "eff": stackmetricsuffix = ""
-    if metric == "duplrate": stackmetricsuffix = "dup"
-    if metric == "fakerate": stackmetricsuffix = "fake"
-
     # Create output directory
-    os.system("mkdir -p plots/mtv/var")
-    os.system("mkdir -p plots/mtv/num")
-    os.system("mkdir -p plots/mtv/den")
+    os.system("mkdir -p {output_dir}/mtv/var".format(output_dir=output_dir))
+    os.system("mkdir -p {output_dir}/mtv/num".format(output_dir=output_dir))
+    os.system("mkdir -p {output_dir}/mtv/den".format(output_dir=output_dir))
 
-    # Get denominator histogram
-    denom_histname = "Root__{objecttype}_{metricsuffix}denom_{variable}".format(objecttype=objecttype, metricsuffix=metricsuffix, variable=variable)
-    print(denom_histname)
-    denom = f.Get(denom_histname).Clone()
-
-    # Get numerator histograms
-    numer_histname = "Root__{objecttype}_{metricsuffix}numer_{variable}".format(objecttype=objecttype, metricsuffix=metricsuffix, variable=variable)
-    numer = f.Get(numer_histname).Clone()
-
-    stack_hist_types = ["pT5", "pT3", "T5", "pLS"]
-    stack_hists = []
-    if is_stack:
-        for stack_hist_type in stack_hist_types:
-            stack_histname = numer_histname.replace("TC", stack_hist_type)
-            print(stack_histname)
-            hist = f.Get(stack_histname)
-            stack_hists.append(hist.Clone())
-
-    output_plot_name = "{objecttype}_{metric}{stackvar}_{variable}".format(objecttype=objecttype, metric=metric, stackvar="_stack" if is_stack else "", variable=variable)
-    if xbinning == "coarse":
-        output_plot_name += "coarse"
-
-    if is_stack:
-        draw_stack(
-                [numer] + stack_hists, # numerator histograms
-                denom, # denominator histogram
-                "plots/mtv/{0}.pdf".format(output_plot_name), # output plot name
-                sample_name, # sample type
-                git_hash, # version tag
-                # of # TGraph output rootfile
-                )
+    # Draw all standard particle
+    if std:
+        plot_standard_performance_plots()
     else:
-
-        draw_ratio(
-                numer, # numerator histogram
-                denom, # denominator histogram
-                "plots/mtv/{0}.pdf".format(output_plot_name), # output plot name
-                sample_name, # sample type
-                git_hash, # version tag
-                # of # TGraph output rootfile
-                )
+        plot(variable, "zoom" if yzoom else "", "coarse" if xcoarse else "", objecttype, metricsuffix, is_stack)
 
     DIR = os.path.realpath(os.path.dirname(__file__))
-    os.system("cp -r {}/../misc/summary plots/".format(DIR))
+    os.system("cp -r {}/../misc/summary {}/".format(DIR, output_dir))
