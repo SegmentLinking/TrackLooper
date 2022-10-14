@@ -441,57 +441,57 @@ __device__ bool SDL::passPT3RZChiSquaredCuts(struct modules& modulesInGPU, uint1
 
     if(layer1 == 8 and layer2 == 9 and layer3 == 10)
     {
-        return rzChiSquared < 13.4733f; //CMSSW 12 geo, add charge
+        return rzChiSquared < 13.6067f; //CMSSW 12 geo, add charge, new pixel map
     }
     else if(layer1 == 8 and layer2 == 9 and layer3 == 15)
     {
-        return rzChiSquared < 15.2533f; //CMSSW 12 geo, add charge
+        return rzChiSquared < 5.5953f; //CMSSW 12 geo, add charge, new pixel map
     }
 
     else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
-        return rzChiSquared < 11.7439f; //CMSSW 12 geo, add charge
+        return rzChiSquared < 3.9263f; //CMSSW 12 geo, add charge, new pixel map
     }
-    else if(layer1 == 7 and layer2 == 8 and layer3 == 14)
+/*    else if(layer1 == 7 and layer2 == 8 and layer3 == 14)
     {   
-        return rzChiSquared < 16.836f; //CMSSW 12 geo, add charge
+        return rzChiSquared < 16.836f; //CMSSW 12 geo, add charge, new pixel map
     }
-
+*/
     else if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-        return rzChiSquared < 9.3866f; //CMSSW 12 geo, add charge
+        return rzChiSquared < 9.4377f; //CMSSW 12 geo, add charge, new pixel map
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
-        return rzChiSquared < 42.8617f; //CMSSW 12 geo, add charge
+        return rzChiSquared < 9.9975f; //CMSSW 12 geo, add charge, new pixel map
     }
 
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
-        return rzChiSquared < 8.3363f; //CMSSW 12 geo, add charge
+        return rzChiSquared < 8.6369f; //CMSSW 12 geo, add charge, new pixel map
     }
 
     else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
-        return rzChiSquared < 39.2367f; //CMSSW 12 geo, add charge
+        return rzChiSquared < 37.945f; //CMSSW 12 geo, add charge, new pixel map
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 12)
     {
-        return rzChiSquared < 51.76f; //CMSSW 12 geo, add charge
+        return rzChiSquared < 43.0167f; //CMSSW 12 geo, add charge, new pixel map
     }
     
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
-        return rzChiSquared < 38.7867f; //CMSSW 12 geo, add charge
+        return rzChiSquared < 8.6923f; //CMSSW 12 geo, add charge, new pixel map
     }
 
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
-        return rzChiSquared < 342.315f; //CMSSW 12 geo, add charge
+        return rzChiSquared < 11.9672f; //CMSSW 12 geo, add charge, new pixel map
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 13)
     {
-        return rzChiSquared < 17.2667f; //CMSSW 12 geo, add charge
+        return rzChiSquared < 16.2133f; //CMSSW 12 geo, add charge, new pixel map
     }
 
     //default - category not found!
