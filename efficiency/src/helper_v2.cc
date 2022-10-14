@@ -227,6 +227,35 @@ void initializeInputsAndOutputs()
     // Set the cutflow object output file
     ana.cutflow.setTFile(ana.output_tfile);
 
+    // Copy the information of the code
+    std::vector<TString> vstr = RooUtil::StringUtil::split(ana.input_file_list_tstring, ",");
+    TFile* firstFile = new TFile(vstr[0]);
+    TString a1 = ((TObjString*) firstFile->Get("code_tag_data"))->GetString();
+    TString a2 = ((TObjString*) firstFile->Get("make_log"))->GetString();
+    TString a3 = ((TObjString*) firstFile->Get("gitdiff"))->GetString();
+    TString a4 = ((TObjString*) firstFile->Get("input"))->GetString();
+    TString a5 = ((TObjString*) firstFile->Get("version"))->GetString();
+    TString a6 = ((TObjString*) firstFile->Get("full_cmd_line"))->GetString();
+    TString a7 = ((TObjString*) firstFile->Get("tracklooper_path"))->GetString();
+    ana.output_tfile->cd();
+    TObjString tobjstr("tobjstring");
+    std::cout << "Copying information about the LST run ...." << std::endl;
+    tobjstr.SetString(a1.Data());
+    ana.output_tfile->WriteObject(&a1, "code_tag_data");
+    tobjstr.SetString(a2.Data());
+    ana.output_tfile->WriteObject(&a2, "make_log");
+    tobjstr.SetString(a3.Data());
+    ana.output_tfile->WriteObject(&a3, "gitdiff");
+    tobjstr.SetString(a4.Data());
+    ana.output_tfile->WriteObject(&a4, "input");
+    tobjstr.SetString(a5.Data());
+    ana.output_tfile->WriteObject(&a5, "version");
+    tobjstr.SetString(a6.Data());
+    ana.output_tfile->WriteObject(&a6, "full_cmd_line");
+    tobjstr.SetString(a7.Data());
+    ana.output_tfile->WriteObject(&a7, "tracklooper_path");
+    std::cout << "Copy finished!" << std::endl;
+
     ana.do_lower_level = false; // default is false
     TObjArray* brobjArray = ana.events_tchain->GetListOfBranches();
     for (unsigned int ibr = 0; ibr < (unsigned int) brobjArray->GetEntries(); ++ibr)
