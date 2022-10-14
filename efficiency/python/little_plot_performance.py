@@ -639,8 +639,6 @@ if __name__ == "__main__":
     parser.add_argument('--xbinning' , '-x' , dest='xbinning' , type=str , default='normal' , help='xbinning - default is normal')
     parser.add_argument('--objecttype' , '-ot' , dest='objecttype' , type=str , default='TC' , help='TC, TCE, T3, pT3, T5, pT5, pureTCE, pT4, pT3, pLS -- deafult is TC')
     parser.add_argument('--metric' , '-m' , dest='metric' , type=str , default='eff' , help='metric - default is eff (e.g. eff, duplrate, fakerate)')
-    parser.add_argument('--sample_name' , '-sn' , dest='sample_name' , type=str , default='DEFAULT' , help='sample name')
-    parser.add_argument('--git_hash' , '-gh' , dest='git_hash' , type=str , default='12345' , help='git hash')
     parser.add_argument('--is_stack' , '-is_t' , dest='is_stack' , action="store_true", help='is stack - default is True')
     parser.add_argument('--standard_perf_plots' , '-std' , dest='std' , action="store_true", help='plot a full set of standard plots - default is True')
 
@@ -652,14 +650,14 @@ if __name__ == "__main__":
     xbinning = args.xbinning
     objecttype = args.objecttype
     metric = args.metric
-    sample_name = args.sample_name
-    git_hash = args.git_hash
     is_stack = args.is_stack
     std = args.std
     #############
 
     root_file_name = args.input
     f = r.TFile(root_file_name)
+    git_hash = f.Get("githash").GetString().Data()
+    sample_name = f.Get("input").GetString().Data()
 
     if std:
         plot_standard_performance_plots()
