@@ -725,13 +725,8 @@ __global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned 
       unsigned int outerMDIndex = rangesInGPU.miniDoubletModuleIndices[pixelModuleIndex] + 2*(tid) +1;
       unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + tid;
 
-//#ifdef CUT_VALUE_DEBUG
-//      addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices0[tid], hitIndices1[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,0,0,0,0,innerMDIndex);
-//      addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices2[tid], hitIndices3[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,0,0,0,0,outerMDIndex);
-//#else
       addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices0[tid], hitIndices1[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,innerMDIndex);
       addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices2[tid], hitIndices3[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,outerMDIndex);
-//#endif
 
     //in outer hits - pt, eta, phi
     float slope = sinhf(hitsInGPU.ys[mdsInGPU.outerHitIndices[innerMDIndex]]);
@@ -1246,7 +1241,7 @@ void SDL::Event::createTrackCandidates()
 
 #endif
     //adding objects
-    SDL::addpT3asTrackCandidatesInGPU<<<1,512,0,stream>>>(*pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU);
+    SDL::addpT3asTrackCandidatesInGPU<<<1,512,0,stream>>>(*pixelTripletsInGPU, *trackCandidatesInGPU);
     cudaError_t cudaerr_pT3TC = cudaGetLastError();
     if(cudaerr_pT3TC != cudaSuccess)
     {

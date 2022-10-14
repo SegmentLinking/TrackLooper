@@ -338,7 +338,7 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
         float yPix[2] = {mdsInGPU.anchorY[pixelInnerMDIndex], mdsInGPU.anchorY[pixelOuterMDIndex]};
         float zPix[2] = {mdsInGPU.anchorZ[pixelInnerMDIndex], mdsInGPU.anchorZ[pixelOuterMDIndex]};
 
-        rzChiSquared = computePT3RZChiSquared(modulesInGPU, lowerModuleIndices, rtPix, xPix, yPix, zPix, rts, xs, ys, zs, pixelSegmentPt, pixelSegmentPx, pixelSegmentPy, pixelSegmentPz, pixelSegmentCharge, pixelG, pixelF, pixelRadiusPCA);
+        rzChiSquared = computePT3RZChiSquared(modulesInGPU, lowerModuleIndices, rtPix, xPix, yPix, zPix, rts, xs, ys, zs, pixelSegmentPt, pixelSegmentPx, pixelSegmentPy, pixelSegmentPz, pixelSegmentCharge);
         pass = pass and passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
         if(not pass) return pass;
     }
@@ -382,7 +382,6 @@ __device__ bool SDL::passPT3RPhiChiSquaredInwardsCuts(struct modules& modulesInG
         return chiSquared < 29064.12959f;
     }
     else if(layer1 == 8 and layer2 == 9 and layer3 == 15) // endcap layer 2,3,4, layer3->2s      
-    // why don't we have endcap 3,4,5 for 3 ps modules? that's 9,10,11
     {
         return chiSquared < 935179.5681f;
     }
@@ -499,7 +498,7 @@ __device__ bool SDL::passPT3RZChiSquaredCuts(struct modules& modulesInGPU, uint1
     return true;
 }
 
-__device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint16_t* lowerModuleIndices, float* rtPix, float* xPix, float* yPix, float* zPix, float* rts, float* xs, float* ys, float* zs, float pixelSegmentPt, float pixelSegmentPx, float pixelSegmentPy, float pixelSegmentPz, int pixelSegmentCharge, float pixelG, float pixelF, float pixelRadiusPCA)
+__device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint16_t* lowerModuleIndices, float* rtPix, float* xPix, float* yPix, float* zPix, float* rts, float* xs, float* ys, float* zs, float pixelSegmentPt, float pixelSegmentPx, float pixelSegmentPy, float pixelSegmentPz, int pixelSegmentCharge)
 { 
     float slope = (zPix[1] - zPix[0])/(rtPix[1] - rtPix[0]);
     float residual = 0;
@@ -509,11 +508,10 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
 
     float Pt=pixelSegmentPt, Px=pixelSegmentPx, Py=pixelSegmentPy, Pz=pixelSegmentPz;
     int charge=pixelSegmentCharge;
-    float CenterX=pixelG/100, CenterY=pixelF/100, CircleRadius=pixelRadiusPCA/100; // for calculating initial state corrections
-    float x0 = xPix[0]/100,x1 = xPix[1]/100;
-    float y0 = yPix[0]/100,y1 = yPix[1]/100;
-    float z0 = zPix[0]/100,z1 = zPix[1]/100;
-    float r0 = rtPix[0]/100,r1 = rtPix[1]/100;
+    float x1 = xPix[1]/100;
+    float y1 = yPix[1]/100;
+    float z1 = zPix[1]/100;
+    float r1 = rtPix[1]/100;
 
     float B = 3.8112;
     float a = -0.299792*B*charge;
@@ -529,6 +527,7 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
         const int moduleSide = modulesInGPU.sides[lowerModuleIndex];
         const int moduleSubdet = modulesInGPU.subdets[lowerModuleIndex];
 
+        // calculation is detailed documented here https://indico.cern.ch/event/1185895/contributions/4982756/attachments/2526561/4345805/helix%20pT3%20summarize.pdf
         float diffr,diffz;
         float p = sqrt(Px*Px+Py*Py+Pz*Pz);
 
@@ -559,10 +558,7 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
             diffz = min(diffz1,diffz2);
         }
 
-        float diffr_f = diffr;
-        float diffz_f = diffz;
-
-        residual = moduleSubdet == SDL::Barrel ? diffz_f : diffr_f ;
+        residual = moduleSubdet == SDL::Barrel ? diffz : diffr ;
 
         //PS Modules
         if(moduleType == 0)
@@ -873,7 +869,6 @@ __global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modu
 
         if(segmentsInGPU.isDup[i_pLS]) continue;
         if(segmentsInGPU.partOfPT5[i_pLS]) continue;//don't make pT3s for those pixels that are part of pT5
-//        if(!segmentsInGPU.isQuad[i_pLS]) continue;
 
         short layer2_adjustment;// = 2 - modulesInGPU.layers[tripletLowerModuleIndex];
         //if(layer2_adjustment < 0) continue;
@@ -901,7 +896,7 @@ __global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modu
 
             float pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared, rzChiSquared, rPhiChiSquaredInwards, centerX, centerY;
             bool success = runPixelTripletDefaultAlgo(modulesInGPU, rangesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, pixelSegmentIndex, outerTripletIndex, pixelRadius, pixelRadiusError, tripletRadius, centerX, centerY, rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards);
-//                printf("%f ",rzChiSquared);
+
             if(success)
             {
                 float phi = mdsInGPU.anchorPhi[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*outerTripletIndex]+layer2_adjustment]];
