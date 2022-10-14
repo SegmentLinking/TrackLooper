@@ -8,8 +8,12 @@
 [![](../mtv/var/TC_eff_ptzoom.png){ width=450px }](TC_eff_ptzoom.html)
 [![](../mtv/var/TC_eff_etacoarse.png){ width=450px }](TC_eff_etacoarse.html)
 [![](../mtv/var/TC_eff_etacoarsezoom.png){ width=450px }](TC_eff_etacoarsezoom.html)
+[![](../mtv/var/TC_eff_eta.png){ width=450px }](TC_eff_eta.html)
+[![](../mtv/var/TC_eff_etazoom.png){ width=450px }](TC_eff_etazoom.html)
 [![](../mtv/var/TC_eff_dxycoarse.png){ width=450px }](TC_eff_dxycoarse.html)
 [![](../mtv/var/TC_eff_dzcoarse.png){ width=450px }](TC_eff_dzcoarse.html)
+[![](../mtv/var/TC_eff_dxy.png){ width=450px }](TC_eff_dxy.html)
+[![](../mtv/var/TC_eff_dz.png){ width=450px }](TC_eff_dz.html)
 [![](../mtv/var/TC_eff_phi.png){ width=450px }](TC_eff_phi.html)
 
 ## <a name="1.2"></a> 1.2 TC Fake Rate
@@ -18,6 +22,8 @@
 [![](../mtv/var/TC_fakerate_ptzoom.png){ width=450px }](TC_fakerate_ptzoom.html)
 [![](../mtv/var/TC_fakerate_etacoarse.png){ width=450px }](TC_fakerate_etacoarse.html)
 [![](../mtv/var/TC_fakerate_etacoarsezoom.png){ width=450px }](TC_fakerate_etacoarsezoom.html)
+[![](../mtv/var/TC_fakerate_eta.png){ width=450px }](TC_fakerate_eta.html)
+[![](../mtv/var/TC_fakerate_etazoom.png){ width=450px }](TC_fakerate_etazoom.html)
 [![](../mtv/var/TC_fakerate_phi.png){ width=450px }](TC_fakerate_phi.html)
 
 ## <a name="1.3"></a> 1.3 TC Duplicate Rate
@@ -26,6 +32,8 @@
 [![](../mtv/var/TC_duplrate_ptzoom.png){ width=450px }](TC_duplrate_ptzoom.html)
 [![](../mtv/var/TC_duplrate_etacoarse.png){ width=450px }](TC_duplrate_etacoarse.html)
 [![](../mtv/var/TC_duplrate_etacoarsezoom.png){ width=450px }](TC_duplrate_etacoarsezoom.html)
+[![](../mtv/var/TC_duplrate_eta.png){ width=450px }](TC_duplrate_eta.html)
+[![](../mtv/var/TC_duplrate_etazoom.png){ width=450px }](TC_duplrate_etazoom.html)
 [![](../mtv/var/TC_duplrate_phi.png){ width=450px }](TC_duplrate_phi.html)
 
 ## <a name="2.1"></a> 2.1 TC Efficiency Breakdown
@@ -34,8 +42,12 @@
 [![](../mtv/var/TC_eff_stack_ptzoom.png){ width=450px }](TCStack_eff_stack_ptzoom.html)
 [![](../mtv/var/TC_eff_stack_etacoarse.png){ width=450px }](TCStack_eff_stack_etacoarse.html)
 [![](../mtv/var/TC_eff_stack_etacoarsezoom.png){ width=450px }](TCStack_eff_stack_etacoarsezoom.html)
+[![](../mtv/var/TC_eff_stack_eta.png){ width=450px }](TCStack_eff_stack_eta.html)
+[![](../mtv/var/TC_eff_stack_etazoom.png){ width=450px }](TCStack_eff_stack_etazoom.html)
 [![](../mtv/var/TC_eff_stack_dxycoarse.png){ width=450px }](TCStack_eff_stack_dxycoarse.html)
 [![](../mtv/var/TC_eff_stack_dzcoarse.png){ width=450px }](TCStack_eff_stack_dzcoarse.html)
+[![](../mtv/var/TC_eff_stack_dxy.png){ width=450px }](TCStack_eff_stack_dxy.html)
+[![](../mtv/var/TC_eff_stack_dz.png){ width=450px }](TCStack_eff_stack_dz.html)
 [![](../mtv/var/TC_eff_stack_phi.png){ width=450px }](TCStack_eff_stack_phi.html)
 
 ## <a name="2.2"></a> 2.2 TC Fake Rate Breakdown
@@ -44,6 +56,8 @@
 [![](../mtv/var/TC_fakerate_stack_ptzoom.png){ width=450px }](TCStack_fakerate_stack_ptzoom.html)
 [![](../mtv/var/TC_fakerate_stack_etacoarse.png){ width=450px }](TCStack_fakerate_stack_etacoarse.html)
 [![](../mtv/var/TC_fakerate_stack_etacoarsezoom.png){ width=450px }](TCStack_fakerate_stack_etacoarsezoom.html)
+[![](../mtv/var/TC_fakerate_stack_eta.png){ width=450px }](TCStack_fakerate_stack_eta.html)
+[![](../mtv/var/TC_fakerate_stack_etazoom.png){ width=450px }](TCStack_fakerate_stack_etazoom.html)
 [![](../mtv/var/TC_fakerate_stack_phi.png){ width=450px }](TCStack_fakerate_stack_phi.html)
 
 ## <a name="2.3"></a> 2.3 TC Duplicate Rate Breakdown
@@ -52,6 +66,8 @@
 [![](../mtv/var/TC_duplrate_stack_ptzoom.png){ width=450px }](TCStack_duplrate_stack_ptzoom.html)
 [![](../mtv/var/TC_duplrate_stack_etacoarse.png){ width=450px }](TCStack_duplrate_stack_etacoarse.html)
 [![](../mtv/var/TC_duplrate_stack_etacoarsezoom.png){ width=450px }](TCStack_duplrate_stack_etacoarsezoom.html)
+[![](../mtv/var/TC_duplrate_stack_eta.png){ width=450px }](TCStack_duplrate_stack_eta.html)
+[![](../mtv/var/TC_duplrate_stack_etazoom.png){ width=450px }](TCStack_duplrate_stack_etazoom.html)
 [![](../mtv/var/TC_duplrate_stack_phi.png){ width=450px }](TCStack_duplrate_stack_phi.html)
 
 ## <a name="3.1"></a> 3.1 pT5 Efficiency
@@ -60,8 +76,12 @@
 [![](../mtv/var/pT5_eff_ptzoom.png){ width=450px }](pT5_eff_ptzoom.html)
 [![](../mtv/var/pT5_eff_etacoarse.png){ width=450px }](pT5_eff_etacoarse.html)
 [![](../mtv/var/pT5_eff_etacoarsezoom.png){ width=450px }](pT5_eff_etacoarsezoom.html)
+[![](../mtv/var/pT5_eff_eta.png){ width=450px }](pT5_eff_eta.html)
+[![](../mtv/var/pT5_eff_etazoom.png){ width=450px }](pT5_eff_etazoom.html)
 [![](../mtv/var/pT5_eff_dxycoarse.png){ width=450px }](pT5_eff_dxycoarse.html)
 [![](../mtv/var/pT5_eff_dzcoarse.png){ width=450px }](pT5_eff_dzcoarse.html)
+[![](../mtv/var/pT5_eff_dxy.png){ width=450px }](pT5_eff_dxy.html)
+[![](../mtv/var/pT5_eff_dz.png){ width=450px }](pT5_eff_dz.html)
 [![](../mtv/var/pT5_eff_phi.png){ width=450px }](pT5_eff_phi.html)
 
 ## <a name="3.2"></a> 3.2 pT5 Fake Rate
@@ -70,6 +90,8 @@
 [![](../mtv/var/pT5_fakerate_ptzoom.png){ width=450px }](pT5_fakerate_ptzoom.html)
 [![](../mtv/var/pT5_fakerate_etacoarse.png){ width=450px }](pT5_fakerate_etacoarse.html)
 [![](../mtv/var/pT5_fakerate_etacoarsezoom.png){ width=450px }](pT5_fakerate_etacoarsezoom.html)
+[![](../mtv/var/pT5_fakerate_eta.png){ width=450px }](pT5_fakerate_eta.html)
+[![](../mtv/var/pT5_fakerate_etazoom.png){ width=450px }](pT5_fakerate_etazoom.html)
 [![](../mtv/var/pT5_fakerate_phi.png){ width=450px }](pT5_fakerate_phi.html)
 
 ## <a name="3.3"></a> 3.3 pT5 Duplicate Rate
@@ -78,6 +100,8 @@
 [![](../mtv/var/pT5_duplrate_ptzoom.png){ width=450px }](pT5_duplrate_ptzoom.html)
 [![](../mtv/var/pT5_duplrate_etacoarse.png){ width=450px }](pT5_duplrate_etacoarse.html)
 [![](../mtv/var/pT5_duplrate_etacoarsezoom.png){ width=450px }](pT5_duplrate_etacoarsezoom.html)
+[![](../mtv/var/pT5_duplrate_eta.png){ width=450px }](pT5_duplrate_eta.html)
+[![](../mtv/var/pT5_duplrate_etazoom.png){ width=450px }](pT5_duplrate_etazoom.html)
 [![](../mtv/var/pT5_duplrate_phi.png){ width=450px }](pT5_duplrate_phi.html)
 
 ## <a name="4.1"></a> 4.1 pT3 Efficiency
@@ -86,8 +110,12 @@
 [![](../mtv/var/pT3_eff_ptzoom.png){ width=450px }](pT3_eff_ptzoom.html)
 [![](../mtv/var/pT3_eff_etacoarse.png){ width=450px }](pT3_eff_etacoarse.html)
 [![](../mtv/var/pT3_eff_etacoarsezoom.png){ width=450px }](pT3_eff_etacoarsezoom.html)
+[![](../mtv/var/pT3_eff_eta.png){ width=450px }](pT3_eff_eta.html)
+[![](../mtv/var/pT3_eff_etazoom.png){ width=450px }](pT3_eff_etazoom.html)
 [![](../mtv/var/pT3_eff_dxycoarse.png){ width=450px }](pT3_eff_dxycoarse.html)
 [![](../mtv/var/pT3_eff_dzcoarse.png){ width=450px }](pT3_eff_dzcoarse.html)
+[![](../mtv/var/pT3_eff_dxy.png){ width=450px }](pT3_eff_dxy.html)
+[![](../mtv/var/pT3_eff_dz.png){ width=450px }](pT3_eff_dz.html)
 [![](../mtv/var/pT3_eff_phi.png){ width=450px }](pT3_eff_phi.html)
 
 ## <a name="4.2"></a> 4.2 pT3 Fake Rate
@@ -96,6 +124,8 @@
 [![](../mtv/var/pT3_fakerate_ptzoom.png){ width=450px }](pT3_fakerate_ptzoom.html)
 [![](../mtv/var/pT3_fakerate_etacoarse.png){ width=450px }](pT3_fakerate_etacoarse.html)
 [![](../mtv/var/pT3_fakerate_etacoarsezoom.png){ width=450px }](pT3_fakerate_etacoarsezoom.html)
+[![](../mtv/var/pT3_fakerate_eta.png){ width=450px }](pT3_fakerate_eta.html)
+[![](../mtv/var/pT3_fakerate_etazoom.png){ width=450px }](pT3_fakerate_etazoom.html)
 [![](../mtv/var/pT3_fakerate_phi.png){ width=450px }](pT3_fakerate_phi.html)
 
 ## <a name="4.3"></a> 4.3 pT3 Duplicate Rate
@@ -104,6 +134,8 @@
 [![](../mtv/var/pT3_duplrate_ptzoom.png){ width=450px }](pT3_duplrate_ptzoom.html)
 [![](../mtv/var/pT3_duplrate_etacoarse.png){ width=450px }](pT3_duplrate_etacoarse.html)
 [![](../mtv/var/pT3_duplrate_etacoarsezoom.png){ width=450px }](pT3_duplrate_etacoarsezoom.html)
+[![](../mtv/var/pT3_duplrate_eta.png){ width=450px }](pT3_duplrate_eta.html)
+[![](../mtv/var/pT3_duplrate_etazoom.png){ width=450px }](pT3_duplrate_etazoom.html)
 [![](../mtv/var/pT3_duplrate_phi.png){ width=450px }](pT3_duplrate_phi.html)
 
 ## <a name="5.1"></a> 5.1 T5 Efficiency
@@ -112,8 +144,12 @@
 [![](../mtv/var/T5_eff_ptzoom.png){ width=450px }](T5_eff_ptzoom.html)
 [![](../mtv/var/T5_eff_etacoarse.png){ width=450px }](T5_eff_etacoarse.html)
 [![](../mtv/var/T5_eff_etacoarsezoom.png){ width=450px }](T5_eff_etacoarsezoom.html)
+[![](../mtv/var/T5_eff_eta.png){ width=450px }](T5_eff_eta.html)
+[![](../mtv/var/T5_eff_etazoom.png){ width=450px }](T5_eff_etazoom.html)
 [![](../mtv/var/T5_eff_dxycoarse.png){ width=450px }](T5_eff_dxycoarse.html)
 [![](../mtv/var/T5_eff_dzcoarse.png){ width=450px }](T5_eff_dzcoarse.html)
+[![](../mtv/var/T5_eff_dxy.png){ width=450px }](T5_eff_dxy.html)
+[![](../mtv/var/T5_eff_dz.png){ width=450px }](T5_eff_dz.html)
 [![](../mtv/var/T5_eff_phi.png){ width=450px }](T5_eff_phi.html)
 
 ## <a name="5.2"></a> 5.2 T5 Fake Rate
@@ -122,6 +158,8 @@
 [![](../mtv/var/T5_fakerate_ptzoom.png){ width=450px }](T5_fakerate_ptzoom.html)
 [![](../mtv/var/T5_fakerate_etacoarse.png){ width=450px }](T5_fakerate_etacoarse.html)
 [![](../mtv/var/T5_fakerate_etacoarsezoom.png){ width=450px }](T5_fakerate_etacoarsezoom.html)
+[![](../mtv/var/T5_fakerate_eta.png){ width=450px }](T5_fakerate_eta.html)
+[![](../mtv/var/T5_fakerate_etazoom.png){ width=450px }](T5_fakerate_etazoom.html)
 [![](../mtv/var/T5_fakerate_phi.png){ width=450px }](T5_fakerate_phi.html)
 
 ## <a name="5.3"></a> 5.3 T5 Duplicate Rate
@@ -130,6 +168,8 @@
 [![](../mtv/var/T5_duplrate_ptzoom.png){ width=450px }](T5_duplrate_ptzoom.html)
 [![](../mtv/var/T5_duplrate_etacoarse.png){ width=450px }](T5_duplrate_etacoarse.html)
 [![](../mtv/var/T5_duplrate_etacoarsezoom.png){ width=450px }](T5_duplrate_etacoarsezoom.html)
+[![](../mtv/var/T5_duplrate_eta.png){ width=450px }](T5_duplrate_eta.html)
+[![](../mtv/var/T5_duplrate_etazoom.png){ width=450px }](T5_duplrate_etazoom.html)
 [![](../mtv/var/T5_duplrate_phi.png){ width=450px }](T5_duplrate_phi.html)
 
 ## <a name="6.1"></a> 6.1 pLS Efficiency
@@ -138,8 +178,12 @@
 [![](../mtv/var/pLS_eff_ptzoom.png){ width=450px }](pLS_eff_ptzoom.html)
 [![](../mtv/var/pLS_eff_etacoarse.png){ width=450px }](pLS_eff_etacoarse.html)
 [![](../mtv/var/pLS_eff_etacoarsezoom.png){ width=450px }](pLS_eff_etacoarsezoom.html)
+[![](../mtv/var/pLS_eff_eta.png){ width=450px }](pLS_eff_eta.html)
+[![](../mtv/var/pLS_eff_etazoom.png){ width=450px }](pLS_eff_etazoom.html)
 [![](../mtv/var/pLS_eff_dxycoarse.png){ width=450px }](pLS_eff_dxycoarse.html)
 [![](../mtv/var/pLS_eff_dzcoarse.png){ width=450px }](pLS_eff_dzcoarse.html)
+[![](../mtv/var/pLS_eff_dxy.png){ width=450px }](pLS_eff_dxy.html)
+[![](../mtv/var/pLS_eff_dz.png){ width=450px }](pLS_eff_dz.html)
 [![](../mtv/var/pLS_eff_phi.png){ width=450px }](pLS_eff_phi.html)
 
 ## <a name="6.2"></a> 6.2 pLS Fake Rate
@@ -148,6 +192,8 @@
 [![](../mtv/var/pLS_fakerate_ptzoom.png){ width=450px }](pLS_fakerate_ptzoom.html)
 [![](../mtv/var/pLS_fakerate_etacoarse.png){ width=450px }](pLS_fakerate_etacoarse.html)
 [![](../mtv/var/pLS_fakerate_etacoarsezoom.png){ width=450px }](pLS_fakerate_etacoarsezoom.html)
+[![](../mtv/var/pLS_fakerate_eta.png){ width=450px }](pLS_fakerate_eta.html)
+[![](../mtv/var/pLS_fakerate_etazoom.png){ width=450px }](pLS_fakerate_etazoom.html)
 [![](../mtv/var/pLS_fakerate_phi.png){ width=450px }](pLS_fakerate_phi.html)
 
 ## <a name="6.3"></a> 6.3 pLS Duplicate Rate
@@ -156,6 +202,8 @@
 [![](../mtv/var/pLS_duplrate_ptzoom.png){ width=450px }](pLS_duplrate_ptzoom.html)
 [![](../mtv/var/pLS_duplrate_etacoarse.png){ width=450px }](pLS_duplrate_etacoarse.html)
 [![](../mtv/var/pLS_duplrate_etacoarsezoom.png){ width=450px }](pLS_duplrate_etacoarsezoom.html)
+[![](../mtv/var/pLS_duplrate_eta.png){ width=450px }](pLS_duplrate_eta.html)
+[![](../mtv/var/pLS_duplrate_etazoom.png){ width=450px }](pLS_duplrate_etazoom.html)
 [![](../mtv/var/pLS_duplrate_phi.png){ width=450px }](pLS_duplrate_phi.html)
 
 
