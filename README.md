@@ -17,22 +17,32 @@ Once every new shell, source the setup script to initilaize the enviornment.
 
     source setup.sh
 
-
-
 Compile the code with option flags
 
-    sdl_make_tracklooper -m8
+    sdl_make_tracklooper -mc8
     -c: run with the cmssw caching allocator
     -h: show help screen with all options
- Run the code
+
+Run the code
  
-    ./bin/sdl -n <nevents> -v <verbose> -w <writeout> -s <streams> -i <dataset>
+    sdl -n <nevents> -v <verbose> -w <writeout> -s <streams> -i <dataset> -o <output>
+
     -i: PU200; muonGun, etc
     -n: number of events
     -v: 0-no printout; 1- timing printout only; 2- multiplicity printout
     -s: number of streams/events in flight
-    -w: 0- no writout; 2- full ntuple writeout
+    -w: 0- no writout; 1- minimum writeout; 2- full ntuple writeout
+    -o: provide an output root file name (e.g. LSTNtuple.root)
     
+Plotting performance plots
+
+    createPerfNumDenHists -n <nevents> -i <input> -o <output> -p <ptbounds>
+
+    -i: Path to LSTNtuple.root
+    -n: number of events
+    -o: provide an output root file name (e.g. num_den_hist.root)
+    
+Plotting performance plots
 
 
 ## Validation

@@ -1,5 +1,9 @@
 # TC Duplicate Rate vs. etacoarsezoom
 
+[[back to main](./)]
+
+
+
 ## Ratio
 
 [![Ratio](../mtv/var/TC_duplrate_etacoarsezoom.png){ width=600px }](../mtv/var/TC_duplrate_etacoarsezoom.pdf)

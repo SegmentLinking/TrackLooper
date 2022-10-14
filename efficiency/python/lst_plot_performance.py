@@ -543,12 +543,14 @@ def plot_standard_performance_plots():
     metricsuffixs = ["ef_", "fr_", "dr_"]
     ybins = ["", "zoom"]
     variables = {
-            "ef_": ["pt", "eta", "phi", "dxy", "dz"],
-            "fr_": ["pt", "eta", "phi"],
-            "dr_": ["pt", "eta", "phi"],
+            "ef_": ["pt", "ptlow", "ptmtv", "eta", "phi", "dxy", "dz"],
+            "fr_": ["pt", "ptlow", "ptmtv", "eta", "phi"],
+            "dr_": ["pt", "ptlow", "ptmtv", "eta", "phi"],
             }
     xbins = {
             "pt": [""],
+            "ptlow": [""],
+            "ptmtv": [""],
             "eta": ["", "coarse"],
             "phi": ["", "coarse"],
             "dxy": ["", "coarse"],
@@ -713,7 +715,9 @@ if __name__ == "__main__":
     if std:
         plot_standard_performance_plots()
     else:
-        plot(variable, "zoom" if yzoom else "", "coarse" if xcoarse else "", objecttype, metricsuffix, is_stack)
+        # When only asking for one particle
+        objtype = objecttype + "_" + str(pdgid) if metric == "eff" else objecttype
+        plot(variable, "zoom" if yzoom else "", "coarse" if xcoarse else "", objtype, metricsuffix, is_stack, "")
 
     DIR = os.path.realpath(os.path.dirname(__file__))
     os.system("cp -r {}/../misc/summary {}/".format(DIR, output_dir))

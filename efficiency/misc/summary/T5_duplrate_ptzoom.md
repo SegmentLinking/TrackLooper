@@ -1,5 +1,9 @@
 # T5 Duplicate Rate vs. ptzoom
 
+[[back to main](./)]
+
+
+
 ## Ratio
 
 [![Ratio](../mtv/var/T5_duplrate_ptzoom.png){ width=600px }](../mtv/var/T5_duplrate_ptzoom.pdf)

@@ -1,5 +1,9 @@
 # T5 Duplicate Rate vs. phi
 
+[[back to main](./)]
+
+
+
 ## Ratio
 
 [![Ratio](../mtv/var/T5_duplrate_phi.png){ width=600px }](../mtv/var/T5_duplrate_phi.pdf)

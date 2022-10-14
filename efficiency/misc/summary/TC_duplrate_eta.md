@@ -1,5 +1,9 @@
 # TC Duplicate Rate vs. eta
 
+[[back to main](./)]
+
+
+
 ## Ratio
 
 [![Ratio](../mtv/var/TC_duplrate_eta.png){ width=600px }](../mtv/var/TC_duplrate_eta.pdf)

@@ -15,6 +15,10 @@ Plots = {
                 [
                     "pt",
                     "ptzoom",
+                    "ptlow",
+                    "ptlowzoom",
+                    "ptmtv",
+                    "ptmtvzoom",
                     "etacoarse",
                     "etacoarsezoom",
                     "eta",
@@ -32,6 +36,10 @@ Plots = {
                 [
                     "pt",
                     "ptzoom",
+                    "ptlow",
+                    "ptlowzoom",
+                    "ptmtv",
+                    "ptmtvzoom",
                     "etacoarse",
                     "etacoarsezoom",
                     "eta",
@@ -45,6 +53,10 @@ Plots = {
                 [
                     "pt",
                     "ptzoom",
+                    "ptlow",
+                    "ptlowzoom",
+                    "ptmtv",
+                    "ptmtvzoom",
                     "etacoarse",
                     "etacoarsezoom",
                     "eta",
@@ -99,7 +111,7 @@ for ObjectType in Sections:
                 pdgidstr = "Pion"
             objectTypeTitleName = objectTypeShortName.split("_")[0] + (" {}".format(pdgidstr) if Metric == "Efficiency" else "")
             SectionTitle = "{SectionID}.{SectionSubID} {objectTypeTitleName} {Metric}{Stacked}".format(SectionID=SectionID, SectionSubID=SectionSubID, objectTypeTitleName=objectTypeTitleName, Metric=Metric, Stacked=Stacked)
-            summary_markdown.write("## <a name=\"{SectionID}.{SectionSubID}\"></a> {SectionTitle} [[back to top]](#top)\n".format(SectionTitle=SectionTitle, SectionID=SectionID, SectionSubID=SectionSubID))
+            summary_markdown.write("## <a name=\"{SectionID}.{SectionSubID}\"></a> {SectionTitle}\n\n [[back to top](#top)]\n".format(SectionTitle=SectionTitle, SectionID=SectionID, SectionSubID=SectionSubID))
             TOC["#{SectionID}.{SectionSubID}".format(SectionID=SectionID, SectionSubID=SectionSubID)] = SectionTitle
             summary_markdown.write("\n")
             for xvar in xvars:
@@ -107,7 +119,8 @@ for ObjectType in Sections:
                 smallmd = "{ObjectTypeWSuffix}_{prefix}_{xvar}.md".format(ObjectTypeWSuffix=ObjectTypeWSuffix, prefix=prefix, xvar=xvar)
                 summary_markdown.write("[![]({plotdir}/var/{objectTypeShortName}_{prefix}_{xvar}.png){{ width={plot_width}px }}]({smallhtml})\n".format(plotdir=plotdir, objectTypeShortName=objectTypeShortName, prefix=prefix, xvar=xvar, plot_width=plot_width, smallhtml=smallhtml))
                 f = open("summary/{smallmd}".format(smallmd=smallmd), "w")
-                f.write("# {objectTypeShortName} {Metric} vs. {xvar}\n\n".format(objectTypeShortName=objectTypeShortName, Metric=Metric, xvar=xvar))
+                f.write("# {objectTypeTitleName} {Metric} vs. {xvar}\n\n[[back to main](./)]\n\n".format(objectTypeTitleName=objectTypeTitleName, Metric=Metric, xvar=xvar))
+                f.write("\n\n")
                 f.write("## Ratio\n\n[![Ratio]({plotdir}/var/{objectTypeShortName}_{prefix}_{xvar}.png){{ width={plot_large_width}px }}]({plotdir}/var/{objectTypeShortName}_{prefix}_{xvar}.pdf)\n\n".format(plotdir=plotdir, objectTypeShortName=objectTypeShortName, prefix=prefix, xvar=xvar, plot_large_width=plot_large_width))
                 f.write("## Numerator\n\n[![Numerator]({plotdir}/num/{objectTypeShortName}_{prefix}_{xvar}_num.png){{ width={plot_large_width}px }}]({plotdir}/num/{objectTypeShortName}_{prefix}_{xvar}_num.pdf)\n\n".format(plotdir=plotdir, objectTypeShortName=objectTypeShortName, prefix=prefix, xvar=xvar, plot_large_width=plot_large_width))
                 f.write("## Denominator\n\n[![Denominator]({plotdir}/den/{objectTypeShortName}_{prefix}_{xvar}_den.png){{ width={plot_large_width}px }}]({plotdir}/den/{objectTypeShortName}_{prefix}_{xvar}_den.pdf)\n\n".format(plotdir=plotdir, objectTypeShortName=objectTypeShortName, prefix=prefix, xvar=xvar, plot_large_width=plot_large_width))

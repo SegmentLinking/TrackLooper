@@ -54,6 +54,9 @@ public:
     // pdgid
     int pdgid;
 
+    // pdgids to filter
+    std::vector<int> pdgids;
+
     // do lower level
     bool do_lower_level;
 
@@ -94,5 +97,6 @@ public:
 void parseArguments(int argc, char** argv);
 void initializeInputsAndOutputs();
 std::vector<float> getPtBounds();
+std::vector<float> getPtBounds(int mode);
 
 #endif

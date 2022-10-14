@@ -1,5 +1,9 @@
 # pLS Duplicate Rate vs. etacoarsezoom
 
+[[back to main](./)]
+
+
+
 ## Ratio
 
 [![Ratio](../mtv/var/pLS_duplrate_etacoarsezoom.png){ width=600px }](../mtv/var/pLS_duplrate_etacoarsezoom.pdf)

@@ -1,5 +1,9 @@
 # T5 Duplicate Rate vs. etacoarsezoom
 
+[[back to main](./)]
+
+
+
 ## Ratio
 
 [![Ratio](../mtv/var/T5_duplrate_etacoarsezoom.png){ width=600px }](../mtv/var/T5_duplrate_etacoarsezoom.pdf)

@@ -1,5 +1,9 @@
 # pT3 Duplicate Rate vs. etacoarse
 
+[[back to main](./)]
+
+
+
 ## Ratio
 
 [![Ratio](../mtv/var/pT3_duplrate_etacoarse.png){ width=600px }](../mtv/var/pT3_duplrate_etacoarse.pdf)

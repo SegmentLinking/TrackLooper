@@ -1,5 +1,9 @@
 # pLS Duplicate Rate vs. ptzoom
 
+[[back to main](./)]
+
+
+
 ## Ratio
 
 [![Ratio](../mtv/var/pLS_duplrate_ptzoom.png){ width=600px }](../mtv/var/pLS_duplrate_ptzoom.pdf)

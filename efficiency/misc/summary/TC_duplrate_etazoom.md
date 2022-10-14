@@ -1,5 +1,9 @@
 # TC Duplicate Rate vs. etazoom
 
+[[back to main](./)]
+
+
+
 ## Ratio
 
 [![Ratio](../mtv/var/TC_duplrate_etazoom.png){ width=600px }](../mtv/var/TC_duplrate_etazoom.pdf)

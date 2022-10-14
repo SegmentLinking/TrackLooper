@@ -1,5 +1,9 @@
 # TC Duplicate Rate vs. ptzoom
 
+[[back to main](./)]
+
+
+
 ## Ratio
 
 [![Ratio](../mtv/var/TC_duplrate_stack_ptzoom.png){ width=600px }](../mtv/var/TC_duplrate_stack_ptzoom.pdf)

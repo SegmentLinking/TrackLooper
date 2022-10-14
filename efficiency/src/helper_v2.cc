@@ -19,12 +19,11 @@ void parseArguments(int argc, char** argv)
     // Read the options
     options.add_options()
         ("i,input"       , "Comma separated input file list OR if just a directory is provided it will glob all in the directory BUT must end with '/' for the path", cxxopts::value<std::string>())
-        ("t,tree"        , "Name of the tree in the root file to open and loop over"                                             , cxxopts::value<std::string>())
         ("o,output"      , "Output file name"                                                                                    , cxxopts::value<std::string>())
         ("n,nevents"     , "N events to loop over"                                                                               , cxxopts::value<int>()->default_value("-1"))
         ("j,nsplit_jobs" , "Enable splitting jobs by N blocks (--job_index must be set)"                                         , cxxopts::value<int>())
         ("I,job_index"   , "job_index of split jobs (--nsplit_jobs must be set. index starts from 0. i.e. 0, 1, 2, 3, etc...)"   , cxxopts::value<int>())
-        ("p,ptbound_mode", "Pt bound mode (i.e. 0 = default, 1 = pt~1, 2 = pt~0.95-1.5, 3 = pt~0.5-1.5, 4 = pt~0.5-2.0"          , cxxopts::value<int>()->default_value("0"))
+        ("g,pdgid"       , "additional pdgid filtering to use (must be comma separated)"                                         , cxxopts::value<std::string>())
         ("d,debug"       , "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")
         ("h,help"        , "Print help")
         ;
@@ -56,17 +55,17 @@ void parseArguments(int argc, char** argv)
         exit(1);
     }
 
+    ana.input_tree_name = "tree";
+
     //_______________________________________________________________________________
-    // --tree
-    if (result.count("tree"))
+    // --pdgid
+    if (result.count("pdgid"))
     {
-        ana.input_tree_name = result["tree"].as<std::string>();
-    }
-    else
-    {
-        std::cout << options.help() << std::endl;
-        std::cout << "ERROR: Input tree name is not provided! Check your arguments" << std::endl;
-        exit(1);
+        std::vector<TString> pdgid_strs = RooUtil::StringUtil::split(result["pdgid"].as<std::string>(), ",");
+        for (auto& pdgid_str : pdgid_strs)
+        {
+            ana.pdgids.push_back(pdgid_str.Atoi());
+        }
     }
 
     //_______________________________________________________________________________
@@ -160,17 +159,6 @@ void parseArguments(int argc, char** argv)
         }
     }
 
-    // -1 upto mini-doublet is all-comb
-    // -2 upto segment is all-comb
-    // -3 upto tracklet is all-comb NOTE: MEMORY WILL BLOW UP FOR HIGH PU
-    // -4 upto trackcandidate is all-comb NOTE: MEMORY WILL BLOW UP FOR HIGH PU
-    //  0 nothing
-    //  1 upto mini-doublet is all-comb
-    //  2 upto mini-doublet is default segment is all-comb
-    //  3 upto segment is default tracklet is all-comb
-    //  4 upto tracklet is default trackcandidate is all-comb
-    ana.ptbound_mode = result["ptbound_mode"].as<int>();
-
     //
     // Printing out the option settings overview
     //
@@ -182,7 +170,6 @@ void parseArguments(int argc, char** argv)
     std::cout <<  " ana.n_events: " << ana.n_events <<  std::endl;
     std::cout <<  " ana.nsplit_jobs: " << ana.nsplit_jobs <<  std::endl;
     std::cout <<  " ana.job_index: " << ana.job_index <<  std::endl;
-    std::cout <<  " ana.ptbound_mode: " << ana.ptbound_mode <<  std::endl;
     std::cout <<  "=========================================================" << std::endl;
 }
 
@@ -278,6 +265,37 @@ std::vector<float> getPtBounds()
     else if (ana.ptbound_mode == 8)
         pt_boundaries = {0, 0.5, 1.0, 1.5, 2.0, 3.0, 5.0, 10, 15., 25, 50};
     else if (ana.ptbound_mode == 9)
+    {
+        for (int i = 0; i < 41; ++i)
+        {
+            pt_boundaries.push_back(pow(10., -1. + 4. * i/40.));
+        }
+    }
+    return pt_boundaries;
+}
+
+std::vector<float> getPtBounds(int mode)
+{
+    std::vector<float> pt_boundaries;
+    if (mode == 0)
+        pt_boundaries = {0, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.5, 2.0, 3.0, 5.0, 10, 15., 25, 50};
+    else if (mode == 1)
+        pt_boundaries = {0.988, 0.99, 0.992, 0.994, 0.996, 0.998, 1.0, 1.002, 1.004, 1.006, 1.008, 1.01, 1.012}; // lowpt
+    else if (mode == 2)
+        pt_boundaries = {0.955, 0.96, 0.965, 0.97, 0.975, 0.98, 0.985, 0.99, 0.995, 1.00, 1.005, 1.01, 1.015, 1.02, 1.025, 1.03, 1.035, 1.04, 1.045, 1.05}; // pt 0p95 1p05
+    else if (mode == 3)
+        pt_boundaries = {0.5, 0.6, 0.7, 0.8, 0.9, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08, 1.1, 1.2, 1.5}; // lowpt
+    else if (mode == 4)
+        pt_boundaries = {0.5, 0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.68, 0.7, 0.72, 0.74, 0.76, 0.78, 0.8, 0.82, 0.84, 0.86, 0.88, 0.9, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08, 1.1, 1.12, 1.14, 1.16, 1.18, 1.2, 1.22, 1.24, 1.26, 1.28, 1.3, 1.32, 1.34, 1.36, 1.38, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0}; // lowpt
+    else if (mode == 5)
+        pt_boundaries = {0.5, 0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.68, 0.7, 0.72, 0.74, 0.76, 0.78, 0.8, 0.82, 0.84, 0.86, 0.88, 0.9, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08, 1.1, 1.12, 1.14, 1.16, 1.18, 1.2, 1.24, 1.28, 1.32, 1.36, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0}; // lowpt
+    else if (mode == 6)
+        pt_boundaries = {0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 2.0, 3.0, 4.0, 5.0}; // lowpt
+    else if (mode == 7)
+        pt_boundaries = {0.5, 0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.68, 0.7, 0.72, 0.74, 0.76, 0.78, 0.8, 0.82, 0.84, 0.86, 0.88, 0.9, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08, 1.1, 1.12, 1.14, 1.16, 1.18, 1.2, 1.22, 1.24, 1.26, 1.28, 1.3, 1.32, 1.34, 1.36, 1.38, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.2, 2.4, 2.6, 2.8, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 35, 40, 45, 50}; // lowpt
+    else if (mode == 8)
+        pt_boundaries = {0, 0.5, 1.0, 1.5, 2.0, 3.0, 5.0, 10, 15., 25, 50};
+    else if (mode == 9)
     {
         for (int i = 0; i < 41; ++i)
         {
