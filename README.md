@@ -34,16 +34,36 @@ Run the code
     -w: 0- no writout; 1- minimum writeout; 2- full ntuple writeout
     -o: provide an output root file name (e.g. LSTNtuple.root)
     
-Plotting performance plots
+Plotting numerators and denominators of performance plots
 
-    createPerfNumDenHists -n <nevents> -i <input> -o <output> -p <ptbounds>
+    createPerfNumDenHists -i <input> -o <output> [-g <pdgids> -n <nevents>]
 
     -i: Path to LSTNtuple.root
-    -n: number of events
     -o: provide an output root file name (e.g. num_den_hist.root)
+    -n: (optional) number of events
+    -g: (optional) comma separated pdgids to add more efficiency plots with different sim particle slices
     
 Plotting performance plots
 
+    lst_plot_performance.py <options>
+
+    <options>
+    --input'                '-i'    'input file name [DEFAULT=num_den_hist.root]'
+    --variable'             '-v'    'pt, eta, phi, dxy, dz [DEFAULT=pt]'
+    --xbinning'             '-x'    'xbinning [DEFAULT=normal]'
+    --objecttype'           '-ot'   'TC, pT3, T5, pT5, pLS [DEFAULT=TC]'
+    --metric'               '-m'    'eff, duplrate, fakerate [DEFAULT=eff]'
+    --sample_name'          '-sn'   'sample name [DEFAULT=sampleName]'
+    --output_dir'           '-od'   'output dir name [DEFAULT=plots]'
+    --pdgid'                '-p'    'pdgid (efficiency plots only) [DEFAULT=0]'
+    --is_stack'             '-is_t' 'is stack'
+    --yzoom'                '-yz'   'zoom in y'
+    --xcoarse'              '-xc'   'coarse in x'
+    --standard_perf_plots'  '-std'  'plot a full set of standard plots'
+
+Easiest way is to use `-std` options which will generate a full set of validation plots
+
+    lst_plot_performance.py -i num_den_hist.root -std [-od myplots]
 
 ## Validation
 Run the validation on sample
