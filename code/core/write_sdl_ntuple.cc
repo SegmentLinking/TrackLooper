@@ -301,7 +301,7 @@ void createLowerLevelOutputBranches()
     createPixelTripletCutValueBranches();
     createQuintupletCutValueBranches();
     createPixelQuintupletCutValueBranches();
-    createTrackExtensionCutValueBranches();
+//    createTrackExtensionCutValueBranches();
 #ifdef T3T3_EXTENSIONS
     createT3T3CutvalueBranches();
 #endif
@@ -316,8 +316,8 @@ void createTrackExtensionCutValueBranches()
 {
     ana.tx->createBranch<vector<float>>("tce_rPhiChiSquared");
     ana.tx->createBranch<vector<float>>("tce_rzChiSquared");
-    ana.tx->createBranch<vector<float>>("pureTCE_rPhiChiSquared");
-    ana.tx->createBranch<vector<float>>("pureTCE_rzChiSquared");
+//    ana.tx->createBranch<vector<float>>("pureTCE_rPhiChiSquared");
+//    ana.tx->createBranch<vector<float>>("pureTCE_rzChiSquared");
 
 }
 void createT3T3CutValueBranches()
@@ -2232,8 +2232,8 @@ void fillPureTrackExtensionOutputBranches(SDL::Event* event)
     ana.tx->setBranch<vector<float>>("pureTCE_eta", tce_eta);
     ana.tx->setBranch<vector<float>>("pureTCE_phi", tce_phi);
 #ifdef CUT_VALUE_DEBUG
-    ana.tx->setBranch<vector<float>>("pureTCE_rPhiChiSquared", tce_rPhiChiSquared);
-    ana.tx->setBranch<vector<float>>("pureTCE_rzChiSquared", tce_rzChiSquared);
+//    ana.tx->setBranch<vector<float>>("pureTCE_rPhiChiSquared", tce_rPhiChiSquared);
+//    ana.tx->setBranch<vector<float>>("pureTCE_rzChiSquared", tce_rzChiSquared);
 #endif
     ana.tx->setBranch<vector<int>>("pureTCE_layer_binary", tce_layer_binary);
     ana.tx->setBranch<vector<int>>("pureTCE_anchorType", tce_anchorType);
@@ -3180,7 +3180,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
 
 #ifdef CUT_VALUE_DEBUG
 
-        int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
+//        int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
         int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
         int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
         int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
@@ -3196,6 +3196,24 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
         moduleType_binary |= (moduleType12 << 8);
 
         pT5_layer_binary.push_back(layer_binary);
+
+//        int moduleType0 = modulesInGPU.moduleType[module_idxs[0]];
+//        int moduleType2 = modulesInGPU.moduleType[module_idxs[2]];
+//        int moduleType4 = modulesInGPU.moduleType[module_idxs[4]];
+//        int moduleType6 = modulesInGPU.moduleType[module_idxs[6]];
+//        int moduleType8 = modulesInGPU.moduleType[module_idxs[8]];
+//        int moduleType10 = modulesInGPU.moduleType[module_idxs[10]];
+//        int moduleType12 = modulesInGPU.moduleType[module_idxs[12]];
+
+
+//        int moduleType_binary = 0;
+        moduleType_binary |= (moduleType4 << 0);
+        moduleType_binary |= (moduleType6 << 2);
+        moduleType_binary |= (moduleType8 << 4);
+        moduleType_binary |= (moduleType10 << 6);
+        moduleType_binary |= (moduleType12 << 8);
+
+        pT5_moduleType_binary.push_back(moduleType_binary);
         pT5_rzChiSquared.push_back(pixelQuintupletsInGPU.rzChiSquared[jdx]);
         pT5_rPhiChiSquared.push_back(pixelQuintupletsInGPU.rPhiChiSquared[jdx]);
         pT5_rPhiChiSquaredInwards.push_back(pixelQuintupletsInGPU.rPhiChiSquaredInwards[jdx]);
@@ -3554,8 +3572,8 @@ void fillTripletOutputBranches(SDL::Event* event)
 
             innerSegmentIndex = tripletsInGPU.segmentIndices[2 * tripletIndex];
             outerSegmentIndex = tripletsInGPU.segmentIndices[2 * tripletIndex + 1];
-            //float betaIn  = __H2F(tripletsInGPU.betaIn[tripletIndex]);
-            //float betaOut = __H2F(tripletsInGPU.betaOut[tripletIndex]);
+            float betaIn  = __H2F(tripletsInGPU.betaIn[tripletIndex]);
+            float betaOut = __H2F(tripletsInGPU.betaOut[tripletIndex]);
 
             unsigned int innerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerSegmentIndex];
             unsigned int innerSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerSegmentIndex + 1];
