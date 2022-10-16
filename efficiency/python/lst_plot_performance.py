@@ -339,10 +339,9 @@ def draw_stack(nums, den, output_name, sample_name, version_tag, pdgidstr, outpu
     c1.SaveAs("{}".format(output_name.replace("/mtv/", "/mtv/den/").replace(".pdf", "_den.png")))
 
     return eff
-def draw_ratio(num, den, output_name, sample_name, version_tag, pdgidstr, outputfile=None):
 
-    # num.Rebin(6)
-    # den.Rebin(6)
+def get_efficiency(num, den, output_name):
+
     if "scalar" in output_name and "ptscalar" not in output_name:
         num.Rebin(180)
         den.Rebin(180)
@@ -350,6 +349,34 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, pdgidstr, output
     if "coarse" in output_name and "ptcoarse" not in output_name:
         num.Rebin(6)
         den.Rebin(6)
+
+    # if pt, then bring in the overflow
+    if "pt" in output_name:
+        overFlowBin = num.GetBinContent(num.GetNbinsX() + 1)
+        lastBin = num.GetBinContent(num.GetNbinsX())
+        num.SetBinContent(num.GetNbinsX(), lastBin + overFlowBin)
+        num.SetBinError(num.GetNbinsX(), sqrt(lastBin + overFlowBin))
+        overFlowBin = den.GetBinContent(den.GetNbinsX() + 1)
+        lastBin = den.GetBinContent(den.GetNbinsX())
+        den.SetBinContent(den.GetNbinsX(), lastBin + overFlowBin)
+        den.SetBinError(den.GetNbinsX(), sqrt(lastBin + overFlowBin))
+
+    teff = r.TEfficiency(num, den)
+    eff = teff.CreateGraph()
+    eff.SetTitle(parse_plot_name(output_name))
+    eff.SetName(output_name)
+    return eff
+
+def draw_ratio(num, den, output_name, sample_name, version_tag, pdgidstr, outputfile=None):
+
+    if "scalar" in output_name and "ptscalar" not in output_name:
+        num.Rebin(180)
+        den.Rebin(180)
+
+    if "coarse" in output_name and "ptcoarse" not in output_name:
+        num.Rebin(6)
+        den.Rebin(6)
+
     # if "eta" in output_name and "etacoarse" not in output_name:
     #     num.Rebin(2)
     #     den.Rebin(2)
@@ -534,10 +561,14 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, pdgidstr, output
 
 def plot_standard_performance_plots():
 
-    # Create output directory
-    os.system("mkdir -p plots/mtv/var")
-    os.system("mkdir -p plots/mtv/num")
-    os.system("mkdir -p plots/mtv/den")
+    # Output file
+    of = r.TFile("{}/efficiency.root".format(output_dir), "recreate")
+
+    # git version hash
+    f.Get("githash").Write()
+
+    # sample name
+    f.Get("input").Write()
 
     # Efficiency plots
     metricsuffixs = ["ef_", "fr_", "dr_"]
@@ -578,12 +609,12 @@ def plot_standard_performance_plots():
                                 elif pdgid == 211:
                                     pdgidstr = "Pion"
                             if typ == "TC":
-                                plot(variable, ybin, xbin, objtyp, metricsuffix, True, pdgidstr)
-                                plot(variable, ybin, xbin, objtyp, metricsuffix, False, pdgidstr)
+                                plot(variable, ybin, xbin, objtyp, metricsuffix, True, pdgidstr, of)
+                                plot(variable, ybin, xbin, objtyp, metricsuffix, False, pdgidstr, of)
                             else:
-                                plot(variable, ybin, xbin, objtyp, metricsuffix, False, pdgidstr)
+                                plot(variable, ybin, xbin, objtyp, metricsuffix, False, pdgidstr, of)
 
-def plot(variable, ybinning, xbinning, objecttype, metricsuffix, is_stack, pdgidstr):
+def plot(variable, ybinning, xbinning, objecttype, metricsuffix, is_stack, pdgidstr, of):
 
     if metricsuffix == "ef_": metric = "eff"
     elif metricsuffix == "dr_": metric = "duplrate"
@@ -620,10 +651,7 @@ def plot(variable, ybinning, xbinning, objecttype, metricsuffix, is_stack, pdgid
     if ybinning == "zoom":
         output_plot_name += "zoom"
 
-    # print(variable, ybinning, xbinning, objecttype, metricsuffix, is_stack, pdgidstr)
-    # print(denom_histname)
-    # print(output_plot_name)
-    # return
+    output_name = "{0}/mtv/{1}.pdf".format(output_dir, output_plot_name) # output plot name
 
     if is_stack:
         draw_stack(
@@ -633,10 +661,9 @@ def plot(variable, ybinning, xbinning, objecttype, metricsuffix, is_stack, pdgid
                 sample_name, # sample type
                 git_hash, # version tag
                 pdgidstr, # pdgid
-                # of # TGraph output rootfile
+                of # TGraph output rootfile
                 )
     else:
-
         draw_ratio(
                 numer, # numerator histogram
                 denom, # denominator histogram
@@ -644,12 +671,13 @@ def plot(variable, ybinning, xbinning, objecttype, metricsuffix, is_stack, pdgid
                 sample_name, # sample type
                 git_hash, # version tag
                 pdgidstr, # pdgid
-                # of # TGraph output rootfile
+                of # TGraph output rootfile
                 )
 
 
 if __name__ == "__main__":
 
+    # Argument parsing
     parser = argparse.ArgumentParser(description="What are we wanting to graph?")
     parser.add_argument('--input'       , '-i'   , dest='input'       , type=str , default='num_den_hist.root' , help='input file name [DEFAULT=num_den_hist.root]')
     parser.add_argument('--variable'    , '-v'   , dest='variable'    , type=str , default='pt'                , help='pt, eta, phi, dxy, dz [DEFAULT=pt]')
@@ -683,10 +711,10 @@ if __name__ == "__main__":
     f = r.TFile(root_file_name)
 
     # git version hash
-    git_hash = f.Get("githash").GetString().Data()
+    git_hash = f.Get("githash").GetTitle()
 
     # sample name
-    sample_name = f.Get("input").GetString().Data()
+    sample_name = f.Get("input").GetTitle()
     if args.sample_name:
         sample_name = args.sample_name
 
@@ -717,7 +745,7 @@ if __name__ == "__main__":
     else:
         # When only asking for one particle
         objtype = objecttype + "_" + str(pdgid) if metric == "eff" else objecttype
-        plot(variable, "zoom" if yzoom else "", "coarse" if xcoarse else "", objtype, metricsuffix, is_stack, "")
+        plot(variable, "zoom" if yzoom else "", "coarse" if xcoarse else "", objtype, metricsuffix, is_stack, "", None)
 
     DIR = os.path.realpath(os.path.dirname(__file__))
     os.system("cp -r {}/../misc/summary {}/".format(DIR, output_dir))

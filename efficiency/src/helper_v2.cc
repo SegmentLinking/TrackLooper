@@ -215,31 +215,29 @@ void initializeInputsAndOutputs()
     TFile* firstFile = new TFile(vstr[0]);
 
     // Obtain the info from the input file
-    TString code_tag_data = ((TObjString*) firstFile->Get("code_tag_data"))->GetString();
-    TString gitdiff = ((TObjString*) firstFile->Get("gitdiff"))->GetString();
-    TString input = ((TObjString*) firstFile->Get("input"))->GetString();
+    TString code_tag_data = firstFile->Get("code_tag_data")->GetTitle();
+    TString gitdiff = firstFile->Get("gitdiff")->GetTitle();
+    TString input = firstFile->Get("input")->GetTitle();
 
     // cd to output file
     ana.output_tfile->cd();
 
     // Write the githash after parsing whether there is any gitdiff
-    TObjString tobjstr("tobjstring");
     TString githash = RooUtil::StringUtil::split(code_tag_data, "\n")[0];
     githash = githash(0, 6);
     std::cout <<  " gitdiff.Length(): " << gitdiff.Length() <<  std::endl;
     if (gitdiff.Length() > 0)
         githash += "D";
     std::cout <<  " githash: " << githash <<  std::endl;
-    tobjstr.SetString(githash.Data());
-    ana.output_tfile->WriteObject(&tobjstr, "githash");
+    TNamed githash_tnamed("githash", githash.Data());
+    githash_tnamed.Write();
 
     // Write the sample information
     if (input.Contains("PU200"))
         input = "PU200";
-    tobjstr.SetString(input.Data());
     std::cout <<  " input: " << input <<  std::endl;
-    ana.output_tfile->WriteObject(&tobjstr, "input");
-
+    TNamed input_tnamed("input", input.Data());
+    input_tnamed.Write();
 }
 
 

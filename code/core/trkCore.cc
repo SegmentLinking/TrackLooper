@@ -1170,58 +1170,48 @@ void writeMetaData()
     gSystem->Exec(TString::Format("(cd $TRACKLOOPERDIR && git --no-pager log  && (cd - > /dev/null)) >> %s.gitversion.txt", ana.output_tfile->GetName()));
     gSystem->Exec(TString::Format("(cd $TRACKLOOPERDIR && echo 'git diff' && (cd - > /dev/null)) >> %s.gitversion.txt", ana.output_tfile->GetName()));
     gSystem->Exec(TString::Format("(cd $TRACKLOOPERDIR && git --no-pager diff  && (cd - > /dev/null)) >> %s.gitversion.txt", ana.output_tfile->GetName()));
+
+    // Write gitversion info
     std::ifstream t(TString::Format("%s.gitversion.txt", ana.output_tfile->GetName()));
     std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-    TString tstr = str.c_str();
-    TObjString tobjstr("code_tag_data");
-    tobjstr.SetString(tstr.Data());
-    ana.output_tfile->WriteObject(&tobjstr, "code_tag_data");
+    TNamed code_tag_data("code_tag_data", str.c_str());
+    ana.output_tfile->cd();
+    code_tag_data.Write();
     gSystem->Exec(TString::Format("rm %s.gitversion.txt", ana.output_tfile->GetName()));
+
+    // Write make script log
     TString make_log_path = TString::Format("%s/.make.log", ana.track_looper_dir_path.Data());
     std::ifstream makelog(make_log_path.Data());
     std::string makestr((std::istreambuf_iterator<char>(makelog)), std::istreambuf_iterator<char>());
-    TString maketstr = makestr.c_str();
-    TObjString maketobjstr("make_log");
-    maketobjstr.SetString(maketstr.Data());
-    ana.output_tfile->WriteObject(&maketobjstr, "make_log");
+    TNamed make_log("make_log", makestr.c_str());
+    make_log.Write();
 
     // Write git diff output in a separate string to gauge the difference
     gSystem->Exec(TString::Format("(cd $TRACKLOOPERDIR && git --no-pager diff  && (cd - > /dev/null)) > %s.gitdiff.txt", ana.output_tfile->GetName()));
     std::ifstream gitdiff(TString::Format("%s.gitdiff.txt", ana.output_tfile->GetName()));
     std::string strgitdiff((std::istreambuf_iterator<char>(gitdiff)), std::istreambuf_iterator<char>());
-    TString tstrgitdiff = strgitdiff.c_str();
-    TObjString tobjstrgitdiff("gitdiff");
-    tobjstrgitdiff.SetString(tstrgitdiff.Data());
-    ana.output_tfile->WriteObject(&tobjstrgitdiff, "gitdiff");
+    TNamed gitdifftnamed("gitdiff", strgitdiff.c_str());
+    gitdifftnamed.Write();
     gSystem->Exec(TString::Format("rm %s.gitdiff.txt", ana.output_tfile->GetName()));
-    // Parse from makestr the TARGET
+
+    // Write Parse from makestr the TARGET
+    TString maketstr = makestr.c_str();
     TString rawstrdata = maketstr.ReplaceAll("MAKETARGET=", "%");
     TString targetrawdata = RooUtil::StringUtil::rsplit(rawstrdata, "%")[1];
     TString targetdata = RooUtil::StringUtil::split(targetrawdata)[0];
     ana.compilation_target = targetdata.Data();
 
     // Write out input sample or file name
-    TObjString input;
-    input.SetString(ana.input_raw_string.Data());
-    ana.output_tfile->WriteObject(&input, "input");
-
-    // Write out whether it's GPU or CPU
-    TObjString version;
-    if (ana.do_run_cpu)
-        version.SetString("CPU");
-    else
-        version.SetString(TString::Format("GPU_%s", targetdata.Data()));
-    ana.output_tfile->WriteObject(&version, "version");
+    TNamed input("input", ana.input_raw_string.Data());
+    input.Write();
 
     // Write the full command line used
-    TObjString full_cmd_line_to_be_written;
-    full_cmd_line_to_be_written.SetString(ana.full_cmd_line.Data());
-    ana.output_tfile->WriteObject(&full_cmd_line_to_be_written, "full_cmd_line");
+    TNamed full_cmd_line("full_cmd_line", ana.full_cmd_line.Data());
+    full_cmd_line.Write();
 
     // Write the TRACKLOOPERDIR
-    TObjString tracklooperdirpath_to_be_written;
-    tracklooperdirpath_to_be_written.SetString(ana.track_looper_dir_path.Data());
-    ana.output_tfile->WriteObject(&tracklooperdirpath_to_be_written, "tracklooper_path");
+    TNamed tracklooper_path("tracklooper_path", ana.track_looper_dir_path.Data());
+    tracklooper_path.Write();
 }
 
 
