@@ -10,7 +10,7 @@
 
 ## Numerator
 
-[![Numerator](../mtv/num/pLS_13_eff_ptmtv_num.png){ width=600px }](../mtv/num/pLS_13_eff_ptmtv_num.pdf)
+[![Numerator](../mtv/num/pLS_13_eff_ptmtv_num0.png){ width=600px }](../mtv/num/pLS_13_eff_ptmtv_num0.pdf)
 
 ## Denominator
 

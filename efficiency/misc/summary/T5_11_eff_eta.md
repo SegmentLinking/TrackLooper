@@ -10,7 +10,7 @@
 
 ## Numerator
 
-[![Numerator](../mtv/num/T5_11_eff_eta_num.png){ width=600px }](../mtv/num/T5_11_eff_eta_num.pdf)
+[![Numerator](../mtv/num/T5_11_eff_eta_num0.png){ width=600px }](../mtv/num/T5_11_eff_eta_num0.pdf)
 
 ## Denominator
 

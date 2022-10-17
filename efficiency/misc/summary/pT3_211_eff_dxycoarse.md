@@ -10,7 +10,7 @@
 
 ## Numerator
 
-[![Numerator](../mtv/num/pT3_211_eff_dxycoarse_num.png){ width=600px }](../mtv/num/pT3_211_eff_dxycoarse_num.pdf)
+[![Numerator](../mtv/num/pT3_211_eff_dxycoarse_num0.png){ width=600px }](../mtv/num/pT3_211_eff_dxycoarse_num0.pdf)
 
 ## Denominator
 

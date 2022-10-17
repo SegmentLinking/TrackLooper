@@ -10,7 +10,7 @@
 
 ## Numerator
 
-[![Numerator](../mtv/num/TC_0_eff_stack_etazoom_num.png){ width=600px }](../mtv/num/TC_0_eff_stack_etazoom_num.pdf)
+[![Numerator](../mtv/num/TC_0_eff_stack_etazoom_num0.png){ width=600px }](../mtv/num/TC_0_eff_stack_etazoom_num0.pdf)
 
 ## Denominator
 

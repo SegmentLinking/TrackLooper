@@ -10,7 +10,7 @@
 
 ## Numerator
 
-[![Numerator](../mtv/num/TC_13_eff_stack_dxycoarse_num.png){ width=600px }](../mtv/num/TC_13_eff_stack_dxycoarse_num.pdf)
+[![Numerator](../mtv/num/TC_13_eff_stack_dxycoarse_num0.png){ width=600px }](../mtv/num/TC_13_eff_stack_dxycoarse_num0.pdf)
 
 ## Denominator
 

@@ -10,7 +10,7 @@
 
 ## Numerator
 
-[![Numerator](../mtv/num/TC_fakerate_stack_ptmtv_num.png){ width=600px }](../mtv/num/TC_fakerate_stack_ptmtv_num.pdf)
+[![Numerator](../mtv/num/TC_fakerate_stack_ptmtv_num0.png){ width=600px }](../mtv/num/TC_fakerate_stack_ptmtv_num0.pdf)
 
 ## Denominator
 
