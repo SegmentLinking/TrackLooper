@@ -71,6 +71,10 @@ But the easiest way is probably to just draw all
 
     lst_plot_performance.py num_den_hist.root -t "TestRun"
 
+Comparing two different runs (NOTE: Must provide -l option with comma separated labels for the first and second runs)
+
+    lst_plot_performance.py num_den_hist_1.root num_den_hist_2.root -l TestRun,TestRun2
+
 ## Validation
 Run the validation on sample
 
