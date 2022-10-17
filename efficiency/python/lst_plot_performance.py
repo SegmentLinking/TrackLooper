@@ -254,30 +254,31 @@ def draw_plot(effs, nums, den, legend_labels, output_name, sample_name, version_
 
     # Compute the yaxis_max
     yaxis_max = 0
-    for i in xrange(0, eff.GetN()):
-        if yaxis_max < eff.GetY()[i]:
-            yaxis_max = eff.GetY()[i]
+    for i in xrange(0, effs[0].GetN()):
+        if yaxis_max < effs[0].GetY()[i]:
+            yaxis_max = effs[0].GetY()[i]
 
     # Compute the yaxis_min
     yaxis_min = 999
-    for i in xrange(0, eff.GetN()):
-        if yaxis_min > eff.GetY()[i] and eff.GetY()[i] != 0:
-            yaxis_min = eff.GetY()[i]
+    for i in xrange(0, effs[0].GetN()):
+        if yaxis_min > effs[0].GetY()[i] and effs[0].GetY()[i] != 0:
+            yaxis_min = effs[0].GetY()[i]
 
     # Set Yaxis range
+    effs[0].GetYaxis().SetRangeUser(0, 1.02)
     if "zoom" not in output_name:
-        eff.GetYaxis().SetRangeUser(0, 1.02)
+        effs[0].GetYaxis().SetRangeUser(0, 1.02)
     else:
         if "fakerate" in output_name:
-            eff.GetYaxis().SetRangeUser(0.0, yaxis_max * 1.1)
+            effs[0].GetYaxis().SetRangeUser(0.0, yaxis_max * 1.1)
         elif "duplrate" in output_name:
-            eff.GetYaxis().SetRangeUser(0.0, yaxis_max * 1.1)
+            effs[0].GetYaxis().SetRangeUser(0.0, yaxis_max * 1.1)
         else:
-            eff.GetYaxis().SetRangeUser(0.6, 1.02)
+            effs[0].GetYaxis().SetRangeUser(0.6, 1.02)
 
     # Set xaxis range
     if "eta" in output_name:
-        eff.GetXaxis().SetLimits(-4.5, 4.5)
+        effs[0].GetXaxis().SetLimits(-4.5, 4.5)
 
     # Draw label
     draw_label(version_tag, sample_name, pdgidstr, output_name)
@@ -286,7 +287,7 @@ def draw_plot(effs, nums, den, legend_labels, output_name, sample_name, version_
     c1.SetGrid()
     c1.SaveAs("{}".format(output_name.replace("/mtv/", "/mtv/var/")))
     c1.SaveAs("{}".format(output_name.replace("/mtv/", "/mtv/var/").replace(".pdf", ".png")))
-    eff.SetName(output_name.replace(".png",""))
+    effs[0].SetName(output_name.replace(".png",""))
 
     for i, num in enumerate(nums):
         set_label(num, output_name, raw_number=True)

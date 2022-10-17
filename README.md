@@ -45,25 +45,31 @@ Plotting numerators and denominators of performance plots
     
 Plotting performance plots
 
-    lst_plot_performance.py <options>
+    lst_plot_performance.py <options> <args>
 
     <options>
-    --input'                '-i'    'input file name [DEFAULT=num_den_hist.root]'
-    --variable'             '-v'    'pt, eta, phi, dxy, dz [DEFAULT=pt]'
-    --xbinning'             '-x'    'xbinning [DEFAULT=normal]'
-    --objecttype'           '-ot'   'TC, pT3, T5, pT5, pLS [DEFAULT=TC]'
-    --metric'               '-m'    'eff, duplrate, fakerate [DEFAULT=eff]'
-    --sample_name'          '-sn'   'sample name [DEFAULT=sampleName]'
-    --output_dir'           '-od'   'output dir name [DEFAULT=plots]'
-    --pdgid'                '-p'    'pdgid (efficiency plots only) [DEFAULT=0]'
-    --is_stack'             '-is_t' 'is stack'
-    --yzoom'                '-yz'   'zoom in y'
-    --xcoarse'              '-xc'   'coarse in x'
-    --standard_perf_plots'  '-std'  'plot a full set of standard plots'
+    --single_plot           -1      plot only one plot
+    --sample_name           -s      sample name [DEFAULT=DEFAULT]
+    --dirname               -d      output dir name [DEFAULT=performance]
+    --variable              -v      pt, eta, phi, dxy, dz [DEFAULT=pt]
+    --objecttype            -o      TC, pT3, T5, pT5, pLS [DEFAULT=TC]
+    --metric                -m      eff, duplrate, fakerate [DEFAULT=eff]
+    --pdgid                 -p      pdgid (efficiency plots only) [DEFAULT=0]
+    --tag                   -t      tag of the run [DEFAULT=v0]
+    --is_stack              -T      is stack
+    --yzoom                 -y      zoom in y
+    --xcoarse               -x      coarse in x
 
-Easiest way is to use `-std` options which will generate a full set of validation plots
+    <args>
+    input                           'input file name [DEFAULT=num_den_hist.root]'
 
-    lst_plot_performance.py -i num_den_hist.root -std [-od myplots]
+e.g. If one wants a `pt` plot with y-axis range `zoom`-ed for `eff` type plot for `pT5` for denominator of `211` into `perf2/` and place a `tag`==`mywork`
+
+    lst_plot_performance.py -v pt -y -m eff -p 211 -o pT5 -d perf2 num_den_hist.root -t "mywork"
+                                                                                                                                                           
+But the easiest way is probably to just draw all
+
+    lst_plot_performance.py num_den_hist.root -t "TestRun"
 
 ## Validation
 Run the validation on sample
