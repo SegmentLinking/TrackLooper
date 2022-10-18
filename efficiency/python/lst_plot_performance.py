@@ -390,6 +390,8 @@ def plot_standard_performance_plots(params):
 #______________________________________________________________________________________________________
 def plot(params):
 
+    print(params)
+
     variable = params["variable"]
     yzoom = params["yzoom"]
     xcoarse = params["xcoarse"]
@@ -397,6 +399,7 @@ def plot(params):
     metricsuffix = params["metricsuffix"]
     is_stack = params["is_stack"]
     pdgidstr = params["pdgidstr"]
+    pdgid = int(params["pdgid"])
 
     params["objecttypesuffix"] = "_{}".format(pdgid) if metricsuffix == "ef_" else ""
     params["pdgidstr"] = get_pdgidstr(pdgid)
@@ -550,7 +553,7 @@ if __name__ == "__main__":
     is_stack   = args.is_stack
     dirname    = args.dirname
     tag        = args.tag
-    pdgid      = args.pdgid
+    # pdgid      = args.pdgid
     #############
 
     # Parse from input file
@@ -595,8 +598,6 @@ if __name__ == "__main__":
             "git_hash"     : git_hash,
             "variable"     : variable,
             "yzoom"        : yzoom,
-            "variable"     : variable,
-            "yzoom"        : yzoom,
             "xcoarse"      : xcoarse,
             "objecttype"   : objecttype,
             "metric"       : metric,
@@ -606,8 +607,8 @@ if __name__ == "__main__":
             "dirname"      : dirname,
             "output_dir"   : output_dir,
             "tag"          : tag,
-            "pdgid"        : pdgid,
-            "pdgidstr"     : get_pdgidstr(pdgid),
+            "pdgid"        : args.pdgid,
+            "pdgidstr"     : get_pdgidstr(args.pdgid),
             "output_file"  : None,
             "nevts"        : n_events_processed,
             }
