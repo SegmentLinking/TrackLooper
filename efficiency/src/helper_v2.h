@@ -70,15 +70,22 @@ class SimTrackSetDefinition {
 public:
     TString set_name;
     int pdgid;
-    std::function<bool(int)> pass;
-    SimTrackSetDefinition(TString, int, std::function<bool(unsigned int)>);
+    int q;
+    std::function<bool(unsigned int)> pass;
+    std::function<bool(unsigned int)> sel; // subset of sim track selection
+    SimTrackSetDefinition(TString,
+                          int,
+                          int,
+                          std::function<bool(unsigned int)>,
+                          std::function<bool(unsigned int)>
+                          );
 };
 
 class RecoTrackSetDefinition {
 public:
     TString set_name;
-    std::function<bool(int)> pass;
-    std::function<bool(int)> sel;
+    std::function<bool(unsigned int)> pass;
+    std::function<bool(unsigned int)> sel;
     std::function<const std::vector<float>()> pt;
     std::function<const std::vector<float>()> eta;
     std::function<const std::vector<float>()> phi;

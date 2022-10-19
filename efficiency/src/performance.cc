@@ -5,8 +5,6 @@
 
 #define PTCUT 0.9
 #define ETACUT 4.5
-// #define PTCUT 1.5
-// #define ETACUT 2.4
 
 enum
 {
@@ -26,7 +24,20 @@ int main(int argc, char** argv)
     initializeInputsAndOutputs();
 
     // Set of pdgids
-    std::vector<int> pdgids = {0, 11, 211, 13};
+    std::vector<int> pdgids = {0, 11, 211, 13, 321};
+
+    // Set of charges
+    std::vector<int> charges = {0, 1, -1};
+
+    // Set of extra selections for efficiency plots
+    std::vector<TString> selnames = {
+        "base",  // default baseline that is more inline with MTV
+        "loweta" // When the eta cut is restricted to 2.4
+    };
+    std::vector<std::function<bool(unsigned int)>> sels = {
+        [&](unsigned int isim) { return 1.; },
+        [&](unsigned int isim) { return abs(sdl.sim_eta().at(isim)) < 2.4; }
+    };
     pdgids.insert(pdgids.end(), ana.pdgids.begin(), ana.pdgids.end());
 
     std::vector<SimTrackSetDefinition> list_effSetDef;
@@ -34,36 +45,52 @@ int main(int argc, char** argv)
     // creating a set of efficiency plots for each pdgids being considered
     for (auto& pdgid : pdgids)
     {
-        list_effSetDef.push_back(
-            SimTrackSetDefinition(/* name  */ "TC",
-                                  /* pdgid */ pdgid,
-                                  /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched().at(isim) > 0;}
-                                 )
-            );
-        list_effSetDef.push_back(
-            SimTrackSetDefinition(/* name  */ "pT5",
-                                  /* pdgid */ pdgid,
-                                  /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pT5);}
-                                 )
-            );
-        list_effSetDef.push_back(
-            SimTrackSetDefinition(/* name  */ "pT3",
-                                  /* pdgid */ pdgid,
-                                  /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pT3);}
-                                 )
-            );
-        list_effSetDef.push_back(
-            SimTrackSetDefinition(/* name  */ "T5",
-                                  /* pdgid */ pdgid,
-                                  /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << T5);}
-                                 )
-            );
-        list_effSetDef.push_back(
-            SimTrackSetDefinition(/* name  */ "pLS",
-                                  /* pdgid */ pdgid,
-                                  /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pLS);}
-                                 )
-            );
+        for (auto& charge : charges)
+        {
+            for (unsigned int isel = 0; isel < sels.size(); ++isel)
+            {
+                list_effSetDef.push_back(
+                    SimTrackSetDefinition(/* name  */ TString("TC_") + selnames[isel],
+                                          /* pdgid */ pdgid,
+                                          /* q     */ charge,
+                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched().at(isim) > 0;},
+                                          /* sel   */ sels[isel]
+                                         )
+                    );
+                list_effSetDef.push_back(
+                    SimTrackSetDefinition(/* name  */ TString("pT5_") + selnames[isel],
+                                          /* pdgid */ pdgid,
+                                          /* q     */ charge,
+                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pT5);},
+                                          /* sel   */ sels[isel]
+                                         )
+                    );
+                list_effSetDef.push_back(
+                    SimTrackSetDefinition(/* name  */ TString("pT3_") + selnames[isel],
+                                          /* pdgid */ pdgid,
+                                          /* q     */ charge,
+                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pT3);},
+                                          /* sel   */ sels[isel]
+                                         )
+                    );
+                list_effSetDef.push_back(
+                    SimTrackSetDefinition(/* name  */ TString("T5_") + selnames[isel],
+                                          /* pdgid */ pdgid,
+                                          /* q     */ charge,
+                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << T5);},
+                                          /* sel   */ sels[isel]
+                                         )
+                    );
+                list_effSetDef.push_back(
+                    SimTrackSetDefinition(/* name  */ TString("pLS_") + selnames[isel],
+                                          /* pdgid */ pdgid,
+                                          /* q     */ charge,
+                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pLS);},
+                                          /* sel   */ sels[isel]
+                                         )
+                    );
+            }
+        }
     }
 
     bookEfficiencySets(list_effSetDef);
@@ -259,7 +286,7 @@ void bookEfficiencySets(std::vector<SimTrackSetDefinition>& effsets)
 //__________________________________________________________________________________________________________________________________________________________________________
 void bookEfficiencySet(SimTrackSetDefinition& effset)
 {
-    TString category_name = TString::Format("%s_%d", effset.set_name.Data(), effset.pdgid);
+    TString category_name = TString::Format("%s_%d_%d", effset.set_name.Data(), effset.pdgid, effset.q);
 
     // Denominator tracks' quantities
     ana.tx.createBranch<vector<float>>(category_name + "_ef_denom_pt");
@@ -454,22 +481,40 @@ void fillEfficiencySet(int isimtrk, SimTrackSetDefinition& effset)
     const float &vtx_y = sdl.sim_vy()[isimtrk];
     const float &vtx_z = sdl.sim_vz()[isimtrk];
     const float &vtx_perp = sqrt(vtx_x * vtx_x + vtx_y * vtx_y);
+    bool pass = effset.pass(isimtrk);
+    bool sel = effset.sel(isimtrk);
 
-
-    if (effset.pdgid != 0 and abs(pdgidtrk) != abs(effset.pdgid))
-        return;
+    if (effset.pdgid != 0)
+    {
+        if (effset.q == 0)
+        {
+            if (abs(pdgidtrk) != abs(effset.pdgid))
+                return;
+        }
+        else if (effset.q == 1)
+        {
+            if (pdgidtrk != effset.pdgid)
+                return;
+        }
+        else if (effset.q == -1)
+        {
+            if (pdgidtrk != -effset.pdgid)
+                return;
+        }
+    }
 
     if (effset.pdgid == 0 and q == 0)
         return;
 
-    TString category_name = TString::Format("%s_%d", effset.set_name.Data(), effset.pdgid);
+    if (not sel)
+        return;
+
+    TString category_name = TString::Format("%s_%d_%d", effset.set_name.Data(), effset.pdgid, effset.q);
 
     // https://github.com/cms-sw/cmssw/blob/7cbdb18ec6d11d5fd17ca66c1153f0f4e869b6b0/SimTracker/Common/python/trackingParticleSelector_cfi.py
     // https://github.com/cms-sw/cmssw/blob/7cbdb18ec6d11d5fd17ca66c1153f0f4e869b6b0/SimTracker/Common/interface/TrackingParticleSelector.h#L122-L124
     const float vtx_z_thresh = 30;
     const float vtx_perp_thresh = 2.5;
-
-    bool pass = effset.pass(isimtrk);
 
     // N minus eta cut
     if (pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)

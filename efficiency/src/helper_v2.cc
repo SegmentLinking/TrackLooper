@@ -177,11 +177,13 @@ AnalysisConfig::AnalysisConfig() : tx("variable", "variable")
 {
 }
 
-SimTrackSetDefinition::SimTrackSetDefinition(TString set_name_, int pdgid_, std::function<bool(unsigned int)> pass_)
+SimTrackSetDefinition::SimTrackSetDefinition(TString set_name_, int pdgid_, int q_, std::function<bool(unsigned int)> pass_, std::function<bool(unsigned int)> sel_)
 {
     set_name = set_name_;
     pdgid = pdgid_;
+    q = q_;
     pass = pass_;
+    sel = sel_;
 }
 
 RecoTrackSetDefinition::RecoTrackSetDefinition(

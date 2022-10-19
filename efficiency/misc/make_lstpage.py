@@ -2,7 +2,230 @@
 
 import os
 import glob
+import sys
 
+#___________________________________________________________________________________________________
+def write_pages_v2():
+
+    directory = "summary"
+    os.system("mkdir -p {directory}".format(directory=directory))
+
+    ##############################################################################################################################
+
+    # eff
+    objecttypes = ["TC"]
+    pdgids = [0, 11, 13, 211, 321]
+    sels = ["base", "loweta"]
+    variables = [
+            "pt",
+            "ptzoom",
+            "ptlow",
+            "ptlowzoom",
+            "ptmtv",
+            "ptmtvzoom",
+            "eta",
+            "etazoom",
+            "etacoarse",
+            "etacoarsezoom",
+            "phi",
+            "phizoom",
+            "phicoarse",
+            "phicoarsezoom",
+            "dxy",
+            "dxycoarse",
+            "dxycoarsezoom",
+            "dz",
+            "dzcoarse",
+            "dzcoarsezoom",
+            ]
+    breakdowns = ["_breakdown"]
+    charges = [0, -1, 1]
+
+    plotdir = "../mtv"
+    plot_width = 250
+    plot_large_width = 600
+
+    index_md = open("{directory}/index.md".format(directory=directory), "w")
+    index_md.write("# LST Performance\n\n")
+
+    objecttypes = ["TC"]
+
+    ##############################################################################################################################
+
+    index_md.write("## Track Candidate\n\n")
+
+    index_md.write("### Efficiency\n\n")
+
+    metric = "eff"
+    for breakdown in breakdowns:
+        for selection in sels:
+            index_md.write("#### For {selectionstr}\n\n".format(selectionstr=get_selectionstr(selection)))
+            for charge in charges:
+                summary_file_name = "{metric}_{selection}_{charge}{breakdown}".format(metric=metric, selection=selection, charge=charge, breakdown=breakdown)
+                summary_markdown = open("{directory}/{summary_file_name}.md".format(directory=directory, summary_file_name=summary_file_name), "w")
+                TOC = {}
+                SectionID = 0
+                page_name = "Summary Plots of LST Efficiency for {selectionstr} with Charge={chargestr}".format(selectionstr=get_selectionstr(selection), chargestr=get_chargestr(charge))
+                index_md.write("[Charge={chargestr}]({summary_file_name}.html)\n\n".format(selectionstr=get_selectionstr(selection), chargestr=get_chargestr(charge), summary_file_name=summary_file_name))
+                for objecttype in objecttypes:
+                    for pdgid in pdgids:
+                        SectionID += 1
+                        pdgidstr = get_pdgidstr(pdgid)
+                        SectionTitle = "{SectionID} {objecttype} {pdgidstr} {metricstr}".format(SectionID=SectionID, objecttype=objecttype, pdgidstr=pdgidstr, metricstr=get_metricstr(metric))
+                        summary_markdown.write("\n\n## <a name=\"{SectionID}\"></a> {SectionTitle}\n\n [[back to top](#top)]\n\n".format(SectionTitle=SectionTitle, SectionID=SectionID))
+                        TOC["#{SectionID}".format(SectionID=SectionID)] = SectionTitle
+                        for variable in variables:
+                            name = "{objecttype}_{selection}_{pdgid}_{charge}_{metric}_{variable}{breakdown}".format(objecttype=objecttype, selection=selection, pdgid=pdgid, charge=charge, metric=metric, variable=variable, breakdown=breakdown)
+                            html = "{name}.html".format(name=name)
+                            md = "{name}.md".format(name=name)
+                            f = open("{directory}/{md}".format(directory=directory, md=md), "w")
+                            f.write("# {objecttype} {metricstr} vs. {variable}\n\n[[back to main](./)]\n\n".format(objecttype=objecttype, metricstr=get_metricstr(metric), variable=variable))
+                            f.write("\n\n")
+                            f.write("## Ratio\n\n[![Ratio]({plotdir}/var/{name}.png){{ width={plot_large_width}px }}]({plotdir}/var/{name}.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width))
+                            f.write("## Numerator\n\n[![Numerator]({plotdir}/num/{name}_num0.png){{ width={plot_large_width}px }}]({plotdir}/num/{name}_num0.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width))
+                            f.write("## Denominator\n\n[![Denominator]({plotdir}/den/{name}_den.png){{ width={plot_large_width}px }}]({plotdir}/den/{name}_den.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width))
+                            f.close()
+                            summary_markdown.write("[![]({plotdir}/var/{name}.png){{ width={plot_width}px }}]({html})\n".format(plotdir=plotdir, name=name, plot_width=plot_width, html=html))
+
+                summary_markdown.close()
+
+                # Reopen and add TOC at the top
+                tmp = open("{directory}/{summary_file_name}.md".format(directory=directory, summary_file_name=summary_file_name))
+                lines = tmp.readlines()
+                tmp.close()
+
+                header_lines = []
+                header_lines.append("[[back to main](./)]\n\n")
+                header_lines.append("# <a name=\"top\"></a> {page_name}\n".format(page_name=page_name))
+                header_lines.append("\n")
+                for key in sorted(TOC.keys()):
+                    header_lines.append("[{SectionTitle}]({key})<br/>".format(SectionTitle=TOC[key], key=key))
+
+                newlines = header_lines + ["\n\n"] + lines
+
+                summary_markdown = open("{directory}/{summary_file_name}.md".format(directory=directory, summary_file_name=summary_file_name), "w")
+                for line in newlines:
+                    summary_markdown.write(line)
+
+                summary_markdown.close()
+
+
+    ##############################################################################################################################
+
+    recometrics = ["fakerate", "duplrate"]
+
+    for metric in recometrics:
+
+        index_md.write("### {metricstr}\n\n".format(metricstr=get_metricstr(metric)))
+
+        variables = [
+                "pt",
+                "ptzoom",
+                "ptlow",
+                "ptlowzoom",
+                "ptmtv",
+                "ptmtvzoom",
+                "eta",
+                "etazoom",
+                "etacoarse",
+                "etacoarsezoom",
+                "phi",
+                "phizoom",
+                "phicoarse",
+                "phicoarsezoom",
+                ]
+
+        for breakdown in breakdowns:
+            summary_file_name = "{metric}{breakdown}".format(metric=metric, breakdown=breakdown)
+            summary_markdown = open("{directory}/{summary_file_name}.md".format(directory=directory, summary_file_name=summary_file_name), "w")
+            TOC = {}
+            SectionID = 0
+            page_name = "Summary Plots of LST {metricstr}".format(metricstr=get_metricstr(metric))
+            index_md.write("[{metricstr}]({summary_file_name}.html)\n\n".format(metricstr=get_metricstr(metric), summary_file_name=summary_file_name))
+            for objecttype in objecttypes:
+                SectionID += 1
+                pdgidstr = get_pdgidstr(pdgid)
+                SectionTitle = "{SectionID} {objecttype} {metricstr}".format(SectionID=SectionID, objecttype=objecttype, metricstr=get_metricstr(metric))
+                summary_markdown.write("\n\n## <a name=\"{SectionID}\"></a> {SectionTitle}\n\n [[back to top](#top)]\n\n".format(SectionTitle=SectionTitle, SectionID=SectionID))
+                TOC["#{SectionID}".format(SectionID=SectionID)] = SectionTitle
+                for variable in variables:
+                    name = "{objecttype}_{metric}_{variable}{breakdown}".format(objecttype=objecttype, metric=metric, variable=variable, breakdown=breakdown)
+                    html = "{name}.html".format(name=name)
+                    md = "{name}.md".format(name=name)
+                    f = open("{directory}/{md}".format(directory=directory, md=md), "w")
+                    f.write("# {objecttype} {metricstr} vs. {variable}\n\n[[back to main](./)]\n\n".format(objecttype=objecttype, metricstr=get_metricstr(metric), variable=variable))
+                    f.write("\n\n")
+                    f.write("## Ratio\n\n[![Ratio]({plotdir}/var/{name}.png){{ width={plot_large_width}px }}]({plotdir}/var/{name}.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width))
+                    f.write("## Numerator\n\n[![Numerator]({plotdir}/num/{name}_num0.png){{ width={plot_large_width}px }}]({plotdir}/num/{name}_num0.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width))
+                    f.write("## Denominator\n\n[![Denominator]({plotdir}/den/{name}_den.png){{ width={plot_large_width}px }}]({plotdir}/den/{name}_den.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width))
+                    f.close()
+                    summary_markdown.write("[![]({plotdir}/var/{name}.png){{ width={plot_width}px }}]({html})\n".format(plotdir=plotdir, name=name, plot_width=plot_width, html=html))
+
+        summary_markdown.close()
+
+        # Reopen and add TOC at the top
+        tmp = open("{directory}/{summary_file_name}.md".format(directory=directory, summary_file_name=summary_file_name))
+        lines = tmp.readlines()
+        tmp.close()
+
+        header_lines = []
+        header_lines.append("[[back to main](./)]\n\n")
+        header_lines.append("# <a name=\"top\"></a> {page_name}\n".format(page_name=page_name))
+        header_lines.append("\n")
+        for key in sorted(TOC.keys()):
+            header_lines.append("[{SectionTitle}]({key})<br/>".format(SectionTitle=TOC[key], key=key))
+
+        newlines = header_lines + ["\n\n"] + lines
+
+        summary_markdown = open("{directory}/{summary_file_name}.md".format(directory=directory, summary_file_name=summary_file_name), "w")
+        for line in newlines:
+            summary_markdown.write(line)
+
+        summary_markdown.close()
+
+#___________________________________________________________________________________________________
+def get_pdgidstr(pdgid):
+    if pdgid == 0:
+        pdgidstr = "All"
+    if pdgid == 11:
+        pdgidstr = "Electron"
+    if pdgid == 13:
+        pdgidstr = "Muon"
+    if pdgid == 211:
+        pdgidstr = "Pion"
+    if pdgid == 321:
+        pdgidstr = "Kaon"
+    return pdgidstr
+
+#___________________________________________________________________________________________________
+def get_chargestr(charge):
+    if charge == 0:
+        chargestr = "Both"
+    if charge == 1:
+        chargestr = "Positive"
+    if charge == -1:
+        chargestr = "Negative"
+    return chargestr
+
+#___________________________________________________________________________________________________
+def get_selectionstr(selection):
+    if selection == "base":
+        selectionstr = "|eta| < 4.5"
+    if selection == "loweta":
+        selectionstr = "|eta| < 2.4"
+    return selectionstr
+
+#___________________________________________________________________________________________________
+def get_metricstr(metric):
+    if metric == "eff":
+        metricstr = "Efficiency"
+    if metric == "fakerate":
+        metricstr = "Fake Rate"
+    if metric == "duplrate":
+        metricstr = "Duplicate Rate"
+    return metricstr
+
+#___________________________________________________________________________________________________
 def write_footnote(ff):
     ff.write("""
 ``` {=html}
@@ -56,6 +279,8 @@ def write_pages(
                     pdgidstr = "Muon"
                 if pdgid == 211:
                     pdgidstr = "Pion"
+                if pdgid == 321:
+                    pdgidstr = "Kaon"
                 objectTypeTitleName = objectTypeShortName.split("_")[0] + (" {}".format(pdgidstr) if Metric == "Efficiency" else "")
                 SectionTitle = "{SectionID}.{SectionSubID} {objectTypeTitleName} {Metric}{Stacked}".format(SectionID=SectionID, SectionSubID=SectionSubID, objectTypeTitleName=objectTypeTitleName, Metric=Metric, Stacked=Stacked)
                 summary_markdown.write("## <a name=\"{SectionID}.{SectionSubID}\"></a> {SectionTitle}\n\n [[back to top](#top)]\n".format(SectionTitle=SectionTitle, SectionID=SectionID, SectionSubID=SectionSubID))
@@ -103,13 +328,17 @@ def write_pages(
 
 if __name__ == "__main__":
 
+    write_pages_v2()
+    sys.exit()
+
     plot_width = 450
     plot_large_width = 600
     plotdir = "../mtv"
 
     directory = "summary"
-    pdgids = [0, 11, 13, 211]
-    Sections = ["TC", "TCStack", "pT5", "pT3", "T5", "pLS"]
+    pdgids = [0, 11, 13, 211, 321]
+    # Sections = ["TC", "TCStack", "pT5", "pT3", "T5", "pLS"]
+    Sections = ["TCStack"]
     Plots = {
             "Efficiency":
                 [

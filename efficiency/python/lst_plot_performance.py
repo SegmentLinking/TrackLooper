@@ -7,12 +7,314 @@ import os
 import sys
 from math import sqrt
 
-# ptcut = 1.5
-# etacut = 2.4
-ptcut = 0.9
-etacut = 4.5
+sel_choices = ["base", "loweta", "none"]
+metric_choices = ["eff", "fakerate", "duplrate"]
+variable_choices = ["pt", "ptmtv", "ptlow", "eta", "phi", "dxy", "dz"]
+objecttype_choices = ["TC", "pT5", "T5", "pT3", "pLS"]
 
 r.gROOT.SetBatch(True)
+
+# Argument parsing
+parser = argparse.ArgumentParser(description="What are we wanting to graph?")
+# Input (input is a root file with numerator and denominator histograms
+parser.add_argument('inputs', nargs='+', help='input num_den_hist.root files')
+parser.add_argument('--tag'         , '-t' , dest='tag'         , type=str , default='v0'        , help='tag of the run [DEFAULT=v0]', required=True)
+# When more than two input files are provided it is to compare the two sets of performance plots
+# The provided input file must contain the TGraphAsymmError plots when comparing
+# parser.add_argument('--single_plot' , '-1' , dest='single_plot' , action="store_true" , help='plot only one plot')
+parser.add_argument('--metric'      , '-m' , dest='metric'      , type=str            , help='{}'.format(','.join(metric_choices), metric_choices[0]))
+parser.add_argument('--objecttype'  , '-o' , dest='objecttype'  , type=str            , help='{}'.format(','.join(objecttype_choices), objecttype_choices[0]), default=objecttype_choices[0])
+parser.add_argument('--selection'   , '-s' , dest='selection'   , type=str            , help='{}'.format(','.join(sel_choices), sel_choices[0]), default=sel_choices[0])
+parser.add_argument('--pdgid'       , '-g' , dest='pdgid'       , type=int            , help='pdgid (efficiency plots only)')
+parser.add_argument('--charge'      , '-c' , dest='charge'      , type=int            , help='charge (efficiency plots only) (0: both, 1: positive, -1:negative', default=0)
+parser.add_argument('--variable'    , '-v' , dest='variable'    , type=str            , help='{}'.format(','.join(variable_choices), variable_choices[0]))
+parser.add_argument('--individual'  , '-b' , dest='individual'  , action="store_true" , help='plot not the breakdown but individual')
+parser.add_argument('--yzoom'       , '-y' , dest='yzoom'       , action="store_true" , help='zoom in y')
+parser.add_argument('--xcoarse'     , '-x' , dest='xcoarse'     , action="store_true" , help='coarse in x')
+parser.add_argument('--sample_name' , '-S' , dest='sample_name' , type=str            , help='sample name in case one wants to override')
+
+
+#______________________________________________________________________________________________________
+def main():
+
+    # Plotting a set of performance plots
+    #
+    #   $ lst_plot_performance.py -t myRun1 INPUT.root
+    #
+    # where INPUT.root contains a set of numerator and denominator histograms named in following convention
+    #
+    #  Efficiency histogram:
+    #
+    #     Root__<OBJ>_<SEL>_<PDGID>_<CHARGE>_ef_numer_<VARIABLE>
+    #     Root__<OBJ>_<SEL>_<PDGID>_<CHARGE>_ef_denom_<VARIABLE>
+    #
+    #     e.g. Root__pT5_loweta_321_-1_ef_numer_eta
+    #
+    #          OBJ=pT5
+    #          SEL=loweta
+    #          PDGID=Kaon
+    #          CHARGE=-1
+    #          METRIC=ef (efficiency)
+    #          VARIABLE=eta
+    #
+    #  Fake rate or duplicate rate histogram:
+    #
+    #     Root__<OBJ>_fr_numer_<VARIABLE> (fake rate numerator)
+    #     Root__<OBJ>_fr_denom_<VARIABLE> (fake rate denominator)
+    #     Root__<OBJ>_dr_numer_<VARIABLE> (duplicate rate numerator)
+    #     Root__<OBJ>_dr_denom_<VARIABLE> (duplicate rate denominator)
+    #
+    # Once ran, the output will be stored in performance/myRun1_<githash>
+    # Also a ROOT file with the efficiency graphs will be saved to performance/myRun1_<githash>/efficiency.root
+    #
+
+    args = parser.parse_args()
+
+    # # Draw all standard particle
+    # if args.single_plot:
+    #     plot(args)
+    # else:
+    #     plot_standard_performance_plots(args)
+    plot_standard_performance_plots(args)
+
+#______________________________________________________________________________________________________
+def plot(args):
+
+    #     Root__<OBJ>_<SEL>_<PDGID>_<CHARGE>_ef_numer_<VARIABLE>
+    #     Root__<OBJ>_<SEL>_<PDGID>_<CHARGE>_ef_denom_<VARIABLE>
+    #
+    #     e.g. Root__pT5_loweta_321_-1_ef_numer_eta
+    #
+    #          OBJ=pT5
+    #          SEL=loweta
+    #          PDGID=Kaon
+    #          CHARGE=-1
+    #          METRIC=ef (efficiency)
+    #          VARIABLE=eta
+    #
+    #  Fake rate or duplicate rate histogram:
+    #
+    #     Root__<OBJ>_fr_numer_<VARIABLE> (fake rate numerator)
+    #     Root__<OBJ>_fr_denom_<VARIABLE> (fake rate denominator)
+    #     Root__<OBJ>_dr_numer_<VARIABLE> (duplicate rate numerator)
+    #     Root__<OBJ>_dr_denom_<VARIABLE> (duplicate rate denominator)
+    #
+    # Once ran, the output will be stored in performance/myRun1_<githash>
+    # Also a ROOT file with the efficiency graphs will be saved to performance/myRun1_<githash>/efficiency.root
+    #
+
+    params = process_arguments_into_params(args)
+
+    if params["metric"] == "eff":
+        params["output_name"] = "{objecttype}_{selection}_{pdgid}_{charge}_{metric}_{variable}".format(**params)
+    else:
+        params["output_name"] = "{objecttype}_{metric}_{variable}".format(**params)
+
+    if params["xcoarse"]:
+        params["output_name"] += "coarse"
+    if params["yzoom"]:
+        params["output_name"] += "zoom"
+    if params["breakdown"]:
+        params["output_name"] += "_breakdown"
+
+    # Get histogram names
+    if params["metric"] == "eff":
+        params["denom"] = "Root__{objecttype}_{selection}_{pdgid}_{charge}_{metricsuffix}_denom_{variable}".format(**params)
+        params["numer"] = "Root__{objecttype}_{selection}_{pdgid}_{charge}_{metricsuffix}_numer_{variable}".format(**params)
+    else:
+        params["denom"] = "Root__{objecttype}_{metricsuffix}_denom_{variable}".format(**params)
+        params["numer"] = "Root__{objecttype}_{metricsuffix}_numer_{variable}".format(**params)
+
+    print(params["numer"])
+    print(params["denom"])
+    print(params["output_name"])
+
+    # Denom histogram
+    denom = params["input_file"].Get(params["denom"]).Clone()
+
+    # Numerator histograms
+    numer = []
+    numer.append(params["input_file"].Get(params["numer"]).Clone())
+
+    breakdown_hist_types = ["pT5", "pT3", "T5", "pLS"]
+    if params["breakdown"]:
+        for breakdown_hist_type in breakdown_hist_types:
+            breakdown_histname = params["numer"].replace("TC", breakdown_hist_type)
+            hist = params["input_file"].Get(breakdown_histname)
+            numer.append(hist.Clone())
+
+
+    if params["breakdown"]:
+        params["legend_labels"] = ["TC" ,"pT5" ,"pT3" ,"T5" ,"pLS"]
+    else:
+        params["legend_labels"] = ["objecttype"]
+
+    draw_ratio(
+            numer, # numerator histogram(s)
+            denom, # denominator histogram
+            params,
+            )
+
+    DIR = os.path.realpath(os.path.dirname(__file__))
+    os.system("cd {}; ln -sf {}/../misc/summary".format(params["output_dir"], DIR))
+
+#______________________________________________________________________________________________________
+def process_arguments_into_params(args):
+
+    params = {}
+
+    # parse metric
+    if args.metric not in metric_choices:
+        print("metric", args.metric)
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+    params["metric"] = args.metric
+
+    # parse the selection type
+    if args.selection not in sel_choices:
+        print("selection", args.selection)
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+    params["selection"] = args.selection
+
+    params["pdgid"] = args.pdgid
+
+    params["charge"] = args.charge
+
+    # parse the object type
+    if args.objecttype not in objecttype_choices:
+        print("objjecttype", args.objjecttype)
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+    params["objecttype"] = args.objecttype
+
+    # parse variable
+    if args.variable not in variable_choices:
+        print("variable", args.variable)
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+    params["variable"] = args.variable
+
+    if args.yzoom:
+        params["yzoom"] = True
+    else:
+        params["yzoom"] = False
+    if args.xcoarse:
+        params["xcoarse"] = True
+    else:
+        params["xcoarse"] = False
+
+    # Parse from input file
+    root_file_name = args.inputs[0]
+    f = r.TFile(root_file_name)
+    params["input_file"] = f
+
+    # git version hash
+    git_hash = f.Get("githash").GetTitle()
+    params["git_hash"] = git_hash
+
+    # sample name
+    sample_name = f.Get("input").GetTitle()
+    if args.sample_name:
+        sample_name = args.sample_name
+    params["sample_name"] = sample_name
+
+    if params["metric"] == "eff": params["metricsuffix"] = "ef"
+    if params["metric"] == "duplrate": params["metricsuffix"] = "dr"
+    if params["metric"] == "fakerate": params["metricsuffix"] = "fr"
+
+    # If breakdown it must be object type of TC
+    if args.individual:
+        params["breakdown"] = False
+    else:
+        if params["objecttype"] != "TC":
+            print("Warning! objecttype is set to \"TC\" because individual is False!")
+        params["objecttype"] = "TC"
+        params["breakdown"] = True
+
+    # process tags
+    params["tag"] = args.tag
+
+    # Create output_dir
+    params["output_dir"] = "performance/{tag}_{git_hash}".format(**params)
+    os.system("mkdir -p {output_dir}/mtv/var".format(**params))
+    os.system("mkdir -p {output_dir}/mtv/num".format(**params))
+    os.system("mkdir -p {output_dir}/mtv/den".format(**params))
+    os.system("mkdir -p {output_dir}/mtv/ratio".format(**params))
+
+    # Output file
+    params["output_file"] = r.TFile("{output_dir}/efficiency.root".format(**params), "update")
+
+    # git version hash
+    params["input_file"].Get("githash").Write("", r.TObject.kOverwrite)
+
+    # sample name
+    params["input_file"].Get("input").Write("", r.TObject.kOverwrite)
+
+    # Obtain the number of events used
+    params["nevts"] = str(int(f.Get("nevts").GetBinContent(1)))
+
+    return params
+
+#______________________________________________________________________________________________________
+def draw_ratio(nums, den, params):
+
+    # Rebin if necessary
+    if "scalar" in params["output_name"] and "ptscalar" not in params["output_name"]:
+        for num in nums:
+            num.Rebin(180)
+        den.Rebin(180)
+
+    # Rebin if necessary
+    if "coarse" in params["output_name"] and "ptcoarse" not in params["output_name"]:
+        for num in nums:
+            num.Rebin(6)
+        den.Rebin(6)
+
+    # Deal with overflow bins for pt plots
+    if "pt" in params["output_name"]:
+        for num in nums:
+            overFlowBin = num.GetBinContent(num.GetNbinsX() + 1)
+            lastBin = num.GetBinContent(num.GetNbinsX())
+            num.SetBinContent(num.GetNbinsX(), lastBin + overFlowBin)
+            num.SetBinError(num.GetNbinsX(), sqrt(lastBin + overFlowBin))
+        overFlowBin = den.GetBinContent(den.GetNbinsX() + 1)
+        lastBin = den.GetBinContent(den.GetNbinsX())
+        den.SetBinContent(den.GetNbinsX(), lastBin + overFlowBin)
+        den.SetBinError(den.GetNbinsX(), sqrt(lastBin + overFlowBin))
+
+    # Create efficiency graphs
+    teffs = []
+    effs = []
+    for num in nums:
+        teff = r.TEfficiency(num, den)
+        eff = teff.CreateGraph()
+        teffs.append(teff)
+        effs.append(eff)
+
+    # 
+    hist_name_suffix = ""
+    if params["xcoarse"]:
+        hist_name_suffix += "coarse"
+    if params["yzoom"]:
+        hist_name_suffix += "zoom"
+
+    params["output_file"].cd()
+    outputname = params["output_name"]
+    den.Write(den.GetName() + hist_name_suffix, r.TObject.kOverwrite)
+    # eff_den = r.TGraphAsymmErrors(den)
+    # eff_den.SetName(outputname+"_den")
+    # eff_den.Write("", r.TObject.kOverwrite)
+    for num in nums:
+        num.Write(num.GetName() + hist_name_suffix, r.TObject.kOverwrite)
+        # eff_num = r.TGraphAsymmErrors(num)
+        # eff_num.SetName(outputname+"_num")
+        # eff_num.Write("", r.TObject.kOverwrite)
+    for eff in effs:
+        eff.SetName(outputname)
+        eff.Write("", r.TObject.kOverwrite)
+
+    draw_plot(effs, nums, den, params)
 
 #______________________________________________________________________________________________________
 def parse_plot_name(output_name):
@@ -62,69 +364,13 @@ def get_pdgidstr(pdgid):
     elif abs(pdgid) == 11: return "Electron"
     elif abs(pdgid) == 13: return "Muon"
     elif abs(pdgid) == 211: return "Pion"
+    elif abs(pdgid) == 321: return "Kaon"
 
 #______________________________________________________________________________________________________
-def draw_ratio(nums, den, legend_labels, params):
-
-    output_name = params["output_img_name"] 
-
-    if "scalar" in output_name and "ptscalar" not in output_name:
-        for num in nums:
-            num.Rebin(180)
-        den.Rebin(180)
-
-    if "coarse" in output_name and "ptcoarse" not in output_name:
-        for num in nums:
-            num.Rebin(6)
-        den.Rebin(6)
-
-    if "pt" in output_name:
-        for num in nums:
-            overFlowBin = num.GetBinContent(num.GetNbinsX() + 1)
-            lastBin = num.GetBinContent(num.GetNbinsX())
-            num.SetBinContent(num.GetNbinsX(), lastBin + overFlowBin)
-            num.SetBinError(num.GetNbinsX(), sqrt(lastBin + overFlowBin))
-        overFlowBin = den.GetBinContent(den.GetNbinsX() + 1)
-        lastBin = den.GetBinContent(den.GetNbinsX())
-        den.SetBinContent(den.GetNbinsX(), lastBin + overFlowBin)
-        den.SetBinError(den.GetNbinsX(), sqrt(lastBin + overFlowBin))
-
-    teffs = []
-    effs = []
-    for num in nums:
-        teff = r.TEfficiency(num, den)
-        eff = teff.CreateGraph()
-        teffs.append(teff)
-        effs.append(eff)
-
-    hist_name_suffix = ""
-    if params["xcoarse"]:
-        hist_name_suffix += "coarse"
-    if params["yzoom"]:
-        hist_name_suffix += "zoom"
-
-    if params["output_file"]:
-        params["output_file"].cd()
-        basename = os.path.basename(output_name)
-        outputname = basename.replace(".pdf","")
-        den.Write(den.GetName() + hist_name_suffix, r.TObject.kOverwrite)
-        eff_den = r.TGraphAsymmErrors(den)
-        eff_den.SetName(outputname+"_den")
-        eff_den.Write("", r.TObject.kOverwrite)
-        for num in nums:
-            num.Write(num.GetName() + hist_name_suffix, r.TObject.kOverwrite)
-            eff_num = r.TGraphAsymmErrors(num)
-            eff_num.SetName(outputname+"_num")
-            eff_num.Write("", r.TObject.kOverwrite)
-        for eff in effs:
-            eff.SetName(outputname)
-            eff.Write("", r.TObject.kOverwrite)
-
-    output_name = params["output_img_name"]
-    sample_name = params["sample_name"]
-    version_tag = params["git_hash"]
-    pdgidstr = params["pdgidstr"]
-    draw_plot(effs, nums, den, legend_labels, output_name, sample_name, version_tag, pdgidstr)
+def get_chargestr(charge):
+    if charge == 0: return "All"
+    elif charge == 1: return "Positive"
+    elif charge == -1: return "Negative"
 
 #______________________________________________________________________________________________________
 def set_label(eff, output_name, raw_number):
@@ -159,7 +405,13 @@ def set_label(eff, output_name, raw_number):
     eff.GetYaxis().SetLabelSize(0.05)
 
 #______________________________________________________________________________________________________
-def draw_label(version_tag, sample_name, pdgidstr, output_name):
+def draw_label(params):
+    version_tag = params["git_hash"]
+    sample_name = params["sample_name"]
+    pdgidstr = get_pdgidstr(params["pdgid"])
+    chargestr = get_chargestr(params["charge"])
+    output_name = params["output_name"]
+    n_events_processed = params["nevts"]
     # Label
     t = r.TLatex()
 
@@ -181,6 +433,8 @@ def draw_label(version_tag, sample_name, pdgidstr, output_name):
     # If efficiency plots follow the following fiducial label rule
     ptcut = 0.9
     etacut = 4.5
+    if params["selection"] == "loweta":
+        etacut = 2.4
     if "eff" in output_name:
         if "_pt" in output_name:
             fiducial_label = "|#eta| < {eta}, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(eta=etacut)
@@ -192,7 +446,7 @@ def draw_label(version_tag, sample_name, pdgidstr, output_name):
             fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm".format(pt=ptcut, eta=etacut)
         else:
             fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut, eta=etacut)
-        particleselection = ((", Particle:" + pdgidstr) if pdgidstr else "" )
+        particleselection = ((", Particle:" + pdgidstr) if pdgidstr else "" ) + ((", Charge:" + chargestr) if chargestr else "" )
         fiducial_label += particleselection
     # If fake rate or duplicate rate plot follow the following fiducial label rule
     elif "fakerate" in output_name or "duplrate" in output_name:
@@ -211,7 +465,15 @@ def draw_label(version_tag, sample_name, pdgidstr, output_name):
     t.DrawLatexNDC(x,y,"#scale[1.25]{#font[61]{CMS}} #scale[1.1]{#font[52]{%s}}" % cms_label)
 
 #______________________________________________________________________________________________________
-def draw_plot(effs, nums, den, legend_labels, output_name, sample_name, version_tag, pdgidstr):
+def draw_plot(effs, nums, den, params):
+
+    legend_labels = params["legend_labels"]
+    output_dir = params["output_dir"]
+    output_name = params["output_name"]
+    sample_name = params["sample_name"]
+    version_tag = params["git_hash"]
+    pdgidstr = get_pdgidstr(params["pdgid"])
+    chargestr = get_chargestr(params["charge"])
 
     # Get Canvas
     c1 = r.TCanvas()
@@ -277,28 +539,31 @@ def draw_plot(effs, nums, den, legend_labels, output_name, sample_name, version_
             effs[0].GetYaxis().SetRangeUser(0.6, 1.02)
 
     # Set xaxis range
-    if "eta" in output_name:
+    if "_eta" in output_name:
         effs[0].GetXaxis().SetLimits(-4.5, 4.5)
 
     # Draw label
-    draw_label(version_tag, sample_name, pdgidstr, output_name)
+    draw_label(params)
+
+    # Output file path
+    output_fullpath = output_dir + "/mtv/var/" + output_name + ".pdf"
 
     # Save
     c1.SetGrid()
-    c1.SaveAs("{}".format(output_name.replace("/mtv/", "/mtv/var/")))
-    c1.SaveAs("{}".format(output_name.replace("/mtv/", "/mtv/var/").replace(".pdf", ".png")))
-    effs[0].SetName(output_name.replace(".png",""))
+    c1.SaveAs("{}".format(output_fullpath))
+    c1.SaveAs("{}".format(output_fullpath.replace(".pdf", ".png")))
+    effs[0].SetName(output_name)
 
     for i, num in enumerate(nums):
         set_label(num, output_name, raw_number=True)
         num.Draw("hist")
-        c1.SaveAs("{}".format(output_name.replace("/mtv/", "/mtv/num/").replace(".pdf", "_num{}.pdf".format(i))))
-        c1.SaveAs("{}".format(output_name.replace("/mtv/", "/mtv/num/").replace(".pdf", "_num{}.png".format(i))))
+        c1.SaveAs("{}".format(output_fullpath.replace("/mtv/var/", "/mtv/num/").replace(".pdf", "_num{}.pdf".format(i))))
+        c1.SaveAs("{}".format(output_fullpath.replace("/mtv/var/", "/mtv/num/").replace(".pdf", "_num{}.png".format(i))))
 
     set_label(den, output_name, raw_number=True)
     den.Draw("hist")
-    c1.SaveAs("{}".format(output_name.replace("/mtv/", "/mtv/den/").replace(".pdf", "_den.pdf")))
-    c1.SaveAs("{}".format(output_name.replace("/mtv/", "/mtv/den/").replace(".pdf", "_den.png")))
+    c1.SaveAs("{}".format(output_fullpath.replace("/mtv/var/", "/mtv/den/").replace(".pdf", "_den.pdf")))
+    c1.SaveAs("{}".format(output_fullpath.replace("/mtv/var/", "/mtv/den/").replace(".pdf", "_den.png")))
 
     # Double ratio if more than one nums are provided
     # Take the first num as the base
@@ -323,131 +588,124 @@ def draw_plot(effs, nums, den, legend_labels, output_name, sample_name, version_
             other.SetMarkerColor(colors[i+1])
             other.SetLineWidth(linewidth)
             other.SetLineColor(colors[i+1])
-            c1.SaveAs("{}".format(output_name.replace("/mtv/", "/mtv/ratio/").replace(".pdf", "_ratio{}.pdf".format(i))))
-            c1.SaveAs("{}".format(output_name.replace("/mtv/", "/mtv/ratio/").replace(".pdf", "_ratio{}.png".format(i))))
+            c1.SaveAs("{}".format(output_fullpath.replace("/mtv/var/", "/mtv/ratio/").replace(".pdf", "_ratio{}.pdf".format(i))))
+            c1.SaveAs("{}".format(output_fullpath.replace("/mtv/var/", "/mtv/ratio/").replace(".pdf", "_ratio{}.png".format(i))))
 
 #______________________________________________________________________________________________________
-def plot_standard_performance_plots(params):
-
-    # Output file
-    params["output_file"] = r.TFile("{output_dir}/efficiency.root".format(**params), "recreate")
-
-    # git version hash
-    params["input_file"].Get("githash").Write()
-
-    # sample name
-    params["input_file"].Get("input").Write()
+def plot_standard_performance_plots(args):
 
     # Efficiency plots
-    metricsuffixs = ["ef_", "fr_", "dr_"]
-    ybins = ["", "zoom"]
+    metrics = metric_choices
+    yzooms = [False, True]
     variables = {
-            "ef_": ["pt", "ptlow", "ptmtv", "eta", "phi", "dxy", "dz"],
-            "fr_": ["pt", "ptlow", "ptmtv", "eta", "phi"],
-            "dr_": ["pt", "ptlow", "ptmtv", "eta", "phi"],
+            "eff": ["pt", "ptlow", "ptmtv", "eta", "phi", "dxy", "dz"],
+            "fakerate": ["pt", "ptlow", "ptmtv", "eta", "phi"],
+            "duplrate": ["pt", "ptlow", "ptmtv", "eta", "phi"],
             }
-    xbins = {
-            "pt": [""],
-            "ptlow": [""],
-            "ptmtv": [""],
-            "eta": ["", "coarse"],
-            "phi": ["", "coarse"],
-            "dxy": ["", "coarse"],
-            "dz": ["", "coarse"],
+    sels = {
+            "eff": ["base", "loweta"],
+            "fakerate": ["none"],
+            "duplrate": ["none"],
             }
-    types = ["TC", "pT5", "pT3", "T5", "pLS"]
-    pdgids = [0, 11, 13, 211]
+    xcoarses = {
+            "pt": [False],
+            "ptlow": [False],
+            "ptmtv": [False],
+            "eta": [False, True],
+            "phi": [False, True],
+            "dxy": [False, True],
+            "dz": [False, True],
+            }
+    types = objecttype_choices
+    breakdowns = {
+            "eff":{
+                "TC": [True, False],
+                "pT5": [False],
+                "pT3": [False],
+                "T5": [False],
+                "pLS": [False],
+                },
+            "fakerate":{
+                "TC": [True, False],
+                "pT5": [False],
+                "pT3": [False],
+                "T5": [False],
+                "pLS": [False],
+                },
+            "duplrate":{
+                "TC": [True, False],
+                "pT5": [False],
+                "pT3": [False],
+                "T5": [False],
+                "pLS": [False],
+                },
+            }
+    pdgids = [0, 11, 13, 211, 321]
+    charges = [0, 1, -1]
 
-    for metricsuffix in metricsuffixs:
-        if metricsuffix == "ef_":
-            metric = "eff"
-        if metricsuffix == "fr_":
-            metric = "fakerate"
-        if metricsuffix == "dr_":
-            metric = "duplrate"
-        for variable in variables[metricsuffix]:
-            for ybin in ybins:
-                for xbin in xbins[variable]:
-                    for typ in types:
-                        isstacks = [False]
-                        if typ == "TC":
-                            isstacks = [True, False]
-                        for isstack in isstacks:
-                            for pdgid in pdgids:
-                                # print(metricsuffix, variable, ybin, xbin, typ, isstack, pdgid)
-                                params["xcoarse"] = xbin == "coarse"
-                                params["yzoom"] = ybin == "zoom"
-                                params["variable"] = variable
-                                params["metricsuffix"] = metricsuffix
-                                params["metric"] = metric
-                                params["is_stack"] = isstack
-                                params["stackvar"] = "_stack" if isstack else ""
-                                params["objecttype"] = typ
-                                params["pdgid"] = pdgid
-                                params["pdgidstr"] = get_pdgidstr(pdgid)
-                                plot(params)
+    if args.metric:
+        metrics = [args.metric]
 
-#______________________________________________________________________________________________________
-def plot(params):
+    if args.objecttype:
+        types = [args.objecttype]
 
-    print(params)
+    if args.selection:
+        sels["eff"] = [args.selection]
 
-    variable = params["variable"]
-    yzoom = params["yzoom"]
-    xcoarse = params["xcoarse"]
-    objecttype = params["objecttype"]
-    metricsuffix = params["metricsuffix"]
-    is_stack = params["is_stack"]
-    pdgidstr = params["pdgidstr"]
-    pdgid = int(params["pdgid"])
+    if args.pdgid != None:
+        pdgids = [args.pdgid]
 
-    params["objecttypesuffix"] = "_{}".format(pdgid) if metricsuffix == "ef_" else ""
-    params["pdgidstr"] = get_pdgidstr(pdgid)
-    params["output_plot_name"] = "{objecttype}{objecttypesuffix}_{metric}{stackvar}_{variable}".format(**params)
-    if params["xcoarse"]:
-        params["output_plot_name"] += "coarse"
-    if params["yzoom"]:
-        params["output_plot_name"] += "zoom"
-    params["output_img_name"] = "{output_dir}/mtv/{output_plot_name}.pdf".format(**params)
+    if args.charge != None:
+        charges = [args.charge]
 
-    # print("Drawing")
-    # for key in params:
-    #     print(key, params[key])
+    if args.variable:
+        # dxy and dz are only in efficiency
+        if args.variable != "dxy" and args.variable != "dz":
+            variables["eff"] = [args.variable]
+            variables["fakerate"] = [args.variable]
+            variables["suplrate"] = [args.variable]
+        else:
+            variables["eff"] = [args.variable]
+            variables["fakerate"] = []
+            variables["suplrate"] = []
 
-    # Get histogram names
-    denom_histname = "Root__{objecttype}{objecttypesuffix}_{metricsuffix}denom_{variable}".format(**params)
-    numer_histname = "Root__{objecttype}{objecttypesuffix}_{metricsuffix}numer_{variable}".format(**params)
-
-    # Denom histogram
-    denom = f.Get(denom_histname).Clone()
-
-    # Numerator histograms
-    numer = f.Get(numer_histname).Clone()
-
-    stack_hist_types = ["pT5", "pT3", "T5", "pLS"]
-    stack_hists = []
-    if is_stack:
-        for stack_hist_type in stack_hist_types:
-            stack_histname = numer_histname.replace("TC", stack_hist_type)
-            hist = f.Get(stack_histname)
-            stack_hists.append(hist.Clone())
-
-    legend_labels = ["TC" ,"pT5" ,"pT3" ,"T5" ,"pLS"]
-
-    if is_stack:
-        draw_ratio(
-                [numer] + stack_hists, # numerator histogram
-                denom, # denominator histogram
-                legend_labels, # legend_labels
-                params,
-                )
+    if args.individual:
+        # Only eff / TC matters here
+        breakdowns["eff"]["TC"] = [False]
+        breakdowns["fakerate"]["TC"] = [False]
+        breakdowns["duplrate"]["TC"] = [False]
     else:
-        draw_ratio(
-                [numer], # numerator histogram
-                denom, # denominator histogram
-                legend_labels[:1], # legend_labels
-                params,
-                )
+        # Only eff / TC matters here
+        breakdowns["eff"]["TC"] = [True]
+        breakdowns["fakerate"]["TC"] = [True]
+        breakdowns["duplrate"]["TC"] = [True]
+
+    if args.yzoom:
+        args.yzooms = [args.yzoom]
+
+    if args.xcoarse:
+        args.xcoarses = [args.xcoarse]
+
+    for metric in metrics:
+        for sel in sels[metric]:
+            for variable in variables[metric]:
+                for yzoom in yzooms:
+                    for xcoarse in xcoarses[variable]:
+                        for typ in types:
+                            for breakdown in breakdowns[metric][typ]:
+                                for pdgid in pdgids:
+                                    for charge in charges:
+                                        args.metric = metric
+                                        args.objecttype = typ
+                                        args.selection = sel
+                                        args.pdgid = pdgid
+                                        args.charge = charge
+                                        args.variable = variable
+                                        args.breakdown = breakdown
+                                        args.yzoom = yzoom
+                                        args.xcoarse = xcoarse
+                                        # print(args)
+                                        plot(args)
 
 #______________________________________________________________________________________________________
 def compare(file1, file2, legend0, legend1):
@@ -512,121 +770,20 @@ def compare(file1, file2, legend0, legend1):
 
 if __name__ == "__main__":
 
-    # Argument parsing
-    parser = argparse.ArgumentParser(description="What are we wanting to graph?")
-    # parser.add_argument('--input'               , '-i'    , dest='input'       , type=str , default='num_den_hist.root' , help='input file name [DEFAULT=num_den_hist.root]')
-    parser.add_argument('--compare_legend'      , '-l'    , dest='comp_leg'    , type=str , default=''                  , help='comma separated lables for comparison')
-    parser.add_argument('--variable'            , '-v'    , dest='variable'    , type=str , default='pt'                , help='pt, eta, phi, dxy, dz [DEFAULT=pt]')
-    parser.add_argument('--objecttype'          , '-o'    , dest='objecttype'  , type=str , default='TC'                , help='TC, pT3, T5, pT5, pLS [DEFAULT=TC]')
-    parser.add_argument('--metric'              , '-m'    , dest='metric'      , type=str , default='eff'               , help='eff, duplrate, fakerate [DEFAULT=eff]')
-    parser.add_argument('--sample_name'         , '-s'    , dest='sample_name' , type=str , default='DEFAULT'           , help='sample name [DEFAULT=sampleName]')
-    parser.add_argument('--dirname'             , '-d'    , dest='dirname'     , type=str , default='performance'       , help='main performance output dir name [DEFAULT=performance]')
-    parser.add_argument('--tag'                 , '-t'    , dest='tag'         , type=str , default='v0'                , help='tag of the run [DEFAULT=v0]')
-    parser.add_argument('--pdgid'               , '-p'    , dest='pdgid'       , type=int , default=0                   , help='pdgid (efficiency plots only) [DEFAULT=0]')
-    parser.add_argument('--is_stack'            , '-T'    , dest='is_stack'               , action="store_true"         , help='is stack')
-    parser.add_argument('--yzoom'               , '-y'    , dest='yzoom'                  , action="store_true"         , help='zoom in y')
-    parser.add_argument('--xcoarse'             , '-x'    , dest='xcoarse'                , action="store_true"         , help='coarse in x')
-    parser.add_argument('--single_plot'         , '-1'    , dest='single_plot'            , action="store_true"         , help='plot only one plot')
-    parser.add_argument('inputs', nargs='+', help='input num_den_hist.root files')
+    main()
 
-    args = parser.parse_args()
+    # parser.add_argument('--compare_legend'      , '-l'    , dest='comp_leg'    , type=str , default=''                  , help='comma separated lables for comparison')
 
-    if len(args.inputs) > 1:
-        print("Running on compare mode!")
-        # TODO This is not the right way to handle!
-        n_events_processed = None
-        if not args.comp_leg:
-            print("Need to provide --compare_legend! (e.g. --compare_legend mywork1,currentmaster")
-            parser.print_help(sys.stderr)
-            sys.exit(1)
-        legend0 = args.comp_leg.split(",")[0]
-        legend1 = args.comp_leg.split(",")[1]
-        compare(args.inputs[0], args.inputs[1], legend0, legend1)
-        sys.exit()
+    # if len(args.inputs) > 1:
+    #     print("Running on compare mode!")
+    #     # TODO This is not the right way to handle!
+    #     n_events_processed = None
+    #     if not args.comp_leg:
+    #         print("Need to provide --compare_legend! (e.g. --compare_legend mywork1,currentmaster")
+    #         parser.print_help(sys.stderr)
+    #         sys.exit(1)
+    #     legend0 = args.comp_leg.split(",")[0]
+    #     legend1 = args.comp_leg.split(",")[1]
+    #     compare(args.inputs[0], args.inputs[1], legend0, legend1)
+    #     sys.exit()
 
-    #############
-    variable   = args.variable
-    yzoom      = args.yzoom
-    xcoarse    = args.xcoarse
-    objecttype = args.objecttype
-    metric     = args.metric
-    is_stack   = args.is_stack
-    dirname    = args.dirname
-    tag        = args.tag
-    # pdgid      = args.pdgid
-    #############
-
-    # Parse from input file
-    root_file_name = args.inputs[0]
-    f = r.TFile(root_file_name)
-
-    # git version hash
-    git_hash = f.Get("githash").GetTitle()
-
-    # sample name
-    sample_name = f.Get("input").GetTitle()
-    if args.sample_name:
-        sample_name = args.sample_name
-
-    n_events_processed = str(int(f.Get("nevts").GetBinContent(1)))
-
-    # parse metric suffix
-    if metric == "eff": metricsuffix = "ef_"
-    elif metric == "duplrate": metricsuffix = "dr_"
-    elif metric == "fakerate": metricsuffix = "fr_"
-    else:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
-
-    # If is_stack it must be object type of TC
-    if is_stack:
-        print("Warning! objecttype is set to \"TC\" because is_stack is True!")
-        objecttype = "TC"
-
-    # Building output dirname
-    output_dir = "{dirname}/{tag}_{git_hash}".format(dirname=dirname, tag=tag, git_hash=git_hash)
-
-    # Create output directory
-    os.system("mkdir -p {output_dir}/mtv/var".format(output_dir=output_dir))
-    os.system("mkdir -p {output_dir}/mtv/num".format(output_dir=output_dir))
-    os.system("mkdir -p {output_dir}/mtv/den".format(output_dir=output_dir))
-    os.system("mkdir -p {output_dir}/mtv/ratio".format(output_dir=output_dir))
-
-    params = {
-            "input_file"   : f,
-            "sample_name"  : sample_name,
-            "git_hash"     : git_hash,
-            "variable"     : variable,
-            "yzoom"        : yzoom,
-            "xcoarse"      : xcoarse,
-            "objecttype"   : objecttype,
-            "metric"       : metric,
-            "metricsuffix" : metricsuffix,
-            "is_stack"     : is_stack,
-            "stackvar"     : "_stack" if is_stack else "",
-            "dirname"      : dirname,
-            "output_dir"   : output_dir,
-            "tag"          : tag,
-            "pdgid"        : args.pdgid,
-            "pdgidstr"     : get_pdgidstr(args.pdgid),
-            "output_file"  : None,
-            "nevts"        : n_events_processed,
-            }
-
-    # Output file
-    params["output_file"] = r.TFile("{output_dir}/efficiency.root".format(**params), "update")
-
-    # git version hash
-    params["input_file"].Get("githash").Write("", r.TObject.kOverwrite)
-
-    # sample name
-    params["input_file"].Get("input").Write("", r.TObject.kOverwrite)
-
-    # Draw all standard particle
-    if args.single_plot:
-        plot(params)
-    else:
-        plot_standard_performance_plots(params)
-
-    DIR = os.path.realpath(os.path.dirname(__file__))
-    os.system("cp -r {}/../misc/summary {}/".format(DIR, output_dir))
