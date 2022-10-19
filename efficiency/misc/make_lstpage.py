@@ -61,7 +61,7 @@ def write_pages_v2():
         for selection in sels:
             index_md.write("#### For {selectionstr}\n\n".format(selectionstr=get_selectionstr(selection)))
             for charge in charges:
-                summary_file_name = "{metric}_{selection}_{charge}{breakdown}".format(metric=metric, selection=selection, charge=charge, breakdown=breakdown)
+                summary_file_name = "{metric}_{selection}_{charge}".format(metric=metric, selection=selection, charge=charge)
                 summary_markdown = open("{directory}/{summary_file_name}.md".format(directory=directory, summary_file_name=summary_file_name), "w")
                 TOC = {}
                 SectionID = 0
@@ -75,16 +75,16 @@ def write_pages_v2():
                         summary_markdown.write("\n\n## <a name=\"{SectionID}\"></a> {SectionTitle}\n\n [[back to top](#top)]\n\n".format(SectionTitle=SectionTitle, SectionID=SectionID))
                         TOC["#{SectionID}".format(SectionID=SectionID)] = SectionTitle
                         for variable in variables:
-                            name = "{objecttype}_{selection}_{pdgid}_{charge}_{metric}_{variable}{breakdown}".format(objecttype=objecttype, selection=selection, pdgid=pdgid, charge=charge, metric=metric, variable=variable, breakdown=breakdown)
+                            name = "{objecttype}_{selection}_{pdgid}_{charge}_{metric}_{variable}".format(objecttype=objecttype, selection=selection, pdgid=pdgid, charge=charge, metric=metric, variable=variable)
                             html = "{name}.html".format(name=name)
                             md = "{name}.md".format(name=name)
                             f = open("{directory}/{md}".format(directory=directory, md=md), "w")
                             f.write("# {objecttype} {metricstr} vs. {variable}\n\n[[back to main](./)]\n\n".format(objecttype=objecttype, metricstr=get_metricstr(metric), variable=variable))
                             f.write("\n\n")
                             f.write("## Ratio\n\n[![Ratio]({plotdir}/var/{name}.png){{ width={plot_large_width}px }}]({plotdir}/var/{name}.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width))
-                            f.write("## Denominator\n\n[![Denominator]({plotdir}/den/{name}_den.png){{ width={plot_large_width}px }}]({plotdir}/den/{name}_den.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width))
                             if len(breakdown) != 0:
                                 for i in range(5):
+                                    f.write("## Denominator {i}\n\n[![Denominator]({plotdir}/den/{name}_den{i}.png){{ width={plot_large_width}px }}]({plotdir}/den/{name}_den{i}.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width, i=i))
                                     f.write("## Numerator {i}\n\n[![Numerator]({plotdir}/num/{name}_num{i}.png){{ width={plot_large_width}px }}]({plotdir}/num/{name}_num{i}.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width, i=i))
                                 for i in range(4):
                                     f.write("## Double Ratio {i}\n\n[![Double Ratio]({plotdir}/ratio/{name}_ratio{i}.png){{ width={plot_large_width}px }}]({plotdir}/ratio/{name}_ratio{i}.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width, i=i))
@@ -142,7 +142,7 @@ def write_pages_v2():
                 ]
 
         for breakdown in breakdowns:
-            summary_file_name = "{metric}{breakdown}".format(metric=metric, breakdown=breakdown)
+            summary_file_name = "{metric}".format(metric=metric)
             summary_markdown = open("{directory}/{summary_file_name}.md".format(directory=directory, summary_file_name=summary_file_name), "w")
             TOC = {}
             SectionID = 0
@@ -155,16 +155,16 @@ def write_pages_v2():
                 summary_markdown.write("\n\n## <a name=\"{SectionID}\"></a> {SectionTitle}\n\n [[back to top](#top)]\n\n".format(SectionTitle=SectionTitle, SectionID=SectionID))
                 TOC["#{SectionID}".format(SectionID=SectionID)] = SectionTitle
                 for variable in variables:
-                    name = "{objecttype}_{metric}_{variable}{breakdown}".format(objecttype=objecttype, metric=metric, variable=variable, breakdown=breakdown)
+                    name = "{objecttype}_{metric}_{variable}".format(objecttype=objecttype, metric=metric, variable=variable)
                     html = "{name}.html".format(name=name)
                     md = "{name}.md".format(name=name)
                     f = open("{directory}/{md}".format(directory=directory, md=md), "w")
                     f.write("# {objecttype} {metricstr} vs. {variable}\n\n[[back to main](./)]\n\n".format(objecttype=objecttype, metricstr=get_metricstr(metric), variable=variable))
                     f.write("\n\n")
                     f.write("## Ratio\n\n[![Ratio]({plotdir}/var/{name}.png){{ width={plot_large_width}px }}]({plotdir}/var/{name}.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width))
-                    f.write("## Denominator\n\n[![Denominator]({plotdir}/den/{name}_den.png){{ width={plot_large_width}px }}]({plotdir}/den/{name}_den.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width))
                     if len(breakdown) != 0:
                         for i in range(5):
+                            f.write("## Denominator {i}\n\n[![Denominator]({plotdir}/den/{name}_den{i}.png){{ width={plot_large_width}px }}]({plotdir}/den/{name}_den{i}.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width, i=i))
                             f.write("## Numerator {i}\n\n[![Numerator]({plotdir}/num/{name}_num{i}.png){{ width={plot_large_width}px }}]({plotdir}/num/{name}_num{i}.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width, i=i))
                         for i in range(4):
                             f.write("## Double Ratio {i}\n\n[![Double Ratio]({plotdir}/ratio/{name}_ratio{i}.png){{ width={plot_large_width}px }}]({plotdir}/ratio/{name}_ratio{i}.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width, i=i))

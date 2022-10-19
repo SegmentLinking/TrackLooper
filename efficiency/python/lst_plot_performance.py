@@ -32,6 +32,7 @@ parser.add_argument('--individual'  , '-b' , dest='individual'  , action="store_
 parser.add_argument('--yzoom'       , '-y' , dest='yzoom'       , action="store_true" , help='zoom in y')
 parser.add_argument('--xcoarse'     , '-x' , dest='xcoarse'     , action="store_true" , help='coarse in x')
 parser.add_argument('--sample_name' , '-S' , dest='sample_name' , type=str            , help='sample name in case one wants to override')
+parser.add_argument('--compare'     , '-C' , dest='compare'     , action="store_true" , help='plot comparisons of input files')
 
 
 #______________________________________________________________________________________________________
@@ -70,38 +71,10 @@ def main():
 
     args = parser.parse_args()
 
-    # # Draw all standard particle
-    # if args.single_plot:
-    #     plot(args)
-    # else:
-    #     plot_standard_performance_plots(args)
     plot_standard_performance_plots(args)
 
 #______________________________________________________________________________________________________
 def plot(args):
-
-    #     Root__<OBJ>_<SEL>_<PDGID>_<CHARGE>_ef_numer_<VARIABLE>
-    #     Root__<OBJ>_<SEL>_<PDGID>_<CHARGE>_ef_denom_<VARIABLE>
-    #
-    #     e.g. Root__pT5_loweta_321_-1_ef_numer_eta
-    #
-    #          OBJ=pT5
-    #          SEL=loweta
-    #          PDGID=Kaon
-    #          CHARGE=-1
-    #          METRIC=ef (efficiency)
-    #          VARIABLE=eta
-    #
-    #  Fake rate or duplicate rate histogram:
-    #
-    #     Root__<OBJ>_fr_numer_<VARIABLE> (fake rate numerator)
-    #     Root__<OBJ>_fr_denom_<VARIABLE> (fake rate denominator)
-    #     Root__<OBJ>_dr_numer_<VARIABLE> (duplicate rate numerator)
-    #     Root__<OBJ>_dr_denom_<VARIABLE> (duplicate rate denominator)
-    #
-    # Once ran, the output will be stored in performance/myRun1_<githash>
-    # Also a ROOT file with the efficiency graphs will be saved to performance/myRun1_<githash>/efficiency.root
-    #
 
     params = process_arguments_into_params(args)
 
@@ -114,8 +87,10 @@ def plot(args):
         params["output_name"] += "coarse"
     if params["yzoom"]:
         params["output_name"] += "zoom"
-    if params["breakdown"]:
-        params["output_name"] += "_breakdown"
+    # if params["breakdown"]:
+    #     params["output_name"] += "_breakdown"
+    # if params["compare"]:
+    #     params["output_name"] += "_breakdown"
 
     # Get histogram names
     if params["metric"] == "eff":
@@ -130,7 +105,8 @@ def plot(args):
     print(params["output_name"])
 
     # Denom histogram
-    denom = params["input_file"].Get(params["denom"]).Clone()
+    denom = []
+    denom.append(params["input_file"].Get(params["denom"]).Clone())
 
     # Numerator histograms
     numer = []
@@ -142,12 +118,25 @@ def plot(args):
             breakdown_histname = params["numer"].replace("TC", breakdown_hist_type)
             hist = params["input_file"].Get(breakdown_histname)
             numer.append(hist.Clone())
+            denom.append(params["input_file"].Get(params["denom"]).Clone())
+
+    if params["compare"]:
+        for f in params["additional_input_files"]:
+            hist = f.Get(params["numer"])
+            numer.append(hist.Clone())
+            hist = f.Get(params["denom"])
+            denom.append(hist.Clone())
 
 
     if params["breakdown"]:
         params["legend_labels"] = ["TC" ,"pT5" ,"pT3" ,"T5" ,"pLS"]
     else:
         params["legend_labels"] = ["objecttype"]
+
+    if params["compare"]:
+        params["legend_labels"] = ["reference"]
+        for i, f in enumerate(params["additional_input_files"]):
+            params["legend_labels"].append("{i}".format(i=i))
 
     draw_ratio(
             numer, # numerator histogram(s)
@@ -213,6 +202,13 @@ def process_arguments_into_params(args):
     git_hash = f.Get("githash").GetTitle()
     params["git_hash"] = git_hash
 
+    if len(args.inputs) > 1: # if more than 1 save them to separate params
+        params["additional_input_files"] = []
+        params["additional_git_hashes"] = []
+        for i in args.inputs[1:]:
+            params["additional_input_files"].append(r.TFile(i))
+            params["additional_git_hashes"].append(params["additional_input_files"][-1].Get("githash").GetTitle())
+
     # sample name
     sample_name = f.Get("input").GetTitle()
     if args.sample_name:
@@ -232,11 +228,20 @@ def process_arguments_into_params(args):
         params["objecttype"] = "TC"
         params["breakdown"] = True
 
+    # If compare we compare the different files
+    params["compare"] = False
+    if args.compare:
+        params["breakdown"] = False
+        params["compare"] = True
+
     # process tags
     params["tag"] = args.tag
 
     # Create output_dir
     params["output_dir"] = "performance/{tag}_{git_hash}".format(**params)
+    if params["compare"]:
+        params["output_dir"] += "_"
+        params["output_dir"] += "_".join(params["additional_git_hashes"])
     os.system("mkdir -p {output_dir}/mtv/var".format(**params))
     os.system("mkdir -p {output_dir}/mtv/num".format(**params))
     os.system("mkdir -p {output_dir}/mtv/den".format(**params))
@@ -257,19 +262,21 @@ def process_arguments_into_params(args):
     return params
 
 #______________________________________________________________________________________________________
-def draw_ratio(nums, den, params):
+def draw_ratio(nums, dens, params):
 
     # Rebin if necessary
     if "scalar" in params["output_name"] and "ptscalar" not in params["output_name"]:
         for num in nums:
             num.Rebin(180)
-        den.Rebin(180)
+        for den in dens:
+            den.Rebin(180)
 
     # Rebin if necessary
     if "coarse" in params["output_name"] and "ptcoarse" not in params["output_name"]:
         for num in nums:
             num.Rebin(6)
-        den.Rebin(6)
+        for den in dens:
+            den.Rebin(6)
 
     # Deal with overflow bins for pt plots
     if "pt" in params["output_name"]:
@@ -278,19 +285,22 @@ def draw_ratio(nums, den, params):
             lastBin = num.GetBinContent(num.GetNbinsX())
             num.SetBinContent(num.GetNbinsX(), lastBin + overFlowBin)
             num.SetBinError(num.GetNbinsX(), sqrt(lastBin + overFlowBin))
-        overFlowBin = den.GetBinContent(den.GetNbinsX() + 1)
-        lastBin = den.GetBinContent(den.GetNbinsX())
-        den.SetBinContent(den.GetNbinsX(), lastBin + overFlowBin)
-        den.SetBinError(den.GetNbinsX(), sqrt(lastBin + overFlowBin))
+        for den in dens:
+            overFlowBin = den.GetBinContent(den.GetNbinsX() + 1)
+            lastBin = den.GetBinContent(den.GetNbinsX())
+            den.SetBinContent(den.GetNbinsX(), lastBin + overFlowBin)
+            den.SetBinError(den.GetNbinsX(), sqrt(lastBin + overFlowBin))
 
     # Create efficiency graphs
     teffs = []
     effs = []
-    for num in nums:
+    for num, den in zip(nums, dens):
         teff = r.TEfficiency(num, den)
         eff = teff.CreateGraph()
         teffs.append(teff)
         effs.append(eff)
+
+    print(effs)
 
     # 
     hist_name_suffix = ""
@@ -301,10 +311,11 @@ def draw_ratio(nums, den, params):
 
     params["output_file"].cd()
     outputname = params["output_name"]
-    den.Write(den.GetName() + hist_name_suffix, r.TObject.kOverwrite)
-    # eff_den = r.TGraphAsymmErrors(den)
-    # eff_den.SetName(outputname+"_den")
-    # eff_den.Write("", r.TObject.kOverwrite)
+    for den in dens:
+        den.Write(den.GetName() + hist_name_suffix, r.TObject.kOverwrite)
+        # eff_den = r.TGraphAsymmErrors(den)
+        # eff_den.SetName(outputname+"_den")
+        # eff_den.Write("", r.TObject.kOverwrite)
     for num in nums:
         num.Write(num.GetName() + hist_name_suffix, r.TObject.kOverwrite)
         # eff_num = r.TGraphAsymmErrors(num)
@@ -314,7 +325,7 @@ def draw_ratio(nums, den, params):
         eff.SetName(outputname)
         eff.Write("", r.TObject.kOverwrite)
 
-    draw_plot(effs, nums, den, params)
+    draw_plot(effs, nums, dens, params)
 
 #______________________________________________________________________________________________________
 def parse_plot_name(output_name):
@@ -465,7 +476,7 @@ def draw_label(params):
     t.DrawLatexNDC(x,y,"#scale[1.25]{#font[61]{CMS}} #scale[1.1]{#font[52]{%s}}" % cms_label)
 
 #______________________________________________________________________________________________________
-def draw_plot(effs, nums, den, params):
+def draw_plot(effs, nums, dens, params):
 
     legend_labels = params["legend_labels"]
     output_dir = params["output_dir"]
@@ -560,18 +571,19 @@ def draw_plot(effs, nums, den, params):
         c1.SaveAs("{}".format(output_fullpath.replace("/mtv/var/", "/mtv/num/").replace(".pdf", "_num{}.pdf".format(i))))
         c1.SaveAs("{}".format(output_fullpath.replace("/mtv/var/", "/mtv/num/").replace(".pdf", "_num{}.png".format(i))))
 
-    set_label(den, output_name, raw_number=True)
-    den.Draw("hist")
-    c1.SaveAs("{}".format(output_fullpath.replace("/mtv/var/", "/mtv/den/").replace(".pdf", "_den.pdf")))
-    c1.SaveAs("{}".format(output_fullpath.replace("/mtv/var/", "/mtv/den/").replace(".pdf", "_den.png")))
+    for i, den in enumerate(dens):
+        set_label(den, output_name, raw_number=True)
+        den.Draw("hist")
+        c1.SaveAs("{}".format(output_fullpath.replace("/mtv/var/", "/mtv/den/").replace(".pdf", "_den{}.pdf".format(i))))
+        c1.SaveAs("{}".format(output_fullpath.replace("/mtv/var/", "/mtv/den/").replace(".pdf", "_den{}.png".format(i))))
 
     # Double ratio if more than one nums are provided
     # Take the first num as the base
     if len(nums) > 1:
         base = nums[0].Clone()
-        base.Divide(nums[0], den, 1, 1, "B") #Binomial
+        base.Divide(nums[0], dens[0], 1, 1, "B") #Binomial
         others = []
-        for num in nums[1:]:
+        for num, den in zip(nums[1:], dens[1:]):
             other = num.Clone()
             other.Divide(other, den, 1, 1, "B")
             others.append(other)
@@ -771,19 +783,4 @@ def compare(file1, file2, legend0, legend1):
 if __name__ == "__main__":
 
     main()
-
-    # parser.add_argument('--compare_legend'      , '-l'    , dest='comp_leg'    , type=str , default=''                  , help='comma separated lables for comparison')
-
-    # if len(args.inputs) > 1:
-    #     print("Running on compare mode!")
-    #     # TODO This is not the right way to handle!
-    #     n_events_processed = None
-    #     if not args.comp_leg:
-    #         print("Need to provide --compare_legend! (e.g. --compare_legend mywork1,currentmaster")
-    #         parser.print_help(sys.stderr)
-    #         sys.exit(1)
-    #     legend0 = args.comp_leg.split(",")[0]
-    #     legend1 = args.comp_leg.split(",")[1]
-    #     compare(args.inputs[0], args.inputs[1], legend0, legend1)
-    #     sys.exit()
 
