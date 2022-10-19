@@ -15,7 +15,7 @@ def write_pages_v2():
     # eff
     objecttypes = ["TC"]
     pdgids = [0, 11, 13, 211, 321]
-    sels = ["base", "loweta"]
+    sels = ["base", "loweta", "xtr", "vtr"]
     variables = [
             "pt",
             "ptzoom",
@@ -225,6 +225,10 @@ def get_selectionstr(selection):
         selectionstr = "|eta| < 4.5"
     if selection == "loweta":
         selectionstr = "|eta| < 2.4"
+    if selection == "xtr":
+        selectionstr = "1.1 < |eta| < 2.7"
+    if selection == "vtr":
+        selectionstr = "not (1.1 < |eta| < 2.7) and |eta| < 2.4"
     return selectionstr
 
 #___________________________________________________________________________________________________

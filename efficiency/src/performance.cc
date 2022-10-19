@@ -32,11 +32,15 @@ int main(int argc, char** argv)
     // Set of extra selections for efficiency plots
     std::vector<TString> selnames = {
         "base",  // default baseline that is more inline with MTV
-        "loweta" // When the eta cut is restricted to 2.4
+        "loweta", // When the eta cut is restricted to 2.4
+        "xtr", // When the eta cut is restricted to transition regions
+        "vtr" // When the eta cut is vetoing transition regions
     };
     std::vector<std::function<bool(unsigned int)>> sels = {
         [&](unsigned int isim) { return 1.; },
-        [&](unsigned int isim) { return abs(sdl.sim_eta().at(isim)) < 2.4; }
+        [&](unsigned int isim) { return abs(sdl.sim_eta().at(isim)) < 2.4; },
+        [&](unsigned int isim) { return abs(sdl.sim_eta().at(isim)) > 1.1 and abs(sdl.sim_eta().at(isim)) < 1.7; },
+        [&](unsigned int isim) { return (abs(sdl.sim_eta().at(isim)) < 1.1 or abs(sdl.sim_eta().at(isim)) > 1.7) and abs(sdl.sim_eta().at(isim)) < 2.4; }
     };
     pdgids.insert(pdgids.end(), ana.pdgids.begin(), ana.pdgids.end());
 
@@ -486,21 +490,14 @@ void fillEfficiencySet(int isimtrk, SimTrackSetDefinition& effset)
 
     if (effset.pdgid != 0)
     {
-        if (effset.q == 0)
-        {
-            if (abs(pdgidtrk) != abs(effset.pdgid))
-                return;
-        }
-        else if (effset.q == 1)
-        {
-            if (pdgidtrk != effset.pdgid)
-                return;
-        }
-        else if (effset.q == -1)
-        {
-            if (pdgidtrk != -effset.pdgid)
-                return;
-        }
+        if (abs(pdgidtrk) != abs(effset.pdgid))
+            return;
+    }
+
+    if (effset.q != 0)
+    {
+        if (q != effset.q)
+            return;
     }
 
     if (effset.pdgid == 0 and q == 0)

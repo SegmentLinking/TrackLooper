@@ -7,7 +7,7 @@ import os
 import sys
 from math import sqrt
 
-sel_choices = ["base", "loweta", "none"]
+sel_choices = ["base", "loweta", "xtr", "vtr", "none"]
 metric_choices = ["eff", "fakerate", "duplrate"]
 variable_choices = ["pt", "ptmtv", "ptlow", "eta", "phi", "dxy", "dz"]
 objecttype_choices = ["TC", "pT5", "T5", "pT3", "pLS"]
@@ -202,18 +202,20 @@ def process_arguments_into_params(args):
     git_hash = f.Get("githash").GetTitle()
     params["git_hash"] = git_hash
 
-    if len(args.inputs) > 1: # if more than 1 save them to separate params
-        params["additional_input_files"] = []
-        params["additional_git_hashes"] = []
-        for i in args.inputs[1:]:
-            params["additional_input_files"].append(r.TFile(i))
-            params["additional_git_hashes"].append(params["additional_input_files"][-1].Get("githash").GetTitle())
-
     # sample name
     sample_name = f.Get("input").GetTitle()
     if args.sample_name:
         sample_name = args.sample_name
     params["sample_name"] = sample_name
+
+    if len(args.inputs) > 1: # if more than 1 save them to separate params
+        params["additional_input_files"] = []
+        params["additional_git_hashes"] = []
+        params["additional_sample_names"] = []
+        for i in args.inputs[1:]:
+            params["additional_input_files"].append(r.TFile(i))
+            params["additional_git_hashes"].append(params["additional_input_files"][-1].Get("githash").GetTitle())
+            params["additional_sample_names"].append(params["additional_input_files"][-1].Get("input").GetTitle())
 
     if params["metric"] == "eff": params["metricsuffix"] = "ef"
     if params["metric"] == "duplrate": params["metricsuffix"] = "dr"
@@ -238,10 +240,10 @@ def process_arguments_into_params(args):
     params["tag"] = args.tag
 
     # Create output_dir
-    params["output_dir"] = "performance/{tag}_{git_hash}".format(**params)
+    params["output_dir"] = "performance/{tag}_{git_hash}-{sample_name}".format(**params)
     if params["compare"]:
-        params["output_dir"] += "_"
-        params["output_dir"] += "_".join(params["additional_git_hashes"])
+        for gg, ii in zip(params["additional_git_hashes"], params["additional_sample_names"]):
+            params["output_dir"] += "_{}-{}".format(gg, ii)
     os.system("mkdir -p {output_dir}/mtv/var".format(**params))
     os.system("mkdir -p {output_dir}/mtv/num".format(**params))
     os.system("mkdir -p {output_dir}/mtv/den".format(**params))
@@ -444,19 +446,24 @@ def draw_label(params):
     # If efficiency plots follow the following fiducial label rule
     ptcut = 0.9
     etacut = 4.5
+    etacutstr = "|#eta| < 4.5"
     if params["selection"] == "loweta":
-        etacut = 2.4
+        etacutstr = "|#eta| < 2.4"
+    if params["selection"] == "xtr":
+        etacutstr = "x-reg"
+    if params["selection"] == "vtr":
+        etacutstr = "not x-reg"
     if "eff" in output_name:
         if "_pt" in output_name:
-            fiducial_label = "|#eta| < {eta}, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(eta=etacut)
+            fiducial_label = "{etacutstr}, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(etacutstr=etacutstr)
         elif "_eta" in output_name:
             fiducial_label = "p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut)
         elif "_dz" in output_name:
-            fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut, eta=etacut)
+            fiducial_label = "{etacutstr}, p_{{T}} > {pt} GeV, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut, etacutstr=etacutstr)
         elif "_dxy" in output_name:
-            fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm".format(pt=ptcut, eta=etacut)
+            fiducial_label = "{etacutstr}, p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm".format(pt=ptcut, etacutstr=etacutstr)
         else:
-            fiducial_label = "|#eta| < {eta}, p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut, eta=etacut)
+            fiducial_label = "{etacutstr}, p_{{T}} > {pt} GeV, |Vtx_{{z}}| < 30 cm, |Vtx_{{xy}}| < 2.5 cm".format(pt=ptcut, etacutstr=etacutstr)
         particleselection = ((", Particle:" + pdgidstr) if pdgidstr else "" ) + ((", Charge:" + chargestr) if chargestr else "" )
         fiducial_label += particleselection
     # If fake rate or duplicate rate plot follow the following fiducial label rule
@@ -652,8 +659,16 @@ def plot_standard_performance_plots(args):
                 "pLS": [False],
                 },
             }
-    pdgids = [0, 11, 13, 211, 321]
-    charges = [0, 1, -1]
+    pdgids = {
+            "eff": [0, 11, 13, 211, 321],
+            "fakerate": [0],
+            "duplrate": [0],
+            }
+    charges = {
+            "eff":[0, 1, -1],
+            "fakerate":[0],
+            "duplrate":[0],
+            }
 
     if args.metric:
         metrics = [args.metric]
@@ -665,10 +680,14 @@ def plot_standard_performance_plots(args):
         sels["eff"] = [args.selection]
 
     if args.pdgid != None:
-        pdgids = [args.pdgid]
+        pdgids["eff"] = [args.pdgid]
+        pdgids["fakerate"] = [args.pdgid]
+        pdgids["duplrate"] = [args.pdgid]
 
     if args.charge != None:
-        charges = [args.charge]
+        charges["eff"] = [args.charge]
+        charges["fakerate"] = [args.charge]
+        charges["duplrate"] = [args.charge]
 
     if args.variable:
         # dxy and dz are only in efficiency
@@ -705,8 +724,8 @@ def plot_standard_performance_plots(args):
                     for xcoarse in xcoarses[variable]:
                         for typ in types:
                             for breakdown in breakdowns[metric][typ]:
-                                for pdgid in pdgids:
-                                    for charge in charges:
+                                for pdgid in pdgids[metric]:
+                                    for charge in charges[metric]:
                                         args.metric = metric
                                         args.objecttype = typ
                                         args.selection = sel
