@@ -21,7 +21,7 @@ CFLAGS      = $(ROOTCFLAGS) -Wall -Wno-unused-function -g -O2 -fPIC -fno-var-tra
 EXTRACFLAGS = $(shell rooutil-config) -I../code/core -I../code/cppitertools
 EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer $(shell rooutil-config)
 T3T3EXTENSION=
-all: rooutil $(EXE) bin/createPerfNumDenHists summary
+all: rooutil $(EXE) bin/createPerfNumDenHists summary compare
 
 $(EXE): src/efficiency.o src/helper.o src/SDL.o
 	$(LD) $(CXXFLAGS) $(LDFLAGS) src/efficiency.o src/helper.o src/SDL.o $(ROOTLIBS) $(EXTRAFLAGS) -o $@
@@ -52,5 +52,8 @@ clean:
 
 summary: 
 	wget http://uaf-10.t2.ucsd.edu/~phchang/lst/summary.tar.gz && tar xf summary.tar.gz && rm summary.tar.gz
+
+compare: 
+	wget http://uaf-10.t2.ucsd.edu/~phchang/lst/compare.tar.gz && tar xf compare.tar.gz && rm compare.tar.gz
 
 .PHONY: all clean rooutil

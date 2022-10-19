@@ -5,15 +5,13 @@ import glob
 import sys
 
 #___________________________________________________________________________________________________
-def write_pages_v2():
+def write_pages_v2(directory, objecttypes):
 
-    directory = "summary"
     os.system("mkdir -p {directory}".format(directory=directory))
 
     ##############################################################################################################################
 
     # eff
-    objecttypes = ["TC"]
     pdgids = [0, 11, 13, 211, 321]
     sels = ["base", "loweta", "xtr", "vtr"]
     variables = [
@@ -47,8 +45,6 @@ def write_pages_v2():
 
     index_md = open("{directory}/index.md".format(directory=directory), "w")
     index_md.write("# LST Performance\n\n")
-
-    objecttypes = ["TC"]
 
     ##############################################################################################################################
 
@@ -344,96 +340,5 @@ def write_pages(
 
 if __name__ == "__main__":
 
-    write_pages_v2()
-    sys.exit()
-
-    plot_width = 450
-    plot_large_width = 600
-    plotdir = "../mtv"
-
-    directory = "summary"
-    pdgids = [0, 11, 13, 211, 321]
-    # Sections = ["TC", "TCStack", "pT5", "pT3", "T5", "pLS"]
-    Sections = ["TCStack"]
-    Plots = {
-            "Efficiency":
-                [
-                    "eff",
-                    [
-                        "pt",
-                        "ptzoom",
-                        "ptlow",
-                        "ptlowzoom",
-                        "ptmtv",
-                        "ptmtvzoom",
-                        "etacoarse",
-                        "etacoarsezoom",
-                        "eta",
-                        "etazoom",
-                        "dxycoarse",
-                        "dzcoarse",
-                        "dxy",
-                        "dz",
-                        "phi",
-                    ],
-                ],
-            "Fake Rate":
-                [
-                    "fakerate",
-                    [
-                        "pt",
-                        "ptzoom",
-                        "ptlow",
-                        "ptlowzoom",
-                        "ptmtv",
-                        "ptmtvzoom",
-                        "etacoarse",
-                        "etacoarsezoom",
-                        "eta",
-                        "etazoom",
-                        "phi",
-                    ],
-                ],
-            "Duplicate Rate":
-                [
-                    "duplrate",
-                    [
-                        "pt",
-                        "ptzoom",
-                        "ptlow",
-                        "ptlowzoom",
-                        "ptmtv",
-                        "ptmtvzoom",
-                        "etacoarse",
-                        "etacoarsezoom",
-                        "eta",
-                        "etazoom",
-                        "phi",
-                    ],
-                ],
-            }
-
-    write_pages(
-            plot_width,
-            plot_large_width,
-            plotdir,
-            directory,
-            pdgids,
-            Sections,
-            Plots,
-            )
-
-    # compare
-    Sections.remove("TCStack")
-    pdgids = [0]
-    directory = "compare"
-    write_pages(
-            plot_width,
-            plot_large_width,
-            plotdir,
-            directory,
-            [0],
-            Sections,
-            Plots,
-            )
-
+    write_pages_v2("summary", ["TC"])
+    write_pages_v2("compare", ["TC", "pT5", "pT3", "T5", "pLS"])

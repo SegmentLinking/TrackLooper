@@ -146,6 +146,7 @@ def plot(args):
 
     DIR = os.path.realpath(os.path.dirname(__file__))
     os.system("cd {}; ln -sf {}/../summary".format(params["output_dir"], DIR))
+    os.system("cd {}; ln -sf {}/../compare".format(params["output_dir"], DIR))
 
 #______________________________________________________________________________________________________
 def process_arguments_into_params(args):
@@ -225,9 +226,9 @@ def process_arguments_into_params(args):
     if args.individual:
         params["breakdown"] = False
     else:
-        if params["objecttype"] != "TC":
-            print("Warning! objecttype is set to \"TC\" because individual is False!")
-        params["objecttype"] = "TC"
+        # if params["objecttype"] != "TC":
+        #     print("Warning! objecttype is set to \"TC\" because individual is False!")
+        # params["objecttype"] = "TC"
         params["breakdown"] = True
 
     # If compare we compare the different files
@@ -676,6 +677,9 @@ def plot_standard_performance_plots(args):
     if args.objecttype:
         types = [args.objecttype]
 
+    if args.compare:
+        types = objecttype_choices
+
     if args.selection:
         sels["eff"] = [args.selection]
 
@@ -735,7 +739,7 @@ def plot_standard_performance_plots(args):
                                         args.breakdown = breakdown
                                         args.yzoom = yzoom
                                         args.xcoarse = xcoarse
-                                        # print(args)
+                                        print(args)
                                         plot(args)
 
 #______________________________________________________________________________________________________
