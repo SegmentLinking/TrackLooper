@@ -156,7 +156,7 @@ def plot(args):
             )
 
     DIR = os.path.realpath(os.path.dirname(__file__))
-    os.system("cd {}; ln -sf {}/../misc/summary".format(params["output_dir"], DIR))
+    os.system("cd {}; ln -sf {}/../summary".format(params["output_dir"], DIR))
 
 #______________________________________________________________________________________________________
 def process_arguments_into_params(args):

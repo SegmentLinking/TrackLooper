@@ -82,8 +82,14 @@ def write_pages_v2():
                             f.write("# {objecttype} {metricstr} vs. {variable}\n\n[[back to main](./)]\n\n".format(objecttype=objecttype, metricstr=get_metricstr(metric), variable=variable))
                             f.write("\n\n")
                             f.write("## Ratio\n\n[![Ratio]({plotdir}/var/{name}.png){{ width={plot_large_width}px }}]({plotdir}/var/{name}.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width))
-                            f.write("## Numerator\n\n[![Numerator]({plotdir}/num/{name}_num0.png){{ width={plot_large_width}px }}]({plotdir}/num/{name}_num0.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width))
                             f.write("## Denominator\n\n[![Denominator]({plotdir}/den/{name}_den.png){{ width={plot_large_width}px }}]({plotdir}/den/{name}_den.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width))
+                            if len(breakdown) != 0:
+                                for i in range(5):
+                                    f.write("## Numerator {i}\n\n[![Numerator]({plotdir}/num/{name}_num{i}.png){{ width={plot_large_width}px }}]({plotdir}/num/{name}_num{i}.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width, i=i))
+                                for i in range(4):
+                                    f.write("## Double Ratio {i}\n\n[![Double Ratio]({plotdir}/ratio/{name}_ratio{i}.png){{ width={plot_large_width}px }}]({plotdir}/ratio/{name}_ratio{i}.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width, i=i))
+                            else:
+                                f.write("## Numerator\n\n[![Numerator]({plotdir}/num/{name}_num0.png){{ width={plot_large_width}px }}]({plotdir}/num/{name}_num0.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width, i=i))
                             f.close()
                             summary_markdown.write("[![]({plotdir}/var/{name}.png){{ width={plot_width}px }}]({html})\n".format(plotdir=plotdir, name=name, plot_width=plot_width, html=html))
 
@@ -156,8 +162,14 @@ def write_pages_v2():
                     f.write("# {objecttype} {metricstr} vs. {variable}\n\n[[back to main](./)]\n\n".format(objecttype=objecttype, metricstr=get_metricstr(metric), variable=variable))
                     f.write("\n\n")
                     f.write("## Ratio\n\n[![Ratio]({plotdir}/var/{name}.png){{ width={plot_large_width}px }}]({plotdir}/var/{name}.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width))
-                    f.write("## Numerator\n\n[![Numerator]({plotdir}/num/{name}_num0.png){{ width={plot_large_width}px }}]({plotdir}/num/{name}_num0.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width))
                     f.write("## Denominator\n\n[![Denominator]({plotdir}/den/{name}_den.png){{ width={plot_large_width}px }}]({plotdir}/den/{name}_den.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width))
+                    if len(breakdown) != 0:
+                        for i in range(5):
+                            f.write("## Numerator {i}\n\n[![Numerator]({plotdir}/num/{name}_num{i}.png){{ width={plot_large_width}px }}]({plotdir}/num/{name}_num{i}.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width, i=i))
+                        for i in range(4):
+                            f.write("## Double Ratio {i}\n\n[![Double Ratio]({plotdir}/ratio/{name}_ratio{i}.png){{ width={plot_large_width}px }}]({plotdir}/ratio/{name}_ratio{i}.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width, i=i))
+                    else:
+                        f.write("## Numerator\n\n[![Numerator]({plotdir}/num/{name}_num0.png){{ width={plot_large_width}px }}]({plotdir}/num/{name}_num0.pdf)\n\n".format(plotdir=plotdir, name=name, plot_large_width=plot_large_width, i=i))
                     f.close()
                     summary_markdown.write("[![]({plotdir}/var/{name}.png){{ width={plot_width}px }}]({html})\n".format(plotdir=plotdir, name=name, plot_width=plot_width, html=html))
 
