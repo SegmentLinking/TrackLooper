@@ -21,7 +21,6 @@ parser.add_argument('inputs', nargs='+', help='input num_den_hist.root files')
 parser.add_argument('--tag'         , '-t' , dest='tag'         , type=str , default='v0'        , help='tag of the run [DEFAULT=v0]', required=True)
 # When more than two input files are provided it is to compare the two sets of performance plots
 # The provided input file must contain the TGraphAsymmError plots when comparing
-# parser.add_argument('--single_plot' , '-1' , dest='single_plot' , action="store_true" , help='plot only one plot')
 parser.add_argument('--metric'      , '-m' , dest='metric'      , type=str            , help='{}'.format(','.join(metric_choices), metric_choices[0]))
 parser.add_argument('--objecttype'  , '-o' , dest='objecttype'  , type=str            , help='{}'.format(','.join(objecttype_choices), objecttype_choices[0]), default=objecttype_choices[0])
 parser.add_argument('--selection'   , '-s' , dest='selection'   , type=str            , help='{}'.format(','.join(sel_choices), sel_choices[0]), default=sel_choices[0])
@@ -32,7 +31,9 @@ parser.add_argument('--individual'  , '-b' , dest='individual'  , action="store_
 parser.add_argument('--yzoom'       , '-y' , dest='yzoom'       , action="store_true" , help='zoom in y')
 parser.add_argument('--xcoarse'     , '-x' , dest='xcoarse'     , action="store_true" , help='coarse in x')
 parser.add_argument('--sample_name' , '-S' , dest='sample_name' , type=str            , help='sample name in case one wants to override')
+
 parser.add_argument('--compare'     , '-C' , dest='compare'     , action="store_true" , help='plot comparisons of input files')
+parser.add_argument('--comp_labels' , '-L' , dest='comp_labels' , type=str            , help='comma separated legend labels for comparison plots (e.g. reference,pT5_update')
 
 
 #______________________________________________________________________________________________________
@@ -137,6 +138,9 @@ def plot(args):
         params["legend_labels"] = ["reference"]
         for i, f in enumerate(params["additional_input_files"]):
             params["legend_labels"].append("{i}".format(i=i))
+        if params["comp_labels"]:
+            params["legend_labels"] = params["comp_labels"]
+
 
     draw_ratio(
             numer, # numerator histogram(s)
@@ -236,6 +240,9 @@ def process_arguments_into_params(args):
     if args.compare:
         params["breakdown"] = False
         params["compare"] = True
+
+    if args.comp_labels:
+        params["comp_labels"] = args.comp_labels.split(",")
 
     # process tags
     params["tag"] = args.tag

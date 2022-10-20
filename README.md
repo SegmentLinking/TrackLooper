@@ -45,35 +45,15 @@ Plotting numerators and denominators of performance plots
     
 Plotting performance plots
 
-    lst_plot_performance.py <options> <args>
-
-    <options>
-    --single_plot           -1      plot only one plot
-    --sample_name           -s      sample name [DEFAULT=DEFAULT]
-    --dirname               -d      output dir name [DEFAULT=performance]
-    --variable              -v      pt, eta, phi, dxy, dz [DEFAULT=pt]
-    --objecttype            -o      TC, pT3, T5, pT5, pLS [DEFAULT=TC]
-    --metric                -m      eff, duplrate, fakerate [DEFAULT=eff]
-    --pdgid                 -p      pdgid (efficiency plots only) [DEFAULT=0]
-    --tag                   -t      tag of the run [DEFAULT=v0]
-    --is_stack              -T      is stack
-    --yzoom                 -y      zoom in y
-    --xcoarse               -x      coarse in x
-
-    <args>
-    input                           'input file name [DEFAULT=num_den_hist.root]'
-
-e.g. If one wants a `pt` plot with y-axis range `zoom`-ed for `eff` type plot for `pT5` for denominator of `211` into `perf2/` and place a `tag`==`mywork`
-
-    lst_plot_performance.py -v pt -y -m eff -p 211 -o pT5 -d perf2 num_den_hist.root -t "mywork"
+    lst_plot_performance.py num_den_hist.root -t "mywork"
                                                                                                                                                            
-But the easiest way is probably to just draw all
+Comparing two different runs
 
-    lst_plot_performance.py num_den_hist.root -t "TestRun"
-
-Comparing two different runs (NOTE: Must provide -l option with comma separated labels for the first and second runs)
-
-    lst_plot_performance.py num_den_hist_1.root num_den_hist_2.root -l TestRun,TestRun2
+    lst_plot_performance.py \
+        num_den_hist_1.root \     # Reference
+        num_den_hist_2.root \     # New work
+        -l BaseLine,MyNewWork \   # Labeling
+        -t "mywork"
 
 ## Validation
 Run the validation on sample
