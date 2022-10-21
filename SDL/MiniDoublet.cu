@@ -154,7 +154,11 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     mdsInGPU.outerLowEdgeY = mdsInGPU.outerHighEdgeX + 3 * nMemoryLocations;
 }
 
+//#ifdef CUT_VALUE_DEBUG
+//__device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float drt, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, float dzCut, float drtCut, float miniCut, unsigned int idx)
+//#else
 __device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
+//#endif
 {
     //the index into which this MD needs to be written will be computed in the kernel
     //nMDs variable will be incremented in the kernel, no need to worry about that here
@@ -189,6 +193,12 @@ __device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& h
     mdsInGPU.noShiftedDzs[idx] = noShiftedDz;
     mdsInGPU.noShiftedDphis[idx] = noShiftedDphi;
     mdsInGPU.noShiftedDphiChanges[idx] = noShiftedDPhiChange;
+//#ifdef CUT_VALUE_DEBUG
+//    mdsInGPU.dzCuts[idx] = dzCut;
+//    mdsInGPU.drtCuts[idx] = drtCut;
+//    mdsInGPU.miniCuts[idx] = miniCut;
+//#endif
+
     mdsInGPU.anchorX[idx] = hitsInGPU.xs[anchorHitIndex];
     mdsInGPU.anchorY[idx] = hitsInGPU.ys[anchorHitIndex];
     mdsInGPU.anchorZ[idx] = hitsInGPU.zs[anchorHitIndex];
@@ -932,7 +942,11 @@ if(success)
                     unsigned int mdModuleIndex = atomicAdd(&mdsInGPU.nMDs[lowerModuleIndex],1);
                     unsigned int mdIndex = rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex] + mdModuleIndex;
 
+//#ifdef CUT_VALUE_DEBUG
+//                    addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz,drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, dzCut, drtCut, miniCut, mdIndex);
+//#else
                     addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, mdIndex);
+//#endif
                 }
 
             }

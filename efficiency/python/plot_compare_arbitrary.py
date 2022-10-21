@@ -9,14 +9,25 @@ import ROOT as r
 githash = sys.argv[1]
 refgithash = sys.argv[2]
 sample = sys.argv[3]
-if len(sys.argv) > 4:
-    runType = sys.argv[4]
+refsample = sys.argv[4]
+if len(sys.argv) > 5:
+    runType = sys.argv[5]
 else:
     runType = "unified"
-if len(sys.argv) > 5:
-    refRunType = sys.argv[5]
+if len(sys.argv) > 6:
+    refRunType = sys.argv[6]
 else:
     refRunType = "unified"
+pathname = ""
+refpathname = ""
+if len(sys.argv) > 9:
+    pathname = sys.argv[9]
+    refpathname = sys.argv[10]
+desc = ""
+refdesc = ""
+if len(sys.argv) > 11:
+    desc = sys.argv[11]
+    refdesc = sys.argv[12]
 
 r.gROOT.SetBatch(True)
 
@@ -64,30 +75,29 @@ def parse_plot_name(output_name):
 
 # Get the files to be compared
 if len(sys.argv) <= 4:
-    eff_files_cpu = glob.glob("efficiencies/eff_plots__GPU_*{}_{}/efficiencies.root".format(refgithash, sample))
+    eff_files_cpu = glob.glob("efficiencies/eff_plots__GPU_*{}_{}/efficiencies.root".format(refgithash, refsample))
 else:
-    eff_file_cpu = glob.glob("efficiencies/eff_plots__GPU_{}_{}_{}/efficiencies.root".format(refRunType, refgithash, sample))
+    eff_file_cpu = glob.glob("efficiencies/{}/eff_plots__GPU_{}_{}_{}{}/efficiencies.root".format(refpathname, refRunType, refgithash, refsample, refdesc))
 
-eff_files_gpu = glob.glob("efficiencies/eff_plots__GPU_{}_{}_{}/efficiencies.root".format(runType, githash, sample))
-
+eff_files_gpu = glob.glob("efficiencies/{}/eff_plots__GPU_{}_{}_{}{}/efficiencies.root".format(pathname, runType, githash, sample, desc))
 
 # Get cpu efficiency graph files
 cpu_file = r.TFile(eff_file_cpu[0])
 
 # Obtain the list of TGraphs to compare
 keys = [ x.GetName() for x in cpu_file.GetListOfKeys() if "Root__" not in x.GetName() ]
-# # Print for debugging
-# for key in keys:
-#     print key
+## Print for debugging
+#for key in keys:
+#    print key
 
 # List to hold the tgraphs of the CPU histograms
 cpu_tgraphs = {}
 for key in keys:
     cpu_tgraphs[key] = cpu_file.Get(key)
 
-# # Printing CPU tgraphs for debugging
-# for cpu_tgraph in cpu_tgraphs:
-#     cpu_tgraph.Print()
+## Printing CPU tgraphs for debugging
+#for cpu_tgraph in cpu_tgraphs:
+#    cpu_tgraph.Print()
 
 ms = [24, 25, 26, 27, 28, 30, 32, 42, 46, 40]
 cs = [2, 3, 4, 6, 7, 8, 9, 30, 46, 38, 40]
@@ -108,8 +118,7 @@ for key in keys:
 
 
     eff = cpu_tgraphs[key]
-    output_name = "plots/{}".format(key) + ".pdf"
-    sample_name = sample
+    output_name = "efficiencies/eff_comparison_plots__{}_{}_{}{}_{}_{}_{}{}/mtv/{}".format(sample, githash, runType, desc, refsample, refgithash, refRunType, refdesc, key) + ".pdf"
 
     c1 = r.TCanvas()
     c1.SetBottomMargin(0.15)
@@ -169,8 +178,8 @@ for key in keys:
         eff.GetXaxis().SetLimits(-4.5, 4.5)
 
     eff.SetTitle(parse_plot_name(output_name))
-    if len(sys.argv) > 5:
-        leg1.AddEntry(eff,sys.argv[6], "ep")
+    if len(sys.argv) > 6:
+        leg1.AddEntry(eff,sys.argv[8], "ep")
     # Label
     t = r.TLatex()
     t.SetTextAlign(11) # align bottom left corner of text
@@ -178,7 +187,7 @@ for key in keys:
     t.SetTextSize(0.04)
     x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
     y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.01
-    sample_name_label = "Sample: " + sample_name + "   Version tag:" + githash + "   Reference version tag: " + refgithash
+    sample_name_label = "Sample: " + sample + "   Reference sample: " + refsample + "   Version tag:" + githash + "   Reference version tag: " + refgithash
     t.DrawLatexNDC(x,y,"#scale[0.9]{#font[52]{%s}}" % sample_name_label)
 
     gpu_graphs = []
@@ -191,8 +200,7 @@ for key in keys:
         gpu_graphs[-1].SetMarkerColor(cs[ii])
         gpu_graphs[-1].SetLineColor(cs[ii])
         gpu_graphs[-1].Draw("ep")
-        if len(sys.argv) > 6:
-            leg1.AddEntry(gpu_graphs[-1], sys.argv[7], "ep")
+        leg1.AddEntry(gpu_graphs[-1], sys.argv[7], "ep")
 
     leg1.Draw()
     # Save

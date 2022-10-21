@@ -292,6 +292,7 @@ void run_sdl()
     std::vector<std::vector<float>> out_eta_vec;
     std::vector<std::vector<float>> out_etaErr_vec;
     std::vector<std::vector<float>> out_phi_vec;
+    std::vector<std::vector<float>> out_charge_vec;
     std::vector<std::vector<int>> out_superbin_vec;
     std::vector<std::vector<int8_t>> out_pixelType_vec;
     std::vector<std::vector<short>> out_isQuad_vec;
@@ -325,6 +326,7 @@ void run_sdl()
                                               out_eta_vec,
                                               out_etaErr_vec,
                                               out_phi_vec,
+                                              out_charge_vec,
                                               out_superbin_vec,
                                               out_pixelType_vec,
                                               out_isQuad_vec);
@@ -387,6 +389,7 @@ void run_sdl()
                                                            out_eta_vec.at(evt),
                                                            out_etaErr_vec.at(evt),
                                                            out_phi_vec.at(evt),
+                                                           out_charge_vec.at(evt),
                                                            out_superbin_vec.at(evt),
                                                            out_pixelType_vec.at(evt),
                                                            out_isQuad_vec.at(evt));
