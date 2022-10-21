@@ -515,8 +515,6 @@ int getDenomSimTrkType(int isimtrk)
 
 
 
-
-
 //___________________________________________________________________________________________________________________________________________________________________________________________
 float drfracSimHitConsistentWithHelix(int isimtrk, int isimhitidx)
 {
@@ -527,7 +525,7 @@ float drfracSimHitConsistentWithHelix(int isimtrk, int isimhitidx)
     float pt = trk.sim_pt()[isimtrk];
     float eta = trk.sim_eta()[isimtrk];
     float phi = trk.sim_phi()[isimtrk];
-    float charge = trk.sim_q()[isimtrk];
+    int charge = trk.sim_q()[isimtrk];
 
     // Construct helix object
     SDLMath::Helix helix(pt, eta, phi, vx, vy, vz, charge);
@@ -570,7 +568,7 @@ float distxySimHitConsistentWithHelix(int isimtrk, int isimhitidx)
     float pt = trk.sim_pt()[isimtrk];
     float eta = trk.sim_eta()[isimtrk];
     float phi = trk.sim_phi()[isimtrk];
-    float charge = trk.sim_q()[isimtrk];
+    int charge = trk.sim_q()[isimtrk];
 
     // Construct helix object
     SDLMath::Helix helix(pt, eta, phi, vx, vy, vz, charge);
@@ -865,6 +863,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
             eta_vec.push_back(eta);
             float phi = p3LH.Phi();
             phi_vec.push_back(phi);
+            charge_vec.push_back(charge);
             deltaPhi_vec.push_back(pixelSegmentDeltaPhiChange);
 
             // For matching with sim tracks
@@ -914,6 +913,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
     out_eta_vec.push_back(eta_vec);
     out_etaErr_vec.push_back(etaErr_vec);
     out_phi_vec.push_back(phi_vec);
+    out_charge_vec.push_back(charge_vec);
     out_superbin_vec.push_back(superbin_vec);
     out_pixelType_vec.push_back(pixelType_vec);
     out_isQuad_vec.push_back(isQuad_vec);
@@ -1262,7 +1262,8 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
     std::vector<float> ptErr_vec;
     std::vector<float> etaErr_vec;
     std::vector<float> eta_vec;
-    std::vector<float> phi_vec;
+    std::vector<float> phi_vec; 
+    std::vector<int> charge_vec;
     std::vector<float> deltaPhi_vec;
     std::vector<float> trkX = trk.ph2_x();
     std::vector<float> trkY = trk.ph2_y();
@@ -1277,7 +1278,6 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
 
     for (auto &&[iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
     {
-
         bool good_seed_type = false;
         if (trk.see_algo()[iSeed] == 4) good_seed_type = true;
         // if (trk.see_algo()[iSeed] == 5) good_seed_type = true;
@@ -1365,6 +1365,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             }
             // if(abs(p3PCA.Eta()) >= 2.5){continue;}
             // all continues before pushing back into vectots to avoid strange offsets in indicies.
+
             unsigned int hitIdx0 = hit_size + count;
             count++;
 
@@ -1419,6 +1420,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             etaErr_vec.push_back(etaErr);
             eta_vec.push_back(eta);
             phi_vec.push_back(phi);
+            charge_vec.push_back(charge);
             deltaPhi_vec.push_back(pixelSegmentDeltaPhiChange);
 
             // For matching with sim tracks
