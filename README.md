@@ -1,6 +1,18 @@
 # TrackLooper
 
-## Quick start guide
+## Quick Start
+
+    git clone git@github.com:SegmentLinking/TrackLooper.git
+    cd TrackLooper/
+    source setup.sh
+    # source setup_cgpu.sh # if you are on cgpu-1
+    sdl_make_tracklooper -mc8
+    sdl -i PU200 -o LSTNtuple.root
+    createPerfNumDenHists -i LSTNtuple.root -o LSTNumDen.root
+    lst_plot_performance.py LSTNumDen.root -t "myTag"
+    # python3 efficiency/python/lst_plot_performance.py LSTNumDen.root -t "myTag" # if you are on cgpu-1
+
+## Instructions
 
 Log on to phi3 or lnx7188
 Go to your working directory
