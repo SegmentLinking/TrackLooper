@@ -86,8 +86,7 @@ int main(int argc, char** argv)
     else if (ana.input_raw_string.EqualTo("pionGun"))
         ana.input_file_list_tstring = "/data2/segmentlinking/CMSSW_12_2_0_pre2/trackingNtuple_6pion_1k_pt_0p5_50.root";
     else if (ana.input_raw_string.EqualTo("PU200"))
-        ana.input_file_list_tstring = "/ceph/cms/store/user/evourlio/LST/samples/CMSSW_12_2_0_pre2/trackingNtuple_ttbar_PU200.root";
-//        ana.input_file_list_tstring = "/data2/segmentlinking/CMSSW_12_2_0_pre2/trackingNtuple_ttbar_PU200.root";
+        ana.input_file_list_tstring = "/data2/segmentlinking/CMSSW_12_2_0_pre2/trackingNtuple_ttbar_PU200.root";
     else if (ana.input_raw_string.EqualTo("PU200RelVal"))
         ana.input_file_list_tstring = "/data2/segmentlinking/CMSSW_12_5_0_pre3/RelValTTbar_14TeV_CMSSW_12_5_0_pre3/";
     else if (ana.input_raw_string.EqualTo("cube"))
