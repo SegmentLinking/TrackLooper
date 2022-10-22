@@ -84,19 +84,19 @@ fi
 # Get tag from the efficiency file
 echo "Parsing repository git hash tag..."
 PYTHON_CODE=$(cat <<END
-# python code starts here
+# python3 code starts here
 import ROOT as r
 
 f = r.TFile("${INPUTFILE}")
 t = f.Get("code_tag_data")
 t.Print("")
 
-# python code ends here
+# python3 code ends here
 END
 )
 
 # Print full info on the source code
-python -c "$PYTHON_CODE" > gitversion.txt
+python3 -c "$PYTHON_CODE" > gitversion.txt
 
 FULLTAG=$(cat gitversion.txt | head -n2 | tail -n1)
 TAG=${FULLTAG:0:7}
@@ -112,18 +112,18 @@ TAG=${TAG}${DIRTY}
 # Get input sample from the efficiency file
 echo "Parsing input sample name..."
 PYTHON_CODE=$(cat <<END
-# python code starts here
+# python3 code starts here
 import ROOT as r
 
 f = r.TFile("${INPUTFILE}")
 t = f.Get("input")
 t.Print("")
 
-# python code ends here
+# python3 code ends here
 END
 )
 
-FULLSTRSAMPLE=$(python -c "$PYTHON_CODE")
+FULLSTRSAMPLE=$(python3 -c "$PYTHON_CODE")
 SAMPLE=${FULLSTRSAMPLE//"TObjString = "/}
 
 if [[ "$SAMPLE" == *"/"* ]]; then
@@ -134,35 +134,35 @@ fi
 # Get whether it is GPU or CPU
 echo "Parsing code version..."
 PYTHON_CODE=$(cat <<END
-# python code starts here
+# python3 code starts here
 import ROOT as r
 
 f = r.TFile("${INPUTFILE}")
 t = f.Get("version")
 t.Print("")
 
-# python code ends here
+# python3 code ends here
 END
 )
 
-FULLSTRVERSION=$(python -c "$PYTHON_CODE")
+FULLSTRVERSION=$(python3 -c "$PYTHON_CODE")
 VERSION=${FULLSTRVERSION//"TObjString = "/}
 
 # Get full command line used to run the segment linking
 echo "Parsing command line used..."
 PYTHON_CODE=$(cat <<END
-# python code starts here
+# python3 code starts here
 import ROOT as r
 
 f = r.TFile("${INPUTFILE}")
 t = f.Get("full_cmd_line")
 t.Print("")
 
-# python code ends here
+# python3 code ends here
 END
 )
 
-FULLCMDLINE=$(python -c "$PYTHON_CODE")
+FULLCMDLINE=$(python3 -c "$PYTHON_CODE")
 CMDLINE=${FULLCMDLINE//"TObjString = "/}
 
 echo ${CMDLINE} > cmdline.txt

@@ -244,12 +244,12 @@ def draw_stack(nums, den, output_name, sample_name, version_tag, outputfile=None
     set_label(eff, raw_number=False)
 
     yaxis_max = 0
-    for i in xrange(0, eff.GetN()):
+    for i in range(0, eff.GetN()):
         if yaxis_max < eff.GetY()[i]:
             yaxis_max = eff.GetY()[i]
     # print yaxis_max
     yaxis_min = 999
-    for i in xrange(0, eff.GetN()):
+    for i in range(0, eff.GetN()):
         if yaxis_min > eff.GetY()[i] and eff.GetY()[i] != 0:
             yaxis_min = eff.GetY()[i]
 
@@ -405,12 +405,12 @@ def draw_ratio(num, den, output_name, sample_name, version_tag, outputfile=None)
     set_label(eff, raw_number=False)
 
     yaxis_max = 0
-    for i in xrange(0, eff.GetN()):
+    for i in range(0, eff.GetN()):
         if yaxis_max < eff.GetY()[i]:
             yaxis_max = eff.GetY()[i]
     # print yaxis_max
     yaxis_min = 999
-    for i in xrange(0, eff.GetN()):
+    for i in range(0, eff.GetN()):
         if yaxis_min > eff.GetY()[i] and eff.GetY()[i] != 0:
             yaxis_min = eff.GetY()[i]
     # print yaxis_min
