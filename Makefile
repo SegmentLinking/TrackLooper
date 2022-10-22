@@ -5,7 +5,7 @@ EXES=bin/sdl
 
 ROOUTIL=code/rooutil/
 
-SOURCES=$(wildcard code/core/*.cc) $(wildcard code/AnalysisInterface/*.cc) #$(wildcard SDL/*.cc)
+SOURCES=$(wildcard code/core/*.cc)  #$(wildcard SDL/*.cc)
 OBJECTS=$(SOURCES:.cc=.o) $(wildcard ${TRACKLOOPERDIR}/SDL/libsdl.so)
 HEADERS=$(SOURCES:.cc=.h)
 
@@ -18,11 +18,10 @@ SOFLAGS     = -g -shared
 CXXFLAGS    = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual
 LDFLAGS     = -g -O2
 ROOTLIBS    = $(shell root-config --libs)
-ROOTCFLAGS = --compiler-options -pthread --compiler-options -std=c++17 -m64 -I/cvmfs/cms.cern.ch/el8_amd64_gcc10/cms/cmssw/CMSSW_12_5_0_pre5/external/el8_amd64_gcc10/bin/../../../../../../../el8_amd64_gcc10/lcg/root/6.24.07-a31cbfc28a0c92b3c007615905b5b9b2/include
-CXXFLAGS    = $(ROOTCFLAGS) -ISDL -I$(shell pwd) -Icode -Icode/AnalysisInterface -Icode/core
-CFLAGS      = $(ROOTCFLAGS) --compiler-options -Wall --compiler-options -Wno-unused-function --compiler-options -g --compiler-options -O2 --compiler-options -fPIC --compiler-options -fno-var-tracking -ISDL -I$(shell pwd) -Icode -Icode/AnalysisInterface -Icode/core -I/mnt/data1/dsr/cub -I/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/cuda/11.5.2-c927b7e765e06433950d8a7eab9eddb4/include --compiler-options -fopenmp
+ROOTCFLAGS = $(foreach option, $(shell root-config --cflags), --compiler-options $(option))
+CFLAGS      = $(ROOTCFLAGS) --compiler-options -Wall --compiler-options -Wno-unused-function --compiler-options -g --compiler-options -O2 --compiler-options -fPIC --compiler-options -fno-var-tracking -ISDL -I$(shell pwd) -Icode  -Icode/core -I/mnt/data1/dsr/cub -I${CUDA_HOME}/include --compiler-options -fopenmp
 EXTRACFLAGS = $(shell rooutil-config)
-EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -L/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/cuda/11.5.2-c927b7e765e06433950d8a7eab9eddb4/lib64 -lcudart -fopenmp
+EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -L${CUDA_HOME}/lib64 -lcudart -fopenmp
 DOQUINTUPLET = -DFP16_Base -DFP16_dPhi #-DFP16_circle -DFP16_seg -DFP16_T5 #-DDO_QUINTUPLET #-DDO_QUADRUPLET
 PT0P8       =
 T3T3EXTENSION=
