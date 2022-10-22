@@ -39,8 +39,24 @@ int main(int argc, char** argv)
     cxxopts::Options options("\n  $ sdl", "\n         **********************\n         *                    *\n         *       Looper       *\n         *                    *\n         **********************\n");
 
     // Read the options
-    options.add_options()("m,mode", "Run mode (NOT DEFINED)", cxxopts::value<int>()->default_value("5"))("i,input", "Comma separated input file list OR if just a directory is provided it will glob all in the directory BUT must end with '/' for the path", cxxopts::value<std::string>()->default_value("muonGun"))("t,tree", "Name of the tree in the root file to open and loop over", cxxopts::value<std::string>()->default_value("trackingNtuple/tree"))("o,output", "Output file name", cxxopts::value<std::string>())("N,nmatch", "N match for MTV-like matching", cxxopts::value<int>()->default_value("9"))("n,nevents", "N events to loop over", cxxopts::value<int>()->default_value("-1"))("x,event_index", "specific event index to process", cxxopts::value<int>()->default_value("-1"))("g,pdg_id", "The simhit pdgId match option (default = 0)", cxxopts::value<int>()->default_value("0"))(
-        "v,verbose", "Verbose mode (0: no print, 1: only final timing, 2: object multiplitcity", cxxopts::value<int>()->default_value("0"))("w,write_ntuple", "Write Ntuple", cxxopts::value<int>()->default_value("1"))("s,streams", "Set number of streams (default=1)", cxxopts::value<int>()->default_value("1"))("d,debug", "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")("c,cpu", "Run CPU version of the code.")("l,lower_level", "write lower level objects ntuple results")("j,nsplit_jobs", "Enable splitting jobs by N blocks (--job_index must be set)", cxxopts::value<int>())("I,job_index", "job_index of split jobs (--nsplit_jobs must be set. index starts from 0. i.e. 0, 1, 2, 3, etc...)", cxxopts::value<int>())("h,help", "Print help");
+    options.add_options()
+        ("m,mode"            , "Run mode (NOT DEFINED)", cxxopts::value<int>()->default_value("5"))
+        ("i,input"           , "Comma separated input file list OR if just a directory is provided it will glob all in the directory BUT must end with '/' for the path", cxxopts::value<std::string>()->default_value("muonGun"))
+        ("t,tree"            , "Name of the tree in the root file to open and loop over", cxxopts::value<std::string>()->default_value("trackingNtuple/tree"))
+        ("o,output"          , "Output file name", cxxopts::value<std::string>())
+        ("N,nmatch"          , "N match for MTV-like matching", cxxopts::value<int>()->default_value("9"))
+        ("n,nevents"         , "N events to loop over", cxxopts::value<int>()->default_value("-1"))
+        ("x,event_index"     , "specific event index to process", cxxopts::value<int>()->default_value("-1"))
+        ("g,pdg_id"          , "The simhit pdgId match option (default = 0)", cxxopts::value<int>()->default_value("0"))
+        ("v,verbose"         , "Verbose mode (0: no print, 1: only final timing, 2: object multiplitcity", cxxopts::value<int>()->default_value("0"))
+        ("w,write_ntuple"    , "Write Ntuple", cxxopts::value<int>()->default_value("1"))
+        ("s,streams"         , "Set number of streams (default=1)", cxxopts::value<int>()->default_value("1"))
+        ("d,debug"           , "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")
+        ("c,cpu"             , "Run CPU version of the code.")
+        ("l,lower_level"     , "write lower level objects ntuple results")
+        ("j,nsplit_jobs"     , "Enable splitting jobs by N blocks (--job_index must be set)", cxxopts::value<int>())
+        ("I,job_index"       , "job_index of split jobs (--nsplit_jobs must be set. index starts from 0. i.e. 0, 1, 2, 3, etc...)", cxxopts::value<int>())
+        ("h,help"            , "Print help");
 
     auto result = options.parse(argc, argv);
 
@@ -77,7 +93,9 @@ int main(int argc, char** argv)
     else if (ana.input_raw_string.EqualTo("cube50cm"))
         ana.input_file_list_tstring = TString::Format("%s/trackingNtuple_10mu_pt_0p5_50_50cm_cube.root", TrackingNtupleDir.Data());
     else
+    {
         ana.input_file_list_tstring = ana.input_raw_string;
+    }
 
     //_______________________________________________________________________________
     // --tree
@@ -293,6 +311,7 @@ void run_sdl()
     std::vector<std::vector<float>> out_eta_vec;
     std::vector<std::vector<float>> out_etaErr_vec;
     std::vector<std::vector<float>> out_phi_vec;
+    std::vector<std::vector<int>> out_charge_vec;
     std::vector<std::vector<int>> out_superbin_vec;
     std::vector<std::vector<int8_t>> out_pixelType_vec;
     std::vector<std::vector<short>> out_isQuad_vec;
@@ -326,6 +345,7 @@ void run_sdl()
                                               out_eta_vec,
                                               out_etaErr_vec,
                                               out_phi_vec,
+                                              out_charge_vec,
                                               out_superbin_vec,
                                               out_pixelType_vec,
                                               out_isQuad_vec);
@@ -388,6 +408,7 @@ void run_sdl()
                                                            out_eta_vec.at(evt),
                                                            out_etaErr_vec.at(evt),
                                                            out_phi_vec.at(evt),
+                                                           out_charge_vec.at(evt),
                                                            out_superbin_vec.at(evt),
                                                            out_pixelType_vec.at(evt),
                                                            out_isQuad_vec.at(evt));

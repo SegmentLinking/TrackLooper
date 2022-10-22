@@ -65,6 +65,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
                                            std::vector<std::vector<float>> &out_eta_vec,
                                            std::vector<std::vector<float>> &out_etaErr_vec,
                                            std::vector<std::vector<float>> &out_phi_vec,
+                                           std::vector<std::vector<int>> &out_charge_vec,
                                            std::vector<std::vector<int>> &out_superbin_vec,
                                            std::vector<std::vector<int8_t>> &out_pixelType_vec,
                                            std::vector<std::vector<short>> &out_isQuad_vec);
@@ -89,6 +90,7 @@ float addInputsToEventPreLoad(SDL::Event *event,
                               std::vector<float> eta_vec,
                               std::vector<float> etaErr_vec,
                               std::vector<float> phi_vec,
+                              std::vector<int> charge_vec,
                               std::vector<int> superbin_vec,
                               std::vector<int8_t> pixelType_vec,
                               std::vector<short> isQuad_vec);

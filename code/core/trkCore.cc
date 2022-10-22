@@ -648,6 +648,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
                                            std::vector<std::vector<float>> &out_eta_vec,
                                            std::vector<std::vector<float>> &out_etaErr_vec,
                                            std::vector<std::vector<float>> &out_phi_vec,
+                                           std::vector<std::vector<int>> &out_charge_vec,
                                            std::vector<std::vector<int>> &out_superbin_vec,
                                            std::vector<std::vector<int8_t>> &out_pixelType_vec,
                                            std::vector<std::vector<short>> &out_isQuad_vec)
@@ -679,6 +680,8 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
     eta_vec.reserve(n_see);
     std::vector<float> phi_vec;
     phi_vec.reserve(n_see);
+    std::vector<int> charge_vec;
+    charge_vec.reserve(n_see);
     std::vector<float> deltaPhi_vec;
     deltaPhi_vec.reserve(n_see);
     std::vector<float> trkX = trk.ph2_x();
@@ -742,47 +745,18 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
             TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
             TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
             TVector3 r3PCA(calculateR3FromPCA(p3PCA, trk.see_dxy()[iSeed], trk.see_dz()[iSeed]));
-            // auto const &seedHitsV = trk.see_hitIdx()[iSeed];
-            // auto const &seedHitTypesV = trk.see_hitType()[iSeed];
-
-            // int nHits = seedHitsV.size();
-
-            // int seedSD_mdRef_pixL = trk.see_hitIdx()[iSeed][0];
-            // int seedSD_mdRef_pixU = trk.see_hitIdx()[iSeed][1];
             TVector3 seedSD_mdRef_r3 = r3PCA;
-            // float seedSD_mdRef_rt = r3PCA.Pt();
-            // float seedSD_mdRef_z = r3PCA.Z();
-            // float seedSD_mdRef_r = r3PCA.Mag();
-            // float seedSD_mdRef_phi = r3PCA.Phi();
-            // float seedSD_mdRef_alpha = r3PCA.DeltaPhi(p3PCA);
-
-            // int seedSD_mdOut_pixL = trk.see_hitIdx()[iSeed][2];
-            // int seedSD_mdOut_pixU = trk.see_hitIdx()[iSeed][3];
             TVector3 seedSD_mdOut_r3 = r3LH;
-            // float seedSD_mdOut_rt = r3LH.Pt();
-            // float seedSD_mdOut_z = r3LH.Z();
-            // float seedSD_mdOut_r = r3LH.Mag();
-            // float seedSD_mdOut_phi = r3LH.Phi();
-            // float seedSD_mdOut_alpha = r3LH.DeltaPhi(p3LH);
-
-            // float seedSD_iRef = iSeed;
-            // float seedSD_iOut = iSeed;
             TVector3 seedSD_r3 = r3LH;
-            // float seedSD_rt = r3LH.Pt();
-            // float seedSD_rtInv = 1.f / seedSD_rt;
-            // float seedSD_z = seedSD_r3.Z();
             TVector3 seedSD_p3 = p3LH;
-            // float seedSD_alpha = r3LH.DeltaPhi(p3LH);
-            // float seedSD_dr = (r3LH - r3PCA).Pt();
-            // float seedSD_d = seedSD_rt - r3PCA.Pt();
-            // float seedSD_zeta = seedSD_p3.Pt() / seedSD_p3.Z();
 
             float pixelSegmentDeltaPhiChange = r3LH.DeltaPhi(p3LH);
             float etaErr = trk.see_etaErr()[iSeed];
             float px = p3LH.X();
             float py = p3LH.Y();
             float pz = p3LH.Z();
-            // extra bit
+            int charge = trk.see_q()[iSeed];
+
             // get pixel superbin
             // int ptbin = -1;
             int pixtype = -1;
@@ -806,8 +780,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
             {
                 continue;
             }
-            // if(abs(p3PCA.Eta()) >= 2.5){continue;}
-            // all continues before pushing back into vectots to avoid strange offsets in indicies.
+
             unsigned int hitIdx0 = hit_size + count;
             count++;
 
@@ -892,9 +865,6 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
 
     } // iter::enumerate(trk.see_stateTrajGlbPx
 
-    //    event.addHitToEvent(trkX, trkY, trkZ, hitId,hitIdxs); // TODO : Need to fix the hitIdxs
-    //    event.addPixelSegmentToEvent(hitIndices_vec0, hitIndices_vec1, hitIndices_vec2, hitIndices_vec3, deltaPhi_vec, ptIn_vec, ptErr_vec, px_vec, py_vec, pz_vec, eta_vec, etaErr_vec, phi_vec, superbin_vec, pixelType_vec,isQuad_vec);
-
     out_trkX.push_back(trkX);
     out_trkY.push_back(trkY);
     out_trkZ.push_back(trkZ);
@@ -944,6 +914,7 @@ float addInputsToEventPreLoad(SDL::Event* event,
                               std::vector<float> eta_vec,
                               std::vector<float> etaErr_vec,
                               std::vector<float> phi_vec,
+                              std::vector<int> charge_vec,
                               std::vector<int> superbin_vec,
                               std::vector<int8_t> pixelType_vec,
                               std::vector<short> isQuad_vec)
@@ -970,6 +941,7 @@ float addInputsToEventPreLoad(SDL::Event* event,
                                   eta_vec,
                                   etaErr_vec,
                                   phi_vec,
+                                  charge_vec,
                                   superbin_vec,
                                   pixelType_vec,
                                   isQuad_vec);
@@ -1338,6 +1310,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             float py = p3LH.Y();
             float pz = p3LH.Z();
             float phi = p3LH.Phi();
+            int charge = trk.see_q()[iSeed];
             // extra bit
 
             // get pixel superbin
@@ -1363,8 +1336,6 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             {
                 continue;
             }
-            // if(abs(p3PCA.Eta()) >= 2.5){continue;}
-            // all continues before pushing back into vectots to avoid strange offsets in indicies.
 
             unsigned int hitIdx0 = hit_size + count;
             count++;
@@ -1462,6 +1433,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
                                  eta_vec,
                                  etaErr_vec,
                                  phi_vec,
+                                 charge_vec,
                                  superbin_vec,
                                  pixelType_vec,
                                  isQuad_vec);
