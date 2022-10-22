@@ -90,7 +90,7 @@ float addInputsToEventPreLoad(SDL::Event *event,
                               std::vector<float> eta_vec,
                               std::vector<float> etaErr_vec,
                               std::vector<float> phi_vec,
-                              std::vector<float> charge_vec,
+                              std::vector<int> charge_vec,
                               std::vector<int> superbin_vec,
                               std::vector<int8_t> pixelType_vec,
                               std::vector<short> isQuad_vec);
