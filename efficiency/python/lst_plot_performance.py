@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/bin/env python3
 
 import argparse
 import ROOT as r
@@ -101,9 +101,9 @@ def plot(args):
         params["denom"] = "Root__{objecttype}_{metricsuffix}_denom_{variable}".format(**params)
         params["numer"] = "Root__{objecttype}_{metricsuffix}_numer_{variable}".format(**params)
 
-    print(params["numer"])
-    print(params["denom"])
-    print(params["output_name"])
+    # print(params["numer"])
+    # print(params["denom"])
+    # print(params["output_name"])
 
     # Denom histogram
     denom = []
@@ -310,7 +310,7 @@ def draw_ratio(nums, dens, params):
         teffs.append(teff)
         effs.append(eff)
 
-    print(effs)
+    # print(effs)
 
     # 
     hist_name_suffix = ""
@@ -513,8 +513,8 @@ def draw_plot(effs, nums, dens, params):
         c1.SetLogx()
 
     # Set title
-    print(output_name)
-    print(parse_plot_name(output_name))
+    # print(output_name)
+    # print(parse_plot_name(output_name))
     effs[0].SetTitle(parse_plot_name(output_name))
 
     # Draw the efficiency graphs
@@ -542,13 +542,13 @@ def draw_plot(effs, nums, dens, params):
 
     # Compute the yaxis_max
     yaxis_max = 0
-    for i in xrange(0, effs[0].GetN()):
+    for i in range(0, effs[0].GetN()):
         if yaxis_max < effs[0].GetY()[i]:
             yaxis_max = effs[0].GetY()[i]
 
     # Compute the yaxis_min
     yaxis_min = 999
-    for i in xrange(0, effs[0].GetN()):
+    for i in range(0, effs[0].GetN()):
         if yaxis_min > effs[0].GetY()[i] and effs[0].GetY()[i] != 0:
             yaxis_min = effs[0].GetY()[i]
 
