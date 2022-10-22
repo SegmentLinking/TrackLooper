@@ -519,7 +519,7 @@ def draw_plot(effs, nums, dens, params):
 
     # Draw the efficiency graphs
     colors = [1, 2, 3, 4, 6]
-    markerstyles = [19, 26, 28, 24, 27]
+    markerstyles = [20, 26, 28, 24, 27]
     markersize = 1.2
     linewidth = 2
     for i, eff in enumerate(effs):
