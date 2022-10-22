@@ -11,7 +11,7 @@ void loadMaps()
     TString tilted_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/tilted_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data());
     TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir.Data()).Data());
     TString centroid = get_absolute_path_after_check_file_exists(TString::Format("%s/data/centroid_CMSSW_12_2_0_pre2.txt", gSystem->Getenv("TRACKLOOPERDIR")).Data()).Data();
-    TString pLSMapDir = "/data2/segmentlinking/pixelmap_CMSSW_12_2_0_pre2_0p8minPt";
+    TString pLSMapDir = TrackLooperDir+"/data/pixelmaps_CMSSW_12_2_0_pre2_0p8minPt";
 
     std::cout << "============ CMSSW_12_2_0_pre2 geometry ===========" << std::endl;
     std::cout << "endcap geometry: " << endcap_geom << std::endl;
