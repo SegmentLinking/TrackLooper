@@ -46,6 +46,11 @@ Plotting numerators and denominators of performance plots
 Plotting performance plots
 
     lst_plot_performance.py num_den_hist.root -t "mywork"
+
+When running on ```cgpu-1``` remember to specify python3 as there is no python.
+The shebang on the ```lst_plot_performance.py``` is not updated as ```lnx7188``` works with python2....
+
+    python3 efficiency/python/lst_plot_performance.py num_den_hist.root -t "mywork" # If running on cgpu-1
                                                                                                                                                            
 Comparing two different runs
 
