@@ -466,7 +466,7 @@ int getDenomSimTrkType(int isimtrk)
     if (q == 0) return 1; // sim
     const float &pt = trk.sim_pt()[isimtrk];
     const float &eta = trk.sim_eta()[isimtrk];
-    if (pt < 1 or abs(eta) > 2.4) return 2; // sim and charged
+    if (pt < 0.9 or abs(eta) > 4.5) return 2; // sim and charged
     const int &bunch = trk.sim_bunchCrossing()[isimtrk];
     const int &event = trk.sim_event()[isimtrk];
     const int &vtxIdx = trk.sim_parentVtxIdx()[isimtrk];
@@ -479,6 +479,21 @@ int getDenomSimTrkType(int isimtrk)
     if (bunch != 0) return 5; // pt > 1 and abs(eta) < 2.4 and vtx < 2.5 and vtx < 300
     if (event != 0) return 6; // pt > 1 and abs(eta) < 2.4 and vtx 2.5/30 and bunch == 0
     return 7; // pt > 1 and abs(eta) < 2.4 and vtx 2.5/30 and bunch == 0 and event == 0
+}
+
+//__________________________________________________________________________________________
+int getDenomSimTrkType(std::vector<int> simidxs)
+{
+    int type = 0;
+    for (auto& simidx : simidxs)
+    {
+        int this_type = getDenomSimTrkType(simidx);
+        if (this_type > type)
+        {
+            type = this_type;
+        }
+    }
+    return type;
 }
 
 

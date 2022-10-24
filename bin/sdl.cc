@@ -54,6 +54,7 @@ int main(int argc, char** argv)
         ("d,debug"           , "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")
         ("c,cpu"             , "Run CPU version of the code.")
         ("l,lower_level"     , "write lower level objects ntuple results")
+        ("G,gnn_ntuple"      , "write gnn input variable ntuple")
         ("j,nsplit_jobs"     , "Enable splitting jobs by N blocks (--job_index must be set)", cxxopts::value<int>())
         ("I,job_index"       , "job_index of split jobs (--nsplit_jobs must be set. index starts from 0. i.e. 0, 1, 2, 3, etc...)", cxxopts::value<int>())
         ("h,help"            , "Print help");
@@ -240,6 +241,17 @@ int main(int argc, char** argv)
         ana.do_lower_level = false;
     }
 
+    //_______________________________________________________________________________
+    // --gnn_ntuple
+    if (result.count("gnn_ntuple"))
+    {
+        ana.gnn_ntuple = true;
+    }
+    else
+    {
+        ana.gnn_ntuple = false;
+    }
+
     // Printing out the option settings overview
     std::cout << "=========================================================" << std::endl;
     std::cout << " Setting of the analysis job based on provided arguments " << std::endl;
@@ -292,6 +304,11 @@ void run_sdl()
     {
         createOutputBranches();
     }
+    if (ana.gnn_ntuple)
+    {
+        createGnnNtupleBranches();
+    }
+
 
     std::vector<std::vector<float>> out_trkX;
     std::vector<std::vector<float>> out_trkY;
@@ -449,7 +466,7 @@ void run_sdl()
                 }
             }
 
-            if (ana.do_write_ntuple)
+            if (ana.do_write_ntuple or ana.gnn_ntuple)
             {
                 #pragma omp critical
                 {
@@ -479,7 +496,7 @@ void run_sdl()
 
     SDL::cleanModules();
 
-    if (ana.do_write_ntuple)
+    if (ana.do_write_ntuple or ana.gnn_ntuple)
     {
         // Writing ttree output to file
         ana.output_tfile->cd();
