@@ -5,9 +5,9 @@
 ###########################################################################################################
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/code/rooutil/thisrooutil.sh
-export SCRAM_ARCH=slc7_amd64_gcc900
-export CMSSW_VERSION=CMSSW_11_2_0_pre5
-export CUDA_HOME=/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/
+export SCRAM_ARCH=slc7_amd64_gcc10
+export CMSSW_VERSION=CMSSW_12_2_0
+export CUDA_HOME=/cvmfs/cms.cern.ch/$SCRAM_ARCH/external/cuda/11.4.2-864c6f2b69c45d38c6bc065b93a6ed8f
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 cd /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/cmssw/$CMSSW_VERSION/src
 eval `scramv1 runtime -sh`
