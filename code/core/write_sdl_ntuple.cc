@@ -213,6 +213,20 @@ void fillGnnNtupleBranches(SDL::Event* event)
     SDL::modules& modulesInGPU = (*event->getModules());
     SDL::objectRanges& rangesInGPU = (*event->getRanges());
 
+    std::set<unsigned int> mds_used_in_sg;
+
+    // Loop over modules (lower ones where the MDs are saved)
+    unsigned int nTotalMD = 0;
+    unsigned int nTotalLS = 0;
+    for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); ++idx)
+    {
+        nTotalMD += miniDoubletsInGPU.nMDs[idx];
+        nTotalLS += segmentsInGPU.nSegments[idx];
+    }
+
+    std::cout <<  " nTotalMD: " << nTotalMD <<  std::endl;
+    std::cout <<  " nTotalLS: " << nTotalLS <<  std::endl;
+
     // Loop over modules (lower ones where the MDs are saved)
     for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); ++idx)
     {
@@ -284,7 +298,7 @@ void fillGnnNtupleBranches(SDL::Event* event)
         }
 
         // Loop over segments
-        for (unsigned int jdx = 0; jdx < segmentsInGPU.nMDs[idx]; jdx++)
+        for (unsigned int jdx = 0; jdx < segmentsInGPU.nSegments[idx]; jdx++)
         {
             // Get the actual index to the segments using rangesInGPU
             unsigned int sgIdx = rangesInGPU.segmentModuleIndices[idx] + jdx;
@@ -292,6 +306,21 @@ void fillGnnNtupleBranches(SDL::Event* event)
             // Get the hit indices
             unsigned int md0 = segmentsInGPU.mdIndices[2 * sgIdx];
             unsigned int md1 = segmentsInGPU.mdIndices[2 * sgIdx + 1];
+
+            if (mds_used_in_sg.find(md0) == mds_used_in_sg.end())
+            {
+                mds_used_in_sg.insert(md0);
+            }
+
+            if (mds_used_in_sg.find(md1) == mds_used_in_sg.end())
+            {
+                mds_used_in_sg.insert(md1);
+            }
+
+            // if (std::find(mds_used_in_sg.begin(), mds_used_in_sg.end(), md1) == mds_used_in_sg.end())
+            // {
+            //     mds_used_in_sg.push_back(md1);
+            // }
 
             // // Get the hit infos
             // const float hit0_x = hitsInGPU.xs[hit0];
@@ -349,8 +378,12 @@ void fillGnnNtupleBranches(SDL::Event* event)
             // ana.tx->pushbackToBranch<float>("MD_1_y", hit1_y);
             // ana.tx->pushbackToBranch<float>("MD_1_z", hit1_z);
         }
-
     }
+
+    std::cout <<  " mds_used_in_sg.size(): " << mds_used_in_sg.size() <<  std::endl;
+
+    // std::cout <<  " ana.tx->getBranchLazy<vector<float>>('MD_pt').size(): " << ana.tx->getBranchLazy<vector<float>>("MD_pt").size() <<  std::endl;
+    // std::cout <<  " mds_used_in_sg.size(): " << mds_used_in_sg.size() <<  std::endl;
 }
 
 
