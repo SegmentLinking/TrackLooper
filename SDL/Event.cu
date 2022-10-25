@@ -1959,10 +1959,9 @@ SDL::quintuplets* SDL::Event::getQuintuplets()
         quintupletsInCPU->eta = new FPX[nMemoryLocations];
         quintupletsInCPU->phi = new FPX[nMemoryLocations];
 
-        quintupletsInCPU->rzChiSquared = new float[nMemoryLocations];
         quintupletsInCPU->chiSquared = new float[nMemoryLocations];
         quintupletsInCPU->nonAnchorChiSquared = new float[nMemoryLocations];
-
+        quintupletsInCPU->rzChiSquared = new float[nMemoryLocations];
 
         cudaMemcpyAsync(quintupletsInCPU->nQuintuplets, quintupletsInGPU->nQuintuplets,  nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(quintupletsInCPU->totOccupancyQuintuplets, quintupletsInGPU->totOccupancyQuintuplets,  nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);

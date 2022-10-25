@@ -283,7 +283,8 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     pass = pass and runQuintupletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex4, lowerModuleIndex5, firstSegmentIndex, fourthSegmentIndex, firstMDIndex, secondMDIndex, fourthMDIndex, fifthMDIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
     if(not pass) return pass;
 
-    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5);
+    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared);
+
     if(not pass) return pass;
 
     float x1 = mdsInGPU.anchorX[firstMDIndex];
@@ -517,13 +518,13 @@ __device__ bool SDL::passChiSquaredConstraint(struct SDL::modules& modulesInGPU,
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4)
     {
-        if(layer5 == 12)
-        {
-            return chiSquared < 0.09461f;
-        }
-        else if(layer5 == 5)
+        if(layer5 == 5)
         {
             return chiSquared < 0.04725f;
+        }
+        else if(layer5 == 12)
+        {
+            return chiSquared < 0.09461f;
         }
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
@@ -554,17 +555,17 @@ __device__ bool SDL::passChiSquaredConstraint(struct SDL::modules& modulesInGPU,
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
-        if(layer4 == 12 and layer5 == 13)
+        if(layer4 == 5 and layer5 == 6)
         {
-            return chiSquared < 0.10870f;
+            return chiSquared < 0.08234f;
         }
         else if(layer4 == 5 and layer5 == 12)
         {
             return chiSquared < 0.10870f;
         }
-        else if(layer4 == 5 and layer5 == 6)
+        else if(layer4 == 12 and layer5 == 13)
         {
-            return chiSquared < 0.08234f;
+            return chiSquared < 0.10870f;
         }
     }
     else if(layer1 == 3 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
@@ -580,7 +581,7 @@ __device__ bool SDL::passChiSquaredConstraint(struct SDL::modules& modulesInGPU,
 }
 
 //bounds can be found at http://uaf-10.t2.ucsd.edu/~bsathian/SDL/T5_RZFix/t5_rz_thresholds.txt
-__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5) 
+__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared) 
 {
     const float& rt1 = mdsInGPU.anchorRt[firstMDIndex];
     const float& rt2 = mdsInGPU.anchorRt[secondMDIndex];
@@ -626,7 +627,7 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     residual5 = (moduleLayer5 == 0) ? residual5/2.4f : residual5/5.0f;
 
     const float RMSE = sqrtf(0.5 * (residual4 * residual4 + residual5 * residual5));
-
+    rzChiSquared = RMSE;
     //categories!
     if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
