@@ -191,6 +191,7 @@ SDL::Event::~Event()
         delete[] quintupletsInCPU->outerRadiusMax2S;
         delete[] quintupletsInCPU->chiSquared;
         delete[] quintupletsInCPU->nonAnchorChiSquared;
+        delete[] quintupletsInCPU->rzChiSquared;
 #endif
         delete quintupletsInCPU;
     }
@@ -2360,6 +2361,7 @@ SDL::quintuplets* SDL::Event::getQuintuplets()
         quintupletsInCPU->outerRadiusMax2S = new float[nMemoryLocations];
         quintupletsInCPU->chiSquared = new float[nMemoryLocations];
         quintupletsInCPU->nonAnchorChiSquared = new float[nMemoryLocations];
+        quintupletsInCPU->rzChiSquared = new float[nMemoryLocations];
 
         cudaMemcpyAsync(quintupletsInCPU->innerRadiusMin, quintupletsInGPU->innerRadiusMin, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
         cudaMemcpyAsync(quintupletsInCPU->innerRadiusMax, quintupletsInGPU->innerRadiusMax, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
@@ -2374,6 +2376,7 @@ SDL::quintuplets* SDL::Event::getQuintuplets()
         cudaMemcpyAsync(quintupletsInCPU->outerRadiusMax2S, quintupletsInGPU->outerRadiusMax2S, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
         cudaMemcpyAsync(quintupletsInCPU->chiSquared, quintupletsInGPU->chiSquared, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
         cudaMemcpyAsync(quintupletsInCPU->nonAnchorChiSquared, quintupletsInGPU->nonAnchorChiSquared, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->rzChiSquared, quintupletsInGPU->rzChiSquared, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
 #endif
         cudaMemcpyAsync(quintupletsInCPU->nQuintuplets, quintupletsInGPU->nQuintuplets,  nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(quintupletsInCPU->totOccupancyQuintuplets, quintupletsInGPU->totOccupancyQuintuplets,  nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);

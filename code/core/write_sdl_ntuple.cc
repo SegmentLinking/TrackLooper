@@ -260,10 +260,6 @@ void createLowerLevelOutputBranches()
     ana.tx->createBranch<vector<int>>("MDa_side");
     ana.tx->createBranch<vector<int>>("MDa_detId");
 
-    // ana.tx->createBranch<vector<float>>("good_MD_x");
-    // ana.tx->createBranch<vector<float>>("good_MD_y");
-    // ana.tx->createBranch<vector<float>>("good_MD_z");
-
     ana.tx->createBranch<vector<int>>("sim_MD1_matched");
     ana.tx->createBranch<vector<int>>("sim_MD2_matched");
     ana.tx->createBranch<vector<int>>("sim_MD3_matched");
@@ -352,6 +348,7 @@ void createQuintupletCutValueBranches()
     ana.tx->createBranch<vector<int>>("t5_moduleType_binary");
     ana.tx->createBranch<vector<float>>("t5_chiSquared");
     ana.tx->createBranch<vector<float>>("t5_nonAnchorChiSquared");
+    ana.tx->createBranch<vector<float>>("t5_rzChiSquared");
 }
 
 void createPixelQuintupletCutValueBranches()
@@ -893,12 +890,6 @@ void fillSimTrackOutputBranches()
 
     //const auto simHitIdxs = &trk.sim_simHitIdx();
     const auto simHitLays = &trk.simhit_layer();
-        //count++;
-        //if(hit.size() ==0){continue;}
-        //printf("size: %d\n",hit.size());
-        //for(auto lay: hit){
-        //  printf("%d\n",simHitLays->at(lay));
-        //}
     std::vector<float> sim_len;
     std::vector<float> sim_lengap;
     std::vector<float> sim_hits;
@@ -2522,6 +2513,7 @@ void fillQuintupletOutputBranches(SDL::Event* event)
     std::vector<std::vector<float>> t5_simpt;
     std::vector<float> t5_chiSquared;
     std::vector<float> t5_nonAnchorChiSquared;
+    std::vector<float> t5_rzChiSquared;
     std::vector<int> layer_binaries;
     std::vector<int> moduleType_binaries;
 #endif
@@ -2572,6 +2564,7 @@ void fillQuintupletOutputBranches(SDL::Event* event)
 
             t5_chiSquared.push_back(quintupletsInGPU.chiSquared[quintupletIndex]);
             t5_nonAnchorChiSquared.push_back(quintupletsInGPU.nonAnchorChiSquared[quintupletIndex]);
+            t5_rzChiSquared.push_back(quintupletsInGPU.rzChiSquared[quintupletIndex]);
 #endif
 
             unsigned int innerTripletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex];
@@ -2759,6 +2752,7 @@ void fillQuintupletOutputBranches(SDL::Event* event)
     ana.tx->setBranch<vector<float>>("t5_outerInvRadiusMin2S",t5_outerRadiusMin2S);
     ana.tx->setBranch<vector<float>>("t5_outerInvRadiusMax2S",t5_outerRadiusMax2S);
     ana.tx->setBranch<vector<float>>("t5_chiSquared", t5_chiSquared);
+    ana.tx->setBranch<vector<float>>("t5_rzChiSquared", t5_rzChiSquared); 
     ana.tx->setBranch<vector<float>>("t5_nonAnchorChiSquared", t5_nonAnchorChiSquared);
 
     ana.tx->setBranch<vector<float>>("t5_innerRadius",t5_innerRadius);
