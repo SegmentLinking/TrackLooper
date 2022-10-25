@@ -2483,6 +2483,7 @@ SDL::trackCandidates* SDL::Event::getTrackCandidates()
         cudaStreamSynchronize(stream);
         unsigned int nTrackCandidates = *(trackCandidatesInCPU->nTrackCandidates);
 
+        trackCandidatesInCPU->directObjectIndices = new unsigned int[nTrackCandidates];
         trackCandidatesInCPU->objectIndices = new unsigned int[2 * nTrackCandidates];
         trackCandidatesInCPU->trackCandidateType = new short[nTrackCandidates];
         trackCandidatesInCPU->partOfExtension = new bool[nTrackCandidates];
@@ -2492,6 +2493,7 @@ SDL::trackCandidates* SDL::Event::getTrackCandidates()
         cudaMemcpyAsync(trackCandidatesInCPU->partOfExtension, trackCandidatesInGPU->partOfExtension, nTrackCandidates * sizeof(bool), cudaMemcpyDeviceToHost, stream);
         cudaMemcpyAsync(trackCandidatesInCPU->hitIndices, trackCandidatesInGPU->hitIndices, 14 * nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
         cudaMemcpyAsync(trackCandidatesInCPU->logicalLayers, trackCandidatesInGPU->logicalLayers, 7 * nTrackCandidates * sizeof(uint8_t), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(trackCandidatesInCPU->directObjectIndices, trackCandidatesInGPU->directObjectIndices, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);                                                                                    
         cudaMemcpyAsync(trackCandidatesInCPU->objectIndices, trackCandidatesInGPU->objectIndices, 2 * nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);                                                                                    
         cudaMemcpyAsync(trackCandidatesInCPU->trackCandidateType, trackCandidatesInGPU->trackCandidateType, nTrackCandidates * sizeof(short), cudaMemcpyDeviceToHost,stream);                                                                                                                
         cudaStreamSynchronize(stream);
@@ -2637,54 +2639,3 @@ SDL::trackExtensions* SDL::Event::getTrackExtensions()
    return trackExtensionsInCPU;
 }
 
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::Event::getT3sFromT5(unsigned int T5Idx)
-{
-    SDL::quintuplets& quintuplets_ = *(this->getQuintuplets());
-    unsigned int T3_1 = quintuplets_.tripletIndices[2 * T5Idx];
-    unsigned int T3_2 = quintuplets_.tripletIndices[2 * T5Idx + 1];
-    return {T3_1, T3_2};
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::Event::getLSsFromT5(unsigned int T5Idx)
-{
-    SDL::triplets& triplets_ = *(this->getTriplets());
-    std::vector<unsigned int> T3Idxs = getT3sFromT5(T5Idx);
-    unsigned int LS_1 = triplets_.segmentIndices[2 * T3Idxs[0]];
-    unsigned int LS_2 = triplets_.segmentIndices[2 * T3Idxs[0] + 1];
-    unsigned int LS_3 = triplets_.segmentIndices[2 * T3Idxs[1]];
-    unsigned int LS_4 = triplets_.segmentIndices[2 * T3Idxs[1] + 1];
-    return {LS_1, LS_2, LS_3, LS_4};
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::Event::getMDsFromT5(unsigned int T5Idx)
-{
-    SDL::segments& segments_ = *(this->getSegments());
-    std::vector<unsigned int> LSIdxs = getLSsFromT5(T5Idx);
-    unsigned int MD_1 = segments_.mdIndices[2 * LSIdxs[0]];
-    unsigned int MD_2 = segments_.mdIndices[2 * LSIdxs[1]];
-    unsigned int MD_3 = segments_.mdIndices[2 * LSIdxs[2]];
-    unsigned int MD_4 = segments_.mdIndices[2 * LSIdxs[3]];
-    unsigned int MD_5 = segments_.mdIndices[2 * LSIdxs[3] + 1];
-    return {MD_1, MD_2, MD_3, MD_4, MD_5};
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::Event::getHitsFromT5(unsigned int T5Idx)
-{
-    SDL::miniDoublets& miniDoublets_ = *(this->getMiniDoublets());
-    std::vector<unsigned int> MDIdxs = getMDsFromT5(T5Idx);
-    unsigned int Hit_1  = miniDoublets_.anchorHitIndices[MDIdxs[0]];
-    unsigned int Hit_2  = miniDoublets_.outerHitIndices [MDIdxs[0]];
-    unsigned int Hit_3  = miniDoublets_.anchorHitIndices[MDIdxs[1]];
-    unsigned int Hit_4  = miniDoublets_.outerHitIndices [MDIdxs[1]];
-    unsigned int Hit_5  = miniDoublets_.anchorHitIndices[MDIdxs[2]];
-    unsigned int Hit_6  = miniDoublets_.outerHitIndices [MDIdxs[2]];
-    unsigned int Hit_7  = miniDoublets_.anchorHitIndices[MDIdxs[3]];
-    unsigned int Hit_8  = miniDoublets_.outerHitIndices [MDIdxs[3]];
-    unsigned int Hit_9  = miniDoublets_.anchorHitIndices[MDIdxs[4]];
-    unsigned int Hit_10 = miniDoublets_.outerHitIndices [MDIdxs[4]];
-    return {Hit_1, Hit_2, Hit_3, Hit_4, Hit_5, Hit_6, Hit_7, Hit_8, Hit_9, Hit_10};
-}
