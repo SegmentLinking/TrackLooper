@@ -164,6 +164,11 @@ namespace SDL
         modules* getFullModules();
         pixelQuintuplets* getPixelQuintuplets();
 
+        std::vector<unsigned int> getT3sFromT5(unsigned int T5);
+        std::vector<unsigned int> getLSsFromT5(unsigned int T5);
+        std::vector<unsigned int> getMDsFromT5(unsigned int T5);
+        std::vector<unsigned int> getHitsFromT5(unsigned int T5);
+
     };
 
     //global stuff
