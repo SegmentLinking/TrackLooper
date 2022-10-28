@@ -90,8 +90,8 @@ namespace SDL
     void printSegment(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int segmentIndex);
     ALPAKA_FN_ACC float moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex);
     
-    ALPAKA_FN_ACC extern inline float isTighterTiltedModules_seg(struct modules& modulesInGPU, unsigned int moduleIndex);
-    ALPAKA_FN_ACC inline float isTighterTiltedModules_seg(short subdet, short layer, short side, short rod);
+    ALPAKA_FN_ACC extern ALPAKA_FN_INLINE float isTighterTiltedModules_seg(struct modules& modulesInGPU, unsigned int moduleIndex);
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE float isTighterTiltedModules_seg(short subdet, short layer, short side, short rod);
 
     ALPAKA_FN_ACC float moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex);
     ALPAKA_FN_ACC float moduleGapSize_seg(short layer, short ring, short subdet, short side, short rod);
