@@ -1,8 +1,6 @@
 #ifndef MiniDoublet_cuh
 #define MiniDoublet_cuh
 
-#include <alpaka/alpaka.hpp>
-
 #include <array>
 #include <tuple>
 #include <cmath>
