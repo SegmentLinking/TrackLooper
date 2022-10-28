@@ -23,7 +23,6 @@
 #include "Quintuplet.cuh"
 #include "PixelTriplet.cuh"
 #include "Constants.cuh"
-#include <alpaka/alpaka.hpp>
 
 #include <alpaka/alpaka.hpp>
 #include "cuda_profiler_api.h"
