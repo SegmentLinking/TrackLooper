@@ -245,10 +245,15 @@ def process_arguments_into_params(args):
         params["comp_labels"] = args.comp_labels.split(",")
 
     # process tags
+    tag_ = os.path.normpath(args.tag)
+    bn = os.path.basename(tag_)
+    dn = os.path.dirname(tag_)
+    params["tagbase"] = bn
+    params["tagdir"] = dn
     params["tag"] = args.tag
 
     # Create output_dir
-    params["output_dir"] = "performance/{tag}_{git_hash}-{sample_name}".format(**params)
+    params["output_dir"] = os.path.normpath("performance/{tagdir}/{tagbase}_{git_hash}-{sample_name}".format(**params))
     if params["compare"]:
         for gg, ii in zip(params["additional_git_hashes"], params["additional_sample_names"]):
             params["output_dir"] += "_{}-{}".format(gg, ii)
