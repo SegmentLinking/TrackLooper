@@ -2,9 +2,6 @@
 #define PixelTriplet_cuh
 
 #include <alpaka/alpaka.hpp>
-#ifdef __CUDACC__
-#else
-#endif
 
 #include "Constants.cuh"
 #include "EndcapGeometry.cuh"
