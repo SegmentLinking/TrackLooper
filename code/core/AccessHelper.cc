@@ -1,5 +1,27 @@
 #include "AccessHelper.h"
 
+
+// ===============
+// ----* Hit *----
+// ===============
+
+//____________________________________________________________________________________________
+std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> convertHitsToHitIdxsAndHitTypes(SDL::Event* event, std::vector<unsigned int> hits)
+{
+    SDL::hits& hitsInGPU = *(event->getHits());
+    std::vector<unsigned int> hitidxs;
+    std::vector<unsigned int> hittypes;
+    for (auto& hit : hits)
+    {
+        hitidxs.push_back(hitsInGPU.idxs[hit]);
+        if (hitsInGPU.detid[hit] == 1)
+            hittypes.push_back(0);
+        else
+            hittypes.push_back(4);
+    }
+    return std::make_tuple(hitidxs, hittypes);
+}
+
 // ===============
 // ----* pLS *----
 // ===============
@@ -25,25 +47,9 @@ std::vector<unsigned int> getPixelHitsFrompLS(SDL::Event* event, unsigned int pL
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> getPixelHitIdxsFrompLS(SDL::Event* event, unsigned int pLS)
+std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> getHitIdxsAndHitTypesFrompLS(SDL::Event* event, unsigned pLS)
 {
-    SDL::hits& hitsInGPU = *(event->getHits());
-    std::vector<unsigned int> hits = getPixelHitsFrompLS(event, pLS);
-    std::vector<unsigned int> hitidxs;
-    for (auto& hit : hits)
-        hitidxs.push_back(hitsInGPU.idxs[hit]);
-    return hitidxs;
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> getPixelHitTypesFrompLS(SDL::Event* event, unsigned int pLS)
-{
-    SDL::hits& hitsInGPU = *(event->getHits());
-    std::vector<unsigned int> hits = getPixelHitsFrompLS(event, pLS);
-    std::vector<unsigned int> hittypes;
-    for (auto& hit : hits)
-        hittypes.push_back(0);
-    return hittypes;
+    return convertHitsToHitIdxsAndHitTypes(event, getPixelHitsFrompLS(event, pLS));
 }
 
 // ==============
@@ -57,6 +63,12 @@ std::vector<unsigned int> getHitsFromMD(SDL::Event* event, unsigned int MD)
     unsigned int hit_1 = miniDoublets_.anchorHitIndices[MD];
     unsigned int hit_2 = miniDoublets_.outerHitIndices [MD];
     return {hit_1, hit_2};
+}
+
+//____________________________________________________________________________________________
+std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> getHitIdxsAndHitTypesFromMD(SDL::Event* event, unsigned MD)
+{
+    return convertHitsToHitIdxsAndHitTypes(event, getHitsFromMD(event, MD));
 }
 
 // ==============
@@ -79,6 +91,12 @@ std::vector<unsigned int> getHitsFromLS(SDL::Event* event, unsigned int LS)
     std::vector<unsigned int> hits_0 = getHitsFromMD(event, MDs[0]);
     std::vector<unsigned int> hits_1 = getHitsFromMD(event, MDs[1]);
     return {hits_0[0], hits_0[1], hits_1[0], hits_1[1]};
+}
+
+//____________________________________________________________________________________________
+std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> getHitIdxsAndHitTypesFromLS(SDL::Event* event, unsigned LS)
+{
+    return convertHitsToHitIdxsAndHitTypes(event, getHitsFromLS(event, LS));
 }
 
 // ==============
@@ -111,6 +129,12 @@ std::vector<unsigned int> getHitsFromT3(SDL::Event* event, unsigned int T3)
     std::vector<unsigned int> hits_1 = getHitsFromMD(event, MDs[1]);
     std::vector<unsigned int> hits_2 = getHitsFromMD(event, MDs[2]);
     return {hits_0[0], hits_0[1], hits_1[0], hits_1[1], hits_2[0], hits_2[1]};
+}
+
+//____________________________________________________________________________________________
+std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> getHitIdxsAndHitTypesFromT3(SDL::Event* event, unsigned T3)
+{
+    return convertHitsToHitIdxsAndHitTypes(event, getHitsFromT3(event, T3));
 }
 
 // ==============
@@ -160,20 +184,9 @@ std::vector<unsigned int> getHitsFromT5(SDL::Event* event, unsigned int T5)
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> getHitIdxsFromT5(SDL::Event* event, unsigned int T5)
+std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> getHitIdxsAndHitTypesFromT5(SDL::Event* event, unsigned T5)
 {
-    SDL::hits& hitsInGPU = *(event->getHits());
-    std::vector<unsigned int> hits = getHitsFromT5(event, T5);
-    std::vector<unsigned int> hitidxs;
-    for (auto& hit : hits)
-        hitidxs.push_back(hitsInGPU.idxs[hit]);
-    return hitidxs;
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> getHitTypesFromT5(SDL::Event* event, unsigned int T5)
-{
-    return {4, 4, 4, 4, 4, 4, 4, 4, 4, 4};;
+    return convertHitsToHitIdxsAndHitTypes(event, getHitsFromT5(event, T5));
 }
 
 // ===============
@@ -237,26 +250,9 @@ std::vector<unsigned int> getHitsFrompT3(SDL::Event* event, unsigned int pT3)
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> getHitIdxsFrompT3(SDL::Event* event, unsigned int pT3)
+std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> getHitIdxsAndHitTypesFrompT3(SDL::Event* event, unsigned pT3)
 {
-    SDL::hits& hitsInGPU = *(event->getHits());
-    std::vector<unsigned int> hits = getHitsFrompT3(event, pT3);
-    std::vector<unsigned int> hitidxs;
-    for (auto& hit : hits)
-        hitidxs.push_back(hitsInGPU.idxs[hit]);
-    return hitidxs;
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> getHitTypesFrompT3(SDL::Event* event, unsigned int pT3)
-{
-    unsigned int pLS = getPixelLSFrompT3(event, pT3);
-    std::vector<unsigned int> pixelHits = getPixelHitsFrompLS(event, pLS);
-    // pixel Hits list will be either 3 or 4 and depending on it return accordingly
-    if (pixelHits.size() == 3)
-        return {0, 0, 0, 4, 4, 4, 4, 4, 4};
-    else
-        return {0, 0, 0, 0, 4, 4, 4, 4, 4, 4};
+    return convertHitsToHitIdxsAndHitTypes(event, getHitsFrompT3(event, pT3));
 }
 
 // ===============
@@ -328,25 +324,8 @@ std::vector<unsigned int> getHitsFrompT5(SDL::Event* event, unsigned int pT5)
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> getHitIdxsFrompT5(SDL::Event* event, unsigned int pT5)
+std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> getHitIdxsAndHitTypesFrompT5(SDL::Event* event, unsigned pT5)
 {
-    SDL::hits& hitsInGPU = *(event->getHits());
-    std::vector<unsigned int> hits = getHitsFrompT5(event, pT5);
-    std::vector<unsigned int> hitidxs;
-    for (auto& hit : hits)
-        hitidxs.push_back(hitsInGPU.idxs[hit]);
-    return hitidxs;
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> getHitTypesFrompT5(SDL::Event* event, unsigned int pT5)
-{
-    unsigned int pLS = getPixelLSFrompT5(event, pT5);
-    std::vector<unsigned int> pixelHits = getPixelHitsFrompLS(event, pLS);
-    // pixel Hits list will be either 3 or 4 and depending on it return accordingly
-    if (pixelHits.size() == 3)
-        return {0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
-    else
-        return {0, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
+    return convertHitsToHitIdxsAndHitTypes(event, getHitsFrompT5(event, pT5));
 }
 

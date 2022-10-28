@@ -45,6 +45,7 @@ void fillOutputBranches(SDL::Event* event);
 void fillOutputBranches_v1(SDL::Event* event);
 void fillOutputBranches_v2(SDL::Event* event);
 void fillGnnNtupleBranches(SDL::Event* event);
+void fillGnnNtupleMiniDoublet(SDL::Event* event, unsigned int MD);
 std::tuple<int, float, float, float, int, vector<int>> parseTrackCandidate(SDL::Event* event, unsigned int);
 std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parsepT5(SDL::Event* event, unsigned int);
 std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parsepT3(SDL::Event* event, unsigned int);
