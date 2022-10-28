@@ -1,7 +1,3 @@
-#ifdef __CUDACC__
-#define CUDA_CONST_VAR __device__
-#endif
-
 # include "MiniDoublet.cuh"
 #define SDL_INF 123456789
 
@@ -144,9 +140,9 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
 }
 
 //#ifdef CUT_VALUE_DEBUG
-//__device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float drt, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, float dzCut, float drtCut, float miniCut, unsigned int idx)
+//ALPAKA_FN_ACC void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float drt, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, float dzCut, float drtCut, float miniCut, unsigned int idx)
 //#else
-__device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
+ALPAKA_FN_ACC void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
 //#endif
 {
     //the index into which this MD needs to be written will be computed in the kernel
@@ -212,7 +208,7 @@ __device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& h
     mdsInGPU.outerLowEdgeY[idx] = hitsInGPU.lowEdgeYs[outerHitIndex];
 }
 
-__device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noshiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower,float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
+ALPAKA_FN_ACC bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noshiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower,float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
 {
 
     bool pass = true; 
@@ -313,7 +309,7 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
     return pass;
 }
 
-__device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGPU, uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& drt, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noshiftedDz, float& noShiftedDphi, float& noShiftedDphichange,float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
+ALPAKA_FN_ACC bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGPU, uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& drt, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noshiftedDz, float& noShiftedDphi, float& noShiftedDphichange,float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
 {
 
     bool pass = true; 
@@ -406,7 +402,7 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGP
     return pass;
 }
 
-__device__ bool SDL::runMiniDoubletDefaultAlgo(struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
+ALPAKA_FN_ACC bool SDL::runMiniDoubletDefaultAlgo(struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
 {
    //bool pass;
    if(modulesInGPU.subdets[lowerModuleIndex] == Barrel)
@@ -421,7 +417,7 @@ __device__ bool SDL::runMiniDoubletDefaultAlgo(struct modules& modulesInGPU, /*s
    //return pass;
 }
 
-__device__ inline float SDL::dPhiThreshold(/*struct hits& hitsInGPU,*/float rt, struct modules& modulesInGPU, /*unsigned int hitIndex,*/ uint16_t& moduleIndex, float dPhi, float dz)
+ALPAKA_FN_ACC inline float SDL::dPhiThreshold(/*struct hits& hitsInGPU,*/float rt, struct modules& modulesInGPU, /*unsigned int hitIndex,*/ uint16_t& moduleIndex, float dPhi, float dz)
 {
     // =================================================================
     // Various constants
@@ -483,7 +479,7 @@ __device__ inline float SDL::dPhiThreshold(/*struct hits& hitsInGPU,*/float rt, 
     }
 }
 
-__device__ inline float SDL::isTighterTiltedModules(struct modules& modulesInGPU, uint16_t& moduleIndex)
+ALPAKA_FN_ACC inline float SDL::isTighterTiltedModules(struct modules& modulesInGPU, uint16_t& moduleIndex)
 {
     // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
     // This is the same as what was previously considered as"isNormalTiltedModules"
@@ -506,7 +502,7 @@ __device__ inline float SDL::isTighterTiltedModules(struct modules& modulesInGPU
 
 }
 
-__device__ inline float SDL::moduleGapSize(struct modules& modulesInGPU, uint16_t& moduleIndex)
+ALPAKA_FN_ACC inline float SDL::moduleGapSize(struct modules& modulesInGPU, uint16_t& moduleIndex)
 {
     float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
     float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
@@ -581,7 +577,7 @@ __device__ inline float SDL::moduleGapSize(struct modules& modulesInGPU, uint16_
     return moduleSeparation;
 }
 
-__device__ void SDL::shiftStripHits(struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float* shiftedCoords, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
+ALPAKA_FN_ACC void SDL::shiftStripHits(struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float* shiftedCoords, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
 {
 
     // This is the strip shift scheme that is explained in http://uaf-10.t2.ucsd.edu/~phchang/talks/PhilipChang20190607_SDL_Update.pdf (see backup slides)

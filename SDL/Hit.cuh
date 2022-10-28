@@ -1,15 +1,10 @@
 #ifndef Hit_cuh
 #define Hit_cuh
 
+#include <alpaka/alpaka.hpp>
 #ifdef __CUDACC__
-#define CUDA_HOSTDEV  __host__ __device__
-#define CUDA_DEV __device__
-#define CUDA_CONST_VAR __device__
 #define CUDA_G __global__
 #else
-#define CUDA_HOSTDEV
-#define CUDA_CONST_VAR
-#define CUDA_DEV
 #define CUDA_G
 #endif
 
@@ -65,13 +60,19 @@ namespace SDL
     void addHitToMemory(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,cudaStream_t stream,struct objectRanges& rangesInGPU);
     CUDA_G void addHitToMemoryGPU(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex, float phis,struct objectRanges& rangesInGPU);
     
-    CUDA_HOSTDEV inline float eta(float x, float y, float z) {
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float ATan2(float y, float x) {
+      if (x != 0) return atan2f(y, x);
+      if (y == 0) return  0;
+      if (y >  0) return  float(M_PI) / 2.f;
+      else        return -float(M_PI) / 2.f;
+    }
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float eta(float x, float y, float z) {
       float r3 = std::sqrt( x*x + y*y + z*z );
       float rt = std::sqrt( x*x + y*y );
       float eta = ((z > 0) - ( z < 0)) * acosh( r3 / rt );
       return eta;
     }
-    CUDA_HOSTDEV inline float phi_mpi_pi(float x) {
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi_mpi_pi(float x) {
       if (std::isnan(x))
       {
         //printf("phi_mpi_pi() function called with NaN\n");                                                
@@ -84,19 +85,19 @@ namespace SDL
       float n = std::round(x * o2pi);
       return x - n * float(2.f * float(M_PI));
     }
-    CUDA_HOSTDEV inline float phi(float x, float y) {
-      return phi_mpi_pi(float(M_PI) + atan2f(y,x));
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi(float x, float y) {
+      return phi_mpi_pi(float(M_PI) + ATan2(-y, -x));
     }
-    CUDA_HOSTDEV inline float deltaPhi(float x1, float y1, float x2, float y2) {
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhi(float x1, float y1, float x2, float y2) {
       float phi1 = phi(x1,y1);
       float phi2 = phi(x2,y2);
       return phi_mpi_pi((phi2 - phi1));
     }
-    CUDA_HOSTDEV inline float deltaPhiChange(float x1, float y1, float x2, float y2) {
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhiChange(float x1, float y1, float x2, float y2) {
       return deltaPhi(x1, y1, x2-x1, y2-y1);
     }
     void getEdgeHits(unsigned int detId,float x, float y, float& xhigh, float& yhigh, float& xlow, float& ylow);
-    CUDA_DEV void getEdgeHitsK(float phi,float x, float y, float& xhigh, float& yhigh, float& xlow, float& ylow);
+    ALPAKA_FN_ACC void getEdgeHitsK(float phi,float x, float y, float& xhigh, float& yhigh, float& xlow, float& ylow);
 
     void printHit(struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int hitIndex);
 }

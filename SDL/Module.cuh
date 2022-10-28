@@ -1,11 +1,7 @@
 #ifndef Module_cuh
 #define Module_cuh
 
-#ifdef __CUDACC__
-#define CUDA_HOSTDEV __host__ __device__
-#else
-#define CUDA_HOSTDEV
-#endif
+#include <alpaka/alpaka.hpp>
 
 #include <iostream>
 #include <map>
@@ -110,11 +106,11 @@ namespace SDL
         ModuleLayerType* moduleLayerType;
         int* sdlLayers;
        
-        CUDA_HOSTDEV ModuleType parseModuleType(unsigned int index);
-        CUDA_HOSTDEV ModuleType parseModuleType(short subdet, short layer, short ring);
-        CUDA_HOSTDEV unsigned int parsePartnerModuleId(unsigned int detId, bool isLowerx, bool isInvertedx);
-        CUDA_HOSTDEV ModuleLayerType parseModuleLayerType(unsigned int index);
-        CUDA_HOSTDEV ModuleLayerType parseModuleLayerType(ModuleType moduleType, bool isInvertedx, bool isLowerx);
+        ALPAKA_FN_HOST_ACC ModuleType parseModuleType(unsigned int index);
+        ALPAKA_FN_HOST_ACC ModuleType parseModuleType(short subdet, short layer, short ring);
+        ALPAKA_FN_HOST_ACC unsigned int parsePartnerModuleId(unsigned int detId, bool isLowerx, bool isInvertedx);
+        ALPAKA_FN_HOST_ACC ModuleLayerType parseModuleLayerType(unsigned int index);
+        ALPAKA_FN_HOST_ACC ModuleLayerType parseModuleLayerType(ModuleType moduleType, bool isInvertedx, bool isLowerx);
 
         bool parseIsInverted(unsigned int index);
         bool parseIsInverted(short subdet, short side, short module, short layer);
