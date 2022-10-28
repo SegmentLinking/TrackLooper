@@ -123,9 +123,9 @@ void SDL::createTrackExtensionsInExplicitMemory(struct trackExtensions& trackExt
 }
 
 #ifdef CUT_VALUE_DEBUG
-__device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExtensionsInGPU, short* constituentTCType, unsigned int* constituentTCIndex, unsigned int* nLayerOverlaps, unsigned int* nHitOverlaps, float rPhiChiSquared, float rzChiSquared, float regressionRadius, float innerRadius, float outerRadius, unsigned int trackExtensionIndex)
+ALPAKA_FN_ACC void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExtensionsInGPU, short* constituentTCType, unsigned int* constituentTCIndex, unsigned int* nLayerOverlaps, unsigned int* nHitOverlaps, float rPhiChiSquared, float rzChiSquared, float regressionRadius, float innerRadius, float outerRadius, unsigned int trackExtensionIndex)
 #else
-__device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExtensionsInGPU, short* constituentTCType, unsigned int* constituentTCIndex, unsigned int* nLayerOverlaps, unsigned int* nHitOverlaps, float rPhiChiSquared, float rzChiSquared, float regressionRadius, unsigned int trackExtensionIndex)
+ALPAKA_FN_ACC void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExtensionsInGPU, short* constituentTCType, unsigned int* constituentTCIndex, unsigned int* nLayerOverlaps, unsigned int* nHitOverlaps, float rPhiChiSquared, float rzChiSquared, float regressionRadius, unsigned int trackExtensionIndex)
 #endif
 { 
     for(size_t i = 0; i < 3 ; i++)
@@ -150,7 +150,7 @@ __device__ void SDL::addTrackExtensionToMemory(struct trackExtensions& trackExte
 
 //SPECIAL DISPENSATION - hitsinGPU will be used here!
 
-__device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct quintuplets& quintupletsInGPU, struct pixelTriplets& pixelTripletsInGPU, struct pixelQuintuplets& pixelQuintupletsInGPU, struct trackCandidates& trackCandidatesInGPU, unsigned int anchorObjectIndex, unsigned int outerObjectIndex, short anchorObjectType, short outerObjectType, unsigned int anchorObjectOuterT3Index, unsigned int layerOverlapTarget, short* constituentTCType, unsigned int* constituentTCIndex, unsigned
+ALPAKA_FN_ACC bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, struct hits& hitsInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct quintuplets& quintupletsInGPU, struct pixelTriplets& pixelTripletsInGPU, struct pixelQuintuplets& pixelQuintupletsInGPU, struct trackCandidates& trackCandidatesInGPU, unsigned int anchorObjectIndex, unsigned int outerObjectIndex, short anchorObjectType, short outerObjectType, unsigned int anchorObjectOuterT3Index, unsigned int layerOverlapTarget, short* constituentTCType, unsigned int* constituentTCIndex, unsigned
         int* nLayerOverlaps, unsigned int* nHitOverlaps, float& rPhiChiSquared, float& rzChiSquared, float& regressionRadius, float& innerRadius, float& outerRadius)
 {
     /*
@@ -341,7 +341,7 @@ __device__ bool SDL::runTrackExtensionDefaultAlgo(struct modules& modulesInGPU, 
     return pass;
 }
 
-__device__ bool SDL::passHighPtRadiusMatch(unsigned int& nLayerOverlaps, unsigned int& nHitOverlaps, unsigned int& layer_binary, float& innerRadius, float& outerRadius)
+ALPAKA_FN_ACC bool SDL::passHighPtRadiusMatch(unsigned int& nLayerOverlaps, unsigned int& nHitOverlaps, unsigned int& layer_binary, float& innerRadius, float& outerRadius)
 {
     float innerInvRadiusPositiveErrorBound, outerInvRadiusPositiveErrorBound;
     float innerInvRadiusNegativeErrorBound, outerInvRadiusNegativeErrorBound;
@@ -776,7 +776,7 @@ __device__ bool SDL::passHighPtRadiusMatch(unsigned int& nLayerOverlaps, unsigne
     return checkIntervalOverlap(innerRadiusInvMin, innerRadiusInvMax, outerRadiusInvMin, outerRadiusInvMax);
 }
 
-__device__ bool SDL::passRadiusMatch(unsigned int& nLayerOverlaps, unsigned int& nHitOverlaps, unsigned int& layer_binary, float& innerRadius, float& outerRadius)
+ALPAKA_FN_ACC bool SDL::passRadiusMatch(unsigned int& nLayerOverlaps, unsigned int& nHitOverlaps, unsigned int& layer_binary, float& innerRadius, float& outerRadius)
 {
     float innerInvRadiusPositiveErrorBound, outerInvRadiusPositiveErrorBound;
     float innerInvRadiusNegativeErrorBound, outerInvRadiusNegativeErrorBound;
@@ -1298,7 +1298,7 @@ __device__ bool SDL::passRadiusMatch(unsigned int& nLayerOverlaps, unsigned int&
 }
 
 
-__device__ bool SDL::passTERZChiSquaredCuts(int nLayerOverlaps, int nHitOverlaps, unsigned int layer_binary, float rzChiSquared)
+ALPAKA_FN_ACC bool SDL::passTERZChiSquaredCuts(int nLayerOverlaps, int nHitOverlaps, unsigned int layer_binary, float rzChiSquared)
 {
     if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 127)
     {
@@ -2197,7 +2197,7 @@ __device__ bool SDL::passTERZChiSquaredCuts(int nLayerOverlaps, int nHitOverlaps
     return true;
 }
 
-__device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverlaps, unsigned int layer_binary, float rPhiChiSquared)
+ALPAKA_FN_ACC bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverlaps, unsigned int layer_binary, float rPhiChiSquared)
 {
     if(nLayerOverlaps == 2 and nHitOverlaps == 4 and layer_binary == 127)
     {
@@ -3177,7 +3177,7 @@ __device__ bool SDL::passTERPhiChiSquaredCuts(int nLayerOverlaps, int nHitOverla
 
    This function i complicated - computes layer overlaps and checks if layer matches and hit matches are "compatible" i.e., layer overlap = 2 * hit overlap, or if that's not the case, we know why (multiple reco hits/staggered modules)
 */
-__device__ bool SDL::computeLayerAndHitOverlaps(SDL::modules& modulesInGPU, uint8_t* anchorLayerIndices, unsigned int* anchorHitIndices, uint16_t* anchorLowerModuleIndices, uint8_t* outerObjectLayerIndices, unsigned int* outerObjectHitIndices, uint16_t* outerObjectLowerModuleIndices, unsigned int nAnchorLayers, unsigned int nOuterLayers, unsigned int& nLayerOverlap, unsigned int& nHitOverlap, unsigned int& layerOverlapTarget)
+ALPAKA_FN_ACC bool SDL::computeLayerAndHitOverlaps(SDL::modules& modulesInGPU, uint8_t* anchorLayerIndices, unsigned int* anchorHitIndices, uint16_t* anchorLowerModuleIndices, uint8_t* outerObjectLayerIndices, unsigned int* outerObjectHitIndices, uint16_t* outerObjectLowerModuleIndices, unsigned int nAnchorLayers, unsigned int nOuterLayers, unsigned int& nLayerOverlap, unsigned int& nHitOverlap, unsigned int& layerOverlapTarget)
 {
     bool pass = true;
     //merge technique!
@@ -3247,7 +3247,7 @@ __device__ bool SDL::computeLayerAndHitOverlaps(SDL::modules& modulesInGPU, uint
 
 
 /* r-z and r-phi chi squared computation*/
-__device__ float SDL::computeTERZChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int* anchorObjectAnchorHitIndices, uint16_t* anchorLowerModuleIndices, unsigned int* outerObjectAnchorHitIndices, uint16_t* outerLowerModuleIndices, short anchorObjectType)
+ALPAKA_FN_ACC float SDL::computeTERZChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, unsigned int* anchorObjectAnchorHitIndices, uint16_t* anchorLowerModuleIndices, unsigned int* outerObjectAnchorHitIndices, uint16_t* outerLowerModuleIndices, short anchorObjectType)
 {
     //using the pixel hits to create the slope
     float slope = 0, intercept = 0, RMSE = 0;
@@ -3327,7 +3327,7 @@ __device__ float SDL::computeTERZChiSquared(struct modules& modulesInGPU, struct
     return RMSE;
 }
 
-__device__ void SDL::fitStraightLine(int nPoints, float* xs, float* ys, float& slope, float& intercept)
+ALPAKA_FN_ACC void SDL::fitStraightLine(int nPoints, float* xs, float* ys, float& slope, float& intercept)
 {
     float sigmaX2(0), sigmaXY(0), sigmaX(0), sigmaY(0), sigma1(0);
     sigma1 = nPoints;
@@ -3346,7 +3346,7 @@ __device__ void SDL::fitStraightLine(int nPoints, float* xs, float* ys, float& s
     slope = (sigmaXY - sigmaX * sigmaY) * invDenominator;
 }
 
-__device__ float SDL::computeTERPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, float& g, float& f, float& radius, unsigned int* outerObjectAnchorHits, uint16_t* outerObjectLowerModuleIndices)
+ALPAKA_FN_ACC float SDL::computeTERPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, float& g, float& f, float& radius, unsigned int* outerObjectAnchorHits, uint16_t* outerObjectLowerModuleIndices)
 {
     //Three cases
     float delta1[3], delta2[3], slopes[3], xs[3], ys[3];
@@ -3363,7 +3363,7 @@ __device__ float SDL::computeTERPhiChiSquared(struct modules& modulesInGPU, stru
 }
 
 
-__device__ float SDL::computeT3T3RPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, int nPoints, unsigned int* anchorHitIndices, uint16_t* lowerModuleIndices, float& regressionRadius)
+ALPAKA_FN_ACC float SDL::computeT3T3RPhiChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, int nPoints, unsigned int* anchorHitIndices, uint16_t* lowerModuleIndices, float& regressionRadius)
 {
     float delta1[6], delta2[6], sigmas[6], slopes[6], xs[6], ys[6], g, f;
     bool isFlat[6];
@@ -3379,7 +3379,7 @@ __device__ float SDL::computeT3T3RPhiChiSquared(struct modules& modulesInGPU, st
     return chiSquared;
 }
 
-__device__ float SDL::computeT3T3RZChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, int nPoints, unsigned int* anchorHitIndices, uint16_t* lowerModuleIndices)
+ALPAKA_FN_ACC float SDL::computeT3T3RZChiSquared(struct modules& modulesInGPU, struct hits& hitsInGPU, int nPoints, unsigned int* anchorHitIndices, uint16_t* lowerModuleIndices)
 {
     float rts[6], zs[6];
     float slope = 0, intercept = 0, RMSE = 0, error, drdz, residual;
@@ -3494,7 +3494,7 @@ __global__ void SDL::createExtendedTracksInGPUv2(struct SDL::modules& modulesInG
     }}}}
 }
 
-__device__ bool SDL::runExtensionDefaultAlgoBBBB(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& innerOuterLowerModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex,
+ALPAKA_FN_ACC bool SDL::runExtensionDefaultAlgoBBBB(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& innerOuterLowerModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex,
         unsigned int& fourthMDIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& dPhi, float& betaIn, float&
         betaOut, float& pt_beta, float& zLo, float& zHi, float& zLoPointed, float& zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut)
 {
@@ -3692,7 +3692,7 @@ __device__ bool SDL::runExtensionDefaultAlgoBBBB(struct SDL::modules& modulesInG
     return pass;
 }
 
-__device__ bool SDL::runExtensionDefaultAlgoBBEE(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& innerOuterLowerModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex,
+ALPAKA_FN_ACC bool SDL::runExtensionDefaultAlgoBBEE(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& innerOuterLowerModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex,
         unsigned int& fourthMDIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& dPhi, float& betaIn, float&
         betaOut, float& pt_beta, float& zLo, float& rtLo, float& rtHi, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ)
 {
@@ -3908,7 +3908,7 @@ __device__ bool SDL::runExtensionDefaultAlgoBBEE(struct SDL::modules& modulesInG
     return pass;
 }
 
-__device__ bool SDL::runExtensionDefaultAlgoEEEE(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& innerOuterLowerModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex,
+ALPAKA_FN_ACC bool SDL::runExtensionDefaultAlgoEEEE(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& innerOuterLowerModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex,
         unsigned int& fourthMDIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& dPhi, float& betaIn, float&
         betaOut, float& pt_beta, float& zLo, float& rtLo, float& rtHi, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ)
 {
@@ -4117,7 +4117,7 @@ __device__ bool SDL::runExtensionDefaultAlgoEEEE(struct SDL::modules& modulesInG
 
     return pass;
 }
-__device__ bool SDL::runExtensionDefaultAlgo(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& innerOuterLowerModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex, unsigned int& fourthMDIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float&
+ALPAKA_FN_ACC bool SDL::runExtensionDefaultAlgo(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& innerOuterLowerModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex, unsigned int& fourthMDIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float&
         betaOut, float& pt_beta, float& zLo, float& zHi, float& rtLo, float& rtHi, float& zLoPointed, float& zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ)
 {
 
@@ -4182,7 +4182,7 @@ __device__ bool SDL::runExtensionDefaultAlgo(struct SDL::modules& modulesInGPU, 
 
     return pass;
 }
-__device__ void SDL::runDeltaBetaIterationsTCE(float& betaIn, float& betaOut, float& betaAv, float & pt_beta, float sdIn_dr, float sdOut_dr, float dr, float lIn)
+ALPAKA_FN_ACC void SDL::runDeltaBetaIterationsTCE(float& betaIn, float& betaOut, float& betaAv, float & pt_beta, float sdIn_dr, float sdOut_dr, float dr, float lIn)
 {
     if (lIn == 0)
     {
@@ -4228,7 +4228,7 @@ __device__ void SDL::runDeltaBetaIterationsTCE(float& betaIn, float& betaOut, fl
 
     }
 }
-__device__ float SDL::computeChiSquaredTCE(int nPoints, float* xs, float* ys, float* delta1, float* delta2, float* slopes, bool* isFlat, float g, float f, float radius)
+ALPAKA_FN_ACC float SDL::computeChiSquaredTCE(int nPoints, float* xs, float* ys, float* delta1, float* delta2, float* slopes, bool* isFlat, float g, float f, float radius)
 {
     // given values of (g, f, radius) and a set of points (and its uncertainties)
     //compute chi squared
@@ -4271,7 +4271,7 @@ __device__ float SDL::computeChiSquaredTCE(int nPoints, float* xs, float* ys, fl
     return chiSquared;
 }
 
-__device__ void SDL::computeSigmasForRegressionTCE(SDL::modules& modulesInGPU, const uint16_t* lowerModuleIndices, float* delta1, float* delta2, float* slopes, bool* isFlat, int nPoints, bool anchorHits)
+ALPAKA_FN_ACC void SDL::computeSigmasForRegressionTCE(SDL::modules& modulesInGPU, const uint16_t* lowerModuleIndices, float* delta1, float* delta2, float* slopes, bool* isFlat, int nPoints, bool anchorHits)
 {
    /*bool anchorHits required to deal with a weird edge case wherein
      the hits ultimately used in the regression are anchor hits, but the
@@ -4365,7 +4365,7 @@ __device__ const int nEndcapModulesOuter[] = {28,28,32,36,36,40,44,52,56,64,72,7
 __device__ const int nCentralBarrelModules[] = {7,11,15,24,24,24};
 __device__ const int nCentralRods[] = {18, 26, 36, 48, 60, 78};
 
-__device__ void SDL::findStaggeredNeighbours(struct SDL::modules& modulesInGPU, unsigned int moduleIdx, unsigned int* staggeredNeighbours, unsigned int& counter)
+ALPAKA_FN_ACC void SDL::findStaggeredNeighbours(struct SDL::modules& modulesInGPU, unsigned int moduleIdx, unsigned int* staggeredNeighbours, unsigned int& counter)
 {
     //naive and expensive method
     counter = 0;
@@ -4449,7 +4449,7 @@ __device__ void SDL::findStaggeredNeighbours(struct SDL::modules& modulesInGPU, 
     }
 }
 
-__device__ float SDL::computeRadiusFromThreeAnchorHitsTCE(float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f)
+ALPAKA_FN_ACC float SDL::computeRadiusFromThreeAnchorHitsTCE(float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f)
 {
     float radius = 0.f;
 
