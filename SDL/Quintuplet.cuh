@@ -1,8 +1,6 @@
 #ifndef Quintuplet_cuh
 #define Quintuplet_cuh
 
-#include <alpaka/alpaka.hpp>
-
 #include "Constants.cuh"
 #include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"

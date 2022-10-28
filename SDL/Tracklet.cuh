@@ -1,7 +1,6 @@
 #ifndef Tracklet_cuh
 #define Tracklet_cuh
 
-#include <alpaka/alpaka.hpp>
 #ifdef __CUDACC__
 #define CUDA_CONST_VAR __device__
 #else

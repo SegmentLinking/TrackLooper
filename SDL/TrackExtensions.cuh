@@ -1,8 +1,6 @@
 #ifndef TrackExtensions_cuh
 #define TrackExtensions_cuh
 
-#include <alpaka/alpaka.hpp>
-
 #include "Constants.cuh"
 #include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"
