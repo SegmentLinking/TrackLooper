@@ -615,7 +615,7 @@ void SDL::printSegment(struct SDL::segments& segmentsInGPU, struct SDL::miniDoub
         printMD(mdsInGPU, hitsInGPU, modulesInGPU, outerMDIndex);
     }
 }
-ALPAKA_FN_ACC inline float SDL::isTighterTiltedModules_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
+ALPAKA_FN_ACC ALPAKA_FN_INLINE float SDL::isTighterTiltedModules_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
 {
     // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
     // This is the same as what was previously considered as"isNormalTiltedModules"
@@ -630,7 +630,7 @@ ALPAKA_FN_ACC inline float SDL::isTighterTiltedModules_seg(struct modules& modul
                 | (side == PosZ & (((layer == 2) & (rod < 8)) | ((layer == 1) & (rod < 4)))) );
 }
 
-ALPAKA_FN_ACC inline float SDL::isTighterTiltedModules_seg(short subdet, short layer, short side, short rod)
+ALPAKA_FN_ACC ALPAKA_FN_INLINE float SDL::isTighterTiltedModules_seg(short subdet, short layer, short side, short rod)
 {
     // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
     // This is the same as what was previously considered as"isNormalTiltedModules"

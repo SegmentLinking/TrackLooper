@@ -97,11 +97,11 @@ namespace SDL
 //#endif
 
     //ALPAKA_FN_ACC float dPhiThreshold(struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int hitIndex, unsigned int moduleIndex, float dPhi = 0, float dz = 0);
-    ALPAKA_FN_ACC extern inline float dPhiThreshold(float rt, struct modules& modulesInGPU, uint16_t&  moduleIndex, float dPhi = 0, float dz = 0);
-    ALPAKA_FN_ACC extern inline float isTighterTiltedModules(struct modules& modulesInGPU, uint16_t& moduleIndex);
+    ALPAKA_FN_ACC extern ALPAKA_FN_INLINE float dPhiThreshold(float rt, struct modules& modulesInGPU, uint16_t&  moduleIndex, float dPhi = 0, float dz = 0);
+    ALPAKA_FN_ACC extern ALPAKA_FN_INLINE float isTighterTiltedModules(struct modules& modulesInGPU, uint16_t& moduleIndex);
     ALPAKA_FN_ACC void initModuleGapSize();
 
-    ALPAKA_FN_ACC extern inline float moduleGapSize(struct modules& modulesInGPU, uint16_t& moduleIndex);
+    ALPAKA_FN_ACC extern ALPAKA_FN_INLINE float moduleGapSize(struct modules& modulesInGPU, uint16_t& moduleIndex);
 
 
 
