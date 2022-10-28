@@ -424,7 +424,7 @@ ALPAKA_FN_ACC bool SDL::runMiniDoubletDefaultAlgo(struct modules& modulesInGPU, 
    //return pass;
 }
 
-ALPAKA_FN_ACC inline float SDL::dPhiThreshold(/*struct hits& hitsInGPU,*/float rt, struct modules& modulesInGPU, /*unsigned int hitIndex,*/ uint16_t& moduleIndex, float dPhi, float dz)
+ALPAKA_FN_ACC ALPAKA_FN_INLINE float SDL::dPhiThreshold(/*struct hits& hitsInGPU,*/float rt, struct modules& modulesInGPU, /*unsigned int hitIndex,*/ uint16_t& moduleIndex, float dPhi, float dz)
 {
     // =================================================================
     // Various constants
@@ -491,7 +491,7 @@ ALPAKA_FN_ACC inline float SDL::dPhiThreshold(/*struct hits& hitsInGPU,*/float r
     }
 }
 
-ALPAKA_FN_ACC inline float SDL::isTighterTiltedModules(struct modules& modulesInGPU, uint16_t& moduleIndex)
+ALPAKA_FN_ACC ALPAKA_FN_INLINE float SDL::isTighterTiltedModules(struct modules& modulesInGPU, uint16_t& moduleIndex)
 {
     // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
     // This is the same as what was previously considered as"isNormalTiltedModules"
@@ -514,7 +514,7 @@ ALPAKA_FN_ACC inline float SDL::isTighterTiltedModules(struct modules& modulesIn
 
 }
 
-ALPAKA_FN_ACC inline float SDL::moduleGapSize(struct modules& modulesInGPU, uint16_t& moduleIndex)
+ALPAKA_FN_ACC ALPAKA_FN_INLINE float SDL::moduleGapSize(struct modules& modulesInGPU, uint16_t& moduleIndex)
 {
     float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
     float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
