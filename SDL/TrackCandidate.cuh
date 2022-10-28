@@ -1,15 +1,7 @@
 #ifndef TrackCandidate_cuh
 #define TrackCandidate_cuh
 
-#ifdef __CUDACC__
-#define CUDA_HOSTDEV  __host__ __device__
-#define CUDA_DEV __device__
-#define CUDA_CONST_VAR __device__
-#else
-#define CUDA_HOSTDEV
-#define CUDA_DEV
-#define CUDA_CONST_VAR
-#endif
+#include <alpaka/alpaka.hpp>
 
 #include "Constants.cuh"
 #include "EndcapGeometry.cuh"
@@ -55,9 +47,9 @@ namespace SDL
 
     void createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates,cudaStream_t stream);
     
-    CUDA_DEV void addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, unsigned int trackCandidateIndex, unsigned int directObjectIndex);
+    ALPAKA_FN_ACC void addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, unsigned int trackCandidateIndex, unsigned int directObjectIndex);
 
-    CUDA_DEV void addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, uint8_t* logicalLayerIndices, uint16_t* lowerModuleIndices, unsigned int* hitIndices, float centerX, float centerY, float radius, unsigned int trackCandidateIndex, unsigned int directObjectIndex);
+    ALPAKA_FN_ACC void addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, uint8_t* logicalLayerIndices, uint16_t* lowerModuleIndices, unsigned int* hitIndices, float centerX, float centerY, float radius, unsigned int trackCandidateIndex, unsigned int directObjectIndex);
 
 __global__ void crossCleanpT3(struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU);
 
@@ -73,7 +65,7 @@ __global__ void addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, s
 
 __global__ void addpT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU,struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU,struct SDL::quintuplets& quintupletsInGPU);
 
-  CUDA_DEV int checkPixelHits(unsigned int ix, unsigned int jx,struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::hits& hitsInGPU);
+  ALPAKA_FN_ACC int checkPixelHits(unsigned int ix, unsigned int jx,struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::hits& hitsInGPU);
 }
 
 #endif
