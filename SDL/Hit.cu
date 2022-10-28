@@ -1,8 +1,5 @@
 # include "Hit.cuh"
 # include "allocate.h"
-#ifdef __CUDACC__
-#define CUDA_CONST_VAR __device__
-#endif
 
 SDL::hits::hits()
 {
@@ -114,7 +111,7 @@ __global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules
   }
 }
 
-__device__ void SDL::getEdgeHitsK(float phi,float x, float y, float& xhigh, float& yhigh, float& xlow, float& ylow)
+ALPAKA_FN_ACC void SDL::getEdgeHitsK(float phi,float x, float y, float& xhigh, float& yhigh, float& xlow, float& ylow)
 {
     xhigh = x + 2.5 * cos(phi);
     yhigh = y + 2.5 * sin(phi);
