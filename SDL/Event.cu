@@ -1,6 +1,5 @@
 #include "Event.cuh"
 #include "allocate.h"
-#include <alpaka/alpaka.hpp>
 
 struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::pixelMap* SDL::pixelMapping = nullptr;
