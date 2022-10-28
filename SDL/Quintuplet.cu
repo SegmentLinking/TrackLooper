@@ -283,7 +283,14 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     pass = pass and runQuintupletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex4, lowerModuleIndex5, firstSegmentIndex, fourthSegmentIndex, firstMDIndex, secondMDIndex, fourthMDIndex, fifthMDIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
     if(not pass) return pass;
 
-    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared);
+    pass = pass and runQuintupletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex3, lowerModuleIndex4, secondSegmentIndex, thirdSegmentIndex, secondMDIndex, thirdMDIndex, thirdMDIndex, fourthMDIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
+    if(not pass) return pass;
+    
+    pass = pass and runQuintupletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, secondSegmentIndex, fourthSegmentIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
+    if(not pass) return pass;
+
+//    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared);
+    passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared);
 
     if(not pass) return pass;
 
@@ -419,7 +426,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     }
 
     //compute regression radius right here - this computation is expensive!!!
-    pass = pass and tempPass;
+//    pass = pass and tempPass;
     if(not pass) return pass;
 
     float xVec[] = {x1, x2, x3, x4, x5};
@@ -435,7 +442,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     //extra chi squared cuts!
     if(regressionRadius < 5.0f/(2.f * k2Rinv1GeVf))
     {
-        pass = pass and passChiSquaredConstraint(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, chiSquared);
+//        pass = pass and passChiSquaredConstraint(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, chiSquared);
         if(not pass) return pass;
     }
 
@@ -618,15 +625,26 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     {
         slope = (z3 - z1)/(rt3 - rt1);
     }
-    float residual4 = (layer4 <= 6)? ((z4 - z1) - slope * (rt4 - rt1)) : ((rt4 - rt1) - (z4 - z1)/slope);
-    float residual5 = (layer4 <= 6) ? ((z5 - z1) - slope * (rt5 - rt1)) : ((rt5 - rt1) - (z5 - z1)/slope);
+
+    //distinguish tilted modules
+    float side4 = modulesInGPU.sides[lowerModuleIndex4];
+    float side5 = modulesInGPU.sides[lowerModuleIndex5];
+    float drdz4 = modulesInGPU.drdzs[lowerModuleIndex4];
+    float drdz5 = modulesInGPU.drdzs[lowerModuleIndex5];
+
+    float residual4 = (layer4 <= 6 && ((side4 == SDL::Center) or (drdz4 < 1))) ? ((z4 - z1) - slope * (rt4 - rt1)) : ((rt4 - rt1) - (z4 - z1)/slope);
+    float residual5 = (layer4 <= 6 && ((side5 == SDL::Center) or (drdz5 < 1))) ? ((z5 - z1) - slope * (rt5 - rt1)) : ((rt5 - rt1) - (z5 - z1)/slope);
 
     // creating a chi squared type quantity
     // 0-> PS, 1->2S
-    residual4 = (moduleLayer4 == 0) ? residual4/2.4f : residual4/5.0f;
-    residual5 = (moduleLayer5 == 0) ? residual5/2.4f : residual5/5.0f;
+    // ps tilted modules correction
+    float projection4 = ((subdet4 == SDL::Endcap) or (side4 == SDL::Center)) ? 1.f : fmaxf(1.f, drdz4)/sqrtf(1+drdz4*drdz4);
+    float projection5 = ((subdet5 == SDL::Endcap) or (side5 == SDL::Center)) ? 1.f : fmaxf(1.f, drdz5)/sqrtf(1+drdz5*drdz5);
 
-    const float RMSE = sqrtf(0.5 * (residual4 * residual4 + residual5 * residual5));
+    residual4 = (moduleType4 == SDL::PS) ? residual4 / (0.15f*projection4) : residual4/5.f;
+    residual5 = (moduleType5 == SDL::PS) ? residual5 / (0.15f*projection5) : residual5/5.f;
+
+    const float RMSE = sqrtf(residual4 * residual4 + residual5 * residual5);
     rzChiSquared = RMSE;
     //categories!
     if(layer1 == 1 and layer2 == 2 and layer3 == 3)
@@ -696,6 +714,10 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         else if(layer4 == 14 and layer5 == 15)
         {
             return RMSE < 0.525f;
+        }
+        else if(layer4 == 9 and layer5 == 10)
+        {
+            printf("here");
         }
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 13 and layer4 == 14 and layer5 == 15)
