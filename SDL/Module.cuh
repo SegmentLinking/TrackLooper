@@ -1,8 +1,6 @@
 #ifndef Module_cuh
 #define Module_cuh
 
-#include <alpaka/alpaka.hpp>
-
 #include <iostream>
 #include <map>
 #include <unordered_map>
