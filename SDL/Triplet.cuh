@@ -1,8 +1,6 @@
 #ifndef Triplet_cuh
 #define Triplet_cuh
 
-#include <alpaka/alpaka.hpp>
-
 #include "Constants.h"
 #include "Constants.cuh"
 #include "EndcapGeometry.cuh"
