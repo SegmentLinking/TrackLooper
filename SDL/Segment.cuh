@@ -1,11 +1,6 @@
 #ifndef Segment_cuh
 #define Segment_cuh
 
-#include <alpaka/alpaka.hpp>
-#ifdef __CUDACC__
-#else
-#endif
-
 #include "Constants.cuh"
 #include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"

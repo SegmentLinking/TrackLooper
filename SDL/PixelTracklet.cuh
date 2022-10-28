@@ -1,8 +1,6 @@
 #ifndef Pixel_Tracklet_cuh
 #define Pixel_Tracklet_cuh
 
-#include <alpaka/alpaka.hpp>
-
 #include "Constants.cuh"
 #include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"
