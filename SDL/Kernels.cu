@@ -152,7 +152,7 @@ ALPAKA_FN_ACC void scoreT5(struct SDL::modules& modulesInGPU, struct SDL::hits& 
     scores[3] = score_lsq;
 }
 
-ALPAKA_FN_ACC int inline checkHitsT5(unsigned int ix, unsigned int jx,struct SDL::quintuplets& quintupletsInGPU)
+ALPAKA_FN_ACC ALPAKA_FN_INLINE int checkHitsT5(unsigned int ix, unsigned int jx,struct SDL::quintuplets& quintupletsInGPU)
 {
     unsigned int hits1[10];// = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
     unsigned int hits2[10];// = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
@@ -421,7 +421,7 @@ ALPAKA_FN_ACC float scorepT3(struct SDL::modules& modulesInGPU,struct SDL::hits&
     //printf("pT3 score: %f\n",score);
     return score;
 }
-ALPAKA_FN_ACC void inline checkHitspT3(unsigned int ix, unsigned int jx,struct SDL::pixelTriplets& pixelTripletsInGPU, int* matched)
+ALPAKA_FN_ACC ALPAKA_FN_INLINE void checkHitspT3(unsigned int ix, unsigned int jx,struct SDL::pixelTriplets& pixelTripletsInGPU, int* matched)
 {
     /*unsigned*/ int phits1[4] = {-1,-1,-1,-1};
     /*unsigned*/ int phits2[4] = {-1,-1,-1,-1};
