@@ -52,9 +52,7 @@ typedef float FPX_seg;
 #ifdef __CUDACC__
 #define CUDA_CONST_VAR __device__
 #else
-#define CUDA_HOSTDEV
 #define CUDA_CONST_VAR
-#define CUDA_DEV
 #endif
 
 
