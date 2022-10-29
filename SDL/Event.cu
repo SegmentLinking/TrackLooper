@@ -1,6 +1,5 @@
 #include "Event.cuh"
 #include "allocate.h"
-#include <alpaka/alpaka.hpp>
 
 struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::pixelMap* SDL::pixelMapping = nullptr;
@@ -577,10 +576,10 @@ void SDL::Event::resetObjectsInModule()
     resetObjectRanges(*rangesInGPU,nModules,stream);
 }
 
-__device__ int binary_search(
-                            unsigned int *data, // Array that we are searching over
-                            unsigned int search_val, // Value we want to find in data array
-                            unsigned int ndata) // Number of elements in data array
+ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE int binary_search(
+    unsigned int *data, // Array that we are searching over
+    unsigned int search_val, // Value we want to find in data array
+    unsigned int ndata) // Number of elements in data array
 {
     unsigned int low = 0;
     unsigned int high = ndata - 1;

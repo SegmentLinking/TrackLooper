@@ -13,7 +13,7 @@ typedef struct
     int moduleIndex, nConnectedModules;
 }sharedModule;
 
-__device__ void importModuleInfo(struct SDL::modules& modulesInGPU, sharedModule& module, int moduleArrayIndex)
+ALPAKA_FN_ACC void importModuleInfo(struct SDL::modules& modulesInGPU, sharedModule& module, int moduleArrayIndex)
 {
     module.index = moduleArrayIndex;
     module.nConnectedModules = modulesInGPU.nConnectedModules[moduleArrayIndex];
@@ -31,26 +31,26 @@ __device__ void importModuleInfo(struct SDL::modules& modulesInGPU, sharedModule
  
 }
 
-__device__ void rmQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU,unsigned int quintupletIndex)
+ALPAKA_FN_ACC void rmQuintupletToMemory(struct SDL::quintuplets& quintupletsInGPU,unsigned int quintupletIndex)
 {
     quintupletsInGPU.isDup[quintupletIndex] = true;
 
 }
-__device__ void rmPixelTripletToMemory(struct SDL::pixelTriplets& pixelTripletsInGPU,unsigned int pixelTripletIndex)
+ALPAKA_FN_ACC void rmPixelTripletToMemory(struct SDL::pixelTriplets& pixelTripletsInGPU,unsigned int pixelTripletIndex)
 {
     pixelTripletsInGPU.isDup[pixelTripletIndex] = 1;
 }
-__device__ void rmPixelQuintupletToMemory(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pixelQuintupletIndex)
+ALPAKA_FN_ACC void rmPixelQuintupletToMemory(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pixelQuintupletIndex)
 {
 
     pixelQuintupletsInGPU.isDup[pixelQuintupletIndex] = 1;
 }
-__device__ void rmPixelSegmentFromMemory(struct SDL::segments& segmentsInGPU,unsigned int pixelSegmentArrayIndex){
+ALPAKA_FN_ACC void rmPixelSegmentFromMemory(struct SDL::segments& segmentsInGPU,unsigned int pixelSegmentArrayIndex){
     segmentsInGPU.isDup[pixelSegmentArrayIndex] = 1;
 }
 
 
-__device__ void scoreT5(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU,struct SDL::segments& segmentsInGPU,struct SDL::triplets& tripletsInGPU, unsigned int innerTrip, unsigned int outerTrip, int layer, float* scores)
+ALPAKA_FN_ACC void scoreT5(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU,struct SDL::segments& segmentsInGPU,struct SDL::triplets& tripletsInGPU, unsigned int innerTrip, unsigned int outerTrip, int layer, float* scores)
 {
     int hits1[10] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
     hits1[0] = mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTrip]]]; // inner triplet inner segment inner md inner hit
@@ -152,7 +152,7 @@ __device__ void scoreT5(struct SDL::modules& modulesInGPU, struct SDL::hits& hit
     scores[3] = score_lsq;
 }
 
-__device__ int inline checkHitsT5(unsigned int ix, unsigned int jx,struct SDL::quintuplets& quintupletsInGPU)
+ALPAKA_FN_ACC ALPAKA_FN_INLINE int checkHitsT5(unsigned int ix, unsigned int jx,struct SDL::quintuplets& quintupletsInGPU)
 {
     unsigned int hits1[10];// = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
     unsigned int hits2[10];// = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
@@ -195,7 +195,7 @@ __device__ int inline checkHitsT5(unsigned int ix, unsigned int jx,struct SDL::q
     }
     return nMatched;
 }
-__device__ int inline checkHitspT5(unsigned int ix, unsigned int jx,struct SDL::pixelQuintuplets& pixelQuintupletsInGPU)
+ALPAKA_FN_ACC ALPAKA_FN_INLINE auto checkHitspT5(unsigned int ix, unsigned int jx,struct SDL::pixelQuintuplets& pixelQuintupletsInGPU)->int
 {
     unsigned int hits1[14];// = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
     unsigned int hits2[14];// = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
@@ -369,7 +369,7 @@ __global__ void removeDupQuintupletsInGPUBeforeTC(struct SDL::quintuplets& quint
     }
 }
 
-__device__ float scorepT3(struct SDL::modules& modulesInGPU,struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU,struct SDL::segments& segmentsInGPU,struct SDL::triplets& tripletsInGPU, unsigned int innerPix, unsigned int outerTrip, float pt, float pz)
+ALPAKA_FN_ACC float scorepT3(struct SDL::modules& modulesInGPU,struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU,struct SDL::segments& segmentsInGPU,struct SDL::triplets& tripletsInGPU, unsigned int innerPix, unsigned int outerTrip, float pt, float pz)
 {
     unsigned int hits1[10];
     hits1[0] = mdsInGPU.anchorHitIndices[segmentsInGPU.mdIndices[2*innerPix]];
@@ -421,7 +421,7 @@ __device__ float scorepT3(struct SDL::modules& modulesInGPU,struct SDL::hits& hi
     //printf("pT3 score: %f\n",score);
     return score;
 }
-__device__ void inline checkHitspT3(unsigned int ix, unsigned int jx,struct SDL::pixelTriplets& pixelTripletsInGPU, int* matched)
+ALPAKA_FN_ACC ALPAKA_FN_INLINE void checkHitspT3(unsigned int ix, unsigned int jx,struct SDL::pixelTriplets& pixelTripletsInGPU, int* matched)
 {
     /*unsigned*/ int phits1[4] = {-1,-1,-1,-1};
     /*unsigned*/ int phits2[4] = {-1,-1,-1,-1};

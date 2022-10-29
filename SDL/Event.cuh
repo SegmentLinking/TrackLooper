@@ -28,11 +28,7 @@
 #include "Constants.h"
 
 #include "cuda_profiler_api.h"
-#ifdef __CUDACC__
-#define CUDA_G __global__
-#else
-#define CUDA_G
-#endif
+
 namespace SDL
 {
     class Event

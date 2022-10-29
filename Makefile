@@ -22,9 +22,9 @@ ROOTLIBS    = $(shell root-config --libs)
 #ROOTCFLAGS   = --compiler-options -pthread --compiler-options -std=c++17 -m64 -I/cvmfs/cms.cern.ch/slc7_amd64_gcc700/cms/cmssw/CMSSW_11_0_0_pre6/external/slc7_amd64_gcc700/bin/../../../../../../../slc7_amd64_gcc700/lcg/root/6.14.09-nmpfii5/include
 ROOTCFLAGS = --compiler-options -pthread --compiler-options -std=c++17 -m64 -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/cms/cmssw/CMSSW_11_2_0_pre5/external/slc7_amd64_gcc900/bin/../../../../../../../slc7_amd64_gcc900/lcg/root/6.20.06-ghbfee3/include
 CXXFLAGS    = $(ROOTCFLAGS) -ISDL -I$(shell pwd) -Icode -Icode/AnalysisInterface -Icode/core
-CFLAGS      = $(ROOTCFLAGS) --compiler-options -Wall --compiler-options -Wno-unused-function --compiler-options -g --compiler-options -O2 --compiler-options -fPIC --compiler-options -fno-var-tracking -ISDL -I$(shell pwd) -Icode -Icode/AnalysisInterface -Icode/core -I/mnt/data1/dsr/cub -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/include --compiler-options -fopenmp
+CFLAGS      = $(ROOTCFLAGS) --compiler-options -Wall --compiler-options -Wno-unused-function --compiler-options -g --compiler-options -O2 --compiler-options -fPIC --compiler-options -fno-var-tracking -ISDL -I$(shell pwd) -Icode -Icode/AnalysisInterface -Icode/core -I/mnt/data1/dsr/cub -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/include --compiler-options -fopenmp -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/alpaka/0.5.0/include -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/boost/1.72.0-ghbfee3/include
 EXTRACFLAGS = $(shell rooutil-config)
-EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -L/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/lib64 -lcudart -fopenmp
+EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -L/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/lib64 -lcudart -fopenmp -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/alpaka/0.5.0/include -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/boost/1.72.0-ghbfee3/include
 DOQUINTUPLET = -DFP16_Base -DFP16_dPhi #-DFP16_circle -DFP16_seg -DFP16_T5 #-DDO_QUINTUPLET #-DDO_QUADRUPLET
 PT0P8       =
 T3T3EXTENSION=
@@ -49,7 +49,7 @@ cutvalue_primitive: $(ROOUTIL) efficiency $(EXES)
 
 
 bin/doAnalysis: bin/doAnalysis.o $(OBJECTS)
-	$(LD) $(PT0P8) $(T3T3EXTENSION) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) -o $@
+	$(CC) $(PT0P8) $(T3T3EXTENSION) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) -o $@
 
 bin/sdl: bin/sdl.o $(OBJECTS)
 	$(LD) $(PT0P8) $(T3T3EXTENSION) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) -o $@
