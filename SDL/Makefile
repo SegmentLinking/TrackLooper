@@ -18,7 +18,7 @@ LIB=libsdl.so
 
 # AMD Opteron and Intel EM64T (64 bit mode) Linux with gcc 3.x
 CXX                  = nvcc
-CXXFLAGS             = -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared -arch=compute_70 -I/mnt/data1/dsr/cub --use_fast_math --default-stream per-thread -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/alpaka/0.5.0/include -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/boost/1.72.0-ghbfee3/include -DALPAKA_ACC_GPU_CUDA_ENABLED -DALPAKA_ACC_GPU_CUDA_ONLY  --expt-relaxed-constexpr -DALPAKA_DEBUG=0
+CXXFLAGS             = -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared -arch=compute_70 -I/mnt/data1/dsr/cub --use_fast_math --default-stream per-thread -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include -DALPAKA_ACC_GPU_CUDA_ENABLED -DALPAKA_ACC_GPU_CUDA_ONLY  --expt-relaxed-constexpr -DALPAKA_DEBUG=0
 LD                   = nvcc 
 SOFLAGS              = -g -shared --compiler-options -fPIC --cudart shared -arch=compute_70 -code=sm_72
 PRINTFLAG            = -DAddObjects -DT4FromT3 #-DWarnings
