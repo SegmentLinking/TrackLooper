@@ -616,104 +616,121 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     const int moduleLayer4 = modulesInGPU.moduleType[lowerModuleIndex4];
     const int moduleLayer5 = modulesInGPU.moduleType[lowerModuleIndex5];
 
+    int missing_points = 0;
     float slope;
+    short side_missing;
+    float drdz_missing;
+    short subdets_missing;
+    int moduleType_missing;
     if(moduleLayer1 == 0 and moduleLayer2 == 0 and moduleLayer3 == 1) //PSPS2S
     {
         slope = (z2 -z1)/(rt2 - rt1);
+        missing_points=3;
+        side_missing=modulesInGPU.sides[lowerModuleIndex3];
+        drdz_missing=modulesInGPU.drdzs[lowerModuleIndex3];
+        subdets_missing=modulesInGPU.subdets[lowerModuleIndex3];
+        moduleType_missing=modulesInGPU.moduleType[lowerModuleIndex3];
     }
     else
     {
         slope = (z3 - z1)/(rt3 - rt1);
+        missing_points=2;
+        side_missing=modulesInGPU.sides[lowerModuleIndex2];
+        drdz_missing=modulesInGPU.drdzs[lowerModuleIndex2];
+        subdets_missing=modulesInGPU.subdets[lowerModuleIndex2];
+        moduleType_missing=modulesInGPU.moduleType[lowerModuleIndex2];
     }
 
-    //distinguish tilted modules
-    float side4 = modulesInGPU.sides[lowerModuleIndex4];
-    float side5 = modulesInGPU.sides[lowerModuleIndex5];
-    float drdz4 = modulesInGPU.drdzs[lowerModuleIndex4];
-    float drdz5 = modulesInGPU.drdzs[lowerModuleIndex5];
+    //correction of tilted modules
+    float residual_missing;
+    if (missing_points==2)
+    {
+        residual_missing = (layer2 <= 6 && ((side_missing == SDL::Center) or (drdz_missing < 1))) ? ((z2 - z1) - slope * (rt2 - rt1)) : ((rt2 - rt1) - (z2 - z1)/slope);
+    }
+    if (missing_points==3)
+    {
+        residual_missing = (layer3 <= 6 && ((side_missing == SDL::Center) or (drdz_missing < 1))) ? ((z3 - z1) - slope * (rt3 - rt1)) : ((rt3 - rt1) - (z3 - z1)/slope);
+    }
 
-    float residual4 = (layer4 <= 6 && ((side4 == SDL::Center) or (drdz4 < 1))) ? ((z4 - z1) - slope * (rt4 - rt1)) : ((rt4 - rt1) - (z4 - z1)/slope);
-    float residual5 = (layer4 <= 6 && ((side5 == SDL::Center) or (drdz5 < 1))) ? ((z5 - z1) - slope * (rt5 - rt1)) : ((rt5 - rt1) - (z5 - z1)/slope);
+    float projection_missing = ((subdets_missing == SDL::Endcap) or (side_missing == SDL::Center)) ? 1.f : fmaxf(1.f, drdz_missing)/sqrtf(1+drdz_missing*drdz_missing);
+    residual_missing = (moduleType_missing == SDL::PS) ? residual_missing / (0.15f*projection_missing) : residual_missing/5.f;
 
-    // creating a chi squared type quantity
-    // 0-> PS, 1->2S
-    // ps tilted modules correction
-    float projection4 = ((subdet4 == SDL::Endcap) or (side4 == SDL::Center)) ? 1.f : fmaxf(1.f, drdz4)/sqrtf(1+drdz4*drdz4);
-    float projection5 = ((subdet5 == SDL::Endcap) or (side5 == SDL::Center)) ? 1.f : fmaxf(1.f, drdz5)/sqrtf(1+drdz5*drdz5);
+    float residual4 = (layer4 <= 6) ? ((z4 - z1) - slope * (rt4 - rt1)) : ((rt4 - rt1) - (z4 - z1)/slope);
+    float residual5 = (layer4 <= 6) ? ((z5 - z1) - slope * (rt5 - rt1)) : ((rt5 - rt1) - (z5 - z1)/slope);
 
-    residual4 = (moduleType4 == SDL::PS) ? residual4 / (0.15f*projection4) : residual4/5.f;
-    residual5 = (moduleType5 == SDL::PS) ? residual5 / (0.15f*projection5) : residual5/5.f;
+    residual4 = (moduleLayer4 == 0) ? residual4/0.15f : residual4/5.0f;
+    residual5 = (moduleLayer5 == 0) ? residual5/0.15f : residual5/5.0f;
 
-    const float RMSE = sqrtf(residual4 * residual4 + residual5 * residual5);
-    rzChiSquared = RMSE;
+    rzChiSquared = 0.5*12*(residual4 * residual4 + residual5 * residual5 + residual_missing*residual_missing); // 12 is the factor for uniform random variable
+    
     //categories!
     if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
         if(layer4 == 4 and layer5 == 5)
         {
-            return RMSE < 0.545f; 
+            return rzChiSquared < 0.545f; 
         }
         else if(layer4 == 4 and layer5 == 12)
         {
-            return RMSE < 1.105f;
+            return rzChiSquared < 1.105f;
         }
         else if(layer4 == 7 and layer5 == 13)
         {
-            return RMSE < 0.775f;
+            return rzChiSquared < 0.775f;
         }
         else if(layer4 == 12 and layer5 == 13)
         {
-            return RMSE < 0.625f;
+            return rzChiSquared < 0.625f;
         }
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
         if(layer4 == 8 and layer5 == 14)
         {
-            return RMSE < 0.835f;
+            return rzChiSquared < 0.835f;
         }
         else if(layer4 == 13 and layer5 == 14)
         {
-            return RMSE < 0.575f;
+            return rzChiSquared < 0.575f;
         }
     }
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
     {
-        return RMSE < 0.825f;
+        return rzChiSquared < 0.825f;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
         if(layer4 == 5 and layer5 == 6)
         {
-            return RMSE < 0.845f;
+            return rzChiSquared < 0.845f;
         }
         else if(layer4 == 5 and layer5 == 12)
         {
-            return RMSE < 1.365f;
+            return rzChiSquared < 1.365f;
         }
 
         else if(layer4 == 12 and layer5 == 13)
         {
-            return RMSE < 0.675f;
+            return rzChiSquared < 0.675f;
         }
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
-            return RMSE < 0.495f;
+            return rzChiSquared < 0.495f;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 12 and layer4 == 13 and layer5 == 14)
     {
-        return RMSE < 0.695f; 
+        return rzChiSquared < 0.695f; 
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
         if(layer4 == 9 and layer5 == 15)
         {
-            return RMSE < 0.735f;
+            return rzChiSquared < 0.735f;
         }
         else if(layer4 == 14 and layer5 == 15)
         {
-            return RMSE < 0.525f;
+            return rzChiSquared < 0.525f;
         }
         else if(layer4 == 9 and layer5 == 10)
         {
@@ -722,39 +739,39 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 13 and layer4 == 14 and layer5 == 15)
     {
-        return RMSE < 0.665f;
+        return rzChiSquared < 0.665f;
     }
     else if(layer1 == 3 and layer2 == 4 and layer3 == 5 and layer4 == 12 and layer5 == 13)
     {
-        return RMSE < 0.995f;
+        return rzChiSquared < 0.995f;
     }
     else if(layer1 == 3 and layer2 == 4 and layer3 == 12 and layer4 == 13 and layer5 == 14)
     {
-        return RMSE < 0.525f;
+        return rzChiSquared < 0.525f;
     }
     else if(layer1 == 3 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
     {
-        return RMSE < 0.525f;
+        return rzChiSquared < 0.525f;
     }
     else if(layer1 == 3 and layer2 == 7 and layer3 == 13 and layer4 == 14 and layer5 == 15)
     {
-        return RMSE < 0.745f;
+        return rzChiSquared < 0.745f;
     }
     else if(layer1 == 3 and layer2 == 12 and layer3 == 13 and layer4 == 14 and layer5 == 15)
     {
-        return RMSE < 0.555f; 
+        return rzChiSquared < 0.555f; 
     }
     else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
     {
-            return RMSE < 0.525f;
+            return rzChiSquared < 0.525f;
     }
     else if(layer1 == 7 and layer2 == 8 and layer3 == 14 and layer4 == 15 and layer5 == 16)
     {
-        return RMSE < 0.885f;
+        return rzChiSquared < 0.885f;
     }
     else if(layer1 == 7 and layer2 == 13 and layer3 == 14 and layer4 == 15 and layer5 == 16)
     {
-        return RMSE < 0.845f;
+        return rzChiSquared < 0.845f;
     }
 
     return true;
