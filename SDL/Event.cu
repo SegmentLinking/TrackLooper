@@ -173,6 +173,10 @@ SDL::Event::~Event()
         delete[] quintupletsInCPU->chiSquared;
         delete[] quintupletsInCPU->rzChiSquared;
         delete[] quintupletsInCPU->nonAnchorChiSquared;
+        delete[] quintupletsInCPU->residual_missing;
+        delete[] quintupletsInCPU->residual4;
+        delete[] quintupletsInCPU->residual5;
+#endif
         delete quintupletsInCPU;
     }
 
@@ -1962,6 +1966,9 @@ SDL::quintuplets* SDL::Event::getQuintuplets()
         quintupletsInCPU->chiSquared = new float[nMemoryLocations];
         quintupletsInCPU->nonAnchorChiSquared = new float[nMemoryLocations];
         quintupletsInCPU->rzChiSquared = new float[nMemoryLocations];
+        quintupletsInCPU->residual_missing = new float[nMemoryLocations];
+        quintupletsInCPU->residual4 = new float[nMemoryLocations];
+        quintupletsInCPU->residual5 = new float[nMemoryLocations];
 
         cudaMemcpyAsync(quintupletsInCPU->nQuintuplets, quintupletsInGPU->nQuintuplets,  nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(quintupletsInCPU->totOccupancyQuintuplets, quintupletsInGPU->totOccupancyQuintuplets,  nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
