@@ -195,6 +195,9 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     cudaMalloc(&quintupletsInGPU.chiSquared, nTotalQuintuplets * sizeof(float));
     cudaMalloc(&quintupletsInGPU.nonAnchorChiSquared, nTotalQuintuplets * sizeof(float));
     cudaMalloc(&quintupletsInGPU.rzChiSquared, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.residual_missing, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.residual4, nTotalQuintuplets * sizeof(float));
+    cudaMalloc(&quintupletsInGPU.residual5, nTotalQuintuplets * sizeof(float));
     cudaMalloc(&quintupletsInGPU.nMemoryLocations, sizeof(unsigned int));
 #endif
     cudaMemsetAsync(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
@@ -291,7 +294,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     if(not pass) return pass;
 
 //    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared);
-    passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared);
+    passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5);
 
     if(not pass) return pass;
 
@@ -589,7 +592,7 @@ __device__ bool SDL::passChiSquaredConstraint(struct SDL::modules& modulesInGPU,
 }
 
 //bounds can be found at http://uaf-10.t2.ucsd.edu/~bsathian/SDL/T5_RZFix/t5_rz_thresholds.txt
-__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared) 
+__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared, float& residual_missing, float& residual4, float& residual5) 
 {
     const float& rt1 = mdsInGPU.anchorRt[firstMDIndex];
     const float& rt2 = mdsInGPU.anchorRt[secondMDIndex];
@@ -643,7 +646,7 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     }
 
     //correction of tilted modules
-    float residual_missing;
+//    float residual_missing;
     if (missing_points==2)
     {
         residual_missing = (layer2 <= 6 && ((side_missing == SDL::Center) or (drdz_missing < 1))) ? ((z2 - z1) - slope * (rt2 - rt1)) : ((rt2 - rt1) - (z2 - z1)/slope);
@@ -655,9 +658,13 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
 
     float projection_missing = ((subdets_missing == SDL::Endcap) or (side_missing == SDL::Center)) ? 1.f : fmaxf(1.f, drdz_missing)/sqrtf(1+drdz_missing*drdz_missing);
     residual_missing = (moduleType_missing == SDL::PS) ? residual_missing / (0.15f*projection_missing) : residual_missing/5.f;
-
+/*
     float residual4 = (layer4 <= 6) ? ((z4 - z1) - slope * (rt4 - rt1)) : ((rt4 - rt1) - (z4 - z1)/slope);
     float residual5 = (layer4 <= 6) ? ((z5 - z1) - slope * (rt5 - rt1)) : ((rt5 - rt1) - (z5 - z1)/slope);
+*/
+
+    residual4 = (layer4 <= 6) ? ((z4 - z1) - slope * (rt4 - rt1)) : ((rt4 - rt1) - (z4 - z1)/slope);
+    residual5 = (layer4 <= 6) ? ((z5 - z1) - slope * (rt5 - rt1)) : ((rt5 - rt1) - (z5 - z1)/slope);
 
     residual4 = (moduleLayer4 == 0) ? residual4/0.15f : residual4/5.0f;
     residual5 = (moduleLayer5 == 0) ? residual5/0.15f : residual5/5.0f;

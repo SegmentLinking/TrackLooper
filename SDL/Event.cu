@@ -171,7 +171,14 @@ SDL::Event::~Event()
         delete[] quintupletsInCPU->bridgeRadius;
         delete[] quintupletsInCPU->chiSquared;
         delete[] quintupletsInCPU->rzChiSquared;
+<<<<<<< HEAD
         delete[] quintupletsInCPU->nonAnchorChiSquared;
+=======
+        delete[] quintupletsInCPU->residual_missing;
+        delete[] quintupletsInCPU->residual4;
+        delete[] quintupletsInCPU->residual5;
+#endif
+>>>>>>> add residual for cut value debug
         delete quintupletsInCPU;
     }
 
@@ -2183,7 +2190,31 @@ SDL::quintuplets* SDL::Event::getQuintuplets()
         quintupletsInCPU->chiSquared = new float[nMemoryLocations];
         quintupletsInCPU->nonAnchorChiSquared = new float[nMemoryLocations];
         quintupletsInCPU->rzChiSquared = new float[nMemoryLocations];
+        quintupletsInCPU->residual_missing = new float[nMemoryLocations];
+        quintupletsInCPU->residual4 = new float[nMemoryLocations];
+        quintupletsInCPU->residual5 = new float[nMemoryLocations];
 
+<<<<<<< HEAD
+=======
+        cudaMemcpyAsync(quintupletsInCPU->innerRadiusMin, quintupletsInGPU->innerRadiusMin, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->innerRadiusMax, quintupletsInGPU->innerRadiusMax, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->bridgeRadius, quintupletsInGPU->bridgeRadius, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->bridgeRadiusMin, quintupletsInGPU->bridgeRadiusMin, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->bridgeRadiusMin2S, quintupletsInGPU->bridgeRadiusMin2S, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->bridgeRadiusMax, quintupletsInGPU->bridgeRadiusMax, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->bridgeRadiusMax2S, quintupletsInGPU->bridgeRadiusMax2S, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->outerRadiusMin, quintupletsInGPU->outerRadiusMin, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->outerRadiusMin2S, quintupletsInGPU->outerRadiusMin2S, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->outerRadiusMax, quintupletsInGPU->outerRadiusMax, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->outerRadiusMax2S, quintupletsInGPU->outerRadiusMax2S, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->chiSquared, quintupletsInGPU->chiSquared, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->nonAnchorChiSquared, quintupletsInGPU->nonAnchorChiSquared, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->rzChiSquared, quintupletsInGPU->rzChiSquared, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->residual_missing, quintupletsInGPU->residual_missing, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->residual4, quintupletsInGPU->residual4, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(quintupletsInCPU->residual5, quintupletsInGPU->residual5, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
+#endif
+>>>>>>> add residual for cut value debug
         cudaMemcpyAsync(quintupletsInCPU->nQuintuplets, quintupletsInGPU->nQuintuplets,  nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(quintupletsInCPU->totOccupancyQuintuplets, quintupletsInGPU->totOccupancyQuintuplets,  nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(quintupletsInCPU->tripletIndices, quintupletsInGPU->tripletIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
