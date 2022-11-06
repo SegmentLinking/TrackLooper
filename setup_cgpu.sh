@@ -25,6 +25,7 @@ export PATH=$DIR/efficiency/python:$PATH
 export TRACKLOOPERDIR=$DIR
 export TRACKINGNTUPLEDIR=/ceph/cms/store/user/evourlio/LST/samples/CMSSW_12_2_0_pre2
 export PIXELMAPDIR="/data2/segmentlinking/pixelmap_neta20_nphi72_nz24_ipt2"
+export LSTOUTPUTDIR=.
 
 ###########################################################################################################
 # Validation scripts
