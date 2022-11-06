@@ -149,8 +149,8 @@ def plot(args):
             )
 
     DIR = os.path.realpath(os.path.dirname(__file__))
-    os.system("cd {}; ln -sf {}/../summary".format(params["output_dir"], DIR))
-    os.system("cd {}; ln -sf {}/../compare".format(params["output_dir"], DIR))
+    os.system("cd {}; ln -sf {}/../../LSTPerformanceWeb/summary".format(params["output_dir"], DIR))
+    os.system("cd {}; ln -sf {}/../../LSTPerformanceWeb/compare".format(params["output_dir"], DIR))
 
 #______________________________________________________________________________________________________
 def process_arguments_into_params(args):
