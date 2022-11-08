@@ -1,0 +1,94 @@
+#!/bin/bash
+
+##############################################################################
+#
+#
+# Line Segment Tracking Standalone Code Run Script
+#
+#
+##############################################################################
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Help
+usage()
+{
+  echo "ERROR - Usage:"
+  echo
+  echo "      sh $(basename $0) OPTIONSTRINGS ..."
+  echo
+  echo "Options:"
+  echo "  -h    Help                    (Display this message)"
+  echo "  -f    compilation flags       (Compilation flags e.g. mc NOTE: Must start with '-' e.g. '-mc')"
+  echo "  -s    sample name             (Sample name e.g. PU200, muonGun, ...)"
+  echo "  -n    number of events        (Number of events to run over)"
+  echo "  -t    tag for this run        (Tag for this run)"
+  echo
+  exit
+}
+
+# Parsing command-line opts
+while getopts ":f:s:n:t:h" OPTION; do
+  case $OPTION in
+    f) FLAGS=${OPTARG};;
+    s) SAMPLE=${OPTARG};;
+    n) NEVENTS=${OPTARG};;
+    t) TAG=${OPTARG};;
+    h) usage;;
+    :) usage;;
+  esac
+done
+
+# If the command line options are not provided set it to default value of false
+if [ -z ${FLAGS} ]; then usage; fi
+if [ -z ${SAMPLE} ]; then usage; fi
+if [ -z ${NEVENTS} ]; then NEVENTS=-1; fi
+if [ -z ${TAG} ]; then usage; fi
+
+# Check that the FLAGS start with "-" character
+if [[ ${FLAGS:0:1} == "-" ]]; then
+    :
+else
+    echo "ERROR:"
+    echo ""
+    echo "Compilation flag Option provided is '-f ${FLAGS}'"
+    echo "However, compilation flags must start with '-' e.g. '-mc'"
+    echo ""
+    exit
+fi
+
+# Shift away the parsed options
+shift $(($OPTIND - 1))
+
+# Move to the TRACKLOOPERDIR
+pushd ${TRACKLOOPERDIR}
+
+# Verbose
+echo "====================================================="
+echo "Line Segment Tracking Run Script                     "
+echo "====================================================="
+echo ""
+echo "  COMPILATION FLAG  : ${FLAGS}"
+echo "  SAMPLE            : ${SAMPLE}"
+echo "  NEVENTS           : ${NEVENTS}"
+echo "  TAG               : ${TAG}"
+echo ""
+echo "  (cf. Run > sh $(basename $0) -h to see all options)"
+echo ""
+
+JOBTAG=${TAG}_${SAMPLE}_NEVT${NEVENTS}
+
+rm -f ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log
+echo "Compiling code..."
+sdl_make_tracklooper ${FLAGS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log
+echo "Running LST code..."
+sdl -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: sdl command failed!' ; exit 1; }
+echo "Creating performance histograms..."
+createPerfNumDenHists -i ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNumDen.root >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: createPerfNumDenHists command failed!' ; exit 1; }
+echo "Creating plots..."
+if [[ "$(hostname)" == *"cgpu"* ]]; then
+    python3 efficiency/python/lst_plot_performance.py ${LSTOUTPUTDIR}/${JOBTAG}__LSTNumDen.root -t ${LSTOUTPUTDIR}/${JOBTAG} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: lst_plot_performance.py command failed!' ; exit 1; }
+else
+    lst_plot_performance.py ${LSTOUTPUTDIR}/${JOBTAG}__LSTNumDen.root -t ${LSTOUTPUTDIR}/${JOBTAG} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: lst_plot_performance.py command failed!' ; exit 1; }
+fi
+echo "Done!"

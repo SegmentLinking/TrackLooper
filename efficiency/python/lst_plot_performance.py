@@ -149,8 +149,9 @@ def plot(args):
             )
 
     DIR = os.path.realpath(os.path.dirname(__file__))
-    os.system("cd {}; ln -sf {}/../summary".format(params["output_dir"], DIR))
-    os.system("cd {}; ln -sf {}/../compare".format(params["output_dir"], DIR))
+    perfwebpath = os.path.normpath("{}/../../LSTPerformanceWeb".format(DIR))
+    os.system("cd {}; ln -sf {}/summary".format(params["output_dir"], perfwebpath))
+    os.system("cd {}; ln -sf {}/compare".format(params["output_dir"], perfwebpath))
 
 #______________________________________________________________________________________________________
 def process_arguments_into_params(args):
@@ -245,10 +246,15 @@ def process_arguments_into_params(args):
         params["comp_labels"] = args.comp_labels.split(",")
 
     # process tags
+    tag_ = os.path.normpath(args.tag)
+    bn = os.path.basename(tag_)
+    dn = os.path.dirname(tag_)
+    params["tagbase"] = bn
+    params["tagdir"] = dn
     params["tag"] = args.tag
 
     # Create output_dir
-    params["output_dir"] = "performance/{tag}_{git_hash}-{sample_name}".format(**params)
+    params["output_dir"] = os.path.normpath("performance/{tagdir}/{tagbase}_{git_hash}-{sample_name}".format(**params))
     if params["compare"]:
         for gg, ii in zip(params["additional_git_hashes"], params["additional_sample_names"]):
             params["output_dir"] += "_{}-{}".format(gg, ii)
@@ -748,67 +754,6 @@ def plot_standard_performance_plots(args):
                                         args.xcoarse = xcoarse
                                         print(args)
                                         plot(args)
-
-#______________________________________________________________________________________________________
-def compare(file1, file2, legend0, legend1):
-
-    f1 = r.TFile(file1)
-    f2 = r.TFile(file2)
-
-    h1 = f1.Get("githash").GetTitle()
-    h2 = f2.Get("githash").GetTitle()
-
-    i1 = f1.Get("input").GetTitle()
-    i2 = f2.Get("input").GetTitle()
-
-    params = {}
-    params["output_dir"] = "comparison/{}_v_{}".format(h1, h2)
-
-    # Create output directory
-    os.system("mkdir -p {output_dir}/mtv/var".format(**params))
-    os.system("mkdir -p {output_dir}/mtv/num".format(**params))
-    os.system("mkdir -p {output_dir}/mtv/den".format(**params))
-    os.system("mkdir -p {output_dir}/mtv/ratio".format(**params))
-
-    ratios = []
-    numers = []
-    denoms = []
-    for key in f1.GetListOfKeys():
-        if key.GetName() == "githash":
-            continue
-        if key.GetName() == "input":
-            continue
-        if "_num" not in key.GetName() and "_den" not in key.GetName() and "stack" not in key.GetName():
-            ratio_name = key.GetName()
-            hist_suffix = ""
-            if "eff" in ratio_name:
-                metric = "eff"
-                metric_suffix = "ef"
-            if "fakerate" in ratio_name:
-                metric = "fakerate"
-                metric_suffix = "fr"
-            if "duplrate" in ratio_name:
-                metric = "duplrate"
-                metric_suffix = "dr"
-            if f2.Get(ratio_name):
-                ratios.append(ratio_name)
-                numers.append("Root__" + ratio_name.replace(metric, metric_suffix + "_numer"))
-                denoms.append("Root__" + ratio_name.replace(metric, metric_suffix + "_denom"))
-
-    legend_labels = []
-    legend_labels.append("{}".format(legend0))
-    legend_labels.append("{}".format(legend1))
-    for eff, num, den in zip(ratios, numers, denoms):
-        effs = [f1.Get(eff), f2.Get(eff)]
-        nums = [f1.Get(num), f2.Get(num)]
-        hden = f1.Get(den)
-        params["histname"] = effs[0].GetName()
-        params["pdgidstr"] = params["histname"].split("_")[1]
-        params["output_file_name"] = "{output_dir}/mtv/{histname}.pdf".format(**params)
-        draw_plot(effs, nums, hden, legend_labels, params["output_file_name"], "{}, {}".format(i1, i2), "{}, {}".format(h1, h2), params["pdgidstr"])
-
-    DIR = os.path.realpath(os.path.dirname(__file__))
-    os.system("cp -r {}/../misc/compare {}/".format(DIR, params["output_dir"]))
 
 if __name__ == "__main__":
 

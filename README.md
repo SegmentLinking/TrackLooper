@@ -6,7 +6,7 @@
     cd TrackLooper/
     source setup.sh
     # source setup_cgpu.sh # if you are on cgpu-1
-    sdl_make_tracklooper -mc8
+    sdl_make_tracklooper -mc
     sdl -i PU200 -o LSTNtuple.root
     createPerfNumDenHists -i LSTNtuple.root -o LSTNumDen.root
     lst_plot_performance.py LSTNumDen.root -t "myTag"
@@ -31,7 +31,7 @@ Once every new shell, source the setup script to initilaize the enviornment.
 
 Compile the code with option flags
 
-    sdl_make_tracklooper -mc8
+    sdl_make_tracklooper -mc
     -c: run with the cmssw caching allocator
     -h: show help screen with all options
 
