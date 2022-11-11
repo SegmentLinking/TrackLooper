@@ -79,10 +79,22 @@ void createGnnNtupleBranches()
     ana.tx->createBranch<vector<float>>("LS_eta");
     ana.tx->createBranch<vector<float>>("LS_phi");
     ana.tx->createBranch<vector<int>>("LS_isFake");
-    ana.tx->createBranch<vector<int>>("LS_module0");
-    ana.tx->createBranch<vector<int>>("LS_module1");
+    // ana.tx->createBranch<vector<int>>("LS_layer0");
+    // ana.tx->createBranch<vector<int>>("LS_layer1");
     ana.tx->createBranch<vector<int>>("LS_MD_idx0");
     ana.tx->createBranch<vector<int>>("LS_MD_idx1");
+    ana.tx->createBranch<vector<float>>("LS_sim_pt");
+    ana.tx->createBranch<vector<float>>("LS_sim_eta");
+    ana.tx->createBranch<vector<float>>("LS_sim_phi");
+    ana.tx->createBranch<vector<float>>("LS_sim_pca_dxy");
+    ana.tx->createBranch<vector<float>>("LS_sim_pca_dz");
+    ana.tx->createBranch<vector<int>>("LS_sim_q");
+    ana.tx->createBranch<vector<int>>("LS_sim_pdgId");
+    ana.tx->createBranch<vector<int>>("LS_sim_event");
+    ana.tx->createBranch<vector<int>>("LS_sim_bx");
+    ana.tx->createBranch<vector<float>>("LS_sim_vx");
+    ana.tx->createBranch<vector<float>>("LS_sim_vy");
+    ana.tx->createBranch<vector<float>>("LS_sim_vz");
 }
 
 //________________________________________________________________________________________________________________________________
@@ -254,7 +266,40 @@ void fillGnnNtupleBranches(SDL::Event* event)
             ana.tx->pushbackToBranch<int>("LS_MD_idx1", md_index_map[MDs[1]]);
 
             std::vector<unsigned int> hits = getHitsFromLS(event, sgIdx);
-            // std::vector<unsigned int> hitidxs = getHitIdxsFromLS(event, sgIdx);
+
+            // Computing line segment pt estimate (assuming beam spot is at zero)
+            SDL::CPU::Hit hitA(0, 0, 0);
+            SDL::CPU::Hit hitB(hitsInGPU.xs[hits[0]], hitsInGPU.ys[hits[0]], hitsInGPU.zs[hits[0]]);
+            SDL::CPU::Hit hitC(hitsInGPU.xs[hits[2]], hitsInGPU.ys[hits[2]], hitsInGPU.zs[hits[2]]);
+            SDL::CPU::Hit center = SDL::CPU::MathUtil::getCenterFromThreePoints(hitA, hitB, hitC);
+            float pt = SDL::CPU::MathUtil::ptEstimateFromRadius(center.rt());
+            float eta = hitC.eta();
+            float phi = hitB.phi();
+
+            ana.tx->pushbackToBranch<float>("LS_pt", pt);
+            ana.tx->pushbackToBranch<float>("LS_eta", eta);
+            ana.tx->pushbackToBranch<float>("LS_phi", phi);
+            // ana.tx->pushbackToBranch<int>("LS_layer0", layer0);
+            // ana.tx->pushbackToBranch<int>("LS_layer1", layer1);
+
+            std::vector<unsigned int> hitidxs;
+            std::vector<unsigned int> hittypes;
+            std::tie(hitidxs, hittypes) = getHitIdxsAndHitTypesFromLS(event, sgIdx);
+            std::vector<int> simidxs = matchedSimTrkIdxs(hitidxs, hittypes);
+
+            ana.tx->pushbackToBranch<int>("LS_isFake", simidxs.size() == 0);
+            ana.tx->pushbackToBranch<float>("LS_sim_pt"      , simidxs.size() > 0 ? trk.sim_pt           ()[simidxs[0]] : -999);
+            ana.tx->pushbackToBranch<float>("LS_sim_eta"     , simidxs.size() > 0 ? trk.sim_eta          ()[simidxs[0]] : -999);
+            ana.tx->pushbackToBranch<float>("LS_sim_phi"     , simidxs.size() > 0 ? trk.sim_phi          ()[simidxs[0]] : -999);
+            ana.tx->pushbackToBranch<float>("LS_sim_pca_dxy" , simidxs.size() > 0 ? trk.sim_pca_dxy      ()[simidxs[0]] : -999);
+            ana.tx->pushbackToBranch<float>("LS_sim_pca_dz"  , simidxs.size() > 0 ? trk.sim_pca_dz       ()[simidxs[0]] : -999);
+            ana.tx->pushbackToBranch<int>  ("LS_sim_q"       , simidxs.size() > 0 ? trk.sim_q            ()[simidxs[0]] : -999);
+            ana.tx->pushbackToBranch<int>  ("LS_sim_event"   , simidxs.size() > 0 ? trk.sim_event        ()[simidxs[0]] : -999);
+            ana.tx->pushbackToBranch<int>  ("LS_sim_bx"      , simidxs.size() > 0 ? trk.sim_bunchCrossing()[simidxs[0]] : -999);
+            ana.tx->pushbackToBranch<int>  ("LS_sim_pdgId"   , simidxs.size() > 0 ? trk.sim_pdgId        ()[simidxs[0]] : -999);
+            ana.tx->pushbackToBranch<float>("LS_sim_vx"      , simidxs.size() > 0 ? trk.simvtx_x         ()[trk.sim_parentVtxIdx()[simidxs[0]]] : -999);
+            ana.tx->pushbackToBranch<float>("LS_sim_vy"      , simidxs.size() > 0 ? trk.simvtx_y         ()[trk.sim_parentVtxIdx()[simidxs[0]]] : -999);
+            ana.tx->pushbackToBranch<float>("LS_sim_vz"      , simidxs.size() > 0 ? trk.simvtx_z         ()[trk.sim_parentVtxIdx()[simidxs[0]]] : -999);
 
             // // T5 eta and phi are computed using outer and innermost hits
             // SDL::CPU::Hit hitA(trk.ph2_x()[anchitidx], trk.ph2_y()[anchitidx], trk.ph2_z()[anchitidx]);
@@ -336,6 +381,7 @@ void fillGnnNtupleMiniDoublet(SDL::Event* event, unsigned int MD)
     ana.tx->pushbackToBranch<float>("MD_1_x", hit1_x);
     ana.tx->pushbackToBranch<float>("MD_1_y", hit1_y);
     ana.tx->pushbackToBranch<float>("MD_1_z", hit1_z);
+    // ana.tx->pushbackToBranch<int>("MD_sim_idx", simidxs.size() > 0 ? simidxs[0] : -999);
 }
 
 
