@@ -12,6 +12,14 @@
     lst_plot_performance.py LSTNumDen.root -t "myTag"
     # python3 efficiency/python/lst_plot_performance.py LSTNumDen.root -t "myTag" # if you are on cgpu-1
 
+The above can be even simplified
+
+    git clone git@github.com:SegmentLinking/TrackLooper.git
+    cd TrackLooper/
+    source setup.sh
+    # source setup_cgpu.sh # if you are on cgpu-1
+    sdl_run -f -mc -s PU200 -n -1 -t myTag
+
 ## Instructions
 
 Log on to phi3 or lnx7188
