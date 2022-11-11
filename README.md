@@ -2,7 +2,7 @@
 
 ## Quick Start
 
-    git clone git@github.com:SegmentLinking/TrackLooper.git
+    git clone --recursive git@github.com:SegmentLinking/TrackLooper.git
     cd TrackLooper/
     source setup.sh
     # source setup_cgpu.sh # if you are on cgpu-1
@@ -14,7 +14,7 @@
 
 The above can be even simplified
 
-    git clone git@github.com:SegmentLinking/TrackLooper.git
+    git clone --recursive git@github.com:SegmentLinking/TrackLooper.git
     cd TrackLooper/
     source setup.sh
     # source setup_cgpu.sh # if you are on cgpu-1
