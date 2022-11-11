@@ -6,6 +6,15 @@ struct SDL::pixelMap* SDL::pixelMapping = nullptr;
 uint16_t SDL::nModules;
 uint16_t SDL::nLowerModules;
 
+// Temporary alpaka statements
+using Dim = alpaka::DimInt<1u>;
+using Idx = std::size_t;
+using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
+using QueueProperty = alpaka::NonBlocking;
+using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
+auto devAcc = alpaka::getDevByIdx<Acc>(0u);
+Idx const elementsPerThread(1u);
+
 SDL::Event::Event(cudaStream_t estream,bool verbose)
 {
     int version;
@@ -550,8 +559,6 @@ public:
 
         if(threadFirstElemIdx < nLowerModules)
         {
-            // Calculate the number of elements to compute in this thread.
-            // The result is uniform for all but the last thread.
             TIdx const threadLastElemIdx(threadFirstElemIdx+threadElemExtent);
             TIdx const threadLastElemIdxClipped((nLowerModules > threadLastElemIdx) ? threadLastElemIdx : nLowerModules);
 
@@ -570,57 +577,82 @@ public:
     }
 };
 
-
-__global__ void hitLoopKernel(
-                            uint16_t Endcap, // Integer corresponding to endcap in module subdets
-                            uint16_t TwoS, // Integer corresponding to TwoS in moduleType
-                            int nHits, // Total number of hits in event
-                            unsigned int nModules, // Number of modules
-                            unsigned int nEndCapMap, // Number of elements in endcap map
-                            unsigned int* geoMapDetId, // DetId's from endcap map
-                            float* geoMapPhi, // Phi values from endcap map
-                            struct SDL::modules *modulesInGPU,
-                            struct SDL::hits *hitsInGPU)
+class hitLoopKernel
 {
-    for( int ihit = blockIdx.x * blockDim.x + threadIdx.x; ihit < nHits; ihit += blockDim.x * gridDim.x )
+public:
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<
+        typename TAcc,
+        typename TIdx>
+    ALPAKA_FN_ACC auto operator()(
+        TAcc const & acc,
+        uint16_t Endcap, // Integer corresponding to endcap in module subdets
+        uint16_t TwoS, // Integer corresponding to TwoS in moduleType
+        unsigned int nModules, // Number of modules
+        unsigned int nEndCapMap, // Number of elements in endcap map
+        unsigned int* geoMapDetId, // DetId's from endcap map
+        float* geoMapPhi, // Phi values from endcap map
+        struct SDL::modules *modulesInGPU,
+        struct SDL::hits *hitsInGPU,
+        TIdx const & nHits) const // Total number of hits in event
+    -> void
     {
-        float ihit_x = hitsInGPU->xs[ihit];
-        float ihit_y = hitsInGPU->ys[ihit];
-        float ihit_z = hitsInGPU->zs[ihit];
-        int iDetId = hitsInGPU->detid[ihit];
 
-        hitsInGPU->rts[ihit] = sqrt(ihit_x*ihit_x + ihit_y*ihit_y);
-        hitsInGPU->phis[ihit] = SDL::phi(ihit_x,ihit_y);
-        hitsInGPU->etas[ihit] = ((ihit_z>0)-(ihit_z<0))*acosh(sqrt(ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/hitsInGPU->rts[ihit]);
+        TIdx const gridThreadIdx(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0u]);
+        TIdx const threadElemExtent(alpaka::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc)[0u]);
+        TIdx const threadFirstElemIdx(gridThreadIdx * threadElemExtent);
 
-        int found_index = binary_search(modulesInGPU->mapdetId, iDetId, nModules);
-        uint16_t lastModuleIndex = modulesInGPU->mapIdx[found_index];
-
-        hitsInGPU->moduleIndices[ihit] = lastModuleIndex;
-
-        if(modulesInGPU->subdets[lastModuleIndex] == Endcap && modulesInGPU->moduleType[lastModuleIndex] == TwoS)
+        if(threadFirstElemIdx < nHits)
         {
-            int found_index = binary_search(geoMapDetId, iDetId, nEndCapMap);
-            float phi = 0;
-            // Unclear why these are not in map, but CPU map returns phi = 0 for all exceptions.
-            if (found_index != -1)
-                phi = geoMapPhi[found_index];
-            float cos_phi = cosf(phi);
-            hitsInGPU->highEdgeXs[ihit] = ihit_x + 2.5f * cos_phi;
-            hitsInGPU->lowEdgeXs[ihit] = ihit_x - 2.5f * cos_phi;
-            float sin_phi = sinf(phi);
-            hitsInGPU->highEdgeYs[ihit] = ihit_y + 2.5f * sin_phi;
-            hitsInGPU->lowEdgeYs[ihit] = ihit_y - 2.5f * sin_phi;
-        }
-        // Need to set initial value if index hasn't been seen before.
-        int old = atomicCAS(&(hitsInGPU->hitRanges[lastModuleIndex * 2]), -1, ihit);
-        // For subsequent visits, stores the min value.
-        if (old != -1)
-            atomicMin(&hitsInGPU->hitRanges[lastModuleIndex * 2], ihit);
+            TIdx const threadLastElemIdx(threadFirstElemIdx+threadElemExtent);
+            TIdx const threadLastElemIdxClipped((nHits > threadLastElemIdx) ? threadLastElemIdx : nHits);
 
-        atomicMax(&hitsInGPU->hitRanges[lastModuleIndex * 2 + 1], ihit);
+            for(TIdx ihit(threadFirstElemIdx); ihit<threadLastElemIdxClipped; ++ihit)
+            {
+                // Is there a better way to do this?
+                int ihit_int = ihit;
+
+                float ihit_x = hitsInGPU->xs[ihit];
+                float ihit_y = hitsInGPU->ys[ihit];
+                float ihit_z = hitsInGPU->zs[ihit];
+                int iDetId = hitsInGPU->detid[ihit];
+        
+                hitsInGPU->rts[ihit] = alpaka::math::sqrt(acc, ihit_x*ihit_x + ihit_y*ihit_y);
+                // This needs to get moved over after all kernels that use it have been moved.
+                hitsInGPU->phis[ihit] = SDL::phi(ihit_x,ihit_y,ihit_z);
+                // Acosh has no supported implementation in Alpaka right now.
+                hitsInGPU->etas[ihit] = ((ihit_z>0)-(ihit_z<0))*acosh(alpaka::math::sqrt(acc, ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/hitsInGPU->rts[ihit]);
+        
+                int found_index = binary_search(modulesInGPU->mapdetId, iDetId, nModules);
+                uint16_t lastModuleIndex = modulesInGPU->mapIdx[found_index];
+        
+                hitsInGPU->moduleIndices[ihit] = lastModuleIndex;
+        
+                if(modulesInGPU->subdets[lastModuleIndex] == Endcap && modulesInGPU->moduleType[lastModuleIndex] == TwoS)
+                {
+                    int found_index = binary_search(geoMapDetId, iDetId, nEndCapMap);
+                    float phi = 0;
+                    // Unclear why these are not in map, but CPU map returns phi = 0 for all exceptions.
+                    if (found_index != -1)
+                        phi = geoMapPhi[found_index];
+                    float cos_phi = alpaka::math::cos(acc, phi);
+                    hitsInGPU->highEdgeXs[ihit] = ihit_x + 2.5f * cos_phi;
+                    hitsInGPU->lowEdgeXs[ihit] = ihit_x - 2.5f * cos_phi;
+                    float sin_phi = alpaka::math::sin(acc, phi);
+                    hitsInGPU->highEdgeYs[ihit] = ihit_y + 2.5f * sin_phi;
+                    hitsInGPU->lowEdgeYs[ihit] = ihit_y - 2.5f * sin_phi;
+                }
+                // Need to set initial value if index hasn't been seen before.
+                int old = alpaka::atomicOp<alpaka::AtomicCas>(acc, &(hitsInGPU->hitRanges[lastModuleIndex * 2]), -1, ihit_int);
+                // For subsequent visits, stores the min value.
+                if (old != -1)
+                    alpaka::atomicOp<alpaka::AtomicMin>(acc, &hitsInGPU->hitRanges[lastModuleIndex * 2], ihit_int);
+
+                alpaka::atomicOp<alpaka::AtomicMax>(acc, &hitsInGPU->hitRanges[lastModuleIndex * 2 + 1], ihit_int);
+            }
+        }
     }
-}
+};
 
 void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple)
 {
@@ -652,64 +684,61 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     cudaMemcpyAsync(hitsInGPU->idxs, &idxInNtuple[0], nHits*sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaMemcpyAsync(hitsInGPU->nHits, &nHits, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
-    // Calculate secondary variables on the GPU.
-    hitLoopKernel<<<MAX_BLOCKS,256,0,stream>>>(
-                                            Endcap,
-                                            TwoS,
-                                            nHits,
-                                            nModules,
-                                            SDL::endcapGeometry.nEndCapMap,
-                                            SDL::endcapGeometry.geoMapDetId,
-                                            SDL::endcapGeometry.geoMapPhi,
-                                            modulesInGPU,
-                                            hitsInGPU);
-    //std::cout << cudaGetLastError() << std::endl;
-    cudaStreamSynchronize(stream);
 
-    // Define the index domain
-    using Dim = alpaka::DimInt<1u>;
-    using Idx = std::size_t;
-    using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
-
-    // Blocking isn't needed after second kernel call. Saves ~100 us.
-    // This is because addPixelSegmentToEvent (which is run next) doesn't rely on hitsinGPU->hitrange variables.
-    // Also, modulesInGPU->partnerModuleIndices is not alterned in addPixelSegmentToEvent.
-    using QueueProperty = alpaka::NonBlocking;
-    using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
-
-    // Select a device
-    auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
-
-    // Create a queue on the device
+    // Temporary fix for queue initialization.
     QueueAcc queue(devAcc);
 
-    // Define the work division
-    Idx const elementsPerThread(3u);
-    Idx const numElements(nLowerModules);
-    alpaka::Vec<Dim, Idx> const extent(numElements);
+    Idx const nhits_elements(nHits);
+    alpaka::Vec<Dim, Idx> const hit_loop_extent(nhits_elements);
 
-    // Let alpaka calculate good block and grid sizes given our full problem extent
-    alpaka::WorkDivMembers<Dim, Idx> const workDiv(
+    alpaka::WorkDivMembers<Dim, Idx> const hit_loop_workdiv(
         alpaka::getValidWorkDiv<Acc>(
             devAcc,
-            extent,
+            hit_loop_extent,
             elementsPerThread,
             false,
             alpaka::GridBlockExtentSubDivRestrictions::Unrestricted));
 
-    // Instantiate the kernel function object
-    moduleRangesKernel kernel;
-
-    // Create the kernel execution task.
-    auto const taskKernel(alpaka::createTaskKernel<Acc>(
-        workDiv,
-        kernel,
+    hitLoopKernel hit_loop_kernel;
+    auto const hit_loop_task(alpaka::createTaskKernel<Acc>(
+        hit_loop_workdiv,
+        hit_loop_kernel,
+        Endcap,
+        TwoS,
+        nModules,
+        SDL::endcapGeometry.nEndCapMap,
+        SDL::endcapGeometry.geoMapDetId,
+        SDL::endcapGeometry.geoMapPhi,
         modulesInGPU,
         hitsInGPU,
-        numElements));
+        nhits_elements));
 
-    // Enqueue the kernel execution task
-    alpaka::enqueue(queue, taskKernel);
+    alpaka::enqueue(queue, hit_loop_task);
+    alpaka::wait(queue);
+
+    Idx const nlowermodules_elements(nLowerModules);
+    alpaka::Vec<Dim, Idx> const module_ranges_extent(nlowermodules_elements);
+
+    alpaka::WorkDivMembers<Dim, Idx> const module_ranges_workdiv(
+        alpaka::getValidWorkDiv<Acc>(
+            devAcc,
+            module_ranges_extent,
+            elementsPerThread,
+            false,
+            alpaka::GridBlockExtentSubDivRestrictions::Unrestricted));
+
+    moduleRangesKernel module_ranges_kernel;
+    auto const module_ranges_task(alpaka::createTaskKernel<Acc>(
+        module_ranges_workdiv,
+        module_ranges_kernel,
+        modulesInGPU,
+        hitsInGPU,
+        nlowermodules_elements));
+
+    // Waiting isn't needed after second kernel call. Saves ~100 us.
+    // This is because addPixelSegmentToEvent (which is run next) doesn't rely on hitsinGPU->hitrange variables.
+    // Also, modulesInGPU->partnerModuleIndices is not alterned in addPixelSegmentToEvent.
+    alpaka::enqueue(queue, module_ranges_task);
 }
 
 __global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned int* hitIndices1,unsigned int* hitIndices2,unsigned int* hitIndices3, float* dPhiChange, float* ptIn, float* ptErr, float* px, float* py, float* pz, float* eta, float* etaErr,float* phi, int* charge, unsigned int* seedIdx, uint16_t pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU,const int size, int* superbin, int8_t* pixelType, short* isQuad)
