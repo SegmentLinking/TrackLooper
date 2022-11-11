@@ -2,11 +2,6 @@
 #define Hit_cuh
 
 #include <alpaka/alpaka.hpp>
-#ifdef __CUDACC__
-#define CUDA_G __global__
-#else
-#define CUDA_G
-#endif
 
 #include <iostream>
 #include <cmath>
@@ -55,10 +50,10 @@ namespace SDL
     };
 
     void createHitsInExplicitMemory(struct hits& hitsInGPU, int nModules, unsigned int maxHits,cudaStream_t stream,unsigned int evtnum);
-    CUDA_G void addHitToMemoryKernel(struct hits& hitsInGPU,struct modules& modulesInGPU,const float* x,const float* y, const float* z,const uint16_t* moduleIndex,const float* phis, const int loopsize);
-    //CUDA_G void checkHits(struct hits& hitsInGPU, const int loopsize);
+    __global__ void addHitToMemoryKernel(struct hits& hitsInGPU,struct modules& modulesInGPU,const float* x,const float* y, const float* z,const uint16_t* moduleIndex,const float* phis, const int loopsize);
+    //__global__ void checkHits(struct hits& hitsInGPU, const int loopsize);
     void addHitToMemory(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,cudaStream_t stream,struct objectRanges& rangesInGPU);
-    CUDA_G void addHitToMemoryGPU(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex, float phis,struct objectRanges& rangesInGPU);
+    __global__ void addHitToMemoryGPU(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex, float phis,struct objectRanges& rangesInGPU);
     
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float ATan2(float y, float x) {
     //if (x != 0) return  x * (float(-0xf.8eed2p-4) + x * x * float(0x3.1238p-4)); // degree 3 7 bit accuracy//atan2f(y, x);
