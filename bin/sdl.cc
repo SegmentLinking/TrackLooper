@@ -340,7 +340,8 @@ void run_sdl()
     {
 
         // if (ana.looper.getCurrentEventIndex() ==49) {continue;}
-        std::cout << "PreLoading event number = " << ana.looper.getCurrentEventIndex() << std::endl;
+        if (ana.verbose >= 1)
+            std::cout << "PreLoading event number = " << ana.looper.getCurrentEventIndex() << std::endl;
 
         if (not goodEvent()) continue;
 
