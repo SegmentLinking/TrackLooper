@@ -23,17 +23,21 @@ usage()
   echo "  -s    sample name             (Sample name e.g. PU200, muonGun, ...)"
   echo "  -n    number of events        (Number of events to run over)"
   echo "  -t    tag for this run        (Tag for this run)"
+  echo "  -d    delete previous output  (Delete the previous outputs and re-run)"
   echo
   exit
 }
 
+DELETE=false
+
 # Parsing command-line opts
-while getopts ":f:s:n:t:h" OPTION; do
+while getopts ":f:s:n:t:dh" OPTION; do
   case $OPTION in
     f) FLAGS=${OPTARG};;
     s) SAMPLE=${OPTARG};;
     n) NEVENTS=${OPTARG};;
     t) TAG=${OPTARG};;
+    d) DELETE=true;;
     h) usage;;
     :) usage;;
   esac
@@ -72,11 +76,46 @@ echo "  COMPILATION FLAG  : ${FLAGS}"
 echo "  SAMPLE            : ${SAMPLE}"
 echo "  NEVENTS           : ${NEVENTS}"
 echo "  TAG               : ${TAG}"
+echo "  DELETE            : ${DELETE}"
 echo ""
 echo "  (cf. Run > sh $(basename $0) -h to see all options)"
 echo ""
 
 JOBTAG=${TAG}_${SAMPLE}_NEVT${NEVENTS}
+LSTNTUPLEOUTPUT=${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root
+LSTNUMDENOUTPUT=${LSTOUTPUTDIR}/${JOBTAG}__LSTNumDen.root
+
+# Help
+file_already_exists()
+{
+  echo "ERROR - Output already exists!"
+  echo ""
+  echo "  Out of caution, the sdl_run fails to run if the following .root output files already exists:"
+  echo ""
+  if [ -f "$LSTNTUPLEOUTPUT" ]; then
+      echo "  $LSTNTUPLEOUTPUT   already exists."
+  fi
+  if [ -f "$LSTNUMDENOUTPUT" ]; then
+      echo "  $LSTNUMDENOUTPUT   already exists."
+  fi
+  echo ""
+  echo "  Please delete these files before running them again."
+  echo ""
+  echo "  or, use -d options to delete previous outputs! use with caution!"
+  echo
+  exit
+}
+
+if [ "$DELETE" = true ]; then
+    rm -rf ${LSTNTUPLEOUTPUT};
+    rm -rf ${LSTNUMDENOUTPUT};
+else
+    if [ -f "$LSTNTUPLEOUTPUT" ]; then file_already_exists; fi
+    if [ -f "$LSTNUMDENOUTPUT" ]; then file_already_exists; fi
+fi
+
+# Create output directory
+mkdir -p ${LSTOUTPUTDIR}
 
 rm -f ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log
 echo "Compiling code..."
