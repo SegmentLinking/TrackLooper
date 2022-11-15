@@ -127,7 +127,9 @@ createPerfNumDenHists -i ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -o ${LSTOUTPU
 echo "Creating plots..."
 if [[ "$(hostname)" == *"cgpu"* ]]; then
     python3 efficiency/python/lst_plot_performance.py ${LSTOUTPUTDIR}/${JOBTAG}__LSTNumDen.root -t ${LSTOUTPUTDIR}/${JOBTAG} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: lst_plot_performance.py command failed!' ; exit 1; }
+elif [[ "$(hostname)" == *"phi3"* ]]; then
+    python3 efficiency/python/lst_plot_performance.py ${LSTOUTPUTDIR}/${JOBTAG}__LSTNumDen.root -t ${LSTOUTPUTDIR}/${JOBTAG} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: lst_plot_performance.py command failed!' ; exit 1; }
 else
-    lst_plot_performance.py ${LSTOUTPUTDIR}/${JOBTAG}__LSTNumDen.root -t ${LSTOUTPUTDIR}/${JOBTAG} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: lst_plot_performance.py command failed!' ; exit 1; }
+    lst_plot_performance.py ${LSTOUTPUTDIR}/${JOBTAG}__LSTNumDen.root -t ${JOBTAG} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: lst_plot_performance.py command failed!' ; exit 1; }
 fi
 echo "Done!"
