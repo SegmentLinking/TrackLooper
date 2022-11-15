@@ -254,7 +254,8 @@ def process_arguments_into_params(args):
     params["tag"] = args.tag
 
     # Create output_dir
-    params["output_dir"] = os.path.normpath("performance/{tagdir}/{tagbase}_{git_hash}-{sample_name}".format(**params))
+    params["lstoutputdir"] = os.environ["LSTOUTPUTDIR"]
+    params["output_dir"] = os.path.normpath("{lstoutputdir}/performance/{tagdir}/{tagbase}_{git_hash}-{sample_name}".format(**params))
     if params["compare"]:
         for gg, ii in zip(params["additional_git_hashes"], params["additional_sample_names"]):
             params["output_dir"] += "_{}-{}".format(gg, ii)
