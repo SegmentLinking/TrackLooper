@@ -10,7 +10,6 @@
 void SDL::miniDoublets::resetMemory(unsigned int nMemoryLocationsx, unsigned int nLowerModules,cudaStream_t stream)
 
 {
-    //unsigned int nMemoryLocations = maxMDsPerModule * nLowerModules + maxPixelMDs;
     cudaMemsetAsync(anchorHitIndices,0, nMemoryLocationsx * 3 * sizeof(unsigned int),stream);
     cudaMemsetAsync(dphichanges,0, nMemoryLocationsx * 9 * sizeof(float),stream);
     cudaMemsetAsync(nMDs,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
@@ -68,8 +67,6 @@ void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges&
         if (category_number == 3 && eta_number == 1) occupancy = 14;
         if (category_number == 3 && eta_number == 2) occupancy = 20;
         if (category_number == 3 && eta_number == 3) occupancy = 25;
-
-        // occupancy = maxMDsPerModule;
 
         nTotalMDs += occupancy;
     }
