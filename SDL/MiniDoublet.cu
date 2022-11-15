@@ -17,7 +17,7 @@ void SDL::miniDoublets::resetMemory(unsigned int nMemoryLocationsx, unsigned int
 }
 
 
-void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, uint16_t& nLowerModules, unsigned int& nTotalMDs, cudaStream_t stream, const unsigned int& maxMDsPerModule, const unsigned int& maxPixelMDs)
+void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, uint16_t& nLowerModules, unsigned int& nTotalMDs, cudaStream_t stream, const unsigned int& maxPixelMDs)
 {
     /*
         write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!*/
