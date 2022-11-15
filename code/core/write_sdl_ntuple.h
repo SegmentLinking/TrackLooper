@@ -16,6 +16,7 @@
 // Common
 void createOutputBranches();
 void createOutputBranches_v2();
+void createGnnNtupleBranches();
 
 void fillOutputBranches(SDL::Event* event);
 void fillOutputBranches_v2(SDL::Event* event);

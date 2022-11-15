@@ -6,6 +6,15 @@
 #include "SDL/Event.cuh"
 #include "Hit.h"
 
+enum
+{
+    kpT5 = 7,
+    kpT3 = 5,
+    kT5 = 4,
+    kpLS = 8
+};
+
+
 // ----* Hit *----
 std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> convertHitsToHitIdxsAndHitTypes(SDL::Event* event, std::vector<unsigned int> hits);
 
@@ -56,5 +65,9 @@ std::vector<unsigned int> getPixelHitsFrompT5(SDL::Event* event, unsigned int pT
 std::vector<unsigned int> getHitsFrompT5(SDL::Event* event, unsigned int pT5);
 std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> getHitIdxsAndHitTypesFrompT5(SDL::Event* event, unsigned pT5);
 
+// ----* TC *----
+std::vector<unsigned int> getLSsFromTC(SDL::Event* event, unsigned int TC);
+std::vector<unsigned int> getHitsFromTC(SDL::Event* event, unsigned int TC);
+std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> getHitIdxsAndHitTypesFromTC(SDL::Event* event, unsigned int TC);
 
 #endif

@@ -329,3 +329,39 @@ std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> getHitIdxsAndHi
     return convertHitsToHitIdxsAndHitTypes(event, getHitsFrompT5(event, pT5));
 }
 
+// ==============
+// ----* TC *----
+// ==============
+
+//____________________________________________________________________________________________
+std::vector<unsigned int> getLSsFromTC(SDL::Event* event, unsigned int TC)
+{
+    // Get the type of the track candidate
+    SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
+    short type = trackCandidatesInGPU.trackCandidateType[TC];
+    unsigned int objidx = trackCandidatesInGPU.directObjectIndices[TC];
+    switch (type)
+    {
+        case kpT5: return getLSsFrompT5(event, objidx); break;
+        case kpT3: return getLSsFrompT3(event, objidx); break;
+        case kT5:  return getLSsFromT5 (event, objidx); break;
+        case kpLS: return std::vector<unsigned int>(); break;
+    }
+}
+
+//____________________________________________________________________________________________
+std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> getHitIdxsAndHitTypesFromTC(SDL::Event* event, unsigned TC)
+{
+    // Get the type of the track candidate
+    SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
+    short type = trackCandidatesInGPU.trackCandidateType[TC];
+    unsigned int objidx = trackCandidatesInGPU.directObjectIndices[TC];
+    switch (type)
+    {
+        case kpT5: return getHitIdxsAndHitTypesFrompT5(event, objidx); break;
+        case kpT3: return getHitIdxsAndHitTypesFrompT3(event, objidx); break;
+        case kT5:  return getHitIdxsAndHitTypesFromT5 (event, objidx); break;
+        case kpLS: return getHitIdxsAndHitTypesFrompLS(event, objidx); break;
+    }
+}
+

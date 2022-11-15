@@ -79,8 +79,6 @@ void createGnnNtupleBranches()
     ana.tx->createBranch<vector<float>>("LS_eta");
     ana.tx->createBranch<vector<float>>("LS_phi");
     ana.tx->createBranch<vector<int>>("LS_isFake");
-    // ana.tx->createBranch<vector<int>>("LS_layer0");
-    // ana.tx->createBranch<vector<int>>("LS_layer1");
     ana.tx->createBranch<vector<int>>("LS_MD_idx0");
     ana.tx->createBranch<vector<int>>("LS_MD_idx1");
     ana.tx->createBranch<vector<float>>("LS_sim_pt");
@@ -95,6 +93,7 @@ void createGnnNtupleBranches()
     ana.tx->createBranch<vector<float>>("LS_sim_vx");
     ana.tx->createBranch<vector<float>>("LS_sim_vy");
     ana.tx->createBranch<vector<float>>("LS_sim_vz");
+    ana.tx->createBranch<vector<int>>("LS_isInTrueTC");
 }
 
 //________________________________________________________________________________________________________________________________
@@ -211,6 +210,7 @@ void fillGnnNtupleBranches(SDL::Event* event)
     SDL::hits& hitsInGPU = (*event->getHits());
     SDL::modules& modulesInGPU = (*event->getModules());
     SDL::objectRanges& rangesInGPU = (*event->getRanges());
+    SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
 
     std::set<unsigned int> mds_used_in_sg;
     std::map<unsigned int, unsigned int> md_index_map;
@@ -224,8 +224,33 @@ void fillGnnNtupleBranches(SDL::Event* event)
         nTotalLS += segmentsInGPU.nSegments[idx];
     }
 
-    std::cout <<  " nTotalMD: " << nTotalMD <<  std::endl;
-    std::cout <<  " nTotalLS: " << nTotalLS <<  std::endl;
+    std::set<unsigned int> lss_used_in_true_tc;
+    unsigned int nTrackCandidates = *trackCandidatesInGPU.nTrackCandidates;
+    for (unsigned int idx = 0; idx < nTrackCandidates; idx++)
+    {
+
+        // Only consider true track candidates
+        std::vector<unsigned int> hitidxs;
+        std::vector<unsigned int> hittypes;
+        std::tie(hitidxs, hittypes) = getHitIdxsAndHitTypesFromTC(event, idx);
+        std::vector<int> simidxs = matchedSimTrkIdxs(hitidxs, hittypes);
+        if (simidxs.size() == 0)
+            continue;
+
+        std::vector<unsigned int> LSs = getLSsFromTC(event, idx);
+        for (auto& LS: LSs)
+        {
+            if (lss_used_in_true_tc.find(LS) == lss_used_in_true_tc.end())
+            {
+                lss_used_in_true_tc.insert(LS);
+            }
+        }
+    }
+
+    std::cout <<  " lss_used_in_true_tc.size(): " << lss_used_in_true_tc.size() <<  std::endl;
+
+    // std::cout <<  " nTotalMD: " << nTotalMD <<  std::endl;
+    // std::cout <<  " nTotalLS: " << nTotalLS <<  std::endl;
 
     // Loop over modules (lower ones where the MDs are saved)
     for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); ++idx)
@@ -300,6 +325,7 @@ void fillGnnNtupleBranches(SDL::Event* event)
             ana.tx->pushbackToBranch<float>("LS_sim_vx"      , simidxs.size() > 0 ? trk.simvtx_x         ()[trk.sim_parentVtxIdx()[simidxs[0]]] : -999);
             ana.tx->pushbackToBranch<float>("LS_sim_vy"      , simidxs.size() > 0 ? trk.simvtx_y         ()[trk.sim_parentVtxIdx()[simidxs[0]]] : -999);
             ana.tx->pushbackToBranch<float>("LS_sim_vz"      , simidxs.size() > 0 ? trk.simvtx_z         ()[trk.sim_parentVtxIdx()[simidxs[0]]] : -999);
+            ana.tx->pushbackToBranch<int>  ("LS_isInTrueTC"  , lss_used_in_true_tc.find(sgIdx) != lss_used_in_true_tc.end());
 
             // // T5 eta and phi are computed using outer and innermost hits
             // SDL::CPU::Hit hitA(trk.ph2_x()[anchitidx], trk.ph2_y()[anchitidx], trk.ph2_z()[anchitidx]);
