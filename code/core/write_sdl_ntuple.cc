@@ -1,11 +1,6 @@
 #include "write_sdl_ntuple.h"
 #include "write_sdl_ntuple.h"
 
-#define N_MAX_MD_PER_MODULES 89
-#define N_MAX_SEGMENTS_PER_MODULE 537
-#define MAX_NTRIPLET_PER_MODULE 1170
-#define MAX_NQUINTUPLET_PER_MODULE 513
-
 //________________________________________________________________________________________________________________________________
 void createOutputBranches()
 {
@@ -1457,7 +1452,7 @@ void fillSegmentBranches(SDL::Event* event)
     //SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
     SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
     SDL::objectRanges& rangesInGPU = (*event->getRanges());
-    // const unsigned int N_MAX_SEGMENTS_PER_MODULE = 600;
+
     for (unsigned int idx = 0; idx < *(modulesInGPU.nLowerModules); idx++)
     {
         unsigned int lowerIdx = idx; //modulesInGPU.lowerModuleIndices[idx];
@@ -1601,8 +1596,7 @@ void fillMiniDoubletBranches(SDL::Event* event)
         // Then loop over the mini-doublets
         for (unsigned int iMD = 0; iMD < nMDs; ++iMD)
         {
-            // The indexing is done so that each module can store up to N_MAX_MD_PER_MODULES, and then 2 hits are stored per MD
-            // So we do 2 * idx + 1-like indexing
+            // The indexing is done so that 2 hits are stored per MD
             unsigned int mdIndex = rangesInGPU.miniDoubletModuleIndices[lowerIdx] + iMD;
             unsigned idx = miniDoubletsInGPU.anchorHitIndices[mdIndex];
             unsigned jdx = miniDoubletsInGPU.outerHitIndices[mdIndex];
@@ -1847,7 +1841,6 @@ void fillT3T3TrackExtensionOutputBranches(SDL::Event* event)
     std::vector<float> t3_pt = ana.tx->getBranch<vector<float>>("t3_pt");
     std::vector<float> t3_eta = ana.tx->getBranch<vector<float>>("t3_eta");
     std::vector<float> t3_phi = ana.tx->getBranch<vector<float>>("t3_phi");
-    const unsigned int N_MAX_T3T3_TRACK_EXTENSIONS = 40000;
 
     std::vector<int> tce_anchorType;;
     unsigned int nTrackExtensions = (trackExtensionsInGPU.nTrackExtensions)[nTrackCandidates]; 
@@ -2065,7 +2058,6 @@ void fillPureTrackExtensionOutputBranches(SDL::Event* event)
     std::vector<float> t3_eta = ana.tx->getBranch<vector<float>>("t3_eta");
     std::vector<float> t3_phi = ana.tx->getBranch<vector<float>>("t3_phi");
     unsigned int N_MAX_TRACK_EXTENSIONS_PER_TC = 30;
-    //const unsigned int N_MAX_T3T3_TRACK_EXTENSIONS = 40000;
 
     std::vector<int> tce_anchorType;;
 #ifdef T3T3_EXTENSIONS
@@ -2276,7 +2268,6 @@ void fillTrackExtensionOutputBranches(SDL::Event* event)
     std::vector<float> t3_eta = ana.tx->getBranch<vector<float>>("t3_eta");
     std::vector<float> t3_phi = ana.tx->getBranch<vector<float>>("t3_phi");
     unsigned int N_MAX_TRACK_EXTENSIONS_PER_TC = 30;
-    //const unsigned int N_MAX_T3T3_TRACK_EXTENSIONS = 40000;
 
     std::vector<int> tce_anchorType;;
 #ifdef T3T3_EXTENSIONS
@@ -2811,8 +2802,6 @@ void fillPixelTripletOutputBranches(SDL::Event* event)
     std::vector<float> pT3_rzChiSquared;
 #endif
 
-    //const unsigned int N_MAX_PIXEL_TRIPLETS = 5000;
-
     unsigned int nPixelTriplets = *(pixelTripletsInGPU.nPixelTriplets);
 
     for(unsigned int jdx = 0; jdx < nPixelTriplets; jdx++)
@@ -3046,7 +3035,7 @@ void fillPixelQuintupletOutputBranches(SDL::Event* event)
     std::vector<float> pT5_rPhiChiSquaredInwards;
     std::vector<float> pT5_simpt;
 #endif
-    //const unsigned int N_MAX_PIXEL_QUINTUPLETS = 15000;
+
     unsigned int nPixelQuintuplets = *(pixelQuintupletsInGPU.nPixelQuintuplets);
 
     for(unsigned int jdx = 0; jdx < nPixelQuintuplets; jdx++)
@@ -3304,7 +3293,6 @@ void fillPixelLineSegmentOutputBranches(SDL::Event* event)
     std::vector<float> pLS_phi;
     std::vector<float> pLS_score;
 
-    //const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000; 
     int pixelModuleIndex = static_cast<int>(*(modulesInGPU.nLowerModules));
     unsigned int nPixelSegments = segmentsInGPU.nSegments[pixelModuleIndex];
     for(unsigned int jdx = 0; jdx < nPixelSegments; jdx++)
@@ -3566,7 +3554,6 @@ void fillTripletOutputBranches(SDL::Event* event)
         for (unsigned int jdx = 0; jdx < nTriplets; jdx++)
         {
             unsigned int tripletIndex = rangesInGPU.tripletModuleIndices[idx] + jdx;
-//            unsigned int tripletIndex = MAX_NTRIPLET_PER_MODULE * idx + jdx; // this line causes the issue
             unsigned int innerSegmentIndex = -1;
             unsigned int outerSegmentIndex = -1;
 
@@ -6070,20 +6057,14 @@ void printMDs(SDL::Event* event)
     SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hits& hitsInGPU = (*event->getHits());
     SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::objectRanges& rangesInGPU = (*event->getRanges());
+
+    // Then obtain the lower module index
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); ++idx)
     {
-        for (unsigned int jdx = 0; jdx < miniDoubletsInGPU.nMDs[2*idx]; jdx++)
+        for (unsigned int iMD = 0; iMD < miniDoubletsInGPU.nMDs[idx]; iMD++)
         {
-            unsigned int mdIdx = (2*idx) * N_MAX_MD_PER_MODULES + jdx;
-            unsigned int LowerHitIndex = miniDoubletsInGPU.anchorHitIndices[mdIdx];
-            unsigned int UpperHitIndex = miniDoubletsInGPU.outerHitIndices[mdIdx];
-            unsigned int hit0 = hitsInGPU.idxs[LowerHitIndex];
-            unsigned int hit1 = hitsInGPU.idxs[UpperHitIndex];
-            std::cout <<  "VALIDATION 'MD': " << "MD" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  std::endl;
-        }
-        for (unsigned int jdx = 0; jdx < miniDoubletsInGPU.nMDs[2*idx+1]; jdx++)
-        {
-            unsigned int mdIdx = (2*idx+1) * N_MAX_MD_PER_MODULES + jdx;
+            unsigned int mdIdx = rangesInGPU.miniDoubletModuleIndices[idx] + iMD;
             unsigned int LowerHitIndex = miniDoubletsInGPU.anchorHitIndices[mdIdx];
             unsigned int UpperHitIndex = miniDoubletsInGPU.outerHitIndices[mdIdx];
             unsigned int hit0 = hitsInGPU.idxs[LowerHitIndex];
