@@ -13,11 +13,13 @@ eval `scramv1 runtime -sh`
 cd - > /dev/null
 echo "Setup following ROOT.  Make sure it's slc7 variant. Otherwise the looper won't compile."
 which root
+
 export CUDA_HOME=/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export LD_LIBRARY_PATH=$DIR:$LD_LIBRARY_PATH
 export PATH=$DIR/bin:$PATH
 export PATH=$DIR/efficiency/bin:$PATH
+export PATH=$DIR/efficiency/python:$PATH
 export TRACKLOOPERDIR=$DIR
 export TRACKINGNTUPLEDIR=/data2/segmentlinking/CMSSW_12_2_0_pre2/
 export PIXELMAPDIR="/data2/segmentlinking/pixelmap_neta20_nphi72_nz24_ipt2"
