@@ -24,6 +24,7 @@ export TRACKLOOPERDIR=$DIR
 export TRACKINGNTUPLEDIR=/data2/segmentlinking/CMSSW_12_2_0_pre2/
 export PIXELMAPDIR="/data2/segmentlinking/pixelmap_neta20_nphi72_nz24_ipt2"
 export LSTOUTPUTDIR="/data2/segmentlinking/${USER}"
+export LSTPERFORMANCEWEBDIR="/data2/segmentlinking/LSTPerformanceWeb"
 
 ###########################################################################################################
 # Validation scripts

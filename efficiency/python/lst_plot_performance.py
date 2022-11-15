@@ -148,8 +148,8 @@ def plot(args):
             params,
             )
 
-    DIR = os.path.realpath(os.path.dirname(__file__))
-    perfwebpath = os.path.normpath("{}/../../LSTPerformanceWeb".format(DIR))
+    DIR = os.environ["LSTPERFORMANCEWEBDIR"]
+    perfwebpath = os.path.normpath("{}".format(DIR))
     os.system("cd {}; ln -sf {}/summary".format(params["output_dir"], perfwebpath))
     os.system("cd {}; ln -sf {}/compare".format(params["output_dir"], perfwebpath))
 
