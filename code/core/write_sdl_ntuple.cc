@@ -328,7 +328,7 @@ void createT3T3CutValueBranches()
 void createQuintupletCutValueBranches()
 {
     ana.tx->createBranch<vector<int>>("t5_layer_binary");
-    ana.tx->createBranch<vector<vector<float>>>("t5_matched_pt");
+    ana.tx->createBranch<vector<float>>("t5_matched_pt");
     ana.tx->createBranch<vector<float>>("t5_innerRadius");
     ana.tx->createBranch<vector<float>>("t5_innerInvRadiusMin");
     ana.tx->createBranch<vector<float>>("t5_innerInvRadiusMax");
@@ -2513,7 +2513,7 @@ void fillQuintupletOutputBranches(SDL::Event* event)
     std::vector<float> t5_bridgeRadiusMax;
     std::vector<float> t5_bridgeRadiusMin2S;
     std::vector<float> t5_bridgeRadiusMax2S;
-    std::vector<std::vector<float>> t5_simpt;
+    std::vector<float> t5_simpt;
     std::vector<float> t5_chiSquared;
     std::vector<float> t5_nonAnchorChiSquared;
     std::vector<float> t5_rzChiSquared;
@@ -2701,16 +2701,15 @@ void fillQuintupletOutputBranches(SDL::Event* event)
                 sim_T5_matched[isimtrk]++;
             }
 #ifdef CUT_VALUE_DEBUG
-            std::vector<float> sim_pt_per_t5;
             if(matched_sim_trk_idxs.size() == 0)
             {
-                sim_pt_per_t5.push_back(-999);
+                t5_simpt.push_back(-999);
             }
             else
             {
-		sim_pt_per_t5.push_back(trk.sim_pt()[matched_sim_trk_idxs[0]]);
+		        t5_simpt.push_back(trk.sim_pt()[matched_sim_trk_idxs[0]]);
             }
-            t5_simpt.push_back(sim_pt_per_t5);
+
 #endif
 
             for (auto &isimtrk : matched_sim_trk_idxs)
@@ -2752,7 +2751,7 @@ void fillQuintupletOutputBranches(SDL::Event* event)
     ana.tx->setBranch<vector<vector<int>>>("t5_hitIdxs", t5_hitIdxs);
     ana.tx->setBranch<vector<float>>("t5_score_rphisum", t5_score_rphisum);
 #ifdef CUT_VALUE_DEBUG
-    ana.tx->setBranch<vector<vector<float>>>("t5_matched_pt",t5_simpt);
+    ana.tx->setBranch<vector<float>>("t5_matched_pt",t5_simpt);
 
     ana.tx->setBranch<vector<float>>("t5_outerRadius",t5_outerRadius);
     ana.tx->setBranch<vector<float>>("t5_regressionRadius", t5_regressionRadius);
