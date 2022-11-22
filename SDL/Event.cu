@@ -620,10 +620,10 @@ public:
         int const & nLowerModules) const
     {
 
-        int const threadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0];
-        int const threadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)[0];
+        int const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0];
+        int const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)[0];
 
-        for(int lowerIndex = threadIdx; lowerIndex < nLowerModules; lowerIndex += threadExtent)
+        for(int lowerIndex = globalThreadIdx; lowerIndex < nLowerModules; lowerIndex += gridThreadExtent)
         {
             uint16_t upperIndex = modulesInGPU->partnerModuleIndices[lowerIndex];
             if (hitsInGPU->hitRanges[lowerIndex * 2] != -1 && hitsInGPU->hitRanges[upperIndex * 2] != -1)
@@ -655,10 +655,10 @@ public:
         int const & nHits) const // Total number of hits in event
     {
 
-        int const threadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0];
-        int const threadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)[0];
+        int const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0];
+        int const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)[0];
 
-        for(int ihit = threadIdx; ihit < nHits; ihit += threadExtent)
+        for(int ihit = globalThreadIdx; ihit < nHits; ihit += gridThreadExtent)
         {
             float ihit_x = hitsInGPU->xs[ihit];
             float ihit_y = hitsInGPU->ys[ihit];
