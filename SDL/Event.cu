@@ -611,27 +611,24 @@ class moduleRangesKernel
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    template<
-        typename TAcc,
-        typename TIdx>
-    ALPAKA_FN_ACC auto operator()(
+    template<typename TAcc>
+    ALPAKA_FN_ACC void operator()(
         TAcc const & acc,
         struct SDL::modules *modulesInGPU,
         struct SDL::hits *hitsInGPU,
-        TIdx const & nLowerModules) const
-    -> void
+        int const & nLowerModules) const
     {
 
-        TIdx const gridThreadIdx(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0u]);
-        TIdx const threadElemExtent(alpaka::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc)[0u]);
-        TIdx const threadFirstElemIdx(gridThreadIdx * threadElemExtent);
+        int const gridThreadIdx(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0u]);
+        int const threadElemExtent(alpaka::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc)[0u]);
+        int const threadFirstElemIdx(gridThreadIdx * threadElemExtent);
 
         if(threadFirstElemIdx < nLowerModules)
         {
-            TIdx const threadLastElemIdx(threadFirstElemIdx+threadElemExtent);
-            TIdx const threadLastElemIdxClipped((nLowerModules > threadLastElemIdx) ? threadLastElemIdx : nLowerModules);
+            int const threadLastElemIdx(threadFirstElemIdx+threadElemExtent);
+            int const threadLastElemIdxClipped((nLowerModules > threadLastElemIdx) ? threadLastElemIdx : nLowerModules);
 
-            for(TIdx i(threadFirstElemIdx); i<threadLastElemIdxClipped; ++i)
+            for(int i(threadFirstElemIdx); i<threadLastElemIdxClipped; ++i)
             {
                 uint16_t upperIndex = modulesInGPU->partnerModuleIndices[i];
                 if (hitsInGPU->hitRanges[i * 2] != -1 && hitsInGPU->hitRanges[upperIndex * 2] != -1)
@@ -650,10 +647,8 @@ class hitLoopKernel
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    template<
-        typename TAcc,
-        typename TIdx>
-    ALPAKA_FN_ACC auto operator()(
+    template<typename TAcc>
+    ALPAKA_FN_ACC void operator()(
         TAcc const & acc,
         uint16_t Endcap, // Integer corresponding to endcap in module subdets
         uint16_t TwoS, // Integer corresponding to TwoS in moduleType
@@ -663,24 +658,20 @@ public:
         float* geoMapPhi, // Phi values from endcap map
         struct SDL::modules *modulesInGPU,
         struct SDL::hits *hitsInGPU,
-        TIdx const & nHits) const // Total number of hits in event
-    -> void
+        int const & nHits) const // Total number of hits in event
     {
 
-        TIdx const gridThreadIdx(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0u]);
-        TIdx const threadElemExtent(alpaka::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc)[0u]);
-        TIdx const threadFirstElemIdx(gridThreadIdx * threadElemExtent);
+        int const gridThreadIdx(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0u]);
+        int const threadElemExtent(alpaka::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc)[0u]);
+        int const threadFirstElemIdx(gridThreadIdx * threadElemExtent);
 
         if(threadFirstElemIdx < nHits)
         {
-            TIdx const threadLastElemIdx(threadFirstElemIdx+threadElemExtent);
-            TIdx const threadLastElemIdxClipped((nHits > threadLastElemIdx) ? threadLastElemIdx : nHits);
+            int const threadLastElemIdx(threadFirstElemIdx+threadElemExtent);
+            int const threadLastElemIdxClipped((nHits > threadLastElemIdx) ? threadLastElemIdx : nHits);
 
-            for(TIdx ihit(threadFirstElemIdx); ihit<threadLastElemIdxClipped; ++ihit)
+            for(int ihit(threadFirstElemIdx); ihit<threadLastElemIdxClipped; ++ihit)
             {
-                // Is there a better way to do this?
-                int ihit_int = ihit;
-
                 float ihit_x = hitsInGPU->xs[ihit];
                 float ihit_y = hitsInGPU->ys[ihit];
                 float ihit_z = hitsInGPU->zs[ihit];
@@ -712,12 +703,12 @@ public:
                     hitsInGPU->lowEdgeYs[ihit] = ihit_y - 2.5f * sin_phi;
                 }
                 // Need to set initial value if index hasn't been seen before.
-                int old = alpaka::atomicOp<alpaka::AtomicCas>(acc, &(hitsInGPU->hitRanges[lastModuleIndex * 2]), -1, ihit_int);
+                int old = alpaka::atomicOp<alpaka::AtomicCas>(acc, &(hitsInGPU->hitRanges[lastModuleIndex * 2]), -1, ihit);
                 // For subsequent visits, stores the min value.
                 if (old != -1)
-                    alpaka::atomicOp<alpaka::AtomicMin>(acc, &hitsInGPU->hitRanges[lastModuleIndex * 2], ihit_int);
+                    alpaka::atomicOp<alpaka::AtomicMin>(acc, &hitsInGPU->hitRanges[lastModuleIndex * 2], ihit);
 
-                alpaka::atomicOp<alpaka::AtomicMax>(acc, &hitsInGPU->hitRanges[lastModuleIndex * 2 + 1], ihit_int);
+                alpaka::atomicOp<alpaka::AtomicMax>(acc, &hitsInGPU->hitRanges[lastModuleIndex * 2 + 1], ihit);
             }
         }
     }
@@ -780,7 +771,7 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
         SDL::endcapGeometry.geoMapPhi,
         modulesInGPU,
         hitsInGPU,
-        nhits_elements));
+        nHits));
 
     alpaka::enqueue(queue, hit_loop_task);
     alpaka::wait(queue);
@@ -802,7 +793,7 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
         module_ranges_kernel,
         modulesInGPU,
         hitsInGPU,
-        nlowermodules_elements));
+        nLowerModules));
 
     // Waiting isn't needed after second kernel call. Saves ~100 us.
     // This is because addPixelSegmentToEvent (which is run next) doesn't rely on hitsinGPU->hitrange variables.
