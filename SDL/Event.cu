@@ -560,25 +560,18 @@ public:
         int const & nLowerModules) const
     {
 
-        int const gridThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0u];
-        int const threadElemExtent = alpaka::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc)[0u];
-        int const threadFirstElemIdx = gridThreadIdx * threadElemExtent;
+        int const threadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0];
+        int const threadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)[0];
 
-        if(threadFirstElemIdx < nLowerModules)
+        for(int lowerIndex = threadIdx; lowerIndex < nLowerModules; lowerIndex += threadExtent)
         {
-            int const threadLastElemIdx = threadFirstElemIdx+threadElemExtent;
-            int const threadLastElemIdxClipped = (nLowerModules > threadLastElemIdx) ? threadLastElemIdx : nLowerModules;
-
-            for(int lowerIndex = threadFirstElemIdx; lowerIndex<threadLastElemIdxClipped; ++lowerIndex)
+            uint16_t upperIndex = modulesInGPU->partnerModuleIndices[lowerIndex];
+            if (hitsInGPU->hitRanges[lowerIndex * 2] != -1 && hitsInGPU->hitRanges[upperIndex * 2] != -1)
             {
-                uint16_t upperIndex = modulesInGPU->partnerModuleIndices[lowerIndex];
-                if (hitsInGPU->hitRanges[lowerIndex * 2] != -1 && hitsInGPU->hitRanges[upperIndex * 2] != -1)
-                {
-                    hitsInGPU->hitRangesLower[lowerIndex] =  hitsInGPU->hitRanges[lowerIndex * 2]; 
-                    hitsInGPU->hitRangesUpper[lowerIndex] =  hitsInGPU->hitRanges[upperIndex * 2];
-                    hitsInGPU->hitRangesnLower[lowerIndex] = hitsInGPU->hitRanges[lowerIndex * 2 + 1] - hitsInGPU->hitRanges[lowerIndex * 2] + 1;
-                    hitsInGPU->hitRangesnUpper[lowerIndex] = hitsInGPU->hitRanges[upperIndex * 2 + 1] - hitsInGPU->hitRanges[upperIndex * 2] + 1;
-                }
+                hitsInGPU->hitRangesLower[lowerIndex] =  hitsInGPU->hitRanges[lowerIndex * 2]; 
+                hitsInGPU->hitRangesUpper[lowerIndex] =  hitsInGPU->hitRanges[upperIndex * 2];
+                hitsInGPU->hitRangesnLower[lowerIndex] = hitsInGPU->hitRanges[lowerIndex * 2 + 1] - hitsInGPU->hitRanges[lowerIndex * 2] + 1;
+                hitsInGPU->hitRangesnUpper[lowerIndex] = hitsInGPU->hitRanges[upperIndex * 2 + 1] - hitsInGPU->hitRanges[upperIndex * 2] + 1;
             }
         }
     }
@@ -602,55 +595,48 @@ public:
         int const & nHits) const // Total number of hits in event
     {
 
-        int const gridThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0u];
-        int const threadElemExtent = alpaka::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc)[0u];
-        int const threadFirstElemIdx = gridThreadIdx * threadElemExtent;
+        int const threadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0];
+        int const threadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)[0];
 
-        if(threadFirstElemIdx < nHits)
+        for(int ihit = threadIdx; ihit < nHits; ihit += threadExtent)
         {
-            int const threadLastElemIdx = threadFirstElemIdx+threadElemExtent;
-            int const threadLastElemIdxClipped = (nHits > threadLastElemIdx) ? threadLastElemIdx : nHits;
-
-            for(int ihit = threadFirstElemIdx; ihit<threadLastElemIdxClipped; ++ihit)
+            float ihit_x = hitsInGPU->xs[ihit];
+            float ihit_y = hitsInGPU->ys[ihit];
+            float ihit_z = hitsInGPU->zs[ihit];
+            int iDetId = hitsInGPU->detid[ihit];
+    
+            hitsInGPU->rts[ihit] = alpaka::math::sqrt(acc, ihit_x*ihit_x + ihit_y*ihit_y);
+            // This needs to get moved over after all kernels that use it have been moved.
+            hitsInGPU->phis[ihit] = SDL::phi(ihit_x,ihit_y,ihit_z);
+            // Acosh has no supported implementation in Alpaka right now.
+            hitsInGPU->etas[ihit] = ((ihit_z>0)-(ihit_z<0))*acosh(alpaka::math::sqrt(acc, ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/hitsInGPU->rts[ihit]);
+    
+            int found_index = binary_search(modulesInGPU->mapdetId, iDetId, nModules);
+            uint16_t lastModuleIndex = modulesInGPU->mapIdx[found_index];
+    
+            hitsInGPU->moduleIndices[ihit] = lastModuleIndex;
+    
+            if(modulesInGPU->subdets[lastModuleIndex] == Endcap && modulesInGPU->moduleType[lastModuleIndex] == TwoS)
             {
-                float ihit_x = hitsInGPU->xs[ihit];
-                float ihit_y = hitsInGPU->ys[ihit];
-                float ihit_z = hitsInGPU->zs[ihit];
-                int iDetId = hitsInGPU->detid[ihit];
-        
-                hitsInGPU->rts[ihit] = alpaka::math::sqrt(acc, ihit_x*ihit_x + ihit_y*ihit_y);
-                // This needs to get moved over after all kernels that use it have been moved.
-                hitsInGPU->phis[ihit] = SDL::phi(ihit_x,ihit_y,ihit_z);
-                // Acosh has no supported implementation in Alpaka right now.
-                hitsInGPU->etas[ihit] = ((ihit_z>0)-(ihit_z<0))*acosh(alpaka::math::sqrt(acc, ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/hitsInGPU->rts[ihit]);
-        
-                int found_index = binary_search(modulesInGPU->mapdetId, iDetId, nModules);
-                uint16_t lastModuleIndex = modulesInGPU->mapIdx[found_index];
-        
-                hitsInGPU->moduleIndices[ihit] = lastModuleIndex;
-        
-                if(modulesInGPU->subdets[lastModuleIndex] == Endcap && modulesInGPU->moduleType[lastModuleIndex] == TwoS)
-                {
-                    int found_index = binary_search(geoMapDetId, iDetId, nEndCapMap);
-                    float phi = 0;
-                    // Unclear why these are not in map, but CPU map returns phi = 0 for all exceptions.
-                    if (found_index != -1)
-                        phi = geoMapPhi[found_index];
-                    float cos_phi = alpaka::math::cos(acc, phi);
-                    hitsInGPU->highEdgeXs[ihit] = ihit_x + 2.5f * cos_phi;
-                    hitsInGPU->lowEdgeXs[ihit] = ihit_x - 2.5f * cos_phi;
-                    float sin_phi = alpaka::math::sin(acc, phi);
-                    hitsInGPU->highEdgeYs[ihit] = ihit_y + 2.5f * sin_phi;
-                    hitsInGPU->lowEdgeYs[ihit] = ihit_y - 2.5f * sin_phi;
-                }
-                // Need to set initial value if index hasn't been seen before.
-                int old = alpaka::atomicOp<alpaka::AtomicCas>(acc, &(hitsInGPU->hitRanges[lastModuleIndex * 2]), -1, ihit);
-                // For subsequent visits, stores the min value.
-                if (old != -1)
-                    alpaka::atomicOp<alpaka::AtomicMin>(acc, &hitsInGPU->hitRanges[lastModuleIndex * 2], ihit);
-
-                alpaka::atomicOp<alpaka::AtomicMax>(acc, &hitsInGPU->hitRanges[lastModuleIndex * 2 + 1], ihit);
+                int found_index = binary_search(geoMapDetId, iDetId, nEndCapMap);
+                float phi = 0;
+                // Unclear why these are not in map, but CPU map returns phi = 0 for all exceptions.
+                if (found_index != -1)
+                    phi = geoMapPhi[found_index];
+                float cos_phi = alpaka::math::cos(acc, phi);
+                hitsInGPU->highEdgeXs[ihit] = ihit_x + 2.5f * cos_phi;
+                hitsInGPU->lowEdgeXs[ihit] = ihit_x - 2.5f * cos_phi;
+                float sin_phi = alpaka::math::sin(acc, phi);
+                hitsInGPU->highEdgeYs[ihit] = ihit_y + 2.5f * sin_phi;
+                hitsInGPU->lowEdgeYs[ihit] = ihit_y - 2.5f * sin_phi;
             }
+            // Need to set initial value if index hasn't been seen before.
+            int old = alpaka::atomicOp<alpaka::AtomicCas>(acc, &(hitsInGPU->hitRanges[lastModuleIndex * 2]), -1, ihit);
+            // For subsequent visits, stores the min value.
+            if (old != -1)
+                alpaka::atomicOp<alpaka::AtomicMin>(acc, &hitsInGPU->hitRanges[lastModuleIndex * 2], ihit);
+
+            alpaka::atomicOp<alpaka::AtomicMax>(acc, &hitsInGPU->hitRanges[lastModuleIndex * 2 + 1], ihit);
         }
     }
 };
