@@ -474,10 +474,8 @@ __device__ bool SDL::passPT3RZChiSquaredCuts(struct modules& modulesInGPU, uint1
 
 __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint16_t* lowerModuleIndices, float* rtPix, float* xPix, float* yPix, float* zPix, float* rts, float* xs, float* ys, float* zs, float pixelSegmentPt, float pixelSegmentPx, float pixelSegmentPy, float pixelSegmentPz, int pixelSegmentCharge)
 { 
-    float slope = (zPix[1] - zPix[0])/(rtPix[1] - rtPix[0]);
     float residual = 0;
     float error = 0;
-    //hardcoded array indices!!!
     float RMSE = 0;
 
     float Px=pixelSegmentPx, Py=pixelSegmentPy, Pz=pixelSegmentPz;

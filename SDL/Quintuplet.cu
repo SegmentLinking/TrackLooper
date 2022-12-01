@@ -293,11 +293,6 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     pass = pass and runQuintupletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, secondSegmentIndex, fourthSegmentIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
     if(not pass) return pass;
 
-//    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared);
-    passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5);
-
-    if(not pass) return pass;
-
     float x1 = mdsInGPU.anchorX[firstMDIndex];
     float x2 = mdsInGPU.anchorX[secondMDIndex];
     float x3 = mdsInGPU.anchorX[thirdMDIndex];
@@ -385,6 +380,11 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     outerRadius = computeRadiusFromThreeAnchorHits(x3, y3, x4, y4, x5, y5, g, f);
     bridgeRadius = computeRadiusFromThreeAnchorHits(x2, y2, x3, y3, x4, y4, g, f);
 
+//    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, g, f);
+    float inner_pt = k2Rinv1GeVf * (innerRadius+outerRadius);
+    passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, g, f);
+
+    if(not pass) return pass;
 
     pass = pass & (innerRadius >= 0.95f * ptCut/(2.f * k2Rinv1GeVf));
 
@@ -592,19 +592,20 @@ __device__ bool SDL::passChiSquaredConstraint(struct SDL::modules& modulesInGPU,
 }
 
 //bounds can be found at http://uaf-10.t2.ucsd.edu/~bsathian/SDL/T5_RZFix/t5_rz_thresholds.txt
-__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared, float& residual_missing, float& residual4, float& residual5) 
+__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared, float& residual_missing, float& residual4, float& residual5, float inner_pt, float g, float f) 
 {
-    const float& rt1 = mdsInGPU.anchorRt[firstMDIndex];
-    const float& rt2 = mdsInGPU.anchorRt[secondMDIndex];
-    const float& rt3 = mdsInGPU.anchorRt[thirdMDIndex];
-    const float& rt4 = mdsInGPU.anchorRt[fourthMDIndex];
-    const float& rt5 = mdsInGPU.anchorRt[fifthMDIndex];
+    //(g,f) is the center of the circle fitted by the innermost 3 points on x,y coordinates
+    const float& rt1 = mdsInGPU.anchorRt[firstMDIndex]/100; //in the unit of m instead of cm
+    const float& rt2 = mdsInGPU.anchorRt[secondMDIndex]/100;
+    const float& rt3 = mdsInGPU.anchorRt[thirdMDIndex]/100;
+    const float& rt4 = mdsInGPU.anchorRt[fourthMDIndex]/100;
+    const float& rt5 = mdsInGPU.anchorRt[fifthMDIndex]/100;
 
-    const float& z1 = mdsInGPU.anchorZ[firstMDIndex];
-    const float& z2 = mdsInGPU.anchorZ[secondMDIndex];
-    const float& z3 = mdsInGPU.anchorZ[thirdMDIndex];
-    const float& z4 = mdsInGPU.anchorZ[fourthMDIndex];
-    const float& z5 = mdsInGPU.anchorZ[fifthMDIndex];
+    const float& z1 = mdsInGPU.anchorZ[firstMDIndex]/100;
+    const float& z2 = mdsInGPU.anchorZ[secondMDIndex]/100;
+    const float& z3 = mdsInGPU.anchorZ[thirdMDIndex]/100;
+    const float& z4 = mdsInGPU.anchorZ[fourthMDIndex]/100;
+    const float& z5 = mdsInGPU.anchorZ[fifthMDIndex]/100;
 
     //following Philip's layer number prescription
     const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
@@ -614,63 +615,119 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
 
     //slope computed using the internal T3s
-    const int moduleLayer1 = modulesInGPU.moduleType[lowerModuleIndex1];
-    const int moduleLayer2 = modulesInGPU.moduleType[lowerModuleIndex2];
-    const int moduleLayer3 = modulesInGPU.moduleType[lowerModuleIndex3];
-    const int moduleLayer4 = modulesInGPU.moduleType[lowerModuleIndex4];
-    const int moduleLayer5 = modulesInGPU.moduleType[lowerModuleIndex5];
+    const int moduleType1 = modulesInGPU.moduleType[lowerModuleIndex1]; //0 is ps, 1 is 2s
+    const int moduleType2 = modulesInGPU.moduleType[lowerModuleIndex2];
+    const int moduleType3 = modulesInGPU.moduleType[lowerModuleIndex3];
+    const int moduleType4 = modulesInGPU.moduleType[lowerModuleIndex4];
+    const int moduleType5 = modulesInGPU.moduleType[lowerModuleIndex5];
 
-    int missing_points = 0;
-    float slope;
-    short side_missing;
-    float drdz_missing;
-    short subdets_missing;
-    int moduleType_missing;
-    if(moduleLayer1 == 0 and moduleLayer2 == 0 and moduleLayer3 == 1) //PSPS2S
+    const float& x1 = mdsInGPU.anchorX[firstMDIndex]/100;
+    const float& x2 = mdsInGPU.anchorX[secondMDIndex]/100;
+    const float& x3 = mdsInGPU.anchorX[thirdMDIndex]/100;
+    const float& x4 = mdsInGPU.anchorX[fourthMDIndex]/100;
+    const float& x5 = mdsInGPU.anchorX[fifthMDIndex]/100;
+    const float& y1 = mdsInGPU.anchorY[firstMDIndex]/100;
+    const float& y2 = mdsInGPU.anchorY[secondMDIndex]/100;
+    const float& y3 = mdsInGPU.anchorY[thirdMDIndex]/100;
+    const float& y4 = mdsInGPU.anchorY[fourthMDIndex]/100;
+    const float& y5 = mdsInGPU.anchorY[fifthMDIndex]/100;
+
+    float residual = 0;
+    float error = 0;
+
+    float x_center=g, y_center=f; 
+    float x_init=mdsInGPU.anchorX[secondMDIndex]/100;
+    float y_init=mdsInGPU.anchorY[secondMDIndex]/100;
+    float z_init=mdsInGPU.anchorZ[secondMDIndex]/100;
+    float rt_init=mdsInGPU.anchorRt[secondMDIndex]/100; //use the second MD as initial point
+    float pseudo_phi = atan((y_center-y_init)/(x_center-x_init)); //actually represent pi/2-phi, wrt helix axis z
+
+    float Pt=inner_pt, Px = Pt*sin(pseudo_phi), Py=Pt*cos(pseudo_phi);
+    float Pz=(z_init-z1)/(y_init-y1)*Py;
+    float p = sqrt(Px*Px+Py*Py+Pz*Pz);
+
+    int charge;
+    if (((y3-y2)/(x3-x2))<((y2-y1)/(x2-x1))) charge=1;
+    else if (((y3-y2)/(x3-x2))>((y2-y1)/(x2-x1))) charge=-1;
+    else return 0;
+
+    float B = 3.8112;
+    float a = -0.299792*B*charge;
+
+    float zsi, rtsi;
+    int layeri, moduleTypei;
+    float expectrt4=0,expectrt5=0,expectz4=0, expectz5=0;
+    for(size_t i = 4; i < 6; i++)
     {
-        slope = (z2 -z1)/(rt2 - rt1);
-        missing_points=3;
-        side_missing=modulesInGPU.sides[lowerModuleIndex3];
-        drdz_missing=modulesInGPU.drdzs[lowerModuleIndex3];
-        subdets_missing=modulesInGPU.subdets[lowerModuleIndex3];
-        moduleType_missing=modulesInGPU.moduleType[lowerModuleIndex3];
+        if (i==4){
+            zsi = z4;
+            rtsi = rt4;
+            layeri=layer4;
+            moduleTypei=moduleType4;
+        }
+        else if (i==5){
+            zsi = z5;
+            rtsi = rt5;
+            layeri=layer5;
+            moduleTypei=moduleType5;
+        }
+
+        // calculation is copied from PixelTriplet.cu SDL::computePT3RZChiSquared
+        float diffr=0, diffz=0;
+
+        float rou = a/p;
+        if (layeri>6){
+            float s = (zsi-z_init)*p/Pz;
+            float x = x_init + Px/a*sin(rou*s)-Py/a*(1-cos(rou*s));
+            float y = y_init + Py/a*sin(rou*s)+Px/a*(1-cos(rou*s));
+            diffr = (rtsi-sqrt(x*x+y*y))*100;
+            if (i==4) expectrt4=sqrt(x*x+y*y);
+            if (i==5) expectrt5=sqrt(x*x+y*y);
+        }
+
+        if (layeri<=6){
+            float paraA = rt_init*rt_init + 2*(Px*Px+Py*Py)/(a*a) + 2*(y_init*Px-x_init*Py)/a - rtsi*rtsi;
+            float paraB = 2*(x_init*Px+y_init*Py)/a;
+            float paraC = 2*(y_init*Px-x_init*Py)/a+2*(Px*Px+Py*Py)/(a*a);
+            float A=paraB*paraB+paraC*paraC;
+            float B=2*paraA*paraB;
+            float C=paraA*paraA-paraC*paraC;
+            float sol1 = (-B+sqrt(B*B-4*A*C))/(2*A);
+            float sol2 = (-B-sqrt(B*B-4*A*C))/(2*A);
+            float solz1 = asin(sol1)/rou*Pz/p+z_init;
+            float solz2 = asin(sol2)/rou*Pz/p+z_init;
+            float diffz1 = (solz1-zsi)*100;
+            float diffz2 = (solz2-zsi)*100;
+            diffz = (fabs(diffz1)<fabs(diffz2)) ? diffz1 : diffz2;
+            if (i==4 && fabs(diffz1)<fabs(diffz2)) expectz4 = solz1;
+            if (i==4 && fabs(diffz1)>fabs(diffz2)) expectz4 = solz2;
+            if (i==5 && fabs(diffz1)<fabs(diffz2)) expectz5 = solz1;
+            if (i==5 && fabs(diffz1)>fabs(diffz2)) expectz5 = solz2;
+        }
+
+        residual = (layeri>6) ? diffr : diffz ;
+        if (i==4) residual4=residual;
+        if (i==5) residual5=residual;
+
+        //PS Modules
+        if(moduleTypei == 0)
+        {
+            error = 0.15f;
+        }
+        else //2S modules
+        {
+            error = 5.0f;
+        }
+        rzChiSquared += 12*(residual * residual)/(error * error);
     }
-    else
-    {
-        slope = (z3 - z1)/(rt3 - rt1);
-        missing_points=2;
-        side_missing=modulesInGPU.sides[lowerModuleIndex2];
-        drdz_missing=modulesInGPU.drdzs[lowerModuleIndex2];
-        subdets_missing=modulesInGPU.subdets[lowerModuleIndex2];
-        moduleType_missing=modulesInGPU.moduleType[lowerModuleIndex2];
-    }
+        printf("rt1:%f, rt2:%f, rt3:%f, rt4:%f, rt5:%f\n", rt1, rt2, rt3, rt4, rt5);
+        printf("x1:%f, x2:%f, x3:%f, x4:%f, x5:%f\n", x1, x2, x3, x4, x5);
+        printf("y1:%f, y2:%f, y3:%f, y4:%f, y5:%f\n", y1, y2, y3, y4, y5);
+        printf("z1:%f, z2:%f, z3:%f, z4:%f, z5:%f\n", z1, z2, z3, z4, z5);
+        printf("rt4_ex:%f, rt5_ex:%f\n", expectrt4, expectrt5);
+        printf("z4_ex:%f, z5_ex:%f\n", expectz4, expectz5);
+        printf("Pt:%f, Px:%f, Py:%f, Pz:%f, charge: %i, residual4: %f, residual5:%f\n", Pt, Px, Py, Pz, charge, residual4, residual5);
 
-    //correction of tilted modules
-//    float residual_missing;
-    if (missing_points==2)
-    {
-        residual_missing = (layer2 <= 6 && ((side_missing == SDL::Center) or (drdz_missing < 1))) ? ((z2 - z1) - slope * (rt2 - rt1)) : ((rt2 - rt1) - (z2 - z1)/slope);
-    }
-    if (missing_points==3)
-    {
-        residual_missing = (layer3 <= 6 && ((side_missing == SDL::Center) or (drdz_missing < 1))) ? ((z3 - z1) - slope * (rt3 - rt1)) : ((rt3 - rt1) - (z3 - z1)/slope);
-    }
-
-    float projection_missing = ((subdets_missing == SDL::Endcap) or (side_missing == SDL::Center)) ? 1.f : fmaxf(1.f, drdz_missing)/sqrtf(1+drdz_missing*drdz_missing);
-    residual_missing = (moduleType_missing == SDL::PS) ? residual_missing / (0.15f*projection_missing) : residual_missing/5.f;
-/*
-    float residual4 = (layer4 <= 6) ? ((z4 - z1) - slope * (rt4 - rt1)) : ((rt4 - rt1) - (z4 - z1)/slope);
-    float residual5 = (layer4 <= 6) ? ((z5 - z1) - slope * (rt5 - rt1)) : ((rt5 - rt1) - (z5 - z1)/slope);
-*/
-
-    residual4 = (layer4 <= 6) ? ((z4 - z1) - slope * (rt4 - rt1)) : ((rt4 - rt1) - (z4 - z1)/slope);
-    residual5 = (layer4 <= 6) ? ((z5 - z1) - slope * (rt5 - rt1)) : ((rt5 - rt1) - (z5 - z1)/slope);
-
-    residual4 = (moduleLayer4 == 0) ? residual4/0.15f : residual4/5.0f;
-    residual5 = (moduleLayer5 == 0) ? residual5/0.15f : residual5/5.0f;
-
-    rzChiSquared = 0.5*12*(residual4 * residual4 + residual5 * residual5 + residual_missing*residual_missing); // 12 is the factor for uniform random variable
-    
     //categories!
     if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
@@ -1042,7 +1099,7 @@ __device__ float SDL::computeRadiusFromThreeAnchorHits(float x1, float y1, float
     /*
     if((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3) == 0)
     {
-        return -1; //WTF man three collinear points!
+        return -1; //WTF man, three collinear points!
     }
     */
 
