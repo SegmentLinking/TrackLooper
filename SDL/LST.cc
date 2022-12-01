@@ -46,107 +46,100 @@ void SDL::LST::run(cudaStream_t stream,
                                in_pixelType_vec_,
                                in_isQuad_vec_);
   event.createMiniDoublets();
-  printf("# of Mini-doublets produced: %d\n",event.getNumberOfMiniDoublets());
-  printf("# of Mini-doublets produced barrel layer 1: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(0));
-  printf("# of Mini-doublets produced barrel layer 2: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(1));
-  printf("# of Mini-doublets produced barrel layer 3: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(2));
-  printf("# of Mini-doublets produced barrel layer 4: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(3));
-  printf("# of Mini-doublets produced barrel layer 5: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(4));
-  printf("# of Mini-doublets produced barrel layer 6: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(5));
-  printf("# of Mini-doublets produced endcap layer 1: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(0));
-  printf("# of Mini-doublets produced endcap layer 2: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(1));
-  printf("# of Mini-doublets produced endcap layer 3: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(2));
-  printf("# of Mini-doublets produced endcap layer 4: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(3));
-  printf("# of Mini-doublets produced endcap layer 5: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(4));
+  //printf("# of Mini-doublets produced: %d\n",event.getNumberOfMiniDoublets());
+  //printf("# of Mini-doublets produced barrel layer 1: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(0));
+  //printf("# of Mini-doublets produced barrel layer 2: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(1));
+  //printf("# of Mini-doublets produced barrel layer 3: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(2));
+  //printf("# of Mini-doublets produced barrel layer 4: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(3));
+  //printf("# of Mini-doublets produced barrel layer 5: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(4));
+  //printf("# of Mini-doublets produced barrel layer 6: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(5));
+  //printf("# of Mini-doublets produced endcap layer 1: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(0));
+  //printf("# of Mini-doublets produced endcap layer 2: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(1));
+  //printf("# of Mini-doublets produced endcap layer 3: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(2));
+  //printf("# of Mini-doublets produced endcap layer 4: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(3));
+  //printf("# of Mini-doublets produced endcap layer 5: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(4));
 
   event.createSegmentsWithModuleMap();
-  printf("# of Segments produced: %d\n",event.getNumberOfSegments());
-  printf("# of Segments produced layer 1-2:  %d\n",event.getNumberOfSegmentsByLayerBarrel(0));
-  printf("# of Segments produced layer 2-3:  %d\n",event.getNumberOfSegmentsByLayerBarrel(1));
-  printf("# of Segments produced layer 3-4:  %d\n",event.getNumberOfSegmentsByLayerBarrel(2));
-  printf("# of Segments produced layer 4-5:  %d\n",event.getNumberOfSegmentsByLayerBarrel(3));
-  printf("# of Segments produced layer 5-6:  %d\n",event.getNumberOfSegmentsByLayerBarrel(4));
-  printf("# of Segments produced endcap layer 1:  %d\n",event.getNumberOfSegmentsByLayerEndcap(0));
-  printf("# of Segments produced endcap layer 2:  %d\n",event.getNumberOfSegmentsByLayerEndcap(1));
-  printf("# of Segments produced endcap layer 3:  %d\n",event.getNumberOfSegmentsByLayerEndcap(2));
-  printf("# of Segments produced endcap layer 4:  %d\n",event.getNumberOfSegmentsByLayerEndcap(3));
-  printf("# of Segments produced endcap layer 5:  %d\n",event.getNumberOfSegmentsByLayerEndcap(4));
+  //printf("# of Segments produced: %d\n",event.getNumberOfSegments());
+  //printf("# of Segments produced layer 1-2:  %d\n",event.getNumberOfSegmentsByLayerBarrel(0));
+  //printf("# of Segments produced layer 2-3:  %d\n",event.getNumberOfSegmentsByLayerBarrel(1));
+  //printf("# of Segments produced layer 3-4:  %d\n",event.getNumberOfSegmentsByLayerBarrel(2));
+  //printf("# of Segments produced layer 4-5:  %d\n",event.getNumberOfSegmentsByLayerBarrel(3));
+  //printf("# of Segments produced layer 5-6:  %d\n",event.getNumberOfSegmentsByLayerBarrel(4));
+  //printf("# of Segments produced endcap layer 1:  %d\n",event.getNumberOfSegmentsByLayerEndcap(0));
+  //printf("# of Segments produced endcap layer 2:  %d\n",event.getNumberOfSegmentsByLayerEndcap(1));
+  //printf("# of Segments produced endcap layer 3:  %d\n",event.getNumberOfSegmentsByLayerEndcap(2));
+  //printf("# of Segments produced endcap layer 4:  %d\n",event.getNumberOfSegmentsByLayerEndcap(3));
+  //printf("# of Segments produced endcap layer 5:  %d\n",event.getNumberOfSegmentsByLayerEndcap(4));
 
   event.createTriplets();
-  printf("# of T3s produced: %d\n",event.getNumberOfTriplets());
-  printf("# of T3s produced layer 1-2-3: %d\n",event.getNumberOfTripletsByLayerBarrel(0));
-  printf("# of T3s produced layer 2-3-4: %d\n",event.getNumberOfTripletsByLayerBarrel(1));
-  printf("# of T3s produced layer 3-4-5: %d\n",event.getNumberOfTripletsByLayerBarrel(2));
-  printf("# of T3s produced layer 4-5-6: %d\n",event.getNumberOfTripletsByLayerBarrel(3));
-  printf("# of T3s produced endcap layer 1-2-3: %d\n",event.getNumberOfTripletsByLayerEndcap(0));
-  printf("# of T3s produced endcap layer 2-3-4: %d\n",event.getNumberOfTripletsByLayerEndcap(1));
-  printf("# of T3s produced endcap layer 3-4-5: %d\n",event.getNumberOfTripletsByLayerEndcap(2));
-  printf("# of T3s produced endcap layer 1: %d\n",event.getNumberOfTripletsByLayerEndcap(0));
-  printf("# of T3s produced endcap layer 2: %d\n",event.getNumberOfTripletsByLayerEndcap(1));
-  printf("# of T3s produced endcap layer 3: %d\n",event.getNumberOfTripletsByLayerEndcap(2));
-  printf("# of T3s produced endcap layer 4: %d\n",event.getNumberOfTripletsByLayerEndcap(3));
-  printf("# of T3s produced endcap layer 5: %d\n",event.getNumberOfTripletsByLayerEndcap(4));
+  //printf("# of T3s produced: %d\n",event.getNumberOfTriplets());
+  //printf("# of T3s produced layer 1-2-3: %d\n",event.getNumberOfTripletsByLayerBarrel(0));
+  //printf("# of T3s produced layer 2-3-4: %d\n",event.getNumberOfTripletsByLayerBarrel(1));
+  //printf("# of T3s produced layer 3-4-5: %d\n",event.getNumberOfTripletsByLayerBarrel(2));
+  //printf("# of T3s produced layer 4-5-6: %d\n",event.getNumberOfTripletsByLayerBarrel(3));
+  //printf("# of T3s produced endcap layer 1-2-3: %d\n",event.getNumberOfTripletsByLayerEndcap(0));
+  //printf("# of T3s produced endcap layer 2-3-4: %d\n",event.getNumberOfTripletsByLayerEndcap(1));
+  //printf("# of T3s produced endcap layer 3-4-5: %d\n",event.getNumberOfTripletsByLayerEndcap(2));
+  //printf("# of T3s produced endcap layer 1: %d\n",event.getNumberOfTripletsByLayerEndcap(0));
+  //printf("# of T3s produced endcap layer 2: %d\n",event.getNumberOfTripletsByLayerEndcap(1));
+  //printf("# of T3s produced endcap layer 3: %d\n",event.getNumberOfTripletsByLayerEndcap(2));
+  //printf("# of T3s produced endcap layer 4: %d\n",event.getNumberOfTripletsByLayerEndcap(3));
+  //printf("# of T3s produced endcap layer 5: %d\n",event.getNumberOfTripletsByLayerEndcap(4));
 
   event.createQuintuplets();
-  printf("# of Quintuplets produced: %d\n",event.getNumberOfQuintuplets());
-  printf("# of Quintuplets produced layer 1-2-3-4-5-6: %d\n",event.getNumberOfQuintupletsByLayerBarrel(0));
-  printf("# of Quintuplets produced layer 2: %d\n",event.getNumberOfQuintupletsByLayerBarrel(1));
-  printf("# of Quintuplets produced layer 3: %d\n",event.getNumberOfQuintupletsByLayerBarrel(2));
-  printf("# of Quintuplets produced layer 4: %d\n",event.getNumberOfQuintupletsByLayerBarrel(3));
-  printf("# of Quintuplets produced layer 5: %d\n",event.getNumberOfQuintupletsByLayerBarrel(4));
-  printf("# of Quintuplets produced layer 6: %d\n",event.getNumberOfQuintupletsByLayerBarrel(5));
-  printf("# of Quintuplets produced endcap layer 1: %d\n",event.getNumberOfQuintupletsByLayerEndcap(0));
-  printf("# of Quintuplets produced endcap layer 2: %d\n",event.getNumberOfQuintupletsByLayerEndcap(1));
-  printf("# of Quintuplets produced endcap layer 3: %d\n",event.getNumberOfQuintupletsByLayerEndcap(2));
-  printf("# of Quintuplets produced endcap layer 4: %d\n",event.getNumberOfQuintupletsByLayerEndcap(3));
-  printf("# of Quintuplets produced endcap layer 5: %d\n",event.getNumberOfQuintupletsByLayerEndcap(4));
+  //printf("# of Quintuplets produced: %d\n",event.getNumberOfQuintuplets());
+  //printf("# of Quintuplets produced layer 1-2-3-4-5-6: %d\n",event.getNumberOfQuintupletsByLayerBarrel(0));
+  //printf("# of Quintuplets produced layer 2: %d\n",event.getNumberOfQuintupletsByLayerBarrel(1));
+  //printf("# of Quintuplets produced layer 3: %d\n",event.getNumberOfQuintupletsByLayerBarrel(2));
+  //printf("# of Quintuplets produced layer 4: %d\n",event.getNumberOfQuintupletsByLayerBarrel(3));
+  //printf("# of Quintuplets produced layer 5: %d\n",event.getNumberOfQuintupletsByLayerBarrel(4));
+  //printf("# of Quintuplets produced layer 6: %d\n",event.getNumberOfQuintupletsByLayerBarrel(5));
+  //printf("# of Quintuplets produced endcap layer 1: %d\n",event.getNumberOfQuintupletsByLayerEndcap(0));
+  //printf("# of Quintuplets produced endcap layer 2: %d\n",event.getNumberOfQuintupletsByLayerEndcap(1));
+  //printf("# of Quintuplets produced endcap layer 3: %d\n",event.getNumberOfQuintupletsByLayerEndcap(2));
+  //printf("# of Quintuplets produced endcap layer 4: %d\n",event.getNumberOfQuintupletsByLayerEndcap(3));
+  //printf("# of Quintuplets produced endcap layer 5: %d\n",event.getNumberOfQuintupletsByLayerEndcap(4));
 
   event.pixelLineSegmentCleaning();
 
   event.createPixelQuintuplets();
-  printf("# of Pixel Quintuplets produced: %d\n",event.getNumberOfPixelQuintuplets());
+  //printf("# of Pixel Quintuplets produced: %d\n",event.getNumberOfPixelQuintuplets());
 
   event.createPixelTriplets();
-  printf("# of Pixel T3s produced: %d\n",event.getNumberOfPixelTriplets());
+  //printf("# of Pixel T3s produced: %d\n",event.getNumberOfPixelTriplets());
 
   event.createTrackCandidates();
-  printf("# of TrackCandidates produced: %d\n",event.getNumberOfTrackCandidates());
-  printf("    # of Pixel TrackCandidates produced: %d\n",event.getNumberOfPixelTrackCandidates());
-  printf("    # of pT5 TrackCandidates produced: %d\n",event.getNumberOfPT5TrackCandidates());
-  printf("    # of pT3 TrackCandidates produced: %d\n",event.getNumberOfPT3TrackCandidates());
-  printf("    # of pLS TrackCandidates produced: %d\n",event.getNumberOfPLSTrackCandidates());
-  printf("    # of T5 TrackCandidates produced: %d\n",event.getNumberOfT5TrackCandidates());
+  //printf("# of TrackCandidates produced: %d\n",event.getNumberOfTrackCandidates());
+  //printf("    # of Pixel TrackCandidates produced: %d\n",event.getNumberOfPixelTrackCandidates());
+  //printf("    # of pT5 TrackCandidates produced: %d\n",event.getNumberOfPT5TrackCandidates());
+  //printf("    # of pT3 TrackCandidates produced: %d\n",event.getNumberOfPT3TrackCandidates());
+  //printf("    # of pLS TrackCandidates produced: %d\n",event.getNumberOfPLSTrackCandidates());
+  //printf("    # of T5 TrackCandidates produced: %d\n",event.getNumberOfT5TrackCandidates());
 
   getOutput(event);
-  for(auto out : out_tc_pt_) printf("%f\n",out);
-  for(auto out : out_tc_eta_) printf("%f\n",out);
-  for(auto out : out_tc_phi_) printf("%f\n",out);
-  for(auto out : out_tc_len_) printf("%d\n",out);
+  //for(auto out : out_tc_pt_) printf("%f\n",out);
+  //for(auto out : out_tc_eta_) printf("%f\n",out);
+  //printf("\n");
+  //for(auto out : out_tc_phi_) printf("%f\n",out);
+  //printf("\n");
+  //for(auto out : out_tc_len_) printf("%d\n",out);
 }
 
 
 
 void SDL::LST::loadMaps() {
-  std::cout << "Loading CMSSW_12_2_0_pre2 geometry" << std::endl;
-
   // Module orientation information (DrDz or phi angles)
   TString endcap_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/endcap_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir_.Data()).Data());
   TString tilted_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/tilted_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir_.Data()).Data());
-  std::cout << "Loading module orientation information...." << std::endl;
-  std::cout << "endcap orientation:" << endcap_geom << std::endl;
-  std::cout << "tilted orientation:" << tilted_geom << std::endl;
   SDL::endcapGeometry.load(endcap_geom.Data()); // centroid values added to the map
   SDL::tiltedGeometry.load(tilted_geom.Data());
 
   // Module connection map (for line segment building)
   TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir_.Data()).Data());
-  std::cout << "Loading module map...." << std::endl;
-  std::cout << "module map path:" << mappath << std::endl;
   SDL::moduleConnectionMap.load(mappath.Data());
 
   TString pLSMapDir = TrackLooperDir_+"/data/pixelmaps_CMSSW_12_2_0_pre2_0p8minPt";
-
-  std::cout << "Loading pLS maps ... from pLSMapDir = " << pLSMapDir << std::endl;
 
   TString path;
   path = TString::Format("%s/pLS_map_layer1_subdet5.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer1Subdet5.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
@@ -350,7 +343,6 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
 
   }
 
-  for (int i = 0; i<trkX.size(); i++) std::cout << trkX[i] << "\n";
   in_trkX_ = trkX;
   in_trkY_ = trkY;
   in_trkZ_ = trkZ;
@@ -382,11 +374,14 @@ ROOT::Math::XYZVector SDL::LST::calculateR3FromPCA(const ROOT::Math::PxPyPzMVect
 
   const float vx = -dxy*p3.y()/pt - p3.x()/p*p3.z()/p*dz;
   const float vy =  dxy*p3.x()/pt - p3.y()/p*p3.z()/p*dz;
-  std::cout << "pt = " << pt << ", p = " << p << ", vz = " << vz << ", vx = " << vx << ", vy = " << vy << "\n";
   return ROOT::Math::XYZVector(vx, vy, vz);
 }
 
 void SDL::LST::getOutput(SDL::Event& event) {
+  std::vector<float> tc_pt_, tc_eta_, tc_phi_;
+  std::vector<std::vector<int>> tc_hitIdxs_;
+  std::vector<int> tc_len_;
+
   SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates());
   SDL::triplets& tripletsInGPU = (*event.getTriplets());
   SDL::segments& segmentsInGPU = (*event.getSegments());
@@ -398,283 +393,243 @@ void SDL::LST::getOutput(SDL::Event& event) {
   SDL::objectRanges& rangesInGPU = (*event.getRanges());
 
   unsigned int nTrackCandidates = *trackCandidatesInGPU.nTrackCandidates;
-  for (unsigned int jdx = 0; jdx < nTrackCandidates; jdx++)
-  {
-      int hit_array_length=0;
-      short trackCandidateType = trackCandidatesInGPU.trackCandidateType[jdx];
-      unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * jdx];
-      unsigned int outerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * jdx + 1];
+  for (unsigned int jdx = 0; jdx < nTrackCandidates; jdx++) {
+    int hit_array_length = 0;
+    short trackCandidateType = trackCandidatesInGPU.trackCandidateType[jdx];
+    unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * jdx];
+    unsigned int outerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * jdx + 1];
 
-      unsigned int innerTrackletInnerSegmentIndex = -1;
-      unsigned int innerTrackletOuterSegmentIndex = -1;
-      unsigned int outerTrackletOuterSegmentIndex = -1;
-      unsigned int outermostSegmentIndex = -1;
+    unsigned int innerTrackletInnerSegmentIndex = -1;
+    unsigned int innerTrackletOuterSegmentIndex = -1;
+    unsigned int outerTrackletOuterSegmentIndex = -1;
+    unsigned int outermostSegmentIndex = -1;
 
-      float betaIn_in = 0;
-      float betaOut_in = 0;
-      float betaIn_out = 0;
-      float betaOut_out = 0;
+    float betaIn_in = 0.0;
+    float betaOut_in = 0.0;
+    float betaIn_out = 0.0;
+    float betaOut_out = 0.0;
 
-      std::vector<int> hit_idx;
-      std::vector<int> hit_types;
-      std::vector<int> module_idxs; 
-      float pt;
-      float eta_pLS = -999;
-      float phi_pLS = -999;
-      if (trackCandidateType == 8) //pLS
-      {
-          pt = segmentsInGPU.ptIn[innerTrackletIdx];
-          eta_pLS = segmentsInGPU.eta[innerTrackletIdx];
-          phi_pLS = segmentsInGPU.phi[innerTrackletIdx];
+    std::vector<int> hit_idx;
+    std::vector<int> module_idxs; 
+    float pt, eta_pLS, phi_pLS;
+    if (trackCandidateType == 8) { // pLS
+      pt = segmentsInGPU.ptIn[innerTrackletIdx];
+      eta_pLS = segmentsInGPU.eta[innerTrackletIdx];
+      phi_pLS = segmentsInGPU.phi[innerTrackletIdx];
 
-          GetpLSHitIndex(modulesInGPU, rangesInGPU, segmentsInGPU, miniDoubletsInGPU, hitsInGPU, hit_idx, hit_types, hit_array_length, innerTrackletIdx, module_idxs);
-//            printf("%d ",segmentsInGPU.isQuad[innerTrackletIdx]);
+      GetpLSHitIndex(modulesInGPU, rangesInGPU, segmentsInGPU, miniDoubletsInGPU, hitsInGPU, hit_idx, hit_array_length, innerTrackletIdx, module_idxs);
+    }
+    else { // not pLS
+      if (trackCandidateType == 5 || trackCandidateType == 7) { // pT3 && pT5
+        if (trackCandidateType == 5) { // pT3
+          betaIn_in = 0;
+          betaOut_in = 0;
+          betaIn_out =  __H2F(tripletsInGPU.betaIn[pixelTripletsInGPU.tripletIndices[innerTrackletIdx]]);
+          betaOut_out = __H2F(tripletsInGPU.betaOut[pixelTripletsInGPU.tripletIndices[innerTrackletIdx]]);
 
+          //getting segments
+          innerTrackletInnerSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[innerTrackletIdx]; // pixel segments
+          innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx]]; // lower segment of the outer triplet
+          outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx] + 1]; // upper segment of the outer triplet
+        }
+
+        if (trackCandidateType == 7) { // pT5
+          betaIn_in   = __H2F(tripletsInGPU.betaIn[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]]);
+          betaOut_in  = __H2F(tripletsInGPU.betaOut[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]]);
+          betaIn_out  = __H2F(tripletsInGPU.betaIn[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]]);
+          betaOut_out = __H2F(tripletsInGPU.betaOut[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]]);
+
+          //getting segments
+          innerTrackletInnerSegmentIndex = innerTrackletIdx; // pLS
+          innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]]; // 1,2
+          outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx] + 1]; // 2,3
+          outermostSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1] + 1]; // 4,5
+        }
+
+        //getting MDs
+        //pLS 
+        unsigned int innerTrackletInnerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletInnerSegmentIndex];
+        unsigned int innerTrackletInnerSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletInnerSegmentIndex + 1];
+        //outer MD 
+        unsigned int innerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletOuterSegmentIndex];  // MD1
+        unsigned int outerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex]; // MD2
+        unsigned int outerTrackletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex + 1]; //MD3
+
+        //getting hits
+        //pLS
+        unsigned int innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerTrackletInnerSegmentInnerMiniDoubletIndex];
+        unsigned int innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[innerTrackletInnerSegmentInnerMiniDoubletIndex];
+        unsigned int innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ innerTrackletInnerSegmentOuterMiniDoubletIndex];
+        unsigned int innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ innerTrackletInnerSegmentOuterMiniDoubletIndex];
+        //outer hits
+        unsigned int innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ innerTrackletOuterSegmentInnerMiniDoubletIndex];
+        unsigned int innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ innerTrackletOuterSegmentInnerMiniDoubletIndex];
+        unsigned int outerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outerTrackletOuterSegmentInnerMiniDoubletIndex];
+        unsigned int outerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outerTrackletOuterSegmentInnerMiniDoubletIndex];
+        unsigned int outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outerTrackletOuterSegmentOuterMiniDoubletIndex];
+        unsigned int outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outerTrackletOuterSegmentOuterMiniDoubletIndex];
+
+        hit_idx = {
+          //pLS
+          (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex],
+          (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex],
+          (int) hitsInGPU.idxs[innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex]
+        };
+
+        // If not quad, the third and fourth hit indices are the same
+        if (innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex != innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex)
+          hit_idx.push_back((int)hitsInGPU.idxs[innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex]);
+
+        //outer hits
+        hit_idx.push_back((int) hitsInGPU.idxs[innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex]);
+        hit_idx.push_back((int) hitsInGPU.idxs[innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex]);
+        hit_idx.push_back((int) hitsInGPU.idxs[outerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex]);
+        hit_idx.push_back((int) hitsInGPU.idxs[outerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex]);
+        hit_idx.push_back((int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex]);
+        hit_idx.push_back((int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex]);
+
+        if(trackCandidateType == 7) { // pT5
+          unsigned int outermostSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outermostSegmentIndex];
+          unsigned int outermostSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outermostSegmentIndex + 1];
+
+          unsigned int outermostSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[outermostSegmentInnerMiniDoubletIndex];
+          unsigned int outermostSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[outermostSegmentInnerMiniDoubletIndex];
+          unsigned int outermostSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outermostSegmentOuterMiniDoubletIndex];
+          unsigned int outermostSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outermostSegmentOuterMiniDoubletIndex];
+          
+          hit_idx.push_back((int)hitsInGPU.idxs[outermostSegmentInnerMiniDoubletLowerHitIndex]);
+          hit_idx.push_back((int)hitsInGPU.idxs[outermostSegmentInnerMiniDoubletUpperHitIndex]);        
+          hit_idx.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletLowerHitIndex]);
+          hit_idx.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletUpperHitIndex]);
+        }
+
+        if(innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex != innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex && trackCandidateType == 5) hit_array_length = 10;
+        if(innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex == innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex && trackCandidateType == 5) hit_array_length = 9;
+        if(innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex != innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex && trackCandidateType == 7) hit_array_length = 14;
+        if(innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex == innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex && trackCandidateType == 7) hit_array_length = 13;
       }
-      else
-      {
-          if (trackCandidateType == 5 || trackCandidateType == 7) //pT3 && pT5
-          {
-              if (trackCandidateType == 5){ //pT3
-              betaIn_in = 0;
-              betaOut_in = 0;
-              betaIn_out =  __H2F(tripletsInGPU.betaIn[pixelTripletsInGPU.tripletIndices[innerTrackletIdx]]);
-              betaOut_out = __H2F(tripletsInGPU.betaOut[pixelTripletsInGPU.tripletIndices[innerTrackletIdx]]);
 
-              //getting segments
-              innerTrackletInnerSegmentIndex = pixelTripletsInGPU.pixelSegmentIndices[innerTrackletIdx]; // pixel segments
-              innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx]]; //lower segment of the outer triplet
-              outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[innerTrackletIdx] + 1]; //upper segment of the outer triplet
-//                printf("%d ",segmentsInGPU.isQuad[innerTrackletInnerSegmentIndex]);
-//                printf("%d ",segmentsInGPU.isQuad[innerTrackletOuterSegmentIndex]);
-//                printf("%d ",segmentsInGPU.isQuad[outerTrackletOuterSegmentIndex]);
-              }
+      if (trackCandidateType == 4) { // T5
+        //getting triplets
+        unsigned int innerTrackletIndex = quintupletsInGPU.tripletIndices[2 * innerTrackletIdx]; // 1,2,3
+        unsigned int outerTrackletIndex = quintupletsInGPU.tripletIndices[2 * innerTrackletIdx + 1]; // 3,4,5
 
-              if (trackCandidateType == 7){ //pT5
-              //betaIn only has the beta values of the T5s. Use the TC type = 7 criterion to then get the pixel pT value to add together with these later!!!!!!
-              betaIn_in   = __H2F(tripletsInGPU.betaIn[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]]);
-              betaOut_in  = __H2F(tripletsInGPU.betaOut[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]]);
-              betaIn_out  = __H2F(tripletsInGPU.betaIn[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]]);
-              betaOut_out = __H2F(tripletsInGPU.betaOut[quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]]);
+        betaIn_in   = __H2F(tripletsInGPU.betaIn[innerTrackletIndex]);
+        betaOut_in  = __H2F(tripletsInGPU.betaOut[innerTrackletIndex]);
+        betaIn_out  = __H2F(tripletsInGPU.betaIn[outerTrackletIndex]);
+        betaOut_out = __H2F(tripletsInGPU.betaOut[outerTrackletIndex]);
 
-              //getting segments
-              //innerTrackletIndex = pLS
-              //outerTrackletIndex = T5
-              innerTrackletInnerSegmentIndex = innerTrackletIdx; //pLS
-              innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx]]; // 1,2
-              outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx] + 1]; // 2,3
-              outermostSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1] + 1]; // 4,5
-//                printf("%d ",segmentsInGPU.isQuad[innerTrackletInnerSegmentIndex]);
-              }
+        //getting segments
+        innerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTrackletIndex];  // 1,2
+        innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTrackletIndex + 1]; // 2,3
+        outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTrackletIndex + 1]; // 4,5
 
-              //getting MDs
-              //pLS 
-              unsigned int innerTrackletInnerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletInnerSegmentIndex];
-              unsigned int innerTrackletInnerSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletInnerSegmentIndex + 1];
-              //outer MD 
-              unsigned int innerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletOuterSegmentIndex];  // MD1
-              unsigned int outerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex]; // MD2
-              unsigned int outerTrackletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex + 1]; //MD3
+        GetT5HitIndex(modulesInGPU, rangesInGPU, tripletsInGPU, segmentsInGPU, miniDoubletsInGPU, hitsInGPU, hit_idx, hit_array_length, innerTrackletIndex, outerTrackletIndex, innerTrackletInnerSegmentIndex, innerTrackletOuterSegmentIndex, outerTrackletOuterSegmentIndex, module_idxs);
+      }
 
-              //getting hits
-              //pLS
-              unsigned int innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerTrackletInnerSegmentInnerMiniDoubletIndex];
-              unsigned int innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[innerTrackletInnerSegmentInnerMiniDoubletIndex];
-              unsigned int innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ innerTrackletInnerSegmentOuterMiniDoubletIndex];
-              unsigned int innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ innerTrackletInnerSegmentOuterMiniDoubletIndex];
-              //outer hits
-              unsigned int innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ innerTrackletOuterSegmentInnerMiniDoubletIndex];
-              unsigned int innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ innerTrackletOuterSegmentInnerMiniDoubletIndex];
-              unsigned int outerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outerTrackletOuterSegmentInnerMiniDoubletIndex];
-              unsigned int outerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outerTrackletOuterSegmentInnerMiniDoubletIndex];
-              unsigned int outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outerTrackletOuterSegmentOuterMiniDoubletIndex];
-              unsigned int outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outerTrackletOuterSegmentOuterMiniDoubletIndex];
+      unsigned int iiia_idx = -1;
+      unsigned int iooa_idx = -1;
+      unsigned int oiia_idx = -1;
+      unsigned int oooa_idx = -1;
 
-              hit_idx = {
-              //pLS
-              (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex],
-              (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex],
-              (int) hitsInGPU.idxs[innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex]
-              };
+      if (trackCandidateType == 5) { // pT3
+        iiia_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerTrackletInnerSegmentIndex]; // for pLS the innerSegment outerMiniDoublet
+        iooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerTrackletOuterSegmentIndex];
+        oiia_idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[innerTrackletOuterSegmentIndex];
+        oooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[outerTrackletOuterSegmentIndex];
+      }
+      else {
+        //this was the old definition of the oo index in pT5, used to calculate the pt. The current definition is modified to use the same version as pT3
+        if (trackCandidateType == 7) // pT5
+          outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]];
+        iiia_idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[innerTrackletInnerSegmentIndex];
+        iooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerTrackletOuterSegmentIndex];
+        oiia_idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[innerTrackletOuterSegmentIndex];
+        oooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[outerTrackletOuterSegmentIndex];
+      }
 
-//                if(segmentsInGPU.isQuad[innerTrackletInnerSegmentIndex])
-              if (innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex != innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex)
-                  hit_idx.push_back((int)hitsInGPU.idxs[innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex]);
+      const float dr_in = std::sqrt(pow(hitsInGPU.xs[iiia_idx] - hitsInGPU.xs[iooa_idx], 2) + pow(hitsInGPU.ys[iiia_idx] - hitsInGPU.ys[iooa_idx], 2));
+      const float dr_out = std::sqrt(pow(hitsInGPU.xs[oiia_idx] - hitsInGPU.xs[oooa_idx], 2) + pow(hitsInGPU.ys[oiia_idx] - hitsInGPU.ys[oooa_idx], 2));
 
-              //outer hits
-              hit_idx.push_back((int) hitsInGPU.idxs[innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex]);
-              hit_idx.push_back((int) hitsInGPU.idxs[innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex]);
-              hit_idx.push_back((int) hitsInGPU.idxs[outerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex]);
-              hit_idx.push_back((int) hitsInGPU.idxs[outerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex]);
-              hit_idx.push_back((int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex]);
-              hit_idx.push_back((int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex]);
+      const float kRinv1GeVf = (2.99792458e-3 * 3.8);
+      const float k2Rinv1GeVf = kRinv1GeVf / 2.;
 
-              if(trackCandidateType == 7) //pT5
-              {
-                  unsigned int outermostSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outermostSegmentIndex];
-                  unsigned int outermostSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outermostSegmentIndex + 1];
+      const float ptAv_in = (trackCandidateType == 7 or trackCandidateType == 5) ? // pT3 or pT5
+        segmentsInGPU.ptIn[innerTrackletInnerSegmentIndex - rangesInGPU.segmentModuleIndices[*(modulesInGPU.nLowerModules)]] :
+        dr_in * k2Rinv1GeVf / fabs(sin((betaIn_in + betaOut_in) / 2.));
 
-                  unsigned int outermostSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[outermostSegmentInnerMiniDoubletIndex];
-                  unsigned int outermostSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[outermostSegmentInnerMiniDoubletIndex];
-                  unsigned int outermostSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outermostSegmentOuterMiniDoubletIndex];
-                  unsigned int outermostSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outermostSegmentOuterMiniDoubletIndex];
-                  
-                  hit_idx.push_back((int)hitsInGPU.idxs[outermostSegmentInnerMiniDoubletLowerHitIndex]);
-                  hit_idx.push_back((int)hitsInGPU.idxs[outermostSegmentInnerMiniDoubletUpperHitIndex]);        
-                  hit_idx.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletLowerHitIndex]);
-                  hit_idx.push_back((int)hitsInGPU.idxs[outermostSegmentOuterMiniDoubletUpperHitIndex]);
-              }
-/*
-              if(segmentsInGPU.isQuad[innerTrackletInnerSegmentIndex] && trackCandidateType == 5) hit_array_length = 10;
-              if(!segmentsInGPU.isQuad[innerTrackletInnerSegmentIndex] && trackCandidateType == 5) hit_array_length = 9;
-              if(segmentsInGPU.isQuad[innerTrackletInnerSegmentIndex] && trackCandidateType == 7) hit_array_length = 14;
-              if(!segmentsInGPU.isQuad[innerTrackletInnerSegmentIndex] && trackCandidateType == 7) hit_array_length = 13;
-*/
-              if(innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex != innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex && trackCandidateType == 5) hit_array_length = 10;
-              if(innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex == innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex && trackCandidateType == 5) hit_array_length = 9;
-              if(innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex != innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex && trackCandidateType == 7) hit_array_length = 14;
-              if(innerTrackletInnerSegmentOuterMiniDoubletLowerHitIndex == innerTrackletInnerSegmentOuterMiniDoubletUpperHitIndex && trackCandidateType == 7) hit_array_length = 13;
-          }
+      const float ptAv_out = dr_out * k2Rinv1GeVf / fabs(sin((betaIn_out + betaOut_out) / 2.));
 
-          if (trackCandidateType == 4) // T5
-          {
-              //getting triplets
-              unsigned int innerTrackletIndex = quintupletsInGPU.tripletIndices[2 * innerTrackletIdx]; // 1,2,3
-              unsigned int outerTrackletIndex = quintupletsInGPU.tripletIndices[2 * innerTrackletIdx + 1]; // 3,4,5
+      float ptAv;
+      if(trackCandidateType == 7) { // pT5
+        float ptAv_outermost = dr_in * k2Rinv1GeVf / fabs(sin((betaIn_in + betaOut_in) / 2.));
+        ptAv =  (ptAv_in + ptAv_out + ptAv_outermost) / 3.;
+      }
+      else { // not pT5
+        ptAv = (ptAv_in + ptAv_out) / 2.;
+      }
 
-              betaIn_in   = __H2F(tripletsInGPU.betaIn[innerTrackletIndex]);
-              betaOut_in  = __H2F(tripletsInGPU.betaOut[innerTrackletIndex]);
-              betaIn_out  = __H2F(tripletsInGPU.betaIn[outerTrackletIndex]);
-              betaOut_out = __H2F(tripletsInGPU.betaOut[outerTrackletIndex]);
+      pt = ptAv;
+    } // not pLS
 
-              //getting segments
-              innerTrackletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTrackletIndex];  // 1,2
-              innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTrackletIndex + 1]; // 2,3
-              outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTrackletIndex + 1]; // 4,5
+    // Compute pt, eta, phi of TC
+    float eta = -999;
+    float phi = -999;
+    if (trackCandidateType == 8) { // pLS
+      eta = eta_pLS;
+      phi = phi_pLS;
+    }
+    else { // Consistent definitions for T5, pT3 and pT5
+      eta = SDL::eta(in_trkX_[hit_idx.back()], in_trkY_[hit_idx.back()], in_trkZ_[hit_idx.back()]); // eta from outermost hit
+      phi = SDL::phi(in_trkX_[hit_idx[0]], in_trkY_[hit_idx[0]]); // phi from innermost hit
+    }
 
-              GetT5HitIndex(modulesInGPU, rangesInGPU, tripletsInGPU, segmentsInGPU, miniDoubletsInGPU, hitsInGPU, hit_idx, hit_types, hit_array_length, innerTrackletIndex, outerTrackletIndex, innerTrackletInnerSegmentIndex, innerTrackletOuterSegmentIndex, outerTrackletOuterSegmentIndex, module_idxs);
-
-          }
-
-          unsigned int iiia_idx = -1;
-          unsigned int iooa_idx = -1;
-          unsigned int oiia_idx = -1;
-          unsigned int oooa_idx = -1;
-
-          if (trackCandidateType == 5)
-          {
-              iiia_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerTrackletInnerSegmentIndex]; // for pLS the innerSegment outerMiniDoublet
-              iooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerTrackletOuterSegmentIndex];
-              oiia_idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[innerTrackletOuterSegmentIndex];
-              oooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[outerTrackletOuterSegmentIndex];
-          }
-          else
-          {
-              //this was the old definition of the oo index in pT5, used to calculate the pt. The current definition is modified to use the same version as pT3
-              if (trackCandidateType == 7) outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1]];
-              iiia_idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[innerTrackletInnerSegmentIndex];
-              iooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerTrackletOuterSegmentIndex];
-              oiia_idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[innerTrackletOuterSegmentIndex];
-              oooa_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[outerTrackletOuterSegmentIndex];
-          }
-
-          const float dr_in = sqrt(pow(hitsInGPU.xs[iiia_idx] - hitsInGPU.xs[iooa_idx], 2) + pow(hitsInGPU.ys[iiia_idx] - hitsInGPU.ys[iooa_idx], 2));
-          const float dr_out = sqrt(pow(hitsInGPU.xs[oiia_idx] - hitsInGPU.xs[oooa_idx], 2) + pow(hitsInGPU.ys[oiia_idx] - hitsInGPU.ys[oooa_idx], 2));
-
-          const float kRinv1GeVf = (2.99792458e-3 * 3.8);
-          const float k2Rinv1GeVf = kRinv1GeVf / 2.;
-
-          const float ptAv_in = (trackCandidateType == 7 or trackCandidateType == 5) ? segmentsInGPU.ptIn[innerTrackletInnerSegmentIndex - rangesInGPU.segmentModuleIndices[*(modulesInGPU.nLowerModules)]] : dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.);
-
-          const float ptAv_out = dr_out * k2Rinv1GeVf / sin((betaIn_out + betaOut_out) / 2.);
-          float ptAv;
-          if(trackCandidateType == 7)
-          {
-              float ptAv_outermost = dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.);
-              ptAv =  (ptAv_in + ptAv_out + ptAv_outermost) / 3.;
-          }
-          else
-          {
-              ptAv = (ptAv_in + ptAv_out) / 2.;
-          }
-
-          pt = ptAv;
-    }// end !pLS
-
-          // Compute pt, eta, phi of TC
-          float eta = -999;
-          float phi = -999;
-//          if (trackCandidateType == 4)
-//          {
-//              SDL::CPU::Hit hitA(trk.ph2_x()[hit_idx[0]], trk.ph2_y()[hit_idx[0]], trk.ph2_z()[hit_idx[0]]);
-//              SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[9]], trk.ph2_y()[hit_idx[9]], trk.ph2_z()[hit_idx[9]]);
-//              eta = hitB.eta();
-//              phi = hitA.phi();
-//          }
-//          else if (trackCandidateType == 8) // if pLS
-//          {
-//              eta = eta_pLS;
-//              phi = phi_pLS;
-//          }
-//          else
-//          {
-//              SDL::CPU::Hit hitA(trk.pix_x()[hit_idx[0]], trk.pix_y()[hit_idx[0]], trk.pix_z()[hit_idx[0]]);
-//              SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx.back()], trk.ph2_y()[hit_idx.back()], trk.ph2_z()[hit_idx.back()]);
-//              eta = hitB.eta();
-//              phi = hitA.phi();
-//          }
-//
-//          if(trackCandidateType == 7)
-//          {
-//              SDL::CPU::Hit hitB(trk.ph2_x()[hit_idx[13]], trk.ph2_y()[hit_idx[13]], trk.ph2_z()[hit_idx[13]]);
-//              eta = hitB.eta();
-//          }
-
-          out_tc_pt_.push_back(pt);
-          out_tc_eta_.push_back(eta);
-          out_tc_phi_.push_back(phi);
-          out_tc_hitIdxs_.push_back(hit_idx);
-          out_tc_len_.push_back(hit_array_length);
+    tc_pt_.push_back(pt);
+    tc_eta_.push_back(eta);
+    tc_phi_.push_back(phi);
+    tc_hitIdxs_.push_back(hit_idx);
+    tc_len_.push_back(hit_array_length);
   }
+  out_tc_pt_ = tc_pt_;
+  out_tc_eta_ = tc_eta_;
+  out_tc_phi_ = tc_phi_;
+  out_tc_hitIdxs_ = tc_hitIdxs_;
+  out_tc_len_ = tc_len_;
 }
 
 void SDL::LST::GetpLSHitIndex(SDL::modules& modulesInGPU,
-                              SDL::objectRanges& rangesInGPU,
-                              SDL::segments& segmentsInGPU,
-                              SDL::miniDoublets& miniDoubletsInGPU,
-                              SDL::hits& hitsInGPU,
-                              std::vector<int>& hit_idx,
-                              std::vector<int>& hit_types,
-                              int& hit_array_length,
-                              unsigned int innerTrackletIdx,
-                              std::vector<int>& module_idxs) {
+                            SDL::objectRanges& rangesInGPU,
+                            SDL::segments& segmentsInGPU,
+                            SDL::miniDoublets& miniDoubletsInGPU,
+                            SDL::hits& hitsInGPU,
+                            std::vector<int>& hit_idx,
+                            int& hit_array_length,
+                            unsigned int innerTrackletIdx,
+                            std::vector<int>& module_idxs) {
 
-    unsigned int pixelModuleIndex = *(modulesInGPU.nLowerModules);
-    unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + innerTrackletIdx;
+  unsigned int pixelModuleIndex = *(modulesInGPU.nLowerModules);
+  unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + innerTrackletIdx;
 
-    unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
-    unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
-    unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerMiniDoubletIndex];
-    unsigned int innerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[innerMiniDoubletIndex];
-    unsigned int outerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[outerMiniDoubletIndex];
-    unsigned int outerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[outerMiniDoubletIndex];
+  unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
+  unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
+  unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerMiniDoubletIndex];
+  unsigned int innerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[innerMiniDoubletIndex];
+  unsigned int outerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[outerMiniDoubletIndex];
+  unsigned int outerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[outerMiniDoubletIndex];
 
-    hit_idx = {
-        (int) hitsInGPU.idxs[innerMiniDoubletLowerHitIndex],
-        (int) hitsInGPU.idxs[innerMiniDoubletUpperHitIndex],
-        (int) hitsInGPU.idxs[outerMiniDoubletUpperHitIndex]
-    };
+  hit_idx = {
+    (int) hitsInGPU.idxs[innerMiniDoubletLowerHitIndex],
+    (int) hitsInGPU.idxs[innerMiniDoubletUpperHitIndex],
+    (int) hitsInGPU.idxs[outerMiniDoubletUpperHitIndex]
+  };
 
-    hit_array_length = 3;
-    hit_types = {0,0,0};
-    module_idxs = {pixelModuleIndex, pixelModuleIndex, pixelModuleIndex}; 
-    if(segmentsInGPU.isQuad[innerTrackletIdx]){
-        hit_idx.push_back((int)hitsInGPU.idxs[outerMiniDoubletLowerHitIndex]);
-        hit_array_length = 4;
-        hit_types.push_back(0);
-        module_idxs.push_back(pixelModuleIndex);
-    }  
-
+  hit_array_length = 3;
+  module_idxs = {pixelModuleIndex, pixelModuleIndex, pixelModuleIndex}; 
+  if(segmentsInGPU.isQuad[innerTrackletIdx]) {
+    hit_idx.push_back((int)hitsInGPU.idxs[outerMiniDoubletLowerHitIndex]);
+    hit_array_length = 4;
+    module_idxs.push_back(pixelModuleIndex);
+  }  
 }
 
 void SDL::LST::GetT5HitIndex(SDL::modules& modulesInGPU,
@@ -684,7 +639,6 @@ void SDL::LST::GetT5HitIndex(SDL::modules& modulesInGPU,
                              SDL::miniDoublets& miniDoubletsInGPU,
                              SDL::hits& hitsInGPU,
                              std::vector<int>& hit_idx,
-                             std::vector<int>& hit_types,
                              int& hit_array_length,
                              unsigned int innerTrackletIndex,
                              unsigned int outerTrackletIndex,
@@ -692,36 +646,36 @@ void SDL::LST::GetT5HitIndex(SDL::modules& modulesInGPU,
                              int innerTrackletOuterSegmentIndex,
                              int outerTrackletOuterSegmentIndex,
                              std::vector<int>& module_idxs) {
-    //getting MDs
-    unsigned int innerTrackletInnerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletInnerSegmentIndex]; // 1
-    unsigned int innerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletOuterSegmentIndex];  // 2
-    unsigned int innerTrackletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletOuterSegmentIndex + 1]; // 3  
-    unsigned int outerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex]; // 4
-    unsigned int outerTrackletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex + 1]; // 5
+  //getting MDs
+  unsigned int innerTrackletInnerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletInnerSegmentIndex]; // 1
+  unsigned int innerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletOuterSegmentIndex];  // 2
+  unsigned int innerTrackletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletOuterSegmentIndex + 1]; // 3  
+  unsigned int outerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex]; // 4
+  unsigned int outerTrackletOuterSegmentOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerTrackletOuterSegmentIndex + 1]; // 5
 
-    //getting hits
-    unsigned int innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerTrackletInnerSegmentInnerMiniDoubletIndex]; //1,1
-    unsigned int innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[innerTrackletInnerSegmentInnerMiniDoubletIndex]; //1,2
-    unsigned int innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ innerTrackletOuterSegmentInnerMiniDoubletIndex]; //2,1
-    unsigned int innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ innerTrackletOuterSegmentInnerMiniDoubletIndex]; //2,2
-    unsigned int innerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ innerTrackletOuterSegmentOuterMiniDoubletIndex]; //3,1
-    unsigned int innerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ innerTrackletOuterSegmentOuterMiniDoubletIndex]; //3,2
-    unsigned int outerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outerTrackletOuterSegmentInnerMiniDoubletIndex]; //4,1
-    unsigned int outerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outerTrackletOuterSegmentInnerMiniDoubletIndex]; //4,2
-    unsigned int outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outerTrackletOuterSegmentOuterMiniDoubletIndex]; //5,1
-    unsigned int outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outerTrackletOuterSegmentOuterMiniDoubletIndex]; //5,2
+  //getting hits
+  unsigned int innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerTrackletInnerSegmentInnerMiniDoubletIndex]; // 1,1
+  unsigned int innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[innerTrackletInnerSegmentInnerMiniDoubletIndex]; // 1,2
+  unsigned int innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ innerTrackletOuterSegmentInnerMiniDoubletIndex]; // 2,1
+  unsigned int innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ innerTrackletOuterSegmentInnerMiniDoubletIndex]; // 2,2
+  unsigned int innerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ innerTrackletOuterSegmentOuterMiniDoubletIndex]; // 3,1
+  unsigned int innerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ innerTrackletOuterSegmentOuterMiniDoubletIndex]; // 3,2
+  unsigned int outerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outerTrackletOuterSegmentInnerMiniDoubletIndex]; // 4,1
+  unsigned int outerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outerTrackletOuterSegmentInnerMiniDoubletIndex]; // 4,2
+  unsigned int outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[ outerTrackletOuterSegmentOuterMiniDoubletIndex]; // 5,1
+  unsigned int outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[ outerTrackletOuterSegmentOuterMiniDoubletIndex]; // 5,2
 
-    hit_idx = {
-        (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex],
-        (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex],
-        (int) hitsInGPU.idxs[innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex],
-        (int) hitsInGPU.idxs[innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex],
-        (int) hitsInGPU.idxs[innerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex],
-        (int) hitsInGPU.idxs[innerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
-        (int) hitsInGPU.idxs[outerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex],
-        (int) hitsInGPU.idxs[outerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex],
-        (int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex],
-        (int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
-        };
-    hit_array_length = 10;
+  hit_idx = {
+    (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletLowerHitIndex],
+    (int) hitsInGPU.idxs[innerTrackletInnerSegmentInnerMiniDoubletUpperHitIndex],
+    (int) hitsInGPU.idxs[innerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex],
+    (int) hitsInGPU.idxs[innerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex],
+    (int) hitsInGPU.idxs[innerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex],
+    (int) hitsInGPU.idxs[innerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
+    (int) hitsInGPU.idxs[outerTrackletOuterSegmentInnerMiniDoubletLowerHitIndex],
+    (int) hitsInGPU.idxs[outerTrackletOuterSegmentInnerMiniDoubletUpperHitIndex],
+    (int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletLowerHitIndex],
+    (int) hitsInGPU.idxs[outerTrackletOuterSegmentOuterMiniDoubletUpperHitIndex],
+  };
+  hit_array_length = 10;
 }

@@ -263,7 +263,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     (*detIdToIndex)[1] = counter; //pixel module is the last module in the module list
     counter++;
     nModules = counter;
-    std::cout<<"Number of modules = "<<nModules<<std::endl;
+    //std::cout<<"Number of modules = "<<nModules<<std::endl;
     createModulesInExplicitMemory(modulesInGPU,nModules,stream);
     unsigned int* host_detIds;
     short* host_layers;
@@ -457,7 +457,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     cms::cuda::free_host(host_slopes);
     cms::cuda::free_host(host_drdzs);
     cms::cuda::free_host(host_partnerModuleIndices);
-    std::cout<<"number of lower modules (without fake pixel module)= "<<lowerModuleCounter<<std::endl;
+    //std::cout<<"number of lower modules (without fake pixel module)= "<<lowerModuleCounter<<std::endl;
     fillConnectedModuleArrayExplicit(modulesInGPU,nModules,stream);
     fillMapArraysExplicit(modulesInGPU, nModules, stream);
     fillPixelMap(modulesInGPU,pixelMapping,stream);

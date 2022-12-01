@@ -76,7 +76,6 @@ namespace SDL {
                         SDL::miniDoublets& miniDoubletsInGPU,
                         SDL::hits& hitsInGPU,
                         std::vector<int>& hit_idx,
-                        std::vector<int>& hit_types,
                         int& hit_array_length,
                         unsigned int innerTrackletIdx,
                         std::vector<int>& module_idxs);
@@ -87,7 +86,6 @@ namespace SDL {
                        SDL::miniDoublets& miniDoubletsInGPU,
                        SDL::hits& hitsInGPU,
                        std::vector<int>& hit_idx,
-                       std::vector<int>& hit_types,
                        int& hit_array_length,
                        unsigned int innerTrackletIndex,
                        unsigned int outerTrackletIndex,
