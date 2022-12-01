@@ -633,7 +633,7 @@ __global__ void hitLoopKernel(
         int iDetId = hitsInGPU->detid[ihit];
 
         hitsInGPU->rts[ihit] = sqrt(ihit_x*ihit_x + ihit_y*ihit_y);
-        hitsInGPU->phis[ihit] = SDL::phi(ihit_x,ihit_y,ihit_z);
+        hitsInGPU->phis[ihit] = SDL::phi(ihit_x,ihit_y);
         hitsInGPU->etas[ihit] = ((ihit_z>0)-(ihit_z<0))*acosh(sqrt(ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/hitsInGPU->rts[ihit]);
 
         int found_index = binary_search(modulesInGPU->mapdetId, iDetId, nModules);

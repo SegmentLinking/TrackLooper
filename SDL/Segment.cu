@@ -464,13 +464,13 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
     pass =  pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
     if(not pass) return pass;
 
-    dPhi = deltaPhi(xIn, yIn, zIn, xOut, yOut, zOut);
+    dPhi = deltaPhi(xIn, yIn, xOut, yOut);
 
     sdCut = sdSlope;
     if(outerLayerEndcapTwoS)
     {
-        float dPhiPos_high = deltaPhi(xIn, yIn, zIn, xOutHigh, yOutHigh, zOut);
-        float dPhiPos_low = deltaPhi(xIn, yIn, zIn, xOutLow, yOutLow, zOut);
+        float dPhiPos_high = deltaPhi(xIn, yIn, xOutHigh, yOutHigh);
+        float dPhiPos_low = deltaPhi(xIn, yIn, xOutLow, yOutLow);
         
         dPhiMax = fabsf(dPhiPos_high) > fabsf(dPhiPos_low) ? dPhiPos_high : dPhiPos_low;
         dPhiMin = fabsf(dPhiPos_high) > fabsf(dPhiPos_low) ? dPhiPos_low : dPhiPos_high;
@@ -548,12 +548,12 @@ __device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, s
 
     sdCut = sdSlope + sqrtf(sdMuls * sdMuls + sdPVoff * sdPVoff);
 
-    dPhi  = deltaPhi(xIn, yIn, zIn, xOut, yOut, zOut);
+    dPhi  = deltaPhi(xIn, yIn, xOut, yOut);
 
     pass =  pass and (fabsf(dPhi) <= sdCut);
     if(not pass) return pass;
 
-    dPhiChange = deltaPhiChange(xIn, yIn, zIn, xOut, yOut, zOut);
+    dPhiChange = deltaPhiChange(xIn, yIn, xOut, yOut);
 
     pass =  pass and (fabsf(dPhiChange) <= sdCut);
     if(not pass) return pass;
