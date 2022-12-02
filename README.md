@@ -1,6 +1,37 @@
 # TrackLooper
 
-## Quick start guide
+
+## Quick Start
+
+
+### Setting up LSTPerformanceWeb (only for lnx7188)
+
+For lnx7188 this needs to be done once
+
+    cd /cdat/tem/${USER}/
+    git clone git@github.com:SegmentLinking/LSTPerformanceWeb.git
+
+### Running the code
+
+    git clone --recursive git@github.com:SegmentLinking/TrackLooper.git
+    cd TrackLooper/
+    source setup.sh
+    # source setup_cgpu.sh # if you are on cgpu-1
+    sdl_make_tracklooper -mc
+    sdl -i PU200 -o LSTNtuple.root
+    createPerfNumDenHists -i LSTNtuple.root -o LSTNumDen.root
+    lst_plot_performance.py LSTNumDen.root -t "myTag"
+    # python3 efficiency/python/lst_plot_performance.py LSTNumDen.root -t "myTag" # if you are on cgpu-1
+
+The above can be even simplified
+
+    git clone --recursive git@github.com:SegmentLinking/TrackLooper.git
+    cd TrackLooper/
+    source setup.sh
+    # source setup_cgpu.sh # if you are on cgpu-1
+    sdl_run -f -mc -s PU200 -n -1 -t myTag
+
+## Instructions
 
 Log on to phi3 or lnx7188
 Go to your working directory
@@ -17,23 +48,48 @@ Once every new shell, source the setup script to initilaize the enviornment.
 
     source setup.sh
 
-
-
 Compile the code with option flags
 
-    sdl_make_tracklooper -m8
+    sdl_make_tracklooper -mc
     -c: run with the cmssw caching allocator
     -h: show help screen with all options
- Run the code
+
+Run the code
  
-    ./bin/sdl -n <nevents> -v <verbose> -w <writeout> -s <streams> -i <dataset>
+    sdl -n <nevents> -v <verbose> -w <writeout> -s <streams> -i <dataset> -o <output>
+
     -i: PU200; muonGun, etc
     -n: number of events
     -v: 0-no printout; 1- timing printout only; 2- multiplicity printout
     -s: number of streams/events in flight
-    -w: 0- no writout; 2- full ntuple writeout
+    -w: 0- no writout; 1- minimum writeout; 2- full ntuple writeout
+    -o: provide an output root file name (e.g. LSTNtuple.root)
     
+Plotting numerators and denominators of performance plots
 
+    createPerfNumDenHists -i <input> -o <output> [-g <pdgids> -n <nevents>]
+
+    -i: Path to LSTNtuple.root
+    -o: provide an output root file name (e.g. num_den_hist.root)
+    -n: (optional) number of events
+    -g: (optional) comma separated pdgids to add more efficiency plots with different sim particle slices
+    
+Plotting performance plots
+
+    lst_plot_performance.py num_den_hist.root -t "mywork"
+
+When running on ```cgpu-1``` remember to specify python3 as there is no python.
+The shebang on the ```lst_plot_performance.py``` is not updated as ```lnx7188``` works with python2....
+
+    python3 efficiency/python/lst_plot_performance.py num_den_hist.root -t "mywork" # If running on cgpu-1
+                                                                                                                                                           
+Comparing two different runs
+
+    lst_plot_performance.py \
+        num_den_hist_1.root \     # Reference
+        num_den_hist_2.root \     # New work
+        -l BaseLine,MyNewWork \   # Labeling
+        -t "mywork"
 
 ## Validation
 Run the validation on sample

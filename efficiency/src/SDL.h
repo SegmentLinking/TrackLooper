@@ -428,6 +428,9 @@ protected:
   vector<int> *sim_TC_matched_;
   TBranch *sim_TC_matched_branch;
   bool sim_TC_matched_isLoaded;
+  vector<int> *sim_TC_matched_mask_;
+  TBranch *sim_TC_matched_mask_branch;
+  bool sim_TC_matched_mask_isLoaded;
   vector<int> *pLS_isDuplicate_;
   TBranch *pLS_isDuplicate_branch;
   bool pLS_isDuplicate_isLoaded;
@@ -658,6 +661,7 @@ public:
   const int &pT3_occupancies();
   const int &tc_occupancies();
   const vector<int> &sim_TC_matched();
+  const vector<int> &sim_TC_matched_mask();
   const vector<int> &pLS_isDuplicate();
   const vector<int> &tce_anchorIndex();
   const vector<int> &t5_occupancies();
@@ -833,6 +837,7 @@ namespace tas {
   const int &pT3_occupancies();
   const int &tc_occupancies();
   const vector<int> &sim_TC_matched();
+  const vector<int> &sim_TC_matched_mask();
   const vector<int> &pLS_isDuplicate();
   const vector<int> &tce_anchorIndex();
   const vector<int> &t5_occupancies();

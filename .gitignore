@@ -18,6 +18,11 @@ efficiency/doAnalysis
 efficiency/results*
 efficiencies/
 efficiency/bin/createEffNumDenPlots
+efficiency/bin/createPerfNumDenHists
+efficiency/compare
+efficiency/summary
+efficiency/misc/compare
+efficiency/misc/summary
 *.txt
 *.pyc
 output*

@@ -133,7 +133,7 @@ fi
 if [ ! -f SDL/libsdl.so ]; then
     echo "ERROR: SDL/libsdl.so failed to compile!" | tee -a ${LOG}
     echo "See ${LOG} file for more detail..." | tee -a ${LOG}
-    exit
+    exit 1
 fi
 
 echo "" >> ${LOG}
@@ -162,7 +162,7 @@ fi
 if [ ! -f bin/sdl ]; then
     echo "ERROR: bin/sdl failed to compile!" | tee -a ${LOG}
     echo "See ${LOG} file for more detail..." | tee -a ${LOG}
-    exit
+    exit 1
 fi
 
 echo "" >> ${LOG}
