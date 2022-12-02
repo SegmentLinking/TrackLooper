@@ -1,6 +1,17 @@
 # TrackLooper
 
+
 ## Quick Start
+
+
+### Setting up LSTPerformanceWeb (only for lnx7188)
+
+For lnx7188 this needs to be done once
+
+    cd /cdat/tem/${USER}/
+    git clone git@github.com:SegmentLinking/LSTPerformanceWeb.git
+
+### Running the code
 
     git clone --recursive git@github.com:SegmentLinking/TrackLooper.git
     cd TrackLooper/
