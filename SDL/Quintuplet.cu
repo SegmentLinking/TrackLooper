@@ -393,13 +393,13 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     computeErrorInRadius(x3Vec, y3Vec, x1Vec, y1Vec, x2Vec, y2Vec, outerRadiusMin2S, outerRadiusMax2S);
 
     float g, f;
-    innerRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3, g, f);
     outerRadius = computeRadiusFromThreeAnchorHits(x3, y3, x4, y4, x5, y5, g, f);
     bridgeRadius = computeRadiusFromThreeAnchorHits(x2, y2, x3, y3, x4, y4, g, f);
+    innerRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3, g, f);
 
-//    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, g, f);
-    float inner_pt = k2Rinv1GeVf * (innerRadius+outerRadius);
-    passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, g, f);
+//    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, g, f);
+    float inner_pt = 2 * k2Rinv1GeVf * innerRadius;
+    passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, g, f);
 
     if(not pass) return pass;
 
@@ -609,7 +609,7 @@ __device__ bool SDL::passChiSquaredConstraint(struct SDL::modules& modulesInGPU,
 }
 
 //bounds can be found at http://uaf-10.t2.ucsd.edu/~bsathian/SDL/T5_RZFix/t5_rz_thresholds.txt
-__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared, float& residual_missing, float& residual4, float& residual5, float inner_pt, float g, float f) 
+__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared, float& residual_missing, float& residual4, float& residual5, float inner_pt, float innerRadius, float g, float f) 
 {
     //(g,f) is the center of the circle fitted by the innermost 3 points on x,y coordinates
     const float& rt1 = mdsInGPU.anchorRt[firstMDIndex]/100; //in the unit of m instead of cm
@@ -651,22 +651,56 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
 
     float residual = 0;
     float error = 0;
+    float x_center=g/100, y_center=f/100; 
+    float x_init=mdsInGPU.anchorX[thirdMDIndex]/100;
+    float y_init=mdsInGPU.anchorY[thirdMDIndex]/100;
+    float z_init=mdsInGPU.anchorZ[thirdMDIndex]/100;
+    float rt_init=mdsInGPU.anchorRt[thirdMDIndex]/100; //use the second MD as initial point
 
-    float x_center=g, y_center=f; 
-    float x_init=mdsInGPU.anchorX[secondMDIndex]/100;
-    float y_init=mdsInGPU.anchorY[secondMDIndex]/100;
-    float z_init=mdsInGPU.anchorZ[secondMDIndex]/100;
-    float rt_init=mdsInGPU.anchorRt[secondMDIndex]/100; //use the second MD as initial point
-    float pseudo_phi = atan((y_center-y_init)/(x_center-x_init)); //actually represent pi/2-phi, wrt helix axis z
+    //start from a circle of inner T3.
+    // to determine the charge
+    int charge=0;
+    float slope1c=(y3-y_center)/(x3-x_center);
+    float slope3c=(y1-y_center)/(x1-x_center);
+    if((y3-y_center)>0 && (y1-y_center)>0) 
+    {
+        if (slope3c>slope1c) charge=-1; 
+        else if (slope3c<slope1c) charge=1;
+    }
+    else if((y3-y_center)<0 && (y1-y_center)<0) 
+    {
+        if (slope3c>slope1c) charge=-1; 
+        else if (slope3c<slope1c) charge=1;
+    }
+    else if(slope3c<-5 && slope1c>5) charge=-1;
+    else if(slope3c>5 && slope1c<-5) charge=1;
 
-    float Pt=inner_pt, Px = Pt*sin(pseudo_phi), Py=Pt*cos(pseudo_phi);
-    float Pz=(z_init-z1)/(y_init-y1)*Py;
-    float p = sqrt(Px*Px+Py*Py+Pz*Pz);
-
-    int charge;
     if (((y3-y2)/(x3-x2))<((y2-y1)/(x2-x1))) charge=1;
     else if (((y3-y2)/(x3-x2))>((y2-y1)/(x2-x1))) charge=-1;
     else return 0;
+
+    float pseudo_phi = atan((y_init-y_center)/(x_init-x_center)); //actually represent pi/2-phi, wrt helix axis z
+    float Pt=inner_pt, Px, Py;
+    if (charge==1 && x_init<0 && y_init<0) {Px = -Pt*abs(sin(pseudo_phi)); Py=-Pt*abs(cos(pseudo_phi));}
+    else if (charge==1 && x_init<0 && y_init>0) {Px = -Pt*abs(sin(pseudo_phi)); Py=Pt*abs(cos(pseudo_phi));}
+    else if (charge==1 && x_init>0 && y_init>0) {Px = Pt*abs(sin(pseudo_phi)); Py=Pt*abs(cos(pseudo_phi));}
+    else if (charge==1 && x_init>0 && y_init<0) {Px = Pt*abs(sin(pseudo_phi)); Py=-Pt*abs(cos(pseudo_phi));}
+    else if (charge==-1 && x_init>0 && y_init>0) {Px = Pt*abs(sin(pseudo_phi)); Py=Pt*abs(cos(pseudo_phi));}
+    else if (charge==-1 && x_init>0 && y_init<0) {Px = Pt*abs(sin(pseudo_phi)); Py=-Pt*abs(cos(pseudo_phi));}
+    else if (charge==-1 && x_init<0 && y_init<0) {Px = -Pt*abs(sin(pseudo_phi)); Py=-Pt*abs(cos(pseudo_phi));}
+    else if (charge==-1 && x_init<0 && y_init>0) {Px = -Pt*abs(sin(pseudo_phi)); Py=Pt*abs(cos(pseudo_phi));}
+    else return 0;
+
+    //to get Pz, we use pt/pz=ds/dz, ds is the arclength between MD1 and MD2.
+    float AO=sqrt((x1-x_center)*(x1-x_center)+(y1-y_center)*(y1-y_center));
+    float BO=sqrt((x_init-x_center)*(x_init-x_center)+(y_init-y_center)*(y_init-y_center));
+    float AB=sqrt((x1-x_init)*(x1-x_init)+(y1-y_init)*(y1-y_init)); 
+    float dPhi = acos((AO*AO+BO*BO-AB*AB)/(2*AO*BO));
+//    float ds=innerRadius/100*dPhi;
+
+    float ds = sqrt((y_init-y1)*(y_init-y1)+(x_init-x1)*(x_init-x1)); //large ds->smallerPz->smaller residual
+    float Pz=(z_init-z1)/ds*Pt;
+    float p = sqrt(Px*Px+Py*Py+Pz*Pz);
 
     float B = 3.8112;
     float a = -0.299792*B*charge;
@@ -687,6 +721,18 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
             rtsi = rt5;
             layeri=layer5;
             moduleTypei=moduleType5;
+        }
+        else if (i==2){
+            zsi = z2;
+            rtsi = rt2;
+            layeri=layer2;
+            moduleTypei=moduleType2;
+        }
+        else if (i==3){
+            zsi = z3;
+            rtsi = rt3;
+            layeri=layer3;
+            moduleTypei=moduleType3;
         }
 
         // calculation is copied from PixelTriplet.cu SDL::computePT3RZChiSquared
@@ -737,13 +783,17 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         }
         rzChiSquared += 12*(residual * residual)/(error * error);
     }
-        printf("rt1:%f, rt2:%f, rt3:%f, rt4:%f, rt5:%f\n", rt1, rt2, rt3, rt4, rt5);
-        printf("x1:%f, x2:%f, x3:%f, x4:%f, x5:%f\n", x1, x2, x3, x4, x5);
-        printf("y1:%f, y2:%f, y3:%f, y4:%f, y5:%f\n", y1, y2, y3, y4, y5);
-        printf("z1:%f, z2:%f, z3:%f, z4:%f, z5:%f\n", z1, z2, z3, z4, z5);
-        printf("rt4_ex:%f, rt5_ex:%f\n", expectrt4, expectrt5);
-        printf("z4_ex:%f, z5_ex:%f\n", expectz4, expectz5);
-        printf("Pt:%f, Px:%f, Py:%f, Pz:%f, charge: %i, residual4: %f, residual5:%f\n", Pt, Px, Py, Pz, charge, residual4, residual5);
+
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and residual4>15){
+//        printf("rt1:%f, rt2:%f, rt3:%f, rt4:%f, rt5:%f\n", rt1, rt2, rt3, rt4, rt5);
+//        printf("x1:%f, x2:%f, x3:%f, x4:%f, x5:%f\n", x1, x2, x3, x4, x5);
+//        printf("y1:%f, y2:%f, y3:%f, y4:%f, y5:%f\n", y1, y2, y3, y4, y5);
+//        printf("z1:%f, z2:%f, z3:%f, z4:%f, z5:%f\n", z1, z2, z3, z4, z5);
+//        printf("rt4_ex:%f, rt5_ex:%f\n", expectrt4, expectrt5);
+//        printf("z4_ex:%f, z5_ex:%f\n", expectz4, expectz5);
+//        printf("Pt:%f, Px:%f, Py:%f, Pz:%f, charge: %i, residual4: %f, residual5:%f\n", Pt, Px, Py, Pz, charge, residual4, residual5);
+    printf("x1:%f, x2:%f, x3:%f, y1:%f, y2:%f, y3:%f, CenterX:%f, CenterY:%f, innerRadius:%f, Pt:%f, Px:%f, Py:%f, charge:%i\n", x1, x2, x3, y1, y2, y3, x_center, y_center, innerRadius, Pt, Px, Py, charge);
+    }
 
     //categories!
     if(layer1 == 1 and layer2 == 2 and layer3 == 3)
