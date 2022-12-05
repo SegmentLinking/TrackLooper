@@ -1,16 +1,35 @@
 # TrackLooper
 
+
 ## Quick Start
 
-    git clone git@github.com:SegmentLinking/TrackLooper.git
+
+### Setting up LSTPerformanceWeb (only for lnx7188)
+
+For lnx7188 this needs to be done once
+
+    cd /cdat/tem/${USER}/
+    git clone git@github.com:SegmentLinking/LSTPerformanceWeb.git
+
+### Running the code
+
+    git clone --recursive git@github.com:SegmentLinking/TrackLooper.git
     cd TrackLooper/
     source setup.sh
     # source setup_cgpu.sh # if you are on cgpu-1
-    sdl_make_tracklooper -mc8
+    sdl_make_tracklooper -mc
     sdl -i PU200 -o LSTNtuple.root
     createPerfNumDenHists -i LSTNtuple.root -o LSTNumDen.root
     lst_plot_performance.py LSTNumDen.root -t "myTag"
     # python3 efficiency/python/lst_plot_performance.py LSTNumDen.root -t "myTag" # if you are on cgpu-1
+
+The above can be even simplified
+
+    git clone --recursive git@github.com:SegmentLinking/TrackLooper.git
+    cd TrackLooper/
+    source setup.sh
+    # source setup_cgpu.sh # if you are on cgpu-1
+    sdl_run -f -mc -s PU200 -n -1 -t myTag
 
 ## Instructions
 
@@ -31,7 +50,7 @@ Once every new shell, source the setup script to initilaize the enviornment.
 
 Compile the code with option flags
 
-    sdl_make_tracklooper -mc8
+    sdl_make_tracklooper -mc
     -c: run with the cmssw caching allocator
     -h: show help screen with all options
 
