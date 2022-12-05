@@ -761,14 +761,10 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
 
     float pseudo_phi = atan((y_init-y_center)/(x_init-x_center)); //actually represent pi/2-phi, wrt helix axis z
     float Pt=inner_pt, Px, Py;
-    if (charge==1 && x_init<0 && y_init<0) {Px = -Pt*abs(sin(pseudo_phi)); Py=-Pt*abs(cos(pseudo_phi));}
-    else if (charge==1 && x_init<0 && y_init>0) {Px = -Pt*abs(sin(pseudo_phi)); Py=Pt*abs(cos(pseudo_phi));}
-    else if (charge==1 && x_init>0 && y_init>0) {Px = Pt*abs(sin(pseudo_phi)); Py=Pt*abs(cos(pseudo_phi));}
-    else if (charge==1 && x_init>0 && y_init<0) {Px = Pt*abs(sin(pseudo_phi)); Py=-Pt*abs(cos(pseudo_phi));}
-    else if (charge==-1 && x_init>0 && y_init>0) {Px = Pt*abs(sin(pseudo_phi)); Py=Pt*abs(cos(pseudo_phi));}
-    else if (charge==-1 && x_init>0 && y_init<0) {Px = Pt*abs(sin(pseudo_phi)); Py=-Pt*abs(cos(pseudo_phi));}
-    else if (charge==-1 && x_init<0 && y_init<0) {Px = -Pt*abs(sin(pseudo_phi)); Py=-Pt*abs(cos(pseudo_phi));}
-    else if (charge==-1 && x_init<0 && y_init>0) {Px = -Pt*abs(sin(pseudo_phi)); Py=Pt*abs(cos(pseudo_phi));}
+    if (x_init<0 && y_init<0) {Px = -Pt*abs(sin(pseudo_phi)); Py=-Pt*abs(cos(pseudo_phi));}
+    else if (x_init<0 && y_init>0) {Px = -Pt*abs(sin(pseudo_phi)); Py=Pt*abs(cos(pseudo_phi));}
+    else if (x_init>0 && y_init>0) {Px = Pt*abs(sin(pseudo_phi)); Py=Pt*abs(cos(pseudo_phi));}
+    else if (x_init>0 && y_init<0) {Px = Pt*abs(sin(pseudo_phi)); Py=-Pt*abs(cos(pseudo_phi));}
     else return 0;
 
     //to get Pz, we use pt/pz=ds/dz, ds is the arclength between MD1 and MD2.
@@ -776,9 +772,9 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     float BO=sqrt((x_init-x_center)*(x_init-x_center)+(y_init-y_center)*(y_init-y_center));
     float AB=sqrt((x1-x_init)*(x1-x_init)+(y1-y_init)*(y1-y_init)); 
     float dPhi = acos((AO*AO+BO*BO-AB*AB)/(2*AO*BO));
-//    float ds=innerRadius/100*dPhi;
+    float ds=innerRadius/100*dPhi;
 
-    float ds = sqrt((y_init-y1)*(y_init-y1)+(x_init-x1)*(x_init-x1)); //large ds->smallerPz->smaller residual
+//    float ds = sqrt((y_init-y1)*(y_init-y1)+(x_init-x1)*(x_init-x1)); //large ds->smallerPz->smaller residual
     float Pz=(z_init-z1)/ds*Pt;
     float p = sqrt(Px*Px+Py*Py+Pz*Pz);
 
@@ -788,9 +784,16 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     float zsi, rtsi;
     int layeri, moduleTypei;
     float expectrt4=0,expectrt5=0,expectz4=0, expectz5=0;
-    for(size_t i = 4; i < 6; i++)
+    for(size_t i = 2; i < 6; i++)
     {
-        if (i==4){
+        if (i==2){
+            zsi = z2;
+            rtsi = rt2;
+            layeri=layer2;
+            moduleTypei=moduleType2;
+        }
+        else if (i==3) continue;
+        else if (i==4){
             zsi = z4;
             rtsi = rt4;
             layeri=layer4;
@@ -801,18 +804,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
             rtsi = rt5;
             layeri=layer5;
             moduleTypei=moduleType5;
-        }
-        else if (i==2){
-            zsi = z2;
-            rtsi = rt2;
-            layeri=layer2;
-            moduleTypei=moduleType2;
-        }
-        else if (i==3){
-            zsi = z3;
-            rtsi = rt3;
-            layeri=layer3;
-            moduleTypei=moduleType3;
         }
 
         // calculation is copied from PixelTriplet.cu SDL::computePT3RZChiSquared
@@ -861,6 +852,22 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         {
             error = 5.0f;
         }
+
+        //check the tilted module, side: PosZ, NegZ, Center(for not tilted)
+        if (i==2){
+            float drdz2=modulesInGPU.drdzs[lowerModuleIndex2];
+            short side2=modulesInGPU.sides[lowerModuleIndex2];
+            short subdets=modulesInGPU.subdets[lowerModuleIndex2];
+            residual = (layeri <= 6 && ((side2 == SDL::Center) or (drdz2 < 1))) ? diffz : diffr;
+            residual_missing=residual;
+            float projection_missing=1;
+        if (drdz2<1)
+            projection_missing = ((subdets == SDL::Endcap) or (side2 == SDL::Center)) ? 1.f : cos(atan(drdz2)); //if dr/dz<1
+        if (drdz2>1)
+            projection_missing = ((subdets == SDL::Endcap) or (side2 == SDL::Center)) ? 1.f : sin(atan(drdz2)); //if dr/dz>1
+            error=error*projection_missing;
+        }
+
         rzChiSquared += 12*(residual * residual)/(error * error);
     }
 
