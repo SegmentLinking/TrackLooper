@@ -399,7 +399,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
 
 //    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, g, f);
     float inner_pt = 2 * k2Rinv1GeVf * innerRadius;
-    passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, g, f);
+    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, g, f);
 
     if(not pass) return pass;
 
@@ -447,7 +447,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     }
 
     //compute regression radius right here - this computation is expensive!!!
-//    pass = pass and tempPass;
+    pass = pass and tempPass;
     if(not pass) return pass;
 
     float xVec[] = {x1, x2, x3, x4, x5};
@@ -463,7 +463,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     //extra chi squared cuts!
     if(regressionRadius < 5.0f/(2.f * k2Rinv1GeVf))
     {
-//        pass = pass and passChiSquaredConstraint(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, chiSquared);
+        pass = pass and passChiSquaredConstraint(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, chiSquared);
         if(not pass) return pass;
     }
 
@@ -660,8 +660,8 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     //start from a circle of inner T3.
     // to determine the charge
     int charge=0;
-    float slope1c=(y3-y_center)/(x3-x_center);
-    float slope3c=(y1-y_center)/(x1-x_center);
+    float slope3c=(y3-y_center)/(x3-x_center);
+    float slope1c=(y1-y_center)/(x1-x_center);
     if((y3-y_center)>0 && (y1-y_center)>0) 
     {
         if (slope3c>slope1c) charge=-1; 
@@ -675,9 +675,9 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     else if(slope3c<-5 && slope1c>5) charge=-1;
     else if(slope3c>5 && slope1c<-5) charge=1;
 
-    if (((y3-y2)/(x3-x2))<((y2-y1)/(x2-x1))) charge=1;
-    else if (((y3-y2)/(x3-x2))>((y2-y1)/(x2-x1))) charge=-1;
-    else return 0;
+//    if (((y3-y2)/(x3-x2))<((y2-y1)/(x2-x1))) charge=1;
+//    else if (((y3-y2)/(x3-x2))>((y2-y1)/(x2-x1))) charge=-1;
+ //   else return 0;
 
     float pseudo_phi = atan((y_init-y_center)/(x_init-x_center)); //actually represent pi/2-phi, wrt helix axis z
     float Pt=inner_pt, Px, Py;
@@ -704,6 +704,7 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     float zsi, rtsi;
     int layeri, moduleTypei;
     float expectrt4=0,expectrt5=0,expectz4=0, expectz5=0;
+    rzChiSquared=0;
     for(size_t i = 2; i < 6; i++)
     {
         if (i==2){
@@ -760,8 +761,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         }
 
         residual = (layeri>6) ? diffr : diffz ;
-        if (i==4) residual4=residual;
-        if (i==5) residual5=residual;
 
         //PS Modules
         if(moduleTypei == 0)
@@ -772,26 +771,37 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         {
             error = 5.0f;
         }
+        if (i==4) residual4=residual/error;
+        if (i==5) residual5=residual/error;
 
         //check the tilted module, side: PosZ, NegZ, Center(for not tilted)
+        float drdz;
+        short side, subdets;
         if (i==2){
-            float drdz2=modulesInGPU.drdzs[lowerModuleIndex2];
-            short side2=modulesInGPU.sides[lowerModuleIndex2];
-            short subdets=modulesInGPU.subdets[lowerModuleIndex2];
-            residual = (layeri <= 6 && ((side2 == SDL::Center) or (drdz2 < 1))) ? diffz : diffr;
-            residual_missing=residual;
-            float projection_missing=1;
-        if (drdz2<1)
-            projection_missing = ((subdets == SDL::Endcap) or (side2 == SDL::Center)) ? 1.f : cos(atan(drdz2)); //if dr/dz<1
-        if (drdz2>1)
-            projection_missing = ((subdets == SDL::Endcap) or (side2 == SDL::Center)) ? 1.f : sin(atan(drdz2)); //if dr/dz>1
-            error=error*projection_missing;
+            drdz=modulesInGPU.drdzs[lowerModuleIndex2];
+            side=modulesInGPU.sides[lowerModuleIndex2];
+            subdets=modulesInGPU.subdets[lowerModuleIndex2];
         }
-
+        if (i==3){
+            drdz=modulesInGPU.drdzs[lowerModuleIndex3];
+            side=modulesInGPU.sides[lowerModuleIndex3];
+            subdets=modulesInGPU.subdets[lowerModuleIndex3];
+        }
+        if (i==2 || i==3){
+            residual = (layeri <= 6 && ((side == SDL::Center) or (drdz < 1))) ? diffz : diffr;
+//            residual_missing=residual;
+            float projection_missing=1;
+        if (drdz<1)
+            projection_missing = ((subdets == SDL::Endcap) or (side == SDL::Center)) ? 1.f : 1/sqrt(1+drdz*drdz); // cos(atan(drdz)), if dr/dz<1
+        if (drdz>1)
+            projection_missing = ((subdets == SDL::Endcap) or (side == SDL::Center)) ? 1.f : drdz/sqrt(1+drdz*drdz);//sin(atan(drdz)), if dr/dz>1
+            error=error*projection_missing;
+            residual_missing=residual/error;
+        }
         rzChiSquared += 12*(residual * residual)/(error * error);
     }
 
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and residual4>15){
+//    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and rzChiSquared>1000){
 //        printf("rt1:%f, rt2:%f, rt3:%f, rt4:%f, rt5:%f\n", rt1, rt2, rt3, rt4, rt5);
 //        printf("x1:%f, x2:%f, x3:%f, x4:%f, x5:%f\n", x1, x2, x3, x4, x5);
 //        printf("y1:%f, y2:%f, y3:%f, y4:%f, y5:%f\n", y1, y2, y3, y4, y5);
@@ -799,120 +809,117 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
 //        printf("rt4_ex:%f, rt5_ex:%f\n", expectrt4, expectrt5);
 //        printf("z4_ex:%f, z5_ex:%f\n", expectz4, expectz5);
 //        printf("Pt:%f, Px:%f, Py:%f, Pz:%f, charge: %i, residual4: %f, residual5:%f\n", Pt, Px, Py, Pz, charge, residual4, residual5);
-    printf("x1:%f, x2:%f, x3:%f, y1:%f, y2:%f, y3:%f, CenterX:%f, CenterY:%f, innerRadius:%f, Pt:%f, Px:%f, Py:%f, charge:%i\n", x1, x2, x3, y1, y2, y3, x_center, y_center, innerRadius, Pt, Px, Py, charge);
-    }
+//    printf("x1:%f, x2:%f, x3:%f, y1:%f, y2:%f, y3:%f, CenterX:%f, CenterY:%f, innerRadius:%f, Pt:%f, Px:%f, Py:%f, charge:%i\n", x1, x2, x3, y1, y2, y3, x_center, y_center, innerRadius, Pt, Px, Py, charge);
+//        printf("rzChi2: %f, residual2:%f, residual4: %f, residual5: %f\n", rzChiSquared, residual_missing, residual4, residual5);
+//    }
 
     //categories!
     if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
         if(layer4 == 4 and layer5 == 5)
         {
-            return rzChiSquared < 0.545f; 
+            return rzChiSquared < 136.5975f; 
         }
         else if(layer4 == 4 and layer5 == 12)
         {
-            return rzChiSquared < 1.105f;
+            return rzChiSquared < 13.8784f;
         }
         else if(layer4 == 7 and layer5 == 13)
         {
-            return rzChiSquared < 0.775f;
+            return rzChiSquared < 197.4f;
         }
         else if(layer4 == 12 and layer5 == 13)
         {
-            return rzChiSquared < 0.625f;
+            return rzChiSquared < 9.9563f;
         }
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
         if(layer4 == 8 and layer5 == 14)
         {
-            return rzChiSquared < 0.835f;
+            return rzChiSquared < 168.5f;
         }
         else if(layer4 == 13 and layer5 == 14)
         {
-            return rzChiSquared < 0.575f;
+            return rzChiSquared < 9.9181f;
         }
     }
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
     {
-        return rzChiSquared < 0.825f;
+        return rzChiSquared < 99.5923f;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
         if(layer4 == 5 and layer5 == 6)
         {
-            return rzChiSquared < 0.845f;
+            return rzChiSquared < 933.1022f;
         }
         else if(layer4 == 5 and layer5 == 12)
         {
-            return rzChiSquared < 1.365f;
+            return rzChiSquared < 952.8f;
         }
 
         else if(layer4 == 12 and layer5 == 13)
         {
-            return rzChiSquared < 0.675f;
+            return rzChiSquared < 222.0667f;
         }
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
-            return rzChiSquared < 0.495f;
+            return rzChiSquared < 9.9041f;
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 12 and layer4 == 13 and layer5 == 14)
     {
-        return rzChiSquared < 0.695f; 
+            return 1;
+//        return rzChiSquared < 0.695f; 
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
         if(layer4 == 9 and layer5 == 15)
         {
-            return rzChiSquared < 0.735f;
+            return rzChiSquared < 259.7f;
         }
         else if(layer4 == 14 and layer5 == 15)
         {
-            return rzChiSquared < 0.525f;
+            return rzChiSquared < 128.8375f;
         }
         else if(layer4 == 9 and layer5 == 10)
         {
             printf("here");
+            return 1;
         }
     }
-    else if(layer1 == 2 and layer2 == 7 and layer3 == 13 and layer4 == 14 and layer5 == 15)
-    {
-        return rzChiSquared < 0.665f;
-    }
+
     else if(layer1 == 3 and layer2 == 4 and layer3 == 5 and layer4 == 12 and layer5 == 13)
     {
-        return rzChiSquared < 0.995f;
+        return 1;
+//        return rzChiSquared < 0.995f;
     }
     else if(layer1 == 3 and layer2 == 4 and layer3 == 12 and layer4 == 13 and layer5 == 14)
     {
-        return rzChiSquared < 0.525f;
+        return 1;
+//        return rzChiSquared < 0.525f;
     }
     else if(layer1 == 3 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
     {
-        return rzChiSquared < 0.525f;
-    }
-    else if(layer1 == 3 and layer2 == 7 and layer3 == 13 and layer4 == 14 and layer5 == 15)
-    {
-        return rzChiSquared < 0.745f;
-    }
-    else if(layer1 == 3 and layer2 == 12 and layer3 == 13 and layer4 == 14 and layer5 == 15)
-    {
-        return rzChiSquared < 0.555f; 
-    }
-    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
-    {
-            return rzChiSquared < 0.525f;
-    }
-    else if(layer1 == 7 and layer2 == 8 and layer3 == 14 and layer4 == 15 and layer5 == 16)
-    {
-        return rzChiSquared < 0.885f;
-    }
-    else if(layer1 == 7 and layer2 == 13 and layer3 == 14 and layer4 == 15 and layer5 == 16)
-    {
-        return rzChiSquared < 0.845f;
+        return 1;
+//        return rzChiSquared < 0.525f;
     }
 
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
+    {
+            return rzChiSquared < 157.05f;
+    }
+
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11)
+    {
+            return rzChiSquared < 360.1125f;
+    }
+
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 16)
+    {
+            return rzChiSquared < 157.2273f;
+    }
     return true;
 }
 
