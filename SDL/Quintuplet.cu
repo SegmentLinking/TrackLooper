@@ -851,11 +851,7 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     {
             return rzChiSquared < 9.9041f;
     }
-    else if(layer1 == 2 and layer2 == 3 and layer3 == 12 and layer4 == 13 and layer5 == 14)
-    {
-            return 1;
-//        return rzChiSquared < 0.695f; 
-    }
+
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
         if(layer4 == 9 and layer5 == 15)
@@ -878,11 +874,7 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         return 1;
 //        return rzChiSquared < 0.995f;
     }
-    else if(layer1 == 3 and layer2 == 4 and layer3 == 12 and layer4 == 13 and layer5 == 14)
-    {
-        return 1;
-//        return rzChiSquared < 0.525f;
-    }
+
     else if(layer1 == 3 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
     {
         return 1;
