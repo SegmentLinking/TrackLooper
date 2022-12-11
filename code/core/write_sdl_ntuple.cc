@@ -222,7 +222,87 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
 
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     const float k2Rinv1GeVf = kRinv1GeVf / 2.;
+
+    //=================================================================================
+    // Some history and geometry lesson...
+    // For a given T3, we compute two angles. (NOTE: This is a bit weird!)
+    // Historically, T3 were created out of T4, which we used to build a long time ago.
+    // So for the sake of argument let's discuss T4 first.
+    // For a T4, we have 4 mini-doublets.
+    // Therefore we have 4 "anchor hits".
+    // Therefore we have 4 xyz points.
+    //
+    //
+    //       *
+    //       |\
+    //       | \
+    //       |1 \
+    //       |   \
+    //       |  * \
+    //       |
+    //       |
+    //       |
+    //       |
+    //       |
+    //       |  * /
+    //       |   /
+    //       |2 /
+    //       | /
+    //       |/
+    //       *
+    //
+    //
+    // Then from these 4 points, one can approximate a some sort of "best" fitted circle trajectory,
+    // and obtain "tangential" angles from 1st and 4th hits.
+    // See the carton below.
+    // The "*" are the 4 physical hit points
+    // angle 1 and 2 are the "tangential" angle for a "circle" from 4 * points.
+    // Please note, that a straight line from first two * and the latter two * are NOT the
+    // angle 1 and angle 2. (they were called "beta" angles)
+    // But rather, a slightly larger angle.
+    // Because 4 * points would be on a circle, and a tangential line on the circles
+    // would deviate from the points on circles.
+    //
+    // In the early days of LST, there was an iterative algorithm (devised by Slava) to
+    // obtain the angle beta1 and 2 _without_ actually performing a 4 point circle fit.
+    // Hence, the beta1 and beta2 were quickly estimated without too many math operations
+    // and afterwards (beta1-beta2) was computed to obtain what we call a "delta-beta" values.
+    //
+    // For a real track, the deltabeta ~ 0, for fakes, it'd have a flat distribution.
+    //
+    // However, after some time we abandonded the T4s, and moved to T3s.
+    // In T3, however, now we have the following cartoon:
+    //
+    //       *
+    //       |\
+    //       | \
+    //       |1 \
+    //       |   \
+    //       |  * X   (* here are "two" MDs but really just one)
+    //       |   /
+    //       |2 /
+    //       | /
+    //       |/
+    //       *
+    //
+    // With the "four" *'s (really just "three") you can still run the iterative beta calculation,
+    // which is what we still currently do, we still get two beta1 and beta2
+    // But! high school geometry tells us that 3 points = ONLY 1 possible CIRCLE!
+    // There is really nothing to "fit" here.
+    // YET we still compute these in T3, out of legacy method of how we used to treat T4s.
+    //
+    // Hence, in the below code, "betaIn_in" and "betaOut_in" if we performed
+    // a circle fit they would come out by definition identical values.
+    // But due to our approximate iterative beta calculation method, they come out different values.
+    // So if we are "cutting on" abs(deltaBeta) = abs(betaIn_in - betaOut_in) < threshold,
+    // what does that even mean?
+    //
+    // Anyhow, as of now, we compute 2 beta's for T3s, and T5 has two T3s.
+    // And from there we estimate the pt's and we compute pt_T5.
+
+    // Compute the radial distance between first mini-doublet to third minidoublet
     const float dr_in = sqrt(pow(hitsInGPU.xs[Hit_4] - hitsInGPU.xs[Hit_0], 2) + pow(hitsInGPU.ys[Hit_4] - hitsInGPU.ys[Hit_0], 2));
+    // Compute the radial distance between third mini-doublet to fifth minidoublet
     const float dr_out = sqrt(pow(hitsInGPU.xs[Hit_8] - hitsInGPU.xs[Hit_4], 2) + pow(hitsInGPU.ys[Hit_8] - hitsInGPU.ys[Hit_4], 2));
     float betaIn_in   = __H2F(tripletsInGPU.betaIn[T3_0]);
     float betaOut_in  = __H2F(tripletsInGPU.betaOut[T3_0]);
@@ -409,7 +489,7 @@ void printHitMultiplicities(SDL::Event* event)
     int nHits = 0;
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
-        nHits += rangesInGPU.hitRanges[4 * idx + 1] - rangesInGPU.hitRanges[4 * idx] + 1;       
+        nHits += rangesInGPU.hitRanges[4 * idx + 1] - rangesInGPU.hitRanges[4 * idx] + 1;
         nHits += rangesInGPU.hitRanges[4 * idx + 3] - rangesInGPU.hitRanges[4 * idx + 2] + 1;
     }
     std::cout <<  " nHits: " << nHits <<  std::endl;
@@ -601,7 +681,7 @@ void debugPrintOutlierMultiplicities(SDL::Event* event)
             int nMD = miniDoubletsInGPU.nMDs[2*idx]+miniDoubletsInGPU.nMDs[2*idx+1] ;
             std::cout <<  " idx: " << idx <<  " nMD: " << nMD <<  std::endl;
             int nHits = 0;
-            nHits += rangesInGPU.hitRanges[4*idx+1] - rangesInGPU.hitRanges[4*idx] + 1;       
+            nHits += rangesInGPU.hitRanges[4*idx+1] - rangesInGPU.hitRanges[4*idx] + 1;
             nHits += rangesInGPU.hitRanges[4*idx+3] - rangesInGPU.hitRanges[4*idx+2] + 1;
             std::cout <<  " idx: " << idx <<  " nHits: " << nHits <<  std::endl;
         }
