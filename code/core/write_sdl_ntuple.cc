@@ -209,7 +209,7 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     //                oo -- oo -- oo               first T3 of the T5
     //                            oo -- oo -- oo   second T3 of the T5
     unsigned int pT5 = trackCandidatesInGPU.directObjectIndices[idx];
-    std::vector<unsigned int> Hits = getHitsFrompT5(event, pT5);
+    std::vector<unsigned int> Hits = getOuterTrackerHitsFrompT5(event, pT5);
     unsigned int Hit_0 = Hits[0];
     unsigned int Hit_4 = Hits[4];
     unsigned int Hit_8 = Hits[8];
@@ -346,7 +346,7 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     // pLS            01    23    45               (anchor hit of a minidoublet is always the first of the pair)
     // ****           oo -- oo -- oo               pT3
     unsigned int pT3 = trackCandidatesInGPU.directObjectIndices[idx];
-    std::vector<unsigned int> Hits = getHitsFrompT3(event, pT3);
+    std::vector<unsigned int> Hits = getOuterTrackerHitsFrompT3(event, pT3);
     unsigned int Hit_0 = Hits[0];
     unsigned int Hit_4 = Hits[4];
 
