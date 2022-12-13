@@ -11,6 +11,7 @@
 #include "constants.h"
 #include "AnalysisConfig.h"
 #include "trkCore.h"
+#include "AccessHelper.h"
 
 // Common
 void createOutputBranches();

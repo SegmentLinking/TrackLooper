@@ -1,5 +1,4 @@
 #include "write_sdl_ntuple.h"
-#include "write_sdl_ntuple.h"
 
 #define N_MAX_MD_PER_MODULES 89
 #define N_MAX_SEGMENTS_PER_MODULE 537
@@ -199,114 +198,131 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     SDL::segments& segmentsInGPU = (*event->getSegments());
     SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hits& hitsInGPU = (*event->getHits());
-    SDL::modules& modulesInGPU = (*event->getModules());
-    SDL::quintuplets& quintupletsInGPU = (*event->getQuintuplets());
-    SDL::objectRanges& rangesInGPU = (*event->getRanges());
 
-    // Main pT5 object idx in TC container
-    // TODO the pT5 index is not saved to trackCandidates
-    // unsigned int objectIdx = trackCandidatesInGPU.objectIndices[2 * idx];
-    unsigned int pLSIdx = trackCandidatesInGPU.objectIndices[2 * idx]; // TODO Instead this gives the pixel index
-    unsigned int T5Idx = trackCandidatesInGPU.objectIndices[2 * idx + 1];
+    //
+    // pictorial representation of a pT5
+    //
+    // inner tracker        outer tracker
+    // -------------  --------------------------
+    // pLS            01    23    45    67    89   (anchor hit of a minidoublet is always the first of the pair)
+    // ****           oo -- oo -- oo -- oo -- oo   pT5
+    //                oo -- oo -- oo               first T3 of the T5
+    //                            oo -- oo -- oo   second T3 of the T5
+    unsigned int pT5 = trackCandidatesInGPU.directObjectIndices[idx];
+    std::vector<unsigned int> Hits = getOuterTrackerHitsFrompT5(event, pT5);
+    unsigned int Hit_0 = Hits[0];
+    unsigned int Hit_4 = Hits[4];
+    unsigned int Hit_8 = Hits[8];
 
-    // Triplets from T5
-    unsigned int T3Idx1 = quintupletsInGPU.tripletIndices[2 * T5Idx];
-    unsigned int T3Idx2 = quintupletsInGPU.tripletIndices[2 * T5Idx + 1];
+    std::vector<unsigned int> T3s = getT3sFrompT5(event, pT5);
+    unsigned int T3_0 = T3s[0];
+    unsigned int T3_1 = T3s[1];
 
-    // LSs from T5
-    unsigned int LS1 = tripletsInGPU.segmentIndices[2 * T3Idx1];
-    unsigned int LS2 = tripletsInGPU.segmentIndices[2 * T3Idx1 + 1];
-    unsigned int LS3 = tripletsInGPU.segmentIndices[2 * T3Idx2];
-    unsigned int LS4 = tripletsInGPU.segmentIndices[2 * T3Idx2 + 1];
+    unsigned int pLS = getPixelLSFrompT5(event, pT5);
 
-    // MDs from T5
-    unsigned int pLS_md1 = segmentsInGPU.mdIndices[2 * pLSIdx];
-    unsigned int pLS_md2 = segmentsInGPU.mdIndices[2 * pLSIdx + 1];
-    unsigned int T5_md1 = segmentsInGPU.mdIndices[2 * LS1];
-    unsigned int T5_md2 = segmentsInGPU.mdIndices[2 * LS2];
-    unsigned int T5_md3 = segmentsInGPU.mdIndices[2 * LS3];
-    unsigned int T5_md4 = segmentsInGPU.mdIndices[2 * LS4];
-    unsigned int T5_md5 = segmentsInGPU.mdIndices[2 * LS4 + 1];
-
-    // Getting Hit indices
-    unsigned int pLS_hit1 = miniDoubletsInGPU.anchorHitIndices[pLS_md1];
-    unsigned int pLS_hit2 = miniDoubletsInGPU.outerHitIndices [pLS_md1];
-    unsigned int pLS_hit3 = miniDoubletsInGPU.anchorHitIndices[pLS_md2];
-    unsigned int pLS_hit4 = miniDoubletsInGPU.outerHitIndices [pLS_md2];
-    unsigned int T5_hit1  = miniDoubletsInGPU.anchorHitIndices[T5_md1];
-    unsigned int T5_hit2  = miniDoubletsInGPU.outerHitIndices [T5_md1];
-    unsigned int T5_hit3  = miniDoubletsInGPU.anchorHitIndices[T5_md2];
-    unsigned int T5_hit4  = miniDoubletsInGPU.outerHitIndices [T5_md2];
-    unsigned int T5_hit5  = miniDoubletsInGPU.anchorHitIndices[T5_md3];
-    unsigned int T5_hit6  = miniDoubletsInGPU.outerHitIndices [T5_md3];
-    unsigned int T5_hit7  = miniDoubletsInGPU.anchorHitIndices[T5_md4];
-    unsigned int T5_hit8  = miniDoubletsInGPU.outerHitIndices [T5_md4];
-    unsigned int T5_hit9  = miniDoubletsInGPU.anchorHitIndices[T5_md5];
-    unsigned int T5_hit10 = miniDoubletsInGPU.outerHitIndices [T5_md5];
-
-    // pLS  1    2    3    4    5
-    // **** o -- o -- o -- o -- o
-    //      o -- o -- o
-    //                o -- o -- o
-    unsigned int i1_idx = T5_hit1;
-    unsigned int i3_idx = T5_hit5;
-    unsigned int i5_idx = T5_hit9;
-
-    const float dr_in = sqrt(pow(hitsInGPU.xs[i3_idx] - hitsInGPU.xs[i1_idx], 2) + pow(hitsInGPU.ys[i3_idx] - hitsInGPU.ys[i1_idx], 2));
-    const float dr_out = sqrt(pow(hitsInGPU.xs[i5_idx] - hitsInGPU.xs[i3_idx], 2) + pow(hitsInGPU.ys[i5_idx] - hitsInGPU.ys[i3_idx], 2));
-    float betaIn_in   = __H2F(tripletsInGPU.betaIn[T3Idx1]);
-    float betaOut_in  = __H2F(tripletsInGPU.betaOut[T3Idx1]);
-    float betaIn_out  = __H2F(tripletsInGPU.betaIn[T3Idx2]);
-    float betaOut_out = __H2F(tripletsInGPU.betaOut[T3Idx2]);
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     const float k2Rinv1GeVf = kRinv1GeVf / 2.;
+
+    //=================================================================================
+    // Some history and geometry lesson...
+    // For a given T3, we compute two angles. (NOTE: This is a bit weird!)
+    // Historically, T3 were created out of T4, which we used to build a long time ago.
+    // So for the sake of argument let's discuss T4 first.
+    // For a T4, we have 4 mini-doublets.
+    // Therefore we have 4 "anchor hits".
+    // Therefore we have 4 xyz points.
+    //
+    //
+    //       *
+    //       |\
+    //       | \
+    //       |1 \
+    //       |   \
+    //       |  * \
+    //       |
+    //       |
+    //       |
+    //       |
+    //       |
+    //       |  * /
+    //       |   /
+    //       |2 /
+    //       | /
+    //       |/
+    //       *
+    //
+    //
+    // Then from these 4 points, one can approximate a some sort of "best" fitted circle trajectory,
+    // and obtain "tangential" angles from 1st and 4th hits.
+    // See the carton below.
+    // The "*" are the 4 physical hit points
+    // angle 1 and 2 are the "tangential" angle for a "circle" from 4 * points.
+    // Please note, that a straight line from first two * and the latter two * are NOT the
+    // angle 1 and angle 2. (they were called "beta" angles)
+    // But rather, a slightly larger angle.
+    // Because 4 * points would be on a circle, and a tangential line on the circles
+    // would deviate from the points on circles.
+    //
+    // In the early days of LST, there was an iterative algorithm (devised by Slava) to
+    // obtain the angle beta1 and 2 _without_ actually performing a 4 point circle fit.
+    // Hence, the beta1 and beta2 were quickly estimated without too many math operations
+    // and afterwards (beta1-beta2) was computed to obtain what we call a "delta-beta" values.
+    //
+    // For a real track, the deltabeta ~ 0, for fakes, it'd have a flat distribution.
+    //
+    // However, after some time we abandonded the T4s, and moved to T3s.
+    // In T3, however, now we have the following cartoon:
+    //
+    //       *
+    //       |\
+    //       | \
+    //       |1 \
+    //       |   \
+    //       |  * X   (* here are "two" MDs but really just one)
+    //       |   /
+    //       |2 /
+    //       | /
+    //       |/
+    //       *
+    //
+    // With the "four" *'s (really just "three") you can still run the iterative beta calculation,
+    // which is what we still currently do, we still get two beta1 and beta2
+    // But! high school geometry tells us that 3 points = ONLY 1 possible CIRCLE!
+    // There is really nothing to "fit" here.
+    // YET we still compute these in T3, out of legacy method of how we used to treat T4s.
+    //
+    // Hence, in the below code, "betaIn_in" and "betaOut_in" if we performed
+    // a circle fit they would come out by definition identical values.
+    // But due to our approximate iterative beta calculation method, they come out different values.
+    // So if we are "cutting on" abs(deltaBeta) = abs(betaIn_in - betaOut_in) < threshold,
+    // what does that even mean?
+    //
+    // Anyhow, as of now, we compute 2 beta's for T3s, and T5 has two T3s.
+    // And from there we estimate the pt's and we compute pt_T5.
+
+    // Compute the radial distance between first mini-doublet to third minidoublet
+    const float dr_in = sqrt(pow(hitsInGPU.xs[Hit_4] - hitsInGPU.xs[Hit_0], 2) + pow(hitsInGPU.ys[Hit_4] - hitsInGPU.ys[Hit_0], 2));
+    // Compute the radial distance between third mini-doublet to fifth minidoublet
+    const float dr_out = sqrt(pow(hitsInGPU.xs[Hit_8] - hitsInGPU.xs[Hit_4], 2) + pow(hitsInGPU.ys[Hit_8] - hitsInGPU.ys[Hit_4], 2));
+    float betaIn_in   = __H2F(tripletsInGPU.betaIn[T3_0]);
+    float betaOut_in  = __H2F(tripletsInGPU.betaOut[T3_0]);
+    float betaIn_out  = __H2F(tripletsInGPU.betaIn[T3_1]);
+    float betaOut_out = __H2F(tripletsInGPU.betaOut[T3_1]);
     const float ptAv_in = abs(dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.));
     const float ptAv_out = abs(dr_out * k2Rinv1GeVf / sin((betaIn_out + betaOut_out) / 2.));
     const float pt_T5 = (ptAv_in + ptAv_out) / 2.;
 
     // pixel pt
-    const unsigned int pLS_offset = rangesInGPU.segmentModuleIndices[*(modulesInGPU.nLowerModules)];
-    const float pt_pLS = segmentsInGPU.ptIn[pLSIdx - pLS_offset];
-    const float eta_pLS = segmentsInGPU.eta[pLSIdx - pLS_offset];
-    const float phi_pLS = segmentsInGPU.phi[pLSIdx - pLS_offset];
+    const float pt_pLS = segmentsInGPU.ptIn[pLS];
+    const float eta_pLS = segmentsInGPU.eta[pLS];
+    const float phi_pLS = segmentsInGPU.phi[pLS];
 
     // average pt
     const float pt = (pt_pLS + pt_T5) / 2.;
 
     // Form the hit idx/type vector
-    std::vector<unsigned int> hit_idx;
-    hit_idx.push_back(hitsInGPU.idxs[pLS_hit1]);
-    hit_idx.push_back(hitsInGPU.idxs[pLS_hit2]);
-    hit_idx.push_back(hitsInGPU.idxs[pLS_hit3]);
-    if (pLS_hit3 != pLS_hit4)
-        hit_idx.push_back(hitsInGPU.idxs[pLS_hit4]);
-    hit_idx.push_back(hitsInGPU.idxs[T5_hit1]);
-    hit_idx.push_back(hitsInGPU.idxs[T5_hit2]);
-    hit_idx.push_back(hitsInGPU.idxs[T5_hit3]);
-    hit_idx.push_back(hitsInGPU.idxs[T5_hit4]);
-    hit_idx.push_back(hitsInGPU.idxs[T5_hit5]);
-    hit_idx.push_back(hitsInGPU.idxs[T5_hit6]);
-    hit_idx.push_back(hitsInGPU.idxs[T5_hit7]);
-    hit_idx.push_back(hitsInGPU.idxs[T5_hit8]);
-    hit_idx.push_back(hitsInGPU.idxs[T5_hit9]);
-    hit_idx.push_back(hitsInGPU.idxs[T5_hit10]);
-
-    std::vector<unsigned int> hit_type;
-    hit_type.push_back(0);
-    hit_type.push_back(0);
-    hit_type.push_back(0);
-    if (pLS_hit3 != pLS_hit4)
-        hit_type.push_back(0);
-    hit_type.push_back(4);
-    hit_type.push_back(4);
-    hit_type.push_back(4);
-    hit_type.push_back(4);
-    hit_type.push_back(4);
-    hit_type.push_back(4);
-    hit_type.push_back(4);
-    hit_type.push_back(4);
-    hit_type.push_back(4);
-    hit_type.push_back(4);
+    std::vector<unsigned int> hit_idx = getHitIdxsFrompT5(event, pT5);
+    std::vector<unsigned int> hit_type = getHitTypesFrompT5(event, pT5);
 
     return {pt, eta_pLS, phi_pLS, hit_idx, hit_type};
 
@@ -321,131 +337,76 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     SDL::segments& segmentsInGPU = (*event->getSegments());
     SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hits& hitsInGPU = (*event->getHits());
-    SDL::modules& modulesInGPU = (*event->getModules());
-    SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
-    SDL::objectRanges& rangesInGPU = (*event->getRanges());
 
-    // Main pT3 object idx in TC container
-    unsigned int objectIdx = trackCandidatesInGPU.objectIndices[2 * idx];
+    //
+    // pictorial representation of a pT3
+    //
+    // inner tracker        outer tracker
+    // -------------  --------------------------
+    // pLS            01    23    45               (anchor hit of a minidoublet is always the first of the pair)
+    // ****           oo -- oo -- oo               pT3
+    unsigned int pT3 = trackCandidatesInGPU.directObjectIndices[idx];
+    std::vector<unsigned int> Hits = getOuterTrackerHitsFrompT3(event, pT3);
+    unsigned int Hit_0 = Hits[0];
+    unsigned int Hit_4 = Hits[4];
 
-    unsigned int pLSIdx = pixelTripletsInGPU.pixelSegmentIndices[objectIdx];
-    unsigned int innerSegmentIdx = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[objectIdx]];
-    unsigned int outerSegmentIdx = tripletsInGPU.segmentIndices[2 * pixelTripletsInGPU.tripletIndices[objectIdx] + 1];
+    unsigned int T3 = getT3FrompT3(event, pT3);
 
-    // Getting MD indices
-    unsigned int pLS_md1 = segmentsInGPU.mdIndices[2 * pLSIdx];
-    unsigned int pLS_md2 = segmentsInGPU.mdIndices[2 * pLSIdx + 1];
-    unsigned int T3_md1 = segmentsInGPU.mdIndices[2 * innerSegmentIdx];
-    unsigned int T3_md2 = segmentsInGPU.mdIndices[2 * innerSegmentIdx + 1];
-    unsigned int T3_md3 = segmentsInGPU.mdIndices[2 * outerSegmentIdx + 1];
+    unsigned int pLS = getPixelLSFrompT3(event, pT3);
 
-    // Getting Hit indices
-    unsigned int pLS_hit1 = miniDoubletsInGPU.anchorHitIndices[pLS_md1];
-    unsigned int pLS_hit2 = miniDoubletsInGPU.outerHitIndices[pLS_md1];
-    unsigned int pLS_hit3 = miniDoubletsInGPU.anchorHitIndices[pLS_md2];
-    unsigned int pLS_hit4 = miniDoubletsInGPU.outerHitIndices[pLS_md2];
-    unsigned int T3_hit1 = miniDoubletsInGPU.anchorHitIndices[T3_md1];
-    unsigned int T3_hit2 = miniDoubletsInGPU.outerHitIndices[T3_md1];
-    unsigned int T3_hit3 = miniDoubletsInGPU.anchorHitIndices[T3_md2];
-    unsigned int T3_hit4 = miniDoubletsInGPU.outerHitIndices[T3_md2];
-    unsigned int T3_hit5 = miniDoubletsInGPU.anchorHitIndices[T3_md3];
-    unsigned int T3_hit6 = miniDoubletsInGPU.outerHitIndices[T3_md3];
-
-    // pLS  1    2    3
-    // **** o -- o -- o
-    unsigned int i1_idx = T3_hit1;
-    unsigned int i3_idx = T3_hit5;
-    const float dr = sqrt(pow(hitsInGPU.xs[i3_idx] - hitsInGPU.xs[i1_idx], 2) + pow(hitsInGPU.ys[i3_idx] - hitsInGPU.ys[i1_idx], 2));
-
-    // pixel pt
-    const unsigned int pLS_offset = rangesInGPU.segmentModuleIndices[*(modulesInGPU.nLowerModules)];
-    const float pt_pLS = segmentsInGPU.ptIn[pLSIdx - pLS_offset];
-    const float eta_pLS = segmentsInGPU.eta[pLSIdx - pLS_offset];
-    const float phi_pLS = segmentsInGPU.phi[pLSIdx - pLS_offset];
-
-    // TODO: This does not make sense (because T3 should not have two different beta values)
-    // constants
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     const float k2Rinv1GeVf = kRinv1GeVf / 2.;
-    float betaIn =  __H2F(tripletsInGPU.betaIn[pixelTripletsInGPU.tripletIndices[objectIdx]]);
-    float betaOut = __H2F(tripletsInGPU.betaOut[pixelTripletsInGPU.tripletIndices[objectIdx]]);
+    const float dr = sqrt(pow(hitsInGPU.xs[Hit_4] - hitsInGPU.xs[Hit_0], 2) + pow(hitsInGPU.ys[Hit_4] - hitsInGPU.ys[Hit_0], 2));
+    float betaIn   = __H2F(tripletsInGPU.betaIn[T3]);
+    float betaOut  = __H2F(tripletsInGPU.betaOut[T3]);
     const float pt_T3 = abs(dr * k2Rinv1GeVf / sin((betaIn + betaOut) / 2.));
 
-    // pt
+    // pixel pt
+    const float pt_pLS = segmentsInGPU.ptIn[pLS];
+    const float eta_pLS = segmentsInGPU.eta[pLS];
+    const float phi_pLS = segmentsInGPU.phi[pLS];
+
+    // average pt
     const float pt = (pt_pLS + pt_T3) / 2.;
 
     // Form the hit idx/type vector
-    std::vector<unsigned int> hit_idx;
-    hit_idx.push_back(hitsInGPU.idxs[pLS_hit1]);
-    hit_idx.push_back(hitsInGPU.idxs[pLS_hit2]);
-    hit_idx.push_back(hitsInGPU.idxs[pLS_hit3]);
-    if (pLS_hit3 != pLS_hit4)
-        hit_idx.push_back(hitsInGPU.idxs[pLS_hit4]);
-    hit_idx.push_back(hitsInGPU.idxs[T3_hit1]);
-    hit_idx.push_back(hitsInGPU.idxs[T3_hit2]);
-    hit_idx.push_back(hitsInGPU.idxs[T3_hit3]);
-    hit_idx.push_back(hitsInGPU.idxs[T3_hit4]);
-    hit_idx.push_back(hitsInGPU.idxs[T3_hit5]);
-    hit_idx.push_back(hitsInGPU.idxs[T3_hit6]);
-
-    std::vector<unsigned int> hit_type;
-    hit_type.push_back(0);
-    hit_type.push_back(0);
-    hit_type.push_back(0);
-    if (pLS_hit3 != pLS_hit4)
-        hit_type.push_back(0);
-    hit_type.push_back(4);
-    hit_type.push_back(4);
-    hit_type.push_back(4);
-    hit_type.push_back(4);
-    hit_type.push_back(4);
-    hit_type.push_back(4);
+    std::vector<unsigned int> hit_idx = getHitIdxsFrompT3(event, pT3);
+    std::vector<unsigned int> hit_type = getHitTypesFrompT3(event, pT3);
 
     return {pt, eta_pLS, phi_pLS, hit_idx, hit_type};
+
 }
 
 //________________________________________________________________________________________________________________________________
 std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parseT5(SDL::Event* event, unsigned int idx)
 {
-    // Get relevant information
     SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
     SDL::triplets& tripletsInGPU = (*event->getTriplets());
-    SDL::segments& segmentsInGPU = (*event->getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hits& hitsInGPU = (*event->getHits());
-    SDL::modules& modulesInGPU = (*event->getModules());
-    SDL::quintuplets& quintupletsInGPU = (*event->getQuintuplets());
-    SDL::objectRanges& rangesInGPU = (*event->getRanges());
+    unsigned int T5 = trackCandidatesInGPU.directObjectIndices[idx];
+    std::vector<unsigned int> T3s = getT3sFromT5(event, T5);
+    std::vector<unsigned int> hits = getHitsFromT5(event, T5);
 
-    // Main T5 object idx in TC container
-    unsigned int objectIdx = trackCandidatesInGPU.objectIndices[2 * idx];
+    //
+    // pictorial representation of a T5
+    //
+    // inner tracker        outer tracker
+    // -------------  --------------------------
+    //                01    23    45    67    89   (anchor hit of a minidoublet is always the first of the pair)
+    //  (none)        oo -- oo -- oo -- oo -- oo   T5
+    unsigned int Hit_0 = hits[0];
+    unsigned int Hit_4 = hits[4];
+    unsigned int Hit_8 = hits[8];
 
-    // indices computation
-    unsigned int innerTripletIndex = quintupletsInGPU.tripletIndices[2 * objectIdx];
-    unsigned int outerTripletIndex = quintupletsInGPU.tripletIndices[2 * objectIdx + 1];
-    unsigned int innerTripletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex];
-    unsigned int innerTripletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex + 1];
-    unsigned int outerTripletInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTripletIndex];
-    unsigned int outerTripletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTripletIndex + 1];
+    // radial distance
+    const float dr_in = sqrt(pow(hitsInGPU.xs[Hit_4] - hitsInGPU.xs[Hit_0], 2) + pow(hitsInGPU.ys[Hit_4] - hitsInGPU.ys[Hit_0], 2));
+    const float dr_out = sqrt(pow(hitsInGPU.xs[Hit_8] - hitsInGPU.xs[Hit_4], 2) + pow(hitsInGPU.ys[Hit_8] - hitsInGPU.ys[Hit_4], 2));
 
-    // beta are the angle of the segment in triplet (But this does not make sense!)
-    float betaIn_in   = __H2F(tripletsInGPU.betaIn[innerTripletIndex]);
-    float betaOut_in  = __H2F(tripletsInGPU.betaOut[innerTripletIndex]);
-    float betaIn_out  = __H2F(tripletsInGPU.betaIn[outerTripletIndex]);
-    float betaOut_out = __H2F(tripletsInGPU.betaOut[outerTripletIndex]);
-
-    // MD indices
-    // 1    2    3    4    5
-    // o -- o -- o -- o -- o
-    // o -- o -- o
-    //           o -- o -- o
-    unsigned int i1_idx = segmentsInGPU.innerMiniDoubletAnchorHitIndices[innerTripletInnerSegmentIndex];
-    unsigned int i3_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[innerTripletOuterSegmentIndex];
-    unsigned int i5_idx = segmentsInGPU.outerMiniDoubletAnchorHitIndices[outerTripletOuterSegmentIndex];
-
-    // radial delta distances for each triplets
-    const float dr_in = sqrt(pow(hitsInGPU.xs[i3_idx] - hitsInGPU.xs[i1_idx], 2) + pow(hitsInGPU.ys[i3_idx] - hitsInGPU.ys[i1_idx], 2));
-    const float dr_out = sqrt(pow(hitsInGPU.xs[i5_idx] - hitsInGPU.xs[i3_idx], 2) + pow(hitsInGPU.ys[i5_idx] - hitsInGPU.ys[i3_idx], 2));
+    // beta angles
+    float betaIn_in   = __H2F(tripletsInGPU.betaIn [T3s[0]]);
+    float betaOut_in  = __H2F(tripletsInGPU.betaOut[T3s[0]]);
+    float betaIn_out  = __H2F(tripletsInGPU.betaIn [T3s[1]]);
+    float betaOut_out = __H2F(tripletsInGPU.betaOut[T3s[1]]);
 
     // constants
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
@@ -459,42 +420,13 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     const float pt = (ptAv_in + ptAv_out) / 2.;
 
     // T5 eta and phi are computed using outer and innermost hits
-    SDL::CPU::Hit hitA(trk.ph2_x()[i1_idx], trk.ph2_y()[i1_idx], trk.ph2_z()[i1_idx]);
-    SDL::CPU::Hit hitB(trk.ph2_x()[i5_idx], trk.ph2_y()[i5_idx], trk.ph2_z()[i5_idx]);
+    SDL::CPU::Hit hitA(trk.ph2_x()[Hit_0], trk.ph2_y()[Hit_0], trk.ph2_z()[Hit_0]);
+    SDL::CPU::Hit hitB(trk.ph2_x()[Hit_8], trk.ph2_y()[Hit_8], trk.ph2_z()[Hit_8]);
     const float phi = hitA.phi();
     const float eta = hitB.eta();
 
-    // retreieving hit information
-    unsigned int md1_idx = segmentsInGPU.mdIndices[2 * innerTripletInnerSegmentIndex];
-    unsigned int md2_idx = segmentsInGPU.mdIndices[2 * innerTripletOuterSegmentIndex];
-    unsigned int md3_idx = segmentsInGPU.mdIndices[2 * outerTripletInnerSegmentIndex];
-    unsigned int md4_idx = segmentsInGPU.mdIndices[2 * outerTripletOuterSegmentIndex];
-    unsigned int md5_idx = segmentsInGPU.mdIndices[2 * outerTripletOuterSegmentIndex + 1];
-    unsigned int hit1_idx = miniDoubletsInGPU.anchorHitIndices[md1_idx];
-    unsigned int hit2_idx = miniDoubletsInGPU.outerHitIndices[md1_idx];
-    unsigned int hit3_idx = miniDoubletsInGPU.anchorHitIndices[md2_idx];
-    unsigned int hit4_idx = miniDoubletsInGPU.outerHitIndices[md2_idx];
-    unsigned int hit5_idx = miniDoubletsInGPU.anchorHitIndices[md3_idx];
-    unsigned int hit6_idx = miniDoubletsInGPU.outerHitIndices[md3_idx];
-    unsigned int hit7_idx = miniDoubletsInGPU.anchorHitIndices[md4_idx];
-    unsigned int hit8_idx = miniDoubletsInGPU.outerHitIndices[md4_idx];
-    unsigned int hit9_idx = miniDoubletsInGPU.anchorHitIndices[md5_idx];
-    unsigned int hit10_idx = miniDoubletsInGPU.outerHitIndices[md5_idx];
-
-    std::vector<unsigned int> hit_idx = {
-        hitsInGPU.idxs[hit1_idx],
-        hitsInGPU.idxs[hit2_idx],
-        hitsInGPU.idxs[hit3_idx],
-        hitsInGPU.idxs[hit4_idx],
-        hitsInGPU.idxs[hit5_idx],
-        hitsInGPU.idxs[hit6_idx],
-        hitsInGPU.idxs[hit7_idx],
-        hitsInGPU.idxs[hit8_idx],
-        hitsInGPU.idxs[hit9_idx],
-        hitsInGPU.idxs[hit10_idx]
-    };
-
-    std::vector<unsigned int> hit_type = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4}; // 0 means pixel hit, 4 means outer tracker hits
+    std::vector<unsigned int> hit_idx = getHitIdxsFromT5(event, T5);
+    std::vector<unsigned int> hit_type = getHitTypesFromT5(event, T5);
 
     return {pt, eta, phi, hit_idx, hit_type};
 }
@@ -502,45 +434,25 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
 //________________________________________________________________________________________________________________________________
 std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parsepLS(SDL::Event* event, unsigned int idx)
 {
-    // Get relevant information
     SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
     SDL::segments& segmentsInGPU = (*event->getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
-    SDL::hits& hitsInGPU = (*event->getHits());
-    SDL::modules& modulesInGPU = (*event->getModules());
-    SDL::objectRanges& rangesInGPU = (*event->getRanges());
 
-    // Main TC index
-    unsigned int objectIdx = trackCandidatesInGPU.objectIndices[2 * idx];
-    unsigned int pixelModuleIndex = *(modulesInGPU.nLowerModules);
-    unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + objectIdx;
-    unsigned int innerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex];
-    unsigned int outerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * pixelSegmentIndex + 1];
-    unsigned int innerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[innerMiniDoubletIndex];
-    unsigned int innerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[innerMiniDoubletIndex];
-    unsigned int outerMiniDoubletLowerHitIndex = miniDoubletsInGPU.anchorHitIndices[outerMiniDoubletIndex];
-    unsigned int outerMiniDoubletUpperHitIndex = miniDoubletsInGPU.outerHitIndices[outerMiniDoubletIndex];
+    // Getting pLS index
+    unsigned int pLS = trackCandidatesInGPU.directObjectIndices[idx];
 
-    short type = trackCandidatesInGPU.trackCandidateType[idx];
+    // Getting pt eta and phi
+    float pt = segmentsInGPU.ptIn[pLS];
+    float eta = segmentsInGPU.eta[pLS];
+    float phi = segmentsInGPU.phi[pLS];
 
-    // pt eta phi
-    float pt = segmentsInGPU.ptIn[objectIdx];
-    float eta = segmentsInGPU.eta[objectIdx];
-    float phi = segmentsInGPU.phi[objectIdx];
-
-    std::vector<unsigned int> hit_idx = {
-        hitsInGPU.idxs[innerMiniDoubletLowerHitIndex],
-        hitsInGPU.idxs[innerMiniDoubletUpperHitIndex],
-        hitsInGPU.idxs[outerMiniDoubletLowerHitIndex],
-        hitsInGPU.idxs[outerMiniDoubletUpperHitIndex]
-    };
-
-    std::vector<unsigned int> hit_type = {0, 0, 0, 0}; // 0 means pixel hit
+    // Getting hit indices and types
+    std::vector<unsigned int> hit_idx = getPixelHitIdxsFrompLS(event, pLS);
+    std::vector<unsigned int> hit_type = getPixelHitTypesFrompLS(event, pLS);
 
     return {pt, eta, phi, hit_idx, hit_type};
 }
 
-
+//________________________________________________________________________________________________________________________________
 float computeRadiusFromThreeAnchorHits(float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f)
 {
    float radius = 0;
@@ -577,7 +489,7 @@ void printHitMultiplicities(SDL::Event* event)
     int nHits = 0;
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); idx++) // "<=" because cheating to include pixel track candidate lower module
     {
-        nHits += rangesInGPU.hitRanges[4 * idx + 1] - rangesInGPU.hitRanges[4 * idx] + 1;       
+        nHits += rangesInGPU.hitRanges[4 * idx + 1] - rangesInGPU.hitRanges[4 * idx] + 1;
         nHits += rangesInGPU.hitRanges[4 * idx + 3] - rangesInGPU.hitRanges[4 * idx + 2] + 1;
     }
     std::cout <<  " nHits: " << nHits <<  std::endl;
@@ -769,7 +681,7 @@ void debugPrintOutlierMultiplicities(SDL::Event* event)
             int nMD = miniDoubletsInGPU.nMDs[2*idx]+miniDoubletsInGPU.nMDs[2*idx+1] ;
             std::cout <<  " idx: " << idx <<  " nMD: " << nMD <<  std::endl;
             int nHits = 0;
-            nHits += rangesInGPU.hitRanges[4*idx+1] - rangesInGPU.hitRanges[4*idx] + 1;       
+            nHits += rangesInGPU.hitRanges[4*idx+1] - rangesInGPU.hitRanges[4*idx] + 1;
             nHits += rangesInGPU.hitRanges[4*idx+3] - rangesInGPU.hitRanges[4*idx+2] + 1;
             std::cout <<  " idx: " << idx <<  " nHits: " << nHits <<  std::endl;
         }
