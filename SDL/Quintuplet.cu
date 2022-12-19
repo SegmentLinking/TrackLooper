@@ -382,9 +382,9 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
 
 //    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, g, f);
     float inner_pt = 2 * k2Rinv1GeVf * innerRadius;
-    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, g, f);
+    passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, g, f);
 
-    if(not pass) return pass;
+//    if(not pass) return pass;
 
     pass = pass & (innerRadius >= 0.95f * ptCut/(2.f * k2Rinv1GeVf));
 
@@ -430,8 +430,8 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     }
 
     //compute regression radius right here - this computation is expensive!!!
-    pass = pass and tempPass;
-    if(not pass) return pass;
+//    pass = pass and tempPass;
+//    if(not pass) return pass;
 
     float xVec[] = {x1, x2, x3, x4, x5};
     float yVec[] = {y1, y2, y3, y4, y5};
@@ -446,8 +446,8 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     //extra chi squared cuts!
     if(regressionRadius < 5.0f/(2.f * k2Rinv1GeVf))
     {
-        pass = pass and passChiSquaredConstraint(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, chiSquared);
-        if(not pass) return pass;
+//        pass = pass and passChiSquaredConstraint(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, chiSquared);
+//        if(not pass) return pass;
     }
 
     //compute the other chisquared
@@ -649,18 +649,14 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     {
         if (slope3c>slope1c) charge=-1; 
         else if (slope3c<slope1c) charge=1;
+        if (slope1c>0 && slope3c<0) charge=-1;
     }
     else if((y3-y_center)<0 && (y1-y_center)<0) 
     {
         if (slope3c>slope1c) charge=-1; 
         else if (slope3c<slope1c) charge=1;
+        if (slope1c>0 && slope3c<0) charge=-1;
     }
-    else if(slope3c<-5 && slope1c>5) charge=-1;
-    else if(slope3c>5 && slope1c<-5) charge=1;
-
-//    if (((y3-y2)/(x3-x2))<((y2-y1)/(x2-x1))) charge=1;
-//    else if (((y3-y2)/(x3-x2))>((y2-y1)/(x2-x1))) charge=-1;
- //   else return 0;
 
     float pseudo_phi = atan((y_init-y_center)/(x_init-x_center)); //actually represent pi/2-phi, wrt helix axis z
     float Pt=inner_pt, Px, Py;
@@ -761,12 +757,13 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         float drdz;
         short side, subdets;
         if (i==2){
-            drdz=modulesInGPU.drdzs[lowerModuleIndex2];
+            drdz=abs(modulesInGPU.drdzs[lowerModuleIndex2]);
             side=modulesInGPU.sides[lowerModuleIndex2];
             subdets=modulesInGPU.subdets[lowerModuleIndex2];
         }
         if (i==3){
-            drdz=modulesInGPU.drdzs[lowerModuleIndex3];
+
+            drdz=abs(modulesInGPU.drdzs[lowerModuleIndex3]);
             side=modulesInGPU.sides[lowerModuleIndex3];
             subdets=modulesInGPU.subdets[lowerModuleIndex3];
         }
@@ -783,8 +780,9 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         }
         rzChiSquared += 12*(residual * residual)/(error * error);
     }
+//    rzChiSquared = 12*(residual4 * residual4 + residual5 * residual5 + residual_missing * residual_missing);
 
-//    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and rzChiSquared>1000){
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and rzChiSquared>1000){
 //        printf("rt1:%f, rt2:%f, rt3:%f, rt4:%f, rt5:%f\n", rt1, rt2, rt3, rt4, rt5);
 //        printf("x1:%f, x2:%f, x3:%f, x4:%f, x5:%f\n", x1, x2, x3, x4, x5);
 //        printf("y1:%f, y2:%f, y3:%f, y4:%f, y5:%f\n", y1, y2, y3, y4, y5);
@@ -793,15 +791,15 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
 //        printf("z4_ex:%f, z5_ex:%f\n", expectz4, expectz5);
 //        printf("Pt:%f, Px:%f, Py:%f, Pz:%f, charge: %i, residual4: %f, residual5:%f\n", Pt, Px, Py, Pz, charge, residual4, residual5);
 //    printf("x1:%f, x2:%f, x3:%f, y1:%f, y2:%f, y3:%f, CenterX:%f, CenterY:%f, innerRadius:%f, Pt:%f, Px:%f, Py:%f, charge:%i\n", x1, x2, x3, y1, y2, y3, x_center, y_center, innerRadius, Pt, Px, Py, charge);
-//        printf("rzChi2: %f, residual2:%f, residual4: %f, residual5: %f\n", rzChiSquared, residual_missing, residual4, residual5);
-//    }
+        printf("rzChi2: %f, residual2: %f, inner_pt:%f, pseudo_phi: %f, charge: %i, Px:%f, Py:%f, x1:%f, x2:%f, x3:%f, x4:%f, x5:%f, y1:%f, y2:%f, y3:%f, y4:%f, y5:%f, z1:%f, z2:%f, z3:%f, z4:%f, z5:%f, x_center:%f, y_center:%f, slope1c:%f, slope3c:%f\n", rzChiSquared, residual_missing, inner_pt, pseudo_phi, charge, Px, Py, x1, x2, x3, x4, x5, y1, y2, y3, y4, y5, z1, z2, z3, z4, z5, x_center, y_center, slope1c, slope3c);
+    }
 
     //categories!
     if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
         if(layer4 == 4 and layer5 == 5)
         {
-            return rzChiSquared < 136.5975f; 
+            return rzChiSquared < 20.5139f; 
         }
         else if(layer4 == 4 and layer5 == 12)
         {
