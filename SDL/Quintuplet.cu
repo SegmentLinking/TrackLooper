@@ -657,6 +657,14 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     float z_init=mdsInGPU.anchorZ[thirdMDIndex]/100;
     float rt_init=mdsInGPU.anchorRt[thirdMDIndex]/100; //use the second MD as initial point
 
+    if (moduleType3==1)  // 1: if MD3 is in 2s layer
+    {
+        x_init=mdsInGPU.anchorX[secondMDIndex]/100;
+        y_init=mdsInGPU.anchorY[secondMDIndex]/100;
+        z_init=mdsInGPU.anchorZ[secondMDIndex]/100;
+        rt_init=mdsInGPU.anchorRt[secondMDIndex]/100;
+    }
+
     //start from a circle of inner T3.
     // to determine the charge
     int charge=0;
@@ -667,12 +675,24 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         if (slope3c>slope1c) charge=-1; 
         else if (slope3c<slope1c) charge=1;
         if (slope1c>0 && slope3c<0) charge=-1;
+        if (slope1c<0 && slope3c>0) charge=1;
     }
     else if((y3-y_center)<0 && (y1-y_center)<0) 
     {
         if (slope3c>slope1c) charge=-1; 
         else if (slope3c<slope1c) charge=1;
+        if (slope1c<0 && slope3c>0) charge=1;
         if (slope1c>0 && slope3c<0) charge=-1;
+    }
+    else if ((y3-y_center)<0 && (y1-y_center)>0)
+    {
+        if ((x3-x_center)>0 && (x1-x_center)>0) charge = 1;
+        else if ((x3-x_center)<0 && (x1-x_center)<0) charge = -1;
+    }
+    else if ((y3-y_center)>0 && (y1-y_center)<0)
+    {
+        if ((x3-x_center)>0 && (x1-x_center)>0) charge = -1;
+        else if ((x3-x_center)<0 && (x1-x_center)<0) charge = 1;
     }
 
     float pseudo_phi = atan((y_init-y_center)/(x_init-x_center)); //actually represent pi/2-phi, wrt helix axis z
@@ -683,7 +703,7 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     else if (x_init>0 && y_init<0) {Px = Pt*abs(sin(pseudo_phi)); Py=-Pt*abs(cos(pseudo_phi));}
     else return 0;
 
-    //to get Pz, we use pt/pz=ds/dz, ds is the arclength between MD1 and MD2.
+    //to get Pz, we use pt/pz=ds/dz, ds is the arclength between MD1 and MD3.
     float AO=sqrt((x1-x_center)*(x1-x_center)+(y1-y_center)*(y1-y_center));
     float BO=sqrt((x_init-x_center)*(x_init-x_center)+(y_init-y_center)*(y_init-y_center));
     float AB=sqrt((x1-x_init)*(x1-x_init)+(y1-y_init)*(y1-y_init)); 
@@ -709,7 +729,12 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
             layeri=layer2;
             moduleTypei=moduleType2;
         }
-        else if (i==3) continue;
+        else if (i==3) {
+            zsi = z3;
+            rtsi = rt3;
+            layeri=layer3;
+            moduleTypei=moduleType3;
+        }
         else if (i==4){
             zsi = z4;
             rtsi = rt4;
@@ -721,6 +746,13 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
             rtsi = rt5;
             layeri=layer5;
             moduleTypei=moduleType5;
+        }
+
+        if (moduleType3==0) { //0: ps
+            if (i==3) continue;
+        }
+        else{
+            if (i==2) continue;
         }
 
         // calculation is copied from PixelTriplet.cu SDL::computePT3RZChiSquared
@@ -799,6 +831,8 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     }
 //    rzChiSquared = 12*(residual4 * residual4 + residual5 * residual5 + residual_missing * residual_missing);
 
+//    if (isnan(rzChiSquared)) printf("rzChi2: %f, residual2: %f, inner_pt:%f, pseudo_phi: %f, charge: %i, Px:%f, Py:%f, x1:%f, x2:%f, x3:%f, x4:%f, x5:%f, y1:%f, y2:%f, y3:%f, y4:%f, y5:%f, z1:%f, z2:%f, z3:%f, z4:%f, z5:%f, x_center:%f, y_center:%f, slope1c:%f, slope3c:%f\n", rzChiSquared, residual_missing, inner_pt, pseudo_phi, charge, Px, Py, x1, x2, x3, x4, x5, y1, y2, y3, y4, y5, z1, z2, z3, z4, z5, x_center, y_center, slope1c, slope3c);
+
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and rzChiSquared>1000){
 //        printf("rt1:%f, rt2:%f, rt3:%f, rt4:%f, rt5:%f\n", rt1, rt2, rt3, rt4, rt5);
 //        printf("x1:%f, x2:%f, x3:%f, x4:%f, x5:%f\n", x1, x2, x3, x4, x5);
@@ -807,7 +841,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
 //        printf("rt4_ex:%f, rt5_ex:%f\n", expectrt4, expectrt5);
 //        printf("z4_ex:%f, z5_ex:%f\n", expectz4, expectz5);
 //        printf("Pt:%f, Px:%f, Py:%f, Pz:%f, charge: %i, residual4: %f, residual5:%f\n", Pt, Px, Py, Pz, charge, residual4, residual5);
-//    printf("x1:%f, x2:%f, x3:%f, y1:%f, y2:%f, y3:%f, CenterX:%f, CenterY:%f, innerRadius:%f, Pt:%f, Px:%f, Py:%f, charge:%i\n", x1, x2, x3, y1, y2, y3, x_center, y_center, innerRadius, Pt, Px, Py, charge);
         printf("rzChi2: %f, residual2: %f, inner_pt:%f, pseudo_phi: %f, charge: %i, Px:%f, Py:%f, x1:%f, x2:%f, x3:%f, x4:%f, x5:%f, y1:%f, y2:%f, y3:%f, y4:%f, y5:%f, z1:%f, z2:%f, z3:%f, z4:%f, z5:%f, x_center:%f, y_center:%f, slope1c:%f, slope3c:%f\n", rzChiSquared, residual_missing, inner_pt, pseudo_phi, charge, Px, Py, x1, x2, x3, x4, x5, y1, y2, y3, y4, y5, z1, z2, z3, z4, z5, x_center, y_center, slope1c, slope3c);
     }
 
