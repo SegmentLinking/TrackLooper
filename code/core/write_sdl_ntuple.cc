@@ -248,36 +248,29 @@ void setOptionalOutputBranches(SDL::Event* event)
         ana.tx->pushbackToBranch<float>("pt3_dummy", -999);
     }
 
-    for (unsigned int lowerModuleIdx = 0; lowerModuleIdx <= *(modulesInGPU.nLowerModules); ++lowerModuleIdx)
+    for (unsigned int lowerModuleIdx = 0; lowerModuleIdx < *(modulesInGPU.nLowerModules); ++lowerModuleIdx)
     {
-        std::cout <<  " lowerModuleIdx: " << lowerModuleIdx <<  std::endl;
         // ============ T5 =============
         // Get number of quintuplets in this module
         unsigned int nQuintuplets = quintupletsInGPU.nQuintuplets[lowerModuleIdx];
-        std::cout <<  " nQuintuplets: " << nQuintuplets <<  std::endl;
         for (unsigned int idx = 0; idx < nQuintuplets; idx++)
         {
-            std::cout <<  " idx: " << idx <<  std::endl;
             ana.tx->pushbackToBranch<float>("t5_dummy", -999);
         }
 
         // ============ T3 =============
         // Get number of Triplets in this module
         unsigned int nTriplets = tripletsInGPU.nTriplets[lowerModuleIdx];
-        std::cout <<  " nTriplets: " << nTriplets <<  std::endl;
         for (unsigned int idx = 0; idx < nTriplets; idx++)
         {
-            std::cout <<  " idx: " << idx <<  std::endl;
             ana.tx->pushbackToBranch<float>("t3_dummy", -999);
         }
 
         // ============ MD =============
         // Get number of MDs in this module
         unsigned int nMDs = miniDoubletsInGPU.nMDs[lowerModuleIdx];
-        std::cout <<  " nMDs: " << nMDs <<  std::endl;
         for (unsigned int idx = 0; idx < nMDs; idx++)
         {
-            std::cout <<  " idx: " << idx <<  std::endl;
             ana.tx->pushbackToBranch<float>("MD_dummy", -999);
         }
     }
