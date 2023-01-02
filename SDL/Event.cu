@@ -5,6 +5,7 @@ struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::pixelMap* SDL::pixelMapping = nullptr;
 uint16_t SDL::nModules;
 uint16_t SDL::nLowerModules;
+unsigned int nTotalSegments;
 
 SDL::Event::Event(cudaStream_t estream)
 {
@@ -760,7 +761,6 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     {
         segmentsInGPU = (SDL::segments*)cms::cuda::allocate_host(sizeof(SDL::segments), stream);
         //hardcoded range numbers for this will come from studies!
-        unsigned int nTotalSegments;
         //problem here: didn't distinguish pixel segments and outtracker segments. so they use the same memory index, which should be different and allocate dynamically
         createSegmentArrayRanges(*modulesInGPU, *rangesInGPU, *mdsInGPU, nLowerModules, nTotalSegments, stream, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
         createSegmentsInExplicitMemory(*segmentsInGPU, nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE,stream);
@@ -1126,8 +1126,6 @@ void SDL::Event::createSegmentsWithModuleMap()
     if(segmentsInGPU == nullptr)
     {
         segmentsInGPU = (SDL::segments*)cms::cuda::allocate_host(sizeof(SDL::segments), stream);
-        unsigned int nTotalSegments;
-        createSegmentArrayRanges(*modulesInGPU, *rangesInGPU, *mdsInGPU, nLowerModules, nTotalSegments, stream, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
         createSegmentsInExplicitMemory(*segmentsInGPU, nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE,stream);
     }
 
