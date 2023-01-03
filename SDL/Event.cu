@@ -5,7 +5,6 @@ struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::pixelMap* SDL::pixelMapping = nullptr;
 uint16_t SDL::nModules;
 uint16_t SDL::nLowerModules;
-unsigned int nTotalSegments;
 
 SDL::Event::Event(cudaStream_t estream)
 {
