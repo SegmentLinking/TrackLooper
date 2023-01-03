@@ -9,17 +9,25 @@
 //________________________________________________________________________________________________________________________________
 void createOutputBranches()
 {
-    createOutputBranches_v2();
+    createRequiredOutputBranches();
+    createOptionalOutputBranches();
 }
 
 //________________________________________________________________________________________________________________________________
 void fillOutputBranches(SDL::Event* event)
 {
-    fillOutputBranches_v2(event);
+    setOutputBranches(event);
+    setOptionalOutputBranches(event);
+
+    // Now actually fill the ttree
+    ana.tx->fill();
+
+    // Then clear the branches to default values (e.g. -999, or clear the vectors to empty vectors)
+    ana.tx->clear();
 }
 
 //________________________________________________________________________________________________________________________________
-void createOutputBranches_v2()
+void createRequiredOutputBranches()
 {
     // Setup output TTree
     ana.tx->createBranch<vector<float>>("sim_pt");
@@ -48,7 +56,45 @@ void createOutputBranches_v2()
 }
 
 //________________________________________________________________________________________________________________________________
-void fillOutputBranches_v2(SDL::Event* event)
+void createOptionalOutputBranches()
+{
+#ifdef CUT_VALUE_DEBUG
+    // Event-wide branches
+    // ana.tx->createBranch<float>("evt_dummy");
+
+    // Sim Track branches
+    // NOTE: Must sync with main tc branch in length!!
+    ana.tx->createBranch<vector<float>>("sim_dummy");
+
+    // Track Candidate branches
+    // NOTE: Must sync with main tc branch in length!!
+    ana.tx->createBranch<vector<float>>("tc_dummy");
+
+    // pT5 branches
+    ana.tx->createBranch<vector<float>>("pt5_dummy");
+
+    // pT3 branches
+    ana.tx->createBranch<vector<float>>("pt3_dummy");
+
+    // pLS branches
+    ana.tx->createBranch<vector<float>>("pLS_dummy");
+
+    // T5 branches
+    ana.tx->createBranch<vector<float>>("t5_dummy");
+
+    // T3 branches
+    ana.tx->createBranch<vector<float>>("t3_dummy");
+
+    // LS branches
+    ana.tx->createBranch<vector<float>>("LS_dummy");
+
+    // MD branches
+    ana.tx->createBranch<vector<float>>("MD_dummy");
+#endif
+}
+
+//________________________________________________________________________________________________________________________________
+void setOutputBranches(SDL::Event* event)
 {
 
     // ============ Sim tracks =============
@@ -150,9 +196,86 @@ void fillOutputBranches_v2(SDL::Event* event)
     ana.tx->setBranch<vector<int>>("sim_TC_matched_mask", sim_TC_matched_mask);
     ana.tx->setBranch<vector<vector<int>>>("tc_matched_simIdx", tc_matched_simIdx);
     ana.tx->setBranch<vector<int>>("tc_isDuplicate", tc_isDuplicate);
+}
 
-    ana.tx->fill();
-    ana.tx->clear();
+//________________________________________________________________________________________________________________________________
+void setOptionalOutputBranches(SDL::Event* event)
+{
+#ifdef CUT_VALUE_DEBUG
+
+    // Module information
+    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
+    SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
+    SDL::pixelTriplets& pixelTripletsinGPU = (*event->getPixelTriplets());
+    SDL::quintuplets& quintupletsInGPU = (*event->getQuintuplets());
+    SDL::triplets& tripletsInGPU = (*event->getTriplets());
+    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+
+    // ============ Sim tracks =============
+    int n_accepted_simtrk = 0;
+    for (unsigned int isimtrk = 0; isimtrk < trk.sim_pt().size(); ++isimtrk)
+    {
+        // Skip out-of-time pileup
+        if (trk.sim_bunchCrossing()[isimtrk] != 0)
+            continue;
+
+        // Skip non-hard-scatter
+        if (trk.sim_event()[isimtrk] != 0)
+            continue;
+
+        ana.tx->pushbackToBranch<float>("sim_dummy", -999);
+    }
+
+    // ============ Track candidates =============
+    unsigned int nTrackCandidates = *trackCandidatesInGPU.nTrackCandidates;
+    for (unsigned int idx = 0; idx < nTrackCandidates; idx++)
+    {
+        ana.tx->pushbackToBranch<float>("tc_dummy", -999);
+    }
+
+    // ============ pT5 =============
+    unsigned int nPixelQuintuplets = *pixelQuintupletsInGPU.nPixelQuintuplets; // size of this nPixelTriplets array is 1 (NOTE: parallelism lost here.)
+    for (unsigned int idx = 0; idx < nPixelQuintuplets; idx++)
+    {
+        ana.tx->pushbackToBranch<float>("pt5_dummy", -999);
+    }
+
+    // ============ pT3 =============
+    unsigned int nPixelTriplets = *pixelTripletsinGPU.nPixelTriplets; // size of this nPixelTriplets array is 1 (NOTE: parallelism lost here.)
+    for (unsigned int idx = 0; idx < nPixelTriplets; idx++)
+    {
+        ana.tx->pushbackToBranch<float>("pt3_dummy", -999);
+    }
+
+    for (unsigned int lowerModuleIdx = 0; lowerModuleIdx < *(modulesInGPU.nLowerModules); ++lowerModuleIdx)
+    {
+        // ============ T5 =============
+        // Get number of quintuplets in this module
+        unsigned int nQuintuplets = quintupletsInGPU.nQuintuplets[lowerModuleIdx];
+        for (unsigned int idx = 0; idx < nQuintuplets; idx++)
+        {
+            ana.tx->pushbackToBranch<float>("t5_dummy", -999);
+        }
+
+        // ============ T3 =============
+        // Get number of Triplets in this module
+        unsigned int nTriplets = tripletsInGPU.nTriplets[lowerModuleIdx];
+        for (unsigned int idx = 0; idx < nTriplets; idx++)
+        {
+            ana.tx->pushbackToBranch<float>("t3_dummy", -999);
+        }
+
+        // ============ MD =============
+        // Get number of MDs in this module
+        unsigned int nMDs = miniDoubletsInGPU.nMDs[lowerModuleIdx];
+        for (unsigned int idx = 0; idx < nMDs; idx++)
+        {
+            ana.tx->pushbackToBranch<float>("MD_dummy", -999);
+        }
+    }
+
+#endif
 }
 
 //________________________________________________________________________________________________________________________________
