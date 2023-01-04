@@ -1,11 +1,5 @@
 #include "write_sdl_ntuple.h"
 
-#define N_MAX_MD_PER_MODULES 89
-#define N_MAX_SEGMENTS_PER_MODULE 537
-#define MAX_NTRIPLET_PER_MODULE 1170
-#define MAX_NQUINTUPLET_PER_MODULE 513
-
-
 //________________________________________________________________________________________________________________________________
 void createOutputBranches()
 {
@@ -653,20 +647,14 @@ void printMDs(SDL::Event* event)
     SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hits& hitsInGPU = (*event->getHits());
     SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::objectRanges& rangesInGPU = (*event->getRanges());
+
+    // Then obtain the lower module index
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); ++idx)
     {
-        for (unsigned int jdx = 0; jdx < miniDoubletsInGPU.nMDs[2*idx]; jdx++)
+        for (unsigned int iMD = 0; iMD < miniDoubletsInGPU.nMDs[idx]; iMD++)
         {
-            unsigned int mdIdx = (2*idx) * N_MAX_MD_PER_MODULES + jdx;
-            unsigned int LowerHitIndex = miniDoubletsInGPU.anchorHitIndices[mdIdx];
-            unsigned int UpperHitIndex = miniDoubletsInGPU.outerHitIndices[mdIdx];
-            unsigned int hit0 = hitsInGPU.idxs[LowerHitIndex];
-            unsigned int hit1 = hitsInGPU.idxs[UpperHitIndex];
-            std::cout <<  "VALIDATION 'MD': " << "MD" <<  " hit0: " << hit0 <<  " hit1: " << hit1 <<  std::endl;
-        }
-        for (unsigned int jdx = 0; jdx < miniDoubletsInGPU.nMDs[2*idx+1]; jdx++)
-        {
-            unsigned int mdIdx = (2*idx+1) * N_MAX_MD_PER_MODULES + jdx;
+            unsigned int mdIdx = rangesInGPU.miniDoubletModuleIndices[idx] + iMD;
             unsigned int LowerHitIndex = miniDoubletsInGPU.anchorHitIndices[mdIdx];
             unsigned int UpperHitIndex = miniDoubletsInGPU.outerHitIndices[mdIdx];
             unsigned int hit0 = hitsInGPU.idxs[LowerHitIndex];

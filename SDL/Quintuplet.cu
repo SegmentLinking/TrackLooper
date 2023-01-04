@@ -174,15 +174,12 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
         if (category_number == 3 && eta_number == 3) occupancy = 106;
 
         unsigned int nTotQ = atomicAdd(&nTotalQuintupletsx,occupancy);
-//        if (nTotQ == 0) printf("%u\n",occupancy);
-//        rangesInGPU.quintupletModuleIndices[i] = nTotQ-occupancy;
         rangesInGPU.quintupletModuleIndices[i] = nTotQ;
         rangesInGPU.indicesOfEligibleT5Modules[nEligibleT5Modules] = i;
     }
     __syncthreads();
     if(threadIdx.x==0){
         *rangesInGPU.nEligibleT5Modules = static_cast<uint16_t>(nEligibleT5Modulesx);
-//        printf("nTotalT5 %u\n",nTotalQuintupletsx);
         *device_nTotalQuintuplets = nTotalQuintupletsx;
     }
 }

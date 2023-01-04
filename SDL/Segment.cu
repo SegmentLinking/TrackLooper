@@ -29,7 +29,7 @@ void SDL::segments::resetMemory(unsigned int nMemoryLocationsx, unsigned int nLo
 }
 
 
-void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU, uint16_t& nLowerModules, unsigned int& nTotalSegments, cudaStream_t stream, const uint16_t& maxSegmentsPerModule, const uint16_t& maxPixelSegments)
+void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU, uint16_t& nLowerModules, unsigned int& nTotalSegments, cudaStream_t stream, const uint16_t& maxPixelSegments)
 {
     /*
         write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!*/
