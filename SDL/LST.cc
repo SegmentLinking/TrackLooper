@@ -371,10 +371,16 @@ void SDL::LST::getOutput(SDL::Event& event) {
   std::vector<std::vector<unsigned int>> tc_hitIdxs_;
   std::vector<int> tc_len_, tc_seedIdx_;
 
-  SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates());
-  SDL::triplets& tripletsInGPU = (*event.getTriplets());
-  SDL::segments& segmentsInGPU = (*event.getSegments());
+  SDL::modules& modulesInGPU = (*event.getModules());
+  SDL::objectRanges& rangesInGPU = (*event.getRanges());
   SDL::hits& hitsInGPU = (*event.getHits());
+  SDL::miniDoublets& miniDoubletsInGPU = *(event.getMiniDoublets());
+  SDL::segments& segmentsInGPU = *(event.getSegments());
+  SDL::triplets& tripletsInGPU = (*event.getTriplets());
+  SDL::quintuplets& quintupletsInGPU = *(event.getQuintuplets());
+  SDL::pixelTriplets& pixelTripletsInGPU = *(event.getPixelTriplets());
+  SDL::pixelQuintuplets& pixelQuintupletsInGPU = *(event.getPixelQuintuplets());
+  SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates());
 
   const float kRinv1GeVf = (2.99792458e-3 * 3.8);
   const float k2Rinv1GeVf = kRinv1GeVf / 2.;
@@ -395,18 +401,18 @@ void SDL::LST::getOutput(SDL::Event& event) {
       phi = segmentsInGPU.phi[pLS];
       seedIdx = segmentsInGPU.seedIdx[pLS];
 
-      hit_idx = getPixelHitIdxsFrompLS(event, pLS);
+      hit_idx = getPixelHitIdxsFrompLS(modulesInGPU, rangesInGPU, hitsInGPU, miniDoubletsInGPU, segmentsInGPU, pLS);
       hit_array_length = hit_idx.size();
     }
     else if (trackCandidateType == 5) { // pT3
       unsigned int pT3 = trackCandidatesInGPU.directObjectIndices[idx];
 
-      std::vector<unsigned int> Hits = getOuterTrackerHitsFrompT3(event, pT3);
+      std::vector<unsigned int> Hits = getOuterTrackerHitsFrompT3(miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pT3);
       unsigned int Hit_0 = Hits[0];
       unsigned int Hit_4 = Hits[4];
 
-      unsigned int T3 = getT3FrompT3(event, pT3);
-      unsigned int pLS = getPixelLSFrompT3(event, pT3);
+      unsigned int T3 = getT3FrompT3(pixelTripletsInGPU, pT3);
+      unsigned int pLS = getPixelLSFrompT3(modulesInGPU, rangesInGPU, pixelTripletsInGPU, pT3);
 
       const float dr = sqrt(pow(hitsInGPU.xs[Hit_4] - hitsInGPU.xs[Hit_0], 2) + pow(hitsInGPU.ys[Hit_4] - hitsInGPU.ys[Hit_0], 2));
 
@@ -422,22 +428,22 @@ void SDL::LST::getOutput(SDL::Event& event) {
 
       pt = (pt_pLS + pt_T3) / 2.;
 
-      hit_idx = getHitIdxsFrompT3(event, pT3);
+      hit_idx = getHitIdxsFrompT3(modulesInGPU, rangesInGPU, hitsInGPU, miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pT3);
       hit_array_length = hit_idx.size();
     }
     else if (trackCandidateType == 7) { // pT5
       unsigned int pT5 = trackCandidatesInGPU.directObjectIndices[idx];
 
-      std::vector<unsigned int> Hits = getOuterTrackerHitsFrompT5(event, pT5);
+      std::vector<unsigned int> Hits = getOuterTrackerHitsFrompT5(miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pT5);
       unsigned int Hit_0 = Hits[0];
       unsigned int Hit_4 = Hits[4];
       unsigned int Hit_8 = Hits[8];
 
-      std::vector<unsigned int> T3s = getT3sFrompT5(event, pT5);
+      std::vector<unsigned int> T3s = getT3sFrompT5(quintupletsInGPU, pixelQuintupletsInGPU, pT5);
       unsigned int T3_0 = T3s[0];
       unsigned int T3_1 = T3s[1];
 
-      unsigned int pLS = getPixelLSFrompT5(event, pT5);
+      unsigned int pLS = getPixelLSFrompT5(modulesInGPU, rangesInGPU, pixelQuintupletsInGPU, pT5);
 
       const float dr_in = sqrt(pow(hitsInGPU.xs[Hit_4] - hitsInGPU.xs[Hit_0], 2) + pow(hitsInGPU.ys[Hit_4] - hitsInGPU.ys[Hit_0], 2));
       const float dr_out = sqrt(pow(hitsInGPU.xs[Hit_8] - hitsInGPU.xs[Hit_4], 2) + pow(hitsInGPU.ys[Hit_8] - hitsInGPU.ys[Hit_4], 2));
@@ -458,13 +464,13 @@ void SDL::LST::getOutput(SDL::Event& event) {
 
       pt = (pt_pLS + pt_T5) / 2.;
 
-      hit_idx = getHitIdxsFrompT5(event, pT5);
+      hit_idx = getHitIdxsFrompT5(modulesInGPU, rangesInGPU, hitsInGPU, miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pT5);
       hit_array_length = hit_idx.size();
     }
     else if (trackCandidateType == 4) { // T5
       unsigned int T5 = trackCandidatesInGPU.directObjectIndices[idx];
-      std::vector<unsigned int> T3s = getT3sFromT5(event, T5);
-      std::vector<unsigned int> hits = getHitsFromT5(event, T5);
+      std::vector<unsigned int> T3s = getT3sFromT5(quintupletsInGPU, T5);
+      std::vector<unsigned int> hits = getHitsFromT5(miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, T5);
 
       unsigned int Hit_0 = hits[0];
       unsigned int Hit_4 = hits[4];
@@ -486,7 +492,7 @@ void SDL::LST::getOutput(SDL::Event& event) {
       eta = SDL::eta(in_trkX_[Hit_8], in_trkY_[Hit_8], in_trkZ_[Hit_8]); // eta from outermost hit
       phi = SDL::phi(in_trkX_[Hit_0], in_trkY_[Hit_0]); // phi from innermost hit
 
-      hit_idx = getHitIdxsFromT5(event, T5);
+      hit_idx = getHitIdxsFromT5(hitsInGPU, miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, T5);
       hit_array_length = hit_idx.size();
     }
 
@@ -521,18 +527,14 @@ void SDL::LST::getOutput(SDL::Event& event) {
 // ===============
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getPixelHitsFrompLS(SDL::Event& event, unsigned int pLS) {
-  SDL::segments& segments_ = *(event.getSegments());
-  SDL::miniDoublets& miniDoublets_ = *(event.getMiniDoublets());
-  SDL::objectRanges& rangesInGPU = (*event.getRanges());
-  SDL::modules& modulesInGPU = (*event.getModules());
+std::vector<unsigned int> SDL::LST::getPixelHitsFrompLS(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, unsigned int pLS) {
   const unsigned int pLS_offset = rangesInGPU.segmentModuleIndices[*(modulesInGPU.nLowerModules)];
-  unsigned int MD_1 = segments_.mdIndices[2 * (pLS + pLS_offset)];
-  unsigned int MD_2 = segments_.mdIndices[2 * (pLS + pLS_offset) + 1];
-  unsigned int hit_1 = miniDoublets_.anchorHitIndices[MD_1];
-  unsigned int hit_2 = miniDoublets_.outerHitIndices [MD_1];
-  unsigned int hit_3 = miniDoublets_.anchorHitIndices[MD_2];
-  unsigned int hit_4 = miniDoublets_.outerHitIndices [MD_2];
+  unsigned int MD_1 = segmentsInGPU.mdIndices[2 * (pLS + pLS_offset)];
+  unsigned int MD_2 = segmentsInGPU.mdIndices[2 * (pLS + pLS_offset) + 1];
+  unsigned int hit_1 = miniDoubletsInGPU.anchorHitIndices[MD_1];
+  unsigned int hit_2 = miniDoubletsInGPU.outerHitIndices [MD_1];
+  unsigned int hit_3 = miniDoubletsInGPU.anchorHitIndices[MD_2];
+  unsigned int hit_4 = miniDoubletsInGPU.outerHitIndices [MD_2];
   if (hit_3 == hit_4)
     return {hit_1, hit_2, hit_3};
   else
@@ -540,20 +542,12 @@ std::vector<unsigned int> SDL::LST::getPixelHitsFrompLS(SDL::Event& event, unsig
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getPixelHitIdxsFrompLS(SDL::Event& event, unsigned int pLS) {
-  SDL::hits& hitsInGPU = *(event.getHits());
-  std::vector<unsigned int> hits = getPixelHitsFrompLS(event, pLS);
+std::vector<unsigned int> SDL::LST::getPixelHitIdxsFrompLS(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::hits& hitsInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, unsigned int pLS) {
+  std::vector<unsigned int> hits = getPixelHitsFrompLS(modulesInGPU, rangesInGPU, miniDoubletsInGPU, segmentsInGPU, pLS);
   std::vector<unsigned int> hitidxs;
   for (auto& hit : hits)
     hitidxs.push_back(hitsInGPU.idxs[hit]);
   return hitidxs;
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getPixelHitTypesFrompLS(SDL::Event& event, unsigned int pLS) {
-  std::vector<unsigned int> hits = getPixelHitsFrompLS(event, pLS);
-  std::vector<unsigned int> hittypes(hits.size(), 0);
-  return hittypes;
 }
 
 // ==============
@@ -561,10 +555,9 @@ std::vector<unsigned int> SDL::LST::getPixelHitTypesFrompLS(SDL::Event& event, u
 // ==============
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitsFromMD(SDL::Event& event, unsigned int MD) {
-  SDL::miniDoublets& miniDoublets_ = *(event.getMiniDoublets());
-  unsigned int hit_1 = miniDoublets_.anchorHitIndices[MD];
-  unsigned int hit_2 = miniDoublets_.outerHitIndices [MD];
+std::vector<unsigned int> SDL::LST::getHitsFromMD(const SDL::miniDoublets& miniDoubletsInGPU, unsigned int MD) {
+  unsigned int hit_1 = miniDoubletsInGPU.anchorHitIndices[MD];
+  unsigned int hit_2 = miniDoubletsInGPU.outerHitIndices [MD];
   return {hit_1, hit_2};
 }
 
@@ -573,19 +566,10 @@ std::vector<unsigned int> SDL::LST::getHitsFromMD(SDL::Event& event, unsigned in
 // ==============
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getMDsFromLS(SDL::Event& event, unsigned int LS) {
-  SDL::segments& segments_ = *(event.getSegments());
-  unsigned int MD_1 = segments_.mdIndices[2 * LS];
-  unsigned int MD_2 = segments_.mdIndices[2 * LS + 1];
+std::vector<unsigned int> SDL::LST::getMDsFromLS(const SDL::segments& segmentsInGPU, unsigned int LS) {
+  unsigned int MD_1 = segmentsInGPU.mdIndices[2 * LS];
+  unsigned int MD_2 = segmentsInGPU.mdIndices[2 * LS + 1];
   return {MD_1, MD_2};
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitsFromLS(SDL::Event& event, unsigned int LS) {
-  std::vector<unsigned int> MDs = getMDsFromLS(event, LS);
-  std::vector<unsigned int> hits_0 = getHitsFromMD(event, MDs[0]);
-  std::vector<unsigned int> hits_1 = getHitsFromMD(event, MDs[1]);
-  return {hits_0[0], hits_0[1], hits_1[0], hits_1[1]};
 }
 
 // ==============
@@ -593,27 +577,26 @@ std::vector<unsigned int> SDL::LST::getHitsFromLS(SDL::Event& event, unsigned in
 // ==============
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getLSsFromT3(SDL::Event& event, unsigned int T3) {
-  SDL::triplets& triplets_ = *(event.getTriplets());
-  unsigned int LS_1 = triplets_.segmentIndices[2 * T3];
-  unsigned int LS_2 = triplets_.segmentIndices[2 * T3 + 1];
+std::vector<unsigned int> SDL::LST::getLSsFromT3(const SDL::triplets& tripletsInGPU, unsigned int T3) {
+  unsigned int LS_1 = tripletsInGPU.segmentIndices[2 * T3];
+  unsigned int LS_2 = tripletsInGPU.segmentIndices[2 * T3 + 1];
   return {LS_1, LS_2};
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getMDsFromT3(SDL::Event& event, unsigned int T3) {
-  std::vector<unsigned int> LSs = getLSsFromT3(event, T3);
-  std::vector<unsigned int> MDs_0 = getMDsFromLS(event, LSs[0]);
-  std::vector<unsigned int> MDs_1 = getMDsFromLS(event, LSs[1]);
+std::vector<unsigned int> SDL::LST::getMDsFromT3(const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, unsigned int T3) {
+  std::vector<unsigned int> LSs = getLSsFromT3(tripletsInGPU, T3);
+  std::vector<unsigned int> MDs_0 = getMDsFromLS(segmentsInGPU, LSs[0]);
+  std::vector<unsigned int> MDs_1 = getMDsFromLS(segmentsInGPU, LSs[1]);
   return {MDs_0[0], MDs_0[1], MDs_1[1]};
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitsFromT3(SDL::Event& event, unsigned int T3) {
-  std::vector<unsigned int> MDs = getMDsFromT3(event, T3);
-  std::vector<unsigned int> hits_0 = getHitsFromMD(event, MDs[0]);
-  std::vector<unsigned int> hits_1 = getHitsFromMD(event, MDs[1]);
-  std::vector<unsigned int> hits_2 = getHitsFromMD(event, MDs[2]);
+std::vector<unsigned int> SDL::LST::getHitsFromT3(const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, unsigned int T3) {
+  std::vector<unsigned int> MDs = getMDsFromT3(segmentsInGPU, tripletsInGPU, T3);
+  std::vector<unsigned int> hits_0 = getHitsFromMD(miniDoubletsInGPU, MDs[0]);
+  std::vector<unsigned int> hits_1 = getHitsFromMD(miniDoubletsInGPU, MDs[1]);
+  std::vector<unsigned int> hits_2 = getHitsFromMD(miniDoubletsInGPU, MDs[2]);
   return {hits_0[0], hits_0[1], hits_1[0], hits_1[1], hits_2[0], hits_2[1]};
 }
 
@@ -622,55 +605,48 @@ std::vector<unsigned int> SDL::LST::getHitsFromT3(SDL::Event& event, unsigned in
 // ==============
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getT3sFromT5(SDL::Event& event, unsigned int T5) {
-  SDL::quintuplets& quintuplets_ = *(event.getQuintuplets());
-  unsigned int T3_1 = quintuplets_.tripletIndices[2 * T5];
-  unsigned int T3_2 = quintuplets_.tripletIndices[2 * T5 + 1];
+std::vector<unsigned int> SDL::LST::getT3sFromT5(const SDL::quintuplets& quintupletsInGPU, unsigned int T5) {
+  unsigned int T3_1 = quintupletsInGPU.tripletIndices[2 * T5];
+  unsigned int T3_2 = quintupletsInGPU.tripletIndices[2 * T5 + 1];
   return {T3_1, T3_2};
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getLSsFromT5(SDL::Event& event, unsigned int T5) {
-  std::vector<unsigned int> T3s = getT3sFromT5(event, T5);
-  std::vector<unsigned int> LSs_0 = getLSsFromT3(event, T3s[0]);
-  std::vector<unsigned int> LSs_1 = getLSsFromT3(event, T3s[1]);
+std::vector<unsigned int> SDL::LST::getLSsFromT5(const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, unsigned int T5) {
+  std::vector<unsigned int> T3s = getT3sFromT5(quintupletsInGPU, T5);
+  std::vector<unsigned int> LSs_0 = getLSsFromT3(tripletsInGPU, T3s[0]);
+  std::vector<unsigned int> LSs_1 = getLSsFromT3(tripletsInGPU, T3s[1]);
   return {LSs_0[0], LSs_0[1], LSs_1[0], LSs_1[1]};
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getMDsFromT5(SDL::Event& event, unsigned int T5) {
-  std::vector<unsigned int> LSs = getLSsFromT5(event, T5);
-  std::vector<unsigned int> MDs_0 = getMDsFromLS(event, LSs[0]);
-  std::vector<unsigned int> MDs_1 = getMDsFromLS(event, LSs[1]);
-  std::vector<unsigned int> MDs_2 = getMDsFromLS(event, LSs[2]);
-  std::vector<unsigned int> MDs_3 = getMDsFromLS(event, LSs[3]);
+std::vector<unsigned int> SDL::LST::getMDsFromT5(const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, unsigned int T5) {
+  std::vector<unsigned int> LSs = getLSsFromT5(tripletsInGPU, quintupletsInGPU, T5);
+  std::vector<unsigned int> MDs_0 = getMDsFromLS(segmentsInGPU, LSs[0]);
+  std::vector<unsigned int> MDs_1 = getMDsFromLS(segmentsInGPU, LSs[1]);
+  std::vector<unsigned int> MDs_2 = getMDsFromLS(segmentsInGPU, LSs[2]);
+  std::vector<unsigned int> MDs_3 = getMDsFromLS(segmentsInGPU, LSs[3]);
   return {MDs_0[0], MDs_0[1], MDs_1[1], MDs_2[1], MDs_3[1]};
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitsFromT5(SDL::Event& event, unsigned int T5) {
-  std::vector<unsigned int> MDs = getMDsFromT5(event, T5);
-  std::vector<unsigned int> hits_0 = getHitsFromMD(event, MDs[0]);
-  std::vector<unsigned int> hits_1 = getHitsFromMD(event, MDs[1]);
-  std::vector<unsigned int> hits_2 = getHitsFromMD(event, MDs[2]);
-  std::vector<unsigned int> hits_3 = getHitsFromMD(event, MDs[3]);
-  std::vector<unsigned int> hits_4 = getHitsFromMD(event, MDs[4]);
+std::vector<unsigned int> SDL::LST::getHitsFromT5(const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, unsigned int T5) {
+  std::vector<unsigned int> MDs = getMDsFromT5(segmentsInGPU, tripletsInGPU, quintupletsInGPU, T5);
+  std::vector<unsigned int> hits_0 = getHitsFromMD(miniDoubletsInGPU, MDs[0]);
+  std::vector<unsigned int> hits_1 = getHitsFromMD(miniDoubletsInGPU, MDs[1]);
+  std::vector<unsigned int> hits_2 = getHitsFromMD(miniDoubletsInGPU, MDs[2]);
+  std::vector<unsigned int> hits_3 = getHitsFromMD(miniDoubletsInGPU, MDs[3]);
+  std::vector<unsigned int> hits_4 = getHitsFromMD(miniDoubletsInGPU, MDs[4]);
   return {hits_0[0], hits_0[1], hits_1[0], hits_1[1], hits_2[0], hits_2[1], hits_3[0], hits_3[1], hits_4[0], hits_4[1]};
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitIdxsFromT5(SDL::Event& event, unsigned int T5) {
-  SDL::hits& hitsInGPU = *(event.getHits());
-  std::vector<unsigned int> hits = getHitsFromT5(event, T5);
+std::vector<unsigned int> SDL::LST::getHitIdxsFromT5(const SDL::hits& hitsInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, unsigned int T5) {
+  std::vector<unsigned int> hits = getHitsFromT5(miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, T5);
   std::vector<unsigned int> hitidxs;
   for (auto& hit : hits)
     hitidxs.push_back(hitsInGPU.idxs[hit]);
   return hitidxs;
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitTypesFromT5(SDL::Event& event, unsigned int T5) {
-  return {4, 4, 4, 4, 4, 4, 4, 4, 4, 4};;
 }
 
 // ===============
@@ -678,73 +654,39 @@ std::vector<unsigned int> SDL::LST::getHitTypesFromT5(SDL::Event& event, unsigne
 // ===============
 
 //____________________________________________________________________________________________
-unsigned int SDL::LST::getPixelLSFrompT3(SDL::Event& event, unsigned int pT3) {
-  SDL::pixelTriplets& pixelTriplets_ = *(event.getPixelTriplets());
-  SDL::objectRanges& rangesInGPU = (*event.getRanges());
-  SDL::modules& modulesInGPU = (*event.getModules());
+unsigned int SDL::LST::getPixelLSFrompT3(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::pixelTriplets& pixelTripletsInGPU, unsigned int pT3) {
   const unsigned int pLS_offset = rangesInGPU.segmentModuleIndices[*(modulesInGPU.nLowerModules)];
-  return pixelTriplets_.pixelSegmentIndices[pT3] - pLS_offset;
+  return pixelTripletsInGPU.pixelSegmentIndices[pT3] - pLS_offset;
 }
 
 //____________________________________________________________________________________________
-unsigned int SDL::LST::getT3FrompT3(SDL::Event& event, unsigned int pT3) {
-  SDL::pixelTriplets& pixelTriplets_ = *(event.getPixelTriplets());
-  return pixelTriplets_.tripletIndices[pT3];
+unsigned int SDL::LST::getT3FrompT3(const SDL::pixelTriplets& pixelTripletsInGPU, unsigned int pT3) {
+  return pixelTripletsInGPU.tripletIndices[pT3];
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getLSsFrompT3(SDL::Event& event, unsigned int pT3) {
-  unsigned int T3 = getT3FrompT3(event, pT3);
-  return getLSsFromT3(event, T3);
+std::vector<unsigned int> SDL::LST::getOuterTrackerHitsFrompT3(const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::pixelTriplets& pixelTripletsInGPU, unsigned int pT3) {
+  unsigned int T3 = getT3FrompT3(pixelTripletsInGPU, pT3);
+  return getHitsFromT3(miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, T3);
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getMDsFrompT3(SDL::Event& event, unsigned int pT3) {
-  unsigned int T3 = getT3FrompT3(event, pT3);
-  return getMDsFromT3(event, T3);
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getOuterTrackerHitsFrompT3(SDL::Event& event, unsigned int pT3) {
-  unsigned int T3 = getT3FrompT3(event, pT3);
-  return getHitsFromT3(event, T3);
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getPixelHitsFrompT3(SDL::Event& event, unsigned int pT3) {
-  unsigned int pLS = getPixelLSFrompT3(event, pT3);
-  return getPixelHitsFrompLS(event, pLS);
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitsFrompT3(SDL::Event& event, unsigned int pT3) {
-  unsigned int pLS = getPixelLSFrompT3(event, pT3);
-  unsigned int T3 = getT3FrompT3(event, pT3);
-  std::vector<unsigned int> pixelHits = getPixelHitsFrompLS(event, pLS);
-  std::vector<unsigned int> outerTrackerHits = getHitsFromT3(event, T3);
+std::vector<unsigned int> SDL::LST::getHitsFrompT3(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::pixelTriplets& pixelTripletsInGPU, unsigned int pT3) {
+  unsigned int pLS = getPixelLSFrompT3(modulesInGPU, rangesInGPU, pixelTripletsInGPU, pT3);
+  unsigned int T3 = getT3FrompT3(pixelTripletsInGPU, pT3);
+  std::vector<unsigned int> pixelHits = getPixelHitsFrompLS(modulesInGPU, rangesInGPU, miniDoubletsInGPU, segmentsInGPU, pLS);
+  std::vector<unsigned int> outerTrackerHits = getHitsFromT3(miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, T3);
   pixelHits.insert(pixelHits.end(), outerTrackerHits.begin(), outerTrackerHits.end());
   return pixelHits;
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitIdxsFrompT3(SDL::Event& event, unsigned int pT3) {
-  SDL::hits& hitsInGPU = *(event.getHits());
-  std::vector<unsigned int> hits = getHitsFrompT3(event, pT3);
+std::vector<unsigned int> SDL::LST::getHitIdxsFrompT3(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::hits& hitsInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::pixelTriplets& pixelTripletsInGPU, unsigned int pT3) {
+  std::vector<unsigned int> hits = getHitsFrompT3(modulesInGPU, rangesInGPU, miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pT3);
   std::vector<unsigned int> hitidxs;
   for (auto& hit : hits)
     hitidxs.push_back(hitsInGPU.idxs[hit]);
   return hitidxs;
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitTypesFrompT3(SDL::Event& event, unsigned int pT3) {
-  unsigned int pLS = getPixelLSFrompT3(event, pT3);
-  std::vector<unsigned int> pixelHits = getPixelHitsFrompLS(event, pLS);
-  // pixel Hits list will be either 3 or 4 and depending on it return accordingly
-  if (pixelHits.size() == 3)
-    return {0, 0, 0, 4, 4, 4, 4, 4, 4};
-  else
-    return {0, 0, 0, 0, 4, 4, 4, 4, 4, 4};
 }
 
 // ===============
@@ -752,78 +694,43 @@ std::vector<unsigned int> SDL::LST::getHitTypesFrompT3(SDL::Event& event, unsign
 // ===============
 
 //____________________________________________________________________________________________
-unsigned int SDL::LST::getPixelLSFrompT5(SDL::Event& event, unsigned int pT5) {
-  SDL::pixelQuintuplets& pixelQuintuplets_ = *(event.getPixelQuintuplets());
-  SDL::objectRanges& rangesInGPU = (*event.getRanges());
-  SDL::modules& modulesInGPU = (*event.getModules());
+unsigned int SDL::LST::getPixelLSFrompT5(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5) {
   const unsigned int pLS_offset = rangesInGPU.segmentModuleIndices[*(modulesInGPU.nLowerModules)];
-  return pixelQuintuplets_.pixelIndices[pT5] - pLS_offset;
+  return pixelQuintupletsInGPU.pixelIndices[pT5] - pLS_offset;
 }
 
 //____________________________________________________________________________________________
-unsigned int SDL::LST::getT5FrompT5(SDL::Event& event, unsigned int pT5) {
-  SDL::pixelQuintuplets& pixelQuintuplets_ = *(event.getPixelQuintuplets());
-  return pixelQuintuplets_.T5Indices[pT5];
+unsigned int SDL::LST::getT5FrompT5(const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5) {
+  return pixelQuintupletsInGPU.T5Indices[pT5];
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getT3sFrompT5(SDL::Event& event, unsigned int pT5) {
-  unsigned int T5 = getT5FrompT5(event, pT5);
-  return getT3sFromT5(event, T5);
+std::vector<unsigned int> SDL::LST::getT3sFrompT5(const SDL::quintuplets& quintupletsInGPU, const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5) {
+  unsigned int T5 = getT5FrompT5(pixelQuintupletsInGPU, pT5);
+  return getT3sFromT5(quintupletsInGPU, T5);
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getLSsFrompT5(SDL::Event& event, unsigned int pT5) {
-  unsigned int T5 = getT5FrompT5(event, pT5);
-  return getLSsFromT5(event, T5);
+std::vector<unsigned int> SDL::LST::getOuterTrackerHitsFrompT5(const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5) {
+  unsigned int T5 = getT5FrompT5(pixelQuintupletsInGPU, pT5);
+  return getHitsFromT5(miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, T5);
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getMDsFrompT5(SDL::Event& event, unsigned int pT5) {
-  unsigned int T5 = getT5FrompT5(event, pT5);
-  return getMDsFromT5(event, T5);
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getOuterTrackerHitsFrompT5(SDL::Event& event, unsigned int pT5) {
-  unsigned int T5 = getT5FrompT5(event, pT5);
-  return getHitsFromT5(event, T5);
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getPixelHitsFrompT5(SDL::Event& event, unsigned int pT5) {
-  unsigned int pLS = getPixelLSFrompT5(event, pT5);
-  return getPixelHitsFrompLS(event, pLS);
-}
-
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitsFrompT5(SDL::Event& event, unsigned int pT5) {
-  unsigned int pLS = getPixelLSFrompT5(event, pT5);
-  unsigned int T5 = getT5FrompT5(event, pT5);
-  std::vector<unsigned int> pixelHits = getPixelHitsFrompLS(event, pLS);
-  std::vector<unsigned int> outerTrackerHits = getHitsFromT5(event, T5);
+std::vector<unsigned int> SDL::LST::getHitsFrompT5(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5) {
+  unsigned int pLS = getPixelLSFrompT5(modulesInGPU, rangesInGPU, pixelQuintupletsInGPU, pT5);
+  unsigned int T5 = getT5FrompT5(pixelQuintupletsInGPU, pT5);
+  std::vector<unsigned int> pixelHits = getPixelHitsFrompLS(modulesInGPU, rangesInGPU, miniDoubletsInGPU, segmentsInGPU, pLS);
+  std::vector<unsigned int> outerTrackerHits = getHitsFromT5(miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, T5);
   pixelHits.insert(pixelHits.end(), outerTrackerHits.begin(), outerTrackerHits.end());
   return pixelHits;
 }
 
 //____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitIdxsFrompT5(SDL::Event& event, unsigned int pT5) {
-  SDL::hits& hitsInGPU = *(event.getHits());
-  std::vector<unsigned int> hits = getHitsFrompT5(event, pT5);
+std::vector<unsigned int> SDL::LST::getHitIdxsFrompT5(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::hits& hitsInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5) {
+  std::vector<unsigned int> hits = getHitsFrompT5(modulesInGPU, rangesInGPU, miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pT5);
   std::vector<unsigned int> hitidxs;
   for (auto& hit : hits)
     hitidxs.push_back(hitsInGPU.idxs[hit]);
   return hitidxs;
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitTypesFrompT5(SDL::Event& event, unsigned int pT5) {
-  unsigned int pLS = getPixelLSFrompT5(event, pT5);
-  std::vector<unsigned int> pixelHits = getPixelHitsFrompLS(event, pLS);
-  // pixel Hits list will be either 3 or 4 and depending on it return accordingly
-  if (pixelHits.size() == 3)
-    return {0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
-  else
-    return {0, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
 }
