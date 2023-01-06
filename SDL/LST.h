@@ -43,6 +43,7 @@ namespace SDL {
     std::vector<float> phi() { return out_tc_phi_; }
     std::vector<std::vector<int>> hits() { return out_tc_hitIdxs_; }
     std::vector<int> len() { return out_tc_len_; }
+    std::vector<int> seedIdx() { return out_tc_seedIdx_; }
   private:
     void loadMaps();
     TString get_absolute_path_after_check_file_exists(const std::string name);
@@ -77,8 +78,7 @@ namespace SDL {
                         SDL::hits& hitsInGPU,
                         std::vector<int>& hit_idx,
                         int& hit_array_length,
-                        unsigned int innerTrackletIdx,
-                        std::vector<int>& module_idxs);
+                        unsigned int innerTrackletIdx);
     void GetT5HitIndex(SDL::modules& modulesInGPU,
                        SDL::objectRanges& rangesInGPU,
                        SDL::triplets& tripletsInGPU,
@@ -91,9 +91,9 @@ namespace SDL {
                        unsigned int outerTrackletIndex,
                        int innerTrackletInnerSegmentIndex,
                        int innerTrackletOuterSegmentIndex,
-                       int outerTrackletOuterSegmentIndex,
-                       std::vector<int>& module_idxs);
+                       int outerTrackletOuterSegmentIndex);
 
+    // Input and output vectors
     TString TrackLooperDir_;
     std::vector<float> in_trkX_;
     std::vector<float> in_trkY_;
@@ -114,6 +114,7 @@ namespace SDL {
     std::vector<float> in_etaErr_vec_;
     std::vector<float> in_phi_vec_;
     std::vector<int> in_charge_vec_;
+    std::vector<unsigned int> in_seedIdx_vec_;
     std::vector<int> in_superbin_vec_;
     std::vector<int8_t> in_pixelType_vec_;
     std::vector<short> in_isQuad_vec_;
@@ -122,6 +123,7 @@ namespace SDL {
     std::vector<float> out_tc_phi_;
     std::vector<std::vector<int>> out_tc_hitIdxs_;
     std::vector<int> out_tc_len_;
+    std::vector<int> out_tc_seedIdx_;
   };
 
 } //namespace

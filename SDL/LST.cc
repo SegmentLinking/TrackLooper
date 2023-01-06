@@ -42,6 +42,7 @@ void SDL::LST::run(cudaStream_t stream,
                                in_eta_vec_, in_etaErr_vec_,
                                in_phi_vec_,
                                in_charge_vec_,
+                               in_seedIdx_vec_,
                                in_superbin_vec_,
                                in_pixelType_vec_,
                                in_isQuad_vec_);
@@ -118,14 +119,7 @@ void SDL::LST::run(cudaStream_t stream,
   //printf("    # of T5 TrackCandidates produced: %d\n",event.getNumberOfT5TrackCandidates());
 
   getOutput(event);
-  //for(auto out : out_tc_pt_) printf("%f\n",out);
-  //for(auto out : out_tc_eta_) printf("%f\n",out);
-  //printf("\n");
-  //for(auto out : out_tc_phi_) printf("%f\n",out);
-  //printf("\n");
-  //for(auto out : out_tc_len_) printf("%d\n",out);
 }
-
 
 
 void SDL::LST::loadMaps() {
@@ -156,16 +150,14 @@ void SDL::LST::loadMaps() {
   path = TString::Format("%s/pLS_map_pos_layer2_subdet5.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer2Subdet5_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
   path = TString::Format("%s/pLS_map_pos_layer1_subdet4.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer1Subdet4_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
   path = TString::Format("%s/pLS_map_pos_layer2_subdet4.txt", pLSMapDir.Data()).Data(); SDL::moduleConnectionMap_pLStoLayer2Subdet4_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
-
 }
 
-TString SDL::LST::get_absolute_path_after_check_file_exists(const std::string name)
-{
+TString SDL::LST::get_absolute_path_after_check_file_exists(const std::string name) {
   std::filesystem::path fullpath = std::filesystem::absolute(name.c_str());
   if (not std::filesystem::exists(fullpath))
   {
-      std::cout << "ERROR: Could not find the file = " << fullpath << std::endl;
-      exit(2);
+    std::cout << "ERROR: Could not find the file = " << fullpath << std::endl;
+    exit(2);
   }
   return TString(fullpath.string().c_str());
 }
@@ -192,20 +184,36 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
                             const std::vector<float> ph2_z) {
   unsigned int count = 0;
   auto n_see = see_stateTrajGlbPx.size();
-  std::vector<float> px_vec; px_vec.reserve(n_see);
-  std::vector<float> py_vec; py_vec.reserve(n_see);
-  std::vector<float> pz_vec; pz_vec.reserve(n_see);
-  std::vector<unsigned int> hitIndices_vec0; hitIndices_vec0.reserve(n_see);
-  std::vector<unsigned int> hitIndices_vec1; hitIndices_vec1.reserve(n_see);
-  std::vector<unsigned int> hitIndices_vec2; hitIndices_vec2.reserve(n_see);
-  std::vector<unsigned int> hitIndices_vec3; hitIndices_vec3.reserve(n_see);
-  std::vector<float> ptIn_vec;   ptIn_vec.reserve(n_see);
-  std::vector<float> ptErr_vec;  ptErr_vec.reserve(n_see);
-  std::vector<float> etaErr_vec; etaErr_vec.reserve(n_see);
-  std::vector<float> eta_vec;    eta_vec.reserve(n_see);
-  std::vector<float> phi_vec;    phi_vec.reserve(n_see);
-  std::vector<int> charge_vec;    charge_vec.reserve(n_see);
-  std::vector<float> deltaPhi_vec; deltaPhi_vec.reserve(n_see);
+  std::vector<float> px_vec;
+  px_vec.reserve(n_see);
+  std::vector<float> py_vec;
+  py_vec.reserve(n_see);
+  std::vector<float> pz_vec;
+  pz_vec.reserve(n_see);
+  std::vector<unsigned int> hitIndices_vec0;
+  hitIndices_vec0.reserve(n_see);
+  std::vector<unsigned int> hitIndices_vec1;
+  hitIndices_vec1.reserve(n_see);
+  std::vector<unsigned int> hitIndices_vec2;
+  hitIndices_vec2.reserve(n_see);
+  std::vector<unsigned int> hitIndices_vec3;
+  hitIndices_vec3.reserve(n_see);
+  std::vector<float> ptIn_vec;
+  ptIn_vec.reserve(n_see);
+  std::vector<float> ptErr_vec;
+  ptErr_vec.reserve(n_see);
+  std::vector<float> etaErr_vec;
+  etaErr_vec.reserve(n_see);
+  std::vector<float> eta_vec;
+  eta_vec.reserve(n_see);
+  std::vector<float> phi_vec;
+  phi_vec.reserve(n_see);
+  std::vector<int> charge_vec;
+  charge_vec.reserve(n_see);
+  std::vector<unsigned int> seedIdx_vec;
+  seedIdx_vec.reserve(n_see);
+  std::vector<float> deltaPhi_vec;
+  deltaPhi_vec.reserve(n_see);
   std::vector<float> trkX = ph2_x;
   std::vector<float> trkY = ph2_y;
   std::vector<float> trkZ = ph2_z;
@@ -218,25 +226,21 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
   std::iota(hitIdxs.begin(), hitIdxs.end(), 0);
   const int hit_size = trkX.size();
 
-  int nSeeds=0;
-  for (auto &&[iSeed, _] : iter::enumerate(see_stateTrajGlbPx))
-  {
-      nSeeds++;
-      bool good_seed_type = false;
-      if (see_algo[iSeed] == 4) good_seed_type = true;
-      if (see_algo[iSeed] == 22) good_seed_type = true;
-      if (not good_seed_type) continue;
+  for (auto &&[iSeed, _] : iter::enumerate(see_stateTrajGlbPx)) {
+    bool good_seed_type = false;
+    if (see_algo[iSeed] == 4) good_seed_type = true;
+    if (see_algo[iSeed] == 22) good_seed_type = true;
+    if (not good_seed_type) continue;
 
-      ROOT::Math::PxPyPzMVector p3LH(see_stateTrajGlbPx[iSeed], see_stateTrajGlbPy[iSeed], see_stateTrajGlbPz[iSeed],0);
-      ROOT::Math::XYZVector p3LH_helper(see_stateTrajGlbPx[iSeed], see_stateTrajGlbPy[iSeed], see_stateTrajGlbPz[iSeed]);
-      float ptIn = p3LH.Pt();
-      float eta = p3LH.Eta();
-      float ptErr = see_ptErr[iSeed];
+    ROOT::Math::PxPyPzMVector p3LH(see_stateTrajGlbPx[iSeed], see_stateTrajGlbPy[iSeed], see_stateTrajGlbPz[iSeed], 0);
+    ROOT::Math::XYZVector p3LH_helper(see_stateTrajGlbPx[iSeed], see_stateTrajGlbPy[iSeed], see_stateTrajGlbPz[iSeed]);
+    float ptIn = p3LH.Pt();
+    float eta = p3LH.Eta();
+    float ptErr = see_ptErr[iSeed];
 
-      if ((ptIn > 0.8 - 2 * ptErr))
-      {
+    if ((ptIn > 0.8 - 2 * ptErr)) {
       ROOT::Math::XYZVector r3LH(see_stateTrajGlbX[iSeed], see_stateTrajGlbY[iSeed], see_stateTrajGlbZ[iSeed]);
-      ROOT::Math::PxPyPzMVector p3PCA(see_px[iSeed], see_py[iSeed], see_pz[iSeed],0);
+      ROOT::Math::PxPyPzMVector p3PCA(see_px[iSeed], see_py[iSeed], see_pz[iSeed], 0);
       ROOT::Math::XYZVector r3PCA(calculateR3FromPCA(p3PCA, see_dxy[iSeed], see_dz[iSeed]));
 
       float pixelSegmentDeltaPhiChange = (r3LH-p3LH_helper).Phi();
@@ -246,101 +250,85 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
       float pz = p3LH.Pz();
 
       int charge = see_q[iSeed];
-      //extra bit
-          // get pixel superbin
-          //int ptbin = -1;
-          int pixtype =-1;
+      int pixtype = -1;
 
-          if (ptIn >= 2.0){ /*ptbin = 1;*/pixtype=0;}
-          else if (ptIn >= (0.8 - 2 * ptErr) and ptIn < 2.0){ 
-            //ptbin = 0;
-            if (pixelSegmentDeltaPhiChange >= 0){pixtype=1;}
-            else{pixtype=2;}
-          }
-          else{continue;}
+      if (ptIn >= 2.0) pixtype = 0;
+      else if (ptIn >= (0.8 - 2 * ptErr) and ptIn < 2.0) {
+        if (pixelSegmentDeltaPhiChange >= 0) pixtype =1;
+        else pixtype = 2;
+      }
+      else continue;
 
-          unsigned int hitIdx0 = hit_size + count;
-          count++; 
-
-          unsigned int hitIdx1 = hit_size + count;
-          count++;
-
-          unsigned int hitIdx2 = hit_size + count;
-          count++;
-
-          unsigned int hitIdx3;
-          if (see_hitIdx[iSeed].size() <= 3)
-          {
-              hitIdx3 = hitIdx2;
-          }
-          else
-          {
-              hitIdx3 = hit_size + count;
-              count++;
-          }
-
-          trkX.push_back(r3PCA.X());
-          trkY.push_back(r3PCA.Y());
-          trkZ.push_back(r3PCA.Z());
-          trkX.push_back(p3PCA.Pt());
-          float p3PCA_Eta = p3PCA.Eta();
-          trkY.push_back(p3PCA_Eta);
-          float p3PCA_Phi = p3PCA.Phi();
-          trkZ.push_back(p3PCA_Phi);
-          trkX.push_back(r3LH.X());
-          trkY.push_back(r3LH.Y());
-          trkZ.push_back(r3LH.Z());
-          hitId.push_back(1);
-          hitId.push_back(1);
-          hitId.push_back(1);
-          if(see_hitIdx[iSeed].size() > 3)
-          {
-              trkX.push_back(r3LH.X());
-              trkY.push_back(see_dxy[iSeed]);
-              trkZ.push_back(see_dz[iSeed]);
-              hitId.push_back(1);
-          }
-          px_vec.push_back(px);
-          py_vec.push_back(py);
-          pz_vec.push_back(pz);
-
-          hitIndices_vec0.push_back(hitIdx0);
-          hitIndices_vec1.push_back(hitIdx1);
-          hitIndices_vec2.push_back(hitIdx2);
-          hitIndices_vec3.push_back(hitIdx3);
-          ptIn_vec.push_back(ptIn);
-          ptErr_vec.push_back(ptErr);
-          etaErr_vec.push_back(etaErr);
-          eta_vec.push_back(eta);
-          float phi = p3LH.Phi();
-          phi_vec.push_back(phi);
-          charge_vec.push_back(charge);
-          deltaPhi_vec.push_back(pixelSegmentDeltaPhiChange);
-
-          // For matching with sim tracks
-          hitIdxs.push_back(see_hitIdx[iSeed][0]);
-          hitIdxs.push_back(see_hitIdx[iSeed][1]);
-          hitIdxs.push_back(see_hitIdx[iSeed][2]);
-          bool isQuad = false;
-          if(see_hitIdx[iSeed].size() > 3)
-          {
-              isQuad = true;
-              hitIdxs.push_back(see_hitIdx[iSeed][3]);
-          }
-          //if (pt < 0){ ptbin = 0;}
-          float neta = 25.;
-          float nphi = 72.;
-          float nz = 25.;
-          int etabin = (p3PCA_Eta + 2.6) / ((2*2.6)/neta);
-          int phibin = (p3PCA_Phi + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
-          int dzbin = (see_dz[iSeed] + 30) / (2*30 / nz);
-          int isuperbin = /*(nz * nphi * neta) * ptbin + (removed since pt bin is determined by pixelType)*/ (nz * nphi) * etabin + (nz) * phibin + dzbin;
-          superbin_vec.push_back(isuperbin);
-          pixelType_vec.push_back(pixtype);
-          isQuad_vec.push_back(isQuad);
-
+      unsigned int hitIdx0 = hit_size + count;
+      count++; 
+      unsigned int hitIdx1 = hit_size + count;
+      count++;
+      unsigned int hitIdx2 = hit_size + count;
+      count++;
+      unsigned int hitIdx3;
+      if (see_hitIdx[iSeed].size() <= 3) hitIdx3 = hitIdx2;
+      else {
+        hitIdx3 = hit_size + count;
+        count++;
       }
 
+      trkX.push_back(r3PCA.X());
+      trkY.push_back(r3PCA.Y());
+      trkZ.push_back(r3PCA.Z());
+      trkX.push_back(p3PCA.Pt());
+      float p3PCA_Eta = p3PCA.Eta();
+      trkY.push_back(p3PCA_Eta);
+      float p3PCA_Phi = p3PCA.Phi();
+      trkZ.push_back(p3PCA_Phi);
+      trkX.push_back(r3LH.X());
+      trkY.push_back(r3LH.Y());
+      trkZ.push_back(r3LH.Z());
+      hitId.push_back(1);
+      hitId.push_back(1);
+      hitId.push_back(1);
+      if(see_hitIdx[iSeed].size() > 3) {
+        trkX.push_back(r3LH.X());
+        trkY.push_back(see_dxy[iSeed]);
+        trkZ.push_back(see_dz[iSeed]);
+        hitId.push_back(1);
+      }
+      px_vec.push_back(px);
+      py_vec.push_back(py);
+      pz_vec.push_back(pz);
+
+      hitIndices_vec0.push_back(hitIdx0);
+      hitIndices_vec1.push_back(hitIdx1);
+      hitIndices_vec2.push_back(hitIdx2);
+      hitIndices_vec3.push_back(hitIdx3);
+      ptIn_vec.push_back(ptIn);
+      ptErr_vec.push_back(ptErr);
+      etaErr_vec.push_back(etaErr);
+      eta_vec.push_back(eta);
+      float phi = p3LH.Phi();
+      phi_vec.push_back(phi);
+      charge_vec.push_back(charge);
+      seedIdx_vec.push_back(iSeed);
+      deltaPhi_vec.push_back(pixelSegmentDeltaPhiChange);
+
+      hitIdxs.push_back(see_hitIdx[iSeed][0]);
+      hitIdxs.push_back(see_hitIdx[iSeed][1]);
+      hitIdxs.push_back(see_hitIdx[iSeed][2]);
+      bool isQuad = false;
+      if(see_hitIdx[iSeed].size() > 3) {
+        isQuad = true;
+        hitIdxs.push_back(see_hitIdx[iSeed][3]);
+      }
+      float neta = 25.;
+      float nphi = 72.;
+      float nz = 25.;
+      int etabin = (p3PCA_Eta + 2.6) / ((2*2.6)/neta);
+      int phibin = (p3PCA_Phi + 3.14159265358979323846) / ((2.*3.14159265358979323846) / nphi);
+      int dzbin = (see_dz[iSeed] + 30) / (2*30 / nz);
+      int isuperbin = (nz * nphi) * etabin + (nz) * phibin + dzbin;
+      superbin_vec.push_back(isuperbin);
+      pixelType_vec.push_back(pixtype);
+      isQuad_vec.push_back(isQuad);
+    }
   }
 
   in_trkX_ = trkX;
@@ -362,6 +350,7 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
   in_etaErr_vec_ = etaErr_vec;
   in_phi_vec_ = phi_vec;
   in_charge_vec_ = charge_vec;
+  in_seedIdx_vec_ = seedIdx_vec;
   in_superbin_vec_ = superbin_vec;
   in_pixelType_vec_ = pixelType_vec;
   in_isQuad_vec_ = isQuad_vec;
@@ -380,7 +369,7 @@ ROOT::Math::XYZVector SDL::LST::calculateR3FromPCA(const ROOT::Math::PxPyPzMVect
 void SDL::LST::getOutput(SDL::Event& event) {
   std::vector<float> tc_pt_, tc_eta_, tc_phi_;
   std::vector<std::vector<int>> tc_hitIdxs_;
-  std::vector<int> tc_len_;
+  std::vector<int> tc_len_, tc_seedIdx_;
 
   SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates());
   SDL::triplets& tripletsInGPU = (*event.getTriplets());
@@ -410,14 +399,15 @@ void SDL::LST::getOutput(SDL::Event& event) {
     float betaOut_out = 0.0;
 
     std::vector<int> hit_idx;
-    std::vector<int> module_idxs; 
+    int seedIdx = -1;
     float pt, eta_pLS, phi_pLS;
     if (trackCandidateType == 8) { // pLS
       pt = segmentsInGPU.ptIn[innerTrackletIdx];
       eta_pLS = segmentsInGPU.eta[innerTrackletIdx];
       phi_pLS = segmentsInGPU.phi[innerTrackletIdx];
+      seedIdx = segmentsInGPU.seedIdx[innerTrackletIdx];
 
-      GetpLSHitIndex(modulesInGPU, rangesInGPU, segmentsInGPU, miniDoubletsInGPU, hitsInGPU, hit_idx, hit_array_length, innerTrackletIdx, module_idxs);
+      GetpLSHitIndex(modulesInGPU, rangesInGPU, segmentsInGPU, miniDoubletsInGPU, hitsInGPU, hit_idx, hit_array_length, innerTrackletIdx);
     }
     else { // not pLS
       if (trackCandidateType == 5 || trackCandidateType == 7) { // pT3 && pT5
@@ -446,6 +436,8 @@ void SDL::LST::getOutput(SDL::Event& event) {
           outermostSegmentIndex = tripletsInGPU.segmentIndices[2 * quintupletsInGPU.tripletIndices[2 * outerTrackletIdx + 1] + 1]; // 4,5
         }
 
+        unsigned int pixelSegmentIndex = innerTrackletInnerSegmentIndex -rangesInGPU.segmentModuleIndices[*(modulesInGPU.nLowerModules)];
+        seedIdx = segmentsInGPU.seedIdx[pixelSegmentIndex];
         //getting MDs
         //pLS 
         unsigned int innerTrackletInnerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletInnerSegmentIndex];
@@ -510,6 +502,7 @@ void SDL::LST::getOutput(SDL::Event& event) {
       }
 
       if (trackCandidateType == 4) { // T5
+        seedIdx = -1;
         //getting triplets
         unsigned int innerTrackletIndex = quintupletsInGPU.tripletIndices[2 * innerTrackletIdx]; // 1,2,3
         unsigned int outerTrackletIndex = quintupletsInGPU.tripletIndices[2 * innerTrackletIdx + 1]; // 3,4,5
@@ -524,7 +517,7 @@ void SDL::LST::getOutput(SDL::Event& event) {
         innerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTrackletIndex + 1]; // 2,3
         outerTrackletOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTrackletIndex + 1]; // 4,5
 
-        GetT5HitIndex(modulesInGPU, rangesInGPU, tripletsInGPU, segmentsInGPU, miniDoubletsInGPU, hitsInGPU, hit_idx, hit_array_length, innerTrackletIndex, outerTrackletIndex, innerTrackletInnerSegmentIndex, innerTrackletOuterSegmentIndex, outerTrackletOuterSegmentIndex, module_idxs);
+        GetT5HitIndex(modulesInGPU, rangesInGPU, tripletsInGPU, segmentsInGPU, miniDoubletsInGPU, hitsInGPU, hit_idx, hit_array_length, innerTrackletIndex, outerTrackletIndex, innerTrackletInnerSegmentIndex, innerTrackletOuterSegmentIndex, outerTrackletOuterSegmentIndex);
       }
 
       unsigned int iiia_idx = -1;
@@ -589,12 +582,24 @@ void SDL::LST::getOutput(SDL::Event& event) {
     tc_phi_.push_back(phi);
     tc_hitIdxs_.push_back(hit_idx);
     tc_len_.push_back(hit_array_length);
+    tc_seedIdx_.push_back(seedIdx);
   }
   out_tc_pt_ = tc_pt_;
   out_tc_eta_ = tc_eta_;
   out_tc_phi_ = tc_phi_;
   out_tc_hitIdxs_ = tc_hitIdxs_;
   out_tc_len_ = tc_len_;
+  out_tc_seedIdx_ = tc_seedIdx_;
+
+  //for(auto out : out_tc_pt_) printf("%f\n",out);
+  //printf("\n");
+  //for(auto out : out_tc_eta_) printf("%f\n",out);
+  //printf("\n");
+  //for(auto out : out_tc_phi_) printf("%f\n",out);
+  //printf("\n");
+  //for(auto out : out_tc_len_) printf("%d\n",out);
+  //printf("\n");
+  //for(auto out : out_tc_seedIdx_) printf("%d\n",out);
 }
 
 void SDL::LST::GetpLSHitIndex(SDL::modules& modulesInGPU,
@@ -604,8 +609,7 @@ void SDL::LST::GetpLSHitIndex(SDL::modules& modulesInGPU,
                             SDL::hits& hitsInGPU,
                             std::vector<int>& hit_idx,
                             int& hit_array_length,
-                            unsigned int innerTrackletIdx,
-                            std::vector<int>& module_idxs) {
+                            unsigned int innerTrackletIdx) {
 
   unsigned int pixelModuleIndex = *(modulesInGPU.nLowerModules);
   unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + innerTrackletIdx;
@@ -624,11 +628,9 @@ void SDL::LST::GetpLSHitIndex(SDL::modules& modulesInGPU,
   };
 
   hit_array_length = 3;
-  module_idxs = {pixelModuleIndex, pixelModuleIndex, pixelModuleIndex}; 
   if(segmentsInGPU.isQuad[innerTrackletIdx]) {
     hit_idx.push_back((int)hitsInGPU.idxs[outerMiniDoubletLowerHitIndex]);
     hit_array_length = 4;
-    module_idxs.push_back(pixelModuleIndex);
   }  
 }
 
@@ -644,8 +646,7 @@ void SDL::LST::GetT5HitIndex(SDL::modules& modulesInGPU,
                              unsigned int outerTrackletIndex,
                              int innerTrackletInnerSegmentIndex,
                              int innerTrackletOuterSegmentIndex,
-                             int outerTrackletOuterSegmentIndex,
-                             std::vector<int>& module_idxs) {
+                             int outerTrackletOuterSegmentIndex) {
   //getting MDs
   unsigned int innerTrackletInnerSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletInnerSegmentIndex]; // 1
   unsigned int innerTrackletOuterSegmentInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerTrackletOuterSegmentIndex];  // 2
