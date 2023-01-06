@@ -567,7 +567,6 @@ __global__ void removeDupPixelQuintupletsInGPUFromMap(struct SDL::pixelQuintuple
 __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::hits& hitsInGPU,bool secondpass)
 {
     int pixelModuleIndex = *modulesInGPU.nLowerModules;
-    unsigned int prefix = rangesInGPU.segmentModuleIndices[pixelModuleIndex];
     unsigned int nPixelSegments = segmentsInGPU.nSegments[pixelModuleIndex];
     if(nPixelSegments >  N_MAX_PIXEL_SEGMENTS_PER_MODULE)
     {

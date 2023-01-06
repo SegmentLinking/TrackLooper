@@ -289,8 +289,6 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     unsigned int pixelSegmentArrayIndex = pixelSegmentIndex - rangesInGPU.segmentModuleIndices[pixelModuleIndex];
     float pixelSegmentPt = segmentsInGPU.ptIn[pixelSegmentArrayIndex];
     float pixelSegmentPtError = segmentsInGPU.ptErr[pixelSegmentArrayIndex];
-    float pixelSegmentEta = segmentsInGPU.eta[pixelSegmentArrayIndex];
-    float pixelSegmentEtaError = segmentsInGPU.etaErr[pixelSegmentArrayIndex];
     float pixelSegmentPx = segmentsInGPU.px[pixelSegmentArrayIndex];
     float pixelSegmentPy = segmentsInGPU.py[pixelSegmentArrayIndex];
     float pixelSegmentPz = segmentsInGPU.pz[pixelSegmentArrayIndex];
@@ -506,7 +504,7 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
     //hardcoded array indices!!!
     float RMSE = 0;
 
-    float Pt=pixelSegmentPt, Px=pixelSegmentPx, Py=pixelSegmentPy, Pz=pixelSegmentPz;
+    float Px=pixelSegmentPx, Py=pixelSegmentPy, Pz=pixelSegmentPz;
     int charge=pixelSegmentCharge;
     float x1 = xPix[1]/100;
     float y1 = yPix[1]/100;
@@ -1194,8 +1192,6 @@ __device__ bool inline SDL::runTripletDefaultAlgoPPBB(struct modules& modulesInG
     float betaAv = 0.5f * (betaIn + betaOut);
     pt_beta = ptIn;
 
-    const float pt_betaMax = 7.0f;
-
     int lIn = 0;
     int lOut = isEC_lastLayer ? 11 : 5;
     float sdOut_dr = sqrtf((x_OutUp - x_OutLo) * (x_OutUp - x_OutLo) + (y_OutUp - y_OutLo) * (y_OutUp - y_OutLo));
@@ -1212,7 +1208,7 @@ __device__ bool inline SDL::runTripletDefaultAlgoPPBB(struct modules& modulesInG
     betaOutRHmin *= betaOutMMSF;
     betaOutRHmax *= betaOutMMSF;
 
-    const float dBetaMuls = sdlThetaMulsF * 4.f / fminf(fabsf(pt_beta), pt_betaMax); //need to confirm the range-out value of 7 GeV
+    const float dBetaMuls = sdlThetaMulsF * 4.f / fminf(fabsf(pt_beta), SDL::pt_betaMax); //need to confirm the range-out value of 7 GeV
     const float alphaInAbsReg =  fmaxf(fabsf(alpha_InLo), asinf(fminf(rt_InUp * k2Rinv1GeVf / 3.0f, sinAlphaMax)));
     const float alphaOutAbsReg = fmaxf(fabsf(alpha_OutLo), asinf(fminf(rt_OutLo * k2Rinv1GeVf / 3.0f, sinAlphaMax)));
     const float dBetaInLum = lIn < 11 ? 0.0f : fabsf(alphaInAbsReg*deltaZLum / z_InUp);
@@ -1423,8 +1419,6 @@ __device__ bool inline SDL::runTripletDefaultAlgoPPEE(struct modules& modulesInG
     float betaAv = 0.5f * (betaIn + betaOut);
     pt_beta = ptIn;
 
-    const float pt_betaMax = 7.0f;
-
     int lIn = 0;
     int lOut = isEC_lastLayer ? 11 : 5;
     float sdOut_dr = sqrtf((x_OutUp - x_OutLo) * (x_OutUp - x_OutLo) + (y_OutUp - y_OutLo) * (y_OutUp - y_OutLo));
@@ -1434,14 +1428,14 @@ __device__ bool inline SDL::runTripletDefaultAlgoPPEE(struct modules& modulesInG
 
     runDeltaBetaIterationspT3(betaIn, betaOut, betaAv, pt_beta, rt_InSeg, sdOut_dr, drt_tl_axis, lIn);
 
-     const float betaInMMSF = (fabsf(betaInRHmin + betaInRHmax) > 0) ? (2.f * betaIn / fabsf(betaInRHmin + betaInRHmax)) : 0.; //mean value of min,max is the old betaIn
+    const float betaInMMSF = (fabsf(betaInRHmin + betaInRHmax) > 0) ? (2.f * betaIn / fabsf(betaInRHmin + betaInRHmax)) : 0.; //mean value of min,max is the old betaIn
     const float betaOutMMSF = (fabsf(betaOutRHmin + betaOutRHmax) > 0) ? (2.f * betaOut / fabsf(betaOutRHmin + betaOutRHmax)) : 0.;
     betaInRHmin *= betaInMMSF;
     betaInRHmax *= betaInMMSF;
     betaOutRHmin *= betaOutMMSF;
     betaOutRHmax *= betaOutMMSF;
 
-    const float dBetaMuls = sdlThetaMulsF * 4.f / fminf(fabsf(pt_beta), pt_betaMax); //need to confirm the range-out value of 7 GeV
+    const float dBetaMuls = sdlThetaMulsF * 4.f / fminf(fabsf(pt_beta), SDL::pt_betaMax); //need to confirm the range-out value of 7 GeV
 
     const float alphaInAbsReg =  fmaxf(fabsf(alpha_InLo), asinf(fminf(rt_InUp * k2Rinv1GeVf / 3.0f, sinAlphaMax)));
     const float alphaOutAbsReg = fmaxf(fabsf(alpha_OutLo), asinf(fminf(rt_OutLo * k2Rinv1GeVf / 3.0f, sinAlphaMax)));
@@ -2690,8 +2684,6 @@ __device__ bool inline SDL::runpT5DefaultAlgoPPBB(struct modules& modulesInGPU, 
     float betaAv = 0.5f * (betaIn + betaOut);
     pt_beta = ptIn;
 
-    const float pt_betaMax = 7.0f;
-
     int lIn = 0;
     int lOut = isEC_lastLayer ? 11 : 5;
     float sdOut_dr = sqrtf((x_OutUp - x_OutLo) * (x_OutUp - x_OutLo) + (y_OutUp - y_OutLo) * (y_OutUp - y_OutLo));
@@ -2708,7 +2700,7 @@ __device__ bool inline SDL::runpT5DefaultAlgoPPBB(struct modules& modulesInGPU, 
     betaOutRHmin *= betaOutMMSF;
     betaOutRHmax *= betaOutMMSF;
 
-    const float dBetaMuls = sdlThetaMulsF * 4.f / fminf(fabsf(pt_beta), pt_betaMax); //need to confirm the range-out value of 7 GeV
+    const float dBetaMuls = sdlThetaMulsF * 4.f / fminf(fabsf(pt_beta), SDL::pt_betaMax); //need to confirm the range-out value of 7 GeV
     const float alphaInAbsReg =  fmaxf(fabsf(alpha_InLo), asinf(fminf(rt_InUp * k2Rinv1GeVf / 3.0f, sinAlphaMax)));
     const float alphaOutAbsReg = fmaxf(fabsf(alpha_OutLo), asinf(fminf(rt_OutLo * k2Rinv1GeVf / 3.0f, sinAlphaMax)));
     const float dBetaInLum = lIn < 11 ? 0.0f : fabsf(alphaInAbsReg*deltaZLum / z_InUp);
@@ -2917,8 +2909,6 @@ __device__ bool inline SDL::runpT5DefaultAlgoPPEE(struct modules& modulesInGPU, 
     float betaAv = 0.5f * (betaIn + betaOut);
     pt_beta = ptIn;
 
-    const float pt_betaMax = 7.0f;
-
     int lIn = 0;
     int lOut = isEC_lastLayer ? 11 : 5;
     float sdOut_dr = sqrtf((x_OutUp - x_OutLo) * (x_OutUp - x_OutLo) + (y_OutUp - y_OutLo) * (y_OutUp - y_OutLo));
@@ -2928,14 +2918,14 @@ __device__ bool inline SDL::runpT5DefaultAlgoPPEE(struct modules& modulesInGPU, 
 
     runDeltaBetaIterationspT5(betaIn, betaOut, betaAv, pt_beta, rt_InSeg, sdOut_dr, drt_tl_axis, lIn);
 
-     const float betaInMMSF = (fabsf(betaInRHmin + betaInRHmax) > 0) ? (2.f * betaIn / fabsf(betaInRHmin + betaInRHmax)) : 0.; //mean value of min,max is the old betaIn
+    const float betaInMMSF = (fabsf(betaInRHmin + betaInRHmax) > 0) ? (2.f * betaIn / fabsf(betaInRHmin + betaInRHmax)) : 0.; //mean value of min,max is the old betaIn
     const float betaOutMMSF = (fabsf(betaOutRHmin + betaOutRHmax) > 0) ? (2.f * betaOut / fabsf(betaOutRHmin + betaOutRHmax)) : 0.;
     betaInRHmin *= betaInMMSF;
     betaInRHmax *= betaInMMSF;
     betaOutRHmin *= betaOutMMSF;
     betaOutRHmax *= betaOutMMSF;
 
-    const float dBetaMuls = sdlThetaMulsF * 4.f / fminf(fabsf(pt_beta), pt_betaMax); //need to confirm the range-out value of 7 GeV
+    const float dBetaMuls = sdlThetaMulsF * 4.f / fminf(fabsf(pt_beta), SDL::pt_betaMax); //need to confirm the range-out value of 7 GeV
 
     const float alphaInAbsReg =  fmaxf(fabsf(alpha_InLo), asinf(fminf(rt_InUp * k2Rinv1GeVf / 3.0f, sinAlphaMax)));
     const float alphaOutAbsReg = fmaxf(fabsf(alpha_OutLo), asinf(fminf(rt_OutLo * k2Rinv1GeVf / 3.0f, sinAlphaMax)));
