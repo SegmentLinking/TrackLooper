@@ -480,9 +480,9 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     bridgeRadius = computeRadiusFromThreeAnchorHits(x2, y2, x3, y3, x4, y4, g, f);
     innerRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3, g, f);
 
-//    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, g, f);
     float inner_pt = 2 * k2Rinv1GeVf * innerRadius;
     pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, g, f);
+//    passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, g, f);
 
     if(not pass) return pass;
 
@@ -842,34 +842,32 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         float diffr=0, diffz=0;
 
         float rou = a/p;
-        if (layeri>6){
-            float s = (zsi-z_init)*p/Pz;
-            float x = x_init + Px/a*sin(rou*s)-Py/a*(1-cos(rou*s));
-            float y = y_init + Py/a*sin(rou*s)+Px/a*(1-cos(rou*s));
-            diffr = (rtsi-sqrt(x*x+y*y))*100;
-            if (i==4) expectrt4=sqrt(x*x+y*y);
-            if (i==5) expectrt5=sqrt(x*x+y*y);
-        }
+        // for barrel
+        float s = (zsi-z_init)*p/Pz;
+        float x = x_init + Px/a*sin(rou*s)-Py/a*(1-cos(rou*s));
+        float y = y_init + Py/a*sin(rou*s)+Px/a*(1-cos(rou*s));
+        diffr = (rtsi-sqrt(x*x+y*y))*100;
+        if (i==4) expectrt4=sqrt(x*x+y*y);
+        if (i==5) expectrt5=sqrt(x*x+y*y);
 
-        if (layeri<=6){
-            float paraA = rt_init*rt_init + 2*(Px*Px+Py*Py)/(a*a) + 2*(y_init*Px-x_init*Py)/a - rtsi*rtsi;
-            float paraB = 2*(x_init*Px+y_init*Py)/a;
-            float paraC = 2*(y_init*Px-x_init*Py)/a+2*(Px*Px+Py*Py)/(a*a);
-            float A=paraB*paraB+paraC*paraC;
-            float B=2*paraA*paraB;
-            float C=paraA*paraA-paraC*paraC;
-            float sol1 = (-B+sqrt(B*B-4*A*C))/(2*A);
-            float sol2 = (-B-sqrt(B*B-4*A*C))/(2*A);
-            float solz1 = asin(sol1)/rou*Pz/p+z_init;
-            float solz2 = asin(sol2)/rou*Pz/p+z_init;
-            float diffz1 = (solz1-zsi)*100;
-            float diffz2 = (solz2-zsi)*100;
-            diffz = (fabs(diffz1)<fabs(diffz2)) ? diffz1 : diffz2;
-            if (i==4 && fabs(diffz1)<fabs(diffz2)) expectz4 = solz1;
-            if (i==4 && fabs(diffz1)>fabs(diffz2)) expectz4 = solz2;
-            if (i==5 && fabs(diffz1)<fabs(diffz2)) expectz5 = solz1;
-            if (i==5 && fabs(diffz1)>fabs(diffz2)) expectz5 = solz2;
-        }
+        // for endcap
+        float paraA = rt_init*rt_init + 2*(Px*Px+Py*Py)/(a*a) + 2*(y_init*Px-x_init*Py)/a - rtsi*rtsi;
+        float paraB = 2*(x_init*Px+y_init*Py)/a;
+        float paraC = 2*(y_init*Px-x_init*Py)/a+2*(Px*Px+Py*Py)/(a*a);
+        float A=paraB*paraB+paraC*paraC;
+        float B=2*paraA*paraB;
+        float C=paraA*paraA-paraC*paraC;
+        float sol1 = (-B+sqrt(B*B-4*A*C))/(2*A);
+        float sol2 = (-B-sqrt(B*B-4*A*C))/(2*A);
+        float solz1 = asin(sol1)/rou*Pz/p+z_init;
+        float solz2 = asin(sol2)/rou*Pz/p+z_init;
+        float diffz1 = (solz1-zsi)*100;
+        float diffz2 = (solz2-zsi)*100;
+        diffz = (fabs(diffz1)<fabs(diffz2)) ? diffz1 : diffz2;
+        if (i==4 && fabs(diffz1)<fabs(diffz2)) expectz4 = solz1;
+        if (i==4 && fabs(diffz1)>fabs(diffz2)) expectz4 = solz2;
+        if (i==5 && fabs(diffz1)<fabs(diffz2)) expectz5 = solz1;
+        if (i==5 && fabs(diffz1)>fabs(diffz2)) expectz5 = solz2;
 
         residual = (layeri>6) ? diffr : diffz ;
 
@@ -894,7 +892,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
             subdets=modulesInGPU.subdets[lowerModuleIndex2];
         }
         if (i==3){
-
             drdz=abs(modulesInGPU.drdzs[lowerModuleIndex3]);
             side=modulesInGPU.sides[lowerModuleIndex3];
             subdets=modulesInGPU.subdets[lowerModuleIndex3];
@@ -916,54 +913,55 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
 
 //    if (isnan(rzChiSquared)) printf("rzChi2: %f, residual2: %f, inner_pt:%f, pseudo_phi: %f, charge: %i, Px:%f, Py:%f, x1:%f, x2:%f, x3:%f, x4:%f, x5:%f, y1:%f, y2:%f, y3:%f, y4:%f, y5:%f, z1:%f, z2:%f, z3:%f, z4:%f, z5:%f, x_center:%f, y_center:%f, slope1c:%f, slope3c:%f\n", rzChiSquared, residual_missing, inner_pt, pseudo_phi, charge, Px, Py, x1, x2, x3, x4, x5, y1, y2, y3, y4, y5, z1, z2, z3, z4, z5, x_center, y_center, slope1c, slope3c);
 
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and rzChiSquared>100){
+//    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 12 and layer5 == 13){
 //        printf("rt1:%f, rt2:%f, rt3:%f, rt4:%f, rt5:%f\n", rt1, rt2, rt3, rt4, rt5);
 //        printf("x1:%f, x2:%f, x3:%f, x4:%f, x5:%f\n", x1, x2, x3, x4, x5);
 //        printf("y1:%f, y2:%f, y3:%f, y4:%f, y5:%f\n", y1, y2, y3, y4, y5);
 //        printf("z1:%f, z2:%f, z3:%f, z4:%f, z5:%f\n", z1, z2, z3, z4, z5);
 //        printf("rt4_ex:%f, rt5_ex:%f\n", expectrt4, expectrt5);
 //        printf("z4_ex:%f, z5_ex:%f\n", expectz4, expectz5);
-//        printf("Pt:%f, Px:%f, Py:%f, Pz:%f, charge: %i, residual4: %f, residual5:%f\n", Pt, Px, Py, Pz, charge, residual4, residual5);
+//        printf("residual_missing:%f\n", residual_missing);
+//        printf("Pt:%f, Px:%f, Py:%f, Pz:%f, charge: %i, residual_missing: %f, residual4: %f, residual5:%f, moduleType3:%i\n", Pt, Px, Py, Pz, charge, residual_missing, residual4, residual5, moduleType3);
 //        printf("rzChi2: %f, residual2: %f, inner_pt:%f, pseudo_phi: %f, charge: %i, Px:%f, Py:%f, x1:%f, x2:%f, x3:%f, x4:%f, x5:%f, y1:%f, y2:%f, y3:%f, y4:%f, y5:%f, z1:%f, z2:%f, z3:%f, z4:%f, z5:%f, x_center:%f, y_center:%f, slope1c:%f, slope3c:%f\n", rzChiSquared, residual_missing, inner_pt, pseudo_phi, charge, Px, Py, x1, x2, x3, x4, x5, y1, y2, y3, y4, y5, z1, z2, z3, z4, z5, x_center, y_center, slope1c, slope3c);
-    }
+//    }
 
     //categories!
     if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
         if(layer4 == 4 and layer5 == 5)
         {
-            return rzChiSquared < 28.3f; //11 
+            return rzChiSquared < 30.545f; //11 
         }
         else if(layer4 == 4 and layer5 == 12) //12
         {
-            return rzChiSquared < 4.475f;
+            return rzChiSquared < 14.765f;
         }
         else if(layer4 == 7 and layer5 == 8) //8
         {   
-            return rzChiSquared < 44.243f;
+            return rzChiSquared < 44.247f;
         }
         else if(layer4 == 7 and layer5 == 13) //9
         {
-            return rzChiSquared < 30.405f;
+            return rzChiSquared < 43.578f;
         }
         else if(layer4 == 12 and layer5 == 13) //10
         {
-            return rzChiSquared < 4.331f;
+            return rzChiSquared < 14.377f;
         }
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
         if(layer4 == 8 and layer5 == 9) //5
         {
-            return rzChiSquared < 113.184f;
+            return rzChiSquared < 115.989f;
         }
         if(layer4 == 8 and layer5 == 14) //6
         {
-            return rzChiSquared < 38.839f;
+            return rzChiSquared < 56.447f;
         }
         else if(layer4 == 13 and layer5 == 14) //7
         {
-            return rzChiSquared < 4.868f;
+            return rzChiSquared < 10.938f;
         }
     }
     else if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9) 
@@ -997,11 +995,11 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     {
         if(layer4 == 8 and layer5 == 14) //16
         {
-            return rzChiSquared < 18.649f;
+            return rzChiSquared < 23.748f;
         }
         if(layer4 == 13 and layer5 == 14) //17
         {
-            return rzChiSquared < 4.661f;
+            return rzChiSquared < 17.975f;
         }
     }
 
