@@ -350,6 +350,7 @@ void createQuintupletCutValueBranches()
     ana.tx->createBranch<vector<float>>("t5_nonAnchorChiSquared");
     ana.tx->createBranch<vector<float>>("t5_rzChiSquared");
     ana.tx->createBranch<vector<float>>("t5_residual_missing");
+    ana.tx->createBranch<vector<float>>("t5_TightCutFlag");
     ana.tx->createBranch<vector<float>>("t5_residual4");
     ana.tx->createBranch<vector<float>>("t5_residual5");
 }
@@ -2520,6 +2521,7 @@ void fillQuintupletOutputBranches(SDL::Event* event)
     std::vector<float> t5_residual_missing;
     std::vector<float> t5_residual4;
     std::vector<float> t5_residual5;
+    std::vector<float> t5_TightCutFlag;
     std::vector<int> layer_binaries;
     std::vector<int> moduleType_binaries;
 #endif
@@ -2572,6 +2574,7 @@ void fillQuintupletOutputBranches(SDL::Event* event)
             t5_nonAnchorChiSquared.push_back(quintupletsInGPU.nonAnchorChiSquared[quintupletIndex]);
             t5_rzChiSquared.push_back(quintupletsInGPU.rzChiSquared[quintupletIndex]);
             t5_residual_missing.push_back(quintupletsInGPU.residual_missing[quintupletIndex]);
+            t5_TightCutFlag.push_back(quintupletsInGPU.TightCutFlag[quintupletIndex]);
             t5_residual4.push_back(quintupletsInGPU.residual4[quintupletIndex]);
             t5_residual5.push_back(quintupletsInGPU.residual5[quintupletIndex]);
 #endif
@@ -2762,6 +2765,7 @@ void fillQuintupletOutputBranches(SDL::Event* event)
     ana.tx->setBranch<vector<float>>("t5_chiSquared", t5_chiSquared);
     ana.tx->setBranch<vector<float>>("t5_rzChiSquared", t5_rzChiSquared); 
     ana.tx->setBranch<vector<float>>("t5_residual_missing", t5_residual_missing);
+    ana.tx->setBranch<vector<float>>("t5_TightCutFlag", t5_TightCutFlag);
     ana.tx->setBranch<vector<float>>("t5_residual4", t5_residual4);
     ana.tx->setBranch<vector<float>>("t5_residual5", t5_residual5);
     ana.tx->setBranch<vector<float>>("t5_nonAnchorChiSquared", t5_nonAnchorChiSquared);
