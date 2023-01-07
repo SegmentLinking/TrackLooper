@@ -369,7 +369,8 @@ ROOT::Math::XYZVector SDL::LST::calculateR3FromPCA(const ROOT::Math::PxPyPzMVect
 void SDL::LST::getOutput(SDL::Event& event) {
   std::vector<float> tc_pt_, tc_eta_, tc_phi_;
   std::vector<std::vector<unsigned int>> tc_hitIdxs_;
-  std::vector<int> tc_len_, tc_seedIdx_;
+  std::vector<unsigned int> tc_len_;
+  std::vector<int> tc_seedIdx_;
 
   SDL::modules& modulesInGPU = (*event.getModules());
   SDL::objectRanges& rangesInGPU = (*event.getRanges());
@@ -387,7 +388,7 @@ void SDL::LST::getOutput(SDL::Event& event) {
 
   unsigned int nTrackCandidates = *trackCandidatesInGPU.nTrackCandidates;
   for (unsigned int idx = 0; idx < nTrackCandidates; idx++) {
-    int hit_array_length = 0;
+    unsigned int hit_array_length = 0;
     short trackCandidateType = trackCandidatesInGPU.trackCandidateType[idx];
 
     std::vector<unsigned int> hit_idx;

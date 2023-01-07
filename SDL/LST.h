@@ -42,7 +42,7 @@ namespace SDL {
     std::vector<float> eta() { return out_tc_eta_; }
     std::vector<float> phi() { return out_tc_phi_; }
     std::vector<std::vector<unsigned int>> hits() { return out_tc_hitIdxs_; }
-    std::vector<int> len() { return out_tc_len_; }
+    std::vector<unsigned int> len() { return out_tc_len_; }
     std::vector<int> seedIdx() { return out_tc_seedIdx_; }
   private:
     void loadMaps();
@@ -132,7 +132,7 @@ namespace SDL {
     std::vector<float> out_tc_eta_;
     std::vector<float> out_tc_phi_;
     std::vector<std::vector<unsigned int>> out_tc_hitIdxs_;
-    std::vector<int> out_tc_len_;
+    std::vector<unsigned int> out_tc_len_;
     std::vector<int> out_tc_seedIdx_;
   };
 
