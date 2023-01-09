@@ -724,6 +724,20 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         if (charge==1) {Px=-Px; Py=-Py;}
     }
 
+    if (moduleType3==0){
+        if (x4<x3 && x3<x2) Px=-abs(Px);
+        if (x4>x3 && x3>x2) Px=abs(Px);
+        if (y4<y3 && y3<y2) Py=-abs(Py);
+        if (y4>y3 && y3>y2) Py=abs(Py);
+    }
+    else (moduleType3==1)
+    {
+        if (x3<x2 && x2<x1) Px=-abs(Px);
+        if (x3>x2 && x2>x1) Px=abs(Px);
+        if (y3<y2 && y2<y1) Py=-abs(Py);
+        if (y3>y2 && y2>y1) Py=abs(Py);        
+    }
+    
     //to get Pz, we use pt/pz=ds/dz, ds is the arclength between MD1 and MD3.
     float AO=sqrt((x1-x_center)*(x1-x_center)+(y1-y_center)*(y1-y_center));
     float BO=sqrt((x_init-x_center)*(x_init-x_center)+(y_init-y_center)*(y_init-y_center));
@@ -780,7 +794,7 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         float diffr=0, diffz=0;
 
         float rou = a/p;
-        // for barrel
+        // for endcap
         float s = (zsi-z_init)*p/Pz;
         float x = x_init + Px/a*sin(rou*s)-Py/a*(1-cos(rou*s));
         float y = y_init + Py/a*sin(rou*s)+Px/a*(1-cos(rou*s));
@@ -788,25 +802,25 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         if (i==4) expectrt4=sqrt(x*x+y*y);
         if (i==5) expectrt5=sqrt(x*x+y*y);
 
-        // for endcap
-        float paraA = rt_init*rt_init + 2*(Px*Px+Py*Py)/(a*a) + 2*(y_init*Px-x_init*Py)/a - rtsi*rtsi;
-        float paraB = 2*(x_init*Px+y_init*Py)/a;
-        float paraC = 2*(y_init*Px-x_init*Py)/a+2*(Px*Px+Py*Py)/(a*a);
-        float A=paraB*paraB+paraC*paraC;
-        float B=2*paraA*paraB;
-        float C=paraA*paraA-paraC*paraC;
-        float sol1 = (-B+sqrt(B*B-4*A*C))/(2*A);
-        float sol2 = (-B-sqrt(B*B-4*A*C))/(2*A);
-        float solz1 = asin(sol1)/rou*Pz/p+z_init;
-        float solz2 = asin(sol2)/rou*Pz/p+z_init;
-        float diffz1 = (solz1-zsi)*100;
-        float diffz2 = (solz2-zsi)*100;
-        diffz = (fabs(diffz1)<fabs(diffz2)) ? diffz1 : diffz2;
-        if (i==4 && fabs(diffz1)<fabs(diffz2)) expectz4 = solz1;
-        if (i==4 && fabs(diffz1)>fabs(diffz2)) expectz4 = solz2;
-        if (i==5 && fabs(diffz1)<fabs(diffz2)) expectz5 = solz1;
-        if (i==5 && fabs(diffz1)>fabs(diffz2)) expectz5 = solz2;
-
+        // for barrel
+        if (layeri<=6)
+        {
+            float paraA = rt_init*rt_init + 2*(Px*Px+Py*Py)/(a*a) + 2*(y_init*Px-x_init*Py)/a - rtsi*rtsi;
+            float paraB = 2*(x_init*Px+y_init*Py)/a;
+            float paraC = 2*(y_init*Px-x_init*Py)/a+2*(Px*Px+Py*Py)/(a*a);
+            float A=paraB*paraB+paraC*paraC;
+            float B=2*paraA*paraB;
+            float C=paraA*paraA-paraC*paraC;
+            float sol1 = (-B+sqrt(B*B-4*A*C))/(2*A);
+            float sol2 = (-B-sqrt(B*B-4*A*C))/(2*A);
+            float solz1 = asin(sol1)/rou*Pz/p+z_init;
+            float solz2 = asin(sol2)/rou*Pz/p+z_init;
+            float diffz1 = (solz1-zsi)*100;
+            float diffz2 = (solz2-zsi)*100;
+            if (isnan(diffz1)) diffz = diffz2;
+            else if (isnan(diffz2)) diffz = diffz1;
+            else {diffz = (fabs(diffz1)<fabs(diffz2)) ? diffz1 : diffz2;}
+        }
         residual = (layeri>6) ? diffr : diffz ;
 
         //PS Modules
