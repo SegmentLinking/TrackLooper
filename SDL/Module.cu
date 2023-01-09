@@ -263,7 +263,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     (*detIdToIndex)[1] = counter; //pixel module is the last module in the module list
     counter++;
     nModules = counter;
-    std::cout<<"Number of modules = "<<nModules<<std::endl;
+    //std::cout<<"Number of modules = "<<nModules<<std::endl;
     createModulesInExplicitMemory(modulesInGPU,nModules,stream);
     unsigned int* host_detIds;
     short* host_layers;
@@ -457,7 +457,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     cms::cuda::free_host(host_slopes);
     cms::cuda::free_host(host_drdzs);
     cms::cuda::free_host(host_partnerModuleIndices);
-    std::cout<<"number of lower modules (without fake pixel module)= "<<lowerModuleCounter<<std::endl;
+    //std::cout<<"number of lower modules (without fake pixel module)= "<<lowerModuleCounter<<std::endl;
     fillConnectedModuleArrayExplicit(modulesInGPU,nModules,stream);
     fillMapArraysExplicit(modulesInGPU, nModules, stream);
     fillPixelMap(modulesInGPU,pixelMapping,stream);
@@ -486,12 +486,6 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
     std::vector<unsigned int> connectedModuleDetIds;
     std::vector<unsigned int> connectedModuleDetIds_pos;
     std::vector<unsigned int> connectedModuleDetIds_neg;
-    unsigned int* connectedPixelsIndex;
-    unsigned int* connectedPixelsIndexPos;
-    unsigned int* connectedPixelsIndexNeg;
-    unsigned int* connectedPixelsSizes;
-    unsigned int* connectedPixelsSizesPos;
-    unsigned int* connectedPixelsSizesNeg;
     cudaMallocHost(&pixelMapping.connectedPixelsIndex,size_superbins * sizeof(unsigned int));
     cudaMallocHost(&pixelMapping.connectedPixelsSizes,size_superbins * sizeof(unsigned int));
     cudaMallocHost(&pixelMapping.connectedPixelsIndexPos,size_superbins * sizeof(unsigned int));

@@ -312,6 +312,7 @@ void run_sdl()
     std::vector<std::vector<float>> out_etaErr_vec;
     std::vector<std::vector<float>> out_phi_vec;
     std::vector<std::vector<int>> out_charge_vec;
+    std::vector<std::vector<unsigned int>> out_seedIdx_vec;
     std::vector<std::vector<int>> out_superbin_vec;
     std::vector<std::vector<int8_t>> out_pixelType_vec;
     std::vector<std::vector<short>> out_isQuad_vec;
@@ -321,7 +322,6 @@ void run_sdl()
     // Looping input file
     while (ana.looper.nextEvent())
     {
-
         // if (ana.looper.getCurrentEventIndex() ==49) {continue;}
         if (ana.verbose >= 1)
             std::cout << "PreLoading event number = " << ana.looper.getCurrentEventIndex() << std::endl;
@@ -347,6 +347,7 @@ void run_sdl()
                                               out_etaErr_vec,
                                               out_phi_vec,
                                               out_charge_vec,
+                                              out_seedIdx_vec,
                                               out_superbin_vec,
                                               out_pixelType_vec,
                                               out_isQuad_vec);
@@ -410,6 +411,7 @@ void run_sdl()
                                                            out_etaErr_vec.at(evt),
                                                            out_phi_vec.at(evt),
                                                            out_charge_vec.at(evt),
+                                                           out_seedIdx_vec.at(evt),
                                                            out_superbin_vec.at(evt),
                                                            out_pixelType_vec.at(evt),
                                                            out_isQuad_vec.at(evt));
