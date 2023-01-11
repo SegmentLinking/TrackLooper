@@ -22,14 +22,13 @@ CXXFLAGS             =  -g --compiler-options -Wall --compiler-options -Wshadow 
 LD                   = nvcc 
 SOFLAGS              = -g -shared --compiler-options -fPIC --cudart shared -arch=compute_70 -code=sm_72
 PRINTFLAG            = -DAddObjects -DT4FromT3 #-DWarnings
-FINALSTATE           = -DFINAL_pT5 -DFINAL_pT3 -DFINAL_T5 -DFINAL_pLS
-DUPLICATES           = -DDUP_pLS -DDUP_T5 -DDUP_pT5 -DDUP_pT3 -DCrossclean_T5 -DCrossclean_pT3 -DFP16_Base -DFP16_dPhi #-DFP16_circle -DFP16_seg -DFP16_T5
+DUPLICATES           = -DDUP_pLS -DDUP_T5 -DDUP_pT5 -DDUP_pT3 -DCrossclean_T5 -DCrossclean_pT3 -DFP16_Base -DFP16_dPhi
 MEMFLAG              =
 CACHEFLAG            =
-CUDALAUNCHFLAG       = #-DNESTED_PARA 
+CUDALAUNCHFLAG       =  
 MEMFLAG_FLAGS        =
 CACHEFLAG_FLAGS      = -DCACHE_ALLOC
-CUDALAUNCHFLAG_FLAGS = #-DNEWGRID_MD -DNEWGRID_Seg -DNEWGRID_Trips -DNEWGRID_Tracklet -DNEWGRID_Pixel -DNEWGRID_Track -DNEWGRID_T5 -DNEWGRID_pT3 -DNEWGRID_pT5
+CUDALAUNCHFLAG_FLAGS = 
 PT0P8       =
 PRELOAD       =
 T3T3EXTENSION=

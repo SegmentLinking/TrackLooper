@@ -1,6 +1,7 @@
 # Simple makefile
 
-EXE=bin/createEffNumDenPlots
+#EXE=bin/createEffNumDenPlots
+EXE=bin/createPerfNumDenHists
 
 SOURCES=$(wildcard src/*.cc)
 OBJECTS=$(SOURCES:.cc=.o)
@@ -20,34 +21,40 @@ CXXFLAGS   += $(ROOTCFLAGS)
 CFLAGS      = $(ROOTCFLAGS) -Wall -Wno-unused-function -g -O2 -fPIC -fno-var-tracking
 EXTRACFLAGS = $(shell rooutil-config) -I../code/core -I../code/cppitertools
 EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer $(shell rooutil-config)
-T3T3EXTENSION=
-all: rooutil bin/createPerfNumDenHists
+CUTVALUEFLAG = 
+CUTVALUEFLAG_FLAGS = -DCUT_VALUE_DEBUG
 
-$(EXE): src/efficiency.o src/helper.o src/SDL.o
-	$(LD) $(CXXFLAGS) $(LDFLAGS) src/efficiency.o src/helper.o src/SDL.o $(ROOTLIBS) $(EXTRAFLAGS) -o $@
+all: rooutil $(EXE)
 
-bin/createPerfNumDenHists: src/performance.o src/helper_v2.o src/SDL.o
-	$(LD) $(CXXFLAGS) $(LDFLAGS) src/performance.o src/helper_v2.o src/SDL.o $(ROOTLIBS) $(EXTRAFLAGS) -o $@
+cutvalue: CUTVALUEFLAG = ${CUTVALUEFLAG_FLAGS}
+cutvalue: rooutil $(EXE)
+
+#$(EXE): src/efficiency.o src/helper.o src/SDL.o
+#	$(LD) $(CXXFLAGS) $(LDFLAGS) src/efficiency.o src/helper.o src/SDL.o $(ROOTLIBS) $(EXTRAFLAGS) -o $@
+
+$(EXE): src/performance.o src/helper_v2.o src/SDL.o
+	$(LD) $(CUTVALUEFLAG) $(CXXFLAGS) $(LDFLAGS) src/performance.o src/helper_v2.o src/SDL.o $(ROOTLIBS) $(EXTRAFLAGS) -o $@
 
 src/SDL.o: src/SDL.cc src/SDL.h
 	$(CC) $(T3T3EXTENSION) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
 
-src/efficiency.o: src/efficiency.cc src/efficiency.h src/sdl_types.h
-	$(CC) $(T3T3EXTENSION) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
+#src/efficiency.o: src/efficiency.cc src/efficiency.h src/sdl_types.h
+#	$(CC) $(T3T3EXTENSION) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
 
-src/helper.o: src/helper.cc src/helper.h src/sdl_types.h
-	$(CC) $(T3T3EXTENSION) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
+#src/helper.o: src/helper.cc src/helper.h src/sdl_types.h
+#	$(CC) $(T3T3EXTENSION) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
 
 src/performance.o: src/performance.cc src/performance.h src/sdl_types.h
-	$(CC) $(T3T3EXTENSION) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
+	$(CC) $(CUTVALUEFLAG) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
 
 src/helper_v2.o: src/helper_v2.cc src/helper_v2.h src/sdl_types.h
-	$(CC) $(T3T3EXTENSION) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
+	$(CC) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
 
 rooutil:
 	$(MAKE) -C ../code/rooutil
 
 clean:
-	rm -f $(OBJECTS) $(EXE)
+	rm -r src/performance.o src/helper_v2.o src/SDL.o $(EXE) #bin/createPerfNumDenHists
+	#rm -f $(OBJECTS) $(EXE)
 
 .PHONY: all clean rooutil
