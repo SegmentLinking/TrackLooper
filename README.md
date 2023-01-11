@@ -130,7 +130,7 @@ cat <<EOF >lst.xml
   <client>
     <environment name="LSTBASE" default="$PWD/../../TrackLooper"/>
     <environment name="LIBDIR" default="\$LSTBASE/SDL"/>
-    <environment name="INCLUDE" default="\$LSTBASE/SDL"/>
+    <environment name="INCLUDE" default="\$LSTBASE"/>
   </client>
   <runtime name="LST_BASE" value="\$LSTBASE"/>
   <lib name="sdl"/>

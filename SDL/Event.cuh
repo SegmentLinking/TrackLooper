@@ -14,16 +14,6 @@
 #include <cuda_runtime.h>
 #include <omp.h>
 #include <chrono>
-#include "Module.cuh"
-#include "Hit.cuh"
-#include "MiniDoublet.cuh"
-#include "Segment.cuh"
-#include "PixelTracklet.cuh"
-#include "Triplet.cuh"
-#include "TrackCandidate.cuh"
-#include "Quintuplet.cuh"
-#include "PixelTriplet.cuh"
-#include "TrackExtensions.cuh"
 #include "Kernels.cuh"
 #include "Constants.h"
 
@@ -89,7 +79,7 @@ namespace SDL
         void resetEvent();
 
         void addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple); //call the appropriate hit function, then increment the counter here
-        void addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> charge, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<short> isQuad);
+        void addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> charge, std::vector<unsigned int> seedIdx, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<short> isQuad);
 
         /*functions that map the objects to the appropriate modules*/
         void addMiniDoubletsToEvent();

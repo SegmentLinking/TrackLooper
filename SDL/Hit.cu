@@ -108,7 +108,7 @@ __global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules
       hitsInGPU.ys[idx] = y[ihit];
       hitsInGPU.zs[idx] = z[ihit];
       hitsInGPU.rts[idx] = sqrt(x[ihit]*x[ihit] + y[ihit]*y[ihit]);
-      hitsInGPU.phis[idx] = phi(x[ihit],y[ihit],z[ihit]);
+      hitsInGPU.phis[idx] = phi(x[ihit],y[ihit]);
       hitsInGPU.moduleIndices[idx] = moduleIndex[ihit];
       hitsInGPU.idxs[idx] = ihit;
   }

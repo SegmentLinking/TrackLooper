@@ -38,11 +38,8 @@ std::vector<unsigned int> getPixelHitIdxsFrompLS(SDL::Event* event, unsigned int
 //____________________________________________________________________________________________
 std::vector<unsigned int> getPixelHitTypesFrompLS(SDL::Event* event, unsigned int pLS)
 {
-    SDL::hits& hitsInGPU = *(event->getHits());
     std::vector<unsigned int> hits = getPixelHitsFrompLS(event, pLS);
-    std::vector<unsigned int> hittypes;
-    for (auto& hit : hits)
-        hittypes.push_back(0);
+    std::vector<unsigned int> hittypes(hits.size(), 0);
     return hittypes;
 }
 
@@ -138,7 +135,6 @@ std::vector<unsigned int> getLSsFromT5(SDL::Event* event, unsigned int T5)
 //____________________________________________________________________________________________
 std::vector<unsigned int> getMDsFromT5(SDL::Event* event, unsigned int T5)
 {
-    SDL::segments& segments_ = *(event->getSegments());
     std::vector<unsigned int> LSs = getLSsFromT5(event, T5);
     std::vector<unsigned int> MDs_0 = getMDsFromLS(event, LSs[0]);
     std::vector<unsigned int> MDs_1 = getMDsFromLS(event, LSs[1]);

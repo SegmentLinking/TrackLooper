@@ -543,7 +543,6 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
     SDL::triplets& tripletsInGPU = (*event->getTriplets());
     SDL::segments& segmentsInGPU = (*event->getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hits& hitsInGPU = (*event->getHits());
 
     //
@@ -682,7 +681,6 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
     SDL::triplets& tripletsInGPU = (*event->getTriplets());
     SDL::segments& segmentsInGPU = (*event->getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hits& hitsInGPU = (*event->getHits());
 
     //
