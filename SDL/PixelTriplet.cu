@@ -1722,13 +1722,13 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
     centerY = segmentsInGPU.circleCenterY[pixelSegmentArrayIndex];
     pixelRadius = segmentsInGPU.circleRadius[pixelSegmentArrayIndex];
 
-    float T5CenterX = quintupletsInGPU.regressionG[quintupletIndex];
-    float T5CenterY = quintupletsInGPU.regressionF[quintupletIndex];
-    quintupletRadius = quintupletsInGPU.regressionRadius[quintupletIndex];
+    float T5CenterX = quintupletsInGPU.innerG[quintupletIndex];
+    float T5CenterY = quintupletsInGPU.innerF[quintupletIndex];
+    quintupletRadius = quintupletsInGPU.innerRadius[quintupletIndex];
 
     rPhiChiSquared = computePT5RPhiChiSquared(modulesInGPU, lowerModuleIndices, centerX, centerY, pixelRadius, xs, ys);
 
-    if(pixelRadius < 5.0f * kR1GeVf)
+/*    if(pixelRadius < 5.0f * kR1GeVf)
     {
         pass = pass and passPT5RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rPhiChiSquared);
         if(not pass) return pass;
@@ -1738,11 +1738,11 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
     float yPix[] = {mdsInGPU.anchorY[pixelInnerMDIndex], mdsInGPU.anchorY[pixelOuterMDIndex]};
     rPhiChiSquaredInwards = computePT5RPhiChiSquaredInwards(modulesInGPU, T5CenterX, T5CenterY, quintupletRadius, xPix, yPix);
 
-    if(quintupletsInGPU.regressionRadius[quintupletIndex] < 5.0f * kR1GeVf)
+    if(quintupletRadius < 5.0f * kR1GeVf)
     {
         pass = pass and passPT5RPhiChiSquaredInwardsCuts(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rPhiChiSquaredInwards); 
         if(not pass) return pass;
-    }
+    }*/
     //trusting the T5 regression center to also be a good estimate..
     centerX = (centerX + T5CenterX)/2;
     centerY = (centerY + T5CenterY)/2;

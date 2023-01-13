@@ -172,7 +172,6 @@ SDL::Event::~Event()
         delete[] quintupletsInCPU->lowerModuleIndices;
         delete[] quintupletsInCPU->innerRadius;
         delete[] quintupletsInCPU->outerRadius;
-        delete[] quintupletsInCPU->regressionRadius;
         delete[] quintupletsInCPU->bridgeRadius;
         delete[] quintupletsInCPU->chiSquared;
         delete[] quintupletsInCPU->rzChiSquared;
@@ -413,7 +412,6 @@ void SDL::Event::resetEvent()
         delete[] quintupletsInCPU->lowerModuleIndices;
         delete[] quintupletsInCPU->innerRadius;
         delete[] quintupletsInCPU->outerRadius;
-        delete[] quintupletsInCPU->regressionRadius;
         delete[] quintupletsInCPU->bridgeRadius;
         delete[] quintupletsInCPU->chiSquared;
         delete[] quintupletsInCPU->rzChiSquared;
