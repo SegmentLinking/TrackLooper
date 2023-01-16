@@ -14,6 +14,7 @@ SDL::quintuplets::quintuplets()
     innerRadius = nullptr;
     outerRadius = nullptr;
     isDup = nullptr;
+    tightCutFlag = nullptr;
     partOfPT5 = nullptr;
     pt = nullptr;
     layer = nullptr;
@@ -43,6 +44,7 @@ void SDL::quintuplets::freeMemoryCache()
     cms::cuda::free_device(dev, outerRadius);
     cms::cuda::free_device(dev, partOfPT5);
     cms::cuda::free_device(dev, isDup);
+    cms::cuda::free_device(dev, tightCutFlag);
     cms::cuda::free_device(dev, pt);
     cms::cuda::free_device(dev, layer);
     cms::cuda::free_device(dev, innerG);
@@ -66,6 +68,7 @@ void SDL::quintuplets::freeMemory(cudaStream_t stream)
     cudaFree(outerRadius);
     cudaFree(partOfPT5);
     cudaFree(isDup);
+    cudaFree(tightCutFlag);
     cudaFree(pt);
     cudaFree(layer);
     cudaFree(innerG);
@@ -159,6 +162,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     quintupletsInGPU.pt = (FPX*)cms::cuda::allocate_device(dev, nTotalQuintuplets *4* sizeof(FPX), stream);
     quintupletsInGPU.layer = (uint8_t*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(uint8_t), stream);
     quintupletsInGPU.isDup = (bool*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(bool), stream);
+    quintupletsInGPU.tightCutFlag = (bool*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(bool), stream);
     quintupletsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(bool), stream);
     quintupletsInGPU.innerG = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
     quintupletsInGPU.innerF = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
@@ -178,6 +182,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     cudaMalloc(&quintupletsInGPU.outerRadius, nTotalQuintuplets * sizeof(FPX));
     cudaMalloc(&quintupletsInGPU.pt, nTotalQuintuplets *4* sizeof(FPX));
     cudaMalloc(&quintupletsInGPU.isDup, nTotalQuintuplets * sizeof(bool));
+    cudaMalloc(&quintupletsInGPU.tightCutFlag, nTotalQuintuplets * sizeof(bool));
     cudaMalloc(&quintupletsInGPU.partOfPT5, nTotalQuintuplets * sizeof(bool));
     cudaMalloc(&quintupletsInGPU.layer, nTotalQuintuplets * sizeof(uint8_t));
     cudaMalloc(&quintupletsInGPU.innerG, nTotalQuintuplets * sizeof(float));
@@ -194,6 +199,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     cudaMemsetAsync(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(quintupletsInGPU.totOccupancyQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(quintupletsInGPU.isDup,0,nTotalQuintuplets * sizeof(bool),stream);
+    cudaMemsetAsync(quintupletsInGPU.tightCutFlag,0,nTotalQuintuplets * sizeof(bool),stream);
     cudaMemsetAsync(quintupletsInGPU.partOfPT5,0,nTotalQuintuplets * sizeof(bool),stream);
     cudaStreamSynchronize(stream);
     quintupletsInGPU.eta = quintupletsInGPU.pt + nTotalQuintuplets;
@@ -203,7 +209,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
 
 
 __device__ void SDL::addQuintupletToMemory(struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, uint16_t& lowerModule1, uint16_t& lowerModule2, uint16_t& lowerModule3, uint16_t& lowerModule4, uint16_t& lowerModule5, float& innerRadius, float& bridgeRadius, float& outerRadius, float& innerG, float& innerF, float& rzChiSquared, float& rPhiChiSquared, float&
-        nonAnchorChiSquared, float pt, float eta, float phi, float scores, uint8_t layer, unsigned int quintupletIndex)
+        nonAnchorChiSquared, float pt, float eta, float phi, float scores, uint8_t layer, unsigned int quintupletIndex, bool tightCutFlag)
 
 {
     quintupletsInGPU.tripletIndices[2 * quintupletIndex] = innerTripletIndex;
@@ -222,6 +228,7 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::triplets& tripletsInGPU, 
     quintupletsInGPU.score_rphisum[quintupletIndex] = __F2H(scores);
     quintupletsInGPU.layer[quintupletIndex] = layer;
     quintupletsInGPU.isDup[quintupletIndex] = false;
+    quintupletsInGPU.tightCutFlag[quintupletIndex] = tightCutFlag;
     quintupletsInGPU.innerG[quintupletIndex] = innerG;
     quintupletsInGPU.innerF[quintupletIndex] = innerF;
     quintupletsInGPU.logicalLayers[5 * quintupletIndex] = tripletsInGPU.logicalLayers[3 * innerTripletIndex];
@@ -247,7 +254,8 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::triplets& tripletsInGPU, 
 
 }
 
-__device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, unsigned int& innerTripletIndex, unsigned int& outerTripletIndex, float& innerG, float& innerF, float& innerRadius, float& outerRadius, float& bridgeRadius, float& rzChiSquared, float& chiSquared, float& nonAnchorChiSquared)
+__device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, unsigned int& innerTripletIndex, unsigned int& outerTripletIndex, float& innerG, float& innerF, float& innerRadius, float& outerRadius, float& bridgeRadius, float&
+        rzChiSquared, float& chiSquared, float& nonAnchorChiSquared, bool& tightCutFlag)
 {
     bool pass = true;
     unsigned int firstSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex];
@@ -277,13 +285,6 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     pass = pass and runQuintupletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex4, lowerModuleIndex5, firstSegmentIndex, fourthSegmentIndex, firstMDIndex, secondMDIndex, fourthMDIndex, fifthMDIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
     if(not pass) return pass;
 
-
-    pass = pass and runQuintupletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex3, lowerModuleIndex4, secondSegmentIndex, thirdSegmentIndex, secondMDIndex, thirdMDIndex, thirdMDIndex, fourthMDIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
-    if(not pass) return pass;
-                
-    pass = pass and runQuintupletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, secondSegmentIndex, fourthSegmentIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
-    if(not pass) return pass;
-
     float x1 = mdsInGPU.anchorX[firstMDIndex];
     float x2 = mdsInGPU.anchorX[secondMDIndex];
     float x3 = mdsInGPU.anchorX[thirdMDIndex];
@@ -303,8 +304,8 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
 
     float inner_pt = 2 * k2Rinv1GeVf * innerRadius;
 
-    rzChiSquared = computeT5RZChiSquared(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5);   
-    pass = pass and passT5RZChiSquared(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared);
+    float residual4, residual5, residual_missing, g, f;
+    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, innerG, innerF, tightCutFlag);
 
     pass = pass & (innerRadius >= 0.95f * ptCut/(2.f * k2Rinv1GeVf));
 
@@ -314,35 +315,33 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     if(innerRadius < 1.0/(k2Rinv1GeVf * 2.f))
     {
         temp = (matchRadii_bin1(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, outerRadius));
-        temp = temp and (matchRadii_inner_v_bridge_bin1(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));
+//        temp = temp and (matchRadii_inner_v_bridge_bin1(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));
     }
     else if(innerRadius < 1.2/(k2Rinv1GeVf * 2.f))
     {
         temp = (matchRadii_bin2(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, outerRadius));
-        temp = temp and (matchRadii_inner_v_bridge_bin2(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));
+ //       temp = temp and (matchRadii_inner_v_bridge_bin2(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));
     }
     else if(innerRadius < 1.5/(k2Rinv1GeVf * 2.f))
     {
         temp = (matchRadii_bin3(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, outerRadius));
-        temp = temp and (matchRadii_inner_v_bridge_bin3(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));
+ //       temp = temp and (matchRadii_inner_v_bridge_bin3(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));
     }
     else if(innerRadius < 2.15/(k2Rinv1GeVf * 2.f))
     {
         temp = (matchRadii_bin4(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, outerRadius));
-        temp = temp and (matchRadii_inner_v_bridge_bin4(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));
+  //      temp = temp and (matchRadii_inner_v_bridge_bin4(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));
     }
     else if(innerRadius < 5/(k2Rinv1GeVf * 2.f))
     {
         temp = (matchRadii_bin5(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, outerRadius));
-        temp = temp and (matchRadii_inner_v_bridge_bin5(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));
+  //      temp = temp and (matchRadii_inner_v_bridge_bin5(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));
     }
     else
     {
          temp = (matchRadii_bin6(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, outerRadius));  
-         temp = temp and (matchRadii_inner_v_bridge_bin6(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));  
+    //     temp = temp and (matchRadii_inner_v_bridge_bin6(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));  
     }
-    
-
     pass = pass and temp;
     if(not pass) return pass;
 
@@ -377,7 +376,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     return pass;
 }
 
-__device__ float SDL::computeT5RZChiSquared(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5)
+/*__device__ float SDL::computeT5RZChiSquared(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5)
 {
     const float& rt1 = mdsInGPU.anchorRt[firstMDIndex];
     const float& rt2 = mdsInGPU.anchorRt[secondMDIndex];
@@ -428,12 +427,23 @@ __device__ float SDL::computeT5RZChiSquared(struct SDL::modules& modulesInGPU, s
 
     const float RMSE = sqrtf(0.5 * ((residual5/denominator5) * (residual5/denominator5) + (residual4/denominator4) * (residual4/denominator4)));
     return RMSE;
-}
+}*/
 
 
-
-__device__ bool SDL::passT5RZChiSquared(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared)
+__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared, float& residual_missing, float& residual4, float& residual5, float inner_pt, float innerRadius, float g, float f, bool& tightCutFlag) 
 {
+    //(g,f) is the center of the circle fitted by the innermost 3 points on x,y coordinates
+    const float& rt1 = mdsInGPU.anchorRt[firstMDIndex]/100; //in the unit of m instead of cm
+    const float& rt2 = mdsInGPU.anchorRt[secondMDIndex]/100;
+    const float& rt3 = mdsInGPU.anchorRt[thirdMDIndex]/100;
+    const float& rt4 = mdsInGPU.anchorRt[fourthMDIndex]/100;
+    const float& rt5 = mdsInGPU.anchorRt[fifthMDIndex]/100;
+
+    const float& z1 = mdsInGPU.anchorZ[firstMDIndex]/100;
+    const float& z2 = mdsInGPU.anchorZ[secondMDIndex]/100;
+    const float& z3 = mdsInGPU.anchorZ[thirdMDIndex]/100;
+    const float& z4 = mdsInGPU.anchorZ[fourthMDIndex]/100;
+    const float& z5 = mdsInGPU.anchorZ[fifthMDIndex]/100;
 
     //following Philip's layer number prescription
     const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
@@ -441,98 +451,377 @@ __device__ bool SDL::passT5RZChiSquared(struct SDL::modules& modulesInGPU, struc
     const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
     const int layer4 = modulesInGPU.layers[lowerModuleIndex4] + 6 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex4] == SDL::TwoS);
     const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
-    float eta = (layer1 == 1 or layer1 == 7) ? mdsInGPU.anchorEta[secondMDIndex] : mdsInGPU.anchorEta[firstMDIndex];
 
-    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11)
+    //slope computed using the internal T3s
+    const int moduleType1 = modulesInGPU.moduleType[lowerModuleIndex1]; //0 is ps, 1 is 2s
+    const int moduleType2 = modulesInGPU.moduleType[lowerModuleIndex2];
+    const int moduleType3 = modulesInGPU.moduleType[lowerModuleIndex3];
+    const int moduleType4 = modulesInGPU.moduleType[lowerModuleIndex4];
+    const int moduleType5 = modulesInGPU.moduleType[lowerModuleIndex5];
+
+    const float& x1 = mdsInGPU.anchorX[firstMDIndex]/100;
+    const float& x2 = mdsInGPU.anchorX[secondMDIndex]/100;
+    const float& x3 = mdsInGPU.anchorX[thirdMDIndex]/100;
+    const float& x4 = mdsInGPU.anchorX[fourthMDIndex]/100;
+    const float& x5 = mdsInGPU.anchorX[fifthMDIndex]/100;
+    const float& y1 = mdsInGPU.anchorY[firstMDIndex]/100;
+    const float& y2 = mdsInGPU.anchorY[secondMDIndex]/100;
+    const float& y3 = mdsInGPU.anchorY[thirdMDIndex]/100;
+    const float& y4 = mdsInGPU.anchorY[fourthMDIndex]/100;
+    const float& y5 = mdsInGPU.anchorY[fifthMDIndex]/100;
+
+    float residual = 0;
+    float error = 0;
+    float x_center=g/100, y_center=f/100; 
+    float x_init=mdsInGPU.anchorX[thirdMDIndex]/100;
+    float y_init=mdsInGPU.anchorY[thirdMDIndex]/100;
+    float z_init=mdsInGPU.anchorZ[thirdMDIndex]/100;
+    float rt_init=mdsInGPU.anchorRt[thirdMDIndex]/100; //use the second MD as initial point
+
+    if (moduleType3==1)  // 1: if MD3 is in 2s layer
     {
-        return rzChiSquared < 6.256256256256256;
+        x_init=mdsInGPU.anchorX[secondMDIndex]/100;
+        y_init=mdsInGPU.anchorY[secondMDIndex]/100;
+        z_init=mdsInGPU.anchorZ[secondMDIndex]/100;
+        rt_init=mdsInGPU.anchorRt[secondMDIndex]/100;
     }
-    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 16)
+
+    //start from a circle of inner T3.
+    // to determine the charge
+    int charge=0;
+    float slope3c=(y3-y_center)/(x3-x_center);
+    float slope1c=(y1-y_center)/(x1-x_center);
+    if((y3-y_center)>0 && (y1-y_center)>0) 
     {
-        return rzChiSquared < 3.953953953953954;
+        if (slope3c>slope1c) charge=-1; 
+        else if (slope3c<slope1c) charge=1;
+        if (slope1c>0 && slope3c<0) charge=-1;
+        if (slope1c<0 && slope3c>0) charge=1;
     }
-    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
+    else if((y3-y_center)<0 && (y1-y_center)<0) 
     {
-        return rzChiSquared < 0.5105105105105106;
+        if (slope3c>slope1c) charge=-1; 
+        else if (slope3c<slope1c) charge=1;
+        if (slope1c<0 && slope3c>0) charge=1;
+        if (slope1c>0 && slope3c<0) charge=-1;
     }
-    if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 10)
+    else if ((y3-y_center)<0 && (y1-y_center)>0)
     {
-        return rzChiSquared < 6.776776776776776;
+        if ((x3-x_center)>0 && (x1-x_center)>0) charge = 1;
+        else if ((x3-x_center)<0 && (x1-x_center)<0) charge = -1;
     }
-    if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
+    else if ((y3-y_center)>0 && (y1-y_center)<0)
     {
-        return rzChiSquared < 3.073073073073073;
+        if ((x3-x_center)>0 && (x1-x_center)>0) charge = -1;
+        else if ((x3-x_center)<0 && (x1-x_center)<0) charge = 1;
     }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 9)
+
+    float pseudo_phi = atan((y_init-y_center)/(x_init-x_center)); //actually represent pi/2-phi, wrt helix axis z
+    float Pt=inner_pt, Px=Pt*abs(sin(pseudo_phi)), Py=Pt*abs(cos(pseudo_phi));
+
+    if (x_init>x_center && y_init>y_center) //1st quad
     {
-        return rzChiSquared < 5.7757757757757755;
+        if (charge==1) Py=-Py;
+        if (charge==-1) Px=-Px;
     }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 14)
+    if (x_init<x_center && y_init>y_center) //2nd quad
     {
-        return rzChiSquared < 5.255255255255255;
+        if (charge==-1) {Px=-Px; Py=-Py;}
     }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 13 and layer5 == 14)
+    if (x_init<x_center && y_init<y_center) //3rd quad
     {
-        return rzChiSquared < 0.6706706706706707;
+        if (charge==1) Px=-Px;
+        if (charge==-1) Py=-Py;
+    }        
+    if (x_init>x_center && y_init<y_center) //4th quad
+    {
+        if (charge==1) {Px=-Px; Py=-Py;}
     }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 8)
-    {
-        return rzChiSquared < 8.83883883883884;
+
+    if (moduleType3==0){
+        if (x4<x3 && x3<x2) Px=-abs(Px);
+        if (x4>x3 && x3>x2) Px=abs(Px);
+        if (y4<y3 && y3<y2) Py=-abs(Py);
+        if (y4>y3 && y3>y2) Py=abs(Py);
     }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 13)
+    else if(moduleType3==1)
     {
-        return rzChiSquared < 5.8558558558558556;
+        if (x3<x2 && x2<x1) Px=-abs(Px);
+        if (x3>x2 && x2>x1) Px=abs(Px);
+        if (y3<y2 && y2<y1) Py=-abs(Py);
+        if (y3>y2 && y2>y1) Py=abs(Py);        
     }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 12 and layer5 == 13)
+
+    //to get Pz, we use pt/pz=ds/dz, ds is the arclength between MD1 and MD3.
+    float AO=sqrt((x1-x_center)*(x1-x_center)+(y1-y_center)*(y1-y_center));
+    float BO=sqrt((x_init-x_center)*(x_init-x_center)+(y_init-y_center)*(y_init-y_center));
+    float AB=sqrt((x1-x_init)*(x1-x_init)+(y1-y_init)*(y1-y_init)); 
+    float dPhi = acos((AO*AO+BO*BO-AB*AB)/(2*AO*BO));
+    float ds=innerRadius/100*dPhi;
+
+//    float ds = sqrt((y_init-y1)*(y_init-y1)+(x_init-x1)*(x_init-x1)); //large ds->smallerPz->smaller residual
+    float Pz=(z_init-z1)/ds*Pt;
+    float p = sqrt(Px*Px+Py*Py+Pz*Pz);
+
+    float B = 3.8112;
+    float a = -0.299792*B*charge;
+
+    float zsi, rtsi;
+    int layeri, moduleTypei;
+    float expectrt4=0,expectrt5=0,expectz4=0, expectz5=0;
+    rzChiSquared=0;
+    for(size_t i = 2; i < 6; i++)
     {
-        return rzChiSquared < 1.0710710710710711;
+        if (i==2){
+            zsi = z2;
+            rtsi = rt2;
+            layeri=layer2;
+            moduleTypei=moduleType2;
+        }
+        else if (i==3) {
+            zsi = z3;
+            rtsi = rt3;
+            layeri=layer3;
+            moduleTypei=moduleType3;
+        }
+        else if (i==4){
+            zsi = z4;
+            rtsi = rt4;
+            layeri=layer4;
+            moduleTypei=moduleType4;
+        }
+        else if (i==5){
+            zsi = z5;
+            rtsi = rt5;
+            layeri=layer5;
+            moduleTypei=moduleType5;
+        }
+
+        if (moduleType3==0) { //0: ps
+            if (i==3) continue;
+        }
+        else{
+            if (i==2) continue;
+        }
+
+        // calculation is copied from PixelTriplet.cu SDL::computePT3RZChiSquared
+        float diffr=0, diffz=0;
+
+        float rou = a/p;
+        // for endcap
+        float s = (zsi-z_init)*p/Pz;
+        float x = x_init + Px/a*sin(rou*s)-Py/a*(1-cos(rou*s));
+        float y = y_init + Py/a*sin(rou*s)+Px/a*(1-cos(rou*s));
+        diffr = (rtsi-sqrt(x*x+y*y))*100;
+        if (i==4) expectrt4=sqrt(x*x+y*y);
+        if (i==5) expectrt5=sqrt(x*x+y*y);
+
+        // for barrel
+        if (layeri<=6)
+        {
+            float paraA = rt_init*rt_init + 2*(Px*Px+Py*Py)/(a*a) + 2*(y_init*Px-x_init*Py)/a - rtsi*rtsi;
+            float paraB = 2*(x_init*Px+y_init*Py)/a;
+            float paraC = 2*(y_init*Px-x_init*Py)/a+2*(Px*Px+Py*Py)/(a*a);
+            float A=paraB*paraB+paraC*paraC;
+            float B=2*paraA*paraB;
+            float C=paraA*paraA-paraC*paraC;
+            float sol1 = (-B+sqrt(B*B-4*A*C))/(2*A);
+            float sol2 = (-B-sqrt(B*B-4*A*C))/(2*A);
+            float solz1 = asin(sol1)/rou*Pz/p+z_init;
+            float solz2 = asin(sol2)/rou*Pz/p+z_init;
+            float diffz1 = (solz1-zsi)*100;
+            float diffz2 = (solz2-zsi)*100;
+            if (isnan(diffz1)) diffz = diffz2;
+            else if (isnan(diffz2)) diffz = diffz1;
+            else {diffz = (fabs(diffz1)<fabs(diffz2)) ? diffz1 : diffz2;}
+        }
+        residual = (layeri>6) ? diffr : diffz ;
+
+        //PS Modules
+        if(moduleTypei == 0)
+        {
+            error = 0.15f;
+        }
+        else //2S modules
+        {
+            error = 5.0f;
+        }
+        if (i==4) residual4=residual/error;
+        if (i==5) residual5=residual/error;
+
+        //check the tilted module, side: PosZ, NegZ, Center(for not tilted)
+        float drdz;
+        short side, subdets;
+        if (i==2){
+            drdz=abs(modulesInGPU.drdzs[lowerModuleIndex2]);
+            side=modulesInGPU.sides[lowerModuleIndex2];
+            subdets=modulesInGPU.subdets[lowerModuleIndex2];
+        }
+        if (i==3){
+            drdz=abs(modulesInGPU.drdzs[lowerModuleIndex3]);
+            side=modulesInGPU.sides[lowerModuleIndex3];
+            subdets=modulesInGPU.subdets[lowerModuleIndex3];
+        }
+        if (i==2 || i==3){
+            residual = (layeri <= 6 && ((side == SDL::Center) or (drdz < 1))) ? diffz : diffr;
+//            residual_missing=residual;
+            float projection_missing=1;
+        if (drdz<1)
+            projection_missing = ((subdets == SDL::Endcap) or (side == SDL::Center)) ? 1.f : 1/sqrt(1+drdz*drdz); // cos(atan(drdz)), if dr/dz<1
+        if (drdz>1)
+            projection_missing = ((subdets == SDL::Endcap) or (side == SDL::Center)) ? 1.f : drdz/sqrt(1+drdz*drdz);//sin(atan(drdz)), if dr/dz>1
+            error=error*projection_missing;
+            residual_missing=residual/error;
+        }
+        rzChiSquared += 12*(residual * residual)/(error * error);
     }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 12)
+//    rzChiSquared = 12*(residual4 * residual4 + residual5 * residual5 + residual_missing * residual_missing);
+
+//    if (isnan(rzChiSquared)) printf("rzChi2: %f, residual2: %f, inner_pt:%f, pseudo_phi: %f, charge: %i, Px:%f, Py:%f, x1:%f, x2:%f, x3:%f, x4:%f, x5:%f, y1:%f, y2:%f, y3:%f, y4:%f, y5:%f, z1:%f, z2:%f, z3:%f, z4:%f, z5:%f, x_center:%f, y_center:%f, slope1c:%f, slope3c:%f\n", rzChiSquared, residual_missing, inner_pt, pseudo_phi, charge, Px, Py, x1, x2, x3, x4, x5, y1, y2, y3, y4, y5, z1, z2, z3, z4, z5, x_center, y_center, slope1c, slope3c);
+
+//    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11 and rzChiSquared>100){
+//        printf("rt1:%f, rt2:%f, rt3:%f, rt4:%f, rt5:%f\n", rt1, rt2, rt3, rt4, rt5);
+//        printf("x1:%f, x2:%f, x3:%f, x4:%f, x5:%f\n", x1, x2, x3, x4, x5);
+//        printf("y1:%f, y2:%f, y3:%f, y4:%f, y5:%f\n", y1, y2, y3, y4, y5);
+//        printf("z1:%f, z2:%f, z3:%f, z4:%f, z5:%f\n", z1, z2, z3, z4, z5);
+//        printf("rt4_ex:%f, rt5_ex:%f\n", expectrt4, expectrt5);
+//        printf("z4_ex:%f, z5_ex:%f\n", expectz4, expectz5);
+//        printf("residual_missing:%f\n", residual_missing);
+//        printf("Pt:%f, Px:%f, Py:%f, Pz:%f, charge: %i, residual_missing: %f, residual4: %f, residual5:%f, moduleType3:%i\n", Pt, Px, Py, Pz, charge, residual_missing, residual4, residual5, moduleType3);
+//        if (fabs(rzChiSquared-434.901)<0.01) printf("rzChi2: %f, residual2: %f, residual4: %f, residual5:%f, inner_pt:%f, pseudo_phi: %f, charge: %i, Px:%f, Py:%f, x1:%f, x2:%f, x3:%f, x4:%f, x5:%f, y1:%f, y2:%f, y3:%f, y4:%f, y5:%f, z1:%f, z2:%f, z3:%f, z4:%f, z5:%f, x_center:%f, y_center:%f, slope1c:%f, slope3c:%f\n", rzChiSquared, residual_missing, residual4, residual5, inner_pt, pseudo_phi, charge, Px, Py, x1, x2, x3, x4, x5, y1, y2, y3, y4, y5, z1, z2, z3, z4, z5, x_center, y_center, slope1c, slope3c);
+//        printf("residual_missing:%f\n", residual_missing);
+//    }
+
+    // when building T5, apply 99% chi2 cuts as default, and add to pT5 collection. But when adding T5 to TC collections, appy 95% cut to reduce the fake rate
+    tightCutFlag = false;
+    //categories!
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-        return rzChiSquared < 1.1111111111111112;
+        if(layer4 == 4 and layer5 == 5) //11
+        {
+            if (rzChiSquared < 15.627f) tightCutFlag = true;
+            return rzChiSquared < 29.035f; 
+        }
+        else if(layer4 == 4 and layer5 == 12) //12
+        {
+            if (rzChiSquared < 14.64f) tightCutFlag = true;
+            return rzChiSquared < 23.037f;
+        }
+        else if(layer4 == 7 and layer5 == 8) //8
+        {   
+            if (rzChiSquared < 27.824f) tightCutFlag = true;
+            return rzChiSquared < 44.247f;
+        }
+        else if(layer4 == 7 and layer5 == 13) //9
+        {
+            if (rzChiSquared < 18.145f) tightCutFlag = true;
+            return rzChiSquared < 33.752f;
+        }
+        else if(layer4 == 12 and layer5 == 13) //10
+        {
+            if (rzChiSquared < 13.308f) tightCutFlag = true;
+            return rzChiSquared < 21.213f;
+        }
     }
-    if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
+    else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
-        return rzChiSquared < 4.994994994994995;
+        if(layer4 == 8 and layer5 == 9) //5
+        {
+            if (rzChiSquared < 116.148f) tightCutFlag = true;
+            return true;
+        }
+        if(layer4 == 8 and layer5 == 14) //6
+        {
+            if (rzChiSquared < 19.352f) tightCutFlag = true;
+            return rzChiSquared < 52.561f;
+        }
+        else if(layer4 == 13 and layer5 == 14) //7
+        {
+            if (rzChiSquared < 10.392f) tightCutFlag = true;
+            return rzChiSquared < 13.76f;
+        }
     }
-    if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
+    else if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9) 
     {
-        return rzChiSquared < 0.5905905905905906;
+        if (layer5 == 10) //3
+        {
+            if (rzChiSquared < 111.390f) tightCutFlag = true;
+            return true;
+        }
+        if (layer5 == 15) //4
+        {
+            if (rzChiSquared < 18.351f) tightCutFlag = true;
+            return rzChiSquared < 37.941f;
+        }
     }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 8 and layer5 == 14)
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
-        return rzChiSquared < 3.893893893893894;
+        if(layer4 == 5 and layer5 == 6) //18
+        {
+            if (rzChiSquared < 6.065f) tightCutFlag = true;
+            return rzChiSquared < 8.803f;
+        }
+        else if(layer4 == 5 and layer5 == 12) //19
+        {
+            if (rzChiSquared < 5.693f) tightCutFlag = true;
+            return rzChiSquared < 7.930f;
+        }
+
+        else if(layer4 == 12 and layer5 == 13) //20
+        {
+            if (rzChiSquared < 5.473f) tightCutFlag = true;
+            return rzChiSquared < 7.626f;
+        }
     }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 7) 
     {
-        return rzChiSquared < 0.5905905905905906;
+        if(layer4 == 8 and layer5 == 14) //16
+        {
+            if (rzChiSquared < 23.730f) tightCutFlag = true;
+            return rzChiSquared < 23.748f;
+        }
+        if(layer4 == 13 and layer5 == 14) //17
+        {
+            if (rzChiSquared < 10.772f) tightCutFlag = true;
+            return rzChiSquared < 17.945f;
+        }
     }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 12 and layer5 == 13)
+
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
-        return rzChiSquared < 1.2112112112112112;
+        if(layer4 == 9 and layer5 == 15) //14
+        {
+            if (rzChiSquared < 24.662f) tightCutFlag = true;
+            return rzChiSquared < 41.036f;
+        }
+        else if(layer4 == 14 and layer5 == 15) //15
+        {
+            if (rzChiSquared < 8.866f) tightCutFlag = true;
+            return rzChiSquared < 14.092f;
+        }
     }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 12)
+
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16) //2
     {
-        return rzChiSquared < 1.1911911911911912;
+        if (rzChiSquared < 7.992f) tightCutFlag = true;
+        return rzChiSquared < 11.622f;
     }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and fabsf(eta) > 0.5)
+
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11) //0
     {
-        return rzChiSquared < 0.6506506506506506;
+        if (rzChiSquared < 94.470f) tightCutFlag = true;
+        return true;
     }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and fabsf(eta) > 0.5)
+
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 16) //1
     {
-        return rzChiSquared < 0.970970970970971;
-    }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and fabsf(eta) > 0.5)
-    {
-        return rzChiSquared < 0.8908908908908908;
-    }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and fabsf(eta) > 0.5)
-    {
-        return rzChiSquared < 1.3313313313313313;
+        if (rzChiSquared < 22.099f) tightCutFlag = true;
+        return rzChiSquared < 37.956f;
     }
     return true;
 }
+
+
 //90% constraint
 __device__ bool SDL::passChiSquaredConstraint(struct SDL::modules& modulesInGPU, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& chiSquared)
 {
@@ -672,15 +961,15 @@ __device__ bool SDL::matchRadii_bin1(struct SDL::modules& modulesInGPU, float& e
     const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.22522522522522526;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.23523523523523526;
     }
     if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 10)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.3053053053053053;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.3153153153153153;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 9)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.19519519519519518;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.2052052052052052;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 8)
     {
@@ -690,29 +979,21 @@ __device__ bool SDL::matchRadii_bin1(struct SDL::modules& modulesInGPU, float& e
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.4754754754754755;
     }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 8 and layer5 == 14)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5855855855855856;
-    }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 12)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.45545545545545546;
-    }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) < 0.5)
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.1051051051051051;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.09509509509509509;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.1051051051051051;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) < 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.09509509509509509;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.08508508508508508;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.1051051051051051;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.08508508508508508;
     }
     return true;
 }
@@ -725,7 +1006,7 @@ __device__ bool SDL::matchRadii_bin2(struct SDL::modules& modulesInGPU, float& e
     const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.23523523523523526;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.24524524524524527;
     }
     if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 10)
     {
@@ -734,14 +1015,6 @@ __device__ bool SDL::matchRadii_bin2(struct SDL::modules& modulesInGPU, float& e
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 9)
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.2052052052052052;
-    }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 8)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.2052052052052052;
-    }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 12)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.49549549549549554;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 8 and layer5 == 14)
     {
@@ -753,11 +1026,11 @@ __device__ bool SDL::matchRadii_bin2(struct SDL::modules& modulesInGPU, float& e
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.13513513513513514;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.15515515515515516;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.16516516516516516;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.17517517517517517;
     }
     return true;
 }
@@ -770,11 +1043,11 @@ __device__ bool SDL::matchRadii_bin3(struct SDL::modules& modulesInGPU, float& e
     const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.2952952952952953;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.3053053053053053;
     }
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.7457457457457457;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.7857857857857857;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 9)
     {
@@ -798,7 +1071,7 @@ __device__ bool SDL::matchRadii_bin3(struct SDL::modules& modulesInGPU, float& e
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.21521521521521522;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.19519519519519518;
     }
     return true;
 }
@@ -811,7 +1084,7 @@ __device__ bool SDL::matchRadii_bin4(struct SDL::modules& modulesInGPU, float& e
     const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.37537537537537535;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.3853853853853854;
     }
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
     {
@@ -821,13 +1094,17 @@ __device__ bool SDL::matchRadii_bin4(struct SDL::modules& modulesInGPU, float& e
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.2852852852852853;
     }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 8)
+    if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.1051051051051051;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.1961961961961962;
     }
     if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.9359359359359359;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.9459459459459458;
+    }
+    if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 8 and layer5 == 14)
+    {
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.7257257257257257;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) < 0.5)
     {
@@ -835,11 +1112,11 @@ __device__ bool SDL::matchRadii_bin4(struct SDL::modules& modulesInGPU, float& e
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.21521521521521522;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.2052052052052052;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.17517517517517517;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.18518518518518517;
     }
     return true;
 }
@@ -852,15 +1129,15 @@ __device__ bool SDL::matchRadii_bin5(struct SDL::modules& modulesInGPU, float& e
     const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5155155155155156;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5455455455455456;
     }
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.1661661661661662;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.9459459459459458;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 9)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.4754754754754755;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.4854854854854855;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
@@ -876,7 +1153,7 @@ __device__ bool SDL::matchRadii_bin5(struct SDL::modules& modulesInGPU, float& e
     }
     if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.1361361361361362;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.2262262262262262;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 8 and layer5 == 14)
     {
@@ -884,11 +1161,7 @@ __device__ bool SDL::matchRadii_bin5(struct SDL::modules& modulesInGPU, float& e
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 12 and layer5 == 13)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.2662662662662663;
-    }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 12)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.9059059059059058;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.2562562562562563;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) < 0.5)
     {
@@ -896,11 +1169,11 @@ __device__ bool SDL::matchRadii_bin5(struct SDL::modules& modulesInGPU, float& e
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.2652652652652653;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.2752752752752753;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.19519519519519518;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.2052052052052052;
     }
     return true;
 }
@@ -911,13 +1184,9 @@ __device__ bool SDL::matchRadii_bin6(struct SDL::modules& modulesInGPU, float& e
     const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
     const int layer4 = modulesInGPU.layers[lowerModuleIndex4] + 6 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex4] == SDL::TwoS);
     const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
-    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 8.258258258258259;
-    }
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 2.952952952952953;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.7517517517517518;
     }
     if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
     {
@@ -925,7 +1194,7 @@ __device__ bool SDL::matchRadii_bin6(struct SDL::modules& modulesInGPU, float& e
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 9)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 3.7537537537537538;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 2.1521521521521523;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 14)
     {
@@ -933,11 +1202,11 @@ __device__ bool SDL::matchRadii_bin6(struct SDL::modules& modulesInGPU, float& e
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 6.056056056056056;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 6.456456456456456;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 13)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 3.153153153153153;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 2.4524524524524525;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 12 and layer5 == 13)
     {
@@ -945,15 +1214,15 @@ __device__ bool SDL::matchRadii_bin6(struct SDL::modules& modulesInGPU, float& e
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 12)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.5515515515515514;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.4514514514514514;
     }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 8 and layer5 == 14)
+    if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.050050050050050046;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 4.854854854854855;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 10.06006006006006;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 3.6536536536536532;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 12 and layer5 == 13)
     {
@@ -961,7 +1230,7 @@ __device__ bool SDL::matchRadii_bin6(struct SDL::modules& modulesInGPU, float& e
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 12)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 3.153153153153153;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.1511511511511512;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) > 0.5)
     {
@@ -973,6 +1242,7 @@ __device__ bool SDL::matchRadii_bin6(struct SDL::modules& modulesInGPU, float& e
     }
     return true;
 }
+
 __device__ bool SDL::matchRadii_bin1_tight(struct SDL::modules& modulesInGPU, float& eta, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& innerRadius, float& outerRadius)
 {
     const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
@@ -990,7 +1260,7 @@ __device__ bool SDL::matchRadii_bin1_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.35535535535535534;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.4854854854854855;
     }
     if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 10)
     {
@@ -1006,23 +1276,11 @@ __device__ bool SDL::matchRadii_bin1_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 14)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5655655655655656;
-    }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 13 and layer5 == 14)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.6456456456456456;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5755755755755756;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 8)
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.1051051051051051;
-    }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 13)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.6956956956956957;
-    }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 12 and layer5 == 13)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.4754754754754755;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 12)
     {
@@ -1030,23 +1288,11 @@ __device__ bool SDL::matchRadii_bin1_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5055055055055055;
-    }
-    if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.43543543543543545;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5155155155155156;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 8 and layer5 == 14)
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5355355355355356;
-    }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.7257257257257257;
-    }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 12 and layer5 == 13)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.4854854854854855;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 12)
     {
@@ -1054,19 +1300,19 @@ __device__ bool SDL::matchRadii_bin1_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) < 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.038538538538538544;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.035035035035035036;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04254254254254254;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04504504504504504;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) < 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.032532532532532535;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.035035035035035036;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.03553553553553554;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.035035035035035036;
     }
     return true;
 }
@@ -1087,15 +1333,11 @@ __device__ bool SDL::matchRadii_bin2_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.49549549549549554;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5555555555555556;
     }
     if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 10)
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.18518518518518517;
-    }
-    if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5855855855855856;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 9)
     {
@@ -1105,22 +1347,6 @@ __device__ bool SDL::matchRadii_bin2_tight(struct SDL::modules& modulesInGPU, fl
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5855855855855856;
     }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 13 and layer5 == 14)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.7157157157157157;
-    }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 8)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.12512512512512514;
-    }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 13)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.7057057057057057;
-    }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 12 and layer5 == 13)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5555555555555556;
-    }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 12)
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.3153153153153153;
@@ -1129,41 +1355,29 @@ __device__ bool SDL::matchRadii_bin2_tight(struct SDL::modules& modulesInGPU, fl
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5155155155155156;
     }
-    if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5355355355355356;
-    }
     if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 8 and layer5 == 14)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5455455455455456;
-    }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.8758758758758758;
-    }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 12 and layer5 == 13)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.6556556556556556;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5255255255255256;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 12)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.36536536536536535;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.35535535535535534;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) < 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04054054054054054;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04504504504504504;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04454454454454454;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04504504504504504;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) < 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.03553553553553554;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.035035035035035036;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.03953953953953954;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04504504504504504;
     }
     return true;
 }
@@ -1184,35 +1398,23 @@ __device__ bool SDL::matchRadii_bin3_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5255255255255256;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5455455455455456;
     }
     if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 10)
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.22522522522522526;
     }
-    if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.6056056056056056;
-    }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 9)
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.12512512512512514;
     }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 14)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.6256256256256256;
-    }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.8758758758758758;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.8858858858858859;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 8)
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.1051051051051051;
-    }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 13)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.6956956956956957;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 12 and layer5 == 13)
     {
@@ -1222,45 +1424,29 @@ __device__ bool SDL::matchRadii_bin3_tight(struct SDL::modules& modulesInGPU, fl
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.35535535535535534;
     }
-    if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5455455455455456;
-    }
     if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5855855855855856;
-    }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 8 and layer5 == 14)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5755755755755756;
-    }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.9759759759759761;
-    }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 12 and layer5 == 13)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.7757757757757757;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.6956956956956957;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 12)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.4454454454454454;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.43543543543543545;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) < 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04154154154154154;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04504504504504504;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.045545545545545546;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04504504504504504;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) < 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.03653653653653653;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.035035035035035036;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04054054054054054;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.035035035035035036;
     }
     return true;
 }
@@ -1275,41 +1461,21 @@ __device__ bool SDL::matchRadii_bin4_tight(struct SDL::modules& modulesInGPU, fl
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.17517517517517517;
     }
-    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 16)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.6556556556556556;
-    }
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5155155155155156;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5255255255255256;
     }
     if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 10)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.2652652652652653;
-    }
-    if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.6756756756756757;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.2752752752752753;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 9)
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.12512512512512514;
     }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 14)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.7357357357357357;
-    }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.8958958958958958;
-    }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 8)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.05505505505505505;
-    }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 13)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.7957957957957957;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.8858858858858859;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 12 and layer5 == 13)
     {
@@ -1319,13 +1485,9 @@ __device__ bool SDL::matchRadii_bin4_tight(struct SDL::modules& modulesInGPU, fl
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.39539539539539537;
     }
-    if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.6856856856856857;
-    }
     if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.6556556556556556;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.6656656656656657;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 8 and layer5 == 14)
     {
@@ -1333,7 +1495,7 @@ __device__ bool SDL::matchRadii_bin4_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.016016016016016;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.006006006006006;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 12 and layer5 == 13)
     {
@@ -1345,19 +1507,19 @@ __device__ bool SDL::matchRadii_bin4_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) < 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04154154154154154;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04504504504504504;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04654654654654655;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04504504504504504;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) < 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.03753753753753754;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.035035035035035036;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.038538538538538544;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.035035035035035036;
     }
     return true;
 }
@@ -1378,11 +1540,11 @@ __device__ bool SDL::matchRadii_bin5_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5855855855855856;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.5755755755755756;
     }
     if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 10)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.43543543543543545;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.4454454454454454;
     }
     if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
     {
@@ -1414,7 +1576,7 @@ __device__ bool SDL::matchRadii_bin5_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 12)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.39539539539539537;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.4054054054054054;
     }
     if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
     {
@@ -1422,7 +1584,7 @@ __device__ bool SDL::matchRadii_bin5_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.7457457457457457;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.7357357357357357;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 8 and layer5 == 14)
     {
@@ -1430,7 +1592,7 @@ __device__ bool SDL::matchRadii_bin5_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.016016016016016;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.006006006006006;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 12 and layer5 == 13)
     {
@@ -1442,19 +1604,19 @@ __device__ bool SDL::matchRadii_bin5_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) < 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04354354354354355;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04504504504504504;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.05255255255255255;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.05505505505505505;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) < 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04054054054054054;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.035035035035035036;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04154154154154154;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.04504504504504504;
     }
     return true;
 }
@@ -1471,7 +1633,7 @@ __device__ bool SDL::matchRadii_bin6_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 16)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 3.8538538538538543;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 2.3523523523523524;
     }
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
     {
@@ -1479,7 +1641,7 @@ __device__ bool SDL::matchRadii_bin6_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 10)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 3.5535535535535536;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 3.8538538538538543;
     }
     if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
     {
@@ -1495,19 +1657,15 @@ __device__ bool SDL::matchRadii_bin6_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 3.153153153153153;
-    }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 8)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.050050050050050046;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 3.5535535535535536;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 13)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.2512512512512513;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.0510510510510511;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 12 and layer5 == 13)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.8508508508508508;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.9509509509509511;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 12)
     {
@@ -1515,19 +1673,15 @@ __device__ bool SDL::matchRadii_bin6_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 2.2522522522522523;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 2.052052052052052;
     }
     if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
     {
         return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 2.5525525525525525;
     }
-    if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 8 and layer5 == 14)
-    {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.050050050050050046;
-    }
     if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 3.053053053053053;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 1.6516516516516515;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 12 and layer5 == 13)
     {
@@ -1539,22 +1693,24 @@ __device__ bool SDL::matchRadii_bin6_tight(struct SDL::modules& modulesInGPU, fl
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) < 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.1266266266266266;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.15015015015015015;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.1066066066066066;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.15015015015015015;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) < 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.08358358358358359;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.050050050050050046;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) > 0.5)
     {
-        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.08358358358358359;
+        return fabsf((1.0/innerRadius) - (1.0/outerRadius))/(1.0/innerRadius) < 0.050050050050050046;
     }
     return true;
 }
+
+
 
 __device__ bool SDL::matchRadii_inner_v_bridge_bin1(struct SDL::modules& modulesInGPU, float& eta, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& innerRadius, float& bridgeRadius)
 {
@@ -2299,8 +2455,8 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
             uint16_t lowerModule5 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 2];
 
             float innerRadius, outerRadius, bridgeRadius, innerG, innerF, rzChiSquared, chiSquared, nonAnchorChiSquared; //required for making distributions
-
-            bool success = runQuintupletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletIndex, outerTripletIndex, innerG, innerF, innerRadius, outerRadius,  bridgeRadius, rzChiSquared, chiSquared, nonAnchorChiSquared);
+            bool tightCutFlag;
+            bool success = runQuintupletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletIndex, outerTripletIndex, innerG, innerF, innerRadius, outerRadius,  bridgeRadius, rzChiSquared, chiSquared, nonAnchorChiSquared, tightCutFlag);
 
             if(success)
             {
@@ -2340,7 +2496,7 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
                         float eta = mdsInGPU.anchorEta[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]]];
                         float pt = (innerRadius+outerRadius)*3.8f*1.602f/(2*100*5.39f);
                         float scores = chiSquared + nonAnchorChiSquared;
-                        addQuintupletToMemory(tripletsInGPU, quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, bridgeRadius, outerRadius, innerG, innerF, rzChiSquared, chiSquared, nonAnchorChiSquared, pt,eta,phi,scores,layer,quintupletIndex);
+                        addQuintupletToMemory(tripletsInGPU, quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, bridgeRadius, outerRadius, innerG, innerF, rzChiSquared, chiSquared, nonAnchorChiSquared, pt,eta,phi,scores,layer,quintupletIndex, tightCutFlag);
 
                         tripletsInGPU.partOfT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex]] = true;
                         tripletsInGPU.partOfT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1]] = true;
