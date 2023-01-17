@@ -91,20 +91,6 @@ Comparing two different runs
         -l BaseLine,MyNewWork \   # Labeling
         -t "mywork"
 
-## Validation
-Run the validation on sample
-
-    sdl_validate_segment_linking <dataset> 
-    Runs Explicit version over 200 events by default
-    dataset: PU200, muonGun, pionGun, etc
-
-Run the validation on specific version of GPU implementation
-
-    sdl_validate_segment_linking <dataset> explicit
-    sdl_validate_segment_linking <dataset> explicit_cache
-    (can optionally add in number of events as 3rd option)
-
-
 ## CMSSW Integration
 This is the a complete set of instruction on how the TrackLooper code
 can be linked as an external tool in CMSSW:
