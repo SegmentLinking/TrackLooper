@@ -22,7 +22,6 @@ SDL::Event::Event(cudaStream_t estream)
     trackCandidatesInGPU = nullptr;
     pixelTripletsInGPU = nullptr;
     pixelQuintupletsInGPU = nullptr;
-    trackExtensionsInGPU = nullptr;
     rangesInGPU = nullptr;
 
     hitsInCPU = nullptr;
@@ -36,7 +35,6 @@ SDL::Event::Event(cudaStream_t estream)
     quintupletsInCPU = nullptr;
     pixelTripletsInCPU = nullptr;
     pixelQuintupletsInCPU = nullptr;
-    trackExtensionsInCPU = nullptr;
 
     //reset the arrays
     for(int i = 0; i<6; i++)
@@ -72,7 +70,6 @@ SDL::Event::~Event()
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemoryCache();}
-    if(trackExtensionsInGPU){trackExtensionsInGPU->freeMemoryCache();}
 #else
 
     if(rangesInGPU){rangesInGPU->freeMemory();}
@@ -84,7 +81,6 @@ SDL::Event::~Event()
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemory(stream);}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemory(stream);}
-    if(trackExtensionsInGPU){trackExtensionsInGPU->freeMemory(stream);}
 #endif
     if(rangesInGPU != nullptr){cms::cuda::free_host(rangesInGPU);}
     if(mdsInGPU != nullptr){cms::cuda::free_host(mdsInGPU);}
@@ -95,7 +91,6 @@ SDL::Event::~Event()
     if(pixelTripletsInGPU!= nullptr){cms::cuda::free_host(pixelTripletsInGPU);}
     if(pixelQuintupletsInGPU!= nullptr){cms::cuda::free_host(pixelQuintupletsInGPU);}
     if(quintupletsInGPU!= nullptr){cms::cuda::free_host(quintupletsInGPU);}
-    if(trackExtensionsInGPU != nullptr){cms::cuda::free_host(trackExtensionsInGPU);}
 
     if(hitsInCPU != nullptr)
     {
@@ -214,29 +209,9 @@ SDL::Event::~Event()
         delete[] trackCandidatesInCPU->nTrackCandidates;
         delete[] trackCandidatesInCPU->hitIndices;
         delete[] trackCandidatesInCPU->logicalLayers;
-        delete[] trackCandidatesInCPU->partOfExtension;
         delete trackCandidatesInCPU;
     }
 
-    if(trackExtensionsInCPU != nullptr)
-    {
-        delete[] trackExtensionsInCPU->nTrackExtensions;
-        delete[] trackExtensionsInCPU->totOccupancyTrackExtensions;
-        delete[] trackExtensionsInCPU->constituentTCTypes;
-        delete[] trackExtensionsInCPU->constituentTCIndices;
-        delete[] trackExtensionsInCPU->nLayerOverlaps;
-        delete[] trackExtensionsInCPU->nHitOverlaps;
-        delete[] trackExtensionsInCPU->isDup;
-        delete[] trackExtensionsInCPU->regressionRadius;
-#ifdef CUT_VALUE_DEBUG
-        delete[] trackExtensionsInCPU->rPhiChiSquared;
-        delete[] trackExtensionsInCPU->rzChiSquared;
-        delete[] trackExtensionsInCPU->innerRadius;
-        delete[] trackExtensionsInCPU->outerRadius;
-#endif
-
-        delete trackExtensionsInCPU;
-    }
 
     if(modulesInCPU != nullptr)
     {
@@ -294,7 +269,6 @@ void SDL::Event::resetEvent()
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemoryCache();}
-    if(trackExtensionsInGPU){trackExtensionsInGPU->freeMemoryCache();}
 
 #else
     if(hitsInGPU){hitsInGPU->freeMemory();}
@@ -306,7 +280,6 @@ void SDL::Event::resetEvent()
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemory(stream);}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemory(stream);}
-    if(trackExtensionsInGPU){trackExtensionsInGPU->freeMemory(stream);}
 #endif
     //reset the arrays
     for(int i = 0; i<6; i++)
@@ -345,8 +318,6 @@ void SDL::Event::resetEvent()
     pixelTripletsInGPU = nullptr;}
     if(pixelQuintupletsInGPU){cms::cuda::free_host(pixelQuintupletsInGPU);
     pixelQuintupletsInGPU = nullptr;}
-    if(trackExtensionsInGPU){cms::cuda::free_host(trackExtensionsInGPU);
-    trackExtensionsInGPU = nullptr;}
 
     if(hitsInCPU != nullptr)
     {
@@ -460,20 +431,6 @@ void SDL::Event::resetEvent()
         trackCandidatesInCPU = nullptr;
     }
 
-    if(trackExtensionsInCPU != nullptr)
-    {
-        delete[] trackExtensionsInCPU->nTrackExtensions;
-        delete[] trackExtensionsInCPU->totOccupancyTrackExtensions;
-        delete[] trackExtensionsInCPU->constituentTCTypes;
-        delete[] trackExtensionsInCPU->constituentTCIndices;
-        delete[] trackExtensionsInCPU->nLayerOverlaps;
-        delete[] trackExtensionsInCPU->nHitOverlaps;
-        delete[] trackExtensionsInCPU->isDup;
-        delete[] trackExtensionsInCPU->regressionRadius;
-
-        delete trackExtensionsInCPU;
-        trackExtensionsInCPU = nullptr;
-    }
 
     if(modulesInCPU != nullptr)
     {
@@ -1289,60 +1246,6 @@ void SDL::Event::createTrackCandidates()
     }cudaStreamSynchronize(stream);
 }
 
-void SDL::Event::createExtendedTracks()
-{
-    if(trackExtensionsInGPU == nullptr)
-    {
-        trackExtensionsInGPU = (SDL::trackExtensions*)cms::cuda::allocate_host(sizeof(SDL::trackExtensions), stream);
-    }
-
-    unsigned int nTrackCandidates;
-    cudaMemcpyAsync(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-
-#ifdef T3T3_EXTENSIONS
-    createTrackExtensionsInExplicitMemory(*trackExtensionsInGPU, nTrackCandidates * N_MAX_TRACK_EXTENSIONS_PER_TC + N_MAX_T3T3_TRACK_EXTENSIONS, nTrackCandidates + 1, stream); 
-#else
-    createTrackExtensionsInExplicitMemory(*trackExtensionsInGPU, nTrackCandidates * N_MAX_TRACK_EXTENSIONS_PER_TC, nTrackCandidates, stream); 
-
-    dim3 nThreads(16,1,1);
-    dim3 nBlocks(80,1,nTrackCandidates); 
-    //createExtendedTracksInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
-    SDL::createExtendedTracksInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU);
-
-    cudaError_t cudaerr = cudaGetLastError();
-    if(cudaerr != cudaSuccess)
-    {
-	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-    }cudaStreamSynchronize(stream);
-
-#ifdef T3T3_EXTENSIONS
-    dim3 nThreadsT3T3(1,16,16);
-    dim3 nBlocksT3T3(nLowerModules % nThreadsT3T3.x == 0 ? nLowerModules / nThreadsT3T3.x: nLowerModules / nThreadsT3T3.x + 1, maxT3s % nThreadsT3T3.y == 0 ? maxT3s / nThreadsT3T3.y : maxT3s / nThreadsT3T3.y + 1, maxT3s % nThreadsT3T3.z == 0 ? maxT3s / nThreadsT3T3.z : maxT3s / nThreadsT3T3.z + 1);
-
-    createT3T3ExtendedTracksInGPU<<<nBlocksT3T3, nThreadsT3T3,0,stream>>>(*modulesInGPU, *hitsInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, *pixelTripletsInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *trackExtensionsInGPU, nTrackCandidates);
-
-    cudaerr = cudaDeviceSynchronize();
-    if(cudaerr != cudaSuccess)
-    {
-	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-    }
-#endif
-
-    int nThreadsDupCleaning = 512;
-    int nBlocksDupCleaning = (nTrackCandidates % nThreadsDupCleaning == 0) ? nTrackCandidates / nThreadsDupCleaning : nTrackCandidates / nThreadsDupCleaning + 1;
-
-    cleanDuplicateExtendedTracks<<<nThreadsDupCleaning, nBlocksDupCleaning,0,stream>>>(*trackExtensionsInGPU, nTrackCandidates);
-
-    cudaerr = cudaGetLastError();
-    if(cudaerr != cudaSuccess)
-    {
-	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-    }cudaStreamSynchronize(stream);
-
-//    cudaDeviceSynchronize();
-}
-#endif
-
 void SDL::Event::createPixelTriplets()
 {
     uint16_t nLowerModules;
@@ -1989,40 +1892,6 @@ unsigned int SDL::Event::getNumberOfPixelTriplets()
     return nPixelTriplets;
 }
 
-
-unsigned int SDL::Event::getNumberOfExtendedTracks()
-{
-    unsigned int nTrackCandidates;
-    cudaMemcpyAsync(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-
-    unsigned int *nTrackExtensionsCPU = new unsigned int[nTrackCandidates];
-    cudaMemcpyAsync(nTrackExtensionsCPU, trackExtensionsInGPU->nTrackExtensions, (nTrackCandidates)* sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-
-    unsigned int nTrackExtensions = 0;
-    for(size_t it = 0; it < nTrackCandidates; it++)    
-    {
-        nTrackExtensions += nTrackExtensionsCPU[it];
-
-    }
-#ifdef T3T3_EXTENSIONS
-    unsigned int nT3T3Extensions;
-    cudaMemcpyAsync(&nT3T3Extensions,&(trackExtensionsInGPU->nTrackExtensions[nTrackCandidates]), sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-    nTrackExtensions += nT3T3Extensions;
-#endif
-    delete[] nTrackExtensionsCPU;
-    return nTrackExtensions;
-}
-
-unsigned int SDL::Event::getNumberOfT3T3ExtendedTracks()
-{
-    unsigned int nTrackCandidates;
-    cudaMemcpyAsync(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-
-    unsigned int nT3T3Extensions;
-    cudaMemcpyAsync(&nT3T3Extensions, trackExtensionsInGPU->nTrackExtensions + nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-    return nT3T3Extensions;
-}
-
 unsigned int SDL::Event::getNumberOfPixelQuintuplets()
 {
     unsigned int nPixelQuintuplets;
@@ -2436,11 +2305,9 @@ SDL::trackCandidates* SDL::Event::getTrackCandidates()
         trackCandidatesInCPU->directObjectIndices = new unsigned int[nTrackCandidates];
         trackCandidatesInCPU->objectIndices = new unsigned int[2 * nTrackCandidates];
         trackCandidatesInCPU->trackCandidateType = new short[nTrackCandidates];
-        trackCandidatesInCPU->partOfExtension = new bool[nTrackCandidates];
         trackCandidatesInCPU->hitIndices = new unsigned int[14 * nTrackCandidates];
         trackCandidatesInCPU->logicalLayers = new uint8_t[7 * nTrackCandidates];
 
-        cudaMemcpyAsync(trackCandidatesInCPU->partOfExtension, trackCandidatesInGPU->partOfExtension, nTrackCandidates * sizeof(bool), cudaMemcpyDeviceToHost, stream);
         cudaMemcpyAsync(trackCandidatesInCPU->hitIndices, trackCandidatesInGPU->hitIndices, 14 * nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
         cudaMemcpyAsync(trackCandidatesInCPU->logicalLayers, trackCandidatesInGPU->logicalLayers, 7 * nTrackCandidates * sizeof(uint8_t), cudaMemcpyDeviceToHost, stream);
         cudaMemcpyAsync(trackCandidatesInCPU->directObjectIndices, trackCandidatesInGPU->directObjectIndices, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);                                                                                    
@@ -2537,55 +2404,5 @@ SDL::modules* SDL::Event::getModules()
         cudaStreamSynchronize(stream);
     }
     return modulesInCPU;
-}
-
-SDL::trackExtensions* SDL::Event::getTrackExtensions()
-{
-   if(trackExtensionsInCPU == nullptr)
-   {
-       trackExtensionsInCPU = new SDL::trackExtensions;
-       unsigned int nTrackCandidates;
-       cudaMemcpyAsync(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-       cudaStreamSynchronize(stream);
-       unsigned int maxTrackExtensions = nTrackCandidates * N_MAX_TRACK_EXTENSIONS_PER_TC;
-#ifdef T3T3_EXTENSIONS
-       maxTrackExtensions += N_MAX_T3T3_TRACK_EXTENSIONS;
-       nTrackCandidates++;
-#endif
-       std::cout<<"nTrackCandidates = "<<nTrackCandidates<<std::endl;
-       trackExtensionsInCPU->nTrackExtensions = new unsigned int[nTrackCandidates];
-       trackExtensionsInCPU->totOccupancyTrackExtensions = new unsigned int[nTrackCandidates];
-       trackExtensionsInCPU->constituentTCTypes = new short[3 * maxTrackExtensions];
-       trackExtensionsInCPU->constituentTCIndices = new unsigned int[3 * maxTrackExtensions];
-       trackExtensionsInCPU->nLayerOverlaps = new uint8_t[2 * maxTrackExtensions];
-       trackExtensionsInCPU->nHitOverlaps = new uint8_t[2 * maxTrackExtensions];
-       trackExtensionsInCPU->isDup = new bool[maxTrackExtensions];
-       trackExtensionsInCPU->regressionRadius = new FPX[maxTrackExtensions];
-#ifdef CUT_VALUE_DEBUG
-       trackExtensionsInCPU->rPhiChiSquared = new FPX[maxTrackExtensions];
-       trackExtensionsInCPU->rzChiSquared = new FPX[maxTrackExtensions];
-       trackExtensionsInCPU->innerRadius = new float[maxTrackExtensions];
-       trackExtensionsInCPU->outerRadius = new float[maxTrackExtensions];
-       
-       cudaMemcpyAsync(trackExtensionsInCPU->rPhiChiSquared, trackExtensionsInGPU->rPhiChiSquared, maxTrackExtensions * sizeof(FPX), cudaMemcpyDeviceToHost, stream);
-       cudaMemcpyAsync(trackExtensionsInCPU->rzChiSquared, trackExtensionsInGPU->rzChiSquared, maxTrackExtensions * sizeof(FPX), cudaMemcpyDeviceToHost, stream);
-       cudaMemcpyAsync(trackExtensionsInCPU->innerRadius, trackExtensionsInGPU->innerRadius, maxTrackExtensions * sizeof(float), cudaMemcpyDeviceToHost, stream);
-       cudaMemcpyAsync(trackExtensionsInCPU->outerRadius, trackExtensionsInGPU->outerRadius, maxTrackExtensions * sizeof(float), cudaMemcpyDeviceToHost, stream);
-
-#endif
-
-       cudaMemcpyAsync(trackExtensionsInCPU->nTrackExtensions, trackExtensionsInGPU->nTrackExtensions, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-       cudaMemcpyAsync(trackExtensionsInCPU->totOccupancyTrackExtensions, trackExtensionsInGPU->totOccupancyTrackExtensions, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-       cudaMemcpyAsync(trackExtensionsInCPU->constituentTCTypes, trackExtensionsInGPU->constituentTCTypes, 3 * maxTrackExtensions * sizeof(short), cudaMemcpyDeviceToHost,stream);
-       cudaMemcpyAsync(trackExtensionsInCPU->constituentTCIndices, trackExtensionsInGPU->constituentTCIndices, 3 * maxTrackExtensions * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-
-       cudaMemcpyAsync(trackExtensionsInCPU->nLayerOverlaps, trackExtensionsInGPU->nLayerOverlaps, 2 * maxTrackExtensions * sizeof(uint8_t), cudaMemcpyDeviceToHost, stream);
-       cudaMemcpyAsync(trackExtensionsInCPU->nHitOverlaps, trackExtensionsInGPU->nHitOverlaps, 2 * maxTrackExtensions * sizeof(uint8_t), cudaMemcpyDeviceToHost, stream);
-       cudaMemcpyAsync(trackExtensionsInCPU->isDup, trackExtensionsInGPU->isDup, maxTrackExtensions * sizeof(bool), cudaMemcpyDeviceToHost, stream);
-       cudaMemcpyAsync(trackExtensionsInCPU->regressionRadius, trackExtensionsInGPU->regressionRadius, maxTrackExtensions * sizeof(FPX), cudaMemcpyDeviceToHost, stream);
-       cudaStreamSynchronize(stream);
-   }
-
-   return trackExtensionsInCPU;
 }
 

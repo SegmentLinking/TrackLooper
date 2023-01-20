@@ -562,6 +562,48 @@ __device__ float SDL::computePT3RZChiSquared(struct modules& modulesInGPU, uint1
 //TODO: merge this one and the pT5 function later into a single function
 __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, uint16_t* lowerModuleIndices, float& g, float& f, float& radius, float* xs, float* ys)
 {
+    ModuleType moduleType;
+    short moduleSubdet, moduleSide;
+    float sigmas[3];
+    for(size_t i=0; i <3; i++)
+    {
+        moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
+        moduleSubdet = modulesInGPU.subdets[lowerModuleIndices[i]];
+        moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
+        float& drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
+       
+        //category 1 - barrel PS flat
+        if(moduleSubdet == Barrel and moduleType == PS and moduleSide == Center)
+        {
+            sigmas[i] = 0.0006;
+        }
+        //category 2 - barrel 2S flat
+        else if(moduleSubdet == Barrel and moduleType == TwoS)
+        {
+            sigmas[i] = 0.0006;
+        }
+        //category 3 - barrel PS tilted
+        else if(moduleSubdet == Barrel and moduleType == PS and moduleSide != Center)
+        {
+            sigmas[i] = 0.075 * drdz/sqrt(1+drdz*drdz);
+        }
+        //category 4 - endcap PS
+        else if(moduleSubdet == Endcap and moduleType == PS)
+        {
+            sigmas[i] = 0.075;
+        }
+        //category 5 - endcap 2S
+        else if(moduleSubdet == Endcap and moduleType == TwoS)
+        {
+            sigmas[i] = 2.5;
+        }
+    }
+    float chiSquared = computeChiSquaredpT3(3, xs, ys, sigmas, g, f, radius); //unclear why but the pT3 version doesn't work despite being copy and pasted
+    return chiSquared;
+}
+
+/*__device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, uint16_t* lowerModuleIndices, float& g, float& f, float& radius, float* xs, float* ys)
+{
     float delta1[3], delta2[3], slopes[3];
     bool isFlat[3];
     float chiSquared = 0;
@@ -608,9 +650,9 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, uin
             delta1[i] = inv1;//1.1111f;//0.01;
             isFlat[i] = false;
 
-            /*despite the type of the module layer of the lower module index,
+            despite the type of the module layer of the lower module index,
             all anchor hits are on the pixel side and all non-anchor hits are
-            on the strip side!*/        
+            on the strip side!
             delta2[i] = inv2;//16.6666f;//0.15f;
         }
 
@@ -638,7 +680,7 @@ __device__ float SDL::computePT3RPhiChiSquared(struct modules& modulesInGPU, uin
     chiSquared = computeChiSquaredpT3(3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius); //unclear why but the pT3 version doesn't work despite being copy and pasted
     
     return chiSquared;
-}
+}*/
 
 
 //90pc threshold
@@ -940,16 +982,16 @@ __device__ void SDL::runDeltaBetaIterationspT3(float& betaIn, float& betaOut, fl
     }
 }
 
-__device__ float SDL::computeChiSquaredpT3(int nPoints, float* xs, float* ys, float* delta1, float* delta2, float* slopes, bool* isFlat, float g, float f, float radius)
+__device__ float SDL::computeChiSquaredpT3(int nPoints, float* xs, float* ys, float* sigmas, float g, float f, float radius)
 {
     // given values of (g, f, radius) and a set of points (and its uncertainties)
     //compute chi squared
     float c = g*g + f*f - radius*radius;
     float chiSquared = 0.f;
-    float absArctanSlope, angleM, xPrime, yPrime, sigma;
+//    float absArctanSlope, angleM, xPrime, yPrime, sigma;
     for(size_t i = 0; i < nPoints; i++)
     {
-        absArctanSlope = ((slopes[i] != 123456789) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI)); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
+/*        absArctanSlope = ((slopes[i] != 123456789) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI)); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
         if(xs[i] > 0 and ys[i] > 0)
         {
             angleM = 0.5f*float(M_PI) - absArctanSlope;
@@ -977,8 +1019,8 @@ __device__ float SDL::computeChiSquaredpT3(int nPoints, float* xs, float* ys, fl
             xPrime = xs[i];
             yPrime = ys[i];
         }
-        sigma = 2 * sqrtf((xPrime * delta1[i]) * (xPrime * delta1[i]) + (yPrime * delta2[i]) * (yPrime * delta2[i]));
-        chiSquared +=  (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) * (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) / (sigma * sigma);
+        sigma = 1;//2 * sqrtf((xPrime * delta1[i]) * (xPrime * delta1[i]) + (yPrime * delta2[i]) * (yPrime * delta2[i]));*/
+        chiSquared +=  (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) * (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) / (sigmas[i] * sigmas[i]);
     }
     return chiSquared;
 }
@@ -1997,12 +2039,11 @@ __device__ float SDL::computePT5RPhiChiSquared(struct modules& modulesInGPU, uin
        Compute circle parameters from 3 pixel hits, and then use them to compute the chi squared for the outer hits
     */
 
-    float delta1[5], delta2[5], slopes[5];
-    bool isFlat[5];
+    float sigmas[5];
     float chiSquared = 0;
 
-    computeSigmasForRegression_pT5(modulesInGPU, lowerModuleIndices, delta1, delta2, slopes, isFlat);
-    chiSquared = computeChiSquaredpT5(5, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius);
+    computeSigmasForRegression_pT5(modulesInGPU, lowerModuleIndices, sigmas);
+    chiSquared = computeChiSquaredpT5(5, xs, ys, sigmas, g, f, radius);
 
     return chiSquared;
 }
@@ -2183,115 +2224,46 @@ __device__ float SDL::computePT5RZChiSquared(struct modules& modulesInGPU, uint1
     RMSE = sqrtf(0.2f * RMSE);
     return RMSE;
 }
-__device__ void SDL::computeSigmasForRegression_pT5(SDL::modules& modulesInGPU, const uint16_t* lowerModuleIndices, float* delta1, float* delta2, float* slopes, bool* isFlat, int nPoints, bool anchorHits)
+__device__ void SDL::computeSigmasForRegression_pT5(SDL::modules& modulesInGPU, const uint16_t* lowerModuleIndices, float* sigmas)
 {
-   /*bool anchorHits required to deal with a weird edge case wherein
-     the hits ultimately used in the regression are anchor hits, but the
-     lower modules need not all be Pixel Modules (in case of PS). Similarly,
-     when we compute the chi squared for the non-anchor hits, the "partner module"
-     need not always be a PS strip module, but all non-anchor hits sit on strip
-     modules.
-    */
     ModuleType moduleType;
     short moduleSubdet, moduleSide;
-    float inv1 = 0.01f/0.009f;
-    float inv2 = 0.15f/0.009f;
-    float inv3 = 2.4f/0.009f;
-    for(size_t i=0; i<nPoints; i++)
+
+    for(size_t i=0; i <5; i++)
     {
         moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
         moduleSubdet = modulesInGPU.subdets[lowerModuleIndices[i]];
         moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
         float& drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
-        slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
+       
         //category 1 - barrel PS flat
         if(moduleSubdet == Barrel and moduleType == PS and moduleSide == Center)
         {
-            //delta1[i] = 0.01;
-            //delta2[i] = 0.01;
-            delta1[i] = inv1;//1.1111f;//0.01;
-            delta2[i] = inv1;//1.1111f;//0.01;
-            slopes[i] = -999.f;
-            isFlat[i] = true;
+            sigmas[i] = 0.0006;
         }
-
-        //category 2 - barrel 2S
+        //category 2 - barrel 2S flat
         else if(moduleSubdet == Barrel and moduleType == TwoS)
         {
-            //delta1[i] = 0.009;
-            //delta2[i] = 0.009;
-            delta1[i] = 1.f;//0.009;
-            delta2[i] = 1.f;//0.009;
-            slopes[i] = -999.f;
-            isFlat[i] = true;
+            sigmas[i] = 0.0006;
         }
-
         //category 3 - barrel PS tilted
         else if(moduleSubdet == Barrel and moduleType == PS and moduleSide != Center)
         {
-
-            //delta1[i] = 0.01;
-            delta1[i] = inv1;//1.1111f;//0.01;
-            isFlat[i] = false;
-
-            if(anchorHits)
-            {
-                //delta2[i] = (0.15f * drdz/sqrtf(1 + drdz * drdz));
-                delta2[i] = (inv2 * drdz/sqrtf(1 + drdz * drdz));
-                //delta2[i] = (inv2 * drdz*rsqrt(1 + drdz * drdz));
-            }
-            else
-            {
-                //delta2[i] = (2.4f * drdz/sqrtf(1 + drdz * drdz));
-                delta2[i] = (inv3 * drdz/sqrtf(1 + drdz * drdz));
-                //delta2[i] = (inv3 * drdz*rsqrt(1 + drdz * drdz));
-            }
+            sigmas[i] = 0.075 * drdz/sqrt(1+drdz*drdz);
         }
         //category 4 - endcap PS
         else if(moduleSubdet == Endcap and moduleType == PS)
         {
-            delta1[i] = inv1;//1.1111f;//0.01;
-            //delta1[i] = 0.01;
-            isFlat[i] = false;
-
-            /*despite the type of the module layer of the lower module index,
-            all anchor hits are on the pixel side and all non-anchor hits are
-            on the strip side!*/
-            if(anchorHits)
-            {
-                delta2[i] = inv2;//16.6666f;//0.15f;
-                //delta2[i] = 0.15f;
-            }
-            else
-            {
-                //delta2[i] = 2.4f;
-                delta2[i] = inv3;//266.666f;//2.4f;
-            }
+            sigmas[i] = 0.075;
         }
-
         //category 5 - endcap 2S
         else if(moduleSubdet == Endcap and moduleType == TwoS)
         {
-            //delta1[i] = 0.009;
-            //delta2[i] = 5.f;
-            delta1[i] = 1.f;//0.009;
-            delta2[i] = 500.f*inv1;//555.5555f;//5.f;
-            isFlat[i] = false;
+            sigmas[i] = 2.5;
         }
-#ifdef Warnings
-        else
-        {
-            printf("ERROR!!!!! I SHOULDN'T BE HERE!!!! subdet = %d, type = %d, side = %d\n", moduleSubdet, moduleType, moduleSide);
-        }
-#endif
     }
-    //divide everyone by the smallest possible values of delta1 and delta2
-//    for(size_t i = 0; i < 5; i++)
-//    {
-//        delta1[i] /= 0.009;
-//        delta2[i] /= 0.009;
-//    }
 }
+
 
 __global__ void SDL::createPixelQuintupletsInGPUFromMapv2(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int* connectedPixelSize, unsigned int* connectedPixelIndex, unsigned int nPixelSegments, struct SDL::objectRanges& rangesInGPU)
 {
@@ -2404,7 +2376,7 @@ __device__ bool SDL::checkIntervalOverlappT5(const float& firstMin, const float&
     return ((firstMin <= secondMin) & (secondMin < firstMax)) |  ((secondMin < firstMin) & (firstMin < secondMax));
 }
 
-__device__ float SDL::computeChiSquaredpT5(int nPoints, float* xs, float* ys, float* delta1, float* delta2, float* slopes, bool* isFlat, float g, float f, float radius)
+__device__ float SDL::computeChiSquaredpT5(int nPoints, float* xs, float* ys, float* sigmas, float g, float f, float radius)
 {
     // given values of (g, f, radius) and a set of points (and its uncertainties)
     //compute chi squared
@@ -2413,7 +2385,7 @@ __device__ float SDL::computeChiSquaredpT5(int nPoints, float* xs, float* ys, fl
     float absArctanSlope, angleM, xPrime, yPrime, sigma;
     for(size_t i = 0; i < nPoints; i++)
     {
-        absArctanSlope = ((slopes[i] != 123456789) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI)); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
+/*        absArctanSlope = ((slopes[i] != 123456789) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI)); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
         if(xs[i] > 0 and ys[i] > 0)
         {
             angleM = 0.5f*float(M_PI) - absArctanSlope;
@@ -2440,9 +2412,9 @@ __device__ float SDL::computeChiSquaredpT5(int nPoints, float* xs, float* ys, fl
         {
             xPrime = xs[i];
             yPrime = ys[i];
-        }
-        sigma = 2 * sqrtf((xPrime * delta1[i]) * (xPrime * delta1[i]) + (yPrime * delta2[i]) * (yPrime * delta2[i]));
-        chiSquared +=  (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) * (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) / (sigma * sigma);
+        }*/
+        sigma = 1;//2 * sqrtf((xPrime * delta1[i]) * (xPrime * delta1[i]) + (yPrime * delta2[i]) * (yPrime * delta2[i]));
+        chiSquared +=  (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) * (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) / (sigmas[i] * sigmas[i]);
     }
     return chiSquared;
 }
