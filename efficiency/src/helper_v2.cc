@@ -240,6 +240,16 @@ void initializeInputsAndOutputs()
     std::cout <<  " input: " << input <<  std::endl;
     TNamed input_tnamed("input", input.Data());
     input_tnamed.Write();
+
+
+    ana.do_lower_level = false; // default is false
+    TObjArray* brobjArray = ana.events_tchain->GetListOfBranches();
+    for (unsigned int ibr = 0; ibr < (unsigned int) brobjArray->GetEntries(); ++ibr)
+    {
+        TString brname = brobjArray->At(ibr)->GetName();
+        if (brname.EqualTo("t5_pt"))
+            ana.do_lower_level = true; // if it has the branch it is set to true
+    }
 }
 
 

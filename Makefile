@@ -26,7 +26,6 @@ DOQUINTUPLET = -DFP16_Base -DFP16_dPhi #-DFP16_circle -DFP16_seg -DFP16_T5 #-DDO
 PT0P8       =
 T3T3EXTENSION=
 CUTVALUEFLAG = 
-EFFFLAG=
 CUTVALUEFLAG_FLAGS = -DCUT_VALUE_DEBUG
 
 PRIMITIVEFLAG = 
@@ -36,7 +35,6 @@ all: $(ROOUTIL) efficiency $(EXES)
 
 
 cutvalue: CUTVALUEFLAG = ${CUTVALUEFLAG_FLAGS}
-cutvalue: EFFFLAG=cutvalue
 cutvalue: $(ROOUTIL) efficiency $(EXES)
 
 primitive: PRIMITIVEFLAG = ${PRIMITIVEFLAG_FLAGS}
@@ -60,7 +58,7 @@ $(ROOUTIL):
 	$(MAKE) -C code/rooutil/
 
 efficiency:
-	$(MAKE) $(EFFFLAG) -C efficiency/
+	$(MAKE) -C efficiency/
 
 clean:
 	rm -f $(OBJECTS) bin/*.o $(EXES)
