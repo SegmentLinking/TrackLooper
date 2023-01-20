@@ -708,7 +708,7 @@ def plot_standard_performance_plots(args):
         types = args.objecttype.split(',')
 
     if args.compare:
-        types = objecttype_choices
+        types = args.objecttype.split(',')
 
     if args.selection:
         sels["eff"] = [args.selection]
