@@ -315,32 +315,26 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     if(innerRadius < 1.0/(k2Rinv1GeVf * 2.f))
     {
         temp = (matchRadii_bin1(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, outerRadius));
-//        temp = temp and (matchRadii_inner_v_bridge_bin1(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));
     }
     else if(innerRadius < 1.2/(k2Rinv1GeVf * 2.f))
     {
         temp = (matchRadii_bin2(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, outerRadius));
- //       temp = temp and (matchRadii_inner_v_bridge_bin2(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));
     }
     else if(innerRadius < 1.5/(k2Rinv1GeVf * 2.f))
     {
         temp = (matchRadii_bin3(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, outerRadius));
- //       temp = temp and (matchRadii_inner_v_bridge_bin3(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));
     }
     else if(innerRadius < 2.15/(k2Rinv1GeVf * 2.f))
     {
         temp = (matchRadii_bin4(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, outerRadius));
-  //      temp = temp and (matchRadii_inner_v_bridge_bin4(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));
     }
     else if(innerRadius < 5/(k2Rinv1GeVf * 2.f))
     {
         temp = (matchRadii_bin5(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, outerRadius));
-  //      temp = temp and (matchRadii_inner_v_bridge_bin5(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));
     }
     else
     {
          temp = (matchRadii_bin6(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, outerRadius));  
-    //     temp = temp and (matchRadii_inner_v_bridge_bin6(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, bridgeRadius));  
     }
     pass = pass and temp;
     if(not pass) return pass;
@@ -358,7 +352,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     regressionRadius = computeRadiusUsingRegression(5,xVec, yVec, regressionG, regressionF, sigmas, chiSquared);
 
     //chi squared calibration
-  /* 
+   
     if(innerRadius < 5/(k2Rinv1GeVf * 2.f))
     {
         pass = pass and passChiSquared_bin1(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, chiSquared);
@@ -366,7 +360,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     else
     {
          pass = pass and passChiSquared_bin2(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, chiSquared);  
-    }*/
+    }
 
 
     //compute the other chisquared
@@ -380,73 +374,56 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     return pass;
 }
 
-
-__device__ bool SDL::passChiSquared_bin1(struct SDL::modules& modulesInGPU, float& eta, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rPhiChiSquared)
+__device__ bool SDL::passChiSquared_bin1(struct SDL::modules& modulesInGPU, float& eta, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5,  float& rPhiChiSquared)
 {
     const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
     const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
     const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
     const int layer4 = modulesInGPU.layers[lowerModuleIndex4] + 6 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex4] == SDL::TwoS);
     const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
-    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 16)
-    {
-        return rPhiChiSquared < 24288.676060243808;
-    }
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
     {
-        return rPhiChiSquared < 73431.82522418901;
+        return rPhiChiSquared < 5.031762788100783;
     }
     if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
     {
-        return rPhiChiSquared < 36440.13849387184;
-    }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 14)
-    {
-        return rPhiChiSquared < 41460.646989336135;
+        return rPhiChiSquared < 5.416917122630329;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
-        return rPhiChiSquared < 44634.23616132676;
-    }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 13)
-    {
-        return rPhiChiSquared < 35120.767889290655;
+        return rPhiChiSquared < 5.7250095448075236;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 12 and layer5 == 13)
     {
-        return rPhiChiSquared < 74798.40398647501;
+        return rPhiChiSquared < 7.832715478914997;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 12)
     {
-        return rPhiChiSquared < 63360.74267181718;
+        return rPhiChiSquared < 35774.37135571886;
     }
     if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
     {
-        return rPhiChiSquared < 15318.055633514412;
-    }
-    if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
-    {
-        return rPhiChiSquared < 63360.74267181718;
+        return rPhiChiSquared < 2.001334852973475;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
-        return rPhiChiSquared < 57780.35676614198;
+        return rPhiChiSquared < 5.620412707965477;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 12 and layer5 == 13)
     {
-        return rPhiChiSquared < 120809.34770040761;
+        return rPhiChiSquared < 53672.050444420565;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 12)
     {
-        return rPhiChiSquared < 86687.48340013086;
+        return rPhiChiSquared < 83548.83129532362;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) < 0.5)
     {
-        return rPhiChiSquared < 52691.453528489714;
+        return rPhiChiSquared < 127680.49667907109;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) < 0.5)
     {
-        return rPhiChiSquared < 171495.4853115175;
+        return rPhiChiSquared < 315149.7419212889;
     }
     return true;
 }
@@ -459,82 +436,71 @@ __device__ bool SDL::passChiSquared_bin2(struct SDL::modules& modulesInGPU, floa
     const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 16)
     {
-        return rPhiChiSquared < 70773.11437275149;
+        return rPhiChiSquared < 4.032961377557353;
     }
     if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
     {
-        return rPhiChiSquared < 32623.60655594575;
-    }
-    if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 10)
-    {
-        return rPhiChiSquared < 18762.544296959917;
-    }
-    if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
-    {
-        return rPhiChiSquared < 104240.49747675558;
+        return rPhiChiSquared < 0.42525270611347227;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 9)
     {
-        return rPhiChiSquared < 9840.370498616949;
+        return rPhiChiSquared < 1.1942507821646107;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 14)
     {
-        return rPhiChiSquared < 32623.60655594575;
+        return rPhiChiSquared < 2.2354646501116098;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
-        return rPhiChiSquared < 202453.2549851752;
+        return rPhiChiSquared < 2.3194436324685723;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 13)
     {
-        return rPhiChiSquared < 153534.02786503683;
+        return rPhiChiSquared < 7.549120108972408;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 12 and layer5 == 13)
     {
-        return rPhiChiSquared < 198754.4017493704;
-    }
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 12)
-    {
-        return rPhiChiSquared < 184622.5408388927;
+        return rPhiChiSquared < 6.163228183933375;
     }
     if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
     {
-        return rPhiChiSquared < 37118.2956717501;
+        return rPhiChiSquared < 2.1946223546632195;
     }
     if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
     {
-        return rPhiChiSquared < 106180.43087194151;
+        return rPhiChiSquared < 2.001334852973475;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
     {
-        return rPhiChiSquared < 198754.4017493704;
+        return rPhiChiSquared < 2.2354646501116098;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 12 and layer5 == 13)
     {
-        return rPhiChiSquared < 171495.4853115175;
+        return rPhiChiSquared < 108156.4667577031;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 12)
     {
-        return rPhiChiSquared < 114307.97084446455;
+        return rPhiChiSquared < 79052.63585627917;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) < 0.5)
     {
-        return rPhiChiSquared < 41460.646989336135;
+        return rPhiChiSquared < 62203.13180469721;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) > 0.5)
     {
-        return rPhiChiSquared < 31442.419291452323;
+        return rPhiChiSquared < 35774.37135571886;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) < 0.5)
     {
-        return rPhiChiSquared < 114307.97084446455;
+        return rPhiChiSquared < 247977.82797003535;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) > 0.5)
     {
-        return rPhiChiSquared < 206220.94450908038;
+        return rPhiChiSquared < 198754.4017493704;
     }
     return true;
 }
+
 
 /*__device__ float SDL::computeT5RZChiSquared(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5)
 {
@@ -2594,38 +2560,8 @@ __device__ float SDL::computeChiSquared(int nPoints, float* xs, float* ys, float
     //compute chi squared
     float c = g*g + f*f - radius*radius;
     float chiSquared = 0.f;
-    float sigma;
     for(size_t i = 0; i < nPoints; i++)
     {
-/*        absArctanSlope = ((slopes[i] != 123456789) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI)); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
-        if(xs[i] > 0 and ys[i] > 0)
-        {
-            angleM = 0.5f*float(M_PI) - absArctanSlope;
-        }
-        else if(xs[i] < 0 and ys[i] > 0)
-        {
-            angleM = absArctanSlope + 0.5f*float(M_PI);
-        }
-        else if(xs[i] < 0 and ys[i] < 0)
-        {
-            angleM = -(absArctanSlope + 0.5f*float(M_PI));
-        }
-        else if(xs[i] > 0 and ys[i] < 0)
-        {
-            angleM = -(0.5f*float(M_PI) - absArctanSlope);
-        }
-
-        if(not isFlat[i])
-        {
-            xPrime = xs[i] * cosf(angleM) + ys[i] * sinf(angleM);
-            yPrime = ys[i] * cosf(angleM) - xs[i] * sinf(angleM);
-        }
-        else
-        {
-            xPrime = xs[i];
-            yPrime = ys[i];
-        }
-        sigma = 1;//2 * sqrtf((xPrime * delta1[i]) * (xPrime * delta1[i]) + (yPrime * delta2[i]) * (yPrime * delta2[i]));*/
         chiSquared +=  (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) * (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) / (sigmas[i] * sigmas[i]);
     }
     return chiSquared; 

@@ -915,7 +915,7 @@ __global__ void SDL::createPixelTripletsInGPUFromMapv2(struct SDL::modules& modu
                 float eta_pix = segmentsInGPU.eta[i_pLS];
                 float phi_pix = segmentsInGPU.phi[i_pLS];
                 float pt = segmentsInGPU.ptIn[i_pLS];
-                float score = rPhiChiSquared+rPhiChiSquaredInwards;
+                float score = rPhiChiSquared;
                 unsigned int totOccupancyPixelTriplets = atomicAdd(pixelTripletsInGPU.totOccupancyPixelTriplets, 1);
                 if(totOccupancyPixelTriplets >= N_MAX_PIXEL_TRIPLETS)
                 {
@@ -1770,6 +1770,11 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
 
     rPhiChiSquared = computePT5RPhiChiSquared(modulesInGPU, lowerModuleIndices, centerX, centerY, pixelRadius, xs, ys);
 
+    float xPix[] = {mdsInGPU.anchorX[pixelInnerMDIndex], mdsInGPU.anchorX[pixelOuterMDIndex]};
+    float yPix[] = {mdsInGPU.anchorY[pixelInnerMDIndex], mdsInGPU.anchorY[pixelOuterMDIndex]};
+    rPhiChiSquaredInwards = computePT5RPhiChiSquaredInwards(modulesInGPU, T5CenterX, T5CenterY, quintupletRadius, xPix, yPix);
+
+
 /*    if(pixelRadius < 5.0f * kR1GeVf)
     {
         pass = pass and passPT5RPhiChiSquaredCuts(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rPhiChiSquared);
@@ -1778,7 +1783,6 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
 
     float xPix[] = {mdsInGPU.anchorX[pixelInnerMDIndex], mdsInGPU.anchorX[pixelOuterMDIndex]};
     float yPix[] = {mdsInGPU.anchorY[pixelInnerMDIndex], mdsInGPU.anchorY[pixelOuterMDIndex]};
-    rPhiChiSquaredInwards = computePT5RPhiChiSquaredInwards(modulesInGPU, T5CenterX, T5CenterY, quintupletRadius, xPix, yPix);
 
     if(quintupletRadius < 5.0f * kR1GeVf)
     {
@@ -2239,27 +2243,27 @@ __device__ void SDL::computeSigmasForRegression_pT5(SDL::modules& modulesInGPU, 
         //category 1 - barrel PS flat
         if(moduleSubdet == Barrel and moduleType == PS and moduleSide == Center)
         {
-            sigmas[i] = 0.0006;
+            sigmas[i] = 1.f;
         }
         //category 2 - barrel 2S flat
         else if(moduleSubdet == Barrel and moduleType == TwoS)
         {
-            sigmas[i] = 0.0006;
+            sigmas[i] = 1.f;
         }
         //category 3 - barrel PS tilted
         else if(moduleSubdet == Barrel and moduleType == PS and moduleSide != Center)
         {
-            sigmas[i] = 0.075 * drdz/sqrt(1+drdz*drdz);
+            sigmas[i] = (0.075/0.0006) * drdz/sqrt(1+drdz*drdz);
         }
         //category 4 - endcap PS
         else if(moduleSubdet == Endcap and moduleType == PS)
         {
-            sigmas[i] = 0.075;
+            sigmas[i] = 0.075/0.0006;
         }
         //category 5 - endcap 2S
         else if(moduleSubdet == Endcap and moduleType == TwoS)
         {
-            sigmas[i] = 2.5;
+            sigmas[i] = 2.5/0.0006;
         }
     }
 }
@@ -2313,7 +2317,7 @@ __global__ void SDL::createPixelQuintupletsInGPUFromMapv2(struct SDL::modules& m
                     float eta = __H2F(quintupletsInGPU.eta[quintupletIndex]);
                     float phi = __H2F(quintupletsInGPU.phi[quintupletIndex]);
 
-                    addPixelQuintupletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards, rPhiChiSquared, eta, phi, pixelRadius, quintupletRadius, centerX, centerY);
+                    addPixelQuintupletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards,rPhiChiSquaredInwards+rPhiChiSquared, eta, phi, pixelRadius, quintupletRadius, centerX, centerY);
 
                     tripletsInGPU.partOfPT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex]] = true;
                     tripletsInGPU.partOfPT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1]] = true;
@@ -2382,38 +2386,8 @@ __device__ float SDL::computeChiSquaredpT5(int nPoints, float* xs, float* ys, fl
     //compute chi squared
     float c = g*g + f*f - radius*radius;
     float chiSquared = 0.f;
-    float absArctanSlope, angleM, xPrime, yPrime, sigma;
     for(size_t i = 0; i < nPoints; i++)
     {
-/*        absArctanSlope = ((slopes[i] != 123456789) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI)); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
-        if(xs[i] > 0 and ys[i] > 0)
-        {
-            angleM = 0.5f*float(M_PI) - absArctanSlope;
-        }
-        else if(xs[i] < 0 and ys[i] > 0)
-        {
-            angleM = absArctanSlope + 0.5f*float(M_PI);
-        }
-        else if(xs[i] < 0 and ys[i] < 0)
-        {
-            angleM = -(absArctanSlope + 0.5f*float(M_PI));
-        }
-        else if(xs[i] > 0 and ys[i] < 0)
-        {
-            angleM = -(0.5f*float(M_PI) - absArctanSlope);
-        }
-
-        if(not isFlat[i])
-        {
-            xPrime = xs[i] * cosf(angleM) + ys[i] * sinf(angleM);
-            yPrime = ys[i] * cosf(angleM) - xs[i] * sinf(angleM);
-        }
-        else
-        {
-            xPrime = xs[i];
-            yPrime = ys[i];
-        }*/
-        sigma = 1;//2 * sqrtf((xPrime * delta1[i]) * (xPrime * delta1[i]) + (yPrime * delta2[i]) * (yPrime * delta2[i]));
         chiSquared +=  (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) * (xs[i] * xs[i] + ys[i] * ys[i] - 2 * g * xs[i] - 2 * f * ys[i] + c) / (sigmas[i] * sigmas[i]);
     }
     return chiSquared;
