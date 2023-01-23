@@ -10,9 +10,8 @@ void createOutputBranches()
 //________________________________________________________________________________________________________________________________
 void fillOutputBranches(SDL::Event* event)
 {
-    int n_accepted_simtrk = 0;
-    setOutputBranches(event, n_accepted_simtrk);
-    setOptionalOutputBranches(event, n_accepted_simtrk);
+    setOutputBranches(event);
+    setOptionalOutputBranches(event);
 
     // Now actually fill the ttree
     ana.tx->fill();
@@ -139,11 +138,11 @@ void createOptionalOutputBranches()
 }
 
 //________________________________________________________________________________________________________________________________
-void setOutputBranches(SDL::Event* event, int& n_accepted_simtrk)
+void setOutputBranches(SDL::Event* event)
 {
 
     // ============ Sim tracks =============
-    n_accepted_simtrk = 0;
+    int n_accepted_simtrk = 0;
     for (unsigned int isimtrk = 0; isimtrk < trk.sim_pt().size(); ++isimtrk)
     {
         // Skip out-of-time pileup
@@ -244,24 +243,26 @@ void setOutputBranches(SDL::Event* event, int& n_accepted_simtrk)
 }
 
 //________________________________________________________________________________________________________________________________
-void setOptionalOutputBranches(SDL::Event* event, const int n_accepted_simtrk)
+void setOptionalOutputBranches(SDL::Event* event)
 {
 #ifdef CUT_VALUE_DEBUG
 
-    setPixelQuintupletOutputBranches(event, n_accepted_simtrk);
-    setQuintupletOutputBranches(event, n_accepted_simtrk);
-    setPixelTripletOutputBranches(event, n_accepted_simtrk);
+    setPixelQuintupletOutputBranches(event);
+    setQuintupletOutputBranches(event);
+    setPixelTripletOutputBranches(event);
 
 #endif
 }
 
-void setPixelQuintupletOutputBranches(SDL::Event* event, const int n_accepted_simtrk)
+//________________________________________________________________________________________________________________________________
+void setPixelQuintupletOutputBranches(SDL::Event* event)
 {
     // ============ pT5 =============
     SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
     SDL::quintuplets& quintupletsInGPU = (*event->getQuintuplets());
     SDL::segments& segmentsInGPU = (*event->getSegments());
     SDL::modules& modulesInGPU = (*event->getModules());
+    int n_accepted_simtrk = ana.tx->getBranch<vector<int>>("sim_TC_matched").size();
 
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
 
@@ -283,7 +284,7 @@ void setPixelQuintupletOutputBranches(SDL::Event* event, const int n_accepted_si
 
         int layer_binary = 1;
         int moduleType_binary = 0;
-        for(size_t i = 0; i < module_idx.size(); i+=2)
+        for (size_t i = 0; i < module_idx.size(); i += 2)
         {
             layer_binary |= (1 << (modulesInGPU.layers[module_idx[i]] + 6 * (modulesInGPU.subdets[module_idx[i]] == 4)));
             moduleType_binary |=  (modulesInGPU.moduleType[module_idx[i]] << i);  
@@ -340,12 +341,14 @@ void setPixelQuintupletOutputBranches(SDL::Event* event, const int n_accepted_si
 
 }
 
-void setQuintupletOutputBranches(SDL::Event* event, const int n_accepted_simtrk)
+//________________________________________________________________________________________________________________________________
+void setQuintupletOutputBranches(SDL::Event* event)
 {
     SDL::quintuplets& quintupletsInGPU = (*event->getQuintuplets());
     SDL::objectRanges& rangesInGPU = (*event->getRanges());
     SDL::modules& modulesInGPU = (*event->getModules());
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
+    int n_accepted_simtrk = ana.tx->getBranch<vector<int>>("sim_TC_matched").size();
 
     std::vector<int> sim_t5_matched(n_accepted_simtrk);
     std::vector<std::vector<int>> t5_matched_simIdx;
@@ -353,7 +356,7 @@ void setQuintupletOutputBranches(SDL::Event* event, const int n_accepted_simtrk)
     for (unsigned int lowerModuleIdx = 0; lowerModuleIdx < *(modulesInGPU.nLowerModules); ++lowerModuleIdx)
     {
         unsigned int nQuintuplets = quintupletsInGPU.nQuintuplets[lowerModuleIdx];
-        for(unsigned int idx = 0; idx < nQuintuplets; idx++)
+        for (unsigned int idx = 0; idx < nQuintuplets; idx++)
         {
             unsigned int quintupletIndex = rangesInGPU.quintupletModuleIndices[lowerModuleIdx] + idx;
             float pt = quintupletsInGPU.innerRadius[quintupletIndex] * kRinv1GeVf;
@@ -366,7 +369,7 @@ void setQuintupletOutputBranches(SDL::Event* event, const int n_accepted_simtrk)
 
             int layer_binary = 0;
             int moduleType_binary = 0;
-            for(size_t i = 0; i < module_idx.size(); i+=2)
+            for (size_t i = 0; i < module_idx.size(); i += 2)
             {
                 layer_binary |= (1 << (modulesInGPU.layers[module_idx[i]] + 6 * (modulesInGPU.subdets[module_idx[i]] == 4)));
                 moduleType_binary |=  (modulesInGPU.moduleType[module_idx[i]] << i);  
@@ -388,7 +391,7 @@ void setQuintupletOutputBranches(SDL::Event* event, const int n_accepted_simtrk)
 
             t5_matched_simIdx.push_back(simidx);
 
-            for(auto &simtrk:simidx)
+            for (auto &simtrk : simidx)
             {
                if(simtrk < n_accepted_simtrk)
                {
@@ -399,10 +402,10 @@ void setQuintupletOutputBranches(SDL::Event* event, const int n_accepted_simtrk)
     }
 
     vector<int> t5_isDuplicate(t5_matched_simIdx.size());
-    for(unsigned int i = 0; i < t5_matched_simIdx.size(); i++)
+    for (unsigned int i = 0; i < t5_matched_simIdx.size(); i++)
     {
         bool isDuplicate = false;
-        for(unsigned int isim = 0; isim < t5_matched_simIdx[i].size(); isim++)
+        for (unsigned int isim = 0; isim < t5_matched_simIdx[i].size(); isim++)
         {
             int simidx = t5_matched_simIdx[i][isim];
             if(simidx < n_accepted_simtrk)
@@ -420,20 +423,23 @@ void setQuintupletOutputBranches(SDL::Event* event, const int n_accepted_simtrk)
     ana.tx->setBranch<vector<int>>("t5_isDuplicate", t5_isDuplicate);
 }
 
-void setPixelTripletOutputBranches(SDL::Event* event, const int n_accepted_simtrk)
+//________________________________________________________________________________________________________________________________
+void setPixelTripletOutputBranches(SDL::Event* event)
 {
     SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
     SDL::triplets& tripletsInGPU = *(event->getTriplets());
     SDL::modules& modulesInGPU = *(event->getModules());
     SDL::segments& segmentsInGPU = *(event->getSegments());
     SDL::hits& hitsInGPU = *(event->getHits());
+    int n_accepted_simtrk = ana.tx->getBranch<vector<int>>("sim_TC_matched").size();
+
     unsigned int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets;
     std::vector<int> sim_pT3_matched(n_accepted_simtrk);
     std::vector<std::vector<int>> pT3_matched_simIdx;
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     const float k2Rinv1GeVf = kRinv1GeVf / 2.;
 
-    for(unsigned int pT3 = 0; pT3 < nPixelTriplets; pT3++)
+    for (unsigned int pT3 = 0; pT3 < nPixelTriplets; pT3++)
     {
         unsigned int T3Index = getT3FrompT3(event, pT3);
         unsigned int pLSIndex = getPixelLSFrompT3(event, pT3);
@@ -457,7 +463,7 @@ void setPixelTripletOutputBranches(SDL::Event* event, const int n_accepted_simtr
         std::vector<unsigned int> module_idx = getModuleIdxsFrompT3(event, pT3);
         int layer_binary = 1;
         int moduleType_binary = 0;
-        for(size_t i = 0; i < module_idx.size(); i+=2)
+        for (size_t i = 0; i < module_idx.size(); i += 2)
         {
             layer_binary |= (1 << (modulesInGPU.layers[module_idx[i]] + 6 * (modulesInGPU.subdets[module_idx[i]] == 4)));
             moduleType_binary |=  (modulesInGPU.moduleType[module_idx[i]] << i);  
@@ -471,7 +477,7 @@ void setPixelTripletOutputBranches(SDL::Event* event, const int n_accepted_simtr
 
         pT3_matched_simIdx.push_back(simidx);
 
-        for(auto &idx:simidx)
+        for (auto &idx : simidx)
         {
             if (idx < n_accepted_simtrk)
             {
@@ -481,10 +487,10 @@ void setPixelTripletOutputBranches(SDL::Event* event, const int n_accepted_simtr
     }
 
     vector<int> pT3_isDuplicate(pT3_matched_simIdx.size());
-    for(unsigned int i = 0; i < pT3_matched_simIdx.size(); i++)
+    for (unsigned int i = 0; i < pT3_matched_simIdx.size(); i++)
     {
         bool isDuplicate = true;
-        for(unsigned int isim = 0; isim < pT3_matched_simIdx[i].size(); isim++)
+        for (unsigned int isim = 0; isim < pT3_matched_simIdx[i].size(); isim++)
         {
             int simidx = pT3_matched_simIdx[i][isim];
             if (simidx < n_accepted_simtrk)
