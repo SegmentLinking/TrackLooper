@@ -10,7 +10,6 @@
 void SDL::miniDoublets::resetMemory(unsigned int nMemoryLocationsx, unsigned int nLowerModules,cudaStream_t stream)
 
 {
-    //unsigned int nMemoryLocations = maxMDsPerModule * nLowerModules + maxPixelMDs;
     cudaMemsetAsync(anchorHitIndices,0, nMemoryLocationsx * 3 * sizeof(unsigned int),stream);
     cudaMemsetAsync(dphichanges,0, nMemoryLocationsx * 9 * sizeof(float),stream);
     cudaMemsetAsync(nMDs,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
@@ -18,7 +17,7 @@ void SDL::miniDoublets::resetMemory(unsigned int nMemoryLocationsx, unsigned int
 }
 
 
-void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, uint16_t& nLowerModules, unsigned int& nTotalMDs, cudaStream_t stream, const unsigned int& maxMDsPerModule, const unsigned int& maxPixelMDs)
+void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, uint16_t& nLowerModules, unsigned int& nTotalMDs, cudaStream_t stream, const unsigned int& maxPixelMDs)
 {
     /*
         write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!*/
@@ -68,8 +67,6 @@ void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges&
         if (category_number == 3 && eta_number == 1) occupancy = 14;
         if (category_number == 3 && eta_number == 2) occupancy = 20;
         if (category_number == 3 && eta_number == 3) occupancy = 25;
-
-        // occupancy = maxMDsPerModule;
 
         nTotalMDs += occupancy;
     }
@@ -259,8 +256,8 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
             shiftedZ = zUpper;
             shiftedRt = sqrt(xn * xn + yn * yn);
 
-            dPhi = deltaPhi(xLower,yLower,zLower,shiftedX, shiftedY, shiftedZ); //function from Hit.cu
-            noShiftedDphi = deltaPhi(xLower, yLower, zLower, xUpper, yUpper, zUpper);
+            dPhi = deltaPhi(xLower,yLower,shiftedX, shiftedY); //function from Hit.cu
+            noShiftedDphi = deltaPhi(xLower, yLower, xUpper, yUpper);
         }
         else
         {
@@ -268,14 +265,14 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
             shiftedY = yn;
             shiftedZ = zLower;
             shiftedRt = sqrt(xn * xn + yn * yn);
-            dPhi = deltaPhi(shiftedX, shiftedY, shiftedZ, xUpper, yUpper, zUpper);
-            noShiftedDphi = deltaPhi(xLower,yLower,zLower,xUpper,yUpper,zUpper);
+            dPhi = deltaPhi(shiftedX, shiftedY, xUpper, yUpper);
+            noShiftedDphi = deltaPhi(xLower,yLower,xUpper,yUpper);
 
         }
     }
     else
     {
-        dPhi = deltaPhi(xLower, yLower, zLower, xUpper, yUpper, zUpper);
+        dPhi = deltaPhi(xLower, yLower, xUpper, yUpper);
         noShiftedDphi = dPhi;
     }
 
@@ -297,8 +294,8 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
             // setDeltaPhiChange(lowerHit.rt() < upperHitMod.rt() ? lowerHit.deltaPhiChange(upperHitMod) : upperHitMod.deltaPhiChange(lowerHit));
 
 
-            dPhiChange = (rtLower < shiftedRt) ? deltaPhiChange(xLower, yLower, zLower, shiftedX, shiftedY, shiftedZ) : deltaPhiChange(shiftedX, shiftedY, shiftedZ, xLower, yLower, zLower); 
-            noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange(xLower,yLower, zLower, xUpper, yUpper, zUpper) : deltaPhiChange(xUpper, yUpper, zUpper, xLower, yLower, zLower);
+            dPhiChange = (rtLower < shiftedRt) ? deltaPhiChange(xLower, yLower, shiftedX, shiftedY) : deltaPhiChange(shiftedX, shiftedY, xLower, yLower); 
+            noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange(xLower,yLower, xUpper, yUpper) : deltaPhiChange(xUpper, yUpper, xLower, yLower);
         }
         else
         {
@@ -307,14 +304,14 @@ __device__  bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInG
             // (i.e. the strip hit is shifted to be aligned in the line of sight from interaction point to pixel hit of PS module guaranteeing rt ordering)
             // But I still placed this check for safety. (TODO: After cheking explicitly if not needed remove later?)
 
-            dPhiChange = (shiftedRt < rtUpper) ? deltaPhiChange(shiftedX, shiftedY, shiftedZ, xUpper, yUpper, zUpper) : deltaPhiChange(xUpper, yUpper, zUpper, shiftedX, shiftedY, shiftedZ);
-            noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange(xLower,yLower, zLower, xUpper, yUpper, zUpper) : deltaPhiChange(xUpper, yUpper, zUpper, xLower, yLower, zLower);
+            dPhiChange = (shiftedRt < rtUpper) ? deltaPhiChange(shiftedX, shiftedY, xUpper, yUpper) : deltaPhiChange(xUpper, yUpper, shiftedX, shiftedY);
+            noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange(xLower,yLower, xUpper, yUpper) : deltaPhiChange(xUpper, yUpper, xLower, yLower);
         }
     }
     else
     {
         // When it is flat lying module, whichever is the lowerSide will always have rt lower
-        dPhiChange = deltaPhiChange(xLower, yLower, zLower, xUpper, yUpper, zUpper);
+        dPhiChange = deltaPhiChange(xLower, yLower, xUpper, yUpper);
         noShiftedDphiChange = dPhiChange;
     }
 
@@ -367,8 +364,8 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGP
             shiftedX = xn;
             shiftedY = yn;
             shiftedZ = zUpper;
-            dPhi = deltaPhi(xLower, yLower, zLower, shiftedX, shiftedY, shiftedZ);
-            noShiftedDphi = deltaPhi(xLower, yLower, zLower, xUpper, yUpper, zUpper);
+            dPhi = deltaPhi(xLower, yLower, shiftedX, shiftedY);
+            noShiftedDphi = deltaPhi(xLower, yLower, xUpper, yUpper);
         }
         else
         {
@@ -378,8 +375,8 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGP
             shiftedX = xn;
             shiftedY = yn;
             shiftedZ = zLower;
-            dPhi = deltaPhi(shiftedX, shiftedY, shiftedZ, xUpper, yUpper, zUpper);
-            noShiftedDphi = deltaPhi(xLower, yLower, zLower, xUpper, yUpper, zUpper);
+            dPhi = deltaPhi(shiftedX, shiftedY, xUpper, yUpper);
+            noShiftedDphi = deltaPhi(xLower, yLower, xUpper, yUpper);
         }
     }
     else
@@ -387,8 +384,8 @@ __device__ bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGP
         shiftedX = xn;
         shiftedY = yn;
         shiftedZ = zUpper;
-        dPhi = deltaPhi(xLower, yLower, zLower, xn, yn, zUpper);
-        noShiftedDphi = deltaPhi(xLower, yLower, zLower, xUpper, yUpper, zUpper);
+        dPhi = deltaPhi(xLower, yLower, xn, yn);
+        noShiftedDphi = deltaPhi(xLower, yLower, xUpper, yUpper);
     }
 
     // dz needs to change if it is a PS module where the strip hits are shifted in order to properly account for the case when a tilted module falls under "endcap logic"

@@ -9,6 +9,7 @@
 #include <streambuf>
 #include <iostream>
 #include <cppitertools/enumerate.hpp>
+#include <unistd.h>
 
 #include "trktree.h"
 #include "rooutil.h"
@@ -34,7 +35,5 @@
 
 // Main code
 void run_sdl();
-// Write metadata
-void writeMetaData();
 
 #endif

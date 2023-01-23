@@ -6,6 +6,7 @@
 void SDL::trackCandidates::resetMemory(unsigned int maxTrackCandidates,cudaStream_t stream)
 {
     cudaMemsetAsync(trackCandidateType,0, maxTrackCandidates * sizeof(short),stream);
+    cudaMemsetAsync(directObjectIndices, 0, maxTrackCandidates * sizeof(unsigned int),stream);
     cudaMemsetAsync(objectIndices, 0,2 * maxTrackCandidates * sizeof(unsigned int),stream);
     cudaMemsetAsync(nTrackCandidates, 0,sizeof(unsigned int),stream);
     cudaMemsetAsync(nTrackCandidatespT3, 0,sizeof(unsigned int),stream);
@@ -28,6 +29,7 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     int dev;
     cudaGetDevice(&dev);
     trackCandidatesInGPU.trackCandidateType = (short*)cms::cuda::allocate_device(dev,maxTrackCandidates * sizeof(short),stream);
+    trackCandidatesInGPU.directObjectIndices = (unsigned int*)cms::cuda::allocate_device(dev,maxTrackCandidates * sizeof(unsigned int),stream);
     trackCandidatesInGPU.objectIndices = (unsigned int*)cms::cuda::allocate_device(dev,maxTrackCandidates * 2*sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidates= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
     trackCandidatesInGPU.nTrackCandidatespT3= (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int),stream);
@@ -45,6 +47,7 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
 
 #else
     cudaMalloc(&trackCandidatesInGPU.trackCandidateType, maxTrackCandidates * sizeof(short));
+    cudaMalloc(&trackCandidatesInGPU.directObjectIndices, maxTrackCandidates * sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.objectIndices, 2 * maxTrackCandidates * sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.nTrackCandidates, sizeof(unsigned int));
     cudaMalloc(&trackCandidatesInGPU.nTrackCandidatespT3, sizeof(unsigned int));
@@ -72,16 +75,18 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     cudaStreamSynchronize(stream);
 }
 
-__device__ void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, unsigned int trackCandidateIndex)
+__device__ void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, unsigned int trackCandidateIndex, unsigned int directObjectIndex)
 {
     trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = trackCandidateType;
+    trackCandidatesInGPU.directObjectIndices[trackCandidateIndex] = directObjectIndex;
     trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex] = innerTrackletIndex;
     trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1] = outerTrackletIndex;
 }
 
-__device__ void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, uint8_t* logicalLayerIndices, uint16_t* lowerModuleIndices, unsigned int* hitIndices, float centerX, float centerY, float radius, unsigned int trackCandidateIndex)
+__device__ void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, uint8_t* logicalLayerIndices, uint16_t* lowerModuleIndices, unsigned int* hitIndices, float centerX, float centerY, float radius, unsigned int trackCandidateIndex, unsigned int directObjectIndex)
 {
     trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = trackCandidateType;
+    trackCandidatesInGPU.directObjectIndices[trackCandidateIndex] = directObjectIndex;
     trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex] = innerTrackletIndex;
     trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1] = outerTrackletIndex;
     
@@ -105,6 +110,7 @@ __device__ void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCand
 SDL::trackCandidates::trackCandidates()
 {
     trackCandidateType = nullptr;
+    directObjectIndices = nullptr;
     objectIndices = nullptr;
     nTrackCandidates = nullptr;
     nTrackCandidatesT5 = nullptr;
@@ -131,6 +137,7 @@ void SDL::trackCandidates::freeMemoryCache()
     cudaGetDevice(&dev);
     //FIXME
     //cudaFree(trackCandidateType);
+    cms::cuda::free_device(dev,directObjectIndices);
     cms::cuda::free_device(dev,objectIndices);
     cms::cuda::free_device(dev,trackCandidateType);
     cms::cuda::free_device(dev,nTrackCandidates);
@@ -150,6 +157,7 @@ void SDL::trackCandidates::freeMemoryCache()
 void SDL::trackCandidates::freeMemory(cudaStream_t stream)
 {
     cudaFree(trackCandidateType);
+    cudaFree(directObjectIndices);
     cudaFree(objectIndices);
     cudaFree(nTrackCandidates);
     cudaFree(nTrackCandidatespT3);
@@ -183,7 +191,7 @@ __global__ void SDL::addpT5asTrackCandidateInGPU(struct SDL::modules& modulesInG
 
         float radius = 0.5f*(__H2F(pixelQuintupletsInGPU.pixelRadius[pixelQuintupletIndex]) + __H2F(pixelQuintupletsInGPU.quintupletRadius[pixelQuintupletIndex]));
         addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex], pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], &pixelQuintupletsInGPU.logicalLayers[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.lowerModuleIndices[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.hitIndices[14 * pixelQuintupletIndex], __H2F(pixelQuintupletsInGPU.centerX[pixelQuintupletIndex]),
-                            __H2F(pixelQuintupletsInGPU.centerY[pixelQuintupletIndex]),radius , trackCandidateIdx);
+                            __H2F(pixelQuintupletsInGPU.centerY[pixelQuintupletIndex]),radius , trackCandidateIdx, pixelQuintupletIndex);
     }
 }
 
@@ -339,7 +347,7 @@ __global__ void SDL::addpT3asTrackCandidatesInGPU(struct SDL::pixelTriplets& pix
         atomicAdd(trackCandidatesInGPU.nTrackCandidatespT3,1);
     
         float radius = 0.5f * (__H2F(pixelTripletsInGPU.pixelRadius[pixelTripletIndex]) + __H2F(pixelTripletsInGPU.tripletRadius[pixelTripletIndex]));
-        addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, &pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex], &pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex], &pixelTripletsInGPU.hitIndices[10 * pixelTripletIndex], __H2F(pixelTripletsInGPU.centerX[pixelTripletIndex]), __H2F(pixelTripletsInGPU.centerY[pixelTripletIndex]),radius,trackCandidateIdx);
+        addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, &pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex], &pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex], &pixelTripletsInGPU.hitIndices[10 * pixelTripletIndex], __H2F(pixelTripletsInGPU.centerX[pixelTripletIndex]), __H2F(pixelTripletsInGPU.centerY[pixelTripletIndex]),radius,trackCandidateIdx, pixelTripletIndex);
     }    
 
 }
@@ -361,7 +369,7 @@ __global__ void SDL::addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGP
             unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
             atomicAdd(trackCandidatesInGPU.nTrackCandidatesT5,1);
     
-            addTrackCandidateToMemory(trackCandidatesInGPU, 4/*track candidate type T5=4*/, quintupletIndex, quintupletIndex, &quintupletsInGPU.logicalLayers[5 * quintupletIndex], &quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex], &quintupletsInGPU.hitIndices[10 * quintupletIndex], quintupletsInGPU.regressionG[quintupletIndex], quintupletsInGPU.regressionF[quintupletIndex], quintupletsInGPU.regressionRadius[quintupletIndex], trackCandidateIdx);
+            addTrackCandidateToMemory(trackCandidatesInGPU, 4/*track candidate type T5=4*/, quintupletIndex, quintupletIndex, &quintupletsInGPU.logicalLayers[5 * quintupletIndex], &quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex], &quintupletsInGPU.hitIndices[10 * quintupletIndex], quintupletsInGPU.regressionG[quintupletIndex], quintupletsInGPU.regressionF[quintupletIndex], quintupletsInGPU.regressionRadius[quintupletIndex], trackCandidateIdx, quintupletIndex);
         } 
     }
 }
@@ -381,7 +389,7 @@ __global__ void SDL::addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInG
 
         unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
         atomicAdd(trackCandidatesInGPU.nTrackCandidatespLS,1);
-        addTrackCandidateToMemory(trackCandidatesInGPU, 8/*track candidate type pLS=8*/, pixelArrayIndex, pixelArrayIndex, trackCandidateIdx);
+        addTrackCandidateToMemory(trackCandidatesInGPU, 8/*track candidate type pLS=8*/, pixelArrayIndex, pixelArrayIndex, trackCandidateIdx, pixelArrayIndex);
     }
 }
 

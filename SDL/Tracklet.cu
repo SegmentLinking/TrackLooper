@@ -199,7 +199,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
     float sdlPVoff = 0.1f/rt_OutLo;
     sdlCut = alpha1GeV_OutLo + sqrtf(sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
     
-    deltaPhiPos = deltaPhi(mdsInGPU.anchorX[secondMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorZ[secondMDIndex], mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex], mdsInGPU.anchorZ[fourthMDIndex]); 
+    deltaPhiPos = deltaPhi(mdsInGPU.anchorX[secondMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex]); 
     // Cut #3: FIXME:deltaPhiPos can be tighter
     pass = pass and (fabsf(deltaPhiPos) <= sdlCut);
     if(not pass) return pass;
@@ -211,7 +211,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
     float diffY = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
     float diffZ = mdsInGPU.anchorZ[thirdMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
 
-    dPhi = deltaPhi(midPointX, midPointY, midPointZ, diffX, diffY, diffZ);
+    dPhi = deltaPhi(midPointX, midPointY, diffX, diffY);
 
     // Cut #4: deltaPhiChange
     pass = pass and (fabsf(dPhi) <= sdlCut);
@@ -227,7 +227,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
 
     float alpha_OutUp,alpha_OutUp_highEdge,alpha_OutUp_lowEdge;
    
-    alpha_OutUp = deltaPhi(mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex], mdsInGPU.anchorZ[fourthMDIndex], mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex], mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex], mdsInGPU.anchorZ[fourthMDIndex] - mdsInGPU.anchorZ[thirdMDIndex]);
+    alpha_OutUp = deltaPhi(mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex], mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex], mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]);
 
     alpha_OutUp_highEdge = alpha_OutUp;
     alpha_OutUp_lowEdge = alpha_OutUp;
@@ -240,19 +240,19 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
     float tl_axis_lowEdge_x = tl_axis_x;
     float tl_axis_lowEdge_y = tl_axis_y;
 
-    betaIn = alpha_InLo - deltaPhi(mdsInGPU.anchorX[firstMDIndex], mdsInGPU.anchorY[firstMDIndex], mdsInGPU.anchorZ[firstMDIndex], tl_axis_x, tl_axis_y, tl_axis_z);
+    betaIn = alpha_InLo - deltaPhi(mdsInGPU.anchorX[firstMDIndex], mdsInGPU.anchorY[firstMDIndex], tl_axis_x, tl_axis_y);
 
     float betaInRHmin = betaIn;
     float betaInRHmax = betaIn;
-    betaOut = -alpha_OutUp + deltaPhi(mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex], mdsInGPU.anchorZ[fourthMDIndex], tl_axis_x, tl_axis_y, tl_axis_z);
+    betaOut = -alpha_OutUp + deltaPhi(mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex], tl_axis_x, tl_axis_y);
 
     float betaOutRHmin = betaOut;
     float betaOutRHmax = betaOut;
 
     if(isEC_lastLayer)
     {
-        alpha_OutUp_highEdge = deltaPhi(mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorZ[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex], mdsInGPU.anchorZ[fourthMDIndex] - mdsInGPU.anchorZ[thirdMDIndex]);
-        alpha_OutUp_lowEdge = deltaPhi(mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorZ[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex], mdsInGPU.anchorZ[fourthMDIndex] - mdsInGPU.anchorZ[thirdMDIndex]);
+        alpha_OutUp_highEdge = deltaPhi(mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]);
+        alpha_OutUp_lowEdge = deltaPhi(mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]);
 
         tl_axis_highEdge_x = mdsInGPU.anchorHighEdgeX[fourthMDIndex] - mdsInGPU.anchorX[firstMDIndex];
         tl_axis_highEdge_y = mdsInGPU.anchorHighEdgeY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
@@ -260,8 +260,8 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
         tl_axis_lowEdge_y = mdsInGPU.anchorLowEdgeY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
    
   
-        betaOutRHmin = -alpha_OutUp_highEdge + deltaPhi(mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorZ[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y, tl_axis_z);
-        betaOutRHmax = -alpha_OutUp_lowEdge + deltaPhi(mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorZ[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y, tl_axis_z); 
+        betaOutRHmin = -alpha_OutUp_highEdge + deltaPhi(mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
+        betaOutRHmax = -alpha_OutUp_lowEdge + deltaPhi(mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y); 
     }
 
     //beta computation
@@ -296,7 +296,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBBB(struct modules& modulesInGPU, st
     betaOutRHmin *= betaOutMMSF;
     betaOutRHmax *= betaOutMMSF;
 
-    const float dBetaMuls = sdlThetaMulsF * 4.f / fminf(fabsf(pt_beta), pt_betaMax); //need to confirm the range-out value of 7 GeV
+    const float dBetaMuls = sdlThetaMulsF * 4.f / fminf(fabsf(pt_beta), SDL::pt_betaMax); //need to confirm the range-out value of 7 GeV
 
 
     const float alphaInAbsReg = fmaxf(fabsf(alpha_InLo), asinf(fminf(rt_InLo * k2Rinv1GeVf / 3.0f, sinAlphaMax)));
@@ -417,7 +417,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
     sdlCut = alpha1GeV_OutLo + sqrtf(sdlMuls * sdlMuls + sdlPVoff*sdlPVoff);
 
 
-    deltaPhiPos = deltaPhi(mdsInGPU.anchorX[secondMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorZ[secondMDIndex], mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex], mdsInGPU.anchorZ[fourthMDIndex]); 
+    deltaPhiPos = deltaPhi(mdsInGPU.anchorX[secondMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex]); 
 
 
     //Cut #4: deltaPhiPos can be tighter
@@ -431,7 +431,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
     float diffY = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
     float diffZ = mdsInGPU.anchorZ[thirdMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
 
-    dPhi = deltaPhi(midPointX, midPointY, midPointZ, diffX, diffY, diffZ);
+    dPhi = deltaPhi(midPointX, midPointY, diffX, diffY);
     // Cut #5: deltaPhiChange
     pass =  pass and (fabsf(dPhi) <= sdlCut);
     if(not pass) return pass;
@@ -441,7 +441,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
     float sdIn_alpha_max = __H2F(segmentsInGPU.dPhiChangeMaxs[innerSegmentIndex]);
     float sdOut_alpha = sdIn_alpha; //weird
 
-    float sdOut_alphaOut = deltaPhi(mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex], mdsInGPU.anchorZ[fourthMDIndex], mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex], mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex], mdsInGPU.anchorZ[fourthMDIndex] - mdsInGPU.anchorZ[thirdMDIndex]);
+    float sdOut_alphaOut = deltaPhi(mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex], mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex], mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]);
 
     float sdOut_alphaOut_min = phi_mpi_pi(__H2F(segmentsInGPU.dPhiChangeMins[outerSegmentIndex]) - __H2F(segmentsInGPU.dPhiMins[outerSegmentIndex]));
     float sdOut_alphaOut_max = phi_mpi_pi(__H2F(segmentsInGPU.dPhiChangeMaxs[outerSegmentIndex]) - __H2F(segmentsInGPU.dPhiMaxs[outerSegmentIndex]));
@@ -450,11 +450,11 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
     float tl_axis_y = mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
     float tl_axis_z = mdsInGPU.anchorZ[fourthMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
 
-    betaIn = sdIn_alpha - deltaPhi(mdsInGPU.anchorX[firstMDIndex], mdsInGPU.anchorY[firstMDIndex], mdsInGPU.anchorZ[firstMDIndex], tl_axis_x, tl_axis_y, tl_axis_z);
+    betaIn = sdIn_alpha - deltaPhi(mdsInGPU.anchorX[firstMDIndex], mdsInGPU.anchorY[firstMDIndex], tl_axis_x, tl_axis_y);
 
     float betaInRHmin = betaIn;
     float betaInRHmax = betaIn;
-    betaOut = -sdOut_alphaOut + deltaPhi(mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex], mdsInGPU.anchorZ[fourthMDIndex], tl_axis_x, tl_axis_y, tl_axis_z);
+    betaOut = -sdOut_alphaOut + deltaPhi(mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex], tl_axis_x, tl_axis_y);
 
     float betaOutRHmin = betaOut;
     float betaOutRHmax = betaOut;
@@ -514,7 +514,7 @@ __device__ bool SDL::runTrackletDefaultAlgoBBEE(struct modules& modulesInGPU, st
     betaOutRHmin *= betaOutMMSF;
     betaOutRHmax *= betaOutMMSF;
 
-    const float dBetaMuls = sdlThetaMulsF * 4.f / fminf(fabsf(pt_beta), pt_betaMax); //need to confirm the range-out value of 7 GeV
+    const float dBetaMuls = sdlThetaMulsF * 4.f / fminf(fabsf(pt_beta), SDL::pt_betaMax); //need to confirm the range-out value of 7 GeV
 
     const float alphaInAbsReg = fmaxf(fabsf(sdIn_alpha), asinf(fminf(rt_InLo * k2Rinv1GeVf / 3.0f, sinAlphaMax)));
     const float alphaOutAbsReg = fmaxf(fabsf(sdOut_alpha), asinf(fminf(rt_OutLo * k2Rinv1GeVf / 3.0f, sinAlphaMax)));
@@ -637,7 +637,7 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
     float sdlPVoff = 0.1f/rtOut;
     sdlCut = alpha1GeV_OutLo + sqrtf(sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
 
-    deltaPhiPos = deltaPhi(mdsInGPU.anchorX[secondMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorZ[secondMDIndex], mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex], mdsInGPU.anchorZ[fourthMDIndex]); 
+    deltaPhiPos = deltaPhi(mdsInGPU.anchorX[secondMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex]); 
 
     pass =  pass and (fabsf(deltaPhiPos) <= sdlCut);
     if(not pass) return pass;
@@ -649,7 +649,7 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
     float diffY = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
     float diffZ = mdsInGPU.anchorZ[thirdMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
    
-    dPhi = deltaPhi(midPointX, midPointY, midPointZ, diffX, diffY, diffZ);
+    dPhi = deltaPhi(midPointX, midPointY, diffX, diffY);
 
     // Cut #5: deltaPhiChange
     pass =  pass and ((fabsf(dPhi) <= sdlCut));
@@ -657,7 +657,7 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
 
     float sdIn_alpha = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
     float sdOut_alpha = sdIn_alpha; //weird
-    float sdOut_dPhiPos = deltaPhi(mdsInGPU.anchorX[thirdMDIndex], mdsInGPU.anchorY[thirdMDIndex], mdsInGPU.anchorZ[thirdMDIndex], mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex], mdsInGPU.anchorZ[fourthMDIndex]);
+    float sdOut_dPhiPos = deltaPhi(mdsInGPU.anchorX[thirdMDIndex], mdsInGPU.anchorY[thirdMDIndex], mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex]);
 
     float sdOut_dPhiChange = __H2F(segmentsInGPU.dPhiChanges[outerSegmentIndex]);
     float sdOut_dPhiChange_min = __H2F(segmentsInGPU.dPhiChangeMins[outerSegmentIndex]);
@@ -671,14 +671,14 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
     float tl_axis_y = mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
     float tl_axis_z = mdsInGPU.anchorZ[fourthMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
     
-    betaIn = sdIn_alpha - deltaPhi(mdsInGPU.anchorX[firstMDIndex], mdsInGPU.anchorY[firstMDIndex], mdsInGPU.anchorZ[firstMDIndex], tl_axis_x, tl_axis_y, tl_axis_z);
+    betaIn = sdIn_alpha - deltaPhi(mdsInGPU.anchorX[firstMDIndex], mdsInGPU.anchorY[firstMDIndex], tl_axis_x, tl_axis_y);
 
     float sdIn_alphaRHmin = __H2F(segmentsInGPU.dPhiChangeMins[innerSegmentIndex]);
     float sdIn_alphaRHmax = __H2F(segmentsInGPU.dPhiChangeMaxs[innerSegmentIndex]);
     float betaInRHmin = betaIn + sdIn_alphaRHmin - sdIn_alpha;
     float betaInRHmax = betaIn + sdIn_alphaRHmax - sdIn_alpha;
 
-    betaOut = -sdOut_alphaOut + deltaPhi(mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex], mdsInGPU.anchorZ[fourthMDIndex], tl_axis_x, tl_axis_y, tl_axis_z);
+    betaOut = -sdOut_alphaOut + deltaPhi(mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex], tl_axis_x, tl_axis_y);
 
     float betaOutRHmin = betaOut - sdOut_alphaOutRHmin + sdOut_alphaOut;
     float betaOutRHmax = betaOut - sdOut_alphaOutRHmax + sdOut_alphaOut;
@@ -729,7 +729,7 @@ __device__ bool SDL::runTrackletDefaultAlgoEEEE(struct modules& modulesInGPU, st
     betaOutRHmin *= betaOutMMSF;
     betaOutRHmax *= betaOutMMSF;
 
-    const float dBetaMuls = sdlThetaMulsF * 4.f / fminf(fabsf(pt_beta), pt_betaMax); //need to confirm the range-out value of 7 GeV
+    const float dBetaMuls = sdlThetaMulsF * 4.f / fminf(fabsf(pt_beta), SDL::pt_betaMax); //need to confirm the range-out value of 7 GeV
 
     const float alphaInAbsReg = fmaxf(fabsf(sdIn_alpha), asinf(fminf(rt_InLo * k2Rinv1GeVf / 3.0f, sinAlphaMax)));
     const float alphaOutAbsReg = fmaxf(fabsf(sdOut_alpha), asinf(fminf(rt_OutLo * k2Rinv1GeVf / 3.0f, sinAlphaMax)));
@@ -770,7 +770,7 @@ __device__ void SDL::runDeltaBetaIterations(float& betaIn, float& betaOut, float
         return;
     }
 
-    if (betaIn * betaOut > 0.f and (fabsf(pt_beta) < 4.f * pt_betaMax or (lIn >= 11 and fabsf(pt_beta) < 8.f * pt_betaMax)))   //and the pt_beta is well-defined; less strict for endcap-endcap
+    if (betaIn * betaOut > 0.f and (fabsf(pt_beta) < 4.f * SDL::pt_betaMax or (lIn >= 11 and fabsf(pt_beta) < 8.f * SDL::pt_betaMax)))   //and the pt_beta is well-defined; less strict for endcap-endcap
     {
 
         const float betaInUpd  = betaIn + copysignf(asinf(fminf(sdIn_dr * k2Rinv1GeVf / fabsf(pt_beta), sinAlphaMax)), betaIn); //FIXME: need a faster version
@@ -788,7 +788,7 @@ __device__ void SDL::runDeltaBetaIterations(float& betaIn, float& betaOut, float
         //2nd update
         pt_beta = dr * k2Rinv1GeVf / sinf(betaAv); //get a better pt estimate
     }
-    else if (lIn < 11 && fabsf(betaOut) < 0.2f * fabsf(betaIn) && fabsf(pt_beta) < 12.f * pt_betaMax)   //use betaIn sign as ref
+    else if (lIn < 11 && fabsf(betaOut) < 0.2f * fabsf(betaIn) && fabsf(pt_beta) < 12.f * SDL::pt_betaMax)   //use betaIn sign as ref
     {
    
         const float pt_betaIn = dr * k2Rinv1GeVf / sinf(betaIn);

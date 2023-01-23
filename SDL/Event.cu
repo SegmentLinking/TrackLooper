@@ -58,7 +58,6 @@ SDL::Event::Event(cudaStream_t estream)
         }
     }
     //resetObjectsInModule();
-
 }
 
 SDL::Event::~Event()
@@ -637,7 +636,7 @@ __global__ void hitLoopKernel(
         int iDetId = hitsInGPU->detid[ihit];
 
         hitsInGPU->rts[ihit] = sqrt(ihit_x*ihit_x + ihit_y*ihit_y);
-        hitsInGPU->phis[ihit] = SDL::phi(ihit_x,ihit_y,ihit_z);
+        hitsInGPU->phis[ihit] = SDL::phi(ihit_x,ihit_y);
         hitsInGPU->etas[ihit] = ((ihit_z>0)-(ihit_z<0))*acosh(sqrt(ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/hitsInGPU->rts[ihit]);
 
         int found_index = binary_search(modulesInGPU->mapdetId, iDetId, nModules);
@@ -720,7 +719,7 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     //std::cout << cudaGetLastError() << std::endl;
 }
 
-__global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned int* hitIndices1,unsigned int* hitIndices2,unsigned int* hitIndices3, float* dPhiChange, float* ptIn, float* ptErr, float* px, float* py, float* pz, float* eta, float* etaErr,float* phi, int* charge, uint16_t pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU,const int size, int* superbin, int8_t* pixelType, short* isQuad)
+__global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned int* hitIndices1,unsigned int* hitIndices2,unsigned int* hitIndices3, float* dPhiChange, float* ptIn, float* ptErr, float* px, float* py, float* pz, float* eta, float* etaErr,float* phi, int* charge, unsigned int* seedIdx, uint16_t pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU,const int size, int* superbin, int8_t* pixelType, short* isQuad)
 {
     for( int tid = blockIdx.x * blockDim.x + threadIdx.x; tid < size; tid += blockDim.x*gridDim.x)
     {
@@ -743,18 +742,17 @@ __global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned 
     hits1[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[outerMDIndex]];
     hits1[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[innerMDIndex]];
     hits1[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[outerMDIndex]];
-    addPixelSegmentToMemory(segmentsInGPU, mdsInGPU, modulesInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hits1, hitIndices0[tid], hitIndices2[tid], dPhiChange[tid], ptIn[tid], ptErr[tid], px[tid], py[tid], pz[tid], etaErr[tid], eta[tid], phi[tid], charge[tid], pixelSegmentIndex, tid, superbin[tid], pixelType[tid],isQuad[tid],score_lsq);
+    addPixelSegmentToMemory(segmentsInGPU, mdsInGPU, modulesInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hits1, hitIndices0[tid], hitIndices2[tid], dPhiChange[tid], ptIn[tid], ptErr[tid], px[tid], py[tid], pz[tid], etaErr[tid], eta[tid], phi[tid], charge[tid], seedIdx[tid], pixelSegmentIndex, tid, superbin[tid], pixelType[tid],isQuad[tid],score_lsq);
     }
 }
-void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> charge, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<short> isQuad)
+void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> charge, std::vector<unsigned int> seedIdx, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<short> isQuad)
 {
     if(mdsInGPU == nullptr)
     {
         mdsInGPU = (SDL::miniDoublets*)cms::cuda::allocate_host(sizeof(SDL::miniDoublets), stream);
         //hardcoded range numbers for this will come from studies!
         unsigned int nTotalMDs;
-        createMDArrayRanges(*modulesInGPU, *rangesInGPU, nLowerModules, nTotalMDs, stream, N_MAX_MD_PER_MODULES, N_MAX_PIXEL_MD_PER_MODULES);
-
+        createMDArrayRanges(*modulesInGPU, *rangesInGPU, nLowerModules, nTotalMDs, stream, N_MAX_PIXEL_MD_PER_MODULES);
     	createMDsInExplicitMemory(*mdsInGPU, nTotalMDs, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES,stream);
 
         cudaMemcpyAsync(mdsInGPU->nMemoryLocations, &nTotalMDs, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
@@ -765,10 +763,9 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     {
         segmentsInGPU = (SDL::segments*)cms::cuda::allocate_host(sizeof(SDL::segments), stream);
         //hardcoded range numbers for this will come from studies!
-        unsigned int nTotalSegments;
-        createSegmentArrayRanges(*modulesInGPU, *rangesInGPU, *mdsInGPU, nLowerModules, nTotalSegments, stream, N_MAX_SEGMENTS_PER_MODULE, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
-//        cout<<"nTotalSegments: "<<nTotalSegments<<std::endl; // for memory usage
-
+        // can be optimized here: because we didn't distinguish pixel segments and outer-tracker segments and call them both "segments", so they use the index continuously.
+        // If we want to further study the memory footprint in detail, we can separate the two and allocate different memories to them
+        createSegmentArrayRanges(*modulesInGPU, *rangesInGPU, *mdsInGPU, nLowerModules, nTotalSegments, stream, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
         createSegmentsInExplicitMemory(*segmentsInGPU, nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE,stream);
 
         cudaMemcpyAsync(segmentsInGPU->nMemoryLocations, &nTotalSegments, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);;
@@ -792,6 +789,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     float* eta_host = &eta[0];
     float* phi_host = &phi[0];
     int* charge_host = &charge[0];
+    unsigned int* seedIdx_host = &seedIdx[0];
     int* superbin_host = &superbin[0];
     int8_t* pixelType_host = &pixelType[0];
     short* isQuad_host = &isQuad[0];
@@ -810,6 +808,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     float* eta_dev;
     float* phi_dev;
     int* charge_dev;
+    unsigned int* seedIdx_dev;
     int* superbin_dev;
     int8_t* pixelType_dev;
     short* isQuad_dev;
@@ -827,6 +826,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     eta_dev = (float*)cms::cuda::allocate_device(dev, size*sizeof(float), stream);
     phi_dev = (float*)cms::cuda::allocate_device(dev, size*sizeof(float), stream);
     charge_dev = (int*)cms::cuda::allocate_device(dev, size*sizeof(int), stream);
+    seedIdx_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
     superbin_dev = (int*)cms::cuda::allocate_device(dev, size*sizeof(int), stream);
     pixelType_dev = (int8_t*)cms::cuda::allocate_device(dev, size*sizeof(int8_t), stream);
     isQuad_dev = (short*)cms::cuda::allocate_device(dev, size*sizeof(short), stream);
@@ -845,6 +845,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     cudaMemcpyAsync(eta_dev, eta_host, size*sizeof(float),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(phi_dev, phi_host, size*sizeof(float),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(charge_dev, charge_host, size*sizeof(int),cudaMemcpyHostToDevice,stream);
+    cudaMemcpyAsync(seedIdx_dev, seedIdx_host, size*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(superbin_dev,superbin_host,size*sizeof(int),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(pixelType_dev,pixelType_host,size*sizeof(int8_t),cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(isQuad_dev,isQuad_host,size*sizeof(short),cudaMemcpyHostToDevice,stream);
@@ -853,7 +854,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     unsigned int nThreads = 256;
     unsigned int nBlocks =  MAX_BLOCKS;//size % nThreads == 0 ? size/nThreads : size/nThreads + 1;
 
-    addPixelSegmentToEventKernel<<<nBlocks,nThreads,0,stream>>>(hitIndices0_dev,hitIndices1_dev,hitIndices2_dev,hitIndices3_dev,dPhiChange_dev,ptIn_dev,ptErr_dev,px_dev,py_dev,pz_dev,eta_dev, etaErr_dev, phi_dev, charge_dev, pixelModuleIndex, *modulesInGPU, *rangesInGPU, *hitsInGPU,*mdsInGPU,*segmentsInGPU,size, superbin_dev, pixelType_dev,isQuad_dev);
+    addPixelSegmentToEventKernel<<<nBlocks,nThreads,0,stream>>>(hitIndices0_dev,hitIndices1_dev,hitIndices2_dev,hitIndices3_dev,dPhiChange_dev,ptIn_dev,ptErr_dev,px_dev,py_dev,pz_dev,eta_dev, etaErr_dev, phi_dev, charge_dev, seedIdx_dev, pixelModuleIndex, *modulesInGPU, *rangesInGPU, *hitsInGPU,*mdsInGPU,*segmentsInGPU,size, superbin_dev, pixelType_dev,isQuad_dev);
 
    //cudaDeviceSynchronize();
    cudaStreamSynchronize(stream);
@@ -878,6 +879,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     cms::cuda::free_device(dev, eta_dev);
     cms::cuda::free_device(dev, phi_dev);
     cms::cuda::free_device(dev, charge_dev);
+    cms::cuda::free_device(dev, seedIdx_dev);
     cms::cuda::free_device(dev, superbin_dev);
     cms::cuda::free_device(dev, pixelType_dev);
     cms::cuda::free_device(dev, isQuad_dev);
@@ -1059,7 +1061,7 @@ void SDL::Event::createMiniDoublets()
 
     //hardcoded range numbers for this will come from studies!
     unsigned int nTotalMDs;
-    createMDArrayRanges(*modulesInGPU, *rangesInGPU, nLowerModules, nTotalMDs, stream, N_MAX_MD_PER_MODULES, N_MAX_PIXEL_MD_PER_MODULES);
+    createMDArrayRanges(*modulesInGPU, *rangesInGPU, nLowerModules, nTotalMDs, stream, N_MAX_PIXEL_MD_PER_MODULES);
 //    cout<<"nTotalMDs: "<<nTotalMDs<<std::endl; // for memory usage
 
     if(mdsInGPU == nullptr)
@@ -1132,13 +1134,12 @@ void SDL::Event::createSegmentsWithModuleMap()
     if(segmentsInGPU == nullptr)
     {
         segmentsInGPU = (SDL::segments*)cms::cuda::allocate_host(sizeof(SDL::segments), stream);
-        createSegmentsInExplicitMemory(*segmentsInGPU, N_MAX_SEGMENTS_PER_MODULE, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE,stream);
+        createSegmentsInExplicitMemory(*segmentsInGPU, nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE,stream);
     }
 
 //HERE
     dim3 cSnThreads(64,1,1);
     uint32_t blks = nLowerModules;
-//printf("HERE Num nLowerModules=%d Blks=%d\n",nLowerModules,blks);
     dim3 cSnBlocks(blks,1,1);
     SDL::createSegmentsInGPUv2<<<cSnBlocks,cSnThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *rangesInGPU);
     cudaError_t cudaerr = cudaGetLastError();
@@ -1150,7 +1151,6 @@ void SDL::Event::createSegmentsWithModuleMap()
 #if defined(AddObjects)
     addSegmentsToEventExplicit();
 #endif
-
 }
 
 
@@ -2239,6 +2239,7 @@ SDL::segments* SDL::Event::getSegments()
         segmentsInCPU->ptIn = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
         segmentsInCPU->eta = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
         segmentsInCPU->phi = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
+        segmentsInCPU->seedIdx = new unsigned int[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
         segmentsInCPU->isDup = new bool[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
         segmentsInCPU->isQuad = new bool[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
         segmentsInCPU->score = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
@@ -2250,6 +2251,7 @@ SDL::segments* SDL::Event::getSegments()
         cudaMemcpyAsync(segmentsInCPU->ptIn, segmentsInGPU->ptIn, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(segmentsInCPU->eta, segmentsInGPU->eta, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(segmentsInCPU->phi, segmentsInGPU->phi, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(segmentsInCPU->seedIdx, segmentsInGPU->seedIdx, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(segmentsInCPU->isDup, segmentsInGPU->isDup, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(bool), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(segmentsInCPU->isQuad, segmentsInGPU->isQuad, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(bool), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(segmentsInCPU->score, segmentsInGPU->score, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost,stream);
@@ -2495,6 +2497,7 @@ SDL::trackCandidates* SDL::Event::getTrackCandidates()
         cudaStreamSynchronize(stream);
         unsigned int nTrackCandidates = *(trackCandidatesInCPU->nTrackCandidates);
 
+        trackCandidatesInCPU->directObjectIndices = new unsigned int[nTrackCandidates];
         trackCandidatesInCPU->objectIndices = new unsigned int[2 * nTrackCandidates];
         trackCandidatesInCPU->trackCandidateType = new short[nTrackCandidates];
         trackCandidatesInCPU->partOfExtension = new bool[nTrackCandidates];
@@ -2504,6 +2507,7 @@ SDL::trackCandidates* SDL::Event::getTrackCandidates()
         cudaMemcpyAsync(trackCandidatesInCPU->partOfExtension, trackCandidatesInGPU->partOfExtension, nTrackCandidates * sizeof(bool), cudaMemcpyDeviceToHost, stream);
         cudaMemcpyAsync(trackCandidatesInCPU->hitIndices, trackCandidatesInGPU->hitIndices, 14 * nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
         cudaMemcpyAsync(trackCandidatesInCPU->logicalLayers, trackCandidatesInGPU->logicalLayers, 7 * nTrackCandidates * sizeof(uint8_t), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(trackCandidatesInCPU->directObjectIndices, trackCandidatesInGPU->directObjectIndices, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);                                                                                    
         cudaMemcpyAsync(trackCandidatesInCPU->objectIndices, trackCandidatesInGPU->objectIndices, 2 * nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);                                                                                    
         cudaMemcpyAsync(trackCandidatesInCPU->trackCandidateType, trackCandidatesInGPU->trackCandidateType, nTrackCandidates * sizeof(short), cudaMemcpyDeviceToHost,stream);                                                                                                                
         cudaStreamSynchronize(stream);

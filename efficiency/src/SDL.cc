@@ -683,6 +683,11 @@ void SDL::Init(TTree *tree) {
     sim_TC_matched_branch = tree->GetBranch("sim_TC_matched");
     if (sim_TC_matched_branch) { sim_TC_matched_branch->SetAddress(&sim_TC_matched_); }
   }
+  sim_TC_matched_mask_branch = 0;
+  if (tree->GetBranch("sim_TC_matched_mask") != 0) {
+    sim_TC_matched_mask_branch = tree->GetBranch("sim_TC_matched_mask");
+    if (sim_TC_matched_mask_branch) { sim_TC_matched_mask_branch->SetAddress(&sim_TC_matched_mask_); }
+  }
   pLS_isDuplicate_branch = 0;
   if (tree->GetBranch("pLS_isDuplicate") != 0) {
     pLS_isDuplicate_branch = tree->GetBranch("pLS_isDuplicate");
@@ -973,6 +978,7 @@ void SDL::GetEntry(unsigned int idx) {
   pT3_occupancies_isLoaded = false;
   tc_occupancies_isLoaded = false;
   sim_TC_matched_isLoaded = false;
+  sim_TC_matched_mask_isLoaded = false;
   pLS_isDuplicate_isLoaded = false;
   tce_anchorIndex_isLoaded = false;
   t5_occupancies_isLoaded = false;
@@ -1141,6 +1147,7 @@ void SDL::LoadAllBranches() {
   if (pT3_occupancies_branch != 0) pT3_occupancies();
   if (tc_occupancies_branch != 0) tc_occupancies();
   if (sim_TC_matched_branch != 0) sim_TC_matched();
+  if (sim_TC_matched_mask_branch != 0) sim_TC_matched_mask();
   if (pLS_isDuplicate_branch != 0) pLS_isDuplicate();
   if (tce_anchorIndex_branch != 0) tce_anchorIndex();
   if (t5_occupancies_branch != 0) t5_occupancies();
@@ -2804,6 +2811,18 @@ const vector<int> &SDL::sim_TC_matched() {
   }
   return *sim_TC_matched_;
 }
+const vector<int> &SDL::sim_TC_matched_mask() {
+  if (not sim_TC_matched_mask_isLoaded) {
+    if (sim_TC_matched_mask_branch != 0) {
+      sim_TC_matched_mask_branch->GetEntry(index);
+    } else {
+      printf("branch sim_TC_matched_mask_branch does not exist!\n");
+      exit(1);
+    }
+    sim_TC_matched_mask_isLoaded = true;
+  }
+  return *sim_TC_matched_mask_;
+}
 const vector<int> &SDL::pLS_isDuplicate() {
   if (not pLS_isDuplicate_isLoaded) {
     if (pLS_isDuplicate_branch != 0) {
@@ -3319,6 +3338,7 @@ namespace tas {
   const int &pT3_occupancies() { return sdl.pT3_occupancies(); }
   const int &tc_occupancies() { return sdl.tc_occupancies(); }
   const vector<int> &sim_TC_matched() { return sdl.sim_TC_matched(); }
+  const vector<int> &sim_TC_matched_mask() { return sdl.sim_TC_matched_mask(); }
   const vector<int> &pLS_isDuplicate() { return sdl.pLS_isDuplicate(); }
   const vector<int> &tce_anchorIndex() { return sdl.tce_anchorIndex(); }
   const vector<int> &t5_occupancies() { return sdl.t5_occupancies(); }
