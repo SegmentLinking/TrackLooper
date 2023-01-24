@@ -607,7 +607,7 @@ public:
     
             hitsInGPU->rts[ihit] = alpaka::math::sqrt(acc, ihit_x*ihit_x + ihit_y*ihit_y);
             // This needs to get moved over after all kernels that use it have been moved.
-            hitsInGPU->phis[ihit] = SDL::phi(ihit_x,ihit_y,ihit_z);
+            hitsInGPU->phis[ihit] = SDL::phi(ihit_x,ihit_y);
             // Acosh has no supported implementation in Alpaka right now.
             hitsInGPU->etas[ihit] = ((ihit_z>0)-(ihit_z<0))*acosh(alpaka::math::sqrt(acc, ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/hitsInGPU->rts[ihit]);
     
