@@ -40,4 +40,8 @@ export LSTPERFORMANCEWEBDIR=/home/users/phchang/public_html/LSTPerformanceWeb
 # List of benchmark efficiencies are set as an environment variable
 export LATEST_CPU_BENCHMARK_EFF_MUONGUN=
 export LATEST_CPU_BENCHMARK_EFF_PU200=
+
+source /cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/alpaka/0.5.0/etc/profile.d/init.sh
+export BOOST_ROOT="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/boost/1.72.0-ghbfee3"
+export ALPAKA_ROOT="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/alpaka/0.7.0-09bef105568314b218f2a8410a876785"
 #eof
