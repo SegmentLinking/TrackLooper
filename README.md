@@ -90,6 +90,7 @@ Comparing two different runs
         num_den_hist_2.root \     # New work
         -l BaseLine,MyNewWork \   # Labeling
         -t "mywork"
+        --compare
 
 ## CMSSW Integration
 This is the a complete set of instruction on how the TrackLooper code
