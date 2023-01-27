@@ -10,7 +10,8 @@ from math import sqrt
 sel_choices = ["base", "loweta", "xtr", "vtr", "none"]
 metric_choices = ["eff", "fakerate", "duplrate"]
 variable_choices = ["pt", "ptmtv", "ptlow", "eta", "phi", "dxy", "dz"]
-objecttype_choices = ["TC", "pT5", "T5", "pT3", "pLS"]
+objecttype_choices = ["TC", "pT5", "T5", "pT3", "pLS", "pT5_lower", "pT3_lower", "T5_lower"]
+#lowerObjectType = ["pT5_lower", "pT3_lower", "T5_lower"]
 
 r.gROOT.SetBatch(True)
 
@@ -92,7 +93,6 @@ def plot(args):
     #     params["output_name"] += "_breakdown"
     # if params["compare"]:
     #     params["output_name"] += "_breakdown"
-
     # Get histogram names
     if params["metric"] == "eff":
         params["denom"] = "Root__{objecttype}_{selection}_{pdgid}_{charge}_{metricsuffix}_denom_{variable}".format(**params)
@@ -105,6 +105,10 @@ def plot(args):
     # print(params["denom"])
     # print(params["output_name"])
 
+    #skip if histograms not found!
+    if (not params["input_file"].GetListOfKeys().Contains(params["numer"])) or (not params["input_file"].GetListOfKeys().Contains(params["denom"])):
+        return
+
     # Denom histogram
     denom = []
     denom.append(params["input_file"].Get(params["denom"]).Clone())
@@ -114,6 +118,7 @@ def plot(args):
     numer.append(params["input_file"].Get(params["numer"]).Clone())
 
     breakdown_hist_types = ["pT5", "pT3", "T5", "pLS"]
+    print("breakdown = ", params["breakdown"])
     if params["breakdown"]:
         for breakdown_hist_type in breakdown_hist_types:
             breakdown_histname = params["numer"].replace("TC", breakdown_hist_type)
@@ -132,7 +137,7 @@ def plot(args):
     if params["breakdown"]:
         params["legend_labels"] = ["TC" ,"pT5" ,"pT3" ,"T5" ,"pLS"]
     else:
-        params["legend_labels"] = ["objecttype"]
+        params["legend_labels"] = [args.objecttype]
 
     if params["compare"]:
         params["legend_labels"] = ["reference"]
@@ -228,13 +233,14 @@ def process_arguments_into_params(args):
     if params["metric"] == "fakerate": params["metricsuffix"] = "fr"
 
     # If breakdown it must be object type of TC
-    if args.individual:
-        params["breakdown"] = False
-    else:
+    params["breakdown"] = args.breakdown
+#    if args.individual:
+#        params["breakdown"] = False
+#    else:
         # if params["objecttype"] != "TC":
         #     print("Warning! objecttype is set to \"TC\" because individual is False!")
         # params["objecttype"] = "TC"
-        params["breakdown"] = True
+#        params["breakdown"] = True
 
     # If compare we compare the different files
     params["compare"] = False
@@ -319,7 +325,7 @@ def draw_ratio(nums, dens, params):
 
     # print(effs)
 
-    # 
+    #
     hist_name_suffix = ""
     if params["xcoarse"]:
         hist_name_suffix += "coarse"
@@ -343,6 +349,7 @@ def draw_ratio(nums, dens, params):
         eff.Write("", r.TObject.kOverwrite)
 
     draw_plot(effs, nums, dens, params)
+
 
 #______________________________________________________________________________________________________
 def parse_plot_name(output_name):
@@ -658,6 +665,9 @@ def plot_standard_performance_plots(args):
                 "pT3": [False],
                 "T5": [False],
                 "pLS": [False],
+                "pT5_lower":[False],
+                "pT3_lower":[False],
+                "T5_lower":[False],
                 },
             "fakerate":{
                 "TC": [True, False],
@@ -665,6 +675,9 @@ def plot_standard_performance_plots(args):
                 "pT3": [False],
                 "T5": [False],
                 "pLS": [False],
+                "pT5_lower":[False],
+                "pT3_lower":[False],
+                "T5_lower":[False],
                 },
             "duplrate":{
                 "TC": [True, False],
@@ -672,8 +685,11 @@ def plot_standard_performance_plots(args):
                 "pT3": [False],
                 "T5": [False],
                 "pLS": [False],
-                },
-            }
+                "pT5_lower":[False],
+                "pT3_lower":[False],
+                "T5_lower":[False],
+            },
+    }
     pdgids = {
             "eff": [0, 11, 13, 211, 321],
             "fakerate": [0],
@@ -689,10 +705,10 @@ def plot_standard_performance_plots(args):
         metrics = [args.metric]
 
     if args.objecttype:
-        types = [args.objecttype]
+        types = args.objecttype.split(',')
 
     if args.compare:
-        types = objecttype_choices
+        types = args.objecttype.split(',')
 
     if args.selection:
         sels["eff"] = [args.selection]
@@ -720,15 +736,16 @@ def plot_standard_performance_plots(args):
 
     if args.individual:
         # Only eff / TC matters here
-        breakdowns["eff"]["TC"] = [False]
-        breakdowns["fakerate"]["TC"] = [False]
-        breakdowns["duplrate"]["TC"] = [False]
+        breakdowns = {"eff":{"TC":[False], "pT5_lower":[False], "pT3_lower":[False], "T5_lower":[False]},
+                "fakerate": {"TC":[False], "pT5_lower":[False], "pT3_lower":[False], "T5_lower":[False]},
+                "duplrate": {"TC":[False], "pT5_lower":[False], "pT3_lower":[False], "T5_lower":[False]}}
+
+
     else:
         # Only eff / TC matters here
-        breakdowns["eff"]["TC"] = [True]
-        breakdowns["fakerate"]["TC"] = [True]
-        breakdowns["duplrate"]["TC"] = [True]
-
+        breakdowns = {"eff":{"TC":[True], "pT5_lower":[False], "pT3_lower":[False], "T5_lower":[False]},
+                "fakerate": {"TC":[True], "pT5_lower":[False], "pT3_lower":[False], "T5_lower":[False]},
+                "duplrate": {"TC":[True], "pT5_lower":[False], "pT3_lower":[False], "T5_lower":[False]}}
     if args.yzoom:
         args.yzooms = [args.yzoom]
 
@@ -741,6 +758,7 @@ def plot_standard_performance_plots(args):
                 for yzoom in yzooms:
                     for xcoarse in xcoarses[variable]:
                         for typ in types:
+                            print("type = ",typ)
                             for breakdown in breakdowns[metric][typ]:
                                 for pdgid in pdgids[metric]:
                                     for charge in charges[metric]:
