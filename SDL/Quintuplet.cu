@@ -941,6 +941,32 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         }
         rzChiSquared += 12*(residual * residual)/(error * error);
     }
+    // for set rzchi2 cut
+//    if (!isnan(rzChiSquared)) rzChiSquared=100;
+    // if the 5 points are linear, helix calculation gives nan
+    if (inner_pt>100 || isnan(rzChiSquared)){
+        float slope;
+        if(moduleType1 == 0 and moduleType2 == 0 and moduleType3 == 1) //PSPS2S
+        {
+            slope = (z2 -z1)/(rt2 - rt1);
+        }
+        else
+        {
+            slope = (z3 - z1)/(rt3 - rt1);
+        }
+        float residual4_linear = (layer4 <= 6)? ((z4 - z1) - slope * (rt4 - rt1)) : ((rt4 - rt1) - (z4 - z1)/slope);
+        float residual5_linear = (layer4 <= 6) ? ((z5 - z1) - slope * (rt5 - rt1)) : ((rt5 - rt1) - (z5 - z1)/slope);
+
+        // creating a chi squared type quantity
+        // 0-> PS, 1->2S
+        residual4_linear = (moduleType4 == 0) ? residual4_linear/0.15f : residual4_linear/5.0f;
+        residual5_linear = (moduleType5 == 0) ? residual5_linear/0.15f : residual5_linear/5.0f;
+        residual4_linear = residual4_linear*100;
+        residual5_linear = residual5_linear*100;
+
+        rzChiSquared = 12 * (residual4_linear * residual4_linear + residual5_linear * residual5_linear);
+        return rzChiSquared < 4.677f;
+    }
 //    rzChiSquared = 12*(residual4 * residual4 + residual5 * residual5 + residual_missing * residual_missing);
 
 //    if (isnan(rzChiSquared)) printf("rzChi2: %f, residual2: %f, inner_pt:%f, pseudo_phi: %f, charge: %i, Px:%f, Py:%f, x1:%f, x2:%f, x3:%f, x4:%f, x5:%f, y1:%f, y2:%f, y3:%f, y4:%f, y5:%f, z1:%f, z2:%f, z3:%f, z4:%f, z5:%f, x_center:%f, y_center:%f, slope1c:%f, slope3c:%f\n", rzChiSquared, residual_missing, inner_pt, pseudo_phi, charge, Px, Py, x1, x2, x3, x4, x5, y1, y2, y3, y4, y5, z1, z2, z3, z4, z5, x_center, y_center, slope1c, slope3c);
