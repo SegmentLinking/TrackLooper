@@ -33,3 +33,5 @@ movetoweb.sh
 
 *.nfs*
 .directoryhash
+performance/
+notebooks/

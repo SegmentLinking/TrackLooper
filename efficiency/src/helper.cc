@@ -230,7 +230,7 @@ void initializeInputsAndOutputs()
     for (unsigned int ibr = 0; ibr < (unsigned int) brobjArray->GetEntries(); ++ibr)
     {
         TString brname = brobjArray->At(ibr)->GetName();
-        if (brname.EqualTo("sim_T4_matched"))
+        if (brname.EqualTo("sim_T5_matched"))
             ana.do_lower_level = true; // if it has the branch it is set to true
     }
 }

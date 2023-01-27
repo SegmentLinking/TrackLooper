@@ -165,7 +165,18 @@ std::vector<unsigned int> getHitIdxsFromT5(SDL::Event* event, unsigned int T5)
         hitidxs.push_back(hitsInGPU.idxs[hit]);
     return hitidxs;
 }
-
+//____________________________________________________________________________________________
+std::vector<unsigned int> getModuleIdxsFromT5(SDL::Event* event, unsigned int T5)
+{
+    std::vector<unsigned int> hits = getHitsFromT5(event, T5);
+    std::vector<unsigned int> module_idxs;
+    SDL::hits& hitsInGPU = *(event->getHits());
+    for(auto &hitIdx:hits)
+    {
+        module_idxs.push_back(hitsInGPU.moduleIndices[hitIdx]);
+    }
+    return module_idxs;
+}
 //____________________________________________________________________________________________
 std::vector<unsigned int> getHitTypesFromT5(SDL::Event* event, unsigned int T5)
 {
@@ -242,7 +253,18 @@ std::vector<unsigned int> getHitIdxsFrompT3(SDL::Event* event, unsigned int pT3)
         hitidxs.push_back(hitsInGPU.idxs[hit]);
     return hitidxs;
 }
-
+//____________________________________________________________________________________________
+std::vector<unsigned int> getModuleIdxsFrompT3(SDL::Event* event, unsigned int pT3)
+{
+    std::vector<unsigned int> hits = getOuterTrackerHitsFrompT3(event, pT3);
+    std::vector<unsigned int> module_idxs;
+    SDL::hits& hitsInGPU = *(event->getHits());
+    for(auto &hitIdx:hits)
+    {
+        module_idxs.push_back(hitsInGPU.moduleIndices[hitIdx]);
+    }
+    return module_idxs;
+}
 //____________________________________________________________________________________________
 std::vector<unsigned int> getHitTypesFrompT3(SDL::Event* event, unsigned int pT3)
 {
@@ -332,6 +354,19 @@ std::vector<unsigned int> getHitIdxsFrompT5(SDL::Event* event, unsigned int pT5)
     for (auto& hit : hits)
         hitidxs.push_back(hitsInGPU.idxs[hit]);
     return hitidxs;
+}
+
+//____________________________________________________________________________________________
+std::vector<unsigned int> getModuleIdxsFrompT5(SDL::Event* event, unsigned int pT5)
+{
+    std::vector<unsigned int> hits = getOuterTrackerHitsFrompT5(event, pT5);
+    std::vector<unsigned int> module_idxs;
+    SDL::hits& hitsInGPU = *(event->getHits());
+    for(auto &hitIdx:hits)
+    {
+        module_idxs.push_back(hitsInGPU.moduleIndices[hitIdx]);
+    }
+    return module_idxs;
 }
 
 //____________________________________________________________________________________________
