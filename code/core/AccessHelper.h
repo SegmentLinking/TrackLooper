@@ -29,6 +29,7 @@ std::vector<unsigned int> getMDsFromT5(SDL::Event* event, unsigned int T5);
 std::vector<unsigned int> getHitsFromT5(SDL::Event* event, unsigned int T5);
 std::vector<unsigned int> getHitIdxsFromT5(SDL::Event* event, unsigned int T5);
 std::vector<unsigned int> getHitTypesFromT5(SDL::Event* event, unsigned int T5);
+std::vector<unsigned int> getModuleIdxsFromT5(SDL::Event* event, unsigned int T5);
 
 // ----* pT3 *----
 unsigned int getPixelLSFrompT3(SDL::Event* event, unsigned int pT3);
@@ -40,6 +41,7 @@ std::vector<unsigned int> getPixelHitsFrompT3(SDL::Event* event, unsigned int pT
 std::vector<unsigned int> getHitsFrompT3(SDL::Event* event, unsigned int pT3);
 std::vector<unsigned int> getHitIdxsFrompT3(SDL::Event* event, unsigned int pT3);
 std::vector<unsigned int> getHitTypesFrompT3(SDL::Event* event, unsigned int pT3);
+std::vector<unsigned int> getModuleIdxsFrompT3(SDL::Event* event, unsigned int pT3);
 
 // ----* pT5 *----
 unsigned int getPixelLSFrompT5(SDL::Event* event, unsigned int pT5);
@@ -51,7 +53,7 @@ std::vector<unsigned int> getOuterTrackerHitsFrompT5(SDL::Event* event, unsigned
 std::vector<unsigned int> getPixelHitsFrompT5(SDL::Event* event, unsigned int pT5);
 std::vector<unsigned int> getHitsFrompT5(SDL::Event* event, unsigned int pT5);
 std::vector<unsigned int> getHitIdxsFrompT5(SDL::Event* event, unsigned int pT5);
-std::vector<unsigned int> getHitTypesFrompT5(SDL::Event* event, unsigned int pT3);
-
+std::vector<unsigned int> getHitTypesFrompT5(SDL::Event* event, unsigned int pT5);
+std::vector<unsigned int> getModuleIdxsFrompT5(SDL::Event* event, unsigned int pT5);
 
 #endif

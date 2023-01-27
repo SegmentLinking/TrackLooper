@@ -93,6 +93,36 @@ int main(int argc, char** argv)
                                           /* sel   */ sels[isel]
                                          )
                     );
+
+                if (ana.do_lower_level)
+                {
+                    //lower objects - name will have pT5_lower_, T5_lower_, pT3_lower_
+                    list_effSetDef.push_back(
+                        SimTrackSetDefinition(/* name  */ TString("pT5_lower_") + selnames[isel],
+                                              /* pdgid */ pdgid,
+                                              /* q     */ charge,
+                                              /* pass  */ [&](unsigned int isim) {return sdl.sim_pT5_matched().at(isim) > 0;},
+                                              /* sel   */ sels[isel]
+                                             )
+                        );
+                    list_effSetDef.push_back(
+                        SimTrackSetDefinition(/* name  */ TString("T5_lower_") + selnames[isel],
+                                              /* pdgid */ pdgid,
+                                              /* q     */ charge,
+                                              /* pass  */ [&](unsigned int isim) {return sdl.sim_T5_matched().at(isim) > 0;},
+                                              /* sel   */ sels[isel]
+                                             )
+                        );
+                    list_effSetDef.push_back(
+                        SimTrackSetDefinition(/* name  */ TString("pT3_lower_") + selnames[isel],
+                                              /* pdgid */ pdgid,
+                                              /* q     */ charge,
+                                              /* pass  */ [&](unsigned int isim) {return sdl.sim_pT3_matched().at(isim) > 0;},
+                                              /* sel   */ sels[isel]
+                                             )
+                        );
+                }
+
             }
         }
     }
@@ -151,6 +181,41 @@ int main(int argc, char** argv)
                                    /* type  */ tas::tc_type
                                    )
         );
+
+    if (ana.do_lower_level)
+    {
+        list_FRSetDef.push_back(
+            RecoTrackSetDefinition(/* name  */ "pT5_lower",
+                                   /* pass  */ [&](unsigned int ipT5) {return sdl.pT5_isFake().at(ipT5) > 0;},
+                                   /* sel   */ [&](unsigned int ipT5) {return 1;},
+                                   /* pt    */ tas::pT5_pt,
+                                   /* eta   */ tas::pT5_eta,
+                                   /* phi   */ tas::pT5_phi,
+                                   /* type  */ [&](){return static_cast<const std::vector<int>>(std::vector<int>(tas::pT5_pt().size(), 1));}
+                                  )
+            );
+        list_FRSetDef.push_back(
+            RecoTrackSetDefinition(/* name  */ "T5_lower",
+                                   /* pass  */ [&](unsigned int it5) {return sdl.t5_isFake().at(it5) > 0;},
+                                   /* sel   */ [&](unsigned int it5) {return 1;},
+                                   /* pt    */ tas::t5_pt,
+                                   /* eta   */ tas::t5_eta,
+                                   /* phi   */ tas::t5_phi,
+                                   /* type  */ [&](){return static_cast<const std::vector<int>>(std::vector<int>(tas::t5_pt().size(), 1));}
+                                  )
+            );
+        list_FRSetDef.push_back(
+            RecoTrackSetDefinition(/* name  */ "pT3_lower",
+                                   /* pass  */ [&](unsigned int ipT3) {return sdl.pT3_isFake().at(ipT3) > 0;},
+                                   /* sel   */ [&](unsigned int ipT3) {return 1;},
+                                   /* pt    */ tas::pT3_pt,
+                                   /* eta   */ tas::pT3_eta,
+                                   /* phi   */ tas::pT3_phi,
+                                   /* type  */ [&](){return static_cast<const std::vector<int>>(std::vector<int>(tas::pT3_pt().size(), 1));}
+                                  )
+            );
+    }
+
     bookFakeRateSets(list_FRSetDef);
 
     // creating a set of duplicate rate plots
@@ -205,6 +270,41 @@ int main(int argc, char** argv)
                                    /* type  */ tas::tc_type
                                    )
         );
+
+    if (ana.do_lower_level)
+    {
+        list_DRSetDef.push_back(
+            RecoTrackSetDefinition(/* name  */ "pT5_lower",
+                                   /* pass  */ [&](unsigned int ipT5) {return sdl.pT5_isDuplicate().at(ipT5) > 0;},
+                                   /* sel   */ [&](unsigned int ipT5) {return 1;},
+                                   /* pt    */ tas::pT5_pt,
+                                   /* eta   */ tas::pT5_eta,
+                                   /* phi   */ tas::pT5_phi,
+                                   /* type  */ [&](){return static_cast<const std::vector<int>>(std::vector<int>(tas::pT5_pt().size(), 1));}
+                                  )
+            );
+        list_DRSetDef.push_back(
+            RecoTrackSetDefinition(/* name  */ "T5_lower",
+                                   /* pass  */ [&](unsigned int it5) {return sdl.t5_isDuplicate().at(it5) > 0;},
+                                   /* sel   */ [&](unsigned int it5) {return 1;},
+                                   /* pt    */ tas::t5_pt,
+                                   /* eta   */ tas::t5_eta,
+                                   /* phi   */ tas::t5_phi,
+                                   /* type  */ [&](){return static_cast<const std::vector<int>>(std::vector<int>(tas::t5_pt().size(), 1));}
+                                  )
+            );
+        list_DRSetDef.push_back(
+            RecoTrackSetDefinition(/* name  */ "pT3_lower",
+                                   /* pass  */ [&](unsigned int ipT3) {return sdl.pT3_isDuplicate().at(ipT3) > 0;},
+                                   /* sel   */ [&](unsigned int ipT3) {return 1;},
+                                   /* pt    */ tas::pT3_pt,
+                                   /* eta   */ tas::pT3_eta,
+                                   /* phi   */ tas::pT3_phi,
+                                   /* type  */  [&](){return static_cast<const std::vector<int>>(std::vector<int>(tas::pT3_pt().size(), 1));}
+                                  )
+            );
+    }
+
     bookDuplicateRateSets(list_DRSetDef);
 
     // Book Histograms
