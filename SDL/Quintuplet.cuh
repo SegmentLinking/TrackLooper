@@ -47,7 +47,6 @@ namespace SDL
         float* regressionG;
         float* regressionF;
 
-        //for track extensions
         uint8_t* logicalLayers;
         unsigned int* hitIndices;
         float* rzChiSquared;
