@@ -47,7 +47,6 @@ namespace SDL
         bool* isDup;
         bool* partOfPT5;
 
-        //for track extensions
         uint8_t* logicalLayers;
         unsigned int* hitIndices;
         uint16_t* lowerModuleIndices;
@@ -148,7 +147,6 @@ namespace SDL
         FPX* score;
         FPX* eta;
         FPX* phi;
-        //for track extensions
         uint8_t* logicalLayers;
         unsigned int* hitIndices;
         uint16_t* lowerModuleIndices;

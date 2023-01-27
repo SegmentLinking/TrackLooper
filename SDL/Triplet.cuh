@@ -33,7 +33,6 @@ namespace SDL
 
         unsigned int* nMemoryLocations;
 
-        //for track extensions
         uint8_t* logicalLayers;
         unsigned int* hitIndices;
         
@@ -45,7 +44,6 @@ namespace SDL
         bool* partOfPT5;
         bool* partOfT5;
         bool* partOfPT3;
-        bool* partOfExtension;
 
 #ifdef CUT_VALUE_DEBUG
         //debug variables

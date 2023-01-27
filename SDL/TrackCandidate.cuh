@@ -41,7 +41,6 @@ namespace SDL
         uint8_t* logicalLayers;
         unsigned int* hitIndices;
         uint16_t* lowerModuleIndices;
-        bool* partOfExtension;
 
         FPX* centerX;
         FPX* centerY;
