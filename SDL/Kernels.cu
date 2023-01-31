@@ -653,3 +653,4 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::obje
         }
     }
 }
+
