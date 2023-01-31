@@ -941,7 +941,9 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         }
         rzChiSquared += 12*(residual * residual)/(error * error);
     }
+
     // for set rzchi2 cut
+    TightCutFlag = false;
 //    if (!isnan(rzChiSquared)) rzChiSquared=100;
     // if the 5 points are linear, helix calculation gives nan
     if (inner_pt>100 || isnan(rzChiSquared)){
@@ -965,7 +967,8 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         residual5_linear = residual5_linear*100;
 
         rzChiSquared = 12 * (residual4_linear * residual4_linear + residual5_linear * residual5_linear);
-        return rzChiSquared < 4.677f;
+        if (rzChiSquared < 4.677f) TightCutFlag = 1;
+        return true;
     }
 //    rzChiSquared = 12*(residual4 * residual4 + residual5 * residual5 + residual_missing * residual_missing);
 
@@ -985,7 +988,7 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
 //    }
 
     // when building T5, apply 99% chi2 cuts as default, and add to pT5 collection. But when adding T5 to TC collections, appy 95% cut to reduce the fake rate
-    TightCutFlag = false;
+
     //categories!
     if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
