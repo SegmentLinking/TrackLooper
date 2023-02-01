@@ -200,9 +200,6 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     cudaMalloc(&quintupletsInGPU.chiSquared, nTotalQuintuplets * sizeof(float));
     cudaMalloc(&quintupletsInGPU.nonAnchorChiSquared, nTotalQuintuplets * sizeof(float));
     cudaMalloc(&quintupletsInGPU.rzChiSquared, nTotalQuintuplets * sizeof(float));
-    cudaMalloc(&quintupletsInGPU.residual_missing, nTotalQuintuplets * sizeof(float));
-    cudaMalloc(&quintupletsInGPU.residual4, nTotalQuintuplets * sizeof(float));
-    cudaMalloc(&quintupletsInGPU.residual5, nTotalQuintuplets * sizeof(float));
     cudaMalloc(&quintupletsInGPU.nMemoryLocations, sizeof(unsigned int));
 #endif
     cudaMemsetAsync(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
@@ -388,8 +385,8 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     innerRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3, g, f);
 
     float inner_pt = 2 * k2Rinv1GeVf * innerRadius;
-    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, g, f, TightCutFlag);
-//    passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, g, f, TightCutFlag);
+    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, inner_pt, innerRadius, g, f, TightCutFlag);
+//    passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, inner_pt, innerRadius, g, f, TightCutFlag);
 
     if(not pass) return pass;
 
@@ -599,7 +596,7 @@ __device__ bool SDL::passChiSquaredConstraint(struct SDL::modules& modulesInGPU,
 }
 
 //bounds can be found at http://uaf-10.t2.ucsd.edu/~bsathian/SDL/T5_RZFix/t5_rz_thresholds.txt
-__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared, float& residual_missing, float& residual4, float& residual5, float inner_pt, float innerRadius, float g, float f, bool& TightCutFlag) 
+__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared, float inner_pt, float innerRadius, float g, float f, bool& TightCutFlag) 
 {
     //(g,f) is the center of the circle fitted by the innermost 3 points on x,y coordinates
     const float& rt1 = mdsInGPU.anchorRt[firstMDIndex]/100; //in the unit of m instead of cm
@@ -815,8 +812,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         {
             error = 5.0f;
         }
-        if (i==4) residual4=residual/error;
-        if (i==5) residual5=residual/error;
 
         //check the tilted module, side: PosZ, NegZ, Center(for not tilted)
         float drdz;
@@ -833,14 +828,12 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         }
         if (i==2 || i==3){
             residual = (layeri <= 6 && ((side == SDL::Center) or (drdz < 1))) ? diffz : diffr;
-//            residual_missing=residual;
             float projection_missing=1;
         if (drdz<1)
             projection_missing = ((subdets == SDL::Endcap) or (side == SDL::Center)) ? 1.f : 1/sqrt(1+drdz*drdz); // cos(atan(drdz)), if dr/dz<1
         if (drdz>1)
             projection_missing = ((subdets == SDL::Endcap) or (side == SDL::Center)) ? 1.f : drdz/sqrt(1+drdz*drdz);//sin(atan(drdz)), if dr/dz>1
             error=error*projection_missing;
-            residual_missing=residual/error;
         }
         rzChiSquared += 12*(residual * residual)/(error * error);
     }
@@ -873,22 +866,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         if (rzChiSquared < 4.677f) TightCutFlag = 1;
         return true;
     }
-//    rzChiSquared = 12*(residual4 * residual4 + residual5 * residual5 + residual_missing * residual_missing);
-
-//    if (isnan(rzChiSquared)) printf("rzChi2: %f, residual2: %f, inner_pt:%f, pseudo_phi: %f, charge: %i, Px:%f, Py:%f, x1:%f, x2:%f, x3:%f, x4:%f, x5:%f, y1:%f, y2:%f, y3:%f, y4:%f, y5:%f, z1:%f, z2:%f, z3:%f, z4:%f, z5:%f, x_center:%f, y_center:%f, slope1c:%f, slope3c:%f\n", rzChiSquared, residual_missing, inner_pt, pseudo_phi, charge, Px, Py, x1, x2, x3, x4, x5, y1, y2, y3, y4, y5, z1, z2, z3, z4, z5, x_center, y_center, slope1c, slope3c);
-
-//    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11 and rzChiSquared>100){
-//        printf("rt1:%f, rt2:%f, rt3:%f, rt4:%f, rt5:%f\n", rt1, rt2, rt3, rt4, rt5);
-//        printf("x1:%f, x2:%f, x3:%f, x4:%f, x5:%f\n", x1, x2, x3, x4, x5);
-//        printf("y1:%f, y2:%f, y3:%f, y4:%f, y5:%f\n", y1, y2, y3, y4, y5);
-//        printf("z1:%f, z2:%f, z3:%f, z4:%f, z5:%f\n", z1, z2, z3, z4, z5);
-//        printf("rt4_ex:%f, rt5_ex:%f\n", expectrt4, expectrt5);
-//        printf("z4_ex:%f, z5_ex:%f\n", expectz4, expectz5);
-//        printf("residual_missing:%f\n", residual_missing);
-//        printf("Pt:%f, Px:%f, Py:%f, Pz:%f, charge: %i, residual_missing: %f, residual4: %f, residual5:%f, moduleType3:%i\n", Pt, Px, Py, Pz, charge, residual_missing, residual4, residual5, moduleType3);
-//        if (fabs(rzChiSquared-434.901)<0.01) printf("rzChi2: %f, residual2: %f, residual4: %f, residual5:%f, inner_pt:%f, pseudo_phi: %f, charge: %i, Px:%f, Py:%f, x1:%f, x2:%f, x3:%f, x4:%f, x5:%f, y1:%f, y2:%f, y3:%f, y4:%f, y5:%f, z1:%f, z2:%f, z3:%f, z4:%f, z5:%f, x_center:%f, y_center:%f, slope1c:%f, slope3c:%f\n", rzChiSquared, residual_missing, residual4, residual5, inner_pt, pseudo_phi, charge, Px, Py, x1, x2, x3, x4, x5, y1, y2, y3, y4, y5, z1, z2, z3, z4, z5, x_center, y_center, slope1c, slope3c);
-//        printf("residual_missing:%f\n", residual_missing);
-//    }
 
     // when building T5, apply 99% chi2 cuts as default, and add to pT5 collection. But when adding T5 to TC collections, appy 95% cut to reduce the fake rate
 
