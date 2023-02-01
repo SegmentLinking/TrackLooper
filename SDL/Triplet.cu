@@ -93,7 +93,6 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
     tripletsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_device(dev, maxTriplets * sizeof(bool), stream);
     tripletsInGPU.partOfPT3 = (bool*)cms::cuda::allocate_device(dev, maxTriplets * sizeof(bool), stream);
     tripletsInGPU.partOfT5 = (bool*)cms::cuda::allocate_device(dev, maxTriplets * sizeof(bool), stream);
-    tripletsInGPU.partOfExtension = (bool*)cms::cuda::allocate_device(dev, maxTriplets * sizeof(bool), stream);
 
     tripletsInGPU.logicalLayers = (uint8_t*)cms::cuda::allocate_device(dev, maxTriplets * 3 * sizeof(uint8_t), stream);
     tripletsInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_device(dev, maxTriplets * 6 * sizeof(unsigned int), stream);
@@ -127,7 +126,6 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
     cudaMalloc(&tripletsInGPU.partOfPT5, maxTriplets * sizeof(bool));
     cudaMalloc(&tripletsInGPU.partOfPT3, maxTriplets * sizeof(bool));
     cudaMalloc(&tripletsInGPU.partOfT5, maxTriplets * sizeof(bool));
-    cudaMalloc(&tripletsInGPU.partOfExtension, maxTriplets * sizeof(bool));
 
     cudaMalloc(&tripletsInGPU.logicalLayers, maxTriplets * 3 * sizeof(uint8_t));
     cudaMalloc(&tripletsInGPU.hitIndices, maxTriplets * 6 * sizeof(unsigned int));
@@ -158,7 +156,6 @@ void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigne
     cudaMemsetAsync(tripletsInGPU.partOfPT5,0,maxTriplets * sizeof(bool),stream);
     cudaMemsetAsync(tripletsInGPU.partOfPT3,0,maxTriplets * sizeof(bool),stream);
     cudaMemsetAsync(tripletsInGPU.partOfT5,0,maxTriplets * sizeof(bool),stream);
-    cudaMemsetAsync(tripletsInGPU.partOfExtension,0,maxTriplets * sizeof(bool),stream);
     
     cudaStreamSynchronize(stream);
 
@@ -183,7 +180,6 @@ __device__ void SDL::addTripletToMemory(struct modules& modulesInGPU, struct min
     tripletsInGPU.betaOut[tripletIndex] = __F2H(betaOut);
     tripletsInGPU.pt_beta[tripletIndex] = __F2H(pt_beta);
    
-    //track extension stuff
     tripletsInGPU.logicalLayers[tripletIndex * 3] = modulesInGPU.layers[innerInnerLowerModuleIndex] + (modulesInGPU.subdets[innerInnerLowerModuleIndex] == 4) * 6;
     tripletsInGPU.logicalLayers[tripletIndex * 3 + 1] = modulesInGPU.layers[middleLowerModuleIndex] + (modulesInGPU.subdets[middleLowerModuleIndex] == 4) * 6;
     tripletsInGPU.logicalLayers[tripletIndex * 3 + 2] = modulesInGPU.layers[outerOuterLowerModuleIndex] + (modulesInGPU.subdets[outerOuterLowerModuleIndex] == 4) * 6;
@@ -261,7 +257,6 @@ void SDL::triplets::freeMemoryCache()
     cms::cuda::free_device(dev, partOfPT5);
     cms::cuda::free_device(dev, partOfPT3);
     cms::cuda::free_device(dev, partOfT5);
-    cms::cuda::free_device(dev, partOfExtension);
     cms::cuda::free_device(dev, logicalLayers);
     cms::cuda::free_device(dev, hitIndices);
     cms::cuda::free_device(dev, nMemoryLocations);
@@ -290,7 +285,6 @@ void SDL::triplets::freeMemory(cudaStream_t stream)
     cudaFree(partOfPT5);
     cudaFree(partOfPT3);
     cudaFree(partOfT5);
-    cudaFree(partOfExtension);
     cudaFree(logicalLayers);
     cudaFree(hitIndices);
     cudaFree(nMemoryLocations);

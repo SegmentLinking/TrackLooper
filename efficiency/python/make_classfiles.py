@@ -66,12 +66,12 @@ if __name__ == "__main__":
 
             
     if make_looper and (os.path.isfile("ScanChain.C") or os.path.isfile("doAll.C")):
-        print ">>> Hey, you already have a looper here! I will be a bro and not overwrite them. Delete 'em if you want to regenerate 'em."
+        print(">>> Hey, you already have a looper here! I will be a bro and not overwrite them. Delete 'em if you want to regenerate 'em.")
         make_looper = False
 
     if make_looper:
-        print ">>> Making looper"
-        print ">>> Checking out cmstas/Software"
+        print(">>> Making looper")
+        print(">>> Checking out cmstas/Software")
         os.system("[[ -d Software/ ]] || git clone https://github.com/cmstas/Software")
 
         buff = ""
@@ -161,7 +161,7 @@ if __name__ == "__main__":
             typ = cname.replace("edm::Wrapper<","")[:-1]
         typ = classname_to_type(typ)
 
-        if "musp4" in bname: print bname
+        if "musp4" in bname: print(bname)
         
         d_bname_to_info[bname] = {
                 "class": cname,
@@ -264,7 +264,7 @@ if __name__ == "__main__":
     with open("%s.h" % classname, "w") as fhout:
         fhout.write(buff)
 
-    print ">>> Saved %s.h" % (classname)
+    print(">>> Saved %s.h" % (classname))
 
     ########################################
     ############### ***.cc ################
@@ -486,7 +486,7 @@ if __name__ == "__main__":
 
     with open("%s.cc" % classname, "w") as fhout:
         fhout.write(buff)
-    print ">>> Saved %s.cc" % (classname)
+    print(">>> Saved %s.cc" % (classname))
 
 
 

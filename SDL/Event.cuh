@@ -55,7 +55,6 @@ namespace SDL
         struct trackCandidates* trackCandidatesInGPU;
         struct pixelTriplets* pixelTripletsInGPU;
         struct pixelQuintuplets* pixelQuintupletsInGPU;
-        struct trackExtensions* trackExtensionsInGPU;
 
         //CPU interface stuff
         objectRanges* rangesInCPU;
@@ -69,7 +68,6 @@ namespace SDL
         quintuplets* quintupletsInCPU;
         pixelTriplets* pixelTripletsInCPU;
         pixelQuintuplets* pixelQuintupletsInCPU;
-        trackExtensions* trackExtensionsInCPU;
 
         int* superbinCPU;
         int8_t* pixelTypeCPU;
@@ -149,7 +147,6 @@ namespace SDL
         triplets* getTriplets();
         quintuplets* getQuintuplets();
         trackCandidates* getTrackCandidates();
-        trackExtensions* getTrackExtensions();
         pixelTriplets* getPixelTriplets();
         modules* getModules();
         modules* getFullModules();

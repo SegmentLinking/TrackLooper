@@ -21,6 +21,11 @@ void createOptionalOutputBranches();
 void fillOutputBranches(SDL::Event* event);
 void setOutputBranches(SDL::Event* event);
 void setOptionalOutputBranches(SDL::Event* event);
+void setPixelQuintupletOutputBranches(SDL::Event* event);
+void setQuintupletOutputBranches(SDL::Event* event);
+void setPixelTripletOutputBranches(SDL::Event *event);
+
+
 std::tuple<int, float, float, float, int, vector<int>> parseTrackCandidate(SDL::Event* event, unsigned int);
 std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parsepT5(SDL::Event* event, unsigned int);
 std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parsepT3(SDL::Event* event, unsigned int);
