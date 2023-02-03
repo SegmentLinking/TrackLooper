@@ -14,7 +14,7 @@ SDL::quintuplets::quintuplets()
     innerRadius = nullptr;
     outerRadius = nullptr;
     isDup = nullptr;
-    TightCutFlag = nullptr;
+    tightCutFlag = nullptr;
     partOfPT5 = nullptr;
     pt = nullptr;
     layer = nullptr;
@@ -44,7 +44,7 @@ void SDL::quintuplets::freeMemoryCache()
     cms::cuda::free_device(dev, outerRadius);
     cms::cuda::free_device(dev, partOfPT5);
     cms::cuda::free_device(dev, isDup);
-    cms::cuda::free_device(dev, TightCutFlag);
+    cms::cuda::free_device(dev, tightCutFlag);
     cms::cuda::free_device(dev, pt);
     cms::cuda::free_device(dev, layer);
     cms::cuda::free_device(dev, innerG);
@@ -68,7 +68,7 @@ void SDL::quintuplets::freeMemory(cudaStream_t stream)
     cudaFree(outerRadius);
     cudaFree(partOfPT5);
     cudaFree(isDup);
-    cudaFree(TightCutFlag);
+    cudaFree(tightCutFlag);
     cudaFree(pt);
     cudaFree(layer);
     cudaFree(innerG);
@@ -162,7 +162,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     quintupletsInGPU.pt = (FPX*)cms::cuda::allocate_device(dev, nTotalQuintuplets *4* sizeof(FPX), stream);
     quintupletsInGPU.layer = (uint8_t*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(uint8_t), stream);
     quintupletsInGPU.isDup = (bool*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(bool), stream);
-    quintupletsInGPU.TightCutFlag = (bool*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(bool), stream);
+    quintupletsInGPU.tightCutFlag = (bool*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(bool), stream);
     quintupletsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(bool), stream);
     quintupletsInGPU.innerG = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
     quintupletsInGPU.innerF = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
@@ -182,7 +182,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     cudaMalloc(&quintupletsInGPU.outerRadius, nTotalQuintuplets * sizeof(FPX));
     cudaMalloc(&quintupletsInGPU.pt, nTotalQuintuplets *4* sizeof(FPX));
     cudaMalloc(&quintupletsInGPU.isDup, nTotalQuintuplets * sizeof(bool));
-    cudaMalloc(&quintupletsInGPU.TightCutFlag, nTotalQuintuplets * sizeof(bool));
+    cudaMalloc(&quintupletsInGPU.tightCutFlag, nTotalQuintuplets * sizeof(bool));
     cudaMalloc(&quintupletsInGPU.partOfPT5, nTotalQuintuplets * sizeof(bool));
     cudaMalloc(&quintupletsInGPU.layer, nTotalQuintuplets * sizeof(uint8_t));
     cudaMalloc(&quintupletsInGPU.innerG, nTotalQuintuplets * sizeof(float));
@@ -194,13 +194,12 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     cudaMalloc(&quintupletsInGPU.rzChiSquared, nTotalQuintuplets * sizeof(float));
     cudaMalloc(&quintupletsInGPU.chiSquared, nTotalQuintuplets * sizeof(float));
     cudaMalloc(&quintupletsInGPU.nonAnchorChiSquared, nTotalQuintuplets * sizeof(float));
-    cudaMalloc(&quintupletsInGPU.rzChiSquared, nTotalQuintuplets * sizeof(float));
     cudaMalloc(&quintupletsInGPU.nMemoryLocations, sizeof(unsigned int));
 #endif
     cudaMemsetAsync(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(quintupletsInGPU.totOccupancyQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(quintupletsInGPU.isDup,0,nTotalQuintuplets * sizeof(bool),stream);
-    cudaMemsetAsync(quintupletsInGPU.TightCutFlag,0,nTotalQuintuplets * sizeof(bool),stream);
+    cudaMemsetAsync(quintupletsInGPU.tightCutFlag,0,nTotalQuintuplets * sizeof(bool),stream);
     cudaMemsetAsync(quintupletsInGPU.partOfPT5,0,nTotalQuintuplets * sizeof(bool),stream);
     cudaStreamSynchronize(stream);
     quintupletsInGPU.eta = quintupletsInGPU.pt + nTotalQuintuplets;
@@ -210,7 +209,8 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
 
 
 __device__ void SDL::addQuintupletToMemory(struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, uint16_t& lowerModule1, uint16_t& lowerModule2, uint16_t& lowerModule3, uint16_t& lowerModule4, uint16_t& lowerModule5, float& innerRadius, float& bridgeRadius, float& outerRadius, float& innerG, float& innerF, float& rzChiSquared, float& rPhiChiSquared, float&
-        nonAnchorChiSquared, float pt, float eta, float phi, float scores, uint8_t layer, unsigned int quintupletIndex, bool TightCutFlag)
+        nonAnchorChiSquared, float pt, float eta, float phi, float scores, uint8_t layer, unsigned int quintupletIndex, bool tightCutFlag)
+
 {
     quintupletsInGPU.tripletIndices[2 * quintupletIndex] = innerTripletIndex;
     quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1] = outerTripletIndex;
@@ -228,7 +228,7 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::triplets& tripletsInGPU, 
     quintupletsInGPU.score_rphisum[quintupletIndex] = __F2H(scores);
     quintupletsInGPU.layer[quintupletIndex] = layer;
     quintupletsInGPU.isDup[quintupletIndex] = false;
-    quintupletsInGPU.TightCutFlag[quintupletIndex] = TightCutFlag;
+    quintupletsInGPU.tightCutFlag[quintupletIndex] = tightCutFlag;
     quintupletsInGPU.innerG[quintupletIndex] = innerG;
     quintupletsInGPU.innerF[quintupletIndex] = innerF;
     quintupletsInGPU.logicalLayers[5 * quintupletIndex] = tripletsInGPU.logicalLayers[3 * innerTripletIndex];
@@ -255,7 +255,7 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::triplets& tripletsInGPU, 
 }
 
 __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, unsigned int& innerTripletIndex, unsigned int& outerTripletIndex, float& innerG, float& innerF, float& innerRadius, float& outerRadius, float& bridgeRadius, float&
-        rzChiSquared, float& chiSquared, float& nonAnchorChiSquared, bool& TightCutFlag)
+        rzChiSquared, float& chiSquared, float& nonAnchorChiSquared, bool& tightCutFlag)
 {
     bool pass = true;
     unsigned int firstSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex];
@@ -305,7 +305,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     float inner_pt = 2 * k2Rinv1GeVf * innerRadius;
 
     float residual4, residual5, residual_missing, g, f;
-    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, innerG, innerF, TightCutFlag);
+    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, innerG, innerF, tightCutFlag);
 
     pass = pass & (innerRadius >= 0.95f * ptCut/(2.f * k2Rinv1GeVf));
 
@@ -500,6 +500,60 @@ __device__ bool SDL::passChiSquared_bin2(struct SDL::modules& modulesInGPU, floa
     }
     return true;
 }
+
+
+/*__device__ float SDL::computeT5RZChiSquared(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5)
+{
+    const float& rt1 = mdsInGPU.anchorRt[firstMDIndex];
+    const float& rt2 = mdsInGPU.anchorRt[secondMDIndex];
+    const float& rt3 = mdsInGPU.anchorRt[thirdMDIndex];
+    const float& rt4 = mdsInGPU.anchorRt[fourthMDIndex];
+    const float& rt5 = mdsInGPU.anchorRt[fifthMDIndex];
+
+    const float& z1 = mdsInGPU.anchorZ[firstMDIndex];
+    const float& z2 = mdsInGPU.anchorZ[secondMDIndex];
+    const float& z3 = mdsInGPU.anchorZ[thirdMDIndex];
+    const float& z4 = mdsInGPU.anchorZ[fourthMDIndex];
+    const float& z5 = mdsInGPU.anchorZ[fifthMDIndex];
+
+    //following Philip's layer number prescription
+    const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
+    const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
+    const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
+    const int layer4 = modulesInGPU.layers[lowerModuleIndex4] + 6 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex4] == SDL::TwoS);
+    const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
+
+    const int& moduleType3 = modulesInGPU.moduleType[lowerModuleIndex3];
+    const int& moduleType4 = modulesInGPU.moduleType[lowerModuleIndex4];
+    const int& moduleType5 = modulesInGPU.moduleType[lowerModuleIndex5];
+    const short& subdet3 = modulesInGPU.subdets[lowerModuleIndex3];
+    const short& subdet4 = modulesInGPU.subdets[lowerModuleIndex4];
+    const short& subdet5 = modulesInGPU.subdets[lowerModuleIndex5];
+    const float& drdz3 = modulesInGPU.drdzs[lowerModuleIndex3];
+    const float& drdz4 = modulesInGPU.drdzs[lowerModuleIndex4];
+    const float& drdz5 = modulesInGPU.drdzs[lowerModuleIndex5];
+
+    const short side3 = modulesInGPU.sides[lowerModuleIndex3];
+    const short side4 = modulesInGPU.sides[lowerModuleIndex4];
+    const short side5 = modulesInGPU.sides[lowerModuleIndex5];
+
+    //denominator factor for tilted modules : cos theta for < 45 degrees, sin theta for > 45 degrees
+//    float projection3 = ((subdet3 == SDL::Endcap) or (side3 == SDL::Center)) ? 1.f : fmaxf(1.f, drdz3)/sqrtf(1+drdz3*drdz3);
+    float projection4 = ((subdet4 == SDL::Endcap) or (side4 == SDL::Center)) ? 1.f : fmaxf(1.f, drdz4)/sqrtf(1+drdz4*drdz4);
+    float projection5 = ((subdet5 == SDL::Endcap) or (side5 == SDL::Center)) ? 1.f : fmaxf(1.f, drdz5)/sqrtf(1+drdz5*drdz5);
+
+    float slope = (z2-z1)/(rt2-rt1);
+
+    //numerator of chi squared
+    float residual4 = (subdet4 == SDL::Barrel and ((side4 == SDL::Center)or (drdz4 < 1))) ? (((z4 - z1) - slope * (rt4 - rt1))) : ((rt4 - rt1) - (z4 - z1)/slope);
+    float residual5 = (subdet5 == SDL::Barrel and ((side5 == SDL::Center)or (drdz5 < 1))) ? (((z5 - z1) - slope * (rt5 - rt1))) : ((rt5 - rt1) - (z5 - z1)/slope);
+
+    float denominator4 = (moduleType4 == SDL::PS) ? 0.15f*projection4 : 5.f;
+    float denominator5 = (moduleType5 == SDL::PS) ? 0.15f*projection5 : 5.f;
+
+    const float RMSE = sqrtf(0.5 * ((residual5/denominator5) * (residual5/denominator5) + (residual4/denominator4) * (residual4/denominator4)));
+    return RMSE;
+}*/
 
 
 __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared, float& residual_missing, float& residual4, float& residual5, float inner_pt, float innerRadius, float g, float f, bool& tightCutFlag) 
@@ -962,13 +1016,13 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4)
     {
-        if(layer5 == 5)
-        {
-            return chiSquared < 0.04725f;
-        }
-        else if(layer5 == 12)
+        if(layer5 == 12)
         {
             return chiSquared < 0.09461f;
+        }
+        else if(layer5 == 5)
+        {
+            return chiSquared < 0.04725f;
         }
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
@@ -2240,7 +2294,7 @@ __device__ float SDL::computeRadiusFromThreeAnchorHits(float x1, float y1, float
     /*
     if((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3) == 0)
     {
-        return -1; //WTF man, three collinear points!
+        return -1; //WTF man three collinear points!
     }
     */
 

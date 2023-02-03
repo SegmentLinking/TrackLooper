@@ -43,7 +43,6 @@ namespace SDL
         FPX* score_rphisum;
         uint8_t* layer;
         bool* isDup;
-        bool* TightCutFlag;
         bool* partOfPT5;
         bool* partOfTC;
         bool* tightCutFlag;
@@ -66,6 +65,7 @@ namespace SDL
 
     void createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& maxQuintuplets, const uint16_t& nLowerModules, const uint16_t& nEligibleModules,cudaStream_t stream);
 
+//    void createEligibleModulesListForQuintuplets(struct modules& modulesInGPU, struct triplets& tripletsInGPU, uint16_t& nEligibleModules, uint16_t* indicesOfEligibleModules, unsigned int& nTotalQuintuplets, unsigned int& maxTriplets,cudaStream_t stream, struct objectRanges& rangesInGPU);
     __global__ void createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU, struct triplets& tripletsInGPU, unsigned int* nTotalQuintuplets, cudaStream_t stream, struct objectRanges& rangesInGPU);
 
 
@@ -107,14 +107,17 @@ namespace SDL
 
     CUDA_DEV float computeRadiusUsingRegression(int nPoints, float* xs, float* ys, float& g, float& f, float* sigmas, float& chiSquared);
 
+//    CUDA_DEV void computeSigmasForRegression(SDL::modules& modulesInGPU, const uint16_t* lowerModuleIndices, float* delta1, float* delta2, float* slopes, bool* isFlat, int nPoints = 5, bool anchorHits = true);
     CUDA_DEV void computeSigmasForRegression(SDL::modules& modulesInGPU, const uint16_t* lowerModuleIndices, float* sigmas);
 
 
+//    CUDA_DEV bool passChiSquaredConstraint(struct modules& modulesInGPU, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& chiSquared);
 
     CUDA_DEV bool passChiSquared_bin1(struct SDL::modules& modulesInGPU, float& eta, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rPhiChiSquared);
 
     CUDA_DEV bool passChiSquared_bin2(struct SDL::modules& modulesInGPU, float& eta, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rPhiChiSquared);
 
+//    CUDA_DEV float computeChiSquared(int nPoints, float* xs, float* ys, float* delta1, float* delta2, float* slopes, bool* isFlat, float g, float f, float radius);
     CUDA_DEV float computeChiSquared(int nPoints, float* xs, float* ys, float* sigmas, float g, float f, float radius);
 
     CUDA_DEV void runDeltaBetaIterationsT5(float& betaIn, float& betaOut, float& betaAv, float & pt_beta, float sdIn_dr, float sdOut_dr, float dr, float lIn);
