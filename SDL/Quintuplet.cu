@@ -304,8 +304,8 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
 
     float inner_pt = 2 * k2Rinv1GeVf * innerRadius;
 
-    float residual4, residual5, residual_missing, g, f;
-    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, innerG, innerF, TightCutFlag);
+    float g, f;
+    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, inner_pt, innerRadius, innerG, innerF, TightCutFlag);
 
     pass = pass & (innerRadius >= 0.95f * ptCut/(2.f * k2Rinv1GeVf));
 
@@ -502,7 +502,7 @@ __device__ bool SDL::passChiSquared_bin2(struct SDL::modules& modulesInGPU, floa
 }
 
 
-__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared, float& residual_missing, float& residual4, float& residual5, float inner_pt, float innerRadius, float g, float f, bool& tightCutFlag) 
+__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared, float inner_pt, float innerRadius, float g, float f, bool& TightCutFlag) 
 {
     //(g,f) is the center of the circle fitted by the innermost 3 points on x,y coordinates
     const float& rt1 = mdsInGPU.anchorRt[firstMDIndex]/100; //in the unit of m instead of cm
@@ -631,7 +631,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     float dPhi = acos((AO*AO+BO*BO-AB*AB)/(2*AO*BO));
     float ds=innerRadius/100*dPhi;
 
-//    float ds = sqrt((y_init-y1)*(y_init-y1)+(x_init-x1)*(x_init-x1)); //large ds->smallerPz->smaller residual
     float Pz=(z_init-z1)/ds*Pt;
     float p = sqrt(Px*Px+Py*Py+Pz*Pz);
 
@@ -685,8 +684,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         float x = x_init + Px/a*sin(rou*s)-Py/a*(1-cos(rou*s));
         float y = y_init + Py/a*sin(rou*s)+Px/a*(1-cos(rou*s));
         diffr = (rtsi-sqrt(x*x+y*y))*100;
-        if (i==4) expectrt4=sqrt(x*x+y*y);
-        if (i==5) expectrt5=sqrt(x*x+y*y);
 
         // for barrel
         if (layeri<=6)
@@ -718,8 +715,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         {
             error = 5.0f;
         }
-        if (i==4) residual4=residual/error;
-        if (i==5) residual5=residual/error;
 
         //check the tilted module, side: PosZ, NegZ, Center(for not tilted)
         float drdz;
@@ -736,62 +731,71 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         }
         if (i==2 || i==3){
             residual = (layeri <= 6 && ((side == SDL::Center) or (drdz < 1))) ? diffz : diffr;
-//            residual_missing=residual;
             float projection_missing=1;
         if (drdz<1)
             projection_missing = ((subdets == SDL::Endcap) or (side == SDL::Center)) ? 1.f : 1/sqrt(1+drdz*drdz); // cos(atan(drdz)), if dr/dz<1
         if (drdz>1)
             projection_missing = ((subdets == SDL::Endcap) or (side == SDL::Center)) ? 1.f : drdz/sqrt(1+drdz*drdz);//sin(atan(drdz)), if dr/dz>1
             error=error*projection_missing;
-            residual_missing=residual/error;
         }
         rzChiSquared += 12*(residual * residual)/(error * error);
     }
-//    rzChiSquared = 12*(residual4 * residual4 + residual5 * residual5 + residual_missing * residual_missing);
 
-//    if (isnan(rzChiSquared)) printf("rzChi2: %f, residual2: %f, inner_pt:%f, pseudo_phi: %f, charge: %i, Px:%f, Py:%f, x1:%f, x2:%f, x3:%f, x4:%f, x5:%f, y1:%f, y2:%f, y3:%f, y4:%f, y5:%f, z1:%f, z2:%f, z3:%f, z4:%f, z5:%f, x_center:%f, y_center:%f, slope1c:%f, slope3c:%f\n", rzChiSquared, residual_missing, inner_pt, pseudo_phi, charge, Px, Py, x1, x2, x3, x4, x5, y1, y2, y3, y4, y5, z1, z2, z3, z4, z5, x_center, y_center, slope1c, slope3c);
+    TightCutFlag = false;
+    // if the 5 points are almost linear, helix calculation gives nan
+    if (inner_pt>100 || isnan(rzChiSquared)){
+        float slope;
+        if(moduleType1 == 0 and moduleType2 == 0 and moduleType3 == 1) //PSPS2S
+        {
+            slope = (z2 -z1)/(rt2 - rt1);
+        }
+        else
+        {
+            slope = (z3 - z1)/(rt3 - rt1);
+        }
+        float residual4_linear = (layer4 <= 6)? ((z4 - z1) - slope * (rt4 - rt1)) : ((rt4 - rt1) - (z4 - z1)/slope);
+        float residual5_linear = (layer4 <= 6) ? ((z5 - z1) - slope * (rt5 - rt1)) : ((rt5 - rt1) - (z5 - z1)/slope);
 
-//    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11 and rzChiSquared>100){
-//        printf("rt1:%f, rt2:%f, rt3:%f, rt4:%f, rt5:%f\n", rt1, rt2, rt3, rt4, rt5);
-//        printf("x1:%f, x2:%f, x3:%f, x4:%f, x5:%f\n", x1, x2, x3, x4, x5);
-//        printf("y1:%f, y2:%f, y3:%f, y4:%f, y5:%f\n", y1, y2, y3, y4, y5);
-//        printf("z1:%f, z2:%f, z3:%f, z4:%f, z5:%f\n", z1, z2, z3, z4, z5);
-//        printf("rt4_ex:%f, rt5_ex:%f\n", expectrt4, expectrt5);
-//        printf("z4_ex:%f, z5_ex:%f\n", expectz4, expectz5);
-//        printf("residual_missing:%f\n", residual_missing);
-//        printf("Pt:%f, Px:%f, Py:%f, Pz:%f, charge: %i, residual_missing: %f, residual4: %f, residual5:%f, moduleType3:%i\n", Pt, Px, Py, Pz, charge, residual_missing, residual4, residual5, moduleType3);
-//        if (fabs(rzChiSquared-434.901)<0.01) printf("rzChi2: %f, residual2: %f, residual4: %f, residual5:%f, inner_pt:%f, pseudo_phi: %f, charge: %i, Px:%f, Py:%f, x1:%f, x2:%f, x3:%f, x4:%f, x5:%f, y1:%f, y2:%f, y3:%f, y4:%f, y5:%f, z1:%f, z2:%f, z3:%f, z4:%f, z5:%f, x_center:%f, y_center:%f, slope1c:%f, slope3c:%f\n", rzChiSquared, residual_missing, residual4, residual5, inner_pt, pseudo_phi, charge, Px, Py, x1, x2, x3, x4, x5, y1, y2, y3, y4, y5, z1, z2, z3, z4, z5, x_center, y_center, slope1c, slope3c);
-//        printf("residual_missing:%f\n", residual_missing);
-//    }
+        // creating a chi squared type quantity
+        // 0-> PS, 1->2S
+        residual4_linear = (moduleType4 == 0) ? residual4_linear/0.15f : residual4_linear/5.0f;
+        residual5_linear = (moduleType5 == 0) ? residual5_linear/0.15f : residual5_linear/5.0f;
+        residual4_linear = residual4_linear*100;
+        residual5_linear = residual5_linear*100;
+
+        rzChiSquared = 12 * (residual4_linear * residual4_linear + residual5_linear * residual5_linear);
+        TightCutFlag = 1;
+        return rzChiSquared < 4.677f;
+    }
 
     // when building T5, apply 99% chi2 cuts as default, and add to pT5 collection. But when adding T5 to TC collections, appy 95% cut to reduce the fake rate
-    tightCutFlag = false;
+    TightCutFlag = false;
     //categories!
     if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
         if(layer4 == 4 and layer5 == 5) //11
         {
-            if (rzChiSquared < 15.627f) tightCutFlag = true;
+            if (rzChiSquared < 15.627f) TightCutFlag = true;
             return rzChiSquared < 29.035f; 
         }
         else if(layer4 == 4 and layer5 == 12) //12
         {
-            if (rzChiSquared < 14.64f) tightCutFlag = true;
+            if (rzChiSquared < 14.64f) TightCutFlag = true;
             return rzChiSquared < 23.037f;
         }
         else if(layer4 == 7 and layer5 == 8) //8
         {   
-            if (rzChiSquared < 27.824f) tightCutFlag = true;
+            if (rzChiSquared < 27.824f) TightCutFlag = true;
             return rzChiSquared < 44.247f;
         }
         else if(layer4 == 7 and layer5 == 13) //9
         {
-            if (rzChiSquared < 18.145f) tightCutFlag = true;
+            if (rzChiSquared < 18.145f) TightCutFlag = true;
             return rzChiSquared < 33.752f;
         }
         else if(layer4 == 12 and layer5 == 13) //10
         {
-            if (rzChiSquared < 13.308f) tightCutFlag = true;
+            if (rzChiSquared < 13.308f) TightCutFlag = true;
             return rzChiSquared < 21.213f;
         }
     }
@@ -799,17 +803,17 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     {
         if(layer4 == 8 and layer5 == 9) //5
         {
-            if (rzChiSquared < 116.148f) tightCutFlag = true;
+            if (rzChiSquared < 116.148f) TightCutFlag = true;
             return true;
         }
         if(layer4 == 8 and layer5 == 14) //6
         {
-            if (rzChiSquared < 19.352f) tightCutFlag = true;
+            if (rzChiSquared < 19.352f) TightCutFlag = true;
             return rzChiSquared < 52.561f;
         }
         else if(layer4 == 13 and layer5 == 14) //7
         {
-            if (rzChiSquared < 10.392f) tightCutFlag = true;
+            if (rzChiSquared < 10.392f) TightCutFlag = true;
             return rzChiSquared < 13.76f;
         }
     }
@@ -817,12 +821,12 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     {
         if (layer5 == 10) //3
         {
-            if (rzChiSquared < 111.390f) tightCutFlag = true;
+            if (rzChiSquared < 111.390f) TightCutFlag = true;
             return true;
         }
         if (layer5 == 15) //4
         {
-            if (rzChiSquared < 18.351f) tightCutFlag = true;
+            if (rzChiSquared < 18.351f) TightCutFlag = true;
             return rzChiSquared < 37.941f;
         }
     }
@@ -830,18 +834,18 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     {
         if(layer4 == 5 and layer5 == 6) //18
         {
-            if (rzChiSquared < 6.065f) tightCutFlag = true;
+            if (rzChiSquared < 6.065f) TightCutFlag = true;
             return rzChiSquared < 8.803f;
         }
         else if(layer4 == 5 and layer5 == 12) //19
         {
-            if (rzChiSquared < 5.693f) tightCutFlag = true;
+            if (rzChiSquared < 5.693f) TightCutFlag = true;
             return rzChiSquared < 7.930f;
         }
 
         else if(layer4 == 12 and layer5 == 13) //20
         {
-            if (rzChiSquared < 5.473f) tightCutFlag = true;
+            if (rzChiSquared < 5.473f) TightCutFlag = true;
             return rzChiSquared < 7.626f;
         }
     }
@@ -849,12 +853,12 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     {
         if(layer4 == 8 and layer5 == 14) //16
         {
-            if (rzChiSquared < 23.730f) tightCutFlag = true;
+            if (rzChiSquared < 23.730f) TightCutFlag = true;
             return rzChiSquared < 23.748f;
         }
         if(layer4 == 13 and layer5 == 14) //17
         {
-            if (rzChiSquared < 10.772f) tightCutFlag = true;
+            if (rzChiSquared < 10.772f) TightCutFlag = true;
             return rzChiSquared < 17.945f;
         }
     }
@@ -863,31 +867,31 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     {
         if(layer4 == 9 and layer5 == 15) //14
         {
-            if (rzChiSquared < 24.662f) tightCutFlag = true;
+            if (rzChiSquared < 24.662f) TightCutFlag = true;
             return rzChiSquared < 41.036f;
         }
         else if(layer4 == 14 and layer5 == 15) //15
         {
-            if (rzChiSquared < 8.866f) tightCutFlag = true;
+            if (rzChiSquared < 8.866f) TightCutFlag = true;
             return rzChiSquared < 14.092f;
         }
     }
 
     else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16) //2
     {
-        if (rzChiSquared < 7.992f) tightCutFlag = true;
+        if (rzChiSquared < 7.992f) TightCutFlag = true;
         return rzChiSquared < 11.622f;
     }
 
     else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11) //0
     {
-        if (rzChiSquared < 94.470f) tightCutFlag = true;
+        if (rzChiSquared < 94.470f) TightCutFlag = true;
         return true;
     }
 
     else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 16) //1
     {
-        if (rzChiSquared < 22.099f) tightCutFlag = true;
+        if (rzChiSquared < 22.099f) TightCutFlag = true;
         return rzChiSquared < 37.956f;
     }
     return true;
@@ -2540,8 +2544,8 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
             uint16_t lowerModule5 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 2];
 
             float innerRadius, outerRadius, bridgeRadius, innerG, innerF, rzChiSquared, chiSquared, nonAnchorChiSquared; //required for making distributions
-            bool tightCutFlag;
-            bool success = runQuintupletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletIndex, outerTripletIndex, innerG, innerF, innerRadius, outerRadius,  bridgeRadius, rzChiSquared, chiSquared, nonAnchorChiSquared, tightCutFlag);
+            bool TightCutFlag;
+            bool success = runQuintupletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletIndex, outerTripletIndex, innerG, innerF, innerRadius, outerRadius,  bridgeRadius, rzChiSquared, chiSquared, nonAnchorChiSquared, TightCutFlag);
 
             if(success)
             {
@@ -2581,7 +2585,7 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
                         float eta = mdsInGPU.anchorEta[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]]];
                         float pt = (innerRadius+outerRadius)*3.8f*1.602f/(2*100*5.39f);
                         float scores = chiSquared + nonAnchorChiSquared;
-                        addQuintupletToMemory(tripletsInGPU, quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, bridgeRadius, outerRadius, innerG, innerF, rzChiSquared, chiSquared, nonAnchorChiSquared, pt,eta,phi,scores,layer,quintupletIndex, tightCutFlag);
+                        addQuintupletToMemory(tripletsInGPU, quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, bridgeRadius, outerRadius, innerG, innerF, rzChiSquared, chiSquared, nonAnchorChiSquared, pt,eta,phi,scores,layer,quintupletIndex, TightCutFlag);
 
                         tripletsInGPU.partOfT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex]] = true;
                         tripletsInGPU.partOfT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1]] = true;
