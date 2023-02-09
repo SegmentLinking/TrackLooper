@@ -1981,11 +1981,13 @@ SDL::hits* SDL::Event::getHits() //std::shared_ptr should take care of garbage c
         cudaStreamSynchronize(stream);
         *(hitsInCPU->nHits) = nHits;
         hitsInCPU->idxs = new unsigned int[nHits];
+        hitsInCPU->detid = new unsigned int[nHits];
         hitsInCPU->xs = new float[nHits];
         hitsInCPU->ys = new float[nHits];
         hitsInCPU->zs = new float[nHits];
         hitsInCPU->moduleIndices = new uint16_t[nHits];
         cudaMemcpyAsync(hitsInCPU->idxs, hitsInGPU->idxs,sizeof(unsigned int) * nHits, cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(hitsInCPU->detid, hitsInGPU->detid, sizeof(unsigned int) * nHits, cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(hitsInCPU->xs, hitsInGPU->xs, sizeof(float) * nHits, cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(hitsInCPU->ys, hitsInGPU->ys, sizeof(float) * nHits, cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(hitsInCPU->zs, hitsInGPU->zs, sizeof(float) * nHits, cudaMemcpyDeviceToHost,stream);
@@ -2032,8 +2034,10 @@ SDL::miniDoublets* SDL::Event::getMiniDoublets()
 
         mdsInCPU->anchorHitIndices = new unsigned int[*(mdsInCPU->nMemoryLocations)];
         mdsInCPU->outerHitIndices = new unsigned int[*(mdsInCPU->nMemoryLocations)];
+        mdsInCPU->dphichanges = new float[*(mdsInCPU->nMemoryLocations)];
         cudaMemcpyAsync(mdsInCPU->anchorHitIndices, mdsInGPU->anchorHitIndices, *(mdsInCPU->nMemoryLocations) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(mdsInCPU->outerHitIndices, mdsInGPU->outerHitIndices, *(mdsInCPU->nMemoryLocations) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(mdsInCPU->dphichanges, mdsInGPU->dphichanges, *(mdsInCPU->nMemoryLocations) * sizeof(float), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(mdsInCPU->nMDs, mdsInGPU->nMDs, (nLowerModules+1) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(mdsInCPU->totOccupancyMDs, mdsInGPU->totOccupancyMDs, (nLowerModules+1) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaStreamSynchronize(stream);
