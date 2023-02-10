@@ -46,7 +46,6 @@ namespace SDL
         bool* TightCutFlag;
         bool* partOfPT5;
         bool* partOfTC;
-        bool* TightCutFlag;
 
         float* regressionRadius;
         float* regressionG;
