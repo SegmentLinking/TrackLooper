@@ -246,6 +246,13 @@ int main(int argc, char** argv)
     if (result.count("gnn_ntuple"))
     {
         ana.gnn_ntuple = true;
+        // If one is not provided then throw error
+        if (not ana.do_write_ntuple)
+        {
+            std::cout << options.help() << std::endl;
+            std::cout << "ERROR: option string --write_ntuple 1 and --gnn_ntuple must be set at the same time!" << std::endl;
+            exit(1);
+        }
     }
     else
     {
@@ -303,10 +310,10 @@ void run_sdl()
     if (ana.do_write_ntuple)
     {
         createOutputBranches();
-    }
-    if (ana.gnn_ntuple)
-    {
-        createGnnNtupleBranches();
+        if (ana.gnn_ntuple)
+        {
+            createGnnNtupleBranches();
+        }
     }
 
 
@@ -469,7 +476,7 @@ void run_sdl()
                 }
             }
 
-            if (ana.do_write_ntuple or ana.gnn_ntuple)
+            if (ana.do_write_ntuple)
             {
                 #pragma omp critical
                 {
@@ -499,7 +506,7 @@ void run_sdl()
 
     SDL::cleanModules();
 
-    if (ana.do_write_ntuple or ana.gnn_ntuple)
+    if (ana.do_write_ntuple)
     {
         // Writing ttree output to file
         ana.output_tfile->cd();

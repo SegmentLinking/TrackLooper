@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # HiPerGator module setup for cuda
-module load cuda/11.4.3
+module load cuda/11.4.3 git
 # module use ~/module
 # module load root/6.22.08
 
@@ -11,8 +11,8 @@ module load cuda/11.4.3
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/code/rooutil/thisrooutil.sh
 
-export SCRAM_ARCH=slc7_amd64_gcc900
-export CMSSW_VERSION=CMSSW_12_2_0_pre2
+export SCRAM_ARCH=slc7_amd64_gcc10
+export CMSSW_VERSION=CMSSW_12_5_0_pre2
 export CUDA_HOME=${HPC_CUDA_DIR}
 
 source /cvmfs/cms.cern.ch/cmsset_default.sh
