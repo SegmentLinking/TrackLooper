@@ -481,6 +481,21 @@ int getDenomSimTrkType(int isimtrk)
     return 7; // pt > 1 and abs(eta) < 2.4 and vtx 2.5/30 and bunch == 0 and event == 0
 }
 
+//__________________________________________________________________________________________
+int getDenomSimTrkType(std::vector<int> simidxs)
+{
+    int type = 0;
+    for (auto& simidx : simidxs)
+    {
+        int this_type = getDenomSimTrkType(simidx);
+        if (this_type > type)
+        {
+            type = this_type;
+        }
+    }
+    return type;
+}
+
 
 
 
