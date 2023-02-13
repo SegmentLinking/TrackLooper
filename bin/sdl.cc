@@ -54,6 +54,7 @@ int main(int argc, char** argv)
         ("d,debug"           , "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")
         ("c,cpu"             , "Run CPU version of the code.")
         ("l,lower_level"     , "write lower level objects ntuple results")
+        ("G,gnn_ntuple"      , "write gnn input variable ntuple")
         ("j,nsplit_jobs"     , "Enable splitting jobs by N blocks (--job_index must be set)", cxxopts::value<int>())
         ("I,job_index"       , "job_index of split jobs (--nsplit_jobs must be set. index starts from 0. i.e. 0, 1, 2, 3, etc...)", cxxopts::value<int>())
         ("h,help"            , "Print help");
@@ -240,6 +241,24 @@ int main(int argc, char** argv)
         ana.do_lower_level = false;
     }
 
+    //_______________________________________________________________________________
+    // --gnn_ntuple
+    if (result.count("gnn_ntuple"))
+    {
+        ana.gnn_ntuple = true;
+        // If one is not provided then throw error
+        if (not ana.do_write_ntuple)
+        {
+            std::cout << options.help() << std::endl;
+            std::cout << "ERROR: option string --write_ntuple 1 and --gnn_ntuple must be set at the same time!" << std::endl;
+            exit(1);
+        }
+    }
+    else
+    {
+        ana.gnn_ntuple = false;
+    }
+
     // Printing out the option settings overview
     std::cout << "=========================================================" << std::endl;
     std::cout << " Setting of the analysis job based on provided arguments " << std::endl;
@@ -291,7 +310,12 @@ void run_sdl()
     if (ana.do_write_ntuple)
     {
         createOutputBranches();
+        if (ana.gnn_ntuple)
+        {
+            createGnnNtupleBranches();
+        }
     }
+
 
     std::vector<std::vector<float>> out_trkX;
     std::vector<std::vector<float>> out_trkY;
