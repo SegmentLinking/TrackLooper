@@ -332,6 +332,10 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     {
         temp = (matchRadii_bin5(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, outerRadius));
     }
+    else
+    {
+        temp = true;
+    }
 /*    else
     {
         temp = (matchRadii_bin6(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, outerRadius));  
@@ -2499,7 +2503,7 @@ __device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float
     chiSquared = 0.f;
     for(size_t i = 0; i < nPoints; i++)
     {
-       chiSquared +=  ((xs[i] * xs[i] + ys[i] * ys[i] - twoG * xs[i] - twoF * ys[i] + c) * (xs[i] * xs[i] + ys[i] * ys[i] - twoG * xs[i] - twoF * ys[i] + c)) / (sigmas[i] * sigmas[i]);
+       chiSquared +=  (xs[i] * xs[i] + ys[i] * ys[i] - twoG * xs[i] - twoF * ys[i] + c) * (xs[i] * xs[i] + ys[i] * ys[i] - twoG * xs[i] - twoF * ys[i] + c) / (sigmas[i] * sigmas[i]);
     }
 
     return radius;
