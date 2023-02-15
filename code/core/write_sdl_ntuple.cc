@@ -433,6 +433,7 @@ void setQuintupletOutputBranches(SDL::Event* event)
             ana.tx->pushbackToBranch<float>("t5_rzChiSquared", quintupletsInGPU.rzChiSquared[quintupletIndex]);
             ana.tx->pushbackToBranch<int>("t5_layer_binary", layer_binary);
             ana.tx->pushbackToBranch<int>("t5_moduleType_binary", moduleType_binary);
+            ana.tx->pushbackToBranch<int>("t5_foundDuplicate", quintupletsInGPU.isDup[quintupletIndex]);
 
             t5_matched_simIdx.push_back(simidx);
 
