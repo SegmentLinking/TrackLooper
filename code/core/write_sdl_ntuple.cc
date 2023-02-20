@@ -180,6 +180,9 @@ void createGnnNtupleBranches()
     ana.tx->createBranch<vector<float>>("LS_sim_vy");
     ana.tx->createBranch<vector<float>>("LS_sim_vz");
     ana.tx->createBranch<vector<int>>("LS_isInTrueTC");
+
+    // TC's LS
+    ana.tx->createBranch<vector<vector<int>>>("tc_lsIdx");
 }
 
 //________________________________________________________________________________________________________________________________
@@ -566,6 +569,7 @@ void setGnnNtupleBranches(SDL::Event* event)
 
     std::set<unsigned int> mds_used_in_sg;
     std::map<unsigned int, unsigned int> md_index_map;
+    std::map<unsigned int, unsigned int> sg_index_map;
 
     // Loop over modules (lower ones where the MDs are saved)
     unsigned int nTotalMD = 0;
@@ -679,6 +683,8 @@ void setGnnNtupleBranches(SDL::Event* event)
             ana.tx->pushbackToBranch<float>("LS_sim_vz"      , simidxs.size() > 0 ? trk.simvtx_z         ()[trk.sim_parentVtxIdx()[simidxs[0]]] : -999);
             ana.tx->pushbackToBranch<int>  ("LS_isInTrueTC"  , lss_used_in_true_tc.find(sgIdx) != lss_used_in_true_tc.end());
 
+            sg_index_map[sgIdx] = ana.tx->getBranch<vector<int>>("LS_isFake").size() - 1;
+
             // // T5 eta and phi are computed using outer and innermost hits
             // SDL::CPU::Hit hitA(trk.ph2_x()[anchitidx], trk.ph2_y()[anchitidx], trk.ph2_z()[anchitidx]);
             // const float phi = hitA.phi();
@@ -686,6 +692,20 @@ void setGnnNtupleBranches(SDL::Event* event)
 
         }
     }
+
+    for (unsigned int idx = 0; idx < nTrackCandidates; idx++)
+    {
+        std::vector<unsigned int> LSs = getLSsFromTC(event, idx);
+        std::vector<int> lsIdx;
+        for (auto& LS : LSs)
+        {
+            lsIdx.push_back(sg_index_map[LS]);
+        }
+        ana.tx->pushbackToBranch<vector<int>>("tc_lsIdx", lsIdx);
+    }
+
+    std::cout <<  " ana.tx->getBranch<vector<vector<int>>>('tc_lsIdx').size(): " << ana.tx->getBranch<vector<vector<int>>>("tc_lsIdx").size() <<  std::endl;
+
 
     std::cout <<  " mds_used_in_sg.size(): " << mds_used_in_sg.size() <<  std::endl;
 
