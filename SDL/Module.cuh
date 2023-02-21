@@ -4,7 +4,6 @@
 #include <iostream>
 #include <map>
 #include <unordered_map>
-#include "MiniDoublet.cuh"
 #include "Hit.cuh"
 #include "TiltedGeometry.h"
 #include "EndcapGeometry.cuh"
