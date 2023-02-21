@@ -1,4 +1,5 @@
 #include "Event.cuh"
+#include "MiniDoublet.cuh"
 #include "allocate.h"
 
 struct SDL::modules* SDL::modulesInGPU = nullptr;
@@ -7,13 +8,15 @@ uint16_t SDL::nModules;
 uint16_t SDL::nLowerModules;
 
 // Temporary alpaka statements
-using Dim = alpaka::DimInt<1u>;
+using Dim = alpaka::DimInt<3u>;
 using Idx = std::size_t;
+using Vec = alpaka::Vec<Dim,Idx>;
+using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
 using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
 using QueueProperty = alpaka::NonBlocking;
 using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
 auto devAcc = alpaka::getDevByIdx<Acc>(0u);
-Idx const elementsPerThread(1u);
+Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
 
 SDL::Event::Event(cudaStream_t estream,bool verbose)
 {
@@ -551,10 +554,14 @@ public:
         int const & nLowerModules) const
     {
 
-        int const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0];
-        int const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)[0];
+        using Dim = alpaka::Dim<TAcc>;
+        using Idx = alpaka::Idx<TAcc>;
+        using Vec = alpaka::Vec<Dim, Idx>;
 
-        for(int lowerIndex = globalThreadIdx; lowerIndex < nLowerModules; lowerIndex += gridThreadExtent)
+        Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+        Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+
+        for(int lowerIndex = globalThreadIdx[2]; lowerIndex < nLowerModules; lowerIndex += gridThreadExtent[2])
         {
             uint16_t upperIndex = modulesInGPU->partnerModuleIndices[lowerIndex];
             if (hitsInGPU->hitRanges[lowerIndex * 2] != -1 && hitsInGPU->hitRanges[upperIndex * 2] != -1)
@@ -586,10 +593,14 @@ public:
         int const & nHits) const // Total number of hits in event
     {
 
-        int const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0];
-        int const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)[0];
+        using Dim = alpaka::Dim<TAcc>;
+        using Idx = alpaka::Idx<TAcc>;
+        using Vec = alpaka::Vec<Dim, Idx>;
 
-        for(int ihit = globalThreadIdx; ihit < nHits; ihit += gridThreadExtent)
+        Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+        Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+
+        for(int ihit = globalThreadIdx[2]; ihit < nHits; ihit += gridThreadExtent[2])
         {
             float ihit_x = hitsInGPU->xs[ihit];
             float ihit_y = hitsInGPU->ys[ihit];
@@ -666,16 +677,9 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     // Temporary fix for queue initialization.
     QueueAcc queue(devAcc);
 
-    Idx const nhits_elements(nHits);
-    alpaka::Vec<Dim, Idx> const hit_loop_extent(nhits_elements);
-
-    alpaka::WorkDivMembers<Dim, Idx> const hit_loop_workdiv(
-        alpaka::getValidWorkDiv<Acc>(
-            devAcc,
-            hit_loop_extent,
-            elementsPerThread,
-            false,
-            alpaka::GridBlockExtentSubDivRestrictions::Unrestricted));
+    Vec const threadsPerBlock1(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
+    Vec const blocksPerGrid1(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(300));
+    WorkDiv const hit_loop_workdiv(blocksPerGrid1, threadsPerBlock1, elementsPerThread);
 
     hitLoopKernel hit_loop_kernel;
     auto const hit_loop_task(alpaka::createTaskKernel<Acc>(
@@ -694,16 +698,9 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     alpaka::enqueue(queue, hit_loop_task);
     alpaka::wait(queue);
 
-    Idx const nlowermodules_elements(nLowerModules);
-    alpaka::Vec<Dim, Idx> const module_ranges_extent(nlowermodules_elements);
-
-    alpaka::WorkDivMembers<Dim, Idx> const module_ranges_workdiv(
-        alpaka::getValidWorkDiv<Acc>(
-            devAcc,
-            module_ranges_extent,
-            elementsPerThread,
-            false,
-            alpaka::GridBlockExtentSubDivRestrictions::Unrestricted));
+    Vec const threadsPerBlock2(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
+    Vec const blocksPerGrid2(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(15));
+    WorkDiv const module_ranges_workdiv(blocksPerGrid2, threadsPerBlock2, elementsPerThread);
 
     moduleRangesKernel module_ranges_kernel;
     auto const module_ranges_task(alpaka::createTaskKernel<Acc>(
@@ -1015,18 +1012,27 @@ void SDL::Event::createMiniDoublets()
     cms::cuda::free_host(module_isLower);
     cms::cuda::free_host(module_isInverted);
 
-    dim3 nThreads(32,16,1);
-    //dim3 nThreads(64,16,1);
-    dim3 nBlocks(1,MAX_BLOCKS,1);
+    // Temporary fix for queue initialization.
+    QueueAcc queue(devAcc);
 
-    SDL::createMiniDoubletsInGPUv2<<<nBlocks,nThreads,64*4*16*sizeof(float),stream>>>(*modulesInGPU,*hitsInGPU,*mdsInGPU,*rangesInGPU);
+    Vec const threadsPerBlock(static_cast<Idx>(32), static_cast<Idx>(16), static_cast<Idx>(1));
+    Vec const blocksPerGrid(static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1));
+
+    WorkDiv const createMiniDoubletsInGPUv2_workDiv(blocksPerGrid, threadsPerBlock, elementsPerThread);
+
+    SDL::createMiniDoubletsInGPUv2 createMiniDoubletsInGPUv2_kernel;
+    auto const createMiniDoubletsInGPUv2Task(alpaka::createTaskKernel<Acc>(
+        createMiniDoubletsInGPUv2_workDiv,
+        createMiniDoubletsInGPUv2_kernel,
+        *modulesInGPU,
+        *hitsInGPU,
+        *mdsInGPU,
+        *rangesInGPU));
+
+    alpaka::enqueue(queue, createMiniDoubletsInGPUv2Task);
+    alpaka::wait(queue);
+
     addMiniDoubletRangesToEventExplicit<<<1,1024,0,stream>>>(*modulesInGPU,*mdsInGPU, *rangesInGPU,*hitsInGPU);
-
-    cudaError_t cudaerr = cudaGetLastError(); 
-    if(cudaerr != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-    }
     cudaStreamSynchronize(stream);
 
     if(addObjects){
@@ -1880,13 +1886,13 @@ SDL::miniDoublets* SDL::Event::getMiniDoublets()
     if(mdsInCPU == nullptr)
     {
         mdsInCPU = new SDL::miniDoublets;
-        mdsInCPU->nMDs = new unsigned int[nLowerModules+1];
+        mdsInCPU->nMDs = new int[nLowerModules+1];
 
         //compute memory locations
         mdsInCPU->nMemoryLocations = new unsigned int;
         cudaMemcpyAsync(mdsInCPU->nMemoryLocations, mdsInGPU->nMemoryLocations, sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
         cudaStreamSynchronize(stream);
-        mdsInCPU->totOccupancyMDs = new unsigned int[nLowerModules+1];
+        mdsInCPU->totOccupancyMDs = new int[nLowerModules+1];
 
         mdsInCPU->anchorHitIndices = new unsigned int[*(mdsInCPU->nMemoryLocations)];
         mdsInCPU->outerHitIndices = new unsigned int[*(mdsInCPU->nMemoryLocations)];
