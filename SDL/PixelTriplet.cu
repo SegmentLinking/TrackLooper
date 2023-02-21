@@ -345,51 +345,55 @@ __device__ bool SDL::passPT3RPhiChiSquaredCuts(struct SDL::modules& modulesInGPU
     const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
     if(layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
-        return rPhiChiSquared < 144.7756608739372;
+        return rPhiChiSquared < 51.19695182542074;
     }
     if(layer1 == 7 and layer2 == 8 and layer3 == 14)
     {
-        return rPhiChiSquared < 156.21710639376144;
+        return rPhiChiSquared < 87.19173825821665;
     }
     if(layer1 == 1 and layer2 == 7 and layer3 == 8)
     {
-        return rPhiChiSquared < 33.27031536005157;
+        return rPhiChiSquared < 15.160571609288382;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
-        return rPhiChiSquared < 33.27031536005157;
+        return rPhiChiSquared < 21.62069898090433;
     }
     if(layer1 == 8 and layer2 == 9 and layer3 == 10)
     {
-        return rPhiChiSquared < 42.871336978143226;
+        return rPhiChiSquared < 11.183646830034863;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 7)
     {
-        return rPhiChiSquared < 98.97611226282184;
+        return rPhiChiSquared < 67.66517755489836;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 12)
     {
-        return rPhiChiSquared < 55.24298505749607;
+        return rPhiChiSquared < 29.309058138582778;
     }
     if(layer1 == 2 and layer2 == 7 and layer3 == 8)
     {
-        return rPhiChiSquared < 109.5404283723756;
+        return rPhiChiSquared < 58.11646094702789;
     }
     if(layer1 == 2 and layer2 == 7 and layer3 == 13)
     {
-        return rPhiChiSquared < 40.75163197286122;
+        return rPhiChiSquared < 23.329356693100383;
     }
     if(layer1 == 1 and layer2 == 2 and layer3 == 3 and abs(eta) < 0.5)
     {
-        return rPhiChiSquared < 214717.14665680722;
+        return rPhiChiSquared < 105574.35065749403;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and abs(eta) > 0.5)
+    {
+        return rPhiChiSquared < 50610.32190454111;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and abs(eta) < 0.5)
     {
-        return rPhiChiSquared < 638763.6601056864;
+        return rPhiChiSquared < 283783.96241551294;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and abs(eta) > 0.5)
     {
-        return rPhiChiSquared < 934340.9123657083;
+        return rPhiChiSquared < 521497.3581035903;
     }
     return true;
 }
@@ -1669,7 +1673,6 @@ __device__ bool SDL::runPixelQuintupletDefaultAlgo(struct modules& modulesInGPU,
     float ys[5] = {mdsInGPU.anchorY[firstMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorY[thirdMDIndex], mdsInGPU.anchorY[fourthMDIndex], mdsInGPU.anchorY[fifthMDIndex]};
 
     //get the appropriate radii and centers
-    centerX  = segmentsInGPU.circleCenterX[1];
     centerX  = segmentsInGPU.circleCenterX[pixelSegmentArrayIndex];
     centerY = segmentsInGPU.circleCenterY[pixelSegmentArrayIndex];
     pixelRadius = segmentsInGPU.circleRadius[pixelSegmentArrayIndex];
@@ -2067,7 +2070,7 @@ __global__ void SDL::createPixelQuintupletsInGPUFromMapv2(struct SDL::modules& m
                     float eta = __H2F(quintupletsInGPU.eta[quintupletIndex]);
                     float phi = __H2F(quintupletsInGPU.phi[quintupletIndex]);
 
-                    addPixelQuintupletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards,(rPhiChiSquaredInwards+rPhiChiSquared)/1000, eta, phi, pixelRadius, quintupletRadius, centerX, centerY);
+                    addPixelQuintupletToMemory(modulesInGPU, mdsInGPU, segmentsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pixelSegmentIndex, quintupletIndex, pixelQuintupletIndex,rzChiSquared, rPhiChiSquared, rPhiChiSquaredInwards,(rPhiChiSquared)/1000, eta, phi, pixelRadius, quintupletRadius, centerX, centerY);
 
                     tripletsInGPU.partOfPT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex]] = true;
                     tripletsInGPU.partOfPT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1]] = true;
