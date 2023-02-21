@@ -341,6 +341,7 @@ void setPixelQuintupletOutputBranches(SDL::Event* event)
         ana.tx->pushbackToBranch<float>("pT5_phi", phi);
         ana.tx->pushbackToBranch<int>("pT5_layer_binary", layer_binary);
         ana.tx->pushbackToBranch<int>("pT5_moduleType_binary", moduleType_binary);
+        ana.tx->pushbackToBranch<float>("pT5_rPhiChiSquared", pixelQuintupletsInGPU.rPhiChiSquared[pT5]);
 
         pT5_matched_simIdx.push_back(simidx);
 
@@ -520,6 +521,7 @@ void setPixelTripletOutputBranches(SDL::Event* event)
         ana.tx->pushbackToBranch<float>("pT3_phi", phi);
         ana.tx->pushbackToBranch<int>("pT3_layer_binary", layer_binary);
         ana.tx->pushbackToBranch<int>("pT3_moduleType_binary", moduleType_binary);
+        ana.tx->pushbackToBranch<float>("pT3_rPhiChiSquared", pixelTripletsInGPU.rPhiChiSquared[pT3]);
 
         pT3_matched_simIdx.push_back(simidx);
 
