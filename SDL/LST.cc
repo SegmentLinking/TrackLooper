@@ -513,17 +513,17 @@ void SDL::LST::getOutput(SDL::Event& event) {
   out_tc_len_ = tc_len_;
   out_tc_seedIdx_ = tc_seedIdx_;
   out_tc_trackCandidateType_ = tc_trackCandidateType_;
-  for(auto out : out_tc_pt_) printf("%f\n",out);
-  printf("\n");
-  for(auto out : out_tc_eta_) printf("%f\n",out);
-  printf("\n");
-  for(auto out : out_tc_phi_) printf("%f\n",out);
-  printf("\n");
-  for(auto out : out_tc_len_) printf("%d\n",out);
-  printf("\n");
-  for(auto out : out_tc_seedIdx_) printf("%d\n",out);
-  printf("\n");
-  for(auto out : out_tc_trackCandidateType_) printf("%d\n",out);
+//  for(auto out : out_tc_pt_) printf("%f\n",out);
+//  printf("\n");
+//  for(auto out : out_tc_eta_) printf("%f\n",out);
+//  printf("\n");
+//  for(auto out : out_tc_phi_) printf("%f\n",out);
+//  printf("\n");
+//  for(auto out : out_tc_len_) printf("%d\n",out);
+//  printf("\n");
+//  for(auto out : out_tc_seedIdx_) printf("%d\n",out);
+//  printf("\n");
+//  for(auto out : out_tc_trackCandidateType_) printf("%d\n",out);
 }
 
 // Object accessors
