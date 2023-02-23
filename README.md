@@ -107,10 +107,18 @@ cd ..
 ### Set up `TrackLooper` as an external
 ```bash
 export SCRAM_ARCH=slc7_amd64_gcc10
-cmsrel CMSSW_12_6_0_pre2
-cd CMSSW_12_6_0_pre2/src
+```
+go the one folder above the `TrackLooper`
+```bash
+cmsrel CMSSW_13_0_0_pre4
+cd CMSSW_13_0_0_pre4/src
 cmsenv
 git cms-init
+git remote add lst-cmssw git@github.com:SegmentLinking/cmssw.git
+git fetch lst-cmssw CMSSW_13_0_0_pre4_LST_X
+git cms-addpkg RecoTracker
+git checkout CMSSW_13_0_0_pre4_LST_X
+git cms-addpkg Configuration
 cat <<EOF >lst.xml
 <tool name="lst" version="1.0">
   <client>
@@ -122,10 +130,13 @@ cat <<EOF >lst.xml
   <lib name="sdl"/>
 </tool>
 EOF
+compile the TrackLooper repository if you haven’t
 scram setup lst.xml
 cmsenv
 git cms-checkdeps -a
 scram b -j 12
+cd RecoTracker/LST/test/
+cmsRun LSTAlpakaTester.py
 ```
 
 Including the line
