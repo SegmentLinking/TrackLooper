@@ -114,7 +114,7 @@ cmsrel CMSSW_13_0_0_pre4
 cd CMSSW_13_0_0_pre4/src
 cmsenv
 git cms-init
-git remote add git@github.com:SegmentLinking/cmssw.git
+git remote add lst-cmssw git@github.com:SegmentLinking/cmssw.git
 git fetch lst-cmssw CMSSW_13_0_0_pre4_LST_X
 git cms-addpkg RecoTracker
 git checkout CMSSW_13_0_0_pre4_LST_X
