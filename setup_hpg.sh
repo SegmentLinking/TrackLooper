@@ -28,10 +28,10 @@ export PATH=$DIR/bin:$PATH
 export PATH=$DIR/efficiency/bin:$PATH
 export PATH=$DIR/efficiency/python:$PATH
 export TRACKLOOPERDIR=$DIR
-export TRACKINGNTUPLEDIR=/home/p.chang/data/lst/CMSSW_12_2_0_pre2
-export PIXELMAPDIR=/home/p.chang/data/lst/pixelmap_neta20_nphi72_nz24_ipt2
+export TRACKINGNTUPLEDIR=/blue/p.chang/p.chang/data/lst/CMSSW_12_2_0_pre2
+export PIXELMAPDIR=/blue/p.chang/p.chang/data/lst/pixelmap_neta20_nphi72_nz24_ipt2
 export LSTOUTPUTDIR=.
-export LSTPERFORMANCEWEBDIR=/home/users/phchang/public_html/LSTPerformanceWeb
+export LSTPERFORMANCEWEBDIR=/blue/p.chang/users/phchang/public_html/LSTPerformanceWeb
 
 ###########################################################################################################
 # Validation scripts
