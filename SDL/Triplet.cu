@@ -532,7 +532,7 @@ __device__ bool SDL::passPointingConstraintBBE(struct SDL::modules& modulesInGPU
     if(not pass) return pass;
 
     float dLum = copysignf(SDL::deltaZLum, zIn);
-    bool isOutSgInnerMDPS = modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS;
+    bool isOutSgInnerMDPS = modulesInGPU.moduleType[middleLowerModuleIndex] == SDL::PS;
     float rtGeom1 = isOutSgInnerMDPS ? SDL::pixelPSZpitch : SDL::strip2SZpitch;
     float zGeom1 = copysignf(zGeom,zIn);
     float rtLo = rtIn * (1.f + (zOut - zIn - zGeom1) / (zIn + zGeom1 + dLum) / dzDrtScale) - rtGeom1; //slope correction only on the lower end
@@ -623,7 +623,7 @@ __device__ bool SDL::passPointingConstraintEEE(struct SDL::modules& modulesInGPU
     pass = pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
     if(not pass) return pass;
     
-    bool isInSgOuterMDPS = modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS;
+    bool isInSgOuterMDPS = modulesInGPU.moduleType[middleLowerModuleIndex] == SDL::PS;
 
     float drOutIn = rtOut - rtIn;
     float drtSDIn = rtMid - rtIn;
