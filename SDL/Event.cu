@@ -1,5 +1,4 @@
 #include "Event.cuh"
-#include "MiniDoublet.cuh"
 #include "allocate.h"
 
 struct SDL::modules* SDL::modulesInGPU = nullptr;
