@@ -202,8 +202,7 @@ namespace SDL
         // =================================================================
 
         unsigned int iL = modulesInGPU.layers[moduleIndex] - 1;
-        // Alpaka: Needs to be moved over.
-        const float miniSlope = asinf(alpaka::math::min(acc, rt * k2Rinv1GeVf / ptCut, sinAlphaMax));
+        const float miniSlope = alpaka::math::asin(acc, alpaka::math::min(acc, rt * k2Rinv1GeVf / ptCut, sinAlphaMax));
         const float rLayNominal = ((modulesInGPU.subdets[moduleIndex]== Barrel) ? miniRminMeanBarrel[iL] : miniRminMeanEndcap[iL]);
         const float miniPVoff = 0.1f / rLayNominal;
         const float miniMuls = ((modulesInGPU.subdets[moduleIndex] == Barrel) ? miniMulsPtScaleBarrel[iL] * 3.f / ptCut : miniMulsPtScaleEndcap[iL] * 3.f / ptCut);
@@ -263,8 +262,7 @@ namespace SDL
     template<typename TAcc>
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float ATan2_alpaka(TAcc const & acc, float y, float x)
     {
-        // Alpaka: Needs to be moved over.
-        if (x != 0) return atan2f(y, x);
+        if (x != 0) return alpaka::math::atan2(acc, y, x);
         if (y == 0) return  0;
         if (y >  0) return  float(M_PI) / 2.f;
         else        return -float(M_PI) / 2.f;
@@ -273,7 +271,7 @@ namespace SDL
     template<typename TAcc>
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi_mpi_pi_alpaka(TAcc const & acc, float x)
     {
-        // Alpaka: Needs to be moved over.
+        // Alpaka: Needs to be moved over. Introduced in Alpaka 0.8.0
         if (std::isnan(x))
         {
             return x;
