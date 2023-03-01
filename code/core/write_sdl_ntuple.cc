@@ -728,7 +728,7 @@ void setGnnNtupleBranches(SDL::Event* event)
                                   inner T3     T3s[1]
                                               outer T3
             */
-            unsigned int T5_idx = rangesInGPU.quintupletModuleIndices[lowerModuleIdx] + jdx;
+            unsigned int T5_idx = rangesInGPU.quintupletModuleIndices[idx] + jdx;
             std::vector<unsigned int> T3s = getT3sFromT5(event, T5_idx);
             // Inner T3
             if (T3s_used_in_T5.find(T3s[0]) == T3s_used_in_T5.end())
