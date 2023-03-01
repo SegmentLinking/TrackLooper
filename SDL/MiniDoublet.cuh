@@ -195,7 +195,8 @@ namespace SDL
         return moduleSeparation;
     }
 
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE float dPhiThreshold(/*struct hits& hitsInGPU,*/float rt, struct modules& modulesInGPU, /*unsigned int hitIndex,*/ uint16_t& moduleIndex, float dPhi = 0, float dz = 0)
+    template<typename TAcc>
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE float dPhiThreshold(TAcc const & acc, /*struct hits& hitsInGPU,*/float rt, struct modules& modulesInGPU, /*unsigned int hitIndex,*/ uint16_t& moduleIndex, float dPhi = 0, float dz = 0)
     {
         // =================================================================
         // Various constants
@@ -207,7 +208,8 @@ namespace SDL
         // =================================================================
 
         unsigned int iL = modulesInGPU.layers[moduleIndex] - 1;
-        const float miniSlope = asinf(std::min(rt * k2Rinv1GeVf / ptCut, sinAlphaMax));
+        // Alpaka: Needs to be moved over.
+        const float miniSlope = asinf(alpaka::math::min(acc, rt * k2Rinv1GeVf / ptCut, sinAlphaMax));
         const float rLayNominal = ((modulesInGPU.subdets[moduleIndex]== Barrel) ? miniRminMeanBarrel[iL] : miniRminMeanEndcap[iL]);
         const float miniPVoff = 0.1f / rLayNominal;
         const float miniMuls = ((modulesInGPU.subdets[moduleIndex] == Barrel) ? miniMulsPtScaleBarrel[iL] * 3.f / ptCut : miniMulsPtScaleEndcap[iL] * 3.f / ptCut);
@@ -230,10 +232,10 @@ namespace SDL
         {
             drdz = 0;
         }
-        const float miniTilt = ((isTilted) ? 0.5f * pixelPSZpitch * drdz / sqrt(1.f + drdz * drdz) / moduleGapSize(modulesInGPU,moduleIndex) : 0);
+        const float miniTilt = ((isTilted) ? 0.5f * pixelPSZpitch * drdz / alpaka::math::sqrt(acc, 1.f + drdz * drdz) / moduleGapSize(modulesInGPU,moduleIndex) : 0);
 
         // Compute luminous region requirement for endcap
-        const float miniLum = fabsf(dPhi * deltaZLum/dz); // Balaji's new error
+        const float miniLum = alpaka::math::abs(acc, dPhi * deltaZLum/dz); // Balaji's new error
         // const float miniLum = abs(deltaZLum / lowerHit.z()); // Old error
 
 
@@ -243,57 +245,64 @@ namespace SDL
         // Following condition is met if the module is central and flatly lying
         if (modulesInGPU.subdets[moduleIndex] == Barrel and modulesInGPU.sides[moduleIndex] == Center)
         {
-            return miniSlope + sqrt(miniMuls * miniMuls + miniPVoff * miniPVoff);
+            return miniSlope + alpaka::math::sqrt(acc, miniMuls * miniMuls + miniPVoff * miniPVoff);
         }
         // Following condition is met if the module is central and tilted
         else if (modulesInGPU.subdets[moduleIndex] == Barrel and modulesInGPU.sides[moduleIndex] != Center) //all types of tilted modules
         {
-            return miniSlope + sqrt(miniMuls * miniMuls + miniPVoff * miniPVoff + miniTilt * miniTilt * miniSlope * miniSlope);
+            return miniSlope + alpaka::math::sqrt(acc, miniMuls * miniMuls + miniPVoff * miniPVoff + miniTilt * miniTilt * miniSlope * miniSlope);
         }
         // If not barrel, it is Endcap
         else
         {
-            return miniSlope + sqrt(miniMuls * miniMuls + miniPVoff * miniPVoff + miniLum * miniLum);
+            return miniSlope + alpaka::math::sqrt(acc, miniMuls * miniMuls + miniPVoff * miniPVoff + miniLum * miniLum);
         }
     }
 
     ALPAKA_FN_ACC void shiftStripHits(struct modules& modulesInGPU, uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float* shiftedCoords,float xLower,float yLower,float zLower,float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper);
 
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float ATan2_alpaka(float y, float x)
+    template<typename TAcc>
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float ATan2_alpaka(TAcc const & acc, float y, float x)
     {
+        // Alpaka: Needs to be moved over.
         if (x != 0) return atan2f(y, x);
         if (y == 0) return  0;
         if (y >  0) return  float(M_PI) / 2.f;
         else        return -float(M_PI) / 2.f;
     }
 
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi_mpi_pi_alpaka(float x)
+    template<typename TAcc>
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi_mpi_pi_alpaka(TAcc const & acc, float x)
     {
+        // Alpaka: Needs to be moved over.
         if (std::isnan(x))
-        {                                             
+        {
             return x;
         }
 
-        if (fabsf(x) <= float(M_PI))
+        if (alpaka::math::abs(acc, x) <= float(M_PI))
             return x;
 
         constexpr float o2pi = 1.f / (2.f * float(M_PI));
-        float n = std::round(x * o2pi);
+        float n = alpaka::math::round(acc, x * o2pi);
         return x - n * float(2.f * float(M_PI));
     }
 
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi_alpaka(float x, float y) {
-        return phi_mpi_pi_alpaka(float(M_PI) + ATan2_alpaka(-y, -x));
+    template<typename TAcc>
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi_alpaka(TAcc const & acc, float x, float y) {
+        return phi_mpi_pi_alpaka(acc, float(M_PI) + ATan2_alpaka(acc, -y, -x));
     }
 
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhi_alpaka(float x1, float y1, float x2, float y2) {
-        float phi1 = phi_alpaka(x1,y1);
-        float phi2 = phi_alpaka(x2,y2);
-        return phi_mpi_pi_alpaka((phi2 - phi1));
+    template<typename TAcc>
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhi_alpaka(TAcc const & acc, float x1, float y1, float x2, float y2) {
+        float phi1 = phi_alpaka(acc, x1,y1);
+        float phi2 = phi_alpaka(acc, x2,y2);
+        return phi_mpi_pi_alpaka(acc, (phi2 - phi1));
     }
 
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhiChange_alpaka(float x1, float y1, float x2, float y2) {
-        return deltaPhi_alpaka(x1, y1, x2-x1, y2-y1);
+    template<typename TAcc>
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhiChange_alpaka(TAcc const & acc, float x1, float y1, float x2, float y2) {
+        return deltaPhi_alpaka(acc, x1, y1, x2-x1, y2-y1);
     }
 
     template<typename TAcc>
@@ -318,14 +327,14 @@ namespace SDL
         const float dzCut = modulesInGPU.moduleType[lowerModuleIndex] == SDL::PS ? 2.f : 10.f;
         //const float sign = ((dz > 0) - (dz < 0)) * ((hitsInGPU.zs[lowerHitIndex] > 0) - (hitsInGPU.zs[lowerHitIndex] < 0));
         const float sign = ((dz > 0) - (dz < 0)) * ((zLower > 0) - (zLower < 0));
-        const float invertedcrossercut = (fabsf(dz) > 2) * sign;
+        const float invertedcrossercut = (alpaka::math::abs(acc, dz) > 2) * sign;
 
-        pass = pass  and ((fabsf(dz) < dzCut) & (invertedcrossercut <= 0));
+        pass = pass  and ((alpaka::math::abs(acc, dz) < dzCut) & (invertedcrossercut <= 0));
         if(not pass) return pass;
 
         float miniCut = 0;
 
-        miniCut = modulesInGPU.moduleLayerType[lowerModuleIndex] == SDL::Pixel ?  dPhiThreshold(rtLower, modulesInGPU, lowerModuleIndex) : dPhiThreshold(rtUpper, modulesInGPU, lowerModuleIndex); 
+        miniCut = modulesInGPU.moduleLayerType[lowerModuleIndex] == SDL::Pixel ?  dPhiThreshold(acc, rtLower, modulesInGPU, lowerModuleIndex) : dPhiThreshold(acc, rtUpper, modulesInGPU, lowerModuleIndex); 
 
         // Cut #2: dphi difference
         // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3085
@@ -345,29 +354,28 @@ namespace SDL
                 shiftedX = xn;
                 shiftedY = yn;
                 shiftedZ = zUpper;
-                shiftedRt = sqrt(xn * xn + yn * yn);
+                shiftedRt = alpaka::math::sqrt(acc, xn * xn + yn * yn);
 
-                dPhi = deltaPhi_alpaka(xLower,yLower,shiftedX, shiftedY); //function from Hit.cu
-                noShiftedDphi = deltaPhi_alpaka(xLower, yLower, xUpper, yUpper);
+                dPhi = deltaPhi_alpaka(acc, xLower,yLower,shiftedX, shiftedY); //function from Hit.cu
+                noShiftedDphi = deltaPhi_alpaka(acc, xLower, yLower, xUpper, yUpper);
             }
             else
             {
                 shiftedX = xn;
                 shiftedY = yn;
                 shiftedZ = zLower;
-                shiftedRt = sqrt(xn * xn + yn * yn);
-                dPhi = deltaPhi_alpaka(shiftedX, shiftedY, xUpper, yUpper);
-                noShiftedDphi = deltaPhi_alpaka(xLower,yLower,xUpper,yUpper);
-
+                shiftedRt = alpaka::math::sqrt(acc, xn * xn + yn * yn);
+                dPhi = deltaPhi_alpaka(acc, shiftedX, shiftedY, xUpper, yUpper);
+                noShiftedDphi = deltaPhi_alpaka(acc, xLower,yLower,xUpper,yUpper);
             }
         }
         else
         {
-            dPhi = deltaPhi_alpaka(xLower, yLower, xUpper, yUpper);
+            dPhi = deltaPhi_alpaka(acc, xLower, yLower, xUpper, yUpper);
             noShiftedDphi = dPhi;
         }
 
-        pass = pass & (fabsf(dPhi) < miniCut);
+        pass = pass & (alpaka::math::abs(acc, dPhi) < miniCut);
         if(not pass) return pass;
 
         // Cut #3: The dphi change going from lower Hit to upper Hit
@@ -385,8 +393,8 @@ namespace SDL
                 // setdeltaPhiChange_alpaka(lowerHit.rt() < upperHitMod.rt() ? lowerHit.deltaPhiChange_alpaka(upperHitMod) : upperHitMod.deltaPhiChange_alpaka(lowerHit));
 
 
-                dPhiChange = (rtLower < shiftedRt) ? deltaPhiChange_alpaka(xLower, yLower, shiftedX, shiftedY) : deltaPhiChange_alpaka(shiftedX, shiftedY, xLower, yLower); 
-                noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange_alpaka(xLower,yLower, xUpper, yUpper) : deltaPhiChange_alpaka(xUpper, yUpper, xLower, yLower);
+                dPhiChange = (rtLower < shiftedRt) ? deltaPhiChange_alpaka(acc, xLower, yLower, shiftedX, shiftedY) : deltaPhiChange_alpaka(acc, shiftedX, shiftedY, xLower, yLower); 
+                noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange_alpaka(acc, xLower,yLower, xUpper, yUpper) : deltaPhiChange_alpaka(acc, xUpper, yUpper, xLower, yLower);
             }
             else
             {
@@ -395,18 +403,18 @@ namespace SDL
                 // (i.e. the strip hit is shifted to be aligned in the line of sight from interaction point to pixel hit of PS module guaranteeing rt ordering)
                 // But I still placed this check for safety. (TODO: After cheking explicitly if not needed remove later?)
 
-                dPhiChange = (shiftedRt < rtUpper) ? deltaPhiChange_alpaka(shiftedX, shiftedY, xUpper, yUpper) : deltaPhiChange_alpaka(xUpper, yUpper, shiftedX, shiftedY);
-                noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange_alpaka(xLower,yLower, xUpper, yUpper) : deltaPhiChange_alpaka(xUpper, yUpper, xLower, yLower);
+                dPhiChange = (shiftedRt < rtUpper) ? deltaPhiChange_alpaka(acc, shiftedX, shiftedY, xUpper, yUpper) : deltaPhiChange_alpaka(acc, xUpper, yUpper, shiftedX, shiftedY);
+                noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange_alpaka(acc, xLower,yLower, xUpper, yUpper) : deltaPhiChange_alpaka(acc, xUpper, yUpper, xLower, yLower);
             }
         }
         else
         {
             // When it is flat lying module, whichever is the lowerSide will always have rt lower
-            dPhiChange = deltaPhiChange_alpaka(xLower, yLower, xUpper, yUpper);
+            dPhiChange = deltaPhiChange_alpaka(acc, xLower, yLower, xUpper, yUpper);
             noShiftedDphiChange = dPhiChange;
         }
 
-        pass = pass & (fabsf(dPhiChange) < miniCut);
+        pass = pass & (alpaka::math::abs(acc, dPhiChange) < miniCut);
 
         return pass;
     }
@@ -427,13 +435,13 @@ namespace SDL
 
         const float dzCut = 1.f;
 
-        pass = pass & (fabsf(dz) < dzCut);
+        pass = pass & (alpaka::math::abs(acc, dz) < dzCut);
         if(not pass) return pass;
         // Cut #2 : drt cut. The dz difference can't be larger than 1cm. (max separation is 4mm for modules in the endcap)
         // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3100
         const float drtCut = modulesInGPU.moduleType[lowerModuleIndex] == SDL::PS ? 2.f : 10.f;
         drt = rtLower - rtUpper;
-        pass = pass & (fabsf(drt) < drtCut);
+        pass = pass & (alpaka::math::abs(acc, drt) < drtCut);
         if(not pass) return pass;
         // The new scheme shifts strip hits to be "aligned" along the line of sight from interaction point to the pixel hit (if it is PS modules)
         float xn = 0, yn = 0, zn = 0;
@@ -456,8 +464,8 @@ namespace SDL
                 shiftedX = xn;
                 shiftedY = yn;
                 shiftedZ = zUpper;
-                dPhi = deltaPhi_alpaka(xLower, yLower, shiftedX, shiftedY);
-                noShiftedDphi = deltaPhi_alpaka(xLower, yLower, xUpper, yUpper);
+                dPhi = deltaPhi_alpaka(acc, xLower, yLower, shiftedX, shiftedY);
+                noShiftedDphi = deltaPhi_alpaka(acc, xLower, yLower, xUpper, yUpper);
             }
             else
             {
@@ -467,8 +475,8 @@ namespace SDL
                 shiftedX = xn;
                 shiftedY = yn;
                 shiftedZ = zLower;
-                dPhi = deltaPhi_alpaka(shiftedX, shiftedY, xUpper, yUpper);
-                noShiftedDphi = deltaPhi_alpaka(xLower, yLower, xUpper, yUpper);
+                dPhi = deltaPhi_alpaka(acc, shiftedX, shiftedY, xUpper, yUpper);
+                noShiftedDphi = deltaPhi_alpaka(acc, xLower, yLower, xUpper, yUpper);
             }
         }
         else
@@ -476,8 +484,8 @@ namespace SDL
             shiftedX = xn;
             shiftedY = yn;
             shiftedZ = zUpper;
-            dPhi = deltaPhi_alpaka(xLower, yLower, xn, yn);
-            noShiftedDphi = deltaPhi_alpaka(xLower, yLower, xUpper, yUpper);
+            dPhi = deltaPhi_alpaka(acc, xLower, yLower, xn, yn);
+            noShiftedDphi = deltaPhi_alpaka(acc, xLower, yLower, xUpper, yUpper);
         }
 
         // dz needs to change if it is a PS module where the strip hits are shifted in order to properly account for the case when a tilted module falls under "endcap logic"
@@ -488,19 +496,19 @@ namespace SDL
         }
 
         float miniCut = 0;
-        miniCut = modulesInGPU.moduleLayerType[lowerModuleIndex] == SDL::Pixel ?  dPhiThreshold(rtLower, modulesInGPU, lowerModuleIndex,dPhi, dz) :  dPhiThreshold(rtUpper, modulesInGPU, lowerModuleIndex, dPhi, dz);
+        miniCut = modulesInGPU.moduleLayerType[lowerModuleIndex] == SDL::Pixel ?  dPhiThreshold(acc, rtLower, modulesInGPU, lowerModuleIndex,dPhi, dz) :  dPhiThreshold(acc, rtUpper, modulesInGPU, lowerModuleIndex, dPhi, dz);
 
-        pass = pass & (fabsf(dPhi) < miniCut);
+        pass = pass & (alpaka::math::abs(acc, dPhi) < miniCut);
         if(not pass) return pass;
 
         // Cut #4: Another cut on the dphi after some modification
         // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3119-L3124
 
         
-        float dzFrac = fabsf(dz) / fabsf(zLower);
+        float dzFrac = alpaka::math::abs(acc, dz) / alpaka::math::abs(acc, zLower);
         dPhiChange = dPhi / dzFrac * (1.f + dzFrac);
         noShiftedDphichange = noShiftedDphi / dzFrac * (1.f + dzFrac);
-        pass = pass & (fabsf(dPhiChange) < miniCut);
+        pass = pass & (alpaka::math::abs(acc, dPhiChange) < miniCut);
 
         return pass;
     }
