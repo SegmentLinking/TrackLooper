@@ -27,6 +27,7 @@ void setQuintupletOutputBranches(SDL::Event* event);
 void setPixelTripletOutputBranches(SDL::Event *event);
 void setGnnNtupleBranches(SDL::Event* event);
 void setGnnNtupleMiniDoublet(SDL::Event* event, unsigned int MD);
+void setGnnNtupleTriplet(SDL::Event* event, unsigned int T3);
 
 
 std::tuple<int, float, float, float, int, vector<int>> parseTrackCandidate(SDL::Event* event, unsigned int);
