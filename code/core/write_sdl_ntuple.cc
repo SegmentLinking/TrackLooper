@@ -190,14 +190,17 @@ void createGnnNtupleBranches()
     ana.tx->createBranch<vector<float>>("t3_eta");
     ana.tx->createBranch<vector<float>>("t3_phi");
     ana.tx->createBranch<vector<float>>("t3_0_r");
+    ana.tx->createBranch<vector<float>>("t3_0_dr");
     ana.tx->createBranch<vector<float>>("t3_0_x");
     ana.tx->createBranch<vector<float>>("t3_0_y");
     ana.tx->createBranch<vector<float>>("t3_0_z");
     ana.tx->createBranch<vector<float>>("t3_2_r");
+    ana.tx->createBranch<vector<float>>("t3_2_dr");
     ana.tx->createBranch<vector<float>>("t3_2_x");
     ana.tx->createBranch<vector<float>>("t3_2_y");
     ana.tx->createBranch<vector<float>>("t3_2_z");
     ana.tx->createBranch<vector<float>>("t3_4_r");
+    ana.tx->createBranch<vector<float>>("t3_4_dr");
     ana.tx->createBranch<vector<float>>("t3_4_x");
     ana.tx->createBranch<vector<float>>("t3_4_y");
     ana.tx->createBranch<vector<float>>("t3_4_z");
@@ -729,20 +732,21 @@ void setGnnNtupleBranches(SDL::Event* event)
                                               outer T3
             */
             unsigned int T5_idx = rangesInGPU.quintupletModuleIndices[idx] + jdx;
+
             std::vector<unsigned int> T3s = getT3sFromT5(event, T5_idx);
             // Inner T3
             if (T3s_used_in_T5.find(T3s[0]) == T3s_used_in_T5.end())
             {
                 T3s_used_in_T5.insert(T3s[0]);
                 T3_index_map[T3s[0]] = T3s_used_in_T5.size() - 1;
-                setGnnNtupleTriplet(event, T3s[0]);
+                setGnnNtupleTriplet(event, T3s[0], rangesInGPU.tripletModuleIndices[idx]);
             }
             // Outer T3
             if (T3s_used_in_T5.find(T3s[1]) == T3s_used_in_T5.end())
             {
                 T3s_used_in_T5.insert(T3s[1]);
                 T3_index_map[T3s[1]] = T3s_used_in_T5.size() - 1;
-                setGnnNtupleTriplet(event, T3s[1]);
+                setGnnNtupleTriplet(event, T3s[1], rangesInGPU.tripletModuleIndices[idx]);
             }
 
             ana.tx->pushbackToBranch<int>("t5_t3_idx0", T3_index_map[T3s[0]]);
@@ -840,7 +844,7 @@ void setGnnNtupleMiniDoublet(SDL::Event* event, unsigned int MD)
 }
 
 //________________________________________________________________________________________________________________________________
-void setGnnNtupleTriplet(SDL::Event* event, unsigned int T3)
+void setGnnNtupleTriplet(SDL::Event* event, unsigned int T3, unsigned int T3_module_idx)
 {
     /*
         Pictorial representation of a T3
@@ -853,6 +857,7 @@ void setGnnNtupleTriplet(SDL::Event* event, unsigned int T3)
 
     // Get relevant information
     SDL::hits& hitsInGPU = (*event->getHits());
+    SDL::modules& modulesInGPU = (*event->getFullModules());
     SDL::triplets& tripletsInGPU = (*event->getTriplets());
 
     // Hits
@@ -886,6 +891,134 @@ void setGnnNtupleTriplet(SDL::Event* event, unsigned int T3)
     ana.tx->pushbackToBranch<float>("t3_4_x", hit4_x);
     ana.tx->pushbackToBranch<float>("t3_4_y", hit4_y);
     ana.tx->pushbackToBranch<float>("t3_4_z", hit4_z);
+
+    // Sigmas for chi2 calculation
+    std::vector<float> sigmas;
+    float inv1 = 0.01f/0.009f;
+    float inv2 = 0.15f/0.009f;
+    // float inv3 = 2.4f/0.009f; // not used
+    for (auto hit : {hit0, hit2, hit4})
+    {
+        // Get module info
+        unsigned int module = hitsInGPU.moduleIndices[hit];
+        SDL::ModuleType module_type = modulesInGPU.moduleType[module];
+        short module_subdet = modulesInGPU.subdets[module];
+        short module_side = modulesInGPU.sides[module];
+        float module_drdz = modulesInGPU.drdzs[module];
+        float module_slope = modulesInGPU.slopes[module];
+        // Get deltas for sigma calculation
+        float delta1, delta2;
+        bool is_flat;
+        // Category 1: barrel PS flat
+        if (module_subdet == SDL::Barrel and module_type == SDL::PS and module_side == SDL::Center)
+        {
+            delta1 = inv1;//1.1111f;//0.01;
+            delta2 = inv1;//1.1111f;//0.01;
+            module_slope = -999.f;
+            is_flat = true;
+        }
+        // Category 2: barrel 2S
+        else if (module_subdet == SDL::Barrel and module_type == SDL::TwoS)
+        {
+            delta1 = 1.f;//0.009;
+            delta2 = 1.f;//0.009;
+            module_slope = -999.f;
+            is_flat = true;
+        }
+        // Category 3: barrel PS tilted
+        else if (module_subdet == SDL::Barrel and module_type == SDL::PS and module_side != SDL::Center)
+        {
+
+            delta1 = inv1;//1.1111f;//0.01;
+            is_flat = false;
+
+            delta2 = (inv2 * module_drdz/sqrtf(1 + module_drdz * module_drdz));
+            /* anchorHits = true always here
+            if (anchorHits)
+            {
+                delta2 = (inv2 * module_drdz/sqrtf(1 + module_drdz * module_drdz));
+            }
+            else
+            {
+                delta2 = (inv3 * module_drdz/sqrtf(1 + module_drdz * module_drdz));
+            }
+            */
+        }
+        // Category 4: endcap PS
+        else if (module_subdet == SDL::Endcap and module_type == SDL::PS)
+        {
+            delta1 = inv1;//1.1111f;//0.01;
+            is_flat = false;
+
+            /* Despite the type of the module layer of the lower module index,
+             * all anchor hits are on the pixel side and all non-anchor hits are
+             * on the strip side! */
+            delta2 = inv2;//16.6666f;//0.15f;
+            /* anchorHits = true always here
+            if (anchorHits)
+            {
+                delta2 = inv2;//16.6666f;//0.15f;
+            }
+            else
+            {
+                delta2 = inv3;//266.666f;//2.4f;
+            }
+            */
+        }
+        // Category 5: endcap 2S
+        else if (module_subdet == SDL::Endcap and module_type == SDL::TwoS)
+        {
+            delta1 = 1.f;//0.009;
+            delta2 = 500.f*inv1;//555.5555f;//5.f;
+            is_flat = false;
+        }
+        else
+        {
+            printf("ERROR!!!!! I SHOULDN'T BE HERE!!!! subdet = %d, type = %d, side = %d\n", module_subdet, module_type, module_side);
+        }
+
+        // Stolen from SDL::computeRadiusUsingRegression (SDL/Quintuplet.cu)
+        /* Since C++ can't represent infinity, SDL_INF = 123456789 was used 
+         * to represent infinity in the data table */
+        float absArctanSlope = ((module_slope != 123456789) ? fabs(atanf(module_slope)) : 0.5f*float(M_PI));
+
+        float hit_x = hitsInGPU.xs[hit];
+        float hit_y = hitsInGPU.ys[hit];
+        float angleM;
+        if (hit_x > 0 and hit_y > 0)
+        {
+            angleM = 0.5f*float(M_PI) - absArctanSlope;
+        }
+        else if (hit_x < 0 and hit_y > 0)
+        {
+            angleM = absArctanSlope + 0.5f*float(M_PI);
+        }
+        else if (hit_x < 0 and hit_y < 0)
+        {
+            angleM = -(absArctanSlope + 0.5f*float(M_PI));
+        }
+        else if (hit_x > 0 and hit_y < 0)
+        {
+            angleM = -(0.5f*float(M_PI) - absArctanSlope);
+        }
+
+        float xPrime, yPrime;
+        if(not is_flat)
+        {
+            xPrime = hit_x * cosf(angleM) + hit_y * sinf(angleM);
+            yPrime = hit_y * cosf(angleM) - hit_x * sinf(angleM);
+        }
+        else
+        {
+            xPrime = hit_x;
+            yPrime = hit_y;
+        }
+        sigmas.push_back(2 * sqrtf((xPrime * delta1) * (xPrime * delta1) + (yPrime * delta2) * (yPrime * delta2)));
+    }
+
+    ana.tx->pushbackToBranch<float>("t3_0_dr", sigmas[0]);
+    ana.tx->pushbackToBranch<float>("t3_2_dr", sigmas[1]);
+    ana.tx->pushbackToBranch<float>("t3_4_dr", sigmas[2]);
 
     // Constants
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
