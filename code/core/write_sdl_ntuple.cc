@@ -182,10 +182,10 @@ void createGnnNtupleBranches()
     ana.tx->createBranch<vector<int>>("LS_isInTrueTC");
 
     // T3 branches
-    ana.tx->createBranch<vector<int>>("t3_isFake");
     ana.tx->createBranch<vector<int>>("t5_t3_idx0");
     ana.tx->createBranch<vector<int>>("t5_t3_idx1");
-    ana.tx->createBranch<vector<float>>("t3_ptAv");
+    ana.tx->createBranch<vector<int>>("t3_isFake");
+    ana.tx->createBranch<vector<float>>("t3_ptLegacy");
     ana.tx->createBranch<vector<float>>("t3_pt");
     ana.tx->createBranch<vector<float>>("t3_eta");
     ana.tx->createBranch<vector<float>>("t3_phi");
@@ -1012,11 +1012,11 @@ void setGnnNtupleTriplet(SDL::Event* event, unsigned int T3)
     float betaOut = __H2F(tripletsInGPU.betaOut[T3]);
 
     // Legacy T4 pt estimate
-    const float ptAv = abs(dr * k2Rinv1GeVf / sin((betaIn + betaOut) / 2.));
+    const float ptLegacy = abs(dr * k2Rinv1GeVf / sin((betaIn + betaOut) / 2.));
     SDL::CPU::Hit hitA(trk.ph2_x()[hit0], trk.ph2_y()[hit0], trk.ph2_z()[hit0]);
     SDL::CPU::Hit hitB(trk.ph2_x()[hit2], trk.ph2_y()[hit2], trk.ph2_z()[hit2]);
     SDL::CPU::Hit hitC(trk.ph2_x()[hit4], trk.ph2_y()[hit4], trk.ph2_z()[hit4]);
-    ana.tx->pushbackToBranch<float>("t3_ptAv", ptAv);
+    ana.tx->pushbackToBranch<float>("t3_ptLegacy", ptLegacy);
     // More accurate pt estimate
     SDL::CPU::Hit center = SDL::CPU::MathUtil::getCenterFromThreePoints(hitA, hitB, hitC);
     ana.tx->pushbackToBranch<float>("t3_pt", SDL::CPU::MathUtil::ptEstimateFromRadius(center.rt()));
