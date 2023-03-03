@@ -371,6 +371,7 @@ void SDL::LST::getOutput(SDL::Event& event) {
   std::vector<std::vector<unsigned int>> tc_hitIdxs_;
   std::vector<unsigned int> tc_len_;
   std::vector<int> tc_seedIdx_;
+  std::vector<short> tc_trackCandidateType_;
 
   SDL::modules& modulesInGPU = (*event.getModules());
   SDL::objectRanges& rangesInGPU = (*event.getRanges());
@@ -503,6 +504,7 @@ void SDL::LST::getOutput(SDL::Event& event) {
     tc_hitIdxs_.push_back(hit_idx);
     tc_len_.push_back(hit_array_length);
     tc_seedIdx_.push_back(seedIdx);
+    tc_trackCandidateType_.push_back(trackCandidateType);
   }
   out_tc_pt_ = tc_pt_;
   out_tc_eta_ = tc_eta_;
@@ -510,16 +512,18 @@ void SDL::LST::getOutput(SDL::Event& event) {
   out_tc_hitIdxs_ = tc_hitIdxs_;
   out_tc_len_ = tc_len_;
   out_tc_seedIdx_ = tc_seedIdx_;
-
-  //for(auto out : out_tc_pt_) printf("%f\n",out);
-  //printf("\n");
-  //for(auto out : out_tc_eta_) printf("%f\n",out);
-  //printf("\n");
-  //for(auto out : out_tc_phi_) printf("%f\n",out);
-  //printf("\n");
-  //for(auto out : out_tc_len_) printf("%d\n",out);
-  //printf("\n");
-  //for(auto out : out_tc_seedIdx_) printf("%d\n",out);
+  out_tc_trackCandidateType_ = tc_trackCandidateType_;
+//  for(auto out : out_tc_pt_) printf("%f\n",out);
+//  printf("\n");
+//  for(auto out : out_tc_eta_) printf("%f\n",out);
+//  printf("\n");
+//  for(auto out : out_tc_phi_) printf("%f\n",out);
+//  printf("\n");
+//  for(auto out : out_tc_len_) printf("%d\n",out);
+//  printf("\n");
+//  for(auto out : out_tc_seedIdx_) printf("%d\n",out);
+//  printf("\n");
+//  for(auto out : out_tc_trackCandidateType_) printf("%d\n",out);
 }
 
 // Object accessors
