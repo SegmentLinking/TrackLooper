@@ -2327,6 +2327,8 @@ cudaStreamSynchronize(stream);
     modulesInCPUFull->rods = new short[nModules];
     modulesInCPUFull->subdets = new short[nModules];
     modulesInCPUFull->sides = new short[nModules];
+    modulesInCPUFull->eta = new float[nModules];
+    modulesInCPUFull->r = new float[nModules];
     modulesInCPUFull->isInverted = new bool[nModules];
     modulesInCPUFull->isLower = new bool[nModules];
 
@@ -2345,6 +2347,8 @@ cudaStreamSynchronize(stream);
     cudaMemcpyAsync(modulesInCPUFull->rods,modulesInGPU->rods,sizeof(short)*nModules,cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(modulesInCPUFull->subdets,modulesInGPU->subdets,sizeof(short)*nModules,cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(modulesInCPUFull->sides,modulesInGPU->sides,sizeof(short)*nModules,cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(modulesInCPUFull->eta,modulesInGPU->eta,sizeof(float)*nModules,cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(modulesInCPUFull->r,modulesInGPU->r,sizeof(float)*nModules,cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(modulesInCPUFull->isInverted,modulesInGPU->isInverted,sizeof(bool)*nModules,cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(modulesInCPUFull->isLower,modulesInGPU->isLower,sizeof(bool)*nModules,cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(modulesInCPUFull->moduleType,modulesInGPU->moduleType,sizeof(ModuleType)*nModules,cudaMemcpyDeviceToHost,stream);
