@@ -739,14 +739,14 @@ void setGnnNtupleBranches(SDL::Event* event)
             {
                 T3s_used_in_T5.insert(T3s[0]);
                 T3_index_map[T3s[0]] = T3s_used_in_T5.size() - 1;
-                setGnnNtupleTriplet(event, T3s[0], rangesInGPU.tripletModuleIndices[idx]);
+                setGnnNtupleTriplet(event, T3s[0]);
             }
             // Outer T3
             if (T3s_used_in_T5.find(T3s[1]) == T3s_used_in_T5.end())
             {
                 T3s_used_in_T5.insert(T3s[1]);
                 T3_index_map[T3s[1]] = T3s_used_in_T5.size() - 1;
-                setGnnNtupleTriplet(event, T3s[1], rangesInGPU.tripletModuleIndices[idx]);
+                setGnnNtupleTriplet(event, T3s[1]);
             }
 
             ana.tx->pushbackToBranch<int>("t5_t3_idx0", T3_index_map[T3s[0]]);
@@ -844,7 +844,7 @@ void setGnnNtupleMiniDoublet(SDL::Event* event, unsigned int MD)
 }
 
 //________________________________________________________________________________________________________________________________
-void setGnnNtupleTriplet(SDL::Event* event, unsigned int T3, unsigned int T3_module_idx)
+void setGnnNtupleTriplet(SDL::Event* event, unsigned int T3)
 {
     /*
         Pictorial representation of a T3
