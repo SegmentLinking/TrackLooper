@@ -892,7 +892,8 @@ void setGnnNtupleTriplet(SDL::Event* event, unsigned int T3, unsigned int T3_mod
     ana.tx->pushbackToBranch<float>("t3_4_y", hit4_y);
     ana.tx->pushbackToBranch<float>("t3_4_z", hit4_z);
 
-    // Sigmas for chi2 calculation
+    /* Sigmas for chi2 calculation 
+     * (stolen from SDL::computeSigmasForRegression and SDL::computeRadiusUsingRegressionk) */
     std::vector<float> sigmas;
     float inv1 = 0.01f/0.009f;
     float inv2 = 0.15f/0.009f;
@@ -933,16 +934,6 @@ void setGnnNtupleTriplet(SDL::Event* event, unsigned int T3, unsigned int T3_mod
             is_flat = false;
 
             delta2 = (inv2 * module_drdz/sqrtf(1 + module_drdz * module_drdz));
-            /* anchorHits = true always here
-            if (anchorHits)
-            {
-                delta2 = (inv2 * module_drdz/sqrtf(1 + module_drdz * module_drdz));
-            }
-            else
-            {
-                delta2 = (inv3 * module_drdz/sqrtf(1 + module_drdz * module_drdz));
-            }
-            */
         }
         // Category 4: endcap PS
         else if (module_subdet == SDL::Endcap and module_type == SDL::PS)
@@ -954,16 +945,6 @@ void setGnnNtupleTriplet(SDL::Event* event, unsigned int T3, unsigned int T3_mod
              * all anchor hits are on the pixel side and all non-anchor hits are
              * on the strip side! */
             delta2 = inv2;//16.6666f;//0.15f;
-            /* anchorHits = true always here
-            if (anchorHits)
-            {
-                delta2 = inv2;//16.6666f;//0.15f;
-            }
-            else
-            {
-                delta2 = inv3;//266.666f;//2.4f;
-            }
-            */
         }
         // Category 5: endcap 2S
         else if (module_subdet == SDL::Endcap and module_type == SDL::TwoS)
@@ -977,7 +958,6 @@ void setGnnNtupleTriplet(SDL::Event* event, unsigned int T3, unsigned int T3_mod
             printf("ERROR!!!!! I SHOULDN'T BE HERE!!!! subdet = %d, type = %d, side = %d\n", module_subdet, module_type, module_side);
         }
 
-        // Stolen from SDL::computeRadiusUsingRegression (SDL/Quintuplet.cu)
         /* Since C++ can't represent infinity, SDL_INF = 123456789 was used 
          * to represent infinity in the data table */
         float absArctanSlope = ((module_slope != 123456789) ? fabs(atanf(module_slope)) : 0.5f*float(M_PI));
