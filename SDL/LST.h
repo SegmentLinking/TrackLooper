@@ -44,6 +44,7 @@ namespace SDL {
     std::vector<std::vector<unsigned int>> hits() { return out_tc_hitIdxs_; }
     std::vector<unsigned int> len() { return out_tc_len_; }
     std::vector<int> seedIdx() { return out_tc_seedIdx_; }
+    std::vector<short> trackCandidateType() { return out_tc_trackCandidateType_; }
   private:
     void loadMaps();
     TString get_absolute_path_after_check_file_exists(const std::string name);
@@ -134,6 +135,7 @@ namespace SDL {
     std::vector<std::vector<unsigned int>> out_tc_hitIdxs_;
     std::vector<unsigned int> out_tc_len_;
     std::vector<int> out_tc_seedIdx_;
+    std::vector<short> out_tc_trackCandidateType_;
   };
 
 } //namespace
