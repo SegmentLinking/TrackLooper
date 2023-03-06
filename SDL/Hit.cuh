@@ -91,6 +91,50 @@ namespace SDL
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhiChange(float x1, float y1, float x2, float y2) {
       return deltaPhi(x1, y1, x2-x1, y2-y1);
     }
+
+    template<typename TAcc>
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float ATan2_alpaka(TAcc const & acc, float y, float x)
+    {
+        if (x != 0) return alpaka::math::atan2(acc, y, x);
+        if (y == 0) return  0;
+        if (y >  0) return  float(M_PI) / 2.f;
+        else        return -float(M_PI) / 2.f;
+    }
+
+    template<typename TAcc>
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi_mpi_pi_alpaka(TAcc const & acc, float x)
+    {
+        // Alpaka: Needs to be moved over. Introduced in Alpaka 0.8.0
+        if (std::isnan(x))
+        {
+            return x;
+        }
+
+        if (alpaka::math::abs(acc, x) <= float(M_PI))
+            return x;
+
+        constexpr float o2pi = 1.f / (2.f * float(M_PI));
+        float n = alpaka::math::round(acc, x * o2pi);
+        return x - n * float(2.f * float(M_PI));
+    }
+
+    template<typename TAcc>
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi_alpaka(TAcc const & acc, float x, float y) {
+        return phi_mpi_pi_alpaka(acc, float(M_PI) + ATan2_alpaka(acc, -y, -x));
+    }
+
+    template<typename TAcc>
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhi_alpaka(TAcc const & acc, float x1, float y1, float x2, float y2) {
+        float phi1 = phi_alpaka(acc, x1,y1);
+        float phi2 = phi_alpaka(acc, x2,y2);
+        return phi_mpi_pi_alpaka(acc, (phi2 - phi1));
+    }
+
+    template<typename TAcc>
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhiChange_alpaka(TAcc const & acc, float x1, float y1, float x2, float y2) {
+        return deltaPhi_alpaka(acc, x1, y1, x2-x1, y2-y1);
+    }
+
     void getEdgeHits(unsigned int detId,float x, float y, float& xhigh, float& yhigh, float& xlow, float& ylow);
     ALPAKA_FN_ACC void getEdgeHitsK(float phi,float x, float y, float& xhigh, float& yhigh, float& xlow, float& ylow);
 
