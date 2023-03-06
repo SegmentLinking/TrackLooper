@@ -550,9 +550,8 @@ ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE int binary_search(
     return -1;
 }
 
-class moduleRangesKernel
+struct moduleRangesKernel
 {
-public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC void operator()(
@@ -583,9 +582,8 @@ public:
     }
 };
 
-class hitLoopKernel
+struct hitLoopKernel
 {
-public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
     ALPAKA_FN_ACC void operator()(
@@ -685,8 +683,8 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     // Temporary fix for queue initialization.
     QueueAcc queue(devAcc);
 
-    Vec const threadsPerBlock1(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
-    Vec const blocksPerGrid1(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(300));
+    Vec const threadsPerBlock1(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
+    Vec const blocksPerGrid1(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
     WorkDiv const hit_loop_workdiv(blocksPerGrid1, threadsPerBlock1, elementsPerThread);
 
     hitLoopKernel hit_loop_kernel;
@@ -706,8 +704,8 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     alpaka::enqueue(queue, hit_loop_task);
     alpaka::wait(queue);
 
-    Vec const threadsPerBlock2(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
-    Vec const blocksPerGrid2(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(15));
+    Vec const threadsPerBlock2(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
+    Vec const blocksPerGrid2(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
     WorkDiv const module_ranges_workdiv(blocksPerGrid2, threadsPerBlock2, elementsPerThread);
 
     moduleRangesKernel module_ranges_kernel;
