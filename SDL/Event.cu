@@ -1011,7 +1011,7 @@ void SDL::Event::createMiniDoublets()
     // Temporary fix for queue initialization.
     QueueAcc queue(devAcc);
 
-    Vec const threadsPerBlock(static_cast<Idx>(32), static_cast<Idx>(16), static_cast<Idx>(1));
+    Vec const threadsPerBlock(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(32));
     Vec const blocksPerGrid(static_cast<Idx>(1), static_cast<Idx>(nLowerModules/threadsPerBlock[1]), static_cast<Idx>(1));
 
     WorkDiv const createMiniDoubletsInGPUv2_workDiv(blocksPerGrid, threadsPerBlock, elementsPerThread);
