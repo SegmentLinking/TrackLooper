@@ -499,7 +499,7 @@ namespace SDL
                 unsigned int loHitArrayIndex = hitsInGPU.hitRangesLower[lowerModuleIndex];
                 int limit = nUpperHits*nLowerHits;
 
-                for(int hitIndex = globalThreadIdx[0]; hitIndex< limit; hitIndex += gridThreadExtent[0])
+                for(int hitIndex = globalThreadIdx[2]; hitIndex< limit; hitIndex += gridThreadExtent[2])
                 {
                     int lowerHitIndex =  hitIndex / nUpperHits;
                     int upperHitIndex =  hitIndex % nUpperHits;
