@@ -1409,6 +1409,12 @@ cudaStreamSynchronize(stream);
     dim3 dupThreads(16,16,1);
     dim3 dupBlocks(1,1,MAX_BLOCKS);
     removeDupQuintupletsInGPUAfterBuild<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,*rangesInGPU);
+    cudaError_t cudaerrDup = cudaGetLastError();
+    if(cudaerr != cudaSuccess)
+    {
+	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerrDup)<<std::endl;
+    }
+
     cudaStreamSynchronize(stream);
 
 #if defined(AddObjects)
@@ -1539,7 +1545,7 @@ cudaStreamSynchronize(stream);
     //free(segs_pix);
     //cudaFree(segs_pix_gpu);
 
-    dim3 nThreads_dup(32,32,1);
+    dim3 nThreads_dup(32,16,1);
     dim3 nBlocks_dup(1,MAX_BLOCKS,1);
     //printf("run dup pT5\n");
     removeDupPixelQuintupletsInGPUFromMap<<<nBlocks_dup,nThreads_dup,0,stream>>>(*pixelQuintupletsInGPU, false);

@@ -551,9 +551,9 @@ __global__ void removeDupPixelQuintupletsInGPUFromMap(struct SDL::pixelQuintuple
             }
             int nMatched = checkHitspT5(ix, jx, pixelQuintupletsInGPU);
             float score2 = __H2F(pixelQuintupletsInGPU.score[jx]);
-                        if(nMatched >= 11)
+            if(nMatched >= 7)
             {
-                            if(score1 > score2 or ((score1 == score2) and (ix > jx)))
+                if(score1 > score2 or ((score1 == score2) and (ix > jx)))
                 {
                     rmPixelQuintupletToMemory(pixelQuintupletsInGPU, ix);
                     break;
