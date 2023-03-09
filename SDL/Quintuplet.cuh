@@ -106,7 +106,7 @@ namespace SDL
 
     CUDA_DEV float computeRadiusUsingRegression(int nPoints, float* xs, float* ys, float& g, float& f, float* sigmas, float& chiSquared);
 
-    CUDA_DEV void computeSigmasForRegression(SDL::modules& modulesInGPU, const uint16_t* lowerModuleIndices, float* sigmas);
+    CUDA_DEV void computeSigmasForRegression(SDL::modules& modulesInGPU, const uint16_t* lowerModuleIndices, float* sigmas, bool anchorHits = true);
 
 
 

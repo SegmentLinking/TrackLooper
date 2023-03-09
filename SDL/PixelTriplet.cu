@@ -1909,17 +1909,89 @@ __device__ bool SDL::passPT5RPhiChiSquaredInwards(struct SDL::modules& modulesIn
     const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
     const int layer4 = modulesInGPU.layers[lowerModuleIndex4] + 6 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex4] == SDL::TwoS);
     const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
+    if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 10)
+    {
+        return rPhiChiSquared < 168012.10569808062;
+    }
+    if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
+    {
+        return rPhiChiSquared < 31960.96283802313;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 9)
+    {
+        return rPhiChiSquared < 30521.075565562656;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 13 and layer5 == 14)
+    {
+        return rPhiChiSquared < 13311.882444647465;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 14)
+    {
+        return rPhiChiSquared < 13939.894719751062;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 12 and layer5 == 13)
+    {
+        return rPhiChiSquared < 9206.176854370007;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 13)
+    {
+        return rPhiChiSquared < 10571.567172356208;
+    }
+    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11)
+    {
+        return rPhiChiSquared < 69977.78545237563;
+    }
+    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
+    {
+        return rPhiChiSquared < 105959.61574042536;
+    }
+    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 16)
+    {
+        return rPhiChiSquared < 80356.35977722524;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 12)
+    {
+        return rPhiChiSquared < 9640.494997980397;
+    }
+    if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
+    {
+        return rPhiChiSquared < 63814.615148778554;
+    }
+    if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
+    {
+        return rPhiChiSquared < 202032.2287964669;
+    }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 12 and layer5 == 13)
     {
         return rPhiChiSquared < 23146.20067085179;
+    }
+    if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
+    {
+        return rPhiChiSquared < 44132.64881177165;
+    }
+    if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 8 and layer5 == 14)
+    {
+        return rPhiChiSquared < 30521.075565562656;
     }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 12)
     {
         return rPhiChiSquared < 20156.71029739159;
     }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) < 0.5)
+    {
+        return rPhiChiSquared < 5648.1308370979605;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) > 0.5)
+    {
+        return rPhiChiSquared < 7446.715781580937;
+    }
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) < 0.5)
     {
         return rPhiChiSquared < 12944.486845240095;
+    }
+    if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) > 0.5)
+    {
+        return rPhiChiSquared < 19596.336281047676;
     }
     return true;
 }

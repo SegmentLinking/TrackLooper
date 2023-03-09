@@ -334,7 +334,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     }
     else
     {
-        temp = true;
+         temp = (matchRadii_bin6(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, innerRadius, outerRadius));       
     }
     pass = pass and temp;
     if(not pass) return pass;
@@ -353,10 +353,10 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
 
     //chi squared calibration
    
-    if(innerRadius < 5/(k2Rinv1GeVf * 2.f))
+/*    if(innerRadius < 5/(k2Rinv1GeVf * 2.f))
     {
         pass = pass and passChiSquared_bin1(modulesInGPU, eta, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, chiSquared);
-    }
+    }*/
 
     //compute the other chisquared
     //non anchor is always shifted for tilted and endcap!
@@ -364,12 +364,103 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     float nonAnchorxs[] = { mdsInGPU.outerX[firstMDIndex], mdsInGPU.outerX[secondMDIndex], mdsInGPU.outerX[thirdMDIndex], mdsInGPU.outerX[fourthMDIndex], mdsInGPU.outerX[fifthMDIndex]};
     float nonAnchorys[] = { mdsInGPU.outerY[firstMDIndex], mdsInGPU.outerY[secondMDIndex], mdsInGPU.outerY[thirdMDIndex], mdsInGPU.outerY[fourthMDIndex], mdsInGPU.outerY[fifthMDIndex]};
 
-    computeSigmasForRegression(modulesInGPU, lowerModuleIndices, nonAnchorSigmas);
+    computeSigmasForRegression(modulesInGPU, lowerModuleIndices, nonAnchorSigmas, false);
     nonAnchorChiSquared = computeChiSquared(5, nonAnchorxs, nonAnchorys, nonAnchorSigmas, regressionG, regressionF, regressionRadius);
     return pass;
 }
 
 __device__ bool SDL::passChiSquared_bin1(struct SDL::modules& modulesInGPU, float& eta, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rPhiChiSquared)
+{
+    const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
+    const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
+    const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
+    const int layer4 = modulesInGPU.layers[lowerModuleIndex4] + 6 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex4] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex4] == SDL::TwoS);
+    const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
+    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11)
+    {
+        return rPhiChiSquared < 0.00019304428040919523;
+    }
+    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 16)
+    {
+        return rPhiChiSquared < 0.00024587222138404045;
+    }
+    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
+    {
+        return rPhiChiSquared < 0.0003620708045008987;
+    }
+    if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 10)
+    {
+        return rPhiChiSquared < 0.00024193904565846474;
+    }
+    if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
+    {
+        return rPhiChiSquared < 0.0006682309297383962;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 9)
+    {
+        return rPhiChiSquared < 0.000468650985917215;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 8 and layer5 == 14)
+    {
+        return rPhiChiSquared < 0.0006682309297383962;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 7 and layer4 == 13 and layer5 == 14)
+    {
+        return rPhiChiSquared < 0.0005687109051433113;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 7 and layer5 == 13)
+    {
+        return rPhiChiSquared < 0.0006470227780584041;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 12 and layer5 == 13)
+    {
+        return rPhiChiSquared < 0.0011750304869212022;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 12)
+    {
+        return rPhiChiSquared < 1.0953019911508488;
+    }
+    if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
+    {
+        return rPhiChiSquared < 9.965827529545839e-05;
+    }
+    if(layer1 == 2 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
+    {
+        return rPhiChiSquared < 0.000468650985917215;
+    }
+    if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
+    {
+        return rPhiChiSquared < 0.00038619577119913145;
+    }
+    if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 12 and layer5 == 13)
+    {
+        return rPhiChiSquared < 1.4177181690678429;
+    }
+    if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 12)
+    {
+        return rPhiChiSquared < 1.7204098730118005;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) < 0.5)
+    {
+        return rPhiChiSquared < 14.692566297526817;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4 and layer5 == 5 and abs(eta) > 0.5)
+    {
+        return rPhiChiSquared < 1.692888771553161;
+    }
+    if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) < 0.5)
+    {
+        return rPhiChiSquared < 19.640868618869767;
+    }
+    if(layer1 == 2 and layer2 == 3 and layer3 == 4 and layer4 == 5 and layer5 == 6 and abs(eta) > 0.5)
+    {
+        return rPhiChiSquared < 6.775316305109653;
+    }
+    return true;
+}
+
+
+/*__device__ bool SDL::passChiSquared_bin1(struct SDL::modules& modulesInGPU, float& eta, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rPhiChiSquared)
 {
     const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
     const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
@@ -457,7 +548,7 @@ __device__ bool SDL::passChiSquared_bin1(struct SDL::modules& modulesInGPU, floa
         return rPhiChiSquared < 18.41393829831405;
     }
     return true;
-}
+}*/
 __device__ bool SDL::passChiSquared_bin2(struct SDL::modules& modulesInGPU, float& eta, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rPhiChiSquared)
 {
     const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
@@ -2330,7 +2421,7 @@ __device__ bool SDL::T5HasCommonMiniDoublet(struct SDL::triplets& tripletsInGPU,
 }
 
 
-__device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, const uint16_t* lowerModuleIndices, float* sigmas)
+__device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, const uint16_t* lowerModuleIndices, float* sigmas, bool anchorHits)
 {
     ModuleType moduleType;
     short moduleSubdet, moduleSide;
@@ -2355,12 +2446,18 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
         //category 3 - barrel PS tilted
         else if(moduleSubdet == Barrel and moduleType == PS and moduleSide != Center)
         {
-            sigmas[i] = (0.075/0.0006) * drdz/sqrt(1+drdz*drdz);
+            if(anchorHits)
+                sigmas[i] = (0.075/0.0006) * drdz/sqrt(1+drdz*drdz);
+            else
+                sigmas[i] = (1.2/0.0006) * drdz/sqrt(1+drdz*drdz);
         }
         //category 4 - endcap PS
         else if(moduleSubdet == Endcap and moduleType == PS)
         {
-            sigmas[i] = (0.075/0.0006);
+            if(anchorHits)
+                sigmas[i] = (0.075/0.0006);
+            else
+                sigmas[i] = 1.2/0.0006;
         }
         //category 5 - endcap 2S
         else if(moduleSubdet == Endcap and moduleType == TwoS)
@@ -2394,7 +2491,7 @@ __device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float
         //computing sigmas is a very tricky affair
         //if the module is tilted or endcap, we need to use the slopes properly!
 
-        float sigma = 1.f;
+        float sigma = 1;//2 * sqrtf(xs[i] * xs[i] + ys[i] * ys[i]) * sigmas[i];
 
         sigmaX1Squared += (xs[i] * xs[i])/(sigma * sigma);
         sigmaX2Squared += (ys[i] * ys[i])/(sigma * sigma);
@@ -2513,7 +2610,7 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
                         float phi = mdsInGPU.anchorPhi[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]]];
                         float eta = mdsInGPU.anchorEta[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]]];
                         float pt = (innerRadius+outerRadius)*3.8f*1.602f/(2*100*5.39f);
-                        float scores = chiSquared/1000;
+                        float scores = chiSquared + nonAnchorChiSquared;
                         addQuintupletToMemory(tripletsInGPU, quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, bridgeRadius, outerRadius, innerG, innerF, rzChiSquared, chiSquared, nonAnchorChiSquared, pt,eta,phi,scores,layer,quintupletIndex, TightCutFlag);
 
                         tripletsInGPU.partOfT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex]] = true;
