@@ -8,10 +8,77 @@ void SDL::miniDoublets::resetMemory(unsigned int nMemoryLocationsx, unsigned int
 {
     cudaMemsetAsync(anchorHitIndices,0, nMemoryLocationsx * 3 * sizeof(unsigned int),stream);
     cudaMemsetAsync(dphichanges,0, nMemoryLocationsx * 9 * sizeof(float),stream);
-    cudaMemsetAsync(nMDs,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
+    cudaMemsetAsync(nMDs,0, (nLowerModules + 1) * sizeof(int),stream);
     cudaMemsetAsync(totOccupancyMDs,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
 }
 
+    //#ifdef CUT_VALUE_DEBUG
+//ALPAKA_FN_ACC void addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float drt, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, float dzCut, float drtCut, float miniCut, unsigned int idx)
+//#else
+ALPAKA_FN_ACC void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
+//#endif
+{
+    //the index into which this MD needs to be written will be computed in the kernel
+    //nMDs variable will be incremented in the kernel, no need to worry about that here
+    
+    mdsInGPU.moduleIndices[idx] = lowerModuleIdx;
+    unsigned int anchorHitIndex, outerHitIndex;
+    if(modulesInGPU.moduleType[lowerModuleIdx] == PS and modulesInGPU.moduleLayerType[lowerModuleIdx] == Strip)
+    {
+        mdsInGPU.anchorHitIndices[idx] = upperHitIdx;
+        mdsInGPU.outerHitIndices[idx] = lowerHitIdx;
+
+        anchorHitIndex = upperHitIdx;
+        outerHitIndex = lowerHitIdx;
+    }
+    else
+    {
+        mdsInGPU.anchorHitIndices[idx] = lowerHitIdx;
+        mdsInGPU.outerHitIndices[idx] = upperHitIdx;
+
+        anchorHitIndex = lowerHitIdx;
+        outerHitIndex = upperHitIdx;
+    }
+
+    mdsInGPU.dphichanges[idx] = dPhiChange;
+
+    mdsInGPU.dphis[idx] = dPhi;
+    mdsInGPU.dzs[idx] = dz;
+    mdsInGPU.shiftedXs[idx] = shiftedX;
+    mdsInGPU.shiftedYs[idx] = shiftedY;
+    mdsInGPU.shiftedZs[idx] = shiftedZ;
+
+    mdsInGPU.noShiftedDzs[idx] = noShiftedDz;
+    mdsInGPU.noShiftedDphis[idx] = noShiftedDphi;
+    mdsInGPU.noShiftedDphiChanges[idx] = noShiftedDPhiChange;
+//#ifdef CUT_VALUE_DEBUG
+//    mdsInGPU.dzCuts[idx] = dzCut;
+//    mdsInGPU.drtCuts[idx] = drtCut;
+//    mdsInGPU.miniCuts[idx] = miniCut;
+//#endif
+
+    mdsInGPU.anchorX[idx] = hitsInGPU.xs[anchorHitIndex];
+    mdsInGPU.anchorY[idx] = hitsInGPU.ys[anchorHitIndex];
+    mdsInGPU.anchorZ[idx] = hitsInGPU.zs[anchorHitIndex];
+    mdsInGPU.anchorRt[idx] = hitsInGPU.rts[anchorHitIndex];
+    mdsInGPU.anchorPhi[idx] = hitsInGPU.phis[anchorHitIndex];
+    mdsInGPU.anchorEta[idx] = hitsInGPU.etas[anchorHitIndex];
+    mdsInGPU.anchorHighEdgeX[idx] = hitsInGPU.highEdgeXs[anchorHitIndex];
+    mdsInGPU.anchorHighEdgeY[idx] = hitsInGPU.highEdgeYs[anchorHitIndex];
+    mdsInGPU.anchorLowEdgeX[idx] = hitsInGPU.lowEdgeXs[anchorHitIndex];
+    mdsInGPU.anchorLowEdgeY[idx] = hitsInGPU.lowEdgeYs[anchorHitIndex];
+
+    mdsInGPU.outerX[idx] = hitsInGPU.xs[outerHitIndex];
+    mdsInGPU.outerY[idx] = hitsInGPU.ys[outerHitIndex];
+    mdsInGPU.outerZ[idx] = hitsInGPU.zs[outerHitIndex];
+    mdsInGPU.outerRt[idx] = hitsInGPU.rts[outerHitIndex];
+    mdsInGPU.outerPhi[idx] = hitsInGPU.phis[outerHitIndex];
+    mdsInGPU.outerEta[idx] = hitsInGPU.etas[outerHitIndex];
+    mdsInGPU.outerHighEdgeX[idx] = hitsInGPU.highEdgeXs[outerHitIndex];
+    mdsInGPU.outerHighEdgeY[idx] = hitsInGPU.highEdgeYs[outerHitIndex];
+    mdsInGPU.outerLowEdgeX[idx] = hitsInGPU.lowEdgeXs[outerHitIndex];
+    mdsInGPU.outerLowEdgeY[idx] = hitsInGPU.lowEdgeYs[outerHitIndex];
+}
 
 void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, uint16_t& nLowerModules, unsigned int& nTotalMDs, cudaStream_t stream, const unsigned int& maxPixelMDs)
 {
@@ -89,8 +156,8 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     mdsInGPU.anchorHitIndices = (unsigned int*)cms::cuda::allocate_device(dev,nMemoryLocations * 2 * sizeof(unsigned int), stream);
     mdsInGPU.moduleIndices = (uint16_t*)cms::cuda::allocate_device(dev, nMemoryLocations * sizeof(uint16_t), stream);
     mdsInGPU.dphichanges = (float*)cms::cuda::allocate_device(dev,nMemoryLocations*9*sizeof(float),stream);
-    mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) *sizeof(unsigned int),stream);
-    mdsInGPU.totOccupancyMDs = (unsigned int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) *sizeof(unsigned int),stream);
+    mdsInGPU.nMDs = (int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) *sizeof(int),stream);
+    mdsInGPU.totOccupancyMDs = (int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) *sizeof(int),stream);
     mdsInGPU.anchorX = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * 6 * sizeof(float), stream);
     mdsInGPU.anchorHighEdgeX = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * 4 * sizeof(float), stream);
     mdsInGPU.outerX = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * 6 * sizeof(float), stream);
@@ -102,8 +169,8 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     cudaMalloc(&mdsInGPU.anchorHitIndices, nMemoryLocations * 2 * sizeof(unsigned int));
     cudaMalloc(&mdsInGPU.moduleIndices, nMemoryLocations * sizeof(uint16_t));
     cudaMalloc(&mdsInGPU.dphichanges, nMemoryLocations *9* sizeof(float));
-    cudaMalloc(&mdsInGPU.nMDs, (nLowerModules + 1) * sizeof(unsigned int)); 
-    cudaMalloc(&mdsInGPU.totOccupancyMDs, (nLowerModules + 1) * sizeof(unsigned int)); 
+    cudaMalloc(&mdsInGPU.nMDs, (nLowerModules + 1) * sizeof(int)); 
+    cudaMalloc(&mdsInGPU.totOccupancyMDs, (nLowerModules + 1) * sizeof(int)); 
     cudaMalloc(&mdsInGPU.anchorX, nMemoryLocations * 6 * sizeof(float));
     cudaMalloc(&mdsInGPU.anchorHighEdgeX, nMemoryLocations * 4 * sizeof(float));
     cudaMalloc(&mdsInGPU.outerX, nMemoryLocations * 6 * sizeof(float));
@@ -112,8 +179,8 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     cudaMalloc(&mdsInGPU.nMemoryLocations, sizeof(unsigned int));
 
 #endif
-    cudaMemsetAsync(mdsInGPU.nMDs,0, (nLowerModules + 1) *sizeof(unsigned int),stream);
-    cudaMemsetAsync(mdsInGPU.totOccupancyMDs,0, (nLowerModules + 1) *sizeof(unsigned int),stream);
+    cudaMemsetAsync(mdsInGPU.nMDs,0, (nLowerModules + 1) *sizeof(int),stream);
+    cudaMemsetAsync(mdsInGPU.totOccupancyMDs,0, (nLowerModules + 1) *sizeof(int),stream);
     cudaStreamSynchronize(stream);
 
     mdsInGPU.outerHitIndices = mdsInGPU.anchorHitIndices + nMemoryLocations;
@@ -145,448 +212,6 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     mdsInGPU.outerHighEdgeY = mdsInGPU.outerHighEdgeX + nMemoryLocations;
     mdsInGPU.outerLowEdgeX = mdsInGPU.outerHighEdgeX + 2 * nMemoryLocations;
     mdsInGPU.outerLowEdgeY = mdsInGPU.outerHighEdgeX + 3 * nMemoryLocations;
-}
-
-//#ifdef CUT_VALUE_DEBUG
-//ALPAKA_FN_ACC void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float drt, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, float dzCut, float drtCut, float miniCut, unsigned int idx)
-//#else
-ALPAKA_FN_ACC void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
-//#endif
-{
-    //the index into which this MD needs to be written will be computed in the kernel
-    //nMDs variable will be incremented in the kernel, no need to worry about that here
-    
-    mdsInGPU.moduleIndices[idx] = lowerModuleIdx;
-    unsigned int anchorHitIndex, outerHitIndex;
-    if(modulesInGPU.moduleType[lowerModuleIdx] == PS and modulesInGPU.moduleLayerType[lowerModuleIdx] == Strip)
-    {
-        mdsInGPU.anchorHitIndices[idx] = upperHitIdx;
-        mdsInGPU.outerHitIndices[idx] = lowerHitIdx;
-
-        anchorHitIndex = upperHitIdx;
-        outerHitIndex = lowerHitIdx;
-    }
-    else
-    {
-        mdsInGPU.anchorHitIndices[idx] = lowerHitIdx;
-        mdsInGPU.outerHitIndices[idx] = upperHitIdx;
-
-        anchorHitIndex = lowerHitIdx;
-        outerHitIndex = upperHitIdx;
-    }
-
-    mdsInGPU.dphichanges[idx] = dPhiChange;
-
-    mdsInGPU.dphis[idx] = dPhi;
-    mdsInGPU.dzs[idx] = dz;
-    mdsInGPU.shiftedXs[idx] = shiftedX;
-    mdsInGPU.shiftedYs[idx] = shiftedY;
-    mdsInGPU.shiftedZs[idx] = shiftedZ;
-
-    mdsInGPU.noShiftedDzs[idx] = noShiftedDz;
-    mdsInGPU.noShiftedDphis[idx] = noShiftedDphi;
-    mdsInGPU.noShiftedDphiChanges[idx] = noShiftedDPhiChange;
-//#ifdef CUT_VALUE_DEBUG
-//    mdsInGPU.dzCuts[idx] = dzCut;
-//    mdsInGPU.drtCuts[idx] = drtCut;
-//    mdsInGPU.miniCuts[idx] = miniCut;
-//#endif
-
-    mdsInGPU.anchorX[idx] = hitsInGPU.xs[anchorHitIndex];
-    mdsInGPU.anchorY[idx] = hitsInGPU.ys[anchorHitIndex];
-    mdsInGPU.anchorZ[idx] = hitsInGPU.zs[anchorHitIndex];
-    mdsInGPU.anchorRt[idx] = hitsInGPU.rts[anchorHitIndex];
-    mdsInGPU.anchorPhi[idx] = hitsInGPU.phis[anchorHitIndex];
-    mdsInGPU.anchorEta[idx] = hitsInGPU.etas[anchorHitIndex];
-    mdsInGPU.anchorHighEdgeX[idx] = hitsInGPU.highEdgeXs[anchorHitIndex];
-    mdsInGPU.anchorHighEdgeY[idx] = hitsInGPU.highEdgeYs[anchorHitIndex];
-    mdsInGPU.anchorLowEdgeX[idx] = hitsInGPU.lowEdgeXs[anchorHitIndex];
-    mdsInGPU.anchorLowEdgeY[idx] = hitsInGPU.lowEdgeYs[anchorHitIndex];
-
-    mdsInGPU.outerX[idx] = hitsInGPU.xs[outerHitIndex];
-    mdsInGPU.outerY[idx] = hitsInGPU.ys[outerHitIndex];
-    mdsInGPU.outerZ[idx] = hitsInGPU.zs[outerHitIndex];
-    mdsInGPU.outerRt[idx] = hitsInGPU.rts[outerHitIndex];
-    mdsInGPU.outerPhi[idx] = hitsInGPU.phis[outerHitIndex];
-    mdsInGPU.outerEta[idx] = hitsInGPU.etas[outerHitIndex];
-    mdsInGPU.outerHighEdgeX[idx] = hitsInGPU.highEdgeXs[outerHitIndex];
-    mdsInGPU.outerHighEdgeY[idx] = hitsInGPU.highEdgeYs[outerHitIndex];
-    mdsInGPU.outerLowEdgeX[idx] = hitsInGPU.lowEdgeXs[outerHitIndex];
-    mdsInGPU.outerLowEdgeY[idx] = hitsInGPU.lowEdgeYs[outerHitIndex];
-}
-
-ALPAKA_FN_ACC bool SDL::runMiniDoubletDefaultAlgoBarrel(struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noshiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower,float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
-{
-
-    bool pass = true; 
-    dz = zLower - zUpper;     
-    const float dzCut = modulesInGPU.moduleType[lowerModuleIndex] == PS ? 2.f : 10.f;
-    //const float sign = ((dz > 0) - (dz < 0)) * ((hitsInGPU.zs[lowerHitIndex] > 0) - (hitsInGPU.zs[lowerHitIndex] < 0));
-    const float sign = ((dz > 0) - (dz < 0)) * ((zLower > 0) - (zLower < 0));
-    const float invertedcrossercut = (fabsf(dz) > 2) * sign;
-
-    pass = pass  and ((fabsf(dz) < dzCut) & (invertedcrossercut <= 0));
-    if(not pass) return pass;
-
-    float miniCut = 0;
-
-    miniCut = modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel ?  dPhiThreshold(rtLower, modulesInGPU, lowerModuleIndex) : dPhiThreshold(rtUpper, modulesInGPU, lowerModuleIndex); 
-
-    // Cut #2: dphi difference
-    // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3085
-    float xn = 0.f, yn = 0.f;// , zn = 0;
-    float shiftedRt;
-    if (modulesInGPU.sides[lowerModuleIndex] != Center) // If barrel and not center it is tilted
-    {
-        // Shift the hits and calculate new xn, yn position
-        float shiftedCoords[3];
-        shiftStripHits(modulesInGPU, lowerModuleIndex, upperModuleIndex, lowerHitIndex, upperHitIndex, shiftedCoords,xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
-        xn = shiftedCoords[0];
-        yn = shiftedCoords[1];
-
-        // Lower or the upper hit needs to be modified depending on which one was actually shifted
-        if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
-        {
-            shiftedX = xn;
-            shiftedY = yn;
-            shiftedZ = zUpper;
-            shiftedRt = sqrt(xn * xn + yn * yn);
-
-            dPhi = deltaPhi(xLower,yLower,shiftedX, shiftedY); //function from Hit.cu
-            noShiftedDphi = deltaPhi(xLower, yLower, xUpper, yUpper);
-        }
-        else
-        {
-            shiftedX = xn;
-            shiftedY = yn;
-            shiftedZ = zLower;
-            shiftedRt = sqrt(xn * xn + yn * yn);
-            dPhi = deltaPhi(shiftedX, shiftedY, xUpper, yUpper);
-            noShiftedDphi = deltaPhi(xLower,yLower,xUpper,yUpper);
-
-        }
-    }
-    else
-    {
-        dPhi = deltaPhi(xLower, yLower, xUpper, yUpper);
-        noShiftedDphi = dPhi;
-    }
-
-    pass = pass & (fabsf(dPhi) < miniCut);
-    if(not pass) return pass;
-
-    // Cut #3: The dphi change going from lower Hit to upper Hit
-    // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3076
-    if (modulesInGPU.sides[lowerModuleIndex]!= Center)
-    {
-        // When it is tilted, use the new shifted positions
-// TODO: This is somewhat of an mystery.... somewhat confused why this is the case
-        if (modulesInGPU.moduleLayerType[lowerModuleIndex] != Pixel)
-        {
-            // dPhi Change should be calculated so that the upper hit has higher rt.
-            // In principle, this kind of check rt_lower < rt_upper should not be necessary because the hit shifting should have taken care of this.
-            // (i.e. the strip hit is shifted to be aligned in the line of sight from interaction point to pixel hit of PS module guaranteeing rt ordering)
-            // But I still placed this check for safety. (TODO: After cheking explicitly if not needed remove later?)
-            // setDeltaPhiChange(lowerHit.rt() < upperHitMod.rt() ? lowerHit.deltaPhiChange(upperHitMod) : upperHitMod.deltaPhiChange(lowerHit));
-
-
-            dPhiChange = (rtLower < shiftedRt) ? deltaPhiChange(xLower, yLower, shiftedX, shiftedY) : deltaPhiChange(shiftedX, shiftedY, xLower, yLower); 
-            noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange(xLower,yLower, xUpper, yUpper) : deltaPhiChange(xUpper, yUpper, xLower, yLower);
-        }
-        else
-        {
-            // dPhi Change should be calculated so that the upper hit has higher rt.
-            // In principle, this kind of check rt_lower < rt_upper should not be necessary because the hit shifting should have taken care of this.
-            // (i.e. the strip hit is shifted to be aligned in the line of sight from interaction point to pixel hit of PS module guaranteeing rt ordering)
-            // But I still placed this check for safety. (TODO: After cheking explicitly if not needed remove later?)
-
-            dPhiChange = (shiftedRt < rtUpper) ? deltaPhiChange(shiftedX, shiftedY, xUpper, yUpper) : deltaPhiChange(xUpper, yUpper, shiftedX, shiftedY);
-            noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange(xLower,yLower, xUpper, yUpper) : deltaPhiChange(xUpper, yUpper, xLower, yLower);
-        }
-    }
-    else
-    {
-        // When it is flat lying module, whichever is the lowerSide will always have rt lower
-        dPhiChange = deltaPhiChange(xLower, yLower, xUpper, yUpper);
-        noShiftedDphiChange = dPhiChange;
-    }
-
-    pass = pass & (fabsf(dPhiChange) < miniCut);
-
-    return pass;
-}
-
-ALPAKA_FN_ACC bool SDL::runMiniDoubletDefaultAlgoEndcap(struct modules& modulesInGPU, uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& drt, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noshiftedDz, float& noShiftedDphi, float& noShiftedDphichange,float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
-{
-
-    bool pass = true; 
-
-    // There are series of cuts that applies to mini-doublet in a "endcap" region
-
-    // Cut #1 : dz cut. The dz difference can't be larger than 1cm. (max separation is 4mm for modules in the endcap)
-    // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3093
-    // For PS module in case when it is tilted a different dz (after the strip hit shift) is calculated later.
-
-    float dz = zLower - zUpper; // Not const since later it might change depending on the type of module
-
-    const float dzCut = 1.f;
-
-    pass = pass & (fabsf(dz) < dzCut);
-    if(not pass) return pass;
-    // Cut #2 : drt cut. The dz difference can't be larger than 1cm. (max separation is 4mm for modules in the endcap)
-    // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3100
-    const float drtCut = modulesInGPU.moduleType[lowerModuleIndex] == PS ? 2.f : 10.f;
-    drt = rtLower - rtUpper;
-    pass = pass & (fabs(drt) < drtCut);
-    if(not pass) return pass;
-    // The new scheme shifts strip hits to be "aligned" along the line of sight from interaction point to the pixel hit (if it is PS modules)
-    float xn = 0, yn = 0, zn = 0;
-
-    float shiftedCoords[3];
-    shiftStripHits(modulesInGPU, /*hitsInGPU,*/ lowerModuleIndex, upperModuleIndex, lowerHitIndex, upperHitIndex, shiftedCoords,xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
-
-    xn = shiftedCoords[0];
-    yn = shiftedCoords[1];
-    zn = shiftedCoords[2];
-
-    if (modulesInGPU.moduleType[lowerModuleIndex] == PS)
-    {
-        // Appropriate lower or upper hit is modified after checking which one was actually shifted
-        if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
-        {
-            // SDL::Hit upperHitMod(upperHit);
-            // upperHitMod.setXYZ(xn, yn, upperHit.z());
-            // setDeltaPhi(lowerHit.deltaPhi(upperHitMod));
-            shiftedX = xn;
-            shiftedY = yn;
-            shiftedZ = zUpper;
-            dPhi = deltaPhi(xLower, yLower, shiftedX, shiftedY);
-            noShiftedDphi = deltaPhi(xLower, yLower, xUpper, yUpper);
-        }
-        else
-        {
-            // SDL::Hit lowerHitMod(lowerHit);
-            // lowerHitMod.setXYZ(xn, yn, lowerHit.z());
-            // setDeltaPhi(lowerHitMod.deltaPhi(upperHit));
-            shiftedX = xn;
-            shiftedY = yn;
-            shiftedZ = zLower;
-            dPhi = deltaPhi(shiftedX, shiftedY, xUpper, yUpper);
-            noShiftedDphi = deltaPhi(xLower, yLower, xUpper, yUpper);
-        }
-    }
-    else
-    {
-        shiftedX = xn;
-        shiftedY = yn;
-        shiftedZ = zUpper;
-        dPhi = deltaPhi(xLower, yLower, xn, yn);
-        noShiftedDphi = deltaPhi(xLower, yLower, xUpper, yUpper);
-    }
-
-    // dz needs to change if it is a PS module where the strip hits are shifted in order to properly account for the case when a tilted module falls under "endcap logic"
-    // if it was an endcap it will have zero effect
-    if (modulesInGPU.moduleType[lowerModuleIndex] == PS)
-    {
-        dz = modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel ? zLower - zn : zUpper - zn; 
-    }
-
-    float miniCut = 0;
-    miniCut = modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel ?  dPhiThreshold(rtLower, modulesInGPU, lowerModuleIndex,dPhi, dz) :  dPhiThreshold(rtUpper, modulesInGPU, lowerModuleIndex, dPhi, dz);
-
-    pass = pass & (fabsf(dPhi) < miniCut);
-    if(not pass) return pass;
-
-    // Cut #4: Another cut on the dphi after some modification
-    // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3119-L3124
-
-    
-    float dzFrac = fabsf(dz) / fabsf(zLower);
-    dPhiChange = dPhi / dzFrac * (1.f + dzFrac);
-    noShiftedDphichange = noShiftedDphi / dzFrac * (1.f + dzFrac);
-    pass = pass & (fabsf(dPhiChange) < miniCut);
-
-    return pass;
-}
-
-ALPAKA_FN_ACC bool SDL::runMiniDoubletDefaultAlgo(struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
-{
-   //bool pass;
-   if(modulesInGPU.subdets[lowerModuleIndex] == Barrel)
-   {
-        return runMiniDoubletDefaultAlgoBarrel(modulesInGPU, /*hitsInGPU,*/ lowerModuleIndex, upperModuleIndex, lowerHitIndex, upperHitIndex, dz, dPhi, dPhiChange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange,xLower,yLower,zLower,rtLower, xUpper,yUpper,zUpper,rtUpper);
-   } 
-   else
-   {
-       return runMiniDoubletDefaultAlgoEndcap(modulesInGPU, /*hitsInGPU,*/ lowerModuleIndex, upperModuleIndex, lowerHitIndex, upperHitIndex, dz, dPhi, dPhiChange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange,xLower,yLower,zLower,rtLower, xUpper,yUpper,zUpper,rtUpper);
-
-   }
-   //return pass;
-}
-
-ALPAKA_FN_ACC ALPAKA_FN_INLINE float SDL::dPhiThreshold(/*struct hits& hitsInGPU,*/float rt, struct modules& modulesInGPU, /*unsigned int hitIndex,*/ uint16_t& moduleIndex, float dPhi, float dz)
-{
-    // =================================================================
-    // Various constants
-    // =================================================================
-    //mean of the horizontal layer position in y; treat this as R below
-
-    // =================================================================
-    // Computing some components that make up the cut threshold
-    // =================================================================
-
-    unsigned int iL = modulesInGPU.layers[moduleIndex] - 1;
-    const float miniSlope = asinf(min(rt * k2Rinv1GeVf / ptCut, sinAlphaMax));
-    const float rLayNominal = ((modulesInGPU.subdets[moduleIndex]== Barrel) ? miniRminMeanBarrel[iL] : miniRminMeanEndcap[iL]);
-    const float miniPVoff = 0.1f / rLayNominal;
-    const float miniMuls = ((modulesInGPU.subdets[moduleIndex] == Barrel) ? miniMulsPtScaleBarrel[iL] * 3.f / ptCut : miniMulsPtScaleEndcap[iL] * 3.f / ptCut);
-    const bool isTilted = modulesInGPU.subdets[moduleIndex] == Barrel and modulesInGPU.sides[moduleIndex] != Center;
-    //the lower module is sent in irrespective of its layer type. We need to fetch the drdz properly
-
-    float drdz;
-    if(isTilted)
-    {
-        if(modulesInGPU.moduleType[moduleIndex] == PS and modulesInGPU.moduleLayerType[moduleIndex] == Strip)
-        {
-            // printf("moduleIndex: %d\n", moduleIndex);
-            drdz = modulesInGPU.drdzs[moduleIndex];
-            // printf("drdz: %f\n", drdz);
-        }
-        else
-        {
-            // printf("moduleIndex: %d\n", moduleIndex);
-            // printf("partnerModuleIndex: %d\n", modulesInGPU.partnerModuleIndex(moduleIndex));
-            drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndices[moduleIndex]];
-            // printf("drdz: %f\n", drdz);
-        }
-    }
-    else
-    {
-        drdz = 0;
-    }
-    const float miniTilt = ((isTilted) ? 0.5f * pixelPSZpitch * drdz / sqrt(1.f + drdz * drdz) / moduleGapSize(modulesInGPU,moduleIndex) : 0);
-
-    // Compute luminous region requirement for endcap
-    const float miniLum = fabsf(dPhi * deltaZLum/dz); // Balaji's new error
-    // const float miniLum = abs(deltaZLum / lowerHit.z()); // Old error
-
-
-    // =================================================================
-    // Return the threshold value
-    // =================================================================
-    // Following condition is met if the module is central and flatly lying
-    if (modulesInGPU.subdets[moduleIndex] == Barrel and modulesInGPU.sides[moduleIndex] == Center)
-    {
-        return miniSlope + sqrt(miniMuls * miniMuls + miniPVoff * miniPVoff);
-    }
-    // Following condition is met if the module is central and tilted
-    else if (modulesInGPU.subdets[moduleIndex] == Barrel and modulesInGPU.sides[moduleIndex] != Center) //all types of tilted modules
-    {
-        return miniSlope + sqrt(miniMuls * miniMuls + miniPVoff * miniPVoff + miniTilt * miniTilt * miniSlope * miniSlope);
-    }
-    // If not barrel, it is Endcap
-    else
-    {
-        return miniSlope + sqrt(miniMuls * miniMuls + miniPVoff * miniPVoff + miniLum * miniLum);
-    }
-}
-
-ALPAKA_FN_ACC ALPAKA_FN_INLINE float SDL::isTighterTiltedModules(struct modules& modulesInGPU, uint16_t& moduleIndex)
-{
-    // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
-    // This is the same as what was previously considered as"isNormalTiltedModules"
-    // See Figure 9.1 of https://cds.cern.ch/record/2272264/files/CMS-TDR-014.pdf
-    short subdet = modulesInGPU.subdets[moduleIndex];
-    short layer = modulesInGPU.layers[moduleIndex];
-    short side = modulesInGPU.sides[moduleIndex];
-    short rod = modulesInGPU.rods[moduleIndex];
-
-    if (
-           (subdet == Barrel and side != Center and layer== 3)
-           or (subdet == Barrel and side == NegZ and layer == 2 and rod > 5)
-           or (subdet == Barrel and side == PosZ and layer == 2 and rod < 8)
-           or (subdet == Barrel and side == NegZ and layer == 1 and rod > 9)
-           or (subdet == Barrel and side == PosZ and layer == 1 and rod < 4)
-       )
-        return true;
-    else
-        return false;
-
-}
-
-ALPAKA_FN_ACC ALPAKA_FN_INLINE float SDL::moduleGapSize(struct modules& modulesInGPU, uint16_t& moduleIndex)
-{
-    float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
-    float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
-    float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
-    float miniDeltaEndcap[5][15];
-
-    for (size_t i = 0; i < 5; i++)
-    {
-        for (size_t j = 0; j < 15; j++)
-        {
-            if (i == 0 || i == 1)
-            {
-                if (j < 10)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j] = 0.18f;
-                }
-            }
-            else if (i == 2 || i == 3)
-            {
-                if (j < 8)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j]  = 0.18f;
-                }
-            }
-            else
-            {
-                if (j < 9)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j] = 0.18f;
-                }
-            }
-        }
-    }
-
-
-    unsigned int iL = modulesInGPU.layers[moduleIndex]-1;
-    unsigned int iR = modulesInGPU.rings[moduleIndex] - 1;
-    short subdet = modulesInGPU.subdets[moduleIndex];
-    short side = modulesInGPU.sides[moduleIndex];
-
-    float moduleSeparation = 0;
-
-    if (subdet == Barrel and side == Center)
-    {
-        moduleSeparation = miniDeltaFlat[iL];
-    }
-    else if (isTighterTiltedModules(modulesInGPU, moduleIndex))
-    {
-        moduleSeparation = miniDeltaTilted[iL];
-    }
-    else if (subdet == Endcap)
-    {
-        moduleSeparation = miniDeltaEndcap[iL][iR];
-    }
-    else //Loose tilted modules
-    {
-        moduleSeparation = miniDeltaLooseTilted[iL];
-    }
-
-    return moduleSeparation;
 }
 
 ALPAKA_FN_ACC void SDL::shiftStripHits(struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float* shiftedCoords, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
@@ -882,67 +507,5 @@ void SDL::printMD(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, SDL::mo
     {
         IndentingOStreambuf indent(std::cout);
         printHit(hitsInGPU, modulesInGPU, upperHitIndex);
-    }
-}
-
-__global__ void SDL::createMiniDoubletsInGPUv2(struct SDL::modules& modulesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::objectRanges& rangesInGPU)
-{
-    int blockxSize = blockDim.x*gridDim.x;
-    int blockySize = blockDim.y*gridDim.y;
-    //int blockzSize = blockDim.z*gridDim.z;
-    for(uint16_t lowerModuleIndex = blockIdx.y * blockDim.y + threadIdx.y; lowerModuleIndex< (*modulesInGPU.nLowerModules); lowerModuleIndex += blockySize)
-    {
-        uint16_t upperModuleIndex = modulesInGPU.partnerModuleIndices[lowerModuleIndex];
-        int nLowerHits = hitsInGPU.hitRangesnLower[lowerModuleIndex];
-        int nUpperHits = hitsInGPU.hitRangesnUpper[lowerModuleIndex];
-        if(hitsInGPU.hitRangesLower[lowerModuleIndex] == -1) continue;
-        const int maxHits = max(nUpperHits,nLowerHits);
-        unsigned int upHitArrayIndex = hitsInGPU.hitRangesUpper[lowerModuleIndex];
-        unsigned int loHitArrayIndex = hitsInGPU.hitRangesLower[lowerModuleIndex];
-        int limit = nUpperHits*nLowerHits;
-        for(int hitIndex = blockIdx.x * blockDim.x + threadIdx.x; hitIndex< limit; hitIndex += blockxSize)
-        {
-            int lowerHitIndex =  hitIndex / nUpperHits;
-            int upperHitIndex =  hitIndex % nUpperHits;
-            if(upperHitIndex >= nUpperHits) continue;
-            if(lowerHitIndex >= nLowerHits) continue;
-            unsigned int lowerHitArrayIndex = loHitArrayIndex + lowerHitIndex;
-            float xLower = hitsInGPU.xs[lowerHitArrayIndex];
-            float yLower = hitsInGPU.ys[lowerHitArrayIndex];
-            float zLower = hitsInGPU.zs[lowerHitArrayIndex];
-            float rtLower = hitsInGPU.rts[lowerHitArrayIndex];
-            unsigned int upperHitArrayIndex = upHitArrayIndex+upperHitIndex;
-            float xUpper = hitsInGPU.xs[upperHitArrayIndex];
-            float yUpper = hitsInGPU.ys[upperHitArrayIndex];
-            float zUpper = hitsInGPU.zs[upperHitArrayIndex];
-            float rtUpper = hitsInGPU.rts[upperHitArrayIndex];
-
-            float dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange;
-
-            //float dzCut, drtCut;//, miniCut;
-            bool success = runMiniDoubletDefaultAlgo(modulesInGPU, lowerModuleIndex, upperModuleIndex, lowerHitArrayIndex, upperHitArrayIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
-if(success)
-            {
-                unsigned int totOccupancyMDs = atomicAdd(&mdsInGPU.totOccupancyMDs[lowerModuleIndex],1);
-                if(totOccupancyMDs >= (rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex + 1] - rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex]))
-                {
-#ifdef Warnings
-                    printf("Mini-doublet excess alert! Module index =  %d\n",lowerModuleIndex);
-#endif
-                }
-                else
-                {
-                    unsigned int mdModuleIndex = atomicAdd(&mdsInGPU.nMDs[lowerModuleIndex],1);
-                    unsigned int mdIndex = rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex] + mdModuleIndex;
-
-//#ifdef CUT_VALUE_DEBUG
-//                    addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz,drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, dzCut, drtCut, miniCut, mdIndex);
-//#else
-                    addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, mdIndex);
-//#endif
-                }
-
-            }
-        }
     }
 }
