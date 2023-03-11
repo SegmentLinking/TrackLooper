@@ -1211,16 +1211,30 @@ void SDL::Event::createTriplets()
     cudaMemcpyAsync(index_gpu, index, nonZeroModules*sizeof(uint16_t), cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
 
-    dim3 nThreads(16,16,1);
-    dim3 nBlocks(1,1,MAX_BLOCKS);
-    //createTripletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *rangesInGPU, index_gpu,nonZeroModules);
-    SDL::createTripletsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *rangesInGPU, index_gpu,nonZeroModules);
-    cudaError_t cudaerr =cudaGetLastError();
-    if(cudaerr != cudaSuccess)
-    {
-	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-    } 
-    cudaStreamSynchronize(stream);
+
+    // Temporary fix for queue initialization.
+    QueueAcc queue(devAcc);
+
+    Vec const threadsPerBlock(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
+    Vec const blocksPerGrid(static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1), static_cast<Idx>(1));
+
+    WorkDiv const createTripletsInGPUv2_workDiv(blocksPerGrid, threadsPerBlock, elementsPerThread);
+
+    SDL::createTripletsInGPUv2 createTripletsInGPUv2_kernel;
+    auto const createTripletsInGPUv2Task(alpaka::createTaskKernel<Acc>(
+        createTripletsInGPUv2_workDiv,
+        createTripletsInGPUv2_kernel,
+        *modulesInGPU,
+        *mdsInGPU,
+        *segmentsInGPU,
+        *tripletsInGPU,
+        *rangesInGPU,
+        index_gpu,
+        nonZeroModules));
+
+    alpaka::enqueue(queue, createTripletsInGPUv2Task);
+    alpaka::wait(queue);
+
     free(nSegments);
     free(index);
     cms::cuda::free_device(dev, index_gpu);
@@ -2171,7 +2185,7 @@ SDL::triplets* SDL::Event::getTriplets()
         cudaStreamSynchronize(stream);
 
         tripletsInCPU->segmentIndices = new unsigned[2 * *(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->nTriplets = new unsigned int[nLowerModules];
+        tripletsInCPU->nTriplets = new int[nLowerModules];
         tripletsInCPU->betaIn  = new FPX[*(tripletsInCPU->nMemoryLocations)];
         tripletsInCPU->betaOut = new FPX[*(tripletsInCPU->nMemoryLocations)];
         tripletsInCPU->pt_beta = new FPX[*(tripletsInCPU->nMemoryLocations)];
@@ -2216,7 +2230,7 @@ SDL::triplets* SDL::Event::getTriplets()
         cudaMemcpyAsync(tripletsInCPU->betaIn, tripletsInGPU->betaIn,   *(tripletsInCPU->nMemoryLocations) * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(tripletsInCPU->betaOut, tripletsInGPU->betaOut, *(tripletsInCPU->nMemoryLocations) * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(tripletsInCPU->pt_beta, tripletsInGPU->pt_beta, *(tripletsInCPU->nMemoryLocations) * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
-        tripletsInCPU->totOccupancyTriplets = new unsigned int[nLowerModules];
+        tripletsInCPU->totOccupancyTriplets = new int[nLowerModules];
         cudaMemcpyAsync(tripletsInCPU->nTriplets, tripletsInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(tripletsInCPU->totOccupancyTriplets, tripletsInGPU->totOccupancyTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaStreamSynchronize(stream);

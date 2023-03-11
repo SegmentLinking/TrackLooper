@@ -7,9 +7,9 @@
 #include <cmath>
 #include <vector>
 
-//#include "PrintUtil.h"
 #include "Module.cuh"
 #include "allocate.h"
+#include "PrintUtil.h"
 
 namespace SDL
 {
