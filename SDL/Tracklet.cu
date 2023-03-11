@@ -2,8 +2,6 @@
 
 #include "allocate.h"
 
-CUDA_CONST_VAR float SDL::pt_betaMax = 7.0f;
-
 
 void SDL::createTrackletsInExplicitMemory(struct tracklets& trackletsInGPU, unsigned int maxTracklets, uint16_t nLowerModules,cudaStream_t stream)
 {

@@ -16,4 +16,6 @@ CUDA_CONST_VAR const float SDL::ptCut = 0.8;
 CUDA_CONST_VAR const float SDL::deltaZLum = 15.0;
 CUDA_CONST_VAR const float SDL::pixelPSZpitch = 0.15;
 CUDA_CONST_VAR const float SDL::strip2SZpitch = 5.0;
+CUDA_CONST_VAR const float SDL::pt_betaMax = 7.0;
+CUDA_CONST_VAR const float SDL::SDL_INF = 123456789;
 
