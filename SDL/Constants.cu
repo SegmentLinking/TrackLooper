@@ -18,3 +18,5 @@ CUDA_CONST_VAR const float SDL::pixelPSZpitch = 0.15;
 CUDA_CONST_VAR const float SDL::strip2SZpitch = 5.0;
 CUDA_CONST_VAR const float SDL::pt_betaMax = 7.0f;
 CUDA_CONST_VAR const float SDL::magnetic_field = 3.8112;
+CUDA_CONST_VAR const float SDL::SDL_INF = 123456789;
+
