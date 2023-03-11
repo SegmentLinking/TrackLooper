@@ -41,7 +41,7 @@ namespace SDL
 
         //CUDA stuff
         int dev;
-        unsigned int nTotalSegments;
+        int nTotalSegments;
         struct objectRanges* rangesInGPU;
         struct hits* hitsInGPU;
         struct miniDoublets* mdsInGPU;
