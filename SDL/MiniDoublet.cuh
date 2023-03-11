@@ -1,18 +1,11 @@
 #ifndef MiniDoublet_cuh
 #define MiniDoublet_cuh
 
-#include <array>
-#include <tuple>
-#include <cmath>
 #include "Constants.cuh"
 #include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"
 #include "Module.cuh"
 #include "Hit.cuh"
-#include "PrintUtil.h"
-
-//CUDA MATH API
-#include "math.h"
 
 namespace SDL
 {

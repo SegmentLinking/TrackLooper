@@ -1415,7 +1415,7 @@ ALPAKA_FN_ACC float SDL::computeRadiusUsingRegression(int nPoints, float* xs, fl
         //computing sigmas is a very tricky affair
         //if the module is tilted or endcap, we need to use the slopes properly!
 
-        absArctanSlope = ((slopes[i] != 123456789) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI)); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
+        absArctanSlope = ((slopes[i] != SDL::SDL_INF) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI)); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
 
         if(xs[i] > 0 and ys[i] > 0)
         {
@@ -1491,7 +1491,7 @@ ALPAKA_FN_ACC float SDL::computeChiSquared(int nPoints, float* xs, float* ys, fl
     float absArctanSlope, angleM, xPrime, yPrime, sigma;
     for(size_t i = 0; i < nPoints; i++)
     {
-        absArctanSlope = ((slopes[i] != 123456789) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI)); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
+        absArctanSlope = ((slopes[i] != SDL::SDL_INF) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI)); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
         if(xs[i] > 0 and ys[i] > 0)
         {
             angleM = 0.5f*float(M_PI) - absArctanSlope;

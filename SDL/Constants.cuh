@@ -72,6 +72,7 @@ namespace SDL
     extern CUDA_CONST_VAR const float strip2SZpitch;
     extern CUDA_CONST_VAR const float pt_betaMax;
     extern CUDA_CONST_VAR const float magnetic_field;
+    extern CUDA_CONST_VAR const float SDL_INF;
 }
 
 namespace T5DNN
