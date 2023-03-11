@@ -1,8 +1,4 @@
 # include "Segment.cuh"
-//#ifdef CACHE_ALLOC
-#include "allocate.h"
-#include "Constants.h"
-//#endif
 
 ///FIXME:NOTICE THE NEW maxPixelSegments!
 
@@ -11,8 +7,8 @@ void SDL::segments::resetMemory(unsigned int nMemoryLocationsx, unsigned int nLo
     // unsigned int nMemoryLocationsx = maxSegments * nLowerModules + maxPixelSegments;
     cudaMemsetAsync(mdIndices,0, nMemoryLocationsx * 2 * sizeof(unsigned int),stream);
     cudaMemsetAsync(innerLowerModuleIndices,0, nMemoryLocationsx * 2 * sizeof(uint16_t),stream);
-    cudaMemsetAsync(nSegments, 0,(nLowerModules+1) * sizeof(unsigned int),stream);
-    cudaMemsetAsync(totOccupancySegments, 0,(nLowerModules+1) * sizeof(unsigned int),stream);
+    cudaMemsetAsync(nSegments, 0,(nLowerModules+1) * sizeof(int),stream);
+    cudaMemsetAsync(totOccupancySegments, 0,(nLowerModules+1) * sizeof(int),stream);
     cudaMemsetAsync(dPhis, 0,(nMemoryLocationsx * 6 )*sizeof(FPX),stream);
     cudaMemsetAsync(ptIn, 0,(maxPixelSegments * 8)*sizeof(float),stream);
     cudaMemsetAsync(superbin, 0,(maxPixelSegments )*sizeof(int),stream);
@@ -98,13 +94,12 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide
     //extra memory to the pixel segments
 #ifdef CACHE_ALLOC
-//    cudaStream_t stream=0; 
     int dev;
     cudaGetDevice(&dev);
     segmentsInGPU.mdIndices = (unsigned int*)cms::cuda::allocate_device(dev,nMemoryLocations*4 *sizeof(unsigned int),stream);
     segmentsInGPU.innerLowerModuleIndices = (uint16_t*)cms::cuda::allocate_device(dev,nMemoryLocations*2 *sizeof(uint16_t),stream);
-    segmentsInGPU.nSegments = (unsigned int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) *sizeof(unsigned int),stream);
-    segmentsInGPU.totOccupancySegments = (unsigned int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) *sizeof(unsigned int),stream);
+    segmentsInGPU.nSegments = (int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) *sizeof(int),stream);
+    segmentsInGPU.totOccupancySegments = (int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) *sizeof(unsigned int),stream);
     segmentsInGPU.dPhis = (FPX*)cms::cuda::allocate_device(dev,nMemoryLocations*6 *sizeof(FPX),stream);
     segmentsInGPU.ptIn = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * 8 *sizeof(float),stream);
     segmentsInGPU.superbin = (int*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(int),stream);
@@ -123,8 +118,8 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
 #else
     cudaMalloc(&segmentsInGPU.mdIndices, nMemoryLocations * 4 * sizeof(unsigned int));
     cudaMalloc(&segmentsInGPU.innerLowerModuleIndices, nMemoryLocations * 2 * sizeof(uint16_t));
-    cudaMalloc(&segmentsInGPU.nSegments, (nLowerModules + 1) * sizeof(unsigned int));
-    cudaMalloc(&segmentsInGPU.totOccupancySegments, (nLowerModules + 1) * sizeof(unsigned int));
+    cudaMalloc(&segmentsInGPU.nSegments, (nLowerModules + 1) * sizeof(int));
+    cudaMalloc(&segmentsInGPU.totOccupancySegments, (nLowerModules + 1) * sizeof(int));
     cudaMalloc(&segmentsInGPU.dPhis, nMemoryLocations * 6 *sizeof(FPX));
     cudaMalloc(&segmentsInGPU.ptIn, maxPixelSegments * 8*sizeof(float));
     cudaMalloc(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int));
@@ -161,8 +156,8 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.eta    = segmentsInGPU.ptIn + maxPixelSegments * 6;
     segmentsInGPU.phi    = segmentsInGPU.ptIn + maxPixelSegments * 7;
 
-    cudaMemsetAsync(segmentsInGPU.nSegments,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
-    cudaMemsetAsync(segmentsInGPU.totOccupancySegments,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
+    cudaMemsetAsync(segmentsInGPU.nSegments,0, (nLowerModules + 1) * sizeof(int),stream);
+    cudaMemsetAsync(segmentsInGPU.totOccupancySegments,0, (nLowerModules + 1) * sizeof(int),stream);
     cudaMemsetAsync(segmentsInGPU.partOfPT5, false, maxPixelSegments * sizeof(bool),stream);
     cudaMemsetAsync(segmentsInGPU.pLSHitsIdxs, 0, maxPixelSegments * sizeof(uint4),stream);
     cudaMemsetAsync(segmentsInGPU.nMemoryLocations, nMemoryLocations, sizeof(unsigned int), stream);
@@ -229,6 +224,7 @@ void SDL::segments::freeMemoryCache()
     cms::cuda::free_device(dev, pLSHitsIdxs);
     cms::cuda::free_device(dev, nMemoryLocations);
 }
+
 void SDL::segments::freeMemory(cudaStream_t stream)
 {
     cudaFree(mdIndices);
@@ -251,7 +247,6 @@ void SDL::segments::freeMemory(cudaStream_t stream)
     cudaFree(pLSHitsIdxs);
     cudaFree(nMemoryLocations);
 }
-
 
 ALPAKA_FN_ACC void SDL::addSegmentToMemory(struct segments& segmentsInGPU, unsigned int lowerMDIndex, unsigned int upperMDIndex, uint16_t innerLowerModuleIndex, uint16_t outerLowerModuleIndex, unsigned int innerMDAnchorHitIndex, unsigned int outerMDAnchorHitIndex, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, unsigned int idx)
 {
@@ -332,269 +327,6 @@ ALPAKA_FN_ACC void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, 
     segmentsInGPU.circleRadius[pixelSegmentArrayIndex] = circleRadius;
 }
 
-ALPAKA_FN_ACC void SDL::dAlphaThreshold(float* dAlphaThresholdValues, struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, float& xIn, float& yIn, float& zIn, float& rtIn, float& xOut, float& yOut, float& zOut, float& rtOut, uint16_t& innerLowerModuleIndex, uint16_t& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex)
-{
-    float sdMuls = (modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel) ? miniMulsPtScaleBarrel[modulesInGPU.layers[innerLowerModuleIndex]-1] * 3.f/ptCut : miniMulsPtScaleEndcap[modulesInGPU.layers[innerLowerModuleIndex]-1] * 3.f/ptCut;
-
-    //more accurate then outer rt - inner rt
-    float segmentDr = sqrtf((yOut - yIn) * (yOut - yIn) + (xOut - xIn) * (xOut - xIn));
-
-    const float dAlpha_Bfield = asinf(fminf(segmentDr * k2Rinv1GeVf/ptCut, sinAlphaMax));
-
-    bool isInnerTilted = modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel and modulesInGPU.sides[innerLowerModuleIndex] != SDL::Center;
-    bool isOuterTilted = modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel and modulesInGPU.sides[outerLowerModuleIndex] != SDL::Center;
-
-    float& drdzInner = modulesInGPU.drdzs[innerLowerModuleIndex];
-    float& drdzOuter = modulesInGPU.drdzs[outerLowerModuleIndex];
-    float innerModuleGapSize = SDL::moduleGapSize_seg(modulesInGPU, innerLowerModuleIndex);
-    float outerModuleGapSize = SDL::moduleGapSize_seg(modulesInGPU, outerLowerModuleIndex);
-    const float innerminiTilt = isInnerTilted ? (0.5f * pixelPSZpitch * drdzInner / sqrtf(1.f + drdzInner * drdzInner) / innerModuleGapSize) : 0;
-
-    const float outerminiTilt = isOuterTilted ? (0.5f * pixelPSZpitch * drdzOuter / sqrtf(1.f + drdzOuter * drdzOuter) / outerModuleGapSize) : 0;
-
-    float miniDelta = innerModuleGapSize; 
- 
-
-    float sdLumForInnerMini;    
-    float sdLumForOuterMini;
-
-    if (modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel)
-    {
-        sdLumForInnerMini = innerminiTilt * dAlpha_Bfield;
-    }
-    else
-    {
-        sdLumForInnerMini = mdsInGPU.dphis[innerMDIndex] * 15.0f / mdsInGPU.dzs[innerMDIndex];
-    }
-
-    if (modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel)
-    {
-        sdLumForOuterMini = outerminiTilt * dAlpha_Bfield;
-    }
-    else
-    {
-        sdLumForOuterMini = mdsInGPU.dphis[outerMDIndex] * 15.0f / mdsInGPU.dzs[outerMDIndex];
-    }
-
-
-    //Unique stuff for the segment dudes alone
-
-    float dAlpha_res_inner = 0.02f/miniDelta * (modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel ? 1.0f : fabsf(zIn)/rtIn);
-    float dAlpha_res_outer = 0.02f/miniDelta * (modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel ? 1.0f : fabsf(zOut)/rtOut);
-
- 
-    float dAlpha_res = dAlpha_res_inner + dAlpha_res_outer;
-
-    if (modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel and modulesInGPU.sides[innerLowerModuleIndex] == SDL::Center)
-    {
-        dAlphaThresholdValues[0] = dAlpha_Bfield + sqrt(dAlpha_res * dAlpha_res + sdMuls * sdMuls);       
-    }
-    else
-    {
-        dAlphaThresholdValues[0] = dAlpha_Bfield + sqrt(dAlpha_res * dAlpha_res + sdMuls * sdMuls + sdLumForInnerMini * sdLumForInnerMini);    
-    }
-
-    if(modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel and modulesInGPU.sides[outerLowerModuleIndex] == SDL::Center)
-    {
-        dAlphaThresholdValues[1] = dAlpha_Bfield + sqrt(dAlpha_res * dAlpha_res + sdMuls * sdMuls);    
-    }
-    else
-    {
-        dAlphaThresholdValues[1] = dAlpha_Bfield + sqrt(dAlpha_res * dAlpha_res + sdMuls * sdMuls + sdLumForOuterMini * sdLumForOuterMini);
-    }
-
-    //Inner to outer 
-    dAlphaThresholdValues[2] = dAlpha_Bfield + sqrt(dAlpha_res * dAlpha_res + sdMuls * sdMuls);
-
-}
-
-ALPAKA_FN_ACC bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, uint16_t& innerLowerModuleIndex, uint16_t& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex, float& zIn, float& zOut, float& rtIn, float& rtOut, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, float& dAlphaInnerMDSegment, float& dAlphaOuterMDSegment,
-        float& rtLo, float& rtHi, float& sdCut, float& dAlphaInnerMDSegmentThreshold, float& dAlphaOuterMDSegmentThreshold, float& dAlphaInnerMDOuterMDThreshold, float&
-        dAlphaInnerMDOuterMD)
-{
-    bool pass = true;
-   
-    float xIn, yIn;    
-    float xOut, yOut, xOutHigh, yOutHigh, xOutLow, yOutLow;
-
-    xIn = mdsInGPU.anchorX[innerMDIndex];
-    yIn = mdsInGPU.anchorY[innerMDIndex];
-    zIn = mdsInGPU.anchorZ[innerMDIndex];
-    rtIn = mdsInGPU.anchorRt[innerMDIndex];
-
-    xOut = mdsInGPU.anchorX[outerMDIndex];
-    yOut = mdsInGPU.anchorY[outerMDIndex];
-    zOut = mdsInGPU.anchorZ[outerMDIndex];
-    rtOut = mdsInGPU.anchorRt[outerMDIndex];
-
-    xOutHigh = mdsInGPU.anchorHighEdgeX[outerMDIndex];
-    yOutHigh = mdsInGPU.anchorHighEdgeY[outerMDIndex];
-    xOutLow = mdsInGPU.anchorLowEdgeX[outerMDIndex];
-    yOutLow = mdsInGPU.anchorLowEdgeY[outerMDIndex];
-    bool outerLayerEndcapTwoS = (modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Endcap) & (modulesInGPU.moduleType[outerLowerModuleIndex] == SDL::TwoS);
-
-    
-    float sdSlope = asinf(fminf(rtOut * k2Rinv1GeVf / ptCut, sinAlphaMax));
-    float sdPVoff = 0.1/rtOut;
-    float disks2SMinRadius = 60.f;
-
-    float rtGeom =  ((rtIn < disks2SMinRadius && rtOut < disks2SMinRadius) ? (2.f * pixelPSZpitch)
-            : ((rtIn < disks2SMinRadius || rtOut < disks2SMinRadius) ? (pixelPSZpitch + strip2SZpitch)
-            : (2.f * strip2SZpitch)));
-
-
-    //cut 0 - z compatibility
-    pass =  pass and (zIn * zOut >= 0);
-    if(not pass) return pass;
-
-    float dz = zOut - zIn;
-    float dLum = copysignf(deltaZLum, zIn);
-    float drtDzScale = sdSlope/tanf(sdSlope);
-
-    rtLo = fmaxf(rtIn * (1.f + dz / (zIn + dLum) * drtDzScale) - rtGeom,  rtIn - 0.5f * rtGeom); //rt should increase
-    rtHi = rtIn * (zOut - dLum) / (zIn - dLum) + rtGeom; //dLum for luminous; rGeom for measurement size; no tanTheta_loc(pt) correction
-
-    //completeness
-
-    pass =  pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
-    if(not pass) return pass;
-
-    dPhi = deltaPhi(xIn, yIn, xOut, yOut);
-
-    sdCut = sdSlope;
-    if(outerLayerEndcapTwoS)
-    {
-        float dPhiPos_high = deltaPhi(xIn, yIn, xOutHigh, yOutHigh);
-        float dPhiPos_low = deltaPhi(xIn, yIn, xOutLow, yOutLow);
-        
-        dPhiMax = fabsf(dPhiPos_high) > fabsf(dPhiPos_low) ? dPhiPos_high : dPhiPos_low;
-        dPhiMin = fabsf(dPhiPos_high) > fabsf(dPhiPos_low) ? dPhiPos_low : dPhiPos_high;
-    }
-    else
-    {
-        dPhiMax = dPhi;
-        dPhiMin = dPhi;
-    }
-    pass =  pass and (fabsf(dPhi) <= sdCut);
-    if(not pass) return pass;
-
-    float dzFrac = dz/zIn;
-    dPhiChange = dPhi/dzFrac * (1.f + dzFrac);
-    dPhiChangeMin = dPhiMin/dzFrac * (1.f + dzFrac);
-    dPhiChangeMax = dPhiMax/dzFrac * (1.f + dzFrac);
-    
-    pass =  pass and (fabsf(dPhiChange) <= sdCut);
-    if(not pass) return pass;
-
-    float dAlphaThresholdValues[3];
-    dAlphaThreshold(dAlphaThresholdValues, modulesInGPU, mdsInGPU, xIn, yIn, zIn, rtIn, xOut, yOut, zOut, rtOut,innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex);
-
-    dAlphaInnerMDSegmentThreshold = dAlphaThresholdValues[0];
-    dAlphaOuterMDSegmentThreshold = dAlphaThresholdValues[1];
-    dAlphaInnerMDOuterMDThreshold = dAlphaThresholdValues[2];
-
-    float innerMDAlpha = mdsInGPU.dphichanges[innerMDIndex];
-    float outerMDAlpha = mdsInGPU.dphichanges[outerMDIndex];
-    dAlphaInnerMDSegment = innerMDAlpha - dPhiChange;
-    dAlphaOuterMDSegment = outerMDAlpha - dPhiChange;
-    dAlphaInnerMDOuterMD = innerMDAlpha - outerMDAlpha;
-   
-    pass =  pass and (fabsf(dAlphaInnerMDSegment) < dAlphaThresholdValues[0]);
-    if(not pass) return pass;
-    pass =  pass and (fabsf(dAlphaOuterMDSegment) < dAlphaThresholdValues[1]);
-    if(not pass) return pass;
-    pass =  pass and (fabsf(dAlphaInnerMDOuterMD) < dAlphaThresholdValues[2]);
-
-    return pass;
-}
-
-
-ALPAKA_FN_ACC bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, uint16_t& innerLowerModuleIndex, uint16_t& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex, float& zIn, float& zOut, float& rtIn, float& rtOut, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, float& dAlphaInnerMDSegment, float& dAlphaOuterMDSegment, float&
-        dAlphaInnerMDOuterMD, float& zLo, float& zHi, float& sdCut, float& dAlphaInnerMDSegmentThreshold, float& dAlphaOuterMDSegmentThreshold, float& dAlphaInnerMDOuterMDThreshold)
-{
-    bool pass = true;
-   
-    float sdMuls = (modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel) ? miniMulsPtScaleBarrel[modulesInGPU.layers[innerLowerModuleIndex]-1] * 3.f/ptCut : miniMulsPtScaleEndcap[modulesInGPU.layers[innerLowerModuleIndex]-1] * 3.f/ptCut;
-
-
-    float xIn, yIn, xOut, yOut;
-
-    xIn = mdsInGPU.anchorX[innerMDIndex];
-    yIn = mdsInGPU.anchorY[innerMDIndex];
-    zIn = mdsInGPU.anchorZ[innerMDIndex];
-    rtIn = mdsInGPU.anchorRt[innerMDIndex];
-
-    xOut = mdsInGPU.anchorX[outerMDIndex];
-    yOut = mdsInGPU.anchorY[outerMDIndex];
-    zOut = mdsInGPU.anchorZ[outerMDIndex];
-    rtOut = mdsInGPU.anchorRt[outerMDIndex];
-
-    float sdSlope = asinf(fminf(rtOut * k2Rinv1GeVf / ptCut, sinAlphaMax));
-    float sdPVoff = 0.1f/rtOut;
-    float dzDrtScale = tanf(sdSlope)/sdSlope; //FIXME: need appropriate value
-
-    const float zGeom = modulesInGPU.layers[innerLowerModuleIndex] <= 2 ? 2.f * pixelPSZpitch : 2.f * strip2SZpitch;
-
-    zLo = zIn + (zIn - deltaZLum) * (rtOut / rtIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - zGeom; //slope-correction only on outer end
-    zHi = zIn + (zIn + deltaZLum) * (rtOut / rtIn - 1.f) * (zIn < 0.f ? 1.f : dzDrtScale) + zGeom;
-
-    pass =  pass and ((zOut >= zLo) & (zOut <= zHi));
-    if(not pass) return pass;
-
-    sdCut = sdSlope + sqrtf(sdMuls * sdMuls + sdPVoff * sdPVoff);
-
-    dPhi  = deltaPhi(xIn, yIn, xOut, yOut);
-
-    pass =  pass and (fabsf(dPhi) <= sdCut);
-    if(not pass) return pass;
-
-    dPhiChange = deltaPhiChange(xIn, yIn, xOut, yOut);
-
-    pass =  pass and (fabsf(dPhiChange) <= sdCut);
-    if(not pass) return pass;
-
-    float dAlphaThresholdValues[3];
-    dAlphaThreshold(dAlphaThresholdValues, modulesInGPU, mdsInGPU, xIn, yIn, zIn, rtIn, xOut, yOut, zOut, rtOut, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex);
-
-    float innerMDAlpha = mdsInGPU.dphichanges[innerMDIndex];
-    float outerMDAlpha = mdsInGPU.dphichanges[outerMDIndex];
-    dAlphaInnerMDSegment = innerMDAlpha - dPhiChange;
-    dAlphaOuterMDSegment = outerMDAlpha - dPhiChange;
-    dAlphaInnerMDOuterMD = innerMDAlpha - outerMDAlpha;
-
-    dAlphaInnerMDSegmentThreshold = dAlphaThresholdValues[0];
-    dAlphaOuterMDSegmentThreshold = dAlphaThresholdValues[1];
-    dAlphaInnerMDOuterMDThreshold = dAlphaThresholdValues[2];
-    
-    pass =  pass and (fabsf(dAlphaInnerMDSegment) < dAlphaThresholdValues[0]);
-    if(not pass) return pass;
-    pass =  pass and (fabsf(dAlphaOuterMDSegment) < dAlphaThresholdValues[1]);
-    if(not pass) return pass;
-    pass =  pass and (fabsf(dAlphaInnerMDOuterMD) < dAlphaThresholdValues[2]);
-
-    return pass;
-}
-
-ALPAKA_FN_ACC bool SDL::runSegmentDefaultAlgo(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, uint16_t& innerLowerModuleIndex, uint16_t& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex, float& zIn, float& zOut, float& rtIn, float& rtOut, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, float& dAlphaInnerMDSegment, float& dAlphaOuterMDSegment, float&
-        dAlphaInnerMDOuterMD, float& zLo, float& zHi, float& rtLo, float& rtHi, float& sdCut, float& dAlphaInnerMDSegmentThreshold, float& dAlphaOuterMDSegmentThreshold, float& dAlphaInnerMDOuterMDThreshold)
-{
-    zLo = -999.f;
-    zHi = -999.f;
-    rtLo = -999.f;
-    rtHi = -999.f;
-
-    //bool pass = true;
-
-    if(modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel and modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel)
-    {
-        return runSegmentDefaultAlgoBarrel(modulesInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold);
-    }
-    else
-    {
-        return runSegmentDefaultAlgoEndcap(modulesInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold);
-    }
-
-}
 void SDL::printSegment(struct SDL::segments& segmentsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::hits& hitsInGPU, struct SDL::modules& modulesInGPU, unsigned int segmentIndex)
 {
     unsigned int innerMDIndex = segmentsInGPU.mdIndices[segmentIndex * 2];
@@ -615,256 +347,7 @@ void SDL::printSegment(struct SDL::segments& segmentsInGPU, struct SDL::miniDoub
         printMD(mdsInGPU, hitsInGPU, modulesInGPU, outerMDIndex);
     }
 }
-ALPAKA_FN_ACC ALPAKA_FN_INLINE float SDL::isTighterTiltedModules_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
-{
-    // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
-    // This is the same as what was previously considered as"isNormalTiltedModules"
-    // See Figure 9.1 of https://cds.cern.ch/record/2272264/files/CMS-TDR-014.pdf
-    short subdet = modulesInGPU.subdets[moduleIndex];
-    short layer = modulesInGPU.layers[moduleIndex];
-    short side = modulesInGPU.sides[moduleIndex];
-    short rod = modulesInGPU.rods[moduleIndex];
 
-    if (
-           (subdet == Barrel and side != Center and layer== 3)
-           or (subdet == Barrel and side == NegZ and layer == 2 and rod > 5)
-           or (subdet == Barrel and side == PosZ and layer == 2 and rod < 8)
-           or (subdet == Barrel and side == NegZ and layer == 1 and rod > 9)
-           or (subdet == Barrel and side == PosZ and layer == 1 and rod < 4)
-       )
-        return true;
-    else
-        return false;
-
-}
-
-ALPAKA_FN_ACC ALPAKA_FN_INLINE float SDL::isTighterTiltedModules_seg(short subdet, short layer, short side, short rod)
-{
-    // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
-    // This is the same as what was previously considered as"isNormalTiltedModules"
-    // See Figure 9.1 of https://cds.cern.ch/record/2272264/files/CMS-TDR-014.pdf
-    if (
-           (subdet == Barrel and side != Center and layer== 3)
-           or (subdet == Barrel and side == NegZ and layer == 2 and rod > 5)
-           or (subdet == Barrel and side == PosZ and layer == 2 and rod < 8)
-           or (subdet == Barrel and side == NegZ and layer == 1 and rod > 9)
-           or (subdet == Barrel and side == PosZ and layer == 1 and rod < 4)
-       )
-        return true;
-    else
-        return false;
-
-}
-
-ALPAKA_FN_ACC float SDL::moduleGapSize_seg(short layer, short ring, short subdet, short side, short rod)
-{
-    float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
-    float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
-    float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
-    float miniDeltaEndcap[5][15];
-
-    for (size_t i = 0; i < 5; i++)
-    {
-        for (size_t j = 0; j < 15; j++)
-        {
-            if (i == 0 || i == 1)
-            {
-                if (j < 10)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j] = 0.18f;
-                }
-            }
-            else if (i == 2 || i == 3)
-            {
-                if (j < 8)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j]  = 0.18f;
-                }
-            }
-            else
-            {
-                if (j < 9)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j] = 0.18f;
-                }
-            }
-        }
-    }
-
-
-    unsigned int iL = layer-1;
-    unsigned int iR = ring - 1;
-
-    float moduleSeparation = 0;
-
-    if (subdet == Barrel and side == Center)
-    {
-        moduleSeparation = miniDeltaFlat[iL];
-    }
-    else if (isTighterTiltedModules_seg(subdet, layer, side, rod))
-    {
-        moduleSeparation = miniDeltaTilted[iL];
-    }
-    else if (subdet == Endcap)
-    {
-        moduleSeparation = miniDeltaEndcap[iL][iR];
-    }
-    else //Loose tilted modules
-    {
-        moduleSeparation = miniDeltaLooseTilted[iL];
-    }
-
-    return moduleSeparation;
-}
-
-
-ALPAKA_FN_ACC float SDL::moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
-{
-    float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
-    float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
-    float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
-    float miniDeltaEndcap[5][15];
-
-    for (size_t i = 0; i < 5; i++)
-    {
-        for (size_t j = 0; j < 15; j++)
-        {
-            if (i == 0 || i == 1)
-            {
-                if (j < 10)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j] = 0.18f;
-                }
-            }
-            else if (i == 2 || i == 3)
-            {
-                if (j < 8)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j]  = 0.18f;
-                }
-            }
-            else
-            {
-                if (j < 9)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j] = 0.18f;
-                }
-            }
-        }
-    }
-
-
-    unsigned int iL = modulesInGPU.layers[moduleIndex]-1;
-    unsigned int iR = modulesInGPU.rings[moduleIndex] - 1;
-    short subdet = modulesInGPU.subdets[moduleIndex];
-    short side = modulesInGPU.sides[moduleIndex];
-
-    float moduleSeparation = 0;
-
-    if (subdet == Barrel and side == Center)
-    {
-        moduleSeparation = miniDeltaFlat[iL];
-    }
-    else if (isTighterTiltedModules_seg(modulesInGPU, moduleIndex))
-    {
-        moduleSeparation = miniDeltaTilted[iL];
-    }
-    else if (subdet == Endcap)
-    {
-        moduleSeparation = miniDeltaEndcap[iL][iR];
-    }
-    else //Loose tilted modules
-    {
-        moduleSeparation = miniDeltaLooseTilted[iL];
-    }
-
-    return moduleSeparation;
-}
-__global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::objectRanges& rangesInGPU)
-{
-    int blockxSize = gridDim.x;
-    int blockySize = blockDim.y;
-    int blockzSize = blockDim.x;
-    for(uint16_t innerLowerModuleIndex = blockIdx.x ; innerLowerModuleIndex< (*modulesInGPU.nLowerModules); innerLowerModuleIndex += blockxSize){
-
-    unsigned int nConnectedModules = modulesInGPU.nConnectedModules[innerLowerModuleIndex];
-
-    for(uint16_t outerLowerModuleArrayIdx = threadIdx.y; outerLowerModuleArrayIdx< nConnectedModules; outerLowerModuleArrayIdx += blockySize){
-
-        uint16_t outerLowerModuleIndex = modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + outerLowerModuleArrayIdx];
-
-        unsigned int nInnerMDs = mdsInGPU.nMDs[innerLowerModuleIndex];
-        unsigned int nOuterMDs = mdsInGPU.nMDs[outerLowerModuleIndex];
-
-        int limit = nInnerMDs*nOuterMDs;
-
-        if (limit == 0) continue;
-        for(int hitIndex = threadIdx.x; hitIndex< limit; hitIndex += blockzSize)
-        {
-            int innerMDArrayIdx = hitIndex / nOuterMDs;
-            int outerMDArrayIdx = hitIndex % nOuterMDs;
-            if(outerMDArrayIdx >= nOuterMDs) continue;
-
-            unsigned int innerMDIndex = rangesInGPU.mdRanges[innerLowerModuleIndex * 2] + innerMDArrayIdx;
-            unsigned int outerMDIndex = rangesInGPU.mdRanges[outerLowerModuleIndex * 2] + outerMDArrayIdx;
-
-            float zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD;
-
-            unsigned int innerMiniDoubletAnchorHitIndex = mdsInGPU.anchorHitIndices[innerMDIndex];
-            unsigned int outerMiniDoubletAnchorHitIndex = mdsInGPU.anchorHitIndices[outerMDIndex];
-            dPhiMin = 0;
-            dPhiMax = 0;
-            dPhiChangeMin = 0;
-            dPhiChangeMax = 0;
-            float zLo, zHi, rtLo, rtHi, sdCut , dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold;
-            bool pass = runSegmentDefaultAlgo(modulesInGPU, mdsInGPU, innerLowerModuleIndex, outerLowerModuleIndex, innerMDIndex, outerMDIndex, zIn, zOut, rtIn, rtOut, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, dAlphaInnerMDSegment, dAlphaOuterMDSegment, dAlphaInnerMDOuterMD, zLo, zHi, rtLo, rtHi, sdCut, dAlphaInnerMDSegmentThreshold, dAlphaOuterMDSegmentThreshold, dAlphaInnerMDOuterMDThreshold);
-
-            if(pass)
-            {
-                unsigned int totOccupancySegments = atomicAdd(&segmentsInGPU.totOccupancySegments[innerLowerModuleIndex],1);
-                if(totOccupancySegments >= (rangesInGPU.segmentModuleOccupancy[innerLowerModuleIndex]))
-                {
-#ifdef Warnings
-                    printf("Segment excess alert! Module index = %d\n",innerLowerModuleIndex);
-#endif
-                }
-                else
-                {
-                    unsigned int segmentModuleIdx = atomicAdd(&segmentsInGPU.nSegments[innerLowerModuleIndex],1);
-                    unsigned int segmentIdx = rangesInGPU.segmentModuleIndices[innerLowerModuleIndex] + segmentModuleIdx;
-
-                    addSegmentToMemory(segmentsInGPU,innerMDIndex, outerMDIndex,innerLowerModuleIndex, outerLowerModuleIndex, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, segmentIdx);
-
-                }
-            }
-        }
-    }
-    }
-}
 __global__ void SDL::addSegmentRangesToEventExplicit(struct modules& modulesInGPU, struct segments& segmentsInGPU, struct objectRanges& rangesInGPU)
 {
     int gid = blockIdx.x * blockDim.x + threadIdx.x;
