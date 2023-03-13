@@ -241,10 +241,10 @@ namespace SDL
         pass = pass and (zIn * zOut > 0);
         if(not pass) return pass;
 
-        float dLum = copysignf(SDL::deltaZLum, zIn);
+        float dLum = SDL::copysignf_alpaka(SDL::deltaZLum, zIn);
         bool isOutSgInnerMDPS = modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS;
         float rtGeom1 = isOutSgInnerMDPS ? SDL::pixelPSZpitch : SDL::strip2SZpitch;
-        float zGeom1 = copysignf(zGeom,zIn);
+        float zGeom1 = SDL::copysignf_alpaka(zGeom,zIn);
         float rtLo = rtIn * (1.f + (zOut - zIn - zGeom1) / (zIn + zGeom1 + dLum) / dzDrtScale) - rtGeom1; //slope correction only on the lower end
         zOut = zOut;
         rtOut = rtOut;
@@ -253,7 +253,7 @@ namespace SDL
         float zInForHi = zIn - zGeom1 - dLum;
         if(zInForHi * zIn < 0)
         {
-            zInForHi = copysignf(0.1f,zIn);
+            zInForHi = SDL::copysignf_alpaka(0.1f,zIn);
         }
         float rtHi = rtIn * (1.f + (zOut - zIn + zGeom1) / zInForHi) + rtGeom1;
 
@@ -319,13 +319,13 @@ namespace SDL
         pass = pass and (zIn * zOut > 0);
         if(not pass) return pass;
 
-        float dLum = copysignf(SDL::deltaZLum, zIn);
+        float dLum = SDL::copysignf_alpaka(SDL::deltaZLum, zIn);
         bool isOutSgOuterMDPS = modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS;
         bool isInSgInnerMDPS = modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS;
 
         float rtGeom = (isInSgInnerMDPS and isOutSgOuterMDPS) ? 2.f * SDL::pixelPSZpitch : (isInSgInnerMDPS or isOutSgOuterMDPS) ? SDL::pixelPSZpitch + SDL::strip2SZpitch : 2.f * SDL::strip2SZpitch;
 
-        float zGeom1 = copysignf(zGeom,zIn);
+        float zGeom1 = SDL::copysignf_alpaka(zGeom,zIn);
         float dz = zOut - zIn;
         const float rtLo = rtIn * (1.f + dz / (zIn + dLum) / dzDrtScale) - rtGeom; //slope correction only on the lower end
         const float rtHi = rtIn * (1.f + dz / (zIn - dLum)) + rtGeom;
@@ -417,16 +417,16 @@ namespace SDL
 
         if (betaIn * betaOut > 0.f and (alpaka::math::abs(acc, pt_beta) < 4.f * SDL::pt_betaMax or (lIn >= 11 and alpaka::math::abs(acc, pt_beta) < 8.f * SDL::pt_betaMax)))   //and the pt_beta is well-defined; less strict for endcap-endcap
         {
-            const float betaInUpd  = betaIn + copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
-            const float betaOutUpd = betaOut + copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaOut); //FIXME: need a faster version
+            const float betaInUpd  = betaIn + SDL::copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            const float betaOutUpd = betaOut + SDL::copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaOut); //FIXME: need a faster version
             betaAv = 0.5f * (betaInUpd + betaOutUpd);
 
             //1st update
             //pt_beta = dr * k2Rinv1GeVf / alpaka::math::sin(acc, betaAv); //get a better pt estimate
             const float pt_beta_inv = 1.f/alpaka::math::abs(acc, dr * k2Rinv1GeVf / alpaka::math::sin(acc, betaAv)); //get a better pt estimate
 
-            betaIn  += copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf *pt_beta_inv, SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
-            betaOut += copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf *pt_beta_inv, SDL::sinAlphaMax)), betaOut); //FIXME: need a faster version
+            betaIn  += SDL::copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf *pt_beta_inv, SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            betaOut += SDL::copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf *pt_beta_inv, SDL::sinAlphaMax)), betaOut); //FIXME: need a faster version
             //update the av and pt
             betaAv = 0.5f * (betaIn + betaOut);
             //2nd update
@@ -436,14 +436,14 @@ namespace SDL
         {
             const float pt_betaIn = dr * k2Rinv1GeVf / alpaka::math::sin(acc, betaIn);
 
-            const float betaInUpd  = betaIn + copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_betaIn), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
-            const float betaOutUpd = betaOut + copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_betaIn), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            const float betaInUpd  = betaIn + SDL::copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_betaIn), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            const float betaOutUpd = betaOut + SDL::copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_betaIn), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
             betaAv = (alpaka::math::abs(acc, betaOut) > 0.2f * alpaka::math::abs(acc, betaIn)) ? (0.5f * (betaInUpd + betaOutUpd)) : betaInUpd;
 
             //1st update
             pt_beta = dr * SDL::k2Rinv1GeVf / sin(betaAv); //get a better pt estimate
-            betaIn  += copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
-            betaOut += copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            betaIn  += SDL::copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            betaOut += SDL::copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
             //update the av and pt
             betaAv = 0.5f * (betaIn + betaOut);
             //2nd update
@@ -676,10 +676,10 @@ namespace SDL
         pass = pass and (z_InLo * z_OutLo > 0);
         if(not pass) return pass;
 
-        float dLum = copysignf(SDL::deltaZLum, z_InLo);
+        float dLum = SDL::copysignf_alpaka(SDL::deltaZLum, z_InLo);
         bool isOutSgInnerMDPS = modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS;
         float rtGeom1 = isOutSgInnerMDPS ? SDL::pixelPSZpitch : SDL::strip2SZpitch;
-        float zGeom1 = copysignf(zGeom,z_InLo);
+        float zGeom1 = SDL::copysignf_alpaka(zGeom,z_InLo);
         rtLo = rt_InLo * (1.f + (z_OutLo - z_InLo - zGeom1) / (z_InLo + zGeom1 + dLum) / dzDrtScale) - rtGeom1; //slope correction only on the lower end
         zOut = z_OutLo;
         rtOut = rt_OutLo;
@@ -691,7 +691,7 @@ namespace SDL
         float zInForHi = z_InLo - zGeom1 - dLum;
         if(zInForHi * z_InLo < 0)
         {
-            zInForHi = copysignf(0.1f,z_InLo);
+            zInForHi = SDL::copysignf_alpaka(0.1f,z_InLo);
         }
         rtHi = rt_InLo * (1.f + (z_OutLo - z_InLo + zGeom1) / zInForHi) + rtGeom1;
 
@@ -892,13 +892,13 @@ namespace SDL
         pass =  pass and ((z_InLo * z_OutLo) > 0);
         if(not pass) return pass;
 
-        float dLum = copysignf(SDL::deltaZLum, z_InLo);
+        float dLum = SDL::copysignf_alpaka(SDL::deltaZLum, z_InLo);
         bool isOutSgInnerMDPS = modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS;
         bool isInSgInnerMDPS = modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS;
 
         float rtGeom = (isInSgInnerMDPS and isOutSgInnerMDPS) ? 2.f * SDL::pixelPSZpitch : (isInSgInnerMDPS or isOutSgInnerMDPS) ? SDL::pixelPSZpitch + SDL::strip2SZpitch : 2.f * SDL::strip2SZpitch;
 
-        float zGeom1 = copysignf(zGeom,z_InLo);
+        float zGeom1 = SDL::copysignf_alpaka(zGeom,z_InLo);
         float dz = z_OutLo - z_InLo;
         rtLo = rt_InLo * (1.f + dz / (z_InLo + dLum) / dzDrtScale) - rtGeom; //slope correction only on the lower end
 
