@@ -1,5 +1,4 @@
 # include "Hit.cuh"
-# include "allocate.h"
 
 SDL::hits::hits()
 {
