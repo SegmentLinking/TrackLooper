@@ -523,6 +523,7 @@ void setPixelTripletOutputBranches(SDL::Event* event)
         ana.tx->pushbackToBranch<int>("pT3_layer_binary", layer_binary);
         ana.tx->pushbackToBranch<int>("pT3_moduleType_binary", moduleType_binary);
         ana.tx->pushbackToBranch<float>("pT3_rPhiChiSquared", pixelTripletsInGPU.rPhiChiSquared[pT3]);
+        ana.tx->pushbackToBranch<float>("pT3_rPhiChiSquaredInwards", pixelTripletsInGPU.rPhiChiSquaredInwards[pT3]);
 
         pT3_matched_simIdx.push_back(simidx);
 

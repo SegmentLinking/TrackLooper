@@ -296,8 +296,8 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     float g,f;
     tripletRadius = computeRadiusFromThreeAnchorHitspT3(xs, ys, g,f);    
 
-//    pass = pass and passRadiusCriterion(modulesInGPU, pixelRadius, pixelRadiusError, tripletRadius, lowerModuleIndex, middleModuleIndex, upperModuleIndex);
-//    if(not pass) return pass;
+    pass = pass and passRadiusCriterion(modulesInGPU, pixelRadius, pixelRadiusError, tripletRadius, lowerModuleIndex, middleModuleIndex, upperModuleIndex);
+    if(not pass) return pass;
 
 
     uint16_t lowerModuleIndices[3] = {lowerModuleIndex, middleModuleIndex, upperModuleIndex};
@@ -330,16 +330,16 @@ __device__ bool SDL::runPixelTripletDefaultAlgo(struct modules& modulesInGPU, st
     float yPix[2] = {mdsInGPU.anchorY[pixelInnerMDIndex], mdsInGPU.anchorY[pixelOuterMDIndex]};
     rPhiChiSquaredInwards = computePT3RPhiChiSquaredInwards(modulesInGPU, g, f, tripletRadius, xPix, yPix);
 
-/*    if(runChiSquaredCuts and pixelSegmentPt < 5.0f)
+    if(runChiSquaredCuts and pixelSegmentPt < 5.0f)
     {
-        pass = pass and passPT3RPhiChiSquaredInwardsCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquaredInwards);
+        pass = pass and passPT3RPhiChiSquaredInwardsCuts(modulesInGPU, pixelSegmentEta, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rPhiChiSquaredInwards);
         if(not pass) return pass;
         
-    }*/
+    }
     return pass;
 }
 
-//99% match, no minimum fake reject requirement
+//90% match, no minimum fake reject requirement
 __device__ bool SDL::passPT3RPhiChiSquaredCuts(struct SDL::modules& modulesInGPU, float& eta, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, float& rPhiChiSquared)
 {
     const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
@@ -396,6 +396,66 @@ __device__ bool SDL::passPT3RPhiChiSquaredCuts(struct SDL::modules& modulesInGPU
     if(layer1 == 2 and layer2 == 3 and layer3 == 4 and abs(eta) > 0.5)
     {
         return rPhiChiSquared < 30.253051080792908;
+    }
+    return true;
+}
+//90% match, no minimum fake reject requirement
+__device__ bool SDL::passPT3RPhiChiSquaredInwardsCuts(struct SDL::modules& modulesInGPU, float& eta, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, float& rPhiChiSquared)
+{
+    const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
+    const int layer2 = modulesInGPU.layers[lowerModuleIndex2] + 6 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex2] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex2] == SDL::TwoS);
+    const int layer3 = modulesInGPU.layers[lowerModuleIndex3] + 6 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex3] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex3] == SDL::TwoS);
+    if(layer1 == 7 and layer2 == 8 and layer3 == 9)
+    {
+        return rPhiChiSquared < 69371.21493514768;
+    }
+    if(layer1 == 7 and layer2 == 8 and layer3 == 14)
+    {
+        return rPhiChiSquared < 7730415.055564798;
+    }
+    if(layer1 == 1 and layer2 == 7 and layer3 == 8)
+    {
+        return rPhiChiSquared < 34121.272847381806;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 7)
+    {
+        return rPhiChiSquared < 5231.401107123471;
+    }
+    if(layer1 == 8 and layer2 == 9 and layer3 == 10)
+    {
+        return rPhiChiSquared < 25174.403596997025;
+    }
+    if(layer1 == 2 and layer2 == 3 and layer3 == 7)
+    {
+        return rPhiChiSquared < 28575.030610589205;
+    }
+    if(layer1 == 2 and layer2 == 3 and layer3 == 12)
+    {
+        return rPhiChiSquared < 653380.6883384979;
+    }
+    if(layer1 == 2 and layer2 == 7 and layer3 == 8)
+    {
+        return rPhiChiSquared < 67635.35873478843;
+    }
+    if(layer1 == 2 and layer2 == 7 and layer3 == 13)
+    {
+        return rPhiChiSquared < 3949635.242626286;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and abs(eta) < 0.5)
+    {
+        return rPhiChiSquared < 1033.3937815971522;
+    }
+    if(layer1 == 1 and layer2 == 2 and layer3 == 3 and abs(eta) > 0.5)
+    {
+        return rPhiChiSquared < 1715.441446935602;
+    }
+    if(layer1 == 2 and layer2 == 3 and layer3 == 4 and abs(eta) < 0.5)
+    {
+        return rPhiChiSquared < 5938.073019142162;
+    }
+    if(layer1 == 2 and layer2 == 3 and layer3 == 4 and abs(eta) > 0.5)
+    {
+        return rPhiChiSquared < 6740.2040980284355;
     }
     return true;
 }
