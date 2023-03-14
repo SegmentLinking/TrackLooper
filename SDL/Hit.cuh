@@ -127,24 +127,28 @@ namespace SDL
     };
 
     template<typename TAcc>
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi_alpaka(TAcc const & acc, float x, float y) {
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi_alpaka(TAcc const & acc, float x, float y)
+    {
         return phi_mpi_pi_alpaka(acc, float(M_PI) + ATan2_alpaka(acc, -y, -x));
     };
 
     template<typename TAcc>
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhi_alpaka(TAcc const & acc, float x1, float y1, float x2, float y2) {
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhi_alpaka(TAcc const & acc, float x1, float y1, float x2, float y2)
+    {
         float phi1 = phi_alpaka(acc, x1,y1);
         float phi2 = phi_alpaka(acc, x2,y2);
         return phi_mpi_pi_alpaka(acc, (phi2 - phi1));
     };
 
     template<typename TAcc>
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhiChange_alpaka(TAcc const & acc, float x1, float y1, float x2, float y2) {
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhiChange_alpaka(TAcc const & acc, float x1, float y1, float x2, float y2)
+    {
         return deltaPhi_alpaka(acc, x1, y1, x2-x1, y2-y1);
     };
 
     // Alpaka: This function is not yet implemented directly in Alpaka.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float copysignf_alpaka(float a, float b) {
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float copysignf_alpaka(float a, float b)
+    {
         int sign_a = (a < 0) ? -1 : 1;
         int sign_b = (b < 0) ? -1 : 1;
         return sign_a * sign_b * a;
