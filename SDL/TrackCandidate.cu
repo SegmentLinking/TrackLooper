@@ -357,7 +357,7 @@ __global__ void SDL::addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGP
 
             if (quintupletsInGPU.isDup[quintupletIndex] or quintupletsInGPU.partOfPT5[quintupletIndex]) continue;
 
-            if (!(quintupletsInGPU.TightCutFlag[quintupletIndex])) continue;
+            //if (!(quintupletsInGPU.TightCutFlag[quintupletIndex])) continue;
 
             unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
             atomicAdd(trackCandidatesInGPU.nTrackCandidatesT5,1);
