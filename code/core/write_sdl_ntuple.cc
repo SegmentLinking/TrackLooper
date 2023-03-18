@@ -226,6 +226,7 @@ void setOutputBranches(SDL::Event* event)
     // Intermediate variables to keep track of matched track candidates for a given sim track
     std::vector<int> sim_TC_matched(n_accepted_simtrk);
     std::vector<int> sim_TC_matched_mask(n_accepted_simtrk);
+    std::vector<int> sim_TC_matched_for_duplicate(trk.sim_pt().size());
 
     // Intermediate variables to keep track of matched sim tracks for a given track candidate
     std::vector<std::vector<int>> tc_matched_simIdx;
@@ -258,6 +259,7 @@ void setOutputBranches(SDL::Event* event)
                 sim_TC_matched.at(idx) += 1;
                 sim_TC_matched_mask.at(idx) |= (1 << type);
             }
+            sim_TC_matched_for_duplicate.at(idx) += 1;
         }
     }
 
@@ -272,12 +274,9 @@ void setOutputBranches(SDL::Event* event)
         {
             // Using the sim_TC_matched to see whether this track candidate is matched to a sim track that is matched to more than one
             int simidx = tc_matched_simIdx[i][isim];
-            if (simidx < n_accepted_simtrk)
+            if (sim_TC_matched_for_duplicate[simidx] > 1)
             {
-                if (sim_TC_matched[simidx] > 1)
-                {
-                    isDuplicate = true;
-                }
+                isDuplicate = true;
             }
         }
         tc_isDuplicate[i] = isDuplicate;
