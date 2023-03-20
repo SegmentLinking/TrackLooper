@@ -3,7 +3,6 @@
 SDL::hits::hits()
 {
     nHits = nullptr;
-//    n2SHits = nullptr;
     xs = nullptr;
     ys = nullptr;
     zs = nullptr;
@@ -26,11 +25,10 @@ SDL::hits::hits()
 SDL::hits::~hits()
 {
 }
+
 void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, int nModules, unsigned int nMaxHits,cudaStream_t stream,unsigned int evtnum)
 {
-//#ifdef CACHE_ALLOC
 #if defined(CACHE_ALLOC)
- //   cudaStream_t stream=0;
     int dev;
     cudaGetDevice(&dev);
     hitsInGPU.xs = (float*)cms::cuda::allocate_device(dev,nMaxHits*sizeof(float),stream);
@@ -93,44 +91,10 @@ void SDL::createHitsInExplicitMemory(struct hits& hitsInGPU, int nModules, unsig
     cudaStreamSynchronize(stream);
 }
 
-__global__ void SDL::addHitToMemoryKernel(struct hits& hitsInGPU, struct modules& modulesInGPU,const float* x,const  float* y,const  float* z, const uint16_t* moduleIndex,const float* phis, const int loopsize)
-{
-  for (unsigned int ihit = blockIdx.x*blockDim.x + threadIdx.x; ihit <loopsize; ihit += blockDim.x*gridDim.x)
-  //if(ihit < loopsize)
-  {
-      unsigned int idx = ihit;//*(hitsInGPU.nHits);
-
-      hitsInGPU.xs[idx] = x[ihit];
-      hitsInGPU.ys[idx] = y[ihit];
-      hitsInGPU.zs[idx] = z[ihit];
-      hitsInGPU.rts[idx] = sqrt(x[ihit]*x[ihit] + y[ihit]*y[ihit]);
-      hitsInGPU.phis[idx] = phi(x[ihit],y[ihit]);
-      hitsInGPU.moduleIndices[idx] = moduleIndex[ihit];
-      hitsInGPU.idxs[idx] = ihit;
-  }
-}
-
-ALPAKA_FN_ACC void SDL::getEdgeHitsK(float phi,float x, float y, float& xhigh, float& yhigh, float& xlow, float& ylow)
-{
-    xhigh = x + 2.5 * cos(phi);
-    yhigh = y + 2.5 * sin(phi);
-    xlow = x - 2.5 * cos(phi);
-    ylow = y - 2.5 * sin(phi);
-}
-void SDL::getEdgeHits(unsigned int detId,float x, float y, float& xhigh, float& yhigh, float& xlow, float& ylow)
-{
-    float phi = endcapGeometry.getCentroidPhi(detId);
-    xhigh = x + 2.5 * cos(phi);
-    yhigh = y + 2.5 * sin(phi);
-    xlow = x - 2.5 * cos(phi);
-    ylow = y - 2.5 * sin(phi);
-}
-
 void SDL::printHit(struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int hitIndex)
 {
     std::cout << "Hit(x=" << hitsInGPU.xs[hitIndex] << ", y=" << hitsInGPU.ys[hitIndex] << ", z=" << hitsInGPU.zs[hitIndex] << ", rt=" << hitsInGPU.rts[hitIndex] << ", phi=" << hitsInGPU.phis[hitIndex] <<", module subdet = "<<modulesInGPU.subdets[hitsInGPU.moduleIndices[hitIndex]]<<", module layer = "<< modulesInGPU.layers[hitsInGPU.moduleIndices[hitIndex]]<<", module ring = "<< modulesInGPU.rings[hitsInGPU.moduleIndices[hitIndex]]<<" )"<<std::endl;
 }
-
 
 void SDL::hits::freeMemoryCache()
 {
@@ -158,8 +122,8 @@ void SDL::hits::freeMemoryCache()
     cms::cuda::free_device(dev,hitRangesUpper);
     cms::cuda::free_device(dev,hitRangesnUpper);
 }
+
 void SDL::hits::freeMemory()
-//void SDL::hits::freeMemory(cudaStream_t stream)
 {
     cudaFree(nHits);
     cudaFree(xs);
@@ -182,5 +146,4 @@ void SDL::hits::freeMemory()
     cudaFree(hitRangesnLower);
     cudaFree(hitRangesUpper);
     cudaFree(hitRangesnUpper);
-//    cudaStreamSynchronize(stream);
 }
