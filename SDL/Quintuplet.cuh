@@ -8,9 +8,7 @@
 #include "MiniDoublet.cuh"
 #include "Module.cuh"
 #include "Hit.cuh"
-#include "PrintUtil.h"
 #include "Triplet.cuh"
-#include "Tracklet.cuh"
 
 namespace SDL
 {

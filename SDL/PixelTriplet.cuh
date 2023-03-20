@@ -4,15 +4,12 @@
 #include "Constants.cuh"
 #include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"
-#include "Tracklet.cuh"
 #include "Triplet.cuh"
 #include "Segment.cuh"
 #include "MiniDoublet.cuh"
 #include "Module.cuh"
 #include "Hit.cuh"
-#include "PrintUtil.h"
 #include "Quintuplet.cuh"
-#include "PixelTracklet.cuh"
 
 namespace SDL
 {
@@ -111,9 +108,7 @@ namespace SDL
 #include "MiniDoublet.cuh"
 #include "Module.cuh"
 #include "Hit.cuh"
-#include "PrintUtil.h"
 #include "Triplet.cuh"
-#include "Tracklet.cuh"
 #include "Quintuplet.cuh"
 #include "PixelTriplet.cuh"
 

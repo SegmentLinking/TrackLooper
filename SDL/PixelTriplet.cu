@@ -1,5 +1,4 @@
 # include "PixelTriplet.cuh"
-# include "PixelTracklet.cuh"
 #include "allocate.h"
 #include "Kernels.cuh"
 
@@ -945,7 +944,7 @@ ALPAKA_FN_ACC float SDL::computeChiSquaredpT3(int nPoints, float* xs, float* ys,
     float absArctanSlope, angleM, xPrime, yPrime, sigma;
     for(size_t i = 0; i < nPoints; i++)
     {
-        absArctanSlope = ((slopes[i] != SDL::SDL_INF) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI)); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
+        absArctanSlope = ((slopes[i] != SDL::SDL_INF) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI));
         if(xs[i] > 0 and ys[i] > 0)
         {
             angleM = 0.5f*float(M_PI) - absArctanSlope;
@@ -2409,7 +2408,7 @@ ALPAKA_FN_ACC float SDL::computeChiSquaredpT5(int nPoints, float* xs, float* ys,
     float absArctanSlope, angleM, xPrime, yPrime, sigma;
     for(size_t i = 0; i < nPoints; i++)
     {
-        absArctanSlope = ((slopes[i] != SDL::SDL_INF) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI)); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
+        absArctanSlope = ((slopes[i] != SDL::SDL_INF) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI));
         if(xs[i] > 0 and ys[i] > 0)
         {
             angleM = 0.5f*float(M_PI) - absArctanSlope;
