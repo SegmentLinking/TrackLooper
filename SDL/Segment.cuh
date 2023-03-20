@@ -8,8 +8,6 @@
 #include "MiniDoublet.cuh"
 #include "Module.cuh"
 #include "Hit.cuh"
-#include "PrintUtil.h"
-#include "allocate.h"
 
 namespace SDL
 {
