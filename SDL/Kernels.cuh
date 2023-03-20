@@ -18,8 +18,6 @@
 #include "Hit.cuh"
 #include "MiniDoublet.cuh"
 #include "Segment.cuh"
-#include "Tracklet.cuh"
-#include "PixelTracklet.cuh"
 #include "Triplet.cuh"
 #include "TrackCandidate.cuh"
 #include "Quintuplet.cuh"
