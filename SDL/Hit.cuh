@@ -4,8 +4,6 @@
 #include <alpaka/alpaka.hpp>
 
 #include <iostream>
-#include <cmath>
-#include <vector>
 
 #include "Module.cuh"
 #include "allocate.h"
@@ -16,7 +14,6 @@ namespace SDL
     struct hits
     {
         unsigned int *nHits; //single number
-        //unsigned int *n2SHits;
         float *xs;
         float *ys;
         float *zs;
@@ -29,7 +26,6 @@ namespace SDL
         float* phis;
         float* etas;
 
-        //int *edge2SMap;
         float *highEdgeXs;
         float *highEdgeYs;
         float *lowEdgeXs;
@@ -43,16 +39,12 @@ namespace SDL
         
         hits();
         void freeMemory();
-        //void freeMemory(cudaStream_t stream);
         void freeMemoryCache();
         ~hits();
-
     };
 
+    void printHit(struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int hitIndex);
     void createHitsInExplicitMemory(struct hits& hitsInGPU, int nModules, unsigned int maxHits,cudaStream_t stream,unsigned int evtnum);
-    __global__ void addHitToMemoryKernel(struct hits& hitsInGPU,struct modules& modulesInGPU,const float* x,const float* y, const float* z,const uint16_t* moduleIndex,const float* phis, const int loopsize);
-    void addHitToMemory(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,cudaStream_t stream,struct objectRanges& rangesInGPU);
-    __global__ void addHitToMemoryGPU(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex, float phis,struct objectRanges& rangesInGPU);
     
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float ATan2(float y, float x)
     {
@@ -153,11 +145,6 @@ namespace SDL
         int sign_b = (b < 0) ? -1 : 1;
         return sign_a * sign_b * a;
     };
-
-    void getEdgeHits(unsigned int detId,float x, float y, float& xhigh, float& yhigh, float& xlow, float& ylow);
-    ALPAKA_FN_ACC void getEdgeHitsK(float phi,float x, float y, float& xhigh, float& yhigh, float& xlow, float& ylow);
-
-    void printHit(struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int hitIndex);
 }
 #endif
 
