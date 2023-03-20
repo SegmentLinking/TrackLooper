@@ -8,7 +8,6 @@
 #include "MiniDoublet.cuh"
 #include "Module.cuh"
 #include "Hit.cuh"
-#include "PrintUtil.h"
 #include "Triplet.cuh"
 #include "NeuralNetwork.cuh"
 

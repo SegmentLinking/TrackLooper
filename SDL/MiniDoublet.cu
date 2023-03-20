@@ -329,7 +329,7 @@ ALPAKA_FN_ACC void SDL::shiftStripHits(struct modules& modulesInGPU, /*struct hi
     drprime = (moduleSeparation / sinf(angleA + angleB)) * sinf(angleA);
     
     // Compute arctan of the slope and take care of the slope = infinity case
-    absArctanSlope = ((slope != SDL::SDL_INF) ? fabs(atanf(slope)) : float(M_PI) / 2.f); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
+    absArctanSlope = ((slope != SDL::SDL_INF) ? fabs(atanf(slope)) : float(M_PI) / 2.f);
 
 
     // Depending on which quadrant the pixel hit lies, we define the angleM by shifting them slightly differently
@@ -363,7 +363,7 @@ ALPAKA_FN_ACC void SDL::shiftStripHits(struct modules& modulesInGPU, /*struct hi
     //yo = hitsInGPU.ys[stripHitIndex];
 
     // Compute the new strip hit position (if the slope vaule is in special condition take care of the exceptions)
-    if (slope == SDL::SDL_INF) // Special value designated for tilted module when the slope is exactly infinity (module lying along y-axis)
+    if (slope == SDL::SDL_INF) // Designated for tilted module when the slope is exactly infinity (module lying along y-axis)
     {
         xn = xa; // New x point is simply where the anchor is
         yn = yo; // No shift in y
