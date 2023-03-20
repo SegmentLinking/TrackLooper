@@ -1396,7 +1396,7 @@ ALPAKA_FN_ACC float SDL::computeRadiusUsingRegression(int nPoints, float* xs, fl
         //computing sigmas is a very tricky affair
         //if the module is tilted or endcap, we need to use the slopes properly!
 
-        absArctanSlope = ((slopes[i] != SDL::SDL_INF) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI)); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
+        absArctanSlope = ((slopes[i] != SDL::SDL_INF) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI));
 
         if(xs[i] > 0 and ys[i] > 0)
         {
@@ -1472,7 +1472,7 @@ ALPAKA_FN_ACC float SDL::computeChiSquared(int nPoints, float* xs, float* ys, fl
     float absArctanSlope, angleM, xPrime, yPrime, sigma;
     for(size_t i = 0; i < nPoints; i++)
     {
-        absArctanSlope = ((slopes[i] != SDL::SDL_INF) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI)); // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
+        absArctanSlope = ((slopes[i] != SDL::SDL_INF) ? fabs(atanf(slopes[i])) : 0.5f*float(M_PI));
         if(xs[i] > 0 and ys[i] > 0)
         {
             angleM = 0.5f*float(M_PI) - absArctanSlope;
@@ -1847,9 +1847,9 @@ ALPAKA_FN_ACC bool SDL::runQuintupletDefaultAlgoBBEE(struct SDL::modules& module
     const float coshEta = dr3SDIn / drtSDIn; //direction estimate
     const float dzOutInAbs = fabsf(z_OutLo - z_InLo);
     const float multDzDr = dzOutInAbs * coshEta / (coshEta * coshEta - 1.f);
-    const float zGeom1_another = SDL::pixelPSZpitch; //What's this?
+    const float zGeom1_another = SDL::pixelPSZpitch;
     kZ = (z_OutLo - z_InLo) / dzSDIn;
-    float drtErr = zGeom1_another * zGeom1_another * drtSDIn * drtSDIn / dzSDIn / dzSDIn * (1.f - 2.f * kZ + 2.f * kZ * kZ); //Notes:122316
+    float drtErr = zGeom1_another * zGeom1_another * drtSDIn * drtSDIn / dzSDIn / dzSDIn * (1.f - 2.f * kZ + 2.f * kZ * kZ);
     const float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2f * (rt_OutLo - rt_InLo) / 50.f) * sqrtf(rIn / rt_InLo);
     const float sdlMuls = sdlThetaMulsF * 3.f / SDL::ptCut * 4.f; //will need a better guess than x4?
     drtErr += sdlMuls * sdlMuls * multDzDr * multDzDr / 3.f * coshEta * coshEta; //sloppy: relative muls is 1/3 of total muls

@@ -9,7 +9,6 @@
 #include "MiniDoublet.cuh"
 #include "Module.cuh"
 #include "Hit.cuh"
-#include "PrintUtil.h"
 #include "Quintuplet.cuh"
 
 namespace SDL
@@ -109,7 +108,6 @@ namespace SDL
 #include "MiniDoublet.cuh"
 #include "Module.cuh"
 #include "Hit.cuh"
-#include "PrintUtil.h"
 #include "Triplet.cuh"
 #include "Quintuplet.cuh"
 #include "PixelTriplet.cuh"

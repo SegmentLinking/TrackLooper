@@ -49,29 +49,23 @@ typedef __half FPX_seg;
 typedef float FPX_seg; 
 #endif
 
-#ifdef __CUDACC__
-#define CUDA_CONST_VAR __device__
-#else
-#define CUDA_CONST_VAR
-#endif
-
-
 namespace SDL
 {
     //defining the constant host device variables right up here
-    extern CUDA_CONST_VAR const float miniMulsPtScaleBarrel[6];
-    extern CUDA_CONST_VAR const float miniMulsPtScaleEndcap[5]; 
-    extern CUDA_CONST_VAR const float miniRminMeanBarrel[6];
-    extern CUDA_CONST_VAR const float miniRminMeanEndcap[5];
-    extern CUDA_CONST_VAR const float k2Rinv1GeVf;
-    extern CUDA_CONST_VAR const float kR1GeVf;
-    extern CUDA_CONST_VAR const float sinAlphaMax;
-    extern CUDA_CONST_VAR const float ptCut;
-    extern CUDA_CONST_VAR const float deltaZLum;
-    extern CUDA_CONST_VAR const float pixelPSZpitch;
-    extern CUDA_CONST_VAR const float strip2SZpitch;
-    extern CUDA_CONST_VAR const float pt_betaMax;
-    extern CUDA_CONST_VAR const float magnetic_field;
-    extern CUDA_CONST_VAR const float SDL_INF;
+    extern __device__ const float miniMulsPtScaleBarrel[6];
+    extern __device__ const float miniMulsPtScaleEndcap[5]; 
+    extern __device__ const float miniRminMeanBarrel[6];
+    extern __device__ const float miniRminMeanEndcap[5];
+    extern __device__ const float k2Rinv1GeVf;
+    extern __device__ const float kR1GeVf;
+    extern __device__ const float sinAlphaMax;
+    extern __device__ const float ptCut;
+    extern __device__ const float deltaZLum;
+    extern __device__ const float pixelPSZpitch;
+    extern __device__ const float strip2SZpitch;
+    extern __device__ const float pt_betaMax;
+    extern __device__ const float magnetic_field;
+    // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
+    extern __device__ const float SDL_INF;
 }
 #endif
