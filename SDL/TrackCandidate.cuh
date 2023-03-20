@@ -11,7 +11,6 @@
 #include "Quintuplet.cuh"
 #include "Module.cuh"
 #include "Hit.cuh"
-#include "PrintUtil.h"
 
 namespace SDL
 {

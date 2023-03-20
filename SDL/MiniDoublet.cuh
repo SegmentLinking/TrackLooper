@@ -60,13 +60,11 @@ namespace SDL
         float* drts;
         float* miniCuts;
 #endif
-
         miniDoublets();
         ~miniDoublets();
       	void freeMemory(cudaStream_t stream);
       	void freeMemoryCache();
         void resetMemory(unsigned int nMemoryLocations, unsigned int nModules,cudaStream_t stream);
-
     };
 
 
@@ -78,7 +76,7 @@ namespace SDL
     __global__ void addMiniDoubletRangesToEventExplicit(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct objectRanges& rangesInGPU, struct hits& hitsInGPU);
 
 //#ifdef CUT_VALUE_DEBUG
-//    ALPAKA_FN_ACC void addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float drt, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, float dzCut, float drtCut, float miniCut, unsigned int idx);
+    //ALPAKA_FN_ACC void addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float drt, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, float dzCut, float drtCut, float miniCut, unsigned int idx);
 //#else
     //for successful MDs
     ALPAKA_FN_HOST_ACC void addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx);
@@ -407,9 +405,6 @@ namespace SDL
             // Appropriate lower or upper hit is modified after checking which one was actually shifted
             if (modulesInGPU.moduleLayerType[lowerModuleIndex] == SDL::Pixel)
             {
-                // SDL::Hit upperHitMod(upperHit);
-                // upperHitMod.setXYZ(xn, yn, upperHit.z());
-                // setdeltaPhi_alpaka(lowerHit.deltaPhi_alpaka(upperHitMod));
                 shiftedX = xn;
                 shiftedY = yn;
                 shiftedZ = zUpper;
@@ -418,9 +413,6 @@ namespace SDL
             }
             else
             {
-                // SDL::Hit lowerHitMod(lowerHit);
-                // lowerHitMod.setXYZ(xn, yn, lowerHit.z());
-                // setdeltaPhi_alpaka(lowerHitMod.deltaPhi_alpaka(upperHit));
                 shiftedX = xn;
                 shiftedY = yn;
                 shiftedZ = zLower;
@@ -453,7 +445,6 @@ namespace SDL
         // Cut #4: Another cut on the dphi after some modification
         // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3119-L3124
 
-        
         float dzFrac = alpaka::math::abs(acc, dz) / alpaka::math::abs(acc, zLower);
         dPhiChange = dPhi / dzFrac * (1.f + dzFrac);
         noShiftedDphichange = noShiftedDphi / dzFrac * (1.f + dzFrac);
@@ -510,7 +501,6 @@ namespace SDL
                     float rtUpper = hitsInGPU.rts[upperHitArrayIndex];
 
                     float dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange;
-                    //float dzCut, drtCut;//, miniCut;
                     bool success = runMiniDoubletDefaultAlgo(acc, modulesInGPU, lowerModuleIndex, upperModuleIndex, lowerHitArrayIndex, upperHitArrayIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
         if(success)
                     {
@@ -525,11 +515,11 @@ namespace SDL
                         {
                             int mdModuleIndex = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &mdsInGPU.nMDs[lowerModuleIndex], 1);
                             unsigned int mdIndex = rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex] + mdModuleIndex;
-        //#ifdef CUT_VALUE_DEBUG
-        //                    addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz,drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, dzCut, drtCut, miniCut, mdIndex);
-        //#else
+//#ifdef CUT_VALUE_DEBUG
+                            //addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz,drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, dzCut, drtCut, miniCut, mdIndex);
+//#else
                             addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, mdIndex);
-        //#endif
+//#endif
                         }
 
                     }
