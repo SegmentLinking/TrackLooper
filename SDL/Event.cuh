@@ -108,12 +108,12 @@ namespace SDL
         unsigned int getNumberOfTripletsByLayerBarrel(unsigned int layer);
         unsigned int getNumberOfTripletsByLayerEndcap(unsigned int layer);
 
-        unsigned int getNumberOfTrackCandidates();
-        unsigned int getNumberOfPixelTrackCandidates();
-        unsigned int getNumberOfPT5TrackCandidates();
-        unsigned int getNumberOfPT3TrackCandidates();
-        unsigned int getNumberOfT5TrackCandidates();
-        unsigned int getNumberOfPLSTrackCandidates();
+        int getNumberOfTrackCandidates();
+        int getNumberOfPixelTrackCandidates();
+        int getNumberOfPT5TrackCandidates();
+        int getNumberOfPT3TrackCandidates();
+        int getNumberOfT5TrackCandidates();
+        int getNumberOfPLSTrackCandidates();
 
         unsigned int getNumberOfQuintuplets();
         unsigned int getNumberOfQuintupletsByLayer(unsigned int layer);
