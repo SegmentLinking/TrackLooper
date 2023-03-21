@@ -1232,31 +1232,47 @@ void SDL::Event::createTrackCandidates()
         createTrackCandidatesInExplicitMemory(*trackCandidatesInGPU, N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES,stream);
     }
 
-    //printf("running final state pT3\n");
-    dim3 nThreadsT3(64,16,1);
-    dim3 nBlocksT3(20,4,1);
-    SDL::crossCleanpT3<<<nBlocksT3, nThreadsT3,0,stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *segmentsInGPU, *pixelQuintupletsInGPU);
-    cudaError_t cudaerr_pT3 = cudaGetLastError();
-    if(cudaerr_pT3 != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT3)<<std::endl;
-    }cudaStreamSynchronize(stream);
-
-    //adding objects
-    SDL::addpT3asTrackCandidatesInGPU<<<1,512,0,stream>>>(*pixelTripletsInGPU, *trackCandidatesInGPU);
-    cudaError_t cudaerr_pT3TC = cudaGetLastError();
-    if(cudaerr_pT3TC != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT3TC)<<std::endl;
-    }cudaStreamSynchronize(stream);
-
     // Temporary fix for queue initialization.
     QueueAcc queue(devAcc);
 
-    Vec const threadsPerBlock(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(32));
-    Vec const blocksPerGrid(static_cast<Idx>(1), static_cast<Idx>(max(nEligibleModules/16,1)), static_cast<Idx>(max(nEligibleModules/32,1)));
+    Vec const threadsPerBlock_crossCleanpT3(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(64));
+    Vec const blocksPerGrid_crossCleanpT3(static_cast<Idx>(1), static_cast<Idx>(4), static_cast<Idx>(20));
 
-    WorkDiv const removeDupQuintupletsInGPUBeforeTC_workDiv(blocksPerGrid, threadsPerBlock, elementsPerThread);
+    WorkDiv const crossCleanpT3_workDiv(blocksPerGrid_crossCleanpT3, blocksPerGrid_crossCleanpT3, elementsPerThread);
+
+    SDL::crossCleanpT3 crossCleanpT3_kernel;
+    auto const crossCleanpT3Task(alpaka::createTaskKernel<Acc>(
+        crossCleanpT3_workDiv,
+        crossCleanpT3_kernel,
+        *modulesInGPU,
+        *rangesInGPU,
+        *pixelTripletsInGPU,
+        *segmentsInGPU,
+        *pixelQuintupletsInGPU));
+
+    alpaka::enqueue(queue, crossCleanpT3Task);
+    alpaka::wait(queue);
+
+    //adding objects
+    Vec const threadsPerBlock_addpT3asTrackCandidatesInGPU(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(512));
+    Vec const blocksPerGrid_addpT3asTrackCandidatesInGPU(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
+
+    WorkDiv const addpT3asTrackCandidatesInGPU_workDiv(blocksPerGrid_addpT3asTrackCandidatesInGPU, threadsPerBlock_addpT3asTrackCandidatesInGPU, elementsPerThread);
+
+    SDL::addpT3asTrackCandidatesInGPU addpT3asTrackCandidatesInGPU_kernel;
+    auto const addpT3asTrackCandidatesInGPUTask(alpaka::createTaskKernel<Acc>(
+        addpT3asTrackCandidatesInGPU_workDiv,
+        addpT3asTrackCandidatesInGPU_kernel,
+        *pixelTripletsInGPU,
+        *trackCandidatesInGPU));
+
+    alpaka::enqueue(queue, addpT3asTrackCandidatesInGPUTask);
+    alpaka::wait(queue);
+
+    Vec const threadsPerBlockRemoveDupQuints(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(32));
+    Vec const blocksPerGridRemoveDupQuints(static_cast<Idx>(1), static_cast<Idx>(max(nEligibleModules/16,1)), static_cast<Idx>(max(nEligibleModules/32,1)));
+
+    WorkDiv const removeDupQuintupletsInGPUBeforeTC_workDiv(blocksPerGridRemoveDupQuints, threadsPerBlockRemoveDupQuints, elementsPerThread);
 
     SDL::removeDupQuintupletsInGPUBeforeTC removeDupQuintupletsInGPUBeforeTC_kernel;
     auto const removeDupQuintupletsInGPUBeforeTCTask(alpaka::createTaskKernel<Acc>(
@@ -1268,23 +1284,40 @@ void SDL::Event::createTrackCandidates()
     alpaka::enqueue(queue, removeDupQuintupletsInGPUBeforeTCTask);
     alpaka::wait(queue);
 
-    dim3 nThreads(32,1,32);
-    dim3 nBlocks(MAX_BLOCKS,1,(13296/32) + 1);
-    crossCleanT5<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU,*pixelTripletsInGPU,*rangesInGPU);
-    cudaError_t cudaerr_T5 =cudaGetLastError(); 
-    if(cudaerr_T5 != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_T5)<<std::endl;
-    }cudaStreamSynchronize(stream);
+    Vec const threadsPerBlock_crossCleanT5(static_cast<Idx>(32), static_cast<Idx>(1), static_cast<Idx>(32));
+    Vec const blocksPerGrid_crossCleanT5(static_cast<Idx>((13296/32) + 1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
 
-    dim3 nThreadsAddT5(128,8,1);
-    dim3 nBlocksAddT5(10,8,1);
-    addT5asTrackCandidateInGPU<<<nBlocksAddT5, nThreadsAddT5, 0, stream>>>(*modulesInGPU, *rangesInGPU, *quintupletsInGPU, *trackCandidatesInGPU);
-    cudaError_t cudaerr_T5TC =cudaGetLastError(); 
-    if(cudaerr_T5TC != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_T5TC)<<std::endl;
-    }cudaStreamSynchronize(stream);
+    WorkDiv const crossCleanT5_workDiv(blocksPerGrid_crossCleanT5, threadsPerBlock_crossCleanT5, elementsPerThread);
+
+    SDL::crossCleanT5 crossCleanT5_kernel;
+    auto const crossCleanT5Task(alpaka::createTaskKernel<Acc>(
+        crossCleanT5_workDiv,
+        crossCleanT5_kernel,
+        *modulesInGPU,
+        *quintupletsInGPU,
+        *pixelQuintupletsInGPU,
+        *pixelTripletsInGPU,
+        *rangesInGPU));
+
+    alpaka::enqueue(queue, crossCleanT5Task);
+    alpaka::wait(queue);
+
+    Vec const threadsPerBlock_addT5asTrackCandidateInGPU(static_cast<Idx>(1), static_cast<Idx>(8), static_cast<Idx>(128));
+    Vec const blocksPerGrid_addT5asTrackCandidateInGPU(static_cast<Idx>(1), static_cast<Idx>(8), static_cast<Idx>(10));
+
+    WorkDiv const addT5asTrackCandidateInGPU_workDiv(blocksPerGrid_addT5asTrackCandidateInGPU, threadsPerBlock_addT5asTrackCandidateInGPU, elementsPerThread);
+
+    SDL::addT5asTrackCandidateInGPU addT5asTrackCandidateInGPU_kernel;
+    auto const addT5asTrackCandidateInGPUTask(alpaka::createTaskKernel<Acc>(
+        addT5asTrackCandidateInGPU_workDiv,
+        addT5asTrackCandidateInGPU_kernel,
+        *modulesInGPU,
+        *rangesInGPU,
+        *quintupletsInGPU,
+        *trackCandidatesInGPU));
+
+    alpaka::enqueue(queue, addT5asTrackCandidateInGPUTask);
+    alpaka::wait(queue);
 
     Vec const threadsPerBlockCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
     Vec const blocksPerGridCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS*4), static_cast<Idx>(MAX_BLOCKS/4));
@@ -1302,23 +1335,42 @@ void SDL::Event::createTrackCandidates()
     alpaka::enqueue(queue, checkHitspLSTask);
     alpaka::wait(queue);
 
-    dim3 nThreads_pLS(32,16,1);
-    dim3 nBlocks_pLS(20,4,1);
-    SDL::crossCleanpLS<<<nBlocks_pLS, nThreads_pLS, 0, stream>>>(*modulesInGPU, *rangesInGPU, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *mdsInGPU,*hitsInGPU, *quintupletsInGPU);
-    cudaError_t cudaerr_pLS = cudaGetLastError();
-    if(cudaerr_pLS != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pLS)<<std::endl;
-    }cudaStreamSynchronize(stream);
+    Vec const threadsPerBlock_crossCleanpLS(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(32));
+    Vec const blocksPerGrid_crossCleanpLS(static_cast<Idx>(1), static_cast<Idx>(4), static_cast<Idx>(20));
 
-    unsigned int nThreadsx_pLS = 384;
-    unsigned int nBlocksx_pLS = MAX_BLOCKS;
-    SDL::addpLSasTrackCandidateInGPU<<<nBlocksx_pLS, nThreadsx_pLS, 0, stream>>>(*modulesInGPU, *trackCandidatesInGPU, *segmentsInGPU);
-    cudaError_t cudaerr_pLSTC = cudaGetLastError();
-    if(cudaerr_pLSTC != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pLS)<<std::endl;
-    }cudaStreamSynchronize(stream);
+    WorkDiv const crossCleanpLS_workDiv(blocksPerGrid_crossCleanpLS, threadsPerBlock_crossCleanpLS, elementsPerThread);
+
+    SDL::crossCleanpLS crossCleanpLS_kernel;
+    auto const crossCleanpLSTask(alpaka::createTaskKernel<Acc>(
+        crossCleanpLS_workDiv,
+        crossCleanpLS_kernel,
+        *modulesInGPU,
+        *rangesInGPU,
+        *pixelTripletsInGPU,
+        *trackCandidatesInGPU,
+        *segmentsInGPU,
+        *mdsInGPU,
+        *hitsInGPU,
+        *quintupletsInGPU));
+
+    alpaka::enqueue(queue, crossCleanpLSTask);
+    alpaka::wait(queue);
+
+    Vec const threadsPerBlock_addpLSasTrackCandidateInGPU(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(384));
+    Vec const blocksPerGrid_addpLSasTrackCandidateInGPU(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
+
+    WorkDiv const addpLSasTrackCandidateInGPU_workDiv(blocksPerGrid_addpLSasTrackCandidateInGPU, threadsPerBlock_addpLSasTrackCandidateInGPU, elementsPerThread);
+
+    SDL::addpLSasTrackCandidateInGPU addpLSasTrackCandidateInGPU_kernel;
+    auto const addpLSasTrackCandidateInGPUTask(alpaka::createTaskKernel<Acc>(
+        addpLSasTrackCandidateInGPU_workDiv,
+        addpLSasTrackCandidateInGPU_kernel,
+        *modulesInGPU,
+        *trackCandidatesInGPU,
+        *segmentsInGPU));
+
+    alpaka::enqueue(queue, addpLSasTrackCandidateInGPUTask);
+    alpaka::wait(queue);
 }
 
 void SDL::Event::createPixelTriplets()
@@ -1587,7 +1639,7 @@ void SDL::Event::createPixelQuintuplets()
         pixelQuintupletsInGPU = (SDL::pixelQuintuplets*)cms::cuda::allocate_host(sizeof(SDL::pixelQuintuplets), stream);
         createPixelQuintupletsInExplicitMemory(*pixelQuintupletsInGPU, N_MAX_PIXEL_QUINTUPLETS,stream);
     }
-   if(trackCandidatesInGPU == nullptr)
+    if(trackCandidatesInGPU == nullptr)
     {
         trackCandidatesInGPU = (SDL::trackCandidates*)cms::cuda::allocate_host(sizeof(SDL::trackCandidates), stream);
         createTrackCandidatesInExplicitMemory(*trackCandidatesInGPU, N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES,stream);
@@ -1663,10 +1715,10 @@ void SDL::Event::createPixelQuintuplets()
     // Temporary fix for queue initialization.
     QueueAcc queue(devAcc);
 
-    Vec const threadsPerBlock(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
-    Vec const blocksPerGrid(static_cast<Idx>(16), static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1));
+    Vec const threadsPerBlockCreatePixQuints(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
+    Vec const blocksPerGridCreatePixQuints(static_cast<Idx>(16), static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1));
 
-    WorkDiv const createPixelQuintupletsInGPUFromMapv2_workDiv(blocksPerGrid, threadsPerBlock, elementsPerThread);
+    WorkDiv const createPixelQuintupletsInGPUFromMapv2_workDiv(blocksPerGridCreatePixQuints, threadsPerBlockCreatePixQuints, elementsPerThread);
 
     SDL::createPixelQuintupletsInGPUFromMapv2 createPixelQuintupletsInGPUFromMapv2_kernel;
     auto const createPixelQuintupletsInGPUFromMapv2Task(alpaka::createTaskKernel<Acc>(
@@ -1709,16 +1761,24 @@ void SDL::Event::createPixelQuintuplets()
     alpaka::enqueue(queue, removeDupPixelQuintupletsInGPUFromMapTask);
     alpaka::wait(queue);
 
-    unsigned int nThreadsx_pT5 = 256;
-    unsigned int nBlocksx_pT5 = 1;
-    SDL::addpT5asTrackCandidateInGPU<<<nBlocksx_pT5, nThreadsx_pT5,0,stream>>>(*modulesInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *tripletsInGPU,*quintupletsInGPU);
+    Vec const threadsPerBlockAddpT5asTrackCan(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
+    Vec const blocksPerGridAddpT5asTrackCan(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
 
-    cudaError_t cudaerr_pT5 = cudaGetLastError();
-    if(cudaerr_pT5 != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT5)<<std::endl;
-    }
-    cudaStreamSynchronize(stream);
+    WorkDiv const addpT5asTrackCandidateInGPU_workDiv(blocksPerGridAddpT5asTrackCan, threadsPerBlockAddpT5asTrackCan, elementsPerThread);
+
+    SDL::addpT5asTrackCandidateInGPU addpT5asTrackCandidateInGPU_kernel;
+    auto const addpT5asTrackCandidateInGPUTask(alpaka::createTaskKernel<Acc>(
+        addpT5asTrackCandidateInGPU_workDiv,
+        addpT5asTrackCandidateInGPU_kernel,
+        *modulesInGPU,
+        *pixelQuintupletsInGPU,
+        *trackCandidatesInGPU,
+        *segmentsInGPU,
+        *tripletsInGPU,
+        *quintupletsInGPU));
+
+    alpaka::enqueue(queue, addpT5asTrackCandidateInGPUTask);
+    alpaka::wait(queue);
 #ifdef Warnings
     int nPixelQuintuplets;
     cudaMemcpyAsync(&nPixelQuintuplets, &(pixelQuintupletsInGPU->nPixelQuintuplets), sizeof(int), cudaMemcpyDeviceToHost,stream);
@@ -2070,57 +2130,57 @@ unsigned int SDL::Event::getNumberOfQuintupletsByLayerEndcap(unsigned int layer)
     return n_quintuplets_by_layer_endcap_[layer];
 }
 
-unsigned int SDL::Event::getNumberOfTrackCandidates()
+int SDL::Event::getNumberOfTrackCandidates()
 {    
-    unsigned int nTrackCandidates;
-    cudaMemcpyAsync(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+    int nTrackCandidates;
+    cudaMemcpyAsync(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(int), cudaMemcpyDeviceToHost,stream);
     cudaStreamSynchronize(stream);
 
     return nTrackCandidates;
 }
 
-unsigned int SDL::Event::getNumberOfPT5TrackCandidates()
+int SDL::Event::getNumberOfPT5TrackCandidates()
 {
-    unsigned int nTrackCandidatesPT5;
-    cudaMemcpyAsync(&nTrackCandidatesPT5, trackCandidatesInGPU->nTrackCandidatespT5, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+    int nTrackCandidatesPT5;
+    cudaMemcpyAsync(&nTrackCandidatesPT5, trackCandidatesInGPU->nTrackCandidatespT5, sizeof(int), cudaMemcpyDeviceToHost,stream);
     cudaStreamSynchronize(stream);
 
     return nTrackCandidatesPT5;
 }
 
-unsigned int SDL::Event::getNumberOfPT3TrackCandidates()
+int SDL::Event::getNumberOfPT3TrackCandidates()
 {
-    unsigned int nTrackCandidatesPT3;
-    cudaMemcpyAsync(&nTrackCandidatesPT3, trackCandidatesInGPU->nTrackCandidatespT3, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+    int nTrackCandidatesPT3;
+    cudaMemcpyAsync(&nTrackCandidatesPT3, trackCandidatesInGPU->nTrackCandidatespT3, sizeof(int), cudaMemcpyDeviceToHost,stream);
     cudaStreamSynchronize(stream);
 
     return nTrackCandidatesPT3;
 }
 
-unsigned int SDL::Event::getNumberOfPLSTrackCandidates()
+int SDL::Event::getNumberOfPLSTrackCandidates()
 {
     unsigned int nTrackCandidatesPLS;
-    cudaMemcpyAsync(&nTrackCandidatesPLS, trackCandidatesInGPU->nTrackCandidatespLS, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(&nTrackCandidatesPLS, trackCandidatesInGPU->nTrackCandidatespLS, sizeof(int), cudaMemcpyDeviceToHost,stream);
     cudaStreamSynchronize(stream);
 
     return nTrackCandidatesPLS;
 }
 
-unsigned int SDL::Event::getNumberOfPixelTrackCandidates()
+int SDL::Event::getNumberOfPixelTrackCandidates()
 {
-    unsigned int nTrackCandidates;
-    unsigned int nTrackCandidatesT5;
-    cudaMemcpyAsync(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(&nTrackCandidatesT5, trackCandidatesInGPU->nTrackCandidatesT5, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+    int nTrackCandidates;
+    int nTrackCandidatesT5;
+    cudaMemcpyAsync(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(int), cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(&nTrackCandidatesT5, trackCandidatesInGPU->nTrackCandidatesT5, sizeof(int), cudaMemcpyDeviceToHost,stream);
     cudaStreamSynchronize(stream);
 
     return nTrackCandidates - nTrackCandidatesT5;
 }
 
-unsigned int SDL::Event::getNumberOfT5TrackCandidates()
+int SDL::Event::getNumberOfT5TrackCandidates()
 {
-    unsigned int nTrackCandidatesT5;
-    cudaMemcpyAsync(&nTrackCandidatesT5, trackCandidatesInGPU->nTrackCandidatesT5, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+    int nTrackCandidatesT5;
+    cudaMemcpyAsync(&nTrackCandidatesT5, trackCandidatesInGPU->nTrackCandidatesT5, sizeof(int), cudaMemcpyDeviceToHost,stream);
     return nTrackCandidatesT5; 
 }
 
@@ -2435,10 +2495,10 @@ SDL::trackCandidates* SDL::Event::getTrackCandidates()
     if(trackCandidatesInCPU == nullptr)
     {
         trackCandidatesInCPU = new SDL::trackCandidates;
-        trackCandidatesInCPU->nTrackCandidates = new unsigned int;
-        cudaMemcpyAsync(trackCandidatesInCPU->nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+        trackCandidatesInCPU->nTrackCandidates = new int;
+        cudaMemcpyAsync(trackCandidatesInCPU->nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(int), cudaMemcpyDeviceToHost,stream);
         cudaStreamSynchronize(stream);
-        unsigned int nTrackCandidates = *(trackCandidatesInCPU->nTrackCandidates);
+        int nTrackCandidates = *(trackCandidatesInCPU->nTrackCandidates);
 
         trackCandidatesInCPU->directObjectIndices = new unsigned int[nTrackCandidates];
         trackCandidatesInCPU->objectIndices = new unsigned int[2 * nTrackCandidates];
