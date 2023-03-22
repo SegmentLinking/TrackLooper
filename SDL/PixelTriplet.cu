@@ -3,7 +3,6 @@
 #define CUDA_CONST_VAR __device__
 #endif
 # include "PixelTriplet.cuh"
-# include "PixelTracklet.cuh"
 #include "allocate.h"
 #include "Kernels.cuh"
 

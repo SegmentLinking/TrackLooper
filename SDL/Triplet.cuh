@@ -15,7 +15,6 @@
 #include "Constants.cuh"
 #include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"
-#include "Tracklet.cuh"
 #include "Segment.cuh"
 #include "MiniDoublet.cuh"
 #include "Module.cuh"
