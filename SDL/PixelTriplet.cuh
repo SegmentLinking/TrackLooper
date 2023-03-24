@@ -106,23 +106,13 @@ namespace SDL
         //(g,f) -> center
         //first anchor hit - (x1,y1), second anchor hit - (x2,y2), third anchor hit - (x3, y3)
 
-        /*
-        if((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3) == 0)
-        {
-            return -1; //WTF man three collinear points!
-        }
-        */
-
         float denomInv = 1.f/((ys[0] - ys[2]) * (xs[1] - xs[2]) - (xs[0] - xs[2]) * (ys[1] - ys[2]));
 
         float xy1sqr = xs[0] * xs[0] + ys[0] * ys[0];
-
         float xy2sqr = xs[1] * xs[1] + ys[1] * ys[1];
-
         float xy3sqr = xs[2] * xs[2] + ys[2] * ys[2];
 
         g = 0.5f * ((ys[2] - ys[1]) * xy1sqr + (ys[0] - ys[2]) * xy2sqr + (ys[1] - ys[0]) * xy3sqr) * denomInv;
-
         f = 0.5f * ((xs[1] - xs[2]) * xy1sqr + (xs[2] - xs[0]) * xy2sqr + (xs[0] - xs[1]) * xy3sqr) * denomInv;
 
         float c = ((xs[1] * ys[2] - xs[2] * ys[1]) * xy1sqr + (xs[2] * ys[0] - xs[0] * ys[2]) * xy2sqr + (xs[0] * ys[1] - xs[1] * ys[0]) * xy3sqr) * denomInv;
@@ -802,18 +792,19 @@ namespace SDL
                         continue;//sanity check
                     }
 #endif
-                    if(modulesInGPU.moduleType[tripletLowerModuleIndex] == SDL::TwoS) continue;//return; //Removes 2S-2S :FIXME: filter these out in the pixel map
+                    //Removes 2S-2S :FIXME: filter these out in the pixel map
+                    if(modulesInGPU.moduleType[tripletLowerModuleIndex] == SDL::TwoS) continue;
 
                     uint16_t pixelModuleIndex = *modulesInGPU.nLowerModules;
                     unsigned int nOuterTriplets = tripletsInGPU.nTriplets[tripletLowerModuleIndex];
-                    if(nOuterTriplets == 0) continue;//return;
+                    if(nOuterTriplets == 0) continue;
 
                     unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + i_pLS;
 
                     if(segmentsInGPU.isDup[i_pLS]) continue;
                     if(segmentsInGPU.partOfPT5[i_pLS]) continue;//don't make pT3s for those pixels that are part of pT5
 
-                    short layer2_adjustment;// = 2 - modulesInGPU.layers[tripletLowerModuleIndex];
+                    short layer2_adjustment;
                     if(modulesInGPU.layers[tripletLowerModuleIndex] == 1)
                     {
                         layer2_adjustment = 1;
@@ -882,7 +873,6 @@ namespace SDL
             betaAv = 0.5f * (betaInUpd + betaOutUpd);
 
             //1st update
-            //pt_beta = dr * k2Rinv1GeVf / alpaka::math::sin(acc, betaAv); //get a better pt estimate
             const float pt_beta_inv = 1.f/alpaka::math::abs(acc, dr * k2Rinv1GeVf / alpaka::math::sin(acc, betaAv)); //get a better pt estimate
 
             betaIn  += copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf *pt_beta_inv, SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
@@ -2126,7 +2116,6 @@ namespace SDL
             for(int i_pLS = globalThreadIdx[1]; i_pLS < nPixelSegments; i_pLS += gridThreadExtent[1])
             {
                 auto iLSModule_max = connectedPixelIndex[i_pLS] + connectedPixelSize[i_pLS];
-
                 for(int iLSModule = connectedPixelIndex[i_pLS] + globalBlockIdx[0]; iLSModule < iLSModule_max; iLSModule += gridBlockExtent[0])
                 {
                     //these are actual module indices
@@ -2229,7 +2218,7 @@ namespace SDL
         return ((firstMin <= secondMin) & (secondMin < firstMax)) |  ((secondMin < firstMin) & (firstMin < secondMax));
     };
  
-     template<typename TAcc>
+    template<typename TAcc>
     ALPAKA_FN_ACC ALPAKA_FN_INLINE bool runpT5DefaultAlgoPPBB(TAcc const & acc, struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU ,struct segments& segmentsInGPU, uint16_t& pixelModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int thirdMDIndex, unsigned int& fourthMDIndex, float& z_OutLo, float& rt_OutLo, float& dPhiPos, float& dPhi, float& betaIn,  float& betaOut, float& pt_beta, float& zLo, float& zHi, float& zLoPointed, float& zHiPointed, float& sdlCut, float& betaOutCut, float& deltaBetaCut) // pixel to BB and BE segments
     {
         bool pass = true;
