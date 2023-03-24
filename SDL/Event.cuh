@@ -16,6 +16,7 @@
 #include <chrono>
 #include "Kernels.cuh"
 #include "Constants.h"
+#include "allocate.h"
 
 #include "cuda_profiler_api.h"
 
@@ -130,8 +131,8 @@ namespace SDL
         unsigned int getNumberOfQuintupletsByLayerBarrel(unsigned int layer);
         unsigned int getNumberOfQuintupletsByLayerEndcap(unsigned int layer);
 
-        unsigned int getNumberOfPixelTriplets();
-        unsigned int getNumberOfPixelQuintuplets();
+        int getNumberOfPixelTriplets();
+        int getNumberOfPixelQuintuplets();
 
         unsigned int getNumberOfExtendedTracks();
         unsigned int getNumberOfT3T3ExtendedTracks();
