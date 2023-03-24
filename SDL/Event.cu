@@ -1,5 +1,4 @@
 #include "Event.cuh"
-#include "allocate.h"
 
 struct SDL::modules* SDL::modulesInGPU = nullptr;
 struct SDL::pixelMap* SDL::pixelMapping = nullptr;
@@ -1319,26 +1318,38 @@ void SDL::Event::createPixelTriplets()
     cms::cuda::free_host(pixelTypes);
     cms::cuda::free_host(nTriplets);
 
-    dim3 nThreads(32,4,1);
-    dim3 nBlocks(1,4096,16 /* above median of connected modules*/);
+    // Temporary fix for queue initialization.
+    QueueAcc queue(devAcc);
 
-    SDL::createPixelTripletsInGPUFromMapv2<<<nBlocks, nThreads,0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *pixelTripletsInGPU, connectedPixelSize_dev,connectedPixelIndex_dev,nInnerSegments);
+    Vec const threadsPerBlock(static_cast<Idx>(1), static_cast<Idx>(4), static_cast<Idx>(32));
+    Vec const blocksPerGrid(static_cast<Idx>(16 /* above median of connected modules*/), static_cast<Idx>(4096), static_cast<Idx>(1));
 
-    cudaError_t cudaerr = cudaGetLastError();
-    if(cudaerr != cudaSuccess)
-    {
-	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
+    WorkDiv const createPixelTripletsInGPUFromMapv2_workDiv(blocksPerGrid, threadsPerBlock, elementsPerThread);
 
-    }
-    cudaStreamSynchronize(stream);
-    //}cudaDeviceSynchronize();
+    SDL::createPixelTripletsInGPUFromMapv2 createPixelTripletsInGPUFromMapv2_kernel;
+    auto const createPixelTripletsInGPUFromMapv2Task(alpaka::createTaskKernel<Acc>(
+        createPixelTripletsInGPUFromMapv2_workDiv,
+        createPixelTripletsInGPUFromMapv2_kernel,
+        *modulesInGPU,
+        *rangesInGPU,
+        *mdsInGPU,
+        *segmentsInGPU,
+        *tripletsInGPU,
+        *pixelTripletsInGPU,
+        connectedPixelSize_dev,
+        connectedPixelIndex_dev,
+        nInnerSegments));
+
+    alpaka::enqueue(queue, createPixelTripletsInGPUFromMapv2Task);
+    alpaka::wait(queue);
+
     cms::cuda::free_device(dev, connectedPixelSize_dev);
     cms::cuda::free_device(dev, connectedPixelIndex_dev);
 
 
 #ifdef Warnings
-    unsigned int nPixelTriplets;
-    cudaMemcpyAsync(&nPixelTriplets, pixelTripletsInGPU->nPixelTriplets,  sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+    int nPixelTriplets;
+    cudaMemcpyAsync(&nPixelTriplets, pixelTripletsInGPU->nPixelTriplets,  sizeof(int), cudaMemcpyDeviceToHost,stream);
     cudaStreamSynchronize(stream);
     std::cout<<"number of pixel triplets = "<<nPixelTriplets<<std::endl;
 #endif
@@ -1495,22 +1506,34 @@ void SDL::Event::createPixelQuintuplets()
 
     cudaMemcpyAsync(connectedPixelSize_dev, connectedPixelSize_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(connectedPixelIndex_dev, connectedPixelIndex_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
-cudaStreamSynchronize(stream);
-
-    //less cheap method to estimate max_size for y axis
-    unsigned int max_size = *std::max_element(nQuintuplets, nQuintuplets + nLowerModules);
-    dim3 nThreads(16,16,1);
-    dim3 nBlocks(1,MAX_BLOCKS,16);
-                  
-    SDL::createPixelQuintupletsInGPUFromMapv2<<<nBlocks, nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *quintupletsInGPU, *pixelQuintupletsInGPU, connectedPixelSize_dev, connectedPixelIndex_dev, nInnerSegments,*rangesInGPU);
-
-    cudaError_t cudaerr = cudaGetLastError();
-    if(cudaerr != cudaSuccess)
-    {
-	    std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr)<<std::endl;
-
-    }
     cudaStreamSynchronize(stream);
+
+   // Temporary fix for queue initialization.
+    QueueAcc queue(devAcc);
+
+    Vec const threadsPerBlock(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
+    Vec const blocksPerGrid(static_cast<Idx>(16), static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1));
+
+    WorkDiv const createPixelQuintupletsInGPUFromMapv2_workDiv(blocksPerGrid, threadsPerBlock, elementsPerThread);
+
+    SDL::createPixelQuintupletsInGPUFromMapv2 createPixelQuintupletsInGPUFromMapv2_kernel;
+    auto const createPixelQuintupletsInGPUFromMapv2Task(alpaka::createTaskKernel<Acc>(
+        createPixelQuintupletsInGPUFromMapv2_workDiv,
+        createPixelQuintupletsInGPUFromMapv2_kernel,
+        *modulesInGPU,
+        *mdsInGPU,
+        *segmentsInGPU,
+        *tripletsInGPU,
+        *quintupletsInGPU,
+        *pixelQuintupletsInGPU,
+        connectedPixelSize_dev,
+        connectedPixelIndex_dev,
+        nInnerSegments,
+        *rangesInGPU));
+
+    alpaka::enqueue(queue, createPixelQuintupletsInGPUFromMapv2Task);
+    alpaka::wait(queue);
+
     cms::cuda::free_host(connectedPixelSize_host);
     cms::cuda::free_host(connectedPixelIndex_host);
     cms::cuda::free_device(dev, connectedPixelSize_dev);
@@ -1518,8 +1541,6 @@ cudaStreamSynchronize(stream);
     cms::cuda::free_host(superbins);
     cms::cuda::free_host(pixelTypes);
     cms::cuda::free_host(nQuintuplets);
-    //free(segs_pix);
-    //cudaFree(segs_pix_gpu);
 
     dim3 nThreads_dup(32,32,1);
     dim3 nBlocks_dup(1,MAX_BLOCKS,1);
@@ -1541,8 +1562,8 @@ cudaStreamSynchronize(stream);
     }
     cudaStreamSynchronize(stream);
 #ifdef Warnings
-    unsigned int nPixelQuintuplets;
-    cudaMemcpyAsync(&nPixelQuintuplets, &(pixelQuintupletsInGPU->nPixelQuintuplets), sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+    int nPixelQuintuplets;
+    cudaMemcpyAsync(&nPixelQuintuplets, &(pixelQuintupletsInGPU->nPixelQuintuplets), sizeof(int), cudaMemcpyDeviceToHost,stream);
     cudaStreamSynchronize(stream);
     std::cout<<"number of pixel quintuplets = "<<nPixelQuintuplets<<std::endl;
 #endif   
@@ -1755,18 +1776,18 @@ unsigned int SDL::Event::getNumberOfTripletsByLayerEndcap(unsigned int layer)
     return n_triplets_by_layer_endcap_[layer];
 }
 
-unsigned int SDL::Event::getNumberOfPixelTriplets()
+int SDL::Event::getNumberOfPixelTriplets()
 {
-    unsigned int nPixelTriplets;
-    cudaMemcpyAsync(&nPixelTriplets, pixelTripletsInGPU->nPixelTriplets, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+    int nPixelTriplets;
+    cudaMemcpyAsync(&nPixelTriplets, pixelTripletsInGPU->nPixelTriplets, sizeof(int), cudaMemcpyDeviceToHost,stream);
     cudaStreamSynchronize(stream);
     return nPixelTriplets;
 }
 
-unsigned int SDL::Event::getNumberOfPixelQuintuplets()
+int SDL::Event::getNumberOfPixelQuintuplets()
 {
-    unsigned int nPixelQuintuplets;
-    cudaMemcpyAsync(&nPixelQuintuplets, pixelQuintupletsInGPU->nPixelQuintuplets, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+    int nPixelQuintuplets;
+    cudaMemcpyAsync(&nPixelQuintuplets, pixelQuintupletsInGPU->nPixelQuintuplets, sizeof(int), cudaMemcpyDeviceToHost,stream);
     cudaStreamSynchronize(stream);
     return nPixelQuintuplets;
 }
@@ -2092,11 +2113,11 @@ SDL::pixelTriplets* SDL::Event::getPixelTriplets()
     {
         pixelTripletsInCPU = new SDL::pixelTriplets;
 
-        pixelTripletsInCPU->nPixelTriplets = new unsigned int;
-        pixelTripletsInCPU->totOccupancyPixelTriplets = new unsigned int;
-        cudaMemcpyAsync(pixelTripletsInCPU->nPixelTriplets, pixelTripletsInGPU->nPixelTriplets, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(pixelTripletsInCPU->totOccupancyPixelTriplets, pixelTripletsInGPU->totOccupancyPixelTriplets, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-cudaStreamSynchronize(stream);
+        pixelTripletsInCPU->nPixelTriplets = new int;
+        pixelTripletsInCPU->totOccupancyPixelTriplets = new int;
+        cudaMemcpyAsync(pixelTripletsInCPU->nPixelTriplets, pixelTripletsInGPU->nPixelTriplets, sizeof(int), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(pixelTripletsInCPU->totOccupancyPixelTriplets, pixelTripletsInGPU->totOccupancyPixelTriplets, sizeof(int), cudaMemcpyDeviceToHost,stream);
+        cudaStreamSynchronize(stream);
         unsigned int nPixelTriplets = *(pixelTripletsInCPU->nPixelTriplets);
         pixelTripletsInCPU->tripletIndices = new unsigned int[nPixelTriplets];
         pixelTripletsInCPU->pixelSegmentIndices = new unsigned int[nPixelTriplets];
@@ -2133,12 +2154,12 @@ SDL::pixelQuintuplets* SDL::Event::getPixelQuintuplets()
     {
         pixelQuintupletsInCPU = new SDL::pixelQuintuplets;
 
-        pixelQuintupletsInCPU->nPixelQuintuplets = new unsigned int;
-        pixelQuintupletsInCPU->totOccupancyPixelQuintuplets = new unsigned int;
-        cudaMemcpyAsync(pixelQuintupletsInCPU->nPixelQuintuplets, pixelQuintupletsInGPU->nPixelQuintuplets, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(pixelQuintupletsInCPU->totOccupancyPixelQuintuplets, pixelQuintupletsInGPU->totOccupancyPixelQuintuplets, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-cudaStreamSynchronize(stream);
-        unsigned int nPixelQuintuplets = *(pixelQuintupletsInCPU->nPixelQuintuplets);
+        pixelQuintupletsInCPU->nPixelQuintuplets = new int;
+        pixelQuintupletsInCPU->totOccupancyPixelQuintuplets = new int;
+        cudaMemcpyAsync(pixelQuintupletsInCPU->nPixelQuintuplets, pixelQuintupletsInGPU->nPixelQuintuplets, sizeof(int), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(pixelQuintupletsInCPU->totOccupancyPixelQuintuplets, pixelQuintupletsInGPU->totOccupancyPixelQuintuplets, sizeof(int), cudaMemcpyDeviceToHost,stream);
+        cudaStreamSynchronize(stream);
+        int nPixelQuintuplets = *(pixelQuintupletsInCPU->nPixelQuintuplets);
 
         pixelQuintupletsInCPU->pixelIndices = new unsigned int[nPixelQuintuplets];
         pixelQuintupletsInCPU->T5Indices = new unsigned int[nPixelQuintuplets];
