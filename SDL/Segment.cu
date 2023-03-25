@@ -1,10 +1,9 @@
-# include "Segment.cuh"
+#include "Segment.cuh"
 
 ///FIXME:NOTICE THE NEW maxPixelSegments!
 
 void SDL::segments::resetMemory(unsigned int nMemoryLocationsx, unsigned int nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
 {
-    // unsigned int nMemoryLocationsx = maxSegments * nLowerModules + maxPixelSegments;
     cudaMemsetAsync(mdIndices,0, nMemoryLocationsx * 2 * sizeof(unsigned int),stream);
     cudaMemsetAsync(innerLowerModuleIndices,0, nMemoryLocationsx * 2 * sizeof(uint16_t),stream);
     cudaMemsetAsync(nSegments, 0,(nLowerModules+1) * sizeof(int),stream);
@@ -136,8 +135,6 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     cudaMalloc(&segmentsInGPU.pLSHitsIdxs, maxPixelSegments * sizeof(uint4));
     cudaMalloc(&segmentsInGPU.nMemoryLocations, sizeof(unsigned int));
 #endif
-
-    //segmentsInGPU.innerLowerModuleIndices = segmentsInGPU.mdIndices + nMemoryLocations * 2;
     segmentsInGPU.outerLowerModuleIndices = segmentsInGPU.innerLowerModuleIndices + nMemoryLocations;
     segmentsInGPU.innerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + nMemoryLocations * 2;
     segmentsInGPU.outerMiniDoubletAnchorHitIndices = segmentsInGPU.mdIndices + nMemoryLocations * 3;
@@ -162,7 +159,6 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     cudaMemsetAsync(segmentsInGPU.pLSHitsIdxs, 0, maxPixelSegments * sizeof(uint4),stream);
     cudaMemsetAsync(segmentsInGPU.nMemoryLocations, nMemoryLocations, sizeof(unsigned int), stream);
     cudaStreamSynchronize(stream);
-
 }
 
 SDL::segments::segments()
@@ -193,7 +189,6 @@ SDL::segments::segments()
     dPhiChangeMaxs = nullptr;
     partOfPT5 = nullptr;
     pLSHitsIdxs = nullptr;
-
 }
 
 SDL::segments::~segments()
@@ -246,85 +241,6 @@ void SDL::segments::freeMemory(cudaStream_t stream)
     cudaFree(partOfPT5);
     cudaFree(pLSHitsIdxs);
     cudaFree(nMemoryLocations);
-}
-
-ALPAKA_FN_ACC void SDL::addSegmentToMemory(struct segments& segmentsInGPU, unsigned int lowerMDIndex, unsigned int upperMDIndex, uint16_t innerLowerModuleIndex, uint16_t outerLowerModuleIndex, unsigned int innerMDAnchorHitIndex, unsigned int outerMDAnchorHitIndex, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, unsigned int idx)
-{
-    //idx will be computed in the kernel, which is the index into which the 
-    //segment will be written
-    //nSegments will be incremented in the kernel
-    segmentsInGPU.mdIndices[idx * 2] = lowerMDIndex;
-    segmentsInGPU.mdIndices[idx * 2 + 1] = upperMDIndex;
-    segmentsInGPU.innerLowerModuleIndices[idx] = innerLowerModuleIndex;
-    segmentsInGPU.outerLowerModuleIndices[idx] = outerLowerModuleIndex;
-    segmentsInGPU.innerMiniDoubletAnchorHitIndices[idx] = innerMDAnchorHitIndex;
-    segmentsInGPU.outerMiniDoubletAnchorHitIndices[idx] = outerMDAnchorHitIndex;
-
-    segmentsInGPU.dPhis[idx]          = __F2H(dPhi);
-    segmentsInGPU.dPhiMins[idx]       = __F2H(dPhiMin);
-    segmentsInGPU.dPhiMaxs[idx]       = __F2H(dPhiMax);
-    segmentsInGPU.dPhiChanges[idx]    = __F2H(dPhiChange);
-    segmentsInGPU.dPhiChangeMins[idx] = __F2H(dPhiChangeMin);
-    segmentsInGPU.dPhiChangeMaxs[idx] = __F2H(dPhiChangeMax);
-
-}
-
-ALPAKA_FN_ACC void SDL::addPixelSegmentToMemory(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct modules& modulesInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, uint16_t pixelModuleIndex, unsigned int hitIdxs[4], unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr, float eta, float phi, int charge, unsigned int seedIdx, unsigned int idx, unsigned int pixelSegmentArrayIndex, int superbin, int8_t pixelType, short isQuad, float score)
-{
-    segmentsInGPU.mdIndices[idx * 2] = innerMDIndex;
-    segmentsInGPU.mdIndices[idx * 2 + 1] = outerMDIndex;
-    segmentsInGPU.innerLowerModuleIndices[idx] = pixelModuleIndex;
-    segmentsInGPU.outerLowerModuleIndices[idx] = pixelModuleIndex;
-    segmentsInGPU.innerMiniDoubletAnchorHitIndices[idx] = innerAnchorHitIndex;
-    segmentsInGPU.outerMiniDoubletAnchorHitIndices[idx] = outerAnchorHitIndex;
-    segmentsInGPU.dPhiChanges[idx] = __F2H(dPhiChange);
-    segmentsInGPU.ptIn[pixelSegmentArrayIndex] = ptIn;
-    segmentsInGPU.ptErr[pixelSegmentArrayIndex] = ptErr;
-    segmentsInGPU.px[pixelSegmentArrayIndex] = px;
-    segmentsInGPU.py[pixelSegmentArrayIndex] = py;
-    segmentsInGPU.pz[pixelSegmentArrayIndex] = pz;
-    segmentsInGPU.etaErr[pixelSegmentArrayIndex] = etaErr;
-    segmentsInGPU.eta[pixelSegmentArrayIndex] = eta;
-    segmentsInGPU.phi[pixelSegmentArrayIndex] = phi;
-    segmentsInGPU.charge[pixelSegmentArrayIndex] = charge;
-    segmentsInGPU.seedIdx[pixelSegmentArrayIndex] = seedIdx;
-
-    segmentsInGPU.superbin[pixelSegmentArrayIndex] = superbin;
-    segmentsInGPU.pixelType[pixelSegmentArrayIndex] = pixelType;
-    segmentsInGPU.isQuad[pixelSegmentArrayIndex] = isQuad;
-    segmentsInGPU.isDup[pixelSegmentArrayIndex] = false;
-    segmentsInGPU.score[pixelSegmentArrayIndex] = score;
-
-    segmentsInGPU.pLSHitsIdxs[pixelSegmentArrayIndex].x = hitIdxs[0];
-    segmentsInGPU.pLSHitsIdxs[pixelSegmentArrayIndex].y = hitIdxs[1];
-    segmentsInGPU.pLSHitsIdxs[pixelSegmentArrayIndex].z = hitIdxs[2];
-    segmentsInGPU.pLSHitsIdxs[pixelSegmentArrayIndex].w = hitIdxs[3];
-
-    //computing circle parameters
-    /*
-       The two anchor hits are r3PCA and r3LH. p3PCA pt, eta, phi is hitIndex1 x, y, z
-    */
-    float circleRadius = mdsInGPU.outerX[innerMDIndex] / (2 * k2Rinv1GeVf);
-    float circlePhi = mdsInGPU.outerZ[innerMDIndex];
-    float candidateCenterXs[] = {mdsInGPU.anchorX[innerMDIndex] + circleRadius * sinf(circlePhi), mdsInGPU.anchorX[innerMDIndex] - circleRadius * sinf(circlePhi)};
-    float candidateCenterYs[] = {mdsInGPU.anchorY[innerMDIndex] - circleRadius * cosf(circlePhi), mdsInGPU.anchorY[innerMDIndex] + circleRadius * cosf(circlePhi)};
-
-    //check which of the circles can accommodate r3LH better (we won't get perfect agreement)
-    float bestChiSquared = 123456789.f;
-    float chiSquared;
-    size_t bestIndex;
-    for(size_t i = 0; i < 2; i++)
-    {
-        chiSquared = fabsf(sqrtf((mdsInGPU.anchorX[outerMDIndex] - candidateCenterXs[i]) * (mdsInGPU.anchorX[outerMDIndex] - candidateCenterXs[i]) + (mdsInGPU.anchorY[outerMDIndex] - candidateCenterYs[i]) * (mdsInGPU.anchorY[outerMDIndex] - candidateCenterYs[i])) - circleRadius);
-        if(chiSquared < bestChiSquared)
-        {
-            bestChiSquared = chiSquared;
-            bestIndex = i;
-        }
-    }
-    segmentsInGPU.circleCenterX[pixelSegmentArrayIndex] = candidateCenterXs[bestIndex];
-    segmentsInGPU.circleCenterY[pixelSegmentArrayIndex] = candidateCenterYs[bestIndex];
-    segmentsInGPU.circleRadius[pixelSegmentArrayIndex] = circleRadius;
 }
 
 void SDL::printSegment(struct SDL::segments& segmentsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::hits& hitsInGPU, struct SDL::modules& modulesInGPU, unsigned int segmentIndex)
