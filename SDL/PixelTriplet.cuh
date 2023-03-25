@@ -1185,7 +1185,7 @@ namespace SDL
         if(not pass) return pass;
 
         const float dzOutInAbs = alpaka::math::abs(acc, z_OutLo - z_InUp);
-        const float coshEta = hypotf(ptIn, pz) / ptIn;
+        const float coshEta = alpaka::math::sqrt(acc, ptIn*ptIn + pz*pz) / ptIn;
         const float multDzDr = dzOutInAbs*coshEta/(coshEta*coshEta - 1.f);
         const float r3_InUp = alpaka::math::sqrt(acc, z_InUp * z_InUp + rt_InUp * rt_InUp);
         const float sdlThetaMulsF = 0.015f * alpaka::math::sqrt(acc, 0.1f + 0.2f * (rt_OutLo - rt_InUp) / 50.f) * alpaka::math::sqrt(acc, r3_InUp / rt_InUp);
@@ -2495,7 +2495,7 @@ namespace SDL
         if(not pass) return pass;
 
         const float dzOutInAbs = alpaka::math::abs(acc, z_OutLo - z_InUp);
-        const float coshEta = hypotf(ptIn, pz) / ptIn;
+        const float coshEta = alpaka::math::sqrt(acc, ptIn*ptIn + pz*pz) / ptIn;
         const float multDzDr = dzOutInAbs*coshEta/(coshEta*coshEta - 1.f);
         const float r3_InUp = alpaka::math::sqrt(acc, z_InUp * z_InUp + rt_InUp * rt_InUp);
         const float sdlThetaMulsF = 0.015f * alpaka::math::sqrt(acc, 0.1f + 0.2f * (rt_OutLo - rt_InUp) / 50.f) * alpaka::math::sqrt(acc, r3_InUp / rt_InUp);
