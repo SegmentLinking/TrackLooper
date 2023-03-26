@@ -43,7 +43,7 @@ namespace SDL
         unsigned int* seedIdx;
         int* superbin;
         int8_t* pixelType;
-        bool* isQuad;
+        short* isQuad;
         bool* isDup;
         float* score;
         float* circleCenterX;
@@ -346,7 +346,7 @@ namespace SDL
     }
 
     template<typename TAcc>
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addPixelSegmentToMemory(TAcc const & acc, struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct modules& modulesInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, uint16_t pixelModuleIndex, unsigned int hitIdxs[4], unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr, float eta, float phi, int charge, unsigned int seedIdx, unsigned int idx, unsigned int pixelSegmentArrayIndex, int superbin, int8_t pixelType, short isQuad, float score)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addPixelSegmentToMemory(TAcc const & acc, struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, uint16_t pixelModuleIndex, unsigned int hitIdxs[4], unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, unsigned int idx, unsigned int pixelSegmentArrayIndex, float score)
     {
         segmentsInGPU.mdIndices[idx * 2] = innerMDIndex;
         segmentsInGPU.mdIndices[idx * 2 + 1] = outerMDIndex;
@@ -355,20 +355,6 @@ namespace SDL
         segmentsInGPU.innerMiniDoubletAnchorHitIndices[idx] = innerAnchorHitIndex;
         segmentsInGPU.outerMiniDoubletAnchorHitIndices[idx] = outerAnchorHitIndex;
         segmentsInGPU.dPhiChanges[idx] = __F2H(dPhiChange);
-        segmentsInGPU.ptIn[pixelSegmentArrayIndex] = ptIn;
-        segmentsInGPU.ptErr[pixelSegmentArrayIndex] = ptErr;
-        segmentsInGPU.px[pixelSegmentArrayIndex] = px;
-        segmentsInGPU.py[pixelSegmentArrayIndex] = py;
-        segmentsInGPU.pz[pixelSegmentArrayIndex] = pz;
-        segmentsInGPU.etaErr[pixelSegmentArrayIndex] = etaErr;
-        segmentsInGPU.eta[pixelSegmentArrayIndex] = eta;
-        segmentsInGPU.phi[pixelSegmentArrayIndex] = phi;
-        segmentsInGPU.charge[pixelSegmentArrayIndex] = charge;
-        segmentsInGPU.seedIdx[pixelSegmentArrayIndex] = seedIdx;
-
-        segmentsInGPU.superbin[pixelSegmentArrayIndex] = superbin;
-        segmentsInGPU.pixelType[pixelSegmentArrayIndex] = pixelType;
-        segmentsInGPU.isQuad[pixelSegmentArrayIndex] = isQuad;
         segmentsInGPU.isDup[pixelSegmentArrayIndex] = false;
         segmentsInGPU.score[pixelSegmentArrayIndex] = score;
 
