@@ -307,7 +307,7 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
       hitIdxs.push_back(see_hitIdx[iSeed][0]);
       hitIdxs.push_back(see_hitIdx[iSeed][1]);
       hitIdxs.push_back(see_hitIdx[iSeed][2]);
-      bool isQuad = false;
+      short isQuad = false;
       if(see_hitIdx[iSeed].size() > 3) {
         isQuad = true;
         hitIdxs.push_back(see_hitIdx[iSeed][3]);
