@@ -99,7 +99,7 @@ namespace SDL {
         std::vector<unsigned int> in_seedIdx_vec_;
         std::vector<int> in_superbin_vec_;
         std::vector<int8_t> in_pixelType_vec_;
-        std::vector<short> in_isQuad_vec_;
+        std::vector<char> in_isQuad_vec_;
         std::vector<std::vector<unsigned int>> out_tc_hitIdxs_;
         std::vector<unsigned int> out_tc_len_;
         std::vector<int> out_tc_seedIdx_;
