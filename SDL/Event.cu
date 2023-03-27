@@ -762,6 +762,7 @@ struct addPixelSegmentToEventKernel
 void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> charge, std::vector<unsigned int> seedIdx, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<short> isQuad)
 {
     const int size = ptIn.size();
+    unsigned int mdSize = 2 * size;
     uint16_t pixelModuleIndex = (*detIdToIndex)[1];
 
     if(mdsInGPU == nullptr)
@@ -793,17 +794,11 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         cudaStreamSynchronize(stream);
     }
 
-    unsigned int* hitIndices0_dev;
-    unsigned int* hitIndices1_dev;
-    unsigned int* hitIndices2_dev;
-    unsigned int* hitIndices3_dev;
-    float* dPhiChange_dev;
-
-    hitIndices0_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
-    hitIndices1_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
-    hitIndices2_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
-    hitIndices3_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
-    dPhiChange_dev = (float*)cms::cuda::allocate_device(dev, size*sizeof(float), stream);
+    unsigned int* hitIndices0_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
+    unsigned int* hitIndices1_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
+    unsigned int* hitIndices2_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
+    unsigned int* hitIndices3_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
+    float* dPhiChange_dev = (float*)cms::cuda::allocate_device(dev, size*sizeof(float), stream);
 
     cudaMemcpyAsync(hitIndices0_dev, &hitIndices0[0], size*sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaMemcpyAsync(hitIndices1_dev, &hitIndices1[0], size*sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
@@ -824,6 +819,11 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     cudaMemcpyAsync(segmentsInGPU->seedIdx, &seedIdx[0], size*sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaMemcpyAsync(segmentsInGPU->superbin, &superbin[0], size*sizeof(int), cudaMemcpyHostToDevice, stream);
     cudaMemcpyAsync(segmentsInGPU->pixelType, &pixelType[0], size*sizeof(int8_t), cudaMemcpyHostToDevice, stream);
+
+    cudaMemcpyAsync(&(segmentsInGPU->nSegments)[pixelModuleIndex], &size, sizeof(int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(&(segmentsInGPU->totOccupancySegments)[pixelModuleIndex], &size, sizeof(int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(&(mdsInGPU->nMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(&(mdsInGPU->totOccupancyMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
 
     // Temporary fix for queue initialization.
@@ -852,13 +852,6 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
 
     alpaka::enqueue(queue, addPixelSegmentToEvent_task);
     alpaka::wait(queue);
-
-    unsigned int mdSize = 2 * size;
-    cudaMemcpyAsync(&(segmentsInGPU->nSegments)[pixelModuleIndex], &size, sizeof(int), cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(&(segmentsInGPU->totOccupancySegments)[pixelModuleIndex], &size, sizeof(int), cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(&(mdsInGPU->nMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(&(mdsInGPU->totOccupancyMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
-    cudaStreamSynchronize(stream);
   
     cms::cuda::free_device(dev, hitIndices0_dev);
     cms::cuda::free_device(dev, hitIndices1_dev);
