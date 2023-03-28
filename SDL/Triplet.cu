@@ -578,85 +578,6 @@ __device__ bool SDL::passPointingConstraintBBE(struct SDL::modules& modulesInGPU
     return pass;
 }
 
-__device__ bool SDL::passPointingConstraintEEE(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex, float& zOut, float& rtOut)
-{
-    bool pass = true;
-    bool isPSIn = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
-    bool isPSOut = (modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS);
-
-    float rtIn = mdsInGPU.anchorRt[firstMDIndex];
-    float rtMid = mdsInGPU.anchorRt[secondMDIndex];
-    rtOut = mdsInGPU.anchorRt[thirdMDIndex];
-    
-    float zIn = mdsInGPU.anchorZ[firstMDIndex];
-    float zMid = mdsInGPU.anchorZ[secondMDIndex];
-    zOut = mdsInGPU.anchorZ[thirdMDIndex];
-
-
-    float alpha1GeV_Out = asinf(fminf(rtOut * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax));
-
-    float rtRatio_OutIn = rtOut / rtIn; // Outer segment beginning rt divided by inner segment beginning rt;
-    float dzDrtScale = tanf(alpha1GeV_Out) / alpha1GeV_Out; // The track can bend in r-z plane slightly
-    float zpitchIn = (isPSIn ? SDL::pixelPSZpitch : SDL::strip2SZpitch);
-    float zpitchOut = (isPSOut ? SDL::pixelPSZpitch : SDL::strip2SZpitch);
-    float zGeom = zpitchIn + zpitchOut;
-
-    const float zLo = zIn + (zIn - SDL::deltaZLum) * (rtRatio_OutIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - zGeom; //slope-correction only on outer end
-
-
-    // Cut #0: Preliminary (Only here in endcap case)
-    pass = pass and (zIn * zOut > 0);
-    if(not pass) return pass;
-
-    float dLum = copysignf(SDL::deltaZLum, zIn);
-    bool isOutSgOuterMDPS = modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS;
-    bool isInSgInnerMDPS = modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS;
-
-    float rtGeom = (isInSgInnerMDPS and isOutSgOuterMDPS) ? 2.f * SDL::pixelPSZpitch : (isInSgInnerMDPS or isOutSgOuterMDPS) ? SDL::pixelPSZpitch + SDL::strip2SZpitch : 2.f * SDL::strip2SZpitch;
-
-    float zGeom1 = copysignf(zGeom,zIn);
-    float dz = zOut - zIn;
-    const float rtLo = rtIn * (1.f + dz / (zIn + dLum) / dzDrtScale) - rtGeom; //slope correction only on the lower end
-    const float rtHi = rtIn * (1.f + dz / (zIn - dLum)) + rtGeom;
-
-    //Cut #1: rt condition
-    pass = pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
-    if(not pass) return pass;
-    
-    bool isInSgOuterMDPS = modulesInGPU.moduleType[middleLowerModuleIndex] == SDL::PS;
-
-    float drOutIn = rtOut - rtIn;
-    float drtSDIn = rtMid - rtIn;
-    float dzSDIn = zMid - zIn;
-    float dr3SDIn = sqrtf(rtMid * rtMid + zMid * zMid) - sqrtf(rtIn * rtIn + zIn * zIn);
-
-    float coshEta = dr3SDIn / drtSDIn; //direction estimate
-    float dzOutInAbs =  fabsf(zOut - zIn);
-    float multDzDr = dzOutInAbs * coshEta / (coshEta * coshEta - 1.f);
-
-    float kZ = (zOut - zIn) / dzSDIn;
-    float sdlThetaMulsF = 0.015f * sqrtf(0.1f + 0.2f * (rtOut - rtIn) / 50.f);
-
-    float sdlMuls = sdlThetaMulsF * 3.f / SDL::ptCut * 4.f; //will need a better guess than x4?
-
-    float drtErr = sqrtf(SDL::pixelPSZpitch * SDL::pixelPSZpitch * 2.f / (dzSDIn * dzSDIn) * (dzOutInAbs * dzOutInAbs) + sdlMuls * sdlMuls * multDzDr * multDzDr / 3.f * coshEta * coshEta);
-
-    float drtMean = drtSDIn * dzOutInAbs/fabsf(dzSDIn);
-    float rtWindow = drtErr + rtGeom;
-    float rtLo_point = rtIn + drtMean / dzDrtScale - rtWindow;
-    float rtHi_point = rtIn + drtMean + rtWindow;
-
-    // Cut #3: rt-z pointed
-    // https://github.com/slava77/cms-tkph2-ntuple/blob/superDoubletLinked-91X-noMock/doubletAnalysis.C#L3765
-
-    if (isInSgInnerMDPS and isInSgOuterMDPS) // If both PS then we can point
-    {
-        pass = pass and ((kZ >= 0) &  (rtOut >= rtLo_point) & (rtOut <= rtHi_point));
-    }
-
-    return pass;
-}
-
 __global__ void SDL::createTripletsInGPUv2(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, struct SDL::objectRanges& rangesInGPU, uint16_t *index_gpu, uint16_t nonZeroModules)
 {
   int blockxSize = blockDim.x*gridDim.x;
@@ -1201,14 +1122,6 @@ __device__ bool SDL::runTripletDefaultAlgoEEEE(struct SDL::modules& modulesInGPU
         pass =  pass and (kZ >= 0 and rtOut >= rtLo_point and rtOut <= rtHi_point);
         if(not pass) return pass;
     }
-
-
-
-
-//    pass = pass and passPointingConstraintEEE(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, innerOuterLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, fourthMDIndex, zOut, rtOut);
-
-
-
 
     float sdlPVoff = 0.1f/rtOut;
     sdlCut = alpha1GeV_Out + sqrtf(sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
