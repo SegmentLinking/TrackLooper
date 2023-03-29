@@ -417,7 +417,7 @@ __device__ bool SDL::passPointingConstraint(struct SDL::modules& modulesInGPU, s
             and middleLowerModuleSubdet == SDL::Barrel
             and outerOuterLowerModuleSubdet == SDL::Barrel)
     {
-        return passPointingConstraintBBB(modulesInGPU, mdsInGPU, segmentsInGPU, innerInnerLowerModuleIndex, middleLowerModuleIndex, outerOuterLowerModuleIndex, firstMDIndex, secondMDIndex, thirdMDIndex, zOut, rtOut);
+        return true;
     }
     else if(innerInnerLowerModuleSubdet == SDL::Barrel
             and middleLowerModuleSubdet == SDL::Barrel
@@ -440,64 +440,6 @@ __device__ bool SDL::passPointingConstraint(struct SDL::modules& modulesInGPU, s
         return true;
     }
     return false; // failsafe    
-}
-
-__device__ bool SDL::passPointingConstraintBBB(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex, float& zOut, float& rtOut)
-{
-    bool pass = true;
-    bool isPSIn = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
-    bool isPSOut = (modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS);
-
-    float rtIn = mdsInGPU.anchorRt[firstMDIndex];
-    float rtMid = mdsInGPU.anchorRt[secondMDIndex];
-    rtOut = mdsInGPU.anchorRt[thirdMDIndex];
-    
-    float zIn = mdsInGPU.anchorZ[firstMDIndex];
-    float zMid = mdsInGPU.anchorZ[secondMDIndex];
-    zOut = mdsInGPU.anchorZ[thirdMDIndex];
-
-    float alpha1GeVOut = asinf(fminf(rtOut * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax));
-
-    float rtRatio_OutIn = rtOut / rtIn; // Outer segment beginning rt divided by inner segment beginning rt;
-    float dzDrtScale = tanf(alpha1GeVOut) / alpha1GeVOut; // The track can bend in r-z plane slightly
-    float zpitchIn = (isPSIn ? SDL::pixelPSZpitch : SDL::strip2SZpitch);
-    float zpitchOut = (isPSOut ? SDL::pixelPSZpitch : SDL::strip2SZpitch);
-
-    const float zHi = zIn + (zIn + SDL::deltaZLum) * (rtRatio_OutIn - 1.f) * (zIn < 0.f ? 1.f : dzDrtScale) + (zpitchIn + zpitchOut);
-    const float zLo = zIn + (zIn - SDL::deltaZLum) * (rtRatio_OutIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - (zpitchIn + zpitchOut); //slope-correction only on outer end
-
-    //Cut 1 - z compatibility
-    pass = pass and ((zOut >= zLo) & (zOut <= zHi));
-    if(not pass) return pass;
-
-    float drt_OutIn = (rtOut - rtIn);
-    float invRtIn = 1. / rtIn;
-
-    float r3In = sqrtf(zIn * zIn + rtIn * rtIn);
-    float drt_InSeg = rtMid - rtIn;
-    float dz_InSeg = zMid - zIn;
-    float dr3_InSeg = sqrtf(rtMid * rtMid + zMid * zMid) - sqrtf(rtIn * rtIn + zIn + zIn);
-
-    float coshEta = dr3_InSeg/drt_InSeg;
-    float dzErr = (zpitchIn + zpitchOut) * (zpitchIn + zpitchOut) * 2.f;
-
-    float sdlThetaMulsF = 0.015f * sqrt(0.1f + 0.2f * (rtOut - rtIn) / 50.f) * sqrt(r3In / rtIn);
-    float sdlMuls = sdlThetaMulsF * 3.f / SDL::ptCut * 4.f; // will need a better guess than x4?
-    dzErr += sdlMuls * sdlMuls * drt_OutIn * drt_OutIn / 3.f * coshEta * coshEta; //sloppy
-    dzErr = sqrt(dzErr);
-
-    // Constructing upper and lower bound
-    const float dzMean = dz_InSeg / drt_InSeg * drt_OutIn;
-    const float zWindow = dzErr / drt_InSeg * drt_OutIn + (zpitchIn + zpitchOut); //FIXME for SDL::ptCut lower than ~0.8 need to add curv path correction
-    const float zLoPointed = zIn + dzMean * (zIn > 0.f ? 1.f : dzDrtScale) - zWindow;
-    const float zHiPointed = zIn + dzMean * (zIn < 0.f ? 1.f : dzDrtScale) + zWindow;
-
-    // Constructing upper and lower bound
-
-    // Cut #2: Pointed Z (Inner segment two MD points to outer segment inner MD)
-    pass = pass and ((zOut >= zLoPointed) & (zOut <= zHiPointed));
-
-    return pass;
 }
 
 __device__ bool SDL::passPointingConstraintBBE(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex, float& zOut, float& rtOut)
@@ -640,15 +582,15 @@ __device__ bool SDL::runTripletDefaultAlgoBBBB(struct SDL::modules& modulesInGPU
     bool pass = true;
 
     bool isPS_InLo = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
-    bool isPS_OutLo = (modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS);
+    bool isPS_OutLo = (modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS); // We don't need to consider the 1MD and 2MD to see whether they are aligned, we only want to check the first one and third one
 
     float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
     float rt_InOut = mdsInGPU.anchorRt[secondMDIndex];
-    float rt_OutLo = mdsInGPU.anchorRt[thirdMDIndex];
+    float rt_OutLo = mdsInGPU.anchorRt[fourthMDIndex];
 
     float z_InLo = mdsInGPU.anchorZ[firstMDIndex];
     float z_InOut = mdsInGPU.anchorZ[secondMDIndex];
-    float z_OutLo = mdsInGPU.anchorZ[thirdMDIndex];
+    float z_OutLo = mdsInGPU.anchorZ[fourthMDIndex];
 
     float alpha1GeV_OutLo = asinf(fminf(rt_OutLo * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax));
 
