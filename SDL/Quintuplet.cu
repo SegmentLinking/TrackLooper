@@ -199,10 +199,6 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     cudaMalloc(&quintupletsInGPU.rzChiSquared, nTotalQuintuplets * sizeof(float));
     cudaMalloc(&quintupletsInGPU.chiSquared, nTotalQuintuplets * sizeof(float));
     cudaMalloc(&quintupletsInGPU.nonAnchorChiSquared, nTotalQuintuplets * sizeof(float));
-    cudaMalloc(&quintupletsInGPU.rzChiSquared, nTotalQuintuplets * sizeof(float));
-    cudaMalloc(&quintupletsInGPU.residual_missing, nTotalQuintuplets * sizeof(float));
-    cudaMalloc(&quintupletsInGPU.residual4, nTotalQuintuplets * sizeof(float));
-    cudaMalloc(&quintupletsInGPU.residual5, nTotalQuintuplets * sizeof(float));
     cudaMalloc(&quintupletsInGPU.nMemoryLocations, sizeof(unsigned int));
 #endif
     cudaMemsetAsync(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
@@ -388,6 +384,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     innerRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3, g, f);
 
     float inner_pt = 2 * k2Rinv1GeVf * innerRadius;
+    float residual_missing, residual4, residual5;
     pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, g, f, TightCutFlag);
 //    passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, residual_missing, residual4, residual5, inner_pt, innerRadius, g, f, TightCutFlag);
 
@@ -737,7 +734,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
 
     float zsi, rtsi;
     int layeri, moduleTypei;
-    float expectrt4=0,expectrt5=0,expectz4=0, expectz5=0;
     rzChiSquared=0;
     for(size_t i = 2; i < 6; i++)
     {
@@ -782,8 +778,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         float x = x_init + Px/a*sin(rou*s)-Py/a*(1-cos(rou*s));
         float y = y_init + Py/a*sin(rou*s)+Px/a*(1-cos(rou*s));
         diffr = (rtsi-sqrt(x*x+y*y))*100;
-        if (i==4) expectrt4=sqrt(x*x+y*y);
-        if (i==5) expectrt5=sqrt(x*x+y*y);
 
         // for barrel
         if (layeri<=6)
