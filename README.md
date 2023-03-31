@@ -64,6 +64,7 @@ Run the code
     -s: number of streams/events in flight
     -w: 0- no writout; 1- minimum writeout; 2- full ntuple writeout
     -o: provide an output root file name (e.g. LSTNtuple.root)
+    -l: add lower level object (pT3, pT5, T5, etc.) branches to the output
     
 Plotting numerators and denominators of performance plots
 
@@ -77,6 +78,19 @@ Plotting numerators and denominators of performance plots
 Plotting performance plots
 
     lst_plot_performance.py num_den_hist.root -t "mywork"
+
+There are several options you can provide to restrict number of plots being produced.
+And by default, it creates a certain set of objects.
+One can specifcy the type, range, metric, etc.
+To see the full information type
+
+    lst_plot_performance.py --help
+
+To give an example of plotting efficiency, object type of lower level T5, for |eta| < 2.5 only.
+
+    lst_plot_performance.py num_den_hist.root -t "mywork" -m eff -o T5_lower -s loweta
+
+NOTE: in order to plot lower level object, ```-l``` option must have been used during ```sdl``` step!
 
 When running on ```cgpu-1``` remember to specify python3 as there is no python.
 The shebang on the ```lst_plot_performance.py``` is not updated as ```lnx7188``` works with python2....
