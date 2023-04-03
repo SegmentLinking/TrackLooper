@@ -373,7 +373,7 @@ namespace SDL
         float candidateCenterYs[] = {mdsInGPU.anchorY[innerMDIndex] - circleRadius * alpaka::math::cos(acc, circlePhi), mdsInGPU.anchorY[innerMDIndex] + circleRadius * alpaka::math::cos(acc, circlePhi)};
 
         //check which of the circles can accommodate r3LH better (we won't get perfect agreement)
-        float bestChiSquared = 123456789.f;
+        float bestChiSquared = SDL::SDL_INF;
         float chiSquared;
         size_t bestIndex;
         for(size_t i = 0; i < 2; i++)

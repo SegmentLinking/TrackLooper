@@ -26,10 +26,6 @@ void SDL::segments::resetMemory(unsigned int nMemoryLocationsx, unsigned int nLo
 
 void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU, uint16_t& nLowerModules, int& nTotalSegments, cudaStream_t stream, const uint16_t& maxPixelSegments)
 {
-    /*
-        write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!
-    */
-
     int *module_segmentModuleIndices;
     short* module_subdets;
     short* module_layers;
@@ -47,7 +43,6 @@ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRa
     cudaMemcpyAsync(module_rings,modulesInGPU.rings,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_eta,modulesInGPU.eta,nLowerModules * sizeof(float),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(module_nConnectedModules,modulesInGPU.nConnectedModules,nLowerModules*sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
- 
     cudaStreamSynchronize(stream);
 
     nTotalSegments = 0; //start!   
