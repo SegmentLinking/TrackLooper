@@ -781,7 +781,6 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     if(segmentsInGPU == nullptr)
     {
         segmentsInGPU = (SDL::segments*)cms::cuda::allocate_host(sizeof(SDL::segments), stream);
-        // hardcoded range numbers for this will come from studies!
         // can be optimized here: because we didn't distinguish pixel segments and outer-tracker segments and call them both "segments", so they use the index continuously.
         // If we want to further study the memory footprint in detail, we can separate the two and allocate different memories to them
         createSegmentArrayRanges<<<1,1024,0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU);
@@ -852,7 +851,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
 
     alpaka::enqueue(queue, addPixelSegmentToEvent_task);
     alpaka::wait(queue);
-  
+
     cms::cuda::free_device(dev, hitIndices0_dev);
     cms::cuda::free_device(dev, hitIndices1_dev);
     cms::cuda::free_device(dev, hitIndices2_dev);
