@@ -326,7 +326,7 @@ namespace SDL
             }
 #endif
         }
-        chiSquared = computeChiSquaredpT3(acc, 3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius); //unclear why but the pT3 version doesn't work despite being copy and pasted
+        chiSquared = computeChiSquaredpT3(acc, 3, xs, ys, delta1, delta2, slopes, isFlat, g, f, radius);
         
         return chiSquared;
     };
@@ -853,8 +853,8 @@ namespace SDL
                         }
                     } // for outerTripletArrayIndex
                 } // for iLSModule < iLSModule_max
-            }
-        } // for i_pLS
+            } // for i_pLS
+        }
     };
 
     template<typename TAcc>
@@ -903,7 +903,7 @@ namespace SDL
     };
 
     template<typename TAcc>
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE bool runTripletDefaultAlgoPPBB(TAcc const & acc, struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU ,struct segments& segmentsInGPU, uint16_t& pixelModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int thirdMDIndex, unsigned int& fourthMDIndex, float& /*z_OutLo*/, float& /*rt_OutLo*/, float& dPhiPos, float& dPhi, float& betaIn, float& betaOut, float& pt_beta, float& zLo, float& zHi, float& zLoPointed, float& zHiPointed, float& sdlCut, float& betaOutCut, float& deltaBetaCut) // pixel to BB and BE segments
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE bool runTripletDefaultAlgoPPBB(TAcc const & acc, struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, uint16_t& pixelModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int thirdMDIndex, unsigned int& fourthMDIndex, float& /*z_OutLo*/, float& /*rt_OutLo*/, float& dPhiPos, float& dPhi, float& betaIn, float& betaOut, float& pt_beta, float& zLo, float& zHi, float& zLoPointed, float& zHiPointed, float& sdlCut, float& betaOutCut, float& deltaBetaCut) // pixel to BB and BE segments
     {
         bool pass = true;
 
@@ -993,9 +993,9 @@ namespace SDL
 
 #ifdef CUT_VALUE_DEBUG
         dPhiPos = deltaPhi_alpaka(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
-        //no dphipos cut
 #endif
 
+        //no dphipos cut
         float midPointX = 0.5f * (x_InLo + x_OutLo);
         float midPointY = 0.5f * (y_InLo + y_OutLo);
         float midPointZ = 0.5f * (z_InLo + z_OutLo);
@@ -2162,11 +2162,11 @@ namespace SDL
                                 segmentsInGPU.partOfPT5[i_pLS] = true;
                                 quintupletsInGPU.partOfPT5[quintupletIndex] = true;
                             } // tot occupancy
-                        } //end success
-                    } //end T5
-                } //end iLS
-            }
-        } // end i_pLS
+                        } // end success
+                    } // end T5
+                } // end iLS
+            } // end i_pLS
+        }
     };
 
     template<typename TAcc>
@@ -2219,7 +2219,7 @@ namespace SDL
     };
  
     template<typename TAcc>
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE bool runpT5DefaultAlgoPPBB(TAcc const & acc, struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU ,struct segments& segmentsInGPU, uint16_t& pixelModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int thirdMDIndex, unsigned int& fourthMDIndex, float& z_OutLo, float& rt_OutLo, float& dPhiPos, float& dPhi, float& betaIn,  float& betaOut, float& pt_beta, float& zLo, float& zHi, float& zLoPointed, float& zHiPointed, float& sdlCut, float& betaOutCut, float& deltaBetaCut) // pixel to BB and BE segments
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE bool runpT5DefaultAlgoPPBB(TAcc const & acc, struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, uint16_t& pixelModuleIndex, uint16_t& outerInnerLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int thirdMDIndex, unsigned int& fourthMDIndex, float& z_OutLo, float& rt_OutLo, float& dPhiPos, float& dPhi, float& betaIn,  float& betaOut, float& pt_beta, float& zLo, float& zHi, float& zLoPointed, float& zHiPointed, float& sdlCut, float& betaOutCut, float& deltaBetaCut) // pixel to BB and BE segments
     {
         bool pass = true;
 
