@@ -126,7 +126,7 @@ namespace SDL {
     std::vector<unsigned int> in_seedIdx_vec_;
     std::vector<int> in_superbin_vec_;
     std::vector<int8_t> in_pixelType_vec_;
-    std::vector<short> in_isQuad_vec_;
+    std::vector<char> in_isQuad_vec_;
     std::vector<float> out_tc_pt_;
     std::vector<float> out_tc_eta_;
     std::vector<float> out_tc_phi_;

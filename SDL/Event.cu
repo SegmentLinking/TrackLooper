@@ -760,7 +760,7 @@ struct addPixelSegmentToEventKernel
     }
 };
 
-void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> charge, std::vector<unsigned int> seedIdx, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<short> isQuad)
+void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> charge, std::vector<unsigned int> seedIdx, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<char> isQuad)
 {
     const int size = ptIn.size();
     unsigned int mdSize = 2 * size;
@@ -806,7 +806,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     cudaMemcpyAsync(hitIndices3_dev, &hitIndices3[0], size*sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaMemcpyAsync(dPhiChange_dev, &dPhiChange[0], size*sizeof(float), cudaMemcpyHostToDevice, stream);
 
-    cudaMemcpyAsync(segmentsInGPU->isQuad, &isQuad[0], size*sizeof(short), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(segmentsInGPU->isQuad, &isQuad[0], size*sizeof(char), cudaMemcpyHostToDevice, stream);
     cudaMemcpyAsync(segmentsInGPU->ptIn, &ptIn[0], size*sizeof(float), cudaMemcpyHostToDevice, stream);
     cudaMemcpyAsync(segmentsInGPU->ptErr, &ptErr[0], size*sizeof(float), cudaMemcpyHostToDevice, stream);
     cudaMemcpyAsync(segmentsInGPU->px, &px[0], size*sizeof(float), cudaMemcpyHostToDevice, stream);
@@ -1951,7 +1951,7 @@ SDL::segments* SDL::Event::getSegments()
         segmentsInCPU->phi = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
         segmentsInCPU->seedIdx = new unsigned int[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
         segmentsInCPU->isDup = new bool[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
-        segmentsInCPU->isQuad = new short[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
+        segmentsInCPU->isQuad = new char[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
         segmentsInCPU->score = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
 
         cudaMemcpyAsync(segmentsInCPU->mdIndices, segmentsInGPU->mdIndices, 2 * *(segmentsInCPU->nMemoryLocations) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
@@ -1963,7 +1963,7 @@ SDL::segments* SDL::Event::getSegments()
         cudaMemcpyAsync(segmentsInCPU->phi, segmentsInGPU->phi, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(segmentsInCPU->seedIdx, segmentsInGPU->seedIdx, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(segmentsInCPU->isDup, segmentsInGPU->isDup, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(bool), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(segmentsInCPU->isQuad, segmentsInGPU->isQuad, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(short), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(segmentsInCPU->isQuad, segmentsInGPU->isQuad, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(char), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(segmentsInCPU->score, segmentsInGPU->score, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost,stream);
         cudaStreamSynchronize(stream);
     }
