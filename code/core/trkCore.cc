@@ -845,7 +845,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][0]);
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][1]);
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][2]);
-            bool isQuad = false;
+            short isQuad = false;
             if (trk.see_hitIdx()[iSeed].size() > 3)
             {
                 isQuad = true;
@@ -1386,7 +1386,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][0]);
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][1]);
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][2]);
-            bool isQuad = false;
+            short isQuad = false;
             if (trk.see_hitIdx()[iSeed].size() > 3)
             {
                 isQuad = true;
