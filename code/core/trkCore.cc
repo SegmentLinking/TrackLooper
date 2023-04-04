@@ -649,7 +649,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
                                            std::vector<std::vector<unsigned int>> &out_seedIdx_vec,
                                            std::vector<std::vector<int>> &out_superbin_vec,
                                            std::vector<std::vector<int8_t>> &out_pixelType_vec,
-                                           std::vector<std::vector<short>> &out_isQuad_vec)
+                                           std::vector<std::vector<char>> &out_isQuad_vec)
 {
 
     unsigned int count = 0;
@@ -692,7 +692,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
 
     std::vector<int> superbin_vec;
     std::vector<int8_t> pixelType_vec;
-    std::vector<short> isQuad_vec;
+    std::vector<char> isQuad_vec;
     std::iota(hitIdxs.begin(), hitIdxs.end(), 0);
     const int hit_size = trkX.size();
 
@@ -845,7 +845,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][0]);
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][1]);
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][2]);
-            short isQuad = false;
+            char isQuad = false;
             if (trk.see_hitIdx()[iSeed].size() > 3)
             {
                 isQuad = true;
@@ -921,7 +921,7 @@ float addInputsToEventPreLoad(SDL::Event* event,
                               std::vector<unsigned int> seedIdx_vec,
                               std::vector<int> superbin_vec,
                               std::vector<int8_t> pixelType_vec,
-                              std::vector<short> isQuad_vec)
+                              std::vector<char> isQuad_vec)
 {
     TStopwatch my_timer;
 
@@ -1259,7 +1259,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
     std::vector<unsigned int> hitIdxs(trk.ph2_detId().size());
     std::vector<int> superbin_vec;
     std::vector<int8_t> pixelType_vec;
-    std::vector<short> isQuad_vec;
+    std::vector<char> isQuad_vec;
     std::iota(hitIdxs.begin(), hitIdxs.end(), 0);
     const int hit_size = trkX.size();
 
@@ -1386,7 +1386,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][0]);
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][1]);
             hitIdxs.push_back(trk.see_hitIdx()[iSeed][2]);
-            short isQuad = false;
+            char isQuad = false;
             if (trk.see_hitIdx()[iSeed].size() > 3)
             {
                 isQuad = true;

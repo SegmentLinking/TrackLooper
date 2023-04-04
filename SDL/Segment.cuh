@@ -43,7 +43,7 @@ namespace SDL
         unsigned int* seedIdx;
         int* superbin;
         int8_t* pixelType;
-        short* isQuad;
+        char* isQuad;
         bool* isDup;
         float* score;
         float* circleCenterX;
