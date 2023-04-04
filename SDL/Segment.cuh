@@ -54,9 +54,10 @@ namespace SDL
 
         segments();
         ~segments();
-	void freeMemory(cudaStream_t stream);
-	void freeMemoryCache();
-    void resetMemory(unsigned int nMemoryLocationsx, unsigned int nModules, unsigned int maxPixelSegments,cudaStream_t stream);
+
+	    void freeMemory(cudaStream_t stream);
+	    void freeMemoryCache();
+        void resetMemory(unsigned int nMemoryLocationsx, unsigned int nModules, unsigned int maxPixelSegments,cudaStream_t stream);
     };
 
     void createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, uint16_t nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream);
@@ -85,9 +86,9 @@ namespace SDL
         // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
         // This is the same as what was previously considered as"isNormalTiltedModules"
         // See Figure 9.1 of https://cds.cern.ch/record/2272264/files/CMS-TDR-014.pdf
-    return subdet == Barrel & ( ((side != Center) & (layer== 3))
-                    | (side == NegZ & (((layer == 2) & (rod > 5)) | ((layer == 1) & (rod > 9))))
-                    | (side == PosZ & (((layer == 2) & (rod < 8)) | ((layer == 1) & (rod < 4)))) );
+        return subdet == Barrel & ( ((side != Center) & (layer== 3))
+                        | (side == NegZ & (((layer == 2) & (rod > 5)) | ((layer == 1) & (rod > 9))))
+                        | (side == PosZ & (((layer == 2) & (rod < 8)) | ((layer == 1) & (rod < 4)))) );
     };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE float moduleGapSize_seg(short layer, short ring, short subdet, short side, short rod)
@@ -516,7 +517,6 @@ namespace SDL
 
                 for(uint16_t outerLowerModuleArrayIdx = blockThreadIdx[1]; outerLowerModuleArrayIdx< nConnectedModules; outerLowerModuleArrayIdx+= blockThreadExtent[1])
                 {
-
                     uint16_t outerLowerModuleIndex = modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + outerLowerModuleArrayIdx];
 
                     unsigned int nOuterMDs = mdsInGPU.nMDs[outerLowerModuleIndex];
@@ -559,7 +559,6 @@ namespace SDL
                                 unsigned int segmentIdx = rangesInGPU.segmentModuleIndices[innerLowerModuleIndex] + segmentModuleIdx;
 
                                 addSegmentToMemory(segmentsInGPU,innerMDIndex, outerMDIndex,innerLowerModuleIndex, outerLowerModuleIndex, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, segmentIdx);
-
                             }
                         }
                     }
