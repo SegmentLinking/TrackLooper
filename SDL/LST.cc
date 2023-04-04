@@ -222,7 +222,7 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
 
   std::vector<int> superbin_vec;
   std::vector<int8_t> pixelType_vec;
-  std::vector<short> isQuad_vec;
+  std::vector<char> isQuad_vec;
   std::iota(hitIdxs.begin(), hitIdxs.end(), 0);
   const int hit_size = trkX.size();
 
@@ -313,7 +313,7 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
       hitIdxs.push_back(see_hitIdx[iSeed][0]);
       hitIdxs.push_back(see_hitIdx[iSeed][1]);
       hitIdxs.push_back(see_hitIdx[iSeed][2]);
-      bool isQuad = false;
+      char isQuad = false;
       if(see_hitIdx[iSeed].size() > 3) {
         isQuad = true;
         hitIdxs.push_back(see_hitIdx[iSeed][3]);

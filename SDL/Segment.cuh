@@ -43,7 +43,7 @@ namespace SDL
         unsigned int* seedIdx;
         int* superbin;
         int8_t* pixelType;
-        bool* isQuad;
+        char* isQuad;
         bool* isDup;
         float* score;
         float* circleCenterX;
@@ -54,9 +54,10 @@ namespace SDL
 
         segments();
         ~segments();
-	void freeMemory(cudaStream_t stream);
-	void freeMemoryCache();
-    void resetMemory(unsigned int nMemoryLocationsx, unsigned int nModules, unsigned int maxPixelSegments,cudaStream_t stream);
+
+        void freeMemory(cudaStream_t stream);
+        void freeMemoryCache();
+        void resetMemory(unsigned int nMemoryLocationsx, unsigned int nModules, unsigned int maxPixelSegments,cudaStream_t stream);
     };
 
     void createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, uint16_t nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream);
@@ -83,7 +84,6 @@ namespace SDL
             return true;
         else
             return false;
-
     };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE float isTighterTiltedModules_seg(short subdet, short layer, short side, short rod)
@@ -101,7 +101,6 @@ namespace SDL
             return true;
         else
             return false;
-
     };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE float moduleGapSize_seg(short layer, short ring, short subdet, short side, short rod)
@@ -150,7 +149,6 @@ namespace SDL
                 }
             }
         }
-
 
         unsigned int iL = layer-1;
         unsigned int iR = ring - 1;
@@ -223,7 +221,6 @@ namespace SDL
                 }
             }
         }
-
 
         unsigned int iL = modulesInGPU.layers[moduleIndex]-1;
         unsigned int iR = modulesInGPU.rings[moduleIndex] - 1;
@@ -324,9 +321,71 @@ namespace SDL
         dAlphaThresholdValues[2] = dAlpha_Bfield + alpaka::math::sqrt(acc, dAlpha_res * dAlpha_res + sdMuls * sdMuls);
     };
 
-    ALPAKA_FN_ACC void addSegmentToMemory(struct segments& segmentsInGPU, unsigned int lowerMDIndex, unsigned int upperMDIndex, uint16_t innerLowerModuleIndex, uint16_t outerLowerModuleIndex, unsigned int innerMDAnchorHitIndex, unsigned int outerMDAnchorHitIndex, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, unsigned int idx);
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addSegmentToMemory(struct segments& segmentsInGPU, unsigned int lowerMDIndex, unsigned int upperMDIndex, uint16_t innerLowerModuleIndex, uint16_t outerLowerModuleIndex, unsigned int innerMDAnchorHitIndex, unsigned int outerMDAnchorHitIndex, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, unsigned int idx)
+    {
+        //idx will be computed in the kernel, which is the index into which the 
+        //segment will be written
+        //nSegments will be incremented in the kernel
+        //printf("seg: %u %u %u %u\n",lowerMDIndex, upperMDIndex,innerLowerModuleIndex,outerLowerModuleIndex);
+        segmentsInGPU.mdIndices[idx * 2] = lowerMDIndex;
+        segmentsInGPU.mdIndices[idx * 2 + 1] = upperMDIndex;
+        segmentsInGPU.innerLowerModuleIndices[idx] = innerLowerModuleIndex;
+        segmentsInGPU.outerLowerModuleIndices[idx] = outerLowerModuleIndex;
+        segmentsInGPU.innerMiniDoubletAnchorHitIndices[idx] = innerMDAnchorHitIndex;
+        segmentsInGPU.outerMiniDoubletAnchorHitIndices[idx] = outerMDAnchorHitIndex;
 
-    ALPAKA_FN_ACC void addPixelSegmentToMemory(struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, struct modules& modulesInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, uint16_t pixelModuleIndex, unsigned int hitIdxs[4], unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, float ptIn, float ptErr, float px, float py, float pz, float etaErr, float eta, float phi, int charge, unsigned int seedIdx, unsigned int idx, unsigned int pixelSegmentArrayIndex, int superbin, int8_t pixelType, short isQuad, float score);
+        segmentsInGPU.dPhis[idx]          = __F2H(dPhi);
+        segmentsInGPU.dPhiMins[idx]       = __F2H(dPhiMin);
+        segmentsInGPU.dPhiMaxs[idx]       = __F2H(dPhiMax);
+        segmentsInGPU.dPhiChanges[idx]    = __F2H(dPhiChange);
+        segmentsInGPU.dPhiChangeMins[idx] = __F2H(dPhiChangeMin);
+        segmentsInGPU.dPhiChangeMaxs[idx] = __F2H(dPhiChangeMax);
+    }
+
+    template<typename TAcc>
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addPixelSegmentToMemory(TAcc const & acc, struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, uint16_t pixelModuleIndex, unsigned int hitIdxs[4], unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, unsigned int idx, unsigned int pixelSegmentArrayIndex, float score)
+    {
+        segmentsInGPU.mdIndices[idx * 2] = innerMDIndex;
+        segmentsInGPU.mdIndices[idx * 2 + 1] = outerMDIndex;
+        segmentsInGPU.innerLowerModuleIndices[idx] = pixelModuleIndex;
+        segmentsInGPU.outerLowerModuleIndices[idx] = pixelModuleIndex;
+        segmentsInGPU.innerMiniDoubletAnchorHitIndices[idx] = innerAnchorHitIndex;
+        segmentsInGPU.outerMiniDoubletAnchorHitIndices[idx] = outerAnchorHitIndex;
+        segmentsInGPU.dPhiChanges[idx] = __F2H(dPhiChange);
+        segmentsInGPU.isDup[pixelSegmentArrayIndex] = false;
+        segmentsInGPU.score[pixelSegmentArrayIndex] = score;
+
+        segmentsInGPU.pLSHitsIdxs[pixelSegmentArrayIndex].x = hitIdxs[0];
+        segmentsInGPU.pLSHitsIdxs[pixelSegmentArrayIndex].y = hitIdxs[1];
+        segmentsInGPU.pLSHitsIdxs[pixelSegmentArrayIndex].z = hitIdxs[2];
+        segmentsInGPU.pLSHitsIdxs[pixelSegmentArrayIndex].w = hitIdxs[3];
+
+        //computing circle parameters
+        /*
+        The two anchor hits are r3PCA and r3LH. p3PCA pt, eta, phi is hitIndex1 x, y, z
+        */
+        float circleRadius = mdsInGPU.outerX[innerMDIndex] / (2 * k2Rinv1GeVf);
+        float circlePhi = mdsInGPU.outerZ[innerMDIndex];
+        float candidateCenterXs[] = {mdsInGPU.anchorX[innerMDIndex] + circleRadius * alpaka::math::sin(acc, circlePhi), mdsInGPU.anchorX[innerMDIndex] - circleRadius * alpaka::math::sin(acc, circlePhi)};
+        float candidateCenterYs[] = {mdsInGPU.anchorY[innerMDIndex] - circleRadius * alpaka::math::cos(acc, circlePhi), mdsInGPU.anchorY[innerMDIndex] + circleRadius * alpaka::math::cos(acc, circlePhi)};
+
+        //check which of the circles can accommodate r3LH better (we won't get perfect agreement)
+        float bestChiSquared = SDL::SDL_INF;
+        float chiSquared;
+        size_t bestIndex;
+        for(size_t i = 0; i < 2; i++)
+        {
+            chiSquared = alpaka::math::abs(acc, alpaka::math::sqrt(acc, (mdsInGPU.anchorX[outerMDIndex] - candidateCenterXs[i]) * (mdsInGPU.anchorX[outerMDIndex] - candidateCenterXs[i]) + (mdsInGPU.anchorY[outerMDIndex] - candidateCenterYs[i]) * (mdsInGPU.anchorY[outerMDIndex] - candidateCenterYs[i])) - circleRadius);
+            if(chiSquared < bestChiSquared)
+            {
+                bestChiSquared = chiSquared;
+                bestIndex = i;
+            }
+        }
+        segmentsInGPU.circleCenterX[pixelSegmentArrayIndex] = candidateCenterXs[bestIndex];
+        segmentsInGPU.circleCenterY[pixelSegmentArrayIndex] = candidateCenterYs[bestIndex];
+        segmentsInGPU.circleRadius[pixelSegmentArrayIndex] = circleRadius;
+    };
 
     template<typename TAcc>
     ALPAKA_FN_ACC ALPAKA_FN_INLINE bool runSegmentDefaultAlgoBarrel(TAcc const & acc, struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, uint16_t& innerLowerModuleIndex, uint16_t& outerLowerModuleIndex, unsigned int& innerMDIndex, unsigned int& outerMDIndex, float& zIn, float& zOut, float& rtIn, float& rtOut, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, float& dAlphaInnerMDSegment, float& dAlphaOuterMDSegment, float&dAlphaInnerMDOuterMD, float& zLo, float& zHi, float& sdCut, float& dAlphaInnerMDSegmentThreshold, float& dAlphaOuterMDSegmentThreshold, float& dAlphaInnerMDOuterMDThreshold)
@@ -532,18 +591,15 @@ namespace SDL
             for(uint16_t innerLowerModuleIndex = globalBlockIdx[2]; innerLowerModuleIndex < (*modulesInGPU.nLowerModules); innerLowerModuleIndex += gridBlockExtent[2])
             {
                 unsigned int nConnectedModules = modulesInGPU.nConnectedModules[innerLowerModuleIndex];
-                //printf("HERE:  %d nConnectedModules = %d\n", innerLowerModuleIndex, nConnectedModules);
 
                 for(uint16_t outerLowerModuleArrayIdx = blockThreadIdx[1]; outerLowerModuleArrayIdx< nConnectedModules; outerLowerModuleArrayIdx+= blockThreadExtent[1])
                 {
-
                     uint16_t outerLowerModuleIndex = modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + outerLowerModuleArrayIdx];
 
                     unsigned int nInnerMDs = mdsInGPU.nMDs[innerLowerModuleIndex];
                     unsigned int nOuterMDs = mdsInGPU.nMDs[outerLowerModuleIndex];
 
                     int limit = nInnerMDs*nOuterMDs;
-                    //printf("HERE:  %d %d limit %d\n", innerLowerModuleIndex, outerLowerModuleArrayIdx, limit);
 
                     if (limit == 0) continue;
                     for(int hitIndex = blockThreadIdx[2]; hitIndex < limit; hitIndex += blockThreadExtent[2])
@@ -581,7 +637,6 @@ namespace SDL
                                 unsigned int segmentIdx = rangesInGPU.segmentModuleIndices[innerLowerModuleIndex] + segmentModuleIdx;
 
                                 addSegmentToMemory(segmentsInGPU,innerMDIndex, outerMDIndex,innerLowerModuleIndex, outerLowerModuleIndex, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, segmentIdx);
-
                             }
                         }
                     }

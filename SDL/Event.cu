@@ -559,7 +559,6 @@ struct moduleRangesKernel
         struct SDL::hits *hitsInGPU,
         int const & nLowerModules) const
     {
-
         using Dim = alpaka::Dim<TAcc>;
         using Idx = alpaka::Idx<TAcc>;
         using Vec = alpaka::Vec<Dim, Idx>;
@@ -597,7 +596,6 @@ struct hitLoopKernel
         struct SDL::hits *hitsInGPU,
         int const & nHits) const // Total number of hits in event
     {
-
         using Dim = alpaka::Dim<TAcc>;
         using Idx = alpaka::Idx<TAcc>;
         using Vec = alpaka::Vec<Dim, Idx>;
@@ -613,8 +611,7 @@ struct hitLoopKernel
             int iDetId = hitsInGPU->detid[ihit];
     
             hitsInGPU->rts[ihit] = alpaka::math::sqrt(acc, ihit_x*ihit_x + ihit_y*ihit_y);
-            // This needs to get moved over after all kernels that use it have been moved.
-            hitsInGPU->phis[ihit] = SDL::phi(ihit_x,ihit_y);
+            hitsInGPU->phis[ihit] = SDL::phi_alpaka(acc, ihit_x,ihit_y);
             // Acosh has no supported implementation in Alpaka right now.
             hitsInGPU->etas[ihit] = ((ihit_z>0)-(ihit_z<0))*acosh(alpaka::math::sqrt(acc, ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/hitsInGPU->rts[ihit]);
     
@@ -721,50 +718,76 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     alpaka::enqueue(queue, module_ranges_task);
 }
 
-__global__ void addPixelSegmentToEventKernel(unsigned int* hitIndices0,unsigned int* hitIndices1,unsigned int* hitIndices2,unsigned int* hitIndices3, float* dPhiChange, float* ptIn, float* ptErr, float* px, float* py, float* pz, float* eta, float* etaErr,float* phi, int* charge, unsigned int* seedIdx, uint16_t pixelModuleIndex, struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::hits& hitsInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU,const int size, int* superbin, int8_t* pixelType, short* isQuad)
+struct addPixelSegmentToEventKernel
 {
-    for( int tid = blockIdx.x * blockDim.x + threadIdx.x; tid < size; tid += blockDim.x*gridDim.x)
+    ALPAKA_NO_HOST_ACC_WARNING
+    template<typename TAcc>
+    ALPAKA_FN_ACC void operator()(
+        TAcc const & acc,
+        struct SDL::modules& modulesInGPU,
+        struct SDL::objectRanges& rangesInGPU,
+        struct SDL::hits& hitsInGPU,
+        struct SDL::miniDoublets& mdsInGPU,
+        struct SDL::segments& segmentsInGPU,
+        unsigned int* hitIndices0,
+        unsigned int* hitIndices1,
+        unsigned int* hitIndices2,
+        unsigned int* hitIndices3,
+        float* dPhiChange,
+        uint16_t pixelModuleIndex,
+        const int size) const
     {
+        using Dim = alpaka::Dim<TAcc>;
+        using Idx = alpaka::Idx<TAcc>;
+        using Vec = alpaka::Vec<Dim, Idx>;
 
-      unsigned int innerMDIndex = rangesInGPU.miniDoubletModuleIndices[pixelModuleIndex] + 2*(tid);
-      unsigned int outerMDIndex = rangesInGPU.miniDoubletModuleIndices[pixelModuleIndex] + 2*(tid) +1;
-      unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + tid;
+        Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+        Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
-      addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices0[tid], hitIndices1[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,innerMDIndex);
-      addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices2[tid], hitIndices3[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,outerMDIndex);
+        for(int tid = globalThreadIdx[2]; tid < size; tid += gridThreadExtent[2])
+        {
+            unsigned int innerMDIndex = rangesInGPU.miniDoubletModuleIndices[pixelModuleIndex] + 2*(tid);
+            unsigned int outerMDIndex = rangesInGPU.miniDoubletModuleIndices[pixelModuleIndex] + 2*(tid) +1;
+            unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + tid;
 
-    //in outer hits - pt, eta, phi
-    float slope = sinhf(hitsInGPU.ys[mdsInGPU.outerHitIndices[innerMDIndex]]);
-    float intercept = hitsInGPU.zs[mdsInGPU.anchorHitIndices[innerMDIndex]] - slope * hitsInGPU.rts[mdsInGPU.anchorHitIndices[innerMDIndex]];
-    float score_lsq=(hitsInGPU.rts[mdsInGPU.anchorHitIndices[outerMDIndex]] * slope + intercept) - (hitsInGPU.zs[mdsInGPU.anchorHitIndices[outerMDIndex]]);
-    score_lsq = score_lsq * score_lsq;
+            addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices0[tid], hitIndices1[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,innerMDIndex);
+            addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices2[tid], hitIndices3[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,outerMDIndex);
 
-    unsigned int hits1[4];
-    hits1[0] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[innerMDIndex]];
-    hits1[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[outerMDIndex]];
-    hits1[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[innerMDIndex]];
-    hits1[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[outerMDIndex]];
-    addPixelSegmentToMemory(segmentsInGPU, mdsInGPU, modulesInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hits1, hitIndices0[tid], hitIndices2[tid], dPhiChange[tid], ptIn[tid], ptErr[tid], px[tid], py[tid], pz[tid], etaErr[tid], eta[tid], phi[tid], charge[tid], seedIdx[tid], pixelSegmentIndex, tid, superbin[tid], pixelType[tid],isQuad[tid],score_lsq);
+            //in outer hits - pt, eta, phi
+            float slope = sinhf(hitsInGPU.ys[mdsInGPU.outerHitIndices[innerMDIndex]]);
+            float intercept = hitsInGPU.zs[mdsInGPU.anchorHitIndices[innerMDIndex]] - slope * hitsInGPU.rts[mdsInGPU.anchorHitIndices[innerMDIndex]];
+            float score_lsq=(hitsInGPU.rts[mdsInGPU.anchorHitIndices[outerMDIndex]] * slope + intercept) - (hitsInGPU.zs[mdsInGPU.anchorHitIndices[outerMDIndex]]);
+            score_lsq = score_lsq * score_lsq;
+
+            unsigned int hits1[4];
+            hits1[0] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[innerMDIndex]];
+            hits1[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[outerMDIndex]];
+            hits1[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[innerMDIndex]];
+            hits1[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[outerMDIndex]];
+            addPixelSegmentToMemory(acc, segmentsInGPU, mdsInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hits1, hitIndices0[tid], hitIndices2[tid], dPhiChange[tid], pixelSegmentIndex, tid, score_lsq);
+        }
     }
-}
-void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> charge, std::vector<unsigned int> seedIdx, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<short> isQuad)
+};
+
+void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> charge, std::vector<unsigned int> seedIdx, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<char> isQuad)
 {
+    const int size = ptIn.size();
+    unsigned int mdSize = 2 * size;
+    uint16_t pixelModuleIndex = (*detIdToIndex)[1];
+
     if(mdsInGPU == nullptr)
     {
         mdsInGPU = (SDL::miniDoublets*)cms::cuda::allocate_host(sizeof(SDL::miniDoublets), stream);
-        //hardcoded range numbers for this will come from studies!
         unsigned int nTotalMDs;
         createMDArrayRanges(*modulesInGPU, *rangesInGPU, nLowerModules, nTotalMDs, stream, N_MAX_PIXEL_MD_PER_MODULES);
     	createMDsInExplicitMemory(*mdsInGPU, nTotalMDs, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES,stream);
 
         cudaMemcpyAsync(mdsInGPU->nMemoryLocations, &nTotalMDs, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
         cudaStreamSynchronize(stream);
-
     }
     if(segmentsInGPU == nullptr)
     {
         segmentsInGPU = (SDL::segments*)cms::cuda::allocate_host(sizeof(SDL::segments), stream);
-        //hardcoded range numbers for this will come from studies!
         // can be optimized here: because we didn't distinguish pixel segments and outer-tracker segments and call them both "segments", so they use the index continuously.
         // If we want to further study the memory footprint in detail, we can separate the two and allocate different memories to them
         createSegmentArrayRanges(*modulesInGPU, *rangesInGPU, *mdsInGPU, nLowerModules, nTotalSegments, stream, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
@@ -772,119 +795,72 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
 
         cudaMemcpyAsync(segmentsInGPU->nMemoryLocations, &nTotalSegments, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);;
         cudaStreamSynchronize(stream);
-
     }
+
+    unsigned int* hitIndices0_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
+    unsigned int* hitIndices1_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
+    unsigned int* hitIndices2_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
+    unsigned int* hitIndices3_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
+    float* dPhiChange_dev = (float*)cms::cuda::allocate_device(dev, size*sizeof(float), stream);
+
+    cudaMemcpyAsync(hitIndices0_dev, &hitIndices0[0], size*sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(hitIndices1_dev, &hitIndices1[0], size*sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(hitIndices2_dev, &hitIndices2[0], size*sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(hitIndices3_dev, &hitIndices3[0], size*sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(dPhiChange_dev, &dPhiChange[0], size*sizeof(float), cudaMemcpyHostToDevice, stream);
+
+    cudaMemcpyAsync(segmentsInGPU->isQuad, &isQuad[0], size*sizeof(char), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(segmentsInGPU->ptIn, &ptIn[0], size*sizeof(float), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(segmentsInGPU->ptErr, &ptErr[0], size*sizeof(float), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(segmentsInGPU->px, &px[0], size*sizeof(float), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(segmentsInGPU->py, &py[0], size*sizeof(float), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(segmentsInGPU->pz, &pz[0], size*sizeof(float), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(segmentsInGPU->etaErr, &etaErr[0], size*sizeof(float), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(segmentsInGPU->eta, &eta[0], size*sizeof(float), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(segmentsInGPU->phi, &phi[0], size*sizeof(float), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(segmentsInGPU->charge, &charge[0], size*sizeof(int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(segmentsInGPU->seedIdx, &seedIdx[0], size*sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(segmentsInGPU->superbin, &superbin[0], size*sizeof(int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(segmentsInGPU->pixelType, &pixelType[0], size*sizeof(int8_t), cudaMemcpyHostToDevice, stream);
+
+    cudaMemcpyAsync(&(segmentsInGPU->nSegments)[pixelModuleIndex], &size, sizeof(int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(&(segmentsInGPU->totOccupancySegments)[pixelModuleIndex], &size, sizeof(int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(&(mdsInGPU->nMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(&(mdsInGPU->totOccupancyMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
-    const int size = ptIn.size();
-    uint16_t pixelModuleIndex = (*detIdToIndex)[1];
-    unsigned int* hitIndices0_host = &hitIndices0[0];
-    unsigned int* hitIndices1_host = &hitIndices1[0];
-    unsigned int* hitIndices2_host = &hitIndices2[0];
-    unsigned int* hitIndices3_host = &hitIndices3[0];
-    float* dPhiChange_host = &dPhiChange[0];
-    float* ptIn_host = &ptIn[0];
-    float* ptErr_host = &ptErr[0];
-    float* px_host = &px[0];
-    float* py_host = &py[0];
-    float* pz_host = &pz[0];
-    float* etaErr_host = &etaErr[0];
-    float* eta_host = &eta[0];
-    float* phi_host = &phi[0];
-    int* charge_host = &charge[0];
-    unsigned int* seedIdx_host = &seedIdx[0];
-    int* superbin_host = &superbin[0];
-    int8_t* pixelType_host = &pixelType[0];
-    short* isQuad_host = &isQuad[0];
 
-    unsigned int* hitIndices0_dev;
-    unsigned int* hitIndices1_dev;
-    unsigned int* hitIndices2_dev;
-    unsigned int* hitIndices3_dev;
-    float* dPhiChange_dev;
-    float* ptIn_dev;
-    float* ptErr_dev;
-    float* px_dev;
-    float* py_dev;
-    float* pz_dev;
-    float* etaErr_dev;
-    float* eta_dev;
-    float* phi_dev;
-    int* charge_dev;
-    unsigned int* seedIdx_dev;
-    int* superbin_dev;
-    int8_t* pixelType_dev;
-    short* isQuad_dev;
-    hitIndices0_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
-    hitIndices1_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
-    hitIndices2_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
-    hitIndices3_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
-    dPhiChange_dev = (float*)cms::cuda::allocate_device(dev, size*sizeof(float), stream);
-    ptIn_dev = (float*)cms::cuda::allocate_device(dev, size*sizeof(float), stream);
-    ptErr_dev = (float*)cms::cuda::allocate_device(dev, size*sizeof(float), stream);
-    px_dev = (float*)cms::cuda::allocate_device(dev, size*sizeof(float), stream);
-    py_dev = (float*)cms::cuda::allocate_device(dev, size*sizeof(float), stream);
-    pz_dev = (float*)cms::cuda::allocate_device(dev, size*sizeof(float), stream);
-    etaErr_dev = (float*)cms::cuda::allocate_device(dev, size*sizeof(float), stream);
-    eta_dev = (float*)cms::cuda::allocate_device(dev, size*sizeof(float), stream);
-    phi_dev = (float*)cms::cuda::allocate_device(dev, size*sizeof(float), stream);
-    charge_dev = (int*)cms::cuda::allocate_device(dev, size*sizeof(int), stream);
-    seedIdx_dev = (unsigned int*)cms::cuda::allocate_device(dev, size*sizeof(unsigned int), stream);
-    superbin_dev = (int*)cms::cuda::allocate_device(dev, size*sizeof(int), stream);
-    pixelType_dev = (int8_t*)cms::cuda::allocate_device(dev, size*sizeof(int8_t), stream);
-    isQuad_dev = (short*)cms::cuda::allocate_device(dev, size*sizeof(short), stream);
+    // Temporary fix for queue initialization.
+    QueueAcc queue(devAcc);
 
-    cudaMemcpyAsync(hitIndices0_dev,hitIndices0_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(hitIndices1_dev,hitIndices1_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(hitIndices2_dev,hitIndices2_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(hitIndices3_dev,hitIndices3_host,size*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(dPhiChange_dev,dPhiChange_host,size*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(ptIn_dev,ptIn_host,size*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(ptErr_dev,ptErr_host,size*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(px_dev,px_host,size*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(py_dev,py_host,size*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(pz_dev,pz_host,size*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(etaErr_dev,etaErr_host,size*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(eta_dev, eta_host, size*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(phi_dev, phi_host, size*sizeof(float),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(charge_dev, charge_host, size*sizeof(int),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(seedIdx_dev, seedIdx_host, size*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(superbin_dev,superbin_host,size*sizeof(int),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(pixelType_dev,pixelType_host,size*sizeof(int8_t),cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(isQuad_dev,isQuad_host,size*sizeof(short),cudaMemcpyHostToDevice,stream);
+    Vec const threadsPerBlock(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
+    Vec const blocksPerGrid(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
+    WorkDiv const addPixelSegmentToEvent_workdiv(blocksPerGrid, threadsPerBlock, elementsPerThread);
 
-    cudaStreamSynchronize(stream);
-    unsigned int nThreads = 256;
-    unsigned int nBlocks =  MAX_BLOCKS;//size % nThreads == 0 ? size/nThreads : size/nThreads + 1;
+    addPixelSegmentToEventKernel addPixelSegmentToEvent_kernel;
+    auto const addPixelSegmentToEvent_task(alpaka::createTaskKernel<Acc>(
+        addPixelSegmentToEvent_workdiv,
+        addPixelSegmentToEvent_kernel,
+        *modulesInGPU,
+        *rangesInGPU,
+        *hitsInGPU,
+        *mdsInGPU,
+        *segmentsInGPU,
+        hitIndices0_dev,
+        hitIndices1_dev,
+        hitIndices2_dev,
+        hitIndices3_dev,
+        dPhiChange_dev,
+        pixelModuleIndex,
+        size));
 
-    addPixelSegmentToEventKernel<<<nBlocks,nThreads,0,stream>>>(hitIndices0_dev,hitIndices1_dev,hitIndices2_dev,hitIndices3_dev,dPhiChange_dev,ptIn_dev,ptErr_dev,px_dev,py_dev,pz_dev,eta_dev, etaErr_dev, phi_dev, charge_dev, seedIdx_dev, pixelModuleIndex, *modulesInGPU, *rangesInGPU, *hitsInGPU,*mdsInGPU,*segmentsInGPU,size, superbin_dev, pixelType_dev,isQuad_dev);
+    alpaka::enqueue(queue, addPixelSegmentToEvent_task);
+    alpaka::wait(queue);
 
-   //cudaDeviceSynchronize();
-   cudaStreamSynchronize(stream);
-   cudaMemcpyAsync(&(segmentsInGPU->nSegments)[pixelModuleIndex], &size, sizeof(int), cudaMemcpyHostToDevice,stream);
-   cudaMemcpyAsync(&(segmentsInGPU->totOccupancySegments)[pixelModuleIndex], &size, sizeof(int), cudaMemcpyHostToDevice,stream);
-   unsigned int mdSize = 2 * size;
-   cudaMemcpyAsync(&(mdsInGPU->nMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
-   cudaMemcpyAsync(&(mdsInGPU->totOccupancyMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
-   cudaStreamSynchronize(stream);
-  
     cms::cuda::free_device(dev, hitIndices0_dev);
     cms::cuda::free_device(dev, hitIndices1_dev);
     cms::cuda::free_device(dev, hitIndices2_dev);
     cms::cuda::free_device(dev, hitIndices3_dev);
     cms::cuda::free_device(dev, dPhiChange_dev);
-    cms::cuda::free_device(dev, ptIn_dev);
-    cms::cuda::free_device(dev, ptErr_dev);
-    cms::cuda::free_device(dev, px_dev);
-    cms::cuda::free_device(dev, py_dev);
-    cms::cuda::free_device(dev, pz_dev);
-    cms::cuda::free_device(dev, etaErr_dev);
-    cms::cuda::free_device(dev, eta_dev);
-    cms::cuda::free_device(dev, phi_dev);
-    cms::cuda::free_device(dev, charge_dev);
-    cms::cuda::free_device(dev, seedIdx_dev);
-    cms::cuda::free_device(dev, superbin_dev);
-    cms::cuda::free_device(dev, pixelType_dev);
-    cms::cuda::free_device(dev, isQuad_dev);
     cudaStreamSynchronize(stream);
 }
 
@@ -2183,7 +2159,7 @@ SDL::segments* SDL::Event::getSegments()
         segmentsInCPU->phi = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
         segmentsInCPU->seedIdx = new unsigned int[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
         segmentsInCPU->isDup = new bool[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
-        segmentsInCPU->isQuad = new bool[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
+        segmentsInCPU->isQuad = new char[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
         segmentsInCPU->score = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
 
         cudaMemcpyAsync(segmentsInCPU->mdIndices, segmentsInGPU->mdIndices, 2 * *(segmentsInCPU->nMemoryLocations) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
@@ -2195,7 +2171,7 @@ SDL::segments* SDL::Event::getSegments()
         cudaMemcpyAsync(segmentsInCPU->phi, segmentsInGPU->phi, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(segmentsInCPU->seedIdx, segmentsInGPU->seedIdx, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(segmentsInCPU->isDup, segmentsInGPU->isDup, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(bool), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(segmentsInCPU->isQuad, segmentsInGPU->isQuad, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(bool), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(segmentsInCPU->isQuad, segmentsInGPU->isQuad, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(char), cudaMemcpyDeviceToHost,stream);
         cudaMemcpyAsync(segmentsInCPU->score, segmentsInGPU->score, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost,stream);
         cudaStreamSynchronize(stream);
     }
