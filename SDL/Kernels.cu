@@ -595,7 +595,7 @@ __global__ void checkHitspLS(struct SDL::modules& modulesInGPU, struct SDL::obje
                 continue;
             }
 
-            short quad_diff = segmentsInGPU.isQuad[ix] -segmentsInGPU.isQuad[jx];
+            char quad_diff = segmentsInGPU.isQuad[ix] -segmentsInGPU.isQuad[jx];
             float ptErr_diff = segmentsInGPU.ptIn[ix] -segmentsInGPU.ptIn[jx];
             float score_diff = segmentsInGPU.score[ix] -segmentsInGPU.score[jx];
             if( (quad_diff > 0 )|| (score_diff<0 && quad_diff ==0))

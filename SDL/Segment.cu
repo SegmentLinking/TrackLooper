@@ -12,7 +12,7 @@ void SDL::segments::resetMemory(unsigned int nMemoryLocationsx, unsigned int nLo
     cudaMemsetAsync(ptIn, 0,(maxPixelSegments * 8)*sizeof(float),stream);
     cudaMemsetAsync(superbin, 0,(maxPixelSegments )*sizeof(int),stream);
     cudaMemsetAsync(pixelType, 0,(maxPixelSegments )*sizeof(int8_t),stream);
-    cudaMemsetAsync(isQuad, 0,(maxPixelSegments )*sizeof(short),stream);
+    cudaMemsetAsync(isQuad, 0,(maxPixelSegments )*sizeof(char),stream);
     cudaMemsetAsync(isDup, 0,(maxPixelSegments )*sizeof(bool),stream);
     cudaMemsetAsync(score, 0,(maxPixelSegments )*sizeof(float),stream);
     cudaMemsetAsync(charge, 0,maxPixelSegments * sizeof(int),stream);
@@ -108,7 +108,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     segmentsInGPU.ptIn = (float*)cms::cuda::allocate_device(dev, maxPixelSegments * 8 *sizeof(float),stream);
     segmentsInGPU.superbin = (int*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(int),stream);
     segmentsInGPU.pixelType = (int8_t*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(int8_t),stream);
-    segmentsInGPU.isQuad = (short*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(short),stream);
+    segmentsInGPU.isQuad = (char*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(char),stream);
     segmentsInGPU.isDup = (bool*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(bool),stream);
     segmentsInGPU.score = (float*)cms::cuda::allocate_device(dev,(maxPixelSegments) *sizeof(float),stream);
     segmentsInGPU.charge = (int*)cms::cuda::allocate_device(dev, maxPixelSegments * sizeof(int), stream);
@@ -128,7 +128,7 @@ void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigne
     cudaMalloc(&segmentsInGPU.ptIn, maxPixelSegments * 8*sizeof(float));
     cudaMalloc(&segmentsInGPU.superbin, (maxPixelSegments )*sizeof(int));
     cudaMalloc(&segmentsInGPU.pixelType, (maxPixelSegments )*sizeof(int8_t));
-    cudaMalloc(&segmentsInGPU.isQuad, (maxPixelSegments )*sizeof(short));
+    cudaMalloc(&segmentsInGPU.isQuad, (maxPixelSegments )*sizeof(char));
     cudaMalloc(&segmentsInGPU.isDup, (maxPixelSegments )*sizeof(bool));
     cudaMalloc(&segmentsInGPU.score, (maxPixelSegments )*sizeof(float));
     cudaMalloc(&segmentsInGPU.charge, maxPixelSegments * sizeof(int));
