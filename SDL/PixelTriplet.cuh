@@ -170,47 +170,54 @@ namespace SDL
 
         if(layer1 == 8 and layer2 == 9 and layer3 == 10)
         {
-            return rzChiSquared < 13.6067f; //CMSSW 12 geo, add charge, new pixel map
+            return rzChiSquared < 13.6067f;
         }
         else if(layer1 == 8 and layer2 == 9 and layer3 == 15)
         {
-            return rzChiSquared < 5.5953f; //CMSSW 12 geo, add charge, new pixel map
+            return rzChiSquared < 5.5953f;
         }
         else if(layer1 == 7 and layer2 == 8 and layer3 == 9)
         {
-            return rzChiSquared < 3.9263f; //CMSSW 12 geo, add charge, new pixel map
+            return rzChiSquared < 3.9263f;
         }
+        /*
+        else if(layer1 == 7 and layer2 == 8 and layer3 == 14)
+        {   
+            // PS+PS+2S in endcap layers 1+2+3, which is not really feasible in the current geometry,
+            // without skipping barrel layers 1 and 2 (not allowed by algorithm logic).
+        }
+        */
         else if(layer1 == 1 and layer2 == 2 and layer3 == 3)
         {
-            return rzChiSquared < 9.4377f; //CMSSW 12 geo, add charge, new pixel map
+            return rzChiSquared < 9.4377f;
         }
         else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
         {
-            return rzChiSquared < 9.9975f; //CMSSW 12 geo, add charge, new pixel map
+            return rzChiSquared < 9.9975f;
         }
         else if(layer1 == 1 and layer2 == 7 and layer3 == 8)
         {
-            return rzChiSquared < 8.6369f; //CMSSW 12 geo, add charge, new pixel map
+            return rzChiSquared < 8.6369f;
         }
         else if(layer1 == 2 and layer2 == 3 and layer3 == 7)
         {
-            return rzChiSquared < 37.945f; //CMSSW 12 geo, add charge, new pixel map
+            return rzChiSquared < 37.945f;
         }
         else if(layer1 == 2 and layer2 == 3 and layer3 == 12)
         {
-            return rzChiSquared < 43.0167f; //CMSSW 12 geo, add charge, new pixel map
+            return rzChiSquared < 43.0167f;
         }
         else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
         {
-            return rzChiSquared < 8.6923f; //CMSSW 12 geo, add charge, new pixel map
+            return rzChiSquared < 8.6923f;
         }
         else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
         {
-            return rzChiSquared < 11.9672f; //CMSSW 12 geo, add charge, new pixel map
+            return rzChiSquared < 11.9672f;
         }
         else if(layer1 == 2 and layer2 == 7 and layer3 == 13)
         {
-            return rzChiSquared < 16.2133f; //CMSSW 12 geo, add charge, new pixel map
+            return rzChiSquared < 16.2133f;
         }
 
         //default - category not found!
