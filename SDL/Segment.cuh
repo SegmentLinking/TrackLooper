@@ -54,9 +54,10 @@ namespace SDL
 
         segments();
         ~segments();
-	void freeMemory(cudaStream_t stream);
-	void freeMemoryCache();
-    void resetMemory(unsigned int nMemoryLocationsx, unsigned int nModules, unsigned int maxPixelSegments,cudaStream_t stream);
+
+	    void freeMemory(cudaStream_t stream);
+	    void freeMemoryCache();
+        void resetMemory(unsigned int nMemoryLocationsx, unsigned int nModules, unsigned int maxPixelSegments,cudaStream_t stream);
     };
 
     void createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, uint16_t nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream);
@@ -83,7 +84,6 @@ namespace SDL
             return true;
         else
             return false;
-
     };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE float isTighterTiltedModules_seg(short subdet, short layer, short side, short rod)
@@ -101,7 +101,6 @@ namespace SDL
             return true;
         else
             return false;
-
     };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE float moduleGapSize_seg(short layer, short ring, short subdet, short side, short rod)
@@ -150,7 +149,6 @@ namespace SDL
                 }
             }
         }
-
 
         unsigned int iL = layer-1;
         unsigned int iR = ring - 1;
@@ -223,7 +221,6 @@ namespace SDL
                 }
             }
         }
-
 
         unsigned int iL = modulesInGPU.layers[moduleIndex]-1;
         unsigned int iR = modulesInGPU.rings[moduleIndex] - 1;
@@ -594,18 +591,15 @@ namespace SDL
             for(uint16_t innerLowerModuleIndex = globalBlockIdx[2]; innerLowerModuleIndex < (*modulesInGPU.nLowerModules); innerLowerModuleIndex += gridBlockExtent[2])
             {
                 unsigned int nConnectedModules = modulesInGPU.nConnectedModules[innerLowerModuleIndex];
-                //printf("HERE:  %d nConnectedModules = %d\n", innerLowerModuleIndex, nConnectedModules);
 
                 for(uint16_t outerLowerModuleArrayIdx = blockThreadIdx[1]; outerLowerModuleArrayIdx< nConnectedModules; outerLowerModuleArrayIdx+= blockThreadExtent[1])
                 {
-
                     uint16_t outerLowerModuleIndex = modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + outerLowerModuleArrayIdx];
 
                     unsigned int nInnerMDs = mdsInGPU.nMDs[innerLowerModuleIndex];
                     unsigned int nOuterMDs = mdsInGPU.nMDs[outerLowerModuleIndex];
 
                     int limit = nInnerMDs*nOuterMDs;
-                    //printf("HERE:  %d %d limit %d\n", innerLowerModuleIndex, outerLowerModuleArrayIdx, limit);
 
                     if (limit == 0) continue;
                     for(int hitIndex = blockThreadIdx[2]; hitIndex < limit; hitIndex += blockThreadExtent[2])
@@ -643,7 +637,6 @@ namespace SDL
                                 unsigned int segmentIdx = rangesInGPU.segmentModuleIndices[innerLowerModuleIndex] + segmentModuleIdx;
 
                                 addSegmentToMemory(segmentsInGPU,innerMDIndex, outerMDIndex,innerLowerModuleIndex, outerLowerModuleIndex, innerMiniDoubletAnchorHitIndex, outerMiniDoubletAnchorHitIndex, dPhi, dPhiMin, dPhiMax, dPhiChange, dPhiChangeMin, dPhiChangeMax, segmentIdx);
-
                             }
                         }
                     }
