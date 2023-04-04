@@ -55,8 +55,8 @@ namespace SDL
         segments();
         ~segments();
 
-	    void freeMemory(cudaStream_t stream);
-	    void freeMemoryCache();
+        void freeMemory(cudaStream_t stream);
+        void freeMemoryCache();
         void resetMemory(unsigned int nMemoryLocationsx, unsigned int nModules, unsigned int maxPixelSegments,cudaStream_t stream);
     };
 
