@@ -402,7 +402,7 @@ void setQuintupletOutputBranches(SDL::Event* event)
 
     for (unsigned int lowerModuleIdx = 0; lowerModuleIdx < *(modulesInGPU.nLowerModules); ++lowerModuleIdx)
     {
-        unsigned int nQuintuplets = quintupletsInGPU.nQuintuplets[lowerModuleIdx];
+        int nQuintuplets = quintupletsInGPU.nQuintuplets[lowerModuleIdx];
         for (unsigned int idx = 0; idx < nQuintuplets; idx++)
         {
             unsigned int quintupletIndex = rangesInGPU.quintupletModuleIndices[lowerModuleIdx] + idx;
