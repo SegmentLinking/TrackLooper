@@ -437,7 +437,7 @@ namespace SDL
         //brute force
         float candidateRadius;
         float g, f;
-        minimumRadius = 123456789.f;
+        minimumRadius = SDL::SDL_INF;
         maximumRadius = 0.f;
         for(size_t i = 0; i < 3; i++)
         {
@@ -508,7 +508,6 @@ namespace SDL
     template<typename TAcc>
     ALPAKA_FN_ACC ALPAKA_FN_INLINE bool matchRadiiBBBBE(TAcc const & acc, const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerInvRadiusMin, float& innerInvRadiusMax, float& bridgeInvRadiusMin, float& bridgeInvRadiusMax, float& outerInvRadiusMin, float& outerInvRadiusMax)
     {
-
         float innerInvRadiusErrorBound =  0.1781f;
         float bridgeInvRadiusErrorBound = 0.2167f;
         float outerInvRadiusErrorBound = 1.1116f;
@@ -535,7 +534,6 @@ namespace SDL
     template<typename TAcc>
     ALPAKA_FN_ACC ALPAKA_FN_INLINE bool matchRadiiBBBEE(TAcc const & acc, const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerInvRadiusMin, float& innerInvRadiusMax, float& bridgeInvRadiusMin, float& bridgeInvRadiusMax, float& outerInvRadiusMin, float& outerInvRadiusMax)
     {
-
         float innerInvRadiusErrorBound =  0.1840f;
         float bridgeInvRadiusErrorBound = 0.5971f;
         float outerInvRadiusErrorBound = 11.7102f;
@@ -626,11 +624,9 @@ namespace SDL
     template<typename TAcc>
     ALPAKA_FN_ACC ALPAKA_FN_INLINE bool matchRadiiBEEEE(TAcc const & acc, const float& innerRadius, const float& bridgeRadius, const float& outerRadius, const float& innerRadiusMin2S, const float& innerRadiusMax2S, const float& bridgeRadiusMin2S, const float& bridgeRadiusMax2S, const float& outerRadiusMin2S, const float& outerRadiusMax2S, float& innerInvRadiusMin, float& innerInvRadiusMax, float& bridgeInvRadiusMin, float& bridgeInvRadiusMax, float& outerInvRadiusMin, float& outerInvRadiusMax)
     {
-
         float innerInvRadiusErrorBound =  1.9382f;
         float bridgeInvRadiusErrorBound = 3.7280f;
         float outerInvRadiusErrorBound = 5.7030f;
-
 
         if(innerRadius > 2.0f/(2.f * k2Rinv1GeVf))
         {
@@ -709,7 +705,6 @@ namespace SDL
                 slopes[i] = -999.f;
                 isFlat[i] = true;
             }
-
             //category 2 - barrel 2S
             else if(moduleSubdet == Barrel and moduleType == TwoS)
             {
@@ -718,7 +713,6 @@ namespace SDL
                 slopes[i] = -999.f;
                 isFlat[i] = true;
             }
-
             //category 3 - barrel PS tilted
             else if(moduleSubdet == Barrel and moduleType == PS and moduleSide != Center)
             {
@@ -754,7 +748,6 @@ namespace SDL
                     delta2[i] = inv3;
                 }
             }
-
             //category 5 - endcap 2S
             else if(moduleSubdet == Endcap and moduleType == TwoS)
             {
@@ -847,7 +840,7 @@ namespace SDL
             printf("FATAL! r^2 < 0!\n");
             return -1;
         }
-        
+
         radius = alpaka::math::sqrt(acc, g * g + f * f - c);
         // compute chi squared
         chiSquared = 0.f;
@@ -999,7 +992,7 @@ namespace SDL
         zHiPointed = z_InLo + dzMean * (z_InLo < 0.f ? 1.f : dzDrtScale) + zWindow;
 
         // Cut #2: Pointed Z (Inner segment two MD points to outer segment inner MD)
-        pass =  pass and ((z_OutLo >= zLoPointed) & (z_OutLo <= zHiPointed));
+        pass = pass and ((z_OutLo >= zLoPointed) & (z_OutLo <= zHiPointed));
         if(not pass) return pass;
 
         float sdlPVoff = 0.1f/rt_OutLo;
@@ -1124,7 +1117,7 @@ namespace SDL
             + (0.02f / sdOut_d) + alpaka::math::sqrt(acc, dBetaLum2 + dBetaMuls*dBetaMuls);
 
         //Cut #6: The real beta cut
-        pass =  pass and ((alpaka::math::abs(acc, betaOut) < betaOutCut));
+        pass = pass and ((alpaka::math::abs(acc, betaOut) < betaOutCut));
         if(not pass) return pass;
 
         float pt_betaIn = drt_tl_axis * SDL::k2Rinv1GeVf/alpaka::math::sin(acc, betaIn);
@@ -1178,7 +1171,7 @@ namespace SDL
         rtOut = rt_OutLo;
 
         //Cut #1: rt condition
-        pass =  pass and (rtOut >= rtLo);
+        pass = pass and (rtOut >= rtLo);
         if(not pass) return pass;
 
         float zInForHi = z_InLo - zGeom1 - dLum;
@@ -1189,7 +1182,7 @@ namespace SDL
         rtHi = rt_InLo * (1.f + (z_OutLo - z_InLo + zGeom1) / zInForHi) + rtGeom1;
 
         //Cut #2: rt condition
-        pass =  pass and ((rt_OutLo >= rtLo) & (rt_OutLo <= rtHi));
+        pass = pass and ((rt_OutLo >= rtLo) & (rt_OutLo <= rtHi));
         if(not pass) return pass;
 
         float rIn = alpaka::math::sqrt(acc, z_InLo * z_InLo + rt_InLo * rt_InLo);
@@ -1213,7 +1206,7 @@ namespace SDL
         const float rtHi_another = rt_InLo + drtMean + rtWindow;
 
         //Cut #3: rt-z pointed
-        pass =  pass and ((kZ >= 0) & (rtOut >= rtLo) & (rtOut <= rtHi));
+        pass = pass and ((kZ >= 0) & (rtOut >= rtLo) & (rtOut <= rtHi));
         if(not pass) return pass;
 
         const float sdlPVoff = 0.1f / rt_OutLo;
@@ -1222,7 +1215,7 @@ namespace SDL
         deltaPhiPos = SDL::deltaPhi_alpaka(acc, mdsInGPU.anchorX[secondMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex]);
 
         //Cut #4: deltaPhiPos can be tighter
-        pass =  pass and (alpaka::math::abs(acc, deltaPhiPos) <= sdlCut);
+        pass = pass and (alpaka::math::abs(acc, deltaPhiPos) <= sdlCut);
         if(not pass) return pass;
 
         float midPointX = 0.5f*(mdsInGPU.anchorX[firstMDIndex] + mdsInGPU.anchorX[thirdMDIndex]);
@@ -1234,7 +1227,7 @@ namespace SDL
 
         dPhi = SDL::deltaPhi_alpaka(acc, midPointX, midPointY, diffX, diffY);
         // Cut #5: deltaPhiChange
-        pass =  pass and (alpaka::math::abs(acc, dPhi) <= sdlCut);
+        pass = pass and (alpaka::math::abs(acc, dPhi) <= sdlCut);
         if(not pass) return pass;
 
         float sdIn_alpha     = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
@@ -1294,7 +1287,7 @@ namespace SDL
         betaInCut = alpaka::math::asin(acc, alpaka::math::min(acc, (-sdIn_dr * corrF + dr) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) + (0.02f / sdIn_d);
 
         //Cut #6: first beta cut
-        pass =  pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
+        pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
         if(not pass) return pass;
 
         float betaAv = 0.5f * (betaIn + betaOut);
@@ -1336,7 +1329,7 @@ namespace SDL
             + (0.02f / sdOut_d) + alpaka::math::sqrt(acc, dBetaLum2 + dBetaMuls*dBetaMuls);
 
         //Cut #6: The real beta cut
-        pass =  pass and (alpaka::math::abs(acc, betaOut) < betaOutCut);
+        pass = pass and (alpaka::math::abs(acc, betaOut) < betaOutCut);
         if(not pass) return pass;
 
         float pt_betaIn = dr * SDL::k2Rinv1GeVf/alpaka::math::sin(acc, betaIn);
@@ -1347,7 +1340,7 @@ namespace SDL
         float dBeta = betaIn - betaOut;
         deltaBetaCut = alpaka::math::sqrt(acc, dBetaCut2);
         //Cut #7: Cut on dBet
-        pass =  pass and (dBeta * dBeta <= dBetaCut2);
+        pass = pass and (dBeta * dBeta <= dBetaCut2);
 
         return pass;
     };
@@ -1379,7 +1372,7 @@ namespace SDL
         zLo = z_InLo + (z_InLo - SDL::deltaZLum) * (rtRatio_OutLoInLo - 1.f) * (z_InLo > 0.f ? 1.f : dzDrtScale) - zGeom; //slope-correction only on outer end
 
         // Cut #0: Preliminary (Only here in endcap case)
-        pass =  pass and ((z_InLo * z_OutLo) > 0);
+        pass = pass and ((z_InLo * z_OutLo) > 0);
         if(not pass) return pass;
 
         float dLum = SDL::copysignf_alpaka(SDL::deltaZLum, z_InLo);
@@ -1399,7 +1392,7 @@ namespace SDL
 
         rtHi = rt_InLo * (1.f + dz / (z_InLo - dLum)) + rtGeom;
 
-        pass =  pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
+        pass = pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
         if(not pass) return pass;
 
         bool isInSgOuterMDPS = modulesInGPU.moduleType[innerOuterLowerModuleIndex] == SDL::PS;
@@ -1429,7 +1422,7 @@ namespace SDL
 
         if (isInSgInnerMDPS and isInSgOuterMDPS) // If both PS then we can point
         {
-            pass =  pass and (kZ >= 0 and rtOut >= rtLo_point and rtOut <= rtHi_point);
+            pass = pass and (kZ >= 0 and rtOut >= rtLo_point and rtOut <= rtHi_point);
             if(not pass) return pass;
         }
 
@@ -1438,7 +1431,7 @@ namespace SDL
 
         deltaPhiPos = SDL::deltaPhi_alpaka(acc, mdsInGPU.anchorX[secondMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorX[fourthMDIndex], mdsInGPU.anchorY[fourthMDIndex]);
 
-        pass =  pass and (alpaka::math::abs(acc, deltaPhiPos) <= sdlCut);
+        pass = pass and (alpaka::math::abs(acc, deltaPhiPos) <= sdlCut);
         if(not pass) return pass;
 
         float midPointX = 0.5f*(mdsInGPU.anchorX[firstMDIndex] + mdsInGPU.anchorX[thirdMDIndex]);
@@ -1451,7 +1444,7 @@ namespace SDL
         dPhi = SDL::deltaPhi_alpaka(acc, midPointX, midPointY, diffX, diffY);
 
         // Cut #5: deltaPhiChange
-        pass =  pass and ((alpaka::math::abs(acc, dPhi) <= sdlCut));
+        pass = pass and ((alpaka::math::abs(acc, dPhi) <= sdlCut));
         if(not pass) return pass;
 
         float sdIn_alpha = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
@@ -1504,7 +1497,7 @@ namespace SDL
         betaInCut = alpaka::math::asin(acc, alpaka::math::min(acc, (-sdIn_dr * corrF + dr) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) + (0.02f / sdIn_d);
 
         //Cut #6: first beta cut
-        pass =  pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
+        pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
         if(not pass) return pass;
 
         float betaAv = 0.5f * (betaIn + betaOut);
@@ -1543,7 +1536,7 @@ namespace SDL
             + (0.02f / sdOut_d) + alpaka::math::sqrt(acc, dBetaLum2 + dBetaMuls*dBetaMuls);
 
         //Cut #6: The real beta cut
-        pass =  pass and (alpaka::math::abs(acc, betaOut) < betaOutCut);
+        pass = pass and (alpaka::math::abs(acc, betaOut) < betaOutCut);
         if(not pass) return pass;
 
         float pt_betaIn = dr * SDL::k2Rinv1GeVf/alpaka::math::sin(acc, betaIn);
@@ -1555,7 +1548,7 @@ namespace SDL
         //Cut #7: Cut on dBeta
         deltaBetaCut = alpaka::math::sqrt(acc, dBetaCut2);
 
-        pass =  pass and (dBeta * dBeta <= dBetaCut2);
+        pass = pass and (dBeta * dBeta <= dBetaCut2);
 
         return pass;
     };
