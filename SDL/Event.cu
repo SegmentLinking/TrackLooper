@@ -1399,6 +1399,7 @@ void SDL::Event::createQuintuplets()
     alpaka::enqueue(queue, createQuintupletsInGPUv2Task);
     alpaka::wait(queue);
 
+    cudaStreamSynchronize(stream);
     dim3 dupThreads(32,32,1);
     dim3 dupBlocks(1,1,MAX_BLOCKS);
     removeDupQuintupletsInGPUAfterBuild<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,*rangesInGPU);
