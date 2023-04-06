@@ -1971,7 +1971,7 @@ namespace SDL
             if(globalThreadIdx[2] == 0)
             {
                 *rangesInGPU.nEligibleT5Modules = static_cast<uint16_t>(nEligibleT5Modulesx);
-                *device_nTotalQuintuplets = nTotalQuintupletsx;
+                *device_nTotalQuintuplets = static_cast<unsigned int>(nTotalQuintupletsx);
             }
         }
     };
