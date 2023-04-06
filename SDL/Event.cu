@@ -1474,6 +1474,8 @@ void SDL::Event::createQuintuplets()
 
     cudaMemcpyAsync(&nEligibleT5Modules,rangesInGPU->nEligibleT5Modules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(&nTotalQuintuplets,device_nTotalQuintuplets,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
+    cudaStreamSynchronize(stream);
+
     cudaFree(device_nTotalQuintuplets);
     cudaStreamSynchronize(stream);
 
@@ -1505,6 +1507,7 @@ void SDL::Event::createQuintuplets()
     alpaka::enqueue(queue, createQuintupletsInGPUv2Task);
     alpaka::wait(queue);
 
+    cudaStreamSynchronize(stream);
     dim3 dupThreads(32,32,1);
     dim3 dupBlocks(1,1,MAX_BLOCKS);
     removeDupQuintupletsInGPUAfterBuild<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,*rangesInGPU);
