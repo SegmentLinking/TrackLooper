@@ -26,29 +26,31 @@ void fillOutputBranches(SDL::Event* event)
 void createRequiredOutputBranches()
 {
     // Setup output TTree
-    ana.tx->createBranch<vector<float>>("sim_pt");
-    ana.tx->createBranch<vector<float>>("sim_eta");
-    ana.tx->createBranch<vector<float>>("sim_phi");
-    ana.tx->createBranch<vector<float>>("sim_pca_dxy");
-    ana.tx->createBranch<vector<float>>("sim_pca_dz");
-    ana.tx->createBranch<vector<int>>("sim_q");
-    ana.tx->createBranch<vector<int>>("sim_event");
-    ana.tx->createBranch<vector<int>>("sim_pdgId");
-    ana.tx->createBranch<vector<float>>("sim_vx");
-    ana.tx->createBranch<vector<float>>("sim_vy");
-    ana.tx->createBranch<vector<float>>("sim_vz");
-    ana.tx->createBranch<vector<float>>("sim_trkNtupIdx");
-    ana.tx->createBranch<vector<int>>("sim_TC_matched");
-    ana.tx->createBranch<vector<int>>("sim_TC_matched_mask");
+    ana.tx->createBranch<vector<float>>("SimTrack_pt");
+    ana.tx->createBranch<vector<float>>("SimTrack_eta");
+    ana.tx->createBranch<vector<float>>("SimTrack_phi");
+    ana.tx->createBranch<vector<float>>("SimTrack_dxy");
+    ana.tx->createBranch<vector<float>>("SimTrack_dz");
+    ana.tx->createBranch<vector<int>>("SimTrack_charge");
+    ana.tx->createBranch<vector<int>>("SimTrack_ppVtx");
+    ana.tx->createBranch<vector<int>>("SimTrack_pdgID");
+    ana.tx->createBranch<vector<float>>("SimTrack_vx");
+    ana.tx->createBranch<vector<float>>("SimTrack_vy");
+    ana.tx->createBranch<vector<float>>("SimTrack_vz");
+    ana.tx->createBranch<vector<vector<int>>>("SimTrack_TC_idx");
+    ana.tx->createBranch<vector<int>>("SimTrack_TC_typemask");
 
     // Track candidates
-    ana.tx->createBranch<vector<float>>("tc_pt");
-    ana.tx->createBranch<vector<float>>("tc_eta");
-    ana.tx->createBranch<vector<float>>("tc_phi");
-    ana.tx->createBranch<vector<int>>("tc_type");
-    ana.tx->createBranch<vector<int>>("tc_isFake");
-    ana.tx->createBranch<vector<int>>("tc_isDuplicate");
-    ana.tx->createBranch<vector<vector<int>>>("tc_matched_simIdx");
+    ana.tx->createBranch<vector<float>>("TC_pt");
+    ana.tx->createBranch<vector<float>>("TC_eta");
+    ana.tx->createBranch<vector<float>>("TC_phi");
+    ana.tx->createBranch<vector<float>>("TC_dxy");
+    ana.tx->createBranch<vector<float>>("TC_dz");
+    ana.tx->createBranch<vector<int>>("TC_charge");
+    ana.tx->createBranch<vector<int>>("TC_type");
+    ana.tx->createBranch<vector<int>>("TC_isFake");
+    ana.tx->createBranch<vector<int>>("TC_isDuplicate");
+    ana.tx->createBranch<vector<vector<int>>>("TC_SimTrack_idx");
 }
 
 //________________________________________________________________________________________________________________________________
@@ -201,35 +203,32 @@ void setOutputBranches(SDL::Event* event)
         if (trk.sim_event()[isimtrk] != 0)
             continue;
 
-        ana.tx->pushbackToBranch<float>("sim_pt", trk.sim_pt()[isimtrk]);
-        ana.tx->pushbackToBranch<float>("sim_eta", trk.sim_eta()[isimtrk]);
-        ana.tx->pushbackToBranch<float>("sim_phi", trk.sim_phi()[isimtrk]);
-        ana.tx->pushbackToBranch<float>("sim_pca_dxy", trk.sim_pca_dxy()[isimtrk]);
-        ana.tx->pushbackToBranch<float>("sim_pca_dz", trk.sim_pca_dz()[isimtrk]);
-        ana.tx->pushbackToBranch<int>("sim_q", trk.sim_q()[isimtrk]);
-        ana.tx->pushbackToBranch<int>("sim_event", trk.sim_event()[isimtrk]);
-        ana.tx->pushbackToBranch<int>("sim_pdgId", trk.sim_pdgId()[isimtrk]);
+        ana.tx->pushbackToBranch<float>("SimTrack_pt", trk.sim_pt()[isimtrk]);
+        ana.tx->pushbackToBranch<float>("SimTrack_eta", trk.sim_eta()[isimtrk]);
+        ana.tx->pushbackToBranch<float>("SimTrack_phi", trk.sim_phi()[isimtrk]);
+        ana.tx->pushbackToBranch<float>("SimTrack_dxy", trk.sim_pca_dxy()[isimtrk]);
+        ana.tx->pushbackToBranch<float>("SimTrack_dz", trk.sim_pca_dz()[isimtrk]);
+        ana.tx->pushbackToBranch<int>("SimTrack_charge", trk.sim_q()[isimtrk]);
+        ana.tx->pushbackToBranch<int>("SimTrack_ppVtx", trk.sim_event()[isimtrk]);
+        ana.tx->pushbackToBranch<int>("SimTrack_pdgID", trk.sim_pdgId()[isimtrk]);
 
         // For vertex we need to look it up from simvtx info
         int vtxidx = trk.sim_parentVtxIdx()[isimtrk];
-        ana.tx->pushbackToBranch<float>("sim_vx", trk.simvtx_x()[vtxidx]);
-        ana.tx->pushbackToBranch<float>("sim_vy", trk.simvtx_y()[vtxidx]);
-        ana.tx->pushbackToBranch<float>("sim_vz", trk.simvtx_z()[vtxidx]);
-
-        // The trkNtupIdx is the idx in the trackingNtuple
-        ana.tx->pushbackToBranch<float>("sim_trkNtupIdx", isimtrk);
+        ana.tx->pushbackToBranch<float>("SimTrack_vx", trk.simvtx_x()[vtxidx]);
+        ana.tx->pushbackToBranch<float>("SimTrack_vy", trk.simvtx_y()[vtxidx]);
+        ana.tx->pushbackToBranch<float>("SimTrack_vz", trk.simvtx_z()[vtxidx]);
 
         // Increase the counter for accepted simtrk
         n_accepted_simtrk++;
     }
 
     // Intermediate variables to keep track of matched track candidates for a given sim track
-    std::vector<int> sim_TC_matched(n_accepted_simtrk);
-    std::vector<int> sim_TC_matched_mask(n_accepted_simtrk);
-    std::vector<int> sim_TC_matched_for_duplicate(trk.sim_pt().size());
+    std::vector<int> SimTrack_TC_match_for_duplicate(trk.sim_pt().size());
+    std::vector<std::vector<int>> SimTrack_TC_idx(n_accepted_simtrk);
+    std::vector<int> SimTrack_TC_typemask(n_accepted_simtrk);
 
     // Intermediate variables to keep track of matched sim tracks for a given track candidate
-    std::vector<std::vector<int>> tc_matched_simIdx;
+    std::vector<std::vector<int>> TC_SimTrack_idx;
 
     // ============ Track candidates =============
     SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
@@ -238,43 +237,48 @@ void setOutputBranches(SDL::Event* event)
     {
         // Compute reco quantities of track candidate based on final object
         int type, isFake;
-        float pt, eta, phi;
+        float pt, eta, phi, dxy, dz;
+        int charge;
         std::vector<int> simidx;
-        std::tie(type, pt, eta, phi, isFake, simidx) = parseTrackCandidate(event, idx);
-        ana.tx->pushbackToBranch<float>("tc_pt", pt);
-        ana.tx->pushbackToBranch<float>("tc_eta", eta);
-        ana.tx->pushbackToBranch<float>("tc_phi", phi);
-        ana.tx->pushbackToBranch<int>("tc_type", type);
-        ana.tx->pushbackToBranch<int>("tc_isFake", isFake);
-        tc_matched_simIdx.push_back(simidx);
+        std::tie(type, pt, eta, phi, dxy, dz, charge, isFake, simidx) = parseTrackCandidate_v2(event, idx);
+        ana.tx->pushbackToBranch<float>("TC_pt", pt);
+        ana.tx->pushbackToBranch<float>("TC_eta", eta);
+        ana.tx->pushbackToBranch<float>("TC_phi", phi);
+        ana.tx->pushbackToBranch<float>("TC_dxy", dxy);
+        ana.tx->pushbackToBranch<float>("TC_dz", dz);
+        ana.tx->pushbackToBranch<int>("TC_charge", charge);
+        ana.tx->pushbackToBranch<int>("TC_type", type);
+        ana.tx->pushbackToBranch<int>("TC_isFake", isFake);
+        TC_SimTrack_idx.push_back(simidx);
 
         // Loop over matched sim idx and increase counter of TC_matched
-        for (auto& idx : simidx)
+        for (auto& sidx : simidx)
         {
             // NOTE Important to note that the idx of the std::vector<> is same
             // as the tracking-ntuple's sim track idx ONLY because event==0 and bunchCrossing==0 condition is applied!!
+            // This is because the event==0 and bunchCrossing==0 appears at the begninning in the list of sim_*
             // Also do not try to access beyond the event and bunchCrossing
-            if (idx < n_accepted_simtrk)
+            if (sidx < n_accepted_simtrk)
             {
-                sim_TC_matched.at(idx) += 1;
-                sim_TC_matched_mask.at(idx) |= (1 << type);
+                SimTrack_TC_typemask.at(sidx) |= (1 << type);
+                SimTrack_TC_idx.at(sidx).push_back(idx);
             }
-            sim_TC_matched_for_duplicate.at(idx) += 1;
+            SimTrack_TC_match_for_duplicate.at(sidx) += 1;
         }
     }
 
     // Using the intermedaite variables to compute whether a given track candidate is a duplicate
-    vector<int> tc_isDuplicate(tc_matched_simIdx.size());
+    vector<int> tc_isDuplicate(TC_SimTrack_idx.size());
     // Loop over the track candidates
-    for (unsigned int i = 0; i < tc_matched_simIdx.size(); ++i)
+    for (unsigned int i = 0; i < TC_SimTrack_idx.size(); ++i)
     {
         bool isDuplicate = false;
         // Loop over the sim idx matched to this track candidate
-        for (unsigned int isim = 0; isim < tc_matched_simIdx[i].size(); ++isim)
+        for (unsigned int isim = 0; isim < TC_SimTrack_idx[i].size(); ++isim)
         {
             // Using the sim_TC_matched to see whether this track candidate is matched to a sim track that is matched to more than one
-            int simidx = tc_matched_simIdx[i][isim];
-            if (sim_TC_matched_for_duplicate[simidx] > 1)
+            int simidx = TC_SimTrack_idx[i][isim];
+            if (SimTrack_TC_match_for_duplicate[simidx] > 1)
             {
                 isDuplicate = true;
             }
@@ -283,10 +287,10 @@ void setOutputBranches(SDL::Event* event)
     }
 
     // Now set the last remaining branches
-    ana.tx->setBranch<vector<int>>("sim_TC_matched", sim_TC_matched);
-    ana.tx->setBranch<vector<int>>("sim_TC_matched_mask", sim_TC_matched_mask);
-    ana.tx->setBranch<vector<vector<int>>>("tc_matched_simIdx", tc_matched_simIdx);
-    ana.tx->setBranch<vector<int>>("tc_isDuplicate", tc_isDuplicate);
+    ana.tx->setBranch<vector<vector<int>>>("SimTrack_TC_idx", SimTrack_TC_idx);
+    ana.tx->setBranch<vector<int>>("SimTrack_TC_typemask", SimTrack_TC_typemask);
+    ana.tx->setBranch<vector<vector<int>>>("TC_SimTrack_idx", TC_SimTrack_idx);
+    ana.tx->setBranch<vector<int>>("TC_isDuplicate", tc_isDuplicate);
 }
 
 //________________________________________________________________________________________________________________________________
@@ -783,6 +787,86 @@ void setGnnNtupleMiniDoublet(SDL::Event* event, unsigned int MD)
 
 //________________________________________________________________________________________________________________________________
 std::tuple<int, float, float, float, int, vector<int>> parseTrackCandidate(SDL::Event* event, unsigned int idx)
+{
+    return parseTrackCandidate_v1(event, idx);
+}
+
+//________________________________________________________________________________________________________________________________
+std::tuple<int, float, float, float, float, float, int, int, vector<int>> parseTrackCandidate_v2(SDL::Event* event, unsigned int idx)
+{
+    // Get the type of the track candidate
+    SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
+    SDL::hits& hitsInGPU = (*event->getHits());
+    short type = trackCandidatesInGPU.trackCandidateType[idx];
+
+    // Compute pt eta phi and hit indices that will be used to figure out whether the TC matched
+    float pt, eta, phi, dxy, dz;
+    int charge;
+    std::vector<unsigned int> hit_idx, hit_type;
+
+    unsigned int nhits = 0;
+
+    enum
+    {
+        pT5 = 7,
+        pT3 = 5,
+        T5 = 4,
+        pLS = 8
+    };
+
+    switch (type)
+    {
+        case pT5: nhits = 14; break;
+        case pT3: nhits = 10; break;
+        case T5:  nhits = 10; break;
+        case pLS: nhits =  4; break;
+
+    }
+
+    for (unsigned int i = 0; i < nhits; ++i)
+    {
+        unsigned int hitidx_in_GPU   = trackCandidatesInGPU.hitIndices[14 * idx + i];
+        unsigned int hitidx_original = hitsInGPU.idxs[hitidx_in_GPU]; 
+        unsigned int hitidx = type == pLS ? hitidx_in_GPU : hitidx_original; // trackCandidatesInGPU.hitIndices for pLS's are behaving weirdly (see: issue #267)
+
+        // if pT5/pT3 or pLS, the 3rd and 4th hit maybe the same one.
+        // This is because "p" can be triplet and not quadruplet.
+        // For now all pLS in TC are quads, so it's not a problem but we still check to be safe.
+        if (type != T5 and hit_idx.size() != 0 and hit_idx.back() == hitidx)
+        {
+            continue;
+        }
+
+        // If you're here now we have a unique hitidx to add to the list
+        hit_idx.push_back(hitidx);
+
+        // hit type is the type of hits (inner = 0, outer = 4)
+        // this has to be correctly done so that the correct hits are looked up for truth matching
+        if (type == T5)
+        {
+            hit_type.push_back(4);
+        }
+        else
+        {
+            if (i < 4)
+                hit_type.push_back(0);
+            else
+                hit_type.push_back(4);
+        }
+    }
+
+    // Perform matching
+    std::vector<int> simidx = matchedSimTrkIdxs(hit_idx, hit_type);
+    int isFake = simidx.size() == 0;
+
+    // Perform simple track parameter fit
+    std::tie(pt, eta, phi, dxy, dz, charge) = simpleTCFit(hit_idx, hit_type, idx);
+
+    return {type, pt, eta, phi, dxy, dz, charge, isFake, simidx};
+}
+
+//________________________________________________________________________________________________________________________________
+std::tuple<int, float, float, float, int, vector<int>> parseTrackCandidate_v1(SDL::Event* event, unsigned int idx)
 {
     // Get the type of the track candidate
     SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());

@@ -13,6 +13,8 @@
 #include "trkCore.h"
 #include "AccessHelper.h"
 
+#include "simpleTCFit.h"
+
 // Common
 void createOutputBranches();
 void createRequiredOutputBranches();
@@ -30,6 +32,8 @@ void setGnnNtupleMiniDoublet(SDL::Event* event, unsigned int MD);
 
 
 std::tuple<int, float, float, float, int, vector<int>> parseTrackCandidate(SDL::Event* event, unsigned int);
+std::tuple<int, float, float, float, int, vector<int>> parseTrackCandidate_v1(SDL::Event* event, unsigned int);
+std::tuple<int, float, float, float, float, float, int, int, vector<int>> parseTrackCandidate_v2(SDL::Event* event, unsigned int);
 std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parsepT5(SDL::Event* event, unsigned int);
 std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parsepT3(SDL::Event* event, unsigned int);
 std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parseT5(SDL::Event* event, unsigned int);

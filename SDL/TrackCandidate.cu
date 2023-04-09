@@ -79,6 +79,23 @@ __device__ void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCand
     trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1] = outerTrackletIndex;
 }
 
+__device__ void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, unsigned int trackCandidateIndex, unsigned int directObjectIndex, uint4 hitIndices)
+{
+    trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = trackCandidateType;
+    trackCandidatesInGPU.directObjectIndices[trackCandidateIndex] = directObjectIndex;
+    trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex] = innerTrackletIndex;
+    trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1] = outerTrackletIndex;
+
+    // if it is pLS add the hit indices
+    if (trackCandidateType == 8)
+    {
+        trackCandidatesInGPU.hitIndices[14 * trackCandidateIndex + 0] = hitIndices.x; // x z y w is the correct order due to how it was added in the "addPixelSegmentToMemory"
+        trackCandidatesInGPU.hitIndices[14 * trackCandidateIndex + 1] = hitIndices.z;
+        trackCandidatesInGPU.hitIndices[14 * trackCandidateIndex + 2] = hitIndices.y;
+        trackCandidatesInGPU.hitIndices[14 * trackCandidateIndex + 3] = hitIndices.w;
+    }
+}
+
 __device__ void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, uint8_t* logicalLayerIndices, uint16_t* lowerModuleIndices, unsigned int* hitIndices, float centerX, float centerY, float radius, unsigned int trackCandidateIndex, unsigned int directObjectIndex)
 {
     trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = trackCandidateType;
@@ -380,7 +397,7 @@ __global__ void SDL::addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInG
 
         unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
         atomicAdd(trackCandidatesInGPU.nTrackCandidatespLS,1);
-        addTrackCandidateToMemory(trackCandidatesInGPU, 8/*track candidate type pLS=8*/, pixelArrayIndex, pixelArrayIndex, trackCandidateIdx, pixelArrayIndex);
+        addTrackCandidateToMemory(trackCandidatesInGPU, 8/*track candidate type pLS=8*/, pixelArrayIndex, pixelArrayIndex, trackCandidateIdx, pixelArrayIndex, segmentsInGPU.pLSHitsIdxs[pixelArrayIndex]);
     }
 }
 

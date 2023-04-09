@@ -38,9 +38,9 @@ int main(int argc, char** argv)
     };
     std::vector<std::function<bool(unsigned int)>> sels = {
         [&](unsigned int isim) { return 1.; },
-        [&](unsigned int isim) { return abs(sdl.sim_eta().at(isim)) < 2.4; },
-        [&](unsigned int isim) { return abs(sdl.sim_eta().at(isim)) > 1.1 and abs(sdl.sim_eta().at(isim)) < 1.7; },
-        [&](unsigned int isim) { return (abs(sdl.sim_eta().at(isim)) < 1.1 or abs(sdl.sim_eta().at(isim)) > 1.7) and abs(sdl.sim_eta().at(isim)) < 2.4; }
+        [&](unsigned int isim) { return abs(sdl.SimTrack_eta().at(isim)) < 2.4; },
+        [&](unsigned int isim) { return abs(sdl.SimTrack_eta().at(isim)) > 1.1 and abs(sdl.SimTrack_eta().at(isim)) < 1.7; },
+        [&](unsigned int isim) { return (abs(sdl.SimTrack_eta().at(isim)) < 1.1 or abs(sdl.SimTrack_eta().at(isim)) > 1.7) and abs(sdl.SimTrack_eta().at(isim)) < 2.4; }
     };
     pdgids.insert(pdgids.end(), ana.pdgids.begin(), ana.pdgids.end());
 
@@ -57,7 +57,7 @@ int main(int argc, char** argv)
                     SimTrackSetDefinition(/* name  */ TString("TC_") + selnames[isel],
                                           /* pdgid */ pdgid,
                                           /* q     */ charge,
-                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched().at(isim) > 0;},
+                                          /* pass  */ [&](unsigned int isim) {return sdl.SimTrack_TC_idx().at(isim).size() > 0;},
                                           /* sel   */ sels[isel]
                                          )
                     );
@@ -65,7 +65,7 @@ int main(int argc, char** argv)
                     SimTrackSetDefinition(/* name  */ TString("pT5_") + selnames[isel],
                                           /* pdgid */ pdgid,
                                           /* q     */ charge,
-                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pT5);},
+                                          /* pass  */ [&](unsigned int isim) {return sdl.SimTrack_TC_typemask().at(isim) & (1 << pT5);},
                                           /* sel   */ sels[isel]
                                          )
                     );
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
                     SimTrackSetDefinition(/* name  */ TString("pT3_") + selnames[isel],
                                           /* pdgid */ pdgid,
                                           /* q     */ charge,
-                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pT3);},
+                                          /* pass  */ [&](unsigned int isim) {return sdl.SimTrack_TC_typemask().at(isim) & (1 << pT3);},
                                           /* sel   */ sels[isel]
                                          )
                     );
@@ -81,7 +81,7 @@ int main(int argc, char** argv)
                     SimTrackSetDefinition(/* name  */ TString("T5_") + selnames[isel],
                                           /* pdgid */ pdgid,
                                           /* q     */ charge,
-                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << T5);},
+                                          /* pass  */ [&](unsigned int isim) {return sdl.SimTrack_TC_typemask().at(isim) & (1 << T5);},
                                           /* sel   */ sels[isel]
                                          )
                     );
@@ -89,7 +89,7 @@ int main(int argc, char** argv)
                     SimTrackSetDefinition(/* name  */ TString("pLS_") + selnames[isel],
                                           /* pdgid */ pdgid,
                                           /* q     */ charge,
-                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pLS);},
+                                          /* pass  */ [&](unsigned int isim) {return sdl.SimTrack_TC_typemask().at(isim) & (1 << pLS);},
                                           /* sel   */ sels[isel]
                                          )
                     );
@@ -133,52 +133,52 @@ int main(int argc, char** argv)
     std::vector<RecoTrackSetDefinition> list_FRSetDef;
     list_FRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "TC",
-                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isFake().at(itc) > 0;},
+                                   /* pass  */ [&](unsigned int itc) {return sdl.TC_isFake().at(itc) > 0;},
                                    /* sel   */ [&](unsigned int itc) {return 1;},
-                                   /* pt    */ tas::tc_pt,
-                                   /* eta   */ tas::tc_eta,
-                                   /* phi   */ tas::tc_phi,
-                                   /* type  */ tas::tc_type
+                                   /* pt    */ tas::TC_pt,
+                                   /* eta   */ tas::TC_eta,
+                                   /* phi   */ tas::TC_phi,
+                                   /* type  */ tas::TC_type
                                    )
         );
     list_FRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "pT5",
-                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isFake().at(itc) > 0;},
-                                   /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pT5;},
-                                   /* pt    */ tas::tc_pt,
-                                   /* eta   */ tas::tc_eta,
-                                   /* phi   */ tas::tc_phi,
-                                   /* type  */ tas::tc_type
+                                   /* pass  */ [&](unsigned int itc) {return sdl.TC_isFake().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return sdl.TC_type().at(itc) == pT5;},
+                                   /* pt    */ tas::TC_pt,
+                                   /* eta   */ tas::TC_eta,
+                                   /* phi   */ tas::TC_phi,
+                                   /* type  */ tas::TC_type
                                    )
         );
     list_FRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "pT3",
-                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isFake().at(itc) > 0;},
-                                   /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pT3;},
-                                   /* pt    */ tas::tc_pt,
-                                   /* eta   */ tas::tc_eta,
-                                   /* phi   */ tas::tc_phi,
-                                   /* type  */ tas::tc_type
+                                   /* pass  */ [&](unsigned int itc) {return sdl.TC_isFake().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return sdl.TC_type().at(itc) == pT3;},
+                                   /* pt    */ tas::TC_pt,
+                                   /* eta   */ tas::TC_eta,
+                                   /* phi   */ tas::TC_phi,
+                                   /* type  */ tas::TC_type
                                    )
         );
     list_FRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "T5",
-                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isFake().at(itc) > 0;},
-                                   /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == T5;},
-                                   /* pt    */ tas::tc_pt,
-                                   /* eta   */ tas::tc_eta,
-                                   /* phi   */ tas::tc_phi,
-                                   /* type  */ tas::tc_type
+                                   /* pass  */ [&](unsigned int itc) {return sdl.TC_isFake().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return sdl.TC_type().at(itc) == T5;},
+                                   /* pt    */ tas::TC_pt,
+                                   /* eta   */ tas::TC_eta,
+                                   /* phi   */ tas::TC_phi,
+                                   /* type  */ tas::TC_type
                                    )
         );
     list_FRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "pLS",
-                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isFake().at(itc) > 0;},
-                                   /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pLS;},
-                                   /* pt    */ tas::tc_pt,
-                                   /* eta   */ tas::tc_eta,
-                                   /* phi   */ tas::tc_phi,
-                                   /* type  */ tas::tc_type
+                                   /* pass  */ [&](unsigned int itc) {return sdl.TC_isFake().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return sdl.TC_type().at(itc) == pLS;},
+                                   /* pt    */ tas::TC_pt,
+                                   /* eta   */ tas::TC_eta,
+                                   /* phi   */ tas::TC_phi,
+                                   /* type  */ tas::TC_type
                                    )
         );
 
@@ -222,52 +222,52 @@ int main(int argc, char** argv)
     std::vector<RecoTrackSetDefinition> list_DRSetDef;
     list_DRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "TC",
-                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isDuplicate().at(itc) > 0;},
+                                   /* pass  */ [&](unsigned int itc) {return sdl.TC_isDuplicate().at(itc) > 0;},
                                    /* sel   */ [&](unsigned int itc) {return 1;},
-                                   /* pt    */ tas::tc_pt,
-                                   /* eta   */ tas::tc_eta,
-                                   /* phi   */ tas::tc_phi,
-                                   /* type  */ tas::tc_type
+                                   /* pt    */ tas::TC_pt,
+                                   /* eta   */ tas::TC_eta,
+                                   /* phi   */ tas::TC_phi,
+                                   /* type  */ tas::TC_type
                                    )
         );
     list_DRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "pT5",
-                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isDuplicate().at(itc) > 0;},
-                                   /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pT5;},
-                                   /* pt    */ tas::tc_pt,
-                                   /* eta   */ tas::tc_eta,
-                                   /* phi   */ tas::tc_phi,
-                                   /* type  */ tas::tc_type
+                                   /* pass  */ [&](unsigned int itc) {return sdl.TC_isDuplicate().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return sdl.TC_type().at(itc) == pT5;},
+                                   /* pt    */ tas::TC_pt,
+                                   /* eta   */ tas::TC_eta,
+                                   /* phi   */ tas::TC_phi,
+                                   /* type  */ tas::TC_type
                                    )
         );
     list_DRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "pT3",
-                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isDuplicate().at(itc) > 0;},
-                                   /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pT3;},
-                                   /* pt    */ tas::tc_pt,
-                                   /* eta   */ tas::tc_eta,
-                                   /* phi   */ tas::tc_phi,
-                                   /* type  */ tas::tc_type
+                                   /* pass  */ [&](unsigned int itc) {return sdl.TC_isDuplicate().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return sdl.TC_type().at(itc) == pT3;},
+                                   /* pt    */ tas::TC_pt,
+                                   /* eta   */ tas::TC_eta,
+                                   /* phi   */ tas::TC_phi,
+                                   /* type  */ tas::TC_type
                                    )
         );
     list_DRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "T5",
-                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isDuplicate().at(itc) > 0;},
-                                   /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == T5;},
-                                   /* pt    */ tas::tc_pt,
-                                   /* eta   */ tas::tc_eta,
-                                   /* phi   */ tas::tc_phi,
-                                   /* type  */ tas::tc_type
+                                   /* pass  */ [&](unsigned int itc) {return sdl.TC_isDuplicate().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return sdl.TC_type().at(itc) == T5;},
+                                   /* pt    */ tas::TC_pt,
+                                   /* eta   */ tas::TC_eta,
+                                   /* phi   */ tas::TC_phi,
+                                   /* type  */ tas::TC_type
                                    )
         );
     list_DRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "pLS",
-                                   /* pass  */ [&](unsigned int itc) {return sdl.tc_isDuplicate().at(itc) > 0;},
-                                   /* sel   */ [&](unsigned int itc) {return sdl.tc_type().at(itc) == pLS;},
-                                   /* pt    */ tas::tc_pt,
-                                   /* eta   */ tas::tc_eta,
-                                   /* phi   */ tas::tc_phi,
-                                   /* type  */ tas::tc_type
+                                   /* pass  */ [&](unsigned int itc) {return sdl.TC_isDuplicate().at(itc) > 0;},
+                                   /* sel   */ [&](unsigned int itc) {return sdl.TC_type().at(itc) == pLS;},
+                                   /* pt    */ tas::TC_pt,
+                                   /* eta   */ tas::TC_eta,
+                                   /* phi   */ tas::TC_phi,
+                                   /* type  */ tas::TC_type
                                    )
         );
 
@@ -554,7 +554,7 @@ void fillEfficiencySets(std::vector<SimTrackSetDefinition>& effsets)
 {
     for (auto& effset : effsets)
     {
-        for (unsigned int isimtrk = 0; isimtrk < sdl.sim_pt().size(); ++isimtrk)
+        for (unsigned int isimtrk = 0; isimtrk < sdl.SimTrack_pt().size(); ++isimtrk)
         {
             fillEfficiencySet(isimtrk, effset);
         }
@@ -566,24 +566,24 @@ void fillEfficiencySet(int isimtrk, SimTrackSetDefinition& effset)
 {
     //=========================================================
     // NOTE: The following is not applied as the LSTNtuple no longer writes this.
-    // const int &bunch = sdl.sim_bunchCrossing()[isimtrk];
-    // const int &event = sdl.sim_event()[isimtrk];
+    // const int &bunch = sdl.SimTrack_bunchCrossing()[isimtrk];
+    // const int &event = sdl.SimTrack_event()[isimtrk];
     // if (bunch != 0)
     //     return;
     // if (event != 0)
     //     return;
     //=========================================================
 
-    const float &pt = sdl.sim_pt()[isimtrk];
-    const float &eta = sdl.sim_eta()[isimtrk];
-    const float &dz = sdl.sim_pca_dz()[isimtrk];
-    const float &dxy = sdl.sim_pca_dxy()[isimtrk];
-    const float &phi = sdl.sim_phi()[isimtrk];
-    const int &pdgidtrk = sdl.sim_pdgId()[isimtrk];
-    const int &q = sdl.sim_q()[isimtrk];
-    const float &vtx_x = sdl.sim_vx()[isimtrk];
-    const float &vtx_y = sdl.sim_vy()[isimtrk];
-    const float &vtx_z = sdl.sim_vz()[isimtrk];
+    const float &pt = sdl.SimTrack_pt()[isimtrk];
+    const float &eta = sdl.SimTrack_eta()[isimtrk];
+    const float &dz = sdl.SimTrack_dz()[isimtrk];
+    const float &dxy = sdl.SimTrack_dxy()[isimtrk];
+    const float &phi = sdl.SimTrack_phi()[isimtrk];
+    const int &pdgidtrk = sdl.SimTrack_pdgID()[isimtrk];
+    const int &q = sdl.SimTrack_charge()[isimtrk];
+    const float &vtx_x = sdl.SimTrack_vx()[isimtrk];
+    const float &vtx_y = sdl.SimTrack_vy()[isimtrk];
+    const float &vtx_z = sdl.SimTrack_vz()[isimtrk];
     const float &vtx_perp = sqrt(vtx_x * vtx_x + vtx_y * vtx_y);
     bool pass = effset.pass(isimtrk);
     bool sel = effset.sel(isimtrk);
