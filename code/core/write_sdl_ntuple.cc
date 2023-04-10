@@ -240,7 +240,7 @@ void setOutputBranches(SDL::Event* event)
         float pt, eta, phi, dxy, dz;
         int charge;
         std::vector<int> simidx;
-        std::tie(type, pt, eta, phi, dxy, dz, charge, isFake, simidx) = parseTrackCandidate_v2(event, idx);
+        std::tie(type, pt, eta, phi, dxy, dz, charge, isFake, simidx) = parseTrackCandidate(event, idx);
         ana.tx->pushbackToBranch<float>("TC_pt", pt);
         ana.tx->pushbackToBranch<float>("TC_eta", eta);
         ana.tx->pushbackToBranch<float>("TC_phi", phi);
@@ -786,13 +786,7 @@ void setGnnNtupleMiniDoublet(SDL::Event* event, unsigned int MD)
 }
 
 //________________________________________________________________________________________________________________________________
-std::tuple<int, float, float, float, int, vector<int>> parseTrackCandidate(SDL::Event* event, unsigned int idx)
-{
-    return parseTrackCandidate_v1(event, idx);
-}
-
-//________________________________________________________________________________________________________________________________
-std::tuple<int, float, float, float, float, float, int, int, vector<int>> parseTrackCandidate_v2(SDL::Event* event, unsigned int idx)
+std::tuple<int, float, float, float, float, float, int, int, vector<int>> parseTrackCandidate(SDL::Event* event, unsigned int idx)
 {
     // Get the type of the track candidate
     SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
@@ -863,40 +857,6 @@ std::tuple<int, float, float, float, float, float, int, int, vector<int>> parseT
     std::tie(pt, eta, phi, dxy, dz, charge) = simpleTCFit(hit_idx, hit_type, idx);
 
     return {type, pt, eta, phi, dxy, dz, charge, isFake, simidx};
-}
-
-//________________________________________________________________________________________________________________________________
-std::tuple<int, float, float, float, int, vector<int>> parseTrackCandidate_v1(SDL::Event* event, unsigned int idx)
-{
-    // Get the type of the track candidate
-    SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
-    short type = trackCandidatesInGPU.trackCandidateType[idx];
-
-    enum
-    {
-        pT5 = 7,
-        pT3 = 5,
-        T5 = 4,
-        pLS = 8
-    };
-
-    // Compute pt eta phi and hit indices that will be used to figure out whether the TC matched
-    float pt, eta, phi;
-    std::vector<unsigned int> hit_idx, hit_type;
-    switch (type)
-    {
-        case pT5: std::tie(pt, eta, phi, hit_idx, hit_type) = parsepT5(event, idx); break;
-        case pT3: std::tie(pt, eta, phi, hit_idx, hit_type) = parsepT3(event, idx); break;
-        case T5:  std::tie(pt, eta, phi, hit_idx, hit_type) = parseT5(event, idx); break;
-        case pLS: std::tie(pt, eta, phi, hit_idx, hit_type) = parsepLS(event, idx); break;
-
-    }
-
-    // Perform matching
-    std::vector<int> simidx = matchedSimTrkIdxs(hit_idx, hit_type);
-    int isFake = simidx.size() == 0;
-
-    return {type, pt, eta, phi, isFake, simidx};
 }
 
 //________________________________________________________________________________________________________________________________
