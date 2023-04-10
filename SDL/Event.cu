@@ -1101,7 +1101,13 @@ void SDL::Event::createTriplets()
     {
         tripletsInGPU = (SDL::triplets*)cms::cuda::allocate_host(sizeof(SDL::triplets), stream);
         unsigned int maxTriplets;
-        createTripletArrayRanges(*modulesInGPU, *rangesInGPU, *segmentsInGPU, nLowerModules, maxTriplets, stream);
+        unsigned int *device_maxTriplets;
+        cudaMalloc((void **)&device_maxTriplets, sizeof(unsigned int));
+        createTripletArrayRanges<<<1,1024,0,stream>>>(*modulesInGPU, *rangesInGPU, *segmentsInGPU, device_maxTriplets, stream);
+        cudaStreamSynchronize(stream);
+        cudaMemcpyAsync(&maxTriplets,device_maxTriplets,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
+        cudaFree(device_maxTriplets);
+        cudaStreamSynchronize(stream);
 //        cout<<"nTotalTriplets: "<<maxTriplets<<std::endl; // for memory usage
         createTripletsInExplicitMemory(*tripletsInGPU, maxTriplets, nLowerModules,stream);
 
