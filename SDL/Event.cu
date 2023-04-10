@@ -1104,9 +1104,8 @@ void SDL::Event::createMiniDoublets()
     alpaka::wait(queue);
 
 #if defined(AddObjects)
-addMiniDoubletsToEventExplicit();
+    addMiniDoubletsToEventExplicit();
 #endif
-
 }
 
 void SDL::Event::createSegmentsWithModuleMap()
