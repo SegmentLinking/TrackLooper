@@ -2133,7 +2133,7 @@ namespace SDL
                     if( modulesInGPU.moduleType[quintupletLowerModuleIndex] == SDL::TwoS) continue;
                     uint16_t pixelModuleIndex = *modulesInGPU.nLowerModules;
                     if(segmentsInGPU.isDup[i_pLS]) continue;
-                    unsigned int nOuterQuintuplets = quintupletsInGPU.nQuintuplets[quintupletLowerModuleIndex];
+                    int nOuterQuintuplets = quintupletsInGPU.nQuintuplets[quintupletLowerModuleIndex];
 
                     if(nOuterQuintuplets == 0) continue;
 
