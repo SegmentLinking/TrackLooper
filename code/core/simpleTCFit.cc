@@ -48,18 +48,12 @@ std::tuple<float, float, float, float, float, int> simpleTCFit(
 
     // Algebraic circle fits to first obtain a initial guess.
     circleIni = CircleFitByTaubin (data1);
-    // cout << "\nTest One:\n  Initial circle by Taubin fit:\n  center ("
-    //      << circleIni.a <<","<< circleIni.b <<")  radius "
-    //      << circleIni.r << "  sigma " << circleIni.s << endl;
 
     // This following fit is known to be stable for large radius (i.e. for high-pt)
     int code = CircleFitByChernovHoussam (data1,circleIni,LambdaIni,circle);
     // error code
     if ((code == 1)||(code==2)) cout << "\n Geometric circle by Chernov-Houssam did not converge. Iterations maxed out.\n";
     if (code == 3) cout << "\n Geometric circle by Chernov-Houssam did not converge. Fitting circle too big.\n";
-    // if (code == 0) cout << "\n Geometric circle by Chernov-Houssam:\n  center ("
-    //      << circle.a <<","<< circle.b <<")  radius "
-    //      << circle.r << "  sigma " << circle.s << "  iterations: " << circle.i << endl;
 
     // -----------------
     // circle fit result
@@ -85,19 +79,6 @@ std::tuple<float, float, float, float, float, int> simpleTCFit(
 
     // phi
     phi = SDL::CPU::MathUtil::Phi_mpi_pi(angle_to_center + (charge > 0 ? M_PI / 2. : -M_PI / 2.));
-
-    // if (verbose)
-    // {
-    //     for (unsigned int ihit = 0; ihit < nhits; ++ihit)
-    //     {
-    //         std::cout <<  " ihit: " << ihit <<  " X[ihit]: " << X[ihit] <<  " Y[ihit]: " << Y[ihit] <<  " Z[ihit]: " << Z[ihit] <<  std::endl;
-    //     }
-    //     std::cout <<  " cross: " << cross <<  std::endl;
-    //     std::cout <<  " pca_x: " << pca_x <<  " pca_y: " << pca_y <<  std::endl;
-    //     std::cout <<  " radius: " << radius <<  " center_x: " << center_x <<  " center_y: " << center_y <<  std::endl;
-    //     std::cout <<  " dist_to_center: " << dist_to_center <<  std::endl;
-    //     std::cout <<  " angle_to_center: " << angle_to_center <<  std::endl;
-    // }
 
     //=========================================================================================
     //
