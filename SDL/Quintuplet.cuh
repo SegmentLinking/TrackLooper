@@ -988,7 +988,7 @@ namespace SDL
             //category 4 - endcap PS
             else if(moduleSubdet == Endcap and moduleType == PS)
             {
-                delta1[i] = inv1;//1.1111f;//0.01;
+                delta1[i] = inv1;
                 isFlat[i] = false;
 
                 /*
@@ -1374,8 +1374,8 @@ namespace SDL
 
         const float dBetaROut2 =  dBetaROut * dBetaROut;
 
-        betaOutCut = alpaka::math::asin(acc, alpaka::math::min(acc, drt_tl_axis*SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) //FIXME: need faster version
-            + (0.02f / sdOut_d) + alpaka::math::sqrt(acc, dBetaLum2 + dBetaMuls*dBetaMuls);
+        //FIXME: need faster version
+        betaOutCut = alpaka::math::asin(acc, alpaka::math::min(acc, drt_tl_axis*SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) + (0.02f / sdOut_d) + alpaka::math::sqrt(acc, dBetaLum2 + dBetaMuls*dBetaMuls);
 
         //Cut #6: The real beta cut
         pass = pass and ((alpaka::math::abs(acc, betaOut) < betaOutCut));
@@ -1384,8 +1384,7 @@ namespace SDL
         float pt_betaIn = drt_tl_axis * SDL::k2Rinv1GeVf/alpaka::math::sin(acc, betaIn);
         float pt_betaOut = drt_tl_axis * SDL::k2Rinv1GeVf /alpaka::math::sin(acc, betaOut);
         float dBetaRes = 0.02f/alpaka::math::min(acc, sdOut_d,drt_InSeg);
-        float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
-                + 0.25f * (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)) * (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)));
+        float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2 + 0.25f * (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)) * (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)));
 
         float dBeta = betaIn - betaOut;
         deltaBetaCut = alpaka::math::sqrt(acc, dBetaCut2);
@@ -1586,8 +1585,8 @@ namespace SDL
         }
 
         const float dBetaROut2 = dBetaROut * dBetaROut;
-        betaOutCut = alpaka::math::asin(acc, alpaka::math::min(acc, dr*SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) //FIXME: need faster version
-            + (0.02f / sdOut_d) + alpaka::math::sqrt(acc, dBetaLum2 + dBetaMuls*dBetaMuls);
+        //FIXME: need faster version
+        betaOutCut = alpaka::math::asin(acc, alpaka::math::min(acc, dr*SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) + (0.02f / sdOut_d) + alpaka::math::sqrt(acc, dBetaLum2 + dBetaMuls*dBetaMuls);
 
         //Cut #6: The real beta cut
         pass = pass and (alpaka::math::abs(acc, betaOut) < betaOutCut);
@@ -1596,8 +1595,7 @@ namespace SDL
         float pt_betaIn = dr * SDL::k2Rinv1GeVf/alpaka::math::sin(acc, betaIn);
         float pt_betaOut = dr * SDL::k2Rinv1GeVf /alpaka::math::sin(acc, betaOut);
         float dBetaRes = 0.02f/alpaka::math::min(acc, sdOut_d,sdIn_d);
-        float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
-                + 0.25f * (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)) * (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)));
+        float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2 + 0.25f * (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)) * (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)));
         float dBeta = betaIn - betaOut;
         deltaBetaCut = alpaka::math::sqrt(acc, dBetaCut2);
         //Cut #7: Cut on dBet
@@ -1793,8 +1791,8 @@ namespace SDL
         const float dBetaRIn2 = 0; // TODO-RH
 
         float dBetaROut2 = 0;//TODO-RH
-        betaOutCut = alpaka::math::asin(acc, alpaka::math::min(acc, dr*SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) //FIXME: need faster version
-            + (0.02f / sdOut_d) + alpaka::math::sqrt(acc, dBetaLum2 + dBetaMuls*dBetaMuls);
+        //FIXME: need faster version
+        betaOutCut = alpaka::math::asin(acc, alpaka::math::min(acc, dr*SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) + (0.02f / sdOut_d) + alpaka::math::sqrt(acc, dBetaLum2 + dBetaMuls*dBetaMuls);
 
         //Cut #6: The real beta cut
         pass = pass and (alpaka::math::abs(acc, betaOut) < betaOutCut);
@@ -1803,8 +1801,7 @@ namespace SDL
         float pt_betaIn = dr * SDL::k2Rinv1GeVf/alpaka::math::sin(acc, betaIn);
         float pt_betaOut = dr * SDL::k2Rinv1GeVf /alpaka::math::sin(acc, betaOut);
         float dBetaRes = 0.02f/alpaka::math::min(acc, sdOut_d,sdIn_d);
-        float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2
-                + 0.25f * (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)) * (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)));
+        float dBetaCut2 = (dBetaRes*dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2 + 0.25f * (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)) * (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)));
         float dBeta = betaIn - betaOut;
         //Cut #7: Cut on dBeta
         deltaBetaCut = alpaka::math::sqrt(acc, dBetaCut2);
