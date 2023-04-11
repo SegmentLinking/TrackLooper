@@ -49,6 +49,21 @@ typedef __half FPX_seg;
 typedef float FPX_seg; 
 #endif
 
+const unsigned int MAX_BLOCKS = 80;
+const unsigned int MAX_CONNECTED_MODULES = 40;
+const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 100000;
+const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
+
+const unsigned int N_MAX_PIXEL_TRIPLETS = 5000;
+const unsigned int N_MAX_PIXEL_QUINTUPLETS = 15000;
+
+const unsigned int N_MAX_TRACK_CANDIDATES = 1000;
+const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 4000;
+
+const unsigned int N_MAX_TRACK_CANDIDATE_EXTENSIONS = 200000;
+const unsigned int N_MAX_TRACK_EXTENSIONS_PER_TC = 30;
+const unsigned int N_MAX_T3T3_TRACK_EXTENSIONS = 40000;
+
 namespace SDL
 {
     //defining the constant host device variables right up here

@@ -1,7 +1,6 @@
 #ifndef Triplet_cuh
 #define Triplet_cuh
 
-#include "Constants.h"
 #include "Constants.cuh"
 #include "Segment.cuh"
 #include "MiniDoublet.cuh"
