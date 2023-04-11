@@ -52,7 +52,9 @@ __global__ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, stru
     {
         if(modulesInGPU.nConnectedModules[i] == 0)
         {
-          moduleOccupancy[i]= 0;
+          //moduleOccupancy[i]= 0;
+          rangesInGPU.segmentModuleIndices[i] = nTotalSegments;
+        rangesInGPU.segmentModuleOccupancy[i] = 0;
           //rangesInGPU.segmentModuleIndices[i] = nTotalSegments;
           continue;
         }
@@ -90,9 +92,10 @@ __global__ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, stru
 
 
         //nTotalSegments += occupancy;
-        //unsigned int nTotSegs = atomicAdd(&nTotalSegments,occupancy);
-        //rangesInGPU.segmentModuleIndices[i] = nTotSegs;
-        moduleOccupancy[i]= occupancy;
+        unsigned int nTotSegs = atomicAdd(&nTotalSegments,occupancy);
+        rangesInGPU.segmentModuleIndices[i] = nTotSegs;
+        rangesInGPU.segmentModuleOccupancy[i] = occupancy;
+        //moduleOccupancy[i]= occupancy;
     }
 
     __syncthreads();
@@ -100,14 +103,14 @@ __global__ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, stru
     if(threadIdx.x==0){
       //printf("test 1\n");
       //printf("test 2\n");
-    for(uint16_t i = 0; i < *modulesInGPU.nLowerModules; i+= 1)
-    {
-      //nTotalSegments += maxPixelSegments[0];
-      //rangesInGPU.segmentModuleIndices[*modulesInGPU.nLowerModules] = nTotalSegments;
-      rangesInGPU.segmentModuleIndices[i] = nTotalSegments;
-      nTotalSegments += moduleOccupancy[i];
-      //printf("%d: %u\n",i,rangesInGPU.segmentModuleIndices[i]);
-    }
+    //for(uint16_t i = 0; i < *modulesInGPU.nLowerModules; i+= 1)
+    //{
+    //  //nTotalSegments += maxPixelSegments[0];
+    //  //rangesInGPU.segmentModuleIndices[*modulesInGPU.nLowerModules] = nTotalSegments;
+    //  rangesInGPU.segmentModuleIndices[i] = nTotalSegments;
+    //  nTotalSegments += moduleOccupancy[i];
+    //  //printf("%d: %u\n",i,rangesInGPU.segmentModuleIndices[i]);
+    //}
       rangesInGPU.segmentModuleIndices[*modulesInGPU.nLowerModules] = nTotalSegments;
       nTotalSegments += maxPixelSegments[0];
       //printf("%d: %u\n",*modulesInGPU.nLowerModules,rangesInGPU.segmentModuleIndices[*modulesInGPU.nLowerModules]);
@@ -948,7 +951,8 @@ __global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, st
             if(pass)
             {
                 unsigned int totOccupancySegments = atomicAdd(&segmentsInGPU.totOccupancySegments[innerLowerModuleIndex],1);
-                if(totOccupancySegments >= (rangesInGPU.segmentModuleIndices[innerLowerModuleIndex + 1] - rangesInGPU.segmentModuleIndices[innerLowerModuleIndex]))
+                if(totOccupancySegments >= (rangesInGPU.segmentModuleOccupancy[innerLowerModuleIndex]))
+                //if(totOccupancySegments >= (rangesInGPU.segmentModuleIndices[innerLowerModuleIndex + 1] - rangesInGPU.segmentModuleIndices[innerLowerModuleIndex]))
                 {
 #ifdef Warnings
                     printf("Segment excess alert! Module index = %d\n",innerLowerModuleIndex);

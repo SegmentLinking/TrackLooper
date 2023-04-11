@@ -67,6 +67,7 @@ namespace SDL
         int *quintupletModuleIndices;
         int *miniDoubletModuleIndices;
         int *segmentModuleIndices;
+        int *segmentModuleOccupancy;
         int *tripletModuleIndices;
 
 //        unsigned int nTotalQuintuplets;
