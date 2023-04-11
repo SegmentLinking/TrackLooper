@@ -32,7 +32,7 @@ namespace SDL
         segmentsInGPU.isDup[pixelSegmentArrayIndex] = 1;
     };
 
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE int checkHitsT5(unsigned int ix, unsigned int jx,struct SDL::quintuplets& quintupletsInGPU)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE int checkHitsT5(unsigned int ix, unsigned int jx, struct SDL::quintuplets& quintupletsInGPU)
     {
         unsigned int hits1[10];
         unsigned int hits2[10];
@@ -60,7 +60,7 @@ namespace SDL
         hits2[8] = quintupletsInGPU.hitIndices[10*jx+8];
         hits2[9] = quintupletsInGPU.hitIndices[10*jx+9];
 
-        int nMatched =0;
+        int nMatched = 0;
         for (int i = 0; i < 10; i++)
         {
             bool matched = false;
@@ -115,8 +115,8 @@ namespace SDL
         hits2[12] = pixelQuintupletsInGPU.hitIndices[14*jx+12];
         hits2[13] = pixelQuintupletsInGPU.hitIndices[14*jx+13];
 
-        int nMatched =0;
-        for (int i =0; i<14;i++)
+        int nMatched = 0;
+        for (int i = 0; i < 14; i++)
         {
             bool matched = false;
             for (int j = 0; j < 14; j++)
@@ -148,7 +148,7 @@ namespace SDL
         phits2[2] = pixelTripletsInGPU.hitIndices[10*jx+2];
         phits2[3] = pixelTripletsInGPU.hitIndices[10*jx+3];
 
-        int npMatched =0;
+        int npMatched = 0;
         for (int i = 0; i < 4; i++)
         {
             bool pmatched = false;
@@ -181,7 +181,7 @@ namespace SDL
         hits2[4] = pixelTripletsInGPU.hitIndices[10*jx+8];
         hits2[5] = pixelTripletsInGPU.hitIndices[10*jx+9];
 
-        int nMatched =0;
+        int nMatched = 0;
         for (int i = 0; i < 6; i++)
         {
             bool matched = false;
@@ -236,7 +236,7 @@ namespace SDL
                     for(unsigned int jx1 = globalThreadIdx[2]; jx1 < nQuintuplets_lowmod; jx1 += gridThreadExtent[2])
                     {
                         unsigned int jx = quintupletModuleIndices_lowmod + jx1;
-                        if(ix==jx)
+                        if(ix == jx)
                             continue;
 
                         float pt2  = __H2F(quintupletsInGPU.pt[jx]);
@@ -250,26 +250,26 @@ namespace SDL
                             continue;
 
                         if(dPhi > float(M_PI))
-                            dPhi = dPhi - 2*float(M_PI);
+                            dPhi = dPhi - 2 * float(M_PI);
 
                         if (alpaka::math::abs(acc, dPhi) > 0.1f)
                             continue;
 
                         float dR2 = dEta*dEta + dPhi*dPhi;
-                        int nMatched = checkHitsT5(ix,jx,quintupletsInGPU);
-                        if(nMatched >=7)
+                        int nMatched = checkHitsT5(ix, jx, quintupletsInGPU);
+                        if(nMatched >= 7)
                         {
-                            if( score_rphisum1 > score_rphisum2 )
+                            if(score_rphisum1 > score_rphisum2)
                             {
-                                rmQuintupletFromMemory(quintupletsInGPU,ix); continue;
+                                rmQuintupletFromMemory(quintupletsInGPU, ix); continue;
                             }
-                            else if( (score_rphisum1 == score_rphisum2) && (ix<jx))
+                            else if((score_rphisum1 == score_rphisum2) && (ix < jx))
                             {
-                                rmQuintupletFromMemory(quintupletsInGPU,ix); continue;
+                                rmQuintupletFromMemory(quintupletsInGPU, ix); continue;
                             }
                             else
                             {
-                                rmQuintupletFromMemory(quintupletsInGPU,jx); continue;
+                                rmQuintupletFromMemory(quintupletsInGPU, jx); continue;
                             }
                         }
                     }
@@ -293,25 +293,25 @@ namespace SDL
             Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
             Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
-            for(unsigned int lowmodIdx1 = globalThreadIdx[1]; lowmodIdx1 < *(rangesInGPU.nEligibleT5Modules);lowmodIdx1 += gridThreadExtent[1])
+            for(unsigned int lowmodIdx1 = globalThreadIdx[1]; lowmodIdx1 < *(rangesInGPU.nEligibleT5Modules); lowmodIdx1 += gridThreadExtent[1])
             {
                 uint16_t lowmod1 = rangesInGPU.indicesOfEligibleT5Modules[lowmodIdx1];
                 int nQuintuplets_lowmod1 = quintupletsInGPU.nQuintuplets[lowmod1];
-                if(nQuintuplets_lowmod1==0)
+                if(nQuintuplets_lowmod1 == 0)
                     continue;
 
                 int quintupletModuleIndices_lowmod1 = rangesInGPU.quintupletModuleIndices[lowmod1];
 
-                for(unsigned int lowmodIdx2 = globalThreadIdx[2]; lowmodIdx2 < *(rangesInGPU.nEligibleT5Modules);lowmodIdx2 += gridThreadExtent[2])
+                for(unsigned int lowmodIdx2 = globalThreadIdx[2]; lowmodIdx2 < *(rangesInGPU.nEligibleT5Modules); lowmodIdx2 += gridThreadExtent[2])
                 {
                     uint16_t lowmod2 = rangesInGPU.indicesOfEligibleT5Modules[lowmodIdx2];
                     int nQuintuplets_lowmod2 = quintupletsInGPU.nQuintuplets[lowmod2];
-                    if(nQuintuplets_lowmod2==0)
+                    if(nQuintuplets_lowmod2 == 0)
                         continue;
 
                     int quintupletModuleIndices_lowmod2 = rangesInGPU.quintupletModuleIndices[lowmod2];
 
-                    for(unsigned int ix1 = 0; ix1 < nQuintuplets_lowmod1; ix1 += 1 )
+                    for(unsigned int ix1 = 0; ix1 < nQuintuplets_lowmod1; ix1 += 1)
                     {
                         unsigned int ix = quintupletModuleIndices_lowmod1 + ix1;
                         if(quintupletsInGPU.partOfPT5[ix] || quintupletsInGPU.isDup[ix])
@@ -320,7 +320,7 @@ namespace SDL
                         for(unsigned int jx1 = 0; jx1 < nQuintuplets_lowmod2; jx1++)
                         {
                             unsigned int jx = quintupletModuleIndices_lowmod2 + jx1;
-                            if(ix==jx)
+                            if(ix == jx)
                                 continue;
 
                             if(quintupletsInGPU.partOfPT5[jx] || quintupletsInGPU.isDup[jx])
@@ -343,22 +343,22 @@ namespace SDL
                                 continue;
 
                             if(dPhi > float(M_PI))
-                                dPhi = dPhi - 2*float(M_PI);
+                                dPhi = dPhi - 2 * float(M_PI);
 
                             if (alpaka::math::abs(acc, dPhi) > 0.1f)
                                 continue;
 
                             float dR2 = dEta*dEta + dPhi*dPhi;
-                            int nMatched = checkHitsT5(ix,jx,quintupletsInGPU);
+                            int nMatched = checkHitsT5(ix, jx, quintupletsInGPU);
                             if(dR2 < 0.001f || nMatched >= 5)
                             {
-                                if(score_rphisum1 > score_rphisum2 )
+                                if(score_rphisum1 > score_rphisum2)
                                 {
-                                    rmQuintupletFromMemory(quintupletsInGPU,ix); continue;
+                                    rmQuintupletFromMemory(quintupletsInGPU, ix); continue;
                                 }
-                                if( (score_rphisum1 == score_rphisum2) && (ix<jx))
+                                if((score_rphisum1 == score_rphisum2) && (ix < jx))
                                 {
-                                    rmQuintupletFromMemory(quintupletsInGPU,ix); continue;
+                                    rmQuintupletFromMemory(quintupletsInGPU, ix); continue;
                                 }
                             }
                         }
@@ -389,25 +389,25 @@ namespace SDL
                 for(unsigned int jx = globalThreadIdx[2]; jx < *pixelTripletsInGPU.nPixelTriplets; jx += gridThreadExtent[2])
                 {
                     float score2 = __H2F(pixelTripletsInGPU.score[jx]);
-                    if(ix==jx)
+                    if(ix == jx)
                         continue;
 
                     int nMatched[2];
                     checkHitspT3(ix,jx,pixelTripletsInGPU,nMatched);
-                    if(((nMatched[0] + nMatched[1]) >= 5) )
+                    if((nMatched[0] + nMatched[1]) >= 5)
                     {
                         // Check the layers
                         if(pixelTripletsInGPU.logicalLayers[5*jx+2] < pixelTripletsInGPU.logicalLayers[5*ix+2])
                         {
                             rmPixelTripletFromMemory(pixelTripletsInGPU, ix); break;
                         }
-                        else if( pixelTripletsInGPU.logicalLayers[5*ix+2] == pixelTripletsInGPU.logicalLayers[5*jx+2] && __H2F(pixelTripletsInGPU.score[ix]) > __H2F(pixelTripletsInGPU.score[jx]))
+                        else if(pixelTripletsInGPU.logicalLayers[5*ix+2] == pixelTripletsInGPU.logicalLayers[5*jx+2] && __H2F(pixelTripletsInGPU.score[ix]) > __H2F(pixelTripletsInGPU.score[jx]))
                         {
-                            rmPixelTripletFromMemory(pixelTripletsInGPU,ix); break;
+                            rmPixelTripletFromMemory(pixelTripletsInGPU, ix); break;
                         }
-                        else if( pixelTripletsInGPU.logicalLayers[5*ix+2] == pixelTripletsInGPU.logicalLayers[5*jx+2] && (__H2F(pixelTripletsInGPU.score[ix]) == __H2F(pixelTripletsInGPU.score[jx])) && (ix<jx))
+                        else if(pixelTripletsInGPU.logicalLayers[5*ix+2] == pixelTripletsInGPU.logicalLayers[5*jx+2] && (__H2F(pixelTripletsInGPU.score[ix]) == __H2F(pixelTripletsInGPU.score[jx])) && (ix < jx))
                         {
-                            rmPixelTripletFromMemory(pixelTripletsInGPU,ix); break;
+                            rmPixelTripletFromMemory(pixelTripletsInGPU, ix); break;
                         }
                     }
                 }
@@ -497,10 +497,10 @@ namespace SDL
                 for(int jx = globalThreadIdx[2]; jx < nPixelSegments; jx += gridThreadExtent[2])
                 {
                     float eta_pix2 = segmentsInGPU.eta[jx];
-                    if (ix==jx)
+                    if (ix == jx)
                         continue;
 
-                    if (alpaka::math::abs(acc, eta_pix2 - eta_pix1) > 0.1f )
+                    if (alpaka::math::abs(acc, eta_pix2 - eta_pix1) > 0.1f)
                         continue;
 
                     if (secondpass && (!segmentsInGPU.isQuad[jx] || segmentsInGPU.isDup[jx]))
@@ -510,7 +510,7 @@ namespace SDL
                     float ptErr_diff = segmentsInGPU.ptIn[ix] -segmentsInGPU.ptIn[jx];
                     float score_diff = segmentsInGPU.score[ix] -segmentsInGPU.score[jx];
                     // Always keep quads over trips. If they are the same, we want the object with the lower pt Error
-                    if((quad_diff > 0 )|| (score_diff<0 && quad_diff ==0))
+                    if((quad_diff > 0)|| (score_diff < 0 && quad_diff == 0))
                         continue;
 
                     unsigned int phits2[4];
@@ -521,11 +521,11 @@ namespace SDL
 
                     float phi_pix2 = segmentsInGPU.phi[jx];
 
-                    int npMatched =0;
+                    int npMatched = 0;
                     for (int i = 0; i < 4; i++)
                     {
                         bool pmatched = false;
-                        for (int j =0; j<4; j++)
+                        for (int j = 0; j < 4; j++)
                         {
                             if(phits1[i] == phits2[j])
                             {
@@ -541,24 +541,24 @@ namespace SDL
                         }
                     }
                     // If exact match, remove only 1
-                    if((npMatched ==4) && (ix < jx))
+                    if((npMatched == 4) && (ix < jx))
                     {
-                        rmPixelSegmentFromMemory(segmentsInGPU,ix);
+                        rmPixelSegmentFromMemory(segmentsInGPU, ix);
                     }
-                    if(npMatched ==3)
+                    if(npMatched == 3)
                     {
-                        rmPixelSegmentFromMemory(segmentsInGPU,ix);
+                        rmPixelSegmentFromMemory(segmentsInGPU, ix);
                     }
                     if(secondpass)
                     {
                         float dEta = alpaka::math::abs(acc, eta_pix1-eta_pix2);
                         float dPhi = alpaka::math::abs(acc, phi_pix1-phi_pix2);
-                        if(dPhi > float(M_PI)){dPhi = dPhi - 2*float(M_PI);}
+                        if(dPhi > float(M_PI)){dPhi = dPhi - 2 * float(M_PI);}
                         float dR2 = dEta*dEta + dPhi*dPhi;
 
-                        if(npMatched >=1 or dR2 < 0.00075f and (ix < jx))
+                        if(npMatched >= 1 or dR2 < 0.00075f and (ix < jx))
                         {
-                            rmPixelSegmentFromMemory(segmentsInGPU,ix); 
+                            rmPixelSegmentFromMemory(segmentsInGPU, ix); 
                         }
                     }
                 }
