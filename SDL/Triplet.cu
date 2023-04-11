@@ -96,6 +96,7 @@ __global__ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, stru
     {
         if(segmentsInGPU.nSegments[i] == 0){
           rangesInGPU.tripletModuleIndices[i] = nTotalTriplets;
+          rangesInGPU.tripletModuleOccupancy[i] = 0;
           continue;
         }
         module_subdets = modulesInGPU.subdets[i];
@@ -127,6 +128,7 @@ __global__ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, stru
         if (category_number == 3 && eta_number == 2) occupancy = 46;
         if (category_number == 3 && eta_number == 3) occupancy = 39;
 
+        rangesInGPU.tripletModuleOccupancy[i] = occupancy;
         unsigned int nTotT = atomicAdd(&nTotalTriplets,occupancy);
         rangesInGPU.tripletModuleIndices[i] = nTotT;
     }
@@ -748,7 +750,8 @@ __global__ void SDL::createTripletsInGPUv2(struct SDL::modules& modulesInGPU, st
 
         if(success) {
           unsigned int totOccupancyTriplets = atomicAdd(&tripletsInGPU.totOccupancyTriplets[innerInnerLowerModuleIndex], 1);
-          if(totOccupancyTriplets >= (rangesInGPU.tripletModuleIndices[innerInnerLowerModuleIndex + 1] - rangesInGPU.tripletModuleIndices[innerInnerLowerModuleIndex])) {
+          if(totOccupancyTriplets >= (rangesInGPU.tripletModuleOccupancy[innerInnerLowerModuleIndex])) {
+          //if(totOccupancyTriplets >= (rangesInGPU.tripletModuleIndices[innerInnerLowerModuleIndex + 1] - rangesInGPU.tripletModuleIndices[innerInnerLowerModuleIndex])) {
 #ifdef Warnings
             printf("Triplet excess alert! Module index = %d\n",innerInnerLowerModuleIndex);
 #endif

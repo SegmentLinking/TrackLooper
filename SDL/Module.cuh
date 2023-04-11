@@ -65,10 +65,12 @@ namespace SDL
         uint16_t* indicesOfEligibleT5Modules;// will be allocated in createQuintuplets kernel!!!!
         //to store different starting points for variable occupancy stuff
         int *quintupletModuleIndices;
+        int *quintupletModuleOccupancy;
         int *miniDoubletModuleIndices;
         int *segmentModuleIndices;
         int *segmentModuleOccupancy;
         int *tripletModuleIndices;
+        int *tripletModuleOccupancy;
 
 //        unsigned int nTotalQuintuplets;
     

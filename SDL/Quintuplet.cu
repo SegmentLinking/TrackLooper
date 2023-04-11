@@ -135,6 +135,7 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
 
         unsigned int nTotQ = atomicAdd(&nTotalQuintupletsx,occupancy);
         rangesInGPU.quintupletModuleIndices[i] = nTotQ;
+        rangesInGPU.quintupletModuleOccupancy[i] = occupancy;
         rangesInGPU.indicesOfEligibleT5Modules[nEligibleT5Modules] = i;
     }
     __syncthreads();
@@ -1301,7 +1302,8 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
                     return;
                 } // ignore anything else TODO: move this to start, before object is made (faster)
                 unsigned int totOccupancyQuintuplets = atomicAdd(&quintupletsInGPU.totOccupancyQuintuplets[lowerModule1], 1);
-                if(totOccupancyQuintuplets >= (rangesInGPU.quintupletModuleIndices[lowerModule1 + 1] - rangesInGPU.quintupletModuleIndices[lowerModule1]))
+                if(totOccupancyQuintuplets >= (rangesInGPU.quintupletModuleOccupancy[lowerModule1]))
+                //if(totOccupancyQuintuplets >= (rangesInGPU.quintupletModuleIndices[lowerModule1 + 1] - rangesInGPU.quintupletModuleIndices[lowerModule1]))
                 {
 #ifdef Warnings
                     printf("Quintuplet excess alert! Module index = %d\n", lowerModule1);
