@@ -2,7 +2,6 @@
 #define Segment_cuh
 
 #include "Constants.cuh"
-#include "Constants.h"
 #include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"
 #include "MiniDoublet.cuh"
