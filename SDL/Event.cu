@@ -1157,13 +1157,23 @@ void SDL::Event::createTrackCandidates()
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_pT3TC)<<std::endl;
     }cudaStreamSynchronize(stream);
 
-    //dim3 dupThreads(32,16,2);
-    //dim3 dupBlocks(1,1,MAX_BLOCKS);
-    dim3 dupThreads(32,16,1);
-    dim3 dupBlocks(max(nEligibleModules/32,1),max(nEligibleModules/16,1),1);
+    // Temporary fix for queue initialization.
+    QueueAcc queue(devAcc);
 
-    removeDupQuintupletsInGPUBeforeTC<<<dupBlocks,dupThreads,0,stream>>>(*quintupletsInGPU,*rangesInGPU);
-    cudaStreamSynchronize(stream);
+    Vec const threadsPerBlock(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(32));
+    Vec const blocksPerGrid(static_cast<Idx>(1), static_cast<Idx>(max(nEligibleModules/16,1)), static_cast<Idx>(max(nEligibleModules/32,1)));
+
+    WorkDiv const removeDupQuintupletsInGPUBeforeTC_workDiv(blocksPerGrid, threadsPerBlock, elementsPerThread);
+
+    SDL::removeDupQuintupletsInGPUBeforeTC removeDupQuintupletsInGPUBeforeTC_kernel;
+    auto const removeDupQuintupletsInGPUBeforeTCTask(alpaka::createTaskKernel<Acc>(
+        removeDupQuintupletsInGPUBeforeTC_workDiv,
+        removeDupQuintupletsInGPUBeforeTC_kernel,
+        *quintupletsInGPU,
+        *rangesInGPU));
+
+    alpaka::enqueue(queue, removeDupQuintupletsInGPUBeforeTCTask);
+    alpaka::wait(queue);
 
     dim3 nThreads(32,1,32);
     dim3 nBlocks(MAX_BLOCKS,1,(13296/32) + 1);
@@ -1182,15 +1192,22 @@ void SDL::Event::createTrackCandidates()
     {
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_T5TC)<<std::endl;
     }cudaStreamSynchronize(stream);
-    dim3 nThreadspLS(32,32,1);
-    dim3 nBlockspLS(MAX_BLOCKS/4, MAX_BLOCKS*4, 1);
-    checkHitspLS<<<nBlockspLS, nThreadspLS, 0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *hitsInGPU, true);
-    cudaError_t cudaerrpix = cudaGetLastError();
-    if(cudaerrpix != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerrpix)<<std::endl;
 
-    }cudaStreamSynchronize(stream);
+    Vec const threadsPerBlockCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(32), static_cast<Idx>(32));
+    Vec const blocksPerGridCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS*4), static_cast<Idx>(MAX_BLOCKS/4));
+
+    WorkDiv const checkHitspLS_workDiv(blocksPerGridCheckHitspLS, threadsPerBlockCheckHitspLS, elementsPerThread);
+
+    SDL::checkHitspLS checkHitspLS_kernel;
+    auto const checkHitspLSTask(alpaka::createTaskKernel<Acc>(
+        checkHitspLS_workDiv,
+        checkHitspLS_kernel,
+        *modulesInGPU,
+        *segmentsInGPU,
+        true));
+
+    alpaka::enqueue(queue, checkHitspLSTask);
+    alpaka::wait(queue);
 
     dim3 nThreads_pLS(32,16,1);
     dim3 nBlocks_pLS(20,4,1);
@@ -1329,10 +1346,21 @@ void SDL::Event::createPixelTriplets()
 #endif
 
     //pT3s can be cleaned here because they're not used in making pT5s!
-    dim3 nThreads_dup(32,32,1);
-    dim3 nBlocks_dup(1,40,1); //seems like more blocks lead to conflicting writes
-    removeDupPixelTripletsInGPUFromMap<<<nBlocks_dup,nThreads_dup,0,stream>>>(*pixelTripletsInGPU,false);
-    cudaStreamSynchronize(stream);
+    Vec const threadsPerBlockDupPixTrip(static_cast<Idx>(1), static_cast<Idx>(32), static_cast<Idx>(32));
+    //seems like more blocks lead to conflicting writes
+    Vec const blocksPerGridDupPixTrip(static_cast<Idx>(1), static_cast<Idx>(40), static_cast<Idx>(1));
+
+    WorkDiv const removeDupPixelTripletsInGPUFromMap_workDiv(blocksPerGridDupPixTrip, threadsPerBlockDupPixTrip, elementsPerThread);
+
+    SDL::removeDupPixelTripletsInGPUFromMap removeDupPixelTripletsInGPUFromMap_kernel;
+    auto const removeDupPixelTripletsInGPUFromMapTask(alpaka::createTaskKernel<Acc>(
+        removeDupPixelTripletsInGPUFromMap_workDiv,
+        removeDupPixelTripletsInGPUFromMap_kernel,
+        *pixelTripletsInGPU,
+        false));
+
+    alpaka::enqueue(queue, removeDupPixelTripletsInGPUFromMapTask);
+    alpaka::wait(queue);
 }
 
 void SDL::Event::createQuintuplets()
@@ -1400,9 +1428,22 @@ void SDL::Event::createQuintuplets()
     alpaka::enqueue(queue, createQuintupletsInGPUv2Task);
     alpaka::wait(queue);
 
-    dim3 dupThreads(32,32,1);
-    dim3 dupBlocks(1,1,MAX_BLOCKS);
-    removeDupQuintupletsInGPUAfterBuild<<<dupBlocks,dupThreads,0,stream>>>(*modulesInGPU, *quintupletsInGPU,*rangesInGPU);
+    Vec const threadsPerBlockDupQuint(static_cast<Idx>(1), static_cast<Idx>(32), static_cast<Idx>(32));
+    Vec const blocksPerGridDupQuint(static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1), static_cast<Idx>(1));
+
+    WorkDiv const removeDupQuintupletsInGPUAfterBuild_workDiv(blocksPerGridDupQuint, threadsPerBlockDupQuint, elementsPerThread);
+
+    SDL::removeDupQuintupletsInGPUAfterBuild removeDupQuintupletsInGPUAfterBuild_kernel;
+    auto const removeDupQuintupletsInGPUAfterBuildTask(alpaka::createTaskKernel<Acc>(
+        removeDupQuintupletsInGPUAfterBuild_workDiv,
+        removeDupQuintupletsInGPUAfterBuild_kernel,
+        *modulesInGPU,
+        *quintupletsInGPU,
+        *rangesInGPU));
+
+    alpaka::enqueue(queue, removeDupQuintupletsInGPUAfterBuildTask);
+    alpaka::wait(queue);
+
     addQuintupletRangesToEventExplicit<<<1,1024,0,stream>>>(*modulesInGPU, *quintupletsInGPU,*rangesInGPU);
     cudaStreamSynchronize(stream);
 
@@ -1414,16 +1455,24 @@ void SDL::Event::createQuintuplets()
 
 void SDL::Event::pixelLineSegmentCleaning()
 {
-    dim3 nThreadspLS(32,32,1);
-    dim3 nBlockspLS(MAX_BLOCKS/4, MAX_BLOCKS*4, 1);
+    // Temporary fix for queue initialization.
+    QueueAcc queue(devAcc);
 
-    checkHitspLS<<<nBlockspLS, nThreadspLS, 0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *hitsInGPU, false);
-    cudaError_t cudaerrpix = cudaGetLastError();
-    if(cudaerrpix != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerrpix)<<std::endl;
-    }
-    cudaStreamSynchronize(stream);
+    Vec const threadsPerBlockCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(32), static_cast<Idx>(32));
+    Vec const blocksPerGridCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS*4), static_cast<Idx>(MAX_BLOCKS/4));
+
+    WorkDiv const checkHitspLS_workDiv(blocksPerGridCheckHitspLS, threadsPerBlockCheckHitspLS, elementsPerThread);
+
+    SDL::checkHitspLS checkHitspLS_kernel;
+    auto const checkHitspLSTask(alpaka::createTaskKernel<Acc>(
+        checkHitspLS_workDiv,
+        checkHitspLS_kernel,
+        *modulesInGPU,
+        *segmentsInGPU,
+        false));
+
+    alpaka::enqueue(queue, checkHitspLSTask);
+    alpaka::wait(queue);
 }
 
 void SDL::Event::createPixelQuintuplets()
@@ -1532,24 +1581,29 @@ void SDL::Event::createPixelQuintuplets()
     alpaka::enqueue(queue, createPixelQuintupletsInGPUFromMapv2Task);
     alpaka::wait(queue);
 
+    cms::cuda::free_host(superbins);
+    cms::cuda::free_host(pixelTypes);
+    cms::cuda::free_host(nQuintuplets);
     cms::cuda::free_host(connectedPixelSize_host);
     cms::cuda::free_host(connectedPixelIndex_host);
     cms::cuda::free_device(dev, connectedPixelSize_dev);
     cms::cuda::free_device(dev, connectedPixelIndex_dev);
-    cms::cuda::free_host(superbins);
-    cms::cuda::free_host(pixelTypes);
-    cms::cuda::free_host(nQuintuplets);
 
-    dim3 nThreads_dup(32,32,1);
-    dim3 nBlocks_dup(1,MAX_BLOCKS,1);
+    Vec const threadsPerBlockDupPix(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
+    Vec const blocksPerGridDupPix(static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1));
 
-    removeDupPixelQuintupletsInGPUFromMap<<<nBlocks_dup,nThreads_dup,0,stream>>>(*pixelQuintupletsInGPU, false);
-    cudaError_t cudaerr2 = cudaGetLastError(); 
-    if(cudaerr2 != cudaSuccess)
-    {
-        std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr2)<<std::endl;
-    }
-    cudaStreamSynchronize(stream);
+    WorkDiv const removeDupPixelQuintupletsInGPUFromMap_workDiv(blocksPerGridDupPix, threadsPerBlockDupPix, elementsPerThread);
+
+    SDL::removeDupPixelQuintupletsInGPUFromMap removeDupPixelQuintupletsInGPUFromMap_kernel;
+    auto const removeDupPixelQuintupletsInGPUFromMapTask(alpaka::createTaskKernel<Acc>(
+        removeDupPixelQuintupletsInGPUFromMap_workDiv,
+        removeDupPixelQuintupletsInGPUFromMap_kernel,
+        *pixelQuintupletsInGPU,
+        false));
+
+    alpaka::enqueue(queue, removeDupPixelQuintupletsInGPUFromMapTask);
+    alpaka::wait(queue);
+
     unsigned int nThreadsx_pT5 = 256;
     unsigned int nBlocksx_pT5 = 1;
     SDL::addpT5asTrackCandidateInGPU<<<nBlocksx_pT5, nThreadsx_pT5,0,stream>>>(*modulesInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *tripletsInGPU,*quintupletsInGPU);

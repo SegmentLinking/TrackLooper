@@ -1,24 +1,17 @@
 #ifndef Event_cuh
 #define Event_cuh
 
-#include <vector>
-#include <list>
-#include <map>
-#include <cassert>
-#include <stdlib.h>
-#include <stdexcept>
-#include <iostream>
-#include <cmath>
-#include <memory>
-#include <algorithm>
-#include <cuda_runtime.h>
-#include <omp.h>
-#include <chrono>
+#include "Hit.cuh"
+#include "Module.cuh"
+#include "Segment.cuh"
+#include "Triplet.cuh"
 #include "Kernels.cuh"
-#include "Constants.h"
-#include "allocate.h"
+#include "Quintuplet.cuh"
+#include "MiniDoublet.cuh"
+#include "PixelTriplet.cuh"
+#include "TrackCandidate.cuh"
 
-#include "cuda_profiler_api.h"
+#include "allocate.h"
 
 namespace SDL
 {
@@ -39,7 +32,6 @@ namespace SDL
         std::array<unsigned int, 5> n_trackCandidates_by_layer_endcap_;
         std::array<unsigned int, 6> n_quintuplets_by_layer_barrel_;
         std::array<unsigned int, 5> n_quintuplets_by_layer_endcap_;
-
 
         //CUDA stuff
         int dev;
@@ -145,11 +137,9 @@ namespace SDL
         modules* getModules();
         modules* getFullModules();
         pixelQuintuplets* getPixelQuintuplets();
-
     };
 
     //global stuff
-
     extern struct modules* modulesInGPU;
     extern struct modules* modulesInHost;
     extern uint16_t nModules;
