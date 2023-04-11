@@ -94,7 +94,10 @@ __global__ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, stru
     int np = gridDim.x * blockDim.x;
     for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
     {
-        if(segmentsInGPU.nSegments[i] == 0) continue;
+        if(segmentsInGPU.nSegments[i] == 0){
+          rangesInGPU.tripletModuleIndices[i] = nTotalTriplets;
+          continue;
+        }
         module_subdets = modulesInGPU.subdets[i];
         module_layers = modulesInGPU.layers[i];
         module_rings = modulesInGPU.rings[i];
@@ -129,7 +132,7 @@ __global__ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, stru
     }
     __syncthreads();
     if(threadIdx.x==0){
-    *nTotalTripletsx = nTotalTriplets;
+      *nTotalTripletsx = nTotalTriplets;
     }
 }
 

@@ -30,6 +30,92 @@ void SDL::segments::resetMemory(unsigned int nMemoryLocationsx, unsigned int nLo
 }
 
 
+__global__ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU, unsigned int* nTotalSegmentsx, cudaStream_t stream, const uint16_t* maxPixelSegments, unsigned int* moduleOccupancy)
+{
+    /*
+        write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!*/
+
+    //int *module_segmentModuleIndices;
+    short module_subdets;
+    short module_layers;
+    short module_rings;
+    float module_eta;
+
+    __shared__ unsigned int nTotalSegments;
+    //__shared__ int runningcounter[14000];
+    nTotalSegments = 0; //start!
+    __syncthreads(); 
+    //for(uint16_t i = 0; i < *modulesInGPU.nLowerModules; i++)
+    int gid = blockIdx.x * blockDim.x + threadIdx.x;
+    int np = gridDim.x * blockDim.x;
+    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
+    {
+        if(modulesInGPU.nConnectedModules[i] == 0)
+        {
+          moduleOccupancy[i]= 0;
+          //rangesInGPU.segmentModuleIndices[i] = nTotalSegments;
+          continue;
+        }
+        // occupancy = 0;
+        //module_segmentModuleIndices[i] = nTotalSegments; //running counter - we start at the previous index!
+        module_subdets = modulesInGPU.subdets[i];
+        module_layers = modulesInGPU.layers[i];
+        module_rings = modulesInGPU.rings[i];
+        module_eta = modulesInGPU.eta[i];
+        //module_nConnectedModules = modulesInGPU.nConnectedModules[i];
+        unsigned int occupancy;
+        unsigned int category_number, eta_number;
+        if (module_layers<=3 && module_subdets==5) category_number = 0;
+        else if (module_layers>=4 && module_subdets==5) category_number = 1;
+        else if (module_layers<=2 && module_subdets==4 && module_rings>=11) category_number = 2;
+        else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
+        else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
+        else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
+        if (abs(module_eta)<0.75) eta_number=0;
+        else if (abs(module_eta)>0.75 && abs(module_eta)<1.5) eta_number=1;
+        else if (abs(module_eta)>1.5 && abs(module_eta)<2.25) eta_number=2;
+        else if (abs(module_eta)>2.25 && abs(module_eta)<3) eta_number=3;
+
+        if (category_number == 0 && eta_number == 0) occupancy = 572;
+        else if (category_number == 0 && eta_number == 1) occupancy = 300;
+        else if (category_number == 0 && eta_number == 2) occupancy = 183;
+        else if (category_number == 0 && eta_number == 3) occupancy = 62;
+        else if (category_number == 1 && eta_number == 0) occupancy = 191;
+        else if (category_number == 1 && eta_number == 1) occupancy = 128;
+        else if (category_number == 2 && eta_number == 1) occupancy = 107;
+        else if (category_number == 2 && eta_number == 2) occupancy = 102;
+        else if (category_number == 3 && eta_number == 1) occupancy = 64;
+        else if (category_number == 3 && eta_number == 2) occupancy = 79;
+        else if (category_number == 3 && eta_number == 3) occupancy = 85;
+
+
+        //nTotalSegments += occupancy;
+        //unsigned int nTotSegs = atomicAdd(&nTotalSegments,occupancy);
+        //rangesInGPU.segmentModuleIndices[i] = nTotSegs;
+        moduleOccupancy[i]= occupancy;
+    }
+
+    __syncthreads();
+      //printf("test 0\n");
+    if(threadIdx.x==0){
+      //printf("test 1\n");
+      //printf("test 2\n");
+    for(uint16_t i = 0; i < *modulesInGPU.nLowerModules; i+= 1)
+    {
+      //nTotalSegments += maxPixelSegments[0];
+      //rangesInGPU.segmentModuleIndices[*modulesInGPU.nLowerModules] = nTotalSegments;
+      rangesInGPU.segmentModuleIndices[i] = nTotalSegments;
+      nTotalSegments += moduleOccupancy[i];
+      //printf("%d: %u\n",i,rangesInGPU.segmentModuleIndices[i]);
+    }
+      rangesInGPU.segmentModuleIndices[*modulesInGPU.nLowerModules] = nTotalSegments;
+      nTotalSegments += maxPixelSegments[0];
+      //printf("%d: %u\n",*modulesInGPU.nLowerModules,rangesInGPU.segmentModuleIndices[*modulesInGPU.nLowerModules]);
+      *nTotalSegmentsx = nTotalSegments;// + static_cast<unsigned int>(maxPixelSegments);
+    }
+      //printf("test 4\n");
+}
+
 void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU, uint16_t& nLowerModules, unsigned int& nTotalSegments, cudaStream_t stream, const uint16_t& maxPixelSegments)
 {
     /*
@@ -88,9 +174,11 @@ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRa
         if(module_nConnectedModules[i] == 0) occupancy = 0;
 
         nTotalSegments += occupancy;
+        printf("%d: %u\n",i,module_segmentModuleIndices[i]);
     }
 
     module_segmentModuleIndices[nLowerModules] = nTotalSegments;
+    printf("%d: %u\n",nLowerModules,module_segmentModuleIndices[nLowerModules]);
     nTotalSegments += maxPixelSegments;
 
     cudaMemcpyAsync(rangesInGPU.segmentModuleIndices, module_segmentModuleIndices,  (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
