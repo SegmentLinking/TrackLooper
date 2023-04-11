@@ -17,6 +17,85 @@ void SDL::miniDoublets::resetMemory(unsigned int nMemoryLocationsx, unsigned int
 }
 
 
+__global__ void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, unsigned int* nTotalMDsx, cudaStream_t stream)
+{
+    /*
+        write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!*/
+
+    //int *module_miniDoubletModuleIndices;
+    //module_miniDoubletModuleIndices = (int*)cms::cuda::allocate_host((nLowerModules + 1) * sizeof(unsigned int), stream);
+    short module_subdets;
+    //module_subdets = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
+    //cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
+    short module_layers;
+    //module_layers = (short*)cms::cuda::allocate_host(nLowerModules * sizeof(short), stream);
+    //cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
+    short module_rings;
+    //module_rings = (short*)cms::cuda::allocate_host(nLowerModules * sizeof(short), stream);
+    //cudaMemcpyAsync(module_rings,modulesInGPU.rings,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
+    float module_eta;
+    //module_eta = (float*)cms::cuda::allocate_host(nLowerModules * sizeof(float), stream);
+    //cudaMemcpyAsync(module_eta,modulesInGPU.eta,nLowerModules * sizeof(float),cudaMemcpyDeviceToHost,stream);
+
+    //cudaStreamSynchronize(stream);
+
+    __shared__ unsigned int nTotalMDs;
+    nTotalMDs = 0; //start!   
+    __syncthreads();
+    int gid = blockIdx.x * blockDim.x + threadIdx.x;
+    int np = gridDim.x * blockDim.x;
+    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
+    {
+        //module_miniDoubletModuleIndices[i] = nTotalMDs; //running counter - we start at the previous index!
+        unsigned int occupancy;
+        unsigned int category_number, eta_number;
+        module_subdets = modulesInGPU.subdets[i];
+        module_layers = modulesInGPU.layers[i];
+        module_rings = modulesInGPU.rings[i];
+        module_eta = modulesInGPU.eta[i];
+        if (module_layers<=3 && module_subdets==5) category_number = 0;
+        else if (module_layers>=4 && module_subdets==5) category_number = 1;
+        else if (module_layers<=2 && module_subdets==4 && module_rings>=11) category_number = 2;
+        else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
+        else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
+        else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
+
+        if (abs(module_eta)<0.75) eta_number=0;
+        else if (abs(module_eta)>0.75 && abs(module_eta)<1.5) eta_number=1;
+        else if (abs(module_eta)>1.5 && abs(module_eta)<2.25) eta_number=2;
+        else if (abs(module_eta)>2.25 && abs(module_eta)<3) eta_number=3;
+
+        if (category_number == 0 && eta_number == 0) occupancy = 49;
+        else if (category_number == 0 && eta_number == 1) occupancy = 42;
+        else if (category_number == 0 && eta_number == 2) occupancy = 37;
+        else if (category_number == 0 && eta_number == 3) occupancy = 41;
+        else if (category_number == 1) occupancy = 100;
+        else if (category_number == 2 && eta_number == 1) occupancy = 16;
+        else if (category_number == 2 && eta_number == 2) occupancy = 19;
+        else if (category_number == 3 && eta_number == 1) occupancy = 14;
+        else if (category_number == 3 && eta_number == 2) occupancy = 20;
+        else if (category_number == 3 && eta_number == 3) occupancy = 25;
+
+        //nTotalMDs += occupancy;
+        unsigned int nTotMDs = atomicAdd(&nTotalMDs,occupancy);
+        rangesInGPU.miniDoubletModuleIndices[i] = nTotMDs;
+        rangesInGPU.miniDoubletModuleOccupancy[i] = occupancy;
+    }
+
+    __syncthreads();
+    if(threadIdx.x == 0){
+      rangesInGPU.miniDoubletModuleIndices[*modulesInGPU.nLowerModules] = nTotalMDs;
+      *nTotalMDsx=nTotalMDs;
+      //nTotalMDs+=maxPixelMDs;
+    }
+    //cudaMemcpyAsync(rangesInGPU.miniDoubletModuleIndices, module_miniDoubletModuleIndices,  (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
+    //cudaStreamSynchronize(stream);
+    //cms::cuda::free_host(module_miniDoubletModuleIndices);
+    //cms::cuda::free_host(module_subdets);
+    //cms::cuda::free_host(module_layers);
+    //cms::cuda::free_host(module_rings);
+    //cms::cuda::free_host(module_eta);
+}
 void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, uint16_t& nLowerModules, unsigned int& nTotalMDs, cudaStream_t stream, const unsigned int& maxPixelMDs)
 {
     /*
