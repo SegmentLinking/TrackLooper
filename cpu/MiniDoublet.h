@@ -4,7 +4,7 @@
 #include <array>
 #include <tuple>
 
-#include "Constants.h"
+#include "constants.h"
 #include "Algo.h"
 #include "PrintUtil.h"
 #include "MathUtil.h"
