@@ -48,7 +48,6 @@ namespace SDL
         hits1[8] = quintupletsInGPU.hitIndices[10*ix+8];
         hits1[9] = quintupletsInGPU.hitIndices[10*ix+9];
 
-
         hits2[0] = quintupletsInGPU.hitIndices[10*jx];
         hits2[1] = quintupletsInGPU.hitIndices[10*jx+1];
         hits2[2] = quintupletsInGPU.hitIndices[10*jx+2];
@@ -98,7 +97,6 @@ namespace SDL
         hits1[11] = pixelQuintupletsInGPU.hitIndices[14*ix+11];
         hits1[12] = pixelQuintupletsInGPU.hitIndices[14*ix+12];
         hits1[13] = pixelQuintupletsInGPU.hitIndices[14*ix+13];
-
 
         hits2[0] = pixelQuintupletsInGPU.hitIndices[14*jx];
         hits2[1] = pixelQuintupletsInGPU.hitIndices[14*jx+1];
@@ -255,7 +253,6 @@ namespace SDL
                         if (alpaka::math::abs(acc, dPhi) > 0.1f)
                             continue;
 
-                        float dR2 = dEta*dEta + dPhi*dPhi;
                         int nMatched = checkHitsT5(ix, jx, quintupletsInGPU);
                         if(nMatched >= 7)
                         {
@@ -477,10 +474,10 @@ namespace SDL
 
             int pixelModuleIndex = *modulesInGPU.nLowerModules;
             unsigned int nPixelSegments = segmentsInGPU.nSegments[pixelModuleIndex];
+
             if(nPixelSegments > N_MAX_PIXEL_SEGMENTS_PER_MODULE)
-            {
                 nPixelSegments =  N_MAX_PIXEL_SEGMENTS_PER_MODULE;
-            }
+
             for(int ix = globalThreadIdx[1]; ix < nPixelSegments; ix += gridThreadExtent[1])
             {
                 if(secondpass && (!segmentsInGPU.isQuad[ix] || segmentsInGPU.isDup[ix]))
@@ -510,7 +507,7 @@ namespace SDL
                     float ptErr_diff = segmentsInGPU.ptIn[ix] -segmentsInGPU.ptIn[jx];
                     float score_diff = segmentsInGPU.score[ix] -segmentsInGPU.score[jx];
                     // Always keep quads over trips. If they are the same, we want the object with the lower pt Error
-                    if((quad_diff > 0)|| (score_diff < 0 && quad_diff == 0))
+                    if((quad_diff > 0) || (score_diff < 0 && quad_diff == 0))
                         continue;
 
                     unsigned int phits2[4];
@@ -553,9 +550,11 @@ namespace SDL
                     {
                         float dEta = alpaka::math::abs(acc, eta_pix1-eta_pix2);
                         float dPhi = alpaka::math::abs(acc, phi_pix1-phi_pix2);
-                        if(dPhi > float(M_PI)){dPhi = dPhi - 2 * float(M_PI);}
-                        float dR2 = dEta*dEta + dPhi*dPhi;
 
+                        if(dPhi > float(M_PI))
+                            dPhi = dPhi - 2 * float(M_PI);
+
+                        float dR2 = dEta*dEta + dPhi*dPhi;
                         if(npMatched >= 1 or dR2 < 0.00075f and (ix < jx))
                         {
                             rmPixelSegmentFromMemory(segmentsInGPU, ix); 
