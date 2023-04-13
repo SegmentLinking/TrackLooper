@@ -869,3 +869,30 @@ __global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, st
     }
     }
 }
+__global__ void SDL::addSegmentRangesToEventExplicit(struct modules& modulesInGPU, struct segments& segmentsInGPU, struct objectRanges& rangesInGPU)
+{
+    int gid = blockIdx.x * blockDim.x + threadIdx.x;
+    int np = gridDim.x * blockDim.x;
+    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
+    {
+        if(segmentsInGPU.nSegments[i] == 0)
+        {
+            rangesInGPU.segmentRanges[i * 2] = -1;
+            rangesInGPU.segmentRanges[i * 2 + 1] = -1;
+        }
+        else
+        {
+            rangesInGPU.segmentRanges[i * 2] = rangesInGPU.segmentModuleIndices[i];
+            rangesInGPU.segmentRanges[i * 2 + 1] = rangesInGPU.segmentModuleIndices[i] + segmentsInGPU.nSegments[i] - 1;
+
+            //if(module_subdets[i] == Barrel)
+            //{
+            //    n_segments_by_layer_barrel_[module_layers[i] - 1] += nSegmentsCPU[i];
+            //}
+            //else
+            //{
+            //    n_segments_by_layer_endcap_[module_layers[i] -1] += nSegmentsCPU[i];
+            //}
+        }
+    }
+}

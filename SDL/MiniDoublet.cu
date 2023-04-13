@@ -950,3 +950,58 @@ if(success)
         }
     }
 }
+__global__ void SDL::addMiniDoubletRangesToEventExplicit(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct objectRanges& rangesInGPU,struct hits& hitsInGPU)
+{
+    //uint16_t nLowerModules;
+    //cudaMemcpyAsync(&nLowerModules,modulesInGPU->nLowerModules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
+    //unsigned int* nMDsCPU;
+    //nMDsCPU = (unsigned int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
+    //cudaMemcpyAsync(nMDsCPU,mdsInGPU->nMDs,nLowerModules*sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
+    //cudaStreamSynchronize(stream);
+
+    //short* module_subdets;
+    //module_subdets = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
+    //cudaMemcpyAsync(module_subdets,modulesInGPU->subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
+    //int* module_mdRanges;
+    //module_mdRanges = (int*)cms::cuda::allocate_host(nLowerModules* 2*sizeof(int), stream);
+    //cudaMemcpyAsync(module_mdRanges,rangesInGPU->mdRanges,nLowerModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
+    //short* module_layers;
+    //module_layers = (short*)cms::cuda::allocate_host(nLowerModules * sizeof(short), stream);
+    //cudaMemcpyAsync(module_layers,modulesInGPU->layers,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
+    //int* module_hitRanges;
+    //module_hitRanges = (int*)cms::cuda::allocate_host(nLowerModules* 2*sizeof(int), stream);
+    //cudaMemcpyAsync(module_hitRanges,hitsInGPU->hitRanges,nLowerModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
+
+    //int* module_miniDoubletModuleIndices;
+    //module_miniDoubletModuleIndices = (int*)cms::cuda::allocate_host(nLowerModules * sizeof(int), stream);
+    //cudaMemcpyAsync(module_miniDoubletModuleIndices, rangesInGPU->miniDoubletModuleIndices, nLowerModules * sizeof(int), cudaMemcpyDeviceToHost, stream);
+    //cudaStreamSynchronize(stream);
+
+    //for(unsigned int i = 0; i<nLowerModules; i++)
+    //{
+    int gid = blockIdx.x * blockDim.x + threadIdx.x;
+    int np = gridDim.x * blockDim.x;
+    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
+    {
+        if(mdsInGPU.nMDs[i] == 0 or hitsInGPU.hitRanges[i * 2] == -1)
+        {
+            rangesInGPU.mdRanges[i * 2] = -1;
+            rangesInGPU.mdRanges[i * 2 + 1] = -1;
+        }
+        else
+        {
+            rangesInGPU.mdRanges[i * 2] = rangesInGPU.miniDoubletModuleIndices[i] ;
+            rangesInGPU.mdRanges[i * 2 + 1] = rangesInGPU.miniDoubletModuleIndices[i] + mdsInGPU.nMDs[i] - 1;
+
+            //if(module_subdets[i] == Barrel)
+            //{
+            //    n_minidoublets_by_layer_barrel_[module_layers[i] -1] += nMDsCPU[i];
+            //}
+            //else
+            //{
+            //    n_minidoublets_by_layer_endcap_[module_layers[i] - 1] += nMDsCPU[i];
+            //}
+
+        }
+    }
+}

@@ -1063,7 +1063,9 @@ void SDL::Event::createMiniDoublets()
     cudaStreamSynchronize(stream);
 
 #if defined(AddObjects)
-addMiniDoubletsToEventExplicit();
+//addMiniDoubletsToEventExplicit();
+    addMiniDoubletRangesToEventExplicit<<<1,1024,0,stream>>>(*modulesInGPU,*mdsInGPU, *rangesInGPU,*hitsInGPU);
+    cudaStreamSynchronize(stream);
 #endif
 
 }
@@ -1091,7 +1093,9 @@ void SDL::Event::createSegmentsWithModuleMap()
     }
     cudaStreamSynchronize(stream);
 #if defined(AddObjects)
-    addSegmentsToEventExplicit();
+//    addSegmentsToEventExplicit();
+    addSegmentRangesToEventExplicit<<<1,1024,0,stream>>>(*modulesInGPU,*segmentsInGPU, *rangesInGPU);
+    cudaStreamSynchronize(stream);
 #endif
 }
 
