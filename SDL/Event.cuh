@@ -81,7 +81,6 @@ namespace SDL
         void addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> charge, std::vector<unsigned int> seedIdx, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<short> isQuad);
 
         /*functions that map the objects to the appropriate modules*/
-        void addMiniDoubletsToEvent();
         void addMiniDoubletsToEventExplicit();
         void addSegmentsToEventExplicit();
         void addTripletsToEventExplicit();

@@ -884,15 +884,6 @@ __global__ void SDL::addSegmentRangesToEventExplicit(struct modules& modulesInGP
         {
             rangesInGPU.segmentRanges[i * 2] = rangesInGPU.segmentModuleIndices[i];
             rangesInGPU.segmentRanges[i * 2 + 1] = rangesInGPU.segmentModuleIndices[i] + segmentsInGPU.nSegments[i] - 1;
-
-            //if(module_subdets[i] == Barrel)
-            //{
-            //    n_segments_by_layer_barrel_[module_layers[i] - 1] += nSegmentsCPU[i];
-            //}
-            //else
-            //{
-            //    n_segments_by_layer_endcap_[module_layers[i] -1] += nSegmentsCPU[i];
-            //}
         }
     }
 }

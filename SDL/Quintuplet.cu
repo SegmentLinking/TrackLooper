@@ -2070,30 +2070,6 @@ __device__ void SDL::runDeltaBetaIterationsT5(float& betaIn, float& betaOut, flo
 }
 __global__ void SDL::addQuintupletRangesToEventExplicit(struct modules& modulesInGPU, struct quintuplets& quintupletsInGPU, struct objectRanges& rangesInGPU)
 {
-//    uint16_t nLowerModules;
-//    cudaMemcpyAsync(&nLowerModules,modulesInGPU->nLowerModules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
-//    cudaStreamSynchronize(stream);
-//
-//    unsigned int* nQuintupletsCPU;
-//    nQuintupletsCPU = (unsigned int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
-//
-//    cudaMemcpyAsync(nQuintupletsCPU,quintupletsInGPU->nQuintuplets,nLowerModules*sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
-//
-//    short* module_subdets;
-//    module_subdets = (short*)cms::cuda::allocate_host(nModules* sizeof(short), stream);
-//    cudaMemcpyAsync(module_subdets,modulesInGPU->subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-//    int* module_quintupletRanges;
-//    module_quintupletRanges = (int*)cms::cuda::allocate_host(nLowerModules* 2*sizeof(int), stream);
-//    cudaMemcpyAsync(module_quintupletRanges,rangesInGPU->quintupletRanges,nLowerModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
-//    short* module_layers;
-//    module_layers = (short*)cms::cuda::allocate_host(nLowerModules * sizeof(short), stream);
-//    cudaMemcpyAsync(module_layers,modulesInGPU->layers,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-//    int* module_quintupletModuleIndices;
-//    module_quintupletModuleIndices = (int*)cms::cuda::allocate_host(nLowerModules * sizeof(int), stream);
-//    cudaMemcpyAsync(module_quintupletModuleIndices, rangesInGPU->quintupletModuleIndices, nLowerModules * sizeof(int), cudaMemcpyDeviceToHost,stream);
-//cudaStreamSynchronize(stream);
-//    for(uint16_t i = 0; i<nLowerModules; i++)
-//    {
     int gid = blockIdx.x * blockDim.x + threadIdx.x;
     int np = gridDim.x * blockDim.x;
     for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
@@ -2107,19 +2083,6 @@ __global__ void SDL::addQuintupletRangesToEventExplicit(struct modules& modulesI
         {
             rangesInGPU.quintupletRanges[i * 2] = rangesInGPU.quintupletModuleIndices[i];
             rangesInGPU.quintupletRanges[i * 2 + 1] = rangesInGPU.quintupletModuleIndices[i] + quintupletsInGPU.nQuintuplets[i] - 1;
-
-           // if(module_subdets[i] == Barrel)
-           // {
-           //     n_quintuplets_by_layer_barrel_[module_layers[i] - 1] += nQuintupletsCPU[i];
-           // }
-           // else
-           // {
-           //     n_quintuplets_by_layer_endcap_[module_layers[i] - 1] += nQuintupletsCPU[i];
-           // }
         }
     }
-    //cms::cuda::free_host(nQuintupletsCPU);
-    //cms::cuda::free_host(module_quintupletRanges);
-    //cms::cuda::free_host(module_layers);
-    //cms::cuda::free_host(module_subdets);
 }
