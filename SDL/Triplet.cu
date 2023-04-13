@@ -1442,3 +1442,58 @@ __device__ void SDL::runDeltaBetaIterationsT3(float& betaIn, float& betaOut, flo
 
     }
 }
+__global__ void SDL::addTripletRangesToEventExplicit(struct modules& modulesInGPU, struct triplets& tripletsInGPU, struct objectRanges& rangesInGPU)
+{
+//    uint16_t nLowerModules;
+//    cudaMemcpyAsync(&nLowerModules,modulesInGPU->nLowerModules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
+//    cudaStreamSynchronize(stream);
+//
+//    unsigned int* nTripletsCPU;
+//    nTripletsCPU = (unsigned int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
+//    cudaMemcpyAsync(nTripletsCPU,tripletsInGPU->nTriplets,nLowerModules*sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
+//
+//    short* module_subdets;
+//    module_subdets = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
+//    cudaMemcpyAsync(module_subdets,modulesInGPU->subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
+//    int* module_tripletRanges;
+//    module_tripletRanges = (int*)cms::cuda::allocate_host(nLowerModules* 2*sizeof(int), stream);
+//    cudaMemcpyAsync(module_tripletRanges,rangesInGPU->tripletRanges,nLowerModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
+//    short* module_layers;
+//    module_layers = (short*)cms::cuda::allocate_host(nLowerModules * sizeof(short), stream);
+//    cudaMemcpyAsync(module_layers,modulesInGPU->layers,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
+//
+//    int* module_tripletModuleIndices;
+//    module_tripletModuleIndices = (int*)cms::cuda::allocate_host(nLowerModules * sizeof(int), stream);
+//    cudaMemcpyAsync(module_tripletModuleIndices, rangesInGPU->tripletModuleIndices, nLowerModules * sizeof(int), cudaMemcpyDeviceToHost, stream);
+//
+//    cudaStreamSynchronize(stream);
+//    for(uint16_t i = 0; i<nLowerModules; i++)
+// V   {
+    int gid = blockIdx.x * blockDim.x + threadIdx.x;
+    int np = gridDim.x * blockDim.x;
+    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
+    {
+        if(tripletsInGPU.nTriplets[i] == 0)
+        {
+            rangesInGPU.tripletRanges[i * 2] = -1;
+            rangesInGPU.tripletRanges[i * 2 + 1] = -1;
+        }
+        else
+        {
+            rangesInGPU.tripletRanges[i * 2] = rangesInGPU.tripletModuleIndices[i];
+            rangesInGPU.tripletRanges[i * 2 + 1] = rangesInGPU.tripletModuleIndices[i] +  tripletsInGPU.nTriplets[i] - 1;
+
+            //if(module_subdets[i] == Barrel)
+            //{
+            //    n_triplets_by_layer_barrel_[module_layers[i] - 1] += nTripletsCPU[i];
+            //}
+            //else
+            //{
+            //    n_triplets_by_layer_endcap_[module_layers[i] - 1] += nTripletsCPU[i];
+            //}
+        }
+    }
+
+    //cudaMemcpyAsync(rangesInGPU->tripletRanges, module_tripletRanges, nLowerModules * 2 * sizeof(int), cudaMemcpyDeviceToHost, stream);
+    //cudaStreamSynchronize(stream);
+}

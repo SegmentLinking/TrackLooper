@@ -385,7 +385,7 @@ void run_sdl()
     {
 
         cudaStreamCreateWithFlags(&streams[s], cudaStreamNonBlocking);
-        SDL::Event *event = new SDL::Event(streams[s]);
+        SDL::Event *event = new SDL::Event(streams[s],ana.verbose>=22);
         ; //(streams[omp_get_thread_num()]);
         events.push_back(event);
     }

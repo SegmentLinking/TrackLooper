@@ -29,6 +29,7 @@ namespace SDL
     {
     private:
         cudaStream_t stream;
+        bool addObjects;
         std::array<unsigned int, 6> n_hits_by_layer_barrel_;
         std::array<unsigned int, 5> n_hits_by_layer_endcap_;
         std::array<unsigned int, 6> n_minidoublets_by_layer_barrel_;
@@ -72,7 +73,7 @@ namespace SDL
         int* superbinCPU;
         int8_t* pixelTypeCPU;
     public:
-        Event(cudaStream_t estream);
+        Event(cudaStream_t estream,bool verbose);
         ~Event();
         void resetEvent();
 
@@ -81,12 +82,9 @@ namespace SDL
 
         /*functions that map the objects to the appropriate modules*/
         void addMiniDoubletsToEvent();
-        void addSegmentsToEvent();
-        void addTripletsToEvent();
         void addMiniDoubletsToEventExplicit();
         void addSegmentsToEventExplicit();
         void addTripletsToEventExplicit();
-        void addQuintupletsToEvent();
         void addQuintupletsToEventExplicit();
         void resetObjectsInModule();
 
