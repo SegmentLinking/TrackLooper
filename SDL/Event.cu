@@ -687,7 +687,6 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     if(mdsInGPU == nullptr)
     {
         mdsInGPU = (SDL::miniDoublets*)cms::cuda::allocate_host(sizeof(SDL::miniDoublets), stream);
-        //hardcoded range numbers for this will come from studies!
         unsigned int nTotalMDs;
         createMDArrayRanges(*modulesInGPU, *rangesInGPU, nLowerModules, nTotalMDs, stream, N_MAX_PIXEL_MD_PER_MODULES);
     	createMDsInExplicitMemory(*mdsInGPU, nTotalMDs, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES,stream);
@@ -702,7 +701,13 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         //hardcoded range numbers for this will come from studies!
         // can be optimized here: because we didn't distinguish pixel segments and outer-tracker segments and call them both "segments", so they use the index continuously.
         // If we want to further study the memory footprint in detail, we can separate the two and allocate different memories to them
-        createSegmentArrayRanges(*modulesInGPU, *rangesInGPU, *mdsInGPU, nLowerModules, nTotalSegments, stream, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+        unsigned int *device_nTotalSegments;
+        cudaMalloc((void **)&device_nTotalSegments, sizeof(unsigned int));
+        createSegmentArrayRanges<<<1,1024,0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, device_nTotalSegments);
+        cudaMemcpyAsync(&nTotalSegments,device_nTotalSegments,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
+        cudaStreamSynchronize(stream);
+        nTotalSegments += N_MAX_PIXEL_SEGMENTS_PER_MODULE;
+        cudaFree(device_nTotalSegments);
         createSegmentsInExplicitMemory(*segmentsInGPU, nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE,stream);
 
         cudaMemcpyAsync(segmentsInGPU->nMemoryLocations, &nTotalSegments, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);;
@@ -1101,8 +1106,12 @@ void SDL::Event::createTriplets()
     {
         tripletsInGPU = (SDL::triplets*)cms::cuda::allocate_host(sizeof(SDL::triplets), stream);
         unsigned int maxTriplets;
-        createTripletArrayRanges(*modulesInGPU, *rangesInGPU, *segmentsInGPU, nLowerModules, maxTriplets, stream);
-//        cout<<"nTotalTriplets: "<<maxTriplets<<std::endl; // for memory usage
+        unsigned int *device_maxTriplets;
+        cudaMalloc((void **)&device_maxTriplets, sizeof(unsigned int));
+        createTripletArrayRanges<<<1,1024,0,stream>>>(*modulesInGPU, *rangesInGPU, *segmentsInGPU, device_maxTriplets);
+        cudaMemcpyAsync(&maxTriplets,device_maxTriplets,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
+        cudaStreamSynchronize(stream);
+        cudaFree(device_maxTriplets);
         createTripletsInExplicitMemory(*tripletsInGPU, maxTriplets, nLowerModules,stream);
 
         cudaMemcpyAsync(tripletsInGPU->nMemoryLocations, &maxTriplets, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
@@ -1377,12 +1386,11 @@ cudaStreamSynchronize(stream);
     unsigned int nTotalQuintuplets;
     unsigned int *device_nTotalQuintuplets;
     cudaMalloc((void **)&device_nTotalQuintuplets, sizeof(unsigned int));
-    createEligibleModulesListForQuintupletsGPU<<<1,1024,0,stream>>>(*modulesInGPU, *tripletsInGPU, device_nTotalQuintuplets, stream, *rangesInGPU);
-cudaStreamSynchronize(stream);
+    createEligibleModulesListForQuintupletsGPU<<<1,1024,0,stream>>>(*modulesInGPU, *tripletsInGPU, device_nTotalQuintuplets, *rangesInGPU);
     cudaMemcpyAsync(&nEligibleT5Modules,rangesInGPU->nEligibleT5Modules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
     cudaMemcpyAsync(&nTotalQuintuplets,device_nTotalQuintuplets,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
-    cudaFree(device_nTotalQuintuplets);
 cudaStreamSynchronize(stream);
+    cudaFree(device_nTotalQuintuplets);
 
     if(quintupletsInGPU == nullptr)
     {

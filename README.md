@@ -102,8 +102,9 @@ Comparing two different runs
     lst_plot_performance.py \
         num_den_hist_1.root \     # Reference
         num_den_hist_2.root \     # New work
-        -l BaseLine,MyNewWork \   # Labeling
-        -t "mywork"
+        -L BaseLine,MyNewWork \   # Labeling
+        -t "mywork" \
+        --compare
 
 ## CMSSW Integration
 This is the a complete set of instruction on how the TrackLooper code

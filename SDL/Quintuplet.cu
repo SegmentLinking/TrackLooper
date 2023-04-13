@@ -83,7 +83,7 @@ void SDL::quintuplets::freeMemory(cudaStream_t stream)
     cudaStreamSynchronize(stream);
 }
 //TODO:Reuse the track candidate one instead of this!
-__global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU,struct triplets& tripletsInGPU, unsigned int* device_nTotalQuintuplets, cudaStream_t stream,struct objectRanges& rangesInGPU)
+__global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU,struct triplets& tripletsInGPU, unsigned int* device_nTotalQuintuplets, struct objectRanges& rangesInGPU)
 {
     __shared__ int nEligibleT5Modulesx;
     __shared__ unsigned int nTotalQuintupletsx;
@@ -113,28 +113,28 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
         if (subdets == SDL::Endcap and layers > 1) continue;
 
         int nEligibleT5Modules = atomicAdd(&nEligibleT5Modulesx,1);
-        if (nEligibleT5Modules < 0) printf("%u\n",nEligibleT5Modules);
         if (layers<=3 && subdets==5) category_number = 0;
-        if (layers>=4 && subdets==5) category_number = 1;
-        if (layers<=2 && subdets==4 && rings>=11) category_number = 2;
-        if (layers>=3 && subdets==4 && rings>=8) category_number = 2;
-        if (layers<=2 && subdets==4 && rings<=10) category_number = 3;
-        if (layers>=3 && subdets==4 && rings<=7) category_number = 3;
+        else if (layers>=4 && subdets==5) category_number = 1;
+        else if (layers<=2 && subdets==4 && rings>=11) category_number = 2;
+        else if (layers>=3 && subdets==4 && rings>=8) category_number = 2;
+        else if (layers<=2 && subdets==4 && rings<=10) category_number = 3;
+        else if (layers>=3 && subdets==4 && rings<=7) category_number = 3;
         if (abs(eta)<0.75) eta_number=0;
-        if (abs(eta)>0.75 && abs(eta)<1.5) eta_number=1;
-        if (abs(eta)>1.5 && abs(eta)<2.25) eta_number=2;
-        if (abs(eta)>2.25 && abs(eta)<3) eta_number=3;
+        else if (abs(eta)>0.75 && abs(eta)<1.5) eta_number=1;
+        else if (abs(eta)>1.5 && abs(eta)<2.25) eta_number=2;
+        else if (abs(eta)>2.25 && abs(eta)<3) eta_number=3;
 
         if (category_number == 0 && eta_number == 0) occupancy = 336;
-        if (category_number == 0 && eta_number == 1) occupancy = 414;
-        if (category_number == 0 && eta_number == 2) occupancy = 231;
-        if (category_number == 0 && eta_number == 3) occupancy = 146;
-        if (category_number == 3 && eta_number == 1) occupancy = 0;
-        if (category_number == 3 && eta_number == 2) occupancy = 191;
-        if (category_number == 3 && eta_number == 3) occupancy = 106;
+        else if (category_number == 0 && eta_number == 1) occupancy = 414;
+        else if (category_number == 0 && eta_number == 2) occupancy = 231;
+        else if (category_number == 0 && eta_number == 3) occupancy = 146;
+        else if (category_number == 3 && eta_number == 1) occupancy = 0;
+        else if (category_number == 3 && eta_number == 2) occupancy = 191;
+        else if (category_number == 3 && eta_number == 3) occupancy = 106;
 
         unsigned int nTotQ = atomicAdd(&nTotalQuintupletsx,occupancy);
         rangesInGPU.quintupletModuleIndices[i] = nTotQ;
+        rangesInGPU.quintupletModuleOccupancy[i] = occupancy;
         rangesInGPU.indicesOfEligibleT5Modules[nEligibleT5Modules] = i;
     }
     __syncthreads();
@@ -1301,7 +1301,7 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
                     return;
                 } // ignore anything else TODO: move this to start, before object is made (faster)
                 unsigned int totOccupancyQuintuplets = atomicAdd(&quintupletsInGPU.totOccupancyQuintuplets[lowerModule1], 1);
-                if(totOccupancyQuintuplets >= (rangesInGPU.quintupletModuleIndices[lowerModule1 + 1] - rangesInGPU.quintupletModuleIndices[lowerModule1]))
+                if(totOccupancyQuintuplets >= (rangesInGPU.quintupletModuleOccupancy[lowerModule1]))
                 {
 #ifdef Warnings
                     printf("Quintuplet excess alert! Module index = %d\n", lowerModule1);

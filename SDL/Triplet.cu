@@ -16,67 +16,63 @@ void SDL::triplets::resetMemory(unsigned int maxTriplets, unsigned int nLowerMod
     cudaMemsetAsync(partOfPT3, 0, maxTriplets * sizeof(bool), stream);
 }
 
-void SDL::createTripletArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct segments& segmentsInGPU, uint16_t& nLowerModules, unsigned int& nTotalTriplets, cudaStream_t stream)
+__global__ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct segments& segmentsInGPU, unsigned int* nTotalTripletsx)
 {
-    int* module_tripletModuleIndices;
-    short* module_subdets;
-    short* module_layers;
-    short* module_rings;
-    float* module_eta;
-    unsigned int* nSegments;
-    module_tripletModuleIndices = (int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
-    module_subdets = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
-    module_layers = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
-    module_rings = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
-    module_eta = (float*)cms::cuda::allocate_host(nLowerModules* sizeof(float), stream);
-    nSegments = (unsigned int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
-    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(module_rings,modulesInGPU.rings,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(module_eta,modulesInGPU.eta,nLowerModules * sizeof(float),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(nSegments, segmentsInGPU.nSegments, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-    cudaStreamSynchronize(stream);
 
+    short module_subdets;
+    short module_layers;
+    short module_rings;
+    float module_eta;
+    __shared__ unsigned int nTotalTriplets;
     nTotalTriplets = 0; //start!   
-    for(uint16_t i = 0; i < nLowerModules; i++)
+    __syncthreads();
+
+    int gid = blockIdx.x * blockDim.x + threadIdx.x;
+    int np = gridDim.x * blockDim.x;
+    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
     {
-        module_tripletModuleIndices[i] = nTotalTriplets; //running counter - we start at the previous index!
+        if(segmentsInGPU.nSegments[i] == 0){
+          rangesInGPU.tripletModuleIndices[i] = nTotalTriplets;
+          rangesInGPU.tripletModuleOccupancy[i] = 0;
+          continue;
+        }
+        module_subdets = modulesInGPU.subdets[i];
+        module_layers = modulesInGPU.layers[i];
+        module_rings = modulesInGPU.rings[i];
+        module_eta = modulesInGPU.eta[i];
         unsigned int occupancy;
         unsigned int category_number, eta_number;
-        if (module_layers[i]<=3 && module_subdets[i]==5) category_number = 0;
-        if (module_layers[i]>=4 && module_subdets[i]==5) category_number = 1;
-        if (module_layers[i]<=2 && module_subdets[i]==4 && module_rings[i]>=11) category_number = 2;
-        if (module_layers[i]>=3 && module_subdets[i]==4 && module_rings[i]>=8) category_number = 2;
-        if (module_layers[i]<=2 && module_subdets[i]==4 && module_rings[i]<=10) category_number = 3;
-        if (module_layers[i]>=3 && module_subdets[i]==4 && module_rings[i]<=7) category_number = 3;
-        if (abs(module_eta[i])<0.75) eta_number=0;
-        if (abs(module_eta[i])>0.75 && abs(module_eta[i])<1.5) eta_number=1;
-        if (abs(module_eta[i])>1.5 && abs(module_eta[i])<2.25) eta_number=2;
-        if (abs(module_eta[i])>2.25 && abs(module_eta[i])<3) eta_number=3;
+        if (module_layers<=3 && module_subdets==5) category_number = 0;
+        else if (module_layers>=4 && module_subdets==5) category_number = 1;
+        else if (module_layers<=2 && module_subdets==4 && module_rings>=11) category_number = 2;
+        else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
+        else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
+        else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
+        if (abs(module_eta)<0.75) eta_number=0;
+        else if (abs(module_eta)>0.75 && abs(module_eta)<1.5) eta_number=1;
+        else if (abs(module_eta)>1.5 && abs(module_eta)<2.25) eta_number=2;
+        else if (abs(module_eta)>2.25 && abs(module_eta)<3) eta_number=3;
 
         if (category_number == 0 && eta_number == 0) occupancy = 543;
-        if (category_number == 0 && eta_number == 1) occupancy = 235;
-        if (category_number == 0 && eta_number == 2) occupancy = 88;
-        if (category_number == 0 && eta_number == 3) occupancy = 46;
-        if (category_number == 1 && eta_number == 0) occupancy = 755;
-        if (category_number == 1 && eta_number == 1) occupancy = 347;
-        if (category_number == 2 && eta_number == 1) occupancy = 0;
-        if (category_number == 2 && eta_number == 2) occupancy = 0;
-        if (category_number == 3 && eta_number == 1) occupancy = 38;
-        if (category_number == 3 && eta_number == 2) occupancy = 46;
-        if (category_number == 3 && eta_number == 3) occupancy = 39;
+        else if (category_number == 0 && eta_number == 1) occupancy = 235;
+        else if (category_number == 0 && eta_number == 2) occupancy = 88;
+        else if (category_number == 0 && eta_number == 3) occupancy = 46;
+        else if (category_number == 1 && eta_number == 0) occupancy = 755;
+        else if (category_number == 1 && eta_number == 1) occupancy = 347;
+        else if (category_number == 2 && eta_number == 1) occupancy = 0;
+        else if (category_number == 2 && eta_number == 2) occupancy = 0;
+        else if (category_number == 3 && eta_number == 1) occupancy = 38;
+        else if (category_number == 3 && eta_number == 2) occupancy = 46;
+        else if (category_number == 3 && eta_number == 3) occupancy = 39;
 
-        if(nSegments[i] == 0) occupancy = 0;
-        nTotalTriplets += occupancy;
+        rangesInGPU.tripletModuleOccupancy[i] = occupancy;
+        unsigned int nTotT = atomicAdd(&nTotalTriplets,occupancy);
+        rangesInGPU.tripletModuleIndices[i] = nTotT;
     }
-    cudaMemcpyAsync(rangesInGPU.tripletModuleIndices, module_tripletModuleIndices, nLowerModules * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
-    cudaStreamSynchronize(stream);
-    cms::cuda::free_host(module_tripletModuleIndices);
-    cms::cuda::free_host(nSegments);
-    cms::cuda::free_host(module_subdets);
-    cms::cuda::free_host(module_layers);
-    cms::cuda::free_host(module_rings);
-    cms::cuda::free_host(module_eta);
+    __syncthreads();
+    if(threadIdx.x==0){
+      *nTotalTripletsx = nTotalTriplets;
+    }
 }
 
 void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, uint16_t nLowerModules, cudaStream_t stream)
@@ -691,7 +687,7 @@ __global__ void SDL::createTripletsInGPUv2(struct SDL::modules& modulesInGPU, st
 
         if(success) {
           unsigned int totOccupancyTriplets = atomicAdd(&tripletsInGPU.totOccupancyTriplets[innerInnerLowerModuleIndex], 1);
-          if(totOccupancyTriplets >= (rangesInGPU.tripletModuleIndices[innerInnerLowerModuleIndex + 1] - rangesInGPU.tripletModuleIndices[innerInnerLowerModuleIndex])) {
+          if(totOccupancyTriplets >= (rangesInGPU.tripletModuleOccupancy[innerInnerLowerModuleIndex])) {
 #ifdef Warnings
             printf("Triplet excess alert! Module index = %d\n",innerInnerLowerModuleIndex);
 #endif

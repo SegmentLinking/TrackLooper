@@ -30,78 +30,68 @@ void SDL::segments::resetMemory(unsigned int nMemoryLocationsx, unsigned int nLo
 }
 
 
-void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU, uint16_t& nLowerModules, unsigned int& nTotalSegments, cudaStream_t stream, const uint16_t& maxPixelSegments)
+__global__ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU, unsigned int* nTotalSegmentsx)
 {
-    /*
-        write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!*/
+    short module_subdets;
+    short module_layers;
+    short module_rings;
+    float module_eta;
 
-    int *module_segmentModuleIndices;
-    short* module_subdets;
-    short* module_layers;
-    short* module_rings;
-    float* module_eta;
-    uint16_t* module_nConnectedModules;
-    module_segmentModuleIndices = (int*)cms::cuda::allocate_host((nLowerModules + 1) * sizeof(unsigned int), stream);
-    module_subdets = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
-    module_layers = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
-    module_rings = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
-    module_eta = (float*)cms::cuda::allocate_host(nLowerModules* sizeof(float), stream);
-    module_nConnectedModules = (uint16_t*)cms::cuda::allocate_host(nLowerModules * sizeof(uint16_t), stream);
-    cudaMemcpyAsync(module_subdets,modulesInGPU.subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(module_layers,modulesInGPU.layers,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(module_rings,modulesInGPU.rings,nLowerModules * sizeof(short),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(module_eta,modulesInGPU.eta,nLowerModules * sizeof(float),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(module_nConnectedModules,modulesInGPU.nConnectedModules,nLowerModules*sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
- 
-    cudaStreamSynchronize(stream);
-
-    nTotalSegments = 0; //start!   
-    for(uint16_t i = 0; i < nLowerModules; i++)
+    __shared__ unsigned int nTotalSegments;
+    nTotalSegments = 0; //start!
+    __syncthreads(); 
+    int gid = blockIdx.x * blockDim.x + threadIdx.x;
+    int np = gridDim.x * blockDim.x;
+    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
     {
-        module_segmentModuleIndices[i] = nTotalSegments; //running counter - we start at the previous index!
-
+        if(modulesInGPU.nConnectedModules[i] == 0)
+        {
+          rangesInGPU.segmentModuleIndices[i] = nTotalSegments;
+          rangesInGPU.segmentModuleOccupancy[i] = 0;
+          continue;
+        }
+        module_subdets = modulesInGPU.subdets[i];
+        module_layers = modulesInGPU.layers[i];
+        module_rings = modulesInGPU.rings[i];
+        module_eta = modulesInGPU.eta[i];
         unsigned int occupancy;
         unsigned int category_number, eta_number;
-        if (module_layers[i]<=3 && module_subdets[i]==5) category_number = 0;
-        if (module_layers[i]>=4 && module_subdets[i]==5) category_number = 1;
-        if (module_layers[i]<=2 && module_subdets[i]==4 && module_rings[i]>=11) category_number = 2;
-        if (module_layers[i]>=3 && module_subdets[i]==4 && module_rings[i]>=8) category_number = 2;
-        if (module_layers[i]<=2 && module_subdets[i]==4 && module_rings[i]<=10) category_number = 3;
-        if (module_layers[i]>=3 && module_subdets[i]==4 && module_rings[i]<=7) category_number = 3;
-        if (abs(module_eta[i])<0.75) eta_number=0;
-        if (abs(module_eta[i])>0.75 && abs(module_eta[i])<1.5) eta_number=1;
-        if (abs(module_eta[i])>1.5 && abs(module_eta[i])<2.25) eta_number=2;
-        if (abs(module_eta[i])>2.25 && abs(module_eta[i])<3) eta_number=3;
+        if (module_layers<=3 && module_subdets==5) category_number = 0;
+        else if (module_layers>=4 && module_subdets==5) category_number = 1;
+        else if (module_layers<=2 && module_subdets==4 && module_rings>=11) category_number = 2;
+        else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
+        else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
+        else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
+        if (abs(module_eta)<0.75) eta_number=0;
+        else if (abs(module_eta)>0.75 && abs(module_eta)<1.5) eta_number=1;
+        else if (abs(module_eta)>1.5 && abs(module_eta)<2.25) eta_number=2;
+        else if (abs(module_eta)>2.25 && abs(module_eta)<3) eta_number=3;
 
         if (category_number == 0 && eta_number == 0) occupancy = 572;
-        if (category_number == 0 && eta_number == 1) occupancy = 300;
-        if (category_number == 0 && eta_number == 2) occupancy = 183;
-        if (category_number == 0 && eta_number == 3) occupancy = 62;
-        if (category_number == 1 && eta_number == 0) occupancy = 191;
-        if (category_number == 1 && eta_number == 1) occupancy = 128;
-        if (category_number == 2 && eta_number == 1) occupancy = 107;
-        if (category_number == 2 && eta_number == 2) occupancy = 102;
-        if (category_number == 3 && eta_number == 1) occupancy = 64;
-        if (category_number == 3 && eta_number == 2) occupancy = 79;
-        if (category_number == 3 && eta_number == 3) occupancy = 85;
+        else if (category_number == 0 && eta_number == 1) occupancy = 300;
+        else if (category_number == 0 && eta_number == 2) occupancy = 183;
+        else if (category_number == 0 && eta_number == 3) occupancy = 62;
+        else if (category_number == 1 && eta_number == 0) occupancy = 191;
+        else if (category_number == 1 && eta_number == 1) occupancy = 128;
+        else if (category_number == 2 && eta_number == 1) occupancy = 107;
+        else if (category_number == 2 && eta_number == 2) occupancy = 102;
+        else if (category_number == 3 && eta_number == 1) occupancy = 64;
+        else if (category_number == 3 && eta_number == 2) occupancy = 79;
+        else if (category_number == 3 && eta_number == 3) occupancy = 85;
 
-        if(module_nConnectedModules[i] == 0) occupancy = 0;
 
-        nTotalSegments += occupancy;
+        unsigned int nTotSegs = atomicAdd(&nTotalSegments,occupancy);
+        rangesInGPU.segmentModuleIndices[i] = nTotSegs;
+        rangesInGPU.segmentModuleOccupancy[i] = occupancy;
     }
 
-    module_segmentModuleIndices[nLowerModules] = nTotalSegments;
-    nTotalSegments += maxPixelSegments;
-
-    cudaMemcpyAsync(rangesInGPU.segmentModuleIndices, module_segmentModuleIndices,  (nLowerModules + 1) * sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
-    cudaStreamSynchronize(stream);
-    cms::cuda::free_host(module_segmentModuleIndices);
-    cms::cuda::free_host(module_nConnectedModules);
-    cms::cuda::free_host(module_subdets);
-    cms::cuda::free_host(module_layers);
-    cms::cuda::free_host(module_rings);
-    cms::cuda::free_host(module_eta);
+    __syncthreads();
+    if(threadIdx.x==0){
+      rangesInGPU.segmentModuleIndices[*modulesInGPU.nLowerModules] = nTotalSegments;
+      *nTotalSegmentsx = nTotalSegments;
+    }
 }
+
 
 void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelSegments, cudaStream_t stream)
 {
@@ -860,7 +850,7 @@ __global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, st
             if(pass)
             {
                 unsigned int totOccupancySegments = atomicAdd(&segmentsInGPU.totOccupancySegments[innerLowerModuleIndex],1);
-                if(totOccupancySegments >= (rangesInGPU.segmentModuleIndices[innerLowerModuleIndex + 1] - rangesInGPU.segmentModuleIndices[innerLowerModuleIndex]))
+                if(totOccupancySegments >= (rangesInGPU.segmentModuleOccupancy[innerLowerModuleIndex]))
                 {
 #ifdef Warnings
                     printf("Segment excess alert! Module index = %d\n",innerLowerModuleIndex);
