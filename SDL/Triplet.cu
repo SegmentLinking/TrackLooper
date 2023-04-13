@@ -43,27 +43,27 @@ __global__ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, stru
         unsigned int occupancy;
         unsigned int category_number, eta_number;
         if (module_layers<=3 && module_subdets==5) category_number = 0;
-        if (module_layers>=4 && module_subdets==5) category_number = 1;
-        if (module_layers<=2 && module_subdets==4 && module_rings>=11) category_number = 2;
-        if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
-        if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
-        if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
+        else if (module_layers>=4 && module_subdets==5) category_number = 1;
+        else if (module_layers<=2 && module_subdets==4 && module_rings>=11) category_number = 2;
+        else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
+        else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
+        else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
         if (abs(module_eta)<0.75) eta_number=0;
-        if (abs(module_eta)>0.75 && abs(module_eta)<1.5) eta_number=1;
-        if (abs(module_eta)>1.5 && abs(module_eta)<2.25) eta_number=2;
-        if (abs(module_eta)>2.25 && abs(module_eta)<3) eta_number=3;
+        else if (abs(module_eta)>0.75 && abs(module_eta)<1.5) eta_number=1;
+        else if (abs(module_eta)>1.5 && abs(module_eta)<2.25) eta_number=2;
+        else if (abs(module_eta)>2.25 && abs(module_eta)<3) eta_number=3;
 
         if (category_number == 0 && eta_number == 0) occupancy = 543;
-        if (category_number == 0 && eta_number == 1) occupancy = 235;
-        if (category_number == 0 && eta_number == 2) occupancy = 88;
-        if (category_number == 0 && eta_number == 3) occupancy = 46;
-        if (category_number == 1 && eta_number == 0) occupancy = 755;
-        if (category_number == 1 && eta_number == 1) occupancy = 347;
-        if (category_number == 2 && eta_number == 1) occupancy = 0;
-        if (category_number == 2 && eta_number == 2) occupancy = 0;
-        if (category_number == 3 && eta_number == 1) occupancy = 38;
-        if (category_number == 3 && eta_number == 2) occupancy = 46;
-        if (category_number == 3 && eta_number == 3) occupancy = 39;
+        else if (category_number == 0 && eta_number == 1) occupancy = 235;
+        else if (category_number == 0 && eta_number == 2) occupancy = 88;
+        else if (category_number == 0 && eta_number == 3) occupancy = 46;
+        else if (category_number == 1 && eta_number == 0) occupancy = 755;
+        else if (category_number == 1 && eta_number == 1) occupancy = 347;
+        else if (category_number == 2 && eta_number == 1) occupancy = 0;
+        else if (category_number == 2 && eta_number == 2) occupancy = 0;
+        else if (category_number == 3 && eta_number == 1) occupancy = 38;
+        else if (category_number == 3 && eta_number == 2) occupancy = 46;
+        else if (category_number == 3 && eta_number == 3) occupancy = 39;
 
         rangesInGPU.tripletModuleOccupancy[i] = occupancy;
         unsigned int nTotT = atomicAdd(&nTotalTriplets,occupancy);
@@ -688,7 +688,6 @@ __global__ void SDL::createTripletsInGPUv2(struct SDL::modules& modulesInGPU, st
         if(success) {
           unsigned int totOccupancyTriplets = atomicAdd(&tripletsInGPU.totOccupancyTriplets[innerInnerLowerModuleIndex], 1);
           if(totOccupancyTriplets >= (rangesInGPU.tripletModuleOccupancy[innerInnerLowerModuleIndex])) {
-          //if(totOccupancyTriplets >= (rangesInGPU.tripletModuleIndices[innerInnerLowerModuleIndex + 1] - rangesInGPU.tripletModuleIndices[innerInnerLowerModuleIndex])) {
 #ifdef Warnings
             printf("Triplet excess alert! Module index = %d\n",innerInnerLowerModuleIndex);
 #endif

@@ -687,7 +687,6 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     if(mdsInGPU == nullptr)
     {
         mdsInGPU = (SDL::miniDoublets*)cms::cuda::allocate_host(sizeof(SDL::miniDoublets), stream);
-        //hardcoded range numbers for this will come from studies!
         unsigned int nTotalMDs;
         createMDArrayRanges(*modulesInGPU, *rangesInGPU, nLowerModules, nTotalMDs, stream, N_MAX_PIXEL_MD_PER_MODULES);
     	createMDsInExplicitMemory(*mdsInGPU, nTotalMDs, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES,stream);
@@ -1113,7 +1112,6 @@ void SDL::Event::createTriplets()
         cudaMemcpyAsync(&maxTriplets,device_maxTriplets,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
         cudaStreamSynchronize(stream);
         cudaFree(device_maxTriplets);
-//        cout<<"nTotalTriplets: "<<maxTriplets<<std::endl; // for memory usage
         createTripletsInExplicitMemory(*tripletsInGPU, maxTriplets, nLowerModules,stream);
 
         cudaMemcpyAsync(tripletsInGPU->nMemoryLocations, &maxTriplets, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
