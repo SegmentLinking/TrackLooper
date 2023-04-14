@@ -918,7 +918,6 @@ if(success)
             {
                 unsigned int totOccupancyMDs = atomicAdd(&mdsInGPU.totOccupancyMDs[lowerModuleIndex],1);
                 if(totOccupancyMDs >= (rangesInGPU.miniDoubletModuleOccupancy[lowerModuleIndex]))
-                //if(totOccupancyMDs >= (rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex + 1] - rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex]))
                 {
 #ifdef Warnings
                     printf("Mini-doublet excess alert! Module index =  %d\n",lowerModuleIndex);
