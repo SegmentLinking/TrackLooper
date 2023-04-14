@@ -38,27 +38,27 @@ __global__ void SDL::createMDArrayRangesGPU(struct modules& modulesInGPU, struct
         unsigned int occupancy;
         unsigned int category_number, eta_number;
         if (module_layers<=3 && module_subdets==5) category_number = 0;
-        if (module_layers>=4 && module_subdets==5) category_number = 1;
-        if (module_layers<=2 && module_subdets==4 && module_rings>=11) category_number = 2;
-        if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
-        if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
-        if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
+        else if (module_layers>=4 && module_subdets==5) category_number = 1;
+        else if (module_layers<=2 && module_subdets==4 && module_rings>=11) category_number = 2;
+        else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
+        else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
+        else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
 
         if (abs(module_eta)<0.75) eta_number=0;
-        if (abs(module_eta)>0.75 && abs(module_eta)<1.5) eta_number=1;
-        if (abs(module_eta)>1.5 && abs(module_eta)<2.25) eta_number=2;
-        if (abs(module_eta)>2.25 && abs(module_eta)<3) eta_number=3;
+        else if (abs(module_eta)>0.75 && abs(module_eta)<1.5) eta_number=1;
+        else if (abs(module_eta)>1.5 && abs(module_eta)<2.25) eta_number=2;
+        else if (abs(module_eta)>2.25 && abs(module_eta)<3) eta_number=3;
 
         if (category_number == 0 && eta_number == 0) occupancy = 49;
-        if (category_number == 0 && eta_number == 1) occupancy = 42;
-        if (category_number == 0 && eta_number == 2) occupancy = 37;
-        if (category_number == 0 && eta_number == 3) occupancy = 41;
-        if (category_number == 1) occupancy = 100;
-        if (category_number == 2 && eta_number == 1) occupancy = 16;
-        if (category_number == 2 && eta_number == 2) occupancy = 19;
-        if (category_number == 3 && eta_number == 1) occupancy = 14;
-        if (category_number == 3 && eta_number == 2) occupancy = 20;
-        if (category_number == 3 && eta_number == 3) occupancy = 25;
+        else if (category_number == 0 && eta_number == 1) occupancy = 42;
+        else if (category_number == 0 && eta_number == 2) occupancy = 37;
+        else if (category_number == 0 && eta_number == 3) occupancy = 41;
+        else if (category_number == 1) occupancy = 100;
+        else if (category_number == 2 && eta_number == 1) occupancy = 16;
+        else if (category_number == 2 && eta_number == 2) occupancy = 19;
+        else if (category_number == 3 && eta_number == 1) occupancy = 14;
+        else if (category_number == 3 && eta_number == 2) occupancy = 20;
+        else if (category_number == 3 && eta_number == 3) occupancy = 25;
 
         unsigned int nTotMDs= atomicAdd(&nTotalMDs,occupancy);
         rangesInGPU.miniDoubletModuleIndices[i] = nTotMDs; 
@@ -66,8 +66,8 @@ __global__ void SDL::createMDArrayRangesGPU(struct modules& modulesInGPU, struct
     }
     __syncthreads();
     if(threadIdx.x==0){
-    rangesInGPU.miniDoubletModuleIndices[*modulesInGPU.nLowerModules] = nTotalMDs;
-    *nTotalMDsx=nTotalMDs;
+      rangesInGPU.miniDoubletModuleIndices[*modulesInGPU.nLowerModules] = nTotalMDs;
+      *nTotalMDsx=nTotalMDs;
     }
 
 }
