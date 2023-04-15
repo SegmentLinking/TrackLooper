@@ -81,7 +81,7 @@ int main(int argc, char** argv)
     TString TrackingNtupleDir = gSystem->Getenv("TRACKINGNTUPLEDIR");
     if (ana.input_raw_string.EqualTo("muonGun"))
         ana.input_file_list_tstring = TString::Format("%s/trackingNtuple_10mu_pt_0p5_2.root", TrackingNtupleDir.Data());
-    else if (ana.input_raw_string.EqualTo("muonGun_highE"))
+    else if (ana.input_raw_string.EqualTo("muonGun_highPt"))
         ana.input_file_list_tstring = TString::Format("%s/trackingNtuple_10mu_pt_0p5_50.root", TrackingNtupleDir.Data());
     else if (ana.input_raw_string.EqualTo("pionGun"))
         ana.input_file_list_tstring = TString::Format("%s/trackingNtuple_6pion_1k_pt_0p5_50.root", TrackingNtupleDir.Data());
@@ -89,10 +89,14 @@ int main(int argc, char** argv)
         ana.input_file_list_tstring = TString::Format("%s/trackingNtuple_ttbar_PU200.root", TrackingNtupleDir.Data());
     else if (ana.input_raw_string.EqualTo("PU200RelVal"))
         ana.input_file_list_tstring = TString::Format("%s/RelValTTbar_14TeV_CMSSW_12_5_0_pre3/", (TrackingNtupleDir.Replace(31,1,"5").Replace(38,1,"3")).Data()); // RelVal files under CMSSW_12_5_0_pre3 directory, not CMSSW_12_2_0_pre2 as is the case for the rest of the samples
-    else if (ana.input_raw_string.EqualTo("cube"))
-        ana.input_file_list_tstring = TString::Format("%s/trackingNtuple_10mu_pt_0p5_50_5cm_cube.root", TrackingNtupleDir.Data());
-    else if (ana.input_raw_string.EqualTo("cube50cm"))
-        ana.input_file_list_tstring = TString::Format("%s/trackingNtuple_10mu_pt_0p5_50_50cm_cube.root", TrackingNtupleDir.Data());
+    else if (ana.input_raw_string.EqualTo("cube5"))
+        ana.input_file_list_tstring = TString::Format("%s/trackingNtuple_10mu_10k_pt_0p5_2_5cm_cube.root", TrackingNtupleDir.Data());
+    else if (ana.input_raw_string.EqualTo("cube5_highPt"))
+        ana.input_file_list_tstring = TString::Format("%s/trackingNtuple_10mu_10k_pt_0p5_50_5cm_cube.root", TrackingNtupleDir.Data());
+    else if (ana.input_raw_string.EqualTo("cube50"))
+        ana.input_file_list_tstring = TString::Format("%s/trackingNtuple_10mu_10k_pt_0p5_2_50cm_cube.root", TrackingNtupleDir.Data());
+    else if (ana.input_raw_string.EqualTo("cube50_highPt"))
+        ana.input_file_list_tstring = TString::Format("%s/trackingNtuple_10mu_10k_pt_0p5_50_50cm_cube.root", TrackingNtupleDir.Data());
     else
     {
         ana.input_file_list_tstring = ana.input_raw_string;
