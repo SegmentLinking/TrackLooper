@@ -10,7 +10,7 @@ void SDL::LST::eventSetup() {
   SDL::initModules(path);
 }
 
-void SDL::LST::run(cudaStream_t stream,
+void SDL::LST::run(cudaStream_t stream,bool verbose,
                    const std::vector<float> see_px,
                    const std::vector<float> see_py,
                    const std::vector<float> see_pz,
@@ -31,7 +31,7 @@ void SDL::LST::run(cudaStream_t stream,
                    const std::vector<float> ph2_x,
                    const std::vector<float> ph2_y,
                    const std::vector<float> ph2_z) {
-  auto event = SDL::Event(stream);
+  auto event = SDL::Event(stream,verbose);
   prepareInput(see_px, see_py, see_pz, see_dxy, see_dz, see_ptErr, see_etaErr, see_stateTrajGlbX, see_stateTrajGlbY, see_stateTrajGlbZ, see_stateTrajGlbPx, see_stateTrajGlbPy, see_stateTrajGlbPz, see_q, see_algo, see_hitIdx, ph2_detId, ph2_x, ph2_y, ph2_z);
 
   event.addHitToEvent(in_trkX_, in_trkY_, in_trkZ_, in_hitId_, in_hitIdxs_); // TODO : Need to fix the hitIdxs

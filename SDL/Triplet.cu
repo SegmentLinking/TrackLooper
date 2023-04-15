@@ -1442,3 +1442,21 @@ __device__ void SDL::runDeltaBetaIterationsT3(float& betaIn, float& betaOut, flo
 
     }
 }
+__global__ void SDL::addTripletRangesToEventExplicit(struct modules& modulesInGPU, struct triplets& tripletsInGPU, struct objectRanges& rangesInGPU)
+{
+    int gid = blockIdx.x * blockDim.x + threadIdx.x;
+    int np = gridDim.x * blockDim.x;
+    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
+    {
+        if(tripletsInGPU.nTriplets[i] == 0)
+        {
+            rangesInGPU.tripletRanges[i * 2] = -1;
+            rangesInGPU.tripletRanges[i * 2 + 1] = -1;
+        }
+        else
+        {
+            rangesInGPU.tripletRanges[i * 2] = rangesInGPU.tripletModuleIndices[i];
+            rangesInGPU.tripletRanges[i * 2 + 1] = rangesInGPU.tripletModuleIndices[i] +  tripletsInGPU.nTriplets[i] - 1;
+        }
+    }
+}

@@ -22,7 +22,7 @@ CXXFLAGS             =  -g --compiler-options -Wall --compiler-options -Wshadow 
 ROOTCFLAGS           = --compiler-options -pthread --compiler-options -std=c++17 -m64 -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/cms/cmssw/CMSSW_11_2_0_pre5/external/slc7_amd64_gcc900/bin/../../../../../../../slc7_amd64_gcc900/lcg/root/6.20.06-ghbfee3/include
 LD                   = nvcc 
 SOFLAGS              = -g -shared --compiler-options -fPIC --cudart shared -arch=compute_70 -code=sm_72
-PRINTFLAG            = -DAddObjects -DT4FromT3 #-DWarnings
+PRINTFLAG            = -DT4FromT3 #-DWarnings
 DUPLICATES           = -DDUP_pLS -DDUP_T5 -DDUP_pT5 -DDUP_pT3 -DCrossclean_T5 -DCrossclean_pT3 -DFP16_Base -DFP16_dPhi
 MEMFLAG              =
 CACHEFLAG            =

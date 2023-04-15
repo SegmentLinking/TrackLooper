@@ -2068,3 +2068,21 @@ __device__ void SDL::runDeltaBetaIterationsT5(float& betaIn, float& betaOut, flo
 
     }
 }
+__global__ void SDL::addQuintupletRangesToEventExplicit(struct modules& modulesInGPU, struct quintuplets& quintupletsInGPU, struct objectRanges& rangesInGPU)
+{
+    int gid = blockIdx.x * blockDim.x + threadIdx.x;
+    int np = gridDim.x * blockDim.x;
+    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
+    {
+        if(quintupletsInGPU.nQuintuplets[i] == 0 or rangesInGPU.quintupletModuleIndices[i] == -1)
+        {
+            rangesInGPU.quintupletRanges[i * 2] = -1;
+            rangesInGPU.quintupletRanges[i * 2 + 1] = -1;
+        }
+       else
+        {
+            rangesInGPU.quintupletRanges[i * 2] = rangesInGPU.quintupletModuleIndices[i];
+            rangesInGPU.quintupletRanges[i * 2 + 1] = rangesInGPU.quintupletModuleIndices[i] + quintupletsInGPU.nQuintuplets[i] - 1;
+        }
+    }
+}

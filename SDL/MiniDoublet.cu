@@ -950,3 +950,21 @@ if(success)
         }
     }
 }
+__global__ void SDL::addMiniDoubletRangesToEventExplicit(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct objectRanges& rangesInGPU,struct hits& hitsInGPU)
+{
+    int gid = blockIdx.x * blockDim.x + threadIdx.x;
+    int np = gridDim.x * blockDim.x;
+    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
+    {
+        if(mdsInGPU.nMDs[i] == 0 or hitsInGPU.hitRanges[i * 2] == -1)
+        {
+            rangesInGPU.mdRanges[i * 2] = -1;
+            rangesInGPU.mdRanges[i * 2 + 1] = -1;
+        }
+        else
+        {
+            rangesInGPU.mdRanges[i * 2] = rangesInGPU.miniDoubletModuleIndices[i] ;
+            rangesInGPU.mdRanges[i * 2 + 1] = rangesInGPU.miniDoubletModuleIndices[i] + mdsInGPU.nMDs[i] - 1;
+        }
+    }
+}
