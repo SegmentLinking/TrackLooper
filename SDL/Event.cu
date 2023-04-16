@@ -1286,7 +1286,7 @@ void SDL::Event::createTrackCandidates()
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_T5TC)<<std::endl;
     }cudaStreamSynchronize(stream);
 
-    Vec const threadsPerBlockCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(32), static_cast<Idx>(32));
+    Vec const threadsPerBlockCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
     Vec const blocksPerGridCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS*4), static_cast<Idx>(MAX_BLOCKS/4));
 
     WorkDiv const checkHitspLS_workDiv(blocksPerGridCheckHitspLS, threadsPerBlockCheckHitspLS, elementsPerThread);
@@ -1443,7 +1443,7 @@ void SDL::Event::createPixelTriplets()
 #endif
 
     //pT3s can be cleaned here because they're not used in making pT5s!
-    Vec const threadsPerBlockDupPixTrip(static_cast<Idx>(1), static_cast<Idx>(32), static_cast<Idx>(32));
+    Vec const threadsPerBlockDupPixTrip(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
     //seems like more blocks lead to conflicting writes
     Vec const blocksPerGridDupPixTrip(static_cast<Idx>(1), static_cast<Idx>(40), static_cast<Idx>(1));
 
@@ -1534,7 +1534,7 @@ void SDL::Event::createQuintuplets()
     alpaka::enqueue(queue, createQuintupletsInGPUv2Task);
     alpaka::wait(queue);
 
-    Vec const threadsPerBlockDupQuint(static_cast<Idx>(1), static_cast<Idx>(32), static_cast<Idx>(32));
+    Vec const threadsPerBlockDupQuint(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
     Vec const blocksPerGridDupQuint(static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1), static_cast<Idx>(1));
 
     WorkDiv const removeDupQuintupletsInGPUAfterBuild_workDiv(blocksPerGridDupQuint, threadsPerBlockDupQuint, elementsPerThread);
@@ -1560,7 +1560,7 @@ void SDL::Event::pixelLineSegmentCleaning()
     // Temporary fix for queue initialization.
     QueueAcc queue(devAcc);
 
-    Vec const threadsPerBlockCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(32), static_cast<Idx>(32));
+    Vec const threadsPerBlockCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
     Vec const blocksPerGridCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS*4), static_cast<Idx>(MAX_BLOCKS/4));
 
     WorkDiv const checkHitspLS_workDiv(blocksPerGridCheckHitspLS, threadsPerBlockCheckHitspLS, elementsPerThread);

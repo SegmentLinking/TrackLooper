@@ -200,6 +200,28 @@ namespace SDL
         matched[1] = nMatched;
     };
 
+    template<typename TAcc, typename TObject>
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE float calculate_dPhi(const TAcc& acc,
+                                                        const TObject& obj, // LST Object that must have a phi field
+                                                        unsigned int idx1, // First index of LST Obj for dPhi calc
+                                                        unsigned int idx2) // Second index of LST Obj for dPhi calc
+    {
+        // Extract the phi values for the given indices
+        float phi1 = __H2F(obj.phi[idx1]);
+        float phi2 = __H2F(obj.phi[idx2]);
+
+        // Calculate dPhi
+        float dPhi = alpaka::math::abs(acc, phi1 - phi2);
+
+        // Adjust dPhi if it is greater than pi
+        if (dPhi > float(M_PI))
+        {
+            dPhi = dPhi - 2 * float(M_PI);
+        }
+
+        return dPhi;
+    }
+
     struct removeDupQuintupletsInGPUAfterBuild
     {
         template<typename TAcc>
@@ -224,9 +246,7 @@ namespace SDL
                 for(unsigned int ix1 = globalThreadIdx[1]; ix1 < nQuintuplets_lowmod1; ix1 += gridThreadExtent[1])
                 {
                     unsigned int ix = quintupletModuleIndices_lowmod1 + ix1;
-                    float pt1  = __H2F(quintupletsInGPU.pt[ix]);
                     float eta1 = __H2F(quintupletsInGPU.eta[ix]);
-                    float phi1 = __H2F(quintupletsInGPU.phi[ix]);
                     float score_rphisum1 = __H2F(quintupletsInGPU.score_rphisum[ix]);
                     int nQuintuplets_lowmod = quintupletsInGPU.nQuintuplets[lowmod1];
                     int quintupletModuleIndices_lowmod = rangesInGPU.quintupletModuleIndices[lowmod1];
@@ -237,18 +257,13 @@ namespace SDL
                         if(ix == jx)
                             continue;
 
-                        float pt2  = __H2F(quintupletsInGPU.pt[jx]);
                         float eta2 = __H2F(quintupletsInGPU.eta[jx]);
-                        float phi2 = __H2F(quintupletsInGPU.phi[jx]);
-                        float dEta = alpaka::math::abs(acc, eta1-eta2);
-                        float dPhi = alpaka::math::abs(acc, phi1-phi2);
+                        float dEta = alpaka::math::abs(acc, eta1 - eta2);
+                        float dPhi = calculate_dPhi(acc, quintupletsInGPU, ix, jx);
                         float score_rphisum2 = __H2F(quintupletsInGPU.score_rphisum[jx]);
 
                         if (dEta > 0.1f)
                             continue;
-
-                        if(dPhi > float(M_PI))
-                            dPhi = dPhi - 2 * float(M_PI);
 
                         if (alpaka::math::abs(acc, dPhi) > 0.1f)
                             continue;
@@ -323,24 +338,17 @@ namespace SDL
                             if(quintupletsInGPU.partOfPT5[jx] || quintupletsInGPU.isDup[jx])
                                 continue;
 
-                            float pt1  = __H2F(quintupletsInGPU.pt[ix]);
                             float eta1 = __H2F(quintupletsInGPU.eta[ix]);
-                            float phi1 = __H2F(quintupletsInGPU.phi[ix]);
                             float score_rphisum1 = __H2F(quintupletsInGPU.score_rphisum[ix]);
 
-                            float pt2  = __H2F(quintupletsInGPU.pt[jx]);
                             float eta2 = __H2F(quintupletsInGPU.eta[jx]);
-                            float phi2 = __H2F(quintupletsInGPU.phi[jx]);
                             float score_rphisum2 = __H2F(quintupletsInGPU.score_rphisum[jx]);
 
                             float dEta = alpaka::math::abs(acc, eta1-eta2);
-                            float dPhi = alpaka::math::abs(acc, phi1-phi2);
+                            float dPhi = calculate_dPhi(acc, quintupletsInGPU, ix, jx);
 
                             if (dEta > 0.1f)
                                 continue;
-
-                            if(dPhi > float(M_PI))
-                                dPhi = dPhi - 2 * float(M_PI);
 
                             if (alpaka::math::abs(acc, dPhi) > 0.1f)
                                 continue;
@@ -489,7 +497,6 @@ namespace SDL
                 phits1[2] = segmentsInGPU.pLSHitsIdxs[ix].z;
                 phits1[3] = segmentsInGPU.pLSHitsIdxs[ix].w;
                 float eta_pix1 = segmentsInGPU.eta[ix];
-                float phi_pix1 = segmentsInGPU.phi[ix];
 
                 for(int jx = globalThreadIdx[2]; jx < nPixelSegments; jx += gridThreadExtent[2])
                 {
@@ -503,9 +510,9 @@ namespace SDL
                     if (secondpass && (!segmentsInGPU.isQuad[jx] || segmentsInGPU.isDup[jx]))
                         continue;
 
-                    char quad_diff = segmentsInGPU.isQuad[ix] -segmentsInGPU.isQuad[jx];
-                    float ptErr_diff = segmentsInGPU.ptIn[ix] -segmentsInGPU.ptIn[jx];
-                    float score_diff = segmentsInGPU.score[ix] -segmentsInGPU.score[jx];
+                    char quad_diff = segmentsInGPU.isQuad[ix] - segmentsInGPU.isQuad[jx];
+                    float ptErr_diff = segmentsInGPU.ptIn[ix] - segmentsInGPU.ptIn[jx];
+                    float score_diff = segmentsInGPU.score[ix] - segmentsInGPU.score[jx];
                     // Always keep quads over trips. If they are the same, we want the object with the lower pt Error
                     if((quad_diff > 0) || (score_diff < 0 && quad_diff == 0))
                         continue;
@@ -515,8 +522,6 @@ namespace SDL
                     phits2[1] = segmentsInGPU.pLSHitsIdxs[jx].y;
                     phits2[2] = segmentsInGPU.pLSHitsIdxs[jx].z;
                     phits2[3] = segmentsInGPU.pLSHitsIdxs[jx].w;
-
-                    float phi_pix2 = segmentsInGPU.phi[jx];
 
                     int npMatched = 0;
                     for (int i = 0; i < 4; i++)
@@ -548,11 +553,8 @@ namespace SDL
                     }
                     if(secondpass)
                     {
-                        float dEta = alpaka::math::abs(acc, eta_pix1-eta_pix2);
-                        float dPhi = alpaka::math::abs(acc, phi_pix1-phi_pix2);
-
-                        if(dPhi > float(M_PI))
-                            dPhi = dPhi - 2 * float(M_PI);
+                        float dEta = alpaka::math::abs(acc, eta_pix1 - eta_pix2);
+                        float dPhi = calculate_dPhi(acc, segmentsInGPU, ix, jx);
 
                         float dR2 = dEta*dEta + dPhi*dPhi;
                         if(npMatched >= 1 or dR2 < 0.00075f and (ix < jx))
