@@ -1665,11 +1665,8 @@ void SDL::Event::createPixelQuintuplets()
     auto const addpT5asTrackCandidateInGPUTask(alpaka::createTaskKernel<Acc>(
         addpT5asTrackCandidateInGPU_workDiv,
         addpT5asTrackCandidateInGPU_kernel,
-        *modulesInGPU,
         *pixelQuintupletsInGPU,
         *trackCandidatesInGPU,
-        *segmentsInGPU,
-        *tripletsInGPU,
         *quintupletsInGPU));
 
     alpaka::enqueue(queue, addpT5asTrackCandidateInGPUTask);
