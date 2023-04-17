@@ -68,38 +68,6 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     cudaStreamSynchronize(stream);
 }
 
-ALPAKA_FN_ACC void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, unsigned int trackCandidateIndex, unsigned int directObjectIndex)
-{
-    trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = trackCandidateType;
-    trackCandidatesInGPU.directObjectIndices[trackCandidateIndex] = directObjectIndex;
-    trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex] = innerTrackletIndex;
-    trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1] = outerTrackletIndex;
-}
-
-ALPAKA_FN_ACC void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, uint8_t* logicalLayerIndices, uint16_t* lowerModuleIndices, unsigned int* hitIndices, float centerX, float centerY, float radius, unsigned int trackCandidateIndex, unsigned int directObjectIndex)
-{
-    trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = trackCandidateType;
-    trackCandidatesInGPU.directObjectIndices[trackCandidateIndex] = directObjectIndex;
-    trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex] = innerTrackletIndex;
-    trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1] = outerTrackletIndex;
-    
-    size_t limits = trackCandidateType == 7 ? 7 : 5;
-
-    //send the starting pointer to the logicalLayer and hitIndices
-    for(size_t i = 0; i < limits; i++)
-    {
-        trackCandidatesInGPU.logicalLayers[7 * trackCandidateIndex + i] = logicalLayerIndices[i];
-        trackCandidatesInGPU.lowerModuleIndices[7 * trackCandidateIndex + i] = lowerModuleIndices[i];
-    }
-    for(size_t i = 0; i < 2 * limits; i++)
-    {
-        trackCandidatesInGPU.hitIndices[14 * trackCandidateIndex + i] = hitIndices[i];
-    }
-    trackCandidatesInGPU.centerX[trackCandidateIndex] = __F2H(centerX);
-    trackCandidatesInGPU.centerY[trackCandidateIndex] = __F2H(centerY);
-    trackCandidatesInGPU.radius[trackCandidateIndex]  = __F2H(radius);
-}
-
 SDL::trackCandidates::trackCandidates()
 {
     trackCandidateType = nullptr;
@@ -145,6 +113,7 @@ void SDL::trackCandidates::freeMemoryCache()
     cms::cuda::free_device(dev, centerY);
     cms::cuda::free_device(dev, radius);
 }
+
 void SDL::trackCandidates::freeMemory(cudaStream_t stream)
 {
     cudaFree(trackCandidateType);
