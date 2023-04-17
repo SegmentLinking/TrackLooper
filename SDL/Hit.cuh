@@ -145,6 +145,21 @@ namespace SDL
         int sign_b = (b < 0) ? -1 : 1;
         return sign_a * sign_b * a;
     };
+
+    template<typename TAcc>
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE float calculate_dPhi(const TAcc& acc, float phi1, float phi2)
+    {
+        // Calculate dPhi
+        float dPhi = alpaka::math::abs(acc, phi1 - phi2);
+
+        // Adjust dPhi if it is greater than pi
+        if (dPhi > float(M_PI))
+        {
+            dPhi = dPhi - 2 * float(M_PI);
+        }
+
+        return dPhi;
+    };
 }
 #endif
 

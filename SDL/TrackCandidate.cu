@@ -72,47 +72,6 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     cudaStreamSynchronize(stream);
 }
 
-ALPAKA_FN_ACC void SDL::addpLSTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int trackletIndex, unsigned int trackCandidateIndex, uint4 hitIndices, int pixelSeedIndex)
-{
-    trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = 8;
-    trackCandidatesInGPU.directObjectIndices[trackCandidateIndex] = trackletIndex;
-    trackCandidatesInGPU.pixelSeedIndex[trackCandidateIndex] = pixelSeedIndex;
-
-    trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex] = trackletIndex;
-    trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1] = trackletIndex;
-
-    trackCandidatesInGPU.hitIndices[14 * trackCandidateIndex + 0] = hitIndices.x; // Order explanation in https://github.com/SegmentLinking/TrackLooper/issues/267
-    trackCandidatesInGPU.hitIndices[14 * trackCandidateIndex + 1] = hitIndices.z;
-    trackCandidatesInGPU.hitIndices[14 * trackCandidateIndex + 2] = hitIndices.y;
-    trackCandidatesInGPU.hitIndices[14 * trackCandidateIndex + 3] = hitIndices.w;
-}
-
-ALPAKA_FN_ACC void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, uint8_t* logicalLayerIndices, uint16_t* lowerModuleIndices, unsigned int* hitIndices, int pixelSeedIndex, float centerX, float centerY, float radius, unsigned int trackCandidateIndex, unsigned int directObjectIndex)
-{
-    trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = trackCandidateType;
-    trackCandidatesInGPU.directObjectIndices[trackCandidateIndex] = directObjectIndex;
-    trackCandidatesInGPU.pixelSeedIndex[trackCandidateIndex] = pixelSeedIndex;
-
-    trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex] = innerTrackletIndex;
-    trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1] = outerTrackletIndex;
-    
-    size_t limits = trackCandidateType == 7 ? 7 : 5;
-
-    //send the starting pointer to the logicalLayer and hitIndices
-    for(size_t i = 0; i < limits; i++)
-    {
-        trackCandidatesInGPU.logicalLayers[7 * trackCandidateIndex + i] = logicalLayerIndices[i];
-        trackCandidatesInGPU.lowerModuleIndices[7 * trackCandidateIndex + i] = lowerModuleIndices[i];
-    }
-    for(size_t i = 0; i < 2 * limits; i++)
-    {
-        trackCandidatesInGPU.hitIndices[14 * trackCandidateIndex + i] = hitIndices[i];
-    }
-    trackCandidatesInGPU.centerX[trackCandidateIndex] = __F2H(centerX);
-    trackCandidatesInGPU.centerY[trackCandidateIndex] = __F2H(centerY);
-    trackCandidatesInGPU.radius[trackCandidateIndex]  = __F2H(radius);
-}
-
 SDL::trackCandidates::trackCandidates()
 {
     trackCandidateType = nullptr;
@@ -160,6 +119,7 @@ void SDL::trackCandidates::freeMemoryCache()
     cms::cuda::free_device(dev, centerY);
     cms::cuda::free_device(dev, radius);
 }
+
 void SDL::trackCandidates::freeMemory(cudaStream_t stream)
 {
     cudaFree(trackCandidateType);
