@@ -40,7 +40,7 @@ namespace SDL
 
     void createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates,cudaStream_t stream);
     
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, unsigned int trackCandidateIndex, unsigned int directObjectIndex)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addTrackCandidateToMemorypLS(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, unsigned int trackCandidateIndex, unsigned int directObjectIndex)
     {
         trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = trackCandidateType;
         trackCandidatesInGPU.directObjectIndices[trackCandidateIndex] = directObjectIndex;
@@ -148,7 +148,7 @@ namespace SDL
                     float eta2 = segmentsInGPU.eta[pLS_jx - prefix];
                     float phi2 = segmentsInGPU.phi[pLS_jx - prefix];
                     float dEta = alpaka::math::abs(acc, (eta1 - eta2));
-                    float dPhi = SDL::calculate_dPhi(acc, phi1, phi2);
+                    float dPhi = SDL::calculate_dPhi(phi1, phi2);
 
                     float dR2 = dEta*dEta + dPhi*dPhi;
                     if(dR2 < 1e-5f)
@@ -210,7 +210,7 @@ namespace SDL
                         }
 
                         float dEta = alpaka::math::abs(acc, eta1 - eta2);
-                        float dPhi = SDL::calculate_dPhi(acc, phi1, phi2);
+                        float dPhi = SDL::calculate_dPhi(phi1, phi2);
 
                         float dR2 = dEta*dEta + dPhi*dPhi;
                         if(dR2 < 1e-3f)
@@ -267,7 +267,7 @@ namespace SDL
                         float eta2 = __H2F(quintupletsInGPU.eta[quintupletIndex]);
                         float phi2 = __H2F(quintupletsInGPU.phi[quintupletIndex]);
                         float dEta = alpaka::math::abs(acc, eta1 - eta2);
-                        float dPhi = SDL::calculate_dPhi(acc, phi1, phi2);
+                        float dPhi = SDL::calculate_dPhi(phi1, phi2);
 
                         float dR2 = dEta*dEta + dPhi*dPhi;
                         if(dR2 < 1e-3f)
@@ -284,7 +284,7 @@ namespace SDL
                         float eta2 = __H2F(pixelTripletsInGPU.eta_pix[pT3Index]);
                         float phi2 = __H2F(pixelTripletsInGPU.phi_pix[pT3Index]);
                         float dEta = alpaka::math::abs(acc, eta1 - eta2);
-                        float dPhi = SDL::calculate_dPhi(acc, phi1, phi2);
+                        float dPhi = SDL::calculate_dPhi(phi1, phi2);
 
                         float dR2 = dEta*dEta + dPhi*dPhi;
                         if(dR2 < 0.000001f)
@@ -299,7 +299,7 @@ namespace SDL
                         float eta2 = segmentsInGPU.eta[pLSIndex - prefix];
                         float phi2 = segmentsInGPU.phi[pLSIndex - prefix];
                         float dEta = alpaka::math::abs(acc, eta1 - eta2);
-                        float dPhi = SDL::calculate_dPhi(acc, phi1, phi2);
+                        float dPhi = SDL::calculate_dPhi(phi1, phi2);
 
                         float dR2 = dEta*dEta + dPhi*dPhi;
                         if(dR2 < 0.000001f)
@@ -402,7 +402,7 @@ namespace SDL
 
                 unsigned int trackCandidateIdx = alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidates, 1);
                 alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatespLS, 1);
-                addTrackCandidateToMemory(trackCandidatesInGPU, 8/*track candidate type pLS=8*/, pixelArrayIndex, pixelArrayIndex, trackCandidateIdx, pixelArrayIndex);
+                addTrackCandidateToMemorypLS(trackCandidatesInGPU, 8/*track candidate type pLS=8*/, pixelArrayIndex, pixelArrayIndex, trackCandidateIdx, pixelArrayIndex);
             }
         }
     };
