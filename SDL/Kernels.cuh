@@ -239,7 +239,7 @@ namespace SDL
                         float eta2 = __H2F(quintupletsInGPU.eta[jx]);
                         float phi2 = __H2F(quintupletsInGPU.phi[jx]);
                         float dEta = alpaka::math::abs(acc, eta1 - eta2);
-                        float dPhi = SDL::calculate_dPhi(acc, phi1, phi2);
+                        float dPhi = SDL::calculate_dPhi(phi1, phi2);
                         float score_rphisum2 = __H2F(quintupletsInGPU.score_rphisum[jx]);
 
                         if (dEta > 0.1f)
@@ -327,7 +327,7 @@ namespace SDL
                             float score_rphisum2 = __H2F(quintupletsInGPU.score_rphisum[jx]);
 
                             float dEta = alpaka::math::abs(acc, eta1-eta2);
-                            float dPhi = SDL::calculate_dPhi(acc, phi1, phi2);
+                            float dPhi = SDL::calculate_dPhi(phi1, phi2);
 
                             if (dEta > 0.1f)
                                 continue;
@@ -484,6 +484,8 @@ namespace SDL
                 for(int jx = globalThreadIdx[2]; jx < nPixelSegments; jx += gridThreadExtent[2])
                 {
                     float eta_pix2 = segmentsInGPU.eta[jx];
+                    float phi_pix2 = segmentsInGPU.phi[jx];
+
                     if (ix == jx)
                         continue;
 
@@ -505,8 +507,6 @@ namespace SDL
                     phits2[1] = segmentsInGPU.pLSHitsIdxs[jx].y;
                     phits2[2] = segmentsInGPU.pLSHitsIdxs[jx].z;
                     phits2[3] = segmentsInGPU.pLSHitsIdxs[jx].w;
-
-                    float phi_pix2 = segmentsInGPU.phi[jx];
 
                     int npMatched = 0;
                     for (int i = 0; i < 4; i++)
@@ -539,7 +539,7 @@ namespace SDL
                     if(secondpass)
                     {
                         float dEta = alpaka::math::abs(acc, eta_pix1 - eta_pix2);
-                        float dPhi = SDL::calculate_dPhi(acc, phi_pix1, phi_pix2);
+                        float dPhi = SDL::calculate_dPhi(phi_pix1, phi_pix2);
 
                         float dR2 = dEta*dEta + dPhi*dPhi;
                         if(npMatched >= 1 or dR2 < 0.00075f and (ix < jx))

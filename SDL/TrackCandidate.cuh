@@ -41,7 +41,7 @@ namespace SDL
 
     void createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates,cudaStream_t stream);
 
-    ALPAKA_FN_ACC void addpLSTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int trackletIndex, unsigned int trackCandidateIndex, uint4 hitIndices, int pixelSeedIndex)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addpLsTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int trackletIndex, unsigned int trackCandidateIndex, uint4 hitIndices, int pixelSeedIndex)
     {
         trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = 8;
         trackCandidatesInGPU.directObjectIndices[trackCandidateIndex] = trackletIndex;
@@ -56,7 +56,7 @@ namespace SDL
         trackCandidatesInGPU.hitIndices[14 * trackCandidateIndex + 3] = hitIndices.w;
     };
 
-    ALPAKA_FN_ACC void addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, uint8_t* logicalLayerIndices, uint16_t* lowerModuleIndices, unsigned int* hitIndices, int pixelSeedIndex, float centerX, float centerY, float radius, unsigned int trackCandidateIndex, unsigned int directObjectIndex)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, uint8_t* logicalLayerIndices, uint16_t* lowerModuleIndices, unsigned int* hitIndices, int pixelSeedIndex, float centerX, float centerY, float radius, unsigned int trackCandidateIndex, unsigned int directObjectIndex)
     {
         trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = trackCandidateType;
         trackCandidatesInGPU.directObjectIndices[trackCandidateIndex] = directObjectIndex;
@@ -158,7 +158,7 @@ namespace SDL
                     float eta2 = segmentsInGPU.eta[pLS_jx - prefix];
                     float phi2 = segmentsInGPU.phi[pLS_jx - prefix];
                     float dEta = alpaka::math::abs(acc, (eta1 - eta2));
-                    float dPhi = SDL::calculate_dPhi(acc, phi1, phi2);
+                    float dPhi = SDL::calculate_dPhi(phi1, phi2);
 
                     float dR2 = dEta*dEta + dPhi*dPhi;
                     if(dR2 < 1e-5f)
@@ -220,7 +220,7 @@ namespace SDL
                         }
 
                         float dEta = alpaka::math::abs(acc, eta1 - eta2);
-                        float dPhi = SDL::calculate_dPhi(acc, phi1, phi2);
+                        float dPhi = SDL::calculate_dPhi(phi1, phi2);
 
                         float dR2 = dEta*dEta + dPhi*dPhi;
                         if(dR2 < 1e-3f)
@@ -277,7 +277,7 @@ namespace SDL
                         float eta2 = __H2F(quintupletsInGPU.eta[quintupletIndex]);
                         float phi2 = __H2F(quintupletsInGPU.phi[quintupletIndex]);
                         float dEta = alpaka::math::abs(acc, eta1 - eta2);
-                        float dPhi = SDL::calculate_dPhi(acc, phi1, phi2);
+                        float dPhi = SDL::calculate_dPhi(phi1, phi2);
 
                         float dR2 = dEta*dEta + dPhi*dPhi;
                         if(dR2 < 1e-3f)
@@ -294,7 +294,7 @@ namespace SDL
                         float eta2 = __H2F(pixelTripletsInGPU.eta_pix[pT3Index]);
                         float phi2 = __H2F(pixelTripletsInGPU.phi_pix[pT3Index]);
                         float dEta = alpaka::math::abs(acc, eta1 - eta2);
-                        float dPhi = SDL::calculate_dPhi(acc, phi1, phi2);
+                        float dPhi = SDL::calculate_dPhi(phi1, phi2);
 
                         float dR2 = dEta*dEta + dPhi*dPhi;
                         if(dR2 < 0.000001f)
@@ -309,7 +309,7 @@ namespace SDL
                         float eta2 = segmentsInGPU.eta[pLSIndex - prefix];
                         float phi2 = segmentsInGPU.phi[pLSIndex - prefix];
                         float dEta = alpaka::math::abs(acc, eta1 - eta2);
-                        float dPhi = SDL::calculate_dPhi(acc, phi1, phi2);
+                        float dPhi = SDL::calculate_dPhi(phi1, phi2);
 
                         float dR2 = dEta*dEta + dPhi*dPhi;
                         if(dR2 < 0.000001f)
@@ -381,13 +381,8 @@ namespace SDL
                 for(int jdx = globalThreadIdx[2]; jdx < nQuints; jdx += gridThreadExtent[2])
                 {
                     int quintupletIndex = rangesInGPU.quintupletModuleIndices[idx] + jdx;
-<<<<<<< HEAD
                     if (quintupletsInGPU.isDup[quintupletIndex] or quintupletsInGPU.partOfPT5[quintupletIndex]) continue;
                     if (!(quintupletsInGPU.TightCutFlag[quintupletIndex])) continue;
-=======
-                    if(quintupletsInGPU.isDup[quintupletIndex] or quintupletsInGPU.partOfPT5[quintupletIndex])
-                        continue;
->>>>>>> formatting fixes + fix break bug
 
                     unsigned int trackCandidateIdx = alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidates,1);
                     alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatesT5,1);
@@ -431,17 +426,11 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-<<<<<<< HEAD
                 uint16_t nLowerModules,
                 struct SDL::pixelQuintuplets& pixelQuintupletsInGPU,
                 struct SDL::trackCandidates& trackCandidatesInGPU,
                 struct SDL::segments& segmentsInGPU,
                 struct SDL::objectRanges& rangesInGPU) const
-=======
-                struct SDL::pixelQuintuplets& pixelQuintupletsInGPU,
-                struct SDL::trackCandidates& trackCandidatesInGPU,
-                struct SDL::quintuplets& quintupletsInGPU) const
->>>>>>> formatting fixes + fix break bug
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;
@@ -461,12 +450,8 @@ namespace SDL
                 alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatespT5,1);
 
                 float radius = 0.5f*(__H2F(pixelQuintupletsInGPU.pixelRadius[pixelQuintupletIndex]) + __H2F(pixelQuintupletsInGPU.quintupletRadius[pixelQuintupletIndex]));
-<<<<<<< HEAD
                 unsigned int pT5PixelIndex =  pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex];
                 addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pT5PixelIndex, pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], &pixelQuintupletsInGPU.logicalLayers[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.lowerModuleIndices[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.hitIndices[14 * pixelQuintupletIndex], segmentsInGPU.seedIdx[pT5PixelIndex - pLS_offset], __H2F(pixelQuintupletsInGPU.centerX[pixelQuintupletIndex]), __H2F(pixelQuintupletsInGPU.centerY[pixelQuintupletIndex]),radius , trackCandidateIdx, pixelQuintupletIndex);
-=======
-                addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex], pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], &pixelQuintupletsInGPU.logicalLayers[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.lowerModuleIndices[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.hitIndices[14 * pixelQuintupletIndex], __H2F(pixelQuintupletsInGPU.centerX[pixelQuintupletIndex]), __H2F(pixelQuintupletsInGPU.centerY[pixelQuintupletIndex]), radius, trackCandidateIdx, pixelQuintupletIndex);
->>>>>>> formatting fixes + fix break bug
             }
         }
     };
