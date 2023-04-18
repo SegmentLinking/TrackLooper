@@ -302,7 +302,7 @@ def draw_ratio(nums, dens, params):
             den.Rebin(6)
 
     # Deal with overflow bins for pt plots
-    if "pt" in params["output_name"]:
+    if "pt" in params["output_name"] or "vxy" in params["output_name"]:
         for num in nums:
             overFlowBin = num.GetBinContent(num.GetNbinsX() + 1)
             lastBin = num.GetBinContent(num.GetNbinsX())
