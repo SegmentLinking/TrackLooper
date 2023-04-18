@@ -50,11 +50,6 @@ void SDL::CPU::Hit::setIdx(int idx)
     idx_ = idx;
 }
 
-void SDL::CPU::Hit::setModule(const SDL::CPU::Module* module)
-{
-    modulePtr_ = module;
-}
-
 void SDL::CPU::Hit::setHitHighEdgePtr(SDL::CPU::Hit* hit)
 {
     hit_high_edge_ = hit;
@@ -120,11 +115,6 @@ const float& SDL::CPU::Hit::eta() const
 const int& SDL::CPU::Hit::idx() const
 {
     return idx_;
-}
-
-const SDL::CPU::Module& SDL::CPU::Hit::getModule() const
-{
-    return (*modulePtr_);
 }
 
 // Set the boundary hits where the hits are shifted

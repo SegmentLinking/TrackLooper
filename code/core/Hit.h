@@ -10,14 +10,6 @@
 
 namespace SDL
 {
-    namespace CPU
-    {
-        class Module;
-    }
-}
-
-namespace SDL
-{
 
     namespace CPU
     {
@@ -25,7 +17,6 @@ namespace SDL
         class Hit
         {
             private:
-                const Module* modulePtr_;
 
                 float x_;
                 float y_;
@@ -55,7 +46,6 @@ namespace SDL
                 void setZ(float z);
                 void setXYZ(float x, float y, float z);
                 void setIdx(int idx);
-                void setModule(const Module*);
 
                 // Set the boundary hits where the hits are shifted
                 void setHitHighEdgePtr(Hit* hit);
@@ -70,7 +60,6 @@ namespace SDL
                 const float& phi() const;
                 const float& eta() const;
                 const int& idx() const;
-                const Module& getModule() const;
 
                 // Set the boundary hits where the hits are shifted
                 const Hit* getHitHighEdgePtr() const;

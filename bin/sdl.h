@@ -20,15 +20,10 @@
 #include "SDL/EndcapGeometry.cuh" // SDL::EndcapGeometr
 #include "SDL/ModuleConnectionMap.h" // SDL::ModuleConnectionMap
 #include "SDL/Event.cuh"
-//#include "SDL/MathUtil.h"
 
 // Efficiency study modules
-//#include "Study.h"
-#include "constants.h"
 #include "AnalysisConfig.h"
 #include "trkCore.h"
-//#include "WriteSDLNtuplev2.h"
-//#include "AnalysisInterface/EventForAnalysisInterface.h"
 #include "write_sdl_ntuple.h"
 
 #include "TSystem.h"
