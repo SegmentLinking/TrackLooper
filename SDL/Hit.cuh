@@ -146,20 +146,22 @@ namespace SDL
         return sign_a * sign_b * a;
     };
 
-    template<typename TAcc>
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE float calculate_dPhi(const TAcc& acc, float phi1, float phi2)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE float calculate_dPhi(float phi1, float phi2)
     {
         // Calculate dPhi
-        float dPhi = alpaka::math::abs(acc, phi1 - phi2);
+        float dPhi = phi1 - phi2;
 
-        // Adjust dPhi if it is greater than pi
+        // Normalize dPhi to be between -pi and pi
         if (dPhi > float(M_PI))
         {
-            dPhi = dPhi - 2 * float(M_PI);
+            dPhi -= 2 * float(M_PI);
+        }
+        else if (dPhi < -float(M_PI))
+        {
+            dPhi += 2 * float(M_PI);
         }
 
         return dPhi;
     };
 }
 #endif
-
