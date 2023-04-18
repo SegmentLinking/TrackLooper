@@ -145,6 +145,23 @@ namespace SDL
         int sign_b = (b < 0) ? -1 : 1;
         return sign_a * sign_b * a;
     };
+
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE float calculate_dPhi(float phi1, float phi2)
+    {
+        // Calculate dPhi
+        float dPhi = phi1 - phi2;
+
+        // Normalize dPhi to be between -pi and pi
+        if (dPhi > float(M_PI))
+        {
+            dPhi -= 2 * float(M_PI);
+        }
+        else if (dPhi < -float(M_PI))
+        {
+            dPhi += 2 * float(M_PI);
+        }
+
+        return dPhi;
+    };
 }
 #endif
-
