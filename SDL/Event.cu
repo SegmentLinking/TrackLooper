@@ -1024,7 +1024,7 @@ void SDL::Event::createTriplets()
     uint16_t *index_gpu;
     index_gpu = (uint16_t*)cms::cuda::allocate_device(dev, nLowerModules*sizeof(uint16_t), stream);
     unsigned int *nSegments = (unsigned int*)malloc(nLowerModules*sizeof(unsigned int));
-    cudaMemcpyAsync((void *)nSegments, segmentsInGPU->nSegments, nLowerModules*sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync((void *)nSegments, segmentsInGPU->nSegments, nLowerModules*sizeof(unsigned int), cudaMemcpyDeviceToHost,stream); 
     cudaStreamSynchronize(stream);
 
     uint16_t* module_nConnectedModules;
