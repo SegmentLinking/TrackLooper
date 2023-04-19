@@ -421,12 +421,12 @@ namespace SDL
 
         sdCut = sdSlope + alpaka::math::sqrt(acc, sdMuls * sdMuls + sdPVoff * sdPVoff);
 
-        dPhi  = deltaPhi_alpaka(acc, xIn, yIn, xOut, yOut);
+        dPhi  = deltaPhi(acc, xIn, yIn, xOut, yOut);
 
         pass =  pass and (alpaka::math::abs(acc, dPhi) <= sdCut);
         if(not pass) return pass;
 
-        dPhiChange = deltaPhiChange_alpaka(acc, xIn, yIn, xOut, yOut);
+        dPhiChange = deltaPhiChange(acc, xIn, yIn, xOut, yOut);
 
         pass =  pass and (alpaka::math::abs(acc, dPhiChange) <= sdCut);
         if(not pass) return pass;
@@ -491,7 +491,7 @@ namespace SDL
 
         float dz = zOut - zIn;
         // Alpaka: Needs to be moved over
-        float dLum = copysignf(deltaZLum, zIn);
+        float dLum = SDL::copysignf(deltaZLum, zIn);
         float drtDzScale = sdSlope/alpaka::math::tan(acc, sdSlope);
 
         rtLo = alpaka::math::max(acc, rtIn * (1.f + dz / (zIn + dLum) * drtDzScale) - rtGeom,  rtIn - 0.5f * rtGeom); //rt should increase
@@ -501,13 +501,13 @@ namespace SDL
         pass =  pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
         if(not pass) return pass;
 
-        dPhi = deltaPhi_alpaka(acc, xIn, yIn, xOut, yOut);
+        dPhi = deltaPhi(acc, xIn, yIn, xOut, yOut);
 
         sdCut = sdSlope;
         if(outerLayerEndcapTwoS)
         {
-            float dPhiPos_high = deltaPhi_alpaka(acc, xIn, yIn, xOutHigh, yOutHigh);
-            float dPhiPos_low = deltaPhi_alpaka(acc, xIn, yIn, xOutLow, yOutLow);
+            float dPhiPos_high = deltaPhi(acc, xIn, yIn, xOutHigh, yOutHigh);
+            float dPhiPos_low = deltaPhi(acc, xIn, yIn, xOutLow, yOutLow);
             
             dPhiMax = alpaka::math::abs(acc, dPhiPos_high) > alpaka::math::abs(acc, dPhiPos_low) ? dPhiPos_high : dPhiPos_low;
             dPhiMin = alpaka::math::abs(acc, dPhiPos_high) > alpaka::math::abs(acc, dPhiPos_low) ? dPhiPos_low : dPhiPos_high;

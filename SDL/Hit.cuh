@@ -45,54 +45,31 @@ namespace SDL
     void printHit(struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int hitIndex);
     void createHitsInExplicitMemory(struct hits& hitsInGPU, int nModules, unsigned int maxHits,cudaStream_t stream,unsigned int evtnum);
     
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float ATan2(float y, float x)
+    // Hyperbolic functions were just merged into Alpaka early 2023,
+    // so we have to make use of temporary functions for now.
+    template<typename TAcc>
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE float temp_acosh(TAcc const & acc, float val)
     {
-        if (x != 0) return atan2f(y, x);
-        if (y == 0) return  0;
-        if (y >  0) return  float(M_PI) / 2.f;
-        else        return -float(M_PI) / 2.f;
-    };
-
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float eta(float x, float y, float z) {
-        float r3 = std::sqrt( x*x + y*y + z*z );
-        float rt = std::sqrt( x*x + y*y );
-        float eta = ((z > 0) - ( z < 0)) * acosh( r3 / rt );
-        return eta;
-    };
-
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi_mpi_pi(float x)
-    {
-        if (std::isnan(x))
-        {
-            //printf("phi_mpi_pi() function called with NaN\n");                                                
-            return x;
-        }
-        if (fabsf(x) <= float(M_PI))
-            return x;
-        constexpr float o2pi = 1.f / (2.f * float(M_PI));
-        float n = std::round(x * o2pi);
-        return x - n * float(2.f * float(M_PI));
-    };
-
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi(float x, float y)
-    {
-        return phi_mpi_pi(float(M_PI) + ATan2(-y, -x));
-    };
-
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhi(float x1, float y1, float x2, float y2)
-    {
-        float phi1 = phi(x1,y1);
-        float phi2 = phi(x2,y2);
-        return phi_mpi_pi((phi2 - phi1));
-    };
-
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhiChange(float x1, float y1, float x2, float y2)
-    {
-        return deltaPhi(x1, y1, x2-x1, y2-y1);
+        return alpaka::math::log(acc, val + alpaka::math::sqrt(acc, val * val - 1));
     };
 
     template<typename TAcc>
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float ATan2_alpaka(TAcc const & acc, float y, float x)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE float temp_sinh(TAcc const & acc, float val)
+    {
+        return 0.5 * (alpaka::math::exp(acc, val) - alpaka::math::exp(acc, -val));
+    };
+
+    template<typename TAcc>
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float eta(TAcc const & acc, float x, float y, float z)
+    {
+        float r3 = alpaka::math::sqrt(acc, x*x + y*y + z*z );
+        float rt = alpaka::math::sqrt(acc, x*x + y*y );
+        float eta = ((z > 0) - ( z < 0)) * temp_acosh(acc, r3 / rt );
+        return eta;
+    };
+
+    template<typename TAcc>
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float ATan2(TAcc const & acc, float y, float x)
     {
         if (x != 0) return alpaka::math::atan2(acc, y, x);
         if (y == 0) return  0;
@@ -101,14 +78,8 @@ namespace SDL
     };
 
     template<typename TAcc>
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi_mpi_pi_alpaka(TAcc const & acc, float x)
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi_mpi_pi(TAcc const & acc, float x)
     {
-        // Alpaka: Needs to be moved over. Introduced in Alpaka 0.8.0
-        if (std::isnan(x))
-        {
-            return x;
-        }
-
         if (alpaka::math::abs(acc, x) <= float(M_PI))
             return x;
 
@@ -118,27 +89,27 @@ namespace SDL
     };
 
     template<typename TAcc>
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi_alpaka(TAcc const & acc, float x, float y)
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi(TAcc const & acc, float x, float y)
     {
-        return phi_mpi_pi_alpaka(acc, float(M_PI) + ATan2_alpaka(acc, -y, -x));
+        return phi_mpi_pi(acc, float(M_PI) + ATan2(acc, -y, -x));
     };
 
     template<typename TAcc>
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhi_alpaka(TAcc const & acc, float x1, float y1, float x2, float y2)
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhi(TAcc const & acc, float x1, float y1, float x2, float y2)
     {
-        float phi1 = phi_alpaka(acc, x1,y1);
-        float phi2 = phi_alpaka(acc, x2,y2);
-        return phi_mpi_pi_alpaka(acc, (phi2 - phi1));
+        float phi1 = phi(acc, x1,y1);
+        float phi2 = phi(acc, x2,y2);
+        return phi_mpi_pi(acc, (phi2 - phi1));
     };
 
     template<typename TAcc>
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhiChange_alpaka(TAcc const & acc, float x1, float y1, float x2, float y2)
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float deltaPhiChange(TAcc const & acc, float x1, float y1, float x2, float y2)
     {
-        return deltaPhi_alpaka(acc, x1, y1, x2-x1, y2-y1);
+        return deltaPhi(acc, x1, y1, x2-x1, y2-y1);
     };
 
     // Alpaka: This function is not yet implemented directly in Alpaka.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float copysignf_alpaka(float a, float b)
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float copysignf(float a, float b)
     {
         int sign_a = (a < 0) ? -1 : 1;
         int sign_b = (b < 0) ? -1 : 1;
@@ -161,21 +132,6 @@ namespace SDL
         }
 
         return dPhi;
-    };
-
-    // Hyperbolic functions were just merged into Alpaka early 2023,
-    // so we have to make use of temporary functions for now.
-
-    template<typename TAcc>
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE float temp_acosh(TAcc const & acc, float val)
-    {
-        return alpaka::math::log(acc, val + alpaka::math::sqrt(acc, val * val - 1));
-    };
-
-    template<typename TAcc>
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE float temp_sinh(TAcc const & acc, float val)
-    {
-        return 0.5 * (alpaka::math::exp(acc, val) - alpaka::math::exp(acc, -val));
     };
 }
 #endif
