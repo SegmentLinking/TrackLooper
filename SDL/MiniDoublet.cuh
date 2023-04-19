@@ -222,7 +222,6 @@ namespace SDL
 
         // Compute luminous region requirement for endcap
         const float miniLum = alpaka::math::abs(acc, dPhi * deltaZLum/dz); // Balaji's new error
-        // const float miniLum = abs(deltaZLum / lowerHit.z()); // Old error
 
 
         // =================================================================
@@ -245,7 +244,185 @@ namespace SDL
         }
     }
 
-    ALPAKA_FN_ACC void shiftStripHits(struct modules& modulesInGPU, uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float* shiftedCoords,float xLower,float yLower,float zLower,float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper);
+    template<typename TAcc>
+    ALPAKA_FN_INLINE ALPAKA_FN_ACC void shiftStripHits(TAcc const & acc, struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float* shiftedCoords, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
+    {
+        // This is the strip shift scheme that is explained in http://uaf-10.t2.ucsd.edu/~phchang/talks/PhilipChang20190607_SDL_Update.pdf (see backup slides)
+        // The main feature of this shifting is that the strip hits are shifted to be "aligned" in the line of sight from interaction point to the the pixel hit.
+        // (since pixel hit is well defined in 3-d)
+        // The strip hit is shifted along the strip detector to be placed in a guessed position where we think they would have actually crossed
+        // The size of the radial direction shift due to module separation gap is computed in "radial" size, while the shift is done along the actual strip orientation
+        // This means that there may be very very subtle edge effects coming from whether the strip hit is center of the module or the at the edge of the module
+        // But this should be relatively minor effect
+
+        // dependent variables for this if statement
+        // lowerModule
+        // lowerHit
+        // upperHit
+        // SDL::endcapGeometry
+        // SDL::tiltedGeometry
+
+        // Some variables relevant to the function
+        float xp; // pixel x (pixel hit x)
+        float yp; // pixel y (pixel hit y)
+        float zp; // pixel y (pixel hit y)
+        float rtp; // pixel y (pixel hit y)
+        float xa; // "anchor" x (the anchor position on the strip module plane from pixel hit)
+        float ya; // "anchor" y (the anchor position on the strip module plane from pixel hit)
+        float xo; // old x (before the strip hit is moved up or down)
+        float yo; // old y (before the strip hit is moved up or down)
+        float xn; // new x (after the strip hit is moved up or down)
+        float yn; // new y (after the strip hit is moved up or down)
+        float abszn; // new z in absolute value
+        float zn; // new z with the sign (+/-) accounted
+        float angleA; // in r-z plane the theta of the pixel hit in polar coordinate is the angleA
+        float angleB; // this is the angle of tilted module in r-z plane ("drdz"), for endcap this is 90 degrees
+        bool isEndcap; // If endcap, drdz = infinity
+        float moduleSeparation;
+        float drprime; // The radial shift size in x-y plane projection
+        float drprime_x; // x-component of drprime
+        float drprime_y; // y-component of drprime
+        float& slope = modulesInGPU.slopes[lowerModuleIndex]; // The slope of the possible strip hits for a given module in x-y plane
+        float absArctanSlope;
+        float angleM; // the angle M is the angle of rotation of the module in x-y plane if the possible strip hits are along the x-axis, then angleM = 0, and if the possible strip hits are along y-axis angleM = 90 degrees
+        float absdzprime; // The distance between the two points after shifting
+        float& drdz_ = modulesInGPU.drdzs[lowerModuleIndex];
+        // Assign hit pointers based on their hit type
+        if (modulesInGPU.moduleType[lowerModuleIndex] == PS)
+        {
+            // TODO: This is somewhat of an mystery.... somewhat confused why this is the case
+            if (modulesInGPU.subdets[lowerModuleIndex] == Barrel ? modulesInGPU.moduleLayerType[lowerModuleIndex] != Pixel : modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
+            {
+                xo =xUpper;
+                yo =yUpper;
+                xp =xLower;
+                yp =yLower;
+                zp =zLower;
+                rtp =rtLower;
+                xp =xLower;
+                yp =yLower;
+                zp =zLower;
+                rtp =rtLower;
+            }
+            else
+            {
+                xo = xLower;
+                yo = yLower;
+                xp = xUpper;
+                yp = yUpper;
+                zp = zUpper;
+                rtp=rtUpper;
+                xp = xUpper;
+                yp = yUpper;
+                zp = zUpper;
+                rtp=rtUpper;
+            }
+        }
+        else
+        {
+                xo =xUpper;
+                yo =yUpper;
+                xp =xLower;
+                yp =yLower;
+                zp =zLower;
+                rtp =rtLower;
+                xp =xLower;
+                yp =yLower;
+                zp =zLower;
+                rtp =rtLower;
+        }
+
+        // If it is endcap some of the math gets simplified (and also computers don't like infinities)
+        isEndcap = modulesInGPU.subdets[lowerModuleIndex]== Endcap;
+
+        // NOTE: TODO: Keep in mind that the sin(atan) function can be simplifed to something like x / sqrt(1 + x^2) and similar for cos
+        // I am not sure how slow sin, atan, cos, functions are in c++. If x / sqrt(1 + x^2) are faster change this later to reduce arithmetic computation time
+
+        // The pixel hit is used to compute the angleA which is the theta in polar coordinate
+        // angleA = alpaka::math::atan(acc, pixelHitPtr->rt() / pixelHitPtr->z() + (pixelHitPtr->z() < 0 ? M_PI : 0)); // Shift by pi if the z is negative so that the value of the angleA stays between 0 to pi and not -pi/2 to pi/2
+
+        angleA = alpaka::math::abs(acc, alpaka::math::atan(acc, rtp / zp));
+        angleB = ((isEndcap) ? float(M_PI) / 2.f : alpaka::math::atan(acc, drdz_)); // The tilt module on the postive z-axis has negative drdz slope in r-z plane and vice versa
+
+        moduleSeparation = moduleGapSize(modulesInGPU, lowerModuleIndex);
+
+        // Sign flips if the pixel is later layer
+        if (modulesInGPU.moduleType[lowerModuleIndex] == PS and modulesInGPU.moduleLayerType[lowerModuleIndex] != Pixel)
+        {
+            moduleSeparation *= -1;
+        }
+
+        drprime = (moduleSeparation / alpaka::math::sin(acc, angleA + angleB)) * alpaka::math::sin(acc, angleA);
+        
+        // Compute arctan of the slope and take care of the slope = infinity case
+        absArctanSlope = ((slope != SDL::SDL_INF) ? fabs(alpaka::math::atan(acc, slope)) : float(M_PI) / 2.f);
+
+        // Depending on which quadrant the pixel hit lies, we define the angleM by shifting them slightly differently
+        if (xp > 0 and yp > 0)
+        {
+            angleM = absArctanSlope;
+        }
+        else if (xp > 0 and yp < 0)
+        {
+            angleM = float(M_PI) - absArctanSlope;
+        }
+        else if (xp < 0 and yp < 0)
+        {
+            angleM = float(M_PI) + absArctanSlope;
+        }
+        else // if (xp < 0 and yp > 0)
+        {
+            angleM = 2.f * float(M_PI) - absArctanSlope;
+        }
+
+        // Then since the angleM sign is taken care of properly
+        drprime_x = drprime * alpaka::math::sin(acc, angleM);
+        drprime_y = drprime * alpaka::math::cos(acc, angleM);
+
+        // The new anchor position is
+        xa = xp + drprime_x;
+        ya = yp + drprime_y;
+
+        // The original strip hit position
+        //xo = hitsInGPU.xs[stripHitIndex];
+        //yo = hitsInGPU.ys[stripHitIndex];
+
+        // Compute the new strip hit position (if the slope vaule is in special condition take care of the exceptions)
+        if (slope == SDL::SDL_INF) // Designated for tilted module when the slope is exactly infinity (module lying along y-axis)
+        {
+            xn = xa; // New x point is simply where the anchor is
+            yn = yo; // No shift in y
+        }
+        else if (slope == 0)
+        {
+            xn = xo; // New x point is simply where the anchor is
+            yn = ya; // No shift in y
+        }
+        else
+        {
+            xn = (slope * xa + (1.f / slope) * xo - ya + yo) / (slope + (1.f / slope)); // new xn
+            yn = (xn - xa) * slope + ya; // new yn
+        }
+
+        // Computing new Z position
+        absdzprime = alpaka::math::abs(acc, moduleSeparation / alpaka::math::sin(acc, angleA + angleB) * alpaka::math::cos(acc, angleA)); // module separation sign is for shifting in radial direction for z-axis direction take care of the sign later
+
+        // Depending on which one as closer to the interactin point compute the new z wrt to the pixel properly
+        if (modulesInGPU.moduleLayerType[lowerModuleIndex] == Pixel)
+        {
+            abszn = alpaka::math::abs(acc, zp) + absdzprime;
+        }
+        else
+        {
+            abszn = alpaka::math::abs(acc, zp) - absdzprime;
+        }
+
+        zn = abszn * ((zp > 0) ? 1 : -1); // Apply the sign of the zn
+
+        shiftedCoords[0] = xn;
+        shiftedCoords[1] = yn;
+        shiftedCoords[2] = zn;
+    };
 
     template<typename TAcc>
     ALPAKA_FN_ACC bool runMiniDoubletDefaultAlgo(TAcc const & acc, struct modules& modulesInGPU, /*struct hits& hitsInGPU,*/ uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
@@ -286,7 +463,7 @@ namespace SDL
         {
             // Shift the hits and calculate new xn, yn position
             float shiftedCoords[3];
-            shiftStripHits(modulesInGPU, lowerModuleIndex, upperModuleIndex, lowerHitIndex, upperHitIndex, shiftedCoords,xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
+            shiftStripHits(acc, modulesInGPU, lowerModuleIndex, upperModuleIndex, lowerHitIndex, upperHitIndex, shiftedCoords,xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
             xn = shiftedCoords[0];
             yn = shiftedCoords[1];
 
@@ -389,7 +566,7 @@ namespace SDL
         float xn = 0, yn = 0, zn = 0;
 
         float shiftedCoords[3];
-        shiftStripHits(modulesInGPU, /*hitsInGPU,*/ lowerModuleIndex, upperModuleIndex, lowerHitIndex, upperHitIndex, shiftedCoords,xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
+        shiftStripHits(acc, modulesInGPU, /*hitsInGPU,*/ lowerModuleIndex, upperModuleIndex, lowerHitIndex, upperHitIndex, shiftedCoords,xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
 
         xn = shiftedCoords[0];
         yn = shiftedCoords[1];

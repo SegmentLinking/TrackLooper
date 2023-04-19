@@ -10,6 +10,7 @@
 #include "MiniDoublet.cuh"
 #include "PixelTriplet.cuh"
 #include "TrackCandidate.cuh"
+#include "Constants.cuh"
 
 #include "allocate.h"
 

@@ -1,10 +1,9 @@
 #ifndef Hit_cuh
 #define Hit_cuh
 
-#include <alpaka/alpaka.hpp>
-
 #include <iostream>
 
+#include "Constants.cuh"
 #include "Module.cuh"
 #include "allocate.h"
 #include "PrintUtil.h"
@@ -162,6 +161,21 @@ namespace SDL
         }
 
         return dPhi;
+    };
+
+    // Hyperbolic functions were just merged into Alpaka early 2023,
+    // so we have to make use of temporary functions for now.
+
+    template<typename TAcc>
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE float temp_acosh(TAcc const & acc, float val)
+    {
+        return alpaka::math::log(acc, val + alpaka::math::sqrt(acc, val * val - 1));
+    };
+
+    template<typename TAcc>
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE float temp_sinh(TAcc const & acc, float val)
+    {
+        return 0.5 * (alpaka::math::exp(acc, val) - alpaka::math::exp(acc, -val));
     };
 }
 #endif
