@@ -1191,13 +1191,13 @@ namespace SDL
             betaAv = (alpaka::math::abs(acc, betaOut) > 0.2f * alpaka::math::abs(acc, betaIn)) ? (0.5f * (betaInUpd + betaOutUpd)) : betaInUpd;
 
             //1st update
-            pt_beta = dr * SDL::k2Rinv1GeVf / sin(betaAv); //get a better pt estimate
+            pt_beta = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaAv); //get a better pt estimate
             betaIn  += SDL::copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
             betaOut += SDL::copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
             //update the av and pt
             betaAv = 0.5f * (betaIn + betaOut);
             //2nd update
-            pt_beta = dr * SDL::k2Rinv1GeVf / sin(betaAv); //get a better pt estimate
+            pt_beta = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaAv); //get a better pt estimate
         }
     };
 

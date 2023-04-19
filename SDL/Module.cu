@@ -1,7 +1,5 @@
 #include "Module.cuh"
-#include "ModuleConnectionMap.h"
-#include "allocate.h"
-#include <unordered_map>
+
 std::map <unsigned int, uint16_t> *SDL::detIdToIndex;
 std::map <unsigned int, float> *SDL::module_x;
 std::map <unsigned int, float> *SDL::module_y;
@@ -15,18 +13,18 @@ void SDL::createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned
 #ifdef CACHE_ALLOC
     int dev;
     cudaGetDevice(&dev);
-    rangesInGPU.hitRanges =                  (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
-    rangesInGPU.hitRangesLower =                  (int*)cms::cuda::allocate_device(dev,nModules * sizeof(int),stream);
-    rangesInGPU.hitRangesUpper =                  (int*)cms::cuda::allocate_device(dev,nModules * sizeof(int),stream);
-    rangesInGPU.hitRangesnLower =                  (int8_t*)cms::cuda::allocate_device(dev,nModules * sizeof(int8_t),stream);
-    rangesInGPU.hitRangesnUpper =                  (int8_t*)cms::cuda::allocate_device(dev,nModules * sizeof(int8_t),stream);
-    rangesInGPU.mdRanges =                   (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
-    rangesInGPU.segmentRanges =              (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
-    rangesInGPU.trackletRanges =             (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
-    rangesInGPU.tripletRanges =              (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
-    rangesInGPU.trackCandidateRanges =       (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
-    rangesInGPU.quintupletRanges =       (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
-    rangesInGPU.nEligibleT5Modules =    (uint16_t*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
+    rangesInGPU.hitRanges = (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
+    rangesInGPU.hitRangesLower = (int*)cms::cuda::allocate_device(dev,nModules * sizeof(int),stream);
+    rangesInGPU.hitRangesUpper = (int*)cms::cuda::allocate_device(dev,nModules * sizeof(int),stream);
+    rangesInGPU.hitRangesnLower = (int8_t*)cms::cuda::allocate_device(dev,nModules * sizeof(int8_t),stream);
+    rangesInGPU.hitRangesnUpper = (int8_t*)cms::cuda::allocate_device(dev,nModules * sizeof(int8_t),stream);
+    rangesInGPU.mdRanges = (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
+    rangesInGPU.segmentRanges = (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
+    rangesInGPU.trackletRanges = (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
+    rangesInGPU.tripletRanges = (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
+    rangesInGPU.trackCandidateRanges = (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
+    rangesInGPU.quintupletRanges = (int*)cms::cuda::allocate_device(dev,nModules * 2 * sizeof(int),stream);
+    rangesInGPU.nEligibleT5Modules = (uint16_t*)cms::cuda::allocate_device(dev,sizeof(unsigned int),stream);
 
     rangesInGPU.quintupletModuleIndices = (int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(int),stream);
     rangesInGPU.quintupletModuleOccupancy = (int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(int),stream);
@@ -108,141 +106,131 @@ void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned in
 
 void SDL::objectRanges::freeMemoryCache()//struct objectRanges& rangesInGPU)
 {
-  int dev;
-  cudaGetDevice(&dev);
-  cms::cuda::free_device(dev,hitRanges);
-  cms::cuda::free_device(dev,mdRanges);
-  cms::cuda::free_device(dev,segmentRanges);
-  cms::cuda::free_device(dev,trackletRanges);
-  cms::cuda::free_device(dev,tripletRanges);
-  cms::cuda::free_device(dev,trackCandidateRanges);
-  cms::cuda::free_device(dev,quintupletRanges);
-  cms::cuda::free_device(dev,nEligibleT5Modules);
-  cms::cuda::free_device(dev, indicesOfEligibleT5Modules);
-  cms::cuda::free_device(dev,quintupletModuleIndices);
-  cms::cuda::free_device(dev,quintupletModuleOccupancy);
-  cms::cuda::free_device(dev, hitRangesLower);
-  cms::cuda::free_device(dev, hitRangesUpper);
-  cms::cuda::free_device(dev, hitRangesnLower);
-  cms::cuda::free_device(dev, hitRangesnUpper);
-  cms::cuda::free_device(dev, miniDoubletModuleIndices);
-  cms::cuda::free_device(dev, miniDoubletModuleOccupancy);
-  cms::cuda::free_device(dev, segmentModuleIndices);
-  cms::cuda::free_device(dev, segmentModuleOccupancy);
-  cms::cuda::free_device(dev, tripletModuleIndices);
-  cms::cuda::free_device(dev, tripletModuleOccupancy);
-  cms::cuda::free_device(dev, device_nTotalMDs);
-  cms::cuda::free_device(dev, device_nTotalSegs);
-  cms::cuda::free_device(dev, device_nTotalTrips);
-  cms::cuda::free_device(dev, device_nTotalQuints);
+    int dev;
+    cudaGetDevice(&dev);
+    cms::cuda::free_device(dev,hitRanges);
+    cms::cuda::free_device(dev,mdRanges);
+    cms::cuda::free_device(dev,segmentRanges);
+    cms::cuda::free_device(dev,trackletRanges);
+    cms::cuda::free_device(dev,tripletRanges);
+    cms::cuda::free_device(dev,trackCandidateRanges);
+    cms::cuda::free_device(dev,quintupletRanges);
+    cms::cuda::free_device(dev,nEligibleT5Modules);
+    cms::cuda::free_device(dev, indicesOfEligibleT5Modules);
+    cms::cuda::free_device(dev,quintupletModuleIndices);
+    cms::cuda::free_device(dev,quintupletModuleOccupancy);
+    cms::cuda::free_device(dev, hitRangesLower);
+    cms::cuda::free_device(dev, hitRangesUpper);
+    cms::cuda::free_device(dev, hitRangesnLower);
+    cms::cuda::free_device(dev, hitRangesnUpper);
+    cms::cuda::free_device(dev, miniDoubletModuleIndices);
+    cms::cuda::free_device(dev, miniDoubletModuleOccupancy);
+    cms::cuda::free_device(dev, segmentModuleIndices);
+    cms::cuda::free_device(dev, segmentModuleOccupancy);
+    cms::cuda::free_device(dev, tripletModuleIndices);
+    cms::cuda::free_device(dev, tripletModuleOccupancy);
+    cms::cuda::free_device(dev, device_nTotalMDs);
+    cms::cuda::free_device(dev, device_nTotalSegs);
+    cms::cuda::free_device(dev, device_nTotalTrips);
+    cms::cuda::free_device(dev, device_nTotalQuints);
 }
+
 void SDL::objectRanges::freeMemory()
 {
-  cudaFree(hitRanges);
-  cudaFree(hitRangesLower);
-  cudaFree(hitRangesUpper);
-  cudaFree(hitRangesnLower);
-  cudaFree(hitRangesnUpper);
-  cudaFree(mdRanges);
-  cudaFree(segmentRanges);
-  cudaFree(trackletRanges);
-  cudaFree(tripletRanges);
-  cudaFree(trackCandidateRanges);
-  cudaFree(quintupletRanges);
-  cudaFree(nEligibleT5Modules);
-  cudaFree(indicesOfEligibleT5Modules);
-  cudaFree(quintupletModuleIndices);
-  cudaFree(quintupletModuleOccupancy);
-  cudaFree(miniDoubletModuleIndices);
-  cudaFree(miniDoubletModuleOccupancy);
-  cudaFree(segmentModuleIndices);
-  cudaFree(segmentModuleOccupancy);
-  cudaFree(tripletModuleIndices);
-  cudaFree(tripletModuleOccupancy);
-  cudaFree(device_nTotalMDs);
-  cudaFree(device_nTotalSegs);
-  cudaFree(device_nTotalTrips);
-  cudaFree(device_nTotalQuints);
+    cudaFree(hitRanges);
+    cudaFree(hitRangesLower);
+    cudaFree(hitRangesUpper);
+    cudaFree(hitRangesnLower);
+    cudaFree(hitRangesnUpper);
+    cudaFree(mdRanges);
+    cudaFree(segmentRanges);
+    cudaFree(trackletRanges);
+    cudaFree(tripletRanges);
+    cudaFree(trackCandidateRanges);
+    cudaFree(quintupletRanges);
+    cudaFree(nEligibleT5Modules);
+    cudaFree(indicesOfEligibleT5Modules);
+    cudaFree(quintupletModuleIndices);
+    cudaFree(quintupletModuleOccupancy);
+    cudaFree(miniDoubletModuleIndices);
+    cudaFree(miniDoubletModuleOccupancy);
+    cudaFree(segmentModuleIndices);
+    cudaFree(segmentModuleOccupancy);
+    cudaFree(tripletModuleIndices);
+    cudaFree(tripletModuleOccupancy);
+    cudaFree(device_nTotalMDs);
+    cudaFree(device_nTotalSegs);
+    cudaFree(device_nTotalTrips);
+    cudaFree(device_nTotalQuints);
 }
+
 void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMapping)
 {
-  int dev;
-  cudaGetDevice(&dev);
-  cms::cuda::free_device(dev,modulesInGPU.detIds);
-  cms::cuda::free_device(dev,modulesInGPU.moduleMap);
-  cms::cuda::free_device(dev,modulesInGPU.mapIdx);
-  cms::cuda::free_device(dev,modulesInGPU.mapdetId);
-  cms::cuda::free_device(dev,modulesInGPU.nConnectedModules);
-  cms::cuda::free_device(dev,modulesInGPU.drdzs);
-  cms::cuda::free_device(dev,modulesInGPU.slopes);
-  cms::cuda::free_device(dev,modulesInGPU.nModules);
-  cms::cuda::free_device(dev,modulesInGPU.nLowerModules);
-  cms::cuda::free_device(dev,modulesInGPU.layers);
-  cms::cuda::free_device(dev,modulesInGPU.rings);
-  cms::cuda::free_device(dev,modulesInGPU.modules);
-  cms::cuda::free_device(dev,modulesInGPU.rods);
-  cms::cuda::free_device(dev,modulesInGPU.subdets);
-  cms::cuda::free_device(dev,modulesInGPU.sides);
-  cms::cuda::free_device(dev,modulesInGPU.isInverted);
-  cms::cuda::free_device(dev,modulesInGPU.isLower);
-  cms::cuda::free_device(dev,modulesInGPU.isAnchor);
-  cms::cuda::free_device(dev,modulesInGPU.moduleType);
-  cms::cuda::free_device(dev,modulesInGPU.moduleLayerType);
-  cms::cuda::free_device(dev,modulesInGPU.connectedPixels);
-  cudaFreeHost(pixelMapping.connectedPixelsSizes);
-  cudaFreeHost(pixelMapping.connectedPixelsSizesPos);
-  cudaFreeHost(pixelMapping.connectedPixelsSizesNeg);
-  cudaFreeHost(pixelMapping.connectedPixelsIndex);
-  cudaFreeHost(pixelMapping.connectedPixelsIndexPos);
-  cudaFreeHost(pixelMapping.connectedPixelsIndexNeg);
-  //cms::cuda::free_host(pixelMapping.connectedPixelsSizes);
-  //cms::cuda::free_host(pixelMapping.connectedPixelsSizesPos);
-  //cms::cuda::free_host(pixelMapping.connectedPixelsSizesNeg);
-  //cms::cuda::free_host(pixelMapping.connectedPixelsIndex);
-  //cms::cuda::free_host(pixelMapping.connectedPixelsIndexPos);
-  //cms::cuda::free_host(pixelMapping.connectedPixelsIndexNeg);
+    int dev;
+    cudaGetDevice(&dev);
+    cms::cuda::free_device(dev,modulesInGPU.detIds);
+    cms::cuda::free_device(dev,modulesInGPU.moduleMap);
+    cms::cuda::free_device(dev,modulesInGPU.mapIdx);
+    cms::cuda::free_device(dev,modulesInGPU.mapdetId);
+    cms::cuda::free_device(dev,modulesInGPU.nConnectedModules);
+    cms::cuda::free_device(dev,modulesInGPU.drdzs);
+    cms::cuda::free_device(dev,modulesInGPU.slopes);
+    cms::cuda::free_device(dev,modulesInGPU.nModules);
+    cms::cuda::free_device(dev,modulesInGPU.nLowerModules);
+    cms::cuda::free_device(dev,modulesInGPU.layers);
+    cms::cuda::free_device(dev,modulesInGPU.rings);
+    cms::cuda::free_device(dev,modulesInGPU.modules);
+    cms::cuda::free_device(dev,modulesInGPU.rods);
+    cms::cuda::free_device(dev,modulesInGPU.subdets);
+    cms::cuda::free_device(dev,modulesInGPU.sides);
+    cms::cuda::free_device(dev,modulesInGPU.isInverted);
+    cms::cuda::free_device(dev,modulesInGPU.isLower);
+    cms::cuda::free_device(dev,modulesInGPU.isAnchor);
+    cms::cuda::free_device(dev,modulesInGPU.moduleType);
+    cms::cuda::free_device(dev,modulesInGPU.moduleLayerType);
+    cms::cuda::free_device(dev,modulesInGPU.connectedPixels);
+    cudaFreeHost(pixelMapping.connectedPixelsSizes);
+    cudaFreeHost(pixelMapping.connectedPixelsSizesPos);
+    cudaFreeHost(pixelMapping.connectedPixelsSizesNeg);
+    cudaFreeHost(pixelMapping.connectedPixelsIndex);
+    cudaFreeHost(pixelMapping.connectedPixelsIndexPos);
+    cudaFreeHost(pixelMapping.connectedPixelsIndexNeg);
 }
+
 void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMapping)
 {
+    cudaFree(modulesInGPU.detIds);
+    cudaFree(modulesInGPU.moduleMap);
+    cudaFree(modulesInGPU.mapIdx);
+    cudaFree(modulesInGPU.mapdetId);
+    cudaFree(modulesInGPU.nConnectedModules);
+    cudaFree(modulesInGPU.drdzs);
+    cudaFree(modulesInGPU.slopes);
+    cudaFree(modulesInGPU.nModules);
+    cudaFree(modulesInGPU.nLowerModules);
+    cudaFree(modulesInGPU.layers);
+    cudaFree(modulesInGPU.rings);
+    cudaFree(modulesInGPU.modules);
+    cudaFree(modulesInGPU.rods);
+    cudaFree(modulesInGPU.subdets);
+    cudaFree(modulesInGPU.sides);
+    cudaFree(modulesInGPU.eta);
+    cudaFree(modulesInGPU.r);
+    cudaFree(modulesInGPU.isInverted);
+    cudaFree(modulesInGPU.isLower);
+    cudaFree(modulesInGPU.isAnchor);
+    cudaFree(modulesInGPU.moduleType);
+    cudaFree(modulesInGPU.moduleLayerType);
+    cudaFree(modulesInGPU.connectedPixels);
+    cudaFree(modulesInGPU.partnerModuleIndices);
+    cudaFree(modulesInGPU.sdlLayers);
 
-  cudaFree(modulesInGPU.detIds);
-  cudaFree(modulesInGPU.moduleMap);
-  cudaFree(modulesInGPU.mapIdx);
-  cudaFree(modulesInGPU.mapdetId);
-  cudaFree(modulesInGPU.nConnectedModules);
-  cudaFree(modulesInGPU.drdzs);
-  cudaFree(modulesInGPU.slopes);
-  cudaFree(modulesInGPU.nModules);
-  cudaFree(modulesInGPU.nLowerModules);
-  cudaFree(modulesInGPU.layers);
-  cudaFree(modulesInGPU.rings);
-  cudaFree(modulesInGPU.modules);
-  cudaFree(modulesInGPU.rods);
-  cudaFree(modulesInGPU.subdets);
-  cudaFree(modulesInGPU.sides);
-  cudaFree(modulesInGPU.eta);
-  cudaFree(modulesInGPU.r);
-  cudaFree(modulesInGPU.isInverted);
-  cudaFree(modulesInGPU.isLower);
-  cudaFree(modulesInGPU.isAnchor);
-  cudaFree(modulesInGPU.moduleType);
-  cudaFree(modulesInGPU.moduleLayerType);
-  cudaFree(modulesInGPU.connectedPixels);
-  cudaFree(modulesInGPU.partnerModuleIndices);
-  cudaFree(modulesInGPU.sdlLayers);
-
-  cudaFreeHost(pixelMapping.connectedPixelsSizes);
-  cudaFreeHost(pixelMapping.connectedPixelsSizesPos);
-  cudaFreeHost(pixelMapping.connectedPixelsSizesNeg);
-  cudaFreeHost(pixelMapping.connectedPixelsIndex);
-  cudaFreeHost(pixelMapping.connectedPixelsIndexPos);
-  cudaFreeHost(pixelMapping.connectedPixelsIndexNeg);
-  //cms::cuda::free_host(pixelMapping.connectedPixelsSizes);
-  //cms::cuda::free_host(pixelMapping.connectedPixelsSizesPos);
-  //cms::cuda::free_host(pixelMapping.connectedPixelsSizesNeg);
-  //cms::cuda::free_host(pixelMapping.connectedPixelsIndex);
-  //cms::cuda::free_host(pixelMapping.connectedPixelsIndexPos);
-  //cms::cuda::free_host(pixelMapping.connectedPixelsIndexNeg);
+    cudaFreeHost(pixelMapping.connectedPixelsSizes);
+    cudaFreeHost(pixelMapping.connectedPixelsSizesPos);
+    cudaFreeHost(pixelMapping.connectedPixelsSizesNeg);
+    cudaFreeHost(pixelMapping.connectedPixelsIndex);
+    cudaFreeHost(pixelMapping.connectedPixelsIndexPos);
+    cudaFreeHost(pixelMapping.connectedPixelsIndexNeg);
 }
 
 void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, uint16_t& nLowerModules, struct pixelMap& pixelMapping,cudaStream_t stream, const char* moduleMetaDataFilePath)
@@ -506,8 +494,6 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
 
 void SDL::fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nModules)
 {
-    //uint16_t* moduleMap;
-    //uint16_t* nConnectedModules;
     for(auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); ++it)
     {
         unsigned int detId = it->first;
@@ -523,7 +509,7 @@ void SDL::fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nM
 
 void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMapping,cudaStream_t stream)
 {
-    int size_superbins = 45000;//SDL::moduleConnectionMap_pLStoLayer1Subdet5.size(); //changed to 45000 to reduce memory useage on GPU
+    int size_superbins = 45000; //changed to 45000 to reduce memory useage on GPU
     std::vector<unsigned int> connectedModuleDetIds;
     std::vector<unsigned int> connectedModuleDetIds_pos;
     std::vector<unsigned int> connectedModuleDetIds_neg;
@@ -533,114 +519,109 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
     cudaMallocHost(&pixelMapping.connectedPixelsSizesPos,size_superbins * sizeof(unsigned int));
     cudaMallocHost(&pixelMapping.connectedPixelsIndexNeg,size_superbins * sizeof(unsigned int));
     cudaMallocHost(&pixelMapping.connectedPixelsSizesNeg,size_superbins * sizeof(unsigned int));
-    //pixelMapping.connectedPixelsIndex = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
-    //pixelMapping.connectedPixelsSizes = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
-    //pixelMapping.connectedPixelsIndexPos = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
-    //pixelMapping.connectedPixelsSizesPos = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
-    //pixelMapping.connectedPixelsIndexNeg = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
-    //pixelMapping.connectedPixelsSizesNeg = (unsigned int*)cms::cuda::allocate_host(size_superbins * sizeof(unsigned int), stream);
+
     int totalSizes=0;
     int totalSizes_pos=0;
     int totalSizes_neg=0;
     for(int isuperbin =0; isuperbin<size_superbins; isuperbin++)
     {
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5 = SDL::moduleConnectionMap_pLStoLayer1Subdet5.getConnectedModuleDetIds(isuperbin+size_superbins);// index adjustment to get high values
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet5 = SDL::moduleConnectionMap_pLStoLayer2Subdet5.getConnectedModuleDetIds(isuperbin+size_superbins);// from the high pt bins
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet5 = SDL::moduleConnectionMap_pLStoLayer3Subdet5.getConnectedModuleDetIds(isuperbin+size_superbins);
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet4 = SDL::moduleConnectionMap_pLStoLayer1Subdet4.getConnectedModuleDetIds(isuperbin+size_superbins);
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet4 = SDL::moduleConnectionMap_pLStoLayer2Subdet4.getConnectedModuleDetIds(isuperbin+size_superbins);
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet4 = SDL::moduleConnectionMap_pLStoLayer3Subdet4.getConnectedModuleDetIds(isuperbin+size_superbins);
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer4Subdet4 = SDL::moduleConnectionMap_pLStoLayer4Subdet4.getConnectedModuleDetIds(isuperbin+size_superbins);
-      connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer1Subdet5.begin(),connectedModuleDetIds_pLStoLayer1Subdet5.end());
-      connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer2Subdet5.begin(),connectedModuleDetIds_pLStoLayer2Subdet5.end());
-      connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer3Subdet5.begin(),connectedModuleDetIds_pLStoLayer3Subdet5.end());
-      connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer1Subdet4.begin(),connectedModuleDetIds_pLStoLayer1Subdet4.end());
-      connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer2Subdet4.begin(),connectedModuleDetIds_pLStoLayer2Subdet4.end());
-      connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer3Subdet4.begin(),connectedModuleDetIds_pLStoLayer3Subdet4.end());
-      connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer4Subdet4.begin(),connectedModuleDetIds_pLStoLayer4Subdet4.end());
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5 = SDL::moduleConnectionMap_pLStoLayer1Subdet5.getConnectedModuleDetIds(isuperbin+size_superbins);// index adjustment to get high values
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet5 = SDL::moduleConnectionMap_pLStoLayer2Subdet5.getConnectedModuleDetIds(isuperbin+size_superbins);// from the high pt bins
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet5 = SDL::moduleConnectionMap_pLStoLayer3Subdet5.getConnectedModuleDetIds(isuperbin+size_superbins);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet4 = SDL::moduleConnectionMap_pLStoLayer1Subdet4.getConnectedModuleDetIds(isuperbin+size_superbins);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet4 = SDL::moduleConnectionMap_pLStoLayer2Subdet4.getConnectedModuleDetIds(isuperbin+size_superbins);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet4 = SDL::moduleConnectionMap_pLStoLayer3Subdet4.getConnectedModuleDetIds(isuperbin+size_superbins);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer4Subdet4 = SDL::moduleConnectionMap_pLStoLayer4Subdet4.getConnectedModuleDetIds(isuperbin+size_superbins);
+        connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer1Subdet5.begin(),connectedModuleDetIds_pLStoLayer1Subdet5.end());
+        connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer2Subdet5.begin(),connectedModuleDetIds_pLStoLayer2Subdet5.end());
+        connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer3Subdet5.begin(),connectedModuleDetIds_pLStoLayer3Subdet5.end());
+        connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer1Subdet4.begin(),connectedModuleDetIds_pLStoLayer1Subdet4.end());
+        connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer2Subdet4.begin(),connectedModuleDetIds_pLStoLayer2Subdet4.end());
+        connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer3Subdet4.begin(),connectedModuleDetIds_pLStoLayer3Subdet4.end());
+        connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer4Subdet4.begin(),connectedModuleDetIds_pLStoLayer4Subdet4.end());
 
-      int sizes =0;
-      sizes += connectedModuleDetIds_pLStoLayer1Subdet5.size();
-      sizes += connectedModuleDetIds_pLStoLayer2Subdet5.size();
-      sizes += connectedModuleDetIds_pLStoLayer3Subdet5.size();
-      sizes += connectedModuleDetIds_pLStoLayer1Subdet4.size();
-      sizes += connectedModuleDetIds_pLStoLayer2Subdet4.size();
-      sizes += connectedModuleDetIds_pLStoLayer3Subdet4.size();
-      sizes += connectedModuleDetIds_pLStoLayer4Subdet4.size();
-      pixelMapping.connectedPixelsIndex[isuperbin] = totalSizes;
-      pixelMapping.connectedPixelsSizes[isuperbin] = sizes;
-      totalSizes += sizes;
+        int sizes =0;
+        sizes += connectedModuleDetIds_pLStoLayer1Subdet5.size();
+        sizes += connectedModuleDetIds_pLStoLayer2Subdet5.size();
+        sizes += connectedModuleDetIds_pLStoLayer3Subdet5.size();
+        sizes += connectedModuleDetIds_pLStoLayer1Subdet4.size();
+        sizes += connectedModuleDetIds_pLStoLayer2Subdet4.size();
+        sizes += connectedModuleDetIds_pLStoLayer3Subdet4.size();
+        sizes += connectedModuleDetIds_pLStoLayer4Subdet4.size();
+        pixelMapping.connectedPixelsIndex[isuperbin] = totalSizes;
+        pixelMapping.connectedPixelsSizes[isuperbin] = sizes;
+        totalSizes += sizes;
 
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5_pos = SDL::moduleConnectionMap_pLStoLayer1Subdet5_pos.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet5_pos = SDL::moduleConnectionMap_pLStoLayer2Subdet5_pos.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet5_pos = SDL::moduleConnectionMap_pLStoLayer3Subdet5_pos.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet4_pos = SDL::moduleConnectionMap_pLStoLayer1Subdet4_pos.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet4_pos = SDL::moduleConnectionMap_pLStoLayer2Subdet4_pos.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet4_pos = SDL::moduleConnectionMap_pLStoLayer3Subdet4_pos.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer4Subdet4_pos = SDL::moduleConnectionMap_pLStoLayer4Subdet4_pos.getConnectedModuleDetIds(isuperbin);
+        connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer1Subdet5_pos.begin(),connectedModuleDetIds_pLStoLayer1Subdet5_pos.end());
+        connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer2Subdet5_pos.begin(),connectedModuleDetIds_pLStoLayer2Subdet5_pos.end());
+        connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer3Subdet5_pos.begin(),connectedModuleDetIds_pLStoLayer3Subdet5_pos.end());
+        connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer1Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer1Subdet4_pos.end());
+        connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer2Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer2Subdet4_pos.end());
+        connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer3Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer3Subdet4_pos.end());
+        connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer4Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer4Subdet4_pos.end());
 
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5_pos = SDL::moduleConnectionMap_pLStoLayer1Subdet5_pos.getConnectedModuleDetIds(isuperbin);
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet5_pos = SDL::moduleConnectionMap_pLStoLayer2Subdet5_pos.getConnectedModuleDetIds(isuperbin);
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet5_pos = SDL::moduleConnectionMap_pLStoLayer3Subdet5_pos.getConnectedModuleDetIds(isuperbin);
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet4_pos = SDL::moduleConnectionMap_pLStoLayer1Subdet4_pos.getConnectedModuleDetIds(isuperbin);
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet4_pos = SDL::moduleConnectionMap_pLStoLayer2Subdet4_pos.getConnectedModuleDetIds(isuperbin);
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet4_pos = SDL::moduleConnectionMap_pLStoLayer3Subdet4_pos.getConnectedModuleDetIds(isuperbin);
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer4Subdet4_pos = SDL::moduleConnectionMap_pLStoLayer4Subdet4_pos.getConnectedModuleDetIds(isuperbin);
-      connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer1Subdet5_pos.begin(),connectedModuleDetIds_pLStoLayer1Subdet5_pos.end());
-      connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer2Subdet5_pos.begin(),connectedModuleDetIds_pLStoLayer2Subdet5_pos.end());
-      connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer3Subdet5_pos.begin(),connectedModuleDetIds_pLStoLayer3Subdet5_pos.end());
-      connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer1Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer1Subdet4_pos.end());
-      connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer2Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer2Subdet4_pos.end());
-      connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer3Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer3Subdet4_pos.end());
-      connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer4Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer4Subdet4_pos.end());
+        int sizes_pos =0;
+        sizes_pos += connectedModuleDetIds_pLStoLayer1Subdet5_pos.size();
+        sizes_pos += connectedModuleDetIds_pLStoLayer2Subdet5_pos.size();
+        sizes_pos += connectedModuleDetIds_pLStoLayer3Subdet5_pos.size();
+        sizes_pos += connectedModuleDetIds_pLStoLayer1Subdet4_pos.size();
+        sizes_pos += connectedModuleDetIds_pLStoLayer2Subdet4_pos.size();
+        sizes_pos += connectedModuleDetIds_pLStoLayer3Subdet4_pos.size();
+        sizes_pos += connectedModuleDetIds_pLStoLayer4Subdet4_pos.size();
+        pixelMapping.connectedPixelsIndexPos[isuperbin] = totalSizes_pos;
+        pixelMapping.connectedPixelsSizesPos[isuperbin] = sizes_pos;
+        totalSizes_pos += sizes_pos;
 
-      int sizes_pos =0;
-      sizes_pos += connectedModuleDetIds_pLStoLayer1Subdet5_pos.size();
-      sizes_pos += connectedModuleDetIds_pLStoLayer2Subdet5_pos.size();
-      sizes_pos += connectedModuleDetIds_pLStoLayer3Subdet5_pos.size();
-      sizes_pos += connectedModuleDetIds_pLStoLayer1Subdet4_pos.size();
-      sizes_pos += connectedModuleDetIds_pLStoLayer2Subdet4_pos.size();
-      sizes_pos += connectedModuleDetIds_pLStoLayer3Subdet4_pos.size();
-      sizes_pos += connectedModuleDetIds_pLStoLayer4Subdet4_pos.size();
-      pixelMapping.connectedPixelsIndexPos[isuperbin] = totalSizes_pos;
-      pixelMapping.connectedPixelsSizesPos[isuperbin] = sizes_pos;
-      totalSizes_pos += sizes_pos;
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5_neg = SDL::moduleConnectionMap_pLStoLayer1Subdet5_neg.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet5_neg = SDL::moduleConnectionMap_pLStoLayer2Subdet5_neg.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet5_neg = SDL::moduleConnectionMap_pLStoLayer3Subdet5_neg.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet4_neg = SDL::moduleConnectionMap_pLStoLayer1Subdet4_neg.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet4_neg = SDL::moduleConnectionMap_pLStoLayer2Subdet4_neg.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet4_neg = SDL::moduleConnectionMap_pLStoLayer3Subdet4_neg.getConnectedModuleDetIds(isuperbin);
+        std::vector<unsigned int> connectedModuleDetIds_pLStoLayer4Subdet4_neg = SDL::moduleConnectionMap_pLStoLayer4Subdet4_neg.getConnectedModuleDetIds(isuperbin);
+        connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer1Subdet5_neg.begin(),connectedModuleDetIds_pLStoLayer1Subdet5_neg.end());
+        connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer2Subdet5_neg.begin(),connectedModuleDetIds_pLStoLayer2Subdet5_neg.end());
+        connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer3Subdet5_neg.begin(),connectedModuleDetIds_pLStoLayer3Subdet5_neg.end());
+        connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer1Subdet4_neg.begin(),connectedModuleDetIds_pLStoLayer1Subdet4_neg.end());
+        connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer2Subdet4_neg.begin(),connectedModuleDetIds_pLStoLayer2Subdet4_neg.end());
+        connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer3Subdet4_neg.begin(),connectedModuleDetIds_pLStoLayer3Subdet4_neg.end());
+        connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer4Subdet4_neg.begin(),connectedModuleDetIds_pLStoLayer4Subdet4_neg.end());
 
-
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5_neg = SDL::moduleConnectionMap_pLStoLayer1Subdet5_neg.getConnectedModuleDetIds(isuperbin);
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet5_neg = SDL::moduleConnectionMap_pLStoLayer2Subdet5_neg.getConnectedModuleDetIds(isuperbin);
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet5_neg = SDL::moduleConnectionMap_pLStoLayer3Subdet5_neg.getConnectedModuleDetIds(isuperbin);
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet4_neg = SDL::moduleConnectionMap_pLStoLayer1Subdet4_neg.getConnectedModuleDetIds(isuperbin);
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet4_neg = SDL::moduleConnectionMap_pLStoLayer2Subdet4_neg.getConnectedModuleDetIds(isuperbin);
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet4_neg = SDL::moduleConnectionMap_pLStoLayer3Subdet4_neg.getConnectedModuleDetIds(isuperbin);
-      std::vector<unsigned int> connectedModuleDetIds_pLStoLayer4Subdet4_neg = SDL::moduleConnectionMap_pLStoLayer4Subdet4_neg.getConnectedModuleDetIds(isuperbin);
-      connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer1Subdet5_neg.begin(),connectedModuleDetIds_pLStoLayer1Subdet5_neg.end());
-      connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer2Subdet5_neg.begin(),connectedModuleDetIds_pLStoLayer2Subdet5_neg.end());
-      connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer3Subdet5_neg.begin(),connectedModuleDetIds_pLStoLayer3Subdet5_neg.end());
-      connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer1Subdet4_neg.begin(),connectedModuleDetIds_pLStoLayer1Subdet4_neg.end());
-      connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer2Subdet4_neg.begin(),connectedModuleDetIds_pLStoLayer2Subdet4_neg.end());
-      connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer3Subdet4_neg.begin(),connectedModuleDetIds_pLStoLayer3Subdet4_neg.end());
-      connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer4Subdet4_neg.begin(),connectedModuleDetIds_pLStoLayer4Subdet4_neg.end());
-
-      int sizes_neg =0;
-      sizes_neg += connectedModuleDetIds_pLStoLayer1Subdet5_neg.size();
-      sizes_neg += connectedModuleDetIds_pLStoLayer2Subdet5_neg.size();
-      sizes_neg += connectedModuleDetIds_pLStoLayer3Subdet5_neg.size();
-      sizes_neg += connectedModuleDetIds_pLStoLayer1Subdet4_neg.size();
-      sizes_neg += connectedModuleDetIds_pLStoLayer2Subdet4_neg.size();
-      sizes_neg += connectedModuleDetIds_pLStoLayer3Subdet4_neg.size();
-      sizes_neg += connectedModuleDetIds_pLStoLayer4Subdet4_neg.size();
-      pixelMapping.connectedPixelsIndexNeg[isuperbin] = totalSizes_neg;
-      pixelMapping.connectedPixelsSizesNeg[isuperbin] = sizes_neg;
-      totalSizes_neg += sizes_neg;
-
+        int sizes_neg = 0;
+        sizes_neg += connectedModuleDetIds_pLStoLayer1Subdet5_neg.size();
+        sizes_neg += connectedModuleDetIds_pLStoLayer2Subdet5_neg.size();
+        sizes_neg += connectedModuleDetIds_pLStoLayer3Subdet5_neg.size();
+        sizes_neg += connectedModuleDetIds_pLStoLayer1Subdet4_neg.size();
+        sizes_neg += connectedModuleDetIds_pLStoLayer2Subdet4_neg.size();
+        sizes_neg += connectedModuleDetIds_pLStoLayer3Subdet4_neg.size();
+        sizes_neg += connectedModuleDetIds_pLStoLayer4Subdet4_neg.size();
+        pixelMapping.connectedPixelsIndexNeg[isuperbin] = totalSizes_neg;
+        pixelMapping.connectedPixelsSizesNeg[isuperbin] = sizes_neg;
+        totalSizes_neg += sizes_neg;
     }
 
     unsigned int* connectedPixels;
     connectedPixels = (unsigned int*)cms::cuda::allocate_host((totalSizes+totalSizes_pos+totalSizes_neg) * sizeof(unsigned int), stream);
     cudaMalloc(&modulesInGPU.connectedPixels,(totalSizes+totalSizes_pos+totalSizes_neg)* sizeof(unsigned int));
 
-    for(int icondet=0; icondet< totalSizes; icondet++){
-      connectedPixels[icondet] = (*detIdToIndex)[connectedModuleDetIds[icondet]];
+    for(int icondet=0; icondet< totalSizes; icondet++)
+    {
+        connectedPixels[icondet] = (*detIdToIndex)[connectedModuleDetIds[icondet]];
     }
-    for(int icondet=0; icondet< totalSizes_pos; icondet++){
-      connectedPixels[icondet+totalSizes] = (*detIdToIndex)[connectedModuleDetIds_pos[icondet]];
+    for(int icondet=0; icondet< totalSizes_pos; icondet++)
+    {
+        connectedPixels[icondet+totalSizes] = (*detIdToIndex)[connectedModuleDetIds_pos[icondet]];
     }
-    for(int icondet=0; icondet< totalSizes_neg; icondet++){
-      connectedPixels[icondet+totalSizes+totalSizes_pos] = (*detIdToIndex)[connectedModuleDetIds_neg[icondet]];
+    for(int icondet=0; icondet< totalSizes_neg; icondet++)
+    {
+        connectedPixels[icondet+totalSizes+totalSizes_pos] = (*detIdToIndex)[connectedModuleDetIds_neg[icondet]];
     }
     cudaMemcpyAsync(modulesInGPU.connectedPixels,connectedPixels,(totalSizes+totalSizes_pos+totalSizes_neg)*sizeof(unsigned int),cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
@@ -836,7 +817,6 @@ bool SDL::modules::parseIsLower(unsigned int index)
     return (isInverted[index]) ? !(detIds[index] & 1) : (detIds[index] & 1);
 }
 
-
 unsigned int SDL::modules::parsePartnerModuleId(unsigned int detId, bool isLowerx, bool isInvertedx)
 {
     return isLowerx ? (isInvertedx ? detId - 1 : detId + 1) : (isInvertedx ? detId + 1 : detId - 1);
@@ -881,6 +861,7 @@ SDL::ModuleType SDL::modules::parseModuleType(short subdet, short layer, short r
         }
     }
 }
+
 SDL::ModuleType SDL::modules::parseModuleType(unsigned int index)
 {
     if(subdets[index] == Barrel)
@@ -950,6 +931,7 @@ SDL::ModuleLayerType SDL::modules::parseModuleLayerType(ModuleType moduleTypex,b
         }
     }
 }
+
 SDL::ModuleLayerType SDL::modules::parseModuleLayerType(unsigned int index)
 {
     if(moduleType[index] == TwoS)
@@ -995,19 +977,3 @@ void SDL::resetObjectRanges(struct objectRanges& rangesInGPU, unsigned int nModu
         cudaMemsetAsync(rangesInGPU.quintupletRanges, -1, nModules*2*sizeof(int),stream);
         cudaStreamSynchronize(stream);
 }
-
-
-/*
-   Find the modules that are "staggered neighbours" to a given module
-   
-   Both barrel central : same module, adjacent rod (modulo number of rods) 
-   Both barrel tilted :  same rod, adjacent module (modulo number of modules, which is the same as number of rods for flat)
-   One Barrel flat, One Barrel tilted : 
-      Left and Center : Left module's rod = 12, center module's module = 1, and left module's module = center module's rod
-      Center and Right : Right module's rod = 1 center module's module = max module number, and right module's module = center module's rod
-
-   Endcap : Same ring -> Adjacent modules,
-   TODO: Endcap different ring, and tilted->endcap
-*/
-
-
