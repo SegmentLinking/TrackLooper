@@ -4,12 +4,11 @@
 #include <iostream>
 #include <map>
 #include <unordered_map>
-#include "Hit.cuh"
+#include "Constants.cuh"
 #include "TiltedGeometry.h"
 #include "EndcapGeometry.cuh"
 #include "ModuleConnectionMap.h"
 #include "allocate.h"
-
 
 namespace SDL
 {
@@ -62,8 +61,6 @@ namespace SDL
         int *segmentModuleIndices;
         int *tripletModuleIndices;
 
-//        unsigned int nTotalQuintuplets;
-    
         void freeMemoryCache();
         void freeMemory();
     };
@@ -95,11 +92,11 @@ namespace SDL
         ModuleType* moduleType;
         ModuleLayerType* moduleLayerType;
        
-        ALPAKA_FN_HOST_ACC ModuleType parseModuleType(unsigned int index);
-        ALPAKA_FN_HOST_ACC ModuleType parseModuleType(short subdet, short layer, short ring);
-        ALPAKA_FN_HOST_ACC unsigned int parsePartnerModuleId(unsigned int detId, bool isLowerx, bool isInvertedx);
-        ALPAKA_FN_HOST_ACC ModuleLayerType parseModuleLayerType(unsigned int index);
-        ALPAKA_FN_HOST_ACC ModuleLayerType parseModuleLayerType(ModuleType moduleType, bool isInvertedx, bool isLowerx);
+        ModuleType parseModuleType(unsigned int index);
+        ModuleType parseModuleType(short subdet, short layer, short ring);
+        unsigned int parsePartnerModuleId(unsigned int detId, bool isLowerx, bool isInvertedx);
+        ModuleLayerType parseModuleLayerType(unsigned int index);
+        ModuleLayerType parseModuleLayerType(ModuleType moduleType, bool isInvertedx, bool isLowerx);
 
         bool parseIsInverted(unsigned int index);
         bool parseIsInverted(short subdet, short side, short module, short layer);
@@ -115,16 +112,14 @@ namespace SDL
         unsigned int* connectedPixelsNeg;
         unsigned int* connectedPixelsIndexNeg;
         unsigned int* connectedPixelsSizesNeg;
-
     };
-    struct pixelMap{
-        //unsigned int* connectedPixels;
+
+    struct pixelMap
+    {
         unsigned int* connectedPixelsIndex;
         unsigned int* connectedPixelsSizes;
-        //unsigned int* connectedPixelsPos;
         unsigned int* connectedPixelsIndexPos;
         unsigned int* connectedPixelsSizesPos;
-        //unsigned int* connectedPixelsNeg;
         unsigned int* connectedPixelsIndexNeg;
         unsigned int* connectedPixelsSizesNeg;
 
@@ -138,9 +133,7 @@ namespace SDL
     extern std::map  <unsigned int, float> *module_z;
     extern std::map  <unsigned int, unsigned int> *module_type;
 
-    //functions
     void loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules,uint16_t& nLowerModules,struct pixelMap& pixelMapping,cudaStream_t stream, const char* moduleMetaDataFilePath="data/centroid.txt");
-
     void createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules,cudaStream_t stream);
     void createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules, bool* isLower,cudaStream_t stream);
     void createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned int nModules,cudaStream_t stream);

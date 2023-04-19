@@ -614,14 +614,16 @@ namespace SDL
             float p = alpaka::math::sqrt(acc, Px*Px+Py*Py+Pz*Pz);
 
             float rou = a/p;
-            if (moduleSubdet == SDL::Endcap){
+            if (moduleSubdet == SDL::Endcap)
+            {
                 float s = (zsi-z1)*p/Pz;
                 float x = x1 + Px/a*alpaka::math::sin(acc, rou*s)-Py/a*(1-alpaka::math::cos(acc, rou*s));
                 float y = y1 + Py/a*alpaka::math::sin(acc, rou*s)+Px/a*(1-alpaka::math::cos(acc, rou*s));
                 diffr = alpaka::math::abs(acc, rtsi-alpaka::math::sqrt(acc, x*x+y*y))*100;
             }
 
-            if (moduleSubdet == SDL::Barrel){
+            if (moduleSubdet == SDL::Barrel)
+            {
                 float paraA = r1*r1 + 2*(Px*Px+Py*Py)/(a*a) + 2*(y1*Px-x1*Py)/a - rtsi*rtsi;
                 float paraB = 2*(x1*Px+y1*Py)/a;
                 float paraC = 2*(y1*Px-x1*Py)/a+2*(Px*Px+Py*Py)/(a*a);
