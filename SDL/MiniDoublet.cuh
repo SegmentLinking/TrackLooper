@@ -475,8 +475,8 @@ namespace SDL
                 shiftedZ = zUpper;
                 shiftedRt = alpaka::math::sqrt(acc, xn * xn + yn * yn);
 
-                dPhi = deltaPhi_alpaka(acc, xLower,yLower,shiftedX, shiftedY); //function from Hit.cu
-                noShiftedDphi = deltaPhi_alpaka(acc, xLower, yLower, xUpper, yUpper);
+                dPhi = deltaPhi(acc, xLower,yLower,shiftedX, shiftedY); //function from Hit.cu
+                noShiftedDphi = deltaPhi(acc, xLower, yLower, xUpper, yUpper);
             }
             else
             {
@@ -484,13 +484,13 @@ namespace SDL
                 shiftedY = yn;
                 shiftedZ = zLower;
                 shiftedRt = alpaka::math::sqrt(acc, xn * xn + yn * yn);
-                dPhi = deltaPhi_alpaka(acc, shiftedX, shiftedY, xUpper, yUpper);
-                noShiftedDphi = deltaPhi_alpaka(acc, xLower,yLower,xUpper,yUpper);
+                dPhi = deltaPhi(acc, shiftedX, shiftedY, xUpper, yUpper);
+                noShiftedDphi = deltaPhi(acc, xLower,yLower,xUpper,yUpper);
             }
         }
         else
         {
-            dPhi = deltaPhi_alpaka(acc, xLower, yLower, xUpper, yUpper);
+            dPhi = deltaPhi(acc, xLower, yLower, xUpper, yUpper);
             noShiftedDphi = dPhi;
         }
 
@@ -509,11 +509,11 @@ namespace SDL
                 // In principle, this kind of check rt_lower < rt_upper should not be necessary because the hit shifting should have taken care of this.
                 // (i.e. the strip hit is shifted to be aligned in the line of sight from interaction point to pixel hit of PS module guaranteeing rt ordering)
                 // But I still placed this check for safety. (TODO: After cheking explicitly if not needed remove later?)
-                // setdeltaPhiChange_alpaka(lowerHit.rt() < upperHitMod.rt() ? lowerHit.deltaPhiChange_alpaka(upperHitMod) : upperHitMod.deltaPhiChange_alpaka(lowerHit));
+                // setdeltaPhiChange(lowerHit.rt() < upperHitMod.rt() ? lowerHit.deltaPhiChange(upperHitMod) : upperHitMod.deltaPhiChange(lowerHit));
 
 
-                dPhiChange = (rtLower < shiftedRt) ? deltaPhiChange_alpaka(acc, xLower, yLower, shiftedX, shiftedY) : deltaPhiChange_alpaka(acc, shiftedX, shiftedY, xLower, yLower); 
-                noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange_alpaka(acc, xLower,yLower, xUpper, yUpper) : deltaPhiChange_alpaka(acc, xUpper, yUpper, xLower, yLower);
+                dPhiChange = (rtLower < shiftedRt) ? deltaPhiChange(acc, xLower, yLower, shiftedX, shiftedY) : deltaPhiChange(acc, shiftedX, shiftedY, xLower, yLower); 
+                noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange(acc, xLower,yLower, xUpper, yUpper) : deltaPhiChange(acc, xUpper, yUpper, xLower, yLower);
             }
             else
             {
@@ -522,14 +522,14 @@ namespace SDL
                 // (i.e. the strip hit is shifted to be aligned in the line of sight from interaction point to pixel hit of PS module guaranteeing rt ordering)
                 // But I still placed this check for safety. (TODO: After cheking explicitly if not needed remove later?)
 
-                dPhiChange = (shiftedRt < rtUpper) ? deltaPhiChange_alpaka(acc, shiftedX, shiftedY, xUpper, yUpper) : deltaPhiChange_alpaka(acc, xUpper, yUpper, shiftedX, shiftedY);
-                noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange_alpaka(acc, xLower,yLower, xUpper, yUpper) : deltaPhiChange_alpaka(acc, xUpper, yUpper, xLower, yLower);
+                dPhiChange = (shiftedRt < rtUpper) ? deltaPhiChange(acc, shiftedX, shiftedY, xUpper, yUpper) : deltaPhiChange(acc, xUpper, yUpper, shiftedX, shiftedY);
+                noShiftedDphiChange = rtLower < rtUpper ? deltaPhiChange(acc, xLower,yLower, xUpper, yUpper) : deltaPhiChange(acc, xUpper, yUpper, xLower, yLower);
             }
         }
         else
         {
             // When it is flat lying module, whichever is the lowerSide will always have rt lower
-            dPhiChange = deltaPhiChange_alpaka(acc, xLower, yLower, xUpper, yUpper);
+            dPhiChange = deltaPhiChange(acc, xLower, yLower, xUpper, yUpper);
             noShiftedDphiChange = dPhiChange;
         }
 
@@ -580,16 +580,16 @@ namespace SDL
                 shiftedX = xn;
                 shiftedY = yn;
                 shiftedZ = zUpper;
-                dPhi = deltaPhi_alpaka(acc, xLower, yLower, shiftedX, shiftedY);
-                noShiftedDphi = deltaPhi_alpaka(acc, xLower, yLower, xUpper, yUpper);
+                dPhi = deltaPhi(acc, xLower, yLower, shiftedX, shiftedY);
+                noShiftedDphi = deltaPhi(acc, xLower, yLower, xUpper, yUpper);
             }
             else
             {
                 shiftedX = xn;
                 shiftedY = yn;
                 shiftedZ = zLower;
-                dPhi = deltaPhi_alpaka(acc, shiftedX, shiftedY, xUpper, yUpper);
-                noShiftedDphi = deltaPhi_alpaka(acc, xLower, yLower, xUpper, yUpper);
+                dPhi = deltaPhi(acc, shiftedX, shiftedY, xUpper, yUpper);
+                noShiftedDphi = deltaPhi(acc, xLower, yLower, xUpper, yUpper);
             }
         }
         else
@@ -597,8 +597,8 @@ namespace SDL
             shiftedX = xn;
             shiftedY = yn;
             shiftedZ = zUpper;
-            dPhi = deltaPhi_alpaka(acc, xLower, yLower, xn, yn);
-            noShiftedDphi = deltaPhi_alpaka(acc, xLower, yLower, xUpper, yUpper);
+            dPhi = deltaPhi(acc, xLower, yLower, xn, yn);
+            noShiftedDphi = deltaPhi(acc, xLower, yLower, xUpper, yUpper);
         }
 
         // dz needs to change if it is a PS module where the strip hits are shifted in order to properly account for the case when a tilted module falls under "endcap logic"
