@@ -871,21 +871,21 @@ namespace SDL
     {
         if (lIn == 0)
         {
-            betaOut += copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaOut);
+            betaOut += SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaOut);
             return;
         }
 
         if (betaIn * betaOut > 0.f and (alpaka::math::abs(acc, pt_beta) < 4.f * SDL::pt_betaMax or (lIn >= 11 and alpaka::math::abs(acc, pt_beta) < 8.f * SDL::pt_betaMax)))   //and the pt_beta is well-defined; less strict for endcap-endcap
         {
-            const float betaInUpd  = betaIn + copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
-            const float betaOutUpd = betaOut + copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaOut); //FIXME: need a faster version
+            const float betaInUpd  = betaIn + SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            const float betaOutUpd = betaOut + SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaOut); //FIXME: need a faster version
             betaAv = 0.5f * (betaInUpd + betaOutUpd);
 
             //1st update
             const float pt_beta_inv = 1.f/alpaka::math::abs(acc, dr * k2Rinv1GeVf / alpaka::math::sin(acc, betaAv)); //get a better pt estimate
 
-            betaIn  += copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf *pt_beta_inv, SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
-            betaOut += copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf *pt_beta_inv, SDL::sinAlphaMax)), betaOut); //FIXME: need a faster version
+            betaIn  += SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf *pt_beta_inv, SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            betaOut += SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf *pt_beta_inv, SDL::sinAlphaMax)), betaOut); //FIXME: need a faster version
             //update the av and pt
             betaAv = 0.5f * (betaIn + betaOut);
             //2nd update
@@ -896,14 +896,14 @@ namespace SDL
 
             const float pt_betaIn = dr * k2Rinv1GeVf / alpaka::math::sin(acc, betaIn);
 
-            const float betaInUpd  = betaIn + copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_betaIn), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
-            const float betaOutUpd = betaOut + copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_betaIn), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            const float betaInUpd  = betaIn + SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_betaIn), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            const float betaOutUpd = betaOut + SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_betaIn), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
             betaAv = (alpaka::math::abs(acc, betaOut) > 0.2f * alpaka::math::abs(acc, betaIn)) ? (0.5f * (betaInUpd + betaOutUpd)) : betaInUpd;
 
             //1st update
             pt_beta = dr * SDL::k2Rinv1GeVf /alpaka::math::sin(acc, betaAv); //get a better pt estimate
-            betaIn  += copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
-            betaOut += copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            betaIn  += SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            betaOut += SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
             //update the av and pt
             betaAv = 0.5f * (betaIn + betaOut);
             //2nd update
@@ -940,7 +940,7 @@ namespace SDL
 
         float rt_InOut = rt_InUp;
 
-        pass = pass and (alpaka::math::abs(acc, deltaPhi_alpaka(acc, x_InUp, y_InUp, x_OutLo, y_OutLo)) <= 0.5f * float(M_PI));
+        pass = pass and (alpaka::math::abs(acc, deltaPhi(acc, x_InUp, y_InUp, x_OutLo, y_OutLo)) <= 0.5f * float(M_PI));
         if(not pass) return pass;
 
         unsigned int pixelSegmentArrayIndex = innerSegmentIndex - rangesInGPU.segmentModuleIndices[pixelModuleIndex];
@@ -1001,7 +1001,7 @@ namespace SDL
         sdlCut = alpha1GeV_OutLo + alpaka::math::sqrt(acc, sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
 
 #ifdef CUT_VALUE_DEBUG
-        dPhiPos = deltaPhi_alpaka(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
+        dPhiPos = deltaPhi(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
 #endif
 
         //no dphipos cut
@@ -1013,7 +1013,7 @@ namespace SDL
         float diffY = y_OutLo - y_InLo;
         float diffZ = z_OutLo - z_InLo;
 
-        dPhi = deltaPhi_alpaka(acc, midPointX, midPointY, diffX, diffY);
+        dPhi = deltaPhi(acc, midPointX, midPointY, diffX, diffY);
 
         pass = pass and (alpaka::math::abs(acc, dPhi) <= sdlCut);
         if(not pass) return pass;
@@ -1026,7 +1026,7 @@ namespace SDL
         bool isEC_lastLayer = modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS;
 
         float alpha_OutUp,alpha_OutUp_highEdge,alpha_OutUp_lowEdge;
-        alpha_OutUp = deltaPhi_alpaka(acc, x_OutUp, y_OutUp, x_OutUp - x_OutLo, y_OutUp - y_OutLo);
+        alpha_OutUp = deltaPhi(acc, x_OutUp, y_OutUp, x_OutUp - x_OutLo, y_OutUp - y_OutLo);
 
         alpha_OutUp_highEdge = alpha_OutUp;
         alpha_OutUp_lowEdge = alpha_OutUp;
@@ -1041,27 +1041,27 @@ namespace SDL
         float tl_axis_lowEdge_x = tl_axis_x;
         float tl_axis_lowEdge_y = tl_axis_y;
 
-        betaIn = -deltaPhi_alpaka(acc, px, py, tl_axis_x, tl_axis_y);
+        betaIn = -deltaPhi(acc, px, py, tl_axis_x, tl_axis_y);
         float betaInRHmin = betaIn;
         float betaInRHmax = betaIn;
 
-        betaOut = -alpha_OutUp + deltaPhi_alpaka(acc, x_OutUp, y_OutUp, tl_axis_x, tl_axis_y);
+        betaOut = -alpha_OutUp + deltaPhi(acc, x_OutUp, y_OutUp, tl_axis_x, tl_axis_y);
 
         float betaOutRHmin = betaOut;
         float betaOutRHmax = betaOut;
 
         if(isEC_lastLayer)
         {
-            alpha_OutUp_highEdge = deltaPhi_alpaka(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_OutLo);
-            alpha_OutUp_lowEdge = deltaPhi_alpaka(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_OutLo);
+            alpha_OutUp_highEdge = deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_OutLo);
+            alpha_OutUp_lowEdge = deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_OutLo);
 
             tl_axis_highEdge_x = mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_InUp;
             tl_axis_highEdge_y = mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_InUp;
             tl_axis_lowEdge_x = mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_InUp;
             tl_axis_lowEdge_y = mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_InUp;
 
-            betaOutRHmin = -alpha_OutUp_highEdge + deltaPhi_alpaka(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
-            betaOutRHmax = -alpha_OutUp_lowEdge + deltaPhi_alpaka(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
+            betaOutRHmin = -alpha_OutUp_highEdge + deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
+            betaOutRHmax = -alpha_OutUp_lowEdge + deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
         }
 
         //beta computation
@@ -1175,16 +1175,16 @@ namespace SDL
         const float dzDrtScale = alpaka::math::tan(acc, sdlSlope) / sdlSlope;//FIXME: need approximate value
         zLo = z_InUp + (z_InUp - deltaZLum) * (rtOut_o_rtIn - 1.f) * (z_InUp > 0.f ? 1.f : dzDrtScale) - zGeom; //slope-correction only on outer end
 
-        const float dLum = copysignf_alpaka(deltaZLum, z_InUp);
+        const float dLum = SDL::copysignf(deltaZLum, z_InUp);
         bool isOutSgInnerMDPS = modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS;
 
         const float rtGeom1 = isOutSgInnerMDPS ? pixelPSZpitch : strip2SZpitch;//FIXME: make this chosen by configuration for lay11,12 full PS
-        const float zGeom1 = copysignf_alpaka(zGeom, z_InUp); //used in B-E region
+        const float zGeom1 = SDL::copysignf(zGeom, z_InUp); //used in B-E region
         rtLo = rt_InUp * (1.f + (z_OutLo- z_InUp - zGeom1) / (z_InUp + zGeom1 + dLum) / dzDrtScale) - rtGeom1; //slope correction only on the lower end
 
         float zInForHi = z_InUp - zGeom1 - dLum;
         if (zInForHi * z_InUp < 0)
-            zInForHi = copysignf_alpaka(0.1f, z_InUp);
+            zInForHi = SDL::copysignf(0.1f, z_InUp);
         rtHi = rt_InUp * (1.f + (z_OutLo - z_InUp + zGeom1) / zInForHi) + rtGeom1;
 
         // Cut #2: rt condition
@@ -1221,7 +1221,7 @@ namespace SDL
         const float sdlPVoff = 0.1f / rt_OutLo;
         sdlCut = alpha1GeV_OutLo + alpaka::math::sqrt(acc, sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
 
-        deltaPhiPos = deltaPhi_alpaka(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
+        deltaPhiPos = deltaPhi(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
 
         float midPointX = 0.5f * (x_InLo + x_OutLo);
         float midPointY = 0.5f * (y_InLo + y_OutLo);
@@ -1231,7 +1231,7 @@ namespace SDL
         float diffY = y_OutLo - y_InLo;
         float diffZ = z_OutLo - z_InLo;
 
-        dPhi = deltaPhi_alpaka(acc, midPointX, midPointY, diffX, diffY);
+        dPhi = deltaPhi(acc, midPointX, midPointY, diffX, diffY);
 
         // Cut #5: deltaPhiChange
         pass =  pass and (alpaka::math::abs(acc, dPhi) <= sdlCut);
@@ -1244,7 +1244,7 @@ namespace SDL
 
         float alpha_OutUp,alpha_OutUp_highEdge,alpha_OutUp_lowEdge;
 
-        alpha_OutUp = deltaPhi_alpaka(acc, x_OutUp, y_OutUp, x_OutUp - x_OutLo, y_OutUp - y_OutLo);
+        alpha_OutUp = deltaPhi(acc, x_OutUp, y_OutUp, x_OutUp - x_OutLo, y_OutUp - y_OutLo);
         alpha_OutUp_highEdge = alpha_OutUp;
         alpha_OutUp_lowEdge = alpha_OutUp;
 
@@ -1258,26 +1258,26 @@ namespace SDL
         float tl_axis_lowEdge_x = tl_axis_x;
         float tl_axis_lowEdge_y = tl_axis_y;
 
-        betaIn = -deltaPhi_alpaka(acc, px, py, tl_axis_x, tl_axis_y);
+        betaIn = -deltaPhi(acc, px, py, tl_axis_x, tl_axis_y);
         float betaInRHmin = betaIn;
         float betaInRHmax = betaIn;
 
-        betaOut = -alpha_OutUp + deltaPhi_alpaka(acc, x_OutUp, y_OutUp, tl_axis_x, tl_axis_y);
+        betaOut = -alpha_OutUp + deltaPhi(acc, x_OutUp, y_OutUp, tl_axis_x, tl_axis_y);
         float betaOutRHmin = betaOut;
         float betaOutRHmax = betaOut;
 
         if(isEC_lastLayer)
         {
-            alpha_OutUp_highEdge = deltaPhi_alpaka(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_OutLo);
-            alpha_OutUp_lowEdge = deltaPhi_alpaka(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_OutLo);
+            alpha_OutUp_highEdge = deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_OutLo);
+            alpha_OutUp_lowEdge = deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_OutLo);
 
             tl_axis_highEdge_x = mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_InUp;
             tl_axis_highEdge_y = mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_InUp;
             tl_axis_lowEdge_x = mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_InUp;
             tl_axis_lowEdge_y = mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_InUp;
 
-            betaOutRHmin = -alpha_OutUp_highEdge + deltaPhi_alpaka(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
-            betaOutRHmax = -alpha_OutUp_lowEdge + deltaPhi_alpaka(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
+            betaOutRHmin = -alpha_OutUp_highEdge + deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
+            betaOutRHmax = -alpha_OutUp_lowEdge + deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
         }
 
         //beta computation
@@ -2183,21 +2183,21 @@ namespace SDL
     {
         if (lIn == 0)
         {
-            betaOut += copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaOut);
+            betaOut += SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaOut);
             return;
         }
 
         if (betaIn * betaOut > 0.f and (alpaka::math::abs(acc, pt_beta) < 4.f * SDL::pt_betaMax or (lIn >= 11 and alpaka::math::abs(acc, pt_beta) < 8.f * SDL::pt_betaMax)))   //and the pt_beta is well-defined; less strict for endcap-endcap
         {
-            const float betaInUpd  = betaIn + copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
-            const float betaOutUpd = betaOut + copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaOut); //FIXME: need a faster version
+            const float betaInUpd  = betaIn + SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            const float betaOutUpd = betaOut + SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaOut); //FIXME: need a faster version
             betaAv = 0.5f * (betaInUpd + betaOutUpd);
 
             //1st update
             const float pt_beta_inv = 1.f/alpaka::math::abs(acc, dr * k2Rinv1GeVf / alpaka::math::sin(acc, betaAv)); //get a better pt estimate
 
-            betaIn  += copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf *pt_beta_inv, SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
-            betaOut += copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf *pt_beta_inv, SDL::sinAlphaMax)), betaOut); //FIXME: need a faster version
+            betaIn  += SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf *pt_beta_inv, SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            betaOut += SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf *pt_beta_inv, SDL::sinAlphaMax)), betaOut); //FIXME: need a faster version
             //update the av and pt
             betaAv = 0.5f * (betaIn + betaOut);
             //2nd update
@@ -2207,14 +2207,14 @@ namespace SDL
         {
             const float pt_betaIn = dr * k2Rinv1GeVf / alpaka::math::sin(acc, betaIn);
 
-            const float betaInUpd  = betaIn + copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_betaIn), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
-            const float betaOutUpd = betaOut + copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_betaIn), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            const float betaInUpd  = betaIn + SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_betaIn), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            const float betaOutUpd = betaOut + SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_betaIn), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
             betaAv = (alpaka::math::abs(acc, betaOut) > 0.2f * alpaka::math::abs(acc, betaIn)) ? (0.5f * (betaInUpd + betaOutUpd)) : betaInUpd;
 
             //1st update
             pt_beta = dr * SDL::k2Rinv1GeVf /alpaka::math::sin(acc, betaAv); //get a better pt estimate
-            betaIn  += copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
-            betaOut += copysignf_alpaka(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            betaIn  += SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
+            betaOut += SDL::copysignf(alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)), betaIn); //FIXME: need a faster version
             //update the av and pt
             betaAv = 0.5f * (betaIn + betaOut);
             //2nd update
@@ -2256,7 +2256,7 @@ namespace SDL
 
         float& rt_InOut = rt_InUp;
 
-        pass = pass and (alpaka::math::abs(acc, deltaPhi_alpaka(acc, x_InUp, y_InUp, x_OutLo, y_OutLo)) <= 0.5f * float(M_PI));
+        pass = pass and (alpaka::math::abs(acc, deltaPhi(acc, x_InUp, y_InUp, x_OutLo, y_OutLo)) <= 0.5f * float(M_PI));
         if(not pass) return pass;
 
         unsigned int pixelSegmentArrayIndex = innerSegmentIndex - rangesInGPU.segmentModuleIndices[pixelModuleIndex];
@@ -2313,7 +2313,7 @@ namespace SDL
         const float sdlPVoff = 0.1f / rt_OutLo;
         sdlCut = alpha1GeV_OutLo + alpaka::math::sqrt(acc, sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
 
-        dPhiPos = deltaPhi_alpaka(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
+        dPhiPos = deltaPhi(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
 
         //no dphipos cut
         float midPointX = 0.5f * (x_InLo + x_OutLo);
@@ -2324,7 +2324,7 @@ namespace SDL
         float diffY = y_OutLo - y_InLo;
         float diffZ = z_OutLo - z_InLo;
 
-        dPhi = deltaPhi_alpaka(acc, midPointX, midPointY, diffX, diffY);
+        dPhi = deltaPhi(acc, midPointX, midPointY, diffX, diffY);
 
         pass = pass and (alpaka::math::abs(acc, dPhi) <= sdlCut);
         if(not pass) return pass;
@@ -2337,7 +2337,7 @@ namespace SDL
         bool isEC_lastLayer = modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS;
 
         float alpha_OutUp,alpha_OutUp_highEdge,alpha_OutUp_lowEdge;
-        alpha_OutUp = deltaPhi_alpaka(acc, x_OutUp, y_OutUp, x_OutUp - x_OutLo, y_OutUp - y_OutLo);
+        alpha_OutUp = deltaPhi(acc, x_OutUp, y_OutUp, x_OutUp - x_OutLo, y_OutUp - y_OutLo);
 
         alpha_OutUp_highEdge = alpha_OutUp;
         alpha_OutUp_lowEdge = alpha_OutUp;
@@ -2352,27 +2352,27 @@ namespace SDL
         float tl_axis_lowEdge_x = tl_axis_x;
         float tl_axis_lowEdge_y = tl_axis_y;
 
-        betaIn = -deltaPhi_alpaka(acc, px, py, tl_axis_x, tl_axis_y);
+        betaIn = -deltaPhi(acc, px, py, tl_axis_x, tl_axis_y);
         float betaInRHmin = betaIn;
         float betaInRHmax = betaIn;
 
-        betaOut = -alpha_OutUp + deltaPhi_alpaka(acc, x_OutUp, y_OutUp, tl_axis_x, tl_axis_y);
+        betaOut = -alpha_OutUp + deltaPhi(acc, x_OutUp, y_OutUp, tl_axis_x, tl_axis_y);
 
         float betaOutRHmin = betaOut;
         float betaOutRHmax = betaOut;
 
         if(isEC_lastLayer)
         {
-            alpha_OutUp_highEdge = deltaPhi_alpaka(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_OutLo);
-            alpha_OutUp_lowEdge = deltaPhi_alpaka(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_OutLo);
+            alpha_OutUp_highEdge = deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_OutLo);
+            alpha_OutUp_lowEdge = deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_OutLo);
 
             tl_axis_highEdge_x = mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_InUp;
             tl_axis_highEdge_y = mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_InUp;
             tl_axis_lowEdge_x = mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_InUp;
             tl_axis_lowEdge_y = mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_InUp;
 
-            betaOutRHmin = -alpha_OutUp_highEdge + deltaPhi_alpaka(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
-            betaOutRHmax = -alpha_OutUp_lowEdge + deltaPhi_alpaka(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
+            betaOutRHmin = -alpha_OutUp_highEdge + deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
+            betaOutRHmax = -alpha_OutUp_lowEdge + deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
         }
 
         //beta computation
@@ -2485,16 +2485,16 @@ namespace SDL
         const float dzDrtScale = alpaka::math::tan(acc, sdlSlope) / sdlSlope;//FIXME: need approximate value
         zLo = z_InUp + (z_InUp - deltaZLum) * (rtOut_o_rtIn - 1.f) * (z_InUp > 0.f ? 1.f : dzDrtScale) - zGeom; //slope-correction only on outer end
 
-        const float dLum = copysignf_alpaka(deltaZLum, z_InUp);
+        const float dLum = SDL::copysignf(deltaZLum, z_InUp);
         bool isOutSgInnerMDPS = modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS;
 
         const float rtGeom1 = isOutSgInnerMDPS ? pixelPSZpitch : strip2SZpitch;//FIXME: make this chosen by configuration for lay11,12 full PS
-        const float zGeom1 = copysignf_alpaka(zGeom, z_InUp); //used in B-E region
+        const float zGeom1 = SDL::copysignf(zGeom, z_InUp); //used in B-E region
         rtLo = rt_InUp * (1.f + (z_OutLo- z_InUp - zGeom1) / (z_InUp + zGeom1 + dLum) / dzDrtScale) - rtGeom1; //slope correction only on the lower end
 
         float zInForHi = z_InUp - zGeom1 - dLum;
         if (zInForHi * z_InUp < 0)
-            zInForHi = copysignf_alpaka(0.1f, z_InUp);
+            zInForHi = SDL::copysignf(0.1f, z_InUp);
         rtHi = rt_InUp * (1.f + (z_OutLo - z_InUp + zGeom1) / zInForHi) + rtGeom1;
 
         // Cut #2: rt condition
@@ -2531,7 +2531,7 @@ namespace SDL
         const float sdlPVoff = 0.1f / rt_OutLo;
         sdlCut = alpha1GeV_OutLo + alpaka::math::sqrt(acc, sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
 
-        deltaPhiPos = deltaPhi_alpaka(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
+        deltaPhiPos = deltaPhi(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
 
         float midPointX = 0.5f * (x_InLo + x_OutLo);
         float midPointY = 0.5f * (y_InLo + y_OutLo);
@@ -2541,7 +2541,7 @@ namespace SDL
         float diffY = y_OutLo - y_InLo;
         float diffZ = z_OutLo - z_InLo;
 
-        dPhi = deltaPhi_alpaka(acc, midPointX, midPointY, diffX, diffY);
+        dPhi = deltaPhi(acc, midPointX, midPointY, diffX, diffY);
 
         // Cut #5: deltaPhiChange
         pass =  pass and (alpaka::math::abs(acc, dPhi) <= sdlCut);
@@ -2554,7 +2554,7 @@ namespace SDL
 
         float alpha_OutUp,alpha_OutUp_highEdge,alpha_OutUp_lowEdge;
 
-        alpha_OutUp = deltaPhi_alpaka(acc, x_OutUp, y_OutUp, x_OutUp - x_OutLo, y_OutUp - y_OutLo);
+        alpha_OutUp = deltaPhi(acc, x_OutUp, y_OutUp, x_OutUp - x_OutLo, y_OutUp - y_OutLo);
         alpha_OutUp_highEdge = alpha_OutUp;
         alpha_OutUp_lowEdge = alpha_OutUp;
 
@@ -2568,26 +2568,26 @@ namespace SDL
         float tl_axis_lowEdge_x = tl_axis_x;
         float tl_axis_lowEdge_y = tl_axis_y;
 
-        betaIn = -deltaPhi_alpaka(acc, px, py, tl_axis_x, tl_axis_y);
+        betaIn = -deltaPhi(acc, px, py, tl_axis_x, tl_axis_y);
         float betaInRHmin = betaIn;
         float betaInRHmax = betaIn;
 
-        betaOut = -alpha_OutUp + deltaPhi_alpaka(acc, x_OutUp, y_OutUp, tl_axis_x, tl_axis_y);
+        betaOut = -alpha_OutUp + deltaPhi(acc, x_OutUp, y_OutUp, tl_axis_x, tl_axis_y);
         float betaOutRHmin = betaOut;
         float betaOutRHmax = betaOut;
 
         if(isEC_lastLayer)
         {
-            alpha_OutUp_highEdge = deltaPhi_alpaka(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_OutLo);
-            alpha_OutUp_lowEdge = deltaPhi_alpaka(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_OutLo);
+            alpha_OutUp_highEdge = deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_OutLo);
+            alpha_OutUp_lowEdge = deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_OutLo);
 
             tl_axis_highEdge_x = mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_InUp;
             tl_axis_highEdge_y = mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_InUp;
             tl_axis_lowEdge_x = mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_InUp;
             tl_axis_lowEdge_y = mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_InUp;
 
-            betaOutRHmin = -alpha_OutUp_highEdge + deltaPhi_alpaka(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
-            betaOutRHmax = -alpha_OutUp_lowEdge + deltaPhi_alpaka(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
+            betaOutRHmin = -alpha_OutUp_highEdge + deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
+            betaOutRHmax = -alpha_OutUp_lowEdge + deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
         }
 
         //beta computation

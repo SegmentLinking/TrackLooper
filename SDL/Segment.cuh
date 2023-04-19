@@ -409,7 +409,7 @@ namespace SDL
 
         float dz = zOut - zIn;
         // Alpaka: Needs to be moved over
-        float dLum = copysignf(deltaZLum, zIn);
+        float dLum = SDL::copysignf(deltaZLum, zIn);
         float drtDzScale = sdSlope/alpaka::math::tan(acc, sdSlope);
 
         rtLo = alpaka::math::max(acc, rtIn * (1.f + dz / (zIn + dLum) * drtDzScale) - rtGeom,  rtIn - 0.5f * rtGeom); //rt should increase
@@ -426,7 +426,7 @@ namespace SDL
         {
             float dPhiPos_high = SDL::phi_mpi_pi(mdsInGPU.anchorHighEdgePhi[outerMDIndex]-mdsInGPU.anchorPhi[innerMDIndex]);
             float dPhiPos_low = SDL::phi_mpi_pi(mdsInGPU.anchorLowEdgePhi[outerMDIndex]-mdsInGPU.anchorPhi[innerMDIndex]);
-            
+
             dPhiMax = alpaka::math::abs(acc, dPhiPos_high) > alpaka::math::abs(acc, dPhiPos_low) ? dPhiPos_high : dPhiPos_low;
             dPhiMin = alpaka::math::abs(acc, dPhiPos_high) > alpaka::math::abs(acc, dPhiPos_low) ? dPhiPos_low : dPhiPos_high;
         }
