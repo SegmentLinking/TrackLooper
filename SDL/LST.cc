@@ -491,8 +491,8 @@ void SDL::LST::getOutput(SDL::Event& event) {
 
       pt = (ptAv_in + ptAv_out) / 2.;
 
-      eta = SDL::eta(in_trkX_[Hit_8], in_trkY_[Hit_8], in_trkZ_[Hit_8]); // eta from outermost hit
-      phi = SDL::phi(in_trkX_[Hit_0], in_trkY_[Hit_0]); // phi from innermost hit
+      eta = SDL::eta(devHost, in_trkX_[Hit_8], in_trkY_[Hit_8], in_trkZ_[Hit_8]); // eta from outermost hit
+      phi = SDL::phi(devHost, in_trkX_[Hit_0], in_trkY_[Hit_0]); // phi from innermost hit
 
       hit_idx = getHitIdxsFromT5(hitsInGPU, miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, T5);
       hit_array_length = hit_idx.size();

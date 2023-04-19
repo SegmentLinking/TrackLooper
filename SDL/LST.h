@@ -10,6 +10,10 @@
 
 #include "Event.cuh"
 
+// All of the code in this file runs on the host.
+// This is needed for two calls to functions in Hit.cuh
+auto const devHost = alpaka::getDevByIdx<alpaka::DevCpu>(0u);
+
 namespace SDL {
   
   class LST {

@@ -609,7 +609,7 @@ struct hitLoopKernel
             int iDetId = hitsInGPU->detid[ihit];
     
             hitsInGPU->rts[ihit] = alpaka::math::sqrt(acc, ihit_x*ihit_x + ihit_y*ihit_y);
-            hitsInGPU->phis[ihit] = SDL::phi_alpaka(acc, ihit_x,ihit_y);
+            hitsInGPU->phis[ihit] = SDL::phi(acc, ihit_x,ihit_y);
             // Acosh has no supported implementation in Alpaka right now.
             hitsInGPU->etas[ihit] = ((ihit_z>0)-(ihit_z<0)) * SDL::temp_acosh(acc, alpaka::math::sqrt(acc, ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/hitsInGPU->rts[ihit]);
             int found_index = binary_search(modulesInGPU->mapdetId, iDetId, nModules);
