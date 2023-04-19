@@ -1,9 +1,11 @@
 #ifndef Constants_cuh
 #define Constants_cuh
 
+#include <alpaka/alpaka.hpp>
+
 #include <cuda_fp16.h>
 
-#ifdef FP16_Base //This changes pT5 and pT3  and T3 completely. T5 for non regression parameters
+#ifdef FP16_Base //This changes pT5 and pT3 and T3 completely. T5 for non regression parameters
 #define __F2H __float2half  
 #define __H2F __half2float  
 typedef __half FPX;
@@ -67,19 +69,19 @@ const unsigned int N_MAX_T3T3_TRACK_EXTENSIONS = 40000;
 namespace SDL
 {
     //defining the constant host device variables right up here
-    extern __device__ const float miniMulsPtScaleBarrel[6];
-    extern __device__ const float miniMulsPtScaleEndcap[5]; 
-    extern __device__ const float miniRminMeanBarrel[6];
-    extern __device__ const float miniRminMeanEndcap[5];
-    extern __device__ const float k2Rinv1GeVf;
-    extern __device__ const float kR1GeVf;
-    extern __device__ const float sinAlphaMax;
-    extern __device__ const float ptCut;
-    extern __device__ const float deltaZLum;
-    extern __device__ const float pixelPSZpitch;
-    extern __device__ const float strip2SZpitch;
-    extern __device__ const float pt_betaMax;
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float miniMulsPtScaleBarrel[6] = {0.0052, 0.0038, 0.0034, 0.0034, 0.0032, 0.0034};
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float miniMulsPtScaleEndcap[5] = {0.006, 0.006, 0.006, 0.006, 0.006}; 
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float miniRminMeanBarrel[6] = {25.007152356, 37.2186993757, 52.3104270826, 68.6658656666, 85.9770373007, 108.301772384};
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float miniRminMeanEndcap[5] = {130.992832231, 154.813883559, 185.352604327, 221.635123002, 265.022076742};
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float k2Rinv1GeVf = (2.99792458e-3 * 3.8) / 2;
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float kR1GeVf = 1./(2.99792458e-3 * 3.8);
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float sinAlphaMax = 0.95;
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float ptCut = 0.8;
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float deltaZLum = 15.0;
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float pixelPSZpitch = 0.15;
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float strip2SZpitch = 5.0;
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float pt_betaMax = 7.0;
     // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
-    extern __device__ const float SDL_INF;
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float SDL_INF = 123456789;
 }
 #endif
