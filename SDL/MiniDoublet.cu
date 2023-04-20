@@ -8,65 +8,6 @@ void SDL::miniDoublets::resetMemory(unsigned int nMemoryLocationsx, unsigned int
     cudaMemsetAsync(totOccupancyMDs,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
 }
 
-ALPAKA_FN_ACC void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
-{
-    //the index into which this MD needs to be written will be computed in the kernel
-    //nMDs variable will be incremented in the kernel, no need to worry about that here
-    
-    mdsInGPU.moduleIndices[idx] = lowerModuleIdx;
-    unsigned int anchorHitIndex, outerHitIndex;
-    if(modulesInGPU.moduleType[lowerModuleIdx] == PS and modulesInGPU.moduleLayerType[lowerModuleIdx] == Strip)
-    {
-        mdsInGPU.anchorHitIndices[idx] = upperHitIdx;
-        mdsInGPU.outerHitIndices[idx] = lowerHitIdx;
-
-        anchorHitIndex = upperHitIdx;
-        outerHitIndex = lowerHitIdx;
-    }
-    else
-    {
-        mdsInGPU.anchorHitIndices[idx] = lowerHitIdx;
-        mdsInGPU.outerHitIndices[idx] = upperHitIdx;
-
-        anchorHitIndex = lowerHitIdx;
-        outerHitIndex = upperHitIdx;
-    }
-
-    mdsInGPU.dphichanges[idx] = dPhiChange;
-
-    mdsInGPU.dphis[idx] = dPhi;
-    mdsInGPU.dzs[idx] = dz;
-    mdsInGPU.shiftedXs[idx] = shiftedX;
-    mdsInGPU.shiftedYs[idx] = shiftedY;
-    mdsInGPU.shiftedZs[idx] = shiftedZ;
-
-    mdsInGPU.noShiftedDzs[idx] = noShiftedDz;
-    mdsInGPU.noShiftedDphis[idx] = noShiftedDphi;
-    mdsInGPU.noShiftedDphiChanges[idx] = noShiftedDPhiChange;
-
-    mdsInGPU.anchorX[idx] = hitsInGPU.xs[anchorHitIndex];
-    mdsInGPU.anchorY[idx] = hitsInGPU.ys[anchorHitIndex];
-    mdsInGPU.anchorZ[idx] = hitsInGPU.zs[anchorHitIndex];
-    mdsInGPU.anchorRt[idx] = hitsInGPU.rts[anchorHitIndex];
-    mdsInGPU.anchorPhi[idx] = hitsInGPU.phis[anchorHitIndex];
-    mdsInGPU.anchorEta[idx] = hitsInGPU.etas[anchorHitIndex];
-    mdsInGPU.anchorHighEdgeX[idx] = hitsInGPU.highEdgeXs[anchorHitIndex];
-    mdsInGPU.anchorHighEdgeY[idx] = hitsInGPU.highEdgeYs[anchorHitIndex];
-    mdsInGPU.anchorLowEdgeX[idx] = hitsInGPU.lowEdgeXs[anchorHitIndex];
-    mdsInGPU.anchorLowEdgeY[idx] = hitsInGPU.lowEdgeYs[anchorHitIndex];
-
-    mdsInGPU.outerX[idx] = hitsInGPU.xs[outerHitIndex];
-    mdsInGPU.outerY[idx] = hitsInGPU.ys[outerHitIndex];
-    mdsInGPU.outerZ[idx] = hitsInGPU.zs[outerHitIndex];
-    mdsInGPU.outerRt[idx] = hitsInGPU.rts[outerHitIndex];
-    mdsInGPU.outerPhi[idx] = hitsInGPU.phis[outerHitIndex];
-    mdsInGPU.outerEta[idx] = hitsInGPU.etas[outerHitIndex];
-    mdsInGPU.outerHighEdgeX[idx] = hitsInGPU.highEdgeXs[outerHitIndex];
-    mdsInGPU.outerHighEdgeY[idx] = hitsInGPU.highEdgeYs[outerHitIndex];
-    mdsInGPU.outerLowEdgeX[idx] = hitsInGPU.lowEdgeXs[outerHitIndex];
-    mdsInGPU.outerLowEdgeY[idx] = hitsInGPU.lowEdgeYs[outerHitIndex];
-}
-
 void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, uint16_t& nLowerModules, unsigned int& nTotalMDs, cudaStream_t stream, const unsigned int& maxPixelMDs)
 {
     /*
