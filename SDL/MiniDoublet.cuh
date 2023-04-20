@@ -75,14 +75,67 @@ namespace SDL
 
     __global__ void addMiniDoubletRangesToEventExplicit(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct objectRanges& rangesInGPU, struct hits& hitsInGPU);
 
-//#ifdef CUT_VALUE_DEBUG
-    //ALPAKA_FN_ACC void addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float drt, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, float dzCut, float drtCut, float miniCut, unsigned int idx);
-//#else
-    //for successful MDs
-    ALPAKA_FN_HOST_ACC void addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx);
-//#endif
+    void printMD(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, SDL::modules& modulesInGPU, unsigned int mdIndex);
 
-    //ALPAKA_FN_ACC float dPhiThreshold(struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int hitIndex, unsigned int moduleIndex, float dPhi = 0, float dz = 0);
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
+    {
+        //the index into which this MD needs to be written will be computed in the kernel
+        //nMDs variable will be incremented in the kernel, no need to worry about that here
+        
+        mdsInGPU.moduleIndices[idx] = lowerModuleIdx;
+        unsigned int anchorHitIndex, outerHitIndex;
+        if(modulesInGPU.moduleType[lowerModuleIdx] == PS and modulesInGPU.moduleLayerType[lowerModuleIdx] == Strip)
+        {
+            mdsInGPU.anchorHitIndices[idx] = upperHitIdx;
+            mdsInGPU.outerHitIndices[idx] = lowerHitIdx;
+
+            anchorHitIndex = upperHitIdx;
+            outerHitIndex = lowerHitIdx;
+        }
+        else
+        {
+            mdsInGPU.anchorHitIndices[idx] = lowerHitIdx;
+            mdsInGPU.outerHitIndices[idx] = upperHitIdx;
+
+            anchorHitIndex = lowerHitIdx;
+            outerHitIndex = upperHitIdx;
+        }
+
+        mdsInGPU.dphichanges[idx] = dPhiChange;
+
+        mdsInGPU.dphis[idx] = dPhi;
+        mdsInGPU.dzs[idx] = dz;
+        mdsInGPU.shiftedXs[idx] = shiftedX;
+        mdsInGPU.shiftedYs[idx] = shiftedY;
+        mdsInGPU.shiftedZs[idx] = shiftedZ;
+
+        mdsInGPU.noShiftedDzs[idx] = noShiftedDz;
+        mdsInGPU.noShiftedDphis[idx] = noShiftedDphi;
+        mdsInGPU.noShiftedDphiChanges[idx] = noShiftedDPhiChange;
+
+        mdsInGPU.anchorX[idx] = hitsInGPU.xs[anchorHitIndex];
+        mdsInGPU.anchorY[idx] = hitsInGPU.ys[anchorHitIndex];
+        mdsInGPU.anchorZ[idx] = hitsInGPU.zs[anchorHitIndex];
+        mdsInGPU.anchorRt[idx] = hitsInGPU.rts[anchorHitIndex];
+        mdsInGPU.anchorPhi[idx] = hitsInGPU.phis[anchorHitIndex];
+        mdsInGPU.anchorEta[idx] = hitsInGPU.etas[anchorHitIndex];
+        mdsInGPU.anchorHighEdgeX[idx] = hitsInGPU.highEdgeXs[anchorHitIndex];
+        mdsInGPU.anchorHighEdgeY[idx] = hitsInGPU.highEdgeYs[anchorHitIndex];
+        mdsInGPU.anchorLowEdgeX[idx] = hitsInGPU.lowEdgeXs[anchorHitIndex];
+        mdsInGPU.anchorLowEdgeY[idx] = hitsInGPU.lowEdgeYs[anchorHitIndex];
+
+        mdsInGPU.outerX[idx] = hitsInGPU.xs[outerHitIndex];
+        mdsInGPU.outerY[idx] = hitsInGPU.ys[outerHitIndex];
+        mdsInGPU.outerZ[idx] = hitsInGPU.zs[outerHitIndex];
+        mdsInGPU.outerRt[idx] = hitsInGPU.rts[outerHitIndex];
+        mdsInGPU.outerPhi[idx] = hitsInGPU.phis[outerHitIndex];
+        mdsInGPU.outerEta[idx] = hitsInGPU.etas[outerHitIndex];
+        mdsInGPU.outerHighEdgeX[idx] = hitsInGPU.highEdgeXs[outerHitIndex];
+        mdsInGPU.outerHighEdgeY[idx] = hitsInGPU.highEdgeYs[outerHitIndex];
+        mdsInGPU.outerLowEdgeX[idx] = hitsInGPU.lowEdgeXs[outerHitIndex];
+        mdsInGPU.outerLowEdgeY[idx] = hitsInGPU.lowEdgeYs[outerHitIndex];
+    };
+
     ALPAKA_FN_ACC ALPAKA_FN_INLINE float isTighterTiltedModules(struct modules& modulesInGPU, uint16_t& moduleIndex)
     {
         // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
@@ -105,7 +158,6 @@ namespace SDL
             return false;
 
     }
-    ALPAKA_FN_ACC void initModuleGapSize();
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE float moduleGapSize(struct modules& modulesInGPU, uint16_t& moduleIndex)
     {
@@ -153,7 +205,6 @@ namespace SDL
                 }
             }
         }
-
 
         unsigned int iL = modulesInGPU.layers[moduleIndex]-1;
         unsigned int iR = modulesInGPU.rings[moduleIndex] - 1;
@@ -625,8 +676,6 @@ namespace SDL
         return pass;
     }
 
-    void printMD(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, SDL::modules& modulesInGPU, unsigned int mdIndex);
-
     struct createMiniDoubletsInGPUv2
     {
         template<typename TAcc>
@@ -687,11 +736,8 @@ namespace SDL
                         {
                             int mdModuleIndex = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &mdsInGPU.nMDs[lowerModuleIndex], 1);
                             unsigned int mdIndex = rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex] + mdModuleIndex;
-//#ifdef CUT_VALUE_DEBUG
-                            //addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz,drt, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, dzCut, drtCut, miniCut, mdIndex);
-//#else
+
                             addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, mdIndex);
-//#endif
                         }
 
                     }
