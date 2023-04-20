@@ -63,11 +63,55 @@ namespace SDL
     __global__ void addTripletRangesToEventExplicit(struct modules& modulesInGPU, struct triplets& tripletsInGPU, struct objectRanges& rangesInGPU);
 
     void createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, uint16_t nLowerModules,cudaStream_t stream);
+
 #ifdef CUT_VALUE_DEBUG
-    ALPAKA_FN_ACC void addTripletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float& pt_beta, float& zLo, float& zHi, float& rtLo, float& rtHi, float& zLoPointed, float&zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ, unsigned int& tripletIndex);
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addTripletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float& pt_beta, float& zLo, float& zHi, float& rtLo, float& rtHi, float& zLoPointed, float&zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ, unsigned int& tripletIndex)
 #else
-    ALPAKA_FN_ACC void addTripletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, float& betaIn, float& betaOut, float& pt_beta, unsigned int& tripletIndex);
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addTripletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, float& betaIn, float& betaOut, float& pt_beta, unsigned int& tripletIndex)
 #endif
+    {
+        tripletsInGPU.segmentIndices[tripletIndex * 2] = innerSegmentIndex;
+        tripletsInGPU.segmentIndices[tripletIndex * 2 + 1] = outerSegmentIndex;
+        tripletsInGPU.lowerModuleIndices[tripletIndex * 3] = innerInnerLowerModuleIndex;
+        tripletsInGPU.lowerModuleIndices[tripletIndex * 3 + 1] = middleLowerModuleIndex;
+        tripletsInGPU.lowerModuleIndices[tripletIndex * 3 + 2] = outerOuterLowerModuleIndex;
+
+        tripletsInGPU.betaIn[tripletIndex]  = __F2H(betaIn);
+        tripletsInGPU.betaOut[tripletIndex] = __F2H(betaOut);
+        tripletsInGPU.pt_beta[tripletIndex] = __F2H(pt_beta);
+    
+        tripletsInGPU.logicalLayers[tripletIndex * 3] = modulesInGPU.layers[innerInnerLowerModuleIndex] + (modulesInGPU.subdets[innerInnerLowerModuleIndex] == 4) * 6;
+        tripletsInGPU.logicalLayers[tripletIndex * 3 + 1] = modulesInGPU.layers[middleLowerModuleIndex] + (modulesInGPU.subdets[middleLowerModuleIndex] == 4) * 6;
+        tripletsInGPU.logicalLayers[tripletIndex * 3 + 2] = modulesInGPU.layers[outerOuterLowerModuleIndex] + (modulesInGPU.subdets[outerOuterLowerModuleIndex] == 4) * 6;
+        //get the hits
+        unsigned int firstMDIndex = segmentsInGPU.mdIndices[2 * innerSegmentIndex];
+        unsigned int secondMDIndex = segmentsInGPU.mdIndices[2 * innerSegmentIndex + 1];
+        unsigned int thirdMDIndex = segmentsInGPU.mdIndices[2 * outerSegmentIndex + 1];
+
+        tripletsInGPU.hitIndices[tripletIndex * 6] = mdsInGPU.anchorHitIndices[firstMDIndex];
+        tripletsInGPU.hitIndices[tripletIndex * 6 + 1] = mdsInGPU.outerHitIndices[firstMDIndex];
+        tripletsInGPU.hitIndices[tripletIndex * 6 + 2] = mdsInGPU.anchorHitIndices[secondMDIndex];
+        tripletsInGPU.hitIndices[tripletIndex * 6 + 3] = mdsInGPU.outerHitIndices[secondMDIndex];
+        tripletsInGPU.hitIndices[tripletIndex * 6 + 4] = mdsInGPU.anchorHitIndices[thirdMDIndex];
+        tripletsInGPU.hitIndices[tripletIndex * 6 + 5] = mdsInGPU.outerHitIndices[thirdMDIndex];
+#ifdef CUT_VALUE_DEBUG
+        tripletsInGPU.zOut[tripletIndex] = zOut;
+        tripletsInGPU.rtOut[tripletIndex] = rtOut;
+        tripletsInGPU.deltaPhiPos[tripletIndex] = deltaPhiPos;
+        tripletsInGPU.deltaPhi[tripletIndex] = deltaPhi;
+        tripletsInGPU.zLo[tripletIndex] = zLo;
+        tripletsInGPU.zHi[tripletIndex] = zHi;
+        tripletsInGPU.rtLo[tripletIndex] = rtLo;
+        tripletsInGPU.rtHi[tripletIndex] = rtHi;
+        tripletsInGPU.zLoPointed[tripletIndex] = zLoPointed;
+        tripletsInGPU.zHiPointed[tripletIndex] = zHiPointed;
+        tripletsInGPU.sdlCut[tripletIndex] = sdlCut;
+        tripletsInGPU.betaInCut[tripletIndex] = betaInCut;
+        tripletsInGPU.betaOutCut[tripletIndex] = betaOutCut;
+        tripletsInGPU.deltaBetaCut[tripletIndex] = deltaBetaCut;
+        tripletsInGPU.kZ[tripletIndex] = kZ;
+#endif
+    };
 
     template<typename TAcc>
     ALPAKA_FN_ACC ALPAKA_FN_INLINE bool passRZConstraint(TAcc const & acc, struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, unsigned int& firstMDIndex, unsigned int& secondMDIndex, unsigned int& thirdMDIndex) 
