@@ -687,8 +687,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         cudaStreamSynchronize(stream);
         nTotalMDs+= N_MAX_PIXEL_MD_PER_MODULES;
         cudaFree(device_nTotalMDs);
-    	  createMDsInExplicitMemory(*mdsInGPU, nTotalMDs, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES,stream);
-
+        createMDsInExplicitMemory(*mdsInGPU, nTotalMDs, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES,stream);
         cudaMemcpyAsync(mdsInGPU->nMemoryLocations, &nTotalMDs, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
         cudaStreamSynchronize(stream);
 
@@ -902,14 +901,14 @@ void SDL::Event::createMiniDoublets()
 {
     //hardcoded range numbers for this will come from studies!
     unsigned int nTotalMDs;
-        unsigned int *device_nTotalMDs;
-        cudaMalloc((void **)&device_nTotalMDs, sizeof(unsigned int));
-        cudaMemsetAsync(&rangesInGPU->miniDoubletModuleOccupancy[nLowerModules],N_MAX_PIXEL_MD_PER_MODULES, sizeof(unsigned int),stream);
-        createMDArrayRangesGPU<<<1,1024,0,stream>>>(*modulesInGPU, *rangesInGPU, device_nTotalMDs); 
-        cudaMemcpyAsync(&nTotalMDs,device_nTotalMDs,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
-        nTotalMDs+=N_MAX_PIXEL_MD_PER_MODULES;
-        cudaFree(device_nTotalMDs);
+    unsigned int *device_nTotalMDs;
+    cudaMalloc((void **)&device_nTotalMDs, sizeof(unsigned int));
+    cudaMemsetAsync(&rangesInGPU->miniDoubletModuleOccupancy[nLowerModules],N_MAX_PIXEL_MD_PER_MODULES, sizeof(unsigned int),stream);
+    createMDArrayRangesGPU<<<1,1024,0,stream>>>(*modulesInGPU, *rangesInGPU, device_nTotalMDs); 
+    cudaMemcpyAsync(&nTotalMDs,device_nTotalMDs,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
+    cudaStreamSynchronize(stream);
+    nTotalMDs+=N_MAX_PIXEL_MD_PER_MODULES;
+    cudaFree(device_nTotalMDs);
 
     if(mdsInGPU == nullptr)
     {
