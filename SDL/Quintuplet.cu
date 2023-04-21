@@ -83,7 +83,7 @@ void SDL::quintuplets::freeMemory(cudaStream_t stream)
     cudaStreamSynchronize(stream);
 }
 //TODO:Reuse the track candidate one instead of this!
-__global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU,struct triplets& tripletsInGPU, unsigned int* device_nTotalQuintuplets, struct objectRanges& rangesInGPU)
+__global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU,struct triplets& tripletsInGPU, struct objectRanges& rangesInGPU)
 {
     __shared__ int nEligibleT5Modulesx;
     __shared__ unsigned int nTotalQuintupletsx;
@@ -140,7 +140,7 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
     __syncthreads();
     if(threadIdx.x==0){
         *rangesInGPU.nEligibleT5Modules = static_cast<uint16_t>(nEligibleT5Modulesx);
-        *device_nTotalQuintuplets = nTotalQuintupletsx;
+        *rangesInGPU.device_nTotalQuints = nTotalQuintupletsx;
     }
 }
 

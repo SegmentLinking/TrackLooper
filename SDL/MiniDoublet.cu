@@ -17,7 +17,7 @@ void SDL::miniDoublets::resetMemory(unsigned int nMemoryLocationsx, unsigned int
 }
 
 
-__global__ void SDL::createMDArrayRangesGPU(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, unsigned int* nTotalMDsx)
+__global__ void SDL::createMDArrayRangesGPU(struct modules& modulesInGPU, struct objectRanges& rangesInGPU)//, unsigned int* nTotalMDsx)
 {
     short module_subdets;
     short module_layers;
@@ -67,7 +67,8 @@ __global__ void SDL::createMDArrayRangesGPU(struct modules& modulesInGPU, struct
     __syncthreads();
     if(threadIdx.x==0){
       rangesInGPU.miniDoubletModuleIndices[*modulesInGPU.nLowerModules] = nTotalMDs;
-      *nTotalMDsx=nTotalMDs;
+      //*nTotalMDsx=nTotalMDs;
+      *rangesInGPU.device_nTotalMDs=nTotalMDs;
     }
 
 }

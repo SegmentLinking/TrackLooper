@@ -37,6 +37,11 @@ void SDL::createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned
     rangesInGPU.tripletModuleIndices = (int*)cms::cuda::allocate_device(dev, nLowerModules * sizeof(int), stream);
     rangesInGPU.tripletModuleOccupancy = (int*)cms::cuda::allocate_device(dev, nLowerModules * sizeof(int), stream);
 
+    rangesInGPU.device_nTotalMDs = (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int), stream);
+    rangesInGPU.device_nTotalSegs = (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int), stream);
+    rangesInGPU.device_nTotalTrips = (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int), stream);
+    rangesInGPU.device_nTotalQuints = (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int), stream);
+
 #else
     cudaMalloc(&rangesInGPU.hitRanges,nModules * 2 * sizeof(int));
     cudaMalloc(&rangesInGPU.hitRangesLower,nModules  * sizeof(int));
@@ -59,6 +64,11 @@ void SDL::createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned
     cudaMalloc(&rangesInGPU.segmentModuleOccupancy, (nLowerModules + 1) * sizeof(int));
     cudaMalloc(&rangesInGPU.tripletModuleIndices, nLowerModules * sizeof(int));
     cudaMalloc(&rangesInGPU.tripletModuleOccupancy, nLowerModules * sizeof(int));
+    
+    cudaMalloc(&rangesInGPU.device_nTotalMDs, sizeof(unsigned int));
+    cudaMalloc(&rangesInGPU.device_nTotalSegs, sizeof(unsigned int));
+    cudaMalloc(&rangesInGPU.device_nTotalTrips, sizeof(unsigned int));
+    cudaMalloc(&rangesInGPU.device_nTotalQuints, sizeof(unsigned int));
 
 #endif
 }
@@ -120,6 +130,10 @@ void SDL::objectRanges::freeMemoryCache()//struct objectRanges& rangesInGPU)
   cms::cuda::free_device(dev, segmentModuleOccupancy);
   cms::cuda::free_device(dev, tripletModuleIndices);
   cms::cuda::free_device(dev, tripletModuleOccupancy);
+  cms::cuda::free_device(dev, device_nTotalMDs);
+  cms::cuda::free_device(dev, device_nTotalSegs);
+  cms::cuda::free_device(dev, device_nTotalTrips);
+  cms::cuda::free_device(dev, device_nTotalQuints);
 }
 void SDL::objectRanges::freeMemory()
 {
@@ -144,6 +158,10 @@ void SDL::objectRanges::freeMemory()
   cudaFree(segmentModuleOccupancy);
   cudaFree(tripletModuleIndices);
   cudaFree(tripletModuleOccupancy);
+  cudaFree(device_nTotalMDs);
+  cudaFree(device_nTotalSegs);
+  cudaFree(device_nTotalTrips);
+  cudaFree(device_nTotalQuints);
 }
 void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMapping)
 {

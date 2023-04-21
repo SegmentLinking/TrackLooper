@@ -30,7 +30,7 @@ void SDL::segments::resetMemory(unsigned int nMemoryLocationsx, unsigned int nLo
 }
 
 
-__global__ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU, unsigned int* nTotalSegmentsx)
+__global__ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU)
 {
     short module_subdets;
     short module_layers;
@@ -88,7 +88,7 @@ __global__ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, stru
     __syncthreads();
     if(threadIdx.x==0){
       rangesInGPU.segmentModuleIndices[*modulesInGPU.nLowerModules] = nTotalSegments;
-      *nTotalSegmentsx = nTotalSegments;
+      *rangesInGPU.device_nTotalSegs = nTotalSegments;
     }
 }
 

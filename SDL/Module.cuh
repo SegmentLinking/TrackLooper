@@ -73,7 +73,10 @@ namespace SDL
         int *tripletModuleIndices;
         int *tripletModuleOccupancy;
 
-//        unsigned int nTotalQuintuplets;
+        unsigned int *device_nTotalMDs;
+        unsigned int *device_nTotalSegs;
+        unsigned int *device_nTotalTrips;
+        unsigned int *device_nTotalQuints;
     
         void freeMemoryCache();
         void freeMemory();
