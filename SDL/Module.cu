@@ -103,7 +103,7 @@ void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned in
     cudaStreamSynchronize(stream);
 }
 
-void SDL::objectRanges::freeMemoryCache()//struct objectRanges& rangesInGPU)
+void SDL::objectRanges::freeMemoryCache()
 {
     int dev;
     cudaGetDevice(&dev);
@@ -397,7 +397,6 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
         }
         else
         {
-
             host_moduleType[index] = ( m_t == 25 ? SDL::TwoS : SDL::PS );
             host_moduleLayerType[index] = ( m_t == 23 ? SDL::Pixel : SDL::Strip );
 
@@ -681,66 +680,6 @@ void SDL::setDerivedQuantities(unsigned int detId, unsigned short& layer, unsign
     eta = ((m_z > 0) - ( m_z < 0)) * std::acosh(r / std::sqrt(m_x * m_x + m_y * m_y));
 }
 
-//auxilliary functions - will be called as needed
-bool SDL::modules::parseIsInverted(unsigned int index)
-{
-    if (subdets[index] == Endcap)
-    {
-        if (sides[index] == NegZ)
-        {
-            return modules[index] % 2 == 1;
-        }
-        else if (sides[index] == PosZ)
-        {
-            return modules[index] % 2 == 0;
-        }
-        else
-        {
-            return 0;
-        }
-    }
-    else if (subdets[index] == Barrel)
-    {
-        if (sides[index] == Center)
-        {
-            if (layers[index] <= 3)
-            {
-                return modules[index] % 2 == 1;
-            }
-            else if (layers[index] >= 4)
-            {
-                return modules[index] % 2 == 0;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else if (sides[index] == NegZ or sides[index] == PosZ)
-        {
-            if (layers[index] <= 2)
-            {
-                return modules[index] % 2 == 1;
-            }
-            else if (layers[index] == 3)
-            {
-                return modules[index] % 2 == 0;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-        else
-        {
-            return 0;
-        }
-    }
-    else
-    {
-        return 0;
-    }
-}
 bool SDL::modules::parseIsInverted(short subdet, short side, short module, short layer)
 {
     if (subdet == Endcap)
@@ -805,168 +744,24 @@ bool SDL::modules::parseIsLower(bool isInvertedx, unsigned int detId)
 {
     return (isInvertedx) ? !(detId & 1) : (detId & 1);
 }
-bool SDL::modules::parseIsLower(unsigned int index)
-{
-    return (isInverted[index]) ? !(detIds[index] & 1) : (detIds[index] & 1);
-}
 
 unsigned int SDL::modules::parsePartnerModuleId(unsigned int detId, bool isLowerx, bool isInvertedx)
 {
     return isLowerx ? (isInvertedx ? detId - 1 : detId + 1) : (isInvertedx ? detId + 1 : detId - 1);
 }
 
-SDL::ModuleType SDL::modules::parseModuleType(short subdet, short layer, short ring)
-{
-    if(subdet == Barrel)
-    {
-        if(layer <= 3)
-        {
-            return PS;
-        }
-        else
-        {
-            return TwoS;
-        }
-    }
-    else
-    {
-        if(layer <= 2)
-        {
-            if(ring <= 10)
-            {
-                return PS;
-            }
-            else
-            {
-                return TwoS;
-            }
-        }
-        else
-        {
-            if(ring <= 7)
-            {
-                return PS;
-            }
-            else
-            {
-                return TwoS;
-            }
-        }
-    }
-}
-
-SDL::ModuleType SDL::modules::parseModuleType(unsigned int index)
-{
-    if(subdets[index] == Barrel)
-    {
-        if(layers[index] <= 3)
-        {
-            return PS;
-        }
-        else
-        {
-            return TwoS;
-        }
-    }
-    else
-    {
-        if(layers[index] <= 2)
-        {
-            if(rings[index] <= 10)
-            {
-                return PS;
-            }
-            else
-            {
-                return TwoS;
-            }
-        }
-        else
-        {
-            if(rings[index] <= 7)
-            {
-                return PS;
-            }
-            else
-            {
-                return TwoS;
-            }
-        }
-    }
-}
-
-SDL::ModuleLayerType SDL::modules::parseModuleLayerType(ModuleType moduleTypex,bool isInvertedx, bool isLowerx)
-{
-    if(moduleTypex == TwoS)
-    {
-        return Strip;
-    }
-    if(isInvertedx)
-    {
-        if(isLowerx)
-        {
-            return Strip;
-        }
-        else
-        {
-            return Pixel;
-        }
-    }
-    else
-   {
-        if(isLowerx)
-        {
-            return Pixel;
-        }
-        else
-        {
-            return Strip;
-        }
-    }
-}
-
-SDL::ModuleLayerType SDL::modules::parseModuleLayerType(unsigned int index)
-{
-    if(moduleType[index] == TwoS)
-    {
-        return Strip;
-    }
-    if(isInverted[index])
-    {
-        if(isLower[index])
-        {
-            return Strip;
-        }
-        else
-        {
-            return Pixel;
-        }
-    }
-    else
-   {
-        if(isLower[index])
-        {
-            return Pixel;
-        }
-        else
-        {
-            return Strip;
-        }
-    }
-}
-
 void SDL::resetObjectRanges(struct objectRanges& rangesInGPU, unsigned int nModules,cudaStream_t stream)
 {
-        cudaMemsetAsync(rangesInGPU.hitRanges, -1,nModules*2*sizeof(int),stream);
-        cudaMemsetAsync(rangesInGPU.hitRangesLower, -1,nModules*sizeof(int),stream);
-        cudaMemsetAsync(rangesInGPU.hitRangesUpper, -1,nModules*sizeof(int),stream);
-        cudaMemsetAsync(rangesInGPU.hitRangesnLower, -1,nModules*sizeof(int8_t),stream);
-        cudaMemsetAsync(rangesInGPU.hitRangesnUpper, -1,nModules*sizeof(int8_t),stream);
-        cudaMemsetAsync(rangesInGPU.mdRanges, -1,nModules*2*sizeof(int),stream);
-        cudaMemsetAsync(rangesInGPU.segmentRanges, -1,nModules*2*sizeof(int),stream);
-        cudaMemsetAsync(rangesInGPU.trackletRanges, -1,nModules*2*sizeof(int),stream);
-        cudaMemsetAsync(rangesInGPU.tripletRanges, -1,nModules*2*sizeof(int),stream);
-        cudaMemsetAsync(rangesInGPU.trackCandidateRanges, -1,nModules*2*sizeof(int),stream);
-        cudaMemsetAsync(rangesInGPU.quintupletRanges, -1, nModules*2*sizeof(int),stream);
-        cudaStreamSynchronize(stream);
+    cudaMemsetAsync(rangesInGPU.hitRanges, -1,nModules*2*sizeof(int),stream);
+    cudaMemsetAsync(rangesInGPU.hitRangesLower, -1,nModules*sizeof(int),stream);
+    cudaMemsetAsync(rangesInGPU.hitRangesUpper, -1,nModules*sizeof(int),stream);
+    cudaMemsetAsync(rangesInGPU.hitRangesnLower, -1,nModules*sizeof(int8_t),stream);
+    cudaMemsetAsync(rangesInGPU.hitRangesnUpper, -1,nModules*sizeof(int8_t),stream);
+    cudaMemsetAsync(rangesInGPU.mdRanges, -1,nModules*2*sizeof(int),stream);
+    cudaMemsetAsync(rangesInGPU.segmentRanges, -1,nModules*2*sizeof(int),stream);
+    cudaMemsetAsync(rangesInGPU.trackletRanges, -1,nModules*2*sizeof(int),stream);
+    cudaMemsetAsync(rangesInGPU.tripletRanges, -1,nModules*2*sizeof(int),stream);
+    cudaMemsetAsync(rangesInGPU.trackCandidateRanges, -1,nModules*2*sizeof(int),stream);
+    cudaMemsetAsync(rangesInGPU.quintupletRanges, -1, nModules*2*sizeof(int),stream);
+    cudaStreamSynchronize(stream);
 }
