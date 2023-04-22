@@ -1043,7 +1043,7 @@ namespace SDL
         float tl_axis_lowEdge_x = tl_axis_x;
         float tl_axis_lowEdge_y = tl_axis_y;
 
-        betaIn = -deltaPhi(acc, px, py, tl_axis_x, tl_axis_y);
+        betaIn = -SDL::deltaPhi(acc, px, py, tl_axis_x, tl_axis_y);
         float betaInRHmin = betaIn;
         float betaInRHmax = betaIn;
 
@@ -1260,7 +1260,7 @@ namespace SDL
         float tl_axis_lowEdge_x = tl_axis_x;
         float tl_axis_lowEdge_y = tl_axis_y;
 
-        betaIn = -deltaPhi(acc, px, py, tl_axis_x, tl_axis_y);
+        betaIn = -SDL::deltaPhi(acc, px, py, tl_axis_x, tl_axis_y);
         float betaInRHmin = betaIn;
         float betaInRHmax = betaIn;
 
@@ -2354,7 +2354,7 @@ namespace SDL
         float tl_axis_lowEdge_x = tl_axis_x;
         float tl_axis_lowEdge_y = tl_axis_y;
 
-        betaIn = -deltaPhi(acc, px, py, tl_axis_x, tl_axis_y);
+        betaIn = -SDL::deltaPhi(acc, px, py, tl_axis_x, tl_axis_y);
         float betaInRHmin = betaIn;
         float betaInRHmax = betaIn;
 
@@ -2570,7 +2570,7 @@ namespace SDL
         float tl_axis_lowEdge_x = tl_axis_x;
         float tl_axis_lowEdge_y = tl_axis_y;
 
-        betaIn = -deltaPhi(acc, px, py, tl_axis_x, tl_axis_y);
+        betaIn = -SDL::deltaPhi(acc, px, py, tl_axis_x, tl_axis_y);
         float betaInRHmin = betaIn;
         float betaInRHmax = betaIn;
 
