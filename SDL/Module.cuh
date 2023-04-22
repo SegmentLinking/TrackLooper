@@ -1,9 +1,9 @@
 #ifndef Module_cuh
 #define Module_cuh
 
-#include <iostream>
 #include <map>
-#include <unordered_map>
+#include <iostream>
+
 #include "Constants.cuh"
 #include "TiltedGeometry.h"
 #include "EndcapGeometry.cuh"
@@ -18,12 +18,14 @@ namespace SDL
         Barrel = 5,
         Endcap = 4
     };
+
     enum Side
     {
         NegZ = 1,
         PosZ = 2,
         Center = 3
     };
+
     enum ModuleType
     {
         PS,
@@ -50,12 +52,14 @@ namespace SDL
         int* trackletRanges;
         int* tripletRanges;
         int* trackCandidateRanges;
-        //others will be added later
+        // Others will be added later
         int* quintupletRanges;
 
-        uint16_t *nEligibleT5Modules; //This number is just nEligibleModules - 1, but still we want this to be independent of the TC kernel
-        uint16_t* indicesOfEligibleT5Modules;// will be allocated in createQuintuplets kernel!!!!
-        //to store different starting points for variable occupancy stuff
+        // This number is just nEligibleModules - 1, but still we want this to be independent of the TC kernel
+        uint16_t *nEligibleT5Modules;
+        // Will be allocated in createQuintuplets kernel!
+        uint16_t* indicesOfEligibleT5Modules;
+        // To store different starting points for variable occupancy stuff
         int *quintupletModuleIndices;
         int *miniDoubletModuleIndices;
         int *segmentModuleIndices;
@@ -74,10 +78,10 @@ namespace SDL
         uint16_t* nConnectedModules;
         float* drdzs;
         float* slopes;
-        uint16_t *nModules; //single number
+        uint16_t *nModules;
         uint16_t *nLowerModules;
         uint16_t* partnerModuleIndices;
-       
+
         short* layers;
         short* rings;
         short* modules;
@@ -91,16 +95,10 @@ namespace SDL
         bool* isAnchor;
         ModuleType* moduleType;
         ModuleLayerType* moduleLayerType;
-       
-        ModuleType parseModuleType(unsigned int index);
-        ModuleType parseModuleType(short subdet, short layer, short ring);
-        unsigned int parsePartnerModuleId(unsigned int detId, bool isLowerx, bool isInvertedx);
-        ModuleLayerType parseModuleLayerType(unsigned int index);
-        ModuleLayerType parseModuleLayerType(ModuleType moduleType, bool isInvertedx, bool isLowerx);
 
-        bool parseIsInverted(unsigned int index);
+        unsigned int parsePartnerModuleId(unsigned int detId, bool isLowerx, bool isInvertedx);
+
         bool parseIsInverted(short subdet, short side, short module, short layer);
-        bool parseIsLower(unsigned int index);
         bool parseIsLower(bool isInvertedx,unsigned int detId);
 
         unsigned int* connectedPixels;
@@ -134,8 +132,6 @@ namespace SDL
     extern std::map  <unsigned int, unsigned int> *module_type;
 
     void loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules,uint16_t& nLowerModules,struct pixelMap& pixelMapping,cudaStream_t stream, const char* moduleMetaDataFilePath="data/centroid.txt");
-    void createLowerModuleIndexMap(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules,cudaStream_t stream);
-    void createLowerModuleIndexMapExplicit(struct modules& modulesInGPU, unsigned int nLowerModules, unsigned int nModules, bool* isLower,cudaStream_t stream);
     void createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned int nModules,cudaStream_t stream);
     void freeModules(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
     void freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
@@ -147,7 +143,4 @@ namespace SDL
     void resetObjectRanges(struct objectRanges& rangesInGPU, unsigned int nModules,cudaStream_t stream);
     void createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned int nModules,cudaStream_t stream, unsigned int nLowerModules);
 }
-
-
 #endif
-

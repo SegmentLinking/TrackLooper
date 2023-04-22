@@ -419,7 +419,7 @@ namespace SDL
 
         sdCut = sdSlope + alpaka::math::sqrt(acc, sdMuls * sdMuls + sdPVoff * sdPVoff);
 
-        dPhi  = deltaPhi(acc, xIn, yIn, xOut, yOut);
+        dPhi  = SDL::deltaPhi(acc, xIn, yIn, xOut, yOut);
 
         pass =  pass and (alpaka::math::abs(acc, dPhi) <= sdCut);
         if(not pass) return pass;
@@ -499,13 +499,13 @@ namespace SDL
         pass =  pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
         if(not pass) return pass;
 
-        dPhi = deltaPhi(acc, xIn, yIn, xOut, yOut);
+        dPhi = SDL::deltaPhi(acc, xIn, yIn, xOut, yOut);
 
         sdCut = sdSlope;
         if(outerLayerEndcapTwoS)
         {
-            float dPhiPos_high = deltaPhi(acc, xIn, yIn, xOutHigh, yOutHigh);
-            float dPhiPos_low = deltaPhi(acc, xIn, yIn, xOutLow, yOutLow);
+            float dPhiPos_high = SDL::deltaPhi(acc, xIn, yIn, xOutHigh, yOutHigh);
+            float dPhiPos_low = SDL::deltaPhi(acc, xIn, yIn, xOutLow, yOutLow);
             
             dPhiMax = alpaka::math::abs(acc, dPhiPos_high) > alpaka::math::abs(acc, dPhiPos_low) ? dPhiPos_high : dPhiPos_low;
             dPhiMin = alpaka::math::abs(acc, dPhiPos_high) > alpaka::math::abs(acc, dPhiPos_low) ? dPhiPos_low : dPhiPos_high;

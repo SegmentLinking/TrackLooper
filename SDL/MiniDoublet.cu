@@ -10,10 +10,6 @@ void SDL::miniDoublets::resetMemory(unsigned int nMemoryLocationsx, unsigned int
 
 void SDL::createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, uint16_t& nLowerModules, unsigned int& nTotalMDs, cudaStream_t stream, const unsigned int& maxPixelMDs)
 {
-    /*
-        write code here that will deal with importing module parameters to CPU, and get the relevant occupancies for a given module!
-    */
-
     int *module_miniDoubletModuleIndices;
     module_miniDoubletModuleIndices = (int*)cms::cuda::allocate_host((nLowerModules + 1) * sizeof(unsigned int), stream);
     short* module_subdets;

@@ -44,7 +44,7 @@ namespace SDL
 
     void printHit(struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int hitIndex);
     void createHitsInExplicitMemory(struct hits& hitsInGPU, int nModules, unsigned int maxHits,cudaStream_t stream,unsigned int evtnum);
-    
+
     // Hyperbolic functions were just merged into Alpaka early 2023,
     // so we have to make use of temporary functions for now.
     template<typename TAcc>
@@ -69,15 +69,6 @@ namespace SDL
     };
 
     template<typename TAcc>
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float ATan2(TAcc const & acc, float y, float x)
-    {
-        if (x != 0) return alpaka::math::atan2(acc, y, x);
-        if (y == 0) return  0;
-        if (y >  0) return  float(M_PI) / 2.f;
-        else        return -float(M_PI) / 2.f;
-    };
-
-    template<typename TAcc>
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi_mpi_pi(TAcc const & acc, float x)
     {
         if (alpaka::math::abs(acc, x) <= float(M_PI))
@@ -91,7 +82,7 @@ namespace SDL
     template<typename TAcc>
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi(TAcc const & acc, float x, float y)
     {
-        return phi_mpi_pi(acc, float(M_PI) + ATan2(acc, -y, -x));
+        return phi_mpi_pi(acc, float(M_PI) + alpaka::math::atan2(acc, -y, -x));
     };
 
     template<typename TAcc>
