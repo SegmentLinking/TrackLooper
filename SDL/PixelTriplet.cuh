@@ -940,7 +940,7 @@ namespace SDL
 
         float rt_InOut = rt_InUp;
 
-        pass = pass and (alpaka::math::abs(acc, deltaPhi(acc, x_InUp, y_InUp, x_OutLo, y_OutLo)) <= 0.5f * float(M_PI));
+        pass = pass and (alpaka::math::abs(acc, SDL::deltaPhi(acc, x_InUp, y_InUp, x_OutLo, y_OutLo)) <= 0.5f * float(M_PI));
         if(not pass) return pass;
 
         unsigned int pixelSegmentArrayIndex = innerSegmentIndex - rangesInGPU.segmentModuleIndices[pixelModuleIndex];
@@ -1001,7 +1001,7 @@ namespace SDL
         sdlCut = alpha1GeV_OutLo + alpaka::math::sqrt(acc, sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
 
 #ifdef CUT_VALUE_DEBUG
-        dPhiPos = deltaPhi(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
+        dPhiPos = SDL::deltaPhi(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
 #endif
 
         //no dphipos cut
@@ -1013,7 +1013,7 @@ namespace SDL
         float diffY = y_OutLo - y_InLo;
         float diffZ = z_OutLo - z_InLo;
 
-        dPhi = deltaPhi(acc, midPointX, midPointY, diffX, diffY);
+        dPhi = SDL::deltaPhi(acc, midPointX, midPointY, diffX, diffY);
 
         pass = pass and (alpaka::math::abs(acc, dPhi) <= sdlCut);
         if(not pass) return pass;
@@ -1026,7 +1026,7 @@ namespace SDL
         bool isEC_lastLayer = modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS;
 
         float alpha_OutUp,alpha_OutUp_highEdge,alpha_OutUp_lowEdge;
-        alpha_OutUp = deltaPhi(acc, x_OutUp, y_OutUp, x_OutUp - x_OutLo, y_OutUp - y_OutLo);
+        alpha_OutUp = SDL::deltaPhi(acc, x_OutUp, y_OutUp, x_OutUp - x_OutLo, y_OutUp - y_OutLo);
 
         alpha_OutUp_highEdge = alpha_OutUp;
         alpha_OutUp_lowEdge = alpha_OutUp;
@@ -1045,23 +1045,23 @@ namespace SDL
         float betaInRHmin = betaIn;
         float betaInRHmax = betaIn;
 
-        betaOut = -alpha_OutUp + deltaPhi(acc, x_OutUp, y_OutUp, tl_axis_x, tl_axis_y);
+        betaOut = -alpha_OutUp + SDL::deltaPhi(acc, x_OutUp, y_OutUp, tl_axis_x, tl_axis_y);
 
         float betaOutRHmin = betaOut;
         float betaOutRHmax = betaOut;
 
         if(isEC_lastLayer)
         {
-            alpha_OutUp_highEdge = deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_OutLo);
-            alpha_OutUp_lowEdge = deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_OutLo);
+            alpha_OutUp_highEdge = SDL::deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_OutLo);
+            alpha_OutUp_lowEdge = SDL::deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_OutLo);
 
             tl_axis_highEdge_x = mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_InUp;
             tl_axis_highEdge_y = mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_InUp;
             tl_axis_lowEdge_x = mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_InUp;
             tl_axis_lowEdge_y = mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_InUp;
 
-            betaOutRHmin = -alpha_OutUp_highEdge + deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
-            betaOutRHmax = -alpha_OutUp_lowEdge + deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
+            betaOutRHmin = -alpha_OutUp_highEdge + SDL::deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
+            betaOutRHmax = -alpha_OutUp_lowEdge + SDL::deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
         }
 
         //beta computation
@@ -1221,7 +1221,7 @@ namespace SDL
         const float sdlPVoff = 0.1f / rt_OutLo;
         sdlCut = alpha1GeV_OutLo + alpaka::math::sqrt(acc, sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
 
-        deltaPhiPos = deltaPhi(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
+        deltaPhiPos = SDL::deltaPhi(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
 
         float midPointX = 0.5f * (x_InLo + x_OutLo);
         float midPointY = 0.5f * (y_InLo + y_OutLo);
@@ -1231,7 +1231,7 @@ namespace SDL
         float diffY = y_OutLo - y_InLo;
         float diffZ = z_OutLo - z_InLo;
 
-        dPhi = deltaPhi(acc, midPointX, midPointY, diffX, diffY);
+        dPhi = SDL::deltaPhi(acc, midPointX, midPointY, diffX, diffY);
 
         // Cut #5: deltaPhiChange
         pass =  pass and (alpaka::math::abs(acc, dPhi) <= sdlCut);
@@ -1244,7 +1244,7 @@ namespace SDL
 
         float alpha_OutUp,alpha_OutUp_highEdge,alpha_OutUp_lowEdge;
 
-        alpha_OutUp = deltaPhi(acc, x_OutUp, y_OutUp, x_OutUp - x_OutLo, y_OutUp - y_OutLo);
+        alpha_OutUp = SDL::deltaPhi(acc, x_OutUp, y_OutUp, x_OutUp - x_OutLo, y_OutUp - y_OutLo);
         alpha_OutUp_highEdge = alpha_OutUp;
         alpha_OutUp_lowEdge = alpha_OutUp;
 
@@ -1262,22 +1262,22 @@ namespace SDL
         float betaInRHmin = betaIn;
         float betaInRHmax = betaIn;
 
-        betaOut = -alpha_OutUp + deltaPhi(acc, x_OutUp, y_OutUp, tl_axis_x, tl_axis_y);
+        betaOut = -alpha_OutUp + SDL::deltaPhi(acc, x_OutUp, y_OutUp, tl_axis_x, tl_axis_y);
         float betaOutRHmin = betaOut;
         float betaOutRHmax = betaOut;
 
         if(isEC_lastLayer)
         {
-            alpha_OutUp_highEdge = deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_OutLo);
-            alpha_OutUp_lowEdge = deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_OutLo);
+            alpha_OutUp_highEdge = SDL::deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_OutLo);
+            alpha_OutUp_lowEdge = SDL::deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_OutLo);
 
             tl_axis_highEdge_x = mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_InUp;
             tl_axis_highEdge_y = mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_InUp;
             tl_axis_lowEdge_x = mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_InUp;
             tl_axis_lowEdge_y = mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_InUp;
 
-            betaOutRHmin = -alpha_OutUp_highEdge + deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
-            betaOutRHmax = -alpha_OutUp_lowEdge + deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
+            betaOutRHmin = -alpha_OutUp_highEdge + SDL::deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
+            betaOutRHmax = -alpha_OutUp_lowEdge + SDL::deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
         }
 
         //beta computation
@@ -2256,7 +2256,7 @@ namespace SDL
 
         float& rt_InOut = rt_InUp;
 
-        pass = pass and (alpaka::math::abs(acc, deltaPhi(acc, x_InUp, y_InUp, x_OutLo, y_OutLo)) <= 0.5f * float(M_PI));
+        pass = pass and (alpaka::math::abs(acc, SDL::deltaPhi(acc, x_InUp, y_InUp, x_OutLo, y_OutLo)) <= 0.5f * float(M_PI));
         if(not pass) return pass;
 
         unsigned int pixelSegmentArrayIndex = innerSegmentIndex - rangesInGPU.segmentModuleIndices[pixelModuleIndex];
@@ -2313,7 +2313,7 @@ namespace SDL
         const float sdlPVoff = 0.1f / rt_OutLo;
         sdlCut = alpha1GeV_OutLo + alpaka::math::sqrt(acc, sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
 
-        dPhiPos = deltaPhi(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
+        dPhiPos = SDL::deltaPhi(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
 
         //no dphipos cut
         float midPointX = 0.5f * (x_InLo + x_OutLo);
@@ -2324,7 +2324,7 @@ namespace SDL
         float diffY = y_OutLo - y_InLo;
         float diffZ = z_OutLo - z_InLo;
 
-        dPhi = deltaPhi(acc, midPointX, midPointY, diffX, diffY);
+        dPhi = SDL::deltaPhi(acc, midPointX, midPointY, diffX, diffY);
 
         pass = pass and (alpaka::math::abs(acc, dPhi) <= sdlCut);
         if(not pass) return pass;
@@ -2337,7 +2337,7 @@ namespace SDL
         bool isEC_lastLayer = modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS;
 
         float alpha_OutUp,alpha_OutUp_highEdge,alpha_OutUp_lowEdge;
-        alpha_OutUp = deltaPhi(acc, x_OutUp, y_OutUp, x_OutUp - x_OutLo, y_OutUp - y_OutLo);
+        alpha_OutUp = SDL::deltaPhi(acc, x_OutUp, y_OutUp, x_OutUp - x_OutLo, y_OutUp - y_OutLo);
 
         alpha_OutUp_highEdge = alpha_OutUp;
         alpha_OutUp_lowEdge = alpha_OutUp;
@@ -2356,23 +2356,23 @@ namespace SDL
         float betaInRHmin = betaIn;
         float betaInRHmax = betaIn;
 
-        betaOut = -alpha_OutUp + deltaPhi(acc, x_OutUp, y_OutUp, tl_axis_x, tl_axis_y);
+        betaOut = -alpha_OutUp + SDL::deltaPhi(acc, x_OutUp, y_OutUp, tl_axis_x, tl_axis_y);
 
         float betaOutRHmin = betaOut;
         float betaOutRHmax = betaOut;
 
         if(isEC_lastLayer)
         {
-            alpha_OutUp_highEdge = deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_OutLo);
-            alpha_OutUp_lowEdge = deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_OutLo);
+            alpha_OutUp_highEdge = SDL::deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_OutLo);
+            alpha_OutUp_lowEdge = SDL::deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_OutLo);
 
             tl_axis_highEdge_x = mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_InUp;
             tl_axis_highEdge_y = mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_InUp;
             tl_axis_lowEdge_x = mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_InUp;
             tl_axis_lowEdge_y = mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_InUp;
 
-            betaOutRHmin = -alpha_OutUp_highEdge + deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
-            betaOutRHmax = -alpha_OutUp_lowEdge + deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
+            betaOutRHmin = -alpha_OutUp_highEdge + SDL::deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
+            betaOutRHmax = -alpha_OutUp_lowEdge + SDL::deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
         }
 
         //beta computation
@@ -2531,7 +2531,7 @@ namespace SDL
         const float sdlPVoff = 0.1f / rt_OutLo;
         sdlCut = alpha1GeV_OutLo + alpaka::math::sqrt(acc, sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
 
-        deltaPhiPos = deltaPhi(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
+        deltaPhiPos = SDL::deltaPhi(acc, x_InUp, y_InUp, x_OutUp, y_OutUp);
 
         float midPointX = 0.5f * (x_InLo + x_OutLo);
         float midPointY = 0.5f * (y_InLo + y_OutLo);
@@ -2541,7 +2541,7 @@ namespace SDL
         float diffY = y_OutLo - y_InLo;
         float diffZ = z_OutLo - z_InLo;
 
-        dPhi = deltaPhi(acc, midPointX, midPointY, diffX, diffY);
+        dPhi = SDL::deltaPhi(acc, midPointX, midPointY, diffX, diffY);
 
         // Cut #5: deltaPhiChange
         pass =  pass and (alpaka::math::abs(acc, dPhi) <= sdlCut);
@@ -2554,7 +2554,7 @@ namespace SDL
 
         float alpha_OutUp,alpha_OutUp_highEdge,alpha_OutUp_lowEdge;
 
-        alpha_OutUp = deltaPhi(acc, x_OutUp, y_OutUp, x_OutUp - x_OutLo, y_OutUp - y_OutLo);
+        alpha_OutUp = SDL::deltaPhi(acc, x_OutUp, y_OutUp, x_OutUp - x_OutLo, y_OutUp - y_OutLo);
         alpha_OutUp_highEdge = alpha_OutUp;
         alpha_OutUp_lowEdge = alpha_OutUp;
 
@@ -2572,22 +2572,22 @@ namespace SDL
         float betaInRHmin = betaIn;
         float betaInRHmax = betaIn;
 
-        betaOut = -alpha_OutUp + deltaPhi(acc, x_OutUp, y_OutUp, tl_axis_x, tl_axis_y);
+        betaOut = -alpha_OutUp + SDL::deltaPhi(acc, x_OutUp, y_OutUp, tl_axis_x, tl_axis_y);
         float betaOutRHmin = betaOut;
         float betaOutRHmax = betaOut;
 
         if(isEC_lastLayer)
         {
-            alpha_OutUp_highEdge = deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_OutLo);
-            alpha_OutUp_lowEdge = deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_OutLo);
+            alpha_OutUp_highEdge = SDL::deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_OutLo);
+            alpha_OutUp_lowEdge = SDL::deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_OutLo, mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_OutLo);
 
             tl_axis_highEdge_x = mdsInGPU.anchorHighEdgeX[fourthMDIndex] - x_InUp;
             tl_axis_highEdge_y = mdsInGPU.anchorHighEdgeY[fourthMDIndex] - y_InUp;
             tl_axis_lowEdge_x = mdsInGPU.anchorLowEdgeX[fourthMDIndex] - x_InUp;
             tl_axis_lowEdge_y = mdsInGPU.anchorLowEdgeY[fourthMDIndex] - y_InUp;
 
-            betaOutRHmin = -alpha_OutUp_highEdge + deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
-            betaOutRHmax = -alpha_OutUp_lowEdge + deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
+            betaOutRHmin = -alpha_OutUp_highEdge + SDL::deltaPhi(acc, mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
+            betaOutRHmax = -alpha_OutUp_lowEdge + SDL::deltaPhi(acc, mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
         }
 
         //beta computation
