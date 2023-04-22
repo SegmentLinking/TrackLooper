@@ -92,7 +92,7 @@ namespace SDL
     void createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDs,uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream);
 
 
-    void createMDArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, uint16_t& nLowerModules, unsigned int& nTotalMDs, cudaStream_t stream, const unsigned int& maxPixelMDs);
+    __global__ void createMDArrayRangesGPU(struct modules& modulesInGPU, struct objectRanges& rangesInGPU);//, unsigned int* nTotalMDs);
 
     __global__ void addMiniDoubletRangesToEventExplicit(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct objectRanges& rangesInGPU, struct hits& hitsInGPU);
 

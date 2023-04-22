@@ -16,7 +16,7 @@ void SDL::triplets::resetMemory(unsigned int maxTriplets, unsigned int nLowerMod
     cudaMemsetAsync(partOfPT3, 0, maxTriplets * sizeof(bool), stream);
 }
 
-__global__ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct segments& segmentsInGPU, unsigned int* nTotalTripletsx)
+__global__ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct segments& segmentsInGPU)
 {
 
     short module_subdets;
@@ -39,7 +39,7 @@ __global__ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, stru
         module_subdets = modulesInGPU.subdets[i];
         module_layers = modulesInGPU.layers[i];
         module_rings = modulesInGPU.rings[i];
-        module_eta = modulesInGPU.eta[i];
+        module_eta = abs(modulesInGPU.eta[i]);
         unsigned int occupancy;
         unsigned int category_number, eta_number;
         if (module_layers<=3 && module_subdets==5) category_number = 0;
@@ -48,10 +48,10 @@ __global__ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, stru
         else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
         else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
         else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
-        if (abs(module_eta)<0.75) eta_number=0;
-        else if (abs(module_eta)>0.75 && abs(module_eta)<1.5) eta_number=1;
-        else if (abs(module_eta)>1.5 && abs(module_eta)<2.25) eta_number=2;
-        else if (abs(module_eta)>2.25 && abs(module_eta)<3) eta_number=3;
+        if (module_eta<0.75) eta_number=0;
+        else if (module_eta>0.75 && module_eta<1.5) eta_number=1;
+        else if (module_eta>1.5 && module_eta<2.25) eta_number=2;
+        else if (module_eta>2.25 && module_eta<3) eta_number=3;
 
         if (category_number == 0 && eta_number == 0) occupancy = 543;
         else if (category_number == 0 && eta_number == 1) occupancy = 235;
@@ -71,7 +71,7 @@ __global__ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, stru
     }
     __syncthreads();
     if(threadIdx.x==0){
-      *nTotalTripletsx = nTotalTriplets;
+      *rangesInGPU.device_nTotalTrips = nTotalTriplets;
     }
 }
 

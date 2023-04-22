@@ -31,10 +31,16 @@ void SDL::createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned
     rangesInGPU.quintupletModuleIndices = (int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(int),stream);
     rangesInGPU.quintupletModuleOccupancy = (int*)cms::cuda::allocate_device(dev,nLowerModules * sizeof(int),stream);
     rangesInGPU.miniDoubletModuleIndices = (int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) * sizeof(int), stream);
+    rangesInGPU.miniDoubletModuleOccupancy = (int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) * sizeof(int), stream);
     rangesInGPU.segmentModuleIndices = (int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) * sizeof(int), stream);
     rangesInGPU.segmentModuleOccupancy = (int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) * sizeof(int), stream);
     rangesInGPU.tripletModuleIndices = (int*)cms::cuda::allocate_device(dev, nLowerModules * sizeof(int), stream);
     rangesInGPU.tripletModuleOccupancy = (int*)cms::cuda::allocate_device(dev, nLowerModules * sizeof(int), stream);
+
+    rangesInGPU.device_nTotalMDs = (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int), stream);
+    rangesInGPU.device_nTotalSegs = (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int), stream);
+    rangesInGPU.device_nTotalTrips = (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int), stream);
+    rangesInGPU.device_nTotalQuints = (unsigned int*)cms::cuda::allocate_device(dev, sizeof(unsigned int), stream);
 
 #else
     cudaMalloc(&rangesInGPU.hitRanges,nModules * 2 * sizeof(int));
@@ -53,10 +59,16 @@ void SDL::createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned
     cudaMalloc(&rangesInGPU.quintupletModuleOccupancy, nLowerModules * sizeof(int));
 
     cudaMalloc(&rangesInGPU.miniDoubletModuleIndices, (nLowerModules + 1) * sizeof(int));
+    cudaMalloc(&rangesInGPU.miniDoubletModuleOccupancy, (nLowerModules + 1) * sizeof(int));
     cudaMalloc(&rangesInGPU.segmentModuleIndices, (nLowerModules + 1) * sizeof(int));
     cudaMalloc(&rangesInGPU.segmentModuleOccupancy, (nLowerModules + 1) * sizeof(int));
     cudaMalloc(&rangesInGPU.tripletModuleIndices, nLowerModules * sizeof(int));
     cudaMalloc(&rangesInGPU.tripletModuleOccupancy, nLowerModules * sizeof(int));
+    
+    cudaMalloc(&rangesInGPU.device_nTotalMDs, sizeof(unsigned int));
+    cudaMalloc(&rangesInGPU.device_nTotalSegs, sizeof(unsigned int));
+    cudaMalloc(&rangesInGPU.device_nTotalTrips, sizeof(unsigned int));
+    cudaMalloc(&rangesInGPU.device_nTotalQuints, sizeof(unsigned int));
 
 #endif
 }
@@ -113,10 +125,15 @@ void SDL::objectRanges::freeMemoryCache()//struct objectRanges& rangesInGPU)
   cms::cuda::free_device(dev, hitRangesnLower);
   cms::cuda::free_device(dev, hitRangesnUpper);
   cms::cuda::free_device(dev, miniDoubletModuleIndices);
+  cms::cuda::free_device(dev, miniDoubletModuleOccupancy);
   cms::cuda::free_device(dev, segmentModuleIndices);
   cms::cuda::free_device(dev, segmentModuleOccupancy);
   cms::cuda::free_device(dev, tripletModuleIndices);
   cms::cuda::free_device(dev, tripletModuleOccupancy);
+  cms::cuda::free_device(dev, device_nTotalMDs);
+  cms::cuda::free_device(dev, device_nTotalSegs);
+  cms::cuda::free_device(dev, device_nTotalTrips);
+  cms::cuda::free_device(dev, device_nTotalQuints);
 }
 void SDL::objectRanges::freeMemory()
 {
@@ -136,10 +153,15 @@ void SDL::objectRanges::freeMemory()
   cudaFree(quintupletModuleIndices);
   cudaFree(quintupletModuleOccupancy);
   cudaFree(miniDoubletModuleIndices);
+  cudaFree(miniDoubletModuleOccupancy);
   cudaFree(segmentModuleIndices);
   cudaFree(segmentModuleOccupancy);
   cudaFree(tripletModuleIndices);
   cudaFree(tripletModuleOccupancy);
+  cudaFree(device_nTotalMDs);
+  cudaFree(device_nTotalSegs);
+  cudaFree(device_nTotalTrips);
+  cudaFree(device_nTotalQuints);
 }
 void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMapping)
 {

@@ -83,7 +83,7 @@ void SDL::quintuplets::freeMemory(cudaStream_t stream)
     cudaStreamSynchronize(stream);
 }
 //TODO:Reuse the track candidate one instead of this!
-__global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU,struct triplets& tripletsInGPU, unsigned int* device_nTotalQuintuplets, struct objectRanges& rangesInGPU)
+__global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU,struct triplets& tripletsInGPU, struct objectRanges& rangesInGPU)
 {
     __shared__ int nEligibleT5Modulesx;
     __shared__ unsigned int nTotalQuintupletsx;
@@ -105,7 +105,7 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
         layers = modulesInGPU.layers[i];
         subdets = modulesInGPU.subdets[i];
         rings = modulesInGPU.rings[i];
-        eta = modulesInGPU.eta[i];  
+        eta = abs(modulesInGPU.eta[i]);  
         occupancy = 0;
 
         if (tripletsInGPU.nTriplets[i] == 0) continue;
@@ -119,10 +119,10 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
         else if (layers>=3 && subdets==4 && rings>=8) category_number = 2;
         else if (layers<=2 && subdets==4 && rings<=10) category_number = 3;
         else if (layers>=3 && subdets==4 && rings<=7) category_number = 3;
-        if (abs(eta)<0.75) eta_number=0;
-        else if (abs(eta)>0.75 && abs(eta)<1.5) eta_number=1;
-        else if (abs(eta)>1.5 && abs(eta)<2.25) eta_number=2;
-        else if (abs(eta)>2.25 && abs(eta)<3) eta_number=3;
+        if (eta<0.75) eta_number=0;
+        else if (eta>0.75 && eta<1.5) eta_number=1;
+        else if (eta>1.5 && eta<2.25) eta_number=2;
+        else if (eta>2.25 && eta<3) eta_number=3;
 
         if (category_number == 0 && eta_number == 0) occupancy = 336;
         else if (category_number == 0 && eta_number == 1) occupancy = 414;
@@ -140,7 +140,7 @@ __global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& 
     __syncthreads();
     if(threadIdx.x==0){
         *rangesInGPU.nEligibleT5Modules = static_cast<uint16_t>(nEligibleT5Modulesx);
-        *device_nTotalQuintuplets = nTotalQuintupletsx;
+        *rangesInGPU.device_nTotalQuints = nTotalQuintupletsx;
     }
 }
 

@@ -73,7 +73,7 @@ namespace SDL
         void resetMemory(unsigned int maxTriplets, unsigned int nLowerModules,cudaStream_t stream);
     };
 
-    __global__ void createTripletArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct segments& segmentsInGPU, unsigned int* nTotalTriplets);
+    __global__ void createTripletArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct segments& segmentsInGPU);
     __global__ void addTripletRangesToEventExplicit(struct modules& modulesInGPU, struct triplets& tripletsInGPU, struct objectRanges& rangesInGPU);
 
     void createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, uint16_t nLowerModules,cudaStream_t stream);
