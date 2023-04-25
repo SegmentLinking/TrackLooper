@@ -176,7 +176,6 @@ SDL::Event::~Event()
         delete[] quintupletsInCPU->residual_missing;
         delete[] quintupletsInCPU->residual4;
         delete[] quintupletsInCPU->residual5;
-#endif
         delete quintupletsInCPU;
     }
 

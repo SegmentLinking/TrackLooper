@@ -55,7 +55,6 @@ namespace SDL
         float* residual_missing;
         float* residual4;
         float* residual5;
-#endif
 
         quintuplets();
         ~quintuplets();

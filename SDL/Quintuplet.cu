@@ -30,7 +30,6 @@ SDL::quintuplets::quintuplets()
     residual_missing = nullptr;
     residual4 = nullptr;
     residual5 = nullptr;
-#endif
 }
 
 SDL::quintuplets::~quintuplets()
@@ -65,7 +64,6 @@ void SDL::quintuplets::freeMemoryCache()
     cms::cuda::free_device(dev, residual_missing);
     cms::cuda::free_device(dev, residual4);
     cms::cuda::free_device(dev, residual5);
-#endif
 }
 
 void SDL::quintuplets::freeMemory(cudaStream_t stream)
@@ -94,7 +92,6 @@ void SDL::quintuplets::freeMemory(cudaStream_t stream)
     cudaFree(residual_missing);
     cudaFree(residual4);
     cudaFree(residual5);
-#endif
 cudaStreamSynchronize(stream);
 }
 //TODO:Reuse the track candidate one instead of this!
@@ -192,7 +189,6 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     quintupletsInGPU.residual_missing = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
     quintupletsInGPU.residual4 = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
     quintupletsInGPU.residual5 = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
-#endif
 #else
     cudaMalloc(&quintupletsInGPU.tripletIndices, 2 * nTotalQuintuplets * sizeof(unsigned int));
     cudaMalloc(&quintupletsInGPU.lowerModuleIndices, 5 * nTotalQuintuplets * sizeof(uint16_t));
@@ -754,7 +750,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
 
     float zsi, rtsi;
     int layeri, moduleTypei;
-    float expectrt4=0,expectrt5=0,expectz4=0, expectz5=0;
     rzChiSquared=0;
     for(size_t i = 2; i < 6; i++)
     {
@@ -799,8 +794,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         float x = x_init + Px/a*sin(rou*s)-Py/a*(1-cos(rou*s));
         float y = y_init + Py/a*sin(rou*s)+Px/a*(1-cos(rou*s));
         diffr = (rtsi-sqrt(x*x+y*y))*100;
-        if (i==4) expectrt4=sqrt(x*x+y*y);
-        if (i==5) expectrt5=sqrt(x*x+y*y);
 
         // for barrel
         if (layeri<=6)
@@ -1576,7 +1569,7 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
             uint16_t lowerModule4 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1];
             uint16_t lowerModule5 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 2];
 
-            float innerRadius, outerRadius, bridgeRadius, regressionG, regressionF, regressionRadius, rzChiSquared, chiSquared, nonAnchorChiSquared, residual_missing, residual4, residual; //required for making distributions
+            float innerRadius, outerRadius, bridgeRadius, regressionG, regressionF, regressionRadius, rzChiSquared, chiSquared, nonAnchorChiSquared, residual_missing, residual4, residual5; //required for making distributions
             bool TightCutFlag;
             bool success = runQuintupletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletIndex, outerTripletIndex, innerRadius, outerRadius,  bridgeRadius, regressionG, regressionF, regressionRadius, rzChiSquared, chiSquared, nonAnchorChiSquared, residual_missing, residual4, residual5, TightCutFlag);
 
@@ -1618,7 +1611,7 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
                         float eta = mdsInGPU.anchorEta[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]]];
                         float pt = (innerRadius+outerRadius)*3.8f*1.602f/(2*100*5.39f);
                         float scores = chiSquared + nonAnchorChiSquared;
-                        addQuintupletToMemory(tripletsInGPU, quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, bridgeRadius, outerRadius, regressionG, regressionF, regressionRadius, rzChiSquared, chiSquared, nonAnchorChiSquared, rzChiSquared, residual_missing, residual4, residual5, pt,eta,phi,scores,layer,quintupletIndex, TightCutFlag);
+                        addQuintupletToMemory(tripletsInGPU, quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, bridgeRadius, outerRadius, regressionG, regressionF, regressionRadius, rzChiSquared, chiSquared, nonAnchorChiSquared, residual_missing, residual4, residual5, pt,eta,phi,scores,layer,quintupletIndex, TightCutFlag);
 
                         tripletsInGPU.partOfT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex]] = true;
                         tripletsInGPU.partOfT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1]] = true;
