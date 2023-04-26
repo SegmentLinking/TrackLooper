@@ -10,7 +10,8 @@ void SDL::LST::eventSetup() {
   SDL::initModules(path);
 }
 
-void SDL::LST::run(cudaStream_t stream,bool verbose,
+void SDL::LST::run(cudaStream_t stream,
+                   bool verbose,
                    const std::vector<float> see_px,
                    const std::vector<float> see_py,
                    const std::vector<float> see_pz,
@@ -25,14 +26,13 @@ void SDL::LST::run(cudaStream_t stream,bool verbose,
                    const std::vector<float> see_stateTrajGlbPy,
                    const std::vector<float> see_stateTrajGlbPz,
                    const std::vector<int> see_q,
-                   const std::vector<unsigned int> see_algo,
                    const std::vector<std::vector<int>> see_hitIdx,
                    const std::vector<unsigned int> ph2_detId,
                    const std::vector<float> ph2_x,
                    const std::vector<float> ph2_y,
                    const std::vector<float> ph2_z) {
-  auto event = SDL::Event(stream,verbose);
-  prepareInput(see_px, see_py, see_pz, see_dxy, see_dz, see_ptErr, see_etaErr, see_stateTrajGlbX, see_stateTrajGlbY, see_stateTrajGlbZ, see_stateTrajGlbPx, see_stateTrajGlbPy, see_stateTrajGlbPz, see_q, see_algo, see_hitIdx, ph2_detId, ph2_x, ph2_y, ph2_z);
+  auto event = SDL::Event(stream, verbose);
+  prepareInput(see_px, see_py, see_pz, see_dxy, see_dz, see_ptErr, see_etaErr, see_stateTrajGlbX, see_stateTrajGlbY, see_stateTrajGlbZ, see_stateTrajGlbPx, see_stateTrajGlbPy, see_stateTrajGlbPz, see_q, see_hitIdx, ph2_detId, ph2_x, ph2_y, ph2_z);
 
   event.addHitToEvent(in_trkX_, in_trkY_, in_trkZ_, in_hitId_, in_hitIdxs_); // TODO : Need to fix the hitIdxs
   event.addPixelSegmentToEvent(in_hitIndices_vec0_, in_hitIndices_vec1_, in_hitIndices_vec2_, in_hitIndices_vec3_,
@@ -176,7 +176,6 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
                             const std::vector<float> see_stateTrajGlbPy,
                             const std::vector<float> see_stateTrajGlbPz,
                             const std::vector<int> see_q,
-                            const std::vector<unsigned int> see_algo,
                             const std::vector<std::vector<int>> see_hitIdx,
                             const std::vector<unsigned int> ph2_detId,
                             const std::vector<float> ph2_x,
@@ -227,11 +226,6 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
   const int hit_size = trkX.size();
 
   for (auto &&[iSeed, _] : iter::enumerate(see_stateTrajGlbPx)) {
-    bool good_seed_type = false;
-    if (see_algo[iSeed] == 4) good_seed_type = true;
-    if (see_algo[iSeed] == 22) good_seed_type = true;
-    if (not good_seed_type) continue;
-
     ROOT::Math::PxPyPzMVector p3LH(see_stateTrajGlbPx[iSeed], see_stateTrajGlbPy[iSeed], see_stateTrajGlbPz[iSeed], 0);
     ROOT::Math::XYZVector p3LH_helper(see_stateTrajGlbPx[iSeed], see_stateTrajGlbPy[iSeed], see_stateTrajGlbPz[iSeed]);
     float ptIn = p3LH.Pt();
