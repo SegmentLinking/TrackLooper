@@ -1075,7 +1075,7 @@ void SDL::Event::createTrackCandidates()
     }cudaStreamSynchronize(stream);
 
     //adding objects
-    SDL::addpT3asTrackCandidatesInGPU<<<1,512,0,stream>>>(*pixelTripletsInGPU, *trackCandidatesInGPU);
+    SDL::addpT3asTrackCandidatesInGPU<<<1,512,0,stream>>>(nLowerModules, *pixelTripletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *rangesInGPU);
     cudaError_t cudaerr_pT3TC = cudaGetLastError();
     if(cudaerr_pT3TC != cudaSuccess)
     {
@@ -1101,7 +1101,7 @@ void SDL::Event::createTrackCandidates()
 
     dim3 nThreadsAddT5(128,8,1);
     dim3 nBlocksAddT5(10,8,1);
-    addT5asTrackCandidateInGPU<<<nBlocksAddT5, nThreadsAddT5, 0, stream>>>(*modulesInGPU, *rangesInGPU, *quintupletsInGPU, *trackCandidatesInGPU);
+    addT5asTrackCandidateInGPU<<<nBlocksAddT5, nThreadsAddT5, 0, stream>>>(nLowerModules, *quintupletsInGPU, *trackCandidatesInGPU, *rangesInGPU);
     cudaError_t cudaerr_T5TC =cudaGetLastError(); 
     if(cudaerr_T5TC != cudaSuccess)
     {
@@ -1128,7 +1128,7 @@ void SDL::Event::createTrackCandidates()
 
     unsigned int nThreadsx_pLS = 384;
     unsigned int nBlocksx_pLS = MAX_BLOCKS;//(20000) % nThreadsx_pLS == 0 ? 20000 / nThreadsx_pLS : 20000 / nThreadsx_pLS + 1;
-    SDL::addpLSasTrackCandidateInGPU<<<nBlocksx_pLS, nThreadsx_pLS, 0, stream>>>(*modulesInGPU, *trackCandidatesInGPU, *segmentsInGPU);
+    SDL::addpLSasTrackCandidateInGPU<<<nBlocksx_pLS, nThreadsx_pLS, 0, stream>>>(nLowerModules, *trackCandidatesInGPU, *segmentsInGPU);
     cudaError_t cudaerr_pLSTC = cudaGetLastError();
     if(cudaerr_pLSTC != cudaSuccess)
     {
@@ -1431,7 +1431,7 @@ cudaStreamSynchronize(stream);
     }cudaStreamSynchronize(stream);
     unsigned int nThreadsx_pT5 = 256;
     unsigned int nBlocksx_pT5 = 1;//(N_MAX_PIXEL_QUINTUPLETS) % nThreadsx_pT5 == 0 ? N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 : N_MAX_PIXEL_QUINTUPLETS / nThreadsx_pT5 + 1;
-    SDL::addpT5asTrackCandidateInGPU<<<nBlocksx_pT5, nThreadsx_pT5,0,stream>>>(*modulesInGPU, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *tripletsInGPU,*quintupletsInGPU);
+    SDL::addpT5asTrackCandidateInGPU<<<nBlocksx_pT5, nThreadsx_pT5,0,stream>>>(nLowerModules, *pixelQuintupletsInGPU, *trackCandidatesInGPU, *segmentsInGPU, *rangesInGPU);
 
     cudaError_t cudaerr_pT5 = cudaGetLastError();
     if(cudaerr_pT5 != cudaSuccess)

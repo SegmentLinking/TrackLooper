@@ -17,6 +17,7 @@ void SDL::trackCandidates::resetMemory(unsigned int maxTrackCandidates,cudaStrea
     cudaMemsetAsync(logicalLayers, 0, 7 * maxTrackCandidates * sizeof(uint8_t), stream);
     cudaMemsetAsync(lowerModuleIndices, 0, 7 * maxTrackCandidates * sizeof(uint16_t), stream);
     cudaMemsetAsync(hitIndices, 0, 14 * maxTrackCandidates * sizeof(unsigned int), stream);
+    cudaMemsetAsync(pixelSeedIndex, 0, maxTrackCandidates * sizeof(int), stream);
     cudaMemsetAsync(centerX, 0, maxTrackCandidates * sizeof(FPX), stream);
     cudaMemsetAsync(centerY, 0, maxTrackCandidates * sizeof(FPX), stream);
     cudaMemsetAsync(radius , 0, maxTrackCandidates * sizeof(FPX), stream);
@@ -39,6 +40,7 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     trackCandidatesInGPU.logicalLayers = (uint8_t*)cms::cuda::allocate_device(dev, 7 * maxTrackCandidates * sizeof(uint8_t), stream);
     trackCandidatesInGPU.lowerModuleIndices = (uint16_t*)cms::cuda::allocate_device(dev, 7 * maxTrackCandidates * sizeof(uint16_t), stream);
     trackCandidatesInGPU.hitIndices = (unsigned int*)cms::cuda::allocate_device(dev, 14 * maxTrackCandidates * sizeof(unsigned int), stream);
+    trackCandidatesInGPU.pixelSeedIndex = (int*)cms::cuda::allocate_device(dev, maxTrackCandidates * sizeof(int), stream);
     trackCandidatesInGPU.centerX = (FPX*)cms::cuda::allocate_device(dev, maxTrackCandidates * sizeof(FPX), stream);
     trackCandidatesInGPU.centerY = (FPX*)cms::cuda::allocate_device(dev, maxTrackCandidates * sizeof(FPX), stream);
     trackCandidatesInGPU.radius  = (FPX*)cms::cuda::allocate_device(dev, maxTrackCandidates * sizeof(FPX), stream);
@@ -56,6 +58,7 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     cudaMalloc(&trackCandidatesInGPU.logicalLayers, 7 * maxTrackCandidates * sizeof(uint8_t));
     cudaMalloc(&trackCandidatesInGPU.lowerModuleIndices, 7 * maxTrackCandidates * sizeof(uint16_t));
     cudaMalloc(&trackCandidatesInGPU.hitIndices, 14 * maxTrackCandidates * sizeof(unsigned int));
+    cudaMalloc(&trackCandidatesInGPU.pixelSeedIndex, maxTrackCandidates * sizeof(int));
     cudaMalloc(&trackCandidatesInGPU.centerX, maxTrackCandidates * sizeof(FPX));
     cudaMalloc(&trackCandidatesInGPU.centerY, maxTrackCandidates * sizeof(FPX));
     cudaMalloc(&trackCandidatesInGPU.radius , maxTrackCandidates * sizeof(FPX));
@@ -68,13 +71,16 @@ void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCan
     cudaMemsetAsync(trackCandidatesInGPU.logicalLayers, 0, 7 * maxTrackCandidates * sizeof(uint8_t), stream);
     cudaMemsetAsync(trackCandidatesInGPU.lowerModuleIndices, 0, 7 * maxTrackCandidates * sizeof(uint16_t), stream);
     cudaMemsetAsync(trackCandidatesInGPU.hitIndices, 0, 14 * maxTrackCandidates * sizeof(unsigned int), stream);
+    cudaMemsetAsync(trackCandidatesInGPU.pixelSeedIndex, 0, maxTrackCandidates * sizeof(int), stream);
     cudaStreamSynchronize(stream);
 }
 
-__device__ void SDL::addpLSTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int trackletIndex, unsigned int trackCandidateIndex, uint4 hitIndices)
+__device__ void SDL::addpLSTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int trackletIndex, unsigned int trackCandidateIndex, uint4 hitIndices, int pixelSeedIndex)
 {
     trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = 8;
     trackCandidatesInGPU.directObjectIndices[trackCandidateIndex] = trackletIndex;
+    trackCandidatesInGPU.pixelSeedIndex[trackCandidateIndex] = pixelSeedIndex;
+
     trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex] = trackletIndex;
     trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1] = trackletIndex;
 
@@ -84,10 +90,12 @@ __device__ void SDL::addpLSTrackCandidateToMemory(struct trackCandidates& trackC
     trackCandidatesInGPU.hitIndices[14 * trackCandidateIndex + 3] = hitIndices.w;
 }
 
-__device__ void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, uint8_t* logicalLayerIndices, uint16_t* lowerModuleIndices, unsigned int* hitIndices, float centerX, float centerY, float radius, unsigned int trackCandidateIndex, unsigned int directObjectIndex)
+__device__ void SDL::addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, uint8_t* logicalLayerIndices, uint16_t* lowerModuleIndices, unsigned int* hitIndices, int pixelSeedIndex, float centerX, float centerY, float radius, unsigned int trackCandidateIndex, unsigned int directObjectIndex)
 {
     trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = trackCandidateType;
     trackCandidatesInGPU.directObjectIndices[trackCandidateIndex] = directObjectIndex;
+    trackCandidatesInGPU.pixelSeedIndex[trackCandidateIndex] = pixelSeedIndex;
+
     trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex] = innerTrackletIndex;
     trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex + 1] = outerTrackletIndex;
     
@@ -121,6 +129,7 @@ SDL::trackCandidates::trackCandidates()
 
     logicalLayers = nullptr;
     hitIndices = nullptr;
+    pixelSeedIndex = nullptr;
     lowerModuleIndices = nullptr;
     centerX = nullptr;
     centerY = nullptr;
@@ -148,6 +157,7 @@ void SDL::trackCandidates::freeMemoryCache()
 
     cms::cuda::free_device(dev, logicalLayers);
     cms::cuda::free_device(dev, hitIndices);
+    cms::cuda::free_device(dev, pixelSeedIndex);
     cms::cuda::free_device(dev, lowerModuleIndices);
     cms::cuda::free_device(dev, centerX);
     cms::cuda::free_device(dev, centerY);
@@ -166,6 +176,7 @@ void SDL::trackCandidates::freeMemory(cudaStream_t stream)
 
     cudaFree(logicalLayers);
     cudaFree(hitIndices);
+    cudaFree(pixelSeedIndex);
     cudaFree(lowerModuleIndices);
     cudaFree(centerX);
     cudaFree(centerY);
@@ -174,9 +185,11 @@ void SDL::trackCandidates::freeMemory(cudaStream_t stream)
     cudaStreamSynchronize(stream);
 }
 
-__global__ void SDL::addpT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU,struct SDL::quintuplets& quintupletsInGPU)
+__global__ void SDL::addpT5asTrackCandidateInGPU(uint16_t nLowerModules, struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::segments& segmentsInGPU, struct SDL::objectRanges& rangesInGPU)
 {
     unsigned int nPixelQuintuplets = *pixelQuintupletsInGPU.nPixelQuintuplets;
+    unsigned int pLS_offset = rangesInGPU.segmentModuleIndices[nLowerModules];
+
     for(int pixelQuintupletIndex = blockIdx.x * blockDim.x + threadIdx.x; pixelQuintupletIndex < nPixelQuintuplets; pixelQuintupletIndex += blockDim.x*gridDim.x)
     {
         if(pixelQuintupletsInGPU.isDup[pixelQuintupletIndex])
@@ -188,7 +201,8 @@ __global__ void SDL::addpT5asTrackCandidateInGPU(struct SDL::modules& modulesInG
 
 
         float radius = 0.5f*(__H2F(pixelQuintupletsInGPU.pixelRadius[pixelQuintupletIndex]) + __H2F(pixelQuintupletsInGPU.quintupletRadius[pixelQuintupletIndex]));
-        addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex], pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], &pixelQuintupletsInGPU.logicalLayers[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.lowerModuleIndices[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.hitIndices[14 * pixelQuintupletIndex], __H2F(pixelQuintupletsInGPU.centerX[pixelQuintupletIndex]),
+        unsigned int pT5PixelIndex =  pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex];
+        addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pT5PixelIndex, pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], &pixelQuintupletsInGPU.logicalLayers[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.lowerModuleIndices[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.hitIndices[14 * pixelQuintupletIndex], segmentsInGPU.seedIdx[pT5PixelIndex - pLS_offset], __H2F(pixelQuintupletsInGPU.centerX[pixelQuintupletIndex]),
                             __H2F(pixelQuintupletsInGPU.centerY[pixelQuintupletIndex]),radius , trackCandidateIdx, pixelQuintupletIndex);
     }
 }
@@ -334,9 +348,10 @@ __global__ void SDL::crossCleanpLS(struct SDL::modules& modulesInGPU, struct SDL
     }
 }
 
-__global__ void SDL::addpT3asTrackCandidatesInGPU(struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU)
+__global__ void SDL::addpT3asTrackCandidatesInGPU(uint16_t nLowerModules, struct SDL::pixelTriplets& pixelTripletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::segments& segmentsInGPU, struct SDL::objectRanges& rangesInGPU)
 {
     unsigned int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets;
+    unsigned int pLS_offset = rangesInGPU.segmentModuleIndices[nLowerModules];
 
     for(int pixelTripletIndex = blockIdx.x * blockDim.x + threadIdx.x; pixelTripletIndex < nPixelTriplets; pixelTripletIndex += blockDim.x*gridDim.x)
     {
@@ -345,14 +360,15 @@ __global__ void SDL::addpT3asTrackCandidatesInGPU(struct SDL::pixelTriplets& pix
         atomicAdd(trackCandidatesInGPU.nTrackCandidatespT3,1);
     
         float radius = 0.5f * (__H2F(pixelTripletsInGPU.pixelRadius[pixelTripletIndex]) + __H2F(pixelTripletsInGPU.tripletRadius[pixelTripletIndex]));
-        addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, &pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex], &pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex], &pixelTripletsInGPU.hitIndices[10 * pixelTripletIndex], __H2F(pixelTripletsInGPU.centerX[pixelTripletIndex]), __H2F(pixelTripletsInGPU.centerY[pixelTripletIndex]),radius,trackCandidateIdx, pixelTripletIndex);
+        unsigned int pT3PixelIndex =  pixelTripletsInGPU.pixelSegmentIndices[pixelTripletIndex];
+        addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, &pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex], &pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex], &pixelTripletsInGPU.hitIndices[10 * pixelTripletIndex], segmentsInGPU.seedIdx[pT3PixelIndex - pLS_offset], __H2F(pixelTripletsInGPU.centerX[pixelTripletIndex]), __H2F(pixelTripletsInGPU.centerY[pixelTripletIndex]),radius,trackCandidateIdx, pixelTripletIndex);
     }    
 
 }
 
-__global__ void SDL::addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::objectRanges& rangesInGPU, struct SDL::quintuplets& quintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU)
+__global__ void SDL::addT5asTrackCandidateInGPU(uint16_t nLowerModules, struct SDL::quintuplets& quintupletsInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::objectRanges& rangesInGPU)
 {
-    for(uint16_t idx = blockIdx.y * blockDim.y + threadIdx.y; idx < *(modulesInGPU.nLowerModules); idx+= gridDim.y * blockDim.y)
+    for(uint16_t idx = blockIdx.y * blockDim.y + threadIdx.y; idx < nLowerModules; idx+= gridDim.y * blockDim.y)
     {
         if(rangesInGPU.quintupletModuleIndices[idx] == -1) continue;
         unsigned int nQuints = quintupletsInGPU.nQuintuplets[idx];
@@ -365,17 +381,16 @@ __global__ void SDL::addT5asTrackCandidateInGPU(struct SDL::modules& modulesInGP
             unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
             atomicAdd(trackCandidatesInGPU.nTrackCandidatesT5,1);
     
-            addTrackCandidateToMemory(trackCandidatesInGPU, 4/*track candidate type T5=4*/, quintupletIndex, quintupletIndex, &quintupletsInGPU.logicalLayers[5 * quintupletIndex], &quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex], &quintupletsInGPU.hitIndices[10 * quintupletIndex], quintupletsInGPU.regressionG[quintupletIndex], quintupletsInGPU.regressionF[quintupletIndex], quintupletsInGPU.regressionRadius[quintupletIndex], trackCandidateIdx, quintupletIndex);
+            addTrackCandidateToMemory(trackCandidatesInGPU, 4/*track candidate type T5=4*/, quintupletIndex, quintupletIndex, &quintupletsInGPU.logicalLayers[5 * quintupletIndex], &quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex], &quintupletsInGPU.hitIndices[10 * quintupletIndex], -1/*no pixel seed index for T5s*/, quintupletsInGPU.regressionG[quintupletIndex], quintupletsInGPU.regressionF[quintupletIndex], quintupletsInGPU.regressionRadius[quintupletIndex], trackCandidateIdx, quintupletIndex);
         } 
     }
 }
 
-__global__ void SDL::addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInGPU, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::segments& segmentsInGPU)
+__global__ void SDL::addpLSasTrackCandidateInGPU(uint16_t nLowerModules, struct SDL::trackCandidates& trackCandidatesInGPU, struct SDL::segments& segmentsInGPU)
 {
     //int pixelArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;
     int step = blockDim.x*gridDim.x;
-    int pixelModuleIndex = *modulesInGPU.nLowerModules;
-    unsigned int nPixels = segmentsInGPU.nSegments[pixelModuleIndex];
+    unsigned int nPixels = segmentsInGPU.nSegments[nLowerModules];
     for(int pixelArrayIndex = blockIdx.x * blockDim.x + threadIdx.x;pixelArrayIndex < nPixels;  pixelArrayIndex +=step)
     {
         if((!segmentsInGPU.isQuad[pixelArrayIndex]) || (segmentsInGPU.isDup[pixelArrayIndex]))
@@ -385,7 +400,7 @@ __global__ void SDL::addpLSasTrackCandidateInGPU(struct SDL::modules& modulesInG
 
         unsigned int trackCandidateIdx = atomicAdd(trackCandidatesInGPU.nTrackCandidates,1);
         atomicAdd(trackCandidatesInGPU.nTrackCandidatespLS,1);
-        addpLSTrackCandidateToMemory(trackCandidatesInGPU, pixelArrayIndex, trackCandidateIdx, segmentsInGPU.pLSHitsIdxs[pixelArrayIndex]);
+        addpLSTrackCandidateToMemory(trackCandidatesInGPU, pixelArrayIndex, trackCandidateIdx, segmentsInGPU.pLSHitsIdxs[pixelArrayIndex], segmentsInGPU.seedIdx[pixelArrayIndex]);
     }
 }
 
