@@ -1014,7 +1014,9 @@ __device__ float SDL::computeRadiusFromThreeAnchorHits(float x1, float y1, float
 
     if(((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3) == 0) || (g * g + f * f - c < 0))
     {
+#ifdef Warnings
         printf("three collinear points or FATAL! r^2 < 0!\n");
+#endif
 	radius = -1.f;
     }
     else
@@ -1118,7 +1120,9 @@ __device__ void SDL::computeSigmasForRegression(SDL::modules& modulesInGPU, cons
         }
         else
         {
+#ifdef Warnings
             printf("ERROR!!!!! I SHOULDN'T BE HERE!!!! subdet = %d, type = %d, side = %d\n", moduleSubdet, moduleType, moduleSide);
+#endif
         }
     }
 }
@@ -1197,7 +1201,9 @@ __device__ float SDL::computeRadiusUsingRegression(int nPoints, float* xs, float
     f = 0.5f*twoF;
     if(g * g + f * f - c < 0)
     {
+#ifdef Warnings
         printf("FATAL! r^2 < 0!\n");
+#endif
         return -1;
     }
     
@@ -1313,7 +1319,9 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
                     //this if statement should never get executed!
                     if(rangesInGPU.quintupletModuleIndices[lowerModule1] == -1)
                     {
+#ifdef Warnings
                         printf("Quintuplets : no memory for module at module index = %d\n", lowerModule1);
+#endif
                     }
                     else
                     {

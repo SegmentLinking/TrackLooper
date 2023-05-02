@@ -442,16 +442,11 @@ __device__ inline float SDL::dPhiThreshold(/*struct hits& hitsInGPU,*/float rt, 
     {
         if(modulesInGPU.moduleType[moduleIndex] == PS and modulesInGPU.moduleLayerType[moduleIndex] == Strip)
         {
-            // printf("moduleIndex: %d\n", moduleIndex);
             drdz = modulesInGPU.drdzs[moduleIndex];
-            // printf("drdz: %f\n", drdz);
         }
         else
         {
-            // printf("moduleIndex: %d\n", moduleIndex);
-            // printf("partnerModuleIndex: %d\n", modulesInGPU.partnerModuleIndex(moduleIndex));
             drdz = modulesInGPU.drdzs[modulesInGPU.partnerModuleIndices[moduleIndex]];
-            // printf("drdz: %f\n", drdz);
         }
     }
     else
