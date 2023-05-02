@@ -2168,8 +2168,7 @@ namespace SDL
                 TAcc const & acc,
                 struct modules& modulesInGPU,
                 struct triplets& tripletsInGPU,
-                struct objectRanges& rangesInGPU,
-                unsigned int* device_nTotalQuintuplets) const
+                struct objectRanges& rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;
@@ -2232,7 +2231,7 @@ namespace SDL
             if(globalThreadIdx[2] == 0)
             {
                 *rangesInGPU.nEligibleT5Modules = static_cast<uint16_t>(nEligibleT5Modulesx);
-                *device_nTotalQuintuplets = static_cast<unsigned int>(nTotalQuintupletsx);
+                *rangesInGPU.device_nTotalQuints = static_cast<unsigned int>(nTotalQuintupletsx);
             }
         }
     };

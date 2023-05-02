@@ -80,67 +80,6 @@ void SDL::quintuplets::freeMemory(cudaStream_t stream)
     cudaFree(nonAnchorChiSquared);
     cudaStreamSynchronize(stream);
 }
-//TODO:Reuse the track candidate one instead of this!
-__global__ void SDL::createEligibleModulesListForQuintupletsGPU(struct modules& modulesInGPU,struct triplets& tripletsInGPU, struct objectRanges& rangesInGPU)
-{
-    __shared__ int nEligibleT5Modulesx;
-    __shared__ unsigned int nTotalQuintupletsx;
-    nTotalQuintupletsx = 0; //start!
-    nEligibleT5Modulesx = 0;
-    __syncthreads();
-
-    unsigned int occupancy;
-    unsigned int category_number, eta_number;
-    unsigned int layers, subdets, rings;
-    float eta;
-    //start filling
-    int gid = blockIdx.x * blockDim.x + threadIdx.x;
-    int np = gridDim.x * blockDim.x;
-    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
-    {
-        //condition for a quintuple to exist for a module
-        //TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap   
-        layers = modulesInGPU.layers[i];
-        subdets = modulesInGPU.subdets[i];
-        rings = modulesInGPU.rings[i];
-        eta = abs(modulesInGPU.eta[i]);  
-        occupancy = 0;
-
-        if (tripletsInGPU.nTriplets[i] == 0) continue;
-        if (subdets == SDL::Barrel and layers >= 3) continue;
-        if (subdets == SDL::Endcap and layers > 1) continue;
-
-        int nEligibleT5Modules = atomicAdd(&nEligibleT5Modulesx,1);
-        if (layers<=3 && subdets==5) category_number = 0;
-        else if (layers>=4 && subdets==5) category_number = 1;
-        else if (layers<=2 && subdets==4 && rings>=11) category_number = 2;
-        else if (layers>=3 && subdets==4 && rings>=8) category_number = 2;
-        else if (layers<=2 && subdets==4 && rings<=10) category_number = 3;
-        else if (layers>=3 && subdets==4 && rings<=7) category_number = 3;
-        if (eta<0.75) eta_number=0;
-        else if (eta>0.75 && eta<1.5) eta_number=1;
-        else if (eta>1.5 && eta<2.25) eta_number=2;
-        else if (eta>2.25 && eta<3) eta_number=3;
-
-        if (category_number == 0 && eta_number == 0) occupancy = 336;
-        else if (category_number == 0 && eta_number == 1) occupancy = 414;
-        else if (category_number == 0 && eta_number == 2) occupancy = 231;
-        else if (category_number == 0 && eta_number == 3) occupancy = 146;
-        else if (category_number == 3 && eta_number == 1) occupancy = 0;
-        else if (category_number == 3 && eta_number == 2) occupancy = 191;
-        else if (category_number == 3 && eta_number == 3) occupancy = 106;
-
-        unsigned int nTotQ = atomicAdd(&nTotalQuintupletsx,occupancy);
-        rangesInGPU.quintupletModuleIndices[i] = nTotQ;
-        rangesInGPU.quintupletModuleOccupancy[i] = occupancy;
-        rangesInGPU.indicesOfEligibleT5Modules[nEligibleT5Modules] = i;
-    }
-    __syncthreads();
-    if(threadIdx.x==0){
-        *rangesInGPU.nEligibleT5Modules = static_cast<uint16_t>(nEligibleT5Modulesx);
-        *rangesInGPU.device_nTotalQuints = nTotalQuintupletsx;
-    }
-}
 
 void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& nTotalQuintuplets, const uint16_t& nLowerModules, const uint16_t& nEligibleModules,cudaStream_t stream)
 {
