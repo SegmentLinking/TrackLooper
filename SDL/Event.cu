@@ -1783,6 +1783,23 @@ SDL::hits* SDL::Event::getHits() //std::shared_ptr should take care of garbage c
     }
     return hitsInCPU;
 }
+
+SDL::hits* SDL::Event::getHitsInCMSSW()
+{
+    if(hitsInCPU == nullptr)
+    {
+        hitsInCPU = new SDL::hits;
+        hitsInCPU->nHits = new unsigned int;
+        unsigned int nHits;
+        cudaMemcpyAsync(&nHits, hitsInGPU->nHits, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+        cudaStreamSynchronize(stream);
+        hitsInCPU->idxs = new unsigned int[nHits];
+        cudaMemcpyAsync(hitsInCPU->idxs, hitsInGPU->idxs,sizeof(unsigned int) * nHits, cudaMemcpyDeviceToHost,stream);
+        cudaStreamSynchronize(stream);
+    }
+    return hitsInCPU;
+}
+
 SDL::objectRanges* SDL::Event::getRanges()
 {
     if(rangesInCPU == nullptr)
@@ -2073,13 +2090,37 @@ SDL::trackCandidates* SDL::Event::getTrackCandidates()
         trackCandidatesInCPU->objectIndices = new unsigned int[2 * nTrackCandidates];
         trackCandidatesInCPU->trackCandidateType = new short[nTrackCandidates];
         trackCandidatesInCPU->hitIndices = new unsigned int[14 * nTrackCandidates];
+        trackCandidatesInCPU->pixelSeedIndex = new int[nTrackCandidates];
         trackCandidatesInCPU->logicalLayers = new uint8_t[7 * nTrackCandidates];
 
         cudaMemcpyAsync(trackCandidatesInCPU->hitIndices, trackCandidatesInGPU->hitIndices, 14 * nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(trackCandidatesInCPU->pixelSeedIndex, trackCandidatesInGPU->pixelSeedIndex, nTrackCandidates * sizeof(int), cudaMemcpyDeviceToHost, stream);
         cudaMemcpyAsync(trackCandidatesInCPU->logicalLayers, trackCandidatesInGPU->logicalLayers, 7 * nTrackCandidates * sizeof(uint8_t), cudaMemcpyDeviceToHost, stream);
         cudaMemcpyAsync(trackCandidatesInCPU->directObjectIndices, trackCandidatesInGPU->directObjectIndices, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);                                                                                    
         cudaMemcpyAsync(trackCandidatesInCPU->objectIndices, trackCandidatesInGPU->objectIndices, 2 * nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);                                                                                    
         cudaMemcpyAsync(trackCandidatesInCPU->trackCandidateType, trackCandidatesInGPU->trackCandidateType, nTrackCandidates * sizeof(short), cudaMemcpyDeviceToHost,stream);                                                                                                                
+        cudaStreamSynchronize(stream);
+    }
+    return trackCandidatesInCPU;
+}
+
+SDL::trackCandidates* SDL::Event::getTrackCandidatesInCMSSW()
+{
+    if(trackCandidatesInCPU == nullptr)
+    {
+        trackCandidatesInCPU = new SDL::trackCandidates;
+        trackCandidatesInCPU->nTrackCandidates = new unsigned int;
+        cudaMemcpyAsync(trackCandidatesInCPU->nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+        cudaStreamSynchronize(stream);
+        unsigned int nTrackCandidates = *(trackCandidatesInCPU->nTrackCandidates);
+
+        trackCandidatesInCPU->trackCandidateType = new short[nTrackCandidates];
+        trackCandidatesInCPU->hitIndices = new unsigned int[14 * nTrackCandidates];
+        trackCandidatesInCPU->pixelSeedIndex = new int[nTrackCandidates];
+
+        cudaMemcpyAsync(trackCandidatesInCPU->hitIndices, trackCandidatesInGPU->hitIndices, 14 * nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(trackCandidatesInCPU->pixelSeedIndex, trackCandidatesInGPU->pixelSeedIndex, nTrackCandidates * sizeof(int), cudaMemcpyDeviceToHost, stream);
+        cudaMemcpyAsync(trackCandidatesInCPU->trackCandidateType, trackCandidatesInGPU->trackCandidateType, nTrackCandidates * sizeof(short), cudaMemcpyDeviceToHost,stream);
         cudaStreamSynchronize(stream);
     }
     return trackCandidatesInCPU;

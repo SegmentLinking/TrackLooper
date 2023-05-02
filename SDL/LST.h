@@ -37,9 +37,6 @@ namespace SDL {
              const std::vector<float> ph2_x,
              const std::vector<float> ph2_y,
              const std::vector<float> ph2_z);
-    std::vector<float> pt() { return out_tc_pt_; }
-    std::vector<float> eta() { return out_tc_eta_; }
-    std::vector<float> phi() { return out_tc_phi_; }
     std::vector<std::vector<unsigned int>> hits() { return out_tc_hitIdxs_; }
     std::vector<unsigned int> len() { return out_tc_len_; }
     std::vector<int> seedIdx() { return out_tc_seedIdx_; }
@@ -70,37 +67,7 @@ namespace SDL {
     ROOT::Math::XYZVector calculateR3FromPCA(const ROOT::Math::PxPyPzMVector& p3, const float dxy, const float dz);
 
     void getOutput(SDL::Event& event);
-    // Object accessors
-    // ----* pLS *----
-    std::vector<unsigned int> getPixelHitsFrompLS(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, unsigned int pLS);
-    std::vector<unsigned int> getPixelHitIdxsFrompLS(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::hits& hitsInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, unsigned int pLS);
-    // ----* MD *----
-    std::vector<unsigned int> getHitsFromMD(const SDL::miniDoublets& miniDoubletsInGPU, unsigned int MD);
-    // ----* LS *----
-    std::vector<unsigned int> getMDsFromLS(const SDL::segments& segmentsInGPU, unsigned int LS);
-    // ----* T3 *----
-    std::vector<unsigned int> getLSsFromT3(const SDL::triplets& tripletsInGPU, unsigned int T3);
-    std::vector<unsigned int> getMDsFromT3(const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, unsigned int T3);
-    std::vector<unsigned int> getHitsFromT3(const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, unsigned int T3);
-    // ----* T5 *----
-    std::vector<unsigned int> getT3sFromT5(const SDL::quintuplets& quintupletsInGPU, unsigned int T5);
-    std::vector<unsigned int> getLSsFromT5(const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, unsigned int T5);
-    std::vector<unsigned int> getMDsFromT5(const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, unsigned int T5);
-    std::vector<unsigned int> getHitsFromT5(const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, unsigned int T5);
-    std::vector<unsigned int> getHitIdxsFromT5(const SDL::hits& hitsInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, unsigned int T5);
-    // ----* pT3 *----
-    unsigned int getPixelLSFrompT3(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::pixelTriplets& pixelTripletsInGPU, unsigned int pT3);
-    unsigned int getT3FrompT3(const SDL::pixelTriplets& pixelTripletsInGPU, unsigned int pT3);
-    std::vector<unsigned int> getOuterTrackerHitsFrompT3(const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::pixelTriplets& pixelTripletsInGPU, unsigned int pT3);
-    std::vector<unsigned int> getHitsFrompT3(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::pixelTriplets& pixelTripletsInGPU, unsigned int pT3);
-    std::vector<unsigned int> getHitIdxsFrompT3(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::hits& hitsInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::pixelTriplets& pixelTripletsInGPU, unsigned int pT3);
-    // ----* pT5 *----
-    unsigned int getPixelLSFrompT5(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5);
-    unsigned int getT5FrompT5(const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5);
-    std::vector<unsigned int> getT3sFrompT5(const SDL::quintuplets& quintupletsInGPU, const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5);
-    std::vector<unsigned int> getOuterTrackerHitsFrompT5(const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5);
-    std::vector<unsigned int> getHitsFrompT5(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5);
-    std::vector<unsigned int> getHitIdxsFrompT5(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::hits& hitsInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5);
+    std::vector<unsigned int> getHitIdxs(const short trackCandidateType, const unsigned int TCIdx, const unsigned int* TCHitIndices, const unsigned int* hitIndices);
 
     // Input and output vectors
     TString TrackLooperDir_;
@@ -127,9 +94,6 @@ namespace SDL {
     std::vector<int> in_superbin_vec_;
     std::vector<int8_t> in_pixelType_vec_;
     std::vector<short> in_isQuad_vec_;
-    std::vector<float> out_tc_pt_;
-    std::vector<float> out_tc_eta_;
-    std::vector<float> out_tc_phi_;
     std::vector<std::vector<unsigned int>> out_tc_hitIdxs_;
     std::vector<unsigned int> out_tc_len_;
     std::vector<int> out_tc_seedIdx_;
