@@ -1441,14 +1441,13 @@ void SDL::Event::createQuintuplets()
         createEligibleModulesListForQuintupletsGPU_kernel,
         *modulesInGPU,
         *tripletsInGPU,
-        *rangesInGPU,
-        device_nTotalQuintuplets));
+        *rangesInGPU));
 
     alpaka::enqueue(queue, createEligibleModulesListForQuintupletsGPUTask);
     alpaka::wait(queue);
 
     cudaMemcpyAsync(&nEligibleT5Modules,rangesInGPU->nEligibleT5Modules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(&nTotalQuintuplets,device_nTotalQuintuplets,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
+    cudaMemcpyAsync(&nTotalQuintuplets,rangesInGPU->device_nTotalQuints,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
     cudaStreamSynchronize(stream);
 
     if(quintupletsInGPU == nullptr)
