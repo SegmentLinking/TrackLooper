@@ -74,7 +74,7 @@ namespace SDL
     void createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDs,uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream);
 
 
-    __global__ void createMDArrayRangesGPU(struct modules& modulesInGPU, struct objectRanges& rangesInGPU);//, unsigned int* nTotalMDs);
+    __global__ void createMDArrayRangesGPU(struct modules& modulesInGPU, struct objectRanges& rangesInGPU);
 
     __global__ void addMiniDoubletRangesToEventExplicit(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct objectRanges& rangesInGPU, struct hits& hitsInGPU);
 
@@ -722,7 +722,7 @@ namespace SDL
         if(success)
                     {
                         int totOccupancyMDs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &mdsInGPU.totOccupancyMDs[lowerModuleIndex], 1);
-                        if(totOccupancyMDs >= (rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex + 1] - rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex]))
+                        if(totOccupancyMDs >= (rangesInGPU.miniDoubletModuleOccupancy[lowerModuleIndex]))
                         {
 #ifdef Warnings
                             printf("Mini-doublet excess alert! Module index =  %d\n",lowerModuleIndex);
