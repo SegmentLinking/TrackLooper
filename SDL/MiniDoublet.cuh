@@ -79,7 +79,7 @@ namespace SDL
     {
         //the index into which this MD needs to be written will be computed in the kernel
         //nMDs variable will be incremented in the kernel, no need to worry about that here
-        
+
         mdsInGPU.moduleIndices[idx] = lowerModuleIdx;
         unsigned int anchorHitIndex, outerHitIndex;
         if(modulesInGPU.moduleType[lowerModuleIdx] == PS and modulesInGPU.moduleLayerType[lowerModuleIdx] == Strip)
@@ -273,7 +273,6 @@ namespace SDL
         // Compute luminous region requirement for endcap
         const float miniLum = alpaka::math::abs(acc, dPhi * deltaZLum/dz); // Balaji's new error
 
-
         // =================================================================
         // Return the threshold value
         // =================================================================
@@ -370,16 +369,16 @@ namespace SDL
         }
         else
         {
-                xo =xUpper;
-                yo =yUpper;
-                xp =xLower;
-                yp =yLower;
-                zp =zLower;
-                rtp =rtLower;
-                xp =xLower;
-                yp =yLower;
-                zp =zLower;
-                rtp =rtLower;
+            xo =xUpper;
+            yo =yUpper;
+            xp =xLower;
+            yp =yLower;
+            zp =zLower;
+            rtp =rtLower;
+            xp =xLower;
+            yp =yLower;
+            zp =zLower;
+            rtp =rtLower;
         }
 
         // If it is endcap some of the math gets simplified (and also computers don't like infinities)
@@ -482,7 +481,6 @@ namespace SDL
     template<typename TAcc>
     ALPAKA_FN_ACC bool runMiniDoubletDefaultAlgoBarrel(TAcc const & acc, struct modules& modulesInGPU, uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noshiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower,float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
     {
-
         bool pass = true; 
         dz = zLower - zUpper;     
         const float dzCut = modulesInGPU.moduleType[lowerModuleIndex] == SDL::PS ? 2.f : 10.f;
@@ -553,7 +551,6 @@ namespace SDL
                 // But I still placed this check for safety. (TODO: After cheking explicitly if not needed remove later?)
                 // setdeltaPhiChange(lowerHit.rt() < upperHitMod.rt() ? lowerHit.deltaPhiChange(upperHitMod) : upperHitMod.deltaPhiChange(lowerHit));
 
-
                 dPhiChange = (rtLower < shiftedRt) ? SDL::deltaPhiChange(acc, xLower, yLower, shiftedX, shiftedY) : SDL::deltaPhiChange(acc, shiftedX, shiftedY, xLower, yLower); 
                 noShiftedDphiChange = rtLower < rtUpper ? SDL::deltaPhiChange(acc, xLower,yLower, xUpper, yUpper) : SDL::deltaPhiChange(acc, xUpper, yUpper, xLower, yLower);
             }
@@ -583,11 +580,9 @@ namespace SDL
     template<typename TAcc>
     ALPAKA_FN_ACC bool runMiniDoubletDefaultAlgoEndcap(TAcc const & acc, struct modules& modulesInGPU, uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& drt, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noshiftedDz, float& noShiftedDphi, float& noShiftedDphichange,float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
     {
-
         bool pass = true; 
 
         // There are series of cuts that applies to mini-doublet in a "endcap" region
-
         // Cut #1 : dz cut. The dz difference can't be larger than 1cm. (max separation is 4mm for modules in the endcap)
         // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3093
         // For PS module in case when it is tilted a different dz (after the strip hit shift) is calculated later.
@@ -714,7 +709,7 @@ namespace SDL
 
                     float dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange;
                     bool success = runMiniDoubletDefaultAlgo(acc, modulesInGPU, lowerModuleIndex, upperModuleIndex, lowerHitArrayIndex, upperHitArrayIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, xLower,yLower,zLower,rtLower,xUpper,yUpper,zUpper,rtUpper);
-        if(success)
+                    if(success)
                     {
                         int totOccupancyMDs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &mdsInGPU.totOccupancyMDs[lowerModuleIndex], 1);
                         if(totOccupancyMDs >= (rangesInGPU.miniDoubletModuleOccupancy[lowerModuleIndex]))
@@ -730,7 +725,6 @@ namespace SDL
 
                             addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, mdIndex);
                         }
-
                     }
                 }
             }
