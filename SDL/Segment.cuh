@@ -578,8 +578,15 @@ namespace SDL
             Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
             Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
+            // Initialize variables in shared memory and set to 0
             int& nTotalSegments = alpaka::declareSharedVar<int, __COUNTER__>(acc); nTotalSegments = 0;
             alpaka::syncBlockThreads(acc);
+
+            // Initialize variables outside of the for loop.
+            int nTotSegs;
+            float module_eta;
+            int occupancy, category_number, eta_number;
+            short module_subdets, module_layers, module_rings;
 
             for(uint16_t i = globalThreadIdx[2]; i < *modulesInGPU.nLowerModules; i+= gridThreadExtent[2])
             {
@@ -590,13 +597,10 @@ namespace SDL
                     continue;
                 }
 
-                short module_subdets = modulesInGPU.subdets[i];
-                short module_layers = modulesInGPU.layers[i];
-                short module_rings = modulesInGPU.rings[i];
-                float module_eta = modulesInGPU.eta[i];
-                float abs_eta = alpaka::math::abs(acc, module_eta);
-                int occupancy;
-                int category_number, eta_number;
+                module_rings = modulesInGPU.rings[i];
+                module_layers = modulesInGPU.layers[i];
+                module_subdets = modulesInGPU.subdets[i];
+                module_eta = alpaka::math::abs(acc, modulesInGPU.eta[i]);
 
                 if (module_layers<=3 && module_subdets==5) category_number = 0;
                 else if (module_layers>=4 && module_subdets==5) category_number = 1;
@@ -605,10 +609,10 @@ namespace SDL
                 else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
                 else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
 
-                if (abs_eta<0.75) eta_number=0;
-                else if (abs_eta>0.75 && abs_eta<1.5) eta_number=1;
-                else if (abs_eta>1.5  && abs_eta<2.25) eta_number=2;
-                else if (abs_eta>2.25 && abs_eta<3) eta_number=3;
+                if (module_eta<0.75) eta_number = 0;
+                else if (module_eta>0.75 && module_eta<1.5) eta_number = 1;
+                else if (module_eta>1.5  && module_eta<2.25) eta_number = 2;
+                else if (module_eta>2.25 && module_eta<3) eta_number = 3;
 
                 if (category_number == 0 && eta_number == 0) occupancy = 572;
                 else if (category_number == 0 && eta_number == 1) occupancy = 300;
@@ -622,7 +626,7 @@ namespace SDL
                 else if (category_number == 3 && eta_number == 2) occupancy = 79;
                 else if (category_number == 3 && eta_number == 3) occupancy = 85;
 
-                int nTotSegs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalSegments,occupancy);
+                nTotSegs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalSegments,occupancy);
                 rangesInGPU.segmentModuleIndices[i] = nTotSegs;
                 rangesInGPU.segmentModuleOccupancy[i] = occupancy;
             }
