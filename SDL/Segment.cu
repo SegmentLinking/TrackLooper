@@ -24,70 +24,6 @@ void SDL::segments::resetMemory(unsigned int nMemoryLocationsx, unsigned int nLo
     cudaMemsetAsync(pLSHitsIdxs, 0,maxPixelSegments * sizeof(uint4),stream);
 }
 
-
-__global__ void SDL::createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU)
-{
-    short module_subdets;
-    short module_layers;
-    short module_rings;
-    float module_eta;
-
-    __shared__ unsigned int nTotalSegments;
-    nTotalSegments = 0; //start!
-    __syncthreads(); 
-    int gid = blockIdx.x * blockDim.x + threadIdx.x;
-    int np = gridDim.x * blockDim.x;
-    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
-    {
-        if(modulesInGPU.nConnectedModules[i] == 0)
-        {
-          rangesInGPU.segmentModuleIndices[i] = nTotalSegments;
-          rangesInGPU.segmentModuleOccupancy[i] = 0;
-          continue;
-        }
-        module_subdets = modulesInGPU.subdets[i];
-        module_layers = modulesInGPU.layers[i];
-        module_rings = modulesInGPU.rings[i];
-        module_eta = abs(modulesInGPU.eta[i]);
-        unsigned int occupancy;
-        unsigned int category_number, eta_number;
-        if (module_layers<=3 && module_subdets==5) category_number = 0;
-        else if (module_layers>=4 && module_subdets==5) category_number = 1;
-        else if (module_layers<=2 && module_subdets==4 && module_rings>=11) category_number = 2;
-        else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
-        else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
-        else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
-        if (module_eta<0.75) eta_number=0;
-        else if (module_eta>0.75 && module_eta<1.5) eta_number=1;
-        else if (module_eta>1.5  && module_eta<2.25) eta_number=2;
-        else if (module_eta>2.25 && module_eta<3) eta_number=3;
-
-        if (category_number == 0 && eta_number == 0) occupancy = 572;
-        else if (category_number == 0 && eta_number == 1) occupancy = 300;
-        else if (category_number == 0 && eta_number == 2) occupancy = 183;
-        else if (category_number == 0 && eta_number == 3) occupancy = 62;
-        else if (category_number == 1 && eta_number == 0) occupancy = 191;
-        else if (category_number == 1 && eta_number == 1) occupancy = 128;
-        else if (category_number == 2 && eta_number == 1) occupancy = 107;
-        else if (category_number == 2 && eta_number == 2) occupancy = 102;
-        else if (category_number == 3 && eta_number == 1) occupancy = 64;
-        else if (category_number == 3 && eta_number == 2) occupancy = 79;
-        else if (category_number == 3 && eta_number == 3) occupancy = 85;
-
-
-        unsigned int nTotSegs = atomicAdd(&nTotalSegments,occupancy);
-        rangesInGPU.segmentModuleIndices[i] = nTotSegs;
-        rangesInGPU.segmentModuleOccupancy[i] = occupancy;
-    }
-
-    __syncthreads();
-    if(threadIdx.x==0){
-      rangesInGPU.segmentModuleIndices[*modulesInGPU.nLowerModules] = nTotalSegments;
-      *rangesInGPU.device_nTotalSegs = nTotalSegments;
-    }
-}
-
-
 void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelSegments, cudaStream_t stream)
 {
     //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide
@@ -261,24 +197,5 @@ void SDL::printSegment(struct SDL::segments& segmentsInGPU, struct SDL::miniDoub
     {
         IndentingOStreambuf indent(std::cout);
         printMD(mdsInGPU, hitsInGPU, modulesInGPU, outerMDIndex);
-    }
-}
-
-__global__ void SDL::addSegmentRangesToEventExplicit(struct modules& modulesInGPU, struct segments& segmentsInGPU, struct objectRanges& rangesInGPU)
-{
-    int gid = blockIdx.x * blockDim.x + threadIdx.x;
-    int np = gridDim.x * blockDim.x;
-    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
-    {
-        if(segmentsInGPU.nSegments[i] == 0)
-        {
-            rangesInGPU.segmentRanges[i * 2] = -1;
-            rangesInGPU.segmentRanges[i * 2 + 1] = -1;
-        }
-        else
-        {
-            rangesInGPU.segmentRanges[i * 2] = rangesInGPU.segmentModuleIndices[i];
-            rangesInGPU.segmentRanges[i * 2 + 1] = rangesInGPU.segmentModuleIndices[i] + segmentsInGPU.nSegments[i] - 1;
-        }
     }
 }

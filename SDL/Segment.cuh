@@ -61,10 +61,6 @@ namespace SDL
 
     void createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int maxSegments, uint16_t nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream);
 
-    __global__ void createSegmentArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct miniDoublets& mdsInGPU);
-
-    __global__ void addSegmentRangesToEventExplicit(struct modules& modulesInGPU, struct segments& segmentsInGPU, struct objectRanges& rangesInGPU);
-
     ALPAKA_FN_ACC ALPAKA_FN_INLINE float isTighterTiltedModules_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
     {
         // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
@@ -561,6 +557,113 @@ namespace SDL
                             }
                         }
                     }
+                }
+            }
+        }
+    };
+
+    struct createSegmentArrayRanges
+    {
+        template<typename TAcc>
+        ALPAKA_FN_ACC void operator()(
+                TAcc const & acc,
+                struct modules& modulesInGPU,
+                struct objectRanges& rangesInGPU,
+                struct miniDoublets& mdsInGPU) const
+        {
+            using Dim = alpaka::Dim<TAcc>;
+            using Idx = alpaka::Idx<TAcc>;
+            using Vec = alpaka::Vec<Dim, Idx>;
+
+            Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+            Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+
+            int& nTotalSegments = alpaka::declareSharedVar<int, __COUNTER__>(acc); nTotalSegments = 0;
+            alpaka::syncBlockThreads(acc);
+
+            for(uint16_t i = globalThreadIdx[2]; i < *modulesInGPU.nLowerModules; i+= gridThreadExtent[2])
+            {
+                if(modulesInGPU.nConnectedModules[i] == 0)
+                {
+                    rangesInGPU.segmentModuleIndices[i] = nTotalSegments;
+                    rangesInGPU.segmentModuleOccupancy[i] = 0;
+                    continue;
+                }
+
+                short module_subdets = modulesInGPU.subdets[i];
+                short module_layers = modulesInGPU.layers[i];
+                short module_rings = modulesInGPU.rings[i];
+                float module_eta = modulesInGPU.eta[i];
+                float abs_eta = alpaka::math::abs(acc, module_eta);
+                int occupancy;
+                int category_number, eta_number;
+
+                if (module_layers<=3 && module_subdets==5) category_number = 0;
+                else if (module_layers>=4 && module_subdets==5) category_number = 1;
+                else if (module_layers<=2 && module_subdets==4 && module_rings>=11) category_number = 2;
+                else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
+                else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
+                else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
+
+                if (abs_eta<0.75) eta_number=0;
+                else if (abs_eta>0.75 && abs_eta<1.5) eta_number=1;
+                else if (abs_eta>1.5  && abs_eta<2.25) eta_number=2;
+                else if (abs_eta>2.25 && abs_eta<3) eta_number=3;
+
+                if (category_number == 0 && eta_number == 0) occupancy = 572;
+                else if (category_number == 0 && eta_number == 1) occupancy = 300;
+                else if (category_number == 0 && eta_number == 2) occupancy = 183;
+                else if (category_number == 0 && eta_number == 3) occupancy = 62;
+                else if (category_number == 1 && eta_number == 0) occupancy = 191;
+                else if (category_number == 1 && eta_number == 1) occupancy = 128;
+                else if (category_number == 2 && eta_number == 1) occupancy = 107;
+                else if (category_number == 2 && eta_number == 2) occupancy = 102;
+                else if (category_number == 3 && eta_number == 1) occupancy = 64;
+                else if (category_number == 3 && eta_number == 2) occupancy = 79;
+                else if (category_number == 3 && eta_number == 3) occupancy = 85;
+
+                int nTotSegs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalSegments,occupancy);
+                rangesInGPU.segmentModuleIndices[i] = nTotSegs;
+                rangesInGPU.segmentModuleOccupancy[i] = occupancy;
+            }
+
+            // Wait for all threads to finish before reporting final values
+            alpaka::syncBlockThreads(acc);
+            if(globalThreadIdx[2] == 0)
+            {
+                rangesInGPU.segmentModuleIndices[*modulesInGPU.nLowerModules] = nTotalSegments;
+                *rangesInGPU.device_nTotalSegs = nTotalSegments;
+            }
+        }
+    };
+
+    struct addSegmentRangesToEventExplicit
+    {
+        template<typename TAcc>
+        ALPAKA_FN_ACC void operator()(
+                TAcc const & acc,
+                struct modules& modulesInGPU,
+                struct segments& segmentsInGPU,
+                struct objectRanges& rangesInGPU) const
+        {
+            using Dim = alpaka::Dim<TAcc>;
+            using Idx = alpaka::Idx<TAcc>;
+            using Vec = alpaka::Vec<Dim, Idx>;
+
+            Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+            Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+
+            for(uint16_t i = globalThreadIdx[2]; i < *modulesInGPU.nLowerModules; i += gridThreadExtent[2])
+            {
+                if(segmentsInGPU.nSegments[i] == 0)
+                {
+                    rangesInGPU.segmentRanges[i * 2] = -1;
+                    rangesInGPU.segmentRanges[i * 2 + 1] = -1;
+                }
+                else
+                {
+                    rangesInGPU.segmentRanges[i * 2] = rangesInGPU.segmentModuleIndices[i];
+                    rangesInGPU.segmentRanges[i * 2 + 1] = rangesInGPU.segmentModuleIndices[i] + segmentsInGPU.nSegments[i] - 1;
                 }
             }
         }

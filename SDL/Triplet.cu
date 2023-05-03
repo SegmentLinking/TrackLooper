@@ -11,65 +11,6 @@ void SDL::triplets::resetMemory(unsigned int maxTriplets, unsigned int nLowerMod
     cudaMemsetAsync(partOfPT3, 0, maxTriplets * sizeof(bool), stream);
 }
 
-__global__ void SDL::createTripletArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct segments& segmentsInGPU)
-{
-
-    short module_subdets;
-    short module_layers;
-    short module_rings;
-    float module_eta;
-    __shared__ unsigned int nTotalTriplets;
-    nTotalTriplets = 0; //start!   
-    __syncthreads();
-
-    int gid = blockIdx.x * blockDim.x + threadIdx.x;
-    int np = gridDim.x * blockDim.x;
-    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
-    {
-        if(segmentsInGPU.nSegments[i] == 0){
-          rangesInGPU.tripletModuleIndices[i] = nTotalTriplets;
-          rangesInGPU.tripletModuleOccupancy[i] = 0;
-          continue;
-        }
-        module_subdets = modulesInGPU.subdets[i];
-        module_layers = modulesInGPU.layers[i];
-        module_rings = modulesInGPU.rings[i];
-        module_eta = abs(modulesInGPU.eta[i]);
-        unsigned int occupancy;
-        unsigned int category_number, eta_number;
-        if (module_layers<=3 && module_subdets==5) category_number = 0;
-        else if (module_layers>=4 && module_subdets==5) category_number = 1;
-        else if (module_layers<=2 && module_subdets==4 && module_rings>=11) category_number = 2;
-        else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
-        else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
-        else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
-        if (module_eta<0.75) eta_number=0;
-        else if (module_eta>0.75 && module_eta<1.5) eta_number=1;
-        else if (module_eta>1.5 && module_eta<2.25) eta_number=2;
-        else if (module_eta>2.25 && module_eta<3) eta_number=3;
-
-        if (category_number == 0 && eta_number == 0) occupancy = 543;
-        else if (category_number == 0 && eta_number == 1) occupancy = 235;
-        else if (category_number == 0 && eta_number == 2) occupancy = 88;
-        else if (category_number == 0 && eta_number == 3) occupancy = 46;
-        else if (category_number == 1 && eta_number == 0) occupancy = 755;
-        else if (category_number == 1 && eta_number == 1) occupancy = 347;
-        else if (category_number == 2 && eta_number == 1) occupancy = 0;
-        else if (category_number == 2 && eta_number == 2) occupancy = 0;
-        else if (category_number == 3 && eta_number == 1) occupancy = 38;
-        else if (category_number == 3 && eta_number == 2) occupancy = 46;
-        else if (category_number == 3 && eta_number == 3) occupancy = 39;
-
-        rangesInGPU.tripletModuleOccupancy[i] = occupancy;
-        unsigned int nTotT = atomicAdd(&nTotalTriplets,occupancy);
-        rangesInGPU.tripletModuleIndices[i] = nTotT;
-    }
-    __syncthreads();
-    if(threadIdx.x==0){
-      *rangesInGPU.device_nTotalTrips = nTotalTriplets;
-    }
-}
-
 void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, uint16_t nLowerModules, cudaStream_t stream)
 {
 #ifdef CACHE_ALLOC
@@ -243,23 +184,4 @@ void SDL::triplets::freeMemory(cudaStream_t stream)
     cudaFree(sdlCut);
 #endif
     cudaStreamSynchronize(stream);
-}
-
-__global__ void SDL::addTripletRangesToEventExplicit(struct modules& modulesInGPU, struct triplets& tripletsInGPU, struct objectRanges& rangesInGPU)
-{
-    int gid = blockIdx.x * blockDim.x + threadIdx.x;
-    int np = gridDim.x * blockDim.x;
-    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
-    {
-        if(tripletsInGPU.nTriplets[i] == 0)
-        {
-            rangesInGPU.tripletRanges[i * 2] = -1;
-            rangesInGPU.tripletRanges[i * 2 + 1] = -1;
-        }
-        else
-        {
-            rangesInGPU.tripletRanges[i * 2] = rangesInGPU.tripletModuleIndices[i];
-            rangesInGPU.tripletRanges[i * 2 + 1] = rangesInGPU.tripletModuleIndices[i] +  tripletsInGPU.nTriplets[i] - 1;
-        }
-    }
 }

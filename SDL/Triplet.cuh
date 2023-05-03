@@ -49,18 +49,13 @@ namespace SDL
         float* rtLo;
         float* rtHi;
         float* kZ;
-
 #endif
-
         triplets();
         ~triplets();
         void freeMemory(cudaStream_t stream);
         void freeMemoryCache();
         void resetMemory(unsigned int maxTriplets, unsigned int nLowerModules,cudaStream_t stream);
     };
-
-    __global__ void createTripletArrayRanges(struct modules& modulesInGPU, struct objectRanges& rangesInGPU, struct segments& segmentsInGPU);
-    __global__ void addTripletRangesToEventExplicit(struct modules& modulesInGPU, struct triplets& tripletsInGPU, struct objectRanges& rangesInGPU);
 
     void createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, uint16_t nLowerModules,cudaStream_t stream);
 
@@ -1267,6 +1262,111 @@ namespace SDL
                             }
                         }
                     }
+                }
+            }
+        }
+    };
+
+    struct createTripletArrayRanges
+    {
+        template<typename TAcc>
+        ALPAKA_FN_ACC void operator()(
+                TAcc const & acc,
+                struct modules& modulesInGPU,
+                struct objectRanges& rangesInGPU,
+                struct segments& segmentsInGPU) const
+        {
+            using Dim = alpaka::Dim<TAcc>;
+            using Idx = alpaka::Idx<TAcc>;
+            using Vec = alpaka::Vec<Dim, Idx>;
+
+            Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+            Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+
+            int& nTotalTriplets = alpaka::declareSharedVar<int, __COUNTER__>(acc); nTotalTriplets = 0;
+            alpaka::syncBlockThreads(acc);
+
+            for(uint16_t i = globalThreadIdx[2]; i < *modulesInGPU.nLowerModules; i+= gridThreadExtent[2])
+            {
+                if(segmentsInGPU.nSegments[i] == 0)
+                {
+                    rangesInGPU.tripletModuleIndices[i] = nTotalTriplets;
+                    rangesInGPU.tripletModuleOccupancy[i] = 0;
+                    continue;
+                }
+
+                short module_subdets = modulesInGPU.subdets[i];
+                short module_layers = modulesInGPU.layers[i];
+                short module_rings = modulesInGPU.rings[i];
+                float module_eta = modulesInGPU.eta[i];
+                float abs_eta = alpaka::math::abs(acc, module_eta);
+                int occupancy, category_number, eta_number;
+
+                if (module_layers<=3 && module_subdets==5) category_number = 0;
+                else if (module_layers>=4 && module_subdets==5) category_number = 1;
+                else if (module_layers<=2 && module_subdets==4 && module_rings>=11) category_number = 2;
+                else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
+                else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
+                else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
+
+                if (abs_eta<0.75) eta_number=0;
+                else if (abs_eta>0.75 && abs_eta<1.5) eta_number=1;
+                else if (abs_eta>1.5 && abs_eta<2.25) eta_number=2;
+                else if (abs_eta>2.25 && abs_eta<3) eta_number=3;
+
+                if (category_number == 0 && eta_number == 0) occupancy = 543;
+                else if (category_number == 0 && eta_number == 1) occupancy = 235;
+                else if (category_number == 0 && eta_number == 2) occupancy = 88;
+                else if (category_number == 0 && eta_number == 3) occupancy = 46;
+                else if (category_number == 1 && eta_number == 0) occupancy = 755;
+                else if (category_number == 1 && eta_number == 1) occupancy = 347;
+                else if (category_number == 2 && eta_number == 1) occupancy = 0;
+                else if (category_number == 2 && eta_number == 2) occupancy = 0;
+                else if (category_number == 3 && eta_number == 1) occupancy = 38;
+                else if (category_number == 3 && eta_number == 2) occupancy = 46;
+                else if (category_number == 3 && eta_number == 3) occupancy = 39;
+
+                rangesInGPU.tripletModuleOccupancy[i] = occupancy;
+                unsigned int nTotT = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalTriplets, occupancy);
+                rangesInGPU.tripletModuleIndices[i] = nTotT;
+            }
+
+            // Wait for all threads to finish before reporting final values
+            alpaka::syncBlockThreads(acc);
+            if(globalThreadIdx[2] == 0)
+            {
+                *rangesInGPU.device_nTotalTrips = nTotalTriplets;
+            }
+        }
+    };
+
+    struct addTripletRangesToEventExplicit
+    {
+        template<typename TAcc>
+        ALPAKA_FN_ACC void operator()(
+                TAcc const & acc,
+                struct modules& modulesInGPU,
+                struct triplets& tripletsInGPU,
+                struct objectRanges& rangesInGPU) const
+        {
+            using Dim = alpaka::Dim<TAcc>;
+            using Idx = alpaka::Idx<TAcc>;
+            using Vec = alpaka::Vec<Dim, Idx>;
+
+            Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+            Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+
+            for(uint16_t i = globalThreadIdx[2]; i < *modulesInGPU.nLowerModules; i += gridThreadExtent[2])
+            {
+                if(tripletsInGPU.nTriplets[i] == 0)
+                {
+                    rangesInGPU.tripletRanges[i * 2] = -1;
+                    rangesInGPU.tripletRanges[i * 2 + 1] = -1;
+                }
+                else
+                {
+                    rangesInGPU.tripletRanges[i * 2] = rangesInGPU.tripletModuleIndices[i];
+                    rangesInGPU.tripletRanges[i * 2 + 1] = rangesInGPU.tripletModuleIndices[i] +  tripletsInGPU.nTriplets[i] - 1;
                 }
             }
         }
