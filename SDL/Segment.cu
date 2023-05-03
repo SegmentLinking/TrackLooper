@@ -258,7 +258,6 @@ __device__ void SDL::addSegmentToMemory(struct segments& segmentsInGPU, unsigned
     //idx will be computed in the kernel, which is the index into which the 
     //segment will be written
     //nSegments will be incremented in the kernel
-    //printf("seg: %u %u %u %u\n",lowerMDIndex, upperMDIndex,innerLowerModuleIndex,outerLowerModuleIndex);
     segmentsInGPU.mdIndices[idx * 2] = lowerMDIndex;
     segmentsInGPU.mdIndices[idx * 2 + 1] = upperMDIndex;
     segmentsInGPU.innerLowerModuleIndices[idx] = innerLowerModuleIndex;
@@ -814,7 +813,6 @@ __global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, st
     for(uint16_t innerLowerModuleIndex = blockIdx.x ; innerLowerModuleIndex< (*modulesInGPU.nLowerModules); innerLowerModuleIndex += blockxSize){
 
     unsigned int nConnectedModules = modulesInGPU.nConnectedModules[innerLowerModuleIndex];
-//printf("HERE:  %d nConnectedModules = %d\n", innerLowerModuleIndex, nConnectedModules);
 
     for(uint16_t outerLowerModuleArrayIdx = threadIdx.y; outerLowerModuleArrayIdx< nConnectedModules; outerLowerModuleArrayIdx += blockySize){
 
@@ -824,7 +822,6 @@ __global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, st
         unsigned int nOuterMDs = mdsInGPU.nMDs[outerLowerModuleIndex];
 
         int limit = nInnerMDs*nOuterMDs;
-//printf("HERE:  %d %d limit %d\n", innerLowerModuleIndex, outerLowerModuleArrayIdx, limit);
 
         if (limit == 0) continue;
         for(int hitIndex = threadIdx.x; hitIndex< limit; hitIndex += blockzSize)
