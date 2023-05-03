@@ -8,62 +8,6 @@ void SDL::miniDoublets::resetMemory(unsigned int nMemoryLocationsx, unsigned int
     cudaMemsetAsync(totOccupancyMDs,0, (nLowerModules + 1) * sizeof(unsigned int),stream);
 }
 
-__global__ void SDL::createMDArrayRangesGPU(struct modules& modulesInGPU, struct objectRanges& rangesInGPU)
-{
-    short module_subdets;
-    short module_layers;
-    short module_rings;
-    float module_eta;
-
-    __shared__ unsigned int nTotalMDs; //start!   
-    nTotalMDs = 0; //start!   
-    __syncthreads();
-    int gid = blockIdx.x * blockDim.x + threadIdx.x;
-    int np = gridDim.x * blockDim.x;
-    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
-    {
-        module_subdets = modulesInGPU.subdets[i];
-        module_layers = modulesInGPU.layers[i];
-        module_rings = modulesInGPU.rings[i];
-        module_eta = abs(modulesInGPU.eta[i]);
-        unsigned int occupancy;
-        unsigned int category_number, eta_number;
-        if (module_layers<=3 && module_subdets==5) category_number = 0;
-        else if (module_layers>=4 && module_subdets==5) category_number = 1;
-        else if (module_layers<=2 && module_subdets==4 && module_rings>=11) category_number = 2;
-        else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
-        else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
-        else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
-
-        if (module_eta<0.75) eta_number=0;
-        else if (module_eta>0.75 && module_eta<1.5) eta_number=1;
-        else if (module_eta>1.5  && module_eta<2.25) eta_number=2;
-        else if (module_eta>2.25 && module_eta<3) eta_number=3;
-
-        if (category_number == 0 && eta_number == 0) occupancy = 49;
-        else if (category_number == 0 && eta_number == 1) occupancy = 42;
-        else if (category_number == 0 && eta_number == 2) occupancy = 37;
-        else if (category_number == 0 && eta_number == 3) occupancy = 41;
-        else if (category_number == 1) occupancy = 100;
-        else if (category_number == 2 && eta_number == 1) occupancy = 16;
-        else if (category_number == 2 && eta_number == 2) occupancy = 19;
-        else if (category_number == 3 && eta_number == 1) occupancy = 14;
-        else if (category_number == 3 && eta_number == 2) occupancy = 20;
-        else if (category_number == 3 && eta_number == 3) occupancy = 25;
-
-        unsigned int nTotMDs= atomicAdd(&nTotalMDs,occupancy);
-        rangesInGPU.miniDoubletModuleIndices[i] = nTotMDs; 
-        rangesInGPU.miniDoubletModuleOccupancy[i] = occupancy;
-    }
-    __syncthreads();
-    if(threadIdx.x==0){
-      rangesInGPU.miniDoubletModuleIndices[*modulesInGPU.nLowerModules] = nTotalMDs;
-      //*nTotalMDsx=nTotalMDs;
-      *rangesInGPU.device_nTotalMDs=nTotalMDs;
-    }
-
-}
-
 //FIXME:Add memory locations for the pixel MDs here!
 void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream)
 {
@@ -224,24 +168,5 @@ void SDL::printMD(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, SDL::mo
     {
         IndentingOStreambuf indent(std::cout);
         printHit(hitsInGPU, modulesInGPU, upperHitIndex);
-    }
-}
-
-__global__ void SDL::addMiniDoubletRangesToEventExplicit(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct objectRanges& rangesInGPU,struct hits& hitsInGPU)
-{
-    int gid = blockIdx.x * blockDim.x + threadIdx.x;
-    int np = gridDim.x * blockDim.x;
-    for(uint16_t i = gid; i < *modulesInGPU.nLowerModules; i+= np)
-    {
-        if(mdsInGPU.nMDs[i] == 0 or hitsInGPU.hitRanges[i * 2] == -1)
-        {
-            rangesInGPU.mdRanges[i * 2] = -1;
-            rangesInGPU.mdRanges[i * 2 + 1] = -1;
-        }
-        else
-        {
-            rangesInGPU.mdRanges[i * 2] = rangesInGPU.miniDoubletModuleIndices[i] ;
-            rangesInGPU.mdRanges[i * 2 + 1] = rangesInGPU.miniDoubletModuleIndices[i] + mdsInGPU.nMDs[i] - 1;
-        }
     }
 }

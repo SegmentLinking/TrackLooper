@@ -49,8 +49,6 @@ namespace SDL
 
     void createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& maxQuintuplets, const uint16_t& nLowerModules, const uint16_t& nEligibleModules,cudaStream_t stream);
 
-    __global__ void addQuintupletRangesToEventExplicit(struct modules& modulesInGPU, struct quintuplets& quintupletsInGPU, struct objectRanges& rangesInGPU);
-
     ALPAKA_FN_ACC ALPAKA_FN_INLINE bool checkIntervalOverlap(const float& firstMin, const float& firstMax, const float& secondMin, const float& secondMax)
     {
         return ((firstMin <= secondMin) & (secondMin < firstMax)) |  ((secondMin < firstMin) & (firstMin < secondMax));
@@ -1968,6 +1966,38 @@ namespace SDL
             {
                 *rangesInGPU.nEligibleT5Modules = static_cast<uint16_t>(nEligibleT5Modulesx);
                 *rangesInGPU.device_nTotalQuints = static_cast<unsigned int>(nTotalQuintupletsx);
+            }
+        }
+    };
+
+    struct addQuintupletRangesToEventExplicit
+    {
+        template<typename TAcc>
+        ALPAKA_FN_ACC void operator()(
+                TAcc const & acc,
+                struct modules& modulesInGPU,
+                struct quintuplets& quintupletsInGPU,
+                struct objectRanges& rangesInGPU) const
+        {
+            using Dim = alpaka::Dim<TAcc>;
+            using Idx = alpaka::Idx<TAcc>;
+            using Vec = alpaka::Vec<Dim, Idx>;
+
+            Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+            Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+
+            for(uint16_t i = globalThreadIdx[2]; i < *modulesInGPU.nLowerModules; i += gridThreadExtent[2])
+            {
+                if(quintupletsInGPU.nQuintuplets[i] == 0 or rangesInGPU.quintupletModuleIndices[i] == -1)
+                {
+                    rangesInGPU.quintupletRanges[i * 2] = -1;
+                    rangesInGPU.quintupletRanges[i * 2 + 1] = -1;
+                }
+                else
+                {
+                    rangesInGPU.quintupletRanges[i * 2] = rangesInGPU.quintupletModuleIndices[i];
+                    rangesInGPU.quintupletRanges[i * 2 + 1] = rangesInGPU.quintupletModuleIndices[i] + quintupletsInGPU.nQuintuplets[i] - 1;
+                }
             }
         }
     };

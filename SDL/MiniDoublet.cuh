@@ -69,11 +69,6 @@ namespace SDL
 
     void createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDs,uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream);
 
-
-    __global__ void createMDArrayRangesGPU(struct modules& modulesInGPU, struct objectRanges& rangesInGPU);
-
-    __global__ void addMiniDoubletRangesToEventExplicit(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct objectRanges& rangesInGPU, struct hits& hitsInGPU);
-
     void printMD(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, SDL::modules& modulesInGPU, unsigned int mdIndex);
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE void addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
@@ -736,10 +731,103 @@ namespace SDL
         }
     };
 
-    
+    struct createMDArrayRangesGPU
+    {
+        template<typename TAcc>
+        ALPAKA_FN_ACC void operator()(
+                TAcc const & acc,
+                struct modules& modulesInGPU,
+                struct objectRanges& rangesInGPU) const
+        {
+            using Dim = alpaka::Dim<TAcc>;
+            using Idx = alpaka::Idx<TAcc>;
+            using Vec = alpaka::Vec<Dim, Idx>;
 
+            Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+            Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
+            int& nTotalMDs = alpaka::declareSharedVar<int, __COUNTER__>(acc); nTotalMDs = 0;
+            alpaka::syncBlockThreads(acc);
+
+            for(uint16_t i = globalThreadIdx[2]; i < *modulesInGPU.nLowerModules; i += gridThreadExtent[2])
+            {
+                short module_subdets = modulesInGPU.subdets[i];
+                short module_layers = modulesInGPU.layers[i];
+                short module_rings = modulesInGPU.rings[i];
+                float module_eta = modulesInGPU.eta[i];
+                float abs_eta = alpaka::math::abs(acc, module_eta);
+                int occupancy, category_number, eta_number;
+
+                if (module_layers<=3 && module_subdets==5) category_number = 0;
+                else if (module_layers>=4 && module_subdets==5) category_number = 1;
+                else if (module_layers<=2 && module_subdets==4 && module_rings>=11) category_number = 2;
+                else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
+                else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
+                else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
+
+                if (abs_eta<0.75) eta_number=0;
+                else if (abs_eta>0.75 && abs_eta<1.5) eta_number=1;
+                else if (abs_eta>1.5  && abs_eta<2.25) eta_number=2;
+                else if (abs_eta>2.25 && abs_eta<3) eta_number=3;
+
+                if (category_number == 0 && eta_number == 0) occupancy = 49;
+                else if (category_number == 0 && eta_number == 1) occupancy = 42;
+                else if (category_number == 0 && eta_number == 2) occupancy = 37;
+                else if (category_number == 0 && eta_number == 3) occupancy = 41;
+                else if (category_number == 1) occupancy = 100;
+                else if (category_number == 2 && eta_number == 1) occupancy = 16;
+                else if (category_number == 2 && eta_number == 2) occupancy = 19;
+                else if (category_number == 3 && eta_number == 1) occupancy = 14;
+                else if (category_number == 3 && eta_number == 2) occupancy = 20;
+                else if (category_number == 3 && eta_number == 3) occupancy = 25;
+
+                unsigned int nTotMDs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalMDs, occupancy);
+
+                rangesInGPU.miniDoubletModuleIndices[i] = nTotMDs; 
+                rangesInGPU.miniDoubletModuleOccupancy[i] = occupancy;
+            }
+
+            // Wait for all threads to finish before reporting final values
+            alpaka::syncBlockThreads(acc);
+            if(globalThreadIdx[2] == 0)
+            {
+                rangesInGPU.miniDoubletModuleIndices[*modulesInGPU.nLowerModules] = nTotalMDs;
+                *rangesInGPU.device_nTotalMDs = nTotalMDs;
+            }
+        }
+    };
+
+    struct addMiniDoubletRangesToEventExplicit
+    {
+        template<typename TAcc>
+        ALPAKA_FN_ACC void operator()(
+                TAcc const & acc,
+                struct modules& modulesInGPU,
+                struct miniDoublets& mdsInGPU,
+                struct objectRanges& rangesInGPU,
+                struct hits& hitsInGPU) const
+        {
+            using Dim = alpaka::Dim<TAcc>;
+            using Idx = alpaka::Idx<TAcc>;
+            using Vec = alpaka::Vec<Dim, Idx>;
+
+            Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+            Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+
+            for(uint16_t i = globalThreadIdx[2]; i < *modulesInGPU.nLowerModules; i += gridThreadExtent[2])
+            {
+                if(mdsInGPU.nMDs[i] == 0 or hitsInGPU.hitRanges[i * 2] == -1)
+                {
+                    rangesInGPU.mdRanges[i * 2] = -1;
+                    rangesInGPU.mdRanges[i * 2 + 1] = -1;
+                }
+                else
+                {
+                    rangesInGPU.mdRanges[i * 2] = rangesInGPU.miniDoubletModuleIndices[i] ;
+                    rangesInGPU.mdRanges[i * 2 + 1] = rangesInGPU.miniDoubletModuleIndices[i] + mdsInGPU.nMDs[i] - 1;
+                }
+            }
+        }
+    };
 }
-
 #endif
-
