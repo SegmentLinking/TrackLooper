@@ -805,8 +805,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         {
             error = 5.0f;
         }
-        if (i==4) residual4=residual/error;
-        if (i==5) residual5=residual/error;
 
         //check the tilted module, side: PosZ, NegZ, Center(for not tilted)
         float drdz;
