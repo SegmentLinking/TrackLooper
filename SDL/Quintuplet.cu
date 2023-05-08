@@ -859,34 +859,41 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     // when building T5, apply 99% chi2 cuts as default, and add to pT5 collection. But when adding T5 to TC collections, appy 95% cut to reduce the fake rate
     TightCutFlag = false;
     //categories!
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3)
+    // The category numbers are related to module regions and layers, decoding of the region numbers can be found here in slide 2 table. https://github.com/SegmentLinking/TrackLooper/files/11420927/part.2.pdf
+    // The commented numbers after each case is the region code, and can look it up from the table to see which category it belongs to. For example, //0 means T5 built with Endcap 1,2,3,4,5 ps modules
+
+    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11) //0
     {
-        if(layer4 == 4 and layer5 == 5) //11
+        if (rzChiSquared < 94.470f) TightCutFlag = 1;
+        return true;
+    }
+
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 16) //1
+    {
+        if (rzChiSquared < 22.099f) TightCutFlag = 1;
+        return rzChiSquared < 37.956f;
+    }
+    
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16) //2
+    {
+        if (rzChiSquared < 7.992f) TightCutFlag = 1;
+        return rzChiSquared < 11.622f;
+    }
+
+    else if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9) 
+    {
+        if (layer5 == 10) //3
         {
-            if (rzChiSquared < 15.627f) TightCutFlag = 1;
-            return rzChiSquared < 29.035f; 
+            if (rzChiSquared < 111.390f) TightCutFlag = 1;
+            return true;
         }
-        else if(layer4 == 4 and layer5 == 12) //12
+        if (layer5 == 15) //4
         {
-            if (rzChiSquared < 14.64f) TightCutFlag = 1;
-            return rzChiSquared < 23.037f;
-        }
-        else if(layer4 == 7 and layer5 == 8) //8
-        {   
-            if (rzChiSquared < 27.824f) TightCutFlag = 1;
-            return rzChiSquared < 44.247f;
-        }
-        else if(layer4 == 7 and layer5 == 13) //9
-        {
-            if (rzChiSquared < 18.145f) TightCutFlag = 1;
-            return rzChiSquared < 33.752f;
-        }
-        else if(layer4 == 12 and layer5 == 13) //10
-        {
-            if (rzChiSquared < 13.308f) TightCutFlag = 1;
-            return rzChiSquared < 21.213f;
+            if (rzChiSquared < 18.351f) TightCutFlag = 1;
+            return rzChiSquared < 37.941f;
         }
     }
+
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
         if(layer4 == 8 and layer5 == 9) //5
@@ -905,17 +912,59 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
             return rzChiSquared < 13.76f;
         }
     }
-    else if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9) 
+    else if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-        if (layer5 == 10) //3
-        {
-            if (rzChiSquared < 111.390f) TightCutFlag = 1;
-            return true;
+        if(layer4 == 7 and layer5 == 8) //8
+        {   
+            if (rzChiSquared < 27.824f) TightCutFlag = 1;
+            return rzChiSquared < 44.247f;
         }
-        if (layer5 == 15) //4
+        else if(layer4 == 7 and layer5 == 13) //9
         {
-            if (rzChiSquared < 18.351f) TightCutFlag = 1;
-            return rzChiSquared < 37.941f;
+            if (rzChiSquared < 18.145f) TightCutFlag = 1;
+            return rzChiSquared < 33.752f;
+        }
+        else if(layer4 == 12 and layer5 == 13) //10
+        {
+            if (rzChiSquared < 13.308f) TightCutFlag = 1;
+            return rzChiSquared < 21.213f;
+        }
+        else if(layer4 == 4 and layer5 == 5) //11
+        {
+            if (rzChiSquared < 15.627f) TightCutFlag = 1;
+            return rzChiSquared < 29.035f; 
+        }
+        else if(layer4 == 4 and layer5 == 12) //12
+        {
+            if (rzChiSquared < 14.64f) TightCutFlag = 1;
+            return rzChiSquared < 23.037f;
+        }
+    }
+
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
+    {
+        if(layer4 == 9 and layer5 == 15) //14
+        {
+            if (rzChiSquared < 24.662f) TightCutFlag = 1;
+            return rzChiSquared < 41.036f;
+        }
+        else if(layer4 == 14 and layer5 == 15) //15
+        {
+            if (rzChiSquared < 8.866f) TightCutFlag = 1;
+            return rzChiSquared < 14.092f;
+        }
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 7) 
+    {
+        if(layer4 == 8 and layer5 == 14) //16
+        {
+            if (rzChiSquared < 23.730f) TightCutFlag = 1;
+            return rzChiSquared < 23.748f;
+        }
+        if(layer4 == 13 and layer5 == 14) //17
+        {
+            if (rzChiSquared < 10.772f) TightCutFlag = 1;
+            return rzChiSquared < 17.945f;
         }
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
@@ -936,51 +985,6 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
             if (rzChiSquared < 5.473f) TightCutFlag = 1;
             return rzChiSquared < 7.626f;
         }
-    }
-    else if(layer1 == 2 and layer2 == 3 and layer3 == 7) 
-    {
-        if(layer4 == 8 and layer5 == 14) //16
-        {
-            if (rzChiSquared < 23.730f) TightCutFlag = 1;
-            return rzChiSquared < 23.748f;
-        }
-        if(layer4 == 13 and layer5 == 14) //17
-        {
-            if (rzChiSquared < 10.772f) TightCutFlag = 1;
-            return rzChiSquared < 17.945f;
-        }
-    }
-
-    else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
-    {
-        if(layer4 == 9 and layer5 == 15) //14
-        {
-            if (rzChiSquared < 24.662f) TightCutFlag = 1;
-            return rzChiSquared < 41.036f;
-        }
-        else if(layer4 == 14 and layer5 == 15) //15
-        {
-            if (rzChiSquared < 8.866f) TightCutFlag = 1;
-            return rzChiSquared < 14.092f;
-        }
-    }
-
-    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16) //2
-    {
-        if (rzChiSquared < 7.992f) TightCutFlag = 1;
-        return rzChiSquared < 11.622f;
-    }
-
-    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11) //0
-    {
-        if (rzChiSquared < 94.470f) TightCutFlag = 1;
-        return true;
-    }
-
-    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 16) //1
-    {
-        if (rzChiSquared < 22.099f) TightCutFlag = 1;
-        return rzChiSquared < 37.956f;
     }
     return true;
 }
