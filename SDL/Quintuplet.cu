@@ -729,7 +729,7 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     float Pz=(z_init-z1)/ds*Pt;
     float p = sqrt(Px*Px+Py*Py+Pz*Pz);
 
-    float B = 3.8112;
+    float B = SDL::magnetic_field;
     float a = -0.299792*B*charge;
 
     float zsi, rtsi;
