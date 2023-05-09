@@ -643,24 +643,25 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         rt_init=mdsInGPU.anchorRt[secondMDIndex]/100;
     }
 
-    //start from a circle of inner T3.
+    // start from a circle of inner T3.
     // to determine the charge
     int charge=0;
     float slope3c=(y3-y_center)/(x3-x_center);
     float slope1c=(y1-y_center)/(x1-x_center);
+    // these 4 "if"s basically separate the x-y plane into 4 quarters. It determines geometrically how a circle and line slope goes and their positions, and we can get the charges correspondingly.
     if((y3-y_center)>0 && (y1-y_center)>0) 
     {
-        if (slope3c>slope1c) charge=-1; 
+        if (slope1c>0 && slope3c<0) charge=-1; // on x axis of a quarter, 3 hits go anti-clockwise
+        else if (slope1c<0 && slope3c>0) charge=1; // on x axis of a quarter, 3 hits go clockwise
+        else if (slope3c>slope1c) charge=-1; 
         else if (slope3c<slope1c) charge=1;
-        if (slope1c>0 && slope3c<0) charge=-1;
-        if (slope1c<0 && slope3c>0) charge=1;
     }
     else if((y3-y_center)<0 && (y1-y_center)<0) 
     {
-        if (slope3c>slope1c) charge=-1; 
-        else if (slope3c<slope1c) charge=1;
         if (slope1c<0 && slope3c>0) charge=1;
-        if (slope1c>0 && slope3c<0) charge=-1;
+        else if (slope1c>0 && slope3c<0) charge=-1;
+        else if (slope3c>slope1c) charge=-1; 
+        else if (slope3c<slope1c) charge=1;
     }
     else if ((y3-y_center)<0 && (y1-y_center)>0)
     {
@@ -676,6 +677,8 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     float pseudo_phi = atan((y_init-y_center)/(x_init-x_center)); //actually represent pi/2-phi, wrt helix axis z
     float Pt=inner_pt, Px=Pt*abs(sin(pseudo_phi)), Py=Pt*abs(cos(pseudo_phi));
 
+    // Above line only gives you the correct value of Px and Py, but signs of Px and Py calculated below. 
+    // We look at if the circle is clockwise or anti-clock wise, to make it simpler, we separate the x-y plane into 4 quarters.
     if (x_init>x_center && y_init>y_center) //1st quad
     {
         if (charge==1) Py=-Py;
@@ -701,13 +704,14 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
         }
     }
 
-    if (moduleType3==0){
+    // But if the initial T5 curve goes across quarters(i.e. cross axis to separate the quarters), need special redeclaration of Px,Py signs on these to avoid errors
+    if (moduleType3==0){ // 0 is ps
         if (x4<x3 && x3<x2) Px=-abs(Px);
         if (x4>x3 && x3>x2) Px=abs(Px);
         if (y4<y3 && y3<y2) Py=-abs(Py);
         if (y4>y3 && y3>y2) Py=abs(Py);
     }
-    else if(moduleType3==1)
+    else if(moduleType3==1) // 1 is 2s
     {
         if (x3<x2 && x2<x1) Px=-abs(Px);
         if (x3>x2 && x2>x1) Px=abs(Px);
