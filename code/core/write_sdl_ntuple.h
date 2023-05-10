@@ -8,7 +8,6 @@
 #include "MathUtil.h"
 #include "SDL/Event.cuh"
 
-#include "constants.h"
 #include "AnalysisConfig.h"
 #include "trkCore.h"
 #include "AccessHelper.h"

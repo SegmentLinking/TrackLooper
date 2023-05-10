@@ -4,7 +4,6 @@
 #include "trktree.h"
 #include "TCanvas.h"
 #include "TSystem.h"
-#include "Module.h"
 #include "AnalysisConfig.h"
 #include "SDL/ModuleConnectionMap.h"
 #include "SDLMath.h"
