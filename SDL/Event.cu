@@ -256,7 +256,6 @@ SDL::Event::~Event()
         delete[] modulesInCPUFull->moduleLayerType;
         delete[] modulesInCPUFull;
     }
-    SDL::freeEndCapMapMemory();
 }
 
 void SDL::Event::resetEvent()
