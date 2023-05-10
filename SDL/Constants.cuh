@@ -73,5 +73,6 @@ namespace SDL
     extern CUDA_CONST_VAR const float pixelPSZpitch;
     extern CUDA_CONST_VAR const float strip2SZpitch;
     extern CUDA_CONST_VAR const float pt_betaMax;
+    extern CUDA_CONST_VAR const float magnetic_field;
 }
 #endif

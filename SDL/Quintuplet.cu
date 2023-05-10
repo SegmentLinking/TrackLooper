@@ -15,6 +15,7 @@ SDL::quintuplets::quintuplets()
     outerRadius = nullptr;
     regressionRadius = nullptr;
     isDup = nullptr;
+    TightCutFlag = nullptr;
     partOfPT5 = nullptr;
     pt = nullptr;
     layer = nullptr;
@@ -44,6 +45,7 @@ void SDL::quintuplets::freeMemoryCache()
     cms::cuda::free_device(dev, outerRadius);
     cms::cuda::free_device(dev, partOfPT5);
     cms::cuda::free_device(dev, isDup);
+    cms::cuda::free_device(dev, TightCutFlag);
     cms::cuda::free_device(dev, pt);
     cms::cuda::free_device(dev, layer);
     cms::cuda::free_device(dev, regressionG);
@@ -69,6 +71,7 @@ void SDL::quintuplets::freeMemory(cudaStream_t stream)
     cudaFree(regressionRadius);
     cudaFree(partOfPT5);
     cudaFree(isDup);
+    cudaFree(TightCutFlag);
     cudaFree(pt);
     cudaFree(layer);
     cudaFree(regressionG);
@@ -162,6 +165,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     quintupletsInGPU.pt = (FPX*)cms::cuda::allocate_device(dev, nTotalQuintuplets *4* sizeof(FPX), stream);
     quintupletsInGPU.layer = (uint8_t*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(uint8_t), stream);
     quintupletsInGPU.isDup = (bool*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(bool), stream);
+    quintupletsInGPU.TightCutFlag = (bool*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(bool), stream);
     quintupletsInGPU.partOfPT5 = (bool*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(bool), stream);
     quintupletsInGPU.regressionRadius = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
     quintupletsInGPU.regressionG = (float*)cms::cuda::allocate_device(dev, nTotalQuintuplets * sizeof(float), stream);
@@ -182,6 +186,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     cudaMalloc(&quintupletsInGPU.outerRadius, nTotalQuintuplets * sizeof(FPX));
     cudaMalloc(&quintupletsInGPU.pt, nTotalQuintuplets *4* sizeof(FPX));
     cudaMalloc(&quintupletsInGPU.isDup, nTotalQuintuplets * sizeof(bool));
+    cudaMalloc(&quintupletsInGPU.TightCutFlag, nTotalQuintuplets * sizeof(bool));
     cudaMalloc(&quintupletsInGPU.partOfPT5, nTotalQuintuplets * sizeof(bool));
     cudaMalloc(&quintupletsInGPU.layer, nTotalQuintuplets * sizeof(uint8_t));
     cudaMalloc(&quintupletsInGPU.regressionRadius, nTotalQuintuplets * sizeof(float));
@@ -199,6 +204,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
     cudaMemsetAsync(quintupletsInGPU.nQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(quintupletsInGPU.totOccupancyQuintuplets,0,nLowerModules * sizeof(unsigned int),stream);
     cudaMemsetAsync(quintupletsInGPU.isDup,0,nTotalQuintuplets * sizeof(bool),stream);
+    cudaMemsetAsync(quintupletsInGPU.TightCutFlag,0,nTotalQuintuplets * sizeof(bool),stream);
     cudaMemsetAsync(quintupletsInGPU.partOfPT5,0,nTotalQuintuplets * sizeof(bool),stream);
     cudaStreamSynchronize(stream);
     quintupletsInGPU.eta = quintupletsInGPU.pt + nTotalQuintuplets;
@@ -208,7 +214,7 @@ void SDL::createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintuplets
 
 
 __device__ void SDL::addQuintupletToMemory(struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, uint16_t& lowerModule1, uint16_t& lowerModule2, uint16_t& lowerModule3, uint16_t& lowerModule4, uint16_t& lowerModule5, float& innerRadius, float& bridgeRadius, float& outerRadius, float& regressionG, float& regressionF, float& regressionRadius, float& rzChiSquared, float& rPhiChiSquared, float&
-        nonAnchorChiSquared, float pt, float eta, float phi, float scores, uint8_t layer, unsigned int quintupletIndex)
+        nonAnchorChiSquared, float pt, float eta, float phi, float scores, uint8_t layer, unsigned int quintupletIndex, bool TightCutFlag)
 
 {
     quintupletsInGPU.tripletIndices[2 * quintupletIndex] = innerTripletIndex;
@@ -227,6 +233,7 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::triplets& tripletsInGPU, 
     quintupletsInGPU.score_rphisum[quintupletIndex] = __F2H(scores);
     quintupletsInGPU.layer[quintupletIndex] = layer;
     quintupletsInGPU.isDup[quintupletIndex] = false;
+    quintupletsInGPU.TightCutFlag[quintupletIndex] = TightCutFlag;
     quintupletsInGPU.regressionRadius[quintupletIndex] = regressionRadius;
     quintupletsInGPU.regressionG[quintupletIndex] = regressionG;
     quintupletsInGPU.regressionF[quintupletIndex] = regressionF;
@@ -250,10 +257,9 @@ __device__ void SDL::addQuintupletToMemory(struct SDL::triplets& tripletsInGPU, 
     quintupletsInGPU.rzChiSquared[quintupletIndex] = rzChiSquared;
     quintupletsInGPU.chiSquared[quintupletIndex] = rPhiChiSquared;
     quintupletsInGPU.nonAnchorChiSquared[quintupletIndex] = nonAnchorChiSquared;
-
 }
 
-__device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, unsigned int& innerTripletIndex, unsigned int& outerTripletIndex, float& innerRadius, float& outerRadius, float& bridgeRadius, float& regressionG, float& regressionF, float& regressionRadius, float& rzChiSquared, float& chiSquared, float& nonAnchorChiSquared)
+__device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, unsigned int& innerTripletIndex, unsigned int& outerTripletIndex, float& innerRadius, float& outerRadius, float& bridgeRadius, float& regressionG, float& regressionF, float& regressionRadius, float& rzChiSquared, float& chiSquared, float& nonAnchorChiSquared, bool& TightCutFlag)
 {
     bool pass = true;
     unsigned int firstSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex];
@@ -281,9 +287,6 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     if(not pass) return pass;
 
     pass = pass and runQuintupletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex4, lowerModuleIndex5, firstSegmentIndex, fourthSegmentIndex, firstMDIndex, secondMDIndex, fourthMDIndex, fifthMDIndex, zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ);
-    if(not pass) return pass;
-
-    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5);
     if(not pass) return pass;
 
     float x1 = mdsInGPU.anchorX[firstMDIndex];
@@ -369,10 +372,14 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     computeErrorInRadius(x3Vec, y3Vec, x1Vec, y1Vec, x2Vec, y2Vec, outerRadiusMin2S, outerRadiusMax2S);
 
     float g, f;
-    innerRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3, g, f);
     outerRadius = computeRadiusFromThreeAnchorHits(x3, y3, x4, y4, x5, y5, g, f);
     bridgeRadius = computeRadiusFromThreeAnchorHits(x2, y2, x3, y3, x4, y4, g, f);
+    innerRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3, g, f);
 
+    float inner_pt = 2 * k2Rinv1GeVf * innerRadius;
+    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, inner_pt, innerRadius, g, f, TightCutFlag);
+
+    if(not pass) return pass;
 
     pass = pass & (innerRadius >= 0.95f * ptCut/(2.f * k2Rinv1GeVf));
 
@@ -517,13 +524,13 @@ __device__ bool SDL::passChiSquaredConstraint(struct SDL::modules& modulesInGPU,
     }
     else if(layer1 == 1 and layer2 == 2 and layer3 == 3 and layer4 == 4)
     {
-        if(layer5 == 12)
-        {
-            return chiSquared < 0.09461f;
-        }
-        else if(layer5 == 5)
+        if(layer5 == 5)
         {
             return chiSquared < 0.04725f;
+        }
+        else if(layer5 == 12)
+        {
+            return chiSquared < 0.09461f;
         }
     }
     else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
@@ -554,17 +561,17 @@ __device__ bool SDL::passChiSquaredConstraint(struct SDL::modules& modulesInGPU,
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
-        if(layer4 == 12 and layer5 == 13)
+        if(layer4 == 5 and layer5 == 6)
         {
-            return chiSquared < 0.10870f;
+            return chiSquared < 0.08234f;
         }
         else if(layer4 == 5 and layer5 == 12)
         {
             return chiSquared < 0.10870f;
         }
-        else if(layer4 == 5 and layer5 == 6)
+        else if(layer4 == 12 and layer5 == 13)
         {
-            return chiSquared < 0.08234f;
+            return chiSquared < 0.10870f;
         }
     }
     else if(layer1 == 3 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
@@ -580,19 +587,20 @@ __device__ bool SDL::passChiSquaredConstraint(struct SDL::modules& modulesInGPU,
 }
 
 //bounds can be found at http://uaf-10.t2.ucsd.edu/~bsathian/SDL/T5_RZFix/t5_rz_thresholds.txt
-__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5) 
+__device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, unsigned int firstMDIndex, unsigned int secondMDIndex, unsigned int thirdMDIndex, unsigned int fourthMDIndex, unsigned int fifthMDIndex, uint16_t& lowerModuleIndex1, uint16_t& lowerModuleIndex2, uint16_t& lowerModuleIndex3, uint16_t& lowerModuleIndex4, uint16_t& lowerModuleIndex5, float& rzChiSquared, float inner_pt, float innerRadius, float g, float f, bool& TightCutFlag) 
 {
-    const float& rt1 = mdsInGPU.anchorRt[firstMDIndex];
-    const float& rt2 = mdsInGPU.anchorRt[secondMDIndex];
-    const float& rt3 = mdsInGPU.anchorRt[thirdMDIndex];
-    const float& rt4 = mdsInGPU.anchorRt[fourthMDIndex];
-    const float& rt5 = mdsInGPU.anchorRt[fifthMDIndex];
+    //(g,f) is the center of the circle fitted by the innermost 3 points on x,y coordinates
+    const float& rt1 = mdsInGPU.anchorRt[firstMDIndex]/100; //in the unit of m instead of cm
+    const float& rt2 = mdsInGPU.anchorRt[secondMDIndex]/100;
+    const float& rt3 = mdsInGPU.anchorRt[thirdMDIndex]/100;
+    const float& rt4 = mdsInGPU.anchorRt[fourthMDIndex]/100;
+    const float& rt5 = mdsInGPU.anchorRt[fifthMDIndex]/100;
 
-    const float& z1 = mdsInGPU.anchorZ[firstMDIndex];
-    const float& z2 = mdsInGPU.anchorZ[secondMDIndex];
-    const float& z3 = mdsInGPU.anchorZ[thirdMDIndex];
-    const float& z4 = mdsInGPU.anchorZ[fourthMDIndex];
-    const float& z5 = mdsInGPU.anchorZ[fifthMDIndex];
+    const float& z1 = mdsInGPU.anchorZ[firstMDIndex]/100;
+    const float& z2 = mdsInGPU.anchorZ[secondMDIndex]/100;
+    const float& z3 = mdsInGPU.anchorZ[thirdMDIndex]/100;
+    const float& z4 = mdsInGPU.anchorZ[fourthMDIndex]/100;
+    const float& z5 = mdsInGPU.anchorZ[fifthMDIndex]/100;
 
     //following Philip's layer number prescription
     const int layer1 = modulesInGPU.layers[lowerModuleIndex1] + 6 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex1] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex1] == SDL::TwoS);
@@ -602,138 +610,386 @@ __device__ bool SDL::passT5RZConstraint(struct SDL::modules& modulesInGPU, struc
     const int layer5 = modulesInGPU.layers[lowerModuleIndex5] + 6 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap) + 5 * (modulesInGPU.subdets[lowerModuleIndex5] == SDL::Endcap and modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
 
     //slope computed using the internal T3s
-    const int moduleLayer1 = modulesInGPU.moduleType[lowerModuleIndex1];
-    const int moduleLayer2 = modulesInGPU.moduleType[lowerModuleIndex2];
-    const int moduleLayer3 = modulesInGPU.moduleType[lowerModuleIndex3];
-    const int moduleLayer4 = modulesInGPU.moduleType[lowerModuleIndex4];
-    const int moduleLayer5 = modulesInGPU.moduleType[lowerModuleIndex5];
+    const int moduleType1 = modulesInGPU.moduleType[lowerModuleIndex1]; //0 is ps, 1 is 2s
+    const int moduleType2 = modulesInGPU.moduleType[lowerModuleIndex2];
+    const int moduleType3 = modulesInGPU.moduleType[lowerModuleIndex3];
+    const int moduleType4 = modulesInGPU.moduleType[lowerModuleIndex4];
+    const int moduleType5 = modulesInGPU.moduleType[lowerModuleIndex5];
 
-    float slope;
-    if(moduleLayer1 == 0 and moduleLayer2 == 0 and moduleLayer3 == 1) //PSPS2S
+    const float& x1 = mdsInGPU.anchorX[firstMDIndex]/100;
+    const float& x2 = mdsInGPU.anchorX[secondMDIndex]/100;
+    const float& x3 = mdsInGPU.anchorX[thirdMDIndex]/100;
+    const float& x4 = mdsInGPU.anchorX[fourthMDIndex]/100;
+    const float& x5 = mdsInGPU.anchorX[fifthMDIndex]/100;
+    const float& y1 = mdsInGPU.anchorY[firstMDIndex]/100;
+    const float& y2 = mdsInGPU.anchorY[secondMDIndex]/100;
+    const float& y3 = mdsInGPU.anchorY[thirdMDIndex]/100;
+    const float& y4 = mdsInGPU.anchorY[fourthMDIndex]/100;
+    const float& y5 = mdsInGPU.anchorY[fifthMDIndex]/100;
+
+    float residual = 0;
+    float error = 0;
+    float x_center=g/100, y_center=f/100; 
+    float x_init=mdsInGPU.anchorX[thirdMDIndex]/100;
+    float y_init=mdsInGPU.anchorY[thirdMDIndex]/100;
+    float z_init=mdsInGPU.anchorZ[thirdMDIndex]/100;
+    float rt_init=mdsInGPU.anchorRt[thirdMDIndex]/100; //use the second MD as initial point
+
+    if (moduleType3==1)  // 1: if MD3 is in 2s layer
     {
-        slope = (z2 -z1)/(rt2 - rt1);
+        x_init=mdsInGPU.anchorX[secondMDIndex]/100;
+        y_init=mdsInGPU.anchorY[secondMDIndex]/100;
+        z_init=mdsInGPU.anchorZ[secondMDIndex]/100;
+        rt_init=mdsInGPU.anchorRt[secondMDIndex]/100;
     }
-    else
+
+    // start from a circle of inner T3.
+    // to determine the charge
+    int charge=0;
+    float slope3c=(y3-y_center)/(x3-x_center);
+    float slope1c=(y1-y_center)/(x1-x_center);
+    // these 4 "if"s basically separate the x-y plane into 4 quarters. It determines geometrically how a circle and line slope goes and their positions, and we can get the charges correspondingly.
+    if((y3-y_center)>0 && (y1-y_center)>0) 
     {
-        slope = (z3 - z1)/(rt3 - rt1);
+        if (slope1c>0 && slope3c<0) charge=-1; // on x axis of a quarter, 3 hits go anti-clockwise
+        else if (slope1c<0 && slope3c>0) charge=1; // on x axis of a quarter, 3 hits go clockwise
+        else if (slope3c>slope1c) charge=-1; 
+        else if (slope3c<slope1c) charge=1;
     }
-    float residual4 = (layer4 <= 6)? ((z4 - z1) - slope * (rt4 - rt1)) : ((rt4 - rt1) - (z4 - z1)/slope);
-    float residual5 = (layer4 <= 6) ? ((z5 - z1) - slope * (rt5 - rt1)) : ((rt5 - rt1) - (z5 - z1)/slope);
+    else if((y3-y_center)<0 && (y1-y_center)<0) 
+    {
+        if (slope1c<0 && slope3c>0) charge=1;
+        else if (slope1c>0 && slope3c<0) charge=-1;
+        else if (slope3c>slope1c) charge=-1; 
+        else if (slope3c<slope1c) charge=1;
+    }
+    else if ((y3-y_center)<0 && (y1-y_center)>0)
+    {
+        if ((x3-x_center)>0 && (x1-x_center)>0) charge = 1;
+        else if ((x3-x_center)<0 && (x1-x_center)<0) charge = -1;
+    }
+    else if ((y3-y_center)>0 && (y1-y_center)<0)
+    {
+        if ((x3-x_center)>0 && (x1-x_center)>0) charge = -1;
+        else if ((x3-x_center)<0 && (x1-x_center)<0) charge = 1;
+    }
 
-    // creating a chi squared type quantity
-    // 0-> PS, 1->2S
-    residual4 = (moduleLayer4 == 0) ? residual4/2.4f : residual4/5.0f;
-    residual5 = (moduleLayer5 == 0) ? residual5/2.4f : residual5/5.0f;
+    float pseudo_phi = atan((y_init-y_center)/(x_init-x_center)); //actually represent pi/2-phi, wrt helix axis z
+    float Pt=inner_pt, Px=Pt*abs(sin(pseudo_phi)), Py=Pt*abs(cos(pseudo_phi));
 
-    const float RMSE = sqrtf(0.5 * (residual4 * residual4 + residual5 * residual5));
+    // Above line only gives you the correct value of Px and Py, but signs of Px and Py calculated below. 
+    // We look at if the circle is clockwise or anti-clock wise, to make it simpler, we separate the x-y plane into 4 quarters.
+    if (x_init>x_center && y_init>y_center) //1st quad
+    {
+        if (charge==1) Py=-Py;
+        if (charge==-1) Px=-Px;
+    }
+    if (x_init<x_center && y_init>y_center) //2nd quad
+    {
+        if (charge==-1) {
+            Px=-Px; 
+            Py=-Py;
+        }
+    }
+    if (x_init<x_center && y_init<y_center) //3rd quad
+    {
+        if (charge==1) Px=-Px;
+        if (charge==-1) Py=-Py;
+    }        
+    if (x_init>x_center && y_init<y_center) //4th quad
+    {
+        if (charge==1) {
+            Px=-Px; 
+            Py=-Py;
+        }
+    }
 
+    // But if the initial T5 curve goes across quarters(i.e. cross axis to separate the quarters), need special redeclaration of Px,Py signs on these to avoid errors
+    if (moduleType3==0){ // 0 is ps
+        if (x4<x3 && x3<x2) Px=-abs(Px);
+        if (x4>x3 && x3>x2) Px=abs(Px);
+        if (y4<y3 && y3<y2) Py=-abs(Py);
+        if (y4>y3 && y3>y2) Py=abs(Py);
+    }
+    else if(moduleType3==1) // 1 is 2s
+    {
+        if (x3<x2 && x2<x1) Px=-abs(Px);
+        if (x3>x2 && x2>x1) Px=abs(Px);
+        if (y3<y2 && y2<y1) Py=-abs(Py);
+        if (y3>y2 && y2>y1) Py=abs(Py);        
+    }
+
+    //to get Pz, we use pt/pz=ds/dz, ds is the arclength between MD1 and MD3.
+    float AO=sqrt((x1-x_center)*(x1-x_center)+(y1-y_center)*(y1-y_center));
+    float BO=sqrt((x_init-x_center)*(x_init-x_center)+(y_init-y_center)*(y_init-y_center));
+    float AB=sqrt((x1-x_init)*(x1-x_init)+(y1-y_init)*(y1-y_init)); 
+    float dPhi = acos((AO*AO+BO*BO-AB*AB)/(2*AO*BO));
+    float ds=innerRadius/100*dPhi;
+
+    float Pz=(z_init-z1)/ds*Pt;
+    float p = sqrt(Px*Px+Py*Py+Pz*Pz);
+
+    float B = SDL::magnetic_field;
+    float a = -0.299792*B*charge;
+
+    float zsi, rtsi;
+    int layeri, moduleTypei;
+    rzChiSquared=0;
+    for(size_t i = 2; i < 6; i++)
+    {
+        if (i==2){
+            zsi = z2;
+            rtsi = rt2;
+            layeri=layer2;
+            moduleTypei=moduleType2;
+        }
+        else if (i==3) {
+            zsi = z3;
+            rtsi = rt3;
+            layeri=layer3;
+            moduleTypei=moduleType3;
+        }
+        else if (i==4){
+            zsi = z4;
+            rtsi = rt4;
+            layeri=layer4;
+            moduleTypei=moduleType4;
+        }
+        else if (i==5){
+            zsi = z5;
+            rtsi = rt5;
+            layeri=layer5;
+            moduleTypei=moduleType5;
+        }
+
+        if (moduleType3==0) { //0: ps
+            if (i==3) continue;
+        }
+        else{
+            if (i==2) continue;
+        }
+
+        // calculation is copied from PixelTriplet.cu SDL::computePT3RZChiSquared
+        float diffr=0, diffz=0;
+
+        float rou = a/p;
+        // for endcap
+        float s = (zsi-z_init)*p/Pz;
+        float x = x_init + Px/a*sin(rou*s)-Py/a*(1-cos(rou*s));
+        float y = y_init + Py/a*sin(rou*s)+Px/a*(1-cos(rou*s));
+        diffr = (rtsi-sqrt(x*x+y*y))*100;
+
+        // for barrel
+        if (layeri<=6)
+        {
+            float paraA = rt_init*rt_init + 2*(Px*Px+Py*Py)/(a*a) + 2*(y_init*Px-x_init*Py)/a - rtsi*rtsi;
+            float paraB = 2*(x_init*Px+y_init*Py)/a;
+            float paraC = 2*(y_init*Px-x_init*Py)/a+2*(Px*Px+Py*Py)/(a*a);
+            float A=paraB*paraB+paraC*paraC;
+            float B=2*paraA*paraB;
+            float C=paraA*paraA-paraC*paraC;
+            float sol1 = (-B+sqrt(B*B-4*A*C))/(2*A);
+            float sol2 = (-B-sqrt(B*B-4*A*C))/(2*A);
+            float solz1 = asin(sol1)/rou*Pz/p+z_init;
+            float solz2 = asin(sol2)/rou*Pz/p+z_init;
+            float diffz1 = (solz1-zsi)*100;
+            float diffz2 = (solz2-zsi)*100;
+            if (isnan(diffz1)) diffz = diffz2;
+            else if (isnan(diffz2)) diffz = diffz1;
+            else {diffz = (fabs(diffz1)<fabs(diffz2)) ? diffz1 : diffz2;}
+        }
+        residual = (layeri>6) ? diffr : diffz ;
+
+        //PS Modules
+        if(moduleTypei == 0)
+        {
+            error = 0.15f;
+        }
+        else //2S modules
+        {
+            error = 5.0f;
+        }
+
+        //check the tilted module, side: PosZ, NegZ, Center(for not tilted)
+        float drdz;
+        short side, subdets;
+        if (i==2){
+            drdz=abs(modulesInGPU.drdzs[lowerModuleIndex2]);
+            side=modulesInGPU.sides[lowerModuleIndex2];
+            subdets=modulesInGPU.subdets[lowerModuleIndex2];
+        }
+        if (i==3){
+            drdz=abs(modulesInGPU.drdzs[lowerModuleIndex3]);
+            side=modulesInGPU.sides[lowerModuleIndex3];
+            subdets=modulesInGPU.subdets[lowerModuleIndex3];
+        }
+        if (i==2 || i==3){
+            residual = (layeri <= 6 && ((side == SDL::Center) or (drdz < 1))) ? diffz : diffr;
+            float projection_missing=1;
+        if (drdz<1)
+            projection_missing = ((subdets == SDL::Endcap) or (side == SDL::Center)) ? 1.f : 1/sqrt(1+drdz*drdz); // cos(atan(drdz)), if dr/dz<1
+        if (drdz>1)
+            projection_missing = ((subdets == SDL::Endcap) or (side == SDL::Center)) ? 1.f : drdz/sqrt(1+drdz*drdz);//sin(atan(drdz)), if dr/dz>1
+            error=error*projection_missing;
+        }
+        rzChiSquared += 12*(residual * residual)/(error * error);
+    }
+    // for set rzchi2 cut
+    // if the 5 points are linear, helix calculation gives nan
+    if (inner_pt>100 || isnan(rzChiSquared)){
+        float slope;
+        if(moduleType1 == 0 and moduleType2 == 0 and moduleType3 == 1) //PSPS2S
+        {
+            slope = (z2 -z1)/(rt2 - rt1);
+        }
+        else
+        {
+            slope = (z3 - z1)/(rt3 - rt1);
+        }
+        float residual4_linear = (layer4 <= 6)? ((z4 - z1) - slope * (rt4 - rt1)) : ((rt4 - rt1) - (z4 - z1)/slope);
+        float residual5_linear = (layer4 <= 6) ? ((z5 - z1) - slope * (rt5 - rt1)) : ((rt5 - rt1) - (z5 - z1)/slope);
+
+        // creating a chi squared type quantity
+        // 0-> PS, 1->2S
+        residual4_linear = (moduleType4 == 0) ? residual4_linear/0.15f : residual4_linear/5.0f;
+        residual5_linear = (moduleType5 == 0) ? residual5_linear/0.15f : residual5_linear/5.0f;
+        residual4_linear = residual4_linear*100;
+        residual5_linear = residual5_linear*100;
+
+        rzChiSquared = 12 * (residual4_linear * residual4_linear + residual5_linear * residual5_linear);
+        return rzChiSquared < 4.677f;
+    }
+
+    // when building T5, apply 99% chi2 cuts as default, and add to pT5 collection. But when adding T5 to TC collections, appy 95% cut to reduce the fake rate
+    TightCutFlag = false;
     //categories!
-    if(layer1 == 1 and layer2 == 2 and layer3 == 3)
+    // The category numbers are related to module regions and layers, decoding of the region numbers can be found here in slide 2 table. https://github.com/SegmentLinking/TrackLooper/files/11420927/part.2.pdf
+    // The commented numbers after each case is the region code, and can look it up from the table to see which category it belongs to. For example, //0 means T5 built with Endcap 1,2,3,4,5 ps modules
+
+    if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 11) //0
     {
-        if(layer4 == 4 and layer5 == 5)
+        if (rzChiSquared < 94.470f) TightCutFlag = 1;
+        return true;
+    }
+
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 10 and layer5 == 16) //1
+    {
+        if (rzChiSquared < 22.099f) TightCutFlag = 1;
+        return rzChiSquared < 37.956f;
+    }
+    
+    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16) //2
+    {
+        if (rzChiSquared < 7.992f) TightCutFlag = 1;
+        return rzChiSquared < 11.622f;
+    }
+
+    else if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9) 
+    {
+        if (layer5 == 10) //3
         {
-            return RMSE < 0.545f; 
+            if (rzChiSquared < 111.390f) TightCutFlag = 1;
+            return true;
         }
-        else if(layer4 == 4 and layer5 == 12)
+        if (layer5 == 15) //4
         {
-            return RMSE < 1.105f;
-        }
-        else if(layer4 == 7 and layer5 == 13)
-        {
-            return RMSE < 0.775f;
-        }
-        else if(layer4 == 12 and layer5 == 13)
-        {
-            return RMSE < 0.625f;
+            if (rzChiSquared < 18.351f) TightCutFlag = 1;
+            return rzChiSquared < 37.941f;
         }
     }
+
     else if(layer1 == 1 and layer2 == 2 and layer3 == 7)
     {
-        if(layer4 == 8 and layer5 == 14)
+        if(layer4 == 8 and layer5 == 9) //5
         {
-            return RMSE < 0.835f;
+            if (rzChiSquared < 116.148f) TightCutFlag = 1;
+            return true;
         }
-        else if(layer4 == 13 and layer5 == 14)
+        if(layer4 == 8 and layer5 == 14) //6
         {
-            return RMSE < 0.575f;
+            if (rzChiSquared < 19.352f) TightCutFlag = 1;
+            return rzChiSquared < 52.561f;
+        }
+        else if(layer4 == 13 and layer5 == 14) //7
+        {
+            if (rzChiSquared < 10.392f) TightCutFlag = 1;
+            return rzChiSquared < 13.76f;
         }
     }
-    else if(layer1 == 1 and layer2 == 7 and layer3 == 8 and layer4 == 9 and layer5 == 15)
+    else if(layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-        return RMSE < 0.825f;
+        if(layer4 == 7 and layer5 == 8) //8
+        {   
+            if (rzChiSquared < 27.824f) TightCutFlag = 1;
+            return rzChiSquared < 44.247f;
+        }
+        else if(layer4 == 7 and layer5 == 13) //9
+        {
+            if (rzChiSquared < 18.145f) TightCutFlag = 1;
+            return rzChiSquared < 33.752f;
+        }
+        else if(layer4 == 12 and layer5 == 13) //10
+        {
+            if (rzChiSquared < 13.308f) TightCutFlag = 1;
+            return rzChiSquared < 21.213f;
+        }
+        else if(layer4 == 4 and layer5 == 5) //11
+        {
+            if (rzChiSquared < 15.627f) TightCutFlag = 1;
+            return rzChiSquared < 29.035f; 
+        }
+        else if(layer4 == 4 and layer5 == 12) //12
+        {
+            if (rzChiSquared < 14.64f) TightCutFlag = 1;
+            return rzChiSquared < 23.037f;
+        }
+    }
+
+    else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
+    {
+        if(layer4 == 9 and layer5 == 15) //14
+        {
+            if (rzChiSquared < 24.662f) TightCutFlag = 1;
+            return rzChiSquared < 41.036f;
+        }
+        else if(layer4 == 14 and layer5 == 15) //15
+        {
+            if (rzChiSquared < 8.866f) TightCutFlag = 1;
+            return rzChiSquared < 14.092f;
+        }
+    }
+    else if(layer1 == 2 and layer2 == 3 and layer3 == 7) 
+    {
+        if(layer4 == 8 and layer5 == 14) //16
+        {
+            if (rzChiSquared < 23.730f) TightCutFlag = 1;
+            return rzChiSquared < 23.748f;
+        }
+        if(layer4 == 13 and layer5 == 14) //17
+        {
+            if (rzChiSquared < 10.772f) TightCutFlag = 1;
+            return rzChiSquared < 17.945f;
+        }
     }
     else if(layer1 == 2 and layer2 == 3 and layer3 == 4)
     {
-        if(layer4 == 5 and layer5 == 6)
+        if(layer4 == 5 and layer5 == 6) //18
         {
-            return RMSE < 0.845f;
+            if (rzChiSquared < 6.065f) TightCutFlag = 1;
+            return rzChiSquared < 8.803f;
         }
-        else if(layer4 == 5 and layer5 == 12)
+        else if(layer4 == 5 and layer5 == 12) //19
         {
-            return RMSE < 1.365f;
+            if (rzChiSquared < 5.693f) TightCutFlag = 1;
+            return rzChiSquared < 7.930f;
         }
 
-        else if(layer4 == 12 and layer5 == 13)
+        else if(layer4 == 12 and layer5 == 13) //20
         {
-            return RMSE < 0.675f;
+            if (rzChiSquared < 5.473f) TightCutFlag = 1;
+            return rzChiSquared < 7.626f;
         }
     }
-    else if(layer1 == 2 and layer2 == 3 and layer3 == 7 and layer4 == 13 and layer5 == 14)
-    {
-            return RMSE < 0.495f;
-    }
-    else if(layer1 == 2 and layer2 == 3 and layer3 == 12 and layer4 == 13 and layer5 == 14)
-    {
-        return RMSE < 0.695f; 
-    }
-    else if(layer1 == 2 and layer2 == 7 and layer3 == 8)
-    {
-        if(layer4 == 9 and layer5 == 15)
-        {
-            return RMSE < 0.735f;
-        }
-        else if(layer4 == 14 and layer5 == 15)
-        {
-            return RMSE < 0.525f;
-        }
-    }
-    else if(layer1 == 2 and layer2 == 7 and layer3 == 13 and layer4 == 14 and layer5 == 15)
-    {
-        return RMSE < 0.665f;
-    }
-    else if(layer1 == 3 and layer2 == 4 and layer3 == 5 and layer4 == 12 and layer5 == 13)
-    {
-        return RMSE < 0.995f;
-    }
-    else if(layer1 == 3 and layer2 == 4 and layer3 == 12 and layer4 == 13 and layer5 == 14)
-    {
-        return RMSE < 0.525f;
-    }
-    else if(layer1 == 3 and layer2 == 7 and layer3 == 8 and layer4 == 14 and layer5 == 15)
-    {
-        return RMSE < 0.525f;
-    }
-    else if(layer1 == 3 and layer2 == 7 and layer3 == 13 and layer4 == 14 and layer5 == 15)
-    {
-        return RMSE < 0.745f;
-    }
-    else if(layer1 == 3 and layer2 == 12 and layer3 == 13 and layer4 == 14 and layer5 == 15)
-    {
-        return RMSE < 0.555f; 
-    }
-    else if(layer1 == 7 and layer2 == 8 and layer3 == 9 and layer4 == 15 and layer5 == 16)
-    {
-            return RMSE < 0.525f;
-    }
-    else if(layer1 == 7 and layer2 == 8 and layer3 == 14 and layer4 == 15 and layer5 == 16)
-    {
-        return RMSE < 0.885f;
-    }
-    else if(layer1 == 7 and layer2 == 13 and layer3 == 14 and layer4 == 15 and layer5 == 16)
-    {
-        return RMSE < 0.845f;
-    }
-
     return true;
 }
 
@@ -990,13 +1246,6 @@ __device__ float SDL::computeRadiusFromThreeAnchorHits(float x1, float y1, float
     //TODO:Use fancy inbuilt libraries like cuBLAS or cuSOLVE for this!
     //(g,f) -> center
     //first anchor hit - (x1,y1), second anchor hit - (x2,y2), third anchor hit - (x3, y3)
-
-    /*
-    if((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3) == 0)
-    {
-        return -1; //WTF man three collinear points!
-    }
-    */
 
     float denomInv = 1.0f/((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3));
 
@@ -1287,8 +1536,8 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
             uint16_t lowerModule5 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 2];
 
             float innerRadius, outerRadius, bridgeRadius, regressionG, regressionF, regressionRadius, rzChiSquared, chiSquared, nonAnchorChiSquared; //required for making distributions
-
-            bool success = runQuintupletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletIndex, outerTripletIndex, innerRadius, outerRadius,  bridgeRadius, regressionG, regressionF, regressionRadius, rzChiSquared, chiSquared, nonAnchorChiSquared);
+            bool TightCutFlag;
+            bool success = runQuintupletDefaultAlgo(modulesInGPU, mdsInGPU, segmentsInGPU, tripletsInGPU, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerTripletIndex, outerTripletIndex, innerRadius, outerRadius,  bridgeRadius, regressionG, regressionF, regressionRadius, rzChiSquared, chiSquared, nonAnchorChiSquared, TightCutFlag);
 
             if(success)
             {
@@ -1330,7 +1579,7 @@ __global__ void SDL::createQuintupletsInGPUv2(struct SDL::modules& modulesInGPU,
                         float eta = mdsInGPU.anchorEta[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]]];
                         float pt = (innerRadius+outerRadius)*3.8f*1.602f/(2*100*5.39f);
                         float scores = chiSquared + nonAnchorChiSquared;
-                        addQuintupletToMemory(tripletsInGPU, quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, bridgeRadius, outerRadius, regressionG, regressionF, regressionRadius, rzChiSquared, chiSquared, nonAnchorChiSquared, pt,eta,phi,scores,layer,quintupletIndex);
+                        addQuintupletToMemory(tripletsInGPU, quintupletsInGPU, innerTripletIndex, outerTripletIndex, lowerModule1, lowerModule2, lowerModule3, lowerModule4, lowerModule5, innerRadius, bridgeRadius, outerRadius, regressionG, regressionF, regressionRadius, rzChiSquared, chiSquared, nonAnchorChiSquared, pt,eta,phi,scores,layer,quintupletIndex, TightCutFlag);
 
                         tripletsInGPU.partOfT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex]] = true;
                         tripletsInGPU.partOfT5[quintupletsInGPU.tripletIndices[2 * quintupletIndex + 1]] = true;
