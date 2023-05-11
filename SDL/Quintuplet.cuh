@@ -1918,25 +1918,22 @@ namespace SDL
             alpaka::syncBlockThreads(acc);
 
             // Initialize variables outside of the for loop.
-            float module_eta;
-            int nEligibleT5Modules, nTotQ;
             int occupancy, category_number, eta_number;
-            short module_subdets, module_layers, module_rings;
 
             for(int i = globalThreadIdx[2]; i < *modulesInGPU.nLowerModules; i += gridThreadExtent[2])
             {
                 // Condition for a quintuple to exist for a module
                 // TCs don't exist for layers 5 and 6 barrel, and layers 2,3,4,5 endcap   
-                module_rings = modulesInGPU.rings[i];
-                module_layers = modulesInGPU.layers[i];
-                module_subdets = modulesInGPU.subdets[i];
-                module_eta = alpaka::math::abs(acc, modulesInGPU.eta[i]);
+                short module_rings = modulesInGPU.rings[i];
+                short module_layers = modulesInGPU.layers[i];
+                short module_subdets = modulesInGPU.subdets[i];
+                float module_eta = alpaka::math::abs(acc, modulesInGPU.eta[i]);
 
                 if (tripletsInGPU.nTriplets[i] == 0) continue;
                 if (module_subdets == SDL::Barrel and module_layers >= 3) continue;
                 if (module_subdets == SDL::Endcap and module_layers > 1) continue;
 
-                nEligibleT5Modules = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nEligibleT5Modulesx, 1);
+                int nEligibleT5Modules = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nEligibleT5Modulesx, 1);
 
                 if (module_layers<=3 && module_subdets==5) category_number = 0;
                 else if (module_layers>=4 && module_subdets==5) category_number = 1;
@@ -1958,7 +1955,7 @@ namespace SDL
                 else if (category_number == 3 && eta_number == 2) occupancy = 191;
                 else if (category_number == 3 && eta_number == 3) occupancy = 106;
 
-                nTotQ = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalQuintupletsx, occupancy);
+                int nTotQ = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalQuintupletsx, occupancy);
                 rangesInGPU.quintupletModuleIndices[i] = nTotQ;
                 rangesInGPU.indicesOfEligibleT5Modules[nEligibleT5Modules] = i;
             }
