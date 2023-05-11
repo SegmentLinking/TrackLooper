@@ -6,17 +6,9 @@ uint16_t SDL::nModules;
 uint16_t SDL::nLowerModules;
 
 // Temporary alpaka statements
-using Dim = alpaka::DimInt<3u>;
-using Idx = std::size_t;
-using Vec = alpaka::Vec<Dim,Idx>;
-using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
-using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
-using QueueProperty = alpaka::NonBlocking;
-using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
-auto devAcc = alpaka::getDevByIdx<Acc>(0u);
 Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
 
-SDL::Event::Event(cudaStream_t estream,bool verbose)
+SDL::Event::Event(cudaStream_t estream, bool verbose): queue(alpaka::getDevByIdx<Acc>(0u))
 {
     int version;
     int driver;
@@ -265,7 +257,6 @@ SDL::Event::~Event()
         delete[] modulesInCPUFull->moduleLayerType;
         delete[] modulesInCPUFull;
     }
-    SDL::freeEndCapMapMemory();
 }
 
 void SDL::Event::resetEvent()
@@ -664,9 +655,6 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     cudaMemcpyAsync(hitsInGPU->nHits, &nHits, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
 
-    // Temporary fix for queue initialization.
-    QueueAcc queue(devAcc);
-
     Vec const threadsPerBlock1(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
     Vec const blocksPerGrid1(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
     WorkDiv const hit_loop_workdiv(blocksPerGrid1, threadsPerBlock1, elementsPerThread);
@@ -769,9 +757,6 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         unsigned int nTotalMDs;
         cudaMemsetAsync(&rangesInGPU->miniDoubletModuleOccupancy[nLowerModules],N_MAX_PIXEL_MD_PER_MODULES, sizeof(unsigned int),stream);
 
-        // Temporary fix for queue initialization.
-        QueueAcc queue(devAcc);
-
         Vec const threadsPerBlockCreateMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
         Vec const blocksPerGridCreateMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
         WorkDiv const createMDArrayRangesGPU_workDiv(blocksPerGridCreateMD, threadsPerBlockCreateMD, elementsPerThread);
@@ -800,9 +785,6 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         segmentsInGPU = (SDL::segments*)cms::cuda::allocate_host(sizeof(SDL::segments), stream);
         // can be optimized here: because we didn't distinguish pixel segments and outer-tracker segments and call them both "segments", so they use the index continuously.
         // If we want to further study the memory footprint in detail, we can separate the two and allocate different memories to them
-
-        // Temporary fix for queue initialization.
-        QueueAcc queue(devAcc);
 
         Vec const threadsPerBlockCreateSeg(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
         Vec const blocksPerGridCreateSeg(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
@@ -859,9 +841,6 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     cudaMemcpyAsync(&(mdsInGPU->nMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaMemcpyAsync(&(mdsInGPU->totOccupancyMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
-
-    // Temporary fix for queue initialization.
-    QueueAcc queue(devAcc);
 
     Vec const threadsPerBlock(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
     Vec const blocksPerGrid(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
@@ -974,9 +953,6 @@ void SDL::Event::createMiniDoublets()
     unsigned int nTotalMDs;
     cudaMemsetAsync(&rangesInGPU->miniDoubletModuleOccupancy[nLowerModules],N_MAX_PIXEL_MD_PER_MODULES, sizeof(unsigned int),stream);
 
-    // Temporary fix for queue initialization.
-    QueueAcc queue(devAcc);
-
     Vec const threadsPerBlockCreateMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
     Vec const blocksPerGridCreateMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
     WorkDiv const createMDArrayRangesGPU_workDiv(blocksPerGridCreateMD, threadsPerBlockCreateMD, elementsPerThread);
@@ -1083,9 +1059,6 @@ void SDL::Event::createSegmentsWithModuleMap()
         createSegmentsInExplicitMemory(*segmentsInGPU, nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE,stream);
     }
 
-    // Temporary fix for queue initialization.
-    QueueAcc queue(devAcc);
-
     Vec const threadsPerBlockCreateSeg(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(64));
     Vec const blocksPerGridCreateSeg(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(nLowerModules));
     WorkDiv const createSegmentsInGPUv2_workDiv(blocksPerGridCreateSeg, threadsPerBlockCreateSeg, elementsPerThread);
@@ -1129,9 +1102,6 @@ void SDL::Event::createTriplets()
     {
         tripletsInGPU = (SDL::triplets*)cms::cuda::allocate_host(sizeof(SDL::triplets), stream);
         unsigned int maxTriplets;
-
-        // Temporary fix for queue initialization.
-        QueueAcc queue(devAcc);
 
         Vec const threadsPerBlockCreateTrip(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
         Vec const blocksPerGridCreateTrip(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
@@ -1186,9 +1156,6 @@ void SDL::Event::createTriplets()
     cudaMemcpyAsync(index_gpu, index, nonZeroModules*sizeof(uint16_t), cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
 
-    // Temporary fix for queue initialization.
-    QueueAcc queue(devAcc);
-
     Vec const threadsPerBlockCreateTrip(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
     Vec const blocksPerGridCreateTrip(static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1), static_cast<Idx>(1));
     WorkDiv const createTripletsInGPUv2_workDiv(blocksPerGridCreateTrip, threadsPerBlockCreateTrip, elementsPerThread);
@@ -1241,9 +1208,6 @@ void SDL::Event::createTrackCandidates()
         trackCandidatesInGPU = (SDL::trackCandidates*)cms::cuda::allocate_host(sizeof(SDL::trackCandidates), stream);
         createTrackCandidatesInExplicitMemory(*trackCandidatesInGPU, N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES,stream);
     }
-
-    // Temporary fix for queue initialization.
-    QueueAcc queue(devAcc);
 
     Vec const threadsPerBlock_crossCleanpT3(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(64));
     Vec const blocksPerGrid_crossCleanpT3(static_cast<Idx>(1), static_cast<Idx>(4), static_cast<Idx>(20));
@@ -1456,9 +1420,6 @@ void SDL::Event::createPixelTriplets()
     cms::cuda::free_host(pixelTypes);
     cms::cuda::free_host(nTriplets);
 
-    // Temporary fix for queue initialization.
-    QueueAcc queue(devAcc);
-
     Vec const threadsPerBlock(static_cast<Idx>(1), static_cast<Idx>(4), static_cast<Idx>(32));
     Vec const blocksPerGrid(static_cast<Idx>(16 /* above median of connected modules*/), static_cast<Idx>(4096), static_cast<Idx>(1));
     WorkDiv const createPixelTripletsInGPUFromMapv2_workDiv(blocksPerGrid, threadsPerBlock, elementsPerThread);
@@ -1520,9 +1481,6 @@ void SDL::Event::createQuintuplets()
     cudaMemsetAsync(rangesInGPU->quintupletModuleIndices, -1, sizeof(int) * (nLowerModules),stream);
     cudaStreamSynchronize(stream);
     unsigned int nTotalQuintuplets;
-
-    // Temporary fix for queue initialization.
-    QueueAcc queue(devAcc);
 
     Vec const threadsPerBlockCreateQuints(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
     Vec const blocksPerGridCreateQuints(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
@@ -1607,9 +1565,6 @@ void SDL::Event::createQuintuplets()
 
 void SDL::Event::pixelLineSegmentCleaning()
 {
-    // Temporary fix for queue initialization.
-    QueueAcc queue(devAcc);
-
     Vec const threadsPerBlockCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
     Vec const blocksPerGridCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS*4), static_cast<Idx>(MAX_BLOCKS/4));
     WorkDiv const checkHitspLS_workDiv(blocksPerGridCheckHitspLS, threadsPerBlockCheckHitspLS, elementsPerThread);
@@ -1705,9 +1660,6 @@ void SDL::Event::createPixelQuintuplets()
     cudaMemcpyAsync(connectedPixelSize_dev, connectedPixelSize_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
     cudaMemcpyAsync(connectedPixelIndex_dev, connectedPixelIndex_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
-
-    // Temporary fix for queue initialization.
-    QueueAcc queue(devAcc);
 
     Vec const threadsPerBlockCreatePixQuints(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
     Vec const blocksPerGridCreatePixQuints(static_cast<Idx>(16), static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1));
