@@ -584,10 +584,7 @@ namespace SDL
             alpaka::syncBlockThreads(acc);
 
             // Initialize variables outside of the for loop.
-            int nTotSegs;
-            float module_eta;
             int occupancy, category_number, eta_number;
-            short module_subdets, module_layers, module_rings;
 
             for(uint16_t i = globalThreadIdx[2]; i < *modulesInGPU.nLowerModules; i+= gridThreadExtent[2])
             {
@@ -598,10 +595,10 @@ namespace SDL
                     continue;
                 }
 
-                module_rings = modulesInGPU.rings[i];
-                module_layers = modulesInGPU.layers[i];
-                module_subdets = modulesInGPU.subdets[i];
-                module_eta = alpaka::math::abs(acc, modulesInGPU.eta[i]);
+                short module_rings = modulesInGPU.rings[i];
+                short module_layers = modulesInGPU.layers[i];
+                short module_subdets = modulesInGPU.subdets[i];
+                float module_eta = alpaka::math::abs(acc, modulesInGPU.eta[i]);
 
                 if (module_layers<=3 && module_subdets==5) category_number = 0;
                 else if (module_layers>=4 && module_subdets==5) category_number = 1;
@@ -627,7 +624,7 @@ namespace SDL
                 else if (category_number == 3 && eta_number == 2) occupancy = 79;
                 else if (category_number == 3 && eta_number == 3) occupancy = 85;
 
-                nTotSegs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalSegments,occupancy);
+                int nTotSegs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalSegments,occupancy);
                 rangesInGPU.segmentModuleIndices[i] = nTotSegs;
                 rangesInGPU.segmentModuleOccupancy[i] = occupancy;
             }
