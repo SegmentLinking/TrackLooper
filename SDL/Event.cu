@@ -1050,7 +1050,6 @@ void SDL::Event::createMiniDoublets()
         *mdsInGPU,
         *rangesInGPU));
 
-    // No wait is needed here, runs concurrently with next kernel.
     alpaka::enqueue(queue, createMiniDoubletsInGPUv2Task);
 
     Vec const threadsPerBlockAddMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
@@ -1100,7 +1099,6 @@ void SDL::Event::createSegmentsWithModuleMap()
         *segmentsInGPU,
         *rangesInGPU));
 
-    // No wait is needed here, runs concurrently with next kernel.
     alpaka::enqueue(queue, createSegmentsInGPUv2Task);
 
     Vec const threadsPerBlockAddSeg(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
@@ -1207,7 +1205,6 @@ void SDL::Event::createTriplets()
         index_gpu,
         nonZeroModules));
 
-    // No wait is needed here, runs concurrently with next kernel.
     alpaka::enqueue(queue, createTripletsInGPUv2Task);
 
     Vec const threadsPerBlockAddTrip(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
@@ -1585,7 +1582,6 @@ void SDL::Event::createQuintuplets()
         *quintupletsInGPU,
         *rangesInGPU));
 
-    // No wait is needed here, runs concurrently with next kernel.
     alpaka::enqueue(queue, removeDupQuintupletsInGPUAfterBuildTask);
 
     Vec const threadsPerBlockAddQuint(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
