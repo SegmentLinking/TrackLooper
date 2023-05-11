@@ -659,7 +659,8 @@ namespace SDL
             Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
             // Initialize variables in shared memory and set to 0
-            int& nTotalSegments = alpaka::declareSharedVar<int, __COUNTER__>(acc); nTotalSegments = 0;
+            int& nTotalSegments = alpaka::declareSharedVar<int, __COUNTER__>(acc);
+            nTotalSegments = 0;
             alpaka::syncBlockThreads(acc);
 
             // Initialize variables outside of the for loop.
