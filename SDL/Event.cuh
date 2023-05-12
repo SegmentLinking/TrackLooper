@@ -139,11 +139,13 @@ namespace SDL
 
         objectRanges* getRanges();
         hits* getHits();
+        hits* getHitsInCMSSW();
         miniDoublets* getMiniDoublets();
         segments* getSegments() ;
         triplets* getTriplets();
         quintuplets* getQuintuplets();
         trackCandidates* getTrackCandidates();
+        trackCandidates* getTrackCandidatesInCMSSW();
         pixelTriplets* getPixelTriplets();
         modules* getModules();
         modules* getFullModules();

@@ -34,7 +34,7 @@ void SDL::LST::run(cudaStream_t stream,
   auto event = SDL::Event(stream, verbose);
   prepareInput(see_px, see_py, see_pz, see_dxy, see_dz, see_ptErr, see_etaErr, see_stateTrajGlbX, see_stateTrajGlbY, see_stateTrajGlbZ, see_stateTrajGlbPx, see_stateTrajGlbPy, see_stateTrajGlbPz, see_q, see_hitIdx, ph2_detId, ph2_x, ph2_y, ph2_z);
 
-  event.addHitToEvent(in_trkX_, in_trkY_, in_trkZ_, in_hitId_, in_hitIdxs_); // TODO : Need to fix the hitIdxs
+  event.addHitToEvent(in_trkX_, in_trkY_, in_trkZ_, in_hitId_, in_hitIdxs_);
   event.addPixelSegmentToEvent(in_hitIndices_vec0_, in_hitIndices_vec1_, in_hitIndices_vec2_, in_hitIndices_vec3_,
                                in_deltaPhi_vec_,
                                in_ptIn_vec_, in_ptErr_vec_,
@@ -47,76 +47,88 @@ void SDL::LST::run(cudaStream_t stream,
                                in_pixelType_vec_,
                                in_isQuad_vec_);
   event.createMiniDoublets();
-  //printf("# of Mini-doublets produced: %d\n",event.getNumberOfMiniDoublets());
-  //printf("# of Mini-doublets produced barrel layer 1: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(0));
-  //printf("# of Mini-doublets produced barrel layer 2: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(1));
-  //printf("# of Mini-doublets produced barrel layer 3: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(2));
-  //printf("# of Mini-doublets produced barrel layer 4: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(3));
-  //printf("# of Mini-doublets produced barrel layer 5: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(4));
-  //printf("# of Mini-doublets produced barrel layer 6: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(5));
-  //printf("# of Mini-doublets produced endcap layer 1: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(0));
-  //printf("# of Mini-doublets produced endcap layer 2: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(1));
-  //printf("# of Mini-doublets produced endcap layer 3: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(2));
-  //printf("# of Mini-doublets produced endcap layer 4: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(3));
-  //printf("# of Mini-doublets produced endcap layer 5: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(4));
+  if (verbose) {
+    printf("# of Mini-doublets produced: %d\n",event.getNumberOfMiniDoublets());
+    printf("# of Mini-doublets produced barrel layer 1: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(0));
+    printf("# of Mini-doublets produced barrel layer 2: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(1));
+    printf("# of Mini-doublets produced barrel layer 3: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(2));
+    printf("# of Mini-doublets produced barrel layer 4: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(3));
+    printf("# of Mini-doublets produced barrel layer 5: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(4));
+    printf("# of Mini-doublets produced barrel layer 6: %d\n",event.getNumberOfMiniDoubletsByLayerBarrel(5));
+    printf("# of Mini-doublets produced endcap layer 1: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(0));
+    printf("# of Mini-doublets produced endcap layer 2: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(1));
+    printf("# of Mini-doublets produced endcap layer 3: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(2));
+    printf("# of Mini-doublets produced endcap layer 4: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(3));
+    printf("# of Mini-doublets produced endcap layer 5: %d\n",event.getNumberOfMiniDoubletsByLayerEndcap(4));
+  }
 
   event.createSegmentsWithModuleMap();
-  //printf("# of Segments produced: %d\n",event.getNumberOfSegments());
-  //printf("# of Segments produced layer 1-2:  %d\n",event.getNumberOfSegmentsByLayerBarrel(0));
-  //printf("# of Segments produced layer 2-3:  %d\n",event.getNumberOfSegmentsByLayerBarrel(1));
-  //printf("# of Segments produced layer 3-4:  %d\n",event.getNumberOfSegmentsByLayerBarrel(2));
-  //printf("# of Segments produced layer 4-5:  %d\n",event.getNumberOfSegmentsByLayerBarrel(3));
-  //printf("# of Segments produced layer 5-6:  %d\n",event.getNumberOfSegmentsByLayerBarrel(4));
-  //printf("# of Segments produced endcap layer 1:  %d\n",event.getNumberOfSegmentsByLayerEndcap(0));
-  //printf("# of Segments produced endcap layer 2:  %d\n",event.getNumberOfSegmentsByLayerEndcap(1));
-  //printf("# of Segments produced endcap layer 3:  %d\n",event.getNumberOfSegmentsByLayerEndcap(2));
-  //printf("# of Segments produced endcap layer 4:  %d\n",event.getNumberOfSegmentsByLayerEndcap(3));
-  //printf("# of Segments produced endcap layer 5:  %d\n",event.getNumberOfSegmentsByLayerEndcap(4));
+  if (verbose) {
+    printf("# of Segments produced: %d\n",event.getNumberOfSegments());
+    printf("# of Segments produced layer 1-2:  %d\n",event.getNumberOfSegmentsByLayerBarrel(0));
+    printf("# of Segments produced layer 2-3:  %d\n",event.getNumberOfSegmentsByLayerBarrel(1));
+    printf("# of Segments produced layer 3-4:  %d\n",event.getNumberOfSegmentsByLayerBarrel(2));
+    printf("# of Segments produced layer 4-5:  %d\n",event.getNumberOfSegmentsByLayerBarrel(3));
+    printf("# of Segments produced layer 5-6:  %d\n",event.getNumberOfSegmentsByLayerBarrel(4));
+    printf("# of Segments produced endcap layer 1:  %d\n",event.getNumberOfSegmentsByLayerEndcap(0));
+    printf("# of Segments produced endcap layer 2:  %d\n",event.getNumberOfSegmentsByLayerEndcap(1));
+    printf("# of Segments produced endcap layer 3:  %d\n",event.getNumberOfSegmentsByLayerEndcap(2));
+    printf("# of Segments produced endcap layer 4:  %d\n",event.getNumberOfSegmentsByLayerEndcap(3));
+    printf("# of Segments produced endcap layer 5:  %d\n",event.getNumberOfSegmentsByLayerEndcap(4));
+  }
 
   event.createTriplets();
-  //printf("# of T3s produced: %d\n",event.getNumberOfTriplets());
-  //printf("# of T3s produced layer 1-2-3: %d\n",event.getNumberOfTripletsByLayerBarrel(0));
-  //printf("# of T3s produced layer 2-3-4: %d\n",event.getNumberOfTripletsByLayerBarrel(1));
-  //printf("# of T3s produced layer 3-4-5: %d\n",event.getNumberOfTripletsByLayerBarrel(2));
-  //printf("# of T3s produced layer 4-5-6: %d\n",event.getNumberOfTripletsByLayerBarrel(3));
-  //printf("# of T3s produced endcap layer 1-2-3: %d\n",event.getNumberOfTripletsByLayerEndcap(0));
-  //printf("# of T3s produced endcap layer 2-3-4: %d\n",event.getNumberOfTripletsByLayerEndcap(1));
-  //printf("# of T3s produced endcap layer 3-4-5: %d\n",event.getNumberOfTripletsByLayerEndcap(2));
-  //printf("# of T3s produced endcap layer 1: %d\n",event.getNumberOfTripletsByLayerEndcap(0));
-  //printf("# of T3s produced endcap layer 2: %d\n",event.getNumberOfTripletsByLayerEndcap(1));
-  //printf("# of T3s produced endcap layer 3: %d\n",event.getNumberOfTripletsByLayerEndcap(2));
-  //printf("# of T3s produced endcap layer 4: %d\n",event.getNumberOfTripletsByLayerEndcap(3));
-  //printf("# of T3s produced endcap layer 5: %d\n",event.getNumberOfTripletsByLayerEndcap(4));
+  if (verbose) {
+    printf("# of T3s produced: %d\n",event.getNumberOfTriplets());
+    printf("# of T3s produced layer 1-2-3: %d\n",event.getNumberOfTripletsByLayerBarrel(0));
+    printf("# of T3s produced layer 2-3-4: %d\n",event.getNumberOfTripletsByLayerBarrel(1));
+    printf("# of T3s produced layer 3-4-5: %d\n",event.getNumberOfTripletsByLayerBarrel(2));
+    printf("# of T3s produced layer 4-5-6: %d\n",event.getNumberOfTripletsByLayerBarrel(3));
+    printf("# of T3s produced endcap layer 1-2-3: %d\n",event.getNumberOfTripletsByLayerEndcap(0));
+    printf("# of T3s produced endcap layer 2-3-4: %d\n",event.getNumberOfTripletsByLayerEndcap(1));
+    printf("# of T3s produced endcap layer 3-4-5: %d\n",event.getNumberOfTripletsByLayerEndcap(2));
+    printf("# of T3s produced endcap layer 1: %d\n",event.getNumberOfTripletsByLayerEndcap(0));
+    printf("# of T3s produced endcap layer 2: %d\n",event.getNumberOfTripletsByLayerEndcap(1));
+    printf("# of T3s produced endcap layer 3: %d\n",event.getNumberOfTripletsByLayerEndcap(2));
+    printf("# of T3s produced endcap layer 4: %d\n",event.getNumberOfTripletsByLayerEndcap(3));
+    printf("# of T3s produced endcap layer 5: %d\n",event.getNumberOfTripletsByLayerEndcap(4));
+  }
 
   event.createQuintuplets();
-  //printf("# of Quintuplets produced: %d\n",event.getNumberOfQuintuplets());
-  //printf("# of Quintuplets produced layer 1-2-3-4-5-6: %d\n",event.getNumberOfQuintupletsByLayerBarrel(0));
-  //printf("# of Quintuplets produced layer 2: %d\n",event.getNumberOfQuintupletsByLayerBarrel(1));
-  //printf("# of Quintuplets produced layer 3: %d\n",event.getNumberOfQuintupletsByLayerBarrel(2));
-  //printf("# of Quintuplets produced layer 4: %d\n",event.getNumberOfQuintupletsByLayerBarrel(3));
-  //printf("# of Quintuplets produced layer 5: %d\n",event.getNumberOfQuintupletsByLayerBarrel(4));
-  //printf("# of Quintuplets produced layer 6: %d\n",event.getNumberOfQuintupletsByLayerBarrel(5));
-  //printf("# of Quintuplets produced endcap layer 1: %d\n",event.getNumberOfQuintupletsByLayerEndcap(0));
-  //printf("# of Quintuplets produced endcap layer 2: %d\n",event.getNumberOfQuintupletsByLayerEndcap(1));
-  //printf("# of Quintuplets produced endcap layer 3: %d\n",event.getNumberOfQuintupletsByLayerEndcap(2));
-  //printf("# of Quintuplets produced endcap layer 4: %d\n",event.getNumberOfQuintupletsByLayerEndcap(3));
-  //printf("# of Quintuplets produced endcap layer 5: %d\n",event.getNumberOfQuintupletsByLayerEndcap(4));
+  if (verbose) {
+    printf("# of Quintuplets produced: %d\n",event.getNumberOfQuintuplets());
+    printf("# of Quintuplets produced layer 1-2-3-4-5-6: %d\n",event.getNumberOfQuintupletsByLayerBarrel(0));
+    printf("# of Quintuplets produced layer 2: %d\n",event.getNumberOfQuintupletsByLayerBarrel(1));
+    printf("# of Quintuplets produced layer 3: %d\n",event.getNumberOfQuintupletsByLayerBarrel(2));
+    printf("# of Quintuplets produced layer 4: %d\n",event.getNumberOfQuintupletsByLayerBarrel(3));
+    printf("# of Quintuplets produced layer 5: %d\n",event.getNumberOfQuintupletsByLayerBarrel(4));
+    printf("# of Quintuplets produced layer 6: %d\n",event.getNumberOfQuintupletsByLayerBarrel(5));
+    printf("# of Quintuplets produced endcap layer 1: %d\n",event.getNumberOfQuintupletsByLayerEndcap(0));
+    printf("# of Quintuplets produced endcap layer 2: %d\n",event.getNumberOfQuintupletsByLayerEndcap(1));
+    printf("# of Quintuplets produced endcap layer 3: %d\n",event.getNumberOfQuintupletsByLayerEndcap(2));
+    printf("# of Quintuplets produced endcap layer 4: %d\n",event.getNumberOfQuintupletsByLayerEndcap(3));
+    printf("# of Quintuplets produced endcap layer 5: %d\n",event.getNumberOfQuintupletsByLayerEndcap(4));
+  }
 
   event.pixelLineSegmentCleaning();
 
   event.createPixelQuintuplets();
-  //printf("# of Pixel Quintuplets produced: %d\n",event.getNumberOfPixelQuintuplets());
+  if (verbose)
+    printf("# of Pixel Quintuplets produced: %d\n",event.getNumberOfPixelQuintuplets());
 
   event.createPixelTriplets();
-  //printf("# of Pixel T3s produced: %d\n",event.getNumberOfPixelTriplets());
+  if (verbose)
+    printf("# of Pixel T3s produced: %d\n",event.getNumberOfPixelTriplets());
 
   event.createTrackCandidates();
-  //printf("# of TrackCandidates produced: %d\n",event.getNumberOfTrackCandidates());
-  //printf("    # of Pixel TrackCandidates produced: %d\n",event.getNumberOfPixelTrackCandidates());
-  //printf("    # of pT5 TrackCandidates produced: %d\n",event.getNumberOfPT5TrackCandidates());
-  //printf("    # of pT3 TrackCandidates produced: %d\n",event.getNumberOfPT3TrackCandidates());
-  //printf("    # of pLS TrackCandidates produced: %d\n",event.getNumberOfPLSTrackCandidates());
-  //printf("    # of T5 TrackCandidates produced: %d\n",event.getNumberOfT5TrackCandidates());
+  if (verbose) {
+    printf("# of TrackCandidates produced: %d\n",event.getNumberOfTrackCandidates());
+    printf("    # of Pixel TrackCandidates produced: %d\n",event.getNumberOfPixelTrackCandidates());
+    printf("    # of pT5 TrackCandidates produced: %d\n",event.getNumberOfPT5TrackCandidates());
+    printf("    # of pT3 TrackCandidates produced: %d\n",event.getNumberOfPT3TrackCandidates());
+    printf("    # of pLS TrackCandidates produced: %d\n",event.getNumberOfPLSTrackCandidates());
+    printf("    # of T5 TrackCandidates produced: %d\n",event.getNumberOfT5TrackCandidates());
+  }
 
   getOutput(event);
 }
@@ -361,375 +373,52 @@ ROOT::Math::XYZVector SDL::LST::calculateR3FromPCA(const ROOT::Math::PxPyPzMVect
 }
 
 void SDL::LST::getOutput(SDL::Event& event) {
-  std::vector<float> tc_pt_, tc_eta_, tc_phi_;
   std::vector<std::vector<unsigned int>> tc_hitIdxs_;
   std::vector<unsigned int> tc_len_;
   std::vector<int> tc_seedIdx_;
   std::vector<short> tc_trackCandidateType_;
 
-  SDL::modules& modulesInGPU = (*event.getModules());
-  SDL::objectRanges& rangesInGPU = (*event.getRanges());
-  SDL::hits& hitsInGPU = (*event.getHits());
-  SDL::miniDoublets& miniDoubletsInGPU = *(event.getMiniDoublets());
-  SDL::segments& segmentsInGPU = *(event.getSegments());
-  SDL::triplets& tripletsInGPU = (*event.getTriplets());
-  SDL::quintuplets& quintupletsInGPU = *(event.getQuintuplets());
-  SDL::pixelTriplets& pixelTripletsInGPU = *(event.getPixelTriplets());
-  SDL::pixelQuintuplets& pixelQuintupletsInGPU = *(event.getPixelQuintuplets());
-  SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidates());
-
-  const float kRinv1GeVf = (2.99792458e-3 * 3.8);
-  const float k2Rinv1GeVf = kRinv1GeVf / 2.;
+  SDL::hits& hitsInGPU = (*event.getHitsInCMSSW());
+  SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidatesInCMSSW());
 
   unsigned int nTrackCandidates = *trackCandidatesInGPU.nTrackCandidates;
   for (unsigned int idx = 0; idx < nTrackCandidates; idx++) {
-    unsigned int hit_array_length = 0;
     short trackCandidateType = trackCandidatesInGPU.trackCandidateType[idx];
+    std::vector<unsigned int> hit_idx = getHitIdxs(trackCandidateType, idx, trackCandidatesInGPU.hitIndices, hitsInGPU.idxs);
 
-    std::vector<unsigned int> hit_idx;
-    float pt, eta, phi;
-    int seedIdx = -1;
-    if (trackCandidateType == 8) { // pLS
-      unsigned int pLS = trackCandidatesInGPU.directObjectIndices[idx];
-
-      pt = segmentsInGPU.ptIn[pLS];
-      eta = segmentsInGPU.eta[pLS];
-      phi = segmentsInGPU.phi[pLS];
-      seedIdx = segmentsInGPU.seedIdx[pLS];
-
-      hit_idx = getPixelHitIdxsFrompLS(modulesInGPU, rangesInGPU, hitsInGPU, miniDoubletsInGPU, segmentsInGPU, pLS);
-      hit_array_length = hit_idx.size();
-    }
-    else if (trackCandidateType == 5) { // pT3
-      unsigned int pT3 = trackCandidatesInGPU.directObjectIndices[idx];
-
-      std::vector<unsigned int> Hits = getOuterTrackerHitsFrompT3(miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pT3);
-      unsigned int Hit_0 = Hits[0];
-      unsigned int Hit_4 = Hits[4];
-
-      unsigned int T3 = getT3FrompT3(pixelTripletsInGPU, pT3);
-      unsigned int pLS = getPixelLSFrompT3(modulesInGPU, rangesInGPU, pixelTripletsInGPU, pT3);
-
-      const float dr = sqrt(pow(hitsInGPU.xs[Hit_4] - hitsInGPU.xs[Hit_0], 2) + pow(hitsInGPU.ys[Hit_4] - hitsInGPU.ys[Hit_0], 2));
-
-      float betaIn   = __H2F(tripletsInGPU.betaIn[T3]);
-      float betaOut  = __H2F(tripletsInGPU.betaOut[T3]);
-
-      const float pt_T3 = abs(dr * k2Rinv1GeVf / sin((betaIn + betaOut) / 2.));
-
-      const float pt_pLS = segmentsInGPU.ptIn[pLS];
-      eta = segmentsInGPU.eta[pLS];
-      phi = segmentsInGPU.phi[pLS];
-      seedIdx = segmentsInGPU.seedIdx[pLS];
-
-      pt = (pt_pLS + pt_T3) / 2.;
-
-      hit_idx = getHitIdxsFrompT3(modulesInGPU, rangesInGPU, hitsInGPU, miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pT3);
-      hit_array_length = hit_idx.size();
-    }
-    else if (trackCandidateType == 7) { // pT5
-      unsigned int pT5 = trackCandidatesInGPU.directObjectIndices[idx];
-
-      std::vector<unsigned int> Hits = getOuterTrackerHitsFrompT5(miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pT5);
-      unsigned int Hit_0 = Hits[0];
-      unsigned int Hit_4 = Hits[4];
-      unsigned int Hit_8 = Hits[8];
-
-      std::vector<unsigned int> T3s = getT3sFrompT5(quintupletsInGPU, pixelQuintupletsInGPU, pT5);
-      unsigned int T3_0 = T3s[0];
-      unsigned int T3_1 = T3s[1];
-
-      unsigned int pLS = getPixelLSFrompT5(modulesInGPU, rangesInGPU, pixelQuintupletsInGPU, pT5);
-
-      const float dr_in = sqrt(pow(hitsInGPU.xs[Hit_4] - hitsInGPU.xs[Hit_0], 2) + pow(hitsInGPU.ys[Hit_4] - hitsInGPU.ys[Hit_0], 2));
-      const float dr_out = sqrt(pow(hitsInGPU.xs[Hit_8] - hitsInGPU.xs[Hit_4], 2) + pow(hitsInGPU.ys[Hit_8] - hitsInGPU.ys[Hit_4], 2));
-
-      float betaIn_in   = __H2F(tripletsInGPU.betaIn[T3_0]);
-      float betaOut_in  = __H2F(tripletsInGPU.betaOut[T3_0]);
-      float betaIn_out  = __H2F(tripletsInGPU.betaIn[T3_1]);
-      float betaOut_out = __H2F(tripletsInGPU.betaOut[T3_1]);
-
-      const float ptAv_in = abs(dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.));
-      const float ptAv_out = abs(dr_out * k2Rinv1GeVf / sin((betaIn_out + betaOut_out) / 2.));
-      const float pt_T5 = (ptAv_in + ptAv_out) / 2.;
-
-      const float pt_pLS = segmentsInGPU.ptIn[pLS];
-      eta = segmentsInGPU.eta[pLS];
-      phi = segmentsInGPU.phi[pLS];
-      seedIdx = segmentsInGPU.seedIdx[pLS];
-
-      pt = (pt_pLS + pt_T5) / 2.;
-
-      hit_idx = getHitIdxsFrompT5(modulesInGPU, rangesInGPU, hitsInGPU, miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pT5);
-      hit_array_length = hit_idx.size();
-    }
-    else if (trackCandidateType == 4) { // T5
-      unsigned int T5 = trackCandidatesInGPU.directObjectIndices[idx];
-      std::vector<unsigned int> T3s = getT3sFromT5(quintupletsInGPU, T5);
-      std::vector<unsigned int> hits = getHitsFromT5(miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, T5);
-
-      unsigned int Hit_0 = hits[0];
-      unsigned int Hit_4 = hits[4];
-      unsigned int Hit_8 = hits[8];
-
-      const float dr_in = sqrt(pow(hitsInGPU.xs[Hit_4] - hitsInGPU.xs[Hit_0], 2) + pow(hitsInGPU.ys[Hit_4] - hitsInGPU.ys[Hit_0], 2));
-      const float dr_out = sqrt(pow(hitsInGPU.xs[Hit_8] - hitsInGPU.xs[Hit_4], 2) + pow(hitsInGPU.ys[Hit_8] - hitsInGPU.ys[Hit_4], 2));
-
-      float betaIn_in   = __H2F(tripletsInGPU.betaIn [T3s[0]]);
-      float betaOut_in  = __H2F(tripletsInGPU.betaOut[T3s[0]]);
-      float betaIn_out  = __H2F(tripletsInGPU.betaIn [T3s[1]]);
-      float betaOut_out = __H2F(tripletsInGPU.betaOut[T3s[1]]);
-
-      const float ptAv_in = abs(dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.));
-      const float ptAv_out = abs(dr_out * k2Rinv1GeVf / sin((betaIn_out + betaOut_out) / 2.));
-
-      pt = (ptAv_in + ptAv_out) / 2.;
-
-      eta = SDL::eta(in_trkX_[Hit_8], in_trkY_[Hit_8], in_trkZ_[Hit_8]); // eta from outermost hit
-      phi = SDL::phi(in_trkX_[Hit_0], in_trkY_[Hit_0]); // phi from innermost hit
-
-      hit_idx = getHitIdxsFromT5(hitsInGPU, miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, T5);
-      hit_array_length = hit_idx.size();
-    }
-
-    tc_pt_.push_back(pt);
-    tc_eta_.push_back(eta);
-    tc_phi_.push_back(phi);
     tc_hitIdxs_.push_back(hit_idx);
-    tc_len_.push_back(hit_array_length);
-    tc_seedIdx_.push_back(seedIdx);
+    tc_len_.push_back(hit_idx.size());
+    tc_seedIdx_.push_back(trackCandidatesInGPU.pixelSeedIndex[idx]);
     tc_trackCandidateType_.push_back(trackCandidateType);
   }
-  out_tc_pt_ = tc_pt_;
-  out_tc_eta_ = tc_eta_;
-  out_tc_phi_ = tc_phi_;
+
   out_tc_hitIdxs_ = tc_hitIdxs_;
   out_tc_len_ = tc_len_;
   out_tc_seedIdx_ = tc_seedIdx_;
   out_tc_trackCandidateType_ = tc_trackCandidateType_;
-//  for(auto out : out_tc_pt_) printf("%f\n",out);
-//  printf("\n");
-//  for(auto out : out_tc_eta_) printf("%f\n",out);
-//  printf("\n");
-//  for(auto out : out_tc_phi_) printf("%f\n",out);
-//  printf("\n");
-//  for(auto out : out_tc_len_) printf("%d\n",out);
-//  printf("\n");
-//  for(auto out : out_tc_seedIdx_) printf("%d\n",out);
-//  printf("\n");
-//  for(auto out : out_tc_trackCandidateType_) printf("%d\n",out);
 }
 
-// Object accessors
-// ===============
-// ----* pLS *----
-// ===============
+std::vector<unsigned int> SDL::LST::getHitIdxs(const short trackCandidateType, const unsigned int TCIdx, const unsigned int* TCHitIndices, const unsigned int* hitIndices) {
+  std::vector<unsigned int> hits;
 
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getPixelHitsFrompLS(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, unsigned int pLS) {
-  const unsigned int pLS_offset = rangesInGPU.segmentModuleIndices[*(modulesInGPU.nLowerModules)];
-  unsigned int MD_1 = segmentsInGPU.mdIndices[2 * (pLS + pLS_offset)];
-  unsigned int MD_2 = segmentsInGPU.mdIndices[2 * (pLS + pLS_offset) + 1];
-  unsigned int hit_1 = miniDoubletsInGPU.anchorHitIndices[MD_1];
-  unsigned int hit_2 = miniDoubletsInGPU.outerHitIndices [MD_1];
-  unsigned int hit_3 = miniDoubletsInGPU.anchorHitIndices[MD_2];
-  unsigned int hit_4 = miniDoubletsInGPU.outerHitIndices [MD_2];
-  if (hit_3 == hit_4)
-    return {hit_1, hit_2, hit_3};
-  else
-    return {hit_1, hit_2, hit_3, hit_4};
-}
+  unsigned int maxNHits = 0;
+  if (trackCandidateType == 7) maxNHits = 14; // pT5
+  else if (trackCandidateType == 5) maxNHits = 10; // pT3
+  else if (trackCandidateType == 4) maxNHits = 10; // T5
+  else if (trackCandidateType == 8) maxNHits = 4; // pLS
 
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getPixelHitIdxsFrompLS(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::hits& hitsInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, unsigned int pLS) {
-  std::vector<unsigned int> hits = getPixelHitsFrompLS(modulesInGPU, rangesInGPU, miniDoubletsInGPU, segmentsInGPU, pLS);
-  std::vector<unsigned int> hitidxs;
-  for (auto& hit : hits)
-    hitidxs.push_back(hitsInGPU.idxs[hit]);
-  return hitidxs;
-}
+  for (unsigned int i=0; i<maxNHits; i++) {
+    unsigned int hitIdxInGPU = TCHitIndices[14 * TCIdx + i];
+    unsigned int hitIdx = (trackCandidateType == 8) ? hitIdxInGPU : hitIndices[hitIdxInGPU]; // Hit indices are stored differently in the standalone for pLS.
 
-// ==============
-// ----* MD *----
-// ==============
+    // For p objects, the 3rd and 4th hit maybe the same,
+    // due to the way pLS hits are stored in the standalone.
+    // This is because pixel seeds can be either triplets or quadruplets.
+    if (trackCandidateType != 4 && hits.size() == 3 && hits.back() == hitIdx) // Remove duplicate 4th hits.
+      continue;
 
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitsFromMD(const SDL::miniDoublets& miniDoubletsInGPU, unsigned int MD) {
-  unsigned int hit_1 = miniDoubletsInGPU.anchorHitIndices[MD];
-  unsigned int hit_2 = miniDoubletsInGPU.outerHitIndices [MD];
-  return {hit_1, hit_2};
-}
+    hits.push_back(hitIdx);
+  }
 
-// ==============
-// ----* LS *----
-// ==============
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getMDsFromLS(const SDL::segments& segmentsInGPU, unsigned int LS) {
-  unsigned int MD_1 = segmentsInGPU.mdIndices[2 * LS];
-  unsigned int MD_2 = segmentsInGPU.mdIndices[2 * LS + 1];
-  return {MD_1, MD_2};
-}
-
-// ==============
-// ----* T3 *----
-// ==============
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getLSsFromT3(const SDL::triplets& tripletsInGPU, unsigned int T3) {
-  unsigned int LS_1 = tripletsInGPU.segmentIndices[2 * T3];
-  unsigned int LS_2 = tripletsInGPU.segmentIndices[2 * T3 + 1];
-  return {LS_1, LS_2};
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getMDsFromT3(const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, unsigned int T3) {
-  std::vector<unsigned int> LSs = getLSsFromT3(tripletsInGPU, T3);
-  std::vector<unsigned int> MDs_0 = getMDsFromLS(segmentsInGPU, LSs[0]);
-  std::vector<unsigned int> MDs_1 = getMDsFromLS(segmentsInGPU, LSs[1]);
-  return {MDs_0[0], MDs_0[1], MDs_1[1]};
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitsFromT3(const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, unsigned int T3) {
-  std::vector<unsigned int> MDs = getMDsFromT3(segmentsInGPU, tripletsInGPU, T3);
-  std::vector<unsigned int> hits_0 = getHitsFromMD(miniDoubletsInGPU, MDs[0]);
-  std::vector<unsigned int> hits_1 = getHitsFromMD(miniDoubletsInGPU, MDs[1]);
-  std::vector<unsigned int> hits_2 = getHitsFromMD(miniDoubletsInGPU, MDs[2]);
-  return {hits_0[0], hits_0[1], hits_1[0], hits_1[1], hits_2[0], hits_2[1]};
-}
-
-// ==============
-// ----* T5 *----
-// ==============
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getT3sFromT5(const SDL::quintuplets& quintupletsInGPU, unsigned int T5) {
-  unsigned int T3_1 = quintupletsInGPU.tripletIndices[2 * T5];
-  unsigned int T3_2 = quintupletsInGPU.tripletIndices[2 * T5 + 1];
-  return {T3_1, T3_2};
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getLSsFromT5(const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, unsigned int T5) {
-  std::vector<unsigned int> T3s = getT3sFromT5(quintupletsInGPU, T5);
-  std::vector<unsigned int> LSs_0 = getLSsFromT3(tripletsInGPU, T3s[0]);
-  std::vector<unsigned int> LSs_1 = getLSsFromT3(tripletsInGPU, T3s[1]);
-  return {LSs_0[0], LSs_0[1], LSs_1[0], LSs_1[1]};
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getMDsFromT5(const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, unsigned int T5) {
-  std::vector<unsigned int> LSs = getLSsFromT5(tripletsInGPU, quintupletsInGPU, T5);
-  std::vector<unsigned int> MDs_0 = getMDsFromLS(segmentsInGPU, LSs[0]);
-  std::vector<unsigned int> MDs_1 = getMDsFromLS(segmentsInGPU, LSs[1]);
-  std::vector<unsigned int> MDs_2 = getMDsFromLS(segmentsInGPU, LSs[2]);
-  std::vector<unsigned int> MDs_3 = getMDsFromLS(segmentsInGPU, LSs[3]);
-  return {MDs_0[0], MDs_0[1], MDs_1[1], MDs_2[1], MDs_3[1]};
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitsFromT5(const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, unsigned int T5) {
-  std::vector<unsigned int> MDs = getMDsFromT5(segmentsInGPU, tripletsInGPU, quintupletsInGPU, T5);
-  std::vector<unsigned int> hits_0 = getHitsFromMD(miniDoubletsInGPU, MDs[0]);
-  std::vector<unsigned int> hits_1 = getHitsFromMD(miniDoubletsInGPU, MDs[1]);
-  std::vector<unsigned int> hits_2 = getHitsFromMD(miniDoubletsInGPU, MDs[2]);
-  std::vector<unsigned int> hits_3 = getHitsFromMD(miniDoubletsInGPU, MDs[3]);
-  std::vector<unsigned int> hits_4 = getHitsFromMD(miniDoubletsInGPU, MDs[4]);
-  return {hits_0[0], hits_0[1], hits_1[0], hits_1[1], hits_2[0], hits_2[1], hits_3[0], hits_3[1], hits_4[0], hits_4[1]};
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitIdxsFromT5(const SDL::hits& hitsInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, unsigned int T5) {
-  std::vector<unsigned int> hits = getHitsFromT5(miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, T5);
-  std::vector<unsigned int> hitidxs;
-  for (auto& hit : hits)
-    hitidxs.push_back(hitsInGPU.idxs[hit]);
-  return hitidxs;
-}
-
-// ===============
-// ----* pT3 *----
-// ===============
-
-//____________________________________________________________________________________________
-unsigned int SDL::LST::getPixelLSFrompT3(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::pixelTriplets& pixelTripletsInGPU, unsigned int pT3) {
-  const unsigned int pLS_offset = rangesInGPU.segmentModuleIndices[*(modulesInGPU.nLowerModules)];
-  return pixelTripletsInGPU.pixelSegmentIndices[pT3] - pLS_offset;
-}
-
-//____________________________________________________________________________________________
-unsigned int SDL::LST::getT3FrompT3(const SDL::pixelTriplets& pixelTripletsInGPU, unsigned int pT3) {
-  return pixelTripletsInGPU.tripletIndices[pT3];
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getOuterTrackerHitsFrompT3(const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::pixelTriplets& pixelTripletsInGPU, unsigned int pT3) {
-  unsigned int T3 = getT3FrompT3(pixelTripletsInGPU, pT3);
-  return getHitsFromT3(miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, T3);
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitsFrompT3(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::pixelTriplets& pixelTripletsInGPU, unsigned int pT3) {
-  unsigned int pLS = getPixelLSFrompT3(modulesInGPU, rangesInGPU, pixelTripletsInGPU, pT3);
-  unsigned int T3 = getT3FrompT3(pixelTripletsInGPU, pT3);
-  std::vector<unsigned int> pixelHits = getPixelHitsFrompLS(modulesInGPU, rangesInGPU, miniDoubletsInGPU, segmentsInGPU, pLS);
-  std::vector<unsigned int> outerTrackerHits = getHitsFromT3(miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, T3);
-  pixelHits.insert(pixelHits.end(), outerTrackerHits.begin(), outerTrackerHits.end());
-  return pixelHits;
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitIdxsFrompT3(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::hits& hitsInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::pixelTriplets& pixelTripletsInGPU, unsigned int pT3) {
-  std::vector<unsigned int> hits = getHitsFrompT3(modulesInGPU, rangesInGPU, miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, pixelTripletsInGPU, pT3);
-  std::vector<unsigned int> hitidxs;
-  for (auto& hit : hits)
-    hitidxs.push_back(hitsInGPU.idxs[hit]);
-  return hitidxs;
-}
-
-// ===============
-// ----* pT5 *----
-// ===============
-
-//____________________________________________________________________________________________
-unsigned int SDL::LST::getPixelLSFrompT5(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5) {
-  const unsigned int pLS_offset = rangesInGPU.segmentModuleIndices[*(modulesInGPU.nLowerModules)];
-  return pixelQuintupletsInGPU.pixelIndices[pT5] - pLS_offset;
-}
-
-//____________________________________________________________________________________________
-unsigned int SDL::LST::getT5FrompT5(const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5) {
-  return pixelQuintupletsInGPU.T5Indices[pT5];
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getT3sFrompT5(const SDL::quintuplets& quintupletsInGPU, const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5) {
-  unsigned int T5 = getT5FrompT5(pixelQuintupletsInGPU, pT5);
-  return getT3sFromT5(quintupletsInGPU, T5);
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getOuterTrackerHitsFrompT5(const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5) {
-  unsigned int T5 = getT5FrompT5(pixelQuintupletsInGPU, pT5);
-  return getHitsFromT5(miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, T5);
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitsFrompT5(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5) {
-  unsigned int pLS = getPixelLSFrompT5(modulesInGPU, rangesInGPU, pixelQuintupletsInGPU, pT5);
-  unsigned int T5 = getT5FrompT5(pixelQuintupletsInGPU, pT5);
-  std::vector<unsigned int> pixelHits = getPixelHitsFrompLS(modulesInGPU, rangesInGPU, miniDoubletsInGPU, segmentsInGPU, pLS);
-  std::vector<unsigned int> outerTrackerHits = getHitsFromT5(miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, T5);
-  pixelHits.insert(pixelHits.end(), outerTrackerHits.begin(), outerTrackerHits.end());
-  return pixelHits;
-}
-
-//____________________________________________________________________________________________
-std::vector<unsigned int> SDL::LST::getHitIdxsFrompT5(const SDL::modules& modulesInGPU, const SDL::objectRanges& rangesInGPU, const SDL::hits& hitsInGPU, const SDL::miniDoublets& miniDoubletsInGPU, const SDL::segments& segmentsInGPU, const SDL::triplets& tripletsInGPU, const SDL::quintuplets& quintupletsInGPU, const SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pT5) {
-  std::vector<unsigned int> hits = getHitsFrompT5(modulesInGPU, rangesInGPU, miniDoubletsInGPU, segmentsInGPU, tripletsInGPU, quintupletsInGPU, pixelQuintupletsInGPU, pT5);
-  std::vector<unsigned int> hitidxs;
-  for (auto& hit : hits)
-    hitidxs.push_back(hitsInGPU.idxs[hit]);
-  return hitidxs;
+  return hits;
 }
