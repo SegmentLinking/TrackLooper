@@ -593,7 +593,7 @@ namespace SDL
         float z1 = zPix[1]/100;
         float r1 = rtPix[1]/100;
 
-        float B = 3.8112;
+        float B = SDL::magnetic_field;
         float a = -0.299792*B*charge;
 
         for(size_t i = 0; i < 3; i++)
@@ -608,7 +608,7 @@ namespace SDL
             const int moduleSubdet = modulesInGPU.subdets[lowerModuleIndex];
 
             // calculation is detailed documented here https://indico.cern.ch/event/1185895/contributions/4982756/attachments/2526561/4345805/helix%20pT3%20summarize.pdf
-            float diffr,diffz;
+            float diffr, diffz;
             float p = alpaka::math::sqrt(acc, Px*Px+Py*Py+Pz*Pz);
 
             float rou = a/p;
@@ -625,9 +625,9 @@ namespace SDL
                 float paraA = r1*r1 + 2*(Px*Px+Py*Py)/(a*a) + 2*(y1*Px-x1*Py)/a - rtsi*rtsi;
                 float paraB = 2*(x1*Px+y1*Py)/a;
                 float paraC = 2*(y1*Px-x1*Py)/a+2*(Px*Px+Py*Py)/(a*a);
-                float A=paraB*paraB+paraC*paraC;
-                float B=2*paraA*paraB;
-                float C=paraA*paraA-paraC*paraC;
+                float A = paraB*paraB+paraC*paraC;
+                float B = 2*paraA*paraB;
+                float C = paraA*paraA-paraC*paraC;
                 float sol1 = (-B+alpaka::math::sqrt(acc, B*B-4*A*C))/(2*A);
                 float sol2 = (-B-alpaka::math::sqrt(acc, B*B-4*A*C))/(2*A);
                 float solz1 = alpaka::math::asin(acc, sol1)/rou*Pz/p+z1;

@@ -2384,7 +2384,7 @@ SDL::trackCandidates* SDL::Event::getTrackCandidatesInCMSSW()
     if(trackCandidatesInCPU == nullptr)
     {
         trackCandidatesInCPU = new SDL::trackCandidates;
-        trackCandidatesInCPU->nTrackCandidates = new unsigned int;
+        trackCandidatesInCPU->nTrackCandidates = new int;
         cudaMemcpyAsync(trackCandidatesInCPU->nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
         cudaStreamSynchronize(stream);
         unsigned int nTrackCandidates = *(trackCandidatesInCPU->nTrackCandidates);
