@@ -41,7 +41,7 @@ namespace SDL
 
     void createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates,cudaStream_t stream);
 
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addpLsTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int trackletIndex, unsigned int trackCandidateIndex, uint4 hitIndices, int pixelSeedIndex)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addpLSTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int trackletIndex, unsigned int trackCandidateIndex, uint4 hitIndices, int pixelSeedIndex)
     {
         trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = 8;
         trackCandidatesInGPU.directObjectIndices[trackCandidateIndex] = trackletIndex;

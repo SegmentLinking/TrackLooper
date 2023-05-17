@@ -81,7 +81,7 @@ namespace SDL
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float pixelPSZpitch = 0.15;
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float strip2SZpitch = 5.0;
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float pt_betaMax = 7.0;
-    ALPAKA_STATIC_ACC_MEM_GLOBAL const float pt_betaMax = 3.8112;
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float magnetic_field = 3.8112;
     // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float SDL_INF = 123456789;
 }
