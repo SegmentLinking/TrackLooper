@@ -68,7 +68,6 @@ namespace SDL
         ~miniDoublets();
       	void freeMemory(cudaStream_t stream);
       	void freeMemoryCache();
-        void resetMemory(unsigned int nMemoryLocations, unsigned int nModules,cudaStream_t stream);
     };
 
     void createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDs,uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream);

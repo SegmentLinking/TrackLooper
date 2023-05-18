@@ -164,39 +164,6 @@ void SDL::objectRanges::freeMemory()
     cudaFree(device_nTotalQuints);
 }
 
-void SDL::freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMapping)
-{
-    int dev;
-    cudaGetDevice(&dev);
-    cms::cuda::free_device(dev,modulesInGPU.detIds);
-    cms::cuda::free_device(dev,modulesInGPU.moduleMap);
-    cms::cuda::free_device(dev,modulesInGPU.mapIdx);
-    cms::cuda::free_device(dev,modulesInGPU.mapdetId);
-    cms::cuda::free_device(dev,modulesInGPU.nConnectedModules);
-    cms::cuda::free_device(dev,modulesInGPU.drdzs);
-    cms::cuda::free_device(dev,modulesInGPU.slopes);
-    cms::cuda::free_device(dev,modulesInGPU.nModules);
-    cms::cuda::free_device(dev,modulesInGPU.nLowerModules);
-    cms::cuda::free_device(dev,modulesInGPU.layers);
-    cms::cuda::free_device(dev,modulesInGPU.rings);
-    cms::cuda::free_device(dev,modulesInGPU.modules);
-    cms::cuda::free_device(dev,modulesInGPU.rods);
-    cms::cuda::free_device(dev,modulesInGPU.subdets);
-    cms::cuda::free_device(dev,modulesInGPU.sides);
-    cms::cuda::free_device(dev,modulesInGPU.isInverted);
-    cms::cuda::free_device(dev,modulesInGPU.isLower);
-    cms::cuda::free_device(dev,modulesInGPU.isAnchor);
-    cms::cuda::free_device(dev,modulesInGPU.moduleType);
-    cms::cuda::free_device(dev,modulesInGPU.moduleLayerType);
-    cms::cuda::free_device(dev,modulesInGPU.connectedPixels);
-    cudaFreeHost(pixelMapping.connectedPixelsSizes);
-    cudaFreeHost(pixelMapping.connectedPixelsSizesPos);
-    cudaFreeHost(pixelMapping.connectedPixelsSizesNeg);
-    cudaFreeHost(pixelMapping.connectedPixelsIndex);
-    cudaFreeHost(pixelMapping.connectedPixelsIndexPos);
-    cudaFreeHost(pixelMapping.connectedPixelsIndexNeg);
-}
-
 void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMapping)
 {
     cudaFree(modulesInGPU.detIds);

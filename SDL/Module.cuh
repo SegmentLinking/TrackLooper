@@ -144,7 +144,6 @@ namespace SDL
     void loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules,uint16_t& nLowerModules,struct pixelMap& pixelMapping,cudaStream_t stream, const char* moduleMetaDataFilePath="data/centroid.txt");
     void createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned int nModules,cudaStream_t stream);
     void freeModules(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
-    void freeModulesCache(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
     void fillPixelMap(struct modules& modulesInGPU,struct pixelMap& pixelMapping,cudaStream_t stream);
     void fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);
     void fillMapArraysExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);

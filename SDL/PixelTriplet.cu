@@ -69,19 +69,6 @@ SDL::pixelTriplets::~pixelTriplets()
 {
 }
 
-void SDL::pixelTriplets::resetMemory(unsigned int maxPixelTriplets,cudaStream_t stream)
-{
-    cudaMemsetAsync(pixelSegmentIndices,0, maxPixelTriplets * sizeof(unsigned int),stream);
-    cudaMemsetAsync(tripletIndices, 0,maxPixelTriplets * sizeof(unsigned int),stream);
-    cudaMemsetAsync(nPixelTriplets, 0,sizeof(int),stream);
-    cudaMemsetAsync(totOccupancyPixelTriplets, 0,sizeof(int),stream);
-    cudaMemsetAsync(pixelRadius, 0,maxPixelTriplets * sizeof(FPX),stream);
-    cudaMemsetAsync(tripletRadius, 0,maxPixelTriplets * sizeof(FPX),stream);
-    cudaMemsetAsync(pt, 0,maxPixelTriplets * 6*sizeof(FPX),stream);
-    cudaMemsetAsync(isDup, 0,maxPixelTriplets * sizeof(bool),stream);
-    cudaMemsetAsync(partOfPT5, 0,maxPixelTriplets * sizeof(bool),stream);
-}
-
 void SDL::createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTripletsInGPU, unsigned int maxPixelTriplets, cudaStream_t stream)
 {
 #ifdef CACHE_ALLOC
@@ -203,18 +190,6 @@ void SDL::pixelQuintuplets::freeMemory(cudaStream_t stream)
     cudaFree(rPhiChiSquared);
     cudaFree(rPhiChiSquaredInwards);
     cudaStreamSynchronize(stream);
-}
-
-void SDL::pixelQuintuplets::resetMemory(unsigned int maxPixelQuintuplets,cudaStream_t stream)
-{
-    cudaMemsetAsync(pixelIndices,0, maxPixelQuintuplets * sizeof(unsigned int),stream);
-    cudaMemsetAsync(T5Indices,0, maxPixelQuintuplets * sizeof(unsigned int),stream);
-    cudaMemsetAsync(nPixelQuintuplets,0, sizeof(int),stream);
-    cudaMemsetAsync(totOccupancyPixelQuintuplets,0, sizeof(int),stream);
-    cudaMemsetAsync(isDup,0, maxPixelQuintuplets * sizeof(bool),stream);
-    cudaMemsetAsync(score,0, maxPixelQuintuplets * sizeof(FPX),stream);
-    cudaMemsetAsync(eta , 0, maxPixelQuintuplets * sizeof(FPX),stream);
-    cudaMemsetAsync(phi , 0, maxPixelQuintuplets * sizeof(FPX),stream);
 }
 
 void SDL::createPixelQuintupletsInExplicitMemory(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int maxPixelQuintuplets,cudaStream_t stream)

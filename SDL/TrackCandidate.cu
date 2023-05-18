@@ -1,25 +1,5 @@
 #include "TrackCandidate.cuh"
 
-void SDL::trackCandidates::resetMemory(unsigned int maxTrackCandidates,cudaStream_t stream)
-{
-    cudaMemsetAsync(trackCandidateType,0, maxTrackCandidates * sizeof(short),stream);
-    cudaMemsetAsync(directObjectIndices, 0, maxTrackCandidates * sizeof(unsigned int),stream);
-    cudaMemsetAsync(objectIndices, 0,2 * maxTrackCandidates * sizeof(unsigned int),stream);
-    cudaMemsetAsync(nTrackCandidates, 0,sizeof(int),stream);
-    cudaMemsetAsync(nTrackCandidatespT3, 0,sizeof(int),stream);
-    cudaMemsetAsync(nTrackCandidatesT5, 0,sizeof(int),stream);
-    cudaMemsetAsync(nTrackCandidatespT5,0, sizeof(int),stream);
-    cudaMemsetAsync(nTrackCandidatespLS, 0,sizeof(int),stream);
-
-    cudaMemsetAsync(logicalLayers, 0, 7 * maxTrackCandidates * sizeof(uint8_t), stream);
-    cudaMemsetAsync(lowerModuleIndices, 0, 7 * maxTrackCandidates * sizeof(uint16_t), stream);
-    cudaMemsetAsync(hitIndices, 0, 14 * maxTrackCandidates * sizeof(unsigned int), stream);
-    cudaMemsetAsync(pixelSeedIndex, 0, maxTrackCandidates * sizeof(int), stream);
-    cudaMemsetAsync(centerX, 0, maxTrackCandidates * sizeof(FPX), stream);
-    cudaMemsetAsync(centerY, 0, maxTrackCandidates * sizeof(FPX), stream);
-    cudaMemsetAsync(radius , 0, maxTrackCandidates * sizeof(FPX), stream);
-}
-
 void SDL::createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates,cudaStream_t stream)
 {
 #ifdef CACHE_ALLOC

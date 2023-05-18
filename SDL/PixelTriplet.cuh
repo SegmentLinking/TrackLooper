@@ -44,7 +44,6 @@ namespace SDL
         ~pixelTriplets();
         void freeMemory(cudaStream_t stream);
         void freeMemoryCache();
-        void resetMemory(unsigned int maxPixelTriplets,cudaStream_t stream);
     };
 
     void createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTripletsinGPU, unsigned int maxPixelTriplets, cudaStream_t stream);
@@ -1381,7 +1380,6 @@ namespace SDL
         ~pixelQuintuplets();
         void freeMemory(cudaStream_t stream);
         void freeMemoryCache();
-        void resetMemory(unsigned int maxPixelQuintuplets,cudaStream_t stream);
 
     };
 
