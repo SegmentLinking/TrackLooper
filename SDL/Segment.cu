@@ -2,28 +2,6 @@
 
 ///FIXME:NOTICE THE NEW maxPixelSegments!
 
-void SDL::segments::resetMemory(unsigned int nMemoryLocationsx, unsigned int nLowerModules, unsigned int maxPixelSegments,cudaStream_t stream)
-{
-    cudaMemsetAsync(mdIndices,0, nMemoryLocationsx * 2 * sizeof(unsigned int),stream);
-    cudaMemsetAsync(innerLowerModuleIndices,0, nMemoryLocationsx * 2 * sizeof(uint16_t),stream);
-    cudaMemsetAsync(nSegments, 0,(nLowerModules+1) * sizeof(int),stream);
-    cudaMemsetAsync(totOccupancySegments, 0,(nLowerModules+1) * sizeof(int),stream);
-    cudaMemsetAsync(dPhis, 0,(nMemoryLocationsx * 6 )*sizeof(FPX),stream);
-    cudaMemsetAsync(ptIn, 0,(maxPixelSegments * 8)*sizeof(float),stream);
-    cudaMemsetAsync(superbin, 0,(maxPixelSegments )*sizeof(int),stream);
-    cudaMemsetAsync(pixelType, 0,(maxPixelSegments )*sizeof(int8_t),stream);
-    cudaMemsetAsync(isQuad, 0,(maxPixelSegments )*sizeof(char),stream);
-    cudaMemsetAsync(isDup, 0,(maxPixelSegments )*sizeof(bool),stream);
-    cudaMemsetAsync(score, 0,(maxPixelSegments )*sizeof(float),stream);
-    cudaMemsetAsync(charge, 0,maxPixelSegments * sizeof(int),stream);
-    cudaMemsetAsync(seedIdx, 0,maxPixelSegments * sizeof(unsigned int),stream);
-    cudaMemsetAsync(circleCenterX, 0,maxPixelSegments * sizeof(float),stream);
-    cudaMemsetAsync(circleCenterY, 0,maxPixelSegments * sizeof(float),stream);
-    cudaMemsetAsync(circleRadius, 0,maxPixelSegments * sizeof(float),stream);
-    cudaMemsetAsync(partOfPT5, 0,maxPixelSegments * sizeof(bool),stream);
-    cudaMemsetAsync(pLSHitsIdxs, 0,maxPixelSegments * sizeof(uint4),stream);
-}
-
 void SDL::createSegmentsInExplicitMemory(struct segments& segmentsInGPU, unsigned int nMemoryLocations, uint16_t nLowerModules, unsigned int maxPixelSegments, cudaStream_t stream)
 {
     //FIXME:Since the number of pixel segments is 10x the number of regular segments per module, we need to provide

@@ -36,7 +36,6 @@ namespace SDL
         ~trackCandidates();
         void freeMemory(cudaStream_t stream);
         void freeMemoryCache();
-        void resetMemory(unsigned int maxTrackCandidates,cudaStream_t stream);
     };
 
     void createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates,cudaStream_t stream);

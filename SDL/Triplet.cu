@@ -1,16 +1,5 @@
 #include "Triplet.cuh"
 
-void SDL::triplets::resetMemory(unsigned int maxTriplets, unsigned int nLowerModules,cudaStream_t stream)
-{
-    cudaMemsetAsync(segmentIndices,0, 5 * maxTriplets * sizeof(unsigned int),stream);
-    cudaMemsetAsync(nTriplets,0, nLowerModules * sizeof(unsigned int),stream);
-    cudaMemsetAsync(totOccupancyTriplets,0, nLowerModules * sizeof(unsigned int),stream);
-    cudaMemsetAsync(betaIn,0, maxTriplets * 3 * sizeof(FPX),stream);
-    cudaMemsetAsync(partOfPT5,0, maxTriplets * sizeof(bool),stream);
-    cudaMemsetAsync(partOfT5,0, maxTriplets * sizeof(bool), stream);
-    cudaMemsetAsync(partOfPT3, 0, maxTriplets * sizeof(bool), stream);
-}
-
 void SDL::createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, uint16_t nLowerModules, cudaStream_t stream)
 {
 #ifdef CACHE_ALLOC
