@@ -1,7 +1,7 @@
 #ifdef __CUDACC__
 #define CUDA_CONST_VAR __device__
 #endif
-# include "Quintuplet.cuh"
+#include "Quintuplet.cuh"
 #include "allocate.h"
 #include "Kernels.cuh"
 
@@ -486,9 +486,9 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
         x_0[col] = 0;
         for (unsigned int inner = 0; inner < 38; ++inner)
         {
-            x_0[col] += x[inner]*SDL::wgtT_0[inner][col];
+            x_0[col] += x[inner]*T5DNN::wgtT_0[inner][col];
         }
-        x_0[col] += SDL::bias_0[col];
+        x_0[col] += T5DNN::bias_0[col];
     }
     
     // (1): ReLU()
@@ -505,9 +505,9 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
         x_2[col] = 0;
         for (unsigned int inner = 0; inner < 32; ++inner)
         {
-            x_2[col] += x_1[inner]*SDL::wgtT_2[inner][col];
+            x_2[col] += x_1[inner]*T5DNN::wgtT_2[inner][col];
         }
-        x_2[col] += SDL::bias_2[col];
+        x_2[col] += T5DNN::bias_2[col];
     }
     
     // (3): ReLU()
@@ -524,9 +524,9 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
         x_4[col] = 0;
         for (unsigned int inner = 0; inner < 32; ++inner)
         {
-            x_4[col] += x_3[inner]*SDL::wgtT_4[inner][col];
+            x_4[col] += x_3[inner]*T5DNN::wgtT_4[inner][col];
         }
-        x_4[col] += SDL::bias_4[col];
+        x_4[col] += T5DNN::bias_4[col];
     }
     
     // (5): Sigmoid()
@@ -536,7 +536,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
         x_5[col] = exp(x_4[col])/(exp(x_4[col]) + 1);
     }
 
-    pass = pass and (x_5[0] > SDL::t5_dnn_wp);
+    pass = pass and (x_5[0] > T5DNN::working_point);
     if (not pass) return pass;
 
     float xVec[] = {x1, x2, x3, x4, x5};
