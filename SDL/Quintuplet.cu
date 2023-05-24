@@ -438,45 +438,46 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     bool is_endcap3 = (modulesInGPU.subdets[lowerModuleIndex3] == 4);
     bool is_endcap4 = (modulesInGPU.subdets[lowerModuleIndex4] == 4);
     bool is_endcap5 = (modulesInGPU.subdets[lowerModuleIndex5] == 4);
+    // Build DNN input vector (corresponding output N-tuple branch noted in parenthetical in comment)
     float x[38] = { 
-        log10(2.99792458e-3f*3.8f*innerRadius),                       // inner t3_pt
-        mdsInGPU.anchorEta[firstMDIndex],                             // inner (hit 1) t3_0_eta
-        mdsInGPU.anchorPhi[firstMDIndex],                             // inner (hit 1) t3_0_phi
-        mdsInGPU.anchorZ[firstMDIndex],                               // inner (hit 1) t3_0_z
-        sqrtf(x1*x1 + y1*y1),                                         // inner (hit 1) t3_0_r
-        float(modulesInGPU.layers[lowerModuleIndex1] + 6*is_endcap1), // inner (hit 1) t3_0_layer
-        mdsInGPU.anchorEta[secondMDIndex],                            // inner (hit 2) t3_2_eta
-        mdsInGPU.anchorPhi[secondMDIndex],                            // inner (hit 2) t3_2_phi
-        mdsInGPU.anchorZ[secondMDIndex],                              // inner (hit 2) t3_2_z
-        sqrtf(x2*x2 + y2*y2),                                         // inner (hit 2) t3_2_r
-        float(modulesInGPU.layers[lowerModuleIndex2] + 6*is_endcap2), // inner (hit 2) t3_2_layer
-        mdsInGPU.anchorEta[thirdMDIndex],                             // inner (hit 3) t3_4_eta
-        mdsInGPU.anchorPhi[thirdMDIndex],                             // inner (hit 3) t3_4_phi
-        mdsInGPU.anchorZ[thirdMDIndex],                               // inner (hit 3) t3_4_z
-        sqrtf(x3*x3 + y3*y3),                                         // inner (hit 3) t3_4_r
-        float(modulesInGPU.layers[lowerModuleIndex3] + 6*is_endcap3), // inner (hit 3) t3_4_layer
-        log10(2.99792458e-3f*3.8f*outerRadius),                       // outer t3_pt
-        mdsInGPU.anchorEta[thirdMDIndex],                             // outer (hit 4) t3_0_eta
-        mdsInGPU.anchorPhi[thirdMDIndex],                             // outer (hit 4) t3_0_phi
-        mdsInGPU.anchorZ[thirdMDIndex],                               // outer (hit 3) t3_0_z
-        sqrtf(x3*x3 + y3*y3),                                         // outer (hit 3) t3_0_r
-        float(modulesInGPU.layers[lowerModuleIndex3] + 6*is_endcap3), // outer (hit 3) t3_0_layer
-        mdsInGPU.anchorEta[fourthMDIndex],                            // outer (hit 4) t3_2_eta
-        mdsInGPU.anchorPhi[fourthMDIndex],                            // outer (hit 4) t3_2_phi
-        mdsInGPU.anchorZ[fourthMDIndex],                              // outer (hit 4) t3_2_z
-        sqrtf(x4*x4 + y4*y4),                                         // outer (hit 4) t3_2_r
-        float(modulesInGPU.layers[lowerModuleIndex4] + 6*is_endcap4), // outer (hit 4) t3_2_layer
-        mdsInGPU.anchorEta[fifthMDIndex],                             // outer (hit 5) t3_4_eta
-        mdsInGPU.anchorPhi[fifthMDIndex],                             // outer (hit 5) t3_4_phi
-        mdsInGPU.anchorZ[fifthMDIndex],                               // outer (hit 5) t3_4_z
-        sqrtf(x5*x5 + y5*y5),                                         // outer (hit 5) t3_4_r
-        float(modulesInGPU.layers[lowerModuleIndex5] + 6*is_endcap5), // outer (hit 5) t3_4_layer
-        log10((innerRadius+outerRadius)*3.8f*1.602f/(2*100*5.39f)),   // t5_pt
-        mdsInGPU.anchorEta[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]]], // t5_eta
-        mdsInGPU.anchorPhi[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]]], // t5_phi
-        log10(innerRadius),                                           // t5_innerRadius
-        log10(bridgeRadius),                                          // t5_bridgeRadius
-        log10(outerRadius)                                            // t5_outerRadius"
+        log10(2*SDL::k2Rinv1GeVf*innerRadius),                        // inner T3 pT (t3_pt)
+        mdsInGPU.anchorEta[firstMDIndex],                             // inner T3 anchor hit 1 eta (t3_0_eta)
+        mdsInGPU.anchorPhi[firstMDIndex],                             // inner T3 anchor hit 1 phi (t3_0_phi)
+        mdsInGPU.anchorZ[firstMDIndex],                               // inner T3 anchor hit 1 z (t3_0_z)
+        sqrtf(x1*x1 + y1*y1),                                         // inner T3 anchor hit 1 r (t3_0_r)
+        float(modulesInGPU.layers[lowerModuleIndex1] + 6*is_endcap1), // inner T3 anchor hit 1 layer (t3_0_layer)
+        mdsInGPU.anchorEta[secondMDIndex],                            // inner T3 anchor hit 2 eta (t3_2_eta)
+        mdsInGPU.anchorPhi[secondMDIndex],                            // inner T3 anchor hit 2 phi (t3_2_phi)
+        mdsInGPU.anchorZ[secondMDIndex],                              // inner T3 anchor hit 2 z (t3_2_z)
+        sqrtf(x2*x2 + y2*y2),                                         // inner T3 anchor hit 2 r (t3_2_r)
+        float(modulesInGPU.layers[lowerModuleIndex2] + 6*is_endcap2), // inner T3 anchor hit 2 layer (t3_2_layer)
+        mdsInGPU.anchorEta[thirdMDIndex],                             // inner T3 anchor hit 3 eta (t3_4_eta)
+        mdsInGPU.anchorPhi[thirdMDIndex],                             // inner T3 anchor hit 3 phi (t3_4_phi)
+        mdsInGPU.anchorZ[thirdMDIndex],                               // inner T3 anchor hit 3 z (t3_4_z)
+        sqrtf(x3*x3 + y3*y3),                                         // inner T3 anchor hit 3 r (t3_4_r)
+        float(modulesInGPU.layers[lowerModuleIndex3] + 6*is_endcap3), // inner T3 anchor hit 3 layer (t3_4_layer)
+        log10(2*SDL::k2Rinv1GeVf*outerRadius),                        // outer T3 pT (t3_pt)
+        mdsInGPU.anchorEta[thirdMDIndex],                             // outer T3 anchor hit 4 eta (t3_0_eta)
+        mdsInGPU.anchorPhi[thirdMDIndex],                             // outer T3 anchor hit 4 phi (t3_0_phi)
+        mdsInGPU.anchorZ[thirdMDIndex],                               // outer T3 anchor hit 3 eta (t3_0_z)
+        sqrtf(x3*x3 + y3*y3),                                         // outer T3 anchor hit 3 r (t3_0_r)
+        float(modulesInGPU.layers[lowerModuleIndex3] + 6*is_endcap3), // outer T3 anchor hit 3 layer (t3_0_layer)
+        mdsInGPU.anchorEta[fourthMDIndex],                            // outer T3 anchor hit 4 eta (t3_2_eta)
+        mdsInGPU.anchorPhi[fourthMDIndex],                            // outer T3 anchor hit 4 phi (t3_2_phi)
+        mdsInGPU.anchorZ[fourthMDIndex],                              // outer T3 anchor hit 4 z (t3_2_z)
+        sqrtf(x4*x4 + y4*y4),                                         // outer T3 anchor hit 4 r (t3_2_r)
+        float(modulesInGPU.layers[lowerModuleIndex4] + 6*is_endcap4), // outer T3 anchor hit 4 layer (t3_2_layer)
+        mdsInGPU.anchorEta[fifthMDIndex],                             // outer T3 anchor hit 5 eta (t3_4_eta)
+        mdsInGPU.anchorPhi[fifthMDIndex],                             // outer T3 anchor hit 5 phi (t3_4_phi)
+        mdsInGPU.anchorZ[fifthMDIndex],                               // outer T3 anchor hit 5 z (t3_4_z)
+        sqrtf(x5*x5 + y5*y5),                                         // outer T3 anchor hit 5 r (t3_4_r)
+        float(modulesInGPU.layers[lowerModuleIndex5] + 6*is_endcap5), // outer T3 anchor hit 5 layer (t3_4_layer)
+        log10((innerRadius + outerRadius)*3.8f*1.602f/(2*100*5.39f)), // T5 pT (t5_pt)
+        mdsInGPU.anchorEta[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]]], // T5 eta (t5_eta)
+        mdsInGPU.anchorPhi[segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]]], // T5 phi (t5_phi)
+        log10(innerRadius),                                           // T5 inner radius (t5_innerRadius)
+        log10(bridgeRadius),                                          // T5 bridge radius (t5_bridgeRadius)
+        log10(outerRadius)                                            // T5 outer radius (t5_outerRadius)
     };
 
     // (0): Linear(in_features=38, out_features=32, bias=True) => x = x*W_T + b
