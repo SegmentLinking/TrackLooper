@@ -703,13 +703,7 @@ void setGnnNtupleBranches(SDL::Event* event)
         ana.tx->pushbackToBranch<vector<int>>("tc_lsIdx", lsIdx);
     }
 
-    std::cout <<  " ana.tx->getBranch<vector<vector<int>>>('tc_lsIdx').size(): " << ana.tx->getBranch<vector<vector<int>>>("tc_lsIdx").size() <<  std::endl;
-
-
     std::cout <<  " mds_used_in_sg.size(): " << mds_used_in_sg.size() <<  std::endl;
-
-    // std::cout <<  " ana.tx->getBranchLazy<vector<float>>('MD_pt').size(): " << ana.tx->getBranchLazy<vector<float>>("MD_pt").size() <<  std::endl;
-    // std::cout <<  " mds_used_in_sg.size(): " << mds_used_in_sg.size() <<  std::endl;
 }
 
 //________________________________________________________________________________________________________________________________
