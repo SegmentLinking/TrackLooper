@@ -120,19 +120,11 @@ const int& SDL::CPU::Hit::idx() const
 // Set the boundary hits where the hits are shifted
 const SDL::CPU::Hit* SDL::CPU::Hit::getHitHighEdgePtr() const
 {
-    if (not hit_high_edge_)
-    {
-        SDL::CPU::cout << "Error:: hit_high_edge_ does not exist but was asked" << std::endl;
-    }
     return hit_high_edge_;
 }
 
 const SDL::CPU::Hit* SDL::CPU::Hit::getHitLowEdgePtr() const
 {
-    if (not hit_low_edge_)
-    {
-        SDL::CPU::cout << "Error:: hit_low_edge_ does not exist but was asked" << std::endl;
-    }
     return hit_low_edge_;
 }
 
@@ -164,8 +156,6 @@ float SDL::CPU::Hit::deltaPhiChange(const SDL::CPU::Hit& hit) const
 
 bool SDL::CPU::Hit::isIdxMatched(const SDL::CPU::Hit& hit) const
 {
-    if (idx() == -1)
-        SDL::CPU::cout << "Warning:: SDL::CPU::Hit::isIdxMatched() idx of this hit is not set. Cannot perform a match." << std::endl;
     if (hit.idx() == idx())
         return true;
     return false;

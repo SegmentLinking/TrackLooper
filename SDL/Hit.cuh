@@ -6,7 +6,6 @@
 #include "Constants.cuh"
 #include "Module.cuh"
 #include "allocate.h"
-#include "PrintUtil.h"
 
 namespace SDL
 {

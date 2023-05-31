@@ -141,28 +141,3 @@ void SDL::miniDoublets::freeMemory(cudaStream_t stream)
     cudaFree(outerHighEdgeX);
     cudaFree(nMemoryLocations);
 }
-
-void SDL::printMD(struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, SDL::modules& modulesInGPU, unsigned int mdIndex)
-{
-    std::cout<<std::endl;
-    std::cout << "dz " << mdsInGPU.dzs[mdIndex] << std::endl;
-    std::cout << "dphi " << mdsInGPU.dphis[mdIndex] << std::endl;
-    std::cout << "dphinoshift " << mdsInGPU.noShiftedDphis[mdIndex] << std::endl;
-    std::cout << "dphichange " << mdsInGPU.dphichanges[mdIndex] << std::endl;
-    std::cout << "dphichangenoshift " << mdsInGPU.noShiftedDphiChanges[mdIndex] << std::endl;
-    std::cout << std::endl;
-    std::cout << "Anchor Hit " << std::endl;
-    std::cout << "------------------------------" << std::endl;
-    unsigned int lowerHitIndex = mdsInGPU.anchorHitIndices[mdIndex];
-    unsigned int upperHitIndex = mdsInGPU.outerHitIndices[mdIndex];
-    {
-        IndentingOStreambuf indent(std::cout);
-        printHit(hitsInGPU, modulesInGPU, lowerHitIndex);
-    }
-    std::cout << "Non-anchor Hit " << std::endl;
-    std::cout << "------------------------------" << std::endl;
-    {
-        IndentingOStreambuf indent(std::cout);
-        printHit(hitsInGPU, modulesInGPU, upperHitIndex);
-    }
-}
