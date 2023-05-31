@@ -72,6 +72,7 @@ using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
     using Acc = alpaka::AccCpuSerial<Dim, Idx>;
 #endif
 
+auto const devHost = alpaka::getDevByIdx<alpaka::DevCpu>(0u);
 auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
 using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
 
@@ -91,7 +92,7 @@ using FPX_circle_Buf = alpaka::Buf<Acc, FPX_circle, Dim1d, Idx>;
 using FPX_seg_Buf = alpaka::Buf<Acc, FPX_seg, Dim1d, Idx>;
 
 template<typename T, typename TAcc, typename TSize>
-alpaka::Buf<Acc, T, Dim1d, Idx> inline allocBufWrapper(TAcc const & devAcc, TSize nElements) {
+alpaka::Buf<TAcc, T, Dim1d, Idx> inline allocBufWrapper(TAcc const & devAcc, TSize nElements) {
     return alpaka::allocBuf<T, Idx>(devAcc, alpaka::Vec<Dim1d, Idx>(static_cast<Idx>(nElements)));
 }
 
