@@ -741,7 +741,7 @@ struct addPixelSegmentToEventKernel
 
 void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> charge, std::vector<unsigned int> seedIdx, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<char> isQuad)
 {
-    int size = ptIn.size();
+    const int size = ptIn.size();
     unsigned int mdSize = 2 * size;
     uint16_t pixelModuleIndex = (*detIdToIndex)[1];
 
@@ -804,13 +804,11 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         cudaStreamSynchronize(stream);
     }
 
-    alpaka::Vec<Dim1d, Idx> const extent(static_cast<Idx>(size));
-
-    auto hitIndices0_dev = alpaka::allocBuf<unsigned int, Idx>(devAcc, extent);
-    auto hitIndices1_dev = alpaka::allocBuf<unsigned int, Idx>(devAcc, extent);
-    auto hitIndices2_dev = alpaka::allocBuf<unsigned int, Idx>(devAcc, extent);
-    auto hitIndices3_dev = alpaka::allocBuf<unsigned int, Idx>(devAcc, extent);
-    auto dPhiChange_dev = alpaka::allocBuf<float, Idx>(devAcc, extent);
+    auto hitIndices0_dev = allocBufWrapper<unsigned int>(devAcc, size);
+    auto hitIndices1_dev = allocBufWrapper<unsigned int>(devAcc, size);
+    auto hitIndices2_dev = allocBufWrapper<unsigned int>(devAcc, size);
+    auto hitIndices3_dev = allocBufWrapper<unsigned int>(devAcc, size);
+    auto dPhiChange_dev = allocBufWrapper<float>(devAcc, size);
 
     alpaka::memcpy(queue, hitIndices0_dev, hitIndices0, size);
     alpaka::memcpy(queue, hitIndices1_dev, hitIndices1, size);
@@ -2118,6 +2116,7 @@ SDL::segments_temp* SDL::Event::getSegments()
 {
     if(segmentsInCPU == nullptr)
     {
+        std::cout << "run" << std::endl;
         segmentsInCPU = new SDL::segments_temp;
 
         segmentsInCPU->nSegments = new int[nLowerModules+1];
