@@ -2116,7 +2116,6 @@ SDL::segments_temp* SDL::Event::getSegments()
 {
     if(segmentsInCPU == nullptr)
     {
-        std::cout << "run" << std::endl;
         segmentsInCPU = new SDL::segments_temp;
 
         segmentsInCPU->nSegments = new int[nLowerModules+1];
