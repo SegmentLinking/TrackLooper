@@ -53,7 +53,7 @@ namespace SDL
         objectRanges* rangesInCPU;
         hits* hitsInCPU;
         miniDoublets* mdsInCPU;
-        segments* segmentsInCPU;
+        segments_temp* segmentsInCPU;
         triplets* tripletsInCPU;
         trackCandidates* trackCandidatesInCPU;
         modules* modulesInCPU;
@@ -133,7 +133,7 @@ namespace SDL
         hits* getHits();
         hits* getHitsInCMSSW();
         miniDoublets* getMiniDoublets();
-        segments* getSegments() ;
+        segments_temp* getSegments() ;
         triplets* getTriplets();
         quintuplets* getQuintuplets();
         trackCandidates* getTrackCandidates();

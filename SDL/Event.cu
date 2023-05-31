@@ -2114,15 +2114,15 @@ SDL::miniDoublets* SDL::Event::getMiniDoublets()
     return mdsInCPU;
 }
 
-SDL::segments* SDL::Event::getSegments()
+SDL::segments_temp* SDL::Event::getSegments()
 {
     if(segmentsInCPU == nullptr)
     {
-        segmentsInCPU = new SDL::segments(nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
-        
+        segmentsInCPU = new SDL::segments_temp;
+
         segmentsInCPU->nSegments = new int[nLowerModules+1];
         cudaMemcpyAsync(segmentsInCPU->nSegments, segmentsInGPU->nSegments, (nLowerModules+1) * sizeof(int), cudaMemcpyDeviceToHost,stream);
-        
+
         segmentsInCPU->nMemoryLocations = new unsigned int;
         cudaMemcpyAsync(segmentsInCPU->nMemoryLocations, segmentsInGPU->nMemoryLocations, sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
         cudaStreamSynchronize(stream);

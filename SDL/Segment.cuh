@@ -12,6 +12,49 @@ using uint4_Buf = alpaka::Buf<Acc, uint4, Dim1d, Idx>;
 
 namespace SDL
 {
+    // Temporary struct to handle ntuple writing
+    struct segments_temp
+    {
+        unsigned int* nMemoryLocations;
+
+        unsigned int* mdIndices;
+        uint16_t* innerLowerModuleIndices;
+        uint16_t* outerLowerModuleIndices;
+        unsigned int* innerMiniDoubletAnchorHitIndices;
+        unsigned int* outerMiniDoubletAnchorHitIndices;
+
+        int* nSegments; //number of segments per inner lower module
+        int* totOccupancySegments; //number of segments per inner lower module
+        FPX* dPhis;
+        FPX* dPhiMins;
+        FPX* dPhiMaxs;
+        FPX* dPhiChanges;
+        FPX* dPhiChangeMins;
+        FPX* dPhiChangeMaxs;
+
+        //not so optional pixel dudes
+        float* ptIn;
+        float* ptErr;
+        float* px;
+        float* py;
+        float* pz;
+        float* etaErr;
+        float* eta;
+        float* phi;
+        int* charge;
+        unsigned int* seedIdx;
+        int* superbin;
+        int8_t* pixelType;
+        char* isQuad;
+        bool* isDup;
+        float* score;
+        float* circleCenterX;
+        float* circleCenterY;
+        float* circleRadius;
+        bool* partOfPT5;
+        uint4* pLSHitsIdxs;
+    };
+
     struct segments
     {
         // Buffer objects for each member variable
