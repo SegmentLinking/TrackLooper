@@ -14,26 +14,14 @@
 
 #include "allocate.h"
 
-// Temporary alpaka statements
-using Dim = alpaka::DimInt<3u>;
-using Idx = std::size_t;
-using Vec = alpaka::Vec<Dim,Idx>;
-using QueueProperty = alpaka::NonBlocking;
-using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
-
 namespace SDL
 {
     class Event
     {
     private:
+        QueueAcc queue;
         cudaStream_t stream;
         bool addObjects;
-
-#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-        using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
-        using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
-        QueueAcc queue;
-#endif
 
         std::array<unsigned int, 6> n_hits_by_layer_barrel_;
         std::array<unsigned int, 5> n_hits_by_layer_endcap_;

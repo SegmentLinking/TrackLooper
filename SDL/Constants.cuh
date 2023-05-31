@@ -1,9 +1,8 @@
 #ifndef Constants_cuh
 #define Constants_cuh
 
-#include <alpaka/alpaka.hpp>
-
 #include <cuda_fp16.h>
+#include <alpaka/alpaka.hpp>
 
 #ifdef FP16_Base //This changes pT5 and pT3 and T3 completely. T5 for non regression parameters
 #define __F2H __float2half  
@@ -50,6 +49,51 @@ typedef __half FPX_seg;
 #define __H2F_seg
 typedef float FPX_seg; 
 #endif
+
+using Idx = std::size_t;
+using Dim = alpaka::DimInt<3u>;
+using Dim1d = alpaka::DimInt<1u>;
+using Vec = alpaka::Vec<Dim,Idx>;
+using Vec1d = alpaka::Vec<Dim1d,Idx>;
+using QueueProperty = alpaka::NonBlocking;
+using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
+
+// - AccGpuCudaRt
+// - AccCpuThreads
+// - AccCpuFibers
+// - AccCpuSerial
+#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+    using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
+#elif ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
+    using Acc = alpaka::AccCpuThreads<Dim, Idx>;
+#elif ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED
+    using Acc = alpaka::AccCpuFibers<Dim, Idx>;
+#elif ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
+    using Acc = alpaka::AccCpuSerial<Dim, Idx>;
+#endif
+
+auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
+using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
+
+// Typical Buffer types used in the code.
+using float_Buf = alpaka::Buf<Acc, float, Dim1d, Idx>;
+using int_Buf = alpaka::Buf<Acc, int, Dim1d, Idx>;
+using uint_Buf = alpaka::Buf<Acc, unsigned int, Dim1d, Idx>;
+using int8_t_Buf = alpaka::Buf<Acc, int8_t, Dim1d, Idx>;
+using uint16_t_Buf = alpaka::Buf<Acc, uint16_t, Dim1d, Idx>;
+using char_Buf = alpaka::Buf<Acc, char, Dim1d, Idx>;
+using bool_Buf = alpaka::Buf<Acc, bool, Dim1d, Idx>;
+
+using FPX_Buf = alpaka::Buf<Acc, FPX, Dim1d, Idx>;
+using FPX_T5_Buf = alpaka::Buf<Acc, FPX_T5, Dim1d, Idx>;
+using FPX_dPhi_Buf = alpaka::Buf<Acc, FPX_dPhi, Dim1d, Idx>;
+using FPX_circle_Buf = alpaka::Buf<Acc, FPX_circle, Dim1d, Idx>;
+using FPX_seg_Buf = alpaka::Buf<Acc, FPX_seg, Dim1d, Idx>;
+
+template<typename T, typename TAcc, typename TSize>
+alpaka::Buf<Acc, T, Dim1d, Idx> inline allocBufWrapper(TAcc const & devAcc, TSize nElements) {
+    return alpaka::allocBuf<T, Idx>(devAcc, alpaka::Vec<Dim1d, Idx>(static_cast<Idx>(nElements)));
+}
 
 const unsigned int MAX_BLOCKS = 80;
 const unsigned int MAX_CONNECTED_MODULES = 40;
