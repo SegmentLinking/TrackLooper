@@ -20,10 +20,9 @@ LDFLAGS     = -g -O2
 ROOTLIBS    = $(shell root-config --libs)
 ROOTCFLAGS  = $(foreach option, $(shell root-config --cflags), --compiler-options $(option))
 ALPAKAINCLUDE = -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
-ALPAKAFLAGS = -DALPAKA_ACC_GPU_CUDA_ENABLED -DALPAKA_ACC_GPU_CUDA_ONLY  --expt-relaxed-constexpr -DALPAKA_DEBUG=0
-CFLAGS      = $(ROOTCFLAGS) --compiler-options -Wall --compiler-options -Wno-unused-function --compiler-options -g --compiler-options -O2 --compiler-options -fPIC --compiler-options -fno-var-tracking -ISDL -I$(shell pwd) -Icode  -Icode/core -I/mnt/data1/dsr/cub -I${CUDA_HOME}/include --compiler-options -fopenmp -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include
+CFLAGS      = $(ROOTCFLAGS) --compiler-options -Wall --compiler-options -Wno-unused-function --compiler-options -g --compiler-options -O2 --compiler-options -fPIC --compiler-options -fno-var-tracking -ISDL -I$(shell pwd) -Icode  -Icode/core -I/mnt/data1/dsr/cub -I${CUDA_HOME}/include --compiler-options -fopenmp
 EXTRACFLAGS = $(shell rooutil-config)
-EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -L${CUDA_HOME}/lib64 -lcudart -fopenmp -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include
+EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -L${CUDA_HOME}/lib64 -lcudart -fopenmp
 DOQUINTUPLET = -DFP16_Base -DFP16_dPhi #-DFP16_circle -DFP16_seg -DFP16_T5 #-DDO_QUINTUPLET #-DDO_QUADRUPLET
 PT0P8       =
 T3T3EXTENSION=
