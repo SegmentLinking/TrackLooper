@@ -76,20 +76,9 @@ auto const devHost = alpaka::getDevByIdx<alpaka::DevCpu>(0u);
 auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
 using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
 
-// Typical Buffer types used in the code.
-using float_Buf = alpaka::Buf<Acc, float, Dim1d, Idx>;
-using int_Buf = alpaka::Buf<Acc, int, Dim1d, Idx>;
-using uint_Buf = alpaka::Buf<Acc, unsigned int, Dim1d, Idx>;
-using int8_t_Buf = alpaka::Buf<Acc, int8_t, Dim1d, Idx>;
-using uint16_t_Buf = alpaka::Buf<Acc, uint16_t, Dim1d, Idx>;
-using char_Buf = alpaka::Buf<Acc, char, Dim1d, Idx>;
-using bool_Buf = alpaka::Buf<Acc, bool, Dim1d, Idx>;
-
-using FPX_Buf = alpaka::Buf<Acc, FPX, Dim1d, Idx>;
-using FPX_T5_Buf = alpaka::Buf<Acc, FPX_T5, Dim1d, Idx>;
-using FPX_dPhi_Buf = alpaka::Buf<Acc, FPX_dPhi, Dim1d, Idx>;
-using FPX_circle_Buf = alpaka::Buf<Acc, FPX_circle, Dim1d, Idx>;
-using FPX_seg_Buf = alpaka::Buf<Acc, FPX_seg, Dim1d, Idx>;
+// Buffer type for allocations where auto type can't be used.
+template<typename TAcc, typename TData>
+using Buf = alpaka::Buf<TAcc, TData, Dim1d, Idx>;
 
 template<typename T, typename TAcc, typename TSize>
 alpaka::Buf<TAcc, T, Dim1d, Idx> inline allocBufWrapper(TAcc const & devAcc, TSize nElements) {
