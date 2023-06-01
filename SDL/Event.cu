@@ -5,9 +5,6 @@ struct SDL::pixelMap* SDL::pixelMapping = nullptr;
 uint16_t SDL::nModules;
 uint16_t SDL::nLowerModules;
 
-// Temporary alpaka statements
-Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
-
 SDL::Event::Event(cudaStream_t estream, bool verbose): queue(alpaka::getDevByIdx<Acc>(0u))
 {
     int version;

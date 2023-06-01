@@ -58,6 +58,8 @@ using Vec1d = alpaka::Vec<Dim1d,Idx>;
 using QueueProperty = alpaka::NonBlocking;
 using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
 
+Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
+
 // - AccGpuCudaRt
 // - AccCpuThreads
 // - AccCpuFibers
