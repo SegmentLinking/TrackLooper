@@ -8,8 +8,6 @@
 #include "Module.cuh"
 #include "Hit.cuh"
 
-using uint4_Buf = alpaka::Buf<Acc, uint4, Dim1d, Idx>;
-
 namespace SDL
 {
     // Temporary struct to handle ntuple writing
@@ -58,48 +56,48 @@ namespace SDL
     struct segments
     {
         // Buffer objects for each member variable
-        FPX_Buf dPhis_buf;
-        FPX_Buf dPhiMins_buf;
-        FPX_Buf dPhiMaxs_buf;
-        FPX_Buf dPhiChanges_buf;
-        FPX_Buf dPhiChangeMins_buf;
-        FPX_Buf dPhiChangeMaxs_buf;
+        Buf<Acc, FPX> dPhis_buf;
+        Buf<Acc, FPX> dPhiMins_buf;
+        Buf<Acc, FPX> dPhiMaxs_buf;
+        Buf<Acc, FPX> dPhiChanges_buf;
+        Buf<Acc, FPX> dPhiChangeMins_buf;
+        Buf<Acc, FPX> dPhiChangeMaxs_buf;
 
-        uint16_t_Buf innerLowerModuleIndices_buf;
-        uint16_t_Buf outerLowerModuleIndices_buf;
+        Buf<Acc, uint16_t> innerLowerModuleIndices_buf;
+        Buf<Acc, uint16_t> outerLowerModuleIndices_buf;
 
-        uint_Buf seedIdx_buf;
-        uint_Buf mdIndices_buf;
-        uint_Buf innerMiniDoubletAnchorHitIndices_buf;
-        uint_Buf outerMiniDoubletAnchorHitIndices_buf;
-        uint_Buf nMemoryLocations_buf;
+        Buf<Acc, unsigned int> seedIdx_buf;
+        Buf<Acc, unsigned int> mdIndices_buf;
+        Buf<Acc, unsigned int> innerMiniDoubletAnchorHitIndices_buf;
+        Buf<Acc, unsigned int> outerMiniDoubletAnchorHitIndices_buf;
+        Buf<Acc, unsigned int> nMemoryLocations_buf;
 
-        int_Buf nSegments_buf;
-        int_Buf totOccupancySegments_buf;
-        int_Buf charge_buf;
-        int_Buf superbin_buf;
+        Buf<Acc, int> nSegments_buf;
+        Buf<Acc, int> totOccupancySegments_buf;
+        Buf<Acc, int> charge_buf;
+        Buf<Acc, int> superbin_buf;
 
-        uint4_Buf pLSHitsIdxs_buf;
+        Buf<Acc, uint4> pLSHitsIdxs_buf; // Please ensure that the 'uint4' type is defined and available in your scope.
 
-        int8_t_Buf pixelType_buf;
+        Buf<Acc, int8_t> pixelType_buf;
 
-        char_Buf isQuad_buf;
+        Buf<Acc, char> isQuad_buf;
 
-        bool_Buf isDup_buf;
-        bool_Buf partOfPT5_buf;
+        Buf<Acc, bool> isDup_buf;
+        Buf<Acc, bool> partOfPT5_buf;
 
-        float_Buf ptIn_buf;
-        float_Buf ptErr_buf;
-        float_Buf px_buf;
-        float_Buf py_buf;
-        float_Buf pz_buf;
-        float_Buf etaErr_buf;
-        float_Buf eta_buf;
-        float_Buf phi_buf;
-        float_Buf score_buf;
-        float_Buf circleCenterX_buf;
-        float_Buf circleCenterY_buf;
-        float_Buf circleRadius_buf;
+        Buf<Acc, float> ptIn_buf;
+        Buf<Acc, float> ptErr_buf;
+        Buf<Acc, float> px_buf;
+        Buf<Acc, float> py_buf;
+        Buf<Acc, float> pz_buf;
+        Buf<Acc, float> etaErr_buf;
+        Buf<Acc, float> eta_buf;
+        Buf<Acc, float> phi_buf;
+        Buf<Acc, float> score_buf;
+        Buf<Acc, float> circleCenterX_buf;
+        Buf<Acc, float> circleCenterY_buf;
+        Buf<Acc, float> circleRadius_buf;
 
         // Pointers towards the data of each buffer
         FPX* dPhis;
