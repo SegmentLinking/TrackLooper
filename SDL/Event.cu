@@ -118,15 +118,6 @@ SDL::Event::~Event()
 
     if(segmentsInCPU != nullptr)
     {
-        delete[] segmentsInCPU->mdIndices;
-        delete[] segmentsInCPU->nSegments;
-        delete[] segmentsInCPU->totOccupancySegments;
-        delete[] segmentsInCPU->innerMiniDoubletAnchorHitIndices;
-        delete[] segmentsInCPU->outerMiniDoubletAnchorHitIndices;
-        delete[] segmentsInCPU->ptIn;
-        delete[] segmentsInCPU->eta;
-        delete[] segmentsInCPU->phi;
-        delete segmentsInCPU->nMemoryLocations;
         delete segmentsInCPU;
     }
 
@@ -345,14 +336,6 @@ void SDL::Event::resetEvent()
 
     if(segmentsInCPU != nullptr)
     {
-        delete[] segmentsInCPU->mdIndices;
-        delete[] segmentsInCPU->nSegments;
-        delete[] segmentsInCPU->totOccupancySegments;
-        delete[] segmentsInCPU->innerMiniDoubletAnchorHitIndices;
-        delete[] segmentsInCPU->outerMiniDoubletAnchorHitIndices;
-        delete[] segmentsInCPU->ptIn;
-        delete[] segmentsInCPU->eta;
-        delete[] segmentsInCPU->phi;
         delete segmentsInCPU;
         segmentsInCPU = nullptr;
     }
@@ -698,7 +681,7 @@ struct addPixelSegmentToEventKernel
         struct SDL::objectRanges& rangesInGPU,
         struct SDL::hits& hitsInGPU,
         struct SDL::miniDoublets& mdsInGPU,
-        struct SDL::segments& segmentsInGPU,
+        SDL::segments<TAcc>& segmentsInGPU,
         unsigned int* hitIndices0,
         unsigned int* hitIndices1,
         unsigned int* hitIndices2,
@@ -798,7 +781,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         cudaStreamSynchronize(stream);
         nTotalSegments += N_MAX_PIXEL_SEGMENTS_PER_MODULE;
 
-        segmentsInGPU = new SDL::segments(nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
+        segmentsInGPU = new SDL::segments<Acc>(nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
 
         cudaMemcpyAsync(segmentsInGPU->nMemoryLocations, &nTotalSegments, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);;
         cudaStreamSynchronize(stream);
@@ -1043,7 +1026,7 @@ void SDL::Event::createSegmentsWithModuleMap()
 {
     if(segmentsInGPU == nullptr)
     {
-        segmentsInGPU = new SDL::segments(nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
+        segmentsInGPU = new SDL::segments<Acc>(nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
     }
 
     Vec const threadsPerBlockCreateSeg(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(64));
@@ -2112,44 +2095,32 @@ SDL::miniDoublets* SDL::Event::getMiniDoublets()
     return mdsInCPU;
 }
 
-SDL::segments_temp* SDL::Event::getSegments()
+SDL::segments<alpaka::DevCpu>* SDL::Event::getSegments()
 {
     if(segmentsInCPU == nullptr)
     {
-        segmentsInCPU = new SDL::segments_temp;
+        // Get nMemoryLocations parameter to initilize host based segmentsInCPU
+        auto nMemLocal_buf = allocBufWrapper<unsigned int>(devHost, 1);
+        alpaka::memcpy(queue, nMemLocal_buf, segmentsInGPU->nMemoryLocations_buf, 1);
+        alpaka::wait(queue);
 
-        segmentsInCPU->nSegments = new int[nLowerModules+1];
-        cudaMemcpyAsync(segmentsInCPU->nSegments, segmentsInGPU->nSegments, (nLowerModules+1) * sizeof(int), cudaMemcpyDeviceToHost,stream);
+        unsigned int nMemLocal = *alpaka::getPtrNative(nMemLocal_buf);
+        segmentsInCPU = new SDL::segments<alpaka::DevCpu>(nMemLocal, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devHost, queue);
 
-        segmentsInCPU->nMemoryLocations = new unsigned int;
-        cudaMemcpyAsync(segmentsInCPU->nMemoryLocations, segmentsInGPU->nMemoryLocations, sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaStreamSynchronize(stream);
-
-        segmentsInCPU->mdIndices = new unsigned int[2 * *(segmentsInCPU->nMemoryLocations)];
-        segmentsInCPU->innerMiniDoubletAnchorHitIndices = new unsigned int[*(segmentsInCPU->nMemoryLocations)];
-        segmentsInCPU->outerMiniDoubletAnchorHitIndices = new unsigned int[*(segmentsInCPU->nMemoryLocations)];
-        segmentsInCPU->totOccupancySegments = new int[nLowerModules+1];
-
-        segmentsInCPU->ptIn = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
-        segmentsInCPU->eta = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
-        segmentsInCPU->phi = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
-        segmentsInCPU->seedIdx = new unsigned int[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
-        segmentsInCPU->isDup = new bool[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
-        segmentsInCPU->isQuad = new char[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
-        segmentsInCPU->score = new float[N_MAX_PIXEL_SEGMENTS_PER_MODULE];
-
-        cudaMemcpyAsync(segmentsInCPU->mdIndices, segmentsInGPU->mdIndices, 2 * *(segmentsInCPU->nMemoryLocations) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(segmentsInCPU->innerMiniDoubletAnchorHitIndices, segmentsInGPU->innerMiniDoubletAnchorHitIndices, *(segmentsInCPU->nMemoryLocations) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(segmentsInCPU->outerMiniDoubletAnchorHitIndices, segmentsInGPU->outerMiniDoubletAnchorHitIndices, *(segmentsInCPU->nMemoryLocations) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(segmentsInCPU->totOccupancySegments, segmentsInGPU->totOccupancySegments, (nLowerModules+1) * sizeof(int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(segmentsInCPU->ptIn, segmentsInGPU->ptIn, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(segmentsInCPU->eta, segmentsInGPU->eta, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(segmentsInCPU->phi, segmentsInGPU->phi, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(segmentsInCPU->seedIdx, segmentsInGPU->seedIdx, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(segmentsInCPU->isDup, segmentsInGPU->isDup, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(bool), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(segmentsInCPU->isQuad, segmentsInGPU->isQuad, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(char), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(segmentsInCPU->score, segmentsInGPU->score, N_MAX_PIXEL_SEGMENTS_PER_MODULE * sizeof(float), cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
+        *alpaka::getPtrNative(segmentsInCPU->nMemoryLocations_buf) = nMemLocal;
+        alpaka::memcpy(queue, segmentsInCPU->nSegments_buf, segmentsInGPU->nSegments_buf, (nLowerModules+1));
+        alpaka::memcpy(queue, segmentsInCPU->mdIndices_buf, segmentsInGPU->mdIndices_buf, 2 * nMemLocal);
+        alpaka::memcpy(queue, segmentsInCPU->innerMiniDoubletAnchorHitIndices_buf, segmentsInGPU->innerMiniDoubletAnchorHitIndices_buf, nMemLocal);
+        alpaka::memcpy(queue, segmentsInCPU->outerMiniDoubletAnchorHitIndices_buf, segmentsInGPU->outerMiniDoubletAnchorHitIndices_buf, nMemLocal);
+        alpaka::memcpy(queue, segmentsInCPU->totOccupancySegments_buf, segmentsInGPU->totOccupancySegments_buf, (nLowerModules+1));
+        alpaka::memcpy(queue, segmentsInCPU->ptIn_buf, segmentsInGPU->ptIn_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+        alpaka::memcpy(queue, segmentsInCPU->eta_buf, segmentsInGPU->eta_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+        alpaka::memcpy(queue, segmentsInCPU->phi_buf, segmentsInGPU->phi_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+        alpaka::memcpy(queue, segmentsInCPU->seedIdx_buf, segmentsInGPU->seedIdx_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+        alpaka::memcpy(queue, segmentsInCPU->isDup_buf, segmentsInGPU->isDup_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+        alpaka::memcpy(queue, segmentsInCPU->isQuad_buf, segmentsInGPU->isQuad_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+        alpaka::memcpy(queue, segmentsInCPU->score_buf, segmentsInGPU->score_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+        alpaka::wait(queue);
     }
     return segmentsInCPU;
 }

@@ -10,94 +10,52 @@
 
 namespace SDL
 {
-    // Temporary struct to handle ntuple writing
-    struct segments_temp
-    {
-        unsigned int* nMemoryLocations;
-
-        unsigned int* mdIndices;
-        uint16_t* innerLowerModuleIndices;
-        uint16_t* outerLowerModuleIndices;
-        unsigned int* innerMiniDoubletAnchorHitIndices;
-        unsigned int* outerMiniDoubletAnchorHitIndices;
-
-        int* nSegments; //number of segments per inner lower module
-        int* totOccupancySegments; //number of segments per inner lower module
-        FPX* dPhis;
-        FPX* dPhiMins;
-        FPX* dPhiMaxs;
-        FPX* dPhiChanges;
-        FPX* dPhiChangeMins;
-        FPX* dPhiChangeMaxs;
-
-        //not so optional pixel dudes
-        float* ptIn;
-        float* ptErr;
-        float* px;
-        float* py;
-        float* pz;
-        float* etaErr;
-        float* eta;
-        float* phi;
-        int* charge;
-        unsigned int* seedIdx;
-        int* superbin;
-        int8_t* pixelType;
-        char* isQuad;
-        bool* isDup;
-        float* score;
-        float* circleCenterX;
-        float* circleCenterY;
-        float* circleRadius;
-        bool* partOfPT5;
-        uint4* pLSHitsIdxs;
-    };
-
+    template<typename TAcc>
     struct segments
     {
         // Buffer objects for each member variable
-        Buf<Acc, FPX> dPhis_buf;
-        Buf<Acc, FPX> dPhiMins_buf;
-        Buf<Acc, FPX> dPhiMaxs_buf;
-        Buf<Acc, FPX> dPhiChanges_buf;
-        Buf<Acc, FPX> dPhiChangeMins_buf;
-        Buf<Acc, FPX> dPhiChangeMaxs_buf;
+        Buf<TAcc, FPX> dPhis_buf;
+        Buf<TAcc, FPX> dPhiMins_buf;
+        Buf<TAcc, FPX> dPhiMaxs_buf;
+        Buf<TAcc, FPX> dPhiChanges_buf;
+        Buf<TAcc, FPX> dPhiChangeMins_buf;
+        Buf<TAcc, FPX> dPhiChangeMaxs_buf;
 
-        Buf<Acc, uint16_t> innerLowerModuleIndices_buf;
-        Buf<Acc, uint16_t> outerLowerModuleIndices_buf;
+        Buf<TAcc, uint16_t> innerLowerModuleIndices_buf;
+        Buf<TAcc, uint16_t> outerLowerModuleIndices_buf;
 
-        Buf<Acc, unsigned int> seedIdx_buf;
-        Buf<Acc, unsigned int> mdIndices_buf;
-        Buf<Acc, unsigned int> innerMiniDoubletAnchorHitIndices_buf;
-        Buf<Acc, unsigned int> outerMiniDoubletAnchorHitIndices_buf;
-        Buf<Acc, unsigned int> nMemoryLocations_buf;
+        Buf<TAcc, unsigned int> seedIdx_buf;
+        Buf<TAcc, unsigned int> mdIndices_buf;
+        Buf<TAcc, unsigned int> innerMiniDoubletAnchorHitIndices_buf;
+        Buf<TAcc, unsigned int> outerMiniDoubletAnchorHitIndices_buf;
+        Buf<TAcc, unsigned int> nMemoryLocations_buf;
 
-        Buf<Acc, int> nSegments_buf;
-        Buf<Acc, int> totOccupancySegments_buf;
-        Buf<Acc, int> charge_buf;
-        Buf<Acc, int> superbin_buf;
+        Buf<TAcc, int> nSegments_buf;
+        Buf<TAcc, int> totOccupancySegments_buf;
+        Buf<TAcc, int> charge_buf;
+        Buf<TAcc, int> superbin_buf;
 
-        Buf<Acc, uint4> pLSHitsIdxs_buf; // Please ensure that the 'uint4' type is defined and available in your scope.
+        Buf<TAcc, uint4> pLSHitsIdxs_buf;
 
-        Buf<Acc, int8_t> pixelType_buf;
+        Buf<TAcc, int8_t> pixelType_buf;
 
-        Buf<Acc, char> isQuad_buf;
+        Buf<TAcc, char> isQuad_buf;
 
-        Buf<Acc, bool> isDup_buf;
-        Buf<Acc, bool> partOfPT5_buf;
+        Buf<TAcc, bool> isDup_buf;
+        Buf<TAcc, bool> partOfPT5_buf;
 
-        Buf<Acc, float> ptIn_buf;
-        Buf<Acc, float> ptErr_buf;
-        Buf<Acc, float> px_buf;
-        Buf<Acc, float> py_buf;
-        Buf<Acc, float> pz_buf;
-        Buf<Acc, float> etaErr_buf;
-        Buf<Acc, float> eta_buf;
-        Buf<Acc, float> phi_buf;
-        Buf<Acc, float> score_buf;
-        Buf<Acc, float> circleCenterX_buf;
-        Buf<Acc, float> circleCenterY_buf;
-        Buf<Acc, float> circleRadius_buf;
+        Buf<TAcc, float> ptIn_buf;
+        Buf<TAcc, float> ptErr_buf;
+        Buf<TAcc, float> px_buf;
+        Buf<TAcc, float> py_buf;
+        Buf<TAcc, float> pz_buf;
+        Buf<TAcc, float> etaErr_buf;
+        Buf<TAcc, float> eta_buf;
+        Buf<TAcc, float> phi_buf;
+        Buf<TAcc, float> score_buf;
+        Buf<TAcc, float> circleCenterX_buf;
+        Buf<TAcc, float> circleCenterY_buf;
+        Buf<TAcc, float> circleRadius_buf;
 
         // Pointers towards the data of each buffer
         FPX* dPhis;
@@ -139,46 +97,46 @@ namespace SDL
         bool* partOfPT5;
         uint4* pLSHitsIdxs;
 
-        template<typename TAcc, typename TQueue>
+        template<typename TQueue, typename TDevAcc>
         segments(unsigned int nMemoryLocationsIn,
                     uint16_t nLowerModules,
                     unsigned int maxPixelSegments,
-                    TAcc const & devAcc,
+                    TDevAcc const & devAccIn,
                     TQueue& queue) :
-            mdIndices_buf(allocBufWrapper<unsigned int>(devAcc, nMemoryLocationsIn*2)),
-            innerMiniDoubletAnchorHitIndices_buf(allocBufWrapper<unsigned int>(devAcc, nMemoryLocationsIn)),
-            outerMiniDoubletAnchorHitIndices_buf(allocBufWrapper<unsigned int>(devAcc, nMemoryLocationsIn)),
-            innerLowerModuleIndices_buf(allocBufWrapper<uint16_t>(devAcc, nMemoryLocationsIn)),
-            outerLowerModuleIndices_buf(allocBufWrapper<uint16_t>(devAcc, nMemoryLocationsIn)),
-            nSegments_buf(allocBufWrapper<int>(devAcc, nLowerModules + 1)),
-            totOccupancySegments_buf(allocBufWrapper<int>(devAcc, nLowerModules + 1)),
-            dPhis_buf(allocBufWrapper<FPX>(devAcc, nMemoryLocationsIn)),
-            dPhiMins_buf(allocBufWrapper<FPX>(devAcc, nMemoryLocationsIn)),
-            dPhiMaxs_buf(allocBufWrapper<FPX>(devAcc, nMemoryLocationsIn)),
-            dPhiChanges_buf(allocBufWrapper<FPX>(devAcc, nMemoryLocationsIn)),
-            dPhiChangeMins_buf(allocBufWrapper<FPX>(devAcc, nMemoryLocationsIn)),
-            dPhiChangeMaxs_buf(allocBufWrapper<FPX>(devAcc, nMemoryLocationsIn)),
-            ptIn_buf(allocBufWrapper<float>(devAcc, maxPixelSegments)),
-            ptErr_buf(allocBufWrapper<float>(devAcc, maxPixelSegments)),
-            px_buf(allocBufWrapper<float>(devAcc, maxPixelSegments)),
-            py_buf(allocBufWrapper<float>(devAcc, maxPixelSegments)),
-            pz_buf(allocBufWrapper<float>(devAcc, maxPixelSegments)),
-            etaErr_buf(allocBufWrapper<float>(devAcc, maxPixelSegments)),
-            eta_buf(allocBufWrapper<float>(devAcc, maxPixelSegments)),
-            phi_buf(allocBufWrapper<float>(devAcc, maxPixelSegments)),
-            superbin_buf(allocBufWrapper<int>(devAcc, maxPixelSegments)),
-            pixelType_buf(allocBufWrapper<int8_t>(devAcc, maxPixelSegments)),
-            isQuad_buf(allocBufWrapper<char>(devAcc, maxPixelSegments)),
-            isDup_buf(allocBufWrapper<bool>(devAcc, maxPixelSegments)),
-            score_buf(allocBufWrapper<float>(devAcc, maxPixelSegments)),
-            charge_buf(allocBufWrapper<int>(devAcc, maxPixelSegments)),
-            seedIdx_buf(allocBufWrapper<unsigned int>(devAcc, maxPixelSegments)),
-            circleCenterX_buf(allocBufWrapper<float>(devAcc, maxPixelSegments)),
-            circleCenterY_buf(allocBufWrapper<float>(devAcc, maxPixelSegments)),
-            circleRadius_buf(allocBufWrapper<float>(devAcc, maxPixelSegments)),
-            partOfPT5_buf(allocBufWrapper<bool>(devAcc, maxPixelSegments)),
-            pLSHitsIdxs_buf(allocBufWrapper<uint4>(devAcc, maxPixelSegments)),
-            nMemoryLocations_buf(allocBufWrapper<unsigned int>(devAcc, 1))
+            mdIndices_buf(allocBufWrapper<unsigned int>(devAccIn, nMemoryLocationsIn*2)),
+            innerMiniDoubletAnchorHitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, nMemoryLocationsIn)),
+            outerMiniDoubletAnchorHitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, nMemoryLocationsIn)),
+            innerLowerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, nMemoryLocationsIn)),
+            outerLowerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, nMemoryLocationsIn)),
+            nSegments_buf(allocBufWrapper<int>(devAccIn, nLowerModules + 1)),
+            totOccupancySegments_buf(allocBufWrapper<int>(devAccIn, nLowerModules + 1)),
+            dPhis_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn)),
+            dPhiMins_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn)),
+            dPhiMaxs_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn)),
+            dPhiChanges_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn)),
+            dPhiChangeMins_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn)),
+            dPhiChangeMaxs_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn)),
+            ptIn_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments)),
+            ptErr_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments)),
+            px_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments)),
+            py_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments)),
+            pz_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments)),
+            etaErr_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments)),
+            eta_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments)),
+            phi_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments)),
+            superbin_buf(allocBufWrapper<int>(devAccIn, maxPixelSegments)),
+            pixelType_buf(allocBufWrapper<int8_t>(devAccIn, maxPixelSegments)),
+            isQuad_buf(allocBufWrapper<char>(devAccIn, maxPixelSegments)),
+            isDup_buf(allocBufWrapper<bool>(devAccIn, maxPixelSegments)),
+            score_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments)),
+            charge_buf(allocBufWrapper<int>(devAccIn, maxPixelSegments)),
+            seedIdx_buf(allocBufWrapper<unsigned int>(devAccIn, maxPixelSegments)),
+            circleCenterX_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments)),
+            circleCenterY_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments)),
+            circleRadius_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments)),
+            partOfPT5_buf(allocBufWrapper<bool>(devAccIn, maxPixelSegments)),
+            pLSHitsIdxs_buf(allocBufWrapper<uint4>(devAccIn, maxPixelSegments)),
+            nMemoryLocations_buf(allocBufWrapper<unsigned int>(devAccIn, 1))
         {
             mdIndices = alpaka::getPtrNative(mdIndices_buf);
             innerMiniDoubletAnchorHitIndices = alpaka::getPtrNative(innerMiniDoubletAnchorHitIndices_buf);
@@ -481,7 +439,8 @@ namespace SDL
         dAlphaThresholdValues[2] = dAlpha_Bfield + alpaka::math::sqrt(acc, dAlpha_res * dAlpha_res + sdMuls * sdMuls);
     };
 
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addSegmentToMemory(struct segments& segmentsInGPU, unsigned int lowerMDIndex, unsigned int upperMDIndex, uint16_t innerLowerModuleIndex, uint16_t outerLowerModuleIndex, unsigned int innerMDAnchorHitIndex, unsigned int outerMDAnchorHitIndex, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, unsigned int idx)
+    template<typename TAcc>
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addSegmentToMemory(SDL::segments<TAcc>& segmentsInGPU, unsigned int lowerMDIndex, unsigned int upperMDIndex, uint16_t innerLowerModuleIndex, uint16_t outerLowerModuleIndex, unsigned int innerMDAnchorHitIndex, unsigned int outerMDAnchorHitIndex, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, unsigned int idx)
     {
         //idx will be computed in the kernel, which is the index into which the 
         //segment will be written
@@ -503,7 +462,7 @@ namespace SDL
     }
 
     template<typename TAcc>
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addPixelSegmentToMemory(TAcc const & acc, struct segments& segmentsInGPU, struct miniDoublets& mdsInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, uint16_t pixelModuleIndex, unsigned int hitIdxs[4], unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, unsigned int idx, unsigned int pixelSegmentArrayIndex, float score)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addPixelSegmentToMemory(TAcc const & acc, SDL::segments<TAcc>& segmentsInGPU, struct miniDoublets& mdsInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, uint16_t pixelModuleIndex, unsigned int hitIdxs[4], unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, unsigned int idx, unsigned int pixelSegmentArrayIndex, float score)
     {
         segmentsInGPU.mdIndices[idx * 2] = innerMDIndex;
         segmentsInGPU.mdIndices[idx * 2 + 1] = outerMDIndex;
@@ -734,7 +693,7 @@ namespace SDL
                 TAcc const & acc,
                 struct SDL::modules& modulesInGPU,
                 struct SDL::miniDoublets& mdsInGPU,
-                struct SDL::segments& segmentsInGPU,
+                struct SDL::segments<TAcc>& segmentsInGPU,
                 struct SDL::objectRanges& rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
@@ -886,7 +845,7 @@ namespace SDL
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
                 struct modules& modulesInGPU,
-                struct segments& segmentsInGPU,
+                SDL::segments<TAcc>& segmentsInGPU,
                 struct objectRanges& rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;

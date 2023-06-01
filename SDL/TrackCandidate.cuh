@@ -81,7 +81,8 @@ namespace SDL
         trackCandidatesInGPU.radius[trackCandidateIndex]  = __F2H(radius);
     };
 
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE int checkPixelHits(unsigned int ix, unsigned int jx, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::hits& hitsInGPU)
+    template<typename TAcc>
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE int checkPixelHits(unsigned int ix, unsigned int jx, struct SDL::miniDoublets& mdsInGPU, SDL::segments<TAcc>& segmentsInGPU, struct SDL::hits& hitsInGPU)
     {
         int phits1[4] = {-1,-1,-1,-1};
         int phits2[4] = {-1,-1,-1,-1};
@@ -127,7 +128,7 @@ namespace SDL
                 struct SDL::modules& modulesInGPU,
                 struct SDL::objectRanges& rangesInGPU,
                 struct SDL::pixelTriplets& pixelTripletsInGPU,
-                struct SDL::segments& segmentsInGPU,
+                SDL::segments<TAcc>& segmentsInGPU,
                 struct SDL::pixelQuintuplets& pixelQuintupletsInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
@@ -242,7 +243,7 @@ namespace SDL
                 struct SDL::objectRanges& rangesInGPU,
                 struct SDL::pixelTriplets& pixelTripletsInGPU,
                 struct SDL::trackCandidates& trackCandidatesInGPU,
-                struct SDL::segments& segmentsInGPU,
+                SDL::segments<TAcc>& segmentsInGPU,
                 struct SDL::miniDoublets& mdsInGPU,
                 struct SDL::hits& hitsInGPU,
                 struct SDL::quintuplets& quintupletsInGPU) const
@@ -327,7 +328,7 @@ namespace SDL
                 uint16_t nLowerModules,
                 struct SDL::pixelTriplets& pixelTripletsInGPU,
                 struct SDL::trackCandidates& trackCandidatesInGPU,
-                struct SDL::segments& segmentsInGPU,
+                SDL::segments<TAcc>& segmentsInGPU,
                 struct SDL::objectRanges& rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
@@ -398,7 +399,7 @@ namespace SDL
                 TAcc const & acc,
                 uint16_t nLowerModules,
                 struct SDL::trackCandidates& trackCandidatesInGPU,
-                struct SDL::segments& segmentsInGPU) const
+                SDL::segments<TAcc>& segmentsInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;
@@ -428,7 +429,7 @@ namespace SDL
                 uint16_t nLowerModules,
                 struct SDL::pixelQuintuplets& pixelQuintupletsInGPU,
                 struct SDL::trackCandidates& trackCandidatesInGPU,
-                struct SDL::segments& segmentsInGPU,
+                SDL::segments<TAcc>& segmentsInGPU,
                 struct SDL::objectRanges& rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
