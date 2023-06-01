@@ -177,7 +177,7 @@ Then, run the configuration file with `cmsRun`.
 
 To get the DQM files, one would have to run step4 of the 21034.1 workflow with the following modifications:
    - Modify the `--pileup_input` flag as above, add `--no_exec` to the end of command and then run it.
-   - Modify the output configuration file by including the appropriate PU files, as above, and by changing the input file and number of events accordingly.
+   - Modify the output configuration file by including the appropriate PU files, as above, and by changing the input file (the one containing `inDQM` from the previous step) and number of events accordingly.
 
 Running the configuration file with `cmsRun`, the output file will have a name starting with `DQM`. The name is the same every time this step runs,
 so it is good practice to rename the file, e.g. to `tracking_Iters01LST.root`.
@@ -185,6 +185,8 @@ The MTV plots can be produced with the command:
 ```bash
 makeTrackValidationPlots.py --extended tracking_Iters01LST.root
 ```
+
+**Note:** In case one wants to run step2 as well, similar modifications as in step4 (PU files, `--no_exec` flag and input file/number of events) need to be applied.
 
 ### Inclusion of LST in other CMSSW packages
 Including the line
