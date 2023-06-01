@@ -681,7 +681,7 @@ struct addPixelSegmentToEventKernel
         struct SDL::objectRanges& rangesInGPU,
         struct SDL::hits& hitsInGPU,
         struct SDL::miniDoublets& mdsInGPU,
-        SDL::segments<TAcc>& segmentsInGPU,
+        struct SDL::segments<TAcc>& segmentsInGPU,
         unsigned int* hitIndices0,
         unsigned int* hitIndices1,
         unsigned int* hitIndices2,
