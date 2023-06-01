@@ -49,7 +49,7 @@ Run the code
     -n: number of events; default: all
     -v: 0-no printout; 1- timing printout only; 2- multiplicity printout; default: 0
     -s: number of streams/events in flight; default: 1
-    -w: 0- no writout; 1- minimum writeout; 2- full ntuple writeout; default: 0
+    -w: 0- no writeout; 1- minimum writeout; default: 1
     -o: provide an output root file name (e.g. LSTNtuple.root); default: debug.root
     -l: add lower level object (pT3, pT5, T5, etc.) branches to the output
     
@@ -111,7 +111,8 @@ cd ..
 
 ### Set up `TrackLooper` as an external
 ```bash
-export SCRAM_ARCH=slc7_amd64_gcc10
+mkdir workingFolder # Create the folder you will be working in
+cd workingFolder
 cmsrel CMSSW_13_0_0_pre4
 cd CMSSW_13_0_0_pre4/src
 cmsenv
@@ -123,7 +124,7 @@ git checkout CMSSW_13_0_0_pre4_LST_X
 cat <<EOF >lst.xml
 <tool name="lst" version="1.0">
   <client>
-    <environment name="LSTBASE" default="$PWD/../../TrackLooper"/>
+    <environment name="LSTBASE" default="$PWD/../../../TrackLooper"/>
     <environment name="LIBDIR" default="\$LSTBASE/SDL"/>
     <environment name="INCLUDE" default="\$LSTBASE"/>
   </client>
@@ -133,6 +134,7 @@ cat <<EOF >lst.xml
 EOF
 scram setup lst.xml
 cmsenv
+git cms-checkdeps -a -A
 scram b -j 12
 ```
 
