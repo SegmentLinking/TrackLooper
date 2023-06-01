@@ -126,7 +126,6 @@ namespace T5DNN
         { -0.0964301f },
         { -0.2287877f }
     };
-    CUDA_CONST_VAR const float working_point = 0.6115213f;
 }
 
 #endif
