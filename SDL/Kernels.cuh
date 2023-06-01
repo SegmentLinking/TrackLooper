@@ -27,7 +27,8 @@ namespace SDL
         pixelQuintupletsInGPU.isDup[pixelQuintupletIndex] = 1;
     };
 
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE void rmPixelSegmentFromMemory(struct SDL::segments& segmentsInGPU, unsigned int pixelSegmentArrayIndex)
+    template<typename TAcc>
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void rmPixelSegmentFromMemory(SDL::segments<TAcc>& segmentsInGPU, unsigned int pixelSegmentArrayIndex)
     {
         segmentsInGPU.isDup[pixelSegmentArrayIndex] = 1;
     };
@@ -452,7 +453,7 @@ namespace SDL
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
                 struct SDL::modules& modulesInGPU,
-                struct SDL::segments& segmentsInGPU,
+                SDL::segments<TAcc>& segmentsInGPU,
                 bool secondpass) const
         {
             using Dim = alpaka::Dim<TAcc>;

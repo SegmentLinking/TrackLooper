@@ -81,8 +81,8 @@ template<typename TAcc, typename TData>
 using Buf = alpaka::Buf<TAcc, TData, Dim1d, Idx>;
 
 template<typename T, typename TAcc, typename TSize>
-alpaka::Buf<TAcc, T, Dim1d, Idx> inline allocBufWrapper(TAcc const & devAcc, TSize nElements) {
-    return alpaka::allocBuf<T, Idx>(devAcc, alpaka::Vec<Dim1d, Idx>(static_cast<Idx>(nElements)));
+Buf<TAcc, T> inline allocBufWrapper(TAcc const & devAccIn, TSize nElements) {
+    return alpaka::allocBuf<T, Idx>(devAccIn, Vec1d(static_cast<Idx>(nElements)));
 }
 
 const unsigned int MAX_BLOCKS = 80;

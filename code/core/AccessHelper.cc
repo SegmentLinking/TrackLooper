@@ -28,7 +28,7 @@ std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> convertHitsToHi
 //____________________________________________________________________________________________
 std::vector<unsigned int> getPixelHitsFrompLS(SDL::Event* event, unsigned int pLS)
 {
-    SDL::segments_temp& segments_ = *(event->getSegments());
+    SDL::segments<alpaka::DevCpu>& segments_ = *(event->getSegments());
     SDL::miniDoublets& miniDoublets_ = *(event->getMiniDoublets());
     SDL::objectRanges& rangesInGPU = (*event->getRanges());
     SDL::modules& modulesInGPU = (*event->getModules());
@@ -96,7 +96,7 @@ std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> getHitIdxsAndHi
 //____________________________________________________________________________________________
 std::vector<unsigned int> getMDsFromLS(SDL::Event* event, unsigned int LS)
 {
-    SDL::segments_temp& segments_ = *(event->getSegments());
+    SDL::segments<alpaka::DevCpu>& segments_ = *(event->getSegments());
     unsigned int MD_1 = segments_.mdIndices[2 * LS];
     unsigned int MD_2 = segments_.mdIndices[2 * LS + 1];
     return {MD_1, MD_2};

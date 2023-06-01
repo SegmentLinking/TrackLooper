@@ -42,7 +42,7 @@ namespace SDL
         struct objectRanges* rangesInGPU;
         struct hits* hitsInGPU;
         struct miniDoublets* mdsInGPU;
-        struct segments* segmentsInGPU;
+        struct segments<Acc>* segmentsInGPU;
         struct triplets* tripletsInGPU;
         struct quintuplets* quintupletsInGPU;
         struct trackCandidates* trackCandidatesInGPU;
@@ -53,7 +53,7 @@ namespace SDL
         objectRanges* rangesInCPU;
         hits* hitsInCPU;
         miniDoublets* mdsInCPU;
-        segments_temp* segmentsInCPU;
+        segments<alpaka::DevCpu>* segmentsInCPU;
         triplets* tripletsInCPU;
         trackCandidates* trackCandidatesInCPU;
         modules* modulesInCPU;
@@ -133,7 +133,7 @@ namespace SDL
         hits* getHits();
         hits* getHitsInCMSSW();
         miniDoublets* getMiniDoublets();
-        segments_temp* getSegments() ;
+        segments<alpaka::DevCpu>* getSegments() ;
         triplets* getTriplets();
         quintuplets* getQuintuplets();
         trackCandidates* getTrackCandidates();
