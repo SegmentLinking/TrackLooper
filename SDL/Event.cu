@@ -80,7 +80,7 @@ SDL::Event::~Event()
 #endif
     if(rangesInGPU != nullptr){cms::cuda::free_host(rangesInGPU);}
     if(mdsInGPU != nullptr){cms::cuda::free_host(mdsInGPU);}
-    if(segmentsInGPU!= nullptr){cms::cuda::free_host(segmentsInGPU);}
+    if(segmentsInGPU != nullptr){delete segmentsInGPU;}
     if(tripletsInGPU!= nullptr){cms::cuda::free_host(tripletsInGPU);}
     if(trackCandidatesInGPU!= nullptr){cms::cuda::free_host(trackCandidatesInGPU);}
     if(hitsInGPU!= nullptr){cms::cuda::free_host(hitsInGPU);}
