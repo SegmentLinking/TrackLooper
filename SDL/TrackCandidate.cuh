@@ -82,7 +82,7 @@ namespace SDL
     };
 
     template<typename TAcc>
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE int checkPixelHits(unsigned int ix, unsigned int jx, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments<TAcc>& segmentsInGPU, struct SDL::hits& hitsInGPU)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE int checkPixelHits(unsigned int ix, unsigned int jx, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments<TAcc>& segmentsInGPU, struct SDL::hits<TAcc>& hitsInGPU)
     {
         int phits1[4] = {-1,-1,-1,-1};
         int phits2[4] = {-1,-1,-1,-1};
@@ -245,7 +245,7 @@ namespace SDL
                 struct SDL::trackCandidates& trackCandidatesInGPU,
                 struct SDL::segments<TAcc>& segmentsInGPU,
                 struct SDL::miniDoublets& mdsInGPU,
-                struct SDL::hits& hitsInGPU,
+                struct SDL::hits<TAcc>& hitsInGPU,
                 struct SDL::quintuplets& quintupletsInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
