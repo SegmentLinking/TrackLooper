@@ -61,7 +61,6 @@ SDL::Event::~Event()
 {
 #ifdef CACHE_ALLOC
     if(rangesInGPU){rangesInGPU->freeMemoryCache();}
-    if(hitsInGPU){hitsInGPU->freeMemoryCache();}
     if(mdsInGPU){mdsInGPU->freeMemoryCache();}
     if(tripletsInGPU){tripletsInGPU->freeMemoryCache();}
     if(quintupletsInGPU){quintupletsInGPU->freeMemoryCache();}
@@ -70,7 +69,6 @@ SDL::Event::~Event()
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemoryCache();}
 #else
     if(rangesInGPU){rangesInGPU->freeMemory();}
-    if(hitsInGPU){hitsInGPU->freeMemory();}
     if(mdsInGPU){mdsInGPU->freeMemory(stream);}
     if(tripletsInGPU){tripletsInGPU->freeMemory(stream);}
     if(quintupletsInGPU){quintupletsInGPU->freeMemory(stream);}
@@ -83,19 +81,13 @@ SDL::Event::~Event()
     if(segmentsInGPU != nullptr){delete segmentsInGPU;}
     if(tripletsInGPU!= nullptr){cms::cuda::free_host(tripletsInGPU);}
     if(trackCandidatesInGPU!= nullptr){cms::cuda::free_host(trackCandidatesInGPU);}
-    if(hitsInGPU!= nullptr){cms::cuda::free_host(hitsInGPU);}
+    if(hitsInGPU!= nullptr){delete hitsInGPU;}
     if(pixelTripletsInGPU!= nullptr){cms::cuda::free_host(pixelTripletsInGPU);}
     if(pixelQuintupletsInGPU!= nullptr){cms::cuda::free_host(pixelQuintupletsInGPU);}
     if(quintupletsInGPU!= nullptr){cms::cuda::free_host(quintupletsInGPU);}
 
     if(hitsInCPU != nullptr)
     {
-        delete[] hitsInCPU->idxs;
-        delete[] hitsInCPU->xs;
-        delete[] hitsInCPU->ys;
-        delete[] hitsInCPU->zs;
-        delete[] hitsInCPU->moduleIndices;
-        delete hitsInCPU->nHits;
         delete hitsInCPU;
     }
     if(rangesInCPU != nullptr)
@@ -200,7 +192,6 @@ SDL::Event::~Event()
         delete trackCandidatesInCPU;
     }
 
-
     if(modulesInCPU != nullptr)
     {
         delete[] modulesInCPU->nLowerModules;
@@ -247,7 +238,6 @@ SDL::Event::~Event()
 void SDL::Event::resetEvent()
 {
 #ifdef CACHE_ALLOC
-    if(hitsInGPU){hitsInGPU->freeMemoryCache();}
     if(mdsInGPU){mdsInGPU->freeMemoryCache();}
     if(quintupletsInGPU){quintupletsInGPU->freeMemoryCache();}
     if(rangesInGPU){rangesInGPU->freeMemoryCache();}
@@ -256,7 +246,6 @@ void SDL::Event::resetEvent()
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemoryCache();}
 #else
-    if(hitsInGPU){hitsInGPU->freeMemory();}
     if(quintupletsInGPU){quintupletsInGPU->freeMemory(stream);}
     if(rangesInGPU){rangesInGPU->freeMemory();}
     if(mdsInGPU){mdsInGPU->freeMemory(stream);}
@@ -284,7 +273,7 @@ void SDL::Event::resetEvent()
             n_quintuplets_by_layer_endcap_[i] = 0;
         }
     }
-    if(hitsInGPU){cms::cuda::free_host(hitsInGPU);
+    if(hitsInGPU){delete hitsInGPU;
       hitsInGPU = nullptr;}
     if(mdsInGPU){cms::cuda::free_host(mdsInGPU);
       mdsInGPU = nullptr;}
@@ -305,12 +294,6 @@ void SDL::Event::resetEvent()
 
     if(hitsInCPU != nullptr)
     {
-        delete[] hitsInCPU->idxs;
-        delete[] hitsInCPU->xs;
-        delete[] hitsInCPU->ys;
-        delete[] hitsInCPU->zs;
-        delete[] hitsInCPU->moduleIndices;
-        delete hitsInCPU->nHits;
         delete hitsInCPU;
         hitsInCPU = nullptr;
     }
@@ -321,7 +304,6 @@ void SDL::Event::resetEvent()
         delete rangesInCPU;
         rangesInCPU = nullptr;
     }
-
     if(mdsInCPU != nullptr)
     {
         delete[] mdsInCPU->anchorHitIndices;
@@ -330,13 +312,11 @@ void SDL::Event::resetEvent()
         delete mdsInCPU;
         mdsInCPU = nullptr;
     }
-
     if(segmentsInCPU != nullptr)
     {
         delete segmentsInCPU;
         segmentsInCPU = nullptr;
     }
-
     if(tripletsInCPU != nullptr)
     {
         delete[] tripletsInCPU->segmentIndices;
@@ -381,7 +361,6 @@ void SDL::Event::resetEvent()
         delete pixelTripletsInCPU;
         pixelTripletsInCPU = nullptr;
     }
-
     if(pixelQuintupletsInCPU != nullptr)
     {
         delete[] pixelQuintupletsInCPU->pixelIndices;
@@ -407,7 +386,6 @@ void SDL::Event::resetEvent()
         delete trackCandidatesInCPU;
         trackCandidatesInCPU = nullptr;
     }
-
     if(modulesInCPU != nullptr)
     {
         delete[] modulesInCPU->nLowerModules;
@@ -444,14 +422,11 @@ void SDL::Event::resetEvent()
         delete[] modulesInCPUFull->r;
         delete[] modulesInCPUFull->isInverted;
         delete[] modulesInCPUFull->isLower;
-
-
         delete[] modulesInCPUFull->moduleType;
         delete[] modulesInCPUFull->moduleLayerType;
         delete[] modulesInCPUFull;
         modulesInCPUFull = nullptr;
     }
-
 }
 
 void SDL::initModules(const char* moduleMetaDataFilePath)
@@ -480,128 +455,14 @@ void SDL::Event::resetObjectsInModule()
     resetObjectRanges(*rangesInGPU,nModules,stream);
 }
 
-ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE int binary_search(
-    unsigned int *data, // Array that we are searching over
-    unsigned int search_val, // Value we want to find in data array
-    unsigned int ndata) // Number of elements in data array
-{
-    unsigned int low = 0;
-    unsigned int high = ndata - 1;
-
-    while(low <= high)
-    {
-        unsigned int mid = (low + high)/2;
-        unsigned int test_val = data[mid];
-        if (test_val == search_val)
-            return mid;
-        else if (test_val > search_val)
-            high = mid - 1;
-        else
-            low = mid + 1;
-    }
-    // Couldn't find search value in array.
-    return -1;
-}
-
-struct moduleRangesKernel
-{
-    ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc>
-    ALPAKA_FN_ACC void operator()(
-        TAcc const & acc,
-        struct SDL::modules *modulesInGPU,
-        struct SDL::hits *hitsInGPU,
-        int const & nLowerModules) const
-    {
-        using Dim = alpaka::Dim<TAcc>;
-        using Idx = alpaka::Idx<TAcc>;
-        using Vec = alpaka::Vec<Dim, Idx>;
-
-        Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-        Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
-
-        for(int lowerIndex = globalThreadIdx[2]; lowerIndex < nLowerModules; lowerIndex += gridThreadExtent[2])
-        {
-            uint16_t upperIndex = modulesInGPU->partnerModuleIndices[lowerIndex];
-            if (hitsInGPU->hitRanges[lowerIndex * 2] != -1 && hitsInGPU->hitRanges[upperIndex * 2] != -1)
-            {
-                hitsInGPU->hitRangesLower[lowerIndex] =  hitsInGPU->hitRanges[lowerIndex * 2]; 
-                hitsInGPU->hitRangesUpper[lowerIndex] =  hitsInGPU->hitRanges[upperIndex * 2];
-                hitsInGPU->hitRangesnLower[lowerIndex] = hitsInGPU->hitRanges[lowerIndex * 2 + 1] - hitsInGPU->hitRanges[lowerIndex * 2] + 1;
-                hitsInGPU->hitRangesnUpper[lowerIndex] = hitsInGPU->hitRanges[upperIndex * 2 + 1] - hitsInGPU->hitRanges[upperIndex * 2] + 1;
-            }
-        }
-    }
-};
-
-struct hitLoopKernel
-{
-    ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc>
-    ALPAKA_FN_ACC void operator()(
-        TAcc const & acc,
-        uint16_t Endcap, // Integer corresponding to endcap in module subdets
-        uint16_t TwoS, // Integer corresponding to TwoS in moduleType
-        unsigned int nModules, // Number of modules
-        unsigned int nEndCapMap, // Number of elements in endcap map
-        unsigned int* geoMapDetId, // DetId's from endcap map
-        float* geoMapPhi, // Phi values from endcap map
-        struct SDL::modules *modulesInGPU,
-        struct SDL::hits *hitsInGPU,
-        int const & nHits) const // Total number of hits in event
-    {
-        using Dim = alpaka::Dim<TAcc>;
-        using Idx = alpaka::Idx<TAcc>;
-        using Vec = alpaka::Vec<Dim, Idx>;
-
-        Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-        Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
-
-        for(int ihit = globalThreadIdx[2]; ihit < nHits; ihit += gridThreadExtent[2])
-        {
-            float ihit_x = hitsInGPU->xs[ihit];
-            float ihit_y = hitsInGPU->ys[ihit];
-            float ihit_z = hitsInGPU->zs[ihit];
-            int iDetId = hitsInGPU->detid[ihit];
-    
-            hitsInGPU->rts[ihit] = alpaka::math::sqrt(acc, ihit_x*ihit_x + ihit_y*ihit_y);
-            hitsInGPU->phis[ihit] = SDL::phi(acc, ihit_x,ihit_y);
-            // Acosh has no supported implementation in Alpaka right now.
-            hitsInGPU->etas[ihit] = ((ihit_z>0)-(ihit_z<0)) * SDL::temp_acosh(acc, alpaka::math::sqrt(acc, ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/hitsInGPU->rts[ihit]);
-            int found_index = binary_search(modulesInGPU->mapdetId, iDetId, nModules);
-            uint16_t lastModuleIndex = modulesInGPU->mapIdx[found_index];
-    
-            hitsInGPU->moduleIndices[ihit] = lastModuleIndex;
-    
-            if(modulesInGPU->subdets[lastModuleIndex] == Endcap && modulesInGPU->moduleType[lastModuleIndex] == TwoS)
-            {
-                int found_index = binary_search(geoMapDetId, iDetId, nEndCapMap);
-                float phi = 0;
-                // Unclear why these are not in map, but CPU map returns phi = 0 for all exceptions.
-                if (found_index != -1)
-                    phi = geoMapPhi[found_index];
-                float cos_phi = alpaka::math::cos(acc, phi);
-                hitsInGPU->highEdgeXs[ihit] = ihit_x + 2.5f * cos_phi;
-                hitsInGPU->lowEdgeXs[ihit] = ihit_x - 2.5f * cos_phi;
-                float sin_phi = alpaka::math::sin(acc, phi);
-                hitsInGPU->highEdgeYs[ihit] = ihit_y + 2.5f * sin_phi;
-                hitsInGPU->lowEdgeYs[ihit] = ihit_y - 2.5f * sin_phi;
-            }
-            // Need to set initial value if index hasn't been seen before.
-            int old = alpaka::atomicOp<alpaka::AtomicCas>(acc, &(hitsInGPU->hitRanges[lastModuleIndex * 2]), -1, ihit);
-            // For subsequent visits, stores the min value.
-            if (old != -1)
-                alpaka::atomicOp<alpaka::AtomicMin>(acc, &hitsInGPU->hitRanges[lastModuleIndex * 2], ihit);
-
-            alpaka::atomicOp<alpaka::AtomicMax>(acc, &hitsInGPU->hitRanges[lastModuleIndex * 2 + 1], ihit);
-        }
-    }
-};
-
 void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple)
 {
     // Use the actual number of hits instead of a max.
     const int nHits = x.size();
+
+    // Needed for the memcpy to hitsInGPU below.
+    auto nHits_buf = allocBufWrapper<unsigned int>(devHost, 1);
+    *alpaka::getPtrNative(nHits_buf) = nHits;
 
     // Get current device for future use.
     cudaGetDevice(&dev);
@@ -609,25 +470,24 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     // Initialize space on device/host for next event.
     if (hitsInGPU == nullptr)
     {
-        hitsInGPU = (SDL::hits*)cms::cuda::allocate_host(sizeof(SDL::hits), stream);
-        // Unclear why but this has to be 2*nHits to avoid crashing.
-        createHitsInExplicitMemory(*hitsInGPU, nModules, 2*nHits, stream, 1);
+        hitsInGPU = new SDL::hits<Acc>(nModules, nHits, devAcc, queue);
     }
+
     if (rangesInGPU == nullptr)
     {
         rangesInGPU = (SDL::objectRanges*)cms::cuda::allocate_host(sizeof(SDL::objectRanges), stream);
-    	createRangesInExplicitMemory(*rangesInGPU, nModules, stream, nLowerModules);
+        createRangesInExplicitMemory(*rangesInGPU, nModules, stream, nLowerModules);
         resetObjectsInModule();
     }
-    cudaStreamSynchronize(stream);
+
     // Copy the host arrays to the GPU.
-    cudaMemcpyAsync(hitsInGPU->xs, &x[0], nHits*sizeof(float), cudaMemcpyHostToDevice, stream);
-    cudaMemcpyAsync(hitsInGPU->ys, &y[0], nHits*sizeof(float), cudaMemcpyHostToDevice, stream);
-    cudaMemcpyAsync(hitsInGPU->zs, &z[0], nHits*sizeof(float), cudaMemcpyHostToDevice, stream);
-    cudaMemcpyAsync(hitsInGPU->detid, &detId[0], nHits*sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
-    cudaMemcpyAsync(hitsInGPU->idxs, &idxInNtuple[0], nHits*sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
-    cudaMemcpyAsync(hitsInGPU->nHits, &nHits, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
-    cudaStreamSynchronize(stream);
+    alpaka::memcpy(queue, hitsInGPU->xs_buf, x, nHits);
+    alpaka::memcpy(queue, hitsInGPU->ys_buf, y, nHits);
+    alpaka::memcpy(queue, hitsInGPU->zs_buf, z, nHits);
+    alpaka::memcpy(queue, hitsInGPU->detid_buf, detId, nHits);
+    alpaka::memcpy(queue, hitsInGPU->idxs_buf, idxInNtuple, nHits);
+    alpaka::memcpy(queue, hitsInGPU->nHits_buf, nHits_buf, 1);
+    alpaka::wait(queue);
 
     Vec const threadsPerBlock1(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
     Vec const blocksPerGrid1(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
@@ -643,12 +503,11 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
         SDL::endcapGeometry.nEndCapMap,
         SDL::endcapGeometry.geoMapDetId,
         SDL::endcapGeometry.geoMapPhi,
-        modulesInGPU,
-        hitsInGPU,
+        *modulesInGPU,
+        *hitsInGPU,
         nHits));
 
     alpaka::enqueue(queue, hit_loop_task);
-    alpaka::wait(queue);
 
     Vec const threadsPerBlock2(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
     Vec const blocksPerGrid2(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
@@ -658,8 +517,8 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     auto const module_ranges_task(alpaka::createTaskKernel<Acc>(
         module_ranges_workdiv,
         module_ranges_kernel,
-        modulesInGPU,
-        hitsInGPU,
+        *modulesInGPU,
+        *hitsInGPU,
         nLowerModules));
 
     // Waiting isn't needed after second kernel call. Saves ~100 us.
@@ -667,57 +526,6 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     // Also, modulesInGPU->partnerModuleIndices is not alterned in addPixelSegmentToEvent.
     alpaka::enqueue(queue, module_ranges_task);
 }
-
-struct addPixelSegmentToEventKernel
-{
-    ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc>
-    ALPAKA_FN_ACC void operator()(
-        TAcc const & acc,
-        struct SDL::modules& modulesInGPU,
-        struct SDL::objectRanges& rangesInGPU,
-        struct SDL::hits& hitsInGPU,
-        struct SDL::miniDoublets& mdsInGPU,
-        struct SDL::segments<TAcc>& segmentsInGPU,
-        unsigned int* hitIndices0,
-        unsigned int* hitIndices1,
-        unsigned int* hitIndices2,
-        unsigned int* hitIndices3,
-        float* dPhiChange,
-        uint16_t pixelModuleIndex,
-        const int size) const
-    {
-        using Dim = alpaka::Dim<TAcc>;
-        using Idx = alpaka::Idx<TAcc>;
-        using Vec = alpaka::Vec<Dim, Idx>;
-
-        Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-        Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
-
-        for(int tid = globalThreadIdx[2]; tid < size; tid += gridThreadExtent[2])
-        {
-            unsigned int innerMDIndex = rangesInGPU.miniDoubletModuleIndices[pixelModuleIndex] + 2*(tid);
-            unsigned int outerMDIndex = rangesInGPU.miniDoubletModuleIndices[pixelModuleIndex] + 2*(tid) +1;
-            unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + tid;
-
-            addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices0[tid], hitIndices1[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,innerMDIndex);
-            addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices2[tid], hitIndices3[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,outerMDIndex);
-
-            //in outer hits - pt, eta, phi
-            float slope = SDL::temp_sinh(acc, hitsInGPU.ys[mdsInGPU.outerHitIndices[innerMDIndex]]);
-            float intercept = hitsInGPU.zs[mdsInGPU.anchorHitIndices[innerMDIndex]] - slope * hitsInGPU.rts[mdsInGPU.anchorHitIndices[innerMDIndex]];
-            float score_lsq=(hitsInGPU.rts[mdsInGPU.anchorHitIndices[outerMDIndex]] * slope + intercept) - (hitsInGPU.zs[mdsInGPU.anchorHitIndices[outerMDIndex]]);
-            score_lsq = score_lsq * score_lsq;
-
-            unsigned int hits1[4];
-            hits1[0] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[innerMDIndex]];
-            hits1[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[outerMDIndex]];
-            hits1[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[innerMDIndex]];
-            hits1[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[outerMDIndex]];
-            addPixelSegmentToMemory(acc, segmentsInGPU, mdsInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hits1, hitIndices0[tid], hitIndices2[tid], dPhiChange[tid], pixelSegmentIndex, tid, score_lsq);
-        }
-    }
-};
 
 void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> charge, std::vector<unsigned int> seedIdx, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<char> isQuad)
 {
@@ -1016,7 +824,6 @@ void SDL::Event::createMiniDoublets()
     {
         addMiniDoubletsToEventExplicit();
     }
-
 }
 
 void SDL::Event::createSegmentsWithModuleMap()
@@ -1413,7 +1220,6 @@ void SDL::Event::createPixelTriplets()
 
     cms::cuda::free_device(dev, connectedPixelSize_dev);
     cms::cuda::free_device(dev, connectedPixelIndex_dev);
-
 
 #ifdef Warnings
     int nPixelTriplets;
@@ -1916,6 +1722,7 @@ int SDL::Event::getNumberOfPixelQuintuplets()
     cudaStreamSynchronize(stream);
     return nPixelQuintuplets;
 }
+
 unsigned int SDL::Event::getNumberOfQuintuplets()
 {
     unsigned int quintuplets = 0;
@@ -2003,45 +1810,43 @@ int SDL::Event::getNumberOfT5TrackCandidates()
     return nTrackCandidatesT5; 
 }
 
-SDL::hits* SDL::Event::getHits() //std::shared_ptr should take care of garbage collection
+SDL::hits<alpaka::DevCpu>* SDL::Event::getHits() //std::shared_ptr should take care of garbage collection
 {
     if(hitsInCPU == nullptr)
     {
-        hitsInCPU = new SDL::hits;
-        hitsInCPU->nHits = new unsigned int;
-        unsigned int nHits;
-        cudaMemcpyAsync(&nHits, hitsInGPU->nHits, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
-        *(hitsInCPU->nHits) = nHits;
-        hitsInCPU->idxs = new unsigned int[nHits];
-        hitsInCPU->detid = new unsigned int[nHits];
-        hitsInCPU->xs = new float[nHits];
-        hitsInCPU->ys = new float[nHits];
-        hitsInCPU->zs = new float[nHits];
-        hitsInCPU->moduleIndices = new uint16_t[nHits];
-        cudaMemcpyAsync(hitsInCPU->idxs, hitsInGPU->idxs,sizeof(unsigned int) * nHits, cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(hitsInCPU->detid, hitsInGPU->detid, sizeof(unsigned int) * nHits, cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(hitsInCPU->xs, hitsInGPU->xs, sizeof(float) * nHits, cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(hitsInCPU->ys, hitsInGPU->ys, sizeof(float) * nHits, cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(hitsInCPU->zs, hitsInGPU->zs, sizeof(float) * nHits, cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(hitsInCPU->moduleIndices, hitsInGPU->moduleIndices, sizeof(uint16_t) * nHits, cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
+        auto nHits_buf = allocBufWrapper<unsigned int>(devHost, 1);
+        alpaka::memcpy(queue, nHits_buf, hitsInGPU->nHits_buf, 1);
+        alpaka::wait(queue);
+
+        unsigned int nHits = *alpaka::getPtrNative(nHits_buf);
+        hitsInCPU = new SDL::hits<alpaka::DevCpu>(nModules, nHits, devHost, queue);
+
+        *alpaka::getPtrNative(hitsInCPU->nHits_buf) = nHits;
+        alpaka::memcpy(queue, hitsInCPU->idxs_buf, hitsInGPU->idxs_buf, nHits);
+        alpaka::memcpy(queue, hitsInCPU->detid_buf, hitsInGPU->detid_buf, nHits);
+        alpaka::memcpy(queue, hitsInCPU->xs_buf, hitsInGPU->xs_buf, nHits);
+        alpaka::memcpy(queue, hitsInCPU->ys_buf, hitsInGPU->ys_buf, nHits);
+        alpaka::memcpy(queue, hitsInCPU->zs_buf, hitsInGPU->zs_buf, nHits);
+        alpaka::memcpy(queue, hitsInCPU->moduleIndices_buf, hitsInGPU->moduleIndices_buf, nHits);
+        alpaka::wait(queue);
     }
     return hitsInCPU;
 }
 
-SDL::hits* SDL::Event::getHitsInCMSSW()
+SDL::hits<alpaka::DevCpu>* SDL::Event::getHitsInCMSSW()
 {
     if(hitsInCPU == nullptr)
     {
-        hitsInCPU = new SDL::hits;
-        hitsInCPU->nHits = new unsigned int;
-        unsigned int nHits;
-        cudaMemcpyAsync(&nHits, hitsInGPU->nHits, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
-        hitsInCPU->idxs = new unsigned int[nHits];
-        cudaMemcpyAsync(hitsInCPU->idxs, hitsInGPU->idxs,sizeof(unsigned int) * nHits, cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
+        auto nHits_buf = allocBufWrapper<unsigned int>(devHost, 1);
+        alpaka::memcpy(queue, nHits_buf, hitsInGPU->nHits_buf, 1);
+        alpaka::wait(queue);
+
+        unsigned int nHits = *alpaka::getPtrNative(nHits_buf);
+        hitsInCPU = new SDL::hits<alpaka::DevCpu>(nModules, nHits, devHost, queue);
+
+        *alpaka::getPtrNative(hitsInCPU->nHits_buf) = nHits;
+        alpaka::memcpy(queue, hitsInCPU->idxs_buf, hitsInGPU->idxs_buf, nHits);
+        alpaka::wait(queue);
     }
     return hitsInCPU;
 }

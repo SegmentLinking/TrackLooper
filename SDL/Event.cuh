@@ -40,7 +40,7 @@ namespace SDL
         int dev;
         int nTotalSegments;
         struct objectRanges* rangesInGPU;
-        struct hits* hitsInGPU;
+        struct hits<Acc>* hitsInGPU;
         struct miniDoublets* mdsInGPU;
         struct segments<Acc>* segmentsInGPU;
         struct triplets* tripletsInGPU;
@@ -51,7 +51,7 @@ namespace SDL
 
         //CPU interface stuff
         objectRanges* rangesInCPU;
-        hits* hitsInCPU;
+        hits<alpaka::DevCpu>* hitsInCPU;
         miniDoublets* mdsInCPU;
         segments<alpaka::DevCpu>* segmentsInCPU;
         triplets* tripletsInCPU;
@@ -130,8 +130,8 @@ namespace SDL
         unsigned int getNumberOfT3T3ExtendedTracks();
 
         objectRanges* getRanges();
-        hits* getHits();
-        hits* getHitsInCMSSW();
+        hits<alpaka::DevCpu>* getHits();
+        hits<alpaka::DevCpu>* getHitsInCMSSW();
         miniDoublets* getMiniDoublets();
         segments<alpaka::DevCpu>* getSegments() ;
         triplets* getTriplets();

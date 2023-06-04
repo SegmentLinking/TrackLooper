@@ -445,9 +445,6 @@ namespace SDL
     };
 
     template<typename TAcc>
-    void printTriplet(struct triplets& tripletsInGPU, struct SDL::segments<TAcc>& segmentsInGPU, struct miniDoublets& mdsInGPU, struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int tripletIndex);
-
-    template<typename TAcc>
     ALPAKA_FN_ACC ALPAKA_FN_INLINE void runDeltaBetaIterationsT3(TAcc const & acc, float& betaIn, float& betaOut, float& betaAv, float & pt_beta, float sdIn_dr, float sdOut_dr, float dr, float lIn)
     {
         if (lIn == 0)

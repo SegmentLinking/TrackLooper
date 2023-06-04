@@ -1,48 +1,107 @@
 #ifndef Hit_cuh
 #define Hit_cuh
 
-#include <iostream>
-
 #include "Constants.cuh"
 #include "Module.cuh"
-#include "allocate.h"
 
 namespace SDL
 {
+    template<typename TAcc>
     struct hits
     {
-        unsigned int *nHits; //single number
-        float *xs;
-        float *ys;
-        float *zs;
+        Buf<TAcc, unsigned int> nHits_buf;
+        Buf<TAcc, float> xs_buf;
+        Buf<TAcc, float> ys_buf;
+        Buf<TAcc, float> zs_buf;
+        Buf<TAcc, uint16_t> moduleIndices_buf;
+        Buf<TAcc, unsigned int> idxs_buf;
+        Buf<TAcc, unsigned int> detid_buf;
+        Buf<TAcc, float> rts_buf;
+        Buf<TAcc, float> phis_buf;
+        Buf<TAcc, float> etas_buf;
+        Buf<TAcc, float> highEdgeXs_buf;
+        Buf<TAcc, float> highEdgeYs_buf;
+        Buf<TAcc, float> lowEdgeXs_buf;
+        Buf<TAcc, float> lowEdgeYs_buf;
+        Buf<TAcc, int> hitRanges_buf;
+        Buf<TAcc, int> hitRangesLower_buf;
+        Buf<TAcc, int> hitRangesUpper_buf;
+        Buf<TAcc, int8_t> hitRangesnLower_buf;
+        Buf<TAcc, int8_t> hitRangesnUpper_buf;
 
+        unsigned int* nHits;
+        float* xs;
+        float* ys;
+        float* zs;
         uint16_t* moduleIndices;
         unsigned int* idxs;
         unsigned int* detid;
-        
-        float *rts;
+        float* rts;
         float* phis;
         float* etas;
-
-        float *highEdgeXs;
-        float *highEdgeYs;
-        float *lowEdgeXs;
-        float *lowEdgeYs;
-
+        float* highEdgeXs;
+        float* highEdgeYs;
+        float* lowEdgeXs;
+        float* lowEdgeYs;
         int* hitRanges;
         int* hitRangesLower;
         int* hitRangesUpper;
         int8_t* hitRangesnLower;
         int8_t* hitRangesnUpper;
-        
-        hits();
-        void freeMemory();
-        void freeMemoryCache();
-        ~hits();
-    };
 
-    void printHit(struct hits& hitsInGPU, struct modules& modulesInGPU, unsigned int hitIndex);
-    void createHitsInExplicitMemory(struct hits& hitsInGPU, int nModules, unsigned int maxHits,cudaStream_t stream,unsigned int evtnum);
+        template<typename TQueue, typename TDevAcc>
+        hits(unsigned int nModules,
+             unsigned int nMaxHits,
+             TDevAcc const & devAccIn,
+             TQueue& queue) :
+            nHits_buf(allocBufWrapper<unsigned int>(devAccIn, 1)),
+            xs_buf(allocBufWrapper<float>(devAccIn, nMaxHits)),
+            ys_buf(allocBufWrapper<float>(devAccIn, nMaxHits)),
+            zs_buf(allocBufWrapper<float>(devAccIn, nMaxHits)),
+            moduleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, nMaxHits)),
+            idxs_buf(allocBufWrapper<unsigned int>(devAccIn, nMaxHits)),
+            detid_buf(allocBufWrapper<unsigned int>(devAccIn, nMaxHits)),
+            rts_buf(allocBufWrapper<float>(devAccIn, nMaxHits)),
+            phis_buf(allocBufWrapper<float>(devAccIn, nMaxHits)),
+            etas_buf(allocBufWrapper<float>(devAccIn, nMaxHits)),
+            highEdgeXs_buf(allocBufWrapper<float>(devAccIn, nMaxHits)),
+            highEdgeYs_buf(allocBufWrapper<float>(devAccIn, nMaxHits)),
+            lowEdgeXs_buf(allocBufWrapper<float>(devAccIn, nMaxHits)),
+            lowEdgeYs_buf(allocBufWrapper<float>(devAccIn, nMaxHits)),
+            hitRanges_buf(allocBufWrapper<int>(devAccIn, nModules*2)),
+            hitRangesLower_buf(allocBufWrapper<int>(devAccIn, nModules)),
+            hitRangesUpper_buf(allocBufWrapper<int>(devAccIn, nModules)),
+            hitRangesnLower_buf(allocBufWrapper<int8_t>(devAccIn, nModules)),
+            hitRangesnUpper_buf(allocBufWrapper<int8_t>(devAccIn, nModules))
+        {
+            nHits = alpaka::getPtrNative(nHits_buf);
+            xs = alpaka::getPtrNative(xs_buf);
+            ys = alpaka::getPtrNative(ys_buf);
+            zs = alpaka::getPtrNative(zs_buf);
+            moduleIndices = alpaka::getPtrNative(moduleIndices_buf);
+            idxs = alpaka::getPtrNative(idxs_buf);
+            detid = alpaka::getPtrNative(detid_buf);
+            rts = alpaka::getPtrNative(rts_buf);
+            phis = alpaka::getPtrNative(phis_buf);
+            etas = alpaka::getPtrNative(etas_buf);
+            highEdgeXs = alpaka::getPtrNative(highEdgeXs_buf);
+            highEdgeYs = alpaka::getPtrNative(highEdgeYs_buf);
+            lowEdgeXs = alpaka::getPtrNative(lowEdgeXs_buf);
+            lowEdgeYs = alpaka::getPtrNative(lowEdgeYs_buf);
+            hitRanges = alpaka::getPtrNative(hitRanges_buf);
+            hitRangesLower = alpaka::getPtrNative(hitRangesLower_buf);
+            hitRangesUpper = alpaka::getPtrNative(hitRangesUpper_buf);
+            hitRangesnLower = alpaka::getPtrNative(hitRangesnLower_buf);
+            hitRangesnUpper = alpaka::getPtrNative(hitRangesnUpper_buf);
+
+            alpaka::memset(queue, hitRanges_buf, -1, nModules*2);
+            alpaka::memset(queue, hitRangesLower_buf, -1, nModules);
+            alpaka::memset(queue, hitRangesUpper_buf, -1, nModules);
+            alpaka::memset(queue, hitRangesnLower_buf, -1, nModules);
+            alpaka::memset(queue, hitRangesnUpper_buf, -1, nModules);
+            alpaka::wait(queue);
+        }
+    };
 
     // Hyperbolic functions were just merged into Alpaka early 2023,
     // so we have to make use of temporary functions for now.
@@ -122,6 +181,123 @@ namespace SDL
         }
 
         return dPhi;
+    };
+
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE int binary_search(
+        unsigned int *data, // Array that we are searching over
+        unsigned int search_val, // Value we want to find in data array
+        unsigned int ndata) // Number of elements in data array
+    {
+        unsigned int low = 0;
+        unsigned int high = ndata - 1;
+
+        while(low <= high)
+        {
+            unsigned int mid = (low + high)/2;
+            unsigned int test_val = data[mid];
+            if (test_val == search_val)
+                return mid;
+            else if (test_val > search_val)
+                high = mid - 1;
+            else
+                low = mid + 1;
+        }
+        // Couldn't find search value in array.
+        return -1;
+    };
+
+    struct moduleRangesKernel
+    {
+        ALPAKA_NO_HOST_ACC_WARNING
+        template<typename TAcc>
+        ALPAKA_FN_ACC void operator()(
+            TAcc const & acc,
+            struct SDL::modules& modulesInGPU,
+            struct SDL::hits<TAcc>& hitsInGPU,
+            int const & nLowerModules) const
+        {
+            using Dim = alpaka::Dim<TAcc>;
+            using Idx = alpaka::Idx<TAcc>;
+            using Vec = alpaka::Vec<Dim, Idx>;
+
+            Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+            Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+
+            for(int lowerIndex = globalThreadIdx[2]; lowerIndex < nLowerModules; lowerIndex += gridThreadExtent[2])
+            {
+                uint16_t upperIndex = modulesInGPU.partnerModuleIndices[lowerIndex];
+                if (hitsInGPU.hitRanges[lowerIndex * 2] != -1 && hitsInGPU.hitRanges[upperIndex * 2] != -1)
+                {
+                    hitsInGPU.hitRangesLower[lowerIndex] =  hitsInGPU.hitRanges[lowerIndex * 2]; 
+                    hitsInGPU.hitRangesUpper[lowerIndex] =  hitsInGPU.hitRanges[upperIndex * 2];
+                    hitsInGPU.hitRangesnLower[lowerIndex] = hitsInGPU.hitRanges[lowerIndex * 2 + 1] - hitsInGPU.hitRanges[lowerIndex * 2] + 1;
+                    hitsInGPU.hitRangesnUpper[lowerIndex] = hitsInGPU.hitRanges[upperIndex * 2 + 1] - hitsInGPU.hitRanges[upperIndex * 2] + 1;
+                }
+            }
+        }
+    };
+
+    struct hitLoopKernel
+    {
+        ALPAKA_NO_HOST_ACC_WARNING
+        template<typename TAcc>
+        ALPAKA_FN_ACC void operator()(
+            TAcc const & acc,
+            uint16_t Endcap, // Integer corresponding to endcap in module subdets
+            uint16_t TwoS, // Integer corresponding to TwoS in moduleType
+            unsigned int nModules, // Number of modules
+            unsigned int nEndCapMap, // Number of elements in endcap map
+            unsigned int* geoMapDetId, // DetId's from endcap map
+            float* geoMapPhi, // Phi values from endcap map
+            struct SDL::modules& modulesInGPU,
+            struct SDL::hits<TAcc>& hitsInGPU,
+            unsigned int const & nHits) const // Total number of hits in event
+        {
+            using Dim = alpaka::Dim<TAcc>;
+            using Idx = alpaka::Idx<TAcc>;
+            using Vec = alpaka::Vec<Dim, Idx>;
+
+            Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+            Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+            for(int ihit = globalThreadIdx[2]; ihit < nHits; ihit += gridThreadExtent[2])
+            {
+                float ihit_x = hitsInGPU.xs[ihit];
+                float ihit_y = hitsInGPU.ys[ihit];
+                float ihit_z = hitsInGPU.zs[ihit];
+                int iDetId = hitsInGPU.detid[ihit];
+
+                hitsInGPU.rts[ihit] = alpaka::math::sqrt(acc, ihit_x*ihit_x + ihit_y*ihit_y);
+                hitsInGPU.phis[ihit] = SDL::phi(acc, ihit_x,ihit_y);
+                // Acosh has no supported implementation in Alpaka right now.
+                hitsInGPU.etas[ihit] = ((ihit_z>0)-(ihit_z<0)) * SDL::temp_acosh(acc, alpaka::math::sqrt(acc, ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/hitsInGPU.rts[ihit]);
+                int found_index = binary_search(modulesInGPU.mapdetId, iDetId, nModules);
+                uint16_t lastModuleIndex = modulesInGPU.mapIdx[found_index];
+
+                hitsInGPU.moduleIndices[ihit] = lastModuleIndex;
+
+                if(modulesInGPU.subdets[lastModuleIndex] == Endcap && modulesInGPU.moduleType[lastModuleIndex] == TwoS)
+                {
+                    found_index = binary_search(geoMapDetId, iDetId, nEndCapMap);
+                    float phi = 0;
+                    // Unclear why these are not in map, but CPU map returns phi = 0 for all exceptions.
+                    if (found_index != -1)
+                        phi = geoMapPhi[found_index];
+                    float cos_phi = alpaka::math::cos(acc, phi);
+                    hitsInGPU.highEdgeXs[ihit] = ihit_x + 2.5f * cos_phi;
+                    hitsInGPU.lowEdgeXs[ihit] = ihit_x - 2.5f * cos_phi;
+                    float sin_phi = alpaka::math::sin(acc, phi);
+                    hitsInGPU.highEdgeYs[ihit] = ihit_y + 2.5f * sin_phi;
+                    hitsInGPU.lowEdgeYs[ihit] = ihit_y - 2.5f * sin_phi;
+                }
+                // Need to set initial value if index hasn't been seen before.
+                int old = alpaka::atomicOp<alpaka::AtomicCas>(acc, &(hitsInGPU.hitRanges[lastModuleIndex * 2]), -1, ihit);
+                // For subsequent visits, stores the min value.
+                if (old != -1)
+                    alpaka::atomicOp<alpaka::AtomicMin>(acc, &hitsInGPU.hitRanges[lastModuleIndex * 2], ihit);
+
+                alpaka::atomicOp<alpaka::AtomicMax>(acc, &hitsInGPU.hitRanges[lastModuleIndex * 2 + 1], ihit);
+            }
+        }
     };
 }
 #endif

@@ -189,7 +189,6 @@ namespace SDL
             alpaka::memset(queue, totOccupancySegments_buf, 0u, nLowerModules + 1);
             alpaka::memset(queue, partOfPT5_buf, 0u, maxPixelSegments);
             alpaka::memset(queue, pLSHitsIdxs_buf, 0u, maxPixelSegments);
-            alpaka::memset(queue, nMemoryLocations_buf, nMemoryLocationsIn, 1);
             alpaka::wait(queue);
         }
     };
@@ -799,6 +798,57 @@ namespace SDL
                     rangesInGPU.segmentRanges[i * 2] = rangesInGPU.segmentModuleIndices[i];
                     rangesInGPU.segmentRanges[i * 2 + 1] = rangesInGPU.segmentModuleIndices[i] + segmentsInGPU.nSegments[i] - 1;
                 }
+            }
+        }
+    };
+
+    struct addPixelSegmentToEventKernel
+    {
+        ALPAKA_NO_HOST_ACC_WARNING
+        template<typename TAcc>
+        ALPAKA_FN_ACC void operator()(
+            TAcc const & acc,
+            struct SDL::modules& modulesInGPU,
+            struct SDL::objectRanges& rangesInGPU,
+            struct SDL::hits<TAcc>& hitsInGPU,
+            struct SDL::miniDoublets& mdsInGPU,
+            struct SDL::segments<TAcc>& segmentsInGPU,
+            unsigned int* hitIndices0,
+            unsigned int* hitIndices1,
+            unsigned int* hitIndices2,
+            unsigned int* hitIndices3,
+            float* dPhiChange,
+            uint16_t pixelModuleIndex,
+            const int size) const
+        {
+            using Dim = alpaka::Dim<TAcc>;
+            using Idx = alpaka::Idx<TAcc>;
+            using Vec = alpaka::Vec<Dim, Idx>;
+    
+            Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+            Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+    
+            for(int tid = globalThreadIdx[2]; tid < size; tid += gridThreadExtent[2])
+            {
+                unsigned int innerMDIndex = rangesInGPU.miniDoubletModuleIndices[pixelModuleIndex] + 2*(tid);
+                unsigned int outerMDIndex = rangesInGPU.miniDoubletModuleIndices[pixelModuleIndex] + 2*(tid) +1;
+                unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + tid;
+    
+                addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices0[tid], hitIndices1[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,innerMDIndex);
+                addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices2[tid], hitIndices3[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,outerMDIndex);
+    
+                //in outer hits - pt, eta, phi
+                float slope = SDL::temp_sinh(acc, hitsInGPU.ys[mdsInGPU.outerHitIndices[innerMDIndex]]);
+                float intercept = hitsInGPU.zs[mdsInGPU.anchorHitIndices[innerMDIndex]] - slope * hitsInGPU.rts[mdsInGPU.anchorHitIndices[innerMDIndex]];
+                float score_lsq=(hitsInGPU.rts[mdsInGPU.anchorHitIndices[outerMDIndex]] * slope + intercept) - (hitsInGPU.zs[mdsInGPU.anchorHitIndices[outerMDIndex]]);
+                score_lsq = score_lsq * score_lsq;
+    
+                unsigned int hits1[4];
+                hits1[0] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[innerMDIndex]];
+                hits1[1] = hitsInGPU.idxs[mdsInGPU.anchorHitIndices[outerMDIndex]];
+                hits1[2] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[innerMDIndex]];
+                hits1[3] = hitsInGPU.idxs[mdsInGPU.outerHitIndices[outerMDIndex]];
+                addPixelSegmentToMemory(acc, segmentsInGPU, mdsInGPU, innerMDIndex, outerMDIndex, pixelModuleIndex, hits1, hitIndices0[tid], hitIndices2[tid], dPhiChange[tid], pixelSegmentIndex, tid, score_lsq);
             }
         }
     };
