@@ -12,7 +12,7 @@ Change the C++ standard to c++14 to c++17 in root/bin/root-config file
 ## Work area
 	mkdir workdir # Important that we go exactly one level down
 	cd workdir
-	git clone https://github.com/SegmentLinking/TrackLooper.git
+	git clone git@github.com:SegmentLinking/TrackLooper.git
 	cd TrackLooper/
 	git checkout princetonOpenHackathon2023
 
