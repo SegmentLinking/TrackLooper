@@ -469,19 +469,6 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
         rangesInGPU->setData(*rangesBuffers);
     }
 
-    unsigned int hostValue;
-
-    // Copy from device to host
-    cudaError_t err = cudaMemcpy(&hostValue, &rangesInGPU->hitRangesnUpper[0], sizeof(int8_t), cudaMemcpyDeviceToHost);
-
-    // Check for errors
-    if (err != cudaSuccess) {
-        printf("cudaMemcpy failed with error: %s\n", cudaGetErrorString(err));
-    } else {
-        // Print the value
-        printf("The value is: %u\n", hostValue);
-    }
-
     // Copy the host arrays to the GPU.
     alpaka::memcpy(queue, hitsBuffers->xs_buf, x, nHits);
     alpaka::memcpy(queue, hitsBuffers->ys_buf, y, nHits);
