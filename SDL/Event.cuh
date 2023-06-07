@@ -40,9 +40,11 @@ namespace SDL
         int dev;
         int nTotalSegments;
         struct objectRanges* rangesInGPU;
-        struct hits<Acc>* hitsInGPU;
+        struct hits* hitsInGPU;
+        struct hitsBuffer<Acc>* hitsBuffers;
         struct miniDoublets* mdsInGPU;
-        struct segments<Acc>* segmentsInGPU;
+        struct segments* segmentsInGPU;
+        struct segmentsBuffer<Acc>* segmentsBuffers;
         struct triplets* tripletsInGPU;
         struct quintuplets* quintupletsInGPU;
         struct trackCandidates* trackCandidatesInGPU;
@@ -51,9 +53,9 @@ namespace SDL
 
         //CPU interface stuff
         objectRanges* rangesInCPU;
-        hits<alpaka::DevCpu>* hitsInCPU;
+        hitsBuffer<alpaka::DevCpu>* hitsInCPU;
         miniDoublets* mdsInCPU;
-        segments<alpaka::DevCpu>* segmentsInCPU;
+        segmentsBuffer<alpaka::DevCpu>* segmentsInCPU;
         triplets* tripletsInCPU;
         trackCandidates* trackCandidatesInCPU;
         modules* modulesInCPU;
@@ -130,10 +132,10 @@ namespace SDL
         unsigned int getNumberOfT3T3ExtendedTracks();
 
         objectRanges* getRanges();
-        hits<alpaka::DevCpu>* getHits();
-        hits<alpaka::DevCpu>* getHitsInCMSSW();
+        hitsBuffer<alpaka::DevCpu>* getHits();
+        hitsBuffer<alpaka::DevCpu>* getHitsInCMSSW();
         miniDoublets* getMiniDoublets();
-        segments<alpaka::DevCpu>* getSegments() ;
+        segmentsBuffer<alpaka::DevCpu>* getSegments() ;
         triplets* getTriplets();
         quintuplets* getQuintuplets();
         trackCandidates* getTrackCandidates();
