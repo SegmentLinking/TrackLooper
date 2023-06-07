@@ -68,8 +68,7 @@ namespace SDL
 
     void createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDs,uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream);
 
-    template<typename TAcc>
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addMDToMemory(struct miniDoublets& mdsInGPU, struct SDL::hits<TAcc>& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addMDToMemory(struct miniDoublets& mdsInGPU, struct SDL::hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
     {
         //the index into which this MD needs to be written will be computed in the kernel
         //nMDs variable will be incremented in the kernel, no need to worry about that here
@@ -660,7 +659,7 @@ namespace SDL
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
                 struct SDL::modules& modulesInGPU,
-                struct SDL::hits<TAcc>& hitsInGPU,
+                struct SDL::hits& hitsInGPU,
                 struct SDL::miniDoublets& mdsInGPU,
                 struct SDL::objectRanges& rangesInGPU) const
         {
@@ -804,7 +803,7 @@ namespace SDL
                 struct modules& modulesInGPU,
                 struct miniDoublets& mdsInGPU,
                 struct objectRanges& rangesInGPU,
-                struct SDL::hits<TAcc>& hitsInGPU) const
+                struct SDL::hits& hitsInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;

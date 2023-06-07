@@ -10,84 +10,30 @@
 
 namespace SDL
 {
-    template<typename TAcc>
     struct segments
     {
-        // Buffer objects for each member variable
-        Buf<TAcc, FPX> dPhis_buf;
-        Buf<TAcc, FPX> dPhiMins_buf;
-        Buf<TAcc, FPX> dPhiMaxs_buf;
-        Buf<TAcc, FPX> dPhiChanges_buf;
-        Buf<TAcc, FPX> dPhiChangeMins_buf;
-        Buf<TAcc, FPX> dPhiChangeMaxs_buf;
-
-        Buf<TAcc, uint16_t> innerLowerModuleIndices_buf;
-        Buf<TAcc, uint16_t> outerLowerModuleIndices_buf;
-
-        Buf<TAcc, unsigned int> seedIdx_buf;
-        Buf<TAcc, unsigned int> mdIndices_buf;
-        Buf<TAcc, unsigned int> nMemoryLocations_buf;
-        Buf<TAcc, unsigned int> innerMiniDoubletAnchorHitIndices_buf;
-        Buf<TAcc, unsigned int> outerMiniDoubletAnchorHitIndices_buf;
-
-        Buf<TAcc, int> charge_buf;
-        Buf<TAcc, int> superbin_buf;
-        Buf<TAcc, int> nSegments_buf;
-        Buf<TAcc, int> totOccupancySegments_buf;
-
-        Buf<TAcc, uint4> pLSHitsIdxs_buf;
-
-        Buf<TAcc, int8_t> pixelType_buf;
-
-        Buf<TAcc, char> isQuad_buf;
-
-        Buf<TAcc, bool> isDup_buf;
-        Buf<TAcc, bool> partOfPT5_buf;
-
-        Buf<TAcc, float> ptIn_buf;
-        Buf<TAcc, float> ptErr_buf;
-        Buf<TAcc, float> px_buf;
-        Buf<TAcc, float> py_buf;
-        Buf<TAcc, float> pz_buf;
-        Buf<TAcc, float> etaErr_buf;
-        Buf<TAcc, float> eta_buf;
-        Buf<TAcc, float> phi_buf;
-        Buf<TAcc, float> score_buf;
-        Buf<TAcc, float> circleCenterX_buf;
-        Buf<TAcc, float> circleCenterY_buf;
-        Buf<TAcc, float> circleRadius_buf;
-
-        // Pointers towards the data of each buffer
         FPX* dPhis;
         FPX* dPhiMins;
         FPX* dPhiMaxs;
         FPX* dPhiChanges;
         FPX* dPhiChangeMins;
         FPX* dPhiChangeMaxs;
-
         uint16_t* innerLowerModuleIndices;
         uint16_t* outerLowerModuleIndices;
-
         unsigned int* seedIdx;
         unsigned int* mdIndices;
         unsigned int* nMemoryLocations;
         unsigned int* innerMiniDoubletAnchorHitIndices;
         unsigned int* outerMiniDoubletAnchorHitIndices;
-
         int* charge;
         int* superbin;
         int* nSegments; //number of segments per inner lower module
         int* totOccupancySegments; //number of segments per inner lower module
-
         uint4* pLSHitsIdxs;
-
         int8_t* pixelType;
-
         char* isQuad;
-
         bool* isDup;
         bool* partOfPT5;
-
         float* ptIn;
         float* ptErr;
         float* px;
@@ -101,12 +47,90 @@ namespace SDL
         float* circleCenterY;
         float* circleRadius;
 
+        template<typename TBuff>
+        void setData(TBuff& segmentsbuf)
+        {
+            dPhis = alpaka::getPtrNative(segmentsbuf.dPhis_buf);
+            dPhiMins = alpaka::getPtrNative(segmentsbuf.dPhiMins_buf);
+            dPhiMaxs = alpaka::getPtrNative(segmentsbuf.dPhiMaxs_buf);
+            dPhiChanges = alpaka::getPtrNative(segmentsbuf.dPhiChanges_buf);
+            dPhiChangeMins = alpaka::getPtrNative(segmentsbuf.dPhiChangeMins_buf);
+            dPhiChangeMaxs = alpaka::getPtrNative(segmentsbuf.dPhiChangeMaxs_buf);
+            innerLowerModuleIndices = alpaka::getPtrNative(segmentsbuf.innerLowerModuleIndices_buf);
+            outerLowerModuleIndices = alpaka::getPtrNative(segmentsbuf.outerLowerModuleIndices_buf);
+            seedIdx = alpaka::getPtrNative(segmentsbuf.seedIdx_buf);
+            mdIndices = alpaka::getPtrNative(segmentsbuf.mdIndices_buf);
+            nMemoryLocations = alpaka::getPtrNative(segmentsbuf.nMemoryLocations_buf);
+            innerMiniDoubletAnchorHitIndices = alpaka::getPtrNative(segmentsbuf.innerMiniDoubletAnchorHitIndices_buf);
+            outerMiniDoubletAnchorHitIndices = alpaka::getPtrNative(segmentsbuf.outerMiniDoubletAnchorHitIndices_buf);
+            charge = alpaka::getPtrNative(segmentsbuf.charge_buf);
+            superbin = alpaka::getPtrNative(segmentsbuf.superbin_buf);
+            nSegments = alpaka::getPtrNative(segmentsbuf.nSegments_buf);
+            totOccupancySegments = alpaka::getPtrNative(segmentsbuf.totOccupancySegments_buf);
+            pLSHitsIdxs = alpaka::getPtrNative(segmentsbuf.pLSHitsIdxs_buf);
+            pixelType = alpaka::getPtrNative(segmentsbuf.pixelType_buf);
+            isQuad = alpaka::getPtrNative(segmentsbuf.isQuad_buf);
+            isDup = alpaka::getPtrNative(segmentsbuf.isDup_buf);
+            partOfPT5 = alpaka::getPtrNative(segmentsbuf.partOfPT5_buf);
+            ptIn = alpaka::getPtrNative(segmentsbuf.ptIn_buf);
+            ptErr = alpaka::getPtrNative(segmentsbuf.ptErr_buf);
+            px = alpaka::getPtrNative(segmentsbuf.px_buf);
+            py = alpaka::getPtrNative(segmentsbuf.py_buf);
+            pz = alpaka::getPtrNative(segmentsbuf.pz_buf);
+            etaErr = alpaka::getPtrNative(segmentsbuf.etaErr_buf);
+            eta = alpaka::getPtrNative(segmentsbuf.eta_buf);
+            phi = alpaka::getPtrNative(segmentsbuf.phi_buf);
+            score = alpaka::getPtrNative(segmentsbuf.score_buf);
+            circleCenterX = alpaka::getPtrNative(segmentsbuf.circleCenterX_buf);
+            circleCenterY = alpaka::getPtrNative(segmentsbuf.circleCenterY_buf);
+            circleRadius = alpaka::getPtrNative(segmentsbuf.circleRadius_buf);
+        }
+    };
+
+    template<typename TAcc>
+    struct segmentsBuffer : segments
+    {
+        Buf<TAcc, FPX> dPhis_buf;
+        Buf<TAcc, FPX> dPhiMins_buf;
+        Buf<TAcc, FPX> dPhiMaxs_buf;
+        Buf<TAcc, FPX> dPhiChanges_buf;
+        Buf<TAcc, FPX> dPhiChangeMins_buf;
+        Buf<TAcc, FPX> dPhiChangeMaxs_buf;
+        Buf<TAcc, uint16_t> innerLowerModuleIndices_buf;
+        Buf<TAcc, uint16_t> outerLowerModuleIndices_buf;
+        Buf<TAcc, unsigned int> seedIdx_buf;
+        Buf<TAcc, unsigned int> mdIndices_buf;
+        Buf<TAcc, unsigned int> nMemoryLocations_buf;
+        Buf<TAcc, unsigned int> innerMiniDoubletAnchorHitIndices_buf;
+        Buf<TAcc, unsigned int> outerMiniDoubletAnchorHitIndices_buf;
+        Buf<TAcc, int> charge_buf;
+        Buf<TAcc, int> superbin_buf;
+        Buf<TAcc, int> nSegments_buf;
+        Buf<TAcc, int> totOccupancySegments_buf;
+        Buf<TAcc, uint4> pLSHitsIdxs_buf;
+        Buf<TAcc, int8_t> pixelType_buf;
+        Buf<TAcc, char> isQuad_buf;
+        Buf<TAcc, bool> isDup_buf;
+        Buf<TAcc, bool> partOfPT5_buf;
+        Buf<TAcc, float> ptIn_buf;
+        Buf<TAcc, float> ptErr_buf;
+        Buf<TAcc, float> px_buf;
+        Buf<TAcc, float> py_buf;
+        Buf<TAcc, float> pz_buf;
+        Buf<TAcc, float> etaErr_buf;
+        Buf<TAcc, float> eta_buf;
+        Buf<TAcc, float> phi_buf;
+        Buf<TAcc, float> score_buf;
+        Buf<TAcc, float> circleCenterX_buf;
+        Buf<TAcc, float> circleCenterY_buf;
+        Buf<TAcc, float> circleRadius_buf;
+
         template<typename TQueue, typename TDevAcc>
-        segments(unsigned int nMemoryLocationsIn,
-                    uint16_t nLowerModules,
-                    unsigned int maxPixelSegments,
-                    TDevAcc const & devAccIn,
-                    TQueue& queue) :
+        segmentsBuffer(unsigned int nMemoryLocationsIn,
+                        uint16_t nLowerModules,
+                        unsigned int maxPixelSegments,
+                        TDevAcc const & devAccIn,
+                        TQueue& queue) :
             dPhis_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn)),
             dPhiMins_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn)),
             dPhiMaxs_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn)),
@@ -142,49 +166,6 @@ namespace SDL
             circleCenterY_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments)),
             circleRadius_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments))
         {
-            dPhis = alpaka::getPtrNative(dPhis_buf);
-            dPhiMins = alpaka::getPtrNative(dPhiMins_buf);
-            dPhiMaxs = alpaka::getPtrNative(dPhiMaxs_buf);
-            dPhiChanges = alpaka::getPtrNative(dPhiChanges_buf);
-            dPhiChangeMins = alpaka::getPtrNative(dPhiChangeMins_buf);
-            dPhiChangeMaxs = alpaka::getPtrNative(dPhiChangeMaxs_buf);
-
-            innerLowerModuleIndices = alpaka::getPtrNative(innerLowerModuleIndices_buf);
-            outerLowerModuleIndices = alpaka::getPtrNative(outerLowerModuleIndices_buf);
-
-            seedIdx = alpaka::getPtrNative(seedIdx_buf);
-            mdIndices = alpaka::getPtrNative(mdIndices_buf);
-            nMemoryLocations = alpaka::getPtrNative(nMemoryLocations_buf);
-            innerMiniDoubletAnchorHitIndices = alpaka::getPtrNative(innerMiniDoubletAnchorHitIndices_buf);
-            outerMiniDoubletAnchorHitIndices = alpaka::getPtrNative(outerMiniDoubletAnchorHitIndices_buf);
-
-            charge = alpaka::getPtrNative(charge_buf);
-            superbin = alpaka::getPtrNative(superbin_buf);
-            nSegments = alpaka::getPtrNative(nSegments_buf);
-            totOccupancySegments = alpaka::getPtrNative(totOccupancySegments_buf);
-
-            pLSHitsIdxs = alpaka::getPtrNative(pLSHitsIdxs_buf);
-
-            pixelType = alpaka::getPtrNative(pixelType_buf);
-
-            isQuad = alpaka::getPtrNative(isQuad_buf);
-
-            isDup = alpaka::getPtrNative(isDup_buf);
-            partOfPT5 = alpaka::getPtrNative(partOfPT5_buf);
-
-            ptIn = alpaka::getPtrNative(ptIn_buf);
-            ptErr = alpaka::getPtrNative(ptErr_buf);
-            px = alpaka::getPtrNative(px_buf);
-            py = alpaka::getPtrNative(py_buf);
-            pz = alpaka::getPtrNative(pz_buf);
-            etaErr = alpaka::getPtrNative(etaErr_buf);
-            eta = alpaka::getPtrNative(eta_buf);
-            phi = alpaka::getPtrNative(phi_buf);
-            score = alpaka::getPtrNative(score_buf);
-            circleCenterX = alpaka::getPtrNative(circleCenterX_buf);
-            circleCenterY = alpaka::getPtrNative(circleCenterY_buf);
-            circleRadius = alpaka::getPtrNative(circleRadius_buf);
-
             alpaka::memset(queue, nSegments_buf, 0u, nLowerModules + 1);
             alpaka::memset(queue, totOccupancySegments_buf, 0u, nLowerModules + 1);
             alpaka::memset(queue, partOfPT5_buf, 0u, maxPixelSegments);
@@ -450,8 +431,7 @@ namespace SDL
         dAlphaThresholdValues[2] = dAlpha_Bfield + alpaka::math::sqrt(acc, dAlpha_res * dAlpha_res + sdMuls * sdMuls);
     };
 
-    template<typename TAcc>
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addSegmentToMemory(struct SDL::segments<TAcc>& segmentsInGPU, unsigned int lowerMDIndex, unsigned int upperMDIndex, uint16_t innerLowerModuleIndex, uint16_t outerLowerModuleIndex, unsigned int innerMDAnchorHitIndex, unsigned int outerMDAnchorHitIndex, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, unsigned int idx)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addSegmentToMemory(struct SDL::segments& segmentsInGPU, unsigned int lowerMDIndex, unsigned int upperMDIndex, uint16_t innerLowerModuleIndex, uint16_t outerLowerModuleIndex, unsigned int innerMDAnchorHitIndex, unsigned int outerMDAnchorHitIndex, float& dPhi, float& dPhiMin, float& dPhiMax, float& dPhiChange, float& dPhiChangeMin, float& dPhiChangeMax, unsigned int idx)
     {
         //idx will be computed in the kernel, which is the index into which the 
         //segment will be written
@@ -473,7 +453,7 @@ namespace SDL
     }
 
     template<typename TAcc>
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addPixelSegmentToMemory(TAcc const & acc, struct SDL::segments<TAcc>& segmentsInGPU, struct miniDoublets& mdsInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, uint16_t pixelModuleIndex, unsigned int hitIdxs[4], unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, unsigned int idx, unsigned int pixelSegmentArrayIndex, float score)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addPixelSegmentToMemory(TAcc const & acc, struct SDL::segments& segmentsInGPU, struct miniDoublets& mdsInGPU, unsigned int innerMDIndex, unsigned int outerMDIndex, uint16_t pixelModuleIndex, unsigned int hitIdxs[4], unsigned int innerAnchorHitIndex, unsigned int outerAnchorHitIndex, float dPhiChange, unsigned int idx, unsigned int pixelSegmentArrayIndex, float score)
     {
         segmentsInGPU.mdIndices[idx * 2] = innerMDIndex;
         segmentsInGPU.mdIndices[idx * 2 + 1] = outerMDIndex;
@@ -704,7 +684,7 @@ namespace SDL
                 TAcc const & acc,
                 struct SDL::modules& modulesInGPU,
                 struct SDL::miniDoublets& mdsInGPU,
-                struct SDL::segments<TAcc>& segmentsInGPU,
+                struct SDL::segments& segmentsInGPU,
                 struct SDL::objectRanges& rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
@@ -856,7 +836,7 @@ namespace SDL
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
                 struct modules& modulesInGPU,
-                struct SDL::segments<TAcc>& segmentsInGPU,
+                struct SDL::segments& segmentsInGPU,
                 struct objectRanges& rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
@@ -890,9 +870,9 @@ namespace SDL
             TAcc const & acc,
             struct SDL::modules& modulesInGPU,
             struct SDL::objectRanges& rangesInGPU,
-            struct SDL::hits<TAcc>& hitsInGPU,
+            struct SDL::hits& hitsInGPU,
             struct SDL::miniDoublets& mdsInGPU,
-            struct SDL::segments<TAcc>& segmentsInGPU,
+            struct SDL::segments& segmentsInGPU,
             unsigned int* hitIndices0,
             unsigned int* hitIndices1,
             unsigned int* hitIndices2,

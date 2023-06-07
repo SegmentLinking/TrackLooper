@@ -403,7 +403,7 @@ void SDL::LST::getOutput(SDL::Event& event) {
     std::vector<int> tc_seedIdx_;
     std::vector<short> tc_trackCandidateType_;
 
-    SDL::hits<alpaka::DevCpu>& hitsInGPU = (*event.getHitsInCMSSW());
+    SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event.getHitsInCMSSW());
     SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidatesInCMSSW());
 
     unsigned int nTrackCandidates = *trackCandidatesInGPU.nTrackCandidates;

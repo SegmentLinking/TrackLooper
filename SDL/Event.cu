@@ -78,10 +78,10 @@ SDL::Event::~Event()
 #endif
     if(rangesInGPU != nullptr){cms::cuda::free_host(rangesInGPU);}
     if(mdsInGPU != nullptr){cms::cuda::free_host(mdsInGPU);}
-    if(segmentsInGPU != nullptr){delete segmentsInGPU;}
+    if(segmentsInGPU != nullptr){delete segmentsInGPU; delete segmentsBuffers;}
     if(tripletsInGPU!= nullptr){cms::cuda::free_host(tripletsInGPU);}
     if(trackCandidatesInGPU!= nullptr){cms::cuda::free_host(trackCandidatesInGPU);}
-    if(hitsInGPU!= nullptr){delete hitsInGPU;}
+    if(hitsInGPU!= nullptr){delete hitsInGPU; delete hitsBuffers;}
     if(pixelTripletsInGPU!= nullptr){cms::cuda::free_host(pixelTripletsInGPU);}
     if(pixelQuintupletsInGPU!= nullptr){cms::cuda::free_host(pixelQuintupletsInGPU);}
     if(quintupletsInGPU!= nullptr){cms::cuda::free_host(quintupletsInGPU);}
@@ -273,13 +273,13 @@ void SDL::Event::resetEvent()
             n_quintuplets_by_layer_endcap_[i] = 0;
         }
     }
-    if(hitsInGPU){delete hitsInGPU;
+    if(hitsInGPU){delete hitsInGPU; delete hitsBuffers;
       hitsInGPU = nullptr;}
     if(mdsInGPU){cms::cuda::free_host(mdsInGPU);
       mdsInGPU = nullptr;}
     if(rangesInGPU){cms::cuda::free_host(rangesInGPU);
       rangesInGPU = nullptr;}
-    if(segmentsInGPU){delete segmentsInGPU;
+    if(segmentsInGPU){delete segmentsInGPU; delete segmentsBuffers;
       segmentsInGPU = nullptr;}
     if(tripletsInGPU){cms::cuda::free_host(tripletsInGPU);
       tripletsInGPU = nullptr;}
@@ -470,7 +470,9 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     // Initialize space on device/host for next event.
     if (hitsInGPU == nullptr)
     {
-        hitsInGPU = new SDL::hits<Acc>(nModules, nHits, devAcc, queue);
+        hitsInGPU = new SDL::hits();
+        hitsBuffers = new SDL::hitsBuffer<Acc>(nModules, nHits, devAcc, queue);
+        hitsInGPU->setData(*hitsBuffers);
     }
 
     if (rangesInGPU == nullptr)
@@ -481,12 +483,12 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     }
 
     // Copy the host arrays to the GPU.
-    alpaka::memcpy(queue, hitsInGPU->xs_buf, x, nHits);
-    alpaka::memcpy(queue, hitsInGPU->ys_buf, y, nHits);
-    alpaka::memcpy(queue, hitsInGPU->zs_buf, z, nHits);
-    alpaka::memcpy(queue, hitsInGPU->detid_buf, detId, nHits);
-    alpaka::memcpy(queue, hitsInGPU->idxs_buf, idxInNtuple, nHits);
-    alpaka::memcpy(queue, hitsInGPU->nHits_buf, nHits_buf, 1);
+    alpaka::memcpy(queue, hitsBuffers->xs_buf, x, nHits);
+    alpaka::memcpy(queue, hitsBuffers->ys_buf, y, nHits);
+    alpaka::memcpy(queue, hitsBuffers->zs_buf, z, nHits);
+    alpaka::memcpy(queue, hitsBuffers->detid_buf, detId, nHits);
+    alpaka::memcpy(queue, hitsBuffers->idxs_buf, idxInNtuple, nHits);
+    alpaka::memcpy(queue, hitsBuffers->nHits_buf, nHits_buf, 1);
     alpaka::wait(queue);
 
     Vec const threadsPerBlock1(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
@@ -522,7 +524,7 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
         nLowerModules));
 
     // Waiting isn't needed after second kernel call. Saves ~100 us.
-    // This is because addPixelSegmentToEvent (which is run next) doesn't rely on hitsinGPU->hitrange variables.
+    // This is because addPixelSegmentToEvent (which is run next) doesn't rely on hitsBuffers->hitrange variables.
     // Also, modulesInGPU->partnerModuleIndices is not alterned in addPixelSegmentToEvent.
     alpaka::enqueue(queue, module_ranges_task);
 }
@@ -586,7 +588,9 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         cudaStreamSynchronize(stream);
         nTotalSegments += N_MAX_PIXEL_SEGMENTS_PER_MODULE;
 
-        segmentsInGPU = new SDL::segments<Acc>(nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
+        segmentsInGPU = new SDL::segments();
+        segmentsBuffers = new SDL::segmentsBuffer<Acc>(nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
+        segmentsInGPU->setData(*segmentsBuffers);
 
         cudaMemcpyAsync(segmentsInGPU->nMemoryLocations, &nTotalSegments, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);;
         cudaStreamSynchronize(stream);
@@ -604,19 +608,19 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     alpaka::memcpy(queue, hitIndices3_dev, hitIndices3, size);
     alpaka::memcpy(queue, dPhiChange_dev, dPhiChange, size);
 
-    alpaka::memcpy(queue, segmentsInGPU->ptIn_buf, ptIn, size);
-    alpaka::memcpy(queue, segmentsInGPU->ptErr_buf, ptErr, size);
-    alpaka::memcpy(queue, segmentsInGPU->px_buf, px, size);
-    alpaka::memcpy(queue, segmentsInGPU->py_buf, py, size);
-    alpaka::memcpy(queue, segmentsInGPU->pz_buf, pz, size);
-    alpaka::memcpy(queue, segmentsInGPU->etaErr_buf, etaErr, size);
-    alpaka::memcpy(queue, segmentsInGPU->isQuad_buf, isQuad, size);
-    alpaka::memcpy(queue, segmentsInGPU->eta_buf, eta, size);
-    alpaka::memcpy(queue, segmentsInGPU->phi_buf, phi, size);
-    alpaka::memcpy(queue, segmentsInGPU->charge_buf, charge, size);
-    alpaka::memcpy(queue, segmentsInGPU->seedIdx_buf, seedIdx, size);
-    alpaka::memcpy(queue, segmentsInGPU->superbin_buf, superbin, size);
-    alpaka::memcpy(queue, segmentsInGPU->pixelType_buf, pixelType, size);
+    alpaka::memcpy(queue, segmentsBuffers->ptIn_buf, ptIn, size);
+    alpaka::memcpy(queue, segmentsBuffers->ptErr_buf, ptErr, size);
+    alpaka::memcpy(queue, segmentsBuffers->px_buf, px, size);
+    alpaka::memcpy(queue, segmentsBuffers->py_buf, py, size);
+    alpaka::memcpy(queue, segmentsBuffers->pz_buf, pz, size);
+    alpaka::memcpy(queue, segmentsBuffers->etaErr_buf, etaErr, size);
+    alpaka::memcpy(queue, segmentsBuffers->isQuad_buf, isQuad, size);
+    alpaka::memcpy(queue, segmentsBuffers->eta_buf, eta, size);
+    alpaka::memcpy(queue, segmentsBuffers->phi_buf, phi, size);
+    alpaka::memcpy(queue, segmentsBuffers->charge_buf, charge, size);
+    alpaka::memcpy(queue, segmentsBuffers->seedIdx_buf, seedIdx, size);
+    alpaka::memcpy(queue, segmentsBuffers->superbin_buf, superbin, size);
+    alpaka::memcpy(queue, segmentsBuffers->pixelType_buf, pixelType, size);
 
     cudaMemcpyAsync(&(segmentsInGPU->nSegments)[pixelModuleIndex], &size, sizeof(int), cudaMemcpyHostToDevice, stream);
     cudaMemcpyAsync(&(segmentsInGPU->totOccupancySegments)[pixelModuleIndex], &size, sizeof(int), cudaMemcpyHostToDevice, stream);
@@ -830,7 +834,9 @@ void SDL::Event::createSegmentsWithModuleMap()
 {
     if(segmentsInGPU == nullptr)
     {
-        segmentsInGPU = new SDL::segments<Acc>(nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
+        segmentsInGPU = new SDL::segments();
+        segmentsBuffers = new SDL::segmentsBuffer<Acc>(nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
+        segmentsInGPU->setData(*segmentsBuffers);
     }
 
     Vec const threadsPerBlockCreateSeg(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(64));
@@ -1810,42 +1816,44 @@ int SDL::Event::getNumberOfT5TrackCandidates()
     return nTrackCandidatesT5; 
 }
 
-SDL::hits<alpaka::DevCpu>* SDL::Event::getHits() //std::shared_ptr should take care of garbage collection
+SDL::hitsBuffer<alpaka::DevCpu>* SDL::Event::getHits() //std::shared_ptr should take care of garbage collection
 {
     if(hitsInCPU == nullptr)
     {
         auto nHits_buf = allocBufWrapper<unsigned int>(devHost, 1);
-        alpaka::memcpy(queue, nHits_buf, hitsInGPU->nHits_buf, 1);
+        alpaka::memcpy(queue, nHits_buf, hitsBuffers->nHits_buf, 1);
         alpaka::wait(queue);
 
         unsigned int nHits = *alpaka::getPtrNative(nHits_buf);
-        hitsInCPU = new SDL::hits<alpaka::DevCpu>(nModules, nHits, devHost, queue);
+        hitsInCPU = new SDL::hitsBuffer<alpaka::DevCpu>(nModules, nHits, devHost, queue);
+        hitsInCPU->setData(*hitsInCPU);
 
         *alpaka::getPtrNative(hitsInCPU->nHits_buf) = nHits;
-        alpaka::memcpy(queue, hitsInCPU->idxs_buf, hitsInGPU->idxs_buf, nHits);
-        alpaka::memcpy(queue, hitsInCPU->detid_buf, hitsInGPU->detid_buf, nHits);
-        alpaka::memcpy(queue, hitsInCPU->xs_buf, hitsInGPU->xs_buf, nHits);
-        alpaka::memcpy(queue, hitsInCPU->ys_buf, hitsInGPU->ys_buf, nHits);
-        alpaka::memcpy(queue, hitsInCPU->zs_buf, hitsInGPU->zs_buf, nHits);
-        alpaka::memcpy(queue, hitsInCPU->moduleIndices_buf, hitsInGPU->moduleIndices_buf, nHits);
+        alpaka::memcpy(queue, hitsInCPU->idxs_buf, hitsBuffers->idxs_buf, nHits);
+        alpaka::memcpy(queue, hitsInCPU->detid_buf, hitsBuffers->detid_buf, nHits);
+        alpaka::memcpy(queue, hitsInCPU->xs_buf, hitsBuffers->xs_buf, nHits);
+        alpaka::memcpy(queue, hitsInCPU->ys_buf, hitsBuffers->ys_buf, nHits);
+        alpaka::memcpy(queue, hitsInCPU->zs_buf, hitsBuffers->zs_buf, nHits);
+        alpaka::memcpy(queue, hitsInCPU->moduleIndices_buf, hitsBuffers->moduleIndices_buf, nHits);
         alpaka::wait(queue);
     }
     return hitsInCPU;
 }
 
-SDL::hits<alpaka::DevCpu>* SDL::Event::getHitsInCMSSW()
+SDL::hitsBuffer<alpaka::DevCpu>* SDL::Event::getHitsInCMSSW()
 {
     if(hitsInCPU == nullptr)
     {
         auto nHits_buf = allocBufWrapper<unsigned int>(devHost, 1);
-        alpaka::memcpy(queue, nHits_buf, hitsInGPU->nHits_buf, 1);
+        alpaka::memcpy(queue, nHits_buf, hitsBuffers->nHits_buf, 1);
         alpaka::wait(queue);
 
         unsigned int nHits = *alpaka::getPtrNative(nHits_buf);
-        hitsInCPU = new SDL::hits<alpaka::DevCpu>(nModules, nHits, devHost, queue);
+        hitsInCPU = new SDL::hitsBuffer<alpaka::DevCpu>(nModules, nHits, devHost, queue);
+        hitsInCPU->setData(*hitsInCPU);
 
         *alpaka::getPtrNative(hitsInCPU->nHits_buf) = nHits;
-        alpaka::memcpy(queue, hitsInCPU->idxs_buf, hitsInGPU->idxs_buf, nHits);
+        alpaka::memcpy(queue, hitsInCPU->idxs_buf, hitsBuffers->idxs_buf, nHits);
         alpaka::wait(queue);
     }
     return hitsInCPU;
@@ -1858,7 +1866,7 @@ SDL::objectRanges* SDL::Event::getRanges()
         rangesInCPU = new SDL::objectRanges;
         rangesInCPU->hitRanges = new int[2*nModules];
         rangesInCPU->quintupletModuleIndices = new int[nLowerModules];
-        cudaMemcpyAsync(rangesInCPU->hitRanges, hitsInGPU->hitRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost,stream);
+        cudaMemcpyAsync(rangesInCPU->hitRanges, hitsBuffers->hitRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost,stream);
         rangesInCPU->miniDoubletModuleIndices = new int[nLowerModules+1];
         rangesInCPU->segmentModuleIndices = new int[nLowerModules + 1];
         rangesInCPU->tripletModuleIndices = new int[nLowerModules];
@@ -1897,31 +1905,32 @@ SDL::miniDoublets* SDL::Event::getMiniDoublets()
     return mdsInCPU;
 }
 
-SDL::segments<alpaka::DevCpu>* SDL::Event::getSegments()
+SDL::segmentsBuffer<alpaka::DevCpu>* SDL::Event::getSegments()
 {
     if(segmentsInCPU == nullptr)
     {
         // Get nMemoryLocations parameter to initilize host based segmentsInCPU
         auto nMemLocal_buf = allocBufWrapper<unsigned int>(devHost, 1);
-        alpaka::memcpy(queue, nMemLocal_buf, segmentsInGPU->nMemoryLocations_buf, 1);
+        alpaka::memcpy(queue, nMemLocal_buf, segmentsBuffers->nMemoryLocations_buf, 1);
         alpaka::wait(queue);
 
         unsigned int nMemLocal = *alpaka::getPtrNative(nMemLocal_buf);
-        segmentsInCPU = new SDL::segments<alpaka::DevCpu>(nMemLocal, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devHost, queue);
+        segmentsInCPU = new SDL::segmentsBuffer<alpaka::DevCpu>(nMemLocal, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devHost, queue);
+        segmentsInCPU->setData(*segmentsInCPU);
 
         *alpaka::getPtrNative(segmentsInCPU->nMemoryLocations_buf) = nMemLocal;
-        alpaka::memcpy(queue, segmentsInCPU->nSegments_buf, segmentsInGPU->nSegments_buf, (nLowerModules+1));
-        alpaka::memcpy(queue, segmentsInCPU->mdIndices_buf, segmentsInGPU->mdIndices_buf, 2 * nMemLocal);
-        alpaka::memcpy(queue, segmentsInCPU->innerMiniDoubletAnchorHitIndices_buf, segmentsInGPU->innerMiniDoubletAnchorHitIndices_buf, nMemLocal);
-        alpaka::memcpy(queue, segmentsInCPU->outerMiniDoubletAnchorHitIndices_buf, segmentsInGPU->outerMiniDoubletAnchorHitIndices_buf, nMemLocal);
-        alpaka::memcpy(queue, segmentsInCPU->totOccupancySegments_buf, segmentsInGPU->totOccupancySegments_buf, (nLowerModules+1));
-        alpaka::memcpy(queue, segmentsInCPU->ptIn_buf, segmentsInGPU->ptIn_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
-        alpaka::memcpy(queue, segmentsInCPU->eta_buf, segmentsInGPU->eta_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
-        alpaka::memcpy(queue, segmentsInCPU->phi_buf, segmentsInGPU->phi_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
-        alpaka::memcpy(queue, segmentsInCPU->seedIdx_buf, segmentsInGPU->seedIdx_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
-        alpaka::memcpy(queue, segmentsInCPU->isDup_buf, segmentsInGPU->isDup_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
-        alpaka::memcpy(queue, segmentsInCPU->isQuad_buf, segmentsInGPU->isQuad_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
-        alpaka::memcpy(queue, segmentsInCPU->score_buf, segmentsInGPU->score_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+        alpaka::memcpy(queue, segmentsInCPU->nSegments_buf, segmentsBuffers->nSegments_buf, (nLowerModules+1));
+        alpaka::memcpy(queue, segmentsInCPU->mdIndices_buf, segmentsBuffers->mdIndices_buf, 2 * nMemLocal);
+        alpaka::memcpy(queue, segmentsInCPU->innerMiniDoubletAnchorHitIndices_buf, segmentsBuffers->innerMiniDoubletAnchorHitIndices_buf, nMemLocal);
+        alpaka::memcpy(queue, segmentsInCPU->outerMiniDoubletAnchorHitIndices_buf, segmentsBuffers->outerMiniDoubletAnchorHitIndices_buf, nMemLocal);
+        alpaka::memcpy(queue, segmentsInCPU->totOccupancySegments_buf, segmentsBuffers->totOccupancySegments_buf, (nLowerModules+1));
+        alpaka::memcpy(queue, segmentsInCPU->ptIn_buf, segmentsBuffers->ptIn_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+        alpaka::memcpy(queue, segmentsInCPU->eta_buf, segmentsBuffers->eta_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+        alpaka::memcpy(queue, segmentsInCPU->phi_buf, segmentsBuffers->phi_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+        alpaka::memcpy(queue, segmentsInCPU->seedIdx_buf, segmentsBuffers->seedIdx_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+        alpaka::memcpy(queue, segmentsInCPU->isDup_buf, segmentsBuffers->isDup_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+        alpaka::memcpy(queue, segmentsInCPU->isQuad_buf, segmentsBuffers->isQuad_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+        alpaka::memcpy(queue, segmentsInCPU->score_buf, segmentsBuffers->score_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
         alpaka::wait(queue);
     }
     return segmentsInCPU;
