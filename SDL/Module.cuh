@@ -73,9 +73,118 @@ namespace SDL
         unsigned int *device_nTotalSegs;
         unsigned int *device_nTotalTrips;
         unsigned int *device_nTotalQuints;
-    
-        void freeMemoryCache();
-        void freeMemory();
+
+        template<typename TBuff>
+        void setData(TBuff& objectRangesbuf)
+        {
+            hitRanges = alpaka::getPtrNative(objectRangesbuf.hitRanges_buf);
+            hitRangesLower = alpaka::getPtrNative(objectRangesbuf.hitRangesLower_buf);
+            hitRangesUpper = alpaka::getPtrNative(objectRangesbuf.hitRangesUpper_buf);
+            hitRangesnLower = alpaka::getPtrNative(objectRangesbuf.hitRangesnLower_buf);
+            hitRangesnUpper = alpaka::getPtrNative(objectRangesbuf.hitRangesnUpper_buf);
+            mdRanges = alpaka::getPtrNative(objectRangesbuf.mdRanges_buf);
+            segmentRanges = alpaka::getPtrNative(objectRangesbuf.segmentRanges_buf);
+            trackletRanges = alpaka::getPtrNative(objectRangesbuf.trackletRanges_buf);
+            tripletRanges = alpaka::getPtrNative(objectRangesbuf.tripletRanges_buf);
+            trackCandidateRanges = alpaka::getPtrNative(objectRangesbuf.trackCandidateRanges_buf);
+            quintupletRanges = alpaka::getPtrNative(objectRangesbuf.quintupletRanges_buf);
+
+            nEligibleT5Modules = alpaka::getPtrNative(objectRangesbuf.nEligibleT5Modules_buf);
+            indicesOfEligibleT5Modules = alpaka::getPtrNative(objectRangesbuf.indicesOfEligibleT5Modules_buf);
+
+            quintupletModuleIndices = alpaka::getPtrNative(objectRangesbuf.quintupletModuleIndices_buf);
+            quintupletModuleOccupancy = alpaka::getPtrNative(objectRangesbuf.quintupletModuleOccupancy_buf);
+            miniDoubletModuleIndices = alpaka::getPtrNative(objectRangesbuf.miniDoubletModuleIndices_buf);
+            miniDoubletModuleOccupancy = alpaka::getPtrNative(objectRangesbuf.miniDoubletModuleOccupancy_buf);
+            segmentModuleIndices = alpaka::getPtrNative(objectRangesbuf.segmentModuleIndices_buf);
+            segmentModuleOccupancy = alpaka::getPtrNative(objectRangesbuf.segmentModuleOccupancy_buf);
+            tripletModuleIndices = alpaka::getPtrNative(objectRangesbuf.tripletModuleIndices_buf);
+            tripletModuleOccupancy = alpaka::getPtrNative(objectRangesbuf.tripletModuleOccupancy_buf);
+
+            device_nTotalMDs = alpaka::getPtrNative(objectRangesbuf.device_nTotalMDs_buf);
+            device_nTotalSegs = alpaka::getPtrNative(objectRangesbuf.device_nTotalSegs_buf);
+            device_nTotalTrips = alpaka::getPtrNative(objectRangesbuf.device_nTotalTrips_buf);
+            device_nTotalQuints = alpaka::getPtrNative(objectRangesbuf.device_nTotalQuints_buf);
+        }
+    };
+
+    template<typename TAcc>
+    struct objectRangesBuffer : objectRanges
+    {
+        Buf<TAcc, int> hitRanges_buf;
+        Buf<TAcc, int> hitRangesLower_buf;
+        Buf<TAcc, int> hitRangesUpper_buf;
+        Buf<TAcc, int8_t> hitRangesnLower_buf;
+        Buf<TAcc, int8_t> hitRangesnUpper_buf;
+        Buf<TAcc, int> mdRanges_buf;
+        Buf<TAcc, int> segmentRanges_buf;
+        Buf<TAcc, int> trackletRanges_buf;
+        Buf<TAcc, int> tripletRanges_buf;
+        Buf<TAcc, int> trackCandidateRanges_buf;
+        Buf<TAcc, int> quintupletRanges_buf;
+
+        Buf<TAcc, uint16_t> nEligibleT5Modules_buf;
+        Buf<TAcc, uint16_t> indicesOfEligibleT5Modules_buf;
+
+        Buf<TAcc, int> quintupletModuleIndices_buf;
+        Buf<TAcc, int> quintupletModuleOccupancy_buf;
+        Buf<TAcc, int> miniDoubletModuleIndices_buf;
+        Buf<TAcc, int> miniDoubletModuleOccupancy_buf;
+        Buf<TAcc, int> segmentModuleIndices_buf;
+        Buf<TAcc, int> segmentModuleOccupancy_buf;
+        Buf<TAcc, int> tripletModuleIndices_buf;
+        Buf<TAcc, int> tripletModuleOccupancy_buf;
+
+        Buf<TAcc, unsigned int> device_nTotalMDs_buf;
+        Buf<TAcc, unsigned int> device_nTotalSegs_buf;
+        Buf<TAcc, unsigned int> device_nTotalTrips_buf;
+        Buf<TAcc, unsigned int> device_nTotalQuints_buf;
+
+        template<typename TQueue, typename TDevAcc>
+        objectRangesBuffer(unsigned int nModules,
+                           unsigned int nLowerModules,
+                           TDevAcc const & devAccIn,
+                           TQueue& queue) :
+            hitRanges_buf(allocBufWrapper<int>(devAccIn, nModules*2)),
+            hitRangesLower_buf(allocBufWrapper<int>(devAccIn, nModules)),
+            hitRangesUpper_buf(allocBufWrapper<int>(devAccIn, nModules)),
+            hitRangesnLower_buf(allocBufWrapper<int8_t>(devAccIn, nModules)),
+            hitRangesnUpper_buf(allocBufWrapper<int8_t>(devAccIn, nModules)),
+            mdRanges_buf(allocBufWrapper<int>(devAccIn, nModules*2)),
+            segmentRanges_buf(allocBufWrapper<int>(devAccIn, nModules*2)),
+            trackletRanges_buf(allocBufWrapper<int>(devAccIn, nModules*2)),
+            tripletRanges_buf(allocBufWrapper<int>(devAccIn, nModules*2)),
+            trackCandidateRanges_buf(allocBufWrapper<int>(devAccIn, nModules*2)),
+            quintupletRanges_buf(allocBufWrapper<int>(devAccIn, nModules*2)),
+            nEligibleT5Modules_buf(allocBufWrapper<uint16_t>(devAccIn, 1)),
+            indicesOfEligibleT5Modules_buf(allocBufWrapper<uint16_t>(devAccIn, nLowerModules)),
+            quintupletModuleIndices_buf(allocBufWrapper<int>(devAccIn, nLowerModules)),
+            quintupletModuleOccupancy_buf(allocBufWrapper<int>(devAccIn, nLowerModules)),
+            miniDoubletModuleIndices_buf(allocBufWrapper<int>(devAccIn, nLowerModules+1)),
+            miniDoubletModuleOccupancy_buf(allocBufWrapper<int>(devAccIn, nLowerModules+1)),
+            segmentModuleIndices_buf(allocBufWrapper<int>(devAccIn, nLowerModules+1)),
+            segmentModuleOccupancy_buf(allocBufWrapper<int>(devAccIn, nLowerModules+1)),
+            tripletModuleIndices_buf(allocBufWrapper<int>(devAccIn, nLowerModules)),
+            tripletModuleOccupancy_buf(allocBufWrapper<int>(devAccIn, nLowerModules)),
+            device_nTotalMDs_buf(allocBufWrapper<unsigned int>(devAccIn, 1)),
+            device_nTotalSegs_buf(allocBufWrapper<unsigned int>(devAccIn, 1)),
+            device_nTotalTrips_buf(allocBufWrapper<unsigned int>(devAccIn, 1)),
+            device_nTotalQuints_buf(allocBufWrapper<unsigned int>(devAccIn, 1))
+        {
+            alpaka::memset(queue, hitRanges_buf, -1, nModules*2);
+            alpaka::memset(queue, hitRangesLower_buf, -1, nModules);
+            alpaka::memset(queue, hitRangesUpper_buf, -1, nModules);
+            alpaka::memset(queue, hitRangesnLower_buf, -1, nModules);
+            alpaka::memset(queue, hitRangesnUpper_buf, -1, nModules);
+            alpaka::memset(queue, mdRanges_buf, -1, nModules*2);
+            alpaka::memset(queue, segmentRanges_buf, -1, nModules*2);
+            alpaka::memset(queue, trackletRanges_buf, -1, nModules*2);
+            alpaka::memset(queue, tripletRanges_buf, -1, nModules*2);
+            alpaka::memset(queue, trackCandidateRanges_buf, -1, nModules*2);
+            alpaka::memset(queue, quintupletRanges_buf, -1, nModules*2);
+            alpaka::memset(queue, quintupletModuleIndices_buf, -1, nLowerModules);
+            alpaka::wait(queue);
+        }
     };
 
     struct modules
@@ -149,7 +258,6 @@ namespace SDL
     void fillMapArraysExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);
     void fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nModules);
     void setDerivedQuantities(unsigned int detId, unsigned short& layer, unsigned short& ring, unsigned short& rod, unsigned short& module, unsigned short& subdet, unsigned short& side, float m_x, float m_y, float m_z, float& eta, float& r);
-    void resetObjectRanges(struct objectRanges& rangesInGPU, unsigned int nModules,cudaStream_t stream);
     void createRangesInExplicitMemory(struct objectRanges& rangesInGPU,unsigned int nModules,cudaStream_t stream, unsigned int nLowerModules);
 }
 #endif

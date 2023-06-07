@@ -60,7 +60,6 @@ SDL::Event::Event(cudaStream_t estream, bool verbose): queue(alpaka::getDevByIdx
 SDL::Event::~Event()
 {
 #ifdef CACHE_ALLOC
-    if(rangesInGPU){rangesInGPU->freeMemoryCache();}
     if(mdsInGPU){mdsInGPU->freeMemoryCache();}
     if(tripletsInGPU){tripletsInGPU->freeMemoryCache();}
     if(quintupletsInGPU){quintupletsInGPU->freeMemoryCache();}
@@ -68,7 +67,6 @@ SDL::Event::~Event()
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemoryCache();}
 #else
-    if(rangesInGPU){rangesInGPU->freeMemory();}
     if(mdsInGPU){mdsInGPU->freeMemory(stream);}
     if(tripletsInGPU){tripletsInGPU->freeMemory(stream);}
     if(quintupletsInGPU){quintupletsInGPU->freeMemory(stream);}
@@ -76,7 +74,7 @@ SDL::Event::~Event()
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemory(stream);}
 #endif
-    if(rangesInGPU != nullptr){cms::cuda::free_host(rangesInGPU);}
+    if(rangesInGPU != nullptr){delete rangesInGPU; delete rangesBuffers;}
     if(mdsInGPU != nullptr){cms::cuda::free_host(mdsInGPU);}
     if(segmentsInGPU != nullptr){delete segmentsInGPU; delete segmentsBuffers;}
     if(tripletsInGPU!= nullptr){cms::cuda::free_host(tripletsInGPU);}
@@ -92,7 +90,6 @@ SDL::Event::~Event()
     }
     if(rangesInCPU != nullptr)
     {
-        delete[] rangesInCPU->quintupletModuleIndices;
         delete rangesInCPU;
     }
 
@@ -240,14 +237,12 @@ void SDL::Event::resetEvent()
 #ifdef CACHE_ALLOC
     if(mdsInGPU){mdsInGPU->freeMemoryCache();}
     if(quintupletsInGPU){quintupletsInGPU->freeMemoryCache();}
-    if(rangesInGPU){rangesInGPU->freeMemoryCache();}
     if(tripletsInGPU){tripletsInGPU->freeMemoryCache();}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemoryCache();}
 #else
     if(quintupletsInGPU){quintupletsInGPU->freeMemory(stream);}
-    if(rangesInGPU){rangesInGPU->freeMemory();}
     if(mdsInGPU){mdsInGPU->freeMemory(stream);}
     if(tripletsInGPU){tripletsInGPU->freeMemory(stream);}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemory(stream);}
@@ -277,7 +272,7 @@ void SDL::Event::resetEvent()
       hitsInGPU = nullptr;}
     if(mdsInGPU){cms::cuda::free_host(mdsInGPU);
       mdsInGPU = nullptr;}
-    if(rangesInGPU){cms::cuda::free_host(rangesInGPU);
+    if(rangesInGPU){delete rangesInGPU; delete rangesBuffers;
       rangesInGPU = nullptr;}
     if(segmentsInGPU){delete segmentsInGPU; delete segmentsBuffers;
       segmentsInGPU = nullptr;}
@@ -299,8 +294,6 @@ void SDL::Event::resetEvent()
     }
     if(rangesInCPU != nullptr)
     {
-        delete[] rangesInCPU->hitRanges;
-        delete[] rangesInCPU->quintupletModuleIndices;
         delete rangesInCPU;
         rangesInCPU = nullptr;
     }
@@ -440,7 +433,6 @@ void SDL::initModules(const char* moduleMetaDataFilePath)
         loadModulesFromFile(*modulesInGPU,nModules,nLowerModules, *pixelMapping, default_stream, moduleMetaDataFilePath);
         cudaStreamSynchronize(default_stream);
     }
-    //resetObjectRanges(*modulesInGPU,nModules, default_stream);
 }
 
 void SDL::cleanModules()
@@ -448,11 +440,6 @@ void SDL::cleanModules()
     freeModules(*modulesInGPU, *pixelMapping);
     cudaFreeHost(modulesInGPU);
     cudaFreeHost(pixelMapping);
-}
-
-void SDL::Event::resetObjectsInModule()
-{
-    resetObjectRanges(*rangesInGPU,nModules,stream);
 }
 
 void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple)
@@ -477,9 +464,22 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
 
     if (rangesInGPU == nullptr)
     {
-        rangesInGPU = (SDL::objectRanges*)cms::cuda::allocate_host(sizeof(SDL::objectRanges), stream);
-        createRangesInExplicitMemory(*rangesInGPU, nModules, stream, nLowerModules);
-        resetObjectsInModule();
+        rangesInGPU = new SDL::objectRanges();
+        rangesBuffers = new SDL::objectRangesBuffer<Acc>(nModules, nLowerModules, devAcc, queue);
+        rangesInGPU->setData(*rangesBuffers);
+    }
+
+    unsigned int hostValue;
+
+    // Copy from device to host
+    cudaError_t err = cudaMemcpy(&hostValue, &rangesInGPU->hitRangesnUpper[0], sizeof(int8_t), cudaMemcpyDeviceToHost);
+
+    // Check for errors
+    if (err != cudaSuccess) {
+        printf("cudaMemcpy failed with error: %s\n", cudaGetErrorString(err));
+    } else {
+        // Print the value
+        printf("The value is: %u\n", hostValue);
     }
 
     // Copy the host arrays to the GPU.
@@ -754,10 +754,8 @@ void SDL::Event::createMiniDoublets()
     if(mdsInGPU == nullptr)
     {
         mdsInGPU = (SDL::miniDoublets*)cms::cuda::allocate_host(sizeof(SDL::miniDoublets), stream);
-
         //FIXME: Add memory locations for pixel MDs
         createMDsInExplicitMemory(*mdsInGPU, nTotalMDs, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES, stream);
-
     }
     cudaStreamSynchronize(stream);
 
@@ -1254,14 +1252,6 @@ void SDL::Event::createPixelTriplets()
 void SDL::Event::createQuintuplets()
 {
     uint16_t nEligibleT5Modules = 0;
-
-#ifdef CACHE_ALLOC
-    rangesInGPU->indicesOfEligibleT5Modules = (uint16_t*)cms::cuda::allocate_device(dev, nLowerModules * sizeof(uint16_t), stream);
-#else
-    cudaMalloc(&(rangesInGPU->indicesOfEligibleT5Modules), nLowerModules * sizeof(uint16_t));
-#endif
-    cudaMemsetAsync(rangesInGPU->quintupletModuleIndices, -1, sizeof(int) * (nLowerModules),stream);
-    cudaStreamSynchronize(stream);
     unsigned int nTotalQuintuplets;
 
     Vec const threadsPerBlockCreateQuints(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
@@ -1308,7 +1298,6 @@ void SDL::Event::createQuintuplets()
         nEligibleT5Modules));
 
     alpaka::enqueue(queue, createQuintupletsInGPUv2Task);
-    alpaka::wait(queue);
 
     Vec const threadsPerBlockDupQuint(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
     Vec const blocksPerGridDupQuint(static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1), static_cast<Idx>(1));
@@ -1859,22 +1848,19 @@ SDL::hitsBuffer<alpaka::DevCpu>* SDL::Event::getHitsInCMSSW()
     return hitsInCPU;
 }
 
-SDL::objectRanges* SDL::Event::getRanges()
+SDL::objectRangesBuffer<alpaka::DevCpu>* SDL::Event::getRanges()
 {
     if(rangesInCPU == nullptr)
     {
-        rangesInCPU = new SDL::objectRanges;
-        rangesInCPU->hitRanges = new int[2*nModules];
-        rangesInCPU->quintupletModuleIndices = new int[nLowerModules];
-        cudaMemcpyAsync(rangesInCPU->hitRanges, hitsBuffers->hitRanges, 2*nModules * sizeof(int), cudaMemcpyDeviceToHost,stream);
-        rangesInCPU->miniDoubletModuleIndices = new int[nLowerModules+1];
-        rangesInCPU->segmentModuleIndices = new int[nLowerModules + 1];
-        rangesInCPU->tripletModuleIndices = new int[nLowerModules];
-        cudaMemcpyAsync(rangesInCPU->quintupletModuleIndices, rangesInGPU->quintupletModuleIndices, nLowerModules * sizeof(int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(rangesInCPU->miniDoubletModuleIndices, rangesInGPU->miniDoubletModuleIndices, (nLowerModules + 1) * sizeof(int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(rangesInCPU->segmentModuleIndices, rangesInGPU->segmentModuleIndices, (nLowerModules + 1) * sizeof(int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(rangesInCPU->tripletModuleIndices, rangesInGPU->tripletModuleIndices, nLowerModules * sizeof(int), cudaMemcpyDeviceToHost, stream);
-        cudaStreamSynchronize(stream);
+        rangesInCPU = new SDL::objectRangesBuffer<alpaka::DevCpu>(nModules, nLowerModules, devHost, queue);
+        rangesInCPU->setData(*rangesInCPU);
+
+        alpaka::memcpy(queue, rangesInCPU->hitRanges_buf, rangesBuffers->hitRanges_buf, 2 * nModules);
+        alpaka::memcpy(queue, rangesInCPU->quintupletModuleIndices_buf, rangesBuffers->quintupletModuleIndices_buf, nLowerModules);
+        alpaka::memcpy(queue, rangesInCPU->miniDoubletModuleIndices_buf, rangesBuffers->miniDoubletModuleIndices_buf, nLowerModules + 1);
+        alpaka::memcpy(queue, rangesInCPU->segmentModuleIndices_buf, rangesBuffers->segmentModuleIndices_buf, nLowerModules + 1);
+        alpaka::memcpy(queue, rangesInCPU->tripletModuleIndices_buf, rangesBuffers->tripletModuleIndices_buf, nLowerModules);
+        alpaka::wait(queue);
     }
     return rangesInCPU;
 }

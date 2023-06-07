@@ -40,6 +40,7 @@ namespace SDL
         int dev;
         int nTotalSegments;
         struct objectRanges* rangesInGPU;
+        struct objectRangesBuffer<Acc>* rangesBuffers;
         struct hits* hitsInGPU;
         struct hitsBuffer<Acc>* hitsBuffers;
         struct miniDoublets* mdsInGPU;
@@ -52,7 +53,7 @@ namespace SDL
         struct pixelQuintuplets* pixelQuintupletsInGPU;
 
         //CPU interface stuff
-        objectRanges* rangesInCPU;
+        objectRangesBuffer<alpaka::DevCpu>* rangesInCPU;
         hitsBuffer<alpaka::DevCpu>* hitsInCPU;
         miniDoublets* mdsInCPU;
         segmentsBuffer<alpaka::DevCpu>* segmentsInCPU;
@@ -131,7 +132,7 @@ namespace SDL
         unsigned int getNumberOfExtendedTracks();
         unsigned int getNumberOfT3T3ExtendedTracks();
 
-        objectRanges* getRanges();
+        objectRangesBuffer<alpaka::DevCpu>* getRanges();
         hitsBuffer<alpaka::DevCpu>* getHits();
         hitsBuffer<alpaka::DevCpu>* getHitsInCMSSW();
         miniDoublets* getMiniDoublets();
