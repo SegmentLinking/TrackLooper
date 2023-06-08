@@ -306,7 +306,7 @@ void setPixelQuintupletOutputBranches(SDL::Event* event)
 {
     // ============ pT5 =============
     SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
-    SDL::quintuplets& quintupletsInGPU = (*event->getQuintuplets());
+    SDL::quintupletsBuffer<alpaka::DevCpu>& quintupletsInGPU = (*event->getQuintuplets());
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
     SDL::modules& modulesInGPU = (*event->getModules());
     int n_accepted_simtrk = ana.tx->getBranch<vector<int>>("sim_TC_matched").size();
@@ -391,7 +391,7 @@ void setPixelQuintupletOutputBranches(SDL::Event* event)
 //________________________________________________________________________________________________________________________________
 void setQuintupletOutputBranches(SDL::Event* event)
 {
-    SDL::quintuplets& quintupletsInGPU = (*event->getQuintuplets());
+    SDL::quintupletsBuffer<alpaka::DevCpu>& quintupletsInGPU = (*event->getQuintuplets());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
     SDL::modules& modulesInGPU = (*event->getModules());
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
@@ -409,7 +409,7 @@ void setQuintupletOutputBranches(SDL::Event* event)
             float pt = quintupletsInGPU.innerRadius[quintupletIndex] * kRinv1GeVf;
             float eta = __H2F(quintupletsInGPU.eta[quintupletIndex]);
             float phi = __H2F(quintupletsInGPU.phi[quintupletIndex]);
-            
+
             std::vector<unsigned int> hit_idx = getHitIdxsFromT5(event, quintupletIndex);
             std::vector<unsigned int> hit_type = getHitTypesFromT5(event, quintupletIndex);
             std::vector<unsigned int> module_idx = getModuleIdxsFromT5(event, quintupletIndex);
