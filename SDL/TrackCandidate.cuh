@@ -32,13 +32,82 @@ namespace SDL
         FPX* centerY;
         FPX* radius;
 
-        trackCandidates();
-        ~trackCandidates();
-        void freeMemory(cudaStream_t stream);
-        void freeMemoryCache();
+        template<typename TBuff>
+        void setData(TBuff& trackCandidatesbuf)
+        {
+            trackCandidateType = alpaka::getPtrNative(trackCandidatesbuf.trackCandidateType_buf);
+            directObjectIndices = alpaka::getPtrNative(trackCandidatesbuf.directObjectIndices_buf);
+            objectIndices = alpaka::getPtrNative(trackCandidatesbuf.objectIndices_buf);
+            nTrackCandidates = alpaka::getPtrNative(trackCandidatesbuf.nTrackCandidates_buf);
+            nTrackCandidatespT3 = alpaka::getPtrNative(trackCandidatesbuf.nTrackCandidatespT3_buf);
+            nTrackCandidatespT5 = alpaka::getPtrNative(trackCandidatesbuf.nTrackCandidatespT5_buf);
+            nTrackCandidatespLS = alpaka::getPtrNative(trackCandidatesbuf.nTrackCandidatespLS_buf);
+            nTrackCandidatesT5 = alpaka::getPtrNative(trackCandidatesbuf.nTrackCandidatesT5_buf);
+
+            logicalLayers = alpaka::getPtrNative(trackCandidatesbuf.logicalLayers_buf);
+            hitIndices = alpaka::getPtrNative(trackCandidatesbuf.hitIndices_buf);
+            pixelSeedIndex = alpaka::getPtrNative(trackCandidatesbuf.pixelSeedIndex_buf);
+            lowerModuleIndices = alpaka::getPtrNative(trackCandidatesbuf.lowerModuleIndices_buf);
+
+            centerX = alpaka::getPtrNative(trackCandidatesbuf.centerX_buf);
+            centerY = alpaka::getPtrNative(trackCandidatesbuf.centerY_buf);
+            radius = alpaka::getPtrNative(trackCandidatesbuf.radius_buf);
+        }
     };
 
-    void createTrackCandidatesInExplicitMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int maxTrackCandidates,cudaStream_t stream);
+    template<typename TAcc>
+    struct trackCandidatesBuffer : trackCandidates
+    {
+        Buf<TAcc, short> trackCandidateType_buf;
+        Buf<TAcc, unsigned int> directObjectIndices_buf;
+        Buf<TAcc, unsigned int> objectIndices_buf;
+        Buf<TAcc, int> nTrackCandidates_buf;
+        Buf<TAcc, int> nTrackCandidatespT3_buf;
+        Buf<TAcc, int> nTrackCandidatespT5_buf;
+        Buf<TAcc, int> nTrackCandidatespLS_buf;
+        Buf<TAcc, int> nTrackCandidatesT5_buf;
+
+        Buf<TAcc, uint8_t> logicalLayers_buf;
+        Buf<TAcc, unsigned int> hitIndices_buf;
+        Buf<TAcc, int> pixelSeedIndex_buf;
+        Buf<TAcc, uint16_t> lowerModuleIndices_buf;
+
+        Buf<TAcc, FPX> centerX_buf;
+        Buf<TAcc, FPX> centerY_buf;
+        Buf<TAcc, FPX> radius_buf;
+
+        template<typename TQueue, typename TDevAcc>
+        trackCandidatesBuffer(unsigned int maxTrackCandidates,
+                            TDevAcc const & devAccIn,
+                            TQueue& queue) :
+            trackCandidateType_buf(allocBufWrapper<short>(devAccIn, maxTrackCandidates)),
+            directObjectIndices_buf(allocBufWrapper<unsigned int>(devAccIn, maxTrackCandidates)),
+            objectIndices_buf(allocBufWrapper<unsigned int>(devAccIn, 2 * maxTrackCandidates)),
+            nTrackCandidates_buf(allocBufWrapper<int>(devAccIn, 1)),
+            nTrackCandidatespT3_buf(allocBufWrapper<int>(devAccIn, 1)),
+            nTrackCandidatespT5_buf(allocBufWrapper<int>(devAccIn, 1)),
+            nTrackCandidatespLS_buf(allocBufWrapper<int>(devAccIn, 1)),
+            nTrackCandidatesT5_buf(allocBufWrapper<int>(devAccIn, 1)),
+            logicalLayers_buf(allocBufWrapper<uint8_t>(devAccIn, 7 * maxTrackCandidates)),
+            hitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, 14 * maxTrackCandidates)),
+            pixelSeedIndex_buf(allocBufWrapper<int>(devAccIn, maxTrackCandidates)),
+            lowerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, 7 * maxTrackCandidates)),
+            centerX_buf(allocBufWrapper<FPX>(devAccIn, maxTrackCandidates)),
+            centerY_buf(allocBufWrapper<FPX>(devAccIn, maxTrackCandidates)),
+            radius_buf(allocBufWrapper<FPX>(devAccIn, maxTrackCandidates))
+        {
+            alpaka::memset(queue, nTrackCandidates_buf, 0, 1);
+            alpaka::memset(queue, nTrackCandidatesT5_buf, 0, 1);
+            alpaka::memset(queue, nTrackCandidatespT3_buf, 0, 1);
+            alpaka::memset(queue, nTrackCandidatespT5_buf, 0, 1);
+            alpaka::memset(queue, nTrackCandidatespLS_buf, 0, 1);
+            alpaka::memset(queue, logicalLayers_buf, 0, 7 * maxTrackCandidates);
+            alpaka::memset(queue, lowerModuleIndices_buf, 0, 7 * maxTrackCandidates);
+            alpaka::memset(queue, hitIndices_buf, 0, 14 * maxTrackCandidates);
+            alpaka::memset(queue, pixelSeedIndex_buf, 0, maxTrackCandidates);
+            alpaka::wait(queue);
+        }
+    };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE void addpLSTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int trackletIndex, unsigned int trackCandidateIndex, uint4 hitIndices, int pixelSeedIndex)
     {
