@@ -560,7 +560,7 @@ void setGnnNtupleBranches(SDL::Event* event)
 {
     // Get relevant information
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event->getHits());
     SDL::modules& modulesInGPU = (*event->getModules());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
@@ -710,7 +710,7 @@ void setGnnNtupleBranches(SDL::Event* event)
 void setGnnNtupleMiniDoublet(SDL::Event* event, unsigned int MD)
 {
     // Get relevant information
-    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event->getHits());
 
     // Get the hit indices
@@ -1115,7 +1115,7 @@ void printHitMultiplicities(SDL::Event* event)
 //________________________________________________________________________________________________________________________________
 void printMiniDoubletMultiplicities(SDL::Event* event)
 {
-    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::modules& modulesInGPU = (*event->getModules());
 
     int nMiniDoublets = 0;
@@ -1144,7 +1144,7 @@ void printAllObjects(SDL::Event* event)
 //________________________________________________________________________________________________________________________________
 void printMDs(SDL::Event* event)
 {
-    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event->getHits());
     SDL::modules& modulesInGPU = (*event->getModules());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
@@ -1168,7 +1168,7 @@ void printMDs(SDL::Event* event)
 void printLSs(SDL::Event* event)
 {
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event->getHits());
     SDL::modules& modulesInGPU = (*event->getModules());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
@@ -1201,7 +1201,7 @@ void printLSs(SDL::Event* event)
 void printpLSs(SDL::Event* event)
 {
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event->getHits());
     SDL::modules& modulesInGPU = (*event->getModules());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
@@ -1232,7 +1232,7 @@ void printT3s(SDL::Event* event)
 {
     SDL::tripletsBuffer<alpaka::DevCpu>& tripletsInGPU = (*event->getTriplets());
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event->getHits());
     SDL::modules& modulesInGPU = (*event->getModules());
     int nTriplets = 0;
@@ -1275,7 +1275,7 @@ void debugPrintOutlierMultiplicities(SDL::Event* event)
     SDL::trackCandidatesBuffer<alpaka::DevCpu>& trackCandidatesInGPU = (*event->getTrackCandidates());
     SDL::tripletsBuffer<alpaka::DevCpu>& tripletsInGPU = (*event->getTriplets());
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
-    SDL::miniDoublets& miniDoubletsInGPU = (*event->getMiniDoublets());
+    SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::modules& modulesInGPU = (*event->getModules());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
     //int nTrackCandidates = 0;

@@ -36,7 +36,7 @@ namespace SDL
         std::array<unsigned int, 6> n_quintuplets_by_layer_barrel_;
         std::array<unsigned int, 5> n_quintuplets_by_layer_endcap_;
 
-        //CUDA stuff
+        //Device stuff
         int dev;
         int nTotalSegments;
         struct objectRanges* rangesInGPU;
@@ -44,6 +44,7 @@ namespace SDL
         struct hits* hitsInGPU;
         struct hitsBuffer<Acc>* hitsBuffers;
         struct miniDoublets* mdsInGPU;
+        struct miniDoubletsBuffer<Acc>* miniDoubletsBuffers;
         struct segments* segmentsInGPU;
         struct segmentsBuffer<Acc>* segmentsBuffers;
         struct triplets* tripletsInGPU;
@@ -58,7 +59,7 @@ namespace SDL
         //CPU interface stuff
         objectRangesBuffer<alpaka::DevCpu>* rangesInCPU;
         hitsBuffer<alpaka::DevCpu>* hitsInCPU;
-        miniDoublets* mdsInCPU;
+        miniDoubletsBuffer<alpaka::DevCpu>* mdsInCPU;
         segmentsBuffer<alpaka::DevCpu>* segmentsInCPU;
         tripletsBuffer<alpaka::DevCpu>* tripletsInCPU;
         trackCandidatesBuffer<alpaka::DevCpu>* trackCandidatesInCPU;
@@ -138,7 +139,7 @@ namespace SDL
         objectRangesBuffer<alpaka::DevCpu>* getRanges();
         hitsBuffer<alpaka::DevCpu>* getHits();
         hitsBuffer<alpaka::DevCpu>* getHitsInCMSSW();
-        miniDoublets* getMiniDoublets();
+        miniDoubletsBuffer<alpaka::DevCpu>* getMiniDoublets();
         segmentsBuffer<alpaka::DevCpu>* getSegments() ;
         tripletsBuffer<alpaka::DevCpu>* getTriplets();
         quintupletsBuffer<alpaka::DevCpu>* getQuintuplets();
