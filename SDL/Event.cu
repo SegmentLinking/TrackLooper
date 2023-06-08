@@ -447,7 +447,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         nTotalMDs += N_MAX_PIXEL_MD_PER_MODULES;
 
         mdsInGPU = new SDL::miniDoublets();
-        miniDoubletsBuffers = new SDL::miniDoubletsBuffer<Acc>(nTotalMDs, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES, devAcc, queue);
+        miniDoubletsBuffers = new SDL::miniDoubletsBuffer<Acc>(nTotalMDs, nLowerModules, devAcc, queue);
         mdsInGPU->setData(*miniDoubletsBuffers);
 
         cudaMemcpyAsync(mdsInGPU->nMemoryLocations, &nTotalMDs, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
@@ -643,7 +643,7 @@ void SDL::Event::createMiniDoublets()
     if(mdsInGPU == nullptr)
     {
         mdsInGPU = new SDL::miniDoublets();
-        miniDoubletsBuffers = new SDL::miniDoubletsBuffer<Acc>(nTotalMDs, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES, devAcc, queue);
+        miniDoubletsBuffers = new SDL::miniDoubletsBuffer<Acc>(nTotalMDs, nLowerModules, devAcc, queue);
         mdsInGPU->setData(*miniDoubletsBuffers);
     }
 
@@ -1761,7 +1761,7 @@ SDL::miniDoubletsBuffer<alpaka::DevCpu>* SDL::Event::getMiniDoublets()
         alpaka::wait(queue);
 
         unsigned int nMemLocal = *alpaka::getPtrNative(nMemLocal_buf);
-        mdsInCPU = new SDL::miniDoubletsBuffer<alpaka::DevCpu>(nMemLocal, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES, devHost, queue);
+        mdsInCPU = new SDL::miniDoubletsBuffer<alpaka::DevCpu>(nMemLocal, nLowerModules, devHost, queue);
         mdsInCPU->setData(*mdsInCPU);
 
         *alpaka::getPtrNative(mdsInCPU->nMemoryLocations_buf) = nMemLocal;

@@ -139,7 +139,6 @@ namespace SDL
         template<typename TQueue, typename TDevAcc>
         miniDoubletsBuffer(unsigned int nMemoryLocations,
                            uint16_t nLowerModules,
-                           unsigned int maxPixelMDs,
                            TDevAcc const & devAccIn,
                            TQueue& queue) :
             nMemoryLocations_buf(allocBufWrapper<unsigned int>(devAccIn, 1)),
