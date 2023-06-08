@@ -78,9 +78,9 @@ namespace SDL
 
         template<typename TQueue, typename TDevAcc>
         hitsBuffer(unsigned int nModules,
-                    unsigned int nMaxHits,
-                    TDevAcc const & devAccIn,
-                    TQueue& queue) :
+                   unsigned int nMaxHits,
+                   TDevAcc const & devAccIn,
+                   TQueue& queue) :
             nHits_buf(allocBufWrapper<unsigned int>(devAccIn, 1)),
             xs_buf(allocBufWrapper<float>(devAccIn, nMaxHits)),
             ys_buf(allocBufWrapper<float>(devAccIn, nMaxHits)),
