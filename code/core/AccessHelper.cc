@@ -124,7 +124,7 @@ std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> getHitIdxsAndHi
 //____________________________________________________________________________________________
 std::vector<unsigned int> getLSsFromT3(SDL::Event* event, unsigned int T3)
 {
-    SDL::triplets& triplets_ = *(event->getTriplets());
+    SDL::tripletsBuffer<alpaka::DevCpu>& triplets_ = *(event->getTriplets());
     unsigned int LS_1 = triplets_.segmentIndices[2 * T3];
     unsigned int LS_2 = triplets_.segmentIndices[2 * T3 + 1];
     return {LS_1, LS_2};

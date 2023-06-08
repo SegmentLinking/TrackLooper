@@ -11,7 +11,6 @@ SDL::Event::Event(cudaStream_t estream, bool verbose): queue(alpaka::getDevByIdx
     int driver;
     cudaRuntimeGetVersion(&version);
     cudaDriverGetVersion(&driver);
-    //printf("version: %d Driver %d\n",version, driver);
     stream = estream;
     addObjects = verbose;
     hitsInGPU = nullptr;
@@ -61,14 +60,12 @@ SDL::Event::~Event()
 {
 #ifdef CACHE_ALLOC
     if(mdsInGPU){mdsInGPU->freeMemoryCache();}
-    if(tripletsInGPU){tripletsInGPU->freeMemoryCache();}
     if(quintupletsInGPU){quintupletsInGPU->freeMemoryCache();}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemoryCache();}
 #else
     if(mdsInGPU){mdsInGPU->freeMemory(stream);}
-    if(tripletsInGPU){tripletsInGPU->freeMemory(stream);}
     if(quintupletsInGPU){quintupletsInGPU->freeMemory(stream);}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemory(stream);}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
@@ -77,7 +74,7 @@ SDL::Event::~Event()
     if(rangesInGPU != nullptr){delete rangesInGPU; delete rangesBuffers;}
     if(mdsInGPU != nullptr){cms::cuda::free_host(mdsInGPU);}
     if(segmentsInGPU != nullptr){delete segmentsInGPU; delete segmentsBuffers;}
-    if(tripletsInGPU!= nullptr){cms::cuda::free_host(tripletsInGPU);}
+    if(tripletsInGPU!= nullptr){delete tripletsInGPU; delete tripletsBuffers;}
     if(trackCandidatesInGPU!= nullptr){cms::cuda::free_host(trackCandidatesInGPU);}
     if(hitsInGPU!= nullptr){delete hitsInGPU; delete hitsBuffers;}
     if(pixelTripletsInGPU!= nullptr){cms::cuda::free_host(pixelTripletsInGPU);}
@@ -109,30 +106,6 @@ SDL::Event::~Event()
 
     if(tripletsInCPU != nullptr)
     {
-        delete[] tripletsInCPU->segmentIndices;
-        delete[] tripletsInCPU->nTriplets;
-        delete[] tripletsInCPU->totOccupancyTriplets;
-        delete[] tripletsInCPU->betaIn;
-        delete[] tripletsInCPU->betaOut;
-        delete[] tripletsInCPU->pt_beta;
-        delete[] tripletsInCPU->hitIndices;
-        delete[] tripletsInCPU->logicalLayers;
-        delete[] tripletsInCPU->lowerModuleIndices;
-        delete tripletsInCPU->nMemoryLocations;
-#ifdef CUT_VALUE_DEBUG
-        delete[] tripletsInCPU->zOut;
-        delete[] tripletsInCPU->zLo;
-        delete[] tripletsInCPU->zHi;
-        delete[] tripletsInCPU->zLoPointed;
-        delete[] tripletsInCPU->zHiPointed;
-        delete[] tripletsInCPU->sdlCut;
-        delete[] tripletsInCPU->betaInCut;
-        delete[] tripletsInCPU->betaOutCut;
-        delete[] tripletsInCPU->deltaBetaCut;
-        delete[] tripletsInCPU->rtLo;
-        delete[] tripletsInCPU->rtHi;
-        delete[] tripletsInCPU->kZ;
-#endif
         delete tripletsInCPU;
     }
     if(quintupletsInCPU != nullptr)
@@ -237,14 +210,12 @@ void SDL::Event::resetEvent()
 #ifdef CACHE_ALLOC
     if(mdsInGPU){mdsInGPU->freeMemoryCache();}
     if(quintupletsInGPU){quintupletsInGPU->freeMemoryCache();}
-    if(tripletsInGPU){tripletsInGPU->freeMemoryCache();}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemoryCache();}
 #else
     if(quintupletsInGPU){quintupletsInGPU->freeMemory(stream);}
     if(mdsInGPU){mdsInGPU->freeMemory(stream);}
-    if(tripletsInGPU){tripletsInGPU->freeMemory(stream);}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemory(stream);}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemory(stream);}
@@ -276,7 +247,7 @@ void SDL::Event::resetEvent()
       rangesInGPU = nullptr;}
     if(segmentsInGPU){delete segmentsInGPU; delete segmentsBuffers;
       segmentsInGPU = nullptr;}
-    if(tripletsInGPU){cms::cuda::free_host(tripletsInGPU);
+    if(tripletsInGPU){delete tripletsInGPU; delete tripletsBuffers;
       tripletsInGPU = nullptr;}
     if(quintupletsInGPU){cms::cuda::free_host(quintupletsInGPU);
       quintupletsInGPU = nullptr;}
@@ -312,15 +283,6 @@ void SDL::Event::resetEvent()
     }
     if(tripletsInCPU != nullptr)
     {
-        delete[] tripletsInCPU->segmentIndices;
-        delete[] tripletsInCPU->nTriplets;
-        delete[] tripletsInCPU->totOccupancyTriplets;
-        delete[] tripletsInCPU->betaIn;
-        delete[] tripletsInCPU->betaOut;
-        delete[] tripletsInCPU->pt_beta;
-        delete[] tripletsInCPU->logicalLayers;
-        delete[] tripletsInCPU->lowerModuleIndices;
-        delete[] tripletsInCPU->hitIndices;
         delete tripletsInCPU;
         tripletsInCPU = nullptr;
     }
@@ -865,7 +827,6 @@ void SDL::Event::createTriplets()
 {
     if(tripletsInGPU == nullptr)
     {
-        tripletsInGPU = (SDL::triplets*)cms::cuda::allocate_host(sizeof(SDL::triplets), stream);
         unsigned int maxTriplets;
 
         Vec const threadsPerBlockCreateTrip(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
@@ -886,11 +847,14 @@ void SDL::Event::createTriplets()
         cudaMemcpyAsync(&maxTriplets,rangesInGPU->device_nTotalTrips,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
         cudaStreamSynchronize(stream);
 
-        createTripletsInExplicitMemory(*tripletsInGPU, maxTriplets, nLowerModules,stream);
+        tripletsInGPU = new SDL::triplets();
+        tripletsBuffers = new SDL::tripletsBuffer<Acc>(maxTriplets, nLowerModules, devAcc, queue);
+        tripletsInGPU->setData(*tripletsBuffers);
 
         cudaMemcpyAsync(tripletsInGPU->nMemoryLocations, &maxTriplets, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
         cudaStreamSynchronize(stream);
     }
+
     //TODO:Move this also inside the ranges function
     uint16_t nonZeroModules=0;
     unsigned int max_InnerSeg=0;
@@ -1909,63 +1873,43 @@ SDL::segmentsBuffer<alpaka::DevCpu>* SDL::Event::getSegments()
     return segmentsInCPU;
 }
 
-SDL::triplets* SDL::Event::getTriplets()
+SDL::tripletsBuffer<alpaka::DevCpu>* SDL::Event::getTriplets()
 {
     if(tripletsInCPU == nullptr)
     {
-        tripletsInCPU = new SDL::triplets;
-        tripletsInCPU->nMemoryLocations = new unsigned int;
-        cudaMemcpyAsync(tripletsInCPU->nMemoryLocations, tripletsInGPU->nMemoryLocations, sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaStreamSynchronize(stream);
+        // Get nMemoryLocations parameter to initilize host based tripletsInCPU
+        auto nMemLocal_buf = allocBufWrapper<unsigned int>(devHost, 1);
+        alpaka::memcpy(queue, nMemLocal_buf, tripletsBuffers->nMemoryLocations_buf, 1);
+        alpaka::wait(queue);
 
-        tripletsInCPU->segmentIndices = new unsigned[2 * *(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->nTriplets = new int[nLowerModules];
-        tripletsInCPU->betaIn  = new FPX[*(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->betaOut = new FPX[*(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->pt_beta = new FPX[*(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->hitIndices = new unsigned int[6 * *(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->logicalLayers = new uint8_t[3 * *(tripletsInCPU->nMemoryLocations)];
+        unsigned int nMemLocal = *alpaka::getPtrNative(nMemLocal_buf);
+        tripletsInCPU = new SDL::tripletsBuffer<alpaka::DevCpu>(nMemLocal, nLowerModules, devHost, queue);
+        tripletsInCPU->setData(*tripletsInCPU);
+
+        *alpaka::getPtrNative(tripletsInCPU->nMemoryLocations_buf) = nMemLocal;
 #ifdef CUT_VALUE_DEBUG
-        tripletsInCPU->zOut = new float[4 * *(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->zLo = new float[*(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->zHi = new float[*(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->zLoPointed = new float[*(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->zHiPointed = new float[*(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->sdlCut = new float[*(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->betaInCut = new float[*(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->betaOutCut = new float[*(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->deltaBetaCut = new float[*(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->rtLo = new float[*(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->rtHi = new float[*(tripletsInCPU->nMemoryLocations)];
-        tripletsInCPU->kZ = new float[*(tripletsInCPU->nMemoryLocations)];
-
-        tripletsInCPU->rtOut = tripletsInCPU->zOut + *(tripletsInCPU->nMemoryLocations);
-        tripletsInCPU->deltaPhiPos = tripletsInCPU->zOut + 2 * *(tripletsInCPU->nMemoryLocations);
-        tripletsInCPU->deltaPhi = tripletsInCPU->zOut + 3 * *(tripletsInCPU->nMemoryLocations);
-
-        cudaMemcpyAsync(tripletsInCPU->zOut, tripletsInGPU->zOut, 4 * * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(tripletsInCPU->zLo, tripletsInGPU->zLo, * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(tripletsInCPU->zHi, tripletsInGPU->zHi, * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(tripletsInCPU->zLoPointed, tripletsInGPU->zLoPointed, 4 * * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(tripletsInCPU->zHiPointed, tripletsInGPU->zHiPointed, * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(tripletsInCPU->sdlCut, tripletsInGPU->sdlCut, *(tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(tripletsInCPU->betaInCut, tripletsInGPU->betaInCut,  * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(tripletsInCPU->betaOutCut, tripletsInGPU->betaOutCut,  * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(tripletsInCPU->deltaBetaCut, tripletsInGPU->deltaBetaCut, *(tripletsInCPU->nMemoryLocations)*sizeof(unsigned int), cudaMemcpyDeviceToHost);
-        cudaMemcpyAsync(tripletsInCPU->rtLo, tripletsInGPU->rtLo,  * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(tripletsInCPU->rtHi, tripletsInGPU->rtHi,  * (tripletsInCPU->nMemoryLocations)* sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(tripletsInCPU->kZ, tripletsInGPU->kZ,  * (tripletsInCPU->nMemoryLocations) * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
+        alpaka::memcpy(queue, tripletsInCPU->zOut_buf, tripletsBuffers->zOut_buf, 4 * nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->zLo_buf, tripletsBuffers->zLo_buf, nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->zHi_buf, tripletsBuffers->zHi_buf, nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->zLoPointed_buf, tripletsBuffers->zLoPointed_buf, 4 * nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->zHiPointed_buf, tripletsBuffers->zHiPointed_buf, nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->sdlCut_buf, tripletsBuffers->sdlCut_buf, nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->betaInCut_buf, tripletsBuffers->betaInCut_buf, nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->betaOutCut_buf, tripletsBuffers->betaOutCut_buf, nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->deltaBetaCut_buf, tripletsBuffers->deltaBetaCut_buf, nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->rtLo_buf, tripletsBuffers->rtLo_buf, nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->rtHi_buf, tripletsBuffers->rtHi_buf, nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->kZ_buf, tripletsBuffers->kZ_buf, nMemLocal);
 #endif
-        cudaMemcpyAsync(tripletsInCPU->hitIndices, tripletsInGPU->hitIndices, 6 * *(tripletsInCPU->nMemoryLocations) * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(tripletsInCPU->logicalLayers, tripletsInGPU->logicalLayers, 3 * *(tripletsInCPU->nMemoryLocations) * sizeof(uint8_t), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(tripletsInCPU->segmentIndices, tripletsInGPU->segmentIndices, 2 * *(tripletsInCPU->nMemoryLocations) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(tripletsInCPU->betaIn, tripletsInGPU->betaIn,   *(tripletsInCPU->nMemoryLocations) * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(tripletsInCPU->betaOut, tripletsInGPU->betaOut, *(tripletsInCPU->nMemoryLocations) * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(tripletsInCPU->pt_beta, tripletsInGPU->pt_beta, *(tripletsInCPU->nMemoryLocations) * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
-        tripletsInCPU->totOccupancyTriplets = new int[nLowerModules];
-        cudaMemcpyAsync(tripletsInCPU->nTriplets, tripletsInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(tripletsInCPU->totOccupancyTriplets, tripletsInGPU->totOccupancyTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
+        alpaka::memcpy(queue, tripletsInCPU->hitIndices_buf, tripletsBuffers->hitIndices_buf, 6 * nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->logicalLayers_buf, tripletsBuffers->logicalLayers_buf, 3 * nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->segmentIndices_buf, tripletsBuffers->segmentIndices_buf, 2 * nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->betaIn_buf, tripletsBuffers->betaIn_buf, nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->betaOut_buf, tripletsBuffers->betaOut_buf, nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->pt_beta_buf, tripletsBuffers->pt_beta_buf, nMemLocal);
+        alpaka::memcpy(queue, tripletsInCPU->nTriplets_buf, tripletsBuffers->nTriplets_buf, nLowerModules);
+        alpaka::memcpy(queue, tripletsInCPU->totOccupancyTriplets_buf, tripletsBuffers->totOccupancyTriplets_buf, nLowerModules);
+        alpaka::wait(queue);
     }
     return tripletsInCPU;
 }

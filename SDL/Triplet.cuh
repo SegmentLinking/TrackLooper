@@ -15,17 +15,13 @@ namespace SDL
         uint16_t* lowerModuleIndices; //3 of them now
         int* nTriplets;
         int* totOccupancyTriplets;
-
         unsigned int* nMemoryLocations;
-
         uint8_t* logicalLayers;
         unsigned int* hitIndices;
-        
         //delta beta = betaIn - betaOut
         FPX* betaIn;
         FPX* betaOut;
         FPX* pt_beta;
-
         bool* partOfPT5;
         bool* partOfT5;
         bool* partOfPT3;
@@ -34,10 +30,8 @@ namespace SDL
         //debug variables
         float* zOut;
         float* rtOut;
-
         float* deltaPhiPos;
         float* deltaPhi;
-
         float* zLo;
         float* zHi;
         float* zLoPointed;
@@ -50,13 +44,120 @@ namespace SDL
         float* rtHi;
         float* kZ;
 #endif
-        triplets();
-        ~triplets();
-        void freeMemory(cudaStream_t stream);
-        void freeMemoryCache();
+        template<typename TBuff>
+        void setData(TBuff& tripletsbuf)
+        {
+            segmentIndices = alpaka::getPtrNative(tripletsbuf.segmentIndices_buf);
+            lowerModuleIndices = alpaka::getPtrNative(tripletsbuf.lowerModuleIndices_buf);
+            nTriplets = alpaka::getPtrNative(tripletsbuf.nTriplets_buf);
+            totOccupancyTriplets = alpaka::getPtrNative(tripletsbuf.totOccupancyTriplets_buf);
+            nMemoryLocations = alpaka::getPtrNative(tripletsbuf.nMemoryLocations_buf);
+            logicalLayers = alpaka::getPtrNative(tripletsbuf.logicalLayers_buf);
+            hitIndices = alpaka::getPtrNative(tripletsbuf.hitIndices_buf);
+            betaIn = alpaka::getPtrNative(tripletsbuf.betaIn_buf);
+            betaOut = alpaka::getPtrNative(tripletsbuf.betaOut_buf);
+            pt_beta = alpaka::getPtrNative(tripletsbuf.pt_beta_buf);
+            partOfPT5 = alpaka::getPtrNative(tripletsbuf.partOfPT5_buf);
+            partOfT5 = alpaka::getPtrNative(tripletsbuf.partOfT5_buf);
+            partOfPT3 = alpaka::getPtrNative(tripletsbuf.partOfPT3_buf);
+#ifdef CUT_VALUE_DEBUG
+            zOut = alpaka::getPtrNative(tripletsbuf.zOut_buf);
+            rtOut = alpaka::getPtrNative(tripletsbuf.rtOut_buf);
+            deltaPhiPos = alpaka::getPtrNative(tripletsbuf.deltaPhiPos_buf);
+            deltaPhi = alpaka::getPtrNative(tripletsbuf.deltaPhi_buf);
+            zLo = alpaka::getPtrNative(tripletsbuf.zLo_buf);
+            zHi = alpaka::getPtrNative(tripletsbuf.zHi_buf);
+            zLoPointed = alpaka::getPtrNative(tripletsbuf.zLoPointed_buf);
+            zHiPointed = alpaka::getPtrNative(tripletsbuf.zHiPointed_buf);
+            sdlCut = alpaka::getPtrNative(tripletsbuf.sdlCut_buf);
+            betaInCut = alpaka::getPtrNative(tripletsbuf.betaInCut_buf);
+            betaOutCut = alpaka::getPtrNative(tripletsbuf.betaOutCut_buf);
+            deltaBetaCut = alpaka::getPtrNative(tripletsbuf.deltaBetaCut_buf);
+            rtLo = alpaka::getPtrNative(tripletsbuf.rtLo_buf);
+            rtHi = alpaka::getPtrNative(tripletsbuf.rtHi_buf);
+            kZ = alpaka::getPtrNative(tripletsbuf.kZ_buf);
+#endif
+        }
     };
 
-    void createTripletsInExplicitMemory(struct triplets& tripletsInGPU, unsigned int maxTriplets, uint16_t nLowerModules,cudaStream_t stream);
+    template<typename TAcc>
+    struct tripletsBuffer : triplets
+    {
+        Buf<TAcc, unsigned int> segmentIndices_buf;
+        Buf<TAcc, uint16_t> lowerModuleIndices_buf;
+        Buf<TAcc, int> nTriplets_buf;
+        Buf<TAcc, int> totOccupancyTriplets_buf;
+        Buf<TAcc, unsigned int> nMemoryLocations_buf;
+        Buf<TAcc, uint8_t> logicalLayers_buf;
+        Buf<TAcc, unsigned int> hitIndices_buf;
+        Buf<TAcc, FPX> betaIn_buf;
+        Buf<TAcc, FPX> betaOut_buf;
+        Buf<TAcc, FPX> pt_beta_buf;
+        Buf<TAcc, bool> partOfPT5_buf;
+        Buf<TAcc, bool> partOfT5_buf;
+        Buf<TAcc, bool> partOfPT3_buf;
+
+#ifdef CUT_VALUE_DEBUG
+        Buf<TAcc, float> zOut_buf;
+        Buf<TAcc, float> rtOut_buf;
+        Buf<TAcc, float> deltaPhiPos_buf;
+        Buf<TAcc, float> deltaPhi_buf;
+        Buf<TAcc, float> zLo_buf;
+        Buf<TAcc, float> zHi_buf;
+        Buf<TAcc, float> zLoPointed_buf;
+        Buf<TAcc, float> zHiPointed_buf;
+        Buf<TAcc, float> sdlCut_buf;
+        Buf<TAcc, float> betaInCut_buf;
+        Buf<TAcc, float> betaOutCut_buf;
+        Buf<TAcc, float> deltaBetaCut_buf;
+        Buf<TAcc, float> rtLo_buf;
+        Buf<TAcc, float> rtHi_buf;
+        Buf<TAcc, float> kZ_buf;
+#endif
+
+        template<typename TQueue, typename TDevAcc>
+        tripletsBuffer(unsigned int maxTriplets,
+                    unsigned int nLowerModules,
+                    TDevAcc const & devAccIn,
+                    TQueue& queue) :
+            segmentIndices_buf(allocBufWrapper<unsigned int>(devAccIn, 2 * maxTriplets)),
+            lowerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, 3 * maxTriplets)),
+            nTriplets_buf(allocBufWrapper<int>(devAccIn, nLowerModules)),
+            totOccupancyTriplets_buf(allocBufWrapper<int>(devAccIn, nLowerModules)),
+            nMemoryLocations_buf(allocBufWrapper<unsigned int>(devAccIn, 1)),
+            logicalLayers_buf(allocBufWrapper<uint8_t>(devAccIn, maxTriplets * 3)),
+            hitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, maxTriplets * 6)),
+            betaIn_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets)),
+            betaOut_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets)),
+            pt_beta_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets)),
+            partOfPT5_buf(allocBufWrapper<bool>(devAccIn, maxTriplets)),
+            partOfT5_buf(allocBufWrapper<bool>(devAccIn, maxTriplets)),
+            partOfPT3_buf(allocBufWrapper<bool>(devAccIn, maxTriplets))
+#ifdef CUT_VALUE_DEBUG
+            ,zOut_buf(allocBufWrapper<float>(devAccIn, maxTriplets)),
+            rtOut_buf(allocBufWrapper<float>(devAccIn, maxTriplets)),
+            deltaPhiPos_buf(allocBufWrapper<float>(devAccIn, maxTriplets)),
+            deltaPhi_buf(allocBufWrapper<float>(devAccIn, maxTriplets)),
+            zLo_buf(allocBufWrapper<float>(devAccIn, maxTriplets)),
+            zHi_buf(allocBufWrapper<float>(devAccIn, maxTriplets)),
+            zLoPointed_buf(allocBufWrapper<float>(devAccIn, maxTriplets)),
+            zHiPointed_buf(allocBufWrapper<float>(devAccIn, maxTriplets)),
+            sdlCut_buf(allocBufWrapper<float>(devAccIn, maxTriplets)),
+            betaInCut_buf(allocBufWrapper<float>(devAccIn, maxTriplets)),
+            betaOutCut_buf(allocBufWrapper<float>(devAccIn, maxTriplets)),
+            deltaBetaCut_buf(allocBufWrapper<float>(devAccIn, maxTriplets)),
+            rtLo_buf(allocBufWrapper<float>(devAccIn, maxTriplets)),
+            rtHi_buf(allocBufWrapper<float>(devAccIn, maxTriplets)),
+            kZ_buf(allocBufWrapper<float>(devAccIn, maxTriplets))
+#endif
+        {
+            alpaka::memset(queue, nTriplets_buf, 0, nLowerModules);
+            alpaka::memset(queue, totOccupancyTriplets_buf, 0, nLowerModules);
+            alpaka::memset(queue, partOfPT5_buf, 0, maxTriplets);
+            alpaka::memset(queue, partOfT5_buf, 0, maxTriplets);
+            alpaka::memset(queue, partOfPT3_buf, 0, maxTriplets);
+        }
+    };
 
 #ifdef CUT_VALUE_DEBUG
     ALPAKA_FN_ACC ALPAKA_FN_INLINE void addTripletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct triplets& tripletsInGPU, unsigned int& innerSegmentIndex, unsigned int& outerSegmentIndex, uint16_t& innerInnerLowerModuleIndex, uint16_t& middleLowerModuleIndex, uint16_t& outerOuterLowerModuleIndex, float& zOut, float& rtOut, float& deltaPhiPos, float& deltaPhi, float& betaIn, float& betaOut, float& pt_beta, float& zLo, float& zHi, float& rtLo, float& rtHi, float& zLoPointed, float&zHiPointed, float& sdlCut, float& betaInCut, float& betaOutCut, float& deltaBetaCut, float& kZ, unsigned int& tripletIndex)

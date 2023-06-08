@@ -3,7 +3,6 @@
 
 #include "Constants.cuh"
 #include "EndcapGeometry.cuh"
-#include "TiltedGeometry.h"
 #include "Module.cuh"
 #include "Hit.cuh"
 
