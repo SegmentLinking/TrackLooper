@@ -21,7 +21,7 @@ CXX                  = nvcc
 CXXFLAGS             =  -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared -I/mnt/data1/dsr/cub --use_fast_math --default-stream per-thread -I..
 ROOTCFLAGS           = --compiler-options -pthread --compiler-options -std=c++17 -m64 -I../../../root/include
 LD                   = nvcc 
-SOFLAGS              = -g -shared --compiler-options -fPIC --cudart shared
+SOFLAGS              = -g -shared --compiler-options -fPIC --cudart shared -arch=compute_80 -code=sm_80
 PRINTFLAG            = -DT4FromT3 #-DWarnings
 DUPLICATES           = -DDUP_pLS -DDUP_T5 -DDUP_pT5 -DDUP_pT3 -DCrossclean_T5 -DCrossclean_pT3 -DFP16_Base -DFP16_dPhi
 MEMFLAG              =
