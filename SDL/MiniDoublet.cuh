@@ -176,10 +176,10 @@ namespace SDL
             outerRt_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
             outerPhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
             outerEta_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            outerHighEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations * 4)),
-            outerHighEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations * 4)),
-            outerLowEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations * 4)),
-            outerLowEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations * 4))
+            outerHighEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            outerHighEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            outerLowEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            outerLowEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations))
         {
             alpaka::memset(queue, nMDs_buf, 0, nLowerModules+1);
             alpaka::memset(queue, totOccupancyMDs_buf, 0, nLowerModules+1);
