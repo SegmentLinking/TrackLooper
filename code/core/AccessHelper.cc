@@ -452,7 +452,7 @@ std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> getHitIdxsAndHi
 std::vector<unsigned int> getLSsFromTC(SDL::Event* event, unsigned int TC)
 {
     // Get the type of the track candidate
-    SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
+    SDL::trackCandidatesBuffer<alpaka::DevCpu>& trackCandidatesInGPU = (*event->getTrackCandidates());
     short type = trackCandidatesInGPU.trackCandidateType[TC];
     unsigned int objidx = trackCandidatesInGPU.directObjectIndices[TC];
     switch (type)
@@ -468,7 +468,7 @@ std::vector<unsigned int> getLSsFromTC(SDL::Event* event, unsigned int TC)
 std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> getHitIdxsAndHitTypesFromTC(SDL::Event* event, unsigned TC)
 {
     // Get the type of the track candidate
-    SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
+    SDL::trackCandidatesBuffer<alpaka::DevCpu>& trackCandidatesInGPU = (*event->getTrackCandidates());
     short type = trackCandidatesInGPU.trackCandidateType[TC];
     unsigned int objidx = trackCandidatesInGPU.directObjectIndices[TC];
     switch (type)

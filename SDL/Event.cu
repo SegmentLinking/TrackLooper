@@ -62,18 +62,16 @@ SDL::Event::~Event()
     if(mdsInGPU){mdsInGPU->freeMemoryCache();}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
-    if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemoryCache();}
 #else
     if(mdsInGPU){mdsInGPU->freeMemory(stream);}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemory(stream);}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
-    if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemory(stream);}
 #endif
     if(rangesInGPU != nullptr){delete rangesInGPU; delete rangesBuffers;}
     if(mdsInGPU != nullptr){cms::cuda::free_host(mdsInGPU);}
     if(segmentsInGPU != nullptr){delete segmentsInGPU; delete segmentsBuffers;}
     if(tripletsInGPU!= nullptr){delete tripletsInGPU; delete tripletsBuffers;}
-    if(trackCandidatesInGPU!= nullptr){cms::cuda::free_host(trackCandidatesInGPU);}
+    if(trackCandidatesInGPU!= nullptr){delete trackCandidatesInGPU; delete trackCandidatesBuffers;}
     if(hitsInGPU!= nullptr){delete hitsInGPU; delete hitsBuffers;}
     if(pixelTripletsInGPU!= nullptr){cms::cuda::free_host(pixelTripletsInGPU);}
     if(pixelQuintupletsInGPU!= nullptr){cms::cuda::free_host(pixelQuintupletsInGPU);}
@@ -141,11 +139,6 @@ SDL::Event::~Event()
 
     if(trackCandidatesInCPU != nullptr)
     {
-        delete[] trackCandidatesInCPU->objectIndices;
-        delete[] trackCandidatesInCPU->trackCandidateType;
-        delete[] trackCandidatesInCPU->nTrackCandidates;
-        delete[] trackCandidatesInCPU->hitIndices;
-        delete[] trackCandidatesInCPU->logicalLayers;
         delete trackCandidatesInCPU;
     }
 
@@ -198,12 +191,10 @@ void SDL::Event::resetEvent()
     if(mdsInGPU){mdsInGPU->freeMemoryCache();}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
-    if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemoryCache();}
 #else
     if(mdsInGPU){mdsInGPU->freeMemory(stream);}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemory(stream);}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
-    if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemory(stream);}
 #endif
     //reset the arrays
     for(int i = 0; i<6; i++)
@@ -236,7 +227,7 @@ void SDL::Event::resetEvent()
       tripletsInGPU = nullptr;}
     if(quintupletsInGPU){delete quintupletsInGPU; delete quintupletsBuffers;
       quintupletsInGPU = nullptr;}
-    if(trackCandidatesInGPU){cms::cuda::free_host(trackCandidatesInGPU);
+    if(trackCandidatesInGPU){delete trackCandidatesInGPU; delete trackCandidatesBuffers;
       trackCandidatesInGPU = nullptr;}
     if(pixelTripletsInGPU){cms::cuda::free_host(pixelTripletsInGPU);
       pixelTripletsInGPU = nullptr;}
@@ -306,12 +297,6 @@ void SDL::Event::resetEvent()
     }
     if(trackCandidatesInCPU != nullptr)
     {
-        delete[] trackCandidatesInCPU->objectIndices;
-        delete[] trackCandidatesInCPU->trackCandidateType;
-        delete[] trackCandidatesInCPU->nTrackCandidates;
-        delete[] trackCandidatesInCPU->logicalLayers;
-        delete[] trackCandidatesInCPU->hitIndices;
-        delete[] trackCandidatesInCPU->lowerModuleIndices;
         delete trackCandidatesInCPU;
         trackCandidatesInCPU = nullptr;
     }
@@ -796,7 +781,6 @@ void SDL::Event::createSegmentsWithModuleMap()
     }
 }
 
-
 void SDL::Event::createTriplets()
 {
     if(tripletsInGPU == nullptr)
@@ -908,8 +892,9 @@ void SDL::Event::createTrackCandidates()
     cudaMemcpyAsync(&nEligibleModules,rangesInGPU->nEligibleT5Modules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
     if(trackCandidatesInGPU == nullptr)
     {
-        trackCandidatesInGPU = (SDL::trackCandidates*)cms::cuda::allocate_host(sizeof(SDL::trackCandidates), stream);
-        createTrackCandidatesInExplicitMemory(*trackCandidatesInGPU, N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES,stream);
+        trackCandidatesInGPU = new SDL::trackCandidates();
+        trackCandidatesBuffers = new SDL::trackCandidatesBuffer<Acc>(N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES, devAcc, queue);
+        trackCandidatesInGPU->setData(*trackCandidatesBuffers);
     }
 
     Vec const threadsPerBlock_crossCleanpT3(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(64));
@@ -1288,8 +1273,9 @@ void SDL::Event::createPixelQuintuplets()
     }
     if(trackCandidatesInGPU == nullptr)
     {
-        trackCandidatesInGPU = (SDL::trackCandidates*)cms::cuda::allocate_host(sizeof(SDL::trackCandidates), stream);
-        createTrackCandidatesInExplicitMemory(*trackCandidatesInGPU, N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES,stream);
+        trackCandidatesInGPU = new SDL::trackCandidates();
+        trackCandidatesBuffers = new SDL::trackCandidatesBuffer<Acc>(N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES, devAcc, queue);
+        trackCandidatesInGPU->setData(*trackCandidatesBuffers);
     } 
 
     unsigned int pixelModuleIndex;
@@ -1997,52 +1983,49 @@ SDL::pixelQuintuplets* SDL::Event::getPixelQuintuplets()
     return pixelQuintupletsInCPU;
 }
 
-SDL::trackCandidates* SDL::Event::getTrackCandidates()
+SDL::trackCandidatesBuffer<alpaka::DevCpu>* SDL::Event::getTrackCandidates()
 {
     if(trackCandidatesInCPU == nullptr)
     {
-        trackCandidatesInCPU = new SDL::trackCandidates;
-        trackCandidatesInCPU->nTrackCandidates = new int;
-        cudaMemcpyAsync(trackCandidatesInCPU->nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(int), cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
-        int nTrackCandidates = *(trackCandidatesInCPU->nTrackCandidates);
+        // Get nTrackLocal parameter to initialize host based trackCandidatesInCPU
+        auto nTrackLocal_buf = allocBufWrapper<int>(devHost, 1);
+        alpaka::memcpy(queue, nTrackLocal_buf, trackCandidatesBuffers->nTrackCandidates_buf, 1);
+        alpaka::wait(queue);
 
-        trackCandidatesInCPU->directObjectIndices = new unsigned int[nTrackCandidates];
-        trackCandidatesInCPU->objectIndices = new unsigned int[2 * nTrackCandidates];
-        trackCandidatesInCPU->trackCandidateType = new short[nTrackCandidates];
-        trackCandidatesInCPU->hitIndices = new unsigned int[14 * nTrackCandidates];
-        trackCandidatesInCPU->pixelSeedIndex = new int[nTrackCandidates];
-        trackCandidatesInCPU->logicalLayers = new uint8_t[7 * nTrackCandidates];
+        int nTrackLocal = *alpaka::getPtrNative(nTrackLocal_buf);
+        trackCandidatesInCPU = new SDL::trackCandidatesBuffer<alpaka::DevCpu>(N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES, devHost, queue);
+        trackCandidatesInCPU->setData(*trackCandidatesInCPU);
 
-        cudaMemcpyAsync(trackCandidatesInCPU->hitIndices, trackCandidatesInGPU->hitIndices, 14 * nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(trackCandidatesInCPU->pixelSeedIndex, trackCandidatesInGPU->pixelSeedIndex, nTrackCandidates * sizeof(int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(trackCandidatesInCPU->logicalLayers, trackCandidatesInGPU->logicalLayers, 7 * nTrackCandidates * sizeof(uint8_t), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(trackCandidatesInCPU->directObjectIndices, trackCandidatesInGPU->directObjectIndices, nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);                                                                                    
-        cudaMemcpyAsync(trackCandidatesInCPU->objectIndices, trackCandidatesInGPU->objectIndices, 2 * nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);                                                                                    
-        cudaMemcpyAsync(trackCandidatesInCPU->trackCandidateType, trackCandidatesInGPU->trackCandidateType, nTrackCandidates * sizeof(short), cudaMemcpyDeviceToHost,stream);                                                                                                                
-        cudaStreamSynchronize(stream);
+        *alpaka::getPtrNative(trackCandidatesInCPU->nTrackCandidates_buf) = nTrackLocal;
+        alpaka::memcpy(queue, trackCandidatesInCPU->hitIndices_buf, trackCandidatesBuffers->hitIndices_buf, 14 * nTrackLocal);
+        alpaka::memcpy(queue, trackCandidatesInCPU->pixelSeedIndex_buf, trackCandidatesBuffers->pixelSeedIndex_buf, nTrackLocal);
+        alpaka::memcpy(queue, trackCandidatesInCPU->logicalLayers_buf, trackCandidatesBuffers->logicalLayers_buf, 7 * nTrackLocal);
+        alpaka::memcpy(queue, trackCandidatesInCPU->directObjectIndices_buf, trackCandidatesBuffers->directObjectIndices_buf, nTrackLocal);
+        alpaka::memcpy(queue, trackCandidatesInCPU->objectIndices_buf, trackCandidatesBuffers->objectIndices_buf, 2 * nTrackLocal);
+        alpaka::memcpy(queue, trackCandidatesInCPU->trackCandidateType_buf, trackCandidatesBuffers->trackCandidateType_buf, nTrackLocal);
+        alpaka::wait(queue);
     }
     return trackCandidatesInCPU;
 }
 
-SDL::trackCandidates* SDL::Event::getTrackCandidatesInCMSSW()
+SDL::trackCandidatesBuffer<alpaka::DevCpu>* SDL::Event::getTrackCandidatesInCMSSW()
 {
     if(trackCandidatesInCPU == nullptr)
     {
-        trackCandidatesInCPU = new SDL::trackCandidates;
-        trackCandidatesInCPU->nTrackCandidates = new int;
-        cudaMemcpyAsync(trackCandidatesInCPU->nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
-        unsigned int nTrackCandidates = *(trackCandidatesInCPU->nTrackCandidates);
+        // Get nTrackLocal parameter to initialize host based trackCandidatesInCPU
+        auto nTrackLocal_buf = allocBufWrapper<int>(devHost, 1);
+        alpaka::memcpy(queue, nTrackLocal_buf, trackCandidatesBuffers->nTrackCandidates_buf, 1);
+        alpaka::wait(queue);
 
-        trackCandidatesInCPU->trackCandidateType = new short[nTrackCandidates];
-        trackCandidatesInCPU->hitIndices = new unsigned int[14 * nTrackCandidates];
-        trackCandidatesInCPU->pixelSeedIndex = new int[nTrackCandidates];
+        int nTrackLocal = *alpaka::getPtrNative(nTrackLocal_buf);
+        trackCandidatesInCPU = new SDL::trackCandidatesBuffer<alpaka::DevCpu>(N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES, devHost, queue);
+        trackCandidatesInCPU->setData(*trackCandidatesInCPU);
 
-        cudaMemcpyAsync(trackCandidatesInCPU->hitIndices, trackCandidatesInGPU->hitIndices, 14 * nTrackCandidates * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(trackCandidatesInCPU->pixelSeedIndex, trackCandidatesInGPU->pixelSeedIndex, nTrackCandidates * sizeof(int), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(trackCandidatesInCPU->trackCandidateType, trackCandidatesInGPU->trackCandidateType, nTrackCandidates * sizeof(short), cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
+        *alpaka::getPtrNative(trackCandidatesInCPU->nTrackCandidates_buf) = nTrackLocal;
+        alpaka::memcpy(queue, trackCandidatesInCPU->hitIndices_buf, trackCandidatesBuffers->hitIndices_buf, 14 * nTrackLocal);
+        alpaka::memcpy(queue, trackCandidatesInCPU->pixelSeedIndex_buf, trackCandidatesBuffers->pixelSeedIndex_buf, nTrackLocal);
+        alpaka::memcpy(queue, trackCandidatesInCPU->trackCandidateType_buf, trackCandidatesBuffers->trackCandidateType_buf, nTrackLocal);
+        alpaka::wait(queue);
     }
     return trackCandidatesInCPU;
 }

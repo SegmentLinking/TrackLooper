@@ -404,7 +404,7 @@ void SDL::LST::getOutput(SDL::Event& event) {
     std::vector<short> tc_trackCandidateType_;
 
     SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event.getHitsInCMSSW());
-    SDL::trackCandidates& trackCandidatesInGPU = (*event.getTrackCandidatesInCMSSW());
+    SDL::trackCandidatesBuffer<alpaka::DevCpu>& trackCandidatesInGPU = (*event.getTrackCandidatesInCMSSW());
 
     unsigned int nTrackCandidates = *trackCandidatesInGPU.nTrackCandidates;
     for (unsigned int idx = 0; idx < nTrackCandidates; idx++) {
