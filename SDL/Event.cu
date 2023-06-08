@@ -60,13 +60,11 @@ SDL::Event::~Event()
 {
 #ifdef CACHE_ALLOC
     if(mdsInGPU){mdsInGPU->freeMemoryCache();}
-    if(quintupletsInGPU){quintupletsInGPU->freeMemoryCache();}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemoryCache();}
 #else
     if(mdsInGPU){mdsInGPU->freeMemory(stream);}
-    if(quintupletsInGPU){quintupletsInGPU->freeMemory(stream);}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemory(stream);}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemory(stream);}
@@ -79,7 +77,7 @@ SDL::Event::~Event()
     if(hitsInGPU!= nullptr){delete hitsInGPU; delete hitsBuffers;}
     if(pixelTripletsInGPU!= nullptr){cms::cuda::free_host(pixelTripletsInGPU);}
     if(pixelQuintupletsInGPU!= nullptr){cms::cuda::free_host(pixelQuintupletsInGPU);}
-    if(quintupletsInGPU!= nullptr){cms::cuda::free_host(quintupletsInGPU);}
+    if(quintupletsInGPU!= nullptr){delete quintupletsInGPU; delete quintupletsBuffers;}
 
     if(hitsInCPU != nullptr)
     {
@@ -110,17 +108,6 @@ SDL::Event::~Event()
     }
     if(quintupletsInCPU != nullptr)
     {
-        delete[] quintupletsInCPU->tripletIndices;
-        delete[] quintupletsInCPU->nQuintuplets;
-        delete[] quintupletsInCPU->totOccupancyQuintuplets;
-        delete[] quintupletsInCPU->lowerModuleIndices;
-        delete[] quintupletsInCPU->innerRadius;
-        delete[] quintupletsInCPU->outerRadius;
-        delete[] quintupletsInCPU->regressionRadius;
-        delete[] quintupletsInCPU->bridgeRadius;
-        delete[] quintupletsInCPU->chiSquared;
-        delete[] quintupletsInCPU->rzChiSquared;
-        delete[] quintupletsInCPU->nonAnchorChiSquared;
         delete quintupletsInCPU;
     }
 
@@ -209,12 +196,10 @@ void SDL::Event::resetEvent()
 {
 #ifdef CACHE_ALLOC
     if(mdsInGPU){mdsInGPU->freeMemoryCache();}
-    if(quintupletsInGPU){quintupletsInGPU->freeMemoryCache();}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
     if(trackCandidatesInGPU){trackCandidatesInGPU->freeMemoryCache();}
 #else
-    if(quintupletsInGPU){quintupletsInGPU->freeMemory(stream);}
     if(mdsInGPU){mdsInGPU->freeMemory(stream);}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemory(stream);}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
@@ -249,7 +234,7 @@ void SDL::Event::resetEvent()
       segmentsInGPU = nullptr;}
     if(tripletsInGPU){delete tripletsInGPU; delete tripletsBuffers;
       tripletsInGPU = nullptr;}
-    if(quintupletsInGPU){cms::cuda::free_host(quintupletsInGPU);
+    if(quintupletsInGPU){delete quintupletsInGPU; delete quintupletsBuffers;
       quintupletsInGPU = nullptr;}
     if(trackCandidatesInGPU){cms::cuda::free_host(trackCandidatesInGPU);
       trackCandidatesInGPU = nullptr;}
@@ -288,17 +273,6 @@ void SDL::Event::resetEvent()
     }
     if(quintupletsInCPU != nullptr)
     {
-        delete[] quintupletsInCPU->tripletIndices;
-        delete[] quintupletsInCPU->nQuintuplets;
-        delete[] quintupletsInCPU->totOccupancyQuintuplets;
-        delete[] quintupletsInCPU->lowerModuleIndices;
-        delete[] quintupletsInCPU->innerRadius;
-        delete[] quintupletsInCPU->outerRadius;
-        delete[] quintupletsInCPU->regressionRadius;
-        delete[] quintupletsInCPU->bridgeRadius;
-        delete[] quintupletsInCPU->chiSquared;
-        delete[] quintupletsInCPU->rzChiSquared;
-        delete[] quintupletsInCPU->nonAnchorChiSquared;
         delete quintupletsInCPU;
         quintupletsInCPU = nullptr;
     }
@@ -1226,8 +1200,10 @@ void SDL::Event::createQuintuplets()
 
     if(quintupletsInGPU == nullptr)
     {
-        quintupletsInGPU = (SDL::quintuplets*)cms::cuda::allocate_host(sizeof(SDL::quintuplets), stream);
-        createQuintupletsInExplicitMemory(*quintupletsInGPU, nTotalQuintuplets, nLowerModules, nEligibleT5Modules,stream);
+        quintupletsInGPU = new SDL::quintuplets();
+        quintupletsBuffers = new SDL::quintupletsBuffer<Acc>(nTotalQuintuplets, nLowerModules, devAcc, queue);
+        quintupletsInGPU->setData(*quintupletsBuffers);
+
         cudaMemcpyAsync(quintupletsInGPU->nMemoryLocations, &nTotalQuintuplets, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
         cudaStreamSynchronize(stream);
     }
@@ -1914,51 +1890,35 @@ SDL::tripletsBuffer<alpaka::DevCpu>* SDL::Event::getTriplets()
     return tripletsInCPU;
 }
 
-SDL::quintuplets* SDL::Event::getQuintuplets()
+SDL::quintupletsBuffer<alpaka::DevCpu>* SDL::Event::getQuintuplets()
 {
     if(quintupletsInCPU == nullptr)
     {
-        quintupletsInCPU = new SDL::quintuplets;
-        uint16_t nEligibleT5Modules;
-        cudaMemcpyAsync(&nEligibleT5Modules, rangesInGPU->nEligibleT5Modules, sizeof(uint16_t), cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
-        unsigned int nMemoryLocations;
-        cudaMemcpyAsync(&nMemoryLocations, quintupletsInGPU->nMemoryLocations, sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaStreamSynchronize(stream);
+        // Get nMemoryLocations parameter to initilize host based quintupletsInCPU
+        auto nMemLocal_buf = allocBufWrapper<unsigned int>(devHost, 1);
+        alpaka::memcpy(queue, nMemLocal_buf, quintupletsBuffers->nMemoryLocations_buf, 1);
+        alpaka::wait(queue);
 
-        quintupletsInCPU->nQuintuplets = new int[nLowerModules];
-        quintupletsInCPU->totOccupancyQuintuplets = new int[nLowerModules];
-        quintupletsInCPU->tripletIndices = new unsigned int[2 * nMemoryLocations];
-        quintupletsInCPU->lowerModuleIndices = new uint16_t[5 * nMemoryLocations];
-        quintupletsInCPU->innerRadius = new FPX[nMemoryLocations];
-        quintupletsInCPU->outerRadius = new FPX[nMemoryLocations];
-        quintupletsInCPU->bridgeRadius = new FPX[nMemoryLocations];
+        unsigned int nMemLocal = *alpaka::getPtrNative(nMemLocal_buf);
+        quintupletsInCPU = new SDL::quintupletsBuffer<alpaka::DevCpu>(nMemLocal, nLowerModules, devHost, queue);
+        quintupletsInCPU->setData(*quintupletsInCPU);
 
-        quintupletsInCPU->isDup = new bool[nMemoryLocations];
-        quintupletsInCPU->score_rphisum = new FPX[nMemoryLocations];
-        quintupletsInCPU->eta = new FPX[nMemoryLocations];
-        quintupletsInCPU->phi = new FPX[nMemoryLocations];
-
-        quintupletsInCPU->chiSquared = new float[nMemoryLocations];
-        quintupletsInCPU->nonAnchorChiSquared = new float[nMemoryLocations];
-        quintupletsInCPU->rzChiSquared = new float[nMemoryLocations];
-
-        cudaMemcpyAsync(quintupletsInCPU->nQuintuplets, quintupletsInGPU->nQuintuplets,  nLowerModules * sizeof(int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(quintupletsInCPU->totOccupancyQuintuplets, quintupletsInGPU->totOccupancyQuintuplets,  nLowerModules * sizeof(int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(quintupletsInCPU->tripletIndices, quintupletsInGPU->tripletIndices, 2 * nMemoryLocations * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(quintupletsInCPU->lowerModuleIndices, quintupletsInGPU->lowerModuleIndices, 5 * nMemoryLocations * sizeof(uint16_t), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(quintupletsInCPU->innerRadius, quintupletsInGPU->innerRadius, nMemoryLocations * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(quintupletsInCPU->bridgeRadius, quintupletsInGPU->bridgeRadius, nMemoryLocations * sizeof(FPX), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(quintupletsInCPU->outerRadius, quintupletsInGPU->outerRadius, nMemoryLocations * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(quintupletsInCPU->isDup, quintupletsInGPU->isDup, nMemoryLocations * sizeof(bool), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(quintupletsInCPU->score_rphisum, quintupletsInGPU->score_rphisum, nMemoryLocations * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(quintupletsInCPU->eta, quintupletsInGPU->eta, nMemoryLocations * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(quintupletsInCPU->phi, quintupletsInGPU->phi, nMemoryLocations * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(quintupletsInCPU->chiSquared, quintupletsInGPU->chiSquared, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(quintupletsInCPU->rzChiSquared, quintupletsInGPU->rzChiSquared, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(quintupletsInCPU->nonAnchorChiSquared, quintupletsInGPU->nonAnchorChiSquared, nMemoryLocations * sizeof(float), cudaMemcpyDeviceToHost, stream);
-
-        cudaStreamSynchronize(stream);
+        *alpaka::getPtrNative(quintupletsInCPU->nMemoryLocations_buf) = nMemLocal;
+        alpaka::memcpy(queue, quintupletsInCPU->nQuintuplets_buf, quintupletsBuffers->nQuintuplets_buf, nLowerModules);
+        alpaka::memcpy(queue, quintupletsInCPU->totOccupancyQuintuplets_buf, quintupletsBuffers->totOccupancyQuintuplets_buf, nLowerModules);
+        alpaka::memcpy(queue, quintupletsInCPU->tripletIndices_buf, quintupletsBuffers->tripletIndices_buf, 2 * nMemLocal);
+        alpaka::memcpy(queue, quintupletsInCPU->lowerModuleIndices_buf, quintupletsBuffers->lowerModuleIndices_buf, 5 * nMemLocal);
+        alpaka::memcpy(queue, quintupletsInCPU->innerRadius_buf, quintupletsBuffers->innerRadius_buf, nMemLocal);
+        alpaka::memcpy(queue, quintupletsInCPU->bridgeRadius_buf, quintupletsBuffers->bridgeRadius_buf, nMemLocal);
+        alpaka::memcpy(queue, quintupletsInCPU->outerRadius_buf, quintupletsBuffers->outerRadius_buf, nMemLocal);
+        alpaka::memcpy(queue, quintupletsInCPU->isDup_buf, quintupletsBuffers->isDup_buf, nMemLocal);
+        alpaka::memcpy(queue, quintupletsInCPU->score_rphisum_buf, quintupletsBuffers->score_rphisum_buf, nMemLocal);
+        alpaka::memcpy(queue, quintupletsInCPU->eta_buf, quintupletsBuffers->eta_buf, nMemLocal);
+        alpaka::memcpy(queue, quintupletsInCPU->phi_buf, quintupletsBuffers->phi_buf, nMemLocal);
+        alpaka::memcpy(queue, quintupletsInCPU->chiSquared_buf, quintupletsBuffers->chiSquared_buf, nMemLocal);
+        alpaka::memcpy(queue, quintupletsInCPU->rzChiSquared_buf, quintupletsBuffers->rzChiSquared_buf, nMemLocal);
+        alpaka::memcpy(queue, quintupletsInCPU->nonAnchorChiSquared_buf, quintupletsBuffers->nonAnchorChiSquared_buf, nMemLocal);
+        alpaka::wait(queue);
     }
     return quintupletsInCPU;
 }

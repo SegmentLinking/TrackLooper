@@ -42,13 +42,105 @@ namespace SDL
         float* chiSquared;
         float* nonAnchorChiSquared;
 
-        quintuplets();
-        ~quintuplets();
-        void freeMemory(cudaStream_t stream);
-        void freeMemoryCache();
+        template<typename TBuff>
+        void setData(TBuff& quintupletsbuf)
+        {
+            tripletIndices = alpaka::getPtrNative(quintupletsbuf.tripletIndices_buf);
+            lowerModuleIndices = alpaka::getPtrNative(quintupletsbuf.lowerModuleIndices_buf);
+            nQuintuplets = alpaka::getPtrNative(quintupletsbuf.nQuintuplets_buf);
+            totOccupancyQuintuplets = alpaka::getPtrNative(quintupletsbuf.totOccupancyQuintuplets_buf);
+            nMemoryLocations = alpaka::getPtrNative(quintupletsbuf.nMemoryLocations_buf);
+            innerRadius = alpaka::getPtrNative(quintupletsbuf.innerRadius_buf);
+            bridgeRadius = alpaka::getPtrNative(quintupletsbuf.bridgeRadius_buf);
+            outerRadius = alpaka::getPtrNative(quintupletsbuf.outerRadius_buf);
+            pt = alpaka::getPtrNative(quintupletsbuf.pt_buf);
+            eta = alpaka::getPtrNative(quintupletsbuf.eta_buf);
+            phi = alpaka::getPtrNative(quintupletsbuf.phi_buf);
+            score_rphisum = alpaka::getPtrNative(quintupletsbuf.score_rphisum_buf);
+            layer = alpaka::getPtrNative(quintupletsbuf.layer_buf);
+            isDup = alpaka::getPtrNative(quintupletsbuf.isDup_buf);
+            TightCutFlag = alpaka::getPtrNative(quintupletsbuf.TightCutFlag_buf);
+            partOfPT5 = alpaka::getPtrNative(quintupletsbuf.partOfPT5_buf);
+            regressionRadius = alpaka::getPtrNative(quintupletsbuf.regressionRadius_buf);
+            regressionG = alpaka::getPtrNative(quintupletsbuf.regressionG_buf);
+            regressionF = alpaka::getPtrNative(quintupletsbuf.regressionF_buf);
+            logicalLayers = alpaka::getPtrNative(quintupletsbuf.logicalLayers_buf);
+            hitIndices = alpaka::getPtrNative(quintupletsbuf.hitIndices_buf);
+            rzChiSquared = alpaka::getPtrNative(quintupletsbuf.rzChiSquared_buf);
+            chiSquared = alpaka::getPtrNative(quintupletsbuf.chiSquared_buf);
+            nonAnchorChiSquared = alpaka::getPtrNative(quintupletsbuf.nonAnchorChiSquared_buf);
+        }
     };
 
-    void createQuintupletsInExplicitMemory(struct SDL::quintuplets& quintupletsInGPU, const unsigned int& maxQuintuplets, const uint16_t& nLowerModules, const uint16_t& nEligibleModules,cudaStream_t stream);
+    template<typename TAcc>
+    struct quintupletsBuffer : quintuplets
+    {
+        Buf<TAcc, unsigned int> tripletIndices_buf;
+        Buf<TAcc, uint16_t> lowerModuleIndices_buf;
+        Buf<TAcc, int> nQuintuplets_buf;
+        Buf<TAcc, int> totOccupancyQuintuplets_buf;
+        Buf<TAcc, unsigned int> nMemoryLocations_buf;
+
+        Buf<TAcc, FPX> innerRadius_buf;
+        Buf<TAcc, FPX> bridgeRadius_buf;
+        Buf<TAcc, FPX> outerRadius_buf;
+        Buf<TAcc, FPX> pt_buf;
+        Buf<TAcc, FPX> eta_buf;
+        Buf<TAcc, FPX> phi_buf;
+        Buf<TAcc, FPX> score_rphisum_buf;
+        Buf<TAcc, uint8_t> layer_buf;
+        Buf<TAcc, bool> isDup_buf;
+        Buf<TAcc, bool> TightCutFlag_buf;
+        Buf<TAcc, bool> partOfPT5_buf;
+
+        Buf<TAcc, float> regressionRadius_buf;
+        Buf<TAcc, float> regressionG_buf;
+        Buf<TAcc, float> regressionF_buf;
+
+        Buf<TAcc, uint8_t> logicalLayers_buf;
+        Buf<TAcc, unsigned int> hitIndices_buf;
+        Buf<TAcc, float> rzChiSquared_buf;
+        Buf<TAcc, float> chiSquared_buf;
+        Buf<TAcc, float> nonAnchorChiSquared_buf;
+
+        template<typename TQueue, typename TDevAcc>
+        quintupletsBuffer(unsigned int nTotalQuintuplets,
+                          unsigned int nLowerModules,
+                          TDevAcc const & devAccIn,
+                          TQueue& queue) :
+            tripletIndices_buf(allocBufWrapper<unsigned int>(devAccIn, 2 * nTotalQuintuplets)),
+            lowerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, 5 * nTotalQuintuplets)),
+            nQuintuplets_buf(allocBufWrapper<int>(devAccIn, nLowerModules)),
+            totOccupancyQuintuplets_buf(allocBufWrapper<int>(devAccIn, nLowerModules)),
+            nMemoryLocations_buf(allocBufWrapper<unsigned int>(devAccIn, 1)),
+            innerRadius_buf(allocBufWrapper<FPX>(devAccIn, nTotalQuintuplets)),
+            bridgeRadius_buf(allocBufWrapper<FPX>(devAccIn, nTotalQuintuplets)),
+            outerRadius_buf(allocBufWrapper<FPX>(devAccIn, nTotalQuintuplets)),
+            pt_buf(allocBufWrapper<FPX>(devAccIn, nTotalQuintuplets)),
+            eta_buf(allocBufWrapper<FPX>(devAccIn, nTotalQuintuplets)),
+            phi_buf(allocBufWrapper<FPX>(devAccIn, nTotalQuintuplets)),
+            score_rphisum_buf(allocBufWrapper<FPX>(devAccIn, nTotalQuintuplets)),
+            layer_buf(allocBufWrapper<uint8_t>(devAccIn, nTotalQuintuplets)),
+            isDup_buf(allocBufWrapper<bool>(devAccIn, nTotalQuintuplets)),
+            TightCutFlag_buf(allocBufWrapper<bool>(devAccIn, nTotalQuintuplets)),
+            partOfPT5_buf(allocBufWrapper<bool>(devAccIn, nTotalQuintuplets)),
+            regressionRadius_buf(allocBufWrapper<float>(devAccIn, nTotalQuintuplets)),
+            regressionG_buf(allocBufWrapper<float>(devAccIn, nTotalQuintuplets)),
+            regressionF_buf(allocBufWrapper<float>(devAccIn, nTotalQuintuplets)),
+            logicalLayers_buf(allocBufWrapper<uint8_t>(devAccIn, 5 * nTotalQuintuplets)),
+            hitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, 10 * nTotalQuintuplets)),
+            rzChiSquared_buf(allocBufWrapper<float>(devAccIn, nTotalQuintuplets)),
+            chiSquared_buf(allocBufWrapper<float>(devAccIn, nTotalQuintuplets)),
+            nonAnchorChiSquared_buf(allocBufWrapper<float>(devAccIn, nTotalQuintuplets))
+        {
+            alpaka::memset(queue, nQuintuplets_buf, 0, nLowerModules);
+            alpaka::memset(queue, totOccupancyQuintuplets_buf, 0, nLowerModules);
+            alpaka::memset(queue, isDup_buf, 0, nTotalQuintuplets);
+            alpaka::memset(queue, TightCutFlag_buf, 0, nTotalQuintuplets);
+            alpaka::memset(queue, partOfPT5_buf, 0, nTotalQuintuplets);
+            alpaka::wait(queue);
+        }
+    };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE bool checkIntervalOverlap(const float& firstMin, const float& firstMax, const float& secondMin, const float& secondMax)
     {

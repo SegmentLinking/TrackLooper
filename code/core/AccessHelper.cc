@@ -162,7 +162,7 @@ std::tuple<std::vector<unsigned int>, std::vector<unsigned int>> getHitIdxsAndHi
 //____________________________________________________________________________________________
 std::vector<unsigned int> getT3sFromT5(SDL::Event* event, unsigned int T5)
 {
-    SDL::quintuplets& quintuplets_ = *(event->getQuintuplets());
+    SDL::quintupletsBuffer<alpaka::DevCpu>& quintuplets_ = *(event->getQuintuplets());
     unsigned int T3_1 = quintuplets_.tripletIndices[2 * T5];
     unsigned int T3_2 = quintuplets_.tripletIndices[2 * T5 + 1];
     return {T3_1, T3_2};

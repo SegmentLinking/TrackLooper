@@ -49,6 +49,7 @@ namespace SDL
         struct triplets* tripletsInGPU;
         struct tripletsBuffer<Acc>* tripletsBuffers;
         struct quintuplets* quintupletsInGPU;
+        struct quintupletsBuffer<Acc>* quintupletsBuffers;
         struct trackCandidates* trackCandidatesInGPU;
         struct pixelTriplets* pixelTripletsInGPU;
         struct pixelQuintuplets* pixelQuintupletsInGPU;
@@ -62,7 +63,7 @@ namespace SDL
         trackCandidates* trackCandidatesInCPU;
         modules* modulesInCPU;
         modules* modulesInCPUFull;
-        quintuplets* quintupletsInCPU;
+        quintupletsBuffer<alpaka::DevCpu>* quintupletsInCPU;
         pixelTriplets* pixelTripletsInCPU;
         pixelQuintuplets* pixelQuintupletsInCPU;
 
@@ -139,7 +140,7 @@ namespace SDL
         miniDoublets* getMiniDoublets();
         segmentsBuffer<alpaka::DevCpu>* getSegments() ;
         tripletsBuffer<alpaka::DevCpu>* getTriplets();
-        quintuplets* getQuintuplets();
+        quintupletsBuffer<alpaka::DevCpu>* getQuintuplets();
         trackCandidates* getTrackCandidates();
         trackCandidates* getTrackCandidatesInCMSSW();
         pixelTriplets* getPixelTriplets();
