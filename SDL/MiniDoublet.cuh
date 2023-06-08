@@ -29,7 +29,6 @@ namespace SDL
         float* noShiftedDphis; //if shifted module
         float* noShiftedDphiChanges; //if shifted module
 
-        //hit stuff
         float* anchorX;
         float* anchorY;
         float* anchorZ;
@@ -52,20 +51,138 @@ namespace SDL
         float* outerLowEdgeX;
         float* outerLowEdgeY;
 
-#ifdef CUT_VALUE_DEBUG
-        //CUT VALUES
-        float* dzCuts;
-        float* drtCuts;
-        float* drts;
-        float* miniCuts;
-#endif
-        miniDoublets();
-        ~miniDoublets();
-      	void freeMemory(cudaStream_t stream);
-      	void freeMemoryCache();
+        template<typename TBuf>
+        void setData(TBuf& mdsbuf)
+        {
+            nMemoryLocations = alpaka::getPtrNative(mdsbuf.nMemoryLocations_buf);
+            anchorHitIndices = alpaka::getPtrNative(mdsbuf.anchorHitIndices_buf);
+            outerHitIndices = alpaka::getPtrNative(mdsbuf.outerHitIndices_buf);
+            moduleIndices = alpaka::getPtrNative(mdsbuf.moduleIndices_buf);
+            nMDs = alpaka::getPtrNative(mdsbuf.nMDs_buf);
+            totOccupancyMDs = alpaka::getPtrNative(mdsbuf.totOccupancyMDs_buf);
+            dphichanges = alpaka::getPtrNative(mdsbuf.dphichanges_buf);
+            dzs = alpaka::getPtrNative(mdsbuf.dzs_buf);
+            dphis = alpaka::getPtrNative(mdsbuf.dphis_buf);
+            shiftedXs = alpaka::getPtrNative(mdsbuf.shiftedXs_buf);
+            shiftedYs = alpaka::getPtrNative(mdsbuf.shiftedYs_buf);
+            shiftedZs = alpaka::getPtrNative(mdsbuf.shiftedZs_buf);
+            noShiftedDzs = alpaka::getPtrNative(mdsbuf.noShiftedDzs_buf);
+            noShiftedDphis = alpaka::getPtrNative(mdsbuf.noShiftedDphis_buf);
+            noShiftedDphiChanges = alpaka::getPtrNative(mdsbuf.noShiftedDphiChanges_buf);
+            anchorX = alpaka::getPtrNative(mdsbuf.anchorX_buf);
+            anchorY = alpaka::getPtrNative(mdsbuf.anchorY_buf);
+            anchorZ = alpaka::getPtrNative(mdsbuf.anchorZ_buf);
+            anchorRt = alpaka::getPtrNative(mdsbuf.anchorRt_buf);
+            anchorPhi = alpaka::getPtrNative(mdsbuf.anchorPhi_buf);
+            anchorEta = alpaka::getPtrNative(mdsbuf.anchorEta_buf);
+            anchorHighEdgeX = alpaka::getPtrNative(mdsbuf.anchorHighEdgeX_buf);
+            anchorHighEdgeY = alpaka::getPtrNative(mdsbuf.anchorHighEdgeY_buf);
+            anchorLowEdgeX = alpaka::getPtrNative(mdsbuf.anchorLowEdgeX_buf);
+            anchorLowEdgeY = alpaka::getPtrNative(mdsbuf.anchorLowEdgeY_buf);
+            outerX = alpaka::getPtrNative(mdsbuf.outerX_buf);
+            outerY = alpaka::getPtrNative(mdsbuf.outerY_buf);
+            outerZ = alpaka::getPtrNative(mdsbuf.outerZ_buf);
+            outerRt = alpaka::getPtrNative(mdsbuf.outerRt_buf);
+            outerPhi = alpaka::getPtrNative(mdsbuf.outerPhi_buf);
+            outerEta = alpaka::getPtrNative(mdsbuf.outerEta_buf);
+            outerHighEdgeX = alpaka::getPtrNative(mdsbuf.outerHighEdgeX_buf);
+            outerHighEdgeY = alpaka::getPtrNative(mdsbuf.outerHighEdgeY_buf);
+            outerLowEdgeX = alpaka::getPtrNative(mdsbuf.outerLowEdgeX_buf);
+            outerLowEdgeY = alpaka::getPtrNative(mdsbuf.outerLowEdgeY_buf);
+        }
     };
 
-    void createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int maxMDs,uint16_t nLowerModules, unsigned int maxPixelMDs,cudaStream_t stream);
+    template<typename TAcc>
+    struct miniDoubletsBuffer : miniDoublets
+    {
+        Buf<TAcc, unsigned int> nMemoryLocations_buf;
+
+        Buf<TAcc, unsigned int> anchorHitIndices_buf;
+        Buf<TAcc, unsigned int> outerHitIndices_buf;
+        Buf<TAcc, uint16_t> moduleIndices_buf;
+        Buf<TAcc, int> nMDs_buf;
+        Buf<TAcc, int> totOccupancyMDs_buf;
+        Buf<TAcc, float> dphichanges_buf;
+
+        Buf<TAcc, float> dzs_buf;
+        Buf<TAcc, float> dphis_buf;
+
+        Buf<TAcc, float> shiftedXs_buf;
+        Buf<TAcc, float> shiftedYs_buf;
+        Buf<TAcc, float> shiftedZs_buf;
+        Buf<TAcc, float> noShiftedDzs_buf;
+        Buf<TAcc, float> noShiftedDphis_buf;
+        Buf<TAcc, float> noShiftedDphiChanges_buf;
+
+        Buf<TAcc, float> anchorX_buf;
+        Buf<TAcc, float> anchorY_buf;
+        Buf<TAcc, float> anchorZ_buf;
+        Buf<TAcc, float> anchorRt_buf;
+        Buf<TAcc, float> anchorPhi_buf;
+        Buf<TAcc, float> anchorEta_buf;
+        Buf<TAcc, float> anchorHighEdgeX_buf;
+        Buf<TAcc, float> anchorHighEdgeY_buf;
+        Buf<TAcc, float> anchorLowEdgeX_buf;
+        Buf<TAcc, float> anchorLowEdgeY_buf;
+
+        Buf<TAcc, float> outerX_buf;
+        Buf<TAcc, float> outerY_buf;
+        Buf<TAcc, float> outerZ_buf;
+        Buf<TAcc, float> outerRt_buf;
+        Buf<TAcc, float> outerPhi_buf;
+        Buf<TAcc, float> outerEta_buf;
+        Buf<TAcc, float> outerHighEdgeX_buf;
+        Buf<TAcc, float> outerHighEdgeY_buf;
+        Buf<TAcc, float> outerLowEdgeX_buf;
+        Buf<TAcc, float> outerLowEdgeY_buf;
+
+        template<typename TQueue, typename TDevAcc>
+        miniDoubletsBuffer(unsigned int nMemoryLocations,
+                           uint16_t nLowerModules,
+                           unsigned int maxPixelMDs,
+                           TDevAcc const & devAccIn,
+                           TQueue& queue) :
+            nMemoryLocations_buf(allocBufWrapper<unsigned int>(devAccIn, 1)),
+            anchorHitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, nMemoryLocations)),
+            outerHitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, nMemoryLocations)),
+            moduleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, nMemoryLocations)),
+            nMDs_buf(allocBufWrapper<int>(devAccIn, nLowerModules+1)),
+            totOccupancyMDs_buf(allocBufWrapper<int>(devAccIn, nLowerModules+1)),
+            dphichanges_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            dzs_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            dphis_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            shiftedXs_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            shiftedYs_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            shiftedZs_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            noShiftedDzs_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            noShiftedDphis_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            noShiftedDphiChanges_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            anchorX_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            anchorY_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            anchorZ_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            anchorRt_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            anchorPhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            anchorEta_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            anchorHighEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            anchorHighEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            anchorLowEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            anchorLowEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            outerX_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            outerY_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            outerZ_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            outerRt_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            outerPhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            outerEta_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
+            outerHighEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations * 4)),
+            outerHighEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations * 4)),
+            outerLowEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations * 4)),
+            outerLowEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations * 4))
+        {
+            alpaka::memset(queue, nMDs_buf, 0, nLowerModules+1);
+            alpaka::memset(queue, totOccupancyMDs_buf, 0, nLowerModules+1);
+            alpaka::wait(queue);
+        }
+    };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE void addMDToMemory(struct miniDoublets& mdsInGPU, struct SDL::hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
     {

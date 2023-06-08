@@ -59,16 +59,14 @@ SDL::Event::Event(cudaStream_t estream, bool verbose): queue(alpaka::getDevByIdx
 SDL::Event::~Event()
 {
 #ifdef CACHE_ALLOC
-    if(mdsInGPU){mdsInGPU->freeMemoryCache();}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
 #else
-    if(mdsInGPU){mdsInGPU->freeMemory(stream);}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemory(stream);}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
 #endif
     if(rangesInGPU != nullptr){delete rangesInGPU; delete rangesBuffers;}
-    if(mdsInGPU != nullptr){cms::cuda::free_host(mdsInGPU);}
+    if(mdsInGPU != nullptr){delete mdsInGPU; delete miniDoubletsBuffers;}
     if(segmentsInGPU != nullptr){delete segmentsInGPU; delete segmentsBuffers;}
     if(tripletsInGPU!= nullptr){delete tripletsInGPU; delete tripletsBuffers;}
     if(trackCandidatesInGPU!= nullptr){delete trackCandidatesInGPU; delete trackCandidatesBuffers;}
@@ -85,21 +83,14 @@ SDL::Event::~Event()
     {
         delete rangesInCPU;
     }
-
     if(mdsInCPU != nullptr)
     {
-        delete[] mdsInCPU->anchorHitIndices;
-        delete[] mdsInCPU->nMDs;
-        delete mdsInCPU->nMemoryLocations;
-        delete[] mdsInCPU->totOccupancyMDs;
         delete mdsInCPU;
     }
-
     if(segmentsInCPU != nullptr)
     {
         delete segmentsInCPU;
     }
-
     if(tripletsInCPU != nullptr)
     {
         delete tripletsInCPU;
@@ -108,7 +99,6 @@ SDL::Event::~Event()
     {
         delete quintupletsInCPU;
     }
-
     if(pixelTripletsInCPU != nullptr)
     {
         delete[] pixelTripletsInCPU->tripletIndices;
@@ -122,7 +112,6 @@ SDL::Event::~Event()
         delete[] pixelTripletsInCPU->rPhiChiSquaredInwards;
         delete pixelTripletsInCPU;
     }
-
     if(pixelQuintupletsInCPU != nullptr)
     {
         delete[] pixelQuintupletsInCPU->pixelIndices;
@@ -136,12 +125,10 @@ SDL::Event::~Event()
         delete[] pixelQuintupletsInCPU->rPhiChiSquaredInwards;
         delete pixelQuintupletsInCPU;
     }
-
     if(trackCandidatesInCPU != nullptr)
     {
         delete trackCandidatesInCPU;
     }
-
     if(modulesInCPU != nullptr)
     {
         delete[] modulesInCPU->nLowerModules;
@@ -177,8 +164,6 @@ SDL::Event::~Event()
         delete[] modulesInCPUFull->r;
         delete[] modulesInCPUFull->isInverted;
         delete[] modulesInCPUFull->isLower;
-
-
         delete[] modulesInCPUFull->moduleType;
         delete[] modulesInCPUFull->moduleLayerType;
         delete[] modulesInCPUFull;
@@ -188,11 +173,9 @@ SDL::Event::~Event()
 void SDL::Event::resetEvent()
 {
 #ifdef CACHE_ALLOC
-    if(mdsInGPU){mdsInGPU->freeMemoryCache();}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
 #else
-    if(mdsInGPU){mdsInGPU->freeMemory(stream);}
     if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemory(stream);}
     if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
 #endif
@@ -217,7 +200,7 @@ void SDL::Event::resetEvent()
     }
     if(hitsInGPU){delete hitsInGPU; delete hitsBuffers;
       hitsInGPU = nullptr;}
-    if(mdsInGPU){cms::cuda::free_host(mdsInGPU);
+    if(mdsInGPU){delete mdsInGPU; delete miniDoubletsBuffers;
       mdsInGPU = nullptr;}
     if(rangesInGPU){delete rangesInGPU; delete rangesBuffers;
       rangesInGPU = nullptr;}
@@ -246,9 +229,6 @@ void SDL::Event::resetEvent()
     }
     if(mdsInCPU != nullptr)
     {
-        delete[] mdsInCPU->anchorHitIndices;
-        delete[] mdsInCPU->nMDs;
-        delete[] mdsInCPU->totOccupancyMDs;
         delete mdsInCPU;
         mdsInCPU = nullptr;
     }
@@ -445,7 +425,6 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
 
     if(mdsInGPU == nullptr)
     {
-        mdsInGPU = (SDL::miniDoublets*)cms::cuda::allocate_host(sizeof(SDL::miniDoublets), stream);
         unsigned int nTotalMDs;
         cudaMemsetAsync(&rangesInGPU->miniDoubletModuleOccupancy[nLowerModules],N_MAX_PIXEL_MD_PER_MODULES, sizeof(unsigned int),stream);
 
@@ -465,9 +444,11 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
 
         cudaMemcpyAsync(&nTotalMDs,rangesInGPU->device_nTotalMDs,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
         cudaStreamSynchronize(stream);
-        nTotalMDs+= N_MAX_PIXEL_MD_PER_MODULES;
+        nTotalMDs += N_MAX_PIXEL_MD_PER_MODULES;
 
-        createMDsInExplicitMemory(*mdsInGPU, nTotalMDs, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES,stream);
+        mdsInGPU = new SDL::miniDoublets();
+        miniDoubletsBuffers = new SDL::miniDoubletsBuffer<Acc>(nTotalMDs, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES, devAcc, queue);
+        mdsInGPU->setData(*miniDoubletsBuffers);
 
         cudaMemcpyAsync(mdsInGPU->nMemoryLocations, &nTotalMDs, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
         cudaStreamSynchronize(stream);
@@ -661,11 +642,10 @@ void SDL::Event::createMiniDoublets()
 
     if(mdsInGPU == nullptr)
     {
-        mdsInGPU = (SDL::miniDoublets*)cms::cuda::allocate_host(sizeof(SDL::miniDoublets), stream);
-        //FIXME: Add memory locations for pixel MDs
-        createMDsInExplicitMemory(*mdsInGPU, nTotalMDs, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES, stream);
+        mdsInGPU = new SDL::miniDoublets();
+        miniDoubletsBuffers = new SDL::miniDoubletsBuffer<Acc>(nTotalMDs, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES, devAcc, queue);
+        mdsInGPU->setData(*miniDoubletsBuffers);
     }
-    cudaStreamSynchronize(stream);
 
     int maxThreadsPerModule=0;
     int* module_hitRanges;
@@ -912,7 +892,6 @@ void SDL::Event::createTrackCandidates()
         *pixelQuintupletsInGPU));
 
     alpaka::enqueue(queue, crossCleanpT3Task);
-    alpaka::wait(queue);
 
     //adding objects
     Vec const threadsPerBlock_addpT3asTrackCandidatesInGPU(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(512));
@@ -930,7 +909,6 @@ void SDL::Event::createTrackCandidates()
         *rangesInGPU));
 
     alpaka::enqueue(queue, addpT3asTrackCandidatesInGPUTask);
-    alpaka::wait(queue);
 
     Vec const threadsPerBlockRemoveDupQuints(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(32));
     Vec const blocksPerGridRemoveDupQuints(static_cast<Idx>(1), static_cast<Idx>(max(nEligibleModules/16,1)), static_cast<Idx>(max(nEligibleModules/32,1)));
@@ -944,7 +922,6 @@ void SDL::Event::createTrackCandidates()
         *rangesInGPU));
 
     alpaka::enqueue(queue, removeDupQuintupletsInGPUBeforeTCTask);
-    alpaka::wait(queue);
 
     Vec const threadsPerBlock_crossCleanT5(static_cast<Idx>(32), static_cast<Idx>(1), static_cast<Idx>(32));
     Vec const blocksPerGrid_crossCleanT5(static_cast<Idx>((13296/32) + 1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
@@ -961,7 +938,6 @@ void SDL::Event::createTrackCandidates()
         *rangesInGPU));
 
     alpaka::enqueue(queue, crossCleanT5Task);
-    alpaka::wait(queue);
 
     Vec const threadsPerBlock_addT5asTrackCandidateInGPU(static_cast<Idx>(1), static_cast<Idx>(8), static_cast<Idx>(128));
     Vec const blocksPerGrid_addT5asTrackCandidateInGPU(static_cast<Idx>(1), static_cast<Idx>(8), static_cast<Idx>(10));
@@ -977,7 +953,6 @@ void SDL::Event::createTrackCandidates()
         *rangesInGPU));
 
     alpaka::enqueue(queue, addT5asTrackCandidateInGPUTask);
-    alpaka::wait(queue);
 
     Vec const threadsPerBlockCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
     Vec const blocksPerGridCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS*4), static_cast<Idx>(MAX_BLOCKS/4));
@@ -992,7 +967,6 @@ void SDL::Event::createTrackCandidates()
         true));
 
     alpaka::enqueue(queue, checkHitspLSTask);
-    alpaka::wait(queue);
 
     Vec const threadsPerBlock_crossCleanpLS(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(32));
     Vec const blocksPerGrid_crossCleanpLS(static_cast<Idx>(1), static_cast<Idx>(4), static_cast<Idx>(20));
@@ -1012,7 +986,6 @@ void SDL::Event::createTrackCandidates()
         *quintupletsInGPU));
 
     alpaka::enqueue(queue, crossCleanpLSTask);
-    alpaka::wait(queue);
 
     Vec const threadsPerBlock_addpLSasTrackCandidateInGPU(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(384));
     Vec const blocksPerGrid_addpLSasTrackCandidateInGPU(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
@@ -1778,28 +1751,26 @@ SDL::objectRangesBuffer<alpaka::DevCpu>* SDL::Event::getRanges()
     return rangesInCPU;
 }
 
-SDL::miniDoublets* SDL::Event::getMiniDoublets()
+SDL::miniDoubletsBuffer<alpaka::DevCpu>* SDL::Event::getMiniDoublets()
 {
     if(mdsInCPU == nullptr)
     {
-        mdsInCPU = new SDL::miniDoublets;
-        mdsInCPU->nMDs = new int[nLowerModules+1];
+        // Get nMemoryLocations parameter to initialize host based mdsInCPU
+        auto nMemLocal_buf = allocBufWrapper<unsigned int>(devHost, 1);
+        alpaka::memcpy(queue, nMemLocal_buf, miniDoubletsBuffers->nMemoryLocations_buf, 1);
+        alpaka::wait(queue);
 
-        //compute memory locations
-        mdsInCPU->nMemoryLocations = new unsigned int;
-        cudaMemcpyAsync(mdsInCPU->nMemoryLocations, mdsInGPU->nMemoryLocations, sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-        cudaStreamSynchronize(stream);
-        mdsInCPU->totOccupancyMDs = new int[nLowerModules+1];
+        unsigned int nMemLocal = *alpaka::getPtrNative(nMemLocal_buf);
+        mdsInCPU = new SDL::miniDoubletsBuffer<alpaka::DevCpu>(nMemLocal, nLowerModules, N_MAX_PIXEL_MD_PER_MODULES, devHost, queue);
+        mdsInCPU->setData(*mdsInCPU);
 
-        mdsInCPU->anchorHitIndices = new unsigned int[*(mdsInCPU->nMemoryLocations)];
-        mdsInCPU->outerHitIndices = new unsigned int[*(mdsInCPU->nMemoryLocations)];
-        mdsInCPU->dphichanges = new float[*(mdsInCPU->nMemoryLocations)];
-        cudaMemcpyAsync(mdsInCPU->anchorHitIndices, mdsInGPU->anchorHitIndices, *(mdsInCPU->nMemoryLocations) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(mdsInCPU->outerHitIndices, mdsInGPU->outerHitIndices, *(mdsInCPU->nMemoryLocations) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(mdsInCPU->dphichanges, mdsInGPU->dphichanges, *(mdsInCPU->nMemoryLocations) * sizeof(float), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(mdsInCPU->nMDs, mdsInGPU->nMDs, (nLowerModules+1) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(mdsInCPU->totOccupancyMDs, mdsInGPU->totOccupancyMDs, (nLowerModules+1) * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
+        *alpaka::getPtrNative(mdsInCPU->nMemoryLocations_buf) = nMemLocal;
+        alpaka::memcpy(queue, mdsInCPU->anchorHitIndices_buf, miniDoubletsBuffers->anchorHitIndices_buf, nMemLocal);
+        alpaka::memcpy(queue, mdsInCPU->outerHitIndices_buf, miniDoubletsBuffers->outerHitIndices_buf, nMemLocal);
+        alpaka::memcpy(queue, mdsInCPU->dphichanges_buf, miniDoubletsBuffers->dphichanges_buf, nMemLocal);
+        alpaka::memcpy(queue, mdsInCPU->nMDs_buf, miniDoubletsBuffers->nMDs_buf, (nLowerModules+1));
+        alpaka::memcpy(queue, mdsInCPU->totOccupancyMDs_buf, miniDoubletsBuffers->totOccupancyMDs_buf, (nLowerModules+1));
+        alpaka::wait(queue);
     }
     return mdsInCPU;
 }
