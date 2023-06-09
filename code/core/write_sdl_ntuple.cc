@@ -305,7 +305,7 @@ void setOptionalOutputBranches(SDL::Event* event)
 void setPixelQuintupletOutputBranches(SDL::Event* event)
 {
     // ============ pT5 =============
-    SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
+    SDL::pixelQuintupletsBuffer<alpaka::DevCpu>& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
     SDL::quintupletsBuffer<alpaka::DevCpu>& quintupletsInGPU = (*event->getQuintuplets());
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
     SDL::modules& modulesInGPU = (*event->getModules());
@@ -473,7 +473,7 @@ void setQuintupletOutputBranches(SDL::Event* event)
 //________________________________________________________________________________________________________________________________
 void setPixelTripletOutputBranches(SDL::Event* event)
 {
-    SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
+    SDL::pixelTripletsBuffer<alpaka::DevCpu>& pixelTripletsInGPU = (*event->getPixelTriplets());
     SDL::tripletsBuffer<alpaka::DevCpu>& tripletsInGPU = *(event->getTriplets());
     SDL::modules& modulesInGPU = *(event->getModules());
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = *(event->getSegments());
