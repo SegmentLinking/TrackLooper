@@ -54,7 +54,9 @@ namespace SDL
         struct trackCandidates* trackCandidatesInGPU;
         struct trackCandidatesBuffer<Acc>* trackCandidatesBuffers;
         struct pixelTriplets* pixelTripletsInGPU;
+        struct pixelTripletsBuffer<Acc>* pixelTripletsBuffers;
         struct pixelQuintuplets* pixelQuintupletsInGPU;
+        struct pixelQuintupletsBuffer<Acc>* pixelQuintupletsBuffers;
 
         //CPU interface stuff
         objectRangesBuffer<alpaka::DevCpu>* rangesInCPU;
@@ -66,8 +68,8 @@ namespace SDL
         modules* modulesInCPU;
         modules* modulesInCPUFull;
         quintupletsBuffer<alpaka::DevCpu>* quintupletsInCPU;
-        pixelTriplets* pixelTripletsInCPU;
-        pixelQuintuplets* pixelQuintupletsInCPU;
+        pixelTripletsBuffer<alpaka::DevCpu>* pixelTripletsInCPU;
+        pixelQuintupletsBuffer<alpaka::DevCpu>* pixelQuintupletsInCPU;
 
         int* superbinCPU;
         int8_t* pixelTypeCPU;
@@ -145,10 +147,10 @@ namespace SDL
         quintupletsBuffer<alpaka::DevCpu>* getQuintuplets();
         trackCandidatesBuffer<alpaka::DevCpu>* getTrackCandidates();
         trackCandidatesBuffer<alpaka::DevCpu>* getTrackCandidatesInCMSSW();
-        pixelTriplets* getPixelTriplets();
+        pixelTripletsBuffer<alpaka::DevCpu>* getPixelTriplets();
+        pixelQuintupletsBuffer<alpaka::DevCpu>* getPixelQuintuplets();
         modules* getModules();
         modules* getFullModules();
-        pixelQuintuplets* getPixelQuintuplets();
     };
 
     //global stuff

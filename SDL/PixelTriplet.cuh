@@ -11,12 +11,13 @@
 
 namespace SDL
 {
-    struct pixelTriplets //one pixel segment, one outer tracker triplet!
+    // One pixel segment, one outer tracker triplet!
+    struct pixelTriplets
     {
         unsigned int* pixelSegmentIndices;         
         unsigned int* tripletIndices;
-        int* nPixelTriplets; //size 1
-        int* totOccupancyPixelTriplets; //size 1
+        int* nPixelTriplets;
+        int* totOccupancyPixelTriplets;
 
         float* pixelRadiusError;
         float* rPhiChiSquared;
@@ -40,13 +41,96 @@ namespace SDL
         FPX* centerX;
         FPX* centerY;
 
-        pixelTriplets();
-        ~pixelTriplets();
-        void freeMemory(cudaStream_t stream);
-        void freeMemoryCache();
+        template<typename TBuff>
+        void setData(TBuff& pixelTripletsBuffer)
+        {
+            pixelSegmentIndices = alpaka::getPtrNative(pixelTripletsBuffer.pixelSegmentIndices_buf);
+            tripletIndices = alpaka::getPtrNative(pixelTripletsBuffer.tripletIndices_buf);
+            nPixelTriplets = alpaka::getPtrNative(pixelTripletsBuffer.nPixelTriplets_buf);
+            totOccupancyPixelTriplets = alpaka::getPtrNative(pixelTripletsBuffer.totOccupancyPixelTriplets_buf);
+            pixelRadius = alpaka::getPtrNative(pixelTripletsBuffer.pixelRadius_buf);
+            tripletRadius = alpaka::getPtrNative(pixelTripletsBuffer.tripletRadius_buf);
+            pt = alpaka::getPtrNative(pixelTripletsBuffer.pt_buf);
+            eta = alpaka::getPtrNative(pixelTripletsBuffer.eta_buf);
+            phi = alpaka::getPtrNative(pixelTripletsBuffer.phi_buf);
+            eta_pix = alpaka::getPtrNative(pixelTripletsBuffer.eta_pix_buf);
+            phi_pix = alpaka::getPtrNative(pixelTripletsBuffer.phi_pix_buf);
+            score = alpaka::getPtrNative(pixelTripletsBuffer.score_buf);
+            isDup = alpaka::getPtrNative(pixelTripletsBuffer.isDup_buf);
+            partOfPT5 = alpaka::getPtrNative(pixelTripletsBuffer.partOfPT5_buf);
+            logicalLayers = alpaka::getPtrNative(pixelTripletsBuffer.logicalLayers_buf);
+            hitIndices = alpaka::getPtrNative(pixelTripletsBuffer.hitIndices_buf);
+            lowerModuleIndices = alpaka::getPtrNative(pixelTripletsBuffer.lowerModuleIndices_buf);
+            centerX = alpaka::getPtrNative(pixelTripletsBuffer.centerX_buf);
+            centerY = alpaka::getPtrNative(pixelTripletsBuffer.centerY_buf);
+            pixelRadiusError = alpaka::getPtrNative(pixelTripletsBuffer.pixelRadiusError_buf);
+            rPhiChiSquared = alpaka::getPtrNative(pixelTripletsBuffer.rPhiChiSquared_buf);
+            rPhiChiSquaredInwards = alpaka::getPtrNative(pixelTripletsBuffer.rPhiChiSquaredInwards_buf);
+            rzChiSquared = alpaka::getPtrNative(pixelTripletsBuffer.rzChiSquared_buf);
+        }
     };
 
-    void createPixelTripletsInExplicitMemory(struct pixelTriplets& pixelTripletsinGPU, unsigned int maxPixelTriplets, cudaStream_t stream);
+    template<typename TAcc>
+    struct pixelTripletsBuffer : pixelTriplets
+    {
+        Buf<TAcc, unsigned int> pixelSegmentIndices_buf;
+        Buf<TAcc, unsigned int> tripletIndices_buf;
+        Buf<TAcc, int> nPixelTriplets_buf;
+        Buf<TAcc, int> totOccupancyPixelTriplets_buf;
+        Buf<TAcc, FPX> pixelRadius_buf;
+        Buf<TAcc, FPX> tripletRadius_buf;
+        Buf<TAcc, FPX> pt_buf;
+        Buf<TAcc, FPX> eta_buf;
+        Buf<TAcc, FPX> phi_buf;
+        Buf<TAcc, FPX> eta_pix_buf;
+        Buf<TAcc, FPX> phi_pix_buf;
+        Buf<TAcc, FPX> score_buf;
+        Buf<TAcc, bool> isDup_buf;
+        Buf<TAcc, bool> partOfPT5_buf;
+        Buf<TAcc, uint8_t> logicalLayers_buf;
+        Buf<TAcc, unsigned int> hitIndices_buf;
+        Buf<TAcc, uint16_t> lowerModuleIndices_buf;
+        Buf<TAcc, FPX> centerX_buf;
+        Buf<TAcc, FPX> centerY_buf;
+        Buf<TAcc, float> pixelRadiusError_buf;
+        Buf<TAcc, float> rPhiChiSquared_buf;
+        Buf<TAcc, float> rPhiChiSquaredInwards_buf;
+        Buf<TAcc, float> rzChiSquared_buf;
+
+        template<typename TQueue, typename TDevAcc>
+        pixelTripletsBuffer(unsigned int maxPixelTriplets,
+                            TDevAcc const & devAccIn,
+                            TQueue& queue) :
+            pixelSegmentIndices_buf(allocBufWrapper<unsigned int>(devAccIn, maxPixelTriplets)),
+            tripletIndices_buf(allocBufWrapper<unsigned int>(devAccIn, maxPixelTriplets)),
+            nPixelTriplets_buf(allocBufWrapper<int>(devAccIn, 1)),
+            totOccupancyPixelTriplets_buf(allocBufWrapper<int>(devAccIn, 1)),
+            pixelRadius_buf(allocBufWrapper<FPX>(devAccIn, maxPixelTriplets)),
+            tripletRadius_buf(allocBufWrapper<FPX>(devAccIn, maxPixelTriplets)),
+            pt_buf(allocBufWrapper<FPX>(devAccIn, maxPixelTriplets)),
+            eta_buf(allocBufWrapper<FPX>(devAccIn, maxPixelTriplets)),
+            phi_buf(allocBufWrapper<FPX>(devAccIn, maxPixelTriplets)),
+            eta_pix_buf(allocBufWrapper<FPX>(devAccIn, maxPixelTriplets)),
+            phi_pix_buf(allocBufWrapper<FPX>(devAccIn, maxPixelTriplets)),
+            score_buf(allocBufWrapper<FPX>(devAccIn, maxPixelTriplets)),
+            isDup_buf(allocBufWrapper<bool>(devAccIn, maxPixelTriplets)),
+            partOfPT5_buf(allocBufWrapper<bool>(devAccIn, maxPixelTriplets)),
+            logicalLayers_buf(allocBufWrapper<uint8_t>(devAccIn, maxPixelTriplets*5)),
+            hitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, maxPixelTriplets*10)),
+            lowerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, maxPixelTriplets*5)),
+            centerX_buf(allocBufWrapper<FPX>(devAccIn, maxPixelTriplets)),
+            centerY_buf(allocBufWrapper<FPX>(devAccIn, maxPixelTriplets)),
+            pixelRadiusError_buf(allocBufWrapper<float>(devAccIn, maxPixelTriplets)),
+            rPhiChiSquared_buf(allocBufWrapper<float>(devAccIn, maxPixelTriplets)),
+            rPhiChiSquaredInwards_buf(allocBufWrapper<float>(devAccIn, maxPixelTriplets)),
+            rzChiSquared_buf(allocBufWrapper<float>(devAccIn, maxPixelTriplets))
+        {
+            alpaka::memset(queue, nPixelTriplets_buf, 0, 1);
+            alpaka::memset(queue, totOccupancyPixelTriplets_buf, 0, 1);
+            alpaka::memset(queue, partOfPT5_buf, 0, maxPixelTriplets);
+            alpaka::wait(queue);
+        }
+    };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE void addPixelTripletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct triplets& tripletsInGPU, struct pixelTriplets& pixelTripletsInGPU, unsigned int pixelSegmentIndex, unsigned int tripletIndex, float pixelRadius, float tripletRadius, float centerX, float centerY, float rPhiChiSquared, float rPhiChiSquaredInwards, float rzChiSquared, unsigned int pixelTripletIndex, float pt, float eta, float phi, float eta_pix, float phi_pix,float score)
     {
@@ -1376,14 +1460,80 @@ namespace SDL
         float* rPhiChiSquared;
         float* rPhiChiSquaredInwards;
 
-        pixelQuintuplets();
-        ~pixelQuintuplets();
-        void freeMemory(cudaStream_t stream);
-        void freeMemoryCache();
-
+        template<typename TBuff>
+        void setData(TBuff& pixelQuintupletsBuffer)
+        {
+            pixelIndices = alpaka::getPtrNative(pixelQuintupletsBuffer.pixelIndices_buf);
+            T5Indices = alpaka::getPtrNative(pixelQuintupletsBuffer.T5Indices_buf);
+            nPixelQuintuplets = alpaka::getPtrNative(pixelQuintupletsBuffer.nPixelQuintuplets_buf);
+            totOccupancyPixelQuintuplets = alpaka::getPtrNative(pixelQuintupletsBuffer.totOccupancyPixelQuintuplets_buf);
+            isDup = alpaka::getPtrNative(pixelQuintupletsBuffer.isDup_buf);
+            score = alpaka::getPtrNative(pixelQuintupletsBuffer.score_buf);
+            eta = alpaka::getPtrNative(pixelQuintupletsBuffer.eta_buf);
+            phi = alpaka::getPtrNative(pixelQuintupletsBuffer.phi_buf);
+            logicalLayers = alpaka::getPtrNative(pixelQuintupletsBuffer.logicalLayers_buf);
+            hitIndices = alpaka::getPtrNative(pixelQuintupletsBuffer.hitIndices_buf);
+            lowerModuleIndices = alpaka::getPtrNative(pixelQuintupletsBuffer.lowerModuleIndices_buf);
+            pixelRadius = alpaka::getPtrNative(pixelQuintupletsBuffer.pixelRadius_buf);
+            quintupletRadius = alpaka::getPtrNative(pixelQuintupletsBuffer.quintupletRadius_buf);
+            centerX = alpaka::getPtrNative(pixelQuintupletsBuffer.centerX_buf);
+            centerY = alpaka::getPtrNative(pixelQuintupletsBuffer.centerY_buf);
+            rzChiSquared = alpaka::getPtrNative(pixelQuintupletsBuffer.rzChiSquared_buf);
+            rPhiChiSquared = alpaka::getPtrNative(pixelQuintupletsBuffer.rPhiChiSquared_buf);
+            rPhiChiSquaredInwards = alpaka::getPtrNative(pixelQuintupletsBuffer.rPhiChiSquaredInwards_buf);
+        }
     };
 
-    void createPixelQuintupletsInExplicitMemory(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU, unsigned int maxPixelQuintuplets, cudaStream_t stream);
+    template<typename TAcc>
+    struct pixelQuintupletsBuffer : pixelQuintuplets
+    {
+        Buf<TAcc, unsigned int> pixelIndices_buf;
+        Buf<TAcc, unsigned int> T5Indices_buf;
+        Buf<TAcc, int> nPixelQuintuplets_buf;
+        Buf<TAcc, int> totOccupancyPixelQuintuplets_buf;
+        Buf<TAcc, bool> isDup_buf;
+        Buf<TAcc, FPX> score_buf;
+        Buf<TAcc, FPX> eta_buf;
+        Buf<TAcc, FPX> phi_buf;
+        Buf<TAcc, uint8_t> logicalLayers_buf;
+        Buf<TAcc, unsigned int> hitIndices_buf;
+        Buf<TAcc, uint16_t> lowerModuleIndices_buf;
+        Buf<TAcc, FPX> pixelRadius_buf;
+        Buf<TAcc, FPX> quintupletRadius_buf;
+        Buf<TAcc, FPX> centerX_buf;
+        Buf<TAcc, FPX> centerY_buf;
+        Buf<TAcc, float> rzChiSquared_buf;
+        Buf<TAcc, float> rPhiChiSquared_buf;
+        Buf<TAcc, float> rPhiChiSquaredInwards_buf;
+
+        template<typename TQueue, typename TDevAcc>
+        pixelQuintupletsBuffer(unsigned int maxPixelQuintuplets,
+                               TDevAcc const & devAccIn,
+                               TQueue& queue) :
+            pixelIndices_buf(allocBufWrapper<unsigned int>(devAccIn, maxPixelQuintuplets)),
+            T5Indices_buf(allocBufWrapper<unsigned int>(devAccIn, maxPixelQuintuplets)),
+            nPixelQuintuplets_buf(allocBufWrapper<int>(devAccIn, 1)),
+            totOccupancyPixelQuintuplets_buf(allocBufWrapper<int>(devAccIn, 1)),
+            isDup_buf(allocBufWrapper<bool>(devAccIn, maxPixelQuintuplets)),
+            score_buf(allocBufWrapper<FPX>(devAccIn, maxPixelQuintuplets)),
+            eta_buf(allocBufWrapper<FPX>(devAccIn, maxPixelQuintuplets)),
+            phi_buf(allocBufWrapper<FPX>(devAccIn, maxPixelQuintuplets)),
+            logicalLayers_buf(allocBufWrapper<uint8_t>(devAccIn, maxPixelQuintuplets*7)),
+            hitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, maxPixelQuintuplets*14)),
+            lowerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, maxPixelQuintuplets*7)),
+            pixelRadius_buf(allocBufWrapper<FPX>(devAccIn, maxPixelQuintuplets)),
+            quintupletRadius_buf(allocBufWrapper<FPX>(devAccIn, maxPixelQuintuplets)),
+            centerX_buf(allocBufWrapper<FPX>(devAccIn, maxPixelQuintuplets)),
+            centerY_buf(allocBufWrapper<FPX>(devAccIn, maxPixelQuintuplets)),
+            rzChiSquared_buf(allocBufWrapper<float>(devAccIn, maxPixelQuintuplets)),
+            rPhiChiSquared_buf(allocBufWrapper<float>(devAccIn, maxPixelQuintuplets)),
+            rPhiChiSquaredInwards_buf(allocBufWrapper<float>(devAccIn, maxPixelQuintuplets))
+        {
+            alpaka::memset(queue, nPixelQuintuplets_buf, 0, 1);
+            alpaka::memset(queue, totOccupancyPixelQuintuplets_buf, 0, 1);
+            alpaka::wait(queue);
+        }
+    };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE void addPixelQuintupletToMemory(struct modules& modulesInGPU, struct miniDoublets& mdsInGPU, struct segments& segmentsInGPU, struct quintuplets& quintupletsInGPU, struct pixelQuintuplets& pixelQuintupletsInGPU, unsigned int pixelIndex, unsigned int T5Index, unsigned int pixelQuintupletIndex, float& rzChiSquared, float& rPhiChiSquared, float& rPhiChiSquaredInwards, float score, float eta, float phi, float& pixelRadius, float& quintupletRadius, float& centerX, float& centerY)
     {

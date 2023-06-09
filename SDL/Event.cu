@@ -58,21 +58,14 @@ SDL::Event::Event(cudaStream_t estream, bool verbose): queue(alpaka::getDevByIdx
 
 SDL::Event::~Event()
 {
-#ifdef CACHE_ALLOC
-    if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
-    if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
-#else
-    if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemory(stream);}
-    if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
-#endif
     if(rangesInGPU != nullptr){delete rangesInGPU; delete rangesBuffers;}
     if(mdsInGPU != nullptr){delete mdsInGPU; delete miniDoubletsBuffers;}
     if(segmentsInGPU != nullptr){delete segmentsInGPU; delete segmentsBuffers;}
     if(tripletsInGPU!= nullptr){delete tripletsInGPU; delete tripletsBuffers;}
     if(trackCandidatesInGPU!= nullptr){delete trackCandidatesInGPU; delete trackCandidatesBuffers;}
     if(hitsInGPU!= nullptr){delete hitsInGPU; delete hitsBuffers;}
-    if(pixelTripletsInGPU!= nullptr){cms::cuda::free_host(pixelTripletsInGPU);}
-    if(pixelQuintupletsInGPU!= nullptr){cms::cuda::free_host(pixelQuintupletsInGPU);}
+    if(pixelTripletsInGPU!= nullptr){delete pixelTripletsInGPU; delete pixelTripletsBuffers;}
+    if(pixelQuintupletsInGPU!= nullptr){delete pixelQuintupletsInGPU; delete pixelQuintupletsBuffers;}
     if(quintupletsInGPU!= nullptr){delete quintupletsInGPU; delete quintupletsBuffers;}
 
     if(hitsInCPU != nullptr)
@@ -101,28 +94,10 @@ SDL::Event::~Event()
     }
     if(pixelTripletsInCPU != nullptr)
     {
-        delete[] pixelTripletsInCPU->tripletIndices;
-        delete[] pixelTripletsInCPU->pixelSegmentIndices;
-        delete[] pixelTripletsInCPU->pixelRadius;
-        delete[] pixelTripletsInCPU->tripletRadius;
-        delete pixelTripletsInCPU->nPixelTriplets;
-        delete pixelTripletsInCPU->totOccupancyPixelTriplets;
-        delete[] pixelTripletsInCPU->rzChiSquared;
-        delete[] pixelTripletsInCPU->rPhiChiSquared;
-        delete[] pixelTripletsInCPU->rPhiChiSquaredInwards;
         delete pixelTripletsInCPU;
     }
     if(pixelQuintupletsInCPU != nullptr)
     {
-        delete[] pixelQuintupletsInCPU->pixelIndices;
-        delete[] pixelQuintupletsInCPU->T5Indices;
-        delete[] pixelQuintupletsInCPU->isDup;
-        delete[] pixelQuintupletsInCPU->score;
-        delete pixelQuintupletsInCPU->nPixelQuintuplets;
-        delete pixelQuintupletsInCPU->totOccupancyPixelQuintuplets;
-        delete[] pixelQuintupletsInCPU->rzChiSquared;
-        delete[] pixelQuintupletsInCPU->rPhiChiSquared;
-        delete[] pixelQuintupletsInCPU->rPhiChiSquaredInwards;
         delete pixelQuintupletsInCPU;
     }
     if(trackCandidatesInCPU != nullptr)
@@ -172,13 +147,6 @@ SDL::Event::~Event()
 
 void SDL::Event::resetEvent()
 {
-#ifdef CACHE_ALLOC
-    if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemoryCache();}
-    if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemoryCache();}
-#else
-    if(pixelQuintupletsInGPU){pixelQuintupletsInGPU->freeMemory(stream);}
-    if(pixelTripletsInGPU){pixelTripletsInGPU->freeMemory(stream);}
-#endif
     //reset the arrays
     for(int i = 0; i<6; i++)
     {
@@ -212,9 +180,9 @@ void SDL::Event::resetEvent()
       quintupletsInGPU = nullptr;}
     if(trackCandidatesInGPU){delete trackCandidatesInGPU; delete trackCandidatesBuffers;
       trackCandidatesInGPU = nullptr;}
-    if(pixelTripletsInGPU){cms::cuda::free_host(pixelTripletsInGPU);
+    if(pixelTripletsInGPU){delete pixelTripletsInGPU; delete pixelTripletsBuffers;
       pixelTripletsInGPU = nullptr;}
-    if(pixelQuintupletsInGPU){cms::cuda::free_host(pixelQuintupletsInGPU);
+    if(pixelQuintupletsInGPU){delete pixelQuintupletsInGPU; delete pixelQuintupletsBuffers;
       pixelQuintupletsInGPU = nullptr;}
 
     if(hitsInCPU != nullptr)
@@ -249,29 +217,11 @@ void SDL::Event::resetEvent()
     }
     if(pixelTripletsInCPU != nullptr)
     {
-        delete[] pixelTripletsInCPU->tripletIndices;
-        delete[] pixelTripletsInCPU->pixelSegmentIndices;
-        delete[] pixelTripletsInCPU->pixelRadius;
-        delete[] pixelTripletsInCPU->tripletRadius;
-        delete pixelTripletsInCPU->nPixelTriplets;
-        delete pixelTripletsInCPU->totOccupancyPixelTriplets;
-        delete[] pixelTripletsInCPU->rzChiSquared;
-        delete[] pixelTripletsInCPU->rPhiChiSquared;
-        delete[] pixelTripletsInCPU->rPhiChiSquaredInwards;
         delete pixelTripletsInCPU;
         pixelTripletsInCPU = nullptr;
     }
     if(pixelQuintupletsInCPU != nullptr)
     {
-        delete[] pixelQuintupletsInCPU->pixelIndices;
-        delete[] pixelQuintupletsInCPU->T5Indices;
-        delete[] pixelQuintupletsInCPU->isDup;
-        delete[] pixelQuintupletsInCPU->score;
-        delete pixelQuintupletsInCPU->nPixelQuintuplets;
-        delete pixelQuintupletsInCPU->totOccupancyPixelQuintuplets;
-        delete[] pixelQuintupletsInCPU->rzChiSquared;
-        delete[] pixelQuintupletsInCPU->rPhiChiSquared;
-        delete[] pixelQuintupletsInCPU->rPhiChiSquaredInwards;
         delete pixelQuintupletsInCPU;
         pixelQuintupletsInCPU = nullptr;
     }
@@ -1007,10 +957,10 @@ void SDL::Event::createPixelTriplets()
 {
     if(pixelTripletsInGPU == nullptr)
     {
-        pixelTripletsInGPU = (SDL::pixelTriplets*)cms::cuda::allocate_host(sizeof(SDL::pixelTriplets), stream);
+        pixelTripletsInGPU = new SDL::pixelTriplets();
+        pixelTripletsBuffers = new SDL::pixelTripletsBuffer<Acc>(N_MAX_PIXEL_TRIPLETS, devAcc, queue);
+        pixelTripletsInGPU->setData(*pixelTripletsBuffers);
     }
-
-    createPixelTripletsInExplicitMemory(*pixelTripletsInGPU, N_MAX_PIXEL_TRIPLETS,stream);
 
     unsigned int pixelModuleIndex = nLowerModules;
     int* superbins;
@@ -1241,8 +1191,9 @@ void SDL::Event::createPixelQuintuplets()
 {
     if(pixelQuintupletsInGPU == nullptr)
     {
-        pixelQuintupletsInGPU = (SDL::pixelQuintuplets*)cms::cuda::allocate_host(sizeof(SDL::pixelQuintuplets), stream);
-        createPixelQuintupletsInExplicitMemory(*pixelQuintupletsInGPU, N_MAX_PIXEL_QUINTUPLETS,stream);
+        pixelQuintupletsInGPU = new SDL::pixelQuintuplets();
+        pixelQuintupletsBuffers = new SDL::pixelQuintupletsBuffer<Acc>(N_MAX_PIXEL_QUINTUPLETS, devAcc, queue);
+        pixelQuintupletsInGPU->setData(*pixelQuintupletsBuffers);
     }
     if(trackCandidatesInGPU == nullptr)
     {
@@ -1880,76 +1831,60 @@ SDL::quintupletsBuffer<alpaka::DevCpu>* SDL::Event::getQuintuplets()
     return quintupletsInCPU;
 }
 
-SDL::pixelTriplets* SDL::Event::getPixelTriplets()
+SDL::pixelTripletsBuffer<alpaka::DevCpu>* SDL::Event::getPixelTriplets()
 {
     if(pixelTripletsInCPU == nullptr)
     {
-        pixelTripletsInCPU = new SDL::pixelTriplets;
+        // Get nMemoryLocations parameter to initilize host based quintupletsInCPU
+        auto nPixelTriplets_buf = allocBufWrapper<int>(devHost, 1);
+        alpaka::memcpy(queue, nPixelTriplets_buf, pixelTripletsBuffers->nPixelTriplets_buf, 1);
+        alpaka::wait(queue);
 
-        pixelTripletsInCPU->nPixelTriplets = new int;
-        pixelTripletsInCPU->totOccupancyPixelTriplets = new int;
-        cudaMemcpyAsync(pixelTripletsInCPU->nPixelTriplets, pixelTripletsInGPU->nPixelTriplets, sizeof(int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(pixelTripletsInCPU->totOccupancyPixelTriplets, pixelTripletsInGPU->totOccupancyPixelTriplets, sizeof(int), cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
-        unsigned int nPixelTriplets = *(pixelTripletsInCPU->nPixelTriplets);
-        pixelTripletsInCPU->tripletIndices = new unsigned int[nPixelTriplets];
-        pixelTripletsInCPU->pixelSegmentIndices = new unsigned int[nPixelTriplets];
-        pixelTripletsInCPU->pixelRadius = new FPX[nPixelTriplets];
-        pixelTripletsInCPU->tripletRadius = new FPX[nPixelTriplets];
-        pixelTripletsInCPU->isDup = new bool[nPixelTriplets];
-        pixelTripletsInCPU->eta = new  FPX[nPixelTriplets];
-        pixelTripletsInCPU->phi = new  FPX[nPixelTriplets];
-        pixelTripletsInCPU->score =new FPX[nPixelTriplets];
-        pixelTripletsInCPU->rzChiSquared = new float[nPixelTriplets];
-        pixelTripletsInCPU->rPhiChiSquared = new float[nPixelTriplets];
-        pixelTripletsInCPU->rPhiChiSquaredInwards = new float[nPixelTriplets];
+        int nPixelTriplets = *alpaka::getPtrNative(nPixelTriplets_buf);
+        pixelTripletsInCPU = new SDL::pixelTripletsBuffer<alpaka::DevCpu>(nPixelTriplets, devHost, queue);
+        pixelTripletsInCPU->setData(*pixelTripletsInCPU);
 
-        cudaMemcpyAsync(pixelTripletsInCPU->rzChiSquared, pixelTripletsInGPU->rzChiSquared, nPixelTriplets * sizeof(float), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(pixelTripletsInCPU->rPhiChiSquared, pixelTripletsInGPU->rPhiChiSquared, nPixelTriplets * sizeof(float), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(pixelTripletsInCPU->rPhiChiSquaredInwards, pixelTripletsInGPU->rPhiChiSquaredInwards, nPixelTriplets * sizeof(float), cudaMemcpyDeviceToHost, stream);
-
-        cudaMemcpyAsync(pixelTripletsInCPU->tripletIndices, pixelTripletsInGPU->tripletIndices, nPixelTriplets * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(pixelTripletsInCPU->pixelSegmentIndices, pixelTripletsInGPU->pixelSegmentIndices, nPixelTriplets * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(pixelTripletsInCPU->pixelRadius, pixelTripletsInGPU->pixelRadius, nPixelTriplets * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(pixelTripletsInCPU->tripletRadius, pixelTripletsInGPU->tripletRadius, nPixelTriplets * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(pixelTripletsInCPU->isDup, pixelTripletsInGPU->isDup, nPixelTriplets * sizeof(bool), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(pixelTripletsInCPU->eta, pixelTripletsInGPU->eta, nPixelTriplets * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(pixelTripletsInCPU->phi, pixelTripletsInGPU->phi, nPixelTriplets * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(pixelTripletsInCPU->score, pixelTripletsInGPU->score, nPixelTriplets * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
+        *alpaka::getPtrNative(pixelTripletsInCPU->nPixelTriplets_buf) = nPixelTriplets;
+        alpaka::memcpy(queue, pixelTripletsInCPU->totOccupancyPixelTriplets_buf, pixelTripletsBuffers->totOccupancyPixelTriplets_buf, 1);
+        alpaka::memcpy(queue, pixelTripletsInCPU->rzChiSquared_buf, pixelTripletsBuffers->rzChiSquared_buf, nPixelTriplets);
+        alpaka::memcpy(queue, pixelTripletsInCPU->rPhiChiSquared_buf, pixelTripletsBuffers->rPhiChiSquared_buf, nPixelTriplets);
+        alpaka::memcpy(queue, pixelTripletsInCPU->rPhiChiSquaredInwards_buf, pixelTripletsBuffers->rPhiChiSquaredInwards_buf, nPixelTriplets);
+        alpaka::memcpy(queue, pixelTripletsInCPU->tripletIndices_buf, pixelTripletsBuffers->tripletIndices_buf, nPixelTriplets);
+        alpaka::memcpy(queue, pixelTripletsInCPU->pixelSegmentIndices_buf, pixelTripletsBuffers->pixelSegmentIndices_buf, nPixelTriplets);
+        alpaka::memcpy(queue, pixelTripletsInCPU->pixelRadius_buf, pixelTripletsBuffers->pixelRadius_buf, nPixelTriplets);
+        alpaka::memcpy(queue, pixelTripletsInCPU->tripletRadius_buf, pixelTripletsBuffers->tripletRadius_buf, nPixelTriplets);
+        alpaka::memcpy(queue, pixelTripletsInCPU->isDup_buf, pixelTripletsBuffers->isDup_buf, nPixelTriplets);
+        alpaka::memcpy(queue, pixelTripletsInCPU->eta_buf, pixelTripletsBuffers->eta_buf, nPixelTriplets);
+        alpaka::memcpy(queue, pixelTripletsInCPU->phi_buf, pixelTripletsBuffers->phi_buf, nPixelTriplets);
+        alpaka::memcpy(queue, pixelTripletsInCPU->score_buf, pixelTripletsBuffers->score_buf, nPixelTriplets);
+        alpaka::wait(queue);
     }
     return pixelTripletsInCPU;
 }
 
-SDL::pixelQuintuplets* SDL::Event::getPixelQuintuplets()
+SDL::pixelQuintupletsBuffer<alpaka::DevCpu>* SDL::Event::getPixelQuintuplets()
 {
     if(pixelQuintupletsInCPU == nullptr)
     {
-        pixelQuintupletsInCPU = new SDL::pixelQuintuplets;
+        // Get nMemoryLocations parameter to initilize host based quintupletsInCPU
+        auto nPixelQuintuplets_buf = allocBufWrapper<int>(devHost, 1);
+        alpaka::memcpy(queue, nPixelQuintuplets_buf, pixelQuintupletsBuffers->nPixelQuintuplets_buf, 1);
+        alpaka::wait(queue);
 
-        pixelQuintupletsInCPU->nPixelQuintuplets = new int;
-        pixelQuintupletsInCPU->totOccupancyPixelQuintuplets = new int;
-        cudaMemcpyAsync(pixelQuintupletsInCPU->nPixelQuintuplets, pixelQuintupletsInGPU->nPixelQuintuplets, sizeof(int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(pixelQuintupletsInCPU->totOccupancyPixelQuintuplets, pixelQuintupletsInGPU->totOccupancyPixelQuintuplets, sizeof(int), cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
-        int nPixelQuintuplets = *(pixelQuintupletsInCPU->nPixelQuintuplets);
+        int nPixelQuintuplets = *alpaka::getPtrNative(nPixelQuintuplets_buf);
+        pixelQuintupletsInCPU = new SDL::pixelQuintupletsBuffer<alpaka::DevCpu>(nPixelQuintuplets, devHost, queue);
+        pixelQuintupletsInCPU->setData(*pixelQuintupletsInCPU);
 
-        pixelQuintupletsInCPU->pixelIndices = new unsigned int[nPixelQuintuplets];
-        pixelQuintupletsInCPU->T5Indices = new unsigned int[nPixelQuintuplets];
-        pixelQuintupletsInCPU->isDup = new bool[nPixelQuintuplets];
-        pixelQuintupletsInCPU->score = new FPX[nPixelQuintuplets];
-        pixelQuintupletsInCPU->rzChiSquared = new float[nPixelQuintuplets];
-        pixelQuintupletsInCPU->rPhiChiSquared = new float[nPixelQuintuplets];
-        pixelQuintupletsInCPU->rPhiChiSquaredInwards = new float[nPixelQuintuplets];
-
-        cudaMemcpyAsync(pixelQuintupletsInCPU->rzChiSquared, pixelQuintupletsInGPU->rzChiSquared, nPixelQuintuplets * sizeof(float), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(pixelQuintupletsInCPU->rPhiChiSquared, pixelQuintupletsInGPU->rPhiChiSquared, nPixelQuintuplets * sizeof(float), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(pixelQuintupletsInCPU->rPhiChiSquaredInwards, pixelQuintupletsInGPU->rPhiChiSquaredInwards, nPixelQuintuplets * sizeof(float), cudaMemcpyDeviceToHost, stream);
-        cudaMemcpyAsync(pixelQuintupletsInCPU->pixelIndices, pixelQuintupletsInGPU->pixelIndices, nPixelQuintuplets * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(pixelQuintupletsInCPU->T5Indices, pixelQuintupletsInGPU->T5Indices, nPixelQuintuplets * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(pixelQuintupletsInCPU->isDup, pixelQuintupletsInGPU->isDup, nPixelQuintuplets * sizeof(bool), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(pixelQuintupletsInCPU->score, pixelQuintupletsInGPU->score, nPixelQuintuplets * sizeof(FPX), cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
+        *alpaka::getPtrNative(pixelQuintupletsInCPU->nPixelQuintuplets_buf) = nPixelQuintuplets;
+        alpaka::memcpy(queue, pixelQuintupletsInCPU->totOccupancyPixelQuintuplets_buf, pixelQuintupletsBuffers->totOccupancyPixelQuintuplets_buf, 1);
+        alpaka::memcpy(queue, pixelQuintupletsInCPU->rzChiSquared_buf, pixelQuintupletsBuffers->rzChiSquared_buf, nPixelQuintuplets);
+        alpaka::memcpy(queue, pixelQuintupletsInCPU->rPhiChiSquared_buf, pixelQuintupletsBuffers->rPhiChiSquared_buf, nPixelQuintuplets);
+        alpaka::memcpy(queue, pixelQuintupletsInCPU->rPhiChiSquaredInwards_buf, pixelQuintupletsBuffers->rPhiChiSquaredInwards_buf, nPixelQuintuplets);
+        alpaka::memcpy(queue, pixelQuintupletsInCPU->pixelIndices_buf, pixelQuintupletsBuffers->pixelIndices_buf, nPixelQuintuplets);
+        alpaka::memcpy(queue, pixelQuintupletsInCPU->T5Indices_buf, pixelQuintupletsBuffers->T5Indices_buf, nPixelQuintuplets);
+        alpaka::memcpy(queue, pixelQuintupletsInCPU->isDup_buf, pixelQuintupletsBuffers->isDup_buf, nPixelQuintuplets);
+        alpaka::memcpy(queue, pixelQuintupletsInCPU->score_buf, pixelQuintupletsBuffers->score_buf, nPixelQuintuplets);
+        alpaka::wait(queue);
     }
     return pixelQuintupletsInCPU;
 }
