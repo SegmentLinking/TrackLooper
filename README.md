@@ -28,13 +28,19 @@
 	sdl_make_tracklooper -mc # Code compilation
 
 ### Code running
-	srun --ntasks=1 --nodes=1 --cpus-per-task=1 --partition=gpu --time=0:04:00 --gres=gpu:1 --pty /bin/bash # Example for requesting resources
-	./bin/sdl -n <nevents> -v <verbose> -w <writeout> -s <streams> -i <dataset>
+	srun --ntasks=1 --nodes=1 --cpus-per-task=1 --partition=gpu --time=1:00:00 --gres=gpu:1 --pty /bin/bash # Example for requesting resources
+	sdl -n <nevents> -v <verbose> -w <writeout> -s <streams> -i <dataset>
 	-i: input sample; use PU200
 	-n: number of events; -1 for all events = 175
 	-v: 0-no printout; 1- timing printout only; 2- multiplicity printout
 	-s: number of streams/events in flight
 	-w: 0- no writout; 1- full ntuple writeout
+
+## Performance and validation
+- One quick easy to validate the code is to check the multiplicity of produced objects for a few events, e.g. for the 1st event:
+	sdl -i PU200 -n 1 -v 2
+- To check the timing, one can use the following command:
+	sdl_timing PU200 explicit_cache 100
 
 ## Useful links
 - Latest algorithm paper: https://arxiv.org/abs/2209.13711

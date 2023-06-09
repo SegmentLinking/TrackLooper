@@ -1,6 +1,7 @@
 #!/bin/bash
 
-module load cuda-11.0.2
+module load cuda-11.7.1
+module load cuda11.7/toolkit/11.7.1
 
 ###########################################################################################################
 # Setup environments

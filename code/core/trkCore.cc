@@ -1078,7 +1078,6 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
     std::cout << "   " << setw(6) << "pT3";
     std::cout << "   " << setw(6) << "TC";
     std::cout << "   " << setw(7) << "Total";
-    std::cout << "   " << setw(7) << "Total(short)";
     std::cout << std::endl;
     std::cout << setw(6) << "avg";
     std::cout << "   " << setw(6) << timing_sum_information[0]; // Hits
@@ -1091,8 +1090,6 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
     std::cout << "   " << setw(6) << timing_sum_information[7]; // pT3
     std::cout << "   " << setw(6) << timing_sum_information[8]; // TC
     std::cout << "   " << setw(7) << timing_total_avg;          // Average total time
-    std::cout << "   " << setw(7) << timing_totalshort_avg;     // Average total time
-    std::cout << "+/- " << setw(4) << stdDev;
     std::cout << "   " << setw(7) << fullavg; // Average full time
     std::cout << "   " << ana.compilation_target;
     std::cout << "[s=" << ana.streams << "]";
