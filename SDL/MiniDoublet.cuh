@@ -137,45 +137,45 @@ namespace SDL
         Buf<TAcc, float> outerLowEdgeY_buf;
 
         template<typename TQueue, typename TDevAcc>
-        miniDoubletsBuffer(unsigned int nMemoryLocations,
+        miniDoubletsBuffer(unsigned int nMemoryLoc,
                            uint16_t nLowerModules,
                            TDevAcc const & devAccIn,
                            TQueue& queue) :
             nMemoryLocations_buf(allocBufWrapper<unsigned int>(devAccIn, 1)),
-            anchorHitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, nMemoryLocations)),
-            outerHitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, nMemoryLocations)),
-            moduleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, nMemoryLocations)),
+            anchorHitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, nMemoryLoc)),
+            outerHitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, nMemoryLoc)),
+            moduleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, nMemoryLoc)),
             nMDs_buf(allocBufWrapper<int>(devAccIn, nLowerModules+1)),
             totOccupancyMDs_buf(allocBufWrapper<int>(devAccIn, nLowerModules+1)),
-            dphichanges_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            dzs_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            dphis_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            shiftedXs_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            shiftedYs_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            shiftedZs_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            noShiftedDzs_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            noShiftedDphis_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            noShiftedDphiChanges_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            anchorX_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            anchorY_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            anchorZ_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            anchorRt_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            anchorPhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            anchorEta_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            anchorHighEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            anchorHighEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            anchorLowEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            anchorLowEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            outerX_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            outerY_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            outerZ_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            outerRt_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            outerPhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            outerEta_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            outerHighEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            outerHighEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            outerLowEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations)),
-            outerLowEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLocations))
+            dphichanges_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            dzs_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            dphis_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            shiftedXs_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            shiftedYs_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            shiftedZs_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            noShiftedDzs_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            noShiftedDphis_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            noShiftedDphiChanges_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            anchorX_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            anchorY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            anchorZ_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            anchorRt_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            anchorPhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            anchorEta_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            anchorHighEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            anchorHighEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            anchorLowEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            anchorLowEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            outerX_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            outerY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            outerZ_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            outerRt_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            outerPhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            outerEta_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            outerHighEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            outerHighEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            outerLowEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc)),
+            outerLowEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc))
         {
             alpaka::memset(queue, nMDs_buf, 0, nLowerModules+1);
             alpaka::memset(queue, totOccupancyMDs_buf, 0, nLowerModules+1);
@@ -770,6 +770,7 @@ namespace SDL
 
     struct createMiniDoubletsInGPUv2
     {
+        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -843,6 +844,7 @@ namespace SDL
 
     struct createMDArrayRangesGPU
     {
+        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -912,6 +914,7 @@ namespace SDL
 
     struct addMiniDoubletRangesToEventExplicit
     {
+        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
