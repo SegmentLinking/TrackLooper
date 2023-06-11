@@ -102,6 +102,8 @@ const unsigned int N_MAX_TRACK_CANDIDATE_EXTENSIONS = 200000;
 const unsigned int N_MAX_TRACK_EXTENSIONS_PER_TC = 30;
 const unsigned int N_MAX_T3T3_TRACK_EXTENSIONS = 40000;
 
+const unsigned int size_superbins = 45000;
+
 namespace SDL
 {
     //defining the constant host device variables right up here

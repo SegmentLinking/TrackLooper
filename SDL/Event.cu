@@ -1,7 +1,7 @@
 #include "Event.cuh"
 
 struct SDL::modules* SDL::modulesInGPU = nullptr;
-struct SDL::pixelMap* SDL::pixelMapping = nullptr;
+std::unique_ptr<SDL::pixelMap> SDL::pixelMapping = std::make_unique<pixelMap>();
 uint16_t SDL::nModules;
 uint16_t SDL::nLowerModules;
 
@@ -279,18 +279,15 @@ void SDL::initModules(const char* moduleMetaDataFilePath)
     if(modulesInGPU == nullptr)
     {
         cudaMallocHost(&modulesInGPU, sizeof(struct SDL::modules));
-        cudaMallocHost(&pixelMapping, sizeof(struct SDL::pixelMap));
         //nModules gets filled here
         loadModulesFromFile(*modulesInGPU,nModules,nLowerModules, *pixelMapping, default_stream, moduleMetaDataFilePath);
-        cudaStreamSynchronize(default_stream);
     }
 }
 
 void SDL::cleanModules()
 {
-    freeModules(*modulesInGPU, *pixelMapping);
+    freeModules(*modulesInGPU);
     cudaFreeHost(modulesInGPU);
-    cudaFreeHost(pixelMapping);
 }
 
 void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple)
@@ -298,7 +295,7 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     // Use the actual number of hits instead of a max.
     const int nHits = x.size();
 
-    // Needed for the memcpy to hitsInGPU below.
+    // Needed for the memcpy to hitsInGPU below. Will be replaced with a View.
     auto nHits_buf = allocBufWrapper<unsigned int>(devHost, 1);
     *alpaka::getPtrNative(nHits_buf) = nHits;
 
@@ -375,7 +372,6 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
 
     if(mdsInGPU == nullptr)
     {
-        unsigned int nTotalMDs;
         cudaMemsetAsync(&rangesInGPU->miniDoubletModuleOccupancy[nLowerModules],N_MAX_PIXEL_MD_PER_MODULES, sizeof(unsigned int),stream);
 
         Vec const threadsPerBlockCreateMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
@@ -392,6 +388,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         alpaka::enqueue(queue, createMDArrayRangesGPUTask);
         alpaka::wait(queue);
 
+        unsigned int nTotalMDs;
         cudaMemcpyAsync(&nTotalMDs,rangesInGPU->device_nTotalMDs,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
         cudaStreamSynchronize(stream);
         nTotalMDs += N_MAX_PIXEL_MD_PER_MODULES;
@@ -527,6 +524,7 @@ void SDL::Event::addMiniDoubletsToEventExplicit()
 
         }
     }
+
     cms::cuda::free_host(nMDsCPU);
     cms::cuda::free_host(module_subdets);
     cms::cuda::free_host(module_layers);
@@ -561,6 +559,7 @@ void SDL::Event::addSegmentsToEventExplicit()
             }
         }
     }
+
     cms::cuda::free_host(nSegmentsCPU);
     cms::cuda::free_host(module_subdets);
     cms::cuda::free_host(module_layers);
@@ -568,8 +567,6 @@ void SDL::Event::addSegmentsToEventExplicit()
 
 void SDL::Event::createMiniDoublets()
 {
-    //hardcoded range numbers for this will come from studies!
-    unsigned int nTotalMDs;
     cudaMemsetAsync(&rangesInGPU->miniDoubletModuleOccupancy[nLowerModules],N_MAX_PIXEL_MD_PER_MODULES, sizeof(unsigned int),stream);
 
     Vec const threadsPerBlockCreateMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
@@ -586,9 +583,14 @@ void SDL::Event::createMiniDoublets()
     alpaka::enqueue(queue, createMDArrayRangesGPUTask);
     alpaka::wait(queue);
 
-    cudaMemcpyAsync(&nTotalMDs,rangesInGPU->device_nTotalMDs,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
-    nTotalMDs+=N_MAX_PIXEL_MD_PER_MODULES;
+    auto nTotalMDs_buf = allocBufWrapper<unsigned int>(devHost, 1);
+
+    alpaka::memcpy(queue, nTotalMDs_buf, rangesBuffers->device_nTotalMDs_buf, 1);
+    alpaka::wait(queue);
+
+    unsigned int nTotalMDs = *alpaka::getPtrNative(nTotalMDs_buf);
+
+    nTotalMDs += N_MAX_PIXEL_MD_PER_MODULES;
 
     if(mdsInGPU == nullptr)
     {
@@ -596,38 +598,6 @@ void SDL::Event::createMiniDoublets()
         miniDoubletsBuffers = new SDL::miniDoubletsBuffer<Acc>(nTotalMDs, nLowerModules, devAcc, queue);
         mdsInGPU->setData(*miniDoubletsBuffers);
     }
-
-    int maxThreadsPerModule=0;
-    int* module_hitRanges;
-    module_hitRanges = (int*)cms::cuda::allocate_host(nModules* 2*sizeof(int), stream);
-    cudaMemcpyAsync(module_hitRanges,hitsInGPU->hitRanges,nModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
-    bool* module_isLower;
-    module_isLower = (bool*)cms::cuda::allocate_host(nModules*sizeof(bool), stream);
-    cudaMemcpyAsync(module_isLower,modulesInGPU->isLower,nModules*sizeof(bool),cudaMemcpyDeviceToHost,stream);
-    bool* module_isInverted;
-    module_isInverted = (bool*)cms::cuda::allocate_host(nModules*sizeof(bool), stream);
-    cudaMemcpyAsync(module_isInverted,modulesInGPU->isInverted,nModules*sizeof(bool),cudaMemcpyDeviceToHost,stream);
-    int* module_partnerModuleIndices;
-    module_partnerModuleIndices = (int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
-    cudaMemcpyAsync(module_partnerModuleIndices, modulesInGPU->partnerModuleIndices, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost, stream);
-    cudaStreamSynchronize(stream);
-
-    for (uint16_t lowerModuleIndex=0; lowerModuleIndex<nLowerModules; lowerModuleIndex++) 
-    {
-        uint16_t upperModuleIndex = module_partnerModuleIndices[lowerModuleIndex];
-        int lowerHitRanges = module_hitRanges[lowerModuleIndex*2];
-        int upperHitRanges = module_hitRanges[upperModuleIndex*2];
-        if(lowerHitRanges!=-1 && upperHitRanges!=-1) 
-        {
-            int nLowerHits = module_hitRanges[lowerModuleIndex * 2 + 1] - lowerHitRanges + 1;
-            int nUpperHits = module_hitRanges[upperModuleIndex * 2 + 1] - upperHitRanges + 1;
-            maxThreadsPerModule = maxThreadsPerModule > (nLowerHits*nUpperHits) ? maxThreadsPerModule : nLowerHits*nUpperHits;
-        }
-    }
-    cms::cuda::free_host(module_hitRanges);
-    cms::cuda::free_host(module_partnerModuleIndices);
-    cms::cuda::free_host(module_isLower);
-    cms::cuda::free_host(module_isInverted);
 
     Vec const threadsPerBlockCreateMDInGPU(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(32));
     Vec const blocksPerGridCreateMDInGPU(static_cast<Idx>(1), static_cast<Idx>(nLowerModules/threadsPerBlock[1]), static_cast<Idx>(1));
@@ -715,8 +685,6 @@ void SDL::Event::createTriplets()
 {
     if(tripletsInGPU == nullptr)
     {
-        unsigned int maxTriplets;
-
         Vec const threadsPerBlockCreateTrip(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
         Vec const blocksPerGridCreateTrip(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
         WorkDiv const createTripletArrayRanges_workDiv(blocksPerGridCreateTrip, threadsPerBlockCreateTrip, elementsPerThread);
@@ -732,33 +700,43 @@ void SDL::Event::createTriplets()
         alpaka::enqueue(queue, createTripletArrayRangesTask);
         alpaka::wait(queue);
 
-        cudaMemcpyAsync(&maxTriplets,rangesInGPU->device_nTotalTrips,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
+        // TODO: Why are we pulling this back down only to put it back on the device in a new struct?
+        auto maxTriplets_buf = allocBufWrapper<unsigned int>(devHost, 1);
+
+        alpaka::memcpy(queue, maxTriplets_buf, rangesBuffers->device_nTotalTrips_buf, 1);
+        alpaka::wait(queue);
 
         tripletsInGPU = new SDL::triplets();
-        tripletsBuffers = new SDL::tripletsBuffer<Acc>(maxTriplets, nLowerModules, devAcc, queue);
+        tripletsBuffers = new SDL::tripletsBuffer<Acc>(*alpaka::getPtrNative(maxTriplets_buf), nLowerModules, devAcc, queue);
         tripletsInGPU->setData(*tripletsBuffers);
 
-        cudaMemcpyAsync(tripletsInGPU->nMemoryLocations, &maxTriplets, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
-        cudaStreamSynchronize(stream);
+        alpaka::memcpy(queue, tripletsBuffers->nMemoryLocations_buf, maxTriplets_buf, 1);
+        alpaka::wait(queue);
     }
 
-    //TODO:Move this also inside the ranges function
-    uint16_t nonZeroModules=0;
-    unsigned int max_InnerSeg=0;
-    uint16_t *index = (uint16_t*)malloc(nLowerModules*sizeof(unsigned int));
-    uint16_t *index_gpu;
-    index_gpu = (uint16_t*)cms::cuda::allocate_device(dev, nLowerModules*sizeof(uint16_t), stream);
-    unsigned int *nSegments = (unsigned int*)malloc(nLowerModules*sizeof(unsigned int));
-    cudaMemcpyAsync((void *)nSegments, segmentsInGPU->nSegments, nLowerModules*sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
+    uint16_t nonZeroModules = 0;
+    unsigned int max_InnerSeg = 0;
+    
+    // Allocate host index
+    auto index_buf = allocBufWrapper<uint16_t>(devHost, nLowerModules);
+    uint16_t *index = alpaka::getPtrNative(index_buf);
+    
+    // Allocate device index
+    auto index_gpu_buf = allocBufWrapper<uint16_t>(devAcc, nLowerModules);
+    
+    // Allocate and copy nSegments from device to host
+    auto nSegments_buf = allocBufWrapper<int>(devHost, nLowerModules);
+    alpaka::memcpy(queue, nSegments_buf, segmentsBuffers->nSegments_buf, nLowerModules);
+    alpaka::wait(queue);
 
+    int *nSegments = alpaka::getPtrNative(nSegments_buf);
+    
     uint16_t* module_nConnectedModules;
     module_nConnectedModules = (uint16_t*)cms::cuda::allocate_host(nLowerModules* sizeof(uint16_t), stream);
     cudaMemcpyAsync(module_nConnectedModules,modulesInGPU->nConnectedModules,nLowerModules*sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
     cudaStreamSynchronize(stream);
 
-    for (uint16_t innerLowerModuleIndex = 0; innerLowerModuleIndex <nLowerModules; innerLowerModuleIndex++)
+    for (uint16_t innerLowerModuleIndex = 0; innerLowerModuleIndex < nLowerModules; innerLowerModuleIndex++)
     {
         uint16_t nConnectedModules = module_nConnectedModules[innerLowerModuleIndex];
         unsigned int nInnerSegments = nSegments[innerLowerModuleIndex];
@@ -769,9 +747,12 @@ void SDL::Event::createTriplets()
         }
         max_InnerSeg = max(max_InnerSeg, nInnerSegments);
     }
+
+    // Copy index from host to device
+    alpaka::memcpy(queue, index_gpu_buf, index_buf, nonZeroModules);
+    alpaka::wait(queue);
+
     cms::cuda::free_host(module_nConnectedModules);
-    cudaMemcpyAsync(index_gpu, index, nonZeroModules*sizeof(uint16_t), cudaMemcpyHostToDevice,stream);
-    cudaStreamSynchronize(stream);
 
     Vec const threadsPerBlockCreateTrip(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
     Vec const blocksPerGridCreateTrip(static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1), static_cast<Idx>(1));
@@ -786,7 +767,7 @@ void SDL::Event::createTriplets()
         *segmentsInGPU,
         *tripletsInGPU,
         *rangesInGPU,
-        index_gpu,
+        alpaka::getPtrNative(index_gpu_buf),
         nonZeroModules));
 
     alpaka::enqueue(queue, createTripletsInGPUv2Task);
@@ -806,10 +787,6 @@ void SDL::Event::createTriplets()
     alpaka::enqueue(queue, addTripletRangesToEventExplicitTask);
     alpaka::wait(queue);
 
-    free(nSegments);
-    free(index);
-    cms::cuda::free_device(dev, index_gpu);
-
     if(addObjects)
     {
         addTripletsToEventExplicit();
@@ -818,14 +795,17 @@ void SDL::Event::createTriplets()
 
 void SDL::Event::createTrackCandidates()
 {
-    uint16_t nEligibleModules;
-    cudaMemcpyAsync(&nEligibleModules,rangesInGPU->nEligibleT5Modules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
     if(trackCandidatesInGPU == nullptr)
     {
         trackCandidatesInGPU = new SDL::trackCandidates();
         trackCandidatesBuffers = new SDL::trackCandidatesBuffer<Acc>(N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES, devAcc, queue);
         trackCandidatesInGPU->setData(*trackCandidatesBuffers);
     }
+
+    // Pull nEligibleT5Modules from the device.
+    auto nEligibleModules_buf = allocBufWrapper<uint16_t>(devHost, 1);
+    alpaka::memcpy(queue, nEligibleModules_buf, rangesBuffers->nEligibleT5Modules_buf, 1);
+    uint16_t nEligibleModules = *alpaka::getPtrNative(nEligibleModules_buf);
 
     Vec const threadsPerBlock_crossCleanpT3(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(64));
     Vec const blocksPerGrid_crossCleanpT3(static_cast<Idx>(1), static_cast<Idx>(4), static_cast<Idx>(20));
@@ -843,7 +823,6 @@ void SDL::Event::createTrackCandidates()
 
     alpaka::enqueue(queue, crossCleanpT3Task);
 
-    //adding objects
     Vec const threadsPerBlock_addpT3asTrackCandidatesInGPU(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(512));
     Vec const blocksPerGrid_addpT3asTrackCandidatesInGPU(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
     WorkDiv const addpT3asTrackCandidatesInGPU_workDiv(blocksPerGrid_addpT3asTrackCandidatesInGPU, threadsPerBlock_addpT3asTrackCandidatesInGPU, elementsPerThread);
@@ -962,30 +941,27 @@ void SDL::Event::createPixelTriplets()
         pixelTripletsInGPU->setData(*pixelTripletsBuffers);
     }
 
-    unsigned int pixelModuleIndex = nLowerModules;
-    int* superbins;
-    int8_t* pixelTypes;
-    unsigned int *nTriplets;
-    unsigned int nInnerSegments = 0;
-    cudaMemcpyAsync(&nInnerSegments, &(segmentsInGPU->nSegments[pixelModuleIndex]), sizeof(int), cudaMemcpyDeviceToHost,stream);
-    nTriplets = (unsigned int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
-    cudaMemcpyAsync(nTriplets, tripletsInGPU->nTriplets, nLowerModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-    superbins = (int*)cms::cuda::allocate_host(N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int), stream);
-    pixelTypes = (int8_t*)cms::cuda::allocate_host(N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int8_t), stream);
+    unsigned int nInnerSegments;
+    cudaMemcpyAsync(&nInnerSegments, &(segmentsInGPU->nSegments[nLowerModules]), sizeof(int), cudaMemcpyDeviceToHost,stream);
 
-    cudaMemcpyAsync(superbins,segmentsInGPU->superbin,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(pixelTypes,segmentsInGPU->pixelType,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int8_t),cudaMemcpyDeviceToHost,stream);
+    auto superbins_buf = allocBufWrapper<int>(devHost, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+    auto pixelTypes_buf = allocBufWrapper<int8_t>(devHost, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
 
-    unsigned int* connectedPixelSize_host;
-    unsigned int* connectedPixelIndex_host;
-    connectedPixelSize_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
-    connectedPixelIndex_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
-    unsigned int* connectedPixelSize_dev;
-    unsigned int* connectedPixelIndex_dev;
-    connectedPixelSize_dev = (unsigned int*)cms::cuda::allocate_device(dev, nInnerSegments*sizeof(unsigned int), stream);
-    connectedPixelIndex_dev = (unsigned int*)cms::cuda::allocate_device(dev, nInnerSegments*sizeof(unsigned int), stream);
+    alpaka::memcpy(queue, superbins_buf, segmentsBuffers->superbin_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+    alpaka::memcpy(queue, pixelTypes_buf, segmentsBuffers->pixelType_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+    alpaka::wait(queue);
 
-    cudaStreamSynchronize(stream);
+    auto connectedPixelSize_host_buf = allocBufWrapper<unsigned int>(devHost, nInnerSegments);
+    auto connectedPixelIndex_host_buf = allocBufWrapper<unsigned int>(devHost, nInnerSegments);
+    auto connectedPixelSize_dev_buf = allocBufWrapper<unsigned int>(devAcc, nInnerSegments);
+    auto connectedPixelIndex_dev_buf = allocBufWrapper<unsigned int>(devAcc, nInnerSegments);
+
+    int* superbins = alpaka::getPtrNative(superbins_buf);
+    int8_t* pixelTypes = alpaka::getPtrNative(pixelTypes_buf);
+    unsigned int* connectedPixelSize_host = alpaka::getPtrNative(connectedPixelSize_host_buf);
+    unsigned int* connectedPixelIndex_host = alpaka::getPtrNative(connectedPixelIndex_host_buf);
+    alpaka::wait(queue);
+
     int pixelIndexOffsetPos = pixelMapping->connectedPixelsIndex[44999] + pixelMapping->connectedPixelsSizes[44999];
     int pixelIndexOffsetNeg = pixelMapping->connectedPixelsIndexPos[44999] + pixelMapping->connectedPixelsSizes[44999] + pixelIndexOffsetPos;
 
@@ -993,8 +969,8 @@ void SDL::Event::createPixelTriplets()
     // the current selection still leaves a significant fraction of unmatchable pLSs
     for (unsigned int i = 0; i < nInnerSegments; i++)
     {// loop over # pLS
-        int8_t pixelType = pixelTypes[i];// get pixel type for this pLS
-        int superbin = superbins[i]; //get superbin for this pixel
+        int8_t pixelType = pixelTypes[i];// Get pixel type for this pLS
+        int superbin = superbins[i]; // Get superbin for this pixel
         if((superbin < 0) or (superbin >= 45000) or (pixelType > 2) or (pixelType < 0))
         {
             connectedPixelSize_host[i] = 0;
@@ -1002,37 +978,30 @@ void SDL::Event::createPixelTriplets()
             continue;
         }
 
-        if(pixelType ==0)
-        { // used pixel type to select correct size-index arrays
-            connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
+        // Used pixel type to select correct size-index arrays
+        if(pixelType == 0)
+        {
+            connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; // number of connected modules to this pixel
             auto connectedIdxBase = pixelMapping->connectedPixelsIndex[superbin];
-            connectedPixelIndex_host[i] = connectedIdxBase;// index to get start of connected modules for this superbin in map
-            // printf("i %d out of nInnerSegments %d type %d superbin %d connectedPixelIndex %d connectedPixelSize %d\n",
-            //        i, nInnerSegments, pixelType, superbin, connectedPixelIndex_host[i], connectedPixelSize_host[i]);
+            connectedPixelIndex_host[i] = connectedIdxBase; // index to get start of connected modules for this superbin in map
         }
-        else if(pixelType ==1)
+        else if(pixelType == 1)
         {
-            connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesPos[superbin]; //number of pixel connected modules
+            connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesPos[superbin]; // number of pixel connected modules
             auto connectedIdxBase = pixelMapping->connectedPixelsIndexPos[superbin]+pixelIndexOffsetPos;
-            connectedPixelIndex_host[i] = connectedIdxBase;// index to get start of connected pixel modules
+            connectedPixelIndex_host[i] = connectedIdxBase; // index to get start of connected pixel modules
         }
-        else if(pixelType ==2)
+        else if(pixelType == 2)
         {
-            connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesNeg[superbin]; //number of pixel connected modules
+            connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesNeg[superbin]; // number of pixel connected modules
             auto connectedIdxBase = pixelMapping->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;
-            connectedPixelIndex_host[i] = connectedIdxBase;// index to get start of connected pixel modules
+            connectedPixelIndex_host[i] = connectedIdxBase; // index to get start of connected pixel modules
         }
     }
 
-    cudaMemcpyAsync(connectedPixelSize_dev, connectedPixelSize_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(connectedPixelIndex_dev, connectedPixelIndex_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
-    cudaStreamSynchronize(stream);
-
-    cms::cuda::free_host(connectedPixelSize_host);
-    cms::cuda::free_host(connectedPixelIndex_host);
-    cms::cuda::free_host(superbins);
-    cms::cuda::free_host(pixelTypes);
-    cms::cuda::free_host(nTriplets);
+    alpaka::memcpy(queue, connectedPixelSize_dev_buf, connectedPixelSize_host_buf, nInnerSegments);
+    alpaka::memcpy(queue, connectedPixelIndex_dev_buf, connectedPixelIndex_host_buf, nInnerSegments);
+    alpaka::wait(queue);
 
     Vec const threadsPerBlock(static_cast<Idx>(1), static_cast<Idx>(4), static_cast<Idx>(32));
     Vec const blocksPerGrid(static_cast<Idx>(16 /* above median of connected modules*/), static_cast<Idx>(4096), static_cast<Idx>(1));
@@ -1048,21 +1017,20 @@ void SDL::Event::createPixelTriplets()
         *segmentsInGPU,
         *tripletsInGPU,
         *pixelTripletsInGPU,
-        connectedPixelSize_dev,
-        connectedPixelIndex_dev,
+        alpaka::getPtrNative(connectedPixelSize_dev_buf),
+        alpaka::getPtrNative(connectedPixelIndex_dev_buf),
         nInnerSegments));
 
     alpaka::enqueue(queue, createPixelTripletsInGPUFromMapv2Task);
     alpaka::wait(queue);
 
-    cms::cuda::free_device(dev, connectedPixelSize_dev);
-    cms::cuda::free_device(dev, connectedPixelIndex_dev);
-
 #ifdef Warnings
-    int nPixelTriplets;
-    cudaMemcpyAsync(&nPixelTriplets, pixelTripletsInGPU->nPixelTriplets,  sizeof(int), cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
-    std::cout<<"number of pixel triplets = "<<nPixelTriplets<<std::endl;
+    auto nPixelTriplets_buf = allocBufWrapper<int>(devHost, 1);
+
+    alpaka::memcpy(queue, nPixelTriplets_buf, pixelTripletsBuffers->nPixelTriplets_buf, 1);
+    alpaka::wait(queue);
+
+    std::cout << "number of pixel triplets = " << *alpaka::getPtrNative(nPixelTriplets_buf) << std::endl;
 #endif
 
     //pT3s can be cleaned here because they're not used in making pT5s!
@@ -1084,9 +1052,6 @@ void SDL::Event::createPixelTriplets()
 
 void SDL::Event::createQuintuplets()
 {
-    uint16_t nEligibleT5Modules = 0;
-    unsigned int nTotalQuintuplets;
-
     Vec const threadsPerBlockCreateQuints(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
     Vec const blocksPerGridCreateQuints(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
     WorkDiv const createEligibleModulesListForQuintupletsGPU_workDiv(blocksPerGridCreateQuints, threadsPerBlockCreateQuints, elementsPerThread);
@@ -1102,9 +1067,15 @@ void SDL::Event::createQuintuplets()
     alpaka::enqueue(queue, createEligibleModulesListForQuintupletsGPUTask);
     alpaka::wait(queue);
 
-    cudaMemcpyAsync(&nEligibleT5Modules,rangesInGPU->nEligibleT5Modules,sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(&nTotalQuintuplets,rangesInGPU->device_nTotalQuints,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
+    auto nEligibleT5Modules_buf = allocBufWrapper<uint16_t>(devHost, 1);
+    auto nTotalQuintuplets_buf = allocBufWrapper<unsigned int>(devHost, 1);
+
+    alpaka::memcpy(queue, nEligibleT5Modules_buf, rangesBuffers->nEligibleT5Modules_buf, 1);
+    alpaka::memcpy(queue, nTotalQuintuplets_buf, rangesBuffers->device_nTotalQuints_buf, 1);
+    alpaka::wait(queue);
+
+    uint16_t nEligibleT5Modules = *alpaka::getPtrNative(nEligibleT5Modules_buf);
+    unsigned int nTotalQuintuplets = *alpaka::getPtrNative(nTotalQuintuplets_buf);
 
     if(quintupletsInGPU == nullptr)
     {
@@ -1112,8 +1083,8 @@ void SDL::Event::createQuintuplets()
         quintupletsBuffers = new SDL::quintupletsBuffer<Acc>(nTotalQuintuplets, nLowerModules, devAcc, queue);
         quintupletsInGPU->setData(*quintupletsBuffers);
 
-        cudaMemcpyAsync(quintupletsInGPU->nMemoryLocations, &nTotalQuintuplets, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
-        cudaStreamSynchronize(stream);
+        alpaka::memcpy(queue, quintupletsBuffers->nMemoryLocations_buf, nTotalQuintuplets_buf, 1);
+        alpaka::wait(queue);
     }
 
     Vec const threadsPerBlockQuints(static_cast<Idx>(1), static_cast<Idx>(8), static_cast<Idx>(32));
@@ -1200,64 +1171,57 @@ void SDL::Event::createPixelQuintuplets()
         trackCandidatesInGPU = new SDL::trackCandidates();
         trackCandidatesBuffers = new SDL::trackCandidatesBuffer<Acc>(N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES, devAcc, queue);
         trackCandidatesInGPU->setData(*trackCandidatesBuffers);
-    } 
+    }
 
-    unsigned int pixelModuleIndex;
-    int* superbins;
-    int8_t* pixelTypes;
-    int *nQuintuplets;
+    unsigned int nInnerSegments;
+    cudaMemcpyAsync(&nInnerSegments, &(segmentsInGPU->nSegments[nLowerModules]), sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
 
-    unsigned int* connectedPixelSize_host;
-    unsigned int* connectedPixelIndex_host;
-    unsigned int* connectedPixelSize_dev;
-    unsigned int* connectedPixelIndex_dev;
+    auto superbins_buf = allocBufWrapper<int>(devHost, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+    auto pixelTypes_buf = allocBufWrapper<int8_t>(devHost, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
 
-    nQuintuplets = (int*)cms::cuda::allocate_host(nLowerModules * sizeof(int), stream);
-    cudaMemcpyAsync(nQuintuplets, quintupletsInGPU->nQuintuplets, nLowerModules * sizeof(int), cudaMemcpyDeviceToHost,stream);
+    alpaka::memcpy(queue, superbins_buf, segmentsBuffers->superbin_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+    alpaka::memcpy(queue, pixelTypes_buf, segmentsBuffers->pixelType_buf, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
+    alpaka::wait(queue);
 
-    superbins = (int*)cms::cuda::allocate_host(N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int), stream);
-    pixelTypes = (int8_t*)cms::cuda::allocate_host(N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int8_t), stream);
+    auto connectedPixelSize_host_buf = allocBufWrapper<unsigned int>(devHost, nInnerSegments);
+    auto connectedPixelIndex_host_buf = allocBufWrapper<unsigned int>(devHost, nInnerSegments);
+    auto connectedPixelSize_dev_buf = allocBufWrapper<unsigned int>(devAcc, nInnerSegments);
+    auto connectedPixelIndex_dev_buf = allocBufWrapper<unsigned int>(devAcc, nInnerSegments);
 
-    cudaMemcpyAsync(superbins,segmentsInGPU->superbin,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int),cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(pixelTypes,segmentsInGPU->pixelType,N_MAX_PIXEL_SEGMENTS_PER_MODULE*sizeof(int8_t),cudaMemcpyDeviceToHost,stream);
-
-    cudaStreamSynchronize(stream);
-    pixelModuleIndex = nLowerModules;
-    unsigned int nInnerSegments = 0;
-    cudaMemcpyAsync(&nInnerSegments, &(segmentsInGPU->nSegments[pixelModuleIndex]), sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-    connectedPixelSize_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
-    connectedPixelIndex_host = (unsigned int*)cms::cuda::allocate_host(nInnerSegments* sizeof(unsigned int), stream);
-    connectedPixelSize_dev = (unsigned int*)cms::cuda::allocate_device(dev,nInnerSegments* sizeof(unsigned int),stream);
-    connectedPixelIndex_dev = (unsigned int*)cms::cuda::allocate_device(dev,nInnerSegments* sizeof(unsigned int),stream);
-    cudaStreamSynchronize(stream);
+    int* superbins = alpaka::getPtrNative(superbins_buf);
+    int8_t* pixelTypes = alpaka::getPtrNative(pixelTypes_buf);
+    unsigned int* connectedPixelSize_host = alpaka::getPtrNative(connectedPixelSize_host_buf);
+    unsigned int* connectedPixelIndex_host = alpaka::getPtrNative(connectedPixelIndex_host_buf);
+    alpaka::wait(queue);
 
     int pixelIndexOffsetPos = pixelMapping->connectedPixelsIndex[44999] + pixelMapping->connectedPixelsSizes[44999];
     int pixelIndexOffsetNeg = pixelMapping->connectedPixelsIndexPos[44999] + pixelMapping->connectedPixelsSizes[44999] + pixelIndexOffsetPos;
 
+    // Loop over # pLS
     for (unsigned int i = 0; i < nInnerSegments; i++)
-    {// loop over # pLS
-        int8_t pixelType = pixelTypes[i];// get pixel type for this pLS
-        int superbin = superbins[i]; //get superbin for this pixel
+    {
+        int8_t pixelType = pixelTypes[i];// Get pixel type for this pLS
+        int superbin = superbins[i]; // Get superbin for this pixel
         if((superbin < 0) or (superbin >= 45000) or (pixelType > 2) or (pixelType < 0))
         {
             connectedPixelIndex_host[i] = 0;
             connectedPixelSize_host[i] = 0;
             continue;
         }
-
-        if(pixelType ==0)
-        { // used pixel type to select correct size-index arrays
+        // Used pixel type to select correct size-index arrays
+        if(pixelType == 0)
+        {
             connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
             unsigned int connectedIdxBase = pixelMapping->connectedPixelsIndex[superbin];
             connectedPixelIndex_host[i] = connectedIdxBase;
         }
-        else if(pixelType ==1)
+        else if(pixelType == 1)
         {
             connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesPos[superbin]; //number of pixel connected modules
             unsigned int connectedIdxBase = pixelMapping->connectedPixelsIndexPos[superbin]+pixelIndexOffsetPos;
             connectedPixelIndex_host[i] = connectedIdxBase;
         }
-        else if(pixelType ==2)
+        else if(pixelType == 2)
         {
             connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesNeg[superbin]; //number of pixel connected modules
             unsigned int connectedIdxBase = pixelMapping->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;
@@ -1265,9 +1229,9 @@ void SDL::Event::createPixelQuintuplets()
         }
     }
 
-    cudaMemcpyAsync(connectedPixelSize_dev, connectedPixelSize_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
-    cudaMemcpyAsync(connectedPixelIndex_dev, connectedPixelIndex_host, nInnerSegments*sizeof(unsigned int), cudaMemcpyHostToDevice,stream);
-    cudaStreamSynchronize(stream);
+    alpaka::memcpy(queue, connectedPixelSize_dev_buf, connectedPixelSize_host_buf, nInnerSegments);
+    alpaka::memcpy(queue, connectedPixelIndex_dev_buf, connectedPixelIndex_host_buf, nInnerSegments);
+    alpaka::wait(queue);
 
     Vec const threadsPerBlockCreatePixQuints(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
     Vec const blocksPerGridCreatePixQuints(static_cast<Idx>(16), static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1));
@@ -1283,21 +1247,12 @@ void SDL::Event::createPixelQuintuplets()
         *tripletsInGPU,
         *quintupletsInGPU,
         *pixelQuintupletsInGPU,
-        connectedPixelSize_dev,
-        connectedPixelIndex_dev,
+        alpaka::getPtrNative(connectedPixelSize_dev_buf),
+        alpaka::getPtrNative(connectedPixelIndex_dev_buf),
         nInnerSegments,
         *rangesInGPU));
 
     alpaka::enqueue(queue, createPixelQuintupletsInGPUFromMapv2Task);
-    alpaka::wait(queue);
-
-    cms::cuda::free_host(superbins);
-    cms::cuda::free_host(pixelTypes);
-    cms::cuda::free_host(nQuintuplets);
-    cms::cuda::free_host(connectedPixelSize_host);
-    cms::cuda::free_host(connectedPixelIndex_host);
-    cms::cuda::free_device(dev, connectedPixelSize_dev);
-    cms::cuda::free_device(dev, connectedPixelIndex_dev);
 
     Vec const threadsPerBlockDupPix(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
     Vec const blocksPerGridDupPix(static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1));
@@ -1311,7 +1266,6 @@ void SDL::Event::createPixelQuintuplets()
         false));
 
     alpaka::enqueue(queue, removeDupPixelQuintupletsInGPUFromMapTask);
-    alpaka::wait(queue);
 
     Vec const threadsPerBlockAddpT5asTrackCan(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
     Vec const blocksPerGridAddpT5asTrackCan(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
@@ -1329,12 +1283,15 @@ void SDL::Event::createPixelQuintuplets()
 
     alpaka::enqueue(queue, addpT5asTrackCandidateInGPUTask);
     alpaka::wait(queue);
+
 #ifdef Warnings
-    int nPixelQuintuplets;
-    cudaMemcpyAsync(&nPixelQuintuplets, &(pixelQuintupletsInGPU->nPixelQuintuplets), sizeof(int), cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
-    std::cout<<"number of pixel quintuplets = "<<nPixelQuintuplets<<std::endl;
-#endif   
+    auto nPixelQuintuplets_buf = allocBufWrapper<int>(devHost, 1);
+
+    alpaka::memcpy(queue, nPixelQuintuplets_buf, pixelQuintupletsBuffers->nPixelQuintuplets_buf, 1);
+    alpaka::wait(queue);
+
+    std::cout << "number of pixel quintuplets = " << *alpaka::getPtrNative(nPixelQuintuplets_buf) << std::endl;
+#endif
 }
 
 void SDL::Event::addQuintupletsToEventExplicit()
@@ -1541,17 +1498,25 @@ unsigned int SDL::Event::getNumberOfTripletsByLayerEndcap(unsigned int layer)
 
 int SDL::Event::getNumberOfPixelTriplets()
 {
-    int nPixelTriplets;
-    cudaMemcpyAsync(&nPixelTriplets, pixelTripletsInGPU->nPixelTriplets, sizeof(int), cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
+    auto nPixelTriplets_buf = allocBufWrapper<int>(devHost, 1);
+
+    alpaka::memcpy(queue, nPixelTriplets_buf, pixelTripletsBuffers->nPixelTriplets_buf, 1);
+    alpaka::wait(queue);
+
+    int nPixelTriplets = *alpaka::getPtrNative(nPixelTriplets_buf);
+
     return nPixelTriplets;
 }
 
 int SDL::Event::getNumberOfPixelQuintuplets()
 {
-    int nPixelQuintuplets;
-    cudaMemcpyAsync(&nPixelQuintuplets, pixelQuintupletsInGPU->nPixelQuintuplets, sizeof(int), cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
+    auto nPixelQuintuplets_buf = allocBufWrapper<int>(devHost, 1);
+
+    alpaka::memcpy(queue, nPixelQuintuplets_buf, pixelQuintupletsBuffers->nPixelQuintuplets_buf, 1);
+    alpaka::wait(queue);
+
+    int nPixelQuintuplets = *alpaka::getPtrNative(nPixelQuintuplets_buf);
+
     return nPixelQuintuplets;
 }
 
@@ -1589,57 +1554,78 @@ unsigned int SDL::Event::getNumberOfQuintupletsByLayerEndcap(unsigned int layer)
 }
 
 int SDL::Event::getNumberOfTrackCandidates()
-{    
-    int nTrackCandidates;
-    cudaMemcpyAsync(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(int), cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
+{
+    auto nTrackCandidates_buf = allocBufWrapper<int>(devHost, 1);
+
+    alpaka::memcpy(queue, nTrackCandidates_buf, trackCandidatesBuffers->nTrackCandidates_buf, 1);
+    alpaka::wait(queue);
+
+    int nTrackCandidates = *alpaka::getPtrNative(nTrackCandidates_buf);
 
     return nTrackCandidates;
 }
 
 int SDL::Event::getNumberOfPT5TrackCandidates()
 {
-    int nTrackCandidatesPT5;
-    cudaMemcpyAsync(&nTrackCandidatesPT5, trackCandidatesInGPU->nTrackCandidatespT5, sizeof(int), cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
+    auto nTrackCandidatesPT5_buf = allocBufWrapper<int>(devHost, 1);
+
+    alpaka::memcpy(queue, nTrackCandidatesPT5_buf, trackCandidatesBuffers->nTrackCandidatespT5_buf, 1);
+    alpaka::wait(queue);
+
+    int nTrackCandidatesPT5 = *alpaka::getPtrNative(nTrackCandidatesPT5_buf);
 
     return nTrackCandidatesPT5;
 }
 
 int SDL::Event::getNumberOfPT3TrackCandidates()
 {
-    int nTrackCandidatesPT3;
-    cudaMemcpyAsync(&nTrackCandidatesPT3, trackCandidatesInGPU->nTrackCandidatespT3, sizeof(int), cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
+    auto nTrackCandidatesPT3_buf = allocBufWrapper<int>(devHost, 1);
+
+    alpaka::memcpy(queue, nTrackCandidatesPT3_buf, trackCandidatesBuffers->nTrackCandidatespT3_buf, 1);
+    alpaka::wait(queue);
+
+    int nTrackCandidatesPT3 = *alpaka::getPtrNative(nTrackCandidatesPT3_buf);
 
     return nTrackCandidatesPT3;
 }
 
 int SDL::Event::getNumberOfPLSTrackCandidates()
 {
-    unsigned int nTrackCandidatesPLS;
-    cudaMemcpyAsync(&nTrackCandidatesPLS, trackCandidatesInGPU->nTrackCandidatespLS, sizeof(int), cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
+    auto nTrackCandidatesPLS_buf = allocBufWrapper<int>(devHost, 1);
+
+    alpaka::memcpy(queue, nTrackCandidatesPLS_buf, trackCandidatesBuffers->nTrackCandidatespLS_buf, 1);
+    alpaka::wait(queue);
+
+    unsigned int nTrackCandidatesPLS = *alpaka::getPtrNative(nTrackCandidatesPLS_buf);
 
     return nTrackCandidatesPLS;
 }
 
 int SDL::Event::getNumberOfPixelTrackCandidates()
 {
-    int nTrackCandidates;
-    int nTrackCandidatesT5;
-    cudaMemcpyAsync(&nTrackCandidates, trackCandidatesInGPU->nTrackCandidates, sizeof(int), cudaMemcpyDeviceToHost,stream);
-    cudaMemcpyAsync(&nTrackCandidatesT5, trackCandidatesInGPU->nTrackCandidatesT5, sizeof(int), cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
+    auto nTrackCandidates_buf = allocBufWrapper<int>(devHost, 1);
+    auto nTrackCandidatesT5_buf = allocBufWrapper<int>(devHost, 1);
+
+    alpaka::memcpy(queue, nTrackCandidates_buf, trackCandidatesBuffers->nTrackCandidates_buf, 1);
+    alpaka::memcpy(queue, nTrackCandidatesT5_buf, trackCandidatesBuffers->nTrackCandidatesT5_buf, 1);
+    alpaka::wait(queue);
+
+    int nTrackCandidates = *alpaka::getPtrNative(nTrackCandidates_buf);
+    int nTrackCandidatesT5 = *alpaka::getPtrNative(nTrackCandidatesT5_buf);
 
     return nTrackCandidates - nTrackCandidatesT5;
 }
 
 int SDL::Event::getNumberOfT5TrackCandidates()
 {
-    int nTrackCandidatesT5;
-    cudaMemcpyAsync(&nTrackCandidatesT5, trackCandidatesInGPU->nTrackCandidatesT5, sizeof(int), cudaMemcpyDeviceToHost,stream);
-    return nTrackCandidatesT5; 
+    auto nTrackCandidatesT5_buf = allocBufWrapper<int>(devHost, 1);
+
+    alpaka::memcpy(queue, nTrackCandidatesT5_buf, trackCandidatesBuffers->nTrackCandidatesT5_buf, 1);
+    alpaka::wait(queue);
+
+    int nTrackCandidatesT5 = *alpaka::getPtrNative(nTrackCandidatesT5_buf);
+
+    return nTrackCandidatesT5;
 }
 
 SDL::hitsBuffer<alpaka::DevCpu>* SDL::Event::getHits() //std::shared_ptr should take care of garbage collection

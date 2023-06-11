@@ -40,7 +40,7 @@ void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned in
     cudaStreamSynchronize(stream);
 }
 
-void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMapping)
+void SDL::freeModules(struct modules& modulesInGPU)
 {
     cudaFree(modulesInGPU.detIds);
     cudaFree(modulesInGPU.moduleMap);
@@ -67,13 +67,6 @@ void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMappin
     cudaFree(modulesInGPU.connectedPixels);
     cudaFree(modulesInGPU.partnerModuleIndices);
     cudaFree(modulesInGPU.sdlLayers);
-
-    cudaFreeHost(pixelMapping.connectedPixelsSizes);
-    cudaFreeHost(pixelMapping.connectedPixelsSizesPos);
-    cudaFreeHost(pixelMapping.connectedPixelsSizesNeg);
-    cudaFreeHost(pixelMapping.connectedPixelsIndex);
-    cudaFreeHost(pixelMapping.connectedPixelsIndexPos);
-    cudaFreeHost(pixelMapping.connectedPixelsIndexNeg);
 }
 
 void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, uint16_t& nLowerModules, struct pixelMap& pixelMapping,cudaStream_t stream, const char* moduleMetaDataFilePath)
@@ -132,44 +125,46 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     nModules = counter;
     //std::cout<<"Number of modules = "<<nModules<<std::endl;
     createModulesInExplicitMemory(modulesInGPU,nModules,stream);
-    unsigned int* host_detIds;
-    short* host_layers;
-    short* host_rings;
-    short* host_rods;
-    short* host_modules;
-    short* host_subdets;
-    short* host_sides;
-    float* host_eta;
-    float* host_r;
-    bool* host_isInverted;
-    bool* host_isLower;
-    bool* host_isAnchor;
-    ModuleType* host_moduleType;
-    ModuleLayerType* host_moduleLayerType;
-    float* host_slopes;
-    float* host_drdzs;
-    uint16_t* host_partnerModuleIndices;
-    int* host_sdlLayers;
 
-    host_detIds = (unsigned int*)cms::cuda::allocate_host(sizeof(unsigned int)*nModules, stream);
-    host_layers = (short*)cms::cuda::allocate_host(sizeof(short)*nModules, stream);
-    host_rings = (short*)cms::cuda::allocate_host(sizeof(short)*nModules, stream);
-    host_rods = (short*)cms::cuda::allocate_host(sizeof(short)*nModules, stream);
-    host_modules = (short*)cms::cuda::allocate_host(sizeof(short)*nModules, stream);
-    host_subdets = (short*)cms::cuda::allocate_host(sizeof(short)*nModules, stream);
-    host_sides = (short*)cms::cuda::allocate_host(sizeof(short)*nModules, stream);
-    host_eta = (float*)cms::cuda::allocate_host(sizeof(float)*nModules, stream);
-    host_r = (float*)cms::cuda::allocate_host(sizeof(float)*nModules, stream);
-    host_isInverted = (bool*)cms::cuda::allocate_host(sizeof(bool)*nModules, stream);
-    host_isLower = (bool*)cms::cuda::allocate_host(sizeof(bool)*nModules, stream);
-    host_isAnchor = (bool*)cms::cuda::allocate_host(sizeof(bool)*nModules, stream);
-    host_moduleType = (ModuleType*)cms::cuda::allocate_host(sizeof(ModuleType)*nModules, stream);
-    host_moduleLayerType = (ModuleLayerType*)cms::cuda::allocate_host(sizeof(ModuleLayerType)*nModules, stream);
-    host_slopes = (float*)cms::cuda::allocate_host(sizeof(float)*nModules, stream);
-    host_drdzs = (float*)cms::cuda::allocate_host(sizeof(float)*nModules, stream);
-    host_partnerModuleIndices = (uint16_t*)cms::cuda::allocate_host(sizeof(uint16_t) * nModules, stream);
-    host_sdlLayers = (int*)cms::cuda::allocate_host(sizeof(int) * nModules, stream);
-    
+    auto detIds_buf = allocBufWrapper<unsigned int>(devHost, nModules);
+    auto layers_buf = allocBufWrapper<short>(devHost, nModules);
+    auto rings_buf = allocBufWrapper<short>(devHost, nModules);
+    auto rods_buf = allocBufWrapper<short>(devHost, nModules);
+    auto modules_buf = allocBufWrapper<short>(devHost, nModules);
+    auto subdets_buf = allocBufWrapper<short>(devHost, nModules);
+    auto sides_buf = allocBufWrapper<short>(devHost, nModules);
+    auto eta_buf = allocBufWrapper<float>(devHost, nModules);
+    auto r_buf = allocBufWrapper<float>(devHost, nModules);
+    auto isInverted_buf = allocBufWrapper<bool>(devHost, nModules);
+    auto isLower_buf = allocBufWrapper<bool>(devHost, nModules);
+    auto isAnchor_buf = allocBufWrapper<bool>(devHost, nModules);
+    auto moduleType_buf = allocBufWrapper<ModuleType>(devHost, nModules);
+    auto moduleLayerType_buf = allocBufWrapper<ModuleLayerType>(devHost, nModules);
+    auto slopes_buf = allocBufWrapper<float>(devHost, nModules);
+    auto drdzs_buf = allocBufWrapper<float>(devHost, nModules);
+    auto partnerModuleIndices_buf = allocBufWrapper<uint16_t>(devHost, nModules);
+    auto host_sdlLayers_buf = allocBufWrapper<int>(devHost, nModules);
+
+    // Getting the underlying data pointers
+    unsigned int* host_detIds = alpaka::getPtrNative(detIds_buf);
+    short* host_layers = alpaka::getPtrNative(layers_buf);
+    short* host_rings = alpaka::getPtrNative(rings_buf);
+    short* host_rods = alpaka::getPtrNative(rods_buf);
+    short* host_modules = alpaka::getPtrNative(modules_buf);
+    short* host_subdets = alpaka::getPtrNative(subdets_buf);
+    short* host_sides = alpaka::getPtrNative(sides_buf);
+    float* host_eta = alpaka::getPtrNative(eta_buf);
+    float* host_r = alpaka::getPtrNative(r_buf);
+    bool* host_isInverted = alpaka::getPtrNative(isInverted_buf);
+    bool* host_isLower = alpaka::getPtrNative(isLower_buf);
+    bool* host_isAnchor = alpaka::getPtrNative(isAnchor_buf);
+    ModuleType* host_moduleType = alpaka::getPtrNative(moduleType_buf);
+    ModuleLayerType* host_moduleLayerType = alpaka::getPtrNative(moduleLayerType_buf);
+    float* host_slopes = alpaka::getPtrNative(slopes_buf);
+    float* host_drdzs = alpaka::getPtrNative(drdzs_buf);
+    uint16_t* host_partnerModuleIndices = alpaka::getPtrNative(partnerModuleIndices_buf);
+    int host_sdlLayers = alpaka::getPtrNative(host_sdlLayers_buf);
+
     //reassign detIdToIndex indices here
     nLowerModules = (nModules - 1) / 2;
     uint16_t lowerModuleCounter = 0;
@@ -311,24 +306,6 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     cudaMemcpyAsync(modulesInGPU.sdlLayers, host_sdlLayers, sizeof(int) * nModules, cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
 
-    cms::cuda::free_host(host_detIds);
-    cms::cuda::free_host(host_layers);
-    cms::cuda::free_host(host_rings);
-    cms::cuda::free_host(host_rods);
-    cms::cuda::free_host(host_modules);
-    cms::cuda::free_host(host_subdets);
-    cms::cuda::free_host(host_sides);
-    cms::cuda::free_host(host_eta);
-    cms::cuda::free_host(host_r);
-    cms::cuda::free_host(host_isInverted);
-    cms::cuda::free_host(host_isLower);
-    cms::cuda::free_host(host_isAnchor);
-    cms::cuda::free_host(host_moduleType);
-    cms::cuda::free_host(host_moduleLayerType);
-    cms::cuda::free_host(host_slopes);
-    cms::cuda::free_host(host_drdzs);
-    cms::cuda::free_host(host_partnerModuleIndices);
-    cms::cuda::free_host(host_sdlLayers);
     fillConnectedModuleArrayExplicit(modulesInGPU,nModules,stream);
     fillMapArraysExplicit(modulesInGPU, nModules, stream);
     fillPixelMap(modulesInGPU,pixelMapping,stream);
@@ -351,21 +328,14 @@ void SDL::fillConnectedModuleArray(struct modules& modulesInGPU, unsigned int nM
 
 void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMapping,cudaStream_t stream)
 {
-    int size_superbins = 45000; //changed to 45000 to reduce memory useage on GPU
     std::vector<unsigned int> connectedModuleDetIds;
     std::vector<unsigned int> connectedModuleDetIds_pos;
     std::vector<unsigned int> connectedModuleDetIds_neg;
-    cudaMallocHost(&pixelMapping.connectedPixelsIndex,size_superbins * sizeof(unsigned int));
-    cudaMallocHost(&pixelMapping.connectedPixelsSizes,size_superbins * sizeof(unsigned int));
-    cudaMallocHost(&pixelMapping.connectedPixelsIndexPos,size_superbins * sizeof(unsigned int));
-    cudaMallocHost(&pixelMapping.connectedPixelsSizesPos,size_superbins * sizeof(unsigned int));
-    cudaMallocHost(&pixelMapping.connectedPixelsIndexNeg,size_superbins * sizeof(unsigned int));
-    cudaMallocHost(&pixelMapping.connectedPixelsSizesNeg,size_superbins * sizeof(unsigned int));
 
-    int totalSizes=0;
-    int totalSizes_pos=0;
-    int totalSizes_neg=0;
-    for(int isuperbin =0; isuperbin<size_superbins; isuperbin++)
+    int totalSizes = 0;
+    int totalSizes_pos = 0;
+    int totalSizes_neg = 0;
+    for(unsigned int isuperbin = 0; isuperbin < size_superbins; isuperbin++)
     {
         std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5 = SDL::moduleConnectionMap_pLStoLayer1Subdet5.getConnectedModuleDetIds(isuperbin+size_superbins);// index adjustment to get high values
         std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet5 = SDL::moduleConnectionMap_pLStoLayer2Subdet5.getConnectedModuleDetIds(isuperbin+size_superbins);// from the high pt bins
@@ -382,7 +352,7 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
         connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer3Subdet4.begin(),connectedModuleDetIds_pLStoLayer3Subdet4.end());
         connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer4Subdet4.begin(),connectedModuleDetIds_pLStoLayer4Subdet4.end());
 
-        int sizes =0;
+        int sizes = 0;
         sizes += connectedModuleDetIds_pLStoLayer1Subdet5.size();
         sizes += connectedModuleDetIds_pLStoLayer2Subdet5.size();
         sizes += connectedModuleDetIds_pLStoLayer3Subdet5.size();
@@ -409,7 +379,7 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
         connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer3Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer3Subdet4_pos.end());
         connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer4Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer4Subdet4_pos.end());
 
-        int sizes_pos =0;
+        int sizes_pos = 0;
         sizes_pos += connectedModuleDetIds_pLStoLayer1Subdet5_pos.size();
         sizes_pos += connectedModuleDetIds_pLStoLayer2Subdet5_pos.size();
         sizes_pos += connectedModuleDetIds_pLStoLayer3Subdet5_pos.size();
@@ -453,15 +423,15 @@ void SDL::fillPixelMap(struct modules& modulesInGPU, struct pixelMap& pixelMappi
     connectedPixels = (unsigned int*)cms::cuda::allocate_host((totalSizes+totalSizes_pos+totalSizes_neg) * sizeof(unsigned int), stream);
     cudaMalloc(&modulesInGPU.connectedPixels,(totalSizes+totalSizes_pos+totalSizes_neg)* sizeof(unsigned int));
 
-    for(int icondet=0; icondet< totalSizes; icondet++)
+    for(int icondet = 0; icondet < totalSizes; icondet++)
     {
         connectedPixels[icondet] = (*detIdToIndex)[connectedModuleDetIds[icondet]];
     }
-    for(int icondet=0; icondet< totalSizes_pos; icondet++)
+    for(int icondet = 0; icondet < totalSizes_pos; icondet++)
     {
         connectedPixels[icondet+totalSizes] = (*detIdToIndex)[connectedModuleDetIds_pos[icondet]];
     }
-    for(int icondet=0; icondet< totalSizes_neg; icondet++)
+    for(int icondet = 0; icondet < totalSizes_neg; icondet++)
     {
         connectedPixels[icondet+totalSizes+totalSizes_pos] = (*detIdToIndex)[connectedModuleDetIds_neg[icondet]];
     }

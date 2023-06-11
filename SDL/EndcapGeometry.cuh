@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include "Constants.cuh"
+
 namespace SDL
 {
     class EndcapGeometry

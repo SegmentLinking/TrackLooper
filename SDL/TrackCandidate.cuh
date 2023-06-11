@@ -190,6 +190,7 @@ namespace SDL
 
     struct crossCleanpT3
     {
+        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -238,6 +239,7 @@ namespace SDL
 
     struct crossCleanT5
     {
+        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -304,6 +306,7 @@ namespace SDL
     // This will eliminate the need for another kernel just for adding the pLS, because we can __syncthreads()
     struct crossCleanpLS
     {
+        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -390,6 +393,7 @@ namespace SDL
 
     struct addpT3asTrackCandidatesInGPU
     {
+        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -425,6 +429,7 @@ namespace SDL
 
     struct addT5asTrackCandidateInGPU
     {
+        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -462,6 +467,7 @@ namespace SDL
 
     struct addpLSasTrackCandidateInGPU
     {
+        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -491,6 +497,7 @@ namespace SDL
 
     struct addpT5asTrackCandidateInGPU
     {
+        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,

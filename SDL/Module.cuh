@@ -231,8 +231,17 @@ namespace SDL
         unsigned int* connectedPixelsSizesNeg;
     };
 
+    // PixelMap is never allocated on the device.
+    // This is also not passed to any of the kernels, so we can combine the structs.
     struct pixelMap
     {
+        Buf<alpaka::DevCpu, unsigned int> connectedPixelsIndex_buf;
+        Buf<alpaka::DevCpu, unsigned int> connectedPixelsSizes_buf;
+        Buf<alpaka::DevCpu, unsigned int> connectedPixelsIndexPos_buf;
+        Buf<alpaka::DevCpu, unsigned int> connectedPixelsSizesPos_buf;
+        Buf<alpaka::DevCpu, unsigned int> connectedPixelsIndexNeg_buf;
+        Buf<alpaka::DevCpu, unsigned int> connectedPixelsSizesNeg_buf;
+
         unsigned int* connectedPixelsIndex;
         unsigned int* connectedPixelsSizes;
         unsigned int* connectedPixelsIndexPos;
@@ -240,8 +249,23 @@ namespace SDL
         unsigned int* connectedPixelsIndexNeg;
         unsigned int* connectedPixelsSizesNeg;
 
-        int* superbin;
         int* pixelType;
+
+        pixelMap(unsigned int sizef = size_superbins) :
+            connectedPixelsIndex_buf(allocBufWrapper<unsigned int>(devHost, sizef)),
+            connectedPixelsSizes_buf(allocBufWrapper<unsigned int>(devHost, sizef)),
+            connectedPixelsIndexPos_buf(allocBufWrapper<unsigned int>(devHost, sizef)),
+            connectedPixelsSizesPos_buf(allocBufWrapper<unsigned int>(devHost, sizef)),
+            connectedPixelsIndexNeg_buf(allocBufWrapper<unsigned int>(devHost, sizef)),
+            connectedPixelsSizesNeg_buf(allocBufWrapper<unsigned int>(devHost, sizef))
+        {
+            connectedPixelsIndex = alpaka::getPtrNative(connectedPixelsIndex_buf);
+            connectedPixelsSizes = alpaka::getPtrNative(connectedPixelsSizes_buf);
+            connectedPixelsIndexPos = alpaka::getPtrNative(connectedPixelsIndexPos_buf);
+            connectedPixelsSizesPos = alpaka::getPtrNative(connectedPixelsSizesPos_buf);
+            connectedPixelsIndexNeg = alpaka::getPtrNative(connectedPixelsIndexNeg_buf);
+            connectedPixelsSizesNeg = alpaka::getPtrNative(connectedPixelsSizesNeg_buf);
+        }
     };
 
     extern std::map <unsigned int, uint16_t>* detIdToIndex;
@@ -252,7 +276,7 @@ namespace SDL
 
     void loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules,uint16_t& nLowerModules,struct pixelMap& pixelMapping,cudaStream_t stream, const char* moduleMetaDataFilePath="data/centroid.txt");
     void createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned int nModules,cudaStream_t stream);
-    void freeModules(struct modules& modulesInGPU,struct pixelMap& pixelMapping);
+    void freeModules(struct modules& modulesInGPU);
     void fillPixelMap(struct modules& modulesInGPU,struct pixelMap& pixelMapping,cudaStream_t stream);
     void fillConnectedModuleArrayExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);
     void fillMapArraysExplicit(struct modules& modulesInGPU, unsigned int nModules,cudaStream_t stream);

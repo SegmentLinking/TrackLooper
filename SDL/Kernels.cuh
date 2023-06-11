@@ -182,15 +182,15 @@ namespace SDL
         int nMatched = 0;
         for (int i = 0; i < 6; i++)
         {
-            bool matched = false;
+            bool tmatched = false;
             for (int j = 0; j < 6; j++)
             {
                 if(hits1[i] == hits2[j])
                 {
-                    matched = true; break;
+                    tmatched = true; break;
                 }
             }
-            if(matched)
+            if(tmatched)
             {
                 nMatched++;
             }
@@ -202,6 +202,7 @@ namespace SDL
 
     struct removeDupQuintupletsInGPUAfterBuild
     {
+        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -272,6 +273,7 @@ namespace SDL
 
     struct removeDupQuintupletsInGPUBeforeTC
     {
+        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -357,6 +359,7 @@ namespace SDL
 
     struct removeDupPixelTripletsInGPUFromMap
     {
+        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -404,6 +407,7 @@ namespace SDL
 
     struct removeDupPixelQuintupletsInGPUFromMap
     {
+        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -448,6 +452,7 @@ namespace SDL
 
     struct checkHitspLS
     {
+        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
