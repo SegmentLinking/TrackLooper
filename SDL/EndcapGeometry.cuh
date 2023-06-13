@@ -15,7 +15,6 @@ namespace SDL
 {
     class EndcapGeometry
     {
-
         private:
             std::map<unsigned int, float> avgr2s_;
             std::map<unsigned int, float> yls_; // lower hits
@@ -27,12 +26,13 @@ namespace SDL
             std::map<unsigned int, float> centroid_zs_; // centroid z
 
         public:
-            unsigned int* geoMapDetId;
-            float* geoMapPhi;
+            Buf<Acc, unsigned int> geoMapDetId_buf;
+            Buf<Acc, float> geoMapPhi_buf;
+
             unsigned int nEndCapMap;
 
-            EndcapGeometry();
-            EndcapGeometry(std::string filename);
+            EndcapGeometry(unsigned int sizef = endcap_size);
+            EndcapGeometry(std::string filename, unsigned int sizef = endcap_size);
             ~EndcapGeometry();
 
             void load(std::string);

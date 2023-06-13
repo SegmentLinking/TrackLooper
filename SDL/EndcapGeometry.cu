@@ -2,11 +2,15 @@
 
 SDL::EndcapGeometry SDL::endcapGeometry;
 
-SDL::EndcapGeometry::EndcapGeometry()
+SDL::EndcapGeometry::EndcapGeometry(unsigned int sizef) :
+    geoMapDetId_buf(allocBufWrapper<unsigned int>(devAcc, sizef)),
+    geoMapPhi_buf(allocBufWrapper<float>(devAcc, sizef))
 {
 }
 
-SDL::EndcapGeometry::EndcapGeometry(std::string filename)
+SDL::EndcapGeometry::EndcapGeometry(std::string filename, unsigned int sizef) :
+    geoMapDetId_buf(allocBufWrapper<unsigned int>(devAcc, sizef)),
+    geoMapPhi_buf(allocBufWrapper<float>(devAcc, sizef))
 {
     load(filename);
 }
@@ -58,30 +62,23 @@ void SDL::EndcapGeometry::load(std::string filename)
         centroid_phis_[detid] = cr;
         centroid_zs_[detid] = cz;
     }
-    CreateGeoMapArraysExplicit();
+
     fillGeoMapArraysExplicit();
-}
-
-void SDL::freeEndCapMapMemory()
-{
-    cudaFree(SDL::endcapGeometry.geoMapPhi);
-    cudaFree(SDL::endcapGeometry.geoMapDetId);
-}
-
-void SDL::EndcapGeometry::CreateGeoMapArraysExplicit()
-{
-    int phi_size = centroid_phis_.size();
-    cudaMalloc(&geoMapPhi, phi_size * sizeof(float));
-    cudaMalloc(&geoMapDetId, phi_size * sizeof(unsigned int));
 }
 
 void SDL::EndcapGeometry::fillGeoMapArraysExplicit()
 {
-    float* mapPhi;
-    unsigned int* mapDetId;
+    QueueAcc queue(devAcc);
+
     int phi_size = centroid_phis_.size();
-    cudaMallocHost(&mapPhi, phi_size * sizeof(float));
-    cudaMallocHost(&mapDetId, phi_size * sizeof(unsigned int));
+
+    // Allocate buffers on host
+    auto mapPhi_host_buf = allocBufWrapper<float>(devHost, phi_size);
+    auto mapDetId_host_buf = allocBufWrapper<unsigned int>(devHost, phi_size);
+
+    // Access the raw pointers of the buffers
+    float* mapPhi = alpaka::getPtrNative(mapPhi_host_buf);
+    unsigned int* mapDetId = alpaka::getPtrNative(mapDetId_host_buf);
 
     unsigned int counter = 0;
     for(auto it = centroid_phis_.begin(); it != centroid_phis_.end(); ++it)
@@ -95,11 +92,10 @@ void SDL::EndcapGeometry::fillGeoMapArraysExplicit()
 
     nEndCapMap = counter;
 
-    cudaMemcpy(geoMapPhi, mapPhi, phi_size*sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(geoMapDetId, mapDetId, phi_size*sizeof(unsigned int), cudaMemcpyHostToDevice);
-
-    cudaFreeHost(mapPhi);
-    cudaFreeHost(mapDetId);
+    // Copy data from host to device buffers
+    alpaka::memcpy(queue, geoMapPhi_buf, mapPhi_host_buf, phi_size);
+    alpaka::memcpy(queue, geoMapDetId_buf, mapDetId_host_buf, phi_size);
+    alpaka::wait(queue);
 }
 
 float SDL::EndcapGeometry::getAverageR2(unsigned int detid)
