@@ -104,6 +104,9 @@ const unsigned int N_MAX_T3T3_TRACK_EXTENSIONS = 40000;
 
 const unsigned int size_superbins = 45000;
 
+// Temporary fix for endcap buffer allocation.
+const unsigned int endcap_size = 9105;
+
 namespace SDL
 {
     //defining the constant host device variables right up here

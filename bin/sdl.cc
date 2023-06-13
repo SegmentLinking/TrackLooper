@@ -350,7 +350,6 @@ void run_sdl()
     // Looping input file
     while (ana.looper.nextEvent())
     {
-        // if (ana.looper.getCurrentEventIndex() ==49) {continue;}
         if (ana.verbose >= 1)
             std::cout << "PreLoading event number = " << ana.looper.getCurrentEventIndex() << std::endl;
 
@@ -390,7 +389,6 @@ void run_sdl()
 
         cudaStreamCreateWithFlags(&streams[s], cudaStreamNonBlocking);
         SDL::Event *event = new SDL::Event(streams[s],ana.verbose>=2);
-        ; //(streams[omp_get_thread_num()]);
         events.push_back(event);
     }
 
@@ -509,7 +507,6 @@ void run_sdl()
     printTimingInformation(timevec, full_elapsed, avg_elapsed);
 
     SDL::cleanModules();
-    SDL::freeEndCapMapMemory();
 
     if (ana.do_write_ntuple)
     {
