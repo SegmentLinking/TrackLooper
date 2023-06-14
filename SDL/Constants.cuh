@@ -4,6 +4,10 @@
 #include <cuda_fp16.h>
 #include <alpaka/alpaka.hpp>
 
+// CUDA headers. Will be removed soon.
+#include <cuda.h>
+#include <cuda_runtime.h>
+
 #ifdef FP16_Base //This changes pT5 and pT3 and T3 completely. T5 for non regression parameters
 #define __F2H __float2half  
 #define __H2F __half2float  
@@ -106,6 +110,10 @@ const unsigned int size_superbins = 45000;
 
 // Temporary fix for endcap buffer allocation.
 const unsigned int endcap_size = 9105;
+
+// Temporary fix for module buffer allocation.
+const unsigned int modules_size = 26401;
+const unsigned int pix_tot = 1796504;
 
 namespace SDL
 {

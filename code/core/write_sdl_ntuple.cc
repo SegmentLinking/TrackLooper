@@ -308,7 +308,7 @@ void setPixelQuintupletOutputBranches(SDL::Event* event)
     SDL::pixelQuintupletsBuffer<alpaka::DevCpu>& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
     SDL::quintupletsBuffer<alpaka::DevCpu>& quintupletsInGPU = (*event->getQuintuplets());
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
-    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());
     int n_accepted_simtrk = ana.tx->getBranch<vector<int>>("sim_TC_matched").size();
 
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
@@ -393,7 +393,7 @@ void setQuintupletOutputBranches(SDL::Event* event)
 {
     SDL::quintupletsBuffer<alpaka::DevCpu>& quintupletsInGPU = (*event->getQuintuplets());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
-    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     int n_accepted_simtrk = ana.tx->getBranch<vector<int>>("sim_TC_matched").size();
 
@@ -475,7 +475,7 @@ void setPixelTripletOutputBranches(SDL::Event* event)
 {
     SDL::pixelTripletsBuffer<alpaka::DevCpu>& pixelTripletsInGPU = (*event->getPixelTriplets());
     SDL::tripletsBuffer<alpaka::DevCpu>& tripletsInGPU = *(event->getTriplets());
-    SDL::modules& modulesInGPU = *(event->getModules());
+    SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = *(event->getModules());
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = *(event->getSegments());
     SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = *(event->getHits());
     int n_accepted_simtrk = ana.tx->getBranch<vector<int>>("sim_TC_matched").size();
@@ -562,7 +562,7 @@ void setGnnNtupleBranches(SDL::Event* event)
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
     SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event->getHits());
-    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
     SDL::trackCandidatesBuffer<alpaka::DevCpu>& trackCandidatesInGPU = (*event->getTrackCandidates());
 
@@ -1106,7 +1106,7 @@ float computeRadiusFromThreeAnchorHits(float x1, float y1, float x2, float y2, f
 //________________________________________________________________________________________________________________________________
 void printHitMultiplicities(SDL::Event* event)
 {
-    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
 
     int nHits = 0;
@@ -1122,7 +1122,7 @@ void printHitMultiplicities(SDL::Event* event)
 void printMiniDoubletMultiplicities(SDL::Event* event)
 {
     SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoubletsInGPU = (*event->getMiniDoublets());
-    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());
 
     int nMiniDoublets = 0;
     int totOccupancyMiniDoublets = 0;
@@ -1152,7 +1152,7 @@ void printMDs(SDL::Event* event)
 {
     SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event->getHits());
-    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
 
     // Then obtain the lower module index
@@ -1176,7 +1176,7 @@ void printLSs(SDL::Event* event)
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
     SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event->getHits());
-    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
 
     int nSegments = 0;
@@ -1209,7 +1209,7 @@ void printpLSs(SDL::Event* event)
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
     SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event->getHits());
-    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
 
     unsigned int i = *(modulesInGPU.nLowerModules);
@@ -1240,7 +1240,7 @@ void printT3s(SDL::Event* event)
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
     SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoubletsInGPU = (*event->getMiniDoublets());
     SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event->getHits());
-    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());
     int nTriplets = 0;
     for (unsigned int i = 0; i <  *(modulesInGPU.nLowerModules); ++i)
     {
@@ -1282,7 +1282,7 @@ void debugPrintOutlierMultiplicities(SDL::Event* event)
     SDL::tripletsBuffer<alpaka::DevCpu>& tripletsInGPU = (*event->getTriplets());
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
     SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoubletsInGPU = (*event->getMiniDoublets());
-    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
     //int nTrackCandidates = 0;
     for (unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); ++idx)

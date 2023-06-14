@@ -506,8 +506,6 @@ void run_sdl()
 
     printTimingInformation(timevec, full_elapsed, avg_elapsed);
 
-    SDL::cleanModules();
-
     if (ana.do_write_ntuple)
     {
         // Writing ttree output to file

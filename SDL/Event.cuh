@@ -12,8 +12,6 @@
 #include "TrackCandidate.cuh"
 #include "Constants.cuh"
 
-#include "allocate.h"
-
 namespace SDL
 {
     class Event
@@ -37,7 +35,6 @@ namespace SDL
         std::array<unsigned int, 5> n_quintuplets_by_layer_endcap_;
 
         //Device stuff
-        int dev;
         int nTotalSegments;
         struct objectRanges* rangesInGPU;
         struct objectRangesBuffer<Acc>* rangesBuffers;
@@ -65,8 +62,8 @@ namespace SDL
         segmentsBuffer<alpaka::DevCpu>* segmentsInCPU;
         tripletsBuffer<alpaka::DevCpu>* tripletsInCPU;
         trackCandidatesBuffer<alpaka::DevCpu>* trackCandidatesInCPU;
-        modules* modulesInCPU;
-        modules* modulesInCPUFull;
+        modulesBuffer<alpaka::DevCpu>* modulesInCPU;
+        modulesBuffer<alpaka::DevCpu>* modulesInCPUFull;
         quintupletsBuffer<alpaka::DevCpu>* quintupletsInCPU;
         pixelTripletsBuffer<alpaka::DevCpu>* pixelTripletsInCPU;
         pixelQuintupletsBuffer<alpaka::DevCpu>* pixelQuintupletsInCPU;
@@ -75,7 +72,6 @@ namespace SDL
         int8_t* pixelTypeCPU;
     public:
         Event(cudaStream_t estream,bool verbose);
-        ~Event();
         void resetEvent();
 
         void addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple); //call the appropriate hit function, then increment the counter here
@@ -149,18 +145,18 @@ namespace SDL
         trackCandidatesBuffer<alpaka::DevCpu>* getTrackCandidatesInCMSSW();
         pixelTripletsBuffer<alpaka::DevCpu>* getPixelTriplets();
         pixelQuintupletsBuffer<alpaka::DevCpu>* getPixelQuintuplets();
-        modules* getModules();
-        modules* getFullModules();
+        modulesBuffer<alpaka::DevCpu>* getModules();
+        modulesBuffer<alpaka::DevCpu>* getFullModules();
     };
 
     //global stuff
-    extern struct modules* modulesInGPU;
-    extern struct modules* modulesInHost;
+    extern std::shared_ptr<SDL::modules> modulesInGPU;
+    extern std::shared_ptr<SDL::modulesBuffer<Acc>> modulesBuffers;
     extern uint16_t nModules;
     extern uint16_t nLowerModules;
     void initModules(const char* moduleMetaDataFilePath="data/centroid.txt"); //read from file and init
     void cleanModules();
     void initModulesHost(); //read from file and init
-    extern std::unique_ptr<SDL::pixelMap> pixelMapping;
+    extern std::shared_ptr<SDL::pixelMap> pixelMapping;
 }
 #endif
