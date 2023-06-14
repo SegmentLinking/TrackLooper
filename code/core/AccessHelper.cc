@@ -31,7 +31,7 @@ std::vector<unsigned int> getPixelHitsFrompLS(SDL::Event* event, unsigned int pL
     SDL::segmentsBuffer<alpaka::DevCpu>& segments_ = *(event->getSegments());
     SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoublets_ = *(event->getMiniDoublets());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
-    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());
     const unsigned int pLS_offset = rangesInGPU.segmentModuleIndices[*(modulesInGPU.nLowerModules)];
     unsigned int MD_1 = segments_.mdIndices[2 * (pLS + pLS_offset)];
     unsigned int MD_2 = segments_.mdIndices[2 * (pLS + pLS_offset) + 1];
@@ -243,7 +243,7 @@ unsigned int getPixelLSFrompT3(SDL::Event* event, unsigned int pT3)
 {
     SDL::pixelTripletsBuffer<alpaka::DevCpu>& pixelTriplets_ = *(event->getPixelTriplets());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
-    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());
     const unsigned int pLS_offset = rangesInGPU.segmentModuleIndices[*(modulesInGPU.nLowerModules)];
     return pixelTriplets_.pixelSegmentIndices[pT3] - pLS_offset;
 }
@@ -343,7 +343,7 @@ unsigned int getPixelLSFrompT5(SDL::Event* event, unsigned int pT5)
 {
     SDL::pixelQuintupletsBuffer<alpaka::DevCpu>& pixelQuintuplets_ = *(event->getPixelQuintuplets());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
-    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());
     const unsigned int pLS_offset = rangesInGPU.segmentModuleIndices[*(modulesInGPU.nLowerModules)];
     return pixelQuintuplets_.pixelIndices[pT5] - pLS_offset;
 }

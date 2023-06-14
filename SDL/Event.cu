@@ -1,16 +1,13 @@
 #include "Event.cuh"
 
-struct SDL::modules* SDL::modulesInGPU = nullptr;
-std::unique_ptr<SDL::pixelMap> SDL::pixelMapping = std::make_unique<pixelMap>();
+std::shared_ptr<SDL::modules> SDL::modulesInGPU = std::make_shared<modules>();
+std::shared_ptr<SDL::modulesBuffer<Acc>> SDL::modulesBuffers = std::make_shared<modulesBuffer<Acc>>(devAcc);
+std::shared_ptr<SDL::pixelMap> SDL::pixelMapping = std::make_shared<pixelMap>();
 uint16_t SDL::nModules;
 uint16_t SDL::nLowerModules;
 
 SDL::Event::Event(cudaStream_t estream, bool verbose): queue(alpaka::getDevByIdx<Acc>(0u))
 {
-    int version;
-    int driver;
-    cudaRuntimeGetVersion(&version);
-    cudaDriverGetVersion(&driver);
     stream = estream;
     addObjects = verbose;
     hitsInGPU = nullptr;
@@ -36,7 +33,7 @@ SDL::Event::Event(cudaStream_t estream, bool verbose): queue(alpaka::getDevByIdx
     pixelQuintupletsInCPU = nullptr;
 
     //reset the arrays
-    for(int i = 0; i<6; i++)
+    for(int i = 0; i < 6; i++)
     {
         n_hits_by_layer_barrel_[i] = 0;
         n_minidoublets_by_layer_barrel_[i] = 0;
@@ -44,7 +41,7 @@ SDL::Event::Event(cudaStream_t estream, bool verbose): queue(alpaka::getDevByIdx
         n_triplets_by_layer_barrel_[i] = 0;
         n_trackCandidates_by_layer_barrel_[i] = 0;
         n_quintuplets_by_layer_barrel_[i] = 0;
-        if(i<5)
+        if(i < 5)
         {
             n_hits_by_layer_endcap_[i] = 0;
             n_minidoublets_by_layer_endcap_[i] = 0;
@@ -56,99 +53,10 @@ SDL::Event::Event(cudaStream_t estream, bool verbose): queue(alpaka::getDevByIdx
     }
 }
 
-SDL::Event::~Event()
-{
-    if(rangesInGPU != nullptr){delete rangesInGPU; delete rangesBuffers;}
-    if(mdsInGPU != nullptr){delete mdsInGPU; delete miniDoubletsBuffers;}
-    if(segmentsInGPU != nullptr){delete segmentsInGPU; delete segmentsBuffers;}
-    if(tripletsInGPU!= nullptr){delete tripletsInGPU; delete tripletsBuffers;}
-    if(trackCandidatesInGPU!= nullptr){delete trackCandidatesInGPU; delete trackCandidatesBuffers;}
-    if(hitsInGPU!= nullptr){delete hitsInGPU; delete hitsBuffers;}
-    if(pixelTripletsInGPU!= nullptr){delete pixelTripletsInGPU; delete pixelTripletsBuffers;}
-    if(pixelQuintupletsInGPU!= nullptr){delete pixelQuintupletsInGPU; delete pixelQuintupletsBuffers;}
-    if(quintupletsInGPU!= nullptr){delete quintupletsInGPU; delete quintupletsBuffers;}
-
-    if(hitsInCPU != nullptr)
-    {
-        delete hitsInCPU;
-    }
-    if(rangesInCPU != nullptr)
-    {
-        delete rangesInCPU;
-    }
-    if(mdsInCPU != nullptr)
-    {
-        delete mdsInCPU;
-    }
-    if(segmentsInCPU != nullptr)
-    {
-        delete segmentsInCPU;
-    }
-    if(tripletsInCPU != nullptr)
-    {
-        delete tripletsInCPU;
-    }
-    if(quintupletsInCPU != nullptr)
-    {
-        delete quintupletsInCPU;
-    }
-    if(pixelTripletsInCPU != nullptr)
-    {
-        delete pixelTripletsInCPU;
-    }
-    if(pixelQuintupletsInCPU != nullptr)
-    {
-        delete pixelQuintupletsInCPU;
-    }
-    if(trackCandidatesInCPU != nullptr)
-    {
-        delete trackCandidatesInCPU;
-    }
-    if(modulesInCPU != nullptr)
-    {
-        delete[] modulesInCPU->nLowerModules;
-        delete[] modulesInCPU->nModules;
-        delete[] modulesInCPU->detIds;
-        delete[] modulesInCPU->isLower;
-        delete[] modulesInCPU->layers;
-        delete[] modulesInCPU->subdets;
-        delete[] modulesInCPU->rings;
-        delete[] modulesInCPU->rods;
-        delete[] modulesInCPU->modules;
-        delete[] modulesInCPU->sides;
-        delete[] modulesInCPU->eta;
-        delete[] modulesInCPU->r;
-        delete[] modulesInCPU;
-    }
-    if(modulesInCPUFull != nullptr)
-    {
-        delete[] modulesInCPUFull->detIds;
-        delete[] modulesInCPUFull->moduleMap;
-        delete[] modulesInCPUFull->nConnectedModules;
-        delete[] modulesInCPUFull->drdzs;
-        delete[] modulesInCPUFull->slopes;
-        delete[] modulesInCPUFull->nModules;
-        delete[] modulesInCPUFull->nLowerModules;
-        delete[] modulesInCPUFull->layers;
-        delete[] modulesInCPUFull->rings;
-        delete[] modulesInCPUFull->modules;
-        delete[] modulesInCPUFull->rods;
-        delete[] modulesInCPUFull->subdets;
-        delete[] modulesInCPUFull->sides;
-        delete[] modulesInCPUFull->eta;
-        delete[] modulesInCPUFull->r;
-        delete[] modulesInCPUFull->isInverted;
-        delete[] modulesInCPUFull->isLower;
-        delete[] modulesInCPUFull->moduleType;
-        delete[] modulesInCPUFull->moduleLayerType;
-        delete[] modulesInCPUFull;
-    }
-}
-
 void SDL::Event::resetEvent()
 {
     //reset the arrays
-    for(int i = 0; i<6; i++)
+    for(int i = 0; i < 6; i++)
     {
         n_hits_by_layer_barrel_[i] = 0;
         n_minidoublets_by_layer_barrel_[i] = 0;
@@ -156,7 +64,7 @@ void SDL::Event::resetEvent()
         n_triplets_by_layer_barrel_[i] = 0;
         n_trackCandidates_by_layer_barrel_[i] = 0;
         n_quintuplets_by_layer_barrel_[i] = 0;
-        if(i<5)
+        if(i < 5)
         {
             n_hits_by_layer_endcap_[i] = 0;
             n_minidoublets_by_layer_endcap_[i] = 0;
@@ -232,43 +140,12 @@ void SDL::Event::resetEvent()
     }
     if(modulesInCPU != nullptr)
     {
-        delete[] modulesInCPU->nLowerModules;
-        delete[] modulesInCPU->nModules;
-        delete[] modulesInCPU->detIds;
-        delete[] modulesInCPU->isLower;
-        delete[] modulesInCPU->layers;
-        delete[] modulesInCPU->subdets;
-        delete[] modulesInCPU->rings;
-        delete[] modulesInCPU->rods;
-        delete[] modulesInCPU->modules;
-        delete[] modulesInCPU->sides;
-        delete[] modulesInCPU->eta;
-        delete[] modulesInCPU->r;
-        delete[] modulesInCPU;
+        delete modulesInCPU;
         modulesInCPU = nullptr;
     }
     if(modulesInCPUFull != nullptr)
     {
-        delete[] modulesInCPUFull->detIds;
-        delete[] modulesInCPUFull->moduleMap;
-        delete[] modulesInCPUFull->nConnectedModules;
-        delete[] modulesInCPUFull->drdzs;
-        delete[] modulesInCPUFull->slopes;
-        delete[] modulesInCPUFull->nModules;
-        delete[] modulesInCPUFull->nLowerModules;
-        delete[] modulesInCPUFull->layers;
-        delete[] modulesInCPUFull->rings;
-        delete[] modulesInCPUFull->modules;
-        delete[] modulesInCPUFull->rods;
-        delete[] modulesInCPUFull->sides;
-        delete[] modulesInCPUFull->subdets;
-        delete[] modulesInCPUFull->eta;
-        delete[] modulesInCPUFull->r;
-        delete[] modulesInCPUFull->isInverted;
-        delete[] modulesInCPUFull->isLower;
-        delete[] modulesInCPUFull->moduleType;
-        delete[] modulesInCPUFull->moduleLayerType;
-        delete[] modulesInCPUFull;
+        delete modulesInCPUFull;
         modulesInCPUFull = nullptr;
     }
 }
@@ -276,18 +153,20 @@ void SDL::Event::resetEvent()
 void SDL::initModules(const char* moduleMetaDataFilePath)
 {
     cudaStream_t default_stream = 0;
-    if(modulesInGPU == nullptr)
-    {
-        cudaMallocHost(&modulesInGPU, sizeof(struct SDL::modules));
-        //nModules gets filled here
-        loadModulesFromFile(*modulesInGPU,nModules,nLowerModules, *pixelMapping, default_stream, moduleMetaDataFilePath);
-    }
-}
+    QueueAcc queue(devAcc);
 
-void SDL::cleanModules()
-{
-    freeModules(*modulesInGPU);
-    cudaFreeHost(modulesInGPU);
+    // Set the relevant data pointers.
+    modulesInGPU->setData(*modulesBuffers);
+
+    // nModules gets filled here
+    loadModulesFromFile(modulesInGPU.get(),
+                        modulesBuffers.get(),
+                        nModules,
+                        nLowerModules,
+                        *pixelMapping,
+                        default_stream,
+                        queue,
+                        moduleMetaDataFilePath);
 }
 
 void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple)
@@ -298,9 +177,6 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     // Needed for the memcpy to hitsInGPU below. Will be replaced with a View.
     auto nHits_buf = allocBufWrapper<unsigned int>(devHost, 1);
     *alpaka::getPtrNative(nHits_buf) = nHits;
-
-    // Get current device for future use.
-    cudaGetDevice(&dev);
 
     // Initialize space on device/host for next event.
     if (hitsInGPU == nullptr)
@@ -492,22 +368,23 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
 
 void SDL::Event::addMiniDoubletsToEventExplicit()
 {
-    unsigned int* nMDsCPU;
-    nMDsCPU = (unsigned int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
-    cudaMemcpyAsync(nMDsCPU,mdsInGPU->nMDs,nLowerModules*sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
+    auto nMDsCPU_buf = allocBufWrapper<int>(devHost, nLowerModules);
+    alpaka::memcpy(queue, nMDsCPU_buf, miniDoubletsBuffers->nMDs_buf, nLowerModules);
 
-    short* module_subdets;
-    module_subdets = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
-    cudaMemcpyAsync(module_subdets,modulesInGPU->subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-    short* module_layers;
-    module_layers = (short*)cms::cuda::allocate_host(nLowerModules * sizeof(short), stream);
-    cudaMemcpyAsync(module_layers,modulesInGPU->layers,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-    int* module_hitRanges;
-    module_hitRanges = (int*)cms::cuda::allocate_host(nLowerModules* 2*sizeof(int), stream);
-    cudaMemcpyAsync(module_hitRanges,hitsInGPU->hitRanges,nLowerModules*2*sizeof(int),cudaMemcpyDeviceToHost,stream);
+    auto module_subdets_buf = allocBufWrapper<short>(devHost, nLowerModules);
+    alpaka::memcpy(queue, module_subdets_buf, modulesBuffers->subdets_buf, nLowerModules);
 
-    cudaStreamSynchronize(stream);
+    auto module_layers_buf = allocBufWrapper<short>(devHost, nLowerModules);
+    alpaka::memcpy(queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
+
+    auto module_hitRanges_buf = allocBufWrapper<int>(devHost, nLowerModules*2);
+    alpaka::memcpy(queue, module_hitRanges_buf, hitsBuffers->hitRanges_buf, nLowerModules*2);
+
+    alpaka::wait(queue);
+    int* nMDsCPU = alpaka::getPtrNative(nMDsCPU_buf);
+    short* module_subdets = alpaka::getPtrNative(module_subdets_buf);
+    short* module_layers = alpaka::getPtrNative(module_layers_buf);
+    int* module_hitRanges = alpaka::getPtrNative(module_hitRanges_buf);
 
     for(unsigned int i = 0; i<nLowerModules; i++)
     {
@@ -524,27 +401,24 @@ void SDL::Event::addMiniDoubletsToEventExplicit()
 
         }
     }
-
-    cms::cuda::free_host(nMDsCPU);
-    cms::cuda::free_host(module_subdets);
-    cms::cuda::free_host(module_layers);
-    cms::cuda::free_host(module_hitRanges);
 }
 
 void SDL::Event::addSegmentsToEventExplicit()
 {
-    unsigned int* nSegmentsCPU;
-    nSegmentsCPU = (unsigned int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
-    cudaMemcpyAsync(nSegmentsCPU,segmentsInGPU->nSegments,nLowerModules*sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
+    auto nSegmentsCPU_buf = allocBufWrapper<int>(devHost, nLowerModules);
+    alpaka::memcpy(queue, nSegmentsCPU_buf, segmentsBuffers->nSegments_buf, nLowerModules);
 
-    short* module_subdets;
-    module_subdets = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
-    cudaMemcpyAsync(module_subdets,modulesInGPU->subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-    short* module_layers;
-    module_layers = (short*)cms::cuda::allocate_host(nLowerModules * sizeof(short), stream);
-    cudaMemcpyAsync(module_layers,modulesInGPU->layers,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
+    auto module_subdets_buf = allocBufWrapper<short>(devHost, nLowerModules);
+    alpaka::memcpy(queue, module_subdets_buf, modulesBuffers->subdets_buf, nLowerModules);
 
-    cudaStreamSynchronize(stream);
+    auto module_layers_buf = allocBufWrapper<short>(devHost, nLowerModules);
+    alpaka::memcpy(queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
+
+    alpaka::wait(queue);
+    int* nSegmentsCPU = alpaka::getPtrNative(nSegmentsCPU_buf);
+    short* module_subdets = alpaka::getPtrNative(module_subdets_buf);
+    short* module_layers = alpaka::getPtrNative(module_layers_buf);
+
     for(unsigned int i = 0; i<nLowerModules; i++)
     {
         if(!(nSegmentsCPU[i] == 0))
@@ -559,10 +433,6 @@ void SDL::Event::addSegmentsToEventExplicit()
             }
         }
     }
-
-    cms::cuda::free_host(nSegmentsCPU);
-    cms::cuda::free_host(module_subdets);
-    cms::cuda::free_host(module_layers);
 }
 
 void SDL::Event::createMiniDoublets()
@@ -716,25 +586,27 @@ void SDL::Event::createTriplets()
 
     uint16_t nonZeroModules = 0;
     unsigned int max_InnerSeg = 0;
-    
+
     // Allocate host index
     auto index_buf = allocBufWrapper<uint16_t>(devHost, nLowerModules);
     uint16_t *index = alpaka::getPtrNative(index_buf);
-    
+
     // Allocate device index
     auto index_gpu_buf = allocBufWrapper<uint16_t>(devAcc, nLowerModules);
-    
+
     // Allocate and copy nSegments from device to host
     auto nSegments_buf = allocBufWrapper<int>(devHost, nLowerModules);
     alpaka::memcpy(queue, nSegments_buf, segmentsBuffers->nSegments_buf, nLowerModules);
     alpaka::wait(queue);
 
     int *nSegments = alpaka::getPtrNative(nSegments_buf);
-    
-    uint16_t* module_nConnectedModules;
-    module_nConnectedModules = (uint16_t*)cms::cuda::allocate_host(nLowerModules* sizeof(uint16_t), stream);
-    cudaMemcpyAsync(module_nConnectedModules,modulesInGPU->nConnectedModules,nLowerModules*sizeof(uint16_t),cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
+
+    // Allocate and copy module_nConnectedModules from device to host
+    auto module_nConnectedModules_buf = allocBufWrapper<uint16_t>(devHost, nLowerModules);
+    alpaka::memcpy(queue, module_nConnectedModules_buf, modulesBuffers->nConnectedModules_buf, nLowerModules);
+    alpaka::wait(queue);
+
+    uint16_t* module_nConnectedModules = alpaka::getPtrNative(module_nConnectedModules_buf);
 
     for (uint16_t innerLowerModuleIndex = 0; innerLowerModuleIndex < nLowerModules; innerLowerModuleIndex++)
     {
@@ -751,8 +623,6 @@ void SDL::Event::createTriplets()
     // Copy index from host to device
     alpaka::memcpy(queue, index_gpu_buf, index_buf, nonZeroModules);
     alpaka::wait(queue);
-
-    cms::cuda::free_host(module_nConnectedModules);
 
     Vec const threadsPerBlockCreateTrip(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
     Vec const blocksPerGridCreateTrip(static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1), static_cast<Idx>(1));
@@ -1296,20 +1166,24 @@ void SDL::Event::createPixelQuintuplets()
 
 void SDL::Event::addQuintupletsToEventExplicit()
 {
-    unsigned int* nQuintupletsCPU;
-    nQuintupletsCPU = (unsigned int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
-    cudaMemcpyAsync(nQuintupletsCPU,quintupletsInGPU->nQuintuplets,nLowerModules*sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
+    auto nQuintupletsCPU_buf = allocBufWrapper<int>(devHost, nLowerModules);
+    alpaka::memcpy(queue, nQuintupletsCPU_buf, quintupletsBuffers->nQuintuplets_buf, nLowerModules);
 
-    short* module_subdets;
-    module_subdets = (short*)cms::cuda::allocate_host(nModules* sizeof(short), stream);
-    cudaMemcpyAsync(module_subdets,modulesInGPU->subdets,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-    short* module_layers;
-    module_layers = (short*)cms::cuda::allocate_host(nLowerModules * sizeof(short), stream);
-    cudaMemcpyAsync(module_layers,modulesInGPU->layers,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-    int* module_quintupletModuleIndices;
-    module_quintupletModuleIndices = (int*)cms::cuda::allocate_host(nLowerModules * sizeof(int), stream);
-    cudaMemcpyAsync(module_quintupletModuleIndices, rangesInGPU->quintupletModuleIndices, nLowerModules * sizeof(int), cudaMemcpyDeviceToHost,stream);
-    cudaStreamSynchronize(stream);
+    auto module_subdets_buf = allocBufWrapper<short>(devHost, nModules);
+    alpaka::memcpy(queue, module_subdets_buf, modulesBuffers->subdets_buf, nModules);
+
+    auto module_layers_buf = allocBufWrapper<short>(devHost, nLowerModules);
+    alpaka::memcpy(queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
+
+    auto module_quintupletModuleIndices_buf = allocBufWrapper<int>(devHost, nLowerModules);
+    alpaka::memcpy(queue, module_quintupletModuleIndices_buf, rangesBuffers->quintupletModuleIndices_buf, nLowerModules);
+
+    alpaka::wait(queue);
+    int* nQuintupletsCPU = alpaka::getPtrNative(nQuintupletsCPU_buf);
+    short* module_subdets = alpaka::getPtrNative(module_subdets_buf);
+    short* module_layers = alpaka::getPtrNative(module_layers_buf);
+    int* module_quintupletModuleIndices = alpaka::getPtrNative(module_quintupletModuleIndices_buf);
+
     for(uint16_t i = 0; i<nLowerModules; i++)
     {
         if(!(nQuintupletsCPU[i] == 0 or module_quintupletModuleIndices[i] == -1))
@@ -1324,26 +1198,24 @@ void SDL::Event::addQuintupletsToEventExplicit()
             }
         }
     }
-    cms::cuda::free_host(nQuintupletsCPU);
-    cms::cuda::free_host(module_layers);
-    cms::cuda::free_host(module_subdets);
-    cms::cuda::free_host(module_quintupletModuleIndices);
 }
 
 void SDL::Event::addTripletsToEventExplicit()
 {
-    unsigned int* nTripletsCPU;
-    nTripletsCPU = (unsigned int*)cms::cuda::allocate_host(nLowerModules * sizeof(unsigned int), stream);
-    cudaMemcpyAsync(nTripletsCPU,tripletsInGPU->nTriplets,nLowerModules*sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
+    auto nTripletsCPU_buf = allocBufWrapper<int>(devHost, nLowerModules);
+    alpaka::memcpy(queue, nTripletsCPU_buf, tripletsBuffers->nTriplets_buf, nLowerModules);
 
-    short* module_subdets;
-    module_subdets = (short*)cms::cuda::allocate_host(nLowerModules* sizeof(short), stream);
-    cudaMemcpyAsync(module_subdets,modulesInGPU->subdets,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-    short* module_layers;
-    module_layers = (short*)cms::cuda::allocate_host(nLowerModules * sizeof(short), stream);
-    cudaMemcpyAsync(module_layers,modulesInGPU->layers,nLowerModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
+    auto module_subdets_buf = allocBufWrapper<short>(devHost, nLowerModules);
+    alpaka::memcpy(queue, module_subdets_buf, modulesBuffers->subdets_buf, nLowerModules);
 
-    cudaStreamSynchronize(stream);
+    auto module_layers_buf = allocBufWrapper<short>(devHost, nLowerModules);
+    alpaka::memcpy(queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
+
+    alpaka::wait(queue);
+    int* nTripletsCPU = alpaka::getPtrNative(nTripletsCPU_buf);
+    short* module_subdets = alpaka::getPtrNative(module_subdets_buf);
+    short* module_layers = alpaka::getPtrNative(module_layers_buf);
+
     for(uint16_t i = 0; i<nLowerModules; i++)
     {
         if(nTripletsCPU[i] != 0)
@@ -1358,10 +1230,6 @@ void SDL::Event::addTripletsToEventExplicit()
             }
         }
     }
-
-    cms::cuda::free_host(nTripletsCPU);
-    cms::cuda::free_host(module_layers);
-    cms::cuda::free_host(module_subdets);
 }
 
 unsigned int SDL::Event::getNumberOfHits()
@@ -1922,84 +1790,58 @@ SDL::trackCandidatesBuffer<alpaka::DevCpu>* SDL::Event::getTrackCandidatesInCMSS
     return trackCandidatesInCPU;
 }
 
-SDL::modules* SDL::Event::getFullModules()
+SDL::modulesBuffer<alpaka::DevCpu>* SDL::Event::getFullModules()
 {
     if(modulesInCPUFull == nullptr)
     {
-        modulesInCPUFull = new SDL::modules;
+        // The last input here is just a small placeholder for the allocation.
+        modulesInCPUFull = new SDL::modulesBuffer<alpaka::DevCpu>(devHost, nModules, 1);
+        modulesInCPUFull->setData(*modulesInCPUFull);
 
-        modulesInCPUFull->detIds = new unsigned int[nModules];
-        modulesInCPUFull->moduleMap = new uint16_t[40*nModules];
-        modulesInCPUFull->nConnectedModules = new uint16_t[nModules];
-        modulesInCPUFull->drdzs = new float[nModules];
-        modulesInCPUFull->slopes = new float[nModules];
-        modulesInCPUFull->nModules = new uint16_t[1];
-        modulesInCPUFull->nLowerModules = new uint16_t[1];
-        modulesInCPUFull->layers = new short[nModules];
-        modulesInCPUFull->rings = new short[nModules];
-        modulesInCPUFull->modules = new short[nModules];
-        modulesInCPUFull->rods = new short[nModules];
-        modulesInCPUFull->subdets = new short[nModules];
-        modulesInCPUFull->sides = new short[nModules];
-        modulesInCPUFull->isInverted = new bool[nModules];
-        modulesInCPUFull->isLower = new bool[nModules];
-
-        modulesInCPUFull->moduleType = new ModuleType[nModules];
-        modulesInCPUFull->moduleLayerType = new ModuleLayerType[nModules];
-        cudaMemcpyAsync(modulesInCPUFull->detIds,modulesInGPU->detIds,nModules*sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPUFull->moduleMap,modulesInGPU->moduleMap,40*nModules*sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPUFull->nConnectedModules,modulesInGPU->nConnectedModules,nModules*sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPUFull->drdzs,modulesInGPU->drdzs,sizeof(float)*nModules,cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPUFull->slopes,modulesInGPU->slopes,sizeof(float)*nModules,cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPUFull->nLowerModules,modulesInGPU->nLowerModules,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPUFull->layers,modulesInGPU->layers,nModules*sizeof(short),cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPUFull->rings,modulesInGPU->rings,sizeof(short)*nModules,cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPUFull->modules,modulesInGPU->modules,sizeof(short)*nModules,cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPUFull->rods,modulesInGPU->rods,sizeof(short)*nModules,cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPUFull->subdets,modulesInGPU->subdets,sizeof(short)*nModules,cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPUFull->sides,modulesInGPU->sides,sizeof(short)*nModules,cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPUFull->isInverted,modulesInGPU->isInverted,sizeof(bool)*nModules,cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPUFull->isLower,modulesInGPU->isLower,sizeof(bool)*nModules,cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPUFull->moduleType,modulesInGPU->moduleType,sizeof(ModuleType)*nModules,cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPUFull->moduleLayerType,modulesInGPU->moduleLayerType,sizeof(ModuleLayerType)*nModules,cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
+        alpaka::memcpy(queue, modulesInCPUFull->detIds_buf, modulesBuffers->detIds_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPUFull->moduleMap_buf, modulesBuffers->moduleMap_buf, 40 * nModules);
+        alpaka::memcpy(queue, modulesInCPUFull->nConnectedModules_buf, modulesBuffers->nConnectedModules_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPUFull->drdzs_buf, modulesBuffers->drdzs_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPUFull->slopes_buf, modulesBuffers->slopes_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPUFull->nLowerModules_buf, modulesBuffers->nLowerModules_buf, 1);
+        alpaka::memcpy(queue, modulesInCPUFull->nModules_buf, modulesBuffers->nModules_buf, 1);
+        alpaka::memcpy(queue, modulesInCPUFull->layers_buf, modulesBuffers->layers_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPUFull->rings_buf, modulesBuffers->rings_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPUFull->modules_buf, modulesBuffers->modules_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPUFull->rods_buf, modulesBuffers->rods_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPUFull->subdets_buf, modulesBuffers->subdets_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPUFull->sides_buf, modulesBuffers->sides_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPUFull->isInverted_buf, modulesBuffers->isInverted_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPUFull->isLower_buf, modulesBuffers->isLower_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPUFull->moduleType_buf, modulesBuffers->moduleType_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPUFull->moduleLayerType_buf, modulesBuffers->moduleLayerType_buf, nModules);
+        alpaka::wait(queue);
     }
     return modulesInCPUFull;
 }
 
-SDL::modules* SDL::Event::getModules()
+SDL::modulesBuffer<alpaka::DevCpu>* SDL::Event::getModules()
 {
     if(modulesInCPU == nullptr)
     {
-        modulesInCPU = new SDL::modules;
-        modulesInCPU->nLowerModules = new uint16_t[1];
-        modulesInCPU->nModules = new uint16_t[1];
-        modulesInCPU->detIds = new unsigned int[nModules];
-        modulesInCPU->isLower = new bool[nModules];
-        modulesInCPU->layers = new short[nModules];
-        modulesInCPU->subdets = new short[nModules];
-        modulesInCPU->rings = new short[nModules];
-        modulesInCPU->rods = new short[nModules];
-        modulesInCPU->modules = new short[nModules];
-        modulesInCPU->sides = new short[nModules];
-        modulesInCPU->eta = new float[nModules];
-        modulesInCPU->r = new float[nModules];
-        modulesInCPU->moduleType = new ModuleType[nModules];
+        // The last input here is just a small placeholder for the allocation.
+        modulesInCPU = new SDL::modulesBuffer<alpaka::DevCpu>(devHost, nModules, 1);
+        modulesInCPU->setData(*modulesInCPU);
 
-        cudaMemcpyAsync(modulesInCPU->nLowerModules, modulesInGPU->nLowerModules, sizeof(uint16_t), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->nModules, modulesInGPU->nModules, sizeof(uint16_t), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->detIds, modulesInGPU->detIds, nModules * sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->isLower, modulesInGPU->isLower, nModules * sizeof(bool), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->layers, modulesInGPU->layers, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->subdets, modulesInGPU->subdets, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->rings, modulesInGPU->rings, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->rods, modulesInGPU->rods, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->modules, modulesInGPU->modules, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->sides, modulesInGPU->sides, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->eta, modulesInGPU->eta, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->r, modulesInGPU->r, nModules * sizeof(short), cudaMemcpyDeviceToHost,stream);
-        cudaMemcpyAsync(modulesInCPU->moduleType, modulesInGPU->moduleType, nModules * sizeof(ModuleType), cudaMemcpyDeviceToHost, stream);
-        cudaStreamSynchronize(stream);
+        alpaka::memcpy(queue, modulesInCPU->nLowerModules_buf, modulesBuffers->nLowerModules_buf, 1);
+        alpaka::memcpy(queue, modulesInCPU->nModules_buf, modulesBuffers->nModules_buf, 1);
+        alpaka::memcpy(queue, modulesInCPU->detIds_buf, modulesBuffers->detIds_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPU->isLower_buf, modulesBuffers->isLower_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPU->layers_buf, modulesBuffers->layers_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPU->subdets_buf, modulesBuffers->subdets_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPU->rings_buf, modulesBuffers->rings_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPU->rods_buf, modulesBuffers->rods_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPU->modules_buf, modulesBuffers->modules_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPU->sides_buf, modulesBuffers->sides_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPU->eta_buf, modulesBuffers->eta_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPU->r_buf, modulesBuffers->r_buf, nModules);
+        alpaka::memcpy(queue, modulesInCPU->moduleType_buf, modulesBuffers->moduleType_buf, nModules);
+        alpaka::wait(queue);
     }
     return modulesInCPU;
 }

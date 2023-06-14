@@ -522,8 +522,6 @@ void run_sdl()
     std::cout << "Time for event creation = " << timeForEventCreation << " ms\n";
     printTimingInformation(timevec, full_elapsed, avg_elapsed);
 
-    SDL::cleanModules();
-
     if (ana.do_write_ntuple)
     {
         // Writing ttree output to file
