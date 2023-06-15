@@ -57,12 +57,12 @@ where:
 ```
 - To get the profiling timeline, we used:
 ```
-	nsys profile -f true -o profiling_DATE_COMMIT --sample=cpu --stats true --trace cuda,nvtx ./bin/sdl -n 2 -v 0 -w 0 -i PU200
+	nsys profile -f true -o timeline_DATE_COMMIT --sample=cpu --stats true --trace cuda,nvtx ./bin/sdl -n 2 -v 0 -w 0 -i PU200
 ```
 
 N.B.: If you encounter problems with the lock file when profiling, retry after doing:
 ```
-	export TMPDIR=$PWD
+export TMPDIR=$PWD
 ```
 
 ## Useful links
