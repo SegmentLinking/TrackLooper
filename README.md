@@ -2,6 +2,9 @@
 
 ## To be run only once
 
+### Add ssh key for your GitHub account
+- Instructions: https://docs.github.com/en/authentication/connecting-to-github-with-ssh
+
 ### ROOT installation
 	wget https://root.cern/download/root_v6.26.02.Linux-ubuntu20-x86_64-gcc9.4.tar.gz
 	tar -xzvf root_v6.26.02.Linux-ubuntu20-x86_64-gcc9.4.tar.gz
@@ -30,6 +33,9 @@
 ### Code running
 	srun --ntasks=1 --nodes=1 --cpus-per-task=1 --partition=gpu --time=1:00:00 --gres=gpu:1 --pty /bin/bash # Example for requesting resources
 	sdl -n <nevents> -v <verbose> -w <writeout> -s <streams> -i <dataset>
+
+where:
+
 	-i: input sample; use PU200
 	-n: number of events; -1 for all events = 175
 	-v: 0-no printout; 1- timing printout only; 2- multiplicity printout
@@ -39,7 +45,7 @@
 ## Performance and validation
 - One quick easy to validate the code is to check the multiplicity of produced objects for a few events, e.g. for the 1st event:
 ```
-	sdl -i PU200 -n 1 -v 2
+	sdl -i PU200 -n 1 -v 2 -w 0
 ```
 - To check the timing, one can use the following command:
 ```
@@ -47,7 +53,16 @@
 ```
 - To get the profiling report, we used:
 ```
-	ncu --set full -o profiling_DATE_COMMIT -f --import-source on ./bin/sdl -n 1 -v 0 -i PU200
+	ncu --set full -o profiling_DATE_COMMIT -f --import-source on ./bin/sdl -n 1 -v 0 -w 0 -i PU200
+```
+- To get the profiling timeline, we used:
+```
+	nsys profile -f true -o profiling_DATE_COMMIT --sample=cpu --stats true --trace cuda,nvtx ./bin/sdl -n 2 -v 0 -w 0 -i PU200
+```
+
+N.B.: If you encounter problems with the lock file when profiling, retry after doing:
+```
+	export TMPDIR=$PWD
 ```
 
 ## Useful links
@@ -55,3 +70,4 @@
 - Latest complete set of slides on the algorithm: https://indico.jlab.org/event/459/contributions/11399/attachments/9632/14023/PhilipChang20230508_LST_CHEP2023Draft_v4.pdf
 - Profiling report (on V100): https://www.classe.cornell.edu/~evourlio/www/SDL_GPU/profiling_cornell_master_3c0ba9a.ncu-rep
 - Profiling report (on NVIDIA cluster A100): https://uaf-10.t2.ucsd.edu/~evourlio/SDL/profiling_20230609.ncu-rep
+- Profiling timeline (on NVIDIA cluster A100): https://uaf-10.t2.ucsd.edu/~evourlio/SDL/timeline_20230609.nsys-rep

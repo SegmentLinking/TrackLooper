@@ -3,6 +3,7 @@
 module load cuda-11.7.1
 module load cuda11.7/toolkit/11.7.1
 module load nsight-compute/2023.1
+module load nsight-systems/2023.2.1
 
 ###########################################################################################################
 # Setup environments
