@@ -339,7 +339,7 @@ __device__ bool SDL::passRZConstraint(struct SDL::modules& modulesInGPU, struct 
     const int layer2 = modulesInGPU.layers[middleLowerModuleIndex] + 6 * (modulesInGPU.subdets[middleLowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[middleLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[middleLowerModuleIndex] == SDL::TwoS);
     const int layer3 = modulesInGPU.layers[outerOuterLowerModuleIndex] + 6 * (modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS);
 
-    const float residual = z2 - ( (z3 - z1) / (r3 - r1) * (r2 - r1) + z1);
+    const float residual = fabsf(z2 - ( (z3 - z1) / (r3 - r1) * (r2 - r1) + z1));
 
     if (layer1 == 1)
     {
@@ -347,16 +347,16 @@ __device__ bool SDL::passRZConstraint(struct SDL::modules& modulesInGPU, struct 
         {
             if (layer3 == 3)
             {
-                return fabsf(residual) < 0.53f;
+                return residual < 0.53f;
             }
             else if (layer3 == 7)
             {
-                return fabsf(residual) < 1;
+                return residual < 1;
             }
         }
         else if (layer2 == 7 and layer3 == 8)
         {
-            return fabsf(residual) < 1;
+            return residual < 1;
         }
     }
 
@@ -366,56 +366,48 @@ __device__ bool SDL::passRZConstraint(struct SDL::modules& modulesInGPU, struct 
         {
             if (layer3 == 4)
             {
-                return fabsf(residual) < 1.21f;
+                return residual < 1.21f;
             }
             else if (layer3 == 7)
             {
-                return fabsf(residual) < 1.f;
+                return residual < 1.f;
             }
         }
         else if (layer2 == 7 and layer3 == 8)
         {
-            return fabsf(residual) < 1.f;
+            return residual < 1.f;
         }
     }
 
     else if (layer1 == 3 and layer2 == 4 and layer3 == 5)
     {
-        return fabsf(residual) < 2.7f;
+        return residual < 2.7f;
     }
 
     else if (layer1 == 4 and layer2 == 5 and layer3 == 6)
     {
-        return fabsf(residual) < 3.06f;
+        return residual < 3.06f;
     }
 
     else if (layer1 == 7 and layer2 == 8 and layer3 == 9)
     {
-        return fabsf(residual) < 1;
+        return residual < 1;
     }
     else if (layer1 == 8 and layer2 == 9 and layer3 == 10)
     {
-        return fabsf(residual) < 1;
+        return residual < 1;
     }
     else if (layer1 == 9 and layer2 == 10 and layer3 == 11)
     {
-        return fabsf(residual) < 1;
+        return residual < 1;
     }
-    else if (layer1 == 12 and layer2 == 13 and layer3 == 14)
+    else if (layer1 == 12 or layer1 == 13 or layer1 == 14)
     {
         return false;
     } 
-    else if (layer1 == 13 and layer2 == 14 and layer3 == 15)
-    {
-        return false;
-    }
-    else if (layer1 == 14 and layer2 == 15 and layer3 == 16)
-    {
-        return false;
-    }
     else
     {
-        return fabsf(residual) < 5;
+        return residual < 5;
     }
 }
 
