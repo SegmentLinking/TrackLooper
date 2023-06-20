@@ -70,4 +70,4 @@ export TMPDIR=$PWD
 - Latest complete set of slides on the algorithm: https://indico.jlab.org/event/459/contributions/11399/attachments/9632/14023/PhilipChang20230508_LST_CHEP2023Draft_v4.pdf
 - Profiling report (on V100): https://www.classe.cornell.edu/~evourlio/www/SDL_GPU/profiling_cornell_master_3c0ba9a.ncu-rep
 - Profiling report (on NVIDIA cluster A100): https://uaf-10.t2.ucsd.edu/~evourlio/SDL/profiling_20230609.ncu-rep
-- Profiling timeline (on NVIDIA cluster A100): https://uaf-10.t2.ucsd.edu/~evourlio/SDL/timeline_20230609.nsys-rep
+- Profiling timeline (on NVIDIA cluster A100): https://uaf-10.t2.ucsd.edu/~evourlio/SDL/timeline_20230619_175Events.nsys-rep
