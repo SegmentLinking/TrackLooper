@@ -108,6 +108,7 @@ namespace SDL
         bool* isAnchor;
         ModuleType* moduleType;
         ModuleLayerType* moduleLayerType;
+        int* sdlLayers;
        
         CUDA_HOSTDEV ModuleType parseModuleType(unsigned int index);
         CUDA_HOSTDEV ModuleType parseModuleType(short subdet, short layer, short ring);
