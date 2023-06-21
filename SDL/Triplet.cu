@@ -341,42 +341,26 @@ __device__ bool SDL::passRZConstraint(struct SDL::modules& modulesInGPU, struct 
 
     const float residual = fabsf(z2 - ( (z3 - z1) / (r3 - r1) * (r2 - r1) + z1));
 
-    if (layer1 == 1)
-    {
-        if (layer2 == 2)
-        {
-            if (layer3 == 3)
-            {
-                return residual < 0.53f;
-            }
-            else if (layer3 == 7)
-            {
-                return residual < 1;
-            }
-        }
-        else if (layer2 == 7 and layer3 == 8)
-        {
-            return residual < 1;
-        }
-    }
+    const bool conditional_regions1 = (layer1 == 1 and layer2 == 2 and layer3 == 7);
+    const bool conditional_regions2 = (layer1 == 1 and layer2 == 7 and layer3 == 8);
+    const bool conditional_regions3 = (layer1 == 2 and layer2 == 3 and layer3 == 7);
+    const bool conditional_regions4 = (layer1 == 2 and layer2 == 7 and layer3 == 8);
+    const bool conditional_regions5 = (layer1 == 7 and layer2 == 8 and layer3 == 9);
+    const bool conditional_regions6 = (layer1 == 8 and layer2 == 9 and layer3 == 10);
+    const bool conditional_regions7 = (layer1 == 9 and layer2 == 10 and layer3 == 11);
+    const bool conditions_1 = (conditional_regions1 or conditional_regions2 or conditional_regions3 or conditional_regions4 or conditional_regions5 or conditional_regions6 or conditional_regions7);
 
-    else if (layer1 == 2)
+    if (layer1 == 1 and layer2 == 2 and layer3 == 3)
     {
-        if(layer2 == 3)
-        {
-            if (layer3 == 4)
-            {
-                return residual < 1.21f;
-            }
-            else if (layer3 == 7)
-            {
-                return residual < 1.f;
-            }
-        }
-        else if (layer2 == 7 and layer3 == 8)
-        {
-            return residual < 1.f;
-        }
+        return residual < 0.53f;
+    }
+    else if (layer1 == 2 && layer2 == 3 && layer3 == 4)
+    {
+        return residual < 1.21f;
+    }
+    else if (conditions_1)
+    {
+        return residual < 1.f;
     }
 
     else if (layer1 == 3 and layer2 == 4 and layer3 == 5)
@@ -389,18 +373,6 @@ __device__ bool SDL::passRZConstraint(struct SDL::modules& modulesInGPU, struct 
         return residual < 3.06f;
     }
 
-    else if (layer1 == 7 and layer2 == 8 and layer3 == 9)
-    {
-        return residual < 1;
-    }
-    else if (layer1 == 8 and layer2 == 9 and layer3 == 10)
-    {
-        return residual < 1;
-    }
-    else if (layer1 == 9 and layer2 == 10 and layer3 == 11)
-    {
-        return residual < 1;
-    }
     else if (layer1 == 12 or layer1 == 13 or layer1 == 14)
     {
         return false;
