@@ -944,7 +944,7 @@ void SDL::Event::createMiniDoublets()
 
     dim3 nThreads(32,16,1);
     //dim3 nThreads(64,16,1);
-    dim3 nBlocks(1,MAX_BLOCKS,1);
+    dim3 nBlocks(1,nLowerModules/nThreads.y,1); // max parallelization
 
     SDL::createMiniDoubletsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU,*hitsInGPU,*mdsInGPU,*rangesInGPU);
     addMiniDoubletRangesToEventExplicit<<<1,1024,0,stream>>>(*modulesInGPU,*mdsInGPU, *rangesInGPU,*hitsInGPU);
