@@ -1157,7 +1157,7 @@ void SDL::Event::createTriplets()
     cudaStreamSynchronize(stream);
 
     Vec const threadsPerBlockCreateTrip(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
-    Vec const blocksPerGridCreateTrip(static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1), static_cast<Idx>(1));
+    Vec const blocksPerGridCreateTrip(static_cast<Idx>(2048), static_cast<Idx>(1), static_cast<Idx>(1));
     WorkDiv const createTripletsInGPUv2_workDiv(blocksPerGridCreateTrip, threadsPerBlockCreateTrip, elementsPerThread);
 
     SDL::createTripletsInGPUv2 createTripletsInGPUv2_kernel;
