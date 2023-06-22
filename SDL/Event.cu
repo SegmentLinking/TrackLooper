@@ -677,7 +677,7 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     alpaka::wait(queue);
 
     Vec const threadsPerBlock2(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
-    Vec const blocksPerGrid2(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
+    Vec const blocksPerGrid2(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(5));
     WorkDiv const module_ranges_workdiv(blocksPerGrid2, threadsPerBlock2, elementsPerThread);
 
     moduleRangesKernel module_ranges_kernel;
