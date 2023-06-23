@@ -1034,7 +1034,7 @@ void SDL::Event::createTriplets()
     cudaStreamSynchronize(stream);
 
     dim3 nThreads(16,16,1);
-    dim3 nBlocks(1,1,MAX_BLOCKS);
+    dim3 nBlocks(1,1,2048);
     //createTripletsInGPU<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *rangesInGPU, index_gpu,nonZeroModules);
     SDL::createTripletsInGPUv2<<<nBlocks,nThreads,0,stream>>>(*modulesInGPU, *mdsInGPU, *segmentsInGPU, *tripletsInGPU, *rangesInGPU, index_gpu,nonZeroModules);
     addTripletRangesToEventExplicit<<<1,1024,0,stream>>>(*modulesInGPU,*tripletsInGPU,*rangesInGPU);
