@@ -659,50 +659,16 @@ __device__ inline float SDL::isTighterTiltedModules_seg(short subdet, short laye
 //__device__ float SDL::moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
 __device__ float SDL::moduleGapSize_seg(short layer, short ring, short subdet, short side, short rod)
 {
-    float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
-    float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
-    float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
-    float miniDeltaEndcap[5][15];
-
-    for (size_t i = 0; i < 5; i++)
-    {
-        for (size_t j = 0; j < 15; j++)
-        {
-            if (i == 0 || i == 1)
-            {
-                if (j < 10)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j] = 0.18f;
-                }
-            }
-            else if (i == 2 || i == 3)
-            {
-                if (j < 8)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j]  = 0.18f;
-                }
-            }
-            else
-            {
-                if (j < 9)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j] = 0.18f;
-                }
-            }
-        }
-    }
+    static constexpr float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
+    static constexpr float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
+    static constexpr float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
+    static constexpr float miniDeltaEndcap[5][15] = {
+            {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
+            {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
+            {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.18f, 0.18f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
+            {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.18f, 0.18f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
+            {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.18f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f}
+    };
 
 
     unsigned int iL = layer-1;
@@ -733,10 +699,10 @@ __device__ float SDL::moduleGapSize_seg(short layer, short ring, short subdet, s
 
 __device__ float SDL::moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
 {
-    constexpr float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
-    constexpr float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
-    constexpr float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
-    constexpr float miniDeltaEndcap[5][15] = {
+    static constexpr float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
+    static constexpr float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
+    static constexpr float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
+    static constexpr float miniDeltaEndcap[5][15] = {
 	    {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
 	    {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
 	    {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.18f, 0.18f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
