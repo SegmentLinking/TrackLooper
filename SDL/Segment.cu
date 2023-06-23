@@ -812,13 +812,15 @@ __global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, st
     int blockzSize = blockDim.x;
     for(uint16_t innerLowerModuleIndex = blockIdx.x ; innerLowerModuleIndex< (*modulesInGPU.nLowerModules); innerLowerModuleIndex += blockxSize){
 
+    unsigned int nInnerMDs = mdsInGPU.nMDs[innerLowerModuleIndex];
+    if (nInnerMDs == 0) continue;
+
     unsigned int nConnectedModules = modulesInGPU.nConnectedModules[innerLowerModuleIndex];
 
     for(uint16_t outerLowerModuleArrayIdx = threadIdx.y; outerLowerModuleArrayIdx< nConnectedModules; outerLowerModuleArrayIdx += blockySize){
 
         uint16_t outerLowerModuleIndex = modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + outerLowerModuleArrayIdx];
 
-        unsigned int nInnerMDs = mdsInGPU.nMDs[innerLowerModuleIndex];
         unsigned int nOuterMDs = mdsInGPU.nMDs[outerLowerModuleIndex];
 
         int limit = nInnerMDs*nOuterMDs;
