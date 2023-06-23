@@ -625,17 +625,9 @@ __device__ inline float SDL::isTighterTiltedModules_seg(struct modules& modulesI
     short side = modulesInGPU.sides[moduleIndex];
     short rod = modulesInGPU.rods[moduleIndex];
 
-    if (
-           (subdet == Barrel and side != Center and layer== 3)
-           or (subdet == Barrel and side == NegZ and layer == 2 and rod > 5)
-           or (subdet == Barrel and side == PosZ and layer == 2 and rod < 8)
-           or (subdet == Barrel and side == NegZ and layer == 1 and rod > 9)
-           or (subdet == Barrel and side == PosZ and layer == 1 and rod < 4)
-       )
-        return true;
-    else
-        return false;
-
+    return subdet == Barrel & ( ((side != Center) & (layer== 3))
+                | (side == NegZ & (((layer == 2) & (rod > 5)) | ((layer == 1) & (rod > 9))))
+                | (side == PosZ & (((layer == 2) & (rod < 8)) | ((layer == 1) & (rod < 4)))) );
 }
 
 __device__ inline float SDL::isTighterTiltedModules_seg(short subdet, short layer, short side, short rod)
@@ -643,17 +635,9 @@ __device__ inline float SDL::isTighterTiltedModules_seg(short subdet, short laye
     // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
     // This is the same as what was previously considered as"isNormalTiltedModules"
     // See Figure 9.1 of https://cds.cern.ch/record/2272264/files/CMS-TDR-014.pdf
-    if (
-           (subdet == Barrel and side != Center and layer== 3)
-           or (subdet == Barrel and side == NegZ and layer == 2 and rod > 5)
-           or (subdet == Barrel and side == PosZ and layer == 2 and rod < 8)
-           or (subdet == Barrel and side == NegZ and layer == 1 and rod > 9)
-           or (subdet == Barrel and side == PosZ and layer == 1 and rod < 4)
-       )
-        return true;
-    else
-        return false;
-
+    return subdet == Barrel & ( ((side != Center) & (layer== 3))
+		| (side == NegZ & (((layer == 2) & (rod > 5)) | ((layer == 1) & (rod > 9))))
+		| (side == PosZ & (((layer == 2) & (rod < 8)) | ((layer == 1) & (rod < 4)))) );
 }
 
 //__device__ float SDL::moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
