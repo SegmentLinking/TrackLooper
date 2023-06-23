@@ -733,10 +733,10 @@ __device__ float SDL::moduleGapSize_seg(short layer, short ring, short subdet, s
 
 __device__ float SDL::moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
 {
-    float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
-    float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
-    float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
-    float miniDeltaEndcap[5][15] = {
+    constexpr float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
+    constexpr float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
+    constexpr float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
+    constexpr float miniDeltaEndcap[5][15] = {
 	    {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
 	    {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
 	    {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.18f, 0.18f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
