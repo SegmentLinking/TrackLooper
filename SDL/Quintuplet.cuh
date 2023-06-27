@@ -539,8 +539,8 @@ namespace SDL
                 float diffz1 = (solz1-zsi)*100;
                 float diffz2 = (solz2-zsi)*100;
                 // Alpaka : Needs to be moved over
-                if (isnan(diffz1)) diffz = diffz2;
-                else if (isnan(diffz2)) diffz = diffz1;
+                if (alpaka::math::isnan(acc, diffz1)) diffz = diffz2;
+                else if (alpaka::math::isnan(acc, diffz2)) diffz = diffz1;
                 else {diffz = (alpaka::math::abs(acc, diffz1)<alpaka::math::abs(acc, diffz2)) ? diffz1 : diffz2;}
             }
             residual = (layeri>6) ? diffr : diffz ;
@@ -585,7 +585,7 @@ namespace SDL
         // for set rzchi2 cut
         // if the 5 points are linear, helix calculation gives nan
         // Alpaka : Needs to be moved over
-        if (inner_pt > 100 || isnan(rzChiSquared))
+        if (inner_pt > 100 || alpaka::math::isnan(acc, rzChiSquared))
         {
             float slope;
             if(moduleType1 == 0 and moduleType2 == 0 and moduleType3 == 1) //PSPS2S

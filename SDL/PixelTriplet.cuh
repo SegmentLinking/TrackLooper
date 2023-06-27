@@ -568,7 +568,7 @@ namespace SDL
         }
 
         float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
-        float tripletRadiusInvMin = alpaka::math::max(acc, (1 - tripletInvRadiusErrorBound)/tripletRadius, 0);
+        float tripletRadiusInvMin = alpaka::math::max(acc, (1 - tripletInvRadiusErrorBound)/tripletRadius, 0.0f);
 
         float pixelRadiusInvMax = alpaka::math::max(acc, (1 + pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius - pixelRadiusError));
         float pixelRadiusInvMin = alpaka::math::min(acc, (1 - pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius + pixelRadiusError));
@@ -589,7 +589,7 @@ namespace SDL
         }
 
         float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
-        float tripletRadiusInvMin = alpaka::math::max(acc, (1 - tripletInvRadiusErrorBound)/tripletRadius, 0);
+        float tripletRadiusInvMin = alpaka::math::max(acc, (1 - tripletInvRadiusErrorBound)/tripletRadius, 0.0f);
 
         float pixelRadiusInvMax = alpaka::math::max(acc, (1 + pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius - pixelRadiusError));
         float pixelRadiusInvMin = alpaka::math::min(acc, (1 - pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius + pixelRadiusError));
@@ -610,11 +610,11 @@ namespace SDL
         }
 
         float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
-        float tripletRadiusInvMin = alpaka::math::max(acc, (1 - tripletInvRadiusErrorBound)/tripletRadius, 0);
+        float tripletRadiusInvMin = alpaka::math::max(acc, (1 - tripletInvRadiusErrorBound)/tripletRadius, 0.0f);
 
         float pixelRadiusInvMax = alpaka::math::max(acc, (1 + pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius - pixelRadiusError));
         float pixelRadiusInvMin = alpaka::math::min(acc, (1 - pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius + pixelRadiusError));
-        pixelRadiusInvMin = alpaka::math::max(acc, pixelRadiusInvMin, 0);
+        pixelRadiusInvMin = alpaka::math::max(acc, pixelRadiusInvMin, 0.0f);
 
         return checkIntervalOverlappT3(tripletRadiusInvMin, tripletRadiusInvMax, pixelRadiusInvMin, pixelRadiusInvMax);
     };
@@ -632,11 +632,11 @@ namespace SDL
         }
 
         float tripletRadiusInvMax = (1 + tripletInvRadiusErrorBound)/tripletRadius;
-        float tripletRadiusInvMin = alpaka::math::max(acc, (1 - tripletInvRadiusErrorBound)/tripletRadius, 0);
+        float tripletRadiusInvMin = alpaka::math::max(acc, (1 - tripletInvRadiusErrorBound)/tripletRadius, 0.0f);
 
         float pixelRadiusInvMax = alpaka::math::max(acc, (1 + pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius - pixelRadiusError));
         float pixelRadiusInvMin = alpaka::math::min(acc, (1 - pixelInvRadiusErrorBound)/pixelRadius, 1.f/(pixelRadius + pixelRadiusError));
-        pixelRadiusInvMin = alpaka::math::max(acc, 0, pixelRadiusInvMin);
+        pixelRadiusInvMin = alpaka::math::max(acc, 0.0f, pixelRadiusInvMin);
 
         return checkIntervalOverlappT3(tripletRadiusInvMin, tripletRadiusInvMax, pixelRadiusInvMin, pixelRadiusInvMax);
     };

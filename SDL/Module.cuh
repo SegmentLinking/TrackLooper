@@ -607,7 +607,6 @@ namespace SDL
                              uint16_t& nModules,
                              uint16_t& nLowerModules,
                              struct pixelMap& pixelMapping,
-                             cudaStream_t stream,
                              TQueue& queue,
                              const char* moduleMetaDataFilePath)
     {
@@ -657,8 +656,8 @@ namespace SDL
                 if(count_number>4)
                     break;
             }
-
         }
+
         (*detIdToIndex)[1] = counter; //pixel module is the last module in the module list
         counter++;
         nModules = counter;
@@ -815,13 +814,20 @@ namespace SDL
             }
         }
 
-        cudaMemcpyAsync(modulesInGPU->nModules,&nModules,sizeof(uint16_t),cudaMemcpyHostToDevice,stream);
-        cudaMemcpyAsync(modulesInGPU->nLowerModules,&nLowerModules,sizeof(uint16_t),cudaMemcpyHostToDevice,stream);
-        cudaStreamSynchronize(stream);
+        auto src_view_nModules = alpaka::createView(devHost, &nModules, (Idx) 1u);
+        alpaka::memcpy(queue, modulesBuf->nModules_buf, src_view_nModules);
 
+        auto src_view_nLowerModules = alpaka::createView(devHost, &nLowerModules, (Idx) 1u);
+        alpaka::memcpy(queue, modulesBuf->nLowerModules_buf, src_view_nLowerModules);
+
+        alpaka::wait(queue);
+
+#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+        cudaStream_t stream = 0;
         cudaMemcpyAsync(modulesInGPU->moduleType,host_moduleType,sizeof(ModuleType)*nModules,cudaMemcpyHostToDevice,stream);
         cudaMemcpyAsync(modulesInGPU->moduleLayerType,host_moduleLayerType,sizeof(ModuleLayerType)*nModules,cudaMemcpyHostToDevice,stream);
         cudaStreamSynchronize(stream);
+#endif
 
         //alpaka::memcpy(queue, modulesBuf->moduleType_buf, moduleType_buf, nModules);
         //alpaka::memcpy(queue, modulesBuf->moduleLayerType_buf, moduleLayerType_buf, nModules);

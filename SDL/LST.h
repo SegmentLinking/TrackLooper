@@ -17,8 +17,7 @@ namespace SDL {
         LST();
 
         void eventSetup();
-        void run(cudaStream_t stream,
-                 bool verbose,
+        void run(bool verbose,
                  const std::vector<float> see_px,
                  const std::vector<float> see_py,
                  const std::vector<float> see_pz,
