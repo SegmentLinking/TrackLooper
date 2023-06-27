@@ -819,17 +819,8 @@ namespace SDL
         auto src_view_nLowerModules = alpaka::createView(devHost, &nLowerModules, (Idx) 1u);
         alpaka::memcpy(queue, modulesBuf->nLowerModules_buf, src_view_nLowerModules);
 
-        alpaka::wait(queue);
-
-#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-        cudaStream_t stream = 0;
-        cudaMemcpyAsync(modulesInGPU->moduleType,host_moduleType,sizeof(ModuleType)*nModules,cudaMemcpyHostToDevice,stream);
-        cudaMemcpyAsync(modulesInGPU->moduleLayerType,host_moduleLayerType,sizeof(ModuleLayerType)*nModules,cudaMemcpyHostToDevice,stream);
-        cudaStreamSynchronize(stream);
-#endif
-
-        //alpaka::memcpy(queue, modulesBuf->moduleType_buf, moduleType_buf, nModules);
-        //alpaka::memcpy(queue, modulesBuf->moduleLayerType_buf, moduleLayerType_buf, nModules);
+        alpaka::memcpy(queue, modulesBuf->moduleType_buf, moduleType_buf);
+        alpaka::memcpy(queue, modulesBuf->moduleLayerType_buf, moduleLayerType_buf);
 
         alpaka::memcpy(queue, modulesBuf->detIds_buf, detIds_buf, nModules);
         alpaka::memcpy(queue, modulesBuf->layers_buf, layers_buf, nModules);
