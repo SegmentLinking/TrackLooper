@@ -18,7 +18,6 @@ namespace SDL
     {
     private:
         QueueAcc queue;
-        cudaStream_t stream;
         bool addObjects;
 
         std::array<unsigned int, 6> n_hits_by_layer_barrel_;
@@ -35,7 +34,7 @@ namespace SDL
         std::array<unsigned int, 5> n_quintuplets_by_layer_endcap_;
 
         //Device stuff
-        int nTotalSegments;
+        unsigned int nTotalSegments;
         struct objectRanges* rangesInGPU;
         struct objectRangesBuffer<Acc>* rangesBuffers;
         struct hits* hitsInGPU;
@@ -71,7 +70,7 @@ namespace SDL
         int* superbinCPU;
         int8_t* pixelTypeCPU;
     public:
-        Event(cudaStream_t estream,bool verbose);
+        Event(bool verbose);
         void resetEvent();
 
         void addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple); //call the appropriate hit function, then increment the counter here

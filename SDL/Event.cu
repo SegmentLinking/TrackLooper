@@ -6,9 +6,8 @@ std::shared_ptr<SDL::pixelMap> SDL::pixelMapping = std::make_shared<pixelMap>();
 uint16_t SDL::nModules;
 uint16_t SDL::nLowerModules;
 
-SDL::Event::Event(cudaStream_t estream, bool verbose): queue(alpaka::getDevByIdx<Acc>(0u))
+SDL::Event::Event(bool verbose): queue(alpaka::getDevByIdx<Acc>(0u))
 {
-    stream = estream;
     addObjects = verbose;
     hitsInGPU = nullptr;
     mdsInGPU = nullptr;
@@ -152,7 +151,6 @@ void SDL::Event::resetEvent()
 
 void SDL::initModules(const char* moduleMetaDataFilePath)
 {
-    cudaStream_t default_stream = 0;
     QueueAcc queue(devAcc);
 
     // Set the relevant data pointers.
@@ -164,7 +162,6 @@ void SDL::initModules(const char* moduleMetaDataFilePath)
                         nModules,
                         nLowerModules,
                         *pixelMapping,
-                        default_stream,
                         queue,
                         moduleMetaDataFilePath);
 }
@@ -243,12 +240,20 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
 void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> charge, std::vector<unsigned int> seedIdx, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<char> isQuad)
 {
     const int size = ptIn.size();
-    unsigned int mdSize = 2 * size;
+    int mdSize = 2 * size;
     uint16_t pixelModuleIndex = (*detIdToIndex)[1];
 
     if(mdsInGPU == nullptr)
     {
-        cudaMemsetAsync(&rangesInGPU->miniDoubletModuleOccupancy[nLowerModules],N_MAX_PIXEL_MD_PER_MODULES, sizeof(unsigned int),stream);
+        // Create a view for the element nLowerModules inside rangesBuffers->miniDoubletModuleOccupancy
+        auto dst_view_miniDoubletModuleOccupancy = alpaka::createSubView(rangesBuffers->miniDoubletModuleOccupancy_buf, (Idx) 1u, (Idx) nLowerModules);
+
+        // Create a source view for the value to be set
+        int value = N_MAX_PIXEL_MD_PER_MODULES;
+        auto src_view_value = alpaka::createView(devHost, &value, (Idx) 1u);
+
+        alpaka::memcpy(queue, dst_view_miniDoubletModuleOccupancy, src_view_value);
+        alpaka::wait(queue);
 
         Vec const threadsPerBlockCreateMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
         Vec const blocksPerGridCreateMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
@@ -265,16 +270,19 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         alpaka::wait(queue);
 
         unsigned int nTotalMDs;
-        cudaMemcpyAsync(&nTotalMDs,rangesInGPU->device_nTotalMDs,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
+        auto nTotalMDs_view = alpaka::createView(devHost, &nTotalMDs, (Idx) 1u);
+
+        alpaka::memcpy(queue, nTotalMDs_view, rangesBuffers->device_nTotalMDs_buf);
+        alpaka::wait(queue);
+
         nTotalMDs += N_MAX_PIXEL_MD_PER_MODULES;
 
         mdsInGPU = new SDL::miniDoublets();
         miniDoubletsBuffers = new SDL::miniDoubletsBuffer<Acc>(nTotalMDs, nLowerModules, devAcc, queue);
         mdsInGPU->setData(*miniDoubletsBuffers);
 
-        cudaMemcpyAsync(mdsInGPU->nMemoryLocations, &nTotalMDs, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
-        cudaStreamSynchronize(stream);
+        alpaka::memcpy(queue, miniDoubletsBuffers->nMemoryLocations_buf, nTotalMDs_view);
+        alpaka::wait(queue);
     }
     if(segmentsInGPU == nullptr)
     {
@@ -296,16 +304,19 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         alpaka::enqueue(queue, createSegmentArrayRangesTask);
         alpaka::wait(queue);
 
-        cudaMemcpyAsync(&nTotalSegments,rangesInGPU->device_nTotalSegs,sizeof(unsigned int),cudaMemcpyDeviceToHost,stream);
-        cudaStreamSynchronize(stream);
+        auto nTotalSegments_view = alpaka::createView(devHost, &nTotalSegments, (Idx) 1u);
+
+        alpaka::memcpy(queue, nTotalSegments_view, rangesBuffers->device_nTotalSegs_buf);
+        alpaka::wait(queue);
+
         nTotalSegments += N_MAX_PIXEL_SEGMENTS_PER_MODULE;
 
         segmentsInGPU = new SDL::segments();
         segmentsBuffers = new SDL::segmentsBuffer<Acc>(nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
         segmentsInGPU->setData(*segmentsBuffers);
 
-        cudaMemcpyAsync(segmentsInGPU->nMemoryLocations, &nTotalSegments, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);;
-        cudaStreamSynchronize(stream);
+        alpaka::memcpy(queue, segmentsBuffers->nMemoryLocations_buf, nTotalSegments_view);
+        alpaka::wait(queue);
     }
 
     auto hitIndices0_dev = allocBufWrapper<unsigned int>(devAcc, size);
@@ -334,11 +345,22 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     alpaka::memcpy(queue, segmentsBuffers->superbin_buf, superbin, size);
     alpaka::memcpy(queue, segmentsBuffers->pixelType_buf, pixelType, size);
 
-    cudaMemcpyAsync(&(segmentsInGPU->nSegments)[pixelModuleIndex], &size, sizeof(int), cudaMemcpyHostToDevice, stream);
-    cudaMemcpyAsync(&(segmentsInGPU->totOccupancySegments)[pixelModuleIndex], &size, sizeof(int), cudaMemcpyHostToDevice, stream);
-    cudaMemcpyAsync(&(mdsInGPU->nMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
-    cudaMemcpyAsync(&(mdsInGPU->totOccupancyMDs)[pixelModuleIndex], &mdSize, sizeof(unsigned int), cudaMemcpyHostToDevice, stream);
-    cudaStreamSynchronize(stream);
+    // Create source views for size and mdSize
+    auto src_view_size = alpaka::createView(devHost, &size, (Idx) 1u);
+    auto src_view_mdSize = alpaka::createView(devHost, &mdSize, (Idx) 1u);
+
+    auto dst_view_segments = alpaka::createSubView(segmentsBuffers->nSegments_buf, (Idx) 1u, (Idx) pixelModuleIndex);
+    alpaka::memcpy(queue, dst_view_segments, src_view_size);
+
+    auto dst_view_totOccupancySegments = alpaka::createSubView(segmentsBuffers->totOccupancySegments_buf, (Idx) 1u, (Idx) pixelModuleIndex);
+    alpaka::memcpy(queue, dst_view_totOccupancySegments, src_view_size);
+
+    auto dst_view_nMDs = alpaka::createSubView(miniDoubletsBuffers->nMDs_buf, (Idx) 1u, (Idx) pixelModuleIndex);
+    alpaka::memcpy(queue, dst_view_nMDs, src_view_mdSize);
+
+    auto dst_view_totOccupancyMDs = alpaka::createSubView(miniDoubletsBuffers->totOccupancyMDs_buf, (Idx) 1u, (Idx) pixelModuleIndex);
+    alpaka::memcpy(queue, dst_view_totOccupancyMDs, src_view_mdSize);
+
     alpaka::wait(queue);
 
     Vec const threadsPerBlock(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
@@ -381,6 +403,7 @@ void SDL::Event::addMiniDoubletsToEventExplicit()
     alpaka::memcpy(queue, module_hitRanges_buf, hitsBuffers->hitRanges_buf, nLowerModules*2);
 
     alpaka::wait(queue);
+
     int* nMDsCPU = alpaka::getPtrNative(nMDsCPU_buf);
     short* module_subdets = alpaka::getPtrNative(module_subdets_buf);
     short* module_layers = alpaka::getPtrNative(module_layers_buf);
@@ -398,7 +421,6 @@ void SDL::Event::addMiniDoubletsToEventExplicit()
             {
                 n_minidoublets_by_layer_endcap_[module_layers[i] - 1] += nMDsCPU[i];
             }
-
         }
     }
 }
@@ -415,6 +437,7 @@ void SDL::Event::addSegmentsToEventExplicit()
     alpaka::memcpy(queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
 
     alpaka::wait(queue);
+
     int* nSegmentsCPU = alpaka::getPtrNative(nSegmentsCPU_buf);
     short* module_subdets = alpaka::getPtrNative(module_subdets_buf);
     short* module_layers = alpaka::getPtrNative(module_layers_buf);
@@ -437,7 +460,15 @@ void SDL::Event::addSegmentsToEventExplicit()
 
 void SDL::Event::createMiniDoublets()
 {
-    cudaMemsetAsync(&rangesInGPU->miniDoubletModuleOccupancy[nLowerModules],N_MAX_PIXEL_MD_PER_MODULES, sizeof(unsigned int),stream);
+    // Create a view for the element nLowerModules inside rangesBuffers->miniDoubletModuleOccupancy
+    auto dst_view_miniDoubletModuleOccupancy = alpaka::createSubView(rangesBuffers->miniDoubletModuleOccupancy_buf, (Idx) 1u, (Idx) nLowerModules);
+
+    // Create a source view for the value to be set
+    int value = N_MAX_PIXEL_MD_PER_MODULES;
+    auto src_view_value = alpaka::createView(devHost, &value, (Idx) 1u);
+
+    alpaka::memcpy(queue, dst_view_miniDoubletModuleOccupancy, src_view_value);
+    alpaka::wait(queue);
 
     Vec const threadsPerBlockCreateMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
     Vec const blocksPerGridCreateMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
@@ -679,7 +710,7 @@ void SDL::Event::createTrackCandidates()
 
     Vec const threadsPerBlock_crossCleanpT3(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(64));
     Vec const blocksPerGrid_crossCleanpT3(static_cast<Idx>(1), static_cast<Idx>(4), static_cast<Idx>(20));
-    WorkDiv const crossCleanpT3_workDiv(blocksPerGrid_crossCleanpT3, blocksPerGrid_crossCleanpT3, elementsPerThread);
+    WorkDiv const crossCleanpT3_workDiv(blocksPerGrid_crossCleanpT3, threadsPerBlock_crossCleanpT3, elementsPerThread);
 
     SDL::crossCleanpT3 crossCleanpT3_kernel;
     auto const crossCleanpT3Task(alpaka::createTaskKernel<Acc>(
@@ -811,8 +842,13 @@ void SDL::Event::createPixelTriplets()
         pixelTripletsInGPU->setData(*pixelTripletsBuffers);
     }
 
-    unsigned int nInnerSegments;
-    cudaMemcpyAsync(&nInnerSegments, &(segmentsInGPU->nSegments[nLowerModules]), sizeof(int), cudaMemcpyDeviceToHost,stream);
+    int nInnerSegments;
+    auto nInnerSegments_src_view = alpaka::createView(devHost, &nInnerSegments, (size_t) 1u);
+
+    auto dev_view_nSegments = alpaka::createSubView(segmentsBuffers->nSegments_buf, (Idx) 1u, (Idx) nLowerModules);
+
+    alpaka::memcpy(queue, nInnerSegments_src_view, dev_view_nSegments);
+    alpaka::wait(queue);
 
     auto superbins_buf = allocBufWrapper<int>(devHost, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
     auto pixelTypes_buf = allocBufWrapper<int8_t>(devHost, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
@@ -1043,8 +1079,14 @@ void SDL::Event::createPixelQuintuplets()
         trackCandidatesInGPU->setData(*trackCandidatesBuffers);
     }
 
-    unsigned int nInnerSegments;
-    cudaMemcpyAsync(&nInnerSegments, &(segmentsInGPU->nSegments[nLowerModules]), sizeof(unsigned int), cudaMemcpyDeviceToHost,stream);
+    int nInnerSegments;
+    auto nInnerSegments_src_view = alpaka::createView(devHost, &nInnerSegments, (size_t) 1u);
+
+    // Create a sub-view for the device buffer
+    auto dev_view_nSegments = alpaka::createSubView(segmentsBuffers->nSegments_buf, (Idx) 1u, (Idx) nLowerModules);
+
+    alpaka::memcpy(queue, nInnerSegments_src_view, dev_view_nSegments);
+    alpaka::wait(queue);
 
     auto superbins_buf = allocBufWrapper<int>(devHost, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
     auto pixelTypes_buf = allocBufWrapper<int8_t>(devHost, N_MAX_PIXEL_SEGMENTS_PER_MODULE);
@@ -1179,6 +1221,7 @@ void SDL::Event::addQuintupletsToEventExplicit()
     alpaka::memcpy(queue, module_quintupletModuleIndices_buf, rangesBuffers->quintupletModuleIndices_buf, nLowerModules);
 
     alpaka::wait(queue);
+
     int* nQuintupletsCPU = alpaka::getPtrNative(nQuintupletsCPU_buf);
     short* module_subdets = alpaka::getPtrNative(module_subdets_buf);
     short* module_layers = alpaka::getPtrNative(module_layers_buf);

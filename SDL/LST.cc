@@ -10,8 +10,7 @@ void SDL::LST::eventSetup() {
     SDL::initModules(path);
 }
 
-void SDL::LST::run(cudaStream_t stream,
-                   bool verbose,
+void SDL::LST::run(bool verbose,
                    const std::vector<float> see_px,
                    const std::vector<float> see_py,
                    const std::vector<float> see_pz,
@@ -31,7 +30,7 @@ void SDL::LST::run(cudaStream_t stream,
                    const std::vector<float> ph2_x,
                    const std::vector<float> ph2_y,
                    const std::vector<float> ph2_z) {
-    auto event = SDL::Event(stream, verbose);
+    auto event = SDL::Event(verbose);
     prepareInput(see_px,
                  see_py,
                  see_pz,

@@ -1,14 +1,17 @@
 #ifndef Constants_cuh
 #define Constants_cuh
 
-#include <cuda_fp16.h>
 #include <alpaka/alpaka.hpp>
 
 // CUDA headers. Will be removed soon.
+#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 #include <cuda.h>
+#include <cuda_fp16.h>
 #include <cuda_runtime.h>
+#endif
 
-#ifdef FP16_Base //This changes pT5 and pT3 and T3 completely. T5 for non regression parameters
+//This changes pT5 and pT3 and T3 completely. T5 for non regression parameters
+#if defined(FP16_Base) && defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
 #define __F2H __float2half  
 #define __H2F __half2float  
 typedef __half FPX;
@@ -17,7 +20,8 @@ typedef __half FPX;
 #define __H2F
 typedef float FPX; 
 #endif
-#ifdef FP16_T5 // changes T5 regression values
+
+#if defined(FP16_T5) && defined(ALPAKA_ACC_GPU_CUDA_ENABLED) // changes T5 regression values
 #define __F2H_T5 __float2half  
 #define __H2F_T5 __half2float  
 typedef __half FPX_T5;
@@ -26,7 +30,8 @@ typedef __half FPX_T5;
 #define __H2F_T5
 typedef float FPX_T5; 
 #endif
-#ifdef FP16_dPhi // changes segment dPhi values
+
+#if defined(FP16_dPhi) && defined(ALPAKA_ACC_GPU_CUDA_ENABLED) // changes segment dPhi values
 #define __F2H_dPhi __float2half  
 #define __H2F_dPhi __half2float  
 typedef __half FPX_dPhi;
@@ -35,7 +40,8 @@ typedef __half FPX_dPhi;
 #define __H2F_dPhi
 typedef float FPX_dPhi; 
 #endif
-#ifdef FP16_circle // changes segment circle values
+
+#if defined(FP16_circle) && defined(ALPAKA_ACC_GPU_CUDA_ENABLED) // changes segment circle values
 #define __F2H_circle __float2half  
 #define __H2F_circle __half2float  
 typedef __half FPX_circle;
@@ -44,7 +50,8 @@ typedef __half FPX_circle;
 #define __H2F_circle
 typedef float FPX_circle; 
 #endif
-#ifdef FP16_seg // changes segment values
+
+#if defined(FP16_seg) && defined(ALPAKA_ACC_GPU_CUDA_ENABLED)  // changes segment values
 #define __F2H_seg __float2half  
 #define __H2F_seg __half2float  
 typedef __half FPX_seg;
@@ -76,6 +83,16 @@ Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
     using Acc = alpaka::AccCpuFibers<Dim, Idx>;
 #elif ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
     using Acc = alpaka::AccCpuSerial<Dim, Idx>;
+#endif
+
+#ifndef ALPAKA_ACC_GPU_CUDA_ENABLED
+struct uint4
+{
+    unsigned int x;
+    unsigned int y;
+    unsigned int z;
+    unsigned int w;
+};
 #endif
 
 auto const devHost = alpaka::getDevByIdx<alpaka::DevCpu>(0u);

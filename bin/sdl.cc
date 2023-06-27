@@ -382,13 +382,10 @@ void run_sdl()
         file_name.push_back(ana.looper.getCurrentFileName());
     }
 
-    cudaStream_t streams[ana.streams];
     std::vector<SDL::Event*> events;
     for (int s = 0; s < ana.streams; s++)
     {
-
-        cudaStreamCreateWithFlags(&streams[s], cudaStreamNonBlocking);
-        SDL::Event *event = new SDL::Event(streams[s],ana.verbose>=2);
+        SDL::Event *event = new SDL::Event(ana.verbose>=2);
         events.push_back(event);
     }
 
@@ -517,7 +514,6 @@ void run_sdl()
     for (int s = 0; s < ana.streams; s++)
     {
         delete events.at(s);
-        cudaStreamDestroy(streams[s]);
     }
 
     delete ana.output_tfile;
