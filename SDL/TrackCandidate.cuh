@@ -94,7 +94,7 @@ namespace SDL
             lowerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, 7 * maxTrackCandidates, queue)),
             centerX_buf(allocBufWrapper<FPX>(devAccIn, maxTrackCandidates, queue)),
             centerY_buf(allocBufWrapper<FPX>(devAccIn, maxTrackCandidates, queue)),
-            radius_buf(allocBufWrapper<FPX>(devAccIn, maxTrackCandidates))
+            radius_buf(allocBufWrapper<FPX>(devAccIn, maxTrackCandidates, queue))
         {
             alpaka::memset(queue, nTrackCandidates_buf, 0, 1);
             alpaka::memset(queue, nTrackCandidatesT5_buf, 0, 1);
