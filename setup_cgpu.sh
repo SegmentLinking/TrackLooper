@@ -36,7 +36,7 @@ export LSTPERFORMANCEWEBDIR="/home/users/phchang/public_html/LSTPerformanceWeb"
 export LATEST_CPU_BENCHMARK_EFF_MUONGUN="/data2/segmentlinking/muonGun_cpu_efficiencies.root"
 export LATEST_CPU_BENCHMARK_EFF_PU200="/data2/segmentlinking/pu200_cpu_efficiencies.root"
 
-source /cvmfs/cms.cern.ch/el8_amd64_gcc10/external/alpaka/develop-20220902-e80d13b043e1608b43d2007d06ad7e2f/etc/profile.d/init.sh
+source /cvmfs/cms.cern.ch/el8_amd64_gcc10/external/alpaka/develop-20220621-4e96939afa0cdb62448c73ead2bb07e0/etc/profile.d/init.sh
 export BOOST_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/boost/1.78.0-12075919175e8d078539685f9234134a"
-export ALPAKA_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/alpaka/develop-20220902-e80d13b043e1608b43d2007d06ad7e2f"
+export ALPAKA_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/alpaka/develop-20220621-4e96939afa0cdb62448c73ead2bb07e0"
 #eof
