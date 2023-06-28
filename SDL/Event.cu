@@ -319,11 +319,11 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         alpaka::wait(queue);
     }
 
-    auto hitIndices0_dev = allocBufWrapper<unsigned int>(devAcc, size);
-    auto hitIndices1_dev = allocBufWrapper<unsigned int>(devAcc, size);
-    auto hitIndices2_dev = allocBufWrapper<unsigned int>(devAcc, size);
-    auto hitIndices3_dev = allocBufWrapper<unsigned int>(devAcc, size);
-    auto dPhiChange_dev = allocBufWrapper<float>(devAcc, size);
+    auto hitIndices0_dev = allocBufWrapper<unsigned int>(devAcc, size, queue);
+    auto hitIndices1_dev = allocBufWrapper<unsigned int>(devAcc, size, queue);
+    auto hitIndices2_dev = allocBufWrapper<unsigned int>(devAcc, size, queue);
+    auto hitIndices3_dev = allocBufWrapper<unsigned int>(devAcc, size, queue);
+    auto dPhiChange_dev = allocBufWrapper<float>(devAcc, size, queue);
 
     alpaka::memcpy(queue, hitIndices0_dev, hitIndices0, size);
     alpaka::memcpy(queue, hitIndices1_dev, hitIndices1, size);
@@ -623,7 +623,7 @@ void SDL::Event::createTriplets()
     uint16_t *index = alpaka::getPtrNative(index_buf);
 
     // Allocate device index
-    auto index_gpu_buf = allocBufWrapper<uint16_t>(devAcc, nLowerModules);
+    auto index_gpu_buf = allocBufWrapper<uint16_t>(devAcc, nLowerModules, queue);
 
     // Allocate and copy nSegments from device to host
     auto nSegments_buf = allocBufWrapper<int>(devHost, nLowerModules);
@@ -648,7 +648,7 @@ void SDL::Event::createTriplets()
             index[nonZeroModules] = innerLowerModuleIndex;
             nonZeroModules++;
         }
-        max_InnerSeg = max(max_InnerSeg, nInnerSegments);
+        max_InnerSeg = std::max(max_InnerSeg, nInnerSegments);
     }
 
     // Copy index from host to device
@@ -741,7 +741,7 @@ void SDL::Event::createTrackCandidates()
     alpaka::enqueue(queue, addpT3asTrackCandidatesInGPUTask);
 
     Vec const threadsPerBlockRemoveDupQuints(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(32));
-    Vec const blocksPerGridRemoveDupQuints(static_cast<Idx>(1), static_cast<Idx>(max(nEligibleModules/16,1)), static_cast<Idx>(max(nEligibleModules/32,1)));
+    Vec const blocksPerGridRemoveDupQuints(static_cast<Idx>(1), static_cast<Idx>(std::max(nEligibleModules/16,1)), static_cast<Idx>(std::max(nEligibleModules/32,1)));
     WorkDiv const removeDupQuintupletsInGPUBeforeTC_workDiv(blocksPerGridRemoveDupQuints, threadsPerBlockRemoveDupQuints, elementsPerThread);
 
     SDL::removeDupQuintupletsInGPUBeforeTC removeDupQuintupletsInGPUBeforeTC_kernel;
@@ -859,8 +859,8 @@ void SDL::Event::createPixelTriplets()
 
     auto connectedPixelSize_host_buf = allocBufWrapper<unsigned int>(devHost, nInnerSegments);
     auto connectedPixelIndex_host_buf = allocBufWrapper<unsigned int>(devHost, nInnerSegments);
-    auto connectedPixelSize_dev_buf = allocBufWrapper<unsigned int>(devAcc, nInnerSegments);
-    auto connectedPixelIndex_dev_buf = allocBufWrapper<unsigned int>(devAcc, nInnerSegments);
+    auto connectedPixelSize_dev_buf = allocBufWrapper<unsigned int>(devAcc, nInnerSegments, queue);
+    auto connectedPixelIndex_dev_buf = allocBufWrapper<unsigned int>(devAcc, nInnerSegments, queue);
 
     int* superbins = alpaka::getPtrNative(superbins_buf);
     int8_t* pixelTypes = alpaka::getPtrNative(pixelTypes_buf);
@@ -994,7 +994,7 @@ void SDL::Event::createQuintuplets()
     }
 
     Vec const threadsPerBlockQuints(static_cast<Idx>(1), static_cast<Idx>(8), static_cast<Idx>(32));
-    Vec const blocksPerGridQuints(static_cast<Idx>(max(nEligibleT5Modules,1)), static_cast<Idx>(1), static_cast<Idx>(1));
+    Vec const blocksPerGridQuints(static_cast<Idx>(std::max((int) nEligibleT5Modules, 1)), static_cast<Idx>(1), static_cast<Idx>(1));
     WorkDiv const createQuintupletsInGPUv2_workDiv(blocksPerGridQuints, threadsPerBlockQuints, elementsPerThread);
 
     SDL::createQuintupletsInGPUv2 createQuintupletsInGPUv2_kernel;
@@ -1097,8 +1097,8 @@ void SDL::Event::createPixelQuintuplets()
 
     auto connectedPixelSize_host_buf = allocBufWrapper<unsigned int>(devHost, nInnerSegments);
     auto connectedPixelIndex_host_buf = allocBufWrapper<unsigned int>(devHost, nInnerSegments);
-    auto connectedPixelSize_dev_buf = allocBufWrapper<unsigned int>(devAcc, nInnerSegments);
-    auto connectedPixelIndex_dev_buf = allocBufWrapper<unsigned int>(devAcc, nInnerSegments);
+    auto connectedPixelSize_dev_buf = allocBufWrapper<unsigned int>(devAcc, nInnerSegments, queue);
+    auto connectedPixelIndex_dev_buf = allocBufWrapper<unsigned int>(devAcc, nInnerSegments, queue);
 
     int* superbins = alpaka::getPtrNative(superbins_buf);
     int8_t* pixelTypes = alpaka::getPtrNative(pixelTypes_buf);
