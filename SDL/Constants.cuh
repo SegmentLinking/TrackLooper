@@ -2,6 +2,7 @@
 #define Constants_cuh
 
 #include <alpaka/alpaka.hpp>
+#include "../code/alpaka_interface/CachedBufAlloc.h"
 
 // CUDA headers. Will be removed soon.
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
@@ -103,10 +104,16 @@ using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
 template<typename TAcc, typename TData>
 using Buf = alpaka::Buf<TAcc, TData, Dim1d, Idx>;
 
+template<typename T, typename TAcc, typename TSize, typename TQueue>
+ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<TAcc, T> allocBufWrapper(TAcc const & devAccIn, TSize nElements, TQueue queue) {
+    return cms::alpakatools::allocCachedBuf<T, Idx>(devAccIn, queue, Vec1d(static_cast<Idx>(nElements)));
+}
+
 template<typename T, typename TAcc, typename TSize>
 ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<TAcc, T> allocBufWrapper(TAcc const & devAccIn, TSize nElements) {
     return alpaka::allocBuf<T, Idx>(devAccIn, Vec1d(static_cast<Idx>(nElements)));
 }
+
 
 const unsigned int MAX_BLOCKS = 80;
 const unsigned int MAX_CONNECTED_MODULES = 40;
