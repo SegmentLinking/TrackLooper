@@ -106,7 +106,11 @@ using Buf = alpaka::Buf<TAcc, TData, Dim1d, Idx>;
 
 template<typename T, typename TAcc, typename TSize, typename TQueue>
 ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<TAcc, T> allocBufWrapper(TAcc const & devAccIn, TSize nElements, TQueue queue) {
+#ifdef CACHE_ALLOC
     return cms::alpakatools::allocCachedBuf<T, Idx>(devAccIn, queue, Vec1d(static_cast<Idx>(nElements)));
+#else
+    return alpaka::allocBuf<T, Idx>(devAccIn, Vec1d(static_cast<Idx>(nElements)));
+#endif
 }
 
 template<typename T, typename TAcc, typename TSize>
