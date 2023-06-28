@@ -459,7 +459,7 @@ __device__ bool SDL::runSegmentDefaultAlgoEndcap(struct modules& modulesInGPU, s
     pass =  pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
     if(not pass) return pass;
 
-    dPhi = deltaPhi(xIn, yIn, xOut, yOut);
+    dPhi  = SDL::phi_mpi_pi(mdsInGPU.anchorPhi[outerMDIndex]-mdsInGPU.anchorPhi[innerMDIndex]);
 
     sdCut = sdSlope;
     if(outerLayerEndcapTwoS)
@@ -543,7 +543,7 @@ __device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, s
 
     sdCut = sdSlope + sqrtf(sdMuls * sdMuls + sdPVoff * sdPVoff);
 
-    dPhi  = deltaPhi(xIn, yIn, xOut, yOut);
+    dPhi  = SDL::phi_mpi_pi(mdsInGPU.anchorPhi[outerMDIndex]-mdsInGPU.anchorPhi[innerMDIndex]);
 
     pass =  pass and (fabsf(dPhi) <= sdCut);
     if(not pass) return pass;
