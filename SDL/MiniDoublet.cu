@@ -86,7 +86,7 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     mdsInGPU.nMDs = (unsigned int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) *sizeof(unsigned int),stream);
     mdsInGPU.totOccupancyMDs = (unsigned int*)cms::cuda::allocate_device(dev, (nLowerModules + 1) *sizeof(unsigned int),stream);
     mdsInGPU.anchorX = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * 6 * sizeof(float), stream);
-    mdsInGPU.anchorHighEdgeX = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * 4 * sizeof(float), stream);
+    mdsInGPU.anchorHighEdgeX = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * 6 * sizeof(float), stream);
     mdsInGPU.outerX = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * 6 * sizeof(float), stream);
     mdsInGPU.outerHighEdgeX = (float*)cms::cuda::allocate_device(dev, nMemoryLocations * 4 * sizeof(float), stream);
 
@@ -99,7 +99,7 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     cudaMalloc(&mdsInGPU.nMDs, (nLowerModules + 1) * sizeof(unsigned int)); 
     cudaMalloc(&mdsInGPU.totOccupancyMDs, (nLowerModules + 1) * sizeof(unsigned int)); 
     cudaMalloc(&mdsInGPU.anchorX, nMemoryLocations * 6 * sizeof(float));
-    cudaMalloc(&mdsInGPU.anchorHighEdgeX, nMemoryLocations * 4 * sizeof(float));
+    cudaMalloc(&mdsInGPU.anchorHighEdgeX, nMemoryLocations * 6 * sizeof(float));
     cudaMalloc(&mdsInGPU.outerX, nMemoryLocations * 6 * sizeof(float));
     cudaMalloc(&mdsInGPU.outerHighEdgeX, nMemoryLocations * 4 * sizeof(float));
 
@@ -129,6 +129,8 @@ void SDL::createMDsInExplicitMemory(struct miniDoublets& mdsInGPU, unsigned int 
     mdsInGPU.anchorHighEdgeY = mdsInGPU.anchorHighEdgeX + nMemoryLocations;
     mdsInGPU.anchorLowEdgeX = mdsInGPU.anchorHighEdgeX + 2 * nMemoryLocations;
     mdsInGPU.anchorLowEdgeY = mdsInGPU.anchorHighEdgeX + 3 * nMemoryLocations;
+    mdsInGPU.anchorHighEdgePhi = mdsInGPU.anchorHighEdgeX + 4 * nMemoryLocations;
+    mdsInGPU.anchorLowEdgePhi = mdsInGPU.anchorHighEdgeX + 5 * nMemoryLocations;
 
     mdsInGPU.outerY = mdsInGPU.outerX + nMemoryLocations;
     mdsInGPU.outerZ = mdsInGPU.outerX + 2 * nMemoryLocations;
@@ -196,7 +198,8 @@ __device__ void SDL::addMDToMemory(struct miniDoublets& mdsInGPU, struct hits& h
     mdsInGPU.anchorHighEdgeY[idx] = hitsInGPU.highEdgeYs[anchorHitIndex];
     mdsInGPU.anchorLowEdgeX[idx] = hitsInGPU.lowEdgeXs[anchorHitIndex];
     mdsInGPU.anchorLowEdgeY[idx] = hitsInGPU.lowEdgeYs[anchorHitIndex];
-
+    mdsInGPU.anchorHighEdgePhi[idx] = atan2f(mdsInGPU.anchorHighEdgeY[idx], mdsInGPU.anchorHighEdgeX[idx]);
+    mdsInGPU.anchorLowEdgePhi[idx] = atan2f(mdsInGPU.anchorLowEdgeY[idx], mdsInGPU.anchorLowEdgeX[idx]);
     mdsInGPU.outerX[idx] = hitsInGPU.xs[outerHitIndex];
     mdsInGPU.outerY[idx] = hitsInGPU.ys[outerHitIndex];
     mdsInGPU.outerZ[idx] = hitsInGPU.zs[outerHitIndex];
@@ -802,6 +805,8 @@ SDL::miniDoublets::miniDoublets()
     anchorHighEdgeY = nullptr;
     anchorLowEdgeX = nullptr;
     anchorLowEdgeY = nullptr;
+    anchorHighEdgePhi = nullptr;
+    anchorLowEdgePhi = nullptr;
     outerX = nullptr;
     outerY = nullptr;
     outerZ = nullptr;

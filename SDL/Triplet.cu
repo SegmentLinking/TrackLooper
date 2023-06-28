@@ -821,8 +821,8 @@ __device__ bool SDL::runTripletDefaultAlgoBBBB(struct SDL::modules& modulesInGPU
 
     if(isEC_lastLayer)
     {
-        alpha_OutUp_highEdge = SDL::deltaPhi(mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], mdsInGPU.anchorHighEdgeX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]);
-        alpha_OutUp_lowEdge = SDL::deltaPhi(mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], mdsInGPU.anchorLowEdgeX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]);
+        alpha_OutUp_highEdge = SDL::phi_mpi_pi(atan2f(mdsInGPU.anchorHighEdgeY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex],mdsInGPU.anchorHighEdgeX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex])-mdsInGPU.anchorHighEdgePhi[fourthMDIndex]);
+        alpha_OutUp_lowEdge = SDL::phi_mpi_pi(atan2f(mdsInGPU.anchorLowEdgeY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex],mdsInGPU.anchorLowEdgeX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex])-mdsInGPU.anchorLowEdgePhi[fourthMDIndex]);
 
         tl_axis_highEdge_x = mdsInGPU.anchorHighEdgeX[fourthMDIndex] - mdsInGPU.anchorX[firstMDIndex];
         tl_axis_highEdge_y = mdsInGPU.anchorHighEdgeY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
@@ -830,8 +830,8 @@ __device__ bool SDL::runTripletDefaultAlgoBBBB(struct SDL::modules& modulesInGPU
         tl_axis_lowEdge_y = mdsInGPU.anchorLowEdgeY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
 
 
-        betaOutRHmin = -alpha_OutUp_highEdge + SDL::deltaPhi(mdsInGPU.anchorHighEdgeX[fourthMDIndex], mdsInGPU.anchorHighEdgeY[fourthMDIndex], tl_axis_highEdge_x, tl_axis_highEdge_y);
-        betaOutRHmax = -alpha_OutUp_lowEdge + SDL::deltaPhi(mdsInGPU.anchorLowEdgeX[fourthMDIndex], mdsInGPU.anchorLowEdgeY[fourthMDIndex], tl_axis_lowEdge_x, tl_axis_lowEdge_y);
+        betaOutRHmin = -alpha_OutUp_highEdge + SDL::phi_mpi_pi(atan2f(tl_axis_highEdge_y,tl_axis_highEdge_x)-mdsInGPU.anchorHighEdgePhi[fourthMDIndex]);
+        betaOutRHmax = -alpha_OutUp_lowEdge + SDL::phi_mpi_pi(atan2f(tl_axis_lowEdge_y,tl_axis_lowEdge_x)-mdsInGPU.anchorLowEdgePhi[fourthMDIndex]);
     }
 
     //beta computation
