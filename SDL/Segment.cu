@@ -625,17 +625,9 @@ __device__ inline float SDL::isTighterTiltedModules_seg(struct modules& modulesI
     short side = modulesInGPU.sides[moduleIndex];
     short rod = modulesInGPU.rods[moduleIndex];
 
-    if (
-           (subdet == Barrel and side != Center and layer== 3)
-           or (subdet == Barrel and side == NegZ and layer == 2 and rod > 5)
-           or (subdet == Barrel and side == PosZ and layer == 2 and rod < 8)
-           or (subdet == Barrel and side == NegZ and layer == 1 and rod > 9)
-           or (subdet == Barrel and side == PosZ and layer == 1 and rod < 4)
-       )
-        return true;
-    else
-        return false;
-
+    return subdet == Barrel & ( ((side != Center) & (layer== 3))
+                | (side == NegZ & (((layer == 2) & (rod > 5)) | ((layer == 1) & (rod > 9))))
+                | (side == PosZ & (((layer == 2) & (rod < 8)) | ((layer == 1) & (rod < 4)))) );
 }
 
 __device__ inline float SDL::isTighterTiltedModules_seg(short subdet, short layer, short side, short rod)
@@ -643,66 +635,24 @@ __device__ inline float SDL::isTighterTiltedModules_seg(short subdet, short laye
     // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
     // This is the same as what was previously considered as"isNormalTiltedModules"
     // See Figure 9.1 of https://cds.cern.ch/record/2272264/files/CMS-TDR-014.pdf
-    if (
-           (subdet == Barrel and side != Center and layer== 3)
-           or (subdet == Barrel and side == NegZ and layer == 2 and rod > 5)
-           or (subdet == Barrel and side == PosZ and layer == 2 and rod < 8)
-           or (subdet == Barrel and side == NegZ and layer == 1 and rod > 9)
-           or (subdet == Barrel and side == PosZ and layer == 1 and rod < 4)
-       )
-        return true;
-    else
-        return false;
-
+    return subdet == Barrel & ( ((side != Center) & (layer== 3))
+		| (side == NegZ & (((layer == 2) & (rod > 5)) | ((layer == 1) & (rod > 9))))
+		| (side == PosZ & (((layer == 2) & (rod < 8)) | ((layer == 1) & (rod < 4)))) );
 }
 
 //__device__ float SDL::moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
 __device__ float SDL::moduleGapSize_seg(short layer, short ring, short subdet, short side, short rod)
 {
-    float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
-    float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
-    float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
-    float miniDeltaEndcap[5][15];
-
-    for (size_t i = 0; i < 5; i++)
-    {
-        for (size_t j = 0; j < 15; j++)
-        {
-            if (i == 0 || i == 1)
-            {
-                if (j < 10)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j] = 0.18f;
-                }
-            }
-            else if (i == 2 || i == 3)
-            {
-                if (j < 8)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j]  = 0.18f;
-                }
-            }
-            else
-            {
-                if (j < 9)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j] = 0.18f;
-                }
-            }
-        }
-    }
+    static constexpr float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
+    static constexpr float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
+    static constexpr float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
+    static constexpr float miniDeltaEndcap[5][15] = {
+            {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
+            {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
+            {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.18f, 0.18f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
+            {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.18f, 0.18f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
+            {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.18f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f}
+    };
 
 
     unsigned int iL = layer-1;
@@ -733,51 +683,16 @@ __device__ float SDL::moduleGapSize_seg(short layer, short ring, short subdet, s
 
 __device__ float SDL::moduleGapSize_seg(struct modules& modulesInGPU, unsigned int moduleIndex)
 {
-    float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
-    float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
-    float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
-    float miniDeltaEndcap[5][15];
-
-    for (size_t i = 0; i < 5; i++)
-    {
-        for (size_t j = 0; j < 15; j++)
-        {
-            if (i == 0 || i == 1)
-            {
-                if (j < 10)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j] = 0.18f;
-                }
-            }
-            else if (i == 2 || i == 3)
-            {
-                if (j < 8)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j]  = 0.18f;
-                }
-            }
-            else
-            {
-                if (j < 9)
-                {
-                    miniDeltaEndcap[i][j] = 0.4f;
-                }
-                else
-                {
-                    miniDeltaEndcap[i][j] = 0.18f;
-                }
-            }
-        }
-    }
-
+    static constexpr float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
+    static constexpr float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
+    static constexpr float miniDeltaLooseTilted[3] = {0.4f,0.4f,0.4f};
+    static constexpr float miniDeltaEndcap[5][15] = {
+	    {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
+	    {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
+	    {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.18f, 0.18f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
+	    {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.18f, 0.18f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f},
+	    {0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.4f, 0.18f,/*10*/ 0.18f, 0.18f, 0.18f, 0.18f, 0.18f}
+    };
 
     unsigned int iL = modulesInGPU.layers[moduleIndex]-1;
     unsigned int iR = modulesInGPU.rings[moduleIndex] - 1;
@@ -812,13 +727,15 @@ __global__ void SDL::createSegmentsInGPUv2(struct SDL::modules& modulesInGPU, st
     int blockzSize = blockDim.x;
     for(uint16_t innerLowerModuleIndex = blockIdx.x ; innerLowerModuleIndex< (*modulesInGPU.nLowerModules); innerLowerModuleIndex += blockxSize){
 
+    unsigned int nInnerMDs = mdsInGPU.nMDs[innerLowerModuleIndex];
+    if (nInnerMDs == 0) continue;
+
     unsigned int nConnectedModules = modulesInGPU.nConnectedModules[innerLowerModuleIndex];
 
     for(uint16_t outerLowerModuleArrayIdx = threadIdx.y; outerLowerModuleArrayIdx< nConnectedModules; outerLowerModuleArrayIdx += blockySize){
 
         uint16_t outerLowerModuleIndex = modulesInGPU.moduleMap[innerLowerModuleIndex * MAX_CONNECTED_MODULES + outerLowerModuleArrayIdx];
 
-        unsigned int nInnerMDs = mdsInGPU.nMDs[innerLowerModuleIndex];
         unsigned int nOuterMDs = mdsInGPU.nMDs[outerLowerModuleIndex];
 
         int limit = nInnerMDs*nOuterMDs;
