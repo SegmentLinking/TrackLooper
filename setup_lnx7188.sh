@@ -5,8 +5,11 @@
 ###########################################################################################################
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/code/rooutil/thisrooutil.sh
-export SCRAM_ARCH=slc7_amd64_gcc900
-export CMSSW_VERSION=CMSSW_11_2_0_pre5
+
+export SCRAM_ARCH=el8_amd64_gcc10
+export CMSSW_VERSION=CMSSW_12_5_0_pre5
+export CUDA_HOME=/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/cuda/11.5.2-c927b7e765e06433950d8a7eab9eddb4/
+
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 cd /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/cmssw/$CMSSW_VERSION/src
 eval `scramv1 runtime -sh`
@@ -14,7 +17,6 @@ cd - > /dev/null
 echo "Setup following ROOT.  Make sure it's slc7 variant. Otherwise the looper won't compile."
 which root
 
-export CUDA_HOME=/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/cuda/11.0.3/
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export LD_LIBRARY_PATH=$DIR:$LD_LIBRARY_PATH
 export PATH=$DIR/bin:$PATH
@@ -34,7 +36,7 @@ export LSTPERFORMANCEWEBDIR="/cdat/tem/${USER}/LSTPerformanceWeb"
 export LATEST_CPU_BENCHMARK_EFF_MUONGUN="/data2/segmentlinking/muonGun_cpu_efficiencies.root"
 export LATEST_CPU_BENCHMARK_EFF_PU200="/data2/segmentlinking/pu200_cpu_efficiencies.root"
 
-source /cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/alpaka/0.5.0/etc/profile.d/init.sh
-export BOOST_ROOT="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/boost/1.72.0-ghbfee3"
-export ALPAKA_ROOT="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/alpaka/0.7.0-09bef105568314b218f2a8410a876785"
+source /cvmfs/cms.cern.ch/el8_amd64_gcc10/external/alpaka/develop-20220621-4e96939afa0cdb62448c73ead2bb07e0/etc/profile.d/init.sh
+export BOOST_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/boost/1.78.0-12075919175e8d078539685f9234134a"
+export ALPAKA_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/alpaka/develop-20220621-4e96939afa0cdb62448c73ead2bb07e0"
 #eof
