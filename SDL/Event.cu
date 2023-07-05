@@ -706,6 +706,7 @@ void SDL::Event::createTrackCandidates()
     // Pull nEligibleT5Modules from the device.
     auto nEligibleModules_buf = allocBufWrapper<uint16_t>(devHost, 1, queue);
     alpaka::memcpy(queue, nEligibleModules_buf, rangesBuffers->nEligibleT5Modules_buf, 1);
+    alpaka::wait(queue);
     uint16_t nEligibleModules = *alpaka::getPtrNative(nEligibleModules_buf);
 
     Vec const threadsPerBlock_crossCleanpT3(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(64));
