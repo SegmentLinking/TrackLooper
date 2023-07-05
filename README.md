@@ -11,7 +11,13 @@ For lnx7188 this needs to be done once
     cd /cdat/tem/${USER}/
     git clone git@github.com:SegmentLinking/LSTPerformanceWeb.git
 
-### Setting up the code
+### Setting up container (only for lnx7188)
+
+For lnx7188 this needs to be done before compiling or running the code:
+
+    singularity shell --nv --bind /mnt/data1:/data --bind /data2/segmentlinking/ --bind /opt --bind /nfs --bind /mnt --bind /cvmfs  /cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmssw/el8:x86_64
+
+### Running the code
 
     git clone git@github.com:SegmentLinking/TrackLooper.git
     cd TrackLooper/
