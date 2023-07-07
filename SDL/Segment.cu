@@ -548,7 +548,7 @@ __device__ bool SDL::runSegmentDefaultAlgoBarrel(struct modules& modulesInGPU, s
     pass =  pass and (fabsf(dPhi) <= sdCut);
     if(not pass) return pass;
 
-    dPhiChange = SDL::phi_mpi_pi(atan2f(yOut-yIn, xOut-xIn)-mdsInGPU.anchorPhi[innerMDIndex]);
+    dPhiChange = SDL::phi_mpi_pi(SDL::phi(xOut-xIn, yOut-yIn)-mdsInGPU.anchorPhi[innerMDIndex]);
 
     pass =  pass and (fabsf(dPhiChange) <= sdCut);
     if(not pass) return pass;
