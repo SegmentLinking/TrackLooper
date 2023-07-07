@@ -100,6 +100,7 @@ void SDL::createModulesInExplicitMemory(struct modules& modulesInGPU,unsigned in
     cudaMalloc(&modulesInGPU.isAnchor, nModules * sizeof(bool));
     cudaMalloc(&modulesInGPU.moduleType,nModules * sizeof(ModuleType));
     cudaMalloc(&modulesInGPU.moduleLayerType,nModules * sizeof(ModuleLayerType));
+    cudaMalloc(&modulesInGPU.sdlLayers, nModules * sizeof(int));
 
     cudaMemcpyAsync(modulesInGPU.nModules,&nModules,sizeof(uint16_t),cudaMemcpyHostToDevice,stream);
     cudaStreamSynchronize(stream);
@@ -228,6 +229,7 @@ void SDL::freeModules(struct modules& modulesInGPU, struct pixelMap& pixelMappin
   cudaFree(modulesInGPU.moduleLayerType);
   cudaFree(modulesInGPU.connectedPixels);
   cudaFree(modulesInGPU.partnerModuleIndices);
+  cudaFree(modulesInGPU.sdlLayers);
 
   cudaFreeHost(pixelMapping.connectedPixelsSizes);
   cudaFreeHost(pixelMapping.connectedPixelsSizesPos);
@@ -316,6 +318,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     float* host_slopes;
     float* host_drdzs;
     uint16_t* host_partnerModuleIndices;
+    int* host_sdlLayers;
 
     host_detIds = (unsigned int*)cms::cuda::allocate_host(sizeof(unsigned int)*nModules, stream);
     host_layers = (short*)cms::cuda::allocate_host(sizeof(short)*nModules, stream);
@@ -334,6 +337,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     host_slopes = (float*)cms::cuda::allocate_host(sizeof(float)*nModules, stream);
     host_drdzs = (float*)cms::cuda::allocate_host(sizeof(float)*nModules, stream);
     host_partnerModuleIndices = (uint16_t*)cms::cuda::allocate_host(sizeof(uint16_t) * nModules, stream);
+    host_sdlLayers = (int*)cms::cuda::allocate_host(sizeof(int) * nModules, stream);
     
     //reassign detIdToIndex indices here
     nLowerModules = (nModules - 1) / 2;
@@ -429,6 +433,8 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
             host_slopes[index] = (subdet == Endcap) ? endcapGeometry.getSlopeLower(detId) : tiltedGeometry.getSlope(detId);
             host_drdzs[index] = (subdet == Barrel) ? tiltedGeometry.getDrDz(detId) : 0;
         }
+
+        host_sdlLayers[index] = layer + 6 * (subdet == SDL::Endcap) + 5 * (subdet == SDL::Endcap and host_moduleType[index] == SDL::TwoS);
     }
 
     //partner module stuff, and slopes and drdz move around
@@ -472,6 +478,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     cudaMemcpyAsync(modulesInGPU.drdzs,host_drdzs,sizeof(float)*nModules,cudaMemcpyHostToDevice,stream);
 
     cudaMemcpyAsync(modulesInGPU.partnerModuleIndices, host_partnerModuleIndices, sizeof(uint16_t) * nModules, cudaMemcpyHostToDevice, stream);
+    cudaMemcpyAsync(modulesInGPU.sdlLayers, host_sdlLayers, sizeof(int) * nModules, cudaMemcpyHostToDevice, stream);
     cudaStreamSynchronize(stream);
 
     cms::cuda::free_host(host_detIds);
@@ -491,7 +498,7 @@ void SDL::loadModulesFromFile(struct modules& modulesInGPU, uint16_t& nModules, 
     cms::cuda::free_host(host_slopes);
     cms::cuda::free_host(host_drdzs);
     cms::cuda::free_host(host_partnerModuleIndices);
-    //std::cout<<"number of lower modules (without fake pixel module)= "<<lowerModuleCounter<<std::endl;
+    cms::cuda::free_host(host_sdlLayers);
     fillConnectedModuleArrayExplicit(modulesInGPU,nModules,stream);
     fillMapArraysExplicit(modulesInGPU, nModules, stream);
     fillPixelMap(modulesInGPU,pixelMapping,stream);

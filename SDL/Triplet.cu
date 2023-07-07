@@ -335,9 +335,9 @@ __device__ bool SDL::passRZConstraint(struct SDL::modules& modulesInGPU, struct 
     const float& z3 = mdsInGPU.anchorZ[thirdMDIndex];
         
     //following Philip's layer number prescription
-    const int layer1 = modulesInGPU.layers[innerInnerLowerModuleIndex] + 6 * (modulesInGPU.subdets[innerInnerLowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[innerInnerLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::TwoS);
-    const int layer2 = modulesInGPU.layers[middleLowerModuleIndex] + 6 * (modulesInGPU.subdets[middleLowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[middleLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[middleLowerModuleIndex] == SDL::TwoS);
-    const int layer3 = modulesInGPU.layers[outerOuterLowerModuleIndex] + 6 * (modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap) + 5 * (modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap and modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS);
+    const int layer1 = modulesInGPU.sdlLayers[innerInnerLowerModuleIndex];
+    const int layer2 = modulesInGPU.sdlLayers[middleLowerModuleIndex];
+    const int layer3 = modulesInGPU.sdlLayers[outerOuterLowerModuleIndex];
 
     const float residual = z2 - ( (z3 - z1) / (r3 - r1) * (r2 - r1) + z1);
 
@@ -675,8 +675,7 @@ __global__ void SDL::createTripletsInGPUv2(struct SDL::modules& modulesInGPU, st
 
       unsigned int nOuterSegments = segmentsInGPU.nSegments[middleLowerModuleIndex];
       for(int outerSegmentArrayIndex = blockIdx.x * blockDim.x + threadIdx.x; outerSegmentArrayIndex< nOuterSegments; outerSegmentArrayIndex += blockxSize){
-        //if(outerSegmentArrayIndex >= nOuterSegments) continue;
-         unsigned int outerSegmentIndex = rangesInGPU.segmentRanges[2 * middleLowerModuleIndex] + outerSegmentArrayIndex;
+        unsigned int outerSegmentIndex = rangesInGPU.segmentRanges[2 * middleLowerModuleIndex] + outerSegmentArrayIndex;
     
         uint16_t outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex];
 
