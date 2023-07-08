@@ -59,6 +59,8 @@ namespace SDL
         float* anchorHighEdgeY;
         float* anchorLowEdgeX;
         float* anchorLowEdgeY;
+        float* anchorLowEdgePhi;
+        float* anchorHighEdgePhi;
 
         float* outerX;
         float* outerY;

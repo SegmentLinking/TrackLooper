@@ -65,12 +65,6 @@ namespace SDL
     void addHitToMemory(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,cudaStream_t stream,struct objectRanges& rangesInGPU);
     CUDA_G void addHitToMemoryGPU(struct hits& hitsInCPU,struct modules& modulesInGPU,float x, float y, float z, unsigned int detId, unsigned int idxInNtuple,unsigned int moduleIndex, float phis,struct objectRanges& rangesInGPU);
     
-    CUDA_HOSTDEV inline float ATan2(float y, float x) {
-      if (x != 0) return atan2f(y, x);
-      if (y == 0) return  0;
-      if (y >  0) return  float(M_PI) / 2.f;
-      else        return -float(M_PI) / 2.f;
-    }
     CUDA_HOSTDEV inline float eta(float x, float y, float z) {
       float r3 = std::sqrt( x*x + y*y + z*z );
       float rt = std::sqrt( x*x + y*y );
@@ -91,7 +85,7 @@ namespace SDL
       return x - n * float(2.f * float(M_PI));
     }
     CUDA_HOSTDEV inline float phi(float x, float y) {
-      return phi_mpi_pi(float(M_PI) + ATan2(-y, -x));
+      return phi_mpi_pi(float(M_PI) + atan2f(y,x));
     }
     CUDA_HOSTDEV inline float deltaPhi(float x1, float y1, float x2, float y2) {
       float phi1 = phi(x1,y1);
