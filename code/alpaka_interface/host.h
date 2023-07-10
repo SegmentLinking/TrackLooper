@@ -1,6 +1,8 @@
 #ifndef HeterogeneousCore_AlpakaInterface_interface_host_h
 #define HeterogeneousCore_AlpakaInterface_interface_host_h
 
+#include <cassert>
+
 namespace cms::alpakatools {
 
   namespace detail {
@@ -19,7 +21,7 @@ namespace cms::alpakatools {
   }  // namespace detail
 
   // returns the alpaka host device
-  static inline alpaka::DevCpu const& host() {
+  inline alpaka::DevCpu const& host() {
     static const auto host = detail::enumerate_host();
     return host;
   }
