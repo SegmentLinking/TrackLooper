@@ -3,7 +3,11 @@
 #endif
 #include "NeuralNetwork.cuh"
 
-__device__ float T5DNN::runInference(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, float* xVec, float* yVec, unsigned int* mdIndices, const uint16_t* lowerModuleIndices, unsigned int& innerTripletIndex, unsigned int& outerTripletIndex, float& innerRadius, float& outerRadius, float& bridgeRadius)
+__device__ float T5DNN::runInference(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, 
+                                     struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, 
+                                     float* xVec, float* yVec, unsigned int* mdIndices, const uint16_t* lowerModuleIndices, 
+                                     unsigned int& innerTripletIndex, unsigned int& outerTripletIndex, 
+                                     float& innerRadius, float& outerRadius, float& bridgeRadius)
 {
     // Unpack x-coordinates of hits
     float x1 = xVec[0];
@@ -44,7 +48,7 @@ __device__ float T5DNN::runInference(struct SDL::modules& modulesInGPU, struct S
     bool is_endcap5 = (modulesInGPU.subdets[lowerModuleIndex5] == 4);                // true if anchor hit 5 is in the endcap
 
     // Build DNN input vector (corresponding output N-tuple branch noted in parenthetical in comment)
-    float x[38] = { 
+    float x[38] = {
         log10(2*SDL::k2Rinv1GeVf*innerRadius),                                       // inner T3 pT (t3_pt)
         mdsInGPU.anchorEta[mdIndex1],                                                // inner T3 anchor hit 1 eta (t3_0_eta)
         mdsInGPU.anchorPhi[mdIndex1],                                                // inner T3 anchor hit 1 phi (t3_0_phi)
@@ -141,7 +145,6 @@ __device__ float T5DNN::runInference(struct SDL::modules& modulesInGPU, struct S
     {
         x_5[col] = exp(x_4[col])/(exp(x_4[col]) + 1);
     }
-
+    
     return x_5[0];
 }
-
