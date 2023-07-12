@@ -979,6 +979,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
     std::cout << "   " << setw(6) << "pT5";
     std::cout << "   " << setw(6) << "pT3";
     std::cout << "   " << setw(6) << "TC";
+    std::cout << "   " << setw(6) << "Reset";
     std::cout << "   " << setw(7) << "Total";
     std::cout << "   " << setw(7) << "Total(short)";
     std::cout << std::endl;
@@ -1005,6 +1006,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
         timing_total_short += timing[6] * 1000; // pT5
         timing_total_short += timing[7] * 1000; // pT3
         timing_total_short += timing[8] * 1000; // TC
+        timing_total_short += timing[9] * 1000; // Reset
         std::cout << setw(6) << ievt;
         std::cout << "   " << setw(6) << timing[0] * 1000;   // Hits
         std::cout << "   " << setw(6) << timing[1] * 1000;   // MD
@@ -1015,6 +1017,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
         std::cout << "   " << setw(6) << timing[6] * 1000;   // pT5
         std::cout << "   " << setw(6) << timing[7] * 1000;   // pT3
         std::cout << "   " << setw(6) << timing[8] * 1000;   // TC
+        std::cout << "   " << setw(6) << timing[9] * 1000;   // Reset
         std::cout << "   " << setw(7) << timing_total;       // Total time
         std::cout << "   " << setw(7) << timing_total_short; // Total time
         std::cout << std::endl;
@@ -1027,6 +1030,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
         timing_sum_information[6] += timing[6] * 1000;  // pT5
         timing_sum_information[7] += timing[7] * 1000;  // pT3
         timing_sum_information[8] += timing[8] * 1000;  // TC
+        timing_sum_information[9] += timing[9] * 1000;  // Reset
         timing_shortlist.push_back(timing_total_short); // short total
         timing_list.push_back(timing_total);            // short total
     }
@@ -1039,6 +1043,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
     timing_sum_information[6] /= timing_information.size(); // pT5
     timing_sum_information[7] /= timing_information.size(); // pT3
     timing_sum_information[8] /= timing_information.size(); // TC
+    timing_sum_information[9] /= timing_information.size(); // Reset
 
     float timing_total_avg = 0.0;
     timing_total_avg += timing_sum_information[0]; // Hits
@@ -1050,6 +1055,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
     timing_total_avg += timing_sum_information[6]; // pT5
     timing_total_avg += timing_sum_information[7]; // pT3
     timing_total_avg += timing_sum_information[8]; // TC
+    timing_total_avg += timing_sum_information[9]; // Reset
     float timing_totalshort_avg = 0.0;
     timing_totalshort_avg += timing_sum_information[1]; // MD
     timing_totalshort_avg += timing_sum_information[2]; // LS
@@ -1058,6 +1064,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
     timing_totalshort_avg += timing_sum_information[6]; // pT5
     timing_totalshort_avg += timing_sum_information[7]; // pT3
     timing_totalshort_avg += timing_sum_information[8]; // TC
+    timing_totalshort_avg += timing_sum_information[9]; // Reset
 
     float standardDeviation = 0.0;
     for (auto shorttime : timing_shortlist)
@@ -1077,6 +1084,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
     std::cout << "   " << setw(6) << "pT5";
     std::cout << "   " << setw(6) << "pT3";
     std::cout << "   " << setw(6) << "TC";
+    std::cout << "   " << setw(6) << "Reset";
     std::cout << "   " << setw(7) << "Total";
     std::cout << "   " << setw(7) << "Total(short)";
     std::cout << std::endl;
@@ -1090,6 +1098,7 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
     std::cout << "   " << setw(6) << timing_sum_information[6]; // pT5
     std::cout << "   " << setw(6) << timing_sum_information[7]; // pT3
     std::cout << "   " << setw(6) << timing_sum_information[8]; // TC
+    std::cout << "   " << setw(6) << timing_sum_information[9]; // Reset
     std::cout << "   " << setw(7) << timing_total_avg;          // Average total time
     std::cout << "   " << setw(7) << timing_totalshort_avg;     // Average total time
     std::cout << "+/- " << setw(4) << stdDev;

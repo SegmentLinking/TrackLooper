@@ -309,7 +309,10 @@ void run_sdl()
 {
 
     // Load various maps used in the SDL reconstruction
+    TStopwatch full_timer;
+    full_timer.Start();
     loadMaps();
+    float timeForMapLoading = full_timer.RealTime()*1000;
 
     if (ana.do_write_ntuple)
     {
@@ -348,6 +351,8 @@ void run_sdl()
     std::vector<TString> file_name;
 
     // Looping input file
+    full_timer.Reset();
+    full_timer.Start();
     while (ana.looper.nextEvent())
     {
         // if (ana.looper.getCurrentEventIndex() ==49) {continue;}
@@ -382,7 +387,10 @@ void run_sdl()
         evt_num.push_back(ana.looper.getCurrentEventIndex());
         file_name.push_back(ana.looper.getCurrentFileName());
     }
+    float timeForInputLoading = full_timer.RealTime()*1000;
 
+    full_timer.Reset();
+    full_timer.Start();
     cudaStream_t streams[ana.streams];
     std::vector<SDL::Event*> events;
     for (int s = 0; s < ana.streams; s++)
@@ -393,9 +401,10 @@ void run_sdl()
         ; //(streams[omp_get_thread_num()]);
         events.push_back(event);
     }
+    float timeForStreamCreation = full_timer.RealTime()*1000;
 
     std::vector<std::vector<float>> timevec;
-    TStopwatch full_timer;
+    full_timer.Reset();
     full_timer.Start();
     float full_elapsed = 0;
     #pragma omp parallel num_threads(ana.streams) // private(event)
@@ -453,16 +462,6 @@ void run_sdl()
             timing_pT3 = runpT3(events.at(omp_get_thread_num()));
             timing_TC = runTrackCandidate(events.at(omp_get_thread_num()));
 
-            timing_information.push_back({timing_input_loading,
-                                          timing_MD,
-                                          timing_LS,
-                                          timing_T3,
-                                          timing_T5,
-                                          timing_pLS,
-                                          timing_pT5,
-                                          timing_pT3,
-                                          timing_TC});
-
             if (ana.verbose == 4)
             {
                 #pragma omp critical
@@ -496,7 +495,21 @@ void run_sdl()
             }
 
             // Clear this event
+            TStopwatch my_timer;
+            my_timer.Start();
             events.at(omp_get_thread_num())->resetEvent();
+            float timing_resetEvent = my_timer.RealTime();
+
+            timing_information.push_back({timing_input_loading,
+                                          timing_MD,
+                                          timing_LS,
+                                          timing_T3,
+                                          timing_T5,
+                                          timing_pLS,
+                                          timing_pT5,
+                                          timing_pT3,
+                                          timing_TC,
+                                          timing_resetEvent});
         }
 
         full_elapsed = full_timer.RealTime() * 1000.f; // for loop has implicit barrier I think. So this stops onces all cpu threads have finished but before the next critical section.
@@ -506,6 +519,9 @@ void run_sdl()
 
     float avg_elapsed = full_elapsed / out_trkX.size();
 
+    std::cout << "Time for map loading = " << timeForMapLoading << " ms\n";
+    std::cout << "Time for input loading = " << timeForInputLoading << " ms\n";
+    std::cout << "Time for stream creation = " << timeForStreamCreation << " ms\n";
     printTimingInformation(timevec, full_elapsed, avg_elapsed);
 
     SDL::cleanModules();
