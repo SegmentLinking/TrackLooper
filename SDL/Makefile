@@ -23,6 +23,7 @@ ROOTCFLAGS           = --compiler-options -pthread --compiler-options -std=c++17
 LD                   = nvcc 
 SOFLAGS              = -g -shared --compiler-options -fPIC --cudart shared -arch=compute_70 -code=sm_72
 PRINTFLAG            = -DT4FromT3 #-DWarnings
+CUTFLAGS             = -DUSE_RZCHI2 -DUSE_T5_DNN
 DUPLICATES           = -DDUP_pLS -DDUP_T5 -DDUP_pT5 -DDUP_pT3 -DCrossclean_T5 -DCrossclean_pT3 -DFP16_Base -DFP16_dPhi
 MEMFLAG              =
 CACHEFLAG            =
@@ -30,16 +31,16 @@ CUDALAUNCHFLAG       =
 MEMFLAG_FLAGS        =
 CACHEFLAG_FLAGS      = -DCACHE_ALLOC
 CUDALAUNCHFLAG_FLAGS = 
-PT0P8       =
-PRELOAD       =
-T3T3EXTENSION=
+PT0P8                =
+PRELOAD              =
+T3T3EXTENSION        =
 #
 # how to make it 
 #
-CUTVALUEFLAG = 
-CUTVALUEFLAG_FLAGS = -DCUT_VALUE_DEBUG -DUSE_RZCHI2 -DUSE_T5_DNN
+CUTVALUEFLAG =
+CUTVALUEFLAG_FLAGS = -DCUT_VALUE_DEBUG
 %_cuda.o : %.cu %.cuh
-	$(LD) -x cu $(PT0P8) $(PRELOAD) $(T3T3EXTENSION) $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $(CUTVALUEFLAG) $(DUPLICATES) $< -o $@
+	$(LD) -x cu $(PT0P8) $(PRELOAD) $(T3T3EXTENSION) $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $(CUTFLAGS) $(CUTVALUEFLAG) $(DUPLICATES) $< -o $@
 
 %_cpu.o : %.cc %.h
 	$(LD) -O2   $(PT0P8) $(PRELOAD) $(T3T3EXTENSION) $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUDALAUNCHFLAG) $(DUPLICATES) $(ROOTCFLAGS) $< -o $@
