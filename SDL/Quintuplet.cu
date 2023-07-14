@@ -4,7 +4,6 @@
 #include "Quintuplet.cuh"
 #include "allocate.h"
 #include "Kernels.cuh"
-#include "NeuralNetwork.cuh"
 
 SDL::quintuplets::quintuplets()
 {

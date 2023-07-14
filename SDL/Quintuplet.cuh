@@ -20,6 +20,7 @@
 #include "Hit.cuh"
 #include "PrintUtil.h"
 #include "Triplet.cuh"
+#include "NeuralNetwork.cuh"
 
 namespace SDL
 {

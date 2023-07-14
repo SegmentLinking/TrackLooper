@@ -38,11 +38,11 @@ namespace T5DNN
     CUDA_CONST_VAR const float WP99   = 0.1120605f; // 99.0% TPR, 75.9% FPR
     CUDA_CONST_VAR const float WP99p9 = 0.0218196f; // 99.9% TPR, 95.4% FPR
 
-    CUDA_DEV float runInference(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, 
-                                struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, 
-                                float* xVec, float* yVec, unsigned int* mdIndices, const uint16_t* lowerModuleIndices, 
-                                unsigned int& innerTripletIndex, unsigned int& outerTripletIndex, 
-                                float& innerRadius, float& outerRadius, float& bridgeRadius)
+    CUDA_DEV inline float runInference(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, 
+                                       struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, 
+                                       float* xVec, float* yVec, unsigned int* mdIndices, const uint16_t* lowerModuleIndices, 
+                                       unsigned int& innerTripletIndex, unsigned int& outerTripletIndex, 
+                                       float& innerRadius, float& outerRadius, float& bridgeRadius)
     {
         // Unpack x-coordinates of hits
         float x1 = xVec[0];
