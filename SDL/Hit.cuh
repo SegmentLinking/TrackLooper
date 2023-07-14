@@ -215,7 +215,6 @@ namespace SDL
 
     struct moduleRangesKernel
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
             TAcc const & acc,
@@ -246,7 +245,6 @@ namespace SDL
 
     struct hitLoopKernel
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
             TAcc const & acc,

@@ -678,7 +678,6 @@ namespace SDL
 
     struct createSegmentsInGPUv2
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -755,7 +754,6 @@ namespace SDL
 
     struct createSegmentArrayRanges
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -833,7 +831,6 @@ namespace SDL
 
     struct addSegmentRangesToEventExplicit
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -866,7 +863,6 @@ namespace SDL
 
     struct addPixelSegmentToEventKernel
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
             TAcc const & acc,

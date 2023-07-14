@@ -1296,7 +1296,6 @@ namespace SDL
 
     struct createTripletsInGPUv2
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -1372,7 +1371,6 @@ namespace SDL
 
     struct createTripletArrayRanges
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -1449,7 +1447,6 @@ namespace SDL
 
     struct addTripletRangesToEventExplicit
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,

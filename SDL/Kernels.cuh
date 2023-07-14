@@ -202,7 +202,6 @@ namespace SDL
 
     struct removeDupQuintupletsInGPUAfterBuild
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -273,7 +272,6 @@ namespace SDL
 
     struct removeDupQuintupletsInGPUBeforeTC
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -359,7 +357,6 @@ namespace SDL
 
     struct removeDupPixelTripletsInGPUFromMap
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -407,7 +404,6 @@ namespace SDL
 
     struct removeDupPixelQuintupletsInGPUFromMap
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -452,7 +448,6 @@ namespace SDL
 
     struct checkHitspLS
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
