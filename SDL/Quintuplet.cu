@@ -4,6 +4,7 @@
 #include "Quintuplet.cuh"
 #include "allocate.h"
 #include "Kernels.cuh"
+#include "NeuralNetwork.cuh"
 
 SDL::quintuplets::quintuplets()
 {
@@ -384,8 +385,7 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     if(not pass) return pass;
 #endif
 
-    pass = pass and (innerRadius >= 0.95f * ptCut/(2.f * k2Rinv1GeVf));
-    if(not pass) return pass;
+    pass = pass & (innerRadius >= 0.95f * ptCut/(2.f * k2Rinv1GeVf));
 
     float innerInvRadiusMin, innerInvRadiusMax, bridgeInvRadiusMin, bridgeInvRadiusMax, outerInvRadiusMin, outerInvRadiusMax;
 

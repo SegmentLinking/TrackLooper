@@ -12,8 +12,6 @@
 #endif
 
 #include "Constants.cuh"
-#include "NeuralNetworkWeights.cuh"
-#include "NeuralNetwork.cuh"
 #include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"
 #include "Segment.cuh"
