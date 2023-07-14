@@ -4,60 +4,19 @@
 #include <alpaka/alpaka.hpp>
 #include "../code/alpaka_interface/CachedBufAlloc.h"
 
-// CUDA headers. Will be removed soon.
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 #include <cuda_fp16.h>
 #endif
 
-//This changes pT5 and pT3 and T3 completely. T5 for non regression parameters
+// Half precision wrapper functions, turned off.
 #if defined(FP16_Base)
-#define __F2H //__float2half  
-#define __H2F //__half2float  
-typedef float FPX;
+#define __F2H //__float2half
+#define __H2F //__half2float
+typedef /*__half*/ float FPX;
 #else
 #define __F2H
 #define __H2F
-typedef float FPX; 
-#endif
-
-#if defined(FP16_T5) // changes T5 regression values
-#define __F2H_T5 //__float2half  
-#define __H2F_T5 //__half2float  
-typedef float FPX_T5;
-#else
-#define __F2H_T5
-#define __H2F_T5
-typedef float FPX_T5; 
-#endif
-
-#if defined(FP16_dPhi) // changes segment dPhi values
-#define __F2H_dPhi //__float2half  
-#define __H2F_dPhi //__half2float  
-typedef float FPX_dPhi;
-#else
-#define __F2H_dPhi
-#define __H2F_dPhi
-typedef float FPX_dPhi; 
-#endif
-
-#if defined(FP16_circle) // changes segment circle values
-#define __F2H_circle //__float2half  
-#define __H2F_circle //__half2float  
-typedef float FPX_circle;
-#else
-#define __F2H_circle
-#define __H2F_circle
-typedef float FPX_circle; 
-#endif
-
-#if defined(FP16_seg) // changes segment values
-#define __F2H_seg //__float2half  
-#define __H2F_seg //__half2float  
-typedef float FPX_seg;
-#else
-#define __F2H_seg
-#define __H2F_seg
-typedef float FPX_seg; 
+typedef float FPX;
 #endif
 
 using Idx = std::size_t;
