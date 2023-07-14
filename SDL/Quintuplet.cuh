@@ -2183,7 +2183,6 @@ namespace SDL
 
     struct createQuintupletsInGPUv2
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -2278,7 +2277,6 @@ namespace SDL
 
     struct createEligibleModulesListForQuintupletsGPU
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -2354,7 +2352,6 @@ namespace SDL
 
     struct addQuintupletRangesToEventExplicit
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,

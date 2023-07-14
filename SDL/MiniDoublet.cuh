@@ -776,7 +776,6 @@ namespace SDL
 
     struct createMiniDoubletsInGPUv2
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -798,10 +797,6 @@ namespace SDL
                 int nLowerHits = hitsInGPU.hitRangesnLower[lowerModuleIndex];
                 int nUpperHits = hitsInGPU.hitRangesnUpper[lowerModuleIndex];
                 if(hitsInGPU.hitRangesLower[lowerModuleIndex] == -1) continue;
-                if(hitsInGPU.hitRangesLower[lowerModuleIndex] == -1)
-                {
-                    printf("IS THIS EVER RUN");
-                }
                 const int maxHits = alpaka::math::max(acc, nUpperHits, nLowerHits);
                 unsigned int upHitArrayIndex = hitsInGPU.hitRangesUpper[lowerModuleIndex];
                 unsigned int loHitArrayIndex = hitsInGPU.hitRangesLower[lowerModuleIndex];
@@ -850,7 +845,6 @@ namespace SDL
 
     struct createMDArrayRangesGPU
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
@@ -920,7 +914,6 @@ namespace SDL
 
     struct addMiniDoubletRangesToEventExplicit
     {
-        ALPAKA_NO_HOST_ACC_WARNING
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
