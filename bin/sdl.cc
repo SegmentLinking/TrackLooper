@@ -401,7 +401,7 @@ void run_sdl()
         ; //(streams[omp_get_thread_num()]);
         events.push_back(event);
     }
-    float timeForStreamCreation = full_timer.RealTime()*1000;
+    float timeForEventCreation = full_timer.RealTime()*1000;
 
     std::vector<std::vector<float>> timevec;
     full_timer.Reset();
@@ -521,7 +521,7 @@ void run_sdl()
 
     std::cout << "Time for map loading = " << timeForMapLoading << " ms\n";
     std::cout << "Time for input loading = " << timeForInputLoading << " ms\n";
-    std::cout << "Time for stream creation = " << timeForStreamCreation << " ms\n";
+    std::cout << "Time for event creation = " << timeForEventCreation << " ms\n";
     printTimingInformation(timevec, full_elapsed, avg_elapsed);
 
     SDL::cleanModules();
