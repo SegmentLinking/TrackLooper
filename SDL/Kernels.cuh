@@ -372,15 +372,13 @@ namespace SDL
 
             for (unsigned int ix = globalThreadIdx[1]; ix < *pixelTripletsInGPU.nPixelTriplets; ix += gridThreadExtent[1])
             {
-                float score1 = __H2F(pixelTripletsInGPU.score[ix]);
                 for(unsigned int jx = globalThreadIdx[2]; jx < *pixelTripletsInGPU.nPixelTriplets; jx += gridThreadExtent[2])
                 {
-                    float score2 = __H2F(pixelTripletsInGPU.score[jx]);
                     if(ix == jx)
                         continue;
 
                     int nMatched[2];
-                    checkHitspT3(ix,jx,pixelTripletsInGPU,nMatched);
+                    checkHitspT3(ix, jx, pixelTripletsInGPU, nMatched);
                     if((nMatched[0] + nMatched[1]) >= 5)
                     {
                         // Check the layers
