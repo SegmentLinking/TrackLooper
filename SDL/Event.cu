@@ -388,76 +388,6 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
     alpaka::wait(queue);
 }
 
-void SDL::Event::addMiniDoubletsToEventExplicit()
-{
-    auto nMDsCPU_buf = allocBufWrapper<int>(devHost, nLowerModules, queue);
-    alpaka::memcpy(queue, nMDsCPU_buf, miniDoubletsBuffers->nMDs_buf, nLowerModules);
-
-    auto module_subdets_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
-    alpaka::memcpy(queue, module_subdets_buf, modulesBuffers->subdets_buf, nLowerModules);
-
-    auto module_layers_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
-    alpaka::memcpy(queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
-
-    auto module_hitRanges_buf = allocBufWrapper<int>(devHost, nLowerModules*2, queue);
-    alpaka::memcpy(queue, module_hitRanges_buf, hitsBuffers->hitRanges_buf, nLowerModules*2);
-
-    alpaka::wait(queue);
-
-    int* nMDsCPU = alpaka::getPtrNative(nMDsCPU_buf);
-    short* module_subdets = alpaka::getPtrNative(module_subdets_buf);
-    short* module_layers = alpaka::getPtrNative(module_layers_buf);
-    int* module_hitRanges = alpaka::getPtrNative(module_hitRanges_buf);
-
-    for(unsigned int i = 0; i<nLowerModules; i++)
-    {
-        if(!(nMDsCPU[i] == 0 or module_hitRanges[i * 2] == -1))
-        {
-            if(module_subdets[i] == Barrel)
-            {
-                n_minidoublets_by_layer_barrel_[module_layers[i] -1] += nMDsCPU[i];
-            }
-            else
-            {
-                n_minidoublets_by_layer_endcap_[module_layers[i] - 1] += nMDsCPU[i];
-            }
-        }
-    }
-}
-
-void SDL::Event::addSegmentsToEventExplicit()
-{
-    auto nSegmentsCPU_buf = allocBufWrapper<int>(devHost, nLowerModules, queue);
-    alpaka::memcpy(queue, nSegmentsCPU_buf, segmentsBuffers->nSegments_buf, nLowerModules);
-
-    auto module_subdets_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
-    alpaka::memcpy(queue, module_subdets_buf, modulesBuffers->subdets_buf, nLowerModules);
-
-    auto module_layers_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
-    alpaka::memcpy(queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
-
-    alpaka::wait(queue);
-
-    int* nSegmentsCPU = alpaka::getPtrNative(nSegmentsCPU_buf);
-    short* module_subdets = alpaka::getPtrNative(module_subdets_buf);
-    short* module_layers = alpaka::getPtrNative(module_layers_buf);
-
-    for(unsigned int i = 0; i<nLowerModules; i++)
-    {
-        if(!(nSegmentsCPU[i] == 0))
-        {
-            if(module_subdets[i] == Barrel)
-            {
-                n_segments_by_layer_barrel_[module_layers[i] - 1] += nSegmentsCPU[i];
-            }
-            else
-            {
-                n_segments_by_layer_endcap_[module_layers[i] -1] += nSegmentsCPU[i];
-            }
-        }
-    }
-}
-
 void SDL::Event::createMiniDoublets()
 {
     // Create a view for the element nLowerModules inside rangesBuffers->miniDoubletModuleOccupancy
@@ -1205,6 +1135,76 @@ void SDL::Event::createPixelQuintuplets()
 
     std::cout << "number of pixel quintuplets = " << *alpaka::getPtrNative(nPixelQuintuplets_buf) << std::endl;
 #endif
+}
+
+void SDL::Event::addMiniDoubletsToEventExplicit()
+{
+    auto nMDsCPU_buf = allocBufWrapper<int>(devHost, nLowerModules, queue);
+    alpaka::memcpy(queue, nMDsCPU_buf, miniDoubletsBuffers->nMDs_buf, nLowerModules);
+
+    auto module_subdets_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
+    alpaka::memcpy(queue, module_subdets_buf, modulesBuffers->subdets_buf, nLowerModules);
+
+    auto module_layers_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
+    alpaka::memcpy(queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
+
+    auto module_hitRanges_buf = allocBufWrapper<int>(devHost, nLowerModules*2, queue);
+    alpaka::memcpy(queue, module_hitRanges_buf, hitsBuffers->hitRanges_buf, nLowerModules*2);
+
+    alpaka::wait(queue);
+
+    int* nMDsCPU = alpaka::getPtrNative(nMDsCPU_buf);
+    short* module_subdets = alpaka::getPtrNative(module_subdets_buf);
+    short* module_layers = alpaka::getPtrNative(module_layers_buf);
+    int* module_hitRanges = alpaka::getPtrNative(module_hitRanges_buf);
+
+    for(unsigned int i = 0; i<nLowerModules; i++)
+    {
+        if(!(nMDsCPU[i] == 0 or module_hitRanges[i * 2] == -1))
+        {
+            if(module_subdets[i] == Barrel)
+            {
+                n_minidoublets_by_layer_barrel_[module_layers[i] -1] += nMDsCPU[i];
+            }
+            else
+            {
+                n_minidoublets_by_layer_endcap_[module_layers[i] - 1] += nMDsCPU[i];
+            }
+        }
+    }
+}
+
+void SDL::Event::addSegmentsToEventExplicit()
+{
+    auto nSegmentsCPU_buf = allocBufWrapper<int>(devHost, nLowerModules, queue);
+    alpaka::memcpy(queue, nSegmentsCPU_buf, segmentsBuffers->nSegments_buf, nLowerModules);
+
+    auto module_subdets_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
+    alpaka::memcpy(queue, module_subdets_buf, modulesBuffers->subdets_buf, nLowerModules);
+
+    auto module_layers_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
+    alpaka::memcpy(queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
+
+    alpaka::wait(queue);
+
+    int* nSegmentsCPU = alpaka::getPtrNative(nSegmentsCPU_buf);
+    short* module_subdets = alpaka::getPtrNative(module_subdets_buf);
+    short* module_layers = alpaka::getPtrNative(module_layers_buf);
+
+    for(unsigned int i = 0; i<nLowerModules; i++)
+    {
+        if(!(nSegmentsCPU[i] == 0))
+        {
+            if(module_subdets[i] == Barrel)
+            {
+                n_segments_by_layer_barrel_[module_layers[i] - 1] += nSegmentsCPU[i];
+            }
+            else
+            {
+                n_segments_by_layer_endcap_[module_layers[i] -1] += nSegmentsCPU[i];
+            }
+        }
+    }
 }
 
 void SDL::Event::addQuintupletsToEventExplicit()
