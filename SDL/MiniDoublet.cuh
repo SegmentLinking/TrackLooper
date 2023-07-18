@@ -41,8 +41,6 @@ namespace SDL
         float* anchorLowEdgeY;
         float* anchorLowEdgePhi;
         float* anchorHighEdgePhi;
-        float* anchorHighEdgePhi;
-        float* anchorLowEdgePhi;
 
         float* outerX;
         float* outerY;
@@ -93,6 +91,8 @@ namespace SDL
             outerHighEdgeY = alpaka::getPtrNative(mdsbuf.outerHighEdgeY_buf);
             outerLowEdgeX = alpaka::getPtrNative(mdsbuf.outerLowEdgeX_buf);
             outerLowEdgeY = alpaka::getPtrNative(mdsbuf.outerLowEdgeY_buf);
+            anchorLowEdgePhi = alpaka::getPtrNative(mdsbuf.anchorLowEdgePhi_buf);
+            anchorHighEdgePhi = alpaka::getPtrNative(mdsbuf.anchorHighEdgePhi_buf);
         }
     };
 
@@ -128,6 +128,8 @@ namespace SDL
         Buf<TAcc, float> anchorHighEdgeY_buf;
         Buf<TAcc, float> anchorLowEdgeX_buf;
         Buf<TAcc, float> anchorLowEdgeY_buf;
+        Buf<TAcc, float> anchorLowEdgePhi_buf;
+        Buf<TAcc, float> anchorHighEdgePhi_buf;
 
         Buf<TAcc, float> outerX_buf;
         Buf<TAcc, float> outerY_buf;
@@ -179,7 +181,9 @@ namespace SDL
             outerHighEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
             outerHighEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
             outerLowEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
-            outerLowEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue))
+            outerLowEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
+            anchorLowEdgePhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
+            anchorHighEdgePhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue))
         {
             alpaka::memset(queue, nMDs_buf, 0, nLowerModules+1);
             alpaka::memset(queue, totOccupancyMDs_buf, 0, nLowerModules+1);
@@ -187,7 +191,8 @@ namespace SDL
         }
     };
 
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addMDToMemory(struct miniDoublets& mdsInGPU, struct SDL::hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
+    template<typename TAcc>
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addMDToMemory(TAcc const & acc, struct miniDoublets& mdsInGPU, struct SDL::hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
     {
         //the index into which this MD needs to be written will be computed in the kernel
         //nMDs variable will be incremented in the kernel, no need to worry about that here
@@ -233,8 +238,8 @@ namespace SDL
         mdsInGPU.anchorHighEdgeY[idx] = hitsInGPU.highEdgeYs[anchorHitIndex];
         mdsInGPU.anchorLowEdgeX[idx] = hitsInGPU.lowEdgeXs[anchorHitIndex];
         mdsInGPU.anchorLowEdgeY[idx] = hitsInGPU.lowEdgeYs[anchorHitIndex];
-        mdsInGPU.anchorHighEdgePhi[idx] = atan2f(mdsInGPU.anchorHighEdgeY[idx], mdsInGPU.anchorHighEdgeX[idx]);
-        mdsInGPU.anchorLowEdgePhi[idx] = atan2f(mdsInGPU.anchorLowEdgeY[idx], mdsInGPU.anchorLowEdgeX[idx]);
+        mdsInGPU.anchorHighEdgePhi[idx] = alpaka::math::atan2(acc, mdsInGPU.anchorHighEdgeY[idx], mdsInGPU.anchorHighEdgeX[idx]);
+        mdsInGPU.anchorLowEdgePhi[idx] = alpaka::math::atan2(acc, mdsInGPU.anchorLowEdgeY[idx], mdsInGPU.anchorLowEdgeX[idx]);
 
         mdsInGPU.outerX[idx] = hitsInGPU.xs[outerHitIndex];
         mdsInGPU.outerY[idx] = hitsInGPU.ys[outerHitIndex];
@@ -835,7 +840,7 @@ namespace SDL
                             int mdModuleIndex = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &mdsInGPU.nMDs[lowerModuleIndex], 1);
                             unsigned int mdIndex = rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex] + mdModuleIndex;
 
-                            addMDToMemory(mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, mdIndex);
+                            addMDToMemory(acc, mdsInGPU,hitsInGPU, modulesInGPU, lowerHitArrayIndex, upperHitArrayIndex, lowerModuleIndex, dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange, mdIndex);
                         }
                     }
                 }

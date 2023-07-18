@@ -321,6 +321,7 @@ namespace SDL
             moduleLayerType = alpaka::getPtrNative(modulesbuf.moduleLayerType_buf);
 
             connectedPixels = alpaka::getPtrNative(modulesbuf.connectedPixels_buf);
+            sdlLayers = alpaka::getPtrNative(modulesbuf.sdlLayers_buf);
         }
     };
 
@@ -353,6 +354,7 @@ namespace SDL
         Buf<TAcc, ModuleLayerType> moduleLayerType_buf;
 
         Buf<TAcc, unsigned int> connectedPixels_buf;
+        Buf<TAcc, int> sdlLayers_buf;
 
         template<typename TDevAcc>
         modulesBuffer(TDevAcc const & devAccIn,
@@ -382,6 +384,7 @@ namespace SDL
             isAnchor_buf(allocBufWrapper<bool>(devAccIn, nMod)),
             moduleType_buf(allocBufWrapper<ModuleType>(devAccIn, nMod)),
             moduleLayerType_buf(allocBufWrapper<ModuleLayerType>(devAccIn, nMod)),
+            sdlLayers_buf(allocBufWrapper<int>(devAccIn, nMod)),
 
             connectedPixels_buf(allocBufWrapper<unsigned int>(devAccIn, nPixs))
         {}
@@ -679,6 +682,7 @@ namespace SDL
         auto slopes_buf = allocBufWrapper<float>(devHost, nModules);
         auto drdzs_buf = allocBufWrapper<float>(devHost, nModules);
         auto partnerModuleIndices_buf = allocBufWrapper<uint16_t>(devHost, nModules);
+        auto sdlLayers_buf = allocBufWrapper<int>(devHost, nModules);
 
         // Getting the underlying data pointers
         unsigned int* host_detIds = alpaka::getPtrNative(detIds_buf);
@@ -698,7 +702,8 @@ namespace SDL
         float* host_slopes = alpaka::getPtrNative(slopes_buf);
         float* host_drdzs = alpaka::getPtrNative(drdzs_buf);
         uint16_t* host_partnerModuleIndices = alpaka::getPtrNative(partnerModuleIndices_buf);
-        
+        int* host_sdlLayers = alpaka::getPtrNative(sdlLayers_buf);
+
         //reassign detIdToIndex indices here
         nLowerModules = (nModules - 1) / 2;
         uint16_t lowerModuleCounter = 0;
@@ -792,6 +797,8 @@ namespace SDL
                 host_slopes[index] = (subdet == Endcap) ? endcapGeometry.getSlopeLower(detId) : tiltedGeometry.getSlope(detId);
                 host_drdzs[index] = (subdet == Barrel) ? tiltedGeometry.getDrDz(detId) : 0;
             }
+
+            host_sdlLayers[index] = layer + 6 * (subdet == SDL::Endcap) + 5 * (subdet == SDL::Endcap and host_moduleType[index] == SDL::TwoS);
         }
 
         //partner module stuff, and slopes and drdz move around
@@ -838,6 +845,7 @@ namespace SDL
         alpaka::memcpy(queue, modulesBuf->slopes_buf, slopes_buf, nModules);
         alpaka::memcpy(queue, modulesBuf->drdzs_buf, drdzs_buf, nModules);
         alpaka::memcpy(queue, modulesBuf->partnerModuleIndices_buf, partnerModuleIndices_buf, nModules);
+        alpaka::memcpy(queue, modulesBuf->sdlLayers_buf, sdlLayers_buf, nModules);
         alpaka::wait(queue);
 
         fillConnectedModuleArrayExplicit(modulesBuf, nModules, queue);

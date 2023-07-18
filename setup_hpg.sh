@@ -12,7 +12,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/code/rooutil/thisrooutil.sh
 
 export SCRAM_ARCH=slc7_amd64_gcc10
-export CMSSW_VERSION=CMSSW_12_5_0_pre2
+export CMSSW_VERSION=CMSSW_13_0_0_pre2
 export CUDA_HOME=${HPC_CUDA_DIR}
 
 source /cvmfs/cms.cern.ch/cmsset_default.sh
@@ -41,7 +41,7 @@ export LSTPERFORMANCEWEBDIR=/home/users/phchang/public_html/LSTPerformanceWeb
 export LATEST_CPU_BENCHMARK_EFF_MUONGUN=
 export LATEST_CPU_BENCHMARK_EFF_PU200=
 
-source /cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/alpaka/0.5.0/etc/profile.d/init.sh
-export BOOST_ROOT="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/boost/1.72.0-ghbfee3"
-export ALPAKA_ROOT="/cvmfs/cms.cern.ch/slc7_amd64_gcc900/external/alpaka/0.7.0-09bef105568314b218f2a8410a876785"
+source /cvmfs/cms.cern.ch/el8_amd64_gcc10/external/alpaka/develop-20220902-e80d13b043e1608b43d2007d06ad7e2f/etc/profile.d/init.sh
+export BOOST_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/boost/1.78.0-12075919175e8d078539685f9234134a"
+export ALPAKA_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc10/external/alpaka/develop-20220902-e80d13b043e1608b43d2007d06ad7e2f"
 #eof

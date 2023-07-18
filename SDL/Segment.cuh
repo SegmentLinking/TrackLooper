@@ -447,12 +447,12 @@ namespace SDL
 
         sdCut = sdSlope + alpaka::math::sqrt(acc, sdMuls * sdMuls + sdPVoff * sdPVoff);
 
-        dPhi  = SDL::phi_mpi_pi(mdsInGPU.anchorPhi[outerMDIndex]-mdsInGPU.anchorPhi[innerMDIndex]);
+        dPhi  = SDL::phi_mpi_pi(acc, mdsInGPU.anchorPhi[outerMDIndex]-mdsInGPU.anchorPhi[innerMDIndex]);
 
         pass =  pass and (alpaka::math::abs(acc, dPhi) <= sdCut);
         if(not pass) return pass;
 
-        dPhiChange = SDL::phi_mpi_pi(SDL::phi(xOut-xIn, yOut-yIn)-mdsInGPU.anchorPhi[innerMDIndex]);
+        dPhiChange = SDL::phi_mpi_pi(acc, SDL::phi(acc, xOut-xIn, yOut-yIn)-mdsInGPU.anchorPhi[innerMDIndex]);
 
         pass =  pass and (alpaka::math::abs(acc, dPhiChange) <= sdCut);
         if(not pass) return pass;
@@ -484,8 +484,8 @@ namespace SDL
     {
         bool pass = true;
     
-        float xIn, yIn;    
-        float xOut, yOut, xOutHigh, yOutHigh, xOutLow, yOutLow;
+        float xIn, yIn;
+        float xOut, yOut;
 
         xIn = mdsInGPU.anchorX[innerMDIndex];
         yIn = mdsInGPU.anchorY[innerMDIndex];
@@ -497,10 +497,6 @@ namespace SDL
         zOut = mdsInGPU.anchorZ[outerMDIndex];
         rtOut = mdsInGPU.anchorRt[outerMDIndex];
 
-        xOutHigh = mdsInGPU.anchorHighEdgeX[outerMDIndex];
-        yOutHigh = mdsInGPU.anchorHighEdgeY[outerMDIndex];
-        xOutLow = mdsInGPU.anchorLowEdgeX[outerMDIndex];
-        yOutLow = mdsInGPU.anchorLowEdgeY[outerMDIndex];
         bool outerLayerEndcapTwoS = (modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Endcap) & (modulesInGPU.moduleType[outerLowerModuleIndex] == SDL::TwoS);
 
         float sdSlope = alpaka::math::asin(acc, alpaka::math::min(acc, rtOut * k2Rinv1GeVf / ptCut, sinAlphaMax));
@@ -527,13 +523,13 @@ namespace SDL
         pass =  pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
         if(not pass) return pass;
 
-        dPhi = SDL::phi_mpi_pi(mdsInGPU.anchorPhi[outerMDIndex]-mdsInGPU.anchorPhi[innerMDIndex]);
+        dPhi = SDL::phi_mpi_pi(acc, mdsInGPU.anchorPhi[outerMDIndex]-mdsInGPU.anchorPhi[innerMDIndex]);
 
         sdCut = sdSlope;
         if(outerLayerEndcapTwoS)
         {
-            float dPhiPos_high = SDL::phi_mpi_pi(mdsInGPU.anchorHighEdgePhi[outerMDIndex]-mdsInGPU.anchorPhi[innerMDIndex]);
-            float dPhiPos_low = SDL::phi_mpi_pi(mdsInGPU.anchorLowEdgePhi[outerMDIndex]-mdsInGPU.anchorPhi[innerMDIndex]);
+            float dPhiPos_high = SDL::phi_mpi_pi(acc, mdsInGPU.anchorHighEdgePhi[outerMDIndex]-mdsInGPU.anchorPhi[innerMDIndex]);
+            float dPhiPos_low = SDL::phi_mpi_pi(acc, mdsInGPU.anchorLowEdgePhi[outerMDIndex]-mdsInGPU.anchorPhi[innerMDIndex]);
 
             dPhiMax = alpaka::math::abs(acc, dPhiPos_high) > alpaka::math::abs(acc, dPhiPos_low) ? dPhiPos_high : dPhiPos_low;
             dPhiMin = alpaka::math::abs(acc, dPhiPos_high) > alpaka::math::abs(acc, dPhiPos_low) ? dPhiPos_low : dPhiPos_high;
@@ -812,8 +808,8 @@ namespace SDL
                 unsigned int outerMDIndex = rangesInGPU.miniDoubletModuleIndices[pixelModuleIndex] + 2*(tid) +1;
                 unsigned int pixelSegmentIndex = rangesInGPU.segmentModuleIndices[pixelModuleIndex] + tid;
     
-                addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices0[tid], hitIndices1[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,innerMDIndex);
-                addMDToMemory(mdsInGPU, hitsInGPU, modulesInGPU, hitIndices2[tid], hitIndices3[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,outerMDIndex);
+                addMDToMemory(acc, mdsInGPU, hitsInGPU, modulesInGPU, hitIndices0[tid], hitIndices1[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,innerMDIndex);
+                addMDToMemory(acc, mdsInGPU, hitsInGPU, modulesInGPU, hitIndices2[tid], hitIndices3[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,outerMDIndex);
     
                 //in outer hits - pt, eta, phi
                 float slope = SDL::temp_sinh(acc, hitsInGPU.ys[mdsInGPU.outerHitIndices[innerMDIndex]]);

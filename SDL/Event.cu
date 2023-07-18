@@ -431,7 +431,7 @@ void SDL::Event::createMiniDoublets()
     }
 
     Vec const threadsPerBlockCreateMDInGPU(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(32));
-    Vec const blocksPerGridCreateMDInGPU(static_cast<Idx>(1), static_cast<Idx>(nLowerModules/threadsPerBlock[1]), static_cast<Idx>(1));
+    Vec const blocksPerGridCreateMDInGPU(static_cast<Idx>(1), static_cast<Idx>(nLowerModules/threadsPerBlockCreateMDInGPU[1]), static_cast<Idx>(1));
     WorkDiv const createMiniDoubletsInGPUv2_workDiv(blocksPerGridCreateMDInGPU, threadsPerBlockCreateMDInGPU, elementsPerThread);
 
     SDL::createMiniDoubletsInGPUv2 createMiniDoubletsInGPUv2_kernel;
