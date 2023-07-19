@@ -8,11 +8,11 @@
 #include <cuda_fp16.h>
 #endif
 
-// Half precision wrapper functions, turned off.
+// Half precision wrapper functions.
 #if defined(FP16_Base)
-#define __F2H //__float2half
-#define __H2F //__half2float
-typedef /*__half*/ float FPX;
+#define __F2H __float2half
+#define __H2F __half2float
+typedef __half float FPX;
 #else
 #define __F2H
 #define __H2F
@@ -43,6 +43,8 @@ Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
     using Acc = alpaka::AccCpuSerial<Dim, Idx>;
 #endif
 
+// Needed for files that are compiled by g++ to not through an error.
+// uint4 is defined only for CUDA, so we will have to revisit this soon when running on other backends.
 #ifndef ALPAKA_ACC_GPU_CUDA_ENABLED
 struct uint4
 {
