@@ -43,7 +43,7 @@ Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
     using Acc = alpaka::AccCpuSerial<Dim, Idx>;
 #endif
 
-// Needed for files that are compiled by g++ to not through an error.
+// Needed for files that are compiled by g++ to not throw an error.
 // uint4 is defined only for CUDA, so we will have to revisit this soon when running on other backends.
 #ifndef ALPAKA_ACC_GPU_CUDA_ENABLED
 struct uint4
