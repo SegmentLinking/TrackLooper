@@ -25,12 +25,13 @@ usage()
   echo "  -d    cut value ntuple        (With extra variables in a debug ntuple file)"
   echo "  -p    primitive object ntuple (With extra variables related to primitive objects)"
   echo "  -3    do T3T3 extensions      (-e turned on if not specified)"
+  echo "  -N    neural networks         (Toggle LST neural networks)"
   echo
   exit
 }
 
 # Parsing command-line opts
-while getopts ":cxgsmdp3eh" OPTION; do
+while getopts ":cxgsmdp3Neh" OPTION; do
   case $OPTION in
     c) MAKECACHE=true;;
     s) SHOWLOG=true;;
@@ -38,6 +39,7 @@ while getopts ":cxgsmdp3eh" OPTION; do
     d) MAKECUTVALUES=true;;
     p) PRIMITIVE=true;;
     3) T3T3EXTENSION=true;;
+    N) USENN=true;;
     h) usage;;
     :) usage;;
   esac
@@ -50,6 +52,7 @@ if [ -z ${MAKECLEANBINARIES} ]; then MAKECLEANBINARIES=false; fi
 if [ -z ${MAKECUTVALUES} ]; then MAKECUTVALUES=false; fi
 if [ -z ${PRIMITIVE} ]; then PRIMITIVE=false; fi
 if [ -z ${T3T3EXTENSION} ]; then T3T3EXTENSION=false; fi
+if [ -z ${USENN} ]; then USENN=false; fi
 
 # Shift away the parsed options
 shift $(($OPTIND - 1))
@@ -73,6 +76,7 @@ echo "  MAKECLEANBINARIES : ${MAKECLEANBINARIES}"             | tee -a ${LOG}
 echo "  MAKECUTVALUES     : ${MAKECUTVALUES}"                 | tee -a ${LOG}
 echo "  PRIMITIVE         : ${PRIMITIVE}"                     | tee -a ${LOG}
 echo "  T3T3EXTENSION     : ${T3T3EXTENSION}"                 | tee -a ${LOG}
+echo "  USENN             : ${USENN}"                         | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
 echo "  (cf. Run > sh $(basename $0) -h to see all options)"  | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
@@ -107,12 +111,18 @@ if $PRIMITIVE; then
     echo "debug : MAKETARGET=${MAKETARGET}"
 fi
 
-
 T3T3EXTENSIONOPT=
 if $T3T3EXTENSION; then
     T3T3EXTENSIONOPT="T3T3EXTENSION=-DT3T3_EXTENSIONS"
-
 fi
+
+T5CUTOPT=
+if $USENN; then
+    T5CUTOPT="T5RZCHI2FLAG=-DUSE_RZCHI2 T5DNNFLAG=-DUSE_T5_DNN"
+else
+    T5CUTOPT="T5RZCHI2FLAG=-DUSE_RZCHI2 T5RPHICHI2FLAG=-DUSE_RPHICHI2"
+fi
+
 ###
 ###
 ### Making Line Segment Tracking Library
@@ -125,9 +135,11 @@ echo "--------------------------------------------------------------------------
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 if $SHOWLOG; then
-    (cd SDL && make clean && make ${T3T3EXTENSIONOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
+    # (cd SDL && make clean && make ${T3T3EXTENSIONOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
+    (cd SDL && make clean && make ${T3T3EXTENSIONOPT} ${T5CUTOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
 else
-    (cd SDL && make clean && make ${T3T3EXTENSIONOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
+    # (cd SDL && make clean && make ${T3T3EXTENSIONOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
+    (cd SDL && make clean && make ${T3T3EXTENSIONOPT} ${T5CUTOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
 fi
 
 if [ ! -f SDL/libsdl.so ]; then
