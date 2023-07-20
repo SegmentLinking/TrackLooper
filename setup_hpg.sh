@@ -11,7 +11,7 @@ module load cuda/11.4.3 git
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/code/rooutil/thisrooutil.sh
 
-export SCRAM_ARCH=slc7_amd64_gcc10
+export SCRAM_ARCH=el8_amd64_gcc10
 export CMSSW_VERSION=CMSSW_13_0_0_pre2
 export CUDA_HOME=${HPC_CUDA_DIR}
 
