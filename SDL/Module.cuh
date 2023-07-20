@@ -39,11 +39,13 @@ namespace SDL
         InnerPixelLayer
     };
 
-    extern std::map <unsigned int, uint16_t>* detIdToIndex;
-    extern std::map <unsigned int, float> *module_x;
-    extern std::map <unsigned int, float> *module_y;
-    extern std::map <unsigned int, float> *module_z;
-    extern std::map <unsigned int, unsigned int> *module_type;
+    // TODO: Change this to remove it from global scope.
+    inline std::map <unsigned int, uint16_t>* detIdToIndex;
+    inline std::map <unsigned int, float> *module_x;
+    inline std::map <unsigned int, float> *module_y;
+    inline std::map <unsigned int, float> *module_z;
+    inline std::map <unsigned int, unsigned int> *module_type; // 23 : Ph2PSP, 24 : Ph2PSS, 25 : Ph2SS
+    // https://github.com/cms-sw/cmssw/blob/5e809e8e0a625578aa265dc4b128a93830cb5429/Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h#L29
 
     struct objectRanges
     {
