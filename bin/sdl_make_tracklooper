@@ -135,10 +135,8 @@ echo "--------------------------------------------------------------------------
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 if $SHOWLOG; then
-    # (cd SDL && make clean && make ${T3T3EXTENSIONOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
     (cd SDL && make clean && make ${T3T3EXTENSIONOPT} ${T5CUTOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
 else
-    # (cd SDL && make clean && make ${T3T3EXTENSIONOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
     (cd SDL && make clean && make ${T3T3EXTENSIONOPT} ${T5CUTOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
 fi
 
