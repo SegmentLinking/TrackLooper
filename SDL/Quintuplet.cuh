@@ -2280,9 +2280,9 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct modules& modulesInGPU,
-                struct triplets& tripletsInGPU,
-                struct objectRanges& rangesInGPU) const
+                struct SDL::modules& modulesInGPU,
+                struct SDL::triplets& tripletsInGPU,
+                struct SDL::objectRanges& rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;
@@ -2355,9 +2355,9 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct modules& modulesInGPU,
-                struct quintuplets& quintupletsInGPU,
-                struct objectRanges& rangesInGPU) const
+                struct SDL::modules& modulesInGPU,
+                struct SDL::quintuplets& quintupletsInGPU,
+                struct SDL::objectRanges& rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;

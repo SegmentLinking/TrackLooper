@@ -109,7 +109,7 @@ namespace SDL
         }
     };
 
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addpLSTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, unsigned int trackletIndex, unsigned int trackCandidateIndex, uint4 hitIndices, int pixelSeedIndex)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addpLSTrackCandidateToMemory(struct SDL::trackCandidates& trackCandidatesInGPU, unsigned int trackletIndex, unsigned int trackCandidateIndex, uint4 hitIndices, int pixelSeedIndex)
     {
         trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = 8;
         trackCandidatesInGPU.directObjectIndices[trackCandidateIndex] = trackletIndex;
@@ -124,7 +124,7 @@ namespace SDL
         trackCandidatesInGPU.hitIndices[14 * trackCandidateIndex + 3] = hitIndices.w;
     };
 
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addTrackCandidateToMemory(struct trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, uint8_t* logicalLayerIndices, uint16_t* lowerModuleIndices, unsigned int* hitIndices, int pixelSeedIndex, float centerX, float centerY, float radius, unsigned int trackCandidateIndex, unsigned int directObjectIndex)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addTrackCandidateToMemory(struct SDL::trackCandidates& trackCandidatesInGPU, short trackCandidateType, unsigned int innerTrackletIndex, unsigned int outerTrackletIndex, uint8_t* logicalLayerIndices, uint16_t* lowerModuleIndices, unsigned int* hitIndices, int pixelSeedIndex, float centerX, float centerY, float radius, unsigned int trackCandidateIndex, unsigned int directObjectIndex)
     {
         trackCandidatesInGPU.trackCandidateType[trackCandidateIndex] = trackCandidateType;
         trackCandidatesInGPU.directObjectIndices[trackCandidateIndex] = directObjectIndex;

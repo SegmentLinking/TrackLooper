@@ -192,7 +192,7 @@ namespace SDL
     };
 
     template<typename TAcc>
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addMDToMemory(TAcc const & acc, struct miniDoublets& mdsInGPU, struct SDL::hits& hitsInGPU, struct modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void addMDToMemory(TAcc const & acc, struct SDL::miniDoublets& mdsInGPU, struct SDL::hits& hitsInGPU, struct SDL::modules& modulesInGPU, unsigned int lowerHitIdx, unsigned int upperHitIdx, uint16_t& lowerModuleIdx, float dz, float dPhi, float dPhiChange, float shiftedX, float shiftedY, float shiftedZ, float noShiftedDz, float noShiftedDphi, float noShiftedDPhiChange, unsigned int idx)
     {
         //the index into which this MD needs to be written will be computed in the kernel
         //nMDs variable will be incremented in the kernel, no need to worry about that here
@@ -253,7 +253,7 @@ namespace SDL
         mdsInGPU.outerLowEdgeY[idx] = hitsInGPU.lowEdgeYs[outerHitIndex];
     };
 
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE float isTighterTiltedModules(struct modules& modulesInGPU, uint16_t& moduleIndex)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE float isTighterTiltedModules(struct SDL::modules& modulesInGPU, uint16_t& moduleIndex)
     {
         // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
         // This is the same as what was previously considered as"isNormalTiltedModules"
@@ -275,7 +275,7 @@ namespace SDL
             return false;
     };
 
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE float moduleGapSize(struct modules& modulesInGPU, uint16_t& moduleIndex)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE float moduleGapSize(struct SDL::modules& modulesInGPU, uint16_t& moduleIndex)
     {
         float miniDeltaTilted[3] = {0.26f, 0.26f, 0.26f};
         float miniDeltaFlat[6] ={0.26f, 0.16f, 0.16f, 0.18f, 0.18f, 0.18f};
@@ -350,7 +350,7 @@ namespace SDL
     };
 
     template<typename TAcc>
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE float dPhiThreshold(TAcc const & acc, float rt, struct modules& modulesInGPU, uint16_t& moduleIndex, float dPhi = 0, float dz = 0)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE float dPhiThreshold(TAcc const & acc, float rt, struct SDL::modules& modulesInGPU, uint16_t& moduleIndex, float dPhi = 0, float dz = 0)
     {
         // =================================================================
         // Various constants
@@ -411,7 +411,7 @@ namespace SDL
     };
 
     template<typename TAcc>
-    ALPAKA_FN_INLINE ALPAKA_FN_ACC void shiftStripHits(TAcc const & acc, struct modules& modulesInGPU, uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float* shiftedCoords, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
+    ALPAKA_FN_INLINE ALPAKA_FN_ACC void shiftStripHits(TAcc const & acc, struct SDL::modules& modulesInGPU, uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float* shiftedCoords, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
     {
         // This is the strip shift scheme that is explained in http://uaf-10.t2.ucsd.edu/~phchang/talks/PhilipChang20190607_SDL_Update.pdf (see backup slides)
         // The main feature of this shifting is that the strip hits are shifted to be "aligned" in the line of sight from interaction point to the the pixel hit.
@@ -583,7 +583,7 @@ namespace SDL
     };
 
     template<typename TAcc>
-    ALPAKA_FN_ACC bool runMiniDoubletDefaultAlgo(TAcc const & acc, struct modules& modulesInGPU, uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
+    ALPAKA_FN_ACC bool runMiniDoubletDefaultAlgo(TAcc const & acc, struct SDL::modules& modulesInGPU, uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noShiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
     {
         if(modulesInGPU.subdets[lowerModuleIndex] == SDL::Barrel)
         {
@@ -596,7 +596,7 @@ namespace SDL
     };
 
     template<typename TAcc>
-    ALPAKA_FN_ACC bool runMiniDoubletDefaultAlgoBarrel(TAcc const & acc, struct modules& modulesInGPU, uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noshiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower,float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
+    ALPAKA_FN_ACC bool runMiniDoubletDefaultAlgoBarrel(TAcc const & acc, struct SDL::modules& modulesInGPU, uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& dz, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noshiftedDz, float& noShiftedDphi, float& noShiftedDphiChange, float xLower,float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
     {
         bool pass = true; 
         dz = zLower - zUpper;     
@@ -695,7 +695,7 @@ namespace SDL
     };
 
     template<typename TAcc>
-    ALPAKA_FN_ACC bool runMiniDoubletDefaultAlgoEndcap(TAcc const & acc, struct modules& modulesInGPU, uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& drt, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noshiftedDz, float& noShiftedDphi, float& noShiftedDphichange,float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
+    ALPAKA_FN_ACC bool runMiniDoubletDefaultAlgoEndcap(TAcc const & acc, struct SDL::modules& modulesInGPU, uint16_t& lowerModuleIndex, uint16_t& upperModuleIndex, unsigned int lowerHitIndex, unsigned int upperHitIndex, float& drt, float& dPhi, float& dPhiChange, float& shiftedX, float& shiftedY, float& shiftedZ, float& noshiftedDz, float& noShiftedDphi, float& noShiftedDphichange,float xLower, float yLower, float zLower, float rtLower,float xUpper,float yUpper,float zUpper,float rtUpper)
     {
         bool pass = true; 
 
@@ -853,8 +853,8 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct modules& modulesInGPU,
-                struct objectRanges& rangesInGPU) const
+                struct SDL::modules& modulesInGPU,
+                struct SDL::objectRanges& rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;
@@ -922,9 +922,9 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct modules& modulesInGPU,
-                struct miniDoublets& mdsInGPU,
-                struct objectRanges& rangesInGPU,
+                struct SDL::modules& modulesInGPU,
+                struct SDL::miniDoublets& mdsInGPU,
+                struct SDL::objectRanges& rangesInGPU,
                 struct SDL::hits& hitsInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
