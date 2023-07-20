@@ -523,7 +523,17 @@ namespace SDL
             totalSizes_neg += sizes_neg;
         }
 
-        auto connectedPixels_buf = allocBufWrapper<unsigned int>(devHost, totalSizes + totalSizes_pos + totalSizes_neg);
+        int connectedPix_size = totalSizes + totalSizes_pos + totalSizes_neg;
+
+        // Temporary check for module initialization.
+        if(pix_tot != connectedPix_size) {
+            std::cerr << "\nError: pix_tot and connectedPix_size are not equal.\n";
+            std::cerr << "pix_tot: " << pix_tot << ", connectedPix_size: " << connectedPix_size << "\n";
+            std::cerr << "Please change pix_tot in Constants.cuh to make it equal to connectedPix_size.\n";
+            throw std::runtime_error("Mismatched sizes");
+        }
+
+        auto connectedPixels_buf = allocBufWrapper<unsigned int>(devHost, connectedPix_size);
         unsigned int* connectedPixels = alpaka::getPtrNative(connectedPixels_buf);
 
         for(int icondet = 0; icondet < totalSizes; icondet++)
@@ -539,7 +549,7 @@ namespace SDL
             connectedPixels[icondet+totalSizes+totalSizes_pos] = (*detIdToIndex)[connectedModuleDetIds_neg[icondet]];
         }
 
-        alpaka::memcpy(queue, modulesBuf->connectedPixels_buf, connectedPixels_buf, totalSizes + totalSizes_pos + totalSizes_neg);
+        alpaka::memcpy(queue, modulesBuf->connectedPixels_buf, connectedPixels_buf, connectedPix_size);
         alpaka::wait(queue);
     };
 
@@ -666,6 +676,14 @@ namespace SDL
         (*detIdToIndex)[1] = counter; //pixel module is the last module in the module list
         counter++;
         nModules = counter;
+
+        // Temporary check for module initialization.
+        if(modules_size != nModules) {
+            std::cerr << "\nError: modules_size and nModules are not equal.\n";
+            std::cerr << "modules_size: " << modules_size << ", nModules: " << nModules << "\n";
+            std::cerr << "Please change modules_size in Constants.cuh to make it equal to nModules.\n";
+            throw std::runtime_error("Mismatched sizes");
+        }
 
         auto detIds_buf = allocBufWrapper<unsigned int>(devHost, nModules);
         auto layers_buf = allocBufWrapper<short>(devHost, nModules);

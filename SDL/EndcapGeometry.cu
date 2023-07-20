@@ -72,6 +72,14 @@ void SDL::EndcapGeometry::fillGeoMapArraysExplicit()
 
     int phi_size = centroid_phis_.size();
 
+    // Temporary check for endcap initialization.
+    if(phi_size != endcap_size) {
+        std::cerr << "\nError: phi_size and endcap_size are not equal.\n";
+        std::cerr << "phi_size: " << phi_size << ", endcap_size: " << endcap_size << "\n";
+        std::cerr << "Please change endcap_size in Constants.cuh to make it equal to phi_size.\n";
+        throw std::runtime_error("Mismatched sizes");
+    }
+
     // Allocate buffers on host
     auto mapPhi_host_buf = allocBufWrapper<float>(devHost, phi_size);
     auto mapDetId_host_buf = allocBufWrapper<unsigned int>(devHost, phi_size);
