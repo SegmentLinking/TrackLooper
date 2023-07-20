@@ -40,9 +40,10 @@ namespace T5DNN
 
     CUDA_DEV inline float runInference(struct SDL::modules& modulesInGPU, struct SDL::miniDoublets& mdsInGPU, 
                                        struct SDL::segments& segmentsInGPU, struct SDL::triplets& tripletsInGPU, 
-                                       float* xVec, float* yVec, unsigned int* mdIndices, const uint16_t* lowerModuleIndices, 
-                                       unsigned int& innerTripletIndex, unsigned int& outerTripletIndex, 
-                                       float& innerRadius, float& outerRadius, float& bridgeRadius)
+                                       const float* xVec, const float* yVec, const unsigned int* mdIndices, 
+                                       const uint16_t* lowerModuleIndices, const unsigned int& innerTripletIndex, 
+                                       const unsigned int& outerTripletIndex, const float& innerRadius, 
+                                       const float& outerRadius, const float& bridgeRadius)
     {
         // Unpack x-coordinates of hits
         float x1 = xVec[0];
