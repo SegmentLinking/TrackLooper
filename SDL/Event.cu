@@ -169,11 +169,7 @@ void SDL::initModules(const char* moduleMetaDataFilePath)
 void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple)
 {
     // Use the actual number of hits instead of a max.
-    const int nHits = x.size();
-
-    // Needed for the memcpy to hitsInGPU below. Will be replaced with a View.
-    auto nHits_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
-    *alpaka::getPtrNative(nHits_buf) = nHits;
+    unsigned int nHits = x.size();
 
     // Initialize space on device/host for next event.
     if (hitsInGPU == nullptr)
@@ -190,13 +186,16 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
         rangesInGPU->setData(*rangesBuffers);
     }
 
+    // Need a view here before transferring to the device.
+    auto nHits_view = alpaka::createView(devHost, &nHits, (Idx) 1u);
+
     // Copy the host arrays to the GPU.
     alpaka::memcpy(queue, hitsBuffers->xs_buf, x, nHits);
     alpaka::memcpy(queue, hitsBuffers->ys_buf, y, nHits);
     alpaka::memcpy(queue, hitsBuffers->zs_buf, z, nHits);
     alpaka::memcpy(queue, hitsBuffers->detid_buf, detId, nHits);
     alpaka::memcpy(queue, hitsBuffers->idxs_buf, idxInNtuple, nHits);
-    alpaka::memcpy(queue, hitsBuffers->nHits_buf, nHits_buf, 1);
+    alpaka::memcpy(queue, hitsBuffers->nHits_buf, nHits_view, 1);
     alpaka::wait(queue);
 
     Vec const threadsPerBlock1(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
