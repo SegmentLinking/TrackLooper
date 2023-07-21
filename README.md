@@ -22,8 +22,7 @@ For lnx7188 this needs to be done before compiling or running the code:
     git clone git@github.com:SegmentLinking/TrackLooper.git
     cd TrackLooper/
     # Source one of the commands below, depending on the site
-    source setup_ucsd.sh # if on UCSD
-    source setup_lnx7188.sh # if on Cornell
+    source setup.sh # if on UCSD or Cornell
     source setup_hpg.sh # if on Florida
 
 ### Running the code
@@ -32,7 +31,7 @@ For lnx7188 this needs to be done before compiling or running the code:
     sdl -i PU200 -o LSTNtuple.root
     createPerfNumDenHists -i LSTNtuple.root -o LSTNumDen.root
     lst_plot_performance.py LSTNumDen.root -t "myTag"
-    # python3 efficiency/python/lst_plot_performance.py LSTNumDen.root -t "myTag" # if you are on cgpu-1
+    # python3 efficiency/python/lst_plot_performance.py LSTNumDen.root -t "myTag" # if you are on cgpu-1 or Cornell
 
 The above can be even simplified
 
@@ -108,8 +107,7 @@ can be linked as an external tool in CMSSW:
 git clone git@github.com:SegmentLinking/TrackLooper.git
 cd TrackLooper/
 # Source one of the commands below, depending on the site
-source setup_ucsd.sh # if on UCSD
-source setup_lnx7188.sh # if on Cornell
+source setup.sh # if on UCSD or Cornell
 source setup_hpg.sh # if on Florida
 sdl_make_tracklooper -mc
 cd ..
