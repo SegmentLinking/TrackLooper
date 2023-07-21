@@ -67,10 +67,16 @@ namespace SDL
         pixelTripletsBuffer<alpaka::DevCpu>* pixelTripletsInCPU;
         pixelQuintupletsBuffer<alpaka::DevCpu>* pixelQuintupletsInCPU;
 
+        void init(bool verbose);
+
         int* superbinCPU;
         int8_t* pixelTypeCPU;
     public:
+        // Standalone constructor that has each event object create its own queue.
         Event(bool verbose);
+        // Constructor used for CMSSW integration. Uses an external queue.
+        template <typename TQueue>
+        Event(bool verbose, const TQueue& queue);
         void resetEvent();
 
         void addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple); //call the appropriate hit function, then increment the counter here

@@ -6,7 +6,7 @@ std::shared_ptr<SDL::pixelMap> SDL::pixelMapping = std::make_shared<pixelMap>();
 uint16_t SDL::nModules;
 uint16_t SDL::nLowerModules;
 
-SDL::Event::Event(bool verbose): queue(alpaka::getDevByIdx<Acc>(0u))
+void SDL::Event::init(bool verbose)
 {
     addObjects = verbose;
     hitsInGPU = nullptr;
@@ -50,6 +50,19 @@ SDL::Event::Event(bool verbose): queue(alpaka::getDevByIdx<Acc>(0u))
             n_quintuplets_by_layer_endcap_[i] = 0;
         }
     }
+}
+
+// Standalone constructor that has each event object create its own queue.
+SDL::Event::Event(bool verbose): queue(alpaka::getDevByIdx<Acc>(0u))
+{
+    init(verbose);
+}
+
+// Constructor used for CMSSW integration. Uses an external queue.
+template <typename TQueue>
+SDL::Event::Event(bool verbose, const TQueue& q): queue(q)
+{
+    init(verbose);
 }
 
 void SDL::Event::resetEvent()
