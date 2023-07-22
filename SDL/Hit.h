@@ -110,6 +110,14 @@ namespace SDL
         }
     };
 
+    // Alpaka does not support log10 natively right now.
+    template<typename TAcc>
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE float temp_log10(TAcc const & acc, float val)
+    {
+        constexpr float ln10 = 2.302585093f;  // precomputed ln(10)
+        return alpaka::math::log(acc, val) / ln10;
+    };
+
     // Hyperbolic functions were just merged into Alpaka early 2023,
     // so we have to make use of temporary functions for now.
     template<typename TAcc>
