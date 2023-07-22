@@ -1,4 +1,4 @@
-#include "EndcapGeometry.cuh"
+#include "EndcapGeometry.h"
 
 SDL::EndcapGeometry SDL::endcapGeometry;
 
@@ -76,7 +76,7 @@ void SDL::EndcapGeometry::fillGeoMapArraysExplicit()
     if(phi_size != endcap_size) {
         std::cerr << "\nError: phi_size and endcap_size are not equal.\n";
         std::cerr << "phi_size: " << phi_size << ", endcap_size: " << endcap_size << "\n";
-        std::cerr << "Please change endcap_size in Constants.cuh to make it equal to phi_size.\n";
+        std::cerr << "Please change endcap_size in Constants.h to make it equal to phi_size.\n";
         throw std::runtime_error("Mismatched sizes");
     }
 

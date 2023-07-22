@@ -1,8 +1,8 @@
 #ifndef Hit_cuh
 #define Hit_cuh
 
-#include "Constants.cuh"
-#include "Module.cuh"
+#include "Constants.h"
+#include "Module.h"
 
 namespace SDL
 {

@@ -4,9 +4,9 @@
 #include <map>
 #include <iostream>
 
-#include "Constants.cuh"
+#include "Constants.h"
 #include "TiltedGeometry.h"
-#include "EndcapGeometry.cuh"
+#include "EndcapGeometry.h"
 #include "ModuleConnectionMap.h"
 
 namespace SDL
@@ -529,7 +529,7 @@ namespace SDL
         if(pix_tot != connectedPix_size) {
             std::cerr << "\nError: pix_tot and connectedPix_size are not equal.\n";
             std::cerr << "pix_tot: " << pix_tot << ", connectedPix_size: " << connectedPix_size << "\n";
-            std::cerr << "Please change pix_tot in Constants.cuh to make it equal to connectedPix_size.\n";
+            std::cerr << "Please change pix_tot in Constants.h to make it equal to connectedPix_size.\n";
             throw std::runtime_error("Mismatched sizes");
         }
 
@@ -681,7 +681,7 @@ namespace SDL
         if(modules_size != nModules) {
             std::cerr << "\nError: modules_size and nModules are not equal.\n";
             std::cerr << "modules_size: " << modules_size << ", nModules: " << nModules << "\n";
-            std::cerr << "Please change modules_size in Constants.cuh to make it equal to nModules.\n";
+            std::cerr << "Please change modules_size in Constants.h to make it equal to nModules.\n";
             throw std::runtime_error("Mismatched sizes");
         }
 

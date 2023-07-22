@@ -1,11 +1,11 @@
 #ifndef Triplet_cuh
 #define Triplet_cuh
 
-#include "Constants.cuh"
-#include "Segment.cuh"
-#include "MiniDoublet.cuh"
-#include "Module.cuh"
-#include "Hit.cuh"
+#include "Constants.h"
+#include "Segment.h"
+#include "MiniDoublet.h"
+#include "Module.h"
+#include "Hit.h"
 
 namespace SDL
 {

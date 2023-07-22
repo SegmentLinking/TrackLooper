@@ -1,13 +1,13 @@
 #ifndef PixelTriplet_cuh
 #define PixelTriplet_cuh
 
-#include "Constants.cuh"
-#include "Triplet.cuh"
-#include "Segment.cuh"
-#include "MiniDoublet.cuh"
-#include "Module.cuh"
-#include "Hit.cuh"
-#include "Quintuplet.cuh"
+#include "Constants.h"
+#include "Triplet.h"
+#include "Segment.h"
+#include "MiniDoublet.h"
+#include "Module.h"
+#include "Hit.h"
+#include "Quintuplet.h"
 
 namespace SDL
 {
@@ -1428,14 +1428,14 @@ namespace SDL
 #ifndef PixelQuintuplet_cuh
 #define PixelQuintuplet_cuh
 
-#include "Constants.cuh"
-#include "Segment.cuh"
-#include "MiniDoublet.cuh"
-#include "Module.cuh"
-#include "Hit.cuh"
-#include "Triplet.cuh"
-#include "Quintuplet.cuh"
-#include "PixelTriplet.cuh"
+#include "Constants.h"
+#include "Segment.h"
+#include "MiniDoublet.h"
+#include "Module.h"
+#include "Hit.h"
+#include "Triplet.h"
+#include "Quintuplet.h"
+#include "PixelTriplet.h"
 
 namespace SDL
 {

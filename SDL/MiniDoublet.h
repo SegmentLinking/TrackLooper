@@ -1,10 +1,10 @@
 #ifndef MiniDoublet_cuh
 #define MiniDoublet_cuh
 
-#include "Constants.cuh"
-#include "EndcapGeometry.cuh"
-#include "Module.cuh"
-#include "Hit.cuh"
+#include "Constants.h"
+#include "EndcapGeometry.h"
+#include "Module.h"
+#include "Hit.h"
 
 namespace SDL
 {
@@ -632,7 +632,7 @@ namespace SDL
                 shiftedZ = zUpper;
                 shiftedRt = alpaka::math::sqrt(acc, xn * xn + yn * yn);
 
-                dPhi = SDL::deltaPhi(acc, xLower,yLower,shiftedX, shiftedY); //function from Hit.cu
+                dPhi = SDL::deltaPhi(acc, xLower,yLower,shiftedX, shiftedY); //function from Hit.cc
                 noShiftedDphi = SDL::deltaPhi(acc, xLower, yLower, xUpper, yUpper);
             }
             else

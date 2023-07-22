@@ -6,7 +6,7 @@
 #include <cppitertools/enumerate.hpp>
 
 #include "MathUtil.h"
-#include "SDL/Event.cuh"
+#include "SDL/Event.h"
 
 #include "AnalysisConfig.h"
 #include "trkCore.h"

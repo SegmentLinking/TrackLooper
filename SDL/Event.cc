@@ -1,4 +1,4 @@
-#include "Event.cuh"
+#include "Event.h"
 
 std::shared_ptr<SDL::modules> SDL::modulesInGPU = std::make_shared<modules>();
 std::shared_ptr<SDL::modulesBuffer<Acc>> SDL::modulesBuffers = std::make_shared<modulesBuffer<Acc>>(devAcc);

@@ -1,11 +1,11 @@
 #ifndef Segment_cuh
 #define Segment_cuh
 
-#include "Constants.cuh"
-#include "EndcapGeometry.cuh"
-#include "MiniDoublet.cuh"
-#include "Module.cuh"
-#include "Hit.cuh"
+#include "Constants.h"
+#include "EndcapGeometry.h"
+#include "MiniDoublet.h"
+#include "Module.h"
+#include "Hit.h"
 
 namespace SDL
 {

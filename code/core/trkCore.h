@@ -7,7 +7,7 @@
 #include "AnalysisConfig.h"
 #include "SDL/ModuleConnectionMap.h"
 #include "SDLMath.h"
-#include "SDL/Event.cuh"
+#include "SDL/Event.h"
 #include <cppitertools/enumerate.hpp>
 #include <cppitertools/zip.hpp>
 #include <numeric>

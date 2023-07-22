@@ -1,14 +1,14 @@
 #ifndef Kernels_cuh
 #define Kernels_cuh
 
-#include "Module.cuh"
-#include "Hit.cuh"
-#include "MiniDoublet.cuh"
-#include "Segment.cuh"
-#include "Triplet.cuh"
-#include "Quintuplet.cuh"
-#include "PixelTriplet.cuh"
-#include "Constants.cuh"
+#include "Module.h"
+#include "Hit.h"
+#include "MiniDoublet.h"
+#include "Segment.h"
+#include "Triplet.h"
+#include "Quintuplet.h"
+#include "PixelTriplet.h"
+#include "Constants.h"
 
 namespace SDL
 {

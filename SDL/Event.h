@@ -1,16 +1,16 @@
 #ifndef Event_cuh
 #define Event_cuh
 
-#include "Hit.cuh"
-#include "Module.cuh"
-#include "Segment.cuh"
-#include "Triplet.cuh"
-#include "Kernels.cuh"
-#include "Quintuplet.cuh"
-#include "MiniDoublet.cuh"
-#include "PixelTriplet.cuh"
-#include "TrackCandidate.cuh"
-#include "Constants.cuh"
+#include "Hit.h"
+#include "Module.h"
+#include "Segment.h"
+#include "Triplet.h"
+#include "Kernels.h"
+#include "Quintuplet.h"
+#include "MiniDoublet.h"
+#include "PixelTriplet.h"
+#include "TrackCandidate.h"
+#include "Constants.h"
 
 namespace SDL
 {

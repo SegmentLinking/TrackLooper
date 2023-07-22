@@ -1,14 +1,14 @@
 #ifndef TrackCandidate_cuh
 #define TrackCandidate_cuh
 
-#include "Constants.cuh"
-#include "Triplet.cuh"
-#include "Segment.cuh"
-#include "MiniDoublet.cuh"
-#include "PixelTriplet.cuh"
-#include "Quintuplet.cuh"
-#include "Module.cuh"
-#include "Hit.cuh"
+#include "Constants.h"
+#include "Triplet.h"
+#include "Segment.h"
+#include "MiniDoublet.h"
+#include "PixelTriplet.h"
+#include "Quintuplet.h"
+#include "Module.h"
+#include "Hit.h"
 
 namespace SDL
 {

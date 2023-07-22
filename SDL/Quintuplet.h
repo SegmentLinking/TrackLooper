@@ -1,14 +1,14 @@
 #ifndef Quintuplet_cuh
 #define Quintuplet_cuh
 
-#include "Constants.cuh"
-#include "EndcapGeometry.cuh"
-#include "Segment.cuh"
-#include "MiniDoublet.cuh"
-#include "Module.cuh"
-#include "Hit.cuh"
-#include "Triplet.cuh"
+#include "Constants.h"
 #include "NeuralNetwork.cuh"
+#include "EndcapGeometry.h"
+#include "Segment.h"
+#include "MiniDoublet.h"
+#include "Module.h"
+#include "Hit.h"
+#include "Triplet.h"
 
 namespace SDL
 {
@@ -513,7 +513,7 @@ namespace SDL
                 if (i == 2) continue;
             }
 
-            // calculation is copied from PixelTriplet.cu SDL::computePT3RZChiSquared
+            // calculation is copied from PixelTriplet.cc SDL::computePT3RZChiSquared
             float diffr = 0, diffz = 0;
 
             float rou = a/p;

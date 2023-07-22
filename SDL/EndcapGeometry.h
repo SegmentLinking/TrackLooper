@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "Constants.cuh"
+#include "Constants.h"
 
 namespace SDL
 {

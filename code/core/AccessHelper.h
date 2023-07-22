@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <tuple>
-#include "SDL/Event.cuh"
+#include "SDL/Event.h"
 
 enum
 {
