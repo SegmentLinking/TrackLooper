@@ -20,7 +20,7 @@
 
 // Inspired by cub::CachingDeviceAllocator
 
-namespace cms::alpakatools {
+namespace lst::alpakatools {
 
   namespace detail {
 
@@ -84,7 +84,7 @@ namespace cms::alpakatools {
 
   template <typename TDev,
             typename TQueue,
-            typename = std::enable_if_t<cms::alpakatools::is_device_v<TDev> and cms::alpakatools::is_queue_v<TQueue>>>
+            typename = std::enable_if_t<lst::alpakatools::is_device_v<TDev> and lst::alpakatools::is_queue_v<TQueue>>>
   class CachingAllocator {
   public:
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
@@ -431,6 +431,6 @@ namespace cms::alpakatools {
     const bool debug_;
   };
 
-}  // namespace cms::alpakatools
+}  // namespace lst::alpakatools
 
 #endif  // HeterogeneousCore_AlpakaInterface_interface_CachingAllocator_h

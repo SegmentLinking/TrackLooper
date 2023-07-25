@@ -10,16 +10,16 @@
 #include "devices.h"
 #include "traits.h"
 
-namespace cms::alpakatools {
+namespace lst::alpakatools {
 
   namespace detail {
 
     template <typename TDev,
               typename TQueue,
-              typename = std::enable_if_t<cms::alpakatools::is_device_v<TDev> and cms::alpakatools::is_queue_v<TQueue>>>
+              typename = std::enable_if_t<lst::alpakatools::is_device_v<TDev> and lst::alpakatools::is_queue_v<TQueue>>>
     auto allocate_device_allocators() {
       using Allocator = CachingAllocator<TDev, TQueue>;
-      auto const& devices = cms::alpakatools::devices<alpaka::Pltf<TDev>>();
+      auto const& devices = lst::alpakatools::devices<alpaka::Pltf<TDev>>();
       ssize_t const size = devices.size();
 
       // allocate the storage for the objects
@@ -72,18 +72,18 @@ namespace cms::alpakatools {
 
   template <typename TDev,
             typename TQueue,
-            typename = std::enable_if_t<cms::alpakatools::is_device_v<TDev> and cms::alpakatools::is_queue_v<TQueue>>>
+            typename = std::enable_if_t<lst::alpakatools::is_device_v<TDev> and lst::alpakatools::is_queue_v<TQueue>>>
   inline CachingAllocator<TDev, TQueue>& getDeviceCachingAllocator(TDev const& device) {
     // initialise all allocators, one per device
     CMS_THREAD_SAFE static auto allocators = detail::allocate_device_allocators<TDev, TQueue>();
 
     size_t const index = alpaka::getNativeHandle(device);
-    assert(index < cms::alpakatools::devices<alpaka::Pltf<TDev>>().size());
+    assert(index < lst::alpakatools::devices<alpaka::Pltf<TDev>>().size());
 
     // the public interface is thread safe
     return allocators[index];
   }
 
-}  // namespace cms::alpakatools
+}  // namespace lst::alpakatools
 
 #endif  // HeterogeneousCore_AlpakaInterface_interface_getDeviceCachingAllocator_h

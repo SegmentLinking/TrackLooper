@@ -8,9 +8,9 @@
 #include "host.h"
 #include "traits.h"
 
-namespace cms::alpakatools {
+namespace lst::alpakatools {
 
-  template <typename TQueue, typename = std::enable_if_t<cms::alpakatools::is_queue_v<TQueue>>>
+  template <typename TQueue, typename = std::enable_if_t<lst::alpakatools::is_queue_v<TQueue>>>
   inline CachingAllocator<alpaka_common::DevHost, TQueue>& getHostCachingAllocator() {
     // thread safe initialisation of the host allocator
     CMS_THREAD_SAFE static CachingAllocator<alpaka_common::DevHost, TQueue> allocator(
@@ -27,6 +27,6 @@ namespace cms::alpakatools {
     return allocator;
   }
 
-}  // namespace cms::alpakatools
+}  // namespace lst::alpakatools
 
 #endif  // HeterogeneousCore_AlpakaInterface_interface_getHostCachingAllocator_h

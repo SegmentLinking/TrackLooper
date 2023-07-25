@@ -3,7 +3,7 @@
 
 #include <limits>
 
-namespace cms::alpakatools {
+namespace lst::alpakatools {
 
   namespace config {
 
@@ -26,6 +26,6 @@ namespace cms::alpakatools {
 
   }  // namespace config
 
-}  // namespace cms::alpakatools
+}  // namespace lst::alpakatools
 
 #endif  // HeterogeneousCore_AlpakaInterface_interface_AllocatorConfig_h

@@ -27,7 +27,7 @@ namespace cms {
 
 #include <alpaka/alpaka.hpp>
 
-namespace cms::alpakatools {
+namespace lst::alpakatools {
 
   // is_platform
 
@@ -61,6 +61,6 @@ namespace cms::alpakatools {
   template <typename T>
   inline constexpr bool is_queue_v = is_queue<T>::value;
 
-}  // namespace cms::alpakatools
+}  // namespace lst::alpakatools
 
 #endif  // HeterogeneousCore_AlpakaInterface_interface_traits_h

@@ -9,7 +9,7 @@
 #include "config.h"
 #include "traits.h"
 
-namespace cms::alpakatools {
+namespace lst::alpakatools {
 
   namespace detail {
 
@@ -38,6 +38,6 @@ namespace cms::alpakatools {
     return devices;
   }
 
-}  // namespace cms::alpakatools
+}  // namespace lst::alpakatools
 
 #endif  // HeterogeneousCore_AlpakaInterface_interface_devices_h

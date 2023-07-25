@@ -5,7 +5,7 @@
 
 #include "traits.h"
 
-namespace cms::alpakatools {
+namespace lst::alpakatools {
 
   // Which memory allocator to use
   //   - Synchronous:   (device and host) cudaMalloc/hipMalloc and cudaMallocHost/hipMallocHost
@@ -13,7 +13,7 @@ namespace cms::alpakatools {
   //   - Caching:       (device and host) caching allocator
   enum class AllocatorPolicy { Synchronous = 0, Asynchronous = 1, Caching = 2 };
 
-  template <typename TDev, typename = std::enable_if_t<cms::alpakatools::is_device_v<TDev>>>
+  template <typename TDev, typename = std::enable_if_t<lst::alpakatools::is_device_v<TDev>>>
   constexpr inline AllocatorPolicy allocator_policy = AllocatorPolicy::Synchronous;
 
 #if defined ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED || defined ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED
@@ -48,6 +48,6 @@ namespace cms::alpakatools {
 #endif
 #endif  // ALPAKA_ACC_GPU_HIP_ENABLED
 
-}  // namespace cms::alpakatools
+}  // namespace lst::alpakatools
 
 #endif  // HeterogeneousCore_AlpakaInterface_interface_AllocatorPolicy_h

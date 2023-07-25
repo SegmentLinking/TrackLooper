@@ -10,7 +10,7 @@
 #include "config.h"
 #include "traits.h"
 
-namespace cms::alpakatools {
+namespace lst::alpakatools {
 
   // for Extent, Dim1D, Idx
   using namespace alpaka_common;
@@ -18,7 +18,7 @@ namespace cms::alpakatools {
   // type deduction helpers
   namespace detail {
 
-    template <typename TDev, typename T, typename = std::enable_if_t<cms::alpakatools::is_device_v<TDev>>>
+    template <typename TDev, typename T, typename = std::enable_if_t<lst::alpakatools::is_device_v<TDev>>>
     struct buffer_type {
       using type = alpaka::Buf<TDev, T, Dim0D, Idx>;
     };
@@ -33,7 +33,7 @@ namespace cms::alpakatools {
       using type = alpaka::Buf<TDev, T, Dim1D, Idx>;
     };
 
-    template <typename TDev, typename T, typename = std::enable_if_t<cms::alpakatools::is_device_v<TDev>>>
+    template <typename TDev, typename T, typename = std::enable_if_t<lst::alpakatools::is_device_v<TDev>>>
     struct view_type {
       using type = alpaka::ViewPlainPtr<TDev, T, Dim0D, Idx>;
     };
@@ -162,10 +162,10 @@ namespace cms::alpakatools {
 
   // scalar and 1-dimensional device buffers
 
-  template <typename TDev, typename T, typename = std::enable_if_t<cms::alpakatools::is_device_v<TDev>>>
+  template <typename TDev, typename T, typename = std::enable_if_t<lst::alpakatools::is_device_v<TDev>>>
   using device_buffer = typename detail::buffer_type<TDev, T>::type;
 
-  template <typename TDev, typename T, typename = std::enable_if_t<cms::alpakatools::is_device_v<TDev>>>
+  template <typename TDev, typename T, typename = std::enable_if_t<lst::alpakatools::is_device_v<TDev>>>
   using const_device_buffer = alpaka::ViewConst<device_buffer<TDev, T>>;
 
   // non-cached, scalar and 1-dimensional device buffers
@@ -238,7 +238,7 @@ namespace cms::alpakatools {
 
   // scalar and 1-dimensional device views
 
-  template <typename TDev, typename T, typename = std::enable_if_t<cms::alpakatools::is_device_v<TDev>>>
+  template <typename TDev, typename T, typename = std::enable_if_t<lst::alpakatools::is_device_v<TDev>>>
   using device_view = typename detail::view_type<TDev, T>::type;
 
   template <typename T, typename TDev>
@@ -263,6 +263,6 @@ namespace cms::alpakatools {
     return alpaka::ViewPlainPtr<TDev, std::remove_extent_t<T>, Dim1D, Idx>(data, device, Vec1D{std::extent_v<T>});
   }
 
-}  // namespace cms::alpakatools
+}  // namespace lst::alpakatools
 
 #endif  // HeterogeneousCore_AlpakaInterface_interface_memory_h

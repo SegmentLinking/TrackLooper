@@ -3,7 +3,7 @@
 
 #include <cassert>
 
-namespace cms::alpakatools {
+namespace lst::alpakatools {
 
   namespace detail {
 
@@ -26,6 +26,6 @@ namespace cms::alpakatools {
     return host;
   }
 
-}  // namespace cms::alpakatools
+}  // namespace lst::alpakatools
 
 #endif  // HeterogeneousCore_AlpakaInterface_interface_host_h

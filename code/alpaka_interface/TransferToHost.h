@@ -3,7 +3,7 @@
 
 // TODO: better package?
 
-namespace cms::alpakatools {
+namespace lst::alpakatools {
   // TODO: would a more informative error message from compiler than "indeterminate type" be helpful?
   template <typename TDeviceData>
   struct TransferToHost;
@@ -16,6 +16,6 @@ namespace cms::alpakatools {
   //
   // The function should allocate a HostDataType object and launch the
   // transfers
-}  // namespace cms::alpakatools
+}  // namespace lst::alpakatools
 
 #endif
