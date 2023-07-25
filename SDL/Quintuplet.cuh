@@ -12,7 +12,6 @@
 #endif
 
 #include "Constants.cuh"
-#include "NeuralNetworkWeights.cuh"
 #include "EndcapGeometry.cuh"
 #include "TiltedGeometry.h"
 #include "Segment.cuh"
@@ -21,6 +20,7 @@
 #include "Hit.cuh"
 #include "PrintUtil.h"
 #include "Triplet.cuh"
+#include "NeuralNetwork.cuh"
 
 namespace SDL
 {

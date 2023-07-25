@@ -377,9 +377,12 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     innerRadius = computeRadiusFromThreeAnchorHits(x1, y1, x2, y2, x3, y3, g, f);
 
     float inner_pt = 2 * k2Rinv1GeVf * innerRadius;
-    pass = pass and passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, inner_pt, innerRadius, g, f, TightCutFlag);
 
+    bool passRZChi2 = passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, inner_pt, innerRadius, g, f, TightCutFlag);
+#ifdef USE_RZCHI2
+    pass = pass and passRZChi2;
     if(not pass) return pass;
+#endif
 
     pass = pass & (innerRadius >= 0.95f * ptCut/(2.f * k2Rinv1GeVf));
 
@@ -428,128 +431,38 @@ __device__ bool SDL::runQuintupletDefaultAlgo(struct SDL::modules& modulesInGPU,
     pass = pass and tempPass;
     if(not pass) return pass;
 
-    short layer2_adjustment = 0;
-    if (modulesInGPU.layers[lowerModuleIndex1] == 1)
-    {
-        layer2_adjustment = 1; // get upper segment to be in second layer
-    }
-    bool is_endcap1 = (modulesInGPU.subdets[lowerModuleIndex1] == 4);   // true if anchor hit 1 is in the endcap
-    bool is_endcap2 = (modulesInGPU.subdets[lowerModuleIndex2] == 4);   // true if anchor hit 2 is in the endcap
-    bool is_endcap3 = (modulesInGPU.subdets[lowerModuleIndex3] == 4);   // true if anchor hit 3 is in the endcap
-    bool is_endcap4 = (modulesInGPU.subdets[lowerModuleIndex4] == 4);   // true if anchor hit 4 is in the endcap
-    bool is_endcap5 = (modulesInGPU.subdets[lowerModuleIndex5] == 4);   // true if anchor hit 5 is in the endcap
-    unsigned int md_idx_for_t5_eta_phi = segmentsInGPU.mdIndices[2*tripletsInGPU.segmentIndices[2*innerTripletIndex+layer2_adjustment]];
-    // Build DNN input vector (corresponding output N-tuple branch noted in parenthetical in comment)
-    float x[38] = { 
-        log10(2*SDL::k2Rinv1GeVf*innerRadius),                                       // inner T3 pT (t3_pt)
-        mdsInGPU.anchorEta[firstMDIndex],                                            // inner T3 anchor hit 1 eta (t3_0_eta)
-        mdsInGPU.anchorPhi[firstMDIndex],                                            // inner T3 anchor hit 1 phi (t3_0_phi)
-        mdsInGPU.anchorZ[firstMDIndex],                                              // inner T3 anchor hit 1 z (t3_0_z)
-        sqrtf(x1*x1 + y1*y1),                                                        // inner T3 anchor hit 1 r (t3_0_r)
-        float(modulesInGPU.layers[lowerModuleIndex1] + 6*is_endcap1),                // inner T3 anchor hit 1 layer (t3_0_layer)
-        mdsInGPU.anchorEta[secondMDIndex],                                           // inner T3 anchor hit 2 eta (t3_2_eta)
-        mdsInGPU.anchorPhi[secondMDIndex],                                           // inner T3 anchor hit 2 phi (t3_2_phi)
-        mdsInGPU.anchorZ[secondMDIndex],                                             // inner T3 anchor hit 2 z (t3_2_z)
-        sqrtf(x2*x2 + y2*y2),                                                        // inner T3 anchor hit 2 r (t3_2_r)
-        float(modulesInGPU.layers[lowerModuleIndex2] + 6*is_endcap2),                // inner T3 anchor hit 2 layer (t3_2_layer)
-        mdsInGPU.anchorEta[thirdMDIndex],                                            // inner T3 anchor hit 3 eta (t3_4_eta)
-        mdsInGPU.anchorPhi[thirdMDIndex],                                            // inner T3 anchor hit 3 phi (t3_4_phi)
-        mdsInGPU.anchorZ[thirdMDIndex],                                              // inner T3 anchor hit 3 z (t3_4_z)
-        sqrtf(x3*x3 + y3*y3),                                                        // inner T3 anchor hit 3 r (t3_4_r)
-        float(modulesInGPU.layers[lowerModuleIndex3] + 6*is_endcap3),                // inner T3 anchor hit 3 layer (t3_4_layer)
-        log10(2*SDL::k2Rinv1GeVf*outerRadius),                                       // outer T3 pT (t3_pt)
-        mdsInGPU.anchorEta[thirdMDIndex],                                            // outer T3 anchor hit 4 eta (t3_0_eta)
-        mdsInGPU.anchorPhi[thirdMDIndex],                                            // outer T3 anchor hit 4 phi (t3_0_phi)
-        mdsInGPU.anchorZ[thirdMDIndex],                                              // outer T3 anchor hit 3 eta (t3_0_z)
-        sqrtf(x3*x3 + y3*y3),                                                        // outer T3 anchor hit 3 r (t3_0_r)
-        float(modulesInGPU.layers[lowerModuleIndex3] + 6*is_endcap3),                // outer T3 anchor hit 3 layer (t3_0_layer)
-        mdsInGPU.anchorEta[fourthMDIndex],                                           // outer T3 anchor hit 4 eta (t3_2_eta)
-        mdsInGPU.anchorPhi[fourthMDIndex],                                           // outer T3 anchor hit 4 phi (t3_2_phi)
-        mdsInGPU.anchorZ[fourthMDIndex],                                             // outer T3 anchor hit 4 z (t3_2_z)
-        sqrtf(x4*x4 + y4*y4),                                                        // outer T3 anchor hit 4 r (t3_2_r)
-        float(modulesInGPU.layers[lowerModuleIndex4] + 6*is_endcap4),                // outer T3 anchor hit 4 layer (t3_2_layer)
-        mdsInGPU.anchorEta[fifthMDIndex],                                            // outer T3 anchor hit 5 eta (t3_4_eta)
-        mdsInGPU.anchorPhi[fifthMDIndex],                                            // outer T3 anchor hit 5 phi (t3_4_phi)
-        mdsInGPU.anchorZ[fifthMDIndex],                                              // outer T3 anchor hit 5 z (t3_4_z)
-        sqrtf(x5*x5 + y5*y5),                                                        // outer T3 anchor hit 5 r (t3_4_r)
-        float(modulesInGPU.layers[lowerModuleIndex5] + 6*is_endcap5),                // outer T3 anchor hit 5 layer (t3_4_layer)
-        log10((innerRadius + outerRadius)*SDL::magnetic_field*1.602f/(2*100*5.39f)), // T5 pT (t5_pt)
-        mdsInGPU.anchorEta[md_idx_for_t5_eta_phi],                                   // T5 eta (t5_eta)
-        mdsInGPU.anchorPhi[md_idx_for_t5_eta_phi],                                   // T5 phi (t5_phi)
-        log10(innerRadius),                                                          // T5 inner radius (t5_innerRadius)
-        log10(bridgeRadius),                                                         // T5 bridge radius (t5_bridgeRadius)
-        log10(outerRadius)                                                           // T5 outer radius (t5_outerRadius)
-    };
-
-    // (0): Linear(in_features=38, out_features=32, bias=True) => x = x*W_T + b
-    float x_0[32];
-    for (unsigned int col = 0; col < 32; ++col)
-    {
-        x_0[col] = 0;
-        for (unsigned int inner = 0; inner < 38; ++inner)
-        {
-            x_0[col] += x[inner]*T5DNN::wgtT_0[inner][col];
-        }
-        x_0[col] += T5DNN::bias_0[col];
-    }
-    
-    // (1): ReLU()
-    float x_1[32];
-    for (unsigned int col = 0; col < 32; ++col)
-    {
-        x_1[col] = (x_0[col] > 0.f) ? x_0[col] : 0.f;
-    }
-    
-    // (2): Linear(in_features=32, out_features=32, bias=True) => x = x*W_T + b
-    float x_2[32];
-    for (unsigned int col = 0; col < 32; ++col)
-    {
-        x_2[col] = 0;
-        for (unsigned int inner = 0; inner < 32; ++inner)
-        {
-            x_2[col] += x_1[inner]*T5DNN::wgtT_2[inner][col];
-        }
-        x_2[col] += T5DNN::bias_2[col];
-    }
-    
-    // (3): ReLU()
-    float x_3[32];
-    for (unsigned int col = 0; col < 32; ++col)
-    {
-        x_3[col] = (x_2[col] > 0.f) ? x_2[col] : 0.f;
-    }
-    
-    // (4): Linear(in_features=32, out_features=1, bias=True) => x = x*W_T + b
-    float x_4[1];
-    for (unsigned int col = 0; col < 1; ++col)
-    {
-        x_4[col] = 0;
-        for (unsigned int inner = 0; inner < 32; ++inner)
-        {
-            x_4[col] += x_3[inner]*T5DNN::wgtT_4[inner][col];
-        }
-        x_4[col] += T5DNN::bias_4[col];
-    }
-    
-    // (5): Sigmoid()
-    float x_5[1];
-    for (unsigned int col = 0; col < 1; ++col)
-    {
-        x_5[col] = exp(x_4[col])/(exp(x_4[col]) + 1);
-    }
-
-    pass = pass and (x_5[0] > T5DNN::working_point);
-    if (not pass) return pass;
-
     float xVec[] = {x1, x2, x3, x4, x5};
     float yVec[] = {y1, y2, y3, y4, y5};
+    const uint16_t lowerModuleIndices[] = {lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5};
+
+    // 5 categories for sigmas
     float sigmas[5], delta1[5], delta2[5], slopes[5];
     bool isFlat[5];
-    //5 categories for sigmas
-    const uint16_t lowerModuleIndices[] = {lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5};
 
     computeSigmasForRegression(modulesInGPU, lowerModuleIndices, delta1, delta2, slopes, isFlat);
     regressionRadius = computeRadiusUsingRegression(5,xVec, yVec, delta1, delta2, slopes, isFlat, regressionG, regressionF, sigmas, chiSquared);
+
+#ifdef USE_T5_DNN
+    unsigned int mdIndices[] = {firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex};
+    float inference = T5DNN::runInference(
+        modulesInGPU, mdsInGPU, 
+        segmentsInGPU, tripletsInGPU, 
+        xVec, yVec, mdIndices, lowerModuleIndices, 
+        innerTripletIndex, outerTripletIndex, 
+        innerRadius, outerRadius, bridgeRadius
+    );
+    pass = pass and (inference > T5DNN::LSTWP2);                    // T5-building cut
+    TightCutFlag = TightCutFlag and (inference > T5DNN::LSTWP2);    // T5-in-TC cut
+    if(not pass) return pass;
+#endif
+#ifdef USE_RPHICHI2
+    // extra chi squared cuts!
+    if(regressionRadius < 5.0f/(2.f * k2Rinv1GeVf))
+    {
+        pass = pass and passChiSquaredConstraint(modulesInGPU, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, chiSquared);
+        if(not pass) return pass;
+    }
+#endif
 
     //compute the other chisquared
     //non anchor is always shifted for tilted and endcap!
