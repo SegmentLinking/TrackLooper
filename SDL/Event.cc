@@ -58,13 +58,6 @@ SDL::Event::Event(bool verbose): queue(alpaka::getDevByIdx<Acc>(0u))
     init(verbose);
 }
 
-// Constructor used for CMSSW integration. Uses an external queue.
-template <typename TQueue>
-SDL::Event::Event(bool verbose, const TQueue& q): queue(q)
-{
-    init(verbose);
-}
-
 void SDL::Event::resetEvent()
 {
     //reset the arrays

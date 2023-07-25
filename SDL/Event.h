@@ -76,7 +76,10 @@ namespace SDL
         Event(bool verbose);
         // Constructor used for CMSSW integration. Uses an external queue.
         template <typename TQueue>
-        Event(bool verbose, const TQueue& queue);
+        Event(bool verbose, const TQueue& q): queue(q)
+        {
+            init(verbose);
+        }
         void resetEvent();
 
         void addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple); //call the appropriate hit function, then increment the counter here
