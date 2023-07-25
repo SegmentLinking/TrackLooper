@@ -49,8 +49,8 @@ namespace SDL
         float getCentroidZ(unsigned int detid);
 
     };
-    void freeEndCapMapMemory();
-    extern EndcapGeometry endcapGeometry;
+    void freeEndcap();
+    extern EndcapGeometry* endcapGeometry;
 }
 
 #endif

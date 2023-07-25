@@ -1,6 +1,15 @@
 #include "EndcapGeometry.h"
 
-SDL::EndcapGeometry SDL::endcapGeometry;
+SDL::EndcapGeometry* SDL::endcapGeometry = new SDL::EndcapGeometry();
+
+void SDL::freeEndcap()
+{
+    if (SDL::endcapGeometry != nullptr)
+    {
+        delete SDL::endcapGeometry;
+        SDL::endcapGeometry = nullptr;
+    }
+}
 
 SDL::EndcapGeometry::EndcapGeometry(unsigned int sizef) :
     geoMapDetId_buf(allocBufWrapper<unsigned int>(devAcc, sizef)),

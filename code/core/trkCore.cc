@@ -20,7 +20,7 @@ void loadMaps()
     std::cout << "pLS map: " << pLSMapDir << std::endl;
     std::cout << "centroid: " << centroid << std::endl;
 
-    SDL::endcapGeometry.load(endcap_geom.Data()); // centroid values added to the map
+    SDL::endcapGeometry->load(endcap_geom.Data()); // centroid values added to the map
     SDL::tiltedGeometry.load(tilted_geom.Data());
     SDL::moduleConnectionMap.load(mappath.Data());
 

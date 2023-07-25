@@ -533,6 +533,7 @@ void run_sdl()
     }
 
     SDL::freeModules();
+    SDL::freeEndcap();
 
     delete ana.output_tfile;
 }

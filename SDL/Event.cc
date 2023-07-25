@@ -237,9 +237,9 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
         Endcap,
         TwoS,
         nModules,
-        SDL::endcapGeometry.nEndCapMap,
-        alpaka::getPtrNative(SDL::endcapGeometry.geoMapDetId_buf),
-        alpaka::getPtrNative(SDL::endcapGeometry.geoMapPhi_buf),
+        SDL::endcapGeometry->nEndCapMap,
+        alpaka::getPtrNative(SDL::endcapGeometry->geoMapDetId_buf),
+        alpaka::getPtrNative(SDL::endcapGeometry->geoMapPhi_buf),
         *modulesInGPU,
         *hitsInGPU,
         nHits));

@@ -164,7 +164,7 @@ void SDL::LST::loadMaps() {
     // Module orientation information (DrDz or phi angles)
     TString endcap_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/endcap_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir_.Data()).Data());
     TString tilted_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/tilted_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir_.Data()).Data());
-    SDL::endcapGeometry.load(endcap_geom.Data()); // centroid values added to the map
+    SDL::endcapGeometry->load(endcap_geom.Data()); // centroid values added to the map
     SDL::tiltedGeometry.load(tilted_geom.Data());
 
     // Module connection map (for line segment building)
