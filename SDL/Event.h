@@ -155,12 +155,12 @@ namespace SDL
     };
 
     //global stuff
-    extern std::shared_ptr<SDL::modules> modulesInGPU;
-    extern std::shared_ptr<SDL::modulesBuffer<Acc>> modulesBuffers;
+    extern SDL::modules* modulesInGPU;
+    extern SDL::modulesBuffer<Acc>* modulesBuffers;
     extern uint16_t nModules;
     extern uint16_t nLowerModules;
     void initModules(const char* moduleMetaDataFilePath="data/centroid.txt"); //read from file and init
-    void cleanModules();
+    void freeModules();
     void initModulesHost(); //read from file and init
     extern std::shared_ptr<SDL::pixelMap> pixelMapping;
 }

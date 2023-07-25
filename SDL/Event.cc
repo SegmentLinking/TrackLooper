@@ -1,7 +1,7 @@
 #include "Event.h"
 
-std::shared_ptr<SDL::modules> SDL::modulesInGPU = std::make_shared<modules>();
-std::shared_ptr<SDL::modulesBuffer<Acc>> SDL::modulesBuffers = std::make_shared<modulesBuffer<Acc>>(devAcc);
+SDL::modules* SDL::modulesInGPU = new SDL::modules();
+SDL::modulesBuffer<Acc>* SDL::modulesBuffers = new SDL::modulesBuffer<Acc>(devAcc);
 std::shared_ptr<SDL::pixelMap> SDL::pixelMapping = std::make_shared<pixelMap>();
 uint16_t SDL::nModules;
 uint16_t SDL::nLowerModules;
@@ -170,13 +170,26 @@ void SDL::initModules(const char* moduleMetaDataFilePath)
     modulesInGPU->setData(*modulesBuffers);
 
     // nModules gets filled here
-    loadModulesFromFile(modulesInGPU.get(),
-                        modulesBuffers.get(),
+    loadModulesFromFile(modulesInGPU,
+                        modulesBuffers,
                         nModules,
                         nLowerModules,
                         *pixelMapping,
                         queue,
                         moduleMetaDataFilePath);
+}
+
+// Temporary solution to the global variables. Should be freed with shared_ptr.
+void SDL::freeModules()
+{
+    if (SDL::modulesBuffers != nullptr)
+    {
+        delete SDL::modulesBuffers;
+    }
+    if (SDL::modulesInGPU != nullptr)
+    {
+        delete SDL::modulesInGPU;
+    }
 }
 
 void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::vector<float> z, std::vector<unsigned int> detId, std::vector<unsigned int> idxInNtuple)

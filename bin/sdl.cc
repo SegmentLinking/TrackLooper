@@ -532,6 +532,8 @@ void run_sdl()
         delete events.at(s);
     }
 
+    SDL::freeModules();
+
     delete ana.output_tfile;
 }
 
