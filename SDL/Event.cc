@@ -185,10 +185,12 @@ void SDL::freeModules()
     if (SDL::modulesBuffers != nullptr)
     {
         delete SDL::modulesBuffers;
+        SDL::modulesBuffers = nullptr;
     }
     if (SDL::modulesInGPU != nullptr)
     {
         delete SDL::modulesInGPU;
+        SDL::modulesInGPU = nullptr;
     }
 }
 
