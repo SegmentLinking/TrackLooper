@@ -164,6 +164,8 @@ namespace SDL {
     }
 
     getOutput(event);
+
+    event.resetEvent();
 }
         std::vector<std::vector<unsigned int>> hits() { return out_tc_hitIdxs_; }
         std::vector<unsigned int> len() { return out_tc_len_; }
