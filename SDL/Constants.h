@@ -2,7 +2,10 @@
 #define Constants_cuh
 
 #include <alpaka/alpaka.hpp>
+
+#ifdef CACHE_ALLOC
 #include "../code/alpaka_interface/CachedBufAlloc.h"
+#endif
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
 #include <cuda_fp16.h>
