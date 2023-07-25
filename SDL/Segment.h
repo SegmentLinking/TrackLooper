@@ -183,9 +183,9 @@ namespace SDL
         short side = modulesInGPU.sides[moduleIndex];
         short rod = modulesInGPU.rods[moduleIndex];
 
-        return subdet == Barrel & ( ((side != Center) & (layer== 3))
-                        | (side == NegZ & (((layer == 2) & (rod > 5)) | ((layer == 1) & (rod > 9))))
-                        | (side == PosZ & (((layer == 2) & (rod < 8)) | ((layer == 1) & (rod < 4)))) );
+        return (subdet == Barrel) & ( ((side != Center) & (layer== 3))
+                        | ((side == NegZ) & (((layer == 2) & (rod > 5)) | ((layer == 1) & (rod > 9))))
+                        | ((side == PosZ) & (((layer == 2) & (rod < 8)) | ((layer == 1) & (rod < 4)))) );
     };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE float isTighterTiltedModules_seg(short subdet, short layer, short side, short rod)
@@ -193,9 +193,9 @@ namespace SDL
         // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
         // This is the same as what was previously considered as"isNormalTiltedModules"
         // See Figure 9.1 of https://cds.cern.ch/record/2272264/files/CMS-TDR-014.pdf
-        return subdet == Barrel & ( ((side != Center) & (layer== 3))
-                        | (side == NegZ & (((layer == 2) & (rod > 5)) | ((layer == 1) & (rod > 9))))
-                        | (side == PosZ & (((layer == 2) & (rod < 8)) | ((layer == 1) & (rod < 4)))) );
+        return (subdet == Barrel) & ( ((side != Center) & (layer== 3))
+                        | ((side == NegZ) & (((layer == 2) & (rod > 5)) | ((layer == 1) & (rod > 9))))
+                        | ((side == PosZ) & (((layer == 2) & (rod < 8)) | ((layer == 1) & (rod < 4)))) );
     };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE float moduleGapSize_seg(short layer, short ring, short subdet, short side, short rod)
