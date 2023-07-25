@@ -2,7 +2,7 @@
 #define Quintuplet_cuh
 
 #include "Constants.h"
-#include "NeuralNetwork.cuh"
+#include "NeuralNetwork.h"
 #include "EndcapGeometry.h"
 #include "Segment.h"
 #include "MiniDoublet.h"
@@ -2084,7 +2084,7 @@ namespace SDL
 
         float inner_pt = 2 * k2Rinv1GeVf * innerRadius;
 
-        bool passRZChi2 = passT5RZConstraint(modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, inner_pt, innerRadius, g, f, TightCutFlag);
+        bool passRZChi2 = passT5RZConstraint(acc, modulesInGPU, mdsInGPU, firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex, lowerModuleIndex1, lowerModuleIndex2, lowerModuleIndex3, lowerModuleIndex4, lowerModuleIndex5, rzChiSquared, inner_pt, innerRadius, g, f, TightCutFlag);
 #ifdef USE_RZCHI2
         pass = pass and passRZChi2;
         if(not pass) return pass;
@@ -2150,7 +2150,7 @@ namespace SDL
 #ifdef USE_T5_DNN
         unsigned int mdIndices[] = {firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex};
         float inference = T5DNN::runInference(
-            modulesInGPU, mdsInGPU, 
+            acc, modulesInGPU, mdsInGPU, 
             segmentsInGPU, tripletsInGPU, 
             xVec, yVec, mdIndices, lowerModuleIndices, 
             innerTripletIndex, outerTripletIndex, 
