@@ -155,7 +155,7 @@ namespace SDL
     template<typename TAcc>
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float phi(TAcc const & acc, float x, float y)
     {
-        return phi_mpi_pi(acc, float(M_PI) + alpaka::math::atan2(acc, y, x));
+        return phi_mpi_pi(acc, float(M_PI) + alpaka::math::atan2(acc, -y, -x));
     };
 
     template<typename TAcc>
