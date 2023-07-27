@@ -850,22 +850,22 @@ namespace SDL
         alpaka::memcpy(queue, modulesBuf->moduleType_buf, moduleType_buf);
         alpaka::memcpy(queue, modulesBuf->moduleLayerType_buf, moduleLayerType_buf);
 
-        alpaka::memcpy(queue, modulesBuf->detIds_buf, detIds_buf, nModules);
-        alpaka::memcpy(queue, modulesBuf->layers_buf, layers_buf, nModules);
-        alpaka::memcpy(queue, modulesBuf->rings_buf, rings_buf, nModules);
-        alpaka::memcpy(queue, modulesBuf->rods_buf, rods_buf, nModules);
-        alpaka::memcpy(queue, modulesBuf->modules_buf, modules_buf, nModules);
-        alpaka::memcpy(queue, modulesBuf->subdets_buf, subdets_buf, nModules);
-        alpaka::memcpy(queue, modulesBuf->sides_buf, sides_buf, nModules);
-        alpaka::memcpy(queue, modulesBuf->eta_buf, eta_buf, nModules);
-        alpaka::memcpy(queue, modulesBuf->r_buf, r_buf, nModules);
-        alpaka::memcpy(queue, modulesBuf->isInverted_buf, isInverted_buf, nModules);
-        alpaka::memcpy(queue, modulesBuf->isLower_buf, isLower_buf, nModules);
-        alpaka::memcpy(queue, modulesBuf->isAnchor_buf, isAnchor_buf, nModules);
-        alpaka::memcpy(queue, modulesBuf->slopes_buf, slopes_buf, nModules);
-        alpaka::memcpy(queue, modulesBuf->drdzs_buf, drdzs_buf, nModules);
-        alpaka::memcpy(queue, modulesBuf->partnerModuleIndices_buf, partnerModuleIndices_buf, nModules);
-        alpaka::memcpy(queue, modulesBuf->sdlLayers_buf, sdlLayers_buf, nModules);
+        alpaka::memcpy(queue, modulesBuf->detIds_buf, detIds_buf);
+        alpaka::memcpy(queue, modulesBuf->layers_buf, layers_buf);
+        alpaka::memcpy(queue, modulesBuf->rings_buf, rings_buf);
+        alpaka::memcpy(queue, modulesBuf->rods_buf, rods_buf);
+        alpaka::memcpy(queue, modulesBuf->modules_buf, modules_buf);
+        alpaka::memcpy(queue, modulesBuf->subdets_buf, subdets_buf);
+        alpaka::memcpy(queue, modulesBuf->sides_buf, sides_buf);
+        alpaka::memcpy(queue, modulesBuf->eta_buf, eta_buf);
+        alpaka::memcpy(queue, modulesBuf->r_buf, r_buf);
+        alpaka::memcpy(queue, modulesBuf->isInverted_buf, isInverted_buf);
+        alpaka::memcpy(queue, modulesBuf->isLower_buf, isLower_buf);
+        alpaka::memcpy(queue, modulesBuf->isAnchor_buf, isAnchor_buf);
+        alpaka::memcpy(queue, modulesBuf->slopes_buf, slopes_buf);
+        alpaka::memcpy(queue, modulesBuf->drdzs_buf, drdzs_buf);
+        alpaka::memcpy(queue, modulesBuf->partnerModuleIndices_buf, partnerModuleIndices_buf);
+        alpaka::memcpy(queue, modulesBuf->sdlLayers_buf, sdlLayers_buf);
         alpaka::wait(queue);
 
         fillConnectedModuleArrayExplicit(modulesBuf, nModules, queue);
