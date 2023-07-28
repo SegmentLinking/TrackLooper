@@ -30,6 +30,9 @@ movetoweb.sh
 *.nvvp
 *.ipynb
 *.log
+*.nsys-rep
+*.sqlite
+*.ncu-rep
 
 *.nfs*
 .directoryhash

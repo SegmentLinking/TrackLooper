@@ -346,7 +346,7 @@ void run_sdl()
     std::vector<std::vector<unsigned int>> out_seedIdx_vec;
     std::vector<std::vector<int>> out_superbin_vec;
     std::vector<std::vector<int8_t>> out_pixelType_vec;
-    std::vector<std::vector<short>> out_isQuad_vec;
+    std::vector<std::vector<char>> out_isQuad_vec;
     std::vector<int> evt_num;
     std::vector<TString> file_name;
 
@@ -355,7 +355,6 @@ void run_sdl()
     full_timer.Start();
     while (ana.looper.nextEvent())
     {
-        // if (ana.looper.getCurrentEventIndex() ==49) {continue;}
         if (ana.verbose >= 1)
             std::cout << "PreLoading event number = " << ana.looper.getCurrentEventIndex() << std::endl;
 
@@ -391,14 +390,10 @@ void run_sdl()
 
     full_timer.Reset();
     full_timer.Start();
-    cudaStream_t streams[ana.streams];
     std::vector<SDL::Event*> events;
     for (int s = 0; s < ana.streams; s++)
     {
-
-        cudaStreamCreateWithFlags(&streams[s], cudaStreamNonBlocking);
-        SDL::Event *event = new SDL::Event(streams[s],ana.verbose>=2);
-        ; //(streams[omp_get_thread_num()]);
+        SDL::Event *event = new SDL::Event(ana.verbose>=2);
         events.push_back(event);
     }
     float timeForEventCreation = full_timer.RealTime()*1000;
@@ -524,9 +519,6 @@ void run_sdl()
     std::cout << "Time for event creation = " << timeForEventCreation << " ms\n";
     printTimingInformation(timevec, full_elapsed, avg_elapsed);
 
-    SDL::cleanModules();
-    SDL::freeEndCapMapMemory();
-
     if (ana.do_write_ntuple)
     {
         // Writing ttree output to file
@@ -538,8 +530,10 @@ void run_sdl()
     for (int s = 0; s < ana.streams; s++)
     {
         delete events.at(s);
-        cudaStreamDestroy(streams[s]);
     }
+
+    SDL::freeModules();
+    SDL::freeEndcap();
 
     delete ana.output_tfile;
 }

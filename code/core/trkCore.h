@@ -7,7 +7,7 @@
 #include "AnalysisConfig.h"
 #include "SDL/ModuleConnectionMap.h"
 #include "SDLMath.h"
-#include "SDL/Event.cuh"
+#include "SDL/Event.h"
 #include <cppitertools/enumerate.hpp>
 #include <cppitertools/zip.hpp>
 #include <numeric>
@@ -69,7 +69,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
                                            std::vector<std::vector<unsigned int>> &out_seedIdx_vec,
                                            std::vector<std::vector<int>> &out_superbin_vec,
                                            std::vector<std::vector<int8_t>> &out_pixelType_vec,
-                                           std::vector<std::vector<short>> &out_isQuad_vec);
+                                           std::vector<std::vector<char>> &out_isQuad_vec);
 
 float addInputsToEventPreLoad(SDL::Event *event,
                               bool useOMP,
@@ -95,7 +95,7 @@ float addInputsToEventPreLoad(SDL::Event *event,
                               std::vector<unsigned int> seedIdx_vec,
                               std::vector<int> superbin_vec,
                               std::vector<int8_t> pixelType_vec,
-                              std::vector<short> isQuad_vec);
+                              std::vector<char> isQuad_vec);
 
 void printTimingInformation(std::vector<std::vector<float>>& timing_information, float fullTime, float fullavg);
 

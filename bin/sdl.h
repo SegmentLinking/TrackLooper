@@ -15,11 +15,11 @@
 #include "rooutil.h"
 #include "cxxopts.h"
 
-#include "SDL/Event.cuh" // SDL::Event
-#include "SDL/Module.cuh" // SDL::Module
-#include "SDL/EndcapGeometry.cuh" // SDL::EndcapGeometr
+#include "SDL/Event.h" // SDL::Event
+#include "SDL/Module.h" // SDL::Module
+#include "SDL/EndcapGeometry.h" // SDL::EndcapGeometr
 #include "SDL/ModuleConnectionMap.h" // SDL::ModuleConnectionMap
-#include "SDL/Event.cuh"
+#include "SDL/Event.h"
 
 // Efficiency study modules
 #include "AnalysisConfig.h"

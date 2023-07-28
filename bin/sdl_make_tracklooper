@@ -21,7 +21,7 @@ usage()
   echo "  -h    Help                    (Display this message)"
   echo "  -c    cache                   (Make library with cache enabled)"
   echo "  -s    show log                (Full compilation script to stdout)"
-  echo "  -m    make clean binaries     (Make clean binaries before remake. e.g. when header files changed in SDL/*.cuh)"
+  echo "  -m    make clean binaries     (Make clean binaries before remake. e.g. when header files changed in SDL/*.h)"
   echo "  -d    cut value ntuple        (With extra variables in a debug ntuple file)"
   echo "  -p    primitive object ntuple (With extra variables related to primitive objects)"
   echo "  -3    do T3T3 extensions      (-e turned on if not specified)"

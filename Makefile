@@ -9,20 +9,20 @@ SOURCES=$(wildcard code/core/*.cc)  #$(wildcard SDL/*.cc)
 OBJECTS=$(SOURCES:.cc=.o) $(wildcard ${TRACKLOOPERDIR}/SDL/libsdl.so)
 HEADERS=$(SOURCES:.cc=.h)
 
-CC          = nvcc
-CXX         = nvcc
-CXXFLAGS    = -g -O2 --compiler-options -Wall --compiler-options -fPIC --compiler-options -Wshadow --compiler-options -Woverloaded-virtual -G -lineinfo  -fopenmp -lgomp --default-stream per-thread
-LD          = g++
+CXX         = g++
+CXXFLAGS    = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual -lineinfo  -fopenmp -lgomp --default-stream per-thread
 LDFLAGS     = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual -I/mnt/data1/dsr/cub
 SOFLAGS     = -g -shared
 CXXFLAGS    = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual
 LDFLAGS     = -g -O2
 ROOTLIBS    = $(shell root-config --libs)
-ROOTCFLAGS  = $(foreach option, $(shell root-config --cflags), --compiler-options $(option))
-CFLAGS      = $(ROOTCFLAGS) --compiler-options -Wall --compiler-options -Wno-unused-function --compiler-options -g --compiler-options -O2 --compiler-options -fPIC --compiler-options -fno-var-tracking -ISDL -I$(shell pwd) -Icode  -Icode/core -I/mnt/data1/dsr/cub -I${CUDA_HOME}/include --compiler-options -fopenmp
-EXTRACFLAGS = $(shell rooutil-config)
+ROOTCFLAGS  = $(foreach option, $(shell root-config --cflags), $(option))
+ALPAKAINCLUDE = -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include -std=c++17 -DALPAKA_DEBUG=0
+ALPAKASERIAL = -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
+CFLAGS      = $(ROOTCFLAGS)  -Wall  -Wno-unused-function  -g  -O2  -fPIC  -fno-var-tracking -ISDL -I$(shell pwd) -Icode  -Icode/core -I/mnt/data1/dsr/cub -I${CUDA_HOME}/include  -fopenmp
+EXTRACFLAGS = $(shell rooutil-config) -g
 EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -L${CUDA_HOME}/lib64 -lcudart -fopenmp
-DOQUINTUPLET = -DFP16_Base -DFP16_dPhi #-DFP16_circle -DFP16_seg -DFP16_T5 #-DDO_QUINTUPLET #-DDO_QUADRUPLET
+DOQUINTUPLET = #-DFP16_Base
 PT0P8       =
 T3T3EXTENSION=
 CUTVALUEFLAG = 
@@ -46,13 +46,13 @@ cutvalue_primitive: $(ROOUTIL) efficiency $(EXES)
 
 
 bin/doAnalysis: bin/doAnalysis.o $(OBJECTS)
-	$(LD) $(PT0P8) $(T3T3EXTENSION) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) -o $@
+	$(CXX) $(PT0P8) $(T3T3EXTENSION) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) $(ALPAKAINCLUDE) $(ALPAKASERIAL) -o $@
 
 bin/sdl: bin/sdl.o $(OBJECTS)
-	$(LD) $(PT0P8) $(T3T3EXTENSION) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) -o $@
+	$(CXX) $(PT0P8) $(T3T3EXTENSION) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) $(ALPAKAINCLUDE) $(ALPAKASERIAL) -o $@
 
 %.o: %.cc
-	$(CC) $(PT0P8) $(T3T3EXTENSION) $(CFLAGS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(DOQUINTUPLET) $< -dc -o $@
+	$(CXX) $(PT0P8) $(T3T3EXTENSION) $(CFLAGS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(DOQUINTUPLET) $(ALPAKAINCLUDE) $(ALPAKASERIAL) $< -c -o $@
 
 $(ROOUTIL):
 	$(MAKE) -C code/rooutil/
