@@ -85,7 +85,7 @@ namespace SDL
       return x - n * float(2.f * float(M_PI));
     }
     CUDA_HOSTDEV inline float phi(float x, float y) {
-      return phi_mpi_pi(float(M_PI) + atan2f(y,x));
+      return phi_mpi_pi(float(M_PI) + atan2f(-y,-x));
     }
     CUDA_HOSTDEV inline float deltaPhi(float x1, float y1, float x2, float y2) {
       float phi1 = phi(x1,y1);
