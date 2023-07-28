@@ -339,11 +339,11 @@ namespace SDL
         const float& z5 = mdsInGPU.anchorZ[fifthMDIndex]/100;
 
         //following Philip's layer number prescription
-        const int layer1 = modulesInGPU.layers[lowerModuleIndex1];
-        const int layer2 = modulesInGPU.layers[lowerModuleIndex2];
-        const int layer3 = modulesInGPU.layers[lowerModuleIndex3];
-        const int layer4 = modulesInGPU.layers[lowerModuleIndex4];
-        const int layer5 = modulesInGPU.layers[lowerModuleIndex5];
+        const int layer1 = modulesInGPU.sdlLayers[lowerModuleIndex1];
+        const int layer2 = modulesInGPU.sdlLayers[lowerModuleIndex2];
+        const int layer3 = modulesInGPU.sdlLayers[lowerModuleIndex3];
+        const int layer4 = modulesInGPU.sdlLayers[lowerModuleIndex4];
+        const int layer5 = modulesInGPU.sdlLayers[lowerModuleIndex5];
 
         //slope computed using the internal T3s
         const int moduleType1 = modulesInGPU.moduleType[lowerModuleIndex1]; //0 is ps, 1 is 2s
