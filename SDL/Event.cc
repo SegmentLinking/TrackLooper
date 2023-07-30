@@ -659,8 +659,8 @@ void SDL::Event::createTrackCandidates()
     alpaka::wait(queue);
     uint16_t nEligibleModules = *alpaka::getPtrNative(nEligibleModules_buf);
 
-    Vec const threadsPerBlock_crossCleanpT3(1,16,64);
-    Vec const blocksPerGrid_crossCleanpT3(1,4,20);
+    Vec const threadsPerBlock_crossCleanpT3 = createVec(1,16,64);
+    Vec const blocksPerGrid_crossCleanpT3 = createVec(1,4,20);
     WorkDiv const crossCleanpT3_workDiv(blocksPerGrid_crossCleanpT3, threadsPerBlock_crossCleanpT3, elementsPerThread);
 
     SDL::crossCleanpT3 crossCleanpT3_kernel;
