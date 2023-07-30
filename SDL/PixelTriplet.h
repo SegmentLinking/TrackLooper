@@ -849,12 +849,12 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct SDL::modules& modulesInGPU,
-                struct SDL::objectRanges& rangesInGPU,
-                struct SDL::miniDoublets& mdsInGPU,
-                struct SDL::segments& segmentsInGPU,
-                struct SDL::triplets& tripletsInGPU,
-                struct SDL::pixelTriplets& pixelTripletsInGPU,
+                struct SDL::modules modulesInGPU,
+                struct SDL::objectRanges rangesInGPU,
+                struct SDL::miniDoublets mdsInGPU,
+                struct SDL::segments segmentsInGPU,
+                struct SDL::triplets tripletsInGPU,
+                struct SDL::pixelTriplets pixelTripletsInGPU,
                 unsigned int* connectedPixelSize,
                 unsigned int* connectedPixelIndex,
                 unsigned int nPixelSegments) const
@@ -2248,16 +2248,16 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct SDL::modules& modulesInGPU,
-                struct SDL::miniDoublets& mdsInGPU,
-                struct SDL::segments& segmentsInGPU,
-                struct SDL::triplets& tripletsInGPU,
-                struct SDL::quintuplets& quintupletsInGPU,
-                struct SDL::pixelQuintuplets& pixelQuintupletsInGPU,
+                struct SDL::modules modulesInGPU,
+                struct SDL::miniDoublets mdsInGPU,
+                struct SDL::segments segmentsInGPU,
+                struct SDL::triplets tripletsInGPU,
+                struct SDL::quintuplets quintupletsInGPU,
+                struct SDL::pixelQuintuplets pixelQuintupletsInGPU,
                 unsigned int* connectedPixelSize,
                 unsigned int* connectedPixelIndex,
                 unsigned int nPixelSegments,
-                struct SDL::objectRanges& rangesInGPU) const
+                struct SDL::objectRanges rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;

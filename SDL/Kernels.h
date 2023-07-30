@@ -205,9 +205,9 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct SDL::modules& modulesInGPU,
-                struct SDL::quintuplets& quintupletsInGPU,
-                struct SDL::objectRanges& rangesInGPU) const
+                struct SDL::modules modulesInGPU,
+                struct SDL::quintuplets quintupletsInGPU,
+                struct SDL::objectRanges rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;
@@ -275,8 +275,8 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct SDL::quintuplets& quintupletsInGPU,
-                struct SDL::objectRanges& rangesInGPU) const
+                struct SDL::quintuplets quintupletsInGPU,
+                struct SDL::objectRanges rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;
@@ -360,7 +360,7 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct SDL::pixelTriplets& pixelTripletsInGPU,
+                struct SDL::pixelTriplets pixelTripletsInGPU,
                 bool secondPass) const
         {
             using Dim = alpaka::Dim<TAcc>;
@@ -405,7 +405,7 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct SDL::pixelQuintuplets& pixelQuintupletsInGPU,
+                struct SDL::pixelQuintuplets pixelQuintupletsInGPU,
                 bool secondPass) const
         {
             using Dim = alpaka::Dim<TAcc>;
@@ -449,8 +449,8 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct SDL::modules& modulesInGPU,
-                struct SDL::segments& segmentsInGPU,
+                struct SDL::modules modulesInGPU,
+                struct SDL::segments segmentsInGPU,
                 bool secondpass) const
         {
             using Dim = alpaka::Dim<TAcc>;

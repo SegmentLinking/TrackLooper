@@ -4,7 +4,7 @@
 #
 
 CCSOURCES=$(filter-out LST.cc, $(wildcard *.cc))
-CCOBJECTS=$(CCSOURCES:.cc=_cuda.o)
+CCOBJECTS=$(CCSOURCES:.cc=_cpu.o)
 
 LSTSOURCES=LST.cc
 LSTOBJECTS=$(LSTSOURCES:.cc=_cpu.o)
@@ -17,13 +17,13 @@ LIB=libsdl.so
 
 CXX                  = g++
 CXXFLAGS             = -g -Wall -Wshadow -Woverloaded-virtual -fPIC -fopenmp -I..
-CXXFLAGS_CUDA        =  -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared -arch=compute_70 -I/mnt/data1/dsr/cub --use_fast_math --default-stream per-thread -I..
 ROOTCFLAGS           = -pthread -m64 -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/cms/cmssw/CMSSW_11_2_0_pre5/external/slc7_amd64_gcc900/bin/../../../../../../../slc7_amd64_gcc900/lcg/root/6.20.06-ghbfee3/include
 ALPAKAINCLUDE        = -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include -std=c++17
 ALPAKASERIAL         = -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
 ALPAKACUDA           = -DALPAKA_ACC_GPU_CUDA_ENABLED -DALPAKA_ACC_GPU_CUDA_ONLY --expt-relaxed-constexpr
-LD                   = nvcc 
-SOFLAGS              = -g -shared --compiler-options -fPIC --cudart shared -arch=compute_70 -code=sm_72
+LD                   = g++
+SOFLAGS              = -g -shared -fPIC
+SOFLAGS_CUDA         = -g -shared --compiler-options -fPIC --cudart shared -arch=compute_70 -code=sm_72
 PRINTFLAG            = -DT4FromT3 #-DWarnings
 DUPLICATES           = -DDUP_pLS -DDUP_T5 -DDUP_pT5 -DDUP_pT3 -DCrossclean_T5 -DCrossclean_pT3 #-DFP16_Base
 MEMFLAG              =
@@ -35,12 +35,6 @@ T5CUTFLAGS           = $(T5DNNFLAG) $(T5RZCHI2FLAG) $(T5RPHICHI2FLAG)
 #
 # how to make it 
 #
-
-CUTVALUEFLAG =
-CUTVALUEFLAG_FLAGS = -DCUT_VALUE_DEBUG
-
-%_cuda.o : %.cc
-	$(LD) -x cu $(CXXFLAGS_CUDA) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(CUTVALUEFLAG) $(T5CUTFLAGS) $(DUPLICATES) $(ALPAKAINCLUDE) $(ALPAKACUDA) $< -o $@
 
 %_cpu.o : %.cc
 	$(CXX) -c -O2 $(CXXFLAGS) $(LDFLAGS) $(ROOTLIBS) $(MEMFLAG) $(PRINTFLAG) $(CACHEFLAG) $(DUPLICATES) $(ROOTCFLAGS) $(ALPAKAINCLUDE) $(ALPAKASERIAL) $< -o $@

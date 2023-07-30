@@ -80,6 +80,13 @@ ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<TAcc, T> allocBufWrapper(TAcc const & devAcc
     return alpaka::allocBuf<T, Idx>(devAccIn, Vec1d(static_cast<Idx>(nElements)));
 }
 
+ALPAKA_FN_HOST ALPAKA_FN_INLINE Vec createVec(int x, int y, int z)
+{
+#ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
+    x = y = z = 1;
+#endif
+    return Vec(static_cast<Idx>(x), static_cast<Idx>(y), static_cast<Idx>(z));
+}
 
 const unsigned int MAX_BLOCKS = 80;
 const unsigned int MAX_CONNECTED_MODULES = 40;

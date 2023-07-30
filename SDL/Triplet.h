@@ -1296,11 +1296,11 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct SDL::modules& modulesInGPU,
-                struct SDL::miniDoublets& mdsInGPU,
-                struct SDL::segments& segmentsInGPU,
-                struct SDL::triplets& tripletsInGPU,
-                struct SDL::objectRanges& rangesInGPU,
+                struct SDL::modules modulesInGPU,
+                struct SDL::miniDoublets mdsInGPU,
+                struct SDL::segments segmentsInGPU,
+                struct SDL::triplets tripletsInGPU,
+                struct SDL::objectRanges rangesInGPU,
                 uint16_t *index_gpu,
                 uint16_t nonZeroModules) const
         {
@@ -1370,9 +1370,9 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct SDL::modules& modulesInGPU,
-                struct SDL::objectRanges& rangesInGPU,
-                struct SDL::segments& segmentsInGPU) const
+                struct SDL::modules modulesInGPU,
+                struct SDL::objectRanges rangesInGPU,
+                struct SDL::segments segmentsInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;
@@ -1446,9 +1446,9 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct SDL::modules& modulesInGPU,
-                struct SDL::triplets& tripletsInGPU,
-                struct SDL::objectRanges& rangesInGPU) const
+                struct SDL::modules modulesInGPU,
+                struct SDL::triplets tripletsInGPU,
+                struct SDL::objectRanges rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;

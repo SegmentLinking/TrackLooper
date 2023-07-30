@@ -595,10 +595,10 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct SDL::modules& modulesInGPU,
-                struct SDL::miniDoublets& mdsInGPU,
-                struct SDL::segments& segmentsInGPU,
-                struct SDL::objectRanges& rangesInGPU) const
+                struct SDL::modules modulesInGPU,
+                struct SDL::miniDoublets mdsInGPU,
+                struct SDL::segments segmentsInGPU,
+                struct SDL::objectRanges rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;
@@ -673,9 +673,9 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct SDL::modules& modulesInGPU,
-                struct SDL::objectRanges& rangesInGPU,
-                struct SDL::miniDoublets& mdsInGPU) const
+                struct SDL::modules modulesInGPU,
+                struct SDL::objectRanges rangesInGPU,
+                struct SDL::miniDoublets mdsInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;
@@ -750,9 +750,9 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct SDL::modules& modulesInGPU,
-                struct SDL::segments& segmentsInGPU,
-                struct SDL::objectRanges& rangesInGPU) const
+                struct SDL::modules modulesInGPU,
+                struct SDL::segments segmentsInGPU,
+                struct SDL::objectRanges rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;
@@ -782,11 +782,11 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
             TAcc const & acc,
-            struct SDL::modules& modulesInGPU,
-            struct SDL::objectRanges& rangesInGPU,
-            struct SDL::hits& hitsInGPU,
-            struct SDL::miniDoublets& mdsInGPU,
-            struct SDL::segments& segmentsInGPU,
+            struct SDL::modules modulesInGPU,
+            struct SDL::objectRanges rangesInGPU,
+            struct SDL::hits hitsInGPU,
+            struct SDL::miniDoublets mdsInGPU,
+            struct SDL::segments segmentsInGPU,
             unsigned int* hitIndices0,
             unsigned int* hitIndices1,
             unsigned int* hitIndices2,
