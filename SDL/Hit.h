@@ -267,7 +267,6 @@ namespace SDL
 
                 hitsInGPU.rts[ihit] = alpaka::math::sqrt(acc, ihit_x*ihit_x + ihit_y*ihit_y);
                 hitsInGPU.phis[ihit] = SDL::phi(acc, ihit_x,ihit_y);
-                // Acosh has no supported implementation in Alpaka right now.
                 hitsInGPU.etas[ihit] = ((ihit_z>0)-(ihit_z<0)) * alpaka::math::acosh(acc, alpaka::math::sqrt(acc, ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/hitsInGPU.rts[ihit]);
                 int found_index = binary_search(modulesInGPU.mapdetId, iDetId, nModules);
                 uint16_t lastModuleIndex = modulesInGPU.mapIdx[found_index];
