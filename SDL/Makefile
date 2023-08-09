@@ -19,7 +19,7 @@ CXX                  = g++
 CXXFLAGS             = -g -Wall -Wshadow -Woverloaded-virtual -fPIC -fopenmp -I..
 CXXFLAGS_CUDA        =  -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared -arch=compute_70 -I/mnt/data1/dsr/cub --use_fast_math --default-stream per-thread -I..
 ROOTCFLAGS           = -pthread -m64 -I/cvmfs/cms.cern.ch/slc7_amd64_gcc900/cms/cmssw/CMSSW_11_2_0_pre5/external/slc7_amd64_gcc900/bin/../../../../../../../slc7_amd64_gcc900/lcg/root/6.20.06-ghbfee3/include
-ALPAKAINCLUDE        = -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include -std=c++17
+ALPAKAINCLUDE        = -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include -I/cvmfs/cms.cern.ch/el8_amd64_gcc11/cms/cmssw/CMSSW_13_3_0_pre1/src/ -std=c++17
 ALPAKASERIAL         = -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
 ALPAKACUDA           = -DALPAKA_ACC_GPU_CUDA_ENABLED -DALPAKA_ACC_GPU_CUDA_ONLY --expt-relaxed-constexpr
 LD                   = nvcc 
