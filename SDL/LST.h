@@ -1,8 +1,10 @@
+#ifndef LST_H
+#define LST_H
+
 #include <filesystem>
 #include <cstdlib>
 #include <numeric>
 #include <mutex>
-std::once_flag mapsLoaded, modulesInited;
 
 #include "code/cppitertools/enumerate.hpp"
 
@@ -238,3 +240,5 @@ namespace SDL {
     };
 
 } //namespace
+
+#endif
