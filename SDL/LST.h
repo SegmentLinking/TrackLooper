@@ -1,6 +1,8 @@
 #include <filesystem>
 #include <cstdlib>
 #include <numeric>
+#include <mutex>
+std::once_flag mapsLoaded, modulesInited;
 
 #include "code/cppitertools/enumerate.hpp"
 
