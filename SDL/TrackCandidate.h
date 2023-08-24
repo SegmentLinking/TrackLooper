@@ -283,8 +283,8 @@ namespace SDL
                         }
                         else
                         {
-                            eta2 = __H2F(pixelTripletsInGPU.eta[jx]);
-                            phi2 = __H2F(pixelTripletsInGPU.phi[jx]);
+                            eta2 = __H2F(pixelTripletsInGPU.eta[jx - *pixelQuintupletsInGPU.nPixelQuintuplets]);
+                            phi2 = __H2F(pixelTripletsInGPU.phi[jx - *pixelQuintupletsInGPU.nPixelQuintuplets]);
                         }
 
                         float dEta = alpaka::math::abs(acc, eta1 - eta2);
