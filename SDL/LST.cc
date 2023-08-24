@@ -5,9 +5,11 @@ SDL::LST::LST() {
 }
 
 void SDL::LST::eventSetup() {
-    loadMaps();
+    static std::once_flag mapsLoaded;
+    std::call_once(mapsLoaded, &SDL::LST::loadMaps, this);
     TString path = get_absolute_path_after_check_file_exists(TString::Format("%s/data/centroid_CMSSW_12_2_0_pre2.txt",TrackLooperDir_.Data()).Data());
-    SDL::initModules(path);
+    static std::once_flag modulesInited;
+    std::call_once(modulesInited, SDL::initModules, path);
 }
 
 void SDL::LST::run(cudaStream_t stream,
