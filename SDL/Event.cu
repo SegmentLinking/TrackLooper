@@ -1106,6 +1106,7 @@ void SDL::Event::createTrackCandidates()
     {
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerr_T5TC)<<std::endl;
     }cudaStreamSynchronize(stream);
+#ifndef NOPLSDUPCLEAN
     dim3 nThreadspLS(32,32,1);
     dim3 nBlockspLS(MAX_BLOCKS/4, MAX_BLOCKS*4, 1);
     checkHitspLS<<<nBlockspLS, nThreadspLS, 0,stream>>>(*modulesInGPU, *rangesInGPU, *mdsInGPU, *segmentsInGPU, *hitsInGPU, true);
@@ -1115,6 +1116,7 @@ void SDL::Event::createTrackCandidates()
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerrpix)<<std::endl;
 
     }cudaStreamSynchronize(stream);
+#endif
 
     dim3 nThreads_pLS(32,16,1);
     dim3 nBlocks_pLS(20,4,1);
@@ -1303,6 +1305,7 @@ cudaStreamSynchronize(stream);
 }
 void SDL::Event::pixelLineSegmentCleaning()
 {
+#ifndef NOPLSDUPCLEAN
     dim3 nThreadspLS(32,32,1);
     dim3 nBlockspLS(MAX_BLOCKS/4, MAX_BLOCKS*4, 1);
 
@@ -1313,6 +1316,7 @@ void SDL::Event::pixelLineSegmentCleaning()
         std::cout<<"sync failed with error : "<<cudaGetErrorString(cudaerrpix)<<std::endl;
 
     }cudaStreamSynchronize(stream);
+#endif
 }
 
 void SDL::Event::createPixelQuintuplets()
