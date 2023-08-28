@@ -124,7 +124,7 @@ git cms-init
 git remote add SegLink git@github.com:SegmentLinking/cmssw.git
 git fetch SegLink CMSSW_13_0_0_pre4_LST_X_alpaka
 git cms-addpkg RecoTracker Configuration
-git checkout CMSSW_13_0_0_pre4_LST_X
+git checkout CMSSW_13_0_0_pre4_LST_X_alpaka
 cat <<EOF >lst.xml
 <tool name="lst" version="1.0">
   <client>
