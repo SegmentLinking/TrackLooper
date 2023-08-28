@@ -162,6 +162,7 @@ For convenience, the workflow has been run for 100 events and the output is stor
 For enabling the LST reconstruction in the CMSSW tracking workflow, a modified step3 needs to be run.
 This is based on the step3 command of the 21034.1 workflow with the following changes:
    - Use dummy PU input files by changing the argument of the `--pileup_input` flag to `file:file.root` (this will be fixed manually in the configuration file)
+   - The number of threads and streams for the job can be optionally controlled by the `--nThreads` and `--nStreams` command line options respectively (`1` ends up being the actual default value for both, and more info can be found by running `cmsDriver.py --help`).
    - Add at the end of the command: `--procModifiers gpu,trackingLST,trackingIters01 --no_exec`
 
 Run the command and modify the output configuration file with the following:

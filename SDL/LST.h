@@ -1,6 +1,10 @@
+#ifndef LST_H
+#define LST_H
+
 #include <filesystem>
 #include <cstdlib>
 #include <numeric>
+#include <mutex>
 
 #include "code/cppitertools/enumerate.hpp"
 
@@ -236,3 +240,5 @@ namespace SDL {
     };
 
 } //namespace
+
+#endif
