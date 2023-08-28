@@ -122,7 +122,7 @@ cd CMSSW_13_0_0_pre4/src
 cmsenv
 git cms-init
 git remote add SegLink git@github.com:SegmentLinking/cmssw.git
-git fetch SegLink CMSSW_13_0_0_pre4_LST_X
+git fetch SegLink CMSSW_13_0_0_pre4_LST_X_alpaka
 git cms-addpkg RecoTracker Configuration
 git checkout CMSSW_13_0_0_pre4_LST_X
 cat <<EOF >lst.xml
