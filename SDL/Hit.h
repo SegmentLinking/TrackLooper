@@ -118,26 +118,12 @@ namespace SDL
         return alpaka::math::log(acc, val) / ln10;
     };
 
-    // Hyperbolic functions were just merged into Alpaka early 2023,
-    // so we have to make use of temporary functions for now.
-    template<typename TAcc>
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE float temp_acosh(TAcc const & acc, float val)
-    {
-        return alpaka::math::log(acc, val + alpaka::math::sqrt(acc, val * val - 1));
-    };
-
-    template<typename TAcc>
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE float temp_sinh(TAcc const & acc, float val)
-    {
-        return 0.5 * (alpaka::math::exp(acc, val) - alpaka::math::exp(acc, -val));
-    };
-
     template<typename TAcc>
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE float eta(TAcc const & acc, float x, float y, float z)
     {
         float r3 = alpaka::math::sqrt(acc, x*x + y*y + z*z );
         float rt = alpaka::math::sqrt(acc, x*x + y*y );
-        float eta = ((z > 0) - ( z < 0)) * temp_acosh(acc, r3 / rt );
+        float eta = ((z > 0) - ( z < 0)) * alpaka::math::acosh(acc, r3 / rt );
         return eta;
     };
 
@@ -281,8 +267,7 @@ namespace SDL
 
                 hitsInGPU.rts[ihit] = alpaka::math::sqrt(acc, ihit_x*ihit_x + ihit_y*ihit_y);
                 hitsInGPU.phis[ihit] = SDL::phi(acc, ihit_x,ihit_y);
-                // Acosh has no supported implementation in Alpaka right now.
-                hitsInGPU.etas[ihit] = ((ihit_z>0)-(ihit_z<0)) * SDL::temp_acosh(acc, alpaka::math::sqrt(acc, ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/hitsInGPU.rts[ihit]);
+                hitsInGPU.etas[ihit] = ((ihit_z>0)-(ihit_z<0)) * alpaka::math::acosh(acc, alpaka::math::sqrt(acc, ihit_x*ihit_x+ihit_y*ihit_y+ihit_z*ihit_z)/hitsInGPU.rts[ihit]);
                 int found_index = binary_search(modulesInGPU.mapdetId, iDetId, nModules);
                 uint16_t lastModuleIndex = modulesInGPU.mapIdx[found_index];
 

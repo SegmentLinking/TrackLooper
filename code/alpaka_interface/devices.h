@@ -7,13 +7,12 @@
 #include <alpaka/alpaka.hpp>
 
 #include "config.h"
-#include "traits.h"
 
 namespace lst::alpakatools {
 
   namespace detail {
 
-    template <typename TPlatform, typename = std::enable_if_t<is_platform_v<TPlatform>>>
+    template <typename TPlatform, typename = std::enable_if_t<alpaka::isPlatform<TPlatform>>>
     inline std::vector<alpaka::Dev<TPlatform>> enumerate_devices() {
       using Platform = TPlatform;
       using Device = alpaka::Dev<Platform>;
@@ -32,7 +31,7 @@ namespace lst::alpakatools {
   }  // namespace detail
 
   // return the alpaka accelerator devices for the given platform
-  template <typename TPlatform, typename = std::enable_if_t<is_platform_v<TPlatform>>>
+  template <typename TPlatform, typename = std::enable_if_t<alpaka::isPlatform<TPlatform>>>
   inline std::vector<alpaka::Dev<TPlatform>> const& devices() {
     static const auto devices = detail::enumerate_devices<TPlatform>();
     return devices;

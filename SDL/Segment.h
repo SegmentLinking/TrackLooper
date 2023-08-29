@@ -812,7 +812,7 @@ namespace SDL
                 addMDToMemory(acc, mdsInGPU, hitsInGPU, modulesInGPU, hitIndices2[tid], hitIndices3[tid], pixelModuleIndex, 0,0,0,0,0,0,0,0,0,outerMDIndex);
     
                 //in outer hits - pt, eta, phi
-                float slope = SDL::temp_sinh(acc, hitsInGPU.ys[mdsInGPU.outerHitIndices[innerMDIndex]]);
+                float slope = alpaka::math::sinh(acc, hitsInGPU.ys[mdsInGPU.outerHitIndices[innerMDIndex]]);
                 float intercept = hitsInGPU.zs[mdsInGPU.anchorHitIndices[innerMDIndex]] - slope * hitsInGPU.rts[mdsInGPU.anchorHitIndices[innerMDIndex]];
                 float score_lsq=(hitsInGPU.rts[mdsInGPU.anchorHitIndices[outerMDIndex]] * slope + intercept) - (hitsInGPU.zs[mdsInGPU.anchorHitIndices[outerMDIndex]]);
                 score_lsq = score_lsq * score_lsq;
