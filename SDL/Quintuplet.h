@@ -2239,7 +2239,7 @@ namespace SDL
                                 return;
                             } // ignore anything else TODO: move this to start, before object is made (faster)
                             int totOccupancyQuintuplets = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &quintupletsInGPU.totOccupancyQuintuplets[lowerModule1], 1);
-                            if(totOccupancyQuintuplets >= (rangesInGPU.quintupletModuleIndices[lowerModule1 + 1] - rangesInGPU.quintupletModuleIndices[lowerModule1]))
+                            if(totOccupancyQuintuplets >= rangesInGPU.quintupletModuleOccupancy[lowerModule1])
                             {
 #ifdef Warnings
                                 printf("Quintuplet excess alert! Module index = %d\n", lowerModule1);
@@ -2338,6 +2338,7 @@ namespace SDL
                 int nTotQ = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalQuintupletsx, occupancy);
                 rangesInGPU.quintupletModuleIndices[i] = nTotQ;
                 rangesInGPU.indicesOfEligibleT5Modules[nEligibleT5Modules] = i;
+                rangesInGPU.quintupletModuleOccupancy[i] = occupancy;
             }
 
             // Wait for all threads to finish before reporting final values
