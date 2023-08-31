@@ -2204,6 +2204,20 @@ namespace SDL
             for (int iter = globalThreadIdx[0]; iter < nEligibleT5Modules; iter += gridThreadExtent[0])
             {
                 uint16_t lowerModule1 = rangesInGPU.indicesOfEligibleT5Modules[iter];
+                short layer2_adjustment;
+                int layer = modulesInGPU.layers[lowerModule1];
+                if(layer == 1)
+                {
+                    layer2_adjustment = 1;
+                } // get upper segment to be in second layer
+                else if(layer == 2)
+                {
+                    layer2_adjustment = 0;
+                } // get lower segment to be in second layer
+                else
+                {
+                    continue;
+                }
                 unsigned int nInnerTriplets = tripletsInGPU.nTriplets[lowerModule1];
                 for( unsigned int innerTripletArrayIndex = globalThreadIdx[1]; innerTripletArrayIndex < nInnerTriplets; innerTripletArrayIndex += gridThreadExtent[1])
                 {
@@ -2224,20 +2238,6 @@ namespace SDL
 
                         if(success)
                         {
-                            short layer2_adjustment;
-                            int layer = modulesInGPU.layers[lowerModule1];
-                            if(layer == 1)
-                            {
-                                layer2_adjustment = 1;
-                            } // get upper segment to be in second layer
-                            else if(layer == 2)
-                            {
-                                layer2_adjustment = 0;
-                            } // get lower segment to be in second layer
-                            else
-                            {
-                                return;
-                            } // ignore anything else TODO: move this to start, before object is made (faster)
                             int totOccupancyQuintuplets = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &quintupletsInGPU.totOccupancyQuintuplets[lowerModule1], 1);
                             if(totOccupancyQuintuplets >= rangesInGPU.quintupletModuleOccupancy[lowerModule1])
                             {
