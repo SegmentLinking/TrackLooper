@@ -66,6 +66,7 @@ using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
 template<typename TAcc, typename TData>
 using Buf = alpaka::Buf<TAcc, TData, Dim1d, Idx>;
 
+// Allocation wrapper function to make integration of the caching allocator easier and reduce code boilerplate.
 template<typename T, typename TAcc, typename TSize, typename TQueue>
 ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<TAcc, T> allocBufWrapper(TAcc const & devAccIn, TSize nElements, TQueue queue) {
 #ifdef CACHE_ALLOC
@@ -75,17 +76,35 @@ ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<TAcc, T> allocBufWrapper(TAcc const & devAcc
 #endif
 }
 
+// Second allocation wrapper function when queue is not given. Reduces code boilerplate.
 template<typename T, typename TAcc, typename TSize>
 ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<TAcc, T> allocBufWrapper(TAcc const & devAccIn, TSize nElements) {
     return alpaka::allocBuf<T, Idx>(devAccIn, Vec1d(static_cast<Idx>(nElements)));
 }
 
+// Wrapper function to reduce code boilerplate for defining grid/block sizes.
 ALPAKA_FN_HOST ALPAKA_FN_INLINE Vec createVec(int x, int y, int z)
 {
-#ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
-    x = y = z = 1;
-#endif
     return Vec(static_cast<Idx>(x), static_cast<Idx>(y), static_cast<Idx>(z));
+}
+
+// Adjust grid and block sizes based on backend configuration
+template <typename Vec>
+ALPAKA_FN_HOST ALPAKA_FN_INLINE WorkDiv createWorkDiv(
+    const Vec& blocksPerGrid, 
+    const Vec& threadsPerBlock, 
+    const Vec& elementsPerThread
+) {
+    Vec adjustedBlocks  = blocksPerGrid;
+    Vec adjustedThreads = threadsPerBlock;
+
+    // Serial execution, so all launch parameters set to 1.
+#if defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
+    adjustedBlocks  = Vec::all(static_cast<Idx>(1));
+    adjustedThreads = Vec::all(static_cast<Idx>(1));
+#endif
+
+    return WorkDiv(adjustedBlocks, adjustedThreads, elementsPerThread);
 }
 
 const unsigned int MAX_BLOCKS = 80;
