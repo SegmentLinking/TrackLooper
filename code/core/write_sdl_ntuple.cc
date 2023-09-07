@@ -37,6 +37,7 @@ void createRequiredOutputBranches()
     ana.tx->createBranch<vector<float>>("sim_vx");
     ana.tx->createBranch<vector<float>>("sim_vy");
     ana.tx->createBranch<vector<float>>("sim_vz");
+    ana.tx->createBranch<vector<int>>("sim_processType");
     ana.tx->createBranch<vector<float>>("sim_trkNtupIdx");
     ana.tx->createBranch<vector<int>>("sim_TC_matched");
     ana.tx->createBranch<vector<int>>("sim_TC_matched_mask");
@@ -215,6 +216,7 @@ void setOutputBranches(SDL::Event* event)
         ana.tx->pushbackToBranch<float>("sim_vx", trk.simvtx_x()[vtxidx]);
         ana.tx->pushbackToBranch<float>("sim_vy", trk.simvtx_y()[vtxidx]);
         ana.tx->pushbackToBranch<float>("sim_vz", trk.simvtx_z()[vtxidx]);
+        ana.tx->pushbackToBranch<int>("sim_processType", trk.simvtx_processType()[vtxidx]);
 
         // The trkNtupIdx is the idx in the trackingNtuple
         ana.tx->pushbackToBranch<float>("sim_trkNtupIdx", isimtrk);
