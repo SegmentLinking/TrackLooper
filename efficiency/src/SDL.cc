@@ -783,6 +783,11 @@ void SDL::Init(TTree *tree) {
     sim_vz_branch = tree->GetBranch("sim_vz");
     if (sim_vz_branch) { sim_vz_branch->SetAddress(&sim_vz_); }
   }
+  sim_processType_branch = 0;
+  if (tree->GetBranch("sim_processType") != 0) {
+    sim_processType_branch = tree->GetBranch("sim_processType");
+    if (sim_processType_branch) { sim_processType_branch->SetAddress(&sim_processType_); }
+  }
   tce_maxHitMatchedCounts_branch = 0;
   if (tree->GetBranch("tce_maxHitMatchedCounts") != 0) {
     tce_maxHitMatchedCounts_branch = tree->GetBranch("tce_maxHitMatchedCounts");
@@ -998,6 +1003,7 @@ void SDL::GetEntry(unsigned int idx) {
   sim_vx_isLoaded = false;
   sim_vy_isLoaded = false;
   sim_vz_isLoaded = false;
+  sim_processType_isLoaded = false;
   tce_maxHitMatchedCounts_isLoaded = false;
   t3_pt_isLoaded = false;
   module_rings_isLoaded = false;
@@ -1167,6 +1173,7 @@ void SDL::LoadAllBranches() {
   if (sim_vx_branch != 0) sim_vx();
   if (sim_vy_branch != 0) sim_vy();
   if (sim_vz_branch != 0) sim_vz();
+  if (sim_processType_branch != 0) sim_processType();
   if (tce_maxHitMatchedCounts_branch != 0) tce_maxHitMatchedCounts();
   if (t3_pt_branch != 0) t3_pt();
   if (module_rings_branch != 0) module_rings();
@@ -3051,6 +3058,18 @@ const vector<float> &SDL::sim_vz() {
   }
   return *sim_vz_;
 }
+const vector<float> &SDL::sim_processType() {
+  if (not sim_processType_isLoaded) {
+    if (sim_processType_branch != 0) {
+      sim_processType_branch->GetEntry(index);
+    } else {
+      printf("branch sim_processType_branch does not exist!\n");
+      exit(1);
+    }
+    sim_processType_isLoaded = true;
+  }
+  return *sim_processType_;
+}
 const vector<int> &SDL::tce_maxHitMatchedCounts() {
   if (not tce_maxHitMatchedCounts_isLoaded) {
     if (tce_maxHitMatchedCounts_branch != 0) {
@@ -3358,6 +3377,7 @@ namespace tas {
   const vector<float> &sim_vx() { return sdl.sim_vx(); }
   const vector<float> &sim_vy() { return sdl.sim_vy(); }
   const vector<float> &sim_vz() { return sdl.sim_vz(); }
+  const vector<float> &sim_processType() { return sdl.sim_processType(); }
   const vector<int> &tce_maxHitMatchedCounts() { return sdl.tce_maxHitMatchedCounts(); }
   const vector<float> &t3_pt() { return sdl.t3_pt(); }
   const vector<int> &module_rings() { return sdl.module_rings(); }
