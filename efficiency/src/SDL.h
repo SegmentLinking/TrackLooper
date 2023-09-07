@@ -482,6 +482,9 @@ protected:
   vector<float> *sim_vx_;
   TBranch *sim_vx_branch;
   bool sim_vx_isLoaded;
+  vector<int> *sim_processType_;
+  TBranch *sim_processType_branch;
+  bool sim_processType_isLoaded;
   vector<float> *sim_vy_;
   TBranch *sim_vy_branch;
   bool sim_vy_isLoaded;
@@ -681,6 +684,7 @@ public:
   const vector<float> &sim_vx();
   const vector<float> &sim_vy();
   const vector<float> &sim_vz();
+  const vector<int> &sim_processType();
   const vector<int> &tce_maxHitMatchedCounts();
   const vector<float> &t3_pt();
   const vector<int> &module_rings();
@@ -857,6 +861,7 @@ namespace tas {
   const vector<float> &sim_vx();
   const vector<float> &sim_vy();
   const vector<float> &sim_vz();
+  const vector<int> &sim_processType();
   const vector<int> &tce_maxHitMatchedCounts();
   const vector<float> &t3_pt();
   const vector<int> &module_rings();
