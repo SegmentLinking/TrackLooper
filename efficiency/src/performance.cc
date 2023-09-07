@@ -34,13 +34,15 @@ int main(int argc, char** argv)
         "base",  // default baseline that is more inline with MTV
         "loweta", // When the eta cut is restricted to 2.4
         "xtr", // When the eta cut is restricted to transition regions
-        "vtr" // When the eta cut is vetoing transition regions
+        "vtr", // When the eta cut is vetoing transition regions
+        "noinel" // removing sim_processType == 121 and loweta
     };
     std::vector<std::function<bool(unsigned int)>> sels = {
         [&](unsigned int isim) { return 1.; },
         [&](unsigned int isim) { return abs(sdl.sim_eta().at(isim)) < 2.4; },
         [&](unsigned int isim) { return abs(sdl.sim_eta().at(isim)) > 1.1 and abs(sdl.sim_eta().at(isim)) < 1.7; },
-        [&](unsigned int isim) { return (abs(sdl.sim_eta().at(isim)) < 1.1 or abs(sdl.sim_eta().at(isim)) > 1.7) and abs(sdl.sim_eta().at(isim)) < 2.4; }
+        [&](unsigned int isim) { return (abs(sdl.sim_eta().at(isim)) < 1.1 or abs(sdl.sim_eta().at(isim)) > 1.7) and abs(sdl.sim_eta().at(isim)) < 2.4; },
+        [&](unsigned int isim) { return abs(sdl.sim_eta().at(isim)) < 2.4 and abs(sdl.sim_processType().at(isim)) != 121; }
     };
     pdgids.insert(pdgids.end(), ana.pdgids.begin(), ana.pdgids.end());
 
