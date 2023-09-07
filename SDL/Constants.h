@@ -34,14 +34,11 @@ Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
 
 // - AccGpuCudaRt
 // - AccCpuThreads
-// - AccCpuFibers
 // - AccCpuSerial
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
     using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
 #elif ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
     using Acc = alpaka::AccCpuThreads<Dim, Idx>;
-#elif ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED
-    using Acc = alpaka::AccCpuFibers<Dim, Idx>;
 #elif ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
     using Acc = alpaka::AccCpuSerial<Dim, Idx>;
 #endif
@@ -102,6 +99,11 @@ ALPAKA_FN_HOST ALPAKA_FN_INLINE WorkDiv createWorkDiv(
 #if defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
     adjustedBlocks  = Vec::all(static_cast<Idx>(1));
     adjustedThreads = Vec::all(static_cast<Idx>(1));
+#endif
+
+    // Threads enabled, set number of blocks to 1.
+#if defined(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED)
+    adjustedBlocks = Vec::all(static_cast<Idx>(1));
 #endif
 
     return WorkDiv(adjustedBlocks, adjustedThreads, elementsPerThread);
