@@ -11,7 +11,7 @@ HEADERS=$(SOURCES:.cc=.h)
 
 CXX         = g++
 CXXFLAGS    = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual -lineinfo  -fopenmp -lgomp --default-stream per-thread
-LDFLAGS     = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual -I/mnt/data1/dsr/cub
+LDFLAGS     = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual
 SOFLAGS     = -g -shared
 CXXFLAGS    = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual
 LDFLAGS     = -g -O2
@@ -19,7 +19,7 @@ ROOTLIBS    = $(shell root-config --libs)
 ROOTCFLAGS  = $(foreach option, $(shell root-config --cflags), $(option))
 ALPAKAINCLUDE = -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include -std=c++17 -DALPAKA_DEBUG=0
 ALPAKASERIAL = -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
-CFLAGS      = $(ROOTCFLAGS)  -Wall  -Wno-unused-function  -g  -O2  -fPIC  -fno-var-tracking -ISDL -I$(shell pwd) -Icode  -Icode/core -I/mnt/data1/dsr/cub -I${CUDA_HOME}/include  -fopenmp
+CFLAGS      = $(ROOTCFLAGS)  -Wall  -Wno-unused-function  -g  -O2  -fPIC  -fno-var-tracking -ISDL -I$(shell pwd) -Icode  -Icode/core -I${CUDA_HOME}/include  -fopenmp
 EXTRACFLAGS = $(shell rooutil-config) -g
 EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer -L${CUDA_HOME}/lib64 -lcudart -fopenmp
 DOQUINTUPLET = #-DFP16_Base
