@@ -540,7 +540,7 @@ namespace SDL
                         float dPhi = SDL::calculate_dPhi(phi_pix1, phi_pix2);
 
                         float dR2 = dEta*dEta + dPhi*dPhi;
-                        if(npMatched >= 1 or dR2 < 0.00075f and (ix < jx))
+                        if(( (npMatched >= 1) || (dR2 < 0.00075f) ) && (ix < jx))
                         {
                             rmPixelSegmentFromMemory(segmentsInGPU, ix); 
                         }
