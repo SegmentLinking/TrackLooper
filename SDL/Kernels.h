@@ -479,13 +479,10 @@ namespace SDL
                 float eta_pix1 = segmentsInGPU.eta[ix];
                 float phi_pix1 = segmentsInGPU.phi[ix];
 
-                for(int jx = globalThreadIdx[2]; jx < nPixelSegments; jx += gridThreadExtent[2])
+                for(int jx = ix + 1 + globalThreadIdx[2]; jx < nPixelSegments; jx += gridThreadExtent[2])
                 {
                     float eta_pix2 = segmentsInGPU.eta[jx];
                     float phi_pix2 = segmentsInGPU.phi[jx];
-
-                    if (ix == jx)
-                        continue;
 
                     if (alpaka::math::abs(acc, eta_pix2 - eta_pix1) > 0.1f)
                         continue;
@@ -494,11 +491,14 @@ namespace SDL
                         continue;
 
                     char quad_diff = segmentsInGPU.isQuad[ix] - segmentsInGPU.isQuad[jx];
-                    float ptErr_diff = segmentsInGPU.ptIn[ix] - segmentsInGPU.ptIn[jx];
                     float score_diff = segmentsInGPU.score[ix] - segmentsInGPU.score[jx];
-                    // Always keep quads over trips. If they are the same, we want the object with the lower pt Error
-                    if((quad_diff > 0) || (score_diff < 0 && quad_diff == 0))
-                        continue;
+                    // Always keep quads over trips. If they are the same, we want the object with better score
+                    int idxToRemove;
+                    if (quad_diff > 0) idxToRemove = jx;
+                    else if (quad_diff < 0) idxToRemove = ix;
+                    else if (score_diff < 0) idxToRemove = jx;
+                    else if (score_diff > 0) idxToRemove = ix;
+                    else idxToRemove = ix;
 
                     unsigned int phits2[4];
                     phits2[0] = segmentsInGPU.pLSHitsIdxs[jx].x;
@@ -525,14 +525,9 @@ namespace SDL
                                 break;
                         }
                     }
-                    // If exact match, remove only 1
-                    if((npMatched == 4) && (ix < jx))
+                    if(npMatched >= 3)
                     {
-                        rmPixelSegmentFromMemory(segmentsInGPU, ix);
-                    }
-                    if(npMatched == 3)
-                    {
-                        rmPixelSegmentFromMemory(segmentsInGPU, ix);
+                        rmPixelSegmentFromMemory(segmentsInGPU, idxToRemove);
                     }
                     if(secondpass)
                     {
@@ -540,9 +535,9 @@ namespace SDL
                         float dPhi = SDL::calculate_dPhi(phi_pix1, phi_pix2);
 
                         float dR2 = dEta*dEta + dPhi*dPhi;
-                        if(( (npMatched >= 1) || (dR2 < 0.00075f) ) && (ix < jx))
+                        if((npMatched >= 1) || (dR2 < 1e-5f))
                         {
-                            rmPixelSegmentFromMemory(segmentsInGPU, ix); 
+                            rmPixelSegmentFromMemory(segmentsInGPU, idxToRemove);
                         }
                     }
                 }
