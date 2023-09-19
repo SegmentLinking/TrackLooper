@@ -212,8 +212,8 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
             TAcc const & acc,
-            struct SDL::modules& modulesInGPU,
-            struct SDL::hits& hitsInGPU,
+            struct SDL::modules modulesInGPU,
+            struct SDL::hits hitsInGPU,
             int const & nLowerModules) const
         {
             using Dim = alpaka::Dim<TAcc>;
@@ -248,8 +248,8 @@ namespace SDL
             unsigned int nEndCapMap, // Number of elements in endcap map
             unsigned int* geoMapDetId, // DetId's from endcap map
             float* geoMapPhi, // Phi values from endcap map
-            struct SDL::modules& modulesInGPU,
-            struct SDL::hits& hitsInGPU,
+            struct SDL::modules modulesInGPU,
+            struct SDL::hits hitsInGPU,
             unsigned int const & nHits) const // Total number of hits in event
         {
             using Dim = alpaka::Dim<TAcc>;

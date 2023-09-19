@@ -2186,12 +2186,12 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct SDL::modules& modulesInGPU,
-                struct SDL::miniDoublets& mdsInGPU,
-                struct SDL::segments& segmentsInGPU,
-                struct SDL::triplets& tripletsInGPU,
-                struct SDL::quintuplets& quintupletsInGPU,
-                struct SDL::objectRanges& rangesInGPU,
+                struct SDL::modules modulesInGPU,
+                struct SDL::miniDoublets mdsInGPU,
+                struct SDL::segments segmentsInGPU,
+                struct SDL::triplets tripletsInGPU,
+                struct SDL::quintuplets quintupletsInGPU,
+                struct SDL::objectRanges rangesInGPU,
                 uint16_t nEligibleT5Modules) const
         {
             using Dim = alpaka::Dim<TAcc>;
@@ -2280,9 +2280,9 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct SDL::modules& modulesInGPU,
-                struct SDL::triplets& tripletsInGPU,
-                struct SDL::objectRanges& rangesInGPU) const
+                struct SDL::modules modulesInGPU,
+                struct SDL::triplets tripletsInGPU,
+                struct SDL::objectRanges rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;
@@ -2356,9 +2356,9 @@ namespace SDL
         template<typename TAcc>
         ALPAKA_FN_ACC void operator()(
                 TAcc const & acc,
-                struct SDL::modules& modulesInGPU,
-                struct SDL::quintuplets& quintupletsInGPU,
-                struct SDL::objectRanges& rangesInGPU) const
+                struct SDL::modules modulesInGPU,
+                struct SDL::quintuplets quintupletsInGPU,
+                struct SDL::objectRanges rangesInGPU) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;

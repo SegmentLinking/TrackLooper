@@ -219,9 +219,9 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
     alpaka::memcpy(queue, hitsBuffers->nHits_buf, nHits_view, 1);
     alpaka::wait(queue);
 
-    Vec const threadsPerBlock1(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
-    Vec const blocksPerGrid1(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
-    WorkDiv const hit_loop_workdiv(blocksPerGrid1, threadsPerBlock1, elementsPerThread);
+    Vec const threadsPerBlock1 = createVec(1,1,256);
+    Vec const blocksPerGrid1 = createVec(1,1,MAX_BLOCKS);
+    WorkDiv const hit_loop_workdiv = createWorkDiv(blocksPerGrid1, threadsPerBlock1, elementsPerThread);
 
     hitLoopKernel hit_loop_kernel;
     auto const hit_loop_task(alpaka::createTaskKernel<Acc>(
@@ -239,9 +239,9 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
 
     alpaka::enqueue(queue, hit_loop_task);
 
-    Vec const threadsPerBlock2(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
-    Vec const blocksPerGrid2(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
-    WorkDiv const module_ranges_workdiv(blocksPerGrid2, threadsPerBlock2, elementsPerThread);
+    Vec const threadsPerBlock2 = createVec(1,1,256);
+    Vec const blocksPerGrid2 = createVec(1,1,MAX_BLOCKS);
+    WorkDiv const module_ranges_workdiv = createWorkDiv(blocksPerGrid2, threadsPerBlock2, elementsPerThread);
 
     moduleRangesKernel module_ranges_kernel;
     auto const module_ranges_task(alpaka::createTaskKernel<Acc>(
@@ -275,9 +275,9 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         alpaka::memcpy(queue, dst_view_miniDoubletModuleOccupancy, src_view_value);
         alpaka::wait(queue);
 
-        Vec const threadsPerBlockCreateMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
-        Vec const blocksPerGridCreateMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
-        WorkDiv const createMDArrayRangesGPU_workDiv(blocksPerGridCreateMD, threadsPerBlockCreateMD, elementsPerThread);
+        Vec const threadsPerBlockCreateMD = createVec(1,1,1024);
+        Vec const blocksPerGridCreateMD = createVec(1,1,1);
+        WorkDiv const createMDArrayRangesGPU_workDiv = createWorkDiv(blocksPerGridCreateMD, threadsPerBlockCreateMD, elementsPerThread);
 
         SDL::createMDArrayRangesGPU createMDArrayRangesGPU_kernel;
         auto const createMDArrayRangesGPUTask(alpaka::createTaskKernel<Acc>(
@@ -309,9 +309,9 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
         // can be optimized here: because we didn't distinguish pixel segments and outer-tracker segments and call them both "segments", so they use the index continuously.
         // If we want to further study the memory footprint in detail, we can separate the two and allocate different memories to them
 
-        Vec const threadsPerBlockCreateSeg(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
-        Vec const blocksPerGridCreateSeg(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
-        WorkDiv const createSegmentArrayRanges_workDiv(blocksPerGridCreateSeg, threadsPerBlockCreateSeg, elementsPerThread);
+        Vec const threadsPerBlockCreateSeg = createVec(1,1,1024);
+        Vec const blocksPerGridCreateSeg = createVec(1,1,1);
+        WorkDiv const createSegmentArrayRanges_workDiv = createWorkDiv(blocksPerGridCreateSeg, threadsPerBlockCreateSeg, elementsPerThread);
 
         SDL::createSegmentArrayRanges createSegmentArrayRanges_kernel;
         auto const createSegmentArrayRangesTask(alpaka::createTaskKernel<Acc>(
@@ -383,9 +383,9 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
 
     alpaka::wait(queue);
 
-    Vec const threadsPerBlock(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
-    Vec const blocksPerGrid(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
-    WorkDiv const addPixelSegmentToEvent_workdiv(blocksPerGrid, threadsPerBlock, elementsPerThread);
+    Vec const threadsPerBlock = createVec(1,1,256);
+    Vec const blocksPerGrid = createVec(1,1,MAX_BLOCKS);
+    WorkDiv const addPixelSegmentToEvent_workdiv = createWorkDiv(blocksPerGrid, threadsPerBlock, elementsPerThread);
 
     addPixelSegmentToEventKernel addPixelSegmentToEvent_kernel;
     auto const addPixelSegmentToEvent_task(alpaka::createTaskKernel<Acc>(
@@ -420,9 +420,9 @@ void SDL::Event::createMiniDoublets()
     alpaka::memcpy(queue, dst_view_miniDoubletModuleOccupancy, src_view_value);
     alpaka::wait(queue);
 
-    Vec const threadsPerBlockCreateMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
-    Vec const blocksPerGridCreateMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
-    WorkDiv const createMDArrayRangesGPU_workDiv(blocksPerGridCreateMD, threadsPerBlockCreateMD, elementsPerThread);
+    Vec const threadsPerBlockCreateMD = createVec(1,1,1024);
+    Vec const blocksPerGridCreateMD = createVec(1,1,1);
+    WorkDiv const createMDArrayRangesGPU_workDiv = createWorkDiv(blocksPerGridCreateMD, threadsPerBlockCreateMD, elementsPerThread);
 
     SDL::createMDArrayRangesGPU createMDArrayRangesGPU_kernel;
     auto const createMDArrayRangesGPUTask(alpaka::createTaskKernel<Acc>(
@@ -450,9 +450,9 @@ void SDL::Event::createMiniDoublets()
         mdsInGPU->setData(*miniDoubletsBuffers);
     }
 
-    Vec const threadsPerBlockCreateMDInGPU(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(32));
-    Vec const blocksPerGridCreateMDInGPU(static_cast<Idx>(1), static_cast<Idx>(nLowerModules/threadsPerBlockCreateMDInGPU[1]), static_cast<Idx>(1));
-    WorkDiv const createMiniDoubletsInGPUv2_workDiv(blocksPerGridCreateMDInGPU, threadsPerBlockCreateMDInGPU, elementsPerThread);
+    Vec const threadsPerBlockCreateMDInGPU = createVec(1,16,32);
+    Vec const blocksPerGridCreateMDInGPU = createVec(1,nLowerModules/threadsPerBlockCreateMDInGPU[1],1);
+    WorkDiv const createMiniDoubletsInGPUv2_workDiv = createWorkDiv(blocksPerGridCreateMDInGPU, threadsPerBlockCreateMDInGPU, elementsPerThread);
 
     SDL::createMiniDoubletsInGPUv2 createMiniDoubletsInGPUv2_kernel;
     auto const createMiniDoubletsInGPUv2Task(alpaka::createTaskKernel<Acc>(
@@ -465,9 +465,9 @@ void SDL::Event::createMiniDoublets()
 
     alpaka::enqueue(queue, createMiniDoubletsInGPUv2Task);
 
-    Vec const threadsPerBlockAddMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
-    Vec const blocksPerGridAddMD(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
-    WorkDiv const addMiniDoubletRangesToEventExplicit_workDiv(blocksPerGridAddMD, threadsPerBlockAddMD, elementsPerThread);
+    Vec const threadsPerBlockAddMD = createVec(1,1,1024);
+    Vec const blocksPerGridAddMD = createVec(1,1,1);
+    WorkDiv const addMiniDoubletRangesToEventExplicit_workDiv = createWorkDiv(blocksPerGridAddMD, threadsPerBlockAddMD, elementsPerThread);
 
     SDL::addMiniDoubletRangesToEventExplicit addMiniDoubletRangesToEventExplicit_kernel;
     auto const addMiniDoubletRangesToEventExplicitTask(alpaka::createTaskKernel<Acc>(
@@ -496,9 +496,9 @@ void SDL::Event::createSegmentsWithModuleMap()
         segmentsInGPU->setData(*segmentsBuffers);
     }
 
-    Vec const threadsPerBlockCreateSeg(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(64));
-    Vec const blocksPerGridCreateSeg(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(nLowerModules));
-    WorkDiv const createSegmentsInGPUv2_workDiv(blocksPerGridCreateSeg, threadsPerBlockCreateSeg, elementsPerThread);
+    Vec const threadsPerBlockCreateSeg = createVec(1,1,64);
+    Vec const blocksPerGridCreateSeg = createVec(1,1,nLowerModules);
+    WorkDiv const createSegmentsInGPUv2_workDiv = createWorkDiv(blocksPerGridCreateSeg, threadsPerBlockCreateSeg, elementsPerThread);
 
     SDL::createSegmentsInGPUv2 createSegmentsInGPUv2_kernel;
     auto const createSegmentsInGPUv2Task(alpaka::createTaskKernel<Acc>(
@@ -511,9 +511,9 @@ void SDL::Event::createSegmentsWithModuleMap()
 
     alpaka::enqueue(queue, createSegmentsInGPUv2Task);
 
-    Vec const threadsPerBlockAddSeg(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
-    Vec const blocksPerGridAddSeg(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
-    WorkDiv const addSegmentRangesToEventExplicit_workDiv(blocksPerGridAddSeg, threadsPerBlockAddSeg, elementsPerThread);
+    Vec const threadsPerBlockAddSeg = createVec(1,1,1024);
+    Vec const blocksPerGridAddSeg = createVec(1,1,1);
+    WorkDiv const addSegmentRangesToEventExplicit_workDiv = createWorkDiv(blocksPerGridAddSeg, threadsPerBlockAddSeg, elementsPerThread);
 
     SDL::addSegmentRangesToEventExplicit addSegmentRangesToEventExplicit_kernel;
     auto const addSegmentRangesToEventExplicitTask(alpaka::createTaskKernel<Acc>(
@@ -536,9 +536,9 @@ void SDL::Event::createTriplets()
 {
     if(tripletsInGPU == nullptr)
     {
-        Vec const threadsPerBlockCreateTrip(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
-        Vec const blocksPerGridCreateTrip(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
-        WorkDiv const createTripletArrayRanges_workDiv(blocksPerGridCreateTrip, threadsPerBlockCreateTrip, elementsPerThread);
+        Vec const threadsPerBlockCreateTrip = createVec(1,1,1024);
+        Vec const blocksPerGridCreateTrip = createVec(1,1,1);
+        WorkDiv const createTripletArrayRanges_workDiv = createWorkDiv(blocksPerGridCreateTrip, threadsPerBlockCreateTrip, elementsPerThread);
 
         SDL::createTripletArrayRanges createTripletArrayRanges_kernel;
         auto const createTripletArrayRangesTask(alpaka::createTaskKernel<Acc>(
@@ -605,9 +605,9 @@ void SDL::Event::createTriplets()
     alpaka::memcpy(queue, index_gpu_buf, index_buf, nonZeroModules);
     alpaka::wait(queue);
 
-    Vec const threadsPerBlockCreateTrip(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
-    Vec const blocksPerGridCreateTrip(static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1), static_cast<Idx>(1));
-    WorkDiv const createTripletsInGPUv2_workDiv(blocksPerGridCreateTrip, threadsPerBlockCreateTrip, elementsPerThread);
+    Vec const threadsPerBlockCreateTrip = createVec(1,16,16);
+    Vec const blocksPerGridCreateTrip = createVec(MAX_BLOCKS,1,1);
+    WorkDiv const createTripletsInGPUv2_workDiv = createWorkDiv(blocksPerGridCreateTrip, threadsPerBlockCreateTrip, elementsPerThread);
 
     SDL::createTripletsInGPUv2 createTripletsInGPUv2_kernel;
     auto const createTripletsInGPUv2Task(alpaka::createTaskKernel<Acc>(
@@ -623,9 +623,9 @@ void SDL::Event::createTriplets()
 
     alpaka::enqueue(queue, createTripletsInGPUv2Task);
 
-    Vec const threadsPerBlockAddTrip(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
-    Vec const blocksPerGridAddTrip(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
-    WorkDiv const addTripletRangesToEventExplicit_workDiv(blocksPerGridAddTrip, threadsPerBlockAddTrip, elementsPerThread);
+    Vec const threadsPerBlockAddTrip = createVec(1,1,1024);
+    Vec const blocksPerGridAddTrip = createVec(1,1,1);
+    WorkDiv const addTripletRangesToEventExplicit_workDiv = createWorkDiv(blocksPerGridAddTrip, threadsPerBlockAddTrip, elementsPerThread);
 
     SDL::addTripletRangesToEventExplicit addTripletRangesToEventExplicit_kernel;
     auto const addTripletRangesToEventExplicitTask(alpaka::createTaskKernel<Acc>(
@@ -659,9 +659,9 @@ void SDL::Event::createTrackCandidates()
     alpaka::wait(queue);
     uint16_t nEligibleModules = *alpaka::getPtrNative(nEligibleModules_buf);
 
-    Vec const threadsPerBlock_crossCleanpT3(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(64));
-    Vec const blocksPerGrid_crossCleanpT3(static_cast<Idx>(1), static_cast<Idx>(4), static_cast<Idx>(20));
-    WorkDiv const crossCleanpT3_workDiv(blocksPerGrid_crossCleanpT3, threadsPerBlock_crossCleanpT3, elementsPerThread);
+    Vec const threadsPerBlock_crossCleanpT3 = createVec(1,16,64);
+    Vec const blocksPerGrid_crossCleanpT3 = createVec(1,4,20);
+    WorkDiv const crossCleanpT3_workDiv = createWorkDiv(blocksPerGrid_crossCleanpT3, threadsPerBlock_crossCleanpT3, elementsPerThread);
 
     SDL::crossCleanpT3 crossCleanpT3_kernel;
     auto const crossCleanpT3Task(alpaka::createTaskKernel<Acc>(
@@ -675,9 +675,9 @@ void SDL::Event::createTrackCandidates()
 
     alpaka::enqueue(queue, crossCleanpT3Task);
 
-    Vec const threadsPerBlock_addpT3asTrackCandidatesInGPU(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(512));
-    Vec const blocksPerGrid_addpT3asTrackCandidatesInGPU(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
-    WorkDiv const addpT3asTrackCandidatesInGPU_workDiv(blocksPerGrid_addpT3asTrackCandidatesInGPU, threadsPerBlock_addpT3asTrackCandidatesInGPU, elementsPerThread);
+    Vec const threadsPerBlock_addpT3asTrackCandidatesInGPU = createVec(1,1,512);
+    Vec const blocksPerGrid_addpT3asTrackCandidatesInGPU = createVec(1,1,1);
+    WorkDiv const addpT3asTrackCandidatesInGPU_workDiv = createWorkDiv(blocksPerGrid_addpT3asTrackCandidatesInGPU, threadsPerBlock_addpT3asTrackCandidatesInGPU, elementsPerThread);
 
     SDL::addpT3asTrackCandidatesInGPU addpT3asTrackCandidatesInGPU_kernel;
     auto const addpT3asTrackCandidatesInGPUTask(alpaka::createTaskKernel<Acc>(
@@ -691,9 +691,9 @@ void SDL::Event::createTrackCandidates()
 
     alpaka::enqueue(queue, addpT3asTrackCandidatesInGPUTask);
 
-    Vec const threadsPerBlockRemoveDupQuints(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(32));
-    Vec const blocksPerGridRemoveDupQuints(static_cast<Idx>(1), static_cast<Idx>(std::max(nEligibleModules/16,1)), static_cast<Idx>(std::max(nEligibleModules/32,1)));
-    WorkDiv const removeDupQuintupletsInGPUBeforeTC_workDiv(blocksPerGridRemoveDupQuints, threadsPerBlockRemoveDupQuints, elementsPerThread);
+    Vec const threadsPerBlockRemoveDupQuints = createVec(1,16,32);
+    Vec const blocksPerGridRemoveDupQuints = createVec(1,std::max(nEligibleModules/16,1),std::max(nEligibleModules/32,1));
+    WorkDiv const removeDupQuintupletsInGPUBeforeTC_workDiv = createWorkDiv(blocksPerGridRemoveDupQuints, threadsPerBlockRemoveDupQuints, elementsPerThread);
 
     SDL::removeDupQuintupletsInGPUBeforeTC removeDupQuintupletsInGPUBeforeTC_kernel;
     auto const removeDupQuintupletsInGPUBeforeTCTask(alpaka::createTaskKernel<Acc>(
@@ -704,9 +704,9 @@ void SDL::Event::createTrackCandidates()
 
     alpaka::enqueue(queue, removeDupQuintupletsInGPUBeforeTCTask);
 
-    Vec const threadsPerBlock_crossCleanT5(static_cast<Idx>(32), static_cast<Idx>(1), static_cast<Idx>(32));
-    Vec const blocksPerGrid_crossCleanT5(static_cast<Idx>((13296/32) + 1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
-    WorkDiv const crossCleanT5_workDiv(blocksPerGrid_crossCleanT5, threadsPerBlock_crossCleanT5, elementsPerThread);
+    Vec const threadsPerBlock_crossCleanT5 = createVec(32,1,32);
+    Vec const blocksPerGrid_crossCleanT5 = createVec((13296/32) + 1,1,MAX_BLOCKS);
+    WorkDiv const crossCleanT5_workDiv = createWorkDiv(blocksPerGrid_crossCleanT5, threadsPerBlock_crossCleanT5, elementsPerThread);
 
     SDL::crossCleanT5 crossCleanT5_kernel;
     auto const crossCleanT5Task(alpaka::createTaskKernel<Acc>(
@@ -720,9 +720,9 @@ void SDL::Event::createTrackCandidates()
 
     alpaka::enqueue(queue, crossCleanT5Task);
 
-    Vec const threadsPerBlock_addT5asTrackCandidateInGPU(static_cast<Idx>(1), static_cast<Idx>(8), static_cast<Idx>(128));
-    Vec const blocksPerGrid_addT5asTrackCandidateInGPU(static_cast<Idx>(1), static_cast<Idx>(8), static_cast<Idx>(10));
-    WorkDiv const addT5asTrackCandidateInGPU_workDiv(blocksPerGrid_addT5asTrackCandidateInGPU, threadsPerBlock_addT5asTrackCandidateInGPU, elementsPerThread);
+    Vec const threadsPerBlock_addT5asTrackCandidateInGPU = createVec(1,8,128);
+    Vec const blocksPerGrid_addT5asTrackCandidateInGPU = createVec(1,8,10);
+    WorkDiv const addT5asTrackCandidateInGPU_workDiv = createWorkDiv(blocksPerGrid_addT5asTrackCandidateInGPU, threadsPerBlock_addT5asTrackCandidateInGPU, elementsPerThread);
 
     SDL::addT5asTrackCandidateInGPU addT5asTrackCandidateInGPU_kernel;
     auto const addT5asTrackCandidateInGPUTask(alpaka::createTaskKernel<Acc>(
@@ -735,9 +735,9 @@ void SDL::Event::createTrackCandidates()
 
     alpaka::enqueue(queue, addT5asTrackCandidateInGPUTask);
 
-    Vec const threadsPerBlockCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
-    Vec const blocksPerGridCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS*4), static_cast<Idx>(MAX_BLOCKS/4));
-    WorkDiv const checkHitspLS_workDiv(blocksPerGridCheckHitspLS, threadsPerBlockCheckHitspLS, elementsPerThread);
+    Vec const threadsPerBlockCheckHitspLS = createVec(1,16,16);
+    Vec const blocksPerGridCheckHitspLS = createVec(1,MAX_BLOCKS*4,MAX_BLOCKS/4);
+    WorkDiv const checkHitspLS_workDiv = createWorkDiv(blocksPerGridCheckHitspLS, threadsPerBlockCheckHitspLS, elementsPerThread);
 
     SDL::checkHitspLS checkHitspLS_kernel;
     auto const checkHitspLSTask(alpaka::createTaskKernel<Acc>(
@@ -749,9 +749,9 @@ void SDL::Event::createTrackCandidates()
 
     alpaka::enqueue(queue, checkHitspLSTask);
 
-    Vec const threadsPerBlock_crossCleanpLS(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(32));
-    Vec const blocksPerGrid_crossCleanpLS(static_cast<Idx>(1), static_cast<Idx>(4), static_cast<Idx>(20));
-    WorkDiv const crossCleanpLS_workDiv(blocksPerGrid_crossCleanpLS, threadsPerBlock_crossCleanpLS, elementsPerThread);
+    Vec const threadsPerBlock_crossCleanpLS = createVec(1,16,32);
+    Vec const blocksPerGrid_crossCleanpLS = createVec(1,4,20);
+    WorkDiv const crossCleanpLS_workDiv = createWorkDiv(blocksPerGrid_crossCleanpLS, threadsPerBlock_crossCleanpLS, elementsPerThread);
 
     SDL::crossCleanpLS crossCleanpLS_kernel;
     auto const crossCleanpLSTask(alpaka::createTaskKernel<Acc>(
@@ -768,9 +768,9 @@ void SDL::Event::createTrackCandidates()
 
     alpaka::enqueue(queue, crossCleanpLSTask);
 
-    Vec const threadsPerBlock_addpLSasTrackCandidateInGPU(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(384));
-    Vec const blocksPerGrid_addpLSasTrackCandidateInGPU(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS));
-    WorkDiv const addpLSasTrackCandidateInGPU_workDiv(blocksPerGrid_addpLSasTrackCandidateInGPU, threadsPerBlock_addpLSasTrackCandidateInGPU, elementsPerThread);
+    Vec const threadsPerBlock_addpLSasTrackCandidateInGPU = createVec(1,1,384);
+    Vec const blocksPerGrid_addpLSasTrackCandidateInGPU = createVec(1,1,MAX_BLOCKS);
+    WorkDiv const addpLSasTrackCandidateInGPU_workDiv = createWorkDiv(blocksPerGrid_addpLSasTrackCandidateInGPU, threadsPerBlock_addpLSasTrackCandidateInGPU, elementsPerThread);
 
     SDL::addpLSasTrackCandidateInGPU addpLSasTrackCandidateInGPU_kernel;
     auto const addpLSasTrackCandidateInGPUTask(alpaka::createTaskKernel<Acc>(
@@ -860,9 +860,9 @@ void SDL::Event::createPixelTriplets()
     alpaka::memcpy(queue, connectedPixelIndex_dev_buf, connectedPixelIndex_host_buf, nInnerSegments);
     alpaka::wait(queue);
 
-    Vec const threadsPerBlock(static_cast<Idx>(1), static_cast<Idx>(4), static_cast<Idx>(32));
-    Vec const blocksPerGrid(static_cast<Idx>(16 /* above median of connected modules*/), static_cast<Idx>(4096), static_cast<Idx>(1));
-    WorkDiv const createPixelTripletsInGPUFromMapv2_workDiv(blocksPerGrid, threadsPerBlock, elementsPerThread);
+    Vec const threadsPerBlock = createVec(1,4,32);
+    Vec const blocksPerGrid = createVec(16 /* above median of connected modules*/,4096,1);
+    WorkDiv const createPixelTripletsInGPUFromMapv2_workDiv = createWorkDiv(blocksPerGrid, threadsPerBlock, elementsPerThread);
 
     SDL::createPixelTripletsInGPUFromMapv2 createPixelTripletsInGPUFromMapv2_kernel;
     auto const createPixelTripletsInGPUFromMapv2Task(alpaka::createTaskKernel<Acc>(
@@ -891,10 +891,10 @@ void SDL::Event::createPixelTriplets()
 #endif
 
     //pT3s can be cleaned here because they're not used in making pT5s!
-    Vec const threadsPerBlockDupPixTrip(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
+    Vec const threadsPerBlockDupPixTrip = createVec(1,16,16);
     //seems like more blocks lead to conflicting writes
-    Vec const blocksPerGridDupPixTrip(static_cast<Idx>(1), static_cast<Idx>(40), static_cast<Idx>(1));
-    WorkDiv const removeDupPixelTripletsInGPUFromMap_workDiv(blocksPerGridDupPixTrip, threadsPerBlockDupPixTrip, elementsPerThread);
+    Vec const blocksPerGridDupPixTrip = createVec(1,40,1);
+    WorkDiv const removeDupPixelTripletsInGPUFromMap_workDiv = createWorkDiv(blocksPerGridDupPixTrip, threadsPerBlockDupPixTrip, elementsPerThread);
 
     SDL::removeDupPixelTripletsInGPUFromMap removeDupPixelTripletsInGPUFromMap_kernel;
     auto const removeDupPixelTripletsInGPUFromMapTask(alpaka::createTaskKernel<Acc>(
@@ -909,9 +909,9 @@ void SDL::Event::createPixelTriplets()
 
 void SDL::Event::createQuintuplets()
 {
-    Vec const threadsPerBlockCreateQuints(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
-    Vec const blocksPerGridCreateQuints(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
-    WorkDiv const createEligibleModulesListForQuintupletsGPU_workDiv(blocksPerGridCreateQuints, threadsPerBlockCreateQuints, elementsPerThread);
+    Vec const threadsPerBlockCreateQuints = createVec(1,1,1024);
+    Vec const blocksPerGridCreateQuints = createVec(1,1,1);
+    WorkDiv const createEligibleModulesListForQuintupletsGPU_workDiv = createWorkDiv(blocksPerGridCreateQuints, threadsPerBlockCreateQuints, elementsPerThread);
 
     SDL::createEligibleModulesListForQuintupletsGPU createEligibleModulesListForQuintupletsGPU_kernel;
     auto const createEligibleModulesListForQuintupletsGPUTask(alpaka::createTaskKernel<Acc>(
@@ -944,9 +944,9 @@ void SDL::Event::createQuintuplets()
         alpaka::wait(queue);
     }
 
-    Vec const threadsPerBlockQuints(static_cast<Idx>(1), static_cast<Idx>(8), static_cast<Idx>(32));
-    Vec const blocksPerGridQuints(static_cast<Idx>(std::max((int) nEligibleT5Modules, 1)), static_cast<Idx>(1), static_cast<Idx>(1));
-    WorkDiv const createQuintupletsInGPUv2_workDiv(blocksPerGridQuints, threadsPerBlockQuints, elementsPerThread);
+    Vec const threadsPerBlockQuints = createVec(1,8,32);
+    Vec const blocksPerGridQuints = createVec(std::max((int) nEligibleT5Modules, 1),1,1);
+    WorkDiv const createQuintupletsInGPUv2_workDiv = createWorkDiv(blocksPerGridQuints, threadsPerBlockQuints, elementsPerThread);
 
     SDL::createQuintupletsInGPUv2 createQuintupletsInGPUv2_kernel;
     auto const createQuintupletsInGPUv2Task(alpaka::createTaskKernel<Acc>(
@@ -962,9 +962,9 @@ void SDL::Event::createQuintuplets()
 
     alpaka::enqueue(queue, createQuintupletsInGPUv2Task);
 
-    Vec const threadsPerBlockDupQuint(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
-    Vec const blocksPerGridDupQuint(static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1), static_cast<Idx>(1));
-    WorkDiv const removeDupQuintupletsInGPUAfterBuild_workDiv(blocksPerGridDupQuint, threadsPerBlockDupQuint, elementsPerThread);
+    Vec const threadsPerBlockDupQuint = createVec(1,16,16);
+    Vec const blocksPerGridDupQuint = createVec(MAX_BLOCKS,1,1);
+    WorkDiv const removeDupQuintupletsInGPUAfterBuild_workDiv = createWorkDiv(blocksPerGridDupQuint, threadsPerBlockDupQuint, elementsPerThread);
 
     SDL::removeDupQuintupletsInGPUAfterBuild removeDupQuintupletsInGPUAfterBuild_kernel;
     auto const removeDupQuintupletsInGPUAfterBuildTask(alpaka::createTaskKernel<Acc>(
@@ -976,9 +976,9 @@ void SDL::Event::createQuintuplets()
 
     alpaka::enqueue(queue, removeDupQuintupletsInGPUAfterBuildTask);
 
-    Vec const threadsPerBlockAddQuint(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1024));
-    Vec const blocksPerGridAddQuint(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
-    WorkDiv const addQuintupletRangesToEventExplicit_workDiv(blocksPerGridAddQuint, threadsPerBlockAddQuint, elementsPerThread);
+    Vec const threadsPerBlockAddQuint = createVec(1,1,1024);
+    Vec const blocksPerGridAddQuint = createVec(1,1,1);
+    WorkDiv const addQuintupletRangesToEventExplicit_workDiv = createWorkDiv(blocksPerGridAddQuint, threadsPerBlockAddQuint, elementsPerThread);
 
     SDL::addQuintupletRangesToEventExplicit addQuintupletRangesToEventExplicit_kernel;
     auto const addQuintupletRangesToEventExplicitTask(alpaka::createTaskKernel<Acc>(
@@ -999,9 +999,9 @@ void SDL::Event::createQuintuplets()
 
 void SDL::Event::pixelLineSegmentCleaning()
 {
-    Vec const threadsPerBlockCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
-    Vec const blocksPerGridCheckHitspLS(static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS*4), static_cast<Idx>(MAX_BLOCKS/4));
-    WorkDiv const checkHitspLS_workDiv(blocksPerGridCheckHitspLS, threadsPerBlockCheckHitspLS, elementsPerThread);
+    Vec const threadsPerBlockCheckHitspLS = createVec(1,16,16);
+    Vec const blocksPerGridCheckHitspLS = createVec(1,MAX_BLOCKS*4,MAX_BLOCKS/4);
+    WorkDiv const checkHitspLS_workDiv = createWorkDiv(blocksPerGridCheckHitspLS, threadsPerBlockCheckHitspLS, elementsPerThread);
 
     SDL::checkHitspLS checkHitspLS_kernel;
     auto const checkHitspLSTask(alpaka::createTaskKernel<Acc>(
@@ -1096,9 +1096,9 @@ void SDL::Event::createPixelQuintuplets()
     alpaka::memcpy(queue, connectedPixelIndex_dev_buf, connectedPixelIndex_host_buf, nInnerSegments);
     alpaka::wait(queue);
 
-    Vec const threadsPerBlockCreatePixQuints(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
-    Vec const blocksPerGridCreatePixQuints(static_cast<Idx>(16), static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1));
-    WorkDiv const createPixelQuintupletsInGPUFromMapv2_workDiv(blocksPerGridCreatePixQuints, threadsPerBlockCreatePixQuints, elementsPerThread);
+    Vec const threadsPerBlockCreatePixQuints = createVec(1,16,16);
+    Vec const blocksPerGridCreatePixQuints = createVec(16,MAX_BLOCKS,1);
+    WorkDiv const createPixelQuintupletsInGPUFromMapv2_workDiv = createWorkDiv(blocksPerGridCreatePixQuints, threadsPerBlockCreatePixQuints, elementsPerThread);
 
     SDL::createPixelQuintupletsInGPUFromMapv2 createPixelQuintupletsInGPUFromMapv2_kernel;
     auto const createPixelQuintupletsInGPUFromMapv2Task(alpaka::createTaskKernel<Acc>(
@@ -1117,9 +1117,9 @@ void SDL::Event::createPixelQuintuplets()
 
     alpaka::enqueue(queue, createPixelQuintupletsInGPUFromMapv2Task);
 
-    Vec const threadsPerBlockDupPix(static_cast<Idx>(1), static_cast<Idx>(16), static_cast<Idx>(16));
-    Vec const blocksPerGridDupPix(static_cast<Idx>(1), static_cast<Idx>(MAX_BLOCKS), static_cast<Idx>(1));
-    WorkDiv const removeDupPixelQuintupletsInGPUFromMap_workDiv(blocksPerGridDupPix, threadsPerBlockDupPix, elementsPerThread);
+    Vec const threadsPerBlockDupPix = createVec(1,16,16);
+    Vec const blocksPerGridDupPix = createVec(1,MAX_BLOCKS,1);
+    WorkDiv const removeDupPixelQuintupletsInGPUFromMap_workDiv = createWorkDiv(blocksPerGridDupPix, threadsPerBlockDupPix, elementsPerThread);
 
     SDL::removeDupPixelQuintupletsInGPUFromMap removeDupPixelQuintupletsInGPUFromMap_kernel;
     auto const removeDupPixelQuintupletsInGPUFromMapTask(alpaka::createTaskKernel<Acc>(
@@ -1130,9 +1130,9 @@ void SDL::Event::createPixelQuintuplets()
 
     alpaka::enqueue(queue, removeDupPixelQuintupletsInGPUFromMapTask);
 
-    Vec const threadsPerBlockAddpT5asTrackCan(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(256));
-    Vec const blocksPerGridAddpT5asTrackCan(static_cast<Idx>(1), static_cast<Idx>(1), static_cast<Idx>(1));
-    WorkDiv const addpT5asTrackCandidateInGPU_workDiv(blocksPerGridAddpT5asTrackCan, threadsPerBlockAddpT5asTrackCan, elementsPerThread);
+    Vec const threadsPerBlockAddpT5asTrackCan = createVec(1,1,256);
+    Vec const blocksPerGridAddpT5asTrackCan = createVec(1,1,1);
+    WorkDiv const addpT5asTrackCandidateInGPU_workDiv = createWorkDiv(blocksPerGridAddpT5asTrackCan, threadsPerBlockAddpT5asTrackCan, elementsPerThread);
 
     SDL::addpT5asTrackCandidateInGPU addpT5asTrackCandidateInGPU_kernel;
     auto const addpT5asTrackCandidateInGPUTask(alpaka::createTaskKernel<Acc>(
