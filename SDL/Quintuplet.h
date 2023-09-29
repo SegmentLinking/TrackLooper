@@ -144,7 +144,7 @@ namespace SDL
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE bool checkIntervalOverlap(const float& firstMin, const float& firstMax, const float& secondMin, const float& secondMax)
     {
-        return ((firstMin <= secondMin) & (secondMin < firstMax)) |  ((secondMin < firstMin) & (firstMin < secondMax));
+        return ((firstMin <= secondMin) && (secondMin < firstMax)) || ((secondMin < firstMin) && (firstMin < secondMax));
     };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE void addQuintupletToMemory(struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, uint16_t& lowerModule1, uint16_t& lowerModule2, uint16_t& lowerModule3, uint16_t& lowerModule4, uint16_t& lowerModule5, float& innerRadius, float& bridgeRadius, float& outerRadius, float& regressionG, float& regressionF, float& regressionRadius, float& rzChiSquared, float& rPhiChiSquared, float& nonAnchorChiSquared, float pt, float eta, float phi, float scores, uint8_t layer, unsigned int quintupletIndex, bool TightCutFlag)
@@ -1325,7 +1325,7 @@ namespace SDL
         //Cut 1 - z compatibility
         zOut = z_OutLo;
         rtOut = rt_OutLo;
-        pass = pass and ((z_OutLo >= zLo) & (z_OutLo <= zHi));
+        pass = pass and ((z_OutLo >= zLo) && (z_OutLo <= zHi));
         if(not pass) return pass;
 
         float drt_OutLo_InLo = (rt_OutLo - rt_InLo);
@@ -1349,7 +1349,7 @@ namespace SDL
         zHiPointed = z_InLo + dzMean * (z_InLo < 0.f ? 1.f : dzDrtScale) + zWindow;
 
         // Cut #2: Pointed Z (Inner segment two MD points to outer segment inner MD)
-        pass = pass and ((z_OutLo >= zLoPointed) & (z_OutLo <= zHiPointed));
+        pass = pass and ((z_OutLo >= zLoPointed) && (z_OutLo <= zHiPointed));
         if(not pass) return pass;
 
         float sdlPVoff = 0.1f/rt_OutLo;
@@ -1537,7 +1537,7 @@ namespace SDL
         rtHi = rt_InLo * (1.f + (z_OutLo - z_InLo + zGeom1) / zInForHi) + rtGeom1;
 
         //Cut #2: rt condition
-        pass = pass and ((rt_OutLo >= rtLo) & (rt_OutLo <= rtHi));
+        pass = pass and ((rt_OutLo >= rtLo) && (rt_OutLo <= rtHi));
         if(not pass) return pass;
 
         float rIn = alpaka::math::sqrt(acc, z_InLo * z_InLo + rt_InLo * rt_InLo);
@@ -1561,7 +1561,7 @@ namespace SDL
         const float rtHi_another = rt_InLo + drtMean + rtWindow;
 
         //Cut #3: rt-z pointed
-        pass = pass and ((kZ >= 0) & (rtOut >= rtLo) & (rtOut <= rtHi));
+        pass = pass and ((kZ >= 0) && (rtOut >= rtLo) && (rtOut <= rtHi));
         if(not pass) return pass;
 
         const float sdlPVoff = 0.1f / rt_OutLo;
@@ -1746,7 +1746,7 @@ namespace SDL
 
         rtHi = rt_InLo * (1.f + dz / (z_InLo - dLum)) + rtGeom;
 
-        pass = pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
+        pass = pass and ((rtOut >= rtLo) && (rtOut <= rtHi));
         if(not pass) return pass;
 
         bool isInSgOuterMDPS = modulesInGPU.moduleType[innerOuterLowerModuleIndex] == SDL::PS;
@@ -2089,7 +2089,7 @@ namespace SDL
         pass = pass and passRZChi2;
         if(not pass) return pass;
 #endif
-        pass = pass & (innerRadius >= 0.95f * ptCut/(2.f * k2Rinv1GeVf));
+        pass = pass && (innerRadius >= 0.95f * ptCut/(2.f * k2Rinv1GeVf));
 
         float innerInvRadiusMin, innerInvRadiusMax, bridgeInvRadiusMin, bridgeInvRadiusMax, outerInvRadiusMin, outerInvRadiusMax;
 

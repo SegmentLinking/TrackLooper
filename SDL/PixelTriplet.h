@@ -551,7 +551,7 @@ namespace SDL
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE bool checkIntervalOverlappT3(const float& firstMin, const float& firstMax, const float& secondMin, const float& secondMax)
     {
-        return ((firstMin <= secondMin) & (secondMin < firstMax)) |  ((secondMin < firstMin) & (firstMin < secondMax));
+        return ((firstMin <= secondMin) && (secondMin < firstMax)) ||  ((secondMin < firstMin) && (firstMin < secondMax));
     };
 
     /*bounds for high Pt taken from : http://uaf-10.t2.ucsd.edu/~bsathian/SDL/T5_efficiency/efficiencies/new_efficiencies/efficiencies_20210513_T5_recovering_high_Pt_efficiencies/highE_radius_matching/highE_bounds.txt */
@@ -1048,7 +1048,7 @@ namespace SDL
         zHi = z_InUp + (z_InUp + deltaZLum) * (rtRatio_OutLoInOut - 1.f) * (z_InUp < 0.f ? 1.f : dzDrtScale) + (zpitch_InOut + zpitch_OutLo);
         zLo = z_InUp + (z_InUp - deltaZLum) * (rtRatio_OutLoInOut - 1.f) * (z_InUp > 0.f ? 1.f : dzDrtScale) - (zpitch_InOut + zpitch_OutLo); //slope-correction only on outer end
 
-        pass = pass and ((z_OutLo >= zLo) & (z_OutLo <= zHi));
+        pass = pass and ((z_OutLo >= zLo) && (z_OutLo <= zHi));
         if(not pass) return pass;
 
         const float coshEta = alpaka::math::sqrt(acc, ptIn * ptIn + pz * pz) / ptIn;
@@ -1077,7 +1077,7 @@ namespace SDL
         zLoPointed = z_InUp + dzMean - zWindow;
         zHiPointed = z_InUp + dzMean + zWindow;
 
-        pass =  pass and ((z_OutLo >= zLoPointed) & (z_OutLo <= zHiPointed));
+        pass =  pass and ((z_OutLo >= zLoPointed) && (z_OutLo <= zHiPointed));
         if(not pass) return pass;
 
         const float sdlPVoff = 0.1f / rt_OutLo;
@@ -1271,7 +1271,7 @@ namespace SDL
         rtHi = rt_InUp * (1.f + (z_OutLo - z_InUp + zGeom1) / zInForHi) + rtGeom1;
 
         // Cut #2: rt condition
-        pass =  pass and ((rt_OutLo >= rtLo) & (rt_OutLo <= rtHi));
+        pass =  pass and ((rt_OutLo >= rtLo) && (rt_OutLo <= rtHi));
         if(not pass) return pass;
 
         const float dzOutInAbs = alpaka::math::abs(acc, z_OutLo - z_InUp);
@@ -1297,7 +1297,7 @@ namespace SDL
         const float rtHi_point = rt_InUp + drtMean + rtWindow;
 
         // Cut #3: rt-z pointed
-        pass =  pass and ((rt_OutLo >= rtLo_point) & (rt_OutLo <= rtHi_point));
+        pass =  pass and ((rt_OutLo >= rtLo_point) && (rt_OutLo <= rtHi_point));
         if(not pass) return pass;
 
         const float alpha1GeV_OutLo = alpaka::math::asin(acc, alpaka::math::min(acc, rt_OutLo * k2Rinv1GeVf / ptCut, sinAlphaMax));
@@ -2372,7 +2372,7 @@ namespace SDL
     
     ALPAKA_FN_ACC ALPAKA_FN_INLINE bool checkIntervalOverlappT5(const float& firstMin, const float& firstMax, const float& secondMin, const float& secondMax)
     {
-        return ((firstMin <= secondMin) & (secondMin < firstMax)) |  ((secondMin < firstMin) & (firstMin < secondMax));
+        return ((firstMin <= secondMin) && (secondMin < firstMax)) || ((secondMin < firstMin) && (firstMin < secondMax));
     };
  
     template<typename TAcc>
@@ -2429,7 +2429,7 @@ namespace SDL
         zHi = z_InUp + (z_InUp + deltaZLum) * (rtRatio_OutLoInOut - 1.f) * (z_InUp < 0.f ? 1.f : dzDrtScale) + (zpitch_InOut + zpitch_OutLo);
         zLo = z_InUp + (z_InUp - deltaZLum) * (rtRatio_OutLoInOut - 1.f) * (z_InUp > 0.f ? 1.f : dzDrtScale) - (zpitch_InOut + zpitch_OutLo); //slope-correction only on outer end
 
-        pass = pass and ((z_OutLo >= zLo) & (z_OutLo <= zHi));
+        pass = pass and ((z_OutLo >= zLo) && (z_OutLo <= zHi));
         if(not pass) return pass;
 
         const float coshEta = alpaka::math::sqrt(acc, ptIn * ptIn + pz * pz) / ptIn;
@@ -2455,7 +2455,7 @@ namespace SDL
         zLoPointed = z_InUp + dzMean - zWindow;
         zHiPointed = z_InUp + dzMean + zWindow;
 
-        pass =  pass and ((z_OutLo >= zLoPointed) & (z_OutLo <= zHiPointed));
+        pass =  pass and ((z_OutLo >= zLoPointed) && (z_OutLo <= zHiPointed));
         if(not pass) return pass;
 
         const float sdlPVoff = 0.1f / rt_OutLo;
@@ -2646,7 +2646,7 @@ namespace SDL
         rtHi = rt_InUp * (1.f + (z_OutLo - z_InUp + zGeom1) / zInForHi) + rtGeom1;
 
         // Cut #2: rt condition
-        pass =  pass and ((rt_OutLo >= rtLo) & (rt_OutLo <= rtHi));
+        pass =  pass and ((rt_OutLo >= rtLo) && (rt_OutLo <= rtHi));
         if(not pass) return pass;
 
         const float dzOutInAbs = alpaka::math::abs(acc, z_OutLo - z_InUp);
@@ -2672,7 +2672,7 @@ namespace SDL
         const float rtHi_point = rt_InUp + drtMean + rtWindow;
 
         // Cut #3: rt-z pointed
-        pass =  pass and ((rt_OutLo >= rtLo_point) & (rt_OutLo <= rtHi_point));
+        pass =  pass and ((rt_OutLo >= rtLo_point) && (rt_OutLo <= rtHi_point));
         if(not pass) return pass;
 
         const float alpha1GeV_OutLo = alpaka::math::asin(acc, alpaka::math::min(acc, rt_OutLo * k2Rinv1GeVf / ptCut, sinAlphaMax));
