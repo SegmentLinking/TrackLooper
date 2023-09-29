@@ -470,11 +470,11 @@ namespace SDL
         dAlphaOuterMDSegmentThreshold = dAlphaThresholdValues[1];
         dAlphaInnerMDOuterMDThreshold = dAlphaThresholdValues[2];
         
-        pass =  pass and (alpaka::math::abs(acc, dAlphaInnerMDSegment) < dAlphaThresholdValues[0]);
+        pass =  pass and (alpaka::math::abs(acc, dAlphaInnerMDSegment) < dAlphaInnerMDSegmentThreshold);
         if(not pass) return pass;
-        pass =  pass and (alpaka::math::abs(acc, dAlphaOuterMDSegment) < dAlphaThresholdValues[1]);
+        pass =  pass and (alpaka::math::abs(acc, dAlphaOuterMDSegment) < dAlphaOuterMDSegmentThreshold);
         if(not pass) return pass;
-        pass =  pass and (alpaka::math::abs(acc, dAlphaInnerMDOuterMD) < dAlphaThresholdValues[2]);
+        pass =  pass and (alpaka::math::abs(acc, dAlphaInnerMDOuterMD) < dAlphaInnerMDOuterMDThreshold);
 
         return pass;
     };

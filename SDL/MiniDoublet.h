@@ -465,19 +465,11 @@ namespace SDL
                 yp =yLower;
                 zp =zLower;
                 rtp =rtLower;
-                xp =xLower;
-                yp =yLower;
-                zp =zLower;
-                rtp =rtLower;
             }
             else
             {
                 xo = xLower;
                 yo = yLower;
-                xp = xUpper;
-                yp = yUpper;
-                zp = zUpper;
-                rtp=rtUpper;
                 xp = xUpper;
                 yp = yUpper;
                 zp = zUpper;
@@ -492,19 +484,15 @@ namespace SDL
             yp =yLower;
             zp =zLower;
             rtp =rtLower;
-            xp =xLower;
-            yp =yLower;
-            zp =zLower;
-            rtp =rtLower;
         }
 
         // If it is endcap some of the math gets simplified (and also computers don't like infinities)
         isEndcap = modulesInGPU.subdets[lowerModuleIndex]== Endcap;
 
-        // NOTE: TODO: Keep in mind that the sin(atan) function can be simplifed to something like x / sqrt(1 + x^2) and similar for cos
+        // NOTE: TODO: Keep in mind that the sin(atan) function can be simplified to something like x / sqrt(1 + x^2) and similar for cos
         // I am not sure how slow sin, atan, cos, functions are in c++. If x / sqrt(1 + x^2) are faster change this later to reduce arithmetic computation time
         angleA = alpaka::math::abs(acc, alpaka::math::atan(acc, rtp / zp));
-        angleB = ((isEndcap) ? float(M_PI) / 2.f : alpaka::math::atan(acc, drdz_)); // The tilt module on the postive z-axis has negative drdz slope in r-z plane and vice versa
+        angleB = ((isEndcap) ? float(M_PI) / 2.f : alpaka::math::atan(acc, drdz_)); // The tilt module on the positive z-axis has negative drdz slope in r-z plane and vice versa
 
         moduleSeparation = moduleGapSize(modulesInGPU, lowerModuleIndex);
 
