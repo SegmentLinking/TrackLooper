@@ -610,7 +610,7 @@ namespace SDL
             return rzChiSquared < 4.677f;
         }
 
-        // when building T5, apply 99% chi2 cuts as default, and add to pT5 collection. But when adding T5 to TC collections, appy 95% cut to reduce the fake rate
+        // when building T5, apply 99% chi2 cuts as default, and add to pT5 collection. But when adding T5 to TC collections, apply 95% cut to reduce the fake rate
         TightCutFlag = false;
         // The category numbers are related to module regions and layers, decoding of the region numbers can be found here in slide 2 table. https://github.com/SegmentLinking/TrackLooper/files/11420927/part.2.pdf
         // The commented numbers after each case is the region code, and can look it up from the table to see which category it belongs to. For example, //0 means T5 built with Endcap 1,2,3,4,5 ps modules
@@ -742,7 +742,7 @@ namespace SDL
         unsigned int innerOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex + 1];
         unsigned int outerInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTripletIndex];
         unsigned int innerOuterOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerOuterSegmentIndex + 1]; //inner triplet outer segment outer MD index
-        unsigned int outerInnerInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerInnerSegmentIndex]; //outer triplet inner segmnet inner MD index
+        unsigned int outerInnerInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerInnerSegmentIndex]; //outer triplet inner segment inner MD index
 
         return (innerOuterOuterMiniDoubletIndex == outerInnerInnerMiniDoubletIndex);
     };
@@ -1123,7 +1123,7 @@ namespace SDL
         float radius = 0.f;
 
         // Some extra variables
-        // the two variables will be caled x1 and x2, and y (which is x^2 + y^2)
+        // the two variables will be called x1 and x2, and y (which is x^2 + y^2)
 
         float sigmaX1Squared = 0.f;
         float sigmaX2Squared = 0.f;
@@ -1974,7 +1974,7 @@ namespace SDL
         unsigned int fourthSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTripletIndex + 1];
 
         unsigned int innerOuterOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * secondSegmentIndex + 1]; //inner triplet outer segment outer MD index
-        unsigned int outerInnerInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * thirdSegmentIndex]; //outer triplet inner segmnet inner MD index
+        unsigned int outerInnerInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * thirdSegmentIndex]; //outer triplet inner segment inner MD index
 
         //this cut reduces the number of candidates by a factor of 3, i.e., 2 out of 3 warps can end right here!
         if (innerOuterOuterMiniDoubletIndex != outerInnerInnerMiniDoubletIndex) return false;

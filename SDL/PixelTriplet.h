@@ -876,7 +876,7 @@ namespace SDL
 
                 for(int iLSModule = connectedPixelIndex[i_pLS] + globalBlockIdx[0]; iLSModule < iLSModule_max; iLSModule += gridBlockExtent[0])
                 {
-                    uint16_t tripletLowerModuleIndex = modulesInGPU.connectedPixels[iLSModule]; //connected pixels will have the appopriate lower module index by default!
+                    uint16_t tripletLowerModuleIndex = modulesInGPU.connectedPixels[iLSModule]; //connected pixels will have the appropriate lower module index by default!
 #ifdef Warnings
                     if(tripletLowerModuleIndex >= *modulesInGPU.nLowerModules)
                     {

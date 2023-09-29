@@ -545,7 +545,7 @@ namespace SDL
         xa = xp + drprime_x;
         ya = yp + drprime_y;
 
-        // Compute the new strip hit position (if the slope vaule is in special condition take care of the exceptions)
+        // Compute the new strip hit position (if the slope value is in special condition take care of the exceptions)
         if (slope == SDL::SDL_INF) // Designated for tilted module when the slope is exactly infinity (module lying along y-axis)
         {
             xn = xa; // New x point is simply where the anchor is
@@ -665,7 +665,7 @@ namespace SDL
                 // dPhi Change should be calculated so that the upper hit has higher rt.
                 // In principle, this kind of check rt_lower < rt_upper should not be necessary because the hit shifting should have taken care of this.
                 // (i.e. the strip hit is shifted to be aligned in the line of sight from interaction point to pixel hit of PS module guaranteeing rt ordering)
-                // But I still placed this check for safety. (TODO: After cheking explicitly if not needed remove later?)
+                // But I still placed this check for safety. (TODO: After checking explicitly if not needed remove later?)
                 // setdeltaPhiChange(lowerHit.rt() < upperHitMod.rt() ? lowerHit.deltaPhiChange(upperHitMod) : upperHitMod.deltaPhiChange(lowerHit));
 
                 dPhiChange = (rtLower < shiftedRt) ? SDL::deltaPhiChange(acc, xLower, yLower, shiftedX, shiftedY) : SDL::deltaPhiChange(acc, shiftedX, shiftedY, xLower, yLower); 
@@ -676,7 +676,7 @@ namespace SDL
                 // dPhi Change should be calculated so that the upper hit has higher rt.
                 // In principle, this kind of check rt_lower < rt_upper should not be necessary because the hit shifting should have taken care of this.
                 // (i.e. the strip hit is shifted to be aligned in the line of sight from interaction point to pixel hit of PS module guaranteeing rt ordering)
-                // But I still placed this check for safety. (TODO: After cheking explicitly if not needed remove later?)
+                // But I still placed this check for safety. (TODO: After checking explicitly if not needed remove later?)
 
                 dPhiChange = (shiftedRt < rtUpper) ? SDL::deltaPhiChange(acc, shiftedX, shiftedY, xUpper, yUpper) : SDL::deltaPhiChange(acc, xUpper, yUpper, shiftedX, shiftedY);
                 noShiftedDphiChange = rtLower < rtUpper ? SDL::deltaPhiChange(acc, xLower,yLower, xUpper, yUpper) : SDL::deltaPhiChange(acc, xUpper, yUpper, xLower, yLower);
