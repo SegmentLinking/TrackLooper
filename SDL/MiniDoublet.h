@@ -884,11 +884,13 @@ namespace SDL
                 else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
                 else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
                 else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
+                else category_number = -1;
 
                 if (module_eta<0.75) eta_number = 0;
                 else if (module_eta>0.75 && module_eta<1.5) eta_number = 1;
                 else if (module_eta>1.5  && module_eta<2.25) eta_number = 2;
                 else if (module_eta>2.25 && module_eta<3) eta_number = 3;
+                else eta_number = -1;
 
                 if (category_number == 0 && eta_number == 0) occupancy = 49;
                 else if (category_number == 0 && eta_number == 1) occupancy = 42;
@@ -900,6 +902,13 @@ namespace SDL
                 else if (category_number == 3 && eta_number == 1) occupancy = 14;
                 else if (category_number == 3 && eta_number == 2) occupancy = 20;
                 else if (category_number == 3 && eta_number == 3) occupancy = 25;
+                else
+                {
+                    occupancy = 0;
+#ifdef Warnings
+                    printf("Unhandled case in createMDArrayRangesGPU! Module index = %i\n", i);
+#endif
+                }
 
                 unsigned int nTotMDs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalMDs, occupancy);
 
