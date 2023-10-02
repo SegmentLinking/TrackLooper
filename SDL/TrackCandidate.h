@@ -414,11 +414,23 @@ namespace SDL
                     continue;
 
                 unsigned int trackCandidateIdx = alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidates, 1);
-                alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatespT3, 1);
+                if(trackCandidateIdx >= N_MAX_PIXEL_TRACK_CANDIDATES) // This is done before any non-pixel TCs are added
+                {
+#ifdef Warnings
+                    printf("Track Candidate excess alert! Type = pT3");
+#endif
+                    alpaka::atomicOp<alpaka::AtomicSub>(acc, trackCandidatesInGPU.nTrackCandidates, 1);
+                    break;
 
-                float radius = 0.5f * (__H2F(pixelTripletsInGPU.pixelRadius[pixelTripletIndex]) + __H2F(pixelTripletsInGPU.tripletRadius[pixelTripletIndex]));
-                unsigned int pT3PixelIndex =  pixelTripletsInGPU.pixelSegmentIndices[pixelTripletIndex];
-                addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, &pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex], &pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex], &pixelTripletsInGPU.hitIndices[10 * pixelTripletIndex], segmentsInGPU.seedIdx[pT3PixelIndex - pLS_offset], __H2F(pixelTripletsInGPU.centerX[pixelTripletIndex]), __H2F(pixelTripletsInGPU.centerY[pixelTripletIndex]),radius,trackCandidateIdx, pixelTripletIndex);
+                }
+                else
+                {
+                    alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatespT3, 1);
+
+                    float radius = 0.5f * (__H2F(pixelTripletsInGPU.pixelRadius[pixelTripletIndex]) + __H2F(pixelTripletsInGPU.tripletRadius[pixelTripletIndex]));
+                    unsigned int pT3PixelIndex =  pixelTripletsInGPU.pixelSegmentIndices[pixelTripletIndex];
+                    addTrackCandidateToMemory(trackCandidatesInGPU, 5/*track candidate type pT3=5*/, pixelTripletIndex, pixelTripletIndex, &pixelTripletsInGPU.logicalLayers[5 * pixelTripletIndex], &pixelTripletsInGPU.lowerModuleIndices[5 * pixelTripletIndex], &pixelTripletsInGPU.hitIndices[10 * pixelTripletIndex], segmentsInGPU.seedIdx[pT3PixelIndex - pLS_offset], __H2F(pixelTripletsInGPU.centerX[pixelTripletIndex]), __H2F(pixelTripletsInGPU.centerY[pixelTripletIndex]),radius,trackCandidateIdx, pixelTripletIndex);
+                }
             }
         }
     };
@@ -453,8 +465,19 @@ namespace SDL
                     if (!(quintupletsInGPU.TightCutFlag[quintupletIndex])) continue;
 
                     unsigned int trackCandidateIdx = alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidates,1);
-                    alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatesT5,1);
-                    addTrackCandidateToMemory(trackCandidatesInGPU, 4/*track candidate type T5=4*/, quintupletIndex, quintupletIndex, &quintupletsInGPU.logicalLayers[5 * quintupletIndex], &quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex], &quintupletsInGPU.hitIndices[10 * quintupletIndex], -1/*no pixel seed index for T5s*/, quintupletsInGPU.regressionG[quintupletIndex], quintupletsInGPU.regressionF[quintupletIndex], quintupletsInGPU.regressionRadius[quintupletIndex], trackCandidateIdx, quintupletIndex);
+                    if(trackCandidateIdx - *trackCandidatesInGPU.nTrackCandidatespT5 - *trackCandidatesInGPU.nTrackCandidatespT3 >= N_MAX_NONPIXEL_TRACK_CANDIDATES) // pT5 and pT3 TCs have been added, but not pLS TCs
+                    {
+#ifdef Warnings
+                        printf("Track Candidate excess alert! Type = T5");
+#endif
+                        alpaka::atomicOp<alpaka::AtomicSub>(acc, trackCandidatesInGPU.nTrackCandidates, 1);
+                        break;
+                    }
+                    else
+                    {
+                        alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatesT5,1);
+                        addTrackCandidateToMemory(trackCandidatesInGPU, 4/*track candidate type T5=4*/, quintupletIndex, quintupletIndex, &quintupletsInGPU.logicalLayers[5 * quintupletIndex], &quintupletsInGPU.lowerModuleIndices[5 * quintupletIndex], &quintupletsInGPU.hitIndices[10 * quintupletIndex], -1/*no pixel seed index for T5s*/, quintupletsInGPU.regressionG[quintupletIndex], quintupletsInGPU.regressionF[quintupletIndex], quintupletsInGPU.regressionRadius[quintupletIndex], trackCandidateIdx, quintupletIndex);
+                    }
                 }
             }
         }
@@ -483,8 +506,20 @@ namespace SDL
                     continue;
 
                 unsigned int trackCandidateIdx = alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidates, 1);
-                alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatespLS, 1);
-                addpLSTrackCandidateToMemory(trackCandidatesInGPU, pixelArrayIndex, trackCandidateIdx, segmentsInGPU.pLSHitsIdxs[pixelArrayIndex], segmentsInGPU.seedIdx[pixelArrayIndex]);
+                if(trackCandidateIdx - *trackCandidatesInGPU.nTrackCandidatesT5 >= N_MAX_PIXEL_TRACK_CANDIDATES) // T5 TCs have already been added
+                {
+#ifdef Warnings
+                    printf("Track Candidate excess alert! Type = pLS");
+#endif
+                    alpaka::atomicOp<alpaka::AtomicSub>(acc, trackCandidatesInGPU.nTrackCandidates, 1);
+                    break;
+
+                }
+                else
+                {
+                    alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatespLS, 1);
+                    addpLSTrackCandidateToMemory(trackCandidatesInGPU, pixelArrayIndex, trackCandidateIdx, segmentsInGPU.pLSHitsIdxs[pixelArrayIndex], segmentsInGPU.seedIdx[pixelArrayIndex]);
+                }
             }
         }
     };
@@ -515,11 +550,23 @@ namespace SDL
                     continue;
 
                 int trackCandidateIdx = alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidates, 1);
-                alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatespT5,1);
+                if(trackCandidateIdx >= N_MAX_PIXEL_TRACK_CANDIDATES) // No other TCs have been added yet
+                {
+#ifdef Warnings
+                    printf("Track Candidate excess alert! Type = pT5");
+#endif
+                    alpaka::atomicOp<alpaka::AtomicSub>(acc, trackCandidatesInGPU.nTrackCandidates, 1);
+                    break;
 
-                float radius = 0.5f*(__H2F(pixelQuintupletsInGPU.pixelRadius[pixelQuintupletIndex]) + __H2F(pixelQuintupletsInGPU.quintupletRadius[pixelQuintupletIndex]));
-                unsigned int pT5PixelIndex =  pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex];
-                addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pT5PixelIndex, pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], &pixelQuintupletsInGPU.logicalLayers[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.lowerModuleIndices[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.hitIndices[14 * pixelQuintupletIndex], segmentsInGPU.seedIdx[pT5PixelIndex - pLS_offset], __H2F(pixelQuintupletsInGPU.centerX[pixelQuintupletIndex]), __H2F(pixelQuintupletsInGPU.centerY[pixelQuintupletIndex]),radius , trackCandidateIdx, pixelQuintupletIndex);
+                }
+                else
+                {
+                    alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatespT5,1);
+
+                    float radius = 0.5f*(__H2F(pixelQuintupletsInGPU.pixelRadius[pixelQuintupletIndex]) + __H2F(pixelQuintupletsInGPU.quintupletRadius[pixelQuintupletIndex]));
+                    unsigned int pT5PixelIndex =  pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex];
+                    addTrackCandidateToMemory(trackCandidatesInGPU, 7/*track candidate type pT5=7*/, pT5PixelIndex, pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex], &pixelQuintupletsInGPU.logicalLayers[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.lowerModuleIndices[7 * pixelQuintupletIndex], &pixelQuintupletsInGPU.hitIndices[14 * pixelQuintupletIndex], segmentsInGPU.seedIdx[pT5PixelIndex - pLS_offset], __H2F(pixelQuintupletsInGPU.centerX[pixelQuintupletIndex]), __H2F(pixelQuintupletsInGPU.centerY[pixelQuintupletIndex]),radius , trackCandidateIdx, pixelQuintupletIndex);
+                }
             }
         }
     };

@@ -649,7 +649,7 @@ void SDL::Event::createTrackCandidates()
     if(trackCandidatesInGPU == nullptr)
     {
         trackCandidatesInGPU = new SDL::trackCandidates();
-        trackCandidatesBuffers = new SDL::trackCandidatesBuffer<Acc>(N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES, devAcc, queue);
+        trackCandidatesBuffers = new SDL::trackCandidatesBuffer<Acc>(N_MAX_NONPIXEL_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES, devAcc, queue);
         trackCandidatesInGPU->setData(*trackCandidatesBuffers);
     }
 
@@ -1026,7 +1026,7 @@ void SDL::Event::createPixelQuintuplets()
     if(trackCandidatesInGPU == nullptr)
     {
         trackCandidatesInGPU = new SDL::trackCandidates();
-        trackCandidatesBuffers = new SDL::trackCandidatesBuffer<Acc>(N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES, devAcc, queue);
+        trackCandidatesBuffers = new SDL::trackCandidatesBuffer<Acc>(N_MAX_NONPIXEL_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES, devAcc, queue);
         trackCandidatesInGPU->setData(*trackCandidatesBuffers);
     }
 
@@ -1817,7 +1817,7 @@ SDL::trackCandidatesBuffer<alpaka::DevCpu>* SDL::Event::getTrackCandidates()
         alpaka::wait(queue);
 
         int nTrackCanHost = *alpaka::getPtrNative(nTrackCanHost_buf);
-        trackCandidatesInCPU = new SDL::trackCandidatesBuffer<alpaka::DevCpu>(N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES, devHost, queue);
+        trackCandidatesInCPU = new SDL::trackCandidatesBuffer<alpaka::DevCpu>(N_MAX_NONPIXEL_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES, devHost, queue);
         trackCandidatesInCPU->setData(*trackCandidatesInCPU);
 
         *alpaka::getPtrNative(trackCandidatesInCPU->nTrackCandidates_buf) = nTrackCanHost;
@@ -1842,7 +1842,7 @@ SDL::trackCandidatesBuffer<alpaka::DevCpu>* SDL::Event::getTrackCandidatesInCMSS
         alpaka::wait(queue);
 
         int nTrackCanHost = *alpaka::getPtrNative(nTrackCanHost_buf);
-        trackCandidatesInCPU = new SDL::trackCandidatesBuffer<alpaka::DevCpu>(N_MAX_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES, devHost, queue);
+        trackCandidatesInCPU = new SDL::trackCandidatesBuffer<alpaka::DevCpu>(N_MAX_NONPIXEL_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES, devHost, queue);
         trackCandidatesInCPU->setData(*trackCandidatesInCPU);
 
         *alpaka::getPtrNative(trackCandidatesInCPU->nTrackCandidates_buf) = nTrackCanHost;
