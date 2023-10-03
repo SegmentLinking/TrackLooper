@@ -781,7 +781,33 @@ void SDL::Event::createTrackCandidates()
         *segmentsInGPU));
 
     alpaka::enqueue(queue, addpLSasTrackCandidateInGPUTask);
+
+    // Check if either N_MAX_PIXEL_TRACK_CANDIDATES or N_MAX_NONPIXEL_TRACK_CANDIDATES was reached
+    auto nTrackCanpT5Host_buf = allocBufWrapper<int>(devHost, 1, queue);
+    auto nTrackCanpT3Host_buf = allocBufWrapper<int>(devHost, 1, queue);
+    auto nTrackCanpLSHost_buf = allocBufWrapper<int>(devHost, 1, queue);
+    auto nTrackCanT5Host_buf = allocBufWrapper<int>(devHost, 1, queue);
+    alpaka::memcpy(queue, nTrackCanpT5Host_buf, trackCandidatesBuffers->nTrackCandidatespT5_buf, 1);
+    alpaka::memcpy(queue, nTrackCanpT3Host_buf, trackCandidatesBuffers->nTrackCandidatespT3_buf, 1);
+    alpaka::memcpy(queue, nTrackCanpLSHost_buf, trackCandidatesBuffers->nTrackCandidatespLS_buf, 1);
+    alpaka::memcpy(queue, nTrackCanT5Host_buf, trackCandidatesBuffers->nTrackCandidatesT5_buf, 1);
     alpaka::wait(queue);
+
+    int nTrackCandidatespT5 = *alpaka::getPtrNative(nTrackCanpT5Host_buf);
+    int nTrackCandidatespT3 = *alpaka::getPtrNative(nTrackCanpT3Host_buf);
+    int nTrackCandidatespLS = *alpaka::getPtrNative(nTrackCanpLSHost_buf);
+    int nTrackCandidatesT5 = *alpaka::getPtrNative(nTrackCanT5Host_buf);
+    if ((nTrackCandidatespT5 + nTrackCandidatespT3 + nTrackCandidatespLS == N_MAX_PIXEL_TRACK_CANDIDATES)
+        || (nTrackCandidatesT5 == N_MAX_NONPIXEL_TRACK_CANDIDATES))
+    {
+        printf(
+               "****************************************************************************************************\n"
+               "* Warning: Track candidates were possibly truncated.                                               *\n"
+               "* You may need to increase either N_MAX_PIXEL_TRACK_CANDIDATES or N_MAX_NONPIXEL_TRACK_CANDIDATES. *\n"
+               "* Run the code with the Warnings flag activated for more details.                                  *\n"
+               "****************************************************************************************************\n"
+               );
+    }
 }
 
 void SDL::Event::createPixelTriplets()
