@@ -7,7 +7,7 @@ run_gpu()
     nevents=$3
     shift 3
     # GPU backend
-    sdl_make_tracklooper -m $*
+    sdl_make_tracklooper -mN $*
     for s_value in 1 2 4 6 8; do
         sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}_s${s_value}.root -v 1 -w 0 -s ${s_value} -i ${sample} | tee -a timing_temp.txt
     done
@@ -20,7 +20,7 @@ run_cpu()
     nevents=$3
     shift 3
     # CPU backend
-    sdl_make_tracklooper -mC $*
+    sdl_make_tracklooper -mNC $*
     for s_value in 1 4 16 32 64; do
         sdl -n ${NEVENTS} -o ${OUTDIR}/cpu_${version}_s${s_value}.root -v 1 -w 0 -s ${s_value} -i ${sample} | tee -a timing_temp.txt
     done
