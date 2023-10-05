@@ -315,7 +315,7 @@ namespace SDL
         const float zLo = zIn + (zIn - SDL::deltaZLum) * (rtRatio_OutIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - (zpitchIn + zpitchOut); //slope-correction only on outer end
 
         //Cut 1 - z compatibility
-        pass = pass and ((zOut >= zLo) & (zOut <= zHi));
+        pass = pass and ((zOut >= zLo) && (zOut <= zHi));
         if(not pass) return pass;
 
         float drt_OutIn = (rtOut - rtIn);
@@ -343,7 +343,7 @@ namespace SDL
         // Constructing upper and lower bound
 
         // Cut #2: Pointed Z (Inner segment two MD points to outer segment inner MD)
-        pass = pass and ((zOut >= zLoPointed) & (zOut <= zHiPointed));
+        pass = pass and ((zOut >= zLoPointed) && (zOut <= zHiPointed));
 
         return pass;
     };
@@ -397,7 +397,7 @@ namespace SDL
         float rtHi = rtIn * (1.f + (zOut - zIn + zGeom1) / zInForHi) + rtGeom1;
 
         //Cut #2: rt condition
-        pass = pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
+        pass = pass and ((rtOut >= rtLo) && (rtOut <= rtHi));
         if(not pass) return pass;
 
         float rIn = alpaka::math::sqrt(acc, zIn * zIn + rtIn * rtIn);
@@ -423,7 +423,7 @@ namespace SDL
 
         //Cut #3: rt-z pointed
 
-        pass = pass and (kZ >=0) & (rtOut >= rtLo) & (rtOut <= rtHi);
+        pass = pass and (kZ >=0) && (rtOut >= rtLo) && (rtOut <= rtHi);
         return pass;
     };
 
@@ -470,7 +470,7 @@ namespace SDL
         const float rtHi = rtIn * (1.f + dz / (zIn - dLum)) + rtGeom;
 
         //Cut #1: rt condition
-        pass = pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
+        pass = pass and ((rtOut >= rtLo) && (rtOut <= rtHi));
         if(not pass) return pass;
         
         bool isInSgOuterMDPS = modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS;
@@ -501,7 +501,7 @@ namespace SDL
 
         if (isInSgInnerMDPS and isInSgOuterMDPS) // If both PS then we can point
         {
-            pass = pass and ((kZ >= 0) &  (rtOut >= rtLo_point) & (rtOut <= rtHi_point));
+            pass = pass and ((kZ >= 0) &&  (rtOut >= rtLo_point) && (rtOut <= rtHi_point));
         }
 
         return pass;
@@ -617,7 +617,7 @@ namespace SDL
         //Cut 1 - z compatibility
         zOut = z_OutLo;
         rtOut = rt_OutLo;
-        pass = pass and ((z_OutLo >= zLo) & (z_OutLo <= zHi));
+        pass = pass and ((z_OutLo >= zLo) && (z_OutLo <= zHi));
         if(not pass) return pass;
 
         float drt_OutLo_InLo = (rt_OutLo - rt_InLo);
@@ -641,7 +641,7 @@ namespace SDL
         zHiPointed = z_InLo + dzMean * (z_InLo < 0.f ? 1.f : dzDrtScale) + zWindow;
 
         // Cut #2: Pointed Z (Inner segment two MD points to outer segment inner MD)
-        pass =  pass and ((z_OutLo >= zLoPointed) & (z_OutLo <= zHiPointed));
+        pass =  pass and ((z_OutLo >= zLoPointed) && (z_OutLo <= zHiPointed));
         if(not pass) return pass;
 
         float sdlPVoff = 0.1f/rt_OutLo;
@@ -832,7 +832,7 @@ namespace SDL
         rtHi = rt_InLo * (1.f + (z_OutLo - z_InLo + zGeom1) / zInForHi) + rtGeom1;
 
         //Cut #2: rt condition
-        pass =  pass and ((rt_OutLo >= rtLo) & (rt_OutLo <= rtHi));
+        pass =  pass and ((rt_OutLo >= rtLo) && (rt_OutLo <= rtHi));
         if(not pass) return pass;
 
         float rIn = alpaka::math::sqrt(acc, z_InLo * z_InLo + rt_InLo * rt_InLo);
@@ -856,7 +856,7 @@ namespace SDL
         const float rtHi_another = rt_InLo + drtMean + rtWindow;
 
         //Cut #3: rt-z pointed
-        pass =  pass and ((kZ >= 0) & (rtOut >= rtLo) & (rtOut <= rtHi));
+        pass =  pass and ((kZ >= 0) && (rtOut >= rtLo) && (rtOut <= rtHi));
         if(not pass) return pass;
 
         const float sdlPVoff = 0.1f / rt_OutLo;
@@ -1043,7 +1043,7 @@ namespace SDL
 
         rtHi = rt_InLo * (1.f + dz / (z_InLo - dLum)) + rtGeom;
 
-        pass =  pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
+        pass =  pass and ((rtOut >= rtLo) && (rtOut <= rtHi));
         if(not pass) return pass;
 
         bool isInSgOuterMDPS = modulesInGPU.moduleType[innerOuterLowerModuleIndex] == SDL::PS;
@@ -1409,11 +1409,13 @@ namespace SDL
                 else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
                 else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
                 else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
+                else category_number = -1;
 
                 if (module_eta<0.75) eta_number = 0;
                 else if (module_eta>0.75 && module_eta<1.5) eta_number = 1;
                 else if (module_eta>1.5 && module_eta<2.25) eta_number = 2;
                 else if (module_eta>2.25 && module_eta<3) eta_number = 3;
+                else eta_number = -1;
 
                 if (category_number == 0 && eta_number == 0) occupancy = 543;
                 else if (category_number == 0 && eta_number == 1) occupancy = 235;
@@ -1426,6 +1428,13 @@ namespace SDL
                 else if (category_number == 3 && eta_number == 1) occupancy = 38;
                 else if (category_number == 3 && eta_number == 2) occupancy = 46;
                 else if (category_number == 3 && eta_number == 3) occupancy = 39;
+                else
+                {
+                    occupancy = 0;
+#ifdef Warnings
+                    printf("Unhandled case in createTripletArrayRanges! Module index = %i\n", i);
+#endif
+                }
 
                 rangesInGPU.tripletModuleOccupancy[i] = occupancy;
                 unsigned int nTotT = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalTriplets, occupancy);

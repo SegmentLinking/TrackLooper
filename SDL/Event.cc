@@ -1674,7 +1674,7 @@ SDL::segmentsBuffer<alpaka::DevCpu>* SDL::Event::getSegments()
 {
     if(segmentsInCPU == nullptr)
     {
-        // Get nMemoryLocations parameter to initilize host based segmentsInCPU
+        // Get nMemoryLocations parameter to initialize host based segmentsInCPU
         auto nMemHost_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
         alpaka::memcpy(queue, nMemHost_buf, segmentsBuffers->nMemoryLocations_buf, 1);
         alpaka::wait(queue);
@@ -1705,7 +1705,7 @@ SDL::tripletsBuffer<alpaka::DevCpu>* SDL::Event::getTriplets()
 {
     if(tripletsInCPU == nullptr)
     {
-        // Get nMemoryLocations parameter to initilize host based tripletsInCPU
+        // Get nMemoryLocations parameter to initialize host based tripletsInCPU
         auto nMemHost_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
         alpaka::memcpy(queue, nMemHost_buf, tripletsBuffers->nMemoryLocations_buf, 1);
         alpaka::wait(queue);
@@ -1746,7 +1746,7 @@ SDL::quintupletsBuffer<alpaka::DevCpu>* SDL::Event::getQuintuplets()
 {
     if(quintupletsInCPU == nullptr)
     {
-        // Get nMemoryLocations parameter to initilize host based quintupletsInCPU
+        // Get nMemoryLocations parameter to initialize host based quintupletsInCPU
         auto nMemHost_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
         alpaka::memcpy(queue, nMemHost_buf, quintupletsBuffers->nMemoryLocations_buf, 1);
         alpaka::wait(queue);
@@ -1779,7 +1779,7 @@ SDL::pixelTripletsBuffer<alpaka::DevCpu>* SDL::Event::getPixelTriplets()
 {
     if(pixelTripletsInCPU == nullptr)
     {
-        // Get nPixelTriplets parameter to initilize host based quintupletsInCPU
+        // Get nPixelTriplets parameter to initialize host based quintupletsInCPU
         auto nPixelTriplets_buf = allocBufWrapper<int>(devHost, 1, queue);
         alpaka::memcpy(queue, nPixelTriplets_buf, pixelTripletsBuffers->nPixelTriplets_buf, 1);
         alpaka::wait(queue);
@@ -1810,7 +1810,7 @@ SDL::pixelQuintupletsBuffer<alpaka::DevCpu>* SDL::Event::getPixelQuintuplets()
 {
     if(pixelQuintupletsInCPU == nullptr)
     {
-        // Get nPixelQuintuplets parameter to initilize host based quintupletsInCPU
+        // Get nPixelQuintuplets parameter to initialize host based quintupletsInCPU
         auto nPixelQuintuplets_buf = allocBufWrapper<int>(devHost, 1, queue);
         alpaka::memcpy(queue, nPixelQuintuplets_buf, pixelQuintupletsBuffers->nPixelQuintuplets_buf, 1);
         alpaka::wait(queue);

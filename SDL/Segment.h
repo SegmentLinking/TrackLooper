@@ -183,9 +183,9 @@ namespace SDL
         short side = modulesInGPU.sides[moduleIndex];
         short rod = modulesInGPU.rods[moduleIndex];
 
-        return (subdet == Barrel) & ( ((side != Center) & (layer== 3))
-                        | ((side == NegZ) & (((layer == 2) & (rod > 5)) | ((layer == 1) & (rod > 9))))
-                        | ((side == PosZ) & (((layer == 2) & (rod < 8)) | ((layer == 1) & (rod < 4)))) );
+        return (subdet == Barrel) && ( ((side != Center) && (layer== 3))
+                        || ((side == NegZ) && (((layer == 2) && (rod > 5)) || ((layer == 1) && (rod > 9))))
+                        || ((side == PosZ) && (((layer == 2) && (rod < 8)) || ((layer == 1) && (rod < 4)))) );
     };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE float isTighterTiltedModules_seg(short subdet, short layer, short side, short rod)
@@ -193,9 +193,9 @@ namespace SDL
         // The "tighter" tilted modules are the subset of tilted modules that have smaller spacing
         // This is the same as what was previously considered as"isNormalTiltedModules"
         // See Figure 9.1 of https://cds.cern.ch/record/2272264/files/CMS-TDR-014.pdf
-        return (subdet == Barrel) & ( ((side != Center) & (layer== 3))
-                        | ((side == NegZ) & (((layer == 2) & (rod > 5)) | ((layer == 1) & (rod > 9))))
-                        | ((side == PosZ) & (((layer == 2) & (rod < 8)) | ((layer == 1) & (rod < 4)))) );
+        return (subdet == Barrel) && ( ((side != Center) && (layer== 3))
+                        || ((side == NegZ) && (((layer == 2) && (rod > 5)) || ((layer == 1) && (rod > 9))))
+                        || ((side == PosZ) && (((layer == 2) && (rod < 8)) || ((layer == 1) && (rod < 4)))) );
     };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE float moduleGapSize_seg(short layer, short ring, short subdet, short side, short rod)
@@ -442,7 +442,7 @@ namespace SDL
         zLo = zIn + (zIn - deltaZLum) * (rtOut / rtIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - zGeom; //slope-correction only on outer end
         zHi = zIn + (zIn + deltaZLum) * (rtOut / rtIn - 1.f) * (zIn < 0.f ? 1.f : dzDrtScale) + zGeom;
 
-        pass =  pass and ((zOut >= zLo) & (zOut <= zHi));
+        pass =  pass and ((zOut >= zLo) && (zOut <= zHi));
         if(not pass) return pass;
 
         sdCut = sdSlope + alpaka::math::sqrt(acc, sdMuls * sdMuls + sdPVoff * sdPVoff);
@@ -470,11 +470,11 @@ namespace SDL
         dAlphaOuterMDSegmentThreshold = dAlphaThresholdValues[1];
         dAlphaInnerMDOuterMDThreshold = dAlphaThresholdValues[2];
         
-        pass =  pass and (alpaka::math::abs(acc, dAlphaInnerMDSegment) < dAlphaThresholdValues[0]);
+        pass =  pass and (alpaka::math::abs(acc, dAlphaInnerMDSegment) < dAlphaInnerMDSegmentThreshold);
         if(not pass) return pass;
-        pass =  pass and (alpaka::math::abs(acc, dAlphaOuterMDSegment) < dAlphaThresholdValues[1]);
+        pass =  pass and (alpaka::math::abs(acc, dAlphaOuterMDSegment) < dAlphaOuterMDSegmentThreshold);
         if(not pass) return pass;
-        pass =  pass and (alpaka::math::abs(acc, dAlphaInnerMDOuterMD) < dAlphaThresholdValues[2]);
+        pass =  pass and (alpaka::math::abs(acc, dAlphaInnerMDOuterMD) < dAlphaInnerMDOuterMDThreshold);
 
         return pass;
     };
@@ -497,7 +497,7 @@ namespace SDL
         zOut = mdsInGPU.anchorZ[outerMDIndex];
         rtOut = mdsInGPU.anchorRt[outerMDIndex];
 
-        bool outerLayerEndcapTwoS = (modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Endcap) & (modulesInGPU.moduleType[outerLowerModuleIndex] == SDL::TwoS);
+        bool outerLayerEndcapTwoS = (modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Endcap) && (modulesInGPU.moduleType[outerLowerModuleIndex] == SDL::TwoS);
 
         float sdSlope = alpaka::math::asin(acc, alpaka::math::min(acc, rtOut * k2Rinv1GeVf / ptCut, sinAlphaMax));
         float sdPVoff = 0.1/rtOut;
@@ -520,7 +520,7 @@ namespace SDL
         rtHi = rtIn * (zOut - dLum) / (zIn - dLum) + rtGeom; //dLum for luminous; rGeom for measurement size; no tanTheta_loc(pt) correction
 
         // Completeness
-        pass =  pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
+        pass =  pass and ((rtOut >= rtLo) && (rtOut <= rtHi));
         if(not pass) return pass;
 
         dPhi = SDL::phi_mpi_pi(acc, mdsInGPU.anchorPhi[outerMDIndex]-mdsInGPU.anchorPhi[innerMDIndex]);
@@ -712,11 +712,13 @@ namespace SDL
                 else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
                 else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
                 else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
+                else category_number = -1;
 
                 if (module_eta<0.75) eta_number = 0;
                 else if (module_eta>0.75 && module_eta<1.5) eta_number = 1;
                 else if (module_eta>1.5  && module_eta<2.25) eta_number = 2;
                 else if (module_eta>2.25 && module_eta<3) eta_number = 3;
+                else eta_number = -1;
 
                 if (category_number == 0 && eta_number == 0) occupancy = 572;
                 else if (category_number == 0 && eta_number == 1) occupancy = 300;
@@ -729,6 +731,13 @@ namespace SDL
                 else if (category_number == 3 && eta_number == 1) occupancy = 64;
                 else if (category_number == 3 && eta_number == 2) occupancy = 79;
                 else if (category_number == 3 && eta_number == 3) occupancy = 85;
+                else
+                {
+                    occupancy = 0;
+#ifdef Warnings
+                    printf("Unhandled case in createSegmentArrayRanges! Module index = %i\n", i);
+#endif
+                }
 
                 int nTotSegs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalSegments,occupancy);
                 rangesInGPU.segmentModuleIndices[i] = nTotSegs;

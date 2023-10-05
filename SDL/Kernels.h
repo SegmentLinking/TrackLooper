@@ -216,19 +216,17 @@ namespace SDL
             Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
             Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
-            for(unsigned int lowmod1 = globalThreadIdx[0]; lowmod1 < *modulesInGPU.nLowerModules; lowmod1 += gridThreadExtent[0])
+            for(unsigned int lowmod = globalThreadIdx[0]; lowmod < *modulesInGPU.nLowerModules; lowmod += gridThreadExtent[0])
             {
-                int nQuintuplets_lowmod1 = quintupletsInGPU.nQuintuplets[lowmod1];
-                int quintupletModuleIndices_lowmod1 = rangesInGPU.quintupletModuleIndices[lowmod1];
+                int nQuintuplets_lowmod = quintupletsInGPU.nQuintuplets[lowmod];
+                int quintupletModuleIndices_lowmod = rangesInGPU.quintupletModuleIndices[lowmod];
 
-                for(unsigned int ix1 = globalThreadIdx[1]; ix1 < nQuintuplets_lowmod1; ix1 += gridThreadExtent[1])
+                for(unsigned int ix1 = globalThreadIdx[1]; ix1 < nQuintuplets_lowmod; ix1 += gridThreadExtent[1])
                 {
-                    unsigned int ix = quintupletModuleIndices_lowmod1 + ix1;
+                    unsigned int ix = quintupletModuleIndices_lowmod + ix1;
                     float eta1 = __H2F(quintupletsInGPU.eta[ix]);
                     float phi1 = __H2F(quintupletsInGPU.phi[ix]);
                     float score_rphisum1 = __H2F(quintupletsInGPU.score_rphisum[ix]);
-                    int nQuintuplets_lowmod = quintupletsInGPU.nQuintuplets[lowmod1];
-                    int quintupletModuleIndices_lowmod = rangesInGPU.quintupletModuleIndices[lowmod1];
 
                     for(unsigned int jx1 = globalThreadIdx[2]; jx1 < nQuintuplets_lowmod; jx1 += gridThreadExtent[2])
                     {

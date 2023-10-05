@@ -465,19 +465,11 @@ namespace SDL
                 yp =yLower;
                 zp =zLower;
                 rtp =rtLower;
-                xp =xLower;
-                yp =yLower;
-                zp =zLower;
-                rtp =rtLower;
             }
             else
             {
                 xo = xLower;
                 yo = yLower;
-                xp = xUpper;
-                yp = yUpper;
-                zp = zUpper;
-                rtp=rtUpper;
                 xp = xUpper;
                 yp = yUpper;
                 zp = zUpper;
@@ -492,19 +484,15 @@ namespace SDL
             yp =yLower;
             zp =zLower;
             rtp =rtLower;
-            xp =xLower;
-            yp =yLower;
-            zp =zLower;
-            rtp =rtLower;
         }
 
         // If it is endcap some of the math gets simplified (and also computers don't like infinities)
         isEndcap = modulesInGPU.subdets[lowerModuleIndex]== Endcap;
 
-        // NOTE: TODO: Keep in mind that the sin(atan) function can be simplifed to something like x / sqrt(1 + x^2) and similar for cos
+        // NOTE: TODO: Keep in mind that the sin(atan) function can be simplified to something like x / sqrt(1 + x^2) and similar for cos
         // I am not sure how slow sin, atan, cos, functions are in c++. If x / sqrt(1 + x^2) are faster change this later to reduce arithmetic computation time
         angleA = alpaka::math::abs(acc, alpaka::math::atan(acc, rtp / zp));
-        angleB = ((isEndcap) ? float(M_PI) / 2.f : alpaka::math::atan(acc, drdz_)); // The tilt module on the postive z-axis has negative drdz slope in r-z plane and vice versa
+        angleB = ((isEndcap) ? float(M_PI) / 2.f : alpaka::math::atan(acc, drdz_)); // The tilt module on the positive z-axis has negative drdz slope in r-z plane and vice versa
 
         moduleSeparation = moduleGapSize(modulesInGPU, lowerModuleIndex);
 
@@ -545,7 +533,7 @@ namespace SDL
         xa = xp + drprime_x;
         ya = yp + drprime_y;
 
-        // Compute the new strip hit position (if the slope vaule is in special condition take care of the exceptions)
+        // Compute the new strip hit position (if the slope value is in special condition take care of the exceptions)
         if (slope == SDL::SDL_INF) // Designated for tilted module when the slope is exactly infinity (module lying along y-axis)
         {
             xn = xa; // New x point is simply where the anchor is
@@ -605,7 +593,7 @@ namespace SDL
         const float sign = ((dz > 0) - (dz < 0)) * ((zLower > 0) - (zLower < 0));
         const float invertedcrossercut = (alpaka::math::abs(acc, dz) > 2) * sign;
 
-        pass = pass  and ((alpaka::math::abs(acc, dz) < dzCut) & (invertedcrossercut <= 0));
+        pass = pass  and ((alpaka::math::abs(acc, dz) < dzCut) && (invertedcrossercut <= 0));
         if(not pass) return pass;
 
         float miniCut = 0;
@@ -651,7 +639,7 @@ namespace SDL
             noShiftedDphi = dPhi;
         }
 
-        pass = pass & (alpaka::math::abs(acc, dPhi) < miniCut);
+        pass = pass && (alpaka::math::abs(acc, dPhi) < miniCut);
         if(not pass) return pass;
 
         // Cut #3: The dphi change going from lower Hit to upper Hit
@@ -665,7 +653,7 @@ namespace SDL
                 // dPhi Change should be calculated so that the upper hit has higher rt.
                 // In principle, this kind of check rt_lower < rt_upper should not be necessary because the hit shifting should have taken care of this.
                 // (i.e. the strip hit is shifted to be aligned in the line of sight from interaction point to pixel hit of PS module guaranteeing rt ordering)
-                // But I still placed this check for safety. (TODO: After cheking explicitly if not needed remove later?)
+                // But I still placed this check for safety. (TODO: After checking explicitly if not needed remove later?)
                 // setdeltaPhiChange(lowerHit.rt() < upperHitMod.rt() ? lowerHit.deltaPhiChange(upperHitMod) : upperHitMod.deltaPhiChange(lowerHit));
 
                 dPhiChange = (rtLower < shiftedRt) ? SDL::deltaPhiChange(acc, xLower, yLower, shiftedX, shiftedY) : SDL::deltaPhiChange(acc, shiftedX, shiftedY, xLower, yLower); 
@@ -676,7 +664,7 @@ namespace SDL
                 // dPhi Change should be calculated so that the upper hit has higher rt.
                 // In principle, this kind of check rt_lower < rt_upper should not be necessary because the hit shifting should have taken care of this.
                 // (i.e. the strip hit is shifted to be aligned in the line of sight from interaction point to pixel hit of PS module guaranteeing rt ordering)
-                // But I still placed this check for safety. (TODO: After cheking explicitly if not needed remove later?)
+                // But I still placed this check for safety. (TODO: After checking explicitly if not needed remove later?)
 
                 dPhiChange = (shiftedRt < rtUpper) ? SDL::deltaPhiChange(acc, shiftedX, shiftedY, xUpper, yUpper) : SDL::deltaPhiChange(acc, xUpper, yUpper, shiftedX, shiftedY);
                 noShiftedDphiChange = rtLower < rtUpper ? SDL::deltaPhiChange(acc, xLower,yLower, xUpper, yUpper) : SDL::deltaPhiChange(acc, xUpper, yUpper, xLower, yLower);
@@ -689,7 +677,7 @@ namespace SDL
             noShiftedDphiChange = dPhiChange;
         }
 
-        pass = pass & (alpaka::math::abs(acc, dPhiChange) < miniCut);
+        pass = pass && (alpaka::math::abs(acc, dPhiChange) < miniCut);
 
         return pass;
     };
@@ -708,13 +696,13 @@ namespace SDL
 
         const float dzCut = 1.f;
 
-        pass = pass & (alpaka::math::abs(acc, dz) < dzCut);
+        pass = pass && (alpaka::math::abs(acc, dz) < dzCut);
         if(not pass) return pass;
         // Cut #2 : drt cut. The dz difference can't be larger than 1cm. (max separation is 4mm for modules in the endcap)
         // Ref to original code: https://github.com/slava77/cms-tkph2-ntuple/blob/184d2325147e6930030d3d1f780136bc2dd29ce6/doubletAnalysis.C#L3100
         const float drtCut = modulesInGPU.moduleType[lowerModuleIndex] == SDL::PS ? 2.f : 10.f;
         drt = rtLower - rtUpper;
-        pass = pass & (alpaka::math::abs(acc, drt) < drtCut);
+        pass = pass && (alpaka::math::abs(acc, drt) < drtCut);
         if(not pass) return pass;
         // The new scheme shifts strip hits to be "aligned" along the line of sight from interaction point to the pixel hit (if it is PS modules)
         float xn = 0, yn = 0, zn = 0;
@@ -765,7 +753,7 @@ namespace SDL
         float miniCut = 0;
         miniCut = modulesInGPU.moduleLayerType[lowerModuleIndex] == SDL::Pixel ?  dPhiThreshold(acc, rtLower, modulesInGPU, lowerModuleIndex,dPhi, dz) :  dPhiThreshold(acc, rtUpper, modulesInGPU, lowerModuleIndex, dPhi, dz);
 
-        pass = pass & (alpaka::math::abs(acc, dPhi) < miniCut);
+        pass = pass && (alpaka::math::abs(acc, dPhi) < miniCut);
         if(not pass) return pass;
 
         // Cut #4: Another cut on the dphi after some modification
@@ -774,7 +762,7 @@ namespace SDL
         float dzFrac = alpaka::math::abs(acc, dz) / alpaka::math::abs(acc, zLower);
         dPhiChange = dPhi / dzFrac * (1.f + dzFrac);
         noShiftedDphichange = noShiftedDphi / dzFrac * (1.f + dzFrac);
-        pass = pass & (alpaka::math::abs(acc, dPhiChange) < miniCut);
+        pass = pass && (alpaka::math::abs(acc, dPhiChange) < miniCut);
 
         return pass;
     };
@@ -884,11 +872,13 @@ namespace SDL
                 else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
                 else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
                 else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
+                else category_number = -1;
 
                 if (module_eta<0.75) eta_number = 0;
                 else if (module_eta>0.75 && module_eta<1.5) eta_number = 1;
                 else if (module_eta>1.5  && module_eta<2.25) eta_number = 2;
                 else if (module_eta>2.25 && module_eta<3) eta_number = 3;
+                else eta_number = -1;
 
                 if (category_number == 0 && eta_number == 0) occupancy = 49;
                 else if (category_number == 0 && eta_number == 1) occupancy = 42;
@@ -900,6 +890,13 @@ namespace SDL
                 else if (category_number == 3 && eta_number == 1) occupancy = 14;
                 else if (category_number == 3 && eta_number == 2) occupancy = 20;
                 else if (category_number == 3 && eta_number == 3) occupancy = 25;
+                else
+                {
+                    occupancy = 0;
+#ifdef Warnings
+                    printf("Unhandled case in createMDArrayRangesGPU! Module index = %i\n", i);
+#endif
+                }
 
                 unsigned int nTotMDs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalMDs, occupancy);
 

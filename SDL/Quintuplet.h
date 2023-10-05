@@ -144,7 +144,7 @@ namespace SDL
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE bool checkIntervalOverlap(const float& firstMin, const float& firstMax, const float& secondMin, const float& secondMax)
     {
-        return ((firstMin <= secondMin) & (secondMin < firstMax)) |  ((secondMin < firstMin) & (firstMin < secondMax));
+        return ((firstMin <= secondMin) && (secondMin < firstMax)) || ((secondMin < firstMin) && (firstMin < secondMax));
     };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE void addQuintupletToMemory(struct SDL::triplets& tripletsInGPU, struct SDL::quintuplets& quintupletsInGPU, unsigned int innerTripletIndex, unsigned int outerTripletIndex, uint16_t& lowerModule1, uint16_t& lowerModule2, uint16_t& lowerModule3, uint16_t& lowerModule4, uint16_t& lowerModule5, float& innerRadius, float& bridgeRadius, float& outerRadius, float& regressionG, float& regressionF, float& regressionRadius, float& rzChiSquared, float& rPhiChiSquared, float& nonAnchorChiSquared, float pt, float eta, float phi, float scores, uint8_t layer, unsigned int quintupletIndex, bool TightCutFlag)
@@ -610,7 +610,7 @@ namespace SDL
             return rzChiSquared < 4.677f;
         }
 
-        // when building T5, apply 99% chi2 cuts as default, and add to pT5 collection. But when adding T5 to TC collections, appy 95% cut to reduce the fake rate
+        // when building T5, apply 99% chi2 cuts as default, and add to pT5 collection. But when adding T5 to TC collections, apply 95% cut to reduce the fake rate
         TightCutFlag = false;
         // The category numbers are related to module regions and layers, decoding of the region numbers can be found here in slide 2 table. https://github.com/SegmentLinking/TrackLooper/files/11420927/part.2.pdf
         // The commented numbers after each case is the region code, and can look it up from the table to see which category it belongs to. For example, //0 means T5 built with Endcap 1,2,3,4,5 ps modules
@@ -742,7 +742,7 @@ namespace SDL
         unsigned int innerOuterSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex + 1];
         unsigned int outerInnerSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTripletIndex];
         unsigned int innerOuterOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * innerOuterSegmentIndex + 1]; //inner triplet outer segment outer MD index
-        unsigned int outerInnerInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerInnerSegmentIndex]; //outer triplet inner segmnet inner MD index
+        unsigned int outerInnerInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * outerInnerSegmentIndex]; //outer triplet inner segment inner MD index
 
         return (innerOuterOuterMiniDoubletIndex == outerInnerInnerMiniDoubletIndex);
     };
@@ -1123,7 +1123,7 @@ namespace SDL
         float radius = 0.f;
 
         // Some extra variables
-        // the two variables will be caled x1 and x2, and y (which is x^2 + y^2)
+        // the two variables will be called x1 and x2, and y (which is x^2 + y^2)
 
         float sigmaX1Squared = 0.f;
         float sigmaX2Squared = 0.f;
@@ -1325,7 +1325,7 @@ namespace SDL
         //Cut 1 - z compatibility
         zOut = z_OutLo;
         rtOut = rt_OutLo;
-        pass = pass and ((z_OutLo >= zLo) & (z_OutLo <= zHi));
+        pass = pass and ((z_OutLo >= zLo) && (z_OutLo <= zHi));
         if(not pass) return pass;
 
         float drt_OutLo_InLo = (rt_OutLo - rt_InLo);
@@ -1349,7 +1349,7 @@ namespace SDL
         zHiPointed = z_InLo + dzMean * (z_InLo < 0.f ? 1.f : dzDrtScale) + zWindow;
 
         // Cut #2: Pointed Z (Inner segment two MD points to outer segment inner MD)
-        pass = pass and ((z_OutLo >= zLoPointed) & (z_OutLo <= zHiPointed));
+        pass = pass and ((z_OutLo >= zLoPointed) && (z_OutLo <= zHiPointed));
         if(not pass) return pass;
 
         float sdlPVoff = 0.1f/rt_OutLo;
@@ -1537,7 +1537,7 @@ namespace SDL
         rtHi = rt_InLo * (1.f + (z_OutLo - z_InLo + zGeom1) / zInForHi) + rtGeom1;
 
         //Cut #2: rt condition
-        pass = pass and ((rt_OutLo >= rtLo) & (rt_OutLo <= rtHi));
+        pass = pass and ((rt_OutLo >= rtLo) && (rt_OutLo <= rtHi));
         if(not pass) return pass;
 
         float rIn = alpaka::math::sqrt(acc, z_InLo * z_InLo + rt_InLo * rt_InLo);
@@ -1561,7 +1561,7 @@ namespace SDL
         const float rtHi_another = rt_InLo + drtMean + rtWindow;
 
         //Cut #3: rt-z pointed
-        pass = pass and ((kZ >= 0) & (rtOut >= rtLo) & (rtOut <= rtHi));
+        pass = pass and ((kZ >= 0) && (rtOut >= rtLo) && (rtOut <= rtHi));
         if(not pass) return pass;
 
         const float sdlPVoff = 0.1f / rt_OutLo;
@@ -1746,7 +1746,7 @@ namespace SDL
 
         rtHi = rt_InLo * (1.f + dz / (z_InLo - dLum)) + rtGeom;
 
-        pass = pass and ((rtOut >= rtLo) & (rtOut <= rtHi));
+        pass = pass and ((rtOut >= rtLo) && (rtOut <= rtHi));
         if(not pass) return pass;
 
         bool isInSgOuterMDPS = modulesInGPU.moduleType[innerOuterLowerModuleIndex] == SDL::PS;
@@ -1974,7 +1974,7 @@ namespace SDL
         unsigned int fourthSegmentIndex = tripletsInGPU.segmentIndices[2 * outerTripletIndex + 1];
 
         unsigned int innerOuterOuterMiniDoubletIndex = segmentsInGPU.mdIndices[2 * secondSegmentIndex + 1]; //inner triplet outer segment outer MD index
-        unsigned int outerInnerInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * thirdSegmentIndex]; //outer triplet inner segmnet inner MD index
+        unsigned int outerInnerInnerMiniDoubletIndex = segmentsInGPU.mdIndices[2 * thirdSegmentIndex]; //outer triplet inner segment inner MD index
 
         //this cut reduces the number of candidates by a factor of 3, i.e., 2 out of 3 warps can end right here!
         if (innerOuterOuterMiniDoubletIndex != outerInnerInnerMiniDoubletIndex) return false;
@@ -2089,7 +2089,7 @@ namespace SDL
         pass = pass and passRZChi2;
         if(not pass) return pass;
 #endif
-        pass = pass & (innerRadius >= 0.95f * ptCut/(2.f * k2Rinv1GeVf));
+        pass = pass && (innerRadius >= 0.95f * ptCut/(2.f * k2Rinv1GeVf));
 
         float innerInvRadiusMin, innerInvRadiusMax, bridgeInvRadiusMin, bridgeInvRadiusMax, outerInvRadiusMin, outerInvRadiusMax;
 
@@ -2321,11 +2321,13 @@ namespace SDL
                 else if (module_layers>=3 && module_subdets==4 && module_rings>=8) category_number = 2;
                 else if (module_layers<=2 && module_subdets==4 && module_rings<=10) category_number = 3;
                 else if (module_layers>=3 && module_subdets==4 && module_rings<=7) category_number = 3;
+                else category_number = -1;
 
                 if (module_eta<0.75) eta_number = 0;
                 else if (module_eta>0.75 && module_eta<1.5) eta_number = 1;
                 else if (module_eta>1.5 && module_eta<2.25) eta_number = 2;
                 else if (module_eta>2.25 && module_eta<3) eta_number = 3;
+                else eta_number = -1;
 
                 if (category_number == 0 && eta_number == 0) occupancy = 336;
                 else if (category_number == 0 && eta_number == 1) occupancy = 414;
@@ -2334,6 +2336,13 @@ namespace SDL
                 else if (category_number == 3 && eta_number == 1) occupancy = 0;
                 else if (category_number == 3 && eta_number == 2) occupancy = 191;
                 else if (category_number == 3 && eta_number == 3) occupancy = 106;
+                else
+                {
+                    occupancy = 0;
+#ifdef Warnings
+                    printf("Unhandled case in createEligibleModulesListForQuintupletsGPU! Module index = %i\n", i);
+#endif
+                }
 
                 int nTotQ = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalQuintupletsx, occupancy);
                 rangesInGPU.quintupletModuleIndices[i] = nTotQ;
