@@ -27,7 +27,7 @@ usage()
   echo "  -3    do T3T3 extensions        (-e turned on if not specified)"
   echo "  -N    neural networks           (Toggle LST neural networks)"
   echo "  -C    cpu backend               (Run code on CPU, serially)"
-  echo "  -2    no pLS duplicate cleaning (Toggle LST neural networks)"
+  echo "  -2    no pLS duplicate cleaning (Don't perform the pLS duplicate cleaning step)"
   echo
   exit
 }
