@@ -27,7 +27,11 @@ using Dim = alpaka::DimInt<3u>;
 using Dim1d = alpaka::DimInt<1u>;
 using Vec = alpaka::Vec<Dim,Idx>;
 using Vec1d = alpaka::Vec<Dim1d,Idx>;
-using QueueProperty = alpaka::NonBlocking;
+#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+  using QueueProperty = alpaka::NonBlocking;
+#else
+  using QueueProperty = alpaka::Blocking;
+#endif
 using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
 
 Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
