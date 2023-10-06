@@ -735,6 +735,7 @@ void SDL::Event::createTrackCandidates()
 
     alpaka::enqueue(queue, addT5asTrackCandidateInGPUTask);
 
+#ifndef NOPLSDUPCLEAN
     Vec const threadsPerBlockCheckHitspLS = createVec(1,16,16);
     Vec const blocksPerGridCheckHitspLS = createVec(1,MAX_BLOCKS*4,MAX_BLOCKS/4);
     WorkDiv const checkHitspLS_workDiv = createWorkDiv(blocksPerGridCheckHitspLS, threadsPerBlockCheckHitspLS, elementsPerThread);
@@ -748,6 +749,7 @@ void SDL::Event::createTrackCandidates()
         true));
 
     alpaka::enqueue(queue, checkHitspLSTask);
+#endif
 
     Vec const threadsPerBlock_crossCleanpLS = createVec(1,16,32);
     Vec const blocksPerGrid_crossCleanpLS = createVec(1,4,20);
@@ -1025,6 +1027,7 @@ void SDL::Event::createQuintuplets()
 
 void SDL::Event::pixelLineSegmentCleaning()
 {
+#ifndef NOPLSDUPCLEAN
     Vec const threadsPerBlockCheckHitspLS = createVec(1,16,16);
     Vec const blocksPerGridCheckHitspLS = createVec(1,MAX_BLOCKS*4,MAX_BLOCKS/4);
     WorkDiv const checkHitspLS_workDiv = createWorkDiv(blocksPerGridCheckHitspLS, threadsPerBlockCheckHitspLS, elementsPerThread);
@@ -1039,6 +1042,7 @@ void SDL::Event::pixelLineSegmentCleaning()
 
     alpaka::enqueue(queue, checkHitspLSTask);
     alpaka::wait(queue);
+#endif
 }
 
 void SDL::Event::createPixelQuintuplets()
