@@ -40,6 +40,6 @@ export LSTPERFORMANCEWEBDIR=/home/users/phchang/public_html/LSTPerformanceWeb
 export LATEST_CPU_BENCHMARK_EFF_MUONGUN=
 export LATEST_CPU_BENCHMARK_EFF_PU200=
 
-export BOOST_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/boost/1.80.0-5305613b2f750cf1a05dcadf0d672647"
-export ALPAKA_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/alpaka/develop-20230621-9e2225ac6c979464a40749ef9d1e0331"
+export BOOST_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/boost/1.80.0-9315a40e01ff57e21052216b26778fdb"
+export ALPAKA_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/alpaka/develop-20230209-42df146cfd8ac463d0d6342b03c76732"
 #eof

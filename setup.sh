@@ -41,7 +41,7 @@ export LATEST_CPU_BENCHMARK_EFF_MUONGUN="/data2/segmentlinking/muonGun_cpu_effic
 export LATEST_CPU_BENCHMARK_EFF_PU200="/data2/segmentlinking/pu200_cpu_efficiencies.root"
 
 # Alpaka, Boost, and CUDA dependencies
-export BOOST_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/boost/1.80.0-5305613b2f750cf1a05dcadf0d672647"
-export ALPAKA_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/alpaka/develop-20230621-9e2225ac6c979464a40749ef9d1e0331"
-export CUDA_HOME=/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/cuda/11.8.0-9f0af0f4206be7b705fe550319c49a11/
+export BOOST_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/boost/1.80.0-9315a40e01ff57e21052216b26778fdb"
+export ALPAKA_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/alpaka/develop-20230209-42df146cfd8ac463d0d6342b03c76732"
+export CUDA_HOME="/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/cuda/11.5.2-66a9473808e7d5863d5bbec0824e2c4a"
 #eof
