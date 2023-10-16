@@ -41,7 +41,7 @@ while getopts ":cxgsmdp3NC2eh" OPTION; do
     d) MAKECUTVALUES=true;;
     p) PRIMITIVE=true;;
     3) T3T3EXTENSION=true;;
-    N) USENN=true;;
+    N) DONTUSENN=true;;
     C) CPUBACKEND=true;;
     2) NOPLSDUPCLEAN=true;;
     h) usage;;
@@ -56,7 +56,7 @@ if [ -z ${MAKECLEANBINARIES} ]; then MAKECLEANBINARIES=false; fi
 if [ -z ${MAKECUTVALUES} ]; then MAKECUTVALUES=false; fi
 if [ -z ${PRIMITIVE} ]; then PRIMITIVE=false; fi
 if [ -z ${T3T3EXTENSION} ]; then T3T3EXTENSION=false; fi
-if [ -z ${USENN} ]; then USENN=false; fi
+if [ -z ${DONTUSENN} ]; then DONTUSENN=false; fi
 if [ -z ${CPUBACKEND} ]; then CPUBACKEND=false; fi
 if [ -z ${NOPLSDUPCLEAN} ]; then NOPLSDUPCLEAN=false; fi
 
@@ -82,7 +82,7 @@ echo "  MAKECLEANBINARIES : ${MAKECLEANBINARIES}"             | tee -a ${LOG}
 echo "  MAKECUTVALUES     : ${MAKECUTVALUES}"                 | tee -a ${LOG}
 echo "  PRIMITIVE         : ${PRIMITIVE}"                     | tee -a ${LOG}
 echo "  T3T3EXTENSION     : ${T3T3EXTENSION}"                 | tee -a ${LOG}
-echo "  USENN             : ${USENN}"                         | tee -a ${LOG}
+echo "  DONTUSENN         : ${DONTUSENN}"                     | tee -a ${LOG}
 echo "  CPUBACKEND        : ${CPUBACKEND}"                    | tee -a ${LOG}
 echo "  NOPLSDUPCLEAN     : ${NOPLSDUPCLEAN}"                 | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
@@ -125,10 +125,10 @@ if $T3T3EXTENSION; then
 fi
 
 T5CUTOPT=
-if $USENN; then
-    T5CUTOPT="T5RZCHI2FLAG=-DUSE_RZCHI2 T5DNNFLAG=-DUSE_T5_DNN"
-else
+if $DONTUSENN; then
     T5CUTOPT="T5RZCHI2FLAG=-DUSE_RZCHI2 T5RPHICHI2FLAG=-DUSE_RPHICHI2"
+else
+    T5CUTOPT="T5RZCHI2FLAG=-DUSE_RZCHI2 T5DNNFLAG=-DUSE_T5_DNN"
 fi
 
 BACKENDOPT=

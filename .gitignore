@@ -33,6 +33,7 @@ movetoweb.sh
 *.nsys-rep
 *.sqlite
 *.ncu-rep
+*.swp
 
 *.nfs*
 .directoryhash
