@@ -128,7 +128,7 @@ git checkout CMSSW_13_0_0_pre4_LST_X_alpaka
 cat <<EOF >lst.xml
 <tool name="lst" version="1.0">
   <client>
-    <environment name="LSTBASE" default="$PWD/../../../TrackLooper"/>
+    <environment name="LSTBASE" default="$PWD/../../TrackLooper"/>
     <environment name="LIBDIR" default="\$LSTBASE/SDL"/>
     <environment name="INCLUDE" default="\$LSTBASE"/>
   </client>
