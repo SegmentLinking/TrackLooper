@@ -25,8 +25,8 @@ namespace SDL
             void add(std::string);
             void print();
 
-            const std::vector<unsigned int>& getConnectedModuleDetIds(unsigned int detid);
-            /*const*/ int size();
+            const std::vector<unsigned int>& getConnectedModuleDetIds(unsigned int detid) const;
+            int size() const;
 
     };
 
