@@ -802,7 +802,7 @@ namespace SDL
             unsigned int* hitIndices3,
             float* dPhiChange,
             uint16_t pixelModuleIndex,
-            const int size) const
+            int size) const
         {
             using Dim = alpaka::Dim<TAcc>;
             using Idx = alpaka::Idx<TAcc>;
