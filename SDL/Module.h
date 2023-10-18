@@ -1,5 +1,5 @@
-#ifndef Module_cuh
-#define Module_cuh
+#ifndef Module_h
+#define Module_h
 
 #include <map>
 #include <iostream>
@@ -872,5 +872,6 @@ namespace SDL
         fillMapArraysExplicit(modulesBuf, nModules, queue);
         fillPixelMap(modulesBuf, pixelMapping, queue);
     };
+
 }
 #endif
