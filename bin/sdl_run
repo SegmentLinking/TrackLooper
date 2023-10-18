@@ -24,6 +24,7 @@ usage()
   echo "  -n    number of events        (Number of events to run over)"
   echo "  -t    tag for this run        (Tag for this run)"
   echo "  -d    delete previous output  (Delete the previous outputs and re-run)"
+  echo "  -b    backend                 (Select between GPU and CPU backend)"
   echo
   exit
 }
@@ -31,12 +32,13 @@ usage()
 DELETE=false
 
 # Parsing command-line opts
-while getopts ":f:s:n:t:dh" OPTION; do
+while getopts ":f:s:n:t:b:dh" OPTION; do
   case $OPTION in
     f) FLAGS=${OPTARG};;
     s) SAMPLE=${OPTARG};;
     n) NEVENTS=${OPTARG};;
     t) TAG=${OPTARG};;
+    b) BACKEND=${OPTARG};;
     d) DELETE=true;;
     h) usage;;
     :) usage;;
@@ -44,13 +46,44 @@ while getopts ":f:s:n:t:dh" OPTION; do
 done
 
 # If the command line options are not provided set it to default value of false
-if [ -z ${FLAGS} ]; then usage; fi
+if [ -z ${FLAGS} ]; then PRECOMPILED=true; else PRECOMPILED=false; fi
 if [ -z ${SAMPLE} ]; then usage; fi
 if [ -z ${NEVENTS} ]; then NEVENTS=-1; fi
 if [ -z ${TAG} ]; then usage; fi
 
+# If it will not be compiled, then make sure that it was precompiled
+if ${PRECOMPILED}; then
+  if [ ! -f ${TRACKLOOPERDIR}/bin/sdl ] || ( [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_gpu.so ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] ); then
+    echo "SDL library or binary has not been compiled. Please use -f flag."
+    usage
+  fi
+fi
+
+# If a backend is specified then make sure that corresponding library exists
+# and set the environment variable to preload it.
+if [ -z ${BACKEND} ]; then
+  PRELOAD=
+elif [ "${BACKEND}" == "gpu" ]; then
+  if ([ ${PRECOMPILED} != true ] && [[ "${FLAGS}" == *"C"* ]]) ||
+       ([ ${PRECOMPILED} == true ] && ([ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_gpu.so ] || [ ! -f ${TRACKLOOPERDIR}/SDL/gpu/libsdl.so ])); then
+    echo "Error: GPU library was not compiled."
+    exit 1
+  fi
+  PRELOAD="LD_PRELOAD=${TRACKLOOPERDIR}/SDL/gpu/libsdl.so"
+elif [ "${BACKEND}" == "cpu" ]; then
+  if ([ ${PRECOMPILED} != true ] && [[ "${FLAGS}" == *"G"* ]]) ||
+       ([ ${PRECOMPILED} == true ] && ([ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] || [ ! -f ${TRACKLOOPERDIR}/SDL/cpu/libsdl.so ])); then
+    echo "Error: CPU library was not compiled."
+    exit 1
+  fi
+  PRELOAD="LD_PRELOAD=${TRACKLOOPERDIR}/SDL/cpu/libsdl.so"
+else
+  echo "Error: backend options are gpu or cpu."
+  exit 1
+fi
+
 # Check that the FLAGS start with "-" character
-if [[ ${FLAGS:0:1} == "-" ]]; then
+if [[ ${PRECOMPILED} == true ]] || [[ ${FLAGS:0:1} == "-" ]]; then
     :
 else
     echo "ERROR:"
@@ -118,10 +151,12 @@ fi
 mkdir -p ${LSTOUTPUTDIR}
 
 rm -f ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log
-echo "Compiling code..."
-sdl_make_tracklooper ${FLAGS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log
+if [[ ${PRECOMPILED} != true ]]; then
+  echo "Compiling code..."
+  sdl_make_tracklooper ${FLAGS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log
+fi
 echo "Running LST code..."
-sdl -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: sdl command failed!' ; exit 1; }
+eval "${PRELOAD} sdl -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1" || { echo 'ERROR: sdl command failed!' ; exit 1; }
 echo "Creating performance histograms..."
 createPerfNumDenHists -i ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNumDen.root >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: createPerfNumDenHists command failed!' ; exit 1; }
 echo "Creating plots..."

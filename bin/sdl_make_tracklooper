@@ -26,14 +26,15 @@ usage()
   echo "  -p    primitive object ntuple   (With extra variables related to primitive objects)"
   echo "  -3    do T3T3 extensions        (-e turned on if not specified)"
   echo "  -N    neural networks           (Toggle LST neural networks)"
-  echo "  -C    cpu backend               (Run code on CPU, serially)"
+  echo "  -G    gpu backend               (Compile only for GPU, takes priority over -C)"
+  echo "  -C    cpu backend               (Compile only for CPU)"
   echo "  -2    no pLS duplicate cleaning (Don't perform the pLS duplicate cleaning step)"
   echo
   exit
 }
 
 # Parsing command-line opts
-while getopts ":cxgsmdp3NC2eh" OPTION; do
+while getopts ":cxgsmdp3NGC2eh" OPTION; do
   case $OPTION in
     c) MAKECACHE=true;;
     s) SHOWLOG=true;;
@@ -42,7 +43,8 @@ while getopts ":cxgsmdp3NC2eh" OPTION; do
     p) PRIMITIVE=true;;
     3) T3T3EXTENSION=true;;
     N) DONTUSENN=true;;
-    C) CPUBACKEND=true;;
+    G) ONLYGPUBACKEND=true;;
+    C) ONLYCPUBACKEND=true;;
     2) NOPLSDUPCLEAN=true;;
     h) usage;;
     :) usage;;
@@ -57,8 +59,12 @@ if [ -z ${MAKECUTVALUES} ]; then MAKECUTVALUES=false; fi
 if [ -z ${PRIMITIVE} ]; then PRIMITIVE=false; fi
 if [ -z ${T3T3EXTENSION} ]; then T3T3EXTENSION=false; fi
 if [ -z ${DONTUSENN} ]; then DONTUSENN=false; fi
-if [ -z ${CPUBACKEND} ]; then CPUBACKEND=false; fi
+if [ -z ${ONLYGPUBACKEND} ]; then ONLYGPUBACKEND=false; fi
+if [ -z ${ONLYCPUBACKEND} ]; then ONLYCPUBACKEND=false; fi
 if [ -z ${NOPLSDUPCLEAN} ]; then NOPLSDUPCLEAN=false; fi
+
+# If using both -G and -C, -G takes priority
+if [ "${ONLYGPUBACKEND}" == true ]; then ONLYCPUBACKEND=false; fi
 
 # Shift away the parsed options
 shift $(($OPTIND - 1))
@@ -83,7 +89,8 @@ echo "  MAKECUTVALUES     : ${MAKECUTVALUES}"                 | tee -a ${LOG}
 echo "  PRIMITIVE         : ${PRIMITIVE}"                     | tee -a ${LOG}
 echo "  T3T3EXTENSION     : ${T3T3EXTENSION}"                 | tee -a ${LOG}
 echo "  DONTUSENN         : ${DONTUSENN}"                     | tee -a ${LOG}
-echo "  CPUBACKEND        : ${CPUBACKEND}"                    | tee -a ${LOG}
+echo "  ONLYGPUBACKEND    : ${ONLYGPUBACKEND}"                | tee -a ${LOG}
+echo "  ONLYCPUBACKEND    : ${ONLYCPUBACKEND}"                | tee -a ${LOG}
 echo "  NOPLSDUPCLEAN     : ${NOPLSDUPCLEAN}"                 | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
 echo "  (cf. Run > sh $(basename $0) -h to see all options)"  | tee -a ${LOG}
@@ -132,7 +139,9 @@ else
 fi
 
 BACKENDOPT=
-if $CPUBACKEND; then
+if [ "$ONLYGPUBACKEND" == true ]; then
+    BACKENDOPT="BACKEND=gpu"
+elif [ "$ONLYCPUBACKEND" == true ]; then
     BACKENDOPT="BACKEND=cpu"
 fi
 
@@ -158,10 +167,15 @@ else
     (cd SDL && make clean && make ${T3T3EXTENSIONOPT} ${T5CUTOPT} ${BACKENDOPT} ${NOPLSDUPCLEANOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
 fi
 
-if [ ! -f SDL/libsdl.so ]; then
-    echo "ERROR: SDL/libsdl.so failed to compile!" | tee -a ${LOG}
-    echo "See ${LOG} file for more detail..." | tee -a ${LOG}
-    exit 1
+if [[ "$BACKENDOPT" != *"gpu"* ]] && [ ! -f SDL/libsdl_cpu.so ]; then
+  echo "ERROR: libsdl_cpu.so failed to compile!" | tee -a ${LOG}
+  echo "See ${LOG} file for more detail..." | tee -a ${LOG}
+  exit 1
+elif [[ "$BACKENDOPT" != *"cpu"* ]] && [ ! -f SDL/libsdl_gpu.so ]; then
+  echo "ERROR: libsdl_gpu.so failed to compile!" | tee -a ${LOG}
+  echo "See ${LOG} file for more detail..." | tee -a ${LOG}
+  echo $BACKENDOPT
+  exit 1
 fi
 
 echo "" >> ${LOG}
