@@ -159,13 +159,13 @@ namespace SDL
 
     //global stuff
     
-//    static SDL::modules*& modulesInGPU() { static SDL::modules* modulesInGPU_; return modulesInGPU_;}
+    static SDL::modules* modulesInGPU() { static SDL::modules* modulesInGPU_ = new SDL::modules(); return modulesInGPU_;}
     static SDL::modulesBuffer<Acc>* modulesBuffers() { static SDL::modulesBuffer<Acc>* modulesBuffers_ = new SDL::modulesBuffer<Acc>(devAcc); return modulesBuffers_;}
 //    static std::shared_ptr<SDL::pixelMap> pixelMapping = std::make_shared<pixelMap>();
     static uint16_t& nModules() { static uint16_t nModules_; return nModules_;}
     static uint16_t& nLowerModules() {static uint16_t nLowerModules_; return nLowerModules_;}    
 
-    extern SDL::modules* modulesInGPU;
+//    extern SDL::modules* modulesInGPU;
 //    extern SDL::modulesBuffer<Acc>* modulesBuffers;
 //    extern uint16_t nModules;
 //    extern uint16_t nLowerModules;
