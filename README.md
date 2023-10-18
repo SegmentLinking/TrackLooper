@@ -125,18 +125,31 @@ git remote add SegLink git@github.com:SegmentLinking/cmssw.git
 git fetch SegLink CMSSW_13_0_0_pre4_LST_X_alpaka
 git cms-addpkg RecoTracker Configuration
 git checkout CMSSW_13_0_0_pre4_LST_X_alpaka
-cat <<EOF >lst.xml
-<tool name="lst" version="1.0">
+#To include both the CPU library and GPU library into CMSSW, create 2 xml files. Before writing the following xml file, check that libsdl_cpu.so and libsdl_gpu.so can be found under the ../../../TrackLooper/SDL/ folder.
+cat <<EOF >lst_cpu.xml
+<tool name="lst_cpu" version="1.0">
   <client>
     <environment name="LSTBASE" default="$PWD/../../../TrackLooper"/>
     <environment name="LIBDIR" default="\$LSTBASE/SDL"/>
     <environment name="INCLUDE" default="\$LSTBASE"/>
   </client>
   <runtime name="LST_BASE" value="\$LSTBASE"/>
-  <lib name="sdl"/>
+  <lib name="sdl_cpu"/>
 </tool>
 EOF
-scram setup lst.xml
+cat <<EOF >lst_gpu.xml
+<tool name="lst_gpu" version="1.0">
+  <client>
+    <environment name="LSTBASE" default="$PWD/../../../TrackLooper"/>
+    <environment name="LIBDIR" default="\$LSTBASE/SDL"/>
+    <environment name="INCLUDE" default="\$LSTBASE"/>
+  </client>
+  <runtime name="LST_BASE" value="\$LSTBASE"/>
+  <lib name="sdl_gpu"/>
+</tool>
+EOF
+scram setup lst_cpu.xml
+scram setup lst_gpu.xml
 cmsenv
 git cms-checkdeps -a -A
 scram b -j 12
@@ -166,6 +179,10 @@ This is based on the step3 command of the 21034.1 workflow with the following ch
    - Add at the end of the command: `--procModifiers gpu,trackingLST,trackingIters01 --no_exec`
 
 Run the command and modify the output configuration file with the following:
+   - If want to run a cpu version, delete the line below, and remove the ```gpu``` in the line ```process = cms.Process('RECO',Phase2C17I13M9,gpu,trackingLST,trackingIters01)```
+     ```
+     from Configuration.ProcessModifiers.gpu_cff import gpu
+     ```
    - Add the following lines below the part where the import of the standard configurations happens:
      ```python
      process.load('Configuration.StandardSequences.Accelerators_cff')
