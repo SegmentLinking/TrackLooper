@@ -2,7 +2,7 @@
 
 //SDL::modules* SDL::modulesInGPU = new SDL::modules();
 //SDL::modulesBuffer<Acc>* SDL::modulesBuffers = new SDL::modulesBuffer<Acc>(devAcc);
-std::shared_ptr<SDL::pixelMap> SDL::pixelMapping = std::make_shared<pixelMap>();
+//std::shared_ptr<SDL::pixelMap> SDL::pixelMapping = std::make_shared<pixelMap>();
 //uint16_t SDL::nModules;
 //uint16_t SDL::nLowerModules;
 
@@ -167,7 +167,7 @@ void SDL::initModules(const char* moduleMetaDataFilePath)
                         modulesBuffers(),
                         nModules(),
                         nLowerModules(),
-                        *pixelMapping,
+                        *pixelMapping(),
                         queue,
                         moduleMetaDataFilePath);
 }
@@ -851,8 +851,8 @@ void SDL::Event::createPixelTriplets()
     unsigned int* connectedPixelIndex_host = alpaka::getPtrNative(connectedPixelIndex_host_buf);
     alpaka::wait(queue);
 
-    int pixelIndexOffsetPos = pixelMapping->connectedPixelsIndex[44999] + pixelMapping->connectedPixelsSizes[44999];
-    int pixelIndexOffsetNeg = pixelMapping->connectedPixelsIndexPos[44999] + pixelMapping->connectedPixelsSizes[44999] + pixelIndexOffsetPos;
+    int pixelIndexOffsetPos = pixelMapping()->connectedPixelsIndex[44999] + pixelMapping()->connectedPixelsSizes[44999];
+    int pixelIndexOffsetNeg = pixelMapping()->connectedPixelsIndexPos[44999] + pixelMapping()->connectedPixelsSizes[44999] + pixelIndexOffsetPos;
 
     // TODO: check if a map/reduction to just eligible pLSs would speed up the kernel
     // the current selection still leaves a significant fraction of unmatchable pLSs
@@ -870,20 +870,20 @@ void SDL::Event::createPixelTriplets()
         // Used pixel type to select correct size-index arrays
         if(pixelType == 0)
         {
-            connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; // number of connected modules to this pixel
-            auto connectedIdxBase = pixelMapping->connectedPixelsIndex[superbin];
+            connectedPixelSize_host[i]  = pixelMapping()->connectedPixelsSizes[superbin]; // number of connected modules to this pixel
+            auto connectedIdxBase = pixelMapping()->connectedPixelsIndex[superbin];
             connectedPixelIndex_host[i] = connectedIdxBase; // index to get start of connected modules for this superbin in map
         }
         else if(pixelType == 1)
         {
-            connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesPos[superbin]; // number of pixel connected modules
-            auto connectedIdxBase = pixelMapping->connectedPixelsIndexPos[superbin]+pixelIndexOffsetPos;
+            connectedPixelSize_host[i] = pixelMapping()->connectedPixelsSizesPos[superbin]; // number of pixel connected modules
+            auto connectedIdxBase = pixelMapping()->connectedPixelsIndexPos[superbin]+pixelIndexOffsetPos;
             connectedPixelIndex_host[i] = connectedIdxBase; // index to get start of connected pixel modules
         }
         else if(pixelType == 2)
         {
-            connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesNeg[superbin]; // number of pixel connected modules
-            auto connectedIdxBase = pixelMapping->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;
+            connectedPixelSize_host[i] = pixelMapping()->connectedPixelsSizesNeg[superbin]; // number of pixel connected modules
+            auto connectedIdxBase = pixelMapping()->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;
             connectedPixelIndex_host[i] = connectedIdxBase; // index to get start of connected pixel modules
         }
     }
@@ -1091,8 +1091,8 @@ void SDL::Event::createPixelQuintuplets()
     unsigned int* connectedPixelIndex_host = alpaka::getPtrNative(connectedPixelIndex_host_buf);
     alpaka::wait(queue);
 
-    int pixelIndexOffsetPos = pixelMapping->connectedPixelsIndex[44999] + pixelMapping->connectedPixelsSizes[44999];
-    int pixelIndexOffsetNeg = pixelMapping->connectedPixelsIndexPos[44999] + pixelMapping->connectedPixelsSizes[44999] + pixelIndexOffsetPos;
+    int pixelIndexOffsetPos = pixelMapping()->connectedPixelsIndex[44999] + pixelMapping()->connectedPixelsSizes[44999];
+    int pixelIndexOffsetNeg = pixelMapping()->connectedPixelsIndexPos[44999] + pixelMapping()->connectedPixelsSizes[44999] + pixelIndexOffsetPos;
 
     // Loop over # pLS
     for (unsigned int i = 0; i < nInnerSegments; i++)
@@ -1108,20 +1108,20 @@ void SDL::Event::createPixelQuintuplets()
         // Used pixel type to select correct size-index arrays
         if(pixelType == 0)
         {
-            connectedPixelSize_host[i]  = pixelMapping->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
-            unsigned int connectedIdxBase = pixelMapping->connectedPixelsIndex[superbin];
+            connectedPixelSize_host[i]  = pixelMapping()->connectedPixelsSizes[superbin]; //number of connected modules to this pixel
+            unsigned int connectedIdxBase = pixelMapping()->connectedPixelsIndex[superbin];
             connectedPixelIndex_host[i] = connectedIdxBase;
         }
         else if(pixelType == 1)
         {
-            connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesPos[superbin]; //number of pixel connected modules
-            unsigned int connectedIdxBase = pixelMapping->connectedPixelsIndexPos[superbin]+pixelIndexOffsetPos;
+            connectedPixelSize_host[i] = pixelMapping()->connectedPixelsSizesPos[superbin]; //number of pixel connected modules
+            unsigned int connectedIdxBase = pixelMapping()->connectedPixelsIndexPos[superbin]+pixelIndexOffsetPos;
             connectedPixelIndex_host[i] = connectedIdxBase;
         }
         else if(pixelType == 2)
         {
-            connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesNeg[superbin]; //number of pixel connected modules
-            unsigned int connectedIdxBase = pixelMapping->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;
+            connectedPixelSize_host[i] = pixelMapping()->connectedPixelsSizesNeg[superbin]; //number of pixel connected modules
+            unsigned int connectedIdxBase = pixelMapping()->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;
             connectedPixelIndex_host[i] = connectedIdxBase;
         }
     }
