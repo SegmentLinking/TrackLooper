@@ -186,8 +186,7 @@ Run the command and modify the output configuration file with the following:
    - Add the following lines below the part where the import of the standard configurations happens:
      ```python
      process.load('Configuration.StandardSequences.Accelerators_cff')
-     process.AlpakaServiceCudaAsync = cms.Service('AlpakaServiceCudaAsync')
-     process.AlpakaServiceSerialSync = cms.Service('AlpakaServiceSerialSync')
+     process.load("HeterogeneousCore.AlpakaCore.ProcessAcceleratorAlpaka_cfi")
      ```
    - Find the line that starts with process.mix.input.fileNames and change it to (supposing that the PU files are available locally, as is the case at the UCSD machines):
      ```python
