@@ -61,8 +61,10 @@ struct uint4 {
 #endif
 
 auto const devHost = alpaka::getDevByIdx<alpaka::DevCpu>(0u);
+#if defined ALPAKA_ACC_GPU_CUDA_ENABLED || defined ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED || defined ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
 auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
 using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
+#endif
 
 // Buffer type for allocations where auto type can't be used.
 template <typename TAcc, typename TData>
