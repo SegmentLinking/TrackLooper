@@ -62,21 +62,21 @@ fi
 # If a backend is specified then make sure that corresponding library exists
 # and set the environment variable to preload it.
 if [ -z ${BACKEND} ]; then
-  PRELOAD=
+  BACKEND="default"
 elif [ "${BACKEND}" == "gpu" ]; then
   if ([ ${PRECOMPILED} != true ] && [[ "${FLAGS}" == *"C"* ]]) ||
        ([ ${PRECOMPILED} == true ] && ([ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_gpu.so ] || [ ! -f ${TRACKLOOPERDIR}/SDL/gpu/libsdl.so ])); then
     echo "Error: GPU library was not compiled."
     exit 1
   fi
-  PRELOAD="LD_PRELOAD=${TRACKLOOPERDIR}/SDL/gpu/libsdl.so"
+  export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/gpu/:$LD_LIBRARY_PATH
 elif [ "${BACKEND}" == "cpu" ]; then
   if ([ ${PRECOMPILED} != true ] && [[ "${FLAGS}" == *"G"* ]]) ||
        ([ ${PRECOMPILED} == true ] && ([ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] || [ ! -f ${TRACKLOOPERDIR}/SDL/cpu/libsdl.so ])); then
     echo "Error: CPU library was not compiled."
     exit 1
   fi
-  PRELOAD="LD_PRELOAD=${TRACKLOOPERDIR}/SDL/cpu/libsdl.so"
+  export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/cpu/:$LD_LIBRARY_PATH
 else
   echo "Error: backend options are gpu or cpu."
   exit 1
@@ -100,6 +100,10 @@ shift $(($OPTIND - 1))
 # Move to the TRACKLOOPERDIR
 pushd ${TRACKLOOPERDIR}
 
+if [[ ${PRECOMPILED} == true ]]; then
+  FLAGS="No compilation"
+fi
+
 # Verbose
 echo "====================================================="
 echo "Line Segment Tracking Run Script                     "
@@ -110,6 +114,7 @@ echo "  SAMPLE            : ${SAMPLE}"
 echo "  NEVENTS           : ${NEVENTS}"
 echo "  TAG               : ${TAG}"
 echo "  DELETE            : ${DELETE}"
+echo "  BACKEND           : ${BACKEND}"
 echo ""
 echo "  (cf. Run > sh $(basename $0) -h to see all options)"
 echo ""
@@ -156,7 +161,7 @@ if [[ ${PRECOMPILED} != true ]]; then
   sdl_make_tracklooper ${FLAGS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log
 fi
 echo "Running LST code..."
-eval "${PRELOAD} sdl -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1" || { echo 'ERROR: sdl command failed!' ; exit 1; }
+sdl -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: sdl command failed!' ; exit 1; }
 echo "Creating performance histograms..."
 createPerfNumDenHists -i ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNumDen.root >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: createPerfNumDenHists command failed!' ; exit 1; }
 echo "Creating plots..."
