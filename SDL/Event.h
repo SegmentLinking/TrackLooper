@@ -158,9 +158,8 @@ namespace SDL
     };
 
     //global stuff
-    
-    static SDL::modules* modulesInGPU() { static SDL::modules* modulesInGPU_ = new SDL::modules(); return modulesInGPU_;}
     static SDL::modulesBuffer<Acc>* modulesBuffers() { static SDL::modulesBuffer<Acc>* modulesBuffers_ = new SDL::modulesBuffer<Acc>(devAcc); return modulesBuffers_;}
+    static SDL::modules* modulesInGPU() { static SDL::modules* modulesInGPU_ = new SDL::modules(); return modulesInGPU_;}
     static std::shared_ptr<SDL::pixelMap> pixelMapping() { static std::shared_ptr<SDL::pixelMap> pixelMapping_ = std::make_shared<pixelMap>(); return pixelMapping_;}
     static uint16_t& nModules() { static uint16_t nModules_; return nModules_;}
     static uint16_t& nLowerModules() {static uint16_t nLowerModules_; return nLowerModules_;}    
