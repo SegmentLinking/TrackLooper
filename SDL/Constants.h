@@ -27,7 +27,7 @@ using Dim = alpaka::DimInt<3u>;
 using Dim1d = alpaka::DimInt<1u>;
 using Vec = alpaka::Vec<Dim,Idx>;
 using Vec1d = alpaka::Vec<Dim1d,Idx>;
-#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
   using QueueProperty = alpaka::NonBlocking;
 #else
   using QueueProperty = alpaka::Blocking;
@@ -45,11 +45,13 @@ Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
     using Acc = alpaka::AccCpuThreads<Dim, Idx>;
 #elif ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
     using Acc = alpaka::AccCpuSerial<Dim, Idx>;
+#elif ALPAKA_ACC_GPU_HIP_ENABLED
+    using Acc = alpaka::AccGpuHipRt<Dim, Idx>;
 #endif
 
 // Needed for files that are compiled by g++ to not throw an error.
 // uint4 is defined only for CUDA, so we will have to revisit this soon when running on other backends.
-#ifndef ALPAKA_ACC_GPU_CUDA_ENABLED
+#if !defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !defined(ALPAKA_ACC_GPU_HIP_ENABLED)
 struct uint4
 {
     unsigned int x;
