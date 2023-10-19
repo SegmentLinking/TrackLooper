@@ -20,7 +20,10 @@ namespace SDL {
     public:
         LST();
 
-        void eventSetup();
+        void eventSetup(const SDL::ModuleConnectionMap& mCM,
+                        const std::vector<SDL::ModuleConnectionMap>& mCM_pLS,
+                        const std::vector<SDL::ModuleConnectionMap>& mCM_pLS_pos,
+                        const std::vector<SDL::ModuleConnectionMap>& mCM_pLS_neg);
         template <typename TQueue>
         void run(TQueue& queue,
                  bool verbose,
@@ -176,7 +179,10 @@ namespace SDL {
         std::vector<int> seedIdx() { return out_tc_seedIdx_; }
         std::vector<short> trackCandidateType() { return out_tc_trackCandidateType_; }
     private:
-        void loadMaps();
+        void loadMaps(const SDL::ModuleConnectionMap& mCM,
+                      const std::vector<SDL::ModuleConnectionMap>& mCM_pLS,
+                      const std::vector<SDL::ModuleConnectionMap>& mCM_pLS_pos,
+                      const std::vector<SDL::ModuleConnectionMap>& mCM_pLS_neg);
         TString get_absolute_path_after_check_file_exists(const std::string name);
         void prepareInput(const std::vector<float> see_px,
                           const std::vector<float> see_py,
