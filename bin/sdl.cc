@@ -52,7 +52,6 @@ int main(int argc, char** argv)
         ("w,write_ntuple"    , "Write Ntuple", cxxopts::value<int>()->default_value("1"))
         ("s,streams"         , "Set number of streams (default=1)", cxxopts::value<int>()->default_value("1"))
         ("d,debug"           , "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")
-        ("c,cpu"             , "Run CPU version of the code.")
         ("l,lower_level"     , "write lower level objects ntuple results")
         ("G,gnn_ntuple"      , "write gnn input variable ntuple")
         ("j,nsplit_jobs"     , "Enable splitting jobs by N blocks (--job_index must be set)", cxxopts::value<int>())
@@ -221,14 +220,26 @@ int main(int argc, char** argv)
     ana.do_write_ntuple = result["write_ntuple"].as<int>();
 
     //_______________________________________________________________________________
-    // --cpu
-    if (result.count("cpu"))
+    // check if cpu library was loaded
+    ana.do_run_cpu = false;
+    std::ifstream maps("/proc/self/maps");
+    if (!maps.is_open())
     {
-        ana.do_run_cpu = true;
+        std::cout << "Warning: Failed to open /proc/self/maps. Backend cannot be determined." << std::endl;
     }
     else
     {
-        ana.do_run_cpu = false;
+        std::string line;
+        while (std::getline(maps, line)) {
+            size_t pos = line.find("/"); // Find the starting position of the path
+            if (pos != std::string::npos) {
+                std::string libraryPath = line.substr(pos, line.find(" ", pos) - pos);
+                if (libraryPath.size() >= 14 && libraryPath.compare(libraryPath.size() - 14, 14, "/libsdl_cpu.so") == 0) {
+                    ana.do_run_cpu = true;
+                    break;
+                }
+            }
+        }
     }
 
     //_______________________________________________________________________________
