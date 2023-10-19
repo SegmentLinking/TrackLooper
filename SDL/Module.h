@@ -441,83 +441,32 @@ namespace SDL
         int totalSizes_neg = 0;
         for(unsigned int isuperbin = 0; isuperbin < size_superbins; isuperbin++)
         {
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5 = SDL::moduleConnectionMap_pLStoLayer1Subdet5.getConnectedModuleDetIds(isuperbin+size_superbins);// index adjustment to get high values
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet5 = SDL::moduleConnectionMap_pLStoLayer2Subdet5.getConnectedModuleDetIds(isuperbin+size_superbins);// from the high pt bins
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet5 = SDL::moduleConnectionMap_pLStoLayer3Subdet5.getConnectedModuleDetIds(isuperbin+size_superbins);
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet4 = SDL::moduleConnectionMap_pLStoLayer1Subdet4.getConnectedModuleDetIds(isuperbin+size_superbins);
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet4 = SDL::moduleConnectionMap_pLStoLayer2Subdet4.getConnectedModuleDetIds(isuperbin+size_superbins);
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet4 = SDL::moduleConnectionMap_pLStoLayer3Subdet4.getConnectedModuleDetIds(isuperbin+size_superbins);
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer4Subdet4 = SDL::moduleConnectionMap_pLStoLayer4Subdet4.getConnectedModuleDetIds(isuperbin+size_superbins);
-            connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer1Subdet5.begin(),connectedModuleDetIds_pLStoLayer1Subdet5.end());
-            connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer2Subdet5.begin(),connectedModuleDetIds_pLStoLayer2Subdet5.end());
-            connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer3Subdet5.begin(),connectedModuleDetIds_pLStoLayer3Subdet5.end());
-            connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer1Subdet4.begin(),connectedModuleDetIds_pLStoLayer1Subdet4.end());
-            connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer2Subdet4.begin(),connectedModuleDetIds_pLStoLayer2Subdet4.end());
-            connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer3Subdet4.begin(),connectedModuleDetIds_pLStoLayer3Subdet4.end());
-            connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLStoLayer4Subdet4.begin(),connectedModuleDetIds_pLStoLayer4Subdet4.end());
-
             int sizes = 0;
-            sizes += connectedModuleDetIds_pLStoLayer1Subdet5.size();
-            sizes += connectedModuleDetIds_pLStoLayer2Subdet5.size();
-            sizes += connectedModuleDetIds_pLStoLayer3Subdet5.size();
-            sizes += connectedModuleDetIds_pLStoLayer1Subdet4.size();
-            sizes += connectedModuleDetIds_pLStoLayer2Subdet4.size();
-            sizes += connectedModuleDetIds_pLStoLayer3Subdet4.size();
-            sizes += connectedModuleDetIds_pLStoLayer4Subdet4.size();
+            for ( auto const& mCM_pLS : moduleConnectionMap_pLStoLayer ) {
+                std::vector<unsigned int> connectedModuleDetIds_pLS = mCM_pLS.getConnectedModuleDetIds(isuperbin+size_superbins);
+                connectedModuleDetIds.insert(connectedModuleDetIds.end(),connectedModuleDetIds_pLS.begin(),connectedModuleDetIds_pLS.end());
+                sizes += connectedModuleDetIds_pLS.size();
+            }
             pixelMapping.connectedPixelsIndex[isuperbin] = totalSizes;
             pixelMapping.connectedPixelsSizes[isuperbin] = sizes;
             totalSizes += sizes;
 
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5_pos = SDL::moduleConnectionMap_pLStoLayer1Subdet5_pos.getConnectedModuleDetIds(isuperbin);
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet5_pos = SDL::moduleConnectionMap_pLStoLayer2Subdet5_pos.getConnectedModuleDetIds(isuperbin);
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet5_pos = SDL::moduleConnectionMap_pLStoLayer3Subdet5_pos.getConnectedModuleDetIds(isuperbin);
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet4_pos = SDL::moduleConnectionMap_pLStoLayer1Subdet4_pos.getConnectedModuleDetIds(isuperbin);
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet4_pos = SDL::moduleConnectionMap_pLStoLayer2Subdet4_pos.getConnectedModuleDetIds(isuperbin);
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet4_pos = SDL::moduleConnectionMap_pLStoLayer3Subdet4_pos.getConnectedModuleDetIds(isuperbin);
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer4Subdet4_pos = SDL::moduleConnectionMap_pLStoLayer4Subdet4_pos.getConnectedModuleDetIds(isuperbin);
-            connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer1Subdet5_pos.begin(),connectedModuleDetIds_pLStoLayer1Subdet5_pos.end());
-            connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer2Subdet5_pos.begin(),connectedModuleDetIds_pLStoLayer2Subdet5_pos.end());
-            connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer3Subdet5_pos.begin(),connectedModuleDetIds_pLStoLayer3Subdet5_pos.end());
-            connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer1Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer1Subdet4_pos.end());
-            connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer2Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer2Subdet4_pos.end());
-            connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer3Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer3Subdet4_pos.end());
-            connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLStoLayer4Subdet4_pos.begin(),connectedModuleDetIds_pLStoLayer4Subdet4_pos.end());
-
             int sizes_pos = 0;
-            sizes_pos += connectedModuleDetIds_pLStoLayer1Subdet5_pos.size();
-            sizes_pos += connectedModuleDetIds_pLStoLayer2Subdet5_pos.size();
-            sizes_pos += connectedModuleDetIds_pLStoLayer3Subdet5_pos.size();
-            sizes_pos += connectedModuleDetIds_pLStoLayer1Subdet4_pos.size();
-            sizes_pos += connectedModuleDetIds_pLStoLayer2Subdet4_pos.size();
-            sizes_pos += connectedModuleDetIds_pLStoLayer3Subdet4_pos.size();
-            sizes_pos += connectedModuleDetIds_pLStoLayer4Subdet4_pos.size();
+            for ( auto const& mCM_pLS : moduleConnectionMap_pLStoLayer_pos ) {
+                std::vector<unsigned int> connectedModuleDetIds_pLS = mCM_pLS.getConnectedModuleDetIds(isuperbin);
+                connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLS.begin(),connectedModuleDetIds_pLS.end());
+                sizes_pos += connectedModuleDetIds_pLS.size();
+            }
             pixelMapping.connectedPixelsIndexPos[isuperbin] = totalSizes_pos;
             pixelMapping.connectedPixelsSizesPos[isuperbin] = sizes_pos;
             totalSizes_pos += sizes_pos;
 
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet5_neg = SDL::moduleConnectionMap_pLStoLayer1Subdet5_neg.getConnectedModuleDetIds(isuperbin);
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet5_neg = SDL::moduleConnectionMap_pLStoLayer2Subdet5_neg.getConnectedModuleDetIds(isuperbin);
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet5_neg = SDL::moduleConnectionMap_pLStoLayer3Subdet5_neg.getConnectedModuleDetIds(isuperbin);
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer1Subdet4_neg = SDL::moduleConnectionMap_pLStoLayer1Subdet4_neg.getConnectedModuleDetIds(isuperbin);
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer2Subdet4_neg = SDL::moduleConnectionMap_pLStoLayer2Subdet4_neg.getConnectedModuleDetIds(isuperbin);
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer3Subdet4_neg = SDL::moduleConnectionMap_pLStoLayer3Subdet4_neg.getConnectedModuleDetIds(isuperbin);
-            std::vector<unsigned int> connectedModuleDetIds_pLStoLayer4Subdet4_neg = SDL::moduleConnectionMap_pLStoLayer4Subdet4_neg.getConnectedModuleDetIds(isuperbin);
-            connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer1Subdet5_neg.begin(),connectedModuleDetIds_pLStoLayer1Subdet5_neg.end());
-            connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer2Subdet5_neg.begin(),connectedModuleDetIds_pLStoLayer2Subdet5_neg.end());
-            connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer3Subdet5_neg.begin(),connectedModuleDetIds_pLStoLayer3Subdet5_neg.end());
-            connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer1Subdet4_neg.begin(),connectedModuleDetIds_pLStoLayer1Subdet4_neg.end());
-            connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer2Subdet4_neg.begin(),connectedModuleDetIds_pLStoLayer2Subdet4_neg.end());
-            connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer3Subdet4_neg.begin(),connectedModuleDetIds_pLStoLayer3Subdet4_neg.end());
-            connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLStoLayer4Subdet4_neg.begin(),connectedModuleDetIds_pLStoLayer4Subdet4_neg.end());
-
             int sizes_neg = 0;
-            sizes_neg += connectedModuleDetIds_pLStoLayer1Subdet5_neg.size();
-            sizes_neg += connectedModuleDetIds_pLStoLayer2Subdet5_neg.size();
-            sizes_neg += connectedModuleDetIds_pLStoLayer3Subdet5_neg.size();
-            sizes_neg += connectedModuleDetIds_pLStoLayer1Subdet4_neg.size();
-            sizes_neg += connectedModuleDetIds_pLStoLayer2Subdet4_neg.size();
-            sizes_neg += connectedModuleDetIds_pLStoLayer3Subdet4_neg.size();
-            sizes_neg += connectedModuleDetIds_pLStoLayer4Subdet4_neg.size();
+            for ( auto const& mCM_pLS : moduleConnectionMap_pLStoLayer_neg ) {
+                std::vector<unsigned int> connectedModuleDetIds_pLS = mCM_pLS.getConnectedModuleDetIds(isuperbin);
+                connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLS.begin(),connectedModuleDetIds_pLS.end());
+                sizes_neg += connectedModuleDetIds_pLS.size();
+            }
             pixelMapping.connectedPixelsIndexNeg[isuperbin] = totalSizes_neg;
             pixelMapping.connectedPixelsSizesNeg[isuperbin] = sizes_neg;
             totalSizes_neg += sizes_neg;

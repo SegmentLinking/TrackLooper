@@ -31,27 +31,9 @@ namespace SDL
     };
 
     extern ModuleConnectionMap moduleConnectionMap;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer1Subdet5;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer2Subdet5;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer3Subdet5;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer1Subdet4;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer2Subdet4;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer3Subdet4;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer4Subdet4;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer1Subdet5_pos;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer2Subdet5_pos;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer3Subdet5_pos;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer1Subdet4_pos;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer2Subdet4_pos;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer3Subdet4_pos;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer4Subdet4_pos;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer1Subdet5_neg;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer2Subdet5_neg;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer3Subdet5_neg;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer1Subdet4_neg;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer2Subdet4_neg;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer3Subdet4_neg;
-    extern ModuleConnectionMap moduleConnectionMap_pLStoLayer4Subdet4_neg;
+    extern std::vector<ModuleConnectionMap> moduleConnectionMap_pLStoLayer;
+    extern std::vector<ModuleConnectionMap> moduleConnectionMap_pLStoLayer_pos;
+    extern std::vector<ModuleConnectionMap> moduleConnectionMap_pLStoLayer_neg;
 }
 
 #endif
