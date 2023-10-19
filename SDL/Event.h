@@ -3,6 +3,7 @@
 
 #include "Hit.h"
 #include "Module.h"
+#include "ModuleMethods.h"
 #include "Segment.h"
 #include "Triplet.h"
 #include "Kernels.h"
