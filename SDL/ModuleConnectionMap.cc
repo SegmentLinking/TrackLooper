@@ -121,11 +121,13 @@ void SDL::ModuleConnectionMap::print()
     }
 }
 
-const std::vector<unsigned int>& SDL::ModuleConnectionMap::getConnectedModuleDetIds(unsigned int detid)
+const std::vector<unsigned int>& SDL::ModuleConnectionMap::getConnectedModuleDetIds(unsigned int detid) const
 {
-    return moduleConnections_[detid];
+  static const std::vector<unsigned int> dummy;
+  auto const mList = moduleConnections_.find(detid);
+  return mList != moduleConnections_.end() ? mList->second : dummy;
 }
-/*const*/ int SDL::ModuleConnectionMap::size()
+int SDL::ModuleConnectionMap::size() const
 {
     return moduleConnections_.size();
 }
