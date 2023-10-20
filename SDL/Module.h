@@ -184,7 +184,7 @@ namespace SDL {
 
     unsigned int* connectedPixels;
 
-    bool parseIsInverted(short subdet, short side, short module, short layer) {
+    static bool parseIsInverted(short subdet, short side, short module, short layer) {
       if (subdet == Endcap) {
         if (side == NegZ) {
           return module % 2 == 1;
@@ -218,9 +218,9 @@ namespace SDL {
       }
     };
 
-    bool parseIsLower(bool isInvertedx, unsigned int detId) { return (isInvertedx) ? !(detId & 1) : (detId & 1); };
+    static bool parseIsLower(bool isInvertedx, unsigned int detId) { return (isInvertedx) ? !(detId & 1) : (detId & 1); };
 
-    unsigned int parsePartnerModuleId(unsigned int detId, bool isLowerx, bool isInvertedx) {
+    static unsigned int parsePartnerModuleId(unsigned int detId, bool isLowerx, bool isInvertedx) {
       return isLowerx ? (isInvertedx ? detId - 1 : detId + 1) : (isInvertedx ? detId + 1 : detId - 1);
     };
 

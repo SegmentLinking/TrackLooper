@@ -194,8 +194,7 @@ namespace SDL
     };
 
     template<typename TQueue, typename TAcc>
-    void loadModulesFromFile(struct modules* modulesInGPU,
-                             struct modulesBuffer<TAcc>* modulesBuf,
+    void loadModulesFromFile(struct modulesBuffer<TAcc>* modulesBuf,
                              uint16_t& nModules,
                              uint16_t& nLowerModules,
                              struct pixelMap& pixelMapping,
@@ -333,8 +332,8 @@ namespace SDL
             else
             {
                 setDerivedQuantities(detId,layer,ring,rod,module,subdet,side,m_x,m_y,m_z,eta,r);
-                isInverted = modulesInGPU->parseIsInverted(subdet, side, module, layer);
-                isLower = modulesInGPU->parseIsLower(isInverted, detId);
+                isInverted = SDL::modules::parseIsInverted(subdet, side, module, layer);
+                isLower = SDL::modules::parseIsLower(isInverted, detId);
             }
             if(isLower)
             {
@@ -405,7 +404,7 @@ namespace SDL
             auto& index = it->second;
             if(detId != 1)
             {
-                host_partnerModuleIndices[index] = (*detIdToIndex)[modulesInGPU->parsePartnerModuleId(detId, host_isLower[index], host_isInverted[index])];
+                host_partnerModuleIndices[index] = (*detIdToIndex)[SDL::modules::parsePartnerModuleId(detId, host_isLower[index], host_isInverted[index])];
                 //add drdz and slope importing stuff here!
                 if(host_drdzs[index] == 0)
                 {
