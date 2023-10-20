@@ -64,7 +64,11 @@ if [ -z ${ONLYCPUBACKEND} ]; then ONLYCPUBACKEND=false; fi
 if [ -z ${NOPLSDUPCLEAN} ]; then NOPLSDUPCLEAN=false; fi
 
 # If using both -G and -C, -G takes priority
-if [ "${ONLYGPUBACKEND}" == true ]; then ONLYCPUBACKEND=false; fi
+if [ "${ONLYGPUBACKEND}" == true ] && [ "${ONLYCPUBACKEND}" == true ]; then
+  echo "WARNING: -C and -G flags should not be used together."
+  echo "         Only the GPU backend will be compiled"
+  ONLYCPUBACKEND=false
+fi
 
 # Shift away the parsed options
 shift $(($OPTIND - 1))
@@ -138,9 +142,9 @@ else
     T5CUTOPT="T5RZCHI2FLAG=-DUSE_RZCHI2 T5DNNFLAG=-DUSE_T5_DNN"
 fi
 
-BACKENDOPT=
+BACKENDOPT="BACKEND=all"
 if [ "$ONLYGPUBACKEND" == true ]; then
-    BACKENDOPT="BACKEND=gpu"
+    BACKENDOPT="BACKEND=cuda"
 elif [ "$ONLYCPUBACKEND" == true ]; then
     BACKENDOPT="BACKEND=cpu"
 fi
@@ -167,12 +171,12 @@ else
     (cd SDL && make clean && make ${T3T3EXTENSIONOPT} ${T5CUTOPT} ${BACKENDOPT} ${NOPLSDUPCLEANOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
 fi
 
-if [[ "$BACKENDOPT" != *"gpu"* ]] && [ ! -f SDL/libsdl_cpu.so ]; then
+if ([[ "$BACKENDOPT" == *"all"* ]] || [[ "$BACKENDOPT" == *"cpu"* ]]) && [ ! -f SDL/libsdl_cpu.so ]; then
   echo "ERROR: libsdl_cpu.so failed to compile!" | tee -a ${LOG}
   echo "See ${LOG} file for more detail..." | tee -a ${LOG}
   exit 1
-elif [[ "$BACKENDOPT" != *"cpu"* ]] && [ ! -f SDL/libsdl_gpu.so ]; then
-  echo "ERROR: libsdl_gpu.so failed to compile!" | tee -a ${LOG}
+elif ([[ "$BACKENDOPT" == *"all"* ]] || [[ "$BACKENDOPT" == *"cuda"* ]]) && [ ! -f SDL/libsdl_cuda.so ]; then
+  echo "ERROR: libsdl_cuda.so failed to compile!" | tee -a ${LOG}
   echo "See ${LOG} file for more detail..." | tee -a ${LOG}
   echo $BACKENDOPT
   exit 1

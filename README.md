@@ -37,6 +37,10 @@ The above can be even simplified
 
     sdl_run -f -mc -s PU200 -n -1 -t myTag
 
+The `-f` flag can be ommitted when the code has already been compiled. If multiple backends were compiled then the `-b` flag can be used to specify a backend. For example
+
+    sdl_run -b cpu -s PU200 -n -1 -t myTag
+
 ## Command explanations
 
 Compile the code with option flags
@@ -44,6 +48,8 @@ Compile the code with option flags
     sdl_make_tracklooper -mc
     -m: make clean binaries
     -c: run with the cmssw caching allocator
+    -C: only compile CPU backend
+    -G: only compile GPU (CUDA) backend
     -h: show help screen with all options
 
 Run the code
@@ -57,7 +63,13 @@ Run the code
     -w: 0- no writeout; 1- minimum writeout; default: 1
     -o: provide an output root file name (e.g. LSTNtuple.root); default: debug.root
     -l: add lower level object (pT3, pT5, T5, etc.) branches to the output
+
+When running the `sdl` binary directly and multiple backends have been compiled, one can be chosen using the `LD_LIBRARY_PATH` environment variable. For example, one can explicitly use the CPU backend as follows.
+
+    LD_LIBRARY_PATH=$TRACKLOOPERDIR/SDL/cpu/:$LD_LIBRARY_PATH sdl <args>
     
+However, it is important to keep in mind that if that particular backend is was not compiled then it will find another backed without any notice.
+
 Plotting numerators and denominators of performance plots
 
     createPerfNumDenHists -i <input> -o <output> [-g <pdgids> -n <nevents>]
