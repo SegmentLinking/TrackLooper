@@ -260,8 +260,6 @@ void SDL::Event::addHitToEvent(std::vector<float> x, std::vector<float> y, std::
 void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,std::vector<unsigned int> hitIndices1,std::vector<unsigned int> hitIndices2,std::vector<unsigned int> hitIndices3, std::vector<float> dPhiChange, std::vector<float> ptIn, std::vector<float> ptErr, std::vector<float> px, std::vector<float> py, std::vector<float> pz, std::vector<float> eta, std::vector<float> etaErr, std::vector<float> phi, std::vector<int> charge, std::vector<unsigned int> seedIdx, std::vector<int> superbin, std::vector<int8_t> pixelType, std::vector<char> isQuad)
 {
     int size = ptIn.size();
-    int mdSize = 2 * size;
-    uint16_t pixelModuleIndex = (*detIdToIndex)[1];
 
     if (size > N_MAX_PIXEL_SEGMENTS_PER_MODULE)
     {
@@ -273,6 +271,9 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,st
                );
         size = N_MAX_PIXEL_SEGMENTS_PER_MODULE;
     }
+
+    int mdSize = 2 * size;
+    uint16_t pixelModuleIndex = (*detIdToIndex)[1];
 
     if(mdsInGPU == nullptr)
     {
