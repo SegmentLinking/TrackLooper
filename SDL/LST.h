@@ -15,10 +15,9 @@
 #include "Event.h"
 
 namespace SDL {
-
   class LST {
   public:
-    LST();
+    LST() = default;
 
     void eventSetup();
     template <typename TQueue>
@@ -175,10 +174,10 @@ namespace SDL {
     std::vector<unsigned int> len() { return out_tc_len_; }
     std::vector<int> seedIdx() { return out_tc_seedIdx_; }
     std::vector<short> trackCandidateType() { return out_tc_trackCandidateType_; }
+    static void loadMaps();
 
   private:
-    void loadMaps();
-    TString get_absolute_path_after_check_file_exists(const std::string name);
+    static TString get_absolute_path_after_check_file_exists(const std::string name);
     void prepareInput(const std::vector<float> see_px,
                       const std::vector<float> see_py,
                       const std::vector<float> see_pz,
@@ -208,7 +207,6 @@ namespace SDL {
                                          const unsigned int* hitIndices);
 
     // Input and output vectors
-    TString TrackLooperDir_;
     std::vector<float> in_trkX_;
     std::vector<float> in_trkY_;
     std::vector<float> in_trkZ_;
