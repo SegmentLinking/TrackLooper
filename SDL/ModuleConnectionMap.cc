@@ -1,6 +1,6 @@
 #include "ModuleConnectionMap.h"
 
-SDL::ModuleConnectionMap SDL::moduleConnectionMap;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap;
 SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet5;
 SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet5;
 SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet5;

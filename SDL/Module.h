@@ -566,7 +566,7 @@ namespace SDL
         {
             unsigned int detId = it->first;
             uint16_t index = it->second;
-            auto& connectedModules = moduleConnectionMap.getConnectedModuleDetIds(detId);
+            auto& connectedModules = moduleConnectionMap().getConnectedModuleDetIds(detId);
             nConnectedModules[index] = connectedModules.size();
             for(uint16_t i = 0; i< nConnectedModules[index];i++)
             {

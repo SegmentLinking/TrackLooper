@@ -29,8 +29,9 @@ namespace SDL
             int size() const;
 
     };
+    static SDL::ModuleConnectionMap moduleConnectionMap() {static SDL::ModuleConnectionMap moduleConnectionMap_; return moduleConnectionMap_;}   
 
-    extern ModuleConnectionMap moduleConnectionMap;
+//    extern ModuleConnectionMap moduleConnectionMap;
     extern ModuleConnectionMap moduleConnectionMap_pLStoLayer1Subdet5;
     extern ModuleConnectionMap moduleConnectionMap_pLStoLayer2Subdet5;
     extern ModuleConnectionMap moduleConnectionMap_pLStoLayer3Subdet5;

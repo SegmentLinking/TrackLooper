@@ -22,7 +22,7 @@ void loadMaps()
 
     SDL::endcapGeometry->load(endcap_geom.Data()); // centroid values added to the map
     SDL::tiltedGeometry.load(tilted_geom.Data());
-    SDL::moduleConnectionMap.load(mappath.Data());
+    SDL::moduleConnectionMap().load(mappath.Data());
 
     TString path;
     path = TString::Format("%s/pLS_map_layer1_subdet5.txt", pLSMapDir.Data()).Data();

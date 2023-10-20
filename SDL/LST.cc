@@ -21,7 +21,7 @@ void SDL::LST::loadMaps() {
 
     // Module connection map (for line segment building)
     TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir_.Data()).Data());
-    SDL::moduleConnectionMap.load(mappath.Data());
+    SDL::moduleConnectionMap().load(mappath.Data());
 
     TString pLSMapDir = TrackLooperDir_+"/data/pixelmaps_CMSSW_12_2_0_pre2_0p8minPt";
 
