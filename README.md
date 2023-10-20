@@ -37,7 +37,7 @@ The above can be even simplified
 
     sdl_run -f -mc -s PU200 -n -1 -t myTag
 
-The `-f` flag can be ommitted when the code has already been compiled. If multiple backends were compiled then the `-b` flag can be used to specify a backend. For example
+The `-f` flag can be omitted when the code has already been compiled. If multiple backends were compiled, then the `-b` flag can be used to specify a backend. For example
 
     sdl_run -b cpu -s PU200 -n -1 -t myTag
 
@@ -68,7 +68,7 @@ When running the `sdl` binary directly and multiple backends have been compiled,
 
     LD_LIBRARY_PATH=$TRACKLOOPERDIR/SDL/cpu/:$LD_LIBRARY_PATH sdl <args>
     
-However, it is important to keep in mind that if that particular backend is was not compiled then it will find another backed without any notice.
+However, it is important to keep in mind that, if that particular backend was not compiled, then it will find another backed without any notice.
 
 Plotting numerators and denominators of performance plots
 
@@ -129,14 +129,14 @@ cd ..
 ```bash
 mkdir workingFolder # Create the folder you will be working in
 cd workingFolder
-cmsrel CMSSW_13_0_0_pre4
-cd CMSSW_13_0_0_pre4/src
+cmsrel CMSSW_13_3_0_pre3
+cd CMSSW_13_3_0_pre3/src
 cmsenv
 git cms-init
 git remote add SegLink git@github.com:SegmentLinking/cmssw.git
-git fetch SegLink CMSSW_13_0_0_pre4_LST_X_alpaka
+git fetch SegLink CMSSW_13_3_0_pre3_LST_X
 git cms-addpkg RecoTracker Configuration
-git checkout CMSSW_13_0_0_pre4_LST_X_alpaka
+git checkout CMSSW_13_3_0_pre3_LST_X
 #To include both the CPU library and GPU library into CMSSW, create 2 xml files. Before writing the following xml file, check that libsdl_cpu.so and libsdl_gpu.so can be found under the ../../../TrackLooper/SDL/ folder.
 cat <<EOF >lst_cpu.xml
 <tool name="lst_cpu" version="1.0">
@@ -149,19 +149,19 @@ cat <<EOF >lst_cpu.xml
   <lib name="sdl_cpu"/>
 </tool>
 EOF
-cat <<EOF >lst_gpu.xml
-<tool name="lst_gpu" version="1.0">
+cat <<EOF >lst_cuda.xml
+<tool name="lst_cuda" version="1.0">
   <client>
     <environment name="LSTBASE" default="$PWD/../../../TrackLooper"/>
     <environment name="LIBDIR" default="\$LSTBASE/SDL"/>
     <environment name="INCLUDE" default="\$LSTBASE"/>
   </client>
   <runtime name="LST_BASE" value="\$LSTBASE"/>
-  <lib name="sdl_gpu"/>
+  <lib name="sdl_cuda"/>
 </tool>
 EOF
 scram setup lst_cpu.xml
-scram setup lst_gpu.xml
+scram setup lst_cuda.xml
 cmsenv
 git cms-checkdeps -a -A
 scram b -j 12
@@ -186,31 +186,27 @@ For convenience, the workflow has been run for 100 events and the output is stor
 
 For enabling the LST reconstruction in the CMSSW tracking workflow, a modified step3 needs to be run.
 This is based on the step3 command of the 21034.1 workflow with the following changes:
-   - Use dummy PU input files by changing the argument of the `--pileup_input` flag to `file:file.root` (this will be fixed manually in the configuration file)
+   - Remove the `--pileup_input` and `--pileup` flags.
    - The number of threads and streams for the job can be optionally controlled by the `--nThreads` and `--nStreams` command line options respectively (`1` ends up being the actual default value for both, and more info can be found by running `cmsDriver.py --help`).
    - Add at the end of the command: `--procModifiers gpu,trackingLST,trackingIters01 --no_exec`
 
 Run the command and modify the output configuration file with the following:
-   - If want to run a cpu version, delete the line below, and remove the ```gpu``` in the line ```process = cms.Process('RECO',Phase2C17I13M9,gpu,trackingLST,trackingIters01)```
-     ```
-     from Configuration.ProcessModifiers.gpu_cff import gpu
+   - If want to run a cpu version, remove the ```gpu``` in the line defining the `process` object:
+     ```python
+     process = cms.Process('RECO',...,gpu,...)
      ```
    - Add the following lines below the part where the import of the standard configurations happens:
      ```python
      process.load('Configuration.StandardSequences.Accelerators_cff')
      process.load("HeterogeneousCore.AlpakaCore.ProcessAcceleratorAlpaka_cfi")
      ```
-   - Find the line that starts with process.mix.input.fileNames and change it to (supposing that the PU files are available locally, as is the case at the UCSD machines):
-     ```python
-     process.mix.input.fileNames = cms.untracked.vstring(['file:/data2/segmentlinking/PUSamplesForCMSSW1263/CMSSW_12_3_0_pre5/RelValMinBias_14TeV/GEN-SIM/123X_mcRun4_realistic_v4_2026D88noPU-v1/066fc95d-1cef-4469-9e08-3913973cd4ce.root', 'file:/data2/segmentlinking/PUSamplesForCMSSW1263/CMSSW_12_3_0_pre5/RelValMinBias_14TeV/GEN-SIM/123X_mcRun4_realistic_v4_2026D88noPU-v1/07928a25-231b-450d-9d17-e20e751323a1.root', 'file:/data2/segmentlinking/PUSamplesForCMSSW1263/CMSSW_12_3_0_pre5/RelValMinBias_14TeV/GEN-SIM/123X_mcRun4_realistic_v4_2026D88noPU-v1/26bd8fb0-575e-4201-b657-94cdcb633045.root', 'file:/data2/segmentlinking/PUSamplesForCMSSW1263/CMSSW_12_3_0_pre5/RelValMinBias_14TeV/GEN-SIM/123X_mcRun4_realistic_v4_2026D88noPU-v1/4206a9c5-44c2-45a5-aab2-1a8a6043a08a.root', 'file:/data2/segmentlinking/PUSamplesForCMSSW1263/CMSSW_12_3_0_pre5/RelValMinBias_14TeV/GEN-SIM/123X_mcRun4_realistic_v4_2026D88noPU-v1/55a372bf-a234-4111-8ce0-ead6157a1810.root', 'file:/data2/segmentlinking/PUSamplesForCMSSW1263/CMSSW_12_3_0_pre5/RelValMinBias_14TeV/GEN-SIM/123X_mcRun4_realistic_v4_2026D88noPU-v1/59ad346c-f405-4288-96d7-795f81c43fe8.root', 'file:/data2/segmentlinking/PUSamplesForCMSSW1263/CMSSW_12_3_0_pre5/RelValMinBias_14TeV/GEN-SIM/123X_mcRun4_realistic_v4_2026D88noPU-v1/7280f5ec-b71d-4579-a730-7ce2de0ff906.root', 'file:/data2/segmentlinking/PUSamplesForCMSSW1263/CMSSW_12_3_0_pre5/RelValMinBias_14TeV/GEN-SIM/123X_mcRun4_realistic_v4_2026D88noPU-v1/b93adc85-715f-477a-afc9-65f3241933ee.root', 'file:/data2/segmentlinking/PUSamplesForCMSSW1263/CMSSW_12_3_0_pre5/RelValMinBias_14TeV/GEN-SIM/123X_mcRun4_realistic_v4_2026D88noPU-v1/c7a0aa46-f55c-4b01-977f-34a397b71fba.root', 'file:/data2/segmentlinking/PUSamplesForCMSSW1263/CMSSW_12_3_0_pre5/RelValMinBias_14TeV/GEN-SIM/123X_mcRun4_realistic_v4_2026D88noPU-v1/e77fa467-97cb-4943-884f-6965b4eb0390.root'])
-     ```
    - Modify the input and output file names accordingly, as well as the number of events.
 
 Then, run the configuration file with `cmsRun`.
 
 To get the DQM files, one would have to run step4 of the 21034.1 workflow with the following modifications:
-   - Modify the `--pileup_input` flag as above, add `--no_exec` to the end of command and then run it.
-   - Modify the output configuration file by including the appropriate PU files, as above, and by changing the input file (the one containing `inDQM` from the previous step) and number of events accordingly.
+   - Add `--no_exec` to the end of command and then run it.
+   - Modify the output configuration file by changing the input file (the one containing `inDQM` from the previous step) and number of events accordingly.
 
 Running the configuration file with `cmsRun`, the output file will have a name starting with `DQM`. The name is the same every time this step runs,
 so it is good practice to rename the file, e.g. to `tracking_Iters01LST.root`.
@@ -218,8 +214,9 @@ The MTV plots can be produced with the command:
 ```bash
 makeTrackValidationPlots.py --extended tracking_Iters01LST.root
 ```
+Comparison plots can be made by including multiple ROOT files as arguments.
 
-**Note:** In case one wants to run step2 as well, similar modifications as in step4 (PU files, `--no_exec` flag and input file/number of events) need to be applied.
+**Note:** In case one wants to run step2 as well, similar modifications as in step4 (`--no_exec` flag and input file/number of events) need to be applied.
 
 ### Inclusion of LST in other CMSSW packages
 Including the line
