@@ -164,10 +164,6 @@ namespace SDL
     static uint16_t& nModules() { static uint16_t nModules_; return nModules_;}
     static uint16_t& nLowerModules() {static uint16_t nLowerModules_; return nLowerModules_;}    
 
-//    extern SDL::modules* modulesInGPU;
-//    extern SDL::modulesBuffer<Acc>* modulesBuffers;
-//    extern uint16_t nModules;
-//    extern uint16_t nLowerModules;
     void initModules(const char* moduleMetaDataFilePath="data/centroid.txt"); //read from file and init
     void freeModules();
     void initModulesHost(); //read from file and init

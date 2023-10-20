@@ -1,11 +1,5 @@
 #include "Event.h"
 
-//SDL::modules* SDL::modulesInGPU = new SDL::modules();
-//SDL::modulesBuffer<Acc>* SDL::modulesBuffers = new SDL::modulesBuffer<Acc>(devAcc);
-//std::shared_ptr<SDL::pixelMap> SDL::pixelMapping = std::make_shared<pixelMap>();
-//uint16_t SDL::nModules;
-//uint16_t SDL::nLowerModules;
-
 void SDL::Event::init(bool verbose)
 {
     addObjects = verbose;
