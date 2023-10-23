@@ -26,8 +26,8 @@ usage()
   echo "  -p    primitive object ntuple   (With extra variables related to primitive objects)"
   echo "  -3    do T3T3 extensions        (-e turned on if not specified)"
   echo "  -N    neural networks           (Toggle LST neural networks)"
-  echo "  -G    gpu backend               (Compile only for GPU, takes priority over -C)"
-  echo "  -C    cpu backend               (Compile only for CPU)"
+  echo "  -G    GPU (CUDA) backend        (Compile only for CUDA, takes priority over -C)"
+  echo "  -C    CPU serial backend        (Compile only for CPU)"
   echo "  -2    no pLS duplicate cleaning (Don't perform the pLS duplicate cleaning step)"
   echo
   exit
@@ -43,7 +43,7 @@ while getopts ":cxgsmdp3NGC2eh" OPTION; do
     p) PRIMITIVE=true;;
     3) T3T3EXTENSION=true;;
     N) DONTUSENN=true;;
-    G) ONLYGPUBACKEND=true;;
+    G) ONLYCUDABACKEND=true;;
     C) ONLYCPUBACKEND=true;;
     2) NOPLSDUPCLEAN=true;;
     h) usage;;
@@ -59,14 +59,14 @@ if [ -z ${MAKECUTVALUES} ]; then MAKECUTVALUES=false; fi
 if [ -z ${PRIMITIVE} ]; then PRIMITIVE=false; fi
 if [ -z ${T3T3EXTENSION} ]; then T3T3EXTENSION=false; fi
 if [ -z ${DONTUSENN} ]; then DONTUSENN=false; fi
-if [ -z ${ONLYGPUBACKEND} ]; then ONLYGPUBACKEND=false; fi
+if [ -z ${ONLYCUDABACKEND} ]; then ONLYCUDABACKEND=false; fi
 if [ -z ${ONLYCPUBACKEND} ]; then ONLYCPUBACKEND=false; fi
 if [ -z ${NOPLSDUPCLEAN} ]; then NOPLSDUPCLEAN=false; fi
 
 # If using both -G and -C, -G takes priority
-if [ "${ONLYGPUBACKEND}" == true ] && [ "${ONLYCPUBACKEND}" == true ]; then
+if [ "${ONLYCUDABACKEND}" == true ] && [ "${ONLYCPUBACKEND}" == true ]; then
   echo "WARNING: -C and -G flags should not be used together."
-  echo "         Only the GPU backend will be compiled"
+  echo "         Only the CUDA backend will be compiled"
   ONLYCPUBACKEND=false
 fi
 
@@ -93,7 +93,7 @@ echo "  MAKECUTVALUES     : ${MAKECUTVALUES}"                 | tee -a ${LOG}
 echo "  PRIMITIVE         : ${PRIMITIVE}"                     | tee -a ${LOG}
 echo "  T3T3EXTENSION     : ${T3T3EXTENSION}"                 | tee -a ${LOG}
 echo "  DONTUSENN         : ${DONTUSENN}"                     | tee -a ${LOG}
-echo "  ONLYGPUBACKEND    : ${ONLYGPUBACKEND}"                | tee -a ${LOG}
+echo "  ONLYCUDABACKEND   : ${ONLYCUDABACKEND}"               | tee -a ${LOG}
 echo "  ONLYCPUBACKEND    : ${ONLYCPUBACKEND}"                | tee -a ${LOG}
 echo "  NOPLSDUPCLEAN     : ${NOPLSDUPCLEAN}"                 | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
@@ -143,7 +143,7 @@ else
 fi
 
 BACKENDOPT="BACKEND=all"
-if [ "$ONLYGPUBACKEND" == true ]; then
+if [ "$ONLYCUDABACKEND" == true ]; then
     BACKENDOPT="BACKEND=cuda"
 elif [ "$ONLYCPUBACKEND" == true ]; then
     BACKENDOPT="BACKEND=cpu"
