@@ -22,37 +22,51 @@ void loadMaps()
 
     SDL::endcapGeometry->load(endcap_geom.Data()); // centroid values added to the map
     SDL::tiltedGeometry.load(tilted_geom.Data());
-    SDL::moduleConnectionMap().load(mappath.Data());
+
+    SDL::ModuleConnectionMapManager& manager = SDL::ModuleConnectionMapManager::getInstance();
+    SDL::ModuleConnectionMap& map0 = manager.getmoduleConnectionMap();
+    map0.load(mappath.Data());
+
+    SDL::ModuleConnectionMap& map1 = manager.getmoduleConnectionMap_pLStoLayer1Subdet5();
+    SDL::ModuleConnectionMap& map2 = manager.getmoduleConnectionMap_pLStoLayer2Subdet5();
+    SDL::ModuleConnectionMap& map3 = manager.getmoduleConnectionMap_pLStoLayer1Subdet4();
+    SDL::ModuleConnectionMap& map4 = manager.getmoduleConnectionMap_pLStoLayer2Subdet4();
+    SDL::ModuleConnectionMap& map1_pos = manager.getmoduleConnectionMap_pLStoLayer1Subdet5_pos();
+    SDL::ModuleConnectionMap& map2_pos = manager.getmoduleConnectionMap_pLStoLayer2Subdet5_pos();
+    SDL::ModuleConnectionMap& map3_pos = manager.getmoduleConnectionMap_pLStoLayer1Subdet4_pos();
+    SDL::ModuleConnectionMap& map4_pos = manager.getmoduleConnectionMap_pLStoLayer2Subdet4_pos();
+    SDL::ModuleConnectionMap& map1_neg = manager.getmoduleConnectionMap_pLStoLayer1Subdet5_neg();
+    SDL::ModuleConnectionMap& map2_neg = manager.getmoduleConnectionMap_pLStoLayer2Subdet5_neg();
+    SDL::ModuleConnectionMap& map3_neg = manager.getmoduleConnectionMap_pLStoLayer1Subdet4_neg();
+    SDL::ModuleConnectionMap& map4_neg = manager.getmoduleConnectionMap_pLStoLayer2Subdet4_neg();
 
     TString path;
     path = TString::Format("%s/pLS_map_layer1_subdet5.txt", pLSMapDir.Data()).Data();
-    SDL::moduleConnectionMap_pLStoLayer1Subdet5.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
-    printf("load1");
-    path = TString::Format("%s/pLS_map_layer1_subdet5.txt", pLSMapDir.Data()).Data();
-    SDL::moduleConnectionMap_pLStoLayer2Subdet5().load(get_absolute_path_after_check_file_exists(path.Data()).Data());
-    printf("load2");
+    map1.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    path = TString::Format("%s/pLS_map_layer2_subdet5.txt", pLSMapDir.Data()).Data();
+    map2.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
     path = TString::Format("%s/pLS_map_layer1_subdet4.txt", pLSMapDir.Data()).Data();
-    SDL::moduleConnectionMap_pLStoLayer1Subdet4().load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    map3.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
     path = TString::Format("%s/pLS_map_layer2_subdet4.txt", pLSMapDir.Data()).Data();
-    SDL::moduleConnectionMap_pLStoLayer2Subdet4().load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    map4.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
 
     path = TString::Format("%s/pLS_map_neg_layer1_subdet5.txt", pLSMapDir.Data()).Data();
-    SDL::moduleConnectionMap_pLStoLayer1Subdet5_neg().load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    map1_neg.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
     path = TString::Format("%s/pLS_map_neg_layer2_subdet5.txt", pLSMapDir.Data()).Data();
-    SDL::moduleConnectionMap_pLStoLayer2Subdet5_neg().load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    map2_neg.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
     path = TString::Format("%s/pLS_map_neg_layer1_subdet4.txt", pLSMapDir.Data()).Data();
-    SDL::moduleConnectionMap_pLStoLayer1Subdet4_neg().load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    map3_neg.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
     path = TString::Format("%s/pLS_map_neg_layer2_subdet4.txt", pLSMapDir.Data()).Data();
-    SDL::moduleConnectionMap_pLStoLayer2Subdet4_neg().load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    map4_neg.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
 
     path = TString::Format("%s/pLS_map_pos_layer1_subdet5.txt", pLSMapDir.Data()).Data();
-    SDL::moduleConnectionMap_pLStoLayer1Subdet5_pos().load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    map1_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
     path = TString::Format("%s/pLS_map_pos_layer2_subdet5.txt", pLSMapDir.Data()).Data();
-    SDL::moduleConnectionMap_pLStoLayer2Subdet5_pos().load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    map2_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
     path = TString::Format("%s/pLS_map_pos_layer1_subdet4.txt", pLSMapDir.Data()).Data();
-    SDL::moduleConnectionMap_pLStoLayer1Subdet4_pos().load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    map3_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
     path = TString::Format("%s/pLS_map_pos_layer2_subdet4.txt", pLSMapDir.Data()).Data();
-    SDL::moduleConnectionMap_pLStoLayer2Subdet4_pos().load(get_absolute_path_after_check_file_exists(path.Data()).Data());
+    map4_pos.load(get_absolute_path_after_check_file_exists(path.Data()).Data());
 
     // WARNING: initModules must come after above load commands!! keep it at the last line here!
     SDL::initModules(centroid.Data());
