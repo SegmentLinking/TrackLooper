@@ -1951,3 +1951,15 @@ SDL::modulesBuffer<alpaka::DevCpu>* SDL::Event::getModules()
     }
     return modulesInCPU;
 }
+
+unsigned int SDL::getBackend() {
+#ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
+    return 0;
+#elif ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
+    return 1;
+#elif ALPAKA_ACC_GPU_CUDA_ENABLED
+    return 2;
+#elif ALPAKA_ACC_GPU_HIP_ENABLED
+    return 3;
+#endif
+}

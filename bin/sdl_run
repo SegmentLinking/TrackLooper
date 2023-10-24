@@ -63,22 +63,22 @@ fi
 # and set the environment variable to preload it.
 if [ -z ${BACKEND} ]; then
   BACKEND="default"
-elif [ "${BACKEND}" == "gpu" ]; then
+elif [ "${BACKEND}" == "cuda" ]; then
   if ([ ${PRECOMPILED} != true ] && [[ "${FLAGS}" == *"C"* ]]) ||
-       ([ ${PRECOMPILED} == true ] && ([ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_gpu.so ] || [ ! -f ${TRACKLOOPERDIR}/SDL/gpu/libsdl.so ])); then
-    echo "Error: GPU library was not compiled."
+       ([ ${PRECOMPILED} == true ] && ([ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cuda.so ] || [ ! -f ${TRACKLOOPERDIR}/SDL/cuda/libsdl.so ])); then
+    echo "Error: CUDA backend was not compiled."
     exit 1
   fi
-  export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/gpu/:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/cuda/:$LD_LIBRARY_PATH
 elif [ "${BACKEND}" == "cpu" ]; then
   if ([ ${PRECOMPILED} != true ] && [[ "${FLAGS}" == *"G"* ]]) ||
        ([ ${PRECOMPILED} == true ] && ([ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] || [ ! -f ${TRACKLOOPERDIR}/SDL/cpu/libsdl.so ])); then
-    echo "Error: CPU library was not compiled."
+    echo "Error: CPU backend was not compiled."
     exit 1
   fi
   export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/cpu/:$LD_LIBRARY_PATH
 else
-  echo "Error: backend options are gpu or cpu."
+  echo "Error: backend options are gpu or cuda."
   exit 1
 fi
 

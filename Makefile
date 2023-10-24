@@ -14,7 +14,7 @@ CXXFLAGS    = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual -lineinfo  -fopen
 LDFLAGS     = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual
 SOFLAGS     = -g -shared
 CXXFLAGS    = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual
-LDFLAGS     = -g -O2 -lsdl -L${TRACKLOOPERDIR}/SDL/gpu -L${TRACKLOOPERDIR}/SDL/cpu
+LDFLAGS     = -g -O2 -lsdl -L${TRACKLOOPERDIR}/SDL/cuda -L${TRACKLOOPERDIR}/SDL/cpu
 ROOTLIBS    = $(shell root-config --libs)
 ROOTCFLAGS  = $(foreach option, $(shell root-config --cflags), $(option))
 ALPAKAINCLUDE = -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include -std=c++17 -DALPAKA_DEBUG=0

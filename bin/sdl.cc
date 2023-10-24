@@ -221,26 +221,11 @@ int main(int argc, char** argv)
 
     //_______________________________________________________________________________
     // check if cpu library was loaded
-    ana.do_run_cpu = false;
-    std::ifstream maps("/proc/self/maps");
-    if (!maps.is_open())
-    {
-        std::cout << "Warning: Failed to open /proc/self/maps. Backend cannot be determined." << std::endl;
-    }
-    else
-    {
-        std::string line;
-        while (std::getline(maps, line)) {
-            size_t pos = line.find("/"); // Find the starting position of the path
-            if (pos != std::string::npos) {
-                std::string libraryPath = line.substr(pos, line.find(" ", pos) - pos);
-                if (libraryPath.size() >= 14 && libraryPath.compare(libraryPath.size() - 14, 14, "/libsdl_cpu.so") == 0) {
-                    ana.do_run_cpu = true;
-                    break;
-                }
-            }
-        }
-    }
+    // 0 = cpu serial
+    // 1 = cpu threads
+    // 2 = cuda
+    // 3 = hip
+    ana.do_run_cpu = SDL::getBackend() < 2;
 
     //_______________________________________________________________________________
     // --optimization
