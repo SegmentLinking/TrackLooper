@@ -2,26 +2,26 @@
 
 //SDL::ModuleConnectionMap SDL::moduleConnectionMap;
 SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet5;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet5;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet5;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet4;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet4;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet4;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer4Subdet4;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet5_pos;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet5_pos;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet5_pos;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet4_pos;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet4_pos;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet4_pos;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer4Subdet4_pos;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet5_neg;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet5_neg;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet5_neg;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet4_neg;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet4_neg;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet4_neg;
-SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer4Subdet4_neg;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet5;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet5;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet4;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet4;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet4;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer4Subdet4;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet5_pos;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet5_pos;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet5_pos;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet4_pos;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet4_pos;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet4_pos;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer4Subdet4_pos;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet5_neg;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet5_neg;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet5_neg;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer1Subdet4_neg;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer2Subdet4_neg;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer3Subdet4_neg;
+//SDL::ModuleConnectionMap SDL::moduleConnectionMap_pLStoLayer4Subdet4_neg;
 
 SDL::ModuleConnectionMap::ModuleConnectionMap()
 {
@@ -65,6 +65,7 @@ void SDL::ModuleConnectionMap::load(std::string filename)
         moduleConnections_[detid] = connected_detids;
 
     }
+    printf("moduleConnections_45015:%d\n", moduleConnections_[45015].size());
 }
 
 void SDL::ModuleConnectionMap::add(std::string filename)
@@ -123,6 +124,16 @@ void SDL::ModuleConnectionMap::print()
 
 const std::vector<unsigned int>& SDL::ModuleConnectionMap::getConnectedModuleDetIds(unsigned int detid) const
 {
+std::map<unsigned int, std::vector<unsigned int>>::const_iterator it = moduleConnections_.find(45015);
+
+if (it != moduleConnections_.end()) {
+    const std::vector<unsigned int>& vectorFor45015 = it->second;
+    printf("moduleConnections_45015:%zu\n", vectorFor45015.size());
+} else {
+    // Handle the case where 45015 is not found in the map
+    // You can print an error message, throw an exception, or take appropriate action.
+    printf("no key");
+}
   static const std::vector<unsigned int> dummy;
   auto const mList = moduleConnections_.find(detid);
   return mList != moduleConnections_.end() ? mList->second : dummy;
