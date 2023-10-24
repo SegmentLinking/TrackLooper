@@ -166,5 +166,6 @@ namespace SDL
     void freeModules();
     void initModulesHost(); //read from file and init
     extern std::shared_ptr<SDL::pixelMap> pixelMapping;
+    unsigned int getBackend();
 }
 #endif
