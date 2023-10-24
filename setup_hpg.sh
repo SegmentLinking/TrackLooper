@@ -12,12 +12,18 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/code/rooutil/thisrooutil.sh
 
 export SCRAM_ARCH=el8_amd64_gcc11
-export CMSSW_VERSION=CMSSW_13_0_0_pre4
+export CMSSW_VERSION=CMSSW_13_3_0_pre3
 export CUDA_HOME=${HPC_CUDA_DIR}
 
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 cd /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/cmssw/$CMSSW_VERSION/src
 eval `scramv1 runtime -sh`
+
+# Export paths to libraries we need
+export BOOST_ROOT=$(scram tool info boost | grep BOOST_BASE | cut -d'=' -f2)
+export ALPAKA_ROOT=$(scram tool info alpaka | grep ALPAKA_BASE | cut -d'=' -f2)
+export ROOT_ROOT=$(scram tool info root_interface | grep ROOT_INTERFACE_BASE | cut -d'=' -f2)
+
 cd - > /dev/null
 echo "Setup following ROOT. Make sure the appropriate setup file has been run. Otherwise the looper won't compile."
 which root
@@ -39,7 +45,4 @@ export LSTPERFORMANCEWEBDIR=/home/users/phchang/public_html/LSTPerformanceWeb
 # List of benchmark efficiencies are set as an environment variable
 export LATEST_CPU_BENCHMARK_EFF_MUONGUN=
 export LATEST_CPU_BENCHMARK_EFF_PU200=
-
-export BOOST_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/boost/1.80.0-5305613b2f750cf1a05dcadf0d672647"
-export ALPAKA_ROOT="/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/alpaka/develop-20230621-9e2225ac6c979464a40749ef9d1e0331"
 #eof
