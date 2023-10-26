@@ -27,9 +27,9 @@ namespace SDL
         pixelQuintupletsInGPU.isDup[pixelQuintupletIndex] = 1;
     };
 
-    ALPAKA_FN_ACC ALPAKA_FN_INLINE void rmPixelSegmentFromMemory(struct SDL::segments& segmentsInGPU, unsigned int pixelSegmentArrayIndex)
+    ALPAKA_FN_ACC ALPAKA_FN_INLINE void rmPixelSegmentFromMemory(struct SDL::segments& segmentsInGPU, unsigned int pixelSegmentArrayIndex, bool secondpass = false)
     {
-        segmentsInGPU.isDup[pixelSegmentArrayIndex] = 1;
+        segmentsInGPU.isDup[pixelSegmentArrayIndex] |= 1 + secondpass;
     };
 
     ALPAKA_FN_ACC ALPAKA_FN_INLINE int checkHitsT5(unsigned int ix, unsigned int jx, struct SDL::quintuplets& quintupletsInGPU)
@@ -466,7 +466,7 @@ namespace SDL
 
             for(int ix = globalThreadIdx[1]; ix < nPixelSegments; ix += gridThreadExtent[1])
             {
-                if(secondpass && (!segmentsInGPU.isQuad[ix] || segmentsInGPU.isDup[ix]))
+                if(secondpass && (!segmentsInGPU.isQuad[ix] || (segmentsInGPU.isDup[ix] & 1)))
                     continue;
 
                 unsigned int phits1[4];  
@@ -485,7 +485,7 @@ namespace SDL
                     if (alpaka::math::abs(acc, eta_pix2 - eta_pix1) > 0.1f)
                         continue;
 
-                    if (secondpass && (!segmentsInGPU.isQuad[jx] || segmentsInGPU.isDup[jx]))
+                    if (secondpass && (!segmentsInGPU.isQuad[jx] || (segmentsInGPU.isDup[jx] & 1)))
                         continue;
 
                     char quad_diff = segmentsInGPU.isQuad[ix] - segmentsInGPU.isQuad[jx];
@@ -525,7 +525,7 @@ namespace SDL
                     }
                     if(npMatched >= 3)
                     {
-                        rmPixelSegmentFromMemory(segmentsInGPU, idxToRemove);
+                        rmPixelSegmentFromMemory(segmentsInGPU, idxToRemove, secondpass);
                     }
                     if(secondpass)
                     {
@@ -535,7 +535,7 @@ namespace SDL
                         float dR2 = dEta*dEta + dPhi*dPhi;
                         if((npMatched >= 1) || (dR2 < 1e-5f))
                         {
-                            rmPixelSegmentFromMemory(segmentsInGPU, idxToRemove);
+                            rmPixelSegmentFromMemory(segmentsInGPU, idxToRemove, secondpass);
                         }
                     }
                 }
