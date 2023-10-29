@@ -396,6 +396,7 @@ void bookEfficiencySet(SimTrackSetDefinition& effset)
     ana.tx.createBranch<vector<float>>(category_name + "_ef_denom_pt");
     ana.tx.createBranch<vector<float>>(category_name + "_ef_denom_eta");
     ana.tx.createBranch<vector<float>>(category_name + "_ef_denom_dxy");
+    ana.tx.createBranch<vector<float>>(category_name + "_ef_denom_vxy");
     ana.tx.createBranch<vector<float>>(category_name + "_ef_denom_dz");
     ana.tx.createBranch<vector<float>>(category_name + "_ef_denom_phi");
 
@@ -403,6 +404,7 @@ void bookEfficiencySet(SimTrackSetDefinition& effset)
     ana.tx.createBranch<vector<float>>(category_name + "_ef_numer_pt");
     ana.tx.createBranch<vector<float>>(category_name + "_ef_numer_eta");
     ana.tx.createBranch<vector<float>>(category_name + "_ef_numer_dxy");
+    ana.tx.createBranch<vector<float>>(category_name + "_ef_numer_vxy");
     ana.tx.createBranch<vector<float>>(category_name + "_ef_numer_dz");
     ana.tx.createBranch<vector<float>>(category_name + "_ef_numer_phi");
 
@@ -410,6 +412,7 @@ void bookEfficiencySet(SimTrackSetDefinition& effset)
     ana.tx.createBranch<vector<float>>(category_name + "_ie_numer_pt");
     ana.tx.createBranch<vector<float>>(category_name + "_ie_numer_eta");
     ana.tx.createBranch<vector<float>>(category_name + "_ie_numer_dxy");
+    ana.tx.createBranch<vector<float>>(category_name + "_ie_numer_vxy");
     ana.tx.createBranch<vector<float>>(category_name + "_ie_numer_dz");
     ana.tx.createBranch<vector<float>>(category_name + "_ie_numer_phi");
 
@@ -419,6 +422,7 @@ void bookEfficiencySet(SimTrackSetDefinition& effset)
     ana.histograms.addVecHistogram(category_name + "_ef_denom_ptflatbin" , 180 , 0.    , 100  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ef_denom_pt");        } );
     ana.histograms.addVecHistogram(category_name + "_ef_denom_eta"       , 180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ef_denom_eta");       } );
     ana.histograms.addVecHistogram(category_name + "_ef_denom_dxy"       , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ef_denom_dxy");       } );
+    ana.histograms.addVecHistogram(category_name + "_ef_denom_vxy"       , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ef_denom_vxy");       } );
     ana.histograms.addVecHistogram(category_name + "_ef_denom_dz"        , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ef_denom_dz");        } );
     ana.histograms.addVecHistogram(category_name + "_ef_denom_phi"       , 180 , -M_PI , M_PI , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ef_denom_phi");       } );
 
@@ -428,6 +432,7 @@ void bookEfficiencySet(SimTrackSetDefinition& effset)
     ana.histograms.addVecHistogram(category_name + "_ef_numer_ptflatbin" , 180 , 0.    , 100  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ef_numer_pt");        } );
     ana.histograms.addVecHistogram(category_name + "_ef_numer_eta"       , 180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ef_numer_eta");       } );
     ana.histograms.addVecHistogram(category_name + "_ef_numer_dxy"       , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ef_numer_dxy");       } );
+    ana.histograms.addVecHistogram(category_name + "_ef_numer_vxy"       , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ef_numer_vxy");       } );
     ana.histograms.addVecHistogram(category_name + "_ef_numer_dz"        , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ef_numer_dz");        } );
     ana.histograms.addVecHistogram(category_name + "_ef_numer_phi"       , 180 , -M_PI , M_PI , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ef_numer_phi");       } );
 
@@ -437,6 +442,7 @@ void bookEfficiencySet(SimTrackSetDefinition& effset)
     ana.histograms.addVecHistogram(category_name + "_ie_numer_ptflatbin" , 180 , 0.    , 100  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ie_numer_pt");        } );
     ana.histograms.addVecHistogram(category_name + "_ie_numer_eta"       , 180 , -4.5  , 4.5  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ie_numer_eta");       } );
     ana.histograms.addVecHistogram(category_name + "_ie_numer_dxy"       , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ie_numer_dxy");       } );
+    ana.histograms.addVecHistogram(category_name + "_ie_numer_vxy"       , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ie_numer_vxy");       } );
     ana.histograms.addVecHistogram(category_name + "_ie_numer_dz"        , 180 , -30.  , 30.  , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ie_numer_dz");        } );
     ana.histograms.addVecHistogram(category_name + "_ie_numer_phi"       , 180 , -M_PI , M_PI , [&, category_name]() { return ana.tx.getBranchLazy<vector<float>>(category_name + "_ie_numer_phi");       } );
 }
@@ -640,10 +646,17 @@ void fillEfficiencySet(int isimtrk, SimTrackSetDefinition& effset)
     {
         // vs. dxy plot
         ana.tx.pushbackToBranch<float>(category_name + "_ef_denom_dxy", dxy);
+        ana.tx.pushbackToBranch<float>(category_name + "_ef_denom_vxy", vtx_perp);
         if (pass)
+        {
             ana.tx.pushbackToBranch<float>(category_name + "_ef_numer_dxy", dxy);
+            ana.tx.pushbackToBranch<float>(category_name + "_ef_numer_vxy", vtx_perp);
+        }
         else
+        {
             ana.tx.pushbackToBranch<float>(category_name + "_ie_numer_dxy", dxy);
+            ana.tx.pushbackToBranch<float>(category_name + "_ie_numer_vxy", vtx_perp);
+        }
     }
 
     // N minus dz cut
