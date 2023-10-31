@@ -1435,6 +1435,7 @@ namespace SDL
                     printf("Unhandled case in createTripletArrayRanges! Module index = %i\n", i);
 #endif
                 }
+		occupancy = 5000;
 
                 rangesInGPU.tripletModuleOccupancy[i] = occupancy;
                 unsigned int nTotT = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalTriplets, occupancy);

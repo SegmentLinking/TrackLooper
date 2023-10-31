@@ -738,6 +738,7 @@ namespace SDL
                     printf("Unhandled case in createSegmentArrayRanges! Module index = %i\n", i);
 #endif
                 }
+		occupancy = 5000;
 
                 int nTotSegs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalSegments,occupancy);
                 rangesInGPU.segmentModuleIndices[i] = nTotSegs;

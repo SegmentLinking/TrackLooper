@@ -2343,6 +2343,7 @@ namespace SDL
                     printf("Unhandled case in createEligibleModulesListForQuintupletsGPU! Module index = %i\n", i);
 #endif
                 }
+		occupancy = 2000;
 
                 int nTotQ = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalQuintupletsx, occupancy);
                 rangesInGPU.quintupletModuleIndices[i] = nTotQ;

@@ -897,6 +897,7 @@ namespace SDL
                     printf("Unhandled case in createMDArrayRangesGPU! Module index = %i\n", i);
 #endif
                 }
+		occupancy = 1000;
 
                 unsigned int nTotMDs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalMDs, occupancy);
 
