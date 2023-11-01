@@ -132,10 +132,6 @@ const unsigned int N_MAX_PIXEL_QUINTUPLETS = 15000;
 const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 30000;
 const unsigned int N_MAX_NONPIXEL_TRACK_CANDIDATES = 1000;
 
-const unsigned int N_MAX_TRACK_CANDIDATE_EXTENSIONS = 200000;
-const unsigned int N_MAX_TRACK_EXTENSIONS_PER_TC = 30;
-const unsigned int N_MAX_T3T3_TRACK_EXTENSIONS = 40000;
-
 const unsigned int size_superbins = 45000;
 
 // Temporary fix for endcap buffer allocation.
