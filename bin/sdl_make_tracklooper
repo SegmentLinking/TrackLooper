@@ -34,7 +34,7 @@ usage()
 }
 
 # Parsing command-line opts
-while getopts ":cxgsmdp3NGC2eh" OPTION; do
+while getopts ":cxgsmdp3NGC2ePh" OPTION; do
   case $OPTION in
     c) MAKECACHE=true;;
     s) SHOWLOG=true;;
@@ -46,6 +46,7 @@ while getopts ":cxgsmdp3NGC2eh" OPTION; do
     G) ONLYCUDABACKEND=true;;
     C) ONLYCPUBACKEND=true;;
     2) NOPLSDUPCLEAN=true;;
+    P) DISABLEPTCUT=true;;
     h) usage;;
     :) usage;;
   esac
@@ -62,6 +63,7 @@ if [ -z ${DONTUSENN} ]; then DONTUSENN=false; fi
 if [ -z ${ONLYCUDABACKEND} ]; then ONLYCUDABACKEND=false; fi
 if [ -z ${ONLYCPUBACKEND} ]; then ONLYCPUBACKEND=false; fi
 if [ -z ${NOPLSDUPCLEAN} ]; then NOPLSDUPCLEAN=false; fi
+if [ -z ${DISABLEPTCUT} ]; then DISABLEPTCUT=false; fi
 
 # If using both -G and -C, -G takes priority
 if [ "${ONLYCUDABACKEND}" == true ] && [ "${ONLYCPUBACKEND}" == true ]; then
@@ -96,6 +98,7 @@ echo "  DONTUSENN         : ${DONTUSENN}"                     | tee -a ${LOG}
 echo "  ONLYCUDABACKEND   : ${ONLYCUDABACKEND}"               | tee -a ${LOG}
 echo "  ONLYCPUBACKEND    : ${ONLYCPUBACKEND}"                | tee -a ${LOG}
 echo "  NOPLSDUPCLEAN     : ${NOPLSDUPCLEAN}"                 | tee -a ${LOG}
+echo "  DISABLEPTCUT      : ${DISABLEPTCUT}"                  | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
 echo "  (cf. Run > sh $(basename $0) -h to see all options)"  | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
@@ -154,6 +157,11 @@ if $NOPLSDUPCLEAN; then
     NOPLSDUPCLEANOPT="NOPLSDUPCLEANFLAG=-DNOPLSDUPCLEAN"
 fi
 
+PTCUTOPT=
+if $DISABLEPTCUT; then
+    PTCUTOPT="PTCUTFLAG=-DNO_PT_CUT"
+fi
+
 ###
 ###
 ### Making Line Segment Tracking Library
@@ -166,9 +174,9 @@ echo "--------------------------------------------------------------------------
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 if $SHOWLOG; then
-    (cd SDL && make clean && make ${T3T3EXTENSIONOPT} ${T5CUTOPT} ${BACKENDOPT} ${NOPLSDUPCLEANOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
+    (cd SDL && make clean && make ${T3T3EXTENSIONOPT} ${T5CUTOPT} ${BACKENDOPT} ${NOPLSDUPCLEANOPT} ${PTCUTOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
 else
-    (cd SDL && make clean && make ${T3T3EXTENSIONOPT} ${T5CUTOPT} ${BACKENDOPT} ${NOPLSDUPCLEANOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
+    (cd SDL && make clean && make ${T3T3EXTENSIONOPT} ${T5CUTOPT} ${BACKENDOPT} ${NOPLSDUPCLEANOPT} ${PTCUTOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
 fi
 
 if ([[ "$BACKENDOPT" == *"all"* ]] || [[ "$BACKENDOPT" == *"cpu"* ]]) && [ ! -f SDL/libsdl_cpu.so ]; then
@@ -200,9 +208,9 @@ echo "--------------------------------------------------------------------------
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 if $SHOWLOG; then
-    make ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} -j 2>&1 | tee -a ${LOG}
+    make ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} ${PTCUTOPT} -j 2>&1 | tee -a ${LOG}
 else
-    make ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} -j >> ${LOG} 2>&1
+    make ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} ${PTCUTOPT} -j >> ${LOG} 2>&1
 fi
 
 if [ ! -f bin/sdl ]; then

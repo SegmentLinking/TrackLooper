@@ -117,7 +117,13 @@ ALPAKA_FN_HOST ALPAKA_FN_INLINE WorkDiv createWorkDiv(
 
 const unsigned int MAX_BLOCKS = 80;
 const unsigned int MAX_CONNECTED_MODULES = 40;
+
+#ifdef NO_PT_CUT
+const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 100000;
+#else
 const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
+#endif
+
 const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 2*N_MAX_PIXEL_SEGMENTS_PER_MODULE;
 
 const unsigned int N_MAX_PIXEL_TRIPLETS = 5000;
