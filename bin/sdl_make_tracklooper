@@ -34,7 +34,7 @@ usage()
 }
 
 # Parsing command-line opts
-while getopts ":cxgsmdp3NGC2ePh" OPTION; do
+while getopts ":cxgsmdp3NGC2ehP:" OPTION; do
   case $OPTION in
     c) MAKECACHE=true;;
     s) SHOWLOG=true;;
@@ -46,7 +46,7 @@ while getopts ":cxgsmdp3NGC2ePh" OPTION; do
     G) ONLYCUDABACKEND=true;;
     C) ONLYCPUBACKEND=true;;
     2) NOPLSDUPCLEAN=true;;
-    P) DISABLEPTCUT=true;;
+    P) PTCUTVALUE=$OPTARG;;
     h) usage;;
     :) usage;;
   esac
@@ -63,7 +63,7 @@ if [ -z ${DONTUSENN} ]; then DONTUSENN=false; fi
 if [ -z ${ONLYCUDABACKEND} ]; then ONLYCUDABACKEND=false; fi
 if [ -z ${ONLYCPUBACKEND} ]; then ONLYCPUBACKEND=false; fi
 if [ -z ${NOPLSDUPCLEAN} ]; then NOPLSDUPCLEAN=false; fi
-if [ -z ${DISABLEPTCUT} ]; then DISABLEPTCUT=false; fi
+if [ -z ${PTCUTVALUE} ]; then PTCUTVALUE=0.8; fi
 
 # If using both -G and -C, -G takes priority
 if [ "${ONLYCUDABACKEND}" == true ] && [ "${ONLYCPUBACKEND}" == true ]; then
@@ -98,7 +98,7 @@ echo "  DONTUSENN         : ${DONTUSENN}"                     | tee -a ${LOG}
 echo "  ONLYCUDABACKEND   : ${ONLYCUDABACKEND}"               | tee -a ${LOG}
 echo "  ONLYCPUBACKEND    : ${ONLYCPUBACKEND}"                | tee -a ${LOG}
 echo "  NOPLSDUPCLEAN     : ${NOPLSDUPCLEAN}"                 | tee -a ${LOG}
-echo "  DISABLEPTCUT      : ${DISABLEPTCUT}"                  | tee -a ${LOG}
+echo "  PTCUTVALUE        : ${PTCUTVALUE} GeV"                | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
 echo "  (cf. Run > sh $(basename $0) -h to see all options)"  | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
@@ -157,10 +157,7 @@ if $NOPLSDUPCLEAN; then
     NOPLSDUPCLEANOPT="NOPLSDUPCLEANFLAG=-DNOPLSDUPCLEAN"
 fi
 
-PTCUTOPT=
-if $DISABLEPTCUT; then
-    PTCUTOPT="PTCUTFLAG=-DNO_PT_CUT"
-fi
+PTCUTOPT="PTCUTFLAG=-DPT_CUT=${PTCUTVALUE}"
 
 ###
 ###

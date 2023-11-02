@@ -118,11 +118,7 @@ ALPAKA_FN_HOST ALPAKA_FN_INLINE WorkDiv createWorkDiv(
 const unsigned int MAX_BLOCKS = 80;
 const unsigned int MAX_CONNECTED_MODULES = 40;
 
-#ifdef NO_PT_CUT
-const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 100000;
-#else
 const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
-#endif
 
 const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 2*N_MAX_PIXEL_SEGMENTS_PER_MODULE;
 
@@ -151,7 +147,7 @@ namespace SDL
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float k2Rinv1GeVf = (2.99792458e-3 * 3.8) / 2;
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float kR1GeVf = 1./(2.99792458e-3 * 3.8);
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float sinAlphaMax = 0.95;
-    ALPAKA_STATIC_ACC_MEM_GLOBAL const float ptCut = 0.8;
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float ptCut = PT_CUT;
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float deltaZLum = 15.0;
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float pixelPSZpitch = 0.15;
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float strip2SZpitch = 5.0;

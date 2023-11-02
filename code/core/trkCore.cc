@@ -740,9 +740,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
         float eta = p3LH.Eta();
         float ptErr = trk.see_ptErr()[iSeed];
 
-#ifndef NO_PT_CUT
-        if ((ptIn > 0.8 - 2 * ptErr))
-#endif
+        if ((ptIn > PT_CUT - 2 * ptErr))
         {
             TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
             TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
@@ -767,11 +765,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
             { /*ptbin = 1;*/
                 pixtype = 0;
             }
-#ifndef NO_PT_CUT
-            else if (ptIn >= (0.8 - 2 * ptErr) and ptIn < 2.0)
-#else
-            else
-#endif
+            else if (ptIn >= (PT_CUT - 2 * ptErr) and ptIn < 2.0)
             {
                 // ptbin = 0;
                 if (pixelSegmentDeltaPhiChange >= 0)
@@ -783,12 +777,10 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
                     pixtype = 2;
                 }
             }
-#ifndef NO_PT_CUT
             else
             {
                 continue;
             }
-#endif
 
             unsigned int hitIdx0 = hit_size + count;
             count++;
