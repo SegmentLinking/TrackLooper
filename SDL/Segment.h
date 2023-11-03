@@ -31,7 +31,7 @@ namespace SDL
         uint4* pLSHitsIdxs;
         int8_t* pixelType;
         char* isQuad;
-        bool* isDup;
+        char* isDup;
         bool* partOfPT5;
         float* ptIn;
         float* ptErr;
@@ -109,7 +109,7 @@ namespace SDL
         Buf<TAcc, uint4> pLSHitsIdxs_buf;
         Buf<TAcc, int8_t> pixelType_buf;
         Buf<TAcc, char> isQuad_buf;
-        Buf<TAcc, bool> isDup_buf;
+        Buf<TAcc, char> isDup_buf;
         Buf<TAcc, bool> partOfPT5_buf;
         Buf<TAcc, float> ptIn_buf;
         Buf<TAcc, float> ptErr_buf;
@@ -150,7 +150,7 @@ namespace SDL
             pLSHitsIdxs_buf(allocBufWrapper<uint4>(devAccIn, maxPixelSegments, queue)),
             pixelType_buf(allocBufWrapper<int8_t>(devAccIn, maxPixelSegments, queue)),
             isQuad_buf(allocBufWrapper<char>(devAccIn, maxPixelSegments, queue)),
-            isDup_buf(allocBufWrapper<bool>(devAccIn, maxPixelSegments, queue)),
+            isDup_buf(allocBufWrapper<char>(devAccIn, maxPixelSegments, queue)),
             partOfPT5_buf(allocBufWrapper<bool>(devAccIn, maxPixelSegments, queue)),
             ptIn_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments, queue)),
             ptErr_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments, queue)),
