@@ -115,6 +115,11 @@ ALPAKA_FN_HOST ALPAKA_FN_INLINE WorkDiv createWorkDiv(
     return WorkDiv(adjustedBlocks, adjustedThreads, elementsPerThread);
 }
 
+// If a compile time flag does not define PT_CUT, default to 0.8 (GeV)
+#ifndef PT_CUT
+constexpr float PT_CUT = 0.8f;
+#endif
+
 const unsigned int MAX_BLOCKS = 80;
 const unsigned int MAX_CONNECTED_MODULES = 40;
 
