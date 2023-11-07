@@ -53,7 +53,7 @@ if [ -z ${TAG} ]; then usage; fi
 
 # If it will not be compiled, then make sure that it was precompiled
 if ${PRECOMPILED}; then
-  if [ ! -f ${TRACKLOOPERDIR}/bin/sdl ] || ( [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_gpu.so ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] ); then
+  if [ ! -f ${TRACKLOOPERDIR}/bin/sdl ] || ( [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cuda.so ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] ); then
     echo "SDL library or binary has not been compiled. Please use -f flag."
     usage
   fi
