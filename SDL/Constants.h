@@ -150,7 +150,7 @@ namespace SDL
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float kR1GeVf = 1./(2.99792458e-3 * 3.8);
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float sinAlphaMax = 0.95;
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float ptCut = 0.8;
-    ALPAKA_STATIC_ACC_MEM_GLOBAL const float deltaZLum = 15.0;
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float deltaZLum = 12.9;
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float pixelPSZpitch = 0.15;
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float strip2SZpitch = 5.0;
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float pt_betaMax = 7.0;
