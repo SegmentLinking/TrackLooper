@@ -453,9 +453,9 @@ namespace SDL
 
             int sizes_pos = 0;
             for ( auto const& mCM_pLS : moduleConnectionMap_pLStoLayer_pos ) {
-                std::vector<unsigned int> connectedModuleDetIds_pLS = mCM_pLS.getConnectedModuleDetIds(isuperbin);
-                connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLS.begin(),connectedModuleDetIds_pLS.end());
-                sizes_pos += connectedModuleDetIds_pLS.size();
+                std::vector<unsigned int> connectedModuleDetIds_pLS_pos = mCM_pLS.getConnectedModuleDetIds(isuperbin);
+                connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),connectedModuleDetIds_pLS_pos.begin(),connectedModuleDetIds_pLS_pos.end());
+                sizes_pos += connectedModuleDetIds_pLS_pos.size();
             }
             pixelMapping.connectedPixelsIndexPos[isuperbin] = totalSizes_pos;
             pixelMapping.connectedPixelsSizesPos[isuperbin] = sizes_pos;
@@ -463,9 +463,9 @@ namespace SDL
 
             int sizes_neg = 0;
             for ( auto const& mCM_pLS : moduleConnectionMap_pLStoLayer_neg ) {
-                std::vector<unsigned int> connectedModuleDetIds_pLS = mCM_pLS.getConnectedModuleDetIds(isuperbin);
-                connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLS.begin(),connectedModuleDetIds_pLS.end());
-                sizes_neg += connectedModuleDetIds_pLS.size();
+                std::vector<unsigned int> connectedModuleDetIds_pLS_neg = mCM_pLS.getConnectedModuleDetIds(isuperbin);
+                connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),connectedModuleDetIds_pLS_neg.begin(),connectedModuleDetIds_pLS_neg.end());
+                sizes_neg += connectedModuleDetIds_pLS_neg.size();
             }
             pixelMapping.connectedPixelsIndexNeg[isuperbin] = totalSizes_neg;
             pixelMapping.connectedPixelsSizesNeg[isuperbin] = sizes_neg;

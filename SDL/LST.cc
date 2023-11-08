@@ -32,17 +32,17 @@ void SDL::LST::loadMaps() {
     TString path;
 
     for(std::string &connect : connects) {
-      auto c = connect.data();
+      auto connectData = connect.data();
 
-      path = TString::Format("%s%s.txt", pLSMapDir.Data(), c).Data();
+      path = TString::Format("%s%s.txt", pLSMapDir.Data(), connectData).Data();
       SDL::moduleConnectionMap_pLStoLayer.emplace_back(
           ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data()));
 
-      path = TString::Format("%s_pos%s.txt", pLSMapDir.Data(), c).Data();
+      path = TString::Format("%s_pos%s.txt", pLSMapDir.Data(), connectData).Data();
       SDL::moduleConnectionMap_pLStoLayer_pos.emplace_back(
           ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data()));
 
-      path = TString::Format("%s_neg%s.txt", pLSMapDir.Data(), c).Data();
+      path = TString::Format("%s_neg%s.txt", pLSMapDir.Data(), connectData).Data();
       SDL::moduleConnectionMap_pLStoLayer_neg.emplace_back(
           ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data()));
     }
