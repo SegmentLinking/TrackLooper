@@ -228,3 +228,36 @@ Including the line
 ```
 in the relevant package `BuildFile.xml` allows for
 including our headers in the code of that package.
+
+## Running LST in a CVMFS-less setup
+
+The setup scripts included in this repository assume that the [CernVM File System (CVMFS)](https://cernvm.cern.ch/fs/) is installed. This provides a convenient way to fetch the required dependencies, but it is not necessary to run LST in standalone mode. Here we briefly describe how to build and run it when CVMFS is not available.
+
+The necessary dependencies are CUDA, ROOT, the Boost libraries, Alpaka, and some CMSSW headers. CUDA, ROOT, and Boost, are fairly standard libraries and are available from multiple package managers. You will need to clone the [Alpaka](https://github.com/alpaka-group/alpaka) and [CMSSW](https://github.com/cms-sw/cmssw) repositories. Then all that is left to do is set some environment variables. We give an example of how to do this in lnx7188/cgpu-1.
+
+```bash
+# These two lines are only needed to set the right version of gcc and nvcc. They are not needed for standard installations.
+export PATH=/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/gcc/11.4.1-30ebdc301ebd200f2ae0e3d880258e65/bin:/cvmfs/cms.cern.ch/el8_amd64_gcc11/cms/cmssw/CMSSW_13_3_0_pre3/external/el8_amd64_gcc11/bin:$PATH
+export LD_LIBRARY_PATH=/cvmfs/cms.cern.ch/el8_amd64_gcc11/cms/cmssw/CMSSW_13_3_0_pre3/biglib/el8_amd64_gcc11:/cvmfs/cms.cern.ch/el8_amd64_gcc11/cms/cmssw/CMSSW_13_3_0_pre3/lib/el8_amd64_gcc11:/cvmfs/cms.cern.ch/el8_amd64_gcc11/cms/cmssw/CMSSW_13_3_0_pre3/external/el8_amd64_gcc11/lib:/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/gcc/11.4.1-30ebdc301ebd200f2ae0e3d880258e65/lib64:/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/gcc/11.4.1-30ebdc301ebd200f2ae0e3d880258e65/lib:$LD_LIBRARY_PATH
+
+# These are the lines that you need to manually change for a CVMFS-less setup.
+# In this example we use cvmfs paths since that is where the dependencies are in lnx7188/cgpu1, but they can point to local directories.
+export BOOST_ROOT=/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/boost/1.80.0-536665e33076f709097addc8619ee0a0
+export ALPAKA_ROOT=/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/alpaka/develop-20230621-5659bacc780954326761375d025a3208
+export CUDA_HOME=/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/cuda/11.8.0-9f0af0f4206be7b705fe550319c49a11
+export ROOT_ROOT=/cvmfs/cms.cern.ch/el8_amd64_gcc11/lcg/root/6.26.11-700833a012ccdeb623021803b605d653
+export CMSSW_BASE=/cvmfs/cms.cern.ch/el8_amd64_gcc11/cms/cmssw/CMSSW_13_3_0_pre3
+
+# These lines are needed to account for some extra environment variables that are exported in the setup script.
+export LD_LIBRARY_PATH=$PWD/SDL/cuda:$PWD/SDL/cpu:$PWD:$LD_LIBRARY_PATH
+export PATH=$PWD/bin:$PATH
+export PATH=$PWD/efficiency/bin:$PATH
+export PATH=$PWD/efficiency/python:$PATH
+export TRACKLOOPERDIR=$PWD
+export TRACKINGNTUPLEDIR=/data2/segmentlinking/CMSSW_12_2_0_pre2/
+export LSTOUTPUTDIR=.
+source $PWD/code/rooutil/thisrooutil.sh
+
+# After this, you can compile and run LST as usual.
+sdl_run -f -mc -s PU200 -n -1 -t myTag
+```
