@@ -231,9 +231,18 @@ including our headers in the code of that package.
 
 ## Running LST in a CVMFS-less setup
 
-The setup scripts included in this repository assume that the [CernVM File System (CVMFS)](https://cernvm.cern.ch/fs/) is installed. This provides a convenient way to fetch the required dependencies, but it is not necessary to run LST in standalone mode. Here we briefly describe how to build and run it when CVMFS is not available.
+The setup scripts included in this repository assume that the [CernVM File System (CVMFS)](https://cernvm.cern.ch/fs/) is installed. This provides a convenient way to fetch the required dependencies, but it is not necessary to run LST in standalone mode. Here, we briefly describe how to build and run it when CVMFS is not available.
 
-The necessary dependencies are CUDA, ROOT, the Boost libraries, Alpaka, and some CMSSW headers. CUDA, ROOT, and Boost, are fairly standard libraries and are available from multiple package managers. You will need to clone the [Alpaka](https://github.com/alpaka-group/alpaka) and [CMSSW](https://github.com/cms-sw/cmssw) repositories. Then all that is left to do is set some environment variables. We give an example of how to do this in lnx7188/cgpu-1.
+The necessary dependencies are CUDA, ROOT, the Boost libraries, Alpaka, and some CMSSW headers. CUDA, ROOT, and Boost, are fairly standard libraries and are available from multiple package managers. For the remaining necessary headers you will need to clone the [Alpaka](https://github.com/alpaka-group/alpaka) and [CMSSW](https://github.com/cms-sw/cmssw) repositories. The Alpaka repository is reasonably sized, but the CMSSW one extremely large, especially considering that we only need a tiny fraction of its files to build LST. We can get only the Alpaka interface headers from CMSSW by running the following commands.
+
+``` bash
+git clone --filter=blob:none --no-checkout --depth 1 --sparse --branch CMSSW_13_3_X https://github.com/cms-sw/cmssw.git
+cd cmssw
+git sparse-checkout add HeterogeneousCore/AlpakaInterface
+git checkout
+```
+
+Then all that is left to do is set some environment variables. We give an example of how to do this in lnx7188/cgpu-1.
 
 ```bash
 # These two lines are only needed to set the right version of gcc and nvcc. They are not needed for standard installations.
