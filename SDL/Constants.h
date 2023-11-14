@@ -4,7 +4,7 @@
 #include <alpaka/alpaka.hpp>
 
 #ifdef CACHE_ALLOC
-#include "../code/alpaka_interface/CachedBufAlloc.h"
+#include "HeterogeneousCore/AlpakaInterface/interface/CachedBufAlloc.h"
 #endif
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
@@ -73,7 +73,7 @@ using Buf = alpaka::Buf<TAcc, TData, Dim1d, Idx>;
 template<typename T, typename TAcc, typename TSize, typename TQueue>
 ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<TAcc, T> allocBufWrapper(TAcc const & devAccIn, TSize nElements, TQueue queue) {
 #ifdef CACHE_ALLOC
-    return lst::alpakatools::allocCachedBuf<T, Idx>(devAccIn, queue, Vec1d(static_cast<Idx>(nElements)));
+    return cms::alpakatools::allocCachedBuf<T, Idx>(devAccIn, queue, Vec1d(static_cast<Idx>(nElements)));
 #else
     return alpaka::allocBuf<T, Idx>(devAccIn, Vec1d(static_cast<Idx>(nElements)));
 #endif
