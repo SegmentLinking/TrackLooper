@@ -286,8 +286,8 @@ namespace SDL {
     bool isOuterTilted = modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel and
                          modulesInGPU.sides[outerLowerModuleIndex] != SDL::Center;
 
-    float& drdzInner = modulesInGPU.drdzs[innerLowerModuleIndex];
-    float& drdzOuter = modulesInGPU.drdzs[outerLowerModuleIndex];
+    const float& drdzInner = modulesInGPU.drdzs[innerLowerModuleIndex];
+    const float& drdzOuter = modulesInGPU.drdzs[outerLowerModuleIndex];
     float innerModuleGapSize = SDL::moduleGapSize_seg(modulesInGPU, innerLowerModuleIndex);
     float outerModuleGapSize = SDL::moduleGapSize_seg(modulesInGPU, outerLowerModuleIndex);
     const float innerminiTilt = isInnerTilted

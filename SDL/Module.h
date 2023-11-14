@@ -156,33 +156,33 @@ namespace SDL {
   };
 
   struct modules {
-    unsigned int* detIds;
-    uint16_t* moduleMap;
-    unsigned int* mapdetId;
-    uint16_t* mapIdx;
-    uint16_t* nConnectedModules;
-    float* drdzs;
-    float* slopes;
-    uint16_t* nModules;
-    uint16_t* nLowerModules;
-    uint16_t* partnerModuleIndices;
+    const unsigned int* detIds;
+    const uint16_t* moduleMap;
+    const unsigned int* mapdetId;
+    const uint16_t* mapIdx;
+    const uint16_t* nConnectedModules;
+    const float* drdzs;
+    const float* slopes;
+    const uint16_t* nModules;
+    const uint16_t* nLowerModules;
+    const uint16_t* partnerModuleIndices;
 
-    short* layers;
-    short* rings;
-    short* modules;
-    short* rods;
-    short* subdets;
-    short* sides;
-    float* eta;
-    float* r;
-    bool* isInverted;
-    bool* isLower;
-    bool* isAnchor;
-    ModuleType* moduleType;
-    ModuleLayerType* moduleLayerType;
-    int* sdlLayers;
+    const short* layers;
+    const short* rings;
+    const short* modules;
+    const short* rods;
+    const short* subdets;
+    const short* sides;
+    const float* eta;
+    const float* r;
+    const bool* isInverted;
+    const bool* isLower;
+    const bool* isAnchor;
+    const ModuleType* moduleType;
+    const ModuleLayerType* moduleLayerType;
+    const int* sdlLayers;
 
-    unsigned int* connectedPixels;
+    const unsigned int* connectedPixels;
 
     static bool parseIsInverted(short subdet, short side, short module, short layer) {
       if (subdet == Endcap) {
@@ -225,7 +225,7 @@ namespace SDL {
     };
 
     template <typename TBuff>
-    void setData(TBuff& modulesbuf) {
+    void setData(const TBuff& modulesbuf) {
       detIds = alpaka::getPtrNative(modulesbuf.detIds_buf);
       moduleMap = alpaka::getPtrNative(modulesbuf.moduleMap_buf);
       mapdetId = alpaka::getPtrNative(modulesbuf.mapdetId_buf);

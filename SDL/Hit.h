@@ -165,7 +165,7 @@ namespace SDL {
     return dPhi;
   };
 
-  ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE int binary_search(unsigned int* data,       // Array that we are searching over
+  ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE int binary_search(const unsigned int* data,       // Array that we are searching over
                                                         unsigned int search_val,  // Value we want to find in data array
                                                         unsigned int ndata)       // Number of elements in data array
   {

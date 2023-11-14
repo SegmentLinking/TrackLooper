@@ -2320,7 +2320,7 @@ namespace SDL {
       moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
       moduleSubdet = modulesInGPU.subdets[lowerModuleIndices[i]];
       moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
-      float& drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
+      const float& drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
       slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
       //category 1 - barrel PS flat
       if (moduleSubdet == Barrel and moduleType == PS and moduleSide == Center) {
@@ -2687,7 +2687,7 @@ namespace SDL {
 
       residual = (moduleSubdet == SDL::Barrel) ? (zs[i] - zPix[0]) - slope * (rts[i] - rtPix[0])
                                                : (rts[i] - rtPix[0]) - (zs[i] - zPix[0]) / slope;
-      float& drdz = modulesInGPU.drdzs[lowerModuleIndex];
+      const float& drdz = modulesInGPU.drdzs[lowerModuleIndex];
       //PS Modules
       if (moduleType == 0) {
         error = 0.15f;
