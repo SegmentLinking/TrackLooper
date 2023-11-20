@@ -115,9 +115,16 @@ ALPAKA_FN_HOST ALPAKA_FN_INLINE WorkDiv createWorkDiv(
     return WorkDiv(adjustedBlocks, adjustedThreads, elementsPerThread);
 }
 
+// If a compile time flag does not define PT_CUT, default to 0.8 (GeV)
+#ifndef PT_CUT
+constexpr float PT_CUT = 0.8f;
+#endif
+
 const unsigned int MAX_BLOCKS = 80;
 const unsigned int MAX_CONNECTED_MODULES = 40;
+
 const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
+
 const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 2*N_MAX_PIXEL_SEGMENTS_PER_MODULE;
 
 const unsigned int N_MAX_PIXEL_TRIPLETS = 5000;
@@ -125,10 +132,6 @@ const unsigned int N_MAX_PIXEL_QUINTUPLETS = 15000;
 
 const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 30000;
 const unsigned int N_MAX_NONPIXEL_TRACK_CANDIDATES = 1000;
-
-const unsigned int N_MAX_TRACK_CANDIDATE_EXTENSIONS = 200000;
-const unsigned int N_MAX_TRACK_EXTENSIONS_PER_TC = 30;
-const unsigned int N_MAX_T3T3_TRACK_EXTENSIONS = 40000;
 
 const unsigned int size_superbins = 45000;
 
@@ -149,7 +152,7 @@ namespace SDL
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float k2Rinv1GeVf = (2.99792458e-3 * 3.8) / 2;
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float kR1GeVf = 1./(2.99792458e-3 * 3.8);
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float sinAlphaMax = 0.95;
-    ALPAKA_STATIC_ACC_MEM_GLOBAL const float ptCut = 0.8;
+    ALPAKA_STATIC_ACC_MEM_GLOBAL const float ptCut = PT_CUT;
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float deltaZLum = 15.0;
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float pixelPSZpitch = 0.15;
     ALPAKA_STATIC_ACC_MEM_GLOBAL const float strip2SZpitch = 5.0;

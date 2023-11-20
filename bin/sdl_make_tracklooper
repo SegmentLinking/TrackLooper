@@ -28,13 +28,15 @@ usage()
   echo "  -N    neural networks           (Toggle LST neural networks)"
   echo "  -G    GPU (CUDA) backend        (Compile only for CUDA, takes priority over -C)"
   echo "  -C    CPU serial backend        (Compile only for CPU)"
+  echo "  -P    PT Cut Value              (In GeV, Default is 0.8, Works only for standalone version of code)"
+  echo "  -w    Warning mode              (Print extra warning outputs)"
   echo "  -2    no pLS duplicate cleaning (Don't perform the pLS duplicate cleaning step)"
   echo
   exit
 }
 
 # Parsing command-line opts
-while getopts ":cxgsmdp3NGC2eh" OPTION; do
+while getopts ":cxgsmdp3NGC2ehwP:" OPTION; do
   case $OPTION in
     c) MAKECACHE=true;;
     s) SHOWLOG=true;;
@@ -46,6 +48,8 @@ while getopts ":cxgsmdp3NGC2eh" OPTION; do
     G) ONLYCUDABACKEND=true;;
     C) ONLYCPUBACKEND=true;;
     2) NOPLSDUPCLEAN=true;;
+    w) PRINTWARNINGS=true;;
+    P) PTCUTVALUE=$OPTARG;;
     h) usage;;
     :) usage;;
   esac
@@ -62,6 +66,8 @@ if [ -z ${DONTUSENN} ]; then DONTUSENN=false; fi
 if [ -z ${ONLYCUDABACKEND} ]; then ONLYCUDABACKEND=false; fi
 if [ -z ${ONLYCPUBACKEND} ]; then ONLYCPUBACKEND=false; fi
 if [ -z ${NOPLSDUPCLEAN} ]; then NOPLSDUPCLEAN=false; fi
+if [ -z ${PRINTWARNINGS} ]; then PRINTWARNINGS=false; fi
+if [ -z ${PTCUTVALUE} ]; then PTCUTVALUE=0.8; fi
 
 # If using both -G and -C, -G takes priority
 if [ "${ONLYCUDABACKEND}" == true ] && [ "${ONLYCPUBACKEND}" == true ]; then
@@ -96,6 +102,8 @@ echo "  DONTUSENN         : ${DONTUSENN}"                     | tee -a ${LOG}
 echo "  ONLYCUDABACKEND   : ${ONLYCUDABACKEND}"               | tee -a ${LOG}
 echo "  ONLYCPUBACKEND    : ${ONLYCPUBACKEND}"                | tee -a ${LOG}
 echo "  NOPLSDUPCLEAN     : ${NOPLSDUPCLEAN}"                 | tee -a ${LOG}
+echo "  PRINTWARNINGS     : ${PRINTWARNINGS}"                 | tee -a ${LOG}
+echo "  PTCUTVALUE        : ${PTCUTVALUE} GeV"                | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
 echo "  (cf. Run > sh $(basename $0) -h to see all options)"  | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
@@ -154,6 +162,13 @@ if $NOPLSDUPCLEAN; then
     NOPLSDUPCLEANOPT="NOPLSDUPCLEANFLAG=-DNOPLSDUPCLEAN"
 fi
 
+PRINTWARNINGSOPT=
+if $PRINTWARNINGS; then
+    PRINTWARNINGSOPT="LSTWARNINGSFLAG=-DWarnings"
+fi
+
+PTCUTOPT="PTCUTFLAG=-DPT_CUT=${PTCUTVALUE}"
+
 ###
 ###
 ### Making Line Segment Tracking Library
@@ -166,9 +181,9 @@ echo "--------------------------------------------------------------------------
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 if $SHOWLOG; then
-    (cd SDL && make clean && make ${T3T3EXTENSIONOPT} ${T5CUTOPT} ${BACKENDOPT} ${NOPLSDUPCLEANOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
+    (cd SDL && make clean && make ${T3T3EXTENSIONOPT} ${T5CUTOPT} ${BACKENDOPT} ${PRINTWARNINGSOPT} ${NOPLSDUPCLEANOPT} ${PTCUTOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
 else
-    (cd SDL && make clean && make ${T3T3EXTENSIONOPT} ${T5CUTOPT} ${BACKENDOPT} ${NOPLSDUPCLEANOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
+    (cd SDL && make clean && make ${T3T3EXTENSIONOPT} ${T5CUTOPT} ${BACKENDOPT} ${PRINTWARNINGSOPT} ${NOPLSDUPCLEANOPT} ${PTCUTOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
 fi
 
 if ([[ "$BACKENDOPT" == *"all"* ]] || [[ "$BACKENDOPT" == *"cpu"* ]]) && [ ! -f SDL/libsdl_cpu.so ]; then
@@ -200,9 +215,9 @@ echo "--------------------------------------------------------------------------
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 if $SHOWLOG; then
-    make ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} -j 2>&1 | tee -a ${LOG}
+    make ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} ${PTCUTOPT} -j 2>&1 | tee -a ${LOG}
 else
-    make ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} -j >> ${LOG} 2>&1
+    make ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} ${PTCUTOPT} -j >> ${LOG} 2>&1
 fi
 
 if [ ! -f bin/sdl ]; then
