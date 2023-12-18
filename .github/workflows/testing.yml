@@ -1,0 +1,131 @@
+name: Testing
+
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  standalone:
+    if: >
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '/run standalone') &&
+      (github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'CONTRIBUTOR')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.issue.number }}/head
+      - name: Build and run PR
+        id: build-and-run
+        uses: SegmentLinking/TrackLooper-actions/standalone@v1
+        with:
+          pr-number: ${{ github.event.issue.number }}
+      - name: Upload plots to archival repo
+        uses: s0/git-publish-subdir-action@develop
+        env:
+          REPO: git@github.com:${{ steps.build-and-run.outputs.archive-repo }}.git
+          BRANCH: ${{ steps.build-and-run.outputs.archive-branch }}
+          FOLDER: ${{ steps.build-and-run.outputs.archive-dir }}
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_PRIVATE_KEY }}
+          TARGET_DIR: ${{ steps.build-and-run.outputs.archive-dir }}
+      - name: Comment on PR
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `${{ steps.build-and-run.outputs.comment }}`
+            })
+      - name: Comment on PR if job failed.
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `There was a problem while building and running in standalone mode. You can find a log of the job [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).`
+            })
+       
+  cmssw:
+    if: >
+      github.event.issue.pull_request && 
+      contains(github.event.comment.body, '/run cmssw') &&
+      (github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'CONTRIBUTOR')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.issue.number }}/head
+      - name: Get CMSSW branch name
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        shell: bash
+        run: |
+          cmssw_branch=
+          while IFS= read -r line; do
+            echo "$line"
+            if [[ $line == *"/run cmssw"* ]]; then
+              # Check if there is a branch after "/run cmssw"
+              words=($line)
+              cmssw_branch="${words[2]}"
+              # Validate the extracted branch to avoid code injection
+              if ! [[ $cmssw_branch =~ ^[[:alnum:]_-]+$ ]]; then
+                echo "Branch name is invalid. Ignoring..."
+                cmssw_branch=
+              fi
+            fi
+          done <<< "$COMMENT_BODY"
+          if [ -z "$cmssw_branch" ]; then
+            cmssw_branch=default
+          fi
+          echo "Using CMSSW branch: $cmssw_branch"
+          echo "cmssw-branch=$cmssw_branch" >> $GITHUB_ENV
+      - name: Build and run PR
+        id: build-and-run
+        uses: SegmentLinking/TrackLooper-actions/cmssw@v1
+        with:
+          pr-number: ${{ github.event.issue.number }}
+          cmssw-branch: ${{ env.cmssw-branch }}
+      - name: Upload plots to archival repo
+        uses: s0/git-publish-subdir-action@develop
+        env:
+          REPO: git@github.com:${{ steps.build-and-run.outputs.archive-repo }}.git
+          BRANCH: ${{ steps.build-and-run.outputs.archive-branch }}
+          FOLDER: ${{ steps.build-and-run.outputs.archive-dir }}
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_PRIVATE_KEY }}
+          TARGET_DIR: ${{ steps.build-and-run.outputs.archive-dir }}
+      - name: Comment on PR
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `${{ steps.build-and-run.outputs.comment }}`
+            })
+      - name: Comment on PR if job failed.
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `There was a problem while building and running with CMSSW. You can find a log of the job [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).`
+            })
