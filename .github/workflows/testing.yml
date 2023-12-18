@@ -26,7 +26,7 @@ jobs:
           ref: refs/pull/${{ github.event.issue.number }}/head
       - name: Build and run PR
         id: build-and-run
-        uses: SegmentLinking/TrackLooper-actions/standalone@v1
+        uses: SegmentLinkingTests/TrackLooper-actions/standalone@v1
         with:
           pr-number: ${{ github.event.issue.number }}
       - name: Upload plots to archival repo
@@ -96,7 +96,7 @@ jobs:
           echo "cmssw-branch=$cmssw_branch" >> $GITHUB_ENV
       - name: Build and run PR
         id: build-and-run
-        uses: SegmentLinking/TrackLooper-actions/cmssw@v1
+        uses: SegmentLinkingTests/TrackLooper-actions/cmssw@v1
         with:
           pr-number: ${{ github.event.issue.number }}
           cmssw-branch: ${{ env.cmssw-branch }}
