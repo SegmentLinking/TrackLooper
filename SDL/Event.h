@@ -159,9 +159,6 @@ namespace SDL {
     int getNumberOfPixelTriplets();
     int getNumberOfPixelQuintuplets();
 
-    unsigned int getNumberOfExtendedTracks();
-    unsigned int getNumberOfT3T3ExtendedTracks();
-
     objectRangesBuffer<alpaka::DevCpu>* getRanges();
     hitsBuffer<alpaka::DevCpu>* getHits();
     hitsBuffer<alpaka::DevCpu>* getHitsInCMSSW();

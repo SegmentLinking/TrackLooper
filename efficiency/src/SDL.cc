@@ -43,20 +43,10 @@ void SDL::Init(TTree *tree) {
     sim_eta_branch = tree->GetBranch("sim_eta");
     if (sim_eta_branch) { sim_eta_branch->SetAddress(&sim_eta_); }
   }
-  T3T3_layer_binary_branch = 0;
-  if (tree->GetBranch("T3T3_layer_binary") != 0) {
-    T3T3_layer_binary_branch = tree->GetBranch("T3T3_layer_binary");
-    if (T3T3_layer_binary_branch) { T3T3_layer_binary_branch->SetAddress(&T3T3_layer_binary_); }
-  }
   pT3_foundDuplicate_branch = 0;
   if (tree->GetBranch("pT3_foundDuplicate") != 0) {
     pT3_foundDuplicate_branch = tree->GetBranch("pT3_foundDuplicate");
     if (pT3_foundDuplicate_branch) { pT3_foundDuplicate_branch->SetAddress(&pT3_foundDuplicate_); }
-  }
-  sim_T3T3_matched_branch = 0;
-  if (tree->GetBranch("sim_T3T3_matched") != 0) {
-    sim_T3T3_matched_branch = tree->GetBranch("sim_T3T3_matched");
-    if (sim_T3T3_matched_branch) { sim_T3T3_matched_branch->SetAddress(&sim_T3T3_matched_); }
   }
   sim_len_branch = 0;
   if (tree->GetBranch("sim_len") != 0) {
@@ -82,11 +72,6 @@ void SDL::Init(TTree *tree) {
   if (tree->GetBranch("sim_denom") != 0) {
     sim_denom_branch = tree->GetBranch("sim_denom");
     if (sim_denom_branch) { sim_denom_branch->SetAddress(&sim_denom_); }
-  }
-  T3T3_anchorIndex_branch = 0;
-  if (tree->GetBranch("T3T3_anchorIndex") != 0) {
-    T3T3_anchorIndex_branch = tree->GetBranch("T3T3_anchorIndex");
-    if (T3T3_anchorIndex_branch) { T3T3_anchorIndex_branch->SetAddress(&T3T3_anchorIndex_); }
   }
   pT5_isDuplicate_branch = 0;
   if (tree->GetBranch("pT5_isDuplicate") != 0) {
@@ -123,11 +108,6 @@ void SDL::Init(TTree *tree) {
     pureTCE_rzChiSquared_branch = tree->GetBranch("pureTCE_rzChiSquared");
     if (pureTCE_rzChiSquared_branch) { pureTCE_rzChiSquared_branch->SetAddress(&pureTCE_rzChiSquared_); }
   }
-  T3T3_regressionRadius_branch = 0;
-  if (tree->GetBranch("T3T3_regressionRadius") != 0) {
-    T3T3_regressionRadius_branch = tree->GetBranch("T3T3_regressionRadius");
-    if (T3T3_regressionRadius_branch) { T3T3_regressionRadius_branch->SetAddress(&T3T3_regressionRadius_); }
-  }
   t4_isDuplicate_branch = 0;
   if (tree->GetBranch("t4_isDuplicate") != 0) {
     t4_isDuplicate_branch = tree->GetBranch("t4_isDuplicate");
@@ -163,26 +143,6 @@ void SDL::Init(TTree *tree) {
     t5_eta_2_branch = tree->GetBranch("t5_eta_2");
     if (t5_eta_2_branch) { t5_eta_2_branch->SetAddress(&t5_eta_2_); }
   }
-  T3T3_pt_branch = 0;
-  if (tree->GetBranch("T3T3_pt") != 0) {
-    T3T3_pt_branch = tree->GetBranch("T3T3_pt");
-    if (T3T3_pt_branch) { T3T3_pt_branch->SetAddress(&T3T3_pt_); }
-  }
-  T3T3_maxHitMatchedCounts_branch = 0;
-  if (tree->GetBranch("T3T3_maxHitMatchedCounts") != 0) {
-    T3T3_maxHitMatchedCounts_branch = tree->GetBranch("T3T3_maxHitMatchedCounts");
-    if (T3T3_maxHitMatchedCounts_branch) { T3T3_maxHitMatchedCounts_branch->SetAddress(&T3T3_maxHitMatchedCounts_); }
-  }
-  T3T3_anchorType_branch = 0;
-  if (tree->GetBranch("T3T3_anchorType") != 0) {
-    T3T3_anchorType_branch = tree->GetBranch("T3T3_anchorType");
-    if (T3T3_anchorType_branch) { T3T3_anchorType_branch->SetAddress(&T3T3_anchorType_); }
-  }
-  T3T3_nLayerOverlaps_branch = 0;
-  if (tree->GetBranch("T3T3_nLayerOverlaps") != 0) {
-    T3T3_nLayerOverlaps_branch = tree->GetBranch("T3T3_nLayerOverlaps");
-    if (T3T3_nLayerOverlaps_branch) { T3T3_nLayerOverlaps_branch->SetAddress(&T3T3_nLayerOverlaps_); }
-  }
   pLS_eta_branch = 0;
   if (tree->GetBranch("pLS_eta") != 0) {
     pLS_eta_branch = tree->GetBranch("pLS_eta");
@@ -203,11 +163,6 @@ void SDL::Init(TTree *tree) {
     tce_layer_binary_branch = tree->GetBranch("tce_layer_binary");
     if (tce_layer_binary_branch) { tce_layer_binary_branch->SetAddress(&tce_layer_binary_); }
   }
-  sim_T3T3_types_branch = 0;
-  if (tree->GetBranch("sim_T3T3_types") != 0) {
-    sim_T3T3_types_branch = tree->GetBranch("sim_T3T3_types");
-    if (sim_T3T3_types_branch) { sim_T3T3_types_branch->SetAddress(&sim_T3T3_types_); }
-  }
   sim_TC_matched_nonextended_branch = 0;
   if (tree->GetBranch("sim_TC_matched_nonextended") != 0) {
     sim_TC_matched_nonextended_branch = tree->GetBranch("sim_TC_matched_nonextended");
@@ -222,11 +177,6 @@ void SDL::Init(TTree *tree) {
   if (tree->GetBranch("tce_eta") != 0) {
     tce_eta_branch = tree->GetBranch("tce_eta");
     if (tce_eta_branch) { tce_eta_branch->SetAddress(&tce_eta_); }
-  }
-  T3T3_rzChiSquared_branch = 0;
-  if (tree->GetBranch("T3T3_rzChiSquared") != 0) {
-    T3T3_rzChiSquared_branch = tree->GetBranch("T3T3_rzChiSquared");
-    if (T3T3_rzChiSquared_branch) { T3T3_rzChiSquared_branch->SetAddress(&T3T3_rzChiSquared_); }
   }
   tce_isDuplicate_branch = 0;
   if (tree->GetBranch("tce_isDuplicate") != 0) {
@@ -308,11 +258,6 @@ void SDL::Init(TTree *tree) {
     sim_pureTCE_types_branch = tree->GetBranch("sim_pureTCE_types");
     if (sim_pureTCE_types_branch) { sim_pureTCE_types_branch->SetAddress(&sim_pureTCE_types_); }
   }
-  T3T3_hitIdxs_branch = 0;
-  if (tree->GetBranch("T3T3_hitIdxs") != 0) {
-    T3T3_hitIdxs_branch = tree->GetBranch("T3T3_hitIdxs");
-    if (T3T3_hitIdxs_branch) { T3T3_hitIdxs_branch->SetAddress(&T3T3_hitIdxs_); }
-  }
   t4_phi_branch = 0;
   if (tree->GetBranch("t4_phi") != 0) {
     t4_phi_branch = tree->GetBranch("t4_phi");
@@ -378,11 +323,6 @@ void SDL::Init(TTree *tree) {
     sim_pca_dxy_branch = tree->GetBranch("sim_pca_dxy");
     if (sim_pca_dxy_branch) { sim_pca_dxy_branch->SetAddress(&sim_pca_dxy_); }
   }
-  T3T3_isDuplicate_branch = 0;
-  if (tree->GetBranch("T3T3_isDuplicate") != 0) {
-    T3T3_isDuplicate_branch = tree->GetBranch("T3T3_isDuplicate");
-    if (T3T3_isDuplicate_branch) { T3T3_isDuplicate_branch->SetAddress(&T3T3_isDuplicate_); }
-  }
   pT4_phi_branch = 0;
   if (tree->GetBranch("pT4_phi") != 0) {
     pT4_phi_branch = tree->GetBranch("pT4_phi");
@@ -403,20 +343,10 @@ void SDL::Init(TTree *tree) {
     sim_pureTCE_matched_branch = tree->GetBranch("sim_pureTCE_matched");
     if (sim_pureTCE_matched_branch) { sim_pureTCE_matched_branch->SetAddress(&sim_pureTCE_matched_); }
   }
-  T3T3_eta_branch = 0;
-  if (tree->GetBranch("T3T3_eta") != 0) {
-    T3T3_eta_branch = tree->GetBranch("T3T3_eta");
-    if (T3T3_eta_branch) { T3T3_eta_branch->SetAddress(&T3T3_eta_); }
-  }
   t3_occupancies_branch = 0;
   if (tree->GetBranch("t3_occupancies") != 0) {
     t3_occupancies_branch = tree->GetBranch("t3_occupancies");
     if (t3_occupancies_branch) { t3_occupancies_branch->SetAddress(&t3_occupancies_); }
-  }
-  T3T3_matched_simIdx_branch = 0;
-  if (tree->GetBranch("T3T3_matched_simIdx") != 0) {
-    T3T3_matched_simIdx_branch = tree->GetBranch("T3T3_matched_simIdx");
-    if (T3T3_matched_simIdx_branch) { T3T3_matched_simIdx_branch->SetAddress(&T3T3_matched_simIdx_); }
   }
   t5_foundDuplicate_branch = 0;
   if (tree->GetBranch("t5_foundDuplicate") != 0) {
@@ -427,11 +357,6 @@ void SDL::Init(TTree *tree) {
   if (tree->GetBranch("sim_pT4_types") != 0) {
     sim_pT4_types_branch = tree->GetBranch("sim_pT4_types");
     if (sim_pT4_types_branch) { sim_pT4_types_branch->SetAddress(&sim_pT4_types_); }
-  }
-  T3T3_matched_pt_branch = 0;
-  if (tree->GetBranch("T3T3_matched_pt") != 0) {
-    T3T3_matched_pt_branch = tree->GetBranch("T3T3_matched_pt");
-    if (T3T3_matched_pt_branch) { T3T3_matched_pt_branch->SetAddress(&T3T3_matched_pt_); }
   }
   t4_isFake_branch = 0;
   if (tree->GetBranch("t4_isFake") != 0) {
@@ -483,11 +408,6 @@ void SDL::Init(TTree *tree) {
     pT5_pt_branch = tree->GetBranch("pT5_pt");
     if (pT5_pt_branch) { pT5_pt_branch->SetAddress(&pT5_pt_); }
   }
-  T3T3_isFake_branch = 0;
-  if (tree->GetBranch("T3T3_isFake") != 0) {
-    T3T3_isFake_branch = tree->GetBranch("T3T3_isFake");
-    if (T3T3_isFake_branch) { T3T3_isFake_branch->SetAddress(&T3T3_isFake_); }
-  }
   pureTCE_rPhiChiSquared_branch = 0;
   if (tree->GetBranch("pureTCE_rPhiChiSquared") != 0) {
     pureTCE_rPhiChiSquared_branch = tree->GetBranch("pureTCE_rPhiChiSquared");
@@ -512,11 +432,6 @@ void SDL::Init(TTree *tree) {
   if (tree->GetBranch("tc_maxHitMatchedCounts") != 0) {
     tc_maxHitMatchedCounts_branch = tree->GetBranch("tc_maxHitMatchedCounts");
     if (tc_maxHitMatchedCounts_branch) { tc_maxHitMatchedCounts_branch->SetAddress(&tc_maxHitMatchedCounts_); }
-  }
-  T3T3_phi_branch = 0;
-  if (tree->GetBranch("T3T3_phi") != 0) {
-    T3T3_phi_branch = tree->GetBranch("T3T3_phi");
-    if (T3T3_phi_branch) { T3T3_phi_branch->SetAddress(&T3T3_phi_); }
   }
   pureTCE_nLayerOverlaps_branch = 0;
   if (tree->GetBranch("pureTCE_nLayerOverlaps") != 0) {
@@ -568,11 +483,6 @@ void SDL::Init(TTree *tree) {
     pT5_eta_branch = tree->GetBranch("pT5_eta");
     if (pT5_eta_branch) { pT5_eta_branch->SetAddress(&pT5_eta_); }
   }
-  T3T3_innerT3Radius_branch = 0;
-  if (tree->GetBranch("T3T3_innerT3Radius") != 0) {
-    T3T3_innerT3Radius_branch = tree->GetBranch("T3T3_innerT3Radius");
-    if (T3T3_innerT3Radius_branch) { T3T3_innerT3Radius_branch->SetAddress(&T3T3_innerT3Radius_); }
-  }
   tc_phi_branch = 0;
   if (tree->GetBranch("tc_phi") != 0) {
     tc_phi_branch = tree->GetBranch("tc_phi");
@@ -622,11 +532,6 @@ void SDL::Init(TTree *tree) {
   if (tree->GetBranch("sim_pT4_matched") != 0) {
     sim_pT4_matched_branch = tree->GetBranch("sim_pT4_matched");
     if (sim_pT4_matched_branch) { sim_pT4_matched_branch->SetAddress(&sim_pT4_matched_); }
-  }
-  T3T3_rPhiChiSquared_branch = 0;
-  if (tree->GetBranch("T3T3_rPhiChiSquared") != 0) {
-    T3T3_rPhiChiSquared_branch = tree->GetBranch("T3T3_rPhiChiSquared");
-    if (T3T3_rPhiChiSquared_branch) { T3T3_rPhiChiSquared_branch->SetAddress(&T3T3_rPhiChiSquared_); }
   }
   tc_eta_branch = 0;
   if (tree->GetBranch("tc_eta") != 0) {
@@ -703,11 +608,6 @@ void SDL::Init(TTree *tree) {
     t5_occupancies_branch = tree->GetBranch("t5_occupancies");
     if (t5_occupancies_branch) { t5_occupancies_branch->SetAddress(&t5_occupancies_); }
   }
-  T3T3_outerT3Radius_branch = 0;
-  if (tree->GetBranch("T3T3_outerT3Radius") != 0) {
-    T3T3_outerT3Radius_branch = tree->GetBranch("T3T3_outerT3Radius");
-    if (T3T3_outerT3Radius_branch) { T3T3_outerT3Radius_branch->SetAddress(&T3T3_outerT3Radius_); }
-  }
   tc_type_branch = 0;
   if (tree->GetBranch("tc_type") != 0) {
     tc_type_branch = tree->GetBranch("tc_type");
@@ -742,11 +642,6 @@ void SDL::Init(TTree *tree) {
   if (tree->GetBranch("t4_pt") != 0) {
     t4_pt_branch = tree->GetBranch("t4_pt");
     if (t4_pt_branch) { t4_pt_branch->SetAddress(&t4_pt_); }
-  }
-  T3T3_nHitOverlaps_branch = 0;
-  if (tree->GetBranch("T3T3_nHitOverlaps") != 0) {
-    T3T3_nHitOverlaps_branch = tree->GetBranch("T3T3_nHitOverlaps");
-    if (T3T3_nHitOverlaps_branch) { T3T3_nHitOverlaps_branch->SetAddress(&T3T3_nHitOverlaps_); }
   }
   sim_TC_types_branch = 0;
   if (tree->GetBranch("sim_TC_types") != 0) {
@@ -850,15 +745,12 @@ void SDL::GetEntry(unsigned int idx) {
   sim_event_isLoaded = false;
   sim_q_isLoaded = false;
   sim_eta_isLoaded = false;
-  T3T3_layer_binary_isLoaded = false;
   pT3_foundDuplicate_isLoaded = false;
-  sim_T3T3_matched_isLoaded = false;
   sim_len_isLoaded = false;
   pureTCE_isDuplicate_isLoaded = false;
   pT3_score_isLoaded = false;
   t5_eta_isLoaded = false;
   sim_denom_isLoaded = false;
-  T3T3_anchorIndex_isLoaded = false;
   pT5_isDuplicate_isLoaded = false;
   sim_tce_matched_isLoaded = false;
   pT3_isDuplicate_isLoaded = false;
@@ -866,7 +758,6 @@ void SDL::GetEntry(unsigned int idx) {
   pT3_eta_2_isLoaded = false;
   sim_pT3_matched_isLoaded = false;
   pureTCE_rzChiSquared_isLoaded = false;
-  T3T3_regressionRadius_isLoaded = false;
   t4_isDuplicate_isLoaded = false;
   pureTCE_eta_isLoaded = false;
   tce_rPhiChiSquared_isLoaded = false;
@@ -874,19 +765,13 @@ void SDL::GetEntry(unsigned int idx) {
   pureTCE_pt_isLoaded = false;
   sim_pt_isLoaded = false;
   t5_eta_2_isLoaded = false;
-  T3T3_pt_isLoaded = false;
-  T3T3_maxHitMatchedCounts_isLoaded = false;
-  T3T3_anchorType_isLoaded = false;
-  T3T3_nLayerOverlaps_isLoaded = false;
   pLS_eta_isLoaded = false;
   sim_pdgId_isLoaded = false;
   t3_eta_isLoaded = false;
   tce_layer_binary_isLoaded = false;
-  sim_T3T3_types_isLoaded = false;
   sim_TC_matched_nonextended_isLoaded = false;
   t4_occupancies_isLoaded = false;
   tce_eta_isLoaded = false;
-  T3T3_rzChiSquared_isLoaded = false;
   tce_isDuplicate_isLoaded = false;
   pT5_matched_simIdx_isLoaded = false;
   sim_tcIdx_isLoaded = false;
@@ -903,7 +788,6 @@ void SDL::GetEntry(unsigned int idx) {
   t5_hitIdxs_isLoaded = false;
   sim_pT3_types_isLoaded = false;
   sim_pureTCE_types_isLoaded = false;
-  T3T3_hitIdxs_isLoaded = false;
   t4_phi_isLoaded = false;
   t5_phi_isLoaded = false;
   pT5_hitIdxs_isLoaded = false;
@@ -917,17 +801,13 @@ void SDL::GetEntry(unsigned int idx) {
   tc_sim_isLoaded = false;
   sim_pLS_types_isLoaded = false;
   sim_pca_dxy_isLoaded = false;
-  T3T3_isDuplicate_isLoaded = false;
   pT4_phi_isLoaded = false;
   sim_hits_isLoaded = false;
   pLS_phi_isLoaded = false;
   sim_pureTCE_matched_isLoaded = false;
-  T3T3_eta_isLoaded = false;
   t3_occupancies_isLoaded = false;
-  T3T3_matched_simIdx_isLoaded = false;
   t5_foundDuplicate_isLoaded = false;
   sim_pT4_types_isLoaded = false;
-  T3T3_matched_pt_isLoaded = false;
   t4_isFake_isLoaded = false;
   simvtx_x_isLoaded = false;
   simvtx_y_isLoaded = false;
@@ -938,13 +818,11 @@ void SDL::GetEntry(unsigned int idx) {
   tc_pt_isLoaded = false;
   pT3_phi_2_isLoaded = false;
   pT5_pt_isLoaded = false;
-  T3T3_isFake_isLoaded = false;
   pureTCE_rPhiChiSquared_isLoaded = false;
   pT5_score_isLoaded = false;
   sim_phi_isLoaded = false;
   pT5_isFake_isLoaded = false;
   tc_maxHitMatchedCounts_isLoaded = false;
-  T3T3_phi_isLoaded = false;
   pureTCE_nLayerOverlaps_isLoaded = false;
   sim_pca_dz_isLoaded = false;
   pureTCE_hitIdxs_isLoaded = false;
@@ -955,7 +833,6 @@ void SDL::GetEntry(unsigned int idx) {
   pLS_score_isLoaded = false;
   pT3_phi_isLoaded = false;
   pT5_eta_isLoaded = false;
-  T3T3_innerT3Radius_isLoaded = false;
   tc_phi_isLoaded = false;
   t4_eta_isLoaded = false;
   pLS_isFake_isLoaded = false;
@@ -966,7 +843,6 @@ void SDL::GetEntry(unsigned int idx) {
   sim_parentVtxIdx_isLoaded = false;
   pureTCE_layer_binary_isLoaded = false;
   sim_pT4_matched_isLoaded = false;
-  T3T3_rPhiChiSquared_isLoaded = false;
   tc_eta_isLoaded = false;
   sim_lengap_isLoaded = false;
   sim_T5_matched_isLoaded = false;
@@ -982,7 +858,6 @@ void SDL::GetEntry(unsigned int idx) {
   pLS_isDuplicate_isLoaded = false;
   tce_anchorIndex_isLoaded = false;
   t5_occupancies_isLoaded = false;
-  T3T3_outerT3Radius_isLoaded = false;
   tc_type_isLoaded = false;
   tce_isFake_isLoaded = false;
   pLS_pt_isLoaded = false;
@@ -990,7 +865,6 @@ void SDL::GetEntry(unsigned int idx) {
   sim_T4_types_isLoaded = false;
   pT4_isDuplicate_isLoaded = false;
   t4_pt_isLoaded = false;
-  T3T3_nHitOverlaps_isLoaded = false;
   sim_TC_types_isLoaded = false;
   sg_occupancies_isLoaded = false;
   pT4_pt_isLoaded = false;
@@ -1019,15 +893,12 @@ void SDL::LoadAllBranches() {
   if (sim_event_branch != 0) sim_event();
   if (sim_q_branch != 0) sim_q();
   if (sim_eta_branch != 0) sim_eta();
-  if (T3T3_layer_binary_branch != 0) T3T3_layer_binary();
   if (pT3_foundDuplicate_branch != 0) pT3_foundDuplicate();
-  if (sim_T3T3_matched_branch != 0) sim_T3T3_matched();
   if (sim_len_branch != 0) sim_len();
   if (pureTCE_isDuplicate_branch != 0) pureTCE_isDuplicate();
   if (pT3_score_branch != 0) pT3_score();
   if (t5_eta_branch != 0) t5_eta();
   if (sim_denom_branch != 0) sim_denom();
-  if (T3T3_anchorIndex_branch != 0) T3T3_anchorIndex();
   if (pT5_isDuplicate_branch != 0) pT5_isDuplicate();
   if (sim_tce_matched_branch != 0) sim_tce_matched();
   if (pT3_isDuplicate_branch != 0) pT3_isDuplicate();
@@ -1035,7 +906,6 @@ void SDL::LoadAllBranches() {
   if (pT3_eta_2_branch != 0) pT3_eta_2();
   if (sim_pT3_matched_branch != 0) sim_pT3_matched();
   if (pureTCE_rzChiSquared_branch != 0) pureTCE_rzChiSquared();
-  if (T3T3_regressionRadius_branch != 0) T3T3_regressionRadius();
   if (t4_isDuplicate_branch != 0) t4_isDuplicate();
   if (pureTCE_eta_branch != 0) pureTCE_eta();
   if (tce_rPhiChiSquared_branch != 0) tce_rPhiChiSquared();
@@ -1043,19 +913,13 @@ void SDL::LoadAllBranches() {
   if (pureTCE_pt_branch != 0) pureTCE_pt();
   if (sim_pt_branch != 0) sim_pt();
   if (t5_eta_2_branch != 0) t5_eta_2();
-  if (T3T3_pt_branch != 0) T3T3_pt();
-  if (T3T3_maxHitMatchedCounts_branch != 0) T3T3_maxHitMatchedCounts();
-  if (T3T3_anchorType_branch != 0) T3T3_anchorType();
-  if (T3T3_nLayerOverlaps_branch != 0) T3T3_nLayerOverlaps();
   if (pLS_eta_branch != 0) pLS_eta();
   if (sim_pdgId_branch != 0) sim_pdgId();
   if (t3_eta_branch != 0) t3_eta();
   if (tce_layer_binary_branch != 0) tce_layer_binary();
-  if (sim_T3T3_types_branch != 0) sim_T3T3_types();
   if (sim_TC_matched_nonextended_branch != 0) sim_TC_matched_nonextended();
   if (t4_occupancies_branch != 0) t4_occupancies();
   if (tce_eta_branch != 0) tce_eta();
-  if (T3T3_rzChiSquared_branch != 0) T3T3_rzChiSquared();
   if (tce_isDuplicate_branch != 0) tce_isDuplicate();
   if (pT5_matched_simIdx_branch != 0) pT5_matched_simIdx();
   if (sim_tcIdx_branch != 0) sim_tcIdx();
@@ -1072,7 +936,6 @@ void SDL::LoadAllBranches() {
   if (t5_hitIdxs_branch != 0) t5_hitIdxs();
   if (sim_pT3_types_branch != 0) sim_pT3_types();
   if (sim_pureTCE_types_branch != 0) sim_pureTCE_types();
-  if (T3T3_hitIdxs_branch != 0) T3T3_hitIdxs();
   if (t4_phi_branch != 0) t4_phi();
   if (t5_phi_branch != 0) t5_phi();
   if (pT5_hitIdxs_branch != 0) pT5_hitIdxs();
@@ -1086,17 +949,13 @@ void SDL::LoadAllBranches() {
   if (tc_sim_branch != 0) tc_sim();
   if (sim_pLS_types_branch != 0) sim_pLS_types();
   if (sim_pca_dxy_branch != 0) sim_pca_dxy();
-  if (T3T3_isDuplicate_branch != 0) T3T3_isDuplicate();
   if (pT4_phi_branch != 0) pT4_phi();
   if (sim_hits_branch != 0) sim_hits();
   if (pLS_phi_branch != 0) pLS_phi();
   if (sim_pureTCE_matched_branch != 0) sim_pureTCE_matched();
-  if (T3T3_eta_branch != 0) T3T3_eta();
   if (t3_occupancies_branch != 0) t3_occupancies();
-  if (T3T3_matched_simIdx_branch != 0) T3T3_matched_simIdx();
   if (t5_foundDuplicate_branch != 0) t5_foundDuplicate();
   if (sim_pT4_types_branch != 0) sim_pT4_types();
-  if (T3T3_matched_pt_branch != 0) T3T3_matched_pt();
   if (t4_isFake_branch != 0) t4_isFake();
   if (simvtx_x_branch != 0) simvtx_x();
   if (simvtx_y_branch != 0) simvtx_y();
@@ -1107,13 +966,11 @@ void SDL::LoadAllBranches() {
   if (tc_pt_branch != 0) tc_pt();
   if (pT3_phi_2_branch != 0) pT3_phi_2();
   if (pT5_pt_branch != 0) pT5_pt();
-  if (T3T3_isFake_branch != 0) T3T3_isFake();
   if (pureTCE_rPhiChiSquared_branch != 0) pureTCE_rPhiChiSquared();
   if (pT5_score_branch != 0) pT5_score();
   if (sim_phi_branch != 0) sim_phi();
   if (pT5_isFake_branch != 0) pT5_isFake();
   if (tc_maxHitMatchedCounts_branch != 0) tc_maxHitMatchedCounts();
-  if (T3T3_phi_branch != 0) T3T3_phi();
   if (pureTCE_nLayerOverlaps_branch != 0) pureTCE_nLayerOverlaps();
   if (sim_pca_dz_branch != 0) sim_pca_dz();
   if (pureTCE_hitIdxs_branch != 0) pureTCE_hitIdxs();
@@ -1124,7 +981,6 @@ void SDL::LoadAllBranches() {
   if (pLS_score_branch != 0) pLS_score();
   if (pT3_phi_branch != 0) pT3_phi();
   if (pT5_eta_branch != 0) pT5_eta();
-  if (T3T3_innerT3Radius_branch != 0) T3T3_innerT3Radius();
   if (tc_phi_branch != 0) tc_phi();
   if (t4_eta_branch != 0) t4_eta();
   if (pLS_isFake_branch != 0) pLS_isFake();
@@ -1135,7 +991,6 @@ void SDL::LoadAllBranches() {
   if (sim_parentVtxIdx_branch != 0) sim_parentVtxIdx();
   if (pureTCE_layer_binary_branch != 0) pureTCE_layer_binary();
   if (sim_pT4_matched_branch != 0) sim_pT4_matched();
-  if (T3T3_rPhiChiSquared_branch != 0) T3T3_rPhiChiSquared();
   if (tc_eta_branch != 0) tc_eta();
   if (sim_lengap_branch != 0) sim_lengap();
   if (sim_T5_matched_branch != 0) sim_T5_matched();
@@ -1151,7 +1006,6 @@ void SDL::LoadAllBranches() {
   if (pLS_isDuplicate_branch != 0) pLS_isDuplicate();
   if (tce_anchorIndex_branch != 0) tce_anchorIndex();
   if (t5_occupancies_branch != 0) t5_occupancies();
-  if (T3T3_outerT3Radius_branch != 0) T3T3_outerT3Radius();
   if (tc_type_branch != 0) tc_type();
   if (tce_isFake_branch != 0) tce_isFake();
   if (pLS_pt_branch != 0) pLS_pt();
@@ -1159,7 +1013,6 @@ void SDL::LoadAllBranches() {
   if (sim_T4_types_branch != 0) sim_T4_types();
   if (pT4_isDuplicate_branch != 0) pT4_isDuplicate();
   if (t4_pt_branch != 0) t4_pt();
-  if (T3T3_nHitOverlaps_branch != 0) T3T3_nHitOverlaps();
   if (sim_TC_types_branch != 0) sim_TC_types();
   if (sg_occupancies_branch != 0) sg_occupancies();
   if (pT4_pt_branch != 0) pT4_pt();
@@ -1275,18 +1128,6 @@ const vector<float> &SDL::sim_eta() {
   }
   return *sim_eta_;
 }
-const vector<int> &SDL::T3T3_layer_binary() {
-  if (not T3T3_layer_binary_isLoaded) {
-    if (T3T3_layer_binary_branch != 0) {
-      T3T3_layer_binary_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_layer_binary_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_layer_binary_isLoaded = true;
-  }
-  return *T3T3_layer_binary_;
-}
 const vector<int> &SDL::pT3_foundDuplicate() {
   if (not pT3_foundDuplicate_isLoaded) {
     if (pT3_foundDuplicate_branch != 0) {
@@ -1298,18 +1139,6 @@ const vector<int> &SDL::pT3_foundDuplicate() {
     pT3_foundDuplicate_isLoaded = true;
   }
   return *pT3_foundDuplicate_;
-}
-const vector<int> &SDL::sim_T3T3_matched() {
-  if (not sim_T3T3_matched_isLoaded) {
-    if (sim_T3T3_matched_branch != 0) {
-      sim_T3T3_matched_branch->GetEntry(index);
-    } else {
-      printf("branch sim_T3T3_matched_branch does not exist!\n");
-      exit(1);
-    }
-    sim_T3T3_matched_isLoaded = true;
-  }
-  return *sim_T3T3_matched_;
 }
 const vector<float> &SDL::sim_len() {
   if (not sim_len_isLoaded) {
@@ -1370,18 +1199,6 @@ const vector<int> &SDL::sim_denom() {
     sim_denom_isLoaded = true;
   }
   return *sim_denom_;
-}
-const vector<int> &SDL::T3T3_anchorIndex() {
-  if (not T3T3_anchorIndex_isLoaded) {
-    if (T3T3_anchorIndex_branch != 0) {
-      T3T3_anchorIndex_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_anchorIndex_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_anchorIndex_isLoaded = true;
-  }
-  return *T3T3_anchorIndex_;
 }
 const vector<int> &SDL::pT5_isDuplicate() {
   if (not pT5_isDuplicate_isLoaded) {
@@ -1467,18 +1284,6 @@ const vector<float> &SDL::pureTCE_rzChiSquared() {
   }
   return *pureTCE_rzChiSquared_;
 }
-const vector<float> &SDL::T3T3_regressionRadius() {
-  if (not T3T3_regressionRadius_isLoaded) {
-    if (T3T3_regressionRadius_branch != 0) {
-      T3T3_regressionRadius_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_regressionRadius_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_regressionRadius_isLoaded = true;
-  }
-  return *T3T3_regressionRadius_;
-}
 const vector<int> &SDL::t4_isDuplicate() {
   if (not t4_isDuplicate_isLoaded) {
     if (t4_isDuplicate_branch != 0) {
@@ -1563,54 +1368,6 @@ const vector<float> &SDL::t5_eta_2() {
   }
   return *t5_eta_2_;
 }
-const vector<float> &SDL::T3T3_pt() {
-  if (not T3T3_pt_isLoaded) {
-    if (T3T3_pt_branch != 0) {
-      T3T3_pt_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_pt_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_pt_isLoaded = true;
-  }
-  return *T3T3_pt_;
-}
-const vector<int> &SDL::T3T3_maxHitMatchedCounts() {
-  if (not T3T3_maxHitMatchedCounts_isLoaded) {
-    if (T3T3_maxHitMatchedCounts_branch != 0) {
-      T3T3_maxHitMatchedCounts_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_maxHitMatchedCounts_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_maxHitMatchedCounts_isLoaded = true;
-  }
-  return *T3T3_maxHitMatchedCounts_;
-}
-const vector<int> &SDL::T3T3_anchorType() {
-  if (not T3T3_anchorType_isLoaded) {
-    if (T3T3_anchorType_branch != 0) {
-      T3T3_anchorType_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_anchorType_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_anchorType_isLoaded = true;
-  }
-  return *T3T3_anchorType_;
-}
-const vector<vector<int> > &SDL::T3T3_nLayerOverlaps() {
-  if (not T3T3_nLayerOverlaps_isLoaded) {
-    if (T3T3_nLayerOverlaps_branch != 0) {
-      T3T3_nLayerOverlaps_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_nLayerOverlaps_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_nLayerOverlaps_isLoaded = true;
-  }
-  return *T3T3_nLayerOverlaps_;
-}
 const vector<float> &SDL::pLS_eta() {
   if (not pLS_eta_isLoaded) {
     if (pLS_eta_branch != 0) {
@@ -1659,18 +1416,6 @@ const vector<int> &SDL::tce_layer_binary() {
   }
   return *tce_layer_binary_;
 }
-const vector<vector<int> > &SDL::sim_T3T3_types() {
-  if (not sim_T3T3_types_isLoaded) {
-    if (sim_T3T3_types_branch != 0) {
-      sim_T3T3_types_branch->GetEntry(index);
-    } else {
-      printf("branch sim_T3T3_types_branch does not exist!\n");
-      exit(1);
-    }
-    sim_T3T3_types_isLoaded = true;
-  }
-  return *sim_T3T3_types_;
-}
 const vector<int> &SDL::sim_TC_matched_nonextended() {
   if (not sim_TC_matched_nonextended_isLoaded) {
     if (sim_TC_matched_nonextended_branch != 0) {
@@ -1706,18 +1451,6 @@ const vector<float> &SDL::tce_eta() {
     tce_eta_isLoaded = true;
   }
   return *tce_eta_;
-}
-const vector<float> &SDL::T3T3_rzChiSquared() {
-  if (not T3T3_rzChiSquared_isLoaded) {
-    if (T3T3_rzChiSquared_branch != 0) {
-      T3T3_rzChiSquared_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_rzChiSquared_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_rzChiSquared_isLoaded = true;
-  }
-  return *T3T3_rzChiSquared_;
 }
 const vector<int> &SDL::tce_isDuplicate() {
   if (not tce_isDuplicate_isLoaded) {
@@ -1911,18 +1644,6 @@ const vector<vector<int> > &SDL::sim_pureTCE_types() {
   }
   return *sim_pureTCE_types_;
 }
-const vector<vector<int> > &SDL::T3T3_hitIdxs() {
-  if (not T3T3_hitIdxs_isLoaded) {
-    if (T3T3_hitIdxs_branch != 0) {
-      T3T3_hitIdxs_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_hitIdxs_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_hitIdxs_isLoaded = true;
-  }
-  return *T3T3_hitIdxs_;
-}
 const vector<float> &SDL::t4_phi() {
   if (not t4_phi_isLoaded) {
     if (t4_phi_branch != 0) {
@@ -2079,18 +1800,6 @@ const vector<float> &SDL::sim_pca_dxy() {
   }
   return *sim_pca_dxy_;
 }
-const vector<int> &SDL::T3T3_isDuplicate() {
-  if (not T3T3_isDuplicate_isLoaded) {
-    if (T3T3_isDuplicate_branch != 0) {
-      T3T3_isDuplicate_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_isDuplicate_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_isDuplicate_isLoaded = true;
-  }
-  return *T3T3_isDuplicate_;
-}
 const vector<float> &SDL::pT4_phi() {
   if (not pT4_phi_isLoaded) {
     if (pT4_phi_branch != 0) {
@@ -2139,18 +1848,6 @@ const vector<int> &SDL::sim_pureTCE_matched() {
   }
   return *sim_pureTCE_matched_;
 }
-const vector<float> &SDL::T3T3_eta() {
-  if (not T3T3_eta_isLoaded) {
-    if (T3T3_eta_branch != 0) {
-      T3T3_eta_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_eta_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_eta_isLoaded = true;
-  }
-  return *T3T3_eta_;
-}
 const vector<int> &SDL::t3_occupancies() {
   if (not t3_occupancies_isLoaded) {
     if (t3_occupancies_branch != 0) {
@@ -2162,18 +1859,6 @@ const vector<int> &SDL::t3_occupancies() {
     t3_occupancies_isLoaded = true;
   }
   return *t3_occupancies_;
-}
-const vector<vector<int> > &SDL::T3T3_matched_simIdx() {
-  if (not T3T3_matched_simIdx_isLoaded) {
-    if (T3T3_matched_simIdx_branch != 0) {
-      T3T3_matched_simIdx_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_matched_simIdx_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_matched_simIdx_isLoaded = true;
-  }
-  return *T3T3_matched_simIdx_;
 }
 const vector<int> &SDL::t5_foundDuplicate() {
   if (not t5_foundDuplicate_isLoaded) {
@@ -2198,18 +1883,6 @@ const vector<vector<int> > &SDL::sim_pT4_types() {
     sim_pT4_types_isLoaded = true;
   }
   return *sim_pT4_types_;
-}
-const vector<float> &SDL::T3T3_matched_pt() {
-  if (not T3T3_matched_pt_isLoaded) {
-    if (T3T3_matched_pt_branch != 0) {
-      T3T3_matched_pt_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_matched_pt_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_matched_pt_isLoaded = true;
-  }
-  return *T3T3_matched_pt_;
 }
 const vector<int> &SDL::t4_isFake() {
   if (not t4_isFake_isLoaded) {
@@ -2331,18 +2004,6 @@ const vector<float> &SDL::pT5_pt() {
   }
   return *pT5_pt_;
 }
-const vector<int> &SDL::T3T3_isFake() {
-  if (not T3T3_isFake_isLoaded) {
-    if (T3T3_isFake_branch != 0) {
-      T3T3_isFake_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_isFake_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_isFake_isLoaded = true;
-  }
-  return *T3T3_isFake_;
-}
 const vector<float> &SDL::pureTCE_rPhiChiSquared() {
   if (not pureTCE_rPhiChiSquared_isLoaded) {
     if (pureTCE_rPhiChiSquared_branch != 0) {
@@ -2402,18 +2063,6 @@ const vector<int> &SDL::tc_maxHitMatchedCounts() {
     tc_maxHitMatchedCounts_isLoaded = true;
   }
   return *tc_maxHitMatchedCounts_;
-}
-const vector<float> &SDL::T3T3_phi() {
-  if (not T3T3_phi_isLoaded) {
-    if (T3T3_phi_branch != 0) {
-      T3T3_phi_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_phi_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_phi_isLoaded = true;
-  }
-  return *T3T3_phi_;
 }
 const vector<vector<int> > &SDL::pureTCE_nLayerOverlaps() {
   if (not pureTCE_nLayerOverlaps_isLoaded) {
@@ -2535,18 +2184,6 @@ const vector<float> &SDL::pT5_eta() {
   }
   return *pT5_eta_;
 }
-const vector<float> &SDL::T3T3_innerT3Radius() {
-  if (not T3T3_innerT3Radius_isLoaded) {
-    if (T3T3_innerT3Radius_branch != 0) {
-      T3T3_innerT3Radius_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_innerT3Radius_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_innerT3Radius_isLoaded = true;
-  }
-  return *T3T3_innerT3Radius_;
-}
 const vector<float> &SDL::tc_phi() {
   if (not tc_phi_isLoaded) {
     if (tc_phi_branch != 0) {
@@ -2666,18 +2303,6 @@ const vector<int> &SDL::sim_pT4_matched() {
     sim_pT4_matched_isLoaded = true;
   }
   return *sim_pT4_matched_;
-}
-const vector<float> &SDL::T3T3_rPhiChiSquared() {
-  if (not T3T3_rPhiChiSquared_isLoaded) {
-    if (T3T3_rPhiChiSquared_branch != 0) {
-      T3T3_rPhiChiSquared_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_rPhiChiSquared_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_rPhiChiSquared_isLoaded = true;
-  }
-  return *T3T3_rPhiChiSquared_;
 }
 const vector<float> &SDL::tc_eta() {
   if (not tc_eta_isLoaded) {
@@ -2859,18 +2484,6 @@ const vector<int> &SDL::t5_occupancies() {
   }
   return *t5_occupancies_;
 }
-const vector<float> &SDL::T3T3_outerT3Radius() {
-  if (not T3T3_outerT3Radius_isLoaded) {
-    if (T3T3_outerT3Radius_branch != 0) {
-      T3T3_outerT3Radius_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_outerT3Radius_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_outerT3Radius_isLoaded = true;
-  }
-  return *T3T3_outerT3Radius_;
-}
 const vector<int> &SDL::tc_type() {
   if (not tc_type_isLoaded) {
     if (tc_type_branch != 0) {
@@ -2954,18 +2567,6 @@ const vector<float> &SDL::t4_pt() {
     t4_pt_isLoaded = true;
   }
   return *t4_pt_;
-}
-const vector<vector<int> > &SDL::T3T3_nHitOverlaps() {
-  if (not T3T3_nHitOverlaps_isLoaded) {
-    if (T3T3_nHitOverlaps_branch != 0) {
-      T3T3_nHitOverlaps_branch->GetEntry(index);
-    } else {
-      printf("branch T3T3_nHitOverlaps_branch does not exist!\n");
-      exit(1);
-    }
-    T3T3_nHitOverlaps_isLoaded = true;
-  }
-  return *T3T3_nHitOverlaps_;
 }
 const vector<vector<int> > &SDL::sim_TC_types() {
   if (not sim_TC_types_isLoaded) {
@@ -3210,15 +2811,12 @@ namespace tas {
   const vector<int> &sim_event() { return sdl.sim_event(); }
   const vector<int> &sim_q() { return sdl.sim_q(); }
   const vector<float> &sim_eta() { return sdl.sim_eta(); }
-  const vector<int> &T3T3_layer_binary() { return sdl.T3T3_layer_binary(); }
   const vector<int> &pT3_foundDuplicate() { return sdl.pT3_foundDuplicate(); }
-  const vector<int> &sim_T3T3_matched() { return sdl.sim_T3T3_matched(); }
   const vector<float> &sim_len() { return sdl.sim_len(); }
   const vector<int> &pureTCE_isDuplicate() { return sdl.pureTCE_isDuplicate(); }
   const vector<float> &pT3_score() { return sdl.pT3_score(); }
   const vector<float> &t5_eta() { return sdl.t5_eta(); }
   const vector<int> &sim_denom() { return sdl.sim_denom(); }
-  const vector<int> &T3T3_anchorIndex() { return sdl.T3T3_anchorIndex(); }
   const vector<int> &pT5_isDuplicate() { return sdl.pT5_isDuplicate(); }
   const vector<int> &sim_tce_matched() { return sdl.sim_tce_matched(); }
   const vector<int> &pT3_isDuplicate() { return sdl.pT3_isDuplicate(); }
@@ -3226,7 +2824,6 @@ namespace tas {
   const vector<float> &pT3_eta_2() { return sdl.pT3_eta_2(); }
   const vector<int> &sim_pT3_matched() { return sdl.sim_pT3_matched(); }
   const vector<float> &pureTCE_rzChiSquared() { return sdl.pureTCE_rzChiSquared(); }
-  const vector<float> &T3T3_regressionRadius() { return sdl.T3T3_regressionRadius(); }
   const vector<int> &t4_isDuplicate() { return sdl.t4_isDuplicate(); }
   const vector<float> &pureTCE_eta() { return sdl.pureTCE_eta(); }
   const vector<float> &tce_rPhiChiSquared() { return sdl.tce_rPhiChiSquared(); }
@@ -3234,19 +2831,13 @@ namespace tas {
   const vector<float> &pureTCE_pt() { return sdl.pureTCE_pt(); }
   const vector<float> &sim_pt() { return sdl.sim_pt(); }
   const vector<float> &t5_eta_2() { return sdl.t5_eta_2(); }
-  const vector<float> &T3T3_pt() { return sdl.T3T3_pt(); }
-  const vector<int> &T3T3_maxHitMatchedCounts() { return sdl.T3T3_maxHitMatchedCounts(); }
-  const vector<int> &T3T3_anchorType() { return sdl.T3T3_anchorType(); }
-  const vector<vector<int> > &T3T3_nLayerOverlaps() { return sdl.T3T3_nLayerOverlaps(); }
   const vector<float> &pLS_eta() { return sdl.pLS_eta(); }
   const vector<int> &sim_pdgId() { return sdl.sim_pdgId(); }
   const vector<float> &t3_eta() { return sdl.t3_eta(); }
   const vector<int> &tce_layer_binary() { return sdl.tce_layer_binary(); }
-  const vector<vector<int> > &sim_T3T3_types() { return sdl.sim_T3T3_types(); }
   const vector<int> &sim_TC_matched_nonextended() { return sdl.sim_TC_matched_nonextended(); }
   const vector<int> &t4_occupancies() { return sdl.t4_occupancies(); }
   const vector<float> &tce_eta() { return sdl.tce_eta(); }
-  const vector<float> &T3T3_rzChiSquared() { return sdl.T3T3_rzChiSquared(); }
   const vector<int> &tce_isDuplicate() { return sdl.tce_isDuplicate(); }
   const vector<vector<int> > &pT5_matched_simIdx() { return sdl.pT5_matched_simIdx(); }
   const vector<vector<int> > &sim_tcIdx() { return sdl.sim_tcIdx(); }
@@ -3263,7 +2854,6 @@ namespace tas {
   const vector<vector<int> > &t5_hitIdxs() { return sdl.t5_hitIdxs(); }
   const vector<vector<int> > &sim_pT3_types() { return sdl.sim_pT3_types(); }
   const vector<vector<int> > &sim_pureTCE_types() { return sdl.sim_pureTCE_types(); }
-  const vector<vector<int> > &T3T3_hitIdxs() { return sdl.T3T3_hitIdxs(); }
   const vector<float> &t4_phi() { return sdl.t4_phi(); }
   const vector<float> &t5_phi() { return sdl.t5_phi(); }
   const vector<vector<int> > &pT5_hitIdxs() { return sdl.pT5_hitIdxs(); }
@@ -3277,17 +2867,13 @@ namespace tas {
   const vector<int> &tc_sim() { return sdl.tc_sim(); }
   const vector<vector<int> > &sim_pLS_types() { return sdl.sim_pLS_types(); }
   const vector<float> &sim_pca_dxy() { return sdl.sim_pca_dxy(); }
-  const vector<int> &T3T3_isDuplicate() { return sdl.T3T3_isDuplicate(); }
   const vector<float> &pT4_phi() { return sdl.pT4_phi(); }
   const vector<float> &sim_hits() { return sdl.sim_hits(); }
   const vector<float> &pLS_phi() { return sdl.pLS_phi(); }
   const vector<int> &sim_pureTCE_matched() { return sdl.sim_pureTCE_matched(); }
-  const vector<float> &T3T3_eta() { return sdl.T3T3_eta(); }
   const vector<int> &t3_occupancies() { return sdl.t3_occupancies(); }
-  const vector<vector<int> > &T3T3_matched_simIdx() { return sdl.T3T3_matched_simIdx(); }
   const vector<int> &t5_foundDuplicate() { return sdl.t5_foundDuplicate(); }
   const vector<vector<int> > &sim_pT4_types() { return sdl.sim_pT4_types(); }
-  const vector<float> &T3T3_matched_pt() { return sdl.T3T3_matched_pt(); }
   const vector<int> &t4_isFake() { return sdl.t4_isFake(); }
   const vector<float> &simvtx_x() { return sdl.simvtx_x(); }
   const vector<float> &simvtx_y() { return sdl.simvtx_y(); }
@@ -3298,13 +2884,11 @@ namespace tas {
   const vector<float> &tc_pt() { return sdl.tc_pt(); }
   const vector<float> &pT3_phi_2() { return sdl.pT3_phi_2(); }
   const vector<float> &pT5_pt() { return sdl.pT5_pt(); }
-  const vector<int> &T3T3_isFake() { return sdl.T3T3_isFake(); }
   const vector<float> &pureTCE_rPhiChiSquared() { return sdl.pureTCE_rPhiChiSquared(); }
   const vector<int> &pT5_score() { return sdl.pT5_score(); }
   const vector<float> &sim_phi() { return sdl.sim_phi(); }
   const vector<int> &pT5_isFake() { return sdl.pT5_isFake(); }
   const vector<int> &tc_maxHitMatchedCounts() { return sdl.tc_maxHitMatchedCounts(); }
-  const vector<float> &T3T3_phi() { return sdl.T3T3_phi(); }
   const vector<vector<int> > &pureTCE_nLayerOverlaps() { return sdl.pureTCE_nLayerOverlaps(); }
   const vector<float> &sim_pca_dz() { return sdl.sim_pca_dz(); }
   const vector<vector<int> > &pureTCE_hitIdxs() { return sdl.pureTCE_hitIdxs(); }
@@ -3315,7 +2899,6 @@ namespace tas {
   const vector<float> &pLS_score() { return sdl.pLS_score(); }
   const vector<float> &pT3_phi() { return sdl.pT3_phi(); }
   const vector<float> &pT5_eta() { return sdl.pT5_eta(); }
-  const vector<float> &T3T3_innerT3Radius() { return sdl.T3T3_innerT3Radius(); }
   const vector<float> &tc_phi() { return sdl.tc_phi(); }
   const vector<float> &t4_eta() { return sdl.t4_eta(); }
   const vector<int> &pLS_isFake() { return sdl.pLS_isFake(); }
@@ -3326,7 +2909,6 @@ namespace tas {
   const vector<int> &sim_parentVtxIdx() { return sdl.sim_parentVtxIdx(); }
   const vector<int> &pureTCE_layer_binary() { return sdl.pureTCE_layer_binary(); }
   const vector<int> &sim_pT4_matched() { return sdl.sim_pT4_matched(); }
-  const vector<float> &T3T3_rPhiChiSquared() { return sdl.T3T3_rPhiChiSquared(); }
   const vector<float> &tc_eta() { return sdl.tc_eta(); }
   const vector<float> &sim_lengap() { return sdl.sim_lengap(); }
   const vector<int> &sim_T5_matched() { return sdl.sim_T5_matched(); }
@@ -3342,7 +2924,6 @@ namespace tas {
   const vector<int> &pLS_isDuplicate() { return sdl.pLS_isDuplicate(); }
   const vector<int> &tce_anchorIndex() { return sdl.tce_anchorIndex(); }
   const vector<int> &t5_occupancies() { return sdl.t5_occupancies(); }
-  const vector<float> &T3T3_outerT3Radius() { return sdl.T3T3_outerT3Radius(); }
   const vector<int> &tc_type() { return sdl.tc_type(); }
   const vector<int> &tce_isFake() { return sdl.tce_isFake(); }
   const vector<float> &pLS_pt() { return sdl.pLS_pt(); }
@@ -3350,7 +2931,6 @@ namespace tas {
   const vector<vector<int> > &sim_T4_types() { return sdl.sim_T4_types(); }
   const vector<int> &pT4_isDuplicate() { return sdl.pT4_isDuplicate(); }
   const vector<float> &t4_pt() { return sdl.t4_pt(); }
-  const vector<vector<int> > &T3T3_nHitOverlaps() { return sdl.T3T3_nHitOverlaps(); }
   const vector<vector<int> > &sim_TC_types() { return sdl.sim_TC_types(); }
   const vector<int> &sg_occupancies() { return sdl.sg_occupancies(); }
   const vector<float> &pT4_pt() { return sdl.pT4_pt(); }

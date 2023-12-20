@@ -379,8 +379,6 @@ def parse_plot_name(output_name):
         rtnstr.append("Triplet")
     elif "TCE_" in output_name:
         rtnstr.append("Extended Track")
-    elif "T3T3_" in output_name:
-        rtnstr.append("T3T3 Extensions")
     elif "pureTCE_" in output_name:
         rtnstr.append("Pure Extensions")
     elif "TC_" in output_name:
