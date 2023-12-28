@@ -328,6 +328,8 @@ namespace SDL
                 side = 0;
                 isInverted = false;
                 isLower = false;
+                eta = 0;
+                r = 0;
             }
             else
             {
