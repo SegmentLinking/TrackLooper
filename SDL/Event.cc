@@ -1,5 +1,6 @@
 #include "Event.h"
 
+using Acc = SDL::Acc;
 SDL::modules* SDL::modulesInGPU = new SDL::modules();
 SDL::modulesBuffer<Acc>* SDL::modulesBuffers = new SDL::modulesBuffer<Acc>(devAcc);
 std::shared_ptr<SDL::pixelMap> SDL::pixelMapping = std::make_shared<pixelMap>();

@@ -11,6 +11,8 @@
 #include <cuda_fp16.h>
 #endif
 
+namespace SDL
+{
 // Half precision wrapper functions.
 #if defined(FP16_Base)
 #define __F2H __float2half
@@ -140,7 +142,6 @@ const unsigned int endcap_size = 9105;
 const unsigned int modules_size = 26401;
 const unsigned int pix_tot = 1796504;
 
-namespace SDL {
   //defining the constant host device variables right up here
   ALPAKA_STATIC_ACC_MEM_GLOBAL const float miniMulsPtScaleBarrel[6] = {0.0052, 0.0038, 0.0034, 0.0034, 0.0032, 0.0034};
   ALPAKA_STATIC_ACC_MEM_GLOBAL const float miniMulsPtScaleEndcap[5] = {0.006, 0.006, 0.006, 0.006, 0.006};
@@ -159,7 +160,7 @@ namespace SDL {
   ALPAKA_STATIC_ACC_MEM_GLOBAL const float magnetic_field = 3.8112;
   // Since C++ can't represent infinity, SDL_INF = 123456789 was used to represent infinity in the data table
   ALPAKA_STATIC_ACC_MEM_GLOBAL const float SDL_INF = 123456789;
-}  // namespace SDL
+}  //namespace SDL
 
 namespace T5DNN {
   // Working points matching LST fake rate (43.9%) or signal acceptance (82.0%)

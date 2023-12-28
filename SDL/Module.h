@@ -1,9 +1,7 @@
 #ifndef Module_cuh
 #define Module_cuh
 
-#include <map>
-#include <iostream>
-
+#include <alpaka/alpaka.hpp>
 #include "Constants.h"
 
 namespace SDL {
