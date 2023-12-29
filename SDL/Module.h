@@ -179,7 +179,6 @@ namespace SDL {
     const ModuleType* moduleType;
     const ModuleLayerType* moduleLayerType;
     const int* sdlLayers;
-
     const unsigned int* connectedPixels;
 
     static bool parseIsInverted(short subdet, short side, short module, short layer) {
@@ -248,9 +247,8 @@ namespace SDL {
       isAnchor = alpaka::getPtrNative(modulesbuf.isAnchor_buf);
       moduleType = alpaka::getPtrNative(modulesbuf.moduleType_buf);
       moduleLayerType = alpaka::getPtrNative(modulesbuf.moduleLayerType_buf);
-
-      connectedPixels = alpaka::getPtrNative(modulesbuf.connectedPixels_buf);
       sdlLayers = alpaka::getPtrNative(modulesbuf.sdlLayers_buf);
+      connectedPixels = alpaka::getPtrNative(modulesbuf.connectedPixels_buf);
     }
   };
 
@@ -280,9 +278,8 @@ namespace SDL {
     Buf<TAcc, bool> isAnchor_buf;
     Buf<TAcc, ModuleType> moduleType_buf;
     Buf<TAcc, ModuleLayerType> moduleLayerType_buf;
-
-    Buf<TAcc, unsigned int> connectedPixels_buf;
     Buf<TAcc, int> sdlLayers_buf;
+    Buf<TAcc, unsigned int> connectedPixels_buf;
 
     template <typename TDevAcc>
     modulesBuffer(TDevAcc const& devAccIn, unsigned int nMod = modules_size, unsigned int nPixs = pix_tot)
@@ -311,7 +308,6 @@ namespace SDL {
         moduleType_buf(allocBufWrapper<ModuleType>(devAccIn, nMod)),
         moduleLayerType_buf(allocBufWrapper<ModuleLayerType>(devAccIn, nMod)),
         sdlLayers_buf(allocBufWrapper<int>(devAccIn, nMod)),
-        
         connectedPixels_buf(allocBufWrapper<unsigned int>(devAccIn, nPixs)) {}
     
     template<typename TQueue>
@@ -341,7 +337,6 @@ namespace SDL {
       alpaka::memcpy(queue, moduleType_buf, src.moduleType_buf);
       alpaka::memcpy(queue, moduleLayerType_buf, src.moduleLayerType_buf);
       alpaka::memcpy(queue, sdlLayers_buf, src.sdlLayers_buf);
-      
       alpaka::memcpy(queue, connectedPixels_buf, src.connectedPixels_buf);
       alpaka::wait(queue);
     }
