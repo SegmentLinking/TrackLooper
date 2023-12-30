@@ -43,7 +43,7 @@ jobs:
           tidy-checks: ''
           lines-changed-only: true
           ignore: .github|bin|code|data|efficiency
-          extra-args: '-ferror-limit=0 -std=c++17 -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED ${{ env.include-flags }}'
+          extra-args: '-ferror-limit=0 --language=c++ -std=c++17 -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED ${{ env.include-flags }}'
       - name: Fail job if there were checks that failed
         if: steps.linter.outputs.checks-failed > 0
         run: exit 1
