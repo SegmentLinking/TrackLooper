@@ -155,7 +155,7 @@ namespace SDL {
     pixelTripletsInGPU.phi[pixelTripletIndex] = __F2H(phi);
     pixelTripletsInGPU.eta_pix[pixelTripletIndex] = __F2H(eta_pix);
     pixelTripletsInGPU.phi_pix[pixelTripletIndex] = __F2H(phi_pix);
-    pixelTripletsInGPU.isDup[pixelTripletIndex] = 0;
+    pixelTripletsInGPU.isDup[pixelTripletIndex] = false;
     pixelTripletsInGPU.score[pixelTripletIndex] = __F2H(score);
 
     pixelTripletsInGPU.centerX[pixelTripletIndex] = __F2H(centerX);
@@ -2011,7 +2011,7 @@ namespace SDL {
                                                                  float& centerY) {
     pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex] = pixelIndex;
     pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex] = T5Index;
-    pixelQuintupletsInGPU.isDup[pixelQuintupletIndex] = 0;
+    pixelQuintupletsInGPU.isDup[pixelQuintupletIndex] = false;
     pixelQuintupletsInGPU.score[pixelQuintupletIndex] = __F2H(score);
     pixelQuintupletsInGPU.eta[pixelQuintupletIndex] = __F2H(eta);
     pixelQuintupletsInGPU.phi[pixelQuintupletIndex] = __F2H(phi);

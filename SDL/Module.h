@@ -188,7 +188,7 @@ namespace SDL {
         } else if (side == PosZ) {
           return module % 2 == 0;
         } else {
-          return 0;
+          return false;
         }
       } else if (subdet == Barrel) {
         if (side == Center) {
@@ -197,7 +197,7 @@ namespace SDL {
           } else if (layer >= 4) {
             return module % 2 == 0;
           } else {
-            return 0;
+            return false;
           }
         } else if (side == NegZ or side == PosZ) {
           if (layer <= 2) {
@@ -205,13 +205,13 @@ namespace SDL {
           } else if (layer == 3) {
             return module % 2 == 0;
           } else {
-            return 0;
+            return false;
           }
         } else {
-          return 0;
+          return false;
         }
       } else {
-        return 0;
+        return false;
       }
     };
 
