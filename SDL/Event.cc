@@ -170,8 +170,7 @@ void SDL::initModules(const char* moduleMetaDataFilePath) {
   modulesInGPU->setData(*modulesBuffers);
 
   // nModules gets filled here
-  loadModulesFromFile(
-      modulesBuffers, nModules, nLowerModules, *pixelMapping, queue, moduleMetaDataFilePath);
+  loadModulesFromFile(modulesBuffers, nModules, nLowerModules, *pixelMapping, queue, moduleMetaDataFilePath);
 }
 
 // Temporary solution to the global variables. Should be freed with shared_ptr.

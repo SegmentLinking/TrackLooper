@@ -215,7 +215,9 @@ namespace SDL {
       }
     };
 
-    static bool parseIsLower(bool isInvertedx, unsigned int detId) { return (isInvertedx) ? !(detId & 1) : (detId & 1); };
+    static bool parseIsLower(bool isInvertedx, unsigned int detId) {
+      return (isInvertedx) ? !(detId & 1) : (detId & 1);
+    };
 
     static unsigned int parsePartnerModuleId(unsigned int detId, bool isLowerx, bool isInvertedx) {
       return isLowerx ? (isInvertedx ? detId - 1 : detId + 1) : (isInvertedx ? detId + 1 : detId - 1);
@@ -283,34 +285,34 @@ namespace SDL {
 
     template <typename TDevAcc>
     modulesBuffer(TDevAcc const& devAccIn, unsigned int nMod = modules_size, unsigned int nPixs = pix_tot)
-      : detIds_buf(allocBufWrapper<unsigned int>(devAccIn, nMod)),
-        moduleMap_buf(allocBufWrapper<uint16_t>(devAccIn, nMod * 40)),
-        mapdetId_buf(allocBufWrapper<unsigned int>(devAccIn, nMod)),
-        mapIdx_buf(allocBufWrapper<uint16_t>(devAccIn, nMod)),
-        nConnectedModules_buf(allocBufWrapper<uint16_t>(devAccIn, nMod)),
-        drdzs_buf(allocBufWrapper<float>(devAccIn, nMod)),
-        slopes_buf(allocBufWrapper<float>(devAccIn, nMod)),
-        nModules_buf(allocBufWrapper<uint16_t>(devAccIn, 1)),
-        nLowerModules_buf(allocBufWrapper<uint16_t>(devAccIn, 1)),
-        partnerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, nMod)),
-        
-        layers_buf(allocBufWrapper<short>(devAccIn, nMod)),
-        rings_buf(allocBufWrapper<short>(devAccIn, nMod)),
-        modules_buf(allocBufWrapper<short>(devAccIn, nMod)),
-        rods_buf(allocBufWrapper<short>(devAccIn, nMod)),
-        subdets_buf(allocBufWrapper<short>(devAccIn, nMod)),
-        sides_buf(allocBufWrapper<short>(devAccIn, nMod)),
-        eta_buf(allocBufWrapper<float>(devAccIn, nMod)),
-        r_buf(allocBufWrapper<float>(devAccIn, nMod)),
-        isInverted_buf(allocBufWrapper<bool>(devAccIn, nMod)),
-        isLower_buf(allocBufWrapper<bool>(devAccIn, nMod)),
-        isAnchor_buf(allocBufWrapper<bool>(devAccIn, nMod)),
-        moduleType_buf(allocBufWrapper<ModuleType>(devAccIn, nMod)),
-        moduleLayerType_buf(allocBufWrapper<ModuleLayerType>(devAccIn, nMod)),
-        sdlLayers_buf(allocBufWrapper<int>(devAccIn, nMod)),
-        connectedPixels_buf(allocBufWrapper<unsigned int>(devAccIn, nPixs)) {}
-    
-    template<typename TQueue>
+        : detIds_buf(allocBufWrapper<unsigned int>(devAccIn, nMod)),
+          moduleMap_buf(allocBufWrapper<uint16_t>(devAccIn, nMod * 40)),
+          mapdetId_buf(allocBufWrapper<unsigned int>(devAccIn, nMod)),
+          mapIdx_buf(allocBufWrapper<uint16_t>(devAccIn, nMod)),
+          nConnectedModules_buf(allocBufWrapper<uint16_t>(devAccIn, nMod)),
+          drdzs_buf(allocBufWrapper<float>(devAccIn, nMod)),
+          slopes_buf(allocBufWrapper<float>(devAccIn, nMod)),
+          nModules_buf(allocBufWrapper<uint16_t>(devAccIn, 1)),
+          nLowerModules_buf(allocBufWrapper<uint16_t>(devAccIn, 1)),
+          partnerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, nMod)),
+
+          layers_buf(allocBufWrapper<short>(devAccIn, nMod)),
+          rings_buf(allocBufWrapper<short>(devAccIn, nMod)),
+          modules_buf(allocBufWrapper<short>(devAccIn, nMod)),
+          rods_buf(allocBufWrapper<short>(devAccIn, nMod)),
+          subdets_buf(allocBufWrapper<short>(devAccIn, nMod)),
+          sides_buf(allocBufWrapper<short>(devAccIn, nMod)),
+          eta_buf(allocBufWrapper<float>(devAccIn, nMod)),
+          r_buf(allocBufWrapper<float>(devAccIn, nMod)),
+          isInverted_buf(allocBufWrapper<bool>(devAccIn, nMod)),
+          isLower_buf(allocBufWrapper<bool>(devAccIn, nMod)),
+          isAnchor_buf(allocBufWrapper<bool>(devAccIn, nMod)),
+          moduleType_buf(allocBufWrapper<ModuleType>(devAccIn, nMod)),
+          moduleLayerType_buf(allocBufWrapper<ModuleLayerType>(devAccIn, nMod)),
+          sdlLayers_buf(allocBufWrapper<int>(devAccIn, nMod)),
+          connectedPixels_buf(allocBufWrapper<unsigned int>(devAccIn, nPixs)) {}
+
+    template <typename TQueue>
     inline void copyFromSrc(TQueue queue, const modulesBuffer<alpaka::DevCpu>& src) {
       alpaka::memcpy(queue, detIds_buf, src.detIds_buf);
       alpaka::memcpy(queue, moduleMap_buf, src.moduleMap_buf);
@@ -322,7 +324,7 @@ namespace SDL {
       alpaka::memcpy(queue, nModules_buf, src.nModules_buf);
       alpaka::memcpy(queue, nLowerModules_buf, src.nLowerModules_buf);
       alpaka::memcpy(queue, partnerModuleIndices_buf, src.partnerModuleIndices_buf);
-      
+
       alpaka::memcpy(queue, layers_buf, src.layers_buf);
       alpaka::memcpy(queue, rings_buf, src.rings_buf);
       alpaka::memcpy(queue, modules_buf, src.modules_buf);
@@ -341,17 +343,15 @@ namespace SDL {
       alpaka::wait(queue);
     }
 
-    template<typename TQueue>
-    modulesBuffer(TQueue queue, const modulesBuffer<alpaka::DevCpu>& src,
+    template <typename TQueue>
+    modulesBuffer(TQueue queue,
+                  const modulesBuffer<alpaka::DevCpu>& src,
                   unsigned int nMod = modules_size,
                   unsigned int nPixs = pix_tot)
-      : modulesBuffer(alpaka::getDev(queue), nMod, nPixs)
-    {
+        : modulesBuffer(alpaka::getDev(queue), nMod, nPixs) {
       copyFromSrc(queue, src);
     }
-    
   };
-
 
 }  // namespace SDL
 #endif

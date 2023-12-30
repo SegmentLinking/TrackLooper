@@ -1,10 +1,8 @@
 #include "LST.h"
 
 namespace {
-  TString trackLooperDir() {
-    return getenv("LST_BASE");
-  }
-}
+  TString trackLooperDir() { return getenv("LST_BASE"); }
+}  // namespace
 
 void SDL::LST::eventSetup() {
   static std::once_flag mapsLoaded;

@@ -11,136 +11,136 @@
 #include <cuda_fp16.h>
 #endif
 
-namespace SDL
-{
+namespace SDL {
 // Half precision wrapper functions.
 #if defined(FP16_Base)
 #define __F2H __float2half
 #define __H2F __half2float
-typedef __half float FPX;
+  typedef __half float FPX;
 #else
 #define __F2H
 #define __H2F
-typedef float FPX;
+  typedef float FPX;
 #endif
 
-using Idx = std::size_t;
-using Dim = alpaka::DimInt<3u>;
-using Dim1d = alpaka::DimInt<1u>;
-using Vec = alpaka::Vec<Dim, Idx>;
-using Vec1d = alpaka::Vec<Dim1d, Idx>;
+  using Idx = std::size_t;
+  using Dim = alpaka::DimInt<3u>;
+  using Dim1d = alpaka::DimInt<1u>;
+  using Vec = alpaka::Vec<Dim, Idx>;
+  using Vec1d = alpaka::Vec<Dim1d, Idx>;
 #if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-using QueueProperty = alpaka::NonBlocking;
+  using QueueProperty = alpaka::NonBlocking;
 #else
-using QueueProperty = alpaka::Blocking;
+  using QueueProperty = alpaka::Blocking;
 #endif
-using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
+  using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
 
-Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
+  Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
 
 // - AccGpuCudaRt
 // - AccCpuThreads
 // - AccCpuSerial
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
+  using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
 #elif ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
-using Acc = alpaka::AccCpuThreads<Dim, Idx>;
+  using Acc = alpaka::AccCpuThreads<Dim, Idx>;
 #elif ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
-using Acc = alpaka::AccCpuSerial<Dim, Idx>;
+  using Acc = alpaka::AccCpuSerial<Dim, Idx>;
 #elif ALPAKA_ACC_GPU_HIP_ENABLED
-using Acc = alpaka::AccGpuHipRt<Dim, Idx>;
+  using Acc = alpaka::AccGpuHipRt<Dim, Idx>;
 #endif
 
 // Needed for files that are compiled by g++ to not throw an error.
 // uint4 is defined only for CUDA, so we will have to revisit this soon when running on other backends.
 #if !defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && !defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-struct uint4 {
-  unsigned int x;
-  unsigned int y;
-  unsigned int z;
-  unsigned int w;
-};
+  struct uint4 {
+    unsigned int x;
+    unsigned int y;
+    unsigned int z;
+    unsigned int w;
+  };
 #endif
 
-auto const devHost = alpaka::getDevByIdx<alpaka::DevCpu>(0u);
-#if defined ALPAKA_ACC_GPU_CUDA_ENABLED || defined ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED || defined ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
-auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
-using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
+  auto const devHost = alpaka::getDevByIdx<alpaka::DevCpu>(0u);
+#if defined ALPAKA_ACC_GPU_CUDA_ENABLED || defined ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED || \
+    defined ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
+  auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
+  using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
 #endif
 
-// Buffer type for allocations where auto type can't be used.
-template <typename TAcc, typename TData>
-using Buf = alpaka::Buf<TAcc, TData, Dim1d, Idx>;
+  // Buffer type for allocations where auto type can't be used.
+  template <typename TAcc, typename TData>
+  using Buf = alpaka::Buf<TAcc, TData, Dim1d, Idx>;
 
-// Allocation wrapper function to make integration of the caching allocator easier and reduce code boilerplate.
-template <typename T, typename TAcc, typename TSize, typename TQueue>
-ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<TAcc, T> allocBufWrapper(TAcc const& devAccIn, TSize nElements, TQueue queue) {
+  // Allocation wrapper function to make integration of the caching allocator easier and reduce code boilerplate.
+  template <typename T, typename TAcc, typename TSize, typename TQueue>
+  ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<TAcc, T> allocBufWrapper(TAcc const& devAccIn, TSize nElements, TQueue queue) {
 #ifdef CACHE_ALLOC
-  return cms::alpakatools::allocCachedBuf<T, Idx>(devAccIn, queue, Vec1d(static_cast<Idx>(nElements)));
+    return cms::alpakatools::allocCachedBuf<T, Idx>(devAccIn, queue, Vec1d(static_cast<Idx>(nElements)));
 #else
-  return alpaka::allocBuf<T, Idx>(devAccIn, Vec1d(static_cast<Idx>(nElements)));
+    return alpaka::allocBuf<T, Idx>(devAccIn, Vec1d(static_cast<Idx>(nElements)));
 #endif
-}
+  }
 
-// Second allocation wrapper function when queue is not given. Reduces code boilerplate.
-template <typename T, typename TAcc, typename TSize>
-ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<TAcc, T> allocBufWrapper(TAcc const& devAccIn, TSize nElements) {
-  return alpaka::allocBuf<T, Idx>(devAccIn, Vec1d(static_cast<Idx>(nElements)));
-}
+  // Second allocation wrapper function when queue is not given. Reduces code boilerplate.
+  template <typename T, typename TAcc, typename TSize>
+  ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<TAcc, T> allocBufWrapper(TAcc const& devAccIn, TSize nElements) {
+    return alpaka::allocBuf<T, Idx>(devAccIn, Vec1d(static_cast<Idx>(nElements)));
+  }
 
-// Wrapper function to reduce code boilerplate for defining grid/block sizes.
-ALPAKA_FN_HOST ALPAKA_FN_INLINE Vec createVec(int x, int y, int z) {
-  return Vec(static_cast<Idx>(x), static_cast<Idx>(y), static_cast<Idx>(z));
-}
+  // Wrapper function to reduce code boilerplate for defining grid/block sizes.
+  ALPAKA_FN_HOST ALPAKA_FN_INLINE Vec createVec(int x, int y, int z) {
+    return Vec(static_cast<Idx>(x), static_cast<Idx>(y), static_cast<Idx>(z));
+  }
 
-// Adjust grid and block sizes based on backend configuration
-template <typename Vec>
-ALPAKA_FN_HOST ALPAKA_FN_INLINE WorkDiv createWorkDiv(const Vec& blocksPerGrid,
-                                                      const Vec& threadsPerBlock,
-                                                      const Vec& elementsPerThread) {
-  Vec adjustedBlocks = blocksPerGrid;
-  Vec adjustedThreads = threadsPerBlock;
+  // Adjust grid and block sizes based on backend configuration
+  template <typename Vec>
+  ALPAKA_FN_HOST ALPAKA_FN_INLINE WorkDiv createWorkDiv(const Vec& blocksPerGrid,
+                                                        const Vec& threadsPerBlock,
+                                                        const Vec& elementsPerThread) {
+    Vec adjustedBlocks = blocksPerGrid;
+    Vec adjustedThreads = threadsPerBlock;
 
-  // Serial execution, so all launch parameters set to 1.
+    // Serial execution, so all launch parameters set to 1.
 #if defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
-  adjustedBlocks = Vec::all(static_cast<Idx>(1));
-  adjustedThreads = Vec::all(static_cast<Idx>(1));
+    adjustedBlocks = Vec::all(static_cast<Idx>(1));
+    adjustedThreads = Vec::all(static_cast<Idx>(1));
 #endif
 
-  // Threads enabled, set number of blocks to 1.
+    // Threads enabled, set number of blocks to 1.
 #if defined(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED)
-  adjustedBlocks = Vec::all(static_cast<Idx>(1));
+    adjustedBlocks = Vec::all(static_cast<Idx>(1));
 #endif
 
-  return WorkDiv(adjustedBlocks, adjustedThreads, elementsPerThread);
-}
+    return WorkDiv(adjustedBlocks, adjustedThreads, elementsPerThread);
+  }
 
 // If a compile time flag does not define PT_CUT, default to 0.8 (GeV)
 #ifndef PT_CUT
-constexpr float PT_CUT = 0.8f;
+  constexpr float PT_CUT = 0.8f;
 #endif
 
-const unsigned int MAX_BLOCKS = 80;
-const unsigned int MAX_CONNECTED_MODULES = 40;
+  const unsigned int MAX_BLOCKS = 80;
+  const unsigned int MAX_CONNECTED_MODULES = 40;
 
-const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
+  const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
 
-const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 2 * N_MAX_PIXEL_SEGMENTS_PER_MODULE;
+  const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 2 * N_MAX_PIXEL_SEGMENTS_PER_MODULE;
 
-const unsigned int N_MAX_PIXEL_TRIPLETS = 5000;
-const unsigned int N_MAX_PIXEL_QUINTUPLETS = 15000;
+  const unsigned int N_MAX_PIXEL_TRIPLETS = 5000;
+  const unsigned int N_MAX_PIXEL_QUINTUPLETS = 15000;
 
-const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 30000;
-const unsigned int N_MAX_NONPIXEL_TRACK_CANDIDATES = 1000;
+  const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 30000;
+  const unsigned int N_MAX_NONPIXEL_TRACK_CANDIDATES = 1000;
 
-const unsigned int size_superbins = 45000;
+  const unsigned int size_superbins = 45000;
 
-// Temporary fix for endcap buffer allocation.
-const unsigned int endcap_size = 9105;
+  // Temporary fix for endcap buffer allocation.
+  const unsigned int endcap_size = 9105;
 
-// Temporary fix for module buffer allocation.
-const unsigned int modules_size = 26401;
-const unsigned int pix_tot = 1796504;
+  // Temporary fix for module buffer allocation.
+  const unsigned int modules_size = 26401;
+  const unsigned int pix_tot = 1796504;
 
   //defining the constant host device variables right up here
   ALPAKA_STATIC_ACC_MEM_GLOBAL const float miniMulsPtScaleBarrel[6] = {0.0052, 0.0038, 0.0034, 0.0034, 0.0032, 0.0034};
