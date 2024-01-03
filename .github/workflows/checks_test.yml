@@ -1,0 +1,73 @@
+name: Testing
+
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}-${{ github.event.comment.user.login }}-${{ contains(github.event.comment.body, '/run standalone') }}-${{ contains(github.event.comment.body, '/run cmssw') }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  standalone:
+    if: >
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '/run standalone') &&
+      github.event.comment.user.login == 'ariostas'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.issue.number }}/head
+      - name: Get commit SHA
+        run: |  
+          sha=$(git rev-parse HEAD)
+          echo "COMMIT_SHA=$sha" >> $GITHUB_ENV
+      - name: Build and run PR
+        id: build-and-run
+        uses: SegmentLinkingTests/TrackLooper-actions/standalone@v1
+        with:
+          pr-number: ${{ github.event.issue.number }}
+      - name: Upload plots to archival repo
+        uses: s0/git-publish-subdir-action@develop
+        env:
+          REPO: git@github.com:${{ steps.build-and-run.outputs.archive-repo }}.git
+          BRANCH: ${{ steps.build-and-run.outputs.archive-branch }}
+          FOLDER: ${{ steps.build-and-run.outputs.archive-dir }}
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_PRIVATE_KEY }}
+          TARGET_DIR: ${{ steps.build-and-run.outputs.archive-dir }}
+      - name: Comment on PR
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `${{ steps.build-and-run.outputs.comment }}`
+            })
+      - name: Comment on PR if job failed.
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `There was a problem while building and running in standalone mode. You can find a log of the job [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).`
+            })
+      - uses: LouisBrunner/checks-action@v1.6.1
+        if: always()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          sha: ${{ env.COMMIT_SHA }}
+          name: Standalone run
+          conclusion: ${{ job.status }}
