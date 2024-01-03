@@ -178,7 +178,7 @@ namespace SDL {
   //global stuff
   extern SDL::modules* modulesInGPU;
   extern SDL::modulesBuffer<Dev>* modulesBuffers;
-  extern SDL::modulesBuffer<Dev> const* modulesBuffersES; // not owned const buffers
+  extern SDL::modulesBuffer<Dev> const* modulesBuffersES;  // not owned const buffers
   extern uint16_t nModules;
   extern uint16_t nLowerModules;
   void initModules(const char* moduleMetaDataFilePath = "data/centroid.txt");  //read from file and init

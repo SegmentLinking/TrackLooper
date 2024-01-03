@@ -172,7 +172,6 @@ void SDL::initModules(const char* moduleMetaDataFilePath) {
   // Set the relevant data pointers.
   modulesBuffersES = modulesBuffers;
   modulesInGPU->setData(*modulesBuffersES);
-
 }
 
 // Temporary solution to the global variables. Should be freed with shared_ptr.

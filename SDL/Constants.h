@@ -75,7 +75,9 @@ namespace SDL {
 
   // Allocation wrapper function to make integration of the caching allocator easier and reduce code boilerplate.
   template <typename T, typename TAcc, typename TSize, typename TQueue>
-  ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<alpaka::Dev<TAcc>, T> allocBufWrapper(TAcc const& devAccIn, TSize nElements, TQueue queue) {
+  ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<alpaka::Dev<TAcc>, T> allocBufWrapper(TAcc const& devAccIn,
+                                                                            TSize nElements,
+                                                                            TQueue queue) {
 #ifdef CACHE_ALLOC
     return cms::alpakatools::allocCachedBuf<T, Idx>(devAccIn, queue, Vec1d(static_cast<Idx>(nElements)));
 #else
