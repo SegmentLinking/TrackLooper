@@ -35,5 +35,5 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           sha: ${{ env.COMMIT_SHA }}
-          name: Test check
+          name: Checks / Test check
           conclusion: ${{ job.status }}
