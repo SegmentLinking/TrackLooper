@@ -49,6 +49,7 @@ namespace SDL {
 #elif ALPAKA_ACC_GPU_HIP_ENABLED
   using Acc = alpaka::AccGpuHipRt<Dim, Idx>;
 #endif
+  using Dev = alpaka::Dev<Acc>;
 
 // Needed for files that are compiled by g++ to not throw an error.
 // uint4 is defined only for CUDA, so we will have to revisit this soon when running on other backends.
@@ -69,12 +70,12 @@ namespace SDL {
 #endif
 
   // Buffer type for allocations where auto type can't be used.
-  template <typename TAcc, typename TData>
-  using Buf = alpaka::Buf<TAcc, TData, Dim1d, Idx>;
+  template <typename TDev, typename TData>
+  using Buf = alpaka::Buf<TDev, TData, Dim1d, Idx>;
 
   // Allocation wrapper function to make integration of the caching allocator easier and reduce code boilerplate.
   template <typename T, typename TAcc, typename TSize, typename TQueue>
-  ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<TAcc, T> allocBufWrapper(TAcc const& devAccIn, TSize nElements, TQueue queue) {
+  ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<alpaka::Dev<TAcc>, T> allocBufWrapper(TAcc const& devAccIn, TSize nElements, TQueue queue) {
 #ifdef CACHE_ALLOC
     return cms::alpakatools::allocCachedBuf<T, Idx>(devAccIn, queue, Vec1d(static_cast<Idx>(nElements)));
 #else

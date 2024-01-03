@@ -254,34 +254,34 @@ namespace SDL {
     }
   };
 
-  template <typename TAcc>
+  template <typename TDev>
   struct modulesBuffer : modules {
-    Buf<TAcc, unsigned int> detIds_buf;
-    Buf<TAcc, uint16_t> moduleMap_buf;
-    Buf<TAcc, unsigned int> mapdetId_buf;
-    Buf<TAcc, uint16_t> mapIdx_buf;
-    Buf<TAcc, uint16_t> nConnectedModules_buf;
-    Buf<TAcc, float> drdzs_buf;
-    Buf<TAcc, float> slopes_buf;
-    Buf<TAcc, uint16_t> nModules_buf;
-    Buf<TAcc, uint16_t> nLowerModules_buf;
-    Buf<TAcc, uint16_t> partnerModuleIndices_buf;
+    Buf<TDev, unsigned int> detIds_buf;
+    Buf<TDev, uint16_t> moduleMap_buf;
+    Buf<TDev, unsigned int> mapdetId_buf;
+    Buf<TDev, uint16_t> mapIdx_buf;
+    Buf<TDev, uint16_t> nConnectedModules_buf;
+    Buf<TDev, float> drdzs_buf;
+    Buf<TDev, float> slopes_buf;
+    Buf<TDev, uint16_t> nModules_buf;
+    Buf<TDev, uint16_t> nLowerModules_buf;
+    Buf<TDev, uint16_t> partnerModuleIndices_buf;
 
-    Buf<TAcc, short> layers_buf;
-    Buf<TAcc, short> rings_buf;
-    Buf<TAcc, short> modules_buf;
-    Buf<TAcc, short> rods_buf;
-    Buf<TAcc, short> subdets_buf;
-    Buf<TAcc, short> sides_buf;
-    Buf<TAcc, float> eta_buf;
-    Buf<TAcc, float> r_buf;
-    Buf<TAcc, bool> isInverted_buf;
-    Buf<TAcc, bool> isLower_buf;
-    Buf<TAcc, bool> isAnchor_buf;
-    Buf<TAcc, ModuleType> moduleType_buf;
-    Buf<TAcc, ModuleLayerType> moduleLayerType_buf;
-    Buf<TAcc, int> sdlLayers_buf;
-    Buf<TAcc, unsigned int> connectedPixels_buf;
+    Buf<TDev, short> layers_buf;
+    Buf<TDev, short> rings_buf;
+    Buf<TDev, short> modules_buf;
+    Buf<TDev, short> rods_buf;
+    Buf<TDev, short> subdets_buf;
+    Buf<TDev, short> sides_buf;
+    Buf<TDev, float> eta_buf;
+    Buf<TDev, float> r_buf;
+    Buf<TDev, bool> isInverted_buf;
+    Buf<TDev, bool> isLower_buf;
+    Buf<TDev, bool> isAnchor_buf;
+    Buf<TDev, ModuleType> moduleType_buf;
+    Buf<TDev, ModuleLayerType> moduleLayerType_buf;
+    Buf<TDev, int> sdlLayers_buf;
+    Buf<TDev, unsigned int> connectedPixels_buf;
 
     template <typename TDevAcc>
     modulesBuffer(TDevAcc const& devAccIn, unsigned int nMod = modules_size, unsigned int nPixs = pix_tot)
