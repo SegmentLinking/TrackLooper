@@ -35,5 +35,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           sha: ${{ env.COMMIT_SHA }}
-          name: Checks / Test check
+          name: Checks / Test check 2
           conclusion: ${{ job.status }}
+          details_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
