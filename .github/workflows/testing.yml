@@ -100,7 +100,7 @@ jobs:
               words=($line)
               cmssw_branch="${words[2]}"
               # Validate the extracted branch to avoid code injection
-              if [ -z "$cmssw_branch" ]; then
+              if [ -n "$cmssw_branch" ]; then
                 cmssw_branch=(git check-ref-format --branch $cmssw_branch || echo "default")
               fi
             fi
