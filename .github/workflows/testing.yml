@@ -5,13 +5,12 @@ on:
     types: [created]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.issue.number }}-${{ github.event.comment.user.login }}-${{ contains(github.event.comment.body, '/run standalone') }}-${{ contains(github.event.comment.body, '/run cmssw') }}
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}-${{ contains(github.event.comment.body, '/run standalone') }}-${{ contains(github.event.comment.body, '/run cmssw') }}
   cancel-in-progress: true
 
 permissions:
   contents: read
   pull-requests: write
-  checks: write
 
 jobs:
   standalone:
@@ -78,14 +77,23 @@ jobs:
               repo: context.repo.repo,
               body: `There was a problem while building and running in standalone mode. You can find a log of the job [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).`
             })
+      - name: Create App Token
+        if: always()
+        uses: actions/create-github-app-token@v1
+        id: app-token-end
+        with: 
+          app-id: 778431
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: LouisBrunner/checks-action@v1.6.1
         if: always()
         with:
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ steps.app-token-end.outputs.token }}
           sha: ${{ env.COMMIT_SHA }}
           name: standalone
           conclusion: ${{ job.status }}
           details_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          output: |
+            {"summary": "Status: ${{ job.status }}", "text_description": "More details can be found in the job logs [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."}
        
   cmssw:
     if: >
@@ -93,7 +101,7 @@ jobs:
       contains(github.event.comment.body, '/run cmssw') &&
       github.event.comment.user.login == 'ariostas'
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 180
     steps:
       - name: Checkout PR
         uses: actions/checkout@v4
@@ -175,11 +183,20 @@ jobs:
               repo: context.repo.repo,
               body: `There was a problem while building and running with CMSSW. You can find a log of the job [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).`
             })
+      - name: Create App Token
+        if: always()
+        uses: actions/create-github-app-token@v1
+        id: app-token-end
+        with: 
+          app-id: 778431
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: LouisBrunner/checks-action@v1.6.1
         if: always()
         with:
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ steps.app-token-end.outputs.token }}
           sha: ${{ env.COMMIT_SHA }}
           name: cmssw
           conclusion: ${{ job.status }}
           details_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          output: |
+            {"summary": "Status: ${{ job.status }}", "text_description": "More details can be found in the job logs [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."}
