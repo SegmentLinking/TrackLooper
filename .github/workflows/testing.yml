@@ -44,7 +44,7 @@ jobs:
           status: in_progress
           details_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           output: |
-            {"title": "This check is in progress...", "summary": "The logs can be found [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."}
+            {"title": "This check has started...", "summary": "The logs can be found [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."}
       - name: Build and run PR
         id: build-and-run
         uses: SegmentLinkingTests/TrackLooper-actions/standalone@v1
@@ -128,7 +128,7 @@ jobs:
           status: in_progress
           details_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           output: |
-            {"title": "This check is in progress...", "summary": "The logs can be found [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."}
+            {"title": "This check has started...", "summary": "The logs can be found [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."}
       - name: Get CMSSW branch name
         env:
           COMMENT_BODY: ${{ github.event.comment.body }}
