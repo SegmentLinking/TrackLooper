@@ -1,11 +1,13 @@
-name: Testing
+name: Checks
 
 on:
   issue_comment:
     types: [created]
+  pull_request:
+    branches: master
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.issue.number }}-${{ github.event.comment.user.login }}-${{ contains(github.event.comment.body, '/run standalone') }}-${{ contains(github.event.comment.body, '/run cmssw') }}
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}-${{ github.event.comment.user.login }}-${{ contains(github.event.comment.body, '/run standalone') }}-${{ contains(github.event.comment.body, '/run cmssw') }}-${{ github.sha }}
   cancel-in-progress: true
 
 permissions:
@@ -30,6 +32,14 @@ jobs:
         run: |  
           sha=$(git rev-parse HEAD)
           echo "COMMIT_SHA=$sha" >> $GITHUB_ENV
+      - uses: LouisBrunner/checks-action@v1.6.1
+        if: always()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          sha: ${{ env.COMMIT_SHA }}
+          name: standalone
+          status: in_progress
+          details_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       - name: Build and run PR
         id: build-and-run
         uses: SegmentLinkingTests/TrackLooper-actions/standalone@v1
@@ -69,8 +79,9 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           sha: ${{ env.COMMIT_SHA }}
-          name: Standalone run
+          name: standalone
           conclusion: ${{ job.status }}
+          details_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
        
   cmssw:
     if: >
@@ -88,6 +99,14 @@ jobs:
         run: |  
           sha=$(git rev-parse HEAD)
           echo "COMMIT_SHA=$sha" >> $GITHUB_ENV
+      - uses: LouisBrunner/checks-action@v1.6.1
+        if: always()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          sha: ${{ env.COMMIT_SHA }}
+          name: cmssw
+          status: in_progress
+          details_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       - name: Get CMSSW branch name
         env:
           COMMENT_BODY: ${{ github.event.comment.body }}
@@ -151,5 +170,43 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           sha: ${{ env.COMMIT_SHA }}
-          name: CMSSW run
+          name: cmssw
           conclusion: ${{ job.status }}
+          details_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  linter:
+    if: ${{ github.event_name }} == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+      - name: Mount cvmfs
+        uses: cvmfs-contrib/github-action-cvmfs@v3
+      - name: Gather paths of needed headers
+        shell: bash
+        run: |
+          source setup.sh
+          INCLUDE_FLAGS="-I$TRACKLOOPERDIR -I$BOOST_ROOT/include -I$ALPAKA_ROOT/include -I$CUDA_HOME/include -I$ROOT_ROOT/include -I$CMSSW_BASE/src"
+          INCLUDE_FLAGS="$INCLUDE_FLAGS -I/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/gcc/11.4.1-30ebdc301ebd200f2ae0e3d880258e65/include/c++/11.4.1"
+          INCLUDE_FLAGS="$INCLUDE_FLAGS -I/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/gcc/11.4.1-30ebdc301ebd200f2ae0e3d880258e65/include/c++/11.4.1/x86_64-redhat-linux-gnu/"
+          INCLUDE_FLAGS="$INCLUDE_FLAGS -I/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/gcc/11.4.1-30ebdc301ebd200f2ae0e3d880258e65/lib/gcc/x86_64-redhat-linux-gnu/11.4.1/include"
+          echo "include-flags=$INCLUDE_FLAGS" >> $GITHUB_ENV
+          # Note: Ideally we would use compiledb to generate a compile_commands.json file, but I couldn't get it to work properly with clang-tidy.
+          # This alternative of simply passing some extra arguments to clang-tidy seems to work fine (at least for now).
+      - name: Run linter
+        uses: cpp-linter/cpp-linter-action@v2
+        id: linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          style: file
+          thread-comments: true
+          # only use checks in .clang-tidy file
+          tidy-checks: ''
+          lines-changed-only: true
+          ignore: .github|bin|code|data|efficiency
+          extra-args: '-ferror-limit=0 -std=c++17 -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED ${{ env.include-flags }}'
+      - name: Fail job if there were checks that failed
+        if: steps.linter.outputs.checks-failed > 0
+        run: exit 1
