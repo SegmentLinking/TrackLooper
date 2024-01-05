@@ -32,7 +32,7 @@ jobs:
         uses: actions/create-github-app-token@v1
         id: app-token
         with: 
-          app-id: 778431
+          app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: LouisBrunner/checks-action@v1.6.1
         if: always()
@@ -84,7 +84,7 @@ jobs:
         uses: actions/create-github-app-token@v1
         id: app-token-end
         with: 
-          app-id: 778431
+          app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: LouisBrunner/checks-action@v1.6.1
         if: always()
@@ -116,7 +116,7 @@ jobs:
         uses: actions/create-github-app-token@v1
         id: app-token
         with: 
-          app-id: 778431
+          app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: LouisBrunner/checks-action@v1.6.1
         if: always()
@@ -192,7 +192,7 @@ jobs:
         uses: actions/create-github-app-token@v1
         id: app-token-end
         with: 
-          app-id: 778431
+          app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: LouisBrunner/checks-action@v1.6.1
         if: always()
