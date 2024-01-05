@@ -19,7 +19,6 @@ jobs:
       contains(github.event.comment.body, '/run standalone') &&
       github.event.comment.user.login == 'ariostas'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
     steps:
       - name: Checkout PR
         uses: actions/checkout@v4
@@ -46,6 +45,7 @@ jobs:
           output: |
             {"title": "This check has started...", "summary": "The logs can be found [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."}
       - name: Build and run PR
+        timeout-minutes: 60
         id: build-and-run
         uses: SegmentLinkingTests/TrackLooper-actions/standalone@v1
         with:
@@ -103,7 +103,6 @@ jobs:
       contains(github.event.comment.body, '/run cmssw') &&
       github.event.comment.user.login == 'ariostas'
     runs-on: ubuntu-latest
-    timeout-minutes: 180
     steps:
       - name: Checkout PR
         uses: actions/checkout@v4
@@ -153,6 +152,7 @@ jobs:
           echo "Using CMSSW branch: $cmssw_branch"
           echo "cmssw-branch=$cmssw_branch" >> $GITHUB_ENV
       - name: Build and run PR
+        timeout-minutes: 180
         id: build-and-run
         uses: SegmentLinkingTests/TrackLooper-actions/cmssw@v1
         with:
