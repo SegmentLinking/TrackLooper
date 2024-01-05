@@ -43,6 +43,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          version: 16
           style: file
           thread-comments: true
           # only use checks in .clang-tidy file
