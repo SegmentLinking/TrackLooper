@@ -20,11 +20,31 @@ jobs:
       (github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'CONTRIBUTOR')
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout PR
+      - name: Check out PR
         uses: actions/checkout@v4
         with:
           ref: refs/pull/${{ github.event.issue.number }}/head
+      - name: Get commit SHA
+        run: |
+          sha=$(git rev-parse HEAD)
+          echo "COMMIT_SHA=$sha" >> $GITHUB_ENV
+      - name: Create App Token
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - uses: LouisBrunner/checks-action@v1.6.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          sha: ${{ env.COMMIT_SHA }}
+          name: Run Standalone PU200
+          status: in_progress
+          details_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          output: |
+            {"title": "This check has started...", "summary": "The logs can be found [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."}
       - name: Build and run PR
+        timeout-minutes: 60
         id: build-and-run
         uses: SegmentLinking/TrackLooper-actions/standalone@v1
         with:
@@ -56,8 +76,25 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `There was a problem while building and running in standalone mode. You can find a log of the job [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).`
+              body: `There was a problem while building and running in standalone mode. The logs can be found [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).`
             })
+      - name: Create App Token
+        if: always()
+        uses: actions/create-github-app-token@v1
+        id: app-token-end
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - uses: LouisBrunner/checks-action@v1.6.1
+        if: always()
+        with:
+          token: ${{ steps.app-token-end.outputs.token }}
+          sha: ${{ env.COMMIT_SHA }}
+          name: Run Standalone PU200
+          conclusion: ${{ job.status }}
+          details_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          output: |
+            {"title": "Status: ${{ job.status }}", "summary": "The logs can be found [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."}
        
   cmssw:
     if: >
@@ -70,6 +107,25 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: refs/pull/${{ github.event.issue.number }}/head
+      - name: Get commit SHA
+        run: |
+          sha=$(git rev-parse HEAD)
+          echo "COMMIT_SHA=$sha" >> $GITHUB_ENV
+      - name: Create App Token
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - uses: LouisBrunner/checks-action@v1.6.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          sha: ${{ env.COMMIT_SHA }}
+          name: Run CMSSW 21034.1
+          status: in_progress
+          details_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          output: |
+            {"title": "This check has started...", "summary": "The logs can be found [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."}
       - name: Get CMSSW branch name
         env:
           COMMENT_BODY: ${{ github.event.comment.body }}
@@ -94,6 +150,7 @@ jobs:
           echo "Using CMSSW branch: $cmssw_branch"
           echo "cmssw-branch=$cmssw_branch" >> $GITHUB_ENV
       - name: Build and run PR
+        timeout-minutes: 200
         id: build-and-run
         uses: SegmentLinking/TrackLooper-actions/cmssw@v1
         with:
@@ -126,5 +183,22 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `There was a problem while building and running with CMSSW. You can find a log of the job [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).`
+              body: `There was a problem while building and running with CMSSW. The logs can be found [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).`
             })
+      - name: Create App Token
+        if: always()
+        uses: actions/create-github-app-token@v1
+        id: app-token-end
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - uses: LouisBrunner/checks-action@v1.6.1
+        if: always()
+        with:
+          token: ${{ steps.app-token-end.outputs.token }}
+          sha: ${{ env.COMMIT_SHA }}
+          name: Run CMSSW 21034.1
+          conclusion: ${{ job.status }}
+          details_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          output: |
+            {"title": "Status: ${{ job.status }}", "summary": "The logs can be found [here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."}
