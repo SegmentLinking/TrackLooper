@@ -15,22 +15,28 @@ permissions:
 jobs:
   linter:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout PR
         uses: actions/checkout@v4
       - name: Mount cvmfs
         uses: cvmfs-contrib/github-action-cvmfs@v3
-      - name: Gather paths of needed headers
-        shell: bash
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Generate compilation database
         run: |
-          source setup.sh
-          INCLUDE_FLAGS="-I$TRACKLOOPERDIR -I$BOOST_ROOT/include -I$ALPAKA_ROOT/include -I$CUDA_HOME/include -I$ROOT_ROOT/include -I$CMSSW_BASE/src"
-          INCLUDE_FLAGS="$INCLUDE_FLAGS -I/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/gcc/11.4.1-30ebdc301ebd200f2ae0e3d880258e65/include/c++/11.4.1"
-          INCLUDE_FLAGS="$INCLUDE_FLAGS -I/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/gcc/11.4.1-30ebdc301ebd200f2ae0e3d880258e65/include/c++/11.4.1/x86_64-redhat-linux-gnu/"
-          INCLUDE_FLAGS="$INCLUDE_FLAGS -I/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/gcc/11.4.1-30ebdc301ebd200f2ae0e3d880258e65/lib/gcc/x86_64-redhat-linux-gnu/11.4.1/include"
-          echo "include-flags=$INCLUDE_FLAGS" >> $GITHUB_ENV
-          # Note: Ideally we would use compiledb to generate a compile_commands.json file, but I couldn't get it to work properly with clang-tidy.
-          # This alternative of simply passing some extra arguments to clang-tidy seems to work fine (at least for now).
+          # There are some errors when running the script, but they don't affect anything important.
+          # We only need to run it to set up some environment variables, so we suppress the output.
+          source setup.sh 1> /dev/null 2> /dev/null
+          pip install compiledb compdb
+          cd SDL
+          make BACKEND=cpu explicit -Bnwk > build_log.txt
+          compiledb < build_log.txt
+          # This extra step is needed to generate compilation commands for headers
+          compdb list > compile_commands_new.json
+          mv compile_commands_new.json compile_commands.json
       - name: Run linter
         uses: cpp-linter/cpp-linter-action@v2
         id: linter
@@ -43,7 +49,7 @@ jobs:
           tidy-checks: ''
           lines-changed-only: true
           ignore: .github|bin|code|data|efficiency
-          extra-args: '-ferror-limit=0 -std=c++17 -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED ${{ env.include-flags }}'
+          extra-args: '-U_OPENMP -ferror-limit=0'
       - name: Fail job if there were checks that failed
         if: steps.linter.outputs.checks-failed > 0
         run: exit 1
