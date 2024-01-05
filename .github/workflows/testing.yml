@@ -78,14 +78,13 @@ jobs:
           cmssw_branch=
           while IFS= read -r line; do
             echo "$line"
-            if [[ $line == *"/run cmssw"* ]]; then
+            if [[ $line == "/run cmssw"* ]]; then
               # Check if there is a branch after "/run cmssw"
               words=($line)
               cmssw_branch="${words[2]}"
               # Validate the extracted branch to avoid code injection
-              if ! [[ $cmssw_branch =~ ^[[:alnum:]_-]+$ ]]; then
-                echo "Branch name is invalid. Ignoring..."
-                cmssw_branch=
+              if [ -n "$cmssw_branch" ]; then
+                cmssw_branch=$(git check-ref-format --branch $cmssw_branch || echo "default")
               fi
             fi
           done <<< "$COMMENT_BODY"
