@@ -54,9 +54,6 @@ bin/sdl: bin/sdl.o $(OBJECTS)
 %.o: %.cc
 	$(CXX) $(PTCUTFLAG) $(T3T3EXTENSION) $(CFLAGS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(DOQUINTUPLET) $(ALPAKAINCLUDE) $(ALPAKASERIAL) $< -c -o $@
 
-
-.PHONY: $(ROOUTIL) efficiency clean format check check-fix
-
 $(ROOUTIL):
 	$(MAKE) -C code/rooutil/
 
@@ -70,11 +67,4 @@ clean:
 	rm -f SDL/*.o
 	cd efficiency/ && make clean
 
-format:
-	clang-format -i SDL/*.cc SDL/*.h
-
-check:
-	clang-tidy SDL/*.cc SDL/*.h -- --language=c++ -std=c++17 -I. -I$(ROOT_ROOT)/include -I$(CMSSW_BASE)/src -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED -I/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/gcc/11.4.1-30ebdc301ebd200f2ae0e3d880258e65/include/c++/11.4.1 -I/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/gcc/11.4.1-30ebdc301ebd200f2ae0e3d880258e65/include/c++/11.4.1/x86_64-redhat-linux-gnu/
-
-check-fix:
-	clang-tidy --fix --fix-errors --fix-notes SDL/*.cc SDL/*.h -- --language=c++ -std=c++17 -I. -I$(ROOT_ROOT)/include -I$(CMSSW_BASE)/src -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED -I/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/gcc/11.4.1-30ebdc301ebd200f2ae0e3d880258e65/include/c++/11.4.1 -I/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/gcc/11.4.1-30ebdc301ebd200f2ae0e3d880258e65/include/c++/11.4.1/x86_64-redhat-linux-gnu/
+.PHONY: $(ROOUTIL) efficiency

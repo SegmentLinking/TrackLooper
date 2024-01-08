@@ -32,7 +32,7 @@ jobs:
           source setup.sh 1> /dev/null 2> /dev/null
           pip install compiledb compdb
           cd SDL
-          make BACKEND=cpu explicit -Bnwk > build_log.txt
+          make BACKEND=cpu explicit_cache -Bnwk > build_log.txt
           compiledb < build_log.txt
           # This extra step is needed to generate compilation commands for headers
           compdb list > compile_commands_new.json

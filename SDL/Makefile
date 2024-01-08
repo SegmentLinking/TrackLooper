@@ -92,3 +92,19 @@ clean:
 	rm -f *.so
 	rm -rf cpu/
 	rm -rf cuda/
+
+.PHONY: clean explicit explicit_cache explicit_cache_cutvalue format check check-fix
+
+format:
+	clang-format --style=file:../.clang-format -i *.cc *.h
+
+# Collect all the include paths from the compiler.
+# The .../gcc/x86_64-redhat-linux-gnu/*/include path is excluded since .../gcc/x86_64-redhat-linux-gnu/*/include-fixed should be used instead.
+TIDYINCLUDEFLAGS := $(shell g++ -E -x c++ - -v < /dev/null 2>&1 | awk '/#include <...>/,/^End of search/{if (/^ / && !/x86_64-redhat-linux-gnu\/[0-9.]+\/include$$/) print "-I"$$1}' | tr '\n' ' ')
+TIDYFLAGS := --language=c++ $(CXXFLAGS_CPU) $(ALPAKAINCLUDE) $(ALPAKASERIAL) $(ROOTCFLAGS) $(PRINTFLAG) $(DUPLICATED) $(CACHEFLAG_FLAGS) $(TIDYINCLUDEFLAGS)
+
+check:
+	clang-tidy --config-file=../.clang-tidy *.cc *.h -- $(TIDYFLAGS)
+
+check-fix:
+	clang-tidy --config-file=../.clang-tidy --format-style=file:../.clang-format --fix --fix-errors --fix-notes *.cc *.h -- $(TIDYFLAGS)

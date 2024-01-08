@@ -273,7 +273,7 @@ sdl_run -f -mc -s PU200 -n -1 -t myTag
 
 ## Code formatting and checking
 
-The makefile includes phony targets to run `clang-format` and `clang-tidy` on the code in the `SDL` directory using the formatting and checks used in CMSSW. The following are the available commands.
+The makefile in the `SDL` directory includes phony targets to run `clang-format` and `clang-tidy` on the code using the formatting and checks used in CMSSW. The following are the available commands.
 
 - `make format`
   Formats the code in the `SDL` directory using `clang-format` following the rules specified in `.clang-format`.
