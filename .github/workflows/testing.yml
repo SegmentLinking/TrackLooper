@@ -1,4 +1,4 @@
-name: Checks
+name: Testing
 
 on:
   issue_comment:
@@ -20,22 +20,23 @@ jobs:
       github.event.comment.user.login == 'ariostas'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout PR
+      - name: Check out PR
         uses: actions/checkout@v4
         with:
           ref: refs/pull/${{ github.event.issue.number }}/head
       - name: Get commit SHA
-        run: |  
+        run: |
           sha=$(git rev-parse HEAD)
           echo "COMMIT_SHA=$sha" >> $GITHUB_ENV
       - name: Create App Token
         uses: actions/create-github-app-token@v1
         id: app-token
-        with: 
+        with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-      - uses: LouisBrunner/checks-action@v1.6.1
-        if: always()
+          skip-token-revoke: true
+      - name: Create in progress check
+        uses: LouisBrunner/checks-action@v1.6.1
         with:
           token: ${{ steps.app-token.outputs.token }}
           sha: ${{ env.COMMIT_SHA }}
@@ -83,10 +84,11 @@ jobs:
         if: always()
         uses: actions/create-github-app-token@v1
         id: app-token-end
-        with: 
+        with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-      - uses: LouisBrunner/checks-action@v1.6.1
+      - name: Create completed check
+        uses: LouisBrunner/checks-action@v1.6.1
         if: always()
         with:
           token: ${{ steps.app-token-end.outputs.token }}
@@ -109,17 +111,18 @@ jobs:
         with:
           ref: refs/pull/${{ github.event.issue.number }}/head
       - name: Get commit SHA
-        run: |  
+        run: |
           sha=$(git rev-parse HEAD)
           echo "COMMIT_SHA=$sha" >> $GITHUB_ENV
       - name: Create App Token
         uses: actions/create-github-app-token@v1
         id: app-token
-        with: 
+        with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-      - uses: LouisBrunner/checks-action@v1.6.1
-        if: always()
+          skip-token-revoke: true
+      - name: Create in progress check
+        uses: LouisBrunner/checks-action@v1.6.1
         with:
           token: ${{ steps.app-token.outputs.token }}
           sha: ${{ env.COMMIT_SHA }}
@@ -152,7 +155,7 @@ jobs:
           echo "Using CMSSW branch: $cmssw_branch"
           echo "cmssw-branch=$cmssw_branch" >> $GITHUB_ENV
       - name: Build and run PR
-        timeout-minutes: 180
+        timeout-minutes: 200
         id: build-and-run
         uses: SegmentLinkingTests/TrackLooper-actions/cmssw@v1
         with:
@@ -191,10 +194,11 @@ jobs:
         if: always()
         uses: actions/create-github-app-token@v1
         id: app-token-end
-        with: 
+        with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-      - uses: LouisBrunner/checks-action@v1.6.1
+      - name: Create completed check
+        uses: LouisBrunner/checks-action@v1.6.1
         if: always()
         with:
           token: ${{ steps.app-token-end.outputs.token }}
