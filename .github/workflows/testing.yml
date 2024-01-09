@@ -34,7 +34,9 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-      - uses: LouisBrunner/checks-action@v1.6.1
+          skip-token-revoke: true
+      - name: Create in progress check
+        uses: LouisBrunner/checks-action@v1.6.1
         with:
           token: ${{ steps.app-token.outputs.token }}
           sha: ${{ env.COMMIT_SHA }}
@@ -85,7 +87,8 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-      - uses: LouisBrunner/checks-action@v1.6.1
+      - name: Create completed check
+        uses: LouisBrunner/checks-action@v1.6.1
         if: always()
         with:
           token: ${{ steps.app-token-end.outputs.token }}
@@ -117,7 +120,9 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-      - uses: LouisBrunner/checks-action@v1.6.1
+          skip-token-revoke: true
+      - name: Create in progress check
+        uses: LouisBrunner/checks-action@v1.6.1
         with:
           token: ${{ steps.app-token.outputs.token }}
           sha: ${{ env.COMMIT_SHA }}
@@ -192,7 +197,8 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-      - uses: LouisBrunner/checks-action@v1.6.1
+      - name: Create completed check
+        uses: LouisBrunner/checks-action@v1.6.1
         if: always()
         with:
           token: ${{ steps.app-token-end.outputs.token }}
