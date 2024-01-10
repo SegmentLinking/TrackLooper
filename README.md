@@ -270,3 +270,14 @@ source $PWD/code/rooutil/thisrooutil.sh
 # After this, you can compile and run LST as usual.
 sdl_run -f -mc -s PU200 -n -1 -t myTag
 ```
+
+## Code formatting and checking
+
+The makefile in the `SDL` directory includes phony targets to run `clang-format` and `clang-tidy` on the code using the formatting and checks used in CMSSW. The following are the available commands.
+
+- `make format`
+  Formats the code in the `SDL` directory using `clang-format` following the rules specified in `.clang-format`.
+- `make check`
+  Runs `clang-tidy` on the code in the `SDL` directory to performs the checks specified in `.clang-tidy`.
+- `make check-fix`
+  Same as `make check`, but fixes the issues that it knows how to fix.
