@@ -516,7 +516,11 @@ namespace SDL {
       unsigned int nPixels = segmentsInGPU.nSegments[nLowerModules];
       for (int pixelArrayIndex = globalThreadIdx[2]; pixelArrayIndex < nPixels;
            pixelArrayIndex += gridThreadExtent[2]) {
+#ifdef TC_PLS_TRIPLETS
+        if (segmentsInGPU.isDup[pixelArrayIndex])
+#else
         if ((!segmentsInGPU.isQuad[pixelArrayIndex]) || (segmentsInGPU.isDup[pixelArrayIndex]))
+#endif
           continue;
 
         unsigned int trackCandidateIdx =

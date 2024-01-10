@@ -27,7 +27,7 @@ $(EXE): src/performance.o src/helper_v2.o src/SDL.o
 	$(LD) $(CXXFLAGS) $(LDFLAGS) src/performance.o src/helper_v2.o src/SDL.o $(ROOTLIBS) $(EXTRAFLAGS) -o $@
 
 src/SDL.o: src/SDL.cc src/SDL.h
-	$(CC) $(T3T3EXTENSION) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
+	$(CC) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
 
 src/performance.o: src/performance.cc src/performance.h src/sdl_types.h
 	$(CC) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@

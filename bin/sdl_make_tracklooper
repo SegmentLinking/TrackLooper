@@ -24,7 +24,7 @@ usage()
   echo "  -m    make clean binaries       (Make clean binaries before remake. e.g. when header files changed in SDL/*.h)"
   echo "  -d    cut value ntuple          (With extra variables in a debug ntuple file)"
   echo "  -p    primitive object ntuple   (With extra variables related to primitive objects)"
-  echo "  -3    do T3T3 extensions        (-e turned on if not specified)"
+  echo "  -3    TC pLS triplets           (Allow triplet pLSs in TC collection)"
   echo "  -N    neural networks           (Toggle LST neural networks)"
   echo "  -G    GPU (CUDA) backend        (Compile only for CUDA, takes priority over -C)"
   echo "  -C    CPU serial backend        (Compile only for CPU)"
@@ -43,7 +43,7 @@ while getopts ":cxgsmdp3NGC2ehwP:" OPTION; do
     m) MAKECLEANBINARIES=true;;
     d) MAKECUTVALUES=true;;
     p) PRIMITIVE=true;;
-    3) T3T3EXTENSION=true;;
+    3) TCPLSTRIPLETS=true;;
     N) DONTUSENN=true;;
     G) ONLYCUDABACKEND=true;;
     C) ONLYCPUBACKEND=true;;
@@ -61,7 +61,7 @@ if [ -z ${SHOWLOG} ]; then SHOWLOG=false; fi
 if [ -z ${MAKECLEANBINARIES} ]; then MAKECLEANBINARIES=false; fi
 if [ -z ${MAKECUTVALUES} ]; then MAKECUTVALUES=false; fi
 if [ -z ${PRIMITIVE} ]; then PRIMITIVE=false; fi
-if [ -z ${T3T3EXTENSION} ]; then T3T3EXTENSION=false; fi
+if [ -z ${TCPLSTRIPLETS} ]; then TCPLSTRIPLETS=false; fi
 if [ -z ${DONTUSENN} ]; then DONTUSENN=false; fi
 if [ -z ${ONLYCUDABACKEND} ]; then ONLYCUDABACKEND=false; fi
 if [ -z ${ONLYCPUBACKEND} ]; then ONLYCPUBACKEND=false; fi
@@ -97,7 +97,7 @@ echo "  SHOWLOG           : ${SHOWLOG}"                       | tee -a ${LOG}
 echo "  MAKECLEANBINARIES : ${MAKECLEANBINARIES}"             | tee -a ${LOG}
 echo "  MAKECUTVALUES     : ${MAKECUTVALUES}"                 | tee -a ${LOG}
 echo "  PRIMITIVE         : ${PRIMITIVE}"                     | tee -a ${LOG}
-echo "  T3T3EXTENSION     : ${T3T3EXTENSION}"                 | tee -a ${LOG}
+echo "  TCPLSTRIPLETS     : ${TCPLSTRIPLETS}"                 | tee -a ${LOG}
 echo "  DONTUSENN         : ${DONTUSENN}"                     | tee -a ${LOG}
 echo "  ONLYCUDABACKEND   : ${ONLYCUDABACKEND}"               | tee -a ${LOG}
 echo "  ONLYCPUBACKEND    : ${ONLYCPUBACKEND}"                | tee -a ${LOG}
@@ -138,9 +138,9 @@ if $PRIMITIVE; then
     echo "debug : MAKETARGET=${MAKETARGET}"
 fi
 
-T3T3EXTENSIONOPT=
-if $T3T3EXTENSION; then
-    T3T3EXTENSIONOPT="T3T3EXTENSION=-DT3T3_EXTENSIONS"
+TCPLSTRIPLETSOPT=
+if $TCPLSTRIPLETS; then
+    TCPLSTRIPLETSOPT="TCPLSTRIPLETSFLAG=-DTC_PLS_TRIPLETS"
 fi
 
 T5CUTOPT=
@@ -181,9 +181,9 @@ echo "--------------------------------------------------------------------------
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 if $SHOWLOG; then
-    (cd SDL && make clean && make ${T3T3EXTENSIONOPT} ${T5CUTOPT} ${BACKENDOPT} ${PRINTWARNINGSOPT} ${NOPLSDUPCLEANOPT} ${PTCUTOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
+    (cd SDL && make clean && make ${TCPLSTRIPLETSOPT} ${T5CUTOPT} ${BACKENDOPT} ${PRINTWARNINGSOPT} ${NOPLSDUPCLEANOPT} ${PTCUTOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
 else
-    (cd SDL && make clean && make ${T3T3EXTENSIONOPT} ${T5CUTOPT} ${BACKENDOPT} ${PRINTWARNINGSOPT} ${NOPLSDUPCLEANOPT} ${PTCUTOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
+    (cd SDL && make clean && make ${TCPLSTRIPLETSOPT} ${T5CUTOPT} ${BACKENDOPT} ${PRINTWARNINGSOPT} ${NOPLSDUPCLEANOPT} ${PTCUTOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
 fi
 
 if ([[ "$BACKENDOPT" == *"all"* ]] || [[ "$BACKENDOPT" == *"cpu"* ]]) && [ ! -f SDL/libsdl_cpu.so ]; then
@@ -215,9 +215,9 @@ echo "--------------------------------------------------------------------------
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 if $SHOWLOG; then
-    make ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} ${PTCUTOPT} -j 2>&1 | tee -a ${LOG}
+    make ${TRACKLOOPERTARGET} ${PTCUTOPT} -j 2>&1 | tee -a ${LOG}
 else
-    make ${T3T3EXTENSIONOPT} ${TRACKLOOPERTARGET} ${PTCUTOPT} -j >> ${LOG} 2>&1
+    make ${TRACKLOOPERTARGET} ${PTCUTOPT} -j >> ${LOG} 2>&1
 fi
 
 if [ ! -f bin/sdl ]; then
