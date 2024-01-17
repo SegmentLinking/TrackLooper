@@ -118,7 +118,7 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
   std::iota(hitIdxs.begin(), hitIdxs.end(), 0);
   const int hit_size = trkX.size();
 
-  for (auto&& [iSeed, _] : iter::enumerate(see_stateTrajGlbPx)) {
+  for(size_t iSeed = 0; iSeed < n_see; iSeed++) {
     ROOT::Math::PxPyPzMVector p3LH(see_stateTrajGlbPx[iSeed], see_stateTrajGlbPy[iSeed], see_stateTrajGlbPz[iSeed], 0);
     ROOT::Math::XYZVector p3LH_helper(see_stateTrajGlbPx[iSeed], see_stateTrajGlbPy[iSeed], see_stateTrajGlbPz[iSeed]);
     float ptIn = p3LH.Pt();
