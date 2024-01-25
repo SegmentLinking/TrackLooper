@@ -4,16 +4,16 @@
 ## Quick Start
 
 
-### Setting up LSTPerformanceWeb (only for lnx7188)
+### Setting up LSTPerformanceWeb (only for lnx7188 and lnx4555)
 
-For lnx7188 this needs to be done once
+For lnx7188 and lnx4555 this needs to be done once
 
     cd /cdat/tem/${USER}/
     git clone git@github.com:SegmentLinking/LSTPerformanceWeb.git
 
-### Setting up container (only for lnx7188)
+### Setting up container (only for lnx7188 and lnx4555)
 
-For lnx7188 this needs to be done before compiling or running the code:
+For lnx7188 and lnx4555 this needs to be done before compiling or running the code:
 
     singularity shell --nv --bind /mnt/data1:/data --bind /data2/segmentlinking/ --bind /opt --bind /nfs --bind /mnt --bind /usr/local/cuda/bin/ --bind /cvmfs  /cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmssw/el8:x86_64
 
