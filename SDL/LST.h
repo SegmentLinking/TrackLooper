@@ -19,7 +19,8 @@ namespace SDL {
   public:
     LST() = default;
 
-    void eventSetup();
+    static void loadAndFillES(alpaka::QueueCpuBlocking& queue, struct modulesBuffer<alpaka::DevCpu>* modules);
+
     template <typename TQueue>
     void run(TQueue& queue,
              bool verbose,
@@ -174,10 +175,8 @@ namespace SDL {
     std::vector<unsigned int> len() { return out_tc_len_; }
     std::vector<int> seedIdx() { return out_tc_seedIdx_; }
     std::vector<short> trackCandidateType() { return out_tc_trackCandidateType_; }
-    static void loadMaps();
 
   private:
-    static TString get_absolute_path_after_check_file_exists(const std::string name);
     void prepareInput(const std::vector<float> see_px,
                       const std::vector<float> see_py,
                       const std::vector<float> see_pz,
