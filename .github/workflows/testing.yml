@@ -143,10 +143,6 @@ jobs:
               # Check if there is a branch after "/run cmssw"
               words=($line)
               cmssw_branch="${words[2]}"
-              # Validate the extracted branch to avoid code injection
-              if [ -n "$cmssw_branch" ]; then
-                cmssw_branch=$(git check-ref-format --branch $cmssw_branch || echo "default")
-              fi
             fi
           done <<< "$COMMENT_BODY"
           if [ -z "$cmssw_branch" ]; then
