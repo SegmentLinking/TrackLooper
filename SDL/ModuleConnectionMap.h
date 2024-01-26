@@ -27,9 +27,7 @@ namespace SDL {
   };
 
   extern ModuleConnectionMap moduleConnectionMap;
-  extern std::vector<ModuleConnectionMap> moduleConnectionMap_pLStoLayer;
-  extern std::vector<ModuleConnectionMap> moduleConnectionMap_pLStoLayer_pos;
-  extern std::vector<ModuleConnectionMap> moduleConnectionMap_pLStoLayer_neg;
+  using MapPLStoLayer = std::array<std::array<ModuleConnectionMap, 4>, 3>;
 }  // namespace SDL
 
 #endif

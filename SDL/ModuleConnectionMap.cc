@@ -1,9 +1,6 @@
 #include "ModuleConnectionMap.h"
 
 SDL::ModuleConnectionMap SDL::moduleConnectionMap;
-std::vector<SDL::ModuleConnectionMap> SDL::moduleConnectionMap_pLStoLayer(7);
-std::vector<SDL::ModuleConnectionMap> SDL::moduleConnectionMap_pLStoLayer_pos(7);
-std::vector<SDL::ModuleConnectionMap> SDL::moduleConnectionMap_pLStoLayer_neg(7);
 
 SDL::ModuleConnectionMap::ModuleConnectionMap() {}
 

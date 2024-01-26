@@ -12,7 +12,7 @@ namespace {
     return TString(fullpath.string().c_str());
   }
 
-  void loadMaps() {
+  void loadMaps(SDL::MapPLStoLayer& pLStoLayer) {
     // Module orientation information (DrDz or phi angles)
     TString endcap_geom = get_absolute_path_after_check_file_exists(
         TString::Format("%s/data/OT800_IT615_pt0.8/endcap_orientation.txt", trackLooperDir().Data()).Data());
@@ -28,34 +28,35 @@ namespace {
     SDL::moduleConnectionMap.load(mappath.Data());
 
     TString pLSMapDir = trackLooperDir() + "/data/OT800_IT615_pt0.8/pixelmap/pLS_map";
-    std::string connects[] = {"_layer1_subdet5", "_layer2_subdet5", "_layer1_subdet4", "_layer2_subdet4"};
+    const std::array<std::string, 4> connects{
+        "_layer1_subdet5", "_layer2_subdet5", "_layer1_subdet4", "_layer2_subdet4"};
     TString path;
 
-    for (std::string& connect : connects) {
-      auto connectData = connect.data();
+    static_assert(connects.size() == std::tuple_size<std::decay_t<decltype(pLStoLayer[0])>>{});
+    for (unsigned int i = 0; i < connects.size(); i++) {
+      auto connectData = connects[i].data();
 
       path = TString::Format("%s%s.txt", pLSMapDir.Data(), connectData).Data();
-      SDL::moduleConnectionMap_pLStoLayer.emplace_back(
-          SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data()));
+      pLStoLayer[0][i] = SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data());
 
       path = TString::Format("%s_pos%s.txt", pLSMapDir.Data(), connectData).Data();
-      SDL::moduleConnectionMap_pLStoLayer_pos.emplace_back(
-          SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data()));
+      pLStoLayer[1][i] = SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data());
 
       path = TString::Format("%s_neg%s.txt", pLSMapDir.Data(), connectData).Data();
-      SDL::moduleConnectionMap_pLStoLayer_neg.emplace_back(
-          SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data()));
+      pLStoLayer[2][i] = SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data());
     }
   }
 
 }  // namespace
 
 void SDL::LST::loadAndFillES(alpaka::QueueCpuBlocking& queue, struct modulesBuffer<alpaka::DevCpu>* modules) {
-  ::loadMaps();
+  SDL::MapPLStoLayer pLStoLayer;
+  ::loadMaps(pLStoLayer);
 
   TString path = get_absolute_path_after_check_file_exists(
       TString::Format("%s/data/OT800_IT615_pt0.8/sensor_centroids.txt", trackLooperDir().Data()).Data());
-  SDL::loadModulesFromFile(modules, SDL::nModules, SDL::nLowerModules, *SDL::pixelMapping, queue, path.Data());
+  SDL::loadModulesFromFile(
+      modules, SDL::nModules, SDL::nLowerModules, *SDL::pixelMapping, queue, path.Data(), pLStoLayer);
 }
 
 void SDL::LST::prepareInput(const std::vector<float> see_px,

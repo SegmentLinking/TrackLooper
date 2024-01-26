@@ -24,20 +24,22 @@ void loadMaps()
     SDL::tiltedGeometry.load(tilted_geom.Data());
     SDL::moduleConnectionMap.load(mappath.Data());
 
-    vector<string> pLSMapPath{ "layer1_subdet5", "layer2_subdet5", "layer1_subdet4", "layer2_subdet4" };
+    SDL::MapPLStoLayer pLStoLayer;
+    const std::array<string, 4> pLSMapPath{ "layer1_subdet5", "layer2_subdet5", "layer1_subdet4", "layer2_subdet4" };
+    static_assert(pLStoLayer[0].size() == pLSMapPath.size());
     for (unsigned int i=0; i<pLSMapPath.size(); i++) {
         TString path = TString::Format("%s/pLS_map_%s.txt", pLSMapDir.Data(), pLSMapPath[i].c_str()).Data();
-        SDL::moduleConnectionMap_pLStoLayer[i].load( get_absolute_path_after_check_file_exists( path.Data() ).Data() );
+        pLStoLayer[0][i].load( get_absolute_path_after_check_file_exists( path.Data() ).Data() );
 
         path = TString::Format("%s/pLS_map_pos_%s.txt", pLSMapDir.Data(), pLSMapPath[i].c_str()).Data();
-        SDL::moduleConnectionMap_pLStoLayer_pos[i].load( get_absolute_path_after_check_file_exists( path.Data() ).Data() );
+        pLStoLayer[1][i].load( get_absolute_path_after_check_file_exists( path.Data() ).Data() );
 
         path = TString::Format("%s/pLS_map_neg_%s.txt", pLSMapDir.Data(), pLSMapPath[i].c_str()).Data();
-        SDL::moduleConnectionMap_pLStoLayer_neg[i].load( get_absolute_path_after_check_file_exists( path.Data() ).Data() );
+        pLStoLayer[2][i].load( get_absolute_path_after_check_file_exists( path.Data() ).Data() );
     }
 
     // WARNING: initModules must come after above load commands!! keep it at the last line here!
-    SDL::initModules(centroid.Data());
+    SDL::initModules(pLStoLayer, centroid.Data());
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________

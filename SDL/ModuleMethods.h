@@ -55,7 +55,10 @@ namespace SDL {
   };
 
   template <typename TQueue, typename TDev>
-  inline void fillPixelMap(struct modulesBuffer<TDev>* modulesBuf, struct pixelMap& pixelMapping, TQueue queue) {
+  inline void fillPixelMap(struct modulesBuffer<TDev>* modulesBuf,
+                           struct pixelMap& pixelMapping,
+                           TQueue queue,
+                           const MapPLStoLayer& pLStoLayer) {
     std::vector<unsigned int> connectedModuleDetIds;
     std::vector<unsigned int> connectedModuleDetIds_pos;
     std::vector<unsigned int> connectedModuleDetIds_neg;
@@ -65,7 +68,7 @@ namespace SDL {
     int totalSizes_neg = 0;
     for (unsigned int isuperbin = 0; isuperbin < size_superbins; isuperbin++) {
       int sizes = 0;
-      for (auto const& mCM_pLS : moduleConnectionMap_pLStoLayer) {
+      for (auto const& mCM_pLS : pLStoLayer[0]) {
         std::vector<unsigned int> connectedModuleDetIds_pLS =
             mCM_pLS.getConnectedModuleDetIds(isuperbin + size_superbins);
         connectedModuleDetIds.insert(
@@ -77,7 +80,7 @@ namespace SDL {
       totalSizes += sizes;
 
       int sizes_pos = 0;
-      for (auto const& mCM_pLS : moduleConnectionMap_pLStoLayer_pos) {
+      for (auto const& mCM_pLS : pLStoLayer[1]) {
         std::vector<unsigned int> connectedModuleDetIds_pLS_pos = mCM_pLS.getConnectedModuleDetIds(isuperbin);
         connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),
                                          connectedModuleDetIds_pLS_pos.begin(),
@@ -89,7 +92,7 @@ namespace SDL {
       totalSizes_pos += sizes_pos;
 
       int sizes_neg = 0;
-      for (auto const& mCM_pLS : moduleConnectionMap_pLStoLayer_neg) {
+      for (auto const& mCM_pLS : pLStoLayer[2]) {
         std::vector<unsigned int> connectedModuleDetIds_pLS_neg = mCM_pLS.getConnectedModuleDetIds(isuperbin);
         connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),
                                          connectedModuleDetIds_pLS_neg.begin(),
@@ -204,7 +207,8 @@ namespace SDL {
                            uint16_t& nLowerModules,
                            struct pixelMap& pixelMapping,
                            TQueue& queue,
-                           const char* moduleMetaDataFilePath) {
+                           const char* moduleMetaDataFilePath,
+                           const MapPLStoLayer& pLStoLayer) {
     detIdToIndex = new std::map<unsigned int, uint16_t>;
     module_x = new std::map<unsigned int, float>;
     module_y = new std::map<unsigned int, float>;
@@ -428,7 +432,7 @@ namespace SDL {
 
     fillConnectedModuleArrayExplicit(modulesBuf, nModules, queue);
     fillMapArraysExplicit(modulesBuf, nModules, queue);
-    fillPixelMap(modulesBuf, pixelMapping, queue);
+    fillPixelMap(modulesBuf, pixelMapping, queue, pLStoLayer);
   };
 }  // namespace SDL
 #endif

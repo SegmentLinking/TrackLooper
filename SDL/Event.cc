@@ -163,11 +163,12 @@ void SDL::Event::resetEvent() {
   }
 }
 
-void SDL::initModules(const char* moduleMetaDataFilePath) {
+void SDL::initModules(const MapPLStoLayer& pLStoLayer, const char* moduleMetaDataFilePath) {
   QueueAcc queue(devAcc);
 
   // nModules gets filled here
-  loadModulesFromFile(modulesBuffers, nModules, nLowerModules, *pixelMapping, queue, moduleMetaDataFilePath);
+  loadModulesFromFile(
+      modulesBuffers, nModules, nLowerModules, *pixelMapping, queue, moduleMetaDataFilePath, pLStoLayer);
 
   // Set the relevant data pointers.
   modulesBuffersES = modulesBuffers;
