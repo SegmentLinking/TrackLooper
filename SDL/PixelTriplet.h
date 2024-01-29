@@ -790,8 +790,6 @@ namespace SDL {
     float a = -0.299792 * B * charge;
 
     for (size_t i = 0; i < 3; i++) {
-      float xsi = xs[i] / 100;
-      float ysi = ys[i] / 100;
       float zsi = zs[i] / 100;
       float rtsi = rts[i] / 100;
       uint16_t lowerModuleIndex = lowerModuleIndices[i];
@@ -1065,10 +1063,8 @@ namespace SDL {
 
       Vec const globalBlockIdx = alpaka::getIdx<alpaka::Grid, alpaka::Blocks>(acc);
       Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-      Vec const blockThreadIdx = alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc);
       Vec const gridBlockExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
       Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
-      Vec const blockThreadExtent = alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc);
 
       for (unsigned int i_pLS = globalThreadIdx[1]; i_pLS < nPixelSegments; i_pLS += gridThreadExtent[1]) {
         auto iLSModule_max = connectedPixelIndex[i_pLS] + connectedPixelSize[i_pLS];
@@ -1328,10 +1324,8 @@ namespace SDL {
     float rt_OutLo = mdsInGPU.anchorRt[thirdMDIndex];
     float rt_OutUp = mdsInGPU.anchorRt[fourthMDIndex];
 
-    float z_InLo = mdsInGPU.anchorZ[firstMDIndex];
     float z_InUp = mdsInGPU.anchorZ[secondMDIndex];
     float z_OutLo = mdsInGPU.anchorZ[thirdMDIndex];
-    float z_OutUp = mdsInGPU.anchorZ[fourthMDIndex];
 
     float x_InLo = mdsInGPU.anchorX[firstMDIndex];
     float x_InUp = mdsInGPU.anchorX[secondMDIndex];
@@ -1424,11 +1418,9 @@ namespace SDL {
     //no dphipos cut
     float midPointX = 0.5f * (x_InLo + x_OutLo);
     float midPointY = 0.5f * (y_InLo + y_OutLo);
-    float midPointZ = 0.5f * (z_InLo + z_OutLo);
 
     float diffX = x_OutLo - x_InLo;
     float diffY = y_OutLo - y_InLo;
-    float diffZ = z_OutLo - z_InLo;
 
     dPhi = SDL::deltaPhi(acc, midPointX, midPointY, diffX, diffY);
 
@@ -1452,7 +1444,6 @@ namespace SDL {
 
     float tl_axis_x = x_OutUp - x_InUp;
     float tl_axis_y = y_OutUp - y_InUp;
-    float tl_axis_z = z_OutUp - z_InUp;
 
     float tl_axis_highEdge_x = tl_axis_x;
     float tl_axis_highEdge_y = tl_axis_y;
@@ -1619,10 +1610,8 @@ namespace SDL {
     bool pass = true;
     bool isPS_OutLo = (modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS);
 
-    float z_InLo = mdsInGPU.anchorZ[firstMDIndex];
     float z_InUp = mdsInGPU.anchorZ[secondMDIndex];
     float z_OutLo = mdsInGPU.anchorZ[thirdMDIndex];
-    float z_OutUp = mdsInGPU.anchorZ[fourthMDIndex];
 
     pass = pass and (z_InUp * z_OutLo > 0);
     if (not pass)
@@ -1726,11 +1715,9 @@ namespace SDL {
 
     float midPointX = 0.5f * (x_InLo + x_OutLo);
     float midPointY = 0.5f * (y_InLo + y_OutLo);
-    float midPointZ = 0.5f * (z_InLo + z_OutLo);
 
     float diffX = x_OutLo - x_InLo;
     float diffY = y_OutLo - y_InLo;
-    float diffZ = z_OutLo - z_InLo;
 
     dPhi = SDL::deltaPhi(acc, midPointX, midPointY, diffX, diffY);
 
@@ -1753,7 +1740,6 @@ namespace SDL {
 
     float tl_axis_x = x_OutUp - x_InUp;
     float tl_axis_y = y_OutUp - y_InUp;
-    float tl_axis_z = z_OutUp - z_InUp;
 
     float tl_axis_highEdge_x = tl_axis_x;
     float tl_axis_highEdge_y = tl_axis_y;
@@ -2726,10 +2712,8 @@ namespace SDL {
 
       Vec const globalBlockIdx = alpaka::getIdx<alpaka::Grid, alpaka::Blocks>(acc);
       Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-      Vec const blockThreadIdx = alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc);
       Vec const gridBlockExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
       Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
-      Vec const blockThreadExtent = alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc);
 
       for (unsigned int i_pLS = globalThreadIdx[1]; i_pLS < nPixelSegments; i_pLS += gridThreadExtent[1]) {
         auto iLSModule_max = connectedPixelIndex[i_pLS] + connectedPixelSize[i_pLS];

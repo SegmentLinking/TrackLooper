@@ -905,7 +905,6 @@ namespace SDL {
         int nUpperHits = hitsInGPU.hitRangesnUpper[lowerModuleIndex];
         if (hitsInGPU.hitRangesLower[lowerModuleIndex] == -1)
           continue;
-        const int maxHits = alpaka::math::max(acc, nUpperHits, nLowerHits);
         unsigned int upHitArrayIndex = hitsInGPU.hitRangesUpper[lowerModuleIndex];
         unsigned int loHitArrayIndex = hitsInGPU.hitRangesLower[lowerModuleIndex];
         int limit = nUpperHits * nLowerHits;

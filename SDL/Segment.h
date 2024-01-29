@@ -603,7 +603,6 @@ namespace SDL {
                                 (modulesInGPU.moduleType[outerLowerModuleIndex] == SDL::TwoS);
 
     float sdSlope = alpaka::math::asin(acc, alpaka::math::min(acc, rtOut * k2Rinv1GeVf / ptCut, sinAlphaMax));
-    float sdPVoff = 0.1 / rtOut;
     float disks2SMinRadius = 60.f;
 
     float rtGeom = ((rtIn < disks2SMinRadius && rtOut < disks2SMinRadius)

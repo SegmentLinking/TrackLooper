@@ -348,7 +348,6 @@ namespace SDL {
       return pass;
 
     float drt_OutIn = (rtOut - rtIn);
-    float invRtIn = 1. / rtIn;
 
     float r3In = alpaka::math::sqrt(acc, zIn * zIn + rtIn * rtIn);
     float drt_InSeg = rtMid - rtIn;
@@ -411,14 +410,11 @@ namespace SDL {
     float alpha1GeV_OutLo =
         alpaka::math::asin(acc, alpaka::math::min(acc, rtOut * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax));
 
-    float rtRatio_OutIn = rtOut / rtIn;  // Outer segment beginning rt divided by inner segment beginning rt;
     float dzDrtScale =
         alpaka::math::tan(acc, alpha1GeV_OutLo) / alpha1GeV_OutLo;  // The track can bend in r-z plane slightly
     float zpitchIn = (isPSIn ? SDL::pixelPSZpitch : SDL::strip2SZpitch);
     float zpitchOut = (isPSOut ? SDL::pixelPSZpitch : SDL::strip2SZpitch);
     float zGeom = zpitchIn + zpitchOut;
-
-    float zLo = zIn + (zIn - SDL::deltaZLum) * (rtRatio_OutIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) - zGeom;
 
     // Cut #0: Preliminary (Only here in endcap case)
     pass = pass and (zIn * zOut > 0);
@@ -466,10 +462,6 @@ namespace SDL {
     drtErr +=
         sdlMuls * sdlMuls * multDzDr * multDzDr / 3.f * coshEta * coshEta;  //sloppy: relative muls is 1/3 of total muls
     drtErr = alpaka::math::sqrt(acc, drtErr);
-    const float drtMean = drtSDIn * dzOutInAbs / alpaka::math::abs(acc, dzSDIn);
-    const float rtWindow = drtErr + rtGeom1;
-    const float rtLo_another = rtIn + drtMean / dzDrtScale - rtWindow;
-    const float rtHi_another = rtIn + drtMean + rtWindow;
 
     //Cut #3: rt-z pointed
 
@@ -491,8 +483,6 @@ namespace SDL {
                                                                 float& zOut,
                                                                 float& rtOut) {
     bool pass = true;
-    bool isPSIn = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
-    bool isPSOut = (modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS);
 
     float rtIn = mdsInGPU.anchorRt[firstMDIndex];
     float rtMid = mdsInGPU.anchorRt[secondMDIndex];
@@ -505,15 +495,8 @@ namespace SDL {
     float alpha1GeV_Out =
         alpaka::math::asin(acc, alpaka::math::min(acc, rtOut * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax));
 
-    float rtRatio_OutIn = rtOut / rtIn;  // Outer segment beginning rt divided by inner segment beginning rt;
     float dzDrtScale =
         alpaka::math::tan(acc, alpha1GeV_Out) / alpha1GeV_Out;  // The track can bend in r-z plane slightly
-    float zpitchIn = (isPSIn ? SDL::pixelPSZpitch : SDL::strip2SZpitch);
-    float zpitchOut = (isPSOut ? SDL::pixelPSZpitch : SDL::strip2SZpitch);
-    float zGeom = zpitchIn + zpitchOut;
-
-    const float zLo = zIn + (zIn - SDL::deltaZLum) * (rtRatio_OutIn - 1.f) * (zIn > 0.f ? 1.f : dzDrtScale) -
-                      zGeom;  //slope-correction only on outer end
 
     // Cut #0: Preliminary (Only here in endcap case)
     pass = pass and (zIn * zOut > 0);
@@ -528,7 +511,6 @@ namespace SDL {
                    : (isInSgInnerMDPS or isOutSgOuterMDPS) ? SDL::pixelPSZpitch + SDL::strip2SZpitch
                                                            : 2.f * SDL::strip2SZpitch;
 
-    float zGeom1 = SDL::copysignf(zGeom, zIn);
     float dz = zOut - zIn;
     const float rtLo = rtIn * (1.f + dz / (zIn + dLum) / dzDrtScale) - rtGeom;  //slope correction only on the lower end
     const float rtHi = rtIn * (1.f + dz / (zIn - dLum)) + rtGeom;
@@ -540,7 +522,6 @@ namespace SDL {
 
     bool isInSgOuterMDPS = modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS;
 
-    float drOutIn = rtOut - rtIn;
     float drtSDIn = rtMid - rtIn;
     float dzSDIn = zMid - zIn;
     float dr3SDIn =
@@ -858,10 +839,8 @@ namespace SDL {
 
     float midPointX = 0.5f * (mdsInGPU.anchorX[firstMDIndex] + mdsInGPU.anchorX[thirdMDIndex]);
     float midPointY = 0.5f * (mdsInGPU.anchorY[firstMDIndex] + mdsInGPU.anchorY[thirdMDIndex]);
-    float midPointZ = 0.5f * (mdsInGPU.anchorZ[firstMDIndex] + mdsInGPU.anchorZ[thirdMDIndex]);
     float diffX = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float diffY = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-    float diffZ = mdsInGPU.anchorZ[thirdMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
 
     dPhi = SDL::deltaPhi(acc, midPointX, midPointY, diffX, diffY);
 
@@ -892,7 +871,6 @@ namespace SDL {
 
     float tl_axis_x = mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float tl_axis_y = mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-    float tl_axis_z = mdsInGPU.anchorZ[fourthMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
     float tl_axis_highEdge_x = tl_axis_x;
     float tl_axis_highEdge_y = tl_axis_y;
     float tl_axis_lowEdge_x = tl_axis_x;
@@ -937,10 +915,6 @@ namespace SDL {
 
     //beta computation
     float drt_tl_axis = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
-    float drt_tl_lowEdge =
-        alpaka::math::sqrt(acc, tl_axis_lowEdge_x * tl_axis_lowEdge_x + tl_axis_lowEdge_y * tl_axis_lowEdge_y);
-    float drt_tl_highEdge =
-        alpaka::math::sqrt(acc, tl_axis_highEdge_x * tl_axis_highEdge_x + tl_axis_highEdge_y * tl_axis_highEdge_y);
 
     float corrF = 1.f;
     //innerOuterAnchor - innerInnerAnchor
@@ -971,8 +945,6 @@ namespace SDL {
                                             (mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]) *
                                                 (mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]));
     float sdOut_d = mdsInGPU.anchorRt[fourthMDIndex] - mdsInGPU.anchorRt[thirdMDIndex];
-
-    const float diffDr = alpaka::math::abs(acc, rt_InSeg - sdOut_dr) / alpaka::math::abs(acc, rt_InSeg + sdOut_dr);
 
     runDeltaBetaIterationsT3(acc, betaIn, betaOut, betaAv, pt_beta, rt_InSeg, sdOut_dr, drt_tl_axis, lIn);
 
@@ -1032,8 +1004,6 @@ namespace SDL {
     if (not pass)
       return pass;
 
-    float pt_betaIn = drt_tl_axis * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaIn);
-    float pt_betaOut = drt_tl_axis * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaOut);
     float dBetaRes = 0.02f / alpaka::math::min(acc, sdOut_d, drt_InSeg);
     float dBetaCut2 =
         (dBetaRes * dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2 +
@@ -1151,10 +1121,6 @@ namespace SDL {
     drtErr +=
         sdlMuls * sdlMuls * multDzDr * multDzDr / 3.f * coshEta * coshEta;  //sloppy: relative muls is 1/3 of total muls
     drtErr = alpaka::math::sqrt(acc, drtErr);
-    const float drtMean = drtSDIn * dzOutInAbs / alpaka::math::abs(acc, dzSDIn);
-    const float rtWindow = drtErr + rtGeom1;
-    const float rtLo_another = rt_InLo + drtMean / dzDrtScale - rtWindow;
-    const float rtHi_another = rt_InLo + drtMean + rtWindow;
 
     //Cut #3: rt-z pointed
     pass = pass and ((kZ >= 0) && (rtOut >= rtLo) && (rtOut <= rtHi));
@@ -1173,10 +1139,8 @@ namespace SDL {
 
     float midPointX = 0.5f * (mdsInGPU.anchorX[firstMDIndex] + mdsInGPU.anchorX[thirdMDIndex]);
     float midPointY = 0.5f * (mdsInGPU.anchorY[firstMDIndex] + mdsInGPU.anchorY[thirdMDIndex]);
-    float midPointZ = 0.5f * (mdsInGPU.anchorZ[firstMDIndex] + mdsInGPU.anchorZ[thirdMDIndex]);
     float diffX = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float diffY = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-    float diffZ = mdsInGPU.anchorZ[thirdMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
 
     dPhi = SDL::deltaPhi(acc, midPointX, midPointY, diffX, diffY);
     // Cut #5: deltaPhiChange
@@ -1202,7 +1166,6 @@ namespace SDL {
 
     float tl_axis_x = mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float tl_axis_y = mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-    float tl_axis_z = mdsInGPU.anchorZ[fourthMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
 
     betaIn = sdIn_alpha - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
 
@@ -1327,8 +1290,6 @@ namespace SDL {
     if (not pass)
       return pass;
 
-    float pt_betaIn = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaIn);
-    float pt_betaOut = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaOut);
     float dBetaRes = 0.02f / alpaka::math::min(acc, sdOut_d, sdIn_d);
     float dBetaCut2 =
         (dBetaRes * dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2 +
@@ -1412,7 +1373,6 @@ namespace SDL {
                    : (isInSgInnerMDPS or isOutSgInnerMDPS) ? SDL::pixelPSZpitch + SDL::strip2SZpitch
                                                            : 2.f * SDL::strip2SZpitch;
 
-    float zGeom1 = SDL::copysignf(zGeom, z_InLo);
     float dz = z_OutLo - z_InLo;
     rtLo = rt_InLo * (1.f + dz / (z_InLo + dLum) / dzDrtScale) - rtGeom;  //slope correction only on the lower end
 
@@ -1429,7 +1389,6 @@ namespace SDL {
 
     bool isInSgOuterMDPS = modulesInGPU.moduleType[innerOuterLowerModuleIndex] == SDL::PS;
 
-    float drOutIn = rtOut - rt_InLo;
     const float drtSDIn = rt_InOut - rt_InLo;
     const float dzSDIn = z_InOut - z_InLo;
     const float dr3SDIn = alpaka::math::sqrt(acc, rt_InOut * rt_InOut + z_InOut * z_InOut) -
@@ -1474,10 +1433,8 @@ namespace SDL {
 
     float midPointX = 0.5f * (mdsInGPU.anchorX[firstMDIndex] + mdsInGPU.anchorX[thirdMDIndex]);
     float midPointY = 0.5f * (mdsInGPU.anchorY[firstMDIndex] + mdsInGPU.anchorY[thirdMDIndex]);
-    float midPointZ = 0.5f * (mdsInGPU.anchorZ[firstMDIndex] + mdsInGPU.anchorZ[thirdMDIndex]);
     float diffX = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float diffY = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-    float diffZ = mdsInGPU.anchorZ[thirdMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
 
     dPhi = SDL::deltaPhi(acc, midPointX, midPointY, diffX, diffY);
 
@@ -1500,7 +1457,6 @@ namespace SDL {
 
     float tl_axis_x = mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float tl_axis_y = mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-    float tl_axis_z = mdsInGPU.anchorZ[fourthMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
 
     betaIn = sdIn_alpha - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
 
@@ -1559,8 +1515,6 @@ namespace SDL {
                                                 (mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]));
     float sdOut_d = mdsInGPU.anchorRt[fourthMDIndex] - mdsInGPU.anchorRt[thirdMDIndex];
 
-    float diffDr = alpaka::math::abs(acc, sdIn_dr - sdOut_dr) / alpaka::math::abs(acc, sdIn_dr + sdOut_dr);
-
     runDeltaBetaIterationsT3(acc, betaIn, betaOut, betaAv, pt_beta, sdIn_dr, sdOut_dr, dr, lIn);
 
     const float betaInMMSF = (alpaka::math::abs(acc, betaInRHmin + betaInRHmax) > 0)
@@ -1590,7 +1544,6 @@ namespace SDL {
     const float dBetaInLum = lIn < 11 ? 0.0f : alpaka::math::abs(acc, alphaInAbsReg * SDL::deltaZLum / z_InLo);
     const float dBetaOutLum = lOut < 11 ? 0.0f : alpaka::math::abs(acc, alphaOutAbsReg * SDL::deltaZLum / z_OutLo);
     const float dBetaLum2 = (dBetaInLum + dBetaOutLum) * (dBetaInLum + dBetaOutLum);
-    const float sinDPhi = alpaka::math::sin(acc, dPhi);
 
     const float dBetaRIn2 = 0;  // TODO-RH
     // const float dBetaROut2 = 0; // TODO-RH
@@ -1606,8 +1559,6 @@ namespace SDL {
     if (not pass)
       return pass;
 
-    float pt_betaIn = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaIn);
-    float pt_betaOut = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaOut);
     float dBetaRes = 0.02f / alpaka::math::min(acc, sdOut_d, sdIn_d);
     float dBetaCut2 =
         (dBetaRes * dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2 +
