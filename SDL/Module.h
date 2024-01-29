@@ -323,9 +323,8 @@ namespace SDL {
           isAnchor_buf(allocBufWrapper<bool>(devAccIn, nMod)),
           moduleType_buf(allocBufWrapper<ModuleType>(devAccIn, nMod)),
           moduleLayerType_buf(allocBufWrapper<ModuleLayerType>(devAccIn, nMod)),
-          sdlLayers_buf(allocBufWrapper<int>(devAccIn, nMod)),
-
-          connectedPixels_buf(allocBufWrapper<unsigned int>(devAccIn, nPixs)) {}
+          connectedPixels_buf(allocBufWrapper<unsigned int>(devAccIn, nPixs)),
+          sdlLayers_buf(allocBufWrapper<int>(devAccIn, nMod)) {}
   };
 
   // PixelMap is never allocated on the device.

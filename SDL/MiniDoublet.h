@@ -165,6 +165,8 @@ namespace SDL {
           anchorHighEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
           anchorLowEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
           anchorLowEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
+          anchorLowEdgePhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
+          anchorHighEdgePhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
           outerX_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
           outerY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
           outerZ_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
@@ -174,9 +176,7 @@ namespace SDL {
           outerHighEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
           outerHighEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
           outerLowEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
-          outerLowEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
-          anchorLowEdgePhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
-          anchorHighEdgePhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)) {
+          outerLowEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)) {
       alpaka::memset(queue, nMDs_buf, 0u);
       alpaka::memset(queue, totOccupancyMDs_buf, 0u);
       alpaka::wait(queue);
