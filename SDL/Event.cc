@@ -269,7 +269,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,
                                         std::vector<int> superbin,
                                         std::vector<int8_t> pixelType,
                                         std::vector<char> isQuad) {
-  int size = ptIn.size();
+  unsigned int size = ptIn.size();
 
   if (size > N_MAX_PIXEL_SEGMENTS_PER_MODULE) {
     printf(
@@ -280,7 +280,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,
     size = N_MAX_PIXEL_SEGMENTS_PER_MODULE;
   }
 
-  int mdSize = 2 * size;
+  unsigned int mdSize = 2 * size;
   uint16_t pixelModuleIndex = (*detIdToIndex)[1];
 
   if (mdsInGPU == nullptr) {
@@ -583,11 +583,11 @@ void SDL::Event::createTriplets() {
   auto index_gpu_buf = allocBufWrapper<uint16_t>(devAcc, nLowerModules, queue);
 
   // Allocate and copy nSegments from device to host
-  auto nSegments_buf = allocBufWrapper<int>(devHost, nLowerModules, queue);
+  auto nSegments_buf = allocBufWrapper<unsigned int>(devHost, nLowerModules, queue);
   alpaka::memcpy(queue, nSegments_buf, segmentsBuffers->nSegments_buf, nLowerModules);
   alpaka::wait(queue);
 
-  int* nSegments = alpaka::getPtrNative(nSegments_buf);
+  unsigned int* nSegments = alpaka::getPtrNative(nSegments_buf);
 
   // Allocate and copy module_nConnectedModules from device to host
   auto module_nConnectedModules_buf = allocBufWrapper<uint16_t>(devHost, nLowerModules, queue);
@@ -787,10 +787,10 @@ void SDL::Event::createTrackCandidates() {
   alpaka::enqueue(queue, addpLSasTrackCandidateInGPUTask);
 
   // Check if either N_MAX_PIXEL_TRACK_CANDIDATES or N_MAX_NONPIXEL_TRACK_CANDIDATES was reached
-  auto nTrackCanpT5Host_buf = allocBufWrapper<int>(devHost, 1, queue);
-  auto nTrackCanpT3Host_buf = allocBufWrapper<int>(devHost, 1, queue);
-  auto nTrackCanpLSHost_buf = allocBufWrapper<int>(devHost, 1, queue);
-  auto nTrackCanT5Host_buf = allocBufWrapper<int>(devHost, 1, queue);
+  auto nTrackCanpT5Host_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
+  auto nTrackCanpT3Host_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
+  auto nTrackCanpLSHost_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
+  auto nTrackCanT5Host_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
   alpaka::memcpy(queue, nTrackCanpT5Host_buf, trackCandidatesBuffers->nTrackCandidatespT5_buf, 1);
   alpaka::memcpy(queue, nTrackCanpT3Host_buf, trackCandidatesBuffers->nTrackCandidatespT3_buf, 1);
   alpaka::memcpy(queue, nTrackCanpLSHost_buf, trackCandidatesBuffers->nTrackCandidatespLS_buf, 1);
@@ -819,7 +819,7 @@ void SDL::Event::createPixelTriplets() {
     pixelTripletsInGPU->setData(*pixelTripletsBuffers);
   }
 
-  int nInnerSegments;
+  unsigned int nInnerSegments;
   auto nInnerSegments_src_view = alpaka::createView(devHost, &nInnerSegments, (size_t)1u);
 
   auto dev_view_nSegments = alpaka::createSubView(segmentsBuffers->nSegments_buf, (Idx)1u, (Idx)nLowerModules);
@@ -1052,7 +1052,7 @@ void SDL::Event::createPixelQuintuplets() {
     trackCandidatesInGPU->setData(*trackCandidatesBuffers);
   }
 
-  int nInnerSegments;
+  unsigned int nInnerSegments;
   auto nInnerSegments_src_view = alpaka::createView(devHost, &nInnerSegments, (size_t)1u);
 
   // Create a sub-view for the device buffer
@@ -1177,7 +1177,7 @@ void SDL::Event::createPixelQuintuplets() {
 }
 
 void SDL::Event::addMiniDoubletsToEventExplicit() {
-  auto nMDsCPU_buf = allocBufWrapper<int>(devHost, nLowerModules, queue);
+  auto nMDsCPU_buf = allocBufWrapper<unsigned int>(devHost, nLowerModules, queue);
   alpaka::memcpy(queue, nMDsCPU_buf, miniDoubletsBuffers->nMDs_buf, nLowerModules);
 
   auto module_subdets_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
@@ -1191,7 +1191,7 @@ void SDL::Event::addMiniDoubletsToEventExplicit() {
 
   alpaka::wait(queue);
 
-  int* nMDsCPU = alpaka::getPtrNative(nMDsCPU_buf);
+  unsigned int* nMDsCPU = alpaka::getPtrNative(nMDsCPU_buf);
   short* module_subdets = alpaka::getPtrNative(module_subdets_buf);
   short* module_layers = alpaka::getPtrNative(module_layers_buf);
   int* module_hitRanges = alpaka::getPtrNative(module_hitRanges_buf);
@@ -1208,7 +1208,7 @@ void SDL::Event::addMiniDoubletsToEventExplicit() {
 }
 
 void SDL::Event::addSegmentsToEventExplicit() {
-  auto nSegmentsCPU_buf = allocBufWrapper<int>(devHost, nLowerModules, queue);
+  auto nSegmentsCPU_buf = allocBufWrapper<unsigned int>(devHost, nLowerModules, queue);
   alpaka::memcpy(queue, nSegmentsCPU_buf, segmentsBuffers->nSegments_buf, nLowerModules);
 
   auto module_subdets_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
@@ -1219,7 +1219,7 @@ void SDL::Event::addSegmentsToEventExplicit() {
 
   alpaka::wait(queue);
 
-  int* nSegmentsCPU = alpaka::getPtrNative(nSegmentsCPU_buf);
+  unsigned int* nSegmentsCPU = alpaka::getPtrNative(nSegmentsCPU_buf);
   short* module_subdets = alpaka::getPtrNative(module_subdets_buf);
   short* module_layers = alpaka::getPtrNative(module_layers_buf);
 
@@ -1235,7 +1235,7 @@ void SDL::Event::addSegmentsToEventExplicit() {
 }
 
 void SDL::Event::addQuintupletsToEventExplicit() {
-  auto nQuintupletsCPU_buf = allocBufWrapper<int>(devHost, nLowerModules, queue);
+  auto nQuintupletsCPU_buf = allocBufWrapper<unsigned int>(devHost, nLowerModules, queue);
   alpaka::memcpy(queue, nQuintupletsCPU_buf, quintupletsBuffers->nQuintuplets_buf, nLowerModules);
 
   auto module_subdets_buf = allocBufWrapper<short>(devHost, nModules, queue);
@@ -1249,7 +1249,7 @@ void SDL::Event::addQuintupletsToEventExplicit() {
 
   alpaka::wait(queue);
 
-  int* nQuintupletsCPU = alpaka::getPtrNative(nQuintupletsCPU_buf);
+  unsigned int* nQuintupletsCPU = alpaka::getPtrNative(nQuintupletsCPU_buf);
   short* module_subdets = alpaka::getPtrNative(module_subdets_buf);
   short* module_layers = alpaka::getPtrNative(module_layers_buf);
   int* module_quintupletModuleIndices = alpaka::getPtrNative(module_quintupletModuleIndices_buf);
@@ -1266,7 +1266,7 @@ void SDL::Event::addQuintupletsToEventExplicit() {
 }
 
 void SDL::Event::addTripletsToEventExplicit() {
-  auto nTripletsCPU_buf = allocBufWrapper<int>(devHost, nLowerModules, queue);
+  auto nTripletsCPU_buf = allocBufWrapper<unsigned int>(devHost, nLowerModules, queue);
   alpaka::memcpy(queue, nTripletsCPU_buf, tripletsBuffers->nTriplets_buf, nLowerModules);
 
   auto module_subdets_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
@@ -1276,7 +1276,7 @@ void SDL::Event::addTripletsToEventExplicit() {
   alpaka::memcpy(queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
 
   alpaka::wait(queue);
-  int* nTripletsCPU = alpaka::getPtrNative(nTripletsCPU_buf);
+  unsigned int* nTripletsCPU = alpaka::getPtrNative(nTripletsCPU_buf);
   short* module_subdets = alpaka::getPtrNative(module_subdets_buf);
   short* module_layers = alpaka::getPtrNative(module_layers_buf);
 
@@ -1396,7 +1396,7 @@ unsigned int SDL::Event::getNumberOfTripletsByLayerEndcap(unsigned int layer) {
 }
 
 int SDL::Event::getNumberOfPixelTriplets() {
-  auto nPixelTriplets_buf = allocBufWrapper<int>(devHost, 1, queue);
+  auto nPixelTriplets_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
 
   alpaka::memcpy(queue, nPixelTriplets_buf, pixelTripletsBuffers->nPixelTriplets_buf, 1);
   alpaka::wait(queue);
@@ -1407,7 +1407,7 @@ int SDL::Event::getNumberOfPixelTriplets() {
 }
 
 int SDL::Event::getNumberOfPixelQuintuplets() {
-  auto nPixelQuintuplets_buf = allocBufWrapper<int>(devHost, 1, queue);
+  auto nPixelQuintuplets_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
 
   alpaka::memcpy(queue, nPixelQuintuplets_buf, pixelQuintupletsBuffers->nPixelQuintuplets_buf, 1);
   alpaka::wait(queue);
@@ -1445,7 +1445,7 @@ unsigned int SDL::Event::getNumberOfQuintupletsByLayerEndcap(unsigned int layer)
 }
 
 int SDL::Event::getNumberOfTrackCandidates() {
-  auto nTrackCandidates_buf = allocBufWrapper<int>(devHost, 1, queue);
+  auto nTrackCandidates_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
 
   alpaka::memcpy(queue, nTrackCandidates_buf, trackCandidatesBuffers->nTrackCandidates_buf, 1);
   alpaka::wait(queue);
@@ -1456,7 +1456,7 @@ int SDL::Event::getNumberOfTrackCandidates() {
 }
 
 int SDL::Event::getNumberOfPT5TrackCandidates() {
-  auto nTrackCandidatesPT5_buf = allocBufWrapper<int>(devHost, 1, queue);
+  auto nTrackCandidatesPT5_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
 
   alpaka::memcpy(queue, nTrackCandidatesPT5_buf, trackCandidatesBuffers->nTrackCandidatespT5_buf, 1);
   alpaka::wait(queue);
@@ -1467,7 +1467,7 @@ int SDL::Event::getNumberOfPT5TrackCandidates() {
 }
 
 int SDL::Event::getNumberOfPT3TrackCandidates() {
-  auto nTrackCandidatesPT3_buf = allocBufWrapper<int>(devHost, 1, queue);
+  auto nTrackCandidatesPT3_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
 
   alpaka::memcpy(queue, nTrackCandidatesPT3_buf, trackCandidatesBuffers->nTrackCandidatespT3_buf, 1);
   alpaka::wait(queue);
@@ -1478,7 +1478,7 @@ int SDL::Event::getNumberOfPT3TrackCandidates() {
 }
 
 int SDL::Event::getNumberOfPLSTrackCandidates() {
-  auto nTrackCandidatesPLS_buf = allocBufWrapper<int>(devHost, 1, queue);
+  auto nTrackCandidatesPLS_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
 
   alpaka::memcpy(queue, nTrackCandidatesPLS_buf, trackCandidatesBuffers->nTrackCandidatespLS_buf, 1);
   alpaka::wait(queue);
@@ -1489,8 +1489,8 @@ int SDL::Event::getNumberOfPLSTrackCandidates() {
 }
 
 int SDL::Event::getNumberOfPixelTrackCandidates() {
-  auto nTrackCandidates_buf = allocBufWrapper<int>(devHost, 1, queue);
-  auto nTrackCandidatesT5_buf = allocBufWrapper<int>(devHost, 1, queue);
+  auto nTrackCandidates_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
+  auto nTrackCandidatesT5_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
 
   alpaka::memcpy(queue, nTrackCandidates_buf, trackCandidatesBuffers->nTrackCandidates_buf, 1);
   alpaka::memcpy(queue, nTrackCandidatesT5_buf, trackCandidatesBuffers->nTrackCandidatesT5_buf, 1);
@@ -1503,7 +1503,7 @@ int SDL::Event::getNumberOfPixelTrackCandidates() {
 }
 
 int SDL::Event::getNumberOfT5TrackCandidates() {
-  auto nTrackCandidatesT5_buf = allocBufWrapper<int>(devHost, 1, queue);
+  auto nTrackCandidatesT5_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
 
   alpaka::memcpy(queue, nTrackCandidatesT5_buf, trackCandidatesBuffers->nTrackCandidatesT5_buf, 1);
   alpaka::wait(queue);
@@ -1712,7 +1712,7 @@ SDL::quintupletsBuffer<alpaka::DevCpu>* SDL::Event::getQuintuplets() {
 SDL::pixelTripletsBuffer<alpaka::DevCpu>* SDL::Event::getPixelTriplets() {
   if (pixelTripletsInCPU == nullptr) {
     // Get nPixelTriplets parameter to initialize host based quintupletsInCPU
-    auto nPixelTriplets_buf = allocBufWrapper<int>(devHost, 1, queue);
+    auto nPixelTriplets_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
     alpaka::memcpy(queue, nPixelTriplets_buf, pixelTripletsBuffers->nPixelTriplets_buf, 1);
     alpaka::wait(queue);
 
@@ -1753,7 +1753,7 @@ SDL::pixelTripletsBuffer<alpaka::DevCpu>* SDL::Event::getPixelTriplets() {
 SDL::pixelQuintupletsBuffer<alpaka::DevCpu>* SDL::Event::getPixelQuintuplets() {
   if (pixelQuintupletsInCPU == nullptr) {
     // Get nPixelQuintuplets parameter to initialize host based quintupletsInCPU
-    auto nPixelQuintuplets_buf = allocBufWrapper<int>(devHost, 1, queue);
+    auto nPixelQuintuplets_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
     alpaka::memcpy(queue, nPixelQuintuplets_buf, pixelQuintupletsBuffers->nPixelQuintuplets_buf, 1);
     alpaka::wait(queue);
 
@@ -1790,7 +1790,7 @@ SDL::pixelQuintupletsBuffer<alpaka::DevCpu>* SDL::Event::getPixelQuintuplets() {
 SDL::trackCandidatesBuffer<alpaka::DevCpu>* SDL::Event::getTrackCandidates() {
   if (trackCandidatesInCPU == nullptr) {
     // Get nTrackCanHost parameter to initialize host based trackCandidatesInCPU
-    auto nTrackCanHost_buf = allocBufWrapper<int>(devHost, 1, queue);
+    auto nTrackCanHost_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
     alpaka::memcpy(queue, nTrackCanHost_buf, trackCandidatesBuffers->nTrackCandidates_buf, 1);
     alpaka::wait(queue);
 
@@ -1824,7 +1824,7 @@ SDL::trackCandidatesBuffer<alpaka::DevCpu>* SDL::Event::getTrackCandidates() {
 SDL::trackCandidatesBuffer<alpaka::DevCpu>* SDL::Event::getTrackCandidatesInCMSSW() {
   if (trackCandidatesInCPU == nullptr) {
     // Get nTrackCanHost parameter to initialize host based trackCandidatesInCPU
-    auto nTrackCanHost_buf = allocBufWrapper<int>(devHost, 1, queue);
+    auto nTrackCanHost_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
     alpaka::memcpy(queue, nTrackCanHost_buf, trackCandidatesBuffers->nTrackCandidates_buf, 1);
     alpaka::wait(queue);
 

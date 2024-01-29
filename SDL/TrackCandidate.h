@@ -15,11 +15,11 @@ namespace SDL {
     short* trackCandidateType;          // 4-T5 5-pT3 7-pT5 8-pLS
     unsigned int* directObjectIndices;  // Will hold direct indices to each type containers
     unsigned int* objectIndices;        // Will hold tracklet and  triplet indices - check the type!!
-    int* nTrackCandidates;
-    int* nTrackCandidatespT3;
-    int* nTrackCandidatespT5;
-    int* nTrackCandidatespLS;
-    int* nTrackCandidatesT5;
+    unsigned int* nTrackCandidates;
+    unsigned int* nTrackCandidatespT3;
+    unsigned int* nTrackCandidatespT5;
+    unsigned int* nTrackCandidatespLS;
+    unsigned int* nTrackCandidatesT5;
 
     uint8_t* logicalLayers;
     unsigned int* hitIndices;
@@ -57,11 +57,11 @@ namespace SDL {
     Buf<TAcc, short> trackCandidateType_buf;
     Buf<TAcc, unsigned int> directObjectIndices_buf;
     Buf<TAcc, unsigned int> objectIndices_buf;
-    Buf<TAcc, int> nTrackCandidates_buf;
-    Buf<TAcc, int> nTrackCandidatespT3_buf;
-    Buf<TAcc, int> nTrackCandidatespT5_buf;
-    Buf<TAcc, int> nTrackCandidatespLS_buf;
-    Buf<TAcc, int> nTrackCandidatesT5_buf;
+    Buf<TAcc, unsigned int> nTrackCandidates_buf;
+    Buf<TAcc, unsigned int> nTrackCandidatespT3_buf;
+    Buf<TAcc, unsigned int> nTrackCandidatespT5_buf;
+    Buf<TAcc, unsigned int> nTrackCandidatespLS_buf;
+    Buf<TAcc, unsigned int> nTrackCandidatesT5_buf;
 
     Buf<TAcc, uint8_t> logicalLayers_buf;
     Buf<TAcc, unsigned int> hitIndices_buf;
@@ -77,11 +77,11 @@ namespace SDL {
         : trackCandidateType_buf(allocBufWrapper<short>(devAccIn, maxTrackCandidates, queue)),
           directObjectIndices_buf(allocBufWrapper<unsigned int>(devAccIn, maxTrackCandidates, queue)),
           objectIndices_buf(allocBufWrapper<unsigned int>(devAccIn, 2 * maxTrackCandidates, queue)),
-          nTrackCandidates_buf(allocBufWrapper<int>(devAccIn, 1, queue)),
-          nTrackCandidatespT3_buf(allocBufWrapper<int>(devAccIn, 1, queue)),
-          nTrackCandidatespT5_buf(allocBufWrapper<int>(devAccIn, 1, queue)),
-          nTrackCandidatespLS_buf(allocBufWrapper<int>(devAccIn, 1, queue)),
-          nTrackCandidatesT5_buf(allocBufWrapper<int>(devAccIn, 1, queue)),
+          nTrackCandidates_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
+          nTrackCandidatespT3_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
+          nTrackCandidatespT5_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
+          nTrackCandidatespLS_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
+          nTrackCandidatesT5_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
           logicalLayers_buf(allocBufWrapper<uint8_t>(devAccIn, 7 * maxTrackCandidates, queue)),
           hitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, 14 * maxTrackCandidates, queue)),
           pixelSeedIndex_buf(allocBufWrapper<int>(devAccIn, maxTrackCandidates, queue)),
@@ -89,15 +89,15 @@ namespace SDL {
           centerX_buf(allocBufWrapper<FPX>(devAccIn, maxTrackCandidates, queue)),
           centerY_buf(allocBufWrapper<FPX>(devAccIn, maxTrackCandidates, queue)),
           radius_buf(allocBufWrapper<FPX>(devAccIn, maxTrackCandidates, queue)) {
-      alpaka::memset(queue, nTrackCandidates_buf, 0, 1);
-      alpaka::memset(queue, nTrackCandidatesT5_buf, 0, 1);
-      alpaka::memset(queue, nTrackCandidatespT3_buf, 0, 1);
-      alpaka::memset(queue, nTrackCandidatespT5_buf, 0, 1);
-      alpaka::memset(queue, nTrackCandidatespLS_buf, 0, 1);
-      alpaka::memset(queue, logicalLayers_buf, 0, 7 * maxTrackCandidates);
-      alpaka::memset(queue, lowerModuleIndices_buf, 0, 7 * maxTrackCandidates);
-      alpaka::memset(queue, hitIndices_buf, 0, 14 * maxTrackCandidates);
-      alpaka::memset(queue, pixelSeedIndex_buf, 0, maxTrackCandidates);
+      alpaka::memset(queue, nTrackCandidates_buf, 0u);
+      alpaka::memset(queue, nTrackCandidatesT5_buf, 0u);
+      alpaka::memset(queue, nTrackCandidatespT3_buf, 0u);
+      alpaka::memset(queue, nTrackCandidatespT5_buf, 0u);
+      alpaka::memset(queue, nTrackCandidatespLS_buf, 0u);
+      alpaka::memset(queue, logicalLayers_buf, 0u);
+      alpaka::memset(queue, lowerModuleIndices_buf, 0u);
+      alpaka::memset(queue, hitIndices_buf, 0u);
+      alpaka::memset(queue, pixelSeedIndex_buf, 0);
       alpaka::wait(queue);
     }
   };
@@ -211,7 +211,7 @@ namespace SDL {
       Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
       unsigned int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets;
-      for (int pixelTripletIndex = globalThreadIdx[2]; pixelTripletIndex < nPixelTriplets;
+      for (unsigned int pixelTripletIndex = globalThreadIdx[2]; pixelTripletIndex < nPixelTriplets;
            pixelTripletIndex += gridThreadExtent[2]) {
         if (pixelTripletsInGPU.isDup[pixelTripletIndex])
           continue;
@@ -224,7 +224,7 @@ namespace SDL {
         unsigned int prefix = rangesInGPU.segmentModuleIndices[pixelModuleIndex];
 
         unsigned int nPixelQuintuplets = *pixelQuintupletsInGPU.nPixelQuintuplets;
-        for (int pixelQuintupletIndex = globalThreadIdx[1]; pixelQuintupletIndex < nPixelQuintuplets;
+        for (unsigned int pixelQuintupletIndex = globalThreadIdx[1]; pixelQuintupletIndex < nPixelQuintuplets;
              pixelQuintupletIndex += gridThreadExtent[1]) {
           unsigned int pLS_jx = pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex];
           float eta2 = segmentsInGPU.eta[pLS_jx - prefix];
@@ -262,16 +262,16 @@ namespace SDL {
           continue;
 
         unsigned int nQuints = quintupletsInGPU.nQuintuplets[innerInnerInnerLowerModuleArrayIndex];
-        for (int innerObjectArrayIndex = globalThreadIdx[1]; innerObjectArrayIndex < nQuints;
+        for (unsigned int innerObjectArrayIndex = globalThreadIdx[1]; innerObjectArrayIndex < nQuints;
              innerObjectArrayIndex += gridThreadExtent[1]) {
-          int quintupletIndex =
+          unsigned int quintupletIndex =
               rangesInGPU.quintupletModuleIndices[innerInnerInnerLowerModuleArrayIndex] + innerObjectArrayIndex;
 
           // Don't add duplicate T5s or T5s that are accounted in pT5s
           if (quintupletsInGPU.isDup[quintupletIndex] or quintupletsInGPU.partOfPT5[quintupletIndex])
             continue;
 #ifdef Crossclean_T5
-          int loop_bound = *pixelQuintupletsInGPU.nPixelQuintuplets + *pixelTripletsInGPU.nPixelTriplets;
+          unsigned int loop_bound = *pixelQuintupletsInGPU.nPixelQuintuplets + *pixelTripletsInGPU.nPixelTriplets;
           // Cross cleaning step
           float eta1 = __H2F(quintupletsInGPU.eta[quintupletIndex]);
           float phi1 = __H2F(quintupletsInGPU.phi[quintupletIndex]);
@@ -321,7 +321,7 @@ namespace SDL {
 
       int pixelModuleIndex = *modulesInGPU.nLowerModules;
       unsigned int nPixels = segmentsInGPU.nSegments[pixelModuleIndex];
-      for (int pixelArrayIndex = globalThreadIdx[2]; pixelArrayIndex < nPixels;
+      for (unsigned int pixelArrayIndex = globalThreadIdx[2]; pixelArrayIndex < nPixels;
            pixelArrayIndex += gridThreadExtent[2]) {
         if (!segmentsInGPU.isQuad[pixelArrayIndex] || segmentsInGPU.isDup[pixelArrayIndex])
           continue;
@@ -330,8 +330,8 @@ namespace SDL {
         float phi1 = segmentsInGPU.phi[pixelArrayIndex];
         unsigned int prefix = rangesInGPU.segmentModuleIndices[pixelModuleIndex];
 
-        int nTrackCandidates = *(trackCandidatesInGPU.nTrackCandidates);
-        for (int trackCandidateIndex = globalThreadIdx[1]; trackCandidateIndex < nTrackCandidates;
+        unsigned int nTrackCandidates = *(trackCandidatesInGPU.nTrackCandidates);
+        for (unsigned int trackCandidateIndex = globalThreadIdx[1]; trackCandidateIndex < nTrackCandidates;
              trackCandidateIndex += gridThreadExtent[1]) {
           short type = trackCandidatesInGPU.trackCandidateType[trackCandidateIndex];
           unsigned int innerTrackletIdx = trackCandidatesInGPU.objectIndices[2 * trackCandidateIndex];
@@ -403,23 +403,23 @@ namespace SDL {
 
       unsigned int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets;
       unsigned int pLS_offset = rangesInGPU.segmentModuleIndices[nLowerModules];
-      for (int pixelTripletIndex = globalThreadIdx[2]; pixelTripletIndex < nPixelTriplets;
+      for (unsigned int pixelTripletIndex = globalThreadIdx[2]; pixelTripletIndex < nPixelTriplets;
            pixelTripletIndex += gridThreadExtent[2]) {
         if ((pixelTripletsInGPU.isDup[pixelTripletIndex]))
           continue;
 
         unsigned int trackCandidateIdx =
-            alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidates, 1);
+            alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidates, 1u);
         if (trackCandidateIdx >= N_MAX_PIXEL_TRACK_CANDIDATES)  // This is done before any non-pixel TCs are added
         {
 #ifdef Warnings
           printf("Track Candidate excess alert! Type = pT3");
 #endif
-          alpaka::atomicOp<alpaka::AtomicSub>(acc, trackCandidatesInGPU.nTrackCandidates, 1);
+          alpaka::atomicOp<alpaka::AtomicSub>(acc, trackCandidatesInGPU.nTrackCandidates, 1u);
           break;
 
         } else {
-          alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatespT3, 1);
+          alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatespT3, 1u);
 
           float radius = 0.5f * (__H2F(pixelTripletsInGPU.pixelRadius[pixelTripletIndex]) +
                                  __H2F(pixelTripletsInGPU.tripletRadius[pixelTripletIndex]));
@@ -461,15 +461,15 @@ namespace SDL {
           continue;
 
         unsigned int nQuints = quintupletsInGPU.nQuintuplets[idx];
-        for (int jdx = globalThreadIdx[2]; jdx < nQuints; jdx += gridThreadExtent[2]) {
-          int quintupletIndex = rangesInGPU.quintupletModuleIndices[idx] + jdx;
+        for (unsigned int jdx = globalThreadIdx[2]; jdx < nQuints; jdx += gridThreadExtent[2]) {
+          unsigned int quintupletIndex = rangesInGPU.quintupletModuleIndices[idx] + jdx;
           if (quintupletsInGPU.isDup[quintupletIndex] or quintupletsInGPU.partOfPT5[quintupletIndex])
             continue;
           if (!(quintupletsInGPU.TightCutFlag[quintupletIndex]))
             continue;
 
           unsigned int trackCandidateIdx =
-              alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidates, 1);
+              alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidates, 1u);
           if (trackCandidateIdx - *trackCandidatesInGPU.nTrackCandidatespT5 -
                   *trackCandidatesInGPU.nTrackCandidatespT3 >=
               N_MAX_NONPIXEL_TRACK_CANDIDATES)  // pT5 and pT3 TCs have been added, but not pLS TCs
@@ -477,10 +477,10 @@ namespace SDL {
 #ifdef Warnings
             printf("Track Candidate excess alert! Type = T5");
 #endif
-            alpaka::atomicOp<alpaka::AtomicSub>(acc, trackCandidatesInGPU.nTrackCandidates, 1);
+            alpaka::atomicOp<alpaka::AtomicSub>(acc, trackCandidatesInGPU.nTrackCandidates, 1u);
             break;
           } else {
-            alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatesT5, 1);
+            alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatesT5, 1u);
             addTrackCandidateToMemory(trackCandidatesInGPU,
                                       4 /*track candidate type T5=4*/,
                                       quintupletIndex,
@@ -514,7 +514,7 @@ namespace SDL {
       Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
       unsigned int nPixels = segmentsInGPU.nSegments[nLowerModules];
-      for (int pixelArrayIndex = globalThreadIdx[2]; pixelArrayIndex < nPixels;
+      for (unsigned int pixelArrayIndex = globalThreadIdx[2]; pixelArrayIndex < nPixels;
            pixelArrayIndex += gridThreadExtent[2]) {
 #ifdef TC_PLS_TRIPLETS
         if (segmentsInGPU.isDup[pixelArrayIndex])
@@ -524,18 +524,18 @@ namespace SDL {
           continue;
 
         unsigned int trackCandidateIdx =
-            alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidates, 1);
+            alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidates, 1u);
         if (trackCandidateIdx - *trackCandidatesInGPU.nTrackCandidatesT5 >=
             N_MAX_PIXEL_TRACK_CANDIDATES)  // T5 TCs have already been added
         {
 #ifdef Warnings
           printf("Track Candidate excess alert! Type = pLS");
 #endif
-          alpaka::atomicOp<alpaka::AtomicSub>(acc, trackCandidatesInGPU.nTrackCandidates, 1);
+          alpaka::atomicOp<alpaka::AtomicSub>(acc, trackCandidatesInGPU.nTrackCandidates, 1u);
           break;
 
         } else {
-          alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatespLS, 1);
+          alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatespLS, 1u);
           addpLSTrackCandidateToMemory(trackCandidatesInGPU,
                                        pixelArrayIndex,
                                        trackCandidateIdx,
@@ -568,17 +568,17 @@ namespace SDL {
         if (pixelQuintupletsInGPU.isDup[pixelQuintupletIndex])
           continue;
 
-        int trackCandidateIdx = alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidates, 1);
+        unsigned int trackCandidateIdx = alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidates, 1u);
         if (trackCandidateIdx >= N_MAX_PIXEL_TRACK_CANDIDATES)  // No other TCs have been added yet
         {
 #ifdef Warnings
           printf("Track Candidate excess alert! Type = pT5");
 #endif
-          alpaka::atomicOp<alpaka::AtomicSub>(acc, trackCandidatesInGPU.nTrackCandidates, 1);
+          alpaka::atomicOp<alpaka::AtomicSub>(acc, trackCandidatesInGPU.nTrackCandidates, 1u);
           break;
 
         } else {
-          alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatespT5, 1);
+          alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidatespT5, 1u);
 
           float radius = 0.5f * (__H2F(pixelQuintupletsInGPU.pixelRadius[pixelQuintupletIndex]) +
                                  __H2F(pixelQuintupletsInGPU.quintupletRadius[pixelQuintupletIndex]));

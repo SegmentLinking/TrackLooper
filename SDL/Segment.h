@@ -24,8 +24,8 @@ namespace SDL {
     unsigned int* outerMiniDoubletAnchorHitIndices;
     int* charge;
     int* superbin;
-    int* nSegments;             //number of segments per inner lower module
-    int* totOccupancySegments;  //number of segments per inner lower module
+    unsigned int* nSegments;             //number of segments per inner lower module
+    unsigned int* totOccupancySegments;  //number of segments per inner lower module
     uint4* pLSHitsIdxs;
     int8_t* pixelType;
     char* isQuad;
@@ -100,8 +100,8 @@ namespace SDL {
     Buf<TAcc, unsigned int> outerMiniDoubletAnchorHitIndices_buf;
     Buf<TAcc, int> charge_buf;
     Buf<TAcc, int> superbin_buf;
-    Buf<TAcc, int> nSegments_buf;
-    Buf<TAcc, int> totOccupancySegments_buf;
+    Buf<TAcc, unsigned int> nSegments_buf;
+    Buf<TAcc, unsigned int> totOccupancySegments_buf;
     Buf<TAcc, uint4> pLSHitsIdxs_buf;
     Buf<TAcc, int8_t> pixelType_buf;
     Buf<TAcc, char> isQuad_buf;
@@ -139,8 +139,8 @@ namespace SDL {
           innerMiniDoubletAnchorHitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, nMemoryLocationsIn, queue)),
           outerMiniDoubletAnchorHitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, nMemoryLocationsIn, queue)),
           nMemoryLocations_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
-          nSegments_buf(allocBufWrapper<int>(devAccIn, nLowerModules + 1, queue)),
-          totOccupancySegments_buf(allocBufWrapper<int>(devAccIn, nLowerModules + 1, queue)),
+          nSegments_buf(allocBufWrapper<unsigned int>(devAccIn, nLowerModules + 1, queue)),
+          totOccupancySegments_buf(allocBufWrapper<unsigned int>(devAccIn, nLowerModules + 1, queue)),
           charge_buf(allocBufWrapper<int>(devAccIn, maxPixelSegments, queue)),
           superbin_buf(allocBufWrapper<int>(devAccIn, maxPixelSegments, queue)),
           pLSHitsIdxs_buf(allocBufWrapper<uint4>(devAccIn, maxPixelSegments, queue)),
@@ -160,10 +160,10 @@ namespace SDL {
           circleCenterX_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments, queue)),
           circleCenterY_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments, queue)),
           circleRadius_buf(allocBufWrapper<float>(devAccIn, maxPixelSegments, queue)) {
-      alpaka::memset(queue, nSegments_buf, 0u, nLowerModules + 1);
-      alpaka::memset(queue, totOccupancySegments_buf, 0u, nLowerModules + 1);
-      alpaka::memset(queue, partOfPT5_buf, 0u, maxPixelSegments);
-      alpaka::memset(queue, pLSHitsIdxs_buf, 0u, maxPixelSegments);
+      alpaka::memset(queue, nSegments_buf, 0u);
+      alpaka::memset(queue, totOccupancySegments_buf, 0u);
+      alpaka::memset(queue, partOfPT5_buf, false);
+      alpaka::memset(queue, pLSHitsIdxs_buf, 0u);
       alpaka::wait(queue);
     }
   };
@@ -821,13 +821,13 @@ namespace SDL {
 
           unsigned int nOuterMDs = mdsInGPU.nMDs[outerLowerModuleIndex];
 
-          int limit = nInnerMDs * nOuterMDs;
+          unsigned int limit = nInnerMDs * nOuterMDs;
 
           if (limit == 0)
             continue;
-          for (int hitIndex = blockThreadIdx[2]; hitIndex < limit; hitIndex += blockThreadExtent[2]) {
-            int innerMDArrayIdx = hitIndex / nOuterMDs;
-            int outerMDArrayIdx = hitIndex % nOuterMDs;
+          for (unsigned int hitIndex = blockThreadIdx[2]; hitIndex < limit; hitIndex += blockThreadExtent[2]) {
+            unsigned int innerMDArrayIdx = hitIndex / nOuterMDs;
+            unsigned int outerMDArrayIdx = hitIndex % nOuterMDs;
             if (outerMDArrayIdx >= nOuterMDs)
               continue;
 
@@ -876,14 +876,14 @@ namespace SDL {
 
             if (pass) {
               unsigned int totOccupancySegments = alpaka::atomicOp<alpaka::AtomicAdd>(
-                  acc, &segmentsInGPU.totOccupancySegments[innerLowerModuleIndex], 1);
-              if (totOccupancySegments >= (rangesInGPU.segmentModuleOccupancy[innerLowerModuleIndex])) {
+                  acc, &segmentsInGPU.totOccupancySegments[innerLowerModuleIndex], 1u);
+              if (totOccupancySegments >= (unsigned int) (rangesInGPU.segmentModuleOccupancy[innerLowerModuleIndex])) {
 #ifdef Warnings
                 printf("Segment excess alert! Module index = %d\n", innerLowerModuleIndex);
 #endif
               } else {
                 unsigned int segmentModuleIdx =
-                    alpaka::atomicOp<alpaka::AtomicAdd>(acc, &segmentsInGPU.nSegments[innerLowerModuleIndex], 1);
+                    alpaka::atomicOp<alpaka::AtomicAdd>(acc, &segmentsInGPU.nSegments[innerLowerModuleIndex], 1u);
                 unsigned int segmentIdx = rangesInGPU.segmentModuleIndices[innerLowerModuleIndex] + segmentModuleIdx;
 
                 addSegmentToMemory(segmentsInGPU,

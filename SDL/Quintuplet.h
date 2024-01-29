@@ -14,8 +14,8 @@ namespace SDL {
   struct quintuplets {
     unsigned int* tripletIndices;
     uint16_t* lowerModuleIndices;
-    int* nQuintuplets;
-    int* totOccupancyQuintuplets;
+    unsigned int* nQuintuplets;
+    unsigned int* totOccupancyQuintuplets;
     unsigned int* nMemoryLocations;
 
     FPX* innerRadius;
@@ -73,8 +73,8 @@ namespace SDL {
   struct quintupletsBuffer : quintuplets {
     Buf<TAcc, unsigned int> tripletIndices_buf;
     Buf<TAcc, uint16_t> lowerModuleIndices_buf;
-    Buf<TAcc, int> nQuintuplets_buf;
-    Buf<TAcc, int> totOccupancyQuintuplets_buf;
+    Buf<TAcc, unsigned int> nQuintuplets_buf;
+    Buf<TAcc, unsigned int> totOccupancyQuintuplets_buf;
     Buf<TAcc, unsigned int> nMemoryLocations_buf;
 
     Buf<TAcc, FPX> innerRadius_buf;
@@ -103,8 +103,8 @@ namespace SDL {
     quintupletsBuffer(unsigned int nTotalQuintuplets, unsigned int nLowerModules, TDevAcc const& devAccIn, TQueue& queue)
         : tripletIndices_buf(allocBufWrapper<unsigned int>(devAccIn, 2 * nTotalQuintuplets, queue)),
           lowerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, 5 * nTotalQuintuplets, queue)),
-          nQuintuplets_buf(allocBufWrapper<int>(devAccIn, nLowerModules, queue)),
-          totOccupancyQuintuplets_buf(allocBufWrapper<int>(devAccIn, nLowerModules, queue)),
+          nQuintuplets_buf(allocBufWrapper<unsigned int>(devAccIn, nLowerModules, queue)),
+          totOccupancyQuintuplets_buf(allocBufWrapper<unsigned int>(devAccIn, nLowerModules, queue)),
           nMemoryLocations_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
           innerRadius_buf(allocBufWrapper<FPX>(devAccIn, nTotalQuintuplets, queue)),
           bridgeRadius_buf(allocBufWrapper<FPX>(devAccIn, nTotalQuintuplets, queue)),
@@ -125,11 +125,11 @@ namespace SDL {
           rzChiSquared_buf(allocBufWrapper<float>(devAccIn, nTotalQuintuplets, queue)),
           chiSquared_buf(allocBufWrapper<float>(devAccIn, nTotalQuintuplets, queue)),
           nonAnchorChiSquared_buf(allocBufWrapper<float>(devAccIn, nTotalQuintuplets, queue)) {
-      alpaka::memset(queue, nQuintuplets_buf, 0, nLowerModules);
-      alpaka::memset(queue, totOccupancyQuintuplets_buf, 0, nLowerModules);
-      alpaka::memset(queue, isDup_buf, 0, nTotalQuintuplets);
-      alpaka::memset(queue, TightCutFlag_buf, 0, nTotalQuintuplets);
-      alpaka::memset(queue, partOfPT5_buf, 0, nTotalQuintuplets);
+      alpaka::memset(queue, nQuintuplets_buf, 0u);
+      alpaka::memset(queue, totOccupancyQuintuplets_buf, 0u);
+      alpaka::memset(queue, isDup_buf, false);
+      alpaka::memset(queue, TightCutFlag_buf, false);
+      alpaka::memset(queue, partOfPT5_buf, false);
       alpaka::wait(queue);
     }
   };
@@ -1171,7 +1171,7 @@ namespace SDL {
                                                                  float* delta2,
                                                                  float* slopes,
                                                                  bool* isFlat,
-                                                                 int nPoints = 5,
+                                                                 unsigned int nPoints = 5,
                                                                  bool anchorHits = true) {
     /*
         Bool anchorHits required to deal with a weird edge case wherein 
@@ -1252,7 +1252,7 @@ namespace SDL {
 
   template <typename TAcc>
   ALPAKA_FN_ACC ALPAKA_FN_INLINE float computeRadiusUsingRegression(TAcc const& acc,
-                                                                    int nPoints,
+                                                                    unsigned int nPoints,
                                                                     float* xs,
                                                                     float* ys,
                                                                     float* delta1,
@@ -1349,7 +1349,7 @@ namespace SDL {
 
   template <typename TAcc>
   ALPAKA_FN_ACC ALPAKA_FN_INLINE float computeChiSquared(TAcc const& acc,
-                                                         int nPoints,
+                                                         unsigned int nPoints,
                                                          float* xs,
                                                          float* ys,
                                                          float* delta1,
@@ -3074,7 +3074,7 @@ namespace SDL {
           uint16_t lowerModule2 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 1];
           uint16_t lowerModule3 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 2];
           unsigned int nOuterTriplets = tripletsInGPU.nTriplets[lowerModule3];
-          for (int outerTripletArrayIndex = globalThreadIdx[2]; outerTripletArrayIndex < nOuterTriplets;
+          for (unsigned int outerTripletArrayIndex = globalThreadIdx[2]; outerTripletArrayIndex < nOuterTriplets;
                outerTripletArrayIndex += gridThreadExtent[2]) {
             unsigned int outerTripletIndex = rangesInGPU.tripletModuleIndices[lowerModule3] + outerTripletArrayIndex;
             uint16_t lowerModule4 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1];
@@ -3109,14 +3109,14 @@ namespace SDL {
 
             if (success) {
               int totOccupancyQuintuplets =
-                  alpaka::atomicOp<alpaka::AtomicAdd>(acc, &quintupletsInGPU.totOccupancyQuintuplets[lowerModule1], 1);
+                  alpaka::atomicOp<alpaka::AtomicAdd>(acc, &quintupletsInGPU.totOccupancyQuintuplets[lowerModule1], 1u);
               if (totOccupancyQuintuplets >= rangesInGPU.quintupletModuleOccupancy[lowerModule1]) {
 #ifdef Warnings
                 printf("Quintuplet excess alert! Module index = %d\n", lowerModule1);
 #endif
               } else {
                 int quintupletModuleIndex =
-                    alpaka::atomicOp<alpaka::AtomicAdd>(acc, &quintupletsInGPU.nQuintuplets[lowerModule1], 1);
+                    alpaka::atomicOp<alpaka::AtomicAdd>(acc, &quintupletsInGPU.nQuintuplets[lowerModule1], 1u);
                 //this if statement should never get executed!
                 if (rangesInGPU.quintupletModuleIndices[lowerModule1] == -1) {
 #ifdef Warnings

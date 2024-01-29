@@ -14,8 +14,8 @@ namespace SDL {
   struct pixelTriplets {
     unsigned int* pixelSegmentIndices;
     unsigned int* tripletIndices;
-    int* nPixelTriplets;
-    int* totOccupancyPixelTriplets;
+    unsigned int* nPixelTriplets;
+    unsigned int* totOccupancyPixelTriplets;
 
     float* pixelRadiusError;
     float* rPhiChiSquared;
@@ -71,8 +71,8 @@ namespace SDL {
   struct pixelTripletsBuffer : pixelTriplets {
     Buf<TAcc, unsigned int> pixelSegmentIndices_buf;
     Buf<TAcc, unsigned int> tripletIndices_buf;
-    Buf<TAcc, int> nPixelTriplets_buf;
-    Buf<TAcc, int> totOccupancyPixelTriplets_buf;
+    Buf<TAcc, unsigned int> nPixelTriplets_buf;
+    Buf<TAcc, unsigned int> totOccupancyPixelTriplets_buf;
     Buf<TAcc, FPX> pixelRadius_buf;
     Buf<TAcc, FPX> tripletRadius_buf;
     Buf<TAcc, FPX> pt_buf;
@@ -97,8 +97,8 @@ namespace SDL {
     pixelTripletsBuffer(unsigned int maxPixelTriplets, TDevAcc const& devAccIn, TQueue& queue)
         : pixelSegmentIndices_buf(allocBufWrapper<unsigned int>(devAccIn, maxPixelTriplets, queue)),
           tripletIndices_buf(allocBufWrapper<unsigned int>(devAccIn, maxPixelTriplets, queue)),
-          nPixelTriplets_buf(allocBufWrapper<int>(devAccIn, 1, queue)),
-          totOccupancyPixelTriplets_buf(allocBufWrapper<int>(devAccIn, 1, queue)),
+          nPixelTriplets_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
+          totOccupancyPixelTriplets_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
           pixelRadius_buf(allocBufWrapper<FPX>(devAccIn, maxPixelTriplets, queue)),
           tripletRadius_buf(allocBufWrapper<FPX>(devAccIn, maxPixelTriplets, queue)),
           pt_buf(allocBufWrapper<FPX>(devAccIn, maxPixelTriplets, queue)),
@@ -118,9 +118,9 @@ namespace SDL {
           rPhiChiSquared_buf(allocBufWrapper<float>(devAccIn, maxPixelTriplets, queue)),
           rPhiChiSquaredInwards_buf(allocBufWrapper<float>(devAccIn, maxPixelTriplets, queue)),
           rzChiSquared_buf(allocBufWrapper<float>(devAccIn, maxPixelTriplets, queue)) {
-      alpaka::memset(queue, nPixelTriplets_buf, 0, 1);
-      alpaka::memset(queue, totOccupancyPixelTriplets_buf, 0, 1);
-      alpaka::memset(queue, partOfPT5_buf, 0, maxPixelTriplets);
+      alpaka::memset(queue, nPixelTriplets_buf, 0u);
+      alpaka::memset(queue, totOccupancyPixelTriplets_buf, 0u);
+      alpaka::memset(queue, partOfPT5_buf, false);
       alpaka::wait(queue);
     }
   };
@@ -397,7 +397,7 @@ namespace SDL {
 
   template <typename TAcc>
   ALPAKA_FN_ACC ALPAKA_FN_INLINE float computeChiSquaredpT3(TAcc const& acc,
-                                                            int nPoints,
+                                                            unsigned int nPoints,
                                                             float* xs,
                                                             float* ys,
                                                             float* delta1,
@@ -1070,10 +1070,10 @@ namespace SDL {
       Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
       Vec const blockThreadExtent = alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc);
 
-      for (int i_pLS = globalThreadIdx[1]; i_pLS < nPixelSegments; i_pLS += gridThreadExtent[1]) {
+      for (unsigned int i_pLS = globalThreadIdx[1]; i_pLS < nPixelSegments; i_pLS += gridThreadExtent[1]) {
         auto iLSModule_max = connectedPixelIndex[i_pLS] + connectedPixelSize[i_pLS];
 
-        for (int iLSModule = connectedPixelIndex[i_pLS] + globalBlockIdx[0]; iLSModule < iLSModule_max;
+        for (unsigned int iLSModule = connectedPixelIndex[i_pLS] + globalBlockIdx[0]; iLSModule < iLSModule_max;
              iLSModule += gridBlockExtent[0]) {
           uint16_t tripletLowerModuleIndex =
               modulesInGPU
@@ -1154,14 +1154,14 @@ namespace SDL {
               float phi_pix = segmentsInGPU.phi[i_pLS];
               float pt = segmentsInGPU.ptIn[i_pLS];
               float score = rPhiChiSquared + rPhiChiSquaredInwards;
-              int totOccupancyPixelTriplets =
-                  alpaka::atomicOp<alpaka::AtomicAdd>(acc, pixelTripletsInGPU.totOccupancyPixelTriplets, 1);
+              unsigned int totOccupancyPixelTriplets =
+                  alpaka::atomicOp<alpaka::AtomicAdd>(acc, pixelTripletsInGPU.totOccupancyPixelTriplets, 1u);
               if (totOccupancyPixelTriplets >= N_MAX_PIXEL_TRIPLETS) {
 #ifdef Warnings
                 printf("Pixel Triplet excess alert!\n");
 #endif
               } else {
-                int pixelTripletIndex = alpaka::atomicOp<alpaka::AtomicAdd>(acc, pixelTripletsInGPU.nPixelTriplets, 1);
+                unsigned int pixelTripletIndex = alpaka::atomicOp<alpaka::AtomicAdd>(acc, pixelTripletsInGPU.nPixelTriplets, 1u);
                 addPixelTripletToMemory(modulesInGPU,
                                         mdsInGPU,
                                         segmentsInGPU,
@@ -1904,8 +1904,8 @@ namespace SDL {
   struct pixelQuintuplets {
     unsigned int* pixelIndices;
     unsigned int* T5Indices;
-    int* nPixelQuintuplets;
-    int* totOccupancyPixelQuintuplets;
+    unsigned int* nPixelQuintuplets;
+    unsigned int* totOccupancyPixelQuintuplets;
     bool* isDup;
     FPX* score;
     FPX* eta;
@@ -1948,8 +1948,8 @@ namespace SDL {
   struct pixelQuintupletsBuffer : pixelQuintuplets {
     Buf<TAcc, unsigned int> pixelIndices_buf;
     Buf<TAcc, unsigned int> T5Indices_buf;
-    Buf<TAcc, int> nPixelQuintuplets_buf;
-    Buf<TAcc, int> totOccupancyPixelQuintuplets_buf;
+    Buf<TAcc, unsigned int> nPixelQuintuplets_buf;
+    Buf<TAcc, unsigned int> totOccupancyPixelQuintuplets_buf;
     Buf<TAcc, bool> isDup_buf;
     Buf<TAcc, FPX> score_buf;
     Buf<TAcc, FPX> eta_buf;
@@ -1969,8 +1969,8 @@ namespace SDL {
     pixelQuintupletsBuffer(unsigned int maxPixelQuintuplets, TDevAcc const& devAccIn, TQueue& queue)
         : pixelIndices_buf(allocBufWrapper<unsigned int>(devAccIn, maxPixelQuintuplets, queue)),
           T5Indices_buf(allocBufWrapper<unsigned int>(devAccIn, maxPixelQuintuplets, queue)),
-          nPixelQuintuplets_buf(allocBufWrapper<int>(devAccIn, 1, queue)),
-          totOccupancyPixelQuintuplets_buf(allocBufWrapper<int>(devAccIn, 1, queue)),
+          nPixelQuintuplets_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
+          totOccupancyPixelQuintuplets_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
           isDup_buf(allocBufWrapper<bool>(devAccIn, maxPixelQuintuplets, queue)),
           score_buf(allocBufWrapper<FPX>(devAccIn, maxPixelQuintuplets, queue)),
           eta_buf(allocBufWrapper<FPX>(devAccIn, maxPixelQuintuplets, queue)),
@@ -1985,8 +1985,8 @@ namespace SDL {
           rzChiSquared_buf(allocBufWrapper<float>(devAccIn, maxPixelQuintuplets, queue)),
           rPhiChiSquared_buf(allocBufWrapper<float>(devAccIn, maxPixelQuintuplets, queue)),
           rPhiChiSquaredInwards_buf(allocBufWrapper<float>(devAccIn, maxPixelQuintuplets, queue)) {
-      alpaka::memset(queue, nPixelQuintuplets_buf, 0, 1);
-      alpaka::memset(queue, totOccupancyPixelQuintuplets_buf, 0, 1);
+      alpaka::memset(queue, nPixelQuintuplets_buf, 0u);
+      alpaka::memset(queue, totOccupancyPixelQuintuplets_buf, 0u);
       alpaka::wait(queue);
     }
   };
@@ -2250,7 +2250,7 @@ namespace SDL {
 
   template <typename TAcc>
   ALPAKA_FN_ACC ALPAKA_FN_INLINE float computeChiSquaredpT5(TAcc const& acc,
-                                                            int nPoints,
+                                                            unsigned int nPoints,
                                                             float* xs,
                                                             float* ys,
                                                             float* delta1,
@@ -2301,7 +2301,7 @@ namespace SDL {
                                                                      float* delta2,
                                                                      float* slopes,
                                                                      bool* isFlat,
-                                                                     int nPoints = 5,
+                                                                     unsigned int nPoints = 5,
                                                                      bool anchorHits = true) {
     /*
         bool anchorHits required to deal with a weird edge case wherein
@@ -2731,9 +2731,9 @@ namespace SDL {
       Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
       Vec const blockThreadExtent = alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc);
 
-      for (int i_pLS = globalThreadIdx[1]; i_pLS < nPixelSegments; i_pLS += gridThreadExtent[1]) {
+      for (unsigned int i_pLS = globalThreadIdx[1]; i_pLS < nPixelSegments; i_pLS += gridThreadExtent[1]) {
         auto iLSModule_max = connectedPixelIndex[i_pLS] + connectedPixelSize[i_pLS];
-        for (int iLSModule = connectedPixelIndex[i_pLS] + globalBlockIdx[0]; iLSModule < iLSModule_max;
+        for (unsigned int iLSModule = connectedPixelIndex[i_pLS] + globalBlockIdx[0]; iLSModule < iLSModule_max;
              iLSModule += gridBlockExtent[0]) {
           //these are actual module indices
           uint16_t quintupletLowerModuleIndex = modulesInGPU.connectedPixels[iLSModule];
@@ -2744,7 +2744,7 @@ namespace SDL {
           uint16_t pixelModuleIndex = *modulesInGPU.nLowerModules;
           if (segmentsInGPU.isDup[i_pLS])
             continue;
-          int nOuterQuintuplets = quintupletsInGPU.nQuintuplets[quintupletLowerModuleIndex];
+          unsigned int nOuterQuintuplets = quintupletsInGPU.nQuintuplets[quintupletLowerModuleIndex];
 
           if (nOuterQuintuplets == 0)
             continue;
@@ -2781,15 +2781,15 @@ namespace SDL {
                                                          centerY,
                                                          static_cast<unsigned int>(i_pLS));
             if (success) {
-              int totOccupancyPixelQuintuplets =
-                  alpaka::atomicOp<alpaka::AtomicAdd>(acc, pixelQuintupletsInGPU.totOccupancyPixelQuintuplets, 1);
+              unsigned int totOccupancyPixelQuintuplets =
+                  alpaka::atomicOp<alpaka::AtomicAdd>(acc, pixelQuintupletsInGPU.totOccupancyPixelQuintuplets, 1u);
               if (totOccupancyPixelQuintuplets >= N_MAX_PIXEL_QUINTUPLETS) {
 #ifdef Warnings
                 printf("Pixel Quintuplet excess alert!\n");
 #endif
               } else {
-                int pixelQuintupletIndex =
-                    alpaka::atomicOp<alpaka::AtomicAdd>(acc, pixelQuintupletsInGPU.nPixelQuintuplets, 1);
+                unsigned int pixelQuintupletIndex =
+                    alpaka::atomicOp<alpaka::AtomicAdd>(acc, pixelQuintupletsInGPU.nPixelQuintuplets, 1u);
                 float eta = __H2F(quintupletsInGPU.eta[quintupletIndex]);
                 float phi = __H2F(quintupletsInGPU.phi[quintupletIndex]);
 

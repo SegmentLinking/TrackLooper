@@ -11,8 +11,8 @@ namespace SDL {
   struct triplets {
     unsigned int* segmentIndices;
     uint16_t* lowerModuleIndices;  //3 of them now
-    int* nTriplets;
-    int* totOccupancyTriplets;
+    unsigned int* nTriplets;
+    unsigned int* totOccupancyTriplets;
     unsigned int* nMemoryLocations;
     uint8_t* logicalLayers;
     unsigned int* hitIndices;
@@ -81,8 +81,8 @@ namespace SDL {
   struct tripletsBuffer : triplets {
     Buf<TAcc, unsigned int> segmentIndices_buf;
     Buf<TAcc, uint16_t> lowerModuleIndices_buf;
-    Buf<TAcc, int> nTriplets_buf;
-    Buf<TAcc, int> totOccupancyTriplets_buf;
+    Buf<TAcc, unsigned int> nTriplets_buf;
+    Buf<TAcc, unsigned int> totOccupancyTriplets_buf;
     Buf<TAcc, unsigned int> nMemoryLocations_buf;
     Buf<TAcc, uint8_t> logicalLayers_buf;
     Buf<TAcc, unsigned int> hitIndices_buf;
@@ -115,8 +115,8 @@ namespace SDL {
     tripletsBuffer(unsigned int maxTriplets, unsigned int nLowerModules, TDevAcc const& devAccIn, TQueue& queue)
         : segmentIndices_buf(allocBufWrapper<unsigned int>(devAccIn, 2 * maxTriplets, queue)),
           lowerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, 3 * maxTriplets, queue)),
-          nTriplets_buf(allocBufWrapper<int>(devAccIn, nLowerModules, queue)),
-          totOccupancyTriplets_buf(allocBufWrapper<int>(devAccIn, nLowerModules, queue)),
+          nTriplets_buf(allocBufWrapper<unsigned int>(devAccIn, nLowerModules, queue)),
+          totOccupancyTriplets_buf(allocBufWrapper<unsigned int>(devAccIn, nLowerModules, queue)),
           nMemoryLocations_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
           logicalLayers_buf(allocBufWrapper<uint8_t>(devAccIn, maxTriplets * 3, queue)),
           hitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, maxTriplets * 6, queue)),
@@ -145,11 +145,11 @@ namespace SDL {
           kZ_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue))
 #endif
     {
-      alpaka::memset(queue, nTriplets_buf, 0, nLowerModules);
-      alpaka::memset(queue, totOccupancyTriplets_buf, 0, nLowerModules);
-      alpaka::memset(queue, partOfPT5_buf, 0, maxTriplets);
-      alpaka::memset(queue, partOfT5_buf, 0, maxTriplets);
-      alpaka::memset(queue, partOfPT3_buf, 0, maxTriplets);
+      alpaka::memset(queue, nTriplets_buf, 0u);
+      alpaka::memset(queue, totOccupancyTriplets_buf, 0u);
+      alpaka::memset(queue, partOfPT5_buf, false);
+      alpaka::memset(queue, partOfT5_buf, false);
+      alpaka::memset(queue, partOfPT3_buf, false);
     }
   };
 
@@ -1970,7 +1970,7 @@ namespace SDL {
           continue;
 
         unsigned int nInnerSegments = segmentsInGPU.nSegments[innerInnerLowerModuleIndex];
-        for (int innerSegmentArrayIndex = globalThreadIdx[1]; innerSegmentArrayIndex < nInnerSegments;
+        for (unsigned int innerSegmentArrayIndex = globalThreadIdx[1]; innerSegmentArrayIndex < nInnerSegments;
              innerSegmentArrayIndex += gridThreadExtent[1]) {
           unsigned int innerSegmentIndex =
               rangesInGPU.segmentRanges[innerInnerLowerModuleIndex * 2] + innerSegmentArrayIndex;
@@ -1979,7 +1979,7 @@ namespace SDL {
           uint16_t middleLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[innerSegmentIndex];
 
           unsigned int nOuterSegments = segmentsInGPU.nSegments[middleLowerModuleIndex];
-          for (int outerSegmentArrayIndex = globalThreadIdx[2]; outerSegmentArrayIndex < nOuterSegments;
+          for (unsigned int outerSegmentArrayIndex = globalThreadIdx[2]; outerSegmentArrayIndex < nOuterSegments;
                outerSegmentArrayIndex += gridThreadExtent[2]) {
             unsigned int outerSegmentIndex =
                 rangesInGPU.segmentRanges[2 * middleLowerModuleIndex] + outerSegmentArrayIndex;
@@ -2019,14 +2019,14 @@ namespace SDL {
 
             if (success) {
               unsigned int totOccupancyTriplets = alpaka::atomicOp<alpaka::AtomicAdd>(
-                  acc, &tripletsInGPU.totOccupancyTriplets[innerInnerLowerModuleIndex], 1);
-              if (totOccupancyTriplets >= (rangesInGPU.tripletModuleOccupancy[innerInnerLowerModuleIndex])) {
+                  acc, &tripletsInGPU.totOccupancyTriplets[innerInnerLowerModuleIndex], 1u);
+              if (totOccupancyTriplets >= (unsigned int) (rangesInGPU.tripletModuleOccupancy[innerInnerLowerModuleIndex])) {
 #ifdef Warnings
                 printf("Triplet excess alert! Module index = %d\n", innerInnerLowerModuleIndex);
 #endif
               } else {
                 unsigned int tripletModuleIndex =
-                    alpaka::atomicOp<alpaka::AtomicAdd>(acc, &tripletsInGPU.nTriplets[innerInnerLowerModuleIndex], 1);
+                    alpaka::atomicOp<alpaka::AtomicAdd>(acc, &tripletsInGPU.nTriplets[innerInnerLowerModuleIndex], 1u);
                 unsigned int tripletIndex =
                     rangesInGPU.tripletModuleIndices[innerInnerLowerModuleIndex] + tripletModuleIndex;
 #ifdef CUT_VALUE_DEBUG
