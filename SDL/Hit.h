@@ -264,12 +264,13 @@ namespace SDL {
           hitsInGPU.lowEdgeYs[ihit] = ihit_y - 2.5f * sin_phi;
         }
         // Need to set initial value if index hasn't been seen before.
-        int old = alpaka::atomicOp<alpaka::AtomicCas>(acc, &(hitsInGPU.hitRanges[lastModuleIndex * 2]), -1, (int) ihit);
+        int old = alpaka::atomicOp<alpaka::AtomicCas>(
+            acc, &(hitsInGPU.hitRanges[lastModuleIndex * 2]), -1, static_cast<int>(ihit));
         // For subsequent visits, stores the min value.
         if (old != -1)
-          alpaka::atomicOp<alpaka::AtomicMin>(acc, &hitsInGPU.hitRanges[lastModuleIndex * 2], (int) ihit);
+          alpaka::atomicOp<alpaka::AtomicMin>(acc, &hitsInGPU.hitRanges[lastModuleIndex * 2], static_cast<int>(ihit));
 
-        alpaka::atomicOp<alpaka::AtomicMax>(acc, &hitsInGPU.hitRanges[lastModuleIndex * 2 + 1], (int) ihit);
+        alpaka::atomicOp<alpaka::AtomicMax>(acc, &hitsInGPU.hitRanges[lastModuleIndex * 2 + 1], static_cast<int>(ihit));
       }
     }
   };

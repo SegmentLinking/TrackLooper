@@ -876,7 +876,7 @@ namespace SDL {
             if (pass) {
               unsigned int totOccupancySegments = alpaka::atomicOp<alpaka::AtomicAdd>(
                   acc, &segmentsInGPU.totOccupancySegments[innerLowerModuleIndex], 1u);
-              if (totOccupancySegments >= (unsigned int) (rangesInGPU.segmentModuleOccupancy[innerLowerModuleIndex])) {
+              if (static_cast<int>(totOccupancySegments) >= rangesInGPU.segmentModuleOccupancy[innerLowerModuleIndex]) {
 #ifdef Warnings
                 printf("Segment excess alert! Module index = %d\n", innerLowerModuleIndex);
 #endif

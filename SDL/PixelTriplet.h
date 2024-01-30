@@ -1157,7 +1157,8 @@ namespace SDL {
                 printf("Pixel Triplet excess alert!\n");
 #endif
               } else {
-                unsigned int pixelTripletIndex = alpaka::atomicOp<alpaka::AtomicAdd>(acc, pixelTripletsInGPU.nPixelTriplets, 1u);
+                unsigned int pixelTripletIndex =
+                    alpaka::atomicOp<alpaka::AtomicAdd>(acc, pixelTripletsInGPU.nPixelTriplets, 1u);
                 addPixelTripletToMemory(modulesInGPU,
                                         mdsInGPU,
                                         segmentsInGPU,

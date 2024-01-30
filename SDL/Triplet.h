@@ -1971,7 +1971,8 @@ namespace SDL {
             if (success) {
               unsigned int totOccupancyTriplets = alpaka::atomicOp<alpaka::AtomicAdd>(
                   acc, &tripletsInGPU.totOccupancyTriplets[innerInnerLowerModuleIndex], 1u);
-              if (totOccupancyTriplets >= (unsigned int) (rangesInGPU.tripletModuleOccupancy[innerInnerLowerModuleIndex])) {
+              if (static_cast<int>(totOccupancyTriplets) >=
+                  rangesInGPU.tripletModuleOccupancy[innerInnerLowerModuleIndex]) {
 #ifdef Warnings
                 printf("Triplet excess alert! Module index = %d\n", innerInnerLowerModuleIndex);
 #endif

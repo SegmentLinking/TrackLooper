@@ -568,7 +568,8 @@ namespace SDL {
         if (pixelQuintupletsInGPU.isDup[pixelQuintupletIndex])
           continue;
 
-        unsigned int trackCandidateIdx = alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidates, 1u);
+        unsigned int trackCandidateIdx =
+            alpaka::atomicOp<alpaka::AtomicAdd>(acc, trackCandidatesInGPU.nTrackCandidates, 1u);
         if (trackCandidateIdx >= N_MAX_PIXEL_TRACK_CANDIDATES)  // No other TCs have been added yet
         {
 #ifdef Warnings
