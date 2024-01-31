@@ -14,7 +14,6 @@ namespace {
 
   void loadMaps() {
     // Module orientation information (DrDz or phi angles)
-    auto const& tldir = trackLooperDir();
     TString endcap_geom = get_absolute_path_after_check_file_exists(
         TString::Format("%s/data/endcap_orientation_data_CMSSW_12_2_0_pre2.txt", trackLooperDir().Data()).Data());
     TString tilted_geom = get_absolute_path_after_check_file_exists(
