@@ -87,7 +87,7 @@ namespace SDL {
 
   // Second allocation wrapper function when queue is not given. Reduces code boilerplate.
   template <typename T, typename TAcc, typename TSize>
-  ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<TAcc, T> allocBufWrapper(TAcc const& devAccIn, TSize nElements) {
+  ALPAKA_FN_HOST ALPAKA_FN_INLINE Buf<alpaka::Dev<TAcc>, T> allocBufWrapper(TAcc const& devAccIn, TSize nElements) {
     return alpaka::allocBuf<T, Idx>(devAccIn, Vec1d(static_cast<Idx>(nElements)));
   }
 

@@ -50,27 +50,27 @@ namespace SDL {
     }
   };
 
-  template <typename TAcc>
+  template <typename TDev>
   struct hitsBuffer : hits {
-    Buf<TAcc, unsigned int> nHits_buf;
-    Buf<TAcc, float> xs_buf;
-    Buf<TAcc, float> ys_buf;
-    Buf<TAcc, float> zs_buf;
-    Buf<TAcc, uint16_t> moduleIndices_buf;
-    Buf<TAcc, unsigned int> idxs_buf;
-    Buf<TAcc, unsigned int> detid_buf;
-    Buf<TAcc, float> rts_buf;
-    Buf<TAcc, float> phis_buf;
-    Buf<TAcc, float> etas_buf;
-    Buf<TAcc, float> highEdgeXs_buf;
-    Buf<TAcc, float> highEdgeYs_buf;
-    Buf<TAcc, float> lowEdgeXs_buf;
-    Buf<TAcc, float> lowEdgeYs_buf;
-    Buf<TAcc, int> hitRanges_buf;
-    Buf<TAcc, int> hitRangesLower_buf;
-    Buf<TAcc, int> hitRangesUpper_buf;
-    Buf<TAcc, int8_t> hitRangesnLower_buf;
-    Buf<TAcc, int8_t> hitRangesnUpper_buf;
+    Buf<TDev, unsigned int> nHits_buf;
+    Buf<TDev, float> xs_buf;
+    Buf<TDev, float> ys_buf;
+    Buf<TDev, float> zs_buf;
+    Buf<TDev, uint16_t> moduleIndices_buf;
+    Buf<TDev, unsigned int> idxs_buf;
+    Buf<TDev, unsigned int> detid_buf;
+    Buf<TDev, float> rts_buf;
+    Buf<TDev, float> phis_buf;
+    Buf<TDev, float> etas_buf;
+    Buf<TDev, float> highEdgeXs_buf;
+    Buf<TDev, float> highEdgeYs_buf;
+    Buf<TDev, float> lowEdgeXs_buf;
+    Buf<TDev, float> lowEdgeYs_buf;
+    Buf<TDev, int> hitRanges_buf;
+    Buf<TDev, int> hitRangesLower_buf;
+    Buf<TDev, int> hitRangesUpper_buf;
+    Buf<TDev, int8_t> hitRangesnLower_buf;
+    Buf<TDev, int8_t> hitRangesnUpper_buf;
 
     template <typename TQueue, typename TDevAcc>
     hitsBuffer(unsigned int nModules, unsigned int nMaxHits, TDevAcc const& devAccIn, TQueue& queue)

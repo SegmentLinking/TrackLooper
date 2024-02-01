@@ -79,36 +79,36 @@ namespace SDL {
     }
   };
 
-  template <typename TAcc>
+  template <typename TDev>
   struct objectRangesBuffer : objectRanges {
-    Buf<TAcc, int> hitRanges_buf;
-    Buf<TAcc, int> hitRangesLower_buf;
-    Buf<TAcc, int> hitRangesUpper_buf;
-    Buf<TAcc, int8_t> hitRangesnLower_buf;
-    Buf<TAcc, int8_t> hitRangesnUpper_buf;
-    Buf<TAcc, int> mdRanges_buf;
-    Buf<TAcc, int> segmentRanges_buf;
-    Buf<TAcc, int> trackletRanges_buf;
-    Buf<TAcc, int> tripletRanges_buf;
-    Buf<TAcc, int> trackCandidateRanges_buf;
-    Buf<TAcc, int> quintupletRanges_buf;
+    Buf<TDev, int> hitRanges_buf;
+    Buf<TDev, int> hitRangesLower_buf;
+    Buf<TDev, int> hitRangesUpper_buf;
+    Buf<TDev, int8_t> hitRangesnLower_buf;
+    Buf<TDev, int8_t> hitRangesnUpper_buf;
+    Buf<TDev, int> mdRanges_buf;
+    Buf<TDev, int> segmentRanges_buf;
+    Buf<TDev, int> trackletRanges_buf;
+    Buf<TDev, int> tripletRanges_buf;
+    Buf<TDev, int> trackCandidateRanges_buf;
+    Buf<TDev, int> quintupletRanges_buf;
 
-    Buf<TAcc, uint16_t> nEligibleT5Modules_buf;
-    Buf<TAcc, uint16_t> indicesOfEligibleT5Modules_buf;
+    Buf<TDev, uint16_t> nEligibleT5Modules_buf;
+    Buf<TDev, uint16_t> indicesOfEligibleT5Modules_buf;
 
-    Buf<TAcc, int> quintupletModuleIndices_buf;
-    Buf<TAcc, int> quintupletModuleOccupancy_buf;
-    Buf<TAcc, int> miniDoubletModuleIndices_buf;
-    Buf<TAcc, int> miniDoubletModuleOccupancy_buf;
-    Buf<TAcc, int> segmentModuleIndices_buf;
-    Buf<TAcc, int> segmentModuleOccupancy_buf;
-    Buf<TAcc, int> tripletModuleIndices_buf;
-    Buf<TAcc, int> tripletModuleOccupancy_buf;
+    Buf<TDev, int> quintupletModuleIndices_buf;
+    Buf<TDev, int> quintupletModuleOccupancy_buf;
+    Buf<TDev, int> miniDoubletModuleIndices_buf;
+    Buf<TDev, int> miniDoubletModuleOccupancy_buf;
+    Buf<TDev, int> segmentModuleIndices_buf;
+    Buf<TDev, int> segmentModuleOccupancy_buf;
+    Buf<TDev, int> tripletModuleIndices_buf;
+    Buf<TDev, int> tripletModuleOccupancy_buf;
 
-    Buf<TAcc, unsigned int> device_nTotalMDs_buf;
-    Buf<TAcc, unsigned int> device_nTotalSegs_buf;
-    Buf<TAcc, unsigned int> device_nTotalTrips_buf;
-    Buf<TAcc, unsigned int> device_nTotalQuints_buf;
+    Buf<TDev, unsigned int> device_nTotalMDs_buf;
+    Buf<TDev, unsigned int> device_nTotalSegs_buf;
+    Buf<TDev, unsigned int> device_nTotalTrips_buf;
+    Buf<TDev, unsigned int> device_nTotalQuints_buf;
 
     template <typename TQueue, typename TDevAcc>
     objectRangesBuffer(unsigned int nMod, unsigned int nLowerMod, TDevAcc const& devAccIn, TQueue& queue)

@@ -77,38 +77,38 @@ namespace SDL {
     }
   };
 
-  template <typename TAcc>
+  template <typename TDev>
   struct tripletsBuffer : triplets {
-    Buf<TAcc, unsigned int> segmentIndices_buf;
-    Buf<TAcc, uint16_t> lowerModuleIndices_buf;
-    Buf<TAcc, int> nTriplets_buf;
-    Buf<TAcc, int> totOccupancyTriplets_buf;
-    Buf<TAcc, unsigned int> nMemoryLocations_buf;
-    Buf<TAcc, uint8_t> logicalLayers_buf;
-    Buf<TAcc, unsigned int> hitIndices_buf;
-    Buf<TAcc, FPX> betaIn_buf;
-    Buf<TAcc, FPX> betaOut_buf;
-    Buf<TAcc, FPX> pt_beta_buf;
-    Buf<TAcc, bool> partOfPT5_buf;
-    Buf<TAcc, bool> partOfT5_buf;
-    Buf<TAcc, bool> partOfPT3_buf;
+    Buf<TDev, unsigned int> segmentIndices_buf;
+    Buf<TDev, uint16_t> lowerModuleIndices_buf;
+    Buf<TDev, int> nTriplets_buf;
+    Buf<TDev, int> totOccupancyTriplets_buf;
+    Buf<TDev, unsigned int> nMemoryLocations_buf;
+    Buf<TDev, uint8_t> logicalLayers_buf;
+    Buf<TDev, unsigned int> hitIndices_buf;
+    Buf<TDev, FPX> betaIn_buf;
+    Buf<TDev, FPX> betaOut_buf;
+    Buf<TDev, FPX> pt_beta_buf;
+    Buf<TDev, bool> partOfPT5_buf;
+    Buf<TDev, bool> partOfT5_buf;
+    Buf<TDev, bool> partOfPT3_buf;
 
 #ifdef CUT_VALUE_DEBUG
-    Buf<TAcc, float> zOut_buf;
-    Buf<TAcc, float> rtOut_buf;
-    Buf<TAcc, float> deltaPhiPos_buf;
-    Buf<TAcc, float> deltaPhi_buf;
-    Buf<TAcc, float> zLo_buf;
-    Buf<TAcc, float> zHi_buf;
-    Buf<TAcc, float> zLoPointed_buf;
-    Buf<TAcc, float> zHiPointed_buf;
-    Buf<TAcc, float> sdlCut_buf;
-    Buf<TAcc, float> betaInCut_buf;
-    Buf<TAcc, float> betaOutCut_buf;
-    Buf<TAcc, float> deltaBetaCut_buf;
-    Buf<TAcc, float> rtLo_buf;
-    Buf<TAcc, float> rtHi_buf;
-    Buf<TAcc, float> kZ_buf;
+    Buf<TDev, float> zOut_buf;
+    Buf<TDev, float> rtOut_buf;
+    Buf<TDev, float> deltaPhiPos_buf;
+    Buf<TDev, float> deltaPhi_buf;
+    Buf<TDev, float> zLo_buf;
+    Buf<TDev, float> zHi_buf;
+    Buf<TDev, float> zLoPointed_buf;
+    Buf<TDev, float> zHiPointed_buf;
+    Buf<TDev, float> sdlCut_buf;
+    Buf<TDev, float> betaInCut_buf;
+    Buf<TDev, float> betaOutCut_buf;
+    Buf<TDev, float> deltaBetaCut_buf;
+    Buf<TDev, float> rtLo_buf;
+    Buf<TDev, float> rtHi_buf;
+    Buf<TDev, float> kZ_buf;
 #endif
 
     template <typename TQueue, typename TDevAcc>

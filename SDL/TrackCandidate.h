@@ -52,25 +52,25 @@ namespace SDL {
     }
   };
 
-  template <typename TAcc>
+  template <typename TDev>
   struct trackCandidatesBuffer : trackCandidates {
-    Buf<TAcc, short> trackCandidateType_buf;
-    Buf<TAcc, unsigned int> directObjectIndices_buf;
-    Buf<TAcc, unsigned int> objectIndices_buf;
-    Buf<TAcc, int> nTrackCandidates_buf;
-    Buf<TAcc, int> nTrackCandidatespT3_buf;
-    Buf<TAcc, int> nTrackCandidatespT5_buf;
-    Buf<TAcc, int> nTrackCandidatespLS_buf;
-    Buf<TAcc, int> nTrackCandidatesT5_buf;
+    Buf<TDev, short> trackCandidateType_buf;
+    Buf<TDev, unsigned int> directObjectIndices_buf;
+    Buf<TDev, unsigned int> objectIndices_buf;
+    Buf<TDev, int> nTrackCandidates_buf;
+    Buf<TDev, int> nTrackCandidatespT3_buf;
+    Buf<TDev, int> nTrackCandidatespT5_buf;
+    Buf<TDev, int> nTrackCandidatespLS_buf;
+    Buf<TDev, int> nTrackCandidatesT5_buf;
 
-    Buf<TAcc, uint8_t> logicalLayers_buf;
-    Buf<TAcc, unsigned int> hitIndices_buf;
-    Buf<TAcc, int> pixelSeedIndex_buf;
-    Buf<TAcc, uint16_t> lowerModuleIndices_buf;
+    Buf<TDev, uint8_t> logicalLayers_buf;
+    Buf<TDev, unsigned int> hitIndices_buf;
+    Buf<TDev, int> pixelSeedIndex_buf;
+    Buf<TDev, uint16_t> lowerModuleIndices_buf;
 
-    Buf<TAcc, FPX> centerX_buf;
-    Buf<TAcc, FPX> centerY_buf;
-    Buf<TAcc, FPX> radius_buf;
+    Buf<TDev, FPX> centerX_buf;
+    Buf<TDev, FPX> centerY_buf;
+    Buf<TDev, FPX> radius_buf;
 
     template <typename TQueue, typename TDevAcc>
     trackCandidatesBuffer(unsigned int maxTrackCandidates, TDevAcc const& devAccIn, TQueue& queue)

@@ -69,35 +69,35 @@ namespace SDL {
     }
   };
 
-  template <typename TAcc>
+  template <typename TDev>
   struct quintupletsBuffer : quintuplets {
-    Buf<TAcc, unsigned int> tripletIndices_buf;
-    Buf<TAcc, uint16_t> lowerModuleIndices_buf;
-    Buf<TAcc, int> nQuintuplets_buf;
-    Buf<TAcc, int> totOccupancyQuintuplets_buf;
-    Buf<TAcc, unsigned int> nMemoryLocations_buf;
+    Buf<TDev, unsigned int> tripletIndices_buf;
+    Buf<TDev, uint16_t> lowerModuleIndices_buf;
+    Buf<TDev, int> nQuintuplets_buf;
+    Buf<TDev, int> totOccupancyQuintuplets_buf;
+    Buf<TDev, unsigned int> nMemoryLocations_buf;
 
-    Buf<TAcc, FPX> innerRadius_buf;
-    Buf<TAcc, FPX> bridgeRadius_buf;
-    Buf<TAcc, FPX> outerRadius_buf;
-    Buf<TAcc, FPX> pt_buf;
-    Buf<TAcc, FPX> eta_buf;
-    Buf<TAcc, FPX> phi_buf;
-    Buf<TAcc, FPX> score_rphisum_buf;
-    Buf<TAcc, uint8_t> layer_buf;
-    Buf<TAcc, bool> isDup_buf;
-    Buf<TAcc, bool> TightCutFlag_buf;
-    Buf<TAcc, bool> partOfPT5_buf;
+    Buf<TDev, FPX> innerRadius_buf;
+    Buf<TDev, FPX> bridgeRadius_buf;
+    Buf<TDev, FPX> outerRadius_buf;
+    Buf<TDev, FPX> pt_buf;
+    Buf<TDev, FPX> eta_buf;
+    Buf<TDev, FPX> phi_buf;
+    Buf<TDev, FPX> score_rphisum_buf;
+    Buf<TDev, uint8_t> layer_buf;
+    Buf<TDev, bool> isDup_buf;
+    Buf<TDev, bool> TightCutFlag_buf;
+    Buf<TDev, bool> partOfPT5_buf;
 
-    Buf<TAcc, float> regressionRadius_buf;
-    Buf<TAcc, float> regressionG_buf;
-    Buf<TAcc, float> regressionF_buf;
+    Buf<TDev, float> regressionRadius_buf;
+    Buf<TDev, float> regressionG_buf;
+    Buf<TDev, float> regressionF_buf;
 
-    Buf<TAcc, uint8_t> logicalLayers_buf;
-    Buf<TAcc, unsigned int> hitIndices_buf;
-    Buf<TAcc, float> rzChiSquared_buf;
-    Buf<TAcc, float> chiSquared_buf;
-    Buf<TAcc, float> nonAnchorChiSquared_buf;
+    Buf<TDev, uint8_t> logicalLayers_buf;
+    Buf<TDev, unsigned int> hitIndices_buf;
+    Buf<TDev, float> rzChiSquared_buf;
+    Buf<TDev, float> chiSquared_buf;
+    Buf<TDev, float> nonAnchorChiSquared_buf;
 
     template <typename TQueue, typename TDevAcc>
     quintupletsBuffer(unsigned int nTotalQuintuplets, unsigned int nLowerModules, TDevAcc const& devAccIn, TQueue& queue)

@@ -54,8 +54,8 @@ namespace SDL {
     }
   };
 
-  template <typename TQueue, typename TAcc>
-  inline void fillPixelMap(struct modulesBuffer<TAcc>* modulesBuf, struct pixelMap& pixelMapping, TQueue queue) {
+  template <typename TQueue, typename TDev>
+  inline void fillPixelMap(struct modulesBuffer<TDev>* modulesBuf, struct pixelMap& pixelMapping, TQueue queue) {
     std::vector<unsigned int> connectedModuleDetIds;
     std::vector<unsigned int> connectedModuleDetIds_pos;
     std::vector<unsigned int> connectedModuleDetIds_neg;
@@ -128,8 +128,8 @@ namespace SDL {
     alpaka::wait(queue);
   };
 
-  template <typename TQueue, typename TAcc>
-  inline void fillConnectedModuleArrayExplicit(struct modulesBuffer<TAcc>* modulesBuf,
+  template <typename TQueue, typename TDev>
+  inline void fillConnectedModuleArrayExplicit(struct modulesBuffer<TDev>* modulesBuf,
                                                unsigned int nMod,
                                                TQueue queue) {
     auto moduleMap_buf = allocBufWrapper<uint16_t>(devHost, nMod * 40);
@@ -153,8 +153,8 @@ namespace SDL {
     alpaka::wait(queue);
   };
 
-  template <typename TQueue, typename TAcc>
-  inline void fillMapArraysExplicit(struct modulesBuffer<TAcc>* modulesBuf, unsigned int nMod, TQueue queue) {
+  template <typename TQueue, typename TDev>
+  inline void fillMapArraysExplicit(struct modulesBuffer<TDev>* modulesBuf, unsigned int nMod, TQueue queue) {
     auto mapIdx_buf = allocBufWrapper<uint16_t>(devHost, nMod);
     uint16_t* mapIdx = alpaka::getPtrNative(mapIdx_buf);
 
@@ -198,8 +198,8 @@ namespace SDL {
     eta = ((m_z > 0) - (m_z < 0)) * std::acosh(r / std::sqrt(m_x * m_x + m_y * m_y));
   };
 
-  template <typename TQueue, typename TAcc>
-  void loadModulesFromFile(struct modulesBuffer<TAcc>* modulesBuf,
+  template <typename TQueue, typename TDev>
+  void loadModulesFromFile(struct modulesBuffer<TDev>* modulesBuf,
                            uint16_t& nModules,
                            uint16_t& nLowerModules,
                            struct pixelMap& pixelMapping,

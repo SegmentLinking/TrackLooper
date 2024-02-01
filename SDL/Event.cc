@@ -197,13 +197,13 @@ void SDL::Event::addHitToEvent(std::vector<float> x,
   // Initialize space on device/host for next event.
   if (hitsInGPU == nullptr) {
     hitsInGPU = new SDL::hits();
-    hitsBuffers = new SDL::hitsBuffer<Acc>(nModules, nHits, devAcc, queue);
+    hitsBuffers = new SDL::hitsBuffer<Dev>(nModules, nHits, devAcc, queue);
     hitsInGPU->setData(*hitsBuffers);
   }
 
   if (rangesInGPU == nullptr) {
     rangesInGPU = new SDL::objectRanges();
-    rangesBuffers = new SDL::objectRangesBuffer<Acc>(nModules, nLowerModules, devAcc, queue);
+    rangesBuffers = new SDL::objectRangesBuffer<Dev>(nModules, nLowerModules, devAcc, queue);
     rangesInGPU->setData(*rangesBuffers);
   }
 
@@ -317,7 +317,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,
     nTotalMDs += N_MAX_PIXEL_MD_PER_MODULES;
 
     mdsInGPU = new SDL::miniDoublets();
-    miniDoubletsBuffers = new SDL::miniDoubletsBuffer<Acc>(nTotalMDs, nLowerModules, devAcc, queue);
+    miniDoubletsBuffers = new SDL::miniDoubletsBuffer<Dev>(nTotalMDs, nLowerModules, devAcc, queue);
     mdsInGPU->setData(*miniDoubletsBuffers);
 
     alpaka::memcpy(queue, miniDoubletsBuffers->nMemoryLocations_buf, nTotalMDs_view);
@@ -348,7 +348,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,
 
     segmentsInGPU = new SDL::segments();
     segmentsBuffers =
-        new SDL::segmentsBuffer<Acc>(nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
+        new SDL::segmentsBuffer<Dev>(nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
     segmentsInGPU->setData(*segmentsBuffers);
 
     alpaka::memcpy(queue, segmentsBuffers->nMemoryLocations_buf, nTotalSegments_view);
@@ -460,7 +460,7 @@ void SDL::Event::createMiniDoublets() {
 
   if (mdsInGPU == nullptr) {
     mdsInGPU = new SDL::miniDoublets();
-    miniDoubletsBuffers = new SDL::miniDoubletsBuffer<Acc>(nTotalMDs, nLowerModules, devAcc, queue);
+    miniDoubletsBuffers = new SDL::miniDoubletsBuffer<Dev>(nTotalMDs, nLowerModules, devAcc, queue);
     mdsInGPU->setData(*miniDoubletsBuffers);
   }
 
@@ -505,7 +505,7 @@ void SDL::Event::createSegmentsWithModuleMap() {
   if (segmentsInGPU == nullptr) {
     segmentsInGPU = new SDL::segments();
     segmentsBuffers =
-        new SDL::segmentsBuffer<Acc>(nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
+        new SDL::segmentsBuffer<Dev>(nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
     segmentsInGPU->setData(*segmentsBuffers);
   }
 
@@ -566,7 +566,7 @@ void SDL::Event::createTriplets() {
 
     tripletsInGPU = new SDL::triplets();
     tripletsBuffers =
-        new SDL::tripletsBuffer<Acc>(*alpaka::getPtrNative(maxTriplets_buf), nLowerModules, devAcc, queue);
+        new SDL::tripletsBuffer<Dev>(*alpaka::getPtrNative(maxTriplets_buf), nLowerModules, devAcc, queue);
     tripletsInGPU->setData(*tripletsBuffers);
 
     alpaka::memcpy(queue, tripletsBuffers->nMemoryLocations_buf, maxTriplets_buf, 1);
@@ -652,7 +652,7 @@ void SDL::Event::createTriplets() {
 void SDL::Event::createTrackCandidates() {
   if (trackCandidatesInGPU == nullptr) {
     trackCandidatesInGPU = new SDL::trackCandidates();
-    trackCandidatesBuffers = new SDL::trackCandidatesBuffer<Acc>(
+    trackCandidatesBuffers = new SDL::trackCandidatesBuffer<Dev>(
         N_MAX_NONPIXEL_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES, devAcc, queue);
     trackCandidatesInGPU->setData(*trackCandidatesBuffers);
   }
@@ -816,7 +816,7 @@ void SDL::Event::createTrackCandidates() {
 void SDL::Event::createPixelTriplets() {
   if (pixelTripletsInGPU == nullptr) {
     pixelTripletsInGPU = new SDL::pixelTriplets();
-    pixelTripletsBuffers = new SDL::pixelTripletsBuffer<Acc>(N_MAX_PIXEL_TRIPLETS, devAcc, queue);
+    pixelTripletsBuffers = new SDL::pixelTripletsBuffer<Dev>(N_MAX_PIXEL_TRIPLETS, devAcc, queue);
     pixelTripletsInGPU->setData(*pixelTripletsBuffers);
   }
 
@@ -963,7 +963,7 @@ void SDL::Event::createQuintuplets() {
 
   if (quintupletsInGPU == nullptr) {
     quintupletsInGPU = new SDL::quintuplets();
-    quintupletsBuffers = new SDL::quintupletsBuffer<Acc>(nTotalQuintuplets, nLowerModules, devAcc, queue);
+    quintupletsBuffers = new SDL::quintupletsBuffer<Dev>(nTotalQuintuplets, nLowerModules, devAcc, queue);
     quintupletsInGPU->setData(*quintupletsBuffers);
 
     alpaka::memcpy(queue, quintupletsBuffers->nMemoryLocations_buf, nTotalQuintuplets_buf, 1);
@@ -1043,12 +1043,12 @@ void SDL::Event::pixelLineSegmentCleaning() {
 void SDL::Event::createPixelQuintuplets() {
   if (pixelQuintupletsInGPU == nullptr) {
     pixelQuintupletsInGPU = new SDL::pixelQuintuplets();
-    pixelQuintupletsBuffers = new SDL::pixelQuintupletsBuffer<Acc>(N_MAX_PIXEL_QUINTUPLETS, devAcc, queue);
+    pixelQuintupletsBuffers = new SDL::pixelQuintupletsBuffer<Dev>(N_MAX_PIXEL_QUINTUPLETS, devAcc, queue);
     pixelQuintupletsInGPU->setData(*pixelQuintupletsBuffers);
   }
   if (trackCandidatesInGPU == nullptr) {
     trackCandidatesInGPU = new SDL::trackCandidates();
-    trackCandidatesBuffers = new SDL::trackCandidatesBuffer<Acc>(
+    trackCandidatesBuffers = new SDL::trackCandidatesBuffer<Dev>(
         N_MAX_NONPIXEL_TRACK_CANDIDATES + N_MAX_PIXEL_TRACK_CANDIDATES, devAcc, queue);
     trackCandidatesInGPU->setData(*trackCandidatesBuffers);
   }
