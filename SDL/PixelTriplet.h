@@ -67,31 +67,31 @@ namespace SDL {
     }
   };
 
-  template <typename TAcc>
+  template <typename TDev>
   struct pixelTripletsBuffer : pixelTriplets {
-    Buf<TAcc, unsigned int> pixelSegmentIndices_buf;
-    Buf<TAcc, unsigned int> tripletIndices_buf;
-    Buf<TAcc, int> nPixelTriplets_buf;
-    Buf<TAcc, int> totOccupancyPixelTriplets_buf;
-    Buf<TAcc, FPX> pixelRadius_buf;
-    Buf<TAcc, FPX> tripletRadius_buf;
-    Buf<TAcc, FPX> pt_buf;
-    Buf<TAcc, FPX> eta_buf;
-    Buf<TAcc, FPX> phi_buf;
-    Buf<TAcc, FPX> eta_pix_buf;
-    Buf<TAcc, FPX> phi_pix_buf;
-    Buf<TAcc, FPX> score_buf;
-    Buf<TAcc, bool> isDup_buf;
-    Buf<TAcc, bool> partOfPT5_buf;
-    Buf<TAcc, uint8_t> logicalLayers_buf;
-    Buf<TAcc, unsigned int> hitIndices_buf;
-    Buf<TAcc, uint16_t> lowerModuleIndices_buf;
-    Buf<TAcc, FPX> centerX_buf;
-    Buf<TAcc, FPX> centerY_buf;
-    Buf<TAcc, float> pixelRadiusError_buf;
-    Buf<TAcc, float> rPhiChiSquared_buf;
-    Buf<TAcc, float> rPhiChiSquaredInwards_buf;
-    Buf<TAcc, float> rzChiSquared_buf;
+    Buf<TDev, unsigned int> pixelSegmentIndices_buf;
+    Buf<TDev, unsigned int> tripletIndices_buf;
+    Buf<TDev, int> nPixelTriplets_buf;
+    Buf<TDev, int> totOccupancyPixelTriplets_buf;
+    Buf<TDev, FPX> pixelRadius_buf;
+    Buf<TDev, FPX> tripletRadius_buf;
+    Buf<TDev, FPX> pt_buf;
+    Buf<TDev, FPX> eta_buf;
+    Buf<TDev, FPX> phi_buf;
+    Buf<TDev, FPX> eta_pix_buf;
+    Buf<TDev, FPX> phi_pix_buf;
+    Buf<TDev, FPX> score_buf;
+    Buf<TDev, bool> isDup_buf;
+    Buf<TDev, bool> partOfPT5_buf;
+    Buf<TDev, uint8_t> logicalLayers_buf;
+    Buf<TDev, unsigned int> hitIndices_buf;
+    Buf<TDev, uint16_t> lowerModuleIndices_buf;
+    Buf<TDev, FPX> centerX_buf;
+    Buf<TDev, FPX> centerY_buf;
+    Buf<TDev, float> pixelRadiusError_buf;
+    Buf<TDev, float> rPhiChiSquared_buf;
+    Buf<TDev, float> rPhiChiSquaredInwards_buf;
+    Buf<TDev, float> rzChiSquared_buf;
 
     template <typename TQueue, typename TDevAcc>
     pixelTripletsBuffer(unsigned int maxPixelTriplets, TDevAcc const& devAccIn, TQueue& queue)
@@ -155,7 +155,7 @@ namespace SDL {
     pixelTripletsInGPU.phi[pixelTripletIndex] = __F2H(phi);
     pixelTripletsInGPU.eta_pix[pixelTripletIndex] = __F2H(eta_pix);
     pixelTripletsInGPU.phi_pix[pixelTripletIndex] = __F2H(phi_pix);
-    pixelTripletsInGPU.isDup[pixelTripletIndex] = 0;
+    pixelTripletsInGPU.isDup[pixelTripletIndex] = false;
     pixelTripletsInGPU.score[pixelTripletIndex] = __F2H(score);
 
     pixelTripletsInGPU.centerX[pixelTripletIndex] = __F2H(centerX);
@@ -1944,26 +1944,26 @@ namespace SDL {
     }
   };
 
-  template <typename TAcc>
+  template <typename TDev>
   struct pixelQuintupletsBuffer : pixelQuintuplets {
-    Buf<TAcc, unsigned int> pixelIndices_buf;
-    Buf<TAcc, unsigned int> T5Indices_buf;
-    Buf<TAcc, int> nPixelQuintuplets_buf;
-    Buf<TAcc, int> totOccupancyPixelQuintuplets_buf;
-    Buf<TAcc, bool> isDup_buf;
-    Buf<TAcc, FPX> score_buf;
-    Buf<TAcc, FPX> eta_buf;
-    Buf<TAcc, FPX> phi_buf;
-    Buf<TAcc, uint8_t> logicalLayers_buf;
-    Buf<TAcc, unsigned int> hitIndices_buf;
-    Buf<TAcc, uint16_t> lowerModuleIndices_buf;
-    Buf<TAcc, FPX> pixelRadius_buf;
-    Buf<TAcc, FPX> quintupletRadius_buf;
-    Buf<TAcc, FPX> centerX_buf;
-    Buf<TAcc, FPX> centerY_buf;
-    Buf<TAcc, float> rzChiSquared_buf;
-    Buf<TAcc, float> rPhiChiSquared_buf;
-    Buf<TAcc, float> rPhiChiSquaredInwards_buf;
+    Buf<TDev, unsigned int> pixelIndices_buf;
+    Buf<TDev, unsigned int> T5Indices_buf;
+    Buf<TDev, int> nPixelQuintuplets_buf;
+    Buf<TDev, int> totOccupancyPixelQuintuplets_buf;
+    Buf<TDev, bool> isDup_buf;
+    Buf<TDev, FPX> score_buf;
+    Buf<TDev, FPX> eta_buf;
+    Buf<TDev, FPX> phi_buf;
+    Buf<TDev, uint8_t> logicalLayers_buf;
+    Buf<TDev, unsigned int> hitIndices_buf;
+    Buf<TDev, uint16_t> lowerModuleIndices_buf;
+    Buf<TDev, FPX> pixelRadius_buf;
+    Buf<TDev, FPX> quintupletRadius_buf;
+    Buf<TDev, FPX> centerX_buf;
+    Buf<TDev, FPX> centerY_buf;
+    Buf<TDev, float> rzChiSquared_buf;
+    Buf<TDev, float> rPhiChiSquared_buf;
+    Buf<TDev, float> rPhiChiSquaredInwards_buf;
 
     template <typename TQueue, typename TDevAcc>
     pixelQuintupletsBuffer(unsigned int maxPixelQuintuplets, TDevAcc const& devAccIn, TQueue& queue)
@@ -2011,7 +2011,7 @@ namespace SDL {
                                                                  float& centerY) {
     pixelQuintupletsInGPU.pixelIndices[pixelQuintupletIndex] = pixelIndex;
     pixelQuintupletsInGPU.T5Indices[pixelQuintupletIndex] = T5Index;
-    pixelQuintupletsInGPU.isDup[pixelQuintupletIndex] = 0;
+    pixelQuintupletsInGPU.isDup[pixelQuintupletIndex] = false;
     pixelQuintupletsInGPU.score[pixelQuintupletIndex] = __F2H(score);
     pixelQuintupletsInGPU.eta[pixelQuintupletIndex] = __F2H(eta);
     pixelQuintupletsInGPU.phi[pixelQuintupletIndex] = __F2H(phi);
@@ -2320,7 +2320,7 @@ namespace SDL {
       moduleType = modulesInGPU.moduleType[lowerModuleIndices[i]];
       moduleSubdet = modulesInGPU.subdets[lowerModuleIndices[i]];
       moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
-      float& drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
+      const float& drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
       slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
       //category 1 - barrel PS flat
       if (moduleSubdet == Barrel and moduleType == PS and moduleSide == Center) {
@@ -2687,7 +2687,7 @@ namespace SDL {
 
       residual = (moduleSubdet == SDL::Barrel) ? (zs[i] - zPix[0]) - slope * (rts[i] - rtPix[0])
                                                : (rts[i] - rtPix[0]) - (zs[i] - zPix[0]) / slope;
-      float& drdz = modulesInGPU.drdzs[lowerModuleIndex];
+      const float& drdz = modulesInGPU.drdzs[lowerModuleIndex];
       //PS Modules
       if (moduleType == 0) {
         error = 0.15f;

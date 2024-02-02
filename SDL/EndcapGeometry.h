@@ -24,8 +24,8 @@ namespace SDL {
     std::map<unsigned int, float> centroid_zs_;    // centroid z
 
   public:
-    Buf<Acc, unsigned int> geoMapDetId_buf;
-    Buf<Acc, float> geoMapPhi_buf;
+    Buf<SDL::Dev, unsigned int> geoMapDetId_buf;
+    Buf<SDL::Dev, float> geoMapPhi_buf;
 
     unsigned int nEndCapMap;
 

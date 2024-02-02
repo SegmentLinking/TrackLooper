@@ -83,42 +83,42 @@ namespace SDL {
     }
   };
 
-  template <typename TAcc>
+  template <typename TDev>
   struct segmentsBuffer : segments {
-    Buf<TAcc, FPX> dPhis_buf;
-    Buf<TAcc, FPX> dPhiMins_buf;
-    Buf<TAcc, FPX> dPhiMaxs_buf;
-    Buf<TAcc, FPX> dPhiChanges_buf;
-    Buf<TAcc, FPX> dPhiChangeMins_buf;
-    Buf<TAcc, FPX> dPhiChangeMaxs_buf;
-    Buf<TAcc, uint16_t> innerLowerModuleIndices_buf;
-    Buf<TAcc, uint16_t> outerLowerModuleIndices_buf;
-    Buf<TAcc, unsigned int> seedIdx_buf;
-    Buf<TAcc, unsigned int> mdIndices_buf;
-    Buf<TAcc, unsigned int> nMemoryLocations_buf;
-    Buf<TAcc, unsigned int> innerMiniDoubletAnchorHitIndices_buf;
-    Buf<TAcc, unsigned int> outerMiniDoubletAnchorHitIndices_buf;
-    Buf<TAcc, int> charge_buf;
-    Buf<TAcc, int> superbin_buf;
-    Buf<TAcc, int> nSegments_buf;
-    Buf<TAcc, int> totOccupancySegments_buf;
-    Buf<TAcc, uint4> pLSHitsIdxs_buf;
-    Buf<TAcc, int8_t> pixelType_buf;
-    Buf<TAcc, char> isQuad_buf;
-    Buf<TAcc, char> isDup_buf;
-    Buf<TAcc, bool> partOfPT5_buf;
-    Buf<TAcc, float> ptIn_buf;
-    Buf<TAcc, float> ptErr_buf;
-    Buf<TAcc, float> px_buf;
-    Buf<TAcc, float> py_buf;
-    Buf<TAcc, float> pz_buf;
-    Buf<TAcc, float> etaErr_buf;
-    Buf<TAcc, float> eta_buf;
-    Buf<TAcc, float> phi_buf;
-    Buf<TAcc, float> score_buf;
-    Buf<TAcc, float> circleCenterX_buf;
-    Buf<TAcc, float> circleCenterY_buf;
-    Buf<TAcc, float> circleRadius_buf;
+    Buf<TDev, FPX> dPhis_buf;
+    Buf<TDev, FPX> dPhiMins_buf;
+    Buf<TDev, FPX> dPhiMaxs_buf;
+    Buf<TDev, FPX> dPhiChanges_buf;
+    Buf<TDev, FPX> dPhiChangeMins_buf;
+    Buf<TDev, FPX> dPhiChangeMaxs_buf;
+    Buf<TDev, uint16_t> innerLowerModuleIndices_buf;
+    Buf<TDev, uint16_t> outerLowerModuleIndices_buf;
+    Buf<TDev, unsigned int> seedIdx_buf;
+    Buf<TDev, unsigned int> mdIndices_buf;
+    Buf<TDev, unsigned int> nMemoryLocations_buf;
+    Buf<TDev, unsigned int> innerMiniDoubletAnchorHitIndices_buf;
+    Buf<TDev, unsigned int> outerMiniDoubletAnchorHitIndices_buf;
+    Buf<TDev, int> charge_buf;
+    Buf<TDev, int> superbin_buf;
+    Buf<TDev, int> nSegments_buf;
+    Buf<TDev, int> totOccupancySegments_buf;
+    Buf<TDev, uint4> pLSHitsIdxs_buf;
+    Buf<TDev, int8_t> pixelType_buf;
+    Buf<TDev, char> isQuad_buf;
+    Buf<TDev, char> isDup_buf;
+    Buf<TDev, bool> partOfPT5_buf;
+    Buf<TDev, float> ptIn_buf;
+    Buf<TDev, float> ptErr_buf;
+    Buf<TDev, float> px_buf;
+    Buf<TDev, float> py_buf;
+    Buf<TDev, float> pz_buf;
+    Buf<TDev, float> etaErr_buf;
+    Buf<TDev, float> eta_buf;
+    Buf<TDev, float> phi_buf;
+    Buf<TDev, float> score_buf;
+    Buf<TDev, float> circleCenterX_buf;
+    Buf<TDev, float> circleCenterY_buf;
+    Buf<TDev, float> circleRadius_buf;
 
     template <typename TQueue, typename TDevAcc>
     segmentsBuffer(unsigned int nMemoryLocationsIn,
@@ -286,8 +286,8 @@ namespace SDL {
     bool isOuterTilted = modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel and
                          modulesInGPU.sides[outerLowerModuleIndex] != SDL::Center;
 
-    float& drdzInner = modulesInGPU.drdzs[innerLowerModuleIndex];
-    float& drdzOuter = modulesInGPU.drdzs[outerLowerModuleIndex];
+    const float& drdzInner = modulesInGPU.drdzs[innerLowerModuleIndex];
+    const float& drdzOuter = modulesInGPU.drdzs[outerLowerModuleIndex];
     float innerModuleGapSize = SDL::moduleGapSize_seg(modulesInGPU, innerLowerModuleIndex);
     float outerModuleGapSize = SDL::moduleGapSize_seg(modulesInGPU, outerLowerModuleIndex);
     const float innerminiTilt = isInnerTilted

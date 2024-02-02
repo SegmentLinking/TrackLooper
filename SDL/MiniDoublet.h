@@ -93,50 +93,50 @@ namespace SDL {
     }
   };
 
-  template <typename TAcc>
+  template <typename TDev>
   struct miniDoubletsBuffer : miniDoublets {
-    Buf<TAcc, unsigned int> nMemoryLocations_buf;
+    Buf<TDev, unsigned int> nMemoryLocations_buf;
 
-    Buf<TAcc, unsigned int> anchorHitIndices_buf;
-    Buf<TAcc, unsigned int> outerHitIndices_buf;
-    Buf<TAcc, uint16_t> moduleIndices_buf;
-    Buf<TAcc, int> nMDs_buf;
-    Buf<TAcc, int> totOccupancyMDs_buf;
-    Buf<TAcc, float> dphichanges_buf;
+    Buf<TDev, unsigned int> anchorHitIndices_buf;
+    Buf<TDev, unsigned int> outerHitIndices_buf;
+    Buf<TDev, uint16_t> moduleIndices_buf;
+    Buf<TDev, int> nMDs_buf;
+    Buf<TDev, int> totOccupancyMDs_buf;
+    Buf<TDev, float> dphichanges_buf;
 
-    Buf<TAcc, float> dzs_buf;
-    Buf<TAcc, float> dphis_buf;
+    Buf<TDev, float> dzs_buf;
+    Buf<TDev, float> dphis_buf;
 
-    Buf<TAcc, float> shiftedXs_buf;
-    Buf<TAcc, float> shiftedYs_buf;
-    Buf<TAcc, float> shiftedZs_buf;
-    Buf<TAcc, float> noShiftedDzs_buf;
-    Buf<TAcc, float> noShiftedDphis_buf;
-    Buf<TAcc, float> noShiftedDphiChanges_buf;
+    Buf<TDev, float> shiftedXs_buf;
+    Buf<TDev, float> shiftedYs_buf;
+    Buf<TDev, float> shiftedZs_buf;
+    Buf<TDev, float> noShiftedDzs_buf;
+    Buf<TDev, float> noShiftedDphis_buf;
+    Buf<TDev, float> noShiftedDphiChanges_buf;
 
-    Buf<TAcc, float> anchorX_buf;
-    Buf<TAcc, float> anchorY_buf;
-    Buf<TAcc, float> anchorZ_buf;
-    Buf<TAcc, float> anchorRt_buf;
-    Buf<TAcc, float> anchorPhi_buf;
-    Buf<TAcc, float> anchorEta_buf;
-    Buf<TAcc, float> anchorHighEdgeX_buf;
-    Buf<TAcc, float> anchorHighEdgeY_buf;
-    Buf<TAcc, float> anchorLowEdgeX_buf;
-    Buf<TAcc, float> anchorLowEdgeY_buf;
-    Buf<TAcc, float> anchorLowEdgePhi_buf;
-    Buf<TAcc, float> anchorHighEdgePhi_buf;
+    Buf<TDev, float> anchorX_buf;
+    Buf<TDev, float> anchorY_buf;
+    Buf<TDev, float> anchorZ_buf;
+    Buf<TDev, float> anchorRt_buf;
+    Buf<TDev, float> anchorPhi_buf;
+    Buf<TDev, float> anchorEta_buf;
+    Buf<TDev, float> anchorHighEdgeX_buf;
+    Buf<TDev, float> anchorHighEdgeY_buf;
+    Buf<TDev, float> anchorLowEdgeX_buf;
+    Buf<TDev, float> anchorLowEdgeY_buf;
+    Buf<TDev, float> anchorLowEdgePhi_buf;
+    Buf<TDev, float> anchorHighEdgePhi_buf;
 
-    Buf<TAcc, float> outerX_buf;
-    Buf<TAcc, float> outerY_buf;
-    Buf<TAcc, float> outerZ_buf;
-    Buf<TAcc, float> outerRt_buf;
-    Buf<TAcc, float> outerPhi_buf;
-    Buf<TAcc, float> outerEta_buf;
-    Buf<TAcc, float> outerHighEdgeX_buf;
-    Buf<TAcc, float> outerHighEdgeY_buf;
-    Buf<TAcc, float> outerLowEdgeX_buf;
-    Buf<TAcc, float> outerLowEdgeY_buf;
+    Buf<TDev, float> outerX_buf;
+    Buf<TDev, float> outerY_buf;
+    Buf<TDev, float> outerZ_buf;
+    Buf<TDev, float> outerRt_buf;
+    Buf<TDev, float> outerPhi_buf;
+    Buf<TDev, float> outerEta_buf;
+    Buf<TDev, float> outerHighEdgeX_buf;
+    Buf<TDev, float> outerHighEdgeY_buf;
+    Buf<TDev, float> outerLowEdgeX_buf;
+    Buf<TDev, float> outerLowEdgeY_buf;
 
     template <typename TQueue, typename TDevAcc>
     miniDoubletsBuffer(unsigned int nMemoryLoc, uint16_t nLowerModules, TDevAcc const& devAccIn, TQueue& queue)
@@ -445,12 +445,12 @@ namespace SDL {
     float drprime;    // The radial shift size in x-y plane projection
     float drprime_x;  // x-component of drprime
     float drprime_y;  // y-component of drprime
-    float& slope =
+    const float& slope =
         modulesInGPU.slopes[lowerModuleIndex];  // The slope of the possible strip hits for a given module in x-y plane
     float absArctanSlope;
     float angleM;  // the angle M is the angle of rotation of the module in x-y plane if the possible strip hits are along the x-axis, then angleM = 0, and if the possible strip hits are along y-axis angleM = 90 degrees
     float absdzprime;  // The distance between the two points after shifting
-    float& drdz_ = modulesInGPU.drdzs[lowerModuleIndex];
+    const float& drdz_ = modulesInGPU.drdzs[lowerModuleIndex];
     // Assign hit pointers based on their hit type
     if (modulesInGPU.moduleType[lowerModuleIndex] == PS) {
       // TODO: This is somewhat of an mystery.... somewhat confused why this is the case

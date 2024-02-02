@@ -3,6 +3,7 @@
 
 #include "Hit.h"
 #include "Module.h"
+#include "ModuleMethods.h"
 #include "Segment.h"
 #include "Triplet.h"
 #include "Kernels.h"
@@ -34,23 +35,23 @@ namespace SDL {
     //Device stuff
     unsigned int nTotalSegments;
     struct objectRanges* rangesInGPU;
-    struct objectRangesBuffer<Acc>* rangesBuffers;
+    struct objectRangesBuffer<Dev>* rangesBuffers;
     struct hits* hitsInGPU;
-    struct hitsBuffer<Acc>* hitsBuffers;
+    struct hitsBuffer<Dev>* hitsBuffers;
     struct miniDoublets* mdsInGPU;
-    struct miniDoubletsBuffer<Acc>* miniDoubletsBuffers;
+    struct miniDoubletsBuffer<Dev>* miniDoubletsBuffers;
     struct segments* segmentsInGPU;
-    struct segmentsBuffer<Acc>* segmentsBuffers;
+    struct segmentsBuffer<Dev>* segmentsBuffers;
     struct triplets* tripletsInGPU;
-    struct tripletsBuffer<Acc>* tripletsBuffers;
+    struct tripletsBuffer<Dev>* tripletsBuffers;
     struct quintuplets* quintupletsInGPU;
-    struct quintupletsBuffer<Acc>* quintupletsBuffers;
+    struct quintupletsBuffer<Dev>* quintupletsBuffers;
     struct trackCandidates* trackCandidatesInGPU;
-    struct trackCandidatesBuffer<Acc>* trackCandidatesBuffers;
+    struct trackCandidatesBuffer<Dev>* trackCandidatesBuffers;
     struct pixelTriplets* pixelTripletsInGPU;
-    struct pixelTripletsBuffer<Acc>* pixelTripletsBuffers;
+    struct pixelTripletsBuffer<Dev>* pixelTripletsBuffers;
     struct pixelQuintuplets* pixelQuintupletsInGPU;
-    struct pixelQuintupletsBuffer<Acc>* pixelQuintupletsBuffers;
+    struct pixelQuintupletsBuffer<Dev>* pixelQuintupletsBuffers;
 
     //CPU interface stuff
     objectRangesBuffer<alpaka::DevCpu>* rangesInCPU;
@@ -176,7 +177,8 @@ namespace SDL {
 
   //global stuff
   extern SDL::modules* modulesInGPU;
-  extern SDL::modulesBuffer<Acc>* modulesBuffers;
+  extern SDL::modulesBuffer<Dev>* modulesBuffers;
+  extern SDL::modulesBuffer<Dev> const* modulesBuffersES;  // not owned const buffers
   extern uint16_t nModules;
   extern uint16_t nLowerModules;
   void initModules(const char* moduleMetaDataFilePath = "data/centroid.txt");  //read from file and init

@@ -15,12 +15,12 @@
 #include "Event.h"
 
 namespace SDL {
-
   class LST {
   public:
-    LST();
+    LST() = default;
 
-    void eventSetup();
+    static void loadAndFillES(alpaka::QueueCpuBlocking& queue, struct modulesBuffer<alpaka::DevCpu>* modules);
+
     template <typename TQueue>
     void run(TQueue& queue,
              bool verbose,
@@ -177,8 +177,6 @@ namespace SDL {
     std::vector<short> trackCandidateType() { return out_tc_trackCandidateType_; }
 
   private:
-    void loadMaps();
-    TString get_absolute_path_after_check_file_exists(const std::string name);
     void prepareInput(const std::vector<float> see_px,
                       const std::vector<float> see_py,
                       const std::vector<float> see_pz,
@@ -208,7 +206,6 @@ namespace SDL {
                                          const unsigned int* hitIndices);
 
     // Input and output vectors
-    TString TrackLooperDir_;
     std::vector<float> in_trkX_;
     std::vector<float> in_trkY_;
     std::vector<float> in_trkZ_;
