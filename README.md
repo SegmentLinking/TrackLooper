@@ -4,16 +4,16 @@
 ## Quick Start
 
 
-### Setting up LSTPerformanceWeb (only for lnx7188)
+### Setting up LSTPerformanceWeb (only for lnx7188 and lnx4555)
 
-For lnx7188 this needs to be done once
+For lnx7188 and lnx4555 this needs to be done once
 
     cd /cdat/tem/${USER}/
     git clone git@github.com:SegmentLinking/LSTPerformanceWeb.git
 
-### Setting up container (only for lnx7188)
+### Setting up container (only for lnx7188 and lnx4555)
 
-For lnx7188 this needs to be done before compiling or running the code:
+For lnx7188 and lnx4555 this needs to be done before compiling or running the code:
 
     singularity shell --nv --bind /mnt/data1:/data --bind /data2/segmentlinking/ --bind /opt --bind /nfs --bind /mnt --bind /usr/local/cuda/bin/ --bind /cvmfs  /cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmssw/el8:x86_64
 
@@ -137,7 +137,17 @@ git remote add SegLink git@github.com:SegmentLinking/cmssw.git
 git fetch SegLink CMSSW_13_3_0_pre3_LST_X
 git cms-addpkg RecoTracker Configuration
 git checkout CMSSW_13_3_0_pre3_LST_X
-#To include both the CPU library and GPU library into CMSSW, create 2 xml files. Before writing the following xml file, check that libsdl_cpu.so and libsdl_gpu.so can be found under the ../../../TrackLooper/SDL/ folder.
+#To include both the CPU library and GPU library into CMSSW, create 3 xml files (headers file has no library).
+#Before writing the following xml file, check that libsdl_cpu.so and libsdl_gpu.so can be found under the ../../../TrackLooper/SDL/ folder.
+cat <<EOF >lst_headers.xml
+<tool name="lst_headers" version="1.0">
+  <client>
+    <environment name="LSTBASE" default="$PWD/../../../TrackLooper"/>
+    <environment name="INCLUDE" default="\$LSTBASE"/>
+  </client>
+  <runtime name="LST_BASE" value="\$LSTBASE"/>
+</tool>
+EOF
 cat <<EOF >lst_cpu.xml
 <tool name="lst_cpu" version="1.0">
   <client>
@@ -160,6 +170,7 @@ cat <<EOF >lst_cuda.xml
   <lib name="sdl_cuda"/>
 </tool>
 EOF
+scram setup lst_headers.xml
 scram setup lst_cpu.xml
 scram setup lst_cuda.xml
 cmsenv

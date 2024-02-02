@@ -20,7 +20,7 @@ jobs:
       - name: Checkout PR
         uses: actions/checkout@v4
       - name: Mount cvmfs
-        uses: cvmfs-contrib/github-action-cvmfs@v3
+        uses: cvmfs-contrib/github-action-cvmfs@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

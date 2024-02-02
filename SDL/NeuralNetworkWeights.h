@@ -1,6 +1,8 @@
 #ifndef NeuralNetworkWeights_cuh
 #define NeuralNetworkWeights_cuh
 
+#include <alpaka/alpaka.hpp>
+
 namespace T5DNN {
   ALPAKA_STATIC_ACC_MEM_GLOBAL const float bias_0[32] = {
       -4.5069356f, -5.8842053f, 1.0793180f,  -0.1540973f, -0.4705772f, 6.4027028f,  -0.6620818f, -7.0734525f,

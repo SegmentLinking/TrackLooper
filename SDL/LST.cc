@@ -1,58 +1,61 @@
 #include "LST.h"
 
-SDL::LST::LST() { TrackLooperDir_ = getenv("LST_BASE"); }
+namespace {
+  TString trackLooperDir() { return getenv("LST_BASE"); }
 
-void SDL::LST::eventSetup() {
-  static std::once_flag mapsLoaded;
-  std::call_once(mapsLoaded, &SDL::LST::loadMaps, this);
+  TString get_absolute_path_after_check_file_exists(const std::string name) {
+    std::filesystem::path fullpath = std::filesystem::absolute(name.c_str());
+    if (not std::filesystem::exists(fullpath)) {
+      std::cout << "ERROR: Could not find the file = " << fullpath << std::endl;
+      exit(2);
+    }
+    return TString(fullpath.string().c_str());
+  }
+
+  void loadMaps() {
+    // Module orientation information (DrDz or phi angles)
+    TString endcap_geom = get_absolute_path_after_check_file_exists(
+        TString::Format("%s/data/endcap_orientation_data_CMSSW_12_2_0_pre2.txt", trackLooperDir().Data()).Data());
+    TString tilted_geom = get_absolute_path_after_check_file_exists(
+        TString::Format("%s/data/tilted_orientation_data_CMSSW_12_2_0_pre2.txt", trackLooperDir().Data()).Data());
+    SDL::endcapGeometry->load(endcap_geom.Data());  // centroid values added to the map
+    SDL::tiltedGeometry.load(tilted_geom.Data());
+
+    // Module connection map (for line segment building)
+    TString mappath = get_absolute_path_after_check_file_exists(
+        TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", trackLooperDir().Data())
+            .Data());
+    SDL::moduleConnectionMap.load(mappath.Data());
+
+    TString pLSMapDir = trackLooperDir() + "/data/pixelmaps_CMSSW_12_2_0_pre2_0p8minPt/pLS_map";
+    std::string connects[] = {"_layer1_subdet5", "_layer2_subdet5", "_layer1_subdet4", "_layer2_subdet4"};
+    TString path;
+
+    for (std::string& connect : connects) {
+      auto connectData = connect.data();
+
+      path = TString::Format("%s%s.txt", pLSMapDir.Data(), connectData).Data();
+      SDL::moduleConnectionMap_pLStoLayer.emplace_back(
+          SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data()));
+
+      path = TString::Format("%s_pos%s.txt", pLSMapDir.Data(), connectData).Data();
+      SDL::moduleConnectionMap_pLStoLayer_pos.emplace_back(
+          SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data()));
+
+      path = TString::Format("%s_neg%s.txt", pLSMapDir.Data(), connectData).Data();
+      SDL::moduleConnectionMap_pLStoLayer_neg.emplace_back(
+          SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data()));
+    }
+  }
+
+}  // namespace
+
+void SDL::LST::loadAndFillES(alpaka::QueueCpuBlocking& queue, struct modulesBuffer<alpaka::DevCpu>* modules) {
+  ::loadMaps();
+
   TString path = get_absolute_path_after_check_file_exists(
-      TString::Format("%s/data/centroid_CMSSW_12_2_0_pre2.txt", TrackLooperDir_.Data()).Data());
-  static std::once_flag modulesInited;
-  std::call_once(modulesInited, SDL::initModules, path);
-}
-
-void SDL::LST::loadMaps() {
-  // Module orientation information (DrDz or phi angles)
-  TString endcap_geom = get_absolute_path_after_check_file_exists(
-      TString::Format("%s/data/endcap_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir_.Data()).Data());
-  TString tilted_geom = get_absolute_path_after_check_file_exists(
-      TString::Format("%s/data/tilted_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir_.Data()).Data());
-  SDL::endcapGeometry->load(endcap_geom.Data());  // centroid values added to the map
-  SDL::tiltedGeometry.load(tilted_geom.Data());
-
-  // Module connection map (for line segment building)
-  TString mappath = get_absolute_path_after_check_file_exists(
-      TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir_.Data()).Data());
-  SDL::moduleConnectionMap.load(mappath.Data());
-
-  TString pLSMapDir = TrackLooperDir_ + "/data/pixelmaps_CMSSW_12_2_0_pre2_0p8minPt/pLS_map";
-  std::string connects[] = {"_layer1_subdet5", "_layer2_subdet5", "_layer1_subdet4", "_layer2_subdet4"};
-  TString path;
-
-  for (std::string& connect : connects) {
-    auto connectData = connect.data();
-
-    path = TString::Format("%s%s.txt", pLSMapDir.Data(), connectData).Data();
-    SDL::moduleConnectionMap_pLStoLayer.emplace_back(
-        ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data()));
-
-    path = TString::Format("%s_pos%s.txt", pLSMapDir.Data(), connectData).Data();
-    SDL::moduleConnectionMap_pLStoLayer_pos.emplace_back(
-        ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data()));
-
-    path = TString::Format("%s_neg%s.txt", pLSMapDir.Data(), connectData).Data();
-    SDL::moduleConnectionMap_pLStoLayer_neg.emplace_back(
-        ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data()));
-  }
-}
-
-TString SDL::LST::get_absolute_path_after_check_file_exists(const std::string name) {
-  std::filesystem::path fullpath = std::filesystem::absolute(name.c_str());
-  if (not std::filesystem::exists(fullpath)) {
-    std::cout << "ERROR: Could not find the file = " << fullpath << std::endl;
-    exit(2);
-  }
-  return TString(fullpath.string().c_str());
+      TString::Format("%s/data/centroid_CMSSW_12_2_0_pre2.txt", trackLooperDir().Data()).Data());
+  SDL::loadModulesFromFile(modules, SDL::nModules, SDL::nLowerModules, *SDL::pixelMapping, queue, path.Data());
 }
 
 void SDL::LST::prepareInput(const std::vector<float> see_px,

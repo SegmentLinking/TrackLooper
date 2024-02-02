@@ -18,12 +18,12 @@ namespace SDL {
 
   ALPAKA_FN_ACC ALPAKA_FN_INLINE void rmPixelTripletFromMemory(struct SDL::pixelTriplets& pixelTripletsInGPU,
                                                                unsigned int pixelTripletIndex) {
-    pixelTripletsInGPU.isDup[pixelTripletIndex] = 1;
+    pixelTripletsInGPU.isDup[pixelTripletIndex] = true;
   };
 
   ALPAKA_FN_ACC ALPAKA_FN_INLINE void rmPixelQuintupletFromMemory(struct SDL::pixelQuintuplets& pixelQuintupletsInGPU,
                                                                   unsigned int pixelQuintupletIndex) {
-    pixelQuintupletsInGPU.isDup[pixelQuintupletIndex] = 1;
+    pixelQuintupletsInGPU.isDup[pixelQuintupletIndex] = true;
   };
 
   ALPAKA_FN_ACC ALPAKA_FN_INLINE void rmPixelSegmentFromMemory(struct SDL::segments& segmentsInGPU,
