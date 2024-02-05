@@ -93,11 +93,11 @@ namespace SDL {
           hitRangesUpper_buf(allocBufWrapper<int>(devAccIn, nModules, queue)),
           hitRangesnLower_buf(allocBufWrapper<int8_t>(devAccIn, nModules, queue)),
           hitRangesnUpper_buf(allocBufWrapper<int8_t>(devAccIn, nModules, queue)) {
-      alpaka::memset(queue, hitRanges_buf, -1, nModules * 2);
-      alpaka::memset(queue, hitRangesLower_buf, -1, nModules);
-      alpaka::memset(queue, hitRangesUpper_buf, -1, nModules);
-      alpaka::memset(queue, hitRangesnLower_buf, -1, nModules);
-      alpaka::memset(queue, hitRangesnUpper_buf, -1, nModules);
+      alpaka::memset(queue, hitRanges_buf, -1);
+      alpaka::memset(queue, hitRangesLower_buf, -1);
+      alpaka::memset(queue, hitRangesUpper_buf, -1);
+      alpaka::memset(queue, hitRangesnLower_buf, -1);
+      alpaka::memset(queue, hitRangesnUpper_buf, -1);
       alpaka::wait(queue);
     }
   };
@@ -232,7 +232,7 @@ namespace SDL {
 
       Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
       Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
-      for (int ihit = globalThreadIdx[2]; ihit < nHits; ihit += gridThreadExtent[2]) {
+      for (unsigned int ihit = globalThreadIdx[2]; ihit < nHits; ihit += gridThreadExtent[2]) {
         float ihit_x = hitsInGPU.xs[ihit];
         float ihit_y = hitsInGPU.ys[ihit];
         float ihit_z = hitsInGPU.zs[ihit];
@@ -264,12 +264,13 @@ namespace SDL {
           hitsInGPU.lowEdgeYs[ihit] = ihit_y - 2.5f * sin_phi;
         }
         // Need to set initial value if index hasn't been seen before.
-        int old = alpaka::atomicOp<alpaka::AtomicCas>(acc, &(hitsInGPU.hitRanges[lastModuleIndex * 2]), -1, ihit);
+        int old = alpaka::atomicOp<alpaka::AtomicCas>(
+            acc, &(hitsInGPU.hitRanges[lastModuleIndex * 2]), -1, static_cast<int>(ihit));
         // For subsequent visits, stores the min value.
         if (old != -1)
-          alpaka::atomicOp<alpaka::AtomicMin>(acc, &hitsInGPU.hitRanges[lastModuleIndex * 2], ihit);
+          alpaka::atomicOp<alpaka::AtomicMin>(acc, &hitsInGPU.hitRanges[lastModuleIndex * 2], static_cast<int>(ihit));
 
-        alpaka::atomicOp<alpaka::AtomicMax>(acc, &hitsInGPU.hitRanges[lastModuleIndex * 2 + 1], ihit);
+        alpaka::atomicOp<alpaka::AtomicMax>(acc, &hitsInGPU.hitRanges[lastModuleIndex * 2 + 1], static_cast<int>(ihit));
       }
     }
   };

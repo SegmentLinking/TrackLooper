@@ -13,8 +13,8 @@ namespace SDL {
     unsigned int* anchorHitIndices;
     unsigned int* outerHitIndices;
     uint16_t* moduleIndices;
-    int* nMDs;             //counter per module
-    int* totOccupancyMDs;  //counter per module
+    unsigned int* nMDs;             //counter per module
+    unsigned int* totOccupancyMDs;  //counter per module
     float* dphichanges;
 
     float* dzs;  //will store drt if the module is endcap
@@ -100,8 +100,8 @@ namespace SDL {
     Buf<TDev, unsigned int> anchorHitIndices_buf;
     Buf<TDev, unsigned int> outerHitIndices_buf;
     Buf<TDev, uint16_t> moduleIndices_buf;
-    Buf<TDev, int> nMDs_buf;
-    Buf<TDev, int> totOccupancyMDs_buf;
+    Buf<TDev, unsigned int> nMDs_buf;
+    Buf<TDev, unsigned int> totOccupancyMDs_buf;
     Buf<TDev, float> dphichanges_buf;
 
     Buf<TDev, float> dzs_buf;
@@ -144,8 +144,8 @@ namespace SDL {
           anchorHitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, nMemoryLoc, queue)),
           outerHitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, nMemoryLoc, queue)),
           moduleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, nMemoryLoc, queue)),
-          nMDs_buf(allocBufWrapper<int>(devAccIn, nLowerModules + 1, queue)),
-          totOccupancyMDs_buf(allocBufWrapper<int>(devAccIn, nLowerModules + 1, queue)),
+          nMDs_buf(allocBufWrapper<unsigned int>(devAccIn, nLowerModules + 1, queue)),
+          totOccupancyMDs_buf(allocBufWrapper<unsigned int>(devAccIn, nLowerModules + 1, queue)),
           dphichanges_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
           dzs_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
           dphis_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
@@ -165,6 +165,8 @@ namespace SDL {
           anchorHighEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
           anchorLowEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
           anchorLowEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
+          anchorLowEdgePhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
+          anchorHighEdgePhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
           outerX_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
           outerY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
           outerZ_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
@@ -174,11 +176,9 @@ namespace SDL {
           outerHighEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
           outerHighEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
           outerLowEdgeX_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
-          outerLowEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
-          anchorLowEdgePhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)),
-          anchorHighEdgePhi_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)) {
-      alpaka::memset(queue, nMDs_buf, 0, nLowerModules + 1);
-      alpaka::memset(queue, totOccupancyMDs_buf, 0, nLowerModules + 1);
+          outerLowEdgeY_buf(allocBufWrapper<float>(devAccIn, nMemoryLoc, queue)) {
+      alpaka::memset(queue, nMDs_buf, 0u);
+      alpaka::memset(queue, totOccupancyMDs_buf, 0u);
       alpaka::wait(queue);
     }
   };
@@ -905,7 +905,6 @@ namespace SDL {
         int nUpperHits = hitsInGPU.hitRangesnUpper[lowerModuleIndex];
         if (hitsInGPU.hitRangesLower[lowerModuleIndex] == -1)
           continue;
-        const int maxHits = alpaka::math::max(acc, nUpperHits, nLowerHits);
         unsigned int upHitArrayIndex = hitsInGPU.hitRangesUpper[lowerModuleIndex];
         unsigned int loHitArrayIndex = hitsInGPU.hitRangesLower[lowerModuleIndex];
         int limit = nUpperHits * nLowerHits;
@@ -954,13 +953,13 @@ namespace SDL {
                                                    rtUpper);
           if (success) {
             int totOccupancyMDs =
-                alpaka::atomicOp<alpaka::AtomicAdd>(acc, &mdsInGPU.totOccupancyMDs[lowerModuleIndex], 1);
+                alpaka::atomicOp<alpaka::AtomicAdd>(acc, &mdsInGPU.totOccupancyMDs[lowerModuleIndex], 1u);
             if (totOccupancyMDs >= (rangesInGPU.miniDoubletModuleOccupancy[lowerModuleIndex])) {
 #ifdef Warnings
               printf("Mini-doublet excess alert! Module index =  %d\n", lowerModuleIndex);
 #endif
             } else {
-              int mdModuleIndex = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &mdsInGPU.nMDs[lowerModuleIndex], 1);
+              int mdModuleIndex = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &mdsInGPU.nMDs[lowerModuleIndex], 1u);
               unsigned int mdIndex = rangesInGPU.miniDoubletModuleIndices[lowerModuleIndex] + mdModuleIndex;
 
               addMDToMemory(acc,

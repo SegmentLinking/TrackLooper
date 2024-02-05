@@ -14,8 +14,8 @@ namespace SDL {
   struct quintuplets {
     unsigned int* tripletIndices;
     uint16_t* lowerModuleIndices;
-    int* nQuintuplets;
-    int* totOccupancyQuintuplets;
+    unsigned int* nQuintuplets;
+    unsigned int* totOccupancyQuintuplets;
     unsigned int* nMemoryLocations;
 
     FPX* innerRadius;
@@ -73,8 +73,8 @@ namespace SDL {
   struct quintupletsBuffer : quintuplets {
     Buf<TDev, unsigned int> tripletIndices_buf;
     Buf<TDev, uint16_t> lowerModuleIndices_buf;
-    Buf<TDev, int> nQuintuplets_buf;
-    Buf<TDev, int> totOccupancyQuintuplets_buf;
+    Buf<TDev, unsigned int> nQuintuplets_buf;
+    Buf<TDev, unsigned int> totOccupancyQuintuplets_buf;
     Buf<TDev, unsigned int> nMemoryLocations_buf;
 
     Buf<TDev, FPX> innerRadius_buf;
@@ -103,8 +103,8 @@ namespace SDL {
     quintupletsBuffer(unsigned int nTotalQuintuplets, unsigned int nLowerModules, TDevAcc const& devAccIn, TQueue& queue)
         : tripletIndices_buf(allocBufWrapper<unsigned int>(devAccIn, 2 * nTotalQuintuplets, queue)),
           lowerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, 5 * nTotalQuintuplets, queue)),
-          nQuintuplets_buf(allocBufWrapper<int>(devAccIn, nLowerModules, queue)),
-          totOccupancyQuintuplets_buf(allocBufWrapper<int>(devAccIn, nLowerModules, queue)),
+          nQuintuplets_buf(allocBufWrapper<unsigned int>(devAccIn, nLowerModules, queue)),
+          totOccupancyQuintuplets_buf(allocBufWrapper<unsigned int>(devAccIn, nLowerModules, queue)),
           nMemoryLocations_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
           innerRadius_buf(allocBufWrapper<FPX>(devAccIn, nTotalQuintuplets, queue)),
           bridgeRadius_buf(allocBufWrapper<FPX>(devAccIn, nTotalQuintuplets, queue)),
@@ -125,11 +125,11 @@ namespace SDL {
           rzChiSquared_buf(allocBufWrapper<float>(devAccIn, nTotalQuintuplets, queue)),
           chiSquared_buf(allocBufWrapper<float>(devAccIn, nTotalQuintuplets, queue)),
           nonAnchorChiSquared_buf(allocBufWrapper<float>(devAccIn, nTotalQuintuplets, queue)) {
-      alpaka::memset(queue, nQuintuplets_buf, 0, nLowerModules);
-      alpaka::memset(queue, totOccupancyQuintuplets_buf, 0, nLowerModules);
-      alpaka::memset(queue, isDup_buf, 0, nTotalQuintuplets);
-      alpaka::memset(queue, TightCutFlag_buf, 0, nTotalQuintuplets);
-      alpaka::memset(queue, partOfPT5_buf, 0, nTotalQuintuplets);
+      alpaka::memset(queue, nQuintuplets_buf, 0u);
+      alpaka::memset(queue, totOccupancyQuintuplets_buf, 0u);
+      alpaka::memset(queue, isDup_buf, false);
+      alpaka::memset(queue, TightCutFlag_buf, false);
+      alpaka::memset(queue, partOfPT5_buf, false);
       alpaka::wait(queue);
     }
   };
@@ -343,12 +343,10 @@ namespace SDL {
     const float& x2 = mdsInGPU.anchorX[secondMDIndex] / 100;
     const float& x3 = mdsInGPU.anchorX[thirdMDIndex] / 100;
     const float& x4 = mdsInGPU.anchorX[fourthMDIndex] / 100;
-    const float& x5 = mdsInGPU.anchorX[fifthMDIndex] / 100;
     const float& y1 = mdsInGPU.anchorY[firstMDIndex] / 100;
     const float& y2 = mdsInGPU.anchorY[secondMDIndex] / 100;
     const float& y3 = mdsInGPU.anchorY[thirdMDIndex] / 100;
     const float& y4 = mdsInGPU.anchorY[fourthMDIndex] / 100;
-    const float& y5 = mdsInGPU.anchorY[fifthMDIndex] / 100;
 
     float residual = 0;
     float error = 0;
@@ -1171,7 +1169,7 @@ namespace SDL {
                                                                  float* delta2,
                                                                  float* slopes,
                                                                  bool* isFlat,
-                                                                 int nPoints = 5,
+                                                                 unsigned int nPoints = 5,
                                                                  bool anchorHits = true) {
     /*
         Bool anchorHits required to deal with a weird edge case wherein 
@@ -1252,7 +1250,7 @@ namespace SDL {
 
   template <typename TAcc>
   ALPAKA_FN_ACC ALPAKA_FN_INLINE float computeRadiusUsingRegression(TAcc const& acc,
-                                                                    int nPoints,
+                                                                    unsigned int nPoints,
                                                                     float* xs,
                                                                     float* ys,
                                                                     float* delta1,
@@ -1349,7 +1347,7 @@ namespace SDL {
 
   template <typename TAcc>
   ALPAKA_FN_ACC ALPAKA_FN_INLINE float computeChiSquared(TAcc const& acc,
-                                                         int nPoints,
+                                                         unsigned int nPoints,
                                                          float* xs,
                                                          float* ys,
                                                          float* delta1,
@@ -1593,10 +1591,8 @@ namespace SDL {
 
     float midPointX = 0.5f * (mdsInGPU.anchorX[firstMDIndex] + mdsInGPU.anchorX[thirdMDIndex]);
     float midPointY = 0.5f * (mdsInGPU.anchorY[firstMDIndex] + mdsInGPU.anchorY[thirdMDIndex]);
-    float midPointZ = 0.5f * (mdsInGPU.anchorZ[firstMDIndex] + mdsInGPU.anchorZ[thirdMDIndex]);
     float diffX = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float diffY = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-    float diffZ = mdsInGPU.anchorZ[thirdMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
 
     dPhi = SDL::deltaPhi(acc, midPointX, midPointY, diffX, diffY);
 
@@ -1627,7 +1623,6 @@ namespace SDL {
 
     float tl_axis_x = mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float tl_axis_y = mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-    float tl_axis_z = mdsInGPU.anchorZ[fourthMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
     float tl_axis_highEdge_x = tl_axis_x;
     float tl_axis_highEdge_y = tl_axis_y;
     float tl_axis_lowEdge_x = tl_axis_x;
@@ -1672,10 +1667,6 @@ namespace SDL {
 
     //beta computation
     float drt_tl_axis = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
-    float drt_tl_lowEdge =
-        alpaka::math::sqrt(acc, tl_axis_lowEdge_x * tl_axis_lowEdge_x + tl_axis_lowEdge_y * tl_axis_lowEdge_y);
-    float drt_tl_highEdge =
-        alpaka::math::sqrt(acc, tl_axis_highEdge_x * tl_axis_highEdge_x + tl_axis_highEdge_y * tl_axis_highEdge_y);
 
     float corrF = 1.f;
     //innerOuterAnchor - innerInnerAnchor
@@ -1706,8 +1697,6 @@ namespace SDL {
                                             (mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]) *
                                                 (mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]));
     float sdOut_d = mdsInGPU.anchorRt[fourthMDIndex] - mdsInGPU.anchorRt[thirdMDIndex];
-
-    const float diffDr = alpaka::math::abs(acc, rt_InSeg - sdOut_dr) / alpaka::math::abs(acc, rt_InSeg + sdOut_dr);
 
     SDL::runDeltaBetaIterationsT5(acc, betaIn, betaOut, betaAv, pt_beta, rt_InSeg, sdOut_dr, drt_tl_axis, lIn);
 
@@ -1765,8 +1754,6 @@ namespace SDL {
     if (not pass)
       return pass;
 
-    float pt_betaIn = drt_tl_axis * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaIn);
-    float pt_betaOut = drt_tl_axis * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaOut);
     float dBetaRes = 0.02f / alpaka::math::min(acc, sdOut_d, drt_InSeg);
     float dBetaCut2 =
         (dBetaRes * dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2 +
@@ -1884,10 +1871,6 @@ namespace SDL {
     drtErr +=
         sdlMuls * sdlMuls * multDzDr * multDzDr / 3.f * coshEta * coshEta;  //sloppy: relative muls is 1/3 of total muls
     drtErr = alpaka::math::sqrt(acc, drtErr);
-    const float drtMean = drtSDIn * dzOutInAbs / alpaka::math::abs(acc, dzSDIn);  //
-    const float rtWindow = drtErr + rtGeom1;
-    const float rtLo_another = rt_InLo + drtMean / dzDrtScale - rtWindow;
-    const float rtHi_another = rt_InLo + drtMean + rtWindow;
 
     //Cut #3: rt-z pointed
     pass = pass and ((kZ >= 0) && (rtOut >= rtLo) && (rtOut <= rtHi));
@@ -1906,10 +1889,8 @@ namespace SDL {
 
     float midPointX = 0.5f * (mdsInGPU.anchorX[firstMDIndex] + mdsInGPU.anchorX[thirdMDIndex]);
     float midPointY = 0.5f * (mdsInGPU.anchorY[firstMDIndex] + mdsInGPU.anchorY[thirdMDIndex]);
-    float midPointZ = 0.5f * (mdsInGPU.anchorZ[firstMDIndex] + mdsInGPU.anchorZ[thirdMDIndex]);
     float diffX = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float diffY = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-    float diffZ = mdsInGPU.anchorZ[thirdMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
 
     dPhi = SDL::deltaPhi(acc, midPointX, midPointY, diffX, diffY);
     // Cut #5: deltaPhiChange
@@ -1935,7 +1916,6 @@ namespace SDL {
 
     float tl_axis_x = mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float tl_axis_y = mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-    float tl_axis_z = mdsInGPU.anchorZ[fourthMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
 
     betaIn = sdIn_alpha - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
 
@@ -2057,8 +2037,6 @@ namespace SDL {
     if (not pass)
       return pass;
 
-    float pt_betaIn = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaIn);
-    float pt_betaOut = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaOut);
     float dBetaRes = 0.02f / alpaka::math::min(acc, sdOut_d, sdIn_d);
     float dBetaCut2 =
         (dBetaRes * dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2 +
@@ -2142,7 +2120,6 @@ namespace SDL {
                    : (isInSgInnerMDPS or isOutSgInnerMDPS) ? SDL::pixelPSZpitch + SDL::strip2SZpitch
                                                            : 2.f * SDL::strip2SZpitch;
 
-    float zGeom1 = SDL::copysignf(zGeom, z_InLo);
     float dz = z_OutLo - z_InLo;
     rtLo = rt_InLo * (1.f + dz / (z_InLo + dLum) / dzDrtScale) - rtGeom;  //slope correction only on the lower end
 
@@ -2159,7 +2136,6 @@ namespace SDL {
 
     bool isInSgOuterMDPS = modulesInGPU.moduleType[innerOuterLowerModuleIndex] == SDL::PS;
 
-    float drOutIn = rtOut - rt_InLo;
     const float drtSDIn = rt_InOut - rt_InLo;
     const float dzSDIn = z_InOut - z_InLo;
     const float dr3SDIn = alpaka::math::sqrt(acc, rt_InOut * rt_InOut + z_InOut * z_InOut) -
@@ -2204,10 +2180,8 @@ namespace SDL {
 
     float midPointX = 0.5f * (mdsInGPU.anchorX[firstMDIndex] + mdsInGPU.anchorX[thirdMDIndex]);
     float midPointY = 0.5f * (mdsInGPU.anchorY[firstMDIndex] + mdsInGPU.anchorY[thirdMDIndex]);
-    float midPointZ = 0.5f * (mdsInGPU.anchorZ[firstMDIndex] + mdsInGPU.anchorZ[thirdMDIndex]);
     float diffX = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float diffY = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-    float diffZ = mdsInGPU.anchorZ[thirdMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
 
     dPhi = SDL::deltaPhi(acc, midPointX, midPointY, diffX, diffY);
 
@@ -2230,7 +2204,6 @@ namespace SDL {
 
     float tl_axis_x = mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float tl_axis_y = mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-    float tl_axis_z = mdsInGPU.anchorZ[fourthMDIndex] - mdsInGPU.anchorZ[firstMDIndex];
 
     betaIn = sdIn_alpha - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
 
@@ -2289,8 +2262,6 @@ namespace SDL {
                                                 (mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]));
     float sdOut_d = mdsInGPU.anchorRt[fourthMDIndex] - mdsInGPU.anchorRt[thirdMDIndex];
 
-    float diffDr = alpaka::math::abs(acc, sdIn_dr - sdOut_dr) / alpaka::math::abs(acc, sdIn_dr + sdOut_dr);
-
     SDL::runDeltaBetaIterationsT5(acc, betaIn, betaOut, betaAv, pt_beta, sdIn_dr, sdOut_dr, dr, lIn);
 
     const float betaInMMSF = (alpaka::math::abs(acc, betaInRHmin + betaInRHmax) > 0)
@@ -2320,7 +2291,6 @@ namespace SDL {
     const float dBetaInLum = lIn < 11 ? 0.0f : alpaka::math::abs(acc, alphaInAbsReg * SDL::deltaZLum / z_InLo);
     const float dBetaOutLum = lOut < 11 ? 0.0f : alpaka::math::abs(acc, alphaOutAbsReg * SDL::deltaZLum / z_OutLo);
     const float dBetaLum2 = (dBetaInLum + dBetaOutLum) * (dBetaInLum + dBetaOutLum);
-    const float sinDPhi = alpaka::math::sin(acc, dPhi);
 
     const float dBetaRIn2 = 0;  // TODO-RH
 
@@ -2334,8 +2304,6 @@ namespace SDL {
     if (not pass)
       return pass;
 
-    float pt_betaIn = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaIn);
-    float pt_betaOut = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaOut);
     float dBetaRes = 0.02f / alpaka::math::min(acc, sdOut_d, sdIn_d);
     float dBetaCut2 =
         (dBetaRes * dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2 +
@@ -2763,6 +2731,7 @@ namespace SDL {
     bridgeRadius = computeRadiusFromThreeAnchorHits(acc, x2, y2, x3, y3, x4, y4, g, f);
     innerRadius = computeRadiusFromThreeAnchorHits(acc, x1, y1, x2, y2, x3, y3, g, f);
 
+#ifdef USE_RZCHI2
     float inner_pt = 2 * k2Rinv1GeVf * innerRadius;
 
     bool passRZChi2 = passT5RZConstraint(acc,
@@ -2784,7 +2753,6 @@ namespace SDL {
                                          g,
                                          f,
                                          TightCutFlag);
-#ifdef USE_RZCHI2
     pass = pass and passRZChi2;
     if (not pass)
       return pass;
@@ -3074,7 +3042,7 @@ namespace SDL {
           uint16_t lowerModule2 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 1];
           uint16_t lowerModule3 = tripletsInGPU.lowerModuleIndices[3 * innerTripletIndex + 2];
           unsigned int nOuterTriplets = tripletsInGPU.nTriplets[lowerModule3];
-          for (int outerTripletArrayIndex = globalThreadIdx[2]; outerTripletArrayIndex < nOuterTriplets;
+          for (unsigned int outerTripletArrayIndex = globalThreadIdx[2]; outerTripletArrayIndex < nOuterTriplets;
                outerTripletArrayIndex += gridThreadExtent[2]) {
             unsigned int outerTripletIndex = rangesInGPU.tripletModuleIndices[lowerModule3] + outerTripletArrayIndex;
             uint16_t lowerModule4 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 1];
@@ -3109,14 +3077,14 @@ namespace SDL {
 
             if (success) {
               int totOccupancyQuintuplets =
-                  alpaka::atomicOp<alpaka::AtomicAdd>(acc, &quintupletsInGPU.totOccupancyQuintuplets[lowerModule1], 1);
+                  alpaka::atomicOp<alpaka::AtomicAdd>(acc, &quintupletsInGPU.totOccupancyQuintuplets[lowerModule1], 1u);
               if (totOccupancyQuintuplets >= rangesInGPU.quintupletModuleOccupancy[lowerModule1]) {
 #ifdef Warnings
                 printf("Quintuplet excess alert! Module index = %d\n", lowerModule1);
 #endif
               } else {
                 int quintupletModuleIndex =
-                    alpaka::atomicOp<alpaka::AtomicAdd>(acc, &quintupletsInGPU.nQuintuplets[lowerModule1], 1);
+                    alpaka::atomicOp<alpaka::AtomicAdd>(acc, &quintupletsInGPU.nQuintuplets[lowerModule1], 1u);
                 //this if statement should never get executed!
                 if (rangesInGPU.quintupletModuleIndices[lowerModule1] == -1) {
 #ifdef Warnings

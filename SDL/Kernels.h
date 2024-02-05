@@ -207,7 +207,7 @@ namespace SDL {
 
       for (unsigned int lowmod = globalThreadIdx[0]; lowmod < *modulesInGPU.nLowerModules;
            lowmod += gridThreadExtent[0]) {
-        int nQuintuplets_lowmod = quintupletsInGPU.nQuintuplets[lowmod];
+        unsigned int nQuintuplets_lowmod = quintupletsInGPU.nQuintuplets[lowmod];
         int quintupletModuleIndices_lowmod = rangesInGPU.quintupletModuleIndices[lowmod];
 
         for (unsigned int ix1 = globalThreadIdx[1]; ix1 < nQuintuplets_lowmod; ix1 += gridThreadExtent[1]) {
@@ -267,20 +267,20 @@ namespace SDL {
       for (unsigned int lowmodIdx1 = globalThreadIdx[1]; lowmodIdx1 < *(rangesInGPU.nEligibleT5Modules);
            lowmodIdx1 += gridThreadExtent[1]) {
         uint16_t lowmod1 = rangesInGPU.indicesOfEligibleT5Modules[lowmodIdx1];
-        int nQuintuplets_lowmod1 = quintupletsInGPU.nQuintuplets[lowmod1];
+        unsigned int nQuintuplets_lowmod1 = quintupletsInGPU.nQuintuplets[lowmod1];
         if (nQuintuplets_lowmod1 == 0)
           continue;
 
-        int quintupletModuleIndices_lowmod1 = rangesInGPU.quintupletModuleIndices[lowmod1];
+        unsigned int quintupletModuleIndices_lowmod1 = rangesInGPU.quintupletModuleIndices[lowmod1];
 
         for (unsigned int lowmodIdx2 = globalThreadIdx[2]; lowmodIdx2 < *(rangesInGPU.nEligibleT5Modules);
              lowmodIdx2 += gridThreadExtent[2]) {
           uint16_t lowmod2 = rangesInGPU.indicesOfEligibleT5Modules[lowmodIdx2];
-          int nQuintuplets_lowmod2 = quintupletsInGPU.nQuintuplets[lowmod2];
+          unsigned int nQuintuplets_lowmod2 = quintupletsInGPU.nQuintuplets[lowmod2];
           if (nQuintuplets_lowmod2 == 0)
             continue;
 
-          int quintupletModuleIndices_lowmod2 = rangesInGPU.quintupletModuleIndices[lowmod2];
+          unsigned int quintupletModuleIndices_lowmod2 = rangesInGPU.quintupletModuleIndices[lowmod2];
 
           for (unsigned int ix1 = 0; ix1 < nQuintuplets_lowmod1; ix1 += 1) {
             unsigned int ix = quintupletModuleIndices_lowmod1 + ix1;
@@ -382,7 +382,7 @@ namespace SDL {
       Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
       Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
-      int nPixelQuintuplets = *pixelQuintupletsInGPU.nPixelQuintuplets;
+      unsigned int nPixelQuintuplets = *pixelQuintupletsInGPU.nPixelQuintuplets;
       for (unsigned int ix = globalThreadIdx[1]; ix < nPixelQuintuplets; ix += gridThreadExtent[1]) {
         if (secondPass && pixelQuintupletsInGPU.isDup[ix])
           continue;
@@ -427,7 +427,7 @@ namespace SDL {
       if (nPixelSegments > N_MAX_PIXEL_SEGMENTS_PER_MODULE)
         nPixelSegments = N_MAX_PIXEL_SEGMENTS_PER_MODULE;
 
-      for (int ix = globalThreadIdx[1]; ix < nPixelSegments; ix += gridThreadExtent[1]) {
+      for (unsigned int ix = globalThreadIdx[1]; ix < nPixelSegments; ix += gridThreadExtent[1]) {
         if (secondpass && (!segmentsInGPU.isQuad[ix] || (segmentsInGPU.isDup[ix] & 1)))
           continue;
 
@@ -439,7 +439,7 @@ namespace SDL {
         float eta_pix1 = segmentsInGPU.eta[ix];
         float phi_pix1 = segmentsInGPU.phi[ix];
 
-        for (int jx = ix + 1 + globalThreadIdx[2]; jx < nPixelSegments; jx += gridThreadExtent[2]) {
+        for (unsigned int jx = ix + 1 + globalThreadIdx[2]; jx < nPixelSegments; jx += gridThreadExtent[2]) {
           float eta_pix2 = segmentsInGPU.eta[jx];
           float phi_pix2 = segmentsInGPU.phi[jx];
 

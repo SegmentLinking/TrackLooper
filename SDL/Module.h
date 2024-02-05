@@ -137,18 +137,18 @@ namespace SDL {
           device_nTotalSegs_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
           device_nTotalTrips_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
           device_nTotalQuints_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)) {
-      alpaka::memset(queue, hitRanges_buf, -1, nMod * 2);
-      alpaka::memset(queue, hitRangesLower_buf, -1, nMod);
-      alpaka::memset(queue, hitRangesUpper_buf, -1, nMod);
-      alpaka::memset(queue, hitRangesnLower_buf, -1, nMod);
-      alpaka::memset(queue, hitRangesnUpper_buf, -1, nMod);
-      alpaka::memset(queue, mdRanges_buf, -1, nMod * 2);
-      alpaka::memset(queue, segmentRanges_buf, -1, nMod * 2);
-      alpaka::memset(queue, trackletRanges_buf, -1, nMod * 2);
-      alpaka::memset(queue, tripletRanges_buf, -1, nMod * 2);
-      alpaka::memset(queue, trackCandidateRanges_buf, -1, nMod * 2);
-      alpaka::memset(queue, quintupletRanges_buf, -1, nMod * 2);
-      alpaka::memset(queue, quintupletModuleIndices_buf, -1, nLowerMod);
+      alpaka::memset(queue, hitRanges_buf, -1);
+      alpaka::memset(queue, hitRangesLower_buf, -1);
+      alpaka::memset(queue, hitRangesUpper_buf, -1);
+      alpaka::memset(queue, hitRangesnLower_buf, -1);
+      alpaka::memset(queue, hitRangesnUpper_buf, -1);
+      alpaka::memset(queue, mdRanges_buf, -1);
+      alpaka::memset(queue, segmentRanges_buf, -1);
+      alpaka::memset(queue, trackletRanges_buf, -1);
+      alpaka::memset(queue, tripletRanges_buf, -1);
+      alpaka::memset(queue, trackCandidateRanges_buf, -1);
+      alpaka::memset(queue, quintupletRanges_buf, -1);
+      alpaka::memset(queue, quintupletModuleIndices_buf, -1);
       alpaka::wait(queue);
     }
   };
