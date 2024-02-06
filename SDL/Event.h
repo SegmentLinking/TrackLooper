@@ -179,12 +179,13 @@ namespace SDL {
   extern SDL::modules* modulesInGPU;
   extern SDL::modulesBuffer<Dev>* modulesBuffers;
   extern SDL::modulesBuffer<Dev> const* modulesBuffersES;  // not owned const buffers
-  extern uint16_t nModules;
-  extern uint16_t nLowerModules;
+  namespace globals {
+    extern uint16_t nModules;
+    extern uint16_t nLowerModules;
+  }
   void initModules(const MapPLStoLayer& pLStoLayer,
                    const char* moduleMetaDataFilePath = "data/OT800_IT615_pt0.8/sensor_centroids.txt");  //read from file and init
   void freeModules();
-  void initModulesHost();  //read from file and init
   extern std::shared_ptr<SDL::pixelMap> pixelMapping;
   unsigned int getBackend();
 }  // namespace SDL

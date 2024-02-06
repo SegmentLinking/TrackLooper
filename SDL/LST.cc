@@ -56,7 +56,7 @@ void SDL::LST::loadAndFillES(alpaka::QueueCpuBlocking& queue, struct modulesBuff
   TString path = get_absolute_path_after_check_file_exists(
       TString::Format("%s/data/OT800_IT615_pt0.8/sensor_centroids.txt", trackLooperDir().Data()).Data());
   SDL::loadModulesFromFile(
-      modules, SDL::nModules, SDL::nLowerModules, *SDL::pixelMapping, queue, path.Data(), pLStoLayer);
+       modules, SDL::globals::nModules, SDL::globals::nLowerModules, *SDL::pixelMapping, queue, path.Data(), pLStoLayer);
 }
 
 void SDL::LST::prepareInput(const std::vector<float> see_px,
