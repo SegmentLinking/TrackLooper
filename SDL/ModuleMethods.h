@@ -144,7 +144,7 @@ namespace SDL {
     for (auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); ++it) {
       unsigned int detId = it->first;
       uint16_t index = it->second;
-      auto& connectedModules = moduleConnectionMap.getConnectedModuleDetIds(detId);
+      auto& connectedModules = globals::moduleConnectionMap.getConnectedModuleDetIds(detId);
       nConnectedModules[index] = connectedModules.size();
       for (uint16_t i = 0; i < nConnectedModules[index]; i++) {
         moduleMap[index * MAX_CONNECTED_MODULES + i] = (*detIdToIndex)[connectedModules[i]];
@@ -378,8 +378,8 @@ namespace SDL {
           host_isAnchor[index] = false;
         }
 
-        host_dxdys[index] = (subdet == Endcap) ? endcapGeometry->getdxdy_slope(detId) : tiltedGeometry.getDxDy(detId);
-        host_drdzs[index] = (subdet == Barrel) ? tiltedGeometry.getDrDz(detId) : 0;
+        host_dxdys[index] = (subdet == Endcap) ? globals::endcapGeometry->getdxdy_slope(detId) : globals::tiltedGeometry.getDxDy(detId);
+        host_drdzs[index] = (subdet == Barrel) ? globals::tiltedGeometry.getDrDz(detId) : 0;
       }
 
       host_sdlLayers[index] =

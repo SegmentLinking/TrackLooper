@@ -26,7 +26,9 @@ namespace SDL {
     int size() const;
   };
 
-  extern ModuleConnectionMap moduleConnectionMap;
+  namespace globals {
+    extern ModuleConnectionMap moduleConnectionMap;
+  }
   using MapPLStoLayer = std::array<std::array<ModuleConnectionMap, 4>, 3>;
 }  // namespace SDL
 

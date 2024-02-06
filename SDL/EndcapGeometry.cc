@@ -1,11 +1,11 @@
 #include "EndcapGeometry.h"
 
-SDL::EndcapGeometry* SDL::endcapGeometry = new SDL::EndcapGeometry();
+SDL::EndcapGeometry* SDL::globals::endcapGeometry = new SDL::EndcapGeometry();
 
 void SDL::freeEndcap() {
-  if (SDL::endcapGeometry != nullptr) {
-    delete SDL::endcapGeometry;
-    SDL::endcapGeometry = nullptr;
+  if (SDL::globals::endcapGeometry != nullptr) {
+    delete SDL::globals::endcapGeometry;
+    SDL::globals::endcapGeometry = nullptr;
   }
 }
 

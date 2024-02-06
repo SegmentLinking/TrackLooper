@@ -34,7 +34,9 @@ namespace SDL {
     float getdxdy_slope(unsigned int detid);
   };
   void freeEndcap();
-  extern EndcapGeometry* endcapGeometry;
+  namespace globals {
+    extern EndcapGeometry* endcapGeometry;
+  }
 }  // namespace SDL
 
 #endif
