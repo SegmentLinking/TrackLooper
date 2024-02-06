@@ -25,7 +25,7 @@ void loadMaps()
     SDL::moduleConnectionMap.load(mappath.Data());
 
     SDL::MapPLStoLayer pLStoLayer;
-    const std::array<string, 4> pLSMapPath{ "layer1_subdet5", "layer2_subdet5", "layer1_subdet4", "layer2_subdet4" };
+    const std::array<string, 4> pLSMapPath{{ "layer1_subdet5", "layer2_subdet5", "layer1_subdet4", "layer2_subdet4" }};
     static_assert(pLStoLayer[0].size() == pLSMapPath.size());
     for (unsigned int i=0; i<pLSMapPath.size(); i++) {
         TString path = TString::Format("%s/pLS_map_%s.txt", pLSMapDir.Data(), pLSMapPath[i].c_str()).Data();

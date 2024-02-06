@@ -176,17 +176,17 @@ namespace SDL {
   };
 
   //global stuff
-  extern SDL::modules* modulesInGPU;
-  extern SDL::modulesBuffer<Dev>* modulesBuffers;
-  extern SDL::modulesBuffer<Dev> const* modulesBuffersES;  // not owned const buffers
   namespace globals {
+    extern SDL::modules* modulesInGPU;
+    extern SDL::modulesBuffer<Dev>* modulesBuffers;
+    extern SDL::modulesBuffer<Dev> const* modulesBuffersES;  // not owned const buffers
     extern uint16_t nModules;
     extern uint16_t nLowerModules;
-  }
+    extern std::shared_ptr<SDL::pixelMap> pixelMapping;
+  }  // namespace globals
   void initModules(const MapPLStoLayer& pLStoLayer,
                    const char* moduleMetaDataFilePath = "data/OT800_IT615_pt0.8/sensor_centroids.txt");  //read from file and init
   void freeModules();
-  extern std::shared_ptr<SDL::pixelMap> pixelMapping;
   unsigned int getBackend();
 }  // namespace SDL
 #endif
