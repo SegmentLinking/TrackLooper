@@ -312,18 +312,22 @@ namespace SDL {
           sdlLayers_buf(allocBufWrapper<int>(devAccIn, nMod)),
           connectedPixels_buf(allocBufWrapper<unsigned int>(devAccIn, nPixs)) {}
 
-    template <typename TQueue>
-    inline void copyFromSrc(TQueue queue, const modulesBuffer<alpaka::DevCpu>& src) {
+    template <typename TQueue, typename TDevSrc>
+    inline void copyFromSrc(TQueue queue, const modulesBuffer<TDevSrc>& src, bool isFull = true) {
       alpaka::memcpy(queue, detIds_buf, src.detIds_buf);
-      alpaka::memcpy(queue, moduleMap_buf, src.moduleMap_buf);
-      alpaka::memcpy(queue, mapdetId_buf, src.mapdetId_buf);
-      alpaka::memcpy(queue, mapIdx_buf, src.mapIdx_buf);
-      alpaka::memcpy(queue, nConnectedModules_buf, src.nConnectedModules_buf);
-      alpaka::memcpy(queue, drdzs_buf, src.drdzs_buf);
-      alpaka::memcpy(queue, dxdys_buf, src.dxdys_buf);
+      if (isFull) {
+        alpaka::memcpy(queue, moduleMap_buf, src.moduleMap_buf);
+        alpaka::memcpy(queue, mapdetId_buf, src.mapdetId_buf);
+        alpaka::memcpy(queue, mapIdx_buf, src.mapIdx_buf);
+        alpaka::memcpy(queue, nConnectedModules_buf, src.nConnectedModules_buf);
+        alpaka::memcpy(queue, drdzs_buf, src.drdzs_buf);
+        alpaka::memcpy(queue, dxdys_buf, src.dxdys_buf);
+      }
       alpaka::memcpy(queue, nModules_buf, src.nModules_buf);
       alpaka::memcpy(queue, nLowerModules_buf, src.nLowerModules_buf);
-      alpaka::memcpy(queue, partnerModuleIndices_buf, src.partnerModuleIndices_buf);
+      if (isFull) {
+        alpaka::memcpy(queue, partnerModuleIndices_buf, src.partnerModuleIndices_buf);
+      }
 
       alpaka::memcpy(queue, layers_buf, src.layers_buf);
       alpaka::memcpy(queue, rings_buf, src.rings_buf);
@@ -333,13 +337,19 @@ namespace SDL {
       alpaka::memcpy(queue, sides_buf, src.sides_buf);
       alpaka::memcpy(queue, eta_buf, src.eta_buf);
       alpaka::memcpy(queue, r_buf, src.r_buf);
-      alpaka::memcpy(queue, isInverted_buf, src.isInverted_buf);
+      if (isFull) {
+        alpaka::memcpy(queue, isInverted_buf, src.isInverted_buf);
+      }
       alpaka::memcpy(queue, isLower_buf, src.isLower_buf);
-      alpaka::memcpy(queue, isAnchor_buf, src.isAnchor_buf);
+      if (isFull) {
+        alpaka::memcpy(queue, isAnchor_buf, src.isAnchor_buf);
+      }
       alpaka::memcpy(queue, moduleType_buf, src.moduleType_buf);
-      alpaka::memcpy(queue, moduleLayerType_buf, src.moduleLayerType_buf);
-      alpaka::memcpy(queue, sdlLayers_buf, src.sdlLayers_buf);
-      alpaka::memcpy(queue, connectedPixels_buf, src.connectedPixels_buf);
+      if (isFull) {
+        alpaka::memcpy(queue, moduleLayerType_buf, src.moduleLayerType_buf);
+        alpaka::memcpy(queue, sdlLayers_buf, src.sdlLayers_buf);
+        alpaka::memcpy(queue, connectedPixels_buf, src.connectedPixels_buf);
+      }
       alpaka::wait(queue);
     }
 

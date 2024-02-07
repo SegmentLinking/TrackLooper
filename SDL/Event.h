@@ -61,7 +61,6 @@ namespace SDL {
     tripletsBuffer<alpaka::DevCpu>* tripletsInCPU;
     trackCandidatesBuffer<alpaka::DevCpu>* trackCandidatesInCPU;
     modulesBuffer<alpaka::DevCpu>* modulesInCPU;
-    modulesBuffer<alpaka::DevCpu>* modulesInCPUFull;
     quintupletsBuffer<alpaka::DevCpu>* quintupletsInCPU;
     pixelTripletsBuffer<alpaka::DevCpu>* pixelTripletsInCPU;
     pixelQuintupletsBuffer<alpaka::DevCpu>* pixelQuintupletsInCPU;
@@ -171,8 +170,7 @@ namespace SDL {
     trackCandidatesBuffer<alpaka::DevCpu>* getTrackCandidatesInCMSSW();
     pixelTripletsBuffer<alpaka::DevCpu>* getPixelTriplets();
     pixelQuintupletsBuffer<alpaka::DevCpu>* getPixelQuintuplets();
-    modulesBuffer<alpaka::DevCpu>* getModules();
-    modulesBuffer<alpaka::DevCpu>* getFullModules();
+    modulesBuffer<alpaka::DevCpu>* getModules(bool isFull = false);
   };
 
   //global stuff

@@ -26,7 +26,6 @@ void SDL::Event::init(bool verbose) {
   tripletsInCPU = nullptr;
   trackCandidatesInCPU = nullptr;
   modulesInCPU = nullptr;
-  modulesInCPUFull = nullptr;
   quintupletsInCPU = nullptr;
   pixelTripletsInCPU = nullptr;
   pixelQuintupletsInCPU = nullptr;
@@ -157,10 +156,6 @@ void SDL::Event::resetEvent() {
     delete modulesInCPU;
     modulesInCPU = nullptr;
   }
-  if (modulesInCPUFull != nullptr) {
-    delete modulesInCPUFull;
-    modulesInCPUFull = nullptr;
-  }
 }
 
 void SDL::initModules(const MapPLStoLayer& pLStoLayer, const char* moduleMetaDataFilePath) {
@@ -230,17 +225,18 @@ void SDL::Event::addHitToEvent(std::vector<float> x,
   WorkDiv const hit_loop_workdiv = createWorkDiv(blocksPerGrid1, threadsPerBlock1, elementsPerThread);
 
   hitLoopKernel hit_loop_kernel;
-  auto const hit_loop_task(alpaka::createTaskKernel<Acc>(hit_loop_workdiv,
-                                                         hit_loop_kernel,
-                                                         Endcap,
-                                                         TwoS,
-                                                         globals::nModules,
-                                                         SDL::globals::endcapGeometry->nEndCapMap,
-                                                         alpaka::getPtrNative(SDL::globals::endcapGeometry->geoMapDetId_buf),
-                                                         alpaka::getPtrNative(SDL::globals::endcapGeometry->geoMapPhi_buf),
-                                                         *globals::modulesInGPU,
-                                                         *hitsInGPU,
-                                                         nHits));
+  auto const hit_loop_task(
+      alpaka::createTaskKernel<Acc>(hit_loop_workdiv,
+                                    hit_loop_kernel,
+                                    Endcap,
+                                    TwoS,
+                                    globals::nModules,
+                                    SDL::globals::endcapGeometry->nEndCapMap,
+                                    alpaka::getPtrNative(SDL::globals::endcapGeometry->geoMapDetId_buf),
+                                    alpaka::getPtrNative(SDL::globals::endcapGeometry->geoMapPhi_buf),
+                                    *globals::modulesInGPU,
+                                    *hitsInGPU,
+                                    nHits));
 
   alpaka::enqueue(queue, hit_loop_task);
 
@@ -1877,63 +1873,13 @@ SDL::trackCandidatesBuffer<alpaka::DevCpu>* SDL::Event::getTrackCandidatesInCMSS
   return trackCandidatesInCPU;
 }
 
-SDL::modulesBuffer<alpaka::DevCpu>* SDL::Event::getFullModules() {
-  if (modulesInCPUFull == nullptr) {
-    // The last input here is just a small placeholder for the allocation.
-    modulesInCPUFull = new SDL::modulesBuffer<alpaka::DevCpu>(devHost, globals::nModules, 1);
-    modulesInCPUFull->setData(*modulesInCPUFull);
-
-    alpaka::memcpy(queue, modulesInCPUFull->detIds_buf, globals::modulesBuffersES->detIds_buf, globals::nModules);
-    alpaka::memcpy(
-        queue, modulesInCPUFull->moduleMap_buf, globals::modulesBuffersES->moduleMap_buf, MAX_CONNECTED_MODULES * globals::nModules);
-    alpaka::memcpy(queue,
-                   modulesInCPUFull->nConnectedModules_buf,
-                   globals::modulesBuffersES->nConnectedModules_buf,
-                   globals::nModules);
-    alpaka::memcpy(queue, modulesInCPUFull->drdzs_buf, globals::modulesBuffersES->drdzs_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPUFull->dxdys_buf, globals::modulesBuffersES->dxdys_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPUFull->nLowerModules_buf, globals::modulesBuffersES->nLowerModules_buf, 1);
-    alpaka::memcpy(queue, modulesInCPUFull->nModules_buf, globals::modulesBuffersES->nModules_buf, 1);
-    alpaka::memcpy(queue, modulesInCPUFull->layers_buf, globals::modulesBuffersES->layers_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPUFull->rings_buf, globals::modulesBuffersES->rings_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPUFull->modules_buf, globals::modulesBuffersES->modules_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPUFull->rods_buf, globals::modulesBuffersES->rods_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPUFull->subdets_buf, globals::modulesBuffersES->subdets_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPUFull->sides_buf, globals::modulesBuffersES->sides_buf, globals::nModules);
-    alpaka::memcpy(
-        queue, modulesInCPUFull->isInverted_buf, globals::modulesBuffersES->isInverted_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPUFull->isLower_buf, globals::modulesBuffersES->isLower_buf, globals::nModules);
-    alpaka::memcpy(
-        queue, modulesInCPUFull->moduleType_buf, globals::modulesBuffersES->moduleType_buf, globals::nModules);
-    alpaka::memcpy(queue,
-                   modulesInCPUFull->moduleLayerType_buf,
-                   globals::modulesBuffersES->moduleLayerType_buf,
-                   globals::nModules);
-    alpaka::wait(queue);
-  }
-  return modulesInCPUFull;
-}
-
-SDL::modulesBuffer<alpaka::DevCpu>* SDL::Event::getModules() {
+SDL::modulesBuffer<alpaka::DevCpu>* SDL::Event::getModules(bool isFull) {
   if (modulesInCPU == nullptr) {
     // The last input here is just a small placeholder for the allocation.
     modulesInCPU = new SDL::modulesBuffer<alpaka::DevCpu>(devHost, globals::nModules, 1);
     modulesInCPU->setData(*modulesInCPU);
 
-    alpaka::memcpy(queue, modulesInCPU->nLowerModules_buf, globals::modulesBuffersES->nLowerModules_buf, 1);
-    alpaka::memcpy(queue, modulesInCPU->nModules_buf, globals::modulesBuffersES->nModules_buf, 1);
-    alpaka::memcpy(queue, modulesInCPU->detIds_buf, globals::modulesBuffersES->detIds_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPU->isLower_buf, globals::modulesBuffersES->isLower_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPU->layers_buf, globals::modulesBuffersES->layers_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPU->subdets_buf, globals::modulesBuffersES->subdets_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPU->rings_buf, globals::modulesBuffersES->rings_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPU->rods_buf, globals::modulesBuffersES->rods_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPU->modules_buf, globals::modulesBuffersES->modules_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPU->sides_buf, globals::modulesBuffersES->sides_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPU->eta_buf, globals::modulesBuffersES->eta_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPU->r_buf, globals::modulesBuffersES->r_buf, globals::nModules);
-    alpaka::memcpy(queue, modulesInCPU->moduleType_buf, globals::modulesBuffersES->moduleType_buf, globals::nModules);
-    alpaka::wait(queue);
+    modulesInCPU->copyFromSrc(queue, *globals::modulesBuffersES, isFull);
   }
   return modulesInCPU;
 }
