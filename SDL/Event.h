@@ -175,7 +175,6 @@ namespace SDL {
 
   //global stuff
   namespace globals {
-    extern SDL::modules* modulesInGPU;
     extern SDL::modulesBuffer<Dev>* modulesBuffers;
     extern SDL::modulesBuffer<Dev> const* modulesBuffersES;  // not owned const buffers
     extern uint16_t nModules;

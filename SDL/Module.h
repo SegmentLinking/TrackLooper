@@ -310,7 +310,9 @@ namespace SDL {
           moduleType_buf(allocBufWrapper<ModuleType>(devAccIn, nMod)),
           moduleLayerType_buf(allocBufWrapper<ModuleLayerType>(devAccIn, nMod)),
           sdlLayers_buf(allocBufWrapper<int>(devAccIn, nMod)),
-          connectedPixels_buf(allocBufWrapper<unsigned int>(devAccIn, nPixs)) {}
+          connectedPixels_buf(allocBufWrapper<unsigned int>(devAccIn, nPixs)) {
+      setData(*this);
+    }
 
     template <typename TQueue, typename TDevSrc>
     inline void copyFromSrc(TQueue queue, const modulesBuffer<TDevSrc>& src, bool isFull = true) {
@@ -361,6 +363,8 @@ namespace SDL {
         : modulesBuffer(alpaka::getDev(queue), nMod, nPixs) {
       copyFromSrc(queue, src);
     }
+
+    inline SDL::modules const* data() const { return this; }
   };
 
 }  // namespace SDL
