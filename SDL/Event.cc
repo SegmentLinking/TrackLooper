@@ -281,7 +281,7 @@ void SDL::Event::addPixelSegmentToEvent(std::vector<unsigned int> hitIndices0,
   }
 
   unsigned int mdSize = 2 * size;
-  uint16_t pixelModuleIndex = (*detIdToIndex)[1];
+  uint16_t pixelModuleIndex = globals::pixelMapping->pixelModuleIndex;
 
   if (mdsInGPU == nullptr) {
     // Create a view for the element nLowerModules inside rangesBuffers->miniDoubletModuleOccupancy
