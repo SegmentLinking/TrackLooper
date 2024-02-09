@@ -1,8 +1,8 @@
 #include "Event.h"
 
-SDL::modulesBuffer<SDL::Dev>* SDL::globals::modulesBuffers = new SDL::modulesBuffer<SDL::Dev>(devAcc);
+SDL::modulesBuffer<SDL::Dev>* SDL::globals::modulesBuffers = nullptr;
 SDL::modulesBuffer<SDL::Dev> const* SDL::globals::modulesBuffersES = nullptr;
-std::shared_ptr<SDL::pixelMap> SDL::globals::pixelMapping = std::make_shared<pixelMap>();
+std::shared_ptr<SDL::pixelMap> SDL::globals::pixelMapping = nullptr;
 uint16_t SDL::globals::nModules;
 uint16_t SDL::globals::nLowerModules;
 
@@ -233,6 +233,7 @@ void SDL::Event::addHitToEvent(std::vector<float> x,
                                     nHits));
 
   alpaka::enqueue(queue, hit_loop_task);
+  alpaka::wait(queue);  //FIXME: remove; this is here only to simplify debug
 
   Vec const threadsPerBlock2 = createVec(1, 1, 256);
   Vec const blocksPerGrid2 = createVec(1, 1, MAX_BLOCKS);

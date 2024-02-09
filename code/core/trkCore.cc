@@ -39,6 +39,12 @@ void loadMaps()
     }
 
     // WARNING: initModules must come after above load commands!! keep it at the last line here!
+    if (SDL::globals::modulesBuffers == nullptr) {
+      SDL::globals::modulesBuffers = new SDL::modulesBuffer<SDL::Dev>(SDL::devAcc);
+    }
+    if (SDL::globals::pixelMapping == nullptr) {
+      SDL::globals::pixelMapping = std::make_shared<SDL::pixelMap>();
+    }
     SDL::initModules(pLStoLayer, centroid.Data());
 }
 
