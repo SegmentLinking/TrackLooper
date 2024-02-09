@@ -2,11 +2,7 @@
 
 SDL::TiltedGeometry SDL::globals::tiltedGeometry;
 
-SDL::TiltedGeometry::TiltedGeometry() {}
-
 SDL::TiltedGeometry::TiltedGeometry(std::string filename) { load(filename); }
-
-SDL::TiltedGeometry::~TiltedGeometry() {}
 
 void SDL::TiltedGeometry::load(std::string filename) {
   drdzs_.clear();

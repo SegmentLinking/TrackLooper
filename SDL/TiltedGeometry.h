@@ -16,9 +16,9 @@ namespace SDL {
     std::map<unsigned int, float> dxdys_;  // dx/dy slope
 
   public:
-    TiltedGeometry();
+    TiltedGeometry() = default;
     TiltedGeometry(std::string filename);
-    ~TiltedGeometry();
+    ~TiltedGeometry() = default;
 
     void load(std::string);
 
