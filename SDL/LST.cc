@@ -1,49 +1,53 @@
 #include "LST.h"
+#include "Event.h"
+
+#include "Math/Vector3D.h"
+
+typedef ROOT::Math::DisplacementVector3D<ROOT::Math::Cartesian3D<float>> XYZVector;
 
 namespace {
-  TString trackLooperDir() { return getenv("LST_BASE"); }
+  std::string trackLooperDir() { return getenv("LST_BASE"); }
 
-  TString get_absolute_path_after_check_file_exists(const std::string name) {
+  std::string get_absolute_path_after_check_file_exists(const std::string name) {
     std::filesystem::path fullpath = std::filesystem::absolute(name.c_str());
     if (not std::filesystem::exists(fullpath)) {
       std::cout << "ERROR: Could not find the file = " << fullpath << std::endl;
       exit(2);
     }
-    return TString(fullpath.string().c_str());
+    return fullpath.string();
   }
 
   void loadMaps(SDL::MapPLStoLayer& pLStoLayer) {
     // Module orientation information (DrDz or phi angles)
-    TString endcap_geom = get_absolute_path_after_check_file_exists(
-        TString::Format("%s/data/OT800_IT615_pt0.8/endcap_orientation.txt", trackLooperDir().Data()).Data());
-    TString tilted_geom = get_absolute_path_after_check_file_exists(
-        TString::Format("%s/data/OT800_IT615_pt0.8/tilted_barrel_orientation.txt", trackLooperDir().Data()).Data());
-    SDL::globals::endcapGeometry->load(endcap_geom.Data());  // centroid values added to the map
-    SDL::globals::tiltedGeometry.load(tilted_geom.Data());
+    auto endcap_geom = get_absolute_path_after_check_file_exists(trackLooperDir() +
+                                                                 "/data/OT800_IT615_pt0.8/endcap_orientation.txt");
+    auto tilted_geom = get_absolute_path_after_check_file_exists(trackLooperDir() +
+                                                                 "/data/OT800_IT615_pt0.8/tilted_barrel_orientation.txt");
+    SDL::globals::endcapGeometry->load(endcap_geom.c_str());  // centroid values added to the map
+    SDL::globals::tiltedGeometry.load(tilted_geom.c_str());
 
     // Module connection map (for line segment building)
-    TString mappath = get_absolute_path_after_check_file_exists(
-        TString::Format("%s/data/OT800_IT615_pt0.8/module_connection_tracing_merged.txt", trackLooperDir().Data())
-            .Data());
-    SDL::globals::moduleConnectionMap.load(mappath.Data());
+    auto mappath = get_absolute_path_after_check_file_exists(
+        trackLooperDir() + "/data/OT800_IT615_pt0.8/module_connection_tracing_merged.txt");
+    SDL::globals::moduleConnectionMap.load(mappath.c_str());
 
-    TString pLSMapDir = trackLooperDir() + "/data/OT800_IT615_pt0.8/pixelmap/pLS_map";
+    auto pLSMapDir = trackLooperDir() + "/data/OT800_IT615_pt0.8/pixelmap/pLS_map";
     const std::array<std::string, 4> connects{
         {"_layer1_subdet5", "_layer2_subdet5", "_layer1_subdet4", "_layer2_subdet4"}};
-    TString path;
+    std::string path;
 
     static_assert(connects.size() == std::tuple_size<std::decay_t<decltype(pLStoLayer[0])>>{});
     for (unsigned int i = 0; i < connects.size(); i++) {
       auto connectData = connects[i].data();
 
-      path = TString::Format("%s%s.txt", pLSMapDir.Data(), connectData).Data();
-      pLStoLayer[0][i] = SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data());
+      path = pLSMapDir + connectData + ".txt";
+      pLStoLayer[0][i] = SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path));
 
-      path = TString::Format("%s_pos%s.txt", pLSMapDir.Data(), connectData).Data();
-      pLStoLayer[1][i] = SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data());
+      path = pLSMapDir + "_pos" + connectData + ".txt";
+      pLStoLayer[1][i] = SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path));
 
-      path = TString::Format("%s_neg%s.txt", pLSMapDir.Data(), connectData).Data();
-      pLStoLayer[2][i] = SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path.Data()).Data());
+      path = pLSMapDir + "_neg" + connectData + ".txt";
+      pLStoLayer[2][i] = SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path));
     }
   }
 
@@ -53,8 +57,7 @@ void SDL::LST::loadAndFillES(alpaka::QueueCpuBlocking& queue, struct modulesBuff
   SDL::MapPLStoLayer pLStoLayer;
   ::loadMaps(pLStoLayer);
 
-  TString path = get_absolute_path_after_check_file_exists(
-      TString::Format("%s/data/OT800_IT615_pt0.8/sensor_centroids.txt", trackLooperDir().Data()).Data());
+  auto path = get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/sensor_centroids.txt");
   if (SDL::globals::modulesBuffers == nullptr) {
     SDL::globals::modulesBuffers = new SDL::modulesBuffer<SDL::Dev>(SDL::devAcc);
   }
@@ -66,9 +69,173 @@ void SDL::LST::loadAndFillES(alpaka::QueueCpuBlocking& queue, struct modulesBuff
                            SDL::globals::nLowerModules,
                            *SDL::globals::pixelMapping,
                            queue,
-                           path.Data(),
+                           path.c_str(),
                            pLStoLayer);
 }
+
+void SDL::LST::run(SDL::QueueAcc& queue,
+                   const SDL::modulesBuffer<SDL::Dev>* modules,
+                   bool verbose,
+                   const std::vector<float> see_px,
+                   const std::vector<float> see_py,
+                   const std::vector<float> see_pz,
+                   const std::vector<float> see_dxy,
+                   const std::vector<float> see_dz,
+                   const std::vector<float> see_ptErr,
+                   const std::vector<float> see_etaErr,
+                   const std::vector<float> see_stateTrajGlbX,
+                   const std::vector<float> see_stateTrajGlbY,
+                   const std::vector<float> see_stateTrajGlbZ,
+                   const std::vector<float> see_stateTrajGlbPx,
+                   const std::vector<float> see_stateTrajGlbPy,
+                   const std::vector<float> see_stateTrajGlbPz,
+                   const std::vector<int> see_q,
+                   const std::vector<std::vector<int>> see_hitIdx,
+                   const std::vector<unsigned int> ph2_detId,
+                   const std::vector<float> ph2_x,
+                   const std::vector<float> ph2_y,
+                   const std::vector<float> ph2_z) {
+  SDL::globals::modulesBuffersES = modules;
+  auto event = SDL::Event(verbose, queue);
+  prepareInput(see_px,
+               see_py,
+               see_pz,
+               see_dxy,
+               see_dz,
+               see_ptErr,
+               see_etaErr,
+               see_stateTrajGlbX,
+               see_stateTrajGlbY,
+               see_stateTrajGlbZ,
+               see_stateTrajGlbPx,
+               see_stateTrajGlbPy,
+               see_stateTrajGlbPz,
+               see_q,
+               see_hitIdx,
+               ph2_detId,
+               ph2_x,
+               ph2_y,
+               ph2_z);
+
+  event.addHitToEvent(in_trkX_, in_trkY_, in_trkZ_, in_hitId_, in_hitIdxs_);
+  event.addPixelSegmentToEvent(in_hitIndices_vec0_,
+                               in_hitIndices_vec1_,
+                               in_hitIndices_vec2_,
+                               in_hitIndices_vec3_,
+                               in_deltaPhi_vec_,
+                               in_ptIn_vec_,
+                               in_ptErr_vec_,
+                               in_px_vec_,
+                               in_py_vec_,
+                               in_pz_vec_,
+                               in_eta_vec_,
+                               in_etaErr_vec_,
+                               in_phi_vec_,
+                               in_charge_vec_,
+                               in_seedIdx_vec_,
+                               in_superbin_vec_,
+                               in_pixelType_vec_,
+                               in_isQuad_vec_);
+  event.createMiniDoublets();
+  if (verbose) {
+    printf("# of Mini-doublets produced: %d\n", event.getNumberOfMiniDoublets());
+    printf("# of Mini-doublets produced barrel layer 1: %d\n", event.getNumberOfMiniDoubletsByLayerBarrel(0));
+    printf("# of Mini-doublets produced barrel layer 2: %d\n", event.getNumberOfMiniDoubletsByLayerBarrel(1));
+    printf("# of Mini-doublets produced barrel layer 3: %d\n", event.getNumberOfMiniDoubletsByLayerBarrel(2));
+    printf("# of Mini-doublets produced barrel layer 4: %d\n", event.getNumberOfMiniDoubletsByLayerBarrel(3));
+    printf("# of Mini-doublets produced barrel layer 5: %d\n", event.getNumberOfMiniDoubletsByLayerBarrel(4));
+    printf("# of Mini-doublets produced barrel layer 6: %d\n", event.getNumberOfMiniDoubletsByLayerBarrel(5));
+    printf("# of Mini-doublets produced endcap layer 1: %d\n", event.getNumberOfMiniDoubletsByLayerEndcap(0));
+    printf("# of Mini-doublets produced endcap layer 2: %d\n", event.getNumberOfMiniDoubletsByLayerEndcap(1));
+    printf("# of Mini-doublets produced endcap layer 3: %d\n", event.getNumberOfMiniDoubletsByLayerEndcap(2));
+    printf("# of Mini-doublets produced endcap layer 4: %d\n", event.getNumberOfMiniDoubletsByLayerEndcap(3));
+    printf("# of Mini-doublets produced endcap layer 5: %d\n", event.getNumberOfMiniDoubletsByLayerEndcap(4));
+  }
+
+  event.createSegmentsWithModuleMap();
+  if (verbose) {
+    printf("# of Segments produced: %d\n", event.getNumberOfSegments());
+    printf("# of Segments produced layer 1-2:  %d\n", event.getNumberOfSegmentsByLayerBarrel(0));
+    printf("# of Segments produced layer 2-3:  %d\n", event.getNumberOfSegmentsByLayerBarrel(1));
+    printf("# of Segments produced layer 3-4:  %d\n", event.getNumberOfSegmentsByLayerBarrel(2));
+    printf("# of Segments produced layer 4-5:  %d\n", event.getNumberOfSegmentsByLayerBarrel(3));
+    printf("# of Segments produced layer 5-6:  %d\n", event.getNumberOfSegmentsByLayerBarrel(4));
+    printf("# of Segments produced endcap layer 1:  %d\n", event.getNumberOfSegmentsByLayerEndcap(0));
+    printf("# of Segments produced endcap layer 2:  %d\n", event.getNumberOfSegmentsByLayerEndcap(1));
+    printf("# of Segments produced endcap layer 3:  %d\n", event.getNumberOfSegmentsByLayerEndcap(2));
+    printf("# of Segments produced endcap layer 4:  %d\n", event.getNumberOfSegmentsByLayerEndcap(3));
+    printf("# of Segments produced endcap layer 5:  %d\n", event.getNumberOfSegmentsByLayerEndcap(4));
+  }
+
+  event.createTriplets();
+  if (verbose) {
+    printf("# of T3s produced: %d\n", event.getNumberOfTriplets());
+    printf("# of T3s produced layer 1-2-3: %d\n", event.getNumberOfTripletsByLayerBarrel(0));
+    printf("# of T3s produced layer 2-3-4: %d\n", event.getNumberOfTripletsByLayerBarrel(1));
+    printf("# of T3s produced layer 3-4-5: %d\n", event.getNumberOfTripletsByLayerBarrel(2));
+    printf("# of T3s produced layer 4-5-6: %d\n", event.getNumberOfTripletsByLayerBarrel(3));
+    printf("# of T3s produced endcap layer 1-2-3: %d\n", event.getNumberOfTripletsByLayerEndcap(0));
+    printf("# of T3s produced endcap layer 2-3-4: %d\n", event.getNumberOfTripletsByLayerEndcap(1));
+    printf("# of T3s produced endcap layer 3-4-5: %d\n", event.getNumberOfTripletsByLayerEndcap(2));
+    printf("# of T3s produced endcap layer 1: %d\n", event.getNumberOfTripletsByLayerEndcap(0));
+    printf("# of T3s produced endcap layer 2: %d\n", event.getNumberOfTripletsByLayerEndcap(1));
+    printf("# of T3s produced endcap layer 3: %d\n", event.getNumberOfTripletsByLayerEndcap(2));
+    printf("# of T3s produced endcap layer 4: %d\n", event.getNumberOfTripletsByLayerEndcap(3));
+    printf("# of T3s produced endcap layer 5: %d\n", event.getNumberOfTripletsByLayerEndcap(4));
+  }
+
+  event.createQuintuplets();
+  if (verbose) {
+    printf("# of Quintuplets produced: %d\n", event.getNumberOfQuintuplets());
+    printf("# of Quintuplets produced layer 1-2-3-4-5-6: %d\n", event.getNumberOfQuintupletsByLayerBarrel(0));
+    printf("# of Quintuplets produced layer 2: %d\n", event.getNumberOfQuintupletsByLayerBarrel(1));
+    printf("# of Quintuplets produced layer 3: %d\n", event.getNumberOfQuintupletsByLayerBarrel(2));
+    printf("# of Quintuplets produced layer 4: %d\n", event.getNumberOfQuintupletsByLayerBarrel(3));
+    printf("# of Quintuplets produced layer 5: %d\n", event.getNumberOfQuintupletsByLayerBarrel(4));
+    printf("# of Quintuplets produced layer 6: %d\n", event.getNumberOfQuintupletsByLayerBarrel(5));
+    printf("# of Quintuplets produced endcap layer 1: %d\n", event.getNumberOfQuintupletsByLayerEndcap(0));
+    printf("# of Quintuplets produced endcap layer 2: %d\n", event.getNumberOfQuintupletsByLayerEndcap(1));
+    printf("# of Quintuplets produced endcap layer 3: %d\n", event.getNumberOfQuintupletsByLayerEndcap(2));
+    printf("# of Quintuplets produced endcap layer 4: %d\n", event.getNumberOfQuintupletsByLayerEndcap(3));
+    printf("# of Quintuplets produced endcap layer 5: %d\n", event.getNumberOfQuintupletsByLayerEndcap(4));
+  }
+
+  event.pixelLineSegmentCleaning();
+
+  event.createPixelQuintuplets();
+  if (verbose)
+    printf("# of Pixel Quintuplets produced: %d\n", event.getNumberOfPixelQuintuplets());
+
+  event.createPixelTriplets();
+  if (verbose)
+    printf("# of Pixel T3s produced: %d\n", event.getNumberOfPixelTriplets());
+
+  event.createTrackCandidates();
+  if (verbose) {
+    printf("# of TrackCandidates produced: %d\n", event.getNumberOfTrackCandidates());
+    printf("        # of Pixel TrackCandidates produced: %d\n", event.getNumberOfPixelTrackCandidates());
+    printf("        # of pT5 TrackCandidates produced: %d\n", event.getNumberOfPT5TrackCandidates());
+    printf("        # of pT3 TrackCandidates produced: %d\n", event.getNumberOfPT3TrackCandidates());
+    printf("        # of pLS TrackCandidates produced: %d\n", event.getNumberOfPLSTrackCandidates());
+    printf("        # of T5 TrackCandidates produced: %d\n", event.getNumberOfT5TrackCandidates());
+  }
+
+  getOutput(event);
+
+  event.resetEvent();
+}
+
+namespace {
+  XYZVector calculateR3FromPCA(const XYZVector& p3, const float dxy, const float dz) {
+    const float pt = p3.rho();
+    const float p = p3.r();
+    const float vz = dz * pt * pt / p / p;
+
+    const float vx = -dxy * p3.y() / pt - p3.x() / p * p3.z() / p * dz;
+    const float vy = dxy * p3.x() / pt - p3.y() / p * p3.z() / p * dz;
+    return {vx, vy, vz};
+  }
+}  // namespace
 
 void SDL::LST::prepareInput(const std::vector<float> see_px,
                             const std::vector<float> see_py,
@@ -134,22 +301,22 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
   const int hit_size = trkX.size();
 
   for (size_t iSeed = 0; iSeed < n_see; iSeed++) {
-    ROOT::Math::PxPyPzMVector p3LH(see_stateTrajGlbPx[iSeed], see_stateTrajGlbPy[iSeed], see_stateTrajGlbPz[iSeed], 0);
-    ROOT::Math::XYZVector p3LH_helper(see_stateTrajGlbPx[iSeed], see_stateTrajGlbPy[iSeed], see_stateTrajGlbPz[iSeed]);
-    float ptIn = p3LH.Pt();
-    float eta = p3LH.Eta();
+    XYZVector p3LH(see_stateTrajGlbPx[iSeed], see_stateTrajGlbPy[iSeed], see_stateTrajGlbPz[iSeed]);
+    XYZVector p3LH_helper(see_stateTrajGlbPx[iSeed], see_stateTrajGlbPy[iSeed], see_stateTrajGlbPz[iSeed]);
+    float ptIn = p3LH.rho();
+    float eta = p3LH.eta();
     float ptErr = see_ptErr[iSeed];
 
     if ((ptIn > 0.8 - 2 * ptErr)) {
-      ROOT::Math::XYZVector r3LH(see_stateTrajGlbX[iSeed], see_stateTrajGlbY[iSeed], see_stateTrajGlbZ[iSeed]);
-      ROOT::Math::PxPyPzMVector p3PCA(see_px[iSeed], see_py[iSeed], see_pz[iSeed], 0);
-      ROOT::Math::XYZVector r3PCA(calculateR3FromPCA(p3PCA, see_dxy[iSeed], see_dz[iSeed]));
+      XYZVector r3LH(see_stateTrajGlbX[iSeed], see_stateTrajGlbY[iSeed], see_stateTrajGlbZ[iSeed]);
+      XYZVector p3PCA(see_px[iSeed], see_py[iSeed], see_pz[iSeed]);
+      XYZVector r3PCA(calculateR3FromPCA(p3PCA, see_dxy[iSeed], see_dz[iSeed]));
 
-      float pixelSegmentDeltaPhiChange = (r3LH - p3LH_helper).Phi();
+      float pixelSegmentDeltaPhiChange = (r3LH - p3LH_helper).phi();  //FIXME: this looks like a bug
       float etaErr = see_etaErr[iSeed];
-      float px = p3LH.Px();
-      float py = p3LH.Py();
-      float pz = p3LH.Pz();
+      float px = p3LH.x();
+      float py = p3LH.y();
+      float pz = p3LH.z();
 
       int charge = see_q[iSeed];
       int pixtype = -1;
@@ -178,22 +345,22 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
         count++;
       }
 
-      trkX.push_back(r3PCA.X());
-      trkY.push_back(r3PCA.Y());
-      trkZ.push_back(r3PCA.Z());
-      trkX.push_back(p3PCA.Pt());
-      float p3PCA_Eta = p3PCA.Eta();
+      trkX.push_back(r3PCA.x());
+      trkY.push_back(r3PCA.y());
+      trkZ.push_back(r3PCA.z());
+      trkX.push_back(p3PCA.rho());
+      float p3PCA_Eta = p3PCA.eta();
       trkY.push_back(p3PCA_Eta);
-      float p3PCA_Phi = p3PCA.Phi();
+      float p3PCA_Phi = p3PCA.phi();
       trkZ.push_back(p3PCA_Phi);
-      trkX.push_back(r3LH.X());
-      trkY.push_back(r3LH.Y());
-      trkZ.push_back(r3LH.Z());
+      trkX.push_back(r3LH.x());
+      trkY.push_back(r3LH.y());
+      trkZ.push_back(r3LH.z());
       hitId.push_back(1);
       hitId.push_back(1);
       hitId.push_back(1);
       if (see_hitIdx[iSeed].size() > 3) {
-        trkX.push_back(r3LH.X());
+        trkX.push_back(r3LH.x());
         trkY.push_back(see_dxy[iSeed]);
         trkZ.push_back(see_dz[iSeed]);
         hitId.push_back(1);
@@ -210,7 +377,7 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
       ptErr_vec.push_back(ptErr);
       etaErr_vec.push_back(etaErr);
       eta_vec.push_back(eta);
-      float phi = p3LH.Phi();
+      float phi = p3LH.phi();
       phi_vec.push_back(phi);
       charge_vec.push_back(charge);
       seedIdx_vec.push_back(iSeed);
@@ -262,23 +429,11 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
   in_isQuad_vec_ = isQuad_vec;
 }
 
-ROOT::Math::XYZVector SDL::LST::calculateR3FromPCA(const ROOT::Math::PxPyPzMVector& p3,
-                                                   const float dxy,
-                                                   const float dz) {
-  const float pt = p3.Pt();
-  const float p = p3.P();
-  const float vz = dz * pt * pt / p / p;
-
-  const float vx = -dxy * p3.y() / pt - p3.x() / p * p3.z() / p * dz;
-  const float vy = dxy * p3.x() / pt - p3.y() / p * p3.z() / p * dz;
-  return ROOT::Math::XYZVector(vx, vy, vz);
-}
-
 void SDL::LST::getOutput(SDL::Event& event) {
-  std::vector<std::vector<unsigned int>> tc_hitIdxs_;
-  std::vector<unsigned int> tc_len_;
-  std::vector<int> tc_seedIdx_;
-  std::vector<short> tc_trackCandidateType_;
+  std::vector<std::vector<unsigned int>> tc_hitIdxs;
+  std::vector<unsigned int> tc_len;
+  std::vector<int> tc_seedIdx;
+  std::vector<short> tc_trackCandidateType;
 
   SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event.getHitsInCMSSW());
   SDL::trackCandidatesBuffer<alpaka::DevCpu>& trackCandidatesInGPU = (*event.getTrackCandidatesInCMSSW());
@@ -289,16 +444,16 @@ void SDL::LST::getOutput(SDL::Event& event) {
     std::vector<unsigned int> hit_idx =
         getHitIdxs(trackCandidateType, idx, trackCandidatesInGPU.hitIndices, hitsInGPU.idxs);
 
-    tc_hitIdxs_.push_back(hit_idx);
-    tc_len_.push_back(hit_idx.size());
-    tc_seedIdx_.push_back(trackCandidatesInGPU.pixelSeedIndex[idx]);
-    tc_trackCandidateType_.push_back(trackCandidateType);
+    tc_hitIdxs.push_back(hit_idx);
+    tc_len.push_back(hit_idx.size());
+    tc_seedIdx.push_back(trackCandidatesInGPU.pixelSeedIndex[idx]);
+    tc_trackCandidateType.push_back(trackCandidateType);
   }
 
-  out_tc_hitIdxs_ = tc_hitIdxs_;
-  out_tc_len_ = tc_len_;
-  out_tc_seedIdx_ = tc_seedIdx_;
-  out_tc_trackCandidateType_ = tc_trackCandidateType_;
+  out_tc_hitIdxs_ = tc_hitIdxs;
+  out_tc_len_ = tc_len;
+  out_tc_seedIdx_ = tc_seedIdx;
+  out_tc_trackCandidateType_ = tc_trackCandidateType;
 }
 
 std::vector<unsigned int> SDL::LST::getHitIdxs(const short trackCandidateType,
