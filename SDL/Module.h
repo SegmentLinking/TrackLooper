@@ -286,7 +286,7 @@ namespace SDL {
     template <typename TDevAcc>
     modulesBuffer(TDevAcc const& devAccIn, unsigned int nMod = modules_size, unsigned int nPixs = pix_tot)
         : detIds_buf(allocBufWrapper<unsigned int>(devAccIn, nMod)),
-          moduleMap_buf(allocBufWrapper<uint16_t>(devAccIn, nMod * 40)),
+          moduleMap_buf(allocBufWrapper<uint16_t>(devAccIn, nMod * MAX_CONNECTED_MODULES)),
           mapdetId_buf(allocBufWrapper<unsigned int>(devAccIn, nMod)),
           mapIdx_buf(allocBufWrapper<uint16_t>(devAccIn, nMod)),
           nConnectedModules_buf(allocBufWrapper<uint16_t>(devAccIn, nMod)),
