@@ -132,7 +132,7 @@ namespace SDL {
   inline void fillConnectedModuleArrayExplicit(struct modulesBuffer<TDev>* modulesBuf,
                                                unsigned int nMod,
                                                TQueue queue) {
-    auto moduleMap_buf = allocBufWrapper<uint16_t>(devHost, nMod * 40);
+    auto moduleMap_buf = allocBufWrapper<uint16_t>(devHost, nMod * MAX_CONNECTED_MODULES);
     uint16_t* moduleMap = alpaka::getPtrNative(moduleMap_buf);
 
     auto nConnectedModules_buf = allocBufWrapper<uint16_t>(devHost, nMod);
@@ -144,11 +144,11 @@ namespace SDL {
       auto& connectedModules = moduleConnectionMap.getConnectedModuleDetIds(detId);
       nConnectedModules[index] = connectedModules.size();
       for (uint16_t i = 0; i < nConnectedModules[index]; i++) {
-        moduleMap[index * 40 + i] = (*detIdToIndex)[connectedModules[i]];
+        moduleMap[index * MAX_CONNECTED_MODULES + i] = (*detIdToIndex)[connectedModules[i]];
       }
     }
 
-    alpaka::memcpy(queue, modulesBuf->moduleMap_buf, moduleMap_buf, nMod * 40);
+    alpaka::memcpy(queue, modulesBuf->moduleMap_buf, moduleMap_buf, nMod * MAX_CONNECTED_MODULES);
     alpaka::memcpy(queue, modulesBuf->nConnectedModules_buf, nConnectedModules_buf, nMod);
     alpaka::wait(queue);
   };
