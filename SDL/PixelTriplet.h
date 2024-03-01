@@ -1078,7 +1078,7 @@ namespace SDL {
           if (tripletLowerModuleIndex >= *modulesInGPU.nLowerModules) {
             printf("tripletLowerModuleIndex %d >= modulesInGPU.nLowerModules %d \n",
                    tripletLowerModuleIndex,
-                   modulesInGPU.nLowerModules);
+                   *modulesInGPU.nLowerModules);
             continue;  //sanity check
           }
 #endif
