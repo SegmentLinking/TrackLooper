@@ -62,10 +62,12 @@ namespace SDL {
   };
 #endif
 
-  auto const devHost = alpaka::getDevByIdx<alpaka::DevCpu>(0u);
+  auto const platformAcc = alpaka::Platform<Acc>{};
+  auto const platformHost = alpaka::Platform<alpaka::DevCpu>{};
+  auto const devHost = alpaka::getDevByIdx(platformHost, 0u);
 #if defined ALPAKA_ACC_GPU_CUDA_ENABLED || defined ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED || \
     defined ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
-  auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
+  auto const devAcc = alpaka::getDevByIdx(platformAcc, 0u);
   using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
 #endif
 

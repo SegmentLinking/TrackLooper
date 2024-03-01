@@ -51,7 +51,7 @@ void SDL::Event::init(bool verbose) {
 }
 
 // Standalone constructor that has each event object create its own queue.
-SDL::Event::Event(bool verbose) : queue(alpaka::getDevByIdx<Acc>(0u)) { init(verbose); }
+SDL::Event::Event(bool verbose) : queue(alpaka::getDevByIdx(platformAcc, 0u)) { init(verbose); }
 
 void SDL::Event::resetEvent() {
   //reset the arrays

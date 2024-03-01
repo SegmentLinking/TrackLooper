@@ -129,14 +129,14 @@ cd ..
 ```bash
 mkdir workingFolder # Create the folder you will be working in
 cd workingFolder
-cmsrel CMSSW_13_3_0_pre3
-cd CMSSW_13_3_0_pre3/src
+cmsrel CMSSW_14_1_0_pre0
+cd CMSSW_14_1_0_pre0/src
 cmsenv
 git cms-init
 git remote add SegLink git@github.com:SegmentLinking/cmssw.git
-git fetch SegLink CMSSW_13_3_0_pre3_LST_X
+git fetch SegLink CMSSW_14_1_0_pre0_LST_X
 git cms-addpkg RecoTracker Configuration
-git checkout CMSSW_13_3_0_pre3_LST_X
+git checkout CMSSW_14_1_0_pre0_LST_X
 #To include both the CPU library and GPU library into CMSSW, create 3 xml files (headers file has no library).
 #Before writing the following xml file, check that libsdl_cpu.so and libsdl_gpu.so can be found under the ../../../TrackLooper/SDL/ folder.
 cat <<EOF >lst_headers.xml
@@ -247,7 +247,7 @@ The setup scripts included in this repository assume that the [CernVM File Syste
 The necessary dependencies are CUDA, ROOT, the Boost libraries, Alpaka, and some CMSSW headers. CUDA, ROOT, and Boost, are fairly standard libraries and are available from multiple package managers. For the remaining necessary headers you will need to clone the [Alpaka](https://github.com/alpaka-group/alpaka) and [CMSSW](https://github.com/cms-sw/cmssw) repositories. The Alpaka repository is reasonably sized, but the CMSSW one extremely large, especially considering that we only need a tiny fraction of its files to build LST. We can get only the Alpaka interface headers from CMSSW by running the following commands.
 
 ``` bash
-git clone --filter=blob:none --no-checkout --depth 1 --sparse --branch CMSSW_13_3_X https://github.com/cms-sw/cmssw.git
+git clone --filter=blob:none --no-checkout --depth 1 --sparse --branch CMSSW_14_1_X https://github.com/cms-sw/cmssw.git
 cd cmssw
 git sparse-checkout add HeterogeneousCore/AlpakaInterface
 git checkout
@@ -257,16 +257,16 @@ Then all that is left to do is set some environment variables. We give an exampl
 
 ```bash
 # These two lines are only needed to set the right version of gcc and nvcc. They are not needed for standard installations.
-export PATH=/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/gcc/11.4.1-30ebdc301ebd200f2ae0e3d880258e65/bin:/cvmfs/cms.cern.ch/el8_amd64_gcc11/cms/cmssw/CMSSW_13_3_0_pre3/external/el8_amd64_gcc11/bin:$PATH
-export LD_LIBRARY_PATH=/cvmfs/cms.cern.ch/el8_amd64_gcc11/cms/cmssw/CMSSW_13_3_0_pre3/biglib/el8_amd64_gcc11:/cvmfs/cms.cern.ch/el8_amd64_gcc11/cms/cmssw/CMSSW_13_3_0_pre3/lib/el8_amd64_gcc11:/cvmfs/cms.cern.ch/el8_amd64_gcc11/cms/cmssw/CMSSW_13_3_0_pre3/external/el8_amd64_gcc11/lib:/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/gcc/11.4.1-30ebdc301ebd200f2ae0e3d880258e65/lib64:/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/gcc/11.4.1-30ebdc301ebd200f2ae0e3d880258e65/lib:$LD_LIBRARY_PATH
+export PATH=/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/gcc/12.3.1-40d504be6370b5a30e3947a6e575ca28/bin:/cvmfs/cms.cern.ch/el8_amd64_gcc12/cms/cmssw/CMSSW_14_1_0_pre0/external/el8_amd64_gcc12/bin:$PATH
+export LD_LIBRARY_PATH=/cvmfs/cms.cern.ch/el8_amd64_gcc12/cms/cmssw/CMSSW_14_1_0_pre0/biglib/el8_amd64_gcc12:/cvmfs/cms.cern.ch/el8_amd64_gcc12/cms/cmssw/CMSSW_14_1_0_pre0/lib/el8_amd64_gcc12:/cvmfs/cms.cern.ch/el8_amd64_gcc12/cms/cmssw/CMSSW_14_1_0_pre0/external/el8_amd64_gcc12/lib:/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/gcc/12.3.1-40d504be6370b5a30e3947a6e575ca28/lib64:/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/gcc/12.3.1-40d504be6370b5a30e3947a6e575ca28/lib:$LD_LIBRARY_PATH
 
 # These are the lines that you need to manually change for a CVMFS-less setup.
 # In this example we use cvmfs paths since that is where the dependencies are in lnx7188/cgpu1, but they can point to local directories.
-export BOOST_ROOT=/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/boost/1.80.0-536665e33076f709097addc8619ee0a0
-export ALPAKA_ROOT=/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/alpaka/develop-20230621-5659bacc780954326761375d025a3208
-export CUDA_HOME=/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/cuda/11.8.0-9f0af0f4206be7b705fe550319c49a11
-export ROOT_ROOT=/cvmfs/cms.cern.ch/el8_amd64_gcc11/lcg/root/6.26.11-700833a012ccdeb623021803b605d653
-export CMSSW_BASE=/cvmfs/cms.cern.ch/el8_amd64_gcc11/cms/cmssw/CMSSW_13_3_0_pre3
+export BOOST_ROOT=/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/boost/1.80.0-9d4e0dc8cf1f8fc8a67cf53ae917955e
+export ALPAKA_ROOT=/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/alpaka/1.1.0-0e0b978d445f7af747cf00064c146356
+export CUDA_HOME=/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/cuda/12.2.1-bdf3fff69eaec65abe18a7569592cab6
+export ROOT_ROOT=/cvmfs/cms.cern.ch/el8_amd64_gcc12/lcg/root/6.30.05-d0417d1d3c55ded4cc9aa75628166a77
+export CMSSW_BASE=/cvmfs/cms.cern.ch/el8_amd64_gcc12/cms/cmssw/CMSSW_14_1_0_pre0
 
 # These lines are needed to account for some extra environment variables that are exported in the setup script.
 export LD_LIBRARY_PATH=$PWD/SDL/cuda:$PWD/SDL/cpu:$PWD:$LD_LIBRARY_PATH

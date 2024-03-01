@@ -11,8 +11,8 @@ module load cuda/11.4.3 git
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/code/rooutil/thisrooutil.sh
 
-export SCRAM_ARCH=el8_amd64_gcc11
-export CMSSW_VERSION=CMSSW_13_3_0_pre3
+export SCRAM_ARCH=el8_amd64_gcc12
+export CMSSW_VERSION=CMSSW_14_1_0_pre0
 export CUDA_HOME=${HPC_CUDA_DIR}
 
 source /cvmfs/cms.cern.ch/cmsset_default.sh
