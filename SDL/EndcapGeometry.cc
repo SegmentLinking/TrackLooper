@@ -68,7 +68,7 @@ void SDL::EndcapGeometry::load(std::string filename) {
 void SDL::EndcapGeometry::fillGeoMapArraysExplicit() {
   QueueAcc queue(devAcc);
 
-  int phi_size = centroid_phis_.size();
+  unsigned int phi_size = centroid_phis_.size();
 
   // Temporary check for endcap initialization.
   if (phi_size != endcap_size) {

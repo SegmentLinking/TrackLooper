@@ -101,7 +101,7 @@ namespace SDL {
       totalSizes_neg += sizes_neg;
     }
 
-    int connectedPix_size = totalSizes + totalSizes_pos + totalSizes_neg;
+    unsigned int connectedPix_size = totalSizes + totalSizes_pos + totalSizes_neg;
 
     // Temporary check for module initialization.
     if (pix_tot != connectedPix_size) {
