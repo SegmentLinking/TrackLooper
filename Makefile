@@ -17,7 +17,7 @@ CXXFLAGS    = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual
 LDFLAGS     = -g -O2 -lsdl -L${TRACKLOOPERDIR}/SDL/cuda -L${TRACKLOOPERDIR}/SDL/cpu
 ROOTLIBS    = $(shell root-config --libs)
 ROOTCFLAGS  = $(foreach option, $(shell root-config --cflags), $(option))
-ALPAKAINCLUDE = -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include -std=c++17 -DALPAKA_DEBUG=0
+ALPAKAINCLUDE = -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include -std=c++17 -DALPAKA_DEBUG=0 -I${CMSSW_BASE}/src
 ALPAKASERIAL = -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
 CFLAGS      = $(ROOTCFLAGS)  -Wall  -Wno-unused-function  -g  -O2  -fPIC  -fno-var-tracking -ISDL -I$(shell pwd) -Icode  -Icode/core -I${CUDA_HOME}/include  -fopenmp
 EXTRACFLAGS = $(shell rooutil-config) -g

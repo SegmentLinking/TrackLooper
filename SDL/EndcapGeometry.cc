@@ -98,8 +98,8 @@ void SDL::EndcapGeometry::fillGeoMapArraysExplicit() {
   nEndCapMap = counter;
 
   // Copy data from host to device buffers
-  alpaka::memcpy(queue, geoMapPhi_buf, mapPhi_host_buf, phi_size);
-  alpaka::memcpy(queue, geoMapDetId_buf, mapDetId_host_buf, phi_size);
+  alpaka::memcpy(queue, geoMapPhi_buf, mapPhi_host_buf);
+  alpaka::memcpy(queue, geoMapDetId_buf, mapDetId_host_buf);
   alpaka::wait(queue);
 }
 

@@ -124,7 +124,7 @@ namespace SDL {
       connectedPixels[icondet + totalSizes + totalSizes_pos] = (*detIdToIndex)[connectedModuleDetIds_neg[icondet]];
     }
 
-    alpaka::memcpy(queue, modulesBuf->connectedPixels_buf, connectedPixels_buf, connectedPix_size);
+    alpaka::memcpy(queue, modulesBuf->connectedPixels_buf, connectedPixels_buf);
     alpaka::wait(queue);
   };
 
@@ -148,8 +148,8 @@ namespace SDL {
       }
     }
 
-    alpaka::memcpy(queue, modulesBuf->moduleMap_buf, moduleMap_buf, nMod * MAX_CONNECTED_MODULES);
-    alpaka::memcpy(queue, modulesBuf->nConnectedModules_buf, nConnectedModules_buf, nMod);
+    alpaka::memcpy(queue, modulesBuf->moduleMap_buf, moduleMap_buf);
+    alpaka::memcpy(queue, modulesBuf->nConnectedModules_buf, nConnectedModules_buf);
     alpaka::wait(queue);
   };
 
@@ -170,8 +170,8 @@ namespace SDL {
       counter++;
     }
 
-    alpaka::memcpy(queue, modulesBuf->mapIdx_buf, mapIdx_buf, nMod);
-    alpaka::memcpy(queue, modulesBuf->mapdetId_buf, mapdetId_buf, nMod);
+    alpaka::memcpy(queue, modulesBuf->mapIdx_buf, mapIdx_buf);
+    alpaka::memcpy(queue, modulesBuf->mapdetId_buf, mapdetId_buf);
     alpaka::wait(queue);
   };
 
