@@ -181,7 +181,7 @@ namespace SDL {
   extern SDL::modulesBuffer<Dev> const* modulesBuffersES;  // not owned const buffers
   extern uint16_t nModules;
   extern uint16_t nLowerModules;
-  void initModules(const char* moduleMetaDataFilePath = "data/centroid.txt");  //read from file and init
+  void initModules(const char* moduleMetaDataFilePath = "data/output/sensor_centroids.txt");  //read from file and init
   void freeModules();
   void initModulesHost();  //read from file and init
   extern std::shared_ptr<SDL::pixelMap> pixelMapping;
