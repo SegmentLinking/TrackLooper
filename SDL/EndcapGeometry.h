@@ -13,7 +13,7 @@
 namespace SDL {
   class EndcapGeometry {
   private:
-    std::map<unsigned int, float> sls_;  // lower slope
+    std::map<unsigned int, float> sls_;            // lower slope
     std::map<unsigned int, float> centroid_phis_;  // centroid phi
 
   public:
