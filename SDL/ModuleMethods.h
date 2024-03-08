@@ -274,7 +274,7 @@ namespace SDL {
     auto isAnchor_buf = allocBufWrapper<bool>(devHost, nModules);
     auto moduleType_buf = allocBufWrapper<ModuleType>(devHost, nModules);
     auto moduleLayerType_buf = allocBufWrapper<ModuleLayerType>(devHost, nModules);
-    auto slopes_buf = allocBufWrapper<float>(devHost, nModules);
+    auto dxdys_buf = allocBufWrapper<float>(devHost, nModules);
     auto drdzs_buf = allocBufWrapper<float>(devHost, nModules);
     auto partnerModuleIndices_buf = allocBufWrapper<uint16_t>(devHost, nModules);
     auto sdlLayers_buf = allocBufWrapper<int>(devHost, nModules);
@@ -294,7 +294,7 @@ namespace SDL {
     bool* host_isAnchor = alpaka::getPtrNative(isAnchor_buf);
     ModuleType* host_moduleType = alpaka::getPtrNative(moduleType_buf);
     ModuleLayerType* host_moduleLayerType = alpaka::getPtrNative(moduleLayerType_buf);
-    float* host_slopes = alpaka::getPtrNative(slopes_buf);
+    float* host_dxdys = alpaka::getPtrNative(dxdys_buf);
     float* host_drdzs = alpaka::getPtrNative(drdzs_buf);
     uint16_t* host_partnerModuleIndices = alpaka::getPtrNative(partnerModuleIndices_buf);
     int* host_sdlLayers = alpaka::getPtrNative(sdlLayers_buf);
@@ -359,7 +359,7 @@ namespace SDL {
       if (detId == 1) {
         host_moduleType[index] = PixelModule;
         host_moduleLayerType[index] = SDL::InnerPixelLayer;
-        host_slopes[index] = 0;
+        host_dxdys[index] = 0;
         host_drdzs[index] = 0;
         host_isAnchor[index] = false;
       } else {
@@ -374,7 +374,7 @@ namespace SDL {
           host_isAnchor[index] = false;
         }
 
-        host_slopes[index] = (subdet == Endcap) ? endcapGeometry->getdxdy_slope(detId) : tiltedGeometry.getSlope(detId);
+        host_dxdys[index] = (subdet == Endcap) ? endcapGeometry->getdxdy_slope(detId) : tiltedGeometry.getDxDy(detId);
         host_drdzs[index] = (subdet == Barrel) ? tiltedGeometry.getDrDz(detId) : 0;
       }
 
@@ -393,8 +393,8 @@ namespace SDL {
         if (host_drdzs[index] == 0) {
           host_drdzs[index] = host_drdzs[host_partnerModuleIndices[index]];
         }
-        if (host_slopes[index] == 0) {
-          host_slopes[index] = host_slopes[host_partnerModuleIndices[index]];
+        if (host_dxdys[index] == 0) {
+          host_dxdys[index] = host_dxdys[host_partnerModuleIndices[index]];
         }
       }
     }
@@ -420,7 +420,7 @@ namespace SDL {
     alpaka::memcpy(queue, modulesBuf->isInverted_buf, isInverted_buf);
     alpaka::memcpy(queue, modulesBuf->isLower_buf, isLower_buf);
     alpaka::memcpy(queue, modulesBuf->isAnchor_buf, isAnchor_buf);
-    alpaka::memcpy(queue, modulesBuf->slopes_buf, slopes_buf);
+    alpaka::memcpy(queue, modulesBuf->dxdys_buf, dxdys_buf);
     alpaka::memcpy(queue, modulesBuf->drdzs_buf, drdzs_buf);
     alpaka::memcpy(queue, modulesBuf->partnerModuleIndices_buf, partnerModuleIndices_buf);
     alpaka::memcpy(queue, modulesBuf->sdlLayers_buf, sdlLayers_buf);

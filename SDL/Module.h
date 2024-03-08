@@ -231,7 +231,7 @@ namespace SDL {
       mapIdx = alpaka::getPtrNative(modulesbuf.mapIdx_buf);
       nConnectedModules = alpaka::getPtrNative(modulesbuf.nConnectedModules_buf);
       drdzs = alpaka::getPtrNative(modulesbuf.drdzs_buf);
-      slopes = alpaka::getPtrNative(modulesbuf.slopes_buf);
+      slopes = alpaka::getPtrNative(modulesbuf.dxdys_buf);
       nModules = alpaka::getPtrNative(modulesbuf.nModules_buf);
       nLowerModules = alpaka::getPtrNative(modulesbuf.nLowerModules_buf);
       partnerModuleIndices = alpaka::getPtrNative(modulesbuf.partnerModuleIndices_buf);
@@ -262,7 +262,7 @@ namespace SDL {
     Buf<TDev, uint16_t> mapIdx_buf;
     Buf<TDev, uint16_t> nConnectedModules_buf;
     Buf<TDev, float> drdzs_buf;
-    Buf<TDev, float> slopes_buf;
+    Buf<TDev, float> dxdys_buf;
     Buf<TDev, uint16_t> nModules_buf;
     Buf<TDev, uint16_t> nLowerModules_buf;
     Buf<TDev, uint16_t> partnerModuleIndices_buf;
@@ -291,7 +291,7 @@ namespace SDL {
           mapIdx_buf(allocBufWrapper<uint16_t>(devAccIn, nMod)),
           nConnectedModules_buf(allocBufWrapper<uint16_t>(devAccIn, nMod)),
           drdzs_buf(allocBufWrapper<float>(devAccIn, nMod)),
-          slopes_buf(allocBufWrapper<float>(devAccIn, nMod)),
+          dxdys_buf(allocBufWrapper<float>(devAccIn, nMod)),
           nModules_buf(allocBufWrapper<uint16_t>(devAccIn, 1)),
           nLowerModules_buf(allocBufWrapper<uint16_t>(devAccIn, 1)),
           partnerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, nMod)),
@@ -320,7 +320,7 @@ namespace SDL {
       alpaka::memcpy(queue, mapIdx_buf, src.mapIdx_buf);
       alpaka::memcpy(queue, nConnectedModules_buf, src.nConnectedModules_buf);
       alpaka::memcpy(queue, drdzs_buf, src.drdzs_buf);
-      alpaka::memcpy(queue, slopes_buf, src.slopes_buf);
+      alpaka::memcpy(queue, dxdys_buf, src.dxdys_buf);
       alpaka::memcpy(queue, nModules_buf, src.nModules_buf);
       alpaka::memcpy(queue, nLowerModules_buf, src.nLowerModules_buf);
       alpaka::memcpy(queue, partnerModuleIndices_buf, src.partnerModuleIndices_buf);

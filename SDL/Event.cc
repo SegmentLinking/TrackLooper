@@ -1859,7 +1859,7 @@ SDL::modulesBuffer<alpaka::DevCpu>* SDL::Event::getFullModules() {
         queue, modulesInCPUFull->moduleMap_buf, modulesBuffersES->moduleMap_buf, MAX_CONNECTED_MODULES * nModules);
     alpaka::memcpy(queue, modulesInCPUFull->nConnectedModules_buf, modulesBuffersES->nConnectedModules_buf, nModules);
     alpaka::memcpy(queue, modulesInCPUFull->drdzs_buf, modulesBuffersES->drdzs_buf, nModules);
-    alpaka::memcpy(queue, modulesInCPUFull->slopes_buf, modulesBuffersES->slopes_buf, nModules);
+    alpaka::memcpy(queue, modulesInCPUFull->dxdys_buf, modulesBuffersES->dxdys_buf, nModules);
     alpaka::memcpy(queue, modulesInCPUFull->nLowerModules_buf, modulesBuffersES->nLowerModules_buf, 1);
     alpaka::memcpy(queue, modulesInCPUFull->nModules_buf, modulesBuffersES->nModules_buf, 1);
     alpaka::memcpy(queue, modulesInCPUFull->layers_buf, modulesBuffersES->layers_buf, nModules);
