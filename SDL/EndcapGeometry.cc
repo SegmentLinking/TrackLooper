@@ -22,7 +22,7 @@ SDL::EndcapGeometry::EndcapGeometry(std::string filename, unsigned int sizef)
 SDL::EndcapGeometry::~EndcapGeometry() {}
 
 void SDL::EndcapGeometry::load(std::string filename) {
-  sls_.clear();
+  dxdy_slope_.clear();
   centroid_phis_.clear();
 
   std::ifstream ifile(filename);
@@ -31,11 +31,13 @@ void SDL::EndcapGeometry::load(std::string filename) {
   while (std::getline(ifile, line)) {
     std::istringstream ss(line);
     unsigned int detid;
-    float sl, cp;
+    float dxdy_slope, centroid_phi;
 
-    if (ss >> detid >> sl >> cp) {
-      sls_[detid] = sl;
-      centroid_phis_[detid] = cp;
+    if (ss >> detid >> dxdy_slope >> centroid_phi) {
+      dxdy_slope_[detid] = dxdy_slope;
+      centroid_phis_[detid] = centroid_phi;
+    } else {
+      throw std::runtime_error("Failed to parse line: " + line);
     }
   }
 
@@ -80,4 +82,4 @@ void SDL::EndcapGeometry::fillGeoMapArraysExplicit() {
   alpaka::wait(queue);
 }
 
-float SDL::EndcapGeometry::getSlopeLower(unsigned int detid) { return sls_[detid]; }
+float SDL::EndcapGeometry::getdxdy_slope(unsigned int detid) { return dxdy_slope_[detid]; }

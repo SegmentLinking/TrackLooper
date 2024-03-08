@@ -23,10 +23,12 @@ void SDL::TiltedGeometry::load(std::string filename) {
 
     std::stringstream ss(line);
 
-    ss >> detid >> drdz >> slope;
-
-    drdzs_[detid] = drdz;
-    slopes_[detid] = slope;
+    if (ss >> detid >> drdz >> slope) {
+      drdzs_[detid] = drdz;
+      slopes_[detid] = slope;
+    } else {
+      throw std::runtime_error("Failed to parse line: " + line);
+    }
   }
 }
 

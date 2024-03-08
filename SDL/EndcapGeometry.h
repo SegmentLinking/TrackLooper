@@ -7,13 +7,14 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <stdexcept>
 
 #include "Constants.h"
 
 namespace SDL {
   class EndcapGeometry {
   private:
-    std::map<unsigned int, float> sls_;            // lower slope
+    std::map<unsigned int, float> dxdy_slope_;     // dx/dy slope
     std::map<unsigned int, float> centroid_phis_;  // centroid phi
 
   public:
@@ -30,9 +31,7 @@ namespace SDL {
 
     void fillGeoMapArraysExplicit();
     void CreateGeoMapArraysExplicit();
-    float getAverageR2(unsigned int detid);
-    float getYInterceptLower(unsigned int detid);
-    float getSlopeLower(unsigned int detid);
+    float getdxdy_slope(unsigned int detid);
   };
   void freeEndcap();
   extern EndcapGeometry* endcapGeometry;

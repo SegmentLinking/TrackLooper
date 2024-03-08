@@ -374,7 +374,7 @@ namespace SDL {
           host_isAnchor[index] = false;
         }
 
-        host_slopes[index] = (subdet == Endcap) ? endcapGeometry->getSlopeLower(detId) : tiltedGeometry.getSlope(detId);
+        host_slopes[index] = (subdet == Endcap) ? endcapGeometry->getdxdy_slope(detId) : tiltedGeometry.getSlope(detId);
         host_drdzs[index] = (subdet == Barrel) ? tiltedGeometry.getDrDz(detId) : 0;
       }
 
