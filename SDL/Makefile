@@ -27,7 +27,7 @@ LIBS=$(LIB_CUDA) $(LIB_CPU)
 #
 
 # Different architectures to optimize for
-GENCODE_SM70 := -gencode arch=compute_70,code=sm_70
+GENCODE_SM70 := -gencode arch=compute_70,code=[sm_70,compute_70]
 GENCODE_SM89 := -gencode arch=compute_89,code=sm_89
 
 CXX                  = g++
