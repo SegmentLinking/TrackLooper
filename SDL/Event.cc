@@ -51,7 +51,7 @@ void SDL::Event::init(bool verbose) {
 }
 
 // Standalone constructor that has each event object create its own queue.
-SDL::Event::Event(bool verbose) : queue(alpaka::getDevByIdx<Acc>(0u)) { init(verbose); }
+SDL::Event::Event(bool verbose) : queue(alpaka::getDevByIdx(platformAcc, 0u)) { init(verbose); }
 
 void SDL::Event::resetEvent() {
   //reset the arrays
@@ -908,9 +908,9 @@ void SDL::Event::createPixelTriplets() {
   alpaka::wait(queue);
 
 #ifdef Warnings
-  auto nPixelTriplets_buf = allocBufWrapper<int>(devHost, 1, queue);
+  auto nPixelTriplets_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
 
-  alpaka::memcpy(queue, nPixelTriplets_buf, pixelTripletsBuffers->nPixelTriplets_buf, 1);
+  alpaka::memcpy(queue, nPixelTriplets_buf, pixelTripletsBuffers->nPixelTriplets_buf, 1u);
   alpaka::wait(queue);
 
   std::cout << "number of pixel triplets = " << *alpaka::getPtrNative(nPixelTriplets_buf) << std::endl;
@@ -1168,9 +1168,9 @@ void SDL::Event::createPixelQuintuplets() {
   alpaka::wait(queue);
 
 #ifdef Warnings
-  auto nPixelQuintuplets_buf = allocBufWrapper<int>(devHost, 1, queue);
+  auto nPixelQuintuplets_buf = allocBufWrapper<unsigned int>(devHost, 1, queue);
 
-  alpaka::memcpy(queue, nPixelQuintuplets_buf, pixelQuintupletsBuffers->nPixelQuintuplets_buf, 1);
+  alpaka::memcpy(queue, nPixelQuintuplets_buf, pixelQuintupletsBuffers->nPixelQuintuplets_buf, 1u);
   alpaka::wait(queue);
 
   std::cout << "number of pixel quintuplets = " << *alpaka::getPtrNative(nPixelQuintuplets_buf) << std::endl;
