@@ -160,7 +160,7 @@ namespace SDL {
     const uint16_t* mapIdx;
     const uint16_t* nConnectedModules;
     const float* drdzs;
-    const float* slopes;
+    const float* dxdys;
     const uint16_t* nModules;
     const uint16_t* nLowerModules;
     const uint16_t* partnerModuleIndices;
@@ -231,7 +231,7 @@ namespace SDL {
       mapIdx = alpaka::getPtrNative(modulesbuf.mapIdx_buf);
       nConnectedModules = alpaka::getPtrNative(modulesbuf.nConnectedModules_buf);
       drdzs = alpaka::getPtrNative(modulesbuf.drdzs_buf);
-      slopes = alpaka::getPtrNative(modulesbuf.dxdys_buf);
+      dxdys = alpaka::getPtrNative(modulesbuf.dxdys_buf);
       nModules = alpaka::getPtrNative(modulesbuf.nModules_buf);
       nLowerModules = alpaka::getPtrNative(modulesbuf.nLowerModules_buf);
       partnerModuleIndices = alpaka::getPtrNative(modulesbuf.partnerModuleIndices_buf);
