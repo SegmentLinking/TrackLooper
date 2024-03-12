@@ -27,12 +27,11 @@ LIBS=$(LIB_CUDA) $(LIB_CPU)
 #
 
 # Different architectures to optimize for
-GENCODE_SM70 := -gencode arch=compute_70,code=[sm_70,compute_70]
-GENCODE_SM89 := -gencode arch=compute_89,code=[sm_89,compute_89]
+GENCODE_CUDA := -gencode arch=compute_70,code=[sm_70,compute_70] -gencode arch=compute_89,code=[sm_89,compute_89]
 
 CXX                  = g++
 CXXFLAGS_CPU         = -march=native -mtune=native -Ofast -fno-reciprocal-math -fopenmp-simd -g -Wall -Wshadow -Woverloaded-virtual -fPIC -fopenmp -I..
-CXXFLAGS_CUDA        = -O3 -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared $(GENCODE_SM70) $(GENCODE_SM89) --use_fast_math --default-stream per-thread -I..
+CXXFLAGS_CUDA        = -O3 -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared $(GENCODE_CUDA) --use_fast_math --default-stream per-thread -I..
 CMSSWINCLUDE        := -I${CMSSW_BASE}/src
 ifdef CMSSW_RELEASE_BASE
 CMSSWINCLUDE        := ${CMSSWINCLUDE} -I${CMSSW_RELEASE_BASE}/src
@@ -60,7 +59,7 @@ ALPAKABACKEND_CPU    = $(ALPAKASERIAL)
 COMPILE_CMD_CPU      = $(LD_CPU) -c
 
 LD_CUDA              = nvcc
-SOFLAGS_CUDA         = -g -shared --compiler-options -fPIC --cudart shared $(GENCODE_SM70) $(GENCODE_SM89)
+SOFLAGS_CUDA         = -g -shared --compiler-options -fPIC --cudart shared $(GENCODE_CUDA)
 ALPAKABACKEND_CUDA   = $(ALPAKACUDA)
 COMPILE_CMD_CUDA     = $(LD_CUDA) -x cu
 
