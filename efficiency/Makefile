@@ -18,7 +18,7 @@ ROOTLIBS    = $(shell root-config --libs)
 ROOTCFLAGS  = $(shell root-config --cflags)
 CXXFLAGS   += $(ROOTCFLAGS)
 CFLAGS      = $(ROOTCFLAGS) -Wall -Wno-unused-function -g -O2 -fPIC -fno-var-tracking
-EXTRACFLAGS = $(shell rooutil-config) -I../code/core -I../code/cppitertools
+EXTRACFLAGS = $(shell rooutil-config) -I../code/core
 EXTRAFLAGS  = -fPIC -ITMultiDrawTreePlayer -Wunused-variable -lTMVA -lEG -lGenVector -lXMLIO -lMLP -lTreePlayer $(shell rooutil-config)
 
 all: rooutil $(EXE)

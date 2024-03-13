@@ -278,9 +278,9 @@ std::vector<int> matchedSimTrkIdxs(std::vector<unsigned int> hitidxs, std::vecto
     }
 
     std::vector<std::pair<unsigned int, unsigned int>> to_check_duplicate;
-    for (auto &&[ihit, ihitdata] : iter::enumerate(iter::zip(hitidxs, hittypes)))
-    {
-        auto &&[hitidx, hittype] = ihitdata;
+    for (size_t i = 0; i < hitidxs.size(); ++i) {
+        auto hitidx = hitidxs[i];
+        auto hittype = hittypes[i];
         auto item = std::make_pair(hitidx, hittype);
         if (std::find(to_check_duplicate.begin(), to_check_duplicate.end(), item) == to_check_duplicate.end())
         {
@@ -299,8 +299,8 @@ std::vector<int> matchedSimTrkIdxs(std::vector<unsigned int> hitidxs, std::vecto
                   << "------------------------" << std::endl;
     }
 
-    for (auto &&[ihit, ihitdata] : iter::enumerate(to_check_duplicate))
-    {
+    for (size_t ihit = 0; ihit < to_check_duplicate.size(); ++ihit) {
+        auto ihitdata = to_check_duplicate[ihit];
         auto &&[hitidx, hittype] = ihitdata;
 
         if (verbose)
@@ -680,7 +680,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
     std::iota(hitIdxs.begin(), hitIdxs.end(), 0);
     const int hit_size = trkX.size();
 
-    for (auto &&[iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
+    for (size_t iSeed = 0; iSeed < trk.see_stateTrajGlbPx().size(); ++iSeed)
     {
 
         //// track algorithm; partial copy from TrackBase.h
@@ -849,7 +849,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
             isQuad_vec.push_back(isQuad);
         }
 
-    } // iter::enumerate(trk.see_stateTrajGlbPx
+    }
 
     out_trkX.push_back(trkX);
     out_trkY.push_back(trkY);
@@ -970,8 +970,9 @@ void printTimingInformation(std::vector<std::vector<float>>& timing_information,
     std::vector<float> timing_sum_information(timing_information[0].size());
     std::vector<float> timing_shortlist;
     std::vector<float> timing_list;
-    for (auto &&[ievt, timing] : iter::enumerate(timing_information))
+    for (size_t ievt = 0; ievt < timing_information.size(); ++ievt)
     {
+        auto timing = timing_information[ievt];
         float timing_total = 0.f;
         float timing_total_short = 0.f;
         timing_total += timing[0] * 1000;       // Hits
@@ -1247,7 +1248,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
     std::iota(hitIdxs.begin(), hitIdxs.end(), 0);
     const int hit_size = trkX.size();
 
-    for (auto &&[iSeed, _] : iter::enumerate(trk.see_stateTrajGlbPx()))
+    for (size_t iSeed = 0; iSeed < trk.see_stateTrajGlbPx().size(); ++iSeed)
     {
         bool good_seed_type = false;
         if (trk.see_algo()[iSeed] == 4) good_seed_type = true;
