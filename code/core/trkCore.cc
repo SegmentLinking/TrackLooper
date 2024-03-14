@@ -1,4 +1,5 @@
 #include "trkCore.h"
+#include "Globals.h"
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
 void loadMaps()
@@ -20,9 +21,9 @@ void loadMaps()
     std::cout << "pLS map: " << pLSMapDir << std::endl;
     std::cout << "centroid: " << centroid << std::endl;
 
-    SDL::globals::endcapGeometry->load(endcap_geom.Data()); // centroid values added to the map
-    SDL::globals::tiltedGeometry.load(tilted_geom.Data());
-    SDL::globals::moduleConnectionMap.load(mappath.Data());
+    SDL::Globals<SDL::Dev>::endcapGeometry->load(endcap_geom.Data()); // centroid values added to the map
+    SDL::Globals<SDL::Dev>::tiltedGeometry.load(tilted_geom.Data());
+    SDL::Globals<SDL::Dev>::moduleConnectionMap.load(mappath.Data());
 
     SDL::MapPLStoLayer pLStoLayer;
     const std::array<string, 4> pLSMapPath{{ "layer1_subdet5", "layer2_subdet5", "layer1_subdet4", "layer2_subdet4" }};
@@ -39,13 +40,13 @@ void loadMaps()
     }
 
     // WARNING: initModules must come after above load commands!! keep it at the last line here!
-    if (SDL::globals::modulesBuffers == nullptr) {
-      SDL::globals::modulesBuffers = new SDL::modulesBuffer<SDL::Dev>(SDL::devAcc);
+    if (SDL::Globals<SDL::Dev>::modulesBuffers == nullptr) {
+      SDL::Globals<SDL::Dev>::modulesBuffers = new SDL::modulesBuffer<SDL::Dev>(SDL::devAcc);
     }
-    if (SDL::globals::pixelMapping == nullptr) {
-      SDL::globals::pixelMapping = std::make_shared<SDL::pixelMap>();
+    if (SDL::Globals<SDL::Dev>::pixelMapping == nullptr) {
+      SDL::Globals<SDL::Dev>::pixelMapping = std::make_shared<SDL::pixelMap>();
     }
-    SDL::initModules(pLStoLayer, centroid.Data());
+    SDL::Event<SDL::Acc>::initModules(pLStoLayer, centroid.Data());
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
@@ -70,7 +71,7 @@ bool goodEvent()
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-float runMiniDoublet(SDL::Event *event, int evt)
+float runMiniDoublet(SDL::Event<SDL::Acc> *event, int evt)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Mini-Doublet start " << evt << std::endl;
@@ -98,7 +99,7 @@ float runMiniDoublet(SDL::Event *event, int evt)
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-float runSegment(SDL::Event* event)
+float runSegment(SDL::Event<SDL::Acc>* event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Segment start" << std::endl;
@@ -125,7 +126,7 @@ float runSegment(SDL::Event* event)
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-float runT3(SDL::Event* event)
+float runT3(SDL::Event<SDL::Acc>* event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco T3 start" << std::endl;
@@ -153,7 +154,7 @@ float runT3(SDL::Event* event)
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-float runpT3(SDL::Event* event)
+float runpT3(SDL::Event<SDL::Acc>* event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Pixel Triplet pT3 start" << std::endl;
@@ -167,13 +168,13 @@ float runpT3(SDL::Event* event)
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-float runTrackCandidate(SDL::Event* event)
+float runTrackCandidate(SDL::Event<SDL::Acc>* event)
 {
     return runTrackCandidateTest_v2(event);
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-float runQuintuplet(SDL::Event* event)
+float runQuintuplet(SDL::Event<SDL::Acc>* event)
 {
      TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Quintuplet start" << std::endl;
@@ -200,7 +201,7 @@ float runQuintuplet(SDL::Event* event)
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-float runPixelLineSegment(SDL::Event* event)
+float runPixelLineSegment(SDL::Event<SDL::Acc>* event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Pixel Line Segment start" << std::endl;
@@ -213,7 +214,7 @@ float runPixelLineSegment(SDL::Event* event)
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-float runPixelQuintuplet(SDL::Event* event)
+float runPixelQuintuplet(SDL::Event<SDL::Acc>* event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Pixel Quintuplet start" << std::endl;
@@ -227,7 +228,7 @@ float runPixelQuintuplet(SDL::Event* event)
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-float runTrackCandidateTest_v2(SDL::Event* event)
+float runTrackCandidateTest_v2(SDL::Event<SDL::Acc>* event)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco TrackCandidate start" << std::endl;
@@ -889,7 +890,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-float addInputsToEventPreLoad(SDL::Event* event,
+float addInputsToEventPreLoad(SDL::Event<SDL::Acc>* event,
                               bool useOMP,
                               std::vector<float> trkX,
                               std::vector<float> trkY,
@@ -1222,7 +1223,7 @@ void writeMetaData()
 
 //__________________________________________________________________________________________
 [[deprecated]]
-float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
+float addInputsToLineSegmentTracking(SDL::Event<SDL::Acc> &event, bool useOMP)
 {
 
     TStopwatch my_timer;
@@ -1428,7 +1429,7 @@ float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP)
 
 //__________________________________________________________________________________________
 [[deprecated]]
-float addInputsToLineSegmentTrackingUsingExplicitMemory(SDL::Event &event)
+float addInputsToLineSegmentTrackingUsingExplicitMemory(SDL::Event<SDL::Acc> &event)
 {
     return addInputsToLineSegmentTracking(event, true);
 }
