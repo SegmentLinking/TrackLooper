@@ -4,7 +4,6 @@
 #include "SDL.h"
 #include "rooutil.h"
 #include "cxxopts.h"
-#include "helper.h"
 
 
 // helper functions
