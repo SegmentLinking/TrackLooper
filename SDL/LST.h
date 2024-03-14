@@ -10,12 +10,14 @@
 #include <alpaka/alpaka.hpp>
 
 namespace SDL {
-  class Event;
+  template<typename> class Event;
 
-  template <typename TDev>
+  template <typename>
   struct modulesBuffer;
 
-  class LST {
+  template <typename> class LST;
+
+  template<> class LST<SDL::Acc> {
   public:
     LST() = default;
 
@@ -69,7 +71,7 @@ namespace SDL {
                       const std::vector<float> ph2_y,
                       const std::vector<float> ph2_z);
 
-    void getOutput(SDL::Event& event);
+    void getOutput(SDL::Event<Acc>& event);
     std::vector<unsigned int> getHitIdxs(const short trackCandidateType,
                                          const unsigned int TCIdx,
                                          const unsigned int* TCHitIndices,

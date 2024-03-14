@@ -8,8 +8,12 @@
 #include <sstream>
 #include <algorithm>
 
+#include "Constants.h"
+
 namespace SDL {
-  class ModuleConnectionMap {
+  //FIXME: move to non-alpaka single arch build
+  template<typename> class ModuleConnectionMap;
+  template<> class ModuleConnectionMap<SDL::Dev> {
   private:
     std::map<unsigned int, std::vector<unsigned int>> moduleConnections_;
 
@@ -26,10 +30,7 @@ namespace SDL {
     int size() const;
   };
 
-  namespace globals {
-    extern ModuleConnectionMap moduleConnectionMap;
-  }
-  using MapPLStoLayer = std::array<std::array<ModuleConnectionMap, 4>, 3>;
+  using MapPLStoLayer = std::array<std::array<ModuleConnectionMap<SDL::Dev>, 4>, 3>;
 }  // namespace SDL
 
 #endif

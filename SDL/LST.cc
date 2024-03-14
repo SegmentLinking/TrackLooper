@@ -1,5 +1,6 @@
 #include "LST.h"
 #include "Event.h"
+#include "Globals.h"
 
 #include "Math/Vector3D.h"
 
@@ -23,13 +24,13 @@ namespace {
                                                                  "/data/OT800_IT615_pt0.8/endcap_orientation.txt");
     auto tilted_geom = get_absolute_path_after_check_file_exists(trackLooperDir() +
                                                                  "/data/OT800_IT615_pt0.8/tilted_barrel_orientation.txt");
-    SDL::globals::endcapGeometry->load(endcap_geom.c_str());  // centroid values added to the map
-    SDL::globals::tiltedGeometry.load(tilted_geom.c_str());
+    SDL::Globals<SDL::Dev>::endcapGeometry->load(endcap_geom.c_str());  // centroid values added to the map
+    SDL::Globals<SDL::Dev>::tiltedGeometry.load(tilted_geom.c_str());
 
     // Module connection map (for line segment building)
     auto mappath = get_absolute_path_after_check_file_exists(
         trackLooperDir() + "/data/OT800_IT615_pt0.8/module_connection_tracing_merged.txt");
-    SDL::globals::moduleConnectionMap.load(mappath.c_str());
+    SDL::Globals<SDL::Dev>::moduleConnectionMap.load(mappath.c_str());
 
     auto pLSMapDir = trackLooperDir() + "/data/OT800_IT615_pt0.8/pixelmap/pLS_map";
     const std::array<std::string, 4> connects{
@@ -41,39 +42,39 @@ namespace {
       auto connectData = connects[i].data();
 
       path = pLSMapDir + connectData + ".txt";
-      pLStoLayer[0][i] = SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path));
+      pLStoLayer[0][i] = SDL::ModuleConnectionMap<SDL::Dev>(get_absolute_path_after_check_file_exists(path));
 
       path = pLSMapDir + "_pos" + connectData + ".txt";
-      pLStoLayer[1][i] = SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path));
+      pLStoLayer[1][i] = SDL::ModuleConnectionMap<SDL::Dev>(get_absolute_path_after_check_file_exists(path));
 
       path = pLSMapDir + "_neg" + connectData + ".txt";
-      pLStoLayer[2][i] = SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path));
+      pLStoLayer[2][i] = SDL::ModuleConnectionMap<SDL::Dev>(get_absolute_path_after_check_file_exists(path));
     }
   }
 
 }  // namespace
 
-void SDL::LST::loadAndFillES(alpaka::QueueCpuBlocking& queue, struct modulesBuffer<alpaka::DevCpu>* modules) {
+void SDL::LST<SDL::Acc>::loadAndFillES(alpaka::QueueCpuBlocking& queue, struct modulesBuffer<alpaka::DevCpu>* modules) {
   SDL::MapPLStoLayer pLStoLayer;
   ::loadMaps(pLStoLayer);
 
   auto path = get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/sensor_centroids.txt");
-  if (SDL::globals::modulesBuffers == nullptr) {
-    SDL::globals::modulesBuffers = new SDL::modulesBuffer<SDL::Dev>(SDL::devAcc);
+  if (SDL::Globals<SDL::Dev>::modulesBuffers == nullptr) {
+    SDL::Globals<SDL::Dev>::modulesBuffers = new SDL::modulesBuffer<SDL::Dev>(SDL::devAcc);
   }
-  if (SDL::globals::pixelMapping == nullptr) {
-    SDL::globals::pixelMapping = std::make_shared<SDL::pixelMap>();
+  if (SDL::Globals<SDL::Dev>::pixelMapping == nullptr) {
+    SDL::Globals<SDL::Dev>::pixelMapping = std::make_shared<SDL::pixelMap>();
   }
   SDL::loadModulesFromFile(modules,
-                           SDL::globals::nModules,
-                           SDL::globals::nLowerModules,
-                           *SDL::globals::pixelMapping,
+                           SDL::Globals<SDL::Dev>::nModules,
+                           SDL::Globals<SDL::Dev>::nLowerModules,
+                           *SDL::Globals<SDL::Dev>::pixelMapping,
                            queue,
                            path.c_str(),
                            pLStoLayer);
 }
 
-void SDL::LST::run(SDL::QueueAcc& queue,
+void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                    const SDL::modulesBuffer<SDL::Dev>* modules,
                    bool verbose,
                    const std::vector<float> see_px,
@@ -95,8 +96,8 @@ void SDL::LST::run(SDL::QueueAcc& queue,
                    const std::vector<float> ph2_x,
                    const std::vector<float> ph2_y,
                    const std::vector<float> ph2_z) {
-  SDL::globals::modulesBuffersES = modules;
-  auto event = SDL::Event(verbose, queue);
+  SDL::Globals<SDL::Dev>::modulesBuffersES = modules;
+  auto event = SDL::Event<Acc>(verbose, queue);
   prepareInput(see_px,
                see_py,
                see_pz,
@@ -237,7 +238,7 @@ namespace {
   }
 }  // namespace
 
-void SDL::LST::prepareInput(const std::vector<float> see_px,
+void SDL::LST<SDL::Acc>::prepareInput(const std::vector<float> see_px,
                             const std::vector<float> see_py,
                             const std::vector<float> see_pz,
                             const std::vector<float> see_dxy,
@@ -429,7 +430,7 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
   in_isQuad_vec_ = isQuad_vec;
 }
 
-void SDL::LST::getOutput(SDL::Event& event) {
+void SDL::LST<SDL::Acc>::getOutput(SDL::Event<SDL::Acc>& event) {
   std::vector<std::vector<unsigned int>> tc_hitIdxs;
   std::vector<unsigned int> tc_len;
   std::vector<int> tc_seedIdx;
@@ -456,7 +457,7 @@ void SDL::LST::getOutput(SDL::Event& event) {
   out_tc_trackCandidateType_ = tc_trackCandidateType;
 }
 
-std::vector<unsigned int> SDL::LST::getHitIdxs(const short trackCandidateType,
+std::vector<unsigned int> SDL::LST<SDL::Acc>::getHitIdxs(const short trackCandidateType,
                                                const unsigned int TCIdx,
                                                const unsigned int* TCHitIndices,
                                                const unsigned int* hitIndices) {

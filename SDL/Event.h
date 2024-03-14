@@ -14,7 +14,11 @@
 #include "Constants.h"
 
 namespace SDL {
-  class Event {
+  template <typename TAcc>
+  class Event {};
+
+  template <>
+  class Event<SDL::Acc> {
   private:
     QueueAcc queue;
     bool addObjects;
@@ -64,7 +68,7 @@ namespace SDL {
     quintupletsBuffer<alpaka::DevCpu>* quintupletsInCPU;
     pixelTripletsBuffer<alpaka::DevCpu>* pixelTripletsInCPU;
     pixelQuintupletsBuffer<alpaka::DevCpu>* pixelQuintupletsInCPU;
-
+    
     void init(bool verbose);
 
     int* superbinCPU;
@@ -105,7 +109,7 @@ namespace SDL {
                                 std::vector<int8_t> pixelType,
                                 std::vector<char> isQuad);
 
-    /*functions that map the objects to the appropriate modules*/
+    // functions that map the objects to the appropriate modules
     void addMiniDoubletsToEventExplicit();
     void addSegmentsToEventExplicit();
     void addTripletsToEventExplicit();
@@ -171,19 +175,12 @@ namespace SDL {
     pixelTripletsBuffer<alpaka::DevCpu>* getPixelTriplets();
     pixelQuintupletsBuffer<alpaka::DevCpu>* getPixelQuintuplets();
     modulesBuffer<alpaka::DevCpu>* getModules(bool isFull = false);
+
+    static void initModules(const MapPLStoLayer& pLStoLayer,
+                   const char* moduleMetaDataFilePath = "data/OT800_IT615_pt0.8/sensor_centroids.txt");  //read from file and init
+    static void freeModules();
+    static void freeEndcap();
   };
 
-  //global stuff
-  namespace globals {
-    extern SDL::modulesBuffer<Dev>* modulesBuffers;
-    extern SDL::modulesBuffer<Dev> const* modulesBuffersES;  // not owned const buffers
-    extern uint16_t nModules;
-    extern uint16_t nLowerModules;
-    extern std::shared_ptr<SDL::pixelMap> pixelMapping;
-  }  // namespace globals
-  void initModules(const MapPLStoLayer& pLStoLayer,
-                   const char* moduleMetaDataFilePath = "data/OT800_IT615_pt0.8/sensor_centroids.txt");  //read from file and init
-  void freeModules();
-  unsigned int getBackend();
 }  // namespace SDL
 #endif

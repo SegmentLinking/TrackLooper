@@ -9,6 +9,8 @@
 #include "TiltedGeometry.h"
 #include "EndcapGeometry.h"
 #include "ModuleConnectionMap.h"
+#include "PixelMap.h"
+#include "Globals.h"
 
 namespace SDL {
   struct ModuleMetaData {
@@ -18,30 +20,6 @@ namespace SDL {
     std::map<unsigned int, float> module_z;
     std::map<unsigned int, unsigned int> module_type;  // 23 : Ph2PSP, 24 : Ph2PSS, 25 : Ph2SS
     // https://github.com/cms-sw/cmssw/blob/5e809e8e0a625578aa265dc4b128a93830cb5429/Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h#L29
-  };
-
-  // PixelMap is never allocated on the device.
-  // This is also not passed to any of the kernels, so we can combine the structs.
-  struct pixelMap {
-    uint16_t pixelModuleIndex;
-
-    std::vector<unsigned int> connectedPixelsIndex;
-    std::vector<unsigned int> connectedPixelsSizes;
-    std::vector<unsigned int> connectedPixelsIndexPos;
-    std::vector<unsigned int> connectedPixelsSizesPos;
-    std::vector<unsigned int> connectedPixelsIndexNeg;
-    std::vector<unsigned int> connectedPixelsSizesNeg;
-
-    int* pixelType;
-
-    pixelMap(unsigned int sizef = size_superbins)
-        : pixelModuleIndex(0),
-          connectedPixelsIndex(sizef),
-          connectedPixelsSizes(sizef),
-          connectedPixelsIndexPos(sizef),
-          connectedPixelsSizesPos(sizef),
-          connectedPixelsIndexNeg(sizef),
-          connectedPixelsSizesNeg(sizef) {}
   };
 
   template <typename TQueue, typename TDev>
@@ -138,7 +116,7 @@ namespace SDL {
     for (auto it = mmd.detIdToIndex.begin(); it != mmd.detIdToIndex.end(); ++it) {
       unsigned int detId = it->first;
       uint16_t index = it->second;
-      auto& connectedModules = globals::moduleConnectionMap.getConnectedModuleDetIds(detId);
+      auto& connectedModules = Globals<Dev>::moduleConnectionMap.getConnectedModuleDetIds(detId);
       nConnectedModules[index] = connectedModules.size();
       for (uint16_t i = 0; i < nConnectedModules[index]; i++) {
         moduleMap[index * MAX_CONNECTED_MODULES + i] = mmd.detIdToIndex[connectedModules[i]];
@@ -371,9 +349,9 @@ namespace SDL {
           host_isAnchor[index] = false;
         }
 
-        host_dxdys[index] = (subdet == Endcap) ? globals::endcapGeometry->getdxdy_slope(detId)
-                                                : globals::tiltedGeometry.getDxDy(detId);
-        host_drdzs[index] = (subdet == Barrel) ? globals::tiltedGeometry.getDrDz(detId) : 0;
+        host_dxdys[index] = (subdet == Endcap) ? Globals<Dev>::endcapGeometry->getdxdy_slope(detId)
+                                                : Globals<Dev>::tiltedGeometry.getDxDy(detId);
+        host_drdzs[index] = (subdet == Barrel) ? Globals<Dev>::tiltedGeometry.getDrDz(detId) : 0;
       }
 
       host_sdlLayers[index] =

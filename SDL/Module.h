@@ -283,34 +283,33 @@ namespace SDL {
     Buf<TDev, int> sdlLayers_buf;
     Buf<TDev, unsigned int> connectedPixels_buf;
 
-    template <typename TDevAcc>
-    modulesBuffer(TDevAcc const& devAccIn, unsigned int nMod = modules_size, unsigned int nPixs = pix_tot)
-        : detIds_buf(allocBufWrapper<unsigned int>(devAccIn, nMod)),
-          moduleMap_buf(allocBufWrapper<uint16_t>(devAccIn, nMod * MAX_CONNECTED_MODULES)),
-          mapdetId_buf(allocBufWrapper<unsigned int>(devAccIn, nMod)),
-          mapIdx_buf(allocBufWrapper<uint16_t>(devAccIn, nMod)),
-          nConnectedModules_buf(allocBufWrapper<uint16_t>(devAccIn, nMod)),
-          drdzs_buf(allocBufWrapper<float>(devAccIn, nMod)),
-          dxdys_buf(allocBufWrapper<float>(devAccIn, nMod)),
-          nModules_buf(allocBufWrapper<uint16_t>(devAccIn, 1)),
-          nLowerModules_buf(allocBufWrapper<uint16_t>(devAccIn, 1)),
-          partnerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, nMod)),
+    modulesBuffer(TDev const& dev, unsigned int nMod = modules_size, unsigned int nPixs = pix_tot)
+        : detIds_buf(allocBufWrapper<unsigned int>(dev, nMod)),
+          moduleMap_buf(allocBufWrapper<uint16_t>(dev, nMod * MAX_CONNECTED_MODULES)),
+          mapdetId_buf(allocBufWrapper<unsigned int>(dev, nMod)),
+          mapIdx_buf(allocBufWrapper<uint16_t>(dev, nMod)),
+          nConnectedModules_buf(allocBufWrapper<uint16_t>(dev, nMod)),
+          drdzs_buf(allocBufWrapper<float>(dev, nMod)),
+          dxdys_buf(allocBufWrapper<float>(dev, nMod)),
+          nModules_buf(allocBufWrapper<uint16_t>(dev, 1)),
+          nLowerModules_buf(allocBufWrapper<uint16_t>(dev, 1)),
+          partnerModuleIndices_buf(allocBufWrapper<uint16_t>(dev, nMod)),
 
-          layers_buf(allocBufWrapper<short>(devAccIn, nMod)),
-          rings_buf(allocBufWrapper<short>(devAccIn, nMod)),
-          modules_buf(allocBufWrapper<short>(devAccIn, nMod)),
-          rods_buf(allocBufWrapper<short>(devAccIn, nMod)),
-          subdets_buf(allocBufWrapper<short>(devAccIn, nMod)),
-          sides_buf(allocBufWrapper<short>(devAccIn, nMod)),
-          eta_buf(allocBufWrapper<float>(devAccIn, nMod)),
-          r_buf(allocBufWrapper<float>(devAccIn, nMod)),
-          isInverted_buf(allocBufWrapper<bool>(devAccIn, nMod)),
-          isLower_buf(allocBufWrapper<bool>(devAccIn, nMod)),
-          isAnchor_buf(allocBufWrapper<bool>(devAccIn, nMod)),
-          moduleType_buf(allocBufWrapper<ModuleType>(devAccIn, nMod)),
-          moduleLayerType_buf(allocBufWrapper<ModuleLayerType>(devAccIn, nMod)),
-          sdlLayers_buf(allocBufWrapper<int>(devAccIn, nMod)),
-          connectedPixels_buf(allocBufWrapper<unsigned int>(devAccIn, nPixs)) {
+          layers_buf(allocBufWrapper<short>(dev, nMod)),
+          rings_buf(allocBufWrapper<short>(dev, nMod)),
+          modules_buf(allocBufWrapper<short>(dev, nMod)),
+          rods_buf(allocBufWrapper<short>(dev, nMod)),
+          subdets_buf(allocBufWrapper<short>(dev, nMod)),
+          sides_buf(allocBufWrapper<short>(dev, nMod)),
+          eta_buf(allocBufWrapper<float>(dev, nMod)),
+          r_buf(allocBufWrapper<float>(dev, nMod)),
+          isInverted_buf(allocBufWrapper<bool>(dev, nMod)),
+          isLower_buf(allocBufWrapper<bool>(dev, nMod)),
+          isAnchor_buf(allocBufWrapper<bool>(dev, nMod)),
+          moduleType_buf(allocBufWrapper<ModuleType>(dev, nMod)),
+          moduleLayerType_buf(allocBufWrapper<ModuleLayerType>(dev, nMod)),
+          sdlLayers_buf(allocBufWrapper<int>(dev, nMod)),
+          connectedPixels_buf(allocBufWrapper<unsigned int>(dev, nPixs)) {
       setData(*this);
     }
 
