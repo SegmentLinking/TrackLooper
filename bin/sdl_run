@@ -51,14 +51,6 @@ if [ -z ${SAMPLE} ]; then usage; fi
 if [ -z ${NEVENTS} ]; then NEVENTS=-1; fi
 if [ -z ${TAG} ]; then usage; fi
 
-# If it will not be compiled, then make sure that it was precompiled
-if ${PRECOMPILED}; then
-  if [ ! -f ${TRACKLOOPERDIR}/bin/sdl ] || ( [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cuda.so ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] ); then
-    echo "SDL library or binary has not been compiled. Please use -f flag."
-    usage
-  fi
-fi
-
 # If a backend is specified then make sure that corresponding library exists
 # and set the environment variable to preload it.
 if [ -z ${BACKEND} ]; then
@@ -69,17 +61,29 @@ elif [ "${BACKEND}" == "cuda" ]; then
     echo "Error: CUDA backend was not compiled."
     exit 1
   fi
-  export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/cuda/:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/:$LD_LIBRARY_PATH
+  export BACKEND_INT=2
+  export SDLEXE=sdl_cuda
 elif [ "${BACKEND}" == "cpu" ]; then
   if ([ ${PRECOMPILED} != true ] && [[ "${FLAGS}" == *"G"* ]]) ||
        ([ ${PRECOMPILED} == true ] && ([ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] || [ ! -f ${TRACKLOOPERDIR}/SDL/cpu/libsdl.so ])); then
     echo "Error: CPU backend was not compiled."
     exit 1
   fi
-  export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/cpu/:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/:$LD_LIBRARY_PATH
+  export BACKEND_INT=0
+  export SDLEXE=sdl_cpu
 else
-  echo "Error: backend options are gpu or cuda."
+  echo "Error: backend options are cpu or cuda."
   exit 1
+fi
+
+# If it will not be compiled, then make sure that it was precompiled
+if ${PRECOMPILED}; then
+  if [ ! -f ${TRACKLOOPERDIR}/bin/${SDLEXE} ] || ( [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cuda.so ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] ); then
+    echo "SDL library or binary has not been compiled. Please use -f flag."
+    usage
+  fi
 fi
 
 # Check that the FLAGS start with "-" character
@@ -160,8 +164,8 @@ if [[ ${PRECOMPILED} != true ]]; then
   echo "Compiling code..."
   sdl_make_tracklooper ${FLAGS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log
 fi
-echo "Running LST code..."
-sdl -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: sdl command failed!' ; exit 1; }
+echo "Running LST code...: -b ${BACKEND_INT} -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS}"
+${SDLEXE} -b ${BACKEND_INT} -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: sdl command failed!' ; exit 1; }
 echo "Creating performance histograms..."
 createPerfNumDenHists -i ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNumDen.root >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: createPerfNumDenHists command failed!' ; exit 1; }
 echo "Creating plots..."

@@ -220,8 +220,8 @@ else
     make ${TRACKLOOPERTARGET} ${PTCUTOPT} -j >> ${LOG} 2>&1
 fi
 
-if [ ! -f bin/sdl ]; then
-    echo "ERROR: bin/sdl failed to compile!" | tee -a ${LOG}
+if [ ! -f bin/sdl_cpu ] || [ ! -f bin/sdl_cuda ]; then
+    echo "ERROR: bin/sdl_cpu or bin/sdl_cuda failed to compile!" | tee -a ${LOG}
     echo "See ${LOG} file for more detail..." | tee -a ${LOG}
     exit 1
 fi
