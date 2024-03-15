@@ -3,11 +3,6 @@
 
 #include "sdl_types.h"
 
-#define PTCUT 0.9 
-#define ETACUT 4.5
-// #define PTCUT 1.5
-// #define ETACUT 2.4
-
 // ./process INPUTFILEPATH OUTPUTFILE [NEVENTS]
 int main(int argc, char** argv)
 {
@@ -373,7 +368,7 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
     const float vtx_z_thresh = 30;
     const float vtx_perp_thresh = 2.5;
 
-    if (pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+    if (pt > ana.pt_cut and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_eta", eta);
         ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_eta", eta);
           ana.tx.pushbackToBranch<float>(category_name + "_stackpT5_denom_pt", eta);
@@ -382,7 +377,7 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
           ana.tx.pushbackToBranch<float>(category_name + "_stackpLS_denom_pt", eta);
 
     }
-    if (abs(eta) < ETACUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+    if (abs(eta) < ana.eta_cut and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_pt", pt);
         ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_pt", pt);
           ana.tx.pushbackToBranch<float>(category_name + "_stackpT5_denom_pt", pt);
@@ -390,7 +385,7 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
           ana.tx.pushbackToBranch<float>(category_name + "_stackT5_denom_pt", pt);
           ana.tx.pushbackToBranch<float>(category_name + "_stackpLS_denom_pt", pt);
     }
-    if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+    if (abs(eta) < ana.eta_cut and pt > ana.pt_cut and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_phi", phi);
         ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_phi", phi);
           ana.tx.pushbackToBranch<float>(category_name + "_stackpT5_denom_phi", phi);
@@ -398,13 +393,13 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
           ana.tx.pushbackToBranch<float>(category_name + "_stackT5_denom_phi", phi);
           ana.tx.pushbackToBranch<float>(category_name + "_stackpLS_denom_phi", phi);
     }
-    if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh){
+    if (abs(eta) < ana.eta_cut and pt > ana.pt_cut and abs(vtx_z) < vtx_z_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_dxy", dxy);
         ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_dxy", dxy);}
-    if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_perp) < vtx_perp_thresh){
+    if (abs(eta) < ana.eta_cut and pt > ana.pt_cut and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_dz", dz);
         ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_dz", dz);}
-    if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+    if (abs(eta) < ana.eta_cut and pt > ana.pt_cut and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
         ana.tx.pushbackToBranch<float>(category_name + "_denom_layers", lay);
         ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_denom_layers", lay);
         ana.tx.pushbackToBranch<float>(category_name + "_denom_layersgap", laygap);
@@ -415,7 +410,7 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
 
     if (effset.pass(isimtrk))
     {
-        if (pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+        if (pt > ana.pt_cut and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
             ana.tx.pushbackToBranch<float>(category_name + "_numer_eta", eta);
             if(pT5Found){
               ana.tx.pushbackToBranch<float>(category_name + "_stackpT5_numer_eta", eta);
@@ -430,7 +425,7 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
               ana.tx.pushbackToBranch<float>(category_name + "_stackpLS_numer_eta", eta);
             }
         }
-        if (abs(eta) < ETACUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+        if (abs(eta) < ana.eta_cut and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
             ana.tx.pushbackToBranch<float>(category_name + "_numer_pt", pt);
             if(pT5Found){
               ana.tx.pushbackToBranch<float>(category_name + "_stackpT5_numer_pt", pt);
@@ -445,7 +440,7 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
               ana.tx.pushbackToBranch<float>(category_name + "_stackpLS_numer_pt", pt);
             }
         }
-        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+        if (abs(eta) < ana.eta_cut and pt > ana.pt_cut and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
             ana.tx.pushbackToBranch<float>(category_name + "_numer_phi", phi);
             if(pT5Found){
               ana.tx.pushbackToBranch<float>(category_name + "_stackpT5_numer_phi", phi);
@@ -460,7 +455,7 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
               ana.tx.pushbackToBranch<float>(category_name + "_stackpLS_numer_phi", phi);
             }
         }
-        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh)
+        if (abs(eta) < ana.eta_cut and pt > ana.pt_cut and abs(vtx_z) < vtx_z_thresh)
         {
             ana.tx.pushbackToBranch<float>(category_name + "_numer_dxy", dxy);
             if(pT5Found){
@@ -477,7 +472,7 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
             }
 
         }
-        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_perp) < vtx_perp_thresh)
+        if (abs(eta) < ana.eta_cut and pt > ana.pt_cut and abs(vtx_perp) < vtx_perp_thresh)
         {
             ana.tx.pushbackToBranch<float>(category_name + "_numer_dz", dz);
             if(pT5Found){
@@ -495,7 +490,7 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
 
         }
         //printf("layer: %f\n",lay);
-        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+        if (abs(eta) < ana.eta_cut and pt > ana.pt_cut and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
             ana.tx.pushbackToBranch<float>(category_name + "_numer_hits", hits);
             ana.tx.pushbackToBranch<float>(category_name + "_numer_layers", lay);
             ana.tx.pushbackToBranch<float>(category_name + "_numer_layersgap", laygap);}
@@ -503,17 +498,17 @@ void fillEfficiencySet(int isimtrk, EfficiencySetDefinition& effset, bool exclud
     //inefficiencies
     else
     {
-        if (pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
+        if (pt > ana.pt_cut and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_eta", eta);
-        if (abs(eta) < ETACUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
+        if (abs(eta) < ana.eta_cut and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_pt", pt);
-        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
+        if (abs(eta) < ana.eta_cut and pt > ana.pt_cut and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_phi", phi);
-        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh)
+        if (abs(eta) < ana.eta_cut and pt > ana.pt_cut and abs(vtx_z) < vtx_z_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_dxy", dxy);
-        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_perp) < vtx_perp_thresh)
+        if (abs(eta) < ana.eta_cut and pt > ana.pt_cut and abs(vtx_perp) < vtx_perp_thresh)
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_dz", dz);
-        if (abs(eta) < ETACUT and pt > PTCUT and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
+        if (abs(eta) < ana.eta_cut and pt > ana.pt_cut and abs(vtx_z) < vtx_z_thresh and abs(vtx_perp) < vtx_perp_thresh){
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_hits", hits);
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_layers", lay);
             ana.tx.pushbackToBranch<float>(category_name + "_inefficiency_numer_layersgap", laygap);}
@@ -749,21 +744,21 @@ void fillFakeRateSet(int itc, FakeRateSetDefinition& FRset)
 
     TString category_name = FRset.set_name;
 
-    if (pt > PTCUT){
+    if (pt > ana.pt_cut){
         ana.tx.pushbackToBranch<float>(category_name + "_fakerate_denom_eta", eta);
           ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT5_denom_eta", eta);
           ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT3_denom_eta", eta);
            ana.tx.pushbackToBranch<float>(category_name + "_fakestackT5_denom_eta", eta);
           ana.tx.pushbackToBranch<float>(category_name + "_fakestackpLS_denom_eta", eta);
     }
-    if (abs(eta) < ETACUT){
+    if (abs(eta) < ana.eta_cut){
         ana.tx.pushbackToBranch<float>(category_name + "_fakerate_denom_pt", pt);
           ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT5_denom_pt", pt);
           ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT3_denom_pt", pt);
           ana.tx.pushbackToBranch<float>(category_name + "_fakestackT5_denom_pt", pt);
           ana.tx.pushbackToBranch<float>(category_name + "_fakestackpLS_denom_pt", pt);
     }
-    if (abs(eta) < ETACUT and pt > PTCUT){
+    if (abs(eta) < ana.eta_cut and pt > ana.pt_cut){
         ana.tx.pushbackToBranch<float>(category_name + "_fakerate_denom_phi", phi);
           ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT5_denom_phi", phi);
           ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT3_denom_phi", phi);
@@ -773,7 +768,7 @@ void fillFakeRateSet(int itc, FakeRateSetDefinition& FRset)
 
     if (FRset.pass(itc))
     {
-        if (pt > PTCUT){
+        if (pt > ana.pt_cut){
             ana.tx.pushbackToBranch<float>(category_name + "_fakerate_numer_eta", eta);
             if(pT5Found){
           ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT5_numer_eta", eta);
@@ -789,7 +784,7 @@ void fillFakeRateSet(int itc, FakeRateSetDefinition& FRset)
           }
 
         }
-        if (abs(eta) < ETACUT){
+        if (abs(eta) < ana.eta_cut){
             ana.tx.pushbackToBranch<float>(category_name + "_fakerate_numer_pt", pt);
             if(pT5Found){
           ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT5_numer_pt", pt);
@@ -805,7 +800,7 @@ void fillFakeRateSet(int itc, FakeRateSetDefinition& FRset)
           }
 
         }
-        if (abs(eta) < ETACUT and pt > PTCUT){
+        if (abs(eta) < ana.eta_cut and pt > ana.pt_cut){
             ana.tx.pushbackToBranch<float>(category_name + "_fakerate_numer_phi", phi);
             if(pT5Found){
           ana.tx.pushbackToBranch<float>(category_name + "_fakestackpT5_numer_phi", phi);
@@ -1054,21 +1049,21 @@ void fillDuplicateRateSet(int itc, DuplicateRateSetDefinition& DLset)
 
     TString category_name = DLset.set_name;
 
-    if (pt > PTCUT){
+    if (pt > ana.pt_cut){
         ana.tx.pushbackToBranch<float>(category_name + "_duplrate_denom_eta", eta);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT5_denom_eta", eta);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT3_denom_eta", eta);
            ana.tx.pushbackToBranch<float>(category_name + "_dupstackT5_denom_eta", eta);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpLS_denom_eta", eta);
     }
-    if (abs(eta) < ETACUT){
+    if (abs(eta) < ana.eta_cut){
         ana.tx.pushbackToBranch<float>(category_name + "_duplrate_denom_pt", pt);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT5_denom_pt", pt);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT3_denom_pt", pt);
            ana.tx.pushbackToBranch<float>(category_name + "_dupstackT5_denom_pt", pt);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpLS_denom_pt", pt);
     }
-    if (abs(eta) < ETACUT and pt > PTCUT){
+    if (abs(eta) < ana.eta_cut and pt > ana.pt_cut){
         ana.tx.pushbackToBranch<float>(category_name + "_duplrate_denom_phi", phi);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT5_denom_phi", phi);
           ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT3_denom_phi", phi);
@@ -1078,21 +1073,21 @@ void fillDuplicateRateSet(int itc, DuplicateRateSetDefinition& DLset)
 
     if (DLset.pass(itc))
     {
-        if (pt > PTCUT){
+        if (pt > ana.pt_cut){
             ana.tx.pushbackToBranch<float>(category_name + "_duplrate_numer_eta", eta);
             if(pT5Found){ ana.tx.pushbackToBranch<float>(category_name + "_dupstackpT5_numer_eta", eta);}
           if(pT3Found){ana.tx.pushbackToBranch<float>(category_name +   "_dupstackpT3_numer_eta", eta);}
             if(T5Found){ana.tx.pushbackToBranch<float>(category_name +  "_dupstackT5_numer_eta", eta);}
             if(pLSFound){ana.tx.pushbackToBranch<float>(category_name + "_dupstackpLS_numer_eta", eta);}
         }
-        if (abs(eta) < ETACUT){
+        if (abs(eta) < ana.eta_cut){
             ana.tx.pushbackToBranch<float>(category_name + "_duplrate_numer_pt", pt);
             if(pT5Found){ ana.tx.pushbackToBranch<float>(category_name +"_dupstackpT5_numer_pt", pt);}
           if(pT3Found){ana.tx.pushbackToBranch<float>(category_name +   "_dupstackpT3_numer_pt", pt);}
             if(T5Found){ana.tx.pushbackToBranch<float>(category_name +   "_dupstackT5_numer_pt", pt);}
             if(pLSFound){ana.tx.pushbackToBranch<float>(category_name + "_dupstackpLS_numer_pt", pt);}
         }
-        if (abs(eta) < ETACUT and pt > PTCUT){
+        if (abs(eta) < ana.eta_cut and pt > ana.pt_cut){
             ana.tx.pushbackToBranch<float>(category_name + "_duplrate_numer_phi", phi);
             if(pT5Found){ ana.tx.pushbackToBranch<float>(category_name +"_dupstackpT5_numer_phi", phi);}
           if(pT3Found){ana.tx.pushbackToBranch<float>(category_name +   "_dupstackpT3_numer_phi", phi);}

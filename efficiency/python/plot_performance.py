@@ -6,8 +6,6 @@ import os
 import sys
 from math import sqrt
 
-# ptcut = 1.5
-# etacut = 2.4
 ptcut = 0.9
 etacut = 4.5
 
