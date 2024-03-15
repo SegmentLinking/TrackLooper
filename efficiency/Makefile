@@ -29,10 +29,10 @@ $(EXE): src/performance.o src/helper.o src/SDL.o
 src/SDL.o: src/SDL.cc src/SDL.h
 	$(CC) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
 
-src/performance.o: src/performance.cc src/performance.h src/sdl_types.h
+src/performance.o: src/performance.cc src/performance.h
 	$(CC) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
 
-src/helper.o: src/helper.cc src/helper.h src/sdl_types.h
+src/helper.o: src/helper.cc src/helper.h
 	$(CC) $(CFLAGS) $(EXTRACFLAGS) $< -c -o $@
 
 rooutil:

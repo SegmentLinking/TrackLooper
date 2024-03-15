@@ -1,7 +1,4 @@
 #include "performance.h"
-#include "SDLMath.h"
-
-#include "sdl_types.h"
 
 enum
 {
