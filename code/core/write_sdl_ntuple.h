@@ -4,7 +4,7 @@
 #include <iostream>
 #include <tuple>
 
-#include "MathUtil.h"
+#include "SDLMath.h"
 #include "SDL/Event.h"
 
 #include "AnalysisConfig.h"

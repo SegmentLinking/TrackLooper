@@ -648,11 +648,11 @@ void setGnnNtupleBranches(SDL::Event* event)
             std::vector<unsigned int> hits = getHitsFromLS(event, sgIdx);
 
             // Computing line segment pt estimate (assuming beam spot is at zero)
-            SDL::CPU::Hit hitA(0, 0, 0);
-            SDL::CPU::Hit hitB(hitsInGPU.xs[hits[0]], hitsInGPU.ys[hits[0]], hitsInGPU.zs[hits[0]]);
-            SDL::CPU::Hit hitC(hitsInGPU.xs[hits[2]], hitsInGPU.ys[hits[2]], hitsInGPU.zs[hits[2]]);
-            SDL::CPU::Hit center = SDL::CPU::MathUtil::getCenterFromThreePoints(hitA, hitB, hitC);
-            float pt = SDL::CPU::MathUtil::ptEstimateFromRadius(center.rt());
+            SDLMath::Hit hitA(0, 0, 0);
+            SDLMath::Hit hitB(hitsInGPU.xs[hits[0]], hitsInGPU.ys[hits[0]], hitsInGPU.zs[hits[0]]);
+            SDLMath::Hit hitC(hitsInGPU.xs[hits[2]], hitsInGPU.ys[hits[2]], hitsInGPU.zs[hits[2]]);
+            SDLMath::Hit center = SDLMath::getCenterFromThreePoints(hitA, hitB, hitC);
+            float pt = SDLMath::ptEstimateFromRadius(center.rt());
             float eta = hitC.eta();
             float phi = hitB.phi();
 
@@ -685,7 +685,7 @@ void setGnnNtupleBranches(SDL::Event* event)
             sg_index_map[sgIdx] = ana.tx->getBranch<vector<int>>("LS_isFake").size() - 1;
 
             // // T5 eta and phi are computed using outer and innermost hits
-            // SDL::CPU::Hit hitA(trk.ph2_x()[anchitidx], trk.ph2_y()[anchitidx], trk.ph2_z()[anchitidx]);
+            // SDLMath::Hit hitA(trk.ph2_x()[anchitidx], trk.ph2_y()[anchitidx], trk.ph2_z()[anchitidx]);
             // const float phi = hitA.phi();
             // const float eta = hitA.eta();
 
@@ -751,7 +751,7 @@ void setGnnNtupleMiniDoublet(SDL::Event* event, unsigned int MD)
     float pt = hit0_r * k2Rinv1GeVf / sin(dphichange);
 
     // T5 eta and phi are computed using outer and innermost hits
-    SDL::CPU::Hit hitA(trk.ph2_x()[anchitidx], trk.ph2_y()[anchitidx], trk.ph2_z()[anchitidx]);
+    SDLMath::Hit hitA(trk.ph2_x()[anchitidx], trk.ph2_y()[anchitidx], trk.ph2_z()[anchitidx]);
     const float phi = hitA.phi();
     const float eta = hitA.eta();
 
@@ -1038,8 +1038,8 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     const float pt = (ptAv_in + ptAv_out) / 2.;
 
     // T5 eta and phi are computed using outer and innermost hits
-    SDL::CPU::Hit hitA(trk.ph2_x()[Hit_0], trk.ph2_y()[Hit_0], trk.ph2_z()[Hit_0]);
-    SDL::CPU::Hit hitB(trk.ph2_x()[Hit_8], trk.ph2_y()[Hit_8], trk.ph2_z()[Hit_8]);
+    SDLMath::Hit hitA(trk.ph2_x()[Hit_0], trk.ph2_y()[Hit_0], trk.ph2_z()[Hit_0]);
+    SDLMath::Hit hitB(trk.ph2_x()[Hit_8], trk.ph2_y()[Hit_8], trk.ph2_z()[Hit_8]);
     const float phi = hitA.phi();
     const float eta = hitB.eta();
 
