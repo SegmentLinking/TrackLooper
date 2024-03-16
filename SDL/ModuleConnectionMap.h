@@ -12,8 +12,10 @@
 
 namespace SDL {
   //FIXME: move to non-alpaka single arch build
-  template<typename> class ModuleConnectionMap;
-  template<> class ModuleConnectionMap<SDL::Dev> {
+  template <typename>
+  class ModuleConnectionMap;
+  template <>
+  class ModuleConnectionMap<SDL::Dev> {
   private:
     std::map<unsigned int, std::vector<unsigned int>> moduleConnections_;
 

@@ -12,10 +12,10 @@
 #include "Constants.h"
 
 namespace SDL {
-  template<typename TDev>
-  class EndcapGeometry {
-  };
-  template<> class EndcapGeometry<SDL::Dev> {
+  template <typename TDev>
+  class EndcapGeometry {};
+  template <>
+  class EndcapGeometry<SDL::Dev> {
   private:
     std::map<unsigned int, float> dxdy_slope_;     // dx/dy slope
     std::map<unsigned int, float> centroid_phis_;  // centroid phi

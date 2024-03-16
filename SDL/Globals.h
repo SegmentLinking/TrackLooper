@@ -9,8 +9,9 @@
 #include "PixelMap.h"
 
 namespace SDL {
-  template<typename> struct Globals;
-  template<>
+  template <typename>
+  struct Globals;
+  template <>
   struct Globals<Dev> {
     static SDL::modulesBuffer<Dev>* modulesBuffers;
     static SDL::modulesBuffer<Dev> const* modulesBuffersES;  // not owned const buffers

@@ -10,14 +10,17 @@
 #include <alpaka/alpaka.hpp>
 
 namespace SDL {
-  template<typename> class Event;
+  template <typename>
+  class Event;
 
   template <typename>
   struct modulesBuffer;
 
-  template <typename> class LST;
+  template <typename>
+  class LST;
 
-  template<> class LST<SDL::Acc> {
+  template <>
+  class LST<SDL::Acc> {
   public:
     LST() = default;
 

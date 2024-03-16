@@ -68,7 +68,7 @@ namespace SDL {
     quintupletsBuffer<alpaka::DevCpu>* quintupletsInCPU;
     pixelTripletsBuffer<alpaka::DevCpu>* pixelTripletsInCPU;
     pixelQuintupletsBuffer<alpaka::DevCpu>* pixelQuintupletsInCPU;
-    
+
     void init(bool verbose);
 
     int* superbinCPU;
@@ -177,7 +177,7 @@ namespace SDL {
     modulesBuffer<alpaka::DevCpu>* getModules(bool isFull = false);
 
     static void initModules(const MapPLStoLayer& pLStoLayer,
-                   const char* moduleMetaDataFilePath = "data/OT800_IT615_pt0.8/sensor_centroids.txt");  //read from file and init
+                            const char* moduleMetaDataFilePath = "data/OT800_IT615_pt0.8/sensor_centroids.txt");  //read from file and init
     static void freeModules();
     static void freeEndcap();
   };

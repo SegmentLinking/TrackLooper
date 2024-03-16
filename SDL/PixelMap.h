@@ -1,6 +1,11 @@
 #ifndef PixelMap_h
 #define PixelMap_h
 
+#include <vector>
+#include <cstdint>
+
+#include "Constants.h"
+
 namespace SDL {
   // PixelMap is never allocated on the device.
   // This is also not passed to any of the kernels, so we can combine the structs.
@@ -25,6 +30,6 @@ namespace SDL {
           connectedPixelsIndexNeg(sizef),
           connectedPixelsSizesNeg(sizef) {}
   };
-} // namespace SDL
+}  // namespace SDL
 
 #endif

@@ -24,13 +24,13 @@ namespace {
                                                                  "/data/OT800_IT615_pt0.8/endcap_orientation.txt");
     auto tilted_geom = get_absolute_path_after_check_file_exists(trackLooperDir() +
                                                                  "/data/OT800_IT615_pt0.8/tilted_barrel_orientation.txt");
-    SDL::Globals<SDL::Dev>::endcapGeometry->load(endcap_geom.c_str());  // centroid values added to the map
-    SDL::Globals<SDL::Dev>::tiltedGeometry.load(tilted_geom.c_str());
+    SDL::Globals<SDL::Dev>::endcapGeometry->load(endcap_geom);  // centroid values added to the map
+    SDL::Globals<SDL::Dev>::tiltedGeometry.load(tilted_geom);
 
     // Module connection map (for line segment building)
     auto mappath = get_absolute_path_after_check_file_exists(
         trackLooperDir() + "/data/OT800_IT615_pt0.8/module_connection_tracing_merged.txt");
-    SDL::Globals<SDL::Dev>::moduleConnectionMap.load(mappath.c_str());
+    SDL::Globals<SDL::Dev>::moduleConnectionMap.load(mappath);
 
     auto pLSMapDir = trackLooperDir() + "/data/OT800_IT615_pt0.8/pixelmap/pLS_map";
     const std::array<std::string, 4> connects{
@@ -75,27 +75,27 @@ void SDL::LST<SDL::Acc>::loadAndFillES(alpaka::QueueCpuBlocking& queue, struct m
 }
 
 void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
-                   const SDL::modulesBuffer<SDL::Dev>* modules,
-                   bool verbose,
-                   const std::vector<float> see_px,
-                   const std::vector<float> see_py,
-                   const std::vector<float> see_pz,
-                   const std::vector<float> see_dxy,
-                   const std::vector<float> see_dz,
-                   const std::vector<float> see_ptErr,
-                   const std::vector<float> see_etaErr,
-                   const std::vector<float> see_stateTrajGlbX,
-                   const std::vector<float> see_stateTrajGlbY,
-                   const std::vector<float> see_stateTrajGlbZ,
-                   const std::vector<float> see_stateTrajGlbPx,
-                   const std::vector<float> see_stateTrajGlbPy,
-                   const std::vector<float> see_stateTrajGlbPz,
-                   const std::vector<int> see_q,
-                   const std::vector<std::vector<int>> see_hitIdx,
-                   const std::vector<unsigned int> ph2_detId,
-                   const std::vector<float> ph2_x,
-                   const std::vector<float> ph2_y,
-                   const std::vector<float> ph2_z) {
+                             const SDL::modulesBuffer<SDL::Dev>* modules,
+                             bool verbose,
+                             const std::vector<float> see_px,
+                             const std::vector<float> see_py,
+                             const std::vector<float> see_pz,
+                             const std::vector<float> see_dxy,
+                             const std::vector<float> see_dz,
+                             const std::vector<float> see_ptErr,
+                             const std::vector<float> see_etaErr,
+                             const std::vector<float> see_stateTrajGlbX,
+                             const std::vector<float> see_stateTrajGlbY,
+                             const std::vector<float> see_stateTrajGlbZ,
+                             const std::vector<float> see_stateTrajGlbPx,
+                             const std::vector<float> see_stateTrajGlbPy,
+                             const std::vector<float> see_stateTrajGlbPz,
+                             const std::vector<int> see_q,
+                             const std::vector<std::vector<int>> see_hitIdx,
+                             const std::vector<unsigned int> ph2_detId,
+                             const std::vector<float> ph2_x,
+                             const std::vector<float> ph2_y,
+                             const std::vector<float> ph2_z) {
   SDL::Globals<SDL::Dev>::modulesBuffersES = modules;
   auto event = SDL::Event<Acc>(verbose, queue);
   prepareInput(see_px,
@@ -239,24 +239,24 @@ namespace {
 }  // namespace
 
 void SDL::LST<SDL::Acc>::prepareInput(const std::vector<float> see_px,
-                            const std::vector<float> see_py,
-                            const std::vector<float> see_pz,
-                            const std::vector<float> see_dxy,
-                            const std::vector<float> see_dz,
-                            const std::vector<float> see_ptErr,
-                            const std::vector<float> see_etaErr,
-                            const std::vector<float> see_stateTrajGlbX,
-                            const std::vector<float> see_stateTrajGlbY,
-                            const std::vector<float> see_stateTrajGlbZ,
-                            const std::vector<float> see_stateTrajGlbPx,
-                            const std::vector<float> see_stateTrajGlbPy,
-                            const std::vector<float> see_stateTrajGlbPz,
-                            const std::vector<int> see_q,
-                            const std::vector<std::vector<int>> see_hitIdx,
-                            const std::vector<unsigned int> ph2_detId,
-                            const std::vector<float> ph2_x,
-                            const std::vector<float> ph2_y,
-                            const std::vector<float> ph2_z) {
+                                      const std::vector<float> see_py,
+                                      const std::vector<float> see_pz,
+                                      const std::vector<float> see_dxy,
+                                      const std::vector<float> see_dz,
+                                      const std::vector<float> see_ptErr,
+                                      const std::vector<float> see_etaErr,
+                                      const std::vector<float> see_stateTrajGlbX,
+                                      const std::vector<float> see_stateTrajGlbY,
+                                      const std::vector<float> see_stateTrajGlbZ,
+                                      const std::vector<float> see_stateTrajGlbPx,
+                                      const std::vector<float> see_stateTrajGlbPy,
+                                      const std::vector<float> see_stateTrajGlbPz,
+                                      const std::vector<int> see_q,
+                                      const std::vector<std::vector<int>> see_hitIdx,
+                                      const std::vector<unsigned int> ph2_detId,
+                                      const std::vector<float> ph2_x,
+                                      const std::vector<float> ph2_y,
+                                      const std::vector<float> ph2_z) {
   unsigned int count = 0;
   auto n_see = see_stateTrajGlbPx.size();
   std::vector<float> px_vec;
@@ -458,9 +458,9 @@ void SDL::LST<SDL::Acc>::getOutput(SDL::Event<SDL::Acc>& event) {
 }
 
 std::vector<unsigned int> SDL::LST<SDL::Acc>::getHitIdxs(const short trackCandidateType,
-                                               const unsigned int TCIdx,
-                                               const unsigned int* TCHitIndices,
-                                               const unsigned int* hitIndices) {
+                                                         const unsigned int TCIdx,
+                                                         const unsigned int* TCHitIndices,
+                                                         const unsigned int* hitIndices) {
   std::vector<unsigned int> hits;
 
   unsigned int maxNHits = 0;
