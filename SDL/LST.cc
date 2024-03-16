@@ -3,8 +3,7 @@
 #include "Globals.h"
 
 #include "Math/Vector3D.h"
-
-typedef ROOT::Math::DisplacementVector3D<ROOT::Math::Cartesian3D<float>> XYZVector;
+using XYZVector = ROOT::Math::XYZVector;
 
 namespace {
   std::string trackLooperDir() { return getenv("LST_BASE"); }
