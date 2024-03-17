@@ -446,7 +446,7 @@ namespace SDL {
     float drprime_x;  // x-component of drprime
     float drprime_y;  // y-component of drprime
     const float& slope =
-        modulesInGPU.slopes[lowerModuleIndex];  // The slope of the possible strip hits for a given module in x-y plane
+        modulesInGPU.dxdys[lowerModuleIndex];  // The slope of the possible strip hits for a given module in x-y plane
     float absArctanSlope;
     float angleM;  // the angle M is the angle of rotation of the module in x-y plane if the possible strip hits are along the x-axis, then angleM = 0, and if the possible strip hits are along y-axis angleM = 90 degrees
     float absdzprime;  // The distance between the two points after shifting

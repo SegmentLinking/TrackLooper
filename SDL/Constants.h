@@ -141,11 +141,11 @@ namespace SDL {
   const unsigned int size_superbins = 45000;
 
   // Temporary fix for endcap buffer allocation.
-  const unsigned int endcap_size = 9105;
+  const unsigned int endcap_size = 9104;
 
   // Temporary fix for module buffer allocation.
   const unsigned int modules_size = 26401;
-  const unsigned int pix_tot = 1796504;
+  const unsigned int pix_tot = 1794686;
 
   //defining the constant host device variables right up here
   ALPAKA_STATIC_ACC_MEM_GLOBAL const float miniMulsPtScaleBarrel[6] = {0.0052, 0.0038, 0.0034, 0.0034, 0.0032, 0.0034};

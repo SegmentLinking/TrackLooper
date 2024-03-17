@@ -10,23 +10,24 @@ SDL::TiltedGeometry::~TiltedGeometry() {}
 
 void SDL::TiltedGeometry::load(std::string filename) {
   drdzs_.clear();
-  slopes_.clear();
+  dxdys_.clear();
 
-  std::ifstream ifile;
-  ifile.open(filename.c_str());
+  std::ifstream ifile(filename);
+
   std::string line;
-
   while (std::getline(ifile, line)) {
     unsigned int detid;
     float drdz;
-    float slope;
+    float dxdy;
 
     std::stringstream ss(line);
 
-    ss >> detid >> drdz >> slope;
-
-    drdzs_[detid] = drdz;
-    slopes_[detid] = slope;
+    if (ss >> detid >> drdz >> dxdy) {
+      drdzs_[detid] = drdz;
+      dxdys_[detid] = dxdy;
+    } else {
+      throw std::runtime_error("Failed to parse line: " + line);
+    }
   }
 }
 
@@ -38,9 +39,9 @@ float SDL::TiltedGeometry::getDrDz(unsigned int detid) {
   }
 }
 
-float SDL::TiltedGeometry::getSlope(unsigned int detid) {
-  if (slopes_.find(detid) != slopes_.end()) {
-    return slopes_[detid];
+float SDL::TiltedGeometry::getDxDy(unsigned int detid) {
+  if (dxdys_.find(detid) != dxdys_.end()) {
+    return dxdys_[detid];
   } else {
     return 0;
   }
