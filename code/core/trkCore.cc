@@ -7,11 +7,11 @@ void loadMaps()
     TString TrackLooperDir = gSystem->Getenv("TRACKLOOPERDIR");
 
     // Module orientation information (DrDz or phi angles)
-    TString endcap_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/endcap_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data());
-    TString tilted_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/tilted_orientation_data_CMSSW_12_2_0_pre2.txt", TrackLooperDir.Data()).Data());
-    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/module_connection_tracing_CMSSW_12_2_0_pre2_merged.txt", TrackLooperDir.Data()).Data());
-    TString centroid = get_absolute_path_after_check_file_exists(TString::Format("%s/data/centroid_CMSSW_12_2_0_pre2.txt", gSystem->Getenv("TRACKLOOPERDIR")).Data()).Data();
-    TString pLSMapDir = TrackLooperDir+"/data/pixelmaps_CMSSW_12_2_0_pre2_0p8minPt";
+    TString endcap_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/endcap_orientation.txt", TrackLooperDir.Data()).Data());
+    TString tilted_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/tilted_barrel_orientation.txt", TrackLooperDir.Data()).Data());
+    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/module_connection_tracing_merged.txt", TrackLooperDir.Data()).Data());
+    TString centroid = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/sensor_centroids.txt", gSystem->Getenv("TRACKLOOPERDIR")).Data()).Data();
+    TString pLSMapDir = TrackLooperDir+"/data/OT800_IT615_pt0.8/pixelmap";
 
     std::cout << "============ CMSSW_12_2_0_pre2 geometry ===========" << std::endl;
     std::cout << "endcap geometry: " << endcap_geom << std::endl;

@@ -460,7 +460,7 @@ namespace SDL {
       short moduleSubdet = modulesInGPU.subdets[lowerModuleIndices[i]];
       short moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
       float drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
-      slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
+      slopes[i] = modulesInGPU.dxdys[lowerModuleIndices[i]];
       //category 1 - barrel PS flat
       if (moduleSubdet == Barrel and moduleType == PS and moduleSide == Center) {
         delta1[i] = inv1;
@@ -2308,7 +2308,7 @@ namespace SDL {
       moduleSubdet = modulesInGPU.subdets[lowerModuleIndices[i]];
       moduleSide = modulesInGPU.sides[lowerModuleIndices[i]];
       const float& drdz = modulesInGPU.drdzs[lowerModuleIndices[i]];
-      slopes[i] = modulesInGPU.slopes[lowerModuleIndices[i]];
+      slopes[i] = modulesInGPU.dxdys[lowerModuleIndices[i]];
       //category 1 - barrel PS flat
       if (moduleSubdet == Barrel and moduleType == PS and moduleSide == Center) {
         delta1[i] = inv1;

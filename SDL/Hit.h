@@ -252,10 +252,7 @@ namespace SDL {
 
         if (modulesInGPU.subdets[lastModuleIndex] == Endcap && modulesInGPU.moduleType[lastModuleIndex] == TwoS) {
           found_index = binary_search(geoMapDetId, iDetId, nEndCapMap);
-          float phi = 0;
-          // Unclear why these are not in map, but CPU map returns phi = 0 for all exceptions.
-          if (found_index != -1)
-            phi = geoMapPhi[found_index];
+          float phi = geoMapPhi[found_index];
           float cos_phi = alpaka::math::cos(acc, phi);
           hitsInGPU.highEdgeXs[ihit] = ihit_x + 2.5f * cos_phi;
           hitsInGPU.lowEdgeXs[ihit] = ihit_x - 2.5f * cos_phi;
