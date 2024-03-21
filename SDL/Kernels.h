@@ -486,7 +486,7 @@ namespace SDL {
                 break;
             }
           }
-          if (npMatched >= 3) {
+          if (npMatched >= 2) {
             rmPixelSegmentFromMemory(segmentsInGPU, idxToRemove, secondpass);
           }
           if (secondpass) {
