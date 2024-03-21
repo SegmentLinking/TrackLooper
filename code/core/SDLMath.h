@@ -6,6 +6,36 @@
 
 namespace SDLMath
 {
+    inline float Phi_mpi_pi(float x)
+    {
+        if (std::isnan(x))
+        {
+            std::cout << "MathUtil::Phi_mpi_pi() function called with NaN" << std::endl;
+            return x;
+        }
+
+        while (x >= M_PI)
+            x -= 2. * M_PI;
+
+        while (x < -M_PI)
+            x += 2. * M_PI;
+
+        return x;
+    };
+
+    inline float ATan2(float y, float x)
+    {
+        if (x != 0) return  atan2(y, x);
+        if (y == 0) return  0;
+        if (y >  0) return  M_PI / 2;
+        else        return -M_PI / 2;
+    };
+
+    inline float ptEstimateFromRadius(float radius)
+    {
+        return 2.99792458e-3 * 3.8 * radius;
+    };
+
     class Helix
     {
         public:
@@ -59,14 +89,6 @@ namespace SDLMath
             const float lam() { return lam_; }
             const float charge() { return charge_; }
 
-            float Phi_mpi_pi(float phi)
-            {
-                float f = phi;
-                while (f >= M_PI) f -= 2. * M_PI;
-                while (f < -M_PI) f += 2. * M_PI;
-                return f;
-            }
-
             std::tuple<float, float, float, float> get_helix_point(float t)
             {
                 float x = center()[0] - charge() * radius() * sin(phi() - (charge()) * t);
@@ -99,36 +121,6 @@ namespace SDLMath
                 return xy_dist;
             }
 
-    };
-
-    inline float Phi_mpi_pi(float x)
-    {
-        if (std::isnan(x))
-        {
-            std::cout << "MathUtil::Phi_mpi_pi() function called with NaN" << std::endl;
-            return x;
-        }
-
-        while (x >= M_PI)
-            x -= 2. * M_PI;
-
-        while (x < -M_PI)
-            x += 2. * M_PI;
-
-        return x;
-    };
-
-    inline float ATan2(float y, float x)
-    {
-        if (x != 0) return  atan2(y, x);
-        if (y == 0) return  0;
-        if (y >  0) return  M_PI / 2;
-        else        return -M_PI / 2;
-    };
-
-    inline float ptEstimateFromRadius(float radius)
-    {
-        return 2.99792458e-3 * 3.8 * radius;
     };
 
    class Hit

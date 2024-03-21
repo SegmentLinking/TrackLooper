@@ -107,7 +107,6 @@ public:
 
 void parseArguments(int argc, char** argv);
 void initializeInputsAndOutputs();
-std::vector<float> getPtBounds();
 std::vector<float> getPtBounds(int mode);
 
 #endif
