@@ -72,4 +72,3 @@ void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit() {
 }
 
 float SDL::EndcapGeometry<SDL::Dev>::getdxdy_slope(unsigned int detid) { return dxdy_slope_[detid]; }
-

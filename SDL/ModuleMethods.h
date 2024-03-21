@@ -350,7 +350,7 @@ namespace SDL {
         }
 
         host_dxdys[index] = (subdet == Endcap) ? Globals<Dev>::endcapGeometry->getdxdy_slope(detId)
-                                                : Globals<Dev>::tiltedGeometry.getDxDy(detId);
+                                               : Globals<Dev>::tiltedGeometry.getDxDy(detId);
         host_drdzs[index] = (subdet == Barrel) ? Globals<Dev>::tiltedGeometry.getDrDz(detId) : 0;
       }
 

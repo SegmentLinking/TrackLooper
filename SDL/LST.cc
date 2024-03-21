@@ -19,10 +19,10 @@ namespace {
 
   void loadMaps(SDL::MapPLStoLayer& pLStoLayer) {
     // Module orientation information (DrDz or phi angles)
-    auto endcap_geom = get_absolute_path_after_check_file_exists(trackLooperDir() +
-                                                                 "/data/OT800_IT615_pt0.8/endcap_orientation.txt");
-    auto tilted_geom = get_absolute_path_after_check_file_exists(trackLooperDir() +
-                                                                 "/data/OT800_IT615_pt0.8/tilted_barrel_orientation.txt");
+    auto endcap_geom =
+        get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/endcap_orientation.txt");
+    auto tilted_geom = get_absolute_path_after_check_file_exists(
+        trackLooperDir() + "/data/OT800_IT615_pt0.8/tilted_barrel_orientation.txt");
     SDL::Globals<SDL::Dev>::endcapGeometry->load(endcap_geom);  // centroid values added to the map
     SDL::Globals<SDL::Dev>::tiltedGeometry.load(tilted_geom);
 
@@ -57,7 +57,8 @@ void SDL::LST<SDL::Acc>::loadAndFillES(alpaka::QueueCpuBlocking& queue, struct m
   SDL::MapPLStoLayer pLStoLayer;
   ::loadMaps(pLStoLayer);
 
-  auto path = get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/sensor_centroids.txt");
+  auto path =
+      get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/sensor_centroids.txt");
   if (SDL::Globals<SDL::Dev>::modulesBuffers == nullptr) {
     SDL::Globals<SDL::Dev>::modulesBuffers = new SDL::modulesBuffer<SDL::Dev>(SDL::devAcc);
   }
