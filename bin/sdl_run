@@ -63,7 +63,7 @@ elif [ "${BACKEND}" == "cuda" ]; then
   fi
   export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/:$LD_LIBRARY_PATH
   export BACKEND_INT=2
-  export SDLEXE=sdl_cuda
+  ln -s -f ${TRACKLOOPERDIR}/bin/sdl_cuda ${TRACKLOOPERDIR}/bin/sdl
 elif [ "${BACKEND}" == "cpu" ]; then
   if ([ ${PRECOMPILED} != true ] && [[ "${FLAGS}" == *"G"* ]]) ||
        ([ ${PRECOMPILED} == true ] && ([ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] || [ ! -f ${TRACKLOOPERDIR}/SDL/cpu/libsdl.so ])); then
@@ -72,7 +72,7 @@ elif [ "${BACKEND}" == "cpu" ]; then
   fi
   export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/:$LD_LIBRARY_PATH
   export BACKEND_INT=0
-  export SDLEXE=sdl_cpu
+  ln -s -f ${TRACKLOOPERDIR}/bin/sdl_cpu ${TRACKLOOPERDIR}/bin/sdl
 else
   echo "Error: backend options are cpu or cuda."
   exit 1
@@ -80,7 +80,7 @@ fi
 
 # If it will not be compiled, then make sure that it was precompiled
 if ${PRECOMPILED}; then
-  if [ ! -f ${TRACKLOOPERDIR}/bin/${SDLEXE} ] || ( [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cuda.so ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] ); then
+  if [ ! -h ${TRACKLOOPERDIR}/bin/sdl ] || ( [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cuda.so ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] ); then
     echo "SDL library or binary has not been compiled. Please use -f flag."
     usage
   fi
@@ -165,7 +165,7 @@ if [[ ${PRECOMPILED} != true ]]; then
   sdl_make_tracklooper ${FLAGS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log
 fi
 echo "Running LST code...: -b ${BACKEND_INT} -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS}"
-${SDLEXE} -b ${BACKEND_INT} -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: sdl command failed!' ; exit 1; }
+sdl -b ${BACKEND_INT} -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: sdl command failed!' ; exit 1; }
 echo "Creating performance histograms..."
 createPerfNumDenHists -i ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNumDen.root >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: createPerfNumDenHists command failed!' ; exit 1; }
 echo "Creating plots..."
