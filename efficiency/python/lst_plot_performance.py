@@ -561,9 +561,10 @@ def draw_plot(effs, nums, dens, params):
 
     # Compute the yaxis_max
     yaxis_max = 0
-    for i in range(0, effs[0].GetN()):
-        if yaxis_max < effs[0].GetY()[i]:
-            yaxis_max = effs[0].GetY()[i]
+    for eff in effs:
+        for i in range(0, eff.GetN()):
+            if yaxis_max < eff.GetY()[i]:
+                yaxis_max = eff.GetY()[i]
 
     # Compute the yaxis_min
     yaxis_min = 999
