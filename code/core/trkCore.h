@@ -8,8 +8,6 @@
 #include "SDL/ModuleConnectionMap.h"
 #include "SDLMath.h"
 #include "SDL/Event.h"
-#include <cppitertools/enumerate.hpp>
-#include <cppitertools/zip.hpp>
 #include <numeric>
 #include <filesystem>
 

@@ -4,8 +4,6 @@
 #include "SDL.h"
 #include "cxxopts.h"
 #include "rooutil.h"
-#include "enumerate.hpp"
-#include "zip.hpp"
 
 class AnalysisConfig {
 
@@ -22,6 +20,12 @@ public:
 
     // Number of events to loop over
     int n_events;
+
+    // Minimum pt cut
+    float pt_cut;
+
+    // Max eta cut
+    float eta_cut;
 
     // Jobs to split (if this number is positive, then we will skip certain number of events)
     // If there are N events, and was asked to split 2 ways, then depending on job_index, it will run over first half or latter half
@@ -54,6 +58,9 @@ public:
     // pdgid
     int pdgid;
 
+    // pdgids to filter
+    std::vector<int> pdgids;
+
     // do lower level
     bool do_lower_level;
 
@@ -63,39 +70,43 @@ public:
 
 extern AnalysisConfig ana;
 
-class EfficiencySetDefinition {
+class SimTrackSetDefinition {
 public:
     TString set_name;
     int pdgid;
-    std::function<bool(int)> pass;
-    EfficiencySetDefinition(TString, int, std::function<bool(int)>);
+    int q;
+    std::function<bool(unsigned int)> pass;
+    std::function<bool(unsigned int)> sel; // subset of sim track selection
+    SimTrackSetDefinition(TString,
+                          int,
+                          int,
+                          std::function<bool(unsigned int)>,
+                          std::function<bool(unsigned int)>
+                          );
 };
 
-class FakeRateSetDefinition {
+class RecoTrackSetDefinition {
 public:
     TString set_name;
-    int pdgid;
-    std::function<bool(int)> pass;
-    const std::vector<float>& pt;
-    const std::vector<float>& eta;
-    const std::vector<float>& phi;
-    FakeRateSetDefinition(TString, int, std::function<bool(int)>, const std::vector<float>&, const std::vector<float>&, const std::vector<float>&);
+    std::function<bool(unsigned int)> pass;
+    std::function<bool(unsigned int)> sel;
+    std::function<const std::vector<float>()> pt;
+    std::function<const std::vector<float>()> eta;
+    std::function<const std::vector<float>()> phi;
+    std::function<const std::vector<int>()> type;
+    RecoTrackSetDefinition(
+        TString,
+        std::function<bool(unsigned int)>,
+        std::function<bool(unsigned int)>, // subsect of reco track selection
+        std::function<const std::vector<float>()>,
+        std::function<const std::vector<float>()>,
+        std::function<const std::vector<float>()>,
+        std::function<const std::vector<int>()>
+        );
 };
-
-class DuplicateRateSetDefinition {
-public:
-    TString set_name;
-    int pdgid;
-    std::function<bool(int)> pass;
-    const std::vector<float>& pt;
-    const std::vector<float>& eta;
-    const std::vector<float>& phi;
-    DuplicateRateSetDefinition(TString, int, std::function<bool(int)>, const std::vector<float>&, const std::vector<float>&, const std::vector<float>&);
-};
-
 
 void parseArguments(int argc, char** argv);
 void initializeInputsAndOutputs();
-std::vector<float> getPtBounds();
+std::vector<float> getPtBounds(int mode);
 
 #endif

@@ -19,13 +19,13 @@ void parseArguments(int argc, char** argv)
     // Read the options
     options.add_options()
         ("i,input"       , "Comma separated input file list OR if just a directory is provided it will glob all in the directory BUT must end with '/' for the path", cxxopts::value<std::string>())
-        ("t,tree"        , "Name of the tree in the root file to open and loop over"                                             , cxxopts::value<std::string>())
         ("o,output"      , "Output file name"                                                                                    , cxxopts::value<std::string>())
         ("n,nevents"     , "N events to loop over"                                                                               , cxxopts::value<int>()->default_value("-1"))
         ("j,nsplit_jobs" , "Enable splitting jobs by N blocks (--job_index must be set)"                                         , cxxopts::value<int>())
         ("I,job_index"   , "job_index of split jobs (--nsplit_jobs must be set. index starts from 0. i.e. 0, 1, 2, 3, etc...)"   , cxxopts::value<int>())
-        ("p,ptbound_mode", "Pt bound mode (i.e. 0 = default, 1 = pt~1, 2 = pt~0.95-1.5, 3 = pt~0.5-1.5, 4 = pt~0.5-2.0"          , cxxopts::value<int>()->default_value("0"))
-        ("g,pdgid"       , "pdgid to parse for efficiency"                                                                       , cxxopts::value<int>()->default_value("13"))
+        ("g,pdgid"       , "additional pdgid filtering to use (must be comma separated)"                                         , cxxopts::value<std::string>())
+        ("p,pt_cut"      , "Transverse momentum cut"                                                                             , cxxopts::value<float>()->default_value("0.9"))
+        ("e,eta_cut"     , "Pseudorapidity cut"                                                                                  , cxxopts::value<float>()->default_value("4.5"))
         ("d,debug"       , "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")
         ("h,help"        , "Print help")
         ;
@@ -57,18 +57,26 @@ void parseArguments(int argc, char** argv)
         exit(1);
     }
 
+    ana.input_tree_name = "tree";
+
     //_______________________________________________________________________________
-    // --tree
-    if (result.count("tree"))
+    // --pdgid
+    if (result.count("pdgid"))
     {
-        ana.input_tree_name = result["tree"].as<std::string>();
+        std::vector<TString> pdgid_strs = RooUtil::StringUtil::split(result["pdgid"].as<std::string>(), ",");
+        for (auto& pdgid_str : pdgid_strs)
+        {
+            ana.pdgids.push_back(pdgid_str.Atoi());
+        }
     }
-    else
-    {
-        std::cout << options.help() << std::endl;
-        std::cout << "ERROR: Input tree name is not provided! Check your arguments" << std::endl;
-        exit(1);
-    }
+
+    //_______________________________________________________________________________
+    // --pt_cut
+    ana.pt_cut = result["pt_cut"].as<float>();
+
+    //_______________________________________________________________________________
+    // --eta_cut
+    ana.eta_cut = result["eta_cut"].as<float>();
 
     //_______________________________________________________________________________
     // --debug
@@ -161,18 +169,6 @@ void parseArguments(int argc, char** argv)
         }
     }
 
-    // -1 upto mini-doublet is all-comb
-    // -2 upto segment is all-comb
-    // -3 upto tracklet is all-comb NOTE: MEMORY WILL BLOW UP FOR HIGH PU
-    // -4 upto trackcandidate is all-comb NOTE: MEMORY WILL BLOW UP FOR HIGH PU
-    //  0 nothing
-    //  1 upto mini-doublet is all-comb
-    //  2 upto mini-doublet is default segment is all-comb
-    //  3 upto segment is default tracklet is all-comb
-    //  4 upto tracklet is default trackcandidate is all-comb
-    ana.ptbound_mode = result["ptbound_mode"].as<int>();
-    ana.pdgid = result["pdgid"].as<int>();
-
     //
     // Printing out the option settings overview
     //
@@ -182,9 +178,10 @@ void parseArguments(int argc, char** argv)
     std::cout <<  " ana.input_file_list_tstring: " << ana.input_file_list_tstring <<  std::endl;
     std::cout <<  " ana.output_tfile: " << ana.output_tfile->GetName() <<  std::endl;
     std::cout <<  " ana.n_events: " << ana.n_events <<  std::endl;
+    std::cout <<  " ana.pt_cut: " << ana.pt_cut <<  std::endl;
+    std::cout <<  " ana.eta_cut: " << ana.eta_cut <<  std::endl;
     std::cout <<  " ana.nsplit_jobs: " << ana.nsplit_jobs <<  std::endl;
     std::cout <<  " ana.job_index: " << ana.job_index <<  std::endl;
-    std::cout <<  " ana.ptbound_mode: " << ana.ptbound_mode <<  std::endl;
     std::cout <<  "=========================================================" << std::endl;
 }
 
@@ -192,25 +189,28 @@ AnalysisConfig::AnalysisConfig() : tx("variable", "variable")
 {
 }
 
-EfficiencySetDefinition::EfficiencySetDefinition(TString set_name_, int pdgid_, std::function<bool(int)> pass_)
+SimTrackSetDefinition::SimTrackSetDefinition(TString set_name_, int pdgid_, int q_, std::function<bool(unsigned int)> pass_, std::function<bool(unsigned int)> sel_)
 {
     set_name = set_name_;
     pdgid = pdgid_;
+    q = q_;
     pass = pass_;
+    sel = sel_;
 }
 
-FakeRateSetDefinition::FakeRateSetDefinition(TString set_name_, int pdgid_, std::function<bool(int)> pass_, const std::vector<float>& pt_, const std::vector<float>& eta_, const std::vector<float>& phi_) : pt(pt_), eta(eta_), phi(phi_)
+RecoTrackSetDefinition::RecoTrackSetDefinition(
+    TString set_name_,
+    std::function<bool(unsigned int)> pass_,
+    std::function<bool(unsigned int)> sel_,
+    std::function<const std::vector<float>()> pt_,
+    std::function<const std::vector<float>()> eta_,
+    std::function<const std::vector<float>()> phi_,
+    std::function<const std::vector<int>()> type_
+    ) : pt(pt_), eta(eta_), phi(phi_), type(type_)
 {
     set_name = set_name_;
-    pdgid = pdgid_;
     pass = pass_;
-}
-
-DuplicateRateSetDefinition::DuplicateRateSetDefinition(TString set_name_, int pdgid_, std::function<bool(int)> pass_, const std::vector<float>& pt_, const std::vector<float>& eta_, const std::vector<float>& phi_) : pt(pt_), eta(eta_), phi(phi_)
-{
-    set_name = set_name_;
-    pdgid = pdgid_;
-    pass = pass_;
+    sel = sel_;
 }
 
 void initializeInputsAndOutputs()
@@ -224,40 +224,68 @@ void initializeInputsAndOutputs()
     // Set the cutflow object output file
     ana.cutflow.setTFile(ana.output_tfile);
 
-    // Determine whether the sample being run over is a EFT sample or not by checking whether a branch exist with the name "LHEWeight_mg_reweighting"
+    // Copy the information of the code
+    std::vector<TString> vstr = RooUtil::StringUtil::split(ana.input_file_list_tstring, ",");
+    TFile* firstFile = new TFile(vstr[0]);
+
+    // Obtain the info from the input file
+    TString code_tag_data = firstFile->Get("code_tag_data")->GetTitle();
+    TString gitdiff = firstFile->Get("gitdiff")->GetTitle();
+    TString input = firstFile->Get("input")->GetTitle();
+
+    // cd to output file
+    ana.output_tfile->cd();
+
+    // Write the githash after parsing whether there is any gitdiff
+    TString githash = RooUtil::StringUtil::split(code_tag_data, "\n")[0];
+    githash = githash(0, 6);
+    std::cout <<  " gitdiff.Length(): " << gitdiff.Length() <<  std::endl;
+    if (gitdiff.Length() > 0)
+        githash += "D";
+    std::cout <<  " githash: " << githash <<  std::endl;
+    TNamed githash_tnamed("githash", githash.Data());
+    githash_tnamed.Write();
+
+    // Write the sample information
+    if (input.Contains("PU200"))
+        input = "PU200";
+    std::cout <<  " input: " << input <<  std::endl;
+    TNamed input_tnamed("input", input.Data());
+    input_tnamed.Write();
+
+
     ana.do_lower_level = false; // default is false
     TObjArray* brobjArray = ana.events_tchain->GetListOfBranches();
     for (unsigned int ibr = 0; ibr < (unsigned int) brobjArray->GetEntries(); ++ibr)
     {
         TString brname = brobjArray->At(ibr)->GetName();
-        if (brname.EqualTo("sim_T5_matched"))
+        if (brname.EqualTo("t5_pt"))
             ana.do_lower_level = true; // if it has the branch it is set to true
     }
 }
 
-
-std::vector<float> getPtBounds()
+std::vector<float> getPtBounds(int mode)
 {
     std::vector<float> pt_boundaries;
-    if (ana.ptbound_mode == 0)
+    if (mode == 0)
         pt_boundaries = {0, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.5, 2.0, 3.0, 5.0, 10, 15., 25, 50};
-    else if (ana.ptbound_mode == 1)
+    else if (mode == 1)
         pt_boundaries = {0.988, 0.99, 0.992, 0.994, 0.996, 0.998, 1.0, 1.002, 1.004, 1.006, 1.008, 1.01, 1.012}; // lowpt
-    else if (ana.ptbound_mode == 2)
+    else if (mode == 2)
         pt_boundaries = {0.955, 0.96, 0.965, 0.97, 0.975, 0.98, 0.985, 0.99, 0.995, 1.00, 1.005, 1.01, 1.015, 1.02, 1.025, 1.03, 1.035, 1.04, 1.045, 1.05}; // pt 0p95 1p05
-    else if (ana.ptbound_mode == 3)
+    else if (mode == 3)
         pt_boundaries = {0.5, 0.6, 0.7, 0.8, 0.9, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08, 1.1, 1.2, 1.5}; // lowpt
-    else if (ana.ptbound_mode == 4)
+    else if (mode == 4)
         pt_boundaries = {0.5, 0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.68, 0.7, 0.72, 0.74, 0.76, 0.78, 0.8, 0.82, 0.84, 0.86, 0.88, 0.9, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08, 1.1, 1.12, 1.14, 1.16, 1.18, 1.2, 1.22, 1.24, 1.26, 1.28, 1.3, 1.32, 1.34, 1.36, 1.38, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0}; // lowpt
-    else if (ana.ptbound_mode == 5)
+    else if (mode == 5)
         pt_boundaries = {0.5, 0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.68, 0.7, 0.72, 0.74, 0.76, 0.78, 0.8, 0.82, 0.84, 0.86, 0.88, 0.9, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08, 1.1, 1.12, 1.14, 1.16, 1.18, 1.2, 1.24, 1.28, 1.32, 1.36, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0}; // lowpt
-    else if (ana.ptbound_mode == 6)
+    else if (mode == 6)
         pt_boundaries = {0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 2.0, 3.0, 4.0, 5.0}; // lowpt
-    else if (ana.ptbound_mode == 7)
+    else if (mode == 7)
         pt_boundaries = {0.5, 0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66, 0.68, 0.7, 0.72, 0.74, 0.76, 0.78, 0.8, 0.82, 0.84, 0.86, 0.88, 0.9, 0.92, 0.94, 0.96, 0.98, 1.0, 1.02, 1.04, 1.06, 1.08, 1.1, 1.12, 1.14, 1.16, 1.18, 1.2, 1.22, 1.24, 1.26, 1.28, 1.3, 1.32, 1.34, 1.36, 1.38, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.2, 2.4, 2.6, 2.8, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 35, 40, 45, 50}; // lowpt
-    else if (ana.ptbound_mode == 8)
+    else if (mode == 8)
         pt_boundaries = {0, 0.5, 1.0, 1.5, 2.0, 3.0, 5.0, 10, 15., 25, 50};
-    else if (ana.ptbound_mode == 9)
+    else if (mode == 9)
     {
         for (int i = 0; i < 41; ++i)
         {
@@ -266,131 +294,3 @@ std::vector<float> getPtBounds()
     }
     return pt_boundaries;
 }
-
-//__________________________________________________________________________________________
-/*std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes)
-{
-    if (hitidxs.size() != hittypes.size())
-    {
-        std::cout << "Error: matched_sim_trk_idxs()   hitidxs and hittypes have different lengths" << std::endl;
-        std::cout << "hitidxs.size(): " << hitidxs.size() << std::endl;
-        std::cout << "hittypes.size(): " << hittypes.size() << std::endl;
-    }
-
-    std::vector<std::pair<int, int>> to_check_duplicate;
-    for (auto&& [ihit, ihitdata] : iter::enumerate(iter::zip(hitidxs, hittypes)))
-    {
-        auto&& [hitidx, hittype] = ihitdata;
-        auto item = std::make_pair(hitidx, hittype);
-        if (std::find(to_check_duplicate.begin(), to_check_duplicate.end(), item) == to_check_duplicate.end())
-        {
-            to_check_duplicate.push_back(item);
-        }
-    }
-
-    int nhits_input = to_check_duplicate.size();
-
-    std::vector<vector<int>> simtrk_idxs;
-    std::vector<int> unique_idxs; // to aggregate which ones to count and test
-
-    for (auto&& [ihit, ihitdata] : iter::enumerate(to_check_duplicate))
-    {
-        auto&& [hitidx, hittype] = ihitdata;
-
-        std::vector<int> simtrk_idxs_per_hit;
-
-        const std::vector<vector<int>>* simHitIdxs;
-
-        if (hittype == 4)
-            simHitIdxs = &sdl.ph2_simHitIdx();
-        else
-            simHitIdxs = &sdl.pix_simHitIdx();
-
-        if ( (*simHitIdxs).size() <= hitidx)
-        {
-                std::cout << (*simHitIdxs).size() << " " << hittype << std::endl;
-                std::cout << hitidx << " " << hittype << std::endl;
-        }
-
-        for (auto& simhit_idx : (*simHitIdxs).at(hitidx))
-        {
-            // std::cout << "  " << sdl.simhit_simTrkIdx().size() << std::endl;
-            // std::cout << " " << simhit_idx << std::endl;
-            if (sdl.simhit_simTrkIdx().size() <= simhit_idx)
-            {
-                std::cout << (*simHitIdxs).size() << " " << hittype << std::endl;
-                std::cout << hitidx << " " << hittype << std::endl;
-                std::cout << sdl.simhit_simTrkIdx().size() << " " << simhit_idx << std::endl;
-            }
-            int simtrk_idx = sdl.simhit_simTrkIdx().at(simhit_idx);
-            simtrk_idxs_per_hit.push_back(simtrk_idx);
-            if (std::find(unique_idxs.begin(), unique_idxs.end(), simtrk_idx) == unique_idxs.end())
-                unique_idxs.push_back(simtrk_idx);
-        }
-
-        if (simtrk_idxs_per_hit.size() == 0)
-        {
-            simtrk_idxs_per_hit.push_back(-1);
-            if (std::find(unique_idxs.begin(), unique_idxs.end(), -1) == unique_idxs.end())
-                unique_idxs.push_back(-1);
-        }
-
-        simtrk_idxs.push_back(simtrk_idxs_per_hit);
-    }
-
-    // // print
-    // if (ana.verbose != 0)
-    // {
-    //     std::cout << "va print" << std::endl;
-    //     for (auto& vec : simtrk_idxs)
-    //     {
-    //         for (auto& idx : vec)
-    //         {
-    //             std::cout << idx << " ";
-    //         }
-    //         std::cout << std::endl;
-    //     }
-    //     std::cout << "va print end" << std::endl;
-    // }
-
-    // Compute all permutations
-    std::function<void(vector<vector<int>>&, vector<int>, size_t, vector<vector<int>>&)> perm =
-        [&](vector<vector<int>>& result, vector<int> intermediate, size_t n, vector<vector<int>>& va)
-    {
-        if (va.size() > n)
-        {
-            for (auto x : va[n])
-            {
-                intermediate.push_back(x);
-                perm(result, intermediate, n+1, va);
-            }
-        }
-        else
-        {
-            result.push_back(intermediate);
-        }
-    };
-
-    vector<vector<int>> allperms;
-    perm(allperms, vector<int>(), 0, simtrk_idxs);
-
-    std::vector<int> matched_sim_trk_idxs;
-    for (auto& trkidx_perm : allperms)
-    {
-        std::vector<int> counts;
-        for (auto& unique_idx : unique_idxs)
-        {
-            int cnt = std::count(trkidx_perm.begin(), trkidx_perm.end(), unique_idx);
-            counts.push_back(cnt);
-        }
-        auto result = std::max_element(counts.begin(), counts.end());
-        int rawidx = std::distance(counts.begin(), result);
-        int trkidx = unique_idxs[rawidx];
-        if (trkidx < 0)
-            continue;
-        if (counts[rawidx] > (((float)nhits_input) * 0.75))
-            matched_sim_trk_idxs.push_back(trkidx);
-    }
-
-    return matched_sim_trk_idxs;
-}*/

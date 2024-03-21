@@ -32,7 +32,8 @@ parser.add_argument('--individual'  , '-b' , dest='individual'  , action="store_
 parser.add_argument('--yzoom'       , '-y' , dest='yzoom'       , action="store_true" , help='zoom in y')
 parser.add_argument('--xcoarse'     , '-x' , dest='xcoarse'     , action="store_true" , help='coarse in x')
 parser.add_argument('--sample_name' , '-S' , dest='sample_name' , type=str            , help='sample name in case one wants to override')
-
+parser.add_argument('--pt_cut'      ,        dest='pt_cut'      , type=float          , default=0.9, help='transverse momentum cut [DEFAULT=0.9]')
+parser.add_argument('--eta_cut'     ,        dest='eta_cut'     , type=float          , default=4.5, help='pseudorapidity cut [DEFAULT=4.5]')
 parser.add_argument('--compare'     , '-C' , dest='compare'     , action="store_true" , help='plot comparisons of input files')
 parser.add_argument('--comp_labels' , '-L' , dest='comp_labels' , type=str            , help='comma separated legend labels for comparison plots (e.g. reference,pT5_update')
 
@@ -212,6 +213,9 @@ def process_arguments_into_params(args):
     # git version hash
     git_hash = f.Get("githash").GetTitle()
     params["git_hash"] = git_hash
+
+    params["pt_cut"] = args.pt_cut
+    params["eta_cut"] = args.eta_cut
 
     # sample name
     sample_name = f.Get("input").GetTitle()
@@ -447,6 +451,8 @@ def draw_label(params):
     chargestr = get_chargestr(params["charge"])
     output_name = params["output_name"]
     n_events_processed = params["nevts"]
+    ptcut = params["pt_cut"]
+    etacut = params["eta_cut"]
     # Label
     t = r.TLatex()
 
@@ -465,9 +471,6 @@ def draw_label(params):
     x = r.gPad.GetX1() + r.gPad.GetLeftMargin()
     y = r.gPad.GetY2() - r.gPad.GetTopMargin() + 0.045 + 0.03
 
-    # If efficiency plots follow the following fiducial label rule
-    ptcut = 0.9
-    etacut = 4.5
     etacutstr = "|#eta| < 4.5"
     if params["selection"] == "loweta":
         etacutstr = "|#eta| < 2.4"
@@ -558,9 +561,10 @@ def draw_plot(effs, nums, dens, params):
 
     # Compute the yaxis_max
     yaxis_max = 0
-    for i in range(0, effs[0].GetN()):
-        if yaxis_max < effs[0].GetY()[i]:
-            yaxis_max = effs[0].GetY()[i]
+    for eff in effs:
+        for i in range(0, eff.GetN()):
+            if yaxis_max < eff.GetY()[i]:
+                yaxis_max = eff.GetY()[i]
 
     # Compute the yaxis_min
     yaxis_min = 999

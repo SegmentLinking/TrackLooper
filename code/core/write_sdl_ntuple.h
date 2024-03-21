@@ -3,9 +3,8 @@
 
 #include <iostream>
 #include <tuple>
-#include <cppitertools/enumerate.hpp>
 
-#include "MathUtil.h"
+#include "SDLMath.h"
 #include "SDL/Event.h"
 
 #include "AnalysisConfig.h"
