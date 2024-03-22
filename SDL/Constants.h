@@ -122,21 +122,21 @@ namespace SDL {
 
 // If a compile time flag does not define PT_CUT, default to 0.8 (GeV)
 #ifndef PT_CUT
-  constexpr float PT_CUT = 0.8f;
+  constexpr float PT_CUT = 0.6f;
 #endif
 
   const unsigned int MAX_BLOCKS = 80;
-  const unsigned int MAX_CONNECTED_MODULES = 40;
+  const unsigned int MAX_CONNECTED_MODULES = 40*3;
 
-  const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
+  const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000*10;
 
   const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 2 * N_MAX_PIXEL_SEGMENTS_PER_MODULE;
 
-  const unsigned int N_MAX_PIXEL_TRIPLETS = 5000;
-  const unsigned int N_MAX_PIXEL_QUINTUPLETS = 15000;
+  const unsigned int N_MAX_PIXEL_TRIPLETS = 5000*8;
+  const unsigned int N_MAX_PIXEL_QUINTUPLETS = 15000*5;
 
-  const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 30000;
-  const unsigned int N_MAX_NONPIXEL_TRACK_CANDIDATES = 1000;
+  const unsigned int N_MAX_PIXEL_TRACK_CANDIDATES = 30000*10;
+  const unsigned int N_MAX_NONPIXEL_TRACK_CANDIDATES = 1000*10;
 
   const unsigned int size_superbins = 45000;
 
@@ -145,7 +145,7 @@ namespace SDL {
 
   // Temporary fix for module buffer allocation.
   const unsigned int modules_size = 26401;
-  const unsigned int pix_tot = 1794686;
+  const unsigned int pix_tot = 2028724;
 
   //defining the constant host device variables right up here
   ALPAKA_STATIC_ACC_MEM_GLOBAL const float miniMulsPtScaleBarrel[6] = {0.0052, 0.0038, 0.0034, 0.0034, 0.0032, 0.0034};

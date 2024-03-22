@@ -995,9 +995,9 @@ namespace SDL {
 #endif
         }
 
-        int nTotSegs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalSegments, occupancy);
+        int nTotSegs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalSegments, occupancy*16);
         rangesInGPU.segmentModuleIndices[i] = nTotSegs;
-        rangesInGPU.segmentModuleOccupancy[i] = occupancy;
+        rangesInGPU.segmentModuleOccupancy[i] = occupancy*16;
       }
 
       // Wait for all threads to finish before reporting final values

@@ -182,7 +182,7 @@ namespace SDL {
   extern uint16_t nModules;
   extern uint16_t nLowerModules;
   void initModules(
-      const char* moduleMetaDataFilePath = "data/OT800_IT615_pt0.8/sensor_centroids.txt");  //read from file and init
+      const char* moduleMetaDataFilePath = "data/OT800_IT615_pt0.6/sensor_centroids.txt");  //read from file and init
   void freeModules();
   void initModulesHost();  //read from file and init
   extern std::shared_ptr<SDL::pixelMap> pixelMapping;

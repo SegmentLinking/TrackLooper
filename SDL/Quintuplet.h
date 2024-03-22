@@ -3225,10 +3225,10 @@ namespace SDL {
 #endif
         }
 
-        int nTotQ = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalQuintupletsx, occupancy);
+        int nTotQ = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalQuintupletsx, occupancy*5);
         rangesInGPU.quintupletModuleIndices[i] = nTotQ;
         rangesInGPU.indicesOfEligibleT5Modules[nEligibleT5Modules] = i;
-        rangesInGPU.quintupletModuleOccupancy[i] = occupancy;
+        rangesInGPU.quintupletModuleOccupancy[i] = occupancy*5;
       }
 
       // Wait for all threads to finish before reporting final values

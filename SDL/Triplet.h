@@ -2121,7 +2121,7 @@ namespace SDL {
 #endif
         }
 
-        rangesInGPU.tripletModuleOccupancy[i] = occupancy;
+        rangesInGPU.tripletModuleOccupancy[i] = occupancy*16;
         unsigned int nTotT = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalTriplets, occupancy);
         rangesInGPU.tripletModuleIndices[i] = nTotT;
       }

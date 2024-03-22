@@ -1065,10 +1065,10 @@ namespace SDL {
 #endif
         }
 
-        unsigned int nTotMDs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalMDs, occupancy);
+        unsigned int nTotMDs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalMDs, occupancy*10);
 
         rangesInGPU.miniDoubletModuleIndices[i] = nTotMDs;
-        rangesInGPU.miniDoubletModuleOccupancy[i] = occupancy;
+        rangesInGPU.miniDoubletModuleOccupancy[i] = occupancy*10;
       }
 
       // Wait for all threads to finish before reporting final values

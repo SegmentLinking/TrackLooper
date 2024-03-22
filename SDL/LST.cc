@@ -15,19 +15,19 @@ namespace {
   void loadMaps() {
     // Module orientation information (DrDz or phi angles)
     TString endcap_geom = get_absolute_path_after_check_file_exists(
-        TString::Format("%s/data/OT800_IT615_pt0.8/endcap_orientation.txt", trackLooperDir().Data()).Data());
+        TString::Format("%s/data/OT800_IT615_pt0.6/endcap_orientation.txt", trackLooperDir().Data()).Data());
     TString tilted_geom = get_absolute_path_after_check_file_exists(
-        TString::Format("%s/data/OT800_IT615_pt0.8/tilted_barrel_orientation.txt", trackLooperDir().Data()).Data());
+        TString::Format("%s/data/OT800_IT615_pt0.6/tilted_barrel_orientation.txt", trackLooperDir().Data()).Data());
     SDL::endcapGeometry->load(endcap_geom.Data());  // centroid values added to the map
     SDL::tiltedGeometry.load(tilted_geom.Data());
 
     // Module connection map (for line segment building)
     TString mappath = get_absolute_path_after_check_file_exists(
-        TString::Format("%s/data/OT800_IT615_pt0.8/module_connection_tracing_merged.txt", trackLooperDir().Data())
+        TString::Format("%s/data/OT800_IT615_pt0.6/module_connection_tracing_merged.txt", trackLooperDir().Data())
             .Data());
     SDL::moduleConnectionMap.load(mappath.Data());
 
-    TString pLSMapDir = trackLooperDir() + "/data/OT800_IT615_pt0.8/pixelmap/pLS_map";
+    TString pLSMapDir = trackLooperDir() + "/data/OT800_IT615_pt0.6/pixelmap/pLS_map";
     std::string connects[] = {"_layer1_subdet5", "_layer2_subdet5", "_layer1_subdet4", "_layer2_subdet4"};
     TString path;
 
@@ -54,7 +54,7 @@ void SDL::LST::loadAndFillES(alpaka::QueueCpuBlocking& queue, struct modulesBuff
   ::loadMaps();
 
   TString path = get_absolute_path_after_check_file_exists(
-      TString::Format("%s/data/OT800_IT615_pt0.8/sensor_centroids.txt", trackLooperDir().Data()).Data());
+      TString::Format("%s/data/OT800_IT615_pt0.6/sensor_centroids.txt", trackLooperDir().Data()).Data());
   SDL::loadModulesFromFile(modules, SDL::nModules, SDL::nLowerModules, *SDL::pixelMapping, queue, path.Data());
 }
 
@@ -128,7 +128,7 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
     float eta = p3LH.Eta();
     float ptErr = see_ptErr[iSeed];
 
-    if ((ptIn > 0.8 - 2 * ptErr)) {
+    if ((ptIn > 0.6 - 2 * ptErr)) {
       ROOT::Math::XYZVector r3LH(see_stateTrajGlbX[iSeed], see_stateTrajGlbY[iSeed], see_stateTrajGlbZ[iSeed]);
       ROOT::Math::PxPyPzMVector p3PCA(see_px[iSeed], see_py[iSeed], see_pz[iSeed], 0);
       ROOT::Math::XYZVector r3PCA(calculateR3FromPCA(p3PCA, see_dxy[iSeed], see_dz[iSeed]));
@@ -144,7 +144,7 @@ void SDL::LST::prepareInput(const std::vector<float> see_px,
 
       if (ptIn >= 2.0)
         pixtype = 0;
-      else if (ptIn >= (0.8 - 2 * ptErr) and ptIn < 2.0) {
+      else if (ptIn >= (0.6 - 2 * ptErr) and ptIn < 2.0) {
         if (pixelSegmentDeltaPhiChange >= 0)
           pixtype = 1;
         else
