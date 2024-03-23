@@ -1,9 +1,7 @@
 
 # Simple makefile
 
-EXES=bin/sdl_cpu bin/sdl_cuda
-
-ROOUTIL=code/rooutil/
+EXES := bin/sdl_cpu bin/sdl_cuda
 
 SOURCES=$(wildcard code/core/*.cc)
 OBJECTS=$(SOURCES:.cc=.o)
@@ -16,7 +14,7 @@ CXXFLAGS    = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual -lineinfo  -fopen
 LDFLAGS     = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual
 SOFLAGS     = -g -shared
 CXXFLAGS    = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual
-LDFLAGS     = -g -O2 -lsdl_cuda -lsdl_cpu -L${TRACKLOOPERDIR}/SDL
+LDFLAGS     = -g -O2 $(SDLLIB) -L${TRACKLOOPERDIR}/SDL
 ROOTLIBS    = $(shell root-config --libs)
 ROOTCFLAGS  = $(foreach option, $(shell root-config --cflags), $(option))
 ALPAKAINCLUDE = -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include -std=c++17 -DALPAKA_DEBUG=0
@@ -33,44 +31,45 @@ CUTVALUEFLAG_FLAGS = -DCUT_VALUE_DEBUG
 PRIMITIVEFLAG = 
 PRIMITIVEFLAG_FLAGS = -DPRIMITIVE_STUDY
 
-all: $(ROOUTIL) efficiency $(EXES)
+all: rooutil efficiency $(EXES)
 
 
 cutvalue: CUTVALUEFLAG = ${CUTVALUEFLAG_FLAGS}
-cutvalue: $(ROOUTIL) efficiency $(EXES)
+cutvalue: rooutil efficiency $(EXES)
 
 primitive: PRIMITIVEFLAG = ${PRIMITIVEFLAG_FLAGS}
-primitive: $(ROOUTIL) efficiency $(EXES)
+primitive: rooutil efficiency $(EXES)
 
 cutvalue_primitive: CUTVALUEFLAG = ${CUTVALUEFLAG_FLAGS}
 cutvalue_primitive: PRIMITIVEFLAG = ${PRIMITIVEFLAG_FLAGS}
-cutvalue_primitive: $(ROOUTIL) efficiency $(EXES)
-
+cutvalue_primitive: rooutil efficiency $(EXES)
 
 bin/doAnalysis: bin/doAnalysis.o $(OBJECTS)
 	$(CXX) $(PTCUTFLAG) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) $(ALPAKAINCLUDE) $(ALPAKA_CPU) -o $@
 
+bin/sdl_cpu: SDLLIB=-lsdl_cpu
 bin/sdl_cpu: bin/sdl_cpu.o $(OBJECTS_CPU)
 	$(CXX) $(PTCUTFLAG) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) $(ALPAKAINCLUDE) $(ALPAKA_CPU) -o $@
+bin/sdl_cuda: SDLLIB=-lsdl_cuda
 bin/sdl_cuda: bin/sdl_cuda.o $(OBJECTS_CUDA)
 	$(CXX) $(PTCUTFLAG) $(LDFLAGS) $^ $(ROOTLIBS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(EXTRAFLAGS) $(DOQUINTUPLET) $(ALPAKAINCLUDE) $(ALPAKA_CUDA) -o $@
 
-%_cpu.o: %.cc
+%_cpu.o: %.cc rooutil
 	$(CXX) $(PTCUTFLAG) $(CFLAGS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(DOQUINTUPLET) $(ALPAKAINCLUDE) $(ALPAKA_CPU) $< -c -o $@
-%_cuda.o: %.cc
+%_cuda.o: %.cc rooutil
 	$(CXX) $(PTCUTFLAG) $(CFLAGS) $(EXTRACFLAGS) $(CUTVALUEFLAG) $(PRIMITIVEFLAG) $(DOQUINTUPLET) $(ALPAKAINCLUDE) $(ALPAKA_CUDA) $< -c -o $@
 
-$(ROOUTIL):
+rooutil:
 	$(MAKE) -C code/rooutil/
 
-efficiency:
+efficiency: rooutil
 	$(MAKE) -C efficiency/
 
 clean:
-	rm -f $(OBJECTS) bin/*.o $(EXES)
+	rm -f $(OBJECTS) bin/*.o $(EXES) bin/sdl
 	rm -f code/rooutil/*.so code/rooutil/*.o
 	rm -f bin/sdl.o
 	rm -f SDL/*.o
 	cd efficiency/ && make clean
 
-.PHONY: $(ROOUTIL) efficiency
+.PHONY: rooutil efficiency

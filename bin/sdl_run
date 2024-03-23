@@ -57,7 +57,7 @@ if [ -z ${BACKEND} ]; then
   BACKEND="default"
 elif [ "${BACKEND}" == "cuda" ]; then
   if ([ ${PRECOMPILED} != true ] && [[ "${FLAGS}" == *"C"* ]]) ||
-       ([ ${PRECOMPILED} == true ] && ([ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cuda.so ] || [ ! -f ${TRACKLOOPERDIR}/SDL/cuda/libsdl.so ])); then
+       ([ ${PRECOMPILED} == true ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cuda.so ]); then
     echo "Error: CUDA backend was not compiled."
     exit 1
   fi
@@ -66,7 +66,7 @@ elif [ "${BACKEND}" == "cuda" ]; then
   ln -s -f ${TRACKLOOPERDIR}/bin/sdl_cuda ${TRACKLOOPERDIR}/bin/sdl
 elif [ "${BACKEND}" == "cpu" ]; then
   if ([ ${PRECOMPILED} != true ] && [[ "${FLAGS}" == *"G"* ]]) ||
-       ([ ${PRECOMPILED} == true ] && ([ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] || [ ! -f ${TRACKLOOPERDIR}/SDL/cpu/libsdl.so ])); then
+       ([ ${PRECOMPILED} == true ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ]); then
     echo "Error: CPU backend was not compiled."
     exit 1
   fi
