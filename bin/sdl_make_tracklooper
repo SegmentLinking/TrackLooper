@@ -235,6 +235,8 @@ if [ "${ONLYCPUBACKEND}" == true ]; then
     ln -sfr bin/sdl_cpu bin/sdl
 elif [ "${ONLYCUDABACKEND}" == true ]; then
     ln -sfr bin/sdl_cuda bin/sdl
+else
+    ln -sfr bin/sdl_cpu bin/sdl
 fi
 
 echo "" >> ${LOG}
