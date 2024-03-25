@@ -1,7 +1,11 @@
 #include "LST.h"
 
 namespace {
-  TString trackLooperDir() { return getenv("LST_BASE"); }
+  TString trackLooperDir() {
+    TString path = getenv("CMSSW_BASE");
+    path += "/src/RecoTracker/LSTCore/TrackLooper";
+    return path;
+  }
 
   TString get_absolute_path_after_check_file_exists(const std::string name) {
     std::filesystem::path fullpath = std::filesystem::absolute(name.c_str());
