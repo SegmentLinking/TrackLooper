@@ -24,7 +24,7 @@ usage()
   echo "  -n    number of events        (Number of events to run over)"
   echo "  -t    tag for this run        (Tag for this run)"
   echo "  -d    delete previous output  (Delete the previous outputs and re-run)"
-  echo "  -b    backend                 (Select between GPU and CPU backend)"
+  echo "  -b    backend                 (Select a backend: cuda or cpu; default cuda)"
   echo
   exit
 }
@@ -50,12 +50,11 @@ if [ -z ${FLAGS} ]; then PRECOMPILED=true; else PRECOMPILED=false; fi
 if [ -z ${SAMPLE} ]; then usage; fi
 if [ -z ${NEVENTS} ]; then NEVENTS=-1; fi
 if [ -z ${TAG} ]; then usage; fi
+if [ -z ${BACKEND} ]; then  BACKEND="cuda"; fi
 
 # If a backend is specified then make sure that corresponding library exists
 # and set the environment variable to preload it.
-if [ -z ${BACKEND} ]; then
-  BACKEND="default"
-elif [ "${BACKEND}" == "cuda" ]; then
+if [ "${BACKEND}" == "cuda" ]; then
   if ([ ${PRECOMPILED} != true ] && [[ "${FLAGS}" == *"C"* ]]) ||
        ([ ${PRECOMPILED} == true ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cuda.so ]); then
     echo "Error: CUDA backend was not compiled."
