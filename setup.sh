@@ -24,7 +24,7 @@ echo "Setup following ROOT. Make sure the appropriate setup file has been run. O
 which root
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-export LD_LIBRARY_PATH=$DIR/SDL/cuda:$DIR/SDL/cpu:$DIR:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$DIR/SDL:$DIR:$LD_LIBRARY_PATH
 export PATH=$DIR/bin:$PATH
 export PATH=$DIR/efficiency/bin:$PATH
 export PATH=$DIR/efficiency/python:$PATH

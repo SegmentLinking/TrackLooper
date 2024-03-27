@@ -14,7 +14,11 @@
 #include "Constants.h"
 
 namespace SDL {
-  class Event {
+  template <typename TAcc>
+  class Event {};
+
+  template <>
+  class Event<SDL::Acc> {
   private:
     QueueAcc queue;
     bool addObjects;
@@ -61,7 +65,6 @@ namespace SDL {
     tripletsBuffer<alpaka::DevCpu>* tripletsInCPU;
     trackCandidatesBuffer<alpaka::DevCpu>* trackCandidatesInCPU;
     modulesBuffer<alpaka::DevCpu>* modulesInCPU;
-    modulesBuffer<alpaka::DevCpu>* modulesInCPUFull;
     quintupletsBuffer<alpaka::DevCpu>* quintupletsInCPU;
     pixelTripletsBuffer<alpaka::DevCpu>* pixelTripletsInCPU;
     pixelQuintupletsBuffer<alpaka::DevCpu>* pixelQuintupletsInCPU;
@@ -106,7 +109,7 @@ namespace SDL {
                                 std::vector<int8_t> pixelType,
                                 std::vector<char> isQuad);
 
-    /*functions that map the objects to the appropriate modules*/
+    // functions that map the objects to the appropriate modules
     void addMiniDoubletsToEventExplicit();
     void addSegmentsToEventExplicit();
     void addTripletsToEventExplicit();
@@ -171,21 +174,12 @@ namespace SDL {
     trackCandidatesBuffer<alpaka::DevCpu>* getTrackCandidatesInCMSSW();
     pixelTripletsBuffer<alpaka::DevCpu>* getPixelTriplets();
     pixelQuintupletsBuffer<alpaka::DevCpu>* getPixelQuintuplets();
-    modulesBuffer<alpaka::DevCpu>* getModules();
-    modulesBuffer<alpaka::DevCpu>* getFullModules();
+    modulesBuffer<alpaka::DevCpu>* getModules(bool isFull = false);
+
+    //read from file and init
+    static void initModules(const MapPLStoLayer& pLStoLayer,
+                            const char* moduleMetaDataFilePath = "data/OT800_IT615_pt0.8/sensor_centroids.txt");
   };
 
-  //global stuff
-  extern SDL::modules* modulesInGPU;
-  extern SDL::modulesBuffer<Dev>* modulesBuffers;
-  extern SDL::modulesBuffer<Dev> const* modulesBuffersES;  // not owned const buffers
-  extern uint16_t nModules;
-  extern uint16_t nLowerModules;
-  void initModules(
-      const char* moduleMetaDataFilePath = "data/OT800_IT615_pt0.8/sensor_centroids.txt");  //read from file and init
-  void freeModules();
-  void initModulesHost();  //read from file and init
-  extern std::shared_ptr<SDL::pixelMap> pixelMapping;
-  unsigned int getBackend();
 }  // namespace SDL
 #endif

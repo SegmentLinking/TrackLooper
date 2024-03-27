@@ -1,27 +1,16 @@
 #include "EndcapGeometry.h"
 
-SDL::EndcapGeometry* SDL::endcapGeometry = new SDL::EndcapGeometry();
-
-void SDL::freeEndcap() {
-  if (SDL::endcapGeometry != nullptr) {
-    delete SDL::endcapGeometry;
-    SDL::endcapGeometry = nullptr;
-  }
-}
-
-SDL::EndcapGeometry::EndcapGeometry(unsigned int sizef)
+SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(unsigned int sizef)
     : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAcc, sizef)),
       geoMapPhi_buf(allocBufWrapper<float>(devAcc, sizef)) {}
 
-SDL::EndcapGeometry::EndcapGeometry(std::string filename, unsigned int sizef)
+SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(std::string filename, unsigned int sizef)
     : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAcc, sizef)),
       geoMapPhi_buf(allocBufWrapper<float>(devAcc, sizef)) {
   load(filename);
 }
 
-SDL::EndcapGeometry::~EndcapGeometry() {}
-
-void SDL::EndcapGeometry::load(std::string filename) {
+void SDL::EndcapGeometry<SDL::Dev>::load(std::string filename) {
   dxdy_slope_.clear();
   centroid_phis_.clear();
 
@@ -44,7 +33,7 @@ void SDL::EndcapGeometry::load(std::string filename) {
   fillGeoMapArraysExplicit();
 }
 
-void SDL::EndcapGeometry::fillGeoMapArraysExplicit() {
+void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit() {
   QueueAcc queue(devAcc);
 
   int phi_size = centroid_phis_.size();
@@ -82,4 +71,4 @@ void SDL::EndcapGeometry::fillGeoMapArraysExplicit() {
   alpaka::wait(queue);
 }
 
-float SDL::EndcapGeometry::getdxdy_slope(unsigned int detid) { return dxdy_slope_[detid]; }
+float SDL::EndcapGeometry<SDL::Dev>::getdxdy_slope(unsigned int detid) { return dxdy_slope_[detid]; }

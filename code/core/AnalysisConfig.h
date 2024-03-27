@@ -103,9 +103,10 @@ public:
     std::map<int, std::vector<std::vector<float>>> moduleSimHits;
     std::map<int, int> modulePopulation;
 
-    SDL::ModuleConnectionMap moduleConnectiongMapLoose;
+    SDL::ModuleConnectionMap<SDL::Dev> moduleConnectiongMapLoose;
 
     // Boolean to trigger whether to run CPU or GPU
+    int backend;
     bool do_run_cpu;
 
     // Boolean to trigger whether to run cut_value_ntupling

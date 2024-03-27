@@ -12,7 +12,10 @@
 #include "Constants.h"
 
 namespace SDL {
-  class EndcapGeometry {
+  template <typename TDev>
+  class EndcapGeometry {};
+  template <>
+  class EndcapGeometry<SDL::Dev> {
   private:
     std::map<unsigned int, float> dxdy_slope_;     // dx/dy slope
     std::map<unsigned int, float> centroid_phis_;  // centroid phi
@@ -25,7 +28,7 @@ namespace SDL {
 
     EndcapGeometry(unsigned int sizef = endcap_size);
     EndcapGeometry(std::string filename, unsigned int sizef = endcap_size);
-    ~EndcapGeometry();
+    ~EndcapGeometry() = default;
 
     void load(std::string);
 
@@ -33,8 +36,6 @@ namespace SDL {
     void CreateGeoMapArraysExplicit();
     float getdxdy_slope(unsigned int detid);
   };
-  void freeEndcap();
-  extern EndcapGeometry* endcapGeometry;
 }  // namespace SDL
 
 #endif

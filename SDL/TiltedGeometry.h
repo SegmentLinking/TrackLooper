@@ -9,16 +9,21 @@
 #include <string>
 #include <stdexcept>
 
+#include "Constants.h"
+
 namespace SDL {
-  class TiltedGeometry {
+  template <typename>
+  class TiltedGeometry;
+  template <>
+  class TiltedGeometry<SDL::Dev> {
   private:
     std::map<unsigned int, float> drdzs_;  // dr/dz slope
     std::map<unsigned int, float> dxdys_;  // dx/dy slope
 
   public:
-    TiltedGeometry();
+    TiltedGeometry() = default;
     TiltedGeometry(std::string filename);
-    ~TiltedGeometry();
+    ~TiltedGeometry() = default;
 
     void load(std::string);
 
@@ -26,7 +31,6 @@ namespace SDL {
     float getDxDy(unsigned int detid);
   };
 
-  extern TiltedGeometry tiltedGeometry;
 }  // namespace SDL
 
 #endif
