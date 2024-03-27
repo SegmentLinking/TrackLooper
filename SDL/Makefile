@@ -39,7 +39,7 @@ endif
 ALPAKAINCLUDE        = -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include -std=c++17 ${CMSSWINCLUDE}
 ALPAKASERIAL         = -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
 ALPAKACUDA           = -DALPAKA_ACC_GPU_CUDA_ENABLED -DALPAKA_ACC_GPU_CUDA_ONLY --expt-relaxed-constexpr
-ROOTINCLUDE	     = -I$(ROOT_ROOT)/include
+ROOTINCLUDE          = -I$(ROOT_ROOT)/include
 ROOTCFLAGS           = -pthread -m64 $(ROOTINCLUDE)
 PRINTFLAG            = -DT4FromT3
 DUPLICATES           = -DDUP_pLS -DDUP_T5 -DDUP_pT5 -DDUP_pT3 -DCrossclean_T5 -DCrossclean_pT3 #-DFP16_Base
@@ -48,7 +48,7 @@ PTCUTFLAG            =
 LSTWARNINGSFLAG      =
 CMSSW_WERRORS_CPU    = -Werror=pointer-arith -Werror=overlength-strings -Werror=return-type -Werror=missing-braces -Werror=unused-value -Werror=unused-label \
                        -Werror=address -Werror=format -Werror=sign-compare -Werror=write-strings -Werror=delete-non-virtual-dtor -Werror=strict-aliasing -Werror=narrowing \
-					   -Werror=unused-but-set-variable -Werror=reorder -Werror=unused-variable -Werror=conversion-null -Werror=return-local-addr -Wnon-virtual-dtor -Werror=switch
+                       -Werror=unused-but-set-variable -Werror=reorder -Werror=unused-variable -Werror=conversion-null -Werror=return-local-addr -Wnon-virtual-dtor -Werror=switch
 CMSSW_WERRORS_CUDA   = $(patsubst %,-Xcompiler %,$(CMSSW_WERRORS_CPU))
 CACHEFLAG_FLAGS      = -DCACHE_ALLOC
 T5CUTFLAGS           = $(T5DNNFLAG) $(T5RZCHI2FLAG) $(T5RPHICHI2FLAG)
