@@ -12,9 +12,9 @@ namespace SDL {
   template <typename>
   struct Globals;
   template <>
-  struct Globals<Dev> {
-    static SDL::modulesBuffer<Dev>* modulesBuffers;
-    static SDL::modulesBuffer<Dev> const* modulesBuffersES;  // not owned const buffers
+  struct Globals<SDL::Dev> {
+    static SDL::modulesBuffer<SDL::Dev>* modulesBuffers;
+    static SDL::modulesBuffer<SDL::Dev> const* modulesBuffersES;  // not owned const buffers
     static uint16_t nModules;
     static uint16_t nLowerModules;
     static std::shared_ptr<SDL::pixelMap> pixelMapping;
