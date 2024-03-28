@@ -1,5 +1,7 @@
 #include "sdl.h"
 
+#include <typeinfo>
+
 //___________________________________________________________________________________________________________________________________________________________________________________________
 int main(int argc, char** argv)
 {
@@ -41,7 +43,6 @@ int main(int argc, char** argv)
     // Read the options
     options.add_options()
         ("m,mode"            , "Run mode (NOT DEFINED)", cxxopts::value<int>()->default_value("5"))
-        ("b,backend"         , "Backend: 0(d),1 cpu serial, threads; 2 cuda; 3 hip", cxxopts::value<int>()->default_value("0"))
         ("i,input"           , "Comma separated input file list OR if just a directory is provided it will glob all in the directory BUT must end with '/' for the path", cxxopts::value<std::string>()->default_value("muonGun"))
         ("t,tree"            , "Name of the tree in the root file to open and loop over", cxxopts::value<std::string>()->default_value("trackingNtuple/tree"))
         ("o,output"          , "Output file name", cxxopts::value<std::string>())
@@ -221,15 +222,6 @@ int main(int argc, char** argv)
     ana.do_write_ntuple = result["write_ntuple"].as<int>();
 
     //_______________________________________________________________________________
-    // backends
-    // 0 = cpu serial
-    // 1 = cpu threads
-    // 2 = cuda
-    // 3 = hip
-    ana.backend = result["backend"].as<int>();
-    ana.do_run_cpu = ana.backend < 2;
-
-    //_______________________________________________________________________________
     // --optimization
 
     //_______________________________________________________________________________
@@ -263,6 +255,7 @@ int main(int argc, char** argv)
 
     // Printing out the option settings overview
     std::cout << "=========================================================" << std::endl;
+    std::cout << " Running for Acc = " << alpaka::getAccName<SDL::Acc>() << std::endl;
     std::cout << " Setting of the analysis job based on provided arguments " << std::endl;
     std::cout << "---------------------------------------------------------" << std::endl;
     std::cout << " ana.input_file_list_tstring: " << ana.input_file_list_tstring << std::endl;
@@ -271,8 +264,6 @@ int main(int argc, char** argv)
     std::cout << " ana.nsplit_jobs: " << ana.nsplit_jobs << std::endl;
     std::cout << " ana.job_index: " << ana.job_index << std::endl;
     std::cout << " ana.specific_event_index: " << ana.specific_event_index << std::endl;
-    std::cout << " ana.backend: " << ana.backend << std::endl;
-    std::cout << " ana.do_run_cpu: " << ana.do_run_cpu << std::endl;
     std::cout << " ana.do_write_ntuple: " << ana.do_write_ntuple << std::endl;
     std::cout << " ana.mode: " << ana.mode << std::endl;
     std::cout << " ana.streams: " << ana.streams << std::endl;

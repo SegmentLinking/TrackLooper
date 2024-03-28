@@ -61,7 +61,6 @@ if [ "${BACKEND}" == "cuda" ]; then
     exit 1
   fi
   export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/:$LD_LIBRARY_PATH
-  export BACKEND_INT=2
   ln -s -f ${TRACKLOOPERDIR}/bin/sdl_cuda ${TRACKLOOPERDIR}/bin/sdl
 elif [ "${BACKEND}" == "cpu" ]; then
   if ([ ${PRECOMPILED} != true ] && [[ "${FLAGS}" == *"G"* ]]) ||
@@ -70,7 +69,6 @@ elif [ "${BACKEND}" == "cpu" ]; then
     exit 1
   fi
   export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/:$LD_LIBRARY_PATH
-  export BACKEND_INT=0
   ln -s -f ${TRACKLOOPERDIR}/bin/sdl_cpu ${TRACKLOOPERDIR}/bin/sdl
 else
   echo "Error: backend options are cpu or cuda."
@@ -163,8 +161,8 @@ if [[ ${PRECOMPILED} != true ]]; then
   echo "Compiling code..."
   sdl_make_tracklooper ${FLAGS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log
 fi
-echo "Running LST code...: -b ${BACKEND_INT} -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS}"
-sdl -b ${BACKEND_INT} -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: sdl command failed!' ; exit 1; }
+echo "Running LST code..."
+sdl -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: sdl command failed!' ; exit 1; }
 echo "Creating performance histograms..."
 createPerfNumDenHists -i ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNumDen.root >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: createPerfNumDenHists command failed!' ; exit 1; }
 echo "Creating plots..."

@@ -105,10 +105,6 @@ public:
 
     SDL::ModuleConnectionMap<SDL::Dev> moduleConnectiongMapLoose;
 
-    // Boolean to trigger whether to run CPU or GPU
-    int backend;
-    bool do_run_cpu;
-
     // Boolean to trigger whether to run cut_value_ntupling
     bool do_cut_value_ntuple;
 
