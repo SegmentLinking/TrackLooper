@@ -50,38 +50,7 @@ if [ -z ${FLAGS} ]; then PRECOMPILED=true; else PRECOMPILED=false; fi
 if [ -z ${SAMPLE} ]; then usage; fi
 if [ -z ${NEVENTS} ]; then NEVENTS=-1; fi
 if [ -z ${TAG} ]; then usage; fi
-if [ -z ${BACKEND} ]; then  BACKEND="cuda"; fi
-
-# If a backend is specified then make sure that corresponding library exists
-# and set the environment variable to preload it.
-if [ "${BACKEND}" == "cuda" ]; then
-  if ([ ${PRECOMPILED} != true ] && [[ "${FLAGS}" == *"C"* ]]) ||
-       ([ ${PRECOMPILED} == true ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cuda.so ]); then
-    echo "Error: CUDA backend was not compiled."
-    exit 1
-  fi
-  export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/:$LD_LIBRARY_PATH
-  ln -s -f ${TRACKLOOPERDIR}/bin/sdl_cuda ${TRACKLOOPERDIR}/bin/sdl
-elif [ "${BACKEND}" == "cpu" ]; then
-  if ([ ${PRECOMPILED} != true ] && [[ "${FLAGS}" == *"G"* ]]) ||
-       ([ ${PRECOMPILED} == true ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ]); then
-    echo "Error: CPU backend was not compiled."
-    exit 1
-  fi
-  export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/:$LD_LIBRARY_PATH
-  ln -s -f ${TRACKLOOPERDIR}/bin/sdl_cpu ${TRACKLOOPERDIR}/bin/sdl
-else
-  echo "Error: backend options are cpu or cuda."
-  exit 1
-fi
-
-# If it will not be compiled, then make sure that it was precompiled
-if ${PRECOMPILED}; then
-  if [ ! -h ${TRACKLOOPERDIR}/bin/sdl ] || ( [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cuda.so ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] ); then
-    echo "SDL library or binary has not been compiled. Please use -f flag."
-    usage
-  fi
-fi
+if [ -z ${BACKEND} ]; then  BACKEND="default"; fi
 
 # Check that the FLAGS start with "-" character
 if [[ ${PRECOMPILED} == true ]] || [[ ${FLAGS:0:1} == "-" ]]; then
@@ -161,6 +130,37 @@ if [[ ${PRECOMPILED} != true ]]; then
   echo "Compiling code..."
   sdl_make_tracklooper ${FLAGS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log
 fi
+
+# If a backend is specified then make sure that corresponding library exists
+# and make a symbolic link to the correct binary
+if [ "${BACKEND}" == "cuda" ]; then
+  if [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cuda.so ]; then
+    echo "Error: CUDA backend was not compiled."
+    exit 1
+  fi
+  ln -s -f ${TRACKLOOPERDIR}/bin/sdl_cuda ${TRACKLOOPERDIR}/bin/sdl
+elif [ "${BACKEND}" == "cpu" ]; then
+  if [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ]; then
+    echo "Error: CPU backend was not compiled."
+    exit 1
+  fi
+  ln -s -f ${TRACKLOOPERDIR}/bin/sdl_cpu ${TRACKLOOPERDIR}/bin/sdl
+elif [ "${BACKEND}" == "rocm" ]; then
+  if [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_rocm.so ]; then
+    echo "Error: ROCM backend was not compiled."
+    exit 1
+  fi
+  ln -s -f ${TRACKLOOPERDIR}/bin/sdl_rocm ${TRACKLOOPERDIR}/bin/sdl
+elif [ "${BACKEND}" == "default" ]; then
+  if [[ ! -L ${TRACKLOOPERDIR}/bin/sdl || ! -e ${TRACKLOOPERDIR}/bin/sdl ]]; then
+    echo "Error: default backend was not found. Please recompile."
+    exit 1
+  fi
+else
+  echo "Error: backend options are cpu, cuda, rocm, or default."
+  exit 1
+fi
+
 echo "Running LST code..."
 sdl -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: sdl command failed!' ; exit 1; }
 echo "Creating performance histograms..."
