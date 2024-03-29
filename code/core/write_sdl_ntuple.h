@@ -17,37 +17,37 @@ void createRequiredOutputBranches();
 void createOptionalOutputBranches();
 void createGnnNtupleBranches();
 
-void fillOutputBranches(SDL::Event* event);
-void setOutputBranches(SDL::Event* event);
-void setOptionalOutputBranches(SDL::Event* event);
-void setPixelQuintupletOutputBranches(SDL::Event* event);
-void setQuintupletOutputBranches(SDL::Event* event);
-void setPixelTripletOutputBranches(SDL::Event *event);
-void setGnnNtupleBranches(SDL::Event* event);
-void setGnnNtupleMiniDoublet(SDL::Event* event, unsigned int MD);
+void fillOutputBranches(SDL::Event<SDL::Acc>* event);
+void setOutputBranches(SDL::Event<SDL::Acc>* event);
+void setOptionalOutputBranches(SDL::Event<SDL::Acc>* event);
+void setPixelQuintupletOutputBranches(SDL::Event<SDL::Acc>* event);
+void setQuintupletOutputBranches(SDL::Event<SDL::Acc>* event);
+void setPixelTripletOutputBranches(SDL::Event<SDL::Acc> *event);
+void setGnnNtupleBranches(SDL::Event<SDL::Acc>* event);
+void setGnnNtupleMiniDoublet(SDL::Event<SDL::Acc>* event, unsigned int MD);
 
 
-std::tuple<int, float, float, float, int, vector<int>> parseTrackCandidate(SDL::Event* event, unsigned int);
-std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parsepT5(SDL::Event* event, unsigned int);
-std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parsepT3(SDL::Event* event, unsigned int);
-std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parseT5(SDL::Event* event, unsigned int);
-std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parsepLS(SDL::Event* event, unsigned int);
+std::tuple<int, float, float, float, int, vector<int>> parseTrackCandidate(SDL::Event<SDL::Acc>* event, unsigned int);
+std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parsepT5(SDL::Event<SDL::Acc>* event, unsigned int);
+std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parsepT3(SDL::Event<SDL::Acc>* event, unsigned int);
+std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parseT5(SDL::Event<SDL::Acc>* event, unsigned int);
+std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parsepLS(SDL::Event<SDL::Acc>* event, unsigned int);
 
 // Print multiplicities
-void printMiniDoubletMultiplicities(SDL::Event* event);
-void printHitMultiplicities(SDL::Event* event);
+void printMiniDoubletMultiplicities(SDL::Event<SDL::Acc>* event);
+void printHitMultiplicities(SDL::Event<SDL::Acc>* event);
 
 // Print objects (GPU)
-void printAllObjects(SDL::Event* event);
-void printpT4s(SDL::Event* event);
-void printMDs(SDL::Event* event);
-void printLSs(SDL::Event* event);
-void printpLSs(SDL::Event* event);
-void printT3s(SDL::Event* event);
-void printT4s(SDL::Event* event);
-void printTCs(SDL::Event* event);
+void printAllObjects(SDL::Event<SDL::Acc>* event);
+void printpT4s(SDL::Event<SDL::Acc>* event);
+void printMDs(SDL::Event<SDL::Acc>* event);
+void printLSs(SDL::Event<SDL::Acc>* event);
+void printpLSs(SDL::Event<SDL::Acc>* event);
+void printT3s(SDL::Event<SDL::Acc>* event);
+void printT4s(SDL::Event<SDL::Acc>* event);
+void printTCs(SDL::Event<SDL::Acc>* event);
 
 // Print anomalous multiplicities
-void debugPrintOutlierMultiplicities(SDL::Event* event);
+void debugPrintOutlierMultiplicities(SDL::Event<SDL::Acc>* event);
 
 #endif

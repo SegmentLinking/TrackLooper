@@ -9,53 +9,27 @@
 #include "TiltedGeometry.h"
 #include "EndcapGeometry.h"
 #include "ModuleConnectionMap.h"
+#include "PixelMap.h"
+#include "Globals.h"
 
 namespace SDL {
-  // TODO: Change this to remove it from global scope.
-  inline std::map<unsigned int, uint16_t>* detIdToIndex;
-  inline std::map<unsigned int, float>* module_x;
-  inline std::map<unsigned int, float>* module_y;
-  inline std::map<unsigned int, float>* module_z;
-  inline std::map<unsigned int, unsigned int>* module_type;  // 23 : Ph2PSP, 24 : Ph2PSS, 25 : Ph2SS
-  // https://github.com/cms-sw/cmssw/blob/5e809e8e0a625578aa265dc4b128a93830cb5429/Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h#L29
-
-  // PixelMap is never allocated on the device.
-  // This is also not passed to any of the kernels, so we can combine the structs.
-  struct pixelMap {
-    Buf<alpaka::DevCpu, unsigned int> connectedPixelsIndex_buf;
-    Buf<alpaka::DevCpu, unsigned int> connectedPixelsSizes_buf;
-    Buf<alpaka::DevCpu, unsigned int> connectedPixelsIndexPos_buf;
-    Buf<alpaka::DevCpu, unsigned int> connectedPixelsSizesPos_buf;
-    Buf<alpaka::DevCpu, unsigned int> connectedPixelsIndexNeg_buf;
-    Buf<alpaka::DevCpu, unsigned int> connectedPixelsSizesNeg_buf;
-
-    unsigned int* connectedPixelsIndex;
-    unsigned int* connectedPixelsSizes;
-    unsigned int* connectedPixelsIndexPos;
-    unsigned int* connectedPixelsSizesPos;
-    unsigned int* connectedPixelsIndexNeg;
-    unsigned int* connectedPixelsSizesNeg;
-
-    int* pixelType;
-
-    pixelMap(unsigned int sizef = size_superbins)
-        : connectedPixelsIndex_buf(allocBufWrapper<unsigned int>(devHost, sizef)),
-          connectedPixelsSizes_buf(allocBufWrapper<unsigned int>(devHost, sizef)),
-          connectedPixelsIndexPos_buf(allocBufWrapper<unsigned int>(devHost, sizef)),
-          connectedPixelsSizesPos_buf(allocBufWrapper<unsigned int>(devHost, sizef)),
-          connectedPixelsIndexNeg_buf(allocBufWrapper<unsigned int>(devHost, sizef)),
-          connectedPixelsSizesNeg_buf(allocBufWrapper<unsigned int>(devHost, sizef)) {
-      connectedPixelsIndex = alpaka::getPtrNative(connectedPixelsIndex_buf);
-      connectedPixelsSizes = alpaka::getPtrNative(connectedPixelsSizes_buf);
-      connectedPixelsIndexPos = alpaka::getPtrNative(connectedPixelsIndexPos_buf);
-      connectedPixelsSizesPos = alpaka::getPtrNative(connectedPixelsSizesPos_buf);
-      connectedPixelsIndexNeg = alpaka::getPtrNative(connectedPixelsIndexNeg_buf);
-      connectedPixelsSizesNeg = alpaka::getPtrNative(connectedPixelsSizesNeg_buf);
-    }
+  struct ModuleMetaData {
+    std::map<unsigned int, uint16_t> detIdToIndex;
+    std::map<unsigned int, float> module_x;
+    std::map<unsigned int, float> module_y;
+    std::map<unsigned int, float> module_z;
+    std::map<unsigned int, unsigned int> module_type;  // 23 : Ph2PSP, 24 : Ph2PSS, 25 : Ph2SS
+    // https://github.com/cms-sw/cmssw/blob/5e809e8e0a625578aa265dc4b128a93830cb5429/Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h#L29
   };
 
   template <typename TQueue, typename TDev>
-  inline void fillPixelMap(struct modulesBuffer<TDev>* modulesBuf, struct pixelMap& pixelMapping, TQueue queue) {
+  inline void fillPixelMap(struct modulesBuffer<TDev>* modulesBuf,
+                           struct pixelMap& pixelMapping,
+                           TQueue queue,
+                           const MapPLStoLayer& pLStoLayer,
+                           struct ModuleMetaData& mmd) {
+    pixelMapping.pixelModuleIndex = mmd.detIdToIndex[1];
+
     std::vector<unsigned int> connectedModuleDetIds;
     std::vector<unsigned int> connectedModuleDetIds_pos;
     std::vector<unsigned int> connectedModuleDetIds_neg;
@@ -65,7 +39,7 @@ namespace SDL {
     int totalSizes_neg = 0;
     for (unsigned int isuperbin = 0; isuperbin < size_superbins; isuperbin++) {
       int sizes = 0;
-      for (auto const& mCM_pLS : moduleConnectionMap_pLStoLayer) {
+      for (auto const& mCM_pLS : pLStoLayer[0]) {
         std::vector<unsigned int> connectedModuleDetIds_pLS =
             mCM_pLS.getConnectedModuleDetIds(isuperbin + size_superbins);
         connectedModuleDetIds.insert(
@@ -77,7 +51,7 @@ namespace SDL {
       totalSizes += sizes;
 
       int sizes_pos = 0;
-      for (auto const& mCM_pLS : moduleConnectionMap_pLStoLayer_pos) {
+      for (auto const& mCM_pLS : pLStoLayer[1]) {
         std::vector<unsigned int> connectedModuleDetIds_pLS_pos = mCM_pLS.getConnectedModuleDetIds(isuperbin);
         connectedModuleDetIds_pos.insert(connectedModuleDetIds_pos.end(),
                                          connectedModuleDetIds_pLS_pos.begin(),
@@ -89,7 +63,7 @@ namespace SDL {
       totalSizes_pos += sizes_pos;
 
       int sizes_neg = 0;
-      for (auto const& mCM_pLS : moduleConnectionMap_pLStoLayer_neg) {
+      for (auto const& mCM_pLS : pLStoLayer[2]) {
         std::vector<unsigned int> connectedModuleDetIds_pLS_neg = mCM_pLS.getConnectedModuleDetIds(isuperbin);
         connectedModuleDetIds_neg.insert(connectedModuleDetIds_neg.end(),
                                          connectedModuleDetIds_pLS_neg.begin(),
@@ -115,13 +89,13 @@ namespace SDL {
     unsigned int* connectedPixels = alpaka::getPtrNative(connectedPixels_buf);
 
     for (int icondet = 0; icondet < totalSizes; icondet++) {
-      connectedPixels[icondet] = (*detIdToIndex)[connectedModuleDetIds[icondet]];
+      connectedPixels[icondet] = mmd.detIdToIndex[connectedModuleDetIds[icondet]];
     }
     for (int icondet = 0; icondet < totalSizes_pos; icondet++) {
-      connectedPixels[icondet + totalSizes] = (*detIdToIndex)[connectedModuleDetIds_pos[icondet]];
+      connectedPixels[icondet + totalSizes] = mmd.detIdToIndex[connectedModuleDetIds_pos[icondet]];
     }
     for (int icondet = 0; icondet < totalSizes_neg; icondet++) {
-      connectedPixels[icondet + totalSizes + totalSizes_pos] = (*detIdToIndex)[connectedModuleDetIds_neg[icondet]];
+      connectedPixels[icondet + totalSizes + totalSizes_pos] = mmd.detIdToIndex[connectedModuleDetIds_neg[icondet]];
     }
 
     alpaka::memcpy(queue, modulesBuf->connectedPixels_buf, connectedPixels_buf, connectedPix_size);
@@ -131,20 +105,21 @@ namespace SDL {
   template <typename TQueue, typename TDev>
   inline void fillConnectedModuleArrayExplicit(struct modulesBuffer<TDev>* modulesBuf,
                                                unsigned int nMod,
-                                               TQueue queue) {
+                                               TQueue queue,
+                                               struct ModuleMetaData& mmd) {
     auto moduleMap_buf = allocBufWrapper<uint16_t>(devHost, nMod * MAX_CONNECTED_MODULES);
     uint16_t* moduleMap = alpaka::getPtrNative(moduleMap_buf);
 
     auto nConnectedModules_buf = allocBufWrapper<uint16_t>(devHost, nMod);
     uint16_t* nConnectedModules = alpaka::getPtrNative(nConnectedModules_buf);
 
-    for (auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); ++it) {
+    for (auto it = mmd.detIdToIndex.begin(); it != mmd.detIdToIndex.end(); ++it) {
       unsigned int detId = it->first;
       uint16_t index = it->second;
-      auto& connectedModules = moduleConnectionMap.getConnectedModuleDetIds(detId);
+      auto& connectedModules = Globals<Dev>::moduleConnectionMap.getConnectedModuleDetIds(detId);
       nConnectedModules[index] = connectedModules.size();
       for (uint16_t i = 0; i < nConnectedModules[index]; i++) {
-        moduleMap[index * MAX_CONNECTED_MODULES + i] = (*detIdToIndex)[connectedModules[i]];
+        moduleMap[index * MAX_CONNECTED_MODULES + i] = mmd.detIdToIndex[connectedModules[i]];
       }
     }
 
@@ -154,7 +129,10 @@ namespace SDL {
   };
 
   template <typename TQueue, typename TDev>
-  inline void fillMapArraysExplicit(struct modulesBuffer<TDev>* modulesBuf, unsigned int nMod, TQueue queue) {
+  inline void fillMapArraysExplicit(struct modulesBuffer<TDev>* modulesBuf,
+                                    unsigned int nMod,
+                                    TQueue queue,
+                                    struct ModuleMetaData& mmd) {
     auto mapIdx_buf = allocBufWrapper<uint16_t>(devHost, nMod);
     uint16_t* mapIdx = alpaka::getPtrNative(mapIdx_buf);
 
@@ -162,7 +140,7 @@ namespace SDL {
     unsigned int* mapdetId = alpaka::getPtrNative(mapdetId_buf);
 
     unsigned int counter = 0;
-    for (auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); ++it) {
+    for (auto it = mmd.detIdToIndex.begin(); it != mmd.detIdToIndex.end(); ++it) {
       unsigned int detId = it->first;
       unsigned int index = it->second;
       mapIdx[counter] = index;
@@ -204,12 +182,9 @@ namespace SDL {
                            uint16_t& nLowerModules,
                            struct pixelMap& pixelMapping,
                            TQueue& queue,
-                           const char* moduleMetaDataFilePath) {
-    detIdToIndex = new std::map<unsigned int, uint16_t>;
-    module_x = new std::map<unsigned int, float>;
-    module_y = new std::map<unsigned int, float>;
-    module_z = new std::map<unsigned int, float>;
-    module_type = new std::map<unsigned int, unsigned int>;
+                           const char* moduleMetaDataFilePath,
+                           const MapPLStoLayer& pLStoLayer) {
+    ModuleMetaData mmd;
 
     /* Load the whole text file into the map first*/
 
@@ -230,16 +205,16 @@ namespace SDL {
       while (std::getline(ss, token, ',')) {
         if (count_number == 0) {
           temp_detId = stoi(token);
-          (*detIdToIndex)[temp_detId] = counter;
+          mmd.detIdToIndex[temp_detId] = counter;
         }
         if (count_number == 1)
-          (*module_x)[temp_detId] = std::stof(token);
+          mmd.module_x[temp_detId] = std::stof(token);
         if (count_number == 2)
-          (*module_y)[temp_detId] = std::stof(token);
+          mmd.module_y[temp_detId] = std::stof(token);
         if (count_number == 3)
-          (*module_z)[temp_detId] = std::stof(token);
+          mmd.module_z[temp_detId] = std::stof(token);
         if (count_number == 4) {
-          (*module_type)[temp_detId] = std::stoi(token);
+          mmd.module_type[temp_detId] = std::stoi(token);
           counter++;
         }
         count_number++;
@@ -248,7 +223,7 @@ namespace SDL {
       }
     }
 
-    (*detIdToIndex)[1] = counter;  //pixel module is the last module in the module list
+    mmd.detIdToIndex[1] = counter;  //pixel module is the last module in the module list
     counter++;
     nModules = counter;
 
@@ -304,12 +279,12 @@ namespace SDL {
     uint16_t lowerModuleCounter = 0;
     uint16_t upperModuleCounter = nLowerModules + 1;
     //0 to nLowerModules - 1 => only lower modules, nLowerModules - pixel module, nLowerModules + 1 to nModules => upper modules
-    for (auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); it++) {
+    for (auto it = mmd.detIdToIndex.begin(); it != mmd.detIdToIndex.end(); it++) {
       unsigned int detId = it->first;
-      float m_x = (*module_x)[detId];
-      float m_y = (*module_y)[detId];
-      float m_z = (*module_z)[detId];
-      unsigned int m_t = (*module_type)[detId];
+      float m_x = mmd.module_x[detId];
+      float m_y = mmd.module_y[detId];
+      float m_z = mmd.module_z[detId];
+      unsigned int m_t = mmd.module_type[detId];
 
       float eta, r;
 
@@ -342,7 +317,7 @@ namespace SDL {
         index = nLowerModules;  //pixel
       }
       //reassigning indices!
-      (*detIdToIndex)[detId] = index;
+      mmd.detIdToIndex[detId] = index;
       host_detIds[index] = detId;
       host_layers[index] = layer;
       host_rings[index] = ring;
@@ -374,8 +349,9 @@ namespace SDL {
           host_isAnchor[index] = false;
         }
 
-        host_dxdys[index] = (subdet == Endcap) ? endcapGeometry->getdxdy_slope(detId) : tiltedGeometry.getDxDy(detId);
-        host_drdzs[index] = (subdet == Barrel) ? tiltedGeometry.getDrDz(detId) : 0;
+        host_dxdys[index] = (subdet == Endcap) ? Globals<Dev>::endcapGeometry->getdxdy_slope(detId)
+                                               : Globals<Dev>::tiltedGeometry.getDxDy(detId);
+        host_drdzs[index] = (subdet == Barrel) ? Globals<Dev>::tiltedGeometry.getDrDz(detId) : 0;
       }
 
       host_sdlLayers[index] =
@@ -383,12 +359,12 @@ namespace SDL {
     }
 
     //partner module stuff, and slopes and drdz move around
-    for (auto it = (*detIdToIndex).begin(); it != (*detIdToIndex).end(); it++) {
+    for (auto it = mmd.detIdToIndex.begin(); it != mmd.detIdToIndex.end(); it++) {
       auto& detId = it->first;
       auto& index = it->second;
       if (detId != 1) {
         host_partnerModuleIndices[index] =
-            (*detIdToIndex)[SDL::modules::parsePartnerModuleId(detId, host_isLower[index], host_isInverted[index])];
+            mmd.detIdToIndex[SDL::modules::parsePartnerModuleId(detId, host_isLower[index], host_isInverted[index])];
         //add drdz and slope importing stuff here!
         if (host_drdzs[index] == 0) {
           host_drdzs[index] = host_drdzs[host_partnerModuleIndices[index]];
@@ -426,9 +402,9 @@ namespace SDL {
     alpaka::memcpy(queue, modulesBuf->sdlLayers_buf, sdlLayers_buf);
     alpaka::wait(queue);
 
-    fillConnectedModuleArrayExplicit(modulesBuf, nModules, queue);
-    fillMapArraysExplicit(modulesBuf, nModules, queue);
-    fillPixelMap(modulesBuf, pixelMapping, queue);
+    fillConnectedModuleArrayExplicit(modulesBuf, nModules, queue, mmd);
+    fillMapArraysExplicit(modulesBuf, nModules, queue, mmd);
+    fillPixelMap(modulesBuf, pixelMapping, queue, pLStoLayer, mmd);
   };
 }  // namespace SDL
 #endif
