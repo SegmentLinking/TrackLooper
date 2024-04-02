@@ -15,18 +15,18 @@
 
 void loadMaps();
 bool goodEvent();
-float runMiniDoublet(SDL::Event* event, int evt);
-float runSegment(SDL::Event* event);
-float runT4(SDL::Event* event);
-float runT4x(SDL::Event* event);
-float runpT4(SDL::Event* event);
-float runT3(SDL::Event* event);
-float runTrackCandidate(SDL::Event* event);
-float runTrackCandidateTest_v2(SDL::Event* event);
-float runQuintuplet(SDL::Event* event);
-float runPixelQuintuplet(SDL::Event* event);
-float runPixelLineSegment(SDL::Event* event);
-float runpT3(SDL::Event* event);
+float runMiniDoublet(SDL::Event<SDL::Acc>* event, int evt);
+float runSegment(SDL::Event<SDL::Acc>* event);
+float runT4(SDL::Event<SDL::Acc>* event);
+float runT4x(SDL::Event<SDL::Acc>* event);
+float runpT4(SDL::Event<SDL::Acc>* event);
+float runT3(SDL::Event<SDL::Acc>* event);
+float runTrackCandidate(SDL::Event<SDL::Acc>* event);
+float runTrackCandidateTest_v2(SDL::Event<SDL::Acc>* event);
+float runQuintuplet(SDL::Event<SDL::Acc>* event);
+float runPixelQuintuplet(SDL::Event<SDL::Acc>* event);
+float runPixelLineSegment(SDL::Event<SDL::Acc>* event);
+float runpT3(SDL::Event<SDL::Acc>* event);
 
 // --------------------- ======================== ---------------------
 
@@ -69,7 +69,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
                                            std::vector<std::vector<int8_t>> &out_pixelType_vec,
                                            std::vector<std::vector<char>> &out_isQuad_vec);
 
-float addInputsToEventPreLoad(SDL::Event *event,
+float addInputsToEventPreLoad(SDL::Event<SDL::Acc> *event,
                               bool useOMP,
                               std::vector<float> trkX,
                               std::vector<float> trkY,
@@ -105,7 +105,7 @@ void writeMetaData();
 // --------------------- ======================== ---------------------
 
 // DEPRECATED FUNCTION
-float addInputsToLineSegmentTrackingUsingExplicitMemory(SDL::Event &event);
-float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP);
+float addInputsToLineSegmentTrackingUsingExplicitMemory(SDL::Event<SDL::Acc> &event);
+float addInputsToLineSegmentTracking(SDL::Event<SDL::Acc> &event, bool useOMP);
 
 #endif

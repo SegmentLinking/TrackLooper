@@ -1,5 +1,7 @@
 #include "sdl.h"
 
+#include <typeinfo>
+
 //___________________________________________________________________________________________________________________________________________________________________________________________
 int main(int argc, char** argv)
 {
@@ -220,14 +222,6 @@ int main(int argc, char** argv)
     ana.do_write_ntuple = result["write_ntuple"].as<int>();
 
     //_______________________________________________________________________________
-    // check if cpu library was loaded
-    // 0 = cpu serial
-    // 1 = cpu threads
-    // 2 = cuda
-    // 3 = hip
-    ana.do_run_cpu = SDL::getBackend() < 2;
-
-    //_______________________________________________________________________________
     // --optimization
 
     //_______________________________________________________________________________
@@ -261,6 +255,7 @@ int main(int argc, char** argv)
 
     // Printing out the option settings overview
     std::cout << "=========================================================" << std::endl;
+    std::cout << " Running for Acc = " << alpaka::getAccName<SDL::Acc>() << std::endl;
     std::cout << " Setting of the analysis job based on provided arguments " << std::endl;
     std::cout << "---------------------------------------------------------" << std::endl;
     std::cout << " ana.input_file_list_tstring: " << ana.input_file_list_tstring << std::endl;
@@ -269,7 +264,6 @@ int main(int argc, char** argv)
     std::cout << " ana.nsplit_jobs: " << ana.nsplit_jobs << std::endl;
     std::cout << " ana.job_index: " << ana.job_index << std::endl;
     std::cout << " ana.specific_event_index: " << ana.specific_event_index << std::endl;
-    std::cout << " ana.do_run_cpu: " << ana.do_run_cpu << std::endl;
     std::cout << " ana.do_write_ntuple: " << ana.do_write_ntuple << std::endl;
     std::cout << " ana.mode: " << ana.mode << std::endl;
     std::cout << " ana.streams: " << ana.streams << std::endl;
@@ -386,10 +380,10 @@ void run_sdl()
 
     full_timer.Reset();
     full_timer.Start();
-    std::vector<SDL::Event*> events;
+    std::vector<SDL::Event<SDL::Acc>*> events;
     for (int s = 0; s < ana.streams; s++)
     {
-        SDL::Event *event = new SDL::Event(ana.verbose>=2);
+        SDL::Event<SDL::Acc> *event = new SDL::Event<SDL::Acc>(ana.verbose>=2);
         events.push_back(event);
     }
     float timeForEventCreation = full_timer.RealTime()*1000;
@@ -528,8 +522,8 @@ void run_sdl()
         delete events.at(s);
     }
 
-    SDL::freeModules();
-    SDL::freeEndcap();
+    SDL::Globals<SDL::Dev>::freeModules();
+    SDL::Globals<SDL::Dev>::freeEndcap();
 
     delete ana.output_tfile;
 }

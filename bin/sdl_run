@@ -24,7 +24,7 @@ usage()
   echo "  -n    number of events        (Number of events to run over)"
   echo "  -t    tag for this run        (Tag for this run)"
   echo "  -d    delete previous output  (Delete the previous outputs and re-run)"
-  echo "  -b    backend                 (Select between GPU and CPU backend)"
+  echo "  -b    backend                 (Select a backend: cuda or cpu; default cuda)"
   echo
   exit
 }
@@ -50,36 +50,37 @@ if [ -z ${FLAGS} ]; then PRECOMPILED=true; else PRECOMPILED=false; fi
 if [ -z ${SAMPLE} ]; then usage; fi
 if [ -z ${NEVENTS} ]; then NEVENTS=-1; fi
 if [ -z ${TAG} ]; then usage; fi
-
-# If it will not be compiled, then make sure that it was precompiled
-if ${PRECOMPILED}; then
-  if [ ! -f ${TRACKLOOPERDIR}/bin/sdl ] || ( [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cuda.so ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] ); then
-    echo "SDL library or binary has not been compiled. Please use -f flag."
-    usage
-  fi
-fi
+if [ -z ${BACKEND} ]; then  BACKEND="cuda"; fi
 
 # If a backend is specified then make sure that corresponding library exists
 # and set the environment variable to preload it.
-if [ -z ${BACKEND} ]; then
-  BACKEND="default"
-elif [ "${BACKEND}" == "cuda" ]; then
+if [ "${BACKEND}" == "cuda" ]; then
   if ([ ${PRECOMPILED} != true ] && [[ "${FLAGS}" == *"C"* ]]) ||
-       ([ ${PRECOMPILED} == true ] && ([ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cuda.so ] || [ ! -f ${TRACKLOOPERDIR}/SDL/cuda/libsdl.so ])); then
+       ([ ${PRECOMPILED} == true ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cuda.so ]); then
     echo "Error: CUDA backend was not compiled."
     exit 1
   fi
-  export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/cuda/:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/:$LD_LIBRARY_PATH
+  ln -s -f ${TRACKLOOPERDIR}/bin/sdl_cuda ${TRACKLOOPERDIR}/bin/sdl
 elif [ "${BACKEND}" == "cpu" ]; then
   if ([ ${PRECOMPILED} != true ] && [[ "${FLAGS}" == *"G"* ]]) ||
-       ([ ${PRECOMPILED} == true ] && ([ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] || [ ! -f ${TRACKLOOPERDIR}/SDL/cpu/libsdl.so ])); then
+       ([ ${PRECOMPILED} == true ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ]); then
     echo "Error: CPU backend was not compiled."
     exit 1
   fi
-  export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/cpu/:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=${TRACKLOOPERDIR}/SDL/:$LD_LIBRARY_PATH
+  ln -s -f ${TRACKLOOPERDIR}/bin/sdl_cpu ${TRACKLOOPERDIR}/bin/sdl
 else
-  echo "Error: backend options are gpu or cuda."
+  echo "Error: backend options are cpu or cuda."
   exit 1
+fi
+
+# If it will not be compiled, then make sure that it was precompiled
+if ${PRECOMPILED}; then
+  if [ ! -h ${TRACKLOOPERDIR}/bin/sdl ] || ( [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cuda.so ] && [ ! -f ${TRACKLOOPERDIR}/SDL/libsdl_cpu.so ] ); then
+    echo "SDL library or binary has not been compiled. Please use -f flag."
+    usage
+  fi
 fi
 
 # Check that the FLAGS start with "-" character

@@ -120,7 +120,7 @@ if $MAKECACHE; then MAKETARGET=${MAKETARGET}_cache; fi
 
 # If make clean binaries are called then first make clean before making
 if $MAKECLEANBINARIES; then
-    echo "First make cleaning all of TrackLooper objects and libsdl.so" | tee -a ${LOG}
+    echo "First make cleaning all of TrackLooper objects and libsdl*.so" | tee -a ${LOG}
     cd SDL;make clean >>${LOG} 2>&1;cd -;
     make clean >> ${LOG} 2>&1
 fi
@@ -151,10 +151,13 @@ else
 fi
 
 BACKENDOPT="BACKEND=all"
+EXES="bin/sdl_cpu bin/sdl_cuda"
 if [ "$ONLYCUDABACKEND" == true ]; then
     BACKENDOPT="BACKEND=cuda"
+    EXES="bin/sdl_cuda"
 elif [ "$ONLYCPUBACKEND" == true ]; then
     BACKENDOPT="BACKEND=cpu"
+    EXES="bin/sdl_cpu"
 fi
 
 NOPLSDUPCLEANOPT=
@@ -193,7 +196,6 @@ if ([[ "$BACKENDOPT" == *"all"* ]] || [[ "$BACKENDOPT" == *"cpu"* ]]) && [ ! -f 
 elif ([[ "$BACKENDOPT" == *"all"* ]] || [[ "$BACKENDOPT" == *"cuda"* ]]) && [ ! -f SDL/libsdl_cuda.so ]; then
   echo "ERROR: libsdl_cuda.so failed to compile!" | tee -a ${LOG}
   echo "See ${LOG} file for more detail..." | tee -a ${LOG}
-  echo $BACKENDOPT
   exit 1
 fi
 
@@ -215,15 +217,26 @@ echo "--------------------------------------------------------------------------
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 if $SHOWLOG; then
-    make ${TRACKLOOPERTARGET} ${PTCUTOPT} -j 2>&1 | tee -a ${LOG}
+    make EXES="${EXES}" ${TRACKLOOPERTARGET} ${PTCUTOPT} -j 2>&1 | tee -a ${LOG}
 else
-    make ${TRACKLOOPERTARGET} ${PTCUTOPT} -j >> ${LOG} 2>&1
+    make EXES="${EXES}" ${TRACKLOOPERTARGET} ${PTCUTOPT} -j >> ${LOG} 2>&1
 fi
 
-if [ ! -f bin/sdl ]; then
-    echo "ERROR: bin/sdl failed to compile!" | tee -a ${LOG}
-    echo "See ${LOG} file for more detail..." | tee -a ${LOG}
-    exit 1
+if ([[ "$BACKENDOPT" == *"all"* ]] || [[ "$BACKENDOPT" == *"cpu"* ]]) && [ ! -f bin/sdl_cpu ]; then
+  echo "ERROR: bin/sdl_cpu failed to compile!" | tee -a ${LOG}
+  echo "See ${LOG} file for more detail..." | tee -a ${LOG}
+  exit 1
+elif ([[ "$BACKENDOPT" == *"all"* ]] || [[ "$BACKENDOPT" == *"cuda"* ]]) && [ ! -f bin/sdl_cuda ]; then
+  echo "ERROR: bin/sdl_cuda failed to compile!" | tee -a ${LOG}
+  echo "See ${LOG} file for more detail..." | tee -a ${LOG}
+  exit 1
+fi
+if [ "${ONLYCPUBACKEND}" == true ]; then
+    ln -sfr bin/sdl_cpu bin/sdl
+elif [ "${ONLYCUDABACKEND}" == true ]; then
+    ln -sfr bin/sdl_cuda bin/sdl
+else
+    ln -sfr bin/sdl_cpu bin/sdl
 fi
 
 echo "" >> ${LOG}
