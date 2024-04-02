@@ -6,8 +6,8 @@
 using XYZVector = ROOT::Math::XYZVector;
 
 namespace {
-  TString trackLooperDir() {
-    TString path = getenv("CMSSW_BASE");
+  std::string trackLooperDir() {
+    std::string path = getenv("CMSSW_BASE");
     path += "/src/RecoTracker/LSTCore/TrackLooper";
     return path;
   }
