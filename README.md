@@ -188,7 +188,7 @@ runTheMatrix.py -w upgrade -n -e -l 21034.1
 
 For convenience, the workflow has been run for 100 events and the output is stored here:
 ```bash
-/ceph/cms/store/user/evourlio/LST/step2_21034.1_100Events.root
+/data2/segmentlinking/CMSSW_14_1_0_pre0/step2_21034.1_100Events.root
 ```
 
 For enabling the LST reconstruction in the CMSSW tracking workflow, a modified step3 needs to be run.
