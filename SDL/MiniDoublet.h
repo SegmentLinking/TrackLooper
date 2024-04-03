@@ -923,7 +923,8 @@ namespace SDL {
           float zUpper = hitsInGPU.zs[upperHitArrayIndex];
           float rtUpper = hitsInGPU.rts[upperHitArrayIndex];
 
-          float dz, dphi, dphichange, shiftedX = 0, shiftedY = 0, shiftedZ = 0, noShiftedDz = 0, noShiftedDphi, noShiftedDphiChange;
+          float dz, dphi, dphichange, shiftedX = 0, shiftedY = 0, shiftedZ = 0, noShiftedDz = 0, noShiftedDphi,
+                                      noShiftedDphiChange;
           bool success = runMiniDoubletDefaultAlgo(acc,
                                                    modulesInGPU,
                                                    lowerModuleIndex,
