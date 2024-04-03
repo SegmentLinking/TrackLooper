@@ -93,11 +93,11 @@ namespace SDL {
           hitRangesUpper_buf(allocBufWrapper<int>(devAccIn, nModules, queue)),
           hitRangesnLower_buf(allocBufWrapper<int8_t>(devAccIn, nModules, queue)),
           hitRangesnUpper_buf(allocBufWrapper<int8_t>(devAccIn, nModules, queue)) {
-      alpaka::memset(queue, hitRanges_buf, -1);
-      alpaka::memset(queue, hitRangesLower_buf, -1);
-      alpaka::memset(queue, hitRangesUpper_buf, -1);
-      alpaka::memset(queue, hitRangesnLower_buf, -1);
-      alpaka::memset(queue, hitRangesnUpper_buf, -1);
+      alpaka::memset(queue, hitRanges_buf, 0xff);
+      alpaka::memset(queue, hitRangesLower_buf, 0xff);
+      alpaka::memset(queue, hitRangesUpper_buf, 0xff);
+      alpaka::memset(queue, hitRangesnLower_buf, 0xff);
+      alpaka::memset(queue, hitRangesnUpper_buf, 0xff);
       alpaka::wait(queue);
     }
   };
