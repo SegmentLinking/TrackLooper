@@ -423,6 +423,8 @@ namespace SDL {
         angleM = -(absArctanSlope + 0.5f * float(M_PI));
       } else if (xs[i] > 0 and ys[i] < 0) {
         angleM = -(0.5f * float(M_PI) - absArctanSlope);
+      } else {
+        angleM = 0;
       }
 
       if (not isFlat[i]) {
@@ -450,8 +452,8 @@ namespace SDL {
                                                                 float& radius,
                                                                 float* xs,
                                                                 float* ys) {
-    float delta1[3], delta2[3], slopes[3];
-    bool isFlat[3];
+    float delta1[3]{}, delta2[3]{}, slopes[3];
+    bool isFlat[3]{};
     float chiSquared = 0;
     float inv1 = 0.01f / 0.009f;
     float inv2 = 0.15f / 0.009f;
@@ -640,9 +642,9 @@ namespace SDL {
   /*bounds for high Pt taken from : http://uaf-10.t2.ucsd.edu/~bsathian/SDL/T5_efficiency/efficiencies/new_efficiencies/efficiencies_20210513_T5_recovering_high_Pt_efficiencies/highE_radius_matching/highE_bounds.txt */
   template <typename TAcc>
   ALPAKA_FN_ACC ALPAKA_FN_INLINE bool passRadiusCriterionBBB(TAcc const& acc,
-                                                             float& pixelRadius,
-                                                             float& pixelRadiusError,
-                                                             float& tripletRadius) {
+                                                             float const& pixelRadius,
+                                                             float const& pixelRadiusError,
+                                                             float const& tripletRadius) {
     float tripletInvRadiusErrorBound = 0.15624f;
     float pixelInvRadiusErrorBound = 0.17235f;
 
@@ -664,9 +666,9 @@ namespace SDL {
 
   template <typename TAcc>
   ALPAKA_FN_ACC ALPAKA_FN_INLINE bool passRadiusCriterionBBE(TAcc const& acc,
-                                                             float& pixelRadius,
-                                                             float& pixelRadiusError,
-                                                             float& tripletRadius) {
+                                                             float const& pixelRadius,
+                                                             float const& pixelRadiusError,
+                                                             float const& tripletRadius) {
     float tripletInvRadiusErrorBound = 0.45972f;
     float pixelInvRadiusErrorBound = 0.19644f;
 
@@ -688,9 +690,9 @@ namespace SDL {
 
   template <typename TAcc>
   ALPAKA_FN_ACC ALPAKA_FN_INLINE bool passRadiusCriterionBEE(TAcc const& acc,
-                                                             float& pixelRadius,
-                                                             float& pixelRadiusError,
-                                                             float& tripletRadius) {
+                                                             float const& pixelRadius,
+                                                             float const& pixelRadiusError,
+                                                             float const& tripletRadius) {
     float tripletInvRadiusErrorBound = 1.59294f;
     float pixelInvRadiusErrorBound = 0.255181f;
 
@@ -714,9 +716,9 @@ namespace SDL {
 
   template <typename TAcc>
   ALPAKA_FN_ACC ALPAKA_FN_INLINE bool passRadiusCriterionEEE(TAcc const& acc,
-                                                             float& pixelRadius,
-                                                             float& pixelRadiusError,
-                                                             float& tripletRadius) {
+                                                             float const& pixelRadius,
+                                                             float const& pixelRadiusError,
+                                                             float const& tripletRadius) {
     float tripletInvRadiusErrorBound = 1.7006f;
     float pixelInvRadiusErrorBound = 0.26367f;
 
@@ -740,13 +742,13 @@ namespace SDL {
 
   template <typename TAcc>
   ALPAKA_FN_ACC ALPAKA_FN_INLINE bool passRadiusCriterion(TAcc const& acc,
-                                                          struct SDL::modules& modulesInGPU,
-                                                          float& pixelRadius,
-                                                          float& pixelRadiusError,
-                                                          float& tripletRadius,
-                                                          uint16_t& lowerModuleIndex,
-                                                          uint16_t& middleModuleIndex,
-                                                          uint16_t& upperModuleIndex) {
+                                                          struct SDL::modules const& modulesInGPU,
+                                                          float const& pixelRadius,
+                                                          float const& pixelRadiusError,
+                                                          float const& tripletRadius,
+                                                          uint16_t const& lowerModuleIndex,
+                                                          uint16_t const& middleModuleIndex,
+                                                          uint16_t const& upperModuleIndex) {
     if (modulesInGPU.subdets[lowerModuleIndex] == SDL::Endcap) {
       return passRadiusCriterionEEE(acc, pixelRadius, pixelRadiusError, tripletRadius);
     } else if (modulesInGPU.subdets[middleModuleIndex] == SDL::Endcap) {
@@ -1114,8 +1116,8 @@ namespace SDL {
             if (tripletsInGPU.partOfPT5[outerTripletIndex])
               continue;  //don't create pT3s for T3s accounted in pT5s
 
-            float pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared, rzChiSquared, rPhiChiSquaredInwards,
-                centerX, centerY;
+            float pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared, rzChiSquared = 1e9f, rPhiChiSquaredInwards,
+                centerX = 0, centerY = 0;
             bool success = runPixelTripletDefaultAlgo(acc,
                                                       modulesInGPU,
                                                       rangesInGPU,
@@ -2258,6 +2260,8 @@ namespace SDL {
         angleM = -(absArctanSlope + 0.5f * float(M_PI));
       } else if (xs[i] > 0 and ys[i] < 0) {
         angleM = -(0.5f * float(M_PI) - absArctanSlope);
+      } else {
+        angleM = 0;
       }
       if (not isFlat[i]) {
         xPrime = xs[i] * alpaka::math::cos(acc, angleM) + ys[i] * alpaka::math::sin(acc, angleM);
@@ -2571,7 +2575,7 @@ namespace SDL {
 
     rzChiSquared = computePT5RZChiSquared(acc, modulesInGPU, lowerModuleIndices, rtPix, zPix, rts, zs);
 
-    if (pixelRadius < 5.0f * kR1GeVf) {
+    if (/*pixelRadius*/ 0 < 5.0f * kR1GeVf) { // FIXME: pixelRadius is not defined yet
       pass = pass and passPT5RZChiSquaredCuts(modulesInGPU,
                                               lowerModuleIndex1,
                                               lowerModuleIndex2,
@@ -2596,7 +2600,6 @@ namespace SDL {
                    mdsInGPU.anchorY[fifthMDIndex]};
 
     //get the appropriate radii and centers
-    centerX = segmentsInGPU.circleCenterX[1];
     centerX = segmentsInGPU.circleCenterX[pixelSegmentArrayIndex];
     centerY = segmentsInGPU.circleCenterY[pixelSegmentArrayIndex];
     pixelRadius = segmentsInGPU.circleRadius[pixelSegmentArrayIndex];

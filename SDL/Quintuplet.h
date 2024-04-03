@@ -1292,6 +1292,8 @@ namespace SDL {
         angleM = -(absArctanSlope + 0.5f * float(M_PI));
       } else if (xs[i] > 0 and ys[i] < 0) {
         angleM = -(0.5f * float(M_PI) - absArctanSlope);
+      } else {
+        angleM = 0;
       }
 
       if (not isFlat[i]) {
@@ -1373,6 +1375,8 @@ namespace SDL {
         angleM = -(absArctanSlope + 0.5f * float(M_PI));
       } else if (xs[i] > 0 and ys[i] < 0) {
         angleM = -(0.5f * float(M_PI) - absArctanSlope);
+      } else {
+        angleM = 0;
       }
 
       if (not isFlat[i]) {
@@ -3047,7 +3051,7 @@ namespace SDL {
             float innerRadius, outerRadius, bridgeRadius, regressionG, regressionF, regressionRadius, rzChiSquared,
                 chiSquared, nonAnchorChiSquared;  //required for making distributions
 
-            bool TightCutFlag;
+            bool TightCutFlag = false;
             bool success = runQuintupletDefaultAlgo(acc,
                                                     modulesInGPU,
                                                     mdsInGPU,
