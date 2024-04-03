@@ -284,6 +284,13 @@ void SDL::LST::getOutput(SDL::Event& event) {
   out_tc_len_ = tc_len_;
   out_tc_seedIdx_ = tc_seedIdx_;
   out_tc_trackCandidateType_ = tc_trackCandidateType_;
+
+  auto p = sort_permutation(out_tc_len_);
+
+  apply_permutation(out_tc_hitIdxs_, p);
+  apply_permutation(out_tc_len_, p);
+  apply_permutation(out_tc_seedIdx_, p);
+  apply_permutation(out_tc_trackCandidateType_, p);
 }
 
 std::vector<unsigned int> SDL::LST::getHitIdxs(const short trackCandidateType,

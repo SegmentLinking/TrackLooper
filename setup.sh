@@ -7,7 +7,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/code/rooutil/thisrooutil.sh
 
 export SCRAM_ARCH=el8_amd64_gcc11
-export CMSSW_VERSION=CMSSW_13_3_0_pre3
+export CMSSW_VERSION=CMSSW_13_2_0_pre2
 
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 cd /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/cmssw/$CMSSW_VERSION/src
