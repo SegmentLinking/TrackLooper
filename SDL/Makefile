@@ -48,7 +48,10 @@ PTCUTFLAG            =
 LSTWARNINGSFLAG      =
 CMSSW_WERRORS_CPU    = -Werror=pointer-arith -Werror=overlength-strings -Werror=return-type -Werror=missing-braces -Werror=unused-value -Werror=unused-label \
                        -Werror=address -Werror=format -Werror=sign-compare -Werror=write-strings -Werror=delete-non-virtual-dtor -Werror=strict-aliasing -Werror=narrowing \
-                       -Werror=unused-but-set-variable -Werror=reorder -Werror=unused-variable -Werror=conversion-null -Werror=return-local-addr -Wnon-virtual-dtor -Werror=switch -Wno-attributes
+                       -Werror=unused-but-set-variable -Werror=reorder -Werror=unused-variable -Werror=conversion-null -Werror=return-local-addr -Wnon-virtual-dtor -Werror=switch \
+                       -Werror=main -Werror=overflow -Werror=format-contains-nul -Werror=type-limits -Wreturn-type -Wextra -Wpessimizing-move -Wclass-memaccess -Wunused \
+                       -Wparentheses -Wno-vla -Wno-non-template-friend -Wno-long-long -Wno-cast-function-type -Wno-unused-but-set-parameter -Wno-ignored-qualifiers \
+                       -Wno-unused-parameter -Wno-unused-local-typedefs -Wno-attributes
 CMSSW_WERRORS_CUDA   = $(patsubst %,-Xcompiler %,$(CMSSW_WERRORS_CPU))
 CACHEFLAG_FLAGS      = -DCACHE_ALLOC
 T5CUTFLAGS           = $(T5DNNFLAG) $(T5RZCHI2FLAG) $(T5RPHICHI2FLAG)
