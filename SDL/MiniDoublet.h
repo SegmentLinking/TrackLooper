@@ -1,9 +1,15 @@
 #ifndef MiniDoublet_cuh
 #define MiniDoublet_cuh
 
+#ifdef LST_STANDALONE
 #include "Constants.h"
-#include "EndcapGeometry.h"
 #include "Module.h"
+#else
+#include <RecoTracker/LSTCore/interface/alpaka/Constants.h>
+#include <RecoTracker/LSTCore/interface/alpaka/Module.h>
+#endif
+
+#include "EndcapGeometry.h"
 #include "Hit.h"
 
 namespace SDL {

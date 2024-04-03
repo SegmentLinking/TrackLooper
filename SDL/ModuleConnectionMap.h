@@ -8,7 +8,11 @@
 #include <sstream>
 #include <algorithm>
 
+#ifdef LST_STANDALONE
 #include "Constants.h"
+#else
+#include <RecoTracker/LSTCore/interface/alpaka/Constants.h>
+#endif
 
 namespace SDL {
   //FIXME: move to non-alpaka single arch build

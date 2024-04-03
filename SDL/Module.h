@@ -2,7 +2,12 @@
 #define Module_cuh
 
 #include <alpaka/alpaka.hpp>
+
+#ifdef LST_STANDALONE
 #include "Constants.h"
+#else
+#include <RecoTracker/LSTCore/interface/alpaka/Constants.h>
+#endif
 
 namespace SDL {
   enum SubDet { InnerPixel = 0, Barrel = 5, Endcap = 4 };

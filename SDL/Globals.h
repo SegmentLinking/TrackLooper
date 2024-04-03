@@ -1,8 +1,14 @@
 #ifndef Globals_h
 #define Globals_h
 
+#ifdef LST_STANDALONE
 #include "Constants.h"
 #include "Module.h"
+#else
+#include <RecoTracker/LSTCore/interface/alpaka/Constants.h>
+#include <RecoTracker/LSTCore/interface/alpaka/Module.h>
+#endif
+
 #include "TiltedGeometry.h"
 #include "EndcapGeometry.h"
 #include "ModuleConnectionMap.h"

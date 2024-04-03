@@ -1,8 +1,15 @@
 #ifndef Event_cuh
 #define Event_cuh
 
-#include "Hit.h"
+#ifdef LST_STANDALONE
+#include "Constants.h"
 #include "Module.h"
+#else
+#include <RecoTracker/LSTCore/interface/alpaka/Constants.h>
+#include <RecoTracker/LSTCore/interface/alpaka/Module.h>
+#endif
+
+#include "Hit.h"
 #include "ModuleMethods.h"
 #include "Segment.h"
 #include "Triplet.h"
@@ -11,7 +18,6 @@
 #include "MiniDoublet.h"
 #include "PixelTriplet.h"
 #include "TrackCandidate.h"
-#include "Constants.h"
 
 namespace SDL {
   template <typename TAcc>

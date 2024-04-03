@@ -9,7 +9,11 @@
 #include <string>
 #include <stdexcept>
 
+#ifdef LST_STANDALONE
 #include "Constants.h"
+#else
+#include <RecoTracker/LSTCore/interface/alpaka/Constants.h>
+#endif
 
 namespace SDL {
   template <typename>
