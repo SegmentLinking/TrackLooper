@@ -1,12 +1,10 @@
 #include "EndcapGeometry.h"
 
-template <typename TDevAcc>
-SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(TDevAcc const& devAccIn, unsigned int sizef)
+SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(SDL::Dev const& devAccIn, unsigned int sizef)
     : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAccIn, sizef)),
       geoMapPhi_buf(allocBufWrapper<float>(devAccIn, sizef)) {}
 
-template <typename TDevAcc, typename TQueue>
-SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(TDevAcc const& devAccIn, TQueue& queue, std::string filename, unsigned int sizef)
+SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(SDL::Dev const& devAccIn, SDL::QueueAcc& queue, std::string filename, unsigned int sizef)
     : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAccIn, sizef)),
       geoMapPhi_buf(allocBufWrapper<float>(devAccIn, sizef)) {
   load(queue, filename);

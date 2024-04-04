@@ -26,10 +26,8 @@ namespace SDL {
 
     unsigned int nEndCapMap;
 
-    template <typename TDevAcc>
-    EndcapGeometry(TDevAcc const& devAccIn, unsigned int sizef = endcap_size);
-    template <typename TDevAcc, typename TQueue>
-    EndcapGeometry(TDevAcc const& devAccIn, TQueue& queue, std::string filename, unsigned int sizef = endcap_size);
+    EndcapGeometry(SDL::Dev const& devAccIn, unsigned int sizef = endcap_size);
+    EndcapGeometry(SDL::Dev const& devAccIn, SDL::QueueAcc& queue, std::string filename, unsigned int sizef = endcap_size);
     ~EndcapGeometry() = default;
 
     template <typename TQueue>
