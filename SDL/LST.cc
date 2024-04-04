@@ -17,13 +17,15 @@ namespace {
     return fullpath.string();
   }
 
-  void loadMaps(SDL::MapPLStoLayer& pLStoLayer) {
+  void loadMaps(SDL::Dev const& devAccIn, SDL::QueueAcc& queue, SDL::MapPLStoLayer& pLStoLayer) {
     // Module orientation information (DrDz or phi angles)
     auto endcap_geom =
         get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/endcap_orientation.txt");
     auto tilted_geom = get_absolute_path_after_check_file_exists(
         trackLooperDir() + "/data/OT800_IT615_pt0.8/tilted_barrel_orientation.txt");
-    SDL::Globals<SDL::Dev>::endcapGeometry->load(endcap_geom);  // centroid values added to the map
+    if (SDL::Globals<SDL::Dev>::endcapGeometry == nullptr) {
+      SDL::Globals<SDL::Dev>::endcapGeometry = new SDL::EndcapGeometry<SDL::Dev>(devAccIn, queue, endcap_geom); // centroid values added to the map
+    }
     SDL::Globals<SDL::Dev>::tiltedGeometry.load(tilted_geom);
 
     // Module connection map (for line segment building)
@@ -53,14 +55,14 @@ namespace {
 
 }  // namespace
 
-void SDL::LST<SDL::Acc>::loadAndFillES(alpaka::QueueCpuBlocking& queue, struct modulesBuffer<alpaka::DevCpu>* modules) {
+void SDL::LST<SDL::Acc>::loadAndFillES(SDL::Dev const& devAccIn, SDL::QueueAcc& queue, struct modulesBuffer<alpaka::DevCpu>* modules) {
   SDL::MapPLStoLayer pLStoLayer;
-  ::loadMaps(pLStoLayer);
+  ::loadMaps(devAccIn, queue, pLStoLayer);
 
   auto path =
       get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/sensor_centroids.txt");
   if (SDL::Globals<SDL::Dev>::modulesBuffers == nullptr) {
-    SDL::Globals<SDL::Dev>::modulesBuffers = new SDL::modulesBuffer<SDL::Dev>(SDL::devAcc);
+    SDL::Globals<SDL::Dev>::modulesBuffers = new SDL::modulesBuffer<SDL::Dev>(devAccIn);
   }
   if (SDL::Globals<SDL::Dev>::pixelMapping == nullptr) {
     SDL::Globals<SDL::Dev>::pixelMapping = std::make_shared<SDL::pixelMap>();
@@ -74,7 +76,8 @@ void SDL::LST<SDL::Acc>::loadAndFillES(alpaka::QueueCpuBlocking& queue, struct m
                            pLStoLayer);
 }
 
-void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
+void SDL::LST<SDL::Acc>::run(SDL::Dev& devAccIn,
+                             SDL::QueueAcc& queue,
                              const SDL::modulesBuffer<SDL::Dev>* modules,
                              bool verbose,
                              const std::vector<float> see_px,
@@ -97,7 +100,7 @@ void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                              const std::vector<float> ph2_y,
                              const std::vector<float> ph2_z) {
   SDL::Globals<SDL::Dev>::modulesBuffersES = modules;
-  auto event = SDL::Event<Acc>(verbose, queue);
+  auto event = SDL::Event<Acc>(verbose, devAccIn, queue);
   prepareInput(see_px,
                see_py,
                see_pz,

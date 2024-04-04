@@ -20,6 +20,7 @@ namespace SDL {
   template <>
   class Event<SDL::Acc> {
   private:
+    Dev devAcc;
     QueueAcc queue;
     bool addObjects;
 
@@ -75,11 +76,11 @@ namespace SDL {
     int8_t* pixelTypeCPU;
 
   public:
-    // Standalone constructor that has each event object create its own queue.
+    // Standalone constructor that has each event object create its own device and queue.
     Event(bool verbose);
-    // Constructor used for CMSSW integration. Uses an external queue.
-    template <typename TQueue>
-    Event(bool verbose, const TQueue& q) : queue(q) {
+    // Constructor used for CMSSW integration. Uses an external device and queue.
+    template <typename TDevAcc, typename TQueue>
+    Event(bool verbose, TDevAcc const& devAccIn, TQueue const& q) : devAcc(devAccIn), queue(q) {
       init(verbose);
     }
     void resetEvent();
@@ -177,7 +178,8 @@ namespace SDL {
     modulesBuffer<alpaka::DevCpu>* getModules(bool isFull = false);
 
     //read from file and init
-    static void initModules(const MapPLStoLayer& pLStoLayer,
+    static void initModules(QueueAcc& queue,
+                            const MapPLStoLayer& pLStoLayer,
                             const char* moduleMetaDataFilePath = "data/OT800_IT615_pt0.8/sensor_centroids.txt");
   };
 

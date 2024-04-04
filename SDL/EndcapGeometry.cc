@@ -1,16 +1,19 @@
 #include "EndcapGeometry.h"
 
-SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(unsigned int sizef)
-    : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAcc, sizef)),
-      geoMapPhi_buf(allocBufWrapper<float>(devAcc, sizef)) {}
+template <typename TDevAcc>
+SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(TDevAcc const& devAccIn, unsigned int sizef)
+    : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAccIn, sizef)),
+      geoMapPhi_buf(allocBufWrapper<float>(devAccIn, sizef)) {}
 
-SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(std::string filename, unsigned int sizef)
-    : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAcc, sizef)),
-      geoMapPhi_buf(allocBufWrapper<float>(devAcc, sizef)) {
-  load(filename);
+template <typename TDevAcc, typename TQueue>
+SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(TDevAcc const& devAccIn, TQueue& queue, std::string filename, unsigned int sizef)
+    : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAccIn, sizef)),
+      geoMapPhi_buf(allocBufWrapper<float>(devAccIn, sizef)) {
+  load(queue, filename);
 }
 
-void SDL::EndcapGeometry<SDL::Dev>::load(std::string filename) {
+template <typename TQueue>
+void SDL::EndcapGeometry<SDL::Dev>::load(TQueue& queue, std::string filename) {
   dxdy_slope_.clear();
   centroid_phis_.clear();
 
@@ -30,11 +33,11 @@ void SDL::EndcapGeometry<SDL::Dev>::load(std::string filename) {
     }
   }
 
-  fillGeoMapArraysExplicit();
+  fillGeoMapArraysExplicit(queue);
 }
 
-void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit() {
-  QueueAcc queue(devAcc);
+template <typename TQueue>
+void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit(TQueue& queue) {
 
   int phi_size = centroid_phis_.size();
 

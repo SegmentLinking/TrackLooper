@@ -44,7 +44,7 @@ void SDL::Event<SDL::Acc>::init(bool verbose) {
 }
 
 // Standalone constructor that has each event object create its own queue.
-SDL::Event<SDL::Acc>::Event(bool verbose) : queue(alpaka::getDevByIdx(platformAcc, 0u)) { init(verbose); }
+SDL::Event<SDL::Acc>::Event(bool verbose) : devAcc(alpaka::getDevByIdx(platformAcc, 0u)), queue(alpaka::getDevByIdx(platformAcc, 0u)) { init(verbose); }
 
 void SDL::Event<SDL::Acc>::resetEvent() {
   //reset the arrays
@@ -152,8 +152,7 @@ void SDL::Event<SDL::Acc>::resetEvent() {
   }
 }
 
-void SDL::Event<SDL::Acc>::initModules(const MapPLStoLayer& pLStoLayer, const char* moduleMetaDataFilePath) {
-  QueueAcc queue(devAcc);
+void SDL::Event<SDL::Acc>::initModules(QueueAcc& queue, const MapPLStoLayer& pLStoLayer, const char* moduleMetaDataFilePath) {
 
   // nModules gets filled here
   loadModulesFromFile(Globals<SDL::Dev>::modulesBuffers,

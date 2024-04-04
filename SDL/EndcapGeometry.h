@@ -26,14 +26,17 @@ namespace SDL {
 
     unsigned int nEndCapMap;
 
-    EndcapGeometry(unsigned int sizef = endcap_size);
-    EndcapGeometry(std::string filename, unsigned int sizef = endcap_size);
+    template <typename TDevAcc>
+    EndcapGeometry(TDevAcc const& devAccIn, unsigned int sizef = endcap_size);
+    template <typename TDevAcc, typename TQueue>
+    EndcapGeometry(TDevAcc const& devAccIn, TQueue& queue, std::string filename, unsigned int sizef = endcap_size);
     ~EndcapGeometry() = default;
 
-    void load(std::string);
+    template <typename TQueue>
+    void load(TQueue& queue, std::string);
 
-    void fillGeoMapArraysExplicit();
-    void CreateGeoMapArraysExplicit();
+    template <typename TQueue>
+    void fillGeoMapArraysExplicit(TQueue& queue);
     float getdxdy_slope(unsigned int detid);
   };
 }  // namespace SDL
