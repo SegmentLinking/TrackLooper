@@ -26,8 +26,7 @@ namespace SDL {
 
     static void loadAndFillES(SDL::Dev const& devAccIn, SDL::QueueAcc& queue, struct modulesBuffer<alpaka::DevCpu>* modules);
 
-    void run(SDL::Dev& devAccIn,
-             SDL::QueueAcc& queue,
+    void run(SDL::QueueAcc& queue,
              const SDL::modulesBuffer<SDL::Dev>* modules,
              bool verbose,
              const std::vector<float> see_px,

@@ -10,8 +10,7 @@ SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(SDL::Dev const& devAccIn, SDL::Que
   load(queue, filename);
 }
 
-template <typename TQueue>
-void SDL::EndcapGeometry<SDL::Dev>::load(TQueue& queue, std::string filename) {
+void SDL::EndcapGeometry<SDL::Dev>::load(SDL::QueueAcc& queue, std::string filename) {
   dxdy_slope_.clear();
   centroid_phis_.clear();
 
@@ -34,8 +33,7 @@ void SDL::EndcapGeometry<SDL::Dev>::load(TQueue& queue, std::string filename) {
   fillGeoMapArraysExplicit(queue);
 }
 
-template <typename TQueue>
-void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit(TQueue& queue) {
+void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit(SDL::QueueAcc& queue) {
 
   int phi_size = centroid_phis_.size();
 

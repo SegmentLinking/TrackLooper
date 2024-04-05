@@ -76,8 +76,7 @@ void SDL::LST<SDL::Acc>::loadAndFillES(SDL::Dev const& devAccIn, SDL::QueueAcc& 
                            pLStoLayer);
 }
 
-void SDL::LST<SDL::Acc>::run(SDL::Dev& devAccIn,
-                             SDL::QueueAcc& queue,
+void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                              const SDL::modulesBuffer<SDL::Dev>* modules,
                              bool verbose,
                              const std::vector<float> see_px,
@@ -100,7 +99,7 @@ void SDL::LST<SDL::Acc>::run(SDL::Dev& devAccIn,
                              const std::vector<float> ph2_y,
                              const std::vector<float> ph2_z) {
   SDL::Globals<SDL::Dev>::modulesBuffersES = modules;
-  auto event = SDL::Event<Acc>(verbose, devAccIn, queue);
+  auto event = SDL::Event<Acc>(verbose, queue);
   prepareInput(see_px,
                see_py,
                see_pz,

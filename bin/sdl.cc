@@ -385,7 +385,7 @@ void run_sdl()
     std::vector<SDL::Event<SDL::Acc>*> events;
     for (int s = 0; s < ana.streams; s++)
     {
-        SDL::Event<SDL::Acc> *event = new SDL::Event<SDL::Acc>(ana.verbose>=2, devAcc, queue);
+        SDL::Event<SDL::Acc> *event = new SDL::Event<SDL::Acc>(ana.verbose>=2, queue);
         events.push_back(event);
     }
     float timeForEventCreation = full_timer.RealTime()*1000;

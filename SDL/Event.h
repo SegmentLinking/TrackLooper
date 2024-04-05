@@ -20,8 +20,8 @@ namespace SDL {
   template <>
   class Event<SDL::Acc> {
   private:
-    Dev devAcc;
     QueueAcc queue;
+    Dev devAcc;
     bool addObjects;
 
     std::array<unsigned int, 6> n_hits_by_layer_barrel_;
@@ -76,11 +76,9 @@ namespace SDL {
     int8_t* pixelTypeCPU;
 
   public:
-    // Standalone constructor that has each event object create its own device and queue.
-    Event(bool verbose);
-    // Constructor used for CMSSW integration. Uses an external device and queue.
-    template <typename TDevAcc, typename TQueue>
-    Event(bool verbose, TDevAcc const& devAccIn, TQueue const& q) : devAcc(devAccIn), queue(q) {
+    // Constructor used for CMSSW integration. Uses an external queue.
+    template <typename TQueue>
+    Event(bool verbose, TQueue const& q) : queue(q), devAcc(alpaka::getDev(q)) {
       init(verbose);
     }
     void resetEvent();
