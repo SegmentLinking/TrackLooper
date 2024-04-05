@@ -152,7 +152,7 @@ elif [ "${BACKEND}" == "rocm" ]; then
   fi
   ln -s -f ${TRACKLOOPERDIR}/bin/sdl_rocm ${TRACKLOOPERDIR}/bin/sdl
 elif [ "${BACKEND}" == "default" ]; then
-  if [[ ! -L ${TRACKLOOPERDIR}/bin/sdl || ! -e ${TRACKLOOPERDIR}/bin/sdl ]]; then
+  if [[ ! -e ${TRACKLOOPERDIR}/bin/sdl ]]; then
     echo "Error: default backend was not found. Please recompile."
     exit 1
   fi

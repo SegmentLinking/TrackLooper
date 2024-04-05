@@ -79,7 +79,8 @@ if [ -z ${PTCUTVALUE} ]; then PTCUTVALUE=0.8; fi
 if [ "${CPUBACKEND}" == false ] && [ "${CUDABACKEND}" == false ] && [ "${ROCMBACKEND}" == false ]; then
   CPUBACKEND=true
   CUDABACKEND=true
-elif [ "${ALLBACKENDS}" == true ]; then
+fi
+if [ "${ALLBACKENDS}" == true ]; then
   CPUBACKEND=true
   CUDABACKEND=true
   ROCMBACKEND=true

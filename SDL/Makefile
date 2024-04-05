@@ -99,18 +99,12 @@ CUTVALUEFLAG_FLAGS = -DCUT_VALUE_DEBUG
 
 $(LIB_CPU): $(CCOBJECTS_CPU) $(LSTOBJECTS_CPU)
 	$(LD_CPU) $(SOFLAGS_CPU) $^ -o $@
-	mkdir -p cpu
-	ln -sf ../$@ cpu/$(@:_cpu.so=.so)
 
 $(LIB_CUDA): $(CCOBJECTS_CUDA) $(LSTOBJECTS_CUDA)
 	$(LD_CUDA) $(SOFLAGS_CUDA) $^ -o $@
-	mkdir -p cuda
-	ln -sf ../$@ cuda/$(@:_cuda.so=.so)
 
 $(LIB_ROCM): $(CCOBJECTS_ROCM) $(LSTOBJECTS_ROCM)
 	$(LD_ROCM) $(SOFLAGS_ROCM) $^ -o $@
-	mkdir -p rocm
-	ln -sf ../$@ rocm/$(@:_rocm.so=.so)
 
 explicit: $(LIBS)
 
@@ -126,9 +120,6 @@ clean:
 	rm -f *.o
 	rm -f *.d
 	rm -f *.so
-	rm -rf cpu/
-	rm -rf cuda/
-	rm -rf rocm/
 
 .PHONY: clean explicit explicit_cache explicit_cache_cutvalue format check check-fix
 
