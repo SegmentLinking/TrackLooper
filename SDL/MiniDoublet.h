@@ -648,7 +648,7 @@ namespace SDL {
                                                      float& shiftedX,
                                                      float& shiftedY,
                                                      float& shiftedZ,
-                                                     float& noshiftedDz,
+                                                     float& noShiftedDz,
                                                      float& noShiftedDphi,
                                                      float& noShiftedDphiChange,
                                                      float xLower,
@@ -720,6 +720,9 @@ namespace SDL {
         noShiftedDphi = SDL::deltaPhi(acc, xLower, yLower, xUpper, yUpper);
       }
     } else {
+      shiftedX = 0;
+      shiftedY = 0;
+      shiftedZ = 0;
       dPhi = SDL::deltaPhi(acc, xLower, yLower, xUpper, yUpper);
       noShiftedDphi = dPhi;
     }
@@ -762,7 +765,7 @@ namespace SDL {
     }
 
     pass = pass && (alpaka::math::abs(acc, dPhiChange) < miniCut);
-
+    noShiftedDz = 0;  // not used anywhere
     return pass;
   };
 
@@ -779,7 +782,7 @@ namespace SDL {
                                                      float& shiftedX,
                                                      float& shiftedY,
                                                      float& shiftedZ,
-                                                     float& noshiftedDz,
+                                                     float& noShiftedDz,
                                                      float& noShiftedDphi,
                                                      float& noShiftedDphichange,
                                                      float xLower,
@@ -880,7 +883,7 @@ namespace SDL {
     dPhiChange = dPhi / dzFrac * (1.f + dzFrac);
     noShiftedDphichange = noShiftedDphi / dzFrac * (1.f + dzFrac);
     pass = pass && (alpaka::math::abs(acc, dPhiChange) < miniCut);
-
+    noShiftedDz = 0;  // not used anywhere
     return pass;
   };
 
@@ -923,8 +926,7 @@ namespace SDL {
           float zUpper = hitsInGPU.zs[upperHitArrayIndex];
           float rtUpper = hitsInGPU.rts[upperHitArrayIndex];
 
-          float dz, dphi, dphichange, shiftedX = 0, shiftedY = 0, shiftedZ = 0, noShiftedDz = 0, noShiftedDphi,
-                                      noShiftedDphiChange;
+          float dz, dphi, dphichange, shiftedX, shiftedY, shiftedZ, noShiftedDz, noShiftedDphi, noShiftedDphiChange;
           bool success = runMiniDoubletDefaultAlgo(acc,
                                                    modulesInGPU,
                                                    lowerModuleIndex,

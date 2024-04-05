@@ -1334,6 +1334,7 @@ namespace SDL {
 #ifdef Warnings
       printf("FATAL! r^2 < 0!\n");
 #endif
+      chiSquared = -1;
       return -1;
     }
 
@@ -2760,6 +2761,8 @@ namespace SDL {
     pass = pass and passRZChi2;
     if (not pass)
       return pass;
+#else
+    rzChiSquared = -1;
 #endif
     pass = pass && (innerRadius >= 0.95f * ptCut / (2.f * k2Rinv1GeVf));
 

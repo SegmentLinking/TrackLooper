@@ -1020,6 +1020,8 @@ namespace SDL {
              passPT3RZChiSquaredCuts(modulesInGPU, lowerModuleIndex, middleModuleIndex, upperModuleIndex, rzChiSquared);
       if (not pass)
         return pass;
+    } else {
+      rzChiSquared = -1;
     }
 
     rPhiChiSquared =
@@ -1042,6 +1044,8 @@ namespace SDL {
       if (not pass)
         return pass;
     }
+    centerX = 0;
+    centerY = 0;
     return pass;
   };
 
@@ -1116,8 +1120,8 @@ namespace SDL {
             if (tripletsInGPU.partOfPT5[outerTripletIndex])
               continue;  //don't create pT3s for T3s accounted in pT5s
 
-            float pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared,
-                rzChiSquared = 1e9f, rPhiChiSquaredInwards, centerX = 0, centerY = 0;
+            float pixelRadius, pixelRadiusError, tripletRadius, rPhiChiSquared, rzChiSquared, rPhiChiSquaredInwards,
+                centerX, centerY;
             bool success = runPixelTripletDefaultAlgo(acc,
                                                       modulesInGPU,
                                                       rangesInGPU,
