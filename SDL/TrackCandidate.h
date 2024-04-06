@@ -203,12 +203,8 @@ namespace SDL {
                                   struct SDL::pixelTriplets pixelTripletsInGPU,
                                   struct SDL::segments segmentsInGPU,
                                   struct SDL::pixelQuintuplets pixelQuintupletsInGPU) const {
-      using Dim = alpaka::Dim<TAcc>;
-      using Idx = alpaka::Idx<TAcc>;
-      using Vec = alpaka::Vec<Dim, Idx>;
-
-      Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-      Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+      auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+      auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
       unsigned int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets;
       for (unsigned int pixelTripletIndex = globalThreadIdx[2]; pixelTripletIndex < nPixelTriplets;
@@ -248,12 +244,8 @@ namespace SDL {
                                   struct SDL::pixelQuintuplets pixelQuintupletsInGPU,
                                   struct SDL::pixelTriplets pixelTripletsInGPU,
                                   struct SDL::objectRanges rangesInGPU) const {
-      using Dim = alpaka::Dim<TAcc>;
-      using Idx = alpaka::Idx<TAcc>;
-      using Vec = alpaka::Vec<Dim, Idx>;
-
-      Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-      Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+      auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+      auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
       for (int innerInnerInnerLowerModuleArrayIndex = globalThreadIdx[0];
            innerInnerInnerLowerModuleArrayIndex < *(modulesInGPU.nLowerModules);
@@ -312,12 +304,8 @@ namespace SDL {
                                   struct SDL::miniDoublets mdsInGPU,
                                   struct SDL::hits hitsInGPU,
                                   struct SDL::quintuplets quintupletsInGPU) const {
-      using Dim = alpaka::Dim<TAcc>;
-      using Idx = alpaka::Idx<TAcc>;
-      using Vec = alpaka::Vec<Dim, Idx>;
-
-      Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-      Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+      auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+      auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
       int pixelModuleIndex = *modulesInGPU.nLowerModules;
       unsigned int nPixels = segmentsInGPU.nSegments[pixelModuleIndex];
@@ -394,12 +382,8 @@ namespace SDL {
                                   struct SDL::trackCandidates trackCandidatesInGPU,
                                   struct SDL::segments segmentsInGPU,
                                   struct SDL::objectRanges rangesInGPU) const {
-      using Dim = alpaka::Dim<TAcc>;
-      using Idx = alpaka::Idx<TAcc>;
-      using Vec = alpaka::Vec<Dim, Idx>;
-
-      Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-      Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+      auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+      auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
       unsigned int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets;
       unsigned int pLS_offset = rangesInGPU.segmentModuleIndices[nLowerModules];
@@ -449,12 +433,8 @@ namespace SDL {
                                   struct SDL::quintuplets quintupletsInGPU,
                                   struct SDL::trackCandidates trackCandidatesInGPU,
                                   struct SDL::objectRanges rangesInGPU) const {
-      using Dim = alpaka::Dim<TAcc>;
-      using Idx = alpaka::Idx<TAcc>;
-      using Vec = alpaka::Vec<Dim, Idx>;
-
-      Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-      Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+      auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+      auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
       for (int idx = globalThreadIdx[1]; idx < nLowerModules; idx += gridThreadExtent[1]) {
         if (rangesInGPU.quintupletModuleIndices[idx] == -1)
@@ -506,12 +486,8 @@ namespace SDL {
                                   uint16_t nLowerModules,
                                   struct SDL::trackCandidates trackCandidatesInGPU,
                                   struct SDL::segments segmentsInGPU) const {
-      using Dim = alpaka::Dim<TAcc>;
-      using Idx = alpaka::Idx<TAcc>;
-      using Vec = alpaka::Vec<Dim, Idx>;
-
-      Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-      Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+      auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+      auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
       unsigned int nPixels = segmentsInGPU.nSegments[nLowerModules];
       for (unsigned int pixelArrayIndex = globalThreadIdx[2]; pixelArrayIndex < nPixels;
@@ -554,12 +530,8 @@ namespace SDL {
                                   struct SDL::trackCandidates trackCandidatesInGPU,
                                   struct SDL::segments segmentsInGPU,
                                   struct SDL::objectRanges rangesInGPU) const {
-      using Dim = alpaka::Dim<TAcc>;
-      using Idx = alpaka::Idx<TAcc>;
-      using Vec = alpaka::Vec<Dim, Idx>;
-
-      Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-      Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+      auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+      auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
       int nPixelQuintuplets = *pixelQuintupletsInGPU.nPixelQuintuplets;
       unsigned int pLS_offset = rangesInGPU.segmentModuleIndices[nLowerModules];
