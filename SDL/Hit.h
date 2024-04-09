@@ -98,11 +98,11 @@ namespace SDL {
           hitRangesUpper_buf(allocBufWrapper<int>(devAccIn, nModules, queue)),
           hitRangesnLower_buf(allocBufWrapper<int8_t>(devAccIn, nModules, queue)),
           hitRangesnUpper_buf(allocBufWrapper<int8_t>(devAccIn, nModules, queue)) {
-      alpaka::memset(queue, hitRanges_buf, -1);
-      alpaka::memset(queue, hitRangesLower_buf, -1);
-      alpaka::memset(queue, hitRangesUpper_buf, -1);
-      alpaka::memset(queue, hitRangesnLower_buf, -1);
-      alpaka::memset(queue, hitRangesnUpper_buf, -1);
+      alpaka::memset(queue, hitRanges_buf, 0xff);
+      alpaka::memset(queue, hitRangesLower_buf, 0xff);
+      alpaka::memset(queue, hitRangesUpper_buf, 0xff);
+      alpaka::memset(queue, hitRangesnLower_buf, 0xff);
+      alpaka::memset(queue, hitRangesnUpper_buf, 0xff);
       alpaka::wait(queue);
     }
   };
@@ -197,12 +197,8 @@ namespace SDL {
                                   struct SDL::modules modulesInGPU,
                                   struct SDL::hits hitsInGPU,
                                   int const& nLowerModules) const {
-      using Dim = alpaka::Dim<TAcc>;
-      using Idx = alpaka::Idx<TAcc>;
-      using Vec = alpaka::Vec<Dim, Idx>;
-
-      Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-      Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+      auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+      auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
       for (int lowerIndex = globalThreadIdx[2]; lowerIndex < nLowerModules; lowerIndex += gridThreadExtent[2]) {
         uint16_t upperIndex = modulesInGPU.partnerModuleIndices[lowerIndex];
@@ -231,12 +227,8 @@ namespace SDL {
                                   struct SDL::hits hitsInGPU,
                                   unsigned int const& nHits) const  // Total number of hits in event
     {
-      using Dim = alpaka::Dim<TAcc>;
-      using Idx = alpaka::Idx<TAcc>;
-      using Vec = alpaka::Vec<Dim, Idx>;
-
-      Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-      Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+      auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+      auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
       for (unsigned int ihit = globalThreadIdx[2]; ihit < nHits; ihit += gridThreadExtent[2]) {
         float ihit_x = hitsInGPU.xs[ihit];
         float ihit_y = hitsInGPU.ys[ihit];

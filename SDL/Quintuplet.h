@@ -475,8 +475,8 @@ namespace SDL {
     float Pz = (z_init - z1) / ds * Pt;
     float p = alpaka::math::sqrt(acc, Px * Px + Py * Py + Pz * Pz);
 
-    float B = SDL::magnetic_field;
-    float a = -0.299792 * B * charge;
+    float Bz = SDL::magnetic_field;
+    float a = -0.299792 * Bz * charge;
 
     float zsi, rtsi;
     int layeri, moduleTypei;
@@ -529,7 +529,7 @@ namespace SDL {
         float paraB = 2 * (x_init * Px + y_init * Py) / a;
         float paraC = 2 * (y_init * Px - x_init * Py) / a + 2 * (Px * Px + Py * Py) / (a * a);
         float A = paraB * paraB + paraC * paraC;
-        B = 2 * paraA * paraB;
+        float B = 2 * paraA * paraB;
         float C = paraA * paraA - paraC * paraC;
         float sol1 = (-B + alpaka::math::sqrt(acc, B * B - 4 * A * C)) / (2 * A);
         float sol2 = (-B - alpaka::math::sqrt(acc, B * B - 4 * A * C)) / (2 * A);
@@ -1298,6 +1298,8 @@ namespace SDL {
         angleM = -(absArctanSlope + 0.5f * float(M_PI));
       } else if (xs[i] > 0 and ys[i] < 0) {
         angleM = -(0.5f * float(M_PI) - absArctanSlope);
+      } else {
+        angleM = 0;
       }
 
       if (not isFlat[i]) {
@@ -1338,6 +1340,7 @@ namespace SDL {
 #ifdef Warnings
       printf("FATAL! r^2 < 0!\n");
 #endif
+      chiSquared = -1;
       return -1;
     }
 
@@ -1379,6 +1382,8 @@ namespace SDL {
         angleM = -(absArctanSlope + 0.5f * float(M_PI));
       } else if (xs[i] > 0 and ys[i] < 0) {
         angleM = -(0.5f * float(M_PI) - absArctanSlope);
+      } else {
+        angleM = 0;
       }
 
       if (not isFlat[i]) {
@@ -2762,6 +2767,8 @@ namespace SDL {
     pass = pass and passRZChi2;
     if (not pass)
       return pass;
+#else
+    rzChiSquared = -1;
 #endif
     pass = pass && (innerRadius >= 0.95f * ptCut / (2.f * k2Rinv1GeVf));
 
@@ -3021,12 +3028,8 @@ namespace SDL {
                                   struct SDL::quintuplets quintupletsInGPU,
                                   struct SDL::objectRanges rangesInGPU,
                                   uint16_t nEligibleT5Modules) const {
-      using Dim = alpaka::Dim<TAcc>;
-      using Idx = alpaka::Idx<TAcc>;
-      using Vec = alpaka::Vec<Dim, Idx>;
-
-      Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-      Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+      auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+      auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
       for (int iter = globalThreadIdx[0]; iter < nEligibleT5Modules; iter += gridThreadExtent[0]) {
         uint16_t lowerModule1 = rangesInGPU.indicesOfEligibleT5Modules[iter];
@@ -3057,7 +3060,7 @@ namespace SDL {
             float innerRadius, outerRadius, bridgeRadius, regressionG, regressionF, regressionRadius, rzChiSquared,
                 chiSquared, nonAnchorChiSquared;  //required for making distributions
 
-            bool TightCutFlag;
+            bool TightCutFlag = false;
             bool success = runQuintupletDefaultAlgo(acc,
                                                     modulesInGPU,
                                                     mdsInGPU,
@@ -3150,12 +3153,8 @@ namespace SDL {
                                   struct SDL::modules modulesInGPU,
                                   struct SDL::triplets tripletsInGPU,
                                   struct SDL::objectRanges rangesInGPU) const {
-      using Dim = alpaka::Dim<TAcc>;
-      using Idx = alpaka::Idx<TAcc>;
-      using Vec = alpaka::Vec<Dim, Idx>;
-
-      Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-      Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+      auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+      auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
       // Initialize variables in shared memory and set to 0
       int& nEligibleT5Modulesx = alpaka::declareSharedVar<int, __COUNTER__>(acc);
@@ -3252,12 +3251,8 @@ namespace SDL {
                                   struct SDL::modules modulesInGPU,
                                   struct SDL::quintuplets quintupletsInGPU,
                                   struct SDL::objectRanges rangesInGPU) const {
-      using Dim = alpaka::Dim<TAcc>;
-      using Idx = alpaka::Idx<TAcc>;
-      using Vec = alpaka::Vec<Dim, Idx>;
-
-      Vec const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
-      Vec const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+      auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+      auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
       for (uint16_t i = globalThreadIdx[2]; i < *modulesInGPU.nLowerModules; i += gridThreadExtent[2]) {
         if (quintupletsInGPU.nQuintuplets[i] == 0 or rangesInGPU.quintupletModuleIndices[i] == -1) {
