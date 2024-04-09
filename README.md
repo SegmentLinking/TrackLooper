@@ -43,18 +43,20 @@ The `-f` flag can be omitted when the code has already been compiled. If multipl
 
 ## Command explanations
 
-Compile the code with option flags
+Compile the code with option flags. If none of `C,G,R,A` are used, then it defaults to compiling for CUDA and CPU.
 
     sdl_make_tracklooper -mc
     -m: make clean binaries
     -c: run with the cmssw caching allocator
-    -C: only compile CPU backend
-    -G: only compile GPU (CUDA) backend
+    -C: compile CPU backend
+    -G: compile CUDA backend
+    -R: compile ROCm backend
+    -A: compile all backends
     -h: show help screen with all options
 
 Run the code
  
-    sdl -n <nevents> -v <verbose> -w <writeout> -s <streams> -i <dataset> -o <output>
+    sdl_<backend> -n <nevents> -v <verbose> -w <writeout> -s <streams> -i <dataset> -o <output>
 
     -i: PU200; muonGun, etc
     -n: number of events; default: all
@@ -63,12 +65,6 @@ Run the code
     -w: 0- no writeout; 1- minimum writeout; default: 1
     -o: provide an output root file name (e.g. LSTNtuple.root); default: debug.root
     -l: add lower level object (pT3, pT5, T5, etc.) branches to the output
-
-When running the `sdl` binary directly and multiple backends have been compiled, one can be chosen using the `LD_LIBRARY_PATH` environment variable. For example, one can explicitly use the CPU backend as follows.
-
-    LD_LIBRARY_PATH=$TRACKLOOPERDIR/SDL/cpu/:$LD_LIBRARY_PATH sdl <args>
-    
-However, it is important to keep in mind that, if that particular backend was not compiled, then it will find another backed without any notice.
 
 Plotting numerators and denominators of performance plots
 
@@ -192,7 +188,7 @@ runTheMatrix.py -w upgrade -n -e -l 21034.1
 
 For convenience, the workflow has been run for 100 events and the output is stored here:
 ```bash
-/ceph/cms/store/user/evourlio/LST/step2_21034.1_100Events.root
+/data2/segmentlinking/CMSSW_14_1_0_pre0/step2_21034.1_100Events.root
 ```
 
 For enabling the LST reconstruction in the CMSSW tracking workflow, a modified step3 needs to be run.

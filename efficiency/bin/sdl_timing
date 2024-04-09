@@ -1,15 +1,28 @@
 #!/bin/bash
 
-run_gpu()
+run_rocm()
 {
     version=$1
     sample=$2
     nevents=$3
     shift 3
-    # GPU backend
+    # ROCm backend
+    sdl_make_tracklooper -mR $*
+    for s_value in 1 2 4 6 8; do
+        sdl -n ${NEVENTS} -o ${OUTDIR}/rocm_${version}_s${s_value}.root -v 1 -w 0 -s ${s_value} -i ${sample} | tee -a timing_temp.txt
+    done
+}
+
+run_cuda()
+{
+    version=$1
+    sample=$2
+    nevents=$3
+    shift 3
+    # CUDA backend
     sdl_make_tracklooper -mG $*
     for s_value in 1 2 4 6 8; do
-        sdl -n ${NEVENTS} -o ${OUTDIR}/gpu_${version}_s${s_value}.root -v 1 -w 0 -s ${s_value} -i ${sample} | tee -a timing_temp.txt
+        sdl -n ${NEVENTS} -o ${OUTDIR}/cuda_${version}_s${s_value}.root -v 1 -w 0 -s ${s_value} -i ${sample} | tee -a timing_temp.txt
     done
 }
 
@@ -33,7 +46,7 @@ run_timing_test_usage()
     echo "      sh $(basename $0) [-b BACKEND] SAMPLETYPE [SPECIFICGPUVERISON] [NEVENTS]"
     echo
     echo "Options:"
-    echo "   -b BACKEND                         cpu or gpu (default is gpu)"
+    echo "   -b BACKEND                         cpu, cuda, or rocm (default is cuda)"
     echo
     echo "Arguments:"
     echo "   SAMPLETYPE                         muonGun, PU200, or pionGun"
@@ -45,7 +58,7 @@ run_timing_test_usage()
 }
 
 # Parsing command-line opts
-BACKEND="gpu"  # Default to GPU if no backend specified
+BACKEND="cuda"  # Default to cuda if no backend specified
 while getopts ":hb:" OPTION; do
   case $OPTION in
     h) usage;;
@@ -77,10 +90,12 @@ else
 fi
 
 # Decide which function to run
-if [ "$BACKEND" == "gpu" ]; then
-    run_func=run_gpu
+if [ "$BACKEND" == "cuda" ]; then
+    run_func=run_cuda
 elif [ "$BACKEND" == "cpu" ]; then
     run_func=run_cpu
+elif [ "$BACKEND" == "rocm" ]; then
+    run_func=run_rocm
 else
     echo "Invalid backend specified."
     exit 1

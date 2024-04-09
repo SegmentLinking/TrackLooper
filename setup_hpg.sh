@@ -23,6 +23,7 @@ eval `scramv1 runtime -sh`
 export BOOST_ROOT=$(scram tool info boost | grep BOOST_BASE | cut -d'=' -f2)
 export ALPAKA_ROOT=$(scram tool info alpaka | grep ALPAKA_BASE | cut -d'=' -f2)
 export ROOT_ROOT=$(scram tool info root_interface | grep ROOT_INTERFACE_BASE | cut -d'=' -f2)
+export ROCM_ROOT=$(scram tool info rocm | grep ROCM_BASE | cut -d'=' -f2)
 
 cd - > /dev/null
 echo "Setup following ROOT. Make sure the appropriate setup file has been run. Otherwise the looper won't compile."

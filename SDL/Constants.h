@@ -66,7 +66,7 @@ namespace SDL {
   auto const platformHost = alpaka::Platform<alpaka::DevCpu>{};
   auto const devHost = alpaka::getDevByIdx(platformHost, 0u); // Maybe this should be removed too?
 #if defined ALPAKA_ACC_GPU_CUDA_ENABLED || defined ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED || \
-    defined ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
+    defined ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED || defined ALPAKA_ACC_GPU_HIP_ENABLED
   using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
 #endif
 
@@ -101,7 +101,7 @@ namespace SDL {
   template <typename Vec>
   ALPAKA_FN_HOST ALPAKA_FN_INLINE WorkDiv createWorkDiv(const Vec& blocksPerGrid,
                                                         const Vec& threadsPerBlock,
-                                                        const Vec& elementsPerThread) {
+                                                        const Vec& elementsPerThreadArg) {
     Vec adjustedBlocks = blocksPerGrid;
     Vec adjustedThreads = threadsPerBlock;
 
@@ -116,7 +116,7 @@ namespace SDL {
     adjustedBlocks = Vec::all(static_cast<Idx>(1));
 #endif
 
-    return WorkDiv(adjustedBlocks, adjustedThreads, elementsPerThread);
+    return WorkDiv(adjustedBlocks, adjustedThreads, elementsPerThreadArg);
   }
 
 // If a compile time flag does not define PT_CUT, default to 0.8 (GeV)

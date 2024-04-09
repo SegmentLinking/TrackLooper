@@ -13,6 +13,7 @@ bin/doAnalysis
 bin/sdl
 bin/sdl_cuda
 bin/sdl_cpu
+bin/sdl_rocm
 code/rooutil/librooutil.so
 code/rooutil/rooutil.so
 .gitversion.txt
