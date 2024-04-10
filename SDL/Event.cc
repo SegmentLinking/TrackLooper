@@ -1158,8 +1158,7 @@ void SDL::Event<SDL::Acc>::createPixelQuintuplets() {
   auto const removeDupPixelQuintupletsInGPUFromMapTask(
       alpaka::createTaskKernel<Acc>(removeDupPixelQuintupletsInGPUFromMap_workDiv,
                                     removeDupPixelQuintupletsInGPUFromMap_kernel,
-                                    *pixelQuintupletsInGPU,
-                                    false));
+                                    *pixelQuintupletsInGPU));
 
   alpaka::enqueue(queue, removeDupPixelQuintupletsInGPUFromMapTask);
 
