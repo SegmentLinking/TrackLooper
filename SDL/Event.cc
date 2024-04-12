@@ -930,11 +930,8 @@ void SDL::Event<SDL::Acc>::createPixelTriplets() {
       createWorkDiv(blocksPerGridDupPixTrip, threadsPerBlockDupPixTrip, elementsPerThread);
 
   SDL::removeDupPixelTripletsInGPUFromMap removeDupPixelTripletsInGPUFromMap_kernel;
-  auto const removeDupPixelTripletsInGPUFromMapTask(
-      alpaka::createTaskKernel<Acc>(removeDupPixelTripletsInGPUFromMap_workDiv,
-                                    removeDupPixelTripletsInGPUFromMap_kernel,
-                                    *pixelTripletsInGPU,
-                                    false));
+  auto const removeDupPixelTripletsInGPUFromMapTask(alpaka::createTaskKernel<Acc>(
+      removeDupPixelTripletsInGPUFromMap_workDiv, removeDupPixelTripletsInGPUFromMap_kernel, *pixelTripletsInGPU));
 
   alpaka::enqueue(queue, removeDupPixelTripletsInGPUFromMapTask);
   alpaka::wait(queue);
