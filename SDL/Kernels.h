@@ -233,13 +233,8 @@ namespace SDL {
             if (nMatched >= 7) {
               if (score_rphisum1 > score_rphisum2) {
                 rmQuintupletFromMemory(quintupletsInGPU, ix);
-                continue;
               } else if ((score_rphisum1 == score_rphisum2) && (ix < jx)) {
                 rmQuintupletFromMemory(quintupletsInGPU, ix);
-                continue;
-              } else {
-                rmQuintupletFromMemory(quintupletsInGPU, jx);
-                continue;
               }
             }
           }
