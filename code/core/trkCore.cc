@@ -1,4 +1,5 @@
 #include "trkCore.h"
+#define PT_CUT 0.8
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
 void loadMaps()
@@ -260,15 +261,24 @@ float runTrackCandidateTest_v2(SDL::Event* event)
 
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes, bool verbose)
+std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes, bool verbose, float matchfrac)
 {
     std::vector<unsigned int> hitidxs_(std::begin(hitidxs), std::end(hitidxs));
     std::vector<unsigned int> hittypes_(std::begin(hittypes), std::end(hittypes));
-    return matchedSimTrkIdxs(hitidxs_, hittypes_, verbose);
+    return matchedSimTrkIdxs(hitidxs_, hittypes_, verbose, matchfrac);
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-std::vector<int> matchedSimTrkIdxs(std::vector<unsigned int> hitidxs, std::vector<unsigned int> hittypes, bool verbose)
+std::vector<int> matchedSimTrkIdxs(std::vector<unsigned int> hitidxs, std::vector<unsigned int> hittypes, bool verbose, float matchfrac)
+{
+    std::vector<int> matched_idxs;
+    std::vector<float> matched_idx_fracs;
+    std::tie(matched_idxs, matched_idx_fracs) = matchedSimTrkIdxsAndFracs(hitidxs, hittypes, verbose, matchfrac);
+    return matched_idxs;
+}
+
+//___________________________________________________________________________________________________________________________________________________________________________________________
+std::tuple<std::vector<int>, std::vector<float>> matchedSimTrkIdxsAndFracs(std::vector<unsigned int> hitidxs, std::vector<unsigned int> hittypes, bool verbose, float matchfrac)
 {
     if (hitidxs.size() != hittypes.size())
     {
@@ -419,6 +429,7 @@ std::vector<int> matchedSimTrkIdxs(std::vector<unsigned int> hitidxs, std::vecto
     }
     int maxHitMatchCount = 0; // ultimate maximum of the number of matched hits
     std::vector<int> matched_sim_trk_idxs;
+    std::vector<float> matched_sim_trk_idxs_frac;
     for (auto &trkidx_perm : allperms)
     {
         std::vector<int> counts;
@@ -431,15 +442,75 @@ std::vector<int> matchedSimTrkIdxs(std::vector<unsigned int> hitidxs, std::vecto
         int rawidx = std::distance(counts.begin(), result);
         int trkidx = unique_idxs[rawidx];
         if (trkidx < 0) continue;
-        if (counts[rawidx] > (((float)nhits_input) * 0.75)) matched_sim_trk_idxs.push_back(trkidx);
+        // std::cout <<  " counts[rawidx]: " << counts[rawidx] <<  std::endl;
+        // std::cout <<  " nhits_input: " << nhits_input <<  std::endl;
+        if (verbose)
+        {
+            float fr = ((float)counts[rawidx]) / ((float)nhits_input);
+            std::cout <<  " fr: " << fr <<  std::endl;
+        }
+        // std::cout <<  " matchfrac: " << matchfrac <<  std::endl;
+        if (counts[rawidx] > (((float)nhits_input) * matchfrac))
+        {
+            matched_sim_trk_idxs.push_back(trkidx);
+            matched_sim_trk_idxs_frac.push_back( ((float)counts[rawidx]) / ((float)nhits_input) );
+        }
         maxHitMatchCount = std::max(maxHitMatchCount, *std::max_element(counts.begin(), counts.end()));
     }
-    set<int> s;
+    map<int, float> pairs;
     unsigned size = matched_sim_trk_idxs.size();
     for (unsigned i = 0; i < size; ++i)
-        s.insert(matched_sim_trk_idxs[i]);
-    matched_sim_trk_idxs.assign(s.begin(), s.end());
-    return matched_sim_trk_idxs;
+    {
+        int idx = matched_sim_trk_idxs[i];
+        float frac = matched_sim_trk_idxs_frac[i];
+        if (pairs.find(idx) != pairs.end())
+        {
+            if (pairs[idx] < frac)
+                pairs[idx] = frac;
+        }
+        else
+        {
+            pairs[idx] = frac;
+        }
+        // if (std::find(result.begin(), result.end(), idx) == result.end())
+        // {
+        //     result.push_back(idx);
+        //     result_frac.push_back(frac);
+        // }
+    }
+
+    vector<int> result;
+    vector<float> result_frac;
+
+    // Loop over the map using range-based for loop
+    for (const auto& pair : pairs)
+    {
+        result.push_back(pair.first);
+        result_frac.push_back(pair.second);
+    }
+
+    // Sort indices based on 'values'
+    auto indices = sort_indices(result_frac);
+
+    // Reorder 'vec1' and 'vec2' based on the sorted indices
+    std::vector<int> sorted_result(result.size());
+    std::vector<float> sorted_result_frac(result_frac.size());
+    for (size_t i = 0; i < indices.size(); ++i)
+    {
+        sorted_result[i] = result[indices[i]];
+        sorted_result_frac[i] = result_frac[indices[i]];
+    }
+
+    // for (size_t i = 0; i < sorted_result.size(); ++i)
+    // {
+    //     int sorted_idx = sorted_result.at(i);
+    //     float sorted_frac = sorted_result_frac.at(i);
+    //     std::cout <<  " i: " << i <<  " sorted_idx: " << sorted_idx <<  " sorted_frac: " << sorted_frac <<  " hitidxs.size(): " << hitidxs.size() <<  std::endl;
+    // }
+
+    return std::make_tuple(sorted_result, sorted_result_frac);
+    // matched_sim_trk_idxs.assign(s.begin(), s.end());
+    // return matched_sim_trk_idxs;
 }
 
 //__________________________________________________________________________________________

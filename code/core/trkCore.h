@@ -32,8 +32,9 @@ float runpT3(SDL::Event* event);
 
 // --------------------- ======================== ---------------------
 
-std::vector<int> matchedSimTrkIdxs(std::vector<unsigned int> hitidxs, std::vector<unsigned int> hittypes, bool verbose=false);
-std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes, bool verbose=false);
+std::vector<int> matchedSimTrkIdxs(std::vector<unsigned int> hitidxs, std::vector<unsigned int> hittypes, bool verbose=false, float matchfrac=0.75);
+std::vector<int> matchedSimTrkIdxs(std::vector<int> hitidxs, std::vector<int> hittypes, bool verbose=false, float matchfrac=0.75);
+std::tuple<std::vector<int>, std::vector<float>> matchedSimTrkIdxsAndFracs(std::vector<unsigned int> hitidxs, std::vector<unsigned int> hittypes, bool verbose=false, float matchfrac=0.75);
 int getDenomSimTrkType(int isimtrk);
 int getDenomSimTrkType(std::vector<int> simidxs);
 
@@ -109,5 +110,14 @@ void writeMetaData();
 // DEPRECATED FUNCTION
 float addInputsToLineSegmentTrackingUsingExplicitMemory(SDL::Event &event);
 float addInputsToLineSegmentTracking(SDL::Event &event, bool useOMP);
+
+template<typename T>
+std::vector<size_t> sort_indices(const std::vector<T> &vec) {
+    std::vector<size_t> indices(vec.size());
+    std::iota(indices.begin(), indices.end(), 0);
+    std::sort(indices.begin(), indices.end(),
+              [&vec](size_t i1, size_t i2) {return vec[i1] > vec[i2]; });
+    return indices;
+}
 
 #endif

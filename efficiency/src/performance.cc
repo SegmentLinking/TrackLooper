@@ -57,7 +57,7 @@ int main(int argc, char** argv)
                     SimTrackSetDefinition(/* name  */ TString("TC_") + selnames[isel],
                                           /* pdgid */ pdgid,
                                           /* q     */ charge,
-                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched().at(isim) > 0;},
+                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_tcIdx().at(isim) >= 0;},
                                           /* sel   */ sels[isel]
                                          )
                     );
@@ -65,7 +65,7 @@ int main(int argc, char** argv)
                     SimTrackSetDefinition(/* name  */ TString("pT5_") + selnames[isel],
                                           /* pdgid */ pdgid,
                                           /* q     */ charge,
-                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pT5);},
+                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_tcIdx().at(isim) >= 0 ? sdl.tc_type().at(sdl.sim_tcIdx().at(isim)) == pT5 : false;},
                                           /* sel   */ sels[isel]
                                          )
                     );
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
                     SimTrackSetDefinition(/* name  */ TString("pT3_") + selnames[isel],
                                           /* pdgid */ pdgid,
                                           /* q     */ charge,
-                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pT3);},
+                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_tcIdx().at(isim) >= 0 ? sdl.tc_type().at(sdl.sim_tcIdx().at(isim)) == pT3 : false;},
                                           /* sel   */ sels[isel]
                                          )
                     );
@@ -81,7 +81,7 @@ int main(int argc, char** argv)
                     SimTrackSetDefinition(/* name  */ TString("T5_") + selnames[isel],
                                           /* pdgid */ pdgid,
                                           /* q     */ charge,
-                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << T5);},
+                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_tcIdx().at(isim) >= 0 ? sdl.tc_type().at(sdl.sim_tcIdx().at(isim)) == T5 : false;},
                                           /* sel   */ sels[isel]
                                          )
                     );
@@ -89,7 +89,7 @@ int main(int argc, char** argv)
                     SimTrackSetDefinition(/* name  */ TString("pLS_") + selnames[isel],
                                           /* pdgid */ pdgid,
                                           /* q     */ charge,
-                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_TC_matched_mask().at(isim) & (1 << pLS);},
+                                          /* pass  */ [&](unsigned int isim) {return sdl.sim_tcIdx().at(isim) >= 0 ? sdl.tc_type().at(sdl.sim_tcIdx().at(isim)) == pLS : false;},
                                           /* sel   */ sels[isel]
                                          )
                     );
@@ -101,7 +101,7 @@ int main(int argc, char** argv)
                         SimTrackSetDefinition(/* name  */ TString("pT5_lower_") + selnames[isel],
                                               /* pdgid */ pdgid,
                                               /* q     */ charge,
-                                              /* pass  */ [&](unsigned int isim) {return sdl.sim_pT5_matched().at(isim) > 0;},
+                                              /* pass  */ [&](unsigned int isim) {for (size_t i = 0; i < sdl.sim_pt5IdxAllFrac().at(isim).size(); ++i) { if (sdl.sim_pt5IdxAll().at(isim).at(i) > 0.75) return true; } return false;},
                                               /* sel   */ sels[isel]
                                              )
                         );
@@ -109,7 +109,7 @@ int main(int argc, char** argv)
                         SimTrackSetDefinition(/* name  */ TString("T5_lower_") + selnames[isel],
                                               /* pdgid */ pdgid,
                                               /* q     */ charge,
-                                              /* pass  */ [&](unsigned int isim) {return sdl.sim_T5_matched().at(isim) > 0;},
+                                              /* pass  */ [&](unsigned int isim) {for (size_t i = 0; i < sdl.sim_t5IdxAllFrac().at(isim).size(); ++i) { if (sdl.sim_t5IdxAll().at(isim).at(i) > 0.75) return true; } return false;},
                                               /* sel   */ sels[isel]
                                              )
                         );
@@ -117,7 +117,15 @@ int main(int argc, char** argv)
                         SimTrackSetDefinition(/* name  */ TString("pT3_lower_") + selnames[isel],
                                               /* pdgid */ pdgid,
                                               /* q     */ charge,
-                                              /* pass  */ [&](unsigned int isim) {return sdl.sim_pT3_matched().at(isim) > 0;},
+                                              /* pass  */ [&](unsigned int isim) {for (size_t i = 0; i < sdl.sim_pt3IdxAllFrac().at(isim).size(); ++i) { if (sdl.sim_pt3IdxAll().at(isim).at(i) > 0.75) return true; } return false;},
+                                              /* sel   */ sels[isel]
+                                             )
+                        );
+                    list_effSetDef.push_back(
+                        SimTrackSetDefinition(/* name  */ TString("pLS_lower_") + selnames[isel],
+                                              /* pdgid */ pdgid,
+                                              /* q     */ charge,
+                                              /* pass  */ [&](unsigned int isim) {for (size_t i = 0; i < sdl.sim_plsIdxAllFrac().at(isim).size(); ++i) { if (sdl.sim_plsIdxAll().at(isim).at(i) > 0.75) return true; } return false;},
                                               /* sel   */ sels[isel]
                                              )
                         );
@@ -186,12 +194,12 @@ int main(int argc, char** argv)
     {
         list_FRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "pT5_lower",
-                                   /* pass  */ [&](unsigned int ipT5) {return sdl.pT5_isFake().at(ipT5) > 0;},
+                                   /* pass  */ [&](unsigned int ipT5) {return sdl.pt5_isFake().at(ipT5) > 0;},
                                    /* sel   */ [&](unsigned int ipT5) {return 1;},
-                                   /* pt    */ tas::pT5_pt,
-                                   /* eta   */ tas::pT5_eta,
-                                   /* phi   */ tas::pT5_phi,
-                                   /* type  */ [&](){return static_cast<const std::vector<int>>(std::vector<int>(tas::pT5_pt().size(), 1));}
+                                   /* pt    */ tas::pt5_pt,
+                                   /* eta   */ tas::pt5_eta,
+                                   /* phi   */ tas::pt5_phi,
+                                   /* type  */ [&](){return static_cast<const std::vector<int>>(std::vector<int>(tas::pt5_pt().size(), 1));}
                                   )
             );
         list_FRSetDef.push_back(
@@ -206,12 +214,22 @@ int main(int argc, char** argv)
             );
         list_FRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "pT3_lower",
-                                   /* pass  */ [&](unsigned int ipT3) {return sdl.pT3_isFake().at(ipT3) > 0;},
+                                   /* pass  */ [&](unsigned int ipT3) {return sdl.pt3_isFake().at(ipT3) > 0;},
                                    /* sel   */ [&](unsigned int ipT3) {return 1;},
-                                   /* pt    */ tas::pT3_pt,
-                                   /* eta   */ tas::pT3_eta,
-                                   /* phi   */ tas::pT3_phi,
-                                   /* type  */ [&](){return static_cast<const std::vector<int>>(std::vector<int>(tas::pT3_pt().size(), 1));}
+                                   /* pt    */ tas::pt3_pt,
+                                   /* eta   */ tas::pt3_eta,
+                                   /* phi   */ tas::pt3_phi,
+                                   /* type  */ [&](){return static_cast<const std::vector<int>>(std::vector<int>(tas::pt3_pt().size(), 1));}
+                                  )
+            );
+        list_FRSetDef.push_back(
+            RecoTrackSetDefinition(/* name  */ "pLS_lower",
+                                   /* pass  */ [&](unsigned int ipLS) {return sdl.pls_isFake().at(ipLS) > 0;},
+                                   /* sel   */ [&](unsigned int ipLS) {return 1;},
+                                   /* pt    */ tas::pls_pt,
+                                   /* eta   */ tas::pls_eta,
+                                   /* phi   */ tas::pls_phi,
+                                   /* type  */ [&](){return static_cast<const std::vector<int>>(std::vector<int>(tas::pls_pt().size(), 1));}
                                   )
             );
     }
@@ -275,12 +293,12 @@ int main(int argc, char** argv)
     {
         list_DRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "pT5_lower",
-                                   /* pass  */ [&](unsigned int ipT5) {return sdl.pT5_isDuplicate().at(ipT5) > 0;},
+                                   /* pass  */ [&](unsigned int ipT5) {return sdl.pt5_isDuplicate().at(ipT5) > 0;},
                                    /* sel   */ [&](unsigned int ipT5) {return 1;},
-                                   /* pt    */ tas::pT5_pt,
-                                   /* eta   */ tas::pT5_eta,
-                                   /* phi   */ tas::pT5_phi,
-                                   /* type  */ [&](){return static_cast<const std::vector<int>>(std::vector<int>(tas::pT5_pt().size(), 1));}
+                                   /* pt    */ tas::pt5_pt,
+                                   /* eta   */ tas::pt5_eta,
+                                   /* phi   */ tas::pt5_phi,
+                                   /* type  */ [&](){return static_cast<const std::vector<int>>(std::vector<int>(tas::pt5_pt().size(), 1));}
                                   )
             );
         list_DRSetDef.push_back(
@@ -295,12 +313,22 @@ int main(int argc, char** argv)
             );
         list_DRSetDef.push_back(
             RecoTrackSetDefinition(/* name  */ "pT3_lower",
-                                   /* pass  */ [&](unsigned int ipT3) {return sdl.pT3_isDuplicate().at(ipT3) > 0;},
+                                   /* pass  */ [&](unsigned int ipT3) {return sdl.pt3_isDuplicate().at(ipT3) > 0;},
                                    /* sel   */ [&](unsigned int ipT3) {return 1;},
-                                   /* pt    */ tas::pT3_pt,
-                                   /* eta   */ tas::pT3_eta,
-                                   /* phi   */ tas::pT3_phi,
-                                   /* type  */  [&](){return static_cast<const std::vector<int>>(std::vector<int>(tas::pT3_pt().size(), 1));}
+                                   /* pt    */ tas::pt3_pt,
+                                   /* eta   */ tas::pt3_eta,
+                                   /* phi   */ tas::pt3_phi,
+                                   /* type  */  [&](){return static_cast<const std::vector<int>>(std::vector<int>(tas::pt3_pt().size(), 1));}
+                                  )
+            );
+        list_DRSetDef.push_back(
+            RecoTrackSetDefinition(/* name  */ "pLS_lower",
+                                   /* pass  */ [&](unsigned int ipLS) {return sdl.pls_isDuplicate().at(ipLS) > 0;},
+                                   /* sel   */ [&](unsigned int ipLS) {return 1;},
+                                   /* pt    */ tas::pls_pt,
+                                   /* eta   */ tas::pls_eta,
+                                   /* phi   */ tas::pls_phi,
+                                   /* type  */  [&](){return static_cast<const std::vector<int>>(std::vector<int>(tas::pls_pt().size(), 1));}
                                   )
             );
     }
