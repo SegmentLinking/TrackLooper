@@ -854,7 +854,7 @@ void SDL::Event<SDL::Acc>::createPixelTriplets() {
   int pixelIndexOffsetPos = Globals<SDL::Dev>::pixelMapping->connectedPixelsIndex[44999] +
                             Globals<SDL::Dev>::pixelMapping->connectedPixelsSizes[44999];
   int pixelIndexOffsetNeg = Globals<SDL::Dev>::pixelMapping->connectedPixelsIndexPos[44999] +
-                            Globals<SDL::Dev>::pixelMapping->connectedPixelsSizes[44999] + pixelIndexOffsetPos;
+                            Globals<SDL::Dev>::pixelMapping->connectedPixelsSizesPos[44999] + pixelIndexOffsetPos;
 
   // TODO: check if a map/reduction to just eligible pLSs would speed up the kernel
   // the current selection still leaves a significant fraction of unmatchable pLSs
@@ -1088,7 +1088,7 @@ void SDL::Event<SDL::Acc>::createPixelQuintuplets() {
   int pixelIndexOffsetPos = Globals<SDL::Dev>::pixelMapping->connectedPixelsIndex[44999] +
                             Globals<SDL::Dev>::pixelMapping->connectedPixelsSizes[44999];
   int pixelIndexOffsetNeg = Globals<SDL::Dev>::pixelMapping->connectedPixelsIndexPos[44999] +
-                            Globals<SDL::Dev>::pixelMapping->connectedPixelsSizes[44999] + pixelIndexOffsetPos;
+                            Globals<SDL::Dev>::pixelMapping->connectedPixelsSizesPos[44999] + pixelIndexOffsetPos;
 
   // Loop over # pLS
   for (unsigned int i = 0; i < nInnerSegments; i++) {
