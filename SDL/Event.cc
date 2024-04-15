@@ -862,7 +862,7 @@ void SDL::Event<SDL::Acc>::createPixelTriplets() {
   for (unsigned int i = 0; i < nInnerSegments; i++) {  // loop over # pLS
     int8_t pixelType = pixelTypes[i];                  // Get pixel type for this pLS
     int superbin = superbins[i];                       // Get superbin for this pixel
-    if ((superbin < 0) or (superbin >= size_superbins) or (pixelType > 2) or (pixelType < 0)) {
+    if ((superbin < 0) or (superbin >= (int)size_superbins) or (pixelType > 2) or (pixelType < 0)) {
       connectedPixelSize_host[i] = 0;
       connectedPixelIndex_host[i] = 0;
       continue;
@@ -1096,7 +1096,7 @@ void SDL::Event<SDL::Acc>::createPixelQuintuplets() {
   for (unsigned int i = 0; i < nInnerSegments; i++) {
     int8_t pixelType = pixelTypes[i];  // Get pixel type for this pLS
     int superbin = superbins[i];       // Get superbin for this pixel
-    if ((superbin < 0) or (superbin >= size_superbins) or (pixelType > 2) or (pixelType < 0)) {
+    if ((superbin < 0) or (superbin >= (int)size_superbins) or (pixelType > 2) or (pixelType < 0)) {
       connectedPixelIndex_host[i] = 0;
       connectedPixelSize_host[i] = 0;
       continue;
