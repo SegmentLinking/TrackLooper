@@ -4,7 +4,10 @@ SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(SDL::Dev const& devAccIn, unsigned
     : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAccIn, sizef)),
       geoMapPhi_buf(allocBufWrapper<float>(devAccIn, sizef)) {}
 
-SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(SDL::Dev const& devAccIn, SDL::QueueAcc& queue, std::string filename, unsigned int sizef)
+SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(SDL::Dev const& devAccIn,
+                                              SDL::QueueAcc& queue,
+                                              std::string filename,
+                                              unsigned int sizef)
     : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAccIn, sizef)),
       geoMapPhi_buf(allocBufWrapper<float>(devAccIn, sizef)) {
   load(queue, filename);
@@ -34,7 +37,6 @@ void SDL::EndcapGeometry<SDL::Dev>::load(SDL::QueueAcc& queue, std::string filen
 }
 
 void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit(SDL::QueueAcc& queue) {
-
   unsigned int phi_size = centroid_phis_.size();
 
   // Temporary check for endcap initialization.

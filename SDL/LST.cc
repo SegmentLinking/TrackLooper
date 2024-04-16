@@ -24,7 +24,8 @@ namespace {
     auto tilted_geom = get_absolute_path_after_check_file_exists(
         trackLooperDir() + "/data/OT800_IT615_pt0.8/tilted_barrel_orientation.txt");
     if (SDL::Globals<SDL::Dev>::endcapGeometry == nullptr) {
-      SDL::Globals<SDL::Dev>::endcapGeometry = new SDL::EndcapGeometry<SDL::Dev>(devAccIn, queue, endcap_geom); // centroid values added to the map
+      SDL::Globals<SDL::Dev>::endcapGeometry =
+          new SDL::EndcapGeometry<SDL::Dev>(devAccIn, queue, endcap_geom);  // centroid values added to the map
     }
     SDL::Globals<SDL::Dev>::tiltedGeometry.load(tilted_geom);
 
@@ -55,7 +56,9 @@ namespace {
 
 }  // namespace
 
-void SDL::LST<SDL::Acc>::loadAndFillES(SDL::Dev const& devAccIn, SDL::QueueAcc& queue, struct modulesBuffer<alpaka::DevCpu>* modules) {
+void SDL::LST<SDL::Acc>::loadAndFillES(SDL::Dev const& devAccIn,
+                                       SDL::QueueAcc& queue,
+                                       struct modulesBuffer<alpaka::DevCpu>* modules) {
   SDL::MapPLStoLayer pLStoLayer;
   ::loadMaps(devAccIn, queue, pLStoLayer);
 
