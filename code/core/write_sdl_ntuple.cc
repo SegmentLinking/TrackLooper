@@ -984,7 +984,7 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     
     // T5 radius is average of the inner and outer radius
-    const float pt = (quintupletsInGPU.innerRadius[T5]+quintupletsInGPU.outerRadius[T5])/2 * kRinv1GeVf;
+    const float pt = quintupletsInGPU.innerRadius * kRinv1GeVf;
 
     // T5 eta and phi are computed using outer and innermost hits
     SDLMath::Hit hitA(trk.ph2_x()[Hit_0], trk.ph2_y()[Hit_0], trk.ph2_z()[Hit_0]);
