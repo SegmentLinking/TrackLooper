@@ -406,7 +406,7 @@ void setQuintupletOutputBranches(SDL::Event<SDL::Acc>* event)
         for (unsigned int idx = 0; idx < nQuintuplets; idx++)
         {
             unsigned int quintupletIndex = rangesInGPU.quintupletModuleIndices[lowerModuleIdx] + idx;
-            float pt = quintupletsInGPU.innerRadius[quintupletIndex] * kRinv1GeVf;
+            float pt = __H2F(quintupletsInGPU.innerRadius[quintupletIndex]) * kRinv1GeVf;
             float eta = __H2F(quintupletsInGPU.eta[quintupletIndex]);
             float phi = __H2F(quintupletsInGPU.phi[quintupletIndex]);
 
@@ -984,7 +984,7 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     
     // T5 radius is average of the inner and outer radius
-    const float pt = quintupletsInGPU.innerRadius * kRinv1GeVf;
+    const float pt = quintupletsInGPU.innerRadius[T5] * kRinv1GeVf;
 
     // T5 eta and phi are computed using outer and innermost hits
     SDLMath::Hit hitA(trk.ph2_x()[Hit_0], trk.ph2_y()[Hit_0], trk.ph2_z()[Hit_0]);
