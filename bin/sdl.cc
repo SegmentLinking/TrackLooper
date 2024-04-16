@@ -297,7 +297,7 @@ int main(int argc, char** argv)
 //___________________________________________________________________________________________________________________________________________________________________________________________
 void run_sdl()
 {
-    SDL::Dev devAcc = alpaka::getDevByIdx(SDL::platformAcc, 0u);
+    SDL::Dev devAcc = alpaka::getDevByIdx(ALPAKA_ACCELERATOR_NAMESPACE::Platform{}, 0u);
     SDL::QueueAcc queue(devAcc);
 
     // Load various maps used in the SDL reconstruction

@@ -36,9 +36,9 @@ namespace SDL {
     std::vector<unsigned int> connectedModuleDetIds_pos;
     std::vector<unsigned int> connectedModuleDetIds_neg;
 
-    int totalSizes = 0;
-    int totalSizes_pos = 0;
-    int totalSizes_neg = 0;
+    unsigned int totalSizes = 0;
+    unsigned int totalSizes_pos = 0;
+    unsigned int totalSizes_neg = 0;
     for (unsigned int isuperbin = 0; isuperbin < size_superbins; isuperbin++) {
       int sizes = 0;
       for (auto const& mCM_pLS : pLStoLayer[0]) {
@@ -77,7 +77,7 @@ namespace SDL {
       totalSizes_neg += sizes_neg;
     }
 
-    int connectedPix_size = totalSizes + totalSizes_pos + totalSizes_neg;
+    unsigned int connectedPix_size = totalSizes + totalSizes_pos + totalSizes_neg;
 
     // Temporary check for module initialization.
     if (pix_tot != connectedPix_size) {
@@ -91,17 +91,17 @@ namespace SDL {
     auto connectedPixels_buf = allocBufWrapper<unsigned int>(devHost, connectedPix_size);
     unsigned int* connectedPixels = alpaka::getPtrNative(connectedPixels_buf);
 
-    for (int icondet = 0; icondet < totalSizes; icondet++) {
+    for (unsigned int icondet = 0; icondet < totalSizes; icondet++) {
       connectedPixels[icondet] = mmd.detIdToIndex[connectedModuleDetIds[icondet]];
     }
-    for (int icondet = 0; icondet < totalSizes_pos; icondet++) {
+    for (unsigned int icondet = 0; icondet < totalSizes_pos; icondet++) {
       connectedPixels[icondet + totalSizes] = mmd.detIdToIndex[connectedModuleDetIds_pos[icondet]];
     }
-    for (int icondet = 0; icondet < totalSizes_neg; icondet++) {
+    for (unsigned int icondet = 0; icondet < totalSizes_neg; icondet++) {
       connectedPixels[icondet + totalSizes + totalSizes_pos] = mmd.detIdToIndex[connectedModuleDetIds_neg[icondet]];
     }
 
-    alpaka::memcpy(queue, modulesBuf->connectedPixels_buf, connectedPixels_buf, connectedPix_size);
+    alpaka::memcpy(queue, modulesBuf->connectedPixels_buf, connectedPixels_buf);
     alpaka::wait(queue);
   };
 
@@ -127,8 +127,8 @@ namespace SDL {
       }
     }
 
-    alpaka::memcpy(queue, modulesBuf->moduleMap_buf, moduleMap_buf, nMod * MAX_CONNECTED_MODULES);
-    alpaka::memcpy(queue, modulesBuf->nConnectedModules_buf, nConnectedModules_buf, nMod);
+    alpaka::memcpy(queue, modulesBuf->moduleMap_buf, moduleMap_buf);
+    alpaka::memcpy(queue, modulesBuf->nConnectedModules_buf, nConnectedModules_buf);
     alpaka::wait(queue);
   };
 
@@ -153,8 +153,8 @@ namespace SDL {
       counter++;
     }
 
-    alpaka::memcpy(queue, modulesBuf->mapIdx_buf, mapIdx_buf, nMod);
-    alpaka::memcpy(queue, modulesBuf->mapdetId_buf, mapdetId_buf, nMod);
+    alpaka::memcpy(queue, modulesBuf->mapIdx_buf, mapIdx_buf);
+    alpaka::memcpy(queue, modulesBuf->mapdetId_buf, mapdetId_buf);
     alpaka::wait(queue);
   };
 

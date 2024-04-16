@@ -35,7 +35,7 @@ void SDL::EndcapGeometry<SDL::Dev>::load(SDL::QueueAcc& queue, std::string filen
 
 void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit(SDL::QueueAcc& queue) {
 
-  int phi_size = centroid_phis_.size();
+  unsigned int phi_size = centroid_phis_.size();
 
   // Temporary check for endcap initialization.
   if (phi_size != endcap_size) {
@@ -66,8 +66,8 @@ void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit(SDL::QueueAcc& queu
   nEndCapMap = counter;
 
   // Copy data from host to device buffers
-  alpaka::memcpy(queue, geoMapPhi_buf, mapPhi_host_buf, phi_size);
-  alpaka::memcpy(queue, geoMapDetId_buf, mapDetId_host_buf, phi_size);
+  alpaka::memcpy(queue, geoMapPhi_buf, mapPhi_host_buf);
+  alpaka::memcpy(queue, geoMapDetId_buf, mapDetId_host_buf);
   alpaka::wait(queue);
 }
 

@@ -3,6 +3,8 @@
 
 #include <alpaka/alpaka.hpp>
 
+#include "HeterogeneousCore/AlpakaInterface/interface/config.h"
+
 #ifdef CACHE_ALLOC
 #include "HeterogeneousCore/AlpakaInterface/interface/CachedBufAlloc.h"
 #endif
@@ -23,34 +25,19 @@ namespace SDL {
   typedef float FPX;
 #endif
 
-  using Idx = std::size_t;
-  using Dim = alpaka::DimInt<3u>;
-  using Dim1d = alpaka::DimInt<1u>;
-  using Vec = alpaka::Vec<Dim, Idx>;
-  using Vec1d = alpaka::Vec<Dim1d, Idx>;
-#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED) || defined(ALPAKA_ACC_GPU_HIP_ENABLED)
-  using QueueProperty = alpaka::NonBlocking;
-#else
-  using QueueProperty = alpaka::Blocking;
-#endif
-  using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
+  using Idx = alpaka_common::Idx;
+  using Dim = alpaka_common::Dim3D;
+  using Dim1d = alpaka_common::Dim1D;
+  using Vec = alpaka_common::Vec3D;
+  using Vec1d = alpaka_common::Vec1D;
+  using WorkDiv = alpaka_common::WorkDiv3D;
+
+  using Acc = ALPAKA_ACCELERATOR_NAMESPACE::Acc3D;
+  using Dev = ALPAKA_ACCELERATOR_NAMESPACE::Device;
+  using DevHost = ALPAKA_ACCELERATOR_NAMESPACE::DevHost;
+  using QueueAcc = ALPAKA_ACCELERATOR_NAMESPACE::Queue;
 
   Vec const elementsPerThread(Vec::all(static_cast<Idx>(1)));
-
-// - AccGpuCudaRt
-// - AccCpuThreads
-// - AccCpuSerial
-#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-  using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
-#elif ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED
-  using Acc = alpaka::AccCpuThreads<Dim, Idx>;
-#elif ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
-  using Acc = alpaka::AccCpuSerial<Dim, Idx>;
-#elif ALPAKA_ACC_GPU_HIP_ENABLED
-  using Acc = alpaka::AccGpuHipRt<Dim, Idx>;
-#endif
-  using Dev = alpaka::Dev<Acc>;
-  using DevHost = alpaka::DevCpu;
 
 // Needed for files that are compiled by g++ to not throw an error.
 // uint4 is defined only for CUDA, so we will have to revisit this soon when running on other backends.
@@ -61,13 +48,6 @@ namespace SDL {
     unsigned int z;
     unsigned int w;
   };
-#endif
-
-  auto const platformAcc = alpaka::Platform<Acc>{};
-  auto const platformHost = alpaka::Platform<alpaka::DevCpu>{};
-#if defined ALPAKA_ACC_GPU_CUDA_ENABLED || defined ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED || \
-    defined ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED || defined ALPAKA_ACC_GPU_HIP_ENABLED
-  using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
 #endif
 
   // Buffer type for allocations where auto type can't be used.
