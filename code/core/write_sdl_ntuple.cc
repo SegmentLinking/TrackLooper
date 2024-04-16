@@ -321,7 +321,7 @@ void setPixelQuintupletOutputBranches(SDL::Event<SDL::Acc>* event)
     {
         unsigned int T5Index = getT5FrompT5(event, pT5);
         unsigned int pLSIndex = getPixelLSFrompT5(event, pT5);
-        float pt = segmentsInGPU.ptIn[pLSIndex];
+        float pt = (__H2F(quintupletsInGPU.innerRadius[T5Index]) * kRinv1GeVf + segmentsInGPU.ptIn[pLSIndex]) / 2;
         float eta = segmentsInGPU.eta[pLSIndex];
         float phi = segmentsInGPU.phi[pLSIndex];
 
@@ -805,6 +805,7 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
 {
     // Get relevant information
     SDL::trackCandidatesBuffer<alpaka::DevCpu>& trackCandidatesInGPU = (*event->getTrackCandidates());
+    SDL::quintupletsBuffer<alpaka::DevCpu>& quintupletsInGPU = (*event->getQuintuplets());
     SDL::tripletsBuffer<alpaka::DevCpu>& tripletsInGPU = (*event->getTriplets());
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
     SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event->getHits());
@@ -822,6 +823,7 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     std::vector<unsigned int> Hits = getOuterTrackerHitsFrompT5(event, pT5);
 
     unsigned int pLS = getPixelLSFrompT5(event, pT5);
+    unsigned int T5Index = getT5FrompT5(event, pT5);
 
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     const float k2Rinv1GeVf = kRinv1GeVf / 2.;
@@ -907,9 +909,8 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     const float pt_pLS = segmentsInGPU.ptIn[pLS];
     const float eta_pLS = segmentsInGPU.eta[pLS];
     const float phi_pLS = segmentsInGPU.phi[pLS];
-
-    // average pt
-    const float pt = pt_pLS;
+    float pt_T5 = __H2F(quintupletsInGPU.innerRadius[T5Index]) * kRinv1GeVf;
+    const float pt = (pt_T5 + pt_pLS) / 2;
 
     // Form the hit idx/type vector
     std::vector<unsigned int> hit_idx = getHitIdxsFrompT5(event, pT5);
@@ -983,7 +984,7 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     
     // T5 radius is average of the inner and outer radius
-    const float pt = quintupletsInGPU.innerRadius[T5] * kRinv1GeVf;
+    const float pt = (quintupletsInGPU.innerRadius[T5]+quintupletsInGPU.outerRadius[T5])/2 * kRinv1GeVf;
 
     // T5 eta and phi are computed using outer and innermost hits
     SDLMath::Hit hitA(trk.ph2_x()[Hit_0], trk.ph2_y()[Hit_0], trk.ph2_z()[Hit_0]);
