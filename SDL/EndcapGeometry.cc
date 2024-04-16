@@ -46,6 +46,7 @@ void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit(SDL::QueueAcc& queu
   }
 
   // Allocate buffers on host
+  SDL::DevHost const& devHost = cms::alpakatools::host();
   auto mapPhi_host_buf = allocBufWrapper<float>(devHost, phi_size);
   auto mapDetId_host_buf = allocBufWrapper<unsigned int>(devHost, phi_size);
 

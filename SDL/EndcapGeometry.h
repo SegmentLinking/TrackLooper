@@ -11,6 +11,8 @@
 
 #include "Constants.h"
 
+#include "HeterogeneousCore/AlpakaInterface/interface/host.h"
+
 namespace SDL {
   template <typename TDev>
   class EndcapGeometry {};

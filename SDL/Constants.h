@@ -50,6 +50,7 @@ namespace SDL {
   using Acc = alpaka::AccGpuHipRt<Dim, Idx>;
 #endif
   using Dev = alpaka::Dev<Acc>;
+  using DevHost = alpaka::DevCpu;
 
 // Needed for files that are compiled by g++ to not throw an error.
 // uint4 is defined only for CUDA, so we will have to revisit this soon when running on other backends.
@@ -64,7 +65,6 @@ namespace SDL {
 
   auto const platformAcc = alpaka::Platform<Acc>{};
   auto const platformHost = alpaka::Platform<alpaka::DevCpu>{};
-  auto const devHost = alpaka::getDevByIdx(platformHost, 0u); // Maybe this should be removed too?
 #if defined ALPAKA_ACC_GPU_CUDA_ENABLED || defined ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED || \
     defined ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED || defined ALPAKA_ACC_GPU_HIP_ENABLED
   using QueueAcc = alpaka::Queue<Acc, QueueProperty>;

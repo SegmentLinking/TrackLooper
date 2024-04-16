@@ -12,6 +12,8 @@
 #include "PixelMap.h"
 #include "Globals.h"
 
+#include "HeterogeneousCore/AlpakaInterface/interface/host.h"
+
 namespace SDL {
   struct ModuleMetaData {
     std::map<unsigned int, uint16_t> detIdToIndex;
@@ -85,6 +87,7 @@ namespace SDL {
       throw std::runtime_error("Mismatched sizes");
     }
 
+    DevHost const& devHost = cms::alpakatools::host();
     auto connectedPixels_buf = allocBufWrapper<unsigned int>(devHost, connectedPix_size);
     unsigned int* connectedPixels = alpaka::getPtrNative(connectedPixels_buf);
 
@@ -107,6 +110,7 @@ namespace SDL {
                                                unsigned int nMod,
                                                TQueue queue,
                                                struct ModuleMetaData& mmd) {
+    DevHost const& devHost = cms::alpakatools::host();
     auto moduleMap_buf = allocBufWrapper<uint16_t>(devHost, nMod * MAX_CONNECTED_MODULES);
     uint16_t* moduleMap = alpaka::getPtrNative(moduleMap_buf);
 
@@ -133,6 +137,7 @@ namespace SDL {
                                     unsigned int nMod,
                                     TQueue queue,
                                     struct ModuleMetaData& mmd) {
+    DevHost const& devHost = cms::alpakatools::host();
     auto mapIdx_buf = allocBufWrapper<uint16_t>(devHost, nMod);
     uint16_t* mapIdx = alpaka::getPtrNative(mapIdx_buf);
 
@@ -235,6 +240,7 @@ namespace SDL {
       throw std::runtime_error("Mismatched sizes");
     }
 
+    DevHost const& devHost = cms::alpakatools::host();
     auto detIds_buf = allocBufWrapper<unsigned int>(devHost, nModules);
     auto layers_buf = allocBufWrapper<short>(devHost, nModules);
     auto rings_buf = allocBufWrapper<short>(devHost, nModules);
