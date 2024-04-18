@@ -255,6 +255,10 @@ elif ([[ "$BACKENDOPT" == *"all"* ]] || [[ "$BACKENDOPT" == *"cuda"* ]]) && [ ! 
   echo "ERROR: bin/sdl_cuda failed to compile!" | tee -a ${LOG}
   echo "See ${LOG} file for more detail..." | tee -a ${LOG}
   exit 1
+elif ([[ "$BACKENDOPT" == *"all"* ]] || [[ "$BACKENDOPT" == *"rocm"* ]]) && [ ! -f bin/sdl_rocm ]; then
+  echo "ERROR: bin/sdl_rocm failed to compile!" | tee -a ${LOG}
+  echo "See ${LOG} file for more detail..." | tee -a ${LOG}
+  exit 1
 fi
 
 # Make a symlink with priority CUDA > CPU > ROCM
