@@ -311,8 +311,6 @@ void setPixelQuintupletOutputBranches(SDL::Event<SDL::Acc>* event)
     SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());
     int n_accepted_simtrk = ana.tx->getBranch<vector<int>>("sim_TC_matched").size();
 
-    const float kRinv1GeVf = (2.99792458e-3 * 3.8);
-
     unsigned int nPixelQuintuplets = *pixelQuintupletsInGPU.nPixelQuintuplets; // size of this nPixelTriplets array is 1 (NOTE: parallelism lost here.)
     std::vector<int> sim_pT5_matched(n_accepted_simtrk);
     std::vector<std::vector<int>> pT5_matched_simIdx;
@@ -321,7 +319,7 @@ void setPixelQuintupletOutputBranches(SDL::Event<SDL::Acc>* event)
     {
         unsigned int T5Index = getT5FrompT5(event, pT5);
         unsigned int pLSIndex = getPixelLSFrompT5(event, pT5);
-        float pt = (__H2F(quintupletsInGPU.innerRadius[T5Index]) * kRinv1GeVf + segmentsInGPU.ptIn[pLSIndex]) / 2;
+        float pt = (__H2F(quintupletsInGPU.innerRadius[T5Index]) * SDL::k2Rinv1GeVf * 2 + segmentsInGPU.ptIn[pLSIndex]) / 2;
         float eta = segmentsInGPU.eta[pLSIndex];
         float phi = segmentsInGPU.phi[pLSIndex];
 
@@ -394,7 +392,6 @@ void setQuintupletOutputBranches(SDL::Event<SDL::Acc>* event)
     SDL::quintupletsBuffer<alpaka::DevCpu>& quintupletsInGPU = (*event->getQuintuplets());
     SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
     SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());
-    const float kRinv1GeVf = (2.99792458e-3 * 3.8);
     int n_accepted_simtrk = ana.tx->getBranch<vector<int>>("sim_TC_matched").size();
 
     std::vector<int> sim_t5_matched(n_accepted_simtrk);
@@ -406,7 +403,7 @@ void setQuintupletOutputBranches(SDL::Event<SDL::Acc>* event)
         for (unsigned int idx = 0; idx < nQuintuplets; idx++)
         {
             unsigned int quintupletIndex = rangesInGPU.quintupletModuleIndices[lowerModuleIdx] + idx;
-            float pt = quintupletsInGPU.innerRadius[quintupletIndex] * kRinv1GeVf;
+            float pt = __H2F(quintupletsInGPU.innerRadius[quintupletIndex]) * SDL::k2Rinv1GeVf * 2;
             float eta = __H2F(quintupletsInGPU.eta[quintupletIndex]);
             float phi = __H2F(quintupletsInGPU.phi[quintupletIndex]);
 
@@ -483,23 +480,12 @@ void setPixelTripletOutputBranches(SDL::Event<SDL::Acc>* event)
     unsigned int nPixelTriplets = *pixelTripletsInGPU.nPixelTriplets;
     std::vector<int> sim_pT3_matched(n_accepted_simtrk);
     std::vector<std::vector<int>> pT3_matched_simIdx;
-    const float kRinv1GeVf = (2.99792458e-3 * 3.8);
-    const float k2Rinv1GeVf = kRinv1GeVf / 2.;
 
     for (unsigned int pT3 = 0; pT3 < nPixelTriplets; pT3++)
     {
         unsigned int T3Index = getT3FrompT3(event, pT3);
         unsigned int pLSIndex = getPixelLSFrompT3(event, pT3);
-        std::vector<unsigned int> Hits = getOuterTrackerHitsFrompT3(event, pT3);
-        unsigned int Hit_0 = Hits[0];
-        unsigned int Hit_4 = Hits[4];
-        const float dr = sqrt(pow(hitsInGPU.xs[Hit_4] - hitsInGPU.xs[Hit_0], 2) + pow(hitsInGPU.ys[Hit_4] - hitsInGPU.ys[Hit_0], 2));
-        float betaIn   = __H2F(tripletsInGPU.betaIn[T3Index]);
-        float betaOut  = __H2F(tripletsInGPU.betaOut[T3Index]);
-        const float pt_T3 = abs(dr * k2Rinv1GeVf / sin((betaIn + betaOut) / 2.));
-
-        const float pt_pLS = segmentsInGPU.ptIn[pLSIndex];
-        const float pt = (pt_pLS + pt_T3) / 2.;
+        const float pt = segmentsInGPU.ptIn[pLSIndex];
 
         float eta = segmentsInGPU.eta[pLSIndex];
         float phi = segmentsInGPU.phi[pLSIndex];
@@ -746,9 +732,7 @@ void setGnnNtupleMiniDoublet(SDL::Event<SDL::Acc>* event, unsigned int MD)
     float dphichange = miniDoubletsInGPU.dphichanges[MD];
 
     // Computing pt
-    const float kRinv1GeVf = (2.99792458e-3 * 3.8);
-    const float k2Rinv1GeVf = kRinv1GeVf / 2.;
-    float pt = hit0_r * k2Rinv1GeVf / sin(dphichange);
+    float pt = hit0_r * SDL::k2Rinv1GeVf / sin(dphichange);
 
     // T5 eta and phi are computed using outer and innermost hits
     SDLMath::Hit hitA(trk.ph2_x()[anchitidx], trk.ph2_y()[anchitidx], trk.ph2_z()[anchitidx]);
@@ -814,9 +798,8 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
 {
     // Get relevant information
     SDL::trackCandidatesBuffer<alpaka::DevCpu>& trackCandidatesInGPU = (*event->getTrackCandidates());
-    SDL::tripletsBuffer<alpaka::DevCpu>& tripletsInGPU = (*event->getTriplets());
+    SDL::quintupletsBuffer<alpaka::DevCpu>& quintupletsInGPU = (*event->getQuintuplets());
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
-    SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event->getHits());
 
     //
     // pictorial representation of a pT5
@@ -828,19 +811,8 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     //                oo -- oo -- oo               first T3 of the T5
     //                            oo -- oo -- oo   second T3 of the T5
     unsigned int pT5 = trackCandidatesInGPU.directObjectIndices[idx];
-    std::vector<unsigned int> Hits = getOuterTrackerHitsFrompT5(event, pT5);
-    unsigned int Hit_0 = Hits[0];
-    unsigned int Hit_4 = Hits[4];
-    unsigned int Hit_8 = Hits[8];
-
-    std::vector<unsigned int> T3s = getT3sFrompT5(event, pT5);
-    unsigned int T3_0 = T3s[0];
-    unsigned int T3_1 = T3s[1];
-
     unsigned int pLS = getPixelLSFrompT5(event, pT5);
-
-    const float kRinv1GeVf = (2.99792458e-3 * 3.8);
-    const float k2Rinv1GeVf = kRinv1GeVf / 2.;
+    unsigned int T5Index = getT5FrompT5(event, pT5);
 
     //=================================================================================
     // Some history and geometry lesson...
@@ -919,25 +891,12 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     // Anyhow, as of now, we compute 2 beta's for T3s, and T5 has two T3s.
     // And from there we estimate the pt's and we compute pt_T5.
 
-    // Compute the radial distance between first mini-doublet to third minidoublet
-    const float dr_in = sqrt(pow(hitsInGPU.xs[Hit_4] - hitsInGPU.xs[Hit_0], 2) + pow(hitsInGPU.ys[Hit_4] - hitsInGPU.ys[Hit_0], 2));
-    // Compute the radial distance between third mini-doublet to fifth minidoublet
-    const float dr_out = sqrt(pow(hitsInGPU.xs[Hit_8] - hitsInGPU.xs[Hit_4], 2) + pow(hitsInGPU.ys[Hit_8] - hitsInGPU.ys[Hit_4], 2));
-    float betaIn_in   = __H2F(tripletsInGPU.betaIn[T3_0]);
-    float betaOut_in  = __H2F(tripletsInGPU.betaOut[T3_0]);
-    float betaIn_out  = __H2F(tripletsInGPU.betaIn[T3_1]);
-    float betaOut_out = __H2F(tripletsInGPU.betaOut[T3_1]);
-    const float ptAv_in = abs(dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.));
-    const float ptAv_out = abs(dr_out * k2Rinv1GeVf / sin((betaIn_out + betaOut_out) / 2.));
-    const float pt_T5 = (ptAv_in + ptAv_out) / 2.;
-
     // pixel pt
     const float pt_pLS = segmentsInGPU.ptIn[pLS];
     const float eta_pLS = segmentsInGPU.eta[pLS];
     const float phi_pLS = segmentsInGPU.phi[pLS];
-
-    // average pt
-    const float pt = (pt_pLS + pt_T5) / 2.;
+    float pt_T5 = __H2F(quintupletsInGPU.innerRadius[T5Index]) * 2 * SDL::k2Rinv1GeVf;
+    const float pt = (pt_T5 + pt_pLS) / 2;
 
     // Form the hit idx/type vector
     std::vector<unsigned int> hit_idx = getHitIdxsFrompT5(event, pT5);
@@ -952,9 +911,7 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
 {
     // Get relevant information
     SDL::trackCandidatesBuffer<alpaka::DevCpu>& trackCandidatesInGPU = (*event->getTrackCandidates());
-    SDL::tripletsBuffer<alpaka::DevCpu>& tripletsInGPU = (*event->getTriplets());
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
-    SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event->getHits());
 
     //
     // pictorial representation of a pT3
@@ -964,20 +921,7 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     // pLS            01    23    45               (anchor hit of a minidoublet is always the first of the pair)
     // ****           oo -- oo -- oo               pT3
     unsigned int pT3 = trackCandidatesInGPU.directObjectIndices[idx];
-    std::vector<unsigned int> Hits = getOuterTrackerHitsFrompT3(event, pT3);
-    unsigned int Hit_0 = Hits[0];
-    unsigned int Hit_4 = Hits[4];
-
-    unsigned int T3 = getT3FrompT3(event, pT3);
-
     unsigned int pLS = getPixelLSFrompT3(event, pT3);
-
-    const float kRinv1GeVf = (2.99792458e-3 * 3.8);
-    const float k2Rinv1GeVf = kRinv1GeVf / 2.;
-    const float dr = sqrt(pow(hitsInGPU.xs[Hit_4] - hitsInGPU.xs[Hit_0], 2) + pow(hitsInGPU.ys[Hit_4] - hitsInGPU.ys[Hit_0], 2));
-    float betaIn   = __H2F(tripletsInGPU.betaIn[T3]);
-    float betaOut  = __H2F(tripletsInGPU.betaOut[T3]);
-    const float pt_T3 = abs(dr * k2Rinv1GeVf / sin((betaIn + betaOut) / 2.));
 
     // pixel pt
     const float pt_pLS = segmentsInGPU.ptIn[pLS];
@@ -985,7 +929,7 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     const float phi_pLS = segmentsInGPU.phi[pLS];
 
     // average pt
-    const float pt = (pt_pLS + pt_T3) / 2.;
+    const float pt = pt_pLS;
 
     // Form the hit idx/type vector
     std::vector<unsigned int> hit_idx = getHitIdxsFrompT3(event, pT3);
@@ -999,10 +943,8 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
 std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> parseT5(SDL::Event<SDL::Acc>* event, unsigned int idx)
 {
     SDL::trackCandidatesBuffer<alpaka::DevCpu>& trackCandidatesInGPU = (*event->getTrackCandidates());
-    SDL::tripletsBuffer<alpaka::DevCpu>& tripletsInGPU = (*event->getTriplets());
-    SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = (*event->getHits());
+    SDL::quintupletsBuffer<alpaka::DevCpu>& quintupletsInGPU = (*event->getQuintuplets());
     unsigned int T5 = trackCandidatesInGPU.directObjectIndices[idx];
-    std::vector<unsigned int> T3s = getT3sFromT5(event, T5);
     std::vector<unsigned int> hits = getHitsFromT5(event, T5);
 
     //
@@ -1015,27 +957,9 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     unsigned int Hit_0 = hits[0];
     unsigned int Hit_4 = hits[4];
     unsigned int Hit_8 = hits[8];
-
-    // radial distance
-    const float dr_in = sqrt(pow(hitsInGPU.xs[Hit_4] - hitsInGPU.xs[Hit_0], 2) + pow(hitsInGPU.ys[Hit_4] - hitsInGPU.ys[Hit_0], 2));
-    const float dr_out = sqrt(pow(hitsInGPU.xs[Hit_8] - hitsInGPU.xs[Hit_4], 2) + pow(hitsInGPU.ys[Hit_8] - hitsInGPU.ys[Hit_4], 2));
-
-    // beta angles
-    float betaIn_in   = __H2F(tripletsInGPU.betaIn [T3s[0]]);
-    float betaOut_in  = __H2F(tripletsInGPU.betaOut[T3s[0]]);
-    float betaIn_out  = __H2F(tripletsInGPU.betaIn [T3s[1]]);
-    float betaOut_out = __H2F(tripletsInGPU.betaOut[T3s[1]]);
-
-    // constants
-    const float kRinv1GeVf = (2.99792458e-3 * 3.8);
-    const float k2Rinv1GeVf = kRinv1GeVf / 2.;
-
-    // Compute pt estimates from inner and outer triplets
-    const float ptAv_in = abs(dr_in * k2Rinv1GeVf / sin((betaIn_in + betaOut_in) / 2.));
-    const float ptAv_out = abs(dr_out * k2Rinv1GeVf / sin((betaIn_out + betaOut_out) / 2.));
-
-    // T5 pt is average of the two pt estimates
-    const float pt = (ptAv_in + ptAv_out) / 2.;
+    
+    // T5 radius is average of the inner and outer radius
+    const float pt = quintupletsInGPU.innerRadius[T5] * SDL::k2Rinv1GeVf * 2;
 
     // T5 eta and phi are computed using outer and innermost hits
     SDLMath::Hit hitA(trk.ph2_x()[Hit_0], trk.ph2_y()[Hit_0], trk.ph2_z()[Hit_0]);
