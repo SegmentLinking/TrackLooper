@@ -188,39 +188,35 @@ namespace SDL {
 
     /* Load the whole text file into the map first*/
 
-    std::ifstream ifile;
-    ifile.open(moduleMetaDataFilePath);
+    std::ifstream ifile(moduleMetaDataFilePath, std::ios::binary);
     if (!ifile.is_open()) {
-      std::cout << "ERROR! module list file not present!" << std::endl;
+        std::cout << "ERROR! module list file not present!" << std::endl;
+        return;
     }
-    std::string line;
+
     uint16_t counter = 0;
+    unsigned int temp_detId;
+    float module_x, module_y, module_z;
+    int module_type;
 
-    while (std::getline(ifile, line)) {
-      std::stringstream ss(line);
-      std::string token;
-      int count_number = 0;
+    while (ifile.read(reinterpret_cast<char*>(&temp_detId), sizeof(temp_detId))) {
+      ifile.read(reinterpret_cast<char*>(&module_x), sizeof(module_x));
+      ifile.read(reinterpret_cast<char*>(&module_y), sizeof(module_y));
+      ifile.read(reinterpret_cast<char*>(&module_z), sizeof(module_z));
+      ifile.read(reinterpret_cast<char*>(&module_type), sizeof(module_type));
 
-      unsigned int temp_detId;
-      while (std::getline(ss, token, ',')) {
-        if (count_number == 0) {
-          temp_detId = stoi(token);
-          mmd.detIdToIndex[temp_detId] = counter;
-        }
-        if (count_number == 1)
-          mmd.module_x[temp_detId] = std::stof(token);
-        if (count_number == 2)
-          mmd.module_y[temp_detId] = std::stof(token);
-        if (count_number == 3)
-          mmd.module_z[temp_detId] = std::stof(token);
-        if (count_number == 4) {
-          mmd.module_type[temp_detId] = std::stoi(token);
-          counter++;
-        }
-        count_number++;
-        if (count_number > 4)
-          break;
+      if (!ifile) { // Check if all reads were successful
+        std::cout << "Failed to read data for detId: " << temp_detId << std::endl;
+        continue;
       }
+
+      mmd.detIdToIndex[temp_detId] = counter;
+      mmd.module_x[temp_detId] = module_x;
+      mmd.module_y[temp_detId] = module_y;
+      mmd.module_z[temp_detId] = module_z;
+      mmd.module_type[temp_detId] = module_type;
+
+      counter++;
     }
 
     mmd.detIdToIndex[1] = counter;  //pixel module is the last module in the module list

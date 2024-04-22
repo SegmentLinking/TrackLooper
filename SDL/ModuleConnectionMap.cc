@@ -9,26 +9,38 @@ SDL::ModuleConnectionMap<SDL::Dev>::~ModuleConnectionMap() {}
 void SDL::ModuleConnectionMap<SDL::Dev>::load(std::string filename) {
   moduleConnections_.clear();
 
-  std::ifstream ifile;
-  ifile.open(filename.c_str());
-  std::string line;
+  std::ifstream ifile(filename, std::ios::binary);
+  if (!ifile.is_open()) {
+    throw std::runtime_error("Unable to open file: " + filename);
+  }
 
-  while (std::getline(ifile, line)) {
-    unsigned int detid;
-    int number_of_connections;
-    std::vector<unsigned int> connected_detids;
-    unsigned int connected_detid;
+  unsigned int detid;
+  unsigned int number_of_connections;
 
-    std::stringstream ss(line);
+  // Read data until end of file or a read fails
+  while (ifile.read(reinterpret_cast<char*>(&detid), sizeof(detid)) &&
+          ifile.read(reinterpret_cast<char*>(&number_of_connections), sizeof(number_of_connections))) {
+      std::vector<unsigned int> connected_detids;
 
-    ss >> detid >> number_of_connections;
+      for (unsigned int ii = 0; ii < number_of_connections; ++ii) {
+          unsigned int connected_detid;
+          if (ifile.read(reinterpret_cast<char*>(&connected_detid), sizeof(connected_detid))) {
+              connected_detids.push_back(connected_detid);
+          } else {
+              // Proper handling of read failure
+              if (ifile.eof()) {
+                  break;  // Break the inner loop on EOF
+              } else {
+                  throw std::runtime_error("Failed to read connection data for detid " + std::to_string(detid));
+              }
+          }
+      }
+      moduleConnections_[detid] = connected_detids;
+      if (ifile.eof()) break; // Check if EOF is reached after reading all connections for a detid
+  }
 
-    for (int ii = 0; ii < number_of_connections; ++ii) {
-      ss >> connected_detid;
-      connected_detids.push_back(connected_detid);
-    }
-
-    moduleConnections_[detid] = connected_detids;
+  if (ifile.fail() && !ifile.eof()) {
+      throw std::runtime_error("Unexpected error during file read.");
   }
 }
 
