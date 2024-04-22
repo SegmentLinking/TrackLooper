@@ -233,13 +233,8 @@ namespace SDL {
             if (nMatched >= 7) {
               if (score_rphisum1 > score_rphisum2) {
                 rmQuintupletFromMemory(quintupletsInGPU, ix);
-                continue;
               } else if ((score_rphisum1 == score_rphisum2) && (ix < jx)) {
                 rmQuintupletFromMemory(quintupletsInGPU, ix);
-                continue;
-              } else {
-                rmQuintupletFromMemory(quintupletsInGPU, jx);
-                continue;
               }
             }
           }
@@ -276,7 +271,7 @@ namespace SDL {
 
           for (unsigned int ix1 = 0; ix1 < nQuintuplets_lowmod1; ix1 += 1) {
             unsigned int ix = quintupletModuleIndices_lowmod1 + ix1;
-            if (quintupletsInGPU.partOfPT5[ix] || quintupletsInGPU.isDup[ix])
+            if (quintupletsInGPU.partOfPT5[ix])
               continue;
 
             for (unsigned int jx1 = 0; jx1 < nQuintuplets_lowmod2; jx1++) {
@@ -284,7 +279,7 @@ namespace SDL {
               if (ix == jx)
                 continue;
 
-              if (quintupletsInGPU.partOfPT5[jx] || quintupletsInGPU.isDup[jx])
+              if (quintupletsInGPU.partOfPT5[jx])
                 continue;
 
               float eta1 = __H2F(quintupletsInGPU.eta[ix]);
@@ -325,9 +320,7 @@ namespace SDL {
 
   struct removeDupPixelTripletsInGPUFromMap {
     template <typename TAcc>
-    ALPAKA_FN_ACC void operator()(TAcc const& acc,
-                                  struct SDL::pixelTriplets pixelTripletsInGPU,
-                                  bool secondPass) const {
+    ALPAKA_FN_ACC void operator()(TAcc const& acc, struct SDL::pixelTriplets pixelTripletsInGPU) const {
       auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
       auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
@@ -360,23 +353,15 @@ namespace SDL {
 
   struct removeDupPixelQuintupletsInGPUFromMap {
     template <typename TAcc>
-    ALPAKA_FN_ACC void operator()(TAcc const& acc,
-                                  struct SDL::pixelQuintuplets pixelQuintupletsInGPU,
-                                  bool secondPass) const {
+    ALPAKA_FN_ACC void operator()(TAcc const& acc, struct SDL::pixelQuintuplets pixelQuintupletsInGPU) const {
       auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
       auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
       unsigned int nPixelQuintuplets = *pixelQuintupletsInGPU.nPixelQuintuplets;
       for (unsigned int ix = globalThreadIdx[1]; ix < nPixelQuintuplets; ix += gridThreadExtent[1]) {
-        if (secondPass && pixelQuintupletsInGPU.isDup[ix])
-          continue;
-
         float score1 = __H2F(pixelQuintupletsInGPU.score[ix]);
         for (unsigned int jx = globalThreadIdx[2]; jx < nPixelQuintuplets; jx += gridThreadExtent[2]) {
           if (ix == jx)
-            continue;
-
-          if (secondPass && pixelQuintupletsInGPU.isDup[jx])
             continue;
 
           int nMatched = checkHitspT5(ix, jx, pixelQuintupletsInGPU);

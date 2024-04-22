@@ -927,11 +927,8 @@ void SDL::Event<SDL::Acc>::createPixelTriplets() {
       createWorkDiv(blocksPerGridDupPixTrip, threadsPerBlockDupPixTrip, elementsPerThread);
 
   SDL::removeDupPixelTripletsInGPUFromMap removeDupPixelTripletsInGPUFromMap_kernel;
-  auto const removeDupPixelTripletsInGPUFromMapTask(
-      alpaka::createTaskKernel<Acc>(removeDupPixelTripletsInGPUFromMap_workDiv,
-                                    removeDupPixelTripletsInGPUFromMap_kernel,
-                                    *pixelTripletsInGPU,
-                                    false));
+  auto const removeDupPixelTripletsInGPUFromMapTask(alpaka::createTaskKernel<Acc>(
+      removeDupPixelTripletsInGPUFromMap_workDiv, removeDupPixelTripletsInGPUFromMap_kernel, *pixelTripletsInGPU));
 
   alpaka::enqueue(queue, removeDupPixelTripletsInGPUFromMapTask);
   alpaka::wait(queue);
@@ -1155,8 +1152,7 @@ void SDL::Event<SDL::Acc>::createPixelQuintuplets() {
   auto const removeDupPixelQuintupletsInGPUFromMapTask(
       alpaka::createTaskKernel<Acc>(removeDupPixelQuintupletsInGPUFromMap_workDiv,
                                     removeDupPixelQuintupletsInGPUFromMap_kernel,
-                                    *pixelQuintupletsInGPU,
-                                    false));
+                                    *pixelQuintupletsInGPU));
 
   alpaka::enqueue(queue, removeDupPixelQuintupletsInGPUFromMapTask);
 
