@@ -179,33 +179,33 @@ namespace SDL {
   inline void loadCentroidsFromFile(const char* filePath, ModuleMetaData& mmd, uint16_t& nModules) {
     std::ifstream ifile(filePath, std::ios::binary);
     if (!ifile.is_open()) {
-      std::cout << "ERROR! module list file not present!" << std::endl;
-      return;
+      throw std::runtime_error("Unable to open file: " + std::string(filePath));
     }
 
     uint16_t counter = 0;
-    unsigned int temp_detId;
-    float module_x, module_y, module_z;
-    int module_type;
+    while (!ifile.eof()) {
+      unsigned int temp_detId;
+      float module_x, module_y, module_z;
+      int module_type;
 
-    while (ifile.read(reinterpret_cast<char*>(&temp_detId), sizeof(temp_detId))) {
+      ifile.read(reinterpret_cast<char*>(&temp_detId), sizeof(temp_detId));
       ifile.read(reinterpret_cast<char*>(&module_x), sizeof(module_x));
       ifile.read(reinterpret_cast<char*>(&module_y), sizeof(module_y));
       ifile.read(reinterpret_cast<char*>(&module_z), sizeof(module_z));
       ifile.read(reinterpret_cast<char*>(&module_type), sizeof(module_type));
 
-      if (!ifile) {  // Check if all reads were successful
-        std::cout << "Failed to read data for detId: " << temp_detId << std::endl;
-        continue;
+      if (ifile) {
+        mmd.detIdToIndex[temp_detId] = counter;
+        mmd.module_x[temp_detId] = module_x;
+        mmd.module_y[temp_detId] = module_y;
+        mmd.module_z[temp_detId] = module_z;
+        mmd.module_type[temp_detId] = module_type;
+        counter++;
+      } else {
+        if (!ifile.eof()) {
+          throw std::runtime_error("Failed to read data for detId: " + std::to_string(temp_detId));
+        }
       }
-
-      mmd.detIdToIndex[temp_detId] = counter;
-      mmd.module_x[temp_detId] = module_x;
-      mmd.module_y[temp_detId] = module_y;
-      mmd.module_z[temp_detId] = module_z;
-      mmd.module_type[temp_detId] = module_type;
-
-      counter++;
     }
 
     mmd.detIdToIndex[1] = counter;  //pixel module is the last module in the module list

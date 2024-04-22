@@ -14,34 +14,38 @@ void SDL::ModuleConnectionMap<SDL::Dev>::load(std::string filename) {
     throw std::runtime_error("Unable to open file: " + filename);
   }
 
-  unsigned int detid;
-  unsigned int number_of_connections;
+  while (!ifile.eof()) {
+    unsigned int detid, number_of_connections;
 
-  // Read data until end of file or a read fails
-  while (ifile.read(reinterpret_cast<char*>(&detid), sizeof(detid)) &&
-         ifile.read(reinterpret_cast<char*>(&number_of_connections), sizeof(number_of_connections))) {
-    std::vector<unsigned int> connected_detids;
+    // Read the detid and the number of connections from the binary file
+    ifile.read(reinterpret_cast<char*>(&detid), sizeof(detid));
+    ifile.read(reinterpret_cast<char*>(&number_of_connections), sizeof(number_of_connections));
 
-    for (unsigned int ii = 0; ii < number_of_connections; ++ii) {
-      unsigned int connected_detid;
-      if (ifile.read(reinterpret_cast<char*>(&connected_detid), sizeof(connected_detid))) {
-        connected_detids.push_back(connected_detid);
-      } else {
-        // Proper handling of read failure
-        if (ifile.eof()) {
-          break;  // Break the inner loop on EOF
+    if (ifile) {
+      std::vector<unsigned int> connected_detids;
+
+      // Read the connections for the given detid
+      for (unsigned int i = 0; i < number_of_connections; ++i) {
+        unsigned int connected_detid;
+        ifile.read(reinterpret_cast<char*>(&connected_detid), sizeof(connected_detid));
+        if (ifile) {
+          connected_detids.push_back(connected_detid);
         } else {
-          throw std::runtime_error("Failed to read connection data for detid " + std::to_string(detid));
+          if (!ifile.eof()) {
+            throw std::runtime_error("Failed to read connection data.");
+          }
+          break;  // Exit loop on read failure that's not EOF
         }
       }
-    }
-    moduleConnections_[detid] = connected_detids;
-    if (ifile.eof())
-      break;  // Check if EOF is reached after reading all connections for a detid
-  }
 
-  if (ifile.fail() && !ifile.eof()) {
-    throw std::runtime_error("Unexpected error during file read.");
+      if (ifile) {
+        moduleConnections_[detid] = connected_detids;
+      }
+    } else {
+      if (!ifile.eof()) {
+        throw std::runtime_error("Failed to read binary data.");
+      }
+    }
   }
 }
 
