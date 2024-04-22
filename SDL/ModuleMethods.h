@@ -176,19 +176,8 @@ namespace SDL {
     eta = ((m_z > 0) - (m_z < 0)) * std::acosh(r / std::sqrt(m_x * m_x + m_y * m_y));
   };
 
-  template <typename TQueue, typename TDev>
-  void loadModulesFromFile(struct modulesBuffer<TDev>* modulesBuf,
-                           uint16_t& nModules,
-                           uint16_t& nLowerModules,
-                           struct pixelMap& pixelMapping,
-                           TQueue& queue,
-                           const char* moduleMetaDataFilePath,
-                           const MapPLStoLayer& pLStoLayer) {
-    ModuleMetaData mmd;
-
-    /* Load the whole text file into the map first*/
-
-    std::ifstream ifile(moduleMetaDataFilePath, std::ios::binary);
+  inline void loadCentroidsFromFile(const char* filePath, ModuleMetaData& mmd, uint16_t& nModules) {
+    std::ifstream ifile(filePath, std::ios::binary);
     if (!ifile.is_open()) {
       std::cout << "ERROR! module list file not present!" << std::endl;
       return;
@@ -230,6 +219,19 @@ namespace SDL {
       std::cerr << "Please change modules_size in Constants.h to make it equal to nModules.\n";
       throw std::runtime_error("Mismatched sizes");
     }
+  };
+
+  template <typename TQueue, typename TDev>
+  void loadModulesFromFile(struct modulesBuffer<TDev>* modulesBuf,
+                           uint16_t& nModules,
+                           uint16_t& nLowerModules,
+                           struct pixelMap& pixelMapping,
+                           TQueue& queue,
+                           const char* moduleMetaDataFilePath,
+                           const MapPLStoLayer& pLStoLayer) {
+    ModuleMetaData mmd;
+
+    loadCentroidsFromFile(moduleMetaDataFilePath, mmd, nModules);
 
     auto detIds_buf = allocBufWrapper<unsigned int>(devHost, nModules);
     auto layers_buf = allocBufWrapper<short>(devHost, nModules);
