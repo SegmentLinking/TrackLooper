@@ -851,17 +851,18 @@ void SDL::Event<SDL::Acc>::createPixelTriplets() {
   unsigned int* connectedPixelIndex_host = alpaka::getPtrNative(connectedPixelIndex_host_buf);
   alpaka::wait(queue);
 
-  int pixelIndexOffsetPos = Globals<SDL::Dev>::pixelMapping->connectedPixelsIndex[44999] +
-                            Globals<SDL::Dev>::pixelMapping->connectedPixelsSizes[44999];
-  int pixelIndexOffsetNeg = Globals<SDL::Dev>::pixelMapping->connectedPixelsIndexPos[44999] +
-                            Globals<SDL::Dev>::pixelMapping->connectedPixelsSizes[44999] + pixelIndexOffsetPos;
+  int pixelIndexOffsetPos = Globals<SDL::Dev>::pixelMapping->connectedPixelsIndex[size_superbins - 1] +
+                            Globals<SDL::Dev>::pixelMapping->connectedPixelsSizes[size_superbins - 1];
+  int pixelIndexOffsetNeg = Globals<SDL::Dev>::pixelMapping->connectedPixelsIndexPos[size_superbins - 1] +
+                            Globals<SDL::Dev>::pixelMapping->connectedPixelsSizesPos[size_superbins - 1] +
+                            pixelIndexOffsetPos;
 
   // TODO: check if a map/reduction to just eligible pLSs would speed up the kernel
   // the current selection still leaves a significant fraction of unmatchable pLSs
   for (unsigned int i = 0; i < nInnerSegments; i++) {  // loop over # pLS
     int8_t pixelType = pixelTypes[i];                  // Get pixel type for this pLS
     int superbin = superbins[i];                       // Get superbin for this pixel
-    if ((superbin < 0) or (superbin >= 45000) or (pixelType > 2) or (pixelType < 0)) {
+    if ((superbin < 0) or (superbin >= (int)size_superbins) or (pixelType > 2) or (pixelType < 0)) {
       connectedPixelSize_host[i] = 0;
       connectedPixelIndex_host[i] = 0;
       continue;
@@ -1085,16 +1086,17 @@ void SDL::Event<SDL::Acc>::createPixelQuintuplets() {
   unsigned int* connectedPixelIndex_host = alpaka::getPtrNative(connectedPixelIndex_host_buf);
   alpaka::wait(queue);
 
-  int pixelIndexOffsetPos = Globals<SDL::Dev>::pixelMapping->connectedPixelsIndex[44999] +
-                            Globals<SDL::Dev>::pixelMapping->connectedPixelsSizes[44999];
-  int pixelIndexOffsetNeg = Globals<SDL::Dev>::pixelMapping->connectedPixelsIndexPos[44999] +
-                            Globals<SDL::Dev>::pixelMapping->connectedPixelsSizes[44999] + pixelIndexOffsetPos;
+  int pixelIndexOffsetPos = Globals<SDL::Dev>::pixelMapping->connectedPixelsIndex[size_superbins - 1] +
+                            Globals<SDL::Dev>::pixelMapping->connectedPixelsSizes[size_superbins - 1];
+  int pixelIndexOffsetNeg = Globals<SDL::Dev>::pixelMapping->connectedPixelsIndexPos[size_superbins - 1] +
+                            Globals<SDL::Dev>::pixelMapping->connectedPixelsSizesPos[size_superbins - 1] +
+                            pixelIndexOffsetPos;
 
   // Loop over # pLS
   for (unsigned int i = 0; i < nInnerSegments; i++) {
     int8_t pixelType = pixelTypes[i];  // Get pixel type for this pLS
     int superbin = superbins[i];       // Get superbin for this pixel
-    if ((superbin < 0) or (superbin >= 45000) or (pixelType > 2) or (pixelType < 0)) {
+    if ((superbin < 0) or (superbin >= (int)size_superbins) or (pixelType > 2) or (pixelType < 0)) {
       connectedPixelIndex_host[i] = 0;
       connectedPixelSize_host[i] = 0;
       continue;
