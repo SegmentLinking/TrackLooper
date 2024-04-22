@@ -56,7 +56,7 @@ namespace {
 
 }  // namespace
 
-void SDL::LST<SDL::Acc>::loadAndFillES(SDL::QueueAcc& queue, struct modulesBuffer<alpaka::DevCpu>* modules) {
+void SDL::LST<SDL::Acc>::loadAndFillES(SDL::QueueAcc& queue, struct modulesBuffer<SDL::Dev>* modules) {
   SDL::MapPLStoLayer pLStoLayer;
   SDL::Dev const& devAccIn = alpaka::getDev(queue);
   ::loadMaps(devAccIn, queue, pLStoLayer);
