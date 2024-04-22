@@ -2,4 +2,4 @@ This folder contains the geometry and module map inputs required by the main LST
 
 ## Current Geometry Versions
 
-- OT800_IT615_pt0.8 : [Tracker Version OT800_IT615](https://cms-tklayout.web.cern.ch/cms-tklayout/layouts-work/recent-layouts/OT800_IT615/info.html)
+- OT800_IT615 : [Tracker Version OT800_IT615](https://cms-tklayout.web.cern.ch/cms-tklayout/layouts-work/recent-layouts/OT800_IT615/info.html)

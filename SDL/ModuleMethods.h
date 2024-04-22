@@ -190,8 +190,8 @@ namespace SDL {
 
     std::ifstream ifile(moduleMetaDataFilePath, std::ios::binary);
     if (!ifile.is_open()) {
-        std::cout << "ERROR! module list file not present!" << std::endl;
-        return;
+      std::cout << "ERROR! module list file not present!" << std::endl;
+      return;
     }
 
     uint16_t counter = 0;
@@ -205,7 +205,7 @@ namespace SDL {
       ifile.read(reinterpret_cast<char*>(&module_z), sizeof(module_z));
       ifile.read(reinterpret_cast<char*>(&module_type), sizeof(module_type));
 
-      if (!ifile) { // Check if all reads were successful
+      if (!ifile) {  // Check if all reads were successful
         std::cout << "Failed to read data for detId: " << temp_detId << std::endl;
         continue;
       }

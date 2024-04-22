@@ -19,28 +19,29 @@ void SDL::ModuleConnectionMap<SDL::Dev>::load(std::string filename) {
 
   // Read data until end of file or a read fails
   while (ifile.read(reinterpret_cast<char*>(&detid), sizeof(detid)) &&
-          ifile.read(reinterpret_cast<char*>(&number_of_connections), sizeof(number_of_connections))) {
-      std::vector<unsigned int> connected_detids;
+         ifile.read(reinterpret_cast<char*>(&number_of_connections), sizeof(number_of_connections))) {
+    std::vector<unsigned int> connected_detids;
 
-      for (unsigned int ii = 0; ii < number_of_connections; ++ii) {
-          unsigned int connected_detid;
-          if (ifile.read(reinterpret_cast<char*>(&connected_detid), sizeof(connected_detid))) {
-              connected_detids.push_back(connected_detid);
-          } else {
-              // Proper handling of read failure
-              if (ifile.eof()) {
-                  break;  // Break the inner loop on EOF
-              } else {
-                  throw std::runtime_error("Failed to read connection data for detid " + std::to_string(detid));
-              }
-          }
+    for (unsigned int ii = 0; ii < number_of_connections; ++ii) {
+      unsigned int connected_detid;
+      if (ifile.read(reinterpret_cast<char*>(&connected_detid), sizeof(connected_detid))) {
+        connected_detids.push_back(connected_detid);
+      } else {
+        // Proper handling of read failure
+        if (ifile.eof()) {
+          break;  // Break the inner loop on EOF
+        } else {
+          throw std::runtime_error("Failed to read connection data for detid " + std::to_string(detid));
+        }
       }
-      moduleConnections_[detid] = connected_detids;
-      if (ifile.eof()) break; // Check if EOF is reached after reading all connections for a detid
+    }
+    moduleConnections_[detid] = connected_detids;
+    if (ifile.eof())
+      break;  // Check if EOF is reached after reading all connections for a detid
   }
 
   if (ifile.fail() && !ifile.eof()) {
-      throw std::runtime_error("Unexpected error during file read.");
+    throw std::runtime_error("Unexpected error during file read.");
   }
 }
 
