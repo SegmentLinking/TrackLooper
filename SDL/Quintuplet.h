@@ -744,41 +744,6 @@ namespace SDL {
   };
 
   template <typename TAcc>
-  ALPAKA_FN_ACC ALPAKA_FN_INLINE float computeRadiusFromThreeAnchorHits(
-      TAcc const& acc, float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f) {
-    float radius = 0.f;
-
-    //writing manual code for computing radius, which obviously sucks
-    //TODO:Use fancy inbuilt libraries like cuBLAS or cuSOLVE for this!
-    //(g,f) -> center
-    //first anchor hit - (x1,y1), second anchor hit - (x2,y2), third anchor hit - (x3, y3)
-
-    float denomInv = 1.0f / ((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3));
-
-    float xy1sqr = x1 * x1 + y1 * y1;
-
-    float xy2sqr = x2 * x2 + y2 * y2;
-
-    float xy3sqr = x3 * x3 + y3 * y3;
-
-    g = 0.5f * ((y3 - y2) * xy1sqr + (y1 - y3) * xy2sqr + (y2 - y1) * xy3sqr) * denomInv;
-
-    f = 0.5f * ((x2 - x3) * xy1sqr + (x3 - x1) * xy2sqr + (x1 - x2) * xy3sqr) * denomInv;
-
-    float c = ((x2 * y3 - x3 * y2) * xy1sqr + (x3 * y1 - x1 * y3) * xy2sqr + (x1 * y2 - x2 * y1) * xy3sqr) * denomInv;
-
-    if (((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3) == 0) || (g * g + f * f - c < 0)) {
-#ifdef Warnings
-      printf("three collinear points or FATAL! r^2 < 0!\n");
-#endif
-      radius = -1.f;
-    } else
-      radius = alpaka::math::sqrt(acc, g * g + f * f - c);
-
-    return radius;
-  };
-
-  template <typename TAcc>
   ALPAKA_FN_ACC ALPAKA_FN_INLINE void computeErrorInRadius(TAcc const& acc,
                                                            float* x1Vec,
                                                            float* y1Vec,
@@ -2732,9 +2697,11 @@ namespace SDL {
     computeErrorInRadius(acc, x3Vec, y3Vec, x1Vec, y1Vec, x2Vec, y2Vec, outerRadiusMin2S, outerRadiusMax2S);
 
     float g, f;
-    outerRadius = computeRadiusFromThreeAnchorHits(acc, x3, y3, x4, y4, x5, y5, g, f);
+    outerRadius = tripletsInGPU.Circle_Radius[outerTripletIndex];
     bridgeRadius = computeRadiusFromThreeAnchorHits(acc, x2, y2, x3, y3, x4, y4, g, f);
-    innerRadius = computeRadiusFromThreeAnchorHits(acc, x1, y1, x2, y2, x3, y3, g, f);
+    innerRadius = tripletsInGPU.Circle_Radius[innerTripletIndex];
+    g = tripletsInGPU.Circle_CenterX[innerTripletIndex];
+    f = tripletsInGPU.Circle_CenterY[innerTripletIndex];
 
 #ifdef USE_RZCHI2
     float inner_pt = 2 * k2Rinv1GeVf * innerRadius;
