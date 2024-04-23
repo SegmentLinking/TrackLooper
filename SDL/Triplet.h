@@ -957,23 +957,8 @@ namespace SDL {
     const float dBetaInLum = lIn < 11 ? 0.0f : alpaka::math::abs(acc, alphaInAbsReg * SDL::deltaZLum / z_InLo);
     const float dBetaOutLum = lOut < 11 ? 0.0f : alpaka::math::abs(acc, alphaOutAbsReg * SDL::deltaZLum / z_OutLo);
     const float dBetaLum2 = (dBetaInLum + dBetaOutLum) * (dBetaInLum + dBetaOutLum);
-    const float sinDPhi = alpaka::math::sin(acc, dPhi);
 
-    const float dBetaRIn2 = 0;  // TODO-RH
-    // const float dBetaROut2 = 0; // TODO-RH
-    float dBetaROut = 0;
-    if (modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS) {
-      dBetaROut =
-          (alpaka::math::sqrt(acc,
-                              mdsInGPU.anchorHighEdgeX[fourthMDIndex] * mdsInGPU.anchorHighEdgeX[fourthMDIndex] +
-                                  mdsInGPU.anchorHighEdgeY[fourthMDIndex] * mdsInGPU.anchorHighEdgeY[fourthMDIndex]) -
-           alpaka::math::sqrt(acc,
-                              mdsInGPU.anchorLowEdgeX[fourthMDIndex] * mdsInGPU.anchorLowEdgeX[fourthMDIndex] +
-                                  mdsInGPU.anchorLowEdgeY[fourthMDIndex] * mdsInGPU.anchorLowEdgeY[fourthMDIndex])) *
-          sinDPhi / dr;
-    }
-
-    const float dBetaROut2 = dBetaROut * dBetaROut;
+//    const float dBetaROut2 = dBetaROut * dBetaROut;
     betaOutCut =
         alpaka::math::asin(
             acc,
@@ -981,20 +966,7 @@ namespace SDL {
         + (0.02f / sdOut_d) + alpaka::math::sqrt(acc, dBetaLum2 + dBetaMuls * dBetaMuls);
 
     //Cut #6: The real beta cut
-    pass = pass and (alpaka::math::abs(acc, betaOut) < betaOutCut);
-    if (not pass)
-      return pass;
-
-    float dBetaRes = 0.02f / alpaka::math::min(acc, sdOut_d, sdIn_d);
-    float dBetaCut2 =
-        (dBetaRes * dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2 +
-         0.25f *
-             (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)) *
-             (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)));
-    float dBeta = betaIn - betaOut;
-    deltaBetaCut = alpaka::math::sqrt(acc, dBetaCut2);
-    //Cut #7: Cut on dBet
-    pass = pass and (dBeta * dBeta <= dBetaCut2);
+//    pass = pass and (alpaka::math::abs(acc, betaOut) < betaOutCut);
 
     return pass;
   };
@@ -1267,6 +1239,41 @@ namespace SDL {
     pass = pass and (dBeta * dBeta <= dBetaCut2);
 
     return pass;
+  };
+
+  template <typename TAcc>
+  ALPAKA_FN_ACC ALPAKA_FN_INLINE float computeRadiusFromThreeAnchorHits(
+      TAcc const& acc, float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f) {
+    float radius = 0.f;
+
+    //writing manual code for computing radius, which obviously sucks
+    //TODO:Use fancy inbuilt libraries like cuBLAS or cuSOLVE for this!
+    //(g,f) -> center
+    //first anchor hit - (x1,y1), second anchor hit - (x2,y2), third anchor hit - (x3, y3)
+
+    float denomInv = 1.0f / ((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3));
+
+    float xy1sqr = x1 * x1 + y1 * y1;
+
+    float xy2sqr = x2 * x2 + y2 * y2;
+
+    float xy3sqr = x3 * x3 + y3 * y3;
+
+    g = 0.5f * ((y3 - y2) * xy1sqr + (y1 - y3) * xy2sqr + (y2 - y1) * xy3sqr) * denomInv;
+
+    f = 0.5f * ((x2 - x3) * xy1sqr + (x3 - x1) * xy2sqr + (x1 - x2) * xy3sqr) * denomInv;
+
+    float c = ((x2 * y3 - x3 * y2) * xy1sqr + (x3 * y1 - x1 * y3) * xy2sqr + (x1 * y2 - x2 * y1) * xy3sqr) * denomInv;
+
+    if (((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3) == 0) || (g * g + f * f - c < 0)) {
+#ifdef Warnings
+      printf("three collinear points or FATAL! r^2 < 0!\n");
+#endif
+      radius = -1.f;
+    } else
+      radius = alpaka::math::sqrt(acc, g * g + f * f - c);
+
+    return radius;
   };
 
   template <typename TAcc>
