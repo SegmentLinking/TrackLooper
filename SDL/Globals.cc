@@ -6,7 +6,7 @@ std::shared_ptr<SDL::pixelMap> SDL::Globals<SDL::Dev>::pixelMapping = nullptr;
 uint16_t SDL::Globals<SDL::Dev>::nModules;
 uint16_t SDL::Globals<SDL::Dev>::nLowerModules;
 
-SDL::EndcapGeometry<SDL::Dev>* SDL::Globals<SDL::Dev>::endcapGeometry = new SDL::EndcapGeometry<SDL::Dev>();
+SDL::EndcapGeometry<SDL::Dev>* SDL::Globals<SDL::Dev>::endcapGeometry = nullptr;
 
 SDL::TiltedGeometry<SDL::Dev> SDL::Globals<SDL::Dev>::tiltedGeometry;
 SDL::ModuleConnectionMap<SDL::Dev> SDL::Globals<SDL::Dev>::moduleConnectionMap;

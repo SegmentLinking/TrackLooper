@@ -1,16 +1,19 @@
 #include "EndcapGeometry.h"
 
-SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(unsigned int sizef)
-    : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAcc, sizef)),
-      geoMapPhi_buf(allocBufWrapper<float>(devAcc, sizef)) {}
+SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(SDL::Dev const& devAccIn, unsigned int sizef)
+    : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAccIn, sizef)),
+      geoMapPhi_buf(allocBufWrapper<float>(devAccIn, sizef)) {}
 
-SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(std::string filename, unsigned int sizef)
-    : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAcc, sizef)),
-      geoMapPhi_buf(allocBufWrapper<float>(devAcc, sizef)) {
-  load(filename);
+SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(SDL::Dev const& devAccIn,
+                                              SDL::QueueAcc& queue,
+                                              std::string filename,
+                                              unsigned int sizef)
+    : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAccIn, sizef)),
+      geoMapPhi_buf(allocBufWrapper<float>(devAccIn, sizef)) {
+  load(queue, filename);
 }
 
-void SDL::EndcapGeometry<SDL::Dev>::load(std::string filename) {
+void SDL::EndcapGeometry<SDL::Dev>::load(SDL::QueueAcc& queue, std::string filename) {
   dxdy_slope_.clear();
   centroid_phis_.clear();
 
@@ -39,13 +42,11 @@ void SDL::EndcapGeometry<SDL::Dev>::load(std::string filename) {
     }
   }
 
-  fillGeoMapArraysExplicit();
+  fillGeoMapArraysExplicit(queue);
 }
 
-void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit() {
-  QueueAcc queue(devAcc);
-
-  int phi_size = centroid_phis_.size();
+void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit(SDL::QueueAcc& queue) {
+  unsigned int phi_size = centroid_phis_.size();
 
   // Temporary check for endcap initialization.
   if (phi_size != endcap_size) {
@@ -56,6 +57,7 @@ void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit() {
   }
 
   // Allocate buffers on host
+  SDL::DevHost const& devHost = cms::alpakatools::host();
   auto mapPhi_host_buf = allocBufWrapper<float>(devHost, phi_size);
   auto mapDetId_host_buf = allocBufWrapper<unsigned int>(devHost, phi_size);
 
@@ -75,8 +77,8 @@ void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit() {
   nEndCapMap = counter;
 
   // Copy data from host to device buffers
-  alpaka::memcpy(queue, geoMapPhi_buf, mapPhi_host_buf, phi_size);
-  alpaka::memcpy(queue, geoMapDetId_buf, mapDetId_host_buf, phi_size);
+  alpaka::memcpy(queue, geoMapPhi_buf, mapPhi_host_buf);
+  alpaka::memcpy(queue, geoMapDetId_buf, mapDetId_host_buf);
   alpaka::wait(queue);
 }
 

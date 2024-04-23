@@ -11,6 +11,8 @@
 
 #include "Constants.h"
 
+#include "HeterogeneousCore/AlpakaInterface/interface/host.h"
+
 namespace SDL {
   template <typename TDev>
   class EndcapGeometry {};
@@ -26,14 +28,13 @@ namespace SDL {
 
     unsigned int nEndCapMap;
 
-    EndcapGeometry(unsigned int sizef = endcap_size);
-    EndcapGeometry(std::string filename, unsigned int sizef = endcap_size);
+    EndcapGeometry(Dev const& devAccIn, unsigned int sizef = endcap_size);
+    EndcapGeometry(Dev const& devAccIn, QueueAcc& queue, std::string filename, unsigned int sizef = endcap_size);
     ~EndcapGeometry() = default;
 
-    void load(std::string);
+    void load(QueueAcc& queue, std::string);
 
-    void fillGeoMapArraysExplicit();
-    void CreateGeoMapArraysExplicit();
+    void fillGeoMapArraysExplicit(QueueAcc& queue);
     float getdxdy_slope(unsigned int detid);
   };
 }  // namespace SDL

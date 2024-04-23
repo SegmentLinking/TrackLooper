@@ -297,11 +297,13 @@ int main(int argc, char** argv)
 //___________________________________________________________________________________________________________________________________________________________________________________________
 void run_sdl()
 {
+    SDL::Dev devAcc = alpaka::getDevByIdx(ALPAKA_ACCELERATOR_NAMESPACE::Platform{}, 0u);
+    SDL::QueueAcc queue(devAcc);
 
     // Load various maps used in the SDL reconstruction
     TStopwatch full_timer;
     full_timer.Start();
-    loadMaps();
+    loadMaps(devAcc, queue);
     float timeForMapLoading = full_timer.RealTime()*1000;
 
     if (ana.do_write_ntuple)
@@ -383,7 +385,7 @@ void run_sdl()
     std::vector<SDL::Event<SDL::Acc>*> events;
     for (int s = 0; s < ana.streams; s++)
     {
-        SDL::Event<SDL::Acc> *event = new SDL::Event<SDL::Acc>(ana.verbose>=2);
+        SDL::Event<SDL::Acc> *event = new SDL::Event<SDL::Acc>(ana.verbose>=2, queue);
         events.push_back(event);
     }
     float timeForEventCreation = full_timer.RealTime()*1000;

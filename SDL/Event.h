@@ -13,6 +13,8 @@
 #include "TrackCandidate.h"
 #include "Constants.h"
 
+#include "HeterogeneousCore/AlpakaInterface/interface/host.h"
+
 namespace SDL {
   template <typename TAcc>
   class Event {};
@@ -21,6 +23,8 @@ namespace SDL {
   class Event<SDL::Acc> {
   private:
     QueueAcc queue;
+    Dev devAcc;
+    DevHost devHost;
     bool addObjects;
 
     std::array<unsigned int, 6> n_hits_by_layer_barrel_;
@@ -75,11 +79,9 @@ namespace SDL {
     int8_t* pixelTypeCPU;
 
   public:
-    // Standalone constructor that has each event object create its own queue.
-    Event(bool verbose);
     // Constructor used for CMSSW integration. Uses an external queue.
     template <typename TQueue>
-    Event(bool verbose, const TQueue& q) : queue(q) {
+    Event(bool verbose, TQueue const& q) : queue(q), devAcc(alpaka::getDev(q)), devHost(cms::alpakatools::host()) {
       init(verbose);
     }
     void resetEvent();
@@ -177,7 +179,9 @@ namespace SDL {
     modulesBuffer<alpaka::DevCpu>* getModules(bool isFull = false);
 
     //read from file and init
-    static void initModules(const MapPLStoLayer& pLStoLayer, const char* moduleMetaDataFilePath);
+    static void initModules(QueueAcc& queue,
+                            const MapPLStoLayer& pLStoLayer,
+                            const char* moduleMetaDataFilePath);
   };
 
 }  // namespace SDL

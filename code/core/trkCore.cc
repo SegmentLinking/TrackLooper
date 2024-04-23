@@ -2,7 +2,7 @@
 #include "Globals.h"
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-void loadMaps()
+void loadMaps(SDL::Dev& devAccIn, SDL::QueueAcc& queue)
 {
     // From the environment variable figure out the main tracklooper absolute path
     TString TrackLooperDir = gSystem->Getenv("TRACKLOOPERDIR");
@@ -21,7 +21,9 @@ void loadMaps()
     std::cout << "pLS map: " << pLSMapDir << std::endl;
     std::cout << "centroid: " << centroid << std::endl;
 
-    SDL::Globals<SDL::Dev>::endcapGeometry->load(endcap_geom.Data()); // centroid values added to the map
+    if (SDL::Globals<SDL::Dev>::endcapGeometry == nullptr) {
+      SDL::Globals<SDL::Dev>::endcapGeometry = new SDL::EndcapGeometry<SDL::Dev>(devAccIn, queue, endcap_geom.Data()); // centroid values added to the map
+    }
     SDL::Globals<SDL::Dev>::tiltedGeometry.load(tilted_geom.Data());
     SDL::Globals<SDL::Dev>::moduleConnectionMap.load(mappath.Data());
 
@@ -41,12 +43,12 @@ void loadMaps()
 
     // WARNING: initModules must come after above load commands!! keep it at the last line here!
     if (SDL::Globals<SDL::Dev>::modulesBuffers == nullptr) {
-      SDL::Globals<SDL::Dev>::modulesBuffers = new SDL::modulesBuffer<SDL::Dev>(SDL::devAcc);
+      SDL::Globals<SDL::Dev>::modulesBuffers = new SDL::modulesBuffer<SDL::Dev>(devAccIn);
     }
     if (SDL::Globals<SDL::Dev>::pixelMapping == nullptr) {
       SDL::Globals<SDL::Dev>::pixelMapping = std::make_shared<SDL::pixelMap>();
     }
-    SDL::Event<SDL::Acc>::initModules(pLStoLayer, centroid.Data());
+    SDL::Event<SDL::Acc>::initModules(queue, pLStoLayer, centroid.Data());
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
