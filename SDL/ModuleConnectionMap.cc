@@ -43,7 +43,7 @@ void SDL::ModuleConnectionMap<SDL::Dev>::load(std::string filename) {
       }
     } else {
       if (!ifile.eof()) {
-        throw std::runtime_error("Failed to read binary data.");
+        throw std::runtime_error("Failed to read module connection binary data.");
       }
     }
   }

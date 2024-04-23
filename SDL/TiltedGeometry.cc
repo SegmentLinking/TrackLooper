@@ -26,7 +26,7 @@ void SDL::TiltedGeometry<SDL::Dev>::load(std::string filename) {
     } else {
       // End of file or read failed
       if (!ifile.eof()) {
-        throw std::runtime_error("Failed to read binary data.");
+        throw std::runtime_error("Failed to read Tilted Geometry binary data.");
       }
     }
   }
