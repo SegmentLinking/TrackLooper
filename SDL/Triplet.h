@@ -830,104 +830,18 @@ namespace SDL {
                                                                 float& deltaBetaCut,
                                                                 float& kZ) {
     bool pass = true;
-    bool isPS_InLo = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
-    bool isPS_OutLo = (modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS);
 
     float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
     float rt_InOut = mdsInGPU.anchorRt[secondMDIndex];
     float rt_OutLo = mdsInGPU.anchorRt[thirdMDIndex];
 
     float z_InLo = mdsInGPU.anchorZ[firstMDIndex];
-    float z_InOut = mdsInGPU.anchorZ[secondMDIndex];
     float z_OutLo = mdsInGPU.anchorZ[thirdMDIndex];
 
-    float alpha1GeV_OutLo =
-        alpaka::math::asin(acc, alpaka::math::min(acc, rt_OutLo * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax));
-
-    float rtRatio_OutLoInLo = rt_OutLo / rt_InLo;  // Outer segment beginning rt divided by inner segment beginning rt;
-    float dzDrtScale =
-        alpaka::math::tan(acc, alpha1GeV_OutLo) / alpha1GeV_OutLo;  // The track can bend in r-z plane slightly
-    float zpitch_InLo = (isPS_InLo ? SDL::pixelPSZpitch : SDL::strip2SZpitch);
-    float zpitch_OutLo = (isPS_OutLo ? SDL::pixelPSZpitch : SDL::strip2SZpitch);
-    float zGeom = zpitch_InLo + zpitch_OutLo;
-
-    zLo = z_InLo + (z_InLo - SDL::deltaZLum) * (rtRatio_OutLoInLo - 1.f) * (z_InLo > 0.f ? 1.f : dzDrtScale) - zGeom;
-
-    // Cut #0: Preliminary (Only here in endcap case)
-    pass = pass and (z_InLo * z_OutLo > 0);
-    if (not pass)
-      return pass;
-
-    float dLum = SDL::copysignf(SDL::deltaZLum, z_InLo);
-    bool isOutSgInnerMDPS = modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS;
-    float rtGeom1 = isOutSgInnerMDPS ? SDL::pixelPSZpitch : SDL::strip2SZpitch;
-    float zGeom1 = SDL::copysignf(zGeom, z_InLo);
-    rtLo = rt_InLo * (1.f + (z_OutLo - z_InLo - zGeom1) / (z_InLo + zGeom1 + dLum) / dzDrtScale) -
-           rtGeom1;  //slope correction only on the lower end
-    zOut = z_OutLo;
-    rtOut = rt_OutLo;
-
-    //Cut #1: rt condition
-    pass = pass and (rtOut >= rtLo);
-    if (not pass)
-      return pass;
-
-    float zInForHi = z_InLo - zGeom1 - dLum;
-    if (zInForHi * z_InLo < 0) {
-      zInForHi = SDL::copysignf(0.1f, z_InLo);
-    }
-    rtHi = rt_InLo * (1.f + (z_OutLo - z_InLo + zGeom1) / zInForHi) + rtGeom1;
-
-    //Cut #2: rt condition
-    pass = pass and ((rt_OutLo >= rtLo) && (rt_OutLo <= rtHi));
-    if (not pass)
-      return pass;
-
     float rIn = alpaka::math::sqrt(acc, z_InLo * z_InLo + rt_InLo * rt_InLo);
-    const float drtSDIn = rt_InOut - rt_InLo;
-    const float dzSDIn = z_InOut - z_InLo;
-    const float dr3SDIn = alpaka::math::sqrt(acc, rt_InOut * rt_InOut + z_InOut * z_InOut) -
-                          alpaka::math::sqrt(acc, rt_InLo * rt_InLo + z_InLo * z_InLo);
-
-    const float coshEta = dr3SDIn / drtSDIn;  //direction estimate
-    const float dzOutInAbs = alpaka::math::abs(acc, z_OutLo - z_InLo);
-    const float multDzDr = dzOutInAbs * coshEta / (coshEta * coshEta - 1.f);
-    const float zGeom1_another = SDL::pixelPSZpitch;
-    kZ = (z_OutLo - z_InLo) / dzSDIn;
-    float drtErr =
-        zGeom1_another * zGeom1_another * drtSDIn * drtSDIn / dzSDIn / dzSDIn * (1.f - 2.f * kZ + 2.f * kZ * kZ);
     const float sdlThetaMulsF = 0.015f * alpaka::math::sqrt(acc, 0.1f + 0.2f * (rt_OutLo - rt_InLo) / 50.f) *
                                 alpaka::math::sqrt(acc, rIn / rt_InLo);
-    const float sdlMuls = sdlThetaMulsF * 3.f / SDL::ptCut * 4.f;  //will need a better guess than x4?
-    drtErr +=
-        sdlMuls * sdlMuls * multDzDr * multDzDr / 3.f * coshEta * coshEta;  //sloppy: relative muls is 1/3 of total muls
-    drtErr = alpaka::math::sqrt(acc, drtErr);
 
-    //Cut #3: rt-z pointed
-    pass = pass and ((kZ >= 0) && (rtOut >= rtLo) && (rtOut <= rtHi));
-    if (not pass)
-      return pass;
-
-    const float sdlPVoff = 0.1f / rt_OutLo;
-    sdlCut = alpha1GeV_OutLo + alpaka::math::sqrt(acc, sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
-
-    deltaPhiPos = SDL::phi_mpi_pi(acc, mdsInGPU.anchorPhi[fourthMDIndex] - mdsInGPU.anchorPhi[secondMDIndex]);
-
-    //Cut #4: deltaPhiPos can be tighter
-    pass = pass and (alpaka::math::abs(acc, deltaPhiPos) <= sdlCut);
-    if (not pass)
-      return pass;
-
-    float midPointX = 0.5f * (mdsInGPU.anchorX[firstMDIndex] + mdsInGPU.anchorX[thirdMDIndex]);
-    float midPointY = 0.5f * (mdsInGPU.anchorY[firstMDIndex] + mdsInGPU.anchorY[thirdMDIndex]);
-    float diffX = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
-    float diffY = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-
-    dPhi = SDL::deltaPhi(acc, midPointX, midPointY, diffX, diffY);
-    // Cut #5: deltaPhiChange
-    pass = pass and (alpaka::math::abs(acc, dPhi) <= sdlCut);
-    if (not pass)
-      return pass;
 
     float sdIn_alpha = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
     float sdIn_alpha_min = __H2F(segmentsInGPU.dPhiChangeMins[innerSegmentIndex]);
