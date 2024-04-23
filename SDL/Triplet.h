@@ -20,6 +20,9 @@ namespace SDL {
     FPX* betaIn;
     FPX* betaOut;
     FPX* pt_beta;
+    FPX* Circle_Radius;
+    FPX* Circle_CenterX;
+    FPX* Circle_CenterY;
     bool* partOfPT5;
     bool* partOfT5;
     bool* partOfPT3;
@@ -54,6 +57,9 @@ namespace SDL {
       betaIn = alpaka::getPtrNative(tripletsbuf.betaIn_buf);
       betaOut = alpaka::getPtrNative(tripletsbuf.betaOut_buf);
       pt_beta = alpaka::getPtrNative(tripletsbuf.pt_beta_buf);
+      Circle_Radius = alpaka::getPtrNative(tripletsbuf.Circle_Radius_buf);
+      Circle_CenterX = alpaka::getPtrNative(tripletsbuf.Circle_CenterX_buf);
+      Circle_CenterY = alpaka::getPtrNative(tripletsbuf.Circle_CenterY_buf);
       partOfPT5 = alpaka::getPtrNative(tripletsbuf.partOfPT5_buf);
       partOfT5 = alpaka::getPtrNative(tripletsbuf.partOfT5_buf);
       partOfPT3 = alpaka::getPtrNative(tripletsbuf.partOfPT3_buf);
@@ -89,6 +95,9 @@ namespace SDL {
     Buf<TDev, FPX> betaIn_buf;
     Buf<TDev, FPX> betaOut_buf;
     Buf<TDev, FPX> pt_beta_buf;
+    Buf<TDev, FPX> Circle_Radius_buf;
+    Buf<TDev, FPX> Circle_CenterX_buf;
+    Buf<TDev, FPX> Circle_CenterY_buf;
     Buf<TDev, bool> partOfPT5_buf;
     Buf<TDev, bool> partOfT5_buf;
     Buf<TDev, bool> partOfPT3_buf;
@@ -123,6 +132,9 @@ namespace SDL {
           betaIn_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
           betaOut_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
           pt_beta_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
+          Circle_Radius_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
+          Circle_CenterX_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
+          Circle_CenterY_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
           partOfPT5_buf(allocBufWrapper<bool>(devAccIn, maxTriplets, queue)),
           partOfT5_buf(allocBufWrapper<bool>(devAccIn, maxTriplets, queue)),
           partOfPT3_buf(allocBufWrapper<bool>(devAccIn, maxTriplets, queue))
@@ -170,6 +182,9 @@ namespace SDL {
                                                          float& betaIn,
                                                          float& betaOut,
                                                          float& pt_beta,
+                                                         float& Circle_Radius,
+                                                         float& Circle_CenterX,
+                                                         float& Circle_CenterY,
                                                          float& zLo,
                                                          float& zHi,
                                                          float& rtLo,
@@ -195,6 +210,9 @@ namespace SDL {
                                                          float& betaIn,
                                                          float& betaOut,
                                                          float& pt_beta,
+                                                         float& Circle_Radius,
+                                                         float& Circle_CenterX,
+                                                         float& Circle_CenterY,
                                                          unsigned int& tripletIndex)
 #endif
   {
@@ -207,7 +225,9 @@ namespace SDL {
     tripletsInGPU.betaIn[tripletIndex] = __F2H(betaIn);
     tripletsInGPU.betaOut[tripletIndex] = __F2H(betaOut);
     tripletsInGPU.pt_beta[tripletIndex] = __F2H(pt_beta);
-
+    tripletsInGPU.Circle_Radius[tripletIndex] = __F2H(Circle_Radius);
+    tripletsInGPU.Circle_CenterX[tripletIndex] = __F2H(Circle_CenterX);
+    tripletsInGPU.Circle_CenterY[tripletIndex] = __F2H(Circle_CenterY);
     tripletsInGPU.logicalLayers[tripletIndex * 3] =
         modulesInGPU.layers[innerInnerLowerModuleIndex] + (modulesInGPU.subdets[innerInnerLowerModuleIndex] == 4) * 6;
     tripletsInGPU.logicalLayers[tripletIndex * 3 + 1] =
@@ -833,20 +853,10 @@ namespace SDL {
 
     float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
     float rt_InOut = mdsInGPU.anchorRt[secondMDIndex];
-    float rt_OutLo = mdsInGPU.anchorRt[thirdMDIndex];
-
-    float z_InLo = mdsInGPU.anchorZ[firstMDIndex];
-    float z_OutLo = mdsInGPU.anchorZ[thirdMDIndex];
-
-    float rIn = alpaka::math::sqrt(acc, z_InLo * z_InLo + rt_InLo * rt_InLo);
-    const float sdlThetaMulsF = 0.015f * alpaka::math::sqrt(acc, 0.1f + 0.2f * (rt_OutLo - rt_InLo) / 50.f) *
-                                alpaka::math::sqrt(acc, rIn / rt_InLo);
-
 
     float sdIn_alpha = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
     float sdIn_alpha_min = __H2F(segmentsInGPU.dPhiChangeMins[innerSegmentIndex]);
     float sdIn_alpha_max = __H2F(segmentsInGPU.dPhiChangeMaxs[innerSegmentIndex]);
-    float sdOut_alpha = sdIn_alpha;  //weird
 
     float sdOut_alphaOut = SDL::phi_mpi_pi(acc,
                                            SDL::phi(acc,
@@ -1423,6 +1433,9 @@ namespace SDL {
                                                                    float& betaIn,
                                                                    float& betaOut,
                                                                    float& pt_beta,
+                                                                   float& Circle_Radius,
+                                                                   float& Circle_CenterX,
+                                                                   float& Circle_CenterY,
                                                                    float& zLo,
                                                                    float& zHi,
                                                                    float& rtLo,
@@ -1503,6 +1516,15 @@ namespace SDL {
                                            deltaBetaCut,
                                            kZ));
 
+    float x1 = mdsInGPU.anchorX[firstMDIndex];
+    float x2 = mdsInGPU.anchorX[secondMDIndex];
+    float x3 = mdsInGPU.anchorX[thirdMDIndex];
+    float y1 = mdsInGPU.anchorY[firstMDIndex];
+    float y2 = mdsInGPU.anchorY[secondMDIndex];
+    float y3 = mdsInGPU.anchorY[thirdMDIndex];
+
+    Circle_Radius = computeRadiusFromThreeAnchorHits(acc, x1, y1, x2, y2, x3, y3, Circle_CenterX, Circle_CenterY);
+    pt_beta = Circle_Radius * SDL::k2Rinv1GeVf * 2;
     return pass;
   };
 
@@ -1546,7 +1568,7 @@ namespace SDL {
 
             uint16_t outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex];
 
-            float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta;
+            float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, Circle_Radius, Circle_CenterX, Circle_CenterY;
             float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ;
 
             bool success = runTripletConstraintsAndAlgo(acc,
@@ -1565,6 +1587,9 @@ namespace SDL {
                                                         betaIn,
                                                         betaOut,
                                                         pt_beta,
+                                                        Circle_Radius,
+                                                        Circle_CenterX,
+                                                        Circle_CenterY,
                                                         zLo,
                                                         zHi,
                                                         rtLo,
@@ -1607,6 +1632,9 @@ namespace SDL {
                                    betaIn,
                                    betaOut,
                                    pt_beta,
+                                   Circle_Radius,
+                                   Circle_CenterX,
+                                   Circle_CenterY,
                                    zLo,
                                    zHi,
                                    rtLo,
@@ -1632,6 +1660,9 @@ namespace SDL {
                                    betaIn,
                                    betaOut,
                                    pt_beta,
+                                   Circle_Radius,
+                                   Circle_CenterX,
+                                   Circle_CenterY,
                                    tripletIndex);
 #endif
               }
