@@ -13,7 +13,7 @@
 
 // --------------------- ======================== ---------------------
 
-void loadMaps();
+void loadMaps(SDL::Dev& devAccIn, SDL::QueueAcc& queue);
 bool goodEvent();
 float runMiniDoublet(SDL::Event<SDL::Acc>* event, int evt);
 float runSegment(SDL::Event<SDL::Acc>* event);

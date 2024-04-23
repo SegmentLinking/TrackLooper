@@ -10,7 +10,10 @@ OBJECTS=$(OBJECTS_CPU) $(OBJECTS_CUDA) $(OBJECTS_ROCM)
 
 CXX         = g++
 CXXFLAGS    = -g -O2 -Wall -fPIC -Wshadow -Woverloaded-virtual -Wno-unused-function -fno-var-tracking -std=c++17
-INCLUDEFLAGS= -ISDL -I$(shell pwd) -Icode -Icode/core -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include $(shell rooutil-config --include) -I$(shell root-config --incdir)
+INCLUDEFLAGS= -ISDL -I$(shell pwd) -Icode -Icode/core -I${ALPAKA_ROOT}/include -I/${BOOST_ROOT}/include $(shell rooutil-config --include) -I$(shell root-config --incdir) -I${CMSSW_BASE}/src
+ifdef CMSSW_RELEASE_BASE
+INCLUDEFLAGS:= ${INCLUDEFLAGS} -I${CMSSW_RELEASE_BASE}/src
+endif
 LDFLAGS     = -g -O2 $(SDLLIB) -L${TRACKLOOPERDIR}/SDL $(shell rooutil-config --libs) $(shell root-config --libs)
 LDFLAGS_CUDA= -L${CUDA_HOME}/lib64 -lcudart
 LDFLAGS_ROCM= -L${ROCM_ROOT}/lib -lamdhip64

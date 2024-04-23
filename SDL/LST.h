@@ -24,7 +24,7 @@ namespace SDL {
   public:
     LST() = default;
 
-    static void loadAndFillES(alpaka::QueueCpuBlocking& queue, struct modulesBuffer<alpaka::DevCpu>* modules);
+    static void loadAndFillES(SDL::QueueAcc& queue, struct modulesBuffer<SDL::Dev>* modules);
 
     void run(SDL::QueueAcc& queue,
              const SDL::modulesBuffer<SDL::Dev>* modules,
