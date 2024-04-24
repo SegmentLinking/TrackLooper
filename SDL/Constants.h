@@ -124,7 +124,7 @@ namespace SDL {
 
   // Temporary fix for module buffer allocation.
   const unsigned int modules_size = 26401;
-  const unsigned int pix_tot = 1794686;
+  const unsigned int pix_tot = 1795336;
 
   //defining the constant host device variables right up here
   ALPAKA_STATIC_ACC_MEM_GLOBAL const float miniMulsPtScaleBarrel[6] = {0.0052, 0.0038, 0.0034, 0.0034, 0.0032, 0.0034};

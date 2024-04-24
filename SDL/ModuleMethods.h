@@ -181,50 +181,35 @@ namespace SDL {
     eta = ((m_z > 0) - (m_z < 0)) * std::acosh(r / std::sqrt(m_x * m_x + m_y * m_y));
   };
 
-  template <typename TQueue, typename TDev>
-  void loadModulesFromFile(struct modulesBuffer<TDev>* modulesBuf,
-                           uint16_t& nModules,
-                           uint16_t& nLowerModules,
-                           struct pixelMap& pixelMapping,
-                           TQueue& queue,
-                           const char* moduleMetaDataFilePath,
-                           const MapPLStoLayer& pLStoLayer) {
-    ModuleMetaData mmd;
-
-    /* Load the whole text file into the map first*/
-
-    std::ifstream ifile;
-    ifile.open(moduleMetaDataFilePath);
+  inline void loadCentroidsFromFile(const char* filePath, ModuleMetaData& mmd, uint16_t& nModules) {
+    std::ifstream ifile(filePath, std::ios::binary);
     if (!ifile.is_open()) {
-      std::cout << "ERROR! module list file not present!" << std::endl;
+      throw std::runtime_error("Unable to open file: " + std::string(filePath));
     }
-    std::string line;
+
     uint16_t counter = 0;
-
-    while (std::getline(ifile, line)) {
-      std::stringstream ss(line);
-      std::string token;
-      int count_number = 0;
-
+    while (!ifile.eof()) {
       unsigned int temp_detId;
-      while (std::getline(ss, token, ',')) {
-        if (count_number == 0) {
-          temp_detId = stoi(token);
-          mmd.detIdToIndex[temp_detId] = counter;
+      float module_x, module_y, module_z;
+      int module_type;
+
+      ifile.read(reinterpret_cast<char*>(&temp_detId), sizeof(temp_detId));
+      ifile.read(reinterpret_cast<char*>(&module_x), sizeof(module_x));
+      ifile.read(reinterpret_cast<char*>(&module_y), sizeof(module_y));
+      ifile.read(reinterpret_cast<char*>(&module_z), sizeof(module_z));
+      ifile.read(reinterpret_cast<char*>(&module_type), sizeof(module_type));
+
+      if (ifile) {
+        mmd.detIdToIndex[temp_detId] = counter;
+        mmd.module_x[temp_detId] = module_x;
+        mmd.module_y[temp_detId] = module_y;
+        mmd.module_z[temp_detId] = module_z;
+        mmd.module_type[temp_detId] = module_type;
+        counter++;
+      } else {
+        if (!ifile.eof()) {
+          throw std::runtime_error("Failed to read data for detId: " + std::to_string(temp_detId));
         }
-        if (count_number == 1)
-          mmd.module_x[temp_detId] = std::stof(token);
-        if (count_number == 2)
-          mmd.module_y[temp_detId] = std::stof(token);
-        if (count_number == 3)
-          mmd.module_z[temp_detId] = std::stof(token);
-        if (count_number == 4) {
-          mmd.module_type[temp_detId] = std::stoi(token);
-          counter++;
-        }
-        count_number++;
-        if (count_number > 4)
-          break;
       }
     }
 
@@ -239,6 +224,19 @@ namespace SDL {
       std::cerr << "Please change modules_size in Constants.h to make it equal to nModules.\n";
       throw std::runtime_error("Mismatched sizes");
     }
+  };
+
+  template <typename TQueue, typename TDev>
+  void loadModulesFromFile(struct modulesBuffer<TDev>* modulesBuf,
+                           uint16_t& nModules,
+                           uint16_t& nLowerModules,
+                           struct pixelMap& pixelMapping,
+                           TQueue& queue,
+                           const char* moduleMetaDataFilePath,
+                           const MapPLStoLayer& pLStoLayer) {
+    ModuleMetaData mmd;
+
+    loadCentroidsFromFile(moduleMetaDataFilePath, mmd, nModules);
 
     DevHost const& devHost = cms::alpakatools::host();
     auto detIds_buf = allocBufWrapper<unsigned int>(devHost, nModules);

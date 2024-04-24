@@ -17,19 +17,28 @@ void SDL::EndcapGeometry<SDL::Dev>::load(SDL::QueueAcc& queue, std::string filen
   dxdy_slope_.clear();
   centroid_phis_.clear();
 
-  std::ifstream ifile(filename);
+  std::ifstream ifile(filename, std::ios::binary);
+  if (!ifile.is_open()) {
+    throw std::runtime_error("Unable to open file: " + filename);
+  }
 
-  std::string line;
-  while (std::getline(ifile, line)) {
-    std::istringstream ss(line);
+  while (!ifile.eof()) {
     unsigned int detid;
     float dxdy_slope, centroid_phi;
 
-    if (ss >> detid >> dxdy_slope >> centroid_phi) {
+    // Read the detid, dxdy_slope, and centroid_phi from binary file
+    ifile.read(reinterpret_cast<char*>(&detid), sizeof(detid));
+    ifile.read(reinterpret_cast<char*>(&dxdy_slope), sizeof(dxdy_slope));
+    ifile.read(reinterpret_cast<char*>(&centroid_phi), sizeof(centroid_phi));
+
+    if (ifile) {
       dxdy_slope_[detid] = dxdy_slope;
       centroid_phis_[detid] = centroid_phi;
     } else {
-      throw std::runtime_error("Failed to parse line: " + line);
+      // End of file or read failed
+      if (!ifile.eof()) {
+        throw std::runtime_error("Failed to read Endcap Geometry binary data.");
+      }
     }
   }
 

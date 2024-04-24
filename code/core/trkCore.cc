@@ -8,10 +8,10 @@ void loadMaps(SDL::Dev& devAccIn, SDL::QueueAcc& queue)
     TString TrackLooperDir = gSystem->Getenv("TRACKLOOPERDIR");
 
     // Module orientation information (DrDz or phi angles)
-    TString endcap_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/endcap_orientation.txt", TrackLooperDir.Data()).Data());
-    TString tilted_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/tilted_barrel_orientation.txt", TrackLooperDir.Data()).Data());
-    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/module_connection_tracing_merged.txt", TrackLooperDir.Data()).Data());
-    TString centroid = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/sensor_centroids.txt", gSystem->Getenv("TRACKLOOPERDIR")).Data()).Data();
+    TString endcap_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/endcap_orientation.bin", TrackLooperDir.Data()).Data());
+    TString tilted_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/tilted_barrel_orientation.bin", TrackLooperDir.Data()).Data());
+    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/module_connection_tracing_merged.bin", TrackLooperDir.Data()).Data());
+    TString centroid = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/sensor_centroids.bin", gSystem->Getenv("TRACKLOOPERDIR")).Data()).Data();
     TString pLSMapDir = TrackLooperDir+"/data/OT800_IT615_pt0.8/pixelmap";
 
     std::cout << "============ CMSSW_12_2_0_pre2 geometry ===========" << std::endl;
@@ -31,13 +31,13 @@ void loadMaps(SDL::Dev& devAccIn, SDL::QueueAcc& queue)
     const std::array<string, 4> pLSMapPath{{ "layer1_subdet5", "layer2_subdet5", "layer1_subdet4", "layer2_subdet4" }};
     static_assert(pLStoLayer[0].size() == pLSMapPath.size());
     for (unsigned int i=0; i<pLSMapPath.size(); i++) {
-        TString path = TString::Format("%s/pLS_map_%s.txt", pLSMapDir.Data(), pLSMapPath[i].c_str()).Data();
+        TString path = TString::Format("%s/pLS_map_%s.bin", pLSMapDir.Data(), pLSMapPath[i].c_str()).Data();
         pLStoLayer[0][i].load( get_absolute_path_after_check_file_exists( path.Data() ).Data() );
 
-        path = TString::Format("%s/pLS_map_pos_%s.txt", pLSMapDir.Data(), pLSMapPath[i].c_str()).Data();
+        path = TString::Format("%s/pLS_map_pos_%s.bin", pLSMapDir.Data(), pLSMapPath[i].c_str()).Data();
         pLStoLayer[1][i].load( get_absolute_path_after_check_file_exists( path.Data() ).Data() );
 
-        path = TString::Format("%s/pLS_map_neg_%s.txt", pLSMapDir.Data(), pLSMapPath[i].c_str()).Data();
+        path = TString::Format("%s/pLS_map_neg_%s.bin", pLSMapDir.Data(), pLSMapPath[i].c_str()).Data();
         pLStoLayer[2][i].load( get_absolute_path_after_check_file_exists( path.Data() ).Data() );
     }
 

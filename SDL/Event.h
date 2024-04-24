@@ -181,7 +181,7 @@ namespace SDL {
     //read from file and init
     static void initModules(QueueAcc& queue,
                             const MapPLStoLayer& pLStoLayer,
-                            const char* moduleMetaDataFilePath = "data/OT800_IT615_pt0.8/sensor_centroids.txt");
+                            const char* moduleMetaDataFilePath);
   };
 
 }  // namespace SDL

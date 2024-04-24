@@ -20,18 +20,19 @@ namespace {
   void loadMaps(SDL::Dev const& devAccIn, SDL::QueueAcc& queue, SDL::MapPLStoLayer& pLStoLayer) {
     // Module orientation information (DrDz or phi angles)
     auto endcap_geom =
-        get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/endcap_orientation.txt");
+        get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/endcap_orientation.bin");
     auto tilted_geom = get_absolute_path_after_check_file_exists(
-        trackLooperDir() + "/data/OT800_IT615_pt0.8/tilted_barrel_orientation.txt");
+        trackLooperDir() + "/data/OT800_IT615_pt0.8/tilted_barrel_orientation.bin");
     if (SDL::Globals<SDL::Dev>::endcapGeometry == nullptr) {
       SDL::Globals<SDL::Dev>::endcapGeometry =
           new SDL::EndcapGeometry<SDL::Dev>(devAccIn, queue, endcap_geom);  // centroid values added to the map
     }
+
     SDL::Globals<SDL::Dev>::tiltedGeometry.load(tilted_geom);
 
     // Module connection map (for line segment building)
     auto mappath = get_absolute_path_after_check_file_exists(
-        trackLooperDir() + "/data/OT800_IT615_pt0.8/module_connection_tracing_merged.txt");
+        trackLooperDir() + "/data/OT800_IT615_pt0.8/module_connection_tracing_merged.bin");
     SDL::Globals<SDL::Dev>::moduleConnectionMap.load(mappath);
 
     auto pLSMapDir = trackLooperDir() + "/data/OT800_IT615_pt0.8/pixelmap/pLS_map";
@@ -43,13 +44,13 @@ namespace {
     for (unsigned int i = 0; i < connects.size(); i++) {
       auto connectData = connects[i].data();
 
-      path = pLSMapDir + connectData + ".txt";
+      path = pLSMapDir + connectData + ".bin";
       pLStoLayer[0][i] = SDL::ModuleConnectionMap<SDL::Dev>(get_absolute_path_after_check_file_exists(path));
 
-      path = pLSMapDir + "_pos" + connectData + ".txt";
+      path = pLSMapDir + "_pos" + connectData + ".bin";
       pLStoLayer[1][i] = SDL::ModuleConnectionMap<SDL::Dev>(get_absolute_path_after_check_file_exists(path));
 
-      path = pLSMapDir + "_neg" + connectData + ".txt";
+      path = pLSMapDir + "_neg" + connectData + ".bin";
       pLStoLayer[2][i] = SDL::ModuleConnectionMap<SDL::Dev>(get_absolute_path_after_check_file_exists(path));
     }
   }
@@ -62,7 +63,7 @@ void SDL::LST<SDL::Acc>::loadAndFillES(SDL::QueueAcc& queue, struct modulesBuffe
   ::loadMaps(devAccIn, queue, pLStoLayer);
 
   auto path =
-      get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/sensor_centroids.txt");
+      get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/sensor_centroids.bin");
   if (SDL::Globals<SDL::Dev>::modulesBuffers == nullptr) {
     SDL::Globals<SDL::Dev>::modulesBuffers = new SDL::modulesBuffer<SDL::Dev>(devAccIn);
   }

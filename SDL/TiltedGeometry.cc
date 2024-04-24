@@ -6,21 +6,28 @@ void SDL::TiltedGeometry<SDL::Dev>::load(std::string filename) {
   drdzs_.clear();
   dxdys_.clear();
 
-  std::ifstream ifile(filename);
+  std::ifstream ifile(filename, std::ios::binary);
+  if (!ifile.is_open()) {
+    throw std::runtime_error("Unable to open file: " + filename);
+  }
 
-  std::string line;
-  while (std::getline(ifile, line)) {
+  while (!ifile.eof()) {
     unsigned int detid;
-    float drdz;
-    float dxdy;
+    float drdz, dxdy;
 
-    std::stringstream ss(line);
+    // Read the detid, drdz, and dxdy from binary file
+    ifile.read(reinterpret_cast<char*>(&detid), sizeof(detid));
+    ifile.read(reinterpret_cast<char*>(&drdz), sizeof(drdz));
+    ifile.read(reinterpret_cast<char*>(&dxdy), sizeof(dxdy));
 
-    if (ss >> detid >> drdz >> dxdy) {
+    if (ifile) {
       drdzs_[detid] = drdz;
       dxdys_[detid] = dxdy;
     } else {
-      throw std::runtime_error("Failed to parse line: " + line);
+      // End of file or read failed
+      if (!ifile.eof()) {
+        throw std::runtime_error("Failed to read Tilted Geometry binary data.");
+      }
     }
   }
 }
