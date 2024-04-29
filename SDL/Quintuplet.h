@@ -26,7 +26,7 @@ namespace SDL {
     FPX* phi;
     FPX* score_rphisum;
     uint8_t* layer;
-    bool* isDup;
+    char* isDup;
     bool* TightCutFlag;
     bool* partOfPT5;
 
@@ -85,7 +85,7 @@ namespace SDL {
     Buf<TDev, FPX> phi_buf;
     Buf<TDev, FPX> score_rphisum_buf;
     Buf<TDev, uint8_t> layer_buf;
-    Buf<TDev, bool> isDup_buf;
+    Buf<TDev, char> isDup_buf;
     Buf<TDev, bool> TightCutFlag_buf;
     Buf<TDev, bool> partOfPT5_buf;
 
@@ -114,7 +114,7 @@ namespace SDL {
           phi_buf(allocBufWrapper<FPX>(devAccIn, nTotalQuintuplets, queue)),
           score_rphisum_buf(allocBufWrapper<FPX>(devAccIn, nTotalQuintuplets, queue)),
           layer_buf(allocBufWrapper<uint8_t>(devAccIn, nTotalQuintuplets, queue)),
-          isDup_buf(allocBufWrapper<bool>(devAccIn, nTotalQuintuplets, queue)),
+          isDup_buf(allocBufWrapper<char>(devAccIn, nTotalQuintuplets, queue)),
           TightCutFlag_buf(allocBufWrapper<bool>(devAccIn, nTotalQuintuplets, queue)),
           partOfPT5_buf(allocBufWrapper<bool>(devAccIn, nTotalQuintuplets, queue)),
           regressionRadius_buf(allocBufWrapper<float>(devAccIn, nTotalQuintuplets, queue)),
@@ -127,7 +127,7 @@ namespace SDL {
           nonAnchorChiSquared_buf(allocBufWrapper<float>(devAccIn, nTotalQuintuplets, queue)) {
       alpaka::memset(queue, nQuintuplets_buf, 0u);
       alpaka::memset(queue, totOccupancyQuintuplets_buf, 0u);
-      alpaka::memset(queue, isDup_buf, false);
+      alpaka::memset(queue, isDup_buf, 0u);
       alpaka::memset(queue, TightCutFlag_buf, false);
       alpaka::memset(queue, partOfPT5_buf, false);
       alpaka::wait(queue);
@@ -181,7 +181,7 @@ namespace SDL {
     quintupletsInGPU.phi[quintupletIndex] = __F2H(phi);
     quintupletsInGPU.score_rphisum[quintupletIndex] = __F2H(scores);
     quintupletsInGPU.layer[quintupletIndex] = layer;
-    quintupletsInGPU.isDup[quintupletIndex] = false;
+    quintupletsInGPU.isDup[quintupletIndex] = 0;
     quintupletsInGPU.TightCutFlag[quintupletIndex] = TightCutFlag;
     quintupletsInGPU.regressionRadius[quintupletIndex] = regressionRadius;
     quintupletsInGPU.regressionG[quintupletIndex] = regressionG;
