@@ -959,15 +959,7 @@ namespace SDL {
 
     float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
     float rt_InOut = mdsInGPU.anchorRt[secondMDIndex];
-    float rt_OutLo = mdsInGPU.anchorRt[thirdMDIndex];
-
-    float z_InLo = mdsInGPU.anchorZ[firstMDIndex];
-    float z_OutLo = mdsInGPU.anchorZ[thirdMDIndex];
-
-    float sdlThetaMulsF = 0.015f * alpaka::math::sqrt(acc, 0.1f + 0.2f * (rt_OutLo - rt_InLo) / 50.f);
-
     float sdIn_alpha = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
-    float sdOut_alpha = sdIn_alpha;  //weird
     float sdOut_dPhiPos = SDL::phi_mpi_pi(acc, mdsInGPU.anchorPhi[fourthMDIndex] - mdsInGPU.anchorPhi[thirdMDIndex]);
 
     float sdOut_dPhiChange = __H2F(segmentsInGPU.dPhiChanges[outerSegmentIndex]);
@@ -1022,79 +1014,8 @@ namespace SDL {
 
     //Cut #6: first beta cut
     pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
-    if (not pass)
-      return pass;
-
-    float betaAv = 0.5f * (betaIn + betaOut);
-    pt_beta = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaAv);
-
-    int lIn = 11;   //endcap
-    int lOut = 13;  //endcap
-
-    float sdOut_dr = alpaka::math::sqrt(acc,
-                                        (mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex]) *
-                                                (mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex]) +
-                                            (mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]) *
-                                                (mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]));
-    float sdOut_d = mdsInGPU.anchorRt[fourthMDIndex] - mdsInGPU.anchorRt[thirdMDIndex];
-
-    runDeltaBetaIterationsT3(acc, betaIn, betaOut, betaAv, pt_beta, sdIn_dr, sdOut_dr, dr, lIn);
-
-    const float betaInMMSF = (alpaka::math::abs(acc, betaInRHmin + betaInRHmax) > 0)
-                                 ? (2.f * betaIn / alpaka::math::abs(acc, betaInRHmin + betaInRHmax))
-                                 : 0.;  //mean value of min,max is the old betaIn
-    const float betaOutMMSF = (alpaka::math::abs(acc, betaOutRHmin + betaOutRHmax) > 0)
-                                  ? (2.f * betaOut / alpaka::math::abs(acc, betaOutRHmin + betaOutRHmax))
-                                  : 0.;
-    betaInRHmin *= betaInMMSF;
-    betaInRHmax *= betaInMMSF;
-    betaOutRHmin *= betaOutMMSF;
-    betaOutRHmax *= betaOutMMSF;
-
-    const float dBetaMuls =
-        sdlThetaMulsF * 4.f /
-        alpaka::math::min(
-            acc, alpaka::math::abs(acc, pt_beta), SDL::pt_betaMax);  //need to confirm the range-out value of 7 GeV
-
-    const float alphaInAbsReg = alpaka::math::max(
-        acc,
-        alpaka::math::abs(acc, sdIn_alpha),
-        alpaka::math::asin(acc, alpaka::math::min(acc, rt_InLo * SDL::k2Rinv1GeVf / 3.0f, SDL::sinAlphaMax)));
-    const float alphaOutAbsReg = alpaka::math::max(
-        acc,
-        alpaka::math::abs(acc, sdOut_alpha),
-        alpaka::math::asin(acc, alpaka::math::min(acc, rt_OutLo * SDL::k2Rinv1GeVf / 3.0f, SDL::sinAlphaMax)));
-    const float dBetaInLum = lIn < 11 ? 0.0f : alpaka::math::abs(acc, alphaInAbsReg * SDL::deltaZLum / z_InLo);
-    const float dBetaOutLum = lOut < 11 ? 0.0f : alpaka::math::abs(acc, alphaOutAbsReg * SDL::deltaZLum / z_OutLo);
-    const float dBetaLum2 = (dBetaInLum + dBetaOutLum) * (dBetaInLum + dBetaOutLum);
-
-    const float dBetaRIn2 = 0;  // TODO-RH
-    // const float dBetaROut2 = 0; // TODO-RH
-    float dBetaROut2 = 0;  //TODO-RH
-    betaOutCut =
-        alpaka::math::asin(
-            acc,
-            alpaka::math::min(acc, dr * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax))  //FIXME: need faster version
-        + (0.02f / sdOut_d) + alpaka::math::sqrt(acc, dBetaLum2 + dBetaMuls * dBetaMuls);
-
-    //Cut #6: The real beta cut
-    pass = pass and (alpaka::math::abs(acc, betaOut) < betaOutCut);
-    if (not pass)
-      return pass;
-
-    float dBetaRes = 0.02f / alpaka::math::min(acc, sdOut_d, sdIn_d);
-    float dBetaCut2 =
-        (dBetaRes * dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2 +
-         0.25f *
-             (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)) *
-             (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)));
-    float dBeta = betaIn - betaOut;
-    //Cut #7: Cut on dBeta
-    deltaBetaCut = alpaka::math::sqrt(acc, dBetaCut2);
-
-    pass = pass and (dBeta * dBeta <= dBetaCut2);
-
     return pass;
+
   };
 
   template <typename TAcc>
