@@ -416,9 +416,13 @@ namespace SDL {
                                                                 unsigned int& secondMDIndex,
                                                                 unsigned int& thirdMDIndex,
                                                                 float& zOut,
-                                                                float& rtOut) {
+                                                                float& rtOut,
+                                                                uint16_t& innerOuterLowerModuleIndex,
+                                                                unsigned int& innerSegmentIndex,
+                                                                unsigned int& outerSegmentIndex,
+                                                                float& betaIn,
+                                                                float& betaInCut) {
     bool pass = true;
-    //unsigned int outerInnerLowerModuleIndex = middleLowerModuleIndex;
 
     bool isPSIn = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
     bool isPSOut = (modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS);
@@ -490,6 +494,78 @@ namespace SDL {
     //Cut #3: rt-z pointed
 
     pass = pass and (kZ >= 0) && (rtOut >= rtLo) && (rtOut <= rtHi);
+
+    float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
+    float rt_InOut = mdsInGPU.anchorRt[secondMDIndex];
+
+    float sdIn_alpha = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
+    float sdIn_alpha_min = __H2F(segmentsInGPU.dPhiChangeMins[innerSegmentIndex]);
+    float sdIn_alpha_max = __H2F(segmentsInGPU.dPhiChangeMaxs[innerSegmentIndex]);
+
+    float sdOut_alphaOut = SDL::phi_mpi_pi(acc,
+                                           SDL::phi(acc,
+                                                    mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[secondMDIndex],
+                                                    mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[secondMDIndex]) -
+                                               mdsInGPU.anchorPhi[thirdMDIndex]);
+
+    float sdOut_alphaOut_min = SDL::phi_mpi_pi(
+        acc, __H2F(segmentsInGPU.dPhiChangeMins[outerSegmentIndex]) - __H2F(segmentsInGPU.dPhiMins[outerSegmentIndex]));
+    float sdOut_alphaOut_max = SDL::phi_mpi_pi(
+        acc, __H2F(segmentsInGPU.dPhiChangeMaxs[outerSegmentIndex]) - __H2F(segmentsInGPU.dPhiMaxs[outerSegmentIndex]));
+
+    float tl_axis_x = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
+    float tl_axis_y = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
+
+    betaIn = sdIn_alpha - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
+
+    float betaInRHmin = betaIn;
+    float betaInRHmax = betaIn;
+    float betaOut =
+        -sdOut_alphaOut + SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[thirdMDIndex]);
+
+    float betaOutRHmin = betaOut;
+    float betaOutRHmax = betaOut;
+
+    bool isEC_secondLayer = (modulesInGPU.subdets[innerOuterLowerModuleIndex] == SDL::Endcap) and
+                            (modulesInGPU.moduleType[innerOuterLowerModuleIndex] == SDL::TwoS);
+
+    if (isEC_secondLayer) {
+      betaInRHmin = betaIn - sdIn_alpha_min + sdIn_alpha;
+      betaInRHmax = betaIn - sdIn_alpha_max + sdIn_alpha;
+    }
+
+    betaOutRHmin = betaOut - sdOut_alphaOut_min + sdOut_alphaOut;
+    betaOutRHmax = betaOut - sdOut_alphaOut_max + sdOut_alphaOut;
+
+    float swapTemp;
+    if (alpaka::math::abs(acc, betaOutRHmin) > alpaka::math::abs(acc, betaOutRHmax)) {
+      swapTemp = betaOutRHmin;
+      betaOutRHmin = betaOutRHmax;
+      betaOutRHmax = swapTemp;
+    }
+
+    if (alpaka::math::abs(acc, betaInRHmin) > alpaka::math::abs(acc, betaInRHmax)) {
+      swapTemp = betaInRHmin;
+      betaInRHmin = betaInRHmax;
+      betaInRHmax = swapTemp;
+    }
+
+    float sdIn_dr = alpaka::math::sqrt(acc,
+                                       (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) *
+                                               (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) +
+                                           (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]) *
+                                               (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]));
+    float sdIn_d = rt_InOut - rt_InLo;
+
+    float dr = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
+    const float corrF = 1.f;
+    betaInCut =
+        alpaka::math::asin(
+            acc, alpaka::math::min(acc, (-sdIn_dr * corrF + dr) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
+        (0.02f / sdIn_d);
+
+    //Cut #6: first beta cut
+    pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
     return pass;
   };
 
@@ -505,7 +581,11 @@ namespace SDL {
                                                                 unsigned int& secondMDIndex,
                                                                 unsigned int& thirdMDIndex,
                                                                 float& zOut,
-                                                                float& rtOut) {
+                                                                float& rtOut,
+                                                                unsigned int& innerSegmentIndex,
+                                                                unsigned int& outerSegmentIndex,
+                                                                float& betaIn,
+                                                                float& betaInCut) {
     bool pass = true;
 
     float rtIn = mdsInGPU.anchorRt[firstMDIndex];
@@ -578,229 +658,10 @@ namespace SDL {
       pass = pass and ((kZ >= 0) && (rtOut >= rtLo_point) && (rtOut <= rtHi_point));
     }
 
-    return pass;
-  };
-
-  template <typename TAcc>
-  ALPAKA_FN_ACC ALPAKA_FN_INLINE bool passPointingConstraint(TAcc const& acc,
-                                                             struct SDL::modules& modulesInGPU,
-                                                             struct SDL::miniDoublets& mdsInGPU,
-                                                             struct SDL::segments& segmentsInGPU,
-                                                             uint16_t& innerInnerLowerModuleIndex,
-                                                             uint16_t& middleLowerModuleIndex,
-                                                             uint16_t& outerOuterLowerModuleIndex,
-                                                             unsigned int& firstMDIndex,
-                                                             unsigned int& secondMDIndex,
-                                                             unsigned int& thirdMDIndex,
-                                                             float& zOut,
-                                                             float& rtOut,
-                                                             unsigned int& innerSegmentIndex,
-                                                             float& betaIn,
-                                                             float& betaInCut) {
-    short innerInnerLowerModuleSubdet = modulesInGPU.subdets[innerInnerLowerModuleIndex];
-    short middleLowerModuleSubdet = modulesInGPU.subdets[middleLowerModuleIndex];
-    short outerOuterLowerModuleSubdet = modulesInGPU.subdets[outerOuterLowerModuleIndex];
-
-    if (innerInnerLowerModuleSubdet == SDL::Barrel and middleLowerModuleSubdet == SDL::Barrel and
-        outerOuterLowerModuleSubdet == SDL::Barrel) {
-      return passPointingConstraintBBB(acc,
-                                       modulesInGPU,
-                                       mdsInGPU,
-                                       segmentsInGPU,
-                                       innerInnerLowerModuleIndex,
-                                       middleLowerModuleIndex,
-                                       outerOuterLowerModuleIndex,
-                                       firstMDIndex,
-                                       secondMDIndex,
-                                       thirdMDIndex,
-                                       zOut,
-                                       rtOut,
-                                       innerSegmentIndex,
-                                       betaIn,
-                                       betaInCut);
-    } else if (innerInnerLowerModuleSubdet == SDL::Barrel and middleLowerModuleSubdet == SDL::Barrel and
-               outerOuterLowerModuleSubdet == SDL::Endcap) {
-      return passPointingConstraintBBE(acc,
-                                       modulesInGPU,
-                                       mdsInGPU,
-                                       segmentsInGPU,
-                                       innerInnerLowerModuleIndex,
-                                       middleLowerModuleIndex,
-                                       outerOuterLowerModuleIndex,
-                                       firstMDIndex,
-                                       secondMDIndex,
-                                       thirdMDIndex,
-                                       zOut,
-                                       rtOut);
-    } else if (innerInnerLowerModuleSubdet == SDL::Barrel and middleLowerModuleSubdet == SDL::Endcap and
-               outerOuterLowerModuleSubdet == SDL::Endcap) {
-      return passPointingConstraintBBE(acc,
-                                       modulesInGPU,
-                                       mdsInGPU,
-                                       segmentsInGPU,
-                                       innerInnerLowerModuleIndex,
-                                       middleLowerModuleIndex,
-                                       outerOuterLowerModuleIndex,
-                                       firstMDIndex,
-                                       secondMDIndex,
-                                       thirdMDIndex,
-                                       zOut,
-                                       rtOut);
-
-    }
-
-    else if (innerInnerLowerModuleSubdet == SDL::Endcap and middleLowerModuleSubdet == SDL::Endcap and
-             outerOuterLowerModuleSubdet == SDL::Endcap) {
-      return passPointingConstraintEEE(acc,
-                                       modulesInGPU,
-                                       mdsInGPU,
-                                       segmentsInGPU,
-                                       innerInnerLowerModuleIndex,
-                                       middleLowerModuleIndex,
-                                       outerOuterLowerModuleIndex,
-                                       firstMDIndex,
-                                       secondMDIndex,
-                                       thirdMDIndex,
-                                       zOut,
-                                       rtOut);
-    }
-    return false;  // failsafe
-  };
-
-  template <typename TAcc>
-  ALPAKA_FN_ACC ALPAKA_FN_INLINE bool runTripletDefaultAlgoBBEE(TAcc const& acc,
-                                                                struct SDL::modules& modulesInGPU,
-                                                                struct SDL::miniDoublets& mdsInGPU,
-                                                                struct SDL::segments& segmentsInGPU,
-                                                                uint16_t& innerInnerLowerModuleIndex,
-                                                                uint16_t& innerOuterLowerModuleIndex,
-                                                                uint16_t& outerInnerLowerModuleIndex,
-                                                                uint16_t& outerOuterLowerModuleIndex,
-                                                                unsigned int& innerSegmentIndex,
-                                                                unsigned int& outerSegmentIndex,
-                                                                unsigned int& firstMDIndex,
-                                                                unsigned int& secondMDIndex,
-                                                                unsigned int& thirdMDIndex,
-                                                                unsigned int& fourthMDIndex,
-                                                                float& zOut,
-                                                                float& rtOut,
-                                                                float& deltaPhiPos,
-                                                                float& dPhi,
-                                                                float& betaIn,
-                                                                float& zLo,
-                                                                float& rtLo,
-                                                                float& rtHi,
-                                                                float& sdlCut,
-                                                                float& betaInCut,
-                                                                float& kZ) {
-    bool pass = true;
-
-    float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
-    float rt_InOut = mdsInGPU.anchorRt[secondMDIndex];
-
-    float sdIn_alpha = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
-    float sdIn_alpha_min = __H2F(segmentsInGPU.dPhiChangeMins[innerSegmentIndex]);
-    float sdIn_alpha_max = __H2F(segmentsInGPU.dPhiChangeMaxs[innerSegmentIndex]);
-
-    float sdOut_alphaOut = SDL::phi_mpi_pi(acc,
-                                           SDL::phi(acc,
-                                                    mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex],
-                                                    mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]) -
-                                               mdsInGPU.anchorPhi[fourthMDIndex]);
-
-    float sdOut_alphaOut_min = SDL::phi_mpi_pi(
-        acc, __H2F(segmentsInGPU.dPhiChangeMins[outerSegmentIndex]) - __H2F(segmentsInGPU.dPhiMins[outerSegmentIndex]));
-    float sdOut_alphaOut_max = SDL::phi_mpi_pi(
-        acc, __H2F(segmentsInGPU.dPhiChangeMaxs[outerSegmentIndex]) - __H2F(segmentsInGPU.dPhiMaxs[outerSegmentIndex]));
-
-    float tl_axis_x = mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[firstMDIndex];
-    float tl_axis_y = mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-
-    betaIn = sdIn_alpha - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
-
-    float betaInRHmin = betaIn;
-    float betaInRHmax = betaIn;
-    float betaOut =
-        -sdOut_alphaOut + SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[fourthMDIndex]);
-
-    float betaOutRHmin = betaOut;
-    float betaOutRHmax = betaOut;
-
-    bool isEC_secondLayer = (modulesInGPU.subdets[innerOuterLowerModuleIndex] == SDL::Endcap) and
-                            (modulesInGPU.moduleType[innerOuterLowerModuleIndex] == SDL::TwoS);
-
-    if (isEC_secondLayer) {
-      betaInRHmin = betaIn - sdIn_alpha_min + sdIn_alpha;
-      betaInRHmax = betaIn - sdIn_alpha_max + sdIn_alpha;
-    }
-
-    betaOutRHmin = betaOut - sdOut_alphaOut_min + sdOut_alphaOut;
-    betaOutRHmax = betaOut - sdOut_alphaOut_max + sdOut_alphaOut;
-
-    float swapTemp;
-    if (alpaka::math::abs(acc, betaOutRHmin) > alpaka::math::abs(acc, betaOutRHmax)) {
-      swapTemp = betaOutRHmin;
-      betaOutRHmin = betaOutRHmax;
-      betaOutRHmax = swapTemp;
-    }
-
-    if (alpaka::math::abs(acc, betaInRHmin) > alpaka::math::abs(acc, betaInRHmax)) {
-      swapTemp = betaInRHmin;
-      betaInRHmin = betaInRHmax;
-      betaInRHmax = swapTemp;
-    }
-
-    float sdIn_dr = alpaka::math::sqrt(acc,
-                                       (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) *
-                                               (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) +
-                                           (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]) *
-                                               (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]));
-    float sdIn_d = rt_InOut - rt_InLo;
-
-    float dr = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
-    const float corrF = 1.f;
-    betaInCut =
-        alpaka::math::asin(
-            acc, alpaka::math::min(acc, (-sdIn_dr * corrF + dr) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
-        (0.02f / sdIn_d);
-
-    //Cut #6: first beta cut
-    pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
-    return pass;
-  };
-
-  template <typename TAcc>
-  ALPAKA_FN_ACC ALPAKA_FN_INLINE bool runTripletDefaultAlgoEEEE(TAcc const& acc,
-                                                                struct SDL::modules& modulesInGPU,
-                                                                struct SDL::miniDoublets& mdsInGPU,
-                                                                struct SDL::segments& segmentsInGPU,
-                                                                uint16_t& innerInnerLowerModuleIndex,
-                                                                uint16_t& innerOuterLowerModuleIndex,
-                                                                uint16_t& outerInnerLowerModuleIndex,
-                                                                uint16_t& outerOuterLowerModuleIndex,
-                                                                unsigned int& innerSegmentIndex,
-                                                                unsigned int& outerSegmentIndex,
-                                                                unsigned int& firstMDIndex,
-                                                                unsigned int& secondMDIndex,
-                                                                unsigned int& thirdMDIndex,
-                                                                unsigned int& fourthMDIndex,
-                                                                float& zOut,
-                                                                float& rtOut,
-                                                                float& deltaPhiPos,
-                                                                float& dPhi,
-                                                                float& betaIn,
-                                                                float& zLo,
-                                                                float& rtLo,
-                                                                float& rtHi,
-                                                                float& sdlCut,
-                                                                float& betaInCut,
-                                                                float& kZ) {
-    bool pass = true;
-
     float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
     float rt_InOut = mdsInGPU.anchorRt[secondMDIndex];
     float sdIn_alpha = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
-    float sdOut_dPhiPos = SDL::phi_mpi_pi(acc, mdsInGPU.anchorPhi[fourthMDIndex] - mdsInGPU.anchorPhi[thirdMDIndex]);
+    float sdOut_dPhiPos = SDL::phi_mpi_pi(acc, mdsInGPU.anchorPhi[thirdMDIndex] - mdsInGPU.anchorPhi[secondMDIndex]);
 
     float sdOut_dPhiChange = __H2F(segmentsInGPU.dPhiChanges[outerSegmentIndex]);
     float sdOut_dPhiChange_min = __H2F(segmentsInGPU.dPhiChangeMins[outerSegmentIndex]);
@@ -810,8 +671,8 @@ namespace SDL {
     float sdOut_alphaOutRHmax = SDL::phi_mpi_pi(acc, sdOut_dPhiChange_max - sdOut_dPhiPos);
     float sdOut_alphaOut = SDL::phi_mpi_pi(acc, sdOut_dPhiChange - sdOut_dPhiPos);
 
-    float tl_axis_x = mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[firstMDIndex];
-    float tl_axis_y = mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
+    float tl_axis_x = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
+    float tl_axis_y = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
 
     betaIn = sdIn_alpha - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
 
@@ -821,7 +682,7 @@ namespace SDL {
     float betaInRHmax = betaIn + sdIn_alphaRHmax - sdIn_alpha;
 
     float betaOut =
-        -sdOut_alphaOut + SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[fourthMDIndex]);
+        -sdOut_alphaOut + SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[thirdMDIndex]);
 
     float betaOutRHmin = betaOut - sdOut_alphaOutRHmin + sdOut_alphaOut;
     float betaOutRHmax = betaOut - sdOut_alphaOutRHmax + sdOut_alphaOut;
@@ -858,6 +719,108 @@ namespace SDL {
   };
 
   template <typename TAcc>
+  ALPAKA_FN_ACC ALPAKA_FN_INLINE bool passPointingConstraint(TAcc const& acc,
+                                                             struct SDL::modules& modulesInGPU,
+                                                             struct SDL::miniDoublets& mdsInGPU,
+                                                             struct SDL::segments& segmentsInGPU,
+                                                             uint16_t& innerInnerLowerModuleIndex,
+                                                             uint16_t& middleLowerModuleIndex,
+                                                             uint16_t& outerOuterLowerModuleIndex,
+                                                             unsigned int& firstMDIndex,
+                                                             unsigned int& secondMDIndex,
+                                                             unsigned int& thirdMDIndex,
+                                                             float& zOut,
+                                                             float& rtOut,
+                                                             uint16_t& innerOuterLowerModuleIndex,
+                                                             unsigned int& innerSegmentIndex,
+                                                             unsigned int& outerSegmentIndex,
+                                                             float& betaIn,
+                                                             float& betaInCut) {
+    short innerInnerLowerModuleSubdet = modulesInGPU.subdets[innerInnerLowerModuleIndex];
+    short middleLowerModuleSubdet = modulesInGPU.subdets[middleLowerModuleIndex];
+    short outerOuterLowerModuleSubdet = modulesInGPU.subdets[outerOuterLowerModuleIndex];
+
+    if (innerInnerLowerModuleSubdet == SDL::Barrel and middleLowerModuleSubdet == SDL::Barrel and
+        outerOuterLowerModuleSubdet == SDL::Barrel) {
+      return passPointingConstraintBBB(acc,
+                                       modulesInGPU,
+                                       mdsInGPU,
+                                       segmentsInGPU,
+                                       innerInnerLowerModuleIndex,
+                                       middleLowerModuleIndex,
+                                       outerOuterLowerModuleIndex,
+                                       firstMDIndex,
+                                       secondMDIndex,
+                                       thirdMDIndex,
+                                       zOut,
+                                       rtOut,
+                                       innerSegmentIndex,
+                                       betaIn,
+                                       betaInCut);
+    } else if (innerInnerLowerModuleSubdet == SDL::Barrel and middleLowerModuleSubdet == SDL::Barrel and
+               outerOuterLowerModuleSubdet == SDL::Endcap) {
+      return passPointingConstraintBBE(acc,
+                                       modulesInGPU,
+                                       mdsInGPU,
+                                       segmentsInGPU,
+                                       innerInnerLowerModuleIndex,
+                                       middleLowerModuleIndex,
+                                       outerOuterLowerModuleIndex,
+                                       firstMDIndex,
+                                       secondMDIndex,
+                                       thirdMDIndex,
+                                       zOut,
+                                       rtOut,
+                                       innerOuterLowerModuleIndex,
+                                       innerSegmentIndex,
+                                       outerSegmentIndex,
+                                       betaIn,
+                                       betaInCut);
+    } else if (innerInnerLowerModuleSubdet == SDL::Barrel and middleLowerModuleSubdet == SDL::Endcap and
+               outerOuterLowerModuleSubdet == SDL::Endcap) {
+      return passPointingConstraintBBE(acc,
+                                       modulesInGPU,
+                                       mdsInGPU,
+                                       segmentsInGPU,
+                                       innerInnerLowerModuleIndex,
+                                       middleLowerModuleIndex,
+                                       outerOuterLowerModuleIndex,
+                                       firstMDIndex,
+                                       secondMDIndex,
+                                       thirdMDIndex,
+                                       zOut,
+                                       rtOut,
+                                       innerOuterLowerModuleIndex,
+                                       innerSegmentIndex,
+                                       outerSegmentIndex,
+                                       betaIn,
+                                       betaInCut);
+
+    }
+
+    else if (innerInnerLowerModuleSubdet == SDL::Endcap and middleLowerModuleSubdet == SDL::Endcap and
+             outerOuterLowerModuleSubdet == SDL::Endcap) {
+      return passPointingConstraintEEE(acc,
+                                       modulesInGPU,
+                                       mdsInGPU,
+                                       segmentsInGPU,
+                                       innerInnerLowerModuleIndex,
+                                       middleLowerModuleIndex,
+                                       outerOuterLowerModuleIndex,
+                                       firstMDIndex,
+                                       secondMDIndex,
+                                       thirdMDIndex,
+                                       zOut,
+                                       rtOut,
+                                       innerSegmentIndex,
+                                       outerSegmentIndex,
+                                       betaIn,
+                                       betaInCut);
+    }
+    return false;  // failsafe
+  };
+
+  template <typename TAcc>
   ALPAKA_FN_ACC ALPAKA_FN_INLINE float computeRadiusFromThreeAnchorHits(
       TAcc const& acc, float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f) {
     float radius = 0.f;
@@ -890,123 +853,6 @@ namespace SDL {
       radius = alpaka::math::sqrt(acc, g * g + f * f - c);
 
     return radius;
-  };
-
-  template <typename TAcc>
-  ALPAKA_FN_ACC ALPAKA_FN_INLINE bool runTripletDefaultAlgo(TAcc const& acc,
-                                                            struct SDL::modules& modulesInGPU,
-                                                            struct SDL::miniDoublets& mdsInGPU,
-                                                            struct SDL::segments& segmentsInGPU,
-                                                            uint16_t& innerInnerLowerModuleIndex,
-                                                            uint16_t& innerOuterLowerModuleIndex,
-                                                            uint16_t& outerInnerLowerModuleIndex,
-                                                            uint16_t& outerOuterLowerModuleIndex,
-                                                            unsigned int& innerSegmentIndex,
-                                                            unsigned int& outerSegmentIndex,
-                                                            unsigned int& firstMDIndex,
-                                                            unsigned int& secondMDIndex,
-                                                            unsigned int& thirdMDIndex,
-                                                            unsigned int& fourthMDIndex,
-                                                            float& zOut,
-                                                            float& rtOut,
-                                                            float& deltaPhiPos,
-                                                            float& deltaPhi,
-                                                            float& betaIn,
-                                                            float& zLo,
-                                                            float& zHi,
-                                                            float& rtLo,
-                                                            float& rtHi,
-                                                            float& zLoPointed,
-                                                            float& zHiPointed,
-                                                            float& sdlCut,
-                                                            float& betaInCut,
-                                                            float& kZ) {
-    bool pass = false;
-
-    zLo = -999;
-    zHi = -999;
-    rtLo = -999;
-    rtHi = -999;
-    zLoPointed = -999;
-    zHiPointed = -999;
-    kZ = -999;
-    betaInCut = -999;
-
-    short innerInnerLowerModuleSubdet = modulesInGPU.subdets[innerInnerLowerModuleIndex];
-    short innerOuterLowerModuleSubdet = modulesInGPU.subdets[innerOuterLowerModuleIndex];
-    short outerInnerLowerModuleSubdet = modulesInGPU.subdets[outerInnerLowerModuleIndex];
-    short outerOuterLowerModuleSubdet = modulesInGPU.subdets[outerOuterLowerModuleIndex];
-
-    if (innerInnerLowerModuleSubdet == SDL::Barrel and innerOuterLowerModuleSubdet == SDL::Barrel and
-        outerInnerLowerModuleSubdet == SDL::Barrel and outerOuterLowerModuleSubdet == SDL::Barrel) {
-      return true;
-    }
-
-    else if (innerInnerLowerModuleSubdet == SDL::Barrel and innerOuterLowerModuleSubdet == SDL::Barrel and
-             outerInnerLowerModuleSubdet == SDL::Barrel and outerOuterLowerModuleSubdet == SDL::Endcap) {
-      return true;
-    }
-
-    else if (innerInnerLowerModuleSubdet == SDL::Barrel and innerOuterLowerModuleSubdet == SDL::Endcap and
-             outerInnerLowerModuleSubdet == SDL::Endcap and outerOuterLowerModuleSubdet == SDL::Endcap) {
-      return runTripletDefaultAlgoBBEE(acc,
-                                       modulesInGPU,
-                                       mdsInGPU,
-                                       segmentsInGPU,
-                                       innerInnerLowerModuleIndex,
-                                       innerOuterLowerModuleIndex,
-                                       outerInnerLowerModuleIndex,
-                                       outerOuterLowerModuleIndex,
-                                       innerSegmentIndex,
-                                       outerSegmentIndex,
-                                       firstMDIndex,
-                                       secondMDIndex,
-                                       thirdMDIndex,
-                                       fourthMDIndex,
-                                       zOut,
-                                       rtOut,
-                                       deltaPhiPos,
-                                       deltaPhi,
-                                       betaIn,
-                                       zLo,
-                                       rtLo,
-                                       rtHi,
-                                       sdlCut,
-                                       betaInCut,
-                                       kZ);
-
-    }
-
-    else if (innerInnerLowerModuleSubdet == SDL::Endcap and innerOuterLowerModuleSubdet == SDL::Endcap and
-             outerInnerLowerModuleSubdet == SDL::Endcap and outerOuterLowerModuleSubdet == SDL::Endcap) {
-      return runTripletDefaultAlgoEEEE(acc,
-                                       modulesInGPU,
-                                       mdsInGPU,
-                                       segmentsInGPU,
-                                       innerInnerLowerModuleIndex,
-                                       innerOuterLowerModuleIndex,
-                                       outerInnerLowerModuleIndex,
-                                       outerOuterLowerModuleIndex,
-                                       innerSegmentIndex,
-                                       outerSegmentIndex,
-                                       firstMDIndex,
-                                       secondMDIndex,
-                                       thirdMDIndex,
-                                       fourthMDIndex,
-                                       zOut,
-                                       rtOut,
-                                       deltaPhiPos,
-                                       deltaPhi,
-                                       betaIn,
-                                       zLo,
-                                       rtLo,
-                                       rtHi,
-                                       sdlCut,
-                                       betaInCut,
-                                       kZ);
-    }
-
-    return pass;
   };
 
   template <typename TAcc>
@@ -1070,39 +916,13 @@ namespace SDL {
                                             thirdMDIndex,
                                             zOut,
                                             rtOut,
+                                            middleLowerModuleIndex,
                                             innerSegmentIndex,
+                                            outerSegmentIndex,
                                             betaIn,
                                             betaInCut));
     if (not pass)
       return pass;
-    pass = pass and (runTripletDefaultAlgo(acc,
-                                           modulesInGPU,
-                                           mdsInGPU,
-                                           segmentsInGPU,
-                                           innerInnerLowerModuleIndex,
-                                           middleLowerModuleIndex,
-                                           middleLowerModuleIndex,
-                                           outerOuterLowerModuleIndex,
-                                           innerSegmentIndex,
-                                           outerSegmentIndex,
-                                           firstMDIndex,
-                                           secondMDIndex,
-                                           secondMDIndex,
-                                           thirdMDIndex,
-                                           zOut,
-                                           rtOut,
-                                           deltaPhiPos,
-                                           deltaPhi,
-                                           betaIn,
-                                           zLo,
-                                           zHi,
-                                           rtLo,
-                                           rtHi,
-                                           zLoPointed,
-                                           zHiPointed,
-                                           sdlCut,
-                                           betaInCut,
-                                           kZ));
 
     float x1 = mdsInGPU.anchorX[firstMDIndex];
     float x2 = mdsInGPU.anchorX[secondMDIndex];
