@@ -2697,11 +2697,11 @@ namespace SDL {
     computeErrorInRadius(acc, x3Vec, y3Vec, x1Vec, y1Vec, x2Vec, y2Vec, outerRadiusMin2S, outerRadiusMax2S);
 
     float g, f;
-    outerRadius = tripletsInGPU.Circle_Radius[outerTripletIndex];
+    outerRadius = tripletsInGPU.circleRadius[outerTripletIndex];
     bridgeRadius = computeRadiusFromThreeAnchorHits(acc, x2, y2, x3, y3, x4, y4, g, f);
-    innerRadius = tripletsInGPU.Circle_Radius[innerTripletIndex];
-    g = tripletsInGPU.Circle_CenterX[innerTripletIndex];
-    f = tripletsInGPU.Circle_CenterY[innerTripletIndex];
+    innerRadius = tripletsInGPU.circleRadius[innerTripletIndex];
+    g = tripletsInGPU.circleCenterX[innerTripletIndex];
+    f = tripletsInGPU.circleCenterY[innerTripletIndex];
 
 #ifdef USE_RZCHI2
     float inner_pt = 2 * k2Rinv1GeVf * innerRadius;

@@ -942,9 +942,9 @@ namespace SDL {
     float ys[3] = {mdsInGPU.anchorY[firstMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorY[thirdMDIndex]};
 
     float g, f;
-    tripletRadius = tripletsInGPU.Circle_Radius[tripletIndex];
-    g = tripletsInGPU.Circle_CenterX[tripletIndex];
-    f = tripletsInGPU.Circle_CenterY[tripletIndex];
+    tripletRadius = tripletsInGPU.circleRadius[tripletIndex];
+    g = tripletsInGPU.circleCenterX[tripletIndex];
+    f = tripletsInGPU.circleCenterY[tripletIndex];
 
     pass = pass and passRadiusCriterion(acc,
                                         modulesInGPU,

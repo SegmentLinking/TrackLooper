@@ -1668,8 +1668,6 @@ SDL::tripletsBuffer<alpaka::DevCpu>* SDL::Event<SDL::Acc>::getTriplets() {
     alpaka::memcpy(queue, tripletsInCPU->zHiPointed_buf, tripletsBuffers->zHiPointed_buf, nMemHost);
     alpaka::memcpy(queue, tripletsInCPU->sdlCut_buf, tripletsBuffers->sdlCut_buf, nMemHost);
     alpaka::memcpy(queue, tripletsInCPU->betaInCut_buf, tripletsBuffers->betaInCut_buf, nMemHost);
-    alpaka::memcpy(queue, tripletsInCPU->betaOutCut_buf, tripletsBuffers->betaOutCut_buf, nMemHost);
-    alpaka::memcpy(queue, tripletsInCPU->deltaBetaCut_buf, tripletsBuffers->deltaBetaCut_buf, nMemHost);
     alpaka::memcpy(queue, tripletsInCPU->rtLo_buf, tripletsBuffers->rtLo_buf, nMemHost);
     alpaka::memcpy(queue, tripletsInCPU->rtHi_buf, tripletsBuffers->rtHi_buf, nMemHost);
     alpaka::memcpy(queue, tripletsInCPU->kZ_buf, tripletsBuffers->kZ_buf, nMemHost);
@@ -1678,8 +1676,6 @@ SDL::tripletsBuffer<alpaka::DevCpu>* SDL::Event<SDL::Acc>::getTriplets() {
     alpaka::memcpy(queue, tripletsInCPU->logicalLayers_buf, tripletsBuffers->logicalLayers_buf, 3 * nMemHost);
     alpaka::memcpy(queue, tripletsInCPU->segmentIndices_buf, tripletsBuffers->segmentIndices_buf, 2 * nMemHost);
     alpaka::memcpy(queue, tripletsInCPU->betaIn_buf, tripletsBuffers->betaIn_buf, nMemHost);
-    alpaka::memcpy(queue, tripletsInCPU->betaOut_buf, tripletsBuffers->betaOut_buf, nMemHost);
-    alpaka::memcpy(queue, tripletsInCPU->pt_beta_buf, tripletsBuffers->pt_beta_buf, nMemHost);
     alpaka::memcpy(queue, tripletsInCPU->nTriplets_buf, tripletsBuffers->nTriplets_buf);
     alpaka::memcpy(queue, tripletsInCPU->totOccupancyTriplets_buf, tripletsBuffers->totOccupancyTriplets_buf);
     alpaka::wait(queue);
