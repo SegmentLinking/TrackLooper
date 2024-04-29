@@ -197,40 +197,6 @@ namespace SDL {
   };
 
   template <typename TAcc>
-  ALPAKA_FN_ACC ALPAKA_FN_INLINE float computeRadiusFromThreeAnchorHitspT3(
-      TAcc const& acc, const float* xs, const float* ys, float& g, float& f) {
-    float radius = 0;
-
-    //writing manual code for computing radius, which obviously sucks
-    //TODO:Use fancy inbuilt libraries like cuBLAS or cuSOLVE for this!
-    //(g,f) -> center
-    //first anchor hit - (x1,y1), second anchor hit - (x2,y2), third anchor hit - (x3, y3)
-
-    float denomInv = 1.f / ((ys[0] - ys[2]) * (xs[1] - xs[2]) - (xs[0] - xs[2]) * (ys[1] - ys[2]));
-
-    float xy1sqr = xs[0] * xs[0] + ys[0] * ys[0];
-    float xy2sqr = xs[1] * xs[1] + ys[1] * ys[1];
-    float xy3sqr = xs[2] * xs[2] + ys[2] * ys[2];
-
-    g = 0.5f * ((ys[2] - ys[1]) * xy1sqr + (ys[0] - ys[2]) * xy2sqr + (ys[1] - ys[0]) * xy3sqr) * denomInv;
-    f = 0.5f * ((xs[1] - xs[2]) * xy1sqr + (xs[2] - xs[0]) * xy2sqr + (xs[0] - xs[1]) * xy3sqr) * denomInv;
-
-    float c = ((xs[1] * ys[2] - xs[2] * ys[1]) * xy1sqr + (xs[2] * ys[0] - xs[0] * ys[2]) * xy2sqr +
-               (xs[0] * ys[1] - xs[1] * ys[0]) * xy3sqr) *
-              denomInv;
-
-    if (((ys[0] - ys[2]) * (xs[1] - xs[2]) - (xs[0] - xs[2]) * (ys[1] - ys[2]) == 0) || (g * g + f * f - c < 0)) {
-#ifdef Warnings
-      printf("three collinear points or FATAL! r^2 < 0!\n");
-#endif
-      radius = -1;
-    } else
-      radius = alpaka::math::sqrt(acc, g * g + f * f - c);
-
-    return radius;
-  };
-
-  template <typename TAcc>
   ALPAKA_FN_ACC ALPAKA_FN_INLINE bool runPixelTrackletDefaultAlgopT3(TAcc const& acc,
                                                                      struct SDL::modules& modulesInGPU,
                                                                      struct SDL::objectRanges& rangesInGPU,
@@ -976,7 +942,9 @@ namespace SDL {
     float ys[3] = {mdsInGPU.anchorY[firstMDIndex], mdsInGPU.anchorY[secondMDIndex], mdsInGPU.anchorY[thirdMDIndex]};
 
     float g, f;
-    tripletRadius = computeRadiusFromThreeAnchorHitspT3(acc, xs, ys, g, f);
+    tripletRadius = tripletsInGPU.Circle_Radius[tripletIndex];
+    g = tripletsInGPU.Circle_CenterX[tripletIndex];
+    f = tripletsInGPU.Circle_CenterY[tripletIndex];
 
     pass = pass and passRadiusCriterion(acc,
                                         modulesInGPU,
