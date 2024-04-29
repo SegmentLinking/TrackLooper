@@ -179,9 +179,7 @@ namespace SDL {
     modulesBuffer<alpaka::DevCpu>* getModules(bool isFull = false);
 
     //read from file and init
-    static void initModules(QueueAcc& queue,
-                            const MapPLStoLayer& pLStoLayer,
-                            const char* moduleMetaDataFilePath);
+    static void initModules(QueueAcc& queue, const MapPLStoLayer& pLStoLayer, const char* moduleMetaDataFilePath);
   };
 
 }  // namespace SDL
