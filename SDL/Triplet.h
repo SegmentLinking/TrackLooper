@@ -309,7 +309,10 @@ namespace SDL {
                                                                 unsigned int& secondMDIndex,
                                                                 unsigned int& thirdMDIndex,
                                                                 float& zOut,
-                                                                float& rtOut) {
+                                                                float& rtOut,
+                                                                unsigned int& innerSegmentIndex,
+                                                                float& betaIn,
+                                                                float& betaInCut) {
     bool pass = true;
     bool isPSIn = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
     bool isPSOut = (modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS);
@@ -369,6 +372,34 @@ namespace SDL {
 
     // Cut #2: Pointed Z (Inner segment two MD points to outer segment inner MD)
     pass = pass and ((zOut >= zLoPointed) && (zOut <= zHiPointed));
+
+    // First obtaining the raw betaIn and betaOut values without any correction and just purely based on the mini-doublet hit positions
+    float alpha_InLo = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
+    float tl_axis_x = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
+    float tl_axis_y = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
+    float betaInRHmin =
+        alpha_InLo - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
+
+    //beta computation
+    float drt_tl_axis = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
+
+    float corrF = 1.f;
+    //innerOuterAnchor - innerInnerAnchor
+    const float rt_InSeg =
+        alpaka::math::sqrt(acc,
+                           (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) *
+                                   (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) +
+                               (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]) *
+                                   (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]));
+    betaInCut = alpaka::math::asin(
+                    acc,
+                    alpaka::math::min(
+                        acc, (-rt_InSeg * corrF + drt_tl_axis) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
+                (0.02f / drt_InSeg);
+
+    //Cut #5: first beta cut
+    //-5
+    pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
 
     return pass;
   };
@@ -562,7 +593,10 @@ namespace SDL {
                                                              unsigned int& secondMDIndex,
                                                              unsigned int& thirdMDIndex,
                                                              float& zOut,
-                                                             float& rtOut) {
+                                                             float& rtOut,
+                                                             unsigned int& innerSegmentIndex,
+                                                             float& betaIn,
+                                                             float& betaInCut) {
     short innerInnerLowerModuleSubdet = modulesInGPU.subdets[innerInnerLowerModuleIndex];
     short middleLowerModuleSubdet = modulesInGPU.subdets[middleLowerModuleIndex];
     short outerOuterLowerModuleSubdet = modulesInGPU.subdets[outerOuterLowerModuleIndex];
@@ -580,7 +614,10 @@ namespace SDL {
                                        secondMDIndex,
                                        thirdMDIndex,
                                        zOut,
-                                       rtOut);
+                                       rtOut,
+                                       innerSegmentIndex,
+                                       betaIn,
+                                       betaInCut);
     } else if (innerInnerLowerModuleSubdet == SDL::Barrel and middleLowerModuleSubdet == SDL::Barrel and
                outerOuterLowerModuleSubdet == SDL::Endcap) {
       return passPointingConstraintBBE(acc,
@@ -628,67 +665,6 @@ namespace SDL {
                                        rtOut);
     }
     return false;  // failsafe
-  };
-
-  template <typename TAcc>
-  ALPAKA_FN_ACC ALPAKA_FN_INLINE bool runTripletDefaultAlgoBBBB(TAcc const& acc,
-                                                                struct SDL::modules& modulesInGPU,
-                                                                struct SDL::miniDoublets& mdsInGPU,
-                                                                struct SDL::segments& segmentsInGPU,
-                                                                uint16_t& innerInnerLowerModuleIndex,
-                                                                uint16_t& innerOuterLowerModuleIndex,
-                                                                uint16_t& outerInnerLowerModuleIndex,
-                                                                uint16_t& outerOuterLowerModuleIndex,
-                                                                unsigned int& innerSegmentIndex,
-                                                                unsigned int& outerSegmentIndex,
-                                                                unsigned int& firstMDIndex,
-                                                                unsigned int& secondMDIndex,
-                                                                unsigned int& thirdMDIndex,
-                                                                unsigned int& fourthMDIndex,
-                                                                float& zOut,
-                                                                float& rtOut,
-                                                                float& deltaPhiPos,
-                                                                float& dPhi,
-                                                                float& betaIn,
-                                                                float& zLo,
-                                                                float& zHi,
-                                                                float& zLoPointed,
-                                                                float& zHiPointed,
-                                                                float& sdlCut,
-                                                                float& betaInCut) {
-    bool pass = true;
-    float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
-    float rt_InOut = mdsInGPU.anchorRt[secondMDIndex];
-
-    float drt_InSeg = rt_InOut - rt_InLo;
-    // First obtaining the raw betaIn and betaOut values without any correction and just purely based on the mini-doublet hit positions
-    float alpha_InLo = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
-    float tl_axis_x = mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[firstMDIndex];
-    float tl_axis_y = mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-    float betaInRHmin =
-        alpha_InLo - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
-
-    //beta computation
-    float drt_tl_axis = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
-
-    float corrF = 1.f;
-    //innerOuterAnchor - innerInnerAnchor
-    const float rt_InSeg =
-        alpaka::math::sqrt(acc,
-                           (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) *
-                                   (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) +
-                               (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]) *
-                                   (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]));
-    betaInCut = alpaka::math::asin(
-                    acc,
-                    alpaka::math::min(
-                        acc, (-rt_InSeg * corrF + drt_tl_axis) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
-                (0.02f / drt_InSeg);
-
-    //Cut #5: first beta cut
-    //-5
-    pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
-    return pass;
   };
 
   template <typename TAcc>
@@ -963,61 +939,12 @@ namespace SDL {
 
     if (innerInnerLowerModuleSubdet == SDL::Barrel and innerOuterLowerModuleSubdet == SDL::Barrel and
         outerInnerLowerModuleSubdet == SDL::Barrel and outerOuterLowerModuleSubdet == SDL::Barrel) {
-      return runTripletDefaultAlgoBBBB(acc,
-                                       modulesInGPU,
-                                       mdsInGPU,
-                                       segmentsInGPU,
-                                       innerInnerLowerModuleIndex,
-                                       innerOuterLowerModuleIndex,
-                                       outerInnerLowerModuleIndex,
-                                       outerOuterLowerModuleIndex,
-                                       innerSegmentIndex,
-                                       outerSegmentIndex,
-                                       firstMDIndex,
-                                       secondMDIndex,
-                                       thirdMDIndex,
-                                       fourthMDIndex,
-                                       zOut,
-                                       rtOut,
-                                       deltaPhiPos,
-                                       deltaPhi,
-                                       betaIn,
-                                       zLo,
-                                       zHi,
-                                       zLoPointed,
-                                       zHiPointed,
-                                       sdlCut,
-                                       betaInCut);
+      return true;
     }
 
     else if (innerInnerLowerModuleSubdet == SDL::Barrel and innerOuterLowerModuleSubdet == SDL::Barrel and
              outerInnerLowerModuleSubdet == SDL::Barrel and outerOuterLowerModuleSubdet == SDL::Endcap) {
-      return runTripletDefaultAlgoBBBB(acc,
-                                       modulesInGPU,
-                                       mdsInGPU,
-                                       segmentsInGPU,
-                                       innerInnerLowerModuleIndex,
-                                       innerOuterLowerModuleIndex,
-                                       outerInnerLowerModuleIndex,
-                                       outerOuterLowerModuleIndex,
-                                       innerSegmentIndex,
-                                       outerSegmentIndex,
-                                       firstMDIndex,
-                                       secondMDIndex,
-                                       thirdMDIndex,
-                                       fourthMDIndex,
-                                       zOut,
-                                       rtOut,
-                                       deltaPhiPos,
-                                       deltaPhi,
-                                       betaIn,
-                                       zLo,
-                                       zHi,
-                                       zLoPointed,
-                                       zHiPointed,
-                                       sdlCut,
-                                       betaInCut);
-
+      return true;
     }
 
     else if (innerInnerLowerModuleSubdet == SDL::Barrel and innerOuterLowerModuleSubdet == SDL::Endcap and
@@ -1142,7 +1069,10 @@ namespace SDL {
                                             secondMDIndex,
                                             thirdMDIndex,
                                             zOut,
-                                            rtOut));
+                                            rtOut,
+                                            innerSegmentIndex,
+                                            betaIn,
+                                            betaInCut));
     if (not pass)
       return pass;
     pass = pass and (runTripletDefaultAlgo(acc,
