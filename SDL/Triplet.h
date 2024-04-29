@@ -873,8 +873,7 @@ namespace SDL {
                                                                    float& zLoPointed,
                                                                    float& zHiPointed,
                                                                    float& sdlCut,
-                                                                   float& betaInCut,
-                                                                   float& kZ) {
+                                                                   float& betaInCut) {
     bool pass = true;
 
     //this cut reduces the number of candidates by a factor of 4, i.e., 3 out of 4 warps can end right here!
