@@ -38,7 +38,6 @@ namespace SDL {
     float* betaInCut;
     float* rtLo;
     float* rtHi;
-    float* kZ;
 #endif
     template <typename TBuff>
     void setData(TBuff& tripletsbuf) {
@@ -69,7 +68,6 @@ namespace SDL {
       betaInCut = alpaka::getPtrNative(tripletsbuf.betaInCut_buf);
       rtLo = alpaka::getPtrNative(tripletsbuf.rtLo_buf);
       rtHi = alpaka::getPtrNative(tripletsbuf.rtHi_buf);
-      kZ = alpaka::getPtrNative(tripletsbuf.kZ_buf);
 #endif
     }
   };
@@ -104,7 +102,6 @@ namespace SDL {
     Buf<TDev, float> betaInCut_buf;
     Buf<TDev, float> rtLo_buf;
     Buf<TDev, float> rtHi_buf;
-    Buf<TDev, float> kZ_buf;
 #endif
 
     template <typename TQueue, typename TDevAcc>
@@ -136,8 +133,7 @@ namespace SDL {
           sdlCut_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
           betaInCut_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
           rtLo_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
-          rtHi_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
-          kZ_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue))
+          rtHi_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue))
 #endif
     {
       alpaka::memset(queue, nTriplets_buf, 0u);
@@ -173,9 +169,7 @@ namespace SDL {
                                                          float& zLoPointed,
                                                          float& zHiPointed,
                                                          float& sdlCut,
-                                                         float& betaInCut,
-                                                         float& kZ,
-                                                         unsigned int& tripletIndex)
+                                                         float& betaInCut unsigned int& tripletIndex)
 #else
   ALPAKA_FN_ACC ALPAKA_FN_INLINE void addTripletToMemory(struct SDL::modules& modulesInGPU,
                                                          struct SDL::miniDoublets& mdsInGPU,
@@ -233,7 +227,6 @@ namespace SDL {
     tripletsInGPU.zHiPointed[tripletIndex] = zHiPointed;
     tripletsInGPU.sdlCut[tripletIndex] = sdlCut;
     tripletsInGPU.betaInCut[tripletIndex] = betaInCut;
-    tripletsInGPU.kZ[tripletIndex] = kZ;
 #endif
   };
 
@@ -976,7 +969,7 @@ namespace SDL {
             uint16_t outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex];
 
             float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, circleRadius, circleCenterX, circleCenterY;
-            float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, kZ;
+            float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut;
 
             bool success = runTripletConstraintsAndAlgo(acc,
                                                         modulesInGPU,
@@ -1002,8 +995,7 @@ namespace SDL {
                                                         zLoPointed,
                                                         zHiPointed,
                                                         sdlCut,
-                                                        betaInCut,
-                                                        kZ);
+                                                        betaInCut);
 
             if (success) {
               unsigned int totOccupancyTriplets = alpaka::atomicOp<alpaka::AtomicAdd>(
@@ -1044,7 +1036,6 @@ namespace SDL {
                                    zHiPointed,
                                    sdlCut,
                                    betaInCut,
-                                   kZ,
                                    tripletIndex);
 #else
                 addTripletToMemory(modulesInGPU,
