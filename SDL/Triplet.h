@@ -16,13 +16,10 @@ namespace SDL {
     unsigned int* nMemoryLocations;
     uint8_t* logicalLayers;
     unsigned int* hitIndices;
-    //delta beta = betaIn - betaOut
     FPX* betaIn;
-    FPX* betaOut;
-    FPX* pt_beta;
-    FPX* Circle_Radius;
-    FPX* Circle_CenterX;
-    FPX* Circle_CenterY;
+    FPX* circleRadius;
+    FPX* circleCenterX;
+    FPX* circleCenterY;
     bool* partOfPT5;
     bool* partOfT5;
     bool* partOfPT3;
@@ -39,8 +36,6 @@ namespace SDL {
     float* zHiPointed;
     float* sdlCut;
     float* betaInCut;
-    float* betaOutCut;
-    float* deltaBetaCut;
     float* rtLo;
     float* rtHi;
     float* kZ;
@@ -55,11 +50,9 @@ namespace SDL {
       logicalLayers = alpaka::getPtrNative(tripletsbuf.logicalLayers_buf);
       hitIndices = alpaka::getPtrNative(tripletsbuf.hitIndices_buf);
       betaIn = alpaka::getPtrNative(tripletsbuf.betaIn_buf);
-      betaOut = alpaka::getPtrNative(tripletsbuf.betaOut_buf);
-      pt_beta = alpaka::getPtrNative(tripletsbuf.pt_beta_buf);
-      Circle_Radius = alpaka::getPtrNative(tripletsbuf.Circle_Radius_buf);
-      Circle_CenterX = alpaka::getPtrNative(tripletsbuf.Circle_CenterX_buf);
-      Circle_CenterY = alpaka::getPtrNative(tripletsbuf.Circle_CenterY_buf);
+      circleRadius = alpaka::getPtrNative(tripletsbuf.circleRadius_buf);
+      circleCenterX = alpaka::getPtrNative(tripletsbuf.circleCenterX_buf);
+      circleCenterY = alpaka::getPtrNative(tripletsbuf.circleCenterY_buf);
       partOfPT5 = alpaka::getPtrNative(tripletsbuf.partOfPT5_buf);
       partOfT5 = alpaka::getPtrNative(tripletsbuf.partOfT5_buf);
       partOfPT3 = alpaka::getPtrNative(tripletsbuf.partOfPT3_buf);
@@ -74,8 +67,6 @@ namespace SDL {
       zHiPointed = alpaka::getPtrNative(tripletsbuf.zHiPointed_buf);
       sdlCut = alpaka::getPtrNative(tripletsbuf.sdlCut_buf);
       betaInCut = alpaka::getPtrNative(tripletsbuf.betaInCut_buf);
-      betaOutCut = alpaka::getPtrNative(tripletsbuf.betaOutCut_buf);
-      deltaBetaCut = alpaka::getPtrNative(tripletsbuf.deltaBetaCut_buf);
       rtLo = alpaka::getPtrNative(tripletsbuf.rtLo_buf);
       rtHi = alpaka::getPtrNative(tripletsbuf.rtHi_buf);
       kZ = alpaka::getPtrNative(tripletsbuf.kZ_buf);
@@ -93,11 +84,9 @@ namespace SDL {
     Buf<TDev, uint8_t> logicalLayers_buf;
     Buf<TDev, unsigned int> hitIndices_buf;
     Buf<TDev, FPX> betaIn_buf;
-    Buf<TDev, FPX> betaOut_buf;
-    Buf<TDev, FPX> pt_beta_buf;
-    Buf<TDev, FPX> Circle_Radius_buf;
-    Buf<TDev, FPX> Circle_CenterX_buf;
-    Buf<TDev, FPX> Circle_CenterY_buf;
+    Buf<TDev, FPX> circleRadius_buf;
+    Buf<TDev, FPX> circleCenterX_buf;
+    Buf<TDev, FPX> circleCenterY_buf;
     Buf<TDev, bool> partOfPT5_buf;
     Buf<TDev, bool> partOfT5_buf;
     Buf<TDev, bool> partOfPT3_buf;
@@ -113,8 +102,6 @@ namespace SDL {
     Buf<TDev, float> zHiPointed_buf;
     Buf<TDev, float> sdlCut_buf;
     Buf<TDev, float> betaInCut_buf;
-    Buf<TDev, float> betaOutCut_buf;
-    Buf<TDev, float> deltaBetaCut_buf;
     Buf<TDev, float> rtLo_buf;
     Buf<TDev, float> rtHi_buf;
     Buf<TDev, float> kZ_buf;
@@ -130,11 +117,9 @@ namespace SDL {
           logicalLayers_buf(allocBufWrapper<uint8_t>(devAccIn, maxTriplets * 3, queue)),
           hitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, maxTriplets * 6, queue)),
           betaIn_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
-          betaOut_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
-          pt_beta_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
-          Circle_Radius_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
-          Circle_CenterX_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
-          Circle_CenterY_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
+          circleRadius_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
+          circleCenterX_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
+          circleCenterY_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
           partOfPT5_buf(allocBufWrapper<bool>(devAccIn, maxTriplets, queue)),
           partOfT5_buf(allocBufWrapper<bool>(devAccIn, maxTriplets, queue)),
           partOfPT3_buf(allocBufWrapper<bool>(devAccIn, maxTriplets, queue))
@@ -150,8 +135,6 @@ namespace SDL {
           zHiPointed_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
           sdlCut_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
           betaInCut_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
-          betaOutCut_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
-          deltaBetaCut_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
           rtLo_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
           rtHi_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
           kZ_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue))
@@ -180,11 +163,9 @@ namespace SDL {
                                                          float& deltaPhiPos,
                                                          float& deltaPhi,
                                                          float& betaIn,
-                                                         float& betaOut,
-                                                         float& pt_beta,
-                                                         float& Circle_Radius,
-                                                         float& Circle_CenterX,
-                                                         float& Circle_CenterY,
+                                                         float& circleRadius,
+                                                         float& circleCenterX,
+                                                         float& circleCenterY,
                                                          float& zLo,
                                                          float& zHi,
                                                          float& rtLo,
@@ -193,8 +174,6 @@ namespace SDL {
                                                          float& zHiPointed,
                                                          float& sdlCut,
                                                          float& betaInCut,
-                                                         float& betaOutCut,
-                                                         float& deltaBetaCut,
                                                          float& kZ,
                                                          unsigned int& tripletIndex)
 #else
@@ -208,11 +187,9 @@ namespace SDL {
                                                          uint16_t& middleLowerModuleIndex,
                                                          uint16_t& outerOuterLowerModuleIndex,
                                                          float& betaIn,
-                                                         float& betaOut,
-                                                         float& pt_beta,
-                                                         float& Circle_Radius,
-                                                         float& Circle_CenterX,
-                                                         float& Circle_CenterY,
+                                                         float& circleRadius,
+                                                         float& circleCenterX,
+                                                         float& circleCenterY,
                                                          unsigned int& tripletIndex)
 #endif
   {
@@ -223,11 +200,9 @@ namespace SDL {
     tripletsInGPU.lowerModuleIndices[tripletIndex * 3 + 2] = outerOuterLowerModuleIndex;
 
     tripletsInGPU.betaIn[tripletIndex] = __F2H(betaIn);
-    tripletsInGPU.betaOut[tripletIndex] = __F2H(betaOut);
-    tripletsInGPU.pt_beta[tripletIndex] = __F2H(pt_beta);
-    tripletsInGPU.Circle_Radius[tripletIndex] = __F2H(Circle_Radius);
-    tripletsInGPU.Circle_CenterX[tripletIndex] = __F2H(Circle_CenterX);
-    tripletsInGPU.Circle_CenterY[tripletIndex] = __F2H(Circle_CenterY);
+    tripletsInGPU.circleRadius[tripletIndex] = __F2H(circleRadius);
+    tripletsInGPU.circleCenterX[tripletIndex] = __F2H(circleCenterX);
+    tripletsInGPU.circleCenterY[tripletIndex] = __F2H(circleCenterY);
     tripletsInGPU.logicalLayers[tripletIndex * 3] =
         modulesInGPU.layers[innerInnerLowerModuleIndex] + (modulesInGPU.subdets[innerInnerLowerModuleIndex] == 4) * 6;
     tripletsInGPU.logicalLayers[tripletIndex * 3 + 1] =
@@ -258,8 +233,6 @@ namespace SDL {
     tripletsInGPU.zHiPointed[tripletIndex] = zHiPointed;
     tripletsInGPU.sdlCut[tripletIndex] = sdlCut;
     tripletsInGPU.betaInCut[tripletIndex] = betaInCut;
-    tripletsInGPU.betaOutCut[tripletIndex] = betaOutCut;
-    tripletsInGPU.deltaBetaCut[tripletIndex] = deltaBetaCut;
     tripletsInGPU.kZ[tripletIndex] = kZ;
 #endif
   };
@@ -658,104 +631,6 @@ namespace SDL {
   };
 
   template <typename TAcc>
-  ALPAKA_FN_ACC ALPAKA_FN_INLINE void runDeltaBetaIterationsT3(TAcc const& acc,
-                                                               float& betaIn,
-                                                               float& betaOut,
-                                                               float& betaAv,
-                                                               float& pt_beta,
-                                                               float sdIn_dr,
-                                                               float sdOut_dr,
-                                                               float dr,
-                                                               float lIn) {
-    if (lIn == 0) {
-      betaOut += copysign(
-          alpaka::math::asin(
-              acc,
-              alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)),
-          betaOut);
-      return;
-    }
-
-    if (betaIn * betaOut > 0.f and
-        (alpaka::math::abs(acc, pt_beta) < 4.f * SDL::pt_betaMax or
-         (lIn >= 11 and alpaka::math::abs(acc, pt_beta) <
-                            8.f * SDL::pt_betaMax)))  //and the pt_beta is well-defined; less strict for endcap-endcap
-    {
-      const float betaInUpd =
-          betaIn +
-          SDL::copysignf(alpaka::math::asin(
-                             acc,
-                             alpaka::math::min(
-                                 acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)),
-                         betaIn);  //FIXME: need a faster version
-      const float betaOutUpd =
-          betaOut +
-          SDL::copysignf(alpaka::math::asin(
-                             acc,
-                             alpaka::math::min(
-                                 acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)),
-                         betaOut);  //FIXME: need a faster version
-      betaAv = 0.5f * (betaInUpd + betaOutUpd);
-
-      //1st update
-      //pt_beta = dr * k2Rinv1GeVf / alpaka::math::sin(acc, betaAv); //get a better pt estimate
-      const float pt_beta_inv =
-          1.f / alpaka::math::abs(acc, dr * k2Rinv1GeVf / alpaka::math::sin(acc, betaAv));  //get a better pt estimate
-
-      betaIn += SDL::copysignf(
-          alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf * pt_beta_inv, SDL::sinAlphaMax)),
-          betaIn);  //FIXME: need a faster version
-      betaOut += SDL::copysignf(
-          alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf * pt_beta_inv, SDL::sinAlphaMax)),
-          betaOut);  //FIXME: need a faster version
-      //update the av and pt
-      betaAv = 0.5f * (betaIn + betaOut);
-      //2nd update
-      pt_beta = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaAv);  //get a better pt estimate
-    } else if (lIn < 11 && alpaka::math::abs(acc, betaOut) < 0.2f * alpaka::math::abs(acc, betaIn) &&
-               alpaka::math::abs(acc, pt_beta) < 12.f * SDL::pt_betaMax)  //use betaIn sign as ref
-    {
-      const float pt_betaIn = dr * k2Rinv1GeVf / alpaka::math::sin(acc, betaIn);
-
-      const float betaInUpd =
-          betaIn + SDL::copysignf(
-                       alpaka::math::asin(
-                           acc,
-                           alpaka::math::min(
-                               acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_betaIn), SDL::sinAlphaMax)),
-                       betaIn);  //FIXME: need a faster version
-      const float betaOutUpd =
-          betaOut +
-          SDL::copysignf(
-              alpaka::math::asin(
-                  acc,
-                  alpaka::math::min(
-                      acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_betaIn), SDL::sinAlphaMax)),
-              betaIn);  //FIXME: need a faster version
-      betaAv = (alpaka::math::abs(acc, betaOut) > 0.2f * alpaka::math::abs(acc, betaIn))
-                   ? (0.5f * (betaInUpd + betaOutUpd))
-                   : betaInUpd;
-
-      //1st update
-      pt_beta = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaAv);  //get a better pt estimate
-      betaIn += SDL::copysignf(
-          alpaka::math::asin(
-              acc,
-              alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)),
-          betaIn);  //FIXME: need a faster version
-      betaOut += SDL::copysignf(
-          alpaka::math::asin(
-              acc,
-              alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)),
-          betaIn);  //FIXME: need a faster version
-      //update the av and pt
-      betaAv = 0.5f * (betaIn + betaOut);
-      //2nd update
-      pt_beta = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaAv);  //get a better pt estimate
-    }
-  };
-
-  template <typename TAcc>
   ALPAKA_FN_ACC ALPAKA_FN_INLINE bool runTripletDefaultAlgoBBBB(TAcc const& acc,
                                                                 struct SDL::modules& modulesInGPU,
                                                                 struct SDL::miniDoublets& mdsInGPU,
@@ -775,16 +650,12 @@ namespace SDL {
                                                                 float& deltaPhiPos,
                                                                 float& dPhi,
                                                                 float& betaIn,
-                                                                float& betaOut,
-                                                                float& pt_beta,
                                                                 float& zLo,
                                                                 float& zHi,
                                                                 float& zLoPointed,
                                                                 float& zHiPointed,
                                                                 float& sdlCut,
-                                                                float& betaInCut,
-                                                                float& betaOutCut,
-                                                                float& deltaBetaCut) {
+                                                                float& betaInCut) {
     bool pass = true;
     float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
     float rt_InOut = mdsInGPU.anchorRt[secondMDIndex];
@@ -839,15 +710,11 @@ namespace SDL {
                                                                 float& deltaPhiPos,
                                                                 float& dPhi,
                                                                 float& betaIn,
-                                                                float& betaOut,
-                                                                float& pt_beta,
                                                                 float& zLo,
                                                                 float& rtLo,
                                                                 float& rtHi,
                                                                 float& sdlCut,
                                                                 float& betaInCut,
-                                                                float& betaOutCut,
-                                                                float& deltaBetaCut,
                                                                 float& kZ) {
     bool pass = true;
 
@@ -876,7 +743,7 @@ namespace SDL {
 
     float betaInRHmin = betaIn;
     float betaInRHmax = betaIn;
-    betaOut =
+    float betaOut =
         -sdOut_alphaOut + SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[fourthMDIndex]);
 
     float betaOutRHmin = betaOut;
@@ -945,15 +812,11 @@ namespace SDL {
                                                                 float& deltaPhiPos,
                                                                 float& dPhi,
                                                                 float& betaIn,
-                                                                float& betaOut,
-                                                                float& pt_beta,
                                                                 float& zLo,
                                                                 float& rtLo,
                                                                 float& rtHi,
                                                                 float& sdlCut,
                                                                 float& betaInCut,
-                                                                float& betaOutCut,
-                                                                float& deltaBetaCut,
                                                                 float& kZ) {
     bool pass = true;
 
@@ -980,7 +843,7 @@ namespace SDL {
     float betaInRHmin = betaIn + sdIn_alphaRHmin - sdIn_alpha;
     float betaInRHmax = betaIn + sdIn_alphaRHmax - sdIn_alpha;
 
-    betaOut =
+    float betaOut =
         -sdOut_alphaOut + SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[fourthMDIndex]);
 
     float betaOutRHmin = betaOut - sdOut_alphaOutRHmin + sdOut_alphaOut;
@@ -1073,8 +936,6 @@ namespace SDL {
                                                             float& deltaPhiPos,
                                                             float& deltaPhi,
                                                             float& betaIn,
-                                                            float& betaOut,
-                                                            float& pt_beta,
                                                             float& zLo,
                                                             float& zHi,
                                                             float& rtLo,
@@ -1083,8 +944,6 @@ namespace SDL {
                                                             float& zHiPointed,
                                                             float& sdlCut,
                                                             float& betaInCut,
-                                                            float& betaOutCut,
-                                                            float& deltaBetaCut,
                                                             float& kZ) {
     bool pass = false;
 
@@ -1123,16 +982,12 @@ namespace SDL {
                                        deltaPhiPos,
                                        deltaPhi,
                                        betaIn,
-                                       betaOut,
-                                       pt_beta,
                                        zLo,
                                        zHi,
                                        zLoPointed,
                                        zHiPointed,
                                        sdlCut,
-                                       betaInCut,
-                                       betaOutCut,
-                                       deltaBetaCut);
+                                       betaInCut);
     }
 
     else if (innerInnerLowerModuleSubdet == SDL::Barrel and innerOuterLowerModuleSubdet == SDL::Barrel and
@@ -1156,16 +1011,12 @@ namespace SDL {
                                        deltaPhiPos,
                                        deltaPhi,
                                        betaIn,
-                                       betaOut,
-                                       pt_beta,
                                        zLo,
                                        zHi,
                                        zLoPointed,
                                        zHiPointed,
                                        sdlCut,
-                                       betaInCut,
-                                       betaOutCut,
-                                       deltaBetaCut);
+                                       betaInCut);
 
     }
 
@@ -1190,15 +1041,11 @@ namespace SDL {
                                        deltaPhiPos,
                                        deltaPhi,
                                        betaIn,
-                                       betaOut,
-                                       pt_beta,
                                        zLo,
                                        rtLo,
                                        rtHi,
                                        sdlCut,
                                        betaInCut,
-                                       betaOutCut,
-                                       deltaBetaCut,
                                        kZ);
 
     }
@@ -1224,15 +1071,11 @@ namespace SDL {
                                        deltaPhiPos,
                                        deltaPhi,
                                        betaIn,
-                                       betaOut,
-                                       pt_beta,
                                        zLo,
                                        rtLo,
                                        rtHi,
                                        sdlCut,
                                        betaInCut,
-                                       betaOutCut,
-                                       deltaBetaCut,
                                        kZ);
     }
 
@@ -1254,11 +1097,9 @@ namespace SDL {
                                                                    float& deltaPhiPos,
                                                                    float& deltaPhi,
                                                                    float& betaIn,
-                                                                   float& betaOut,
-                                                                   float& pt_beta,
-                                                                   float& Circle_Radius,
-                                                                   float& Circle_CenterX,
-                                                                   float& Circle_CenterY,
+                                                                   float& circleRadius,
+                                                                   float& circleCenterX,
+                                                                   float& circleCenterY,
                                                                    float& zLo,
                                                                    float& zHi,
                                                                    float& rtLo,
@@ -1267,8 +1108,6 @@ namespace SDL {
                                                                    float& zHiPointed,
                                                                    float& sdlCut,
                                                                    float& betaInCut,
-                                                                   float& betaOutCut,
-                                                                   float& deltaBetaCut,
                                                                    float& kZ) {
     bool pass = true;
 
@@ -1325,8 +1164,6 @@ namespace SDL {
                                            deltaPhiPos,
                                            deltaPhi,
                                            betaIn,
-                                           betaOut,
-                                           pt_beta,
                                            zLo,
                                            zHi,
                                            rtLo,
@@ -1335,8 +1172,6 @@ namespace SDL {
                                            zHiPointed,
                                            sdlCut,
                                            betaInCut,
-                                           betaOutCut,
-                                           deltaBetaCut,
                                            kZ));
 
     float x1 = mdsInGPU.anchorX[firstMDIndex];
@@ -1346,8 +1181,7 @@ namespace SDL {
     float y2 = mdsInGPU.anchorY[secondMDIndex];
     float y3 = mdsInGPU.anchorY[thirdMDIndex];
 
-    Circle_Radius = computeRadiusFromThreeAnchorHits(acc, x1, y1, x2, y2, x3, y3, Circle_CenterX, Circle_CenterY);
-    pt_beta = Circle_Radius * SDL::k2Rinv1GeVf * 2;
+    circleRadius = computeRadiusFromThreeAnchorHits(acc, x1, y1, x2, y2, x3, y3, circleCenterX, circleCenterY);
     return pass;
   };
 
@@ -1391,8 +1225,8 @@ namespace SDL {
 
             uint16_t outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex];
 
-            float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta, Circle_Radius, Circle_CenterX, Circle_CenterY;
-            float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ;
+            float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, circleRadius, circleCenterX, circleCenterY;
+            float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, kZ;
 
             bool success = runTripletConstraintsAndAlgo(acc,
                                                         modulesInGPU,
@@ -1408,11 +1242,9 @@ namespace SDL {
                                                         deltaPhiPos,
                                                         deltaPhi,
                                                         betaIn,
-                                                        betaOut,
-                                                        pt_beta,
-                                                        Circle_Radius,
-                                                        Circle_CenterX,
-                                                        Circle_CenterY,
+                                                        circleRadius,
+                                                        circleCenterX,
+                                                        circleCenterY,
                                                         zLo,
                                                         zHi,
                                                         rtLo,
@@ -1421,8 +1253,6 @@ namespace SDL {
                                                         zHiPointed,
                                                         sdlCut,
                                                         betaInCut,
-                                                        betaOutCut,
-                                                        deltaBetaCut,
                                                         kZ);
 
             if (success) {
@@ -1453,11 +1283,9 @@ namespace SDL {
                                    deltaPhiPos,
                                    deltaPhi,
                                    betaIn,
-                                   betaOut,
-                                   pt_beta,
-                                   Circle_Radius,
-                                   Circle_CenterX,
-                                   Circle_CenterY,
+                                   circleRadius,
+                                   circleCenterX,
+                                   circleCenterY,
                                    zLo,
                                    zHi,
                                    rtLo,
@@ -1466,8 +1294,6 @@ namespace SDL {
                                    zHiPointed,
                                    sdlCut,
                                    betaInCut,
-                                   betaOutCut,
-                                   deltaBetaCut,
                                    kZ,
                                    tripletIndex);
 #else
@@ -1481,11 +1307,9 @@ namespace SDL {
                                    middleLowerModuleIndex,
                                    outerOuterLowerModuleIndex,
                                    betaIn,
-                                   betaOut,
-                                   pt_beta,
-                                   Circle_Radius,
-                                   Circle_CenterX,
-                                   Circle_CenterY,
+                                   circleRadius,
+                                   circleCenterX,
+                                   circleCenterY,
                                    tripletIndex);
 #endif
               }
