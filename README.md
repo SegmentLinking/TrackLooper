@@ -28,7 +28,7 @@ For lnx7188 and lnx4555 this needs to be done before compiling or running the co
 ### Running the code
 
     sdl_make_tracklooper -mc
-    sdl -i PU200 -o LSTNtuple.root
+    sdl_<backend> -i PU200 -o LSTNtuple.root
     createPerfNumDenHists -i LSTNtuple.root -o LSTNumDen.root
     lst_plot_performance.py LSTNumDen.root -t "myTag"
     # python3 efficiency/python/lst_plot_performance.py LSTNumDen.root -t "myTag" # if you are on cgpu-1 or Cornell
@@ -125,14 +125,14 @@ cd ..
 ```bash
 mkdir workingFolder # Create the folder you will be working in
 cd workingFolder
-cmsrel CMSSW_14_1_0_pre0
-cd CMSSW_14_1_0_pre0/src
+cmsrel CMSSW_14_1_0_pre3
+cd CMSSW_14_1_0_pre3/src
 cmsenv
 git cms-init
 git remote add SegLink git@github.com:SegmentLinking/cmssw.git
-git fetch SegLink CMSSW_14_1_0_pre0_LST_X
+git fetch SegLink CMSSW_14_1_0_pre3_LST_X
 git cms-addpkg RecoTracker Configuration
-git checkout CMSSW_14_1_0_pre0_LST_X
+git checkout CMSSW_14_1_0_pre3_LST_X
 #To include both the CPU library and GPU library into CMSSW, create 3 xml files (headers file has no library).
 #Before writing the following xml file, check that libsdl_cpu.so and libsdl_gpu.so can be found under the ../../../TrackLooper/SDL/ folder.
 cat <<EOF >lst_headers.xml
@@ -253,16 +253,16 @@ Then all that is left to do is set some environment variables. We give an exampl
 
 ```bash
 # These two lines are only needed to set the right version of gcc and nvcc. They are not needed for standard installations.
-export PATH=/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/gcc/12.3.1-40d504be6370b5a30e3947a6e575ca28/bin:/cvmfs/cms.cern.ch/el8_amd64_gcc12/cms/cmssw/CMSSW_14_1_0_pre0/external/el8_amd64_gcc12/bin:$PATH
-export LD_LIBRARY_PATH=/cvmfs/cms.cern.ch/el8_amd64_gcc12/cms/cmssw/CMSSW_14_1_0_pre0/biglib/el8_amd64_gcc12:/cvmfs/cms.cern.ch/el8_amd64_gcc12/cms/cmssw/CMSSW_14_1_0_pre0/lib/el8_amd64_gcc12:/cvmfs/cms.cern.ch/el8_amd64_gcc12/cms/cmssw/CMSSW_14_1_0_pre0/external/el8_amd64_gcc12/lib:/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/gcc/12.3.1-40d504be6370b5a30e3947a6e575ca28/lib64:/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/gcc/12.3.1-40d504be6370b5a30e3947a6e575ca28/lib:$LD_LIBRARY_PATH
+export PATH=/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/gcc/12.3.1-40d504be6370b5a30e3947a6e575ca28/bin:/cvmfs/cms.cern.ch/el8_amd64_gcc12/cms/cmssw/CMSSW_14_1_0_pre3/external/el8_amd64_gcc12/bin:$PATH
+export LD_LIBRARY_PATH=/cvmfs/cms.cern.ch/el8_amd64_gcc12/cms/cmssw/CMSSW_14_1_0_pre3/biglib/el8_amd64_gcc12:/cvmfs/cms.cern.ch/el8_amd64_gcc12/cms/cmssw/CMSSW_14_1_0_pre3/lib/el8_amd64_gcc12:/cvmfs/cms.cern.ch/el8_amd64_gcc12/cms/cmssw/CMSSW_14_1_0_pre3/external/el8_amd64_gcc12/lib:/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/gcc/12.3.1-40d504be6370b5a30e3947a6e575ca28/lib64:/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/gcc/12.3.1-40d504be6370b5a30e3947a6e575ca28/lib:$LD_LIBRARY_PATH
 
 # These are the lines that you need to manually change for a CVMFS-less setup.
 # In this example we use cvmfs paths since that is where the dependencies are in lnx7188/cgpu1, but they can point to local directories.
-export BOOST_ROOT=/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/boost/1.80.0-9d4e0dc8cf1f8fc8a67cf53ae917955e
-export ALPAKA_ROOT=/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/alpaka/1.1.0-0e0b978d445f7af747cf00064c146356
-export CUDA_HOME=/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/cuda/12.2.1-bdf3fff69eaec65abe18a7569592cab6
-export ROOT_ROOT=/cvmfs/cms.cern.ch/el8_amd64_gcc12/lcg/root/6.30.05-d0417d1d3c55ded4cc9aa75628166a77
-export CMSSW_BASE=/cvmfs/cms.cern.ch/el8_amd64_gcc12/cms/cmssw/CMSSW_14_1_0_pre0
+export BOOST_ROOT=/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/boost/1.80.0-60a217837b5db1cff00c7d88ec42f53a
+export ALPAKA_ROOT=/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/alpaka/1.1.0-7d0324257db47fde2d27987e7ff98fb4
+export CUDA_HOME=/cvmfs/cms.cern.ch/el8_amd64_gcc12/external/cuda/12.4.1-06cde0cd9f95a73a1ea05c8535f60bde
+export ROOT_ROOT=/cvmfs/cms.cern.ch/el8_amd64_gcc12/lcg/root/6.30.07-21947a33e64ceb827a089697ad72e468
+export CMSSW_BASE=/cvmfs/cms.cern.ch/el8_amd64_gcc12/cms/cmssw/CMSSW_14_1_0_pre3
 
 # These lines are needed to account for some extra environment variables that are exported in the setup script.
 export LD_LIBRARY_PATH=$PWD/SDL/cuda:$PWD/SDL/cpu:$PWD:$LD_LIBRARY_PATH
