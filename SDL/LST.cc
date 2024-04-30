@@ -17,6 +17,8 @@ namespace {
     if (path != nullptr) {
       path_str = path;
     } else {
+      // FIXME: temporary solution, will need to pass a value from FileInPath or CMSSW search path
+      // in the `LSTProducer` or a related ES producer
       path_str = getenv("CMSSW_BASE");
       path_str += "/src/RecoTracker/LSTCore/TrackLooper";
     }
