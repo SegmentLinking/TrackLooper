@@ -492,19 +492,6 @@ namespace SDL {
     float rt_InOut = mdsInGPU.anchorRt[secondMDIndex];
 
     float sdIn_alpha = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
-    float sdIn_alpha_min = __H2F(segmentsInGPU.dPhiChangeMins[innerSegmentIndex]);
-    float sdIn_alpha_max = __H2F(segmentsInGPU.dPhiChangeMaxs[innerSegmentIndex]);
-
-    float sdOut_alphaOut = SDL::phi_mpi_pi(acc,
-                                           SDL::phi(acc,
-                                                    mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[secondMDIndex],
-                                                    mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[secondMDIndex]) -
-                                               mdsInGPU.anchorPhi[thirdMDIndex]);
-
-    float sdOut_alphaOut_min = SDL::phi_mpi_pi(
-        acc, __H2F(segmentsInGPU.dPhiChangeMins[outerSegmentIndex]) - __H2F(segmentsInGPU.dPhiMins[outerSegmentIndex]));
-    float sdOut_alphaOut_max = SDL::phi_mpi_pi(
-        acc, __H2F(segmentsInGPU.dPhiChangeMaxs[outerSegmentIndex]) - __H2F(segmentsInGPU.dPhiMaxs[outerSegmentIndex]));
 
     float tl_axis_x = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float tl_axis_y = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
@@ -513,29 +500,8 @@ namespace SDL {
 
     float betaInRHmin = betaIn;
     float betaInRHmax = betaIn;
-    float betaOut =
-        -sdOut_alphaOut + SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[thirdMDIndex]);
-
-    float betaOutRHmin = betaOut;
-    float betaOutRHmax = betaOut;
-
-    bool isEC_secondLayer = (modulesInGPU.subdets[innerOuterLowerModuleIndex] == SDL::Endcap) and
-                            (modulesInGPU.moduleType[innerOuterLowerModuleIndex] == SDL::TwoS);
-
-    if (isEC_secondLayer) {
-      betaInRHmin = betaIn - sdIn_alpha_min + sdIn_alpha;
-      betaInRHmax = betaIn - sdIn_alpha_max + sdIn_alpha;
-    }
-
-    betaOutRHmin = betaOut - sdOut_alphaOut_min + sdOut_alphaOut;
-    betaOutRHmax = betaOut - sdOut_alphaOut_max + sdOut_alphaOut;
 
     float swapTemp;
-    if (alpaka::math::abs(acc, betaOutRHmin) > alpaka::math::abs(acc, betaOutRHmax)) {
-      swapTemp = betaOutRHmin;
-      betaOutRHmin = betaOutRHmax;
-      betaOutRHmax = swapTemp;
-    }
 
     if (alpaka::math::abs(acc, betaInRHmin) > alpaka::math::abs(acc, betaInRHmax)) {
       swapTemp = betaInRHmin;
@@ -654,15 +620,6 @@ namespace SDL {
     float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
     float rt_InOut = mdsInGPU.anchorRt[secondMDIndex];
     float sdIn_alpha = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
-    float sdOut_dPhiPos = SDL::phi_mpi_pi(acc, mdsInGPU.anchorPhi[thirdMDIndex] - mdsInGPU.anchorPhi[secondMDIndex]);
-
-    float sdOut_dPhiChange = __H2F(segmentsInGPU.dPhiChanges[outerSegmentIndex]);
-    float sdOut_dPhiChange_min = __H2F(segmentsInGPU.dPhiChangeMins[outerSegmentIndex]);
-    float sdOut_dPhiChange_max = __H2F(segmentsInGPU.dPhiChangeMaxs[outerSegmentIndex]);
-
-    float sdOut_alphaOutRHmin = SDL::phi_mpi_pi(acc, sdOut_dPhiChange_min - sdOut_dPhiPos);
-    float sdOut_alphaOutRHmax = SDL::phi_mpi_pi(acc, sdOut_dPhiChange_max - sdOut_dPhiPos);
-    float sdOut_alphaOut = SDL::phi_mpi_pi(acc, sdOut_dPhiChange - sdOut_dPhiPos);
 
     float tl_axis_x = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float tl_axis_y = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
@@ -674,18 +631,7 @@ namespace SDL {
     float betaInRHmin = betaIn + sdIn_alphaRHmin - sdIn_alpha;
     float betaInRHmax = betaIn + sdIn_alphaRHmax - sdIn_alpha;
 
-    float betaOut =
-        -sdOut_alphaOut + SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[thirdMDIndex]);
-
-    float betaOutRHmin = betaOut - sdOut_alphaOutRHmin + sdOut_alphaOut;
-    float betaOutRHmax = betaOut - sdOut_alphaOutRHmax + sdOut_alphaOut;
-
     float swapTemp;
-    if (alpaka::math::abs(acc, betaOutRHmin) > alpaka::math::abs(acc, betaOutRHmax)) {
-      swapTemp = betaOutRHmin;
-      betaOutRHmin = betaOutRHmax;
-      betaOutRHmax = swapTemp;
-    }
 
     if (alpaka::math::abs(acc, betaInRHmin) > alpaka::math::abs(acc, betaInRHmax)) {
       swapTemp = betaInRHmin;
