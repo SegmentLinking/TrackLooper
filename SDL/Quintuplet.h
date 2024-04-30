@@ -1,12 +1,18 @@
 #ifndef Quintuplet_cuh
 #define Quintuplet_cuh
 
+#ifdef LST_STANDALONE
 #include "Constants.h"
+#include "Module.h"
+#else
+#include <RecoTracker/LSTCore/interface/alpaka/Constants.h>
+#include <RecoTracker/LSTCore/interface/alpaka/Module.h>
+#endif
+
 #include "NeuralNetwork.h"
 #include "EndcapGeometry.h"
 #include "Segment.h"
 #include "MiniDoublet.h"
-#include "Module.h"
 #include "Hit.h"
 #include "Triplet.h"
 

@@ -1,7 +1,11 @@
 #ifndef LST_H
 #define LST_H
 
+#ifdef LST_STANDALONE
 #include "Constants.h"
+#else
+#include <RecoTracker/LSTCore/interface/alpaka/Constants.h>
+#endif
 
 #include <filesystem>
 #include <cstdlib>

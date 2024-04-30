@@ -1,13 +1,19 @@
 #ifndef TrackCandidate_cuh
 #define TrackCandidate_cuh
 
+#ifdef LST_STANDALONE
 #include "Constants.h"
+#include "Module.h"
+#else
+#include <RecoTracker/LSTCore/interface/alpaka/Constants.h>
+#include <RecoTracker/LSTCore/interface/alpaka/Module.h>
+#endif
+
 #include "Triplet.h"
 #include "Segment.h"
 #include "MiniDoublet.h"
 #include "PixelTriplet.h"
 #include "Quintuplet.h"
-#include "Module.h"
 #include "Hit.h"
 
 namespace SDL {

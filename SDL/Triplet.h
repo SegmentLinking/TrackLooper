@@ -1,10 +1,16 @@
 #ifndef Triplet_cuh
 #define Triplet_cuh
 
+#ifdef LST_STANDALONE
 #include "Constants.h"
+#include "Module.h"
+#else
+#include <RecoTracker/LSTCore/interface/alpaka/Constants.h>
+#include <RecoTracker/LSTCore/interface/alpaka/Module.h>
+#endif
+
 #include "Segment.h"
 #include "MiniDoublet.h"
-#include "Module.h"
 #include "Hit.h"
 
 namespace SDL {

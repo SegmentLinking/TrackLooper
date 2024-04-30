@@ -44,9 +44,9 @@ LIBS=$(LIB_CPU) $(LIB_CUDA) $(LIB_ROCM)
 GENCODE_CUDA := -gencode arch=compute_70,code=[sm_70,compute_70] -gencode arch=compute_89,code=[sm_89,compute_89]
 
 CXX                  = g++
-CXXFLAGS_CPU         = -march=native -mtune=native -Ofast -fno-reciprocal-math -fopenmp-simd -g -Wall -Wshadow -Woverloaded-virtual -fPIC -fopenmp -I..
-CXXFLAGS_CUDA        = -O3 -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared $(GENCODE_CUDA) --use_fast_math --default-stream per-thread -I..
-CXXFLAGS_ROCM        = -O3 -g -Wall -Wshadow -Woverloaded-virtual -fPIC -I${ROCM_ROOT}/include -I..
+CXXFLAGS_CPU         = -march=native -mtune=native -Ofast -fno-reciprocal-math -fopenmp-simd -g -Wall -Wshadow -Woverloaded-virtual -fPIC -fopenmp -DLST_STANDALONE -I..
+CXXFLAGS_CUDA        = -O3 -g --compiler-options -Wall --compiler-options -Wshadow --compiler-options -Woverloaded-virtual --compiler-options -fPIC --compiler-options -fopenmp -dc -lineinfo --ptxas-options=-v --cudart shared $(GENCODE_CUDA) --use_fast_math --default-stream per-thread -DLST_STANDALONE -I..
+CXXFLAGS_ROCM        = -O3 -g -Wall -Wshadow -Woverloaded-virtual -fPIC -I${ROCM_ROOT}/include -DLST_STANDALONE -I..
 CMSSWINCLUDE        := -I${CMSSW_BASE}/src
 ifdef CMSSW_RELEASE_BASE
 CMSSWINCLUDE        := ${CMSSWINCLUDE} -I${CMSSW_RELEASE_BASE}/src

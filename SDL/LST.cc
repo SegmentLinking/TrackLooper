@@ -1,4 +1,9 @@
+#ifdef LST_STANDALONE
 #include "LST.h"
+#else
+#include <RecoTracker/LSTCore/interface/alpaka/LST.h>
+#endif
+
 #include "Event.h"
 #include "Globals.h"
 
@@ -6,7 +11,17 @@
 using XYZVector = ROOT::Math::XYZVector;
 
 namespace {
-  std::string trackLooperDir() { return getenv("LST_BASE"); }
+  std::string trackLooperDir() {
+    const char* path = getenv("LST_BASE");
+    std::string path_str;
+    if (path != nullptr) {
+      path_str = path;
+    } else {
+      path_str = getenv("CMSSW_BASE");
+      path_str += "/src/RecoTracker/LSTCore/TrackLooper";
+    }
+    return path_str;
+  }
 
   std::string get_absolute_path_after_check_file_exists(const std::string name) {
     std::filesystem::path fullpath = std::filesystem::absolute(name.c_str());
