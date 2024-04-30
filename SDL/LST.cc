@@ -1,7 +1,7 @@
 #ifdef LST_STANDALONE
 #include "LST.h"
 #else
-#include <RecoTracker/LSTCore/interface/alpaka/LST.h>
+#include "RecoTracker/LSTCore/interface/alpaka/LST.h"
 #endif
 
 #include "Event.h"
