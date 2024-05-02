@@ -12,14 +12,14 @@ using XYZVector = ROOT::Math::XYZVector;
 
 namespace {
   std::string trackLooperDir() {
-    const char* path = getenv("LST_BASE");
+    const char* path = std::getenv("LST_BASE");
     std::string path_str;
     if (path != nullptr) {
       path_str = path;
     } else {
       // FIXME: temporary solution, will need to pass a value from FileInPath or CMSSW search path
       // in the `LSTProducer` or a related ES producer
-      path_str = getenv("CMSSW_BASE");
+      path_str = std::getenv("CMSSW_BASE");
       path_str += "/src/RecoTracker/LSTCore/TrackLooper";
     }
     return path_str;
