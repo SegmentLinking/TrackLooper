@@ -1,12 +1,12 @@
 #ifndef Quintuplet_cuh
 #define Quintuplet_cuh
 
-#ifdef LST_STANDALONE
-#include "Constants.h"
-#include "Module.h"
-#else
+#ifdef LST_IS_CMSSW_PACKAGE
 #include "RecoTracker/LSTCore/interface/alpaka/Constants.h"
 #include "RecoTracker/LSTCore/interface/alpaka/Module.h"
+#else
+#include "Constants.h"
+#include "Module.h"
 #endif
 
 #include "NeuralNetwork.h"

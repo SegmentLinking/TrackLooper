@@ -9,10 +9,10 @@
 #include <vector>
 #include <stdexcept>
 
-#ifdef LST_STANDALONE
-#include "Constants.h"
-#else
+#ifdef LST_IS_CMSSW_PACKAGE
 #include "RecoTracker/LSTCore/interface/alpaka/Constants.h"
+#else
+#include "Constants.h"
 #endif
 
 #include "HeterogeneousCore/AlpakaInterface/interface/host.h"

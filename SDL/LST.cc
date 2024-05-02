@@ -1,7 +1,7 @@
-#ifdef LST_STANDALONE
-#include "LST.h"
-#else
+#ifdef LST_IS_CMSSW_PACKAGE
 #include "RecoTracker/LSTCore/interface/alpaka/LST.h"
+#else
+#include "LST.h"
 #endif
 
 #include "Event.h"

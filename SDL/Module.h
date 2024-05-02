@@ -3,10 +3,10 @@
 
 #include <alpaka/alpaka.hpp>
 
-#ifdef LST_STANDALONE
-#include "Constants.h"
-#else
+#ifdef LST_IS_CMSSW_PACKAGE
 #include "RecoTracker/LSTCore/interface/alpaka/Constants.h"
+#else
+#include "Constants.h"
 #endif
 
 namespace SDL {
