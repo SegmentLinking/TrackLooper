@@ -1,4 +1,9 @@
+#ifdef LST_IS_CMSSW_PACKAGE
+#include "RecoTracker/LSTCore/interface/alpaka/LST.h"
+#else
 #include "LST.h"
+#endif
+
 #include "Event.h"
 #include "Globals.h"
 
@@ -6,7 +11,19 @@
 using XYZVector = ROOT::Math::XYZVector;
 
 namespace {
-  std::string trackLooperDir() { return getenv("LST_BASE"); }
+  std::string trackLooperDir() {
+    const char* path = std::getenv("LST_BASE");
+    std::string path_str;
+    if (path != nullptr) {
+      path_str = path;
+    } else {
+      // FIXME: temporary solution, will need to pass a value from FileInPath or CMSSW search path
+      // in the `LSTProducer` or a related ES producer
+      path_str = std::getenv("CMSSW_BASE");
+      path_str += "/src/RecoTracker/LSTCore/TrackLooper";
+    }
+    return path_str;
+  }
 
   std::string get_absolute_path_after_check_file_exists(const std::string name) {
     std::filesystem::path fullpath = std::filesystem::absolute(name.c_str());

@@ -1,8 +1,15 @@
 #ifndef Event_cuh
 #define Event_cuh
 
-#include "Hit.h"
+#ifdef LST_IS_CMSSW_PACKAGE
+#include "RecoTracker/LSTCore/interface/alpaka/Constants.h"
+#include "RecoTracker/LSTCore/interface/alpaka/Module.h"
+#else
+#include "Constants.h"
 #include "Module.h"
+#endif
+
+#include "Hit.h"
 #include "ModuleMethods.h"
 #include "Segment.h"
 #include "Triplet.h"
@@ -11,7 +18,6 @@
 #include "MiniDoublet.h"
 #include "PixelTriplet.h"
 #include "TrackCandidate.h"
-#include "Constants.h"
 
 #include "HeterogeneousCore/AlpakaInterface/interface/host.h"
 
@@ -179,9 +185,7 @@ namespace SDL {
     modulesBuffer<alpaka::DevCpu>* getModules(bool isFull = false);
 
     //read from file and init
-    static void initModules(QueueAcc& queue,
-                            const MapPLStoLayer& pLStoLayer,
-                            const char* moduleMetaDataFilePath);
+    static void initModules(QueueAcc& queue, const MapPLStoLayer& pLStoLayer, const char* moduleMetaDataFilePath);
   };
 
 }  // namespace SDL

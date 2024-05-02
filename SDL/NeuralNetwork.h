@@ -1,11 +1,17 @@
 #ifndef NeuralNetwork_cuh
 #define NeuralNetwork_cuh
 
+#ifdef LST_IS_CMSSW_PACKAGE
+#include "RecoTracker/LSTCore/interface/alpaka/Constants.h"
+#include "RecoTracker/LSTCore/interface/alpaka/Module.h"
+#else
 #include "Constants.h"
+#include "Module.h"
+#endif
+
 #include "NeuralNetworkWeights.h"
 #include "Segment.h"
 #include "MiniDoublet.h"
-#include "Module.h"
 #include "Hit.h"
 #include "Triplet.h"
 

@@ -1,14 +1,20 @@
 #ifndef Kernels_cuh
 #define Kernels_cuh
 
+#ifdef LST_IS_CMSSW_PACKAGE
+#include "RecoTracker/LSTCore/interface/alpaka/Constants.h"
+#include "RecoTracker/LSTCore/interface/alpaka/Module.h"
+#else
+#include "Constants.h"
 #include "Module.h"
+#endif
+
 #include "Hit.h"
 #include "MiniDoublet.h"
 #include "Segment.h"
 #include "Triplet.h"
 #include "Quintuplet.h"
 #include "PixelTriplet.h"
-#include "Constants.h"
 
 namespace SDL {
   ALPAKA_FN_ACC ALPAKA_FN_INLINE void rmQuintupletFromMemory(struct SDL::quintuplets& quintupletsInGPU,
