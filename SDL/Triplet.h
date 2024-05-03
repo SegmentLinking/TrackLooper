@@ -377,7 +377,6 @@ namespace SDL {
     //beta computation
     float drt_tl_axis = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
 
-    float corrF = 1.f;
     //innerOuterAnchor - innerInnerAnchor
     const float rt_InSeg =
         alpaka::math::sqrt(acc,
@@ -388,7 +387,7 @@ namespace SDL {
     betaInCut = alpaka::math::asin(
                     acc,
                     alpaka::math::min(
-                        acc, (-rt_InSeg * corrF + drt_tl_axis) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
+                        acc, (-rt_InSeg + drt_tl_axis) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
                 (0.02f / drt_InSeg);
 
     //Cut #3: first beta cut
