@@ -6,8 +6,12 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/code/rooutil/thisrooutil.sh
 
-export SCRAM_ARCH=el8_amd64_gcc12
-export CMSSW_VERSION=CMSSW_14_1_0_pre0
+if [[ $(hostname) == *lnx4555* ]]; then
+  export SCRAM_ARCH=el9_amd64_gcc12
+else
+  export SCRAM_ARCH=el8_amd64_gcc12
+fi
+export CMSSW_VERSION=CMSSW_14_1_0_pre3
 
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 cd /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/cmssw/$CMSSW_VERSION/src
