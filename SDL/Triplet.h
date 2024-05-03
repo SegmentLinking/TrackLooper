@@ -390,8 +390,7 @@ namespace SDL {
                         acc, (-rt_InSeg * corrF + drt_tl_axis) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
                 (0.02f / drt_InSeg);
 
-    //Cut #5: first beta cut
-    //-5
+    //Cut #3: first beta cut
     pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
 
     return pass;
