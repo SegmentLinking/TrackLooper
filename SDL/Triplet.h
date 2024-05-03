@@ -522,7 +522,7 @@ namespace SDL {
             acc, alpaka::math::min(acc, (-sdIn_dr * corrF + dr) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
         (0.02f / sdIn_d);
 
-    //Cut #6: first beta cut
+    //Cut #4: first beta cut
     pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
     return pass;
   };
