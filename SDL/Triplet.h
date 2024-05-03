@@ -384,11 +384,10 @@ namespace SDL {
                                    (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) +
                                (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]) *
                                    (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]));
-    betaInCut = alpaka::math::asin(
-                    acc,
-                    alpaka::math::min(
-                        acc, (-rt_InSeg + drt_tl_axis) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
-                (0.02f / drt_InSeg);
+    betaInCut =
+        alpaka::math::asin(
+            acc, alpaka::math::min(acc, (-rt_InSeg + drt_tl_axis) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
+        (0.02f / drt_InSeg);
 
     //Cut #3: first beta cut
     pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
@@ -516,10 +515,9 @@ namespace SDL {
     float sdIn_d = rt_InOut - rt_InLo;
 
     float dr = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
-    betaInCut =
-        alpaka::math::asin(
-            acc, alpaka::math::min(acc, (-sdIn_dr + dr) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
-        (0.02f / sdIn_d);
+    betaInCut = alpaka::math::asin(
+                    acc, alpaka::math::min(acc, (-sdIn_dr + dr) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
+                (0.02f / sdIn_d);
 
     //Cut #4: first beta cut
     pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
@@ -644,11 +642,9 @@ namespace SDL {
     float sdIn_d = rt_InOut - rt_InLo;
 
     float dr = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
-    const float corrF = 1.f;
-    betaInCut =
-        alpaka::math::asin(
-            acc, alpaka::math::min(acc, (-sdIn_dr * corrF + dr) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
-        (0.02f / sdIn_d);
+    betaInCut = alpaka::math::asin(
+                    acc, alpaka::math::min(acc, (-sdIn_dr + dr) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
+                (0.02f / sdIn_d);
 
     //Cut #4: first beta cut
     pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
