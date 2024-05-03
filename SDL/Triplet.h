@@ -169,7 +169,8 @@ namespace SDL {
                                                          float& zLoPointed,
                                                          float& zHiPointed,
                                                          float& sdlCut,
-                                                         float& betaInCut unsigned int& tripletIndex)
+                                                         float& betaInCut,
+                                                         unsigned int& tripletIndex)
 #else
   ALPAKA_FN_ACC ALPAKA_FN_INLINE void addTripletToMemory(struct SDL::modules& modulesInGPU,
                                                          struct SDL::miniDoublets& mdsInGPU,
