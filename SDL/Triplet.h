@@ -16,10 +16,10 @@ namespace SDL {
     unsigned int* nMemoryLocations;
     uint8_t* logicalLayers;
     unsigned int* hitIndices;
-    FPX* betaIn;
-    FPX* circleRadius;
-    FPX* circleCenterX;
-    FPX* circleCenterY;
+    float* betaIn;
+    float* circleRadius;
+    float* circleCenterX;
+    float* circleCenterY;
     bool* partOfPT5;
     bool* partOfT5;
     bool* partOfPT3;
@@ -81,10 +81,10 @@ namespace SDL {
     Buf<TDev, unsigned int> nMemoryLocations_buf;
     Buf<TDev, uint8_t> logicalLayers_buf;
     Buf<TDev, unsigned int> hitIndices_buf;
-    Buf<TDev, FPX> betaIn_buf;
-    Buf<TDev, FPX> circleRadius_buf;
-    Buf<TDev, FPX> circleCenterX_buf;
-    Buf<TDev, FPX> circleCenterY_buf;
+    Buf<TDev, float> betaIn_buf;
+    Buf<TDev, float> circleRadius_buf;
+    Buf<TDev, float> circleCenterX_buf;
+    Buf<TDev, float> circleCenterY_buf;
     Buf<TDev, bool> partOfPT5_buf;
     Buf<TDev, bool> partOfT5_buf;
     Buf<TDev, bool> partOfPT3_buf;
@@ -113,10 +113,10 @@ namespace SDL {
           nMemoryLocations_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
           logicalLayers_buf(allocBufWrapper<uint8_t>(devAccIn, maxTriplets * 3, queue)),
           hitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, maxTriplets * 6, queue)),
-          betaIn_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
-          circleRadius_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
-          circleCenterX_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
-          circleCenterY_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
+          betaIn_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
+          circleRadius_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
+          circleCenterX_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
+          circleCenterY_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
           partOfPT5_buf(allocBufWrapper<bool>(devAccIn, maxTriplets, queue)),
           partOfT5_buf(allocBufWrapper<bool>(devAccIn, maxTriplets, queue)),
           partOfPT3_buf(allocBufWrapper<bool>(devAccIn, maxTriplets, queue))
