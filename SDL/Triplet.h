@@ -367,7 +367,7 @@ namespace SDL {
     // Cut #2: Pointed Z (Inner segment two MD points to outer segment inner MD)
     pass = pass and ((zOut >= zLoPointed) && (zOut <= zHiPointed));
 
-    // First obtaining the raw betaIn and betaOut values without any correction and just purely based on the mini-doublet hit positions
+    // raw betaIn value without any correction, based on the mini-doublet hit positions
     float alpha_InLo = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
     float tl_axis_x = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float tl_axis_y = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
