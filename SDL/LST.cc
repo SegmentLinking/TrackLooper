@@ -37,9 +37,9 @@ namespace {
   void loadMaps(SDL::Dev const& devAccIn, SDL::QueueAcc& queue, SDL::MapPLStoLayer& pLStoLayer) {
     // Module orientation information (DrDz or phi angles)
     auto endcap_geom =
-        get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/endcap_orientation.bin");
+        get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.6/endcap_orientation.bin");
     auto tilted_geom = get_absolute_path_after_check_file_exists(
-        trackLooperDir() + "/data/OT800_IT615_pt0.8/tilted_barrel_orientation.bin");
+        trackLooperDir() + "/data/OT800_IT615_pt0.6/tilted_barrel_orientation.bin");
     if (SDL::Globals<SDL::Dev>::endcapGeometry == nullptr) {
       SDL::Globals<SDL::Dev>::endcapGeometry =
           new SDL::EndcapGeometry<SDL::Dev>(devAccIn, queue, endcap_geom);  // centroid values added to the map
@@ -49,10 +49,10 @@ namespace {
 
     // Module connection map (for line segment building)
     auto mappath = get_absolute_path_after_check_file_exists(
-        trackLooperDir() + "/data/OT800_IT615_pt0.8/module_connection_tracing_merged.bin");
+        trackLooperDir() + "/data/OT800_IT615_pt0.6/module_connection_tracing_merged.bin");
     SDL::Globals<SDL::Dev>::moduleConnectionMap.load(mappath);
 
-    auto pLSMapDir = trackLooperDir() + "/data/OT800_IT615_pt0.8/pixelmap/pLS_map";
+    auto pLSMapDir = trackLooperDir() + "/data/OT800_IT615_pt0.6/pixelmap/pLS_map";
     const std::array<std::string, 4> connects{
         {"_layer1_subdet5", "_layer2_subdet5", "_layer1_subdet4", "_layer2_subdet4"}};
     std::string path;
@@ -80,7 +80,7 @@ void SDL::LST<SDL::Acc>::loadAndFillES(SDL::QueueAcc& queue, struct modulesBuffe
   ::loadMaps(devAccIn, queue, pLStoLayer);
 
   auto path =
-      get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/sensor_centroids.bin");
+      get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.6/sensor_centroids.bin");
   if (SDL::Globals<SDL::Dev>::modulesBuffers == nullptr) {
     SDL::Globals<SDL::Dev>::modulesBuffers = new SDL::modulesBuffer<SDL::Dev>(devAccIn);
   }
@@ -330,7 +330,7 @@ void SDL::LST<SDL::Acc>::prepareInput(const std::vector<float> see_px,
     float eta = p3LH.eta();
     float ptErr = see_ptErr[iSeed];
 
-    if ((ptIn > 0.8 - 2 * ptErr)) {
+    if ((ptIn > PT_CUT - 2 * ptErr)) {
       XYZVector r3LH(see_stateTrajGlbX[iSeed], see_stateTrajGlbY[iSeed], see_stateTrajGlbZ[iSeed]);
       XYZVector p3PCA(see_px[iSeed], see_py[iSeed], see_pz[iSeed]);
       XYZVector r3PCA(calculateR3FromPCA(p3PCA, see_dxy[iSeed], see_dz[iSeed]));
@@ -346,7 +346,7 @@ void SDL::LST<SDL::Acc>::prepareInput(const std::vector<float> see_px,
 
       if (ptIn >= 2.0)
         pixtype = 0;
-      else if (ptIn >= (0.8 - 2 * ptErr) and ptIn < 2.0) {
+      else if (ptIn >= (PT_CUT - 2 * ptErr) and ptIn < 2.0) {
         if (pixelSegmentDeltaPhiChange >= 0)
           pixtype = 1;
         else

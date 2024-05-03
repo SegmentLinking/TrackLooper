@@ -99,9 +99,9 @@ namespace SDL {
     return WorkDiv(adjustedBlocks, adjustedThreads, elementsPerThreadArg);
   }
 
-// If a compile time flag does not define PT_CUT, default to 0.8 (GeV)
+// If a compile time flag does not define PT_CUT, default to 0.6 (GeV)
 #ifndef PT_CUT
-  constexpr float PT_CUT = 0.8f;
+  constexpr float PT_CUT = 0.6f;
 #endif
 
   const unsigned int MAX_BLOCKS = 80;
@@ -124,7 +124,7 @@ namespace SDL {
 
   // Temporary fix for module buffer allocation.
   const unsigned int modules_size = 26401;
-  const unsigned int pix_tot = 1795336;
+  const unsigned int pix_tot = 2028724;
 
   //defining the constant host device variables right up here
   ALPAKA_STATIC_ACC_MEM_GLOBAL const float miniMulsPtScaleBarrel[6] = {0.0052, 0.0038, 0.0034, 0.0034, 0.0032, 0.0034};

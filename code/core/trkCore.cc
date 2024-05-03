@@ -8,11 +8,11 @@ void loadMaps(SDL::Dev& devAccIn, SDL::QueueAcc& queue)
     TString TrackLooperDir = gSystem->Getenv("TRACKLOOPERDIR");
 
     // Module orientation information (DrDz or phi angles)
-    TString endcap_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/endcap_orientation.bin", TrackLooperDir.Data()).Data());
-    TString tilted_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/tilted_barrel_orientation.bin", TrackLooperDir.Data()).Data());
-    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/module_connection_tracing_merged.bin", TrackLooperDir.Data()).Data());
-    TString centroid = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/sensor_centroids.bin", gSystem->Getenv("TRACKLOOPERDIR")).Data()).Data();
-    TString pLSMapDir = TrackLooperDir+"/data/OT800_IT615_pt0.8/pixelmap";
+    TString endcap_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.6/endcap_orientation.bin", TrackLooperDir.Data()).Data());
+    TString tilted_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.6/tilted_barrel_orientation.bin", TrackLooperDir.Data()).Data());
+    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.6/module_connection_tracing_merged.bin", TrackLooperDir.Data()).Data());
+    TString centroid = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.6/sensor_centroids.bin", gSystem->Getenv("TRACKLOOPERDIR")).Data()).Data();
+    TString pLSMapDir = TrackLooperDir+"/data/OT800_IT615_pt0.6/pixelmap";
 
     std::cout << "============ CMSSW_12_2_0_pre2 geometry ===========" << std::endl;
     std::cout << "endcap geometry: " << endcap_geom << std::endl;
@@ -1275,7 +1275,7 @@ float addInputsToLineSegmentTracking(SDL::Event<SDL::Acc> &event, bool useOMP)
         float ptErr = trk.see_ptErr()[iSeed];
         float eta = p3LH.Eta();
 
-        if ((ptIn > 0.8 - 2 * ptErr))
+        if ((ptIn > PT_CUT - 2 * ptErr))
         {
             TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
             TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
@@ -1303,7 +1303,7 @@ float addInputsToLineSegmentTracking(SDL::Event<SDL::Acc> &event, bool useOMP)
             { /*ptbin = 1;*/
                 pixtype = 0;
             }
-            else if (ptIn >= (0.8 - 2 * ptErr) and ptIn < 2.0)
+            else if (ptIn >= (PT_CUT - 2 * ptErr) and ptIn < 2.0)
             {
                 // ptbin = 0;
                 if (pixelSegmentDeltaPhiChange >= 0)

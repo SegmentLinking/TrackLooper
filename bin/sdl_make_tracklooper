@@ -30,7 +30,7 @@ usage()
   echo "  -G    GPU (CUDA) backend        (Compile for CUDA)"
   echo "  -R    ROCm backend              (Compile for ROCm)"
   echo "  -A    All backends              (Compile for all backends, including ROCm)"
-  echo "  -P    PT Cut Value              (In GeV, Default is 0.8, Works only for standalone version of code)"
+  echo "  -P    PT Cut Value              (In GeV, Default is 0.6, Works only for standalone version of code)"
   echo "  -w    Warning mode              (Print extra warning outputs)"
   echo "  -2    no pLS duplicate cleaning (Don't perform the pLS duplicate cleaning step)"
   echo
@@ -73,7 +73,7 @@ if [ -z ${ROCMBACKEND} ]; then ROCMBACKEND=false; fi
 if [ -z ${ALLBACKENDS} ]; then ALLBACKENDS=false; fi
 if [ -z ${NOPLSDUPCLEAN} ]; then NOPLSDUPCLEAN=false; fi
 if [ -z ${PRINTWARNINGS} ]; then PRINTWARNINGS=false; fi
-if [ -z ${PTCUTVALUE} ]; then PTCUTVALUE=0.8; fi
+if [ -z ${PTCUTVALUE} ]; then PTCUTVALUE=0.6; fi
 
 # Default to only CPU and CUDA backends
 if [ "${CPUBACKEND}" == false ] && [ "${CUDABACKEND}" == false ] && [ "${ROCMBACKEND}" == false ]; then
