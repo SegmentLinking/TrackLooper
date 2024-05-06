@@ -16,7 +16,7 @@ namespace SDL {
     unsigned int* nMemoryLocations;
     uint8_t* logicalLayers;
     unsigned int* hitIndices;
-    float* betaIn;
+    FPX* betaIn;
     float* circleRadius;
     float* circleCenterX;
     float* circleCenterY;
