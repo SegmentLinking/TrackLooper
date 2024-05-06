@@ -195,9 +195,9 @@ namespace SDL {
     tripletsInGPU.lowerModuleIndices[tripletIndex * 3 + 2] = outerOuterLowerModuleIndex;
 
     tripletsInGPU.betaIn[tripletIndex] = __F2H(betaIn);
-    tripletsInGPU.circleRadius[tripletIndex] = __F2H(circleRadius);
-    tripletsInGPU.circleCenterX[tripletIndex] = __F2H(circleCenterX);
-    tripletsInGPU.circleCenterY[tripletIndex] = __F2H(circleCenterY);
+    tripletsInGPU.circleRadius[tripletIndex] = circleRadius;
+    tripletsInGPU.circleCenterX[tripletIndex] = circleCenterX;
+    tripletsInGPU.circleCenterY[tripletIndex] = circleCenterY;
     tripletsInGPU.logicalLayers[tripletIndex * 3] =
         modulesInGPU.layers[innerInnerLowerModuleIndex] + (modulesInGPU.subdets[innerInnerLowerModuleIndex] == 4) * 6;
     tripletsInGPU.logicalLayers[tripletIndex * 3 + 1] =
