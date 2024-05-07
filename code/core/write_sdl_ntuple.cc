@@ -995,33 +995,6 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
 }
 
 //________________________________________________________________________________________________________________________________
-float computeRadiusFromThreeAnchorHits(float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f)
-{
-   float radius = 0;
-   if ((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3) == 0)
-    {
-        return -1; // WTF man three collinear points!
-    }
-
-    float denom = ((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3));
-
-    g = 0.5 * ((y3 - y2) * (x1 * x1 + y1 * y1) + (y1 - y3) * (x2 * x2 + y2 * y2) + (y2 - y1) * (x3 * x3 + y3 * y3)) / denom;
-
-    f = 0.5 * ((x2 - x3) * (x1 * x1 + y1 * y1) + (x3 - x1) * (x2 * x2 + y2 * y2) + (x1 - x2) * (x3 * x3 + y3 * y3)) / denom;
-
-    float c = ((x2 * y3 - x3 * y2) * (x1 * x1 + y1 * y1) + (x3 * y1 - x1 * y3) * (x2 * x2 + y2 * y2) + (x1 * y2 - x2 * y1) * (x3 * x3 + y3 * y3)) / denom;
-
-    if (g * g + f * f - c < 0)
-    {
-        std::cout << "FATAL! r^2 < 0!" << std::endl;
-        return -1;
-    }
-
-    radius = sqrtf(g * g + f * f - c);
-    return radius;
-}
-
-//________________________________________________________________________________________________________________________________
 void printHitMultiplicities(SDL::Event<SDL::Acc>* event)
 {
     SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());

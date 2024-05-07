@@ -22,10 +22,10 @@ namespace SDL {
     unsigned int* nMemoryLocations;
     uint8_t* logicalLayers;
     unsigned int* hitIndices;
-    //delta beta = betaIn - betaOut
     FPX* betaIn;
-    FPX* betaOut;
-    FPX* pt_beta;
+    float* circleRadius;
+    float* circleCenterX;
+    float* circleCenterY;
     bool* partOfPT5;
     bool* partOfT5;
     bool* partOfPT3;
@@ -42,11 +42,8 @@ namespace SDL {
     float* zHiPointed;
     float* sdlCut;
     float* betaInCut;
-    float* betaOutCut;
-    float* deltaBetaCut;
     float* rtLo;
     float* rtHi;
-    float* kZ;
 #endif
     template <typename TBuff>
     void setData(TBuff& tripletsbuf) {
@@ -58,8 +55,9 @@ namespace SDL {
       logicalLayers = alpaka::getPtrNative(tripletsbuf.logicalLayers_buf);
       hitIndices = alpaka::getPtrNative(tripletsbuf.hitIndices_buf);
       betaIn = alpaka::getPtrNative(tripletsbuf.betaIn_buf);
-      betaOut = alpaka::getPtrNative(tripletsbuf.betaOut_buf);
-      pt_beta = alpaka::getPtrNative(tripletsbuf.pt_beta_buf);
+      circleRadius = alpaka::getPtrNative(tripletsbuf.circleRadius_buf);
+      circleCenterX = alpaka::getPtrNative(tripletsbuf.circleCenterX_buf);
+      circleCenterY = alpaka::getPtrNative(tripletsbuf.circleCenterY_buf);
       partOfPT5 = alpaka::getPtrNative(tripletsbuf.partOfPT5_buf);
       partOfT5 = alpaka::getPtrNative(tripletsbuf.partOfT5_buf);
       partOfPT3 = alpaka::getPtrNative(tripletsbuf.partOfPT3_buf);
@@ -74,11 +72,8 @@ namespace SDL {
       zHiPointed = alpaka::getPtrNative(tripletsbuf.zHiPointed_buf);
       sdlCut = alpaka::getPtrNative(tripletsbuf.sdlCut_buf);
       betaInCut = alpaka::getPtrNative(tripletsbuf.betaInCut_buf);
-      betaOutCut = alpaka::getPtrNative(tripletsbuf.betaOutCut_buf);
-      deltaBetaCut = alpaka::getPtrNative(tripletsbuf.deltaBetaCut_buf);
       rtLo = alpaka::getPtrNative(tripletsbuf.rtLo_buf);
       rtHi = alpaka::getPtrNative(tripletsbuf.rtHi_buf);
-      kZ = alpaka::getPtrNative(tripletsbuf.kZ_buf);
 #endif
     }
   };
@@ -93,8 +88,9 @@ namespace SDL {
     Buf<TDev, uint8_t> logicalLayers_buf;
     Buf<TDev, unsigned int> hitIndices_buf;
     Buf<TDev, FPX> betaIn_buf;
-    Buf<TDev, FPX> betaOut_buf;
-    Buf<TDev, FPX> pt_beta_buf;
+    Buf<TDev, float> circleRadius_buf;
+    Buf<TDev, float> circleCenterX_buf;
+    Buf<TDev, float> circleCenterY_buf;
     Buf<TDev, bool> partOfPT5_buf;
     Buf<TDev, bool> partOfT5_buf;
     Buf<TDev, bool> partOfPT3_buf;
@@ -110,11 +106,8 @@ namespace SDL {
     Buf<TDev, float> zHiPointed_buf;
     Buf<TDev, float> sdlCut_buf;
     Buf<TDev, float> betaInCut_buf;
-    Buf<TDev, float> betaOutCut_buf;
-    Buf<TDev, float> deltaBetaCut_buf;
     Buf<TDev, float> rtLo_buf;
     Buf<TDev, float> rtHi_buf;
-    Buf<TDev, float> kZ_buf;
 #endif
 
     template <typename TQueue, typename TDevAcc>
@@ -127,8 +120,9 @@ namespace SDL {
           logicalLayers_buf(allocBufWrapper<uint8_t>(devAccIn, maxTriplets * 3, queue)),
           hitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, maxTriplets * 6, queue)),
           betaIn_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
-          betaOut_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
-          pt_beta_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
+          circleRadius_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
+          circleCenterX_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
+          circleCenterY_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
           partOfPT5_buf(allocBufWrapper<bool>(devAccIn, maxTriplets, queue)),
           partOfT5_buf(allocBufWrapper<bool>(devAccIn, maxTriplets, queue)),
           partOfPT3_buf(allocBufWrapper<bool>(devAccIn, maxTriplets, queue))
@@ -144,11 +138,8 @@ namespace SDL {
           zHiPointed_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
           sdlCut_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
           betaInCut_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
-          betaOutCut_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
-          deltaBetaCut_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
           rtLo_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
-          rtHi_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
-          kZ_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue))
+          rtHi_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue))
 #endif
     {
       alpaka::memset(queue, nTriplets_buf, 0u);
@@ -174,8 +165,9 @@ namespace SDL {
                                                          float& deltaPhiPos,
                                                          float& deltaPhi,
                                                          float& betaIn,
-                                                         float& betaOut,
-                                                         float& pt_beta,
+                                                         float& circleRadius,
+                                                         float& circleCenterX,
+                                                         float& circleCenterY,
                                                          float& zLo,
                                                          float& zHi,
                                                          float& rtLo,
@@ -184,9 +176,6 @@ namespace SDL {
                                                          float& zHiPointed,
                                                          float& sdlCut,
                                                          float& betaInCut,
-                                                         float& betaOutCut,
-                                                         float& deltaBetaCut,
-                                                         float& kZ,
                                                          unsigned int& tripletIndex)
 #else
   ALPAKA_FN_ACC ALPAKA_FN_INLINE void addTripletToMemory(struct SDL::modules& modulesInGPU,
@@ -199,8 +188,9 @@ namespace SDL {
                                                          uint16_t& middleLowerModuleIndex,
                                                          uint16_t& outerOuterLowerModuleIndex,
                                                          float& betaIn,
-                                                         float& betaOut,
-                                                         float& pt_beta,
+                                                         float& circleRadius,
+                                                         float& circleCenterX,
+                                                         float& circleCenterY,
                                                          unsigned int& tripletIndex)
 #endif
   {
@@ -211,9 +201,9 @@ namespace SDL {
     tripletsInGPU.lowerModuleIndices[tripletIndex * 3 + 2] = outerOuterLowerModuleIndex;
 
     tripletsInGPU.betaIn[tripletIndex] = __F2H(betaIn);
-    tripletsInGPU.betaOut[tripletIndex] = __F2H(betaOut);
-    tripletsInGPU.pt_beta[tripletIndex] = __F2H(pt_beta);
-
+    tripletsInGPU.circleRadius[tripletIndex] = circleRadius;
+    tripletsInGPU.circleCenterX[tripletIndex] = circleCenterX;
+    tripletsInGPU.circleCenterY[tripletIndex] = circleCenterY;
     tripletsInGPU.logicalLayers[tripletIndex * 3] =
         modulesInGPU.layers[innerInnerLowerModuleIndex] + (modulesInGPU.subdets[innerInnerLowerModuleIndex] == 4) * 6;
     tripletsInGPU.logicalLayers[tripletIndex * 3 + 1] =
@@ -244,9 +234,6 @@ namespace SDL {
     tripletsInGPU.zHiPointed[tripletIndex] = zHiPointed;
     tripletsInGPU.sdlCut[tripletIndex] = sdlCut;
     tripletsInGPU.betaInCut[tripletIndex] = betaInCut;
-    tripletsInGPU.betaOutCut[tripletIndex] = betaOutCut;
-    tripletsInGPU.deltaBetaCut[tripletIndex] = deltaBetaCut;
-    tripletsInGPU.kZ[tripletIndex] = kZ;
 #endif
   };
 
@@ -322,7 +309,10 @@ namespace SDL {
                                                                 unsigned int& secondMDIndex,
                                                                 unsigned int& thirdMDIndex,
                                                                 float& zOut,
-                                                                float& rtOut) {
+                                                                float& rtOut,
+                                                                unsigned int& innerSegmentIndex,
+                                                                float& betaIn,
+                                                                float& betaInCut) {
     bool pass = true;
     bool isPSIn = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
     bool isPSOut = (modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS);
@@ -383,6 +373,31 @@ namespace SDL {
     // Cut #2: Pointed Z (Inner segment two MD points to outer segment inner MD)
     pass = pass and ((zOut >= zLoPointed) && (zOut <= zHiPointed));
 
+    // raw betaIn value without any correction, based on the mini-doublet hit positions
+    float alpha_InLo = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
+    float tl_axis_x = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
+    float tl_axis_y = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
+    float betaInRHmin =
+        alpha_InLo - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
+
+    //beta computation
+    float drt_tl_axis = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
+
+    //innerOuterAnchor - innerInnerAnchor
+    const float rt_InSeg =
+        alpaka::math::sqrt(acc,
+                           (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) *
+                                   (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) +
+                               (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]) *
+                                   (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]));
+    betaInCut =
+        alpaka::math::asin(
+            acc, alpaka::math::min(acc, (-rt_InSeg + drt_tl_axis) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
+        (0.02f / drt_InSeg);
+
+    //Cut #3: first beta cut
+    pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
+
     return pass;
   };
 
@@ -398,9 +413,13 @@ namespace SDL {
                                                                 unsigned int& secondMDIndex,
                                                                 unsigned int& thirdMDIndex,
                                                                 float& zOut,
-                                                                float& rtOut) {
+                                                                float& rtOut,
+                                                                uint16_t& innerOuterLowerModuleIndex,
+                                                                unsigned int& innerSegmentIndex,
+                                                                unsigned int& outerSegmentIndex,
+                                                                float& betaIn,
+                                                                float& betaInCut) {
     bool pass = true;
-    //unsigned int outerInnerLowerModuleIndex = middleLowerModuleIndex;
 
     bool isPSIn = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
     bool isPSOut = (modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS);
@@ -472,6 +491,42 @@ namespace SDL {
     //Cut #3: rt-z pointed
 
     pass = pass and (kZ >= 0) && (rtOut >= rtLo) && (rtOut <= rtHi);
+
+    float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
+    float rt_InOut = mdsInGPU.anchorRt[secondMDIndex];
+
+    float sdIn_alpha = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
+
+    float tl_axis_x = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
+    float tl_axis_y = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
+
+    betaIn = sdIn_alpha - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
+
+    float betaInRHmin = betaIn;
+    float betaInRHmax = betaIn;
+
+    float swapTemp;
+
+    if (alpaka::math::abs(acc, betaInRHmin) > alpaka::math::abs(acc, betaInRHmax)) {
+      swapTemp = betaInRHmin;
+      betaInRHmin = betaInRHmax;
+      betaInRHmax = swapTemp;
+    }
+
+    float sdIn_dr = alpaka::math::sqrt(acc,
+                                       (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) *
+                                               (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) +
+                                           (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]) *
+                                               (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]));
+    float sdIn_d = rt_InOut - rt_InLo;
+
+    float dr = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
+    betaInCut = alpaka::math::asin(
+                    acc, alpaka::math::min(acc, (-sdIn_dr + dr) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
+                (0.02f / sdIn_d);
+
+    //Cut #4: first beta cut
+    pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
     return pass;
   };
 
@@ -487,7 +542,11 @@ namespace SDL {
                                                                 unsigned int& secondMDIndex,
                                                                 unsigned int& thirdMDIndex,
                                                                 float& zOut,
-                                                                float& rtOut) {
+                                                                float& rtOut,
+                                                                unsigned int& innerSegmentIndex,
+                                                                unsigned int& outerSegmentIndex,
+                                                                float& betaIn,
+                                                                float& betaInCut) {
     bool pass = true;
 
     float rtIn = mdsInGPU.anchorRt[firstMDIndex];
@@ -560,6 +619,41 @@ namespace SDL {
       pass = pass and ((kZ >= 0) && (rtOut >= rtLo_point) && (rtOut <= rtHi_point));
     }
 
+    float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
+    float rt_InOut = mdsInGPU.anchorRt[secondMDIndex];
+    float sdIn_alpha = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
+
+    float tl_axis_x = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
+    float tl_axis_y = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
+
+    betaIn = sdIn_alpha - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
+
+    float sdIn_alphaRHmin = __H2F(segmentsInGPU.dPhiChangeMins[innerSegmentIndex]);
+    float sdIn_alphaRHmax = __H2F(segmentsInGPU.dPhiChangeMaxs[innerSegmentIndex]);
+    float betaInRHmin = betaIn + sdIn_alphaRHmin - sdIn_alpha;
+    float betaInRHmax = betaIn + sdIn_alphaRHmax - sdIn_alpha;
+
+    float swapTemp;
+
+    if (alpaka::math::abs(acc, betaInRHmin) > alpaka::math::abs(acc, betaInRHmax)) {
+      swapTemp = betaInRHmin;
+      betaInRHmin = betaInRHmax;
+      betaInRHmax = swapTemp;
+    }
+    float sdIn_dr = alpaka::math::sqrt(acc,
+                                       (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) *
+                                               (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) +
+                                           (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]) *
+                                               (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]));
+    float sdIn_d = rt_InOut - rt_InLo;
+
+    float dr = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
+    betaInCut = alpaka::math::asin(
+                    acc, alpaka::math::min(acc, (-sdIn_dr + dr) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
+                (0.02f / sdIn_d);
+
+    //Cut #4: first beta cut
+    pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
     return pass;
   };
 
@@ -575,7 +669,12 @@ namespace SDL {
                                                              unsigned int& secondMDIndex,
                                                              unsigned int& thirdMDIndex,
                                                              float& zOut,
-                                                             float& rtOut) {
+                                                             float& rtOut,
+                                                             uint16_t& innerOuterLowerModuleIndex,
+                                                             unsigned int& innerSegmentIndex,
+                                                             unsigned int& outerSegmentIndex,
+                                                             float& betaIn,
+                                                             float& betaInCut) {
     short innerInnerLowerModuleSubdet = modulesInGPU.subdets[innerInnerLowerModuleIndex];
     short middleLowerModuleSubdet = modulesInGPU.subdets[middleLowerModuleIndex];
     short outerOuterLowerModuleSubdet = modulesInGPU.subdets[outerOuterLowerModuleIndex];
@@ -593,7 +692,10 @@ namespace SDL {
                                        secondMDIndex,
                                        thirdMDIndex,
                                        zOut,
-                                       rtOut);
+                                       rtOut,
+                                       innerSegmentIndex,
+                                       betaIn,
+                                       betaInCut);
     } else if (innerInnerLowerModuleSubdet == SDL::Barrel and middleLowerModuleSubdet == SDL::Barrel and
                outerOuterLowerModuleSubdet == SDL::Endcap) {
       return passPointingConstraintBBE(acc,
@@ -607,7 +709,12 @@ namespace SDL {
                                        secondMDIndex,
                                        thirdMDIndex,
                                        zOut,
-                                       rtOut);
+                                       rtOut,
+                                       innerOuterLowerModuleIndex,
+                                       innerSegmentIndex,
+                                       outerSegmentIndex,
+                                       betaIn,
+                                       betaInCut);
     } else if (innerInnerLowerModuleSubdet == SDL::Barrel and middleLowerModuleSubdet == SDL::Endcap and
                outerOuterLowerModuleSubdet == SDL::Endcap) {
       return passPointingConstraintBBE(acc,
@@ -621,7 +728,12 @@ namespace SDL {
                                        secondMDIndex,
                                        thirdMDIndex,
                                        zOut,
-                                       rtOut);
+                                       rtOut,
+                                       innerOuterLowerModuleIndex,
+                                       innerSegmentIndex,
+                                       outerSegmentIndex,
+                                       betaIn,
+                                       betaInCut);
 
     }
 
@@ -638,1165 +750,48 @@ namespace SDL {
                                        secondMDIndex,
                                        thirdMDIndex,
                                        zOut,
-                                       rtOut);
+                                       rtOut,
+                                       innerSegmentIndex,
+                                       outerSegmentIndex,
+                                       betaIn,
+                                       betaInCut);
     }
     return false;  // failsafe
   };
 
   template <typename TAcc>
-  ALPAKA_FN_ACC ALPAKA_FN_INLINE void runDeltaBetaIterationsT3(TAcc const& acc,
-                                                               float& betaIn,
-                                                               float& betaOut,
-                                                               float& betaAv,
-                                                               float& pt_beta,
-                                                               float sdIn_dr,
-                                                               float sdOut_dr,
-                                                               float dr,
-                                                               float lIn) {
-    if (lIn == 0) {
-      betaOut += copysign(
-          alpaka::math::asin(
-              acc,
-              alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)),
-          betaOut);
-      return;
-    }
+  ALPAKA_FN_ACC ALPAKA_FN_INLINE float computeRadiusFromThreeAnchorHits(
+      TAcc const& acc, float x1, float y1, float x2, float y2, float x3, float y3, float& g, float& f) {
+    float radius = 0.f;
 
-    if (betaIn * betaOut > 0.f and
-        (alpaka::math::abs(acc, pt_beta) < 4.f * SDL::pt_betaMax or
-         (lIn >= 11 and alpaka::math::abs(acc, pt_beta) <
-                            8.f * SDL::pt_betaMax)))  //and the pt_beta is well-defined; less strict for endcap-endcap
-    {
-      const float betaInUpd =
-          betaIn +
-          SDL::copysignf(alpaka::math::asin(
-                             acc,
-                             alpaka::math::min(
-                                 acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)),
-                         betaIn);  //FIXME: need a faster version
-      const float betaOutUpd =
-          betaOut +
-          SDL::copysignf(alpaka::math::asin(
-                             acc,
-                             alpaka::math::min(
-                                 acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)),
-                         betaOut);  //FIXME: need a faster version
-      betaAv = 0.5f * (betaInUpd + betaOutUpd);
+    //writing manual code for computing radius, which obviously sucks
+    //TODO:Use fancy inbuilt libraries like cuBLAS or cuSOLVE for this!
+    //(g,f) -> center
+    //first anchor hit - (x1,y1), second anchor hit - (x2,y2), third anchor hit - (x3, y3)
 
-      //1st update
-      //pt_beta = dr * k2Rinv1GeVf / alpaka::math::sin(acc, betaAv); //get a better pt estimate
-      const float pt_beta_inv =
-          1.f / alpaka::math::abs(acc, dr * k2Rinv1GeVf / alpaka::math::sin(acc, betaAv));  //get a better pt estimate
+    float denomInv = 1.0f / ((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3));
 
-      betaIn += SDL::copysignf(
-          alpaka::math::asin(acc, alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf * pt_beta_inv, SDL::sinAlphaMax)),
-          betaIn);  //FIXME: need a faster version
-      betaOut += SDL::copysignf(
-          alpaka::math::asin(acc, alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf * pt_beta_inv, SDL::sinAlphaMax)),
-          betaOut);  //FIXME: need a faster version
-      //update the av and pt
-      betaAv = 0.5f * (betaIn + betaOut);
-      //2nd update
-      pt_beta = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaAv);  //get a better pt estimate
-    } else if (lIn < 11 && alpaka::math::abs(acc, betaOut) < 0.2f * alpaka::math::abs(acc, betaIn) &&
-               alpaka::math::abs(acc, pt_beta) < 12.f * SDL::pt_betaMax)  //use betaIn sign as ref
-    {
-      const float pt_betaIn = dr * k2Rinv1GeVf / alpaka::math::sin(acc, betaIn);
+    float xy1sqr = x1 * x1 + y1 * y1;
 
-      const float betaInUpd =
-          betaIn + SDL::copysignf(
-                       alpaka::math::asin(
-                           acc,
-                           alpaka::math::min(
-                               acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_betaIn), SDL::sinAlphaMax)),
-                       betaIn);  //FIXME: need a faster version
-      const float betaOutUpd =
-          betaOut +
-          SDL::copysignf(
-              alpaka::math::asin(
-                  acc,
-                  alpaka::math::min(
-                      acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_betaIn), SDL::sinAlphaMax)),
-              betaIn);  //FIXME: need a faster version
-      betaAv = (alpaka::math::abs(acc, betaOut) > 0.2f * alpaka::math::abs(acc, betaIn))
-                   ? (0.5f * (betaInUpd + betaOutUpd))
-                   : betaInUpd;
+    float xy2sqr = x2 * x2 + y2 * y2;
 
-      //1st update
-      pt_beta = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaAv);  //get a better pt estimate
-      betaIn += SDL::copysignf(
-          alpaka::math::asin(
-              acc,
-              alpaka::math::min(acc, sdIn_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)),
-          betaIn);  //FIXME: need a faster version
-      betaOut += SDL::copysignf(
-          alpaka::math::asin(
-              acc,
-              alpaka::math::min(acc, sdOut_dr * SDL::k2Rinv1GeVf / alpaka::math::abs(acc, pt_beta), SDL::sinAlphaMax)),
-          betaIn);  //FIXME: need a faster version
-      //update the av and pt
-      betaAv = 0.5f * (betaIn + betaOut);
-      //2nd update
-      pt_beta = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaAv);  //get a better pt estimate
-    }
-  };
+    float xy3sqr = x3 * x3 + y3 * y3;
 
-  template <typename TAcc>
-  ALPAKA_FN_ACC ALPAKA_FN_INLINE bool runTripletDefaultAlgoBBBB(TAcc const& acc,
-                                                                struct SDL::modules& modulesInGPU,
-                                                                struct SDL::miniDoublets& mdsInGPU,
-                                                                struct SDL::segments& segmentsInGPU,
-                                                                uint16_t& innerInnerLowerModuleIndex,
-                                                                uint16_t& innerOuterLowerModuleIndex,
-                                                                uint16_t& outerInnerLowerModuleIndex,
-                                                                uint16_t& outerOuterLowerModuleIndex,
-                                                                unsigned int& innerSegmentIndex,
-                                                                unsigned int& outerSegmentIndex,
-                                                                unsigned int& firstMDIndex,
-                                                                unsigned int& secondMDIndex,
-                                                                unsigned int& thirdMDIndex,
-                                                                unsigned int& fourthMDIndex,
-                                                                float& zOut,
-                                                                float& rtOut,
-                                                                float& deltaPhiPos,
-                                                                float& dPhi,
-                                                                float& betaIn,
-                                                                float& betaOut,
-                                                                float& pt_beta,
-                                                                float& zLo,
-                                                                float& zHi,
-                                                                float& zLoPointed,
-                                                                float& zHiPointed,
-                                                                float& sdlCut,
-                                                                float& betaInCut,
-                                                                float& betaOutCut,
-                                                                float& deltaBetaCut) {
-    bool pass = true;
+    g = 0.5f * ((y3 - y2) * xy1sqr + (y1 - y3) * xy2sqr + (y2 - y1) * xy3sqr) * denomInv;
 
-    bool isPS_InLo = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
-    bool isPS_OutLo = (modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS);
+    f = 0.5f * ((x2 - x3) * xy1sqr + (x3 - x1) * xy2sqr + (x1 - x2) * xy3sqr) * denomInv;
 
-    float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
-    float rt_InOut = mdsInGPU.anchorRt[secondMDIndex];
-    float rt_OutLo = mdsInGPU.anchorRt[thirdMDIndex];
+    float c = ((x2 * y3 - x3 * y2) * xy1sqr + (x3 * y1 - x1 * y3) * xy2sqr + (x1 * y2 - x2 * y1) * xy3sqr) * denomInv;
 
-    float z_InLo = mdsInGPU.anchorZ[firstMDIndex];
-    float z_InOut = mdsInGPU.anchorZ[secondMDIndex];
-    float z_OutLo = mdsInGPU.anchorZ[thirdMDIndex];
+    if (((y1 - y3) * (x2 - x3) - (x1 - x3) * (y2 - y3) == 0) || (g * g + f * f - c < 0)) {
+#ifdef Warnings
+      printf("three collinear points or FATAL! r^2 < 0!\n");
+#endif
+      radius = -1.f;
+    } else
+      radius = alpaka::math::sqrt(acc, g * g + f * f - c);
 
-    float alpha1GeV_OutLo =
-        alpaka::math::asin(acc, alpaka::math::min(acc, rt_OutLo * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax));
-
-    float rtRatio_OutLoInLo = rt_OutLo / rt_InLo;  // Outer segment beginning rt divided by inner segment beginning rt;
-    float dzDrtScale =
-        alpaka::math::tan(acc, alpha1GeV_OutLo) / alpha1GeV_OutLo;  // The track can bend in r-z plane slightly
-    float zpitch_InLo = (isPS_InLo ? SDL::pixelPSZpitch : SDL::strip2SZpitch);
-    float zpitch_OutLo = (isPS_OutLo ? SDL::pixelPSZpitch : SDL::strip2SZpitch);
-
-    zHi = z_InLo + (z_InLo + SDL::deltaZLum) * (rtRatio_OutLoInLo - 1.f) * (z_InLo < 0.f ? 1.f : dzDrtScale) +
-          (zpitch_InLo + zpitch_OutLo);
-    zLo = z_InLo + (z_InLo - SDL::deltaZLum) * (rtRatio_OutLoInLo - 1.f) * (z_InLo > 0.f ? 1.f : dzDrtScale) -
-          (zpitch_InLo + zpitch_OutLo);
-
-    //Cut 1 - z compatibility
-    zOut = z_OutLo;
-    rtOut = rt_OutLo;
-    pass = pass and ((z_OutLo >= zLo) && (z_OutLo <= zHi));
-    if (not pass)
-      return pass;
-
-    float drt_OutLo_InLo = (rt_OutLo - rt_InLo);
-    float r3_InLo = alpaka::math::sqrt(acc, z_InLo * z_InLo + rt_InLo * rt_InLo);
-    float drt_InSeg = rt_InOut - rt_InLo;
-    float dz_InSeg = z_InOut - z_InLo;
-    float dr3_InSeg = alpaka::math::sqrt(acc, rt_InOut * rt_InOut + z_InOut * z_InOut) -
-                      alpaka::math::sqrt(acc, rt_InLo * rt_InLo + z_InLo * z_InLo);
-
-    float coshEta = dr3_InSeg / drt_InSeg;
-    float dzErr = (zpitch_InLo + zpitch_OutLo) * (zpitch_InLo + zpitch_OutLo) * 2.f;
-
-    float sdlThetaMulsF = 0.015f * alpaka::math::sqrt(acc, 0.1f + 0.2f * (rt_OutLo - rt_InLo) / 50.f) *
-                          alpaka::math::sqrt(acc, r3_InLo / rt_InLo);
-    float sdlMuls = sdlThetaMulsF * 3.f / SDL::ptCut * 4.f;  // will need a better guess than x4?
-    dzErr += sdlMuls * sdlMuls * drt_OutLo_InLo * drt_OutLo_InLo / 3.f * coshEta * coshEta;  //sloppy
-    dzErr = alpaka::math::sqrt(acc, dzErr);
-
-    // Constructing upper and lower bound
-    const float dzMean = dz_InSeg / drt_InSeg * drt_OutLo_InLo;
-    const float zWindow =
-        dzErr / drt_InSeg * drt_OutLo_InLo +
-        (zpitch_InLo + zpitch_OutLo);  //FIXME for SDL::ptCut lower than ~0.8 need to add curv path correction
-    zLoPointed = z_InLo + dzMean * (z_InLo > 0.f ? 1.f : dzDrtScale) - zWindow;
-    zHiPointed = z_InLo + dzMean * (z_InLo < 0.f ? 1.f : dzDrtScale) + zWindow;
-
-    // Cut #2: Pointed Z (Inner segment two MD points to outer segment inner MD)
-    pass = pass and ((z_OutLo >= zLoPointed) && (z_OutLo <= zHiPointed));
-    if (not pass)
-      return pass;
-
-    float sdlPVoff = 0.1f / rt_OutLo;
-    sdlCut = alpha1GeV_OutLo + alpaka::math::sqrt(acc, sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
-
-    deltaPhiPos = SDL::phi_mpi_pi(acc, mdsInGPU.anchorPhi[fourthMDIndex] - mdsInGPU.anchorPhi[secondMDIndex]);
-    // Cut #3: FIXME:deltaPhiPos can be tighter
-    pass = pass and (alpaka::math::abs(acc, deltaPhiPos) <= sdlCut);
-    if (not pass)
-      return pass;
-
-    float midPointX = 0.5f * (mdsInGPU.anchorX[firstMDIndex] + mdsInGPU.anchorX[thirdMDIndex]);
-    float midPointY = 0.5f * (mdsInGPU.anchorY[firstMDIndex] + mdsInGPU.anchorY[thirdMDIndex]);
-    float diffX = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
-    float diffY = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-
-    dPhi = SDL::deltaPhi(acc, midPointX, midPointY, diffX, diffY);
-
-    // Cut #4: deltaPhiChange
-    pass = pass and (alpaka::math::abs(acc, dPhi) <= sdlCut);
-    //lots of array accesses below. Cut here!
-    if (not pass)
-      return pass;
-
-    // First obtaining the raw betaIn and betaOut values without any correction and just purely based on the mini-doublet hit positions
-
-    float alpha_InLo = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
-    float alpha_OutLo = __H2F(segmentsInGPU.dPhiChanges[outerSegmentIndex]);
-
-    bool isEC_lastLayer = modulesInGPU.subdets[outerOuterLowerModuleIndex] == SDL::Endcap and
-                          modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS;
-
-    float alpha_OutUp, alpha_OutUp_highEdge, alpha_OutUp_lowEdge;
-
-    alpha_OutUp = SDL::phi_mpi_pi(acc,
-                                  SDL::phi(acc,
-                                           mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex],
-                                           mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]) -
-                                      mdsInGPU.anchorPhi[fourthMDIndex]);
-
-    alpha_OutUp_highEdge = alpha_OutUp;
-    alpha_OutUp_lowEdge = alpha_OutUp;
-
-    float tl_axis_x = mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[firstMDIndex];
-    float tl_axis_y = mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-    float tl_axis_highEdge_x = tl_axis_x;
-    float tl_axis_highEdge_y = tl_axis_y;
-    float tl_axis_lowEdge_x = tl_axis_x;
-    float tl_axis_lowEdge_y = tl_axis_y;
-
-    betaIn = alpha_InLo - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
-
-    float betaInRHmin = betaIn;
-    float betaInRHmax = betaIn;
-    betaOut =
-        -alpha_OutUp + SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[fourthMDIndex]);
-
-    float betaOutRHmin = betaOut;
-    float betaOutRHmax = betaOut;
-
-    if (isEC_lastLayer) {
-      alpha_OutUp_highEdge =
-          SDL::phi_mpi_pi(acc,
-                          SDL::phi(acc,
-                                   mdsInGPU.anchorHighEdgeX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex],
-                                   mdsInGPU.anchorHighEdgeY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]) -
-                              mdsInGPU.anchorHighEdgePhi[fourthMDIndex]);
-      alpha_OutUp_lowEdge =
-          SDL::phi_mpi_pi(acc,
-                          SDL::phi(acc,
-                                   mdsInGPU.anchorLowEdgeX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex],
-                                   mdsInGPU.anchorLowEdgeY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]) -
-                              mdsInGPU.anchorLowEdgePhi[fourthMDIndex]);
-
-      tl_axis_highEdge_x = mdsInGPU.anchorHighEdgeX[fourthMDIndex] - mdsInGPU.anchorX[firstMDIndex];
-      tl_axis_highEdge_y = mdsInGPU.anchorHighEdgeY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-      tl_axis_lowEdge_x = mdsInGPU.anchorLowEdgeX[fourthMDIndex] - mdsInGPU.anchorX[firstMDIndex];
-      tl_axis_lowEdge_y = mdsInGPU.anchorLowEdgeY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-
-      betaOutRHmin = -alpha_OutUp_highEdge + SDL::phi_mpi_pi(acc,
-                                                             SDL::phi(acc, tl_axis_highEdge_x, tl_axis_highEdge_y) -
-                                                                 mdsInGPU.anchorHighEdgePhi[fourthMDIndex]);
-      betaOutRHmax = -alpha_OutUp_lowEdge + SDL::phi_mpi_pi(acc,
-                                                            SDL::phi(acc, tl_axis_lowEdge_x, tl_axis_lowEdge_y) -
-                                                                mdsInGPU.anchorLowEdgePhi[fourthMDIndex]);
-    }
-
-    //beta computation
-    float drt_tl_axis = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
-
-    float corrF = 1.f;
-    //innerOuterAnchor - innerInnerAnchor
-    const float rt_InSeg =
-        alpaka::math::sqrt(acc,
-                           (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) *
-                                   (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) +
-                               (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]) *
-                                   (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]));
-    betaInCut = alpaka::math::asin(
-                    acc,
-                    alpaka::math::min(
-                        acc, (-rt_InSeg * corrF + drt_tl_axis) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
-                (0.02f / drt_InSeg);
-
-    //Cut #5: first beta cut
-    pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
-    if (not pass)
-      return pass;
-
-    float betaAv = 0.5f * (betaIn + betaOut);
-    pt_beta = drt_tl_axis * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaAv);
-    int lIn = 5;
-    int lOut = isEC_lastLayer ? 11 : 5;
-    float sdOut_dr = alpaka::math::sqrt(acc,
-                                        (mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex]) *
-                                                (mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex]) +
-                                            (mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]) *
-                                                (mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]));
-    float sdOut_d = mdsInGPU.anchorRt[fourthMDIndex] - mdsInGPU.anchorRt[thirdMDIndex];
-
-    runDeltaBetaIterationsT3(acc, betaIn, betaOut, betaAv, pt_beta, rt_InSeg, sdOut_dr, drt_tl_axis, lIn);
-
-    const float betaInMMSF = (alpaka::math::abs(acc, betaInRHmin + betaInRHmax) > 0)
-                                 ? (2.f * betaIn / alpaka::math::abs(acc, betaInRHmin + betaInRHmax))
-                                 : 0.f;  //mean value of min,max is the old betaIn
-    const float betaOutMMSF = (alpaka::math::abs(acc, betaOutRHmin + betaOutRHmax) > 0)
-                                  ? (2.f * betaOut / alpaka::math::abs(acc, betaOutRHmin + betaOutRHmax))
-                                  : 0.f;
-    betaInRHmin *= betaInMMSF;
-    betaInRHmax *= betaInMMSF;
-    betaOutRHmin *= betaOutMMSF;
-    betaOutRHmax *= betaOutMMSF;
-
-    const float dBetaMuls =
-        sdlThetaMulsF * 4.f /
-        alpaka::math::min(
-            acc, alpaka::math::abs(acc, pt_beta), SDL::pt_betaMax);  //need to confirm the range-out value of 7 GeV
-
-    const float alphaInAbsReg = alpaka::math::max(
-        acc,
-        alpaka::math::abs(acc, alpha_InLo),
-        alpaka::math::asin(acc, alpaka::math::min(acc, rt_InLo * SDL::k2Rinv1GeVf / 3.0f, SDL::sinAlphaMax)));
-    const float alphaOutAbsReg = alpaka::math::max(
-        acc,
-        alpaka::math::abs(acc, alpha_OutLo),
-        alpaka::math::asin(acc, alpaka::math::min(acc, rt_OutLo * SDL::k2Rinv1GeVf / 3.0f, SDL::sinAlphaMax)));
-    const float dBetaInLum = lIn < 11 ? 0.0f : alpaka::math::abs(acc, alphaInAbsReg * SDL::deltaZLum / z_InLo);
-    const float dBetaOutLum = lOut < 11 ? 0.0f : alpaka::math::abs(acc, alphaOutAbsReg * SDL::deltaZLum / z_OutLo);
-    const float dBetaLum2 = (dBetaInLum + dBetaOutLum) * (dBetaInLum + dBetaOutLum);
-    const float sinDPhi = alpaka::math::sin(acc, dPhi);
-
-    const float dBetaRIn2 = 0;  // TODO-RH
-    // const float dBetaROut2 = 0; // TODO-RH
-    float dBetaROut = 0;
-    if (isEC_lastLayer) {
-      dBetaROut =
-          (alpaka::math::sqrt(acc,
-                              mdsInGPU.anchorHighEdgeX[fourthMDIndex] * mdsInGPU.anchorHighEdgeX[fourthMDIndex] +
-                                  mdsInGPU.anchorHighEdgeY[fourthMDIndex] * mdsInGPU.anchorHighEdgeY[fourthMDIndex]) -
-           alpaka::math::sqrt(acc,
-                              mdsInGPU.anchorLowEdgeX[fourthMDIndex] * mdsInGPU.anchorLowEdgeX[fourthMDIndex] +
-                                  mdsInGPU.anchorLowEdgeY[fourthMDIndex] * mdsInGPU.anchorLowEdgeY[fourthMDIndex])) *
-          sinDPhi / drt_tl_axis;
-    }
-
-    const float dBetaROut2 = dBetaROut * dBetaROut;
-
-    betaOutCut = alpaka::math::asin(acc,
-                                    alpaka::math::min(acc,
-                                                      drt_tl_axis * SDL::k2Rinv1GeVf / SDL::ptCut,
-                                                      SDL::sinAlphaMax))  //FIXME: need faster version
-                 + (0.02f / sdOut_d) + alpaka::math::sqrt(acc, dBetaLum2 + dBetaMuls * dBetaMuls);
-
-    //Cut #6: The real beta cut
-    pass = pass and ((alpaka::math::abs(acc, betaOut) < betaOutCut));
-    if (not pass)
-      return pass;
-
-    float dBetaRes = 0.02f / alpaka::math::min(acc, sdOut_d, drt_InSeg);
-    float dBetaCut2 =
-        (dBetaRes * dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2 +
-         0.25f *
-             (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)) *
-             (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)));
-
-    float dBeta = betaIn - betaOut;
-    deltaBetaCut = alpaka::math::sqrt(acc, dBetaCut2);
-    pass = pass and (dBeta * dBeta <= dBetaCut2);
-
-    return pass;
-  };
-
-  template <typename TAcc>
-  ALPAKA_FN_ACC ALPAKA_FN_INLINE bool runTripletDefaultAlgoBBEE(TAcc const& acc,
-                                                                struct SDL::modules& modulesInGPU,
-                                                                struct SDL::miniDoublets& mdsInGPU,
-                                                                struct SDL::segments& segmentsInGPU,
-                                                                uint16_t& innerInnerLowerModuleIndex,
-                                                                uint16_t& innerOuterLowerModuleIndex,
-                                                                uint16_t& outerInnerLowerModuleIndex,
-                                                                uint16_t& outerOuterLowerModuleIndex,
-                                                                unsigned int& innerSegmentIndex,
-                                                                unsigned int& outerSegmentIndex,
-                                                                unsigned int& firstMDIndex,
-                                                                unsigned int& secondMDIndex,
-                                                                unsigned int& thirdMDIndex,
-                                                                unsigned int& fourthMDIndex,
-                                                                float& zOut,
-                                                                float& rtOut,
-                                                                float& deltaPhiPos,
-                                                                float& dPhi,
-                                                                float& betaIn,
-                                                                float& betaOut,
-                                                                float& pt_beta,
-                                                                float& zLo,
-                                                                float& rtLo,
-                                                                float& rtHi,
-                                                                float& sdlCut,
-                                                                float& betaInCut,
-                                                                float& betaOutCut,
-                                                                float& deltaBetaCut,
-                                                                float& kZ) {
-    bool pass = true;
-    bool isPS_InLo = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
-    bool isPS_OutLo = (modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS);
-
-    float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
-    float rt_InOut = mdsInGPU.anchorRt[secondMDIndex];
-    float rt_OutLo = mdsInGPU.anchorRt[thirdMDIndex];
-
-    float z_InLo = mdsInGPU.anchorZ[firstMDIndex];
-    float z_InOut = mdsInGPU.anchorZ[secondMDIndex];
-    float z_OutLo = mdsInGPU.anchorZ[thirdMDIndex];
-
-    float alpha1GeV_OutLo =
-        alpaka::math::asin(acc, alpaka::math::min(acc, rt_OutLo * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax));
-
-    float rtRatio_OutLoInLo = rt_OutLo / rt_InLo;  // Outer segment beginning rt divided by inner segment beginning rt;
-    float dzDrtScale =
-        alpaka::math::tan(acc, alpha1GeV_OutLo) / alpha1GeV_OutLo;  // The track can bend in r-z plane slightly
-    float zpitch_InLo = (isPS_InLo ? SDL::pixelPSZpitch : SDL::strip2SZpitch);
-    float zpitch_OutLo = (isPS_OutLo ? SDL::pixelPSZpitch : SDL::strip2SZpitch);
-    float zGeom = zpitch_InLo + zpitch_OutLo;
-
-    zLo = z_InLo + (z_InLo - SDL::deltaZLum) * (rtRatio_OutLoInLo - 1.f) * (z_InLo > 0.f ? 1.f : dzDrtScale) - zGeom;
-
-    // Cut #0: Preliminary (Only here in endcap case)
-    pass = pass and (z_InLo * z_OutLo > 0);
-    if (not pass)
-      return pass;
-
-    float dLum = SDL::copysignf(SDL::deltaZLum, z_InLo);
-    bool isOutSgInnerMDPS = modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS;
-    float rtGeom1 = isOutSgInnerMDPS ? SDL::pixelPSZpitch : SDL::strip2SZpitch;
-    float zGeom1 = SDL::copysignf(zGeom, z_InLo);
-    rtLo = rt_InLo * (1.f + (z_OutLo - z_InLo - zGeom1) / (z_InLo + zGeom1 + dLum) / dzDrtScale) -
-           rtGeom1;  //slope correction only on the lower end
-    zOut = z_OutLo;
-    rtOut = rt_OutLo;
-
-    //Cut #1: rt condition
-    pass = pass and (rtOut >= rtLo);
-    if (not pass)
-      return pass;
-
-    float zInForHi = z_InLo - zGeom1 - dLum;
-    if (zInForHi * z_InLo < 0) {
-      zInForHi = SDL::copysignf(0.1f, z_InLo);
-    }
-    rtHi = rt_InLo * (1.f + (z_OutLo - z_InLo + zGeom1) / zInForHi) + rtGeom1;
-
-    //Cut #2: rt condition
-    pass = pass and ((rt_OutLo >= rtLo) && (rt_OutLo <= rtHi));
-    if (not pass)
-      return pass;
-
-    float rIn = alpaka::math::sqrt(acc, z_InLo * z_InLo + rt_InLo * rt_InLo);
-    const float drtSDIn = rt_InOut - rt_InLo;
-    const float dzSDIn = z_InOut - z_InLo;
-    const float dr3SDIn = alpaka::math::sqrt(acc, rt_InOut * rt_InOut + z_InOut * z_InOut) -
-                          alpaka::math::sqrt(acc, rt_InLo * rt_InLo + z_InLo * z_InLo);
-
-    const float coshEta = dr3SDIn / drtSDIn;  //direction estimate
-    const float dzOutInAbs = alpaka::math::abs(acc, z_OutLo - z_InLo);
-    const float multDzDr = dzOutInAbs * coshEta / (coshEta * coshEta - 1.f);
-    const float zGeom1_another = SDL::pixelPSZpitch;
-    kZ = (z_OutLo - z_InLo) / dzSDIn;
-    float drtErr =
-        zGeom1_another * zGeom1_another * drtSDIn * drtSDIn / dzSDIn / dzSDIn * (1.f - 2.f * kZ + 2.f * kZ * kZ);
-    const float sdlThetaMulsF = 0.015f * alpaka::math::sqrt(acc, 0.1f + 0.2f * (rt_OutLo - rt_InLo) / 50.f) *
-                                alpaka::math::sqrt(acc, rIn / rt_InLo);
-    const float sdlMuls = sdlThetaMulsF * 3.f / SDL::ptCut * 4.f;  //will need a better guess than x4?
-    drtErr +=
-        sdlMuls * sdlMuls * multDzDr * multDzDr / 3.f * coshEta * coshEta;  //sloppy: relative muls is 1/3 of total muls
-    drtErr = alpaka::math::sqrt(acc, drtErr);
-
-    //Cut #3: rt-z pointed
-    pass = pass and ((kZ >= 0) && (rtOut >= rtLo) && (rtOut <= rtHi));
-    if (not pass)
-      return pass;
-
-    const float sdlPVoff = 0.1f / rt_OutLo;
-    sdlCut = alpha1GeV_OutLo + alpaka::math::sqrt(acc, sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
-
-    deltaPhiPos = SDL::phi_mpi_pi(acc, mdsInGPU.anchorPhi[fourthMDIndex] - mdsInGPU.anchorPhi[secondMDIndex]);
-
-    //Cut #4: deltaPhiPos can be tighter
-    pass = pass and (alpaka::math::abs(acc, deltaPhiPos) <= sdlCut);
-    if (not pass)
-      return pass;
-
-    float midPointX = 0.5f * (mdsInGPU.anchorX[firstMDIndex] + mdsInGPU.anchorX[thirdMDIndex]);
-    float midPointY = 0.5f * (mdsInGPU.anchorY[firstMDIndex] + mdsInGPU.anchorY[thirdMDIndex]);
-    float diffX = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
-    float diffY = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-
-    dPhi = SDL::deltaPhi(acc, midPointX, midPointY, diffX, diffY);
-    // Cut #5: deltaPhiChange
-    pass = pass and (alpaka::math::abs(acc, dPhi) <= sdlCut);
-    if (not pass)
-      return pass;
-
-    float sdIn_alpha = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
-    float sdIn_alpha_min = __H2F(segmentsInGPU.dPhiChangeMins[innerSegmentIndex]);
-    float sdIn_alpha_max = __H2F(segmentsInGPU.dPhiChangeMaxs[innerSegmentIndex]);
-    float sdOut_alpha = sdIn_alpha;  //weird
-
-    float sdOut_alphaOut = SDL::phi_mpi_pi(acc,
-                                           SDL::phi(acc,
-                                                    mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex],
-                                                    mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]) -
-                                               mdsInGPU.anchorPhi[fourthMDIndex]);
-
-    float sdOut_alphaOut_min = SDL::phi_mpi_pi(
-        acc, __H2F(segmentsInGPU.dPhiChangeMins[outerSegmentIndex]) - __H2F(segmentsInGPU.dPhiMins[outerSegmentIndex]));
-    float sdOut_alphaOut_max = SDL::phi_mpi_pi(
-        acc, __H2F(segmentsInGPU.dPhiChangeMaxs[outerSegmentIndex]) - __H2F(segmentsInGPU.dPhiMaxs[outerSegmentIndex]));
-
-    float tl_axis_x = mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[firstMDIndex];
-    float tl_axis_y = mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-
-    betaIn = sdIn_alpha - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
-
-    float betaInRHmin = betaIn;
-    float betaInRHmax = betaIn;
-    betaOut =
-        -sdOut_alphaOut + SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[fourthMDIndex]);
-
-    float betaOutRHmin = betaOut;
-    float betaOutRHmax = betaOut;
-
-    bool isEC_secondLayer = (modulesInGPU.subdets[innerOuterLowerModuleIndex] == SDL::Endcap) and
-                            (modulesInGPU.moduleType[innerOuterLowerModuleIndex] == SDL::TwoS);
-
-    if (isEC_secondLayer) {
-      betaInRHmin = betaIn - sdIn_alpha_min + sdIn_alpha;
-      betaInRHmax = betaIn - sdIn_alpha_max + sdIn_alpha;
-    }
-
-    betaOutRHmin = betaOut - sdOut_alphaOut_min + sdOut_alphaOut;
-    betaOutRHmax = betaOut - sdOut_alphaOut_max + sdOut_alphaOut;
-
-    float swapTemp;
-    if (alpaka::math::abs(acc, betaOutRHmin) > alpaka::math::abs(acc, betaOutRHmax)) {
-      swapTemp = betaOutRHmin;
-      betaOutRHmin = betaOutRHmax;
-      betaOutRHmax = swapTemp;
-    }
-
-    if (alpaka::math::abs(acc, betaInRHmin) > alpaka::math::abs(acc, betaInRHmax)) {
-      swapTemp = betaInRHmin;
-      betaInRHmin = betaInRHmax;
-      betaInRHmax = swapTemp;
-    }
-
-    float sdIn_dr = alpaka::math::sqrt(acc,
-                                       (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) *
-                                               (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) +
-                                           (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]) *
-                                               (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]));
-    float sdIn_d = rt_InOut - rt_InLo;
-
-    float dr = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
-    const float corrF = 1.f;
-    betaInCut =
-        alpaka::math::asin(
-            acc, alpaka::math::min(acc, (-sdIn_dr * corrF + dr) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
-        (0.02f / sdIn_d);
-
-    //Cut #6: first beta cut
-    pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
-    if (not pass)
-      return pass;
-
-    float betaAv = 0.5f * (betaIn + betaOut);
-    pt_beta = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaAv);
-
-    float lIn = 5;
-    float lOut = 11;
-
-    float sdOut_dr = alpaka::math::sqrt(acc,
-                                        (mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex]) *
-                                                (mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex]) +
-                                            (mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]) *
-                                                (mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]));
-    float sdOut_d = mdsInGPU.anchorRt[fourthMDIndex] - mdsInGPU.anchorRt[thirdMDIndex];
-
-    runDeltaBetaIterationsT3(acc, betaIn, betaOut, betaAv, pt_beta, sdIn_dr, sdOut_dr, dr, lIn);
-
-    const float betaInMMSF = (alpaka::math::abs(acc, betaInRHmin + betaInRHmax) > 0)
-                                 ? (2.f * betaIn / alpaka::math::abs(acc, betaInRHmin + betaInRHmax))
-                                 : 0.;  //mean value of min,max is the old betaIn
-    const float betaOutMMSF = (alpaka::math::abs(acc, betaOutRHmin + betaOutRHmax) > 0)
-                                  ? (2.f * betaOut / alpaka::math::abs(acc, betaOutRHmin + betaOutRHmax))
-                                  : 0.;
-    betaInRHmin *= betaInMMSF;
-    betaInRHmax *= betaInMMSF;
-    betaOutRHmin *= betaOutMMSF;
-    betaOutRHmax *= betaOutMMSF;
-
-    const float dBetaMuls =
-        sdlThetaMulsF * 4.f /
-        alpaka::math::min(
-            acc, alpaka::math::abs(acc, pt_beta), SDL::pt_betaMax);  //need to confirm the range-out value of 7 GeV
-
-    const float alphaInAbsReg = alpaka::math::max(
-        acc,
-        alpaka::math::abs(acc, sdIn_alpha),
-        alpaka::math::asin(acc, alpaka::math::min(acc, rt_InLo * SDL::k2Rinv1GeVf / 3.0f, SDL::sinAlphaMax)));
-    const float alphaOutAbsReg = alpaka::math::max(
-        acc,
-        alpaka::math::abs(acc, sdOut_alpha),
-        alpaka::math::asin(acc, alpaka::math::min(acc, rt_OutLo * SDL::k2Rinv1GeVf / 3.0f, SDL::sinAlphaMax)));
-    const float dBetaInLum = lIn < 11 ? 0.0f : alpaka::math::abs(acc, alphaInAbsReg * SDL::deltaZLum / z_InLo);
-    const float dBetaOutLum = lOut < 11 ? 0.0f : alpaka::math::abs(acc, alphaOutAbsReg * SDL::deltaZLum / z_OutLo);
-    const float dBetaLum2 = (dBetaInLum + dBetaOutLum) * (dBetaInLum + dBetaOutLum);
-    const float sinDPhi = alpaka::math::sin(acc, dPhi);
-
-    const float dBetaRIn2 = 0;  // TODO-RH
-    // const float dBetaROut2 = 0; // TODO-RH
-    float dBetaROut = 0;
-    if (modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::TwoS) {
-      dBetaROut =
-          (alpaka::math::sqrt(acc,
-                              mdsInGPU.anchorHighEdgeX[fourthMDIndex] * mdsInGPU.anchorHighEdgeX[fourthMDIndex] +
-                                  mdsInGPU.anchorHighEdgeY[fourthMDIndex] * mdsInGPU.anchorHighEdgeY[fourthMDIndex]) -
-           alpaka::math::sqrt(acc,
-                              mdsInGPU.anchorLowEdgeX[fourthMDIndex] * mdsInGPU.anchorLowEdgeX[fourthMDIndex] +
-                                  mdsInGPU.anchorLowEdgeY[fourthMDIndex] * mdsInGPU.anchorLowEdgeY[fourthMDIndex])) *
-          sinDPhi / dr;
-    }
-
-    const float dBetaROut2 = dBetaROut * dBetaROut;
-    betaOutCut =
-        alpaka::math::asin(
-            acc,
-            alpaka::math::min(acc, dr * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax))  //FIXME: need faster version
-        + (0.02f / sdOut_d) + alpaka::math::sqrt(acc, dBetaLum2 + dBetaMuls * dBetaMuls);
-
-    //Cut #6: The real beta cut
-    pass = pass and (alpaka::math::abs(acc, betaOut) < betaOutCut);
-    if (not pass)
-      return pass;
-
-    float dBetaRes = 0.02f / alpaka::math::min(acc, sdOut_d, sdIn_d);
-    float dBetaCut2 =
-        (dBetaRes * dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2 +
-         0.25f *
-             (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)) *
-             (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)));
-    float dBeta = betaIn - betaOut;
-    deltaBetaCut = alpaka::math::sqrt(acc, dBetaCut2);
-    //Cut #7: Cut on dBet
-    pass = pass and (dBeta * dBeta <= dBetaCut2);
-
-    return pass;
-  };
-
-  template <typename TAcc>
-  ALPAKA_FN_ACC ALPAKA_FN_INLINE bool runTripletDefaultAlgoEEEE(TAcc const& acc,
-                                                                struct SDL::modules& modulesInGPU,
-                                                                struct SDL::miniDoublets& mdsInGPU,
-                                                                struct SDL::segments& segmentsInGPU,
-                                                                uint16_t& innerInnerLowerModuleIndex,
-                                                                uint16_t& innerOuterLowerModuleIndex,
-                                                                uint16_t& outerInnerLowerModuleIndex,
-                                                                uint16_t& outerOuterLowerModuleIndex,
-                                                                unsigned int& innerSegmentIndex,
-                                                                unsigned int& outerSegmentIndex,
-                                                                unsigned int& firstMDIndex,
-                                                                unsigned int& secondMDIndex,
-                                                                unsigned int& thirdMDIndex,
-                                                                unsigned int& fourthMDIndex,
-                                                                float& zOut,
-                                                                float& rtOut,
-                                                                float& deltaPhiPos,
-                                                                float& dPhi,
-                                                                float& betaIn,
-                                                                float& betaOut,
-                                                                float& pt_beta,
-                                                                float& zLo,
-                                                                float& rtLo,
-                                                                float& rtHi,
-                                                                float& sdlCut,
-                                                                float& betaInCut,
-                                                                float& betaOutCut,
-                                                                float& deltaBetaCut,
-                                                                float& kZ) {
-    bool pass = true;
-
-    bool isPS_InLo = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
-    bool isPS_OutLo = (modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS);
-
-    float rt_InLo = mdsInGPU.anchorRt[firstMDIndex];
-    float rt_InOut = mdsInGPU.anchorRt[secondMDIndex];
-    float rt_OutLo = mdsInGPU.anchorRt[thirdMDIndex];
-
-    float z_InLo = mdsInGPU.anchorZ[firstMDIndex];
-    float z_InOut = mdsInGPU.anchorZ[secondMDIndex];
-    float z_OutLo = mdsInGPU.anchorZ[thirdMDIndex];
-
-    float alpha1GeV_OutLo =
-        alpaka::math::asin(acc, alpaka::math::min(acc, rt_OutLo * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax));
-
-    float rtRatio_OutLoInLo = rt_OutLo / rt_InLo;  // Outer segment beginning rt divided by inner segment beginning rt;
-    float dzDrtScale =
-        alpaka::math::tan(acc, alpha1GeV_OutLo) / alpha1GeV_OutLo;  // The track can bend in r-z plane slightly
-    float zpitch_InLo = (isPS_InLo ? SDL::pixelPSZpitch : SDL::strip2SZpitch);
-    float zpitch_OutLo = (isPS_OutLo ? SDL::pixelPSZpitch : SDL::strip2SZpitch);
-    float zGeom = zpitch_InLo + zpitch_OutLo;
-
-    zLo = z_InLo + (z_InLo - SDL::deltaZLum) * (rtRatio_OutLoInLo - 1.f) * (z_InLo > 0.f ? 1.f : dzDrtScale) -
-          zGeom;  //slope-correction only on outer end
-
-    // Cut #0: Preliminary (Only here in endcap case)
-    pass = pass and ((z_InLo * z_OutLo) > 0);
-    if (not pass)
-      return pass;
-
-    float dLum = SDL::copysignf(SDL::deltaZLum, z_InLo);
-    bool isOutSgInnerMDPS = modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS;
-    bool isInSgInnerMDPS = modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS;
-
-    float rtGeom = (isInSgInnerMDPS and isOutSgInnerMDPS)  ? 2.f * SDL::pixelPSZpitch
-                   : (isInSgInnerMDPS or isOutSgInnerMDPS) ? SDL::pixelPSZpitch + SDL::strip2SZpitch
-                                                           : 2.f * SDL::strip2SZpitch;
-
-    float dz = z_OutLo - z_InLo;
-    rtLo = rt_InLo * (1.f + dz / (z_InLo + dLum) / dzDrtScale) - rtGeom;  //slope correction only on the lower end
-
-    zOut = z_OutLo;
-    rtOut = rt_OutLo;
-
-    //Cut #1: rt condition
-
-    rtHi = rt_InLo * (1.f + dz / (z_InLo - dLum)) + rtGeom;
-
-    pass = pass and ((rtOut >= rtLo) && (rtOut <= rtHi));
-    if (not pass)
-      return pass;
-
-    bool isInSgOuterMDPS = modulesInGPU.moduleType[innerOuterLowerModuleIndex] == SDL::PS;
-
-    const float drtSDIn = rt_InOut - rt_InLo;
-    const float dzSDIn = z_InOut - z_InLo;
-    const float dr3SDIn = alpaka::math::sqrt(acc, rt_InOut * rt_InOut + z_InOut * z_InOut) -
-                          alpaka::math::sqrt(acc, rt_InLo * rt_InLo + z_InLo * z_InLo);
-    float coshEta = dr3SDIn / drtSDIn;  //direction estimate
-    float dzOutInAbs = alpaka::math::abs(acc, z_OutLo - z_InLo);
-    float multDzDr = dzOutInAbs * coshEta / (coshEta * coshEta - 1.f);
-
-    kZ = (z_OutLo - z_InLo) / dzSDIn;
-    float sdlThetaMulsF = 0.015f * alpaka::math::sqrt(acc, 0.1f + 0.2f * (rt_OutLo - rt_InLo) / 50.f);
-
-    float sdlMuls = sdlThetaMulsF * 3.f / SDL::ptCut * 4.f;  //will need a better guess than x4?
-
-    float drtErr = alpaka::math::sqrt(
-        acc,
-        SDL::pixelPSZpitch * SDL::pixelPSZpitch * 2.f / (dzSDIn * dzSDIn) * (dzOutInAbs * dzOutInAbs) +
-            sdlMuls * sdlMuls * multDzDr * multDzDr / 3.f * coshEta * coshEta);
-
-    float drtMean = drtSDIn * dzOutInAbs / alpaka::math::abs(acc, dzSDIn);
-    float rtWindow = drtErr + rtGeom;
-    float rtLo_point = rt_InLo + drtMean / dzDrtScale - rtWindow;
-    float rtHi_point = rt_InLo + drtMean + rtWindow;
-
-    // Cut #3: rt-z pointed
-    // https://github.com/slava77/cms-tkph2-ntuple/blob/superDoubletLinked-91X-noMock/doubletAnalysis.C#L3765
-
-    if (isInSgInnerMDPS and isInSgOuterMDPS)  // If both PS then we can point
-    {
-      pass = pass and (kZ >= 0 and rtOut >= rtLo_point and rtOut <= rtHi_point);
-      if (not pass)
-        return pass;
-    }
-
-    float sdlPVoff = 0.1f / rtOut;
-    sdlCut = alpha1GeV_OutLo + alpaka::math::sqrt(acc, sdlMuls * sdlMuls + sdlPVoff * sdlPVoff);
-
-    deltaPhiPos = SDL::phi_mpi_pi(acc, mdsInGPU.anchorPhi[fourthMDIndex] - mdsInGPU.anchorPhi[secondMDIndex]);
-
-    pass = pass and (alpaka::math::abs(acc, deltaPhiPos) <= sdlCut);
-    if (not pass)
-      return pass;
-
-    float midPointX = 0.5f * (mdsInGPU.anchorX[firstMDIndex] + mdsInGPU.anchorX[thirdMDIndex]);
-    float midPointY = 0.5f * (mdsInGPU.anchorY[firstMDIndex] + mdsInGPU.anchorY[thirdMDIndex]);
-    float diffX = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
-    float diffY = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-
-    dPhi = SDL::deltaPhi(acc, midPointX, midPointY, diffX, diffY);
-
-    // Cut #5: deltaPhiChange
-    pass = pass and ((alpaka::math::abs(acc, dPhi) <= sdlCut));
-    if (not pass)
-      return pass;
-
-    float sdIn_alpha = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
-    float sdOut_alpha = sdIn_alpha;  //weird
-    float sdOut_dPhiPos = SDL::phi_mpi_pi(acc, mdsInGPU.anchorPhi[fourthMDIndex] - mdsInGPU.anchorPhi[thirdMDIndex]);
-
-    float sdOut_dPhiChange = __H2F(segmentsInGPU.dPhiChanges[outerSegmentIndex]);
-    float sdOut_dPhiChange_min = __H2F(segmentsInGPU.dPhiChangeMins[outerSegmentIndex]);
-    float sdOut_dPhiChange_max = __H2F(segmentsInGPU.dPhiChangeMaxs[outerSegmentIndex]);
-
-    float sdOut_alphaOutRHmin = SDL::phi_mpi_pi(acc, sdOut_dPhiChange_min - sdOut_dPhiPos);
-    float sdOut_alphaOutRHmax = SDL::phi_mpi_pi(acc, sdOut_dPhiChange_max - sdOut_dPhiPos);
-    float sdOut_alphaOut = SDL::phi_mpi_pi(acc, sdOut_dPhiChange - sdOut_dPhiPos);
-
-    float tl_axis_x = mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[firstMDIndex];
-    float tl_axis_y = mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-
-    betaIn = sdIn_alpha - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
-
-    float sdIn_alphaRHmin = __H2F(segmentsInGPU.dPhiChangeMins[innerSegmentIndex]);
-    float sdIn_alphaRHmax = __H2F(segmentsInGPU.dPhiChangeMaxs[innerSegmentIndex]);
-    float betaInRHmin = betaIn + sdIn_alphaRHmin - sdIn_alpha;
-    float betaInRHmax = betaIn + sdIn_alphaRHmax - sdIn_alpha;
-
-    betaOut =
-        -sdOut_alphaOut + SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[fourthMDIndex]);
-
-    float betaOutRHmin = betaOut - sdOut_alphaOutRHmin + sdOut_alphaOut;
-    float betaOutRHmax = betaOut - sdOut_alphaOutRHmax + sdOut_alphaOut;
-
-    float swapTemp;
-    if (alpaka::math::abs(acc, betaOutRHmin) > alpaka::math::abs(acc, betaOutRHmax)) {
-      swapTemp = betaOutRHmin;
-      betaOutRHmin = betaOutRHmax;
-      betaOutRHmax = swapTemp;
-    }
-
-    if (alpaka::math::abs(acc, betaInRHmin) > alpaka::math::abs(acc, betaInRHmax)) {
-      swapTemp = betaInRHmin;
-      betaInRHmin = betaInRHmax;
-      betaInRHmax = swapTemp;
-    }
-    float sdIn_dr = alpaka::math::sqrt(acc,
-                                       (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) *
-                                               (mdsInGPU.anchorX[secondMDIndex] - mdsInGPU.anchorX[firstMDIndex]) +
-                                           (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]) *
-                                               (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]));
-    float sdIn_d = rt_InOut - rt_InLo;
-
-    float dr = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
-    const float corrF = 1.f;
-    betaInCut =
-        alpaka::math::asin(
-            acc, alpaka::math::min(acc, (-sdIn_dr * corrF + dr) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
-        (0.02f / sdIn_d);
-
-    //Cut #6: first beta cut
-    pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
-    if (not pass)
-      return pass;
-
-    float betaAv = 0.5f * (betaIn + betaOut);
-    pt_beta = dr * SDL::k2Rinv1GeVf / alpaka::math::sin(acc, betaAv);
-
-    int lIn = 11;   //endcap
-    int lOut = 13;  //endcap
-
-    float sdOut_dr = alpaka::math::sqrt(acc,
-                                        (mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex]) *
-                                                (mdsInGPU.anchorX[fourthMDIndex] - mdsInGPU.anchorX[thirdMDIndex]) +
-                                            (mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]) *
-                                                (mdsInGPU.anchorY[fourthMDIndex] - mdsInGPU.anchorY[thirdMDIndex]));
-    float sdOut_d = mdsInGPU.anchorRt[fourthMDIndex] - mdsInGPU.anchorRt[thirdMDIndex];
-
-    runDeltaBetaIterationsT3(acc, betaIn, betaOut, betaAv, pt_beta, sdIn_dr, sdOut_dr, dr, lIn);
-
-    const float betaInMMSF = (alpaka::math::abs(acc, betaInRHmin + betaInRHmax) > 0)
-                                 ? (2.f * betaIn / alpaka::math::abs(acc, betaInRHmin + betaInRHmax))
-                                 : 0.;  //mean value of min,max is the old betaIn
-    const float betaOutMMSF = (alpaka::math::abs(acc, betaOutRHmin + betaOutRHmax) > 0)
-                                  ? (2.f * betaOut / alpaka::math::abs(acc, betaOutRHmin + betaOutRHmax))
-                                  : 0.;
-    betaInRHmin *= betaInMMSF;
-    betaInRHmax *= betaInMMSF;
-    betaOutRHmin *= betaOutMMSF;
-    betaOutRHmax *= betaOutMMSF;
-
-    const float dBetaMuls =
-        sdlThetaMulsF * 4.f /
-        alpaka::math::min(
-            acc, alpaka::math::abs(acc, pt_beta), SDL::pt_betaMax);  //need to confirm the range-out value of 7 GeV
-
-    const float alphaInAbsReg = alpaka::math::max(
-        acc,
-        alpaka::math::abs(acc, sdIn_alpha),
-        alpaka::math::asin(acc, alpaka::math::min(acc, rt_InLo * SDL::k2Rinv1GeVf / 3.0f, SDL::sinAlphaMax)));
-    const float alphaOutAbsReg = alpaka::math::max(
-        acc,
-        alpaka::math::abs(acc, sdOut_alpha),
-        alpaka::math::asin(acc, alpaka::math::min(acc, rt_OutLo * SDL::k2Rinv1GeVf / 3.0f, SDL::sinAlphaMax)));
-    const float dBetaInLum = lIn < 11 ? 0.0f : alpaka::math::abs(acc, alphaInAbsReg * SDL::deltaZLum / z_InLo);
-    const float dBetaOutLum = lOut < 11 ? 0.0f : alpaka::math::abs(acc, alphaOutAbsReg * SDL::deltaZLum / z_OutLo);
-    const float dBetaLum2 = (dBetaInLum + dBetaOutLum) * (dBetaInLum + dBetaOutLum);
-
-    const float dBetaRIn2 = 0;  // TODO-RH
-    // const float dBetaROut2 = 0; // TODO-RH
-    float dBetaROut2 = 0;  //TODO-RH
-    betaOutCut =
-        alpaka::math::asin(
-            acc,
-            alpaka::math::min(acc, dr * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax))  //FIXME: need faster version
-        + (0.02f / sdOut_d) + alpaka::math::sqrt(acc, dBetaLum2 + dBetaMuls * dBetaMuls);
-
-    //Cut #6: The real beta cut
-    pass = pass and (alpaka::math::abs(acc, betaOut) < betaOutCut);
-    if (not pass)
-      return pass;
-
-    float dBetaRes = 0.02f / alpaka::math::min(acc, sdOut_d, sdIn_d);
-    float dBetaCut2 =
-        (dBetaRes * dBetaRes * 2.0f + dBetaMuls * dBetaMuls + dBetaLum2 + dBetaRIn2 + dBetaROut2 +
-         0.25f *
-             (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)) *
-             (alpaka::math::abs(acc, betaInRHmin - betaInRHmax) + alpaka::math::abs(acc, betaOutRHmin - betaOutRHmax)));
-    float dBeta = betaIn - betaOut;
-    //Cut #7: Cut on dBeta
-    deltaBetaCut = alpaka::math::sqrt(acc, dBetaCut2);
-
-    pass = pass and (dBeta * dBeta <= dBetaCut2);
-
-    return pass;
-  };
-
-  template <typename TAcc>
-  ALPAKA_FN_ACC ALPAKA_FN_INLINE bool runTripletDefaultAlgo(TAcc const& acc,
-                                                            struct SDL::modules& modulesInGPU,
-                                                            struct SDL::miniDoublets& mdsInGPU,
-                                                            struct SDL::segments& segmentsInGPU,
-                                                            uint16_t& innerInnerLowerModuleIndex,
-                                                            uint16_t& innerOuterLowerModuleIndex,
-                                                            uint16_t& outerInnerLowerModuleIndex,
-                                                            uint16_t& outerOuterLowerModuleIndex,
-                                                            unsigned int& innerSegmentIndex,
-                                                            unsigned int& outerSegmentIndex,
-                                                            unsigned int& firstMDIndex,
-                                                            unsigned int& secondMDIndex,
-                                                            unsigned int& thirdMDIndex,
-                                                            unsigned int& fourthMDIndex,
-                                                            float& zOut,
-                                                            float& rtOut,
-                                                            float& deltaPhiPos,
-                                                            float& deltaPhi,
-                                                            float& betaIn,
-                                                            float& betaOut,
-                                                            float& pt_beta,
-                                                            float& zLo,
-                                                            float& zHi,
-                                                            float& rtLo,
-                                                            float& rtHi,
-                                                            float& zLoPointed,
-                                                            float& zHiPointed,
-                                                            float& sdlCut,
-                                                            float& betaInCut,
-                                                            float& betaOutCut,
-                                                            float& deltaBetaCut,
-                                                            float& kZ) {
-    bool pass = false;
-
-    zLo = -999;
-    zHi = -999;
-    rtLo = -999;
-    rtHi = -999;
-    zLoPointed = -999;
-    zHiPointed = -999;
-    kZ = -999;
-    betaInCut = -999;
-
-    short innerInnerLowerModuleSubdet = modulesInGPU.subdets[innerInnerLowerModuleIndex];
-    short innerOuterLowerModuleSubdet = modulesInGPU.subdets[innerOuterLowerModuleIndex];
-    short outerInnerLowerModuleSubdet = modulesInGPU.subdets[outerInnerLowerModuleIndex];
-    short outerOuterLowerModuleSubdet = modulesInGPU.subdets[outerOuterLowerModuleIndex];
-
-    if (innerInnerLowerModuleSubdet == SDL::Barrel and innerOuterLowerModuleSubdet == SDL::Barrel and
-        outerInnerLowerModuleSubdet == SDL::Barrel and outerOuterLowerModuleSubdet == SDL::Barrel) {
-      return runTripletDefaultAlgoBBBB(acc,
-                                       modulesInGPU,
-                                       mdsInGPU,
-                                       segmentsInGPU,
-                                       innerInnerLowerModuleIndex,
-                                       innerOuterLowerModuleIndex,
-                                       outerInnerLowerModuleIndex,
-                                       outerOuterLowerModuleIndex,
-                                       innerSegmentIndex,
-                                       outerSegmentIndex,
-                                       firstMDIndex,
-                                       secondMDIndex,
-                                       thirdMDIndex,
-                                       fourthMDIndex,
-                                       zOut,
-                                       rtOut,
-                                       deltaPhiPos,
-                                       deltaPhi,
-                                       betaIn,
-                                       betaOut,
-                                       pt_beta,
-                                       zLo,
-                                       zHi,
-                                       zLoPointed,
-                                       zHiPointed,
-                                       sdlCut,
-                                       betaInCut,
-                                       betaOutCut,
-                                       deltaBetaCut);
-    }
-
-    else if (innerInnerLowerModuleSubdet == SDL::Barrel and innerOuterLowerModuleSubdet == SDL::Barrel and
-             outerInnerLowerModuleSubdet == SDL::Endcap and outerOuterLowerModuleSubdet == SDL::Endcap) {
-      return runTripletDefaultAlgoBBEE(acc,
-                                       modulesInGPU,
-                                       mdsInGPU,
-                                       segmentsInGPU,
-                                       innerInnerLowerModuleIndex,
-                                       innerOuterLowerModuleIndex,
-                                       outerInnerLowerModuleIndex,
-                                       outerOuterLowerModuleIndex,
-                                       innerSegmentIndex,
-                                       outerSegmentIndex,
-                                       firstMDIndex,
-                                       secondMDIndex,
-                                       thirdMDIndex,
-                                       fourthMDIndex,
-                                       zOut,
-                                       rtOut,
-                                       deltaPhiPos,
-                                       deltaPhi,
-                                       betaIn,
-                                       betaOut,
-                                       pt_beta,
-                                       zLo,
-                                       rtLo,
-                                       rtHi,
-                                       sdlCut,
-                                       betaInCut,
-                                       betaOutCut,
-                                       deltaBetaCut,
-                                       kZ);
-    }
-
-    else if (innerInnerLowerModuleSubdet == SDL::Barrel and innerOuterLowerModuleSubdet == SDL::Barrel and
-             outerInnerLowerModuleSubdet == SDL::Barrel and outerOuterLowerModuleSubdet == SDL::Endcap) {
-      return runTripletDefaultAlgoBBBB(acc,
-                                       modulesInGPU,
-                                       mdsInGPU,
-                                       segmentsInGPU,
-                                       innerInnerLowerModuleIndex,
-                                       innerOuterLowerModuleIndex,
-                                       outerInnerLowerModuleIndex,
-                                       outerOuterLowerModuleIndex,
-                                       innerSegmentIndex,
-                                       outerSegmentIndex,
-                                       firstMDIndex,
-                                       secondMDIndex,
-                                       thirdMDIndex,
-                                       fourthMDIndex,
-                                       zOut,
-                                       rtOut,
-                                       deltaPhiPos,
-                                       deltaPhi,
-                                       betaIn,
-                                       betaOut,
-                                       pt_beta,
-                                       zLo,
-                                       zHi,
-                                       zLoPointed,
-                                       zHiPointed,
-                                       sdlCut,
-                                       betaInCut,
-                                       betaOutCut,
-                                       deltaBetaCut);
-
-    }
-
-    else if (innerInnerLowerModuleSubdet == SDL::Barrel and innerOuterLowerModuleSubdet == SDL::Endcap and
-             outerInnerLowerModuleSubdet == SDL::Endcap and outerOuterLowerModuleSubdet == SDL::Endcap) {
-      return runTripletDefaultAlgoBBEE(acc,
-                                       modulesInGPU,
-                                       mdsInGPU,
-                                       segmentsInGPU,
-                                       innerInnerLowerModuleIndex,
-                                       innerOuterLowerModuleIndex,
-                                       outerInnerLowerModuleIndex,
-                                       outerOuterLowerModuleIndex,
-                                       innerSegmentIndex,
-                                       outerSegmentIndex,
-                                       firstMDIndex,
-                                       secondMDIndex,
-                                       thirdMDIndex,
-                                       fourthMDIndex,
-                                       zOut,
-                                       rtOut,
-                                       deltaPhiPos,
-                                       deltaPhi,
-                                       betaIn,
-                                       betaOut,
-                                       pt_beta,
-                                       zLo,
-                                       rtLo,
-                                       rtHi,
-                                       sdlCut,
-                                       betaInCut,
-                                       betaOutCut,
-                                       deltaBetaCut,
-                                       kZ);
-
-    }
-
-    else if (innerInnerLowerModuleSubdet == SDL::Endcap and innerOuterLowerModuleSubdet == SDL::Endcap and
-             outerInnerLowerModuleSubdet == SDL::Endcap and outerOuterLowerModuleSubdet == SDL::Endcap) {
-      return runTripletDefaultAlgoEEEE(acc,
-                                       modulesInGPU,
-                                       mdsInGPU,
-                                       segmentsInGPU,
-                                       innerInnerLowerModuleIndex,
-                                       innerOuterLowerModuleIndex,
-                                       outerInnerLowerModuleIndex,
-                                       outerOuterLowerModuleIndex,
-                                       innerSegmentIndex,
-                                       outerSegmentIndex,
-                                       firstMDIndex,
-                                       secondMDIndex,
-                                       thirdMDIndex,
-                                       fourthMDIndex,
-                                       zOut,
-                                       rtOut,
-                                       deltaPhiPos,
-                                       deltaPhi,
-                                       betaIn,
-                                       betaOut,
-                                       pt_beta,
-                                       zLo,
-                                       rtLo,
-                                       rtHi,
-                                       sdlCut,
-                                       betaInCut,
-                                       betaOutCut,
-                                       deltaBetaCut,
-                                       kZ);
-    }
-
-    return pass;
+    return radius;
   };
 
   template <typename TAcc>
@@ -1814,8 +809,9 @@ namespace SDL {
                                                                    float& deltaPhiPos,
                                                                    float& deltaPhi,
                                                                    float& betaIn,
-                                                                   float& betaOut,
-                                                                   float& pt_beta,
+                                                                   float& circleRadius,
+                                                                   float& circleCenterX,
+                                                                   float& circleCenterY,
                                                                    float& zLo,
                                                                    float& zHi,
                                                                    float& rtLo,
@@ -1823,10 +819,7 @@ namespace SDL {
                                                                    float& zLoPointed,
                                                                    float& zHiPointed,
                                                                    float& sdlCut,
-                                                                   float& betaInCut,
-                                                                   float& betaOutCut,
-                                                                   float& deltaBetaCut,
-                                                                   float& kZ) {
+                                                                   float& betaInCut) {
     bool pass = true;
 
     //this cut reduces the number of candidates by a factor of 4, i.e., 3 out of 4 warps can end right here!
@@ -1860,42 +853,23 @@ namespace SDL {
                                             secondMDIndex,
                                             thirdMDIndex,
                                             zOut,
-                                            rtOut));
+                                            rtOut,
+                                            middleLowerModuleIndex,
+                                            innerSegmentIndex,
+                                            outerSegmentIndex,
+                                            betaIn,
+                                            betaInCut));
     if (not pass)
       return pass;
-    pass = pass and (runTripletDefaultAlgo(acc,
-                                           modulesInGPU,
-                                           mdsInGPU,
-                                           segmentsInGPU,
-                                           innerInnerLowerModuleIndex,
-                                           middleLowerModuleIndex,
-                                           middleLowerModuleIndex,
-                                           outerOuterLowerModuleIndex,
-                                           innerSegmentIndex,
-                                           outerSegmentIndex,
-                                           firstMDIndex,
-                                           secondMDIndex,
-                                           secondMDIndex,
-                                           thirdMDIndex,
-                                           zOut,
-                                           rtOut,
-                                           deltaPhiPos,
-                                           deltaPhi,
-                                           betaIn,
-                                           betaOut,
-                                           pt_beta,
-                                           zLo,
-                                           zHi,
-                                           rtLo,
-                                           rtHi,
-                                           zLoPointed,
-                                           zHiPointed,
-                                           sdlCut,
-                                           betaInCut,
-                                           betaOutCut,
-                                           deltaBetaCut,
-                                           kZ));
 
+    float x1 = mdsInGPU.anchorX[firstMDIndex];
+    float x2 = mdsInGPU.anchorX[secondMDIndex];
+    float x3 = mdsInGPU.anchorX[thirdMDIndex];
+    float y1 = mdsInGPU.anchorY[firstMDIndex];
+    float y2 = mdsInGPU.anchorY[secondMDIndex];
+    float y3 = mdsInGPU.anchorY[thirdMDIndex];
+
+    circleRadius = computeRadiusFromThreeAnchorHits(acc, x1, y1, x2, y2, x3, y3, circleCenterX, circleCenterY);
     return pass;
   };
 
@@ -1939,8 +913,8 @@ namespace SDL {
 
             uint16_t outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex];
 
-            float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, betaOut, pt_beta;
-            float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut, betaOutCut, deltaBetaCut, kZ;
+            float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, circleRadius, circleCenterX, circleCenterY;
+            float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut;
 
             bool success = runTripletConstraintsAndAlgo(acc,
                                                         modulesInGPU,
@@ -1956,8 +930,9 @@ namespace SDL {
                                                         deltaPhiPos,
                                                         deltaPhi,
                                                         betaIn,
-                                                        betaOut,
-                                                        pt_beta,
+                                                        circleRadius,
+                                                        circleCenterX,
+                                                        circleCenterY,
                                                         zLo,
                                                         zHi,
                                                         rtLo,
@@ -1965,10 +940,7 @@ namespace SDL {
                                                         zLoPointed,
                                                         zHiPointed,
                                                         sdlCut,
-                                                        betaInCut,
-                                                        betaOutCut,
-                                                        deltaBetaCut,
-                                                        kZ);
+                                                        betaInCut);
 
             if (success) {
               unsigned int totOccupancyTriplets = alpaka::atomicOp<alpaka::AtomicAdd>(
@@ -1998,8 +970,9 @@ namespace SDL {
                                    deltaPhiPos,
                                    deltaPhi,
                                    betaIn,
-                                   betaOut,
-                                   pt_beta,
+                                   circleRadius,
+                                   circleCenterX,
+                                   circleCenterY,
                                    zLo,
                                    zHi,
                                    rtLo,
@@ -2008,9 +981,6 @@ namespace SDL {
                                    zHiPointed,
                                    sdlCut,
                                    betaInCut,
-                                   betaOutCut,
-                                   deltaBetaCut,
-                                   kZ,
                                    tripletIndex);
 #else
                 addTripletToMemory(modulesInGPU,
@@ -2023,8 +993,9 @@ namespace SDL {
                                    middleLowerModuleIndex,
                                    outerOuterLowerModuleIndex,
                                    betaIn,
-                                   betaOut,
-                                   pt_beta,
+                                   circleRadius,
+                                   circleCenterX,
+                                   circleCenterY,
                                    tripletIndex);
 #endif
               }
