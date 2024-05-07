@@ -81,7 +81,7 @@ namespace SDL {
     Buf<TDev, unsigned int> nMemoryLocations_buf;
     Buf<TDev, uint8_t> logicalLayers_buf;
     Buf<TDev, unsigned int> hitIndices_buf;
-    Buf<TDev, float> betaIn_buf;
+    Buf<TDev, FPX> betaIn_buf;
     Buf<TDev, float> circleRadius_buf;
     Buf<TDev, float> circleCenterX_buf;
     Buf<TDev, float> circleCenterY_buf;
