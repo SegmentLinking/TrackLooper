@@ -113,7 +113,7 @@ namespace SDL {
           nMemoryLocations_buf(allocBufWrapper<unsigned int>(devAccIn, 1, queue)),
           logicalLayers_buf(allocBufWrapper<uint8_t>(devAccIn, maxTriplets * 3, queue)),
           hitIndices_buf(allocBufWrapper<unsigned int>(devAccIn, maxTriplets * 6, queue)),
-          betaIn_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
+          betaIn_buf(allocBufWrapper<FPX>(devAccIn, maxTriplets, queue)),
           circleRadius_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
           circleCenterX_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
           circleCenterY_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
