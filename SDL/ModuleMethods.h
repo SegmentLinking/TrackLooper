@@ -16,7 +16,6 @@
 #include "EndcapGeometry.h"
 #include "ModuleConnectionMap.h"
 #include "PixelMap.h"
-#include "Globals.h"
 
 #include "HeterogeneousCore/AlpakaInterface/interface/host.h"
 
@@ -115,7 +114,8 @@ namespace SDL {
   inline void fillConnectedModuleArrayExplicit(struct modulesBuffer<TDev>* modulesBuf,
                                                unsigned int nMod,
                                                TQueue queue,
-                                               struct ModuleMetaData& mmd) {
+                                               struct ModuleMetaData& mmd,
+                                               ModuleConnectionMap<SDL::Dev>* moduleConnectionMap) {
     DevHost const& devHost = cms::alpakatools::host();
     auto moduleMap_buf = allocBufWrapper<uint16_t>(devHost, nMod * MAX_CONNECTED_MODULES);
     uint16_t* moduleMap = alpaka::getPtrNative(moduleMap_buf);
@@ -126,7 +126,7 @@ namespace SDL {
     for (auto it = mmd.detIdToIndex.begin(); it != mmd.detIdToIndex.end(); ++it) {
       unsigned int detId = it->first;
       uint16_t index = it->second;
-      auto& connectedModules = Globals<Dev>::moduleConnectionMap.getConnectedModuleDetIds(detId);
+      auto& connectedModules = moduleConnectionMap->getConnectedModuleDetIds(detId);
       nConnectedModules[index] = connectedModules.size();
       for (uint16_t i = 0; i < nConnectedModules[index]; i++) {
         moduleMap[index * MAX_CONNECTED_MODULES + i] = mmd.detIdToIndex[connectedModules[i]];
@@ -239,7 +239,10 @@ namespace SDL {
                            struct pixelMap& pixelMapping,
                            TQueue& queue,
                            const char* moduleMetaDataFilePath,
-                           const MapPLStoLayer& pLStoLayer) {
+                           const MapPLStoLayer& pLStoLayer,
+                           EndcapGeometry<Dev>* endcapGeometry,
+                           TiltedGeometry<Dev>* tiltedGeometry,
+                           ModuleConnectionMap<SDL::Dev>* moduleConnectionMap) {
     ModuleMetaData mmd;
 
     loadCentroidsFromFile(moduleMetaDataFilePath, mmd, nModules);
@@ -359,9 +362,9 @@ namespace SDL {
           host_isAnchor[index] = false;
         }
 
-        host_dxdys[index] = (subdet == Endcap) ? Globals<Dev>::endcapGeometry->getdxdy_slope(detId)
-                                               : Globals<Dev>::tiltedGeometry.getDxDy(detId);
-        host_drdzs[index] = (subdet == Barrel) ? Globals<Dev>::tiltedGeometry.getDrDz(detId) : 0;
+        host_dxdys[index] = (subdet == Endcap) ? endcapGeometry->getdxdy_slope(detId)
+                                               : tiltedGeometry->getDxDy(detId);
+        host_drdzs[index] = (subdet == Barrel) ? tiltedGeometry->getDrDz(detId) : 0;
       }
 
       host_sdlLayers[index] =
@@ -412,7 +415,7 @@ namespace SDL {
     alpaka::memcpy(queue, modulesBuf->sdlLayers_buf, sdlLayers_buf);
     alpaka::wait(queue);
 
-    fillConnectedModuleArrayExplicit(modulesBuf, nModules, queue, mmd);
+    fillConnectedModuleArrayExplicit(modulesBuf, nModules, queue, mmd, moduleConnectionMap);
     fillMapArraysExplicit(modulesBuf, nModules, queue, mmd);
     fillPixelMap(modulesBuf, pixelMapping, queue, pLStoLayer, mmd);
   };

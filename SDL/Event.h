@@ -84,6 +84,15 @@ namespace SDL {
     int* superbinCPU;
     int8_t* pixelTypeCPU;
 
+    // Stuff that used to be global
+    std::shared_ptr<modulesBuffer<Dev>> modulesBuffers;
+    std::shared_ptr<pixelMap> pixelMapping;
+    std::shared_ptr<EndcapGeometry<Dev>> endcapGeometry;
+    std::shared_ptr<TiltedGeometry<Dev>> tiltedGeometry;
+    std::shared_ptr<ModuleConnectionMap<Dev>> moduleConnectionMap;
+    uint16_t nModules;
+    uint16_t nLowerModules;
+
   public:
     // Constructor used for CMSSW integration. Uses an external queue.
     template <typename TQueue>
@@ -185,7 +194,7 @@ namespace SDL {
     modulesBuffer<alpaka::DevCpu>* getModules(bool isFull = false);
 
     //read from file and init
-    static void initModules(QueueAcc& queue, const MapPLStoLayer& pLStoLayer, const char* moduleMetaDataFilePath);
+    //static void initModules(QueueAcc& queue, const MapPLStoLayer& pLStoLayer, const char* moduleMetaDataFilePath);
   };
 
 }  // namespace SDL
