@@ -107,7 +107,7 @@ namespace SDL {
   const unsigned int MAX_BLOCKS = 80;
   const unsigned int MAX_CONNECTED_MODULES = 40;
 
-  const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 50000;
+  const unsigned int N_MAX_PIXEL_SEGMENTS_PER_MODULE = 60000;
 
   const unsigned int N_MAX_PIXEL_MD_PER_MODULES = 2 * N_MAX_PIXEL_SEGMENTS_PER_MODULE;
 
