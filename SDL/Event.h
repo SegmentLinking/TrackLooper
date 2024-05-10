@@ -194,7 +194,16 @@ namespace SDL {
     modulesBuffer<alpaka::DevCpu>* getModules(bool isFull = false);
 
     //read from file and init
-    //static void initModules(QueueAcc& queue, const MapPLStoLayer& pLStoLayer, const char* moduleMetaDataFilePath);
+    static void initModules(QueueAcc& queue,
+                            const MapPLStoLayer& pLStoLayer,
+                            const char* moduleMetaDataFilePath,
+                            uint16_t& nModules,
+                            uint16_t& nLowerModules,
+                            struct modulesBuffer<SDL::Dev>* modulesBuf,
+                            struct pixelMap* pixelMapping,
+                            EndcapGeometry<SDL::Dev>* endcapGeometry,
+                            TiltedGeometry<SDL::Dev>* tiltedGeometry,
+                            ModuleConnectionMap<SDL::Dev>* moduleConnectionMap);
   };
 
 }  // namespace SDL

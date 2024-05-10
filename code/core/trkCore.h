@@ -13,7 +13,15 @@
 
 // --------------------- ======================== ---------------------
 
-void loadMaps(SDL::Dev& devAccIn, SDL::QueueAcc& queue);
+void loadMaps(SDL::Dev& devAccIn,
+              SDL::QueueAcc& queue,
+              uint16_t& nModules,
+              uint16_t& nLowerModules,
+              std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers,
+              std::shared_ptr<SDL::pixelMap> pixelMapping,
+              std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
+              std::shared_ptr<SDL::TiltedGeometry<SDL::Dev>> tiltedGeometry,
+              std::shared_ptr<SDL::ModuleConnectionMap<SDL::Dev>> moduleConnectionMap);
 bool goodEvent();
 float runMiniDoublet(SDL::Event<SDL::Acc>* event, int evt);
 float runSegment(SDL::Event<SDL::Acc>* event);

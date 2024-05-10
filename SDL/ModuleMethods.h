@@ -30,7 +30,7 @@ namespace SDL {
   };
 
   template <typename TQueue, typename TDev>
-  inline void fillPixelMap(struct modulesBuffer<TDev>* modulesBuf,
+  inline void fillPixelMap(struct modulesBuffer<TDev>& modulesBuf,
                            struct pixelMap& pixelMapping,
                            TQueue queue,
                            const MapPLStoLayer& pLStoLayer,
@@ -106,7 +106,7 @@ namespace SDL {
       connectedPixels[icondet + totalSizes + totalSizes_pos] = mmd.detIdToIndex[connectedModuleDetIds_neg[icondet]];
     }
 
-    alpaka::memcpy(queue, modulesBuf->connectedPixels_buf, connectedPixels_buf);
+    alpaka::memcpy(queue, modulesBuf.connectedPixels_buf, connectedPixels_buf);
     alpaka::wait(queue);
   };
 
@@ -233,13 +233,13 @@ namespace SDL {
   };
 
   template <typename TQueue, typename TDev>
-  void loadModulesFromFile(struct modulesBuffer<TDev>* modulesBuf,
+  void loadModulesFromFile(TQueue& queue,
+                           const MapPLStoLayer& pLStoLayer,
+                           const char* moduleMetaDataFilePath,
                            uint16_t& nModules,
                            uint16_t& nLowerModules,
-                           struct pixelMap& pixelMapping,
-                           TQueue& queue,
-                           const char* moduleMetaDataFilePath,
-                           const MapPLStoLayer& pLStoLayer,
+                           struct modulesBuffer<TDev>* modulesBuf,
+                           struct pixelMap* pixelMapping,
                            EndcapGeometry<Dev>* endcapGeometry,
                            TiltedGeometry<Dev>* tiltedGeometry,
                            ModuleConnectionMap<SDL::Dev>* moduleConnectionMap) {
@@ -417,7 +417,7 @@ namespace SDL {
 
     fillConnectedModuleArrayExplicit(modulesBuf, nModules, queue, mmd, moduleConnectionMap);
     fillMapArraysExplicit(modulesBuf, nModules, queue, mmd);
-    fillPixelMap(modulesBuf, pixelMapping, queue, pLStoLayer, mmd);
+    fillPixelMap(*modulesBuf, *pixelMapping, queue, pLStoLayer, mmd);
   };
 }  // namespace SDL
 #endif

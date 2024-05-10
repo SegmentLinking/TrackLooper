@@ -303,11 +303,34 @@ void run_sdl()
         queues.push_back(SDL::QueueAcc(devAcc));
     }
 
+    // Create objects that used to be global
+    uint16_t nModules;
+    uint16_t nLowerModules;
+    std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers = std::make_shared<SDL::modulesBuffer<SDL::Dev>>(devAcc);
+    std::shared_ptr<SDL::pixelMap> pixelMapping = std::make_shared<SDL::pixelMap>();
+    std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry = std::make_shared<SDL::EndcapGeometry<SDL::Dev>>(devAcc);
+    std::shared_ptr<SDL::TiltedGeometry<SDL::Dev>> tiltedGeometry = std::make_shared<SDL::TiltedGeometry<SDL::Dev>>();
+    std::shared_ptr<SDL::ModuleConnectionMap<SDL::Dev>> moduleConnectionMap = std::make_shared<SDL::ModuleConnectionMap<SDL::Dev>>();
     // Load various maps used in the SDL reconstruction
     TStopwatch full_timer;
     full_timer.Start();
-    loadMaps(devAcc, queues[0]);
+    loadMaps(devAcc,
+             queues[0],
+             nModules,
+             nLowerModules,
+             modulesBuffers,
+             pixelMapping,
+             endcapGeometry,
+             tiltedGeometry,
+             moduleConnectionMap
+    );
     float timeForMapLoading = full_timer.RealTime()*1000;
+    // tmp
+    void* address = static_cast<void*>(pixelMapping.get());
+    std::cout << "Address: " << address << std::endl;
+    std::cout << "test" << std::endl;
+    return;
+    std::cout << "test2" << std::endl;
 
     if (ana.do_write_ntuple)
     {
@@ -527,9 +550,5 @@ void run_sdl()
         delete events.at(s);
     }
 
-    SDL::Globals<SDL::Dev>::freeModules();
-    SDL::Globals<SDL::Dev>::freeEndcap();
-
     delete ana.output_tfile;
 }
-
