@@ -6,8 +6,11 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/code/rooutil/thisrooutil.sh
 
+ARCH=$(uname -m)
 if [[ $(hostname) == *lnx4555* ]]; then
   export SCRAM_ARCH=el9_amd64_gcc12
+elif [[ $ARCH == "aarch64" || $ARCH == "arm64" ]]; then
+  export SCRAM_ARCH=el9_aarch64_gcc12
 else
   export SCRAM_ARCH=el8_amd64_gcc12
 fi
