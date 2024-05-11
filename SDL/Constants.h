@@ -147,6 +147,6 @@ namespace SDL {
 }  //namespace SDL
 
 namespace T5DNN {
-  ALPAKA_STATIC_ACC_MEM_GLOBAL const float LSTWP = 0.3f;  // Test cut value
+  ALPAKA_STATIC_ACC_MEM_GLOBAL const float LSTWP = 0.5f;
 }  // namespace T5DNN
 #endif
