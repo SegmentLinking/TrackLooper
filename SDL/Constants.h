@@ -147,18 +147,6 @@ namespace SDL {
 }  //namespace SDL
 
 namespace T5DNN {
-  // Working points matching LST fake rate (43.9%) or signal acceptance (82.0%)
-  ALPAKA_STATIC_ACC_MEM_GLOBAL const float LSTWP1 = 0.3418833f;  // 94.0% TPR, 43.9% FPR
-  ALPAKA_STATIC_ACC_MEM_GLOBAL const float LSTWP2 = 0.6177366f;  // 82.0% TPR, 20.0% FPR
-  // Other working points
-  ALPAKA_STATIC_ACC_MEM_GLOBAL const float WP70 = 0.7776195f;    // 70.0% TPR, 10.0% FPR
-  ALPAKA_STATIC_ACC_MEM_GLOBAL const float WP75 = 0.7181118f;    // 75.0% TPR, 13.5% FPR
-  ALPAKA_STATIC_ACC_MEM_GLOBAL const float WP80 = 0.6492643f;    // 80.0% TPR, 17.9% FPR
-  ALPAKA_STATIC_ACC_MEM_GLOBAL const float WP85 = 0.5655319f;    // 85.0% TPR, 23.8% FPR
-  ALPAKA_STATIC_ACC_MEM_GLOBAL const float WP90 = 0.4592205f;    // 90.0% TPR, 32.6% FPR
-  ALPAKA_STATIC_ACC_MEM_GLOBAL const float WP95 = 0.3073708f;    // 95.0% TPR, 47.7% FPR
-  ALPAKA_STATIC_ACC_MEM_GLOBAL const float WP97p5 = 0.2001348f;  // 97.5% TPR, 61.2% FPR
-  ALPAKA_STATIC_ACC_MEM_GLOBAL const float WP99 = 0.1120605f;    // 99.0% TPR, 75.9% FPR
-  ALPAKA_STATIC_ACC_MEM_GLOBAL const float WP99p9 = 0.0218196f;  // 99.9% TPR, 95.4% FPR
+  ALPAKA_STATIC_ACC_MEM_GLOBAL const float LSTWP = 0.5f; // Test cut value
 }  // namespace T5DNN
 #endif

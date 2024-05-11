@@ -2919,23 +2919,20 @@ namespace SDL {
         acc, 5, xVec, yVec, delta1, delta2, slopes, isFlat, regressionG, regressionF, sigmas, chiSquared);
 
 #ifdef USE_T5_DNN
-    unsigned int mdIndices[] = {firstMDIndex, secondMDIndex, thirdMDIndex, fourthMDIndex, fifthMDIndex};
     float inference = T5DNN::runInference(acc,
                                           modulesInGPU,
                                           mdsInGPU,
                                           segmentsInGPU,
                                           tripletsInGPU,
-                                          xVec,
-                                          yVec,
-                                          mdIndices,
                                           lowerModuleIndices,
                                           innerTripletIndex,
-                                          outerTripletIndex,
                                           innerRadius,
                                           outerRadius,
-                                          bridgeRadius);
-    pass = pass and (inference > T5DNN::LSTWP2);                  // T5-building cut
-    TightCutFlag = TightCutFlag and (inference > T5DNN::LSTWP2);  // T5-in-TC cut
+                                          bridgeRadius,
+                                          chiSquared,
+                                          rzChiSquared);
+    pass = pass and (inference > T5DNN::LSTWP);                  // T5-building cut
+    TightCutFlag = TightCutFlag and (inference > T5DNN::LSTWP);  // T5-in-TC cut
     if (not pass)
       return pass;
 #endif
