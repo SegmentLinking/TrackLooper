@@ -236,7 +236,7 @@ namespace SDL {
 
             int nMatched = checkHitsT5(ix, jx, quintupletsInGPU);
             if (nMatched >= 7) {
-              if (score_rphisum1 >= score_rphisum2) {
+              if (score_rphisum1 <= score_rphisum2) {
                 rmQuintupletFromMemory(quintupletsInGPU, ix);
               } else {
                 rmQuintupletFromMemory(quintupletsInGPU, jx);
@@ -307,9 +307,9 @@ namespace SDL {
               float dR2 = dEta * dEta + dPhi * dPhi;
               int nMatched = checkHitsT5(ix, jx, quintupletsInGPU);
               if (dR2 < 0.001f || nMatched >= 5) {
-                if (score_rphisum1 > score_rphisum2) {
+                if (score_rphisum1 < score_rphisum2) {
                   rmQuintupletFromMemory(quintupletsInGPU, ix, true);
-                } else if (score_rphisum1 < score_rphisum2) {
+                } else if (score_rphisum1 > score_rphisum2) {
                   rmQuintupletFromMemory(quintupletsInGPU, jx, true);
                 } else {
                   rmQuintupletFromMemory(quintupletsInGPU, (ix < jx ? ix : jx), true);

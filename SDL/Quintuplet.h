@@ -2515,6 +2515,7 @@ namespace SDL {
                                                                uint16_t& lowerModuleIndex3,
                                                                uint16_t& lowerModuleIndex4,
                                                                uint16_t& lowerModuleIndex5,
+                                                               float& inference,
                                                                unsigned int& innerTripletIndex,
                                                                unsigned int& outerTripletIndex,
                                                                float& innerRadius,
@@ -2919,18 +2920,18 @@ namespace SDL {
         acc, 5, xVec, yVec, delta1, delta2, slopes, isFlat, regressionG, regressionF, sigmas, chiSquared);
 
 #ifdef USE_T5_DNN
-    float inference = T5DNN::runInference(acc,
-                                          modulesInGPU,
-                                          mdsInGPU,
-                                          segmentsInGPU,
-                                          tripletsInGPU,
-                                          lowerModuleIndices,
-                                          innerTripletIndex,
-                                          innerRadius,
-                                          outerRadius,
-                                          bridgeRadius,
-                                          chiSquared,
-                                          rzChiSquared);
+    inference = T5DNN::runInference(acc,
+                                    modulesInGPU,
+                                    mdsInGPU,
+                                    segmentsInGPU,
+                                    tripletsInGPU,
+                                    lowerModuleIndices,
+                                    innerTripletIndex,
+                                    innerRadius,
+                                    outerRadius,
+                                    bridgeRadius,
+                                    chiSquared,
+                                    rzChiSquared);
     pass = pass and (inference > T5DNN::LSTWP);                  // T5-building cut
     TightCutFlag = TightCutFlag and (inference > T5DNN::LSTWP);  // T5-in-TC cut
     if (not pass)
@@ -3022,7 +3023,7 @@ namespace SDL {
             uint16_t lowerModule5 = tripletsInGPU.lowerModuleIndices[3 * outerTripletIndex + 2];
 
             float innerRadius, outerRadius, bridgeRadius, regressionG, regressionF, regressionRadius, rzChiSquared,
-                chiSquared, nonAnchorChiSquared;  //required for making distributions
+                chiSquared, nonAnchorChiSquared, inference;  //required for making distributions
 
             bool TightCutFlag = false;
             bool success = runQuintupletDefaultAlgo(acc,
@@ -3035,6 +3036,7 @@ namespace SDL {
                                                     lowerModule3,
                                                     lowerModule4,
                                                     lowerModule5,
+                                                    inference,
                                                     innerTripletIndex,
                                                     outerTripletIndex,
                                                     innerRadius,
@@ -3073,7 +3075,7 @@ namespace SDL {
                       mdsInGPU.anchorEta[segmentsInGPU.mdIndices[2 * tripletsInGPU.segmentIndices[2 * innerTripletIndex +
                                                                                                   layer2_adjustment]]];
                   float pt = (innerRadius + outerRadius) * 3.8f * 1.602f / (2 * 100 * 5.39f);
-                  float scores = chiSquared + nonAnchorChiSquared;
+                  float scores = inference;
                   addQuintupletToMemory(tripletsInGPU,
                                         quintupletsInGPU,
                                         innerTripletIndex,
