@@ -418,7 +418,7 @@ namespace SDL {
           if (secondpass && (!segmentsInGPU.isQuad[jx] || (segmentsInGPU.isDup[jx] & 1)))
             continue;
 
-          char quad_diff = segmentsInGPU.isQuad[ix] - segmentsInGPU.isQuad[jx];
+          int8_t quad_diff = segmentsInGPU.isQuad[ix] - segmentsInGPU.isQuad[jx];
           float score_diff = segmentsInGPU.score[ix] - segmentsInGPU.score[jx];
           // Always keep quads over trips. If they are the same, we want the object with better score
           int idxToRemove;
