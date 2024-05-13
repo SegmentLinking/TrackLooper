@@ -104,17 +104,17 @@ namespace SDL {
           std::shared_ptr<SDL::pixelMap> pixelMappingIn,
           std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometryIn,
           std::shared_ptr<SDL::TiltedGeometry<SDL::Dev>> tiltedGeometryIn,
-          std::shared_ptr<SDL::ModuleConnectionMap<SDL::Dev>> moduleConnectionMapIn
-          ) : queue(q),
-             devAcc(alpaka::getDev(q)),
-            devHost(cms::alpakatools::host()),
-            nModules(nModulesIn),
-            nLowerModules(nLowerModulesIn),
-            modulesBuffers(modulesBuffersIn),
-            pixelMapping(pixelMappingIn),
-            endcapGeometry(endcapGeometryIn),
-            tiltedGeometry(tiltedGeometryIn),
-            moduleConnectionMap(moduleConnectionMapIn) {
+          std::shared_ptr<SDL::ModuleConnectionMap<SDL::Dev>> moduleConnectionMapIn)
+        : queue(q),
+          devAcc(alpaka::getDev(q)),
+          devHost(cms::alpakatools::host()),
+          nModules(nModulesIn),
+          nLowerModules(nLowerModulesIn),
+          modulesBuffers(modulesBuffersIn),
+          pixelMapping(pixelMappingIn),
+          endcapGeometry(endcapGeometryIn),
+          tiltedGeometry(tiltedGeometryIn),
+          moduleConnectionMap(moduleConnectionMapIn) {
       init(verbose);
     }
     void resetEvent();

@@ -188,8 +188,7 @@ void SDL::Event<SDL::Acc>::addHitToEvent(std::vector<float> x,
 
   if (rangesInGPU == nullptr) {
     rangesInGPU = new SDL::objectRanges();
-    rangesBuffers =
-        new SDL::objectRangesBuffer<Dev>(nModules, nLowerModules, devAcc, queue);
+    rangesBuffers = new SDL::objectRangesBuffer<Dev>(nModules, nLowerModules, devAcc, queue);
     rangesInGPU->setData(*rangesBuffers);
   }
 
@@ -210,18 +209,17 @@ void SDL::Event<SDL::Acc>::addHitToEvent(std::vector<float> x,
   WorkDiv const hit_loop_workdiv = createWorkDiv(blocksPerGrid1, threadsPerBlock1, elementsPerThread);
 
   hitLoopKernel hit_loop_kernel;
-  auto const hit_loop_task(
-      alpaka::createTaskKernel<Acc>(hit_loop_workdiv,
-                                    hit_loop_kernel,
-                                    Endcap,
-                                    TwoS,
-                                    nModules,
-                                    endcapGeometry->nEndCapMap,
-                                    alpaka::getPtrNative(endcapGeometry->geoMapDetId_buf),
-                                    alpaka::getPtrNative(endcapGeometry->geoMapPhi_buf),
-                                    *modulesBuffers->data(),
-                                    *hitsInGPU,
-                                    nHits));
+  auto const hit_loop_task(alpaka::createTaskKernel<Acc>(hit_loop_workdiv,
+                                                         hit_loop_kernel,
+                                                         Endcap,
+                                                         TwoS,
+                                                         nModules,
+                                                         endcapGeometry->nEndCapMap,
+                                                         alpaka::getPtrNative(endcapGeometry->geoMapDetId_buf),
+                                                         alpaka::getPtrNative(endcapGeometry->geoMapPhi_buf),
+                                                         *modulesBuffers->data(),
+                                                         *hitsInGPU,
+                                                         nHits));
 
   alpaka::enqueue(queue, hit_loop_task);
 
@@ -230,11 +228,8 @@ void SDL::Event<SDL::Acc>::addHitToEvent(std::vector<float> x,
   WorkDiv const module_ranges_workdiv = createWorkDiv(blocksPerGrid2, threadsPerBlock2, elementsPerThread);
 
   moduleRangesKernel module_ranges_kernel;
-  auto const module_ranges_task(alpaka::createTaskKernel<Acc>(module_ranges_workdiv,
-                                                              module_ranges_kernel,
-                                                              *modulesBuffers->data(),
-                                                              *hitsInGPU,
-                                                              nLowerModules));
+  auto const module_ranges_task(alpaka::createTaskKernel<Acc>(
+      module_ranges_workdiv, module_ranges_kernel, *modulesBuffers->data(), *hitsInGPU, nLowerModules));
 
   // Waiting isn't needed after second kernel call. Saves ~100 us.
   // This is because addPixelSegmentToEvent (which is run next) doesn't rely on hitsBuffers->hitrange variables.
@@ -276,8 +271,8 @@ void SDL::Event<SDL::Acc>::addPixelSegmentToEvent(std::vector<unsigned int> hitI
 
   if (mdsInGPU == nullptr) {
     // Create a view for the element nLowerModules inside rangesBuffers->miniDoubletModuleOccupancy
-    auto dst_view_miniDoubletModuleOccupancy = alpaka::createSubView(
-        rangesBuffers->miniDoubletModuleOccupancy_buf, (Idx)1u, (Idx)nLowerModules);
+    auto dst_view_miniDoubletModuleOccupancy =
+        alpaka::createSubView(rangesBuffers->miniDoubletModuleOccupancy_buf, (Idx)1u, (Idx)nLowerModules);
 
     // Create a source view for the value to be set
     int value = N_MAX_PIXEL_MD_PER_MODULES;
@@ -292,10 +287,8 @@ void SDL::Event<SDL::Acc>::addPixelSegmentToEvent(std::vector<unsigned int> hitI
         createWorkDiv(blocksPerGridCreateMD, threadsPerBlockCreateMD, elementsPerThread);
 
     SDL::createMDArrayRangesGPU createMDArrayRangesGPU_kernel;
-    auto const createMDArrayRangesGPUTask(alpaka::createTaskKernel<Acc>(createMDArrayRangesGPU_workDiv,
-                                                                        createMDArrayRangesGPU_kernel,
-                                                                        *modulesBuffers->data(),
-                                                                        *rangesInGPU));
+    auto const createMDArrayRangesGPUTask(alpaka::createTaskKernel<Acc>(
+        createMDArrayRangesGPU_workDiv, createMDArrayRangesGPU_kernel, *modulesBuffers->data(), *rangesInGPU));
 
     alpaka::enqueue(queue, createMDArrayRangesGPUTask);
     alpaka::wait(queue);
@@ -342,8 +335,8 @@ void SDL::Event<SDL::Acc>::addPixelSegmentToEvent(std::vector<unsigned int> hitI
     nTotalSegments += N_MAX_PIXEL_SEGMENTS_PER_MODULE;
 
     segmentsInGPU = new SDL::segments();
-    segmentsBuffers = new SDL::segmentsBuffer<Dev>(
-        nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
+    segmentsBuffers =
+        new SDL::segmentsBuffer<Dev>(nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
     segmentsInGPU->setData(*segmentsBuffers);
 
     alpaka::memcpy(queue, segmentsBuffers->nMemoryLocations_buf, nTotalSegments_view);
@@ -422,8 +415,8 @@ void SDL::Event<SDL::Acc>::addPixelSegmentToEvent(std::vector<unsigned int> hitI
 
 void SDL::Event<SDL::Acc>::createMiniDoublets() {
   // Create a view for the element nLowerModules inside rangesBuffers->miniDoubletModuleOccupancy
-  auto dst_view_miniDoubletModuleOccupancy = alpaka::createSubView(
-      rangesBuffers->miniDoubletModuleOccupancy_buf, (Idx)1u, (Idx)nLowerModules);
+  auto dst_view_miniDoubletModuleOccupancy =
+      alpaka::createSubView(rangesBuffers->miniDoubletModuleOccupancy_buf, (Idx)1u, (Idx)nLowerModules);
 
   // Create a source view for the value to be set
   int value = N_MAX_PIXEL_MD_PER_MODULES;
@@ -438,10 +431,8 @@ void SDL::Event<SDL::Acc>::createMiniDoublets() {
       createWorkDiv(blocksPerGridCreateMD, threadsPerBlockCreateMD, elementsPerThread);
 
   SDL::createMDArrayRangesGPU createMDArrayRangesGPU_kernel;
-  auto const createMDArrayRangesGPUTask(alpaka::createTaskKernel<Acc>(createMDArrayRangesGPU_workDiv,
-                                                                      createMDArrayRangesGPU_kernel,
-                                                                      *modulesBuffers->data(),
-                                                                      *rangesInGPU));
+  auto const createMDArrayRangesGPUTask(alpaka::createTaskKernel<Acc>(
+      createMDArrayRangesGPU_workDiv, createMDArrayRangesGPU_kernel, *modulesBuffers->data(), *rangesInGPU));
 
   alpaka::enqueue(queue, createMDArrayRangesGPUTask);
   alpaka::wait(queue);
@@ -462,8 +453,7 @@ void SDL::Event<SDL::Acc>::createMiniDoublets() {
   }
 
   Vec const threadsPerBlockCreateMDInGPU = createVec(1, 16, 32);
-  Vec const blocksPerGridCreateMDInGPU =
-      createVec(1, nLowerModules / threadsPerBlockCreateMDInGPU[1], 1);
+  Vec const blocksPerGridCreateMDInGPU = createVec(1, nLowerModules / threadsPerBlockCreateMDInGPU[1], 1);
   WorkDiv const createMiniDoubletsInGPUv2_workDiv =
       createWorkDiv(blocksPerGridCreateMDInGPU, threadsPerBlockCreateMDInGPU, elementsPerThread);
 
@@ -502,8 +492,8 @@ void SDL::Event<SDL::Acc>::createMiniDoublets() {
 void SDL::Event<SDL::Acc>::createSegmentsWithModuleMap() {
   if (segmentsInGPU == nullptr) {
     segmentsInGPU = new SDL::segments();
-    segmentsBuffers = new SDL::segmentsBuffer<Dev>(
-        nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
+    segmentsBuffers =
+        new SDL::segmentsBuffer<Dev>(nTotalSegments, nLowerModules, N_MAX_PIXEL_SEGMENTS_PER_MODULE, devAcc, queue);
     segmentsInGPU->setData(*segmentsBuffers);
   }
 
@@ -528,12 +518,11 @@ void SDL::Event<SDL::Acc>::createSegmentsWithModuleMap() {
       createWorkDiv(blocksPerGridAddSeg, threadsPerBlockAddSeg, elementsPerThread);
 
   SDL::addSegmentRangesToEventExplicit addSegmentRangesToEventExplicit_kernel;
-  auto const addSegmentRangesToEventExplicitTask(
-      alpaka::createTaskKernel<Acc>(addSegmentRangesToEventExplicit_workDiv,
-                                    addSegmentRangesToEventExplicit_kernel,
-                                    *modulesBuffers->data(),
-                                    *segmentsInGPU,
-                                    *rangesInGPU));
+  auto const addSegmentRangesToEventExplicitTask(alpaka::createTaskKernel<Acc>(addSegmentRangesToEventExplicit_workDiv,
+                                                                               addSegmentRangesToEventExplicit_kernel,
+                                                                               *modulesBuffers->data(),
+                                                                               *segmentsInGPU,
+                                                                               *rangesInGPU));
 
   alpaka::enqueue(queue, addSegmentRangesToEventExplicitTask);
   alpaka::wait(queue);
@@ -567,8 +556,8 @@ void SDL::Event<SDL::Acc>::createTriplets() {
     alpaka::wait(queue);
 
     tripletsInGPU = new SDL::triplets();
-    tripletsBuffers = new SDL::tripletsBuffer<Dev>(
-        *alpaka::getPtrNative(maxTriplets_buf), nLowerModules, devAcc, queue);
+    tripletsBuffers =
+        new SDL::tripletsBuffer<Dev>(*alpaka::getPtrNative(maxTriplets_buf), nLowerModules, devAcc, queue);
     tripletsInGPU->setData(*tripletsBuffers);
 
     alpaka::memcpy(queue, tripletsBuffers->nMemoryLocations_buf, maxTriplets_buf);
@@ -594,16 +583,12 @@ void SDL::Event<SDL::Acc>::createTriplets() {
 
   // Allocate and copy module_nConnectedModules from device to host
   auto module_nConnectedModules_buf = allocBufWrapper<uint16_t>(devHost, nLowerModules, queue);
-  alpaka::memcpy(queue,
-                 module_nConnectedModules_buf,
-                 modulesBuffers->nConnectedModules_buf,
-                 nLowerModules);
+  alpaka::memcpy(queue, module_nConnectedModules_buf, modulesBuffers->nConnectedModules_buf, nLowerModules);
   alpaka::wait(queue);
 
   uint16_t* module_nConnectedModules = alpaka::getPtrNative(module_nConnectedModules_buf);
 
-  for (uint16_t innerLowerModuleIndex = 0; innerLowerModuleIndex < nLowerModules;
-       innerLowerModuleIndex++) {
+  for (uint16_t innerLowerModuleIndex = 0; innerLowerModuleIndex < nLowerModules; innerLowerModuleIndex++) {
     uint16_t nConnectedModules = module_nConnectedModules[innerLowerModuleIndex];
     unsigned int nInnerSegments = nSegments[innerLowerModuleIndex];
     if (nConnectedModules != 0 and nInnerSegments != 0) {
@@ -641,12 +626,11 @@ void SDL::Event<SDL::Acc>::createTriplets() {
       createWorkDiv(blocksPerGridAddTrip, threadsPerBlockAddTrip, elementsPerThread);
 
   SDL::addTripletRangesToEventExplicit addTripletRangesToEventExplicit_kernel;
-  auto const addTripletRangesToEventExplicitTask(
-      alpaka::createTaskKernel<Acc>(addTripletRangesToEventExplicit_workDiv,
-                                    addTripletRangesToEventExplicit_kernel,
-                                    *modulesBuffers->data(),
-                                    *tripletsInGPU,
-                                    *rangesInGPU));
+  auto const addTripletRangesToEventExplicitTask(alpaka::createTaskKernel<Acc>(addTripletRangesToEventExplicit_workDiv,
+                                                                               addTripletRangesToEventExplicit_kernel,
+                                                                               *modulesBuffers->data(),
+                                                                               *tripletsInGPU,
+                                                                               *rangesInGPU));
 
   alpaka::enqueue(queue, addTripletRangesToEventExplicitTask);
   alpaka::wait(queue);
@@ -830,8 +814,7 @@ void SDL::Event<SDL::Acc>::createPixelTriplets() {
   unsigned int nInnerSegments;
   auto nInnerSegments_src_view = alpaka::createView(devHost, &nInnerSegments, (size_t)1u);
 
-  auto dev_view_nSegments =
-      alpaka::createSubView(segmentsBuffers->nSegments_buf, (Idx)1u, (Idx)nLowerModules);
+  auto dev_view_nSegments = alpaka::createSubView(segmentsBuffers->nSegments_buf, (Idx)1u, (Idx)nLowerModules);
 
   alpaka::memcpy(queue, nInnerSegments_src_view, dev_view_nSegments);
   alpaka::wait(queue);
@@ -854,11 +837,10 @@ void SDL::Event<SDL::Acc>::createPixelTriplets() {
   unsigned int* connectedPixelIndex_host = alpaka::getPtrNative(connectedPixelIndex_host_buf);
   alpaka::wait(queue);
 
-  int pixelIndexOffsetPos = pixelMapping->connectedPixelsIndex[size_superbins - 1] +
-                            pixelMapping->connectedPixelsSizes[size_superbins - 1];
+  int pixelIndexOffsetPos =
+      pixelMapping->connectedPixelsIndex[size_superbins - 1] + pixelMapping->connectedPixelsSizes[size_superbins - 1];
   int pixelIndexOffsetNeg = pixelMapping->connectedPixelsIndexPos[size_superbins - 1] +
-                            pixelMapping->connectedPixelsSizesPos[size_superbins - 1] +
-                            pixelIndexOffsetPos;
+                            pixelMapping->connectedPixelsSizesPos[size_superbins - 1] + pixelIndexOffsetPos;
 
   // TODO: check if a map/reduction to just eligible pLSs would speed up the kernel
   // the current selection still leaves a significant fraction of unmatchable pLSs
@@ -970,8 +952,7 @@ void SDL::Event<SDL::Acc>::createQuintuplets() {
 
   if (quintupletsInGPU == nullptr) {
     quintupletsInGPU = new SDL::quintuplets();
-    quintupletsBuffers =
-        new SDL::quintupletsBuffer<Dev>(nTotalQuintuplets, nLowerModules, devAcc, queue);
+    quintupletsBuffers = new SDL::quintupletsBuffer<Dev>(nTotalQuintuplets, nLowerModules, devAcc, queue);
     quintupletsInGPU->setData(*quintupletsBuffers);
 
     alpaka::memcpy(queue, quintupletsBuffers->nMemoryLocations_buf, nTotalQuintuplets_buf);
@@ -1065,8 +1046,7 @@ void SDL::Event<SDL::Acc>::createPixelQuintuplets() {
   auto nInnerSegments_src_view = alpaka::createView(devHost, &nInnerSegments, (size_t)1u);
 
   // Create a sub-view for the device buffer
-  auto dev_view_nSegments =
-      alpaka::createSubView(segmentsBuffers->nSegments_buf, (Idx)1u, (Idx)nLowerModules);
+  auto dev_view_nSegments = alpaka::createSubView(segmentsBuffers->nSegments_buf, (Idx)1u, (Idx)nLowerModules);
 
   alpaka::memcpy(queue, nInnerSegments_src_view, dev_view_nSegments);
   alpaka::wait(queue);
@@ -1089,11 +1069,10 @@ void SDL::Event<SDL::Acc>::createPixelQuintuplets() {
   unsigned int* connectedPixelIndex_host = alpaka::getPtrNative(connectedPixelIndex_host_buf);
   alpaka::wait(queue);
 
-  int pixelIndexOffsetPos = pixelMapping->connectedPixelsIndex[size_superbins - 1] +
-                            pixelMapping->connectedPixelsSizes[size_superbins - 1];
+  int pixelIndexOffsetPos =
+      pixelMapping->connectedPixelsIndex[size_superbins - 1] + pixelMapping->connectedPixelsSizes[size_superbins - 1];
   int pixelIndexOffsetNeg = pixelMapping->connectedPixelsIndexPos[size_superbins - 1] +
-                            pixelMapping->connectedPixelsSizesPos[size_superbins - 1] +
-                            pixelIndexOffsetPos;
+                            pixelMapping->connectedPixelsSizesPos[size_superbins - 1] + pixelIndexOffsetPos;
 
   // Loop over # pLS
   for (unsigned int i = 0; i < nInnerSegments; i++) {
@@ -1111,16 +1090,12 @@ void SDL::Event<SDL::Acc>::createPixelQuintuplets() {
       unsigned int connectedIdxBase = pixelMapping->connectedPixelsIndex[superbin];
       connectedPixelIndex_host[i] = connectedIdxBase;
     } else if (pixelType == 1) {
-      connectedPixelSize_host[i] =
-          pixelMapping->connectedPixelsSizesPos[superbin];  //number of pixel connected modules
-      unsigned int connectedIdxBase =
-          pixelMapping->connectedPixelsIndexPos[superbin] + pixelIndexOffsetPos;
+      connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesPos[superbin];  //number of pixel connected modules
+      unsigned int connectedIdxBase = pixelMapping->connectedPixelsIndexPos[superbin] + pixelIndexOffsetPos;
       connectedPixelIndex_host[i] = connectedIdxBase;
     } else if (pixelType == 2) {
-      connectedPixelSize_host[i] =
-          pixelMapping->connectedPixelsSizesNeg[superbin];  //number of pixel connected modules
-      unsigned int connectedIdxBase =
-          pixelMapping->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;
+      connectedPixelSize_host[i] = pixelMapping->connectedPixelsSizesNeg[superbin];  //number of pixel connected modules
+      unsigned int connectedIdxBase = pixelMapping->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;
       connectedPixelIndex_host[i] = connectedIdxBase;
     }
   }
@@ -1196,12 +1171,10 @@ void SDL::Event<SDL::Acc>::addMiniDoubletsToEventExplicit() {
   alpaka::memcpy(queue, nMDsCPU_buf, miniDoubletsBuffers->nMDs_buf, nLowerModules);
 
   auto module_subdets_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
-  alpaka::memcpy(
-      queue, module_subdets_buf, modulesBuffers->subdets_buf, nLowerModules);
+  alpaka::memcpy(queue, module_subdets_buf, modulesBuffers->subdets_buf, nLowerModules);
 
   auto module_layers_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
-  alpaka::memcpy(
-      queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
+  alpaka::memcpy(queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
 
   auto module_hitRanges_buf = allocBufWrapper<int>(devHost, nLowerModules * 2, queue);
   alpaka::memcpy(queue, module_hitRanges_buf, hitsBuffers->hitRanges_buf, nLowerModules * 2u);
@@ -1229,12 +1202,10 @@ void SDL::Event<SDL::Acc>::addSegmentsToEventExplicit() {
   alpaka::memcpy(queue, nSegmentsCPU_buf, segmentsBuffers->nSegments_buf, nLowerModules);
 
   auto module_subdets_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
-  alpaka::memcpy(
-      queue, module_subdets_buf, modulesBuffers->subdets_buf, nLowerModules);
+  alpaka::memcpy(queue, module_subdets_buf, modulesBuffers->subdets_buf, nLowerModules);
 
   auto module_layers_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
-  alpaka::memcpy(
-      queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
+  alpaka::memcpy(queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
 
   alpaka::wait(queue);
 
@@ -1258,12 +1229,10 @@ void SDL::Event<SDL::Acc>::addQuintupletsToEventExplicit() {
   alpaka::memcpy(queue, nQuintupletsCPU_buf, quintupletsBuffers->nQuintuplets_buf);
 
   auto module_subdets_buf = allocBufWrapper<short>(devHost, nModules, queue);
-  alpaka::memcpy(
-      queue, module_subdets_buf, modulesBuffers->subdets_buf, nModules);
+  alpaka::memcpy(queue, module_subdets_buf, modulesBuffers->subdets_buf, nModules);
 
   auto module_layers_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
-  alpaka::memcpy(
-      queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
+  alpaka::memcpy(queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
 
   auto module_quintupletModuleIndices_buf = allocBufWrapper<int>(devHost, nLowerModules, queue);
   alpaka::memcpy(queue, module_quintupletModuleIndices_buf, rangesBuffers->quintupletModuleIndices_buf);
@@ -1291,12 +1260,10 @@ void SDL::Event<SDL::Acc>::addTripletsToEventExplicit() {
   alpaka::memcpy(queue, nTripletsCPU_buf, tripletsBuffers->nTriplets_buf);
 
   auto module_subdets_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
-  alpaka::memcpy(
-      queue, module_subdets_buf, modulesBuffers->subdets_buf, nLowerModules);
+  alpaka::memcpy(queue, module_subdets_buf, modulesBuffers->subdets_buf, nLowerModules);
 
   auto module_layers_buf = allocBufWrapper<short>(devHost, nLowerModules, queue);
-  alpaka::memcpy(
-      queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
+  alpaka::memcpy(queue, module_layers_buf, modulesBuffers->layers_buf, nLowerModules);
 
   alpaka::wait(queue);
   unsigned int* nTripletsCPU = alpaka::getPtrNative(nTripletsCPU_buf);
@@ -1582,8 +1549,7 @@ SDL::hitsBuffer<alpaka::DevCpu>* SDL::Event<SDL::Acc>::getHitsInCMSSW() {
 
 SDL::objectRangesBuffer<alpaka::DevCpu>* SDL::Event<SDL::Acc>::getRanges() {
   if (rangesInCPU == nullptr) {
-    rangesInCPU = new SDL::objectRangesBuffer<alpaka::DevCpu>(
-        nModules, nLowerModules, devHost, queue);
+    rangesInCPU = new SDL::objectRangesBuffer<alpaka::DevCpu>(nModules, nLowerModules, devHost, queue);
     rangesInCPU->setData(*rangesInCPU);
 
     alpaka::memcpy(queue, rangesInCPU->hitRanges_buf, rangesBuffers->hitRanges_buf);
@@ -1696,8 +1662,7 @@ SDL::quintupletsBuffer<alpaka::DevCpu>* SDL::Event<SDL::Acc>::getQuintuplets() {
     alpaka::wait(queue);
 
     unsigned int nMemHost = *alpaka::getPtrNative(nMemHost_buf);
-    quintupletsInCPU =
-        new SDL::quintupletsBuffer<alpaka::DevCpu>(nMemHost, nLowerModules, devHost, queue);
+    quintupletsInCPU = new SDL::quintupletsBuffer<alpaka::DevCpu>(nMemHost, nLowerModules, devHost, queue);
     quintupletsInCPU->setData(*quintupletsInCPU);
 
     *alpaka::getPtrNative(quintupletsInCPU->nMemoryLocations_buf) = nMemHost;

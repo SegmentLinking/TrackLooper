@@ -362,8 +362,7 @@ namespace SDL {
           host_isAnchor[index] = false;
         }
 
-        host_dxdys[index] = (subdet == Endcap) ? endcapGeometry->getdxdy_slope(detId)
-                                               : tiltedGeometry->getDxDy(detId);
+        host_dxdys[index] = (subdet == Endcap) ? endcapGeometry->getdxdy_slope(detId) : tiltedGeometry->getDxDy(detId);
         host_drdzs[index] = (subdet == Barrel) ? tiltedGeometry->getDrDz(detId) : 0;
       }
 

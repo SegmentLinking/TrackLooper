@@ -290,9 +290,6 @@ int main(int argc, char** argv)
 
     // Run the code
     run_sdl();
-    
-    //tmp
-    std::cout << "test3" << std::endl;
 
     return 0;
 }
@@ -325,8 +322,7 @@ void run_sdl()
              pixelMapping,
              endcapGeometry,
              tiltedGeometry,
-             moduleConnectionMap
-    );
+             moduleConnectionMap);
     float timeForMapLoading = full_timer.RealTime()*1000;
 
     if (ana.do_write_ntuple)
