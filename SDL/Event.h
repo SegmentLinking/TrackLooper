@@ -96,7 +96,25 @@ namespace SDL {
   public:
     // Constructor used for CMSSW integration. Uses an external queue.
     template <typename TQueue>
-    Event(bool verbose, TQueue const& q) : queue(q), devAcc(alpaka::getDev(q)), devHost(cms::alpakatools::host()) {
+    Event(bool verbose,
+          TQueue const& q,
+          uint16_t nModulesIn,
+          uint16_t nLowerModulesIn,
+          std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffersIn,
+          std::shared_ptr<SDL::pixelMap> pixelMappingIn,
+          std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometryIn,
+          std::shared_ptr<SDL::TiltedGeometry<SDL::Dev>> tiltedGeometryIn,
+          std::shared_ptr<SDL::ModuleConnectionMap<SDL::Dev>> moduleConnectionMapIn
+          ) : queue(q),
+             devAcc(alpaka::getDev(q)),
+            devHost(cms::alpakatools::host()),
+            nModules(nModulesIn),
+            nLowerModules(nLowerModulesIn),
+            modulesBuffers(modulesBuffersIn),
+            pixelMapping(pixelMappingIn),
+            endcapGeometry(endcapGeometryIn),
+            tiltedGeometry(tiltedGeometryIn),
+            moduleConnectionMap(moduleConnectionMapIn) {
       init(verbose);
     }
     void resetEvent();

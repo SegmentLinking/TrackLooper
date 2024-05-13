@@ -290,6 +290,9 @@ int main(int argc, char** argv)
 
     // Run the code
     run_sdl();
+    
+    //tmp
+    std::cout << "test3" << std::endl;
 
     return 0;
 }
@@ -325,12 +328,6 @@ void run_sdl()
              moduleConnectionMap
     );
     float timeForMapLoading = full_timer.RealTime()*1000;
-    // tmp
-    void* address = static_cast<void*>(pixelMapping.get());
-    std::cout << "Address: " << address << std::endl;
-    std::cout << "test" << std::endl;
-    return;
-    std::cout << "test2" << std::endl;
 
     if (ana.do_write_ntuple)
     {
@@ -411,7 +408,17 @@ void run_sdl()
     std::vector<SDL::Event<SDL::Acc>*> events;
     for (int s = 0; s < ana.streams; s++)
     {
-        SDL::Event<SDL::Acc> *event = new SDL::Event<SDL::Acc>(ana.verbose>=2, queues[s]);
+        SDL::Event<SDL::Acc> *event = new SDL::Event<SDL::Acc>(
+            ana.verbose>=2,
+            queues[s],
+            nModules,
+            nLowerModules,
+            modulesBuffers,
+            pixelMapping,
+            endcapGeometry,
+            tiltedGeometry,
+            moduleConnectionMap
+        );
         events.push_back(event);
     }
     float timeForEventCreation = full_timer.RealTime()*1000;
