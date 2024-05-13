@@ -911,7 +911,7 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
 {
     // Get relevant information
     SDL::trackCandidatesBuffer<alpaka::DevCpu>& trackCandidatesInGPU = (*event->getTrackCandidates());
-    SDL::tripletsBuffer<alpaka::DevCpu>& tripletsInGPU = *(event->getTriplets());
+    SDL::tripletsBuffer<alpaka::DevCpu>& tripletsInGPU = (*event->getTriplets());
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
 
     //
