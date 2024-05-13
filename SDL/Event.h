@@ -85,13 +85,13 @@ namespace SDL {
     int8_t* pixelTypeCPU;
 
     // Stuff that used to be global
+    uint16_t nModules;
+    uint16_t nLowerModules;
     std::shared_ptr<modulesBuffer<Dev>> modulesBuffers;
     std::shared_ptr<pixelMap> pixelMapping;
     std::shared_ptr<EndcapGeometry<Dev>> endcapGeometry;
     std::shared_ptr<TiltedGeometry<Dev>> tiltedGeometry;
     std::shared_ptr<ModuleConnectionMap<Dev>> moduleConnectionMap;
-    uint16_t nModules;
-    uint16_t nLowerModules;
 
   public:
     // Constructor used for CMSSW integration. Uses an external queue.

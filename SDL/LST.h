@@ -20,6 +20,17 @@ namespace SDL {
   template <typename>
   struct modulesBuffer;
 
+  struct pixelMap;
+
+  template <typename>
+  class EndcapGeometry;
+
+  template <typename>
+  class TiltedGeometry;
+
+  template <typename>
+  class ModuleConnectionMap;
+
   template <typename>
   class LST;
 
@@ -28,36 +39,43 @@ namespace SDL {
   public:
     LST() = default;
 
-    static void loadAndFillES(SDL::QueueAcc& queue, struct modulesBuffer<SDL::Dev>* modules);
+    static void loadAndFillES(SDL::QueueAcc& queue,
+                              uint16_t& nModules,
+                              uint16_t& nLowerModules,
+                              std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers,
+                              std::shared_ptr<SDL::pixelMap> pixelMapping,
+                              std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
+                              std::shared_ptr<SDL::TiltedGeometry<SDL::Dev>> tiltedGeometry,
+                              std::shared_ptr<SDL::ModuleConnectionMap<SDL::Dev>> moduleConnectionMap);
 
-    // void run(SDL::QueueAcc& queue,
-    //          uint16_t nModules,
-    //          uint16_t nLowerModules,
-    //          std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers,
-    //          std::shared_ptr<SDL::pixelMap> pixelMapping,
-    //          std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
-    //          std::shared_ptr<SDL::TiltedGeometry<SDL::Dev>> tiltedGeometry,
-    //          std::shared_ptr<SDL::ModuleConnectionMap<SDL::Dev>> moduleConnectionMap,
-    //          bool verbose,
-    //          const std::vector<float> see_px,
-    //          const std::vector<float> see_py,
-    //          const std::vector<float> see_pz,
-    //          const std::vector<float> see_dxy,
-    //          const std::vector<float> see_dz,
-    //          const std::vector<float> see_ptErr,
-    //          const std::vector<float> see_etaErr,
-    //          const std::vector<float> see_stateTrajGlbX,
-    //          const std::vector<float> see_stateTrajGlbY,
-    //          const std::vector<float> see_stateTrajGlbZ,
-    //          const std::vector<float> see_stateTrajGlbPx,
-    //          const std::vector<float> see_stateTrajGlbPy,
-    //          const std::vector<float> see_stateTrajGlbPz,
-    //          const std::vector<int> see_q,
-    //          const std::vector<std::vector<int>> see_hitIdx,
-    //          const std::vector<unsigned int> ph2_detId,
-    //          const std::vector<float> ph2_x,
-    //          const std::vector<float> ph2_y,
-    //          const std::vector<float> ph2_z);
+    void run(SDL::QueueAcc& queue,
+             uint16_t nModules,
+             uint16_t nLowerModules,
+             std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers,
+             std::shared_ptr<SDL::pixelMap> pixelMapping,
+             std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
+             std::shared_ptr<SDL::TiltedGeometry<SDL::Dev>> tiltedGeometry,
+             std::shared_ptr<SDL::ModuleConnectionMap<SDL::Dev>> moduleConnectionMap,
+             bool verbose,
+             const std::vector<float> see_px,
+             const std::vector<float> see_py,
+             const std::vector<float> see_pz,
+             const std::vector<float> see_dxy,
+             const std::vector<float> see_dz,
+             const std::vector<float> see_ptErr,
+             const std::vector<float> see_etaErr,
+             const std::vector<float> see_stateTrajGlbX,
+             const std::vector<float> see_stateTrajGlbY,
+             const std::vector<float> see_stateTrajGlbZ,
+             const std::vector<float> see_stateTrajGlbPx,
+             const std::vector<float> see_stateTrajGlbPy,
+             const std::vector<float> see_stateTrajGlbPz,
+             const std::vector<int> see_q,
+             const std::vector<std::vector<int>> see_hitIdx,
+             const std::vector<unsigned int> ph2_detId,
+             const std::vector<float> ph2_x,
+             const std::vector<float> ph2_y,
+             const std::vector<float> ph2_z);
     std::vector<std::vector<unsigned int>> hits() { return out_tc_hitIdxs_; }
     std::vector<unsigned int> len() { return out_tc_len_; }
     std::vector<int> seedIdx() { return out_tc_seedIdx_; }
