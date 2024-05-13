@@ -911,6 +911,7 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
 {
     // Get relevant information
     SDL::trackCandidatesBuffer<alpaka::DevCpu>& trackCandidatesInGPU = (*event->getTrackCandidates());
+    SDL::tripletsBuffer<alpaka::DevCpu>& tripletsInGPU = *(event->getTriplets());
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = (*event->getSegments());
 
     //
@@ -922,14 +923,18 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     // ****           oo -- oo -- oo               pT3
     unsigned int pT3 = trackCandidatesInGPU.directObjectIndices[idx];
     unsigned int pLS = getPixelLSFrompT3(event, pT3);
+    unsigned int T3 = getT3FrompT3(event, pT3);
 
     // pixel pt
     const float pt_pLS = segmentsInGPU.ptIn[pLS];
     const float eta_pLS = segmentsInGPU.eta[pLS];
     const float phi_pLS = segmentsInGPU.phi[pLS];
+    float pt_T3 = tripletsInGPU.circleRadius[T3] * 2 * SDL::k2Rinv1GeVf;
+    //if (tripletsInGPU.circleRadius[T3]==-999) 
+//    std::cout<<tripletsInGPU.circleRadius[T3]<<std::endl;
 
     // average pt
-    const float pt = pt_pLS;
+    const float pt = (pt_pLS+pt_T3)/2;
 
     // Form the hit idx/type vector
     std::vector<unsigned int> hit_idx = getHitIdxsFrompT3(event, pT3);

@@ -821,7 +821,6 @@ namespace SDL {
                                                                    float& sdlCut,
                                                                    float& betaInCut) {
     bool pass = true;
-
     //this cut reduces the number of candidates by a factor of 4, i.e., 3 out of 4 warps can end right here!
     if (segmentsInGPU.mdIndices[2 * innerSegmentIndex + 1] != segmentsInGPU.mdIndices[2 * outerSegmentIndex])
       return false;
@@ -870,6 +869,7 @@ namespace SDL {
     float y3 = mdsInGPU.anchorY[thirdMDIndex];
 
     circleRadius = computeRadiusFromThreeAnchorHits(acc, x1, y1, x2, y2, x3, y3, circleCenterX, circleCenterY);
+    if(circleRadius==0) printf("%f, x1:%f, x2:%f, x3:%f, y1:%f, y2:%f, y3:%f\n",circleRadius, x1, x2, x3, y1, y2, y3);
     return pass;
   };
 
@@ -913,7 +913,7 @@ namespace SDL {
 
             uint16_t outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex];
 
-            float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, circleRadius, circleCenterX, circleCenterY;
+            float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, circleRadius=-999, circleCenterX, circleCenterY;
             float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut;
 
             bool success = runTripletConstraintsAndAlgo(acc,
