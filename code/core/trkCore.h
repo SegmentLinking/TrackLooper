@@ -20,8 +20,8 @@ void loadMaps(SDL::Dev& devAccIn,
               std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers,
               std::shared_ptr<SDL::pixelMap> pixelMapping,
               std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
-              std::shared_ptr<SDL::TiltedGeometry<SDL::Dev>> tiltedGeometry,
-              std::shared_ptr<SDL::ModuleConnectionMap<SDL::Dev>> moduleConnectionMap);
+              std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry,
+              std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap);
 bool goodEvent();
 float runMiniDoublet(SDL::Event<SDL::Acc>* event, int evt);
 float runSegment(SDL::Event<SDL::Acc>* event);

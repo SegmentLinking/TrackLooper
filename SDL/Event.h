@@ -90,8 +90,8 @@ namespace SDL {
     std::shared_ptr<modulesBuffer<Dev>> modulesBuffers;
     std::shared_ptr<pixelMap> pixelMapping;
     std::shared_ptr<EndcapGeometry<Dev>> endcapGeometry;
-    std::shared_ptr<TiltedGeometry<Dev>> tiltedGeometry;
-    std::shared_ptr<ModuleConnectionMap<Dev>> moduleConnectionMap;
+    std::shared_ptr<TiltedGeometry> tiltedGeometry;
+    std::shared_ptr<ModuleConnectionMap> moduleConnectionMap;
 
   public:
     // Constructor used for CMSSW integration. Uses an external queue.
@@ -103,8 +103,8 @@ namespace SDL {
           std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffersIn,
           std::shared_ptr<SDL::pixelMap> pixelMappingIn,
           std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometryIn,
-          std::shared_ptr<SDL::TiltedGeometry<SDL::Dev>> tiltedGeometryIn,
-          std::shared_ptr<SDL::ModuleConnectionMap<SDL::Dev>> moduleConnectionMapIn)
+          std::shared_ptr<SDL::TiltedGeometry> tiltedGeometryIn,
+          std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMapIn)
         : queue(q),
           devAcc(alpaka::getDev(q)),
           devHost(cms::alpakatools::host()),
@@ -220,8 +220,8 @@ namespace SDL {
                             struct modulesBuffer<SDL::Dev>* modulesBuf,
                             struct pixelMap* pixelMapping,
                             EndcapGeometry<SDL::Dev>* endcapGeometry,
-                            TiltedGeometry<SDL::Dev>* tiltedGeometry,
-                            ModuleConnectionMap<SDL::Dev>* moduleConnectionMap);
+                            TiltedGeometry* tiltedGeometry,
+                            ModuleConnectionMap* moduleConnectionMap);
   };
 
 }  // namespace SDL

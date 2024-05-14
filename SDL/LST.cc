@@ -37,8 +37,8 @@ namespace {
                 SDL::QueueAcc& queue,
                 SDL::MapPLStoLayer& pLStoLayer,
                 std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
-                std::shared_ptr<SDL::TiltedGeometry<SDL::Dev>> tiltedGeometry,
-                std::shared_ptr<SDL::ModuleConnectionMap<SDL::Dev>> moduleConnectionMap) {
+                std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry,
+                std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap) {
     // Module orientation information (DrDz or phi angles)
     auto endcap_geom =
         get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/endcap_orientation.bin");
@@ -62,13 +62,13 @@ namespace {
       auto connectData = connects[i].data();
 
       path = pLSMapDir + connectData + ".bin";
-      pLStoLayer[0][i] = SDL::ModuleConnectionMap<SDL::Dev>(get_absolute_path_after_check_file_exists(path));
+      pLStoLayer[0][i] = SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path));
 
       path = pLSMapDir + "_pos" + connectData + ".bin";
-      pLStoLayer[1][i] = SDL::ModuleConnectionMap<SDL::Dev>(get_absolute_path_after_check_file_exists(path));
+      pLStoLayer[1][i] = SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path));
 
       path = pLSMapDir + "_neg" + connectData + ".bin";
-      pLStoLayer[2][i] = SDL::ModuleConnectionMap<SDL::Dev>(get_absolute_path_after_check_file_exists(path));
+      pLStoLayer[2][i] = SDL::ModuleConnectionMap(get_absolute_path_after_check_file_exists(path));
     }
   }
 
@@ -80,8 +80,8 @@ void SDL::LST<SDL::Acc>::loadAndFillES(SDL::QueueAcc& queue,
                                        std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuf,
                                        std::shared_ptr<SDL::pixelMap> pixelMapping,
                                        std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
-                                       std::shared_ptr<SDL::TiltedGeometry<SDL::Dev>> tiltedGeometry,
-                                       std::shared_ptr<SDL::ModuleConnectionMap<SDL::Dev>> moduleConnectionMap) {
+                                       std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry,
+                                       std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap) {
   SDL::MapPLStoLayer pLStoLayer;
   SDL::Dev const& devAccIn = alpaka::getDev(queue);
   ::loadMaps(devAccIn, queue, pLStoLayer, endcapGeometry, tiltedGeometry, moduleConnectionMap);
@@ -106,8 +106,8 @@ void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                              std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers,
                              std::shared_ptr<SDL::pixelMap> pixelMapping,
                              std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
-                             std::shared_ptr<SDL::TiltedGeometry<SDL::Dev>> tiltedGeometry,
-                             std::shared_ptr<SDL::ModuleConnectionMap<SDL::Dev>> moduleConnectionMap,
+                             std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry,
+                             std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap,
                              bool verbose,
                              const std::vector<float> see_px,
                              const std::vector<float> see_py,

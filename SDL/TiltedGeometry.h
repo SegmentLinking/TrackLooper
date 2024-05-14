@@ -16,10 +16,7 @@
 #endif
 
 namespace SDL {
-  template <typename>
-  class TiltedGeometry;
-  template <>
-  class TiltedGeometry<SDL::Dev> {
+  class TiltedGeometry {
   private:
     std::map<unsigned int, float> drdzs_;  // dr/dz slope
     std::map<unsigned int, float> dxdys_;  // dx/dy slope

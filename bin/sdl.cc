@@ -309,8 +309,8 @@ void run_sdl()
     std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers = std::make_shared<SDL::modulesBuffer<SDL::Dev>>(devAcc);
     std::shared_ptr<SDL::pixelMap> pixelMapping = std::make_shared<SDL::pixelMap>();
     std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry = std::make_shared<SDL::EndcapGeometry<SDL::Dev>>(devAcc);
-    std::shared_ptr<SDL::TiltedGeometry<SDL::Dev>> tiltedGeometry = std::make_shared<SDL::TiltedGeometry<SDL::Dev>>();
-    std::shared_ptr<SDL::ModuleConnectionMap<SDL::Dev>> moduleConnectionMap = std::make_shared<SDL::ModuleConnectionMap<SDL::Dev>>();
+    std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry = std::make_shared<SDL::TiltedGeometry>();
+    std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap = std::make_shared<SDL::ModuleConnectionMap>();
     // Load various maps used in the SDL reconstruction
     TStopwatch full_timer;
     full_timer.Start();

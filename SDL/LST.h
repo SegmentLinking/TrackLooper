@@ -25,10 +25,8 @@ namespace SDL {
   template <typename>
   class EndcapGeometry;
 
-  template <typename>
   class TiltedGeometry;
 
-  template <typename>
   class ModuleConnectionMap;
 
   template <typename>
@@ -45,8 +43,8 @@ namespace SDL {
                               std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers,
                               std::shared_ptr<SDL::pixelMap> pixelMapping,
                               std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
-                              std::shared_ptr<SDL::TiltedGeometry<SDL::Dev>> tiltedGeometry,
-                              std::shared_ptr<SDL::ModuleConnectionMap<SDL::Dev>> moduleConnectionMap);
+                              std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry,
+                              std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap);
 
     void run(SDL::QueueAcc& queue,
              uint16_t nModules,
@@ -54,8 +52,8 @@ namespace SDL {
              std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers,
              std::shared_ptr<SDL::pixelMap> pixelMapping,
              std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
-             std::shared_ptr<SDL::TiltedGeometry<SDL::Dev>> tiltedGeometry,
-             std::shared_ptr<SDL::ModuleConnectionMap<SDL::Dev>> moduleConnectionMap,
+             std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry,
+             std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap,
              bool verbose,
              const std::vector<float> see_px,
              const std::vector<float> see_py,

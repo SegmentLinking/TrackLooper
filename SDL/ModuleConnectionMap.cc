@@ -1,12 +1,12 @@
 #include "ModuleConnectionMap.h"
 
-SDL::ModuleConnectionMap<SDL::Dev>::ModuleConnectionMap() {}
+SDL::ModuleConnectionMap::ModuleConnectionMap() {}
 
-SDL::ModuleConnectionMap<SDL::Dev>::ModuleConnectionMap(std::string filename) { load(filename); }
+SDL::ModuleConnectionMap::ModuleConnectionMap(std::string filename) { load(filename); }
 
-SDL::ModuleConnectionMap<SDL::Dev>::~ModuleConnectionMap() {}
+SDL::ModuleConnectionMap::~ModuleConnectionMap() {}
 
-void SDL::ModuleConnectionMap<SDL::Dev>::load(std::string filename) {
+void SDL::ModuleConnectionMap::load(std::string filename) {
   moduleConnections_.clear();
 
   std::ifstream ifile(filename, std::ios::binary);
@@ -49,7 +49,7 @@ void SDL::ModuleConnectionMap<SDL::Dev>::load(std::string filename) {
   }
 }
 
-void SDL::ModuleConnectionMap<SDL::Dev>::add(std::string filename) {
+void SDL::ModuleConnectionMap::add(std::string filename) {
   std::ifstream ifile;
   ifile.open(filename.c_str());
   std::string line;
@@ -81,7 +81,7 @@ void SDL::ModuleConnectionMap<SDL::Dev>::add(std::string filename) {
   }
 }
 
-void SDL::ModuleConnectionMap<SDL::Dev>::print() {
+void SDL::ModuleConnectionMap::print() {
   std::cout << "Printing ModuleConnectionMap" << std::endl;
   for (auto& pair : moduleConnections_) {
     unsigned int detid = pair.first;
@@ -93,9 +93,9 @@ void SDL::ModuleConnectionMap<SDL::Dev>::print() {
   }
 }
 
-const std::vector<unsigned int>& SDL::ModuleConnectionMap<SDL::Dev>::getConnectedModuleDetIds(unsigned int detid) const {
+const std::vector<unsigned int>& SDL::ModuleConnectionMap::getConnectedModuleDetIds(unsigned int detid) const {
   static const std::vector<unsigned int> dummy;
   auto const mList = moduleConnections_.find(detid);
   return mList != moduleConnections_.end() ? mList->second : dummy;
 }
-int SDL::ModuleConnectionMap<SDL::Dev>::size() const { return moduleConnections_.size(); }
+int SDL::ModuleConnectionMap::size() const { return moduleConnections_.size(); }

@@ -156,8 +156,8 @@ void SDL::Event<SDL::Acc>::initModules(QueueAcc& queue,
                                        struct modulesBuffer<SDL::Dev>* modulesBuf,
                                        struct pixelMap* pixelMapping,
                                        EndcapGeometry<SDL::Dev>* endcapGeometry,
-                                       TiltedGeometry<SDL::Dev>* tiltedGeometry,
-                                       ModuleConnectionMap<SDL::Dev>* moduleConnectionMap) {
+                                       TiltedGeometry* tiltedGeometry,
+                                       ModuleConnectionMap* moduleConnectionMap) {
   // nModules gets filled here
   loadModulesFromFile(queue,
                       pLStoLayer,
