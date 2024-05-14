@@ -869,7 +869,6 @@ namespace SDL {
     float y3 = mdsInGPU.anchorY[thirdMDIndex];
 
     circleRadius = computeRadiusFromThreeAnchorHits(acc, x1, y1, x2, y2, x3, y3, circleCenterX, circleCenterY);
-    if(circleRadius==0) printf("%f, x1:%f, x2:%f, x3:%f, y1:%f, y2:%f, y3:%f\n",circleRadius, x1, x2, x3, y1, y2, y3);
     return pass;
   };
 
