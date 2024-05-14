@@ -128,17 +128,15 @@ void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                              const std::vector<float> ph2_x,
                              const std::vector<float> ph2_y,
                              const std::vector<float> ph2_z) {
-  auto event = SDL::Event<Acc>(
-    verbose,
-    queue,
-    nModules,
-    nLowerModules,
-    modulesBuffers,
-    pixelMapping,
-    endcapGeometry,
-    tiltedGeometry,
-    moduleConnectionMap
-  );
+  auto event = SDL::Event<Acc>(verbose,
+                               queue,
+                               nModules,
+                               nLowerModules,
+                               modulesBuffers,
+                               pixelMapping,
+                               endcapGeometry,
+                               tiltedGeometry,
+                               moduleConnectionMap);
   prepareInput(see_px,
                see_py,
                see_pz,
