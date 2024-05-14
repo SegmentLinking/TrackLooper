@@ -912,7 +912,7 @@ namespace SDL {
 
             uint16_t outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex];
 
-            float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn=0, circleRadius=-999, circleCenterX, circleCenterY;
+            float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn = 0, circleRadius = -999, circleCenterX, circleCenterY;
             float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut;
 
             bool success = runTripletConstraintsAndAlgo(acc,
