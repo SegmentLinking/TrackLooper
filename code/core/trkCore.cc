@@ -1,65 +1,6 @@
 #include "trkCore.h"
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-void loadMaps(SDL::Dev& devAccIn,
-              SDL::QueueAcc& queue,
-              uint16_t& nModules,
-              uint16_t& nLowerModules,
-              std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers,
-              std::shared_ptr<SDL::pixelMap> pixelMapping,
-              std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
-              std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry,
-              std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap)
-{
-    // From the environment variable figure out the main tracklooper absolute path
-    TString TrackLooperDir = gSystem->Getenv("TRACKLOOPERDIR");
-
-    // Module orientation information (DrDz or phi angles)
-    TString endcap_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/endcap_orientation.bin", TrackLooperDir.Data()).Data());
-    TString tilted_geom = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/tilted_barrel_orientation.bin", TrackLooperDir.Data()).Data());
-    TString mappath = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/module_connection_tracing_merged.bin", TrackLooperDir.Data()).Data());
-    TString centroid = get_absolute_path_after_check_file_exists(TString::Format("%s/data/OT800_IT615_pt0.8/sensor_centroids.bin", gSystem->Getenv("TRACKLOOPERDIR")).Data()).Data();
-    TString pLSMapDir = TrackLooperDir+"/data/OT800_IT615_pt0.8/pixelmap";
-
-    std::cout << "============ CMSSW_12_2_0_pre2 geometry ===========" << std::endl;
-    std::cout << "endcap geometry: " << endcap_geom << std::endl;
-    std::cout << "tilted geometry: " << tilted_geom << std::endl;
-    std::cout << "module map: " << mappath << std::endl;
-    std::cout << "pLS map: " << pLSMapDir << std::endl;
-    std::cout << "centroid: " << centroid << std::endl;
-
-    endcapGeometry->load(queue, endcap_geom.Data());
-    tiltedGeometry->load(tilted_geom.Data());
-    moduleConnectionMap->load(mappath.Data());
-
-    SDL::MapPLStoLayer pLStoLayer;
-    const std::array<string, 4> pLSMapPath{{ "layer1_subdet5", "layer2_subdet5", "layer1_subdet4", "layer2_subdet4" }};
-    static_assert(pLStoLayer[0].size() == pLSMapPath.size());
-    for (unsigned int i=0; i<pLSMapPath.size(); i++) {
-        TString path = TString::Format("%s/pLS_map_%s.bin", pLSMapDir.Data(), pLSMapPath[i].c_str()).Data();
-        pLStoLayer[0][i].load( get_absolute_path_after_check_file_exists( path.Data() ).Data() );
-
-        path = TString::Format("%s/pLS_map_pos_%s.bin", pLSMapDir.Data(), pLSMapPath[i].c_str()).Data();
-        pLStoLayer[1][i].load( get_absolute_path_after_check_file_exists( path.Data() ).Data() );
-
-        path = TString::Format("%s/pLS_map_neg_%s.bin", pLSMapDir.Data(), pLSMapPath[i].c_str()).Data();
-        pLStoLayer[2][i].load( get_absolute_path_after_check_file_exists( path.Data() ).Data() );
-    }
-
-    // WARNING: initModules must come after above load commands!! keep it at the last line here!
-    SDL::Event<SDL::Acc>::initModules(queue,
-                                      pLStoLayer,
-                                      centroid.Data(),
-                                      nModules,
-                                      nLowerModules,
-                                      modulesBuffers.get(),
-                                      pixelMapping.get(),
-                                      endcapGeometry.get(),
-                                      tiltedGeometry.get(),
-                                      moduleConnectionMap.get());
-}
-
-//___________________________________________________________________________________________________________________________________________________________________________________________
 bool goodEvent()
 {
     if (ana.specific_event_index >= 0)

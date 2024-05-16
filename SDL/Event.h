@@ -90,7 +90,6 @@ namespace SDL {
     std::shared_ptr<modulesBuffer<Dev>> modulesBuffers;
     std::shared_ptr<pixelMap> pixelMapping;
     std::shared_ptr<EndcapGeometry<Dev>> endcapGeometry;
-    std::shared_ptr<TiltedGeometry> tiltedGeometry;
     std::shared_ptr<ModuleConnectionMap> moduleConnectionMap;
 
   public:
@@ -103,7 +102,6 @@ namespace SDL {
           std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffersIn,
           std::shared_ptr<SDL::pixelMap> pixelMappingIn,
           std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometryIn,
-          std::shared_ptr<SDL::TiltedGeometry> tiltedGeometryIn,
           std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMapIn)
         : queue(q),
           devAcc(alpaka::getDev(q)),
@@ -113,7 +111,6 @@ namespace SDL {
           modulesBuffers(modulesBuffersIn),
           pixelMapping(pixelMappingIn),
           endcapGeometry(endcapGeometryIn),
-          tiltedGeometry(tiltedGeometryIn),
           moduleConnectionMap(moduleConnectionMapIn) {
       init(verbose);
     }

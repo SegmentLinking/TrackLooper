@@ -314,15 +314,14 @@ void run_sdl()
     // Load various maps used in the SDL reconstruction
     TStopwatch full_timer;
     full_timer.Start();
-    loadMaps(devAcc,
-             queues[0],
-             nModules,
-             nLowerModules,
-             modulesBuffers,
-             pixelMapping,
-             endcapGeometry,
-             tiltedGeometry,
-             moduleConnectionMap);
+    SDL::LST<SDL::Acc>::loadAndFillES(queues[0],
+                            nModules,
+                            nLowerModules,
+                            modulesBuffers,
+                            pixelMapping,
+                            endcapGeometry,
+                            tiltedGeometry,
+                            moduleConnectionMap);
     float timeForMapLoading = full_timer.RealTime()*1000;
 
     if (ana.do_write_ntuple)
@@ -412,7 +411,6 @@ void run_sdl()
             modulesBuffers,
             pixelMapping,
             endcapGeometry,
-            tiltedGeometry,
             moduleConnectionMap
         );
         events.push_back(event);

@@ -52,7 +52,6 @@ namespace SDL {
              std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers,
              std::shared_ptr<SDL::pixelMap> pixelMapping,
              std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
-             std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry,
              std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap,
              bool verbose,
              const std::vector<float> see_px,

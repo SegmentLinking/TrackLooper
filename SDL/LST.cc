@@ -11,10 +11,13 @@ using XYZVector = ROOT::Math::XYZVector;
 
 namespace {
   std::string trackLooperDir() {
-    const char* path = std::getenv("LST_BASE");
+    const char* path_lst_base = std::getenv("LST_BASE");
+    const char* path_tracklooperdir = std::getenv("TRACKLOOPERDIR");
     std::string path_str;
-    if (path != nullptr) {
-      path_str = path;
+    if (path_lst_base != nullptr) {
+      path_str = path_lst_base;
+    } else if (path_tracklooperdir != nullptr) {
+      path_str = path_tracklooperdir;
     } else {
       // FIXME: temporary solution, will need to pass a value from FileInPath or CMSSW search path
       // in the `LSTProducer` or a related ES producer
@@ -106,7 +109,6 @@ void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                              std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers,
                              std::shared_ptr<SDL::pixelMap> pixelMapping,
                              std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
-                             std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry,
                              std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap,
                              bool verbose,
                              const std::vector<float> see_px,
@@ -135,7 +137,6 @@ void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                                modulesBuffers,
                                pixelMapping,
                                endcapGeometry,
-                               tiltedGeometry,
                                moduleConnectionMap);
   prepareInput(see_px,
                see_py,
