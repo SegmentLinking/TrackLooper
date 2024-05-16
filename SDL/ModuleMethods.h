@@ -29,9 +29,11 @@ namespace SDL {
     // https://github.com/cms-sw/cmssw/blob/5e809e8e0a625578aa265dc4b128a93830cb5429/Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h#L29
   };
 
-  template <typename TQueue, typename TDev>
-  inline void fillPixelMap(struct modulesBuffer<TDev>& modulesBuf,
-                           struct pixelMap& pixelMapping,
+  template <typename TQueue>
+  inline void fillPixelMap(std::shared_ptr<modulesBuffer<Dev>>& modulesBuf,
+                           uint16_t nModules,
+                           unsigned int& nPixels,
+                           pixelMap& pixelMapping,
                            TQueue queue,
                            const MapPLStoLayer& pLStoLayer,
                            struct ModuleMetaData& mmd) {
@@ -83,13 +85,12 @@ namespace SDL {
     }
 
     unsigned int connectedPix_size = totalSizes + totalSizes_pos + totalSizes_neg;
+    nPixels = connectedPix_size;
 
-    // Temporary check for module initialization.
-    if (pix_tot != connectedPix_size) {
-      std::cerr << "\nError: pix_tot and connectedPix_size are not equal.\n";
-      std::cerr << "pix_tot: " << pix_tot << ", connectedPix_size: " << connectedPix_size << "\n";
-      std::cerr << "Please change pix_tot in Constants.h to make it equal to connectedPix_size.\n";
-      throw std::runtime_error("Mismatched sizes");
+    // Now we can initialize modulesBuf
+    if (modulesBuf == nullptr) {
+      SDL::Dev const& devAcc = alpaka::getDev(queue);
+      modulesBuf = std::make_shared<modulesBuffer<Dev>>(devAcc, nModules, nPixels);
     }
 
     DevHost const& devHost = cms::alpakatools::host();
@@ -106,7 +107,7 @@ namespace SDL {
       connectedPixels[icondet + totalSizes + totalSizes_pos] = mmd.detIdToIndex[connectedModuleDetIds_neg[icondet]];
     }
 
-    alpaka::memcpy(queue, modulesBuf.connectedPixels_buf, connectedPixels_buf);
+    alpaka::memcpy(queue, modulesBuf->connectedPixels_buf, connectedPixels_buf);
     alpaka::wait(queue);
   };
 
@@ -222,25 +223,18 @@ namespace SDL {
     mmd.detIdToIndex[1] = counter;  //pixel module is the last module in the module list
     counter++;
     nModules = counter;
-
-    // Temporary check for module initialization.
-    if (modules_size != nModules) {
-      std::cerr << "\nError: modules_size and nModules are not equal.\n";
-      std::cerr << "modules_size: " << modules_size << ", nModules: " << nModules << "\n";
-      std::cerr << "Please change modules_size in Constants.h to make it equal to nModules.\n";
-      throw std::runtime_error("Mismatched sizes");
-    }
   };
 
-  template <typename TQueue, typename TDev>
+  template <typename TQueue>
   void loadModulesFromFile(TQueue& queue,
-                           const MapPLStoLayer& pLStoLayer,
+                           const MapPLStoLayer* pLStoLayer,
                            const char* moduleMetaDataFilePath,
                            uint16_t& nModules,
                            uint16_t& nLowerModules,
-                           struct modulesBuffer<TDev>* modulesBuf,
-                           struct pixelMap* pixelMapping,
-                           EndcapGeometry<Dev>* endcapGeometry,
+                           unsigned int& nPixels,
+                           std::shared_ptr<modulesBuffer<Dev>>& modulesBuf,
+                           pixelMap* pixelMapping,
+                           EndcapGeometry<Dev, true>* endcapGeometry,
                            TiltedGeometry* tiltedGeometry,
                            ModuleConnectionMap* moduleConnectionMap) {
     ModuleMetaData mmd;
@@ -387,6 +381,9 @@ namespace SDL {
       }
     }
 
+    // modulesBuf is initialized in fillPixelMap since both nModules and nPix will be known
+    fillPixelMap(modulesBuf, nModules, nPixels, *pixelMapping, queue, *pLStoLayer, mmd);
+
     auto src_view_nModules = alpaka::createView(devHost, &nModules, (Idx)1u);
     alpaka::memcpy(queue, modulesBuf->nModules_buf, src_view_nModules);
 
@@ -414,9 +411,8 @@ namespace SDL {
     alpaka::memcpy(queue, modulesBuf->sdlLayers_buf, sdlLayers_buf);
     alpaka::wait(queue);
 
-    fillConnectedModuleArrayExplicit(modulesBuf, nModules, queue, mmd, moduleConnectionMap);
-    fillMapArraysExplicit(modulesBuf, nModules, queue, mmd);
-    fillPixelMap(*modulesBuf, *pixelMapping, queue, pLStoLayer, mmd);
+    fillConnectedModuleArrayExplicit(modulesBuf.get(), nModules, queue, mmd, moduleConnectionMap);
+    fillMapArraysExplicit(modulesBuf.get(), nModules, queue, mmd);
   };
 }  // namespace SDL
 #endif

@@ -87,9 +87,10 @@ namespace SDL {
     // Stuff that used to be global
     uint16_t nModules;
     uint16_t nLowerModules;
+    unsigned int nPixels;
     std::shared_ptr<modulesBuffer<Dev>> modulesBuffers;
     std::shared_ptr<pixelMap> pixelMapping;
-    std::shared_ptr<EndcapGeometry<Dev>> endcapGeometry;
+    std::shared_ptr<EndcapGeometry<Dev, true>> endcapGeometry;
     std::shared_ptr<ModuleConnectionMap> moduleConnectionMap;
 
   public:
@@ -99,15 +100,17 @@ namespace SDL {
           TQueue const& q,
           uint16_t nModulesIn,
           uint16_t nLowerModulesIn,
+          unsigned int nPixelsIn,
           std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffersIn,
           std::shared_ptr<SDL::pixelMap> pixelMappingIn,
-          std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometryIn,
+          std::shared_ptr<SDL::EndcapGeometry<SDL::Dev, true>> endcapGeometryIn,
           std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMapIn)
         : queue(q),
           devAcc(alpaka::getDev(q)),
           devHost(cms::alpakatools::host()),
           nModules(nModulesIn),
           nLowerModules(nLowerModulesIn),
+          nPixels(nPixelsIn),
           modulesBuffers(modulesBuffersIn),
           pixelMapping(pixelMappingIn),
           endcapGeometry(endcapGeometryIn),
@@ -208,17 +211,6 @@ namespace SDL {
     pixelQuintupletsBuffer<alpaka::DevCpu>* getPixelQuintuplets();
     modulesBuffer<alpaka::DevCpu>* getModules(bool isFull = false);
 
-    //read from file and init
-    static void initModules(QueueAcc& queue,
-                            const MapPLStoLayer& pLStoLayer,
-                            const char* moduleMetaDataFilePath,
-                            uint16_t& nModules,
-                            uint16_t& nLowerModules,
-                            struct modulesBuffer<SDL::Dev>* modulesBuf,
-                            struct pixelMap* pixelMapping,
-                            EndcapGeometry<SDL::Dev>* endcapGeometry,
-                            TiltedGeometry* tiltedGeometry,
-                            ModuleConnectionMap* moduleConnectionMap);
   };
 
 }  // namespace SDL

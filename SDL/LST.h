@@ -17,41 +17,85 @@ namespace SDL {
   template <typename>
   class Event;
 
+  struct pixelMap;
+  class TiltedGeometry;
+  class ModuleConnectionMap;
+  using MapPLStoLayer = std::array<std::array<ModuleConnectionMap, 4>, 3>;
+
   template <typename>
   struct modulesBuffer;
 
-  struct pixelMap;
-
-  template <typename>
+  template <typename, bool>
   class EndcapGeometry;
 
-  class TiltedGeometry;
+  struct LSTESHostData {
+    std::shared_ptr<MapPLStoLayer> const mapPLStoLayer;
+    std::shared_ptr<EndcapGeometry<DevHost, false>> const endcapGeometry;
+    std::shared_ptr<TiltedGeometry> const tiltedGeometry;
+    std::shared_ptr<ModuleConnectionMap> const moduleConnectionMap;
 
-  class ModuleConnectionMap;
+    LSTESHostData(std::shared_ptr<MapPLStoLayer> mapPLStoLayerIn,
+                  std::shared_ptr<EndcapGeometry<DevHost, false>> endcapGeometryIn,
+                  std::shared_ptr<TiltedGeometry> tiltedGeometryIn,
+                  std::shared_ptr<ModuleConnectionMap> moduleConnectionMapIn)
+                : mapPLStoLayer(mapPLStoLayerIn),
+                  endcapGeometry(endcapGeometryIn),
+                  tiltedGeometry(tiltedGeometryIn),
+                  moduleConnectionMap(moduleConnectionMapIn) {}
+  };
+
+  template <typename TDev>
+  struct LSTESDeviceData;
+  
+  template <>
+  struct LSTESDeviceData<Dev> {
+    uint16_t const nModules;
+    uint16_t const nLowerModules;
+    unsigned int nPixels;
+    std::shared_ptr<modulesBuffer<Dev>> const modulesBuffers;
+    std::shared_ptr<EndcapGeometry<Dev, true>> const endcapGeometry;
+    std::shared_ptr<pixelMap> const pixelMapping;
+    std::shared_ptr<ModuleConnectionMap> const moduleConnectionMap;
+
+    LSTESDeviceData(uint16_t nModulesIn,
+              uint16_t nLowerModulesIn,
+              unsigned int nPixelsIn,
+              std::shared_ptr<modulesBuffer<Dev>> modulesBuffersIn,
+              std::shared_ptr<EndcapGeometry<Dev, true>> endcapGeometryIn,
+              std::shared_ptr<pixelMap> pixelMappingIn,
+              std::shared_ptr<ModuleConnectionMap> moduleConnectionMapIn)
+            : nModules(nModulesIn),
+              nLowerModules(nLowerModulesIn),
+              nPixels(nPixelsIn),
+              modulesBuffers(modulesBuffersIn),
+              endcapGeometry(endcapGeometryIn),
+              pixelMapping(pixelMappingIn),
+              moduleConnectionMap(moduleConnectionMapIn) {}
+  };
+
+  std::unique_ptr<LSTESHostData> loadAndFillESHost();
+  std::unique_ptr<LSTESDeviceData<Dev>> loadAndFillESDevice(SDL::QueueAcc& queue, LSTESHostData* hostData);
 
   template <typename>
   class LST;
+
+  template <>
+  class LST<SDL::DevHost> {
+    
+  };
 
   template <>
   class LST<SDL::Acc> {
   public:
     LST() = default;
 
-    static void loadAndFillES(SDL::QueueAcc& queue,
-                              uint16_t& nModules,
-                              uint16_t& nLowerModules,
-                              std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers,
-                              std::shared_ptr<SDL::pixelMap> pixelMapping,
-                              std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
-                              std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry,
-                              std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap);
-
     void run(SDL::QueueAcc& queue,
              uint16_t nModules,
              uint16_t nLowerModules,
+             unsigned int nPixels,
              std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers,
              std::shared_ptr<SDL::pixelMap> pixelMapping,
-             std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
+             std::shared_ptr<SDL::EndcapGeometry<SDL::Dev, true>> endcapGeometry,
              std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap,
              bool verbose,
              const std::vector<float> see_px,

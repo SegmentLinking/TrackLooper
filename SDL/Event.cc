@@ -148,29 +148,6 @@ void SDL::Event<SDL::Acc>::resetEvent() {
   }
 }
 
-void SDL::Event<SDL::Acc>::initModules(QueueAcc& queue,
-                                       const MapPLStoLayer& pLStoLayer,
-                                       const char* moduleMetaDataFilePath,
-                                       uint16_t& nModules,
-                                       uint16_t& nLowerModules,
-                                       struct modulesBuffer<SDL::Dev>* modulesBuf,
-                                       struct pixelMap* pixelMapping,
-                                       EndcapGeometry<SDL::Dev>* endcapGeometry,
-                                       TiltedGeometry* tiltedGeometry,
-                                       ModuleConnectionMap* moduleConnectionMap) {
-  // nModules gets filled here
-  loadModulesFromFile(queue,
-                      pLStoLayer,
-                      moduleMetaDataFilePath,
-                      nModules,
-                      nLowerModules,
-                      modulesBuf,
-                      pixelMapping,
-                      endcapGeometry,
-                      tiltedGeometry,
-                      moduleConnectionMap);
-}
-
 void SDL::Event<SDL::Acc>::addHitToEvent(std::vector<float> x,
                                          std::vector<float> y,
                                          std::vector<float> z,
@@ -1826,7 +1803,7 @@ SDL::trackCandidatesBuffer<alpaka::DevCpu>* SDL::Event<SDL::Acc>::getTrackCandid
 SDL::modulesBuffer<alpaka::DevCpu>* SDL::Event<SDL::Acc>::getModules(bool isFull) {
   if (modulesInCPU == nullptr) {
     // The last input here is just a small placeholder for the allocation.
-    modulesInCPU = new SDL::modulesBuffer<alpaka::DevCpu>(devHost);
+    modulesInCPU = new SDL::modulesBuffer<alpaka::DevCpu>(devHost, nModules, nPixels);
 
     modulesInCPU->copyFromSrc(queue, *modulesBuffers, isFull);
   }

@@ -36,12 +36,10 @@ namespace {
     return fullpath.string();
   }
 
-  void loadMaps(SDL::Dev const& devAccIn,
-                SDL::QueueAcc& queue,
-                SDL::MapPLStoLayer& pLStoLayer,
-                std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
-                std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry,
-                std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap) {
+  void loadMapsHost(SDL::MapPLStoLayer& pLStoLayer,
+                    std::shared_ptr<SDL::EndcapGeometry<SDL::Dev, false>> endcapGeometry,
+                    std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry,
+                    std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap) {
     // Module orientation information (DrDz or phi angles)
     auto endcap_geom =
         get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/endcap_orientation.bin");
@@ -51,7 +49,7 @@ namespace {
     auto mappath = get_absolute_path_after_check_file_exists(
         trackLooperDir() + "/data/OT800_IT615_pt0.8/module_connection_tracing_merged.bin");
 
-    endcapGeometry->load(queue, endcap_geom);
+    endcapGeometry->load(endcap_geom);
     tiltedGeometry->load(tilted_geom);
     moduleConnectionMap->load(mappath);
 
@@ -77,38 +75,54 @@ namespace {
 
 }  // namespace
 
-void SDL::LST<SDL::Acc>::loadAndFillES(SDL::QueueAcc& queue,
-                                       uint16_t& nModules,
-                                       uint16_t& nLowerModules,
-                                       std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuf,
-                                       std::shared_ptr<SDL::pixelMap> pixelMapping,
-                                       std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
-                                       std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry,
-                                       std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap) {
-  SDL::MapPLStoLayer pLStoLayer;
-  SDL::Dev const& devAccIn = alpaka::getDev(queue);
-  ::loadMaps(devAccIn, queue, pLStoLayer, endcapGeometry, tiltedGeometry, moduleConnectionMap);
+std::unique_ptr<SDL::LSTESHostData> SDL::loadAndFillESHost() {
+  std::shared_ptr<SDL::MapPLStoLayer> pLStoLayer;
+  std::shared_ptr<SDL::EndcapGeometry<SDL::DevHost, false>> endcapGeometry = std::make_shared<SDL::EndcapGeometry<SDL::DevHost, false>>();
+  std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry = std::make_shared<SDL::TiltedGeometry>();
+  std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap = std::make_shared<SDL::ModuleConnectionMap>();
+  ::loadMapsHost(*pLStoLayer, endcapGeometry, tiltedGeometry, moduleConnectionMap);
+  return std::make_unique<LSTESHostData>(pLStoLayer, endcapGeometry, tiltedGeometry, moduleConnectionMap);
+}
 
+std::unique_ptr<SDL::LSTESDeviceData<SDL::Dev>> SDL::loadAndFillESDevice(SDL::QueueAcc& queue, LSTESHostData* hostData) {
+  SDL::Dev const& devAccIn = alpaka::getDev(queue);
+  uint16_t nModules;
+  uint16_t nLowerModules;
+  unsigned int nPixels;
+  std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers = nullptr;
+  std::shared_ptr<SDL::EndcapGeometry<SDL::Dev, true>> endcapGeometry = std::make_shared<SDL::EndcapGeometry<SDL::Dev, true>>(devAccIn, queue, *hostData->endcapGeometry);
+  std::shared_ptr<SDL::pixelMap> pixelMapping = std::make_shared<SDL::pixelMap>();
+  std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap = hostData->moduleConnectionMap;
+  
   auto path =
       get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/sensor_centroids.bin");
   SDL::loadModulesFromFile(queue,
-                           pLStoLayer,
+                           hostData->mapPLStoLayer.get(),
                            path.c_str(),
                            nModules,
                            nLowerModules,
-                           modulesBuf.get(),
+                           nPixels,
+                           modulesBuffers,
                            pixelMapping.get(),
                            endcapGeometry.get(),
-                           tiltedGeometry.get(),
+                           hostData->tiltedGeometry.get(),
                            moduleConnectionMap.get());
+  return std::make_unique<LSTESDeviceData<SDL::Dev>>(nModules,
+                                                     nLowerModules,
+                                                     nPixels,
+                                                     modulesBuffers, 
+                                                     endcapGeometry,
+                                                     pixelMapping,
+                                                     moduleConnectionMap);
 }
 
 void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                              uint16_t nModules,
                              uint16_t nLowerModules,
+                             unsigned int nPixels,
                              std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers,
                              std::shared_ptr<SDL::pixelMap> pixelMapping,
-                             std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry,
+                             std::shared_ptr<SDL::EndcapGeometry<SDL::Dev, true>> endcapGeometry,
                              std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap,
                              bool verbose,
                              const std::vector<float> see_px,
@@ -134,6 +148,7 @@ void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                                queue,
                                nModules,
                                nLowerModules,
+                               nPixels,
                                modulesBuffers,
                                pixelMapping,
                                endcapGeometry,
