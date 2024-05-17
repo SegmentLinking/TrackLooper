@@ -117,14 +117,8 @@ std::unique_ptr<SDL::LSTESDeviceData<SDL::Dev>> SDL::loadAndFillESDevice(SDL::Qu
 }
 
 void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
-                             uint16_t nModules,
-                             uint16_t nLowerModules,
-                             unsigned int nPixels,
-                             std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers,
-                             std::shared_ptr<SDL::pixelMap> pixelMapping,
-                             std::shared_ptr<SDL::EndcapGeometry<SDL::Dev, true>> endcapGeometry,
-                             std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap,
                              bool verbose,
+                             const LSTESDeviceData<SDL::Dev>* deviceESData,
                              const std::vector<float> see_px,
                              const std::vector<float> see_py,
                              const std::vector<float> see_pz,
@@ -146,13 +140,7 @@ void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                              const std::vector<float> ph2_z) {
   auto event = SDL::Event<Acc>(verbose,
                                queue,
-                               nModules,
-                               nLowerModules,
-                               nPixels,
-                               modulesBuffers,
-                               pixelMapping,
-                               endcapGeometry,
-                               moduleConnectionMap);
+                               deviceESData);
   prepareInput(see_px,
                see_py,
                see_pz,

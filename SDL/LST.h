@@ -89,15 +89,9 @@ namespace SDL {
   public:
     LST() = default;
 
-    void run(SDL::QueueAcc& queue,
-             uint16_t nModules,
-             uint16_t nLowerModules,
-             unsigned int nPixels,
-             std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers,
-             std::shared_ptr<SDL::pixelMap> pixelMapping,
-             std::shared_ptr<SDL::EndcapGeometry<SDL::Dev, true>> endcapGeometry,
-             std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap,
+    void run(QueueAcc& queue,
              bool verbose,
+             const LSTESDeviceData<Dev>* deviceESData,
              const std::vector<float> see_px,
              const std::vector<float> see_py,
              const std::vector<float> see_pz,

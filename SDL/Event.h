@@ -4,9 +4,11 @@
 #ifdef LST_IS_CMSSW_PACKAGE
 #include "RecoTracker/LSTCore/interface/alpaka/Constants.h"
 #include "RecoTracker/LSTCore/interface/alpaka/Module.h"
+#include "RecoTracker/LSTCore/interface/alpaka/LST.h"
 #else
 #include "Constants.h"
 #include "Module.h"
+#include "LST.h"
 #endif
 
 #include "Hit.h"
@@ -98,23 +100,17 @@ namespace SDL {
     template <typename TQueue>
     Event(bool verbose,
           TQueue const& q,
-          uint16_t nModulesIn,
-          uint16_t nLowerModulesIn,
-          unsigned int nPixelsIn,
-          std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffersIn,
-          std::shared_ptr<SDL::pixelMap> pixelMappingIn,
-          std::shared_ptr<SDL::EndcapGeometry<SDL::Dev, true>> endcapGeometryIn,
-          std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMapIn)
+          const LSTESDeviceData<Dev>* deviceESData)
         : queue(q),
           devAcc(alpaka::getDev(q)),
           devHost(cms::alpakatools::host()),
-          nModules(nModulesIn),
-          nLowerModules(nLowerModulesIn),
-          nPixels(nPixelsIn),
-          modulesBuffers(modulesBuffersIn),
-          pixelMapping(pixelMappingIn),
-          endcapGeometry(endcapGeometryIn),
-          moduleConnectionMap(moduleConnectionMapIn) {
+          nModules(deviceESData->nModules),
+          nLowerModules(deviceESData->nLowerModules),
+          nPixels(deviceESData->nPixels),
+          modulesBuffers(deviceESData->modulesBuffers),
+          pixelMapping(deviceESData->pixelMapping),
+          endcapGeometry(deviceESData->endcapGeometry),
+          moduleConnectionMap(deviceESData->moduleConnectionMap) {
       init(verbose);
     }
     void resetEvent();

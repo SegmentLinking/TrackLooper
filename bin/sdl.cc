@@ -303,25 +303,11 @@ void run_sdl()
         queues.push_back(SDL::QueueAcc(devAcc));
     }
 
-    // Create objects that used to be global
-    uint16_t nModules;
-    uint16_t nLowerModules;
-    std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers = std::make_shared<SDL::modulesBuffer<SDL::Dev>>(devAcc);
-    std::shared_ptr<SDL::pixelMap> pixelMapping = std::make_shared<SDL::pixelMap>();
-    std::shared_ptr<SDL::EndcapGeometry<SDL::Dev>> endcapGeometry = std::make_shared<SDL::EndcapGeometry<SDL::Dev>>(devAcc);
-    std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry = std::make_shared<SDL::TiltedGeometry>();
-    std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap = std::make_shared<SDL::ModuleConnectionMap>();
     // Load various maps used in the SDL reconstruction
     TStopwatch full_timer;
     full_timer.Start();
-    SDL::LST<SDL::Acc>::loadAndFillES(queues[0],
-                            nModules,
-                            nLowerModules,
-                            modulesBuffers,
-                            pixelMapping,
-                            endcapGeometry,
-                            tiltedGeometry,
-                            moduleConnectionMap);
+    auto hostESData = SDL::loadAndFillESHost();
+    auto deviceESData = SDL::loadAndFillESDevice(queues[0], hostESData.get());
     float timeForMapLoading = full_timer.RealTime()*1000;
 
     if (ana.do_write_ntuple)
@@ -406,12 +392,7 @@ void run_sdl()
         SDL::Event<SDL::Acc> *event = new SDL::Event<SDL::Acc>(
             ana.verbose>=2,
             queues[s],
-            nModules,
-            nLowerModules,
-            modulesBuffers,
-            pixelMapping,
-            endcapGeometry,
-            moduleConnectionMap
+            deviceESData.get()
         );
         events.push_back(event);
     }
