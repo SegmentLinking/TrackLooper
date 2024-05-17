@@ -70,8 +70,16 @@ void SDL::EndcapGeometry<SDL::Dev, true>::fillGeoMapArraysExplicit(SDL::QueueAcc
 }
 
 float SDL::EndcapGeometry<SDL::Dev, true>::getdxdy_slope(unsigned int detid) const {
-  return (detid < dxdy_slope_.size() ? dxdy_slope_.at(detid) : 0);
-}  // FIXME: It was reading data out of bounds
+  if (dxdy_slope_.find(detid) != dxdy_slope_.end()) {
+    return dxdy_slope_.at(detid);
+  } else {
+    return 0;
+  }
+}
 float SDL::EndcapGeometry<SDL::DevHost, false>::getdxdy_slope(unsigned int detid) const {
-  return (detid < dxdy_slope_.size() ? dxdy_slope_.at(detid) : 0);
+  if (dxdy_slope_.find(detid) != dxdy_slope_.end()) {
+    return dxdy_slope_.at(detid);
+  } else {
+    return 0;
+  }
 }
