@@ -1,8 +1,8 @@
 #include "EndcapGeometry.h"
 
 SDL::EndcapGeometry<SDL::Dev, true>::EndcapGeometry(SDL::Dev const& devAccIn,
-                    SDL::QueueAcc& queue,
-                    SDL::EndcapGeometry<SDL::DevHost, false> const& endcapGeometryIn)
+                                                    SDL::QueueAcc& queue,
+                                                    SDL::EndcapGeometry<SDL::DevHost, false> const& endcapGeometryIn)
     : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAccIn, endcapGeometryIn.centroid_phis_.size())),
       geoMapPhi_buf(allocBufWrapper<float>(devAccIn, endcapGeometryIn.centroid_phis_.size())) {
   dxdy_slope_ = endcapGeometryIn.dxdy_slope_;
@@ -69,5 +69,9 @@ void SDL::EndcapGeometry<SDL::Dev, true>::fillGeoMapArraysExplicit(SDL::QueueAcc
   alpaka::wait(queue);
 }
 
-float SDL::EndcapGeometry<SDL::Dev, true>::getdxdy_slope(unsigned int detid) const { return (detid < dxdy_slope_.size() ? dxdy_slope_.at(detid) : 0); } // FIXME: It was reading data out of bounds
-float SDL::EndcapGeometry<SDL::DevHost, false>::getdxdy_slope(unsigned int detid) const { return (detid < dxdy_slope_.size() ? dxdy_slope_.at(detid) : 0); }
+float SDL::EndcapGeometry<SDL::Dev, true>::getdxdy_slope(unsigned int detid) const {
+  return (detid < dxdy_slope_.size() ? dxdy_slope_.at(detid) : 0);
+}  // FIXME: It was reading data out of bounds
+float SDL::EndcapGeometry<SDL::DevHost, false>::getdxdy_slope(unsigned int detid) const {
+  return (detid < dxdy_slope_.size() ? dxdy_slope_.at(detid) : 0);
+}

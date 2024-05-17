@@ -217,10 +217,10 @@ namespace SDL {
   struct hitLoopKernel {
     template <typename TAcc>
     ALPAKA_FN_ACC void operator()(TAcc const& acc,
-                                  uint16_t Endcap,            // Integer corresponding to endcap in module subdets
-                                  uint16_t TwoS,              // Integer corresponding to TwoS in moduleType
-                                  unsigned int nModules,      // Number of modules
-                                  unsigned int nEndCapMap,    // Number of elements in endcap map
+                                  uint16_t Endcap,                  // Integer corresponding to endcap in module subdets
+                                  uint16_t TwoS,                    // Integer corresponding to TwoS in moduleType
+                                  unsigned int nModules,            // Number of modules
+                                  unsigned int nEndCapMap,          // Number of elements in endcap map
                                   const unsigned int* geoMapDetId,  // DetId's from endcap map
                                   const float* geoMapPhi,           // Phi values from endcap map
                                   struct SDL::modules modulesInGPU,

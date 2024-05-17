@@ -84,16 +84,18 @@ std::unique_ptr<SDL::LSTESHostData> SDL::loadAndFillESHost() {
   return std::make_unique<LSTESHostData>(pLStoLayer, endcapGeometry, tiltedGeometry, moduleConnectionMap);
 }
 
-std::unique_ptr<SDL::LSTESDeviceData<SDL::Dev>> SDL::loadAndFillESDevice(SDL::QueueAcc& queue, LSTESHostData* hostData) {
+std::unique_ptr<SDL::LSTESDeviceData<SDL::Dev>> SDL::loadAndFillESDevice(SDL::QueueAcc& queue,
+                                                                         LSTESHostData* hostData) {
   SDL::Dev const& devAccIn = alpaka::getDev(queue);
   uint16_t nModules;
   uint16_t nLowerModules;
   unsigned int nPixels;
   std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers = nullptr;
-  auto endcapGeometry = std::make_shared<SDL::EndcapGeometry<SDL::Dev, true>>(devAccIn, queue, *hostData->endcapGeometry);
+  auto endcapGeometry =
+      std::make_shared<SDL::EndcapGeometry<SDL::Dev, true>>(devAccIn, queue, *hostData->endcapGeometry);
   auto pixelMapping = std::make_shared<SDL::pixelMap>();
   auto moduleConnectionMap = hostData->moduleConnectionMap;
-  
+
   auto path =
       get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/sensor_centroids.bin");
   SDL::loadModulesFromFile(queue,
@@ -107,12 +109,8 @@ std::unique_ptr<SDL::LSTESDeviceData<SDL::Dev>> SDL::loadAndFillESDevice(SDL::Qu
                            endcapGeometry.get(),
                            hostData->tiltedGeometry.get(),
                            moduleConnectionMap.get());
-  return std::make_unique<LSTESDeviceData<SDL::Dev>>(nModules,
-                                                     nLowerModules,
-                                                     nPixels,
-                                                     modulesBuffers, 
-                                                     endcapGeometry,
-                                                     pixelMapping);
+  return std::make_unique<LSTESDeviceData<SDL::Dev>>(
+      nModules, nLowerModules, nPixels, modulesBuffers, endcapGeometry, pixelMapping);
 }
 
 void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
@@ -137,9 +135,7 @@ void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                              const std::vector<float> ph2_x,
                              const std::vector<float> ph2_y,
                              const std::vector<float> ph2_z) {
-  auto event = SDL::Event<Acc>(verbose,
-                               queue,
-                               deviceESData);
+  auto event = SDL::Event<Acc>(verbose, queue, deviceESData);
   prepareInput(see_px,
                see_py,
                see_pz,

@@ -25,7 +25,6 @@ namespace SDL {
 
   template <>
   class EndcapGeometry<DevHost, false> {
-
   public:
     std::map<unsigned int, float> dxdy_slope_;     // dx/dy slope
     std::map<unsigned int, float> centroid_phis_;  // centroid phi
