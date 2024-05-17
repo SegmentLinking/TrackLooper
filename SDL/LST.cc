@@ -37,7 +37,7 @@ namespace {
   }
 
   void loadMapsHost(SDL::MapPLStoLayer& pLStoLayer,
-                    std::shared_ptr<SDL::EndcapGeometry<SDL::Dev, false>> endcapGeometry,
+                    std::shared_ptr<SDL::EndcapGeometry<SDL::DevHost, false>> endcapGeometry,
                     std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry,
                     std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap) {
     // Module orientation information (DrDz or phi angles)
