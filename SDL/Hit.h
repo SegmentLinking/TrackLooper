@@ -221,8 +221,8 @@ namespace SDL {
                                   uint16_t TwoS,              // Integer corresponding to TwoS in moduleType
                                   unsigned int nModules,      // Number of modules
                                   unsigned int nEndCapMap,    // Number of elements in endcap map
-                                  unsigned int* geoMapDetId,  // DetId's from endcap map
-                                  float* geoMapPhi,           // Phi values from endcap map
+                                  const unsigned int* geoMapDetId,  // DetId's from endcap map
+                                  const float* geoMapPhi,           // Phi values from endcap map
                                   struct SDL::modules modulesInGPU,
                                   struct SDL::hits hitsInGPU,
                                   unsigned int const& nHits) const  // Total number of hits in event

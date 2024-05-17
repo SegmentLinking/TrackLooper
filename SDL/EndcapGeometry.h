@@ -34,7 +34,7 @@ namespace SDL {
     ~EndcapGeometry() = default;
 
     void load(std::string);
-    float getdxdy_slope(unsigned int detid);
+    float getdxdy_slope(unsigned int detid) const;
   };
 
   template <>
@@ -53,7 +53,7 @@ namespace SDL {
     ~EndcapGeometry() = default;
 
     void fillGeoMapArraysExplicit(QueueAcc& queue);
-    float getdxdy_slope(unsigned int detid);
+    float getdxdy_slope(unsigned int detid) const;
   };
 }  // namespace SDL
 

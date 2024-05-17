@@ -116,7 +116,7 @@ namespace SDL {
                                                unsigned int nMod,
                                                TQueue queue,
                                                struct ModuleMetaData& mmd,
-                                               ModuleConnectionMap* moduleConnectionMap) {
+                                               const ModuleConnectionMap* moduleConnectionMap) {
     DevHost const& devHost = cms::alpakatools::host();
     auto moduleMap_buf = allocBufWrapper<uint16_t>(devHost, nMod * MAX_CONNECTED_MODULES);
     uint16_t* moduleMap = alpaka::getPtrNative(moduleMap_buf);
@@ -234,9 +234,9 @@ namespace SDL {
                            unsigned int& nPixels,
                            std::shared_ptr<modulesBuffer<Dev>>& modulesBuf,
                            pixelMap* pixelMapping,
-                           EndcapGeometry<Dev, true>* endcapGeometry,
-                           TiltedGeometry* tiltedGeometry,
-                           ModuleConnectionMap* moduleConnectionMap) {
+                           const EndcapGeometry<Dev, true>* endcapGeometry,
+                           const TiltedGeometry* tiltedGeometry,
+                           const ModuleConnectionMap* moduleConnectionMap) {
     ModuleMetaData mmd;
 
     loadCentroidsFromFile(moduleMetaDataFilePath, mmd, nModules);

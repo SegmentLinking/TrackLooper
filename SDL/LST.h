@@ -29,19 +29,19 @@ namespace SDL {
   class EndcapGeometry;
 
   struct LSTESHostData {
-    std::shared_ptr<MapPLStoLayer> const mapPLStoLayer;
-    std::shared_ptr<EndcapGeometry<DevHost, false>> const endcapGeometry;
-    std::shared_ptr<TiltedGeometry> const tiltedGeometry;
-    std::shared_ptr<ModuleConnectionMap> const moduleConnectionMap;
+    const std::shared_ptr<const MapPLStoLayer> mapPLStoLayer;
+    const std::shared_ptr<const EndcapGeometry<DevHost, false>> endcapGeometry;
+    const std::shared_ptr<const TiltedGeometry> tiltedGeometry;
+    const std::shared_ptr<const ModuleConnectionMap> moduleConnectionMap;
 
     LSTESHostData(std::shared_ptr<MapPLStoLayer> mapPLStoLayerIn,
                   std::shared_ptr<EndcapGeometry<DevHost, false>> endcapGeometryIn,
                   std::shared_ptr<TiltedGeometry> tiltedGeometryIn,
                   std::shared_ptr<ModuleConnectionMap> moduleConnectionMapIn)
-                : mapPLStoLayer(mapPLStoLayerIn),
-                  endcapGeometry(endcapGeometryIn),
-                  tiltedGeometry(tiltedGeometryIn),
-                  moduleConnectionMap(moduleConnectionMapIn) {}
+                : mapPLStoLayer(std::const_pointer_cast<const MapPLStoLayer>(mapPLStoLayerIn)),
+                  endcapGeometry(std::const_pointer_cast<const EndcapGeometry<DevHost, false>>(endcapGeometryIn)),
+                  tiltedGeometry(std::const_pointer_cast<const TiltedGeometry>(tiltedGeometryIn)),
+                  moduleConnectionMap(std::const_pointer_cast<const ModuleConnectionMap>(moduleConnectionMapIn)) {}
   };
 
   template <typename TDev>
@@ -49,13 +49,13 @@ namespace SDL {
   
   template <>
   struct LSTESDeviceData<Dev> {
-    uint16_t const nModules;
-    uint16_t const nLowerModules;
-    unsigned int nPixels;
-    std::shared_ptr<modulesBuffer<Dev>> const modulesBuffers;
-    std::shared_ptr<EndcapGeometry<Dev, true>> const endcapGeometry;
-    std::shared_ptr<pixelMap> const pixelMapping;
-    std::shared_ptr<ModuleConnectionMap> const moduleConnectionMap;
+    const uint16_t nModules;
+    const uint16_t nLowerModules;
+    const unsigned int nPixels;
+    const std::shared_ptr<const modulesBuffer<Dev>> modulesBuffers;
+    const std::shared_ptr<const EndcapGeometry<Dev, true>> endcapGeometry;
+    const std::shared_ptr<const pixelMap> pixelMapping;
+    const std::shared_ptr<const ModuleConnectionMap> moduleConnectionMap;
 
     LSTESDeviceData(uint16_t nModulesIn,
               uint16_t nLowerModulesIn,
@@ -63,13 +63,13 @@ namespace SDL {
               std::shared_ptr<modulesBuffer<Dev>> modulesBuffersIn,
               std::shared_ptr<EndcapGeometry<Dev, true>> endcapGeometryIn,
               std::shared_ptr<pixelMap> pixelMappingIn,
-              std::shared_ptr<ModuleConnectionMap> moduleConnectionMapIn)
+              std::shared_ptr<const ModuleConnectionMap> moduleConnectionMapIn)
             : nModules(nModulesIn),
               nLowerModules(nLowerModulesIn),
               nPixels(nPixelsIn),
-              modulesBuffers(modulesBuffersIn),
-              endcapGeometry(endcapGeometryIn),
-              pixelMapping(pixelMappingIn),
+              modulesBuffers(std::const_pointer_cast<const modulesBuffer<Dev>>(modulesBuffersIn)),
+              endcapGeometry(std::const_pointer_cast<const EndcapGeometry<Dev, true>>(endcapGeometryIn)),
+              pixelMapping(std::const_pointer_cast<const pixelMap>(pixelMappingIn)),
               moduleConnectionMap(moduleConnectionMapIn) {}
   };
 

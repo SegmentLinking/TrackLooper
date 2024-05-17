@@ -76,10 +76,10 @@ namespace {
 }  // namespace
 
 std::unique_ptr<SDL::LSTESHostData> SDL::loadAndFillESHost() {
-  std::shared_ptr<SDL::MapPLStoLayer> pLStoLayer;
-  std::shared_ptr<SDL::EndcapGeometry<SDL::DevHost, false>> endcapGeometry = std::make_shared<SDL::EndcapGeometry<SDL::DevHost, false>>();
-  std::shared_ptr<SDL::TiltedGeometry> tiltedGeometry = std::make_shared<SDL::TiltedGeometry>();
-  std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap = std::make_shared<SDL::ModuleConnectionMap>();
+  auto pLStoLayer = std::make_shared<SDL::MapPLStoLayer>();
+  auto endcapGeometry = std::make_shared<SDL::EndcapGeometry<SDL::DevHost, false>>();
+  auto tiltedGeometry = std::make_shared<SDL::TiltedGeometry>();
+  auto moduleConnectionMap = std::make_shared<SDL::ModuleConnectionMap>();
   ::loadMapsHost(*pLStoLayer, endcapGeometry, tiltedGeometry, moduleConnectionMap);
   return std::make_unique<LSTESHostData>(pLStoLayer, endcapGeometry, tiltedGeometry, moduleConnectionMap);
 }
@@ -90,9 +90,9 @@ std::unique_ptr<SDL::LSTESDeviceData<SDL::Dev>> SDL::loadAndFillESDevice(SDL::Qu
   uint16_t nLowerModules;
   unsigned int nPixels;
   std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers = nullptr;
-  std::shared_ptr<SDL::EndcapGeometry<SDL::Dev, true>> endcapGeometry = std::make_shared<SDL::EndcapGeometry<SDL::Dev, true>>(devAccIn, queue, *hostData->endcapGeometry);
-  std::shared_ptr<SDL::pixelMap> pixelMapping = std::make_shared<SDL::pixelMap>();
-  std::shared_ptr<SDL::ModuleConnectionMap> moduleConnectionMap = hostData->moduleConnectionMap;
+  auto endcapGeometry = std::make_shared<SDL::EndcapGeometry<SDL::Dev, true>>(devAccIn, queue, *hostData->endcapGeometry);
+  auto pixelMapping = std::make_shared<SDL::pixelMap>();
+  auto moduleConnectionMap = hostData->moduleConnectionMap;
   
   auto path =
       get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/sensor_centroids.bin");
