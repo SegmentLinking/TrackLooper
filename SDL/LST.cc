@@ -112,8 +112,7 @@ std::unique_ptr<SDL::LSTESDeviceData<SDL::Dev>> SDL::loadAndFillESDevice(SDL::Qu
                                                      nPixels,
                                                      modulesBuffers, 
                                                      endcapGeometry,
-                                                     pixelMapping,
-                                                     moduleConnectionMap);
+                                                     pixelMapping);
 }
 
 void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,

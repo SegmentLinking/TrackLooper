@@ -55,22 +55,19 @@ namespace SDL {
     const std::shared_ptr<const modulesBuffer<Dev>> modulesBuffers;
     const std::shared_ptr<const EndcapGeometry<Dev, true>> endcapGeometry;
     const std::shared_ptr<const pixelMap> pixelMapping;
-    const std::shared_ptr<const ModuleConnectionMap> moduleConnectionMap;
 
     LSTESDeviceData(uint16_t nModulesIn,
               uint16_t nLowerModulesIn,
               unsigned int nPixelsIn,
               std::shared_ptr<modulesBuffer<Dev>> modulesBuffersIn,
               std::shared_ptr<EndcapGeometry<Dev, true>> endcapGeometryIn,
-              std::shared_ptr<pixelMap> pixelMappingIn,
-              std::shared_ptr<const ModuleConnectionMap> moduleConnectionMapIn)
+              std::shared_ptr<pixelMap> pixelMappingIn)
             : nModules(nModulesIn),
               nLowerModules(nLowerModulesIn),
               nPixels(nPixelsIn),
               modulesBuffers(std::const_pointer_cast<const modulesBuffer<Dev>>(modulesBuffersIn)),
               endcapGeometry(std::const_pointer_cast<const EndcapGeometry<Dev, true>>(endcapGeometryIn)),
-              pixelMapping(std::const_pointer_cast<const pixelMap>(pixelMappingIn)),
-              moduleConnectionMap(moduleConnectionMapIn) {}
+              pixelMapping(std::const_pointer_cast<const pixelMap>(pixelMappingIn)) {}
   };
 
   std::unique_ptr<LSTESHostData> loadAndFillESHost();
