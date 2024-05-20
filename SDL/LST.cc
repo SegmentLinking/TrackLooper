@@ -85,7 +85,7 @@ std::unique_ptr<SDL::LSTESHostData> SDL::loadAndFillESHost() {
 }
 
 std::unique_ptr<SDL::LSTESDeviceData<SDL::Dev>> SDL::loadAndFillESDevice(SDL::QueueAcc& queue,
-                                                                         LSTESHostData* hostData) {
+                                                                         const LSTESHostData* hostData) {
   SDL::Dev const& devAccIn = alpaka::getDev(queue);
   uint16_t nModules;
   uint16_t nLowerModules;

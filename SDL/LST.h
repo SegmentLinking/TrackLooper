@@ -45,33 +45,30 @@ namespace SDL {
   };
 
   template <typename TDev>
-  struct LSTESDeviceData;
-
-  template <>
-  struct LSTESDeviceData<Dev> {
+  struct LSTESDeviceData {
     const uint16_t nModules;
     const uint16_t nLowerModules;
     const unsigned int nPixels;
-    const std::shared_ptr<const modulesBuffer<Dev>> modulesBuffers;
-    const std::shared_ptr<const EndcapGeometry<Dev, true>> endcapGeometry;
+    const std::shared_ptr<const modulesBuffer<TDev>> modulesBuffers;
+    const std::shared_ptr<const EndcapGeometry<TDev, true>> endcapGeometry;
     const std::shared_ptr<const pixelMap> pixelMapping;
 
     LSTESDeviceData(uint16_t nModulesIn,
                     uint16_t nLowerModulesIn,
                     unsigned int nPixelsIn,
-                    std::shared_ptr<modulesBuffer<Dev>> modulesBuffersIn,
-                    std::shared_ptr<EndcapGeometry<Dev, true>> endcapGeometryIn,
+                    std::shared_ptr<modulesBuffer<TDev>> modulesBuffersIn,
+                    std::shared_ptr<EndcapGeometry<TDev, true>> endcapGeometryIn,
                     std::shared_ptr<pixelMap> pixelMappingIn)
         : nModules(nModulesIn),
           nLowerModules(nLowerModulesIn),
           nPixels(nPixelsIn),
-          modulesBuffers(std::const_pointer_cast<const modulesBuffer<Dev>>(modulesBuffersIn)),
-          endcapGeometry(std::const_pointer_cast<const EndcapGeometry<Dev, true>>(endcapGeometryIn)),
+          modulesBuffers(std::const_pointer_cast<const modulesBuffer<TDev>>(modulesBuffersIn)),
+          endcapGeometry(std::const_pointer_cast<const EndcapGeometry<TDev, true>>(endcapGeometryIn)),
           pixelMapping(std::const_pointer_cast<const pixelMap>(pixelMappingIn)) {}
   };
 
   std::unique_ptr<LSTESHostData> loadAndFillESHost();
-  std::unique_ptr<LSTESDeviceData<Dev>> loadAndFillESDevice(SDL::QueueAcc& queue, LSTESHostData* hostData);
+  std::unique_ptr<LSTESDeviceData<Dev>> loadAndFillESDevice(SDL::QueueAcc& queue, const LSTESHostData* hostData);
 
   template <typename>
   class LST;
