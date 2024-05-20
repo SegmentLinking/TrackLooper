@@ -87,12 +87,12 @@ namespace SDL {
     int8_t* pixelTypeCPU;
 
     // Stuff that used to be global
-    const uint16_t nModules;
-    const uint16_t nLowerModules;
-    const unsigned int nPixels;
-    const std::shared_ptr<const modulesBuffer<Dev>> modulesBuffers;
-    const std::shared_ptr<const pixelMap> pixelMapping;
-    const std::shared_ptr<const EndcapGeometry<Dev, true>> endcapGeometry;
+    const uint16_t nModules_;
+    const uint16_t nLowerModules_;
+    const unsigned int nPixels_;
+    const std::shared_ptr<const modulesBuffer<Dev>> modulesBuffers_;
+    const std::shared_ptr<const pixelMap> pixelMapping_;
+    const std::shared_ptr<const EndcapGeometry<Dev, true>> endcapGeometry_;
 
   public:
     // Constructor used for CMSSW integration. Uses an external queue.
@@ -101,12 +101,12 @@ namespace SDL {
         : queue(q),
           devAcc(alpaka::getDev(q)),
           devHost(cms::alpakatools::host()),
-          nModules(deviceESData->nModules),
-          nLowerModules(deviceESData->nLowerModules),
-          nPixels(deviceESData->nPixels),
-          modulesBuffers(deviceESData->modulesBuffers),
-          pixelMapping(deviceESData->pixelMapping),
-          endcapGeometry(deviceESData->endcapGeometry) {
+          nModules_(deviceESData->nModules),
+          nLowerModules_(deviceESData->nLowerModules),
+          nPixels_(deviceESData->nPixels),
+          modulesBuffers_(deviceESData->modulesBuffers),
+          pixelMapping_(deviceESData->pixelMapping),
+          endcapGeometry_(deviceESData->endcapGeometry) {
       init(verbose);
     }
     void resetEvent();
