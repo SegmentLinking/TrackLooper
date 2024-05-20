@@ -940,6 +940,17 @@ namespace SDL {
                                                         zHiPointed,
                                                         sdlCut,
                                                         betaInCut);
+            if (!success)
+            {
+              zOut=-999;
+              rtOut=-999;
+              deltaPhiPos=-999;
+              deltaPhi=-999;
+              betaIn=-999;
+              circleRadius=-999;
+              circleCenterX=-999;
+              circleCenterY=-999;
+            }
 
             if (success) {
               unsigned int totOccupancyTriplets = alpaka::atomicOp<alpaka::AtomicAdd>(
