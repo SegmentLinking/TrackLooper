@@ -136,6 +136,23 @@ void createOptionalOutputBranches()
     ana.tx->createBranch<vector<float>>("t5_rzChiSquared");
     ana.tx->createBranch<vector<float>>("t5_nonAnchorChiSquared");
 
+    // Occupancy branches
+    ana.tx->createBranch<vector<int>>("module_layers");
+    ana.tx->createBranch<vector<int>>("module_subdets");
+    ana.tx->createBranch<vector<int>>("module_rings");
+    ana.tx->createBranch<vector<int>>("module_rods");
+    ana.tx->createBranch<vector<int>>("module_modules");
+    ana.tx->createBranch<vector<bool>>("module_isTilted");
+    ana.tx->createBranch<vector<float>>("module_eta");
+    ana.tx->createBranch<vector<float>>("module_r");
+    ana.tx->createBranch<vector<int>>("md_occupancies");
+    ana.tx->createBranch<vector<int>>("sg_occupancies");
+    ana.tx->createBranch<vector<int>>("t3_occupancies");
+    ana.tx->createBranch<int>("tc_occupancies");
+    ana.tx->createBranch<vector<int>>("t5_occupancies");
+    ana.tx->createBranch<int>("pT3_occupancies");
+    ana.tx->createBranch<int>("pT5_occupancies");
+
 #endif
 }
 
@@ -297,8 +314,78 @@ void setOptionalOutputBranches(SDL::Event<SDL::Acc>* event)
     setPixelQuintupletOutputBranches(event);
     setQuintupletOutputBranches(event);
     setPixelTripletOutputBranches(event);
+    setOccupancyBranches(event);
 
 #endif
+}
+
+//________________________________________________________________________________________________________________________________
+void setOccupancyBranches(SDL::Event<SDL::Acc>* event)
+{
+    SDL::trackCandidates& trackCandidatesInGPU = (*event->getTrackCandidates());
+    SDL::triplets& tripletsInGPU = (*event->getTriplets());
+    SDL::segments& segmentsInGPU = (*event->getSegments());
+    SDL::miniDoublets& mdsInGPU = (*event->getMiniDoublets());
+    //SDL::hits& hitsInGPU = (*event->getHits());
+    SDL::modules& modulesInGPU = (*event->getModules());
+    SDL::quintuplets&  quintupletsInGPU = (*event->getQuintuplets());
+    SDL::pixelQuintuplets& pixelQuintupletsInGPU = (*event->getPixelQuintuplets());
+    SDL::pixelTriplets& pixelTripletsInGPU = (*event->getPixelTriplets());
+    //get the occupancies from these dudes
+    std::vector<int> moduleLayer;
+    std::vector<int> moduleSubdet;
+    std::vector<int> moduleRing;
+    std::vector<int> moduleRod;
+    std::vector<int> moduleModule;
+    std::vector<float> moduleEta;
+    std::vector<float> moduleR;
+    std::vector<bool> moduleIsTilted;
+    std::vector<int> trackCandidateOccupancy;
+    std::vector<int> tripletOccupancy;
+    std::vector<int> segmentOccupancy;
+    std::vector<int> mdOccupancy;
+    std::vector<int> quintupletOccupancy;
+
+    bool isTilted;
+
+    for(unsigned int idx = 0; idx <= *(modulesInGPU.nLowerModules); idx++)
+    {
+        //layer = 0, subdet = 0 => pixel module
+        //module, md and segment - need some gymnastics
+        unsigned int lowerIdx = idx;//modulesInGPU.lowerModuleIndices[idx];
+        moduleLayer.push_back(modulesInGPU.layers[lowerIdx]);
+        moduleSubdet.push_back(modulesInGPU.subdets[lowerIdx]);
+        moduleRing.push_back(modulesInGPU.rings[lowerIdx]);
+        moduleRod.push_back(modulesInGPU.rods[lowerIdx]);
+        moduleEta.push_back(modulesInGPU.eta[lowerIdx]);
+        moduleR.push_back(modulesInGPU.r[lowerIdx]);
+        isTilted = (modulesInGPU.subdets[lowerIdx] == 5 and modulesInGPU.sides[lowerIdx] != 3);
+        moduleIsTilted.push_back(isTilted);
+        moduleModule.push_back(modulesInGPU.modules[lowerIdx]);
+        segmentOccupancy.push_back(segmentsInGPU.totOccupancySegments[lowerIdx]);
+        mdOccupancy.push_back(mdsInGPU.totOccupancyMDs[lowerIdx]);
+
+        if(idx < *(modulesInGPU.nLowerModules))
+        {
+            quintupletOccupancy.push_back(quintupletsInGPU.totOccupancyQuintuplets[idx]);
+            tripletOccupancy.push_back(tripletsInGPU.totOccupancyTriplets[idx]);
+        }
+    }
+    ana.tx->setBranch<vector<int>>("module_layers",moduleLayer);
+    ana.tx->setBranch<vector<int>>("module_subdets",moduleSubdet);
+    ana.tx->setBranch<vector<int>>("module_rings",moduleRing);
+    ana.tx->setBranch<vector<int>>("module_rods",moduleRod);
+    ana.tx->setBranch<vector<int>>("module_modules",moduleModule);
+    ana.tx->setBranch<vector<bool>>("module_isTilted",moduleIsTilted);
+    ana.tx->setBranch<vector<float>>("module_eta",moduleEta);
+    ana.tx->setBranch<vector<float>>("module_r",moduleR);
+    ana.tx->setBranch<vector<int>>("md_occupancies",mdOccupancy);
+    ana.tx->setBranch<vector<int>>("sg_occupancies",segmentOccupancy);
+    ana.tx->setBranch<vector<int>>("t3_occupancies",tripletOccupancy);
+    ana.tx->setBranch<int>("tc_occupancies",*(trackCandidatesInGPU.nTrackCandidates));
+    ana.tx->setBranch<int>("pT3_occupancies", *(pixelTripletsInGPU.totOccupancyPixelTriplets));
+    ana.tx->setBranch<vector<int>>("t5_occupancies", quintupletOccupancy);
+    ana.tx->setBranch<int>("pT5_occupancies", *(pixelQuintupletsInGPU.totOccupancyPixelQuintuplets));
 }
 
 //________________________________________________________________________________________________________________________________
