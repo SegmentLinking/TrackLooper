@@ -19,36 +19,40 @@
 
 namespace SDL {
 
-  // Only the full one contains alpaka buffers
-  template <typename TDev, bool full>
-  class EndcapGeometry;
+  // FIXME: Need to separate this better into host and device classes
+  // This is only needed for host, but we template it to avoid symbol conflicts
+  template <typename TDev>
+  class EndcapGeometryHost;
 
   template <>
-  class EndcapGeometry<DevHost, false> {
+  class EndcapGeometryHost<Dev> {
   public:
     std::map<unsigned int, float> dxdy_slope_;     // dx/dy slope
     std::map<unsigned int, float> centroid_phis_;  // centroid phi
 
-    EndcapGeometry() = default;
-    ~EndcapGeometry() = default;
+    EndcapGeometryHost() = default;
+    ~EndcapGeometryHost() = default;
 
     void load(std::string);
     float getdxdy_slope(unsigned int detid) const;
   };
 
+  template <typename TDev>
+  class EndcapGeometry;
+
   template <>
-  class EndcapGeometry<Dev, true> {
+  class EndcapGeometry<Dev> {
   private:
     std::map<unsigned int, float> dxdy_slope_;     // dx/dy slope
     std::map<unsigned int, float> centroid_phis_;  // centroid phi
 
   public:
-    Buf<Dev, unsigned int> geoMapDetId_buf;
-    Buf<Dev, float> geoMapPhi_buf;
+    Buf<SDL::Dev, unsigned int> geoMapDetId_buf;
+    Buf<SDL::Dev, float> geoMapPhi_buf;
 
     unsigned int nEndCapMap;
 
-    EndcapGeometry(Dev const& devAccIn, QueueAcc& queue, SDL::EndcapGeometry<DevHost, false> const& endcapGeometryIn);
+    EndcapGeometry(Dev const& devAccIn, QueueAcc& queue, SDL::EndcapGeometryHost<Dev> const& endcapGeometryIn);
     ~EndcapGeometry() = default;
 
     void fillGeoMapArraysExplicit(QueueAcc& queue);

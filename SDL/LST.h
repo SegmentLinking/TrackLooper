@@ -1,15 +1,14 @@
 #ifndef LST_H
 #define LST_H
 
-#include "HeterogeneousCore/AlpakaInterface/interface/CopyToDevice.h"
-
 #ifdef LST_IS_CMSSW_PACKAGE
 #include "RecoTracker/LSTCore/interface/alpaka/Constants.h"
+#include "RecoTracker/LSTCore/interface/alpaka/LSTESData.h"
 #else
 #include "Constants.h"
+#include "LSTESData.h"
 #endif
 
-#include <filesystem>
 #include <cstdlib>
 #include <numeric>
 #include <mutex>
@@ -19,64 +18,8 @@ namespace SDL {
   template <typename>
   class Event;
 
-  struct pixelMap;
-  class TiltedGeometry;
-  class ModuleConnectionMap;
-  using MapPLStoLayer = std::array<std::array<ModuleConnectionMap, 4>, 3>;
-
-  template <typename>
-  struct modulesBuffer;
-
-  template <typename, bool>
-  class EndcapGeometry;
-
-  struct LSTESHostData {
-    const std::shared_ptr<const MapPLStoLayer> mapPLStoLayer;
-    const std::shared_ptr<const EndcapGeometry<DevHost, false>> endcapGeometry;
-    const std::shared_ptr<const TiltedGeometry> tiltedGeometry;
-    const std::shared_ptr<const ModuleConnectionMap> moduleConnectionMap;
-
-    LSTESHostData(std::shared_ptr<MapPLStoLayer> mapPLStoLayerIn,
-                  std::shared_ptr<EndcapGeometry<DevHost, false>> endcapGeometryIn,
-                  std::shared_ptr<TiltedGeometry> tiltedGeometryIn,
-                  std::shared_ptr<ModuleConnectionMap> moduleConnectionMapIn)
-        : mapPLStoLayer(std::const_pointer_cast<const MapPLStoLayer>(mapPLStoLayerIn)),
-          endcapGeometry(std::const_pointer_cast<const EndcapGeometry<DevHost, false>>(endcapGeometryIn)),
-          tiltedGeometry(std::const_pointer_cast<const TiltedGeometry>(tiltedGeometryIn)),
-          moduleConnectionMap(std::const_pointer_cast<const ModuleConnectionMap>(moduleConnectionMapIn)) {}
-  };
-
-  template <typename TDev>
-  struct LSTESDeviceData {
-    const uint16_t nModules;
-    const uint16_t nLowerModules;
-    const unsigned int nPixels;
-    const std::shared_ptr<const modulesBuffer<TDev>> modulesBuffers;
-    const std::shared_ptr<const EndcapGeometry<TDev, true>> endcapGeometry;
-    const std::shared_ptr<const pixelMap> pixelMapping;
-
-    LSTESDeviceData(uint16_t nModulesIn,
-                    uint16_t nLowerModulesIn,
-                    unsigned int nPixelsIn,
-                    std::shared_ptr<modulesBuffer<TDev>> modulesBuffersIn,
-                    std::shared_ptr<EndcapGeometry<TDev, true>> endcapGeometryIn,
-                    std::shared_ptr<pixelMap> pixelMappingIn)
-        : nModules(nModulesIn),
-          nLowerModules(nLowerModulesIn),
-          nPixels(nPixelsIn),
-          modulesBuffers(std::const_pointer_cast<const modulesBuffer<TDev>>(modulesBuffersIn)),
-          endcapGeometry(std::const_pointer_cast<const EndcapGeometry<TDev, true>>(endcapGeometryIn)),
-          pixelMapping(std::const_pointer_cast<const pixelMap>(pixelMappingIn)) {}
-  };
-
-  std::unique_ptr<LSTESHostData> loadAndFillESHost();
-  std::unique_ptr<LSTESDeviceData<Dev>> loadAndFillESDevice(SDL::QueueAcc& queue, const LSTESHostData* hostData);
-
   template <typename>
   class LST;
-
-  template <>
-  class LST<SDL::DevHost> {};
 
   template <>
   class LST<SDL::Acc> {
@@ -168,15 +111,5 @@ namespace SDL {
   };
 
 }  // namespace SDL
-
-namespace cms::alpakatools {
-  template <>
-  struct CopyToDevice<SDL::LSTESHostData> {
-    template <typename TQueue>
-    static auto copyAsync(TQueue& queue, SDL::LSTESHostData const& hostData) {
-      return std::make_unique<SDL::LSTESHostData>(hostData);
-    }
-  };
-}
 
 #endif

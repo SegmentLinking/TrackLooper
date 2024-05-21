@@ -92,7 +92,7 @@ namespace SDL {
     const unsigned int nPixels_;
     const std::shared_ptr<const modulesBuffer<Dev>> modulesBuffers_;
     const std::shared_ptr<const pixelMap> pixelMapping_;
-    const std::shared_ptr<const EndcapGeometry<Dev, true>> endcapGeometry_;
+    const std::shared_ptr<const EndcapGeometry<Dev>> endcapGeometry_;
 
   public:
     // Constructor used for CMSSW integration. Uses an external queue.

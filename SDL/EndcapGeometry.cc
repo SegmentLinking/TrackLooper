@@ -1,8 +1,8 @@
 #include "EndcapGeometry.h"
 
-SDL::EndcapGeometry<SDL::Dev, true>::EndcapGeometry(SDL::Dev const& devAccIn,
-                                                    SDL::QueueAcc& queue,
-                                                    SDL::EndcapGeometry<SDL::DevHost, false> const& endcapGeometryIn)
+SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(SDL::Dev const& devAccIn,
+                                              SDL::QueueAcc& queue,
+                                              SDL::EndcapGeometryHost<SDL::Dev> const& endcapGeometryIn)
     : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAccIn, endcapGeometryIn.centroid_phis_.size())),
       geoMapPhi_buf(allocBufWrapper<float>(devAccIn, endcapGeometryIn.centroid_phis_.size())) {
   dxdy_slope_ = endcapGeometryIn.dxdy_slope_;
@@ -10,7 +10,7 @@ SDL::EndcapGeometry<SDL::Dev, true>::EndcapGeometry(SDL::Dev const& devAccIn,
   fillGeoMapArraysExplicit(queue);
 }
 
-void SDL::EndcapGeometry<SDL::DevHost, false>::load(std::string filename) {
+void SDL::EndcapGeometryHost<SDL::Dev>::load(std::string filename) {
   dxdy_slope_.clear();
   centroid_phis_.clear();
 
@@ -40,7 +40,7 @@ void SDL::EndcapGeometry<SDL::DevHost, false>::load(std::string filename) {
   }
 }
 
-void SDL::EndcapGeometry<SDL::Dev, true>::fillGeoMapArraysExplicit(SDL::QueueAcc& queue) {
+void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit(SDL::QueueAcc& queue) {
   unsigned int phi_size = centroid_phis_.size();
 
   // Allocate buffers on host
@@ -69,14 +69,14 @@ void SDL::EndcapGeometry<SDL::Dev, true>::fillGeoMapArraysExplicit(SDL::QueueAcc
   alpaka::wait(queue);
 }
 
-float SDL::EndcapGeometry<SDL::Dev, true>::getdxdy_slope(unsigned int detid) const {
+float SDL::EndcapGeometry<SDL::Dev>::getdxdy_slope(unsigned int detid) const {
   if (dxdy_slope_.find(detid) != dxdy_slope_.end()) {
     return dxdy_slope_.at(detid);
   } else {
     return 0;
   }
 }
-float SDL::EndcapGeometry<SDL::DevHost, false>::getdxdy_slope(unsigned int detid) const {
+float SDL::EndcapGeometryHost<SDL::Dev>::getdxdy_slope(unsigned int detid) const {
   if (dxdy_slope_.find(detid) != dxdy_slope_.end()) {
     return dxdy_slope_.at(detid);
   } else {
