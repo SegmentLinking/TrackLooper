@@ -33,20 +33,24 @@ namespace SDL {
   class EndcapGeometry;
 
   template <typename TDev>
-  struct LSTESHostData {
+  struct LSTESHostData;
+
+  // FIXME: This shouldn't be a templated struct
+  template <>
+  struct LSTESHostData<Dev> {
     const std::shared_ptr<const MapPLStoLayer> mapPLStoLayer;
-    const std::shared_ptr<const EndcapGeometryHost<TDev>> endcapGeometry;
-    const std::shared_ptr<const TiltedGeometry<TDev>> tiltedGeometry;
-    const std::shared_ptr<const ModuleConnectionMap<TDev>> moduleConnectionMap;
+    const std::shared_ptr<const EndcapGeometryHost<Dev>> endcapGeometry;
+    const std::shared_ptr<const TiltedGeometry<Dev>> tiltedGeometry;
+    const std::shared_ptr<const ModuleConnectionMap<Dev>> moduleConnectionMap;
 
     LSTESHostData(std::shared_ptr<MapPLStoLayer> mapPLStoLayerIn,
-                  std::shared_ptr<EndcapGeometryHost<TDev>> endcapGeometryIn,
-                  std::shared_ptr<TiltedGeometry<TDev>> tiltedGeometryIn,
-                  std::shared_ptr<ModuleConnectionMap<TDev>> moduleConnectionMapIn)
+                  std::shared_ptr<EndcapGeometryHost<Dev>> endcapGeometryIn,
+                  std::shared_ptr<TiltedGeometry<Dev>> tiltedGeometryIn,
+                  std::shared_ptr<ModuleConnectionMap<Dev>> moduleConnectionMapIn)
         : mapPLStoLayer(std::const_pointer_cast<const MapPLStoLayer>(mapPLStoLayerIn)),
-          endcapGeometry(std::const_pointer_cast<const EndcapGeometryHost<TDev>>(endcapGeometryIn)),
-          tiltedGeometry(std::const_pointer_cast<const TiltedGeometry<TDev>>(tiltedGeometryIn)),
-          moduleConnectionMap(std::const_pointer_cast<const ModuleConnectionMap<TDev>>(moduleConnectionMapIn)) {}
+          endcapGeometry(std::const_pointer_cast<const EndcapGeometryHost<Dev>>(endcapGeometryIn)),
+          tiltedGeometry(std::const_pointer_cast<const TiltedGeometry<Dev>>(tiltedGeometryIn)),
+          moduleConnectionMap(std::const_pointer_cast<const ModuleConnectionMap<Dev>>(moduleConnectionMapIn)) {}
   };
 
   template <typename TDev>
