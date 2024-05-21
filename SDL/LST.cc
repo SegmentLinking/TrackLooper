@@ -9,7 +9,6 @@
 #include "Math/Vector3D.h"
 using XYZVector = ROOT::Math::XYZVector;
 
-
 void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                              bool verbose,
                              const LSTESDeviceData<SDL::Dev>* deviceESData,

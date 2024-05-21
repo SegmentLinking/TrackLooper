@@ -43,8 +43,8 @@ void loadMapsHost(SDL::MapPLStoLayer& pLStoLayer,
   // Module orientation information (DrDz or phi angles)
   auto endcap_geom =
       get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/endcap_orientation.bin");
-  auto tilted_geom = get_absolute_path_after_check_file_exists(
-      trackLooperDir() + "/data/OT800_IT615_pt0.8/tilted_barrel_orientation.bin");
+  auto tilted_geom = get_absolute_path_after_check_file_exists(trackLooperDir() +
+                                                               "/data/OT800_IT615_pt0.8/tilted_barrel_orientation.bin");
   // Module connection map (for line segment building)
   auto mappath = get_absolute_path_after_check_file_exists(
       trackLooperDir() + "/data/OT800_IT615_pt0.8/module_connection_tracing_merged.bin");
@@ -89,8 +89,7 @@ std::unique_ptr<SDL::LSTESDeviceData<SDL::Dev>> SDL::loadAndFillESDevice(SDL::Qu
   uint16_t nLowerModules;
   unsigned int nPixels;
   std::shared_ptr<SDL::modulesBuffer<SDL::Dev>> modulesBuffers = nullptr;
-  auto endcapGeometry =
-      std::make_shared<SDL::EndcapGeometry<SDL::Dev>>(devAccIn, queue, *hostData->endcapGeometry);
+  auto endcapGeometry = std::make_shared<SDL::EndcapGeometry<SDL::Dev>>(devAccIn, queue, *hostData->endcapGeometry);
   auto pixelMapping = std::make_shared<SDL::pixelMap>();
   auto moduleConnectionMap = hostData->moduleConnectionMap;
 

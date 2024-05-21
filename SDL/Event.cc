@@ -1067,11 +1067,13 @@ void SDL::Event<SDL::Acc>::createPixelQuintuplets() {
       unsigned int connectedIdxBase = pixelMapping_->connectedPixelsIndex[superbin];
       connectedPixelIndex_host[i] = connectedIdxBase;
     } else if (pixelType == 1) {
-      connectedPixelSize_host[i] = pixelMapping_->connectedPixelsSizesPos[superbin];  //number of pixel connected modules
+      connectedPixelSize_host[i] =
+          pixelMapping_->connectedPixelsSizesPos[superbin];  //number of pixel connected modules
       unsigned int connectedIdxBase = pixelMapping_->connectedPixelsIndexPos[superbin] + pixelIndexOffsetPos;
       connectedPixelIndex_host[i] = connectedIdxBase;
     } else if (pixelType == 2) {
-      connectedPixelSize_host[i] = pixelMapping_->connectedPixelsSizesNeg[superbin];  //number of pixel connected modules
+      connectedPixelSize_host[i] =
+          pixelMapping_->connectedPixelsSizesNeg[superbin];  //number of pixel connected modules
       unsigned int connectedIdxBase = pixelMapping_->connectedPixelsIndexNeg[superbin] + pixelIndexOffsetNeg;
       connectedPixelIndex_host[i] = connectedIdxBase;
     }

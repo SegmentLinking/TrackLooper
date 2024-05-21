@@ -89,6 +89,6 @@ namespace cms::alpakatools {
       return std::make_unique<SDL::LSTESHostData<SDL::Dev>>(hostData);
     }
   };
-} // namespace cms::alpakatools
+}  // namespace cms::alpakatools
 
 #endif
