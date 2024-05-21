@@ -1,6 +1,8 @@
 #ifndef LST_H
 #define LST_H
 
+#include "HeterogeneousCore/AlpakaInterface/interface/CopyToDevice.h"
+
 #ifdef LST_IS_CMSSW_PACKAGE
 #include "RecoTracker/LSTCore/interface/alpaka/Constants.h"
 #else
@@ -166,5 +168,15 @@ namespace SDL {
   };
 
 }  // namespace SDL
+
+namespace cms::alpakatools {
+  template <>
+  struct CopyToDevice<SDL::LSTESHostData> {
+    template <typename TQueue>
+    static auto copyAsync(TQueue& queue, SDL::LSTESHostData const& hostData) {
+      return std::make_unique<SDL::LSTESHostData>(hostData);
+    }
+  };
+}
 
 #endif
