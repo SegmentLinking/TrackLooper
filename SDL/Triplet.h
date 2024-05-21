@@ -377,7 +377,7 @@ namespace SDL {
     float alpha_InLo = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
     float tl_axis_x = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float tl_axis_y = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-    float betaInRHmin =
+    betaIn =
         alpha_InLo - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
 
     //beta computation
@@ -396,7 +396,7 @@ namespace SDL {
         (0.02f / drt_InSeg);
 
     //Cut #3: first beta cut
-    pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
+    pass = pass and (alpaka::math::abs(acc, betaIn) < betaInCut);
 
     return pass;
   };
@@ -940,16 +940,6 @@ namespace SDL {
                                                         zHiPointed,
                                                         sdlCut,
                                                         betaInCut);
-            if (!success) {
-              zOut = -999;
-              rtOut = -999;
-              deltaPhiPos = -999;
-              deltaPhi = -999;
-              betaIn = -999;
-              circleRadius = -999;
-              circleCenterX = -999;
-              circleCenterY = -999;
-            }
 
             if (success) {
               unsigned int totOccupancyTriplets = alpaka::atomicOp<alpaka::AtomicAdd>(
