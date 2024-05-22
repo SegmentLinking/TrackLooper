@@ -377,8 +377,7 @@ namespace SDL {
     float alpha_InLo = __H2F(segmentsInGPU.dPhiChanges[innerSegmentIndex]);
     float tl_axis_x = mdsInGPU.anchorX[thirdMDIndex] - mdsInGPU.anchorX[firstMDIndex];
     float tl_axis_y = mdsInGPU.anchorY[thirdMDIndex] - mdsInGPU.anchorY[firstMDIndex];
-    float betaInRHmin =
-        alpha_InLo - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
+    betaIn = alpha_InLo - SDL::phi_mpi_pi(acc, SDL::phi(acc, tl_axis_x, tl_axis_y) - mdsInGPU.anchorPhi[firstMDIndex]);
 
     //beta computation
     float drt_tl_axis = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
@@ -396,7 +395,7 @@ namespace SDL {
         (0.02f / drt_InSeg);
 
     //Cut #3: first beta cut
-    pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
+    pass = pass and (alpaka::math::abs(acc, betaIn) < betaInCut);
 
     return pass;
   };
@@ -821,7 +820,6 @@ namespace SDL {
                                                                    float& sdlCut,
                                                                    float& betaInCut) {
     bool pass = true;
-
     //this cut reduces the number of candidates by a factor of 4, i.e., 3 out of 4 warps can end right here!
     if (segmentsInGPU.mdIndices[2 * innerSegmentIndex + 1] != segmentsInGPU.mdIndices[2 * outerSegmentIndex])
       return false;
