@@ -2557,14 +2557,15 @@ namespace SDL {
                     mdsInGPU.anchorRt[fourthMDIndex],
                     mdsInGPU.anchorRt[fifthMDIndex]};
 
-    rzChiSquared = computePT5RZChiSquared(acc, modulesInGPU, lowerModuleIndices, rtPix, zPix, rts, zs);
+    rzChiSquared = 0;
 
     //get the appropriate radii and centers
     centerX = segmentsInGPU.circleCenterX[pixelSegmentArrayIndex];
     centerY = segmentsInGPU.circleCenterY[pixelSegmentArrayIndex];
     pixelRadius = segmentsInGPU.circleRadius[pixelSegmentArrayIndex];
 
-    if (pixelRadius < 5.0f * kR1GeVf) {  // FIXME: pixelRadius is not defined yet
+    if (pixelRadius < 5.0f * kR1GeVf) {  //only apply r-z chi2 cuts for <5GeV tracks
+      rzChiSquared = computePT5RZChiSquared(acc, modulesInGPU, lowerModuleIndices, rtPix, zPix, rts, zs);
       pass = pass and passPT5RZChiSquaredCuts(modulesInGPU,
                                               lowerModuleIndex1,
                                               lowerModuleIndex2,
