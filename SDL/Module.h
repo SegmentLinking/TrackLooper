@@ -288,7 +288,7 @@ namespace SDL {
     Buf<TDev, int> sdlLayers_buf;
     Buf<TDev, unsigned int> connectedPixels_buf;
 
-    modulesBuffer(TDev const& dev, unsigned int nMod = modules_size, unsigned int nPixs = pix_tot)
+    modulesBuffer(TDev const& dev, unsigned int nMod, unsigned int nPixs)
         : detIds_buf(allocBufWrapper<unsigned int>(dev, nMod)),
           moduleMap_buf(allocBufWrapper<uint16_t>(dev, nMod * MAX_CONNECTED_MODULES)),
           mapdetId_buf(allocBufWrapper<unsigned int>(dev, nMod)),
@@ -360,10 +360,7 @@ namespace SDL {
     }
 
     template <typename TQueue>
-    modulesBuffer(TQueue queue,
-                  const modulesBuffer<alpaka::DevCpu>& src,
-                  unsigned int nMod = modules_size,
-                  unsigned int nPixs = pix_tot)
+    modulesBuffer(TQueue queue, const modulesBuffer<alpaka::DevCpu>& src, unsigned int nMod, unsigned int nPixs)
         : modulesBuffer(alpaka::getDev(queue), nMod, nPixs) {
       copyFromSrc(queue, src);
     }

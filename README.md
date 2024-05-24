@@ -288,3 +288,4 @@ The makefile in the `SDL` directory includes phony targets to run `clang-format`
   Runs `clang-tidy` on the code in the `SDL` directory to performs the checks specified in `.clang-tidy`.
 - `make check-fix`
   Same as `make check`, but fixes the issues that it knows how to fix.
+ 

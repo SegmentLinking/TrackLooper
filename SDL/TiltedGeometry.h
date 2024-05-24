@@ -31,8 +31,8 @@ namespace SDL {
 
     void load(std::string);
 
-    float getDrDz(unsigned int detid);
-    float getDxDy(unsigned int detid);
+    float getDrDz(unsigned int detid) const;
+    float getDxDy(unsigned int detid) const;
   };
 
 }  // namespace SDL

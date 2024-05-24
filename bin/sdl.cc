@@ -306,7 +306,8 @@ void run_sdl()
     // Load various maps used in the SDL reconstruction
     TStopwatch full_timer;
     full_timer.Start();
-    loadMaps(devAcc, queues[0]);
+    auto hostESData = SDL::loadAndFillESHost();
+    auto deviceESData = SDL::loadAndFillESDevice(queues[0], hostESData.get());
     float timeForMapLoading = full_timer.RealTime()*1000;
 
     if (ana.do_write_ntuple)
@@ -388,7 +389,11 @@ void run_sdl()
     std::vector<SDL::Event<SDL::Acc>*> events;
     for (int s = 0; s < ana.streams; s++)
     {
-        SDL::Event<SDL::Acc> *event = new SDL::Event<SDL::Acc>(ana.verbose>=2, queues[s]);
+        SDL::Event<SDL::Acc> *event = new SDL::Event<SDL::Acc>(
+            ana.verbose>=2,
+            queues[s],
+            deviceESData.get()
+        );
         events.push_back(event);
     }
     float timeForEventCreation = full_timer.RealTime()*1000;
@@ -527,9 +532,5 @@ void run_sdl()
         delete events.at(s);
     }
 
-    SDL::Globals<SDL::Dev>::freeModules();
-    SDL::Globals<SDL::Dev>::freeEndcap();
-
     delete ana.output_tfile;
 }
-

@@ -32,17 +32,17 @@ void SDL::TiltedGeometry<SDL::Dev>::load(std::string filename) {
   }
 }
 
-float SDL::TiltedGeometry<SDL::Dev>::getDrDz(unsigned int detid) {
+float SDL::TiltedGeometry<SDL::Dev>::getDrDz(unsigned int detid) const {
   if (drdzs_.find(detid) != drdzs_.end()) {
-    return drdzs_[detid];
+    return drdzs_.at(detid);
   } else {
     return 0;
   }
 }
 
-float SDL::TiltedGeometry<SDL::Dev>::getDxDy(unsigned int detid) {
+float SDL::TiltedGeometry<SDL::Dev>::getDxDy(unsigned int detid) const {
   if (dxdys_.find(detid) != dxdys_.end()) {
-    return dxdys_[detid];
+    return dxdys_.at(detid);
   } else {
     return 0;
   }

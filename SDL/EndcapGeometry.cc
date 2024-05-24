@@ -1,19 +1,16 @@
 #include "EndcapGeometry.h"
 
-SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(SDL::Dev const& devAccIn, unsigned int sizef)
-    : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAccIn, sizef)),
-      geoMapPhi_buf(allocBufWrapper<float>(devAccIn, sizef)) {}
-
 SDL::EndcapGeometry<SDL::Dev>::EndcapGeometry(SDL::Dev const& devAccIn,
                                               SDL::QueueAcc& queue,
-                                              std::string filename,
-                                              unsigned int sizef)
-    : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAccIn, sizef)),
-      geoMapPhi_buf(allocBufWrapper<float>(devAccIn, sizef)) {
-  load(queue, filename);
+                                              SDL::EndcapGeometryHost<SDL::Dev> const& endcapGeometryIn)
+    : geoMapDetId_buf(allocBufWrapper<unsigned int>(devAccIn, endcapGeometryIn.centroid_phis_.size())),
+      geoMapPhi_buf(allocBufWrapper<float>(devAccIn, endcapGeometryIn.centroid_phis_.size())) {
+  dxdy_slope_ = endcapGeometryIn.dxdy_slope_;
+  centroid_phis_ = endcapGeometryIn.centroid_phis_;
+  fillGeoMapArraysExplicit(queue);
 }
 
-void SDL::EndcapGeometry<SDL::Dev>::load(SDL::QueueAcc& queue, std::string filename) {
+void SDL::EndcapGeometryHost<SDL::Dev>::load(std::string filename) {
   dxdy_slope_.clear();
   centroid_phis_.clear();
 
@@ -41,20 +38,10 @@ void SDL::EndcapGeometry<SDL::Dev>::load(SDL::QueueAcc& queue, std::string filen
       }
     }
   }
-
-  fillGeoMapArraysExplicit(queue);
 }
 
 void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit(SDL::QueueAcc& queue) {
   unsigned int phi_size = centroid_phis_.size();
-
-  // Temporary check for endcap initialization.
-  if (phi_size != endcap_size) {
-    std::cerr << "\nError: phi_size and endcap_size are not equal.\n";
-    std::cerr << "phi_size: " << phi_size << ", endcap_size: " << endcap_size << "\n";
-    std::cerr << "Please change endcap_size in Constants.h to make it equal to phi_size.\n";
-    throw std::runtime_error("Mismatched sizes");
-  }
 
   // Allocate buffers on host
   SDL::DevHost const& devHost = cms::alpakatools::host();
@@ -82,4 +69,17 @@ void SDL::EndcapGeometry<SDL::Dev>::fillGeoMapArraysExplicit(SDL::QueueAcc& queu
   alpaka::wait(queue);
 }
 
-float SDL::EndcapGeometry<SDL::Dev>::getdxdy_slope(unsigned int detid) { return dxdy_slope_[detid]; }
+float SDL::EndcapGeometry<SDL::Dev>::getdxdy_slope(unsigned int detid) const {
+  if (dxdy_slope_.find(detid) != dxdy_slope_.end()) {
+    return dxdy_slope_.at(detid);
+  } else {
+    return 0;
+  }
+}
+float SDL::EndcapGeometryHost<SDL::Dev>::getdxdy_slope(unsigned int detid) const {
+  if (dxdy_slope_.find(detid) != dxdy_slope_.end()) {
+    return dxdy_slope_.at(detid);
+  } else {
+    return 0;
+  }
+}

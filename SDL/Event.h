@@ -4,9 +4,11 @@
 #ifdef LST_IS_CMSSW_PACKAGE
 #include "RecoTracker/LSTCore/interface/alpaka/Constants.h"
 #include "RecoTracker/LSTCore/interface/alpaka/Module.h"
+#include "RecoTracker/LSTCore/interface/alpaka/LST.h"
 #else
 #include "Constants.h"
 #include "Module.h"
+#include "LST.h"
 #endif
 
 #include "Hit.h"
@@ -84,10 +86,27 @@ namespace SDL {
     int* superbinCPU;
     int8_t* pixelTypeCPU;
 
+    // Stuff that used to be global
+    const uint16_t nModules_;
+    const uint16_t nLowerModules_;
+    const unsigned int nPixels_;
+    const std::shared_ptr<const modulesBuffer<Dev>> modulesBuffers_;
+    const std::shared_ptr<const pixelMap> pixelMapping_;
+    const std::shared_ptr<const EndcapGeometry<Dev>> endcapGeometry_;
+
   public:
     // Constructor used for CMSSW integration. Uses an external queue.
     template <typename TQueue>
-    Event(bool verbose, TQueue const& q) : queue(q), devAcc(alpaka::getDev(q)), devHost(cms::alpakatools::host()) {
+    Event(bool verbose, TQueue const& q, const LSTESDeviceData<Dev>* deviceESData)
+        : queue(q),
+          devAcc(alpaka::getDev(q)),
+          devHost(cms::alpakatools::host()),
+          nModules_(deviceESData->nModules),
+          nLowerModules_(deviceESData->nLowerModules),
+          nPixels_(deviceESData->nPixels),
+          modulesBuffers_(deviceESData->modulesBuffers),
+          pixelMapping_(deviceESData->pixelMapping),
+          endcapGeometry_(deviceESData->endcapGeometry) {
       init(verbose);
     }
     void resetEvent();
@@ -183,9 +202,6 @@ namespace SDL {
     pixelTripletsBuffer<alpaka::DevCpu>* getPixelTriplets();
     pixelQuintupletsBuffer<alpaka::DevCpu>* getPixelQuintuplets();
     modulesBuffer<alpaka::DevCpu>* getModules(bool isFull = false);
-
-    //read from file and init
-    static void initModules(QueueAcc& queue, const MapPLStoLayer& pLStoLayer, const char* moduleMetaDataFilePath);
   };
 
 }  // namespace SDL
