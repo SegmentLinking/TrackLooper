@@ -3,11 +3,12 @@
 
 #ifdef LST_IS_CMSSW_PACKAGE
 #include "RecoTracker/LSTCore/interface/alpaka/Constants.h"
+#include "RecoTracker/LSTCore/interface/alpaka/LSTESData.h"
 #else
 #include "Constants.h"
+#include "LSTESData.h"
 #endif
 
-#include <filesystem>
 #include <cstdlib>
 #include <numeric>
 #include <mutex>
@@ -18,9 +19,6 @@ namespace SDL {
   class Event;
 
   template <typename>
-  struct modulesBuffer;
-
-  template <typename>
   class LST;
 
   template <>
@@ -28,11 +26,9 @@ namespace SDL {
   public:
     LST() = default;
 
-    static void loadAndFillES(SDL::QueueAcc& queue, struct modulesBuffer<SDL::Dev>* modules);
-
-    void run(SDL::QueueAcc& queue,
-             const SDL::modulesBuffer<SDL::Dev>* modules,
+    void run(QueueAcc& queue,
              bool verbose,
+             const LSTESDeviceData<Dev>* deviceESData,
              const std::vector<float> see_px,
              const std::vector<float> see_py,
              const std::vector<float> see_pz,

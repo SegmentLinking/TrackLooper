@@ -5,100 +5,13 @@
 #endif
 
 #include "Event.h"
-#include "Globals.h"
 
 #include "Math/Vector3D.h"
 using XYZVector = ROOT::Math::XYZVector;
 
-namespace {
-  std::string trackLooperDir() {
-    const char* path = std::getenv("LST_BASE");
-    std::string path_str;
-    if (path != nullptr) {
-      path_str = path;
-    } else {
-      // FIXME: temporary solution, will need to pass a value from FileInPath or CMSSW search path
-      // in the `LSTProducer` or a related ES producer
-      path_str = std::getenv("CMSSW_BASE");
-      path_str += "/src/RecoTracker/LSTCore/TrackLooper";
-    }
-    return path_str;
-  }
-
-  std::string get_absolute_path_after_check_file_exists(const std::string name) {
-    std::filesystem::path fullpath = std::filesystem::absolute(name.c_str());
-    if (not std::filesystem::exists(fullpath)) {
-      std::cout << "ERROR: Could not find the file = " << fullpath << std::endl;
-      exit(2);
-    }
-    return fullpath.string();
-  }
-
-  void loadMaps(SDL::Dev const& devAccIn, SDL::QueueAcc& queue, SDL::MapPLStoLayer& pLStoLayer) {
-    // Module orientation information (DrDz or phi angles)
-    auto endcap_geom =
-        get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/endcap_orientation.bin");
-    auto tilted_geom = get_absolute_path_after_check_file_exists(
-        trackLooperDir() + "/data/OT800_IT615_pt0.8/tilted_barrel_orientation.bin");
-    if (SDL::Globals<SDL::Dev>::endcapGeometry == nullptr) {
-      SDL::Globals<SDL::Dev>::endcapGeometry =
-          new SDL::EndcapGeometry<SDL::Dev>(devAccIn, queue, endcap_geom);  // centroid values added to the map
-    }
-
-    SDL::Globals<SDL::Dev>::tiltedGeometry.load(tilted_geom);
-
-    // Module connection map (for line segment building)
-    auto mappath = get_absolute_path_after_check_file_exists(
-        trackLooperDir() + "/data/OT800_IT615_pt0.8/module_connection_tracing_merged.bin");
-    SDL::Globals<SDL::Dev>::moduleConnectionMap.load(mappath);
-
-    auto pLSMapDir = trackLooperDir() + "/data/OT800_IT615_pt0.8/pixelmap/pLS_map";
-    const std::array<std::string, 4> connects{
-        {"_layer1_subdet5", "_layer2_subdet5", "_layer1_subdet4", "_layer2_subdet4"}};
-    std::string path;
-
-    static_assert(connects.size() == std::tuple_size<std::decay_t<decltype(pLStoLayer[0])>>{});
-    for (unsigned int i = 0; i < connects.size(); i++) {
-      auto connectData = connects[i].data();
-
-      path = pLSMapDir + connectData + ".bin";
-      pLStoLayer[0][i] = SDL::ModuleConnectionMap<SDL::Dev>(get_absolute_path_after_check_file_exists(path));
-
-      path = pLSMapDir + "_pos" + connectData + ".bin";
-      pLStoLayer[1][i] = SDL::ModuleConnectionMap<SDL::Dev>(get_absolute_path_after_check_file_exists(path));
-
-      path = pLSMapDir + "_neg" + connectData + ".bin";
-      pLStoLayer[2][i] = SDL::ModuleConnectionMap<SDL::Dev>(get_absolute_path_after_check_file_exists(path));
-    }
-  }
-
-}  // namespace
-
-void SDL::LST<SDL::Acc>::loadAndFillES(SDL::QueueAcc& queue, struct modulesBuffer<SDL::Dev>* modules) {
-  SDL::MapPLStoLayer pLStoLayer;
-  SDL::Dev const& devAccIn = alpaka::getDev(queue);
-  ::loadMaps(devAccIn, queue, pLStoLayer);
-
-  auto path =
-      get_absolute_path_after_check_file_exists(trackLooperDir() + "/data/OT800_IT615_pt0.8/sensor_centroids.bin");
-  if (SDL::Globals<SDL::Dev>::modulesBuffers == nullptr) {
-    SDL::Globals<SDL::Dev>::modulesBuffers = new SDL::modulesBuffer<SDL::Dev>(devAccIn);
-  }
-  if (SDL::Globals<SDL::Dev>::pixelMapping == nullptr) {
-    SDL::Globals<SDL::Dev>::pixelMapping = std::make_shared<SDL::pixelMap>();
-  }
-  SDL::loadModulesFromFile(modules,
-                           SDL::Globals<SDL::Dev>::nModules,
-                           SDL::Globals<SDL::Dev>::nLowerModules,
-                           *SDL::Globals<SDL::Dev>::pixelMapping,
-                           queue,
-                           path.c_str(),
-                           pLStoLayer);
-}
-
 void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
-                             const SDL::modulesBuffer<SDL::Dev>* modules,
                              bool verbose,
+                             const LSTESDeviceData<SDL::Dev>* deviceESData,
                              const std::vector<float> see_px,
                              const std::vector<float> see_py,
                              const std::vector<float> see_pz,
@@ -118,8 +31,7 @@ void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                              const std::vector<float> ph2_x,
                              const std::vector<float> ph2_y,
                              const std::vector<float> ph2_z) {
-  SDL::Globals<SDL::Dev>::modulesBuffersES = modules;
-  auto event = SDL::Event<Acc>(verbose, queue);
+  auto event = SDL::Event<Acc>(verbose, queue, deviceESData);
   prepareInput(see_px,
                see_py,
                see_pz,
