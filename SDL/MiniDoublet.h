@@ -1049,7 +1049,7 @@ namespace SDL {
           occupancy = 43;
         else if (category_number == 1 && eta_number == 0)
           occupancy = 132;
-        else if (category_number == 1 && eta_number == 1):
+        else if (category_number == 1 && eta_number == 1)
           occupancy = 101;
         else if (category_number == 2 && eta_number == 1)
           occupancy = 15;
