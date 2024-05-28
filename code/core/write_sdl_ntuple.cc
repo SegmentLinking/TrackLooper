@@ -359,8 +359,12 @@ void setOccupancyBranches(SDL::Event<SDL::Acc>* event)
         moduleModule.push_back(modulesInGPU.modules[lowerIdx]);
         segmentOccupancy.push_back(segmentsInGPU.totOccupancySegments[lowerIdx]);
         mdOccupancy.push_back(mdsInGPU.totOccupancyMDs[lowerIdx]);
-        quintupletOccupancy.push_back(quintupletsInGPU.totOccupancyQuintuplets[lowerIdx]);
-        tripletOccupancy.push_back(tripletsInGPU.totOccupancyTriplets[lowerIdx]);
+
+        if(lowerIdx < *(modulesInGPU.nLowerModules))
+        {
+            quintupletOccupancy.push_back(quintupletsInGPU.totOccupancyQuintuplets[lowerIdx]);
+            tripletOccupancy.push_back(tripletsInGPU.totOccupancyTriplets[lowerIdx]);
+        }
     }
 
     ana.tx->setBranch<vector<int>>("module_layers", moduleLayer);
