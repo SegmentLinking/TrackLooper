@@ -1060,27 +1060,27 @@ namespace SDL {
           eta_number = -1;
 
         if (category_number == 0 && eta_number == 0)
-          occupancy = 543;
+          occupancy = 1132;
         else if (category_number == 0 && eta_number == 1)
-          occupancy = 235;
+          occupancy = 537;
         else if (category_number == 0 && eta_number == 2)
-          occupancy = 88;
+          occupancy = 210;
         else if (category_number == 0 && eta_number == 3)
-          occupancy = 46;
+          occupancy = 82;
         else if (category_number == 1 && eta_number == 0)
-          occupancy = 755;
+          occupancy = 629;
         else if (category_number == 1 && eta_number == 1)
-          occupancy = 347;
+          occupancy = 201;
         else if (category_number == 2 && eta_number == 1)
           occupancy = 0;
         else if (category_number == 2 && eta_number == 2)
           occupancy = 0;
         else if (category_number == 3 && eta_number == 1)
-          occupancy = 38;
+          occupancy = 106;
         else if (category_number == 3 && eta_number == 2)
-          occupancy = 46;
+          occupancy = 98;
         else if (category_number == 3 && eta_number == 3)
-          occupancy = 39;
+          occupancy = 56;
         else {
           occupancy = 0;
 #ifdef Warnings
