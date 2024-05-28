@@ -3177,19 +3177,19 @@ namespace SDL {
           eta_number = -1;
 
         if (category_number == 0 && eta_number == 0)
-          occupancy = 336;
+          occupancy = 97;
         else if (category_number == 0 && eta_number == 1)
-          occupancy = 414;
+          occupancy = 86;
         else if (category_number == 0 && eta_number == 2)
-          occupancy = 231;
+          occupancy = 115;
         else if (category_number == 0 && eta_number == 3)
-          occupancy = 146;
+          occupancy = 116;
         else if (category_number == 3 && eta_number == 1)
           occupancy = 0;
         else if (category_number == 3 && eta_number == 2)
-          occupancy = 191;
+          occupancy = 39;
         else if (category_number == 3 && eta_number == 3)
-          occupancy = 106;
+          occupancy = 51;
         else {
           occupancy = 0;
 #ifdef Warnings
