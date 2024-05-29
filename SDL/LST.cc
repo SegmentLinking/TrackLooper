@@ -26,8 +26,8 @@ void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                              const std::vector<float> ph2_x,
                              const std::vector<float> ph2_y,
                              const std::vector<float> ph2_z,
-                             bool tc_pls_triplets,
-                             bool no_pls_dupclean) {
+                             bool no_pls_dupclean,
+                             bool tc_pls_triplets) {
   auto event = SDL::Event<Acc>(verbose, queue, deviceESData);
   prepareInput(see_px,
                see_py,

@@ -24,7 +24,6 @@ usage()
   echo "  -m    make clean binaries       (Make clean binaries before remake. e.g. when header files changed in SDL/*.h)"
   echo "  -d    cut value ntuple          (With extra variables in a debug ntuple file)"
   echo "  -p    primitive object ntuple   (With extra variables related to primitive objects)"
-  echo "  -3    TC pLS triplets           (Allow triplet pLSs in TC collection)"
   echo "  -N    neural networks           (Toggle LST neural networks)"
   echo "  -C    CPU serial backend        (Compile for CPU)"
   echo "  -G    GPU (CUDA) backend        (Compile for CUDA)"
@@ -32,7 +31,6 @@ usage()
   echo "  -A    All backends              (Compile for all backends, including ROCm)"
   echo "  -P    PT Cut Value              (In GeV, Default is 0.8, Works only for standalone version of code)"
   echo "  -w    Warning mode              (Print extra warning outputs)"
-  echo "  -2    no pLS duplicate cleaning (Don't perform the pLS duplicate cleaning step)"
   echo
   exit
 }
@@ -45,13 +43,11 @@ while getopts ":cxgsmdp3NCGRA2ehwP:" OPTION; do
     m) MAKECLEANBINARIES=true;;
     d) MAKECUTVALUES=true;;
     p) PRIMITIVE=true;;
-    3) TCPLSTRIPLETS=true;;
     N) DONTUSENN=true;;
     G) CUDABACKEND=true;;
     C) CPUBACKEND=true;;
     R) ROCMBACKEND=true;;
     A) ALLBACKENDS=true;;
-    2) NOPLSDUPCLEAN=true;;
     w) PRINTWARNINGS=true;;
     P) PTCUTVALUE=$OPTARG;;
     h) usage;;
@@ -65,13 +61,11 @@ if [ -z ${SHOWLOG} ]; then SHOWLOG=false; fi
 if [ -z ${MAKECLEANBINARIES} ]; then MAKECLEANBINARIES=false; fi
 if [ -z ${MAKECUTVALUES} ]; then MAKECUTVALUES=false; fi
 if [ -z ${PRIMITIVE} ]; then PRIMITIVE=false; fi
-if [ -z ${TCPLSTRIPLETS} ]; then TCPLSTRIPLETS=false; fi
 if [ -z ${DONTUSENN} ]; then DONTUSENN=false; fi
 if [ -z ${CPUBACKEND} ]; then CPUBACKEND=false; fi
 if [ -z ${CUDABACKEND} ]; then CUDABACKEND=false; fi
 if [ -z ${ROCMBACKEND} ]; then ROCMBACKEND=false; fi
 if [ -z ${ALLBACKENDS} ]; then ALLBACKENDS=false; fi
-if [ -z ${NOPLSDUPCLEAN} ]; then NOPLSDUPCLEAN=false; fi
 if [ -z ${PRINTWARNINGS} ]; then PRINTWARNINGS=false; fi
 if [ -z ${PTCUTVALUE} ]; then PTCUTVALUE=0.8; fi
 
@@ -107,12 +101,10 @@ echo "  SHOWLOG           : ${SHOWLOG}"                       | tee -a ${LOG}
 echo "  MAKECLEANBINARIES : ${MAKECLEANBINARIES}"             | tee -a ${LOG}
 echo "  MAKECUTVALUES     : ${MAKECUTVALUES}"                 | tee -a ${LOG}
 echo "  PRIMITIVE         : ${PRIMITIVE}"                     | tee -a ${LOG}
-echo "  TCPLSTRIPLETS     : ${TCPLSTRIPLETS}"                 | tee -a ${LOG}
 echo "  DONTUSENN         : ${DONTUSENN}"                     | tee -a ${LOG}
 echo "  CPUBACKEND        : ${CPUBACKEND}"                    | tee -a ${LOG}
 echo "  CUDABACKEND       : ${CUDABACKEND}"                   | tee -a ${LOG}
 echo "  ROCMBACKEND       : ${ROCMBACKEND}"                   | tee -a ${LOG}
-echo "  NOPLSDUPCLEAN     : ${NOPLSDUPCLEAN}"                 | tee -a ${LOG}
 echo "  PRINTWARNINGS     : ${PRINTWARNINGS}"                 | tee -a ${LOG}
 echo "  PTCUTVALUE        : ${PTCUTVALUE} GeV"                | tee -a ${LOG}
 echo ""                                                       | tee -a ${LOG}
@@ -149,11 +141,6 @@ if $PRIMITIVE; then
     echo "debug : MAKETARGET=${MAKETARGET}"
 fi
 
-TCPLSTRIPLETSOPT=
-if $TCPLSTRIPLETS; then
-    TCPLSTRIPLETSOPT="TCPLSTRIPLETSFLAG=-DTC_PLS_TRIPLETS"
-fi
-
 T5CUTOPT=
 if $DONTUSENN; then
     T5CUTOPT="T5RZCHI2FLAG=-DUSE_RZCHI2 T5RPHICHI2FLAG=-DUSE_RPHICHI2"
@@ -181,11 +168,6 @@ else
   fi
 fi
 
-NOPLSDUPCLEANOPT=
-if $NOPLSDUPCLEAN; then
-    NOPLSDUPCLEANOPT="NOPLSDUPCLEANFLAG=-DNOPLSDUPCLEAN"
-fi
-
 PRINTWARNINGSOPT=
 if $PRINTWARNINGS; then
     PRINTWARNINGSOPT="LSTWARNINGSFLAG=-DWarnings"
@@ -205,9 +187,9 @@ echo "--------------------------------------------------------------------------
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 echo "---------------------------------------------------------------------------------------------" >> ${LOG} 2>&1 
 if $SHOWLOG; then
-    (cd SDL && make clean && make ${TCPLSTRIPLETSOPT} ${T5CUTOPT} ${BACKENDOPT} ${PRINTWARNINGSOPT} ${NOPLSDUPCLEANOPT} ${PTCUTOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
+    (cd SDL && make clean && make ${T5CUTOPT} ${BACKENDOPT} ${PRINTWARNINGSOPT} ${PTCUTOPT} -j 32 ${MAKETARGET} && cd -) 2>&1 | tee -a ${LOG}
 else
-    (cd SDL && make clean && make ${TCPLSTRIPLETSOPT} ${T5CUTOPT} ${BACKENDOPT} ${PRINTWARNINGSOPT} ${NOPLSDUPCLEANOPT} ${PTCUTOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
+    (cd SDL && make clean && make ${T5CUTOPT} ${BACKENDOPT} ${PRINTWARNINGSOPT} ${PTCUTOPT} -j 32 ${MAKETARGET} && cd -) >> ${LOG} 2>&1
 fi
 
 if ([[ "$BACKENDOPT" == *"all"* ]] || [[ "$BACKENDOPT" == *"cpu"* ]]) && [ ! -f SDL/libsdl_cpu.so ]; then
