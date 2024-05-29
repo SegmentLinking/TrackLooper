@@ -2557,9 +2557,15 @@ namespace SDL {
                     mdsInGPU.anchorRt[fourthMDIndex],
                     mdsInGPU.anchorRt[fifthMDIndex]};
 
-    rzChiSquared = computePT5RZChiSquared(acc, modulesInGPU, lowerModuleIndices, rtPix, zPix, rts, zs);
+    rzChiSquared = 0;
 
-    if (/*pixelRadius*/ 0 < 5.0f * kR1GeVf) {  // FIXME: pixelRadius is not defined yet
+    //get the appropriate radii and centers
+    centerX = segmentsInGPU.circleCenterX[pixelSegmentArrayIndex];
+    centerY = segmentsInGPU.circleCenterY[pixelSegmentArrayIndex];
+    pixelRadius = segmentsInGPU.circleRadius[pixelSegmentArrayIndex];
+
+    if (pixelRadius < 5.0f * kR1GeVf) {  //only apply r-z chi2 cuts for <5GeV tracks
+      rzChiSquared = computePT5RZChiSquared(acc, modulesInGPU, lowerModuleIndices, rtPix, zPix, rts, zs);
       pass = pass and passPT5RZChiSquaredCuts(modulesInGPU,
                                               lowerModuleIndex1,
                                               lowerModuleIndex2,
@@ -2582,11 +2588,6 @@ namespace SDL {
                    mdsInGPU.anchorY[thirdMDIndex],
                    mdsInGPU.anchorY[fourthMDIndex],
                    mdsInGPU.anchorY[fifthMDIndex]};
-
-    //get the appropriate radii and centers
-    centerX = segmentsInGPU.circleCenterX[pixelSegmentArrayIndex];
-    centerY = segmentsInGPU.circleCenterY[pixelSegmentArrayIndex];
-    pixelRadius = segmentsInGPU.circleRadius[pixelSegmentArrayIndex];
 
     float T5CenterX = quintupletsInGPU.regressionG[quintupletIndex];
     float T5CenterY = quintupletsInGPU.regressionF[quintupletIndex];
