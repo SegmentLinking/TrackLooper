@@ -49,15 +49,17 @@ int main(int argc, char** argv)
         ("N,nmatch"          , "N match for MTV-like matching", cxxopts::value<int>()->default_value("9"))
         ("n,nevents"         , "N events to loop over", cxxopts::value<int>()->default_value("-1"))
         ("x,event_index"     , "specific event index to process", cxxopts::value<int>()->default_value("-1"))
-        ("g,pdg_id"          , "The simhit pdgId match option (default = 0)", cxxopts::value<int>()->default_value("0"))
+        ("g,pdg_id"          , "The simhit pdgId match option", cxxopts::value<int>()->default_value("0"))
         ("v,verbose"         , "Verbose mode (0: no print, 1: only final timing, 2: object multiplitcity", cxxopts::value<int>()->default_value("0"))
         ("w,write_ntuple"    , "Write Ntuple", cxxopts::value<int>()->default_value("1"))
-        ("s,streams"         , "Set number of streams (default=1)", cxxopts::value<int>()->default_value("1"))
+        ("s,streams"         , "Set number of streams", cxxopts::value<int>()->default_value("1"))
         ("d,debug"           , "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")
         ("l,lower_level"     , "write lower level objects ntuple results")
         ("G,gnn_ntuple"      , "write gnn input variable ntuple")
         ("j,nsplit_jobs"     , "Enable splitting jobs by N blocks (--job_index must be set)", cxxopts::value<int>())
         ("I,job_index"       , "job_index of split jobs (--nsplit_jobs must be set. index starts from 0. i.e. 0, 1, 2, 3, etc...)", cxxopts::value<int>())
+        ("3,tc_pls_triplets" , "Allow triplet pLSs in TC collection")
+        ("2,no_pls_dupclean" , "Disable pLS duplicate cleaning (both steps)")
         ("h,help"            , "Print help");
 
     auto result = options.parse(argc, argv);
@@ -253,6 +255,15 @@ int main(int argc, char** argv)
         ana.gnn_ntuple = false;
     }
 
+    //_______________________________________________________________________________
+    // --tc_pls_triplets
+    ana.tc_pls_triplets = result["tc_pls_triplets"].as<bool>();
+
+    //_______________________________________________________________________________
+    // --no_pls_dupclean
+    ana.no_pls_dupclean = result["no_pls_dupclean"].as<bool>();
+
+
     // Printing out the option settings overview
     std::cout << "=========================================================" << std::endl;
     std::cout << " Running for Acc = " << alpaka::getAccName<SDL::Acc>() << std::endl;
@@ -269,6 +280,8 @@ int main(int argc, char** argv)
     std::cout << " ana.streams: " << ana.streams << std::endl;
     std::cout << " ana.verbose: " << ana.verbose << std::endl;
     std::cout << " ana.nmatch_threshold: " << ana.nmatch_threshold << std::endl;
+    std::cout << " ana.tc_pls_triplets: " << ana.tc_pls_triplets << std::endl;
+    std::cout << " ana.no_pls_dupclean: " << ana.no_pls_dupclean << std::endl;
     std::cout << "=========================================================" << std::endl;
 
     // Create the TChain that holds the TTree's of the baby ntuples
@@ -452,10 +465,10 @@ void run_sdl()
             timing_LS = runSegment(events.at(omp_get_thread_num()));
             timing_T3 = runT3(events.at(omp_get_thread_num()));
             timing_T5 = runQuintuplet(events.at(omp_get_thread_num()));
-            timing_pLS = runPixelLineSegment(events.at(omp_get_thread_num()));
+            timing_pLS = runPixelLineSegment(events.at(omp_get_thread_num()),ana.no_pls_dupclean);
             timing_pT5 = runPixelQuintuplet(events.at(omp_get_thread_num()));
             timing_pT3 = runpT3(events.at(omp_get_thread_num()));
-            timing_TC = runTrackCandidate(events.at(omp_get_thread_num()));
+            timing_TC = runTrackCandidate(events.at(omp_get_thread_num()),ana.no_pls_dupclean,ana.tc_pls_triplets);
 
             if (ana.verbose == 4)
             {

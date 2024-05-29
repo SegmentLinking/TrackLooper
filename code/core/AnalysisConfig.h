@@ -125,6 +125,12 @@ public:
 
     // Path to the TrackLooper code directory
     TString full_cmd_line;
+
+    // Boolean to allow pLS triplets to be included in the TCs
+    bool tc_pls_triplets;
+    //
+    // Boolean to disable pLS duplicate cleaning
+    bool no_pls_dupclean;
 };
 
 extern AnalysisConfig ana;

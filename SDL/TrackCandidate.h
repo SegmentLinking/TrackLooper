@@ -491,18 +491,15 @@ namespace SDL {
     ALPAKA_FN_ACC void operator()(TAcc const& acc,
                                   uint16_t nLowerModules,
                                   struct SDL::trackCandidates trackCandidatesInGPU,
-                                  struct SDL::segments segmentsInGPU) const {
+                                  struct SDL::segments segmentsInGPU,
+                                  bool tc_pls_triplets) const {
       auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
       auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 
       unsigned int nPixels = segmentsInGPU.nSegments[nLowerModules];
       for (unsigned int pixelArrayIndex = globalThreadIdx[2]; pixelArrayIndex < nPixels;
            pixelArrayIndex += gridThreadExtent[2]) {
-#ifdef TC_PLS_TRIPLETS
-        if (segmentsInGPU.isDup[pixelArrayIndex])
-#else
-        if ((!segmentsInGPU.isQuad[pixelArrayIndex]) || (segmentsInGPU.isDup[pixelArrayIndex]))
-#endif
+        if ((tc_pls_triplets ? 0 : !segmentsInGPU.isQuad[pixelArrayIndex]) || (segmentsInGPU.isDup[pixelArrayIndex]))
           continue;
 
         unsigned int trackCandidateIdx =

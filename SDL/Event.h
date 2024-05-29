@@ -148,12 +148,12 @@ namespace SDL {
     void createTriplets();
     void createPixelTracklets();
     void createPixelTrackletsWithMap();
-    void createTrackCandidates();
+    void createTrackCandidates(bool no_pls_dupclean, bool tc_pls_triplets);
     void createExtendedTracks();
     void createQuintuplets();
     void createPixelTriplets();
     void createPixelQuintuplets();
-    void pixelLineSegmentCleaning();
+    void pixelLineSegmentCleaning(bool no_pls_dupclean);
 
     unsigned int getNumberOfHits();
     unsigned int getNumberOfHitsByLayer(unsigned int layer);

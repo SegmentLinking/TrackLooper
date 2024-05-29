@@ -25,6 +25,7 @@ usage()
   echo "  -t    tag for this run        (Tag for this run)"
   echo "  -d    delete previous output  (Delete the previous outputs and re-run)"
   echo "  -b    backend                 (Select a backend: cuda or cpu; default cuda)"
+  echo "  -a    arguments               (Add command line arguments to the sdl command)"
   echo
   exit
 }
@@ -32,13 +33,14 @@ usage()
 DELETE=false
 
 # Parsing command-line opts
-while getopts ":f:s:n:t:b:dh" OPTION; do
+while getopts ":f:s:n:t:b:a:dh" OPTION; do
   case $OPTION in
     f) FLAGS=${OPTARG};;
     s) SAMPLE=${OPTARG};;
     n) NEVENTS=${OPTARG};;
     t) TAG=${OPTARG};;
     b) BACKEND=${OPTARG};;
+    a) ARGUMENTS=${OPTARG};;
     d) DELETE=true;;
     h) usage;;
     :) usage;;
@@ -51,6 +53,7 @@ if [ -z ${SAMPLE} ]; then usage; fi
 if [ -z ${NEVENTS} ]; then NEVENTS=-1; fi
 if [ -z ${TAG} ]; then usage; fi
 if [ -z ${BACKEND} ]; then  BACKEND="default"; fi
+if [ -z ${ARGUMENTS} ]; then  ARGUMENTS=""; fi
 
 # Check that the FLAGS start with "-" character
 if [[ ${PRECOMPILED} == true ]] || [[ ${FLAGS:0:1} == "-" ]]; then
@@ -85,6 +88,7 @@ echo "  NEVENTS           : ${NEVENTS}"
 echo "  TAG               : ${TAG}"
 echo "  DELETE            : ${DELETE}"
 echo "  BACKEND           : ${BACKEND}"
+echo "  ARGUMENTS         : ${ARGUMENTS}"
 echo ""
 echo "  (cf. Run > sh $(basename $0) -h to see all options)"
 echo ""
@@ -162,7 +166,7 @@ else
 fi
 
 echo "Running LST code..."
-sdl -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: sdl command failed!' ; exit 1; }
+sdl -i ${SAMPLE} -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -n ${NEVENTS} ${ARGUMENTS} >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: sdl command failed!' ; exit 1; }
 echo "Creating performance histograms..."
 createPerfNumDenHists -i ${LSTOUTPUTDIR}/${JOBTAG}__LSTNtuple.root -o ${LSTOUTPUTDIR}/${JOBTAG}__LSTNumDen.root >> ${LSTOUTPUTDIR}/${JOBTAG}__LSTRun.log 2>&1 || { echo 'ERROR: createPerfNumDenHists command failed!' ; exit 1; }
 echo "Creating plots..."

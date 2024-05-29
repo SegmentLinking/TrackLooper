@@ -119,12 +119,6 @@ float runpT3(SDL::Event<SDL::Acc>* event)
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-float runTrackCandidate(SDL::Event<SDL::Acc>* event)
-{
-    return runTrackCandidateTest_v2(event);
-}
-
-//___________________________________________________________________________________________________________________________________________________________________________________________
 float runQuintuplet(SDL::Event<SDL::Acc>* event)
 {
      TStopwatch my_timer;
@@ -152,12 +146,12 @@ float runQuintuplet(SDL::Event<SDL::Acc>* event)
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-float runPixelLineSegment(SDL::Event<SDL::Acc>* event)
+float runPixelLineSegment(SDL::Event<SDL::Acc>* event, bool no_pls_dupclean)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco Pixel Line Segment start" << std::endl;
     my_timer.Start();
-    event->pixelLineSegmentCleaning();
+    event->pixelLineSegmentCleaning(no_pls_dupclean);
     float pls_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco Pixel Line Segment processing time: " << pls_elapsed << " secs" << std::endl;
 
@@ -179,12 +173,12 @@ float runPixelQuintuplet(SDL::Event<SDL::Acc>* event)
 }
 
 //___________________________________________________________________________________________________________________________________________________________________________________________
-float runTrackCandidateTest_v2(SDL::Event<SDL::Acc>* event)
+float runTrackCandidate(SDL::Event<SDL::Acc>* event, bool no_pls_dupclean, bool tc_pls_triplets)
 {
     TStopwatch my_timer;
     if (ana.verbose >= 2) std::cout << "Reco TrackCandidate start" << std::endl;
     my_timer.Start();
-    event->createTrackCandidates();
+    event->createTrackCandidates(no_pls_dupclean, tc_pls_triplets);
     float tc_elapsed = my_timer.RealTime();
     if (ana.verbose >= 2) std::cout << "Reco TrackCandidate processing time: " << tc_elapsed << " secs" << std::endl;
 

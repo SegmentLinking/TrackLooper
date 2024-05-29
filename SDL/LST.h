@@ -9,6 +9,11 @@
 #include "LSTESData.h"
 #endif
 
+#include "Event.h"
+
+#include "Math/Vector3D.h"
+using XYZVector = ROOT::Math::XYZVector;
+
 #include <cstdlib>
 #include <numeric>
 #include <mutex>
@@ -47,7 +52,9 @@ namespace SDL {
              const std::vector<unsigned int> ph2_detId,
              const std::vector<float> ph2_x,
              const std::vector<float> ph2_y,
-             const std::vector<float> ph2_z);
+             const std::vector<float> ph2_z,
+             bool tc_pls_triplets,
+             bool no_pls_dupclean);
     std::vector<std::vector<unsigned int>> hits() { return out_tc_hitIdxs_; }
     std::vector<unsigned int> len() { return out_tc_len_; }
     std::vector<int> seedIdx() { return out_tc_seedIdx_; }

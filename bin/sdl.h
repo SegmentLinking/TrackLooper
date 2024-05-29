@@ -14,11 +14,6 @@
 #include "rooutil.h"
 #include "cxxopts.h"
 
-#include "SDL/Event.h" // SDL::Event
-#include "SDL/Module.h" // SDL::Module
-#include "SDL/EndcapGeometry.h" // SDL::EndcapGeometr
-#include "SDL/ModuleConnectionMap.h" // SDL::ModuleConnectionMap
-#include "SDL/Event.h"
 #include "SDL/LST.h"
 
 // Efficiency study modules

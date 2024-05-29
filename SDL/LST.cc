@@ -4,11 +4,6 @@
 #include "LST.h"
 #endif
 
-#include "Event.h"
-
-#include "Math/Vector3D.h"
-using XYZVector = ROOT::Math::XYZVector;
-
 void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                              bool verbose,
                              const LSTESDeviceData<SDL::Dev>* deviceESData,
@@ -30,7 +25,9 @@ void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                              const std::vector<unsigned int> ph2_detId,
                              const std::vector<float> ph2_x,
                              const std::vector<float> ph2_y,
-                             const std::vector<float> ph2_z) {
+                             const std::vector<float> ph2_z,
+                             bool tc_pls_triplets,
+                             bool no_pls_dupclean) {
   auto event = SDL::Event<Acc>(verbose, queue, deviceESData);
   prepareInput(see_px,
                see_py,
@@ -135,7 +132,7 @@ void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
     printf("# of Quintuplets produced endcap layer 5: %d\n", event.getNumberOfQuintupletsByLayerEndcap(4));
   }
 
-  event.pixelLineSegmentCleaning();
+  event.pixelLineSegmentCleaning(no_pls_dupclean);
 
   event.createPixelQuintuplets();
   if (verbose)
@@ -145,7 +142,7 @@ void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
   if (verbose)
     printf("# of Pixel T3s produced: %d\n", event.getNumberOfPixelTriplets());
 
-  event.createTrackCandidates();
+  event.createTrackCandidates(no_pls_dupclean, tc_pls_triplets);
   if (verbose) {
     printf("# of TrackCandidates produced: %d\n", event.getNumberOfTrackCandidates());
     printf("        # of Pixel TrackCandidates produced: %d\n", event.getNumberOfPixelTrackCandidates());
