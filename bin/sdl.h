@@ -14,6 +14,7 @@
 #include "rooutil.h"
 #include "cxxopts.h"
 
+#include "SDL/Event.h"
 #include "SDL/LST.h"
 
 // Efficiency study modules

@@ -9,11 +9,6 @@
 #include "LSTESData.h"
 #endif
 
-#include "Event.h"
-
-#include "Math/Vector3D.h"
-using XYZVector = ROOT::Math::XYZVector;
-
 #include <cstdlib>
 #include <numeric>
 #include <mutex>
