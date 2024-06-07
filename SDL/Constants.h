@@ -99,11 +99,6 @@ namespace SDL {
     return WorkDiv(adjustedBlocks, adjustedThreads, elementsPerThreadArg);
   }
 
-// If a compile time flag does not define PT_CUT, default to 0.8 (GeV)
-#ifndef PT_CUT
-  constexpr float PT_CUT = 0.8f;
-#endif
-
   const unsigned int MAX_BLOCKS = 80;
   const unsigned int MAX_CONNECTED_MODULES = 40;
 
@@ -129,7 +124,6 @@ namespace SDL {
   ALPAKA_STATIC_ACC_MEM_GLOBAL const float k2Rinv1GeVf = (2.99792458e-3 * 3.8) / 2;
   ALPAKA_STATIC_ACC_MEM_GLOBAL const float kR1GeVf = 1. / (2.99792458e-3 * 3.8);
   ALPAKA_STATIC_ACC_MEM_GLOBAL const float sinAlphaMax = 0.95;
-  ALPAKA_STATIC_ACC_MEM_GLOBAL const float ptCut = PT_CUT;
   ALPAKA_STATIC_ACC_MEM_GLOBAL const float deltaZLum = 15.0;
   ALPAKA_STATIC_ACC_MEM_GLOBAL const float pixelPSZpitch = 0.15;
   ALPAKA_STATIC_ACC_MEM_GLOBAL const float strip2SZpitch = 5.0;

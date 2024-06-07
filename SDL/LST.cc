@@ -11,6 +11,7 @@ using XYZVector = ROOT::Math::XYZVector;
 
 void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                              bool verbose,
+                             float ptCut,
                              const LSTESDeviceData<SDL::Dev>* deviceESData,
                              const std::vector<float> see_px,
                              const std::vector<float> see_py,
@@ -31,7 +32,7 @@ void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                              const std::vector<float> ph2_x,
                              const std::vector<float> ph2_y,
                              const std::vector<float> ph2_z) {
-  auto event = SDL::Event<Acc>(verbose, queue, deviceESData);
+  auto event = SDL::Event<Acc>(verbose, ptCut, queue, deviceESData);
   prepareInput(see_px,
                see_py,
                see_pz,
@@ -50,7 +51,8 @@ void SDL::LST<SDL::Acc>::run(SDL::QueueAcc& queue,
                ph2_detId,
                ph2_x,
                ph2_y,
-               ph2_z);
+               ph2_z,
+               ptCut);
 
   event.addHitToEvent(in_trkX_, in_trkY_, in_trkZ_, in_hitId_, in_hitIdxs_);
   event.addPixelSegmentToEvent(in_hitIndices_vec0_,
@@ -190,7 +192,8 @@ void SDL::LST<SDL::Acc>::prepareInput(const std::vector<float> see_px,
                                       const std::vector<unsigned int> ph2_detId,
                                       const std::vector<float> ph2_x,
                                       const std::vector<float> ph2_y,
-                                      const std::vector<float> ph2_z) {
+                                      const std::vector<float> ph2_z,
+                                      const float ptCut) {
   unsigned int count = 0;
   auto n_see = see_stateTrajGlbPx.size();
   std::vector<float> px_vec;
@@ -242,7 +245,7 @@ void SDL::LST<SDL::Acc>::prepareInput(const std::vector<float> see_px,
     float eta = p3LH.eta();
     float ptErr = see_ptErr[iSeed];
 
-    if ((ptIn > 0.8 - 2 * ptErr)) {
+    if ((ptIn > ptCut - 2 * ptErr)) {
       XYZVector r3LH(see_stateTrajGlbX[iSeed], see_stateTrajGlbY[iSeed], see_stateTrajGlbZ[iSeed]);
       XYZVector p3PCA(see_px[iSeed], see_py[iSeed], see_pz[iSeed]);
       XYZVector r3PCA(calculateR3FromPCA(p3PCA, see_dxy[iSeed], see_dz[iSeed]));

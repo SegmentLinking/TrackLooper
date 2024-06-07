@@ -28,6 +28,7 @@ namespace SDL {
 
     void run(QueueAcc& queue,
              bool verbose,
+             float ptCut,
              const LSTESDeviceData<Dev>* deviceESData,
              const std::vector<float> see_px,
              const std::vector<float> see_py,
@@ -72,7 +73,8 @@ namespace SDL {
                       const std::vector<unsigned int> ph2_detId,
                       const std::vector<float> ph2_x,
                       const std::vector<float> ph2_y,
-                      const std::vector<float> ph2_z);
+                      const std::vector<float> ph2_z,
+                      const float ptCut);
 
     void getOutput(SDL::Event<Acc>& event);
     std::vector<unsigned int> getHitIdxs(const short trackCandidateType,

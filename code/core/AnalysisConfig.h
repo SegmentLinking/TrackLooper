@@ -58,6 +58,9 @@ public:
     // verbose of the particles to compute efficincies on
     int verbose;
 
+    // pt Cut
+    float ptCut;
+
     // to print module connection info
     bool print_conn;
 

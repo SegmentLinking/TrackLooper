@@ -54,6 +54,7 @@ int main(int argc, char** argv)
         ("w,write_ntuple"    , "Write Ntuple", cxxopts::value<int>()->default_value("1"))
         ("s,streams"         , "Set number of streams (default=1)", cxxopts::value<int>()->default_value("1"))
         ("d,debug"           , "Run debug job. i.e. overrides output option to 'debug.root' and 'recreate's the file.")
+        ("p,ptCut"           , "Min pT Cut In GeV, Default is 0.8.", cxxopts::value<float>()->default_value("0.8"))
         ("l,lower_level"     , "write lower level objects ntuple results")
         ("G,gnn_ntuple"      , "write gnn input variable ntuple")
         ("j,nsplit_jobs"     , "Enable splitting jobs by N blocks (--job_index must be set)", cxxopts::value<int>())
@@ -133,6 +134,10 @@ int main(int argc, char** argv)
             ana.output_tfile = new TFile("debug.root", "recreate");
         }
     }
+
+    //_______________________________________________________________________________
+    // --ptCut
+    ana.ptCut = result["ptCut"].as<float>();
 
     //_______________________________________________________________________________
     // --nmatch
@@ -267,6 +272,7 @@ int main(int argc, char** argv)
     std::cout << " ana.do_write_ntuple: " << ana.do_write_ntuple << std::endl;
     std::cout << " ana.mode: " << ana.mode << std::endl;
     std::cout << " ana.streams: " << ana.streams << std::endl;
+    std::cout << " ana.ptCut: " << ana.ptCut << std::endl;
     std::cout << " ana.verbose: " << ana.verbose << std::endl;
     std::cout << " ana.nmatch_threshold: " << ana.nmatch_threshold << std::endl;
     std::cout << "=========================================================" << std::endl;
@@ -391,6 +397,7 @@ void run_sdl()
     {
         SDL::Event<SDL::Acc> *event = new SDL::Event<SDL::Acc>(
             ana.verbose>=2,
+            ana.ptCut,
             queues[s],
             deviceESData.get()
         );

@@ -684,7 +684,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
         float eta = p3LH.Eta();
         float ptErr = trk.see_ptErr()[iSeed];
 
-        if ((ptIn > PT_CUT - 2 * ptErr))
+        if ((ptIn > ana.ptCut - 2 * ptErr))
         {
             TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
             TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
@@ -709,7 +709,7 @@ void addInputsToLineSegmentTrackingPreLoad(std::vector<std::vector<float>> &out_
             { /*ptbin = 1;*/
                 pixtype = 0;
             }
-            else if (ptIn >= (PT_CUT - 2 * ptErr) and ptIn < 2.0)
+            else if (ptIn >= (ana.ptCut - 2 * ptErr) and ptIn < 2.0)
             {
                 // ptbin = 0;
                 if (pixelSegmentDeltaPhiChange >= 0)
@@ -1224,7 +1224,7 @@ float addInputsToLineSegmentTracking(SDL::Event<SDL::Acc> &event, bool useOMP)
         float ptErr = trk.see_ptErr()[iSeed];
         float eta = p3LH.Eta();
 
-        if ((ptIn > 0.8 - 2 * ptErr))
+        if ((ptIn > ana.ptCut - 2 * ptErr))
         {
             TVector3 r3LH(trk.see_stateTrajGlbX()[iSeed], trk.see_stateTrajGlbY()[iSeed], trk.see_stateTrajGlbZ()[iSeed]);
             TVector3 p3PCA(trk.see_px()[iSeed], trk.see_py()[iSeed], trk.see_pz()[iSeed]);
@@ -1252,7 +1252,7 @@ float addInputsToLineSegmentTracking(SDL::Event<SDL::Acc> &event, bool useOMP)
             { /*ptbin = 1;*/
                 pixtype = 0;
             }
-            else if (ptIn >= (0.8 - 2 * ptErr) and ptIn < 2.0)
+            else if (ptIn >= (ana.ptCut - 2 * ptErr) and ptIn < 2.0)
             {
                 // ptbin = 0;
                 if (pixelSegmentDeltaPhiChange >= 0)

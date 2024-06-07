@@ -230,7 +230,8 @@ namespace SDL {
                                                                      float& betaInCut,
                                                                      float& betaOutCut,
                                                                      float& deltaBetaCut,
-                                                                     float& kZ) {
+                                                                     float& kZ,
+                                                                     float ptCut) {
     zLo = -999;
     zHi = -999;
     rtLo = -999;
@@ -278,7 +279,8 @@ namespace SDL {
                                        zHiPointed,
                                        sdlCut,
                                        betaOutCut,
-                                       deltaBetaCut);
+                                       deltaBetaCut,
+                                       ptCut);
     } else if (outerInnerLowerModuleSubdet == SDL::Endcap and outerOuterLowerModuleSubdet == SDL::Endcap) {
       return runTripletDefaultAlgoPPEE(acc,
                                        modulesInGPU,
@@ -308,7 +310,8 @@ namespace SDL {
                                        betaInCut,
                                        betaOutCut,
                                        deltaBetaCut,
-                                       kZ);
+                                       kZ,
+                                       ptCut);
     }
     return false;
   };
@@ -839,6 +842,7 @@ namespace SDL {
                                                                  float& rzChiSquared,
                                                                  float& rPhiChiSquared,
                                                                  float& rPhiChiSquaredInwards,
+                                                                 float ptCut,
                                                                  bool runChiSquaredCuts = true) {
     bool pass = true;
 
@@ -882,7 +886,8 @@ namespace SDL {
                                                      betaInCut,
                                                      betaOutCut,
                                                      deltaBetaCut,
-                                                     kZ);
+                                                     kZ,
+                                                     ptCut);
       if (not pass)
         return pass;
 
@@ -914,7 +919,8 @@ namespace SDL {
                                                      betaInCut,
                                                      betaOutCut,
                                                      deltaBetaCut,
-                                                     kZ);
+                                                     kZ,
+                                                     ptCut);
       if (not pass)
         return pass;
     }
@@ -1026,6 +1032,7 @@ namespace SDL {
   struct createPixelTripletsInGPUFromMapv2 {
     template <typename TAcc>
     ALPAKA_FN_ACC void operator()(TAcc const& acc,
+                                  float ptCut,
                                   struct SDL::modules modulesInGPU,
                                   struct SDL::objectRanges rangesInGPU,
                                   struct SDL::miniDoublets mdsInGPU,
@@ -1111,7 +1118,8 @@ namespace SDL {
                                                       centerY,
                                                       rzChiSquared,
                                                       rPhiChiSquared,
-                                                      rPhiChiSquaredInwards);
+                                                      rPhiChiSquaredInwards,
+                                                      ptCut);
 
             if (success) {
               float phi =
@@ -1288,7 +1296,8 @@ namespace SDL {
                                                                 float& zHiPointed,
                                                                 float& sdlCut,
                                                                 float& betaOutCut,
-                                                                float& deltaBetaCut)  // pixel to BB and BE segments
+                                                                float& deltaBetaCut,
+                                                                float ptCut)  // pixel to BB and BE segments
   {
     bool pass = true;
 
@@ -1580,7 +1589,8 @@ namespace SDL {
                                                                 float& betaInCut,
                                                                 float& betaOutCut,
                                                                 float& deltaBetaCut,
-                                                                float& kZ)  // pixel to EE segments
+                                                                float& kZ,
+                                                                float ptCut)  // pixel to EE segments
   {
     bool pass = true;
     bool isPS_OutLo = (modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS);
@@ -2493,7 +2503,8 @@ namespace SDL {
                                                                     float& quintupletRadius,
                                                                     float& centerX,
                                                                     float& centerY,
-                                                                    unsigned int pixelSegmentArrayIndex) {
+                                                                    unsigned int pixelSegmentArrayIndex,
+                                                                    float ptCut) {
     bool pass = true;
 
     unsigned int T5InnerT3Index = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
@@ -2518,6 +2529,7 @@ namespace SDL {
                                                rzChiSquaredTemp,
                                                rPhiChiSquaredTemp,
                                                rPhiChiSquaredInwardsTemp,
+                                               ptCut,
                                                false);
     if (not pass)
       return false;
@@ -2679,6 +2691,7 @@ namespace SDL {
   struct createPixelQuintupletsInGPUFromMapv2 {
     template <typename TAcc>
     ALPAKA_FN_ACC void operator()(TAcc const& acc,
+                                  float ptCut,
                                   struct SDL::modules modulesInGPU,
                                   struct SDL::miniDoublets mdsInGPU,
                                   struct SDL::segments segmentsInGPU,
@@ -2742,7 +2755,8 @@ namespace SDL {
                                                          quintupletRadius,
                                                          centerX,
                                                          centerY,
-                                                         static_cast<unsigned int>(i_pLS));
+                                                         static_cast<unsigned int>(i_pLS),
+                                                         ptCut);
             if (success) {
               unsigned int totOccupancyPixelQuintuplets =
                   alpaka::atomicOp<alpaka::AtomicAdd>(acc, pixelQuintupletsInGPU.totOccupancyPixelQuintuplets, 1u);

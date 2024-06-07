@@ -312,7 +312,8 @@ namespace SDL {
                                                                 float& rtOut,
                                                                 unsigned int& innerSegmentIndex,
                                                                 float& betaIn,
-                                                                float& betaInCut) {
+                                                                float& betaInCut,
+                                                                float ptCut) {
     bool pass = true;
     bool isPSIn = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
     bool isPSOut = (modulesInGPU.moduleType[outerOuterLowerModuleIndex] == SDL::PS);
@@ -326,7 +327,7 @@ namespace SDL {
     zOut = mdsInGPU.anchorZ[thirdMDIndex];
 
     float alpha1GeVOut =
-        alpaka::math::asin(acc, alpaka::math::min(acc, rtOut * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax));
+        alpaka::math::asin(acc, alpaka::math::min(acc, rtOut * SDL::k2Rinv1GeVf / ptCut, SDL::sinAlphaMax));
 
     float rtRatio_OutIn = rtOut / rtIn;  // Outer segment beginning rt divided by inner segment beginning rt;
     float dzDrtScale = alpaka::math::tan(acc, alpha1GeVOut) / alpha1GeVOut;  // The track can bend in r-z plane slightly
@@ -356,7 +357,7 @@ namespace SDL {
 
     float sdlThetaMulsF =
         0.015f * alpaka::math::sqrt(acc, 0.1f + 0.2f * (rtOut - rtIn) / 50.f) * alpaka::math::sqrt(acc, r3In / rtIn);
-    float sdlMuls = sdlThetaMulsF * 3.f / SDL::ptCut * 4.f;                        // will need a better guess than x4?
+    float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f;                        // will need a better guess than x4?
     dzErr += sdlMuls * sdlMuls * drt_OutIn * drt_OutIn / 3.f * coshEta * coshEta;  //sloppy
     dzErr = alpaka::math::sqrt(acc, dzErr);
 
@@ -364,7 +365,7 @@ namespace SDL {
     const float dzMean = dz_InSeg / drt_InSeg * drt_OutIn;
     const float zWindow =
         dzErr / drt_InSeg * drt_OutIn +
-        (zpitchIn + zpitchOut);  //FIXME for SDL::ptCut lower than ~0.8 need to add curv path correction
+        (zpitchIn + zpitchOut);  //FIXME for ptCut lower than ~0.8 need to add curv path correction
     const float zLoPointed = zIn + dzMean * (zIn > 0.f ? 1.f : dzDrtScale) - zWindow;
     const float zHiPointed = zIn + dzMean * (zIn < 0.f ? 1.f : dzDrtScale) + zWindow;
 
@@ -391,7 +392,7 @@ namespace SDL {
                                    (mdsInGPU.anchorY[secondMDIndex] - mdsInGPU.anchorY[firstMDIndex]));
     betaInCut =
         alpaka::math::asin(
-            acc, alpaka::math::min(acc, (-rt_InSeg + drt_tl_axis) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
+            acc, alpaka::math::min(acc, (-rt_InSeg + drt_tl_axis) * SDL::k2Rinv1GeVf / ptCut, SDL::sinAlphaMax)) +
         (0.02f / drt_InSeg);
 
     //Cut #3: first beta cut
@@ -417,7 +418,8 @@ namespace SDL {
                                                                 unsigned int& innerSegmentIndex,
                                                                 unsigned int& outerSegmentIndex,
                                                                 float& betaIn,
-                                                                float& betaInCut) {
+                                                                float& betaInCut,
+                                                                float ptCut) {
     bool pass = true;
 
     bool isPSIn = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
@@ -432,7 +434,7 @@ namespace SDL {
     zOut = mdsInGPU.anchorZ[thirdMDIndex];
 
     float alpha1GeV_OutLo =
-        alpaka::math::asin(acc, alpaka::math::min(acc, rtOut * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax));
+        alpaka::math::asin(acc, alpaka::math::min(acc, rtOut * SDL::k2Rinv1GeVf / ptCut, SDL::sinAlphaMax));
 
     float dzDrtScale =
         alpaka::math::tan(acc, alpha1GeV_OutLo) / alpha1GeV_OutLo;  // The track can bend in r-z plane slightly
@@ -482,7 +484,7 @@ namespace SDL {
         zGeom1_another * zGeom1_another * drtSDIn * drtSDIn / dzSDIn / dzSDIn * (1.f - 2.f * kZ + 2.f * kZ * kZ);
     const float sdlThetaMulsF =
         0.015f * alpaka::math::sqrt(acc, 0.1f + 0.2 * (rtOut - rtIn) / 50.f) * alpaka::math::sqrt(acc, rIn / rtIn);
-    const float sdlMuls = sdlThetaMulsF * 3.f / SDL::ptCut * 4.f;  //will need a better guess than x4?
+    const float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f;  //will need a better guess than x4?
     drtErr +=
         sdlMuls * sdlMuls * multDzDr * multDzDr / 3.f * coshEta * coshEta;  //sloppy: relative muls is 1/3 of total muls
     drtErr = alpaka::math::sqrt(acc, drtErr);
@@ -521,7 +523,7 @@ namespace SDL {
 
     float dr = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
     betaInCut = alpaka::math::asin(
-                    acc, alpaka::math::min(acc, (-sdIn_dr + dr) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
+                    acc, alpaka::math::min(acc, (-sdIn_dr + dr) * SDL::k2Rinv1GeVf / ptCut, SDL::sinAlphaMax)) +
                 (0.02f / sdIn_d);
 
     //Cut #4: first beta cut
@@ -545,7 +547,8 @@ namespace SDL {
                                                                 unsigned int& innerSegmentIndex,
                                                                 unsigned int& outerSegmentIndex,
                                                                 float& betaIn,
-                                                                float& betaInCut) {
+                                                                float& betaInCut,
+                                                                float ptCut) {
     bool pass = true;
 
     float rtIn = mdsInGPU.anchorRt[firstMDIndex];
@@ -557,7 +560,7 @@ namespace SDL {
     zOut = mdsInGPU.anchorZ[thirdMDIndex];
 
     float alpha1GeV_Out =
-        alpaka::math::asin(acc, alpaka::math::min(acc, rtOut * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax));
+        alpaka::math::asin(acc, alpaka::math::min(acc, rtOut * SDL::k2Rinv1GeVf / ptCut, SDL::sinAlphaMax));
 
     float dzDrtScale =
         alpaka::math::tan(acc, alpha1GeV_Out) / alpha1GeV_Out;  // The track can bend in r-z plane slightly
@@ -598,7 +601,7 @@ namespace SDL {
     float kZ = (zOut - zIn) / dzSDIn;
     float sdlThetaMulsF = 0.015f * alpaka::math::sqrt(acc, 0.1f + 0.2f * (rtOut - rtIn) / 50.f);
 
-    float sdlMuls = sdlThetaMulsF * 3.f / SDL::ptCut * 4.f;  //will need a better guess than x4?
+    float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f;  //will need a better guess than x4?
 
     float drtErr = alpaka::math::sqrt(
         acc,
@@ -648,7 +651,7 @@ namespace SDL {
 
     float dr = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
     betaInCut = alpaka::math::asin(
-                    acc, alpaka::math::min(acc, (-sdIn_dr + dr) * SDL::k2Rinv1GeVf / SDL::ptCut, SDL::sinAlphaMax)) +
+                    acc, alpaka::math::min(acc, (-sdIn_dr + dr) * SDL::k2Rinv1GeVf / ptCut, SDL::sinAlphaMax)) +
                 (0.02f / sdIn_d);
 
     //Cut #4: first beta cut
@@ -673,7 +676,8 @@ namespace SDL {
                                                              unsigned int& innerSegmentIndex,
                                                              unsigned int& outerSegmentIndex,
                                                              float& betaIn,
-                                                             float& betaInCut) {
+                                                             float& betaInCut,
+                                                             float ptCut) {
     short innerInnerLowerModuleSubdet = modulesInGPU.subdets[innerInnerLowerModuleIndex];
     short middleLowerModuleSubdet = modulesInGPU.subdets[middleLowerModuleIndex];
     short outerOuterLowerModuleSubdet = modulesInGPU.subdets[outerOuterLowerModuleIndex];
@@ -694,7 +698,8 @@ namespace SDL {
                                        rtOut,
                                        innerSegmentIndex,
                                        betaIn,
-                                       betaInCut);
+                                       betaInCut,
+                                       ptCut);
     } else if (innerInnerLowerModuleSubdet == SDL::Barrel and middleLowerModuleSubdet == SDL::Barrel and
                outerOuterLowerModuleSubdet == SDL::Endcap) {
       return passPointingConstraintBBE(acc,
@@ -713,7 +718,8 @@ namespace SDL {
                                        innerSegmentIndex,
                                        outerSegmentIndex,
                                        betaIn,
-                                       betaInCut);
+                                       betaInCut,
+                                       ptCut);
     } else if (innerInnerLowerModuleSubdet == SDL::Barrel and middleLowerModuleSubdet == SDL::Endcap and
                outerOuterLowerModuleSubdet == SDL::Endcap) {
       return passPointingConstraintBBE(acc,
@@ -732,7 +738,8 @@ namespace SDL {
                                        innerSegmentIndex,
                                        outerSegmentIndex,
                                        betaIn,
-                                       betaInCut);
+                                       betaInCut,
+                                       ptCut);
 
     }
 
@@ -753,7 +760,8 @@ namespace SDL {
                                        innerSegmentIndex,
                                        outerSegmentIndex,
                                        betaIn,
-                                       betaInCut);
+                                       betaInCut,
+                                       ptCut);
     }
     return false;  // failsafe
   };
@@ -818,7 +826,8 @@ namespace SDL {
                                                                    float& zLoPointed,
                                                                    float& zHiPointed,
                                                                    float& sdlCut,
-                                                                   float& betaInCut) {
+                                                                   float& betaInCut,
+                                                                   float ptCut) {
     bool pass = true;
     //this cut reduces the number of candidates by a factor of 4, i.e., 3 out of 4 warps can end right here!
     if (segmentsInGPU.mdIndices[2 * innerSegmentIndex + 1] != segmentsInGPU.mdIndices[2 * outerSegmentIndex])
@@ -856,7 +865,8 @@ namespace SDL {
                                             innerSegmentIndex,
                                             outerSegmentIndex,
                                             betaIn,
-                                            betaInCut));
+                                            betaInCut,
+                                            ptCut));
     if (not pass)
       return pass;
 
@@ -874,6 +884,7 @@ namespace SDL {
   struct createTripletsInGPUv2 {
     template <typename TAcc>
     ALPAKA_FN_ACC void operator()(TAcc const& acc,
+                                  float ptCut,
                                   struct SDL::modules modulesInGPU,
                                   struct SDL::miniDoublets mdsInGPU,
                                   struct SDL::segments segmentsInGPU,
@@ -938,7 +949,8 @@ namespace SDL {
                                                         zLoPointed,
                                                         zHiPointed,
                                                         sdlCut,
-                                                        betaInCut);
+                                                        betaInCut,
+                                                        ptCut);
 
             if (success) {
               unsigned int totOccupancyTriplets = alpaka::atomicOp<alpaka::AtomicAdd>(
