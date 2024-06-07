@@ -277,7 +277,7 @@ namespace SDL {
                                                       uint16_t& outerLowerModuleIndex,
                                                       unsigned int& innerMDIndex,
                                                       unsigned int& outerMDIndex,
-                                                      float ptCut) {
+                                                      float& ptCut) {
     float sdMuls = (modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel)
                        ? miniMulsPtScaleBarrel[modulesInGPU.layers[innerLowerModuleIndex] - 1] * 3.f / ptCut
                        : miniMulsPtScaleEndcap[modulesInGPU.layers[innerLowerModuleIndex] - 1] * 3.f / ptCut;
@@ -479,7 +479,7 @@ namespace SDL {
                                                                   float& dAlphaInnerMDSegmentThreshold,
                                                                   float& dAlphaOuterMDSegmentThreshold,
                                                                   float& dAlphaInnerMDOuterMDThreshold,
-                                                                  float ptCut) {
+                                                                  float& ptCut) {
     bool pass = true;
 
     float sdMuls = (modulesInGPU.subdets[innerLowerModuleIndex] == SDL::Barrel)
@@ -593,7 +593,7 @@ namespace SDL {
                                                                   float& dAlphaOuterMDSegmentThreshold,
                                                                   float& dAlphaInnerMDOuterMDThreshold,
                                                                   float& dAlphaInnerMDOuterMD,
-                                                                  float ptCut) {
+                                                                  float& ptCut) {
     bool pass = true;
 
     float xIn, yIn;
@@ -737,7 +737,7 @@ namespace SDL {
                                                             float& dAlphaInnerMDSegmentThreshold,
                                                             float& dAlphaOuterMDSegmentThreshold,
                                                             float& dAlphaInnerMDOuterMDThreshold,
-                                                            float ptCut) {
+                                                            float& ptCut) {
     zLo = -999.f;
     zHi = -999.f;
     rtLo = -999.f;
@@ -806,11 +806,11 @@ namespace SDL {
   struct createSegmentsInGPUv2 {
     template <typename TAcc>
     ALPAKA_FN_ACC void operator()(TAcc const& acc,
-                                  float ptCut,
                                   struct SDL::modules modulesInGPU,
                                   struct SDL::miniDoublets mdsInGPU,
                                   struct SDL::segments segmentsInGPU,
-                                  struct SDL::objectRanges rangesInGPU) const {
+                                  struct SDL::objectRanges rangesInGPU,
+                                  float ptCut) const {
       auto const globalBlockIdx = alpaka::getIdx<alpaka::Grid, alpaka::Blocks>(acc);
       auto const blockThreadIdx = alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc);
       auto const gridBlockExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);

@@ -1493,7 +1493,7 @@ namespace SDL {
                                                                    float& betaInCut,
                                                                    float& betaOutCut,
                                                                    float& deltaBetaCut,
-                                                                   float ptCut) {
+                                                                   float& ptCut) {
     bool pass = true;
 
     bool isPS_InLo = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
@@ -1775,7 +1775,7 @@ namespace SDL {
                                                                    float& betaOutCut,
                                                                    float& deltaBetaCut,
                                                                    float& kZ,
-                                                                   float ptCut) {
+                                                                   float& ptCut) {
     bool pass = true;
     bool isPS_InLo = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
     bool isPS_OutLo = (modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS);
@@ -2058,7 +2058,7 @@ namespace SDL {
                                                                    float& betaOutCut,
                                                                    float& deltaBetaCut,
                                                                    float& kZ,
-                                                                   float ptCut) {
+                                                                   float& ptCut) {
     bool pass = true;
 
     bool isPS_InLo = (modulesInGPU.moduleType[innerInnerLowerModuleIndex] == SDL::PS);
@@ -2329,7 +2329,7 @@ namespace SDL {
                                                                 float& betaOutCut,
                                                                 float& deltaBetaCut,
                                                                 float& kZ,
-                                                                float ptCut) {
+                                                                float& ptCut) {
     bool pass = false;
 
     zLo = -999;
@@ -2534,7 +2534,7 @@ namespace SDL {
                                                                float& chiSquared,
                                                                float& nonAnchorChiSquared,
                                                                bool& TightCutFlag,
-                                                               float ptCut) {
+                                                               float& ptCut) {
     bool pass = true;
     unsigned int firstSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex];
     unsigned int secondSegmentIndex = tripletsInGPU.segmentIndices[2 * innerTripletIndex + 1];
@@ -2998,14 +2998,14 @@ namespace SDL {
   struct createQuintupletsInGPUv2 {
     template <typename TAcc>
     ALPAKA_FN_ACC void operator()(TAcc const& acc,
-                                  float ptCut,
                                   struct SDL::modules modulesInGPU,
                                   struct SDL::miniDoublets mdsInGPU,
                                   struct SDL::segments segmentsInGPU,
                                   struct SDL::triplets tripletsInGPU,
                                   struct SDL::quintuplets quintupletsInGPU,
                                   struct SDL::objectRanges rangesInGPU,
-                                  uint16_t nEligibleT5Modules) const {
+                                  uint16_t nEligibleT5Modules,
+                                  float ptCut) const {
       auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
       auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 

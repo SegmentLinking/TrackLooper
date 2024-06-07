@@ -341,7 +341,7 @@ namespace SDL {
                                                      float rt,
                                                      struct SDL::modules& modulesInGPU,
                                                      uint16_t& moduleIndex,
-                                                     float ptCut,
+                                                     float& ptCut,
                                                      float dPhi = 0,
                                                      float dz = 0) {
     // =================================================================
@@ -591,7 +591,7 @@ namespace SDL {
                                                float yUpper,
                                                float zUpper,
                                                float rtUpper,
-                                               float ptCut) {
+                                               float& ptCut) {
     if (modulesInGPU.subdets[lowerModuleIndex] == SDL::Barrel) {
       return runMiniDoubletDefaultAlgoBarrel(acc,
                                              modulesInGPU,
@@ -669,7 +669,7 @@ namespace SDL {
                                                      float yUpper,
                                                      float zUpper,
                                                      float rtUpper,
-                                                     float ptCut) {
+                                                     float& ptCut) {
     bool pass = true;
     dz = zLower - zUpper;
     const float dzCut = modulesInGPU.moduleType[lowerModuleIndex] == SDL::PS ? 2.f : 10.f;
@@ -804,7 +804,7 @@ namespace SDL {
                                                      float yUpper,
                                                      float zUpper,
                                                      float rtUpper,
-                                                     float ptCut) {
+                                                     float& ptCut) {
     bool pass = true;
 
     // There are series of cuts that applies to mini-doublet in a "endcap" region
@@ -902,11 +902,11 @@ namespace SDL {
   struct createMiniDoubletsInGPUv2 {
     template <typename TAcc>
     ALPAKA_FN_ACC void operator()(TAcc const& acc,
-                                  float ptCut,
                                   struct SDL::modules modulesInGPU,
                                   struct SDL::hits hitsInGPU,
                                   struct SDL::miniDoublets mdsInGPU,
-                                  struct SDL::objectRanges rangesInGPU) const {
+                                  struct SDL::objectRanges rangesInGPU,
+                                  float ptCut) const {
       auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
       auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
 

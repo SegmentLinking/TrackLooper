@@ -231,7 +231,7 @@ namespace SDL {
                                                                      float& betaOutCut,
                                                                      float& deltaBetaCut,
                                                                      float& kZ,
-                                                                     float ptCut) {
+                                                                     float& ptCut) {
     zLo = -999;
     zHi = -999;
     rtLo = -999;
@@ -842,7 +842,7 @@ namespace SDL {
                                                                  float& rzChiSquared,
                                                                  float& rPhiChiSquared,
                                                                  float& rPhiChiSquaredInwards,
-                                                                 float ptCut,
+                                                                 float& ptCut,
                                                                  bool runChiSquaredCuts = true) {
     bool pass = true;
 
@@ -1032,7 +1032,6 @@ namespace SDL {
   struct createPixelTripletsInGPUFromMapv2 {
     template <typename TAcc>
     ALPAKA_FN_ACC void operator()(TAcc const& acc,
-                                  float ptCut,
                                   struct SDL::modules modulesInGPU,
                                   struct SDL::objectRanges rangesInGPU,
                                   struct SDL::miniDoublets mdsInGPU,
@@ -1041,7 +1040,8 @@ namespace SDL {
                                   struct SDL::pixelTriplets pixelTripletsInGPU,
                                   unsigned int* connectedPixelSize,
                                   unsigned int* connectedPixelIndex,
-                                  unsigned int nPixelSegments) const {
+                                  unsigned int nPixelSegments,
+                                  float ptCut) const {
       auto const globalBlockIdx = alpaka::getIdx<alpaka::Grid, alpaka::Blocks>(acc);
       auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
       auto const gridBlockExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
@@ -1297,7 +1297,7 @@ namespace SDL {
                                                                 float& sdlCut,
                                                                 float& betaOutCut,
                                                                 float& deltaBetaCut,
-                                                                float ptCut)  // pixel to BB and BE segments
+                                                                float& ptCut)  // pixel to BB and BE segments
   {
     bool pass = true;
 
@@ -1590,7 +1590,7 @@ namespace SDL {
                                                                 float& betaOutCut,
                                                                 float& deltaBetaCut,
                                                                 float& kZ,
-                                                                float ptCut)  // pixel to EE segments
+                                                                float& ptCut)  // pixel to EE segments
   {
     bool pass = true;
     bool isPS_OutLo = (modulesInGPU.moduleType[outerInnerLowerModuleIndex] == SDL::PS);
@@ -2504,7 +2504,7 @@ namespace SDL {
                                                                     float& centerX,
                                                                     float& centerY,
                                                                     unsigned int pixelSegmentArrayIndex,
-                                                                    float ptCut) {
+                                                                    float& ptCut) {
     bool pass = true;
 
     unsigned int T5InnerT3Index = quintupletsInGPU.tripletIndices[2 * quintupletIndex];
@@ -2691,7 +2691,6 @@ namespace SDL {
   struct createPixelQuintupletsInGPUFromMapv2 {
     template <typename TAcc>
     ALPAKA_FN_ACC void operator()(TAcc const& acc,
-                                  float ptCut,
                                   struct SDL::modules modulesInGPU,
                                   struct SDL::miniDoublets mdsInGPU,
                                   struct SDL::segments segmentsInGPU,
@@ -2701,7 +2700,8 @@ namespace SDL {
                                   unsigned int* connectedPixelSize,
                                   unsigned int* connectedPixelIndex,
                                   unsigned int nPixelSegments,
-                                  struct SDL::objectRanges rangesInGPU) const {
+                                  struct SDL::objectRanges rangesInGPU,
+                                  float ptCut) const {
       auto const globalBlockIdx = alpaka::getIdx<alpaka::Grid, alpaka::Blocks>(acc);
       auto const globalThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
       auto const gridBlockExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc);
