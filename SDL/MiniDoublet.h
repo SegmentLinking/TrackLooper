@@ -902,7 +902,7 @@ namespace SDL {
   struct createMiniDoubletsInGPUv2 {
     template <typename TAcc>
     ALPAKA_FN_ACC void operator()(TAcc const& acc,
-                                  float  ptCut,
+                                  float ptCut,
                                   struct SDL::modules modulesInGPU,
                                   struct SDL::hits hitsInGPU,
                                   struct SDL::miniDoublets mdsInGPU,

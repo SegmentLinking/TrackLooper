@@ -357,15 +357,14 @@ namespace SDL {
 
     float sdlThetaMulsF =
         0.015f * alpaka::math::sqrt(acc, 0.1f + 0.2f * (rtOut - rtIn) / 50.f) * alpaka::math::sqrt(acc, r3In / rtIn);
-    float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f;                        // will need a better guess than x4?
+    float sdlMuls = sdlThetaMulsF * 3.f / ptCut * 4.f;                             // will need a better guess than x4?
     dzErr += sdlMuls * sdlMuls * drt_OutIn * drt_OutIn / 3.f * coshEta * coshEta;  //sloppy
     dzErr = alpaka::math::sqrt(acc, dzErr);
 
     // Constructing upper and lower bound
     const float dzMean = dz_InSeg / drt_InSeg * drt_OutIn;
-    const float zWindow =
-        dzErr / drt_InSeg * drt_OutIn +
-        (zpitchIn + zpitchOut);  //FIXME for ptCut lower than ~0.8 need to add curv path correction
+    const float zWindow = dzErr / drt_InSeg * drt_OutIn +
+                          (zpitchIn + zpitchOut);  //FIXME for ptCut lower than ~0.8 need to add curv path correction
     const float zLoPointed = zIn + dzMean * (zIn > 0.f ? 1.f : dzDrtScale) - zWindow;
     const float zHiPointed = zIn + dzMean * (zIn < 0.f ? 1.f : dzDrtScale) + zWindow;
 
@@ -522,9 +521,9 @@ namespace SDL {
     float sdIn_d = rt_InOut - rt_InLo;
 
     float dr = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
-    betaInCut = alpaka::math::asin(
-                    acc, alpaka::math::min(acc, (-sdIn_dr + dr) * SDL::k2Rinv1GeVf / ptCut, SDL::sinAlphaMax)) +
-                (0.02f / sdIn_d);
+    betaInCut =
+        alpaka::math::asin(acc, alpaka::math::min(acc, (-sdIn_dr + dr) * SDL::k2Rinv1GeVf / ptCut, SDL::sinAlphaMax)) +
+        (0.02f / sdIn_d);
 
     //Cut #4: first beta cut
     pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
@@ -650,9 +649,9 @@ namespace SDL {
     float sdIn_d = rt_InOut - rt_InLo;
 
     float dr = alpaka::math::sqrt(acc, tl_axis_x * tl_axis_x + tl_axis_y * tl_axis_y);
-    betaInCut = alpaka::math::asin(
-                    acc, alpaka::math::min(acc, (-sdIn_dr + dr) * SDL::k2Rinv1GeVf / ptCut, SDL::sinAlphaMax)) +
-                (0.02f / sdIn_d);
+    betaInCut =
+        alpaka::math::asin(acc, alpaka::math::min(acc, (-sdIn_dr + dr) * SDL::k2Rinv1GeVf / ptCut, SDL::sinAlphaMax)) +
+        (0.02f / sdIn_d);
 
     //Cut #4: first beta cut
     pass = pass and (alpaka::math::abs(acc, betaInRHmin) < betaInCut);
