@@ -2064,57 +2064,57 @@ namespace SDL {
                             modulesInGPU.moduleType[lowerModuleIndex5] == SDL::TwoS);
 
     if (layer1 == 1 and layer2 == 2 and layer3 == 3) {
-      if (layer4 == 12 and layer5 == 13) { // cat 10
+      if (layer4 == 12 and layer5 == 13) {  // cat 10
         return rzChiSquared < 14.031f;
-      } else if (layer4 == 4 and layer5 == 12) { // cat 12
+      } else if (layer4 == 4 and layer5 == 12) {  // cat 12
         return rzChiSquared < 8.760f;
-      } else if (layer4 == 4 and layer5 == 5) { // cat 11
+      } else if (layer4 == 4 and layer5 == 5) {  // cat 11
         return rzChiSquared < 3.607f;
-      } else if (layer4 == 7 and layer5 == 13) { // cat 9
+      } else if (layer4 == 7 and layer5 == 13) {  // cat 9
         return rzChiSquared < 16.620;
-      } else if (layer4 == 7 and layer5 == 8) { // cat 8 
+      } else if (layer4 == 7 and layer5 == 8) {  // cat 8
         return rzChiSquared < 17.910f;
       }
     } else if (layer1 == 1 and layer2 == 2 and layer3 == 7) {
-      if (layer4 == 13 and layer5 == 14) { // cat 7
+      if (layer4 == 13 and layer5 == 14) {  // cat 7
         return rzChiSquared < 8.950f;
-      } else if (layer4 == 8 and layer5 == 14) { // cat 6
+      } else if (layer4 == 8 and layer5 == 14) {  // cat 6
         return rzChiSquared < 14.837f;
-      } else if (layer4 == 8 and layer5 == 9) { // cat 5 
+      } else if (layer4 == 8 and layer5 == 9) {  // cat 5
         return rzChiSquared < 18.519f;
       }
     } else if (layer1 == 1 and layer2 == 7 and layer3 == 8) {
-      if (layer4 == 9 and layer5 == 10) { // cat 3
+      if (layer4 == 9 and layer5 == 10) {  // cat 3
         return rzChiSquared < 15.093f;
-      } else if (layer4 == 9 and layer5 == 15) { // cat 4
+      } else if (layer4 == 9 and layer5 == 15) {  // cat 4
         return rzChiSquared < 11.200f;
       }
     } else if (layer1 == 2 and layer2 == 3 and layer3 == 4) {
-      if (layer4 == 12 and layer5 == 13) { // cat 20
+      if (layer4 == 12 and layer5 == 13) {  // cat 20
         return rzChiSquared < 12.868f;
-      } else if (layer4 == 5 and layer5 == 12) { // cat 19
+      } else if (layer4 == 5 and layer5 == 12) {  // cat 19
         return rzChiSquared < 6.128f;
-      } else if (layer4 == 5 and layer5 == 6) { // cat 18
+      } else if (layer4 == 5 and layer5 == 6) {  // cat 18
         return rzChiSquared < 2.987f;
       }
     } else if (layer1 == 2 and layer2 == 3 and layer4 == 7) {
-      if (layer4 == 13 and layer5 == 14) { // cat 17
+      if (layer4 == 13 and layer5 == 14) {  // cat 17
         return rzChiSquared < 19.446f;
-      } else if (layer4 == 8 and layer5 == 14) { // cat 16
+      } else if (layer4 == 8 and layer5 == 14) {  // cat 16
         return rzChiSquared < 17.520f;
       }
     } else if (layer1 == 2 and layer2 == 7 and layer3 == 8) {
-      if (layer4 == 14 and layer5 == 15) { // cat 15
+      if (layer4 == 14 and layer5 == 15) {  // cat 15
         return rzChiSquared < 14.71f;
-      } else if (layer4 == 9 and layer5 == 15) { // cat 14
+      } else if (layer4 == 9 and layer5 == 15) {  // cat 14
         return rzChiSquared < 18.213f;
       }
     } else if (layer1 == 7 and layer2 == 8 and layer3 == 9) {
-      if (layer4 == 10 and layer5 == 11) { // cat 0
+      if (layer4 == 10 and layer5 == 11) {  // cat 0
         return rzChiSquared < 10.016f;
-      } else if (layer4 == 10 and layer5 == 16) { // cat 1
+      } else if (layer4 == 10 and layer5 == 16) {  // cat 1
         return rzChiSquared < 87.671f;
-      } else if (layer4 == 15 and layer5 == 16) { // cat 2
+      } else if (layer4 == 15 and layer5 == 16) {  // cat 2
         return rzChiSquared < 5.844f;
       }
     }
@@ -2570,8 +2570,20 @@ namespace SDL {
     pixelRadius = segmentsInGPU.circleRadius[pixelSegmentArrayIndex];
 
     if (pixelRadius < 5.0f * kR1GeVf) {  //only apply r-z chi2 cuts for <5GeV tracks
-      rzChiSquared = computePT5RZChiSquared(acc, modulesInGPU, lowerModuleIndices, rtPix, xPix, yPix, zPix, rts, zs,
-                                            pixelSegmentPt, pixelSegmentPx, pixelSegmentPy, pixelSegmentPz, pixelSegmentCharge);
+      rzChiSquared = computePT5RZChiSquared(acc,
+                                            modulesInGPU,
+                                            lowerModuleIndices,
+                                            rtPix,
+                                            xPix,
+                                            yPix,
+                                            zPix,
+                                            rts,
+                                            zs,
+                                            pixelSegmentPt,
+                                            pixelSegmentPx,
+                                            pixelSegmentPy,
+                                            pixelSegmentPz,
+                                            pixelSegmentCharge);
       pass = pass and passPT5RZChiSquaredCuts(modulesInGPU,
                                               lowerModuleIndex1,
                                               lowerModuleIndex2,
