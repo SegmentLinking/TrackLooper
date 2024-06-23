@@ -988,9 +988,10 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     const float pt_T5 = (ptAv_in + ptAv_out) / 2.;
 
     // pixel pt
-    const float pt_pLS = segmentsInGPU.ptIn[pLS];
-    const float eta_pLS = segmentsInGPU.eta[pLS];
-    const float phi_pLS = segmentsInGPU.phi[pLS];
+    const int seedIdx = segmentsInGPU.seedIdx[pLS];
+    const float pt_pLS = trk.see_pt()[seedIdx];
+    const float eta_pLS = trk.see_eta()[seedIdx];
+    const float phi_pLS = trk.see_phi()[seedIdx];
 
     // average pt
     const float pt = (pt_pLS + pt_T5) / 2.;
@@ -1036,9 +1037,10 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     const float pt_T3 = abs(dr * k2Rinv1GeVf / sin((betaIn + betaOut) / 2.));
 
     // pixel pt
-    const float pt_pLS = segmentsInGPU.ptIn[pLS];
-    const float eta_pLS = segmentsInGPU.eta[pLS];
-    const float phi_pLS = segmentsInGPU.phi[pLS];
+    const int seedIdx = segmentsInGPU.seedIdx[pLS];
+    const float pt_pLS = trk.see_pt()[seedIdx];
+    const float eta_pLS = trk.see_eta()[seedIdx];
+    const float phi_pLS = trk.see_phi()[seedIdx];
 
     // average pt
     const float pt = (pt_pLS + pt_T3) / 2.;
@@ -1115,9 +1117,10 @@ std::tuple<float, float, float, vector<unsigned int>, vector<unsigned int>> pars
     unsigned int pLS = trackCandidatesInGPU.directObjectIndices[idx];
 
     // Getting pt eta and phi
-    float pt = segmentsInGPU.ptIn[pLS];
-    float eta = segmentsInGPU.eta[pLS];
-    float phi = segmentsInGPU.phi[pLS];
+    const int seedIdx = segmentsInGPU.seedIdx[pLS];
+    const float pt = trk.see_pt()[seedIdx];
+    const float eta = trk.see_eta()[seedIdx];
+    const float phi = trk.see_phi()[seedIdx];
 
     // Getting hit indices and types
     std::vector<unsigned int> hit_idx = getPixelHitIdxsFrompLS(event, pLS);
@@ -1387,6 +1390,8 @@ void createOutputBranches_v2()
     ana.tx->createBranch<vector<float>>        ("sim_vz");                          // production vertex z position (values are derived from simvtx_* and sim_parentVtxIdx branches in the tracking ntuple)
     ana.tx->createBranch<vector<float>>        ("sim_vtxperp");                     // production vertex r (sqrt(x**2 + y**2)) position (values are derived from simvtx_* and sim_parentVtxIdx branches in the tracking ntuple)
     ana.tx->createBranch<vector<float>>        ("sim_trkNtupIdx");                  // idx of sim_* in the tracking ntuple (N.B. this may be redundant)
+    ana.tx->createBranch<vector<int>>          ("sim_tcIdxBest");                   // idx to the best match (highest nhit match) tc_* container
+    ana.tx->createBranch<vector<float>>        ("sim_tcIdxBestFrac");               // match fraction to the best match (highest nhit match) tc_* container
     ana.tx->createBranch<vector<int>>          ("sim_tcIdx");                       // idx to the best match (highest nhit match and > 75%) tc_* container
     ana.tx->createBranch<vector<vector<int>>>  ("sim_tcIdxAll");                    // list of idx to any matches (> 0%) to tc_* container
     ana.tx->createBranch<vector<vector<float>>>("sim_tcIdxAllFrac");                // list of match fraction for each match (> 0%) to tc_* container
@@ -1411,6 +1416,7 @@ void createOutputBranches_v2()
     ana.tx->createBranch<vector<vector<int>>>  ("sim_simHitLayer");                 // list of simhit's layers (N.B. layer is numbered 1 2 3 4 5 6 for barrel, 7 8 9 10 11 for endcaps)
     ana.tx->createBranch<vector<vector<float>>>("sim_simHitDistxyHelix");           // list of simhit's distance in xy-plane to the expected point based on simhit's z position and helix formed from pt,eta,phi,vx,vy,vz,q of the simulated track
     ana.tx->createBranch<vector<vector<float>>>("sim_simHitLayerMinDistxyHelix");   // length of 11 float numbers with min(simHitDistxyHelix) value for each layer. Useful for finding e.g. "sim tracks that traversed barrel detector entirelyand left a reasonable hit in layer 1 2 3 4 5 6 layers."
+    ana.tx->createBranch<vector<vector<float>>>("sim_simHitLayerMinDistxyPrevHit"); // length of 11 float numbers with min(simHitDistxyHelix) value for each layer. Useful for finding e.g. "sim tracks that traversed barrel detector entirelyand left a reasonable hit in layer 1 2 3 4 5 6 layers."
     ana.tx->createBranch<vector<vector<float>>>("sim_recoHitX");                    // list of recohit's X positions
     ana.tx->createBranch<vector<vector<float>>>("sim_recoHitY");                    // list of recohit's Y positions
     ana.tx->createBranch<vector<vector<float>>>("sim_recoHitZ");                    // list of recohit's Z positions
@@ -1640,7 +1646,9 @@ void fillOutputBranches_v2(SDL::Event* event)
         std::vector<float> recoHitY;
         std::vector<float> recoHitZ;
         std::vector<int> recoHitDetId;
-        std::vector<float> simHitLayerMiniDistxyHelix(11, 999);
+        std::vector<float> simHitLayerMinDistxyHelix(11, 999);
+
+        std::vector<std::vector<int>> simHitIdxs(11);
 
         // Loop over the simhits (truth hits)
         for (size_t isimhit = 0; isimhit < trk.sim_simHitIdx()[isimtrk].size(); ++isimhit)
@@ -1666,6 +1674,10 @@ void fillOutputBranches_v2(SDL::Event* event)
             if (subdet == 4 or subdet == 5) // this is not an outer tracker hit
                 layer = trk.simhit_layer()[isimhitidx] + 6 * (is_endcap); // this accounting makes it so that you have layer 1 2 3 4 5 6 in the barrel, and 7 8 9 10 11 in the endcap. (becuase endcap is ph2_subdet == 4)
 
+            // keep track of isimhits in each layers so we can compute mindistxy from previous hit in previous layer
+            if (subdet == 4 or subdet == 5)
+                simHitIdxs[layer-1].push_back(isimhitidx);
+
             // For this hit, now we push back to the vector that we are keeping track of
             simHitLayer.push_back(layer);
             simHitDistxyHelix.push_back(distxyconsistent);
@@ -1690,16 +1702,63 @@ void fillOutputBranches_v2(SDL::Event* event)
 
             // If it is a outer tracker hit, then we keep track of out of the 11 layers, what is the minimum "DistxyHelix" (distance to the expected point in the helix in xy)
             // This variable will have a fixed 11 float numbers, and using this to restrict "at least one hit that is not too far from the expected helix" can be useful to select some interesting denominator tracks.
-            if (distxyconsistent < simHitLayerMiniDistxyHelix[layer-1])
+            if (distxyconsistent < simHitLayerMinDistxyHelix[layer-1])
             {
-                simHitLayerMiniDistxyHelix[layer-1] = distxyconsistent;
+                simHitLayerMinDistxyHelix[layer-1] = distxyconsistent;
             }
         }
+
+        std::vector<float> simHitLayerMinDistxyHelixPrevHit(11, 999);
+        std::vector<float> simHitLayeriSimHitMinDixtxyHelixPrevHit(11, -999);
+
+        // // The algorithm will be to start with the main helix from the sim information and get the isimhit with least distxy.
+        // // Then, from that you find the min distxy and repeat
+        // for (int ilogicallayer = 0; ilogicallayer < 11; ++ilogicallayer)
+        // {
+        //     int ilayer = ilogicallayer - 1;
+
+        //     float prev_pt, prev_eta, prev_phi, prev_vx, prev_vy, prev_vz;
+
+        //     if (ilayer == 0)
+        //     {
+        //         prev_pt = pt;
+        //         prev_eta = eta;
+        //         prev_phi = phi;
+        //         prev_vx = vx;
+        //         prev_vy = vy;
+        //         prev_vz = vz;
+        //     }
+        //     else
+        //     {
+        //         int isimhitidx = simHitLayeriSimHitMinDixtxyHelixPrevHit[ilayer - 1];
+        //         TVector3 pp(trk.simhit_px()[isimhitidx], trk.simhit_py()[isimhitidx], trk.simhit_pz()[isimhitidx]);
+        //         prev_pt = pp.Pt();
+        //         prev_eta = pp.Eta();
+        //         prev_phi = pp.Phi();
+        //         prev_vx = trk.simhit_x()[isimhitidx];
+        //         prev_vy = trk.simhit_y()[isimhitidx];
+        //         prev_vz = trk.simhit_z()[isimhitidx];
+        //     }
+
+        //     SDLMath::Helix prev_helix(prev_pt, prev_eta, prev_phi, prev_vx, prev_vy, prev_vz, charge);
+
+        //     for (int isimhit = 0; isimhit < simHitIdxs[ilayer].size(); ++isimhit)
+        //     {
+        //         int isimhitidx = simHitIdxs[ilayer][isimhit];
+        //         float distxyconsistent = distxySimHitConsistentWithHelix(prev_helix, isimhitidx);
+        //         if (simHitLayerMinDistxyHelixPrevHit[ilayer] > distxyconsistent)
+        //         {
+        //             simHitLayerMinDistxyHelixPrevHit[ilayer] = distxyconsistent;
+        //             simHitLayeriSimHitMinDixtxyHelixPrevHit[ilayer] = isimhitidx;
+        //         }
+        //     }
+        // }
 
         // Now we fill the branch
         ana.tx->pushbackToBranch<vector<int>>  ("sim_simHitLayer", simHitLayer);
         ana.tx->pushbackToBranch<vector<float>>("sim_simHitDistxyHelix", simHitDistxyHelix);
-        ana.tx->pushbackToBranch<vector<float>>("sim_simHitLayerMinDistxyHelix", simHitLayerMiniDistxyHelix);
+        ana.tx->pushbackToBranch<vector<float>>("sim_simHitLayerMinDistxyHelix", simHitLayerMinDistxyHelix);
+        ana.tx->pushbackToBranch<vector<float>>("sim_simHitLayerMinDistxyPrevHit", simHitLayerMinDistxyHelixPrevHit);
         ana.tx->pushbackToBranch<vector<float>>("sim_simHitX", simHitX);
         ana.tx->pushbackToBranch<vector<float>>("sim_simHitY", simHitY);
         ana.tx->pushbackToBranch<vector<float>>("sim_simHitZ", simHitZ);
@@ -2328,14 +2387,10 @@ void fillOutputBranches_v2(SDL::Event* event)
             std::vector<int> simidx;
             std::vector<float> simidxfrac;
             std::tie(simidx, simidxfrac) = matchedSimTrkIdxsAndFracs(hit_idx, hit_type, false, 0);
-            // // Computing line segment pt estimate (assuming beam spot is at zero)
-            float pt = segmentsInGPU.ptIn[ipLS];
-            float eta = segmentsInGPU.eta[ipLS];
-            float phi = segmentsInGPU.phi[ipLS];
             int seedIdx = segmentsInGPU.seedIdx[ipLS];
-            ana.tx->pushbackToBranch<float>("pls_pt", pt);
-            ana.tx->pushbackToBranch<float>("pls_eta", eta);
-            ana.tx->pushbackToBranch<float>("pls_phi", phi);
+            ana.tx->pushbackToBranch<float>("pls_pt", trk.see_pt()[seedIdx]);
+            ana.tx->pushbackToBranch<float>("pls_eta", trk.see_eta()[seedIdx]);
+            ana.tx->pushbackToBranch<float>("pls_phi", trk.see_phi()[seedIdx]);
             ana.tx->pushbackToBranch<int>("pls_nhit", hit_idx.size());
             for (size_t ihit = 0; ihit < trk.see_hitIdx()[seedIdx].size(); ++ihit)
             {
@@ -2839,21 +2894,23 @@ void fillOutputBranches_v2(SDL::Event* event)
     // TODO: Is this redundant? I am not sure if it is guaranteed that sim_tcIdx will have same result with tc_simIdx.
     // I think it will be, but I have not rigorously checked. I only checked about first few thousands and it was all true. as long as tc->sim was pointing to a sim that is among the n_accepted.
     // For the most part I think this won't be a problem.
-    for (size_t i = 0; i < sim_tcIdxAll.size(); ++ i)
+    for (size_t i = 0; i < sim_tcIdxAll_to_write.size(); ++ i)
     {
         // bestmatch is not always the first one
         int bestmatch_idx = -999;
         float bestmatch_frac = -999;
-        for (size_t jj = 0; jj < sim_tcIdxAll.at(i).size(); ++jj)
+        for (size_t jj = 0; jj < sim_tcIdxAll_to_write.at(i).size(); ++jj)
         {
-            int idx = sim_tcIdxAll.at(i).at(jj);
-            float frac = sim_tcIdxAllFrac.at(i).at(jj);
+            int idx = sim_tcIdxAll_to_write.at(i).at(jj);
+            float frac = sim_tcIdxAllFrac_to_write.at(i).at(jj);
             if (bestmatch_frac < frac)
             {
                 bestmatch_idx = idx;
                 bestmatch_frac = frac;
             }
         }
+        ana.tx->pushbackToBranch<int>("sim_tcIdxBest", bestmatch_idx);
+        ana.tx->pushbackToBranch<float>("sim_tcIdxBestFrac", bestmatch_frac);
         if (bestmatch_frac > 0.75) // then this is a good match according to MTV
             ana.tx->pushbackToBranch<int>("sim_tcIdx", bestmatch_idx);
         else
