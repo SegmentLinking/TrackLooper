@@ -97,6 +97,7 @@ void createOptionalOutputBranches()
     ana.tx->createBranch<vector<float>>("pT3_pixelRadius");
     ana.tx->createBranch<vector<float>>("pT3_pixelRadiusError");
     ana.tx->createBranch<vector<vector<float>>>("pT3_matched_pt");
+    ana.tx->createBranch<vector<float>>("pT3_residual");
     ana.tx->createBranch<vector<float>>("pT3_tripletRadius");
     ana.tx->createBranch<vector<float>>("pT3_rPhiChiSquared");
     ana.tx->createBranch<vector<float>>("pT3_rPhiChiSquaredInwards");
@@ -555,6 +556,7 @@ void setPixelTripletOutputBranches(SDL::Event<SDL::Acc>* event)
 {
     SDL::pixelTripletsBuffer<alpaka::DevCpu>& pixelTripletsInGPU = (*event->getPixelTriplets());
     SDL::tripletsBuffer<alpaka::DevCpu>& tripletsInGPU = *(event->getTriplets());
+    SDL::miniDoubletsBuffer<alpaka::DevCpu>& miniDoubletsInGPU = *(event->getMiniDoublets());
     SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = *(event->getModules());
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = *(event->getSegments());
     SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = *(event->getHits());
@@ -568,12 +570,27 @@ void setPixelTripletOutputBranches(SDL::Event<SDL::Acc>* event)
     {
         unsigned int T3Index = getT3FrompT3(event, pT3);
         unsigned int pLSIndex = getPixelLSFrompT3(event, pT3);
-        const float pt = segmentsInGPU.ptIn[pLSIndex];
+        std::vector<unsigned int> mdIndices = getMDsFromT3(event, T3Index);
+        // std::cout << mdIndices[0] << " " << mdIndices[1] << " " << mdIndices[2] << std::endl;
 
+        const float pt = segmentsInGPU.ptIn[pLSIndex];
         float eta = segmentsInGPU.eta[pLSIndex];
         float phi = segmentsInGPU.phi[pLSIndex];
         std::vector<unsigned int> hit_idx = getHitIdxsFrompT3(event, pT3);
         std::vector<unsigned int> hit_type = getHitTypesFrompT3(event, pT3);
+
+        const float r1 = __H2F(miniDoubletsInGPU.anchorRt[mdIndices[0]]);
+        const float r2 = __H2F(miniDoubletsInGPU.anchorRt[mdIndices[1]]);
+        const float r3 = __H2F(miniDoubletsInGPU.anchorRt[mdIndices[2]]);
+
+        const float z1 = __H2F(miniDoubletsInGPU.anchorZ[mdIndices[0]]);
+        const float z2 = __H2F(miniDoubletsInGPU.anchorZ[mdIndices[1]]);
+        const float z3 = __H2F(miniDoubletsInGPU.anchorZ[mdIndices[2]]);
+
+        std::cout << "r1: " << r1 << " r2: " << r2 << " r3: " << r3 << std::endl;
+        std::cout << "z1: " << z1 << " z2: " << z2 << " z3: " << z3 << std::endl;
+
+        const float residual = z2 - ((z3 - z1) / (r3 - r1) * (r2 - r1) + z1);
 
         std::vector<int> simidx = matchedSimTrkIdxs(hit_idx, hit_type);
         std::vector<unsigned int> module_idx = getModuleIdxsFrompT3(event, pT3);
@@ -588,6 +605,7 @@ void setPixelTripletOutputBranches(SDL::Event<SDL::Acc>* event)
         ana.tx->pushbackToBranch<float>("pT3_pt", pt);
         ana.tx->pushbackToBranch<float>("pT3_eta", eta);
         ana.tx->pushbackToBranch<float>("pT3_phi", phi);
+        ana.tx->pushbackToBranch<float>("pT3_residual", residual);
         ana.tx->pushbackToBranch<int>("pT3_layer_binary", layer_binary);
         ana.tx->pushbackToBranch<int>("pT3_moduleType_binary", moduleType_binary);
 
