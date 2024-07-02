@@ -22,6 +22,7 @@ void setOutputBranches(SDL::Event<SDL::Acc>* event);
 void setOptionalOutputBranches(SDL::Event<SDL::Acc>* event);
 void setOccupancyBranches(SDL::Event<SDL::Acc>* event);
 void setPixelQuintupletOutputBranches(SDL::Event<SDL::Acc>* event);
+void setTripletOutputBranches(SDL::Event<SDL::Acc>* event);
 void setQuintupletOutputBranches(SDL::Event<SDL::Acc>* event);
 void setPixelTripletOutputBranches(SDL::Event<SDL::Acc> *event);
 void setGnnNtupleBranches(SDL::Event<SDL::Acc>* event);

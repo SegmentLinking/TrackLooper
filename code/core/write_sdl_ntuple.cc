@@ -97,7 +97,6 @@ void createOptionalOutputBranches()
     ana.tx->createBranch<vector<float>>("pT3_pixelRadius");
     ana.tx->createBranch<vector<float>>("pT3_pixelRadiusError");
     ana.tx->createBranch<vector<vector<float>>>("pT3_matched_pt");
-    ana.tx->createBranch<vector<float>>("pT3_residual");
     ana.tx->createBranch<vector<float>>("pT3_tripletRadius");
     ana.tx->createBranch<vector<float>>("pT3_rPhiChiSquared");
     ana.tx->createBranch<vector<float>>("pT3_rPhiChiSquaredInwards");
@@ -136,6 +135,9 @@ void createOptionalOutputBranches()
     ana.tx->createBranch<vector<float>>("t5_chiSquared");
     ana.tx->createBranch<vector<float>>("t5_rzChiSquared");
     ana.tx->createBranch<vector<float>>("t5_nonAnchorChiSquared");
+
+    // T3 branches
+    ana.tx->createBranch<vector<float>>("T3_residual");
 
     // Occupancy branches
     ana.tx->createBranch<vector<int>>("module_layers");
@@ -315,6 +317,7 @@ void setOptionalOutputBranches(SDL::Event<SDL::Acc>* event)
     setPixelQuintupletOutputBranches(event);
     setQuintupletOutputBranches(event);
     setPixelTripletOutputBranches(event);
+    setTripletOutputBranches(event);
     setOccupancyBranches(event);
 
 #endif
@@ -552,10 +555,27 @@ void setQuintupletOutputBranches(SDL::Event<SDL::Acc>* event)
 }
 
 //________________________________________________________________________________________________________________________________
+void setTripletOutputBranches(SDL::Event<SDL::Acc>* event) {
+    SDL::tripletsBuffer<alpaka::DevCpu>& tripletsInGPU = (*event->getTriplets());
+    SDL::objectRangesBuffer<alpaka::DevCpu>& rangesInGPU = (*event->getRanges());
+    SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = (*event->getModules());
+    for (unsigned int lowerModuleIdx = 0; lowerModuleIdx < *(modulesInGPU.nLowerModules); ++lowerModuleIdx)
+    {
+        unsigned int nTriplets = tripletsInGPU.nTriplets[lowerModuleIdx];
+        for (unsigned int idx = 0; idx < nTriplets; idx++)
+        {
+            unsigned int tripletIndex = rangesInGPU.tripletModuleIndices[lowerModuleIdx] + idx;
+            const float residual = tripletsInGPU.residual[tripletIndex];
+            ana.tx->pushbackToBranch<float>("T3_residual", residual);
+        }
+    }
+}
+
+
+//________________________________________________________________________________________________________________________________
 void setPixelTripletOutputBranches(SDL::Event<SDL::Acc>* event)
 {
     SDL::pixelTripletsBuffer<alpaka::DevCpu>& pixelTripletsInGPU = (*event->getPixelTriplets());
-    SDL::tripletsBuffer<alpaka::DevCpu>& tripletsInGPU = *(event->getTriplets());
     SDL::modulesBuffer<alpaka::DevCpu>& modulesInGPU = *(event->getModules());
     SDL::segmentsBuffer<alpaka::DevCpu>& segmentsInGPU = *(event->getSegments());
     SDL::hitsBuffer<alpaka::DevCpu>& hitsInGPU = *(event->getHits());
@@ -567,17 +587,13 @@ void setPixelTripletOutputBranches(SDL::Event<SDL::Acc>* event)
 
     for (unsigned int pT3 = 0; pT3 < nPixelTriplets; pT3++)
     {
-        unsigned int T3Index = getT3FrompT3(event, pT3);
         unsigned int pLSIndex = getPixelLSFrompT3(event, pT3);
 
         const float pt = segmentsInGPU.ptIn[pLSIndex];
         float eta = segmentsInGPU.eta[pLSIndex];
         float phi = segmentsInGPU.phi[pLSIndex];
         std::vector<unsigned int> hit_idx = getHitIdxsFrompT3(event, pT3);
-        std::vector<unsigned int> hit_type = getHitTypesFrompT3(event, pT3);
-
-        const float residual = tripletsInGPU.residual[T3Index];
-        
+        std::vector<unsigned int> hit_type = getHitTypesFrompT3(event, pT3);        
         std::vector<int> simidx = matchedSimTrkIdxs(hit_idx, hit_type);
         std::vector<unsigned int> module_idx = getModuleIdxsFrompT3(event, pT3);
         int layer_binary = 1;
@@ -591,7 +607,6 @@ void setPixelTripletOutputBranches(SDL::Event<SDL::Acc>* event)
         ana.tx->pushbackToBranch<float>("pT3_pt", pt);
         ana.tx->pushbackToBranch<float>("pT3_eta", eta);
         ana.tx->pushbackToBranch<float>("pT3_phi", phi);
-        ana.tx->pushbackToBranch<float>("pT3_residual", residual);
         ana.tx->pushbackToBranch<int>("pT3_layer_binary", layer_binary);
         ana.tx->pushbackToBranch<int>("pT3_moduleType_binary", moduleType_binary);
 
