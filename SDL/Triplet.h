@@ -44,6 +44,7 @@ namespace SDL {
     float* betaInCut;
     float* rtLo;
     float* rtHi;
+    float* residual;
 #endif
     template <typename TBuff>
     void setData(TBuff& tripletsbuf) {
@@ -74,6 +75,7 @@ namespace SDL {
       betaInCut = alpaka::getPtrNative(tripletsbuf.betaInCut_buf);
       rtLo = alpaka::getPtrNative(tripletsbuf.rtLo_buf);
       rtHi = alpaka::getPtrNative(tripletsbuf.rtHi_buf);
+      residual = alpaka::getPtrNative(tripletsbuf.residual_buf);
 #endif
     }
   };
@@ -108,6 +110,7 @@ namespace SDL {
     Buf<TDev, float> betaInCut_buf;
     Buf<TDev, float> rtLo_buf;
     Buf<TDev, float> rtHi_buf;
+    Buf<TDev, float> residual_buf;
 #endif
 
     template <typename TQueue, typename TDevAcc>
@@ -139,7 +142,8 @@ namespace SDL {
           sdlCut_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
           betaInCut_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
           rtLo_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
-          rtHi_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue))
+          rtHi_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue)),
+          residual_buf(allocBufWrapper<float>(devAccIn, maxTriplets, queue))
 #endif
     {
       alpaka::memset(queue, nTriplets_buf, 0u);
@@ -172,6 +176,7 @@ namespace SDL {
                                                          float& zHi,
                                                          float& rtLo,
                                                          float& rtHi,
+                                                         float& residual,
                                                          float& zLoPointed,
                                                          float& zHiPointed,
                                                          float& sdlCut,
@@ -234,6 +239,7 @@ namespace SDL {
     tripletsInGPU.zHiPointed[tripletIndex] = zHiPointed;
     tripletsInGPU.sdlCut[tripletIndex] = sdlCut;
     tripletsInGPU.betaInCut[tripletIndex] = betaInCut;
+    tripletsInGPU.residual[tripletIndex] = residual;
 #endif
   };
 
@@ -247,7 +253,8 @@ namespace SDL {
                                                        uint16_t& outerOuterLowerModuleIndex,
                                                        unsigned int& firstMDIndex,
                                                        unsigned int& secondMDIndex,
-                                                       unsigned int& thirdMDIndex) {
+                                                       unsigned int& thirdMDIndex,
+                                                       float& residual) {
     //get the rt and z
     const float& r1 = mdsInGPU.anchorRt[firstMDIndex];
     const float& r2 = mdsInGPU.anchorRt[secondMDIndex];
@@ -262,7 +269,7 @@ namespace SDL {
     const int layer2 = modulesInGPU.sdlLayers[middleLowerModuleIndex];
     const int layer3 = modulesInGPU.sdlLayers[outerOuterLowerModuleIndex];
 
-    const float residual = z2 - ((z3 - z1) / (r3 - r1) * (r2 - r1) + z1);
+    residual = z2 - ((z3 - z1) / (r3 - r1) * (r2 - r1) + z1);
 
     if (layer1 == 12 and layer2 == 13 and layer3 == 14) {
       return false;
@@ -815,6 +822,7 @@ namespace SDL {
                                                                    float& zHi,
                                                                    float& rtLo,
                                                                    float& rtHi,
+                                                                   float& residual,
                                                                    float& zLoPointed,
                                                                    float& zHiPointed,
                                                                    float& sdlCut,
@@ -837,7 +845,8 @@ namespace SDL {
                                       outerOuterLowerModuleIndex,
                                       firstMDIndex,
                                       secondMDIndex,
-                                      thirdMDIndex));
+                                      thirdMDIndex,
+                                      residual));
     if (not pass)
       return pass;
     pass = pass and (passPointingConstraint(acc,
@@ -912,7 +921,7 @@ namespace SDL {
             uint16_t outerOuterLowerModuleIndex = segmentsInGPU.outerLowerModuleIndices[outerSegmentIndex];
 
             float zOut, rtOut, deltaPhiPos, deltaPhi, betaIn, circleRadius, circleCenterX, circleCenterY;
-            float zLo, zHi, rtLo, rtHi, zLoPointed, zHiPointed, sdlCut, betaInCut;
+            float zLo, zHi, rtLo, rtHi, residual, zLoPointed, zHiPointed, sdlCut, betaInCut;
 
             bool success = runTripletConstraintsAndAlgo(acc,
                                                         modulesInGPU,
@@ -935,6 +944,7 @@ namespace SDL {
                                                         zHi,
                                                         rtLo,
                                                         rtHi,
+                                                        residual,
                                                         zLoPointed,
                                                         zHiPointed,
                                                         sdlCut,
@@ -975,6 +985,7 @@ namespace SDL {
                                    zHi,
                                    rtLo,
                                    rtHi,
+                                   residual,
                                    zLoPointed,
                                    zHiPointed,
                                    sdlCut,
