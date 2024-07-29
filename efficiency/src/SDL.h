@@ -188,6 +188,19 @@ protected:
   vector<float> *md_phi_;
   TBranch *md_phi_branch;
   bool md_phi_isLoaded;
+
+#ifdef OUTPUT_MD_CUTS
+  vector<float> *md_dphi_;
+  TBranch *md_dphi_branch;
+  bool md_dphi_isLoaded;
+  vector<float> *md_dphichange_;
+  TBranch *md_dphichange_branch;
+  bool md_dphichange_isLoaded;
+  vector<float> *md_dz_;
+  TBranch *md_dz_branch;
+  bool md_dz_isLoaded;
+#endif
+
   vector<float> *md_anchor_x_;
   TBranch *md_anchor_x_branch;
   bool md_anchor_x_isLoaded;
@@ -248,6 +261,51 @@ protected:
   vector<int> *ls_simIdx_;
   TBranch *ls_simIdx_branch;
   bool ls_simIdx_isLoaded;
+
+#ifdef OUTPUT_LS_CUTS
+  vector<int> *ls_zLos_;
+  TBranch *ls_zLos_branch;
+  bool ls_zLos_isLoaded;
+  vector<int> *ls_zHis_;
+  TBranch *ls_zHis_branch;
+  bool ls_zHis_isLoaded;
+  vector<int> *ls_rtLos_;
+  TBranch *ls_rtLos_branch;
+  bool ls_rtLos_isLoaded;
+  vector<int> *ls_rtHis_;
+  TBranch *ls_rtHis_branch;
+  bool ls_rtHis_isLoaded;
+  vector<int> *ls_dPhis_;
+  TBranch *ls_dPhis_branch;
+  bool ls_dPhis_isLoaded;
+  vector<int> *ls_dPhiMins_;
+  TBranch *ls_dPhiMins_branch;
+  bool ls_dPhiMins_isLoaded;
+  vector<int> *ls_dPhiMaxs_;
+  TBranch *ls_dPhiMaxs_branch;
+  bool ls_dPhiMaxs_isLoaded;
+  vector<int> *ls_dPhiChanges_;
+  TBranch *ls_dPhiChanges_branch;
+  bool ls_dPhiChanges_isLoaded;
+  vector<int> *ls_dPhiChangeMins_;
+  TBranch *ls_dPhiChangeMins_branch;
+  bool ls_dPhiChangeMins_isLoaded;
+  vector<int> *ls_dPhiChangeMaxs_;
+  TBranch *ls_dPhiChangeMaxs_branch;
+  bool ls_dPhiChangeMaxs_isLoaded;
+  vector<int> *ls_dAlphaInners_;
+  TBranch *ls_dAlphaInners_branch;
+  bool ls_dAlphaInners_isLoaded;
+  vector<int> *ls_dAlphaOuters_;
+  TBranch *ls_dAlphaOuters_branch;
+  bool ls_dAlphaOuters_isLoaded;
+  vector<int> *ls_dAlphaInnerOuters_;
+  TBranch *ls_dAlphaInnerOuters_branch;
+  bool ls_dAlphaInnerOuters_isLoaded;
+#endif
+
+
+
   vector<vector<int> > *ls_simIdxAll_;
   TBranch *ls_simIdxAll_branch;
   bool ls_simIdxAll_isLoaded;
@@ -497,6 +555,13 @@ public:
   const vector<float> &md_pt();
   const vector<float> &md_eta();
   const vector<float> &md_phi();
+
+  #ifdef OUTPUT_MD_CUTS
+  const vector<float> &md_dphi();
+  const vector<float> &md_dphichange();
+  const vector<float> &md_dz();
+  #endif
+
   const vector<float> &md_anchor_x();
   const vector<float> &md_anchor_y();
   const vector<float> &md_anchor_z();
@@ -517,6 +582,25 @@ public:
   const vector<int> &ls_mdIdx1();
   const vector<int> &ls_isFake();
   const vector<int> &ls_simIdx();
+
+  #ifdef OUTPUT_LS_CUTS
+  const vector<int> &ls_zLos();
+  const vector<int> &ls_zHis();
+  const vector<int> &ls_rtLos();
+  const vector<int> &ls_rtHis();
+  const vector<int> &ls_dPhis();
+  const vector<int> &ls_dPhiMins();
+  const vector<int> &ls_dPhiMaxs();
+  const vector<int> &ls_dPhiChanges();
+  const vector<int> &ls_dPhiChangeMins();
+  const vector<int> &ls_dPhiChangeMaxs();
+  const vector<int> &ls_dAlphaInners();
+  const vector<int> &ls_dAlphaOuters();
+  const vector<int> &ls_dAlphaInnerOuters();
+  #endif
+
+
+
   const vector<vector<int> > &ls_simIdxAll();
   const vector<vector<float> > &ls_simIdxAllFrac();
   const vector<float> &t3_pt();
@@ -645,6 +729,14 @@ namespace tas {
   const vector<float> &md_pt();
   const vector<float> &md_eta();
   const vector<float> &md_phi();
+
+  #ifdef OUTPUT_MD_CUTS
+  const vector<float> &md_pt();
+  const vector<float> &md_eta();
+  const vector<float> &md_phi();
+  #endif
+
+
   const vector<float> &md_anchor_x();
   const vector<float> &md_anchor_y();
   const vector<float> &md_anchor_z();
@@ -665,6 +757,22 @@ namespace tas {
   const vector<int> &ls_mdIdx1();
   const vector<int> &ls_isFake();
   const vector<int> &ls_simIdx();
+  #ifdef OUTPUT_LS_CUTS
+  const vector<int> &ls_zLos();
+  const vector<int> &ls_zHis();
+  const vector<int> &ls_rtLos();
+  const vector<int> &ls_rtHis();
+  const vector<int> &ls_dPhis();
+  const vector<int> &ls_dPhiMins();
+  const vector<int> &ls_dPhiMaxs();
+  const vector<int> &ls_dPhiChanges();
+  const vector<int> &ls_dPhiChangeMins();
+  const vector<int> &ls_dPhiChangeMaxs();
+  const vector<int> &ls_dAlphaInners();
+  const vector<int> &ls_dAlphaOuters();
+  const vector<int> &ls_dAlphaInnerOuters();
+  #endif
+  
   const vector<vector<int> > &ls_simIdxAll();
   const vector<vector<float> > &ls_simIdxAllFrac();
   const vector<float> &t3_pt();
