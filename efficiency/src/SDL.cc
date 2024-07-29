@@ -283,6 +283,20 @@ void SDL::Init(TTree *tree) {
     md_phi_branch = tree->GetBranch("md_phi");
     if (md_phi_branch) { md_phi_branch->SetAddress(&md_phi_); }
   }
+  #ifdef OUTPUT_MD_CUTS
+  if (tree->GetBranch("md_dphi") != 0) {
+    md_dphi_branch = tree->GetBranch("md_dphi");
+    if (md_dphi_branch) { md_dphi_branch->SetAddress(&md_dphi_); }
+  }
+  if (tree->GetBranch("md_dphichange") != 0) {
+    md_dphichange_branch = tree->GetBranch("md_dphichange");
+    if (md_dphichange_branch) { md_dphichange_branch->SetAddress(&md_dphichange_); }
+  }
+  if (tree->GetBranch("md_dz") != 0) {
+    md_dz_branch = tree->GetBranch("md_dz");
+    if (md_dz_branch) { md_dz_branch->SetAddress(&md_dz_); }
+  }
+
   md_anchor_x_branch = 0;
   if (tree->GetBranch("md_anchor_x") != 0) {
     md_anchor_x_branch = tree->GetBranch("md_anchor_x");
@@ -382,6 +396,66 @@ void SDL::Init(TTree *tree) {
   if (tree->GetBranch("ls_simIdx") != 0) {
     ls_simIdx_branch = tree->GetBranch("ls_simIdx");
     if (ls_simIdx_branch) { ls_simIdx_branch->SetAddress(&ls_simIdx_); }
+  }
+  ls_zLos_branch = 0;
+  if (tree->GetBranch("ls_zLos") != 0) {
+    ls_zLos_branch = tree->GetBranch("ls_zLos");
+    if (ls_zLos_branch) { ls_zLos_branch->SetAddress(&ls_zLos_); }
+  }
+  ls_zHis_branch = 0;
+  if (tree->GetBranch("ls_zHis") != 0) {
+    ls_zHis_branch = tree->GetBranch("ls_zHis");
+    if (ls_zHis_branch) { ls_zHis_branch->SetAddress(&ls_zHis_); }
+  }
+  ls_rtLos_branch = 0;
+  if (tree->GetBranch("ls_rtLos") != 0) {
+    ls_rtLos_branch = tree->GetBranch("ls_rtLos");
+    if (ls_rtLos_branch) { ls_rtLos_branch->SetAddress(&ls_rtLos_); }
+  }
+  ls_dPhis_branch = 0;
+  if (tree->GetBranch("ls_dPhis") != 0) {
+    ls_dPhis_branch = tree->GetBranch("ls_dPhis");
+    if (ls_dPhis_branch) { ls_dPhis_branch->SetAddress(&ls_dPhis_); }
+  }
+  ls_dPhiMins_branch = 0;
+  if (tree->GetBranch("ls_dPhiMins") != 0) {
+    ls_dPhiMins_branch = tree->GetBranch("ls_dPhiMins");
+    if (ls_dPhiMins_branch) { ls_dPhiMins_branch->SetAddress(&ls_dPhiMins_); }
+  }
+  ls_dPhiMaxs_branch = 0;
+  if (tree->GetBranch("ls_dPhiMaxs") != 0) {
+    ls_dPhiMaxs_branch = tree->GetBranch("ls_dPhiMaxs");
+    if (ls_dPhiMaxs_branch) { ls_dPhiMaxs_branch->SetAddress(&ls_dPhiMaxs_); }
+  }
+  ls_dPhiChanges_branch = 0;
+  if (tree->GetBranch("ls_dPhiChanges") != 0) {
+    ls_dPhiChanges_branch = tree->GetBranch("ls_dPhiChanges");
+    if (ls_dPhiChanges_branch) { ls_dPhiChanges_branch->SetAddress(&ls_dPhiChanges_); }
+  }
+  ls_dPhiChangeMins_branch = 0;
+  if (tree->GetBranch("ls_dPhiChangeMins") != 0) {
+    ls_dPhiChangeMins_branch = tree->GetBranch("ls_dPhiChangeMins");
+    if (ls_dPhiChangeMins_branch) { ls_dPhiChangeMins_branch->SetAddress(&ls_dPhiChangeMins_); }
+  }
+  ls_dPhiChangeMaxs_branch = 0;
+  if (tree->GetBranch("ls_dPhiChangeMaxs") != 0) {
+    ls_dPhiChangeMaxs_branch = tree->GetBranch("ls_dPhiChangeMaxs");
+    if (ls_dPhiChangeMaxs_branch) { ls_dPhiChangeMaxs_branch->SetAddress(&ls_dPhiChangeMaxs_); }
+  }
+  ls_dAlphaInners_branch = 0;
+  if (tree->GetBranch("ls_dAlphaInners") != 0) {
+    ls_dAlphaInners_branch = tree->GetBranch("ls_dAlphaInners");
+    if (ls_dAlphaInners_branch) { ls_dAlphaInners_branch->SetAddress(&ls_dAlphaInners_); }
+  }
+  ls_dAlphaOuters_branch = 0;
+  if (tree->GetBranch("ls_dAlphaOuters") != 0) {
+    ls_dAlphaOuters_branch = tree->GetBranch("ls_dAlphaOuters");
+    if (ls_dAlphaOuters_branch) { ls_dAlphaOuters_branch->SetAddress(&ls_dAlphaOuters_); }
+  }
+  ls_dAlphaInnerOuters_branch = 0;
+  if (tree->GetBranch("ls_dAlphaInnerOuters") != 0) {
+    ls_dAlphaInnerOuters_branch = tree->GetBranch("ls_dAlphaInnerOuters");
+    if (ls_dAlphaInnerOuters_branch) { ls_dAlphaInnerOuters_branch->SetAddress(&ls_dAlphaInnerOuters_); }
   }
   ls_simIdxAll_branch = 0;
   if (tree->GetBranch("ls_simIdxAll") != 0) {

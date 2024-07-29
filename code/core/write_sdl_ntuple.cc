@@ -1470,9 +1470,6 @@ void createOutputBranches_v2()
     ana.tx->createBranch<vector<float>>        ("md_dz"); 
 #endif
     
-    
-    
-    
     ana.tx->createBranch<vector<float>>        ("md_anchor_x");              // anchor hit x
     ana.tx->createBranch<vector<float>>        ("md_anchor_y");              // anchor hit y
     ana.tx->createBranch<vector<float>>        ("md_anchor_z");              // anchor hit z
@@ -1499,6 +1496,7 @@ void createOutputBranches_v2()
     ana.tx->createBranch<vector<int>>          ("ls_mdIdx1");                // index to the second MD
     ana.tx->createBranch<vector<int>>          ("ls_isFake");                // 1 if md is fake 0 other if not
     ana.tx->createBranch<vector<int>>          ("ls_simIdx");                // idx of best matched (highest nhit and > 75%) simulated track
+
 #ifdef OUTPUT_LS_CUTS
     ana.tx->createBranch<vector<float>>        ("ls_zLos");
     ana.tx->createBranch<vector<float>>        ("ls_zHis");
@@ -1513,8 +1511,8 @@ void createOutputBranches_v2()
     ana.tx->createBranch<vector<float>>        ("ls_dAlphaInners");
     ana.tx->createBranch<vector<float>>        ("ls_dAlphaOuters");
     ana.tx->createBranch<vector<float>>        ("ls_dAlphaInnerOuters");
-
-#endif        
+#endif   
+     
     ana.tx->createBranch<vector<vector<int>>>  ("ls_simIdxAll");             // list of idx of all matched (> 0%) simulated track
     ana.tx->createBranch<vector<vector<float>>>("ls_simIdxAllFrac");         // list of idx of all matched (> 0%) simulated track
 
