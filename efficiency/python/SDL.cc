@@ -283,6 +283,25 @@ void SDL::Init(TTree *tree) {
     md_phi_branch = tree->GetBranch("md_phi");
     if (md_phi_branch) { md_phi_branch->SetAddress(&md_phi_); }
   }
+  
+#ifdef OUTPUT_MD_CUTS
+  md_dphi_branch = 0;
+  if (tree->GetBranch("md_dphi") != 0) {
+    md_dphi_branch = tree->GetBranch("md_dphi");
+    if (md_dphi_branch) { md_dphi_branch->SetAddress(&md_dphi_); }
+  }
+  md_dphichange_branch = 0;
+  if (tree->GetBranch("md_dphichange") != 0) {
+    md_dphichange_branch = tree->GetBranch("md_dphichange");
+    if (md_dphichange_branch) { md_dphichange_branch->SetAddress(&md_dphichange_); }
+  }
+  md_dz_branch = 0;
+  if (tree->GetBranch("md_dz") != 0) {
+    md_dz_branch = tree->GetBranch("md_dz");
+    if (md_dz_branch) { md_dz_branch->SetAddress(&md_dz_); }
+  }
+#endif
+
   md_anchor_x_branch = 0;
   if (tree->GetBranch("md_anchor_x") != 0) {
     md_anchor_x_branch = tree->GetBranch("md_anchor_x");
@@ -383,6 +402,70 @@ void SDL::Init(TTree *tree) {
     ls_simIdx_branch = tree->GetBranch("ls_simIdx");
     if (ls_simIdx_branch) { ls_simIdx_branch->SetAddress(&ls_simIdx_); }
   }
+
+#ifdef OUTPUT_LS_CUTS 
+  ls_zLos_branch = 0;
+  if (tree->GetBranch("ls_zLos") != 0) {
+    ls_zLos_branch = tree->GetBranch("ls_zLos");
+    if (ls_zLos_branch) { ls_zLos_branch->SetAddress(&ls_zLos_); }
+  }
+  ls_zHis_branch = 0;
+  if (tree->GetBranch("ls_zHis") != 0) {
+    ls_zHis_branch = tree->GetBranch("ls_zHis");
+    if (ls_zHis_branch) { ls_zHis_branch->SetAddress(&ls_zHis_); }
+  }
+  ls_rtLos_branch = 0;
+  if (tree->GetBranch("ls_rtLos") != 0) {
+    ls_rtLos_branch = tree->GetBranch("ls_rtLos");
+    if (ls_rtLos_branch) { ls_rtLos_branch->SetAddress(&ls_rtLos_); }
+  }
+  ls_dPhis_branch = 0;
+  if (tree->GetBranch("ls_dPhis") != 0) {
+    ls_dPhis_branch = tree->GetBranch("ls_dPhis");
+    if (ls_dPhis_branch) { ls_dPhis_branch->SetAddress(&ls_dPhis_); }
+  }
+  ls_dPhiMins_branch = 0;
+  if (tree->GetBranch("ls_dPhiMins") != 0) {
+    ls_dPhiMins_branch = tree->GetBranch("ls_dPhiMins");
+    if (ls_dPhiMins_branch) { ls_dPhiMins_branch->SetAddress(&ls_dPhiMins_); }
+  }
+  ls_dPhiMaxs_branch = 0;
+  if (tree->GetBranch("ls_dPhiMaxs") != 0) {
+    ls_dPhiMaxs_branch = tree->GetBranch("ls_dPhiMaxs");
+    if (ls_dPhiMaxs_branch) { ls_dPhiMaxs_branch->SetAddress(&ls_dPhiMaxs_); }
+  }
+  ls_dPhiChanges_branch = 0;
+  if (tree->GetBranch("ls_dPhiChanges") != 0) {
+    ls_dPhiChanges_branch = tree->GetBranch("ls_dPhiChanges");
+    if (ls_dPhiChanges_branch) { ls_dPhiChanges_branch->SetAddress(&ls_dPhiChanges_); }
+  }
+  ls_dPhiChangeMins_branch = 0;
+  if (tree->GetBranch("ls_dPhiChangeMins") != 0) {
+    ls_dPhiChangeMins_branch = tree->GetBranch("ls_dPhiChangeMins");
+    if (ls_dPhiChangeMins_branch) { ls_dPhiChangeMins_branch->SetAddress(&ls_dPhiChangeMins_); }
+  }
+  ls_dPhiChangeMaxs_branch = 0;
+  if (tree->GetBranch("ls_dPhiChangeMaxs") != 0) {
+    ls_dPhiChangeMaxs_branch = tree->GetBranch("ls_dPhiChangeMaxs");
+    if (ls_dPhiChangeMaxs_branch) { ls_dPhiChangeMaxs_branch->SetAddress(&ls_dPhiChangeMaxs_); }
+  }
+  ls_dAlphaInners_branch = 0;
+  if (tree->GetBranch("ls_dAlphaInners") != 0) {
+    ls_dAlphaInners_branch = tree->GetBranch("ls_dAlphaInners");
+    if (ls_dAlphaInners_branch) { ls_dAlphaInners_branch->SetAddress(&ls_dAlphaInners_); }
+  }
+  ls_dAlphaOuters_branch = 0;
+  if (tree->GetBranch("ls_dAlphaOuters") != 0) {
+    ls_dAlphaOuters_branch = tree->GetBranch("ls_dAlphaOuters");
+    if (ls_dAlphaOuters_branch) { ls_dAlphaOuters_branch->SetAddress(&ls_dAlphaOuters_); }
+  }
+  ls_dAlphaInnerOuters_branch = 0;
+  if (tree->GetBranch("ls_dAlphaInnerOuters") != 0) {
+    ls_dAlphaInnerOuters_branch = tree->GetBranch("ls_dAlphaInnerOuters");
+    if (ls_dAlphaInnerOuters_branch) { ls_dAlphaInnerOuters_branch->SetAddress(&ls_dAlphaInnerOuters_); }
+  }
+#endif
+
   ls_simIdxAll_branch = 0;
   if (tree->GetBranch("ls_simIdxAll") != 0) {
     ls_simIdxAll_branch = tree->GetBranch("ls_simIdxAll");
@@ -758,6 +841,11 @@ void SDL::GetEntry(unsigned int idx) {
   md_pt_isLoaded = false;
   md_eta_isLoaded = false;
   md_phi_isLoaded = false;
+  #ifdef OUTPUT_MD_CUTS
+  md_dphi_isLoaded = false;
+  md_dphichange_isLoaded = false;
+  md_dz_isLoaded = false;
+  #endif
   md_anchor_x_isLoaded = false;
   md_anchor_y_isLoaded = false;
   md_anchor_z_isLoaded = false;
@@ -777,7 +865,23 @@ void SDL::GetEntry(unsigned int idx) {
   ls_mdIdx0_isLoaded = false;
   ls_mdIdx1_isLoaded = false;
   ls_isFake_isLoaded = false;
-  ls_simIdx_isLoaded = false;
+
+  #ifdef OUTPUT_LS_CUTS
+  ls_zLos_isLoaded = false;
+  ls_zHis_isLoaded = false;
+  ls_rtLos_isLoaded = false;
+  ls_rtHis_isLoaded = false;
+  ls_dPhis_isLoaded = false;
+  ls_dPhiMins_isLoaded = false;
+  ls_dPhiMaxs_isLoaded = false;
+  ls_dPhiChanges_isLoaded = false;
+  ls_dPhiChangeMins_isLoaded = false;
+  ls_dPhiChangeMaxs_isLoaded = false;
+  ls_dAlphaInners_isLoaded = false;
+  ls_dAlphaOuters_isLoaded = false;
+  ls_dAlphaInnerOuters_isLoaded = false;
+  #endif
+
   ls_simIdxAll_isLoaded = false;
   ls_simIdxAllFrac_isLoaded = false;
   t3_pt_isLoaded = false;
@@ -899,6 +1003,13 @@ void SDL::LoadAllBranches() {
   if (md_pt_branch != 0) md_pt();
   if (md_eta_branch != 0) md_eta();
   if (md_phi_branch != 0) md_phi();
+
+  #ifdef OUTPUT_MD_CUTS
+  if (md_dphi_branch !=0) md_dphi();
+  if (md_dphichange_branch !=0) md_dphichange();
+  if (md_dz_branch !=0) md_dz();
+  #endif
+
   if (md_anchor_x_branch != 0) md_anchor_x();
   if (md_anchor_y_branch != 0) md_anchor_y();
   if (md_anchor_z_branch != 0) md_anchor_z();
@@ -919,6 +1030,21 @@ void SDL::LoadAllBranches() {
   if (ls_mdIdx1_branch != 0) ls_mdIdx1();
   if (ls_isFake_branch != 0) ls_isFake();
   if (ls_simIdx_branch != 0) ls_simIdx();
+  #ifdef OUTPUT_LS_CUTS
+  if (ls_zLos_branch != 0) ls_zLos();
+  if (ls_zHis_branch != 0) ls_zHis();
+  if (ls_rtLos_branch != 0) ls_rtLos();
+  if (ls_rtHis_branch != 0) ls_rtHis();
+  if (ls_dPhis_branch != 0) ls_dPhis();
+  if (ls_dPhiMins_branch != 0) ls_dPhiMins();
+  if (ls_dPhiMaxs_branch != 0) ls_dPhiMaxs();
+  if (ls_dPhiChanges_branch != 0) ls_dPhiChanges();
+  if (ls_dPhiChangeMins_branch != 0) ls_dPhiChangeMins();
+  if (ls_dPhiChangeMaxs_branch != 0) ls_dPhiChangeMaxs();
+  if (ls_dAlphaInners_branch != 0) ls_dAlphaInners();
+  if (ls_dAlphaOuters_branch != 0) ls_dAlphaOuters();
+  if (ls_dAlphaInnerOuters_branch != 0) ls_dAlphaInnerOuters();
+  #endif
   if (ls_simIdxAll_branch != 0) ls_simIdxAll();
   if (ls_simIdxAllFrac_branch != 0) ls_simIdxAllFrac();
   if (t3_pt_branch != 0) t3_pt();
@@ -1655,6 +1781,48 @@ const vector<float> &SDL::md_phi() {
   }
   return *md_phi_;
 }
+
+#ifdef OUTPUT_MD_CUTS
+const vector<float> &SDL::md_dphi() {
+  if (not md_dphi_isLoaded) {
+    if (md_dphi_branch != 0) {
+      md_dphi_branch->GetEntry(index);
+    } else {
+      printf("branch md_dphi_branch does not exist!\n");
+      exit(1);
+    }
+    md_dphi_isLoaded = true;
+  }
+  return *md_dphichange_;
+}const vector<float> &SDL::md_dphichange() {
+  if (not md_dphichange_isLoaded) {
+    if (md_dphichange_branch != 0) {
+      md_dphichange_branch->GetEntry(index);
+    } else {
+      printf("branch md_dphichange_branch does not exist!\n");
+      exit(1);
+    }
+    md_dphichange_isLoaded = true;
+  }
+  return *md_dz_;
+}const vector<float> &SDL::md_dz() {
+  if (not md_dz_isLoaded) {
+    if (md_dz_branch != 0) {
+      md_dz_branch->GetEntry(index);
+    } else {
+      printf("branch md_dz_branch does not exist!\n");
+      exit(1);
+    }
+    md_dz_isLoaded = true;
+  }
+  return *md_dz_;
+}
+
+#endif
+
+
+
+
 const vector<float> &SDL::md_anchor_x() {
   if (not md_anchor_x_isLoaded) {
     if (md_anchor_x_branch != 0) {
@@ -1895,6 +2063,154 @@ const vector<int> &SDL::ls_simIdx() {
   }
   return *ls_simIdx_;
 }
+
+#ifdef OUTPUT_LS_CUTS
+const vector<int> &SDL::ls_zLos() {
+  if (not ls_zLos_isLoaded) {
+    if (ls_zLos_branch != 0) {
+      ls_zLos_branch->GetEntry(index);
+    } else {
+      printf("branch ls_zLos_branch does not exist!\n");
+      exit(1);
+    }
+    ls_zLos_isLoaded = true;
+  }
+  return *ls_zLos_;
+}const vector<int> &SDL::ls_zHis() {
+  if (not ls_zHis_isLoaded) {
+    if (ls_zHis_branch != 0) {
+      ls_zHis_branch->GetEntry(index);
+    } else {
+      printf("branch ls_zHis_branch does not exist!\n");
+      exit(1);
+    }
+    ls_zHis_isLoaded = true;
+  }
+  return *ls_zHis_;
+}const vector<int> &SDL::ls_rtLos() {
+  if (not ls_rtLos_isLoaded) {
+    if (ls_rtLos_branch != 0) {
+      ls_rtLos_branch->GetEntry(index);
+    } else {
+      printf("branch ls_rtLos_branch does not exist!\n");
+      exit(1);
+    }
+    ls_rtLos_isLoaded = true;
+  }
+  return *ls_rtLos_;
+}const vector<int> &SDL::ls_rtHis() {
+  if (not ls_rtHis_isLoaded) {
+    if (ls_rtHis_branch != 0) {
+      ls_rtHis_branch->GetEntry(index);
+    } else {
+      printf("branch ls_rtHis_branch does not exist!\n");
+      exit(1);
+    }
+    ls_rtHis_isLoaded = true;
+  }
+  return *ls_rtHis_;
+}const vector<int> &SDL::ls_dPhis() {
+  if (not ls_dPhis_isLoaded) {
+    if (ls_dPhis_branch != 0) {
+      ls_dPhis_branch->GetEntry(index);
+    } else {
+      printf("branch ls_dPhis_branch does not exist!\n");
+      exit(1);
+    }
+    ls_dPhis_isLoaded = true;
+  }
+  return *ls_dPhis_;
+}const vector<int> &SDL::ls_dPhiMins() {
+  if (not ls_dPhiMins_isLoaded) {
+    if (ls_dPhiMins_branch != 0) {
+      ls_dPhiMins_branch->GetEntry(index);
+    } else {
+      printf("branch ls_dPhiMins_branch does not exist!\n");
+      exit(1);
+    }
+    ls_dPhiMins_isLoaded = true;
+  }
+  return *ls_dPhiMins_;
+}const vector<int> &SDL::ls_dPhiMaxs() {
+  if (not ls_dPhiMaxs_isLoaded) {
+    if (ls_dPhiMaxs_branch != 0) {
+      ls_dPhiMaxs_branch->GetEntry(index);
+    } else {
+      printf("branch ls_dPhiMaxs_branch does not exist!\n");
+      exit(1);
+    }
+    ls_dPhiMaxs_isLoaded = true;
+  }
+  return *ls_dPhiMaxs_;
+}const vector<int> &SDL::ls_dPhiChanges() {
+  if (not ls_dPhiChanges_isLoaded) {
+    if (ls_dPhiChanges_branch != 0) {
+      ls_dPhiChanges_branch->GetEntry(index);
+    } else {
+      printf("branch ls_dPhiChanges_branch does not exist!\n");
+      exit(1);
+    }
+    ls_dPhiChanges_isLoaded = true;
+  }
+  return *ls_dPhiChanges_;
+}const vector<int> &SDL::ls_dPhiChangeMins() {
+  if (not ls_dPhiChangeMins_isLoaded) {
+    if (ls_dPhiChangeMins_branch != 0) {
+      ls_dPhiChangeMins_branch->GetEntry(index);
+    } else {
+      printf("branch ls_dPhiChangeMins_branch does not exist!\n");
+      exit(1);
+    }
+    ls_dPhiChangeMins_isLoaded = true;
+  }
+  return *ls_dPhiChangeMins_;
+}const vector<int> &SDL::ls_dPhiChangeMaxs() {
+  if (not ls_dPhiChangeMaxs_isLoaded) {
+    if (ls_dPhiChangeMaxs_branch != 0) {
+      ls_dPhiChangeMaxs_branch->GetEntry(index);
+    } else {
+      printf("branch ls_dPhiChangeMaxs_branch does not exist!\n");
+      exit(1);
+    }
+    ls_dPhiChangeMaxs_isLoaded = true;
+  }
+  return *ls_dPhiChangeMaxs_;
+}const vector<int> &SDL::ls_dAlphaInners() {
+  if (not ls_dAlphaInners_isLoaded) {
+    if (ls_dAlphaInners_branch != 0) {
+      ls_dAlphaInners_branch->GetEntry(index);
+    } else {
+      printf("branch ls_dAlphaInners_branch does not exist!\n");
+      exit(1);
+    }
+    ls_dAlphaInners_isLoaded = true;
+  }
+  return *ls_dAlphaInners_;
+}const vector<int> &SDL::ls_dAlphaOuters() {
+  if (not ls_dAlphaOuters_isLoaded) {
+    if (ls_dAlphaOuters_branch != 0) {
+      ls_dAlphaOuters_branch->GetEntry(index);
+    } else {
+      printf("branch ls_dAlphaOuters_branch does not exist!\n");
+      exit(1);
+    }
+    ls_dAlphaOuters_isLoaded = true;
+  }
+  return *ls_dAlphaOuters_;
+}const vector<int> &SDL::ls_dAlphaInnerOuters() {
+  if (not ls_dAlphaInnerOuters_isLoaded) {
+    if (ls_dAlphaInnerOuters_branch != 0) {
+      ls_dAlphaInnerOuters_branch->GetEntry(index);
+    } else {
+      printf("branch ls_dAlphaInnerOuters_branch does not exist!\n");
+      exit(1);
+    }
+    ls_dAlphaInnerOuters_isLoaded = true;
+  }
+  return *ls_dAlphaInnerOuters_;
+}
+#endif
+
 const vector<vector<int> > &SDL::ls_simIdxAll() {
   if (not ls_simIdxAll_isLoaded) {
     if (ls_simIdxAll_branch != 0) {
@@ -2726,6 +3042,11 @@ namespace tas {
   const vector<float> &md_pt() { return sdl.md_pt(); }
   const vector<float> &md_eta() { return sdl.md_eta(); }
   const vector<float> &md_phi() { return sdl.md_phi(); }
+  #ifdef OUTPUT_MD_CUTS
+  const vector<float> &md_dphi() { return sdl.md_dphi(); }
+  const vector<float> &md_dphichange() { return sdl.md_dphichange(); }
+  const vector<float> &md_dz() { return sdl.md_dz(); }
+  #endif
   const vector<float> &md_anchor_x() { return sdl.md_anchor_x(); }
   const vector<float> &md_anchor_y() { return sdl.md_anchor_y(); }
   const vector<float> &md_anchor_z() { return sdl.md_anchor_z(); }
@@ -2746,6 +3067,21 @@ namespace tas {
   const vector<int> &ls_mdIdx1() { return sdl.ls_mdIdx1(); }
   const vector<int> &ls_isFake() { return sdl.ls_isFake(); }
   const vector<int> &ls_simIdx() { return sdl.ls_simIdx(); }
+  #ifdef OUTPUT_LS_CUTS
+  const vector<int> &ls_zLos() { return sdl.ls_zLos(); }
+  const vector<int> &ls_zHis() { return sdl.ls_zHis(); }
+  const vector<int> &ls_rtLos() { return sdl.ls_rtLos(); }
+  const vector<int> &ls_rtHis() { return sdl.ls_rtHis(); }
+  const vector<int> &ls_dPhis() { return sdl.ls_dPhis(); }
+  const vector<int> &ls_dPhiMins() { return sdl.ls_dPhiMins(); }
+  const vector<int> &ls_dPhiMaxs() { return sdl.ls_dPhiMaxs(); }
+  const vector<int> &ls_dPhiChanges() { return sdl.ls_dPhiChanges(); }
+  const vector<int> &ls_dPhiChangeMins() { return sdl.ls_dPhiChangeMins(); }
+  const vector<int> &ls_dPhiChangeMaxs() { return sdl.ls_dPhiChangeMaxs(); }
+  const vector<int> &ls_dAlphaInners() { return sdl.ls_dAlphaInners(); }
+  const vector<int> &ls_dAlphaOuters() { return sdl.ls_dAlphaOuters(); }
+  const vector<int> &ls_dAlphaInnerOuters() { return sdl.ls_dAlphaInnerOuters(); }
+  #endif
   const vector<vector<int> > &ls_simIdxAll() { return sdl.ls_simIdxAll(); }
   const vector<vector<float> > &ls_simIdxAllFrac() { return sdl.ls_simIdxAllFrac(); }
   const vector<float> &t3_pt() { return sdl.t3_pt(); }

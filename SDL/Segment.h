@@ -1,5 +1,6 @@
 #ifndef Segment_cuh
 #define Segment_cuh
+#define OUTPUT_LS_CUTS
 
 #include "Constants.h"
 #include "EndcapGeometry.h"
@@ -15,6 +16,15 @@ namespace SDL {
     FPX* dPhiChanges;
     FPX* dPhiChangeMins;
     FPX* dPhiChangeMaxs;
+#ifdef OUTPUT_LS_CUTS
+    FPX* zHis;
+    FPX* zLos;
+    FPX* rtHis;
+    FPX* rtLos;
+    FPX* dAlphaInners;
+    FPX* dAlphaOuters;
+    FPX* dAlphaInnerOuters;
+#endif
     uint16_t* innerLowerModuleIndices;
     uint16_t* outerLowerModuleIndices;
     unsigned int* seedIdx;
@@ -52,6 +62,17 @@ namespace SDL {
       dPhiChanges = alpaka::getPtrNative(segmentsbuf.dPhiChanges_buf);
       dPhiChangeMins = alpaka::getPtrNative(segmentsbuf.dPhiChangeMins_buf);
       dPhiChangeMaxs = alpaka::getPtrNative(segmentsbuf.dPhiChangeMaxs_buf);
+        
+#ifdef OUTPUT_LS_CUTS
+      zHis = alpaka::getPtrNative(segmentsbuf.zHis_buf);
+      zLos = alpaka::getPtrNative(segmentsbuf.zLos_buf);
+      rtHis = alpaka::getPtrNative(segmentsbuf.rtHis_buf);
+      rtLos = alpaka::getPtrNative(segmentsbuf.rtLos_buf);
+      dAlphaInners = alpaka::getPtrNative(segmentsbuf.dAlphaInners_buf);
+      dAlphaOuters = alpaka::getPtrNative(segmentsbuf.dAlphaOuters_buf);
+      dAlphaInnerOuters = alpaka::getPtrNative(segmentsbuf.dAlphaInnerOuters_buf);
+
+#endif
       innerLowerModuleIndices = alpaka::getPtrNative(segmentsbuf.innerLowerModuleIndices_buf);
       outerLowerModuleIndices = alpaka::getPtrNative(segmentsbuf.outerLowerModuleIndices_buf);
       seedIdx = alpaka::getPtrNative(segmentsbuf.seedIdx_buf);
@@ -91,6 +112,17 @@ namespace SDL {
     Buf<TDev, FPX> dPhiChanges_buf;
     Buf<TDev, FPX> dPhiChangeMins_buf;
     Buf<TDev, FPX> dPhiChangeMaxs_buf;
+    
+#ifdef OUTPUT_LS_CUTS
+    Buf<TDev, FPX> zHis_buf;
+    Buf<TDev, FPX> zLos_buf;
+    Buf<TDev, FPX> rtHis_buf;
+    Buf<TDev, FPX> rtLos_buf;
+    Buf<TDev, FPX> dAlphaInners_buf;
+    Buf<TDev, FPX> dAlphaOuters_buf;
+    Buf<TDev, FPX> dAlphaInnerOuters_buf;
+#endif
+    
     Buf<TDev, uint16_t> innerLowerModuleIndices_buf;
     Buf<TDev, uint16_t> outerLowerModuleIndices_buf;
     Buf<TDev, unsigned int> seedIdx_buf;
@@ -132,6 +164,16 @@ namespace SDL {
           dPhiChanges_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn, queue)),
           dPhiChangeMins_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn, queue)),
           dPhiChangeMaxs_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn, queue)),
+#ifdef OUTPUT_LS_CUTS   
+          zHis_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn, queue)),
+          zLos_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn, queue)),
+          rtHis_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn, queue)),
+          rtLos_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn, queue)),
+	  dAlphaInners_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn,queue)),
+	  dAlphaOuters_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn, queue)),
+	  dAlphaInnerOuters_buf(allocBufWrapper<FPX>(devAccIn, nMemoryLocationsIn, queue)),
+#endif
+          
           innerLowerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, nMemoryLocationsIn, queue)),
           outerLowerModuleIndices_buf(allocBufWrapper<uint16_t>(devAccIn, nMemoryLocationsIn, queue)),
           seedIdx_buf(allocBufWrapper<unsigned int>(devAccIn, maxPixelSegments, queue)),
@@ -331,11 +373,8 @@ namespace SDL {
         modulesInGPU.sides[innerLowerModuleIndex] == SDL::Center) {
       dAlphaThresholdValues[0] = dAlpha_Bfield + alpaka::math::sqrt(acc, dAlpha_res * dAlpha_res + sdMuls * sdMuls);
     } else {
-      dAlphaThresholdValues[0] =
-          dAlpha_Bfield +
-          alpaka::math::sqrt(acc, dAlpha_res * dAlpha_res + sdMuls * sdMuls + sdLumForInnerMini * sdLumForInnerMini);
+      dAlphaThresholdValues[0] = dAlpha_Bfield + alpaka::math::sqrt(acc, dAlpha_res * dAlpha_res + sdMuls *sdMuls + sdLumForInnerMini * sdLumForOuterMini);
     }
-
     if (modulesInGPU.subdets[outerLowerModuleIndex] == SDL::Barrel and
         modulesInGPU.sides[outerLowerModuleIndex] == SDL::Center) {
       dAlphaThresholdValues[1] = dAlpha_Bfield + alpaka::math::sqrt(acc, dAlpha_res * dAlpha_res + sdMuls * sdMuls);
@@ -348,9 +387,60 @@ namespace SDL {
     //Inner to outer
     dAlphaThresholdValues[2] = dAlpha_Bfield + alpaka::math::sqrt(acc, dAlpha_res * dAlpha_res + sdMuls * sdMuls);
   };
-
+#ifdef OUTPUT_LS_CUTS
   ALPAKA_FN_ACC ALPAKA_FN_INLINE void addSegmentToMemory(struct SDL::segments& segmentsInGPU,
                                                          unsigned int lowerMDIndex,
+                                                         unsigned int upperMDIndex,
+                                                         uint16_t innerLowerModuleIndex,
+                                                         uint16_t outerLowerModuleIndex,
+                                                         unsigned int innerMDAnchorHitIndex,
+                                                         unsigned int outerMDAnchorHitIndex,
+                                                         float& dPhi,
+                                                         float& dPhiMin,
+                                                         float& dPhiMax,
+                                                         float& dPhiChange,
+                                                         float& dPhiChangeMin,
+                                                         float& dPhiChangeMax,
+                                                         float& zHi,
+                                                         float& zLo,
+                                                         float& rtHi,
+                                                         float& rtLo,
+							 float& dAlphaInner,
+							 float& dAlphaOuter,
+							 float& dAlphaInnerOuter,
+                                                         unsigned int idx) {
+    //idx will be computed in the kernel, which is the index into which the
+    //segment will be written
+    //nSegments will be incremented in the kernel
+    //printf("seg: %u %u %u %u\n",lowerMDIndex, upperMDIndex,innerLowerModuleIndex,outerLowerModuleIndex);
+    segmentsInGPU.mdIndices[idx * 2] = lowerMDIndex;
+    segmentsInGPU.mdIndices[idx * 2 + 1] = upperMDIndex;
+    segmentsInGPU.innerLowerModuleIndices[idx] = innerLowerModuleIndex;
+    segmentsInGPU.outerLowerModuleIndices[idx] = outerLowerModuleIndex;
+    segmentsInGPU.innerMiniDoubletAnchorHitIndices[idx] = innerMDAnchorHitIndex;
+    segmentsInGPU.outerMiniDoubletAnchorHitIndices[idx] = outerMDAnchorHitIndex;
+
+    segmentsInGPU.dPhis[idx] = __F2H(dPhi);
+    segmentsInGPU.dPhiMins[idx] = __F2H(dPhiMin);
+    segmentsInGPU.dPhiMaxs[idx] = __F2H(dPhiMax);
+    segmentsInGPU.dPhiChanges[idx] = __F2H(dPhiChange);
+    segmentsInGPU.dPhiChangeMins[idx] = __F2H(dPhiChangeMin);
+    segmentsInGPU.dPhiChangeMaxs[idx] = __F2H(dPhiChangeMax);
+      
+    //hubert
+    segmentsInGPU.zHis[idx] = __F2H(zHi);
+    segmentsInGPU.zLos[idx] = __F2H(zLo);
+    segmentsInGPU.rtHis[idx] = __F2H(rtHi);
+    segmentsInGPU.rtLos[idx] = __F2H(rtLo);
+    segmentsInGPU.dAlphaInners[idx] = __F2H(dAlphaInner);
+    segmentsInGPU.dAlphaOuters[idx] = __F2H(dAlphaOuter);
+    segmentsInGPU.dAlphaInnerOuters[idx] = __F2H(dAlphaInnerOuter);
+    
+  };
+#else
+
+  ALPAKA_FN_ACC ALPAKA_FN_INLINE void addSegmentToMemory(struct SDL::segments& segmentsInGPU,
+		                                         unsigned int lowerMDIndex,
                                                          unsigned int upperMDIndex,
                                                          uint16_t innerLowerModuleIndex,
                                                          uint16_t outerLowerModuleIndex,
@@ -380,7 +470,8 @@ namespace SDL {
     segmentsInGPU.dPhiChanges[idx] = __F2H(dPhiChange);
     segmentsInGPU.dPhiChangeMins[idx] = __F2H(dPhiChangeMin);
     segmentsInGPU.dPhiChangeMaxs[idx] = __F2H(dPhiChangeMax);
-  }
+  };
+#endif
 
   template <typename TAcc>
   ALPAKA_FN_ACC ALPAKA_FN_INLINE void addPixelSegmentToMemory(TAcc const& acc,
@@ -883,8 +974,8 @@ namespace SDL {
               } else {
                 unsigned int segmentModuleIdx =
                     alpaka::atomicOp<alpaka::AtomicAdd>(acc, &segmentsInGPU.nSegments[innerLowerModuleIndex], 1u);
-                unsigned int segmentIdx = rangesInGPU.segmentModuleIndices[innerLowerModuleIndex] + segmentModuleIdx;
-
+		unsigned int segmentIdx = rangesInGPU.segmentModuleIndices[innerLowerModuleIndex] + segmentModuleIdx;
+#ifdef OUTPUT_LS_CUTS
                 addSegmentToMemory(segmentsInGPU,
                                    innerMDIndex,
                                    outerMDIndex,
@@ -898,7 +989,32 @@ namespace SDL {
                                    dPhiChange,
                                    dPhiChangeMin,
                                    dPhiChangeMax,
+                                   zHi,
+                                   zLo,
+                                   rtHi,
+                                   rtLo,
+				                           dAlphaInnerMDSegment,
+                                   dAlphaOuterMDSegment,
+                                   dAlphaInnerMDOuterMD,
                                    segmentIdx);
+              
+#else
+		addSegmentToMemory(segmentsInGPU,
+                                   innerMDIndex,
+                                   outerMDIndex,
+                                   innerLowerModuleIndex,
+                                   outerLowerModuleIndex,
+                                   innerMiniDoubletAnchorHitIndex,
+                                   outerMiniDoubletAnchorHitIndex,
+                                   dPhi,
+                                   dPhiMin,
+                                   dPhiMax,
+                                   dPhiChange,
+                                   dPhiChangeMin,
+                                   dPhiChangeMax,
+                                   segmentIdx);
+              
+#endif
               }
             }
           }
@@ -991,11 +1107,10 @@ namespace SDL {
         else {
           occupancy = 0;
 #ifdef Warnings
-          printf("Unhandled case in createSegmentArrayRanges! Module index = %i\n", i);
+          printf("Unhandled case in createSegmentArrayRanges! Module index = %i\n",i);
 #endif
         }
-
-        int nTotSegs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalSegments, occupancy);
+      int nTotSegs = alpaka::atomicOp<alpaka::AtomicAdd>(acc, &nTotalSegments, occupancy);
         rangesInGPU.segmentModuleIndices[i] = nTotSegs;
         rangesInGPU.segmentModuleOccupancy[i] = occupancy;
       }

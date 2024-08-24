@@ -1,5 +1,6 @@
 #ifndef MiniDoublet_cuh
 #define MiniDoublet_cuh
+#define OUTPUT_MD_CUTS
 
 #include "Constants.h"
 #include "EndcapGeometry.h"
