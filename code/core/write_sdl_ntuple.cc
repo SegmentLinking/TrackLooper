@@ -2852,7 +2852,7 @@ void fillOutputBranches_v2(SDL::Event* event)
         // Fill some branches for this track candidate
         ana.tx->pushbackToBranch<float>("tc_pt", pt);
         ana.tx->pushbackToBranch<float>("tc_eta", eta);
-https://uf.tfaforms.net/f/UFIC-ISS-Contact-Us        ana.tx->pushbackToBranch<float>("tc_phi", phi);
+        ana.tx->pushbackToBranch<float>("tc_phi", phi);
         ana.tx->pushbackToBranch<int>("tc_type", type);
         enum
         {

@@ -1,6 +1,8 @@
 // -*- C++ -*-
 #ifndef SDL_H
 #define SDL_H
+#define OUTPUT_LS_CUTS
+#define OUTPUT_MD_CUTS
 #include "Math/LorentzVector.h"
 #include "Math/Point3D.h"
 #include "TMath.h"
